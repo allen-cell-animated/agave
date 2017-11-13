@@ -8,7 +8,7 @@ class aicsCudaDevice
 public:
 	aicsCudaDevice(void){};
 
-	aicsCudaDevice& aicsCudaDevice::operator=(const aicsCudaDevice& Other)
+	aicsCudaDevice& operator=(const aicsCudaDevice& Other)
 	{
 		m_ID				= Other.m_ID;
 		m_Name				= Other.m_Name;
