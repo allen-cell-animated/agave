@@ -33,7 +33,7 @@ public:
 public:
 	HO CDenoiseParams(void);
 
-	HOD CDenoiseParams& CDenoiseParams::operator=(const CDenoiseParams& Other)
+	HOD CDenoiseParams& operator=(const CDenoiseParams& Other)
 	{
 		m_Enabled			= Other.m_Enabled;
 		m_Noise				= Other.m_Noise;

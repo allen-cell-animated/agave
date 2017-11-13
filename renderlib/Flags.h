@@ -35,7 +35,7 @@ public:
 	{
 	};
 
-	HOD CFlags& CFlags::operator=(const CFlags& Other)
+	HOD CFlags& operator=(const CFlags& Other)
 	{
 		m_Bits = Other.m_Bits;
 

@@ -43,7 +43,7 @@ public:
 		m_DotWN				= DEF_FOCUS_DOT_WN;
 	}
 
-	HOD CFocus& CFocus::operator=(const CFocus& Other)
+	HOD CFocus& operator=(const CFocus& Other)
 	{
 		m_Type				= Other.m_Type;
 		m_SensorPosCanvas	= Other.m_SensorPosCanvas;
@@ -89,7 +89,7 @@ public:
 			m_Data[i] = 0.0f;
 	}
 
-	CAperture& CAperture::operator=(const CAperture& Other)
+	CAperture& operator=(const CAperture& Other)
 	{
 		m_Size		= Other.m_Size;
 		m_NoBlades	= Other.m_NoBlades;
@@ -153,7 +153,7 @@ public:
 		m_Gamma			= DEF_FILM_GAMMA;
 	}
 
-	CFilm& CFilm::operator=(const CFilm& Other)
+	CFilm& operator=(const CFilm& Other)
 	{
 		m_Resolution		= Other.m_Resolution;
 		m_Screen[0][0]		= Other.m_Screen[0][0];
@@ -260,7 +260,7 @@ public:
 		m_Dirty					= true;
 	}
 
-	CCamera& CCamera::operator=(const CCamera& Other)
+	CCamera& operator=(const CCamera& Other)
 	{
 		m_SceneBoundingBox		= Other.m_SceneBoundingBox;
 		m_Hither				= Other.m_Hither;

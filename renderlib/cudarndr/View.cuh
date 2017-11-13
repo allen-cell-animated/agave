@@ -38,12 +38,12 @@ public:
 		Free();
 	}
 
-	CCudaView::CCudaView(const CCudaView& Other)
+	CCudaView(const CCudaView& Other)
 	{
 		*this = Other;
 	}
 
-	CCudaView& CCudaView::operator=(const CCudaView& Other)
+	CCudaView& operator=(const CCudaView& Other)
 	{
 		m_Resolution			= Other.m_Resolution;
 		m_RunningEstimateXyza	= Other.m_RunningEstimateXyza;

@@ -32,12 +32,12 @@ public:
 		Free();
 	}
 
-	CCudaBuffer2D::CCudaBuffer2D(const CCudaBuffer2D& Other)
+	CCudaBuffer2D(const CCudaBuffer2D& Other)
 	{
 		*this = Other;
 	}
 
-	CCudaBuffer2D& CCudaBuffer2D::operator=(const CCudaBuffer2D& Other)
+	CCudaBuffer2D& operator=(const CCudaBuffer2D& Other)
 	{
 		m_Resolution	= Other.m_Resolution;
 		m_pData			= Other.m_pData;

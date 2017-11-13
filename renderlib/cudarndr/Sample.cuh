@@ -29,7 +29,7 @@ public:
 		m_Component	= 0.0f;
 	}
 
-	HOD CLightSample& CLightSample::operator=(const CLightSample& Other)
+	HOD CLightSample& operator=(const CLightSample& Other)
 	{
 		m_Pos	 	= Other.m_Pos;
 		m_Component = Other.m_Component;
@@ -62,7 +62,7 @@ public:
 		m_Dir 		= Dir;
 	}
 
-	HOD CBrdfSample& CBrdfSample::operator=(const CBrdfSample& Other)
+	HOD CBrdfSample& operator=(const CBrdfSample& Other)
 	{
 		m_Component = Other.m_Component;
 		m_Dir 		= Other.m_Dir;
@@ -89,7 +89,7 @@ public:
 		m_LightNum = 0.0f;
 	}
 
-	HOD CLightingSample& CLightingSample::operator=(const CLightingSample& Other)
+	HOD CLightingSample& operator=(const CLightingSample& Other)
 	{
 		m_BsdfSample	= Other.m_BsdfSample;
 		m_LightNum		= Other.m_LightNum;
@@ -119,7 +119,7 @@ public:
 		m_LensUV	= Vec2f(0.0f);
 	}
 
-	DEV CCameraSample& CCameraSample::operator=(const CCameraSample& Other)
+	DEV CCameraSample& operator=(const CCameraSample& Other)
 	{
 		m_ImageXY	= Other.m_ImageXY;
 		m_LensUV	= Other.m_LensUV;
