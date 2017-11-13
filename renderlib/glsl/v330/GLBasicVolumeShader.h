@@ -107,7 +107,7 @@ public:
     void
     setLUT(int texunit);
 
-	void setTransformUniforms(const Camera& camera, glm::mat4& modelMatrix);
+	void setTransformUniforms(const Camera& camera, const glm::mat4& modelMatrix);
 	void setShadingUniforms();
 
 	float dataRangeMin;

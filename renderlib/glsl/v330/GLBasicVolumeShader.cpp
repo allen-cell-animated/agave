@@ -305,7 +305,7 @@ GLBasicVolumeShader::setShadingUniforms()
 	glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
 }
 void 
-GLBasicVolumeShader::setTransformUniforms(const Camera& camera, glm::mat4& modelMatrix)
+GLBasicVolumeShader::setTransformUniforms(const Camera& camera, const glm::mat4& modelMatrix)
 {
 	glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
 	glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(camera.projection));

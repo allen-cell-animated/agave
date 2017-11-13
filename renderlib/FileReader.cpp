@@ -34,7 +34,7 @@ FileReader::~FileReader()
 {
 }
 
-std::shared_ptr<ome::files::FormatReader> FileReader::open(std::string& filepath) {
+std::shared_ptr<ome::files::FormatReader> FileReader::open(const std::string& filepath) {
 	
 	std::shared_ptr<ome::files::FormatReader> reader(std::make_shared<ome::files::in::OMETIFFReader>());
 //	try {
@@ -124,7 +124,7 @@ struct CopyBufferVisitor : public boost::static_visitor<>
 
 };
 
-std::shared_ptr<ImageXYZC> FileReader::openToImage(std::string& filepath) {
+std::shared_ptr<ImageXYZC> FileReader::openToImage(const std::string& filepath) {
 //	boost::filesystem::path p(filepath);
 //	std::shared_ptr<ome::xml::meta::OMEXMLMetadata> filemeta(ome::files::createOMEXMLMetadata(p));
 // assumes unit is the same for all three (microns?)

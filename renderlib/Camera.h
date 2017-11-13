@@ -31,13 +31,13 @@ public:
 
 
 	// speed is usually 0.1f or something small like that
-	void rotate(float amount, glm::vec3& axis)
+	void rotate(float amount, const glm::vec3& axis)
 	{
 		direction = glm::rotate(direction, amount, axis);
 		up = glm::rotate(up, amount, axis);
 	}
 
-	void translate(glm::vec3& translation)
+	void translate(const glm::vec3& translation)
 	{
 		position += translation;
 	}
