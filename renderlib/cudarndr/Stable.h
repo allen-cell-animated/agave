@@ -4,7 +4,8 @@
 
 #include <QtGui>
 #include <QtWidgets>
-#include <QtXml\qdom.h>
+#include <QDomDocument>
+#include <QDomElement>
 
 #include "Utilities.h"
 #include "Status.h"
