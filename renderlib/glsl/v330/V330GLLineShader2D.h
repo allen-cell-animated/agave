@@ -1,6 +1,6 @@
 #pragma once
 
-#include "openGLShaderProgram.h"
+#include <QOpenGLShaderProgram>
 
 #include <glm.h>
 
@@ -8,7 +8,7 @@
 /**
     * 2D line shader program.
     */
-class GLLineShader2D : public OpenGLShaderProgram
+class GLLineShader2D : public QOpenGLShaderProgram
 {
 
 public:
@@ -93,9 +93,9 @@ public:
 
 private:
     /// @copydoc GLImageShader2D::vshader
-    OpenGLShader *vshader;
+    QOpenGLShader *vshader;
     /// @copydoc GLImageShader2D::fshader
-    OpenGLShader *fshader;
+    QOpenGLShader *fshader;
 
     /// @copydoc GLImageShader2D::attr_coords
     int attr_coords;

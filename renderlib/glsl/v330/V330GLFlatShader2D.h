@@ -1,13 +1,13 @@
 #pragma once
 
-#include "openGLShaderProgram.h"
+#include <QOpenGLShaderProgram>
 
 #include <glm.h>
 
 /**
     * 2D flat (solid fill) shader program.
     */
-class GLFlatShader2D : public OpenGLShaderProgram
+class GLFlatShader2D : public QOpenGLShaderProgram
 {
 
 public:
@@ -64,9 +64,9 @@ public:
 
 private:
     /// @copydoc GLImageShader2D::vshader
-    OpenGLShader *vshader;
+    QOpenGLShader *vshader;
     /// @copydoc GLImageShader2D::fshader
-    OpenGLShader *fshader;
+    QOpenGLShader *fshader;
 
     /// @copydoc GLImageShader2D::attr_coords
     int attr_coords;

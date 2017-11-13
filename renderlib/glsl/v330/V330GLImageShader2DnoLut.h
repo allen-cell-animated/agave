@@ -1,6 +1,6 @@
 #pragma once
 
-#include "openGLShaderProgram.h"
+#include <QOpenGLShaderProgram>
 
 #include <ome/files/Types.h>
 
@@ -10,7 +10,7 @@
 /**
     * 2D image shader program (simple, up to three channels).
     */
-class GLImageShader2DnoLut : public OpenGLShaderProgram
+class GLImageShader2DnoLut : public QOpenGLShaderProgram
 {
 
 public:
@@ -113,9 +113,9 @@ public:
 
 private:
     /// The vertex shader.
-    OpenGLShader *vshader;
+    QOpenGLShader *vshader;
     /// The fragment shader.
-    OpenGLShader *fshader;
+    QOpenGLShader *fshader;
 
     /// Vertex coordinates attribute.
     int attr_coords;

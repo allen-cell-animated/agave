@@ -1,3 +1,4 @@
+#include "glad/glad.h"
 #include "V330GLImageShader2DnoLut.h"
 
 #include <glm.h>
@@ -8,7 +9,7 @@
 
 
 GLImageShader2DnoLut::GLImageShader2DnoLut():
-    OpenGLShaderProgram(),
+    QOpenGLShaderProgram(),
     vshader(),
     fshader(),
     attr_coords(),
@@ -16,7 +17,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut():
     uniform_mvp(),
     uniform_texture()
 {
-    vshader = new OpenGLShader(OpenGLShader::Vertex);
+    vshader = new QOpenGLShader(QOpenGLShader::Vertex);
 
     vshader->compileSourceCode
     ("#version 330 core\n"
@@ -37,10 +38,10 @@ GLImageShader2DnoLut::GLImageShader2DnoLut():
 
     if (!vshader->isCompiled())
     {
-        std::cerr << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n" << vshader->log() << std::endl;
+        std::cerr << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
     }
 
-    fshader = new OpenGLShader(OpenGLShader::Fragment);
+    fshader = new QOpenGLShader(QOpenGLShader::Fragment);
     fshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
@@ -62,7 +63,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut():
 
     if (!fshader->isCompiled())
     {
-        std::cerr << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n" << fshader->log() << std::endl;
+        std::cerr << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
     }
 
     addShader(vshader);
@@ -71,7 +72,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut():
 
     if (!isLinked())
     {
-        std::cerr << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log() << std::endl;
+        std::cerr << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 
     attr_coords = attributeLocation("coord2d");

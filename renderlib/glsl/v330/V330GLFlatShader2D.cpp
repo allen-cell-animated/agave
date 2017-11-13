@@ -1,3 +1,4 @@
+#include "glad/glad.h"
 #include "V330GLFlatShader2D.h"
 #include <glm.h>
 #include <gl/Util.h>
@@ -5,7 +6,7 @@
 #include <iostream>
 
 GLFlatShader2D::GLFlatShader2D():
-    OpenGLShaderProgram(),
+    QOpenGLShaderProgram(),
     vshader(),
     fshader(),
     attr_coords(),
@@ -13,7 +14,7 @@ GLFlatShader2D::GLFlatShader2D():
     uniform_offset(),
     uniform_mvp()
 {
-    vshader = new OpenGLShader(OpenGLShader::Vertex);
+    vshader = new QOpenGLShader(QOpenGLShader::Vertex);
     vshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
@@ -34,10 +35,10 @@ GLFlatShader2D::GLFlatShader2D():
         "}\n");
     if (!vshader->isCompiled())
     {
-        std::cerr << "Failed to compile vertex shader\n" << vshader->log() << std::endl;
+        std::cerr << "Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
     }
 
-    fshader = new OpenGLShader(OpenGLShader::Fragment);
+    fshader = new QOpenGLShader(QOpenGLShader::Fragment);
     fshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
@@ -53,7 +54,7 @@ GLFlatShader2D::GLFlatShader2D():
         "}\n");
     if (!fshader->isCompiled())
     {
-        std::cerr << "V330GLFlatShader2D: Failed to compile fragment shader\n" << fshader->log() << std::endl;
+        std::cerr << "V330GLFlatShader2D: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
     }
 
     addShader(vshader);
@@ -62,7 +63,7 @@ GLFlatShader2D::GLFlatShader2D():
 
     if (!isLinked())
     {
-        std::cerr << "V330GLFlatShader2D: Failed to link shader program\n" << log() << std::endl;
+        std::cerr << "V330GLFlatShader2D: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 
     attr_coords = attributeLocation("coord2d");

@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <qopenglshaderprogram.h>
+#include <QOpenGLShaderProgram>
 #include <QByteArray>
 #include <QJsonDocument>
 #include <QJsonObject>
