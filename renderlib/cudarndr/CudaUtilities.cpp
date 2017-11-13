@@ -4,6 +4,8 @@
 
 #include "Logging.h"
 
+#include <stdio.h>
+
 CCudaTimer::CCudaTimer(void)
 {
 	StartTimer();
