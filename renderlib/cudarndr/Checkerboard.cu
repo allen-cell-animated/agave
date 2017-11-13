@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Checkerboard.cuh"
 
 #include "CudaUtilities.h"

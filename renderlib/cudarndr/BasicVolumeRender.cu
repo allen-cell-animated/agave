@@ -1,5 +1,3 @@
-#pragma once
-
 #include "BasicVolumeRender.cuh"
 
 #include "Scene.h"
