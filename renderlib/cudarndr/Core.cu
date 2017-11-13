@@ -402,7 +402,7 @@ void BindConstants(CScene* pScene)
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &pScene->m_DenoiseParams.m_LerpC, sizeof(float)));
 
 	const float NoIterations	= pScene->GetNoIterations();
-	const float InvNoIterations = 1.0f / __max(1.0f, NoIterations);
+	const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 
 	HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
