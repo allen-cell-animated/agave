@@ -29,7 +29,7 @@ public:
 	HO CTiming(const char* pName)
 	{
 #ifndef __CUDACC__
-		sprintf_s(m_Name, "%s", pName);
+		sprintf(m_Name, "%s", pName);
 #endif
 		memset(m_Durations, 0, MAX_NO_DURATIONS * sizeof(float));
 
@@ -41,7 +41,7 @@ public:
 
 		HO CTiming& CTiming::operator=(const CTiming& Other)
 		{
-				strcpy_s(m_Name, Other.m_Name);
+				strcpy(m_Name, Other.m_Name);
 		
 					for (int i = 0; i < MAX_NO_DURATIONS; i++)
 					{
