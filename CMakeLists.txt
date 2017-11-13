@@ -79,18 +79,18 @@ target_link_libraries(renderlib
 ######################
 # THE FRONT END QT EXE
 ######################
-add_executable(qtome "")
+add_executable(qtomeapp "")
 add_subdirectory(qtome)
-target_link_libraries(qtome 
+target_link_libraries(qtomeapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	OME::Files
 	Boost::iostreams Boost::log Boost::log_setup Boost::thread Boost::system Boost::filesystem Boost::date_time Boost::chrono Boost::atomic
 )
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-set_target_properties(qtome PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}/dist")
-set_target_properties(qtome PROPERTIES VS_STARTUP_PROJECT qtome)
-install(TARGETS qtome RUNTIME DESTINATION dist)
+set_target_properties(qtomeapp PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}/dist")
+set_target_properties(qtomeapp PROPERTIES VS_STARTUP_PROJECT qtome)
+install(TARGETS qtomeapp RUNTIME DESTINATION dist)
 install(FILES 
 	$<TARGET_FILE:Qt5::Widgets>
 	$<TARGET_FILE:Qt5::Core>

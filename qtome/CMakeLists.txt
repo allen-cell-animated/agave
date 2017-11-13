@@ -1,13 +1,13 @@
-target_include_directories(qtome PUBLIC
+target_include_directories(qtomeapp PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
 	${XercesC_INCLUDE_DIRS}	
 	${glm_DIR}
 )
-target_compile_definitions(qtome PUBLIC
-	-DBOOST_ALL_DYN_LINK
+target_compile_definitions(qtomeapp PUBLIC
+	BOOST_ALL_DYN_LINK
 )
-target_sources(qtome PRIVATE
+target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ApertureWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDockWidget.cpp"
