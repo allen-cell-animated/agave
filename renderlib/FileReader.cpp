@@ -10,10 +10,23 @@
 
 #include "ImageXYZC.h"
 
+#ifdef WIN32
+static int setenv(const char *name, const char *value, int overwrite)
+{
+    int errcode = 0;
+    if(!overwrite) {
+        size_t envsize = 0;
+        errcode = getenv_s(&envsize, NULL, 0, name);
+        if(errcode || envsize) return errcode;
+    }
+    return _putenv_s(name, value);
+}
+#endif
+
 FileReader::FileReader(const std::string& omeSchemaDir)
 {
-	std::string env = "OME_XML_SCHEMADIR=" + omeSchemaDir;
-	_putenv(env.c_str());
+	//std::string env = "OME_XML_SCHEMADIR=" + omeSchemaDir;
+	setenv("OME_XML_SCHEMADIR", omeSchemaDir.c_str(), 1);
 }
 
 
