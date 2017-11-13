@@ -1,0 +1,9 @@
+thirdparty/
+build/
+GeneratedFiles/
+x64/
+.vs/
+*.vcxproj.filters
+*.vcxproj.user
+*.pch
+*.pdb
