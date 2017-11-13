@@ -8,8 +8,8 @@ class QAperture: public QObject
 
 public:
 	QAperture(QObject* pParent = NULL);
-	QAperture::QAperture(const QAperture& Other);
-	QAperture& QAperture::operator=(const QAperture& Other);
+	QAperture(const QAperture& Other);
+	QAperture& operator=(const QAperture& Other);
 
 	float			GetSize(void) const;
 	void			SetSize(const float& Size);

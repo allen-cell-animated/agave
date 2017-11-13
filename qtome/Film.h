@@ -21,8 +21,8 @@ class QFilm : public QObject
 
 public:
 	QFilm(QObject* pParent = NULL);
-	QFilm::QFilm(const QFilm& Other);
-	QFilm& QFilm::operator=(const QFilm& Other);
+	QFilm(const QFilm& Other);
+	QFilm& operator=(const QFilm& Other);
 
 	int				GetWidth(void) const;
 	void			SetWidth(const int& Width);

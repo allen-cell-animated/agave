@@ -24,7 +24,7 @@ class aicsQFrameBuffer
 public:
 	aicsQFrameBuffer(void);
 	aicsQFrameBuffer(const aicsQFrameBuffer& Other);
-	aicsQFrameBuffer& aicsQFrameBuffer::operator=(const aicsQFrameBuffer& Other);
+	aicsQFrameBuffer& operator=(const aicsQFrameBuffer& Other);
 	virtual ~aicsQFrameBuffer(void);
 	void Set(unsigned char* pPixels, const int& Width, const int& Height);
 	unsigned char* GetPixels(void) { return m_pPixels; }
@@ -51,7 +51,7 @@ public:
 	aicsQRenderThread(const QString& FileName = "", QObject* pParent = NULL);
 	aicsQRenderThread(const aicsQRenderThread& Other);
 	virtual ~aicsQRenderThread(void);
-	aicsQRenderThread& aicsQRenderThread::operator=(const aicsQRenderThread& Other);
+	aicsQRenderThread& operator=(const aicsQRenderThread& Other);
 
 	void run();
 

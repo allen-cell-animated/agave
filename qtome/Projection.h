@@ -21,8 +21,8 @@ class QProjection : public QObject
 
 public:
 	QProjection(QObject* pParent = NULL);
-	QProjection::QProjection(const QProjection& Other);
-	QProjection& QProjection::operator=(const QProjection& Other);
+	QProjection(const QProjection& Other);
+	QProjection& operator=(const QProjection& Other);
 
 	float			GetFieldOfView(void) const;
 	void			SetFieldOfView(const float& FieldOfView);
