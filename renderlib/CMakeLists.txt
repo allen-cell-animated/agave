@@ -5,6 +5,7 @@ target_include_directories(renderlib PUBLIC
 	${Boost_INCLUDE_DIRS}
 	${XercesC_INCLUDE_DIRS}	
 	${glm_DIR}
+	${TIFF_INCLUDE_DIR}
 	${GLAD_DIR}
 	${CUDA_SDK_ROOT_DIR}/common/inc
 	${CUDA_TOOLKIT_INCLUDE}

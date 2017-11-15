@@ -16,20 +16,15 @@ set(CMAKE_AUTOUIC ON)
 # the install prefix of Qt 5.
 if (WIN32)
 	set(QT_DIR C:/Qt/5.9.1/msvc2015_64)
-	set(OMEBUNDLE ome-files-bundle-0.4.0-VC14-x64-${CMAKE_BUILD_TYPE}-b24)
 else (WIN32)
 	# linux: QTDIR = /opt/qt59
-	set(OMEBUNDLE ome-files-standalone-bundle-0.4.0-${CMAKE_BUILD_TYPE}-Ubuntu14.04-x86_64-b24)
 endif (WIN32)
 
-# use the path to the proper ome-files directory.  configuration Debug or Release
-set(OME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${OMEBUNDLE})
+set(zlib_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/zlib-1.2.11)
 
 set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 
-message ("OME_DIR is ${OME_DIR}")
-
-set(CMAKE_PREFIX_PATH ${QT_DIR} ${OME_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
+set(CMAKE_PREFIX_PATH ${QT_DIR};${TIFF_DIR};${zlib_DIR};${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
 
 find_package(Qt5Widgets)
 find_package(Qt5Core)
@@ -37,10 +32,6 @@ find_package(Qt5Gui)
 find_package(Qt5Network)
 find_package(Qt5WebSockets)
 find_package(Qt5Xml)
-
-find_package(OMECommon 5.4.0 REQUIRED)
-find_package(OMEXML 5.5.0 REQUIRED)
-find_package(OMEFiles 0.3.0 REQUIRED)
 
 set(Boost_USE_STATIC_LIBS OFF )
 set(Boost_USE_MULTITHREADED ON)
@@ -55,7 +46,13 @@ set(Boost_USE_STATIC_RUNTIME OFF)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 #endif()
 
-find_package(Boost 1.64 COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
+set(BOOST_LIBRARYDIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost_1_65_1/lib64-msvc-14.0)
+find_package(Boost 1.65.1 COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
+
+set(TIFF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tiff-4.0.8)
+set(TIFF_INCLUDE_DIR ${TIFF_DIR}/include)
+set(TIFF_LIBRARY ${TIFF_DIR}/lib/tiff.lib)
+find_package(TIFF)
 
 #####################
 # THE STATIC LIB
@@ -76,6 +73,9 @@ target_link_libraries(renderlib
 	renderlib_cuda
 )
 
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 ######################
 # THE FRONT END QT EXE
 ######################
@@ -84,7 +84,7 @@ add_subdirectory(qtome)
 target_link_libraries(qtomeapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
-	OME::Files
+	${TIFF_LIBRARIES}
 	Boost::iostreams Boost::log Boost::log_setup Boost::thread Boost::system Boost::filesystem Boost::date_time Boost::chrono Boost::atomic
 )
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
@@ -96,14 +96,14 @@ install(FILES
 	$<TARGET_FILE:Qt5::Core>
 	$<TARGET_FILE:Qt5::Gui>
 	$<TARGET_FILE:Qt5::Xml>
+	${TIFF_DIR}/bin/tiff.dll	
 	DESTINATION dist
 )
-install(DIRECTORY ${OME_DIR}/bin/ DESTINATION dist
-	PATTERN "${OME_DIR}/bin/*.dll"
+install(DIRECTORY ${BOOST_LIBRARYDIR}/ DESTINATION dist
+	FILES_MATCHING PATTERN "*.dll"
 )
-	# FILES_MATCHING PATTERN "*.dll")
+
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/qtome/ome-qtwidgets-icon/actions DESTINATION dist)
-install(DIRECTORY ${OME_DIR}/share/xml/ome DESTINATION dist)
 
 
 #######################################
@@ -114,7 +114,6 @@ add_subdirectory(websocketserver)
 target_link_libraries(websocketserver 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
-	OME::Files
 	Boost::iostreams Boost::log Boost::log_setup Boost::thread Boost::system Boost::filesystem Boost::date_time Boost::chrono Boost::atomic
 )
 install(TARGETS websocketserver RUNTIME DESTINATION dist)
