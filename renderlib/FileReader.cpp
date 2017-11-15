@@ -304,34 +304,62 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 
 
 
-  // Number of bytes in a decoded scanline
-  tsize_t scanlength = TIFFScanlineSize(tiff);
-  tsize_t tilesize = TIFFTileSize(tiff);
-  uint32 ntiles = TIFFNumberOfTiles(tiff);
-  assert(ntiles == 1);
-
-
-// assuming ntiles == 1 for all IFDs
-  tdata_t buf = _TIFFmalloc(TIFFTileSize(tiff));
-
   uint8_t* destptr = data;
-  for (uint32_t i = 0; i < sizeC; ++i) {
-	  for (uint32_t j = 0; j < sizeZ; ++j) {
-		  int setdirok = TIFFSetDirectory(tiff, j + i*sizeZ);
-		  if (setdirok == 0) {
-			  LOG_ERROR << "Bad tiff directory specified: " << (j + i*sizeZ);
+
+  if (TIFFIsTiled(tiff)) {
+	  tsize_t tilesize = TIFFTileSize(tiff);
+	  uint32 ntiles = TIFFNumberOfTiles(tiff);
+	  assert(ntiles == 1);
+	  // assuming ntiles == 1 for all IFDs
+	  tdata_t buf = _TIFFmalloc(tilesize);
+	  for (uint32_t i = 0; i < sizeC; ++i) {
+		  for (uint32_t j = 0; j < sizeZ; ++j) {
+			  int setdirok = TIFFSetDirectory(tiff, j + i*sizeZ);
+			  if (setdirok == 0) {
+				  LOG_ERROR << "Bad tiff directory specified: " << (j + i*sizeZ);
+			  }
+			  int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
+			  if (readtileok < 0) {
+				  LOG_ERROR << "Error reading tiff tile";
+			  }
+			  // copy buf into data.
+			  memcpy(destptr, buf, tilesize);
+			  destptr += tilesize;
 		  }
-		  int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
-		  if (readtileok < 0) {
-			  LOG_ERROR << "Error reading tiff tile";
-		  }
-		  // copy buf into data.
-		  memcpy(destptr, buf, tilesize);
-		destptr += tilesize;
 	  }
+	  _TIFFfree(buf);
+  }
+  else {
+	  // stripped.
+	  // Number of bytes in a decoded scanline
+	  tsize_t scanlength = TIFFScanlineSize(tiff);
+	  tdata_t buf = _TIFFmalloc(scanlength);
+	  for (uint32_t i = 0; i < sizeC; ++i) {
+		  for (uint32_t j = 0; j < sizeZ; ++j) {
+			  int setdirok = TIFFSetDirectory(tiff, j + i*sizeZ);
+			  if (setdirok == 0) {
+				  LOG_ERROR << "Bad tiff directory specified: " << (j + i*sizeZ);
+			  }
+
+			  for (tstrip_t strip = 0; strip < TIFFNumberOfStrips(tiff); strip++)
+			  {
+				  int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, scanlength);
+//				  TIFFReadEncodedStrip(tiff, strip, buf, (tsize_t)-1);
+				  if (readstripok < 0) {
+					  LOG_ERROR << "Error reading tiff strip";
+				  }
+
+				  // copy buf into data.
+				  memcpy(destptr, buf, scanlength);
+				  destptr += scanlength;
+			  }
+
+		  }
+	  }
+	  _TIFFfree(buf);
+
   }
 
-  _TIFFfree(buf);
 
   TIFFClose(tiff);	
 
