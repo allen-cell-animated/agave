@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include <ome/files/FormatReader.h>
-
 #include "glm.h"
 #include "CameraController.h"
 #include "GLWindow.h"
@@ -45,9 +43,7 @@ public:
     * @param series the image series.
     * @param parent the parent of this object.
     */
-    GLView3D(std::shared_ptr<ome::files::FormatReader>  reader,
-		std::shared_ptr<ImageXYZC>  img,
-		ome::files::dimension_size_type                    series,
+    GLView3D(std::shared_ptr<ImageXYZC>  img,
 		QCamera* cam,
 		QTransferFunction* tran,
 		QWidget                                                *parent = 0);
@@ -124,7 +120,7 @@ public slots:
     * @param plane the plane number to render.
     */
     void
-    setPlane(ome::files::dimension_size_type plane);
+    setPlane(size_t plane);
 	void
 	setZCPlane(size_t z, size_t c);
 
@@ -139,21 +135,6 @@ public slots:
 	void OnUpdateTransferFunction(void);
 
 public:
-    /**
-    * Get reader.
-    *
-    * @returns the reader.
-    */
-    std::shared_ptr<ome::files::FormatReader>
-    getReader();
-
-    /**
-    * Get series.
-    *
-    * @returns the series.
-    */
-    ome::files::dimension_size_type
-    getSeries();
 
     /**
     * Get zoom factor.
@@ -208,7 +189,7 @@ public:
     *
     * @returns the plane number to render.
     */
-    ome::files::dimension_size_type
+    size_t
     getPlane() const;
 	size_t getZ() const;
 	size_t getC() const;
@@ -277,7 +258,7 @@ signals:
     * @param plane the new plane.
     */
     void
-    planeChanged(ome::files::dimension_size_type plane);
+    planeChanged(size_t plane);
 
 protected:
     /// Set up GL context and subsidiary objects.
@@ -342,20 +323,16 @@ private:
     /// Maximum level for linear contrast.
     glm::vec3 cmax;
     /// Current plane.
-    ome::files::dimension_size_type plane;
+    size_t plane;
 	size_t _z;
 	size_t _c;
 
     /// Previous plane.
-    ome::files::dimension_size_type oldplane;
+    size_t oldplane;
     /// Last mouse position.
     QPoint lastPos;
 
-	/// The image reader.
-	std::shared_ptr<ome::files::FormatReader> reader;
 	std::shared_ptr<ImageXYZC> _img;
-	/// The image series.
-    ome::files::dimension_size_type series;
 
 	std::unique_ptr<RenderGLCuda> _renderGL;
 };

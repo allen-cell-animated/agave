@@ -1,23 +1,15 @@
-#include <ome/files/PixelBuffer.h>
-#include <ome/files/VariantPixelBuffer.h>
-
 #include "Image2D.h"
 #include "Util.h"
 
 #include "glad/glad.h"
 #include "ImageXYZC.h"
 
+#include <array>
 #include <iostream>
 
-using ome::files::PixelBuffer;
-using ome::files::PixelBufferBase;
-using ome::files::PixelProperties;
-using ome::files::VariantPixelBuffer;
-typedef ome::xml::model::enums::PixelType PT;
-
+#if 0
 namespace
 {
-
   class TextureProperties
   {
   public:
@@ -227,11 +219,9 @@ namespace
   };
 
 }
+#endif
 
-
-      Image2D::Image2D(std::shared_ptr<ome::files::FormatReader>  reader,
-						std::shared_ptr<ImageXYZC>  img,
-                       ome::files::dimension_size_type                    series):
+      Image2D::Image2D(std::shared_ptr<ImageXYZC>  img):
         vertices(0),
         image_vertices(0),
         image_texcoords(0),
@@ -242,8 +232,6 @@ namespace
         texmin(0.0f),
         texmax(0.1f),
         texcorr(1.0f),
-        reader(reader),
-        series(series),
 		_img(img),
         plane(-1)
       {
@@ -255,7 +243,8 @@ namespace
 
       void Image2D::create()
       {
-        TextureProperties tprop(*reader, series);
+/*
+		  TextureProperties tprop(*reader, series);
 
         ome::files::dimension_size_type oldseries = reader->getSeries();
         reader->setSeries(series);
@@ -302,7 +291,7 @@ namespace
         check_gl("Set texture mag filter");
         glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         check_gl("Set texture wrap s");
-
+*/
         // HiLo
         uint8_t lut[256][3];
         for (uint16_t i = 0; i < 256; ++i)
@@ -385,11 +374,12 @@ namespace
       }
 
       void
-      Image2D::setPlane(ome::files::dimension_size_type plane, size_t z, size_t c)
+      Image2D::setPlane(size_t plane, size_t z, size_t c)
       {
         if (this->plane != plane)
           {
-            TextureProperties tprop(*reader, series);
+/*
+			TextureProperties tprop(*reader, series);
 
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // MultiArray buffers are packed
 
@@ -408,7 +398,7 @@ namespace
 			glGenerateMipmap(GL_TEXTURE_2D);
 			check_gl("Generate mipmaps");
 
-
+*/
 
             //ome::files::VariantPixelBuffer buf;
             //ome::files::dimension_size_type oldseries = reader->getSeries();

@@ -2,9 +2,6 @@
 
 #include <memory>
 
-#include <ome/files/Types.h>
-#include <ome/files/FormatReader.h>
-
 #include "glm.h"
 
 #include "glad/include/glad/glad.h"
@@ -32,9 +29,7 @@ public:
 		* @param parent the parent of this object.
 		*/
 	explicit
-	Image2D(std::shared_ptr<ome::files::FormatReader>  reader,
-		std::shared_ptr<ImageXYZC>  img,
-		ome::files::dimension_size_type                    series);
+	Image2D(std::shared_ptr<ImageXYZC>  img);
 
 	/// Destructor.
 	virtual
@@ -69,7 +64,7 @@ public:
 		* @param plane the plane number.
 		*/
 	void
-	setPlane(ome::files::dimension_size_type plane, size_t z, size_t c);
+	setPlane(size_t plane, size_t z, size_t c);
 
 	/**
 		* Get minimum limit for linear contrast.
@@ -171,12 +166,8 @@ public:
 	glm::vec3 texmax;
 	/// Linear contrast correction multipliers.
 	glm::vec3 texcorr;
-	/// The image reader.
-	std::shared_ptr<ome::files::FormatReader> reader;
-	/// The image series.
-	ome::files::dimension_size_type series;
 	/// The image wrapped as a flat data ptr
 	std::shared_ptr<ImageXYZC> _img;
 	/// The current image plane.
-	ome::files::dimension_size_type plane;
+	size_t plane;
 };

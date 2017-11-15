@@ -1,5 +1,5 @@
 #include "TexelProperties.h"
-
+#if 0
 #include <stdexcept>
 
 
@@ -232,3 +232,4 @@
       return ret;
     }
 
+#endif

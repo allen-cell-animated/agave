@@ -16,12 +16,10 @@
 #include "Core.cuh"
 #include "Lighting.cuh"
 
-RenderGLCuda::RenderGLCuda(std::shared_ptr<ome::files::FormatReader>  reader,
-	std::shared_ptr<ImageXYZC>  img,
-	ome::files::dimension_size_type series)
-	:_reader(reader),
-	_img(img),
-	_series(series),
+#include <array>
+
+RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img)
+	:_img(img),
 	_cudaF32Buffer(nullptr),
 	_cudaF32AccumBuffer(nullptr),
 	_cudaTex(nullptr),

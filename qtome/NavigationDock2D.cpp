@@ -9,8 +9,6 @@
 
 #include <QtWidgets/QGridLayout>
 
-using ome::files::dimension_size_type;
-
 namespace
 {
 
@@ -81,13 +79,13 @@ NavigationDock2D::NavigationDock2D(QWidget *parent):
     setWidget(mainWidget);
 
     /// Enable widgets.
-    setReader(reader, series);
+    //setReader(reader, series);
 }
 
 NavigationDock2D::~NavigationDock2D()
 {
 }
-
+#if 0
 void
 NavigationDock2D::setReader(std::shared_ptr<ome::files::FormatReader> reader,
                             ome::files::dimension_size_type                   series,
@@ -164,6 +162,7 @@ NavigationDock2D::setReader(std::shared_ptr<ome::files::FormatReader> reader,
 
     setPlane(plane);
 }
+#endif
 
 void NavigationDock2D::setZC(size_t z, size_t c) {
 	if (z != _z || c != _c) {
@@ -174,12 +173,12 @@ void NavigationDock2D::setZC(size_t z, size_t c) {
 }
 
 void
-NavigationDock2D::setPlane(ome::files::dimension_size_type plane)
+NavigationDock2D::setPlane(size_t plane)
 {
     if (plane != currentPlane)
     {
         currentPlane = plane;
-
+#if 0
         if (reader)
         {
             ome::files::dimension_size_type oldseries = reader->getSeries();
@@ -207,12 +206,12 @@ NavigationDock2D::setPlane(ome::files::dimension_size_type plane)
                 spinboxes[i] -> setValue(static_cast<int>(values[i]));
             }
         }
-
+#endif
         emit planeChanged(currentPlane);
     }
 }
 
-ome::files::dimension_size_type
+size_t
 NavigationDock2D::plane() const
 {
     return currentPlane;
@@ -221,19 +220,20 @@ NavigationDock2D::plane() const
 void
 NavigationDock2D::sliderChangedPlane(int plane)
 {
-    setPlane(static_cast<dimension_size_type>(plane));
+    setPlane(static_cast<size_t>(plane));
 }
 
 void
 NavigationDock2D::spinBoxChangedPlane(int plane)
 {
-    setPlane(static_cast<dimension_size_type>(plane));
+    setPlane(static_cast<size_t>(plane));
 }
 
 void
 NavigationDock2D::sliderChangedDimension(int /* dim */)
 {
-    if (reader)
+#if 0
+	if (reader)
     {
         ome::files::dimension_size_type oldseries = reader->getSeries();
         reader->setSeries(series);
@@ -261,11 +261,13 @@ NavigationDock2D::sliderChangedDimension(int /* dim */)
 		setZC(z, c);
         setPlane(index);
     }
+#endif
 }
 
 void
 NavigationDock2D::spinBoxChangedDimension(int /* dim */)
 {
+#if 0
     if (reader)
     {
         ome::files::dimension_size_type oldseries = reader->getSeries();
@@ -293,5 +295,6 @@ NavigationDock2D::spinBoxChangedDimension(int /* dim */)
 
         setPlane(index);
     }
+#endif
 }
 

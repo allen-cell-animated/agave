@@ -4,10 +4,8 @@
 #include <iostream>
 
 
-Image2Dv33::Image2Dv33(std::shared_ptr<ome::files::FormatReader>  reader,
-	std::shared_ptr<ImageXYZC>  img,
-	ome::files::dimension_size_type                    series):
-    Image2D(reader, img, series),
+Image2Dv33::Image2Dv33(std::shared_ptr<ImageXYZC>  img):
+    Image2D(img),
     image_shader(new GLImageShader2D())
 {
 }

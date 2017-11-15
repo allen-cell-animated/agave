@@ -6,17 +6,10 @@
 #include <QDomDocument>
 #include <QString>
 
-#include <ome/files/FormatReader.h>
-#include <ome/files/MetadataTools.h>
-#include <ome/files/PixelBuffer.h>
-#include <ome/files/VariantPixelBuffer.h>
-#include <ome/files/in/OMETIFFReader.h>
-#include <ome/xml/meta/MetadataStore.h>
-#include <ome/xml/meta/OMEXMLMetadata.h>
-
 #include <tiff.h>
 #include <tiffio.h>
 
+#include <map>
 
 #ifdef WIN32
 static int setenv(const char *name, const char *value, int overwrite)
@@ -41,7 +34,7 @@ FileReader::FileReader(const std::string& omeSchemaDir)
 FileReader::~FileReader()
 {
 }
-
+#if 0
 std::shared_ptr<ome::files::FormatReader> FileReader::open(const std::string& filepath) {
 	
 	std::shared_ptr<ome::files::FormatReader> reader(std::make_shared<ome::files::in::OMETIFFReader>());
@@ -187,7 +180,7 @@ std::shared_ptr<ImageXYZC> FileReader::openToImage(const std::string& filepath) 
 	// image takes ownership of the data ptr.
 	return std::shared_ptr<ImageXYZC>(new ImageXYZC(uint32_t(x), uint32_t(y), uint32_t(z), uint32_t(c), uint32_t(bpp), data, ppx, ppy, ppz));
 }
-
+#endif
 uint32_t requireUint32Attr(QDomElement& el, const QString& attr, uint32_t defaultVal) {
 	QString attrval = el.attribute(attr);
 	bool ok;

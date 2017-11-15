@@ -1,10 +1,6 @@
 // Include first to avoid clash with Windows headers pulled in via
 // QtCore/qt_windows.h; they define VOID and HALFTONE which clash with
 // the TIFF enums.
-#include <ome/common/log.h>
-#include <ome/files/FormatReader.h>
-#include <ome/files/in/OMETIFFReader.h>
-
 #include <memory>
 
 #include "qtome.h"
@@ -23,7 +19,7 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QFileDialog>
 
-using ome::files::dimension_size_type;
+#include <boost/filesystem/path.hpp>
 
 qtome::qtome(QWidget *parent)
 	: QMainWindow(parent)
@@ -221,20 +217,13 @@ void qtome::open(const QString& file)
 	{
 
 		FileReader fileReader(QCoreApplication::applicationDirPath().toStdString() + "/ome");
-		std::shared_ptr<ome::files::FormatReader> reader = fileReader.open(file.toStdString());
+//		std::shared_ptr<ome::files::FormatReader> reader = fileReader.open(file.toStdString());
 
-
-		// switch log level
-		boost::log::trivial::severity_level lvl = ome::common::getLogLevel();
-		ome::common::setLogLevel(boost::log::trivial::severity_level::error);
 
 		//std::shared_ptr<ImageXYZC> image = fileReader.openToImage(file.toStdString());
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 
-		// restore log level
-		ome::common::setLogLevel(lvl);
-
-		GLView3D *newGlView = new GLView3D(reader, image, 0, &_camera, &_transferFunction, this);
+		GLView3D *newGlView = new GLView3D(image, &_camera, &_transferFunction, this);
 		QWidget *glContainer = new GLContainer(this, newGlView);
 		newGlView->setObjectName("glcontainer");
 		// We need a minimum size or else the size defaults to zero.
@@ -271,9 +260,9 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 		maxSliderChanged = connect(maxSlider, SIGNAL(valueChanged(int)), newGlView, SLOT(setChannelMax(int)));
 		maxSliderUpdate = connect(newGlView, SIGNAL(channelMaxChanged(int)), maxSlider, SLOT(setValue(int)));
 
-		navigation->setReader(newGlView->getReader(), newGlView->getSeries(), newGlView->getPlane());
-		navigationChanged = connect(navigation, SIGNAL(planeChanged(ome::files::dimension_size_type)), newGlView, SLOT(setPlane(ome::files::dimension_size_type)));
-		navigationUpdate = connect(newGlView, SIGNAL(planeChanged(ome::files::dimension_size_type)), navigation, SLOT(setPlane(ome::files::dimension_size_type)));
+//		navigation->setReader(newGlView->getReader(), newGlView->getSeries(), newGlView->getPlane());
+		navigationChanged = connect(navigation, SIGNAL(planeChanged(size_t)), newGlView, SLOT(setPlane(size_t)));
+		navigationUpdate = connect(newGlView, SIGNAL(planeChanged(size_t)), navigation, SLOT(setPlane(size_t)));
 		navigationZCChanged = connect(navigation, SIGNAL(zcChanged(size_t, size_t)), newGlView, SLOT(setZCPlane(size_t, size_t)));
 
 		minSlider->setValue(newGlView->getChannelMin());
@@ -282,7 +271,7 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 	}
 	else
 	{
-		navigation->setReader(std::shared_ptr<ome::files::FormatReader>(), 0, 0);
+//		navigation->setReader(std::shared_ptr<ome::files::FormatReader>(), 0, 0);
 	}
 
 	bool enable(newGlView != 0);

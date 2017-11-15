@@ -5,7 +5,6 @@
 
 #include "glad/include/glad/glad.h"
 #include "CudaUtilities.h"
-#include <ome/files/FormatReader.h>
 
 #include <memory>
 
@@ -17,9 +16,7 @@ class RenderGLCuda :
 	public IRenderWindow
 {
 public:
-	RenderGLCuda(std::shared_ptr<ome::files::FormatReader>  reader,
-		std::shared_ptr<ImageXYZC>  img,
-		ome::files::dimension_size_type                    series);
+	RenderGLCuda(std::shared_ptr<ImageXYZC>  img);
 	virtual ~RenderGLCuda();
 
 	void setChannel(int c);
@@ -42,9 +39,7 @@ private:
 
 
 
-	std::shared_ptr<ome::files::FormatReader>  _reader;
 	std::shared_ptr<ImageXYZC>  _img;
-	ome::files::dimension_size_type                    _series;
 	int _currentChannel;
 	void initSceneFromImg();
 

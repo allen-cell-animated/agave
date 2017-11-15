@@ -5,13 +5,11 @@
 #include "gl/v33/V33Image3D.h"
 #include "Camera.h"
 
-RenderGL::RenderGL(std::shared_ptr<ome::files::FormatReader>  reader,
-	std::shared_ptr<ImageXYZC>  img,
-	ome::files::dimension_size_type                    series)
+#include <iostream>
+
+RenderGL::RenderGL(std::shared_ptr<ImageXYZC>  img)
 	:image3d(nullptr),
-	_reader(reader),
-	_img(img),
-	_series(series)
+	_img(img)
 {
 }
 
@@ -29,7 +27,7 @@ void RenderGL::initialize(uint32_t w, uint32_t h)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	image3d = new Image3Dv33(_reader, _img, _series);
+	image3d = new Image3Dv33(_img);
 
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);

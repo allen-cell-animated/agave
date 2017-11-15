@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include <ome/files/FormatReader.h>
-
 #include <GLWindow.h>
 
 #include <QtWidgets/QDockWidget>
@@ -36,23 +34,11 @@ public:
     ~NavigationDock2D();
 
     /**
-    * Set reader, including current series and plane position.
-    *
-    * @param reader the image reader.
-    * @param series the image series.
-    * @param plane the image plane.
-    */
-    void
-    setReader(std::shared_ptr<ome::files::FormatReader> reader,
-            ome::files::dimension_size_type                   series = 0,
-            ome::files::dimension_size_type                   plane = 0);
-
-    /**
     * Get the current plane for the series.
     *
     * @returns the current plane.
     */
-    ome::files::dimension_size_type
+    size_t
     plane() const;
 
 public slots:
@@ -62,7 +48,7 @@ public slots:
     * @param plane the image plane.
     */
     void
-    setPlane(ome::files::dimension_size_type plane);
+    setPlane(size_t plane);
 	void setZC(size_t z, size_t c);
 signals:
     /**
@@ -71,7 +57,7 @@ signals:
     * @param plane the new image plane.
     */
 	void
-		planeChanged(ome::files::dimension_size_type plane);
+		planeChanged(size_t plane);
 	void
 		zcChanged(size_t z, size_t c);
 
@@ -109,12 +95,8 @@ private slots:
     spinBoxChangedDimension(int dim);
 
 private:
-    /// The image reader.
-    std::shared_ptr<ome::files::FormatReader> reader;
-    /// The image series.
-    ome::files::dimension_size_type series;
     /// The image plane.
-    ome::files::dimension_size_type currentPlane;
+    size_t currentPlane;
 	size_t _z, _c;
     /// Slider labels [NZTCmZmTmC].
     QLabel *labels[7];

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <ome/files/Types.h>
-#include <ome/files/FormatReader.h>
-
 #include "glsl/v330/GLBasicVolumeShader.h"
+
+#include <memory>
 
 class ImageXYZC;
 
@@ -28,9 +27,7 @@ public:
     * @param series the image series.
     * @param parent the parent of this object.
     */
-    explicit Image3Dv33(std::shared_ptr<ome::files::FormatReader>  reader,
-		std::shared_ptr<ImageXYZC>  img,
-		ome::files::dimension_size_type                    series);
+    explicit Image3Dv33(std::shared_ptr<ImageXYZC>  img);
 
     /// Destructor.
     virtual ~Image3Dv33();
@@ -132,10 +129,6 @@ protected:
 	float texmax;
 	/// Linear contrast correction multipliers.
 	//glm::vec3 texcorr;
-	/// The image reader.
-	std::shared_ptr<ome::files::FormatReader> reader;
-	/// The image series.
-	ome::files::dimension_size_type series;
 	/// The image wrapped as a flat data ptr
 	std::shared_ptr<ImageXYZC> _img;
 	int _c;

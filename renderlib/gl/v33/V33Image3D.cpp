@@ -4,12 +4,10 @@
 #include "gl/Util.h"
 #include "ImageXYZC.h"
 
-#include <ome/files/PixelBuffer.h>
-#include <ome/files/VariantPixelBuffer.h>
-
+#include <array>
 #include <iostream>
 
-
+#if 0
 namespace
 {
 
@@ -108,10 +106,9 @@ namespace
 		}
 	};
 }
+#endif
 
-Image3Dv33::Image3Dv33(std::shared_ptr<ome::files::FormatReader>  reader,
-	std::shared_ptr<ImageXYZC>  img,
-	ome::files::dimension_size_type                    series):
+Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
 	vertices(0),
 	image_vertices(0),
 	image_elements(0),
@@ -121,8 +118,6 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ome::files::FormatReader>  reader,
 	texmin(0.0f),
 	texmax(1.0f),
 	//texcorr(1.0f),
-	reader(reader),
-	series(series),
 	_img(img),
 	image3d_shader(new GLBasicVolumeShader()),
 	_c(0)
@@ -136,6 +131,7 @@ Image3Dv33::~Image3Dv33()
 
 void Image3Dv33::create()
 {
+#if 0
 	TextureProperties tprop(*reader, series);
 
 	ome::files::dimension_size_type oldseries = reader->getSeries();
@@ -180,6 +176,7 @@ void Image3Dv33::create()
 	texmin = 0.0;
 	texmax = 2048.0 / (255.0*64.0);
 	*/
+
 	glTexImage3D(GL_TEXTURE_3D,         // target
 		0,                     // level, 0 = base, no minimap,
 		tprop.internal_format, // internal format
@@ -204,7 +201,7 @@ void Image3Dv33::create()
 	check_gl("Set texture mag filter");
 	glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	check_gl("Set texture wrap s");
-
+#endif
 	// HiLo
 	uint8_t lut[256][3];
 	for (uint16_t i = 0; i < 256; ++i)
@@ -358,6 +355,7 @@ Image3Dv33::setPlane(int plane, int z, int c)
 	{
 		_c = c;
 		// only update C here!!
+#if 0
 		TextureProperties tprop(*reader, series);
 		ome::files::dimension_size_type sizeX = reader->getSizeX();
 		ome::files::dimension_size_type sizeY = reader->getSizeY();
@@ -380,6 +378,7 @@ Image3Dv33::setPlane(int plane, int z, int c)
 			tprop.external_type,   // external type
 			_img->ptr(c));
 		glGenerateMipmap(GL_TEXTURE_3D);
+#endif
 	}
 }
 

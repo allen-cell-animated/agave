@@ -29,9 +29,7 @@ namespace
 }
 
 
-GLView2D::GLView2D(std::shared_ptr<ome::files::FormatReader>  reader,
-	std::shared_ptr<ImageXYZC>  img,
-	ome::files::dimension_size_type                    series,
+GLView2D::GLView2D(std::shared_ptr<ImageXYZC>  img,
                     QWidget                                                * /* parent */):
     GLWindow(),
     camera(),
@@ -42,10 +40,8 @@ GLView2D::GLView2D(std::shared_ptr<ome::files::FormatReader>  reader,
     plane(0), _z(0), _c(0),
     oldplane(-1),
     lastPos(0, 0),
-    reader(reader),
 	_img(img),
-    series(series),
-	_renderGL(new RenderGL2d(reader, img, series))
+	_renderGL(new RenderGL2d(img))
 {
 }
 
@@ -62,18 +58,6 @@ QSize GLView2D::minimumSizeHint() const
 QSize GLView2D::sizeHint() const
 {
     return QSize(800, 600);
-}
-
-std::shared_ptr<ome::files::FormatReader>
-GLView2D::getReader()
-{
-    return reader;
-}
-
-ome::files::dimension_size_type
-GLView2D::getSeries()
-{
-    return series;
 }
 
 int
@@ -112,7 +96,7 @@ GLView2D::getChannelMax() const
     return static_cast<int>(cmax[0] * 255.0*16.0);
 }
 
-ome::files::dimension_size_type
+size_t
 GLView2D::getPlane() const
 {
     return plane;
@@ -214,7 +198,7 @@ void
 }
 
 void
-GLView2D::setPlane(ome::files::dimension_size_type plane)
+GLView2D::setPlane(size_t plane)
 {
     if (this->plane != plane)
     {

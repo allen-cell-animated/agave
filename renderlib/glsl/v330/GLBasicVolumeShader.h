@@ -2,8 +2,6 @@
 
 #include <QOpenGLShaderProgram>
 
-#include <ome/files/Types.h>
-
 #include <glm.h>
 #include "Camera.h"
 

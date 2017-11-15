@@ -31,9 +31,7 @@ namespace
 
 }
 
-GLView3D::GLView3D(std::shared_ptr<ome::files::FormatReader>  reader,
-	std::shared_ptr<ImageXYZC>  img,
-	ome::files::dimension_size_type series,
+GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	QCamera* cam,
 	QTransferFunction* tran,
     QWidget* /* parent */):
@@ -46,10 +44,8 @@ GLView3D::GLView3D(std::shared_ptr<ome::files::FormatReader>  reader,
     plane(0), _z(0), _c(0),
     oldplane(-1),
     lastPos(0, 0),
-    reader(reader),
     _img(img),
-    series(series),
-    _renderGL(new RenderGLCuda(reader, img, series)),
+    _renderGL(new RenderGLCuda(img)),
 	_camera(cam),
 	_cameraController(cam),
 	_transferFunction(tran)
@@ -80,18 +76,6 @@ QSize GLView3D::minimumSizeHint() const
 QSize GLView3D::sizeHint() const
 {
     return QSize(800, 600);
-}
-
-std::shared_ptr<ome::files::FormatReader>
-GLView3D::getReader()
-{
-    return reader;
-}
-
-ome::files::dimension_size_type
-GLView3D::getSeries()
-{
-    return series;
 }
 
 int
@@ -130,7 +114,7 @@ GLView3D::getChannelMax() const
     return static_cast<int>(cmax[0] * 255.0*16.0);
 }
 
-ome::files::dimension_size_type
+size_t
 GLView3D::getPlane() const
 {
     return plane;
@@ -234,7 +218,7 @@ GLView3D::setZCPlane(size_t z, size_t c)
 }
 
 void
-GLView3D::setPlane(ome::files::dimension_size_type plane)
+GLView3D::setPlane(size_t plane)
 {
     if (this->plane != plane)
     {
