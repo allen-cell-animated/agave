@@ -95,6 +95,7 @@ install(FILES
 	$<TARGET_FILE:Qt5::Widgets>
 	$<TARGET_FILE:Qt5::Core>
 	$<TARGET_FILE:Qt5::Gui>
+	$<TARGET_FILE:Qt5::Xml>
 	DESTINATION dist
 )
 install(DIRECTORY ${OME_DIR}/bin/ DESTINATION dist

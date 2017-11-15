@@ -17,5 +17,7 @@ public:
 	std::shared_ptr<ome::files::FormatReader> open(const std::string& filepath);
 	std::shared_ptr<ImageXYZC> openToImage(const std::string& filepath);
 
+	std::shared_ptr<ImageXYZC> loadOMETiff_4D(const std::string& filepath);
+	
 };
 

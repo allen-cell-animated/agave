@@ -228,7 +228,8 @@ void qtome::open(const QString& file)
 		boost::log::trivial::severity_level lvl = ome::common::getLogLevel();
 		ome::common::setLogLevel(boost::log::trivial::severity_level::error);
 
-		std::shared_ptr<ImageXYZC> image = fileReader.openToImage(file.toStdString());
+		//std::shared_ptr<ImageXYZC> image = fileReader.openToImage(file.toStdString());
+		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 
 		// restore log level
 		ome::common::setLogLevel(lvl);
