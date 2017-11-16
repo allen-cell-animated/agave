@@ -260,7 +260,7 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 		maxSliderChanged = connect(maxSlider, SIGNAL(valueChanged(int)), newGlView, SLOT(setChannelMax(int)));
 		maxSliderUpdate = connect(newGlView, SIGNAL(channelMaxChanged(int)), maxSlider, SLOT(setValue(int)));
 
-//		navigation->setReader(newGlView->getReader(), newGlView->getSeries(), newGlView->getPlane());
+		navigation->setReader(newGlView->getImage(), newGlView->getPlane());
 		navigationChanged = connect(navigation, SIGNAL(planeChanged(size_t)), newGlView, SLOT(setPlane(size_t)));
 		navigationUpdate = connect(newGlView, SIGNAL(planeChanged(size_t)), navigation, SLOT(setPlane(size_t)));
 		navigationZCChanged = connect(navigation, SIGNAL(zcChanged(size_t, size_t)), newGlView, SLOT(setZCPlane(size_t, size_t)));
@@ -271,7 +271,7 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 	}
 	else
 	{
-//		navigation->setReader(std::shared_ptr<ome::files::FormatReader>(), 0, 0);
+		navigation->setReader(std::shared_ptr<ImageXYZC>(), 0);
 	}
 
 	bool enable(newGlView != 0);

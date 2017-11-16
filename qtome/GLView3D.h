@@ -203,6 +203,9 @@ public:
     MouseMode
     getMouseMode() const;
 
+
+	std::shared_ptr<ImageXYZC> getImage() { return _img; }
+
 signals:
     /**
     * Signal zoom level changed.

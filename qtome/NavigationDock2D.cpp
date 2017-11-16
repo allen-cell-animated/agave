@@ -1,10 +1,11 @@
 #include <QtGui/QMouseEvent>
 
-#include <array>
-#include <cmath>
+#include "ImageXYZC.h"
 
 #include <NavigationDock2D.h>
 
+#include <array>
+#include <cmath>
 #include <iostream>
 
 #include <QtWidgets/QGridLayout>
@@ -38,7 +39,7 @@ namespace
 
 NavigationDock2D::NavigationDock2D(QWidget *parent):
     QDockWidget(tr("Navigation"), parent),
-    currentPlane(), _z(0), _c(0),
+    currentPlane(0), _z(0), _c(0),
     labels(),
     sliders(),
     spinboxes()
@@ -79,46 +80,41 @@ NavigationDock2D::NavigationDock2D(QWidget *parent):
     setWidget(mainWidget);
 
     /// Enable widgets.
-    //setReader(reader, series);
+    setReader(_img, currentPlane);
 }
 
 NavigationDock2D::~NavigationDock2D()
 {
 }
-#if 0
+
 void
-NavigationDock2D::setReader(std::shared_ptr<ome::files::FormatReader> reader,
-                            ome::files::dimension_size_type                   series,
-                            ome::files::dimension_size_type                   plane)
+NavigationDock2D::setReader(std::shared_ptr<ImageXYZC> img,
+                            size_t plane)
 {
-    this->reader = reader;
-    this->series = series;
+    this->_img = img;
 
-    if (reader)
+    if (img)
     {
-        ome::files::dimension_size_type oldseries = reader->getSeries();
-        reader->setSeries(series);
-        dimension_size_type imageCount = reader->getImageCount();
         // Full dimension sizes.
-        dimension_size_type z = reader->getSizeZ();
-        dimension_size_type t = reader->getSizeT();
-        dimension_size_type c = reader->getSizeC();
-        // Modulo dimension sizes.
-        dimension_size_type mz = reader->getModuloZ().size();
-        dimension_size_type mt = reader->getModuloT().size();
-        dimension_size_type mc = reader->getModuloC().size();
-        // Effective dimension sizes.
-        dimension_size_type ez = z / mz;
-        dimension_size_type et = t / mt;
-        dimension_size_type ec = c / mc;
-        reader->setSeries(oldseries);
+        uint32_t z = img->sizeZ();
+		uint32_t t = 1;
+		uint32_t c = img->sizeC();
+		// Modulo dimension sizes.
+		uint32_t mz = 1;
+		uint32_t mt = 1;
+		uint32_t mc = 1;
+		// Effective dimension sizes.
+		uint32_t ez = z / mz;
+		uint32_t et = t / mt;
+		uint32_t ec = c / mc;
 
-        dimension_size_type extents[7] = {imageCount, ez, mz, et, mt, ec, mc};
+		uint32_t imageCount = z*c*t;
+        uint32_t extents[7] = {imageCount, ez, mz, et, mt, ec, mc};
         std::cout << "EXTENTS: " << imageCount << ", " <<  ez << ", " <<  mz << ", " <<  et << ", " <<  mt << ", " <<  ec << ", " <<  mc << "\n";
 
         for (uint16_t i = 0; i < 7; ++i)
         {
-            dimension_size_type max = extents[i];
+            uint32_t max = extents[i];
 
             if (max > 1)
             {
@@ -162,7 +158,6 @@ NavigationDock2D::setReader(std::shared_ptr<ome::files::FormatReader> reader,
 
     setPlane(plane);
 }
-#endif
 
 void NavigationDock2D::setZC(size_t z, size_t c) {
 	if (z != _z || c != _c) {
@@ -178,35 +173,34 @@ NavigationDock2D::setPlane(size_t plane)
     if (plane != currentPlane)
     {
         currentPlane = plane;
-#if 0
-        if (reader)
+        if (_img)
         {
-            ome::files::dimension_size_type oldseries = reader->getSeries();
-            reader->setSeries(series);
-            // Modulo dimension sizes.
-            dimension_size_type mz = reader->getModuloZ().size();
-            dimension_size_type mt = reader->getModuloT().size();
-            dimension_size_type mc = reader->getModuloC().size();
+			// Modulo dimension sizes.
+			uint32_t mz = 1;
+			uint32_t mt = 1;
+			uint32_t mc = 1;
 
-            std::array<dimension_size_type, 3> coords(reader->getZCTCoords(plane));
-            reader->setSeries(oldseries);
+			// decompose plane index into a z,c,t triple
+			uint32_t z = plane % _img->sizeZ();
+			uint32_t c = plane / _img->sizeZ();
+			uint32_t t = 0;
+			//std::array<size_t, 3> coords(_img->getZCTCoords(plane));
 
             // Effective and modulo dimension positions
-            dimension_size_type ezv = coords[0] / mz;
-            dimension_size_type mzv = coords[0] % mz;
-            dimension_size_type etv = coords[2] / mt;
-            dimension_size_type mtv = coords[2] % mt;
-            dimension_size_type ecv = coords[1] / mc;
-            dimension_size_type mcv = coords[1] % mc;
+			uint32_t ezv = z / mz;
+			uint32_t mzv = z % mz;
+			uint32_t etv = t / mt;
+			uint32_t mtv = t % mt;
+			uint32_t ecv = c / mc;
+			uint32_t mcv = c % mc;
 
-            dimension_size_type values[7] = {plane, ezv, mzv, etv, mtv, ecv, mcv};
+			uint32_t values[7] = {plane, ezv, mzv, etv, mtv, ecv, mcv};
             for (uint16_t i = 0; i < 7; ++i)
             {
                 sliders[i] -> setValue(static_cast<int>(values[i]));
                 spinboxes[i] -> setValue(static_cast<int>(values[i]));
             }
         }
-#endif
         emit planeChanged(currentPlane);
     }
 }
@@ -232,69 +226,58 @@ NavigationDock2D::spinBoxChangedPlane(int plane)
 void
 NavigationDock2D::sliderChangedDimension(int /* dim */)
 {
-#if 0
-	if (reader)
+	if (_img)
     {
-        ome::files::dimension_size_type oldseries = reader->getSeries();
-        reader->setSeries(series);
-        // Modulo dimension sizes.
-        dimension_size_type mz = reader->getModuloZ().size();
-        dimension_size_type mt = reader->getModuloT().size();
-        dimension_size_type mc = reader->getModuloC().size();
+		// Modulo dimension sizes.
+		uint32_t mz = 1;
+		uint32_t mt = 1;
+		uint32_t mc = 1;
 
         // Current dimension sizes.
-        dimension_size_type ezv = static_cast<dimension_size_type>(sliders[1]->value());
-        dimension_size_type mzv = static_cast<dimension_size_type>(sliders[2]->value());
-        dimension_size_type etv = static_cast<dimension_size_type>(sliders[3]->value());
-        dimension_size_type mtv = static_cast<dimension_size_type>(sliders[4]->value());
-        dimension_size_type ecv = static_cast<dimension_size_type>(sliders[5]->value());
-        dimension_size_type mcv = static_cast<dimension_size_type>(sliders[6]->value());
+		uint32_t ezv = static_cast<uint32_t>(sliders[1]->value());
+		uint32_t mzv = static_cast<uint32_t>(sliders[2]->value());
+		uint32_t etv = static_cast<uint32_t>(sliders[3]->value());
+		uint32_t mtv = static_cast<uint32_t>(sliders[4]->value());
+		uint32_t ecv = static_cast<uint32_t>(sliders[5]->value());
+		uint32_t mcv = static_cast<uint32_t>(sliders[6]->value());
 
-        dimension_size_type z = (ezv * mz) + mzv;
-        dimension_size_type t = (etv * mt) + mtv;
-        dimension_size_type c = (ecv * mc) + mcv;
+		uint32_t z = (ezv * mz) + mzv;
+		uint32_t t = (etv * mt) + mtv;
+		uint32_t c = (ecv * mc) + mcv;
 
-        dimension_size_type index = reader->getIndex(z, c, t);
-
-        reader->setSeries(oldseries);
+        size_t index = z+c*_img->sizeZ();
 
 		setZC(z, c);
         setPlane(index);
     }
-#endif
 }
 
 void
 NavigationDock2D::spinBoxChangedDimension(int /* dim */)
 {
-#if 0
-    if (reader)
+    if (_img)
     {
-        ome::files::dimension_size_type oldseries = reader->getSeries();
-        reader->setSeries(series);
-        // Modulo dimension sizes.
-        dimension_size_type mz = reader->getModuloZ().size();
-        dimension_size_type mt = reader->getModuloT().size();
-        dimension_size_type mc = reader->getModuloC().size();
+		// Modulo dimension sizes.
+		uint32_t mz = 1;
+		uint32_t mt = 1;
+		uint32_t mc = 1;
 
         // Current dimension sizes.
-        dimension_size_type ezv = static_cast<dimension_size_type>(spinboxes[1]->value());
-        dimension_size_type mzv = static_cast<dimension_size_type>(spinboxes[2]->value());
-        dimension_size_type etv = static_cast<dimension_size_type>(spinboxes[3]->value());
-        dimension_size_type mtv = static_cast<dimension_size_type>(spinboxes[4]->value());
-        dimension_size_type ecv = static_cast<dimension_size_type>(spinboxes[5]->value());
-        dimension_size_type mcv = static_cast<dimension_size_type>(spinboxes[6]->value());
+		uint32_t ezv = static_cast<uint32_t>(spinboxes[1]->value());
+		uint32_t mzv = static_cast<uint32_t>(spinboxes[2]->value());
+		uint32_t etv = static_cast<uint32_t>(spinboxes[3]->value());
+		uint32_t mtv = static_cast<uint32_t>(spinboxes[4]->value());
+		uint32_t ecv = static_cast<uint32_t>(spinboxes[5]->value());
+		uint32_t mcv = static_cast<uint32_t>(spinboxes[6]->value());
 
-        dimension_size_type z = (ezv * mz) + mzv;
-        dimension_size_type t = (etv * mt) + mtv;
-        dimension_size_type c = (ecv * mc) + mcv;
+		uint32_t z = (ezv * mz) + mzv;
+		uint32_t t = (etv * mt) + mtv;
+		uint32_t c = (ecv * mc) + mcv;
 
-        dimension_size_type index = reader->getIndex(z, c, t);
-
-        reader->setSeries(oldseries);
+		uint32_t index = z + c*_img->sizeZ();
 
         setPlane(index);
     }
-#endif
+
 }
 

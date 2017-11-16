@@ -9,6 +9,8 @@
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
 
+class ImageXYZC;
+
 /**
     * 2D dock widget for plane nagivation.
     *
@@ -40,6 +42,10 @@ public:
     */
     size_t
     plane() const;
+
+	void
+		setReader(std::shared_ptr<ImageXYZC> img,
+			size_t plane);
 
 public slots:
     /**
@@ -95,7 +101,8 @@ private slots:
     spinBoxChangedDimension(int dim);
 
 private:
-    /// The image plane.
+	std::shared_ptr<ImageXYZC> _img;
+	/// The image plane.
     size_t currentPlane;
 	size_t _z, _c;
     /// Slider labels [NZTCmZmTmC].
