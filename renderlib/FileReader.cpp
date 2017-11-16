@@ -301,6 +301,7 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   assert(sizeZ >= 1);
   size_t planesize = sizeX*sizeY*bpp / 8;
   uint8_t* data = new uint8_t[planesize*sizeZ*sizeC];
+  memset(data, 0, planesize*sizeZ*sizeC);
 
 
 
@@ -332,26 +333,29 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   else {
 	  // stripped.
 	  // Number of bytes in a decoded scanline
-	  tsize_t scanlength = TIFFScanlineSize(tiff);
-	  tdata_t buf = _TIFFmalloc(scanlength);
-	  for (uint32_t i = 0; i < sizeC; ++i) {
-		  for (uint32_t j = 0; j < sizeZ; ++j) {
-			  int setdirok = TIFFSetDirectory(tiff, j + i*sizeZ);
+	  tsize_t striplength = TIFFStripSize(tiff);
+	  tdata_t buf = _TIFFmalloc(striplength);
+	  for (uint32_t i = 0; i < sizeZ; ++i) {
+		  for (uint32_t j = 0; j < sizeC; ++j) {
+			  uint32_t planeindexintiff = j + i*sizeC;
+			  int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
 			  if (setdirok == 0) {
-				  LOG_ERROR << "Bad tiff directory specified: " << (j + i*sizeZ);
+				  LOG_ERROR << "Bad tiff directory specified: " << (j + i*sizeC);
 			  }
-
-			  for (tstrip_t strip = 0; strip < TIFFNumberOfStrips(tiff); strip++)
+			  // ensure channels are coalesced (transposing from xycz to xyzc)
+			  uint32_t planeindexinbuffer = i + j*sizeZ;
+			  destptr = data + (planesize*(planeindexinbuffer));
+			  uint32 nstrips = TIFFNumberOfStrips(tiff);
+			  for (tstrip_t strip = 0; strip < nstrips; strip++)
 			  {
-				  int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, scanlength);
-//				  TIFFReadEncodedStrip(tiff, strip, buf, (tsize_t)-1);
+				  int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
 				  if (readstripok < 0) {
 					  LOG_ERROR << "Error reading tiff strip";
 				  }
 
 				  // copy buf into data.
-				  memcpy(destptr, buf, scanlength);
-				  destptr += scanlength;
+				  memcpy(destptr, buf, striplength);
+				  destptr += striplength;
 			  }
 
 		  }
