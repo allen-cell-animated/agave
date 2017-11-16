@@ -16,11 +16,14 @@ set(CMAKE_AUTOUIC ON)
 # the install prefix of Qt 5.
 if (WIN32)
 	set(QT_DIR C:/Qt/5.9.1/msvc2015_64)
+	set(zlib_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/zlib-1.2.11)
+	set(TIFF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tiff-4.0.8)
+	set(TIFF_INCLUDE_DIR ${TIFF_DIR}/include)
+	set(TIFF_LIBRARY ${TIFF_DIR}/lib/tiff.lib)
+	set(BOOST_LIBRARYDIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost_1_65_1/lib64-msvc-14.0)
 else (WIN32)
 	# linux: QTDIR = /opt/qt59
 endif (WIN32)
-
-set(zlib_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/zlib-1.2.11)
 
 set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 
@@ -46,12 +49,8 @@ set(Boost_USE_STATIC_RUNTIME OFF)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 #endif()
 
-set(BOOST_LIBRARYDIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost_1_65_1/lib64-msvc-14.0)
 find_package(Boost 1.65.1 COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
 
-set(TIFF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tiff-4.0.8)
-set(TIFF_INCLUDE_DIR ${TIFF_DIR}/include)
-set(TIFF_LIBRARY ${TIFF_DIR}/lib/tiff.lib)
 find_package(TIFF)
 
 # add_subdirectory(thirdparty)
