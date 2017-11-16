@@ -48,6 +48,7 @@ qtome::qtome(QWidget *parent)
 	setWindowTitle(tr("OME-Files GLView"));
 
 	open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
+	//open("/home/danielt/Downloads/AICS-12_269_4.ome.tif");
 
 }
 
