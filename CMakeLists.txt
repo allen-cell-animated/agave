@@ -24,7 +24,7 @@ set(zlib_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/zlib-1.2.11)
 
 set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 
-set(CMAKE_PREFIX_PATH ${QT_DIR};${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
+set(CMAKE_PREFIX_PATH ${QT_DIR};${TIFF_DIR};${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
 
 find_package(Qt5Widgets)
 find_package(Qt5Core)
@@ -73,7 +73,7 @@ add_subdirectory(renderlib)
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml 
 	renderlib_cuda
-	tiff
+	${TIFF_LIBRARIES}
 )
 
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
