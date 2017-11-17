@@ -18,6 +18,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_StepSizePrimaryRaySpinner(),
 	m_StepSizeSecondaryRaySlider(),
 	m_StepSizeSecondaryRaySpinner(),
+	m_DiffuseColorButton(),
 	_transferFunction(tran)
 {
 	setLayout(&m_MainLayout);
@@ -92,6 +93,18 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
 
+
+	m_MainLayout.addWidget(new QLabel("DiffuseColor"), 7, 0);
+	m_MainLayout.addWidget(&m_DiffuseColorButton, 7, 2);
+	QObject::connect(&m_DiffuseColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnDiffuseColorChanged(const QColor&)));
+	m_MainLayout.addWidget(new QLabel("SpecularColor"), 8, 0);
+	m_MainLayout.addWidget(&m_SpecularColorButton, 8, 2);
+	QObject::connect(&m_SpecularColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnSpecularColorChanged(const QColor&)));
+	m_MainLayout.addWidget(new QLabel("EmissiveColor"), 9, 0);
+	m_MainLayout.addWidget(&m_EmissiveColorButton, 9, 2);
+	QObject::connect(&m_EmissiveColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnEmissiveColorChanged(const QColor&)));
+
+
 	QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
 	QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
 	
@@ -137,6 +150,37 @@ void QAppearanceSettingsWidget::OnSetStepSizePrimaryRay(const double& StepSizePr
 void QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay)
 {
 	_transferFunction->scene()->m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void QAppearanceSettingsWidget::OnDiffuseColorChanged(const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+	_transferFunction->scene()->m_DiffuseColor[0] = rgba[0];
+	_transferFunction->scene()->m_DiffuseColor[1] = rgba[1];
+	_transferFunction->scene()->m_DiffuseColor[2] = rgba[2];
+	_transferFunction->scene()->m_DiffuseColor[3] = rgba[3];
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+void QAppearanceSettingsWidget::OnSpecularColorChanged(const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+	_transferFunction->scene()->m_SpecularColor[0] = rgba[0];
+	_transferFunction->scene()->m_SpecularColor[1] = rgba[1];
+	_transferFunction->scene()->m_SpecularColor[2] = rgba[2];
+	_transferFunction->scene()->m_SpecularColor[3] = rgba[3];
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+void QAppearanceSettingsWidget::OnEmissiveColorChanged(const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+	_transferFunction->scene()->m_EmissiveColor[0] = rgba[0];
+	_transferFunction->scene()->m_EmissiveColor[1] = rgba[1];
+	_transferFunction->scene()->m_EmissiveColor[2] = rgba[2];
+	_transferFunction->scene()->m_EmissiveColor[3] = rgba[3];
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 

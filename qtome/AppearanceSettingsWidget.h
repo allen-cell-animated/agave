@@ -36,6 +36,9 @@ public slots:
 	void OnSetGradientFactor(double GradientFactor);
 	void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
 	void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
+	void OnDiffuseColorChanged(const QColor& color);
+	void OnSpecularColorChanged(const QColor& color);
+	void OnEmissiveColorChanged(const QColor& color);
 
 private:
 	QGridLayout		m_MainLayout;
@@ -49,6 +52,10 @@ private:
 	QDoubleSpinner	m_StepSizePrimaryRaySpinner;
 	QDoubleSlider	m_StepSizeSecondaryRaySlider;
 	QDoubleSpinner	m_StepSizeSecondaryRaySpinner;
+
+	QColorSelector  m_DiffuseColorButton;
+	QColorSelector  m_SpecularColorButton;
+	QColorSelector  m_EmissiveColorButton;
 
 	QTransferFunction* _transferFunction;
 };

@@ -82,6 +82,10 @@ public:
 	float				m_GradientFactor;
 	float				m_GradMagMean;
 
+	float m_DiffuseColor[4];
+	float m_SpecularColor[4];
+	float m_EmissiveColor[4];
+
 	HOD int GetNoIterations(void) const					{ return m_NoIterations;			}
 	HOD void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}
 

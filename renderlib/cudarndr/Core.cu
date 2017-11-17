@@ -59,6 +59,10 @@ CD float		gDenoiseLerpC;
 CD float		gNoIterations;
 CD float		gInvNoIterations;
 
+CD float4		gDiffuseColor;
+CD float4		gSpecularColor;
+CD float4		gEmissiveColor;
+
 #define TF_NO_SAMPLES		128
 #define INV_TF_NO_SAMPLES	1.0f / (float)TF_NO_SAMPLES
 
@@ -333,6 +337,10 @@ void BindConstants(CScene* pScene)
 
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMin, &InvAaBbMin, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMax, &InvAaBbMax, sizeof(float3)));
+
+	HandleCudaError(cudaMemcpyToSymbol(gDiffuseColor, pScene->m_DiffuseColor, sizeof(float4)));
+	HandleCudaError(cudaMemcpyToSymbol(gSpecularColor, pScene->m_SpecularColor, sizeof(float4)));
+	HandleCudaError(cudaMemcpyToSymbol(gEmissiveColor, pScene->m_EmissiveColor, sizeof(float4)));
 
 	const float IntensityMin		= pScene->m_IntensityRange.GetMin();
 	const float IntensityMax		= pScene->m_IntensityRange.GetMax();
