@@ -50,7 +50,7 @@ CD float		gInvExposure;
 CD float		gGamma;
 CD float		gInvGamma;
 CD float		gDenoiseEnabled;
-CD float		gDenoiseWindowRadius;
+CD int		gDenoiseWindowRadius;
 CD float		gDenoiseInvWindowArea;
 CD float		gDenoiseNoise;
 CD float		gDenoiseWeightThreshold;
@@ -402,7 +402,7 @@ void BindConstants(CScene* pScene)
 
 	const float denoiseEnabled = pScene->m_DenoiseParams.m_Enabled ? 1.0f : 0.0f;
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseEnabled, &denoiseEnabled, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWindowRadius, &pScene->m_DenoiseParams.m_WindowRadius, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWindowRadius, &pScene->m_DenoiseParams.m_WindowRadius, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseInvWindowArea, &pScene->m_DenoiseParams.m_InvWindowArea, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseNoise, &pScene->m_DenoiseParams.m_Noise, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWeightThreshold, &pScene->m_DenoiseParams.m_WeightThreshold, sizeof(float)));

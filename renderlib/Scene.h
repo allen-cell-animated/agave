@@ -24,7 +24,7 @@ public:
 	bool		m_Enabled;
 	float		m_Noise;
 	float		m_LerpC;
-	float		m_WindowRadius;
+	int		m_WindowRadius;
 	float		m_WindowArea;
 	float		m_InvWindowArea;
 	float		m_WeightThreshold;
@@ -47,7 +47,7 @@ public:
 		return *this;
 	}
 
-	HOD void SetWindowRadius(const float& WindowRadius)
+	HOD void SetWindowRadius(const int& WindowRadius)
 	{
 		m_WindowRadius		= WindowRadius;
 		m_WindowArea		= (2.0f * m_WindowRadius + 1.0f) * (2.0f * m_WindowRadius + 1.0f);

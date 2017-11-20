@@ -18,13 +18,16 @@ KERNEL void KrnlToneMap(float* inbuf, cudaSurfaceObject_t surfaceObj)
 	int pixoffset = Y*(gFilmWidth)+(X);
 
 	float4 sample = reinterpret_cast<float4*>(inbuf)[pixoffset];
+	float4 rgbsample;
+	// convert XYZ to RGB here.
+	XYZToRGB(sample, rgbsample);
 
-	sample.x = __saturatef(1.0f - expf(-(sample.x * gInvExposure)));
-	sample.y = __saturatef(1.0f - expf(-(sample.y * gInvExposure)));
-	sample.z = __saturatef(1.0f - expf(-(sample.z * gInvExposure)));
-	sample.w = __saturatef(sample.w);
+	rgbsample.x = __saturatef(1.0f - expf(-(rgbsample.x * gInvExposure)));
+	rgbsample.y = __saturatef(1.0f - expf(-(rgbsample.y * gInvExposure)));
+	rgbsample.z = __saturatef(1.0f - expf(-(rgbsample.z * gInvExposure)));
+	rgbsample.w = __saturatef(sample.w);
 
-	uchar4 pixel = make_uchar4(sample.x*255.0, sample.y*255.0, sample.z*255.0, sample.w*255.0);
+	uchar4 pixel = make_uchar4(rgbsample.x*255.0, rgbsample.y*255.0, rgbsample.z*255.0, rgbsample.w*255.0);
 	surf2Dwrite(pixel, surfaceObj, X * 4, Y);
 }
 

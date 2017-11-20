@@ -67,7 +67,7 @@ void RenderGLCuda::initSceneFromImg()
 	BackgroundLight.m_T = 1;
 	float inten = 1.0f;
 
-	float topr = 40.0f;
+	float topr = 1.0f;
 	float topg = 0.0f;
 	float topb = 0.0f;
 	float midr = 1.0f;
@@ -75,7 +75,7 @@ void RenderGLCuda::initSceneFromImg()
 	float midb = 1.0f;
 	float botr = 0.0f;
 	float botg = 0.0f;
-	float botb = 40.0f;
+	float botb = 1.0f;
 
 	BackgroundLight.m_ColorTop = inten * CColorRgbHdr(topr, topg, topb);
 	BackgroundLight.m_ColorMiddle = inten * CColorRgbHdr(midr, midg, midb);
@@ -408,6 +408,9 @@ void RenderGLCuda::render(const Camera& camera)
 
 
 
+	_renderSettings.m_DenoiseParams.SetWindowRadius(3.0f);
+	//_renderSettings.m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings.GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+	_renderSettings.m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings.GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 
 
 
@@ -459,12 +462,15 @@ void RenderGLCuda::render(const Camera& camera)
 		desc.res.array.array = ca;
 		cudaSurfaceObject_t theCudaSurfaceObject;
 		HandleCudaError(cudaCreateSurfaceObject(&theCudaSurfaceObject, &desc));
+
+		if (_renderSettings.m_DenoiseParams.m_Enabled && _renderSettings.m_DenoiseParams.m_LerpC > 0.0f && _renderSettings.m_DenoiseParams.m_LerpC < 1.0f)
+		{
+			Denoise(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
+		}
+		else
 		{
 			ToneMap(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
 		}
-//		{
-//			Denoise(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
-//		}
 		HandleCudaError(cudaDestroySurfaceObject(theCudaSurfaceObject));
 	}
 	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
