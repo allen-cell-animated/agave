@@ -413,12 +413,6 @@ void RenderGLCuda::render(const Camera& camera)
 
 
 
-	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
-	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-
-
-
 
 	// TODO: update only when w and h change!
 	_renderSettings->m_Camera.m_Film.m_Resolution.SetResX(_w);
@@ -468,6 +462,12 @@ void RenderGLCuda::render(const Camera& camera)
 		cudaSurfaceObject_t theCudaSurfaceObject;
 		HandleCudaError(cudaCreateSurfaceObject(&theCudaSurfaceObject, &desc));
 
+		// set the lerpC here because the Render call is incrementing the number of iterations.
+
+		_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
+		//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+		_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+
 		if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 		{
 			Denoise(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
@@ -481,8 +481,6 @@ void RenderGLCuda::render(const Camera& camera)
 	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
 
 	HandleCudaError(cudaStreamSynchronize(0));
-
-	_renderSettings->SetNoIterations(_renderSettings->GetNoIterations() + 1);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

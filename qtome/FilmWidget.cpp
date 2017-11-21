@@ -5,6 +5,8 @@
 #include "Camera.h"
 #include "Scene.h"
 
+#include <QVariant>
+
 QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	QGroupBox(pParent),
 	m_GridLayout(),
@@ -14,6 +16,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	m_HeightSpinner(),
 	m_ExposureSlider(),
 	m_ExposureSpinner(),
+	m_ExposureIterationsSpinner(),
 	m_NoiseReduction(),
 	_camera(cam),
 	_Scene(scene)
@@ -88,11 +91,25 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
  	QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), this, SLOT(SetExposure(double)));
  	QObject::connect(&m_ExposureSpinner, SIGNAL(valueChanged(double)), &m_ExposureSlider, SLOT(setValue(double)));
 
+
+	// Exposure
+	m_GridLayout.addWidget(new QLabel("Exposure Time"), 4, 0);
+
+	m_ExposureIterationsSpinner.addItem("1", 1);
+	m_ExposureIterationsSpinner.addItem("2", 2);
+	m_ExposureIterationsSpinner.addItem("4", 4);
+	m_ExposureIterationsSpinner.addItem("8", 8);
+
+	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(scene->m_Camera.m_Film.m_ExposureIterations));
+	m_GridLayout.addWidget(&m_ExposureIterationsSpinner, 4, 1);
+	//QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(valueChanged(int)), this, SLOT(SetExposureIterations(int)));
+	QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(SetExposureIterations(const QString&)));
+
 	gStatus.SetStatisticChanged("Camera", "Film", "", "", "");
 
 	m_NoiseReduction.setText("Noise Reduction");
 	m_NoiseReduction.setCheckState(scene->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-	m_GridLayout.addWidget(&m_NoiseReduction, 4, 1);
+	m_GridLayout.addWidget(&m_NoiseReduction, 5, 1);
 
 	QObject::connect(&m_NoiseReduction, SIGNAL(stateChanged(const int&)), this, SLOT(OnNoiseReduction(const int&)));
 
@@ -168,12 +185,19 @@ void QFilmWidget::SetExposure(const double& Exposure)
 	_camera->GetFilm().SetExposure(Exposure);
 }
 
+void QFilmWidget::SetExposureIterations(const QString& ExposureIterations)
+{
+	int value = m_ExposureIterationsSpinner.currentData().toInt();
+	_camera->GetFilm().SetExposureIterations(value);
+}
+
 void QFilmWidget::OnRenderBegin(void)
 {
 	m_WidthSpinner.setValue(_camera->GetFilm().GetWidth());
 	m_HeightSpinner.setValue(_camera->GetFilm().GetHeight());
 	m_ExposureSlider.setValue(_camera->GetFilm().GetExposure());
 	m_ExposureSpinner.setValue(_camera->GetFilm().GetExposure());
+	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(_camera->GetFilm().GetExposureIterations()));
 
 	m_NoiseReduction.setChecked(_Scene->m_DenoiseParams.m_Enabled);
 }
@@ -197,6 +221,10 @@ void QFilmWidget::OnFilmChanged(const QFilm& Film)
 	// Exposure
 	m_ExposureSlider.setValue(Film.GetExposure(), true);
 	m_ExposureSpinner.setValue(Film.GetExposure(), true);
+
+	m_ExposureIterationsSpinner.blockSignals(true);
+	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(Film.GetExposureIterations()));
+	m_ExposureIterationsSpinner.blockSignals(false);
 }
 
 void QFilmWidget::OnNoiseReduction(const int& ReduceNoise)

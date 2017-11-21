@@ -99,6 +99,7 @@ public slots:
 	void SetWidth(const int& Width);
 	void SetHeight(const int& Height);
 	void SetExposure(const double& Exposure);
+	void SetExposureIterations(const QString& ExposureIterations);
 	void OnRenderBegin(void);
 	void OnRenderEnd(void);
 	void OnFilmChanged(const QFilm& Film);
@@ -113,6 +114,7 @@ private:
 	QSpinBox				m_HeightSpinner;
 	QDoubleSlider			m_ExposureSlider;
 	QDoubleSpinner			m_ExposureSpinner;
+	QComboBox				m_ExposureIterationsSpinner;
 	QCheckBox				m_NoiseReduction;
 
 	QCamera* _camera;

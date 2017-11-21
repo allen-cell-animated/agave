@@ -136,6 +136,7 @@ public:
 	Vec2f			m_InvScreen;
 	float			m_Iso;
 	float			m_Exposure;
+	int				m_ExposureIterations;
 	float			m_FStop;
 	float			m_Gamma;
 
@@ -149,6 +150,7 @@ public:
 		m_InvScreen		= Vec2f(0.0f);
 		m_Iso			= DEF_FILM_ISO;
 		m_Exposure		= DEF_FILM_EXPOSURE;
+		m_ExposureIterations = 1;
 		m_FStop			= DEF_FILM_FSTOP;
 		m_Gamma			= DEF_FILM_GAMMA;
 	}
@@ -162,7 +164,8 @@ public:
 		m_Screen[1][1]		= Other.m_Screen[1][1];
 		m_InvScreen			= Other.m_InvScreen;
 		m_Iso				= Other.m_Iso;
-		m_Exposure			= Other.m_Exposure;
+		m_Exposure = Other.m_Exposure;
+		m_ExposureIterations = Other.m_ExposureIterations;
 		m_FStop				= Other.m_FStop;
 		m_Gamma				= Other.m_Gamma;
 

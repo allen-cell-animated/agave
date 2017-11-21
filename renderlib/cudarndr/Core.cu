@@ -434,10 +434,11 @@ void Render(const int& Type, CScene& Scene,
 		HandleCudaError(cudaMemcpy(pDevScene, &Scene, sizeof(CScene), cudaMemcpyHostToDevice));
 	}
 
-	CCudaTimer TmrRender;
+	for (int i = 0; i < Scene.m_Camera.m_Film.m_ExposureIterations; ++i) {
+		CCudaTimer TmrRender;
 
-	switch (Type)
-	{
+		switch (Type)
+		{
 		case 0:
 		{
 			SingleScattering(&Scene, pDevScene, volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
@@ -446,37 +447,24 @@ void Render(const int& Type, CScene& Scene,
 
 		case 1:
 		{
-//			MultipleScattering(&Scene, pDevScene);
+			//			MultipleScattering(&Scene, pDevScene);
 			break;
 		}
+		}
+		RenderImage.AddDuration(TmrRender.ElapsedTime());
+
+		// estimate just adds to accumulation buffer.
+		CCudaTimer TmrPostProcess;
+		Estimate(&Scene, pDevScene, framebuffers.fb, framebuffers.fbaccum);
+		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
+
+		Scene.SetNoIterations(Scene.GetNoIterations() + 1);
+
+		const float NoIterations = Scene.GetNoIterations();
+		const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
+		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
+		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
 	}
-	RenderImage.AddDuration(TmrRender.ElapsedTime());
-	
-// 	CCudaTimer TmrBlur;
-//	Blur(&Scene, pDevScene, pDevView);
-//	BlurImage.AddDuration(TmrBlur.ElapsedTime());
-
-	// estimate just adds to accumulation buffer.
-	CCudaTimer TmrPostProcess;
-	Estimate(&Scene, pDevScene, framebuffers.fb, framebuffers.fbaccum);
-	PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
-
-//	Scene.SetNoIterations(Scene.GetNoIterations() + 1);
-
-//	HandleCudaError(cudaMemcpy(pDevScene, &Scene, sizeof(CScene), cudaMemcpyHostToDevice));
-//	SingleScattering(&Scene, pDevScene, volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
-//	Estimate(&Scene, pDevScene, framebuffers.fb, framebuffers.fbaccum);
-
-//	Scene.SetNoIterations(Scene.GetNoIterations() + 1);
-
-	// tone map to prep for display
-
-	//ToneMap(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h)
-
-//	CCudaTimer TmrDenoise;
-//	Denoise(&Scene, pDevScene, pDevView);
-//	DenoiseImage.AddDuration(TmrDenoise.ElapsedTime());
-	
 
 	HandleCudaError(cudaFree(pDevScene));
 	pDevScene = NULL;

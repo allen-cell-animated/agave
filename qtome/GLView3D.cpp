@@ -401,6 +401,7 @@ void GLView3D::OnUpdateCamera()
 	//	QMutexLocker Locker(&gSceneMutex);
 	CScene& scene = _renderGL->getScene();
 	scene.m_Camera.m_Film.m_Exposure = 1.0f - _camera->GetFilm().GetExposure();
+	scene.m_Camera.m_Film.m_ExposureIterations = _camera->GetFilm().GetExposureIterations();
 
 	if (_camera->GetFilm().IsDirty())
 	{

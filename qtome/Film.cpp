@@ -7,6 +7,7 @@ QFilm::QFilm(QObject* pParent /*= NULL*/) :
 	m_Width(800),
 	m_Height(600),
 	m_Exposure(0.75f),
+	m_ExposureIterations(1),
 	m_Dirty(false)
 {
 }
@@ -20,7 +21,8 @@ QFilm& QFilm::operator=(const QFilm& Other)
 {
 	m_Width				= Other.m_Width;
 	m_Height			= Other.m_Height;
-	m_Exposure			= Other.m_Exposure;
+	m_Exposure = Other.m_Exposure;
+	m_ExposureIterations = Other.m_ExposureIterations;
 	m_NoiseReduction	= Other.m_NoiseReduction;
 	m_Dirty				= Other.m_Dirty;
 
@@ -63,6 +65,17 @@ float QFilm::GetExposure(void) const
 void QFilm::SetExposure(const float& Exposure)
 {
 	m_Exposure = Exposure;
+	emit Changed(*this);
+}
+
+int QFilm::GetExposureIterations(void) const
+{
+	return m_ExposureIterations;
+}
+
+void QFilm::SetExposureIterations(const int& ExposureIterations)
+{
+	m_ExposureIterations = ExposureIterations;
 	emit Changed(*this);
 }
 
