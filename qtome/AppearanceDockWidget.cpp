@@ -2,11 +2,11 @@
 
 #include "AppearanceDockWidget.h"
 
-QAppearanceWidget::QAppearanceWidget(QWidget* pParent, QTransferFunction* tran) :
+QAppearanceWidget::QAppearanceWidget(QWidget* pParent, QTransferFunction* tran, CScene* scene) :
 	QWidget(pParent),
 	m_MainLayout(),
 	//m_PresetsWidget(NULL, "Appearance", "Appearance"),
-	m_AppearanceSettingsWidget(nullptr, tran)
+	m_AppearanceSettingsWidget(nullptr, tran, scene)
 	//m_TransferFunctionWidget(),
 	//m_NodeSelectionWidget(),
 	//m_NodePropertiesWidget()
@@ -40,9 +40,9 @@ void QAppearanceWidget::OnSavePreset(const QString& Name)
 	//m_PresetsWidget.SavePreset(Preset);
 }
 
-QAppearanceDockWidget::QAppearanceDockWidget(QWidget *parent, QTransferFunction* tran) :
+QAppearanceDockWidget::QAppearanceDockWidget(QWidget *parent, QTransferFunction* tran, CScene* scene) :
 	QDockWidget(parent),
-	m_VolumeAppearanceWidget(nullptr, tran)
+	m_VolumeAppearanceWidget(nullptr, tran, scene)
 {
 	setWindowTitle("Appearance");
 	setToolTip("<img src=':/Images/palette.png'><div>Volume Appearance</div>");

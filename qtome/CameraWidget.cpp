@@ -8,9 +8,9 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	QWidget(pParent),
 	m_MainLayout(),
 	m_FilmWidget(nullptr, cam, scene),
-	m_ApertureWidget(nullptr, cam),
-	m_ProjectionWidget(nullptr, cam),
-	m_FocusWidget(nullptr, cam)
+	m_ApertureWidget(nullptr, cam, scene),
+	m_ProjectionWidget(nullptr, cam, scene),
+	m_FocusWidget(nullptr, cam, scene)
 {
 	m_MainLayout.setAlignment(Qt::AlignTop);
 	setLayout(&m_MainLayout);

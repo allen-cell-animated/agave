@@ -46,6 +46,7 @@ public:
     GLView3D(std::shared_ptr<ImageXYZC>  img,
 		QCamera* cam,
 		QTransferFunction* tran,
+		CScene* scene,
 		QWidget                                                *parent = 0);
 
     /// Destructor.

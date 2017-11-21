@@ -16,7 +16,7 @@ class RenderGLCuda :
 	public IRenderWindow
 {
 public:
-	RenderGLCuda(std::shared_ptr<ImageXYZC>  img);
+	RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene);
 	virtual ~RenderGLCuda();
 
 	void setChannel(int c);
@@ -27,10 +27,10 @@ public:
 
 	Image3Dv33* getImage() const { return nullptr; };
 
-	CScene& getScene() { return _renderSettings; }
+	CScene& getScene() { return *_renderSettings; }
 
 private:
-	CScene _renderSettings;
+	CScene* _renderSettings;
 
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);

@@ -6,13 +6,14 @@
 #include <QtWidgets/QGroupBox>
 
 class QCamera;
+class CScene;
 
 class QApertureWidget : public QGroupBox
 {
     Q_OBJECT
 
 public:
-    QApertureWidget(QWidget* pParent = NULL, QCamera* cam = nullptr);
+    QApertureWidget(QWidget* pParent = NULL, QCamera* cam = nullptr, CScene* scene = nullptr);
 
 public slots:
 	void SetAperture(const double& Aperture);

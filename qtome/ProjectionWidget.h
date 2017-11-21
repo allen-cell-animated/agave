@@ -17,13 +17,14 @@
 #include "Projection.h"
 
 class QCamera;
+class CScene;
 
 class QProjectionWidget : public QGroupBox
 {
     Q_OBJECT
 
 public:
-    QProjectionWidget(QWidget* pParent = NULL, QCamera* cam = nullptr);
+    QProjectionWidget(QWidget* pParent = NULL, QCamera* cam = nullptr, CScene* scene = nullptr);
 
 private slots:
 	void SetFieldOfView(const double& FieldOfView);

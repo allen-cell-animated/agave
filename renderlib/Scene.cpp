@@ -13,7 +13,7 @@ CScene::CScene(void) :
 	m_TransferFunctions(),
 	m_IntensityRange(),
 	m_GradientMagnitudeRange(),
-	m_DensityScale(7.5f),
+	m_DensityScale(50.0f),
 	m_DenoiseParams(),
 	m_NoIterations(0),
 	m_ShadingType(2),
@@ -21,7 +21,10 @@ CScene::CScene(void) :
 	m_StepSizeFactorShadow(3.0f),
 	m_GradientDelta(4.0f),
 	m_GradientFactor(50.0f),
-	m_GradMagMean(1.0f)
+	m_GradMagMean(1.0f),
+	m_EmissiveColor { 0, 0, 0, 0 },
+	m_DiffuseColor { 0.5, 0.5, 0.5, 1.0 },
+	m_SpecularColor { 0.0, 0.0, 0.0, 0.0 }
 {
 }
 

@@ -4,7 +4,9 @@
 #include "RenderThread.h"
 #include "Camera.h"
 
-QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam) :
+#include "Scene.h"
+
+QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	QGroupBox(pParent),
 	m_GridLayout(),
 	m_FieldOfViewSlider(),
@@ -23,9 +25,11 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam) :
 
 	m_FieldOfViewSlider.setOrientation(Qt::Horizontal);
 	m_FieldOfViewSlider.setRange(10.0, 150.0);
+	m_FieldOfViewSlider.setValue(scene->m_Camera.m_FovV);
 	m_GridLayout.addWidget(&m_FieldOfViewSlider, 4, 1);
 	
     m_FieldOfViewSpinner.setRange(10.0, 150.0);
+	m_FieldOfViewSpinner.setValue(scene->m_Camera.m_FovV);
 	m_FieldOfViewSpinner.setSuffix(" deg.");
 	m_GridLayout.addWidget(&m_FieldOfViewSpinner, 4, 2);
 	

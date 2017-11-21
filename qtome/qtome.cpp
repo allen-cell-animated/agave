@@ -47,7 +47,7 @@ qtome::qtome(QWidget *parent)
 
 	setWindowTitle(tr("OME-Files GLView"));
 
-	open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269.ome.tif");
+	open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
 	//open("/home/danielt/Downloads/AICS-12_269_4.ome.tif");
 
 }
@@ -142,11 +142,11 @@ void qtome::createDockWindows()
 	navigation->setAllowedAreas(Qt::AllDockWidgetAreas);
 	addDockWidget(Qt::BottomDockWidgetArea, navigation);
 
-	cameradock = new QCameraDockWidget(this, &_camera);
+	cameradock = new QCameraDockWidget(this, &_camera, &_renderSettings);
 	cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
 	addDockWidget(Qt::RightDockWidgetArea, cameradock);
 
-	appearanceDockWidget = new QAppearanceDockWidget(this, &_transferFunction);
+	appearanceDockWidget = new QAppearanceDockWidget(this, &_transferFunction, &_renderSettings);
 	appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
 	addDockWidget(Qt::RightDockWidgetArea, appearanceDockWidget);
 
@@ -224,7 +224,7 @@ void qtome::open(const QString& file)
 		//std::shared_ptr<ImageXYZC> image = fileReader.openToImage(file.toStdString());
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 
-		GLView3D *newGlView = new GLView3D(image, &_camera, &_transferFunction, this);
+		GLView3D *newGlView = new GLView3D(image, &_camera, &_transferFunction, &_renderSettings, this);
 		QWidget *glContainer = new GLContainer(this, newGlView);
 		newGlView->setObjectName("glcontainer");
 		// We need a minimum size or else the size defaults to zero.

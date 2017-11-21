@@ -5,7 +5,7 @@
 #include "RenderThread.h"
 #include "Scene.h"
 
-QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransferFunction* tran) :
+QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransferFunction* tran, CScene* scene) :
 	QGroupBox(pParent),
 	m_MainLayout(),
 	m_DensityScaleSlider(),
@@ -19,6 +19,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_StepSizeSecondaryRaySlider(),
 	m_StepSizeSecondaryRaySpinner(),
 	m_DiffuseColorButton(),
+	m_SpecularColorButton(),
+	m_EmissiveColorButton(),
 	_transferFunction(tran)
 {
 	setLayout(&m_MainLayout);
@@ -27,11 +29,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	m_DensityScaleSlider.setOrientation(Qt::Horizontal);
 	m_DensityScaleSlider.setRange(0.001, 100.0);
-	m_DensityScaleSlider.setValue(1.0);
+	m_DensityScaleSlider.setValue(scene->m_DensityScale);
 	m_MainLayout.addWidget(&m_DensityScaleSlider, 2, 1);
 
 	m_DensityScaleSpinner.setRange(0.001, 100.0);
 	m_DensityScaleSpinner.setDecimals(3);
+	m_DensityScaleSpinner.setValue(scene->m_DensityScale);
 	m_MainLayout.addWidget(&m_DensityScaleSpinner, 2, 2);
 
 	m_MainLayout.addWidget(new QLabel("Shading Type"), 3, 0);
@@ -45,12 +48,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(&m_GradientFactorLabel, 4, 0);
 	
 	m_GradientFactorSlider.setRange(0.001, 100.0);
-	m_GradientFactorSlider.setValue(100.0);
+	m_GradientFactorSlider.setValue(scene->m_GradientFactor);
 
 	m_MainLayout.addWidget(&m_GradientFactorSlider, 4, 1);
 
 	m_GradientFactorSpinner.setRange(0.001, 100.0);
 	m_GradientFactorSpinner.setDecimals(3);
+	m_GradientFactorSpinner.setValue(scene->m_GradientFactor);
 
 	m_MainLayout.addWidget(&m_GradientFactorSpinner, 4, 2);
 
@@ -93,13 +97,15 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
 
-
+	m_DiffuseColorButton.SetColor(QColor::fromRgbF(scene->m_DiffuseColor[0], scene->m_DiffuseColor[1], scene->m_DiffuseColor[2]), true);
 	m_MainLayout.addWidget(new QLabel("DiffuseColor"), 7, 0);
 	m_MainLayout.addWidget(&m_DiffuseColorButton, 7, 2);
 	QObject::connect(&m_DiffuseColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnDiffuseColorChanged(const QColor&)));
+	m_SpecularColorButton.SetColor(QColor::fromRgbF(scene->m_SpecularColor[0], scene->m_SpecularColor[1], scene->m_SpecularColor[2]), true);
 	m_MainLayout.addWidget(new QLabel("SpecularColor"), 8, 0);
 	m_MainLayout.addWidget(&m_SpecularColorButton, 8, 2);
 	QObject::connect(&m_SpecularColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnSpecularColorChanged(const QColor&)));
+	m_EmissiveColorButton.SetColor(QColor::fromRgbF(scene->m_EmissiveColor[0], scene->m_EmissiveColor[1], scene->m_EmissiveColor[2]), true);
 	m_MainLayout.addWidget(new QLabel("EmissiveColor"), 9, 0);
 	m_MainLayout.addWidget(&m_EmissiveColorButton, 9, 2);
 	QObject::connect(&m_EmissiveColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnEmissiveColorChanged(const QColor&)));
@@ -109,6 +115,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
 	
 	QObject::connect(_transferFunction, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
+
 }
 
 void QAppearanceSettingsWidget::OnRenderBegin(void)

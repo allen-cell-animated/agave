@@ -34,6 +34,7 @@ namespace
 GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	QCamera* cam,
 	QTransferFunction* tran,
+	CScene* scene,
     QWidget* /* parent */):
     GLWindow(),
     camera(),
@@ -45,15 +46,19 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
     oldplane(-1),
     lastPos(0, 0),
     _img(img),
-    _renderGL(new RenderGLCuda(img)),
+    _renderGL(new RenderGLCuda(img, scene)),
+	//    _renderGL(new RenderGL(img))
 	_camera(cam),
 	_cameraController(cam),
 	_transferFunction(tran)
-//    _renderGL(new RenderGL(reader, img, series))
 {
-		
+	// The GLView3D owns one CScene
+
 	_cameraController.setScene(_renderGL->getScene());
 	_transferFunction->setScene(_renderGL->getScene());
+
+	// IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
+	// GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
 	QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
 	QObject::connect(tran, SIGNAL(Changed()), this, SLOT(OnUpdateTransferFunction()));
 

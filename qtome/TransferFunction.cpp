@@ -2,11 +2,13 @@
 
 #include "TransferFunction.h"
 
+#include "Scene.h"
+
 QTransferFunction::QTransferFunction(QObject* pParent) :
 	QObject(pParent),
-	m_DensityScale(5.0f),
-	m_ShadingType(1),
-	m_GradientFactor(0.0f)
+	m_DensityScale(100.0f),
+	m_ShadingType(2),
+	m_GradientFactor(10.0f)
 {
 }
 
@@ -29,6 +31,16 @@ QTransferFunction& QTransferFunction::operator = (const QTransferFunction& Other
 	emit Changed();
 
 	return *this;
+}
+
+void QTransferFunction::setScene(CScene& scene) { 
+	_Scene = &scene;
+
+	m_DensityScale = scene.m_DensityScale;
+	m_ShadingType = scene.m_ShadingType;
+	m_GradientFactor = scene.m_GradientFactor;
+
+	emit Changed();
 }
 
 float QTransferFunction::GetDensityScale(void) const

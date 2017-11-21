@@ -4,7 +4,7 @@
 #include "RenderThread.h"
 #include "Camera.h"
 
-QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam) :
+QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	QGroupBox(pParent),
 	m_GridLayout(),
 	m_SizeSlider(),

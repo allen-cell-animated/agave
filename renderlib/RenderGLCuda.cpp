@@ -18,7 +18,7 @@
 
 #include <array>
 
-RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img)
+RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 	:_img(img),
 	_cudaF32Buffer(nullptr),
 	_cudaF32AccumBuffer(nullptr),
@@ -30,10 +30,11 @@ RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img)
 	image_elements(0),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
-	_currentChannel(0)
+	_currentChannel(0),
+	_renderSettings(scene)
 {
 	initSceneFromImg();
-	_renderSettings.m_Camera.SetViewMode(ViewModeFront);
+	_renderSettings->m_Camera.SetViewMode(ViewModeFront);
 }
 
 
@@ -43,23 +44,27 @@ RenderGLCuda::~RenderGLCuda()
 
 void RenderGLCuda::initSceneFromImg()
 {
-	_renderSettings.m_Resolution.SetResX(_img->sizeX());
-	_renderSettings.m_Resolution.SetResY(_img->sizeY());
-	_renderSettings.m_Resolution.SetResZ(_img->sizeZ());
-	_renderSettings.m_Spacing.x = _img->physicalSizeX();
-	_renderSettings.m_Spacing.y = _img->physicalSizeY();
-	_renderSettings.m_Spacing.z = _img->physicalSizeZ();
+	_renderSettings->m_Resolution.SetResX(_img->sizeX());
+	_renderSettings->m_Resolution.SetResY(_img->sizeY());
+	_renderSettings->m_Resolution.SetResZ(_img->sizeZ());
+	_renderSettings->m_Spacing.x = _img->physicalSizeX();
+	_renderSettings->m_Spacing.y = _img->physicalSizeY();
+	_renderSettings->m_Spacing.z = _img->physicalSizeZ();
 
 	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
 
 	// Compute physical size
-	const Vec3f PhysicalSize(Vec3f(_renderSettings.m_Spacing.x * (float)_renderSettings.m_Resolution.GetResX(), _renderSettings.m_Spacing.y * (float)_renderSettings.m_Resolution.GetResY(), _renderSettings.m_Spacing.z * (float)_renderSettings.m_Resolution.GetResZ()));
+	const Vec3f PhysicalSize(Vec3f(
+		_renderSettings->m_Spacing.x * (float)_renderSettings->m_Resolution.GetResX(), 
+		_renderSettings->m_Spacing.y * (float)_renderSettings->m_Resolution.GetResY(), 
+		_renderSettings->m_Spacing.z * (float)_renderSettings->m_Resolution.GetResZ()
+	));
 
 	// Compute the volume's bounding box
-	_renderSettings.m_BoundingBox.m_MinP = Vec3f(0.0f);
-	_renderSettings.m_BoundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
+	_renderSettings->m_BoundingBox.m_MinP = Vec3f(0.0f);
+	_renderSettings->m_BoundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
 
-	_renderSettings.m_Camera.m_SceneBoundingBox = _renderSettings.m_BoundingBox;
+	_renderSettings->m_Camera.m_SceneBoundingBox = _renderSettings->m_BoundingBox;
 
 
 	CLight BackgroundLight;
@@ -81,9 +86,9 @@ void RenderGLCuda::initSceneFromImg()
 	BackgroundLight.m_ColorMiddle = inten * CColorRgbHdr(midr, midg, midb);
 	BackgroundLight.m_ColorBottom = inten * CColorRgbHdr(botr, botg, botb);
 
-	BackgroundLight.Update(_renderSettings.m_BoundingBox);
+	BackgroundLight.Update(_renderSettings->m_BoundingBox);
 
-	_renderSettings.m_Lighting.AddLight(BackgroundLight);
+	_renderSettings->m_Lighting.AddLight(BackgroundLight);
 
 	CLight AreaLight;
 
@@ -95,9 +100,9 @@ void RenderGLCuda::initSceneFromImg()
 	AreaLight.m_Distance = 10.0f;
 	AreaLight.m_Color = 1.0f * CColorRgbHdr(1.0f, 1.0f, 1.0f);
 
-	AreaLight.Update(_renderSettings.m_BoundingBox);
+	AreaLight.Update(_renderSettings->m_BoundingBox);
 
-	_renderSettings.m_Lighting.AddLight(AreaLight);
+	_renderSettings->m_Lighting.AddLight(AreaLight);
 
 }
 
@@ -340,7 +345,7 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 void RenderGLCuda::setChannel(int c)
 {
 	_currentChannel = c;
-	_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
@@ -366,36 +371,36 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 void RenderGLCuda::render(const Camera& camera)
 {
 	// Resizing the image canvas requires special attention
-	if (_renderSettings.m_DirtyFlags.HasFlag(FilmResolutionDirty))
+	if (_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty))
 	{
 #if 0
 		// Allocate host image buffer, this thread will blit it's frames to this buffer
 		free(m_pRenderImage);
 		m_pRenderImage = NULL;
 
-		m_pRenderImage = (CColorRgbLdr*)malloc(_renderSettings.m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr));
+		m_pRenderImage = (CColorRgbLdr*)malloc(_renderSettings->m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr));
 
 		if (m_pRenderImage)
-			memset(m_pRenderImage, 0, _renderSettings.m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr));
+			memset(m_pRenderImage, 0, _renderSettings->m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr));
 
-		gStatus.SetStatisticChanged("Host Memory", "LDR Frame Buffer", QString::number(3 * _renderSettings.m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr) / MB, 'f', 2), "MB");
+		gStatus.SetStatisticChanged("Host Memory", "LDR Frame Buffer", QString::number(3 * _renderSettings->m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr) / MB, 'f', 2), "MB");
 #endif
-		_renderSettings.SetNoIterations(0);
+		_renderSettings->SetNoIterations(0);
 
 		//Log("Render canvas resized to: " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResX()) + " x " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResY()) + " pixels", "application-resize");
 	}
 
 	// Restart the rendering when when the camera, lights and render params are dirty
-	if (_renderSettings.m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
+	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
 //		ResetRenderCanvasView();
 
 		// Reset no. iterations
-		_renderSettings.SetNoIterations(0);
+		_renderSettings->SetNoIterations(0);
 	}
 
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
-	_renderSettings.m_DirtyFlags.ClearAllFlags();
+	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
 
 
@@ -408,26 +413,26 @@ void RenderGLCuda::render(const Camera& camera)
 
 
 
-	_renderSettings.m_DenoiseParams.SetWindowRadius(3.0f);
-	//_renderSettings.m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings.GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-	_renderSettings.m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings.GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
+	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 
 
 
 
 	// TODO: update only when w and h change!
-	_renderSettings.m_Camera.m_Film.m_Resolution.SetResX(_w);
-	_renderSettings.m_Camera.m_Film.m_Resolution.SetResY(_h);
+	_renderSettings->m_Camera.m_Film.m_Resolution.SetResX(_w);
+	_renderSettings->m_Camera.m_Film.m_Resolution.SetResY(_h);
 
 	// TODO: update only for channel changes!
-	_renderSettings.m_IntensityRange.SetMin((float)(_img->channel(_currentChannel)->_min));
-	_renderSettings.m_IntensityRange.SetMax((float)(_img->channel(_currentChannel)->_max));
+	_renderSettings->m_IntensityRange.SetMin((float)(_img->channel(_currentChannel)->_min));
+	_renderSettings->m_IntensityRange.SetMax((float)(_img->channel(_currentChannel)->_max));
 
-	_renderSettings.m_Camera.Update();
+	_renderSettings->m_Camera.Update();
 
-	_renderSettings.m_GradientDelta = 1.0f / (float)_renderSettings.m_Resolution.GetMax();
+	_renderSettings->m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
 
-	BindConstants(&_renderSettings);
+	BindConstants(_renderSettings);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
@@ -443,7 +448,7 @@ void RenderGLCuda::render(const Camera& camera)
 	CTiming ri, bi, ppi, di;
 
 
-	Render(0, _renderSettings,
+	Render(0, *_renderSettings,
 		theCudaFB,
 		theCudaVolume,
 		ri, bi, ppi, di);
@@ -463,7 +468,7 @@ void RenderGLCuda::render(const Camera& camera)
 		cudaSurfaceObject_t theCudaSurfaceObject;
 		HandleCudaError(cudaCreateSurfaceObject(&theCudaSurfaceObject, &desc));
 
-		if (_renderSettings.m_DenoiseParams.m_Enabled && _renderSettings.m_DenoiseParams.m_LerpC > 0.0f && _renderSettings.m_DenoiseParams.m_LerpC < 1.0f)
+		if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 		{
 			Denoise(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
 		}
@@ -477,7 +482,7 @@ void RenderGLCuda::render(const Camera& camera)
 
 	HandleCudaError(cudaStreamSynchronize(0));
 
-	_renderSettings.SetNoIterations(_renderSettings.GetNoIterations() + 1);
+	_renderSettings->SetNoIterations(_renderSettings->GetNoIterations() + 1);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

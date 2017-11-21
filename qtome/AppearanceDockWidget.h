@@ -10,13 +10,14 @@
 //#include "TransferFunction.h"
 
 class QAppearanceDockWidget;
+class CScene;
 
 class QAppearanceWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    QAppearanceWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr);
+    QAppearanceWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
 	
 public slots:
 	void OnLoadPreset(const QString& Name);
@@ -37,7 +38,7 @@ class QAppearanceDockWidget : public QDockWidget
     Q_OBJECT
 
 public:
-    QAppearanceDockWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr);
+    QAppearanceDockWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
 
 protected:
 	QAppearanceWidget		m_VolumeAppearanceWidget;

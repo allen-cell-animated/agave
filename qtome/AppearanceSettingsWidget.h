@@ -7,13 +7,14 @@
 #include <QtWidgets/QLabel>
 
 class QTransferFunction;
+class CScene;
 
 class QAppearanceSettingsWidget : public QGroupBox
 {
 	Q_OBJECT
 
 public:
-    QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr);
+    QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
 
 public slots:
 	void OnRenderBegin(void);

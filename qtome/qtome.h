@@ -8,6 +8,8 @@
 #include "NavigationDock2D.h"
 #include "TransferFunction.h"
 
+#include "Scene.h"
+
 class QAppearanceDockWidget;
 class QCameraDockWidget;
 
@@ -77,4 +79,11 @@ private:
 	QMetaObject::Connection navigationChanged;
 	QMetaObject::Connection navigationZCChanged;
 	QMetaObject::Connection navigationUpdate;
+
+	// THE underlying render settings container.
+	// There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
+	// if renderer is on a separate thread, then this will need a mutex guard
+	// any direct programmatic changes to this obj need to be pushed to the UI as well.
+	CScene _renderSettings;
+
 };

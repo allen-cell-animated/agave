@@ -33,7 +33,7 @@ public:
 
 	static QTransferFunction	Default(void);
 
-	void setScene(CScene& scene) { _Scene = &scene; }
+	void setScene(CScene& scene);
 	CScene* scene() { return _Scene; }
 
 signals:

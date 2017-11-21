@@ -4,7 +4,7 @@
 
 QProjection::QProjection(QObject* pParent /*= NULL*/) :
 	QObject(pParent),
-	m_FieldOfView(35.0f)
+	m_FieldOfView(55.0f)
 {
 }
 

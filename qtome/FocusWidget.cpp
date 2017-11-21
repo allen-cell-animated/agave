@@ -4,7 +4,7 @@
 #include "RenderThread.h"
 #include "Camera.h"
 
-QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
+QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	QGroupBox(pParent),
 	m_GridLayout(),
 	m_FocusTypeComboBox(),
