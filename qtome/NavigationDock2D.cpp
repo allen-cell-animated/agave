@@ -182,7 +182,7 @@ NavigationDock2D::setPlane(size_t plane)
 
 			// decompose plane index into a z,c,t triple
 			uint32_t z = plane % _img->sizeZ();
-			uint32_t c = plane / _img->sizeZ();
+			uint32_t c = (uint32_t)plane / _img->sizeZ();
 			uint32_t t = 0;
 			//std::array<size_t, 3> coords(_img->getZCTCoords(plane));
 
@@ -194,7 +194,7 @@ NavigationDock2D::setPlane(size_t plane)
 			uint32_t ecv = c / mc;
 			uint32_t mcv = c % mc;
 
-			uint32_t values[7] = {plane, ezv, mzv, etv, mtv, ecv, mcv};
+			uint32_t values[7] = {(uint32_t)plane, ezv, mzv, etv, mtv, ecv, mcv};
             for (uint16_t i = 0; i < 7; ++i)
             {
                 sliders[i] -> setValue(static_cast<int>(values[i]));
