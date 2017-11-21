@@ -20,7 +20,7 @@ struct Channelu16
 	uint16_t _gradientMagnitudeMin;
 	uint16_t _gradientMagnitudeMax;
 
-	uint16_t* generateGradientMagnitudeVolume();
+	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 	void getMinMax(uint16_t* ptr, uint16_t& minval, uint16_t& maxval);
 
 };

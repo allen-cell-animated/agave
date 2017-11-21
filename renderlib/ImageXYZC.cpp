@@ -182,7 +182,12 @@ void Channelu16::getMinMax(uint16_t* ptr, uint16_t& minval, uint16_t& maxval)
 	maxval = tmax;
 }
 
-uint16_t* Channelu16::generateGradientMagnitudeVolume() {
+uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley, float scalez) {
+	float maxspacing = std::max(scalex, std::max(scaley, scalez));
+	float xspacing = scalex / maxspacing;
+	float yspacing = scaley / maxspacing;
+	float zspacing = scalez / maxspacing;
+
 	uint16_t* outptr = new uint16_t[_x*_y*_z];
 	_gradientMagnitudePtr = outptr;
 
@@ -210,17 +215,17 @@ uint16_t* Channelu16::generateGradientMagnitudeVolume() {
 
 				d = static_cast<double>(inptr[useXmin]);
 				d -= static_cast<double>(inptr[useXmax]);
-				// d /= xspacing;
+				d /= xspacing; // divide or multiply here??
 				sum = d*d;
 
 				d = static_cast<double>(inptr[useYmin]);
 				d -= static_cast<double>(inptr[useYmax]);
-				// d /= yspacing;
+				d /= yspacing; // divide or multiply here??
 				sum += d*d;
 
 				d = static_cast<double>(inptr[useZmin]);
 				d -= static_cast<double>(inptr[useZmax]);
-				// d /= zspacing;
+				d /= zspacing; // divide or multiply here??
 				sum += d*d;
 
 				*outptr = static_cast<uint16_t>(sqrt(sum));

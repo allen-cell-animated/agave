@@ -285,7 +285,7 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 		Channelu16* ch = _img->channel(channel);
 
 		// deleted in channel dtor
-		ch->generateGradientMagnitudeVolume();
+		ch->generateGradientMagnitudeVolume(_img->physicalSizeX(), _img->physicalSizeY(), _img->physicalSizeZ());
 
 		// create 3D array
 		HandleCudaError(cudaMalloc3DArray(&_volumeArray[channel], &channelDesc, volumeSize));
@@ -346,6 +346,8 @@ void RenderGLCuda::setChannel(int c)
 {
 	_currentChannel = c;
 	_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	LOG_INFO << "Channel " << c << ":" << (_img->channel(_currentChannel)->_min) << "," << (_img->channel(_currentChannel)->_max);
+
 }
 
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
@@ -419,6 +421,7 @@ void RenderGLCuda::render(const Camera& camera)
 	_renderSettings->m_Camera.m_Film.m_Resolution.SetResY(_h);
 
 	// TODO: update only for channel changes!
+//	_renderSettings->m_IntensityRange.SetMin(0.0f);
 	_renderSettings->m_IntensityRange.SetMin((float)(_img->channel(_currentChannel)->_min));
 	_renderSettings->m_IntensityRange.SetMax((float)(_img->channel(_currentChannel)->_max));
 
