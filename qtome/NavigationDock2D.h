@@ -35,80 +35,30 @@ public:
     /// Destructor.
     ~NavigationDock2D();
 
-    /**
-    * Get the current plane for the series.
-    *
-    * @returns the current plane.
-    */
-    size_t
-    plane() const;
-
 	void
-		setReader(std::shared_ptr<ImageXYZC> img,
-			size_t plane);
+		setReader(std::shared_ptr<ImageXYZC> img);
 
 public slots:
+	void sliderChangedDimension(int);
+	void spinBoxChangedDimension(int);
     /**
     * Set the current plane for the series.
     *
     * @param plane the image plane.
     */
-    void
-    setPlane(size_t plane);
-	void setZC(size_t z, size_t c);
+	void setC(size_t c);
 signals:
-    /**
-    * Signal change of plane.
-    *
-    * @param plane the new image plane.
-    */
 	void
-		planeChanged(size_t plane);
-	void
-		zcChanged(size_t z, size_t c);
-
-private slots:
-    /**
-    * Update the current plane number (from slider).
-    *
-    * @param plane the new image plane.
-    */
-    void
-    sliderChangedPlane(int plane);
-
-    /**
-    * Update the current plane number (from spinbox).
-    *
-    * @param plane the new image plane.
-    */
-    void
-    spinBoxChangedPlane(int plane);
-
-    /**
-    * Update the current plane number (from dimension slider).
-    *
-    * @param dim the index of the dimension slider.
-    */
-    void
-    sliderChangedDimension(int dim);
-
-    /**
-    * Update the current plane number (from dimension spinbox).
-    *
-    * @param dim the index of the dimension spinbox.
-    */
-    void
-    spinBoxChangedDimension(int dim);
+		cChanged(size_t c);
 
 private:
 	std::shared_ptr<ImageXYZC> _img;
 	/// The image plane.
-    size_t currentPlane;
-	size_t _z, _c;
+	size_t _c;
     /// Slider labels [NZTCmZmTmC].
-    QLabel *labels[7];
+    QLabel *label;
     /// Sliders [NZTCmZmTmC].
-    QSlider *sliders[7];
+    QSlider *slider;
     /// Numeric entries [NZTCmZmTmC].
-    QSpinBox *spinboxes[7];
+    QSpinBox *spinbox;
 };

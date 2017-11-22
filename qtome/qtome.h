@@ -39,6 +39,7 @@ private:
 	void createMenus();
 	void createToolbars();
 	void createDockWindows();
+	QDockWidget* createRenderingDock();
 
 	QMenu *fileMenu;
 	QMenu *viewMenu;
@@ -69,13 +70,7 @@ private:
 
 	QTabWidget *tabs;
 	GLView3D *glView;
-	QSlider *minSlider;
-	QSlider *maxSlider;
 
-	QMetaObject::Connection minSliderChanged;
-	QMetaObject::Connection minSliderUpdate;
-	QMetaObject::Connection maxSliderChanged;
-	QMetaObject::Connection maxSliderUpdate;
 	QMetaObject::Connection navigationChanged;
 	QMetaObject::Connection navigationZCChanged;
 	QMetaObject::Connection navigationUpdate;

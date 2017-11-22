@@ -98,31 +98,8 @@ public slots:
     void
     setZRotation(int angle);
 
-    /**
-    * Set minimum value for linear contrast (all channels).
-    *
-    * @param min the minimum value (scaled normalized).
-    */
-    void
-    setChannelMin(int min);
-
-    /**
-    * Set maximum value for linear contrast (all channels).
-    *
-    * @param max the maximum value (scaled normalized).
-    */
-    void
-    setChannelMax(int max);
-
-    /**
-    * Set plane to render.
-    *
-    * @param plane the plane number to render.
-    */
-    void
-    setPlane(size_t plane);
 	void
-	setZCPlane(size_t z, size_t c);
+	setC(size_t c);
 
     /**
     * Set mouse behaviour mode.
@@ -169,30 +146,7 @@ public:
     int
     getZRotation() const;
 
-    /**
-    * Get minimum value for linear contrast (all channels).
-    *
-    * @returns the minimum value.
-    */
-    int
-    getChannelMin() const;
 
-    /**
-    * Get maximum value for linear contrast (all channels).
-    *
-    * @returns the maximum value.
-    */
-    int
-    getChannelMax() const;
-
-    /**
-    * Get plane to render.
-    *
-    * @returns the plane number to render.
-    */
-    size_t
-    getPlane() const;
-	size_t getZ() const;
 	size_t getC() const;
 
 
@@ -240,29 +194,6 @@ signals:
     void
     zRotationChanged(int angle);
 
-    /**
-    * Signal minimum value for linear contrast changed.
-    *
-    * @param min the new minimum value.
-    */
-    void
-    channelMinChanged(int min);
-
-    /**
-    * Signal maximum value for linear contrast changed.
-    *
-    * @param max the new maximum value.
-    */
-    void
-    channelMaxChanged(int max);
-
-    /**
-    * Signal current plane changed.
-    *
-    * @param plane the new plane.
-    */
-    void
-    planeChanged(size_t plane);
 
 protected:
     /// Set up GL context and subsidiary objects.
@@ -322,17 +253,9 @@ private:
     MouseMode mouseMode;
     /// Rendering timer.
     QElapsedTimer etimer;
-    /// Minimum level for linear contrast.
-    glm::vec3 cmin;
-    /// Maximum level for linear contrast.
-    glm::vec3 cmax;
     /// Current plane.
-    size_t plane;
-	size_t _z;
 	size_t _c;
 
-    /// Previous plane.
-    size_t oldplane;
     /// Last mouse position.
     QPoint lastPos;
 

@@ -42,10 +42,7 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
     camera(),
     mouseMode(MODE_ROTATE),
     etimer(),
-    cmin(0.0f),
-    cmax(1.0f),
-    plane(0), _z(0), _c(0),
-    oldplane(-1),
+    _c(0),
     lastPos(0, 0),
     _img(img),
 	_scene(scene),
@@ -111,25 +108,6 @@ GLView3D::getZRotation() const
     return camera.zRot;
 }
 
-int
-GLView3D::getChannelMin() const
-{
-    return static_cast<int>(cmin[0] * 255.0*16.0);
-}
-
-int
-GLView3D::getChannelMax() const
-{
-    return static_cast<int>(cmax[0] * 255.0*16.0);
-}
-
-size_t
-GLView3D::getPlane() const
-{
-    return plane;
-}
-	
-size_t GLView3D::getZ() const { return _z; }
 size_t GLView3D::getC() const { return _c; }
 
 void
@@ -186,59 +164,18 @@ GLView3D::getMouseMode() const
 }
 
 
-// Note fixed to one channel at the moment.
-
-void GLView3D::setChannelMin(int min)
-{
-    float v = min / (255.0*16.0);
-    if (cmin[0] != v)
-    {
-        cmin = glm::vec3(v);
-        emit channelMinChanged(min);
-        renderLater();
-    }
-    if (cmin[0] > cmax[0])
-    setChannelMax(min);
-}
-
 void
-GLView3D::setChannelMax(int max)
+GLView3D::setC(size_t c)
 {
-    float v = max / (255.0*16.0);
-    if (cmax[0] != v)
-    {
-        cmax = glm::vec3(v);
-        emit channelMaxChanged(max);
-        renderLater();
-    }
-    if (cmax[0] < cmin[0])
-    setChannelMin(max);
-}
+    if (_c != c) {
+		_c = c;
+		_scene->_channel = (int)c;
 
-void
-GLView3D::setZCPlane(size_t z, size_t c)
-{
-    if (_z != z || _c != c) {
-    _z = z;
-    _c = c;
-	_scene->_channel = (int)c;
+		_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
+		LOG_INFO << "Channel " << c << ":" << (_img->channel((uint32_t)c)->_min) << "," << (_img->channel((uint32_t)c)->_max);
+		LOG_INFO << "gradient range " << c << ":" << (_img->channel((uint32_t)c)->_gradientMagnitudeMin) << "," << (_img->channel((uint32_t)c)->_gradientMagnitudeMax);
 
-	_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
-	LOG_INFO << "Channel " << c << ":" << (_img->channel((uint32_t)c)->_min) << "," << (_img->channel((uint32_t)c)->_max);
-	LOG_INFO << "gradient range " << c << ":" << (_img->channel((uint32_t)c)->_gradientMagnitudeMin) << "," << (_img->channel((uint32_t)c)->_gradientMagnitudeMax);
-
-    renderLater();
-    }
-}
-
-void
-GLView3D::setPlane(size_t plane)
-{
-    if (this->plane != plane)
-    {
-        this->plane = plane;
-        emit planeChanged(plane);
-        renderLater();
+		renderLater();
     }
 }
 

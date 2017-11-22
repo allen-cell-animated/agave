@@ -136,6 +136,28 @@ void qtome::createToolbars()
 	viewMenu->addAction(Cam2DTools->toggleViewAction());
 }
 
+QDockWidget* qtome::createRenderingDock() {
+	QDockWidget *dock = new QDockWidget(tr("Rendering"), this);
+	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+
+	QGridLayout *layout = new QGridLayout;
+
+	QLabel *minLabel = new QLabel(tr("Min"));
+	QLabel *maxLabel = new QLabel(tr("Max"));
+	//minSlider = createRangeSlider();
+	//maxSlider = createRangeSlider();
+
+	layout->addWidget(minLabel, 0, 0);
+	//layout->addWidget(minSlider, 0, 1);
+	layout->addWidget(maxLabel, 1, 0);
+	//layout->addWidget(maxSlider, 1, 1);
+
+	QWidget *mainWidget = new QWidget(this);
+	mainWidget->setLayout(layout);
+	dock->setWidget(mainWidget);
+	return dock;
+}
+
 void qtome::createDockWindows()
 {
 	navigation = new NavigationDock2D(this);
@@ -153,27 +175,9 @@ void qtome::createDockWindows()
 	viewMenu->addSeparator();
 	viewMenu->addAction(navigation->toggleViewAction());
 
-	QDockWidget *dock = new QDockWidget(tr("Rendering"), this);
-	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-	QGridLayout *layout = new QGridLayout;
-
-	QLabel *minLabel = new QLabel(tr("Min"));
-	QLabel *maxLabel = new QLabel(tr("Max"));
-	minSlider = createRangeSlider();
-	maxSlider = createRangeSlider();
-
-	layout->addWidget(minLabel, 0, 0);
-	layout->addWidget(minSlider, 0, 1);
-	layout->addWidget(maxLabel, 1, 0);
-	layout->addWidget(maxSlider, 1, 1);
-
-	QWidget *mainWidget = new QWidget(this);
-	mainWidget->setLayout(layout);
-	dock->setWidget(mainWidget);
-	addDockWidget(Qt::BottomDockWidgetArea, dock);
-
-	viewMenu->addAction(dock->toggleViewAction());
+//	QDockWidget* dock = createRenderingDock();
+//	addDockWidget(Qt::BottomDockWidgetArea, dock);
+//	viewMenu->addAction(dock->toggleViewAction());
 }
 
 QSlider *qtome::createAngleSlider()
@@ -230,9 +234,7 @@ void qtome::open(const QString& file)
 		// We need a minimum size or else the size defaults to zero.
 		glContainer->setMinimumSize(512, 512);
 		tabs->addTab(glContainer, info.fileName());
-		newGlView->setChannelMin(6 * 16);
-		newGlView->setChannelMax(100 * 16);
-		newGlView->setPlane(0);
+		newGlView->setC(0);
 	}
 }
 
@@ -241,10 +243,6 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 	if (glView == newGlView)
 		return;
 
-	disconnect(minSliderChanged);
-	disconnect(minSliderUpdate);
-	disconnect(maxSliderChanged);
-	disconnect(maxSliderUpdate);
 	disconnect(navigationChanged);
 	disconnect(navigationZCChanged);
 	disconnect(navigationUpdate);
@@ -256,28 +254,16 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 
 	if (newGlView)
 	{
-		minSliderChanged = connect(minSlider, SIGNAL(valueChanged(int)), newGlView, SLOT(setChannelMin(int)));
-		minSliderUpdate = connect(newGlView, SIGNAL(channelMinChanged(int)), minSlider, SLOT(setValue(int)));
-		maxSliderChanged = connect(maxSlider, SIGNAL(valueChanged(int)), newGlView, SLOT(setChannelMax(int)));
-		maxSliderUpdate = connect(newGlView, SIGNAL(channelMaxChanged(int)), maxSlider, SLOT(setValue(int)));
+		navigation->setReader(newGlView->getImage());
+		navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), newGlView, SLOT(setC(size_t)));
 
-		navigation->setReader(newGlView->getImage(), newGlView->getPlane());
-		navigationChanged = connect(navigation, SIGNAL(planeChanged(size_t)), newGlView, SLOT(setPlane(size_t)));
-		navigationUpdate = connect(newGlView, SIGNAL(planeChanged(size_t)), navigation, SLOT(setPlane(size_t)));
-		navigationZCChanged = connect(navigation, SIGNAL(zcChanged(size_t, size_t)), newGlView, SLOT(setZCPlane(size_t, size_t)));
-
-		minSlider->setValue(newGlView->getChannelMin());
-		maxSlider->setValue(newGlView->getChannelMax());
-		navigation->setPlane(newGlView->getPlane());
 	}
 	else
 	{
-		navigation->setReader(std::shared_ptr<ImageXYZC>(), 0);
+		navigation->setReader(std::shared_ptr<ImageXYZC>());
 	}
 
 	bool enable(newGlView != 0);
-	minSlider->setEnabled(enable);
-	maxSlider->setEnabled(enable);
 
 	viewResetAction->setEnabled(enable);
 	viewZoomAction->setEnabled(enable);
