@@ -3,6 +3,13 @@
 #include <math.h>
 #include <algorithm>
 
+template<class T>
+constexpr const T& clamp(const T& v, const T& lo, const T& hi)
+{
+	assert(hi > lo);
+	return (v<lo) ? lo : (v>hi ? hi : v);
+}
+
 ImageXYZC::ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bpp, uint8_t* data, float sx, float sy, float sz)
 	: _x(x), _y(y), _z(z), _c(c), _bpp(bpp), _data(data), _scaleX(sx), _scaleY(sy), _scaleZ(sz)
 {
@@ -147,6 +154,7 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t* ou
 // 3d median filter?
 
 Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
+	: _histogram(ptr, x*y*z)
 {
 	_gradientMagnitudePtr = nullptr;
 	_ptr = ptr;
@@ -238,4 +246,201 @@ uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley
 	getMinMax(_gradientMagnitudePtr, _gradientMagnitudeMin, _gradientMagnitudeMax);
 	return outptr;
 }
+
+
+Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
+	: _bins(bins)
+{
+	std::fill(_bins.begin(), _bins.end(), 0);
+
+	_dataMin = UINT16_MAX;
+	_dataMax = 0;
+
+	uint16_t val;
+	for (size_t i = 0; i < length; ++i) {
+		val = data[i];
+		if (val > _dataMax) {
+			_dataMax = val;
+		}
+		if (val < _dataMin) {
+			_dataMin = val;
+		}
+	}
+	float fval;
+	for (size_t i = 0; i < length; ++i) {
+		val = data[i];
+		// normalize to 0..1 range
+		fval = (float)(val - _dataMin) / (float)(_dataMax - _dataMin);
+		//fval = (float)(val) / (float)(_dataMax);
+		// select a bin
+		fval *= (float)(bins - 1);
+		// discretize (drop the fractional part?)
+		_bins[(size_t)fval] ++;
+	}
+
+	// total number of pixels minus the number of zero pixels
+	_nonzeroPixelCount = length - _bins[0];
+
+	// get the bin with the most frequently occurring NONZERO value
+	_maxBin = 1;
+	uint32_t curmax = _bins[1];
+	for (size_t i = 1; i < _bins.size(); i++) {
+		if (_bins[i] > curmax) {
+			_maxBin = i;
+			curmax = _bins[i];
+		}
+	}
+}
+
+float* Histogram::generate_fullRange(size_t length) {
+	// return a LUT with new values(?)
+	// data type of lut values is out_phys_range (uint8)
+	// length of lut is number of histogram bins (represents the input data range)
+	float* lut = new float[length];
+
+	// simple linear mapping for actual range
+	for (int x = 0; x < length; ++x) {
+		lut[x] = (float)x / (float)(length-1);
+	}
+	return lut;
+};
+
+float* Histogram::generate_dataRange(size_t length) {
+	// return a LUT with new values(?)
+	// data type of lut values is out_phys_range (uint8)
+	// length of lut is number of histogram bins (represents the input data range)
+	float* lut = new float[length];
+
+	// simple linear mapping for actual range
+	uint16_t b = _dataMin;
+	uint16_t e = _dataMax;
+	uint16_t range = e - b;
+	if (range < 1) {
+		range = 256;
+	}
+	for (int x = 0; x < length; ++x) {
+		// map x to the upper bound of the bin.
+		float xnorm = (float)x / (float)(length - 1);
+		// this seems wrong... is dataRange same as fullRange above?
+		lut[x] = std::max(0.0f, (float)(x - (float)b/(float)e));
+	}
+	return lut;
+};
+
+float* Histogram::generate_bestFit(size_t length) {
+	// return a LUT with new values(?)
+	// data type of lut values is out_phys_range (uint8)
+	// length of lut is number of histogram bins (represents the input data range)
+	float* lut = new float[length];
+
+	size_t pixcount = _nonzeroPixelCount;
+	size_t limit = pixcount / 10;
+
+	size_t i = 0;
+	size_t count = 0;
+	for (i = 1; i < _bins.size(); ++i) {
+		count += _bins[i];
+		if (count > limit) {
+			break;
+		}
+	}
+	size_t hmin = i;
+
+	count = 0;
+	for (i = _bins.size() - 1; i >= 1; --i) {
+		count += _bins[i];
+		if (count > limit) {
+			break;
+		}
+	}
+	size_t hmax = i;
+
+	size_t range = hmax - hmin;
+	if (range < 1) {
+		range = 256;
+	}
+	for (int x = 0; x < length; ++x) {
+		lut[x] = clamp((float)(x - hmin) / (float)range, 0.0f, 1.0f);
+	}
+
+	return lut;
+};
+
+// attempt to redo imagej's Auto
+float* Histogram::generate_auto2(size_t length) {
+
+	size_t AUTO_THRESHOLD = 5000;
+	size_t pixcount = _nonzeroPixelCount;
+	//  const pixcount = this.imgData.data.length;
+	size_t limit = pixcount / 10;
+	size_t threshold = pixcount / AUTO_THRESHOLD;
+
+	// this will skip the "zero" bin which contains pixels of zero intensity.
+	size_t hmin = _bins.size() - 1;
+	size_t hmax = 1;
+	for (size_t i = 1; i < _bins.size(); ++i) {
+		if (_bins[i] > threshold && _bins[i] <= limit) {
+			hmin = i;
+			break;
+		}
+	}
+	for (size_t i = _bins.size() - 1; i >= 1; --i) {
+		if (_bins[i] > threshold && _bins[i] <= limit) {
+			hmax = i;
+			break;
+		}
+	}
+
+	if (hmax < hmin) {
+		// just reset to whole range in this case.
+		return generate_fullRange(length);
+	}
+	else {
+		// return a LUT with new values(?)
+		// data type of lut values is out_phys_range (uint8)
+		// length of lut is number of histogram bins (represents the input data range)
+		float* lut = new float[length];
+
+		for (size_t x = 0; x < length; ++x) {
+			lut[x] = clamp((float)(x - hmin) / (float)(hmax - hmin), 0.0f, 1.0f);
+		}
+
+		return lut;
+	}
+};
+
+float* Histogram::generate_auto(size_t length) {
+	// return a LUT with new values(?)
+	// data type of lut values is out_phys_range (uint8)
+	// length of lut is number of histogram bins (represents the input data range)
+	float* lut = new float[length];
+
+	// simple linear mapping cutting elements with small appearence
+	// get 10% threshold
+	float PERCENTAGE = 0.1f;
+	float th = std::floor(_bins[_maxBin] * PERCENTAGE);
+	size_t b = 0;
+	size_t e = _bins.size() - 1;
+	for (size_t x = 1; x < _bins.size(); ++x) {
+		if (_bins[x] > th) {
+			b = x;
+			break;
+		}
+	}
+	for (size_t x = _bins.size() - 1; x >= 1; --x) {
+		if (_bins[x] > th) {
+			e = x;
+			break;
+		}
+	}
+
+	size_t range = e - b;
+	if (range < 1) {
+		range = 256;
+	}
+	for (size_t x = 0; x < length; ++x) {
+		lut[x] = clamp((float)(x - b) / (float)range, 0.0f, 1.0f);
+	}
+	return lut;
+};
 

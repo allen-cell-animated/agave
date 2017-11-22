@@ -5,6 +5,27 @@
 #include <inttypes.h>
 #include <vector>
 
+struct Histogram {
+	Histogram(uint16_t* data, size_t length, size_t bins = 256);
+
+	// no more than 2^32 pixels of any one intensity in the data!?!?!
+	std::vector<uint32_t> _bins;
+	uint16_t _dataMin;
+	uint16_t _dataMax;
+	// index of bin with most pixels
+	size_t _maxBin;
+	size_t _nonzeroPixelCount;
+
+
+	float* generate_fullRange(size_t length = 256);
+	float* generate_dataRange(size_t length = 256);
+	float* generate_bestFit(size_t length = 256);
+	// attempt to redo imagej's Auto
+	float* generate_auto2(size_t length = 256);
+	float* generate_auto(size_t length = 256);
+
+};
+
 struct Channelu16
 {
 	Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr);
@@ -19,6 +40,8 @@ struct Channelu16
 	uint16_t* _gradientMagnitudePtr;
 	uint16_t _gradientMagnitudeMin;
 	uint16_t _gradientMagnitudeMax;
+
+	Histogram _histogram;
 
 	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 	void getMinMax(uint16_t* ptr, uint16_t& minval, uint16_t& maxval);
