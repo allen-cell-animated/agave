@@ -98,6 +98,8 @@ install(FILES
 	$<TARGET_FILE:Qt5::Core>
 	$<TARGET_FILE:Qt5::Gui>
 	$<TARGET_FILE:Qt5::Xml>
+	$<TARGET_FILE:Qt5::Network>
+	$<TARGET_FILE:Qt5::WebSockets>
 	${TIFF_DIR}/bin/tiff.dll	
 	DESTINATION dist
 )
@@ -116,7 +118,9 @@ add_subdirectory(websocketserver)
 target_link_libraries(websocketserver 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	${TIFF_LIBRARIES}
 	Boost::iostreams Boost::log Boost::log_setup Boost::thread Boost::system Boost::filesystem Boost::date_time Boost::chrono Boost::atomic
 )
+set_target_properties(websocketserver PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}/dist")
 install(TARGETS websocketserver RUNTIME DESTINATION dist)
 
