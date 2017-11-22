@@ -21,6 +21,10 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 	MinT[TID] = max(MinT[TID], R.m_MinT);
 	MaxT[TID] = min(MaxT[TID], R.m_MaxT);
 
+	// ray march along the ray's projected path and keep an average sigmaT value.
+	// When the distance has become greater than the average sigmaT value given by -log(RandomFloat[0, 1]) / averageSigmaT 
+	// then that would be considered the interaction position.
+
 	const float S	= -log(RNG.Get1()) / gDensityScale;
 	float Sum		= 0.0f;
 	float SigmaT	= 0.0f;
