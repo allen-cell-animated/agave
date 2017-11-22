@@ -4,7 +4,7 @@
 #include <algorithm>
 
 template<class T>
-constexpr const T& clamp(const T& v, const T& lo, const T& hi)
+const T& clamp(const T& v, const T& lo, const T& hi)
 {
 	assert(hi > lo);
 	return (v<lo) ? lo : (v>hi ? hi : v);
