@@ -10,6 +10,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout(),
 	m_DensityScaleSlider(),
 	m_DensityScaleSpinner(),
+	m_RendererType(),
 	m_ShadingType(),
 	m_GradientFactorLabel(),
 	m_GradientFactorSlider(),
@@ -24,6 +25,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	_transferFunction(tran)
 {
 	setLayout(&m_MainLayout);
+
+	m_MainLayout.addWidget(new QLabel("Renderer"), 1, 0);
+	m_RendererType.addItem("OpenGL simple", 0);
+	m_RendererType.addItem("CUDA full", 1);
+	m_RendererType.setCurrentIndex(1);
+	m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
 
 	m_MainLayout.addWidget(new QLabel("Density Scale"), 2, 0);
 
@@ -111,6 +118,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_EmissiveColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnEmissiveColorChanged(const QColor&)));
 
 
+	QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
 	QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
 	QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
 	
@@ -141,6 +149,11 @@ void QAppearanceSettingsWidget::OnSetShadingType(int Index)
 	m_GradientFactorLabel.setEnabled(Index == 2);
 	m_GradientFactorSlider.setEnabled(Index == 2);
 	m_GradientFactorSpinner.setEnabled(Index == 2);
+}
+
+void QAppearanceSettingsWidget::OnSetRendererType(int Index)
+{
+	_transferFunction->SetRendererType(Index);
 }
 
 void QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)

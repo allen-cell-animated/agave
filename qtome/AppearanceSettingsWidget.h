@@ -20,6 +20,7 @@ public slots:
 	void OnRenderBegin(void);
 	void OnSetDensityScale(double DensityScale);
 	void OnTransferFunctionChanged(void);
+	void OnSetRendererType(int Index);
 	void OnSetShadingType(int Index);
 	void OnSetGradientFactor(double GradientFactor);
 	void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
@@ -32,6 +33,7 @@ private:
 	QGridLayout		m_MainLayout;
 	QDoubleSlider	m_DensityScaleSlider;
 	QDoubleSpinner	m_DensityScaleSpinner;
+	QComboBox		m_RendererType;
 	QComboBox		m_ShadingType;
 	QLabel			m_GradientFactorLabel;
 	QDoubleSlider	m_GradientFactorSlider;

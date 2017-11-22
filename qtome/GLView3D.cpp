@@ -61,6 +61,7 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	// GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
 	QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
 	QObject::connect(tran, SIGNAL(Changed()), this, SLOT(OnUpdateTransferFunction()));
+	QObject::connect(tran, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 
 	camera.position = glm::vec3(0.0, 0.0, 2.5);
 	camera.up = glm::vec3(0.0, 1.0, 0.0);
@@ -446,4 +447,8 @@ void GLView3D::OnUpdateTransferFunction(void)
 	scene.m_GradientFactor = _transferFunction->GetGradientFactor();
 
 	scene.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void GLView3D::OnUpdateRenderer(int)
+{
 }

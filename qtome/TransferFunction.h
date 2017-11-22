@@ -28,6 +28,8 @@ public:
 	void						SetDensityScale(const float& DensityScale);
 	int							GetShadingType(void) const;
 	void						SetShadingType(const int& ShadingType);
+	int							GetRendererType(void) const;
+	void						SetRendererType(const int& RendererType);
 	float						GetGradientFactor(void) const;
 	void						SetGradientFactor(const float& GradientFactor);
 
@@ -38,10 +40,12 @@ public:
 
 signals:
 	void	Changed(void);
-	
+	void	ChangedRenderer(int);
+
 private:
 	float		m_DensityScale;
 	int			m_ShadingType;
+	int m_RendererType;
 	float		m_GradientFactor;
 
 	CScene* _Scene;

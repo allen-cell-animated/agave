@@ -8,6 +8,7 @@ QTransferFunction::QTransferFunction(QObject* pParent) :
 	QObject(pParent),
 	m_DensityScale(100.0f),
 	m_ShadingType(2),
+	m_RendererType(1),
 	m_GradientFactor(10.0f)
 {
 }
@@ -71,6 +72,21 @@ void QTransferFunction::SetShadingType(const int& ShadingType)
 	m_ShadingType = ShadingType;
 
 	emit Changed();
+}
+
+int QTransferFunction::GetRendererType(void) const
+{
+	return m_RendererType;
+}
+
+void QTransferFunction::SetRendererType(const int& RendererType)
+{
+	if (RendererType == m_RendererType)
+		return;
+
+	m_RendererType = RendererType;
+
+	emit ChangedRenderer(RendererType);
 }
 
 float QTransferFunction::GetGradientFactor(void) const

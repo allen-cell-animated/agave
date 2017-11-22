@@ -134,6 +134,7 @@ public slots:
     setMouseMode(MouseMode mode);
 	void OnUpdateCamera();
 	void OnUpdateTransferFunction(void);
+	void OnUpdateRenderer(int);
 
 public:
 
