@@ -7,8 +7,9 @@
 
 #include <iostream>
 
-RenderGL::RenderGL(std::shared_ptr<ImageXYZC>  img)
+RenderGL::RenderGL(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 	:image3d(nullptr),
+	_scene(scene),
 	_img(img)
 {
 }

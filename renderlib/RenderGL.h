@@ -3,6 +3,7 @@
 
 #include <memory>
 
+class CScene;
 class Image2D;
 class Image3Dv33;
 class ImageXYZC;
@@ -11,7 +12,7 @@ class RenderGL :
 	public IRenderWindow
 {
 public:
-	RenderGL(std::shared_ptr<ImageXYZC>  img);
+	RenderGL(std::shared_ptr<ImageXYZC>  img, CScene* scene);
 	virtual ~RenderGL();
 
 	virtual void initialize(uint32_t w, uint32_t h);
@@ -22,5 +23,6 @@ public:
 private:
 	Image3Dv33 *image3d;
 	std::shared_ptr<ImageXYZC>  _img;
+	CScene* _scene;
 };
 

@@ -62,6 +62,9 @@ public:
 	CScene(const CScene& Other);
 	CScene& operator = (const CScene& Other);
 
+	// which channel to display.  this is "scene" display info and not "renderer settings"
+	int _channel;
+
 	CCamera				m_Camera;
 	CLighting			m_Lighting;
 	CResolution3D		m_Resolution;

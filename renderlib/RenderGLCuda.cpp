@@ -342,14 +342,6 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 
 }
 
-void RenderGLCuda::setChannel(int c)
-{
-	_currentChannel = c;
-	_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
-	LOG_INFO << "Channel " << c << ":" << (_img->channel(_currentChannel)->_min) << "," << (_img->channel(_currentChannel)->_max);
-
-}
-
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 {
 	initQuad();
@@ -372,6 +364,8 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 
 void RenderGLCuda::render(const Camera& camera)
 {
+	_currentChannel = _renderSettings->_channel;
+
 	// Resizing the image canvas requires special attention
 	if (_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty))
 	{

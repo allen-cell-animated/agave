@@ -12,8 +12,7 @@
 
 class ImageXYZC;
 class QCamera;
-class RenderGL;
-class RenderGLCuda;
+class IRenderWindow;
 class QTransferFunction;
 
 
@@ -338,6 +337,7 @@ private:
     QPoint lastPos;
 
 	std::shared_ptr<ImageXYZC> _img;
+	CScene* _scene;
 
-	std::unique_ptr<RenderGLCuda> _renderGL;
+	std::unique_ptr<IRenderWindow> _renderer;
 };

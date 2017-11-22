@@ -3,6 +3,8 @@
 #include "TransferFunction.h"
 
 #include "renderlib/gl/v33/V33Image3D.h"
+#include "renderlib/ImageXYZC.h"
+#include "renderlib/Logging.h"
 #include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLCuda.h"
 #include <glm.h>
@@ -46,16 +48,17 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
     oldplane(-1),
     lastPos(0, 0),
     _img(img),
-    _renderGL(new RenderGLCuda(img, scene)),
-	//    _renderGL(new RenderGL(img))
+	_scene(scene),
+    _renderer(new RenderGLCuda(img, scene)),
+	//    _renderer(new RenderGL(img))
 	_camera(cam),
 	_cameraController(cam),
 	_transferFunction(tran)
 {
 	// The GLView3D owns one CScene
 
-	_cameraController.setScene(_renderGL->getScene());
-	_transferFunction->setScene(_renderGL->getScene());
+	_cameraController.setScene(*_scene);
+	_transferFunction->setScene(*_scene);
 
 	// IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
 	// GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
@@ -218,7 +221,12 @@ GLView3D::setZCPlane(size_t z, size_t c)
     if (_z != z || _c != c) {
     _z = z;
     _c = c;
-	_renderGL->setChannel((int)c);
+	_scene->_channel = (int)c;
+
+	_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	LOG_INFO << "Channel " << c << ":" << (_img->channel((uint32_t)c)->_min) << "," << (_img->channel((uint32_t)c)->_max);
+	LOG_INFO << "gradient range " << c << ":" << (_img->channel((uint32_t)c)->_gradientMagnitudeMin) << "," << (_img->channel((uint32_t)c)->_gradientMagnitudeMax);
+
     renderLater();
     }
 }
@@ -240,7 +248,7 @@ GLView3D::initialize()
     makeCurrent();
 
     QSize newsize = size();
-    _renderGL->initialize(newsize.width(), newsize.height());
+    _renderer->initialize(newsize.width(), newsize.height());
 
     // Start timers
     startTimer(0);
@@ -255,7 +263,7 @@ GLView3D::render()
 {
     makeCurrent();
 
-    _renderGL->render(camera);
+    _renderer->render(camera);
 }
 
 void
@@ -264,7 +272,7 @@ GLView3D::resize()
     makeCurrent();
 
     QSize newsize = size();
-    _renderGL->resize(newsize.width(), newsize.height());
+    _renderer->resize(newsize.width(), newsize.height());
 }
 
 
@@ -385,11 +393,11 @@ GLView3D::timerEvent (QTimerEvent *event)
 			0.0f, 10.0f);
 	}
 
-	if (_renderGL->getImage()) {
-		_renderGL->getImage()->setPlane((int)getPlane(), (int)getZ(), (int)getC());
-		_renderGL->getImage()->setMin(cmin);
-		_renderGL->getImage()->setMax(cmax);
-	}
+//	if (_renderer->getImage()) {
+//		_renderer->getImage()->setPlane((int)getPlane(), (int)getZ(), (int)getC());
+//		_renderer->getImage()->setMin(cmin);
+//		_renderer->getImage()->setMax(cmax);
+//	}
 
     GLWindow::timerEvent(event);
 
@@ -400,7 +408,7 @@ GLView3D::timerEvent (QTimerEvent *event)
 void GLView3D::OnUpdateCamera()
 {
 	//	QMutexLocker Locker(&gSceneMutex);
-	CScene& scene = _renderGL->getScene();
+	CScene& scene = *_scene;
 	scene.m_Camera.m_Film.m_Exposure = 1.0f - _camera->GetFilm().GetExposure();
 	scene.m_Camera.m_Film.m_ExposureIterations = _camera->GetFilm().GetExposureIterations();
 
@@ -440,7 +448,7 @@ void GLView3D::OnUpdateCamera()
 void GLView3D::OnUpdateTransferFunction(void)
 {
 	//QMutexLocker Locker(&gSceneMutex);
-	CScene& scene = _renderGL->getScene();
+	CScene& scene = *_scene;
 
 	scene.m_DensityScale = _transferFunction->GetDensityScale();
 	scene.m_ShadingType = _transferFunction->GetShadingType();
@@ -449,6 +457,23 @@ void GLView3D::OnUpdateTransferFunction(void)
 	scene.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
-void GLView3D::OnUpdateRenderer(int)
+void GLView3D::OnUpdateRenderer(int rendererType)
 {
+	makeCurrent();
+
+	// clean up old renderer.
+	if (_renderer) {
+		_renderer->cleanUpResources();
+	}
+
+	switch (rendererType) {
+	case 1:
+		_renderer.reset(new RenderGLCuda(_img, _scene));
+		break;
+	default:
+		_renderer.reset(new RenderGL(_img, _scene));
+	};
+
+	QSize newsize = size();
+	_renderer->initialize(newsize.width(), newsize.height());
 }

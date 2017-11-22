@@ -19,8 +19,6 @@ public:
 	RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene);
 	virtual ~RenderGLCuda();
 
-	void setChannel(int c);
-
 	virtual void initialize(uint32_t w, uint32_t h);
 	virtual void render(const Camera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
