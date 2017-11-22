@@ -76,7 +76,7 @@ public:
 	void
 		setMax(const glm::vec3& max) {}
 
-	void setPlane(int plane, int z, int c);
+	void setC(int c);
 
 	/**
 	* Get texture ID.

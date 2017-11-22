@@ -7,107 +7,6 @@
 #include <array>
 #include <iostream>
 
-#if 0
-namespace
-{
-
-	class TextureProperties
-	{
-	public:
-		GLenum internal_format;
-		GLenum external_format;
-		GLint external_type;
-		bool make_normal;
-		GLint min_filter;
-		GLint mag_filter;
-		ome::files::dimension_size_type w;
-		ome::files::dimension_size_type h;
-
-		TextureProperties(const ome::files::FormatReader& reader,
-			ome::files::dimension_size_type series) :
-			internal_format(GL_R8),
-			external_format(GL_RED),
-			external_type(GL_UNSIGNED_BYTE),
-			make_normal(false),
-			min_filter(GL_LINEAR),
-			mag_filter(GL_LINEAR),
-			w(0),
-			h(0)
-		{
-			ome::files::dimension_size_type oldseries = reader.getSeries();
-			reader.setSeries(series);
-			ome::xml::model::enums::PixelType pixeltype = reader.getPixelType();
-			reader.setSeries(oldseries);
-
-			w = reader.getSizeX();
-			h = reader.getSizeY();
-
-			switch (pixeltype)
-			{
-			case ::ome::xml::model::enums::PixelType::INT8:
-				internal_format = GL_R8;
-				external_type = GL_BYTE;
-				break;
-			case ::ome::xml::model::enums::PixelType::INT16:
-				internal_format = GL_R16;
-				external_type = GL_SHORT;
-				break;
-			case ::ome::xml::model::enums::PixelType::INT32:
-				internal_format = GL_R16;
-				external_type = GL_INT;
-				make_normal = true;
-				break;
-			case ::ome::xml::model::enums::PixelType::UINT8:
-				internal_format = GL_R8;
-				external_type = GL_UNSIGNED_BYTE;
-				break;
-			case ::ome::xml::model::enums::PixelType::UINT16:
-				internal_format = GL_R16;
-				external_type = GL_UNSIGNED_SHORT;
-				break;
-			case ::ome::xml::model::enums::PixelType::UINT32:
-				internal_format = GL_R16;
-				external_type = GL_UNSIGNED_INT;
-				make_normal = true;
-				break;
-			case ::ome::xml::model::enums::PixelType::FLOAT:
-				internal_format = GL_R32F;
-				if (!GL_ARB_texture_float)
-					internal_format = GL_R16;
-				external_type = GL_FLOAT;
-				break;
-			case ::ome::xml::model::enums::PixelType::DOUBLE:
-				internal_format = GL_R32F;
-				if (!GL_ARB_texture_float)
-					internal_format = GL_R16;
-				external_type = GL_DOUBLE;
-				break;
-			case ::ome::xml::model::enums::PixelType::BIT:
-				internal_format = GL_R8;
-				external_type = GL_UNSIGNED_BYTE;
-				make_normal = true;
-				min_filter = GL_NEAREST_MIPMAP_LINEAR;
-				mag_filter = GL_NEAREST;
-				break;
-			case ::ome::xml::model::enums::PixelType::COMPLEXFLOAT:
-				internal_format = GL_RG32F;
-				if (!GL_ARB_texture_float)
-					internal_format = GL_RG16;
-				external_type = GL_FLOAT;
-				external_format = GL_RG;
-			case ::ome::xml::model::enums::PixelType::COMPLEXDOUBLE:
-				internal_format = GL_RG32F;
-				if (!GL_ARB_texture_float)
-					internal_format = GL_RG16;
-				external_type = GL_DOUBLE;
-				external_format = GL_RG;
-				break;
-			}
-		}
-	};
-}
-#endif
-
 Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
 	vertices(0),
 	image_vertices(0),
@@ -131,28 +30,17 @@ Image3Dv33::~Image3Dv33()
 
 void Image3Dv33::create()
 {
-#if 0
-	TextureProperties tprop(*reader, series);
 
-	ome::files::dimension_size_type oldseries = reader->getSeries();
-	reader->setSeries(series);
-	ome::files::dimension_size_type sizeX = reader->getSizeX();
-	ome::files::dimension_size_type sizeY = reader->getSizeY();
-	ome::files::dimension_size_type sizeZ = reader->getSizeZ();
-	setSize(glm::vec2(-(sizeX / 2.0f), sizeX / 2.0f),
-		glm::vec2(-(sizeY / 2.0f), sizeY / 2.0f));
-	ome::files::dimension_size_type rbpp = reader->getBitsPerPixel();
-	ome::files::dimension_size_type bpp = ome::files::bitsPerPixel(reader->getPixelType());
-	//texcorr[0] = texcorr[1] = texcorr[2] = (1 << (bpp - rbpp));
-	reader->setSeries(oldseries);
+	setSize(glm::vec2(-(_img->sizeX() / 2.0f), _img->sizeX() / 2.0f),
+		glm::vec2(-(_img->sizeY() / 2.0f), _img->sizeY() / 2.0f));
 
 	// Create image texture.
 	glGenTextures(1, &textureid);
 	glBindTexture(GL_TEXTURE_3D, textureid);
 	check_gl("Bind texture");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, tprop.min_filter);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	check_gl("Set texture min filter");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, tprop.mag_filter);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	check_gl("Set texture mag filter");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	check_gl("Set texture wrap s");
@@ -176,16 +64,19 @@ void Image3Dv33::create()
 	texmin = 0.0;
 	texmax = 2048.0 / (255.0*64.0);
 	*/
+	GLenum internal_format = GL_R16;
+	GLenum external_type = GL_UNSIGNED_SHORT;
+	GLenum external_format = GL_RED;
 
 	glTexImage3D(GL_TEXTURE_3D,         // target
 		0,                     // level, 0 = base, no minimap,
-		tprop.internal_format, // internal format
-		(GLsizei)sizeX,                 // width
-		(GLsizei)sizeY,                 // height
-		(GLsizei)sizeZ,
+		internal_format, // internal format
+		(GLsizei)_img->sizeX(),                 // width
+		(GLsizei)_img->sizeY(),                 // height
+		(GLsizei)_img->sizeZ(),
 		0,                     // border
-		tprop.external_format, // external format
-		tprop.external_type,   // external type
+		external_format, // external format
+		external_type,   // external type
 		_img->ptr(_c));
 		//0);                    // no image data at this point
 	check_gl("Texture create");
@@ -201,7 +92,7 @@ void Image3Dv33::create()
 	check_gl("Set texture mag filter");
 	glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	check_gl("Set texture wrap s");
-#endif
+
 	// HiLo
 	uint8_t lut[256][3];
 	for (uint16_t i = 0; i < 256; ++i)
@@ -349,36 +240,35 @@ Image3Dv33::lut()
 }
 
 void 
-Image3Dv33::setPlane(int plane, int z, int c)
+Image3Dv33::setC(int c)
 {
 	if (c != _c)
 	{
 		_c = c;
 		// only update C here!!
-#if 0
-		TextureProperties tprop(*reader, series);
-		ome::files::dimension_size_type sizeX = reader->getSizeX();
-		ome::files::dimension_size_type sizeY = reader->getSizeY();
-		ome::files::dimension_size_type sizeZ = reader->getSizeZ();
 
 		// assuming 16-bit data!
 		Channelu16* ch = _img->channel(c);
 		texmin = float(ch->_min) / (65535.0f);
 		texmax = float(ch->_max) / (65535.0f);
 
+		GLenum internal_format = GL_R16;
+		GLenum external_type = GL_UNSIGNED_SHORT;
+		GLenum external_format = GL_RED;
+
 		glBindTexture(GL_TEXTURE_3D, textureid);
 		glTexImage3D(GL_TEXTURE_3D,         // target
 			0,                     // level, 0 = base, no minimap,
-			tprop.internal_format, // internal format
-			(GLsizei)sizeX,                 // width
-			(GLsizei)sizeY,                 // height
-			(GLsizei)sizeZ,
+			internal_format, // internal format
+			(GLsizei)_img->sizeX(),                 // width
+			(GLsizei)_img->sizeY(),                 // height
+			(GLsizei)_img->sizeZ(),
 			0,                     // border
-			tprop.external_format, // external format
-			tprop.external_type,   // external type
+			external_format, // external format
+			external_type,   // external type
 			_img->ptr(c));
 		glGenerateMipmap(GL_TEXTURE_3D);
-#endif
+
 	}
 }
 
