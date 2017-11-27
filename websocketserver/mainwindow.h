@@ -11,10 +11,10 @@
 
 class MainWindow : public QMainWindow
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
-	MainWindow();
+	MainWindow(StreamServer *server);
 	~MainWindow();
 
 private:
@@ -22,7 +22,7 @@ private:
 	StreamServer *server;
 	QTextEdit *output;
 
-public slots:
+	public slots:
 	void updateStats();
 };
 

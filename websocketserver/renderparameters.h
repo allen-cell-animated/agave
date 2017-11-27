@@ -7,13 +7,27 @@
 class RenderParameters
 {
 public:
-	RenderParameters(QMatrix4x4 modelview, int visibility, qreal mitoFuzziness, const char *format, int quality = -1);
+	//RenderParameters(QMatrix4x4 modelview, int visibility, qreal mitoFuzziness, const char *format, int quality = -1);
+	RenderParameters(QMatrix4x4 modelview, QString type1, QString cell1, QString type2, QString cell2, QList<QVariant> channelvalues, int mode, qreal crossFade, int visibility, qreal mitoFuzziness, const char *format, int quality = -1, bool usingCellServer = true);
 
 	QMatrix4x4 modelview;
-	int visibility;
-	qreal mitoFuzziness;
+	QString type1;
+	QString cell1;
+	QString type2;
+	QString cell2;
+	QList<QVariant> channelvalues;
+	int mode;
+	qreal crossFade;
+	bool usingCellServer;
+
+
 	const char *format;
 	int quality;
+
+
+	//deprecated?
+	int visibility;
+	qreal mitoFuzziness;
 };
 
 #endif // RENDERPARAMETERS_H

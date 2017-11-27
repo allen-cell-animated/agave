@@ -26,10 +26,10 @@ QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
 class StreamServer : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
 	explicit StreamServer(quint16 port, bool debug, QObject *parent = Q_NULLPTR);
-    ~StreamServer();
+	~StreamServer();
 
 	inline int getClientsCount()
 	{
@@ -49,7 +49,7 @@ public:
 	inline QList<int> getThreadsLoad()
 	{
 		QList<int> loads;
-		foreach (Renderer *renderer, this->renderers)
+		foreach(Renderer *renderer, this->renderers)
 		{
 			loads << renderer->getTotalQueueDuration();
 		}
@@ -60,7 +60,7 @@ public:
 	inline QList<int> getThreadsRequestCount()
 	{
 		QList<int> requests;
-		foreach (Renderer *renderer, this->renderers)
+		foreach(Renderer *renderer, this->renderers)
 		{
 			requests << renderer->getRequestCount();
 		}
@@ -87,14 +87,14 @@ public:
 	}
 
 signals:
-    void closed();
+	void closed();
 
-private slots:
-    void onNewConnection();
+	private slots:
+	void onNewConnection();
 	void onSslErrors(const QList<QSslError> &errors);
-    void processTextMessage(QString message);
-    void processBinaryMessage(QByteArray message);
-    void socketDisconnected();
+	void processTextMessage(QString message);
+	void processBinaryMessage(QByteArray message);
+	void socketDisconnected();
 	void sendImage(RenderRequest *request, QImage image);
 
 private:

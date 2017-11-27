@@ -1,10 +1,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <QOpenGLShaderProgram>
+#include <QOpenGLShader>
+#include <qopenglshaderprogram.h>
 #include <QByteArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QVariant>
 #include <cmath>
 
@@ -16,24 +15,26 @@
 #define MOUSE_POS posF
 #endif
 
+//#include "marion_global.h"
+
 template <class T> class VPointer
 {
 public:
 	static T* toPointer(QVariant v)
 	{
-		return  (T *) v.value<void *>();
+		return  (T *)v.value<void *>();
 	}
 
 	static QVariant toVariant(T* pointer)
 	{
-		return qVariantFromValue((void *) pointer);
+		return qVariantFromValue((void *)pointer);
 	}
 };
 
 class Util
 {
 public:
-    Util();
+	Util();
 	static QOpenGLShaderProgram *compileShader(QByteArray computeShaderSource);
 	static QOpenGLShaderProgram *compileShader(QByteArray vertexShaderSource, QByteArray fragmentShaderSource);
 	static QOpenGLShaderProgram *compileShader(QByteArray vertexShaderSource, QByteArray geometryShaderSource, QByteArray fragmentShaderSource);
@@ -43,7 +44,7 @@ public:
 	static QOpenGLShaderProgram *loadAndCompileShader(QString computeFileName);
 	static QOpenGLShaderProgram *loadAndCompileShader(QString vsFileName, QString fsFileName, bool loadVS = true, bool loadFS = true);
 	static QOpenGLShaderProgram *loadAndCompileShader(QString vsFileName, QString gsFileName, QString fsFileName, bool loadVS = true, bool loadGS = true, bool loadFS = true);
-	static QOpenGLShaderProgram *loadAndCompileShader(QString vsFileName, QString tcsFileName, QString tesFileName, QString gsFileName, QString fsFileName, 
+	static QOpenGLShaderProgram *loadAndCompileShader(QString vsFileName, QString tcsFileName, QString tesFileName, QString gsFileName, QString fsFileName,
 		bool loadVS = true, bool loadTCS = true, bool loadTES = true, bool loadGS = true, bool loadFS = true);
 
 	//math

@@ -30,7 +30,7 @@ QOpenGLShaderProgram *Util::compileShader(QByteArray vertexShaderSource, QByteAr
 	return Util::compileShader(vertexShaderSource, QByteArray(), QByteArray(), geometryShaderSource, fragmentShaderSource);
 }
 
-QOpenGLShaderProgram *Util::compileShader(QByteArray vertexShaderSource , QByteArray tcsShaderSource, QByteArray tesShaderSource, QByteArray geometryShaderSource, QByteArray fragmentShaderSource)
+QOpenGLShaderProgram *Util::compileShader(QByteArray vertexShaderSource, QByteArray tcsShaderSource, QByteArray tesShaderSource, QByteArray geometryShaderSource, QByteArray fragmentShaderSource)
 {
 	bool geometry = geometryShaderSource.length() > 0;
 	bool tcs = tcsShaderSource.length() > 0;
@@ -45,25 +45,33 @@ QOpenGLShaderProgram *Util::compileShader(QByteArray vertexShaderSource , QByteA
 	QGLShader *gShader = geometry ? new QGLShader(QGLShader::Geometry) : 0;
 	QGLShader *fShader = new QGLShader(QGLShader::Fragment);*/
 
-	vShader->compileSourceCode(vertexShaderSource);
-	if (tcs) 
+	if (!vShader->compileSourceCode(vertexShaderSource)) {
+		qDebug() << vShader->log();
+	}
+	if (tcs)
 		tcShader->compileSourceCode(tcsShaderSource);
-	if (tes) 
+	if (tes)
 		teShader->compileSourceCode(tesShaderSource);
-	if (geometry) 
+	if (geometry)
 		gShader->compileSourceCode(geometryShaderSource);
-	fShader->compileSourceCode(fragmentShaderSource);
+	if (!fShader->compileSourceCode(fragmentShaderSource)) {
+		qDebug() << fShader->log();
+	}
 
 	QOpenGLShaderProgram *shader;
 	shader = new QOpenGLShaderProgram();
-	shader->addShader(vShader);
+	if (!shader->addShader(vShader)) {
+		qDebug() << shader->log();
+	}
 	if (tcs)
 		shader->addShader(tcShader);
 	if (tes)
 		shader->addShader(teShader);
-	if (geometry) 
+	if (geometry)
 		shader->addShader(gShader);
-	shader->addShader(fShader);
+	if (!shader->addShader(fShader)) {
+		qDebug() << shader->log();
+	}
 
 	bool ok = shader->link();
 
@@ -76,6 +84,7 @@ QOpenGLShaderProgram *Util::compileShader(QByteArray vertexShaderSource , QByteA
 		//QMessageBox::critical(0, "Shader Error", "Shader not linked. " + QString(fragmentShaderSource));
 		qDebug() << "Shader not linked:";
 		qDebug() << QString(fragmentShaderSource);
+		qDebug() << shader->log();
 	}
 	shader->bind();
 
@@ -142,7 +151,7 @@ QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString fsF
 }
 
 //QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString gsFileName, QString fsFileName, bool loadVS, bool loadGS, bool loadFS)
-QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString tcsFileName, QString tesFileName, QString gsFileName, QString fsFileName, 
+QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString tcsFileName, QString tesFileName, QString gsFileName, QString fsFileName,
 	bool loadVS, bool loadTCS, bool loadTES, bool loadGS, bool loadFS)
 {
 	bool vertex = vsFileName.length() > 0;
@@ -165,7 +174,7 @@ QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString tcs
 	{
 		tcsSourceArray = Util::loadSource(tcsFileName, loadTCS);
 	}
-	if (tes) 
+	if (tes)
 	{
 		tesSourceArray = Util::loadSource(tesFileName, loadTES);
 	}
@@ -183,47 +192,47 @@ QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString tcs
 
 	if (loadVS)
 	{
-		QFile *vsSource = new QFile(vsFileName);
-		vsSource->open(QIODevice::ReadOnly);
-		vsSourceArray = vsSource->readAll();
-		vsSource->close();
-		delete vsSource;
+	QFile *vsSource = new QFile(vsFileName);
+	vsSource->open(QIODevice::ReadOnly);
+	vsSourceArray = vsSource->readAll();
+	vsSource->close();
+	delete vsSource;
 	}
 	else
 	{
-		vsSourceArray.append(vsFileName);
+	vsSourceArray.append(vsFileName);
 	}
 
 	if (geometry)
 	{
-		if (loadGS)
-		{
-			QFile *gsSource = new QFile(gsFileName);
-			gsSource->open(QIODevice::ReadOnly);
-			gsSourceArray = gsSource->readAll();
-			gsSource->close();
-			delete gsSource;
-		}
-		else
-		{
-			gsSourceArray.append(gsFileName);
-		}
+	if (loadGS)
+	{
+	QFile *gsSource = new QFile(gsFileName);
+	gsSource->open(QIODevice::ReadOnly);
+	gsSourceArray = gsSource->readAll();
+	gsSource->close();
+	delete gsSource;
+	}
+	else
+	{
+	gsSourceArray.append(gsFileName);
+	}
 	}
 
 	if (loadFS)
 	{
-		QFile *fsSource = new QFile(fsFileName);
-		fsSource->open(QIODevice::ReadOnly);
-		fsSourceArray = fsSource->readAll();
-		fsSource->close();
-		delete fsSource;
+	QFile *fsSource = new QFile(fsFileName);
+	fsSource->open(QIODevice::ReadOnly);
+	fsSourceArray = fsSource->readAll();
+	fsSource->close();
+	delete fsSource;
 	}
 	else
 	{
-		fsSourceArray.append(fsFileName);
+	fsSourceArray.append(fsFileName);
 	}*/
 
-    qDebug() << "compiling" << vsFileName << fsFileName << "...";
+	qDebug() << "compiling" << vsFileName << fsFileName << "...";
 
 	QOpenGLShaderProgram *shader = 0;
 	if (tcs && tes && geometry)
@@ -241,7 +250,7 @@ QOpenGLShaderProgram *Util::loadAndCompileShader(QString vsFileName, QString tcs
 //math
 qreal Util::rrandom()
 {
-	return (qreal) (rand() % RAND_MAX) / (qreal) RAND_MAX;
+	return (qreal)(rand() % RAND_MAX) / (qreal)RAND_MAX;
 }
 
 qreal Util::mix(qreal a0, qreal a1, qreal x)
@@ -257,7 +266,7 @@ qreal Util::mixCos(qreal a0, qreal a1, qreal x)
 
 qreal Util::mix(qreal a0, qreal a1, qreal a2, qreal a3, qreal x)
 {
-	qreal p,q,r,s;
+	qreal p, q, r, s;
 	p = (a3 - a2) - (a0 - a1);
 	q = (a0 - a1) - p;
 	r = a2 - a0;
@@ -269,50 +278,50 @@ qreal Util::mix(qreal a0, qreal a1, qreal a2, qreal a3, qreal x)
 QPointF Util::mixPointF(QPointF p0, QPointF p1, qreal x)
 {
 	return QPointF(
-				mix(p0.x(), p1.x(), x),
-				mix(p0.y(), p1.y(), x));
+		mix(p0.x(), p1.x(), x),
+		mix(p0.y(), p1.y(), x));
 }
 
 QPointF Util::mixPointF(QPointF p0, QPointF p1, QPointF p2, QPointF p3, qreal x)
 {
 	return QPointF(
-				mix(p0.x(), p1.x(), p2.x(), p3.x(), x),
-				mix(p0.y(), p1.y(), p2.y(), p3.y(), x));
+		mix(p0.x(), p1.x(), p2.x(), p3.x(), x),
+		mix(p0.y(), p1.y(), p2.y(), p3.y(), x));
 }
 
 QPointF Util::mixPointFCos(QPointF p0, QPointF p1, qreal x)
 {
 	return QPointF(
-				mix(p0.x(), p1.x(), x),
-				mixCos(p0.y(), p1.y(), x));
+		mix(p0.x(), p1.x(), x),
+		mixCos(p0.y(), p1.y(), x));
 }
 
 QVector2D Util::mixVector2D(QVector2D p0, QVector2D p1, qreal x)
 {
 	return QVector2D(
-				mix(p0.x(), p1.x(), x),
-				mix(p0.y(), p1.y(), x));
+		mix(p0.x(), p1.x(), x),
+		mix(p0.y(), p1.y(), x));
 }
 
 QVector2D Util::mixVector2D(QVector2D p0, QVector2D p1, QVector2D p2, QVector2D p3, qreal x)
 {
 	return QVector2D(
-				mix(p0.x(), p1.x(), p2.x(), p3.x(), x),
-				mix(p0.y(), p1.y(), p2.y(), p3.y(), x));
+		mix(p0.x(), p1.x(), p2.x(), p3.x(), x),
+		mix(p0.y(), p1.y(), p2.y(), p3.y(), x));
 }
 
 QVector3D Util::mixVector3D(QVector3D p0, QVector3D p1, qreal x)
 {
 	return QVector3D(
-				mix(p0.x(), p1.x(), x),
-				mix(p0.y(), p1.y(), x),
-				mix(p0.z(), p1.z(), x));
+		mix(p0.x(), p1.x(), x),
+		mix(p0.y(), p1.y(), x),
+		mix(p0.z(), p1.z(), x));
 }
 
 QVector3D Util::mixVector3D(QVector3D p0, QVector3D p1, QVector3D p2, QVector3D p3, qreal x)
 {
 	return QVector3D(
-				mix(p0.x(), p1.x(), p2.x(), p3.x(), x),
-				mix(p0.y(), p1.y(), p2.y(), p3.y(), x),
-				mix(p0.z(), p1.z(), p2.z(), p3.z(), x));
+		mix(p0.x(), p1.x(), p2.x(), p3.x(), x),
+		mix(p0.y(), p1.y(), p2.y(), p3.y(), x),
+		mix(p0.z(), p1.z(), p2.z(), p3.z(), x));
 }

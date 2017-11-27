@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(StreamServer *server)
 {
 	this->setWindowTitle(qAppName() + " " + qApp->applicationVersion());
 
@@ -15,9 +15,6 @@ MainWindow::MainWindow()
 	this->output = new QTextEdit(this);
 
 	this->setCentralWidget(this->output);
-
-	this->server = new StreamServer(1234, false, this);
-	connect(this->server, &StreamServer::closed, qApp, &QApplication::quit);
 
 	this->timer = new QTimer(this);
 	connect(this->timer, SIGNAL(timeout()), this, SLOT(updateStats()));
@@ -42,8 +39,8 @@ void MainWindow::updateStats()
 	for (int i = 0; i < this->server->getClientsCount(); i++)
 	{
 		text += "   client #" + QString::number(i) + ": " +
-				clients[i]->peerName() + "(" +
-				clients[i]->peerAddress().toString() + ":" + QString::number(clients[i]->peerPort()) + ")\n";
+			clients[i]->peerName() + "(" +
+			clients[i]->peerAddress().toString() + ":" + QString::number(clients[i]->peerPort()) + ")\n";
 	}
 
 

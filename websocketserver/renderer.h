@@ -4,17 +4,22 @@
 #include <QObject>
 #include <QList>
 
-#include <QMutex>
 #include <QOpenGLTexture>
 #include <QOpenGLContext>
 #include <QOffscreenSurface>
+#include <QMutex>
 #include <QThread>
+
+//#include "dynamiclibrary.h"
+
+//#include "marion.h"
+//#include "plugins.h"
 
 #include "renderrequest.h"
 
 class Renderer : public QThread
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	Renderer(QString id, QObject *parent = 0);
@@ -35,6 +40,11 @@ public:
 	{
 		return this->requests.count();
 	}
+
+//	inline Marion *getMarion()
+//	{
+//		return this->marion;
+//	}
 
 protected:
 	QString id;
@@ -57,6 +67,8 @@ private:
 	QOpenGLContext *context;
 	QOffscreenSurface *surface;
 	QOpenGLFramebufferObject *fbo;
+
+	//Marion *marion;
 
 	int frameNumber;
 	QTime time;

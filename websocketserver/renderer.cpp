@@ -3,10 +3,10 @@
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QMessageBox>
-#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObjectFormat>
 
 Renderer::Renderer(QString id, QObject *parent) : QThread(parent),
-	id(id)
+id(id)
 {
 	this->totalQueueDuration = 0;
 
@@ -50,6 +50,9 @@ void Renderer::init()
 
 	//this->fbo = new QOpenGLFramebufferObject(512, 512, fboFormat);
 
+	///////////////////////////////////
+	// INIT THE RENDER LIB
+	///////////////////////////////////
 //	this->marion = new Marion(this->context);
 //	this->marion->resizeGL(512, 512);
 //	this->marion->initializeGL();
@@ -73,18 +76,48 @@ void Renderer::init()
 
 	//this->context->doneCurrent();
 
-
-	// qDebug() << id << "Extensions===========================";
-	// foreach (QByteArray extension, this->marion->getContext()->extensions())
-	// {
-	// 	qDebug() << QString(extension);
-	// }
-	// qDebug() << id << "/Extensions===========================";
+#if 0
+	qDebug() << id << "Extensions===========================";
+	foreach(QByteArray extension, this->marion->getContext()->extensions())
+	{
+		qDebug() << QString(extension);
+	}
+	qDebug() << id << "/Extensions===========================";
 
 	//cell setup
-	//connect(this->marion->getObject(), SIGNAL(shaderRecompiled()), this, SLOT(update()));
+	connect(this->marion->getObject(), SIGNAL(shaderRecompiled()), this, SLOT(update()));
 
-	//glEnable(GL_MULTISAMPLE);
+
+	qDebug() << id << "Loading Scenes...";
+	//scenes
+
+	this->scenes << SceneDescription("cellLoader", 0, 0)
+		<< SceneDescription("cell", 0, 0);
+
+	DynamicLibrary::setPath("../scenes/");
+	foreach(SceneDescription scene, this->scenes)
+	{
+		//this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/" + scene.name + ".dll", scene.start, scene.end, this->marion));
+
+#ifdef __linux__
+		this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/lib" + scene.name.toLower() + ".so", scene.start, scene.end, this->marion));
+#elif _WIN32
+#ifdef _DEBUG
+		//this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/debug/" + scene.name + ".dll", scene.start, scene.end, this->marion));
+		this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/" + scene.name + ".dll", scene.start, scene.end, this->marion));
+#else
+		//this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/release/" + scene.name + ".dll", scene.start, scene.end, this->marion));
+		bool deploy = true;
+		this->marion->addLibrary(scene.name, new DynamicLibrary((!deploy ? (scene.name + "/build/") : ("")) + scene.name + ".dll", scene.start, scene.end, this->marion));
+#endif
+
+#endif
+
+		this->marion->addFbo(scene.name);
+	}
+#endif 
+
+	glEnable(GL_MULTISAMPLE);
 
 	reset();
 
@@ -136,30 +169,47 @@ bool Renderer::processRequest()
 }
 
 QImage Renderer::render(RenderParameters p)
-{	
+{
 	this->context->makeCurrent(this->surface);
 
 	glEnable(GL_TEXTURE_2D);
-
+#if 0
+	//todo client: update render params
 	QList<QVariant> cellParams;
 	cellParams << QVariant(projection)
-			   << QVariant(p.modelview)
-			   << QVariant(p.visibility)
-			   << QVariant(p.mitoFuzziness);
+		<< QVariant(p.modelview)
+		<< QVariant(p.visibility)
+		<< QVariant(p.mitoFuzziness)
+		<< QVariant(p.type1)
+		<< QVariant(p.type2)
+		<< QVariant(p.cell1)
+		<< QVariant(p.cell2)
+		<< QVariant(p.mode)
+		<< QVariant(p.crossFade)
+		<< QVariant(p.channelvalues)
+		<< QVariant(p.usingCellServer);
 
-	//this->marion->library("cell")->getInterface()->setParameters(cellParams);
+	this->marion->library("cell")->getInterface()->setParameters(cellParams);
+#endif
+	foreach(SceneDescription scene, this->scenes)
+	{
+		this->renderScene(scene.name);
+	}
 
+	// BIND THE RENDER TARGET FOR THE FINAL IMAGE
 	//this->marion->fbo("_")->bind();
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	//glColor4f(1.0, 1.0, 1.0, 1.0);
+//GL	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-	// foreach (SceneDescription scene, this->scenes)
-	// {
-	// 	glColor4f(1.0, 1.0, 1.0, 1.0);
-	// 	this->displayScene(scene.name);
-	// }
-	// this->marion->fbo("_")->release();
+	// DRAW!
+	foreach(SceneDescription scene, this->scenes)
+	{
+//GL		glColor4f(1.0, 1.0, 1.0, 1.0);
+		this->displayScene(scene.name);
+	}
+	// UNBIND SO WE CAN READ THE TARGET
+	//this->marion->fbo("_")->release();
 
 	//qDebug() << "gu" << this->marion->fbo("_")->toImage().width() << this->marion->fbo("_")->toImage().height();
 
@@ -167,19 +217,20 @@ QImage Renderer::render(RenderParameters p)
 
 
 	this->fbo->bind();
-		glClearColor(0.0, 0.0, 0.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-		glEnable(GL_TEXTURE_2D);
-//		glBindTexture(GL_TEXTURE_2D, this->marion->fbo("_")->texture());
-		//glBegin(GL_QUADS);
-		//	glColor4f(1.0, 1.0, 1.0, 1.0);
-		//	glTexCoord2f(0.0, 0.0); glVertex2f(-1.0, -1.0);
-		//	glTexCoord2f(1.0, 0.0); glVertex2f(+0.0, -1.0);
-		//	glTexCoord2f(1.0, 1.0); glVertex2f(+0.0, +0.0);
-		//	glTexCoord2f(0.0, 1.0); glVertex2f(-1.0, +0.0);
-		//glEnd();
-		glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
+	// BIND THE FRAME RESULTS AS A TEXTURE
+	//glBindTexture(GL_TEXTURE_2D, this->marion->fbo("_")->texture());
+//GL	glBegin(GL_QUADS);
+//GL	glColor4f(1.0, 1.0, 1.0, 1.0);
+//GL	glTexCoord2f(0.0, 0.0); glVertex2f(-1.0, -1.0);
+//GL	glTexCoord2f(1.0, 0.0); glVertex2f(+0.0, -1.0);
+//GL	glTexCoord2f(1.0, 1.0); glVertex2f(+0.0, +0.0);
+//GL	glTexCoord2f(0.0, 1.0); glVertex2f(-1.0, +0.0);
+//GL	glEnd();
+	glEnable(GL_TEXTURE_2D);
 	this->fbo->release();
 
 
@@ -214,61 +265,71 @@ QImage Renderer::render(RenderParameters p)
 
 void Renderer::renderScene(QString scene)
 {
-	// DynamicLibrary *lib = this->marion->library(scene);
+#if 0
+	DynamicLibrary *lib = this->marion->library(scene);
 
-	// if (lib == 0)
-	// {
-	// 	return;
-	// }
-	// else
-	// {
-	// 	int t = getTime();
-	// 	if (lib->getInterface()->isPlaying(t))
-	// 	{
-	// 		lib->getInterface()->render(t);
-	// 	}
-	// }
+	if (lib == 0)
+	{
+		return;
+	}
+	else
+	{
+		int t = getTime();
+		if (lib->getInterface()->isPlaying(t))
+		{
+			//qDebug() << scene;
+			//this->fbo(scene)->bind();
+			lib->getInterface()->render(t);
+			//this->fbo(scene)->release();
+		}
+	}
+#endif
 }
 
 void Renderer::displayScene(QString scene)
 {
-	// DynamicLibrary *lib = this->marion->library(scene);
+#if 0
+	DynamicLibrary *lib = this->marion->library(scene);
 
-	// if (lib == 0)
-	// {
-	// 	return;
-	// }
-	// else if (lib->getInterface()->isPlaying(getTime()))
-	// {
-	// 	glColor4f(1.0, 1.0, 1.0, 1.0);
-	// 	glBindTexture(GL_TEXTURE_2D, this->marion->fbo(scene)->texture());
-	// 	this->marion->drawFullscreenRect();
-	// }
+	if (lib == 0)
+	{
+		return;
+	}
+	else if (lib->getInterface()->isPlaying(getTime()))
+	{
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		glBindTexture(GL_TEXTURE_2D, this->marion->fbo(scene)->texture());
+		this->marion->drawFullscreenRect();
+	}
+#endif
 }
 
 void Renderer::resizeGL(int width, int height)
 {
 	this->context->makeCurrent(this->surface);
 
-//	this->marion->resizeGL(width, height);
+	// RESIZE THE RENDER INTERFACE
+	//this->marion->resizeGL(width, height);
 
 	int w, h;
 	w = width;
-	h = (int) ((GLfloat) width * 0.5625);
+	h = (int)((GLfloat)width * 0.5625);
 
 	//glViewport(0, (height - h) / 2, w, h);
 	glViewport(0, 0, width, height);
 
 	//~ projection matrix setup, all the view plugins should use this one for their transformations
 	projection.setToIdentity();
-//	projection.perspective(20.0, (qreal) this->marion->internalWidth() / (qreal) this->marion->internalHeight(), 0.1, 16.0);
+	int internalWidth=w, internalHeight=h;
+	projection.perspective(20.0, (qreal) internalWidth / (qreal) internalHeight, 0.1f, 16.0f);
+	//projection.perspective(20.0, (qreal) this->marion->internalWidth() / (qreal) this->marion->internalHeight(), 0.1, 16.0);
 
 
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glOrtho(-1.0, 1.0, -1.0, 1.0, 0.0, 1.0);
-	//glClear(GL_ACCUM_BUFFER_BIT);
-	//glMatrixMode(GL_MODELVIEW);
+//GL	glMatrixMode(GL_PROJECTION);
+//GL	glLoadIdentity();
+//GL	glOrtho(-1.0, 1.0, -1.0, 1.0, 0.0, 1.0);
+//GL	glClear(GL_ACCUM_BUFFER_BIT);
+//GL	glMatrixMode(GL_MODELVIEW);
 
 	//this->update();
 }
@@ -277,12 +338,15 @@ void Renderer::reset(int from)
 {
 	this->context->makeCurrent(this->surface);
 
-	glClearColor(0.0,0.0,0.0,1.0);
-//	this->marion->gl()->glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	/////////////////////////
+	// TODO: CALL glBlendFuncSeparate HERE!!!!!!!!!!!!!
+	/////////////////////////
+	//this->marion->gl()->glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-	//glClear(GL_ACCUM_BUFFER_BIT);
+//GL	glClear(GL_ACCUM_BUFFER_BIT);
 
 	this->time.start();
 	this->time = this->time.addMSecs(-from);
