@@ -39,6 +39,11 @@ void Renderer::init()
 	this->context->moveToThread(this);*/
 	this->context->makeCurrent(this->surface);
 
+	int status = gladLoadGL();
+	if (!status) {
+		qDebug() << id << "COULD NOT LOAD GL ON THREAD";
+	}
+
 	QOpenGLFramebufferObjectFormat fboFormat;
 	fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
 	fboFormat.setMipmap(false);
@@ -128,6 +133,10 @@ void Renderer::init()
 void Renderer::run()
 {
 	this->context->makeCurrent(this->surface);
+	int status = gladLoadGL();
+	if (!status) {
+		qDebug() << id << "COULD NOT LOAD GL ON THREAD";
+	}
 
 	while (1)
 	{
