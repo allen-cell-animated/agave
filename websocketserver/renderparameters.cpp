@@ -13,7 +13,9 @@ RenderParameters::RenderParameters(QMatrix4x4 modelview, QString type1, QString 
 	channelvalues(channelvalues),
 	mode(mode),
 	crossFade(crossFade),
-	usingCellServer(usingCellServer)
+	usingCellServer(usingCellServer),
+	mseDx(0),
+	mseDy(0)
 {
 
 }

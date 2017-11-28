@@ -24,6 +24,7 @@ public:
 	const char *format;
 	int quality;
 
+	int mseDx, mseDy;
 
 	//deprecated?
 	int visibility;

@@ -252,6 +252,16 @@ void StreamServer::processTextMessage(QString message)
 			qreal crossfade = animstate.toDouble();
 			//qDebug() << "animation state:" << crossfade;
 
+			//messageobj.mouseDeltaRotate = { x:outX, y : outY };
+			//messageobj.deltaRotate = { x:rotationAxis.x, y : rotationAxis.y, z : rotationAxis.z, angle : angle };
+			QJsonValueRef deltaRotate = json["deltaRotate"];
+			QJsonObject deltaRotate_obj = deltaRotate.toObject();
+			QJsonValueRef mouseDeltaRotate = json["mouseDeltaRotate"];
+			QJsonObject mouseDeltaRotate_obj = mouseDeltaRotate.toObject();
+			int mseDx = mouseDeltaRotate_obj["x"].toInt();
+			int mseDy = mouseDeltaRotate_obj["y"].toInt();
+			//qDebug() << "MSE ROT " << mseDx << "," << mseDy;
+
 
 			QJsonValueRef content = json["msgcontent"];
 			QJsonObject content_obj = content.toObject();
@@ -328,6 +338,8 @@ void StreamServer::processTextMessage(QString message)
 
 
 			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, struc_asint, slider_settings[2], DEFAULT_IMAGE_FORMAT, 92, true);
+			p.mseDx = mseDx;
+			p.mseDy = mseDy;
 
 
 			RenderRequest *request = new RenderRequest(pClient, p);

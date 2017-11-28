@@ -34,6 +34,11 @@ void Renderer::myVolumeInit() {
 	std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file);
 	myVolumeData._image = image;
 	myVolumeData._scene = new CScene();
+	myVolumeData._scene->m_Camera.m_Film.m_ExposureIterations = 1;
+	myVolumeData._scene->m_DiffuseColor[0] = 1.0;
+	myVolumeData._scene->m_DiffuseColor[1] = 1.0;
+	myVolumeData._scene->m_DiffuseColor[2] = 1.0;
+	myVolumeData._scene->m_DiffuseColor[3] = 1.0;
 
 	myVolumeData._renderer = new RenderGLCuda(image, myVolumeData._scene);
 	myVolumeData._renderer->initialize(1024, 1024);
@@ -222,20 +227,23 @@ QImage Renderer::render(RenderParameters p)
 
 	this->marion->library("cell")->getInterface()->setParameters(cellParams);
 #endif
+	if ((p.mseDx != 0) || (p.mseDy != 0)) {
+		myVolumeData._scene->m_Camera.Orbit(-0.6f * (float)(p.mseDy), -(float)(p.mseDx));
+		myVolumeData._scene->SetNoIterations(0);
+	}
+
 
 	// DRAW THE THINGS INTO THEIR OWN FBOs
 	myVolumeData._renderer->doRender();
 
 	// BIND THE RENDER TARGET FOR THE FINAL IMAGE
 	//this->marion->fbo("_")->bind();
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-//GL	glColor4f(1.0, 1.0, 1.0, 1.0);
+//	glClearColor(1.0, 1.0, 1.0, 1.0);
+//	glClear(GL_COLOR_BUFFER_BIT);
 
 	// COMPOSITE THE SCENE'S FBO TO THE FINAL IMAGE FBO
 	foreach(SceneDescription scene, this->scenes)
 	{
-//GL		glColor4f(1.0, 1.0, 1.0, 1.0);
 		this->displayScene(scene.name);
 	}
 	// UNBIND SO WE CAN READ THE TARGET
@@ -376,14 +384,11 @@ void Renderer::reset(int from)
 	this->context->makeCurrent(this->surface);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	/////////////////////////
-	// TODO: CALL glBlendFuncSeparate HERE!!!!!!!!!!!!!
-	/////////////////////////
-	//this->marion->gl()->glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-//GL	glClear(GL_ACCUM_BUFFER_BIT);
+//	glClear(GL_ACCUM_BUFFER_BIT);
 
 	this->time.start();
 	this->time = this->time.addMSecs(-from);
