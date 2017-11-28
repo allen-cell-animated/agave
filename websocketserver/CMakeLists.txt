@@ -1,12 +1,12 @@
-target_include_directories(websocketserver PUBLIC
+target_include_directories(websocketserverapp PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${XercesC_INCLUDE_DIRS}	
 	${glm_DIR}
 )
-target_compile_definitions(websocketserver PUBLIC
+target_compile_definitions(websocketserverapp PUBLIC
 	-DBOOST_ALL_DYN_LINK
 )
-target_sources(websocketserver PRIVATE
+target_sources(websocketserverapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp"

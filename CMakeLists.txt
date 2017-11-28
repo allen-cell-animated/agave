@@ -113,14 +113,14 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/qtome/ome-qtwidgets-icon/actions DESTINATI
 #######################################
 # THE FRONT END QT WEBSOCKET SERVER EXE
 #######################################
-add_executable(websocketserver "")
+add_executable(websocketserverapp "")
 add_subdirectory(websocketserver)
-target_link_libraries(websocketserver 
+target_link_libraries(websocketserverapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${TIFF_LIBRARIES}
 	Boost::iostreams Boost::log Boost::log_setup Boost::thread Boost::system Boost::filesystem Boost::date_time Boost::chrono Boost::atomic
 )
-set_target_properties(websocketserver PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}/dist")
-install(TARGETS websocketserver RUNTIME DESTINATION dist)
+set_target_properties(websocketserverapp PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}/dist")
+install(TARGETS websocketserverapp RUNTIME DESTINATION dist)
 
