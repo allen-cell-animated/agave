@@ -14,6 +14,8 @@
 
 QT_USE_NAMESPACE
 
+const char *DEFAULT_IMAGE_FORMAT = "JPG";
+
 StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	QObject(parent),
 	webSocketServer(new QWebSocketServer(QStringLiteral("Marion"), QWebSocketServer::NonSecureMode, this)),
@@ -77,8 +79,8 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 		//*******************************
 
 
-		RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, settings, 0.0, "JPG", 92, true);
-		//RenderParameters p(modelview, settings, 0.0, "JPG", 92);
+		RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92, true);
+		//RenderParameters p(modelview, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92);
 
 		RenderRequest *request = new RenderRequest(0, p, false);
 		this->getLeastBusyRenderer()->addRequest(request);
@@ -126,8 +128,8 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 			//*******************************
 
 
-			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, settings, 0.0, "JPG", 92, true);
-			//RenderParameters p(modelview, settings, 0.0, "JPG", 92);
+			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92, true);
+			//RenderParameters p(modelview, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92);
 
 			RenderRequest *request = new RenderRequest(0, p, true);
 			this->getLeastBusyRenderer()->addRequest(request);
@@ -325,7 +327,7 @@ void StreamServer::processTextMessage(QString message)
 			//*******************************
 
 
-			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, struc_asint, slider_settings[2], "JPG", 92, true);
+			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, struc_asint, slider_settings[2], DEFAULT_IMAGE_FORMAT, 92, true);
 
 
 			RenderRequest *request = new RenderRequest(pClient, p);
@@ -459,7 +461,7 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 
 	/*if (!fi.exists())
 	{
-	image.save(fileName, "JPG", 1);
+	image.save(fileName, DEFAULT_IMAGE_FORMAT, 1);
 	}*/
 	/*else
 	{
