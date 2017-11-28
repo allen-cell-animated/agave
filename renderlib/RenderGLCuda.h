@@ -27,13 +27,17 @@ public:
 
 	CScene& getScene() { return *_renderSettings; }
 
+
+	// just draw into my own fbo.
+	void doRender();
+	// draw my fbo texture into the current render target
+	void drawImage();
 private:
 	CScene* _renderSettings;
 
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();
-	void drawImage();
 
 
 

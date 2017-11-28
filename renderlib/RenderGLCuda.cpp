@@ -362,8 +362,7 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 	resize(w,h);
 }
 
-void RenderGLCuda::render(const Camera& camera)
-{
+void RenderGLCuda::doRender() {
 	_currentChannel = _renderSettings->_channel;
 
 	// Resizing the image canvas requires special attention
@@ -389,7 +388,7 @@ void RenderGLCuda::render(const Camera& camera)
 	// Restart the rendering when when the camera, lights and render params are dirty
 	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
-//		ResetRenderCanvasView();
+		//		ResetRenderCanvasView();
 
 		// Reset no. iterations
 		_renderSettings->SetNoIterations(0);
@@ -398,24 +397,12 @@ void RenderGLCuda::render(const Camera& camera)
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
 	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-
-
-
-
-
-
-
-
-
-
-
-
 	// TODO: update only when w and h change!
 	_renderSettings->m_Camera.m_Film.m_Resolution.SetResX(_w);
 	_renderSettings->m_Camera.m_Film.m_Resolution.SetResY(_h);
 
 	// TODO: update only for channel changes!
-//	_renderSettings->m_IntensityRange.SetMin(0.0f);
+	//	_renderSettings->m_IntensityRange.SetMin(0.0f);
 	_renderSettings->m_IntensityRange.SetMin((float)(_img->channel(_currentChannel)->_min));
 	_renderSettings->m_IntensityRange.SetMax((float)(_img->channel(_currentChannel)->_max));
 
@@ -451,7 +438,7 @@ void RenderGLCuda::render(const Camera& camera)
 	HandleCudaError(cudaGraphicsMapResources(1, &_cudaTex));
 	{
 		cudaArray_t ca;
-		HandleCudaError(cudaGraphicsSubResourceGetMappedArray ( &ca, _cudaTex, 0, 0 ));
+		HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&ca, _cudaTex, 0, 0));
 		cudaResourceDesc desc;
 		memset(&desc, 0, sizeof(desc));
 		desc.resType = cudaResourceTypeArray;
@@ -478,14 +465,23 @@ void RenderGLCuda::render(const Camera& camera)
 	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
 
 	HandleCudaError(cudaStreamSynchronize(0));
+}
 
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// draw quad using the tex that cudaTex was mapped to
+void RenderGLCuda::render(const Camera& camera)
+{
+	// draw to _fbtex
+	doRender();
+
+	// put _fbtex to main render target
 	drawImage();
 }
 
 void RenderGLCuda::drawImage() {
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// draw quad using the tex that cudaTex was mapped to
+
 	image_shader->bind();
 	check_gl("Bind shader");
 
