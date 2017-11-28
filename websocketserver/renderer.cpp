@@ -1,5 +1,12 @@
 #include "glad/glad.h"
 #include "renderer.h"
+
+#include "renderlib/FileReader.h"
+#include "renderlib/HardwareWidget.h"
+#include "renderlib/RenderGLCuda.h"
+#include "renderlib/renderlib.h"
+#include "renderlib/Scene.h"
+
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QMessageBox>
@@ -17,6 +24,19 @@ id(id)
 
 Renderer::~Renderer()
 {
+}
+
+void Renderer::myVolumeInit() {
+	DeviceSelector d;
+
+	FileReader fileReader;
+	std::string file("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
+	std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file);
+	myVolumeData._image = image;
+	myVolumeData._scene = new CScene();
+
+	myVolumeData._renderer = new RenderGLCuda(image, myVolumeData._scene);
+	myVolumeData._renderer->initialize(1024, 1024);
 }
 
 void Renderer::init()
@@ -133,10 +153,12 @@ void Renderer::init()
 void Renderer::run()
 {
 	this->context->makeCurrent(this->surface);
-	int status = gladLoadGL();
-	if (!status) {
-		qDebug() << id << "COULD NOT LOAD GL ON THREAD";
-	}
+	myVolumeInit();
+
+//	int status = gladLoadGL();
+//	if (!status) {
+//		qDebug() << id << "COULD NOT LOAD GL ON THREAD";
+//	}
 
 	while (1)
 	{
@@ -200,10 +222,9 @@ QImage Renderer::render(RenderParameters p)
 
 	this->marion->library("cell")->getInterface()->setParameters(cellParams);
 #endif
-	foreach(SceneDescription scene, this->scenes)
-	{
-		this->renderScene(scene.name);
-	}
+
+	// DRAW THE THINGS INTO THEIR OWN FBOs
+	myVolumeData._renderer->doRender();
 
 	// BIND THE RENDER TARGET FOR THE FINAL IMAGE
 	//this->marion->fbo("_")->bind();
@@ -211,7 +232,7 @@ QImage Renderer::render(RenderParameters p)
 	glClear(GL_COLOR_BUFFER_BIT);
 //GL	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-	// DRAW!
+	// COMPOSITE THE SCENE'S FBO TO THE FINAL IMAGE FBO
 	foreach(SceneDescription scene, this->scenes)
 	{
 //GL		glColor4f(1.0, 1.0, 1.0, 1.0);
@@ -224,14 +245,18 @@ QImage Renderer::render(RenderParameters p)
 
 	//QOpenGLFramebufferObject::blitFramebuffer(fbo, QRect(0, 0, 512, 512), this->marion->fbo("_"), QRect(0, 0, 512, 512), GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-
+	// DRAW QUAD TO FBO (COPY RENDERED FBO TO PRIMARY FBO)
+	// try glBlitFramebuffer() instead?
 	this->fbo->bind();
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glViewport(0, 0, fbo->width(), fbo->height());
 
-	glEnable(GL_TEXTURE_2D);
+	myVolumeData._renderer->drawImage();
+//	glClearColor(0.0, 0.0, 0.0, 1.0);
+//	glClear(GL_COLOR_BUFFER_BIT);
+
+//	glEnable(GL_TEXTURE_2D);
 	// BIND THE FRAME RESULTS AS A TEXTURE
-	//glBindTexture(GL_TEXTURE_2D, this->marion->fbo("_")->texture());
+//	glBindTexture(GL_TEXTURE_2D, myVolumeData._renderer->getFboTexture());
 //GL	glBegin(GL_QUADS);
 //GL	glColor4f(1.0, 1.0, 1.0, 1.0);
 //GL	glTexCoord2f(0.0, 0.0); glVertex2f(-1.0, -1.0);
@@ -319,6 +344,9 @@ void Renderer::resizeGL(int width, int height)
 
 	// RESIZE THE RENDER INTERFACE
 	//this->marion->resizeGL(width, height);
+	if (myVolumeData._renderer) {
+		myVolumeData._renderer->resize(width, height);
+	}
 
 	int w, h;
 	w = width;

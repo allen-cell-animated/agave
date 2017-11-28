@@ -10,6 +10,11 @@
 #include <QMutex>
 #include <QThread>
 
+#include <memory>
+
+class ImageXYZC;
+class RenderGLCuda;
+class CScene;
 //#include "dynamiclibrary.h"
 
 //#include "marion.h"
@@ -94,6 +99,15 @@ private:
 
 	QMatrix4x4 projection;
 	QMatrix4x4 modelview;
+
+	void myVolumeInit();
+	struct myVolumeData {
+		std::shared_ptr<ImageXYZC> _image;
+		CScene* _scene;
+		RenderGLCuda* _renderer;
+
+		myVolumeData() : _scene(nullptr), _renderer(nullptr) {}
+	} myVolumeData;
 
 signals:
 	void kill();

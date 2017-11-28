@@ -411,6 +411,10 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 
 	if (request->isDebug())
 	{
+		if (image.isNull()) {
+			qDebug() << "NULL IMAGE RECEIVED AT STREAMSERVER FROM RENDERER";
+		}
+
 		//running mean
 		int v = request->getParameters().visibility;
 		this->sampleCount[v]++;
@@ -429,9 +433,13 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 			QString(request->getParameters().format);
 
 		qDebug() << "saving image to" << fileName;
-		image.save(fileName,
+		qDebug() << "(" << image.width() << "," << image.height() << ")";
+		bool ok = image.save(fileName,
 			request->getParameters().format,
 			request->getParameters().quality);
+		if (!ok) {
+			qDebug() << "Could not save " << fileName;
+		}
 	}
 
 	if (request->getClient() != 0)
