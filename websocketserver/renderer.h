@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QList>
 
+#include <QOpenGLFramebufferObject>
 #include <QOpenGLTexture>
 #include <QOpenGLContext>
 #include <QOffscreenSurface>
