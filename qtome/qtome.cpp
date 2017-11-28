@@ -221,11 +221,7 @@ void qtome::open(const QString& file)
 	if (info.exists())
 	{
 
-		FileReader fileReader(QCoreApplication::applicationDirPath().toStdString() + "/ome");
-//		std::shared_ptr<ome::files::FormatReader> reader = fileReader.open(file.toStdString());
-
-
-		//std::shared_ptr<ImageXYZC> image = fileReader.openToImage(file.toStdString());
+		FileReader fileReader;
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 
 		GLView3D *newGlView = new GLView3D(image, &_camera, &_transferFunction, &_renderSettings, this);
