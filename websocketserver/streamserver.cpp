@@ -242,9 +242,9 @@ void StreamServer::processTextMessage(QString message)
 
 			//extract data channel
 			QJsonValueRef chtype = json["datachannel"];
-			QJsonArray chtypes = chtype.toArray();
-			QString cell1 = chtypes[0].toString();
-			QString cell2 = chtypes[1].toString();
+			int dataChannel = chtype.toInt();
+			QString cell1 = "";
+			QString cell2 = "";
 
 
 			//extract animation state
@@ -337,6 +337,7 @@ void StreamServer::processTextMessage(QString message)
 			//*******************************
 
 
+			channelvalues[0] = dataChannel;
 			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, struc_asint, slider_settings[2], DEFAULT_IMAGE_FORMAT, 92, true);
 			p.mseDx = mseDx;
 			p.mseDy = mseDy;

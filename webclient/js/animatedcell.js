@@ -36,13 +36,7 @@
   function toggleDivVisibility(element, visible) {
       element.style.visibility = (visible ? "visible" : "hidden");
   }
-  //msgtype: not used yet
-  //msgcontent: modelview matrix
-  //(structure_)visibility: modeled channel on/off (currently 6 channels)
-  //observed_visibility: observed channel on/0ff (currently 6 channels)
-  //visibility_mask: used for temporally storing the visibility selection
-  //sliderset: percentage of visibility for observed data [0,1], for 6 channels currently
-  //var messageobj = {msgtype: 0, msgcontent:null, visibility:null, sliderset:null, observed:null};// , modeled:null, observed:null};
+
 
   /**
    * object for storing the information for the server request-
@@ -57,9 +51,10 @@
       this.observed = [1,0,0,0,0,0,0]; //booleans for observed channels
       this.modeled = [0,0,0,0,0,0]; //booleans for modeled channels
       this.datatype = ["Interphase_5cells", "Mitotic_2cells"]; //storing the data type. the second element is used when 2 datasets should be morphed or overlaid
-      this.datachannel = ["20161216_C02_005_6", "20160705_S03_058_7"];  //storing the channel type. the second element is used when 2 datasets should be morphed or overlaid
+      this.datachannel = 0;  //storing the channel type. the second element is used when 2 datasets should be morphed or overlaid
       this.animationstate = 1; //value between 0 and 1 that represents the crossfade state in tab2, and the current state of an animation, e.g., in tab3
   };
+
   //if true requests one image for the dataset[0] and one image for [1]
   var splitscreen = true;
   var messageobj;  //used for sending & receiving image requests in socket connections #1
@@ -80,6 +75,24 @@
   var resetChannelSelectors = false;
 
 var binarysock, jsonsock;
+
+function setupGui() {
+
+  effectController = {
+    channel: 0
+  };
+
+  var gui = new dat.GUI();
+  //var gui = new dat.GUI({autoPlace:false, width:200});
+
+  gui.add( effectController, "channel", [0,1,2,3,4,5,6,7]).name("Channel").onFinishChange(function(value) {
+    messageobj.datachannel = parseInt(value);
+    triggerUpdate(messageobj);
+  });
+
+//  var customContainer = document.getElementById('my-gui-container');
+//  customContainer.appendChild(gui.domElement);
+}
 
   /**
    *
@@ -154,6 +167,7 @@ var binarysock, jsonsock;
       toggleDivVisibility(streamimg2, false);
       toggleDivVisibility(streamimg1, true);
 
+      setupGui();
   }
 
 

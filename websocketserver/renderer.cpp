@@ -231,6 +231,10 @@ QImage Renderer::render(RenderParameters p)
 		myVolumeData._scene->m_Camera.Orbit(-0.6f * (float)(p.mseDy), -(float)(p.mseDx));
 		myVolumeData._scene->SetNoIterations(0);
 	}
+	if (p.channelvalues[0].toInt() != myVolumeData._scene->_channel) {
+		myVolumeData._scene->_channel = p.channelvalues[0].toInt();
+		myVolumeData._scene->SetNoIterations(0);
+	}
 
 
 	// DRAW THE THINGS INTO THEIR OWN FBOs
