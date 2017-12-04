@@ -1,15 +1,16 @@
 #include "command.h"
 
+#include"Logging.h"
 #include "Scene.h"
 
 void SessionCommand::execute(ExecutionContext* c) {
-
+	LOG_DEBUG << "Session command: " << _data._name;
 }
 void AssetPathCommand::execute(ExecutionContext* c) {
-
+	LOG_DEBUG << "AssetPath command: " << _data._name;
 }
 void LoadOmeTifCommand::execute(ExecutionContext* c) {
-
+	LOG_DEBUG << "LoadOmeTif command: " << _data._name;
 }
 void SetCameraPosCommand::execute(ExecutionContext* c) {
 
