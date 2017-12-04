@@ -197,11 +197,12 @@ bool Renderer::processRequest()
 	QElapsedTimer timer;
 	timer.start();
 
-	if (r->getParameters()._cmds.size() > 0) {
-		this->processCommandBuffer(r->getParameters()._cmds);
+	RenderParameters rp = r->getParameters();
+	if (rp._cmds.size() > 0) {
+		this->processCommandBuffer(rp._cmds);
 	}
 	else {
-		QImage img = this->render(r->getParameters());
+		QImage img = this->render(rp);
 
 		r->setActualDuration(timer.nsecsElapsed());
 
