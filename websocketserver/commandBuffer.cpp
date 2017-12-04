@@ -52,6 +52,7 @@ Command* parseSetEmissiveColorCommand(CommandBufferIterator* c);
 Command* parseSetRenderIterationsCommand(CommandBufferIterator* c);
 Command* parseSetStreamModeCommand(CommandBufferIterator* c);
 Command* parseRequestRedrawCommand(CommandBufferIterator* c);
+Command* parseSetResolutionCommand(CommandBufferIterator* c);
 
 #define CMD_CASE(N, CMDCLASS) \
 	case N:\
@@ -86,6 +87,7 @@ void commandBuffer::processBuffer()
 					CMD_CASE(13, SetRenderIterationsCommand);
 					CMD_CASE(14, SetStreamModeCommand);
 					CMD_CASE(15, RequestRedrawCommand);
+					CMD_CASE(16, SetResolutionCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -237,5 +239,11 @@ Command* parseSetStreamModeCommand(CommandBufferIterator* c) {
 Command* parseRequestRedrawCommand(CommandBufferIterator* c) {
 	RequestRedrawCommandD data;
 	return new RequestRedrawCommand(data);
+}
+Command* parseSetResolutionCommand(CommandBufferIterator* c) {
+	SetResolutionCommandD data;
+	data._x = c->parseInt32();
+	data._y = c->parseInt32();
+	return new SetResolutionCommand(data);
 }
 

@@ -60,3 +60,6 @@ void SetStreamModeCommand::execute(ExecutionContext* c) {
 void RequestRedrawCommand::execute(ExecutionContext* c) {
 
 }
+void SetResolutionCommand::execute(ExecutionContext* c) {
+
+}

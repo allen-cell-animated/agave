@@ -101,3 +101,8 @@ struct RequestRedrawCommandD {
 };
 CMDDECL(RequestRedrawCommand);
 
+struct SetResolutionCommandD {
+	int32_t _x, _y;
+};
+CMDDECL(SetResolutionCommand);
+
