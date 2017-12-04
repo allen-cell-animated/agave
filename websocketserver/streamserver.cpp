@@ -10,6 +10,7 @@
 #include <QSslCertificate>
 #include <QSslKey>
 
+#include "commandBuffer.h"
 #include "util.h"
 
 QT_USE_NAMESPACE
@@ -378,10 +379,19 @@ void StreamServer::processTextMessage(QString message)
 void StreamServer::processBinaryMessage(QByteArray message)
 {
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
-	if (debug)
-		qDebug() << "Binary Message received:" << message;
-	if (pClient) {
-		pClient->sendBinaryMessage(message);
+//	if (debug)
+//		qDebug() << "Binary Message received:" << message;
+	if (pClient)
+	{
+		// the message had better be an encoded command stream.  check a header perhaps?
+
+		commandBuffer b(message.length(), reinterpret_cast<const uint8_t*>(message.constData()));
+		b.processBuffer();
+
+		RenderParameters p(b.getQueue());
+		RenderRequest *request = new RenderRequest(pClient, p);
+		this->getLeastBusyRenderer()->addRequest(request);
+
 	}
 }
 

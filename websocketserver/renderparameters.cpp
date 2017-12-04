@@ -19,3 +19,9 @@ RenderParameters::RenderParameters(QMatrix4x4 modelview, QString type1, QString 
 {
 
 }
+
+RenderParameters::RenderParameters(std::vector<Command*>& cmds)
+	: _cmds(cmds)
+{
+
+}

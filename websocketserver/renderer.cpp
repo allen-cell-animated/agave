@@ -6,6 +6,9 @@
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/Scene.h"
+#include "renderlib/command.h"
+
+#include "commandBuffer.h"
 
 #include <QApplication>
 #include <QElapsedTimer>
@@ -194,14 +197,33 @@ bool Renderer::processRequest()
 	QElapsedTimer timer;
 	timer.start();
 
-	QImage img = this->render(r->getParameters());
+	if (r->getParameters()._cmds.size() > 0) {
+		this->processCommandBuffer(r->getParameters()._cmds);
+	}
+	else {
+		QImage img = this->render(r->getParameters());
 
-	r->setActualDuration(timer.nsecsElapsed());
+		r->setActualDuration(timer.nsecsElapsed());
 
-	//inform the server
-	emit requestProcessed(r, img);
+		//inform the server
+		emit requestProcessed(r, img);
+	}
 
 	return true;
+}
+
+void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
+{
+	this->context->makeCurrent(this->surface);
+
+	if (cmds.size() > 0) {
+		ExecutionContext ec;
+		ec._scene = myVolumeData._scene;
+		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
+			(*i)->execute(&ec);
+		}
+
+	}
 }
 
 QImage Renderer::render(RenderParameters p)

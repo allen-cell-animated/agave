@@ -28,6 +28,18 @@
   var rotationDelta;
   var tempold;
 
+  var bbbb = new commandBuffer();
+  bbbb.addCommand("EYE", 1, 1, 5);
+  bbbb.addCommand("TARGET", 3, 3, 0);
+  bbbb.addCommand("SESSION", "hello");
+  bbbb.addCommand("APERTURE", 7);
+  bbbb.prebufferToBuffer();
+  var bbbbview = new Uint8Array(bbbb.buffer);
+  console.log(bbbbview);
+
+
+
+
   /**
    * switches the supplied element to (in)visible
    * @param element
@@ -36,7 +48,6 @@
   function toggleDivVisibility(element, visible) {
       element.style.visibility = (visible ? "visible" : "hidden");
   }
-
 
   /**
    * object for storing the information for the server request-
@@ -180,6 +191,14 @@ function setupGui() {
     this.channelnum = channelnumber;
     this.open = function (evt) {
         //send the initial camera & data query upon opening the connection
+
+
+        var cb = new commandBuffer();
+        cb.addCommand("MAT_DIFFUSE", 1.0, 1.0, 0.0, 1.0);
+        cb.addCommand("MAT_SPECULAR", 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_EMISSIVE", 1.0, 1.0, 0.0, 0.0);
+        flushCommandBuffer(cb);
+
         messageobj.msgcontent = modelView;
         messageobj.visibility = structure_visibility;
         messageobj.sliderset = slider_settings;
@@ -237,8 +256,8 @@ function setupGui() {
     this.error = function (evt) {
         console.log('error', evt);
     }
-}
-var lastevent;
+  }
+  var lastevent;
   var filestructure = {};
 
 
@@ -271,7 +290,7 @@ var lastevent;
     this.error = function (evt) {
         console.log('error', evt);
     }
-}
+  }
   //todo: test if function is deprecated
 
   function send(msg)
@@ -281,8 +300,12 @@ var lastevent;
       }.bind(this), 200);
   }
 
-var lastmsg;
+  var lastmsg;
 
+  function flushCommandBuffer(cmdbuf) {
+    var buf = cmdbuf.prebufferToBuffer();
+    binarysocket0.send(buf);
+  }
   /**
    * requests an image (or other information) from the server (with the currently specified parametrization)
    * two messages are sent when splitscreen mode is selected

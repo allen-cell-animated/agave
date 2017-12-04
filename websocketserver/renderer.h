@@ -16,12 +16,14 @@
 class ImageXYZC;
 class RenderGLCuda;
 class CScene;
+class commandBuffer;
 //#include "dynamiclibrary.h"
 
 //#include "marion.h"
 //#include "plugins.h"
 
 #include "renderrequest.h"
+
 
 class Renderer : public QThread
 {
@@ -36,6 +38,7 @@ public:
 
 	void addRequest(RenderRequest *request);
 	bool processRequest();
+	void processCommandBuffer(std::vector<Command*>& cmds);
 
 	inline int getTotalQueueDuration()
 	{
