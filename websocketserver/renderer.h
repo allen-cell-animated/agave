@@ -50,15 +50,13 @@ public:
 		return this->requests.count();
 	}
 
-//	inline Marion *getMarion()
-//	{
-//		return this->marion;
-//	}
+	// 1 = continuous re-render, 0 = only wait for redraw commands
+	void setStreamMode(int32_t mode) { _streamMode = mode; }
 
 protected:
 	QString id;
 
-	QImage render(RenderParameters p);
+	QImage render();
 
 	void resizeGL(int internalWidth, int internalHeight);
 	void reset(int from = 0);
@@ -77,7 +75,7 @@ private:
 	QOffscreenSurface *surface;
 	QOpenGLFramebufferObject *fbo;
 
-	//Marion *marion;
+	int32_t _streamMode;
 
 	int frameNumber;
 	QTime time;
@@ -104,6 +102,7 @@ private:
 	QMatrix4x4 projection;
 	QMatrix4x4 modelview;
 
+	// TODO move this info.  This class only knows about some abstract renderer and a scene object.
 	void myVolumeInit();
 	struct myVolumeData {
 		std::shared_ptr<ImageXYZC> _image;

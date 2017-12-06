@@ -3,19 +3,20 @@
 
 #include <QMatrix4x4>
 #include <QWebSocket>
-#include "renderparameters.h"
+
+class Command;
 
 class RenderRequest
 {
 public:
-	RenderRequest(QWebSocket *client, RenderParameters parameters, bool debug = false);
+	RenderRequest(QWebSocket *client, std::vector<Command*> parameters, bool debug = false);
 
 	inline QWebSocket *getClient()
 	{
 		return client;
 	}
 
-	inline RenderParameters getParameters()
+	inline std::vector<Command*> getParameters()
 	{
 		return parameters;
 	}
@@ -42,7 +43,7 @@ public:
 
 private:
 	QWebSocket *client;
-	RenderParameters parameters;
+	std::vector<Command*> parameters;
 
 	//an estimation of how many miliseconds will this request take to process
 	int estimatedDuration;

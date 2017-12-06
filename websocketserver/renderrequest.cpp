@@ -1,6 +1,6 @@
 #include "renderrequest.h"
 
-RenderRequest::RenderRequest(QWebSocket *client, RenderParameters parameters, bool debug) :
+RenderRequest::RenderRequest(QWebSocket *client, std::vector<Command*> parameters, bool debug) :
 	client(client),
 	parameters(parameters),
 	debug(debug)

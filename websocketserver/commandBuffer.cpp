@@ -1,6 +1,6 @@
 #include "commandBuffer.h"
 
-#include "renderlib/command.h"
+#include "command.h"
 
 #include <vector>
 #include <assert.h>

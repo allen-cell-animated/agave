@@ -6,9 +6,9 @@
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/Scene.h"
-#include "renderlib/command.h"
 
 #include "commandBuffer.h"
+#include "command.h"
 
 #include <QApplication>
 #include <QElapsedTimer>
@@ -16,7 +16,7 @@
 #include <QOpenGLFramebufferObjectFormat>
 
 Renderer::Renderer(QString id, QObject *parent) : QThread(parent),
-id(id)
+id(id), _streamMode(0)
 {
 	this->totalQueueDuration = 0;
 
@@ -80,15 +80,9 @@ void Renderer::init()
 	fboFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
 	this->fbo = new QOpenGLFramebufferObject(512, 512, fboFormat);
 
-
-	//this->fbo = new QOpenGLFramebufferObject(512, 512, fboFormat);
-
 	///////////////////////////////////
 	// INIT THE RENDER LIB
 	///////////////////////////////////
-//	this->marion = new Marion(this->context);
-//	this->marion->resizeGL(512, 512);
-//	this->marion->initializeGL();
 
 	this->resizeGL(1024, 1024);
 
@@ -96,59 +90,6 @@ void Renderer::init()
 	int MaxSamples = 0;
 	glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
 	qDebug() << id << "max samples" << MaxSamples;
-
-	/*this->fbo->bind();
-
-	glClearColor(1.0, 0.7, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	this->fbo->release();
-
-	this->fbo->toImage().save("offscreen.png");*/
-
-
-	//this->context->doneCurrent();
-
-#if 0
-	qDebug() << id << "Extensions===========================";
-	foreach(QByteArray extension, this->marion->getContext()->extensions())
-	{
-		qDebug() << QString(extension);
-	}
-	qDebug() << id << "/Extensions===========================";
-
-	//cell setup
-	connect(this->marion->getObject(), SIGNAL(shaderRecompiled()), this, SLOT(update()));
-
-
-	qDebug() << id << "Loading Scenes...";
-	//scenes
-
-	this->scenes << SceneDescription("cellLoader", 0, 0)
-		<< SceneDescription("cell", 0, 0);
-
-	DynamicLibrary::setPath("../scenes/");
-	foreach(SceneDescription scene, this->scenes)
-	{
-		//this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/" + scene.name + ".dll", scene.start, scene.end, this->marion));
-
-#ifdef __linux__
-		this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/lib" + scene.name.toLower() + ".so", scene.start, scene.end, this->marion));
-#elif _WIN32
-#ifdef _DEBUG
-		//this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/debug/" + scene.name + ".dll", scene.start, scene.end, this->marion));
-		this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/" + scene.name + ".dll", scene.start, scene.end, this->marion));
-#else
-		//this->marion->addLibrary(scene.name, new DynamicLibrary(scene.name + "/build/release/" + scene.name + ".dll", scene.start, scene.end, this->marion));
-		bool deploy = true;
-		this->marion->addLibrary(scene.name, new DynamicLibrary((!deploy ? (scene.name + "/build/") : ("")) + scene.name + ".dll", scene.start, scene.end, this->marion));
-#endif
-
-#endif
-
-		this->marion->addFbo(scene.name);
-	}
-#endif 
 
 	glEnable(GL_MULTISAMPLE);
 
@@ -161,17 +102,17 @@ void Renderer::init()
 void Renderer::run()
 {
 	this->context->makeCurrent(this->surface);
-	myVolumeInit();
 
-//	int status = gladLoadGL();
-//	if (!status) {
-//		qDebug() << id << "COULD NOT LOAD GL ON THREAD";
-//	}
+	// TODO: PUT THIS KIND OF INIT SOMEWHERE ELSE
+	myVolumeInit();
 
 	while (1)
 	{
 		this->processRequest();
 
+		if (_streamMode) {
+
+		}
 		QApplication::processEvents();
 	}
 }
@@ -197,18 +138,17 @@ bool Renderer::processRequest()
 	QElapsedTimer timer;
 	timer.start();
 
-	RenderParameters rp = r->getParameters();
-	if (rp._cmds.size() > 0) {
-		this->processCommandBuffer(rp._cmds);
+	std::vector<Command*> cmds = r->getParameters();
+	if (cmds.size() > 0) {
+		this->processCommandBuffer(cmds);
 	}
-	else {
-		QImage img = this->render(rp);
 
-		r->setActualDuration(timer.nsecsElapsed());
+	QImage img = this->render();
 
-		//inform the server
-		emit requestProcessed(r, img);
-	}
+	r->setActualDuration(timer.nsecsElapsed());
+
+	//inform the server
+	emit requestProcessed(r, img);
 
 	return true;
 }
@@ -220,6 +160,8 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 	if (cmds.size() > 0) {
 		ExecutionContext ec;
 		ec._scene = myVolumeData._scene;
+		ec._renderer = this;
+
 		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
 			(*i)->execute(&ec);
 		}
@@ -227,29 +169,14 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 	}
 }
 
-QImage Renderer::render(RenderParameters p)
+QImage Renderer::render()
 {
 	this->context->makeCurrent(this->surface);
 
 	glEnable(GL_TEXTURE_2D);
-#if 0
-	//todo client: update render params
-	QList<QVariant> cellParams;
-	cellParams << QVariant(projection)
-		<< QVariant(p.modelview)
-		<< QVariant(p.visibility)
-		<< QVariant(p.mitoFuzziness)
-		<< QVariant(p.type1)
-		<< QVariant(p.type2)
-		<< QVariant(p.cell1)
-		<< QVariant(p.cell2)
-		<< QVariant(p.mode)
-		<< QVariant(p.crossFade)
-		<< QVariant(p.channelvalues)
-		<< QVariant(p.usingCellServer);
 
-	this->marion->library("cell")->getInterface()->setParameters(cellParams);
-#endif
+	// TODO these should be commands, and not part of "render()"
+#if 0
 	if ((p.mseDx != 0) || (p.mseDy != 0)) {
 		myVolumeData._scene->m_Camera.Orbit(-0.6f * (float)(p.mseDy), -(float)(p.mseDx));
 		myVolumeData._scene->SetNoIterations(0);
@@ -258,26 +185,29 @@ QImage Renderer::render(RenderParameters p)
 		myVolumeData._scene->_channel = p.channelvalues[0].toInt();
 		myVolumeData._scene->SetNoIterations(0);
 	}
-
+#endif
 
 	// DRAW THE THINGS INTO THEIR OWN FBOs
 	myVolumeData._renderer->doRender();
+	//		foreach(SceneDescription scene, this->scenes)
+	//		{
+	//			this->renderScene(scene.name);
+	//		}
 
 	// BIND THE RENDER TARGET FOR THE FINAL IMAGE
-	//this->marion->fbo("_")->bind();
-//	glClearColor(1.0, 1.0, 1.0, 1.0);
-//	glClear(GL_COLOR_BUFFER_BIT);
-
+	// {
+	//		this->marion->fbo("_")->bind();
+	//		glClearColor(1.0, 1.0, 1.0, 1.0);
+	//		glClear(GL_COLOR_BUFFER_BIT);
 	// COMPOSITE THE SCENE'S FBO TO THE FINAL IMAGE FBO
-	foreach(SceneDescription scene, this->scenes)
-	{
-		this->displayScene(scene.name);
-	}
+	//		foreach(SceneDescription scene, this->scenes)
+	//		{
+	//			this->displayScene(scene.name);
+	//		}
 	// UNBIND SO WE CAN READ THE TARGET
-	//this->marion->fbo("_")->release();
-
+	//		this->marion->fbo("_")->release();
+	// }
 	//qDebug() << "gu" << this->marion->fbo("_")->toImage().width() << this->marion->fbo("_")->toImage().height();
-
 	//QOpenGLFramebufferObject::blitFramebuffer(fbo, QRect(0, 0, 512, 512), this->marion->fbo("_"), QRect(0, 0, 512, 512), GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 	// DRAW QUAD TO FBO (COPY RENDERED FBO TO PRIMARY FBO)
@@ -286,91 +216,24 @@ QImage Renderer::render(RenderParameters p)
 	glViewport(0, 0, fbo->width(), fbo->height());
 
 	myVolumeData._renderer->drawImage();
-//	glClearColor(0.0, 0.0, 0.0, 1.0);
-//	glClear(GL_COLOR_BUFFER_BIT);
 
-//	glEnable(GL_TEXTURE_2D);
-	// BIND THE FRAME RESULTS AS A TEXTURE
-//	glBindTexture(GL_TEXTURE_2D, myVolumeData._renderer->getFboTexture());
-//GL	glBegin(GL_QUADS);
-//GL	glColor4f(1.0, 1.0, 1.0, 1.0);
-//GL	glTexCoord2f(0.0, 0.0); glVertex2f(-1.0, -1.0);
-//GL	glTexCoord2f(1.0, 0.0); glVertex2f(+0.0, -1.0);
-//GL	glTexCoord2f(1.0, 1.0); glVertex2f(+0.0, +0.0);
-//GL	glTexCoord2f(0.0, 1.0); glVertex2f(-1.0, +0.0);
-//GL	glEnd();
 	glEnable(GL_TEXTURE_2D);
 	this->fbo->release();
 
 
-	//QImage img = this->marion->fbo("_")->toImage();
 	QImage img = fbo->toImage();
-	//QImage img = fbo->toImage().scaled(512, 256, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
 	this->context->doneCurrent();
 
 	return img;
-
-
-	/*glEnable(GL_BLEND);
-	this->marion->gl()->glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
-	glEnable(GL_TEXTURE_2D);
-
-	glClearColor(1,1,1,1);
-	glClear(GL_COLOR_BUFFER_BIT);
-	this->marion->bindTexture(GL_TEXTURE_2D, this->marion->fbo("_")->texture(), GL_TEXTURE0);
-	this->marion->drawFullscreenRect();*/
-
-
-
-
-	//this->fbo("___")->toImage().save("video/"+QString::number(frameNumber)+".png");
-	//this->grabFramebuffer().save("video/"+QString::number(11000 + frameNumber)+".png");
-	//frameNumber++;
-	//fakeTime+=20;
-
-	//update();
 }
 
 void Renderer::renderScene(QString scene)
 {
-#if 0
-	DynamicLibrary *lib = this->marion->library(scene);
-
-	if (lib == 0)
-	{
-		return;
-	}
-	else
-	{
-		int t = getTime();
-		if (lib->getInterface()->isPlaying(t))
-		{
-			//qDebug() << scene;
-			//this->fbo(scene)->bind();
-			lib->getInterface()->render(t);
-			//this->fbo(scene)->release();
-		}
-	}
-#endif
 }
 
 void Renderer::displayScene(QString scene)
 {
-#if 0
-	DynamicLibrary *lib = this->marion->library(scene);
-
-	if (lib == 0)
-	{
-		return;
-	}
-	else if (lib->getInterface()->isPlaying(getTime()))
-	{
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-		glBindTexture(GL_TEXTURE_2D, this->marion->fbo(scene)->texture());
-		this->marion->drawFullscreenRect();
-	}
-#endif
 }
 
 void Renderer::resizeGL(int width, int height)
@@ -378,7 +241,6 @@ void Renderer::resizeGL(int width, int height)
 	this->context->makeCurrent(this->surface);
 
 	// RESIZE THE RENDER INTERFACE
-	//this->marion->resizeGL(width, height);
 	if (myVolumeData._renderer) {
 		myVolumeData._renderer->resize(width, height);
 	}
@@ -387,23 +249,12 @@ void Renderer::resizeGL(int width, int height)
 	w = width;
 	h = (int)((GLfloat)width * 0.5625);
 
-	//glViewport(0, (height - h) / 2, w, h);
 	glViewport(0, 0, width, height);
 
 	//~ projection matrix setup, all the view plugins should use this one for their transformations
 	projection.setToIdentity();
 	int internalWidth=w, internalHeight=h;
 	projection.perspective(20.0, (qreal) internalWidth / (qreal) internalHeight, 0.1f, 16.0f);
-	//projection.perspective(20.0, (qreal) this->marion->internalWidth() / (qreal) this->marion->internalHeight(), 0.1, 16.0);
-
-
-//GL	glMatrixMode(GL_PROJECTION);
-//GL	glLoadIdentity();
-//GL	glOrtho(-1.0, 1.0, -1.0, 1.0, 0.0, 1.0);
-//GL	glClear(GL_ACCUM_BUFFER_BIT);
-//GL	glMatrixMode(GL_MODELVIEW);
-
-	//this->update();
 }
 
 void Renderer::reset(int from)
@@ -414,8 +265,6 @@ void Renderer::reset(int from)
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
-
-//	glClear(GL_ACCUM_BUFFER_BIT);
 
 	this->time.start();
 	this->time = this->time.addMSecs(-from);

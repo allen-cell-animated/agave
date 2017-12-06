@@ -26,6 +26,9 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	connect(this, &StreamServer::closed, qApp, &QApplication::quit);
 
 	qDebug() << "Server is starting up with" << THREAD_COUNT << "threads, listening on port" << port << "...";
+
+	// assumption : each renderer is rendering the same scene, just possibly for different clients.
+	
 	for (int i = 0; i < THREAD_COUNT; i++)
 	{
 		this->renderers << new Renderer("Thread " + QString::number(i), this);
@@ -43,6 +46,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	this->timings.resize(settingsCount);
 	this->sampleCount.resize(settingsCount);
 
+#if 0
 	for (int i = 0; i < 10; i++)
 	{
 		//sample the surface of the sphere
@@ -136,7 +140,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 			this->getLeastBusyRenderer()->addRequest(request);
 		}
 	}
-
+#endif
 	qDebug() << "Done.";
 
 	QSslConfiguration sslConfiguration;
@@ -184,6 +188,8 @@ void StreamServer::onSslErrors(const QList<QSslError> &errors)
 
 void StreamServer::onNewConnection()
 {
+	// fire up new renderer?
+
 	QWebSocket *pSocket = webSocketServer->nextPendingConnection();
 
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &StreamServer::processTextMessage);
@@ -231,123 +237,8 @@ void StreamServer::processTextMessage(QString message)
 		{
 		case 0:
 		{
-			//extract render mode
-			int mode = json["mode"].toInt();
-
-			//extract data set type
-			QJsonValueRef dtype = json["datatype"];
-			QJsonArray dtypes = dtype.toArray();
-			QString type1 = dtypes[0].toString();
-			QString type2 = dtypes[1].toString();
-
-
-			//extract data channel
-			QJsonValueRef chtype = json["datachannel"];
-			int dataChannel = chtype.toInt();
-			QString cell1 = "";
-			QString cell2 = "";
-
-
-			//extract animation state
-			QJsonValueRef animstate = json["animationstate"];
-			qreal crossfade = animstate.toDouble();
-			//qDebug() << "animation state:" << crossfade;
-
-			//messageobj.mouseDeltaRotate = { x:outX, y : outY };
-			//messageobj.deltaRotate = { x:rotationAxis.x, y : rotationAxis.y, z : rotationAxis.z, angle : angle };
-			QJsonValueRef deltaRotate = json["deltaRotate"];
-			QJsonObject deltaRotate_obj = deltaRotate.toObject();
-			QJsonValueRef mouseDeltaRotate = json["mouseDeltaRotate"];
-			QJsonObject mouseDeltaRotate_obj = mouseDeltaRotate.toObject();
-			int mseDx = mouseDeltaRotate_obj["x"].toInt();
-			int mseDy = mouseDeltaRotate_obj["y"].toInt();
-			//qDebug() << "MSE ROT " << mseDx << "," << mseDy;
-
-
-			QJsonValueRef content = json["msgcontent"];
-			QJsonObject content_obj = content.toObject();
-
-			QJsonValueRef elements = content_obj["elements"];
-			QJsonObject json2 = elements.toObject();
-
-			QMatrix4x4 modelview = QMatrix4x4();
-			modelview.setColumn(0, QVector4D(json2["0"].toDouble(), json2["1"].toDouble(), json2["2"].toDouble(), json2["3"].toDouble()));
-			modelview.setColumn(1, QVector4D(json2["4"].toDouble(), json2["5"].toDouble(), json2["6"].toDouble(), json2["7"].toDouble()));
-			modelview.setColumn(2, QVector4D(json2["8"].toDouble(), json2["9"].toDouble(), json2["10"].toDouble(), json2["11"].toDouble()));
-			modelview.setColumn(3, QVector4D(json2["12"].toDouble(), json2["13"].toDouble(), json2["14"].toDouble(), json2["15"].toDouble()));
-
-			//configure sub-component visibility
-			bool structures[6]; // = {true, false, true, false, true, false};
-			QJsonValueRef visibility = json["visibility"];
-			QJsonObject visibility_obj = visibility.toObject();
-
-			structures[0] = visibility_obj["0"].toBool();
-			structures[1] = visibility_obj["1"].toBool();
-			structures[2] = visibility_obj["2"].toBool();
-			structures[3] = visibility_obj["3"].toBool();
-			structures[4] = visibility_obj["4"].toBool();
-			structures[5] = visibility_obj["5"].toBool();
-
-			//encoding bool mask into integer
-			int struc_asint = 0;
-			for (int i = 0; i<6; ++i)
-			{
-				if (structures[i])
-				{
-					int mask = 0;
-					mask = 1 << i;
-					struc_asint = struc_asint | mask;
-				}
-			}
-
-			//configure rendering
-			double slider_settings[6];
-			QJsonValueRef sliders = json["sliderset"];
-			QJsonObject sliders_obj = sliders.toObject();
-
-			slider_settings[0] = sliders_obj["0"].toDouble();
-			slider_settings[1] = sliders_obj["1"].toDouble();
-			slider_settings[2] = sliders_obj["2"].toDouble();
-			slider_settings[3] = sliders_obj["3"].toDouble();
-			slider_settings[4] = sliders_obj["4"].toDouble();
-			slider_settings[5] = sliders_obj["5"].toDouble();
-
-			//qDebug() << "slider settings: " << slider_settings[0];
-
-
-
-			//parsing channel values:
-			QJsonValueRef observed_json = json["observed"];
-			QJsonArray observed = observed_json.toArray();
-
-			QJsonValueRef modeled_json = json["modeled"];
-			QJsonArray modeled = modeled_json.toArray();
-
-			//            qDebug() << "observed: " << observed;
-			//            qDebug() << "modeled: " << modeled;
-
-			QList<QVariant> channelvalues;
-			for (int i = 0; i<observed.size(); i++)
-			{
-				channelvalues.append(observed[i].toDouble());
-			}
-			for (int i = 0; i<modeled.size(); i++)
-			{
-				channelvalues.append(modeled[i].toDouble());
-			}
-			//*******************************
-
-
-			channelvalues[0] = dataChannel;
-			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, struc_asint, slider_settings[2], DEFAULT_IMAGE_FORMAT, 92, true);
-			p.mseDx = mseDx;
-			p.mseDy = mseDy;
-
-
-			RenderRequest *request = new RenderRequest(pClient, p);
-			this->getLeastBusyRenderer()->addRequest(request);
-
-
+			//RenderRequest *request = new RenderRequest(pClient, p);
+			//this->getLeastBusyRenderer()->addRequest(request);
 			break;
 		}
 		case 1:
@@ -388,10 +279,10 @@ void StreamServer::processBinaryMessage(QByteArray message)
 		commandBuffer b(message.length(), reinterpret_cast<const uint8_t*>(message.constData()));
 		b.processBuffer();
 
-		RenderParameters p(b.getQueue());
-		RenderRequest *request = new RenderRequest(pClient, p);
+		// one message is a list of commands to run before rendering.
+		// the complete message amounts to a single render request and an image is expected to come out of it.
+		RenderRequest *request = new RenderRequest(pClient, b.getQueue());
 		this->getLeastBusyRenderer()->addRequest(request);
-
 	}
 }
 
@@ -399,18 +290,13 @@ void StreamServer::socketDisconnected()
 {
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
 	//if (m_debug)
-	qDebug() << "socketDisconnected:" << pClient << "(" << pClient->closeCode() << ":" << pClient->closeReason() + ")";
+	//qDebug() << "new client!" << pSocket->resourceName() << "; " << pSocket->peerAddress().toString() << ":" << pSocket->peerPort() << "; " << pSocket->peerName();
+	qDebug() << "socketDisconnected:" << pClient->resourceName() << "(" << pClient->closeCode() << ":" << pClient->closeReason() + ")";
 	if (pClient) {
 		clients.removeAll(pClient);
 		pClient->deleteLater();
 	}
 }
-
-
-
-
-
-
 
 void StreamServer::sendImage(RenderRequest *request, QImage image)
 {
@@ -441,27 +327,19 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 		}
 
 		//running mean
-		int v = request->getParameters().visibility;
+		int v = 0;
 		this->sampleCount[v]++;
 		this->timings[v] = this->timings[v] + (request->getActualDuration() - this->timings[v]) / this->sampleCount[v];
 
-
-		QString settings = QString::number(request->getParameters().visibility, 2);
-		while (settings.length() < 8)
-		{
-			settings = "0" + settings;
-		}
-
 		QString fileName = "cache/" +
-			settings + " - " +
 			QString::number(rand()) + "." +
-			QString(request->getParameters().format);
+			QString(DEFAULT_IMAGE_FORMAT);
 
 		qDebug() << "saving image to" << fileName;
 		qDebug() << "(" << image.width() << "," << image.height() << ")";
 		bool ok = image.save(fileName,
-			request->getParameters().format,
-			request->getParameters().quality);
+			DEFAULT_IMAGE_FORMAT,
+			92);
 		if (!ok) {
 			qDebug() << "Could not save " << fileName;
 		}
@@ -472,7 +350,7 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 		QByteArray ba;
 		QBuffer buffer(&ba);
 		buffer.open(QIODevice::WriteOnly);
-		image.save(&buffer, request->getParameters().format, request->getParameters().quality);
+		image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
 
 		request->getClient()->sendBinaryMessage(ba);
 	}
