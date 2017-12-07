@@ -53,12 +53,13 @@ public:
 	// 1 = continuous re-render, 0 = only wait for redraw commands
 	void setStreamMode(int32_t mode) { _streamMode = mode; }
 
+	void resizeGL(int internalWidth, int internalHeight);
+
 protected:
 	QString id;
 
 	QImage render();
 
-	void resizeGL(int internalWidth, int internalHeight);
 	void reset(int from = 0);
 
 	int getTime();
@@ -76,6 +77,7 @@ private:
 	QOpenGLFramebufferObject *fbo;
 
 	int32_t _streamMode;
+	int32_t _width, _height;
 
 	int frameNumber;
 	QTime time;
@@ -98,9 +100,6 @@ private:
 	};
 
 	QList<SceneDescription> scenes;
-
-	QMatrix4x4 projection;
-	QMatrix4x4 modelview;
 
 	// TODO move this info.  This class only knows about some abstract renderer and a scene object.
 	void myVolumeInit();

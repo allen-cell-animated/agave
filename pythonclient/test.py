@@ -10,11 +10,14 @@ N = 0
 class DummyClient(WebSocketClient):
     def opened(self):
         print("opened up")
-        for i in range(0, 360):
+        for i in range(0, 180):
             cb = CommandBuffer()
+            cb.add_command("APERTURE", 0.01);
+            cb.add_command("EXPOSURE", 0.45);
+            cb.add_command("SET_RESOLUTION", 256, 256);
             cb.add_command("RENDER_ITERATIONS", 32);
-            cb.add_command("MAT_DIFFUSE", (float(i)+1.0)/360.0, (360.0-float(i))/360.0, 0.0, 1.0);
-            cb.add_command("MAT_SPECULAR", 1.0, 0.0, 0.0, 0.0);
+            cb.add_command("MAT_DIFFUSE", (float(i))/179.0, (179.0-float(i))/179.0, 0.0, 1.0);
+            cb.add_command("MAT_SPECULAR", 3.0, 3.0, 3.0, 0.0);
             cb.add_command("MAT_EMISSIVE", 0.0, 0.0, 0.0, 0.0);
             cb.add_command("EYE", 2.0*math.sin(float(i)*3.14159265/180.0), 0.0, 2.0*math.cos(float(i)*3.14159265/180.0))
             buf = cb.make_buffer()
@@ -27,7 +30,7 @@ class DummyClient(WebSocketClient):
         if m.is_binary:
             global N
             i = Image.open(io.BytesIO(m.data))
-            i.save("TEST_"+str(N)+".png")
+            i.save("//allen/aics/animated-cell/Dan/output/TEST_"+str(N)+".png")
             N=N+1
 
         else:

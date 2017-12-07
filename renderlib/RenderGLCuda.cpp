@@ -31,7 +31,9 @@ RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
 	_currentChannel(0),
-	_renderSettings(scene)
+	_renderSettings(scene),
+	_w(0),
+	_h(0)
 {
 	initSceneFromImg();
 	_renderSettings->m_Camera.SetViewMode(ViewModeFront);
@@ -518,6 +520,9 @@ void RenderGLCuda::drawImage() {
 void RenderGLCuda::resize(uint32_t w, uint32_t h)
 {
 	glViewport(0, 0, w, h);
+	if ((_w == w) && (_h == h)) {
+		return;
+	}
 
 	initFB(w, h);
 }

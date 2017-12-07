@@ -345,14 +345,15 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 		}
 	}
 
-	if (request->getClient() != 0)
+	QWebSocket* client = request->getClient();
+	if (client != 0)
 	{
 		QByteArray ba;
 		QBuffer buffer(&ba);
 		buffer.open(QIODevice::WriteOnly);
 		image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
 
-		request->getClient()->sendBinaryMessage(ba);
+		client->sendBinaryMessage(ba);
 	}
 
 

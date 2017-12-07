@@ -16,7 +16,7 @@
 #include <QOpenGLFramebufferObjectFormat>
 
 Renderer::Renderer(QString id, QObject *parent) : QThread(parent),
-id(id), _streamMode(0)
+id(id), _streamMode(0), fbo(nullptr), _width(0), _height(0)
 {
 	this->totalQueueDuration = 0;
 
@@ -71,14 +71,6 @@ void Renderer::init()
 	if (!status) {
 		qDebug() << id << "COULD NOT LOAD GL ON THREAD";
 	}
-
-	QOpenGLFramebufferObjectFormat fboFormat;
-	fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-	fboFormat.setMipmap(false);
-	fboFormat.setSamples(16);
-	fboFormat.setTextureTarget(GL_TEXTURE_2D);
-	fboFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
-	this->fbo = new QOpenGLFramebufferObject(512, 512, fboFormat);
 
 	///////////////////////////////////
 	// INIT THE RENDER LIB
@@ -238,6 +230,10 @@ void Renderer::displayScene(QString scene)
 
 void Renderer::resizeGL(int width, int height)
 {
+	if ((width == _width) && (height == _height)) {
+		return;
+	}
+
 	this->context->makeCurrent(this->surface);
 
 	// RESIZE THE RENDER INTERFACE
@@ -245,16 +241,19 @@ void Renderer::resizeGL(int width, int height)
 		myVolumeData._renderer->resize(width, height);
 	}
 
-	int w, h;
-	w = width;
-	h = (int)((GLfloat)width * 0.5625);
+	delete this->fbo;
+	QOpenGLFramebufferObjectFormat fboFormat;
+	fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	fboFormat.setMipmap(false);
+	fboFormat.setSamples(16);
+	fboFormat.setTextureTarget(GL_TEXTURE_2D);
+	fboFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
+	this->fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
 
 	glViewport(0, 0, width, height);
 
-	//~ projection matrix setup, all the view plugins should use this one for their transformations
-	projection.setToIdentity();
-	int internalWidth=w, internalHeight=h;
-	projection.perspective(20.0, (qreal) internalWidth / (qreal) internalHeight, 0.1f, 16.0f);
+	_width = width;
+	_height = height;
 }
 
 void Renderer::reset(int from)

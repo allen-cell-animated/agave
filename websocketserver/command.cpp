@@ -79,7 +79,5 @@ void RequestRedrawCommand::execute(ExecutionContext* c) {
 //	c->_renderer->renderNow();
 }
 void SetResolutionCommand::execute(ExecutionContext* c) {
-	c->_scene->m_Camera.m_Film.m_Resolution.SetResX(_data._x);
-	c->_scene->m_Camera.m_Film.m_Resolution.SetResY(_data._y);
-	c->_scene->SetNoIterations(0);
+	c->_renderer->resizeGL(_data._x, _data._y);
 }
