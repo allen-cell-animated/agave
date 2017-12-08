@@ -86,58 +86,58 @@ function setupGui() {
     binarysocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
     jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
 
-      binarysock = new binarysocket(0);
-      jsonsock = new jsonsocket();
+    binarysock = new binarysocket(0);
+    jsonsock = new jsonsocket();
 
 
-      binarysocket0.binaryType = "arraybuffer";
+    binarysocket0.binaryType = "arraybuffer";
 
-      //socket connection for image stream #1
-      binarysocket0.onopen = binarysock.open;
-      binarysocket0.onclose = binarysock.close;
-      binarysocket0.onmessage = binarysock.message0; //linked to message0
-      binarysocket0.onerror = binarysock.error;
+    //socket connection for image stream #1
+    binarysocket0.onopen = binarysock.open;
+    binarysocket0.onclose = binarysock.close;
+    binarysocket0.onmessage = binarysock.message0; //linked to message0
+    binarysocket0.onerror = binarysock.error;
 
-      jsonsocket0.binaryType = "arraybuffer";
-      //socket connection for json message requests
-      jsonsocket0.onopen = jsonsock.open;
-      jsonsocket0.onclose = jsonsock.close;
-      jsonsocket0.onmessage = jsonsock.message;
-      jsonsocket0.onerror = jsonsock.error;
+    jsonsocket0.binaryType = "arraybuffer";
+    //socket connection for json message requests
+    jsonsocket0.onopen = jsonsock.open;
+    jsonsocket0.onclose = jsonsock.close;
+    jsonsocket0.onmessage = jsonsock.message;
+    jsonsocket0.onerror = jsonsock.error;
 
-        //setup tooltips
-      //readTextFile("data/tooltip.csv");
+      //setup tooltips
+    //readTextFile("data/tooltip.csv");
 
-      rotationTo = new THREE.Vector3();
-      rotationFrom = new THREE.Vector3();
-      rotationAxis = new THREE.Vector3();
-      panVec = new THREE.Vector3(0,0,-5);
+    rotationTo = new THREE.Vector3();
+    rotationFrom = new THREE.Vector3();
+    rotationAxis = new THREE.Vector3();
+    panVec = new THREE.Vector3(0,0,-5);
 
-      rotation = new THREE.Quaternion();
-      oldRotation = new THREE.Quaternion();
-      rotationDelta = new THREE.Quaternion();
-      tempold = new THREE.Quaternion();
+    rotation = new THREE.Quaternion();
+    oldRotation = new THREE.Quaternion();
+    rotationDelta = new THREE.Quaternion();
+    tempold = new THREE.Quaternion();
 
-      modelView = new THREE.Matrix4();
-      modelView.setPosition(panVec);
+    modelView = new THREE.Matrix4();
+    modelView.setPosition(panVec);
 
-      var streamedImg = document.getElementsByClassName("streamed_img");
+    var streamedImg = document.getElementsByClassName("streamed_img");
 
-      for(var i=0; i<streamedImg.length; i++)
-      {
-          streamedImg[i].addEventListener("DOMMouseScroll", MouseWheelHandler, false);
-          streamedImg[i].addEventListener("mousewheel", MouseWheelHandler, false);
-          streamedImg[i].addEventListener("mousedown", MouseDownHandler, false);
-          streamedImg[i].addEventListener('ondragstart', DragStartHandler, false);
-      }
+    for(var i=0; i<streamedImg.length; i++)
+    {
+        streamedImg[i].addEventListener("DOMMouseScroll", MouseWheelHandler, false);
+        streamedImg[i].addEventListener("mousewheel", MouseWheelHandler, false);
+        streamedImg[i].addEventListener("mousedown", MouseDownHandler, false);
+        streamedImg[i].addEventListener('ondragstart', DragStartHandler, false);
+    }
 
 
-      //set up first tab
-      var streamimg1 = document.getElementById("imageA");
+    //set up first tab
+    var streamimg1 = document.getElementById("imageA");
 
-      toggleDivVisibility(streamimg1, true);
+    toggleDivVisibility(streamimg1, true);
 
-      setupGui();
+    setupGui();
   }
 
 
@@ -203,26 +203,29 @@ function setupGui() {
         screenImage.set(binary, this.channelnum);
 
     };
-    //todo: currently the differentiation between channel 0 and 1 is solved with 2 separate methods, since for some reason this.channelnum is always undefined
+
     this.message0 = function (evt) {
-        var bytes = new Uint8Array(evt.data),
-            binary = "",
-            len = bytes.byteLength,
-            i;
+      console.time('recv');
 
-        for (i=0; i<len; i++)
-            binary += String.fromCharCode(bytes[i]);
+      var bytes = new Uint8Array(evt.data),
+        binary = "",
+        len = bytes.byteLength,
+        i;
+      for (i=0; i<len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      imgreceived = true;
+      screenImage.set("data:image/png;base64,"+window.btoa( binary ), 0);
+      console.timeEnd('recv');
 
-        //console.log("msg0 received");
-        imgreceived = true;
-        screenImage.set(binary, 0);
-
-
-        // var reader = new FileReader();
-        // reader.onload = function(e) {
-        //   image.src = e.target.result;
-        // };
-        // reader.readAsDataURL(evt.data);
+// why should this code be slower?
+      // var reader = new FileReader();
+      // reader.onload = function(e) {
+      //   imgreceived = true;
+      //   screenImage.set(e.target.result, 0);
+      //   console.timeEnd('recv');
+      // };
+      // reader.readAsDataURL(new Blob([new Uint8Array(evt.data)]));
 
     };
 

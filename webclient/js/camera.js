@@ -153,7 +153,8 @@ var screenImage = {
                 tabs[i].onmouseup = this.mouseup;
                 tabs[i].onmousemove = this.mousemove;
                 tabs[i].onmousewheel = this.mousewheel;
-                tabs[i].src = "data:image/png;base64,"+window.btoa( binary );
+//                tabs[i].src = "data:image/png;base64,"+window.btoa( binary );
+                tabs[i].src = binary;
 
                 img_width = tabs[i].width;
                 img_height = tabs[i].height;
