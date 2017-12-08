@@ -19,7 +19,7 @@ class DummyClient(WebSocketClient):
             cb.add_command("MAT_DIFFUSE", (float(i))/179.0, (179.0-float(i))/179.0, 0.0, 1.0);
             cb.add_command("MAT_SPECULAR", 3.0, 3.0, 3.0, 0.0);
             cb.add_command("MAT_EMISSIVE", 0.0, 0.0, 0.0, 0.0);
-            cb.add_command("EYE", 2.0*math.sin(float(i)*3.14159265/180.0), 0.0, 2.0*math.cos(float(i)*3.14159265/180.0))
+            cb.add_command("EYE", 2.0*math.sin(2.0*float(i)*3.14159265/180.0), 0.0, 2.0*math.cos(2.0*float(i)*3.14159265/180.0))
             buf = cb.make_buffer()
             self.send(buf, True)
 
