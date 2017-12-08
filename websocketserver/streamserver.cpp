@@ -346,7 +346,7 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 	}
 
 	QWebSocket* client = request->getClient();
-	if (client != 0)
+	if (client != 0 && client->isValid() && client->state() == QAbstractSocket::ConnectedState)
 	{
 		QByteArray ba;
 		QBuffer buffer(&ba);
