@@ -7,20 +7,21 @@ var lastClientX, lastClientY;
 
 
 document.documentElement.addEventListener('mouseup', function(e){
-  messageobj.mouseDeltaRotate = {x:0, y:0};
+  //messageobj.mouseDeltaRotate = {x:0, y:0};
 
     dragFlag = 0;
 
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
-    triggerUpdate(messageobj);
+    cb = new commandBuffer();
+    cb.addCommand("REDRAW");
+    flushCommandBuffer(cb);
+    flushCommandBuffer(cb);
+    flushCommandBuffer(cb);
+    flushCommandBuffer(cb);
+    flushCommandBuffer(cb);
+    flushCommandBuffer(cb);
+    flushCommandBuffer(cb);
+
+
 });
 
 /**
@@ -66,13 +67,6 @@ document.documentElement.addEventListener('mousemove', function(e){
             rotationDelta.z = rotationAxis.z;
             rotationDelta.w = angle;
 
-            ///////////////
-            messageobj.mouseDeltaRotate = {x:e.clientX - lastClientX, y:e.clientY - lastClientY};
-            lastClientX = e.clientX;
-            lastClientY = e.clientY;
-            messageobj.deltaRotate = {x:rotationAxis.x, y:rotationAxis.y, z:rotationAxis.z, angle:angle};
-            ///////////////
-
             rotation = multiplyQuat(oldRotation, rotationDelta);//.multiplyQuaternions(oldRotation, rotationDelta);
 
             rotation.z = -rotation.z;
@@ -81,23 +75,32 @@ document.documentElement.addEventListener('mousemove', function(e){
 
             var matrixmode = true;
 
-            messageobj.msgcontent = modelView;
-            messageobj.visibility = structure_visibility;
-            messageobj.sliderset = slider_settings;
+            // messageobj.msgcontent = modelView;
+            // messageobj.visibility = structure_visibility;
+            // messageobj.sliderset = slider_settings;
 
             var message;
             if(matrixmode)
             {
-                triggerUpdate(messageobj);
+//                triggerUpdate(messageobj);
             }
             else
             {
-                message = JSON.stringify(rotation);
-                binarysocket0.send(message);
-                console.warn("rotation mode is deprecated.")
+//                message = JSON.stringify(rotation);
+//                binarysocket0.send(message);
+//                console.warn("rotation mode is deprecated.")
             }
 
             rotation.z = -rotation.z;
+
+
+            cb = new commandBuffer();
+            cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
+            cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
+            cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
+            cb.addCommand("REDRAW");
+            flushCommandBuffer(cb);
+
         }
         this.mouseMoveTimer = null;
 
@@ -144,7 +147,7 @@ var screenImage = {
         {
             for(var i=0; i<tabs.length; i++)
             {
-                tabs[i] = document.createElement("img");
+                //tabs[i] = document.createElement("img");
                 tabs[i].ondragstart = this.dragstart;
                 tabs[i].onmousedown = this.mousedown;
                 tabs[i].onmouseup = this.mouseup;
@@ -203,10 +206,13 @@ function MouseWheelHandler(e)
 
     modelView.setPosition(panVec);
 
-    messageobj.msgcontent = modelView;
-    messageobj.visibility = structure_visibility;
-    messageobj.sliderset = slider_settings;
-    triggerUpdate(messageobj);
+    cb = new commandBuffer();
+    cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
+    cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
+    cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
+    cb.addCommand("REDRAW");
+    flushCommandBuffer(cb);
+
 }
 
 function multiplyQuat(q1, q2)

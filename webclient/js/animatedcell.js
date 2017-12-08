@@ -1,6 +1,6 @@
 
   var wsUri = "ws://localhost:1234";
-//  var wsUri = "ws://dev-aics-dtp-001:1234";
+  //var wsUri = "ws://dev-aics-dtp-001:1234";
 
   var binarysocket0 = null; //handles requests for image streaming target #1
   var binarysocket1 = null; //handles requests for image streaming target #2
@@ -27,15 +27,16 @@
   var oldRotation;
   var rotationDelta;
   var tempold;
+var slider_drag = false;
 
-  var bbbb = new commandBuffer();
-  bbbb.addCommand("EYE", 1, 1, 5);
-  bbbb.addCommand("TARGET", 3, 3, 0);
-  bbbb.addCommand("SESSION", "hello");
-  bbbb.addCommand("APERTURE", 7);
-  bbbb.prebufferToBuffer();
-  var bbbbview = new Uint8Array(bbbb.buffer);
-  console.log(bbbbview);
+  // var bbbb = new commandBuffer();
+  // bbbb.addCommand("EYE", 1, 1, 5);
+  // bbbb.addCommand("TARGET", 3, 3, 0);
+  // bbbb.addCommand("SESSION", "hello");
+  // bbbb.addCommand("APERTURE", 7);
+  // bbbb.prebufferToBuffer();
+  // var bbbbview = new Uint8Array(bbbb.buffer);
+  // console.log(bbbbview);
 
 
 
@@ -49,56 +50,28 @@
       element.style.visibility = (visible ? "visible" : "hidden");
   }
 
-  /**
-   * object for storing the information for the server request-
-   *
-   */
-  function messageformat (){
-      this.msgtype = 0;            // 0 = for image requests, 1 = for file structure requests
-      this.mode = 1;            //switches between render modes on the server: 0 = animated cell, 1 = render 1 cell, 2 = render 2 cells
-      this.msgcontent = null;  //stores the modelview matrix
-      this.visibility = null; // used for the visibility of channels in the animated cell data set (working but not actually used currently)
-      this.sliderset = null;  //stores slider values (not used anymore but in theory still functional
-      this.observed = [1,0,0,0,0,0,0]; //booleans for observed channels
-      this.modeled = [0,0,0,0,0,0]; //booleans for modeled channels
-      this.datatype = ["Interphase_5cells", "Mitotic_2cells"]; //storing the data type. the second element is used when 2 datasets should be morphed or overlaid
-      this.datachannel = 0;  //storing the channel type. the second element is used when 2 datasets should be morphed or overlaid
-      this.animationstate = 1; //value between 0 and 1 that represents the crossfade state in tab2, and the current state of an animation, e.g., in tab3
-  };
-
-  //if true requests one image for the dataset[0] and one image for [1]
-  var splitscreen = true;
-  var messageobj;  //used for sending & receiving image requests in socket connections #1
-  //var messageobj2; //used for sending & receiving image requests in socket connections #2
-  var jsonmessage; //this is the message object that we use for sending & receiving all non-binary requests
-
-  var structure_visibility = {0:true, 1:true, 2:true, 3:true, 4:false, 5:false};
-  var observed_visibility = {0:false, 1:false, 2:false, 3:false, 4:false, 5:false};
-  var visibility_mask = {0:false, 1:false, 2:false, 3:false, 4:false, 5:false};
-  var slider_settings = {0:0.0, 1:0.0, 2:0.0, 3:0.0, 4:0.0, 5:0.0};
-  var current_slider = 0;
-  var slider;
-  var slider_drag = false;
-
-  var jsonfilestruct = {};
-  var cellselection = 0;
-
-  var resetChannelSelectors = false;
 
 var binarysock, jsonsock;
 
 function setupGui() {
 
   effectController = {
-    channel: 0
+    channel: 0,
+    color: [255, 255, 0]
   };
 
   var gui = new dat.GUI();
   //var gui = new dat.GUI({autoPlace:false, width:200});
 
   gui.add( effectController, "channel", [0,1,2,3,4,5,6,7]).name("Channel").onFinishChange(function(value) {
-    messageobj.datachannel = parseInt(value);
-    triggerUpdate(messageobj);
+    var cb = new commandBuffer();
+    cb.addCommand("CHANNEL", parseInt(value));
+    flushCommandBuffer(cb);
+  });
+  gui.addColor(effectController, "color").name("Diffuse").onChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("MAT_DIFFUSE", value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+    flushCommandBuffer(cb);
   });
 
 //  var customContainer = document.getElementById('my-gui-container');
@@ -111,13 +84,8 @@ function setupGui() {
   function init()
   {
     binarysocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
-    binarysocket1 = new WebSocket(wsUri); //handles requests for image streaming target #1
     jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
 
-      messageobj = new messageformat();
-      //messageobj2 = new messageformat();
-
-      jsonmessage = new messageformat();
       binarysock = new binarysocket(0);
       jsonsock = new jsonsocket();
 
@@ -129,13 +97,6 @@ function setupGui() {
       binarysocket0.onclose = binarysock.close;
       binarysocket0.onmessage = binarysock.message0; //linked to message0
       binarysocket0.onerror = binarysock.error;
-
-      binarysocket1.binaryType = "arraybuffer";
-      //socket connection for image stream #2
-      binarysocket1.onopen = binarysock.open;
-      binarysocket1.onclose = binarysock.close;
-      binarysocket1.onmessage = binarysock.message1; //linked to message1
-      binarysocket1.onerror = binarysock.error;
 
       jsonsocket0.binaryType = "arraybuffer";
       //socket connection for json message requests
@@ -173,9 +134,7 @@ function setupGui() {
 
       //set up first tab
       var streamimg1 = document.getElementById("imageA");
-      var streamimg2 = document.getElementById("imageB");
 
-      toggleDivVisibility(streamimg2, false);
       toggleDivVisibility(streamimg1, true);
 
       setupGui();
@@ -194,16 +153,35 @@ function setupGui() {
 
 
         var cb = new commandBuffer();
+        cb.addCommand("EYE", 0.5, 0.408, 2.145);
+        cb.addCommand("TARGET", 0.5, 0.408, 0.145);
         cb.addCommand("MAT_DIFFUSE", 1.0, 1.0, 0.0, 1.0);
         cb.addCommand("MAT_SPECULAR", 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_EMISSIVE", 1.0, 1.0, 0.0, 0.0);
+        cb.addCommand("MAT_EMISSIVE", 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("APERTURE", 0.0);
+        cb.addCommand("EXPOSURE", 0.5);
         flushCommandBuffer(cb);
 
-        messageobj.msgcontent = modelView;
-        messageobj.visibility = structure_visibility;
-        messageobj.sliderset = slider_settings;
-        triggerUpdate(messageobj);
-        //binarysocket0.send("req_image");
+        // init camera
+        var streamimg1 = document.getElementById("imageA");
+        gCamera = new THREE.PerspectiveCamera(55.0, 1.0, 0.001, 20);
+        gCamera.position.x = 0.5;
+        gCamera.position.y = 0.408;
+        gCamera.position.z = 2.145;
+        gCamera.up.x = 0.0;
+        gCamera.up.y = 1.0;
+        gCamera.up.z = 0.0;
+        gControls = new AICStrackballControls(gCamera, streamimg1);
+        gControls.target.x = 0.5;
+        gControls.target.y = 0.408;
+        gControls.target.z = 0.145;
+        gControls.target0 = gControls.target.clone();
+        gControls.rotateSpeed = 4.0/window.devicePixelRatio;
+        gControls.autoRotate = false;
+        gControls.staticMoving = true;
+        gControls.length = 10;
+        gControls.enabled = true; //turn off mouse moments by setting to false
+
     };
     this.close = function (evt) {
         setTimeout(function () {
@@ -239,20 +217,15 @@ function setupGui() {
         imgreceived = true;
         screenImage.set(binary, 0);
 
-    };
-    this.message1 = function (evt) {
-        var bytes = new Uint8Array(evt.data),
-            binary = "",
-            len = bytes.byteLength,
-            i;
 
-        for (i=0; i<len; i++)
-            binary += String.fromCharCode(bytes[i]);
-
-        //console.log("msg1 received");
-        screenImage.set(binary, 1);
+        // var reader = new FileReader();
+        // reader.onload = function(e) {
+        //   image.src = e.target.result;
+        // };
+        // reader.readAsDataURL(evt.data);
 
     };
+
     this.error = function (evt) {
         console.log('error', evt);
     }
@@ -268,8 +241,6 @@ function setupGui() {
 
     this.open = function (evt) {
         //console.log("opening json socket");
-        jsonmessage.msgtype = 1; //tells the server that we want the file structure
-        triggerUpdate(jsonmessage, 2);
 
     };
 
@@ -306,55 +277,6 @@ function setupGui() {
     var buf = cmdbuf.prebufferToBuffer();
     binarysocket0.send(buf);
   }
-  /**
-   * requests an image (or other information) from the server (with the currently specified parametrization)
-   * two messages are sent when splitscreen mode is selected
-   * @param msgobj contains the json message object that will be parsed by the server
-   * @param connectionslot: 0 for image requests, 2 for other json commands
-   */
-  function triggerUpdate(msgobj, connectionslot = 0)
-    {
-        //lastmsg=msgobj;
-        //console.log(lastmsg);
-
-        var message0 = JSON.stringify(msgobj);
-        switch (connectionslot)
-        {
-            case 0:
-                //requesting only one image stream
-                if(!splitscreen)
-                {
-                    binarysocket0.send(message0);
-                    break;
-                }
-                //requesting two image streams
-                else
-                {
-                    //splitting the message into one for each data set
-                    binarysocket0.send(message0);
-
-                    if (binarysocket1.readyState === 1) {
-                      //deep copy of message object
-                      var newmsg = JSON.parse(message0);
-                      //switch first & second entry in data type & channel
-                      newmsg.datatype[0] = msgobj.datatype[1];
-                      newmsg.datatype[1] = msgobj.datatype[0];
-                      newmsg.datachannel[0] = msgobj.datachannel[1];
-                      newmsg.datachannel[1] = msgobj.datachannel[0];
-
-                      var message1 = JSON.stringify(newmsg);
-                      binarysocket1.send(message1);
-                    }
-                    break;
-                }
-            //case 1:
-
-            case 2:
-                jsonsocket0.send(message0);
-                break;
-        }
-    }
-
 
   /**
    * calls the "init" method upon page load
