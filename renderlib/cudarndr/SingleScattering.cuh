@@ -54,7 +54,7 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 			return;
 		}
 		
-		const float D = GetNormalizedIntensity(Pe, volumedata.volumeTexture);
+		const float D = GetNormalizedIntensity(Pe, volumedata.volumeTexture, volumedata.lutTexture);
 
 		Lv += GetEmission(D).ToXYZ();
 
@@ -62,14 +62,14 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 		{
 			case 0:
 			{
-				Lv += UniformSampleOneLight(pScene, volumedata, CVolumeShader::Brdf, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture), RNG, true);
+				Lv += UniformSampleOneLight(pScene, volumedata, CVolumeShader::Brdf, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture, volumedata.lutTexture), RNG, true);
 				//Lv = CLR_RAD_RED;
 				break;
 			}
 		
 			case 1:
 			{
-				Lv += 0.5f * UniformSampleOneLight(pScene, volumedata, CVolumeShader::Phase, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture), RNG, false);
+				Lv += 0.5f * UniformSampleOneLight(pScene, volumedata, CVolumeShader::Phase, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture, volumedata.lutTexture), RNG, false);
 				//Lv = CLR_RAD_GREEN;
 				break;
 			}
@@ -82,10 +82,10 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 
 				CColorXyz cls;
 				if (RNG.Get1() < PdfBrdf) {
-					cls = UniformSampleOneLight(pScene, volumedata, CVolumeShader::Brdf, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture), RNG, true);
+					cls = UniformSampleOneLight(pScene, volumedata, CVolumeShader::Brdf, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture, volumedata.lutTexture), RNG, true);
 				}
 				else {
-					cls = 0.5f * UniformSampleOneLight(pScene, volumedata, CVolumeShader::Phase, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture), RNG, false);
+					cls = 0.5f * UniformSampleOneLight(pScene, volumedata, CVolumeShader::Phase, D, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture, volumedata.lutTexture), RNG, false);
 				}
 //				if (cls == SPEC_BLACK) {
 //					Lv = CLR_RAD_RED;

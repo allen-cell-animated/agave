@@ -23,6 +23,7 @@ struct Histogram {
 	// attempt to redo imagej's Auto
 	float* generate_auto2(size_t length = 256);
 	float* generate_auto(size_t length = 256);
+	float* generate_windowLevel(float window, float level, size_t length = 256);
 
 };
 
@@ -42,9 +43,12 @@ struct Channelu16
 	uint16_t _gradientMagnitudeMax;
 
 	Histogram _histogram;
+	float* _lut;
 
 	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 	void getMinMax(uint16_t* ptr, uint16_t& minval, uint16_t& maxval);
+
+	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); }
 
 };
 

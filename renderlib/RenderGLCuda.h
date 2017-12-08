@@ -50,6 +50,8 @@ cudaArray_t *_volumeArray;
 cudaTextureObject_t *_volumeTex;
 cudaArray_t *_volumeGradientArray;
 cudaTextureObject_t *_volumeGradientTex;
+cudaArray_t *_volumeLutArray;
+cudaTextureObject_t *_volumeLutTex;
 
 	/// The vertex array.
 	GLuint vertices;  // vao

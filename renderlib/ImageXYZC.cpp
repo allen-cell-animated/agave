@@ -164,10 +164,13 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 	_z = z;
 
 	getMinMax(ptr, _min, _max);
+
+	_lut = _histogram.generate_auto2();
 }
 
 Channelu16::~Channelu16() 
 {
+	delete[] _lut;
 	delete[] _gradientMagnitudePtr;
 }
 
@@ -322,7 +325,7 @@ float* Histogram::generate_dataRange(size_t length) {
 		// map x to the upper bound of the bin.
 		float xnorm = (float)x / (float)(length - 1);
 		// this seems wrong... is dataRange same as fullRange above?
-		lut[x] = std::max(0.0f, (float)(x - (float)b/(float)e));
+		lut[x] = std::max(0.0f, ((float)x - (float)b/(float)e));
 	}
 	return lut;
 };
@@ -360,7 +363,8 @@ float* Histogram::generate_bestFit(size_t length) {
 		range = 256;
 	}
 	for (int x = 0; x < length; ++x) {
-		lut[x] = clamp((float)(x - hmin) / (float)range, 0.0f, 1.0f);
+		float v = ((float)x - (float)hmin) / ((float)range);
+		lut[x] = clamp(v, 0.0f, 1.0f);
 	}
 
 	return lut;
@@ -402,7 +406,8 @@ float* Histogram::generate_auto2(size_t length) {
 		float* lut = new float[length];
 
 		for (size_t x = 0; x < length; ++x) {
-			lut[x] = clamp((float)(x - hmin) / (float)(hmax - hmin), 0.0f, 1.0f);
+			float v = ((float)x - (float)hmin) / ((float)hmax - (float)hmin);
+			lut[x] = clamp(v, 0.0f, 1.0f);
 		}
 
 		return lut;
@@ -439,8 +444,28 @@ float* Histogram::generate_auto(size_t length) {
 		range = 256;
 	}
 	for (size_t x = 0; x < length; ++x) {
-		lut[x] = clamp((float)(x - b) / (float)range, 0.0f, 1.0f);
+		float v = ((float)x - (float)b) / ((float)range);
+		lut[x] = clamp(v, 0.0f, 1.0f);
 	}
 	return lut;
 };
 
+// window and level are percentages of full range 0..1
+float* Histogram::generate_windowLevel(float window, float level, size_t length)
+{
+	// return a LUT with new values(?)
+	// data type of lut values is out_phys_range (uint8)
+	// length of lut is number of histogram bins (represents the input data range)
+	float* lut = new float[length];
+
+	float a = (level - window*0.5) * length;
+	float b = (level + window*0.5) * length;
+	float range = b - a;
+
+	for (size_t x = 0; x < length; ++x) {
+		float v = ((float)x - (float)a) / ((float)range);
+		lut[x] = clamp(v, 0.0f, 1.0f);
+	}
+	return lut;
+
+}

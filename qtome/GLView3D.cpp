@@ -391,6 +391,10 @@ void GLView3D::OnUpdateTransferFunction(void)
 	scene.m_ShadingType = _transferFunction->GetShadingType();
 	scene.m_GradientFactor = _transferFunction->GetGradientFactor();
 
+	// update window/levels / transfer function here!!!!
+
+	this->_img->channel(_c)->generate_windowLevel(_transferFunction->GetWindow(), _transferFunction->GetLevel());
+
 	scene.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 

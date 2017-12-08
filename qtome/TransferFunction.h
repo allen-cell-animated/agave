@@ -33,6 +33,11 @@ public:
 	float						GetGradientFactor(void) const;
 	void						SetGradientFactor(const float& GradientFactor);
 
+	float						GetWindow(void) const;
+	void						SetWindow(const float& Window);
+	float						GetLevel(void) const;
+	void						SetLevel(const float& Level);
+
 	static QTransferFunction	Default(void);
 
 	void setScene(CScene& scene);
@@ -47,6 +52,9 @@ private:
 	int			m_ShadingType;
 	int m_RendererType;
 	float		m_GradientFactor;
+
+	float m_Window;
+	float m_Level;
 
 	CScene* _Scene;
 };

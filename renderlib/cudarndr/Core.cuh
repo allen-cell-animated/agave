@@ -16,6 +16,7 @@ struct cudaFB {
 struct cudaVolume {
 	cudaTextureObject_t volumeTexture;
 	cudaTextureObject_t gradientVolumeTexture;
+	cudaTextureObject_t lutTexture;
 };
 
 void BindDensityBuffer(short* pBuffer, cudaExtent Extent);

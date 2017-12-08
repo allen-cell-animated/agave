@@ -9,7 +9,9 @@ QTransferFunction::QTransferFunction(QObject* pParent) :
 	m_DensityScale(100.0f),
 	m_ShadingType(2),
 	m_RendererType(1),
-	m_GradientFactor(10.0f)
+	m_GradientFactor(10.0f),
+	m_Window(1.0),
+	m_Level(0.5)
 {
 }
 
@@ -113,4 +115,27 @@ QTransferFunction QTransferFunction::Default(void)
 	DefaultTransferFunction.SetGradientFactor(10.0f);
 	
 	return DefaultTransferFunction;
+}
+
+float QTransferFunction::GetWindow(void) const {
+	return m_Window;
+}
+void QTransferFunction::SetWindow(const float& Window) {
+	if (Window == m_Window)
+		return;
+
+	m_Window = Window;
+
+	emit Changed();
+}
+float QTransferFunction::GetLevel(void) const {
+	return m_Level;
+}
+void QTransferFunction::SetLevel(const float& Level) {
+	if (Level == m_Level)
+		return;
+
+	m_Level = Level;
+
+	emit Changed();
 }

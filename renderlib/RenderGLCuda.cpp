@@ -271,6 +271,8 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 	_volumeTex = new cudaTextureObject_t[numc];
 	_volumeGradientArray = new cudaArray_t[numc];
 	_volumeGradientTex = new cudaTextureObject_t[numc];
+	_volumeLutArray = new cudaArray_t[numc];
+	_volumeLutTex = new cudaTextureObject_t[numc];
 
 	for (uint32_t channel = 0; channel < numc; ++channel) {
 		cudaExtent volumeSize;
@@ -340,6 +342,30 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 		gradientTexDescr.addressMode[2] = cudaAddressModeClamp;
 		gradientTexDescr.readMode = cudaReadModeNormalizedFloat;
 		HandleCudaError(cudaCreateTextureObject(&_volumeGradientTex[channel], &gradientTexRes, &gradientTexDescr, NULL));
+
+		// create a 1D histogram texture.
+		const int LUT_SIZE = 256;
+
+		cudaChannelFormatDesc lutChannelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+
+		// create 1D array
+		HandleCudaError(cudaMallocArray(&_volumeLutArray[channel], &lutChannelDesc, LUT_SIZE, 1));
+		// copy data to 1D array
+		HandleCudaError(cudaMemcpyToArray(_volumeLutArray[channel], 0, 0, ch->_lut, LUT_SIZE*4, cudaMemcpyHostToDevice));
+
+		cudaResourceDesc lutTexRes;
+		memset(&lutTexRes, 0, sizeof(cudaResourceDesc));
+		lutTexRes.resType = cudaResourceTypeArray;
+		lutTexRes.res.array.array = _volumeLutArray[channel];
+		cudaTextureDesc     lutTexDescr;
+		memset(&lutTexDescr, 0, sizeof(cudaTextureDesc));
+		lutTexDescr.normalizedCoords = 1;
+		lutTexDescr.filterMode = cudaFilterModeLinear;
+		lutTexDescr.addressMode[0] = cudaAddressModeClamp;   // clamp
+		lutTexDescr.addressMode[1] = cudaAddressModeClamp;
+		lutTexDescr.addressMode[2] = cudaAddressModeClamp;
+		lutTexDescr.readMode = cudaReadModeElementType;  // direct read the (filtered) value
+		HandleCudaError(cudaCreateTextureObject(&_volumeLutTex[channel], &lutTexRes, &lutTexDescr, NULL));
 	}
 
 }
@@ -390,6 +416,8 @@ void RenderGLCuda::doRender() {
 	// Restart the rendering when when the camera, lights and render params are dirty
 	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
+		HandleCudaError(cudaMemcpyToArray(_volumeLutArray[_currentChannel], 0, 0, _img->channel(_currentChannel)->_lut, 256 * 4, cudaMemcpyHostToDevice));
+
 		//		ResetRenderCanvasView();
 
 		// Reset no. iterations
@@ -423,7 +451,8 @@ void RenderGLCuda::doRender() {
 	};
 	cudaVolume theCudaVolume = {
 		_volumeTex[_currentChannel],
-		_volumeGradientTex[_currentChannel]
+		_volumeGradientTex[_currentChannel],
+		_volumeLutTex[_currentChannel]
 	};
 	CTiming ri, bi, ppi, di;
 

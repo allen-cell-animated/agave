@@ -7,18 +7,22 @@ DEV inline Vec3f ToVec3f(const float3& V)
 	return Vec3f(V.x, V.y, V.z);
 }
 
-DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity)
+DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity, cudaTextureObject_t texLut)
 {
-	const float Intensity = ((float)SHRT_MAX * tex3D<float>(texDensity, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	float Intensity = ((float)SHRT_MAX * tex3D<float>(texDensity, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	// map to 0..1
+	Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
 
-	return (Intensity - gIntensityMin) * gIntensityInvRange;
+	return Intensity;
 }
 
 
-DEV float GetOpacity(const float& NormalizedIntensity)
+DEV float GetOpacity(const float& NormalizedIntensity, cudaTextureObject_t texLut)
 {
-	return NormalizedIntensity;
-	//return tex1D(gTexOpacity, NormalizedIntensity);
+	// apply lut
+	//float Intensity = NormalizedIntensity;
+	float Intensity = tex1D<float>(texLut, NormalizedIntensity);
+	return Intensity;
 }
 
 DEV CColorRgbHdr GetDiffuse(const float& NormalizedIntensity)
@@ -55,13 +59,13 @@ DEV CColorRgbHdr GetEmission(const float& NormalizedIntensity)
 	return CColorRgbHdr(gEmissiveColor.x, gEmissiveColor.y, gEmissiveColor.z);
 }
 
-DEV inline Vec3f NormalizedGradient(const Vec3f& P, cudaTextureObject_t texDensity)
+DEV inline Vec3f NormalizedGradient(const Vec3f& P, cudaTextureObject_t texDensity, cudaTextureObject_t texLut)
 {
 	Vec3f Gradient;
 
-	Gradient.x = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaX), texDensity) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaX), texDensity)) * gInvGradientDelta;
-	Gradient.y = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaY), texDensity) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaY), texDensity)) * gInvGradientDelta;
-	Gradient.z = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaZ), texDensity) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaZ), texDensity)) * gInvGradientDelta;
+	Gradient.x = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaX), texDensity, texLut) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaX), texDensity, texLut)) * gInvGradientDelta;
+	Gradient.y = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaY), texDensity, texLut) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaY), texDensity, texLut)) * gInvGradientDelta;
+	Gradient.z = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaZ), texDensity, texLut) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaZ), texDensity, texLut)) * gInvGradientDelta;
 
 	return Normalize(Gradient);
 }

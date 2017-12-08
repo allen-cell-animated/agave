@@ -117,6 +117,19 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(&m_EmissiveColorButton, 9, 2);
 	QObject::connect(&m_EmissiveColorButton, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnEmissiveColorChanged(const QColor&)));
 
+	m_MainLayout.addWidget(new QLabel("Window"), 10, 0);
+	m_WindowSlider.setRange(0.001, 1.0);
+	m_WindowSlider.setValue(_transferFunction->GetWindow());
+	m_MainLayout.addWidget(&m_WindowSlider, 10, 1);
+
+	m_MainLayout.addWidget(new QLabel("Level"), 11, 0);
+	m_LevelSlider.setRange(0.001, 1.0);
+	m_LevelSlider.setValue(_transferFunction->GetLevel());
+	m_MainLayout.addWidget(&m_LevelSlider, 11, 1);
+
+	QObject::connect(&m_WindowSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetWindow(double)));
+	QObject::connect(&m_LevelSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetLevel(double)));
+
 
 	QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
 	QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -159,6 +172,14 @@ void QAppearanceSettingsWidget::OnSetRendererType(int Index)
 void QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)
 {
 	_transferFunction->SetGradientFactor(GradientFactor);
+}
+void QAppearanceSettingsWidget::OnSetWindow(double window)
+{
+	_transferFunction->SetWindow(window);
+}
+void QAppearanceSettingsWidget::OnSetLevel(double level)
+{
+	_transferFunction->SetLevel(level);
 }
 
 void QAppearanceSettingsWidget::OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay)
@@ -207,7 +228,7 @@ void QAppearanceSettingsWidget::OnEmissiveColorChanged(const QColor& color)
 void QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
 {
 	m_DensityScaleSlider.setValue(_transferFunction->GetDensityScale(), true);
-	m_DensityScaleSlider.setValue(_transferFunction->GetDensityScale(), true);
+	m_DensityScaleSpinner.setValue(_transferFunction->GetDensityScale(), true);
 	m_ShadingType.setCurrentIndex(_transferFunction->GetShadingType());
 	m_GradientFactorSlider.setValue(_transferFunction->GetGradientFactor(), true);
 	m_GradientFactorSpinner.setValue(_transferFunction->GetGradientFactor(), true);

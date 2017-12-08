@@ -28,6 +28,8 @@ public slots:
 	void OnDiffuseColorChanged(const QColor& color);
 	void OnSpecularColorChanged(const QColor& color);
 	void OnEmissiveColorChanged(const QColor& color);
+	void OnSetWindow(double window);
+	void OnSetLevel(double level);
 
 private:
 	QGridLayout		m_MainLayout;
@@ -46,6 +48,9 @@ private:
 	QColorSelector  m_DiffuseColorButton;
 	QColorSelector  m_SpecularColorButton;
 	QColorSelector  m_EmissiveColorButton;
+
+	QDoubleSlider	m_WindowSlider;
+	QDoubleSlider	m_LevelSlider;
 
 	QTransferFunction* _transferFunction;
 };
