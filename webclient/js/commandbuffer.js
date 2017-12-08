@@ -126,7 +126,7 @@ commandBuffer.prototype = {
             offset+=4;
           break;
           case "I32":
-            dataview.setInt32(offset, cmd[j+1], LITTLE_ENDIAN);
+            dataview.setInt32(offset, cmd[j+1]);
             offset+=4;
           break;
         }
