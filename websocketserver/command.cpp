@@ -45,7 +45,8 @@ void SetCameraFocalDistanceCommand::execute(ExecutionContext* c) {
 	c->_scene->SetNoIterations(0);
 }
 void SetCameraExposureCommand::execute(ExecutionContext* c) {
-	c->_scene->m_Camera.m_Film.m_Exposure = _data._x;
+	// 0 is darkness, 1 is max
+	c->_scene->m_Camera.m_Film.m_Exposure = 1.0f - _data._x;
 	c->_scene->SetNoIterations(0);
 }
 void SetDiffuseColorCommand::execute(ExecutionContext* c) {
