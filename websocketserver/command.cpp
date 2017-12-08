@@ -82,3 +82,7 @@ void RequestRedrawCommand::execute(ExecutionContext* c) {
 void SetResolutionCommand::execute(ExecutionContext* c) {
 	c->_renderer->resizeGL(_data._x, _data._y);
 }
+void SetChannelCommand::execute(ExecutionContext* c) {
+	c->_scene->_channel = _data._x;
+	c->_scene->SetNoIterations(0);
+}

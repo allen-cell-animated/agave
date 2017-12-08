@@ -108,3 +108,7 @@ struct SetResolutionCommandD {
 };
 CMDDECL(SetResolutionCommand);
 
+struct SetChannelCommandD {
+	int32_t _x;
+};
+CMDDECL(SetChannelCommand);
