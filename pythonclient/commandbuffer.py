@@ -28,7 +28,8 @@ COMMANDS = {
     "STREAM_MODE": [14, "I32"],
     # request new image
     "REDRAW": [15],
-    "SET_RESOLUTION": [16, "I32", "I32"]
+    "SET_RESOLUTION": [16, "I32", "I32"],
+    "CHANNEL": [17, "I32"]
 }
 
 # strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
