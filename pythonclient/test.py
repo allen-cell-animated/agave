@@ -16,6 +16,7 @@ class DummyClient(WebSocketClient):
             cb.add_command("CHANNEL", 1)
             cb.add_command("APERTURE", 0.01)
             cb.add_command("EXPOSURE", 0.45)
+            cb.add_command("DENSITY", 37.7)
             cb.add_command("SET_RESOLUTION", 1024, 1024)
             cb.add_command("RENDER_ITERATIONS", 64)
             cb.add_command("MAT_DIFFUSE", (float(i))/float(rot-1), (float(rot-1)-float(i))/float(rot-1), 0.0, 1.0)
@@ -37,7 +38,7 @@ class DummyClient(WebSocketClient):
         if m.is_binary:
             global N
             i = Image.open(io.BytesIO(m.data))
-            i.save("//allen/aics/animated-cell/Dan/output/TEST_1_"+str(N)+".png")
+            i.save("//allen/aics/animated-cell/Dan/output/test2/TEST_1_"+str(N)+".png")
             N=N+1
 
         else:
