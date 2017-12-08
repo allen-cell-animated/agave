@@ -86,3 +86,7 @@ void SetChannelCommand::execute(ExecutionContext* c) {
 	c->_scene->_channel = _data._x;
 	c->_scene->SetNoIterations(0);
 }
+void SetDensityCommand::execute(ExecutionContext* c) {
+	c->_scene->m_DensityScale = _data._x;
+	c->_scene->SetNoIterations(0);
+}

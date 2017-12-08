@@ -112,3 +112,8 @@ struct SetChannelCommandD {
 	int32_t _x;
 };
 CMDDECL(SetChannelCommand);
+
+struct SetDensityCommandD {
+	float _x;
+};
+CMDDECL(SetDensityCommand);

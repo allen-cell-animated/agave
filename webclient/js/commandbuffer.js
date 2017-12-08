@@ -52,6 +52,7 @@ var COMMANDS = {
   REDRAW: [15],
   SET_RESOLUTION: [16, "I32", "I32"],
   CHANNEL: [17, "I32"],
+  DENSITY: [18, "F32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
