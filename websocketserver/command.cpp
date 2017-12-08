@@ -1,6 +1,6 @@
 #include "command.h"
 
-#include "Renderer.h"
+#include "renderer.h"
 
 #include "renderlib/Logging.h"
 #include "renderlib/Scene.h"
