@@ -100,7 +100,7 @@ void RenderGLCuda::initSceneFromImg()
 	AreaLight.m_Width = 1.0f;
 	AreaLight.m_Height = 1.0f;
 	AreaLight.m_Distance = 10.0f;
-	AreaLight.m_Color = 1.0f * CColorRgbHdr(1.0f, 1.0f, 1.0f);
+	AreaLight.m_Color = 100.0f * CColorRgbHdr(1.0f, 1.0f, 1.0f);
 
 	AreaLight.Update(_renderSettings->m_BoundingBox);
 
