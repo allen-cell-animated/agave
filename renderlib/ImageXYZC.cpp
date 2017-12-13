@@ -1,7 +1,10 @@
 #include "ImageXYZC.h"
 
+#include "Logging.h"
+
 #include <math.h>
 #include <algorithm>
+#include <sstream>
 
 template<class T>
 const T& clamp(const T& v, const T& lo, const T& hi)
@@ -466,6 +469,16 @@ float* Histogram::generate_windowLevel(float window, float level, size_t length)
 		float v = ((float)x - (float)a) / ((float)range);
 		lut[x] = clamp(v, 0.0f, 1.0f);
 	}
+
 	return lut;
 
+}
+
+void Channelu16::debugprint() {
+	// stringify for output
+	std::stringstream ss;
+	for (size_t x = 0; x < 256; ++x) {
+		ss << _lut[x] << ", ";
+	}
+	LOG_DEBUG << "LUT: " << ss.str();
 }

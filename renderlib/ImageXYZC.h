@@ -50,6 +50,8 @@ struct Channelu16
 
 	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); }
 
+	void debugprint();
+
 };
 
 class ImageXYZC
