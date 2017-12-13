@@ -11,7 +11,8 @@ DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity,
 {
 	float Intensity = ((float)SHRT_MAX * tex3D<float>(texDensity, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	// map to 0..1
-	Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
+	//Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
+	Intensity = (Intensity)/gIntensityMax;
 
 	return Intensity;
 }
