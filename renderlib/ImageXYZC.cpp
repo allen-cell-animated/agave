@@ -276,12 +276,14 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
 	for (size_t i = 0; i < length; ++i) {
 		val = data[i];
 		// normalize to 0..1 range
+		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
 		fval = (float)(val - _dataMin) / (float)(_dataMax - _dataMin);
 		//fval = (float)(val) / (float)(_dataMax);
 		// select a bin
 		fval *= (float)(bins - 1);
 		// discretize (drop the fractional part?)
 		_bins[(size_t)fval] ++;
+		// bins goes from min to max of data range. not datatype range.
 	}
 
 	// total number of pixels minus the number of zero pixels
@@ -299,46 +301,14 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
 }
 
 float* Histogram::generate_fullRange(size_t length) {
-	// return a LUT with new values(?)
-	// data type of lut values is out_phys_range (uint8)
-	// length of lut is number of histogram bins (represents the input data range)
-	float* lut = new float[length];
-
-	// simple linear mapping for actual range
-	for (int x = 0; x < length; ++x) {
-		lut[x] = (float)x / (float)(length-1);
-	}
-	return lut;
-};
+	return generate_windowLevel(1.0, 0.5, length);
+}
 
 float* Histogram::generate_dataRange(size_t length) {
-	// return a LUT with new values(?)
-	// data type of lut values is out_phys_range (uint8)
-	// length of lut is number of histogram bins (represents the input data range)
-	float* lut = new float[length];
-
-	// simple linear mapping for actual range
-	uint16_t b = _dataMin;
-	uint16_t e = _dataMax;
-	uint16_t range = e - b;
-	if (range < 1) {
-		range = 256;
-	}
-	for (int x = 0; x < length; ++x) {
-		// map x to the upper bound of the bin.
-		float xnorm = (float)x / (float)(length - 1);
-		// this seems wrong... is dataRange same as fullRange above?
-		lut[x] = std::max(0.0f, ((float)x - (float)b/(float)e));
-	}
-	return lut;
-};
+	return generate_windowLevel(1.0, 0.5, length);
+}
 
 float* Histogram::generate_bestFit(size_t length) {
-	// return a LUT with new values(?)
-	// data type of lut values is out_phys_range (uint8)
-	// length of lut is number of histogram bins (represents the input data range)
-	float* lut = new float[length];
-
 	size_t pixcount = _nonzeroPixelCount;
 	size_t limit = pixcount / 10;
 
@@ -365,13 +335,10 @@ float* Histogram::generate_bestFit(size_t length) {
 	if (range < 1) {
 		range = 256;
 	}
-	for (int x = 0; x < length; ++x) {
-		float v = ((float)x - (float)hmin) / ((float)range);
-		lut[x] = clamp(v, 0.0f, 1.0f);
-	}
 
-	return lut;
-};
+	return generate_windowLevel((float)(range) / (float)length,
+		((float)hmin + (float)range*0.5f) / (float)length, length);
+}
 
 // attempt to redo imagej's Auto
 float* Histogram::generate_auto2(size_t length) {
@@ -403,25 +370,13 @@ float* Histogram::generate_auto2(size_t length) {
 		return generate_fullRange(length);
 	}
 	else {
-		// return a LUT with new values(?)
-		// data type of lut values is out_phys_range (uint8)
-		// length of lut is number of histogram bins (represents the input data range)
-		float* lut = new float[length];
-
-		for (size_t x = 0; x < length; ++x) {
-			float v = ((float)x - (float)hmin) / ((float)hmax - (float)hmin);
-			lut[x] = clamp(v, 0.0f, 1.0f);
-		}
-
-		return lut;
+		float range = (float)hmax - (float)hmin;
+		return generate_windowLevel((range) / (float)length,
+			((float)hmin + range*0.5f) / (float)length, length);
 	}
-};
+}
 
 float* Histogram::generate_auto(size_t length) {
-	// return a LUT with new values(?)
-	// data type of lut values is out_phys_range (uint8)
-	// length of lut is number of histogram bins (represents the input data range)
-	float* lut = new float[length];
 
 	// simple linear mapping cutting elements with small appearence
 	// get 10% threshold
@@ -446,12 +401,11 @@ float* Histogram::generate_auto(size_t length) {
 	if (range < 1) {
 		range = 256;
 	}
-	for (size_t x = 0; x < length; ++x) {
-		float v = ((float)x - (float)b) / ((float)range);
-		lut[x] = clamp(v, 0.0f, 1.0f);
-	}
-	return lut;
-};
+	// if range == e-b, then
+	// b+range/2 === e-range/2 
+	// 
+	return generate_windowLevel((float)range / (float)length, ((float)b + (float)range*0.5f) / (float)length, length);
+}
 
 // window and level are percentages of full range 0..1
 float* Histogram::generate_windowLevel(float window, float level, size_t length)
@@ -461,12 +415,15 @@ float* Histogram::generate_windowLevel(float window, float level, size_t length)
 	// length of lut is number of histogram bins (represents the input data range)
 	float* lut = new float[length];
 
-	float a = (level - window*0.5) * length;
-	float b = (level + window*0.5) * length;
-	float range = b - a;
+	float a = (level - window*0.5f);
+	float b = (level + window*0.5f);
+	// b-a should be equal to window!
+	assert(fabs(b - a - window) < 0.0001);
+	float range = window;
+	//float range = b - a;
 
 	for (size_t x = 0; x < length; ++x) {
-		float v = ((float)x - (float)a) / ((float)range);
+		float v = ((float)x/(float)length - a) / ((float)range);
 		lut[x] = clamp(v, 0.0f, 1.0f);
 	}
 
