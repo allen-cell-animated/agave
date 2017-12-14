@@ -18,6 +18,7 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QFileDialog>
+#include <QtCore/QElapsedTimer>
 
 #include <boost/filesystem/path.hpp>
 
@@ -222,7 +223,10 @@ void qtome::open(const QString& file)
 	{
 
 		FileReader fileReader;
+		QElapsedTimer t;
+		t.start();
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
+		qDebug() << "Loaded " << file << " in " << t.elapsed() << "ms";
 
 		GLView3D *newGlView = new GLView3D(image, &_camera, &_transferFunction, &_renderSettings, this);
 		QWidget *glContainer = new GLContainer(this, newGlView);

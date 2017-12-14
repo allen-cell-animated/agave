@@ -5,6 +5,8 @@
 
 #include <QDomDocument>
 #include <QString>
+#include <QElapsedTimer>
+#include <QtDebug>
 
 #include <tiff.h>
 #include <tiffio.h>
@@ -41,6 +43,9 @@ float requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal) {
 
 std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepath)
 {
+	QElapsedTimer timer;
+	timer.start();
+
 // Loads tiff file
   TIFF* tiff = TIFFOpen(filepath.c_str(), "r");
   if (!tiff) {
@@ -192,9 +197,13 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 
   }
 
-
   TIFFClose(tiff);	
 
+  qDebug() << "TIFF loaded in " << timer.elapsed() << "ms";
 
-  return std::shared_ptr<ImageXYZC>(new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), data, physicalSizeX, physicalSizeY, physicalSizeZ));
+  timer.start();
+  ImageXYZC* im = new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), data, physicalSizeX, physicalSizeY, physicalSizeZ);
+  qDebug() << "ImageXYZC prepared in " << timer.elapsed() << "ms";
+
+  return std::shared_ptr<ImageXYZC>(im);
 }

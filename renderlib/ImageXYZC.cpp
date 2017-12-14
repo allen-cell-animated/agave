@@ -166,8 +166,8 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 	_y = y;
 	_z = z;
 
-	getMinMax(ptr, _min, _max);
-
+	_min = _histogram._dataMin;
+	_max = _histogram._dataMax;
 	_lut = _histogram.generate_auto2();
 }
 
@@ -175,25 +175,6 @@ Channelu16::~Channelu16()
 {
 	delete[] _lut;
 	delete[] _gradientMagnitudePtr;
-}
-
-void Channelu16::getMinMax(uint16_t* ptr, uint16_t& minval, uint16_t& maxval)
-{
-	uint16_t tmin = UINT16_MAX;
-	uint16_t tmax = 0;
-
-	uint16_t val;
-	for (size_t i = 0; i < _x*_y*_z; ++i) {
-		val = ptr[i];
-		if (val > tmax) {
-			tmax = val;
-		}
-		if (val < tmin) {
-			tmin = val;
-		}
-	}
-	minval = tmin;
-	maxval = tmax;
 }
 
 uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley, float scalez) {
@@ -249,7 +230,6 @@ uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley
 		}
 	}
 
-	getMinMax(_gradientMagnitudePtr, _gradientMagnitudeMin, _gradientMagnitudeMax);
 	return outptr;
 }
 
@@ -259,8 +239,8 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
 {
 	std::fill(_bins.begin(), _bins.end(), 0);
 
-	_dataMin = UINT16_MAX;
-	_dataMax = 0;
+	_dataMin = data[0];
+	_dataMax = data[0];
 
 	uint16_t val;
 	for (size_t i = 0; i < length; ++i) {
@@ -268,19 +248,20 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
 		if (val > _dataMax) {
 			_dataMax = val;
 		}
-		if (val < _dataMin) {
+		else if (val < _dataMin) {
 			_dataMin = val;
 		}
 	}
 	float fval;
+	float range = (float)(_dataMax - _dataMin);
+	float bin = (float)(bins - 1);
 	for (size_t i = 0; i < length; ++i) {
 		val = data[i];
 		// normalize to 0..1 range
 		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
-		fval = (float)(val - _dataMin) / (float)(_dataMax - _dataMin);
-		//fval = (float)(val) / (float)(_dataMax);
+		fval = (float)(val - _dataMin) / range;
 		// select a bin
-		fval *= (float)(bins - 1);
+		fval *= bin;
 		// discretize (drop the fractional part?)
 		_bins[(size_t)fval] ++;
 		// bins goes from min to max of data range. not datatype range.
