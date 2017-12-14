@@ -46,7 +46,6 @@ struct Channelu16
 	float* _lut;
 
 	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
-	void getMinMax(uint16_t* ptr, uint16_t& minval, uint16_t& maxval);
 
 	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); }
 

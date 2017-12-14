@@ -19,6 +19,7 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/HardwareWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcCuda.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindow.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.cpp"

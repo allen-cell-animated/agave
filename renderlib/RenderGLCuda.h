@@ -5,6 +5,7 @@
 
 #include "glad/include/glad/glad.h"
 #include "CudaUtilities.h"
+#include "ImageXyzcCuda.h"
 
 #include <memory>
 
@@ -45,13 +46,7 @@ private:
 	int _currentChannel;
 	void initSceneFromImg();
 
-
-cudaArray_t *_volumeArray;
-cudaTextureObject_t *_volumeTex;
-cudaArray_t *_volumeGradientArray;
-cudaTextureObject_t *_volumeGradientTex;
-cudaArray_t *_volumeLutArray;
-cudaTextureObject_t *_volumeLutTex;
+	ImageCuda _imgCuda;
 
 	/// The vertex array.
 	GLuint vertices;  // vao

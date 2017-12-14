@@ -19,6 +19,11 @@ ImageXYZC::ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bp
 	for (uint32_t i = 0; i < _c; ++i) {
 		_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
 	}
+	for (uint32_t i = 0; i < _c; ++i) {
+		_channels[i]->generateGradientMagnitudeVolume(physicalSizeX(), physicalSizeY(), physicalSizeZ());
+	}
+
+
 }
 
 ImageXYZC::~ImageXYZC()
@@ -169,6 +174,7 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 	_min = _histogram._dataMin;
 	_max = _histogram._dataMax;
 	_lut = _histogram.generate_auto2();
+
 }
 
 Channelu16::~Channelu16() 
