@@ -91,6 +91,11 @@ void Renderer::init()
 	this->context->moveToThread(this);
 }
 
+void Renderer::setImage(std::shared_ptr<ImageXYZC> img) {
+	myVolumeData._image = img;
+	myVolumeData._renderer->setImage(img);
+}
+
 void Renderer::run()
 {
 	this->context->makeCurrent(this->surface);

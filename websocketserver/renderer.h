@@ -55,6 +55,7 @@ public:
 
 	void resizeGL(int internalWidth, int internalHeight);
 
+	void setImage(std::shared_ptr<ImageXYZC> img);
 protected:
 	QString id;
 

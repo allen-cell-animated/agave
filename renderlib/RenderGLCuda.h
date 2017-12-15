@@ -24,6 +24,8 @@ public:
 	virtual void render(const Camera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
 
+	void setImage(std::shared_ptr<ImageXYZC> img);
+
 	Image3Dv33* getImage() const { return nullptr; };
 
 	CScene& getScene() { return *_renderSettings; }
@@ -35,6 +37,8 @@ public:
 	void drawImage();
 private:
 	CScene* _renderSettings;
+
+	void initSceneLighting();
 
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);

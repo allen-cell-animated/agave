@@ -2,8 +2,12 @@
 
 #include "renderer.h"
 
+#include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Scene.h"
+
+#include <QElapsedTimer>
+#include <QFileInfo>
 
 void SessionCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "Session command: " << _data._name;
@@ -13,6 +17,18 @@ void AssetPathCommand::execute(ExecutionContext* c) {
 }
 void LoadOmeTifCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "LoadOmeTif command: " << _data._name;
+	QFileInfo info(QString(_data._name.c_str()));
+	if (info.exists())
+	{
+		FileReader fileReader;
+		QElapsedTimer t;
+		t.start();
+		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(_data._name);
+		LOG_DEBUG << "Loaded " << _data._name << " in " << t.elapsed() << "ms";
+
+		// pass this image to the renderer.
+		c->_renderer->setImage(image);
+	}
 }
 void SetCameraPosCommand::execute(ExecutionContext* c) {
 	c->_scene->m_Camera.m_From.x = _data._x;

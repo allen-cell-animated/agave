@@ -35,6 +35,7 @@ RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 	_w(0),
 	_h(0)
 {
+	initSceneLighting();
 	initSceneFromImg();
 	_renderSettings->m_Camera.SetViewMode(ViewModeFront);
 }
@@ -44,31 +45,7 @@ RenderGLCuda::~RenderGLCuda()
 {
 }
 
-void RenderGLCuda::initSceneFromImg()
-{
-	_renderSettings->m_Resolution.SetResX(_img->sizeX());
-	_renderSettings->m_Resolution.SetResY(_img->sizeY());
-	_renderSettings->m_Resolution.SetResZ(_img->sizeZ());
-	_renderSettings->m_Spacing.x = _img->physicalSizeX();
-	_renderSettings->m_Spacing.y = _img->physicalSizeY();
-	_renderSettings->m_Spacing.z = _img->physicalSizeZ();
-
-	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
-
-	// Compute physical size
-	const Vec3f PhysicalSize(Vec3f(
-		_renderSettings->m_Spacing.x * (float)_renderSettings->m_Resolution.GetResX(), 
-		_renderSettings->m_Spacing.y * (float)_renderSettings->m_Resolution.GetResY(), 
-		_renderSettings->m_Spacing.z * (float)_renderSettings->m_Resolution.GetResZ()
-	));
-
-	// Compute the volume's bounding box
-	_renderSettings->m_BoundingBox.m_MinP = Vec3f(0.0f);
-	_renderSettings->m_BoundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
-
-	_renderSettings->m_Camera.m_SceneBoundingBox = _renderSettings->m_BoundingBox;
-
-
+void RenderGLCuda::initSceneLighting() {
 	CLight BackgroundLight;
 
 	BackgroundLight.m_T = 1;
@@ -105,7 +82,36 @@ void RenderGLCuda::initSceneFromImg()
 	AreaLight.Update(_renderSettings->m_BoundingBox);
 
 	_renderSettings->m_Lighting.AddLight(AreaLight);
+}
 
+void RenderGLCuda::initSceneFromImg()
+{
+	_renderSettings->m_Resolution.SetResX(_img->sizeX());
+	_renderSettings->m_Resolution.SetResY(_img->sizeY());
+	_renderSettings->m_Resolution.SetResZ(_img->sizeZ());
+	_renderSettings->m_Spacing.x = _img->physicalSizeX();
+	_renderSettings->m_Spacing.y = _img->physicalSizeY();
+	_renderSettings->m_Spacing.z = _img->physicalSizeZ();
+
+	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
+
+	// Compute physical size
+	const Vec3f PhysicalSize(Vec3f(
+		_renderSettings->m_Spacing.x * (float)_renderSettings->m_Resolution.GetResX(), 
+		_renderSettings->m_Spacing.y * (float)_renderSettings->m_Resolution.GetResY(), 
+		_renderSettings->m_Spacing.z * (float)_renderSettings->m_Resolution.GetResZ()
+	));
+
+	// Compute the volume's bounding box
+	_renderSettings->m_BoundingBox.m_MinP = Vec3f(0.0f);
+	_renderSettings->m_BoundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
+
+	_renderSettings->m_Camera.m_SceneBoundingBox = _renderSettings->m_BoundingBox;
+
+
+	for (int i = 0; i < _renderSettings->m_Lighting.m_NoLights; ++i) {
+		_renderSettings->m_Lighting.m_Lights[i].Update(_renderSettings->m_BoundingBox);
+	}
 }
 
 void RenderGLCuda::initQuad()
@@ -271,6 +277,14 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 	_imgCuda = cimg;
 }
 
+void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
+	// free the gpu resources of the old image.
+	_imgCuda.deallocGpu();
+
+	_img = img;
+	initVolumeTextureCUDA();
+	initSceneFromImg();
+}
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 {
 	initQuad();
