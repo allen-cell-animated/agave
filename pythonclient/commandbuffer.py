@@ -92,7 +92,7 @@ class CommandBuffer:
                 argtype = signature[j+1]
                 if argtype == "S":
                     sstr = cmd[j+1]
-                    struct.pack_into('i', self.buffer, offset, len(sstr))
+                    struct.pack_into('>i', self.buffer, offset, len(sstr))
                     offset+=4
                     for k in sstr:
                         struct.pack_into('B', self.buffer, offset, ord(k))
