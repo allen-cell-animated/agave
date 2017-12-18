@@ -364,11 +364,34 @@ void RenderGLCuda::doRender() {
 		_randomSeeds1,
 		_randomSeeds2
 	};
-	cudaVolume theCudaVolume = {
-		_imgCuda._channels[_currentChannel]._volumeTexture,
-		_imgCuda._channels[_currentChannel]._volumeGradientTexture,
-		_imgCuda._channels[_currentChannel]._volumeLutTexture
-	};
+
+	// single channel
+	int NC = _img->sizeC();
+	cudaVolume theCudaVolume(3);
+	for (int i = 0; i < NC; ++i) {
+		theCudaVolume.volumeTexture[i] = _imgCuda._channels[i]._volumeTexture;
+		theCudaVolume.gradientVolumeTexture[i] = _imgCuda._channels[i]._volumeGradientTexture;
+		theCudaVolume.lutTexture[i] = _imgCuda._channels[i]._volumeLutTexture;
+		theCudaVolume.intensityMax[i] = _img->channel(i)->_max;
+		switch (i) {
+		case 0:
+			theCudaVolume.diffuse[i * 3 + 0] = 1.0;
+			theCudaVolume.diffuse[i * 3 + 1] = 0.0;
+			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
+			break;
+		case 1:
+			theCudaVolume.diffuse[i * 3 + 0] = 1.0;
+			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
+			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
+			break;
+		case 2:
+			theCudaVolume.diffuse[i * 3 + 0] = 0.0;
+			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
+			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
+			break;
+		}
+	}
+
 	CTiming ri, bi, ppi, di;
 
 

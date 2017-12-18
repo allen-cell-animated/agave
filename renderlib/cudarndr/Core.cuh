@@ -13,10 +13,30 @@ struct cudaFB {
 	unsigned int* randomSeeds1;
 	unsigned int* randomSeeds2;
 };
+#define MAX_CHANNELS 8
 struct cudaVolume {
-	cudaTextureObject_t volumeTexture;
-	cudaTextureObject_t gradientVolumeTexture;
-	cudaTextureObject_t lutTexture;
+	int nChannels;
+	float intensityMax[MAX_CHANNELS];
+	float diffuse[MAX_CHANNELS * 3];
+
+	cudaTextureObject_t volumeTexture[MAX_CHANNELS];
+	cudaTextureObject_t gradientVolumeTexture[MAX_CHANNELS];
+	cudaTextureObject_t lutTexture[MAX_CHANNELS];
+	
+
+	cudaVolume(int n) {
+		nChannels = n;
+		//volumeTexture = new cudaTextureObject_t[n];
+		//gradientVolumeTexture = new cudaTextureObject_t[n];
+		//lutTexture = new cudaTextureObject_t[n];
+		//intensityMax = new float[n];
+	}
+	~cudaVolume() {
+		//delete[] intensityMax;
+		//delete[] volumeTexture;
+		//delete[] gradientVolumeTexture;
+		//delete[] lutTexture;
+	}
 };
 
 void BindDensityBuffer(short* pBuffer, cudaExtent Extent);

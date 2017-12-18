@@ -7,6 +7,42 @@ DEV inline Vec3f ToVec3f(const float3& V)
 	return Vec3f(V.x, V.y, V.z);
 }
 
+
+DEV void GetNormalizedIntensityN(const Vec3f& P, const cudaVolume& volumeData, float* intensities)
+{
+	for (int i = 0; i < volumeData.nChannels; ++i) {
+
+		float Intensity = ((float)SHRT_MAX * tex3D<float>(volumeData.volumeTexture[i], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+		// map to 0..1
+		//Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
+		Intensity = (Intensity) / volumeData.intensityMax[i];
+		Intensity = tex1D<float>(volumeData.lutTexture[i], Intensity);
+		intensities[i] = Intensity;
+	}
+}
+
+DEV float GetNormalizedIntensityMax(const Vec3f& P, const cudaVolume& volumeData, int& ch)
+{
+	float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	factor = (factor > 0) ? 1.0 : 0.0;
+
+	float maxIn = 0.0;
+	ch = 0;
+	for (int i = 0; i < volumeData.nChannels; ++i) {
+		float Intensity = ((float)SHRT_MAX * tex3D<float>(volumeData.volumeTexture[i], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+		// map to 0..1
+		//Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
+		Intensity = (Intensity) / volumeData.intensityMax[i];
+		Intensity = tex1D<float>(volumeData.lutTexture[i], Intensity);
+
+		if (Intensity > maxIn) {
+			maxIn = Intensity;
+			ch = i;
+		}
+	}
+	return maxIn * factor;
+}
+
 DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity, cudaTextureObject_t texLut)
 {
 	float Intensity = ((float)SHRT_MAX * tex3D<float>(texDensity, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
@@ -21,9 +57,18 @@ DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity,
 DEV float GetOpacity(const float& NormalizedIntensity, cudaTextureObject_t texLut)
 {
 	// apply lut
-	//float Intensity = NormalizedIntensity;
-	float Intensity = tex1D<float>(texLut, NormalizedIntensity);
+	float Intensity = NormalizedIntensity;
+	//float Intensity = tex1D<float>(texLut, NormalizedIntensity);
 	return Intensity;
+}
+
+DEV CColorRgbHdr GetDiffuseN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
+{
+	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
+	//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
+	//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
+	//	return CColorRgbHdr(1.0, 1.0, 1.0);
+	return CColorRgbHdr(volumeData.diffuse[ch*3+0], volumeData.diffuse[ch * 3 + 1], volumeData.diffuse[ch * 3 + 2]);
 }
 
 DEV CColorRgbHdr GetDiffuse(const float& NormalizedIntensity)
@@ -47,7 +92,8 @@ DEV CColorRgbHdr GetSpecular(const float& NormalizedIntensity)
 
 DEV float GetRoughness(const float& NormalizedIntensity)
 {
-	return NormalizedIntensity;
+	return 0.0;
+	//return NormalizedIntensity;
 	//return tex1D(gTexRoughness, NormalizedIntensity);
 }
 

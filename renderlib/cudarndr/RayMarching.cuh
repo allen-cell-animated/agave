@@ -30,7 +30,7 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 	float SigmaT	= 0.0f;
 
 	MinT[TID] += RNG.Get1() * gStepSize;
-
+	int ch = 0;
 	while (Sum < S)
 	{
 		Ps = R.m_O + MinT[TID] * R.m_D;
@@ -38,7 +38,8 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 		if (MinT[TID] > MaxT[TID])
 			return false;
 		
-		SigmaT	= gDensityScale * GetOpacity(GetNormalizedIntensity(Ps, volumedata.volumeTexture, volumedata.lutTexture), volumedata.lutTexture);
+		SigmaT = gDensityScale * GetOpacity(GetNormalizedIntensityMax(Ps, volumedata, ch), volumedata.lutTexture[0]);
+//		SigmaT = gDensityScale * GetOpacity(GetNormalizedIntensity(Ps, volumedata.volumeTexture[0], volumedata.lutTexture[0]), volumedata.lutTexture[0]);
 
 		Sum			+= SigmaT * gStepSize;
 		MinT[TID]	+= gStepSize;
@@ -66,7 +67,7 @@ DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 	float SigmaT	= 0.0f;
 
 	MinT[TID] += RNG.Get1() * gStepSizeShadow;
-
+	int ch = 0;
 	while (Sum < S)
 	{
 		Ps[TID] = R.m_O + MinT[TID] * R.m_D;
@@ -74,7 +75,8 @@ DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 		if (MinT[TID] > MaxT[TID])
 			return false;
 		
-		SigmaT	= gDensityScale * GetOpacity(GetNormalizedIntensity(Ps[TID], volumedata.volumeTexture, volumedata.lutTexture), volumedata.lutTexture);
+		SigmaT = gDensityScale * GetOpacity(GetNormalizedIntensityMax(Ps[TID], volumedata, ch), volumedata.lutTexture[0]);
+		//SigmaT = gDensityScale * GetOpacity(GetNormalizedIntensity(Ps[TID], volumedata.volumeTexture[0], volumedata.lutTexture[0]), volumedata.lutTexture[0]);
 
 		Sum			+= SigmaT * gStepSizeShadow;
 		MinT[TID]	+= gStepSizeShadow;
@@ -96,12 +98,13 @@ DEV inline bool NearestIntersection(CRay R, CScene* pScene, const cudaVolume& vo
 	Vec3f Ps; 
 
 	T = MinT;
-
+	int ch = 0;
 	while (T < MaxT)
 	{
 		Ps = R.m_O + T * R.m_D;
 
-		if (GetOpacity(GetNormalizedIntensity(Ps, volumedata.volumeTexture, volumedata.lutTexture), volumedata.lutTexture) > 0.0f)
+//		if (GetOpacity(GetNormalizedIntensity(Ps, volumedata.volumeTexture[0], volumedata.lutTexture[0]), volumedata.lutTexture[0]) > 0.0f)
+		if (GetOpacity(GetNormalizedIntensityMax(Ps, volumedata, ch), volumedata.lutTexture[0]) > 0.0f)
 			return true;
 
 		T += gStepSize;
