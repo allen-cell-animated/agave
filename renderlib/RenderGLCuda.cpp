@@ -368,7 +368,7 @@ void RenderGLCuda::doRender() {
 	// single channel
 	int NC = _img->sizeC();
 	cudaVolume theCudaVolume(3);
-	for (int i = 0; i < NC; ++i) {
+	for (int i = 0; i < min(NC, 8); ++i) {
 		theCudaVolume.volumeTexture[i] = _imgCuda._channels[i]._volumeTexture;
 		theCudaVolume.gradientVolumeTexture[i] = _imgCuda._channels[i]._volumeGradientTexture;
 		theCudaVolume.lutTexture[i] = _imgCuda._channels[i]._volumeLutTexture;
@@ -388,6 +388,11 @@ void RenderGLCuda::doRender() {
 			theCudaVolume.diffuse[i * 3 + 0] = 0.0;
 			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
 			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
+			break;
+		case 3:
+			theCudaVolume.diffuse[i * 3 + 0] = 1.0;
+			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
+			theCudaVolume.diffuse[i * 3 + 2] = 0.0;
 			break;
 		}
 	}
