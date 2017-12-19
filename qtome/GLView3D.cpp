@@ -50,7 +50,8 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	//    _renderer(new RenderGL(img))
 	_camera(cam),
 	_cameraController(cam),
-	_transferFunction(tran)
+	_transferFunction(tran),
+	_rendererType(1)
 {
 	// The GLView3D owns one CScene
 
@@ -67,6 +68,15 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	camera.up = glm::vec3(0.0, 1.0, 0.0);
 	glm::vec3 target(0.0, 0.0, 0.0); // position of model or world center!!!
 	camera.direction = glm::normalize(target - camera.position);
+}
+
+void GLView3D::setImage(std::shared_ptr<ImageXYZC> img)
+{
+	_img = img;
+	// costly teardown and rebuild.
+	this->OnUpdateRenderer(_rendererType);
+	// would be better to preserve renderer and just change the scene data to include the new image.
+	// how tightly coupled is renderer and scene????
 }
 
 GLView3D::~GLView3D()
@@ -414,6 +424,7 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 	default:
 		_renderer.reset(new RenderGL(_img, _scene));
 	};
+	_rendererType = rendererType;
 
 	QSize newsize = size();
 	_renderer->initialize(newsize.width(), newsize.height());

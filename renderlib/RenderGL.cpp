@@ -15,6 +15,14 @@ RenderGL::RenderGL(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 {
 }
 
+void RenderGL::setImage(std::shared_ptr<ImageXYZC> img)
+{
+	_img = img;
+
+	delete image3d;
+	image3d = new Image3Dv33(_img);
+	image3d->create();
+}
 
 RenderGL::~RenderGL()
 {

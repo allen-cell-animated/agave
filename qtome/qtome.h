@@ -26,6 +26,8 @@ private:
 private slots:
 	void open();
 	void open(const QString& file);
+	void openRecentFile();
+	void updateRecentFileActions();
 	void quit();
 	void view_reset();
 	void view_zoom();
@@ -35,11 +37,18 @@ private slots:
 	void tabChanged(int index);
 
 private:
+	enum { MaxRecentFiles = 5 };
+
 	void createActions();
 	void createMenus();
 	void createToolbars();
 	void createDockWindows();
 	QDockWidget* createRenderingDock();
+
+	static bool hasRecentFiles();
+	void prependToRecentFiles(const QString &fileName);
+	void setRecentFilesVisible(bool visible);
+	static QString strippedName(const QString &fullFileName);
 
 	QMenu *fileMenu;
 	QMenu *viewMenu;
@@ -80,5 +89,9 @@ private:
 	// if renderer is on a separate thread, then this will need a mutex guard
 	// any direct programmatic changes to this obj need to be pushed to the UI as well.
 	CScene _renderSettings;
+
+	QAction *recentFileActs[MaxRecentFiles];
+	QAction *recentFileSeparator;
+	QAction *recentFileSubMenuAct;
 
 };

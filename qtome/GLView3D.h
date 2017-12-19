@@ -64,7 +64,8 @@ public:
     * @returns the size hint.
     */
     QSize sizeHint() const;
-
+	
+	void setImage(std::shared_ptr<ImageXYZC> img);
 public slots:
     /**
     * Set zoom factor.
@@ -263,4 +264,5 @@ private:
 	CScene* _scene;
 
 	std::unique_ptr<IRenderWindow> _renderer;
+	int _rendererType;
 };

@@ -19,12 +19,17 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QFileDialog>
 #include <QtCore/QElapsedTimer>
+#include <QtCore/QSettings>
 
 #include <boost/filesystem/path.hpp>
 
 qtome::qtome(QWidget *parent)
 	: QMainWindow(parent)
 {
+	QCoreApplication::setOrganizationName("AICS");
+	QCoreApplication::setOrganizationDomain("allencell.org");
+	QCoreApplication::setApplicationName("VolumeRenderer");
+
 	ui.setupUi(this);
 
 	createActions();
@@ -45,10 +50,27 @@ qtome::qtome(QWidget *parent)
 
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
+	// add the single gl view as a tab
+	glView = new GLView3D(nullptr, &_camera, &_transferFunction, &_renderSettings, this);
+	QWidget *glContainer = new GLContainer(this, glView);
+	glView->setObjectName("glcontainer");
+	// We need a minimum size or else the size defaults to zero.
+	glContainer->setMinimumSize(512, 512);
+	tabs->addTab(glContainer, "None");
+	glView->setC(0);
+	navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
+
 
 	setWindowTitle(tr("OME-Files GLView"));
-
-	open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_881.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Desktop\\test4chanpred.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Desktop\\test4chan.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409_1.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409_4.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409_6.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269.ome.tif");
+	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
 	//open("/home/danielt/Downloads/AICS-12_269_4.ome.tif");
 
 }
@@ -115,6 +137,16 @@ void qtome::createMenus()
 	fileMenu->addAction(openAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
+
+	QMenu *recentMenu = fileMenu->addMenu(tr("Recent..."));
+	connect(recentMenu, &QMenu::aboutToShow, this, &qtome::updateRecentFileActions);
+	recentFileSubMenuAct = recentMenu->menuAction();
+	for (int i = 0; i < MaxRecentFiles; ++i) {
+		recentFileActs[i] = recentMenu->addAction(QString(), this, &qtome::openRecentFile);
+		recentFileActs[i]->setVisible(false);
+	}
+	recentFileSeparator = fileMenu->addSeparator();
+	setRecentFilesVisible(qtome::hasRecentFiles());
 
 	viewMenu = menuBar()->addMenu(tr("&View"));
 	viewMenu->addAction(viewResetAction);
@@ -228,13 +260,13 @@ void qtome::open(const QString& file)
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 		qDebug() << "Loaded " << file << " in " << t.elapsed() << "ms";
 
-		GLView3D *newGlView = new GLView3D(image, &_camera, &_transferFunction, &_renderSettings, this);
-		QWidget *glContainer = new GLContainer(this, newGlView);
-		newGlView->setObjectName("glcontainer");
-		// We need a minimum size or else the size defaults to zero.
-		glContainer->setMinimumSize(512, 512);
-		tabs->addTab(glContainer, info.fileName());
-		newGlView->setC(0);
+
+		glView->setImage(image);
+		glView->setC(0);
+		tabs->setTabText(0, info.fileName());
+		navigation->setReader(image);
+
+		qtome::prependToRecentFiles(file);
 	}
 }
 
@@ -321,4 +353,86 @@ void qtome::view_rotate()
 {
 	if (glView)
 		glView->setMouseMode(GLView3D::MODE_ROTATE);
+}
+
+void qtome::setRecentFilesVisible(bool visible)
+{
+	recentFileSubMenuAct->setVisible(visible);
+	recentFileSeparator->setVisible(visible);
+}
+
+static inline QString recentFilesKey() { return QStringLiteral("recentFileList"); }
+static inline QString fileKey() { return QStringLiteral("file"); }
+
+static QStringList readRecentFiles(QSettings &settings)
+{
+	QStringList result;
+	const int count = settings.beginReadArray(recentFilesKey());
+	for (int i = 0; i < count; ++i) {
+		settings.setArrayIndex(i);
+		result.append(settings.value(fileKey()).toString());
+	}
+	settings.endArray();
+	return result;
+}
+
+static void writeRecentFiles(const QStringList &files, QSettings &settings)
+{
+	const int count = files.size();
+	settings.beginWriteArray(recentFilesKey());
+	for (int i = 0; i < count; ++i) {
+		settings.setArrayIndex(i);
+		settings.setValue(fileKey(), files.at(i));
+	}
+	settings.endArray();
+}
+
+bool qtome::hasRecentFiles()
+{
+	QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+	const int count = settings.beginReadArray(recentFilesKey());
+	settings.endArray();
+	return count > 0;
+}
+
+void qtome::prependToRecentFiles(const QString &fileName)
+{
+	QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+
+	const QStringList oldRecentFiles = readRecentFiles(settings);
+	QStringList recentFiles = oldRecentFiles;
+	recentFiles.removeAll(fileName);
+	recentFiles.prepend(fileName);
+	if (oldRecentFiles != recentFiles)
+		writeRecentFiles(recentFiles, settings);
+
+	setRecentFilesVisible(!recentFiles.isEmpty());
+}
+
+void qtome::updateRecentFileActions()
+{
+	QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+
+	const QStringList recentFiles = readRecentFiles(settings);
+	const int count = qMin(int(MaxRecentFiles), recentFiles.size());
+	int i = 0;
+	for (; i < count; ++i) {
+		const QString fileName = qtome::strippedName(recentFiles.at(i));
+		recentFileActs[i]->setText(tr("&%1 %2").arg(i + 1).arg(fileName));
+		recentFileActs[i]->setData(recentFiles.at(i));
+		recentFileActs[i]->setVisible(true);
+	}
+	for (; i < MaxRecentFiles; ++i)
+		recentFileActs[i]->setVisible(false);
+}
+
+void qtome::openRecentFile()
+{
+	if (const QAction *action = qobject_cast<const QAction *>(sender()))
+		open(action->data().toString());
+}
+
+QString qtome::strippedName(const QString &fullFileName)
+{
+	return QFileInfo(fullFileName).fileName();
 }

@@ -25,6 +25,8 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
 
 Image3Dv33::~Image3Dv33()
 {
+	glDeleteTextures(1, &textureid);
+	glDeleteTextures(1, &lutid);
 	delete image3d_shader;
 }
 

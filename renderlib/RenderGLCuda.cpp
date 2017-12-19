@@ -86,6 +86,10 @@ void RenderGLCuda::initSceneLighting() {
 
 void RenderGLCuda::initSceneFromImg()
 {
+	if (!_img) {
+		return;
+	}
+
 	_renderSettings->m_Resolution.SetResX(_img->sizeX());
 	_renderSettings->m_Resolution.SetResY(_img->sizeY());
 	_renderSettings->m_Resolution.SetResZ(_img->sizeZ());
@@ -132,6 +136,7 @@ void RenderGLCuda::initQuad()
 		glGenVertexArrays(1, &vertices);
 	}
 	glBindVertexArray(vertices);
+	check_gl("create and bind verts");
 
 	if (image_vertices == 0) {
 		glGenBuffers(1, &image_vertices);
@@ -175,30 +180,6 @@ void RenderGLCuda::initQuad()
 	glBindVertexArray(0);
 	check_gl("unbind vtx array");
 }
-
-//void RenderGLCuda::deallocateFB()
-//{
-//	if (_cudaF32Buffer) {
-//		cudaFree(_cudaF32Buffer);
-//		_cudaF32Buffer = nullptr;
-//	}
-//
-//	if (_cudaTex) {
-//		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
-//	}
-//	if (_fbtex) {
-//		glDeleteTextures(1, &_fbtex);
-//		check_gl("Destroy fb texture");
-//	}
-//
-//}
-//void RenderGLCuda::deallocateVolume()
-//{
-//	HandleCudaError(cudaFreeArray(_volumeArray);
-//
-//	HandleCudaError(cudaCreateTextureObject(&_volumeTex, &texRes, &texDescr, NULL));
-//
-//}
 
 void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 {
@@ -272,6 +253,9 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
+	if (!_img) {
+		return;
+	}
 	ImageCuda cimg;
 	cimg.allocGpu(_img.get());
 	_imgCuda = cimg;
@@ -306,6 +290,10 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::doRender() {
+	if (!_img) {
+		return;
+	}
+
 	_currentChannel = _renderSettings->_channel;
 
 	// Resizing the image canvas requires special attention
@@ -468,6 +456,7 @@ void RenderGLCuda::drawImage() {
 	image_shader->setTexture(0);
 
 	glBindVertexArray(vertices);
+	check_gl("bind vtx buf");
 
 	image_shader->enableCoords();
 	image_shader->setCoords(image_vertices, 0, 2);
@@ -477,6 +466,7 @@ void RenderGLCuda::drawImage() {
 
 	// Push each element to the vertex shader
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, image_elements);
+	check_gl("bind element buf");
 	glDrawElements(GL_TRIANGLES, (GLsizei)num_image_elements, GL_UNSIGNED_SHORT, 0);
 	check_gl("Image2D draw elements");
 
@@ -497,4 +487,32 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 	}
 
 	initFB(w, h);
+}
+
+void RenderGLCuda::cleanUpResources() {
+	glDeleteVertexArrays(1, &vertices);
+	glDeleteBuffers(1, &image_vertices);
+	glDeleteBuffers(1, &image_texcoords);
+	glDeleteBuffers(1, &image_elements);
+
+	glDeleteTextures(1, &_fbtex);
+	if (_cudaF32Buffer) {
+		HandleCudaError(cudaFree(_cudaF32Buffer));
+		_cudaF32Buffer = nullptr;
+	}
+	if (_cudaF32AccumBuffer) {
+		HandleCudaError(cudaFree(_cudaF32AccumBuffer));
+		_cudaF32AccumBuffer = nullptr;
+	}
+	if (_randomSeeds1) {
+		HandleCudaError(cudaFree(_randomSeeds1));
+		_randomSeeds1 = nullptr;
+	}
+	if (_randomSeeds2) {
+		HandleCudaError(cudaFree(_randomSeeds2));
+		_randomSeeds2 = nullptr;
+	}
+	if (_cudaTex) {
+		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
+	}
 }

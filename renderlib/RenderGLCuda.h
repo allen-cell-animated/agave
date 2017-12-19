@@ -23,6 +23,8 @@ public:
 	virtual void initialize(uint32_t w, uint32_t h);
 	virtual void render(const Camera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
+	virtual void cleanUpResources();
+
 
 	void setImage(std::shared_ptr<ImageXYZC> img);
 
