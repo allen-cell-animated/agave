@@ -100,9 +100,9 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   uint32_t sizeT = requireUint32Attr(pixelsEl, "SizeT", 0);
   // one of : "XYZCT", "XYZTC","XYCTZ","XYCZT","XYTCZ","XYTZC"
   QString dimensionOrder = pixelsEl.attribute("DimensionOrder", "XYCZT");
-  float physicalSizeX = requireFloatAttr(pixelsEl, "PhysicalSizeX", 0.0f);
-  float physicalSizeY = requireFloatAttr(pixelsEl, "PhysicalSizeY", 0.0f);
-  float physicalSizeZ = requireFloatAttr(pixelsEl, "PhysicalSizeZ", 0.0f);
+  float physicalSizeX = requireFloatAttr(pixelsEl, "PhysicalSizeX", 1.0f);
+  float physicalSizeY = requireFloatAttr(pixelsEl, "PhysicalSizeY", 1.0f);
+  float physicalSizeZ = requireFloatAttr(pixelsEl, "PhysicalSizeZ", 1.0f);
   QString physicalSizeXunit = pixelsEl.attribute("PhysicalSizeXUnit", "");
   QString physicalSizeYunit = pixelsEl.attribute("PhysicalSizeYUnit", "");
   QString physicalSizeZunit = pixelsEl.attribute("PhysicalSizeZUnit", "");
