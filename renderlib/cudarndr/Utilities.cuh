@@ -23,8 +23,8 @@ DEV void GetNormalizedIntensityN(const Vec3f& P, const cudaVolume& volumeData, f
 
 DEV float GetNormalizedIntensityMax(const Vec3f& P, const cudaVolume& volumeData, int& ch)
 {
-	float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
-	factor = (factor > 0) ? 1.0 : 0.0;
+	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	//factor = (factor > 0) ? 1.0 : 0.0;
 
 	float maxIn = 0.0;
 	ch = 0;
@@ -40,7 +40,7 @@ DEV float GetNormalizedIntensityMax(const Vec3f& P, const cudaVolume& volumeData
 			ch = i;
 		}
 	}
-	return maxIn * factor;
+	return maxIn; // *factor;
 }
 
 DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity, cudaTextureObject_t texLut)
