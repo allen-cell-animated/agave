@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QDir>
 
 #include "mainwindow.h"
@@ -10,12 +11,34 @@ int main(int argc, char *argv[])
 	bool gui = false;
 
 	QApplication a(argc, argv);
-	QDir::setCurrent(QApplication::applicationDirPath() + "/work");
+	//QDir::setCurrent(QApplication::applicationDirPath() + "/work");
 
-	a.setApplicationName("CellServer");
-	a.setApplicationVersion("0.7.5 1001");
+	a.setApplicationName("VolumeRenderServer");
+	a.setApplicationVersion("0.0.1");
 
-	StreamServer *server = new StreamServer(1234, false, 0);
+	QCommandLineParser parser;
+	parser.setApplicationDescription("Remote rendering service via websockets");
+	parser.addHelpOption();
+	parser.addVersionOption();
+	parser.addPositionalArgument("port", QCoreApplication::translate("main", "Websocket connection port."));
+
+	// Process the actual command line arguments given by the user
+	parser.process(a);
+
+	const QStringList args = parser.positionalArguments();
+	// port is args.at(0)
+	const int defaultPort = 1234;
+	int port = defaultPort;
+	if (args.size() > 0) {
+		QString sport = args.at(0);
+		bool ok;
+		port = sport.toInt(&ok);
+		if (!ok) {
+			port = defaultPort;
+		}
+	}
+
+	StreamServer *server = new StreamServer(port, false, 0);
 
 	if (gui)
 	{
