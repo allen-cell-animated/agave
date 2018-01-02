@@ -1,8 +1,10 @@
+add_executable(qtomeapp "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 target_include_directories(qtomeapp PUBLIC
+	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
 	${XercesC_INCLUDE_DIRS}	
-	${glm_DIR}
+	${GLM_INCLUDE_DIRS}
 )
 target_compile_definitions(qtomeapp PUBLIC
 	BOOST_ALL_DYN_LINK
@@ -25,7 +27,6 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLView2D.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLView3D.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLWindow.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/NavigationDock2D.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ProjectionWidget.cpp"
@@ -34,3 +35,24 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/qtome.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TransferFunction.cpp"
 	)
+target_link_libraries(qtomeapp 
+	renderlib 
+	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	${TIFF_LIBRARIES}
+	${Boost_LIBRARIES}
+)
+
+if (WIN32)
+install(FILES 
+	$<TARGET_FILE:Qt5::Widgets>
+	$<TARGET_FILE:Qt5::Core>
+	$<TARGET_FILE:Qt5::Gui>
+	$<TARGET_FILE:Qt5::Xml>
+	$<TARGET_FILE:Qt5::Network>
+	$<TARGET_FILE:Qt5::WebSockets>
+	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+)
+endif (WIN32)
+
+# install(DIRECTORY ${CMAKE_SOURCE_DIR}/qtome/ome-qtwidgets-icon/actions DESTINATION dist)
+
