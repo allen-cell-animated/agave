@@ -15,12 +15,11 @@ set(CMAKE_AUTOUIC ON)
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
 if (WIN32)
-	set(QT_DIR C:/Qt/5.9.1/msvc2015_64)
+	set(QTDIR C:/Qt/5.9.1/msvc2015_64)
+    list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 else (WIN32)
 	# linux: QTDIR = /opt/qt59
 endif (WIN32)
-
-list(INSERT CMAKE_PREFIX_PATH 0 ${QT_DIR})
 
 find_package(Qt5Widgets)
 find_package(Qt5Core)
@@ -50,7 +49,8 @@ set(CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60;${CUDA_NVCC_FLAGS}")
 set(CUDA_NVCC_FLAGS "-gencode=arch=compute_61,code=sm_61;${CUDA_NVCC_FLAGS}")
 set(CUDA_NVCC_FLAGS "-gencode=arch=compute_62,code=sm_62;${CUDA_NVCC_FLAGS}")
 
-find_package(glm REQUIRED)
+set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
+# find_package(glm REQUIRED)
 
 ######################
 # THE COMMON CORE LIBRARIES
