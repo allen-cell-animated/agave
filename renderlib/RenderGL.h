@@ -20,7 +20,6 @@ public:
 	virtual void resize(uint32_t w, uint32_t h);
 
 	Image3Dv33* getImage() const { return image3d; };
-
 	void setImage(std::shared_ptr<ImageXYZC> img);
 private:
 	Image3Dv33 *image3d;

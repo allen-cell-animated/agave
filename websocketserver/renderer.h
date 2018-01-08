@@ -83,9 +83,6 @@ private:
 	int frameNumber;
 	QTime time;
 
-	void renderScene(QString scene);
-	void displayScene(QString scene);
-
 	class SceneDescription
 	{
 	public:

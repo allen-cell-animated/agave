@@ -27,11 +27,8 @@ public:
 
 
 	void setImage(std::shared_ptr<ImageXYZC> img);
-
 	Image3Dv33* getImage() const { return nullptr; };
-
 	CScene& getScene() { return *_renderSettings; }
-
 
 	// just draw into my own fbo.
 	void doRender();

@@ -172,65 +172,20 @@ QImage Renderer::render()
 
 	glEnable(GL_TEXTURE_2D);
 
-	// TODO these should be commands, and not part of "render()"
-#if 0
-	if ((p.mseDx != 0) || (p.mseDy != 0)) {
-		myVolumeData._scene->m_Camera.Orbit(-0.6f * (float)(p.mseDy), -(float)(p.mseDx));
-		myVolumeData._scene->SetNoIterations(0);
-	}
-	if (p.channelvalues[0].toInt() != myVolumeData._scene->_channel) {
-		myVolumeData._scene->_channel = p.channelvalues[0].toInt();
-		myVolumeData._scene->SetNoIterations(0);
-	}
-#endif
-
-	// DRAW THE THINGS INTO THEIR OWN FBOs
+	// DRAW
 	myVolumeData._renderer->doRender();
-	//		foreach(SceneDescription scene, this->scenes)
-	//		{
-	//			this->renderScene(scene.name);
-	//		}
 
-	// BIND THE RENDER TARGET FOR THE FINAL IMAGE
-	// {
-	//		this->marion->fbo("_")->bind();
-	//		glClearColor(1.0, 1.0, 1.0, 1.0);
-	//		glClear(GL_COLOR_BUFFER_BIT);
-	// COMPOSITE THE SCENE'S FBO TO THE FINAL IMAGE FBO
-	//		foreach(SceneDescription scene, this->scenes)
-	//		{
-	//			this->displayScene(scene.name);
-	//		}
-	// UNBIND SO WE CAN READ THE TARGET
-	//		this->marion->fbo("_")->release();
-	// }
-	//qDebug() << "gu" << this->marion->fbo("_")->toImage().width() << this->marion->fbo("_")->toImage().height();
-	//QOpenGLFramebufferObject::blitFramebuffer(fbo, QRect(0, 0, 512, 512), this->marion->fbo("_"), QRect(0, 0, 512, 512), GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-	// DRAW QUAD TO FBO (COPY RENDERED FBO TO PRIMARY FBO)
-	// try glBlitFramebuffer() instead?
+	// COPY TO MY FBO
 	this->fbo->bind();
 	glViewport(0, 0, fbo->width(), fbo->height());
-
 	myVolumeData._renderer->drawImage();
-
-	glEnable(GL_TEXTURE_2D);
 	this->fbo->release();
-
 
 	QImage img = fbo->toImage();
 
 	this->context->doneCurrent();
 
 	return img;
-}
-
-void Renderer::renderScene(QString scene)
-{
-}
-
-void Renderer::displayScene(QString scene)
-{
 }
 
 void Renderer::resizeGL(int width, int height)
