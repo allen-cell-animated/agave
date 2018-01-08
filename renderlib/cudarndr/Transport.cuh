@@ -3,7 +3,7 @@
 #include "Shader.cuh"
 #include "RayMarching.cuh"
 
-DEV CColorXyz EstimateDirectLight(CScene* pScene, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, CLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
+DEV CColorXyz EstimateDirectLight(const CLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const CLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
 {
 	CColorXyz Ld = SPEC_BLACK, Li = SPEC_BLACK, F = SPEC_BLACK;
 	
@@ -17,7 +17,7 @@ DEV CColorXyz EstimateDirectLight(CScene* pScene, const cudaVolume& volumedata, 
 
  	Li = Light.SampleL(Pe, Rl, LightPdf, LS);
 	
-	CLight* pLight = NULL;
+	const CLight* pLight = NULL;
 
 	Wi = -Rl.m_D; 
 
@@ -40,7 +40,7 @@ DEV CColorXyz EstimateDirectLight(CScene* pScene, const cudaVolume& volumedata, 
 
 	if (!F.IsBlack() && ShaderPdf > 0.0f)
 	{
-		if (NearestLight(pScene, CRay(Pe, Wi, 0.0f), Li, Pl, pLight, &LightPdf))
+		if (NearestLight(lighting, CRay(Pe, Wi, 0.0f), Li, Pl, pLight, &LightPdf))
 		{
 			LightPdf = pLight->Pdf(Pe, Wi);
 
@@ -65,9 +65,9 @@ DEV CColorXyz EstimateDirectLight(CScene* pScene, const cudaVolume& volumedata, 
 	return Ld;
 }
 
-DEV CColorXyz UniformSampleOneLight(CScene* pScene, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
+DEV CColorXyz UniformSampleOneLight(const CLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
 {
-	const int NumLights = pScene->m_Lighting.m_NoLights;
+	const int NumLights = lighting.m_NoLights;
 
  	if (NumLights == 0)
  		return SPEC_BLACK;
@@ -78,7 +78,7 @@ DEV CColorXyz UniformSampleOneLight(CScene* pScene, const cudaVolume& volumedata
 
 	const int WhichLight = (int)floorf(LS.m_LightNum * (float)NumLights);
 
-	CLight& Light = pScene->m_Lighting.m_Lights[WhichLight];
+	const CLight& Light = lighting.m_Lights[WhichLight];
 
-	return (float)NumLights * EstimateDirectLight(pScene, volumedata, Type, Density, ch, Light, LS, Wo, Pe, N, RNG);
+	return (float)NumLights * EstimateDirectLight(lighting, volumedata, Type, Density, ch, Light, LS, Wo, Pe, N, RNG);
 }

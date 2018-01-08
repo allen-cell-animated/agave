@@ -122,7 +122,7 @@ DEV float GradientMagnitude(const Vec3f& P, cudaTextureObject_t texGradientMagni
 	return ((float)SHRT_MAX * tex3D<float>(texGradientMagnitude, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 }
 
-DEV bool NearestLight(CScene* pScene, CRay R, CColorXyz& LightColor, Vec3f& Pl, CLight*& pLight, float* pPdf = NULL)
+DEV bool NearestLight(const CLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, const CLight* &pLight, float* pPdf = NULL)
 {
 	bool Hit = false;
 	
@@ -132,12 +132,12 @@ DEV bool NearestLight(CScene* pScene, CRay R, CColorXyz& LightColor, Vec3f& Pl, 
 
 	float Pdf = 0.0f;
 
-	for (int i = 0; i < pScene->m_Lighting.m_NoLights; i++)
+	for (int i = 0; i < lighting.m_NoLights; i++)
 	{
-		if (pScene->m_Lighting.m_Lights[i].Intersect(RayCopy, T, LightColor, NULL, &Pdf))
+		if (lighting.m_Lights[i].Intersect(RayCopy, T, LightColor, NULL, &Pdf))
 		{
 			Pl		= R(T);
-			pLight	= &pScene->m_Lighting.m_Lights[i];
+			pLight	= &lighting.m_Lights[i];
 			Hit		= true;
 		}
 	}

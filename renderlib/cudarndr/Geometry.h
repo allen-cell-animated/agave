@@ -138,12 +138,12 @@ public:
 			bWeight[2] * z;
 	}
 
-	HOD CColorXyz ToXYZ(void)
+	HOD CColorXyz ToXYZ(void) const
 	{
 		return CColorXyz::FromRGB(r, g, b);
 	}
 
-	HOD CColorXyza ToXYZA(void)
+	HOD CColorXyza ToXYZA(void) const
 	{
 		return CColorXyza::FromRGB(r, g, b);
 	}

@@ -130,7 +130,7 @@ public:
 	}
 
 	// Samples the light
-	HOD CColorXyz SampleL(const Vec3f& P, CRay& Rl, float& Pdf, CLightingSample& LS)
+	HOD CColorXyz SampleL(const Vec3f& P, CRay& Rl, float& Pdf, CLightingSample& LS) const
 	{
 		CColorXyz L = SPEC_BLACK;
 
@@ -157,7 +157,7 @@ public:
 	}
 
 	// Intersect ray with light
-	HOD bool Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV = NULL, float* pPdf = NULL)
+	HOD bool Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV = NULL, float* pPdf = NULL) const
 	{
 		if (m_T == 0)
 		{
@@ -227,7 +227,7 @@ public:
 		return false;
 	}
 
-	HOD float Pdf(const Vec3f& P, const Vec3f& Wi)
+	HOD float Pdf(const Vec3f& P, const Vec3f& Wi) const
 	{
 		CColorXyz L;
 		Vec2f UV;
@@ -253,7 +253,7 @@ public:
 		return 0.0f;
 	}
 
-	HOD CColorXyz Le(const Vec2f& UV)
+	HOD CColorXyz Le(const Vec2f& UV) const
 	{
 		if (m_T == 0)
 			return CColorXyz::FromRGB(m_Color.r, m_Color.g, m_Color.b) / m_Area;

@@ -38,13 +38,13 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 
 	Vec3f Pe, Pl;
 	
-	CLight* pLight = NULL;
+	const CLight* pLight = NULL;
 	
 	if (SampleDistanceRM(Re, RNG, Pe, volumedata))
 	{
 		//Lv = CLR_RAD_RED;
 
-		if (NearestLight(pScene, CRay(Re.m_O, Re.m_D, 0.0f, (Pe - Re.m_O).Length()), Li, Pl, pLight))
+		if (NearestLight(pScene->m_Lighting, CRay(Re.m_O, Re.m_D, 0.0f, (Pe - Re.m_O).Length()), Li, Pl, pLight))
 		{
 			// set sample pixel value in frame estimate (prior to accumulation)
 			pView[floatoffset] = Lv.c[0];
@@ -64,14 +64,14 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 		{
 			case 0:
 			{
-				Lv += UniformSampleOneLight(pScene, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, true);
+				Lv += UniformSampleOneLight(pScene->m_Lighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, true);
 				//Lv = CLR_RAD_RED;
 				break;
 			}
 		
 			case 1:
 			{
-				Lv += 0.5f * UniformSampleOneLight(pScene, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, false);
+				Lv += 0.5f * UniformSampleOneLight(pScene->m_Lighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, false);
 				//Lv = CLR_RAD_GREEN;
 				break;
 			}
@@ -84,10 +84,10 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 
 				CColorXyz cls;
 				if (RNG.Get1() < PdfBrdf) {
-					cls = UniformSampleOneLight(pScene, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, true);
+					cls = UniformSampleOneLight(pScene->m_Lighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, true);
 				}
 				else {
-					cls = 0.5f * UniformSampleOneLight(pScene, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, false);
+					cls = 0.5f * UniformSampleOneLight(pScene->m_Lighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, false);
 				}
 //				if (cls == SPEC_BLACK) {
 //					Lv = CLR_RAD_RED;
@@ -103,7 +103,7 @@ KERNEL void KrnlSingleScattering(CScene* pScene, cudaVolume volumedata, float* p
 	}
 	else
 	{
-		if (NearestLight(pScene, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl, pLight))
+		if (NearestLight(pScene->m_Lighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl, pLight))
 			Lv = Li;
 
 		//Lv = CLR_RAD_GREEN;
