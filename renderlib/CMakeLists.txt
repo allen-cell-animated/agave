@@ -16,19 +16,32 @@ target_compile_definitions(renderlib PUBLIC
 	-DBOOST_ALL_DYN_LINK
 )
 target_sources(renderlib PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/HardwareWidget.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/HardwareWidget.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcCuda.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcCuda.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindow.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindow.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL2d.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLCuda.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLCuda.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Scene.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Scene.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.h"	
 )
 add_subdirectory(gl)
 add_subdirectory(gl/v33)

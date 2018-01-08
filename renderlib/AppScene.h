@@ -2,7 +2,16 @@
 
 #include "glm.h"
 
+#include "Scene.h"
+
 class ImageXYZC;
+
+class RenderParams {
+	CDenoiseParams		m_DenoiseParams;
+	float				m_StepSizeFactor;
+	float				m_StepSizeFactorShadow;
+};
+
 
 #define MAX_CHANNELS 8
 struct VolumeDisplay {

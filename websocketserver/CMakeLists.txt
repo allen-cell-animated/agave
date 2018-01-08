@@ -11,13 +11,21 @@ target_compile_definitions(websocketserverapp PUBLIC
 )
 target_sources(websocketserverapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/util.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/util.h"	
 )
 
 target_link_libraries(websocketserverapp 
