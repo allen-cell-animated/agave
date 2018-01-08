@@ -136,6 +136,51 @@ void ImageCuda::allocGpu(ImageXYZC* img) {
 
 	qDebug() << "Image to GPU in " << timer.elapsed() << "ms";
 }
+
+#if 0
+void ImageCuda::allocGpuInterleaved(ImageXYZC* img) {
+	deallocGpu();
+	_channels.clear();
+
+	QElapsedTimer timer;
+	timer.start();
+
+	const int N = 3;
+	// interleaved all channels.
+	// first 3.
+	uint16_t* v = new uint16_t[img->sizeX()*img->sizeY()*img->sizeZ() * N];
+	for (int i = 0; i < img->sizeX()*img->sizeY()*img->sizeZ(); ++i) {
+		for (int j = 0; j < N; ++j) {
+			v[N * (i) + j] = img->channel(i)->_ptr[(i)];
+		}
+	}
+
+	// assuming 16-bit data!
+	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 16, 16, 0, cudaChannelFormatKindUnsigned);
+	cudaChannelFormatDesc gradientChannelDesc = cudaCreateChannelDesc(16, 16, 16, 0, cudaChannelFormatKindUnsigned);
+
+	// create 3D array
+	cudaExtent volumeSize;
+	volumeSize.width = img->sizeX();
+	volumeSize.height = img->sizeY();
+	volumeSize.depth = img->sizeZ();
+	HandleCudaError(cudaMalloc3DArray(&_volumeArray, &channelDesc, volumeSize));
+
+	// copy data to 3D array
+	cudaMemcpy3DParms copyParams = { 0 };
+	copyParams.srcPtr = make_cudaPitchedPtr(ch->_ptr, volumeSize.width*img->sizeOfElement()*N, volumeSize.width, volumeSize.height);
+	copyParams.dstArray = _volumeArray;
+	copyParams.extent = volumeSize;
+	copyParams.kind = cudaMemcpyHostToDevice;
+	HandleCudaError(cudaMemcpy3D(&copyParams));
+
+
+
+	delete[] v;
+
+}
+#endif
+
 void ImageCuda::deallocGpu() {
     for (size_t i = 0; i < _channels.size(); ++i) {
         _channels[i].deallocGpu();
