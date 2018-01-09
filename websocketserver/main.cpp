@@ -4,6 +4,7 @@
 
 #include "mainwindow.h"
 #include "streamserver.h"
+#include "renderlib/renderlib.h"
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +39,12 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (!renderlib::initialize())
+	{
+		renderlib::cleanup();
+		return 0;
+	}
+
 	StreamServer *server = new StreamServer(port, false, 0);
 
 	if (gui)
@@ -51,5 +58,7 @@ int main(int argc, char *argv[])
 
 	//delete logFile;
 
-	return a.exec();
+	int result = a.exec();
+	renderlib::cleanup();
+	return result;
 }

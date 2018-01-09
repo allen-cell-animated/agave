@@ -17,4 +17,6 @@ int main(int argc, char *argv[])
 	int result = a.exec();
 
 	renderlib::cleanup();
+
+	return result;
 }
