@@ -63,3 +63,10 @@ void RenderGL::resize(uint32_t w, uint32_t h)
 {
 	glViewport(0, 0, w, h);
 }
+
+RenderParams& RenderGL::renderParams() {
+	return _renderParams;
+}
+Scene& RenderGL::scene() {
+	return _appScene;
+}

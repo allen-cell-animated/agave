@@ -155,9 +155,10 @@ public:
 
 class Scene {
 public:
+	// one single volume, for now...!
     ImageXYZC* _volume;
+	// appearance settings for a volume
     VolumeDisplay _material;
-
 
     Lighting _lighting;
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include "IRenderWindow.h"
+#include "AppScene.h"
 
 #include <memory>
 
@@ -19,11 +20,17 @@ public:
 	virtual void render(const Camera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
 
+	virtual RenderParams& renderParams();
+	virtual Scene& scene();
+
 	Image3Dv33* getImage() const { return image3d; };
 	void setImage(std::shared_ptr<ImageXYZC> img);
 private:
 	Image3Dv33 *image3d;
 	std::shared_ptr<ImageXYZC>  _img;
 	CScene* _scene;
+
+	Scene _appScene;
+	RenderParams _renderParams;
 };
 

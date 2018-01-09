@@ -516,3 +516,10 @@ void RenderGLCuda::cleanUpResources() {
 		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
 	}
 }
+
+RenderParams& RenderGLCuda::renderParams() {
+	return _renderParams;
+}
+Scene& RenderGLCuda::scene() {
+	return _appScene;
+}

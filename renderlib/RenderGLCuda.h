@@ -1,6 +1,7 @@
 #pragma once
 #include "IRenderWindow.h"
 
+#include "AppScene.h"
 #include "Scene.h"
 
 #include "glad/include/glad/glad.h"
@@ -24,6 +25,8 @@ public:
 	virtual void render(const Camera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
 	virtual void cleanUpResources();
+	virtual RenderParams& renderParams();
+	virtual Scene& scene();
 
 
 	void setImage(std::shared_ptr<ImageXYZC> img);
@@ -36,6 +39,9 @@ public:
 	void drawImage();
 private:
 	CScene* _renderSettings;
+
+	RenderParams _renderParams;
+	Scene _appScene;
 
 	void initSceneLighting();
 
