@@ -309,3 +309,4 @@ public:
 	CLight		m_Lights[MAX_NO_LIGHTS];
 	int			m_NoLights;
 };
+

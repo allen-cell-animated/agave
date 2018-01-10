@@ -285,7 +285,7 @@ public:
 		return *this;
 	}
 
-	HOD void Update(void)
+	HO void Update(void)
 	{
 		m_N	= Normalize(m_Target - m_From);
 		m_U	= Normalize(Cross(m_Up, m_N));
@@ -412,3 +412,4 @@ public:
 		}
 	}
 };
+

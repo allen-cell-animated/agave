@@ -85,7 +85,7 @@ DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 	return true;
 }
 
-DEV inline bool NearestIntersection(CRay R, CScene* pScene, const cudaVolume& volumedata, float& T)
+DEV inline bool NearestIntersection(CRay R, const cudaVolume& volumedata, float& T)
 {
 	float MinT = 0.0f, MaxT = 0.0f;
 

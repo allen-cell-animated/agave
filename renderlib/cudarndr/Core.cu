@@ -1,6 +1,8 @@
 #include "Logging.h"
 
 #include "Core.cuh"
+#include "helper_math.cuh"
+#include "Camera2.cuh"
 
 //texture<short, cudaTextureType3D, cudaReadModeNormalizedFloat>		gTexDensity;
 //texture<short, cudaTextureType3D, cudaReadModeNormalizedFloat>		gTexGradientMagnitude;
@@ -62,6 +64,44 @@ CD float		gInvNoIterations;
 CD float4		gDiffuseColor;
 CD float4		gSpecularColor;
 CD float4		gEmissiveColor;
+
+CD int gShadingType;
+CD float gGradientFactor;
+
+struct CudaLight {
+	float			m_Theta;
+	float			m_Phi;
+	float			m_Width;
+	float			m_InvWidth;
+	float			m_HalfWidth;
+	float			m_InvHalfWidth;
+	float			m_Height;
+	float			m_InvHeight;
+	float			m_HalfHeight;
+	float			m_InvHalfHeight;
+	float			m_Distance;
+	float			m_SkyRadius;
+	float3			m_P;
+	float3			m_Target;
+	float3			m_N;
+	float3			m_U;
+	float3			m_V;
+	float			m_Area;
+	float			m_AreaPdf;
+	float3	m_Color;
+	float3	m_ColorTop;
+	float3	m_ColorMiddle;
+	float3	m_ColorBottom;
+	int				m_T;
+};
+struct CudaLighting {
+	int m_NoLights;
+	CudaLight m_Lights[MAX_NO_LIGHTS];
+};
+CD CudaLighting gLighting;
+
+// enough data to generate a camera ray
+CD CudaCamera gCamera;
 
 #define TF_NO_SAMPLES		128
 #define INV_TF_NO_SAMPLES	1.0f / (float)TF_NO_SAMPLES
@@ -324,7 +364,18 @@ void UnbindTransferFunctionEmission(void)
 	HandleCudaError(cudaUnbindTexture(gTexEmission));
 }
 #endif
-void BindConstants(CScene* pScene)
+
+void Vec3ToFloat3(Vec3f* src, float3* dest) {
+	dest->x = src->x;
+	dest->y = src->y;
+	dest->z = src->z;
+}
+void RGBToFloat3(CColorRgbHdr* src, float3* dest) {
+	dest->x = src->r;
+	dest->y = src->g;
+	dest->z = src->b;
+}
+
 void BindConstants(CScene* pScene, CScene* pDeviceScene)
 {
 	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
@@ -342,6 +393,9 @@ void BindConstants(CScene* pScene, CScene* pDeviceScene)
 	HandleCudaError(cudaMemcpyToSymbol(gDiffuseColor, pScene->m_DiffuseColor, sizeof(float4)));
 	HandleCudaError(cudaMemcpyToSymbol(gSpecularColor, pScene->m_SpecularColor, sizeof(float4)));
 	HandleCudaError(cudaMemcpyToSymbol(gEmissiveColor, pScene->m_EmissiveColor, sizeof(float4)));
+
+	HandleCudaError(cudaMemcpyToSymbol(gShadingType, &pScene->m_ShadingType, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gGradientFactor, &pScene->m_GradientFactor, sizeof(float)));
 
 	const float IntensityMin		= pScene->m_IntensityRange.GetMin();
 	const float IntensityMax		= pScene->m_IntensityRange.GetMax();
@@ -415,6 +469,52 @@ void BindConstants(CScene* pScene, CScene* pDeviceScene)
 
 	HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
+
+	CudaCamera c;
+	Vec3ToFloat3(&pScene->m_Camera.m_From, &c.m_From);
+	Vec3ToFloat3(&pScene->m_Camera.m_N, &c.m_N);
+	Vec3ToFloat3(&pScene->m_Camera.m_U, &c.m_U);
+	Vec3ToFloat3(&pScene->m_Camera.m_V, &c.m_V);
+	c.m_ApertureSize = pScene->m_Camera.m_Aperture.m_Size;
+	c.m_FocalDistance = pScene->m_Camera.m_Focus.m_FocalDistance;
+	c.m_InvScreen[0] = pScene->m_Camera.m_Film.m_InvScreen.x;
+	c.m_InvScreen[1] = pScene->m_Camera.m_Film.m_InvScreen.y;
+	c.m_Screen[0][0] = pScene->m_Camera.m_Film.m_Screen[0][0];
+	c.m_Screen[1][0] = pScene->m_Camera.m_Film.m_Screen[1][0];
+	c.m_Screen[0][1] = pScene->m_Camera.m_Film.m_Screen[0][1];
+	c.m_Screen[1][1] = pScene->m_Camera.m_Film.m_Screen[1][1];
+	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
+	
+	CudaLighting cl;
+	cl.m_NoLights = pScene->m_Lighting.m_NoLights;
+	for (int i = 0; i < cl.m_NoLights; ++i) {
+		cl.m_Lights[i].m_Theta = pScene->m_Lighting.m_Lights[i].m_Theta;
+		cl.m_Lights[i].m_Phi = pScene->m_Lighting.m_Lights[i].m_Phi;
+		cl.m_Lights[i].m_Width = pScene->m_Lighting.m_Lights[i].m_Width;
+		cl.m_Lights[i].m_InvWidth = pScene->m_Lighting.m_Lights[i].m_InvWidth;
+		cl.m_Lights[i].m_HalfWidth = pScene->m_Lighting.m_Lights[i].m_HalfWidth;
+		cl.m_Lights[i].m_InvHalfWidth = pScene->m_Lighting.m_Lights[i].m_InvHalfWidth;
+		cl.m_Lights[i].m_Height = pScene->m_Lighting.m_Lights[i].m_Height;
+		cl.m_Lights[i].m_InvHeight = pScene->m_Lighting.m_Lights[i].m_InvHeight;
+		cl.m_Lights[i].m_HalfHeight = pScene->m_Lighting.m_Lights[i].m_HalfHeight;
+		cl.m_Lights[i].m_InvHalfHeight = pScene->m_Lighting.m_Lights[i].m_InvHalfHeight;
+		cl.m_Lights[i].m_Distance = pScene->m_Lighting.m_Lights[i].m_Distance;
+		cl.m_Lights[i].m_SkyRadius = pScene->m_Lighting.m_Lights[i].m_SkyRadius;
+		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
+		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
+		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
+		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
+		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
+		cl.m_Lights[i].m_Area = pScene->m_Lighting.m_Lights[i].m_Area;
+		cl.m_Lights[i].m_AreaPdf = pScene->m_Lighting.m_Lights[i].m_AreaPdf;
+		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
+		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
+		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
+		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
+		cl.m_Lights[i].m_T = pScene->m_Lighting.m_Lights[i].m_T;
+	}
+	HandleCudaError(cudaMemcpyToSymbol(gLighting, &c, sizeof(CudaLighting)));
+
 	// copy entire Scene(host mem) up to gpu.
 	HandleCudaError(cudaMemcpy(pDeviceScene, pScene, sizeof(CScene), cudaMemcpyHostToDevice));
 }

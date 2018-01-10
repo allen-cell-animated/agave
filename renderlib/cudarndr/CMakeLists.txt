@@ -6,6 +6,7 @@ cuda_add_library(renderlib_cuda
 	"${CMAKE_CURRENT_SOURCE_DIR}/Blur.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera.cuh"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Camera2.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/BasicVolumeRender.cu"
 	"${CMAKE_CURRENT_SOURCE_DIR}/BasicVolumeRender.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Checkerboard.cu"
@@ -62,6 +63,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Spectrum.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Stable.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Stable.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Variance.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Variance.h"
 )
