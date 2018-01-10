@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Geometry.h"
-
 class QMargin
 {
 public:
@@ -37,22 +35,3 @@ private:
 	int		m_Bottom;
 };
 
-inline QString FormatVector(const Vec3f& Vector, const int& Precision = 2)
-{
-	return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " + QString::number(Vector.z, 'f', Precision) + "]";
-}
-
-inline QString FormatVector(const Vec3i& Vector)
-{
-	return "[" + QString::number(Vector.x) + ", " + QString::number(Vector.y) + ", " + QString::number(Vector.z) + "]";
-}
-
-inline QString FormatSize(const Vec3f& Size, const int& Precision = 2)
-{
-	return QString::number(Size.x, 'f', Precision) + " x " + QString::number(Size.y, 'f', Precision) + " x " + QString::number(Size.z, 'f', Precision);
-}
-
-inline QString FormatSize(const Vec3i& Size)
-{
-	return QString::number(Size.x) + " x " + QString::number(Size.y) + " x " + QString::number(Size.z);
-}
