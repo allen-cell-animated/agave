@@ -23,6 +23,7 @@ RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 	_cudaF32Buffer(nullptr),
 	_cudaF32AccumBuffer(nullptr),
 	_cudaTex(nullptr),
+	_deviceScene(nullptr),
 	_fbtex(0),
 	vertices(0),
 	image_vertices(0),
@@ -259,6 +260,9 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 	ImageCuda cimg;
 	cimg.allocGpu(_img.get());
 	_imgCuda = cimg;
+
+	HandleCudaError(cudaMalloc(&_deviceScene, sizeof(CScene)));
+
 }
 
 void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
@@ -343,7 +347,7 @@ void RenderGLCuda::doRender() {
 
 	_renderSettings->m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
 
-	BindConstants(_renderSettings);
+	BindConstants(_renderSettings, _deviceScene);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
@@ -388,7 +392,7 @@ void RenderGLCuda::doRender() {
 	CTiming ri, bi, ppi, di;
 
 
-	Render(0, *_renderSettings,
+	Render(0, *_renderSettings, _deviceScene,
 		theCudaFB,
 		theCudaVolume,
 		ri, bi, ppi, di);
@@ -490,6 +494,9 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::cleanUpResources() {
+	HandleCudaError(cudaFree(_deviceScene));
+	_deviceScene = nullptr;
+
 	glDeleteVertexArrays(1, &vertices);
 	glDeleteBuffers(1, &image_vertices);
 	glDeleteBuffers(1, &image_texcoords);
