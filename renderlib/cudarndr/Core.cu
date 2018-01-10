@@ -3,6 +3,7 @@
 #include "Core.cuh"
 #include "helper_math.cuh"
 #include "Camera2.cuh"
+#include "Lighting2.cuh"
 
 //texture<short, cudaTextureType3D, cudaReadModeNormalizedFloat>		gTexDensity;
 //texture<short, cudaTextureType3D, cudaReadModeNormalizedFloat>		gTexGradientMagnitude;
@@ -68,36 +69,6 @@ CD float4		gEmissiveColor;
 CD int gShadingType;
 CD float gGradientFactor;
 
-struct CudaLight {
-	float			m_Theta;
-	float			m_Phi;
-	float			m_Width;
-	float			m_InvWidth;
-	float			m_HalfWidth;
-	float			m_InvHalfWidth;
-	float			m_Height;
-	float			m_InvHeight;
-	float			m_HalfHeight;
-	float			m_InvHalfHeight;
-	float			m_Distance;
-	float			m_SkyRadius;
-	float3			m_P;
-	float3			m_Target;
-	float3			m_N;
-	float3			m_U;
-	float3			m_V;
-	float			m_Area;
-	float			m_AreaPdf;
-	float3	m_Color;
-	float3	m_ColorTop;
-	float3	m_ColorMiddle;
-	float3	m_ColorBottom;
-	int				m_T;
-};
-struct CudaLighting {
-	int m_NoLights;
-	CudaLight m_Lights[MAX_NO_LIGHTS];
-};
 CD CudaLighting gLighting;
 
 // enough data to generate a camera ray

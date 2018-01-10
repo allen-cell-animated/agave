@@ -91,7 +91,7 @@ public:
 		return *this;
 	}
 
-	HOD void Update(const CBoundingBox& BoundingBox)
+	HO void Update(const CBoundingBox& BoundingBox)
 	{
 		m_InvWidth		= 1.0f / m_Width;
 		m_HalfWidth		= 0.5f * m_Width;
