@@ -26,7 +26,7 @@ cuda_add_library(renderlib_cuda
 	"${CMAKE_CURRENT_SOURCE_DIR}/NearestIntersection.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RayMarching.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RNG.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Sample.cuh"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Sample.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Shader.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SingleScattering.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/SpecularBloom.cuh"
