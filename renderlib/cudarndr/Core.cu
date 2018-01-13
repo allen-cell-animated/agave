@@ -347,6 +347,21 @@ void RGBToFloat3(CColorRgbHdr* src, float3* dest) {
 	dest->z = src->b;
 }
 
+void FillCudaCamera(CScene* pScene, CudaCamera& c) {
+	Vec3ToFloat3(&pScene->m_Camera.m_From, &c.m_From);
+	Vec3ToFloat3(&pScene->m_Camera.m_N, &c.m_N);
+	Vec3ToFloat3(&pScene->m_Camera.m_U, &c.m_U);
+	Vec3ToFloat3(&pScene->m_Camera.m_V, &c.m_V);
+	c.m_ApertureSize = pScene->m_Camera.m_Aperture.m_Size;
+	c.m_FocalDistance = pScene->m_Camera.m_Focus.m_FocalDistance;
+	c.m_InvScreen[0] = pScene->m_Camera.m_Film.m_InvScreen.x;
+	c.m_InvScreen[1] = pScene->m_Camera.m_Film.m_InvScreen.y;
+	c.m_Screen[0][0] = pScene->m_Camera.m_Film.m_Screen[0][0];
+	c.m_Screen[1][0] = pScene->m_Camera.m_Film.m_Screen[1][0];
+	c.m_Screen[0][1] = pScene->m_Camera.m_Film.m_Screen[0][1];
+	c.m_Screen[1][1] = pScene->m_Camera.m_Film.m_Screen[1][1];
+}
+
 void BindConstants(CScene* pScene, CScene* pDeviceScene)
 {
 	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
@@ -442,18 +457,7 @@ void BindConstants(CScene* pScene, CScene* pDeviceScene)
 	HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
 
 	CudaCamera c;
-	Vec3ToFloat3(&pScene->m_Camera.m_From, &c.m_From);
-	Vec3ToFloat3(&pScene->m_Camera.m_N, &c.m_N);
-	Vec3ToFloat3(&pScene->m_Camera.m_U, &c.m_U);
-	Vec3ToFloat3(&pScene->m_Camera.m_V, &c.m_V);
-	c.m_ApertureSize = pScene->m_Camera.m_Aperture.m_Size;
-	c.m_FocalDistance = pScene->m_Camera.m_Focus.m_FocalDistance;
-	c.m_InvScreen[0] = pScene->m_Camera.m_Film.m_InvScreen.x;
-	c.m_InvScreen[1] = pScene->m_Camera.m_Film.m_InvScreen.y;
-	c.m_Screen[0][0] = pScene->m_Camera.m_Film.m_Screen[0][0];
-	c.m_Screen[1][0] = pScene->m_Camera.m_Film.m_Screen[1][0];
-	c.m_Screen[0][1] = pScene->m_Camera.m_Film.m_Screen[0][1];
-	c.m_Screen[1][1] = pScene->m_Camera.m_Film.m_Screen[1][1];
+	FillCudaCamera(pScene, c);
 	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
 	
 	CudaLighting cl;
@@ -506,7 +510,12 @@ void Render(const int& Type, CScene& Scene, CScene* pDevScene,
 	// then re-upload that data.
 	if (Scene.m_Camera.m_Focus.m_Type == 0) {
 		Scene.m_Camera.m_Focus.m_FocalDistance = NearestIntersection(pDScene, volumedata);
-		HandleCudaError(cudaMemcpy(pDScene, &Scene, sizeof(CScene), cudaMemcpyHostToDevice));
+		// send m_FocalDistance back to gpu.
+		CudaCamera c;
+		FillCudaCamera(&Scene, c);
+		HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
+
+		//HandleCudaError(cudaMemcpy(pDScene, &Scene, sizeof(CScene), cudaMemcpyHostToDevice));
 	}
 
 	for (int i = 0; i < Scene.m_Camera.m_Film.m_ExposureIterations; ++i) {

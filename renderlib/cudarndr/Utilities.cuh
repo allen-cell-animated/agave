@@ -122,7 +122,7 @@ DEV float GradientMagnitude(const Vec3f& P, cudaTextureObject_t texGradientMagni
 	return ((float)SHRT_MAX * tex3D<float>(texGradientMagnitude, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 }
 
-DEV bool NearestLight(const CLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, const CLight* &pLight, float* pPdf = NULL)
+DEV bool NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, const CudaLight* &pLight, float* pPdf = NULL)
 {
 	bool Hit = false;
 	

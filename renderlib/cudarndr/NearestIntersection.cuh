@@ -6,13 +6,13 @@
 #define KRNL_NI_BLOCK_H		1
 #define KRNL_NI_BLOCK_SIZE	KRNL_NI_BLOCK_W * KRNL_NI_BLOCK_H
 
-KERNEL void KrnlNearestIntersection(CCamera& camera, float* pT, cudaVolume volumedata)
+KERNEL void KrnlNearestIntersection(float* pT, cudaVolume volumedata)
 {
 	CRay Rc;
 	
 	const Vec2f UV(0.5f * (float)gFilmWidth, 0.5f * (float)gFilmHeight);
 
-	camera.GenerateRay(UV, Vec2f(0.0f), Rc.m_O, Rc.m_D);
+	GenerateRay(gCamera, UV, Vec2f(0.0f), Rc.m_O, Rc.m_D);
 
 	Rc.m_MinT = 0.0f;
 	Rc.m_MaxT = INF_MAX;
@@ -31,7 +31,7 @@ float NearestIntersection(CScene* pDevScene, const cudaVolume& volumedata)
 
 	HandleCudaError(cudaMalloc(&pDevT, sizeof(float)));
 
-	KrnlNearestIntersection<<<KernelGrid, KernelBlock>>>(pDevScene->m_Camera, pDevT, volumedata);
+	KrnlNearestIntersection<<<KernelGrid, KernelBlock>>>(pDevT, volumedata);
 	HandleCudaError(cudaGetLastError());
 	cudaDeviceSynchronize();
 

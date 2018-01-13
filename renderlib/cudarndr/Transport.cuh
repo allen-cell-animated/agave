@@ -3,7 +3,7 @@
 #include "Shader.cuh"
 #include "RayMarching.cuh"
 
-DEV CColorXyz EstimateDirectLight(const CLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const CLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
+DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const CudaLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
 {
 	CColorXyz Ld = SPEC_BLACK, Li = SPEC_BLACK, F = SPEC_BLACK;
 	
@@ -17,7 +17,7 @@ DEV CColorXyz EstimateDirectLight(const CLighting& lighting, const cudaVolume& v
 
  	Li = Light.SampleL(Pe, Rl, LightPdf, LS);
 	
-	const CLight* pLight = NULL;
+	const CudaLight* pLight = NULL;
 
 	Wi = -Rl.m_D; 
 
@@ -65,7 +65,7 @@ DEV CColorXyz EstimateDirectLight(const CLighting& lighting, const cudaVolume& v
 	return Ld;
 }
 
-DEV CColorXyz UniformSampleOneLight(const CLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
+DEV CColorXyz UniformSampleOneLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
 {
 	const int NumLights = lighting.m_NoLights;
 
@@ -78,7 +78,7 @@ DEV CColorXyz UniformSampleOneLight(const CLighting& lighting, const cudaVolume&
 
 	const int WhichLight = (int)floorf(LS.m_LightNum * (float)NumLights);
 
-	const CLight& Light = lighting.m_Lights[WhichLight];
+	const CudaLight& Light = lighting.m_Lights[WhichLight];
 
 	return (float)NumLights * EstimateDirectLight(lighting, volumedata, Type, Density, ch, Light, LS, Wo, Pe, N, RNG);
 }
