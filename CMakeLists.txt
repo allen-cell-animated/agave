@@ -41,12 +41,12 @@ find_package(Boost COMPONENTS chrono log log_setup iostreams thread system files
 find_package(TIFF REQUIRED)
 
 find_package(CUDA REQUIRED)
-# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_30,code=sm_30;${CUDA_NVCC_FLAGS}")
-# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_50,code=sm_50;${CUDA_NVCC_FLAGS}")
-# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=sm_52;${CUDA_NVCC_FLAGS}")
-# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=compute_52;${CUDA_NVCC_FLAGS}")
-# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60;${CUDA_NVCC_FLAGS}")
-# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_61,code=sm_61;${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "-gencode=arch=compute_30,code=sm_30;${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "-gencode=arch=compute_50,code=sm_50;${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=sm_52;${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=compute_52;${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60;${CUDA_NVCC_FLAGS}")
+set(CUDA_NVCC_FLAGS "-gencode=arch=compute_61,code=sm_61;${CUDA_NVCC_FLAGS}")
 set(CUDA_NVCC_FLAGS "-gencode=arch=compute_62,code=sm_62;${CUDA_NVCC_FLAGS}")
 # set(CUDA_NVCC_FLAGS "-gencode=arch=compute_70,code=sm_70;${CUDA_NVCC_FLAGS}")
 
