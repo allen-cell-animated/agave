@@ -3,7 +3,7 @@
 #include "MonteCarlo.cuh"
 #include "Sample.cuh"
 
-#define MAX_NO_LIGHTS 32
+#define MAX_NO_LIGHTS 4
 
 class CLight
 {

@@ -113,7 +113,7 @@ public:
 
 };
 
-#define MAX_NO_LIGHTS 32
+#define MAX_NO_LIGHTS 4
 class Lighting {
 public:
 	Lighting(void) :
