@@ -488,7 +488,7 @@ void BindConstants(CScene* pScene, CScene* pDeviceScene)
 		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
 		cl.m_Lights[i].m_T = pScene->m_Lighting.m_Lights[i].m_T;
 	}
-	HandleCudaError(cudaMemcpyToSymbol(gLighting, &c, sizeof(CudaLighting)));
+	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cl, sizeof(CudaLighting)));
 
 	// copy entire Scene(host mem) up to gpu.
 	HandleCudaError(cudaMemcpy(pDeviceScene, pScene, sizeof(CScene), cudaMemcpyHostToDevice));
