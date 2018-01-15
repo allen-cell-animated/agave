@@ -122,9 +122,9 @@ DEV float GradientMagnitude(const Vec3f& P, cudaTextureObject_t texGradientMagni
 	return ((float)SHRT_MAX * tex3D<float>(texGradientMagnitude, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 }
 
-DEV bool NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, const CudaLight* &pLight, float* pPdf = NULL)
+DEV int NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, float* pPdf = NULL)
 {
-	bool Hit = false;
+	int Hit = -1;
 	
 	float T = 0.0f;
 
@@ -132,16 +132,16 @@ DEV bool NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColo
 
 	float Pdf = 0.0f;
 
+	//printf(" LIGHTS %d", lighting.m_NoLights);
 	for (int i = 0; i < lighting.m_NoLights; i++)
 	{
 		if (lighting.m_Lights[i].Intersect(RayCopy, T, LightColor, NULL, &Pdf))
 		{
 			Pl		= R(T);
-			pLight	= &lighting.m_Lights[i];
-			Hit		= true;
+			Hit		= i;
 		}
 	}
-	
+
 	if (pPdf)
 		*pPdf = Pdf;
 

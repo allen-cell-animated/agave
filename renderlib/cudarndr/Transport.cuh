@@ -40,8 +40,10 @@ DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume
 
 	if (!F.IsBlack() && ShaderPdf > 0.0f)
 	{
-		if (NearestLight(lighting, CRay(Pe, Wi, 0.0f), Li, Pl, pLight, &LightPdf))
+		int n = NearestLight(lighting, CRay(Pe, Wi, 0.0f), Li, Pl, &LightPdf);
+		if (n > -1)
 		{
+			pLight = &gLighting.m_Lights[n];
 			LightPdf = pLight->Pdf(Pe, Wi);
 
 			if ((LightPdf > 0.0f) &&
