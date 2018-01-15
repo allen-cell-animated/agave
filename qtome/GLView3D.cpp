@@ -182,8 +182,6 @@ GLView3D::setC(size_t c)
 		_scene->_channel = (int)c;
 
 		_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
-		LOG_INFO << "Channel " << c << ":" << (_img->channel((uint32_t)c)->_min) << "," << (_img->channel((uint32_t)c)->_max);
-		LOG_INFO << "gradient range " << c << ":" << (_img->channel((uint32_t)c)->_gradientMagnitudeMin) << "," << (_img->channel((uint32_t)c)->_gradientMagnitudeMax);
 
 		renderLater();
     }
