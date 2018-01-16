@@ -40,6 +40,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLCuda.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Scene.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Scene.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.h"	
 )
