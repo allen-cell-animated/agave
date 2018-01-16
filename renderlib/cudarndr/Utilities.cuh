@@ -2,11 +2,8 @@
 
 #include <cuda_runtime.h>
 
-DEV inline Vec3f ToVec3f(const float3& V)
-{
-	return Vec3f(V.x, V.y, V.z);
-}
-
+static DEV Vec3f operator + (const Vec3f& a, const float3& b) { return Vec3f(a.x + b.x, a.y + b.y, a.z + b.z); };
+static DEV Vec3f operator - (const Vec3f& a, const float3& b) { return Vec3f(a.x - b.x, a.y - b.y, a.z - b.z); };
 
 DEV void GetNormalizedIntensityN(const Vec3f& P, const cudaVolume& volumeData, float* intensities)
 {
@@ -110,9 +107,9 @@ DEV inline Vec3f NormalizedGradient(const Vec3f& P, cudaTextureObject_t texDensi
 {
 	Vec3f Gradient;
 
-	Gradient.x = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaX), texDensity, texLut) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaX), texDensity, texLut)) * gInvGradientDelta;
-	Gradient.y = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaY), texDensity, texLut) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaY), texDensity, texLut)) * gInvGradientDelta;
-	Gradient.z = (GetNormalizedIntensity(P + ToVec3f(gGradientDeltaZ), texDensity, texLut) - GetNormalizedIntensity(P - ToVec3f(gGradientDeltaZ), texDensity, texLut)) * gInvGradientDelta;
+	Gradient.x = (GetNormalizedIntensity(P + (gGradientDeltaX), texDensity, texLut) - GetNormalizedIntensity(P - (gGradientDeltaX), texDensity, texLut)) * gInvGradientDelta;
+	Gradient.y = (GetNormalizedIntensity(P + (gGradientDeltaY), texDensity, texLut) - GetNormalizedIntensity(P - (gGradientDeltaY), texDensity, texLut)) * gInvGradientDelta;
+	Gradient.z = (GetNormalizedIntensity(P + (gGradientDeltaZ), texDensity, texLut) - GetNormalizedIntensity(P - (gGradientDeltaZ), texDensity, texLut)) * gInvGradientDelta;
 
 	return Normalize(Gradient);
 }

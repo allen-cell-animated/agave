@@ -42,17 +42,6 @@ struct CudaLighting {
 	CudaLight m_Lights[MAX_NO_LIGHTS];
 };
 
-#if 0
-DEV Vec3f toVec3(const float3& f)
-{
-	return Vec3f(f.x, f.y, f.z);
-}
-DEV Vec3f Normalize(const float3& v)
-{
-	return Normalize(Vec3f(v.x, v.y, v.z));
-}
-#endif
-
 DEV CColorXyz ToXYZ(const float3& f) {
 	return CColorXyz::FromRGB(f.x, f.y, f.z);
 }
