@@ -2,7 +2,7 @@ target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
 )
-cuda_add_library(renderlib_cuda
+add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/Blur.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera.cuh"
@@ -38,7 +38,7 @@ cuda_add_library(renderlib_cuda
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Woodcock.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.h"
-STATIC)
+)
 target_include_directories(renderlib_cuda PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	# needs to be able to depend on Scene.h from renderlib

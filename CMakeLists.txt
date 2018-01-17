@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(qtome)
+project(
+  qtome 
+  VERSION 1.0.0
+  LANGUAGES C CXX CUDA
+)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -15,10 +19,10 @@ set(CMAKE_AUTOUIC ON)
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
 if (WIN32)
-	set(QTDIR C:/Qt/5.9.1/msvc2015_64)
-    list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(QTDIR C:/Qt/5.9.1/msvc2015_64)
+  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 else (WIN32)
-	# linux: QTDIR = /opt/qt59
+  # linux: QTDIR = /opt/qt59
 endif (WIN32)
 
 find_package(Qt5Widgets)
@@ -40,15 +44,25 @@ find_package(Boost COMPONENTS chrono log log_setup iostreams thread system files
 
 find_package(TIFF REQUIRED)
 
-find_package(CUDA REQUIRED)
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_30,code=sm_30;${CUDA_NVCC_FLAGS}")
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_50,code=sm_50;${CUDA_NVCC_FLAGS}")
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=sm_52;${CUDA_NVCC_FLAGS}")
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=compute_52;${CUDA_NVCC_FLAGS}")
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60;${CUDA_NVCC_FLAGS}")
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_61,code=sm_61;${CUDA_NVCC_FLAGS}")
-set(CUDA_NVCC_FLAGS "-gencode=arch=compute_62,code=sm_62;${CUDA_NVCC_FLAGS}")
+# find_package(CUDA REQUIRED)
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_30,code=sm_30;${CUDA_NVCC_FLAGS}")
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_50,code=sm_50;${CUDA_NVCC_FLAGS}")
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=sm_52;${CUDA_NVCC_FLAGS}")
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=compute_52;${CUDA_NVCC_FLAGS}")
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60;${CUDA_NVCC_FLAGS}")
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_61,code=sm_61;${CUDA_NVCC_FLAGS}")
+# set(CUDA_NVCC_FLAGS "-gencode=arch=compute_62,code=sm_62;${CUDA_NVCC_FLAGS}")
 # set(CUDA_NVCC_FLAGS "-gencode=arch=compute_70,code=sm_70;${CUDA_NVCC_FLAGS}")
+set(CMAKE_CUDA_FLAGS "-gencode=arch=compute_61,code=sm_61")
+# -arch=sm_30 \
+#  -gencode=arch=compute_30,code=sm_30 \
+#  -gencode=arch=compute_50,code=sm_50 \
+#  -gencode=arch=compute_52,code=sm_52 \
+#  -gencode=arch=compute_60,code=sm_60 \
+#  -gencode=arch=compute_61,code=sm_61 \
+#  -gencode=arch=compute_62,code=sm_62 \
+#  -gencode=arch=compute_70,code=sm_70 \
+#  -gencode=arch=compute_70,code=compute_70
 
 set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 # find_package(glm REQUIRED)
