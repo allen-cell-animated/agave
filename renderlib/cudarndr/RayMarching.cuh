@@ -4,7 +4,7 @@
 #include "Scene.h"
 #include "CudaUtilities.h"
 
-#define KRNL_SS_BLOCK_W		16
+#define KRNL_SS_BLOCK_W		8
 #define KRNL_SS_BLOCK_H		8
 #define KRNL_SS_BLOCK_SIZE	KRNL_SS_BLOCK_W * KRNL_SS_BLOCK_H
 
