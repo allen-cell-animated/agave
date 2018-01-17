@@ -7,6 +7,8 @@
 #include "glad/include/glad/glad.h"
 #include "CudaUtilities.h"
 #include "ImageXyzcCuda.h"
+#include "Status.h"
+#include "Timing.h"
 
 #include <memory>
 
@@ -27,11 +29,13 @@ public:
 	virtual void cleanUpResources();
 	virtual RenderParams& renderParams();
 	virtual Scene& scene();
+	virtual CStatus* getStatusInterface() { return &_status; }
 
 
 	void setImage(std::shared_ptr<ImageXYZC> img);
 	Image3Dv33* getImage() const { return nullptr; };
 	CScene& getScene() { return *_renderSettings; }
+
 
 	// just draw into my own fbo.
 	void doRender();
@@ -86,6 +90,9 @@ private:
 	unsigned int* _randomSeeds2;
 
 	int _w, _h;
+
+	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
+	CStatus _status;
 
 };
 

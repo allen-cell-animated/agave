@@ -38,7 +38,7 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, CScene* sce
 	connect(&m_FieldOfViewSpinner, SIGNAL(valueChanged(double)), &m_FieldOfViewSlider, SLOT(setValue(double)));
 	connect(&cam->GetProjection(), SIGNAL(Changed(const QProjection&)), this, SLOT(OnProjectionChanged(const QProjection&)));
 
-	gStatus.SetStatisticChanged("Camera", "Projection", "", "", "");
+	//gStatus.SetStatisticChanged("Camera", "Projection", "", "", "");
 }
 
 void QProjectionWidget::SetFieldOfView(const double& FieldOfView)
@@ -51,5 +51,5 @@ void QProjectionWidget::OnProjectionChanged(const QProjection& Projection)
 	m_FieldOfViewSlider.setValue(Projection.GetFieldOfView(), true);
 	m_FieldOfViewSpinner.setValue(Projection.GetFieldOfView(), true);
 
-	gStatus.SetStatisticChanged("Projection", "Field Of View", QString::number(Projection.GetFieldOfView(), 'f', 2), "Deg.");
+	//gStatus.SetStatisticChanged("Projection", "Field Of View", QString::number(Projection.GetFieldOfView(), 'f', 2), "Deg.");
 }

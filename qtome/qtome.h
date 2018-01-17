@@ -12,6 +12,7 @@
 
 class QAppearanceDockWidget;
 class QCameraDockWidget;
+class QStatisticsDockWidget;
 
 class qtome : public QMainWindow
 {
@@ -76,6 +77,8 @@ private:
 	
 	QTransferFunction _transferFunction;
 	QAppearanceDockWidget* appearanceDockWidget;
+
+	QStatisticsDockWidget* statisticsDockWidget;
 
 	QTabWidget *tabs;
 	GLView3D *glView;

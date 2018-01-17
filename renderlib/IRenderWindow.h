@@ -3,6 +3,7 @@
 #include <inttypes.h>
 
 class Camera;
+class CStatus;
 class RenderParams;
 class Scene;
 
@@ -16,6 +17,9 @@ public:
 	virtual void render(const Camera& camera) = 0;
 	virtual void resize(uint32_t w, uint32_t h) = 0;
 	virtual void cleanUpResources() {}
+
+	// an interface for reporting statistics and other data updates
+	virtual CStatus* getStatusInterface() { return nullptr; }
 
 	// I own these.
 	virtual RenderParams& renderParams() = 0;

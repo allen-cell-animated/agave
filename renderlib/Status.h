@@ -26,5 +26,3 @@ signals:
 	void LoadPreset(const QString& PresetName);
 	void StatisticChanged(const QString& Group, const QString& Name, const QString& Value, const QString& Unit = "", const QString& Icon = "");
 };
-
-extern CStatus gStatus;

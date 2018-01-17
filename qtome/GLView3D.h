@@ -10,6 +10,7 @@
 
 #include "renderlib/Camera.h"
 
+class CStatus;
 class ImageXYZC;
 class QCamera;
 class IRenderWindow;
@@ -161,6 +162,8 @@ public:
 
 
 	std::shared_ptr<ImageXYZC> getImage() { return _img; }
+
+	CStatus* getStatus();
 
 signals:
     /**

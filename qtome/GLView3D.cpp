@@ -406,6 +406,10 @@ void GLView3D::OnUpdateTransferFunction(void)
 	scene.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
+CStatus* GLView3D::getStatus() {
+	return _renderer->getStatusInterface();
+}
+
 void GLView3D::OnUpdateRenderer(int rendererType)
 {
 	makeCurrent();

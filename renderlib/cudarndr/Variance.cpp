@@ -30,7 +30,7 @@ void CVariance::Free(void)
 	cudaFree(m_pVariance);
 }
 
-void CVariance::Resize(int Width, int Height)
+void CVariance::Resize(int Width, int Height, CStatus& status)
 {
 	if (Width == 0 || Height == 0)
 		return;
@@ -44,25 +44,25 @@ void CVariance::Resize(int Width, int Height)
 
 	Free();
 
-	gStatus.SetStatisticChanged("CUDA Memory", "Variance", "", "MB");
+	status.SetStatisticChanged("CUDA Memory", "Variance", "", "MB");
 
 	cudaMalloc((void**)&m_pN, NoElements * sizeof(int));
-	gStatus.SetStatisticChanged("Variance", "N buffer", QString::number((float)NoElements * sizeof(int) / MB, 'f', 2), "MB");
+	status.SetStatisticChanged("Variance", "N buffer", QString::number((float)NoElements * sizeof(int) / MB, 'f', 2), "MB");
 
 	cudaMalloc((void**)&m_pOldM, NoElements * sizeof(float));
-	gStatus.SetStatisticChanged("Variance", "Old Mean Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
+	status.SetStatisticChanged("Variance", "Old Mean Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
 
 	cudaMalloc((void**)&m_pNewM, NoElements * sizeof(float));
-	gStatus.SetStatisticChanged("Variance", "New Mean Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
+	status.SetStatisticChanged("Variance", "New Mean Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
 
 	cudaMalloc((void**)&m_pOldS, NoElements * sizeof(float));
-	gStatus.SetStatisticChanged("Variance", "Old S Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
+	status.SetStatisticChanged("Variance", "Old S Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
 
 	cudaMalloc((void**)&m_pNewS, NoElements * sizeof(float));
-	gStatus.SetStatisticChanged("Variance", "New S Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
+	status.SetStatisticChanged("Variance", "New S Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
 
 	cudaMalloc((void**)&m_pVariance, NoElements * sizeof(float));
-	gStatus.SetStatisticChanged("Variance", "Magnitude Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
+	status.SetStatisticChanged("Variance", "Magnitude Buffer", QString::number((float)NoElements * sizeof(float) / MB, 'f', 2), "MB");
 
 	Reset();
 }

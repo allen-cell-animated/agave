@@ -272,6 +272,9 @@ void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
 	_img = img;
 	initVolumeTextureCUDA();
 	initSceneFromImg();
+
+	// we have set up everything there is to do before rendering
+	_status.SetRenderBegin();
 }
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 {
@@ -389,13 +392,10 @@ void RenderGLCuda::doRender() {
 		}
 	}
 
-	CTiming ri, bi, ppi, di;
-
-
 	Render(0, *_renderSettings, _deviceScene,
 		theCudaFB,
 		theCudaVolume,
-		ri, bi, ppi, di);
+		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise);
 	//LOG_DEBUG << "RETURN FROM RENDER";
 
 	// Tonemap into opengl display buffer
@@ -418,6 +418,7 @@ void RenderGLCuda::doRender() {
 		//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 		_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 
+		CCudaTimer TmrDenoise;
 		if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 		{
 			Denoise(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
@@ -426,11 +427,27 @@ void RenderGLCuda::doRender() {
 		{
 			ToneMap(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
 		}
+		_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
+
 		HandleCudaError(cudaDestroySurfaceObject(theCudaSurfaceObject));
 	}
 	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
 
 	HandleCudaError(cudaStreamSynchronize(0));
+
+
+	// display timings.
+	
+	_status.SetStatisticChanged("Timings", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Timings", "Blur Estimate", QString::number(_timingBlur.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Timings", "Post Process Estimate", QString::number(_timingPostProcess.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Timings", "De-noise Image", QString::number(_timingDenoise.m_FilteredDuration, 'f', 2), "ms.");
+
+	//FPS.AddDuration(1000.0f / TmrFps.ElapsedTime());
+
+	//_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
+	_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(_renderSettings->GetNoIterations()), "Iterations");
+	
 }
 
 void RenderGLCuda::render(const Camera& camera)

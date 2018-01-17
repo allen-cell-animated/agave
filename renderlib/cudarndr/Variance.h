@@ -2,6 +2,8 @@
 
 #include "Defines.h"
 
+class CStatus;
+
 class CVariance
 {
 public:
@@ -9,7 +11,7 @@ public:
 	virtual ~CVariance(void);
 		
 	void	Free(void);
-	void	Resize(int Width, int Height);
+	void	Resize(int Width, int Height, CStatus& status);
 	void	Reset(void);
 	float*	GetVarianceBuffer(void);
 	float	GetMeanVariance(void) const;

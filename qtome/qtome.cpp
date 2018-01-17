@@ -6,11 +6,14 @@
 #include "qtome.h"
 
 #include "renderlib/FileReader.h"
+#include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
+#include "renderlib/Status.h"
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
 #include "GLContainer.h"
+#include "StatisticsDockWidget.h"
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QAction>
@@ -205,6 +208,14 @@ void qtome::createDockWindows()
 	appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
 	addDockWidget(Qt::RightDockWidgetArea, appearanceDockWidget);
 
+	statisticsDockWidget = new QStatisticsDockWidget(this);
+	// Statistics dock widget
+	statisticsDockWidget->setEnabled(true);
+	statisticsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+	addDockWidget(Qt::RightDockWidgetArea, statisticsDockWidget);
+	//m_pViewMenu->addAction(m_StatisticsDockWidget.toggleViewAction());
+
+
 	viewMenu->addSeparator();
 	viewMenu->addAction(navigation->toggleViewAction());
 
@@ -248,6 +259,26 @@ void qtome::open()
 		open(file);
 }
 
+inline QString FormatVector(const Vec3f& Vector, const int& Precision = 2)
+{
+	return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " + QString::number(Vector.z, 'f', Precision) + "]";
+}
+
+inline QString FormatVector(const Vec3i& Vector)
+{
+	return "[" + QString::number(Vector.x) + ", " + QString::number(Vector.y) + ", " + QString::number(Vector.z) + "]";
+}
+
+inline QString FormatSize(const Vec3f& Size, const int& Precision = 2)
+{
+	return QString::number(Size.x, 'f', Precision) + " x " + QString::number(Size.y, 'f', Precision) + " x " + QString::number(Size.z, 'f', Precision);
+}
+
+inline QString FormatSize(const Vec3i& Size)
+{
+	return QString::number(Size.x) + " x " + QString::number(Size.y) + " x " + QString::number(Size.z);
+}
+
 void qtome::open(const QString& file)
 {
 	QFileInfo info(file);
@@ -265,6 +296,30 @@ void qtome::open(const QString& file)
 		glView->setC(0);
 		tabs->setTabText(0, info.fileName());
 		navigation->setReader(image);
+
+		CStatus* s = glView->getStatus();
+		statisticsDockWidget->setStatus(s);
+
+		Vec3f resolution(image->sizeX(), image->sizeY(), image->sizeZ());
+		Vec3f spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
+		const Vec3f PhysicalSize(Vec3f(
+			spacing.x * (float)resolution.x,
+			spacing.y * (float)resolution.y,
+			spacing.z * (float)resolution.z
+		));
+		Vec3f BoundingBoxMinP = Vec3f(0.0f);
+		Vec3f BoundingBoxMaxP = PhysicalSize / PhysicalSize.Max();
+
+		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
+		s->SetStatisticChanged("Volume", "Bounding Box", "", "");
+		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "m");
+		s->SetStatisticChanged("Bounding Box", "Max", FormatVector(BoundingBoxMaxP, 2), "m");
+		s->SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "mm");
+		s->SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "Voxels");
+		s->SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "mm");
+		s->SetStatisticChanged("Volume", "No. Voxels", QString::number(resolution.x*resolution.y*resolution.z), "Voxels");
+		// TODO: this is per channel
+		//s->SetStatisticChanged("Volume", "Density Range", "[" + QString::number(gScene.m_IntensityRange.GetMin()) + ", " + QString::number(gScene.m_IntensityRange.GetMax()) + "]", "");
 
 		qtome::prependToRecentFiles(file);
 	}

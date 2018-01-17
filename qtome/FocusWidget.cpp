@@ -46,7 +46,7 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	connect(&m_FocalDistanceSpinner, SIGNAL(valueChanged(double)), &m_FocalDistanceSlider, SLOT(setValue(double)));
 	connect(&cam->GetFocus(), SIGNAL(Changed(const QFocus&)), this, SLOT(OnFocusChanged(const QFocus&)));
 
-	gStatus.SetStatisticChanged("Camera", "Focus", "", "", "");
+	//gStatus.SetStatisticChanged("Camera", "Focus", "", "", "");
 }
 
 void QFocusWidget::SetFocusType(int FocusType)
@@ -64,5 +64,5 @@ void QFocusWidget::OnFocusChanged(const QFocus& Focus)
 	m_FocalDistanceSlider.setValue(Focus.GetFocalDistance(), true);
 	m_FocalDistanceSpinner.setValue(Focus.GetFocalDistance(), true);
 
-	gStatus.SetStatisticChanged("Focus", "Focal Distance", QString::number(Focus.GetFocalDistance(), 'f', 2), "mm");
+	//gStatus.SetStatisticChanged("Focus", "Focal Distance", QString::number(Focus.GetFocalDistance(), 'f', 2), "mm");
 }
