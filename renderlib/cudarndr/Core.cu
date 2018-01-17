@@ -362,7 +362,7 @@ void FillCudaCamera(CScene* pScene, CudaCamera& c) {
 	c.m_Screen[1][1] = pScene->m_Camera.m_Film.m_Screen[1][1];
 }
 
-void BindConstants(CScene* pScene, CScene* pDeviceScene)
+void BindConstants(CScene* pScene)
 {
 	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
 	const float3 AaBbMax = make_float3(pScene->m_BoundingBox.GetMaxP().x, pScene->m_BoundingBox.GetMaxP().y, pScene->m_BoundingBox.GetMaxP().z);
@@ -490,32 +490,21 @@ void BindConstants(CScene* pScene, CScene* pDeviceScene)
 	}
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cl, sizeof(CudaLighting)));
 
-	// copy entire Scene(host mem) up to gpu.
-	HandleCudaError(cudaMemcpy(pDeviceScene, pScene, sizeof(CScene), cudaMemcpyHostToDevice));
 }
 
-void Render(const int& Type, CScene& Scene, CScene* pDevScene,
+void Render(const int& Type, CScene& Scene,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage)
 {
-	CScene* pDScene = pDevScene;
-//	CScene* pDScene = NULL;
-//	HandleCudaError(cudaMalloc(&pDScene, sizeof(CScene)));
-//	HandleCudaError(cudaMemcpy(pDScene, &Scene, sizeof(CScene), cudaMemcpyHostToDevice));
-
-	//LOG_DEBUG << "CScene is " << sizeof(CScene) << " bytes";
-
 	// find nearest intersection to set camera focal distance automatically.
 	// then re-upload that data.
 	if (Scene.m_Camera.m_Focus.m_Type == 0) {
-		Scene.m_Camera.m_Focus.m_FocalDistance = NearestIntersection(pDScene, volumedata);
+		Scene.m_Camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
 		// send m_FocalDistance back to gpu.
 		CudaCamera c;
 		FillCudaCamera(&Scene, c);
 		HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
-
-		//HandleCudaError(cudaMemcpy(pDScene, &Scene, sizeof(CScene), cudaMemcpyHostToDevice));
 	}
 
 	for (int i = 0; i < Scene.m_Camera.m_Film.m_ExposureIterations; ++i) {
@@ -525,13 +514,13 @@ void Render(const int& Type, CScene& Scene, CScene* pDevScene,
 		{
 		case 0:
 		{
-			SingleScattering(&Scene, pDScene, volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
+			SingleScattering(&Scene, volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
 			break;
 		}
 
 		case 1:
 		{
-			//			MultipleScattering(&Scene, pDScene);
+			//			MultipleScattering(&Scene);
 			break;
 		}
 		}
@@ -549,8 +538,4 @@ void Render(const int& Type, CScene& Scene, CScene* pDevScene,
 		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
 	}
-
-//	HandleCudaError(cudaFree(pDScene));
-//	pDScene = NULL;
-
 }

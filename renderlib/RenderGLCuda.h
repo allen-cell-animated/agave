@@ -60,7 +60,6 @@ private:
 	void initSceneFromImg();
 
 	ImageCuda _imgCuda;
-	CScene* _deviceScene;
 
 	/// The vertex array.
 	GLuint vertices;  // vao

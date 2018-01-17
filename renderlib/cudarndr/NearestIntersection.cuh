@@ -20,7 +20,7 @@ KERNEL void KrnlNearestIntersection(float* pT, cudaVolume volumedata)
 	NearestIntersection(Rc, volumedata, *pT);
 }
 
-float NearestIntersection(CScene* pDevScene, const cudaVolume& volumedata)
+float NearestIntersection(const cudaVolume& volumedata)
 {
 	const dim3 KernelBlock(KRNL_NI_BLOCK_W, KRNL_NI_BLOCK_H);
 	const dim3 KernelGrid(1, 1);

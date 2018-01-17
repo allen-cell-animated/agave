@@ -121,7 +121,7 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 	pView[floatoffset + 3] = 1.0;
 }
 
-void SingleScattering(CScene* pScene, CScene* pDevScene, const cudaVolume& volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
+void SingleScattering(CScene* pScene, const cudaVolume& volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
 {
 	const dim3 KernelBlock(KRNL_SS_BLOCK_W, KRNL_SS_BLOCK_H);
 	const dim3 KernelGrid((int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResX() / (float)KernelBlock.x), (int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResY() / (float)KernelBlock.y));

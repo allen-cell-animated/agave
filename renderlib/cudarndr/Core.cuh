@@ -57,10 +57,10 @@ unsigned char* GetDisplayEstimate(void);
 //void UnbindTransferFunctionSpecular(void);
 //void UnbindTransferFunctionRoughness(void);
 //void UnbindTransferFunctionEmission(void);
-void BindConstants(CScene* pScene, CScene* pDeviceScene);
+void BindConstants(CScene* pScene);
 //void Render(const int& Type, CScene& Scene, CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage);
 // scene needs to be mutable to get nearest intersection for focusdist.
-void Render(const int& Type, CScene& Scene, CScene* pDeviceScene,
+void Render(const int& Type, CScene& Scene,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage);
