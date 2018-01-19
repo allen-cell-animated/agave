@@ -53,7 +53,7 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		}
 
 		int ch = 0;
-		const float D = GetNormalizedIntensityMax(Pe, volumedata, ch);
+		const float D = GetNormalizedIntensityMax3ch(Pe, volumedata, ch);
 		//const float D = GetNormalizedIntensity(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]);
 
 		Lv += GetEmission(D).ToXYZ();
@@ -62,30 +62,30 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		{
 			case 0:
 			{
-				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, true);
+				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, true);
 				//Lv = CLR_RAD_RED;
 				break;
 			}
 		
 			case 1:
 			{
-				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, false);
+				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, false);
 				//Lv = CLR_RAD_GREEN;
 				break;
 			}
 
 			case 2:
 			{
-				const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[0]) * gIntensityInvRange;
+				const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * gIntensityInvRange;
 
 				const float PdfBrdf = (1.0f - __expf(-gGradientFactor * GradMag));
 
 				CColorXyz cls;
 				if (RNG.Get1() < PdfBrdf) {
-					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, true);
+					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, true);
 				}
 				else {
-					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]), RNG, false);
+					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, false);
 				}
 //				if (cls == SPEC_BLACK) {
 //					Lv = CLR_RAD_RED;

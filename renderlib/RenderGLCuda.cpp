@@ -257,7 +257,7 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 		return;
 	}
 	ImageCuda cimg;
-	cimg.allocGpu(_img.get());
+	cimg.allocGpuInterleaved(_img.get());
 	_imgCuda = cimg;
 
 }
@@ -359,9 +359,10 @@ void RenderGLCuda::doRender() {
 
 	// single channel
 	int NC = _img->sizeC();
-	cudaVolume theCudaVolume(3);
+	cudaVolume theCudaVolume(4);
 	for (int i = 0; i < min(NC, 8); ++i) {
-		theCudaVolume.volumeTexture[i] = _imgCuda._channels[i]._volumeTexture;
+		theCudaVolume.volumeTexture[i] = _imgCuda._volumeTextureInterleaved;
+//		theCudaVolume.volumeTexture[i] = _imgCuda._channels[i]._volumeTexture;
 		theCudaVolume.gradientVolumeTexture[i] = _imgCuda._channels[i]._volumeGradientTexture;
 		theCudaVolume.lutTexture[i] = _imgCuda._channels[i]._volumeLutTexture;
 		theCudaVolume.intensityMax[i] = _img->channel(i)->_max;
@@ -435,10 +436,10 @@ void RenderGLCuda::doRender() {
 
 	// display timings.
 	
-	_status.SetStatisticChanged("Timings", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");
-	_status.SetStatisticChanged("Timings", "Blur Estimate", QString::number(_timingBlur.m_FilteredDuration, 'f', 2), "ms.");
-	_status.SetStatisticChanged("Timings", "Post Process Estimate", QString::number(_timingPostProcess.m_FilteredDuration, 'f', 2), "ms.");
-	_status.SetStatisticChanged("Timings", "De-noise Image", QString::number(_timingDenoise.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Performance", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Performance", "Blur Estimate", QString::number(_timingBlur.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Performance", "Post Process Estimate", QString::number(_timingPostProcess.m_FilteredDuration, 'f', 2), "ms.");
+	_status.SetStatisticChanged("Performance", "De-noise Image", QString::number(_timingDenoise.m_FilteredDuration, 'f', 2), "ms.");
 
 	//FPS.AddDuration(1000.0f / TmrFps.ElapsedTime());
 
