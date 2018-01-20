@@ -15,7 +15,7 @@ class ImageXYZC;
 class QCamera;
 class IRenderWindow;
 class QTransferFunction;
-
+class Scene;
 
 
 /**
@@ -67,6 +67,8 @@ public:
     QSize sizeHint() const;
 	
 	void setImage(std::shared_ptr<ImageXYZC> img);
+	Scene* getAppScene();
+
 public slots:
     /**
     * Set zoom factor.

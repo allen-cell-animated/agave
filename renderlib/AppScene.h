@@ -4,6 +4,8 @@
 
 #include "Scene.h"
 
+#include <memory>
+
 class ImageXYZC;
 
 class RenderParams {
@@ -156,7 +158,7 @@ public:
 class Scene {
 public:
 	// one single volume, for now...!
-    ImageXYZC* _volume;
+    std::shared_ptr<ImageXYZC> _volume;
 	// appearance settings for a volume
     VolumeDisplay _material;
 

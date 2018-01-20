@@ -5,6 +5,7 @@
 
 #include "qtome.h"
 
+#include "renderlib/AppScene.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
@@ -65,16 +66,6 @@ qtome::qtome(QWidget *parent)
 
 
 	setWindowTitle(tr("OME-Files GLView"));
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_881.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Desktop\\test4chanpred.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Desktop\\test4chan.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409_1.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409_4.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-11_409_6.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269.ome.tif");
-	//open("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
-	//open("/home/danielt/Downloads/AICS-12_269_4.ome.tif");
 
 }
 
@@ -291,11 +282,15 @@ void qtome::open(const QString& file)
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 		qDebug() << "Loaded " << file << " in " << t.elapsed() << "ms";
 
-
+		// this must happen first. it causes a new renderer which owns the CStatus used below
 		glView->setImage(image);
 		glView->setC(0);
 		tabs->setTabText(0, info.fileName());
 		navigation->setReader(image);
+
+		Scene* sc = glView->getAppScene();
+		sc->_volume = image;
+		appearanceDockWidget->onNewImage(sc);
 
 		CStatus* s = glView->getStatus();
 		statisticsDockWidget->setStatus(s);

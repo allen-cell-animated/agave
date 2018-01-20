@@ -6,8 +6,12 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 
+#include <memory>
+
 class QTransferFunction;
 class CScene;
+class ImageXYZC;
+class Scene;
 
 class QAppearanceSettingsWidget : public QGroupBox
 {
@@ -15,6 +19,8 @@ class QAppearanceSettingsWidget : public QGroupBox
 
 public:
     QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
+
+	void onNewImage(Scene* scene);
 
 public slots:
 	void OnRenderBegin(void);
@@ -25,11 +31,12 @@ public slots:
 	void OnSetGradientFactor(double GradientFactor);
 	void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
 	void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
-	void OnDiffuseColorChanged(const QColor& color);
-	void OnSpecularColorChanged(const QColor& color);
-	void OnEmissiveColorChanged(const QColor& color);
-	void OnSetWindow(double window);
-	void OnSetLevel(double level);
+
+public:
+	void OnDiffuseColorChanged(int i, const QColor& color);
+	void OnSpecularColorChanged(int i, const QColor& color);
+	void OnEmissiveColorChanged(int i, const QColor& color);
+	void OnSetWindowLevel(int i, double window, double level);
 
 private:
 	QGridLayout		m_MainLayout;
@@ -45,12 +52,7 @@ private:
 	QDoubleSlider	m_StepSizeSecondaryRaySlider;
 	QDoubleSpinner	m_StepSizeSecondaryRaySpinner;
 
-	QColorSelector  m_DiffuseColorButton;
-	QColorSelector  m_SpecularColorButton;
-	QColorSelector  m_EmissiveColorButton;
-
-	QDoubleSlider	m_WindowSlider;
-	QDoubleSlider	m_LevelSlider;
-
 	QTransferFunction* _transferFunction;
+
+	Scene* _scene;
 };

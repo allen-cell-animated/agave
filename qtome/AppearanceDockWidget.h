@@ -19,6 +19,10 @@ class QAppearanceWidget : public QWidget
 public:
     QAppearanceWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
 	
+	void onNewImage(Scene* s) {
+		m_AppearanceSettingsWidget.onNewImage(s);
+	}
+
 public slots:
 	void OnLoadPreset(const QString& Name);
 	void OnSavePreset(const QString& Name);
@@ -39,6 +43,10 @@ class QAppearanceDockWidget : public QDockWidget
 
 public:
     QAppearanceDockWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
+
+	void onNewImage(Scene* s) {
+		m_VolumeAppearanceWidget.onNewImage(s); 
+	}
 
 protected:
 	QAppearanceWidget		m_VolumeAppearanceWidget;

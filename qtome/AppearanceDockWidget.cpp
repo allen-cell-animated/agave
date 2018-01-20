@@ -15,8 +15,13 @@ QAppearanceWidget::QAppearanceWidget(QWidget* pParent, QTransferFunction* tran, 
 	m_MainLayout.setAlignment(Qt::AlignTop);
 	setLayout(&m_MainLayout);
 
+	QScrollArea* scrollArea = new QScrollArea();
+	scrollArea->setWidgetResizable(true);
+	scrollArea->setWidget(&m_AppearanceSettingsWidget);
+
+
 	//m_MainLayout.addWidget(&m_PresetsWidget, 0, 0);
-	m_MainLayout.addWidget(&m_AppearanceSettingsWidget, 1, 0);
+	m_MainLayout.addWidget(scrollArea, 1, 0);
 	//m_MainLayout.addWidget(&m_TransferFunctionWidget, 2, 0);
 	//m_MainLayout.addWidget(&m_NodeSelectionWidget, 3, 0);
 	//m_MainLayout.addWidget(&m_NodePropertiesWidget, 4, 0);

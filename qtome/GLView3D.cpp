@@ -70,6 +70,9 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	camera.direction = glm::normalize(target - camera.position);
 }
 
+Scene* GLView3D::getAppScene() {
+	return &_renderer->scene();
+}
 void GLView3D::setImage(std::shared_ptr<ImageXYZC> img)
 {
 	_img = img;

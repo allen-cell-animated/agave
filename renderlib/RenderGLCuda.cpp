@@ -323,7 +323,10 @@ void RenderGLCuda::doRender() {
 	// Restart the rendering when when the camera, lights and render params are dirty
 	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
-		_imgCuda.updateLutGpu(_currentChannel, _img.get());
+		_imgCuda.updateLutGpu(0, _img.get());
+		_imgCuda.updateLutGpu(1, _img.get());
+		_imgCuda.updateLutGpu(2, _img.get());
+		_imgCuda.updateLutGpu(3, _img.get());
 
 		//		ResetRenderCanvasView();
 
@@ -366,28 +369,10 @@ void RenderGLCuda::doRender() {
 		theCudaVolume.gradientVolumeTexture[i] = _imgCuda._channels[i]._volumeGradientTexture;
 		theCudaVolume.lutTexture[i] = _imgCuda._channels[i]._volumeLutTexture;
 		theCudaVolume.intensityMax[i] = _img->channel(i)->_max;
-		switch (i) {
-		case 0:
-			theCudaVolume.diffuse[i * 3 + 0] = 1.0;
-			theCudaVolume.diffuse[i * 3 + 1] = 0.0;
-			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
-			break;
-		case 1:
-			theCudaVolume.diffuse[i * 3 + 0] = 1.0;
-			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
-			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
-			break;
-		case 2:
-			theCudaVolume.diffuse[i * 3 + 0] = 0.0;
-			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
-			theCudaVolume.diffuse[i * 3 + 2] = 1.0;
-			break;
-		case 3:
-			theCudaVolume.diffuse[i * 3 + 0] = 1.0;
-			theCudaVolume.diffuse[i * 3 + 1] = 1.0;
-			theCudaVolume.diffuse[i * 3 + 2] = 0.0;
-			break;
-		}
+
+		theCudaVolume.diffuse[i * 3 + 0] = _appScene._material.diffuse[i * 3 + 0];
+		theCudaVolume.diffuse[i * 3 + 1] = _appScene._material.diffuse[i * 3 + 1];
+		theCudaVolume.diffuse[i * 3 + 2] = _appScene._material.diffuse[i * 3 + 2];
 	}
 
 	Render(0, *_renderSettings,
