@@ -218,6 +218,11 @@ inline QVector<QColor> rndColors(int count) {
 
 void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
+	// remove the previous per-channel ui
+	for (auto s: _channelSections) {
+		delete s;
+	}
+
 	// I don't own this.
 	_scene = scene;
 
@@ -288,5 +293,6 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 		section->setContentLayout(*sectionLayout);
 		m_MainLayout.addWidget(section, 12+i, 0, 1, -1);
+		_channelSections.push_back(section);
 	}
 }

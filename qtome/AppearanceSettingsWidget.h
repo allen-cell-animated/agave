@@ -12,6 +12,7 @@ class QTransferFunction;
 class CScene;
 class ImageXYZC;
 class Scene;
+class Section;
 
 class QAppearanceSettingsWidget : public QGroupBox
 {
@@ -55,4 +56,5 @@ private:
 	QTransferFunction* _transferFunction;
 
 	Scene* _scene;
+	std::vector<Section*> _channelSections;
 };
