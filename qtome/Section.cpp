@@ -5,6 +5,7 @@
 Section::Section(const QString & title, const int animationDuration, QWidget* parent)
     : QWidget(parent), animationDuration(animationDuration)
 {
+	checkBox = new QCheckBox(this);
     toggleButton = new QToolButton(this);
     headerLine = new QFrame(this);
     toggleAnimation = new QParallelAnimationGroup(this);
@@ -38,8 +39,9 @@ Section::Section(const QString & title, const int animationDuration, QWidget* pa
 
     int row = 0;
     mainLayout->addWidget(toggleButton, row, 0, 1, 1, Qt::AlignLeft);
-    mainLayout->addWidget(headerLine, row++, 2, 1, 1);
-    mainLayout->addWidget(contentArea, row, 0, 1, 3);
+	mainLayout->addWidget(headerLine, row, 2, 1, 1);
+	mainLayout->addWidget(checkBox, row++, 3, 1, 1, Qt::AlignRight);
+	mainLayout->addWidget(contentArea, row, 0, 1, 4);
     setLayout(mainLayout);
 
     QObject::connect(toggleButton, &QToolButton::clicked, [this](const bool checked)
