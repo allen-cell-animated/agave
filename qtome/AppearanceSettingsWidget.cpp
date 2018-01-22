@@ -204,6 +204,11 @@ void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double le
 
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
+void QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
+{
+	_scene->_material.roughness[i] = roughness;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
 
 inline QVector<QColor> rndColors(int count) {
 	QVector<QColor> colors;
@@ -290,6 +295,17 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		});
 		// init
 		this->OnEmissiveColorChanged(i, QColor::fromRgbF(0.0f, 0.0f, 0.0f));
+
+		row++;
+		sectionLayout->addWidget(new QLabel("Glossiness"), row, 0);
+		QDoubleSlider* roughnessSlider = new QDoubleSlider();
+		roughnessSlider->setRange(0.0, 100.0);
+		roughnessSlider->setValue(0.0);
+		sectionLayout->addWidget(roughnessSlider, row, 1);
+		QObject::connect(roughnessSlider, &QDoubleSlider::valueChanged, [i, this](double d) {
+			this->OnRoughnessChanged(i, d);
+		});
+
 
 		section->setContentLayout(*sectionLayout);
 		m_MainLayout.addWidget(section, 12+i, 0, 1, -1);

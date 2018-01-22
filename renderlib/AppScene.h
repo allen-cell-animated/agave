@@ -26,6 +26,7 @@ struct VolumeDisplay {
 	float diffuse[MAX_CHANNELS * 3];
 	float specular[MAX_CHANNELS * 3];
 	float emissive[MAX_CHANNELS * 3];
+	float roughness[MAX_CHANNELS];
 };
 
 class Light {

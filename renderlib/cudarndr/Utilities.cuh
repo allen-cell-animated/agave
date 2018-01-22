@@ -119,9 +119,16 @@ DEV CColorRgbHdr GetSpecularN(const float& NormalizedIntensity, const cudaVolume
 	return CColorRgbHdr(volumeData.specular[ch * 3 + 0], volumeData.specular[ch * 3 + 1], volumeData.specular[ch * 3 + 2]);
 }
 
+DEV float GetRoughnessN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
+{
+	return volumeData.roughness[ch];
+	//return NormalizedIntensity;
+	//return tex1D(gTexRoughness, NormalizedIntensity);
+}
+
 DEV float GetRoughness(const float& NormalizedIntensity)
 {
-	return 0.0;
+	return 1.0;
 	//return NormalizedIntensity;
 	//return tex1D(gTexRoughness, NormalizedIntensity);
 }

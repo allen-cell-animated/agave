@@ -38,6 +38,7 @@ public:
 	void OnSpecularColorChanged(int i, const QColor& color);
 	void OnEmissiveColorChanged(int i, const QColor& color);
 	void OnSetWindowLevel(int i, double window, double level);
+	void OnRoughnessChanged(int i, double roughness);
 
 private:
 	QGridLayout		m_MainLayout;

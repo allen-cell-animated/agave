@@ -7,7 +7,7 @@ DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume
 {
 	CColorXyz Ld = SPEC_BLACK, Li = SPEC_BLACK, F = SPEC_BLACK;
 	
-	CVolumeShader Shader(Type, N, Wo, GetDiffuseN(Density, volumedata, ch).ToXYZ(), GetSpecularN(Density, volumedata, ch).ToXYZ(), 2.5f/*pScene->m_IOR*/, GetRoughness(Density));
+	CVolumeShader Shader(Type, N, Wo, GetDiffuseN(Density, volumedata, ch).ToXYZ(), GetSpecularN(Density, volumedata, ch).ToXYZ(), 2.5f/*pScene->m_IOR*/, GetRoughnessN(Density, volumedata, ch));
 	
 	CRay Rl; 
 

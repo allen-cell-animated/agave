@@ -379,6 +379,7 @@ void RenderGLCuda::doRender() {
 		theCudaVolume.emissive[i * 3 + 0] = _appScene._material.emissive[i * 3 + 0];
 		theCudaVolume.emissive[i * 3 + 1] = _appScene._material.emissive[i * 3 + 1];
 		theCudaVolume.emissive[i * 3 + 2] = _appScene._material.emissive[i * 3 + 2];
+		theCudaVolume.roughness[i] = _appScene._material.roughness[i];
 	}
 
 	Render(0, *_renderSettings,
