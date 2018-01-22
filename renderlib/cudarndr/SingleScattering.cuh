@@ -24,15 +24,6 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 
  	GenerateRay(gCamera, UV, RNG.Get2(), Re.m_O, Re.m_D);
 
-/*
-	Lv = (CColorXyz(Re.m_D.x, Re.m_D.y, Re.m_D.z) * 0.5) + CColorXyz(1.0, 1.0, 1.0);
-	pView[floatoffset] = Lv.c[0];
-	pView[floatoffset + 1] = Lv.c[1];
-	pView[floatoffset + 2] = Lv.c[2];
-	pView[floatoffset + 3] = 1.0;
-	return;
-*/
-
 	Re.m_MinT = 0.0f; 
 	Re.m_MaxT = 1500000.0f;
 
@@ -40,7 +31,6 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 	
 	if (SampleDistanceRM(Re, RNG, Pe, volumedata))
 	{
-		//Lv = CLR_RAD_RED;
 		int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, (Pe - Re.m_O).Length()), Li, Pl);
 		if (i > -1)
 		{
@@ -54,7 +44,6 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 
 		int ch = 0;
 		const float D = GetNormalizedIntensityMax3ch(Pe, volumedata, ch);
-		//const float D = GetNormalizedIntensity(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]);
 
 		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
 
@@ -63,14 +52,12 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 			case 0:
 			{
 				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, true);
-				//Lv = CLR_RAD_RED;
 				break;
 			}
 		
 			case 1:
 			{
 				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, false);
-				//Lv = CLR_RAD_GREEN;
 				break;
 			}
 
@@ -87,14 +74,9 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 				else {
 					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, false);
 				}
-//				if (cls == SPEC_BLACK) {
-//					Lv = CLR_RAD_RED;
-//				}
-//				else {
-					Lv += cls;
-//				}
 
-				//Lv = CLR_RAD_BLUE;
+				Lv += cls;
+
 				break;
 			}
 		}
@@ -104,17 +86,10 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		int n = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl);
 		if (n > -1)
 			Lv = Li;
-
-		//Lv = CLR_RAD_GREEN;
 	}
 
 	// set sample pixel value in frame estimate (prior to accumulation)
 
-	//float rgb[3];
-	//Lv.ToRGB(rgb);
-	//pView[floatoffset] = rgb[0];
-	//pView[floatoffset + 1] = rgb[1];
-	//pView[floatoffset + 2] = rgb[2];
 	pView[floatoffset] = Lv.c[0];
 	pView[floatoffset + 1] = Lv.c[1];
 	pView[floatoffset + 2] = Lv.c[2];
