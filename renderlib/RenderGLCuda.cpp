@@ -373,6 +373,12 @@ void RenderGLCuda::doRender() {
 		theCudaVolume.diffuse[i * 3 + 0] = _appScene._material.diffuse[i * 3 + 0];
 		theCudaVolume.diffuse[i * 3 + 1] = _appScene._material.diffuse[i * 3 + 1];
 		theCudaVolume.diffuse[i * 3 + 2] = _appScene._material.diffuse[i * 3 + 2];
+		theCudaVolume.specular[i * 3 + 0] = _appScene._material.specular[i * 3 + 0];
+		theCudaVolume.specular[i * 3 + 1] = _appScene._material.specular[i * 3 + 1];
+		theCudaVolume.specular[i * 3 + 2] = _appScene._material.specular[i * 3 + 2];
+		theCudaVolume.emissive[i * 3 + 0] = _appScene._material.emissive[i * 3 + 0];
+		theCudaVolume.emissive[i * 3 + 1] = _appScene._material.emissive[i * 3 + 1];
+		theCudaVolume.emissive[i * 3 + 2] = _appScene._material.emissive[i * 3 + 2];
 	}
 
 	Render(0, *_renderSettings,

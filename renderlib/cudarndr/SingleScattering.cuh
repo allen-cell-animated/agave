@@ -56,7 +56,7 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		const float D = GetNormalizedIntensityMax3ch(Pe, volumedata, ch);
 		//const float D = GetNormalizedIntensity(Pe, volumedata.volumeTexture[0], volumedata.lutTexture[0]);
 
-		Lv += GetEmission(D).ToXYZ();
+		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
 
 		switch (gShadingType)
 		{

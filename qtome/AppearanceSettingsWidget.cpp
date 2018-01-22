@@ -248,6 +248,8 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(levelSlider, &QDoubleSlider::valueChanged, [i, this, windowSlider](double d) {
 			this->OnSetWindowLevel(i, windowSlider->value(), d);
 		});
+		// init
+		this->OnSetWindowLevel(i, 1.0, 0.75);
 
 		row++;
 		QColorSelector* diffuseColorButton = new QColorSelector();
@@ -257,6 +259,8 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(diffuseColorButton, &QColorSelector::currentColorChanged, [i, this](const QColor& c) {
 			this->OnDiffuseColorChanged(i, c);
 		});
+		// init
+		this->OnDiffuseColorChanged(i, colors[i]);
 
 		row++;
 		QColorSelector* specularColorButton = new QColorSelector();
@@ -266,6 +270,8 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(specularColorButton, &QColorSelector::currentColorChanged, [i, this](const QColor& c) {
 			this->OnSpecularColorChanged(i, c);
 		});
+		// init
+		this->OnSpecularColorChanged(i, QColor::fromRgbF(0.0f, 0.0f, 0.0f));
 
 		row++;
 		QColorSelector* emissiveColorButton = new QColorSelector();
@@ -275,6 +281,8 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(emissiveColorButton, &QColorSelector::currentColorChanged, [i, this](const QColor& c) {
 			this->OnEmissiveColorChanged(i, c);
 		});
+		// init
+		this->OnEmissiveColorChanged(i, QColor::fromRgbF(0.0f, 0.0f, 0.0f));
 
 		section->setContentLayout(*sectionLayout);
 		m_MainLayout.addWidget(section, 12+i, 0, 1, -1);

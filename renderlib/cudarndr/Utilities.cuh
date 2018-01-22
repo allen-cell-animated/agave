@@ -110,6 +110,15 @@ DEV CColorRgbHdr GetSpecular(const float& NormalizedIntensity)
 	return CColorRgbHdr(gSpecularColor.x, gSpecularColor.y, gSpecularColor.z);
 }
 
+DEV CColorRgbHdr GetSpecularN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
+{
+	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
+	//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
+	//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
+	//	return CColorRgbHdr(1.0, 1.0, 1.0);
+	return CColorRgbHdr(volumeData.specular[ch * 3 + 0], volumeData.specular[ch * 3 + 1], volumeData.specular[ch * 3 + 2]);
+}
+
 DEV float GetRoughness(const float& NormalizedIntensity)
 {
 	return 0.0;
@@ -124,6 +133,15 @@ DEV CColorRgbHdr GetEmission(const float& NormalizedIntensity)
 	//return CColorRgbHdr(Emission.x, Emission.y, Emission.z);
 
 	return CColorRgbHdr(gEmissiveColor.x, gEmissiveColor.y, gEmissiveColor.z);
+}
+
+DEV CColorRgbHdr GetEmissionN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
+{
+	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
+	//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
+	//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
+	//	return CColorRgbHdr(1.0, 1.0, 1.0);
+	return CColorRgbHdr(volumeData.emissive[ch * 3 + 0], volumeData.emissive[ch * 3 + 1], volumeData.emissive[ch * 3 + 2]);
 }
 
 DEV inline Vec3f NormalizedGradient4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
