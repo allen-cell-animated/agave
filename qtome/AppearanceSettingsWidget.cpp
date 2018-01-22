@@ -221,6 +221,8 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	// I don't own this.
 	_scene = scene;
 
+	const float DEFAULT_WINDOW = 1.0f;
+	const float DEFAULT_LEVEL = 0.75f;
 	QVector<QColor> colors = rndColors(scene->_volume->sizeC());
 
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {
@@ -232,14 +234,14 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		sectionLayout->addWidget(new QLabel("Window"), row, 0);
 		QDoubleSlider* windowSlider = new QDoubleSlider();
 		windowSlider->setRange(0.001, 1.0);
-		windowSlider->setValue(1.0);
+		windowSlider->setValue(DEFAULT_WINDOW);
 		sectionLayout->addWidget(windowSlider, row, 1);
 
 		row++;
 		sectionLayout->addWidget(new QLabel("Level"), row, 0);
 		QDoubleSlider* levelSlider = new QDoubleSlider();
 		levelSlider->setRange(0.001, 1.0);
-		levelSlider->setValue(0.75);
+		levelSlider->setValue(DEFAULT_LEVEL);
 		sectionLayout->addWidget(levelSlider, row, 1);
 
 		QObject::connect(windowSlider, &QDoubleSlider::valueChanged, [i, this, levelSlider](double d) {
@@ -249,7 +251,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			this->OnSetWindowLevel(i, windowSlider->value(), d);
 		});
 		// init
-		this->OnSetWindowLevel(i, 1.0, 0.75);
+		this->OnSetWindowLevel(i, DEFAULT_WINDOW, DEFAULT_LEVEL);
 
 		row++;
 		QColorSelector* diffuseColorButton = new QColorSelector();
