@@ -83,9 +83,11 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 	}
 	else
 	{
-		int n = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl);
-		if (n > -1)
-			Lv = Li;
+		// background color
+
+		//int n = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl);
+		//if (n > -1)
+		//	Lv = Li;
 	}
 
 	// set sample pixel value in frame estimate (prior to accumulation)
