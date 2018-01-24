@@ -31,7 +31,7 @@ DEV void GenerateRay(const CudaCamera& cam, const Vec2f& Pixel, const Vec2f& Ape
 {
 	Vec2f ScreenPoint;
 
-	ScreenPoint.x = cam.m_Screen[0][0] + (cam.m_InvScreen[0] * Pixel.x);
+	ScreenPoint.x = cam.m_Screen[0][1] - (cam.m_InvScreen[0] * Pixel.x);
 	ScreenPoint.y = cam.m_Screen[1][0] + (cam.m_InvScreen[1] * Pixel.y);
 
 	RayO = toVec3(cam.m_From);
