@@ -12,8 +12,8 @@ CScene::CScene(void) :
 	m_Scale(),
 	m_BoundingBox(),
 	m_TransferFunctions(),
-	m_IntensityRange(),
-	m_GradientMagnitudeRange(),
+	//m_IntensityRange(),
+	//m_GradientMagnitudeRange(),
 	m_DensityScale(50.0f),
 	m_DenoiseParams(),
 	m_NoIterations(0),
@@ -44,7 +44,7 @@ HOD CScene& CScene::operator=(const CScene& Other)
 	m_Scale						= Other.m_Scale;
 	m_BoundingBox				= Other.m_BoundingBox;
 	m_TransferFunctions			= Other.m_TransferFunctions;
-	m_IntensityRange			= Other.m_IntensityRange;
+	//m_IntensityRange			= Other.m_IntensityRange;
 	m_DensityScale				= Other.m_DensityScale;
 	m_DenoiseParams				= Other.m_DenoiseParams;
 	m_NoIterations				= Other.m_NoIterations;
@@ -52,7 +52,7 @@ HOD CScene& CScene::operator=(const CScene& Other)
 	m_StepSizeFactor			= Other.m_StepSizeFactor;
 	m_StepSizeFactorShadow		= Other.m_StepSizeFactorShadow;
 	m_GradientDelta				= Other.m_GradientDelta;
-	m_GradientMagnitudeRange	= Other.m_GradientMagnitudeRange;
+	//m_GradientMagnitudeRange	= Other.m_GradientMagnitudeRange;
 	m_GradientFactor			= Other.m_GradientFactor;
 	m_GradMagMean				= Other.m_GradMagMean;
 

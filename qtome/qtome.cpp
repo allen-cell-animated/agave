@@ -62,7 +62,7 @@ qtome::qtome(QWidget *parent)
 	glContainer->setMinimumSize(512, 512);
 	tabs->addTab(glContainer, "None");
 	glView->setC(0);
-	navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
+	//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
 
 	setWindowTitle(tr("OME-Files GLView"));
@@ -187,9 +187,9 @@ QDockWidget* qtome::createRenderingDock() {
 
 void qtome::createDockWindows()
 {
-	navigation = new NavigationDock2D(this);
-	navigation->setAllowedAreas(Qt::AllDockWidgetAreas);
-	addDockWidget(Qt::BottomDockWidgetArea, navigation);
+	//navigation = new NavigationDock2D(this);
+	//navigation->setAllowedAreas(Qt::AllDockWidgetAreas);
+	//addDockWidget(Qt::BottomDockWidgetArea, navigation);
 
 	cameradock = new QCameraDockWidget(this, &_camera, &_renderSettings);
 	cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -208,7 +208,7 @@ void qtome::createDockWindows()
 
 
 	viewMenu->addSeparator();
-	viewMenu->addAction(navigation->toggleViewAction());
+	viewMenu->addAction(appearanceDockWidget->toggleViewAction());
 
 //	QDockWidget* dock = createRenderingDock();
 //	addDockWidget(Qt::BottomDockWidgetArea, dock);
@@ -286,7 +286,7 @@ void qtome::open(const QString& file)
 		glView->setImage(image);
 		glView->setC(0);
 		tabs->setTabText(0, info.fileName());
-		navigation->setReader(image);
+		//navigation->setReader(image);
 
 		Scene* sc = glView->getAppScene();
 		sc->_volume = image;
@@ -325,9 +325,9 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 	if (glView == newGlView)
 		return;
 
-	disconnect(navigationChanged);
-	disconnect(navigationZCChanged);
-	disconnect(navigationUpdate);
+	//disconnect(navigationChanged);
+	//disconnect(navigationZCChanged);
+	//disconnect(navigationUpdate);
 
 	viewResetAction->setEnabled(false);
 	viewZoomAction->setEnabled(false);
@@ -336,13 +336,13 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 
 	if (newGlView)
 	{
-		navigation->setReader(newGlView->getImage());
-		navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), newGlView, SLOT(setC(size_t)));
+		//navigation->setReader(newGlView->getImage());
+		//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), newGlView, SLOT(setC(size_t)));
 
 	}
 	else
 	{
-		navigation->setReader(std::shared_ptr<ImageXYZC>());
+		//navigation->setReader(std::shared_ptr<ImageXYZC>());
 	}
 
 	bool enable(newGlView != 0);

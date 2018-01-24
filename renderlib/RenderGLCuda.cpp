@@ -323,28 +323,36 @@ void RenderGLCuda::doRender() {
 	// Restart the rendering when when the camera, lights and render params are dirty
 	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
-		_imgCuda.updateLutGpu(0, _img.get());
-		_imgCuda.updateLutGpu(1, _img.get());
-		_imgCuda.updateLutGpu(2, _img.get());
-		_imgCuda.updateLutGpu(3, _img.get());
+		int NC = _img->sizeC();
+		for (int i = 0; i < NC; ++i) {
+			_imgCuda.updateLutGpu(i, _img.get());
+		}
 
 		//		ResetRenderCanvasView();
 
 		// Reset no. iterations
 		_renderSettings->SetNoIterations(0);
 	}
-
+	if (_renderSettings->m_DirtyFlags.HasFlag(VolumeDataDirty))
+	{
+		int ch[4] = { 0, 0, 0, 0 };
+		int activeChannel = 0;
+		int NC = _img->sizeC();
+		for (int i = 0; i < NC; ++i) {
+			if (_appScene._material.enabled[i] && activeChannel < 4) {
+				ch[activeChannel] = i;
+				activeChannel++;
+			}
+		}
+		_imgCuda.updateVolumeData4x16(_img.get(), ch[0], ch[1], ch[2], ch[3]);
+		_renderSettings->SetNoIterations(0);
+	}
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
 	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
 	// TODO: update only when w and h change!
 	_renderSettings->m_Camera.m_Film.m_Resolution.SetResX(_w);
 	_renderSettings->m_Camera.m_Film.m_Resolution.SetResY(_h);
-
-	// TODO: update only for channel changes!
-	//	_renderSettings->m_IntensityRange.SetMin(0.0f);
-	_renderSettings->m_IntensityRange.SetMin((float)(_img->channel(_currentChannel)->_min));
-	_renderSettings->m_IntensityRange.SetMax((float)(_img->channel(_currentChannel)->_max));
 
 	_renderSettings->m_Camera.Update();
 
@@ -362,24 +370,29 @@ void RenderGLCuda::doRender() {
 
 	// single channel
 	int NC = _img->sizeC();
-	cudaVolume theCudaVolume(4);
-	for (int i = 0; i < min(NC, 8); ++i) {
-		theCudaVolume.volumeTexture[i] = _imgCuda._volumeTextureInterleaved;
-//		theCudaVolume.volumeTexture[i] = _imgCuda._channels[i]._volumeTexture;
-		theCudaVolume.gradientVolumeTexture[i] = _imgCuda._channels[i]._volumeGradientTexture;
-		theCudaVolume.lutTexture[i] = _imgCuda._channels[i]._volumeLutTexture;
-		theCudaVolume.intensityMax[i] = _img->channel(i)->_max;
+	// use first 3 channels only.
+	int activeChannel = 0;
+	cudaVolume theCudaVolume(0);
+	for (int i = 0; i < NC; ++i) {
+		if (_appScene._material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
+			theCudaVolume.volumeTexture[activeChannel] = _imgCuda._volumeTextureInterleaved;
+			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
+			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
+			theCudaVolume.intensityMax[activeChannel] = _img->channel(i)->_max;
+			theCudaVolume.diffuse[activeChannel * 3 + 0] = _appScene._material.diffuse[i * 3 + 0];
+			theCudaVolume.diffuse[activeChannel * 3 + 1] = _appScene._material.diffuse[i * 3 + 1];
+			theCudaVolume.diffuse[activeChannel * 3 + 2] = _appScene._material.diffuse[i * 3 + 2];
+			theCudaVolume.specular[activeChannel * 3 + 0] = _appScene._material.specular[i * 3 + 0];
+			theCudaVolume.specular[activeChannel * 3 + 1] = _appScene._material.specular[i * 3 + 1];
+			theCudaVolume.specular[activeChannel * 3 + 2] = _appScene._material.specular[i * 3 + 2];
+			theCudaVolume.emissive[activeChannel * 3 + 0] = _appScene._material.emissive[i * 3 + 0];
+			theCudaVolume.emissive[activeChannel * 3 + 1] = _appScene._material.emissive[i * 3 + 1];
+			theCudaVolume.emissive[activeChannel * 3 + 2] = _appScene._material.emissive[i * 3 + 2];
+			theCudaVolume.roughness[activeChannel] = _appScene._material.roughness[i];
 
-		theCudaVolume.diffuse[i * 3 + 0] = _appScene._material.diffuse[i * 3 + 0];
-		theCudaVolume.diffuse[i * 3 + 1] = _appScene._material.diffuse[i * 3 + 1];
-		theCudaVolume.diffuse[i * 3 + 2] = _appScene._material.diffuse[i * 3 + 2];
-		theCudaVolume.specular[i * 3 + 0] = _appScene._material.specular[i * 3 + 0];
-		theCudaVolume.specular[i * 3 + 1] = _appScene._material.specular[i * 3 + 1];
-		theCudaVolume.specular[i * 3 + 2] = _appScene._material.specular[i * 3 + 2];
-		theCudaVolume.emissive[i * 3 + 0] = _appScene._material.emissive[i * 3 + 0];
-		theCudaVolume.emissive[i * 3 + 1] = _appScene._material.emissive[i * 3 + 1];
-		theCudaVolume.emissive[i * 3 + 2] = _appScene._material.emissive[i * 3 + 2];
-		theCudaVolume.roughness[i] = _appScene._material.roughness[i];
+			activeChannel++;
+			theCudaVolume.nChannels = activeChannel;
+		}
 	}
 
 	Render(0, *_renderSettings,

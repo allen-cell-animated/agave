@@ -39,6 +39,7 @@ public:
 	void OnEmissiveColorChanged(int i, const QColor& color);
 	void OnSetWindowLevel(int i, double window, double level);
 	void OnRoughnessChanged(int i, double roughness);
+	void OnChannelChecked(int i, bool is_checked);
 
 private:
 	QGridLayout		m_MainLayout;

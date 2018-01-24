@@ -33,4 +33,7 @@ struct ImageCuda {
 	void deallocGpu();
 
     void updateLutGpu(int channel, ImageXYZC* img);
+
+	void createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cudaTextureObject_t* deviceTexture);
+	void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
 };

@@ -15,7 +15,7 @@ class RenderParams {
 };
 
 
-#define MAX_CHANNELS 8
+#define MAX_CPU_CHANNELS 32
 struct VolumeDisplay {
 	float m_DensityScale;
     float m_GradientFactor;
@@ -23,10 +23,11 @@ struct VolumeDisplay {
 
     // channels enabled/disabled
     // per channel colors
-	float diffuse[MAX_CHANNELS * 3];
-	float specular[MAX_CHANNELS * 3];
-	float emissive[MAX_CHANNELS * 3];
-	float roughness[MAX_CHANNELS];
+	float diffuse[MAX_CPU_CHANNELS * 3];
+	float specular[MAX_CPU_CHANNELS * 3];
+	float emissive[MAX_CPU_CHANNELS * 3];
+	float roughness[MAX_CPU_CHANNELS];
+	bool enabled[MAX_CPU_CHANNELS];
 };
 
 class Light {

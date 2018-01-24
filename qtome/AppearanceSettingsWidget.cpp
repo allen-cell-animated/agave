@@ -204,10 +204,16 @@ void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double le
 
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
+
 void QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
 	_scene->_material.roughness[i] = roughness;
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked) {
+	_scene->_material.enabled[i] = is_checked;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 
 inline QVector<QColor> rndColors(int count) {
@@ -236,7 +242,9 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	QVector<QColor> colors = rndColors(scene->_volume->sizeC());
 
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {
-		Section* section = new Section(QString("Channel %1").arg(i), 0);
+		// first 3 channels will be chekced
+		bool channelenabled = (i < 3);
+		Section* section = new Section(QString("Channel %1").arg(i), 0, channelenabled);
 
 		auto* sectionLayout = new QGridLayout();
 
@@ -305,7 +313,12 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(roughnessSlider, &QDoubleSlider::valueChanged, [i, this](double d) {
 			this->OnRoughnessChanged(i, d);
 		});
+		this->OnRoughnessChanged(i, 0.0);
 
+		QObject::connect(section, &Section::checked, [i, this](bool is_checked) {
+			this->OnChannelChecked(i, is_checked);
+		});
+		this->OnChannelChecked(i, channelenabled);
 
 		section->setContentLayout(*sectionLayout);
 		m_MainLayout.addWidget(section, 12+i, 0, 1, -1);

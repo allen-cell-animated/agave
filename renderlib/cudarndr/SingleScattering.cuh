@@ -43,7 +43,7 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		}
 
 		int ch = 0;
-		const float D = GetNormalizedIntensityMax3ch(Pe, volumedata, ch);
+		const float D = GetNormalizedIntensityMax4ch(Pe, volumedata, ch);
 
 		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
 
@@ -63,7 +63,7 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 
 			case 2:
 			{
-				const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * gIntensityInvRange;
+				const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * (1.0/volumedata.intensityMax[ch]);
 
 				const float PdfBrdf = (1.0f - __expf(-gGradientFactor * GradMag));
 

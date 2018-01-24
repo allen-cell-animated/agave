@@ -13,18 +13,18 @@ struct cudaFB {
 	unsigned int* randomSeeds1;
 	unsigned int* randomSeeds2;
 };
-#define MAX_CHANNELS 8
+#define MAX_CUDA_CHANNELS 4
 struct cudaVolume {
 	int nChannels;
-	float intensityMax[MAX_CHANNELS];
-	float diffuse[MAX_CHANNELS * 3];
-	float specular[MAX_CHANNELS * 3];
-	float emissive[MAX_CHANNELS * 3];
-	float roughness[MAX_CHANNELS];
+	float intensityMax[MAX_CUDA_CHANNELS];
+	float diffuse[MAX_CUDA_CHANNELS * 3];
+	float specular[MAX_CUDA_CHANNELS * 3];
+	float emissive[MAX_CUDA_CHANNELS * 3];
+	float roughness[MAX_CUDA_CHANNELS];
 
-	cudaTextureObject_t volumeTexture[MAX_CHANNELS];
-	cudaTextureObject_t gradientVolumeTexture[MAX_CHANNELS];
-	cudaTextureObject_t lutTexture[MAX_CHANNELS];
+	cudaTextureObject_t volumeTexture[MAX_CUDA_CHANNELS];
+	cudaTextureObject_t gradientVolumeTexture[MAX_CUDA_CHANNELS];
+	cudaTextureObject_t lutTexture[MAX_CUDA_CHANNELS];
 	
 
 	cudaVolume(int n) {

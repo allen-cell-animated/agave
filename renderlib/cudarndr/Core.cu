@@ -31,10 +31,10 @@ CD float3		gAaBbMin;
 CD float3		gAaBbMax;
 CD float3		gInvAaBbMin;
 CD float3		gInvAaBbMax;
-CD float		gIntensityMin;
-CD float		gIntensityMax;
-CD float		gIntensityRange;
-CD float		gIntensityInvRange;
+//CD float		gIntensityMin;
+//CD float		gIntensityMax;
+//CD float		gIntensityRange;
+//CD float		gIntensityInvRange;
 CD float		gStepSize;
 CD float		gStepSizeShadow;
 CD float		gDensityScale;
@@ -383,15 +383,15 @@ void BindConstants(CScene* pScene)
 	HandleCudaError(cudaMemcpyToSymbol(gShadingType, &pScene->m_ShadingType, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(gGradientFactor, &pScene->m_GradientFactor, sizeof(float)));
 
-	const float IntensityMin		= pScene->m_IntensityRange.GetMin();
-	const float IntensityMax		= pScene->m_IntensityRange.GetMax();
-	const float IntensityRange		= pScene->m_IntensityRange.GetRange();
-	const float IntensityInvRange	= 1.0f / IntensityRange;
+	//const float IntensityMin		= pScene->m_IntensityRange.GetMin();
+	//const float IntensityMax		= pScene->m_IntensityRange.GetMax();
+	//const float IntensityRange		= pScene->m_IntensityRange.GetRange();
+	//const float IntensityInvRange	= 1.0f / IntensityRange;
 
-	HandleCudaError(cudaMemcpyToSymbol(gIntensityMin, &IntensityMin, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gIntensityMax, &IntensityMax, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gIntensityRange, &IntensityRange, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gIntensityInvRange, &IntensityInvRange, sizeof(float)));
+	//HandleCudaError(cudaMemcpyToSymbol(gIntensityMin, &IntensityMin, sizeof(float)));
+	//HandleCudaError(cudaMemcpyToSymbol(gIntensityMax, &IntensityMax, sizeof(float)));
+	//HandleCudaError(cudaMemcpyToSymbol(gIntensityRange, &IntensityRange, sizeof(float)));
+	//HandleCudaError(cudaMemcpyToSymbol(gIntensityInvRange, &IntensityInvRange, sizeof(float)));
 
 	const float StepSize		= pScene->m_StepSizeFactor * pScene->m_GradientDelta;
 	const float StepSizeShadow	= pScene->m_StepSizeFactorShadow * pScene->m_GradientDelta;

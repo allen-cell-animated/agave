@@ -2,10 +2,11 @@
 
 #include "Section.h"
 
-Section::Section(const QString & title, const int animationDuration, QWidget* parent)
+Section::Section(const QString & title, const int animationDuration, bool is_checked, QWidget* parent)
     : QWidget(parent), animationDuration(animationDuration)
 {
 	checkBox = new QCheckBox(this);
+	checkBox->setChecked(is_checked);
     toggleButton = new QToolButton(this);
     headerLine = new QFrame(this);
     toggleAnimation = new QParallelAnimationGroup(this);
@@ -50,6 +51,11 @@ Section::Section(const QString & title, const int animationDuration, QWidget* pa
         toggleAnimation->setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
         toggleAnimation->start();
     });
+
+	QObject::connect(checkBox, &QCheckBox::clicked, [this](const bool is_checked)
+	{
+		emit checked(is_checked);
+	});
 }
 
 void Section::setContentLayout(QLayout & contentLayout)

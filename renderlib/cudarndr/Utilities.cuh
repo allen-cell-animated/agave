@@ -5,69 +5,35 @@
 static DEV Vec3f operator + (const Vec3f& a, const float3& b) { return Vec3f(a.x + b.x, a.y + b.y, a.z + b.z); };
 static DEV Vec3f operator - (const Vec3f& a, const float3& b) { return Vec3f(a.x - b.x, a.y - b.y, a.z - b.z); };
 
-DEV float GetNormalizedIntensityMax(const Vec3f& P, const cudaVolume& volumeData, int& ch)
+// this gives the ability to read a float4 and then loop over its elements.
+typedef union {
+	float4 vec;
+	float a[4];
+} f4;
+
+DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeData, int& ch)
 {
 	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	//factor = (factor > 0) ? 1.0 : 0.0;
-
-	float maxIn = 0.0;
-	ch = 0;
-	for (int i = 0; i < volumeData.nChannels; ++i) {
-		float Intensity = ((float)SHRT_MAX * tex3D<float>(volumeData.volumeTexture[i], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
-		// map to 0..1
-		//Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
-		Intensity = (Intensity) / volumeData.intensityMax[i];
-		Intensity = tex1D<float>(volumeData.lutTexture[i], Intensity);
-
-		if (Intensity > maxIn) {
-			maxIn = Intensity;
+	f4 intensity;
+	intensity.vec = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	float maxIn = 0;
+	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		intensity.a[i] = intensity.a[i] / volumeData.intensityMax[i];
+		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
+		if (intensity.a[i] > maxIn) {
+			maxIn = intensity.a[i];
 			ch = i;
 		}
 	}
 	return maxIn; // *factor;
 }
 
-DEV float GetNormalizedIntensityMax3ch(const Vec3f& P, const cudaVolume& volumeData, int& ch)
-{
-	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
-	//factor = (factor > 0) ? 1.0 : 0.0;
-
-	float4 intensity = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
-	intensity.x = intensity.x / volumeData.intensityMax[0];
-	intensity.y = intensity.y / volumeData.intensityMax[1];
-	intensity.z = intensity.z / volumeData.intensityMax[2];
-	intensity.x = tex1D<float>(volumeData.lutTexture[0], intensity.x);
-	intensity.y = tex1D<float>(volumeData.lutTexture[1], intensity.y);
-	intensity.z = tex1D<float>(volumeData.lutTexture[2], intensity.z);
-	float maxIn = intensity.x;
-	ch = 0;
-	if (intensity.y > maxIn) {
-		maxIn = intensity.y;
-		ch = 1;
-	}
-	if (intensity.z > maxIn) {
-		maxIn = intensity.z;
-		ch = 2;
-	}
-	//ch = ich;
-	return maxIn; // *factor;
-}
-
-DEV float GetNormalizedIntensity(const Vec3f& P, cudaTextureObject_t texDensity, cudaTextureObject_t texLut)
-{
-	float Intensity = ((float)SHRT_MAX * tex3D<float>(texDensity, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
-	// map to 0..1
-	//Intensity = (Intensity - gIntensityMin) * gIntensityInvRange;
-	Intensity = (Intensity)/gIntensityMax;
-
-	return Intensity;
-}
-
 DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
 {
 	float4 Intensity4 = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	// select channel
-	float intensity = ch == 0 ? Intensity4.x : ch == 1 ? Intensity4.y : ch == 2 ? Intensity4.z : 0.0;
+	float intensity = ch == 0 ? Intensity4.x : ch == 1 ? Intensity4.y : ch == 2 ? Intensity4.z : Intensity4.w;
 	intensity = intensity / volumeData.intensityMax[ch];
 	//intensity = tex1D<float>(volumeData.lutTexture[ch], intensity);
 	return intensity;
@@ -158,17 +124,6 @@ DEV inline Vec3f NormalizedGradient4ch(const Vec3f& P, const cudaVolume& volumeD
 	Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), volumeData, ch)) * gInvGradientDelta;
 	Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), volumeData, ch)) * gInvGradientDelta;
 	Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), volumeData, ch)) * gInvGradientDelta;
-
-	return Normalize(Gradient);
-}
-
-DEV inline Vec3f NormalizedGradient(const Vec3f& P, cudaTextureObject_t texDensity, cudaTextureObject_t texLut)
-{
-	Vec3f Gradient;
-
-	Gradient.x = (GetNormalizedIntensity(P + (gGradientDeltaX), texDensity, texLut) - GetNormalizedIntensity(P - (gGradientDeltaX), texDensity, texLut)) * gInvGradientDelta;
-	Gradient.y = (GetNormalizedIntensity(P + (gGradientDeltaY), texDensity, texLut) - GetNormalizedIntensity(P - (gGradientDeltaY), texDensity, texLut)) * gInvGradientDelta;
-	Gradient.z = (GetNormalizedIntensity(P + (gGradientDeltaZ), texDensity, texLut) - GetNormalizedIntensity(P - (gGradientDeltaZ), texDensity, texLut)) * gInvGradientDelta;
 
 	return Normalize(Gradient);
 }
