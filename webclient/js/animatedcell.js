@@ -1,9 +1,9 @@
 
-  var wsUri = "ws://localhost:1234";
-  //var wsUri = "ws://dev-aics-dtp-001:1234";
+  var wsUri = "ws://localhost:1235";
+  //var wsUri = "ws://dev-aics-dtp-001:1235";
 
   var binarysocket0 = null; //handles requests for image streaming target #1
-  var binarysocket1 = null; //handles requests for image streaming target #2
+  //var binarysocket1 = null; //handles requests for image streaming target #2
   var jsonsocket0 = null;  //handles requests for dynamically populating the menu entries based on server feedback
 
   var dragFlag = 0; //for dragging in the render view
@@ -27,8 +27,10 @@
   var oldRotation;
   var rotationDelta;
   var tempold;
-var slider_drag = false;
+  var slider_drag = false;
 
+  var _stream_mode = false;
+  var _stream_mode_suspended = false;
   // var bbbb = new commandBuffer();
   // bbbb.addCommand("EYE", 1, 1, 5);
   // bbbb.addCommand("TARGET", 3, 3, 0);
@@ -57,22 +59,112 @@ function setupGui() {
 
   effectController = {
     channel: 0,
-    color: [255, 255, 0]
+    colorD0: [255, 0, 255],
+    colorD1: [255, 255, 255],
+    colorD2: [0, 255, 255],
+    colorS0: [0, 0, 0],
+    colorS1: [0, 0, 0],
+    colorS2: [0, 0, 0],
+    colorE0: [0, 0, 0],
+    colorE1: [0, 0, 0],
+    colorE2: [0, 0, 0],
+    window0: 1.0,
+    window1: 1.0,
+    window2: 1.0,
+    level0: 0.5,
+    level1: 0.5,
+    level2: 0.5,
+    roughness0: 0.0,
+    roughness1: 0.0,
+    roughness2: 0.0,
+    density: 50.0,
+    exposure: 0.5,
+    stream: false
   };
 
   var gui = new dat.GUI();
   //var gui = new dat.GUI({autoPlace:false, width:200});
 
-  gui.add( effectController, "channel", [0,1,2,3,4,5,6,7]).name("Channel").onFinishChange(function(value) {
+  gui.add(effectController, "stream").onChange(function(value) {
     var cb = new commandBuffer();
-    cb.addCommand("CHANNEL", parseInt(value));
+    cb.addCommand("STREAM_MODE", value ? 1 : 0);
     flushCommandBuffer(cb);
+    _stream_mode = value;
   });
-  gui.addColor(effectController, "color").name("Diffuse").onChange(function(value) {
+  gui.add(effectController, "exposure").max(1.0).min(0.0).onChange(function(value) {
     var cb = new commandBuffer();
-    cb.addCommand("MAT_DIFFUSE", value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+    cb.addCommand("EXPOSURE", value);
     flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+  }).onFinishChange(function(value) {
+      _stream_mode_suspended = false;
   });
+  gui.add(effectController, "density").max(100.0).min(0.0).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("DENSITY", value);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+for (var i = 0; i < 3; ++i) {
+    gui.addColor(effectController, "colorD"+i).name("Diffuse"+i).onChange(function(j) { 
+        return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("MAT_DIFFUSE", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+                flushCommandBuffer(cb);
+            };
+    }(i));
+    gui.addColor(effectController, "colorS"+i).name("Specular"+i).onChange(function(j) {
+        return function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("MAT_SPECULAR", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+            flushCommandBuffer(cb);
+        };
+    }(i));
+    gui.addColor(effectController, "colorE"+i).name("Emissive"+i).onChange(function(j) {
+        return function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("MAT_EMISSIVE", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+            flushCommandBuffer(cb);
+        };
+    }(i));
+    gui.add(effectController, "window"+i).max(1.0).min(0.0).onChange(function(j) {
+        return function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+i]);
+            flushCommandBuffer(cb);
+            _stream_mode_suspended = true;
+        }
+    }(i))
+    .onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+
+    gui.add(effectController, "level"+i).max(1.0).min(0.0).onChange(function(j) {
+        return function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("SET_WINDOW_LEVEL", j, effectController["window"+j], value);
+            flushCommandBuffer(cb);
+            _stream_mode_suspended = true;
+        }
+    }(i))
+    .onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.add(effectController, "roughness"+i).max(100.0).min(0.0).onChange(function(j) {
+        return function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("MAT_GLOSSINESS", i, value);
+            flushCommandBuffer(cb);
+            _stream_mode_suspended = true;
+        }
+    }(i))
+    .onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    
+  }
 
 //  var customContainer = document.getElementById('my-gui-container');
 //  customContainer.appendChild(gui.domElement);
@@ -84,20 +176,16 @@ function setupGui() {
   function init()
   {
     binarysocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
-    jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
-
     binarysock = new binarysocket(0);
-    jsonsock = new jsonsocket();
-
-
     binarysocket0.binaryType = "arraybuffer";
-
     //socket connection for image stream #1
     binarysocket0.onopen = binarysock.open;
     binarysocket0.onclose = binarysock.close;
     binarysocket0.onmessage = binarysock.message0; //linked to message0
     binarysocket0.onerror = binarysock.error;
 
+    jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
+    jsonsock = new jsonsocket();
     jsonsocket0.binaryType = "arraybuffer";
     //socket connection for json message requests
     jsonsocket0.onopen = jsonsock.open;
@@ -123,6 +211,7 @@ function setupGui() {
 
     var streamedImg = document.getElementsByClassName("streamed_img");
 
+    // camera manipulations
     for(var i=0; i<streamedImg.length; i++)
     {
         streamedImg[i].addEventListener("DOMMouseScroll", MouseWheelHandler, false);
@@ -153,11 +242,19 @@ function setupGui() {
 
 
         var cb = new commandBuffer();
+        cb.addCommand("LOAD_OME_TIF", "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.1.1/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif");
+        cb.addCommand("SET_RESOLUTION", 512, 512);
         cb.addCommand("EYE", 0.5, 0.408, 2.145);
         cb.addCommand("TARGET", 0.5, 0.408, 0.145);
-        cb.addCommand("MAT_DIFFUSE", 1.0, 1.0, 0.0, 1.0);
-        cb.addCommand("MAT_SPECULAR", 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_EMISSIVE", 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_DIFFUSE", 0, 1.0, 0.0, 1.0, 1.0);
+        cb.addCommand("MAT_SPECULAR", 0, 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_EMISSIVE", 0, 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_DIFFUSE", 1, 1.0, 1.0, 1.0, 1.0);
+        cb.addCommand("MAT_SPECULAR", 1, 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_EMISSIVE", 1, 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_DIFFUSE", 2, 0.0, 1.0, 1.0, 1.0);
+        cb.addCommand("MAT_SPECULAR", 2, 0.0, 0.0, 0.0, 0.0);
+        cb.addCommand("MAT_EMISSIVE", 2, 0.0, 0.0, 0.0, 0.0);
         cb.addCommand("APERTURE", 0.0);
         cb.addCommand("EXPOSURE", 0.5);
         flushCommandBuffer(cb);
@@ -217,6 +314,12 @@ function setupGui() {
       imgreceived = true;
       screenImage.set("data:image/png;base64,"+window.btoa( binary ), 0);
       console.timeEnd('recv');
+
+      if (!_stream_mode_suspended && _stream_mode && !dragFlag) {
+        // let cb = new commandBuffer();
+        // cb.addCommand("REDRAW");
+        // flushCommandBuffer(cb);
+      }
 
 // why should this code be slower?
       // var reader = new FileReader();

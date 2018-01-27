@@ -38,6 +38,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 		this->renderers.last()->start();
 	}
 	qDebug() << "Done.";
+#if 0
 
 	qDebug() << "Sampling the rendering parameters...";
 
@@ -46,7 +47,6 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	this->timings.resize(settingsCount);
 	this->sampleCount.resize(settingsCount);
 
-#if 0
 	for (int i = 0; i < 10; i++)
 	{
 		//sample the surface of the sphere
@@ -275,7 +275,6 @@ void StreamServer::processBinaryMessage(QByteArray message)
 	if (pClient)
 	{
 		// the message had better be an encoded command stream.  check a header perhaps?
-
 		commandBuffer b(message.length(), reinterpret_cast<const uint8_t*>(message.constData()));
 		b.processBuffer();
 
@@ -300,48 +299,10 @@ void StreamServer::socketDisconnected()
 
 void StreamServer::sendImage(RenderRequest *request, QImage image)
 {
-	//qDebug() << "sending image to" << request->getClient();
-
-	//QImage image = widget.grab().toImage();
-
-	//TODO: why does this work at all??
-
-	/*Canvas *canvas = dynamic_cast<Canvas*> (widget);
-	QImage image;
-	image = canvas->getImage();*/
-
-	/*QString cameraString = QString::number(canvas->getRotation().x(), 'f',1) + ";" +
-	QString::number(canvas->getRotation().y(), 'f',1) + ";" +
-	QString::number(canvas->getRotation().z(), 'f',1) + ";" +
-	QString::number(canvas->getRotation().scalar(), 'f',1) + ";";
-
-	QString hash = QString(QCryptographicHash::hash(cameraString.toUtf8(), QCryptographicHash::Md5).toHex());*/
-
-	//qDebug() << cameraString;
-	//qDebug() << hash;
-
 	if (request->isDebug())
 	{
 		if (image.isNull()) {
 			qDebug() << "NULL IMAGE RECEIVED AT STREAMSERVER FROM RENDERER";
-		}
-
-		//running mean
-		int v = 0;
-		this->sampleCount[v]++;
-		this->timings[v] = this->timings[v] + (request->getActualDuration() - this->timings[v]) / this->sampleCount[v];
-
-		QString fileName = "cache/" +
-			QString::number(rand()) + "." +
-			QString(DEFAULT_IMAGE_FORMAT);
-
-		qDebug() << "saving image to" << fileName;
-		qDebug() << "(" << image.width() << "," << image.height() << ")";
-		bool ok = image.save(fileName,
-			DEFAULT_IMAGE_FORMAT,
-			92);
-		if (!ok) {
-			qDebug() << "Could not save " << fileName;
 		}
 	}
 
@@ -355,30 +316,4 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 
 		client->sendBinaryMessage(ba);
 	}
-
-
-	/*QString fileName = "cache/" + hash + "." + QString(format);
-
-	QFileInfo fi(fileName);*/
-
-	/*if (!fi.exists())
-	{
-	image.save(fileName, DEFAULT_IMAGE_FORMAT, 1);
-	}*/
-	/*else
-	{
-	QImage loaded(fileName);
-
-	QBuffer buffer(&ba);
-	buffer.open(QIODevice::WriteOnly);
-	loaded.save(&buffer, format, quality);
-	}*/
-
-
-	/*if (ba != previousArray || true)
-	{
-	client->sendBinaryMessage(ba);
-	}
-
-	previousArray = QByteArray(ba);*/
 }

@@ -102,9 +102,6 @@ public slots:
     void
     setZRotation(int angle);
 
-	void
-	setC(size_t c);
-
     /**
     * Set mouse behaviour mode.
     *

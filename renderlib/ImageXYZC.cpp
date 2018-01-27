@@ -23,7 +23,7 @@ ImageXYZC::ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bp
 		_channels[i]->generateGradientMagnitudeVolume(physicalSizeX(), physicalSizeY(), physicalSizeZ());
 
 		LOG_INFO << "Channel " << i << ":" << (_channels[i]->_min) << "," << (_channels[i]->_max);
-		LOG_INFO << "gradient range " << i << ":" << (_channels[i]->_gradientMagnitudeMin) << "," << (_channels[i]->_gradientMagnitudeMax);
+		//LOG_INFO << "gradient range " << i << ":" << (_channels[i]->_gradientMagnitudeMin) << "," << (_channels[i]->_gradientMagnitudeMax);
 	}
 
 

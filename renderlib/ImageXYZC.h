@@ -39,8 +39,8 @@ struct Channelu16
 	uint16_t _max;
 
 	uint16_t* _gradientMagnitudePtr;
-	uint16_t _gradientMagnitudeMin;
-	uint16_t _gradientMagnitudeMax;
+	//uint16_t _gradientMagnitudeMin;
+	//uint16_t _gradientMagnitudeMax;
 
 	Histogram _histogram;
 	float* _lut;

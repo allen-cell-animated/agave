@@ -1,6 +1,7 @@
 #include "Stable.h"
 
 #include "Scene.h"
+#include "ImageXYZC.h"
 
 CScene::CScene(void) :
 	_channel(0),
@@ -22,10 +23,7 @@ CScene::CScene(void) :
 	m_StepSizeFactorShadow(3.0f),
 	m_GradientDelta(4.0f),
 	m_GradientFactor(50.0f),
-	m_GradMagMean(1.0f),
-	m_EmissiveColor { 0, 0, 0, 0 },
-	m_DiffuseColor { 0.5, 0.5, 0.5, 1.0 },
-	m_SpecularColor { 0.0, 0.0, 0.0, 0.0 }
+	m_GradMagMean(1.0f)
 {
 }
 
@@ -57,6 +55,39 @@ HOD CScene& CScene::operator=(const CScene& Other)
 	m_GradMagMean				= Other.m_GradMagMean;
 
 	return *this;
+}
+
+void CScene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
+{
+	if (!img) {
+		return;
+	}
+
+	m_Resolution.SetResX(img->sizeX());
+	m_Resolution.SetResY(img->sizeY());
+	m_Resolution.SetResZ(img->sizeZ());
+	m_Spacing.x = img->physicalSizeX();
+	m_Spacing.y = img->physicalSizeY();
+	m_Spacing.z = img->physicalSizeZ();
+
+	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
+
+	// Compute physical size
+	const Vec3f PhysicalSize(Vec3f(
+		m_Spacing.x * (float)m_Resolution.GetResX(),
+		m_Spacing.y * (float)m_Resolution.GetResY(),
+		m_Spacing.z * (float)m_Resolution.GetResZ()
+	));
+
+	// Compute the volume's bounding box
+	m_BoundingBox.m_MinP = Vec3f(0.0f);
+	m_BoundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
+
+	m_Camera.m_SceneBoundingBox = m_BoundingBox;
+
+	for (int i = 0; i < m_Lighting.m_NoLights; ++i) {
+		m_Lighting.m_Lights[i].Update(m_BoundingBox);
+	}
 }
 
 HO CDenoiseParams::CDenoiseParams(void)

@@ -53,8 +53,11 @@ Command* parseSetRenderIterationsCommand(CommandBufferIterator* c);
 Command* parseSetStreamModeCommand(CommandBufferIterator* c);
 Command* parseRequestRedrawCommand(CommandBufferIterator* c);
 Command* parseSetResolutionCommand(CommandBufferIterator* c);
-Command* parseSetChannelCommand(CommandBufferIterator* c);
 Command* parseSetDensityCommand(CommandBufferIterator* c);
+Command* parseFrameSceneCommand(CommandBufferIterator* c);
+Command* parseSetGlossinessCommand(CommandBufferIterator* c);
+Command* parseEnableChannelCommand(CommandBufferIterator* c);
+Command* parseSetWindowLevelCommand(CommandBufferIterator* c);
 
 #define CMD_CASE(N, CMDCLASS) \
 	case N:\
@@ -90,8 +93,11 @@ void commandBuffer::processBuffer()
 					CMD_CASE(14, SetStreamModeCommand);
 					CMD_CASE(15, RequestRedrawCommand);
 					CMD_CASE(16, SetResolutionCommand);
-					CMD_CASE(17, SetChannelCommand);
-					CMD_CASE(18, SetDensityCommand);
+					CMD_CASE(17, SetDensityCommand);
+					CMD_CASE(18, FrameSceneCommand);
+					CMD_CASE(19, SetGlossinessCommand);
+					CMD_CASE(20, EnableChannelCommand);
+					CMD_CASE(21, SetWindowLevelCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -208,6 +214,7 @@ Command* parseSetCameraExposureCommand(CommandBufferIterator* c) {
 }
 Command* parseSetDiffuseColorCommand(CommandBufferIterator* c) {
 	SetDiffuseColorCommandD data;
+	data._channel = c->parseInt32();
 	data._r = c->parseFloat32();
 	data._g = c->parseFloat32();
 	data._b = c->parseFloat32();
@@ -216,6 +223,7 @@ Command* parseSetDiffuseColorCommand(CommandBufferIterator* c) {
 }
 Command* parseSetSpecularColorCommand(CommandBufferIterator* c) {
 	SetSpecularColorCommandD data;
+	data._channel = c->parseInt32();
 	data._r = c->parseFloat32();
 	data._g = c->parseFloat32();
 	data._b = c->parseFloat32();
@@ -224,6 +232,7 @@ Command* parseSetSpecularColorCommand(CommandBufferIterator* c) {
 }
 Command* parseSetEmissiveColorCommand(CommandBufferIterator* c) {
 	SetEmissiveColorCommandD data;
+	data._channel = c->parseInt32();
 	data._r = c->parseFloat32();
 	data._g = c->parseFloat32();
 	data._b = c->parseFloat32();
@@ -250,13 +259,31 @@ Command* parseSetResolutionCommand(CommandBufferIterator* c) {
 	data._y = c->parseInt32();
 	return new SetResolutionCommand(data);
 }
-Command* parseSetChannelCommand(CommandBufferIterator* c) {
-	SetChannelCommandD data;
-	data._x = c->parseInt32();
-	return new SetChannelCommand(data);
-}
 Command* parseSetDensityCommand(CommandBufferIterator* c) {
 	SetDensityCommandD data;
 	data._x = c->parseFloat32();
 	return new SetDensityCommand(data);
+}
+Command* parseFrameSceneCommand(CommandBufferIterator* c) {
+	FrameSceneCommandD data;
+	return new FrameSceneCommand(data);
+}
+Command* parseSetGlossinessCommand(CommandBufferIterator* c) {
+	SetGlossinessCommandD data;
+	data._channel = c->parseInt32();
+	data._glossiness = c->parseFloat32();
+	return new SetGlossinessCommand(data);
+}
+Command* parseEnableChannelCommand(CommandBufferIterator* c) {
+	EnableChannelCommandD data;
+	data._channel = c->parseInt32();
+	data._enabled = c->parseInt32();
+	return new EnableChannelCommand(data);
+}
+Command* parseSetWindowLevelCommand(CommandBufferIterator* c) {
+	SetWindowLevelCommandD data;
+	data._channel = c->parseInt32();
+	data._window = c->parseFloat32();
+	data._level = c->parseFloat32();
+	return new SetWindowLevelCommand(data);
 }

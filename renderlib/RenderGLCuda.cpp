@@ -18,9 +18,8 @@
 
 #include <array>
 
-RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene)
-	:_img(img),
-	_cudaF32Buffer(nullptr),
+RenderGLCuda::RenderGLCuda(CScene* scene)
+	:_cudaF32Buffer(nullptr),
 	_cudaF32AccumBuffer(nullptr),
 	_cudaTex(nullptr),
 	_fbtex(0),
@@ -30,13 +29,11 @@ RenderGLCuda::RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene)
 	image_elements(0),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
-	_currentChannel(0),
 	_renderSettings(scene),
 	_w(0),
 	_h(0)
 {
 	initSceneLighting();
-	initSceneFromImg();
 	_renderSettings->m_Camera.SetViewMode(ViewModeFront);
 }
 
@@ -82,40 +79,6 @@ void RenderGLCuda::initSceneLighting() {
 	AreaLight.Update(_renderSettings->m_BoundingBox);
 
 	_renderSettings->m_Lighting.AddLight(AreaLight);
-}
-
-void RenderGLCuda::initSceneFromImg()
-{
-	if (!_img) {
-		return;
-	}
-
-	_renderSettings->m_Resolution.SetResX(_img->sizeX());
-	_renderSettings->m_Resolution.SetResY(_img->sizeY());
-	_renderSettings->m_Resolution.SetResZ(_img->sizeZ());
-	_renderSettings->m_Spacing.x = _img->physicalSizeX();
-	_renderSettings->m_Spacing.y = _img->physicalSizeY();
-	_renderSettings->m_Spacing.z = _img->physicalSizeZ();
-
-	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
-
-	// Compute physical size
-	const Vec3f PhysicalSize(Vec3f(
-		_renderSettings->m_Spacing.x * (float)_renderSettings->m_Resolution.GetResX(), 
-		_renderSettings->m_Spacing.y * (float)_renderSettings->m_Resolution.GetResY(), 
-		_renderSettings->m_Spacing.z * (float)_renderSettings->m_Resolution.GetResZ()
-	));
-
-	// Compute the volume's bounding box
-	_renderSettings->m_BoundingBox.m_MinP = Vec3f(0.0f);
-	_renderSettings->m_BoundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
-
-	_renderSettings->m_Camera.m_SceneBoundingBox = _renderSettings->m_BoundingBox;
-
-
-	for (int i = 0; i < _renderSettings->m_Lighting.m_NoLights; ++i) {
-		_renderSettings->m_Lighting.m_Lights[i].Update(_renderSettings->m_BoundingBox);
-	}
 }
 
 void RenderGLCuda::initQuad()
@@ -253,11 +216,11 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
-	if (!_img) {
+	if (!_appScene._volume) {
 		return;
 	}
 	ImageCuda cimg;
-	cimg.allocGpuInterleaved(_img.get());
+	cimg.allocGpuInterleaved(_appScene._volume.get());
 	_imgCuda = cimg;
 
 }
@@ -266,9 +229,10 @@ void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
 	// free the gpu resources of the old image.
 	_imgCuda.deallocGpu();
 
-	_img = img;
+	_appScene._volume = img;
+
 	initVolumeTextureCUDA();
-	initSceneFromImg();
+	_renderSettings->initSceneFromImg(img);
 
 	// we have set up everything there is to do before rendering
 	_status.SetRenderBegin();
@@ -294,11 +258,12 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::doRender() {
-	if (!_img) {
+	if (!_appScene._volume) {
 		return;
 	}
-
-	_currentChannel = _renderSettings->_channel;
+	if (!_imgCuda._volumeArrayInterleaved) {
+		initVolumeTextureCUDA();
+	}
 
 	// Resizing the image canvas requires special attention
 	if (_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty))
@@ -323,9 +288,9 @@ void RenderGLCuda::doRender() {
 	// Restart the rendering when when the camera, lights and render params are dirty
 	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
-		int NC = _img->sizeC();
+		int NC = _appScene._volume->sizeC();
 		for (int i = 0; i < NC; ++i) {
-			_imgCuda.updateLutGpu(i, _img.get());
+			_imgCuda.updateLutGpu(i, _appScene._volume.get());
 		}
 
 		//		ResetRenderCanvasView();
@@ -337,14 +302,14 @@ void RenderGLCuda::doRender() {
 	{
 		int ch[4] = { 0, 0, 0, 0 };
 		int activeChannel = 0;
-		int NC = _img->sizeC();
+		int NC = _appScene._volume->sizeC();
 		for (int i = 0; i < NC; ++i) {
 			if (_appScene._material.enabled[i] && activeChannel < 4) {
 				ch[activeChannel] = i;
 				activeChannel++;
 			}
 		}
-		_imgCuda.updateVolumeData4x16(_img.get(), ch[0], ch[1], ch[2], ch[3]);
+		_imgCuda.updateVolumeData4x16(_appScene._volume.get(), ch[0], ch[1], ch[2], ch[3]);
 		_renderSettings->SetNoIterations(0);
 	}
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
@@ -369,7 +334,7 @@ void RenderGLCuda::doRender() {
 	};
 
 	// single channel
-	int NC = _img->sizeC();
+	int NC = _appScene._volume->sizeC();
 	// use first 3 channels only.
 	int activeChannel = 0;
 	cudaVolume theCudaVolume(0);
@@ -378,7 +343,7 @@ void RenderGLCuda::doRender() {
 			theCudaVolume.volumeTexture[activeChannel] = _imgCuda._volumeTextureInterleaved;
 			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
 			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
-			theCudaVolume.intensityMax[activeChannel] = _img->channel(i)->_max;
+			theCudaVolume.intensityMax[activeChannel] = _appScene._volume->channel(i)->_max;
 			theCudaVolume.diffuse[activeChannel * 3 + 0] = _appScene._material.diffuse[i * 3 + 0];
 			theCudaVolume.diffuse[activeChannel * 3 + 1] = _appScene._material.diffuse[i * 3 + 1];
 			theCudaVolume.diffuse[activeChannel * 3 + 2] = _appScene._material.diffuse[i * 3 + 2];

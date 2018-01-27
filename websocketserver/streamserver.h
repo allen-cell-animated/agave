@@ -68,23 +68,6 @@ public:
 		return requests;
 	}
 
-	inline QString getTimingsString()
-	{
-		QString text;
-		for (int i = 0; i < this->timings.count(); i++)
-		{
-			QString settings = QString::number(i, 2);
-
-			while (settings.length() < 8)
-			{
-				settings = "0" + settings;
-			}
-
-			text += settings + ": " + QString::number(this->timings[i] / 1000000.0, 'f') + " ms (" + QString::number(this->sampleCount[i]) + " samples)\n";
-		}
-
-		return text;
-	}
 
 signals:
 	void closed();
@@ -98,8 +81,8 @@ signals:
 	void sendImage(RenderRequest *request, QImage image);
 
 private:
-	QVector<int> sampleCount;
-	QVector<qreal> timings;
+	//QVector<int> sampleCount;
+	//QVector<qreal> timings;
 
 	Renderer *getLeastBusyRenderer();
 

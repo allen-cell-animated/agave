@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
 	//set to true to show windows, or false to run as a console application
-	bool gui = false;
+	bool gui = true;
 
 	QApplication a(argc, argv);
 	//QDir::setCurrent(QApplication::applicationDirPath() + "/work");
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
 	const QStringList args = parser.positionalArguments();
 	// port is args.at(0)
-	const int defaultPort = 1234;
+	const int defaultPort = 1235;
 	int port = defaultPort;
 	if (args.size() > 0) {
 		QString sport = args.at(0);
@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
 
 	if (gui)
 	{
-		MainWindow _(server);
-		_.resize(512, 512);
-		_.show();
+		MainWindow* _ = new MainWindow(server);
+		_->resize(512, 512);
+		_->show();
 	}
 
 	qDebug() << "working directory:" << QDir::current();

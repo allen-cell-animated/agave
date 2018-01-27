@@ -57,25 +57,6 @@ DEV CColorRgbHdr GetDiffuseN(const float& NormalizedIntensity, const cudaVolume&
 	return CColorRgbHdr(volumeData.diffuse[ch*3+0], volumeData.diffuse[ch * 3 + 1], volumeData.diffuse[ch * 3 + 2]);
 }
 
-DEV CColorRgbHdr GetDiffuse(const float& NormalizedIntensity)
-{
-	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
-//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
-//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
-//	return CColorRgbHdr(1.0, 1.0, 1.0);
-	return CColorRgbHdr(gDiffuseColor.x, gDiffuseColor.y, gDiffuseColor.z);
-}
-
-
-DEV CColorRgbHdr GetSpecular(const float& NormalizedIntensity)
-{
-	//float4 Specular = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
-	//float4 Specular = tex1D(gTexSpecular, NormalizedIntensity);
-	//return CColorRgbHdr(Specular.x, Specular.y, Specular.z);
-
-	return CColorRgbHdr(gSpecularColor.x, gSpecularColor.y, gSpecularColor.z);
-}
-
 DEV CColorRgbHdr GetSpecularN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
 	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
@@ -97,15 +78,6 @@ DEV float GetRoughness(const float& NormalizedIntensity)
 	return 1.0;
 	//return NormalizedIntensity;
 	//return tex1D(gTexRoughness, NormalizedIntensity);
-}
-
-DEV CColorRgbHdr GetEmission(const float& NormalizedIntensity)
-{
-	//float4 Emission = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
-	//float4 Emission = tex1D(gTexEmission, NormalizedIntensity);
-	//return CColorRgbHdr(Emission.x, Emission.y, Emission.z);
-
-	return CColorRgbHdr(gEmissiveColor.x, gEmissiveColor.y, gEmissiveColor.z);
 }
 
 DEV CColorRgbHdr GetEmissionN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)

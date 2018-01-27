@@ -19,9 +19,9 @@ COMMANDS = {
     "FOV_Y": [7, "F32"],
     "FOCALDIST": [8, "F32"],
     "EXPOSURE": [9, "F32"],
-    "MAT_DIFFUSE": [10, "F32", "F32", "F32", "F32"],
-    "MAT_SPECULAR": [11, "F32", "F32", "F32", "F32"],
-    "MAT_EMISSIVE": [12, "F32", "F32", "F32", "F32"],
+    "MAT_DIFFUSE": [10, "I32", "F32", "F32", "F32", "F32"],
+    "MAT_SPECULAR": [11, "I32", "F32", "F32", "F32", "F32"],
+    "MAT_EMISSIVE": [12, "I32", "F32", "F32", "F32", "F32"],
     # set num render iterations
     "RENDER_ITERATIONS": [13, "I32"],
     # (continuous or on-demand frames)
@@ -29,8 +29,14 @@ COMMANDS = {
     # request new image
     "REDRAW": [15],
     "SET_RESOLUTION": [16, "I32", "I32"],
-    "CHANNEL": [17, "I32"],
-    "DENSITY": [18, "F32"]
+    "DENSITY": [17, "F32"],
+    # move camera to bound and look at the scene contents
+    "FRAME_SCENE": [18],
+    "MAT_GLOSSINESS": [19, "I32", "F32"],
+    # channel index, 1/0 for enable/disable
+    "ENABLE_CHANNEL": [20, "I32", "I32"],
+    # channel index, window, level.  (Do I ever set these independently?)
+    "SET_WINDOW_LEVEL": [21, "I32", "F32", "F32"]
 }
 
 # strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?

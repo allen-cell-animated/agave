@@ -5,36 +5,18 @@
 #include "Camera2.cuh"
 #include "Lighting2.cuh"
 
-//texture<short, cudaTextureType3D, cudaReadModeNormalizedFloat>		gTexDensity;
-//texture<short, cudaTextureType3D, cudaReadModeNormalizedFloat>		gTexGradientMagnitude;
-
 cudaTextureObject_t gTexDensity;
 cudaTextureObject_t gTexGradientMagnitude;
 
-//texture<float, cudaTextureType3D, cudaReadModeElementType>			gTexExtinction;
-//texture<float, cudaTextureType1D, cudaReadModeElementType>			gTexOpacity;
-//texture<float4, cudaTextureType1D, cudaReadModeElementType>			gTexDiffuse;
-//texture<float4, cudaTextureType1D, cudaReadModeElementType>			gTexSpecular;
-//texture<float, cudaTextureType1D, cudaReadModeElementType>			gTexRoughness;
-//texture<float4, cudaTextureType1D, cudaReadModeElementType>			gTexEmission;
 texture<uchar4, cudaTextureType2D, cudaReadModeNormalizedFloat>		gTexRunningEstimateRgba;
 
 cudaArray* gpDensityArray				= NULL;
 cudaArray* gpGradientMagnitudeArray		= NULL;
-//cudaArray* gpOpacityArray				= NULL;
-//cudaArray* gpDiffuseArray				= NULL;
-//cudaArray* gpSpecularArray				= NULL;
-//cudaArray* gpRoughnessArray				= NULL;
-//cudaArray* gpEmissionArray				= NULL;
 
 CD float3		gAaBbMin;
 CD float3		gAaBbMax;
 CD float3		gInvAaBbMin;
 CD float3		gInvAaBbMax;
-//CD float		gIntensityMin;
-//CD float		gIntensityMax;
-//CD float		gIntensityRange;
-//CD float		gIntensityInvRange;
 CD float		gStepSize;
 CD float		gStepSizeShadow;
 CD float		gDensityScale;
@@ -62,10 +44,6 @@ CD float		gDenoiseLerpC;
 CD float		gNoIterations;
 CD float		gInvNoIterations;
 
-CD float4		gDiffuseColor;
-CD float4		gSpecularColor;
-CD float4		gEmissiveColor;
-
 CD int gShadingType;
 CD float gGradientFactor;
 
@@ -89,78 +67,6 @@ CD CudaCamera gCamera;
 #include "ToneMap.cuh"
 
 CCudaView	gRenderCanvasView;
-
-void BindDensityBuffer(short* pBuffer, cudaExtent volumeSize)
-{
-	// create 3D array
-	cudaChannelFormatDesc gradientChannelDesc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
-	HandleCudaError(cudaMalloc3DArray(&gpDensityArray, &gradientChannelDesc, volumeSize));
-
-	// copy data to 3D array
-	cudaMemcpy3DParms gradientCopyParams = { 0 };
-	gradientCopyParams.srcPtr = make_cudaPitchedPtr(pBuffer, volumeSize.width*sizeof(short), volumeSize.width, volumeSize.height);
-	gradientCopyParams.dstArray = gpDensityArray;
-	gradientCopyParams.extent = volumeSize;
-	gradientCopyParams.kind = cudaMemcpyHostToDevice;
-	HandleCudaError(cudaMemcpy3D(&gradientCopyParams));
-
-	cudaResourceDesc gradientTexRes;
-	memset(&gradientTexRes, 0, sizeof(cudaResourceDesc));
-	gradientTexRes.resType = cudaResourceTypeArray;
-	gradientTexRes.res.array.array = gpDensityArray;
-	cudaTextureDesc     gradientTexDescr;
-	memset(&gradientTexDescr, 0, sizeof(cudaTextureDesc));
-	gradientTexDescr.normalizedCoords = 1;
-	gradientTexDescr.filterMode = cudaFilterModeLinear;
-	gradientTexDescr.addressMode[0] = cudaAddressModeClamp;   // clamp
-	gradientTexDescr.addressMode[1] = cudaAddressModeClamp;
-	gradientTexDescr.addressMode[2] = cudaAddressModeClamp;
-	gradientTexDescr.readMode = cudaReadModeNormalizedFloat;
-	HandleCudaError(cudaCreateTextureObject(&gTexDensity, &gradientTexRes, &gradientTexDescr, NULL));
-}
-
-void BindGradientMagnitudeBuffer(short* pBuffer, cudaExtent volumeSize)
-{
-	// create 3D array
-	cudaChannelFormatDesc gradientChannelDesc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
-	HandleCudaError(cudaMalloc3DArray(&gpGradientMagnitudeArray, &gradientChannelDesc, volumeSize));
-
-	// copy data to 3D array
-	cudaMemcpy3DParms gradientCopyParams = { 0 };
-	gradientCopyParams.srcPtr = make_cudaPitchedPtr(pBuffer, volumeSize.width*sizeof(short), volumeSize.width, volumeSize.height);
-	gradientCopyParams.dstArray = gpGradientMagnitudeArray;
-	gradientCopyParams.extent = volumeSize;
-	gradientCopyParams.kind = cudaMemcpyHostToDevice;
-	HandleCudaError(cudaMemcpy3D(&gradientCopyParams));
-
-	cudaResourceDesc gradientTexRes;
-	memset(&gradientTexRes, 0, sizeof(cudaResourceDesc));
-	gradientTexRes.resType = cudaResourceTypeArray;
-	gradientTexRes.res.array.array = gpGradientMagnitudeArray;
-	cudaTextureDesc     gradientTexDescr;
-	memset(&gradientTexDescr, 0, sizeof(cudaTextureDesc));
-	gradientTexDescr.normalizedCoords = 1;
-	gradientTexDescr.filterMode = cudaFilterModeLinear;
-	gradientTexDescr.addressMode[0] = cudaAddressModeClamp;   // clamp
-	gradientTexDescr.addressMode[1] = cudaAddressModeClamp;
-	gradientTexDescr.addressMode[2] = cudaAddressModeClamp;
-	gradientTexDescr.readMode = cudaReadModeNormalizedFloat;
-	HandleCudaError(cudaCreateTextureObject(&gTexGradientMagnitude, &gradientTexRes, &gradientTexDescr, NULL));
-}
-
-void UnbindDensityBuffer(void)
-{
-	HandleCudaError(cudaFreeArray(gpDensityArray));
-	gpDensityArray = NULL;
-	HandleCudaError(cudaDestroyTextureObject(gTexDensity));
-}
-
-void UnbindGradientMagnitudeBuffer(void)
-{
-	HandleCudaError(cudaFreeArray(gpGradientMagnitudeArray));
-	gpGradientMagnitudeArray = NULL;
-	HandleCudaError(cudaDestroyTextureObject(gTexGradientMagnitude));
-}
 
 void BindRenderCanvasView(const CResolution2D& Resolution)
 {
@@ -375,10 +281,6 @@ void BindConstants(CScene* pScene)
 
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMin, &InvAaBbMin, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMax, &InvAaBbMax, sizeof(float3)));
-
-	HandleCudaError(cudaMemcpyToSymbol(gDiffuseColor, pScene->m_DiffuseColor, sizeof(float4)));
-	HandleCudaError(cudaMemcpyToSymbol(gSpecularColor, pScene->m_SpecularColor, sizeof(float4)));
-	HandleCudaError(cudaMemcpyToSymbol(gEmissiveColor, pScene->m_EmissiveColor, sizeof(float4)));
 
 	HandleCudaError(cudaMemcpyToSymbol(gShadingType, &pScene->m_ShadingType, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(gGradientFactor, &pScene->m_GradientFactor, sizeof(float)));

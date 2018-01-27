@@ -5,23 +5,15 @@
 
 var lastClientX, lastClientY;
 
-
 document.documentElement.addEventListener('mouseup', function(e){
-  //messageobj.mouseDeltaRotate = {x:0, y:0};
+    if (dragFlag) {
+        dragFlag = 0;
 
-    dragFlag = 0;
-
-    cb = new commandBuffer();
-    cb.addCommand("REDRAW");
-    flushCommandBuffer(cb);
-    flushCommandBuffer(cb);
-    flushCommandBuffer(cb);
-    flushCommandBuffer(cb);
-    flushCommandBuffer(cb);
-    flushCommandBuffer(cb);
-    flushCommandBuffer(cb);
-
-
+        let cb = new commandBuffer();
+        cb.addCommand("STREAM_MODE", _stream_mode ? 1 : 0);
+        cb.addCommand("REDRAW");
+        flushCommandBuffer(cb);
+    }
 });
 
 /**
@@ -95,6 +87,7 @@ document.documentElement.addEventListener('mousemove', function(e){
 
 
             cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 0);
             cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
             cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
             cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);

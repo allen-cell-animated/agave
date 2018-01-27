@@ -4,10 +4,12 @@
 
 class CScene;
 class Renderer;
+class Scene;
 
 struct ExecutionContext {
 	Renderer* _renderer;
 	CScene* _scene;
+	Scene* _appScene;
 };
 
 class Command {
@@ -75,16 +77,19 @@ struct SetCameraExposureCommandD {
 CMDDECL(SetCameraExposureCommand);
 
 struct SetDiffuseColorCommandD {
+	int32_t _channel;
 	float _r, _g, _b, _a;
 };
 CMDDECL(SetDiffuseColorCommand);
 
 struct SetSpecularColorCommandD {
+	int32_t _channel;
 	float _r, _g, _b, _a;
 };
 CMDDECL(SetSpecularColorCommand);
 
 struct SetEmissiveColorCommandD {
+	int32_t _channel;
 	float _r, _g, _b, _a;
 };
 CMDDECL(SetEmissiveColorCommand);
@@ -108,12 +113,30 @@ struct SetResolutionCommandD {
 };
 CMDDECL(SetResolutionCommand);
 
-struct SetChannelCommandD {
-	int32_t _x;
-};
-CMDDECL(SetChannelCommand);
-
 struct SetDensityCommandD {
 	float _x;
 };
 CMDDECL(SetDensityCommand);
+
+struct FrameSceneCommandD {
+};
+CMDDECL(FrameSceneCommand);
+
+struct SetGlossinessCommandD {
+	int32_t _channel;
+	float _glossiness;
+};
+CMDDECL(SetGlossinessCommand);
+
+struct EnableChannelCommandD {
+	int32_t _channel;
+	int32_t _enabled;
+};
+CMDDECL(EnableChannelCommand);
+
+struct SetWindowLevelCommandD {
+	int32_t _channel;
+	float _window;
+	float _level;
+};
+CMDDECL(SetWindowLevelCommand);

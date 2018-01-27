@@ -46,7 +46,7 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
     lastPos(0, 0),
     _img(img),
 	_scene(scene),
-    _renderer(new RenderGLCuda(img, scene)),
+    _renderer(new RenderGLCuda(scene)),
 	//    _renderer(new RenderGL(img))
 	_camera(cam),
 	_cameraController(cam),
@@ -176,19 +176,6 @@ GLView3D::getMouseMode() const
     return mouseMode;
 }
 
-
-void
-GLView3D::setC(size_t c)
-{
-    if (_c != c) {
-		_c = c;
-		_scene->_channel = (int)c;
-
-		_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
-
-		renderLater();
-    }
-}
 
 void
 GLView3D::initialize()
@@ -424,7 +411,7 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 
 	switch (rendererType) {
 	case 1:
-		_renderer.reset(new RenderGLCuda(_img, _scene));
+		_renderer.reset(new RenderGLCuda(_scene));
 		break;
 	default:
 		_renderer.reset(new RenderGL(_img, _scene));

@@ -20,7 +20,7 @@ class RenderGLCuda :
 	public IRenderWindow
 {
 public:
-	RenderGLCuda(std::shared_ptr<ImageXYZC>  img, CScene* scene);
+	RenderGLCuda(CScene* scene);
 	virtual ~RenderGLCuda();
 
 	virtual void initialize(uint32_t w, uint32_t h);

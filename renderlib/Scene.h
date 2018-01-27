@@ -5,6 +5,10 @@
 #include "Camera.cuh"
 #include "Lighting.cuh"
 
+#include <memory>
+
+class ImageXYZC;
+
 class CDenoiseParams
 {
 public:
@@ -49,6 +53,8 @@ public:
 	CScene(const CScene& Other);
 	CScene& operator = (const CScene& Other);
 
+	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
+
 	// which channel to display.  this is "scene" display info and not "renderer settings"
 	int _channel;
 
@@ -71,10 +77,6 @@ public:
 	float				m_GradientDelta;
 	float				m_GradientFactor;
 	float				m_GradMagMean;
-
-	float m_DiffuseColor[4];
-	float m_SpecularColor[4];
-	float m_EmissiveColor[4];
 
 	HOD int GetNoIterations(void) const					{ return m_NoIterations;			}
 	HOD void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}

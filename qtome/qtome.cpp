@@ -61,7 +61,6 @@ qtome::qtome(QWidget *parent)
 	// We need a minimum size or else the size defaults to zero.
 	glContainer->setMinimumSize(512, 512);
 	tabs->addTab(glContainer, "None");
-	glView->setC(0);
 	//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
 
@@ -284,7 +283,6 @@ void qtome::open(const QString& file)
 
 		// this must happen first. it causes a new renderer which owns the CStatus used below
 		glView->setImage(image);
-		glView->setC(0);
 		tabs->setTabText(0, info.fileName());
 		//navigation->setReader(image);
 
@@ -304,6 +302,9 @@ void qtome::open(const QString& file)
 		));
 		Vec3f BoundingBoxMinP = Vec3f(0.0f);
 		Vec3f BoundingBoxMaxP = PhysicalSize / PhysicalSize.Max();
+
+		_renderSettings.initSceneFromImg(image);
+		_renderSettings.m_Camera.SetViewMode(ViewModeFront);
 
 		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
 		s->SetStatisticChanged("Volume", "Bounding Box", "", "");

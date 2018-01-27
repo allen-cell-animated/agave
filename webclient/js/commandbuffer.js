@@ -4,23 +4,6 @@ var types = {
   F32: 4,
   S: -1
 }
-// commands:
-// SESSION s (what does this mean?)
-// ASSET_PATH s
-// LOAD_OME_TIF s : tell server to load cell in this session?
-// EYE f f f : tell server where camera is
-// TARGET f f f
-// UP f f f
-// APERTURE f
-// FOV_Y f
-// FOCALDIST f
-// EXPOSURE f
-// MAT.DIFFUSE f f f f
-// MAT.SPECULAR f f f f
-// MAT.EMISSIVE f f f f
-// RENDER.ITERATIONS i
-// STREAM_MODE i (continuous or on-demand frames)
-// REDRAW
 
 // command id will be int32 to future-proof it.
 // note that the server needs to know these signatures too.
@@ -41,9 +24,9 @@ var COMMANDS = {
   FOV_Y: [7, "F32"],
   FOCALDIST: [8, "F32"],
   EXPOSURE: [9, "F32"],
-  MAT_DIFFUSE: [10, "F32", "F32", "F32", "F32"],
-  MAT_SPECULAR: [11, "F32", "F32", "F32", "F32"],
-  MAT_EMISSIVE: [12, "F32", "F32", "F32", "F32"],
+  MAT_DIFFUSE: [10, "I32", "F32", "F32", "F32", "F32"],
+  MAT_SPECULAR: [11, "I32", "F32", "F32", "F32", "F32"],
+  MAT_EMISSIVE: [12, "I32", "F32", "F32", "F32", "F32"],
   // set num render iterations
   RENDER_ITERATIONS: [13, "I32"],
   // (continuous or on-demand frames)
@@ -51,8 +34,14 @@ var COMMANDS = {
   // request new image
   REDRAW: [15],
   SET_RESOLUTION: [16, "I32", "I32"],
-  CHANNEL: [17, "I32"],
-  DENSITY: [18, "F32"],
+  DENSITY: [17, "F32"],
+  // move camera to bound and look at the scene contents
+  FRAME_SCENE: [18],
+  MAT_GLOSSINESS: [19, "I32", "F32"],
+  // channel index, 1/0 for enable/disable
+  ENABLE_CHANNEL: [20, "I32", "I32"],
+  // channel index, window, level.  (Do I ever set these independently?)
+  SET_WINDOW_LEVEL: [21, "I32", "F32", "F32"]
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
@@ -116,7 +105,7 @@ commandBuffer.prototype = {
         switch(argtype) {
           case "S":
             var str = cmd[j+1];
-            dataview.setInt32(offset, str.length, LITTLE_ENDIAN);
+            dataview.setInt32(offset, str.length);
             offset+=4;
             for (var k = 0; k < str.length; ++k) {
               dataview.setUint8(offset, str.charCodeAt(k));

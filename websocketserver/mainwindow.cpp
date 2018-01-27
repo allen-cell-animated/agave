@@ -2,6 +2,7 @@
 
 MainWindow::MainWindow(StreamServer *server)
 {
+	this->server = server;
 	this->setWindowTitle(qAppName() + " " + qApp->applicationVersion());
 
 	/*canvas = new Canvas();
@@ -51,7 +52,7 @@ void MainWindow::updateStats()
 		text += "   thread #" + QString::number(i) + ": " + QString::number(requests[i]) + " requests, " + QString::number(loads[i]) + "ms\n";
 	}
 
-	text += "\n\n" + this->server->getTimingsString();
+	//text += "\n\n" + this->server->getTimingsString();
 
 	this->output->setPlainText(text);
 }

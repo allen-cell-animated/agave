@@ -32,18 +32,18 @@ Renderer::~Renderer()
 void Renderer::myVolumeInit() {
 	DeviceSelector d;
 
-	FileReader fileReader;
-	std::string file("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
-	std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file);
-	myVolumeData._image = image;
+//	FileReader fileReader;
+//	std::string file("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
+//	std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file);
+//	myVolumeData._image = image;
 	myVolumeData._scene = new CScene();
 	myVolumeData._scene->m_Camera.m_Film.m_ExposureIterations = 1;
-	myVolumeData._scene->m_DiffuseColor[0] = 1.0;
-	myVolumeData._scene->m_DiffuseColor[1] = 1.0;
-	myVolumeData._scene->m_DiffuseColor[2] = 1.0;
-	myVolumeData._scene->m_DiffuseColor[3] = 1.0;
+//	myVolumeData._scene->m_DiffuseColor[0] = 1.0;
+//	myVolumeData._scene->m_DiffuseColor[1] = 1.0;
+//	myVolumeData._scene->m_DiffuseColor[2] = 1.0;
+//	myVolumeData._scene->m_DiffuseColor[3] = 1.0;
 
-	myVolumeData._renderer = new RenderGLCuda(image, myVolumeData._scene);
+	myVolumeData._renderer = new RenderGLCuda(myVolumeData._scene);
 	myVolumeData._renderer->initialize(1024, 1024);
 }
 
@@ -107,9 +107,6 @@ void Renderer::run()
 	{
 		this->processRequest();
 
-		if (_streamMode) {
-
-		}
 		QApplication::processEvents();
 	}
 }
@@ -144,8 +141,24 @@ bool Renderer::processRequest()
 
 	r->setActualDuration(timer.nsecsElapsed());
 
+
+	// in stream mode:
+	// if queue is empty, then keep firing redraws back to client.
+	// test about 100 frames as a convergence limit.
+	if (_streamMode != 0 && this->requests.length() == 0 && myVolumeData._scene->GetNoIterations() < 100) {
+		// push another redraw request.
+		std::vector<Command*> cmd;
+		RequestRedrawCommandD data;
+		cmd.push_back(new RequestRedrawCommand(data));
+		this->addRequest(new RenderRequest(r->getClient(), cmd, false));
+	}
+
+
 	//inform the server
 	emit requestProcessed(r, img);
+	
+	// should be totally done with r now.
+	//delete r;
 
 	return true;
 }
@@ -158,6 +171,7 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 		ExecutionContext ec;
 		ec._scene = myVolumeData._scene;
 		ec._renderer = this;
+		ec._appScene = &myVolumeData._renderer->scene();
 
 		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
 			(*i)->execute(&ec);

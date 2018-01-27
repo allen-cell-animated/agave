@@ -42,26 +42,12 @@ struct cudaVolume {
 	}
 };
 
-void BindDensityBuffer(short* pBuffer, cudaExtent Extent);
-void BindGradientMagnitudeBuffer(short* pBuffer, cudaExtent Extent);
-void UnbindDensityBuffer(void);
-void UnbindGradientMagnitudeBuffer(void);
 void BindRenderCanvasView(const CResolution2D& Resolution);
 void ResetRenderCanvasView(void);
 void FreeRenderCanvasView(void);
 unsigned char* GetDisplayEstimate(void);
-//void BindTransferFunctionOpacity(CTransferFunction& TransferFunctionOpacity);
-//void BindTransferFunctionDiffuse(CTransferFunction& TransferFunctionDiffuse);
-//void BindTransferFunctionSpecular(CTransferFunction& TransferFunctionSpecular);
-//void BindTransferFunctionRoughness(CTransferFunction& TransferFunctionRoughness);
-//void BindTransferFunctionEmission(CTransferFunction& TransferFunctionEmission);
-//void UnbindTransferFunctionOpacity(void);
-//void UnbindTransferFunctionDiffuse(void);
-//void UnbindTransferFunctionSpecular(void);
-//void UnbindTransferFunctionRoughness(void);
-//void UnbindTransferFunctionEmission(void);
 void BindConstants(CScene* pScene);
-//void Render(const int& Type, CScene& Scene, CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage);
+
 // scene needs to be mutable to get nearest intersection for focusdist.
 void Render(const int& Type, CScene& Scene,
 	cudaFB& framebuffers,
