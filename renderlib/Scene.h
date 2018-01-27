@@ -53,7 +53,7 @@ public:
 	CScene(const CScene& Other);
 	CScene& operator = (const CScene& Other);
 
-	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
+	HO void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
 
 	// which channel to display.  this is "scene" display info and not "renderer settings"
 	int _channel;
