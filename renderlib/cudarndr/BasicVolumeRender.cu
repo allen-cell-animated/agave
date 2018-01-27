@@ -1,7 +1,5 @@
 #include "BasicVolumeRender.cuh"
 
-#include "Scene.h"
-
 #include "CudaUtilities.h"
 #include "helper_math.cuh"
 #include "Camera.cuh"
@@ -210,7 +208,7 @@ KERNEL void KrnlCh(cudaTextureObject_t volumeTex, float* outbuf, float density, 
 
 }
 
-void RayMarchVolume(float* outbuf, cudaTextureObject_t volumeTex, cudaTextureObject_t gradientVolumeTex, const CScene& renderSettings, int w, int h, float density, float brightness, float* invViewMatrix, float texmin, float texmax)
+void RayMarchVolume(float* outbuf, cudaTextureObject_t volumeTex, cudaTextureObject_t gradientVolumeTex, int w, int h, float density, float brightness, float* invViewMatrix, float texmin, float texmax)
 {
 	// init some input vars for kernel
 	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth, &w, sizeof(int)));
