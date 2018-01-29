@@ -57,7 +57,6 @@ private:
 
 	std::shared_ptr<ImageXYZC>  _img;
 	int _currentChannel;
-	void initSceneFromImg();
 
 	ImageCuda _imgCuda;
 

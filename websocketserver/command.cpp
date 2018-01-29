@@ -35,7 +35,8 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		for (int i = 0; i < image->sizeC(); ++i) {
 			c->_appScene->_material.enabled[i] = (i < 3);
 		}
-		c->_scene->initSceneFromImg(image);
+		c->_scene->initSceneFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
+			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
 		c->_scene->SetNoIterations(0);
 	}
 }

@@ -5,10 +5,6 @@
 #include "Camera.cuh"
 #include "Lighting.cuh"
 
-#include <memory>
-
-class ImageXYZC;
-
 class CDenoiseParams
 {
 public:
@@ -53,7 +49,7 @@ public:
 	CScene(const CScene& Other);
 	CScene& operator = (const CScene& Other);
 
-	HO void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
+	HO void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
 
 	// which channel to display.  this is "scene" display info and not "renderer settings"
 	int _channel;

@@ -57,18 +57,14 @@ HOD CScene& CScene::operator=(const CScene& Other)
 	return *this;
 }
 
-void CScene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
+void CScene::initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz)
 {
-	if (!img) {
-		return;
-	}
-
-	m_Resolution.SetResX(img->sizeX());
-	m_Resolution.SetResY(img->sizeY());
-	m_Resolution.SetResZ(img->sizeZ());
-	m_Spacing.x = img->physicalSizeX();
-	m_Spacing.y = img->physicalSizeY();
-	m_Spacing.z = img->physicalSizeZ();
+	m_Resolution.SetResX(vx);
+	m_Resolution.SetResY(vy);
+	m_Resolution.SetResZ(vz);
+	m_Spacing.x = sx;
+	m_Spacing.y = sy;
+	m_Spacing.z = sz;
 
 	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
 

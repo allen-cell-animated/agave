@@ -232,7 +232,8 @@ void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
 	_appScene._volume = img;
 
 	initVolumeTextureCUDA();
-	_renderSettings->initSceneFromImg(img);
+	_renderSettings->initSceneFromImg(img->sizeX(), img->sizeY(), img->sizeZ(),
+		img->physicalSizeX(), img->physicalSizeY(), img->physicalSizeZ());
 
 	// we have set up everything there is to do before rendering
 	_status.SetRenderBegin();
