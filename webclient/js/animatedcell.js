@@ -107,7 +107,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-for (var i = 0; i < 3; ++i) {
+  for (var i = 0; i < 3; ++i) {
     gui.addColor(effectController, "colorD"+i).name("Diffuse"+i).onChange(function(j) { 
         return function(value) {
                 var cb = new commandBuffer();
@@ -132,7 +132,7 @@ for (var i = 0; i < 3; ++i) {
     gui.add(effectController, "window"+i).max(1.0).min(0.0).onChange(function(j) {
         return function(value) {
             var cb = new commandBuffer();
-            cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+i]);
+            cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+j]);
             flushCommandBuffer(cb);
             _stream_mode_suspended = true;
         }
@@ -155,7 +155,7 @@ for (var i = 0; i < 3; ++i) {
     gui.add(effectController, "roughness"+i).max(100.0).min(0.0).onChange(function(j) {
         return function(value) {
             var cb = new commandBuffer();
-            cb.addCommand("MAT_GLOSSINESS", i, value);
+            cb.addCommand("MAT_GLOSSINESS", j, value);
             flushCommandBuffer(cb);
             _stream_mode_suspended = true;
         }
