@@ -91,7 +91,7 @@ function setupGui() {
     flushCommandBuffer(cb);
     _stream_mode = value;
   });
-  gui.add(effectController, "exposure").max(1.0).min(0.0).onChange(function(value) {
+  gui.add(effectController, "exposure").max(1.0).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("EXPOSURE", value);
     flushCommandBuffer(cb);
@@ -99,7 +99,7 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "density").max(100.0).min(0.0).onChange(function(value) {
+  gui.add(effectController, "density").max(100.0).min(0.0).step(0.001).onChange(function(value) {
         var cb = new commandBuffer();
         cb.addCommand("DENSITY", value);
         flushCommandBuffer(cb);
@@ -129,7 +129,7 @@ function setupGui() {
             flushCommandBuffer(cb);
         };
     }(i));
-    gui.add(effectController, "window"+i).max(1.0).min(0.0).onChange(function(j) {
+    gui.add(effectController, "window"+i).max(1.0).min(0.0).step(0.001).onChange(function(j) {
         return function(value) {
             var cb = new commandBuffer();
             cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+j]);
@@ -141,7 +141,7 @@ function setupGui() {
         _stream_mode_suspended = false;
     });
 
-    gui.add(effectController, "level"+i).max(1.0).min(0.0).onChange(function(j) {
+    gui.add(effectController, "level"+i).max(1.0).min(0.0).step(0.001).onChange(function(j) {
         return function(value) {
             var cb = new commandBuffer();
             cb.addCommand("SET_WINDOW_LEVEL", j, effectController["window"+j], value);
