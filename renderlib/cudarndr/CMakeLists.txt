@@ -2,6 +2,7 @@ target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
 )
+find_package(CUDA)
 add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/Blur.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cuh"
@@ -45,8 +46,8 @@ target_include_directories(renderlib_cuda PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/.."
 	${Boost_INCLUDE_DIRS}
 	${GLAD_DIR}
-	${CUDA_SDK_ROOT_DIR}/common/inc
 	${CUDA_TOOLKIT_INCLUDE}
+	${CUDA_INCLUDE_DIRS}
 )
 
 target_link_libraries(renderlib_cuda 
