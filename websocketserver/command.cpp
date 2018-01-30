@@ -32,7 +32,7 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 
 		// pass this image to the renderer.
 		c->_renderer->setImage(image);
-		for (int i = 0; i < image->sizeC(); ++i) {
+		for (uint32_t i = 0; i < image->sizeC(); ++i) {
 			c->_appScene->_material.enabled[i] = (i < 3);
 		}
 		c->_scene->initSceneFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
