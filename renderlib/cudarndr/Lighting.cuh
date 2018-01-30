@@ -90,7 +90,7 @@ public:
 
 		return *this;
 	}
-
+/*
 	HO void Update(const CBoundingBox& BoundingBox)
 	{
 		m_InvWidth		= 1.0f / m_Width;
@@ -268,6 +268,7 @@ public:
 
 		return SPEC_BLACK;
 	}
+*/
 };
 
 class CLighting

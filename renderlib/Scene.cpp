@@ -6,7 +6,7 @@
 CScene::CScene(void) :
 	_channel(0),
 	m_Camera(),
-	m_Lighting(),
+	//m_Lighting(),
 	m_Resolution(),
 	m_DirtyFlags(),
 	m_Spacing(),
@@ -32,10 +32,10 @@ CScene::CScene(const CScene& Other)
 	*this = Other;
 }
 
-HOD CScene& CScene::operator=(const CScene& Other)
+HO CScene& CScene::operator=(const CScene& Other)
 {
 	m_Camera					= Other.m_Camera;
-	m_Lighting					= Other.m_Lighting;
+	//m_Lighting					= Other.m_Lighting;
 	m_Resolution				= Other.m_Resolution;
 	m_DirtyFlags				= Other.m_DirtyFlags;
 	m_Spacing					= Other.m_Spacing;
