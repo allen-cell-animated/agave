@@ -12,7 +12,7 @@ CScene::CScene(void) :
 	m_Spacing(),
 	m_Scale(),
 	m_BoundingBox(),
-	m_TransferFunctions(),
+	//m_TransferFunctions(),
 	//m_IntensityRange(),
 	//m_GradientMagnitudeRange(),
 	m_DensityScale(50.0f),
@@ -41,7 +41,7 @@ HOD CScene& CScene::operator=(const CScene& Other)
 	m_Spacing					= Other.m_Spacing;
 	m_Scale						= Other.m_Scale;
 	m_BoundingBox				= Other.m_BoundingBox;
-	m_TransferFunctions			= Other.m_TransferFunctions;
+	//m_TransferFunctions			= Other.m_TransferFunctions;
 	//m_IntensityRange			= Other.m_IntensityRange;
 	m_DensityScale				= Other.m_DensityScale;
 	m_DenoiseParams				= Other.m_DenoiseParams;
