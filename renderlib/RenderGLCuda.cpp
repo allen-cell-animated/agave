@@ -14,7 +14,7 @@
 #include <cuda_runtime.h>
 
 #include "Core.cuh"
-#include "Lighting.cuh"
+//#include "Lighting.cuh"
 #include "Lighting2.cuh"
 
 #include <array>

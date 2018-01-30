@@ -1,9 +1,11 @@
 #include "Logging.h"
 
 #include "Core.cuh"
+#include "Scene.h"
 #include "helper_math.cuh"
 #include "Camera2.cuh"
 #include "Lighting2.cuh"
+#include "Lighting2Impl.cuh"
 
 cudaTextureObject_t gTexDensity;
 cudaTextureObject_t gTexGradientMagnitude;
@@ -207,29 +209,30 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
 
-void Render(const int& Type, CScene& Scene,
+void Render(const int& Type, CScene& scene,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage)
 {
 	// find nearest intersection to set camera focal distance automatically.
 	// then re-upload that data.
-	if (Scene.m_Camera.m_Focus.m_Type == 0) {
-		Scene.m_Camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
+	if (scene.m_Camera.m_Focus.m_Type == 0) {
+		scene.m_Camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
 		// send m_FocalDistance back to gpu.
 		CudaCamera c;
-		FillCudaCamera(&Scene, c);
+		FillCudaCamera(&scene, c);
 		HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
 	}
 
-	for (int i = 0; i < Scene.m_Camera.m_Film.m_ExposureIterations; ++i) {
+	for (int i = 0; i < scene.m_Camera.m_Film.m_ExposureIterations; ++i) {
 		CCudaTimer TmrRender;
 
 		switch (Type)
 		{
 		case 0:
 		{
-			SingleScattering(&Scene, volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
+			SingleScattering(scene.m_Camera.m_Film.m_Resolution.GetResX(), scene.m_Camera.m_Film.m_Resolution.GetResY(),
+				volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
 			break;
 		}
 
@@ -243,12 +246,13 @@ void Render(const int& Type, CScene& Scene,
 
 		// estimate just adds to accumulation buffer.
 		CCudaTimer TmrPostProcess;
-		Estimate(&Scene, framebuffers.fb, framebuffers.fbaccum);
+		Estimate(scene.m_Camera.m_Film.m_Resolution.GetResX(), scene.m_Camera.m_Film.m_Resolution.GetResY(), 
+			framebuffers.fb, framebuffers.fbaccum);
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 
-		Scene.SetNoIterations(Scene.GetNoIterations() + 1);
+		scene.SetNoIterations(scene.GetNoIterations() + 1);
 
-		const float NoIterations = Scene.GetNoIterations();
+		const float NoIterations = scene.GetNoIterations();
 		const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));

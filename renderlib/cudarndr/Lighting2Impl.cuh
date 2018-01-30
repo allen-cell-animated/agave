@@ -181,3 +181,5 @@ DEV CColorXyz CudaLight::Le(const Vec2f& UV) const
 	return SPEC_BLACK;
 }
 
+
+

@@ -98,13 +98,13 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 	pView[floatoffset + 3] = 1.0;
 }
 
-void SingleScattering(CScene* pScene, const cudaVolume& volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
+void SingleScattering(int res_x, int res_y, const cudaVolume& volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
 {
 	const dim3 KernelBlock(KRNL_SS_BLOCK_W, KRNL_SS_BLOCK_H);
-	const dim3 KernelGrid((int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResX() / (float)KernelBlock.x), (int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResY() / (float)KernelBlock.y));
+	const dim3 KernelGrid((int)ceilf((float)res_x / (float)KernelBlock.x), (int)ceilf((float)res_y / (float)KernelBlock.y));
 
 	KrnlSingleScattering<<<KernelGrid, KernelBlock>>>(volumedata, pView, rnd1, rnd2);
-	HandleCudaKernelError(cudaGetLastError(), "Single Scattering");
+	HandleCudaKernelError(cudaGetLastError(), "Single Scattering kernel");
 	cudaDeviceSynchronize();
-	HandleCudaKernelError(cudaGetLastError(), "Single Scattering");
+	HandleCudaKernelError(cudaGetLastError(), "Single Scattering devicesync");
 }

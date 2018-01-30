@@ -36,10 +36,10 @@ KERNEL void KrnlEstimate(float* pView, float* pViewAccum)
 	pViewAccum[floatoffset + 3] = 1.0f;// cx.c[3];
 }
 
-void Estimate(CScene* pScene, float* pView, float* pViewAccum)
+void Estimate(int res_x, int res_y, float* pView, float* pViewAccum)
 {
 	const dim3 KernelBlock(KRNL_ESTIMATE_BLOCK_W, KRNL_ESTIMATE_BLOCK_H);
-	const dim3 KernelGrid((int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResX() / (float)KernelBlock.x), (int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResY() / (float)KernelBlock.y));
+	const dim3 KernelGrid((int)ceilf((float)res_x / (float)KernelBlock.x), (int)ceilf((float)res_y / (float)KernelBlock.y));
 	//const dim3 KernelGrid((int)ceilf((float)pScene->m_Camera.m_Film.GetWidth() / (float)KernelBlock.x), (int)ceilf((float)pScene->m_Camera.m_Film.GetHeight() / (float)KernelBlock.y));
 
 	KrnlEstimate<<<KernelGrid, KernelBlock>>>(pView, pViewAccum);

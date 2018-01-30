@@ -19,8 +19,8 @@ add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/Denoise.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Estimate.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting.cuh"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2.cu"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2.cuh"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2Impl.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/helper_math.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Model.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/MonteCarlo.cuh"
@@ -41,10 +41,10 @@ add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.h"
 )
-set_target_properties(renderlib_cuda PROPERTIES 
-	CUDA_SEPARABLE_COMPILATION ON
-	CUDA_RESOLVE_DEVICE_SYMBOLS ON
-)
+#set_target_properties(renderlib_cuda PROPERTIES 
+#	CUDA_SEPARABLE_COMPILATION ON
+#	CUDA_RESOLVE_DEVICE_SYMBOLS ON
+#)
 target_include_directories(renderlib_cuda PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	# needs to be able to depend on Scene.h from renderlib
