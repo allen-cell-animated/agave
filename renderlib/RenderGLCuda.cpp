@@ -425,7 +425,7 @@ void RenderGLCuda::doRender() {
 		}
 	}
 
-	Render(0, *_renderSettings,
+	Render(0, _renderSettings, _renderSettings->m_Camera,
 		theCudaFB,
 		theCudaVolume,
 		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise);

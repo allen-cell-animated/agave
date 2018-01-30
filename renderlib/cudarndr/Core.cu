@@ -71,19 +71,19 @@ void RGBToFloat3(CColorRgbHdr* src, float3* dest) {
 	dest->z = src->b;
 }
 
-void FillCudaCamera(CScene* pScene, CudaCamera& c) {
-	Vec3ToFloat3(&pScene->m_Camera.m_From, &c.m_From);
-	Vec3ToFloat3(&pScene->m_Camera.m_N, &c.m_N);
-	Vec3ToFloat3(&pScene->m_Camera.m_U, &c.m_U);
-	Vec3ToFloat3(&pScene->m_Camera.m_V, &c.m_V);
-	c.m_ApertureSize = pScene->m_Camera.m_Aperture.m_Size;
-	c.m_FocalDistance = pScene->m_Camera.m_Focus.m_FocalDistance;
-	c.m_InvScreen[0] = pScene->m_Camera.m_Film.m_InvScreen.x;
-	c.m_InvScreen[1] = pScene->m_Camera.m_Film.m_InvScreen.y;
-	c.m_Screen[0][0] = pScene->m_Camera.m_Film.m_Screen[0][0];
-	c.m_Screen[1][0] = pScene->m_Camera.m_Film.m_Screen[1][0];
-	c.m_Screen[0][1] = pScene->m_Camera.m_Film.m_Screen[0][1];
-	c.m_Screen[1][1] = pScene->m_Camera.m_Film.m_Screen[1][1];
+void FillCudaCamera(CCamera* pCamera, CudaCamera& c) {
+	Vec3ToFloat3(&pCamera->m_From, &c.m_From);
+	Vec3ToFloat3(&pCamera->m_N, &c.m_N);
+	Vec3ToFloat3(&pCamera->m_U, &c.m_U);
+	Vec3ToFloat3(&pCamera->m_V, &c.m_V);
+	c.m_ApertureSize = pCamera->m_Aperture.m_Size;
+	c.m_FocalDistance = pCamera->m_Focus.m_FocalDistance;
+	c.m_InvScreen[0] = pCamera->m_Film.m_InvScreen.x;
+	c.m_InvScreen[1] = pCamera->m_Film.m_InvScreen.y;
+	c.m_Screen[0][0] = pCamera->m_Film.m_Screen[0][0];
+	c.m_Screen[1][0] = pCamera->m_Film.m_Screen[1][0];
+	c.m_Screen[0][1] = pCamera->m_Film.m_Screen[0][1];
+	c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
 }
 
 void BindConstants(CScene* pScene, const CudaLighting& cudalt)
@@ -167,35 +167,35 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 	HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
 
 	CudaCamera c;
-	FillCudaCamera(pScene, c);
+	FillCudaCamera(&pScene->m_Camera, c);
 	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
 
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
 
-void Render(const int& Type, CScene& scene,
+void Render(const int& Type, CScene* scene, CCamera& camera,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage)
 {
 	// find nearest intersection to set camera focal distance automatically.
 	// then re-upload that data.
-	if (scene.m_Camera.m_Focus.m_Type == 0) {
-		scene.m_Camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
+	if (camera.m_Focus.m_Type == 0) {
+		camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
 		// send m_FocalDistance back to gpu.
 		CudaCamera c;
-		FillCudaCamera(&scene, c);
+		FillCudaCamera(&camera, c);
 		HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
 	}
 
-	for (int i = 0; i < scene.m_Camera.m_Film.m_ExposureIterations; ++i) {
+	for (int i = 0; i < camera.m_Film.m_ExposureIterations; ++i) {
 		CCudaTimer TmrRender;
 
 		switch (Type)
 		{
 		case 0:
 		{
-			SingleScattering(scene.m_Camera.m_Film.m_Resolution.GetResX(), scene.m_Camera.m_Film.m_Resolution.GetResY(),
+			SingleScattering(camera.m_Film.m_Resolution.GetResX(), camera.m_Film.m_Resolution.GetResY(),
 				volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
 			break;
 		}
@@ -210,13 +210,13 @@ void Render(const int& Type, CScene& scene,
 
 		// estimate just adds to accumulation buffer.
 		CCudaTimer TmrPostProcess;
-		Estimate(scene.m_Camera.m_Film.m_Resolution.GetResX(), scene.m_Camera.m_Film.m_Resolution.GetResY(), 
+		Estimate(camera.m_Film.m_Resolution.GetResX(), camera.m_Film.m_Resolution.GetResY(), 
 			framebuffers.fb, framebuffers.fbaccum);
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 
-		scene.SetNoIterations(scene.GetNoIterations() + 1);
+		scene->SetNoIterations(scene->GetNoIterations() + 1);
 
-		const float NoIterations = scene.GetNoIterations();
+		const float NoIterations = scene->GetNoIterations();
 		const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
