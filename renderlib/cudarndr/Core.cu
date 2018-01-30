@@ -120,36 +120,6 @@ void FillCudaCamera(CScene* pScene, CudaCamera& c) {
 	c.m_Screen[1][1] = pScene->m_Camera.m_Film.m_Screen[1][1];
 }
 
-void FillCudaLighting(CScene* pScene, CudaLighting& cl) {
-	cl.m_NoLights = pScene->m_Lighting.m_NoLights;
-	for (int i = 0; i < cl.m_NoLights; ++i) {
-		cl.m_Lights[i].m_Theta = pScene->m_Lighting.m_Lights[i].m_Theta;
-		cl.m_Lights[i].m_Phi = pScene->m_Lighting.m_Lights[i].m_Phi;
-		cl.m_Lights[i].m_Width = pScene->m_Lighting.m_Lights[i].m_Width;
-		cl.m_Lights[i].m_InvWidth = pScene->m_Lighting.m_Lights[i].m_InvWidth;
-		cl.m_Lights[i].m_HalfWidth = pScene->m_Lighting.m_Lights[i].m_HalfWidth;
-		cl.m_Lights[i].m_InvHalfWidth = pScene->m_Lighting.m_Lights[i].m_InvHalfWidth;
-		cl.m_Lights[i].m_Height = pScene->m_Lighting.m_Lights[i].m_Height;
-		cl.m_Lights[i].m_InvHeight = pScene->m_Lighting.m_Lights[i].m_InvHeight;
-		cl.m_Lights[i].m_HalfHeight = pScene->m_Lighting.m_Lights[i].m_HalfHeight;
-		cl.m_Lights[i].m_InvHalfHeight = pScene->m_Lighting.m_Lights[i].m_InvHalfHeight;
-		cl.m_Lights[i].m_Distance = pScene->m_Lighting.m_Lights[i].m_Distance;
-		cl.m_Lights[i].m_SkyRadius = pScene->m_Lighting.m_Lights[i].m_SkyRadius;
-		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
-		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
-		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
-		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
-		Vec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
-		cl.m_Lights[i].m_Area = pScene->m_Lighting.m_Lights[i].m_Area;
-		cl.m_Lights[i].m_AreaPdf = pScene->m_Lighting.m_Lights[i].m_AreaPdf;
-		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
-		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
-		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
-		RGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
-		cl.m_Lights[i].m_T = pScene->m_Lighting.m_Lights[i].m_T;
-	}
-}
-
 void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 {
 	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
@@ -166,16 +136,6 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 
 	HandleCudaError(cudaMemcpyToSymbol(gShadingType, &pScene->m_ShadingType, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(gGradientFactor, &pScene->m_GradientFactor, sizeof(float)));
-
-	//const float IntensityMin		= pScene->m_IntensityRange.GetMin();
-	//const float IntensityMax		= pScene->m_IntensityRange.GetMax();
-	//const float IntensityRange		= pScene->m_IntensityRange.GetRange();
-	//const float IntensityInvRange	= 1.0f / IntensityRange;
-
-	//HandleCudaError(cudaMemcpyToSymbol(gIntensityMin, &IntensityMin, sizeof(float)));
-	//HandleCudaError(cudaMemcpyToSymbol(gIntensityMax, &IntensityMax, sizeof(float)));
-	//HandleCudaError(cudaMemcpyToSymbol(gIntensityRange, &IntensityRange, sizeof(float)));
-	//HandleCudaError(cudaMemcpyToSymbol(gIntensityInvRange, &IntensityInvRange, sizeof(float)));
 
 	const float StepSize		= pScene->m_StepSizeFactor * pScene->m_GradientDelta;
 	const float StepSizeShadow	= pScene->m_StepSizeFactorShadow * pScene->m_GradientDelta;
@@ -243,10 +203,6 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 	CudaCamera c;
 	FillCudaCamera(pScene, c);
 	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
-	
-//	CudaLighting cl;
-//	FillCudaLighting(pScene, cl);
-//	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cl, sizeof(CudaLighting)));
 
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
