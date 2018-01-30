@@ -86,7 +86,7 @@ void FillCudaCamera(CCamera* pCamera, CudaCamera& c) {
 	c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
 }
 
-void BindConstants(CScene* pScene, const CudaLighting& cudalt)
+void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise)
 {
 	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
 	const float3 AaBbMax = make_float3(pScene->m_BoundingBox.GetMaxP().x, pScene->m_BoundingBox.GetMaxP().y, pScene->m_BoundingBox.GetMaxP().z);
@@ -151,14 +151,14 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 	HandleCudaError(cudaMemcpyToSymbol(gGamma, &Gamma, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvGamma, &InvGamma, sizeof(float)));
 
-	const float denoiseEnabled = pScene->m_DenoiseParams.m_Enabled ? 1.0f : 0.0f;
+	const float denoiseEnabled = denoise.m_Enabled ? 1.0f : 0.0f;
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseEnabled, &denoiseEnabled, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWindowRadius, &pScene->m_DenoiseParams.m_WindowRadius, sizeof(int)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseInvWindowArea, &pScene->m_DenoiseParams.m_InvWindowArea, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseNoise, &pScene->m_DenoiseParams.m_Noise, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWeightThreshold, &pScene->m_DenoiseParams.m_WeightThreshold, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpThreshold, &pScene->m_DenoiseParams.m_LerpThreshold, sizeof(float)));
-	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &pScene->m_DenoiseParams.m_LerpC, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWindowRadius, &denoise.m_WindowRadius, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseInvWindowArea, &denoise.m_InvWindowArea, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseNoise, &denoise.m_Noise, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseWeightThreshold, &denoise.m_WeightThreshold, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpThreshold, &denoise.m_LerpThreshold, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &denoise.m_LerpC, sizeof(float)));
 
 	const float NoIterations	= pScene->GetNoIterations();
 	const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
@@ -174,10 +174,11 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 }
 
 // BindConstants must be called first to initialize vars used by kernels
-void Render(const int& Type, CScene* scene, CCamera& camera,
+void Render(const int& Type, CCamera& camera,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
-	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage)
+	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage,
+	int& numIterations)
 {
 	// find nearest intersection to set camera focal distance automatically.
 	// then re-upload that data.
@@ -215,9 +216,8 @@ void Render(const int& Type, CScene* scene, CCamera& camera,
 			framebuffers.fb, framebuffers.fbaccum);
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 
-		scene->SetNoIterations(scene->GetNoIterations() + 1);
-
-		const float NoIterations = scene->GetNoIterations();
+		numIterations++;
+		const float NoIterations = numIterations;
 		const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));

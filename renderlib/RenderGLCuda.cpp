@@ -390,7 +390,7 @@ void RenderGLCuda::doRender() {
 
 	CudaLighting cudalt;
 	FillCudaLighting(&_appScene, cudalt);
-	BindConstants(_renderSettings, cudalt);
+	BindConstants(_renderSettings, cudalt, _renderSettings->m_DenoiseParams);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
@@ -427,10 +427,12 @@ void RenderGLCuda::doRender() {
 		}
 	}
 
-	Render(0, _renderSettings, _renderSettings->m_Camera,
+	int numIterations = _renderSettings->GetNoIterations();
+	Render(0, _renderSettings->m_Camera,
 		theCudaFB,
 		theCudaVolume,
-		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise);
+		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise, numIterations);
+	_renderSettings->SetNoIterations(numIterations);
 	//LOG_DEBUG << "RETURN FROM RENDER";
 
 	// Tonemap into opengl display buffer

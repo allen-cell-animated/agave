@@ -44,12 +44,12 @@ struct cudaVolume {
 	}
 };
 
-void BindConstants(CScene* pScene, const CudaLighting& cudalt);
+void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise);
 
 // scene needs to be mutable to get nearest intersection for focusdist.
-void Render(const int& Type, CScene* Scene, CCamera& camera,
+void Render(const int& Type, CCamera& camera,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
-	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage);
+	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage, int& numIterations);
 void ToneMap(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h);
 void Denoise(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h, float lerpC);
