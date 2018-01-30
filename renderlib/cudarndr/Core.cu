@@ -173,6 +173,7 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
 
+// BindConstants must be called first to initialize vars used by kernels
 void Render(const int& Type, CScene* scene, CCamera& camera,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,

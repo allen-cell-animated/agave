@@ -115,8 +115,10 @@ KERNEL void KrnlDenoise(float* inbuf, cudaSurfaceObject_t surfaceObj)
 //	}
 }
 
-void Denoise(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h)
+void Denoise(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h, float lerpC)
 {
+	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &lerpC, sizeof(float)));
+
 	const dim3 KernelBlock(KRNL_DENOISE_BLOCK_W, KRNL_DENOISE_BLOCK_H);
 	const dim3 KernelGrid((int)ceilf((float)w / (float)KernelBlock.x), (int)ceilf((float)h / (float)KernelBlock.y));
 	KrnlDenoise << <KernelGrid, KernelBlock >> >(inbuf, surfaceObj);

@@ -386,6 +386,8 @@ void RenderGLCuda::doRender() {
 
 	_renderSettings->m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
 
+	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
+
 	CudaLighting cudalt;
 	FillCudaLighting(&_appScene, cudalt);
 	BindConstants(_renderSettings, cudalt);
@@ -436,14 +438,13 @@ void RenderGLCuda::doRender() {
 	// do cuda with cudaSurfaceObj
 
 	// set the lerpC here because the Render call is incrementing the number of iterations.
-	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 
 	CCudaTimer TmrDenoise;
 	if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 	{
-		Denoise(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h);
+		Denoise(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h, _renderSettings->m_DenoiseParams.m_LerpC);
 	}
 	else
 	{

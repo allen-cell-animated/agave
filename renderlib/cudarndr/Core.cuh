@@ -52,4 +52,4 @@ void Render(const int& Type, CScene* Scene, CCamera& camera,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage);
 void ToneMap(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h);
-void Denoise(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h);
+void Denoise(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h, float lerpC);
