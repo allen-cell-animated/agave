@@ -93,7 +93,7 @@ private:
 	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
 	CStatus _status;
 
-	void FillCudaLighting(CScene* pScene, CudaLighting& cl);
+	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
 
 };
 

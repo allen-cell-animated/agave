@@ -81,9 +81,9 @@ void CScene::initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, f
 
 	m_Camera.m_SceneBoundingBox = m_BoundingBox;
 
-	for (int i = 0; i < m_Lighting.m_NoLights; ++i) {
-		m_Lighting.m_Lights[i].Update(m_BoundingBox);
-	}
+//	for (int i = 0; i < m_Lighting.m_NoLights; ++i) {
+//		m_Lighting.m_Lights[i].Update(m_BoundingBox);
+//	}
 }
 
 HO CDenoiseParams::CDenoiseParams(void)

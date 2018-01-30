@@ -30,7 +30,6 @@ struct CudaLight {
 	float3	m_ColorBottom;
 	int				m_T;
 
-
 	// Samples the light
 	DEV CColorXyz SampleL(const Vec3f& P, CRay& Rl, float& Pdf, CLightingSample& LS) const;
 	// Intersect ray with light

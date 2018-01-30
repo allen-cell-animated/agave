@@ -6,6 +6,7 @@
 
 #include <memory>
 
+class CBoundingBox;
 class ImageXYZC;
 
 class RenderParams {
@@ -115,6 +116,8 @@ public:
 		return *this;
 	}
 
+	void Update(const CBoundingBox& BoundingBox);
+
 };
 
 #define MAX_NO_LIGHTS 4
@@ -165,4 +168,6 @@ public:
     VolumeDisplay _material;
 
     Lighting _lighting;
+
+	void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
 };

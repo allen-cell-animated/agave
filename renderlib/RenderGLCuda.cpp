@@ -44,7 +44,7 @@ RenderGLCuda::~RenderGLCuda()
 }
 
 void RenderGLCuda::initSceneLighting() {
-	CLight BackgroundLight;
+	Light BackgroundLight;
 
 	BackgroundLight.m_T = 1;
 	float inten = 1.0f;
@@ -59,15 +59,15 @@ void RenderGLCuda::initSceneLighting() {
 	float botg = 0.0f;
 	float botb = 1.0f;
 
-	BackgroundLight.m_ColorTop = inten * CColorRgbHdr(topr, topg, topb);
-	BackgroundLight.m_ColorMiddle = inten * CColorRgbHdr(midr, midg, midb);
-	BackgroundLight.m_ColorBottom = inten * CColorRgbHdr(botr, botg, botb);
+	BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
+	BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
+	BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
 
 	BackgroundLight.Update(_renderSettings->m_BoundingBox);
 
-	_renderSettings->m_Lighting.AddLight(BackgroundLight);
+	_appScene._lighting.AddLight(BackgroundLight);
 
-	CLight AreaLight;
+	Light AreaLight;
 
 	AreaLight.m_T = 0;
 	AreaLight.m_Theta = 0.0f / RAD_F;  // numerator is degrees
@@ -75,13 +75,18 @@ void RenderGLCuda::initSceneLighting() {
 	AreaLight.m_Width = 1.0f;
 	AreaLight.m_Height = 1.0f;
 	AreaLight.m_Distance = 10.0f;
-	AreaLight.m_Color = 100.0f * CColorRgbHdr(1.0f, 1.0f, 1.0f);
+	AreaLight.m_Color = 100.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
 	AreaLight.Update(_renderSettings->m_BoundingBox);
 
-	_renderSettings->m_Lighting.AddLight(AreaLight);
+	_appScene._lighting.AddLight(AreaLight);
 }
 
+void gVec3ToFloat3(glm::vec3* src, float3* dest) {
+	dest->x = src->x;
+	dest->y = src->y;
+	dest->z = src->z;
+}
 void rVec3ToFloat3(Vec3f* src, float3* dest) {
 	dest->x = src->x;
 	dest->y = src->y;
@@ -93,33 +98,33 @@ void rRGBToFloat3(CColorRgbHdr* src, float3* dest) {
 	dest->z = src->b;
 }
 
-void RenderGLCuda::FillCudaLighting(CScene* pScene, CudaLighting& cl) {
-	cl.m_NoLights = pScene->m_Lighting.m_NoLights;
+void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
+	cl.m_NoLights = pScene->_lighting.m_NoLights;
 	for (int i = 0; i < cl.m_NoLights; ++i) {
-		cl.m_Lights[i].m_Theta = pScene->m_Lighting.m_Lights[i].m_Theta;
-		cl.m_Lights[i].m_Phi = pScene->m_Lighting.m_Lights[i].m_Phi;
-		cl.m_Lights[i].m_Width = pScene->m_Lighting.m_Lights[i].m_Width;
-		cl.m_Lights[i].m_InvWidth = pScene->m_Lighting.m_Lights[i].m_InvWidth;
-		cl.m_Lights[i].m_HalfWidth = pScene->m_Lighting.m_Lights[i].m_HalfWidth;
-		cl.m_Lights[i].m_InvHalfWidth = pScene->m_Lighting.m_Lights[i].m_InvHalfWidth;
-		cl.m_Lights[i].m_Height = pScene->m_Lighting.m_Lights[i].m_Height;
-		cl.m_Lights[i].m_InvHeight = pScene->m_Lighting.m_Lights[i].m_InvHeight;
-		cl.m_Lights[i].m_HalfHeight = pScene->m_Lighting.m_Lights[i].m_HalfHeight;
-		cl.m_Lights[i].m_InvHalfHeight = pScene->m_Lighting.m_Lights[i].m_InvHalfHeight;
-		cl.m_Lights[i].m_Distance = pScene->m_Lighting.m_Lights[i].m_Distance;
-		cl.m_Lights[i].m_SkyRadius = pScene->m_Lighting.m_Lights[i].m_SkyRadius;
-		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
-		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
-		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
-		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
-		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
-		cl.m_Lights[i].m_Area = pScene->m_Lighting.m_Lights[i].m_Area;
-		cl.m_Lights[i].m_AreaPdf = pScene->m_Lighting.m_Lights[i].m_AreaPdf;
-		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
-		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
-		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
-		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
-		cl.m_Lights[i].m_T = pScene->m_Lighting.m_Lights[i].m_T;
+		cl.m_Lights[i].m_Theta = pScene->_lighting.m_Lights[i].m_Theta;
+		cl.m_Lights[i].m_Phi = pScene->_lighting.m_Lights[i].m_Phi;
+		cl.m_Lights[i].m_Width = pScene->_lighting.m_Lights[i].m_Width;
+		cl.m_Lights[i].m_InvWidth = pScene->_lighting.m_Lights[i].m_InvWidth;
+		cl.m_Lights[i].m_HalfWidth = pScene->_lighting.m_Lights[i].m_HalfWidth;
+		cl.m_Lights[i].m_InvHalfWidth = pScene->_lighting.m_Lights[i].m_InvHalfWidth;
+		cl.m_Lights[i].m_Height = pScene->_lighting.m_Lights[i].m_Height;
+		cl.m_Lights[i].m_InvHeight = pScene->_lighting.m_Lights[i].m_InvHeight;
+		cl.m_Lights[i].m_HalfHeight = pScene->_lighting.m_Lights[i].m_HalfHeight;
+		cl.m_Lights[i].m_InvHalfHeight = pScene->_lighting.m_Lights[i].m_InvHalfHeight;
+		cl.m_Lights[i].m_Distance = pScene->_lighting.m_Lights[i].m_Distance;
+		cl.m_Lights[i].m_SkyRadius = pScene->_lighting.m_Lights[i].m_SkyRadius;
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
+		cl.m_Lights[i].m_Area = pScene->_lighting.m_Lights[i].m_Area;
+		cl.m_Lights[i].m_AreaPdf = pScene->_lighting.m_Lights[i].m_AreaPdf;
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
+		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
+		cl.m_Lights[i].m_T = pScene->_lighting.m_Lights[i].m_T;
 	}
 }
 
@@ -367,7 +372,7 @@ void RenderGLCuda::doRender() {
 	_renderSettings->m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
 
 	CudaLighting cudalt;
-	FillCudaLighting(_renderSettings, cudalt);
+	FillCudaLighting(&_appScene, cudalt);
 	BindConstants(_renderSettings, cudalt);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
