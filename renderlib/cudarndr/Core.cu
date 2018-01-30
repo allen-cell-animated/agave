@@ -150,7 +150,7 @@ void FillCudaLighting(CScene* pScene, CudaLighting& cl) {
 	}
 }
 
-void BindConstants(CScene* pScene)
+void BindConstants(CScene* pScene, const CudaLighting& cudalt)
 {
 	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
 	const float3 AaBbMax = make_float3(pScene->m_BoundingBox.GetMaxP().x, pScene->m_BoundingBox.GetMaxP().y, pScene->m_BoundingBox.GetMaxP().z);
@@ -244,10 +244,11 @@ void BindConstants(CScene* pScene)
 	FillCudaCamera(pScene, c);
 	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
 	
-	CudaLighting cl;
-	FillCudaLighting(pScene, cl);
-	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cl, sizeof(CudaLighting)));
+//	CudaLighting cl;
+//	FillCudaLighting(pScene, cl);
+//	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cl, sizeof(CudaLighting)));
 
+	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
 
 void Render(const int& Type, CScene& Scene,

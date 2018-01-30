@@ -6,6 +6,7 @@
 
 class CScene;
 class CVariance;
+struct CudaLighting;
 
 struct cudaFB {
 	float* fb;
@@ -46,7 +47,7 @@ void BindRenderCanvasView(const CResolution2D& Resolution);
 void ResetRenderCanvasView(void);
 void FreeRenderCanvasView(void);
 unsigned char* GetDisplayEstimate(void);
-void BindConstants(CScene* pScene);
+void BindConstants(CScene* pScene, const CudaLighting& cudalt);
 
 // scene needs to be mutable to get nearest intersection for focusdist.
 void Render(const int& Type, CScene& Scene,

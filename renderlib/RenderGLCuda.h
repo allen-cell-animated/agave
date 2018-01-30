@@ -15,6 +15,7 @@
 class GLImageShader2DnoLut;
 class ImageXYZC;
 class Image3Dv33;
+struct CudaLighting;
 
 class RenderGLCuda :
 	public IRenderWindow
@@ -91,6 +92,8 @@ private:
 
 	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
 	CStatus _status;
+
+	void FillCudaLighting(CScene* pScene, CudaLighting& cl);
 
 };
 

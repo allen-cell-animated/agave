@@ -15,6 +15,7 @@
 
 #include "Core.cuh"
 #include "Lighting.cuh"
+#include "Lighting2.cuh"
 
 #include <array>
 
@@ -79,6 +80,47 @@ void RenderGLCuda::initSceneLighting() {
 	AreaLight.Update(_renderSettings->m_BoundingBox);
 
 	_renderSettings->m_Lighting.AddLight(AreaLight);
+}
+
+void rVec3ToFloat3(Vec3f* src, float3* dest) {
+	dest->x = src->x;
+	dest->y = src->y;
+	dest->z = src->z;
+}
+void rRGBToFloat3(CColorRgbHdr* src, float3* dest) {
+	dest->x = src->r;
+	dest->y = src->g;
+	dest->z = src->b;
+}
+
+void RenderGLCuda::FillCudaLighting(CScene* pScene, CudaLighting& cl) {
+	cl.m_NoLights = pScene->m_Lighting.m_NoLights;
+	for (int i = 0; i < cl.m_NoLights; ++i) {
+		cl.m_Lights[i].m_Theta = pScene->m_Lighting.m_Lights[i].m_Theta;
+		cl.m_Lights[i].m_Phi = pScene->m_Lighting.m_Lights[i].m_Phi;
+		cl.m_Lights[i].m_Width = pScene->m_Lighting.m_Lights[i].m_Width;
+		cl.m_Lights[i].m_InvWidth = pScene->m_Lighting.m_Lights[i].m_InvWidth;
+		cl.m_Lights[i].m_HalfWidth = pScene->m_Lighting.m_Lights[i].m_HalfWidth;
+		cl.m_Lights[i].m_InvHalfWidth = pScene->m_Lighting.m_Lights[i].m_InvHalfWidth;
+		cl.m_Lights[i].m_Height = pScene->m_Lighting.m_Lights[i].m_Height;
+		cl.m_Lights[i].m_InvHeight = pScene->m_Lighting.m_Lights[i].m_InvHeight;
+		cl.m_Lights[i].m_HalfHeight = pScene->m_Lighting.m_Lights[i].m_HalfHeight;
+		cl.m_Lights[i].m_InvHalfHeight = pScene->m_Lighting.m_Lights[i].m_InvHalfHeight;
+		cl.m_Lights[i].m_Distance = pScene->m_Lighting.m_Lights[i].m_Distance;
+		cl.m_Lights[i].m_SkyRadius = pScene->m_Lighting.m_Lights[i].m_SkyRadius;
+		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
+		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
+		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
+		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
+		rVec3ToFloat3(&pScene->m_Lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
+		cl.m_Lights[i].m_Area = pScene->m_Lighting.m_Lights[i].m_Area;
+		cl.m_Lights[i].m_AreaPdf = pScene->m_Lighting.m_Lights[i].m_AreaPdf;
+		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
+		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
+		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
+		rRGBToFloat3(&pScene->m_Lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
+		cl.m_Lights[i].m_T = pScene->m_Lighting.m_Lights[i].m_T;
+	}
 }
 
 void RenderGLCuda::initQuad()
@@ -324,7 +366,9 @@ void RenderGLCuda::doRender() {
 
 	_renderSettings->m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
 
-	BindConstants(_renderSettings);
+	CudaLighting cudalt;
+	FillCudaLighting(_renderSettings, cudalt);
+	BindConstants(_renderSettings, cudalt);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {

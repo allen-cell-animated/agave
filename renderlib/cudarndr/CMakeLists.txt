@@ -19,6 +19,7 @@ add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/Denoise.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Estimate.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting.cuh"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2.cu"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/helper_math.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Model.cuh"
