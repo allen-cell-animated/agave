@@ -5,8 +5,8 @@
 #include "Camera.cuh"
 //#include "Geometry.h"
 
-CD int			gFilmWidth;
-CD int			gFilmHeight;
+CD int			gFilmWidth3;
+CD int			gFilmHeight3;
 
 #define KRNL_CH_BLOCK_W		16
 #define KRNL_CH_BLOCK_H		8
@@ -108,11 +108,11 @@ KERNEL void KrnlCh(cudaTextureObject_t volumeTex, float* outbuf, float density, 
 	//const int TID	= threadIdx.y * blockDim.x + threadIdx.x;
 
 	// bounds check.
-	if (X >= gFilmWidth || Y >= gFilmHeight)
+	if (X >= gFilmWidth3 || Y >= gFilmHeight3)
 		return;
 
 	// pixel offset of this thread
-	int pixoffset = Y*(gFilmWidth) + (X);
+	int pixoffset = Y*(gFilmWidth3) + (X);
 	int floatoffset = pixoffset*4;
 
 	// background color
@@ -127,8 +127,8 @@ KERNEL void KrnlCh(cudaTextureObject_t volumeTex, float* outbuf, float density, 
 	const float3 boxMin = make_float3(-1.0f, -1.0f, -1.0f);
 	const float3 boxMax = make_float3(1.0f, 1.0f, 1.0f);
 
-	float u = (X / (float)gFilmWidth)*2.0f - 1.0f;
-	float v = (Y / (float)gFilmHeight)*2.0f - 1.0f;
+	float u = (X / (float)gFilmWidth3)*2.0f - 1.0f;
+	float v = (Y / (float)gFilmHeight3)*2.0f - 1.0f;
 
 	// calculate eye ray in OBJECT(BOX) space
 	Ray eyeRay;
@@ -211,8 +211,8 @@ KERNEL void KrnlCh(cudaTextureObject_t volumeTex, float* outbuf, float density, 
 void RayMarchVolume(float* outbuf, cudaTextureObject_t volumeTex, cudaTextureObject_t gradientVolumeTex, int w, int h, float density, float brightness, float* invViewMatrix, float texmin, float texmax)
 {
 	// init some input vars for kernel
-	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth, &w, sizeof(int)));
-	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight, &h, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth3, &w, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight3, &h, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(c_invViewMatrix, invViewMatrix, sizeof(float)*12));
 
 	// launch kernel
@@ -229,7 +229,7 @@ void RayMarchVolume(float* outbuf, cudaTextureObject_t volumeTex, cudaTextureObj
 ////////////////
 ////////////////
 
-CD float gInvExposure;
+CD float gInvExposure1;
 
 #define KRNL_TM_BLOCK_W		8
 #define KRNL_TM_BLOCK_H		8
@@ -240,16 +240,16 @@ KERNEL void KrnlToneMap_Basic(float* inbuf, cudaSurfaceObject_t surfaceObj)
 	const int X 	= blockIdx.x * blockDim.x + threadIdx.x;
 	const int Y		= blockIdx.y * blockDim.y + threadIdx.y;
 
-	if (X >= gFilmWidth || Y >= gFilmHeight)
+	if (X >= gFilmWidth3 || Y >= gFilmHeight3)
 		return;
 
-	int pixoffset = Y*(gFilmWidth) + (X);
+	int pixoffset = Y*(gFilmWidth3) + (X);
 
 	float4 sample = reinterpret_cast<float4*>(inbuf)[pixoffset];
 
-	sample.x = __saturatef(1.0f - expf(-(sample.x * gInvExposure)));
-	sample.y = __saturatef(1.0f - expf(-(sample.y * gInvExposure)));
-	sample.z = __saturatef(1.0f - expf(-(sample.z * gInvExposure)));
+	sample.x = __saturatef(1.0f - expf(-(sample.x * gInvExposure1)));
+	sample.y = __saturatef(1.0f - expf(-(sample.y * gInvExposure1)));
+	sample.z = __saturatef(1.0f - expf(-(sample.z * gInvExposure1)));
 	sample.w = __saturatef(sample.w);
 
 	uchar4 pixel = make_uchar4(sample.x*255.0, sample.y*255.0, sample.z*255.0, sample.w*255.0);
@@ -261,7 +261,7 @@ void ToneMap_Basic(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h)
 	// init some input vars for kernel
 	//float invexposure = 1.0 / 1.0;
 	float invexposure = 1.0 / 4.0;
-	HandleCudaError(cudaMemcpyToSymbol(gInvExposure, &invexposure, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gInvExposure1, &invexposure, sizeof(float)));
 
 	const dim3 KernelBlock(KRNL_TM_BLOCK_W, KRNL_TM_BLOCK_H);
 	const dim3 KernelGrid((int)ceilf((float)w / (float)KernelBlock.x), (int)ceilf((float)h / (float)KernelBlock.y));

@@ -3,8 +3,8 @@
 #include "CudaUtilities.h"
 //#include "Geometry.h"
 
-CD int			gFilmWidth;
-CD int			gFilmHeight;
+CD int			gFilmWidth2;
+CD int			gFilmHeight2;
 
 #define KRNL_CH_BLOCK_W		16
 #define KRNL_CH_BLOCK_H		8
@@ -17,10 +17,10 @@ KERNEL void KrnlCh(float* outbuf)
 	//const int TID	= threadIdx.y * blockDim.x + threadIdx.x;
 
 	// bounds check.
-	if (X >= gFilmWidth || Y >= gFilmHeight)
+	if (X >= gFilmWidth2 || Y >= gFilmHeight2)
 		return;
 
-	int pixoffset = Y*(gFilmWidth) + (X);
+	int pixoffset = Y*(gFilmWidth2) + (X);
 	int floatoffset = pixoffset*4;
 	outbuf[floatoffset] = 0.75;
 	outbuf[floatoffset+1] = 0.0;
@@ -31,8 +31,8 @@ KERNEL void KrnlCh(float* outbuf)
 void Checkerboard2(float* outbuf, int w, int h)
 {
 	// init some input vars for kernel
-	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth, &w, sizeof(int)));
-	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight, &h, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth2, &w, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight2, &h, sizeof(int)));
 
 	// launch kernel
 	const dim3 KernelBlock(KRNL_CH_BLOCK_W, KRNL_CH_BLOCK_H);

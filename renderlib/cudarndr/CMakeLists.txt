@@ -40,6 +40,10 @@ add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.h"
 )
+set_target_properties(renderlib_cuda PROPERTIES 
+	CUDA_SEPARABLE_COMPILATION ON
+	CUDA_RESOLVE_DEVICE_SYMBOLS ON
+)
 target_include_directories(renderlib_cuda PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	# needs to be able to depend on Scene.h from renderlib

@@ -3,8 +3,8 @@
 #include "CudaUtilities.h"
 //#include "Geometry.h"
 
-CD int			gFilmWidth;
-CD int			gFilmHeight;
+CD int			gFilmWidth1;
+CD int			gFilmHeight1;
 
 #define KRNL_CH_BLOCK_W		16
 #define KRNL_CH_BLOCK_H		8
@@ -17,7 +17,7 @@ KERNEL void KrnlCh(cudaSurfaceObject_t surfaceObj)
 	//const int TID	= threadIdx.y * blockDim.x + threadIdx.x;
 
 	// bounds check.
-	if (X >= gFilmWidth || Y >= gFilmHeight)
+	if (X >= gFilmWidth1 || Y >= gFilmHeight1)
 		return;
 
 	uchar4 sample = make_uchar4(0,255,0,255);
@@ -27,8 +27,8 @@ KERNEL void KrnlCh(cudaSurfaceObject_t surfaceObj)
 void Checkerboard(cudaSurfaceObject_t surfaceObj, int w, int h)
 {
 	// init some input vars for kernel
-	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth, &w, sizeof(int)));
-	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight, &h, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth1, &w, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight1, &h, sizeof(int)));
 
 	// launch kernel
 	const dim3 KernelBlock(KRNL_CH_BLOCK_W, KRNL_CH_BLOCK_H);
