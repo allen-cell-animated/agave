@@ -23,6 +23,7 @@ RenderGLCuda::RenderGLCuda(CScene* scene)
 	:_cudaF32Buffer(nullptr),
 	_cudaF32AccumBuffer(nullptr),
 	_cudaTex(nullptr),
+	_cudaGLSurfaceObject(0),
 	_fbtex(0),
 	vertices(0),
 	image_vertices(0),
@@ -213,6 +214,8 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 		_randomSeeds2 = nullptr;
 	}
 	if (_cudaTex) {
+		HandleCudaError(cudaDestroySurfaceObject(_cudaGLSurfaceObject));
+		HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
 		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
 	}
 	if (_fbtex) {
@@ -260,6 +263,15 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 	
 	// use gl interop to let cuda write to this tex.
 	HandleCudaError(cudaGraphicsGLRegisterImage(&_cudaTex, _fbtex, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore));
+
+	HandleCudaError(cudaGraphicsMapResources(1, &_cudaTex));
+	cudaArray_t ca;
+	HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&ca, _cudaTex, 0, 0));
+	cudaResourceDesc desc;
+	memset(&desc, 0, sizeof(desc));
+	desc.resType = cudaResourceTypeArray;
+	desc.res.array.array = ca;
+	HandleCudaError(cudaCreateSurfaceObject(&_cudaGLSurfaceObject, &desc));
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
@@ -419,41 +431,25 @@ void RenderGLCuda::doRender() {
 	// Tonemap into opengl display buffer
 
 	// do cuda with cudaSurfaceObj
-	HandleCudaError(cudaGraphicsMapResources(1, &_cudaTex));
+
+	// set the lerpC here because the Render call is incrementing the number of iterations.
+	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
+	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+
+	CCudaTimer TmrDenoise;
+	if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 	{
-		cudaArray_t ca;
-		HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&ca, _cudaTex, 0, 0));
-		cudaResourceDesc desc;
-		memset(&desc, 0, sizeof(desc));
-		desc.resType = cudaResourceTypeArray;
-		desc.res.array.array = ca;
-		cudaSurfaceObject_t theCudaSurfaceObject;
-		HandleCudaError(cudaCreateSurfaceObject(&theCudaSurfaceObject, &desc));
-
-		// set the lerpC here because the Render call is incrementing the number of iterations.
-
-		_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
-		//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-		_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-
-		CCudaTimer TmrDenoise;
-		if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
-		{
-			Denoise(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
-		}
-		else
-		{
-			ToneMap(_cudaF32AccumBuffer, theCudaSurfaceObject, _w, _h);
-		}
-		_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
-
-		HandleCudaError(cudaDestroySurfaceObject(theCudaSurfaceObject));
+		Denoise(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h);
 	}
-	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
-
+	else
+	{
+		ToneMap(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h);
+	}
+	_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
+	
 	HandleCudaError(cudaStreamSynchronize(0));
-
-
+	
 	// display timings.
 	
 	_status.SetStatisticChanged("Performance", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");
@@ -552,6 +548,8 @@ void RenderGLCuda::cleanUpResources() {
 		_randomSeeds2 = nullptr;
 	}
 	if (_cudaTex) {
+		HandleCudaError(cudaDestroySurfaceObject(_cudaGLSurfaceObject));
+		HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
 		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
 	}
 }

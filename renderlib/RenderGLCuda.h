@@ -77,6 +77,7 @@ private:
 
 	// the rgba8 buffer for display
 	cudaGraphicsResource* _cudaTex;
+	cudaSurfaceObject_t _cudaGLSurfaceObject;
 	GLuint _fbtex;
 
 	// the rgbaf32 buffer for rendering
