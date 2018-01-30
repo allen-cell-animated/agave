@@ -32,7 +32,7 @@ public:
 	Vec3f		m_N;
 	float		m_DotWN;
 
-	HOD CFocus(void)
+	HO CFocus(void)
 	{
 		m_Type				= DEF_FOCUS_TYPE;
 		m_SensorPosCanvas	= DEF_FOCUS_SENSOR_POS_CANVAS;
@@ -43,7 +43,7 @@ public:
 		m_DotWN				= DEF_FOCUS_DOT_WN;
 	}
 
-	HOD CFocus& operator=(const CFocus& Other)
+	HO CFocus& operator=(const CFocus& Other)
 	{
 		m_Type				= Other.m_Type;
 		m_SensorPosCanvas	= Other.m_SensorPosCanvas;
@@ -78,7 +78,7 @@ public:
 	float			m_Rotation;
 	float			m_Data[MAX_BOKEH_DATA];
 
-	HOD CAperture(void)
+	HO CAperture(void)
 	{
 		m_Size		= DEF_APERTURE_SIZE;
 		m_NoBlades	= DEF_APERTURE_NO_BLADES;
@@ -102,7 +102,7 @@ public:
 		return *this;
 	}
 
-	HOD void Update(const float& FStop)
+	HO void Update(const float& FStop)
 	{
 		// Update bokeh
 		int Ns = (int)m_NoBlades;
@@ -141,7 +141,7 @@ public:
 	float			m_Gamma;
 
 	// ToDo: Add description
-	HOD CFilm(void)
+	HO CFilm(void)
 	{
 		m_Screen[0][0]	= 0.0f;
 		m_Screen[0][1]	= 0.0f;
@@ -172,7 +172,7 @@ public:
 		return *this;
 	}
 
-	HOD void Update(const float& FovV, const float& Aperture)
+	HO void Update(const float& FovV, const float& Aperture)
 	{
 		float Scale = 0.0f;
 
@@ -199,12 +199,12 @@ public:
 		m_Resolution.Update();
 	}
 
-	HOD int GetWidth(void) const
+	HO int GetWidth(void) const
 	{
 		return m_Resolution.GetResX();
 	}
 
-	HOD int GetHeight(void) const
+	HO int GetHeight(void) const
 	{
 		return m_Resolution.GetResY();
 	}
@@ -392,7 +392,7 @@ public:
 		Update();
 	}
 
-	HOD void GenerateRay(const Vec2f& Pixel, const Vec2f& ApertureRnd, Vec3f& RayO, Vec3f& RayD)
+	HO void GenerateRay(const Vec2f& Pixel, const Vec2f& ApertureRnd, Vec3f& RayO, Vec3f& RayD)
 	{
 		Vec2f ScreenPoint;
 

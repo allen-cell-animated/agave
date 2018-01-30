@@ -61,7 +61,7 @@ public:
 	{
 	}
 
-	HOD CLight& operator=(const CLight& Other)
+	HO CLight& operator=(const CLight& Other)
 	{
 		m_Theta				= Other.m_Theta;
 		m_Phi				= Other.m_Phi;
@@ -130,7 +130,7 @@ public:
 	}
 
 	// Samples the light
-	HOD CColorXyz SampleL(const Vec3f& P, CRay& Rl, float& Pdf, CLightingSample& LS) const
+	HO CColorXyz SampleL(const Vec3f& P, CRay& Rl, float& Pdf, CLightingSample& LS) const
 	{
 		CColorXyz L = SPEC_BLACK;
 
@@ -157,7 +157,7 @@ public:
 	}
 
 	// Intersect ray with light
-	HOD bool Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV = NULL, float* pPdf = NULL) const
+	HO bool Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV = NULL, float* pPdf = NULL) const
 	{
 		if (m_T == 0)
 		{
@@ -227,7 +227,7 @@ public:
 		return false;
 	}
 
-	HOD float Pdf(const Vec3f& P, const Vec3f& Wi) const
+	HO float Pdf(const Vec3f& P, const Vec3f& Wi) const
 	{
 		CColorXyz L;
 		Vec2f UV;
@@ -253,7 +253,7 @@ public:
 		return 0.0f;
 	}
 
-	HOD CColorXyz Le(const Vec2f& UV) const
+	HO CColorXyz Le(const Vec2f& UV) const
 	{
 		if (m_T == 0)
 			return CColorXyz::FromRGB(m_Color.r, m_Color.g, m_Color.b) / m_Area;
@@ -278,7 +278,7 @@ public:
 	{
 	}
 
-	HOD CLighting& operator=(const CLighting& Other)
+	HO CLighting& operator=(const CLighting& Other)
 	{
 		for (int i = 0; i < MAX_NO_LIGHTS; i++)
 		{

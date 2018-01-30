@@ -51,7 +51,7 @@ CD CudaCamera gCamera;
 
 //#include "Model.cuh"
 #include "View.cuh"
-#include "Blur.cuh"
+//#include "Blur.cuh"
 #include "Denoise.cuh"
 #include "Estimate.cuh"
 #include "Utilities.cuh"

@@ -4,7 +4,7 @@ target_include_directories(renderlib PUBLIC
 )
 find_package(CUDA)
 add_library(renderlib_cuda STATIC
-	"${CMAKE_CURRENT_SOURCE_DIR}/Blur.cuh"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/Blur.cuh"
 #	"${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera2.cuh"

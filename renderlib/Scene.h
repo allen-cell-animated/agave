@@ -74,8 +74,8 @@ public:
 	float				m_GradientFactor;
 	float				m_GradMagMean;
 
-	HOD int GetNoIterations(void) const					{ return m_NoIterations;			}
-	HOD void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}
+	HO int GetNoIterations(void) const					{ return m_NoIterations;			}
+	HO void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}
 
 private:
 	int					m_NoIterations;

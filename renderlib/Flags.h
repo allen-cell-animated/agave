@@ -22,7 +22,7 @@ public:
 	{
 	};
 
-	HOD CFlags& operator=(const CFlags& Other)
+	HO CFlags& operator=(const CFlags& Other)
 	{
 		m_Bits = Other.m_Bits;
 

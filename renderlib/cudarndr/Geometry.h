@@ -1223,13 +1223,13 @@ public:
 	{
 	};
  
-	HOD CBoundingBox(const Vec3f &v1, const Vec3f &v2) :
+	HO CBoundingBox(const Vec3f &v1, const Vec3f &v2) :
 		m_MinP(v1),
 		m_MaxP(v2)
 	{
 	}
 	
-	HOD CBoundingBox& operator = (const CBoundingBox& B)
+	HO CBoundingBox& operator = (const CBoundingBox& B)
 	{
 		m_MinP = B.m_MinP; 
 		m_MaxP = B.m_MaxP; 
@@ -1274,16 +1274,16 @@ public:
 		return (&m_MinP)[i];
 	}
 
-	HOD float LengthX(void) const	{ return fabs(m_MaxP.x - m_MinP.x); };
-	HOD float LengthY(void) const	{ return fabs(m_MaxP.y - m_MinP.y); };
-	HOD float LengthZ(void) const	{ return fabs(m_MaxP.z - m_MinP.z); };
+	HO float LengthX(void) const	{ return fabs(m_MaxP.x - m_MinP.x); };
+	HO float LengthY(void) const	{ return fabs(m_MaxP.y - m_MinP.y); };
+	HO float LengthZ(void) const	{ return fabs(m_MaxP.z - m_MinP.z); };
 	
-	HOD Vec3f GetCenter(void) const
+	HO Vec3f GetCenter(void) const
 	{
 		return Vec3f(0.5f * (m_MinP.x + m_MaxP.x), 0.5f * (m_MinP.y + m_MaxP.y), 0.5f * (m_MinP.z + m_MaxP.z));
 	}
 
-	HOD EContainment Contains(const Vec3f& P) const
+	HO EContainment Contains(const Vec3f& P) const
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -1294,7 +1294,7 @@ public:
 		return ContainmentFull;
 	};
 
-	HOD EContainment Contains(const Vec3f* pPoints, long PointCount) const
+	HO EContainment Contains(const Vec3f* pPoints, long PointCount) const
 	{
 		long Contain = 0;
 
@@ -1315,7 +1315,7 @@ public:
 		}
 	}
 
-	HOD EContainment Contains(const CBoundingBox& B) const
+	HO EContainment Contains(const CBoundingBox& B) const
 	{
 		bool ContainsMin = false, ContainsMax = false;
 
@@ -1336,17 +1336,17 @@ public:
 		}
 	}
 
-	HOD EAxis GetDominantAxis(void) const
+	HO EAxis GetDominantAxis(void) const
 	{
 		return (LengthX() > LengthY() && LengthX() > LengthZ()) ? AxisX : ((LengthY() > LengthZ()) ? AxisY : AxisZ);
 	}
 
-	HOD	Vec3f				GetMinP(void) const		{ return m_MinP;				}
-	HOD	Vec3f				GetInvMinP(void) const	{ return Vec3f(1.0f) / m_MinP;	}
-	HOD	void				SetMinP(Vec3f MinP)		{ m_MinP = MinP;				}
-	HOD	Vec3f				GetMaxP(void) const		{ return m_MaxP;				}
-	HOD	Vec3f				GetInvMaxP(void) const	{ return Vec3f(1.0f) / m_MaxP;	}
-	HOD	void				SetMaxP(Vec3f MaxP)		{ m_MaxP = MaxP;				}
+	HO	Vec3f				GetMinP(void) const		{ return m_MinP;				}
+	HO	Vec3f				GetInvMinP(void) const	{ return Vec3f(1.0f) / m_MinP;	}
+	HO	void				SetMinP(Vec3f MinP)		{ m_MinP = MinP;				}
+	HO	Vec3f				GetMaxP(void) const		{ return m_MaxP;				}
+	HO	Vec3f				GetInvMaxP(void) const	{ return Vec3f(1.0f) / m_MaxP;	}
+	HO	void				SetMaxP(Vec3f MaxP)		{ m_MaxP = MaxP;				}
 
 	HO float GetMaxLength(EAxis* pAxis = NULL) const
 	{
@@ -1380,7 +1380,7 @@ public:
 		return 0.5f * GetExtent().Length();
 	}
 
-	HOD bool Inside(const Vec3f& pt)
+	HO bool Inside(const Vec3f& pt)
 	{
 		return (pt.x >= m_MinP.x && pt.x <= m_MaxP.x &&
 				pt.y >= m_MinP.y && pt.y <= m_MaxP.y &&
@@ -1388,7 +1388,7 @@ public:
 	}
 
 	// Performs a line box intersection
-	HOD bool Intersect(CRay& R, float* pMinT = NULL, float* pMaxT = NULL)
+	HO bool Intersect(CRay& R, float* pMinT = NULL, float* pMaxT = NULL)
 	{
 		// Compute intersection of line with all six bounding box planes
 		const Vec3f InvR = Vec3f(1.0f / R.m_D.x, 1.0f / R.m_D.y, 1.0f / R.m_D.z);
@@ -1412,7 +1412,7 @@ public:
 		return SmallestMaxT > LargestMinT;
 	}
 
-	HOD bool IntersectP(const CRay& ray, float* hitt0 = NULL, float* hitt1 = NULL)
+	HO bool IntersectP(const CRay& ray, float* hitt0 = NULL, float* hitt1 = NULL)
 	{
 		float t0 = ray.m_MinT, t1 = ray.m_MaxT;
 		
@@ -1484,7 +1484,7 @@ class CResolution2D
 {
 public:
 	// ToDo: Add description
-	HOD CResolution2D(const float& Width, const float& Height)
+	HO CResolution2D(const float& Width, const float& Height)
 	{
 		m_XY		= Vec2i(Width, Height);
 
@@ -1492,7 +1492,7 @@ public:
 	}
 
 	// ToDo: Add description
-	HOD CResolution2D(void)
+	HO CResolution2D(void)
 	{
 		m_XY		= Vec2i(640, 480);
 
@@ -1500,12 +1500,12 @@ public:
 	}
 
 	// ToDo: Add description
-	HOD ~CResolution2D(void)
+	HO ~CResolution2D(void)
 	{
 	}
 
 	// ToDo: Add description
-	HOD CResolution2D& operator=(const CResolution2D& Other)
+	HO CResolution2D& operator=(const CResolution2D& Other)
 	{
 		m_XY				= Other.m_XY;
 		m_InvXY				= Other.m_InvXY;
@@ -1516,28 +1516,28 @@ public:
 		return *this;
 	}
 
-	HOD int operator[](int i) const
+	HO int operator[](int i) const
 	{
 		return m_XY[i];
 	}
 
-	HOD int& operator[](int i)
+	HO int& operator[](int i)
 	{
 		return m_XY[i];
 	}
 
-	HOD bool operator == (const CResolution2D& Other) const
+	HO bool operator == (const CResolution2D& Other) const
 	{
 		return GetResX() == Other.GetResX() && GetResY() == Other.GetResY();
 	}
 
-	HOD bool operator != (const CResolution2D& Other) const
+	HO bool operator != (const CResolution2D& Other) const
 	{
 		return GetResX() != Other.GetResX() || GetResY() != Other.GetResY();
 	}
 
 	// ToDo: Add description
-	HOD void Update(void)
+	HO void Update(void)
 	{
 		m_InvXY				= Vec2f(1.0f / m_XY.x, 1.0f / m_XY.y);
 		m_NoElements		= m_XY.x * m_XY.y;
@@ -1546,25 +1546,25 @@ public:
 	}
 
 	// ToDo: Add description
-	HOD Vec2i ToVector(void) const
+	HO Vec2i ToVector(void) const
 	{
 		return Vec2i(m_XY.x, m_XY.y);
 	}
 
-	HOD void Set(const Vec2i& Resolution)
+	HO void Set(const Vec2i& Resolution)
 	{
 		m_XY		= Resolution;
 
 		Update();
 	}
 
-	HOD int		GetResX(void) const				{ return m_XY.x; }
-	HOD void	SetResX(const int& Width)		{ m_XY.x = Width; Update(); }
-	HOD int		GetResY(void) const				{ return m_XY.y; }
-	HOD void	SetResY(const int& Height)		{ m_XY.y = Height; Update(); }
-	HOD Vec2f	GetInv(void) const				{ return m_InvXY; }
-	HOD int		GetNoElements(void) const		{ return m_NoElements; }
-	HOD float	GetAspectRatio(void) const		{ return m_AspectRatio; }
+	HO int		GetResX(void) const				{ return m_XY.x; }
+	HO void	SetResX(const int& Width)		{ m_XY.x = Width; Update(); }
+	HO int		GetResY(void) const				{ return m_XY.y; }
+	HO void	SetResY(const int& Height)		{ m_XY.y = Height; Update(); }
+	HO Vec2f	GetInv(void) const				{ return m_InvXY; }
+	HO int		GetNoElements(void) const		{ return m_NoElements; }
+	HO float	GetAspectRatio(void) const		{ return m_AspectRatio; }
 
 	void PrintSelf(void)
 	{
@@ -1583,7 +1583,7 @@ class CResolution3D
 {
 public:
 	// ToDo: Add description
-	HOD CResolution3D(void)
+	HO CResolution3D(void)
 	{
 		SetResX(0);
 		SetResY(0);
@@ -1591,7 +1591,7 @@ public:
 	}
 
 	// ToDo: Add description
-	HOD CResolution3D& operator=(const CResolution3D& Other)
+	HO CResolution3D& operator=(const CResolution3D& Other)
 	{
 		m_XYZ				= Other.m_XYZ;
 		m_InvXYZ			= Other.m_InvXYZ;
@@ -1602,17 +1602,17 @@ public:
 		return *this;
 	}
 
-	HOD int operator[](int i) const
+	HO int operator[](int i) const
 	{
 		return m_XYZ[i];
 	}
 
-	HOD int& operator[](int i)
+	HO int& operator[](int i)
 	{
 		return m_XYZ[i];
 	}
 
-	HOD void Update(void)
+	HO void Update(void)
 	{
 		m_InvXYZ.x			= m_XYZ.x == 0.0f ? 1.0f : 1.0f / (float)m_XYZ.x;
 		m_InvXYZ.y			= m_XYZ.y == 0.0f ? 1.0f : 1.0f / (float)m_XYZ.y;
@@ -1621,12 +1621,12 @@ public:
 		m_DiagonalLength	= m_XYZ.Length();
 	}
 
-	HOD Vec3f ToVector3(void) const
+	HO Vec3f ToVector3(void) const
 	{
 		return Vec3f(m_XYZ.x, m_XYZ.y, m_XYZ.z);
 	}
 
-	HOD void SetResXYZ(const Vec3i& Resolution)
+	HO void SetResXYZ(const Vec3i& Resolution)
 	{
 		m_Dirty	= m_XYZ.x != Resolution.x || m_XYZ.y != Resolution.y || m_XYZ.z != Resolution.z;
 		m_XYZ	= Resolution;
@@ -1634,17 +1634,17 @@ public:
 		Update();
 	}
 
-	HOD Vec3i	GetResXYZ(void) const				{ return m_XYZ; }
-	HOD int		GetResX(void) const					{ return m_XYZ.x; }
-	HOD void	SetResX(const int& ResX)			{ m_Dirty = m_XYZ.x != ResX; m_XYZ.x = ResX; Update(); }
-	HOD int		GetResY(void) const					{ return m_XYZ.y; }
-	HOD void	SetResY(const int& ResY)			{ m_Dirty = m_XYZ.y != ResY; m_XYZ.y = ResY; Update(); }
-	HOD int		GetResZ(void) const					{ return m_XYZ.z; }
-	HOD void	SetResZ(const int& ResZ)			{ m_Dirty = m_XYZ.z != ResZ; m_XYZ.z = ResZ; Update(); }
-	HOD Vec3f	GetInv(void) const					{ return m_InvXYZ; }
-	HOD int		GetNoElements(void) const			{ return m_NoElements; }
-	HOD int		GetMin(void) const					{ return min(GetResX(), min(GetResY(), GetResZ()));		}
-	HOD int		GetMax(void) const					{ return max(GetResX(), max(GetResY(), GetResZ()));		}
+	HO Vec3i	GetResXYZ(void) const				{ return m_XYZ; }
+	HO int		GetResX(void) const					{ return m_XYZ.x; }
+	HO void	SetResX(const int& ResX)			{ m_Dirty = m_XYZ.x != ResX; m_XYZ.x = ResX; Update(); }
+	HO int		GetResY(void) const					{ return m_XYZ.y; }
+	HO void	SetResY(const int& ResY)			{ m_Dirty = m_XYZ.y != ResY; m_XYZ.y = ResY; Update(); }
+	HO int		GetResZ(void) const					{ return m_XYZ.z; }
+	HO void	SetResZ(const int& ResZ)			{ m_Dirty = m_XYZ.z != ResZ; m_XYZ.z = ResZ; Update(); }
+	HO Vec3f	GetInv(void) const					{ return m_InvXYZ; }
+	HO int		GetNoElements(void) const			{ return m_NoElements; }
+	HO int		GetMin(void) const					{ return min(GetResX(), min(GetResY(), GetResZ()));		}
+	HO int		GetMax(void) const					{ return max(GetResX(), max(GetResY(), GetResZ()));		}
 
 	HO void PrintSelf(void)
 	{

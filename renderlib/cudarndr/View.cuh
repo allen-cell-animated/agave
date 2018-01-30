@@ -97,12 +97,12 @@ public:
 		m_Resolution.Set(Vec2i(0, 0));
 	}
 
-	HOD int GetWidth(void) const
+	HO int GetWidth(void) const
 	{
 		return m_Resolution.GetResX();
 	}
 
-	HOD int GetHeight(void) const
+	HO int GetHeight(void) const
 	{
 		return m_Resolution.GetResY();
 	}
