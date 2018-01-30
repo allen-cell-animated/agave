@@ -2,9 +2,10 @@
 
 #include "Geometry.h"
 #include "Timing.h"
+#include "Scene.h"
 
 class CCamera;
-class CScene;
+//class CScene;
 class CVariance;
 struct CudaLighting;
 

@@ -1,5 +1,3 @@
-#include "Scene.h"
-
 #include "Utilities.cuh"
 #include "CudaUtilities.h"
 

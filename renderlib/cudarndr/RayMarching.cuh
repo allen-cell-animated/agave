@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Geometry.h"
-#include "Scene.h"
 #include "CudaUtilities.h"
 
 #define KRNL_SS_BLOCK_W		8

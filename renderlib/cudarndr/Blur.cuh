@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Geometry.h"
-#include "Scene.h"
 #include "CudaUtilities.h"
 //#include "helper_math.h"
 
@@ -89,10 +88,10 @@ KERNEL void KrnlBlurV(CCudaView* pView)
 	}
 }
 
-void Blur(CScene* pScene, CScene* pDevScene, CCudaView* pDevView)
+void Blur(int res_x, int res_y, CCudaView* pDevView)
 {
 	const dim3 KernelBlock(KRNL_BLUR_BLOCK_W, KRNL_BLUR_BLOCK_H);
-	const dim3 KernelGrid((int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResX() / (float)KernelBlock.x), (int)ceilf((float)pScene->m_Camera.m_Film.m_Resolution.GetResY() / (float)KernelBlock.y));
+	const dim3 KernelGrid((int)ceilf((float)res_x / (float)KernelBlock.x), (int)ceilf((float)res_y / (float)KernelBlock.y));
 
 	KrnlBlurH<<<KernelGrid, KernelBlock>>>(pDevView);
 	cudaDeviceSynchronize();

@@ -1,5 +1,7 @@
 #include "AppScene.h"
 
+#include "Geometry.h"
+
 void Light::Update(const CBoundingBox& BoundingBox)
 {
 	m_InvWidth = 1.0f / m_Width;
