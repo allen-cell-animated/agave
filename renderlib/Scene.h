@@ -42,6 +42,15 @@ public:
 	}
 };
 
+struct CRenderSettings {
+	float				m_DensityScale;
+	int					m_ShadingType;
+	float				m_StepSizeFactor;
+	float				m_StepSizeFactorShadow;
+	float				m_GradientDelta;
+	float				m_GradientFactor;
+};
+
 class CScene
 {
 public:
@@ -72,7 +81,7 @@ public:
 	float				m_StepSizeFactorShadow;
 	float				m_GradientDelta;
 	float				m_GradientFactor;
-	float				m_GradMagMean;
+	//float				m_GradMagMean;
 
 	HO int GetNoIterations(void) const					{ return m_NoIterations;			}
 	HO void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}

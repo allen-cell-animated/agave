@@ -60,18 +60,18 @@ CD CudaCamera gCamera;
 //#include "SpecularBloom.cuh"
 #include "ToneMap.cuh"
 
-void Vec3ToFloat3(Vec3f* src, float3* dest) {
+void Vec3ToFloat3(const Vec3f* src, float3* dest) {
 	dest->x = src->x;
 	dest->y = src->y;
 	dest->z = src->z;
 }
-void RGBToFloat3(CColorRgbHdr* src, float3* dest) {
+void RGBToFloat3(const CColorRgbHdr* src, float3* dest) {
 	dest->x = src->r;
 	dest->y = src->g;
 	dest->z = src->b;
 }
 
-void FillCudaCamera(CCamera* pCamera, CudaCamera& c) {
+void FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
 	Vec3ToFloat3(&pCamera->m_From, &c.m_From);
 	Vec3ToFloat3(&pCamera->m_N, &c.m_N);
 	Vec3ToFloat3(&pCamera->m_U, &c.m_U);
@@ -86,16 +86,16 @@ void FillCudaCamera(CCamera* pCamera, CudaCamera& c) {
 	c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
 }
 
-void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise)
+void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox)
 {
-	const float3 AaBbMin = make_float3(pScene->m_BoundingBox.GetMinP().x, pScene->m_BoundingBox.GetMinP().y, pScene->m_BoundingBox.GetMinP().z);
-	const float3 AaBbMax = make_float3(pScene->m_BoundingBox.GetMaxP().x, pScene->m_BoundingBox.GetMaxP().y, pScene->m_BoundingBox.GetMaxP().z);
+	const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
+	const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
 
 	HandleCudaError(cudaMemcpyToSymbol(gAaBbMin, &AaBbMin, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gAaBbMax, &AaBbMax, sizeof(float3)));
 
-	const float3 InvAaBbMin = make_float3(pScene->m_BoundingBox.GetInvMinP().x, pScene->m_BoundingBox.GetInvMinP().y, pScene->m_BoundingBox.GetInvMinP().z);
-	const float3 InvAaBbMax = make_float3(pScene->m_BoundingBox.GetInvMaxP().x, pScene->m_BoundingBox.GetInvMaxP().y, pScene->m_BoundingBox.GetInvMaxP().z);
+	const float3 InvAaBbMin = make_float3(bbox.GetInvMinP().x, bbox.GetInvMinP().y, bbox.GetInvMinP().z);
+	const float3 InvAaBbMax = make_float3(bbox.GetInvMaxP().x, bbox.GetInvMaxP().y, bbox.GetInvMaxP().z);
 
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMin, &InvAaBbMin, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMax, &InvAaBbMax, sizeof(float3)));
@@ -125,9 +125,9 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoisePar
 	HandleCudaError(cudaMemcpyToSymbol(gGradientDeltaY, &GradientDeltaY, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gGradientDeltaZ, &GradientDeltaZ, sizeof(float3)));
 	
-	const int FilmWidth		= pScene->m_Camera.m_Film.GetWidth();
-	const int Filmheight	= pScene->m_Camera.m_Film.GetHeight();
-	const int FilmNoPixels	= pScene->m_Camera.m_Film.m_Resolution.GetNoElements();
+	const int FilmWidth		= camera.m_Film.GetWidth();
+	const int Filmheight	= camera.m_Film.GetHeight();
+	const int FilmNoPixels	= camera.m_Film.m_Resolution.GetNoElements();
 
 	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth, &FilmWidth, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight, &Filmheight, sizeof(int)));
@@ -141,9 +141,9 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoisePar
 
 	HandleCudaError(cudaMemcpyToSymbol(gFilterWeights, FilterWeights, 10 * sizeof(float)));
 
-	const float Gamma		= pScene->m_Camera.m_Film.m_Gamma;
+	const float Gamma		= camera.m_Film.m_Gamma;
 	const float InvGamma	= 1.0f / Gamma;
-	const float Exposure	= pScene->m_Camera.m_Film.m_Exposure;
+	const float Exposure	= camera.m_Film.m_Exposure;
 	const float InvExposure	= 1.0f / Exposure;
 
 	HandleCudaError(cudaMemcpyToSymbol(gExposure, &Exposure, sizeof(float)));
@@ -167,7 +167,7 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoisePar
 	HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
 
 	CudaCamera c;
-	FillCudaCamera(&pScene->m_Camera, c);
+	FillCudaCamera(&camera, c);
 	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
 
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));

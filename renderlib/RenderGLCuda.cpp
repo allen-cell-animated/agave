@@ -390,7 +390,7 @@ void RenderGLCuda::doRender() {
 
 	CudaLighting cudalt;
 	FillCudaLighting(&_appScene, cudalt);
-	BindConstants(_renderSettings, cudalt, _renderSettings->m_DenoiseParams);
+	BindConstants(_renderSettings, cudalt, _renderSettings->m_DenoiseParams, _renderSettings->m_Camera, _renderSettings->m_BoundingBox);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
