@@ -20,7 +20,7 @@ public:
 public:
 	HO CDenoiseParams(void);
 
-	HOD CDenoiseParams& operator=(const CDenoiseParams& Other)
+	HO CDenoiseParams& operator=(const CDenoiseParams& Other)
 	{
 		m_Enabled			= Other.m_Enabled;
 		m_Noise				= Other.m_Noise;
@@ -34,7 +34,7 @@ public:
 		return *this;
 	}
 
-	HOD void SetWindowRadius(const int& WindowRadius)
+	HO void SetWindowRadius(const int& WindowRadius)
 	{
 		m_WindowRadius		= WindowRadius;
 		m_WindowArea		= (2.0f * m_WindowRadius + 1.0f) * (2.0f * m_WindowRadius + 1.0f);
@@ -52,7 +52,7 @@ public:
 	HO void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
 
 	// which channel to display.  this is "scene" display info and not "renderer settings"
-	int _channel;
+	//int _channel;
 
 	CCamera				m_Camera;
 	CLighting			m_Lighting;

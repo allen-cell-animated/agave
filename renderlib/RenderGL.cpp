@@ -55,7 +55,7 @@ void RenderGL::render(const Camera& camera)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Render image
-	image3d->setC(_scene->_channel);
+	//image3d->setC(_scene->_channel);
 	image3d->render(camera);
 }
 

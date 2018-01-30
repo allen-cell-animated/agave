@@ -4,7 +4,7 @@
 #include "ImageXYZC.h"
 
 CScene::CScene(void) :
-	_channel(0),
+	//_channel(0),
 	m_Camera(),
 	//m_Lighting(),
 	m_Resolution(),
