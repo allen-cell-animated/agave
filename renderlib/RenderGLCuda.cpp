@@ -348,9 +348,12 @@ void RenderGLCuda::doRender() {
 	// Restart the rendering when when the camera, lights and render params are dirty
 	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
 	{
-		int NC = _appScene._volume->sizeC();
-		for (int i = 0; i < NC; ++i) {
-			_imgCuda.updateLutGpu(i, _appScene._volume.get());
+		if (_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
+			// TODO: only update the ones that changed.
+			int NC = _appScene._volume->sizeC();
+			for (int i = 0; i < NC; ++i) {
+				_imgCuda.updateLutGpu(i, _appScene._volume.get());
+			}
 		}
 
 		//		ResetRenderCanvasView();
