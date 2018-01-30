@@ -7,14 +7,6 @@
 #include "Lighting2.cuh"
 #include "Lighting2Impl.cuh"
 
-cudaTextureObject_t gTexDensity;
-cudaTextureObject_t gTexGradientMagnitude;
-
-texture<uchar4, cudaTextureType2D, cudaReadModeNormalizedFloat>		gTexRunningEstimateRgba;
-
-cudaArray* gpDensityArray				= NULL;
-cudaArray* gpGradientMagnitudeArray		= NULL;
-
 CD float3		gAaBbMin;
 CD float3		gAaBbMax;
 CD float3		gInvAaBbMin;
@@ -67,34 +59,6 @@ CD CudaCamera gCamera;
 #include "NearestIntersection.cuh"
 //#include "SpecularBloom.cuh"
 #include "ToneMap.cuh"
-
-CCudaView	gRenderCanvasView;
-
-void BindRenderCanvasView(const CResolution2D& Resolution)
-{
-	gRenderCanvasView.Resize(Resolution);
-
-	cudaChannelFormatDesc Channel;
-	
-	Channel = cudaCreateChannelDesc<uchar4>();
-
-	HandleCudaError(cudaBindTexture2D(0, gTexRunningEstimateRgba, gRenderCanvasView.m_EstimateRgbaLdr.GetPtr(), Channel, gRenderCanvasView.GetWidth(), gRenderCanvasView.GetHeight(), gRenderCanvasView.m_EstimateRgbaLdr.GetPitch()));
-}
-
-void ResetRenderCanvasView(void)
-{
-	gRenderCanvasView.Reset();
-}
-
-void FreeRenderCanvasView(void)
-{
-	gRenderCanvasView.Free();
-}
-
-unsigned char* GetDisplayEstimate(void)
-{
-	return (unsigned char*)gRenderCanvasView.m_DisplayEstimateRgbLdr.GetPtr(0, 0);
-}
 
 void Vec3ToFloat3(Vec3f* src, float3* dest) {
 	dest->x = src->x;
