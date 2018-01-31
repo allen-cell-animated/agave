@@ -102,7 +102,11 @@ void DeviceSelector::OnCudaDeviceChanged(void)
 		if (SetCudaDevice(CudaDevice.m_ID))
 		{
 			_selectedDeviceID = CudaDevice.m_ID;
-			LOG_INFO << "Cuda device changed to " << CudaDevice.m_Name;
+			LOG_INFO << "CUDA device selected: " << CudaDevice.m_Name;
+			LOG_INFO << "CUDA device capability: " << CudaDevice.m_Capability;
+			LOG_INFO << "CUDA device global memory: " << CudaDevice.m_GlobalMemory;
+			LOG_INFO << "CUDA multiprocessor count: " << CudaDevice.m_NoMultiProcessors;
+			LOG_INFO << "CUDA registers per block: " << CudaDevice.m_RegistersPerBlock;
 		}
 	}
 }
