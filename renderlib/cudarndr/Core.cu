@@ -1,11 +1,12 @@
 #include "Logging.h"
 
 #include "Core.cuh"
-#include "Scene.h"
-#include "helper_math.cuh"
+//#include "Scene.h"
+//#include "helper_math.cuh"
 #include "Camera2.cuh"
 #include "Lighting2.cuh"
 #include "Lighting2Impl.cuh"
+#include "DenoiseParams.cuh"
 
 CD float3		gAaBbMin;
 CD float3		gAaBbMax;
