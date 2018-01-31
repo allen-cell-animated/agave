@@ -86,7 +86,7 @@ void FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
 	c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
 }
 
-void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox)
+void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations)
 {
 	const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
 	const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
@@ -100,20 +100,20 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoisePar
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMin, &InvAaBbMin, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMax, &InvAaBbMax, sizeof(float3)));
 
-	HandleCudaError(cudaMemcpyToSymbol(gShadingType, &pScene->m_ShadingType, sizeof(int)));
-	HandleCudaError(cudaMemcpyToSymbol(gGradientFactor, &pScene->m_GradientFactor, sizeof(float)));
+	HandleCudaError(cudaMemcpyToSymbol(gShadingType, &renderSettings.m_ShadingType, sizeof(int)));
+	HandleCudaError(cudaMemcpyToSymbol(gGradientFactor, &renderSettings.m_GradientFactor, sizeof(float)));
 
-	const float StepSize		= pScene->m_StepSizeFactor * pScene->m_GradientDelta;
-	const float StepSizeShadow	= pScene->m_StepSizeFactorShadow * pScene->m_GradientDelta;
+	const float StepSize		= renderSettings.m_StepSizeFactor * renderSettings.m_GradientDelta;
+	const float StepSizeShadow	= renderSettings.m_StepSizeFactorShadow * renderSettings.m_GradientDelta;
 
 	HandleCudaError(cudaMemcpyToSymbol(gStepSize, &StepSize, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gStepSizeShadow, &StepSizeShadow, sizeof(float)));
 
-	const float DensityScale = pScene->m_DensityScale;
+	const float DensityScale = renderSettings.m_DensityScale;
 
 	HandleCudaError(cudaMemcpyToSymbol(gDensityScale, &DensityScale, sizeof(float)));
 	
-	const float GradientDelta		= 1.0f * pScene->m_GradientDelta;
+	const float GradientDelta		= 1.0f * renderSettings.m_GradientDelta;
 	const float InvGradientDelta	= 1.0f / GradientDelta;
 	const Vec3f GradientDeltaX(GradientDelta, 0.0f, 0.0f);
 	const Vec3f GradientDeltaY(0.0f, GradientDelta, 0.0f);
@@ -160,7 +160,7 @@ void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoisePar
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpThreshold, &denoise.m_LerpThreshold, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &denoise.m_LerpC, sizeof(float)));
 
-	const float NoIterations	= pScene->GetNoIterations();
+	const float NoIterations	= numIterations;
 	const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 
 	HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
