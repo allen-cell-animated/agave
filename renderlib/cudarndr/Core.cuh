@@ -2,12 +2,13 @@
 
 #include "Geometry.h"
 #include "Timing.h"
-#include "Scene.h"
 
+//class CBoundingBox;
 class CCamera;
-//class CScene;
+class CDenoiseParams;
 class CVariance;
 struct CudaLighting;
+struct CRenderSettings;
 
 struct cudaFB {
 	float* fb;
@@ -44,7 +45,7 @@ struct cudaVolume {
 	}
 };
 
-void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations);
+void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations);
 
 // scene needs to be mutable to get nearest intersection for focusdist.
 void Render(const int& Type, CCamera& camera,

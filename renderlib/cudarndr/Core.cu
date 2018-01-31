@@ -86,7 +86,7 @@ void FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
 	c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
 }
 
-void BindConstants(CScene* pScene, const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations)
+void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations)
 {
 	const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
 	const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
