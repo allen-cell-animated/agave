@@ -97,6 +97,7 @@ private:
 
 	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
     void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
+	void cleanUpFB();
 
 };
 

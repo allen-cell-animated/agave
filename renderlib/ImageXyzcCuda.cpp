@@ -138,7 +138,7 @@ void ImageCuda::allocGpu(ImageXYZC* img) {
         _channels.push_back(c);
     }
 
-	qDebug() << "Image to GPU in " << timer.elapsed() << "ms";
+	qDebug() << "allocGPU: Image to GPU in " << timer.elapsed() << "ms";
 }
 
 void ImageCuda::createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cudaTextureObject_t* deviceTexture) {
@@ -201,7 +201,7 @@ void ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int
 	copyParams.kind = cudaMemcpyHostToDevice;
 	HandleCudaError(cudaMemcpy3D(&copyParams));
 
-	qDebug() << "Copy to gpu: " << timer.elapsed() << "ms";
+	qDebug() << "Copy volume to gpu: " << timer.elapsed() << "ms";
 
 
 	delete[] v;
@@ -226,7 +226,7 @@ void ImageCuda::allocGpuInterleaved(ImageXYZC* img) {
 		_channels.push_back(c);
 	}
 
-	qDebug() << "Image to GPU in " << timer.elapsed() << "ms";
+	qDebug() << "allocGPUinterleaved: Image to GPU in " << timer.elapsed() << "ms";
 
 }
 

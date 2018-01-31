@@ -43,6 +43,7 @@ RenderGLCuda::RenderGLCuda(CScene* scene)
 
 RenderGLCuda::~RenderGLCuda()
 {
+	//cleanUpResources();
 }
 
 void RenderGLCuda::initSceneLighting() {
@@ -213,18 +214,21 @@ void RenderGLCuda::initQuad()
 	check_gl("unbind vtx array");
 }
 
-void RenderGLCuda::initFB(uint32_t w, uint32_t h)
+void RenderGLCuda::cleanUpFB()
 {
-	_w = w;
-	_h = h;
-
-	if (_cudaF32Buffer) {
-		HandleCudaError(cudaFree(_cudaF32Buffer));
-		_cudaF32Buffer = nullptr;
+	// completely destroy the cuda binding to the framebuffer texture
+	if (_cudaTex) {
+		HandleCudaError(cudaDestroySurfaceObject(_cudaGLSurfaceObject));
+		_cudaGLSurfaceObject = 0;
+		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
+		_cudaTex = nullptr;
 	}
-	if (_cudaF32AccumBuffer) {
-		HandleCudaError(cudaFree(_cudaF32AccumBuffer));
-		_cudaF32AccumBuffer = nullptr;
+	// destroy the framebuffer texture
+	if (_fbtex) {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDeleteTextures(1, &_fbtex);
+		check_gl("Destroy fb texture");
+		_fbtex = 0;
 	}
 	if (_randomSeeds1) {
 		HandleCudaError(cudaFree(_randomSeeds1));
@@ -234,15 +238,22 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 		HandleCudaError(cudaFree(_randomSeeds2));
 		_randomSeeds2 = nullptr;
 	}
-	if (_cudaTex) {
-		HandleCudaError(cudaDestroySurfaceObject(_cudaGLSurfaceObject));
-		HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
-		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
+	if (_cudaF32Buffer) {
+		HandleCudaError(cudaFree(_cudaF32Buffer));
+		_cudaF32Buffer = nullptr;
 	}
-	if (_fbtex) {
-		glDeleteTextures(1, &_fbtex);
-		check_gl("Destroy fb texture");
+	if (_cudaF32AccumBuffer) {
+		HandleCudaError(cudaFree(_cudaF32AccumBuffer));
+		_cudaF32AccumBuffer = nullptr;
 	}
+}
+
+void RenderGLCuda::initFB(uint32_t w, uint32_t h)
+{
+	_w = w;
+	_h = h;
+
+	cleanUpFB();
 	
 	HandleCudaError(cudaMalloc((void**)&_cudaF32Buffer, w*h * 4 * sizeof(float)));
 	HandleCudaError(cudaMemset(_cudaF32Buffer, 0, w*h * 4 * sizeof(float)));
@@ -293,6 +304,7 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 	desc.resType = cudaResourceTypeArray;
 	desc.res.array.array = ca;
 	HandleCudaError(cudaCreateSurfaceObject(&_cudaGLSurfaceObject, &desc));
+	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
@@ -469,7 +481,7 @@ void RenderGLCuda::doRender() {
 	// set the lerpC here because the Render call is incrementing the number of iterations.
 	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-
+//	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResX() << " " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
 	CCudaTimer TmrDenoise;
 	if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 	{
@@ -549,12 +561,14 @@ void RenderGLCuda::drawImage() {
 
 void RenderGLCuda::resize(uint32_t w, uint32_t h)
 {
+	//w = 8; h = 8;
 	glViewport(0, 0, w, h);
 	if ((_w == w) && (_h == h)) {
 		return;
 	}
 
 	initFB(w, h);
+	LOG_DEBUG << "Resized window to " << w << " x " << h;
 }
 
 void RenderGLCuda::cleanUpResources() {
@@ -563,28 +577,7 @@ void RenderGLCuda::cleanUpResources() {
 	glDeleteBuffers(1, &image_texcoords);
 	glDeleteBuffers(1, &image_elements);
 
-	glDeleteTextures(1, &_fbtex);
-	if (_cudaF32Buffer) {
-		HandleCudaError(cudaFree(_cudaF32Buffer));
-		_cudaF32Buffer = nullptr;
-	}
-	if (_cudaF32AccumBuffer) {
-		HandleCudaError(cudaFree(_cudaF32AccumBuffer));
-		_cudaF32AccumBuffer = nullptr;
-	}
-	if (_randomSeeds1) {
-		HandleCudaError(cudaFree(_randomSeeds1));
-		_randomSeeds1 = nullptr;
-	}
-	if (_randomSeeds2) {
-		HandleCudaError(cudaFree(_randomSeeds2));
-		_randomSeeds2 = nullptr;
-	}
-	if (_cudaTex) {
-		HandleCudaError(cudaDestroySurfaceObject(_cudaGLSurfaceObject));
-		HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
-		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
-	}
+	cleanUpFB();
 }
 
 RenderParams& RenderGLCuda::renderParams() {
