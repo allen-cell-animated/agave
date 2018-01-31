@@ -37,12 +37,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	m_DensityScaleSlider.setOrientation(Qt::Horizontal);
 	m_DensityScaleSlider.setRange(0.001, 100.0);
-	m_DensityScaleSlider.setValue(scene->m_DensityScale);
+	m_DensityScaleSlider.setValue(scene->m_RenderSettings.m_DensityScale);
 	m_MainLayout.addWidget(&m_DensityScaleSlider, 2, 1);
 
 	m_DensityScaleSpinner.setRange(0.001, 100.0);
 	m_DensityScaleSpinner.setDecimals(3);
-	m_DensityScaleSpinner.setValue(scene->m_DensityScale);
+	m_DensityScaleSpinner.setValue(scene->m_RenderSettings.m_DensityScale);
 	m_MainLayout.addWidget(&m_DensityScaleSpinner, 2, 2);
 
 	m_MainLayout.addWidget(new QLabel("Shading Type"), 3, 0);
@@ -56,13 +56,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(&m_GradientFactorLabel, 4, 0);
 	
 	m_GradientFactorSlider.setRange(0.001, 100.0);
-	m_GradientFactorSlider.setValue(scene->m_GradientFactor);
+	m_GradientFactorSlider.setValue(scene->m_RenderSettings.m_GradientFactor);
 
 	m_MainLayout.addWidget(&m_GradientFactorSlider, 4, 1);
 
 	m_GradientFactorSpinner.setRange(0.001, 100.0);
 	m_GradientFactorSpinner.setDecimals(3);
-	m_GradientFactorSpinner.setValue(scene->m_GradientFactor);
+	m_GradientFactorSpinner.setValue(scene->m_RenderSettings.m_GradientFactor);
 
 	m_MainLayout.addWidget(&m_GradientFactorSpinner, 4, 2);
 
@@ -117,12 +117,12 @@ void QAppearanceSettingsWidget::OnRenderBegin(void)
 {
 	m_DensityScaleSlider.setValue(_transferFunction->GetDensityScale());
 	m_ShadingType.setCurrentIndex(_transferFunction->GetShadingType());
-	m_GradientFactorSlider.setValue(_transferFunction->scene()->m_GradientFactor);
+	m_GradientFactorSlider.setValue(_transferFunction->scene()->m_RenderSettings.m_GradientFactor);
 
-	m_StepSizePrimaryRaySlider.setValue(_transferFunction->scene()->m_StepSizeFactor, true);
-	m_StepSizePrimaryRaySpinner.setValue(_transferFunction->scene()->m_StepSizeFactor, true);
-	m_StepSizeSecondaryRaySlider.setValue(_transferFunction->scene()->m_StepSizeFactorShadow, true);
-	m_StepSizeSecondaryRaySpinner.setValue(_transferFunction->scene()->m_StepSizeFactorShadow, true);
+	m_StepSizePrimaryRaySlider.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactor, true);
+	m_StepSizePrimaryRaySpinner.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactor, true);
+	m_StepSizeSecondaryRaySlider.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactorShadow, true);
+	m_StepSizeSecondaryRaySpinner.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactorShadow, true);
 }
 
 void QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
@@ -150,13 +150,13 @@ void QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)
 
 void QAppearanceSettingsWidget::OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay)
 {
-	_transferFunction->scene()->m_StepSizeFactor = (float)StepSizePrimaryRay;
+	_transferFunction->scene()->m_RenderSettings.m_StepSizeFactor = (float)StepSizePrimaryRay;
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay)
 {
-	_transferFunction->scene()->m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
+	_transferFunction->scene()->m_RenderSettings.m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 

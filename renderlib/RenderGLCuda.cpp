@@ -101,7 +101,7 @@ void rRGBToFloat3(CColorRgbHdr* src, float3* dest) {
 
 void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
 	cl.m_NoLights = pScene->_lighting.m_NoLights;
-	for (int i = 0; i < cl.m_NoLights; ++i) {
+	for (int i = 0; i < min(cl.m_NoLights, MAX_CUDA_LIGHTS); ++i) {
 		cl.m_Lights[i].m_Theta = pScene->_lighting.m_Lights[i].m_Theta;
 		cl.m_Lights[i].m_Phi = pScene->_lighting.m_Lights[i].m_Phi;
 		cl.m_Lights[i].m_Width = pScene->_lighting.m_Lights[i].m_Width;
@@ -384,21 +384,13 @@ void RenderGLCuda::doRender() {
 
 	_renderSettings->m_Camera.Update();
 
-	_renderSettings->m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
+	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
 
 	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
-	CRenderSettings rs;
-	rs.m_DensityScale = _renderSettings->m_DensityScale;
-	rs.m_GradientDelta = _renderSettings->m_GradientDelta;
-	rs.m_GradientFactor = _renderSettings->m_GradientFactor;
-	rs.m_ShadingType = _renderSettings->m_ShadingType;
-	rs.m_StepSizeFactor = _renderSettings->m_StepSizeFactor;
-	rs.m_StepSizeFactorShadow = _renderSettings->m_StepSizeFactorShadow;
-
 	CudaLighting cudalt;
 	FillCudaLighting(&_appScene, cudalt);
-	BindConstants(cudalt, _renderSettings->m_DenoiseParams, _renderSettings->m_Camera, _renderSettings->m_BoundingBox, rs, _renderSettings->GetNoIterations());
+	BindConstants(cudalt, _renderSettings->m_DenoiseParams, _renderSettings->m_Camera, _renderSettings->m_BoundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations());
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {

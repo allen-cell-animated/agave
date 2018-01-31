@@ -200,8 +200,8 @@ public:
 
 	void AddLight(const Light& Light)
 	{
-// 		if (m_NoLights >= MAX_NO_LIGHTS)
-// 			return;
+ 		if (m_NoLights >= MAX_NO_LIGHTS)
+ 			return;
 
 		m_Lights[m_NoLights] = Light;
 

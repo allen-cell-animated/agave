@@ -39,9 +39,9 @@ QTransferFunction& QTransferFunction::operator = (const QTransferFunction& Other
 void QTransferFunction::setScene(CScene& scene) { 
 	_Scene = &scene;
 
-	m_DensityScale = scene.m_DensityScale;
-	m_ShadingType = scene.m_ShadingType;
-	m_GradientFactor = scene.m_GradientFactor;
+	m_DensityScale = scene.m_RenderSettings.m_DensityScale;
+	m_ShadingType = scene.m_RenderSettings.m_ShadingType;
+	m_GradientFactor = scene.m_RenderSettings.m_GradientFactor;
 
 	emit Changed();
 }

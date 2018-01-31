@@ -37,9 +37,9 @@ struct CudaLight {
 	DEV float Pdf(const Vec3f& P, const Vec3f& Wi) const;
 	DEV CColorXyz Le(const Vec2f& UV) const;
 };
-#define MAX_NO_LIGHTS 4
+#define MAX_CUDA_LIGHTS 4
 struct CudaLighting {
 	int m_NoLights;
-	CudaLight m_Lights[MAX_NO_LIGHTS];
+	CudaLight m_Lights[MAX_CUDA_LIGHTS];
 };
 

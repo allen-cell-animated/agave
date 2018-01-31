@@ -28,14 +28,15 @@ public:
 	//CTransferFunctions	m_TransferFunctions;
 	//CRange				m_IntensityRange;
 	//CRange				m_GradientMagnitudeRange;
-	float				m_DensityScale;
+	CRenderSettings m_RenderSettings;
+	//float				m_DensityScale;
 	CDenoiseParams		m_DenoiseParams;
-	float				m_Variance;
-	int					m_ShadingType;
-	float				m_StepSizeFactor;
-	float				m_StepSizeFactorShadow;
-	float				m_GradientDelta;
-	float				m_GradientFactor;
+	//float				m_Variance;
+	//int					m_ShadingType;
+	//float				m_StepSizeFactor;
+	//float				m_StepSizeFactorShadow;
+	//float				m_GradientDelta;
+	//float				m_GradientFactor;
 	//float				m_GradMagMean;
 
 	HO int GetNoIterations(void) const					{ return m_NoIterations;			}

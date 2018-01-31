@@ -124,7 +124,7 @@ void SetResolutionCommand::execute(ExecutionContext* c) {
 }
 void SetDensityCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetDensity";
-	c->_scene->m_DensityScale = _data._x;
+	c->_scene->m_RenderSettings.m_DensityScale = _data._x;
 	c->_scene->SetNoIterations(0);
 }
 

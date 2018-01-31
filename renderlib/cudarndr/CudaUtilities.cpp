@@ -90,6 +90,10 @@ void HandleCudaKernelError(const cudaError_t CudaError, const char* pName /*= ""
 	if (CudaError == cudaSuccess)
 		return;
 
+	// try to recover as best we can to minimize chance of catastrophe
+	if (CudaError == cudaErrorLaunchFailure) {
+		cudaDeviceReset();
+	}
 	LOG_ERROR << "The '" << std::string(pName) << "' kernel caused the following CUDA runtime error: " << std::string(cudaGetErrorString(CudaError));
 
 	throw std::string("The '") + std::string(pName) + "' kernel caused the following CUDA runtime error: " + std::string(cudaGetErrorString(CudaError));

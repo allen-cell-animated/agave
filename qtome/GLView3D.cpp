@@ -385,9 +385,9 @@ void GLView3D::OnUpdateTransferFunction(void)
 	//QMutexLocker Locker(&gSceneMutex);
 	CScene& scene = *_scene;
 
-	scene.m_DensityScale = _transferFunction->GetDensityScale();
-	scene.m_ShadingType = _transferFunction->GetShadingType();
-	scene.m_GradientFactor = _transferFunction->GetGradientFactor();
+	scene.m_RenderSettings.m_DensityScale = _transferFunction->GetDensityScale();
+	scene.m_RenderSettings.m_ShadingType = _transferFunction->GetShadingType();
+	scene.m_RenderSettings.m_GradientFactor = _transferFunction->GetGradientFactor();
 
 	// update window/levels / transfer function here!!!!
 

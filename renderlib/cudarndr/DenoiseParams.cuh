@@ -67,4 +67,14 @@ struct CRenderSettings {
 	float				m_StepSizeFactorShadow;
 	float				m_GradientDelta;
 	float				m_GradientFactor;
+
+	CRenderSettings() :
+		m_DensityScale(50.0f),
+		m_ShadingType(2),
+		m_StepSizeFactor(3.0f),
+		m_StepSizeFactorShadow(3.0f),
+		m_GradientDelta(4.0f),
+		m_GradientFactor(50.0f)
+	{
+	}
 };
