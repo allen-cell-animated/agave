@@ -1,5 +1,6 @@
 #include "AppScene.h"
 
+#include "ImageXYZC.h"
 #include "Geometry.h"
 
 void Light::Update(const CBoundingBox& BoundingBox)
@@ -41,23 +42,56 @@ void Light::Update(const CBoundingBox& BoundingBox)
 	m_V = glm::normalize(glm::cross(m_N, m_U));
 }
 
-void Scene::initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz)
+// set up a couple of lights relative to the img's bounding box
+void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 {
-	//Log("Spacing: " + FormatSize(gScene.m_Spacing, 2), "grid");
+	Light BackgroundLight;
+
+	BackgroundLight.m_T = 1;
+	float inten = 1.0f;
+
+	float topr = 1.0f;
+	float topg = 0.0f;
+	float topb = 0.0f;
+	float midr = 1.0f;
+	float midg = 1.0f;
+	float midb = 1.0f;
+	float botr = 0.0f;
+	float botg = 0.0f;
+	float botb = 1.0f;
+
+	BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
+	BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
+	BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
+
+	_lighting.AddLight(BackgroundLight);
+
+	Light AreaLight;
+
+	AreaLight.m_T = 0;
+	AreaLight.m_Theta = 0.0f / RAD_F;  // numerator is degrees
+	AreaLight.m_Phi = 0.0f / RAD_F;
+	AreaLight.m_Width = 1.0f;
+	AreaLight.m_Height = 1.0f;
+	AreaLight.m_Distance = 10.0f;
+	AreaLight.m_Color = 100.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+
+	_lighting.AddLight(AreaLight);
+
+
+	// point lights toward scene's bounding box
 
 	// Compute physical size
 	const Vec3f PhysicalSize(Vec3f(
-		sx * (float)vx,
-		sy * (float)vy,
-		sz * (float)vz
+		img->physicalSizeX() * (float)img->sizeX(),
+		img->physicalSizeY() * (float)img->sizeX(),
+		img->physicalSizeZ() * (float)img->sizeX()
 	));
 
 	// Compute the volume's bounding box
 	CBoundingBox bb;
 	bb.m_MinP = Vec3f(0.0f);
 	bb.m_MaxP = PhysicalSize / PhysicalSize.Max();
-
-//	m_Camera.m_SceneBoundingBox = m_BoundingBox;
 
 	for (int i = 0; i < _lighting.m_NoLights; ++i) {
 		_lighting.m_Lights[i].Update(bb);

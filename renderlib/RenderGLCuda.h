@@ -49,8 +49,6 @@ private:
 	RenderParams _renderParams;
 	Scene _appScene;
 
-	void initSceneLighting();
-
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();

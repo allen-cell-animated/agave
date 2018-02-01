@@ -227,5 +227,6 @@ public:
 
     Lighting _lighting;
 
-	void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
+
+	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
 };

@@ -303,8 +303,7 @@ void qtome::open(const QString& file)
 		Vec3f BoundingBoxMinP = Vec3f(0.0f);
 		Vec3f BoundingBoxMaxP = PhysicalSize / PhysicalSize.Max();
 
-		sc->initSceneFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
-			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
+		sc->initSceneFromImg(image);
 		_renderSettings.initSceneFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
 			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
 		_renderSettings.m_Camera.SetViewMode(ViewModeFront);

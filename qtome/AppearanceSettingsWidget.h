@@ -41,6 +41,12 @@ public:
 	void OnRoughnessChanged(int i, double roughness);
 	void OnChannelChecked(int i, bool is_checked);
 
+	void OnSetAreaLightTheta(double value);
+	void OnSetAreaLightPhi(double value);
+	void OnSetAreaLightSize(double value);
+	void OnSetAreaLightDistance(double value);
+	void OnSetAreaLightColor(double intensity, const QColor& color);
+
 private:
 	QGridLayout		m_MainLayout;
 	QDoubleSlider	m_DensityScaleSlider;

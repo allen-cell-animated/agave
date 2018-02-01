@@ -11,10 +11,7 @@
 #include "Logging.h"
 #include "cudarndr/RenderThread.h"
 
-#include <cuda_runtime.h>
-
 #include "Core.cuh"
-//#include "Lighting.cuh"
 #include "Lighting2.cuh"
 #include "Camera2.cuh"
 
@@ -36,7 +33,6 @@ RenderGLCuda::RenderGLCuda(CScene* scene)
 	_w(0),
 	_h(0)
 {
-	initSceneLighting();
 	_renderSettings->m_Camera.SetViewMode(ViewModeFront);
 }
 
@@ -46,59 +42,10 @@ RenderGLCuda::~RenderGLCuda()
 	//cleanUpResources();
 }
 
-void RenderGLCuda::initSceneLighting() {
-	Light BackgroundLight;
-
-	BackgroundLight.m_T = 1;
-	float inten = 1.0f;
-
-	float topr = 1.0f;
-	float topg = 0.0f;
-	float topb = 0.0f;
-	float midr = 1.0f;
-	float midg = 1.0f;
-	float midb = 1.0f;
-	float botr = 0.0f;
-	float botg = 0.0f;
-	float botb = 1.0f;
-
-	BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
-	BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
-	BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
-
-	BackgroundLight.Update(_renderSettings->m_BoundingBox);
-
-	_appScene._lighting.AddLight(BackgroundLight);
-
-	Light AreaLight;
-
-	AreaLight.m_T = 0;
-	AreaLight.m_Theta = 0.0f / RAD_F;  // numerator is degrees
-	AreaLight.m_Phi = 0.0f / RAD_F;
-	AreaLight.m_Width = 1.0f;
-	AreaLight.m_Height = 1.0f;
-	AreaLight.m_Distance = 10.0f;
-	AreaLight.m_Color = 100.0f * glm::vec3(1.0f, 1.0f, 1.0f);
-
-	AreaLight.Update(_renderSettings->m_BoundingBox);
-
-	_appScene._lighting.AddLight(AreaLight);
-}
-
 void gVec3ToFloat3(glm::vec3* src, float3* dest) {
 	dest->x = src->x;
 	dest->y = src->y;
 	dest->z = src->z;
-}
-void rVec3ToFloat3(Vec3f* src, float3* dest) {
-	dest->x = src->x;
-	dest->y = src->y;
-	dest->z = src->z;
-}
-void rRGBToFloat3(CColorRgbHdr* src, float3* dest) {
-	dest->x = src->r;
-	dest->y = src->g;
-	dest->z = src->b;
 }
 void Vec3ToFloat3(const Vec3f* src, float3* dest) {
     dest->x = src->x;
@@ -390,6 +337,14 @@ void RenderGLCuda::doRender() {
 		}
 
 		//		ResetRenderCanvasView();
+
+		// Reset no. iterations
+		_renderSettings->SetNoIterations(0);
+	}
+	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
+		for (int i = 0; i < _appScene._lighting.m_NoLights; ++i) {
+			_appScene._lighting.m_Lights[i].Update(_renderSettings->m_BoundingBox);
+		}
 
 		// Reset no. iterations
 		_renderSettings->SetNoIterations(0);

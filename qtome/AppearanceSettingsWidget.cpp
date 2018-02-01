@@ -105,12 +105,99 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
 
+
+	Section* section = new Section("Lighting", 0);
+	auto* sectionLayout = new QGridLayout();
+
+	int row = 0;
+	sectionLayout->addWidget(new QLabel("AreaLight Theta"), row, 0);
+	QDoubleSlider* thetaSlider = new QDoubleSlider();
+	thetaSlider->setRange(0.0, 3.14159265*2.0);
+	thetaSlider->setValue(0.0);
+	sectionLayout->addWidget(thetaSlider, row, 1);
+	QObject::connect(thetaSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Phi"), row, 0);
+	QDoubleSlider* phiSlider = new QDoubleSlider();
+	phiSlider->setRange(0.0, 3.14159265);
+	phiSlider->setValue(0.0);
+	sectionLayout->addWidget(phiSlider, row, 1);
+	QObject::connect(phiSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Size"), row, 0);
+	QDoubleSlider* sizeSlider = new QDoubleSlider();
+	sizeSlider->setRange(0.1, 5.0);
+	sizeSlider->setValue(1.0);
+	sectionLayout->addWidget(sizeSlider, row, 1);
+	QObject::connect(sizeSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Distance"), row, 0);
+	QDoubleSlider* distSlider = new QDoubleSlider();
+	distSlider->setRange(0.1, 100.0);
+	distSlider->setValue(10.0);
+	sectionLayout->addWidget(distSlider, row, 1);
+	QObject::connect(distSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Intensity"), row, 0);
+	QDoubleSlider* intensitySlider = new QDoubleSlider();
+	intensitySlider->setRange(0.1, 1000.0);
+	intensitySlider->setValue(100.0);
+	sectionLayout->addWidget(intensitySlider, row, 1);
+	QColorSelector* areaLightColorButton = new QColorSelector();
+	sectionLayout->addWidget(areaLightColorButton, row, 2);
+	QObject::connect(areaLightColorButton, &QColorSelector::currentColorChanged, 
+		[this, intensitySlider](const QColor& c) { this->OnSetAreaLightColor(intensitySlider->value(), c); });
+	QObject::connect(intensitySlider, &QDoubleSlider::valueChanged, 
+		[this, areaLightColorButton](double v) { this->OnSetAreaLightColor(v, areaLightColorButton->GetColor()); });
+
+
+
+	section->setContentLayout(*sectionLayout);
+	m_MainLayout.addWidget(section, 12, 0, 1, -1);
+
+
+
+
 	QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
 	QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
 	//QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
 	
 	QObject::connect(_transferFunction, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 
+}
+
+void QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
+{
+	_scene->_lighting.m_Lights[1].m_Theta = value;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
+{
+	_scene->_lighting.m_Lights[1].m_Phi = value;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
+{
+	_scene->_lighting.m_Lights[1].m_Width = value;
+	_scene->_lighting.m_Lights[1].m_Height = value;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
+{
+	_scene->_lighting.m_Lights[1].m_Distance = value;
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+
+	_scene->_lighting.m_Lights[1].m_Color = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
 void QAppearanceSettingsWidget::OnRenderBegin(void)
@@ -321,7 +408,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		this->OnChannelChecked(i, channelenabled);
 
 		section->setContentLayout(*sectionLayout);
-		m_MainLayout.addWidget(section, 12+i, 0, 1, -1);
+		m_MainLayout.addWidget(section, 13+i, 0, 1, -1);
 		_channelSections.push_back(section);
 	}
 }
