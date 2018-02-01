@@ -19,6 +19,6 @@ For linux:
 source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var
 mkdir build
 cd build
-BOOST_ROOT=/path/to/boost_1_65_1_build/boost ~/cmake-3.9.6-Linux-x86_64/bin/cmake -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-9.1 -DCMAKE_BUILD_TYPE=Debug ..
+BOOST_ROOT=/path/to/boost_1_65_1_build/boost ~/cmake-3.10.2-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=Debug ..
 make
 ```
