@@ -16,6 +16,7 @@
 #include "Core.cuh"
 //#include "Lighting.cuh"
 #include "Lighting2.cuh"
+#include "Camera2.cuh"
 
 #include <array>
 
@@ -97,6 +98,26 @@ void rRGBToFloat3(CColorRgbHdr* src, float3* dest) {
 	dest->x = src->r;
 	dest->y = src->g;
 	dest->z = src->b;
+}
+void Vec3ToFloat3(const Vec3f* src, float3* dest) {
+    dest->x = src->x;
+    dest->y = src->y;
+    dest->z = src->z;
+}
+
+void RenderGLCuda::FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
+    Vec3ToFloat3(&pCamera->m_From, &c.m_From);
+    Vec3ToFloat3(&pCamera->m_N, &c.m_N);
+    Vec3ToFloat3(&pCamera->m_U, &c.m_U);
+    Vec3ToFloat3(&pCamera->m_V, &c.m_V);
+    c.m_ApertureSize = pCamera->m_Aperture.m_Size;
+    c.m_FocalDistance = pCamera->m_Focus.m_FocalDistance;
+    c.m_InvScreen[0] = pCamera->m_Film.m_InvScreen.x;
+    c.m_InvScreen[1] = pCamera->m_Film.m_InvScreen.y;
+    c.m_Screen[0][0] = pCamera->m_Film.m_Screen[0][0];
+    c.m_Screen[1][0] = pCamera->m_Film.m_Screen[1][0];
+    c.m_Screen[0][1] = pCamera->m_Film.m_Screen[0][1];
+    c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
 }
 
 void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
@@ -390,7 +411,11 @@ void RenderGLCuda::doRender() {
 
 	CudaLighting cudalt;
 	FillCudaLighting(&_appScene, cudalt);
-	BindConstants(cudalt, _renderSettings->m_DenoiseParams, _renderSettings->m_Camera, _renderSettings->m_BoundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations());
+    CudaCamera cudacam;
+    FillCudaCamera(&(_renderSettings->m_Camera), cudacam);
+	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam, 
+        _renderSettings->m_BoundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
+        _w, _h, _renderSettings->m_Camera.m_Film.m_Gamma, _renderSettings->m_Camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
@@ -428,7 +453,9 @@ void RenderGLCuda::doRender() {
 	}
 
 	int numIterations = _renderSettings->GetNoIterations();
-	Render(0, _renderSettings->m_Camera,
+	Render(0, _renderSettings->m_Camera.m_Film.m_ExposureIterations, 
+        _renderSettings->m_Camera.m_Film.m_Resolution.GetResX(), 
+        _renderSettings->m_Camera.m_Film.m_Resolution.GetResY(),
 		theCudaFB,
 		theCudaVolume,
 		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise, numIterations);

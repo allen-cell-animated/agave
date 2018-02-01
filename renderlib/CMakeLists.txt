@@ -18,6 +18,7 @@ target_compile_definitions(renderlib PUBLIC
 target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
