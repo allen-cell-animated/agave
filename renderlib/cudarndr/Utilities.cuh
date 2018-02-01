@@ -40,7 +40,7 @@ DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData
 }
 
 
-DEV float GetOpacity(const float& NormalizedIntensity, cudaTextureObject_t texLut)
+DEV float GetOpacity(const float& NormalizedIntensity)
 {
 	// apply lut
 	float Intensity = NormalizedIntensity;

@@ -63,12 +63,6 @@ CD CudaCamera gCamera;
 //#include "SpecularBloom.cuh"
 #include "ToneMap.cuh"
 
-void RGBToFloat3(const CColorRgbHdr* src, float3* dest) {
-	dest->x = src->r;
-	dest->y = src->g;
-	dest->z = src->b;
-}
-
 
 void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
 	const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations,
