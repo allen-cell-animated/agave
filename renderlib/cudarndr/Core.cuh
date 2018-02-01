@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Geometry.h"
-#include "Timing.h"
-
-//class CBoundingBox;
+class CBoundingBox;
 class CCamera;
 class CDenoiseParams;
+class CTiming;
 class CVariance;
 struct CudaCamera;
 struct CudaLighting;

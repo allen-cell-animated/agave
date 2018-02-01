@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Defines.h"
+
 #define MAX_NO_DURATIONS 30
 
 class CTiming

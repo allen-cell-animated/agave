@@ -1,8 +1,6 @@
-#include "Logging.h"
-
 #include "Core.cuh"
-//#include "Scene.h"
-//#include "helper_math.cuh"
+
+#include "Timing.h"
 #include "Camera2.cuh"
 #include "Camera2Impl.cuh"
 #include "Lighting2.cuh"

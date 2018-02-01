@@ -45,6 +45,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"	
 )
 add_subdirectory(gl)
 add_subdirectory(gl/v33)

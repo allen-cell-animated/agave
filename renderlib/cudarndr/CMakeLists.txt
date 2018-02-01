@@ -4,8 +4,6 @@ target_include_directories(renderlib PUBLIC
 )
 find_package(CUDA)
 add_library(renderlib_cuda STATIC
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Blur.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera2.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera2Impl.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/BasicVolumeRender.cu"
@@ -19,46 +17,31 @@ add_library(renderlib_cuda STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/Denoise.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/DenoiseParams.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Estimate.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting2Impl.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/helper_math.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Model.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/MonteCarlo.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/MultipleScattering.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/NearestIntersection.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RayMarching.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RNG.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Sample.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Shader.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SingleScattering.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/SpecularBloom.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ToneMap.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Transport.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Utilities.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Variance.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/View.cuh"
-#	"${CMAKE_CURRENT_SOURCE_DIR}/Woodcock.cuh"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CudaUtilities.h"
 )
-#set_target_properties(renderlib_cuda PROPERTIES 
-#	CUDA_SEPARABLE_COMPILATION ON
-#	CUDA_RESOLVE_DEVICE_SYMBOLS ON
-#)
 target_include_directories(renderlib_cuda PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	# needs to be able to depend on Scene.h from renderlib
-	"${CMAKE_CURRENT_SOURCE_DIR}/.."
+	"${CMAKE_CURRENT_SOURCE_DIR}/.."  # a couple dependencies on utility classes down in renderlib
 	${Boost_INCLUDE_DIRS}
 	${GLAD_DIR}
 	${CUDA_TOOLKIT_INCLUDE}
 	${CUDA_INCLUDE_DIRS}
 )
 
-target_link_libraries(renderlib_cuda 
-	${CUDA_LIBRARIES}
-)
 target_compile_definitions(renderlib_cuda PUBLIC
 	-DBOOST_ALL_DYN_LINK
 )
