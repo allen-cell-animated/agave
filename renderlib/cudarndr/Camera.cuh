@@ -2,8 +2,8 @@
 
 #include "Geometry.h"
 
-#include "MonteCarlo.cuh"
-#include "RNG.cuh"
+//#include "MonteCarlo.cuh"
+//#include "RNG.cuh"
 
 #define DEF_FOCUS_TYPE					CenterScreen
 #define DEF_FOCUS_SENSOR_POS_CANVAS		Vec2f(0.0f)
@@ -390,26 +390,6 @@ public:
 		}
 
 		Update();
-	}
-
-	HO void GenerateRay(const Vec2f& Pixel, const Vec2f& ApertureRnd, Vec3f& RayO, Vec3f& RayD)
-	{
-		Vec2f ScreenPoint;
-
-		ScreenPoint.x = m_Film.m_Screen[0][0] + (m_Film.m_InvScreen.x * Pixel.x);
-		ScreenPoint.y = m_Film.m_Screen[1][0] + (m_Film.m_InvScreen.y * Pixel.y);
-
-		RayO	= m_From;
-		RayD	= Normalize(m_N + (-ScreenPoint.x * m_U) + (-ScreenPoint.y * m_V));
-
-		if (m_Aperture.m_Size != 0.0f)
-		{
-			Vec2f LensUV = m_Aperture.m_Size * ConcentricSampleDisk(ApertureRnd);
-
-			Vec3f LI = m_U * LensUV.x + m_V * LensUV.y;
-			RayO += LI;
-			RayD = Normalize((RayD * m_Focus.m_FocalDistance) - LI);
-		}
 	}
 };
 

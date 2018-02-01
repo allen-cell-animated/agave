@@ -13,7 +13,7 @@ public:
 	CScene(const CScene& Other);
 	CScene& operator = (const CScene& Other);
 
-	HO void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
+	void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
 
 	// which channel to display.  this is "scene" display info and not "renderer settings"
 	//int _channel;
@@ -39,8 +39,8 @@ public:
 	//float				m_GradientFactor;
 	//float				m_GradMagMean;
 
-	HO int GetNoIterations(void) const					{ return m_NoIterations;			}
-	HO void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}
+	int GetNoIterations(void) const					{ return m_NoIterations;			}
+	void SetNoIterations(const int& NoIterations)	{ m_NoIterations = NoIterations;	}
 
 private:
 	int					m_NoIterations;
