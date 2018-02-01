@@ -4,6 +4,7 @@
 //#include "Scene.h"
 //#include "helper_math.cuh"
 #include "Camera2.cuh"
+#include "Camera2Impl.cuh"
 #include "Lighting2.cuh"
 #include "Lighting2Impl.cuh"
 #include "DenoiseParams.cuh"
@@ -50,7 +51,7 @@ CD CudaCamera gCamera;
 #define TF_NO_SAMPLES		128
 #define INV_TF_NO_SAMPLES	1.0f / (float)TF_NO_SAMPLES
 
-#include "Camera.cuh"
+//#include "Camera.cuh"
 //#include "Model.cuh"
 //#include "View.cuh"
 //#include "Blur.cuh"
@@ -62,33 +63,16 @@ CD CudaCamera gCamera;
 //#include "SpecularBloom.cuh"
 #include "ToneMap.cuh"
 
-void Vec3ToFloat3(const Vec3f* src, float3* dest) {
-	dest->x = src->x;
-	dest->y = src->y;
-	dest->z = src->z;
-}
 void RGBToFloat3(const CColorRgbHdr* src, float3* dest) {
 	dest->x = src->r;
 	dest->y = src->g;
 	dest->z = src->b;
 }
 
-void FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
-	Vec3ToFloat3(&pCamera->m_From, &c.m_From);
-	Vec3ToFloat3(&pCamera->m_N, &c.m_N);
-	Vec3ToFloat3(&pCamera->m_U, &c.m_U);
-	Vec3ToFloat3(&pCamera->m_V, &c.m_V);
-	c.m_ApertureSize = pCamera->m_Aperture.m_Size;
-	c.m_FocalDistance = pCamera->m_Focus.m_FocalDistance;
-	c.m_InvScreen[0] = pCamera->m_Film.m_InvScreen.x;
-	c.m_InvScreen[1] = pCamera->m_Film.m_InvScreen.y;
-	c.m_Screen[0][0] = pCamera->m_Film.m_Screen[0][0];
-	c.m_Screen[1][0] = pCamera->m_Film.m_Screen[1][0];
-	c.m_Screen[0][1] = pCamera->m_Film.m_Screen[0][1];
-	c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
-}
 
-void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations)
+void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
+	const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations,
+	int w, int h, float gamma, float exposure)
 {
 	const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
 	const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
@@ -127,13 +111,13 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	HandleCudaError(cudaMemcpyToSymbol(gGradientDeltaY, &GradientDeltaY, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gGradientDeltaZ, &GradientDeltaZ, sizeof(float3)));
 	
-	const int FilmWidth		= camera.m_Film.GetWidth();
-	const int Filmheight	= camera.m_Film.GetHeight();
-	const int FilmNoPixels	= camera.m_Film.m_Resolution.GetNoElements();
+	const int FilmWidth		= w;
+	const int Filmheight	= h;
+	//const int FilmNoPixels	= camera.m_Film.m_Resolution.GetNoElements();
 
 	HandleCudaError(cudaMemcpyToSymbol(gFilmWidth, &FilmWidth, sizeof(int)));
 	HandleCudaError(cudaMemcpyToSymbol(gFilmHeight, &Filmheight, sizeof(int)));
-	HandleCudaError(cudaMemcpyToSymbol(gFilmNoPixels, &FilmNoPixels, sizeof(int)));
+	//HandleCudaError(cudaMemcpyToSymbol(gFilmNoPixels, &FilmNoPixels, sizeof(int)));
 
 	const int FilterWidth = 1;
 
@@ -143,9 +127,9 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 
 	HandleCudaError(cudaMemcpyToSymbol(gFilterWeights, FilterWeights, 10 * sizeof(float)));
 
-	const float Gamma		= camera.m_Film.m_Gamma;
+	const float Gamma		= gamma;
 	const float InvGamma	= 1.0f / Gamma;
-	const float Exposure	= camera.m_Film.m_Exposure;
+	const float Exposure	= exposure;
 	const float InvExposure	= 1.0f / Exposure;
 
 	HandleCudaError(cudaMemcpyToSymbol(gExposure, &Exposure, sizeof(float)));
@@ -168,15 +152,13 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
 
-	CudaCamera c;
-	FillCudaCamera(&camera, c);
-	HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
+	HandleCudaError(cudaMemcpyToSymbol(gCamera, &cudacam, sizeof(CudaCamera)));
 
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
 
 // BindConstants must be called first to initialize vars used by kernels
-void Render(const int& Type, CCamera& camera,
+void Render(const int& Type, int numExposures, int w, int h,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage,
@@ -184,22 +166,23 @@ void Render(const int& Type, CCamera& camera,
 {
 	// find nearest intersection to set camera focal distance automatically.
 	// then re-upload that data.
-	if (camera.m_Focus.m_Type == 0) {
-		camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
+	//if (camera.m_Focus.m_Type == 0) {
+		float fd = NearestIntersection(volumedata);
+		//camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
 		// send m_FocalDistance back to gpu.
-		CudaCamera c;
-		FillCudaCamera(&camera, c);
-		HandleCudaError(cudaMemcpyToSymbol(gCamera, &c, sizeof(CudaCamera)));
-	}
+		//CudaCamera c;
+		//FillCudaCamera(&camera, c);
+		HandleCudaError(cudaMemcpyToSymbol(gCamera, &fd, sizeof(float)));
+	//}
 
-	for (int i = 0; i < camera.m_Film.m_ExposureIterations; ++i) {
+	for (int i = 0; i < numExposures; ++i) {
 		CCudaTimer TmrRender;
 
 		switch (Type)
 		{
 		case 0:
 		{
-			SingleScattering(camera.m_Film.m_Resolution.GetResX(), camera.m_Film.m_Resolution.GetResY(),
+			SingleScattering(w, h,
 				volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
 			break;
 		}
@@ -214,7 +197,7 @@ void Render(const int& Type, CCamera& camera,
 
 		// estimate just adds to accumulation buffer.
 		CCudaTimer TmrPostProcess;
-		Estimate(camera.m_Film.m_Resolution.GetResX(), camera.m_Film.m_Resolution.GetResY(), 
+		Estimate(w, h, 
 			framebuffers.fb, framebuffers.fbaccum);
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 

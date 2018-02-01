@@ -2,9 +2,12 @@
 
 #include "Geometry.h"
 #include "Flags.h"
-#include "Camera.cuh"
+#include "CCamera.h"
 #include "DenoiseParams.cuh"
-#include "Lighting.cuh"
+//#include "Lighting.cuh"
+class CLighting
+{
+};
 
 class CScene
 {

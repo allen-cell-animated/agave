@@ -7,6 +7,7 @@
 class CCamera;
 class CDenoiseParams;
 class CVariance;
+struct CudaCamera;
 struct CudaLighting;
 struct CRenderSettings;
 
@@ -45,10 +46,12 @@ struct cudaVolume {
 	}
 };
 
-void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CCamera& camera, const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations);
+void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
+	const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations,
+	int w, int h, float gamma, float exposure);
 
 // scene needs to be mutable to get nearest intersection for focusdist.
-void Render(const int& Type, CCamera& camera,
+void Render(const int& Type, int numExposures, int w, int h,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage, int& numIterations);

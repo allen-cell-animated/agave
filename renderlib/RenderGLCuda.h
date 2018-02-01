@@ -16,6 +16,7 @@ class GLImageShader2DnoLut;
 class ImageXYZC;
 class Image3Dv33;
 struct CudaLighting;
+struct CudaCamera;
 
 class RenderGLCuda :
 	public IRenderWindow
@@ -95,6 +96,7 @@ private:
 	CStatus _status;
 
 	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
+    void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
 
 };
 
