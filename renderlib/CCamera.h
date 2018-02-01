@@ -113,7 +113,7 @@ public:
 
 			Ns = (Ns + 2) * 2;
 
-			for (int i = 0; i < Ns; i += 2)
+			for (int i = 0; i < Ns && i < MAX_BOKEH_DATA; i += 2)
 			{
 				m_Data[i]		= cos(w);
 				m_Data[i + 1]	= sin(w);
