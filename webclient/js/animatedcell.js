@@ -14,14 +14,6 @@
   var img_width = 0;
   var img_height = 0;
 
-  //vec3
-  var rotationFrom;
-  var rotationTo;
-  var rotationAxis;
-  var panVec;
-
-  var modelView;
-
   //quaternions
   var rotation;
   var oldRotation;
@@ -196,26 +188,12 @@ function setupGui() {
       //setup tooltips
     //readTextFile("data/tooltip.csv");
 
-    rotationTo = new THREE.Vector3();
-    rotationFrom = new THREE.Vector3();
-    rotationAxis = new THREE.Vector3();
-    panVec = new THREE.Vector3(0,0,-5);
-
-    rotation = new THREE.Quaternion();
-    oldRotation = new THREE.Quaternion();
-    rotationDelta = new THREE.Quaternion();
-    tempold = new THREE.Quaternion();
-
-    modelView = new THREE.Matrix4();
-    modelView.setPosition(panVec);
-
     var streamedImg = document.getElementsByClassName("streamed_img");
 
     // camera manipulations
     for(var i=0; i<streamedImg.length; i++)
     {
-        streamedImg[i].addEventListener("DOMMouseScroll", MouseWheelHandler, false);
-        streamedImg[i].addEventListener("mousewheel", MouseWheelHandler, false);
+        streamedImg[i].addEventListener("wheel", MouseWheelHandler, false);
         streamedImg[i].addEventListener("mousedown", MouseDownHandler, false);
         streamedImg[i].addEventListener('ondragstart', DragStartHandler, false);
     }

@@ -541,7 +541,9 @@ var AICStrackballControls = function ( object, domElement ) {
 
     }
 
+    
     _this.dispatchEvent( startEvent );
+    _this.update();
     _this.dispatchEvent( endEvent );
 
   }
