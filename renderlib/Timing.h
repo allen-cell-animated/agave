@@ -2,6 +2,8 @@
 
 #include "Defines.h"
 
+#include <algorithm>
+
 #define MAX_NO_DURATIONS 30
 
 class CTiming
@@ -64,7 +66,7 @@ public:
 		
 		m_FilteredDuration = SumDuration / (float)m_NoDurations;
 		
-		m_NoDurations = min(MAX_NO_DURATIONS, m_NoDurations + 1);
+		m_NoDurations = std::min<int>(MAX_NO_DURATIONS, m_NoDurations + 1);
 	}
 
 	char		m_Name[MAX_CHAR_SIZE];

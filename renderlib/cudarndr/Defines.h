@@ -47,10 +47,3 @@
 #define	MAX_BOKEH_DATA										12
 #define MB													powf(1024.0f, 2.0f)
 
-#define PRINT_CUDA_ERROR(call) {                                    \
-	cudaError err = call;                                                    \
-	if( cudaSuccess != err) {                                                \
-	Log("Cuda error in file '%s' in line %i : %s.\n",        \
-	__FILE__, __LINE__, cudaGetErrorString( err) );              \
-	exit(EXIT_FAILURE);                                                  \
-	} }
