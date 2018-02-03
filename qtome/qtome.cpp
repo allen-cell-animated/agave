@@ -89,39 +89,6 @@ void qtome::createActions()
 	viewResetAction->setIcon(reset_icon);
 	viewResetAction->setEnabled(false);
 	connect(viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
-
-	viewZoomAction = new QAction(tr("&Zoom"), this);
-	viewZoomAction->setCheckable(true);
-	viewZoomAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
-	viewZoomAction->setStatusTip(tr("Zoom the current view"));
-	QIcon zoom_icon(QString((iconpath / "actions/ome-zoom2d.svg").string().c_str()));
-	viewZoomAction->setIcon(zoom_icon);
-	viewZoomAction->setEnabled(false);
-	connect(viewZoomAction, SIGNAL(triggered()), this, SLOT(view_zoom()));
-
-	viewPanAction = new QAction(tr("&Pan"), this);
-	viewPanAction->setCheckable(true);
-	viewPanAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_P));
-	viewPanAction->setStatusTip(tr("Pan the current view"));
-	QIcon pan_icon(QString((iconpath / "actions/ome-pan2d.svg").string().c_str()));
-	viewPanAction->setIcon(pan_icon);
-	viewPanAction->setEnabled(false);
-	connect(viewPanAction, SIGNAL(triggered()), this, SLOT(view_pan()));
-
-	viewRotateAction = new QAction(tr("Rota&te"), this);
-	viewRotateAction->setCheckable(true);
-	viewRotateAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_T));
-	viewRotateAction->setStatusTip(tr("Rotate the current view"));
-	QIcon rotate_icon(QString((iconpath / "actions/ome-rotate2d.svg").string().c_str()));
-	viewRotateAction->setIcon(rotate_icon);
-	viewRotateAction->setEnabled(false);
-	connect(viewRotateAction, SIGNAL(triggered()), this, SLOT(view_rotate()));
-
-	viewActionGroup = new QActionGroup(this);
-	viewActionGroup->addAction(viewZoomAction);
-	viewActionGroup->addAction(viewPanAction);
-	viewActionGroup->addAction(viewRotateAction);
-	viewRotateAction->setChecked(true);
 }
 
 void qtome::createMenus()
@@ -144,9 +111,6 @@ void qtome::createMenus()
 	viewMenu = menuBar()->addMenu(tr("&View"));
 	viewMenu->addAction(viewResetAction);
 	fileMenu->addSeparator();
-	viewMenu->addAction(viewZoomAction);
-	viewMenu->addAction(viewPanAction);
-	viewMenu->addAction(viewRotateAction);
 }
 
 void qtome::createToolbars()
@@ -154,9 +118,6 @@ void qtome::createToolbars()
 	Cam2DTools = new QToolBar("2D Camera", this);
 	addToolBar(Qt::TopToolBarArea, Cam2DTools);
 	Cam2DTools->addAction(viewResetAction);
-	Cam2DTools->addAction(viewZoomAction);
-	Cam2DTools->addAction(viewPanAction);
-	Cam2DTools->addAction(viewRotateAction);
 
 	viewMenu->addSeparator();
 	viewMenu->addAction(Cam2DTools->toggleViewAction());
@@ -333,9 +294,6 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 	//disconnect(navigationUpdate);
 
 	viewResetAction->setEnabled(false);
-	viewZoomAction->setEnabled(false);
-	viewPanAction->setEnabled(false);
-	viewRotateAction->setEnabled(false);
 
 	if (newGlView)
 	{
@@ -351,9 +309,6 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 	bool enable(newGlView != 0);
 
 	viewResetAction->setEnabled(enable);
-	viewZoomAction->setEnabled(enable);
-	viewPanAction->setEnabled(enable);
-	viewRotateAction->setEnabled(enable);
 
 	glView = newGlView;
 }

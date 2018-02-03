@@ -391,8 +391,6 @@ void GLView3D::OnUpdateTransferFunction(void)
 
 	// update window/levels / transfer function here!!!!
 
-	//this->_img->channel((uint32_t)_c)->generate_windowLevel(_transferFunction->GetWindow(), _transferFunction->GetLevel());
-
 	scene.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 

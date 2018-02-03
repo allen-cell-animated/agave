@@ -61,11 +61,6 @@ private:
 
 	QAction *viewResetAction;
 
-	QActionGroup *viewActionGroup;
-	QAction *viewZoomAction;
-	QAction *viewPanAction;
-	QAction *viewRotateAction;
-
 	QSlider *createAngleSlider();
 	QSlider *createRangeSlider();
 	NavigationDock2D *navigation;
