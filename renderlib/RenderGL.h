@@ -1,6 +1,10 @@
 #pragma once
 #include "IRenderWindow.h"
 #include "AppScene.h"
+#include "Status.h"
+#include "Timing.h"
+
+#include <QElapsedTimer>
 
 #include <memory>
 
@@ -13,13 +17,14 @@ class RenderGL :
 	public IRenderWindow
 {
 public:
-	RenderGL(std::shared_ptr<ImageXYZC>  img, CScene* scene);
+	RenderGL(CScene* scene);
 	virtual ~RenderGL();
 
 	virtual void initialize(uint32_t w, uint32_t h);
 	virtual void render(const Camera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
 
+	virtual CStatus* getStatusInterface() { return &_status; }
 	virtual RenderParams& renderParams();
 	virtual Scene& scene();
 
@@ -27,10 +32,15 @@ public:
 	void setImage(std::shared_ptr<ImageXYZC> img);
 private:
 	Image3Dv33 *image3d;
-	std::shared_ptr<ImageXYZC>  _img;
 	CScene* _scene;
 
 	Scene _appScene;
 	RenderParams _renderParams;
+
+	CStatus _status;
+	CTiming _timingRender;
+	QElapsedTimer _timer;
+
+	int _w, _h;
 };
 

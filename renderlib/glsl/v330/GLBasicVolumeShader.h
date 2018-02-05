@@ -3,7 +3,7 @@
 #include <QOpenGLShaderProgram>
 
 #include <glm.h>
-#include "Camera.h"
+#include "CCamera.h"
 
 /**
     */
@@ -105,7 +105,7 @@ public:
     void
     setLUT(int texunit);
 
-	void setTransformUniforms(const Camera& camera, const glm::mat4& modelMatrix);
+	void setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix);
 	void setShadingUniforms();
 
 	float dataRangeMin;
@@ -136,7 +136,7 @@ private:
 		uBreakSteps,
 		uAABBClipMin,
 		uAABBClipMax,
-		uInverseModelMatrix,
+		uInverseModelViewMatrix,
 		uCameraPosition,
 		uResolution,
 		uGammaMin,

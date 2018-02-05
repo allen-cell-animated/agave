@@ -51,8 +51,7 @@ in VertexData
 
 out vec4 outputColour;
 
-uniform vec3 cameraPosition;
-uniform mat4 inverseModelMatrix;
+uniform mat4 inverseModelViewMatrix;
 
 uniform sampler3D textureAtlas;
 uniform sampler2D textureAtlasMask;
@@ -98,7 +97,8 @@ vec4 sampleAs3DTexture(sampler3D tex, vec4 pos) {
 		pos[1] > 0.001 && pos[1] < 0.999 &&
 		pos[2] > 0.001 && pos[2] < 0.999);
 
-    float texval = texture(tex, pos.xyz).r;
+    float texval = textureLod(tex, pos.xyz, 0).r;
+// LUT HERE???
 	texval = (texval - dataRangeMin) / (dataRangeMax - dataRangeMin);
 	vec4 retval = vec4(texval, texval, texval, 1.0);
 	return bounds*retval;
@@ -131,31 +131,30 @@ vec4 integrateVolume(vec4 eye_o, vec4 eye_d,
 	sampler3D textureAtlas
 ) {
 	vec4 C = vec4(0.0);
-	float tend = tfar;
+	float tend = min(tfar, clipFar);
 	float tbegin = tnear;
 	const int maxSteps = 512;
-	float csteps = float(BREAK_STEPS);
-	csteps = clamp(csteps, 0.0, float(maxSteps));
-	float isteps = 1.0 / csteps;
+	float csteps = clamp(float(BREAK_STEPS), 1.0, float(maxSteps));
+	float invstep = 1.0 / csteps;
 	float r = 0.5 - 1.0*rand(eye_d.xy);
-	float tstep = isteps / length(eye_d);
-	float tfarsurf = /*float(DITHERING)**/r*tstep;
+	float tstep = invstep;
+	float tfarsurf = r*tstep;
 	float overflow = mod((tfarsurf - tend), tstep);
 	float t = tbegin + overflow;
-	t += /*float(DITHERING)**/r*tstep;
+	t += r*tstep;
 	float tdist = 0.0;
 	int numSteps = 0;
 
 	vec4 pos, col;
+	float s = 0.5 * float(maxSteps) / csteps;
 	for (int i = 0; i<maxSteps; i++) {
 		pos = eye_o + eye_d*t;
-		pos.xyz = (pos.xyz - AABB_CLIP_MIN) / (AABB_CLIP_MAX - AABB_CLIP_MIN);//0.5 * (pos + 1.0); // map position from [boxMin, boxMax] to [0, 1] coordinates
+		pos.xyz = (pos.xyz + 0.5);//0.5 * (pos + 1.0); // map position from [boxMin, boxMax] to [0, 1] coordinates
 		col = sampleStack(textureAtlas, pos);
 
 		//Finish up by adding brightness/density
 		col.xyz *= BRIGHTNESS;
 		col.w *= DENSITY;
-		float s = 0.5*float(256) / float(BREAK_STEPS);
 		float stepScale = (1.0 - powf((1.0 - col.w), s));
 		col.w = stepScale;
 		col.xyz *= col.w;
@@ -164,7 +163,7 @@ vec4 integrateVolume(vec4 eye_o, vec4 eye_d,
 		C = (1.0 - C.w)*col + C;
 		t += tstep;
 		numSteps = i;
-		if (i > BREAK_STEPS || t  > tend || t > tbegin + clipFar) 
+		if (t > tend) 
 			break;
 		if (C.w > 1.0) 
 			break;
@@ -175,8 +174,8 @@ void main()
 {
 	outputColour = vec4(1.0, 0.0, 0.0, 1.0);
 
-	vec3 eyeRay_o = (inverseModelMatrix * vec4(cameraPosition, 1.0)).xyz;
-	vec3 eyeRay_d = inData.pObj - eyeRay_o;
+	vec3 eyeRay_o = (inverseModelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+	vec3 eyeRay_d = normalize(inData.pObj - eyeRay_o);
 	vec3 boxMin = AABB_CLIP_MIN;
 	vec3 boxMax = AABB_CLIP_MAX;
 	float tnear, tfar;
@@ -185,6 +184,10 @@ void main()
 		outputColour = vec4(1.0, 0.0, 1.0, 1.0);
 		return;
 	}
+//else {
+//		outputColour = vec4(1.0, 1.0, 1.0, 1.0);
+//		return;
+//}
 	float clipNear = 0.0;//-(dot(eyeRay_o.xyz, eyeNorm) + dNear) / dot(eyeRay_d.xyz, eyeNorm);
 	float clipFar = 10000.0;//-(dot(eyeRay_o.xyz,-eyeNorm) + dFar ) / dot(eyeRay_d.xyz,-eyeNorm);
 
@@ -222,8 +225,8 @@ void main()
 	uBreakSteps = uniformLocation("BREAK_STEPS");
 	uAABBClipMin = uniformLocation("AABB_CLIP_MIN");
 	uAABBClipMax = uniformLocation("AABB_CLIP_MAX");
-	uInverseModelMatrix = uniformLocation("inverseModelMatrix");
-	uCameraPosition = uniformLocation("cameraPosition");
+	uInverseModelViewMatrix = uniformLocation("inverseModelViewMatrix");
+	//uCameraPosition = uniformLocation("cameraPosition");
 	uGammaMin = uniformLocation("GAMMA_MIN");
 	uGammaMax = uniformLocation("GAMMA_MAX");
 	uGammaScale = uniformLocation("GAMMA_SCALE");
@@ -301,14 +304,21 @@ GLBasicVolumeShader::setShadingUniforms()
 	glUniform1f(uDensity, DENSITY);
 	glUniform1f(uMaskAlpha, maskAlpha);
 	glUniform1i(uBreakSteps, BREAK_STEPS);
+	// axis aligned clip planes
 	glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
 	glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
 }
+
 void 
-GLBasicVolumeShader::setTransformUniforms(const Camera& camera, const glm::mat4& modelMatrix)
+GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
-	glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
-	glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(camera.projection));
-	glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(camera.view * camera.model * modelMatrix));
-	glUniformMatrix4fv(uInverseModelMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(camera.model * modelMatrix)));
+	glm::vec3 eye(camera.m_From.x, camera.m_From.y, camera.m_From.z);
+	glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
+	glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
+	glm::mat4 cv = glm::lookAt(eye, center, up);
+	glm::mat4 cp = glm::perspectiveFov(camera.m_FovV, (float)camera.m_Film.GetWidth(), (float)camera.m_Film.GetHeight(), camera.m_Hither, camera.m_Yon);
+	//glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
+	glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
+	glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
+	glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
 }

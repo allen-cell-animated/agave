@@ -29,6 +29,9 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 	// the PDF is p(t) = sigmaT * exp(-sigmaT * t)
 	// S is the free-path distance = -ln(1-zeta)/sigmaT where zeta is a random variable
 	const float S	= -log(RNG.Get1()) / gDensityScale;  // note that ln(x:0..1) is negative
+
+	// density scale 0... S --> 0..inf.  Low density means randomly sized ray paths
+	// density scale inf... S --> 0.   High density means short ray paths!
 	float Sum		= 0.0f;
 	float SigmaT	= 0.0f; // accumulated extinction along ray march
 

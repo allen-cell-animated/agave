@@ -12,8 +12,8 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
 	image_vertices(0),
 	image_elements(0),
 	num_image_elements(0),
-	textureid(0),
-	lutid(0),
+	_textureid(0),
+	_lutid(0),
 	texmin(0.0f),
 	texmax(1.0f),
 	//texcorr(1.0f),
@@ -25,8 +25,8 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
 
 Image3Dv33::~Image3Dv33()
 {
-	glDeleteTextures(1, &textureid);
-	glDeleteTextures(1, &lutid);
+	glDeleteTextures(1, &_textureid);
+	glDeleteTextures(1, &_lutid);
 	delete image3d_shader;
 }
 
@@ -37,8 +37,8 @@ void Image3Dv33::create()
 		glm::vec2(-(_img->sizeY() / 2.0f), _img->sizeY() / 2.0f));
 
 	// Create image texture.
-	glGenTextures(1, &textureid);
-	glBindTexture(GL_TEXTURE_3D, textureid);
+	glGenTextures(1, &_textureid);
+	glBindTexture(GL_TEXTURE_3D, _textureid);
 	check_gl("Bind texture");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	check_gl("Set texture min filter");
@@ -50,43 +50,11 @@ void Image3Dv33::create()
 	check_gl("Set texture wrap t");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	check_gl("Set texture wrap r");
-
-	// assuming 16-bit data!
-	Channelu16* ch = _img->channel(_c);
-	texmin = float(ch->_min) / (65535.0f);
-	texmax = float(ch->_max) / (65535.0f);
-/*
-	uint16_t test[] = {
-		1024, 128, 256, 512, 
-		1024, 2048, 1024, 512
-	};
-	sizeX = 2;
-	sizeY = 2;
-	sizeZ = 2;
-	texmin = 0.0;
-	texmax = 2048.0 / (255.0*64.0);
-	*/
-	GLenum internal_format = GL_R16;
-	GLenum external_type = GL_UNSIGNED_SHORT;
-	GLenum external_format = GL_RED;
-
-	glTexImage3D(GL_TEXTURE_3D,         // target
-		0,                     // level, 0 = base, no minimap,
-		internal_format, // internal format
-		(GLsizei)_img->sizeX(),                 // width
-		(GLsizei)_img->sizeY(),                 // height
-		(GLsizei)_img->sizeZ(),
-		0,                     // border
-		external_format, // external format
-		external_type,   // external type
-		_img->ptr(_c));
-		//0);                    // no image data at this point
-	check_gl("Texture create");
-	glGenerateMipmap(GL_TEXTURE_3D);
+	setC(_c, true);
 
 	// Create LUT texture.
-	glGenTextures(1, &lutid);
-	glBindTexture(GL_TEXTURE_1D_ARRAY, lutid);
+	glGenTextures(1, &_lutid);
+	glBindTexture(GL_TEXTURE_1D_ARRAY, _lutid);
 	check_gl("Bind texture");
 	glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	check_gl("Set texture min filter");
@@ -122,7 +90,7 @@ void Image3Dv33::create()
 }
 
 void
-Image3Dv33::render(const Camera& camera)
+Image3Dv33::render(const CCamera& camera)
 {
 	image3d_shader->bind();
 
@@ -139,17 +107,28 @@ Image3Dv33::render(const Camera& camera)
 	image3d_shader->AABB_CLIP_MAX = glm::vec3(0.5,0.5,0.5);
 	image3d_shader->setShadingUniforms();
 
-	image3d_shader->setTransformUniforms(camera, glm::mat4(1.0f));
+	// model matrix will be a scaling matrix based on the image physical dims
+	glm::vec3 dims(_img->sizeX()*_img->physicalSizeX(),
+		_img->sizeY()*_img->physicalSizeY(),
+		_img->sizeZ()*_img->physicalSizeZ());
+	float maxd = std::max(dims.x, std::max(dims.y, dims.z));
+	glm::vec3 scales(dims.x / maxd, dims.y / maxd, dims.z / maxd);
+	glm::mat4 mm = glm::scale(glm::mat4(1.0f), scales);
+
+	// try to center the object relative to camera
+	mm = glm::translate(mm, scales*0.5f);
+	
+	image3d_shader->setTransformUniforms(camera, mm);
 
 	glActiveTexture(GL_TEXTURE0);
 	check_gl("Activate texture");
-	glBindTexture(GL_TEXTURE_3D, textureid);
+	glBindTexture(GL_TEXTURE_3D, _textureid);
 	check_gl("Bind texture");
 	image3d_shader->setTexture(0);
 
 	glActiveTexture(GL_TEXTURE1);
 	check_gl("Activate texture");
-	glBindTexture(GL_TEXTURE_1D_ARRAY, lutid);
+	glBindTexture(GL_TEXTURE_1D_ARRAY, _lutid);
 	check_gl("Bind texture");
 	image3d_shader->setLUT(1);
 
@@ -162,7 +141,6 @@ Image3Dv33::render(const Camera& camera)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, image_elements);
 	glDrawElements(GL_TRIANGLES, (GLsizei)num_image_elements, GL_UNSIGNED_SHORT, 0);
 	check_gl("Image3Dv33 draw elements");
-
 
 	image3d_shader->disableCoords();
 	glBindVertexArray(0);
@@ -232,19 +210,19 @@ Image3Dv33::setSize(const glm::vec2& xlim,
 unsigned int
 Image3Dv33::texture()
 {
-	return textureid;
+	return _textureid;
 }
 
 unsigned int
 Image3Dv33::lut()
 {
-	return lutid;
+	return _lutid;
 }
 
 void 
-Image3Dv33::setC(int c)
+Image3Dv33::setC(int c, bool force)
 {
-	if (c != _c)
+	if (force || (c != _c))
 	{
 		_c = c;
 		// only update C here!!
@@ -258,7 +236,10 @@ Image3Dv33::setC(int c)
 		GLenum external_type = GL_UNSIGNED_SHORT;
 		GLenum external_format = GL_RED;
 
-		glBindTexture(GL_TEXTURE_3D, textureid);
+		// pixel data is tightly packed
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		
+		glBindTexture(GL_TEXTURE_3D, _textureid);
 		glTexImage3D(GL_TEXTURE_3D,         // target
 			0,                     // level, 0 = base, no minimap,
 			internal_format, // internal format
@@ -268,9 +249,9 @@ Image3Dv33::setC(int c)
 			0,                     // border
 			external_format, // external format
 			external_type,   // external type
-			_img->ptr(c));
+			ch->_ptr);
+		check_gl("Volume Texture create");
 		glGenerateMipmap(GL_TEXTURE_3D);
-
 	}
 }
 

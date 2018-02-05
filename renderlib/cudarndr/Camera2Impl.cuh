@@ -18,9 +18,9 @@ DEV void GenerateRay(const CudaCamera& cam, const Vec2f& Pixel, const Vec2f& Ape
 {
 	Vec2f ScreenPoint;
 
-	// ScreenPoint.x is supposed to be cam.m_Screen[0][0] + (cam.m_InvScreen[0] * Pixel.x)
-	// it is flipped ONLY to correspond with our other internal viewers that are mirroring the image in some way.
-	ScreenPoint.x = cam.m_Screen[0][1] - (cam.m_InvScreen[0] * Pixel.x);
+	// Uncomment this line to flip the image to correspond with our other internal viewers that are mirroring the image in some way.
+	//ScreenPoint.x = cam.m_Screen[0][1] - (cam.m_InvScreen[0] * Pixel.x);
+	ScreenPoint.x = cam.m_Screen[0][0] + (cam.m_InvScreen[0] * Pixel.x);
 	ScreenPoint.y = cam.m_Screen[1][0] + (cam.m_InvScreen[1] * Pixel.y);
 
 	RayO = toVec3(cam.m_From);

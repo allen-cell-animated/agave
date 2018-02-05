@@ -407,15 +407,21 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 		_renderer->cleanUpResources();
 	}
 
+
+	Scene sc = _renderer->scene();
+	
 	switch (rendererType) {
 	case 1:
+		LOG_DEBUG << "Set CUDA Renderer";
 		_renderer.reset(new RenderGLCuda(_scene));
 		break;
 	default:
-		_renderer.reset(new RenderGL(_img, _scene));
+		LOG_DEBUG << "Set OpenGL Renderer";
+		_renderer.reset(new RenderGL(_scene));
 	};
 	_rendererType = rendererType;
 
 	QSize newsize = size();
+	_renderer->scene() = sc;
 	_renderer->initialize(newsize.width(), newsize.height());
 }

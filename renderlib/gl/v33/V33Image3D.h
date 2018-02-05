@@ -35,7 +35,7 @@ public:
 	void create();
 
 	void
-		render(const Camera& camera);
+		render(const CCamera& camera);
 
 
 	/**
@@ -76,7 +76,7 @@ public:
 	void
 		setMax(const glm::vec3& max) {}
 
-	void setC(int c);
+	void setC(int c, bool force = false);
 
 	/**
 	* Get texture ID.
@@ -120,9 +120,9 @@ protected:
 	GLuint image_elements;  // buffer
 	size_t num_image_elements;
 	/// The identifier of the texture owned and used by this object.
-	unsigned int textureid;
+	unsigned int _textureid;
 	/// The identifier of the LUTs owned and used by this object.
-	unsigned int lutid;
+	unsigned int _lutid;
 	/// Linear contrast minimum limits.
 	float texmin;
 	/// Linear contrast maximum limits.

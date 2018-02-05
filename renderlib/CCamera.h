@@ -215,8 +215,8 @@ public:
 //#define DEF_CAMERA_TYPE						Perspective
 #define DEF_CAMERA_OPERATOR					CameraOperatorUndefined
 #define DEF_CAMERA_VIEW_MODE				ViewModeBack
-#define DEF_CAMERA_HITHER					1.0f
-#define DEF_CAMERA_YON						50000.0f
+#define DEF_CAMERA_HITHER					0.01f
+#define DEF_CAMERA_YON						20.0f
 #define DEF_CAMERA_ENABLE_CLIPPING			true
 #define DEF_CAMERA_GAMMA					2.2f
 #define DEF_CAMERA_FIELD_OF_VIEW			55.0f
