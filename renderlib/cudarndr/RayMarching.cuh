@@ -22,12 +22,19 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 	// When the distance has become greater than the average sigmaT value given by -log(RandomFloat[0, 1]) / averageSigmaT 
 	// then that would be considered the interaction position.
 
-	const float S	= -log(RNG.Get1()) / gDensityScale;
+	// sigmaT = sigmaA + sigmaS = absorption coeff + scattering coeff = extinction coeff
+
+	// Beer-Lambert law: transmittance T(t) = exp(-sigmaT*t)
+	// importance sampling the exponential function to produce a free path distance S
+	// the PDF is p(t) = sigmaT * exp(-sigmaT * t)
+	// S is the free-path distance = -ln(1-zeta)/sigmaT where zeta is a random variable
+	const float S	= -log(RNG.Get1()) / gDensityScale;  // note that ln(x:0..1) is negative
 	float Sum		= 0.0f;
-	float SigmaT	= 0.0f;
+	float SigmaT	= 0.0f; // accumulated extinction along ray march
 
 	MinT += RNG.Get1() * gStepSize;
 	int ch = 0;
+	// ray march until we have traveled S (or hit the maxT of the ray)
 	while (Sum < S)
 	{
 		Ps = R.m_O + MinT * R.m_D;

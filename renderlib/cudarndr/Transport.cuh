@@ -75,7 +75,7 @@ DEV CColorXyz UniformSampleOneLight(const CudaLighting& lighting, const cudaVolu
  		return SPEC_BLACK;
 
 	CLightingSample LS;
-
+	// select a random light, a random 2d sample on light, and a random 2d sample on brdf
 	LS.LargeStep(RNG);
 
 	const int WhichLight = (int)floorf(LS.m_LightNum * (float)NumLights);

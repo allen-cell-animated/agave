@@ -19,7 +19,9 @@ DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeD
 	intensity.vec = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	float maxIn = 0;
 	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		// 0..1
 		intensity.a[i] = intensity.a[i] / volumeData.intensityMax[i];
+		// transform through LUT
 		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
 		if (intensity.a[i] > maxIn) {
 			maxIn = intensity.a[i];

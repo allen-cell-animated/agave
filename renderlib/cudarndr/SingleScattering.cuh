@@ -29,15 +29,17 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 
 	Vec3f Pe, Pl;
 	
+	// find point Pe along ray Re
 	if (SampleDistanceRM(Re, RNG, Pe, volumedata))
 	{
+		// is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
 		int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, (Pe - Re.m_O).Length()), Li, Pl);
 		if (i > -1)
 		{
 			// set sample pixel value in frame estimate (prior to accumulation)
-			pView[floatoffset] = Lv.c[0];
-			pView[floatoffset + 1] = Lv.c[1];
-			pView[floatoffset + 2] = Lv.c[2];
+			pView[floatoffset] = Li.c[0];
+			pView[floatoffset + 1] = Li.c[1];
+			pView[floatoffset + 2] = Li.c[2];
 			pView[floatoffset + 3] = 1.0;
 			return;
 		}
@@ -45,8 +47,10 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		int ch = 0;
 		const float D = GetNormalizedIntensityMax4ch(Pe, volumedata, ch);
 
+		// emission from volume
 		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
 
+		// send ray out from Pe toward light
 		switch (gShadingType)
 		{
 			case 0:
