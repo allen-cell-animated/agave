@@ -176,7 +176,8 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 
 	_min = _histogram._dataMin;
 	_max = _histogram._dataMax;
-	_lut = _histogram.generate_auto2();
+	float w, l;
+	_lut = _histogram.generate_auto2(w,l);
 
 }
 
@@ -243,8 +244,8 @@ uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley
 }
 
 
-Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
-	: _bins(bins)
+Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
+	: _bins(num_bins)
 {
 	std::fill(_bins.begin(), _bins.end(), 0);
 
@@ -261,23 +262,25 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
 			_dataMin = val;
 		}
 	}
-	float fval;
+//	float fval;
 	float range = (float)(_dataMax - _dataMin);
-	float bin = (float)(bins - 1);
+	float binmax = (float)(num_bins - 1);
 	for (size_t i = 0; i < length; ++i) {
-		val = data[i];
-		// normalize to 0..1 range
-		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
-		fval = (float)(val - _dataMin) / range;
-		// select a bin
-		fval *= bin;
-		// discretize (drop the fractional part?)
-		_bins[(size_t)fval] ++;
+		size_t whichbin = (size_t) ( (float)(data[i] - _dataMin) / range * binmax );
+//		val = data[i];
+//		// normalize to 0..1 range
+//		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
+//		fval = (float)(val - _dataMin) / range;
+//		// select a bin
+//		fval *= binmax;
+//		// discretize (drop the fractional part?)
+//		size_t whichbin = (size_t)fval;
+		_bins[whichbin] ++;
 		// bins goes from min to max of data range. not datatype range.
 	}
 
-	// total number of pixels minus the number of zero pixels
-	_nonzeroPixelCount = length - _bins[0];
+	// total number of pixels
+	_pixelCount = length;
 
 	// get the bin with the most frequently occurring NONZERO value
 	_maxBin = 1;
@@ -290,21 +293,25 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t bins)
 	}
 }
 
-float* Histogram::generate_fullRange(size_t length) {
-	return generate_windowLevel(1.0, 0.5, length);
+float* Histogram::generate_fullRange(float& window, float& level, size_t length) {
+	window = 1.0;
+	level = 0.5;
+	return generate_windowLevel(window, level, length);
 }
 
-float* Histogram::generate_dataRange(size_t length) {
-	return generate_windowLevel(1.0, 0.5, length);
+float* Histogram::generate_dataRange(float& window, float& level, size_t length) {
+	window = 1.0;
+	level = 0.5;
+	return generate_windowLevel(window, level, length);
 }
 
-float* Histogram::generate_bestFit(size_t length) {
-	size_t pixcount = _nonzeroPixelCount;
+float* Histogram::generate_bestFit(float& window, float& level, size_t length) {
+	size_t pixcount = _pixelCount;
 	size_t limit = pixcount / 10;
 
 	size_t i = 0;
 	size_t count = 0;
-	for (i = 1; i < _bins.size(); ++i) {
+	for (i = 0; i < _bins.size(); ++i) {
 		count += _bins[i];
 		if (count > limit) {
 			break;
@@ -313,7 +320,7 @@ float* Histogram::generate_bestFit(size_t length) {
 	size_t hmin = i;
 
 	count = 0;
-	for (i = _bins.size() - 1; i >= 1; --i) {
+	for (i = _bins.size() - 1; i >= 0; --i) {
 		count += _bins[i];
 		if (count > limit) {
 			break;
@@ -323,50 +330,75 @@ float* Histogram::generate_bestFit(size_t length) {
 
 	size_t range = hmax - hmin;
 	if (range < 1) {
-		range = 256;
+		range = 255;
 	}
 
-	return generate_windowLevel((float)(range) / (float)length,
-		((float)hmin + (float)range*0.5f) / (float)length, length);
+	window = (float)(range) / (float)(length-1);
+	level = ((float)hmin + (float)range*0.5f) / (float)(length-1);
+	return generate_windowLevel(window, level, length);
 }
 
 // attempt to redo imagej's Auto
-float* Histogram::generate_auto2(size_t length) {
+float* Histogram::generate_auto2(float& window, float& level, size_t length) {
 
-	size_t AUTO_THRESHOLD = 5000;
-	size_t pixcount = _nonzeroPixelCount;
+	size_t AUTO_THRESHOLD = 10000;
+	size_t pixcount = _pixelCount;
 	//  const pixcount = this.imgData.data.length;
 	size_t limit = pixcount / 10;
 	size_t threshold = pixcount / AUTO_THRESHOLD;
 
+
+	size_t i = -1;
+	bool found = false;
+	int count;
+	do {
+		i++;
+		count = _bins[i];
+		if (count>limit) count = 0;
+		found = count> threshold;
+	} while (!found && i<(_bins.size()-1));
+	size_t hmin = i;
+	i = _bins.size();
+	do {
+		i--;
+		count = _bins[i];
+		if (count>limit) count = 0;
+		found = count > threshold;
+	} while (!found && i > 0);
+	size_t hmax = i;
+
+
+#if 0
 	// this will skip the "zero" bin which contains pixels of zero intensity.
 	size_t hmin = _bins.size() - 1;
-	size_t hmax = 1;
-	for (size_t i = 1; i < _bins.size(); ++i) {
+	size_t hmax = 0;
+	for (size_t i = 0; i < _bins.size(); ++i) {
 		if (_bins[i] > threshold && _bins[i] <= limit) {
 			hmin = i;
 			break;
 		}
 	}
-	for (size_t i = _bins.size() - 1; i >= 1; --i) {
+	for (size_t i = _bins.size() - 1; i >= 0; --i) {
 		if (_bins[i] > threshold && _bins[i] <= limit) {
 			hmax = i;
 			break;
 		}
 	}
+#endif
 
 	if (hmax < hmin) {
 		// just reset to whole range in this case.
-		return generate_fullRange(length);
+		return generate_fullRange(window, level, length);
 	}
 	else {
 		float range = (float)hmax - (float)hmin;
-		return generate_windowLevel((range) / (float)length,
-			((float)hmin + range*0.5f) / (float)length, length);
+		window = (range) / (float)(length-1);
+		level = ((float)hmin + range*0.5f) / (float)(length-1);
+		return generate_windowLevel(window, level, length);
 	}
 }
 
-float* Histogram::generate_auto(size_t length) {
+float* Histogram::generate_auto(float& window, float& level, size_t length) {
 
 	// simple linear mapping cutting elements with small appearence
 	// get 10% threshold
@@ -374,13 +406,13 @@ float* Histogram::generate_auto(size_t length) {
 	float th = std::floor(_bins[_maxBin] * PERCENTAGE);
 	size_t b = 0;
 	size_t e = _bins.size() - 1;
-	for (size_t x = 1; x < _bins.size(); ++x) {
+	for (size_t x = 0; x < _bins.size(); ++x) {
 		if (_bins[x] > th) {
 			b = x;
 			break;
 		}
 	}
-	for (size_t x = _bins.size() - 1; x >= 1; --x) {
+	for (size_t x = _bins.size() - 1; x >= 0; --x) {
 		if (_bins[x] > th) {
 			e = x;
 			break;
@@ -389,12 +421,14 @@ float* Histogram::generate_auto(size_t length) {
 
 	size_t range = e - b;
 	if (range < 1) {
-		range = 256;
+		range = 255;
 	}
 	// if range == e-b, then
 	// b+range/2 === e-range/2 
 	// 
-	return generate_windowLevel((float)range / (float)length, ((float)b + (float)range*0.5f) / (float)length, length);
+	window = (float)range / (float)(length-1);
+	level = ((float)b + (float)range*0.5f) / (float)(length-1);
+	return generate_windowLevel(window, level, length);
 }
 
 // window and level are percentages of full range 0..1
@@ -413,7 +447,7 @@ float* Histogram::generate_windowLevel(float window, float level, size_t length)
 	//float range = b - a;
 
 	for (size_t x = 0; x < length; ++x) {
-		float v = ((float)x/(float)length - a) / ((float)range);
+		float v = ((float)x/(float)(length-1) - a) / ((float)range);
 		lut[x] = clamp(v, 0.0f, 1.0f);
 	}
 

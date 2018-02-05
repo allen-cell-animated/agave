@@ -14,15 +14,15 @@ struct Histogram {
 	uint16_t _dataMax;
 	// index of bin with most pixels
 	size_t _maxBin;
-	size_t _nonzeroPixelCount;
+	size_t _pixelCount;
 
 
-	float* generate_fullRange(size_t length = 256);
-	float* generate_dataRange(size_t length = 256);
-	float* generate_bestFit(size_t length = 256);
+	float* generate_fullRange(float& window, float& level, size_t length = 256);
+	float* generate_dataRange(float& window, float& level, size_t length = 256);
+	float* generate_bestFit(float& window, float& level, size_t length = 256);
 	// attempt to redo imagej's Auto
-	float* generate_auto2(size_t length = 256);
-	float* generate_auto(size_t length = 256);
+	float* generate_auto2(float& window, float& level, size_t length = 256);
+	float* generate_auto(float& window, float& level, size_t length = 256);
 	float* generate_windowLevel(float window, float level, size_t length = 256);
 
 };
@@ -48,6 +48,9 @@ struct Channelu16
 	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
 	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); }
+	void generate_auto2(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto2(window, level); }
+	void generate_auto(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto(window, level); }
+	void generate_bestFit(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_bestFit(window, level); }
 
 	void debugprint();
 

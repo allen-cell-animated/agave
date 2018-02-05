@@ -8,6 +8,7 @@
 #include "RenderThread.h"
 #include "Scene.h"
 #include "AppScene.h"
+#include "renderlib/Logging.h"
 
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransferFunction* tran, CScene* scene) :
 	QGroupBox(pParent),
@@ -287,6 +288,7 @@ void QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& colo
 }
 void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
 {
+	LOG_DEBUG << "window/level: " << window << ", " << level;
 	_scene->_volume->channel((uint32_t)i)->generate_windowLevel(window, level);
 
 	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -324,8 +326,6 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	// I don't own this.
 	_scene = scene;
 
-	const float DEFAULT_WINDOW = 1.0f;
-	const float DEFAULT_LEVEL = 0.75f;
 	QVector<QColor> colors = rndColors(scene->_volume->sizeC());
 
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {
@@ -335,18 +335,21 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 		auto* sectionLayout = new QGridLayout();
 
+		float init_window, init_level;
+		scene->_volume->channel(i)->generate_auto(init_window, init_level);
+
 		int row = 0;
 		sectionLayout->addWidget(new QLabel("Window"), row, 0);
 		QDoubleSlider* windowSlider = new QDoubleSlider();
 		windowSlider->setRange(0.001, 1.0);
-		windowSlider->setValue(DEFAULT_WINDOW);
+		windowSlider->setValue(init_window);
 		sectionLayout->addWidget(windowSlider, row, 1);
 
 		row++;
 		sectionLayout->addWidget(new QLabel("Level"), row, 0);
 		QDoubleSlider* levelSlider = new QDoubleSlider();
 		levelSlider->setRange(0.001, 1.0);
-		levelSlider->setValue(DEFAULT_LEVEL);
+		levelSlider->setValue(init_level);
 		sectionLayout->addWidget(levelSlider, row, 1);
 
 		QObject::connect(windowSlider, &QDoubleSlider::valueChanged, [i, this, levelSlider](double d) {
@@ -356,7 +359,32 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			this->OnSetWindowLevel(i, windowSlider->value(), d);
 		});
 		// init
-		this->OnSetWindowLevel(i, DEFAULT_WINDOW, DEFAULT_LEVEL);
+		//this->OnSetWindowLevel(i, init_window, init_level);
+		row++;
+		QPushButton* autoButton = new QPushButton("Auto");
+		sectionLayout->addWidget(autoButton, row, 0);
+		QObject::connect(autoButton, &QPushButton::clicked, [this, i]() {
+			float w, l;
+			this->_scene->_volume->channel((uint32_t)i)->generate_auto(w,l);
+			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			this->_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+		});
+		QPushButton* auto2Button = new QPushButton("Auto2");
+		sectionLayout->addWidget(auto2Button, row, 1);
+		QObject::connect(auto2Button, &QPushButton::clicked, [this, i]() {
+			float w, l;
+			this->_scene->_volume->channel((uint32_t)i)->generate_auto2(w, l);
+			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			this->_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+		});
+		QPushButton* bestfitButton = new QPushButton("BestFit");
+		sectionLayout->addWidget(bestfitButton, row, 2);
+		QObject::connect(bestfitButton, &QPushButton::clicked, [this, i]() {
+			float w, l;
+			this->_scene->_volume->channel((uint32_t)i)->generate_bestFit(w, l);
+			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			this->_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+		});
 
 		row++;
 		QColorSelector* diffuseColorButton = new QColorSelector();
