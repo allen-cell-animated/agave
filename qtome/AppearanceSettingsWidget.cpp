@@ -336,20 +336,20 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		auto* sectionLayout = new QGridLayout();
 
 		float init_window, init_level;
-		scene->_volume->channel(i)->generate_auto(init_window, init_level);
+		scene->_volume->channel(i)->generate_auto2(init_window, init_level);
 
 		int row = 0;
 		sectionLayout->addWidget(new QLabel("Window"), row, 0);
 		QDoubleSlider* windowSlider = new QDoubleSlider();
 		windowSlider->setRange(0.001, 1.0);
-		windowSlider->setValue(init_window);
+		windowSlider->setValue(init_window, true);
 		sectionLayout->addWidget(windowSlider, row, 1);
 
 		row++;
 		sectionLayout->addWidget(new QLabel("Level"), row, 0);
 		QDoubleSlider* levelSlider = new QDoubleSlider();
 		levelSlider->setRange(0.001, 1.0);
-		levelSlider->setValue(init_level);
+		levelSlider->setValue(init_level, true);
 		sectionLayout->addWidget(levelSlider, row, 1);
 
 		QObject::connect(windowSlider, &QDoubleSlider::valueChanged, [i, this, levelSlider](double d) {

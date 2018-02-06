@@ -2,6 +2,8 @@
 
 #include "glm.h"
 
+#include <QThread>
+
 #include <inttypes.h>
 #include <vector>
 
@@ -81,7 +83,7 @@ public:
 
 	// if channel color is 0, then channel will not contribute.
 	// allocates memory for outRGBVolume and outGradientVolume
-	void fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t* outRGBVolume, uint16_t* outGradientVolume);
+	void fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume);
 
 private:
 	uint32_t _x, _y, _z, _c, _bpp;
@@ -90,3 +92,22 @@ private:
 	std::vector<Channelu16*> _channels;
 };
 
+
+class FuseWorkerThread : public QThread
+{
+	Q_OBJECT
+public:
+	// count is how many elements to walk for input and output.
+	FuseWorkerThread(size_t thread_idx, size_t nthreads, uint8_t* outptr, const ImageXYZC* img, const std::vector<glm::vec3>& colors);
+	void run() override;
+private:
+	size_t _thread_idx;
+	size_t _nthreads;
+	uint8_t* _outptr;
+
+	// read only!
+	const ImageXYZC* _img;
+	const std::vector<glm::vec3>& _channelColors;
+signals:
+	void resultReady(size_t threadidx);
+};

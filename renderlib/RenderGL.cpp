@@ -78,13 +78,21 @@ void RenderGL::render(const Camera& camera)
 		return;
 	}
 
+
+	if (_scene->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty))
+	{
+		image3d->prepareTexture(_appScene);
+	}
+
+	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
+	_scene->m_DirtyFlags.ClearAllFlags();
+
 	_scene->m_Camera.m_Film.m_Resolution.SetResX(_w);
 	_scene->m_Camera.m_Film.m_Resolution.SetResY(_h);
 
 	_scene->m_Camera.Update();
 
 	// Render image
-	//image3d->setC(_scene->_channel);
 	image3d->render(_scene->m_Camera);
 
 	_timingRender.AddDuration((float)_timer.elapsed());

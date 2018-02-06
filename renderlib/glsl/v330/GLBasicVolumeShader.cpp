@@ -97,10 +97,12 @@ vec4 sampleAs3DTexture(sampler3D tex, vec4 pos) {
 		pos[1] > 0.001 && pos[1] < 0.999 &&
 		pos[2] > 0.001 && pos[2] < 0.999);
 
-    float texval = textureLod(tex, pos.xyz, 0).r;
-// LUT HERE???
-	texval = (texval - dataRangeMin) / (dataRangeMax - dataRangeMin);
-	vec4 retval = vec4(texval, texval, texval, 1.0);
+    vec4 texval = textureLod(tex, pos.xyz, 0).rgba;
+	vec4 retval = vec4(texval.rgb, 1.0);
+
+//    float texval = textureLod(tex, pos.xyz, 0).r;
+//	texval = (texval - dataRangeMin) / (dataRangeMax - dataRangeMin);
+//	vec4 retval = vec4(texval, texval, texval, 1.0);
 	return bounds*retval;
 }
 

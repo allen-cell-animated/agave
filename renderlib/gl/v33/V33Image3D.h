@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glsl/v330/GLBasicVolumeShader.h"
-
+#include "AppScene.h"
 #include <memory>
 
 class ImageXYZC;
@@ -100,6 +100,8 @@ public:
 	unsigned int
 		lut();
 
+	void prepareTexture(Scene& s);
+
 protected:
 	/**
 	* Set the size of the x and y dimensions.
@@ -136,5 +138,7 @@ protected:
 private:
     /// The shader program for image rendering.
 	GLBasicVolumeShader *image3d_shader;
+
+
 };
 

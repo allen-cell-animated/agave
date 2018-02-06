@@ -2,6 +2,9 @@
 
 #include "Logging.h"
 
+#include <QCoreApplication>
+#include <QThread>
+
 #include <math.h>
 #include <algorithm>
 #include <sstream>
@@ -104,47 +107,148 @@ Channelu16* ImageXYZC::channel(uint32_t channel) const
 	return _channels[channel];
 }
 
-// fuse: generate volume of color data, plus volume of gradients
-// n channels with n colors: use "max" or "avg"
-// n channels with gradients: use "max" or "avg"
-void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t* outRGBVolume, uint16_t* outGradientVolume)
+// count is how many elements to walk for input and output.
+FuseWorkerThread::FuseWorkerThread(size_t thread_idx, size_t nthreads, uint8_t* outptr, const ImageXYZC* img, const std::vector<glm::vec3>& colors) :
+	_thread_idx(thread_idx),
+	_nthreads(nthreads),
+	_outptr(outptr),
+	_channelColors(colors),
+	_img(img)
 {
-	//todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume data in gpu mem.
-
-	// create and zero
-	outRGBVolume = new uint8_t[3 * _x * _y * _z];
-	memset(outRGBVolume, 0, 3 * _x*_y*_z * sizeof(uint8_t));
-	outGradientVolume = new uint16_t[_x * _y * _z];
-	memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
-
-	uint16_t value = 0;
-	float r=0, g=0, b=0;
+	//size_t num_pixels = _img->sizeX() * _img->sizeY() * _img->sizeZ();
+	//num_pixels /= _nthreads;
+	//assert(num_pixels * _nthreads == _img->sizeX() * _img->sizeY() * _img->sizeZ());
+}
+void FuseWorkerThread::run() {
+	float value = 0;
+	float r = 0, g = 0, b = 0;
 	uint8_t ar = 0, ag = 0, ab = 0;
 
-	for (uint32_t i = 0; i < _c; ++i) {
-		glm::vec3 c = colorsPerChannel[i];
-		if (c == glm::vec3(0,0,0)) {
+	size_t num_total_pixels = _img->sizeX() * _img->sizeY() * _img->sizeZ();
+	size_t num_pixels = num_total_pixels / _nthreads;
+	// last one gets the extras.
+	if (_thread_idx == _nthreads - 1) {
+		num_pixels += num_total_pixels % _nthreads;
+	}
+
+	size_t ncolors = _channelColors.size();
+	size_t nch = std::min((size_t)_img->sizeC(), ncolors);
+
+	uint8_t* outptr = _outptr;
+	outptr += ((num_total_pixels / _nthreads) * 3 * _thread_idx);
+
+	for (uint32_t i = 0; i < nch; ++i) {
+		glm::vec3 c = _channelColors[i];
+		if (c == glm::vec3(0, 0, 0)) {
 			continue;
 		}
 		r = c.x; // 0..1
 		g = c.y;
 		b = c.z;
-		uint16_t* channeldata = reinterpret_cast<uint16_t*>(ptr(i));
+		uint16_t* channeldata = reinterpret_cast<uint16_t*>(_img->ptr(i));
+		// jump to offset for this thread.
+		channeldata += ((num_total_pixels / _nthreads) * _thread_idx);
+
+
+		// array of 256 floats
+		float* lut = _img->channel(i)->_lut;
+		float chmax = (float)_img->channel(i)->_max;
 		//lut = luts[idx][c.enhancement];
 
-		for (size_t cx = 0, fx = 0; cx < _x*_y*_z; cx ++, fx += 3) {
-			value = channeldata[cx];  
-			//value = lut[value]; // 0..255
+		for (size_t cx = 0, fx = 0; cx < num_pixels; cx++, fx += 3) {
+			value = (float)channeldata[cx] / chmax;
+			//value = (float)channeldata[cx] / 65535.0f;
+			value = lut[(int)(value*255.0 + 0.5)]; // 0..255
 
-			// what if rgb*value > 255?
-			ar = outRGBVolume[fx + 0];
-			outRGBVolume[fx + 0] = std::max(ar, static_cast<uint8_t>(r * value));
-			ag = outRGBVolume[fx + 1];
-			outRGBVolume[fx + 1] = std::max(ag, static_cast<uint8_t>(g * value));
-			ab = outRGBVolume[fx + 2];
-			outRGBVolume[fx + 2] = std::max(ab, static_cast<uint8_t>(b * value));
+													// what if rgb*value > 1?
+			ar = outptr[fx + 0];
+			outptr[fx + 0] = std::max(ar, static_cast<uint8_t>(r * value * 255));
+			ag = outptr[fx + 1];
+			outptr[fx + 1] = std::max(ag, static_cast<uint8_t>(g * value * 255));
+			ab = outptr[fx + 2];
+			outptr[fx + 2] = std::max(ab, static_cast<uint8_t>(b * value * 255));
 		}
 	}
+
+	emit resultReady(_thread_idx);
+}
+
+// fuse: generate volume of color data, plus volume of gradients
+// n channels with n colors: use "max" or "avg"
+// n channels with gradients: use "max" or "avg"
+void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume)
+{
+	//todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume data in gpu mem.
+
+	// create and zero
+	uint8_t* rgbVolume = new uint8_t[3 * _x * _y * _z];
+	memset(rgbVolume, 0, 3 * _x*_y*_z * sizeof(uint8_t));
+
+	const bool FUSE_THREADED = true;
+	if (FUSE_THREADED) {
+
+		const size_t NTHREADS = 4;
+		// set a bit for each thread as they complete
+		uint32_t done = 0;
+		for (size_t i = 0; i < NTHREADS; ++i) {
+			FuseWorkerThread *workerThread = new FuseWorkerThread(i, NTHREADS, rgbVolume, this, colorsPerChannel);
+			QObject::connect(workerThread, &FuseWorkerThread::resultReady, [&done](size_t whichThread) {
+				done |= (1 << whichThread);
+			});
+			QObject::connect(workerThread, &FuseWorkerThread::finished, workerThread, &QObject::deleteLater);
+			workerThread->start();
+		}
+		// WAIT FOR ALL.
+		// (1 << 4) - 1 = 10000 -1 = 01111
+		while (done < ((uint32_t)1 << NTHREADS) - 1) {
+		}
+		// Instead of waiting, handle completion in the resultReady callback.
+		// when a new fuse call comes in, and fuse threads are currently active, then queue it:
+		// if there is already a fuse waiting to happen, replace it with the new req.
+		// when fuse is done, check to see if there's a queued one.
+	}
+	else {
+
+
+		float value = 0;
+		float r = 0, g = 0, b = 0;
+		uint8_t ar = 0, ag = 0, ab = 0;
+
+		size_t ncolors = colorsPerChannel.size();
+		size_t nch = std::min((size_t)_c, ncolors);
+		for (uint32_t i = 0; i < nch; ++i) {
+			glm::vec3 c = colorsPerChannel[i];
+			if (c == glm::vec3(0, 0, 0)) {
+				continue;
+			}
+			r = c.x; // 0..1
+			g = c.y;
+			b = c.z;
+			uint16_t* channeldata = reinterpret_cast<uint16_t*>(ptr(i));
+
+			// array of 256 floats
+			float* lut = this->channel(i)->_lut;
+			float chmax = (float)this->channel(i)->_max;
+			//lut = luts[idx][c.enhancement];
+
+			for (size_t cx = 0, fx = 0; cx < _x*_y*_z; cx++, fx += 3) {
+				value = (float)channeldata[cx] / chmax;
+				//value = (float)channeldata[cx] / 65535.0f;
+				value = lut[(int)(value*255.0 + 0.5)]; // 0..255
+
+				// what if rgb*value > 1?
+				ar = rgbVolume[fx + 0];
+				rgbVolume[fx + 0] = std::max(ar, static_cast<uint8_t>(r * value * 255));
+				ag = rgbVolume[fx + 1];
+				rgbVolume[fx + 1] = std::max(ag, static_cast<uint8_t>(g * value * 255));
+				ab = rgbVolume[fx + 2];
+				rgbVolume[fx + 2] = std::max(ab, static_cast<uint8_t>(b * value * 255));
+			}
+		}
+	}
+	/*
+outGradientVolume = new uint16_t[_x * _y * _z];
+memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
 
 	// todo: gradient fusion
 	for (uint32_t i = 0; i < _c; ++i) {
@@ -160,6 +264,8 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t* ou
 			outGradientVolume[cx] = std::max(outGradientVolume[cx], gradientData[cx]);
 		}
 	}
+*/
+	*outRGBVolume = rgbVolume;
 }
 
 // 3d median filter?
@@ -391,9 +497,11 @@ float* Histogram::generate_auto2(float& window, float& level, size_t length) {
 		return generate_fullRange(window, level, length);
 	}
 	else {
+		LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
 		float range = (float)hmax - (float)hmin;
 		window = (range) / (float)(length-1);
 		level = ((float)hmin + range*0.5f) / (float)(length-1);
+		LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
 		return generate_windowLevel(window, level, length);
 	}
 }
@@ -422,6 +530,7 @@ float* Histogram::generate_auto(float& window, float& level, size_t length) {
 	size_t range = e - b;
 	if (range < 1) {
 		range = 255;
+		b = 0;
 	}
 	// if range == e-b, then
 	// b+range/2 === e-range/2 
@@ -447,7 +556,7 @@ float* Histogram::generate_windowLevel(float window, float level, size_t length)
 	//float range = b - a;
 
 	for (size_t x = 0; x < length; ++x) {
-		float v = ((float)x/(float)(length-1) - a) / ((float)range);
+		float v = ((float)x/(float)(length-1) - a) / range;
 		lut[x] = clamp(v, 0.0f, 1.0f);
 	}
 

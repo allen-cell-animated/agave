@@ -2,7 +2,10 @@
 #include "glad/glad.h"
 #include "gl/v33/V33Image3D.h"
 #include "gl/Util.h"
+#include "Logging.h"
 #include "ImageXYZC.h"
+
+#include <QElapsedTimer>
 
 #include <array>
 #include <iostream>
@@ -36,22 +39,8 @@ void Image3Dv33::create()
 	setSize(glm::vec2(-(_img->sizeX() / 2.0f), _img->sizeX() / 2.0f),
 		glm::vec2(-(_img->sizeY() / 2.0f), _img->sizeY() / 2.0f));
 
-	// Create image texture.
-	glGenTextures(1, &_textureid);
-	glBindTexture(GL_TEXTURE_3D, _textureid);
-	check_gl("Bind texture");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	check_gl("Set texture min filter");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	check_gl("Set texture mag filter");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	check_gl("Set texture wrap s");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	check_gl("Set texture wrap t");
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	check_gl("Set texture wrap r");
-	setC(_c, true);
-
+	//setC(_c, true);
+	//prepareTexture();
 	// Create LUT texture.
 	glGenTextures(1, &_lutid);
 	glBindTexture(GL_TEXTURE_1D_ARRAY, _lutid);
@@ -98,9 +87,9 @@ Image3Dv33::render(const CCamera& camera)
 	image3d_shader->dataRangeMax = texmax;
 	image3d_shader->GAMMA_MIN = 0.0;
 	image3d_shader->GAMMA_MAX = 1.0;
-	image3d_shader->GAMMA_SCALE = 1.0;
-	image3d_shader->BRIGHTNESS = 1.0;
-	image3d_shader->DENSITY = 0.0820849986238988f;
+	image3d_shader->GAMMA_SCALE = 1.3657f;
+	image3d_shader->BRIGHTNESS = 1.649f;
+	image3d_shader->DENSITY = 0.6081f;
 	image3d_shader->maskAlpha = 1.0;
 	image3d_shader->BREAK_STEPS = 512;
 	image3d_shader->AABB_CLIP_MIN = glm::vec3(-0.5,-0.5,-0.5);
@@ -238,7 +227,7 @@ Image3Dv33::setC(int c, bool force)
 
 		// pixel data is tightly packed
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		
+
 		glBindTexture(GL_TEXTURE_3D, _textureid);
 		glTexImage3D(GL_TEXTURE_3D,         // target
 			0,                     // level, 0 = base, no minimap,
@@ -253,5 +242,70 @@ Image3Dv33::setC(int c, bool force)
 		check_gl("Volume Texture create");
 		glGenerateMipmap(GL_TEXTURE_3D);
 	}
+}
+
+void Image3Dv33::prepareTexture(Scene& s) {
+	QElapsedTimer timer;
+	timer.start();
+
+	uint8_t* fusedrgbvolume = nullptr;
+	std::vector<glm::vec3> colors;
+	for (int i = 0; i < MAX_CPU_CHANNELS; ++i) {
+		if (s._material.enabled[i]) {
+			colors.push_back(glm::vec3(s._material.diffuse[i * 3],
+				s._material.diffuse[i * 3 + 1],
+				s._material.diffuse[i * 3 + 2]));
+		}
+		else {
+			colors.push_back(glm::vec3(0, 0, 0));
+		}
+	}
+
+	_img->fuse(colors, &fusedrgbvolume, nullptr);
+	
+	LOG_DEBUG << "fuse operation: " << timer.elapsed() << "ms";
+	timer.start();
+
+	// destroy old
+	glDeleteTextures(1, &_textureid);
+
+	// Create image texture.
+	glGenTextures(1, &_textureid);
+	glBindTexture(GL_TEXTURE_3D, _textureid);
+	check_gl("Bind texture");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	check_gl("Set texture min filter");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	check_gl("Set texture mag filter");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	check_gl("Set texture wrap s");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	check_gl("Set texture wrap t");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	check_gl("Set texture wrap r");
+	
+	GLenum internal_format = GL_RGBA8;
+	GLenum external_type = GL_UNSIGNED_BYTE;
+	GLenum external_format = GL_RGB;
+
+	// pixel data is tightly packed
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glBindTexture(GL_TEXTURE_3D, _textureid);
+	glTexImage3D(GL_TEXTURE_3D,         // target
+		0,                     // level, 0 = base, no minimap,
+		internal_format, // internal format
+		(GLsizei)_img->sizeX(),                 // width
+		(GLsizei)_img->sizeY(),                 // height
+		(GLsizei)_img->sizeZ(),
+		0,                     // border
+		external_format, // external format
+		external_type,   // external type
+		fusedrgbvolume);
+	check_gl("Volume Texture create");
+	glGenerateMipmap(GL_TEXTURE_3D);
+
+	delete[] fusedrgbvolume;
+	LOG_DEBUG << "prepare fused 3d rgb texture in " << timer.elapsed() << "ms";
 }
 
