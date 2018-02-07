@@ -1541,7 +1541,7 @@ public:
 	{
 		m_InvXY				= Vec2f(1.0f / m_XY.x, 1.0f / m_XY.y);
 		m_NoElements		= m_XY.x * m_XY.y;
-		m_AspectRatio		= (float)m_XY.y / (float)m_XY.x;
+		m_AspectRatio		= (float)m_XY.x / (float)m_XY.y;
 		m_DiagonalLength	= sqrtf(powf(m_XY.x, 2.0f) + powf(m_XY.y, 2.0f));
 	}
 

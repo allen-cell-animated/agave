@@ -314,11 +314,16 @@ GLBasicVolumeShader::setShadingUniforms()
 void 
 GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
+	float w = (float)camera.m_Film.GetWidth();
+	float h = (float)camera.m_Film.GetHeight();
+	float vfov = camera.m_FovV * DEG_TO_RAD;
+
 	glm::vec3 eye(camera.m_From.x, camera.m_From.y, camera.m_From.z);
 	glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
-	glm::vec3 up(-camera.m_Up.x, -camera.m_Up.y, -camera.m_Up.z);
+	glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
 	glm::mat4 cv = glm::lookAt(eye, center, up);
-	glm::mat4 cp = glm::perspectiveFov(camera.m_FovV, (float)camera.m_Film.GetWidth(), (float)camera.m_Film.GetHeight(), camera.m_Hither, camera.m_Yon);
+	glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Hither, camera.m_Yon);
+
 	//glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
 	glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
 	glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));

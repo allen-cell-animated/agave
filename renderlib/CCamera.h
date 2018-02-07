@@ -176,23 +176,15 @@ public:
 	{
 		float Scale = 0.0f;
 
-		Scale = tanf(0.5f * (FovV / RAD_F));
+		Scale = tanf(0.5f * (FovV * DEG_TO_RAD));
 
-		if (m_Resolution.GetAspectRatio() > 1.0f)
-		{
-			m_Screen[0][0] = -Scale;
-			m_Screen[0][1] = Scale;
-			m_Screen[1][0] = -Scale * m_Resolution.GetAspectRatio();
-			m_Screen[1][1] = Scale * m_Resolution.GetAspectRatio();
-		}
-		else
-		{
-			m_Screen[0][0] = -Scale / m_Resolution.GetAspectRatio();
-			m_Screen[0][1] = Scale / m_Resolution.GetAspectRatio();
-			m_Screen[1][0] = -Scale;
-			m_Screen[1][1] = Scale;
-		}
+		m_Screen[0][0] = -Scale * m_Resolution.GetAspectRatio();
+		m_Screen[0][1] = Scale * m_Resolution.GetAspectRatio();
+		// the "0" Y pixel will be at +Scale.
+		m_Screen[1][0] = Scale;
+		m_Screen[1][1] = -Scale;
 
+		// the amount to increment for each pixel
 		m_InvScreen.x = (m_Screen[0][1] - m_Screen[0][0]) / m_Resolution.GetResX();
 		m_InvScreen.y = (m_Screen[1][1] - m_Screen[1][0]) / m_Resolution.GetResY();
 
@@ -287,9 +279,14 @@ public:
 
 	HO void Update(void)
 	{
+		// right handed coordinate system
+
+		// "z" lookat direction
 		m_N	= Normalize(m_Target - m_From);
-		m_U	= Normalize(Cross(m_Up, m_N));
-		m_V	= Normalize(Cross(m_N, m_U));
+		// camera left/right
+		m_U	= Normalize(Cross(m_N, m_Up));
+		// camera up/down
+		m_V	= Normalize(Cross(m_U, m_N));
 
 		m_Film.Update(m_FovV, m_Aperture.m_Size);
 
@@ -320,12 +317,12 @@ public:
 	}
 
 	// Pan operator
-	HO void Pan(float DownDegrees, float RightDegrees)
+	HO void Pan(float UpUnits, float RightUnits)
 	{
 		Vec3f LoS = m_Target - m_From;
 
-		Vec3f right		= LoS.Cross(m_Up);
-		Vec3f orthogUp	= LoS.Cross(right);
+		Vec3f right		= Cross(LoS, m_Up);
+		Vec3f orthogUp = Cross(right, LoS);
 
 		right.Normalize();
 		orthogUp.Normalize();
@@ -334,11 +331,11 @@ public:
 
 		const unsigned int WindowWidth	= m_Film.m_Resolution.GetResX();
 
-		const float U = Length * (RightDegrees / WindowWidth);
-		const float V = Length * (DownDegrees / WindowWidth);
+		const float U = Length * (RightUnits / WindowWidth);
+		const float V = Length * (UpUnits / WindowWidth);
 
-		m_From		= m_From + right * U - m_Up * V;
-		m_Target	= m_Target + right * U - m_Up * V;
+		m_From		= m_From + right * U + m_Up * V;
+		m_Target	= m_Target + right * U + m_Up * V;
 	}
 
 	HO void Orbit(float DownDegrees, float RightDegrees)
@@ -390,6 +387,17 @@ public:
 		}
 
 		Update();
+	}
+
+	float GetHorizontalFOV_radians() {
+		// convert horz fov to vert fov
+		// w/d = 2*tan(hfov/2)
+		// h/d = 2*tan(vfov/2)
+		float hfov = 2.0 * atan((float)m_Film.GetWidth()/(float)m_Film.GetHeight() * tan(m_FovV * 0.5 * DEG_TO_RAD));
+		return hfov;
+	}
+	float GetVerticalFOV_radians() {
+		return m_FovV * DEG_TO_RAD;
 	}
 };
 

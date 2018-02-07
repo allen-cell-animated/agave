@@ -141,12 +141,12 @@ DEV bool IntersectBox(const CRay& R, float* pNearT, float* pFarT)
 	const Vec3f MinT		= MinVec3f(TopT, BottomT);
 	const Vec3f MaxT		= MaxVec3f(TopT, BottomT);
 	const float LargestMinT = fmaxf(fmaxf(MinT.x, MinT.y), fmaxf(MinT.x, MinT.z));
-	const float LargestMaxT = fminf(fminf(MaxT.x, MaxT.y), fminf(MaxT.x, MaxT.z));
+	const float SmallestMaxT = fminf(fminf(MaxT.x, MaxT.y), fminf(MaxT.x, MaxT.z));
 
 	*pNearT = LargestMinT;
-	*pFarT	= LargestMaxT;
+	*pFarT	= SmallestMaxT;
 
-	return LargestMaxT > LargestMinT;
+	return SmallestMaxT > LargestMinT;
 }
 
 DEV CColorXyza CumulativeMovingAverage(const CColorXyza& A, const CColorXyza& Ax, const int& N)

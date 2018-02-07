@@ -89,24 +89,25 @@ Image3Dv33::render(const CCamera& camera)
 	image3d_shader->GAMMA_MAX = 1.0;
 	image3d_shader->GAMMA_SCALE = 1.3657f;
 	image3d_shader->BRIGHTNESS = 1.649f;
-	image3d_shader->DENSITY = 0.6081f;
+	image3d_shader->DENSITY = 0.06081f;
 	image3d_shader->maskAlpha = 1.0;
 	image3d_shader->BREAK_STEPS = 512;
+	// axis aligned clip planes
 	image3d_shader->AABB_CLIP_MIN = glm::vec3(-0.5,-0.5,-0.5);
 	image3d_shader->AABB_CLIP_MAX = glm::vec3(0.5,0.5,0.5);
 	image3d_shader->setShadingUniforms();
 
 	// model matrix will be a scaling matrix based on the image physical dims
+	// this rendering system relies on camera pointing to the center of the scene bounds
+	// transform the box to be centered on 0.5*scale and a corner at 0,0,0 and the other corner at scale
 	glm::vec3 dims(_img->sizeX()*_img->physicalSizeX(),
 		_img->sizeY()*_img->physicalSizeY(),
 		_img->sizeZ()*_img->physicalSizeZ());
 	float maxd = std::max(dims.x, std::max(dims.y, dims.z));
 	glm::vec3 scales(dims.x / maxd, dims.y / maxd, dims.z / maxd);
 	glm::mat4 mm = glm::scale(glm::mat4(1.0f), scales);
+	mm = glm::translate(mm, glm::vec3(0.5, 0.5, 0.5));
 
-	// try to center the object relative to camera
-	mm = glm::translate(mm, glm::vec3(0.5, 0.5, 0.0));
-	
 	image3d_shader->setTransformUniforms(camera, mm);
 
 	glActiveTexture(GL_TEXTURE0);
