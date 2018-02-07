@@ -51,9 +51,11 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 		MinT	+= gStepSize;
 	}
 
+	// Ps is the point
 	return true;
 }
 
+// "shadow ray" using gStepSizeShadow, test whether it can exit the volume or not
 DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 {
 	float MinT;
@@ -88,6 +90,7 @@ DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 	return true;
 }
 
+// does the ray encounter any nonzero intensity?
 DEV inline bool NearestIntersection(CRay R, const cudaVolume& volumedata, float& T)
 {
 	float MinT = 0.0f, MaxT = 0.0f;
