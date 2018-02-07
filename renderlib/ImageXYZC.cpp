@@ -355,7 +355,7 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
 {
 	std::fill(_bins.begin(), _bins.end(), 0);
 
-	_dataMin = data[0];
+	_dataMin = 0;// data[0];
 	_dataMax = data[0];
 
 	uint16_t val;
@@ -372,7 +372,7 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
 	float range = (float)(_dataMax - _dataMin);
 	float binmax = (float)(num_bins - 1);
 	for (size_t i = 0; i < length; ++i) {
-		size_t whichbin = (size_t) ( (float)(data[i] - _dataMin) / range * binmax );
+		size_t whichbin = (size_t) ( (float)(data[i] - _dataMin) / range * binmax + 0.5 );
 //		val = data[i];
 //		// normalize to 0..1 range
 //		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
@@ -448,12 +448,14 @@ float* Histogram::generate_bestFit(float& window, float& level, size_t length) {
 float* Histogram::generate_auto2(float& window, float& level, size_t length) {
 
 	size_t AUTO_THRESHOLD = 10000;
-	size_t pixcount = _pixelCount;
+	size_t pixcount = _pixelCount - _bins[0];
 	//  const pixcount = this.imgData.data.length;
 	size_t limit = pixcount / 10;
 	size_t threshold = pixcount / AUTO_THRESHOLD;
 
+	size_t nbins = _bins.size();
 
+#if 0
 	size_t i = -1;
 	bool found = false;
 	int count;
@@ -462,9 +464,9 @@ float* Histogram::generate_auto2(float& window, float& level, size_t length) {
 		count = _bins[i];
 		if (count>limit) count = 0;
 		found = count> threshold;
-	} while (!found && i<(_bins.size()-1));
+	} while (!found && i<(nbins-1));
 	size_t hmin = i;
-	i = _bins.size();
+	i = nbins;
 	do {
 		i--;
 		count = _bins[i];
@@ -472,25 +474,25 @@ float* Histogram::generate_auto2(float& window, float& level, size_t length) {
 		found = count > threshold;
 	} while (!found && i > 0);
 	size_t hmax = i;
+#endif
 
-
-#if 0
+//#if 0
 	// this will skip the "zero" bin which contains pixels of zero intensity.
-	size_t hmin = _bins.size() - 1;
-	size_t hmax = 0;
-	for (size_t i = 0; i < _bins.size(); ++i) {
+	size_t hmin = nbins - 1;
+	size_t hmax = 1;
+	for (size_t i = 1; i < nbins; ++i) {
 		if (_bins[i] > threshold && _bins[i] <= limit) {
 			hmin = i;
 			break;
 		}
 	}
-	for (size_t i = _bins.size() - 1; i >= 0; --i) {
+	for (size_t i = nbins - 1; i >= 1; --i) {
 		if (_bins[i] > threshold && _bins[i] <= limit) {
 			hmax = i;
 			break;
 		}
 	}
-#endif
+//#endif
 
 	if (hmax < hmin) {
 		// just reset to whole range in this case.
