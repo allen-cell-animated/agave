@@ -424,4 +424,6 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 	QSize newsize = size();
 	_renderer->scene() = sc;
 	_renderer->initialize(newsize.width(), newsize.height());
+
+	_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }

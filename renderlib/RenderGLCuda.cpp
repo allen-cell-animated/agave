@@ -33,7 +33,6 @@ RenderGLCuda::RenderGLCuda(CScene* scene)
 	_w(0),
 	_h(0)
 {
-	_renderSettings->m_Camera.SetViewMode(ViewModeFront);
 }
 
 

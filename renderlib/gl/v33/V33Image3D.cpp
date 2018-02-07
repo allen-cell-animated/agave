@@ -105,7 +105,7 @@ Image3Dv33::render(const CCamera& camera)
 	glm::mat4 mm = glm::scale(glm::mat4(1.0f), scales);
 
 	// try to center the object relative to camera
-	mm = glm::translate(mm, scales*0.5f);
+	mm = glm::translate(mm, glm::vec3(0.5, 0.5, 0.0));
 	
 	image3d_shader->setTransformUniforms(camera, mm);
 
