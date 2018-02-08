@@ -67,6 +67,7 @@ public:
 	uint32_t sizeX() const;
 	uint32_t sizeY() const;
 	uint32_t sizeZ() const;
+	uint32_t maxPixelDimension() const;
 	float physicalSizeX() const;
 	float physicalSizeY() const;
 	float physicalSizeZ() const;

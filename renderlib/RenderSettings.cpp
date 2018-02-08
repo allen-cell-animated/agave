@@ -5,7 +5,7 @@
 
 RenderSettings::RenderSettings(void) :
 	m_Camera(),
-	m_Resolution(),
+	//m_Resolution(),
 	m_DirtyFlags(),
 	m_Spacing(),
 	m_Scale(),
@@ -23,7 +23,7 @@ RenderSettings::RenderSettings(const RenderSettings& Other)
 RenderSettings& RenderSettings::operator=(const RenderSettings& Other)
 {
 	m_Camera					= Other.m_Camera;
-	m_Resolution				= Other.m_Resolution;
+	//m_Resolution				= Other.m_Resolution;
 	m_DirtyFlags				= Other.m_DirtyFlags;
 	m_Spacing					= Other.m_Spacing;
 	m_Scale						= Other.m_Scale;
@@ -37,18 +37,18 @@ RenderSettings& RenderSettings::operator=(const RenderSettings& Other)
 
 void RenderSettings::initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz)
 {
-	m_Resolution.SetResX(vx);
-	m_Resolution.SetResY(vy);
-	m_Resolution.SetResZ(vz);
+	//m_Resolution.SetResX(vx);
+	//m_Resolution.SetResY(vy);
+	//m_Resolution.SetResZ(vz);
 	m_Spacing.x = sx;
 	m_Spacing.y = sy;
 	m_Spacing.z = sz;
 
 	// Compute physical size
 	const Vec3f PhysicalSize(Vec3f(
-		m_Spacing.x * (float)m_Resolution.GetResX(),
-		m_Spacing.y * (float)m_Resolution.GetResY(),
-		m_Spacing.z * (float)m_Resolution.GetResZ()
+		m_Spacing.x * (float)vx,
+		m_Spacing.y * (float)vy,
+		m_Spacing.z * (float)vz
 	));
 
 	// Compute the volume's bounding box

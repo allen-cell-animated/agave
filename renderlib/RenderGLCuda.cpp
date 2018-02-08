@@ -371,7 +371,7 @@ void RenderGLCuda::doRender() {
 
 	_renderSettings->m_Camera.Update();
 
-	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)_renderSettings->m_Resolution.GetMax();
+	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_appScene._volume->maxPixelDimension();
 
 	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
