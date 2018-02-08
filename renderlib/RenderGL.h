@@ -8,16 +8,15 @@
 
 #include <memory>
 
-class CScene;
-class Image2D;
 class Image3Dv33;
 class ImageXYZC;
+class RenderSettings;
 
 class RenderGL :
 	public IRenderWindow
 {
 public:
-	RenderGL(CScene* scene);
+	RenderGL(RenderSettings* rs);
 	virtual ~RenderGL();
 
 	virtual void initialize(uint32_t w, uint32_t h);
@@ -32,7 +31,7 @@ public:
 	void setImage(std::shared_ptr<ImageXYZC> img);
 private:
 	Image3Dv33 *image3d;
-	CScene* _scene;
+	RenderSettings* _renderSettings;
 
 	Scene _appScene;
 	RenderParams _renderParams;

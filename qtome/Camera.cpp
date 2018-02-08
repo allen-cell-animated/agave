@@ -2,7 +2,7 @@
 
 #include "Camera.h"
 
-#include "Scene.h"
+#include "renderlib/RenderSettings.h"
 
 QCamera::QCamera(QObject* pParent /*= NULL*/) :
 	QObject(pParent),

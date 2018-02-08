@@ -7,7 +7,7 @@
 #include "Controls.h"
 #include "Film.h"
 
-class CScene;
+class RenderSettings;
 class QCamera;
 
 class QFilmResolutionPreset
@@ -78,7 +78,7 @@ class QFilmWidget : public QGroupBox
     Q_OBJECT
 
 public:
-    QFilmWidget(QWidget* pParent = NULL, QCamera* cam = nullptr, CScene* scene = nullptr);
+    QFilmWidget(QWidget* pParent = NULL, QCamera* cam = nullptr, RenderSettings* rs = nullptr);
 
 public slots:
 	void SetPresetType(const QString& PresetType);
@@ -105,5 +105,5 @@ private:
 	QCheckBox				m_NoiseReduction;
 
 	QCamera* _camera;
-	CScene* _Scene;
+	RenderSettings* _renderSettings;
 };

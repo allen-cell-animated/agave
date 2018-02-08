@@ -2,9 +2,9 @@
 
 #include "CameraDockWidget.h"
 
-QCameraDockWidget::QCameraDockWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
+QCameraDockWidget::QCameraDockWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	QDockWidget(pParent),
-	m_CameraWidget(nullptr, cam, scene)
+	m_CameraWidget(nullptr, cam, rs)
 {
 	setWindowTitle("Camera");
 	setToolTip("<img src=':/Images/camera.png'><div>Camera Properties</div>");

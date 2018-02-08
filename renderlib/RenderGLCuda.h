@@ -2,7 +2,7 @@
 #include "IRenderWindow.h"
 
 #include "AppScene.h"
-#include "Scene.h"
+#include "RenderSettings.h"
 
 #include "glad/include/glad/glad.h"
 #include "CudaUtilities.h"
@@ -22,7 +22,7 @@ class RenderGLCuda :
 	public IRenderWindow
 {
 public:
-	RenderGLCuda(CScene* scene);
+	RenderGLCuda(RenderSettings* rs);
 	virtual ~RenderGLCuda();
 
 	virtual void initialize(uint32_t w, uint32_t h);
@@ -36,7 +36,7 @@ public:
 
 	void setImage(std::shared_ptr<ImageXYZC> img);
 	Image3Dv33* getImage() const { return nullptr; };
-	CScene& getScene() { return *_renderSettings; }
+	RenderSettings& getRenderSettings() { return *_renderSettings; }
 
 
 	// just draw into my own fbo.
@@ -44,7 +44,7 @@ public:
 	// draw my fbo texture into the current render target
 	void drawImage();
 private:
-	CScene* _renderSettings;
+	RenderSettings* _renderSettings;
 
 	RenderParams _renderParams;
 	Scene _appScene;

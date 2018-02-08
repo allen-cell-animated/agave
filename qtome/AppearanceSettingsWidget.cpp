@@ -6,11 +6,11 @@
 
 #include "ImageXYZC.h"
 #include "RenderThread.h"
-#include "Scene.h"
-#include "AppScene.h"
+#include "renderlib/RenderSettings.h"
+#include "renderlib/AppScene.h"
 #include "renderlib/Logging.h"
 
-QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransferFunction* tran, CScene* scene) :
+QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransferFunction* tran, RenderSettings* rs) :
 	QGroupBox(pParent),
 	m_MainLayout(),
 	m_DensityScaleSlider(),
@@ -38,12 +38,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	m_DensityScaleSlider.setOrientation(Qt::Horizontal);
 	m_DensityScaleSlider.setRange(0.001, 100.0);
-	m_DensityScaleSlider.setValue(scene->m_RenderSettings.m_DensityScale);
+	m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
 	m_MainLayout.addWidget(&m_DensityScaleSlider, 2, 1);
 
 	m_DensityScaleSpinner.setRange(0.001, 100.0);
 	m_DensityScaleSpinner.setDecimals(3);
-	m_DensityScaleSpinner.setValue(scene->m_RenderSettings.m_DensityScale);
+	m_DensityScaleSpinner.setValue(rs->m_RenderSettings.m_DensityScale);
 	m_MainLayout.addWidget(&m_DensityScaleSpinner, 2, 2);
 
 	m_MainLayout.addWidget(new QLabel("Shading Type"), 3, 0);
@@ -57,13 +57,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(&m_GradientFactorLabel, 4, 0);
 	
 	m_GradientFactorSlider.setRange(0.001, 100.0);
-	m_GradientFactorSlider.setValue(scene->m_RenderSettings.m_GradientFactor);
+	m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
 
 	m_MainLayout.addWidget(&m_GradientFactorSlider, 4, 1);
 
 	m_GradientFactorSpinner.setRange(0.001, 100.0);
 	m_GradientFactorSpinner.setDecimals(3);
-	m_GradientFactorSpinner.setValue(scene->m_RenderSettings.m_GradientFactor);
+	m_GradientFactorSpinner.setValue(rs->m_RenderSettings.m_GradientFactor);
 
 	m_MainLayout.addWidget(&m_GradientFactorSpinner, 4, 2);
 
@@ -174,23 +174,23 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 void QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
 {
 	_scene->_lighting.m_Lights[1].m_Theta = value;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
 {
 	_scene->_lighting.m_Lights[1].m_Phi = value;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
 {
 	_scene->_lighting.m_Lights[1].m_Width = value;
 	_scene->_lighting.m_Lights[1].m_Height = value;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
 {
 	_scene->_lighting.m_Lights[1].m_Distance = value;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& color)
 {
@@ -198,19 +198,19 @@ void QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QCol
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
 	_scene->_lighting.m_Lights[1].m_Color = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(LightsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
 void QAppearanceSettingsWidget::OnRenderBegin(void)
 {
 	m_DensityScaleSlider.setValue(_transferFunction->GetDensityScale());
 	m_ShadingType.setCurrentIndex(_transferFunction->GetShadingType());
-	m_GradientFactorSlider.setValue(_transferFunction->scene()->m_RenderSettings.m_GradientFactor);
+	m_GradientFactorSlider.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_GradientFactor);
 
-	m_StepSizePrimaryRaySlider.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactor, true);
-	m_StepSizePrimaryRaySpinner.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactor, true);
-	m_StepSizeSecondaryRaySlider.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactorShadow, true);
-	m_StepSizeSecondaryRaySpinner.setValue(_transferFunction->scene()->m_RenderSettings.m_StepSizeFactorShadow, true);
+	m_StepSizePrimaryRaySlider.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
+	m_StepSizePrimaryRaySpinner.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
+	m_StepSizeSecondaryRaySlider.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow, true);
+	m_StepSizeSecondaryRaySpinner.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow, true);
 }
 
 void QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
@@ -238,14 +238,14 @@ void QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)
 
 void QAppearanceSettingsWidget::OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay)
 {
-	_transferFunction->scene()->m_RenderSettings.m_StepSizeFactor = (float)StepSizePrimaryRay;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor = (float)StepSizePrimaryRay;
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay)
 {
-	_transferFunction->scene()->m_RenderSettings.m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
@@ -264,7 +264,7 @@ void QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color
 	_scene->_material.diffuse[i * 3 + 0] = rgba[0];
 	_scene->_material.diffuse[i * 3 + 1] = rgba[1];
 	_scene->_material.diffuse[i * 3 + 2] = rgba[2];
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void QAppearanceSettingsWidget::OnSpecularColorChanged(int i, const QColor& color)
@@ -274,7 +274,7 @@ void QAppearanceSettingsWidget::OnSpecularColorChanged(int i, const QColor& colo
 	_scene->_material.specular[i * 3 + 0] = rgba[0];
 	_scene->_material.specular[i * 3 + 1] = rgba[1];
 	_scene->_material.specular[i * 3 + 2] = rgba[2];
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
@@ -284,25 +284,25 @@ void QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& colo
 	_scene->_material.emissive[i * 3 + 0] = rgba[0];
 	_scene->_material.emissive[i * 3 + 1] = rgba[1];
 	_scene->_material.emissive[i * 3 + 2] = rgba[2];
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
 {
 	LOG_DEBUG << "window/level: " << window << ", " << level;
 	_scene->_volume->channel((uint32_t)i)->generate_windowLevel(window, level);
 
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 void QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
 	_scene->_material.roughness[i] = roughness;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 void QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked) {
 	_scene->_material.enabled[i] = is_checked;
-	_transferFunction->scene()->m_DirtyFlags.SetFlag(VolumeDataDirty);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 
 inline QVector<QColor> rndColors(int count) {
@@ -367,7 +367,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_auto(w,l);
 			LOG_DEBUG << "Window/level: " << w << " , " << l;
-			this->_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 		QPushButton* auto2Button = new QPushButton("Auto2");
 		sectionLayout->addWidget(auto2Button, row, 1);
@@ -375,7 +375,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_auto2(w, l);
 			LOG_DEBUG << "Window/level: " << w << " , " << l;
-			this->_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 		QPushButton* bestfitButton = new QPushButton("BestFit");
 		sectionLayout->addWidget(bestfitButton, row, 2);
@@ -383,7 +383,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_bestFit(w, l);
 			LOG_DEBUG << "Window/level: " << w << " , " << l;
-			this->_transferFunction->scene()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 
 		row++;

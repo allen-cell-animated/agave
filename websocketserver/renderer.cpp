@@ -5,7 +5,7 @@
 #include "renderlib/HardwareWidget.h"
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/renderlib.h"
-#include "renderlib/Scene.h"
+#include "renderlib/RenderSettings.h"
 
 #include "commandBuffer.h"
 #include "command.h"
@@ -36,14 +36,14 @@ void Renderer::myVolumeInit() {
 //	std::string file("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
 //	std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file);
 //	myVolumeData._image = image;
-	myVolumeData._scene = new CScene();
-	myVolumeData._scene->m_Camera.m_Film.m_ExposureIterations = 1;
+	myVolumeData._renderSettings = new RenderSettings();
+	myVolumeData._renderSettings->m_Camera.m_Film.m_ExposureIterations = 1;
 //	myVolumeData._scene->m_DiffuseColor[0] = 1.0;
 //	myVolumeData._scene->m_DiffuseColor[1] = 1.0;
 //	myVolumeData._scene->m_DiffuseColor[2] = 1.0;
 //	myVolumeData._scene->m_DiffuseColor[3] = 1.0;
 
-	myVolumeData._renderer = new RenderGLCuda(myVolumeData._scene);
+	myVolumeData._renderer = new RenderGLCuda(myVolumeData._renderSettings);
 	myVolumeData._renderer->initialize(1024, 1024);
 }
 
@@ -145,7 +145,7 @@ bool Renderer::processRequest()
 	// in stream mode:
 	// if queue is empty, then keep firing redraws back to client.
 	// test about 100 frames as a convergence limit.
-	if (_streamMode != 0 && this->requests.length() == 0 && myVolumeData._scene->GetNoIterations() < 100) {
+	if (_streamMode != 0 && this->requests.length() == 0 && myVolumeData._renderSettings->GetNoIterations() < 100) {
 		// push another redraw request.
 		std::vector<Command*> cmd;
 		RequestRedrawCommandD data;
@@ -169,7 +169,7 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 
 	if (cmds.size() > 0) {
 		ExecutionContext ec;
-		ec._scene = myVolumeData._scene;
+		ec._renderSettings = myVolumeData._renderSettings;
 		ec._renderer = this;
 		ec._appScene = &myVolumeData._renderer->scene();
 

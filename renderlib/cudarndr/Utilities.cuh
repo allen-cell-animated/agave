@@ -75,13 +75,6 @@ DEV float GetRoughnessN(const float& NormalizedIntensity, const cudaVolume& volu
 	//return tex1D(gTexRoughness, NormalizedIntensity);
 }
 
-DEV float GetRoughness(const float& NormalizedIntensity)
-{
-	return 1.0;
-	//return NormalizedIntensity;
-	//return tex1D(gTexRoughness, NormalizedIntensity);
-}
-
 DEV CColorRgbHdr GetEmissionN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
 	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);

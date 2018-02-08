@@ -17,7 +17,7 @@
 
 #include <array>
 
-RenderGLCuda::RenderGLCuda(CScene* scene)
+RenderGLCuda::RenderGLCuda(RenderSettings* rs)
 	:_cudaF32Buffer(nullptr),
 	_cudaF32AccumBuffer(nullptr),
 	_cudaTex(nullptr),
@@ -29,7 +29,7 @@ RenderGLCuda::RenderGLCuda(CScene* scene)
 	image_elements(0),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
-	_renderSettings(scene),
+	_renderSettings(rs),
 	_w(0),
 	_h(0)
 {

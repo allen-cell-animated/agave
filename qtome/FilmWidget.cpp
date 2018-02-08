@@ -3,11 +3,11 @@
 #include "FilmWidget.h"
 #include "RenderThread.h"
 #include "Camera.h"
-#include "Scene.h"
+#include "renderlib/RenderSettings.h"
 
 #include <QVariant>
 
-QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
+QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	QGroupBox(pParent),
 	m_GridLayout(),
 	m_PresetType(),
@@ -19,7 +19,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	m_ExposureIterationsSpinner(),
 	m_NoiseReduction(),
 	_camera(cam),
-	_Scene(scene)
+	_renderSettings(rs)
 {
 	setTitle("Film");
 	setStatusTip("Film properties");
@@ -80,11 +80,11 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 
 	m_ExposureSlider.setOrientation(Qt::Horizontal);
 	m_ExposureSlider.setRange(0.0f, 1.0f);
-	m_ExposureSlider.setValue(scene->m_Camera.m_Film.m_Exposure, true);
+	m_ExposureSlider.setValue(rs->m_Camera.m_Film.m_Exposure, true);
 	m_GridLayout.addWidget(&m_ExposureSlider, 3, 1);
 
 	m_ExposureSpinner.setRange(0.0f, 1.0f);
-	m_ExposureSpinner.setValue(scene->m_Camera.m_Film.m_Exposure, true);
+	m_ExposureSpinner.setValue(rs->m_Camera.m_Film.m_Exposure, true);
 	m_GridLayout.addWidget(&m_ExposureSpinner, 3, 2);
 
  	QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), &m_ExposureSpinner, SLOT(setValue(double)));
@@ -100,7 +100,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	m_ExposureIterationsSpinner.addItem("4", 4);
 	m_ExposureIterationsSpinner.addItem("8", 8);
 
-	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(scene->m_Camera.m_Film.m_ExposureIterations));
+	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(rs->m_Camera.m_Film.m_ExposureIterations));
 	m_GridLayout.addWidget(&m_ExposureIterationsSpinner, 4, 1);
 	//QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(valueChanged(int)), this, SLOT(SetExposureIterations(int)));
 	QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(SetExposureIterations(const QString&)));
@@ -108,7 +108,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, CScene* scene) :
 	//gStatus.SetStatisticChanged("Camera", "Film", "", "", "");
 
 	m_NoiseReduction.setText("Noise Reduction");
-	m_NoiseReduction.setCheckState(scene->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+	m_NoiseReduction.setCheckState(rs->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 	m_GridLayout.addWidget(&m_NoiseReduction, 5, 1);
 
 	QObject::connect(&m_NoiseReduction, SIGNAL(stateChanged(const int&)), this, SLOT(OnNoiseReduction(const int&)));
@@ -199,7 +199,7 @@ void QFilmWidget::OnRenderBegin(void)
 	m_ExposureSpinner.setValue(_camera->GetFilm().GetExposure());
 	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(_camera->GetFilm().GetExposureIterations()));
 
-	m_NoiseReduction.setChecked(_Scene->m_DenoiseParams.m_Enabled);
+	m_NoiseReduction.setChecked(_renderSettings->m_DenoiseParams.m_Enabled);
 }
 
 void QFilmWidget::OnRenderEnd(void)

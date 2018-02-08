@@ -1,6 +1,6 @@
 #pragma once
 
-class CScene;
+class RenderSettings;
 
 class QTransferFunction : public QObject
 {
@@ -27,8 +27,8 @@ public:
 
 	static QTransferFunction	Default(void);
 
-	void setScene(CScene& scene);
-	CScene* scene() { return _Scene; }
+	void setRenderSettings(RenderSettings& rs);
+	RenderSettings* renderSettings() { return _renderSettings; }
 
 signals:
 	void	Changed(void);
@@ -43,5 +43,5 @@ private:
 	float m_Window;
 	float m_Level;
 
-	CScene* _Scene;
+	RenderSettings* _renderSettings;
 };

@@ -9,8 +9,8 @@
 #include <memory>
 
 class QTransferFunction;
-class CScene;
 class ImageXYZC;
+class RenderSettings;
 class Scene;
 class Section;
 
@@ -19,7 +19,7 @@ class QAppearanceSettingsWidget : public QGroupBox
 	Q_OBJECT
 
 public:
-    QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, CScene* scene = nullptr);
+    QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, RenderSettings* rs = nullptr);
 
 	void onNewImage(Scene* scene);
 

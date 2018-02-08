@@ -2,7 +2,7 @@
 
 #include "TransferFunction.h"
 
-#include "Scene.h"
+#include "RenderSettings.h"
 
 QTransferFunction::QTransferFunction(QObject* pParent) :
 	QObject(pParent),
@@ -36,12 +36,12 @@ QTransferFunction& QTransferFunction::operator = (const QTransferFunction& Other
 	return *this;
 }
 
-void QTransferFunction::setScene(CScene& scene) { 
-	_Scene = &scene;
+void QTransferFunction::setRenderSettings(RenderSettings& rs) {
+	_renderSettings = &rs;
 
-	m_DensityScale = scene.m_RenderSettings.m_DensityScale;
-	m_ShadingType = scene.m_RenderSettings.m_ShadingType;
-	m_GradientFactor = scene.m_RenderSettings.m_GradientFactor;
+	m_DensityScale = rs.m_RenderSettings.m_DensityScale;
+	m_ShadingType = rs.m_RenderSettings.m_ShadingType;
+	m_GradientFactor = rs.m_RenderSettings.m_GradientFactor;
 
 	emit Changed();
 }

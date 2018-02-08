@@ -15,7 +15,7 @@
 
 class ImageXYZC;
 class RenderGLCuda;
-class CScene;
+class RenderSettings;
 class commandBuffer;
 //#include "dynamiclibrary.h"
 
@@ -103,10 +103,10 @@ private:
 	void myVolumeInit();
 	struct myVolumeData {
 		std::shared_ptr<ImageXYZC> _image;
-		CScene* _scene;
+		RenderSettings* _renderSettings;
 		RenderGLCuda* _renderer;
 
-		myVolumeData() : _scene(nullptr), _renderer(nullptr) {}
+		myVolumeData() : _renderSettings(nullptr), _renderer(nullptr) {}
 	} myVolumeData;
 
 signals:

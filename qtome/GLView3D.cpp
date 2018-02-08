@@ -36,7 +36,7 @@ namespace
 GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 	QCamera* cam,
 	QTransferFunction* tran,
-	CScene* scene,
+	RenderSettings* rs,
     QWidget* /* parent */):
     GLWindow(),
     camera(),
@@ -45,8 +45,8 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
     _c(0),
     lastPos(0, 0),
     _img(img),
-	_scene(scene),
-    _renderer(new RenderGLCuda(scene)),
+	_renderSettings(rs),
+    _renderer(new RenderGLCuda(rs)),
 	//    _renderer(new RenderGL(img))
 	_camera(cam),
 	_cameraController(cam),
@@ -55,8 +55,8 @@ GLView3D::GLView3D(std::shared_ptr<ImageXYZC>  img,
 {
 	// The GLView3D owns one CScene
 
-	_cameraController.setScene(*_scene);
-	_transferFunction->setScene(*_scene);
+	_cameraController.setRenderSettings(*_renderSettings);
+	_transferFunction->setRenderSettings(*_renderSettings);
 
 	// IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
 	// GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
@@ -343,55 +343,55 @@ GLView3D::timerEvent (QTimerEvent *event)
 void GLView3D::OnUpdateCamera()
 {
 	//	QMutexLocker Locker(&gSceneMutex);
-	CScene& scene = *_scene;
-	scene.m_Camera.m_Film.m_Exposure = 1.0f - _camera->GetFilm().GetExposure();
-	scene.m_Camera.m_Film.m_ExposureIterations = _camera->GetFilm().GetExposureIterations();
+	RenderSettings& rs = *_renderSettings;
+	rs.m_Camera.m_Film.m_Exposure = 1.0f - _camera->GetFilm().GetExposure();
+	rs.m_Camera.m_Film.m_ExposureIterations = _camera->GetFilm().GetExposureIterations();
 
 	if (_camera->GetFilm().IsDirty())
 	{
 		const int FilmWidth = _camera->GetFilm().GetWidth();
 		const int FilmHeight = _camera->GetFilm().GetHeight();
 
-		scene.m_Camera.m_Film.m_Resolution.SetResX(FilmWidth);
-		scene.m_Camera.m_Film.m_Resolution.SetResY(FilmHeight);
-		scene.m_Camera.Update();
+		rs.m_Camera.m_Film.m_Resolution.SetResX(FilmWidth);
+		rs.m_Camera.m_Film.m_Resolution.SetResY(FilmHeight);
+		rs.m_Camera.Update();
 		_camera->GetFilm().UnDirty();
 		// 		// 
-		scene.m_DirtyFlags.SetFlag(FilmResolutionDirty);
+		rs.m_DirtyFlags.SetFlag(FilmResolutionDirty);
 	}
 
 	// 	gScene.m_Camera.m_From	= gCamera.GetFrom();
 	// 	gScene.m_Camera.m_Target	= gCamera.GetTarget();
 	// 	gScene.m_Camera.m_Up		= gCamera.GetUp();
 
-	scene.m_Camera.Update();
+	rs.m_Camera.Update();
 
 	// Aperture
-	scene.m_Camera.m_Aperture.m_Size = _camera->GetAperture().GetSize();
+	rs.m_Camera.m_Aperture.m_Size = _camera->GetAperture().GetSize();
 
 	// Projection
-	scene.m_Camera.m_FovV = _camera->GetProjection().GetFieldOfView();
+	rs.m_Camera.m_FovV = _camera->GetProjection().GetFieldOfView();
 
 	// Focus
-	scene.m_Camera.m_Focus.m_Type = (CFocus::EType)_camera->GetFocus().GetType();
-	scene.m_Camera.m_Focus.m_FocalDistance = _camera->GetFocus().GetFocalDistance();
+	rs.m_Camera.m_Focus.m_Type = (CFocus::EType)_camera->GetFocus().GetType();
+	rs.m_Camera.m_Focus.m_FocalDistance = _camera->GetFocus().GetFocalDistance();
 
-	scene.m_DenoiseParams.m_Enabled = _camera->GetFilm().GetNoiseReduction();
+	rs.m_DenoiseParams.m_Enabled = _camera->GetFilm().GetNoiseReduction();
 
-	scene.m_DirtyFlags.SetFlag(CameraDirty);
+	rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 void GLView3D::OnUpdateTransferFunction(void)
 {
 	//QMutexLocker Locker(&gSceneMutex);
-	CScene& scene = *_scene;
+	RenderSettings& rs = *_renderSettings;
 
-	scene.m_RenderSettings.m_DensityScale = _transferFunction->GetDensityScale();
-	scene.m_RenderSettings.m_ShadingType = _transferFunction->GetShadingType();
-	scene.m_RenderSettings.m_GradientFactor = _transferFunction->GetGradientFactor();
+	rs.m_RenderSettings.m_DensityScale = _transferFunction->GetDensityScale();
+	rs.m_RenderSettings.m_ShadingType = _transferFunction->GetShadingType();
+	rs.m_RenderSettings.m_GradientFactor = _transferFunction->GetGradientFactor();
 
 	// update window/levels / transfer function here!!!!
 
-	scene.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+	rs.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 CStatus* GLView3D::getStatus() {
@@ -413,17 +413,18 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 	switch (rendererType) {
 	case 1:
 		LOG_DEBUG << "Set CUDA Renderer";
-		_renderer.reset(new RenderGLCuda(_scene));
+		_renderer.reset(new RenderGLCuda(_renderSettings));
 		break;
 	default:
 		LOG_DEBUG << "Set OpenGL Renderer";
-		_renderer.reset(new RenderGL(_scene));
+		_renderer.reset(new RenderGL(_renderSettings));
 	};
 	_rendererType = rendererType;
 
 	QSize newsize = size();
+	// need to update the scene in QAppearanceSettingsWidget.
 	_renderer->scene() = sc;
 	_renderer->initialize(newsize.width(), newsize.height());
 
-	_scene->m_DirtyFlags.SetFlag(RenderParamsDirty);
+	_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }

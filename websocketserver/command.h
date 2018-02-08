@@ -2,13 +2,13 @@
 
 #include <string>
 
-class CScene;
 class Renderer;
+class RenderSettings;
 class Scene;
 
 struct ExecutionContext {
 	Renderer* _renderer;
-	CScene* _scene;
+	RenderSettings* _renderSettings;
 	Scene* _appScene;
 };
 

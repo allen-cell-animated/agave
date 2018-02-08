@@ -4,14 +4,13 @@
 #include "Focus.h"
 
 class QCamera;
-class CScene;
 
 class QFocusWidget : public QGroupBox
 {
     Q_OBJECT
 
 public:
-    QFocusWidget(QWidget* pParent = NULL, QCamera* cam = nullptr, CScene* scene = nullptr);
+    QFocusWidget(QWidget* pParent = NULL, QCamera* cam = nullptr);
 
 private slots:
 	void SetFocusType(int FocusType);

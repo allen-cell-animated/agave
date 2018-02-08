@@ -4,7 +4,7 @@
 #include "Flags.h"
 #include "Camera.h"
 
-class CScene;
+class RenderSettings;
 class QMouseEvent;
 
 // Define interaction style for controlling a realistic camera
@@ -20,7 +20,7 @@ public:
 		Right	= 0x0004
 	};
 
-	void setScene(CScene& scene) { _Scene = &scene; }
+	void setRenderSettings(RenderSettings& rs) { _renderSettings = &rs; }
 
 	virtual void OnMouseWheelForward(void);
 	virtual void OnMouseWheelBackward(void);
@@ -37,6 +37,6 @@ public:
 	static float m_ApertureSpeed;
 	static float m_FovSpeed;
 
-	CScene* _Scene;
+	RenderSettings* _renderSettings;
 	QCamera* _camera;
 };

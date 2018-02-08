@@ -46,8 +46,8 @@ public:
     GLView3D(std::shared_ptr<ImageXYZC>  img,
 		QCamera* cam,
 		QTransferFunction* tran,
-		CScene* scene,
-		QWidget                                                *parent = 0);
+		RenderSettings* rs,
+		QWidget *parent = 0);
 
     /// Destructor.
     ~GLView3D();
@@ -263,7 +263,7 @@ private:
     QPoint lastPos;
 
 	std::shared_ptr<ImageXYZC> _img;
-	CScene* _scene;
+	RenderSettings* _renderSettings;
 
 	std::unique_ptr<IRenderWindow> _renderer;
 	int _rendererType;
