@@ -15,7 +15,6 @@ public:
 
 	CCamera				m_Camera;
 	CFlags				m_DirtyFlags;
-	Vec3f				m_Scale;
 	CBoundingBox		m_BoundingBox;
 	CRenderSettings m_RenderSettings;
 	CDenoiseParams		m_DenoiseParams;

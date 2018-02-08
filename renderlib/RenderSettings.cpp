@@ -6,7 +6,6 @@
 RenderSettings::RenderSettings(void) :
 	m_Camera(),
 	m_DirtyFlags(),
-	m_Scale(),
 	m_BoundingBox(),
 	m_DenoiseParams(),
 	m_NoIterations(0)
@@ -22,7 +21,6 @@ RenderSettings& RenderSettings::operator=(const RenderSettings& Other)
 {
 	m_Camera					= Other.m_Camera;
 	m_DirtyFlags				= Other.m_DirtyFlags;
-	m_Scale						= Other.m_Scale;
 	m_BoundingBox				= Other.m_BoundingBox;
 	m_DenoiseParams				= Other.m_DenoiseParams;
 	m_NoIterations				= Other.m_NoIterations;
