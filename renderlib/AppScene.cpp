@@ -84,8 +84,8 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 	// Compute physical size
 	const Vec3f PhysicalSize(Vec3f(
 		img->physicalSizeX() * (float)img->sizeX(),
-		img->physicalSizeY() * (float)img->sizeX(),
-		img->physicalSizeZ() * (float)img->sizeX()
+		img->physicalSizeY() * (float)img->sizeY(),
+		img->physicalSizeZ() * (float)img->sizeZ()
 	));
 
 	// Compute the volume's bounding box
