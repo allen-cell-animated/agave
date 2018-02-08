@@ -1,10 +1,10 @@
 #pragma once
 
 #include "glm.h"
+#include "Geometry.h"
 
 #include <memory>
 
-class CBoundingBox;
 class ImageXYZC;
 
 class DenoiseParams
@@ -227,6 +227,6 @@ public:
 
     Lighting _lighting;
 
-
+	CBoundingBox _boundingBox;
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
 };

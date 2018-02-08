@@ -89,11 +89,10 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 	));
 
 	// Compute the volume's bounding box
-	CBoundingBox bb;
-	bb.m_MinP = Vec3f(0.0f);
-	bb.m_MaxP = PhysicalSize / PhysicalSize.Max();
+	_boundingBox.m_MinP = Vec3f(0.0f);
+	_boundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
 
 	for (int i = 0; i < _lighting.m_NoLights; ++i) {
-		_lighting.m_Lights[i].Update(bb);
+		_lighting.m_Lights[i].Update(_boundingBox);
 	}
 }

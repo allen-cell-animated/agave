@@ -342,7 +342,7 @@ void RenderGLCuda::doRender() {
 	}
 	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
 		for (int i = 0; i < _appScene._lighting.m_NoLights; ++i) {
-			_appScene._lighting.m_Lights[i].Update(_renderSettings->m_BoundingBox);
+			_appScene._lighting.m_Lights[i].Update(_appScene._boundingBox);
 		}
 
 		// Reset no. iterations
@@ -380,7 +380,7 @@ void RenderGLCuda::doRender() {
     CudaCamera cudacam;
     FillCudaCamera(&(_renderSettings->m_Camera), cudacam);
 	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam, 
-        _renderSettings->m_BoundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
+        _appScene._boundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
         _w, _h, _renderSettings->m_Camera.m_Film.m_Gamma, _renderSettings->m_Camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
