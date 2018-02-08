@@ -14,9 +14,7 @@ public:
 	void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
 
 	CCamera				m_Camera;
-	//CResolution3D		m_Resolution;
 	CFlags				m_DirtyFlags;
-	Vec3f				m_Spacing;
 	Vec3f				m_Scale;
 	CBoundingBox		m_BoundingBox;
 	CRenderSettings m_RenderSettings;
