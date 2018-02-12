@@ -17,6 +17,8 @@ class ImageXYZC;
 class RenderGLCuda;
 class RenderSettings;
 class commandBuffer;
+class Scene;
+
 //#include "dynamiclibrary.h"
 
 //#include "marion.h"
@@ -102,11 +104,11 @@ private:
 	// TODO move this info.  This class only knows about some abstract renderer and a scene object.
 	void myVolumeInit();
 	struct myVolumeData {
-		std::shared_ptr<ImageXYZC> _image;
 		RenderSettings* _renderSettings;
 		RenderGLCuda* _renderer;
+		Scene* _scene;
 
-		myVolumeData() : _renderSettings(nullptr), _renderer(nullptr) {}
+		myVolumeData() : _scene(nullptr), _renderSettings(nullptr), _renderer(nullptr) {}
 	} myVolumeData;
 
 signals:

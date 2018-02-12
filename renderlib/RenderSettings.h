@@ -11,7 +11,7 @@ public:
 	RenderSettings(const RenderSettings& Other);
 	RenderSettings& operator = (const RenderSettings& Other);
 
-	void initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
+	void initCameraFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
 
 	CCamera				m_Camera;
 	CFlags				m_DirtyFlags;

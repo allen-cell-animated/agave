@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-class Camera;
+class CCamera;
 class CStatus;
 class RenderParams;
 class Scene;
@@ -14,7 +14,7 @@ public:
 	virtual ~IRenderWindow();
 
 	virtual void initialize(uint32_t w, uint32_t h) = 0;
-	virtual void render(const Camera& camera) = 0;
+	virtual void render(const CCamera& camera) = 0;
 	virtual void resize(uint32_t w, uint32_t h) = 0;
 	virtual void cleanUpResources() {}
 
@@ -23,7 +23,9 @@ public:
 
 	// I own these.
 	virtual RenderParams& renderParams() = 0;
-	virtual Scene& scene() = 0;
+
+	virtual Scene* scene() = 0;
+	virtual void setScene(Scene* s) = 0;
 
 };
 

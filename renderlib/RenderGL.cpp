@@ -14,25 +14,9 @@ RenderGL::RenderGL(RenderSettings* rs)
 	:image3d(nullptr),
 	_w(0),
 	_h(0),
-	_renderSettings(rs)
+	_renderSettings(rs),
+	_scene(nullptr)
 {
-}
-
-void RenderGL::setImage(std::shared_ptr<ImageXYZC> img)
-{
-	_appScene._volume = img;
-
-	delete image3d;
-	image3d = new Image3Dv33(img);
-	image3d->create();
-
-	_renderSettings->initSceneFromImg(img->sizeX(), img->sizeY(), img->sizeZ(),
-		img->physicalSizeX(), img->physicalSizeY(), img->physicalSizeZ());
-
-	// we have set up everything there is to do before rendering
-	_timer.start();
-	_status.SetRenderBegin();
-
 }
 
 RenderGL::~RenderGL()
@@ -52,23 +36,21 @@ void RenderGL::initialize(uint32_t w, uint32_t h)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (_appScene._volume) {
-		image3d = new Image3Dv33(_appScene._volume);
-		image3d->create();
+	if (_scene && _scene->_volume) {
+		initFromScene();
 	}
 
 	// Size viewport
 	resize(w,h);
 }
 
-void RenderGL::render(const Camera& camera)
+void RenderGL::render(const CCamera& camera)
 {
-	if (!_appScene._volume) {
+	if (!_scene || !_scene->_volume) {
 		return;
 	}
 	if (!image3d) {
-		image3d = new Image3Dv33(_appScene._volume);
-		image3d->create();
+		initFromScene();
 	}
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -81,7 +63,7 @@ void RenderGL::render(const Camera& camera)
 
 	if (_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty))
 	{
-		image3d->prepareTexture(_appScene);
+		image3d->prepareTexture(*_scene);
 	}
 
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
@@ -111,6 +93,28 @@ void RenderGL::resize(uint32_t w, uint32_t h)
 RenderParams& RenderGL::renderParams() {
 	return _renderParams;
 }
-Scene& RenderGL::scene() {
-	return _appScene;
+Scene* RenderGL::scene() {
+	return _scene;
+}
+void RenderGL::setScene(Scene* s) {
+	_scene = s;
+}
+
+void RenderGL::cleanUpResources() {
+	delete image3d;
+	image3d = nullptr;
+}
+
+void RenderGL::initFromScene() {
+	delete image3d;
+
+	image3d = new Image3Dv33(_scene->_volume);
+	image3d->create();
+
+	_renderSettings->initCameraFromImg(_scene->_volume->sizeX(), _scene->_volume->sizeY(), _scene->_volume->sizeZ(),
+		_scene->_volume->physicalSizeX(), _scene->_volume->physicalSizeY(), _scene->_volume->physicalSizeZ());
+
+	// we have set up everything there is to do before rendering
+	_timer.start();
+	_status.SetRenderBegin();
 }

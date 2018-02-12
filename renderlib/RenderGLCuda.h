@@ -26,11 +26,13 @@ public:
 	virtual ~RenderGLCuda();
 
 	virtual void initialize(uint32_t w, uint32_t h);
-	virtual void render(const Camera& camera);
+	virtual void render(const CCamera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
 	virtual void cleanUpResources();
 	virtual RenderParams& renderParams();
-	virtual Scene& scene();
+	virtual Scene* scene();
+	virtual void setScene(Scene* s);
+
 	virtual CStatus* getStatusInterface() { return &_status; }
 
 
@@ -47,7 +49,7 @@ private:
 	RenderSettings* _renderSettings;
 
 	RenderParams _renderParams;
-	Scene _appScene;
+	Scene* _scene;
 
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);

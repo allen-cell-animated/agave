@@ -32,19 +32,16 @@ Renderer::~Renderer()
 void Renderer::myVolumeInit() {
 	DeviceSelector d;
 
-//	FileReader fileReader;
-//	std::string file("C:\\Users\\danielt.ALLENINST\\Downloads\\AICS-12_269_4.ome.tif");
-//	std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file);
-//	myVolumeData._image = image;
 	myVolumeData._renderSettings = new RenderSettings();
 	myVolumeData._renderSettings->m_Camera.m_Film.m_ExposureIterations = 1;
-//	myVolumeData._scene->m_DiffuseColor[0] = 1.0;
-//	myVolumeData._scene->m_DiffuseColor[1] = 1.0;
-//	myVolumeData._scene->m_DiffuseColor[2] = 1.0;
-//	myVolumeData._scene->m_DiffuseColor[3] = 1.0;
+
+	myVolumeData._scene = new Scene();
 
 	myVolumeData._renderer = new RenderGLCuda(myVolumeData._renderSettings);
 	myVolumeData._renderer->initialize(1024, 1024);
+	myVolumeData._renderer->setScene(myVolumeData._scene);
+
+
 }
 
 void Renderer::init()
@@ -92,7 +89,7 @@ void Renderer::init()
 }
 
 void Renderer::setImage(std::shared_ptr<ImageXYZC> img) {
-	myVolumeData._image = img;
+	myVolumeData._scene->_volume = img;
 	myVolumeData._renderer->setImage(img);
 }
 
@@ -171,7 +168,7 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 		ExecutionContext ec;
 		ec._renderSettings = myVolumeData._renderSettings;
 		ec._renderer = this;
-		ec._appScene = &myVolumeData._renderer->scene();
+		ec._appScene = myVolumeData._scene;
 
 		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
 			(*i)->execute(&ec);

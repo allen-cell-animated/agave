@@ -195,18 +195,24 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** o
 		const size_t NTHREADS = 4;
 		// set a bit for each thread as they complete
 		uint32_t done = 0;
+		FuseWorkerThread** workers = new FuseWorkerThread*[NTHREADS];
 		for (size_t i = 0; i < NTHREADS; ++i) {
-			FuseWorkerThread *workerThread = new FuseWorkerThread(i, NTHREADS, rgbVolume, this, colorsPerChannel);
-			QObject::connect(workerThread, &FuseWorkerThread::resultReady, [&done](size_t whichThread) {
+			workers[i] = new FuseWorkerThread(i, NTHREADS, rgbVolume, this, colorsPerChannel);
+			QObject::connect(workers[i], &FuseWorkerThread::resultReady, [&done](size_t whichThread) {
 				done |= (1 << whichThread);
 			});
-			QObject::connect(workerThread, &FuseWorkerThread::finished, workerThread, &QObject::deleteLater);
-			workerThread->start();
+			QObject::connect(workers[i], &FuseWorkerThread::finished, workers[i], &QObject::deleteLater);
+			workers[i]->start();
 		}
 		// WAIT FOR ALL.
 		// (1 << 4) - 1 = 10000 -1 = 01111
-		while (done < ((uint32_t)1 << NTHREADS) - 1) {
+//		while (done < ((uint32_t)1 << NTHREADS) - (uint32_t)1) {
+//		}
+		for (size_t i = 0; i < NTHREADS; ++i) {
+			workers[i]->wait();
 		}
+		assert(done == ((uint32_t)1 << NTHREADS) - (uint32_t)1);
+		delete[] workers;
 		// Instead of waiting, handle completion in the resultReady callback.
 		// when a new fuse call comes in, and fuse threads are currently active, then queue it:
 		// if there is already a fuse waiting to happen, replace it with the new req.

@@ -36,9 +36,10 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 			c->_appScene->_material.enabled[i] = (i < 3);
 		}
 		c->_appScene->initSceneFromImg(image);
-		c->_renderSettings->initSceneFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
+		c->_renderSettings->initCameraFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
 			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
 		c->_renderSettings->SetNoIterations(0);
+		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 	}
 }
 

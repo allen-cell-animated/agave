@@ -27,7 +27,7 @@ RenderSettings& RenderSettings::operator=(const RenderSettings& Other)
 	return *this;
 }
 
-void RenderSettings::initSceneFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz)
+void RenderSettings::initCameraFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz)
 {
 	// Compute physical size
 	const Vec3f PhysicalSize(Vec3f(

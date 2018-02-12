@@ -20,20 +20,21 @@ public:
 	virtual ~RenderGL();
 
 	virtual void initialize(uint32_t w, uint32_t h);
-	virtual void render(const Camera& camera);
+	virtual void render(const CCamera& camera);
 	virtual void resize(uint32_t w, uint32_t h);
+	virtual void cleanUpResources();
 
 	virtual CStatus* getStatusInterface() { return &_status; }
 	virtual RenderParams& renderParams();
-	virtual Scene& scene();
+	virtual Scene* scene();
+	virtual void setScene(Scene* s);
 
 	Image3Dv33* getImage() const { return image3d; };
-	void setImage(std::shared_ptr<ImageXYZC> img);
 private:
 	Image3Dv33 *image3d;
 	RenderSettings* _renderSettings;
 
-	Scene _appScene;
+	Scene* _scene;
 	RenderParams _renderParams;
 
 	CStatus _status;
@@ -41,5 +42,6 @@ private:
 	QElapsedTimer _timer;
 
 	int _w, _h;
-};
 
+	void initFromScene();
+};

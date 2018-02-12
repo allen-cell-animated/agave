@@ -9,6 +9,7 @@
 #include "TransferFunction.h"
 
 #include "renderlib/RenderSettings.h"
+#include "renderlib/AppScene.h"
 
 class QAppearanceDockWidget;
 class QCameraDockWidget;
@@ -31,9 +32,6 @@ private slots:
 	void updateRecentFileActions();
 	void quit();
 	void view_reset();
-	void view_zoom();
-	void view_pan();
-	void view_rotate();
 	void viewFocusChanged(GLView3D *glView);
 	void tabChanged(int index);
 
@@ -87,6 +85,10 @@ private:
 	// if renderer is on a separate thread, then this will need a mutex guard
 	// any direct programmatic changes to this obj need to be pushed to the UI as well.
 	RenderSettings _renderSettings;
+
+	// the app owns a scene.
+	// scene gets sent down to the renderer.
+	Scene _appScene;
 
 	QAction *recentFileActs[MaxRecentFiles];
 	QAction *recentFileSeparator;

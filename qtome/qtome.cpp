@@ -55,7 +55,7 @@ qtome::qtome(QWidget *parent)
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
 	// add the single gl view as a tab
-	glView = new GLView3D(nullptr, &_camera, &_transferFunction, &_renderSettings, this);
+	glView = new GLView3D(&_camera, &_transferFunction, &_renderSettings, this);
 	QWidget *glContainer = new GLContainer(this, glView);
 	glView->setObjectName("glcontainer");
 	// We need a minimum size or else the size defaults to zero.
@@ -242,17 +242,25 @@ void qtome::open(const QString& file)
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
 		qDebug() << "Loaded " << file << " in " << t.elapsed() << "ms";
 
-		// this must happen first. it causes a new renderer which owns the CStatus used below
-		glView->setImage(image);
+		// install the new volume image into the scene.
+		// this is deref'ing the previous _volume shared_ptr.
+		_appScene._volume = image;
+		_appScene.initSceneFromImg(image);
+
+		// tell the 3d view to update.
+		// it causes a new renderer which owns the CStatus used below
+		glView->onNewImage(&_appScene);
 		tabs->setTabText(0, info.fileName());
 		//navigation->setReader(image);
 
-		Scene* sc = glView->getAppScene();
-		sc->_volume = image;
-		appearanceDockWidget->onNewImage(sc);
+		appearanceDockWidget->onNewImage(&_appScene);
 
 		CStatus* s = glView->getStatus();
 		statisticsDockWidget->setStatus(s);
+
+		_renderSettings.initCameraFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
+			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
+		_renderSettings.m_Camera.SetViewMode(ViewModeFront);
 
 		Vec3f resolution(image->sizeX(), image->sizeY(), image->sizeZ());
 		Vec3f spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
@@ -263,12 +271,6 @@ void qtome::open(const QString& file)
 		));
 		Vec3f BoundingBoxMinP = Vec3f(0.0f);
 		Vec3f BoundingBoxMaxP = PhysicalSize / PhysicalSize.Max();
-
-		sc->initSceneFromImg(image);
-		_renderSettings.initSceneFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
-			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
-		_renderSettings.m_Camera.SetViewMode(ViewModeFront);
-
 		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
 		s->SetStatisticChanged("Volume", "Bounding Box", "", "");
 		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "m");
@@ -288,7 +290,7 @@ void qtome::viewFocusChanged(GLView3D *newGlView)
 {
 	if (glView == newGlView)
 		return;
-
+	
 	//disconnect(navigationChanged);
 	//disconnect(navigationZCChanged);
 	//disconnect(navigationUpdate);
@@ -336,31 +338,6 @@ void qtome::quit()
 
 void qtome::view_reset()
 {
-	if (glView)
-	{
-		glView->setZoom(0);
-		glView->setXTranslation(0);
-		glView->setYTranslation(0);
-		glView->setZRotation(0);
-	}
-}
-
-void qtome::view_zoom()
-{
-	if (glView)
-		glView->setMouseMode(GLView3D::MODE_ZOOM);
-}
-
-void qtome::view_pan()
-{
-	if (glView)
-		glView->setMouseMode(GLView3D::MODE_PAN);
-}
-
-void qtome::view_rotate()
-{
-	if (glView)
-		glView->setMouseMode(GLView3D::MODE_ROTATE);
 }
 
 void qtome::setRecentFilesVisible(bool visible)

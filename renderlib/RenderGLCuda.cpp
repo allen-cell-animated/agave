@@ -31,7 +31,8 @@ RenderGLCuda::RenderGLCuda(RenderSettings* rs)
 	_randomSeeds2(nullptr),
 	_renderSettings(rs),
 	_w(0),
-	_h(0)
+	_h(0),
+	_scene(nullptr)
 {
 }
 
@@ -254,11 +255,11 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
-	if (!_appScene._volume) {
+	if (!_scene || !_scene->_volume) {
 		return;
 	}
 	ImageCuda cimg;
-	cimg.allocGpuInterleaved(_appScene._volume.get());
+	cimg.allocGpuInterleaved(_scene->_volume.get());
 	_imgCuda = cimg;
 
 }
@@ -267,10 +268,10 @@ void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
 	// free the gpu resources of the old image.
 	_imgCuda.deallocGpu();
 
-	_appScene._volume = img;
+	_scene->_volume = img;
 
 	initVolumeTextureCUDA();
-	_renderSettings->initSceneFromImg(img->sizeX(), img->sizeY(), img->sizeZ(),
+	_renderSettings->initCameraFromImg(img->sizeX(), img->sizeY(), img->sizeZ(),
 		img->physicalSizeX(), img->physicalSizeY(), img->physicalSizeZ());
 
 	// we have set up everything there is to do before rendering
@@ -297,7 +298,7 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::doRender() {
-	if (!_appScene._volume) {
+	if (!_scene || !_scene->_volume) {
 		return;
 	}
 	if (!_imgCuda._volumeArrayInterleaved) {
@@ -329,9 +330,9 @@ void RenderGLCuda::doRender() {
 	{
 		if (_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
 			// TODO: only update the ones that changed.
-			int NC = _appScene._volume->sizeC();
+			int NC = _scene->_volume->sizeC();
 			for (int i = 0; i < NC; ++i) {
-				_imgCuda.updateLutGpu(i, _appScene._volume.get());
+				_imgCuda.updateLutGpu(i, _scene->_volume.get());
 			}
 		}
 
@@ -341,8 +342,8 @@ void RenderGLCuda::doRender() {
 		_renderSettings->SetNoIterations(0);
 	}
 	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
-		for (int i = 0; i < _appScene._lighting.m_NoLights; ++i) {
-			_appScene._lighting.m_Lights[i].Update(_appScene._boundingBox);
+		for (int i = 0; i < _scene->_lighting.m_NoLights; ++i) {
+			_scene->_lighting.m_Lights[i].Update(_scene->_boundingBox);
 		}
 
 		// Reset no. iterations
@@ -352,14 +353,14 @@ void RenderGLCuda::doRender() {
 	{
 		int ch[4] = { 0, 0, 0, 0 };
 		int activeChannel = 0;
-		int NC = _appScene._volume->sizeC();
+		int NC = _scene->_volume->sizeC();
 		for (int i = 0; i < NC; ++i) {
-			if (_appScene._material.enabled[i] && activeChannel < 4) {
+			if (_scene->_material.enabled[i] && activeChannel < 4) {
 				ch[activeChannel] = i;
 				activeChannel++;
 			}
 		}
-		_imgCuda.updateVolumeData4x16(_appScene._volume.get(), ch[0], ch[1], ch[2], ch[3]);
+		_imgCuda.updateVolumeData4x16(_scene->_volume.get(), ch[0], ch[1], ch[2], ch[3]);
 		_renderSettings->SetNoIterations(0);
 	}
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
@@ -371,16 +372,16 @@ void RenderGLCuda::doRender() {
 
 	_renderSettings->m_Camera.Update();
 
-	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_appScene._volume->maxPixelDimension();
+	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_scene->_volume->maxPixelDimension();
 
 	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
 	CudaLighting cudalt;
-	FillCudaLighting(&_appScene, cudalt);
+	FillCudaLighting(_scene, cudalt);
     CudaCamera cudacam;
     FillCudaCamera(&(_renderSettings->m_Camera), cudacam);
 	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam, 
-        _appScene._boundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
+        _scene->_boundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
         _w, _h, _renderSettings->m_Camera.m_Film.m_Gamma, _renderSettings->m_Camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
@@ -392,26 +393,26 @@ void RenderGLCuda::doRender() {
 	};
 
 	// single channel
-	int NC = _appScene._volume->sizeC();
+	int NC = _scene->_volume->sizeC();
 	// use first 3 channels only.
 	int activeChannel = 0;
 	cudaVolume theCudaVolume(0);
 	for (int i = 0; i < NC; ++i) {
-		if (_appScene._material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
+		if (_scene->_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
 			theCudaVolume.volumeTexture[activeChannel] = _imgCuda._volumeTextureInterleaved;
 			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
 			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
-			theCudaVolume.intensityMax[activeChannel] = _appScene._volume->channel(i)->_max;
-			theCudaVolume.diffuse[activeChannel * 3 + 0] = _appScene._material.diffuse[i * 3 + 0];
-			theCudaVolume.diffuse[activeChannel * 3 + 1] = _appScene._material.diffuse[i * 3 + 1];
-			theCudaVolume.diffuse[activeChannel * 3 + 2] = _appScene._material.diffuse[i * 3 + 2];
-			theCudaVolume.specular[activeChannel * 3 + 0] = _appScene._material.specular[i * 3 + 0];
-			theCudaVolume.specular[activeChannel * 3 + 1] = _appScene._material.specular[i * 3 + 1];
-			theCudaVolume.specular[activeChannel * 3 + 2] = _appScene._material.specular[i * 3 + 2];
-			theCudaVolume.emissive[activeChannel * 3 + 0] = _appScene._material.emissive[i * 3 + 0];
-			theCudaVolume.emissive[activeChannel * 3 + 1] = _appScene._material.emissive[i * 3 + 1];
-			theCudaVolume.emissive[activeChannel * 3 + 2] = _appScene._material.emissive[i * 3 + 2];
-			theCudaVolume.roughness[activeChannel] = _appScene._material.roughness[i];
+			theCudaVolume.intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
+			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
+			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
+			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
+			theCudaVolume.specular[activeChannel * 3 + 0] = _scene->_material.specular[i * 3 + 0];
+			theCudaVolume.specular[activeChannel * 3 + 1] = _scene->_material.specular[i * 3 + 1];
+			theCudaVolume.specular[activeChannel * 3 + 2] = _scene->_material.specular[i * 3 + 2];
+			theCudaVolume.emissive[activeChannel * 3 + 0] = _scene->_material.emissive[i * 3 + 0];
+			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
+			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
+			theCudaVolume.roughness[activeChannel] = _scene->_material.roughness[i];
 
 			activeChannel++;
 			theCudaVolume.nChannels = activeChannel;
@@ -463,7 +464,7 @@ void RenderGLCuda::doRender() {
 	
 }
 
-void RenderGLCuda::render(const Camera& camera)
+void RenderGLCuda::render(const CCamera& camera)
 {
 	// draw to _fbtex
 	doRender();
@@ -537,6 +538,9 @@ void RenderGLCuda::cleanUpResources() {
 RenderParams& RenderGLCuda::renderParams() {
 	return _renderParams;
 }
-Scene& RenderGLCuda::scene() {
-	return _appScene;
+Scene* RenderGLCuda::scene() {
+	return _scene;
+}
+void RenderGLCuda::setScene(Scene* s) {
+	_scene = s;
 }
