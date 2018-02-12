@@ -6,7 +6,6 @@
 #include "gl/Util.h"
 #include "gl/v33/V33Image3D.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
-#include "Camera.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "cudarndr/RenderThread.h"

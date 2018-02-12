@@ -8,8 +8,6 @@
 
 #include <QElapsedTimer>
 
-#include "renderlib/Camera.h"
-
 class CStatus;
 class ImageXYZC;
 class QCamera;
