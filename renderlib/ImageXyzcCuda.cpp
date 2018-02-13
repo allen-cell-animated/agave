@@ -234,7 +234,12 @@ void ImageCuda::deallocGpu() {
     for (size_t i = 0; i < _channels.size(); ++i) {
         _channels[i].deallocGpu();
     }
+	HandleCudaError(cudaDestroyTextureObject(_volumeTextureInterleaved));
+	_volumeTextureInterleaved = 0;
+	HandleCudaError(cudaFreeArray(_volumeArrayInterleaved));
+	_volumeArrayInterleaved = nullptr;
 }
+
 void ImageCuda::updateLutGpu(int channel, ImageXYZC* img) {
     _channels[channel].updateLutGpu(channel, img);
 }
