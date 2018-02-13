@@ -4,6 +4,7 @@
 #include "Flags.h"
 #include "Camera.h"
 
+class CCamera;
 class RenderSettings;
 class QMouseEvent;
 
@@ -11,7 +12,7 @@ class QMouseEvent;
 class CameraController
 {
 public:
-	CameraController(QCamera* cam);
+	CameraController(QCamera* cam, CCamera* theCam);
 
 	enum EMouseButtonFlag
 	{
@@ -39,4 +40,5 @@ public:
 
 	RenderSettings* _renderSettings;
 	QCamera* _camera;
+	CCamera* mCamera;
 };

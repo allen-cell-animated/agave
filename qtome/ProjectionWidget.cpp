@@ -25,11 +25,11 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSetti
 
 	m_FieldOfViewSlider.setOrientation(Qt::Horizontal);
 	m_FieldOfViewSlider.setRange(10.0, 150.0);
-	m_FieldOfViewSlider.setValue(rs->m_Camera.m_FovV);
+	m_FieldOfViewSlider.setValue(cam->GetProjection().GetFieldOfView());
 	m_GridLayout.addWidget(&m_FieldOfViewSlider, 4, 1);
 	
     m_FieldOfViewSpinner.setRange(10.0, 150.0);
-	m_FieldOfViewSpinner.setValue(rs->m_Camera.m_FovV);
+	m_FieldOfViewSpinner.setValue(cam->GetProjection().GetFieldOfView());
 	m_FieldOfViewSpinner.setSuffix(" deg.");
 	m_GridLayout.addWidget(&m_FieldOfViewSpinner, 4, 2);
 	

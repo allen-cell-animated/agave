@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Flags.h"
-#include "CCamera.h"
 #include "DenoiseParams.cuh"
 
 class RenderSettings
@@ -11,9 +10,6 @@ public:
 	RenderSettings(const RenderSettings& Other);
 	RenderSettings& operator = (const RenderSettings& Other);
 
-	void initCameraFromImg(uint32_t vx, uint32_t vy, uint32_t vz, float sx, float sy, float sz);
-
-	CCamera				m_Camera;
 	CFlags				m_DirtyFlags;
 	CRenderSettings m_RenderSettings;
 	CDenoiseParams		m_DenoiseParams;

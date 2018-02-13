@@ -13,10 +13,11 @@
 
 #include <memory>
 
+class commandBuffer;
+class CCamera;
 class ImageXYZC;
 class RenderGLCuda;
 class RenderSettings;
-class commandBuffer;
 class Scene;
 
 //#include "dynamiclibrary.h"
@@ -57,7 +58,6 @@ public:
 
 	void resizeGL(int internalWidth, int internalHeight);
 
-	void setImage(std::shared_ptr<ImageXYZC> img);
 protected:
 	QString id;
 
@@ -107,8 +107,9 @@ private:
 		RenderSettings* _renderSettings;
 		RenderGLCuda* _renderer;
 		Scene* _scene;
+		CCamera* _camera;
 
-		myVolumeData() : _scene(nullptr), _renderSettings(nullptr), _renderer(nullptr) {}
+		myVolumeData() : _camera(nullptr), _scene(nullptr), _renderSettings(nullptr), _renderer(nullptr) {}
 	} myVolumeData;
 
 signals:

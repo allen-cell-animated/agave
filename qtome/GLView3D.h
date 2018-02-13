@@ -5,6 +5,7 @@
 #include "glm.h"
 #include "CameraController.h"
 #include "GLWindow.h"
+#include "renderlib/CCamera.h"
 
 #include <QElapsedTimer>
 
@@ -116,6 +117,7 @@ protected:
     timerEvent (QTimerEvent *event);
 
 private:
+	CCamera mCamera;
     CameraController _cameraController;
 	QCamera* _camera;
 	QTransferFunction* _transferFunction;

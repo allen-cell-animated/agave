@@ -35,14 +35,11 @@ public:
 
 	virtual CStatus* getStatusInterface() { return &_status; }
 
-
-	void setImage(std::shared_ptr<ImageXYZC> img);
 	Image3Dv33* getImage() const { return nullptr; };
 	RenderSettings& getRenderSettings() { return *_renderSettings; }
 
-
 	// just draw into my own fbo.
-	void doRender();
+	void doRender(const CCamera& camera);
 	// draw my fbo texture into the current render target
 	void drawImage();
 private:
@@ -54,11 +51,6 @@ private:
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();
-
-
-
-	std::shared_ptr<ImageXYZC>  _img;
-	int _currentChannel;
 
 	ImageCuda _imgCuda;
 

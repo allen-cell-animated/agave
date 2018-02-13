@@ -1,6 +1,7 @@
 #include "glad/glad.h"
 #include "renderer.h"
 
+#include "renderlib/CCamera.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/HardwareWidget.h"
 #include "renderlib/RenderGLCuda.h"
@@ -33,7 +34,9 @@ void Renderer::myVolumeInit() {
 	DeviceSelector d;
 
 	myVolumeData._renderSettings = new RenderSettings();
-	myVolumeData._renderSettings->m_Camera.m_Film.m_ExposureIterations = 1;
+
+	myVolumeData._camera = new CCamera();
+	myVolumeData._camera->m_Film.m_ExposureIterations = 1;
 
 	myVolumeData._scene = new Scene();
 
@@ -86,11 +89,6 @@ void Renderer::init()
 
 	this->context->doneCurrent();
 	this->context->moveToThread(this);
-}
-
-void Renderer::setImage(std::shared_ptr<ImageXYZC> img) {
-	myVolumeData._scene->_volume = img;
-	myVolumeData._renderer->setImage(img);
 }
 
 void Renderer::run()
@@ -169,6 +167,7 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 		ec._renderSettings = myVolumeData._renderSettings;
 		ec._renderer = this;
 		ec._appScene = myVolumeData._scene;
+		ec._camera = myVolumeData._camera;
 
 		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
 			(*i)->execute(&ec);
@@ -184,7 +183,7 @@ QImage Renderer::render()
 	glEnable(GL_TEXTURE_2D);
 
 	// DRAW
-	myVolumeData._renderer->doRender();
+	myVolumeData._renderer->doRender(*(myVolumeData._camera));
 
 	// COPY TO MY FBO
 	this->fbo->bind();

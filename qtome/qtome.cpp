@@ -258,10 +258,6 @@ void qtome::open(const QString& file)
 		CStatus* s = glView->getStatus();
 		statisticsDockWidget->setStatus(s);
 
-		_renderSettings.initCameraFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
-			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
-		_renderSettings.m_Camera.SetViewMode(ViewModeFront);
-
 		Vec3f resolution(image->sizeX(), image->sizeY(), image->sizeZ());
 		Vec3f spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
 		const Vec3f PhysicalSize(Vec3f(

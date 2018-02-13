@@ -68,13 +68,8 @@ void RenderGL::render(const CCamera& camera)
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
 	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-	_renderSettings->m_Camera.m_Film.m_Resolution.SetResX(_w);
-	_renderSettings->m_Camera.m_Film.m_Resolution.SetResY(_h);
-
-	_renderSettings->m_Camera.Update();
-
 	// Render image
-	image3d->render(_renderSettings->m_Camera);
+	image3d->render(camera);
 
 	_timingRender.AddDuration((float)_timer.elapsed());
 	_status.SetStatisticChanged("Performance", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");
@@ -109,9 +104,6 @@ void RenderGL::initFromScene() {
 
 	image3d = new Image3Dv33(_scene->_volume);
 	image3d->create();
-
-	_renderSettings->initCameraFromImg(_scene->_volume->sizeX(), _scene->_volume->sizeY(), _scene->_volume->sizeZ(),
-		_scene->_volume->physicalSizeX(), _scene->_volume->physicalSizeY(), _scene->_volume->physicalSizeZ());
 
 	// we have set up everything there is to do before rendering
 	_timer.start();

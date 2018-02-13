@@ -32,7 +32,7 @@ public:
 	Vec3f		m_N;
 	float		m_DotWN;
 
-	HO CFocus(void)
+	CFocus(void)
 	{
 		m_Type				= DEF_FOCUS_TYPE;
 		m_SensorPosCanvas	= DEF_FOCUS_SENSOR_POS_CANVAS;
@@ -43,7 +43,7 @@ public:
 		m_DotWN				= DEF_FOCUS_DOT_WN;
 	}
 
-	HO CFocus& operator=(const CFocus& Other)
+	CFocus& operator=(const CFocus& Other)
 	{
 		m_Type				= Other.m_Type;
 		m_SensorPosCanvas	= Other.m_SensorPosCanvas;
@@ -78,7 +78,7 @@ public:
 	float			m_Rotation;
 	float			m_Data[MAX_BOKEH_DATA];
 
-	HO CAperture(void)
+	CAperture(void)
 	{
 		m_Size		= DEF_APERTURE_SIZE;
 		m_NoBlades	= DEF_APERTURE_NO_BLADES;
@@ -102,7 +102,7 @@ public:
 		return *this;
 	}
 
-	HO void Update(const float& FStop)
+	void Update(const float& FStop)
 	{
 		// Update bokeh
 		int Ns = (int)m_NoBlades;
@@ -141,7 +141,7 @@ public:
 	float			m_Gamma;
 
 	// ToDo: Add description
-	HO CFilm(void)
+	CFilm(void)
 	{
 		m_Screen[0][0]	= 0.0f;
 		m_Screen[0][1]	= 0.0f;
@@ -172,7 +172,7 @@ public:
 		return *this;
 	}
 
-	HO void Update(const float& FovV, const float& Aperture)
+	void Update(const float& FovV, const float& Aperture)
 	{
 		float Scale = 0.0f;
 
@@ -191,12 +191,12 @@ public:
 		m_Resolution.Update();
 	}
 
-	HO int GetWidth(void) const
+	int GetWidth(void) const
 	{
 		return m_Resolution.GetResX();
 	}
 
-	HO int GetHeight(void) const
+	int GetHeight(void) const
 	{
 		return m_Resolution.GetResY();
 	}
@@ -240,7 +240,7 @@ public:
 	CAperture			m_Aperture;
 	bool				m_Dirty;
 
-	HO CCamera(void)
+	CCamera(void)
 	{
 		m_Hither				= DEF_CAMERA_HITHER;
 		m_Yon					= DEF_CAMERA_YON;
@@ -277,7 +277,7 @@ public:
 		return *this;
 	}
 
-	HO void Update(void)
+	void Update(void)
 	{
 		// right handed coordinate system
 
@@ -297,7 +297,7 @@ public:
 		m_Film.Update(m_FovV, m_Aperture.m_Size);
 	}
 
-	HO void Zoom(float amount)
+	void Zoom(float amount)
 	{
 		Vec3f reverseLoS = m_From - m_Target;
 
@@ -317,7 +317,7 @@ public:
 	}
 
 	// Pan operator
-	HO void Pan(float UpUnits, float RightUnits)
+	void Pan(float UpUnits, float RightUnits)
 	{
 		Vec3f LoS = m_Target - m_From;
 
@@ -338,7 +338,7 @@ public:
 		m_Target	= m_Target + right * U + m_Up * V;
 	}
 
-	HO void Orbit(float DownDegrees, float RightDegrees)
+	void Orbit(float DownDegrees, float RightDegrees)
 	{
 		Vec3f ReverseLoS = m_From - m_Target;
 
@@ -354,7 +354,7 @@ public:
 		m_From = ReverseLoS + m_Target;
 	}
 
-	HO void SetViewMode(const EViewMode ViewMode)
+	void SetViewMode(const EViewMode ViewMode)
 	{
 		if (ViewMode == ViewModeUser)
 			return;

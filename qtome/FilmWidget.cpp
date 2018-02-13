@@ -80,11 +80,11 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 
 	m_ExposureSlider.setOrientation(Qt::Horizontal);
 	m_ExposureSlider.setRange(0.0f, 1.0f);
-	m_ExposureSlider.setValue(rs->m_Camera.m_Film.m_Exposure, true);
+	m_ExposureSlider.setValue(cam->GetFilm().GetExposure(), true);
 	m_GridLayout.addWidget(&m_ExposureSlider, 3, 1);
 
 	m_ExposureSpinner.setRange(0.0f, 1.0f);
-	m_ExposureSpinner.setValue(rs->m_Camera.m_Film.m_Exposure, true);
+	m_ExposureSpinner.setValue(cam->GetFilm().GetExposure(), true);
 	m_GridLayout.addWidget(&m_ExposureSpinner, 3, 2);
 
  	QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), &m_ExposureSpinner, SLOT(setValue(double)));
@@ -100,7 +100,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	m_ExposureIterationsSpinner.addItem("4", 4);
 	m_ExposureIterationsSpinner.addItem("8", 8);
 
-	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(rs->m_Camera.m_Film.m_ExposureIterations));
+	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(cam->GetFilm().GetExposureIterations()));
 	m_GridLayout.addWidget(&m_ExposureIterationsSpinner, 4, 1);
 	//QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(valueChanged(int)), this, SLOT(SetExposureIterations(int)));
 	QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(SetExposureIterations(const QString&)));

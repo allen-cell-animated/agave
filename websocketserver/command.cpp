@@ -3,6 +3,7 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/CCamera.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
@@ -30,59 +31,57 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(_data._name);
 		LOG_DEBUG << "Loaded " << _data._name << " in " << t.elapsed() << "ms";
 
-		// pass this image to the renderer.
-		c->_renderer->setImage(image);
+		c->_appScene->_volume = image;
+		c->_appScene->initSceneFromImg(image);
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
 			c->_appScene->_material.enabled[i] = (i < 3);
 		}
-		c->_appScene->initSceneFromImg(image);
-		c->_renderSettings->initCameraFromImg(image->sizeX(), image->sizeY(), image->sizeZ(),
-			image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
 		c->_renderSettings->SetNoIterations(0);
+		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 	}
 }
 
 void SetCameraPosCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraPos";
-	c->_renderSettings->m_Camera.m_From.x = _data._x;
-	c->_renderSettings->m_Camera.m_From.y = _data._y;
-	c->_renderSettings->m_Camera.m_From.z = _data._z;
+	c->_camera->m_From.x = _data._x;
+	c->_camera->m_From.y = _data._y;
+	c->_camera->m_From.z = _data._z;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraTargetCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraTarget";
-	c->_renderSettings->m_Camera.m_Target.x = _data._x;
-	c->_renderSettings->m_Camera.m_Target.y = _data._y;
-	c->_renderSettings->m_Camera.m_Target.z = _data._z;
+	c->_camera->m_Target.x = _data._x;
+	c->_camera->m_Target.y = _data._y;
+	c->_camera->m_Target.z = _data._z;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraUpCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraUp";
-	c->_renderSettings->m_Camera.m_Up.x = _data._x;
-	c->_renderSettings->m_Camera.m_Up.y = _data._y;
-	c->_renderSettings->m_Camera.m_Up.z = _data._z;
+	c->_camera->m_Up.x = _data._x;
+	c->_camera->m_Up.y = _data._y;
+	c->_camera->m_Up.z = _data._z;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraApertureCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraAperture";
-	c->_renderSettings->m_Camera.m_Aperture.m_Size = _data._x;
+	c->_camera->m_Aperture.m_Size = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraFovYCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraFovY";
-	c->_renderSettings->m_Camera.m_FovV = _data._x;
+	c->_camera->m_FovV = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraFocalDistanceCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraFocalDistance";
-	c->_renderSettings->m_Camera.m_Focus.m_FocalDistance = _data._x;
+	c->_camera->m_Focus.m_FocalDistance = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraExposureCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraExposure";
 	// 0 is darkness, 1 is max
-	c->_renderSettings->m_Camera.m_Film.m_Exposure = 1.0f - _data._x;
+	c->_camera->m_Film.m_Exposure = 1.0f - _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetDiffuseColorCommand::execute(ExecutionContext* c) {
@@ -108,7 +107,7 @@ void SetEmissiveColorCommand::execute(ExecutionContext* c) {
 }
 void SetRenderIterationsCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetRenderIterations";
-	c->_renderSettings->m_Camera.m_Film.m_ExposureIterations = _data._x;
+	c->_camera->m_Film.m_ExposureIterations = _data._x;
 }
 void SetStreamModeCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetStreamMode";
@@ -130,7 +129,7 @@ void SetDensityCommand::execute(ExecutionContext* c) {
 
 void FrameSceneCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "FrameScene";
-	c->_renderSettings->m_Camera.SetViewMode(ViewModeFront);
+	c->_camera->SetViewMode(ViewModeFront);
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetGlossinessCommand::execute(ExecutionContext* c) {

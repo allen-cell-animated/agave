@@ -2,6 +2,7 @@
 
 #include <string>
 
+class CCamera;
 class Renderer;
 class RenderSettings;
 class Scene;
@@ -10,6 +11,7 @@ struct ExecutionContext {
 	Renderer* _renderer;
 	RenderSettings* _renderSettings;
 	Scene* _appScene;
+	CCamera* _camera;
 };
 
 class Command {

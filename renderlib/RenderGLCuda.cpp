@@ -254,6 +254,9 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
+	// free the gpu resources of the old image.
+	_imgCuda.deallocGpu();
+
 	if (!_scene || !_scene->_volume) {
 		return;
 	}
@@ -263,19 +266,6 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 
 }
 
-void RenderGLCuda::setImage(std::shared_ptr<ImageXYZC> img) {
-	// free the gpu resources of the old image.
-	_imgCuda.deallocGpu();
-
-	_scene->_volume = img;
-
-	initVolumeTextureCUDA();
-	_renderSettings->initCameraFromImg(img->sizeX(), img->sizeY(), img->sizeZ(),
-		img->physicalSizeX(), img->physicalSizeY(), img->physicalSizeZ());
-
-	// we have set up everything there is to do before rendering
-	_status.SetRenderBegin();
-}
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 {
 	initQuad();
@@ -296,12 +286,14 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 	resize(w,h);
 }
 
-void RenderGLCuda::doRender() {
+void RenderGLCuda::doRender(const CCamera& camera) {
 	if (!_scene || !_scene->_volume) {
 		return;
 	}
-	if (!_imgCuda._volumeArrayInterleaved) {
+	if (!_imgCuda._volumeArrayInterleaved || _renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
 		initVolumeTextureCUDA();
+		// we have set up everything there is to do before rendering
+		_status.SetRenderBegin();
 	}
 
 	// Resizing the image canvas requires special attention
@@ -365,12 +357,6 @@ void RenderGLCuda::doRender() {
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
 	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-	// TODO: update only when w and h change!
-	_renderSettings->m_Camera.m_Film.m_Resolution.SetResX(_w);
-	_renderSettings->m_Camera.m_Film.m_Resolution.SetResY(_h);
-
-	_renderSettings->m_Camera.Update();
-
 	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_scene->_volume->maxPixelDimension();
 
 	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
@@ -378,10 +364,10 @@ void RenderGLCuda::doRender() {
 	CudaLighting cudalt;
 	FillCudaLighting(_scene, cudalt);
     CudaCamera cudacam;
-    FillCudaCamera(&(_renderSettings->m_Camera), cudacam);
+    FillCudaCamera(&(camera), cudacam);
 	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam, 
         _scene->_boundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
-        _w, _h, _renderSettings->m_Camera.m_Film.m_Gamma, _renderSettings->m_Camera.m_Film.m_Exposure);
+        _w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
@@ -419,9 +405,9 @@ void RenderGLCuda::doRender() {
 	}
 
 	int numIterations = _renderSettings->GetNoIterations();
-	Render(0, _renderSettings->m_Camera.m_Film.m_ExposureIterations, 
-        _renderSettings->m_Camera.m_Film.m_Resolution.GetResX(), 
-        _renderSettings->m_Camera.m_Film.m_Resolution.GetResY(),
+	Render(0, camera.m_Film.m_ExposureIterations, 
+        camera.m_Film.m_Resolution.GetResX(), 
+        camera.m_Film.m_Resolution.GetResY(),
 		theCudaFB,
 		theCudaVolume,
 		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise, numIterations);
@@ -466,7 +452,7 @@ void RenderGLCuda::doRender() {
 void RenderGLCuda::render(const CCamera& camera)
 {
 	// draw to _fbtex
-	doRender();
+	doRender(camera);
 
 	// put _fbtex to main render target
 	drawImage();
@@ -526,6 +512,8 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::cleanUpResources() {
+	_imgCuda.deallocGpu();
+
 	glDeleteVertexArrays(1, &vertices);
 	glDeleteBuffers(1, &image_vertices);
 	glDeleteBuffers(1, &image_texcoords);

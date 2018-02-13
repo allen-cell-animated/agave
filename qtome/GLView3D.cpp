@@ -44,7 +44,7 @@ GLView3D::GLView3D(QCamera* cam,
     _renderer(new RenderGLCuda(rs)),
 	//    _renderer(new RenderGL(img))
 	_camera(cam),
-	_cameraController(cam),
+	_cameraController(cam, &mCamera),
 	_transferFunction(tran),
 	_rendererType(1)
 {
@@ -62,6 +62,12 @@ GLView3D::GLView3D(QCamera* cam,
 
 void GLView3D::onNewImage(Scene* scene)
 {
+	// Tell the camera about the volume's bounding box
+	mCamera.m_SceneBoundingBox.m_MinP = Vec3f(0.0f);
+	mCamera.m_SceneBoundingBox.m_MaxP = scene->_boundingBox.GetMaxP();
+	// reposition to face image
+	mCamera.SetViewMode(ViewModeFront);
+
 	_renderer->setScene(scene);
 	// costly teardown and rebuild.
 	this->OnUpdateRenderer(_rendererType);
@@ -105,7 +111,9 @@ GLView3D::render()
 {
     makeCurrent();
 
-    _renderer->render(_renderSettings->m_Camera);
+	mCamera.Update();
+    
+	_renderer->render(mCamera);
 }
 
 void
@@ -114,7 +122,9 @@ GLView3D::resize()
     makeCurrent();
 
     QSize newsize = size();
-    _renderer->resize(newsize.width(), newsize.height());
+	mCamera.m_Film.m_Resolution.SetResX(newsize.width());
+	mCamera.m_Film.m_Resolution.SetResY(newsize.height());
+	_renderer->resize(newsize.width(), newsize.height());
 }
 
 
@@ -182,17 +192,17 @@ void GLView3D::OnUpdateCamera()
 {
 	//	QMutexLocker Locker(&gSceneMutex);
 	RenderSettings& rs = *_renderSettings;
-	rs.m_Camera.m_Film.m_Exposure = 1.0f - _camera->GetFilm().GetExposure();
-	rs.m_Camera.m_Film.m_ExposureIterations = _camera->GetFilm().GetExposureIterations();
+	mCamera.m_Film.m_Exposure = 1.0f - _camera->GetFilm().GetExposure();
+	mCamera.m_Film.m_ExposureIterations = _camera->GetFilm().GetExposureIterations();
 
 	if (_camera->GetFilm().IsDirty())
 	{
 		const int FilmWidth = _camera->GetFilm().GetWidth();
 		const int FilmHeight = _camera->GetFilm().GetHeight();
 
-		rs.m_Camera.m_Film.m_Resolution.SetResX(FilmWidth);
-		rs.m_Camera.m_Film.m_Resolution.SetResY(FilmHeight);
-		rs.m_Camera.Update();
+		mCamera.m_Film.m_Resolution.SetResX(FilmWidth);
+		mCamera.m_Film.m_Resolution.SetResY(FilmHeight);
+		mCamera.Update();
 		_camera->GetFilm().UnDirty();
 		// 		// 
 		rs.m_DirtyFlags.SetFlag(FilmResolutionDirty);
@@ -202,17 +212,17 @@ void GLView3D::OnUpdateCamera()
 	// 	gScene.m_Camera.m_Target	= gCamera.GetTarget();
 	// 	gScene.m_Camera.m_Up		= gCamera.GetUp();
 
-	rs.m_Camera.Update();
+	mCamera.Update();
 
 	// Aperture
-	rs.m_Camera.m_Aperture.m_Size = _camera->GetAperture().GetSize();
+	mCamera.m_Aperture.m_Size = _camera->GetAperture().GetSize();
 
 	// Projection
-	rs.m_Camera.m_FovV = _camera->GetProjection().GetFieldOfView();
+	mCamera.m_FovV = _camera->GetProjection().GetFieldOfView();
 
 	// Focus
-	rs.m_Camera.m_Focus.m_Type = (CFocus::EType)_camera->GetFocus().GetType();
-	rs.m_Camera.m_Focus.m_FocalDistance = _camera->GetFocus().GetFocalDistance();
+	mCamera.m_Focus.m_Type = (CFocus::EType)_camera->GetFocus().GetType();
+	mCamera.m_Focus.m_FocalDistance = _camera->GetFocus().GetFocalDistance();
 
 	rs.m_DenoiseParams.m_Enabled = _camera->GetFilm().GetNoiseReduction();
 
