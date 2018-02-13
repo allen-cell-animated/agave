@@ -48,6 +48,7 @@ target_compile_definitions(renderlib_cuda PUBLIC
 
 target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Defines.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Enumerations.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Geometry.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Geometry.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Spectrum.cpp"
