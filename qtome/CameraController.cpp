@@ -57,7 +57,7 @@ void CameraController::OnMouseMove(QMouseEvent *event)
             m_NewPos[0] = event->x();
             m_NewPos[1] = event->y();
 
-			_camera->GetFocus().SetFocalDistance(max(0.0f, mCamera->m_Focus.m_FocalDistance + m_ApertureSpeed * (float)(m_NewPos[1] - m_OldPos[1])));
+			_camera->GetFocus().SetFocalDistance(std::max(0.0f, mCamera->m_Focus.m_FocalDistance + m_ApertureSpeed * (float)(m_NewPos[1] - m_OldPos[1])));
 
             m_OldPos[0] = event->x();
             m_OldPos[1] = event->y();
@@ -72,7 +72,7 @@ void CameraController::OnMouseMove(QMouseEvent *event)
                 m_NewPos[0] = event->x();
                 m_NewPos[1] = event->y();
 
-				_camera->GetAperture().SetSize(max(0.0f, mCamera->m_Aperture.m_Size + m_ApertureSpeed * (float)(m_NewPos[1] - m_OldPos[1])));
+				_camera->GetAperture().SetSize(std::max(0.0f, mCamera->m_Aperture.m_Size + m_ApertureSpeed * (float)(m_NewPos[1] - m_OldPos[1])));
 
                 m_OldPos[0] = event->x();
                 m_OldPos[1] = event->y();
@@ -85,7 +85,7 @@ void CameraController::OnMouseMove(QMouseEvent *event)
                 m_NewPos[0] = event->x();
                 m_NewPos[1] = event->y();
 
-				_camera->GetProjection().SetFieldOfView(max(0.0f, mCamera->m_FovV - m_FovSpeed * (float)(m_NewPos[1] - m_OldPos[1])));
+				_camera->GetProjection().SetFieldOfView(std::max(0.0f, mCamera->m_FovV - m_FovSpeed * (float)(m_NewPos[1] - m_OldPos[1])));
 
                 m_OldPos[0] = event->x();
                 m_OldPos[1] = event->y();

@@ -47,6 +47,8 @@ target_compile_definitions(renderlib_cuda PUBLIC
 )
 
 target_sources(renderlib PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Defines.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Enumerations.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Geometry.cpp"

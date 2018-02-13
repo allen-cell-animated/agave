@@ -9,10 +9,7 @@ QCamera::QCamera(QObject* pParent /*= NULL*/) :
 	m_Film(),
 	m_Aperture(),
 	m_Projection(),
-	m_Focus(),
-	m_From(1.0f),
-	m_Target(0.5f),
-	m_Up(0.0f, 1.0f, 0.0f)
+	m_Focus()
 {
 }
 
@@ -33,9 +30,6 @@ QCamera& QCamera::operator=(const QCamera& Other)
 	m_Aperture		= Other.m_Aperture;
 	m_Projection	= Other.m_Projection;
 	m_Focus			= Other.m_Focus;
-	m_From			= Other.m_From;
-	m_Target		= Other.m_Target;
-	m_Up			= Other.m_Up;
 
 	blockSignals(false);
 
@@ -82,42 +76,6 @@ QFocus& QCamera::GetFocus(void)
 void QCamera::SetFocus(const QFocus& Focus)
 {
 	m_Focus = Focus;
-}
-
-Vec3f QCamera::GetFrom(void) const
-{
-	return m_From;
-}
-
-void QCamera::SetFrom(const Vec3f& From)
-{
-	m_From = From;
-
-	emit Changed();
-}
-
-Vec3f QCamera::GetTarget(void) const
-{
-	return m_Target;
-}
-
-void QCamera::SetTarget(const Vec3f& Target)
-{
-	m_Target = Target;
-
-	emit Changed();
-}
-
-Vec3f QCamera::GetUp(void) const
-{
-	return m_Up;
-}
-
-void QCamera::SetUp(const Vec3f& Up)
-{
-	m_Up = Up;
-
-	emit Changed();
 }
 
 QCamera QCamera::Default(void)

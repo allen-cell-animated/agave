@@ -46,11 +46,6 @@ void gVec3ToFloat3(const glm::vec3* src, float3* dest) {
 	dest->y = src->y;
 	dest->z = src->z;
 }
-void Vec3ToFloat3(const Vec3f* src, float3* dest) {
-    dest->x = src->x;
-    dest->y = src->y;
-    dest->z = src->z;
-}
 
 void RenderGLCuda::FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
     gVec3ToFloat3(&pCamera->m_From, &c.m_From);

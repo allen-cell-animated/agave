@@ -2,8 +2,6 @@
 
 #include "CudaUtilities.h"
 #include "helper_math.cuh"
-//#include "Camera.cuh"
-//#include "Geometry.h"
 
 CD int			gFilmWidth3;
 CD int			gFilmHeight3;

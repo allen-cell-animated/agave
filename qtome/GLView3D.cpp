@@ -63,7 +63,7 @@ GLView3D::GLView3D(QCamera* cam,
 void GLView3D::onNewImage(Scene* scene)
 {
 	// Tell the camera about the volume's bounding box
-	mCamera.m_SceneBoundingBox.m_MinP = Vec3f(0.0f);
+	mCamera.m_SceneBoundingBox.m_MinP = glm::vec3(0.0f);
 	mCamera.m_SceneBoundingBox.m_MaxP = scene->_boundingBox.GetMaxP();
 	// reposition to face image
 	mCamera.SetViewMode(ViewModeFront);
@@ -207,10 +207,6 @@ void GLView3D::OnUpdateCamera()
 		// 		// 
 		rs.m_DirtyFlags.SetFlag(FilmResolutionDirty);
 	}
-
-	// 	gScene.m_Camera.m_From	= gCamera.GetFrom();
-	// 	gScene.m_Camera.m_Target	= gCamera.GetTarget();
-	// 	gScene.m_Camera.m_Up		= gCamera.GetUp();
 
 	mCamera.Update();
 

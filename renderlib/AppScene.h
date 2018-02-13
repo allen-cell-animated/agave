@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glm.h"
-#include "Geometry.h"
+#include "BoundingBox.h"
 
 #include <memory>
 

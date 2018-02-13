@@ -210,22 +210,22 @@ void qtome::open()
 		open(file);
 }
 
-inline QString FormatVector(const Vec3f& Vector, const int& Precision = 2)
+inline QString FormatVector(const glm::vec3& Vector, const int& Precision = 2)
 {
 	return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " + QString::number(Vector.z, 'f', Precision) + "]";
 }
 
-inline QString FormatVector(const Vec3i& Vector)
+inline QString FormatVector(const glm::ivec3& Vector)
 {
 	return "[" + QString::number(Vector.x) + ", " + QString::number(Vector.y) + ", " + QString::number(Vector.z) + "]";
 }
 
-inline QString FormatSize(const Vec3f& Size, const int& Precision = 2)
+inline QString FormatSize(const glm::vec3& Size, const int& Precision = 2)
 {
 	return QString::number(Size.x, 'f', Precision) + " x " + QString::number(Size.y, 'f', Precision) + " x " + QString::number(Size.z, 'f', Precision);
 }
 
-inline QString FormatSize(const Vec3i& Size)
+inline QString FormatSize(const glm::ivec3& Size)
 {
 	return QString::number(Size.x) + " x " + QString::number(Size.y) + " x " + QString::number(Size.z);
 }
@@ -258,15 +258,15 @@ void qtome::open(const QString& file)
 		CStatus* s = glView->getStatus();
 		statisticsDockWidget->setStatus(s);
 
-		Vec3f resolution(image->sizeX(), image->sizeY(), image->sizeZ());
-		Vec3f spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
-		const Vec3f PhysicalSize(Vec3f(
+		glm::vec3 resolution(image->sizeX(), image->sizeY(), image->sizeZ());
+		glm::vec3 spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
+		const glm::vec3 PhysicalSize(
 			spacing.x * (float)resolution.x,
 			spacing.y * (float)resolution.y,
 			spacing.z * (float)resolution.z
-		));
-		Vec3f BoundingBoxMinP = Vec3f(0.0f);
-		Vec3f BoundingBoxMaxP = PhysicalSize / PhysicalSize.Max();
+		);
+		glm::vec3 BoundingBoxMinP = glm::vec3(0.0f);
+		glm::vec3 BoundingBoxMaxP = PhysicalSize / std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
 		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
 		s->SetStatisticChanged("Volume", "Bounding Box", "", "");
 		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "m");

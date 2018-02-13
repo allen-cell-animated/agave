@@ -1,7 +1,6 @@
 #include "Checkerboard.cuh"
 
 #include "CudaUtilities.h"
-//#include "Geometry.h"
 
 CD int			gFilmWidth1;
 CD int			gFilmHeight1;

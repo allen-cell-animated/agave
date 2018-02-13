@@ -1,7 +1,7 @@
 #include "AppScene.h"
 
 #include "ImageXYZC.h"
-#include "Geometry.h"
+#include "Defines.h"
 
 void Light::Update(const CBoundingBox& BoundingBox)
 {
@@ -11,8 +11,8 @@ void Light::Update(const CBoundingBox& BoundingBox)
 	m_InvHeight = 1.0f / m_Height;
 	m_HalfHeight = 0.5f * m_Height;
 	m_InvHalfHeight = 1.0f / m_HalfHeight;
-	Vec3f bbctr = BoundingBox.GetCenter();
-	m_Target = glm::vec3(bbctr.x, bbctr.y, bbctr.z);
+	glm::vec3 bbctr = BoundingBox.GetCenter();
+	m_Target = bbctr;
 
 	// Determine light position
 	m_P.x = m_Distance * cosf(m_Phi) * sinf(m_Theta);
@@ -30,8 +30,8 @@ void Light::Update(const CBoundingBox& BoundingBox)
 
 	if (m_T == 1)
 	{
-		m_P = glm::vec3(bbctr.x, bbctr.y, bbctr.z);
-		m_SkyRadius = 1000.0f * (BoundingBox.GetMaxP() - BoundingBox.GetMinP()).Length();
+		m_P = bbctr;
+		m_SkyRadius = 1000.0f * glm::length(BoundingBox.GetMaxP() - BoundingBox.GetMinP());
 		m_Area = 4.0f * PI_F * powf(m_SkyRadius, 2.0f);
 		m_AreaPdf = 1.0f / m_Area;
 	}
@@ -82,15 +82,17 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 	// point lights toward scene's bounding box
 
 	// Compute physical size
-	const Vec3f PhysicalSize(Vec3f(
+	const glm::vec3 PhysicalSize(
 		img->physicalSizeX() * (float)img->sizeX(),
 		img->physicalSizeY() * (float)img->sizeY(),
 		img->physicalSizeZ() * (float)img->sizeZ()
-	));
+	);
+	//glm::gtx::component_wise::compMax(PhysicalSize);
+	float m = std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
 
 	// Compute the volume's bounding box
-	_boundingBox.m_MinP = Vec3f(0.0f);
-	_boundingBox.m_MaxP = PhysicalSize / PhysicalSize.Max();
+	_boundingBox.m_MinP = glm::vec3(0.0f);
+	_boundingBox.m_MaxP = PhysicalSize / m;
 
 	for (int i = 0; i < _lighting.m_NoLights; ++i) {
 		_lighting.m_Lights[i].Update(_boundingBox);

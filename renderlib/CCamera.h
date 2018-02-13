@@ -1,15 +1,16 @@
 #pragma once
 
-#include "Geometry.h"
+#include "Defines.h"
+#include "BoundingBox.h"
 
 #include "glm.h"
 
 #define DEF_FOCUS_TYPE					CenterScreen
-#define DEF_FOCUS_SENSOR_POS_CANVAS		Vec2f(0.0f)
-#define DEF_FOCUS_P						Vec3f(0.0f)
+#define DEF_FOCUS_SENSOR_POS_CANVAS		glm::vec2(0.0f)
+#define DEF_FOCUS_P						glm::vec3(0.0f)
 #define DEF_FOCUS_FOCAL_DISTANCE		100.0f
 #define	DEF_FOCUS_T						0.0f
-#define DEF_FOCUS_N						Vec3f(0.0f)
+#define DEF_FOCUS_N						glm::vec3(0.0f)
 #define DEF_FOCUS_DOT_WN				0.0f
 
 class CFocus
@@ -24,11 +25,11 @@ public:
 	};
 
 	EType		m_Type;
-	Vec2f		m_SensorPosCanvas;
+	glm::vec2		m_SensorPosCanvas;
 	float		m_FocalDistance;
 	float		m_T;
-	Vec3f		m_P;
-	Vec3f		m_N;
+	glm::vec3		m_P;
+	glm::vec3		m_N;
 	float		m_DotWN;
 
 	CFocus(void)
@@ -122,6 +123,99 @@ public:
 	}
 };
 
+class CResolution2D
+{
+public:
+	CResolution2D(const float& Width, const float& Height)
+	{
+		m_XY = glm::ivec2(Width, Height);
+
+		Update();
+	}
+
+	CResolution2D(void)
+	{
+		m_XY = glm::ivec2(640, 480);
+
+		Update();
+	}
+
+	~CResolution2D(void)
+	{
+	}
+
+	CResolution2D& operator=(const CResolution2D& Other)
+	{
+		m_XY = Other.m_XY;
+		m_InvXY = Other.m_InvXY;
+		m_NoElements = Other.m_NoElements;
+		m_AspectRatio = Other.m_AspectRatio;
+		m_DiagonalLength = Other.m_DiagonalLength;
+
+		return *this;
+	}
+
+	int operator[](int i) const
+	{
+		return m_XY[i];
+	}
+
+	int& operator[](int i)
+	{
+		return m_XY[i];
+	}
+
+	bool operator == (const CResolution2D& Other) const
+	{
+		return GetResX() == Other.GetResX() && GetResY() == Other.GetResY();
+	}
+
+	bool operator != (const CResolution2D& Other) const
+	{
+		return GetResX() != Other.GetResX() || GetResY() != Other.GetResY();
+	}
+
+	void Update(void)
+	{
+		m_InvXY = glm::vec2(1.0f / m_XY.x, 1.0f / m_XY.y);
+		m_NoElements = m_XY.x * m_XY.y;
+		m_AspectRatio = (float)m_XY.x / (float)m_XY.y;
+		m_DiagonalLength = sqrtf(powf(m_XY.x, 2.0f) + powf(m_XY.y, 2.0f));
+	}
+
+	glm::ivec2 ToVector(void) const
+	{
+		return glm::ivec2(m_XY.x, m_XY.y);
+	}
+
+	void Set(const glm::ivec2& Resolution)
+	{
+		m_XY = Resolution;
+
+		Update();
+	}
+
+	int		GetResX(void) const { return m_XY.x; }
+	void	SetResX(const int& Width) { m_XY.x = Width; Update(); }
+	int		GetResY(void) const { return m_XY.y; }
+	void	SetResY(const int& Height) { m_XY.y = Height; Update(); }
+	glm::vec2	GetInv(void) const { return m_InvXY; }
+	int		GetNoElements(void) const { return m_NoElements; }
+	float	GetAspectRatio(void) const { return m_AspectRatio; }
+
+	void PrintSelf(void)
+	{
+		printf("[%d x %d]\n", GetResX(), GetResY());
+	}
+
+private:
+	glm::ivec2	m_XY;					/*!< Resolution width and height */
+	glm::vec2	m_InvXY;				/*!< Resolution width and height reciprocal */
+	int		m_NoElements;			/*!< No. elements */
+	float	m_AspectRatio;			/*!< Aspect ratio of image plane */
+	float	m_DiagonalLength;		/*!< Diagonal length */
+};
+
 #define DEF_FILM_ISO 400.0f
 #define DEF_FILM_EXPOSURE 0.5f
 #define DEF_FILM_FSTOP 8.0f
@@ -132,7 +226,7 @@ class CFilm
 public:
 	CResolution2D	m_Resolution;
 	float			m_Screen[2][2];
-	Vec2f			m_InvScreen;
+	glm::vec2			m_InvScreen;
 	float			m_Iso;
 	float			m_Exposure;
 	int				m_ExposureIterations;
@@ -146,7 +240,7 @@ public:
 		m_Screen[0][1]	= 0.0f;
 		m_Screen[1][0]	= 0.0f;
 		m_Screen[1][1]	= 0.0f;
-		m_InvScreen		= Vec2f(0.0f);
+		m_InvScreen		= glm::vec2(0.0f);
 		m_Iso			= DEF_FILM_ISO;
 		m_Exposure		= DEF_FILM_EXPOSURE;
 		m_ExposureIterations = 1;
@@ -358,8 +452,8 @@ public:
 		if (ViewMode == ViewModeUser)
 			return;
 
-		Vec3f ctr = m_SceneBoundingBox.GetCenter();
-		m_Target	= glm::vec3(ctr.x, ctr.y, ctr.z);
+		glm::vec3 ctr = m_SceneBoundingBox.GetCenter();
+		m_Target	= ctr;
 		m_Up		= glm::vec3(0.0f, 1.0f, 0.0f);
 
 		const float Distance = 1.5f;

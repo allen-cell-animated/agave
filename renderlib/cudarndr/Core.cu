@@ -6,6 +6,7 @@
 #include "Lighting2.cuh"
 #include "Lighting2Impl.cuh"
 #include "DenoiseParams.cuh"
+#include "BoundingBox.h"
 
 CD float3		gAaBbMin;
 CD float3		gAaBbMax;
