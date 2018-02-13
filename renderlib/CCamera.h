@@ -2,8 +2,7 @@
 
 #include "Geometry.h"
 
-//#include "MonteCarlo.cuh"
-//#include "RNG.cuh"
+#include "glm.h"
 
 #define DEF_FOCUS_TYPE					CenterScreen
 #define DEF_FOCUS_SENSOR_POS_CANVAS		Vec2f(0.0f)
@@ -227,14 +226,14 @@ public:
 	float				m_Hither;
 	float				m_Yon;
 	bool				m_EnableClippingPlanes;
-	Vec3f				m_From;
-	Vec3f				m_Target;
-	Vec3f				m_Up;
+	glm::vec3				m_From;
+	glm::vec3				m_Target;
+	glm::vec3				m_Up;
 	float				m_FovV;
 	float				m_AreaPixel;
-	Vec3f 				m_N;
-	Vec3f 				m_U;
-	Vec3f 				m_V;
+	glm::vec3 				m_N;
+	glm::vec3 				m_U;
+	glm::vec3 				m_V;
 	CFilm				m_Film;
 	CFocus				m_Focus;
 	CAperture			m_Aperture;
@@ -245,13 +244,13 @@ public:
 		m_Hither				= DEF_CAMERA_HITHER;
 		m_Yon					= DEF_CAMERA_YON;
 		m_EnableClippingPlanes	= DEF_CAMERA_ENABLE_CLIPPING;
-		m_From					= Vec3f(500.0f, 500.0f, 500.0f);
-		m_Target				= Vec3f(0.0f, 0.0f, 0.0f);
-		m_Up					= Vec3f(0.0f, 1.0f, 0.0f);
+		m_From					= glm::vec3(500.0f, 500.0f, 500.0f);
+		m_Target				= glm::vec3(0.0f, 0.0f, 0.0f);
+		m_Up					= glm::vec3(0.0f, 1.0f, 0.0f);
 		m_FovV					= DEF_CAMERA_FIELD_OF_VIEW;
-		m_N						= Vec3f(0.0f, 0.0f, 1.0f);
-		m_U						= Vec3f(1.0f, 0.0f, 0.0f);
-		m_V						= Vec3f(0.0f, 1.0f, 0.0f);
+		m_N						= glm::vec3(0.0f, 0.0f, 1.0f);
+		m_U						= glm::vec3(1.0f, 0.0f, 0.0f);
+		m_V						= glm::vec3(0.0f, 1.0f, 0.0f);
 		m_Dirty					= true;
 	}
 
@@ -282,11 +281,11 @@ public:
 		// right handed coordinate system
 
 		// "z" lookat direction
-		m_N	= Normalize(m_Target - m_From);
+		m_N	= glm::normalize(m_Target - m_From);
 		// camera left/right
-		m_U	= Normalize(Cross(m_N, m_Up));
+		m_U	= glm::normalize(glm::cross(m_N, m_Up));
 		// camera up/down
-		m_V	= Normalize(Cross(m_U, m_N));
+		m_V	= glm::normalize(glm::cross(m_U, m_N));
 
 		m_Film.Update(m_FovV, m_Aperture.m_Size);
 
@@ -299,17 +298,17 @@ public:
 
 	void Zoom(float amount)
 	{
-		Vec3f reverseLoS = m_From - m_Target;
+		glm::vec3 reverseLoS = m_From - m_Target;
 
 		if (amount > 0)
 		{	
-			reverseLoS.ScaleBy(1.1f);
+			reverseLoS *= 1.1f;
 		}
 		else if (amount < 0)
 		{	
-			if (reverseLoS.Length() > 0.0005f)
+			if (glm::length(reverseLoS) > 0.0005f)
 			{ 
-				reverseLoS.ScaleBy(0.9f);
+				reverseLoS *= 0.9f;
 			}
 		}
 
@@ -319,15 +318,15 @@ public:
 	// Pan operator
 	void Pan(float UpUnits, float RightUnits)
 	{
-		Vec3f LoS = m_Target - m_From;
+		glm::vec3 LoS = m_Target - m_From;
 
-		Vec3f right		= Cross(LoS, m_Up);
-		Vec3f orthogUp = Cross(right, LoS);
+		glm::vec3 right		= glm::cross(LoS, m_Up);
+		glm::vec3 orthogUp = glm::cross(right, LoS);
 
-		right.Normalize();
-		orthogUp.Normalize();
+		right = glm::normalize(right);
+		orthogUp = glm::normalize(orthogUp);
 
-		const float Length = (m_Target - m_From).Length();
+		const float Length = glm::length(m_Target - m_From);
 
 		const unsigned int WindowWidth	= m_Film.m_Resolution.GetResX();
 
@@ -340,16 +339,16 @@ public:
 
 	void Orbit(float DownDegrees, float RightDegrees)
 	{
-		Vec3f ReverseLoS = m_From - m_Target;
+		glm::vec3 ReverseLoS = m_From - m_Target;
 
-		Vec3f right		= m_Up.Cross(ReverseLoS);
-		Vec3f orthogUp	= ReverseLoS.Cross(right);
-		Vec3f Up = Vec3f(0.0f, 1.0f, 0.0f);
+		glm::vec3 right		= glm::cross(m_Up, ReverseLoS);
+		glm::vec3 orthogUp	= glm::cross(ReverseLoS, right);
+		glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 		
-		ReverseLoS.RotateAxis(right, DownDegrees);
-		ReverseLoS.RotateAxis(Up, RightDegrees);
-		m_Up.RotateAxis(right, DownDegrees);
-		m_Up.RotateAxis(Up, RightDegrees);
+		ReverseLoS = glm::rotate(ReverseLoS, DownDegrees*DEG_TO_RAD, right);
+		ReverseLoS = glm::rotate(ReverseLoS, RightDegrees*DEG_TO_RAD, Up);
+		m_Up = glm::rotate(m_Up, DownDegrees*DEG_TO_RAD, right);
+		m_Up = glm::rotate(m_Up, RightDegrees*DEG_TO_RAD, Up);
 
 		m_From = ReverseLoS + m_Target;
 	}
@@ -359,8 +358,9 @@ public:
 		if (ViewMode == ViewModeUser)
 			return;
 
-		m_Target	= m_SceneBoundingBox.GetCenter();
-		m_Up		= Vec3f(0.0f, 1.0f, 0.0f);
+		Vec3f ctr = m_SceneBoundingBox.GetCenter();
+		m_Target	= glm::vec3(ctr.x, ctr.y, ctr.z);
+		m_Up		= glm::vec3(0.0f, 1.0f, 0.0f);
 
 		const float Distance = 1.5f;
 
@@ -374,16 +374,16 @@ public:
 		case ViewModeBack:							m_From.z += Length;												break;
 		case ViewModeLeft:							m_From.x += Length;												break;
 		case ViewModeRight:							m_From.x -= -Length;											break;
-		case ViewModeTop:							m_From.y += Length;		m_Up = Vec3f(0.0f, 0.0f, 1.0f);			break;
-		case ViewModeBottom:						m_From.y -= -Length;	m_Up = Vec3f(0.0f, 0.0f, -1.0f);		break;
-		case ViewModeIsometricFrontLeftTop:			m_From = Vec3f(Length, Length, -Length);						break;
-		case ViewModeIsometricFrontRightTop:		m_From = m_Target + Vec3f(-Length, Length, -Length);			break;
-		case ViewModeIsometricFrontLeftBottom:		m_From = m_Target + Vec3f(Length, -Length, -Length);			break;
-		case ViewModeIsometricFrontRightBottom:		m_From = m_Target + Vec3f(-Length, -Length, -Length);			break;
-		case ViewModeIsometricBackLeftTop:			m_From = m_Target + Vec3f(Length, Length, Length);				break;
-		case ViewModeIsometricBackRightTop:			m_From = m_Target + Vec3f(-Length, Length, Length);				break;
-		case ViewModeIsometricBackLeftBottom:		m_From = m_Target + Vec3f(Length, -Length, Length);				break;
-		case ViewModeIsometricBackRightBottom:		m_From = m_Target + Vec3f(-Length, -Length, Length);			break;
+		case ViewModeTop:							m_From.y += Length;		m_Up = glm::vec3(0.0f, 0.0f, 1.0f);			break;
+		case ViewModeBottom:						m_From.y -= -Length;	m_Up = glm::vec3(0.0f, 0.0f, -1.0f);		break;
+		case ViewModeIsometricFrontLeftTop:			m_From = glm::vec3(Length, Length, -Length);						break;
+		case ViewModeIsometricFrontRightTop:		m_From = m_Target + glm::vec3(-Length, Length, -Length);			break;
+		case ViewModeIsometricFrontLeftBottom:		m_From = m_Target + glm::vec3(Length, -Length, -Length);			break;
+		case ViewModeIsometricFrontRightBottom:		m_From = m_Target + glm::vec3(-Length, -Length, -Length);			break;
+		case ViewModeIsometricBackLeftTop:			m_From = m_Target + glm::vec3(Length, Length, Length);				break;
+		case ViewModeIsometricBackRightTop:			m_From = m_Target + glm::vec3(-Length, Length, Length);				break;
+		case ViewModeIsometricBackLeftBottom:		m_From = m_Target + glm::vec3(Length, -Length, Length);				break;
+		case ViewModeIsometricBackRightBottom:		m_From = m_Target + glm::vec3(-Length, -Length, Length);			break;
 		}
 
 		Update();

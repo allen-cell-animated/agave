@@ -41,7 +41,7 @@ RenderGLCuda::~RenderGLCuda()
 	//cleanUpResources();
 }
 
-void gVec3ToFloat3(glm::vec3* src, float3* dest) {
+void gVec3ToFloat3(const glm::vec3* src, float3* dest) {
 	dest->x = src->x;
 	dest->y = src->y;
 	dest->z = src->z;
@@ -53,10 +53,10 @@ void Vec3ToFloat3(const Vec3f* src, float3* dest) {
 }
 
 void RenderGLCuda::FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
-    Vec3ToFloat3(&pCamera->m_From, &c.m_From);
-    Vec3ToFloat3(&pCamera->m_N, &c.m_N);
-    Vec3ToFloat3(&pCamera->m_U, &c.m_U);
-    Vec3ToFloat3(&pCamera->m_V, &c.m_V);
+    gVec3ToFloat3(&pCamera->m_From, &c.m_From);
+    gVec3ToFloat3(&pCamera->m_N, &c.m_N);
+    gVec3ToFloat3(&pCamera->m_U, &c.m_U);
+    gVec3ToFloat3(&pCamera->m_V, &c.m_V);
     c.m_ApertureSize = pCamera->m_Aperture.m_Size;
     c.m_FocalDistance = pCamera->m_Focus.m_FocalDistance;
     c.m_InvScreen[0] = pCamera->m_Film.m_InvScreen.x;
