@@ -322,6 +322,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	for (auto s: _channelSections) {
 		delete s;
 	}
+	_channelSections.clear();
 
 	// I don't own this.
 	_scene = scene;
