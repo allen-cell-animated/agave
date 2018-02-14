@@ -33,6 +33,12 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 
 		c->_appScene->_volume = image;
 		c->_appScene->initSceneFromImg(image);
+
+		// Tell the camera about the volume's bounding box
+		c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->_boundingBox.GetMinP();
+		c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
+		c->_camera->SetViewMode(ViewModeFront);
+
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
 			c->_appScene->_material.enabled[i] = (i < 3);
 		}
