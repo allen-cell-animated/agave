@@ -192,6 +192,7 @@ QImage Renderer::render()
 	glEnable(GL_TEXTURE_2D);
 
 	// DRAW
+	myVolumeData._camera->Update();
 	myVolumeData._renderer->doRender(*(myVolumeData._camera));
 
 	// COPY TO MY FBO
