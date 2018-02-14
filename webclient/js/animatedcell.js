@@ -23,16 +23,6 @@
 
   var _stream_mode = false;
   var _stream_mode_suspended = false;
-  // var bbbb = new commandBuffer();
-  // bbbb.addCommand("EYE", 1, 1, 5);
-  // bbbb.addCommand("TARGET", 3, 3, 0);
-  // bbbb.addCommand("SESSION", "hello");
-  // bbbb.addCommand("APERTURE", 7);
-  // bbbb.prebufferToBuffer();
-  // var bbbbview = new Uint8Array(bbbb.buffer);
-  // console.log(bbbbview);
-
-
 
 
   /**
@@ -176,14 +166,14 @@ function setupGui() {
     binarysocket0.onmessage = binarysock.message0; //linked to message0
     binarysocket0.onerror = binarysock.error;
 
-    jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
-    jsonsock = new jsonsocket();
-    jsonsocket0.binaryType = "arraybuffer";
+//    jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
+//    jsonsock = new jsonsocket();
+//    jsonsocket0.binaryType = "arraybuffer";
     //socket connection for json message requests
-    jsonsocket0.onopen = jsonsock.open;
-    jsonsocket0.onclose = jsonsock.close;
-    jsonsocket0.onmessage = jsonsock.message;
-    jsonsocket0.onerror = jsonsock.error;
+//    jsonsocket0.onopen = jsonsock.open;
+//    jsonsocket0.onclose = jsonsock.close;
+//    jsonsocket0.onmessage = jsonsock.message;
+//    jsonsocket0.onerror = jsonsock.error;
 
       //setup tooltips
     //readTextFile("data/tooltip.csv");
@@ -222,8 +212,9 @@ function setupGui() {
         var cb = new commandBuffer();
         cb.addCommand("LOAD_OME_TIF", "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.1.1/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif");
         cb.addCommand("SET_RESOLUTION", 512, 512);
-        cb.addCommand("EYE", 0.5, 0.408, 2.145);
-        cb.addCommand("TARGET", 0.5, 0.408, 0.145);
+        cb.addCommand("FRAME_SCENE");
+        //cb.addCommand("EYE", 0.5, 0.408, 2.145);
+        //cb.addCommand("TARGET", 0.5, 0.408, 0.145);
         cb.addCommand("MAT_DIFFUSE", 0, 1.0, 0.0, 1.0, 1.0);
         cb.addCommand("MAT_SPECULAR", 0, 0.0, 0.0, 0.0, 0.0);
         cb.addCommand("MAT_EMISSIVE", 0, 0.0, 0.0, 0.0, 0.0);
