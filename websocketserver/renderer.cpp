@@ -7,6 +7,7 @@
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/Logging.h"
 
 #include "commandBuffer.h"
 #include "command.h"
@@ -21,13 +22,20 @@ id(id), _streamMode(0), fbo(nullptr), _width(0), _height(0)
 {
 	this->totalQueueDuration = 0;
 
-	qDebug() << id << "Initializing rendering thread...";
+	LOG_DEBUG << "Renderer " << id.toStdString() << " -- Initializing rendering thread...";
 	this->init();
-	qDebug() << id << "Done.";
+	LOG_DEBUG << "Renderer " << id.toStdString() << " -- Done.";
 }
 
 Renderer::~Renderer()
 {
+	// delete all outstanding requests.
+	qDeleteAll(this->requests);
+
+	delete myVolumeData._renderSettings;
+	delete myVolumeData._camera;
+	delete myVolumeData._scene;
+	delete myVolumeData._renderer;
 }
 
 void Renderer::myVolumeInit() {
@@ -98,12 +106,16 @@ void Renderer::run()
 	// TODO: PUT THIS KIND OF INIT SOMEWHERE ELSE
 	myVolumeInit();
 
-	while (1)
+	while (!QThread::currentThread()->isInterruptionRequested())
 	{
 		this->processRequest();
 
 		QApplication::processEvents();
 	}
+
+	this->context->makeCurrent(this->surface);
+	myVolumeData._renderer->cleanUpResources();
+	shutDown();
 }
 
 void Renderer::addRequest(RenderRequest *request)
@@ -149,12 +161,9 @@ bool Renderer::processRequest()
 	}
 
 
-	//inform the server
+	//inform the server that we are done with r
 	emit requestProcessed(r, img);
 	
-	// should be totally done with r now.
-	//delete r;
-
 	return true;
 }
 

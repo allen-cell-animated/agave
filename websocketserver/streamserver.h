@@ -22,7 +22,7 @@
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
-#define THREAD_COUNT 1
+#define THREAD_COUNT 4
 
 class StreamServer : public QObject
 {
@@ -33,23 +33,23 @@ public:
 
 	inline int getClientsCount()
 	{
-		return clients.count();
+		return _clients.count();
 	}
 
 	inline QList<QWebSocket *> getClients()
 	{
-		return clients;
+		return _clients;
 	}
 
 	inline int getThreadsCount()
 	{
-		return THREAD_COUNT;
+		return _renderers.length();
 	}
 
 	inline QList<int> getThreadsLoad()
 	{
 		QList<int> loads;
-		foreach(Renderer *renderer, this->renderers)
+		foreach(Renderer *renderer, this->_renderers)
 		{
 			loads << renderer->getTotalQueueDuration();
 		}
@@ -60,7 +60,7 @@ public:
 	inline QList<int> getThreadsRequestCount()
 	{
 		QList<int> requests;
-		foreach(Renderer *renderer, this->renderers)
+		foreach(Renderer *renderer, this->_renderers)
 		{
 			requests << renderer->getRequestCount();
 		}
@@ -81,18 +81,19 @@ signals:
 	void sendImage(RenderRequest *request, QImage image);
 
 private:
-	//QVector<int> sampleCount;
-	//QVector<qreal> timings;
 
-	Renderer *getLeastBusyRenderer();
+	//Renderer *getLeastBusyRenderer();
+	Renderer* getRendererForClient(QWebSocket* client);
 
-	QWebSocketServer *webSocketServer;
-	QList<QWebSocket *> clients;
+	QWebSocketServer* _webSocketServer;
+	
+	QList<QWebSocket*> _clients;
+	QList<Renderer*> _renderers;
+	QMap<QWebSocket*, Renderer*> _clientRenderers;
+
 	bool debug;
 
-	QList<Renderer *> renderers;
-
-	QByteArray previousArray;
+	void createNewRenderer(QWebSocket* client);
 };
 
 #endif //STREAMSERVER_H

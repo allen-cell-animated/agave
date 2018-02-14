@@ -10,6 +10,7 @@ class RenderRequest
 {
 public:
 	RenderRequest(QWebSocket *client, std::vector<Command*> parameters, bool debug = false);
+	~RenderRequest();
 
 	inline QWebSocket *getClient()
 	{

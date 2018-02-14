@@ -12,136 +12,34 @@
 
 #include "commandBuffer.h"
 #include "util.h"
+#include "renderlib/Logging.h"
 
 QT_USE_NAMESPACE
 
 const char *DEFAULT_IMAGE_FORMAT = "JPG";
 
+void StreamServer::createNewRenderer(QWebSocket* client) {
+	int i = this->_renderers.length();
+	Renderer* r = new Renderer("Thread " + QString::number(i), this);
+	this->_renderers << r;
+	connect(r, SIGNAL(requestProcessed(RenderRequest*, QImage)), this, SLOT(sendImage(RenderRequest*, QImage)));
+
+	qDebug() << "Starting thread" << i << "...";
+	r->start();
+
+	_clientRenderers[client] = r;
+}
+
 StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	QObject(parent),
-	webSocketServer(new QWebSocketServer(QStringLiteral("Marion"), QWebSocketServer::NonSecureMode, this)),
-	clients(),
+	_webSocketServer(new QWebSocketServer(QStringLiteral("Marion"), QWebSocketServer::NonSecureMode, this)),
+	_clients(),
+	_renderers(),
 	debug(debug)
 {
 	connect(this, &StreamServer::closed, qApp, &QApplication::quit);
 
-	qDebug() << "Server is starting up with" << THREAD_COUNT << "threads, listening on port" << port << "...";
-
-	// assumption : each renderer is rendering the same scene, just possibly for different clients.
-	
-	for (int i = 0; i < THREAD_COUNT; i++)
-	{
-		this->renderers << new Renderer("Thread " + QString::number(i), this);
-		connect(this->renderers.last(), SIGNAL(requestProcessed(RenderRequest*, QImage)), this, SLOT(sendImage(RenderRequest*, QImage)));
-
-		qDebug() << "Starting thread" << i << "...";
-		this->renderers.last()->start();
-	}
-	qDebug() << "Done.";
-#if 0
-
-	qDebug() << "Sampling the rendering parameters...";
-
-	int settingsCount = 64;
-
-	this->timings.resize(settingsCount);
-	this->sampleCount.resize(settingsCount);
-
-	for (int i = 0; i < 10; i++)
-	{
-		//sample the surface of the sphere
-		qreal u = Util::rrandom();
-		qreal v = Util::rrandom();
-		qreal th = 2.0 * PI * u;
-		qreal ph = acos(2.0 * v - 1.0);
-
-		qreal r = 1.0 /*+ Util::rrandom() * 1.0*/;
-
-		//cartesian
-		qreal x = r * cos(th) * sin(ph);
-		qreal y = r * sin(th) * cos(ph);
-		qreal z = r * cos(ph);
-
-		QMatrix4x4 modelview;
-		modelview.lookAt(QVector3D(x, y, z), QVector3D(0.0, 0.0, 0.0), QVector3D(0.0, 1.0, 0.0));
-
-		int settings = rand() % 64;
-		//issue the request
-
-		//*******************************
-		//dummy parameters for testing
-		QString type1 = "Interphase_5cells";
-		QString type2 = "Mitotic_2cells";
-		QString cell1 = "20161216_C02_005_6";
-		QString cell2 = "20160705_S03_058_7";
-		QList<QVariant> channelvalues;
-		for (int i = 0; i<13; i++)
-		{
-			channelvalues.append(0.5);
-		}
-		qreal crossfade = 0.0;
-		int mode = 0;
-		//*******************************
-
-
-		RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92, true);
-		//RenderParameters p(modelview, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92);
-
-		RenderRequest *request = new RenderRequest(0, p, false);
-		this->getLeastBusyRenderer()->addRequest(request);
-	}
-
-	for (int settings = 0; settings < settingsCount; settings++)
-	{
-		this->timings[settings] = 0;
-		this->sampleCount[settings] = 0;
-
-		for (int i = 0; i < 1; i++)
-		{
-			//sample the surface of the sphere
-			qreal u = Util::rrandom();
-			qreal v = Util::rrandom();
-			qreal th = 2.0 * PI * u;
-			qreal ph = acos(2.0 * v - 1.0);
-
-			qreal r = 1.0 /*+ Util::rrandom() * 1.0*/;
-
-			//cartesian
-			qreal x = r * cos(th) * sin(ph);
-			qreal y = r * sin(th) * cos(ph);
-			qreal z = r * cos(ph);
-
-			QMatrix4x4 modelview;
-			modelview.lookAt(QVector3D(x, y, z), QVector3D(0.0, 0.0, 0.0), QVector3D(0.0, 1.0, 0.0));
-
-
-			//issue the request
-
-			//*******************************
-			//dummy parameters for testing
-			QString type1 = "Interphase_5cells";
-			QString type2 = "Mitotic_2cells";
-			QString cell1 = "20161216_C02_005_6";
-			QString cell2 = "20160705_S03_058_7";
-			QList<QVariant> channelvalues;
-			for (int i = 0; i<13; i++)
-			{
-				channelvalues.append(0.5);
-			}
-			qreal crossfade = 0.0;
-			int mode = 0;
-			//*******************************
-
-
-			RenderParameters p(modelview, type1, cell1, type2, cell2, channelvalues, mode, crossfade, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92, true);
-			//RenderParameters p(modelview, settings, 0.0, DEFAULT_IMAGE_FORMAT, 92);
-
-			RenderRequest *request = new RenderRequest(0, p, true);
-			this->getLeastBusyRenderer()->addRequest(request);
-		}
-	}
-#endif
-	qDebug() << "Done.";
+	qDebug() << "Server is starting up with" << THREAD_COUNT << " max threads, listening on port" << port << "...";
 
 	QSslConfiguration sslConfiguration;
 	QFile certFile(QStringLiteral("mr.crt"));
@@ -156,17 +54,17 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	sslConfiguration.setLocalCertificate(certificate);
 	sslConfiguration.setPrivateKey(sslKey);
 	sslConfiguration.setProtocol(QSsl::TlsV1SslV3);
-	webSocketServer->setSslConfiguration(sslConfiguration);
+	_webSocketServer->setSslConfiguration(sslConfiguration);
 
 	qDebug() << "QSslSocket::supportsSsl() = " << QSslSocket::supportsSsl();
 
-	if (webSocketServer->listen(QHostAddress::Any, port))
+	if (_webSocketServer->listen(QHostAddress::Any, port))
 	{
 		if (debug)
 			qDebug() << "Streamserver listening on port" << port;
-		connect(webSocketServer, &QWebSocketServer::newConnection, this, &StreamServer::onNewConnection);
-		connect(webSocketServer, &QWebSocketServer::closed, this, &StreamServer::closed);
-		connect(webSocketServer, &QWebSocketServer::sslErrors, this, &StreamServer::onSslErrors);
+		connect(_webSocketServer, &QWebSocketServer::newConnection, this, &StreamServer::onNewConnection);
+		connect(_webSocketServer, &QWebSocketServer::closed, this, &StreamServer::closed);
+		connect(_webSocketServer, &QWebSocketServer::sslErrors, this, &StreamServer::onSslErrors);
 	}
 
 	qDebug() << "Server initialization done.";
@@ -174,8 +72,9 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 
 StreamServer::~StreamServer()
 {
-	webSocketServer->close();
-	qDeleteAll(clients.begin(), clients.end());
+	_webSocketServer->close();
+	qDeleteAll(_clients.begin(), _clients.end());
+	qDeleteAll(_renderers.begin(), _renderers.end());
 }
 
 void StreamServer::onSslErrors(const QList<QSslError> &errors)
@@ -188,32 +87,35 @@ void StreamServer::onSslErrors(const QList<QSslError> &errors)
 
 void StreamServer::onNewConnection()
 {
-	// fire up new renderer?
+	QWebSocket *pSocket = _webSocketServer->nextPendingConnection();
 
-	QWebSocket *pSocket = webSocketServer->nextPendingConnection();
+	// fire up new renderer?
+	if (_renderers.length() >= THREAD_COUNT) {
+		// handle this better.
+		pSocket->abort();
+		LOG_DEBUG << "TOO MANY CONNECTIONS.";
+		return;
+	}
+
 
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &StreamServer::processTextMessage);
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &StreamServer::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &StreamServer::socketDisconnected);
+//	QObject::connect(pSocket, &QWebSocket::error, [pSocket](QAbstractSocket::SocketError e)
+//	{
+//		// Handle error here...
+//		qDebug() << pSocket->errorString();
+//	});
 
-	clients << pSocket;
+	_clients << pSocket;
+	createNewRenderer(pSocket);
 
 	//if (m_debug)
-	qDebug() << "new client!" << pSocket->resourceName() << "; " << pSocket->peerAddress().toString() << ":" << pSocket->peerPort() << "; " << pSocket->peerName();
+	LOG_DEBUG << "new client!" << pSocket->resourceName().toStdString() << "; " << pSocket->peerAddress().toString().toStdString() << ":" << pSocket->peerPort() << "; " << pSocket->peerName().toStdString();
 }
 
-Renderer *StreamServer::getLeastBusyRenderer()
-{
-	Renderer *leastBusy = 0;
-	foreach(Renderer *renderer, this->renderers)
-	{
-		if (leastBusy == 0 || renderer->getTotalQueueDuration() < leastBusy->getTotalQueueDuration())
-		{
-			leastBusy = renderer;
-		}
-	}
-
-	return leastBusy;
+Renderer* StreamServer::getRendererForClient(QWebSocket* client) {
+	return _clientRenderers[client];
 }
 
 void StreamServer::processTextMessage(QString message)
@@ -280,8 +182,12 @@ void StreamServer::processBinaryMessage(QByteArray message)
 
 		// one message is a list of commands to run before rendering.
 		// the complete message amounts to a single render request and an image is expected to come out of it.
+
+		// hand the commands over to the RenderRequest. 
+		// RenderRequest will assume ownership and delete them
+
 		RenderRequest *request = new RenderRequest(pClient, b.getQueue());
-		this->getLeastBusyRenderer()->addRequest(request);
+		this->getRendererForClient(pClient)->addRequest(request);
 	}
 }
 
@@ -292,7 +198,14 @@ void StreamServer::socketDisconnected()
 	//qDebug() << "new client!" << pSocket->resourceName() << "; " << pSocket->peerAddress().toString() << ":" << pSocket->peerPort() << "; " << pSocket->peerName();
 	qDebug() << "socketDisconnected:" << pClient->resourceName() << "(" << pClient->closeCode() << ":" << pClient->closeReason() + ")";
 	if (pClient) {
-		clients.removeAll(pClient);
+		Renderer* r = getRendererForClient(pClient);
+		QObject::connect(r, &Renderer::finished, r, &QObject::deleteLater);
+		if (r) {
+			r->requestInterruption();
+		}
+		_clients.removeAll(pClient);
+		_renderers.removeAll(r);
+		_clientRenderers.remove(pClient);
 		pClient->deleteLater();
 	}
 }
@@ -307,7 +220,7 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 	}
 
 	QWebSocket* client = request->getClient();
-	if (client != 0 && client->isValid() && client->state() == QAbstractSocket::ConnectedState)
+	if (client != 0 && _clients.contains(client) && client->isValid() && client->state() == QAbstractSocket::ConnectedState)
 	{
 		QByteArray ba;
 		QBuffer buffer(&ba);
@@ -316,4 +229,7 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 
 		client->sendBinaryMessage(ba);
 	}
+
+	// this is the end of the line for a request.
+	delete request;
 }

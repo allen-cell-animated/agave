@@ -1,5 +1,7 @@
 #include "renderrequest.h"
 
+#include "command.h"
+
 RenderRequest::RenderRequest(QWebSocket *client, std::vector<Command*> parameters, bool debug) :
 	client(client),
 	parameters(parameters),
@@ -7,4 +9,8 @@ RenderRequest::RenderRequest(QWebSocket *client, std::vector<Command*> parameter
 {
 	this->actualDuration = 0;
 	this->estimatedDuration = 10;
+}
+
+RenderRequest::~RenderRequest() {
+	qDeleteAll(parameters);
 }

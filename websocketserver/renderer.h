@@ -34,7 +34,7 @@ class Renderer : public QThread
 
 public:
 	Renderer(QString id, QObject *parent = 0);
-	~Renderer();
+	virtual ~Renderer();
 
 	void init();
 	void run();
@@ -115,6 +115,7 @@ private:
 signals:
 	void kill();
 	void requestProcessed(RenderRequest *request, QImage img);
+
 };
 
 #endif // RENDERER_H
