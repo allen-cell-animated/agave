@@ -59,6 +59,7 @@ public:
 	
 	void onNewImage(Scene* scene);
 
+	const CCamera& getCamera() { return mCamera; }
 public slots:
 
 	void OnUpdateCamera();
