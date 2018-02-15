@@ -58,7 +58,7 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   char* omexmlstr = nullptr;
   // ome-xml is in ImageDescription of first IFD in the file.
   if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &omexmlstr) != 1) {
-    QString msg = "Failed to read width of TIFF: '" + QString(filepath.c_str()) + "'";
+    QString msg = "Failed to read imagedescription of TIFF: '" + QString(filepath.c_str()) + "'";
 	LOG_ERROR << msg.toStdString();
 
     //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
