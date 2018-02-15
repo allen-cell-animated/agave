@@ -125,7 +125,10 @@ void RequestRedrawCommand::execute(ExecutionContext* c) {
 }
 void SetResolutionCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetResolution";
+	c->_camera->m_Film.m_Resolution.SetResX(_data._x);
+	c->_camera->m_Film.m_Resolution.SetResY(_data._y);
 	c->_renderer->resizeGL(_data._x, _data._y);
+	c->_renderSettings->SetNoIterations(0);
 }
 void SetDensityCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetDensity";
