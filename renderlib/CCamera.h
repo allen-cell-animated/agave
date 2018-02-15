@@ -464,8 +464,8 @@ public:
 
 		switch (ViewMode)
 		{
-		case ViewModeFront:							m_From.z -= Length;												break;
-		case ViewModeBack:							m_From.z += Length;												break;
+		case ViewModeFront:							m_From.z += Length;												break;
+		case ViewModeBack:							m_From.z -= Length;												break;
 		case ViewModeLeft:							m_From.x += Length;												break;
 		case ViewModeRight:							m_From.x -= -Length;											break;
 		case ViewModeTop:							m_From.y += Length;		m_Up = glm::vec3(0.0f, 0.0f, 1.0f);			break;
