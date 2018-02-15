@@ -456,9 +456,10 @@ public:
 		m_Target	= ctr;
 		m_Up		= glm::vec3(0.0f, 1.0f, 0.0f);
 
-		const float Distance = 1.5f;
-
-		const float Length = Distance * m_SceneBoundingBox.GetMaxLength();
+		const float size = m_SceneBoundingBox.GetDiagonalLength();
+		const float Length = size*0.5 / tan(0.5*m_FovV*DEG_TO_RAD);
+		//const float Distance = 0.866f;
+		//const float Length = Distance * m_SceneBoundingBox.GetMaxLength();
 
 		m_From = m_Target;
 

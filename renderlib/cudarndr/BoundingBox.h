@@ -151,6 +151,11 @@ public:
 		return MinMax[GetDominantAxis()];
 	}
 
+	float GetDiagonalLength() const
+	{
+		return sqrt(LengthX()*LengthX() + LengthY()*LengthY() + LengthZ()*LengthZ());
+	}
+
 	float HalfSurfaceArea(void) const
 	{
 		const glm::vec3 e(GetExtent());
