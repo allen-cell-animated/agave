@@ -225,11 +225,11 @@ void ImageCuda::allocGpuInterleaved(ImageXYZC* img) {
 	timer.start();
 
 	createVolumeTexture4x16(img, &_volumeArrayInterleaved, &_volumeTextureInterleaved);
+	int numChannels = img->sizeC();
+	updateVolumeData4x16(img, 0, std::min(1, numChannels-1) , std::min(2, numChannels - 1), std::min(3, numChannels - 1));
 
-	updateVolumeData4x16(img, 0, 1, 2, 3);
 
-
-	for (uint32_t i = 0; i < img->sizeC(); ++i) {
+	for (uint32_t i = 0; i < numChannels; ++i) {
 		ChannelCuda c;
 		c._index = i;
 		c.allocGpu(img, i, false, false);
