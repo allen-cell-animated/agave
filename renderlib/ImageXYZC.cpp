@@ -293,8 +293,8 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 
 	_min = _histogram._dataMin;
 	_max = _histogram._dataMax;
-	float w, l;
-	_lut = _histogram.generate_auto2(w,l);
+
+	_lut = _histogram.generate_auto2(_window, _level);
 
 }
 

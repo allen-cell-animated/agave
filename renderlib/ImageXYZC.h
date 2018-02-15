@@ -49,13 +49,15 @@ struct Channelu16
 
 	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
-	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); }
-	void generate_auto2(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto2(window, level); }
-	void generate_auto(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto(window, level); }
-	void generate_bestFit(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_bestFit(window, level); }
+	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); _window = window; _level = level; }
+	void generate_auto2(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto2(window, level); _window = window; _level = level; }
+	void generate_auto(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto(window, level); _window = window; _level = level; }
+	void generate_bestFit(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_bestFit(window, level); _window = window; _level = level; }
 
 	void debugprint();
 
+	// convenience.  may not be accurate if LUT input is generalized.
+	float _window, _level;
 };
 
 class ImageXYZC
