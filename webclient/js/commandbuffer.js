@@ -41,7 +41,9 @@ var COMMANDS = {
   // channel index, 1/0 for enable/disable
   ENABLE_CHANNEL: [20, "I32", "I32"],
   // channel index, window, level.  (Do I ever set these independently?)
-  SET_WINDOW_LEVEL: [21, "I32", "F32", "F32"]
+  SET_WINDOW_LEVEL: [21, "I32", "F32", "F32"],
+  // theta, phi in degrees
+  ORBIT_CAMERA: [22, "F32", "F32"]
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?

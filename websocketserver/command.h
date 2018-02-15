@@ -142,3 +142,9 @@ struct SetWindowLevelCommandD {
 	float _level;
 };
 CMDDECL(SetWindowLevelCommand);
+
+struct OrbitCameraCommandD {
+	float _theta;
+	float _phi;
+};
+CMDDECL(OrbitCameraCommand);

@@ -58,6 +58,7 @@ Command* parseFrameSceneCommand(CommandBufferIterator* c);
 Command* parseSetGlossinessCommand(CommandBufferIterator* c);
 Command* parseEnableChannelCommand(CommandBufferIterator* c);
 Command* parseSetWindowLevelCommand(CommandBufferIterator* c);
+Command* parseOrbitCameraCommand(CommandBufferIterator* c);
 
 #define CMD_CASE(N, CMDCLASS) \
 	case N:\
@@ -98,6 +99,7 @@ void commandBuffer::processBuffer()
 					CMD_CASE(19, SetGlossinessCommand);
 					CMD_CASE(20, EnableChannelCommand);
 					CMD_CASE(21, SetWindowLevelCommand);
+					CMD_CASE(22, OrbitCameraCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -286,4 +288,10 @@ Command* parseSetWindowLevelCommand(CommandBufferIterator* c) {
 	data._window = c->parseFloat32();
 	data._level = c->parseFloat32();
 	return new SetWindowLevelCommand(data);
+}
+Command* parseOrbitCameraCommand(CommandBufferIterator* c) {
+	OrbitCameraCommandD data;
+	data._theta = c->parseFloat32();
+	data._phi = c->parseFloat32();
+	return new OrbitCameraCommand(data);
 }

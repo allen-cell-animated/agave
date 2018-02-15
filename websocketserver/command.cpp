@@ -157,3 +157,8 @@ void SetWindowLevelCommand::execute(ExecutionContext* c) {
 	c->_appScene->_volume->channel(_data._channel)->generate_windowLevel(_data._window, _data._level);
 	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
+void OrbitCameraCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "OrbitCamera";
+	c->_camera->Orbit(_data._theta, _data._phi);
+	c->_renderSettings->SetNoIterations(0);
+}
