@@ -16,8 +16,9 @@ struct ChannelCuda {
     cudaTextureObject_t _volumeLutTexture = 0;
 
     int _index;
+	size_t _gpuBytes = 0;
 
-    void allocGpu(ImageXYZC* img, int channel, bool do_volume = true);
+    void allocGpu(ImageXYZC* img, int channel, bool do_volume = true, bool do_gradient_volume = true);
     void deallocGpu();
 	void updateLutGpu(int channel, ImageXYZC* img);
 
@@ -28,7 +29,9 @@ struct ImageCuda {
 	cudaArray_t _volumeArrayInterleaved = nullptr;
 	cudaTextureObject_t _volumeTextureInterleaved = 0;
 
-    void allocGpu(ImageXYZC* img);
+	size_t _gpuBytes = 0;
+	
+	void allocGpu(ImageXYZC* img);
 	void allocGpuInterleaved(ImageXYZC* img);
 	void deallocGpu();
 

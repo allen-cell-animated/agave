@@ -22,23 +22,23 @@ RenderGLCuda::RenderGLCuda(RenderSettings* rs)
 	_cudaTex(nullptr),
 	_cudaGLSurfaceObject(0),
 	_fbtex(0),
-	vertices(0),
-	image_vertices(0),
-	image_texcoords(0),
-	image_elements(0),
+	_quadVertexArray(0),
+	_quadVertices(0),
+	_quadTexcoords(0),
+	_quadIndices(0),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
 	_renderSettings(rs),
 	_w(0),
 	_h(0),
-	_scene(nullptr)
+	_scene(nullptr),
+	_gpuBytes(0)
 {
 }
 
 
 RenderGLCuda::~RenderGLCuda()
 {
-	//cleanUpResources();
 }
 
 void gVec3ToFloat3(const glm::vec3* src, float3* dest) {
@@ -94,6 +94,8 @@ void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
 
 void RenderGLCuda::initQuad()
 {
+	// treat this as negligible use of gpu mem.
+
 	check_gl("begin initQuad ");
 	// setup geometry
 	glm::vec2 xlim(-1.0, 1.0);
@@ -106,16 +108,16 @@ void RenderGLCuda::initQuad()
 		xlim[0], ylim[1]
 	};
 
-	if (vertices == 0) {
-		glGenVertexArrays(1, &vertices);
+	if (_quadVertexArray == 0) {
+		glGenVertexArrays(1, &_quadVertexArray);
 	}
-	glBindVertexArray(vertices);
+	glBindVertexArray(_quadVertexArray);
 	check_gl("create and bind verts");
 
-	if (image_vertices == 0) {
-		glGenBuffers(1, &image_vertices);
+	if (_quadVertices == 0) {
+		glGenBuffers(1, &_quadVertices);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, image_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, _quadVertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
 	check_gl("init vtx coord data");
 
@@ -129,10 +131,10 @@ void RenderGLCuda::initQuad()
 		texxlim[0], texylim[1]
 	};
 
-	if (image_texcoords == 0) {
-		glGenBuffers(1, &image_texcoords);
+	if (_quadTexcoords == 0) {
+		glGenBuffers(1, &_quadTexcoords);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, image_texcoords);
+	glBindBuffer(GL_ARRAY_BUFFER, _quadTexcoords);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_texcoords.size(), square_texcoords.data(), GL_STATIC_DRAW);
 	check_gl("init texcoord data");
 
@@ -143,10 +145,10 @@ void RenderGLCuda::initQuad()
 		2,  3,  0
 	};
 
-	if (image_elements == 0) {
-		glGenBuffers(1, &image_elements);
+	if (_quadIndices == 0) {
+		glGenBuffers(1, &_quadIndices);
 	}
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, image_elements);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _quadIndices);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * square_elements.size(), square_elements.data(), GL_STATIC_DRAW);
 	num_image_elements = square_elements.size();
 	check_gl("init element data");
@@ -187,19 +189,23 @@ void RenderGLCuda::cleanUpFB()
 		HandleCudaError(cudaFree(_cudaF32AccumBuffer));
 		_cudaF32AccumBuffer = nullptr;
 	}
+
+	_gpuBytes = 0;
 }
 
 void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 {
+	cleanUpFB();
+	
 	_w = w;
 	_h = h;
 
-	cleanUpFB();
-	
 	HandleCudaError(cudaMalloc((void**)&_cudaF32Buffer, w*h * 4 * sizeof(float)));
 	HandleCudaError(cudaMemset(_cudaF32Buffer, 0, w*h * 4 * sizeof(float)));
+	_gpuBytes += w*h * 4 * sizeof(float);
 	HandleCudaError(cudaMalloc((void**)&_cudaF32AccumBuffer, w*h * 4 * sizeof(float)));
 	HandleCudaError(cudaMemset(_cudaF32AccumBuffer, 0, w*h * 4 * sizeof(float)));
+	_gpuBytes += w*h * 4 * sizeof(float);
 
 	{
 		unsigned int* pSeeds = (unsigned int*)malloc(w*h * sizeof(unsigned int));
@@ -209,13 +215,14 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 		for (unsigned int i = 0; i < w*h; i++)
 			pSeeds[i] = rand();
 		HandleCudaError(cudaMemcpy(_randomSeeds1, pSeeds, w*h * sizeof(unsigned int), cudaMemcpyHostToDevice));
-
+		_gpuBytes += w*h * sizeof(unsigned int);
 
 		HandleCudaError(cudaMalloc((void**)&_randomSeeds2, w*h * sizeof(unsigned int)));
 		memset(pSeeds, 0, w*h * sizeof(unsigned int));
 		for (unsigned int i = 0; i < w*h; i++)
 			pSeeds[i] = rand();
 		HandleCudaError(cudaMemcpy(_randomSeeds2, pSeeds, w*h * sizeof(unsigned int), cudaMemcpyHostToDevice));
+		_gpuBytes += w*h * sizeof(unsigned int);
 
 		free(pSeeds);
 	}
@@ -228,6 +235,7 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	_gpuBytes += w*h * 4;
 	check_gl("Create fb texture");
 	// this is required in order to "complete" the texture object for mipmapless shader access.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -470,17 +478,17 @@ void RenderGLCuda::drawImage() {
 	check_gl("Bind texture");
 	image_shader->setTexture(0);
 
-	glBindVertexArray(vertices);
+	glBindVertexArray(_quadVertexArray);
 	check_gl("bind vtx buf");
 
 	image_shader->enableCoords();
-	image_shader->setCoords(image_vertices, 0, 2);
+	image_shader->setCoords(_quadVertices, 0, 2);
 
 	image_shader->enableTexCoords();
-	image_shader->setTexCoords(image_texcoords, 0, 2);
+	image_shader->setTexCoords(_quadTexcoords, 0, 2);
 
 	// Push each element to the vertex shader
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, image_elements);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _quadIndices);
 	check_gl("bind element buf");
 	glDrawElements(GL_TRIANGLES, (GLsizei)num_image_elements, GL_UNSIGNED_SHORT, 0);
 	check_gl("Image2D draw elements");
@@ -506,15 +514,23 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 	LOG_DEBUG << "Resized window to " << w << " x " << h;
 }
 
+void RenderGLCuda::cleanUpQuad() {
+	glDeleteVertexArrays(1, &_quadVertexArray);
+	_quadVertexArray = 0;
+	glDeleteBuffers(1, &_quadVertices);
+	_quadVertices = 0;
+	glDeleteBuffers(1, &_quadTexcoords);
+	_quadTexcoords = 0;
+	glDeleteBuffers(1, &_quadIndices);
+	_quadIndices = 0;
+}
+
 void RenderGLCuda::cleanUpResources() {
 	_imgCuda.deallocGpu();
 
-	glDeleteVertexArrays(1, &vertices);
-	glDeleteBuffers(1, &image_vertices);
-	glDeleteBuffers(1, &image_texcoords);
-	glDeleteBuffers(1, &image_elements);
-
+	cleanUpQuad();
 	cleanUpFB();
+
 }
 
 RenderParams& RenderGLCuda::renderParams() {
@@ -525,4 +541,8 @@ Scene* RenderGLCuda::scene() {
 }
 void RenderGLCuda::setScene(Scene* s) {
 	_scene = s;
+}
+
+size_t RenderGLCuda::getGpuBytes() {
+	return _gpuBytes + _imgCuda._gpuBytes;
 }

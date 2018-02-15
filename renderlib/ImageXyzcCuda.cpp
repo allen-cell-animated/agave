@@ -2,28 +2,29 @@
 
 #include "CudaUtilities.h"
 #include "ImageXYZC.h"
+#include "Logging.h"
 
 #include <QElapsedTimer>
 #include <QtDebug>
 
-void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume) {
+void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume, bool do_gradient_volume) {
 	cudaExtent volumeSize;
 	volumeSize.width = img->sizeX();
 	volumeSize.height = img->sizeY();
 	volumeSize.depth = img->sizeZ();
 
-    // intensity buffer
 
-	// assuming 16-bit data!
-	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
-	cudaChannelFormatDesc gradientChannelDesc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
-
-	// assuming 16-bit data!
 	Channelu16* ch = img->channel(channel);
 
+	// intensity buffer
 	if (do_volume) {
+		// assuming 16-bit data!
+		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
+
 		// create 3D array
 		HandleCudaError(cudaMalloc3DArray(&_volumeArray, &channelDesc, volumeSize));
+
+		_gpuBytes += (channelDesc.x + channelDesc.y + channelDesc.z + channelDesc.w)/8 * volumeSize.width * volumeSize.height * volumeSize.depth;
 
 		// copy data to 3D array
 		cudaMemcpy3DParms copyParams = { 0 };
@@ -32,33 +33,8 @@ void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume) {
 		copyParams.extent = volumeSize;
 		copyParams.kind = cudaMemcpyHostToDevice;
 		HandleCudaError(cudaMemcpy3D(&copyParams));
-	}
 
-    // gradient buffer
-
-	// create 3D array
-	HandleCudaError(cudaMalloc3DArray(&_volumeGradientArray, &gradientChannelDesc, volumeSize));
-
-	// copy data to 3D array
-	cudaMemcpy3DParms gradientCopyParams = { 0 };
-	gradientCopyParams.srcPtr = make_cudaPitchedPtr(ch->_gradientMagnitudePtr, volumeSize.width*img->sizeOfElement(), volumeSize.width, volumeSize.height);
-	gradientCopyParams.dstArray = _volumeGradientArray;
-	gradientCopyParams.extent = volumeSize;
-	gradientCopyParams.kind = cudaMemcpyHostToDevice;
-	HandleCudaError(cudaMemcpy3D(&gradientCopyParams));
-
-	// LUT buffer
-
-	const int LUT_SIZE = 256;
-	cudaChannelFormatDesc lutChannelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-	// create 1D array
-	HandleCudaError(cudaMallocArray(&_volumeLutArray, &lutChannelDesc, LUT_SIZE, 1));
-	// copy data to 1D array
-	HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, ch->_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
-
-    // create texture objects
-
-	if (do_volume) {
+		// create a texture object
 		cudaResourceDesc texRes;
 		memset(&texRes, 0, sizeof(cudaResourceDesc));
 		texRes.resType = cudaResourceTypeArray;
@@ -74,20 +50,51 @@ void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume) {
 		HandleCudaError(cudaCreateTextureObject(&_volumeTexture, &texRes, &texDescr, NULL));
 	}
 
-    cudaResourceDesc gradientTexRes;
-    memset(&gradientTexRes, 0, sizeof(cudaResourceDesc));
-    gradientTexRes.resType = cudaResourceTypeArray;
-    gradientTexRes.res.array.array = _volumeGradientArray;
-    cudaTextureDesc     gradientTexDescr;
-    memset(&gradientTexDescr, 0, sizeof(cudaTextureDesc));
-    gradientTexDescr.normalizedCoords = 1;
-    gradientTexDescr.filterMode = cudaFilterModeLinear;
-    gradientTexDescr.addressMode[0] = cudaAddressModeClamp;   // clamp
-    gradientTexDescr.addressMode[1] = cudaAddressModeClamp;
-    gradientTexDescr.addressMode[2] = cudaAddressModeClamp;
-    gradientTexDescr.readMode = cudaReadModeNormalizedFloat;
-    HandleCudaError(cudaCreateTextureObject(&_volumeGradientTexture, &gradientTexRes, &gradientTexDescr, NULL));
+    // gradient buffer
 
+	if (do_gradient_volume) {
+		// assuming 16-bit data!
+		cudaChannelFormatDesc gradientChannelDesc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
+
+		// create 3D array
+		HandleCudaError(cudaMalloc3DArray(&_volumeGradientArray, &gradientChannelDesc, volumeSize));
+		_gpuBytes += (gradientChannelDesc.x + gradientChannelDesc.y + gradientChannelDesc.z + gradientChannelDesc.w) / 8 * volumeSize.width * volumeSize.height * volumeSize.depth;
+
+		// copy data to 3D array
+		cudaMemcpy3DParms gradientCopyParams = { 0 };
+		gradientCopyParams.srcPtr = make_cudaPitchedPtr(ch->_gradientMagnitudePtr, volumeSize.width*img->sizeOfElement(), volumeSize.width, volumeSize.height);
+		gradientCopyParams.dstArray = _volumeGradientArray;
+		gradientCopyParams.extent = volumeSize;
+		gradientCopyParams.kind = cudaMemcpyHostToDevice;
+		HandleCudaError(cudaMemcpy3D(&gradientCopyParams));
+
+		// create a texture object
+		cudaResourceDesc gradientTexRes;
+		memset(&gradientTexRes, 0, sizeof(cudaResourceDesc));
+		gradientTexRes.resType = cudaResourceTypeArray;
+		gradientTexRes.res.array.array = _volumeGradientArray;
+		cudaTextureDesc     gradientTexDescr;
+		memset(&gradientTexDescr, 0, sizeof(cudaTextureDesc));
+		gradientTexDescr.normalizedCoords = 1;
+		gradientTexDescr.filterMode = cudaFilterModeLinear;
+		gradientTexDescr.addressMode[0] = cudaAddressModeClamp;   // clamp
+		gradientTexDescr.addressMode[1] = cudaAddressModeClamp;
+		gradientTexDescr.addressMode[2] = cudaAddressModeClamp;
+		gradientTexDescr.readMode = cudaReadModeNormalizedFloat;
+		HandleCudaError(cudaCreateTextureObject(&_volumeGradientTexture, &gradientTexRes, &gradientTexDescr, NULL));
+	}
+
+	// LUT buffer
+
+	const int LUT_SIZE = 256;
+	cudaChannelFormatDesc lutChannelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+	// create 1D array
+	HandleCudaError(cudaMallocArray(&_volumeLutArray, &lutChannelDesc, LUT_SIZE, 1));
+	_gpuBytes += (lutChannelDesc.x + lutChannelDesc.y + lutChannelDesc.z + lutChannelDesc.w)/8 * LUT_SIZE;
+	// copy data to 1D array
+	HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, ch->_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
+
+    // create texture objects
     cudaResourceDesc lutTexRes;
     memset(&lutTexRes, 0, sizeof(cudaResourceDesc));
     lutTexRes.resType = cudaResourceTypeArray;
@@ -117,6 +124,8 @@ void ChannelCuda::deallocGpu() {
     _volumeGradientArray = nullptr;
     HandleCudaError(cudaFreeArray(_volumeArray));
     _volumeArray = nullptr;
+
+	_gpuBytes = 0;
 }
 
 void ChannelCuda::updateLutGpu(int channel, ImageXYZC* img) {
@@ -138,7 +147,7 @@ void ImageCuda::allocGpu(ImageXYZC* img) {
         _channels.push_back(c);
     }
 
-	qDebug() << "allocGPU: Image to GPU in " << timer.elapsed() << "ms";
+	LOG_DEBUG << "allocGPU: Image to GPU in " << timer.elapsed() << "ms";
 }
 
 void ImageCuda::createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cudaTextureObject_t* deviceTexture) {
@@ -151,6 +160,7 @@ void ImageCuda::createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray
 	volumeSize.height = img->sizeY();
 	volumeSize.depth = img->sizeZ();
 	HandleCudaError(cudaMalloc3DArray(deviceArray, &channelDesc, volumeSize));
+	_gpuBytes += (channelDesc.x + channelDesc.y + channelDesc.z + channelDesc.w)/8 * volumeSize.width * volumeSize.height * volumeSize.depth;
 
 	// create texture tied to array
 	cudaResourceDesc texRes;
@@ -186,7 +196,7 @@ void ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int
 		}
 	}
 
-	qDebug() << "Prepared interleaved hostmem buffer: " << timer.elapsed() << "ms";
+	LOG_DEBUG << "Prepared interleaved hostmem buffer: " << timer.elapsed() << "ms";
 	timer.start();
 
 	// copy data to 3D array
@@ -201,7 +211,7 @@ void ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int
 	copyParams.kind = cudaMemcpyHostToDevice;
 	HandleCudaError(cudaMemcpy3D(&copyParams));
 
-	qDebug() << "Copy volume to gpu: " << timer.elapsed() << "ms";
+	LOG_DEBUG << "Copy volume to gpu: " << timer.elapsed() << "ms";
 
 
 	delete[] v;
@@ -224,9 +234,12 @@ void ImageCuda::allocGpuInterleaved(ImageXYZC* img) {
 		c._index = i;
 		c.allocGpu(img, i, false);
 		_channels.push_back(c);
+
+		_gpuBytes += c._gpuBytes;
 	}
 
-	qDebug() << "allocGPUinterleaved: Image to GPU in " << timer.elapsed() << "ms";
+	LOG_DEBUG << "allocGPUinterleaved: Image to GPU in " << timer.elapsed() << "ms";
+	LOG_DEBUG << "allocGPUinterleaved: GPU bytes: " << _gpuBytes;
 
 }
 
@@ -238,6 +251,8 @@ void ImageCuda::deallocGpu() {
 	_volumeTextureInterleaved = 0;
 	HandleCudaError(cudaFreeArray(_volumeArrayInterleaved));
 	_volumeArrayInterleaved = nullptr;
+
+	_gpuBytes = 0;
 }
 
 void ImageCuda::updateLutGpu(int channel, ImageXYZC* img) {

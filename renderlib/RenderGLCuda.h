@@ -42,29 +42,31 @@ public:
 	void doRender(const CCamera& camera);
 	// draw my fbo texture into the current render target
 	void drawImage();
+
+	size_t getGpuBytes();
 private:
 	RenderSettings* _renderSettings;
-
 	RenderParams _renderParams;
 	Scene* _scene;
 
 	void initQuad();
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();
+	void cleanUpFB();
+	void cleanUpQuad();
 
 	ImageCuda _imgCuda;
 
 	/// The vertex array.
-	GLuint vertices;  // vao
+	GLuint _quadVertexArray;  // vao
 	/// The image vertices.
-	GLuint image_vertices;  // buffer
+	GLuint _quadVertices;  // buffer
 	/// The image texture coordinates.
-	GLuint image_texcoords; // buffer
+	GLuint _quadTexcoords; // buffer
 	/// The image elements.
-	GLuint image_elements;  // buffer
+	GLuint _quadIndices;  // buffer
 	size_t num_image_elements;
-	/// The identifier of the texture owned and used by this object.
-	unsigned int textureid;
+
 	GLImageShader2DnoLut *image_shader;
 
 
@@ -87,9 +89,10 @@ private:
 	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
 	CStatus _status;
 
+	size_t _gpuBytes;
+
 	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
     void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
-	void cleanUpFB();
 
 };
 
