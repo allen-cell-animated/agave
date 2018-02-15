@@ -94,6 +94,18 @@ DEV inline Vec3f NormalizedGradient4ch(const Vec3f& P, const cudaVolume& volumeD
 
 	return Normalize(Gradient);
 }
+// note that gInvGradientDelta is maxpixeldim of volume
+// gGradientDeltaX,Y,Z is 1/X,Y,Z of volume
+DEV inline Vec3f Gradient4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
+{
+	Vec3f Gradient;
+
+	Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), volumeData, ch)) * gInvGradientDelta;
+	Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), volumeData, ch)) * gInvGradientDelta;
+	Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), volumeData, ch)) * gInvGradientDelta;
+
+	return Gradient;
+}
 
 DEV float GradientMagnitude(const Vec3f& P, cudaTextureObject_t texGradientMagnitude)
 {

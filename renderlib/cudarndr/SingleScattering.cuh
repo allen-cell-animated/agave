@@ -50,33 +50,34 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		// emission from volume
 		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
 
+		Vec3f gradient = Gradient4ch(Pe, volumedata, ch);
 		// send ray out from Pe toward light
 		switch (gShadingType)
 		{
 			case 0:
 			{
-				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, true);
+				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, true);
 				break;
 			}
 		
 			case 1:
 			{
-				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, false);
+				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, false);
 				break;
 			}
 
 			case 2:
 			{
-				const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * (1.0/volumedata.intensityMax[ch]);
-
+				//const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * (1.0/volumedata.intensityMax[ch]);
+				const float GradMag = gradient.Length();
 				const float PdfBrdf = (1.0f - __expf(-gGradientFactor * GradMag));
 
 				CColorXyz cls;
 				if (RNG.Get1() < PdfBrdf) {
-					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, true);
+					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, true);
 				}
 				else {
-					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, NormalizedGradient4ch(Pe, volumedata, ch), RNG, false);
+					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, false);
 				}
 
 				Lv += cls;

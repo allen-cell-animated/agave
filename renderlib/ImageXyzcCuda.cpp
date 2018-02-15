@@ -232,7 +232,7 @@ void ImageCuda::allocGpuInterleaved(ImageXYZC* img) {
 	for (uint32_t i = 0; i < img->sizeC(); ++i) {
 		ChannelCuda c;
 		c._index = i;
-		c.allocGpu(img, i, false);
+		c.allocGpu(img, i, false, false);
 		_channels.push_back(c);
 
 		_gpuBytes += c._gpuBytes;
