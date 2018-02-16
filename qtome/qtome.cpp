@@ -89,12 +89,20 @@ void qtome::createActions()
 	viewResetAction->setIcon(reset_icon);
 	viewResetAction->setEnabled(false);
 	connect(viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
+
+	dumpAction = new QAction(tr("&Dump python commands"), this);
+	//dumpAction->setShortcuts(QKeySequence::Open);
+	dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
+	connect(dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
+
 }
 
 void qtome::createMenus()
 {
 	fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(openAction);
+	fileMenu->addSeparator();
+	fileMenu->addAction(dumpAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
 
@@ -278,6 +286,7 @@ void qtome::open(const QString& file)
 		// TODO: this is per channel
 		//s->SetStatisticChanged("Volume", "Density Range", "[" + QString::number(gScene.m_IntensityRange.GetMin()) + ", " + QString::number(gScene.m_IntensityRange.GetMax()) + "]", "");
 
+		_currentFilePath = file;
 		qtome::prependToRecentFiles(file);
 	}
 }
@@ -416,4 +425,35 @@ void qtome::openRecentFile()
 QString qtome::strippedName(const QString &fullFileName)
 {
 	return QFileInfo(fullFileName).fileName();
+}
+
+void qtome::dumpPythonState()
+{
+	QString s;
+	s += "cb = CommandBuffer()\n";
+	s += QString("cb.add_command(\"LOAD_OME_TIF\", \"%1\")\n").arg(_currentFilePath);
+	s += QString("cb.add_command(\"SET_RESOLUTION\", %1, %2)\n").arg(glView->size().width()).arg(glView->size().height());
+	s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(_renderSettings.GetNoIterations());
+
+	s += QString("cb.add_command(\"EYE\", %1, %2, %3)\n").arg(glView->getCamera().m_From.x).arg(glView->getCamera().m_From.y).arg(glView->getCamera().m_From.z);
+	s += QString("cb.add_command(\"TARGET\", %1, %2, %3)\n").arg(glView->getCamera().m_Target.x).arg(glView->getCamera().m_Target.y).arg(glView->getCamera().m_Target.z);
+	s += QString("cb.add_command(\"UP\", %1, %2, %3)\n").arg(glView->getCamera().m_Up.x).arg(glView->getCamera().m_Up.y).arg(glView->getCamera().m_Up.z);
+	s += QString("cb.add_command(\"FOV_Y\", %1)\n").arg(_camera.GetProjection().GetFieldOfView());
+	
+	s += QString("cb.add_command(\"EXPOSURE\", %1)\n").arg(_camera.GetFilm().GetExposure());
+	s += QString("cb.add_command(\"DENSITY\", %1)\n").arg(_renderSettings.m_RenderSettings.m_DensityScale);
+	s += QString("cb.add_command(\"APERTURE\", %1)\n").arg(_camera.GetAperture().GetSize());
+
+	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
+		bool enabled = _appScene._material.enabled[i];
+		s += QString("cb.add_command(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled?"1":"0");
+		s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n").arg(QString::number(i)).arg(_appScene._material.diffuse[i*3]).arg(_appScene._material.diffuse[i * 3+1]).arg(_appScene._material.diffuse[i * 3+2]);
+		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.specular[i * 3]).arg(_appScene._material.specular[i * 3 + 1]).arg(_appScene._material.specular[i * 3 + 2]);
+		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.emissive[i * 3]).arg(_appScene._material.emissive[i * 3 + 1]).arg(_appScene._material.emissive[i * 3 + 2]);
+		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(_appScene._material.roughness[i]);
+		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(_appScene._volume->channel(i)->_window).arg(_appScene._volume->channel(i)->_level);
+	}
+	s += "buf = cb.make_buffer()\n";
+	qDebug().noquote() << s;
+	//return s;
 }

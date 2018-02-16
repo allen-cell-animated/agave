@@ -34,6 +34,7 @@ private slots:
 	void view_reset();
 	void viewFocusChanged(GLView3D *glView);
 	void tabChanged(int index);
+	void dumpPythonState();
 
 private:
 	enum { MaxRecentFiles = 5 };
@@ -56,6 +57,7 @@ private:
 
 	QAction *openAction;
 	QAction *quitAction;
+	QAction *dumpAction;
 
 	QAction *viewResetAction;
 
@@ -94,4 +96,5 @@ private:
 	QAction *recentFileSeparator;
 	QAction *recentFileSubMenuAct;
 
+	QString _currentFilePath;
 };
