@@ -61,7 +61,16 @@ function setupGui() {
     roughness2: 0.0,
     density: 50.0,
     exposure: 0.5,
-    stream: false
+    stream: false,
+    skyTopColor: [255, 255, 255],
+    skyMidColor: [255, 255, 255],
+    skyBotColor: [255, 255, 255],
+    lightColor: [255, 255, 255],
+    lightIntensity: 100.0,
+    lightDistance: 100.0,
+    lightTheta: 0.0,
+    lightPhi: 0.0,
+    lightSize: 10.0
   };
 
   var gui = new dat.GUI();
@@ -89,6 +98,81 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
+
+    gui.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_TOP_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.addColor(effectController, "skyMidColor").name("Sky Mid").onChange(function(value) { 
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.addColor(effectController, "skyBotColor").name("Sky Bottom").onChange(function(value) { 
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+
+    gui.add(effectController, "lightDistance").max(100.0).min(0.0).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("LIGHT_POS", 0, value, effectController["lightTheta"]*180.0/3.14159265, effectController["lightPhi"]*180.0/3.14159265);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.add(effectController, "lightTheta").max(180.0).min(-180.0).step(1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("LIGHT_POS", 0, effectController["lightDistance"], value*180.0/3.14159265, effectController["lightPhi"]*180.0/3.14159265);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.add(effectController, "lightPhi").max(180.0).min(0.0).step(1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("LIGHT_POS", 0, effectController["lightDistance"], effectController["lightTheta"]*180.0/3.14159265, value*180.0/3.14159265);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.add(effectController, "lightSize").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("LIGHT_SIZE", 0, value, value);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.add(effectController, "lightIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("LIGHT_COLOR", 0, effectController["lightColor"][0]/255.0*value, effectController["lightColor"][1]/255.0*value, effectController["lightColor"][2]/255.0*value);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    gui.addColor(effectController, "lightColor").name("lightcolor").onChange(function(value) { 
+        var cb = new commandBuffer();
+        cb.addCommand("LIGHT_COLOR", 0, value[0]/255.0*effectController["lightIntensity"], value[1]/255.0*effectController["lightIntensity"], value[2]/255.0*effectController["lightIntensity"]);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });  
+
   for (var i = 0; i < 3; ++i) {
     gui.addColor(effectController, "colorD"+i).name("Diffuse"+i).onChange(function(j) { 
         return function(value) {
@@ -232,15 +316,15 @@ function setupGui() {
         var streamimg1 = document.getElementById("imageA");
         gCamera = new THREE.PerspectiveCamera(55.0, 1.0, 0.001, 20);
         gCamera.position.x = 0.5;
-        gCamera.position.y = 0.408;
-        gCamera.position.z = 2.145;
+        gCamera.position.y = 0.5*0.675;
+        gCamera.position.z = 1.5 + (0.5*0.133);
         gCamera.up.x = 0.0;
         gCamera.up.y = 1.0;
         gCamera.up.z = 0.0;
         gControls = new AICStrackballControls(gCamera, streamimg1);
         gControls.target.x = 0.5;
-        gControls.target.y = 0.408;
-        gControls.target.z = 0.145;
+        gControls.target.y = 0.5*0.675;
+        gControls.target.z = 0.5*0.133;
         gControls.target0 = gControls.target.clone();
         gControls.rotateSpeed = 4.0/window.devicePixelRatio;
         gControls.autoRotate = false;
