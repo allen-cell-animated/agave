@@ -1,6 +1,7 @@
 #include "Stable.h"
 
 #include "AppearanceSettingsWidget.h"
+#include "RangeWidget.h"
 #include "Section.h"
 #include "TransferFunction.h"
 
@@ -105,6 +106,35 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_StepSizeSecondaryRaySpinner, SIGNAL(valueChanged(double)), &m_StepSizeSecondaryRaySlider, SLOT(setValue(double)));
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
+	_clipRoiSection = new Section("ROI", 0);
+	auto* roiSectionLayout = new QGridLayout();
+	roiSectionLayout->addWidget(new QLabel("X"), 0, 0);
+	RangeWidget* xSlider = new RangeWidget(Qt::Horizontal);
+	xSlider->setRange(0, 100);
+	xSlider->setFirstValue(0);
+	xSlider->setSecondValue(100);
+	roiSectionLayout->addWidget(xSlider, 0, 1);
+	QObject::connect(xSlider, &RangeWidget::firstValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMin);
+	QObject::connect(xSlider, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMax);
+	roiSectionLayout->addWidget(new QLabel("Y"), 1, 0);
+	RangeWidget* ySlider = new RangeWidget(Qt::Horizontal);
+	ySlider->setRange(0, 100);
+	ySlider->setFirstValue(0);
+	ySlider->setSecondValue(100);
+	roiSectionLayout->addWidget(ySlider, 1, 1);
+	QObject::connect(ySlider, &RangeWidget::firstValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMin);
+	QObject::connect(ySlider, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMax);
+	roiSectionLayout->addWidget(new QLabel("Z"), 2, 0);
+	RangeWidget* zSlider = new RangeWidget(Qt::Horizontal);
+	zSlider->setRange(0, 100);
+	zSlider->setFirstValue(0);
+	zSlider->setSecondValue(100);
+	roiSectionLayout->addWidget(zSlider, 2, 1);
+	QObject::connect(zSlider, &RangeWidget::firstValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
+	QObject::connect(zSlider, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
+
+	_clipRoiSection->setContentLayout(*roiSectionLayout);
+	m_MainLayout.addWidget(_clipRoiSection, 12, 0, 1, -1);
 
 
 	Section* section = new Section("Lighting", 0);
@@ -158,7 +188,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 
 	section->setContentLayout(*sectionLayout);
-	m_MainLayout.addWidget(section, 12, 0, 1, -1);
+	m_MainLayout.addWidget(section, 13, 0, 1, -1);
 
 
 
@@ -169,6 +199,49 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	
 	QObject::connect(_transferFunction, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 
+}
+
+void QAppearanceSettingsWidget::OnSetRoiXMin(int value)
+{
+	glm::vec3 v = _scene->_roi.GetMinP();
+	v.x = (float)value / 100.0;
+	_scene->_roi.SetMinP(v);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+}
+void QAppearanceSettingsWidget::OnSetRoiYMin(int value)
+{
+	glm::vec3 v = _scene->_roi.GetMinP();
+	v.y = (float)value / 100.0;
+	_scene->_roi.SetMinP(v);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+}
+void QAppearanceSettingsWidget::OnSetRoiZMin(int value)
+{
+	glm::vec3 v = _scene->_roi.GetMinP();
+	v.z = (float)value / 100.0;
+	_scene->_roi.SetMinP(v);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+}
+void QAppearanceSettingsWidget::OnSetRoiXMax(int value)
+{
+	glm::vec3 v = _scene->_roi.GetMaxP();
+	v.x = (float)value / 100.0;
+	_scene->_roi.SetMaxP(v);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+}
+void QAppearanceSettingsWidget::OnSetRoiYMax(int value)
+{
+	glm::vec3 v = _scene->_roi.GetMaxP();
+	v.y = (float)value / 100.0;
+	_scene->_roi.SetMaxP(v);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+}
+void QAppearanceSettingsWidget::OnSetRoiZMax(int value)
+{
+	glm::vec3 v = _scene->_roi.GetMaxP();
+	v.z = (float)value / 100.0;
+	_scene->_roi.SetMaxP(v);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
 
 void QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
@@ -437,7 +510,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		this->OnChannelChecked(i, channelenabled);
 
 		section->setContentLayout(*sectionLayout);
-		m_MainLayout.addWidget(section, 13+i, 0, 1, -1);
+		m_MainLayout.addWidget(section, 14+i, 0, 1, -1);
 		_channelSections.push_back(section);
 	}
 }

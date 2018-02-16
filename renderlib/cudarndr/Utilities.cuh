@@ -141,8 +141,8 @@ DEV int NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor
 DEV bool IntersectBox(const CRay& R, float* pNearT, float* pFarT)
 {
 	const Vec3f InvR		= Vec3f(1.0f, 1.0f, 1.0f) / R.m_D;
-	const Vec3f BottomT		= InvR * (Vec3f(gAaBbMin.x, gAaBbMin.y, gAaBbMin.z) - R.m_O);
-	const Vec3f TopT		= InvR * (Vec3f(gAaBbMax.x, gAaBbMax.y, gAaBbMax.z) - R.m_O);
+	const Vec3f BottomT		= InvR * (Vec3f(gClippedAaBbMin.x, gClippedAaBbMin.y, gClippedAaBbMin.z) - R.m_O);
+	const Vec3f TopT		= InvR * (Vec3f(gClippedAaBbMax.x, gClippedAaBbMax.y, gClippedAaBbMax.z) - R.m_O);
 	const Vec3f MinT		= MinVec3f(TopT, BottomT);
 	const Vec3f MaxT		= MaxVec3f(TopT, BottomT);
 	const float LargestMinT = fmaxf(fmaxf(MinT.x, MinT.y), fmaxf(MinT.x, MinT.z));

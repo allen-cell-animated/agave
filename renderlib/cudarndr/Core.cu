@@ -8,6 +8,8 @@
 #include "DenoiseParams.cuh"
 #include "BoundingBox.h"
 
+CD float3		gClippedAaBbMin;
+CD float3		gClippedAaBbMax;
 CD float3		gAaBbMin;
 CD float3		gAaBbMax;
 CD float3		gInvAaBbMin;
@@ -64,9 +66,15 @@ CD CudaCamera gCamera;
 
 
 void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
-	const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations,
+	const CBoundingBox& bbox, const CBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
 	int w, int h, float gamma, float exposure)
 {
+	const float3 ClipAaBbMin = make_float3(clipped_bbox.GetMinP().x, clipped_bbox.GetMinP().y, clipped_bbox.GetMinP().z);
+	const float3 ClipAaBbMax = make_float3(clipped_bbox.GetMaxP().x, clipped_bbox.GetMaxP().y, clipped_bbox.GetMaxP().z);
+
+	HandleCudaError(cudaMemcpyToSymbol(gClippedAaBbMin, &ClipAaBbMin, sizeof(float3)));
+	HandleCudaError(cudaMemcpyToSymbol(gClippedAaBbMax, &ClipAaBbMax, sizeof(float3)));
+
 	const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
 	const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
 

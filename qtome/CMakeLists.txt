@@ -48,6 +48,8 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ProjectionWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ProjectionWidget.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsWidget.cpp"

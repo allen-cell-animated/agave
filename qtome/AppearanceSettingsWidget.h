@@ -46,6 +46,12 @@ public:
 	void OnSetAreaLightSize(double value);
 	void OnSetAreaLightDistance(double value);
 	void OnSetAreaLightColor(double intensity, const QColor& color);
+	void OnSetRoiXMax(int value);
+	void OnSetRoiYMax(int value);
+	void OnSetRoiZMax(int value);
+	void OnSetRoiXMin(int value);
+	void OnSetRoiYMin(int value);
+	void OnSetRoiZMin(int value);
 
 private:
 	QGridLayout		m_MainLayout;
@@ -62,6 +68,8 @@ private:
 	QDoubleSpinner	m_StepSizeSecondaryRaySpinner;
 
 	QTransferFunction* _transferFunction;
+
+	Section* _clipRoiSection;
 
 	Scene* _scene;
 	std::vector<Section*> _channelSections;

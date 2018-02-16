@@ -45,7 +45,7 @@ struct cudaVolume {
 };
 
 void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
-	const CBoundingBox& bbox, const CRenderSettings& renderSettings, int numIterations,
+	const CBoundingBox& bbox, const CBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
 	int w, int h, float gamma, float exposure);
 
 // scene needs to be mutable to get nearest intersection for focusdist.

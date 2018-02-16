@@ -201,6 +201,7 @@ enum EDirty
 	BenchmarkDirty			= 0x04000,
 	TransferFunctionDirty	= 0x08000,
 	AnimationDirty			= 0x10000,
+	RoiDirty				= 0x20000,
 };
 
 enum EContainment

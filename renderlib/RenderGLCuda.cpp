@@ -320,7 +320,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	}
 
 	// Restart the rendering when when the camera, lights and render params are dirty
-	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty))
+	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty | RoiDirty))
 	{
 		if (_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
 			// TODO: only update the ones that changed.
@@ -368,9 +368,25 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	FillCudaLighting(_scene, cudalt);
     CudaCamera cudacam;
     FillCudaCamera(&(camera), cudacam);
-	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam, 
-        _scene->_boundingBox, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
-        _w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
+
+	glm::vec3 sn = _scene->_boundingBox.GetMinP();
+	glm::vec3 ext = _scene->_boundingBox.GetExtent();
+	CBoundingBox b;
+	b.SetMinP(glm::vec3(
+		ext.x*_scene->_roi.GetMinP().x + sn.x,
+		ext.y*_scene->_roi.GetMinP().y + sn.y,
+		ext.z*_scene->_roi.GetMinP().z + sn.z
+	));
+	b.SetMaxP(glm::vec3(
+		ext.x*_scene->_roi.GetMaxP().x + sn.x,
+		ext.y*_scene->_roi.GetMaxP().y + sn.y,
+		ext.z*_scene->_roi.GetMaxP().z + sn.z
+	));
+
+
+	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam,
+		_scene->_boundingBox, b, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
+		_w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
