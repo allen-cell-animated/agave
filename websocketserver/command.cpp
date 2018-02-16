@@ -138,6 +138,8 @@ void SetDensityCommand::execute(ExecutionContext* c) {
 
 void FrameSceneCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "FrameScene";
+	c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->_boundingBox.GetMinP();
+	c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
 	c->_camera->SetViewMode(ViewModeFront);
 	c->_renderSettings->SetNoIterations(0);
 }
