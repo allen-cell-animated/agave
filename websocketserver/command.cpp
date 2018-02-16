@@ -164,3 +164,37 @@ void OrbitCameraCommand::execute(ExecutionContext* c) {
 	c->_camera->Orbit(_data._theta, _data._phi);
 	c->_renderSettings->SetNoIterations(0);
 }
+void SetSkylightTopColorCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetSkylightTopColor";
+	c->_appScene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(_data._r, _data._g, _data._b);
+	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void SetSkylightMiddleColorCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetSkylightMiddleColor";
+	c->_appScene->_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(_data._r, _data._g, _data._b);
+	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void SetSkylightBottomColorCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetSkylightBottomColor";
+	c->_appScene->_lighting.m_Lights[0].m_ColorBottom = glm::vec3(_data._r, _data._g, _data._b);
+	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void SetLightPosCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetLightPos";
+	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Distance = _data._r;
+	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Theta = _data._theta;
+	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Phi = _data._phi;
+	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void SetLightColorCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetLightColor";
+	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Color = glm::vec3(_data._r, _data._g, _data._b);
+	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void SetLightSizeCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetLightSize";
+	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Width = _data._x;
+	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Height = _data._y;
+	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+

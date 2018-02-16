@@ -148,3 +148,37 @@ struct OrbitCameraCommandD {
 	float _phi;
 };
 CMDDECL(OrbitCameraCommand);
+
+struct SetSkylightTopColorCommandD {
+	float _r, _g, _b;
+};
+CMDDECL(SetSkylightTopColorCommand);
+
+struct SetSkylightMiddleColorCommandD {
+	float _r, _g, _b;
+};
+CMDDECL(SetSkylightMiddleColorCommand);
+
+struct SetSkylightBottomColorCommandD {
+	float _r, _g, _b;
+};
+CMDDECL(SetSkylightBottomColorCommand);
+
+struct SetLightPosCommandD {
+	int32_t _index;
+	float _r, _theta, _phi;
+};
+CMDDECL(SetLightPosCommand);
+
+struct SetLightColorCommandD {
+	int32_t _index;
+	float _r, _g, _b;
+};
+CMDDECL(SetLightColorCommand);
+
+struct SetLightSizeCommandD {
+	int32_t _index;
+	float _x, _y;
+};
+CMDDECL(SetLightSizeCommand);
+

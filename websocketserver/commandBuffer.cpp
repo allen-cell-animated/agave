@@ -35,30 +35,40 @@ CommandBufferIterator::CommandBufferIterator(commandBuffer* buf)
 
 //////////////////
 // forward declare.
-Command* parseSessionCommand(CommandBufferIterator* c);
-Command* parseAssetPathCommand(CommandBufferIterator* c);
-Command* parseLoadOmeTifCommand(CommandBufferIterator* c);
-Command* parseSetCameraPosCommand(CommandBufferIterator* c);
-Command* parseSetCameraUpCommand(CommandBufferIterator* c);
-Command* parseSetCameraTargetCommand(CommandBufferIterator* c);
-Command* parseSetCameraTargetCommand(CommandBufferIterator* c);
-Command* parseSetCameraApertureCommand(CommandBufferIterator* c);
-Command* parseSetCameraFovYCommand(CommandBufferIterator* c);
-Command* parseSetCameraFocalDistanceCommand(CommandBufferIterator* c);
-Command* parseSetCameraExposureCommand(CommandBufferIterator* c);
-Command* parseSetDiffuseColorCommand(CommandBufferIterator* c);
-Command* parseSetSpecularColorCommand(CommandBufferIterator* c);
-Command* parseSetEmissiveColorCommand(CommandBufferIterator* c);
-Command* parseSetRenderIterationsCommand(CommandBufferIterator* c);
-Command* parseSetStreamModeCommand(CommandBufferIterator* c);
-Command* parseRequestRedrawCommand(CommandBufferIterator* c);
-Command* parseSetResolutionCommand(CommandBufferIterator* c);
-Command* parseSetDensityCommand(CommandBufferIterator* c);
-Command* parseFrameSceneCommand(CommandBufferIterator* c);
-Command* parseSetGlossinessCommand(CommandBufferIterator* c);
-Command* parseEnableChannelCommand(CommandBufferIterator* c);
-Command* parseSetWindowLevelCommand(CommandBufferIterator* c);
-Command* parseOrbitCameraCommand(CommandBufferIterator* c);
+#define FWDDECL_PARSE(CMDCLASS)\
+	Command* parse##CMDCLASS(CommandBufferIterator* c);
+
+FWDDECL_PARSE(SessionCommand);
+FWDDECL_PARSE(SessionCommand);
+FWDDECL_PARSE(AssetPathCommand);
+FWDDECL_PARSE(LoadOmeTifCommand);
+FWDDECL_PARSE(SetCameraPosCommand);
+FWDDECL_PARSE(SetCameraUpCommand);
+FWDDECL_PARSE(SetCameraTargetCommand);
+FWDDECL_PARSE(SetCameraTargetCommand);
+FWDDECL_PARSE(SetCameraApertureCommand);
+FWDDECL_PARSE(SetCameraFovYCommand);
+FWDDECL_PARSE(SetCameraFocalDistanceCommand);
+FWDDECL_PARSE(SetCameraExposureCommand);
+FWDDECL_PARSE(SetDiffuseColorCommand);
+FWDDECL_PARSE(SetSpecularColorCommand);
+FWDDECL_PARSE(SetEmissiveColorCommand);
+FWDDECL_PARSE(SetRenderIterationsCommand);
+FWDDECL_PARSE(SetStreamModeCommand);
+FWDDECL_PARSE(RequestRedrawCommand);
+FWDDECL_PARSE(SetResolutionCommand);
+FWDDECL_PARSE(SetDensityCommand);
+FWDDECL_PARSE(FrameSceneCommand);
+FWDDECL_PARSE(SetGlossinessCommand);
+FWDDECL_PARSE(EnableChannelCommand);
+FWDDECL_PARSE(SetWindowLevelCommand);
+FWDDECL_PARSE(OrbitCameraCommand);
+FWDDECL_PARSE(SetSkylightTopColorCommand);
+FWDDECL_PARSE(SetSkylightMiddleColorCommand);
+FWDDECL_PARSE(SetSkylightBottomColorCommand);
+FWDDECL_PARSE(SetLightPosCommand);
+FWDDECL_PARSE(SetLightColorCommand);
+FWDDECL_PARSE(SetLightSizeCommand);
 
 #define CMD_CASE(N, CMDCLASS) \
 	case N:\
@@ -100,6 +110,12 @@ void commandBuffer::processBuffer()
 					CMD_CASE(20, EnableChannelCommand);
 					CMD_CASE(21, SetWindowLevelCommand);
 					CMD_CASE(22, OrbitCameraCommand);
+					CMD_CASE(23, SetSkylightTopColorCommand);
+					CMD_CASE(24, SetSkylightMiddleColorCommand);
+					CMD_CASE(25, SetSkylightBottomColorCommand);
+					CMD_CASE(26, SetLightPosCommand);
+					CMD_CASE(27, SetLightColorCommand);
+					CMD_CASE(28, SetLightSizeCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -294,4 +310,49 @@ Command* parseOrbitCameraCommand(CommandBufferIterator* c) {
 	data._theta = c->parseFloat32();
 	data._phi = c->parseFloat32();
 	return new OrbitCameraCommand(data);
+}
+Command* parseSetSkylightTopColorCommand(CommandBufferIterator* c) {
+	SetSkylightTopColorCommandD data;
+	data._r = c->parseFloat32();
+	data._g = c->parseFloat32();
+	data._b = c->parseFloat32();
+	return new SetSkylightTopColorCommand(data);
+}
+Command* parseSetSkylightMiddleColorCommand(CommandBufferIterator* c) {
+	SetSkylightMiddleColorCommandD data;
+	data._r = c->parseFloat32();
+	data._g = c->parseFloat32();
+	data._b = c->parseFloat32();
+	return new SetSkylightMiddleColorCommand(data);
+}
+Command* parseSetSkylightBottomColorCommand(CommandBufferIterator* c) {
+	SetSkylightBottomColorCommandD data;
+	data._r = c->parseFloat32();
+	data._g = c->parseFloat32();
+	data._b = c->parseFloat32();
+	return new SetSkylightBottomColorCommand(data);
+}
+
+Command* parseSetLightPosCommand(CommandBufferIterator* c) {
+	SetLightPosCommandD data;
+	data._index = c->parseInt32();
+	data._r = c->parseFloat32();
+	data._theta = c->parseFloat32();
+	data._phi = c->parseFloat32();
+	return new SetLightPosCommand(data);
+}
+Command* parseSetLightColorCommand(CommandBufferIterator* c) {
+	SetLightColorCommandD data;
+	data._index = c->parseInt32();
+	data._r = c->parseFloat32();
+	data._g = c->parseFloat32();
+	data._b = c->parseFloat32();
+	return new SetLightColorCommand(data);
+}
+Command* parseSetLightSizeCommand(CommandBufferIterator* c) {
+	SetLightSizeCommandD data;
+	data._index = c->parseInt32();
+	data._x = c->parseFloat32();
+	data._y = c->parseFloat32();
+	return new SetLightSizeCommand(data);
 }

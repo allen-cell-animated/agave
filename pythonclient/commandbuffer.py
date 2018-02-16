@@ -38,7 +38,15 @@ COMMANDS = {
     # channel index, window, level.  (Do I ever set these independently?)
     "SET_WINDOW_LEVEL": [21, "I32", "F32", "F32"],
     # theta, phi in degrees
-    "ORBIT_CAMERA": [22, "F32", "F32"]
+    "ORBIT_CAMERA": [22, "F32", "F32"],
+    "SKYLIGHT_TOP_COLOR": [23, "F32", "F32", "F32"],
+    "SKYLIGHT_MIDDLE_COLOR": [24, "F32", "F32", "F32"],
+    "SKYLIGHT_BOTTOM_COLOR": [25, "F32", "F32", "F32"],
+    # r, theta, phi
+    "LIGHT_POS": [26, "I32", "F32", "F32", "F32"],
+    "LIGHT_COLOR": [27, "I32", "F32", "F32", "F32"],
+    # x by y size
+    "LIGHT_SIZE": [28, "I32", "F32", "F32"],
 }
 
 # strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
