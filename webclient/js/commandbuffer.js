@@ -51,7 +51,9 @@ var COMMANDS = {
   LIGHT_POS: [26, "I32", "F32", "F32", "F32"],
   LIGHT_COLOR: [27, "I32", "F32", "F32", "F32"],
   // x by y size
-  LIGHT_SIZE: [28, "I32", "F32", "F32"]
+  LIGHT_SIZE: [28, "I32", "F32", "F32"],
+  // xmin, xmax, ymin, ymax, zmin, zmax
+  SET_CLIP_REGION: [29, "F32", "F32", "F32", "F32", "F32", "F32"]
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?

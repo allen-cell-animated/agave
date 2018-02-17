@@ -182,3 +182,11 @@ struct SetLightSizeCommandD {
 };
 CMDDECL(SetLightSizeCommand);
 
+struct SetClipRegionCommandD {
+	float _minx, _maxx;
+	float _miny, _maxy;
+	float _minz, _maxz;
+};
+CMDDECL(SetClipRegionCommand);
+
+

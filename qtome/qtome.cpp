@@ -435,6 +435,8 @@ void qtome::dumpPythonState()
 	s += QString("cb.add_command(\"SET_RESOLUTION\", %1, %2)\n").arg(glView->size().width()).arg(glView->size().height());
 	s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(_renderSettings.GetNoIterations());
 
+	s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5)\n").arg(_appScene._roi.GetMinP().x).arg(_appScene._roi.GetMaxP().x).arg(_appScene._roi.GetMinP().y).arg(_appScene._roi.GetMaxP().y).arg(_appScene._roi.GetMinP().z).arg(_appScene._roi.GetMaxP().z);
+
 	s += QString("cb.add_command(\"EYE\", %1, %2, %3)\n").arg(glView->getCamera().m_From.x).arg(glView->getCamera().m_From.y).arg(glView->getCamera().m_From.z);
 	s += QString("cb.add_command(\"TARGET\", %1, %2, %3)\n").arg(glView->getCamera().m_Target.x).arg(glView->getCamera().m_Target.y).arg(glView->getCamera().m_Target.z);
 	s += QString("cb.add_command(\"UP\", %1, %2, %3)\n").arg(glView->getCamera().m_Up.x).arg(glView->getCamera().m_Up.y).arg(glView->getCamera().m_Up.z);

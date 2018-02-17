@@ -197,4 +197,10 @@ void SetLightSizeCommand::execute(ExecutionContext* c) {
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Height = _data._y;
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
+void SetClipRegionCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetClipRegion";
+	c->_appScene->_roi.SetMinP(glm::vec3(_data._minx, _data._miny, _data._minz));
+	c->_appScene->_roi.SetMaxP(glm::vec3(_data._maxx, _data._maxy, _data._maxz));
+	c->_renderSettings->m_DirtyFlags.SetFlag(RoiDirty);
+}
 

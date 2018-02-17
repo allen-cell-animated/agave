@@ -2,6 +2,7 @@
 
 #include "command.h"
 
+#include <algorithm>
 #include <vector>
 #include <assert.h>
 
@@ -69,6 +70,7 @@ FWDDECL_PARSE(SetSkylightBottomColorCommand);
 FWDDECL_PARSE(SetLightPosCommand);
 FWDDECL_PARSE(SetLightColorCommand);
 FWDDECL_PARSE(SetLightSizeCommand);
+FWDDECL_PARSE(SetClipRegionCommand);
 
 #define CMD_CASE(N, CMDCLASS) \
 	case N:\
@@ -116,6 +118,7 @@ void commandBuffer::processBuffer()
 					CMD_CASE(26, SetLightPosCommand);
 					CMD_CASE(27, SetLightColorCommand);
 					CMD_CASE(28, SetLightSizeCommand);
+					CMD_CASE(29, SetClipRegionCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -355,4 +358,25 @@ Command* parseSetLightSizeCommand(CommandBufferIterator* c) {
 	data._x = c->parseFloat32();
 	data._y = c->parseFloat32();
 	return new SetLightSizeCommand(data);
+}
+
+float clamp(float x, float bottom, float top) {
+	return std::min(top, std::max(bottom, x));
+}
+
+Command* parseSetClipRegionCommand(CommandBufferIterator* c) {
+	SetClipRegionCommandD data;
+	data._minx = c->parseFloat32();
+	data._minx = clamp(data._minx, 0.0, 1.0);
+	data._maxx = c->parseFloat32();
+	data._maxx = clamp(data._maxx, 0.0, 1.0);
+	data._miny = c->parseFloat32();
+	data._miny = clamp(data._miny, 0.0, 1.0);
+	data._maxy = c->parseFloat32();
+	data._maxy = clamp(data._maxy, 0.0, 1.0);
+	data._minz = c->parseFloat32();
+	data._minz = clamp(data._minz, 0.0, 1.0);
+	data._maxz = c->parseFloat32();
+	data._maxz = clamp(data._maxz, 0.0, 1.0);
+	return new SetClipRegionCommand(data);
 }
