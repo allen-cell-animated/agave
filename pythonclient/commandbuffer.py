@@ -51,6 +51,7 @@ COMMANDS = {
     "SET_CLIP_REGION": [29, "F32", "F32", "F32", "F32", "F32", "F32"],
 }
 
+
 # strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
 class CommandBuffer:
     def __init__(self):
@@ -71,7 +72,7 @@ class CommandBuffer:
             signature = COMMANDS[commandCode]
             nArgsExpected = len(signature)-1
             # for each arg:
-            if (len(command)-1 != nArgsExpected):
+            if len(command)-1 != nArgsExpected:
                 print("BAD COMMAND: EXPECTED " + str(nArgsExpected) + " args and got " + str(len(command)-1))
                 return 0
 
@@ -84,9 +85,9 @@ class CommandBuffer:
                     # followed by one byte per char.
                     bytesize += len(command[j+1])
                 elif argtype == "F32":
-                    bytesize+=4
+                    bytesize += 4
                 elif argtype == "I32":
-                    bytesize+=4
+                    bytesize += 4
         return bytesize
         
     def make_buffer(self):
@@ -96,7 +97,6 @@ class CommandBuffer:
         self.buffer = bytearray(bytesize)
 
         offset = 0
-        LITTLE_ENDIAN = True
         for cmd in self.prebuffer:
             commandCode = cmd[0]
             signature = COMMANDS[commandCode]
@@ -104,23 +104,23 @@ class CommandBuffer:
 
             # the numeric code for the command
             struct.pack_into('>i', self.buffer, offset, signature[0])
-            offset+=4
+            offset += 4
             for j in range(0, nArgsExpected):
                 # get arg type
                 argtype = signature[j+1]
                 if argtype == "S":
                     sstr = cmd[j+1]
                     struct.pack_into('>i', self.buffer, offset, len(sstr))
-                    offset+=4
+                    offset += 4
                     for k in sstr:
                         struct.pack_into('B', self.buffer, offset, ord(k))
-                        offset+=1
+                        offset += 1
                 elif argtype == "F32":
                     struct.pack_into('f', self.buffer, offset, cmd[j+1])
-                    offset+=4
+                    offset += 4
                 elif argtype == "I32":
                     struct.pack_into('>i', self.buffer, offset, cmd[j+1])
-                    offset+=4
+                    offset += 4
         # result is in this.buffer
         return self.buffer
 
@@ -129,11 +129,12 @@ class CommandBuffer:
         # TODO: check against signature!!!
         self.prebuffer.append(args)
 
+
 if __name__ == '__main__':
     cb = CommandBuffer()
-    cb.add_command("EYE", 1.0, 1.0, 5.0);
-    cb.add_command("TARGET", 3.0, 3.0, 0.0);
-    cb.add_command("SESSION", "hello");
-    cb.add_command("APERTURE", 7.0);
+    cb.add_command("EYE", 1.0, 1.0, 5.0)
+    cb.add_command("TARGET", 3.0, 3.0, 0.0)
+    cb.add_command("SESSION", "hello")
+    cb.add_command("APERTURE", 7.0)
     buf = cb.make_buffer()
     print(list(buf))
