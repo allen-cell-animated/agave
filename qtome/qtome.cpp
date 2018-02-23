@@ -461,9 +461,9 @@ void qtome::dumpPythonState()
 	s += QString("cb.add_command(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorTop.r).arg(_appScene._lighting.m_Lights[0].m_ColorTop.g).arg(_appScene._lighting.m_Lights[0].m_ColorTop.b);
 	s += QString("cb.add_command(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.r).arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.g).arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.b);
 	s += QString("cb.add_command(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorBottom.r).arg(_appScene._lighting.m_Lights[0].m_ColorBottom.g).arg(_appScene._lighting.m_Lights[0].m_ColorBottom.b);
-	s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_Distance).arg(_appScene._lighting.m_Lights[0].m_Theta).arg(_appScene._lighting.m_Lights[0].m_Phi);
-	s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_Color.r).arg(_appScene._lighting.m_Lights[0].m_Color.g).arg(_appScene._lighting.m_Lights[0].m_Color.b);
-	s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n").arg(_appScene._lighting.m_Lights[0].m_Width).arg(_appScene._lighting.m_Lights[0].m_Height);
+	s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[1].m_Distance).arg(_appScene._lighting.m_Lights[1].m_Theta).arg(_appScene._lighting.m_Lights[1].m_Phi);
+	s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[1].m_Color.r).arg(_appScene._lighting.m_Lights[1].m_Color.g).arg(_appScene._lighting.m_Lights[1].m_Color.b);
+	s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n").arg(_appScene._lighting.m_Lights[1].m_Width).arg(_appScene._lighting.m_Lights[1].m_Height);
 
 	s += "buf = cb.make_buffer()\n";
 	qDebug().noquote() << s;
