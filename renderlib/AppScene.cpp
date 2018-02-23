@@ -50,15 +50,15 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 	BackgroundLight.m_T = 1;
 	float inten = 1.0f;
 
-	float topr = 1.0f;
-	float topg = 0.0f;
-	float topb = 0.0f;
-	float midr = 1.0f;
-	float midg = 1.0f;
-	float midb = 1.0f;
-	float botr = 0.0f;
-	float botg = 0.0f;
-	float botb = 1.0f;
+	float topr = 0.5f;
+	float topg = 0.5f;
+	float topb = 0.5f;
+	float midr = 0.5f;
+	float midg = 0.5f;
+	float midb = 0.5f;
+	float botr = 0.5f;
+	float botg = 0.5f;
+	float botb = 0.5f;
 
 	BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
 	BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
