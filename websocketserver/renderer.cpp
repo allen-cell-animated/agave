@@ -18,7 +18,7 @@
 #include <QOpenGLFramebufferObjectFormat>
 
 Renderer::Renderer(QString id, QObject *parent) : QThread(parent),
-id(id), _streamMode(0), fbo(nullptr), _width(0), _height(0)
+	id(id), _streamMode(0), fbo(nullptr), _width(0), _height(0)
 {
 	this->totalQueueDuration = 0;
 
@@ -225,9 +225,9 @@ void Renderer::resizeGL(int width, int height)
 	QOpenGLFramebufferObjectFormat fboFormat;
 	fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
 	fboFormat.setMipmap(false);
-	fboFormat.setSamples(16);
+	fboFormat.setSamples(0);
 	fboFormat.setTextureTarget(GL_TEXTURE_2D);
-	fboFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
+	fboFormat.setInternalTextureFormat(GL_RGBA8);
 	this->fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
 
 	glViewport(0, 0, width, height);
@@ -241,7 +241,8 @@ void Renderer::reset(int from)
 	this->context->makeCurrent(this->surface);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
