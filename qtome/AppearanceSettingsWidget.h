@@ -46,6 +46,10 @@ public:
 	void OnSetAreaLightSize(double value);
 	void OnSetAreaLightDistance(double value);
 	void OnSetAreaLightColor(double intensity, const QColor& color);
+	void OnSetSkyLightTopColor(double intensity, const QColor& color);
+	void OnSetSkyLightMidColor(double intensity, const QColor& color);
+	void OnSetSkyLightBotColor(double intensity, const QColor& color);
+
 	void OnSetRoiXMax(int value);
 	void OnSetRoiYMax(int value);
 	void OnSetRoiZMax(int value);
@@ -55,17 +59,13 @@ public:
 
 private:
 	QGridLayout		m_MainLayout;
-	QDoubleSlider	m_DensityScaleSlider;
-	QDoubleSpinner	m_DensityScaleSpinner;
+	QNumericSlider m_DensityScaleSlider;
 	QComboBox		m_RendererType;
 	QComboBox		m_ShadingType;
 	QLabel			m_GradientFactorLabel;
-	QDoubleSlider	m_GradientFactorSlider;
-	QDoubleSpinner	m_GradientFactorSpinner;
-	QDoubleSlider	m_StepSizePrimaryRaySlider;
-	QDoubleSpinner	m_StepSizePrimaryRaySpinner;
-	QDoubleSlider	m_StepSizeSecondaryRaySlider;
-	QDoubleSpinner	m_StepSizeSecondaryRaySpinner;
+	QNumericSlider	m_GradientFactorSlider;
+	QNumericSlider	m_StepSizePrimaryRaySlider;
+	QNumericSlider	m_StepSizeSecondaryRaySlider;
 
 	QTransferFunction* _transferFunction;
 

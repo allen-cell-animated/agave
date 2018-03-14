@@ -99,8 +99,7 @@ private:
 	QFilmResolutionButton	m_Preset[4];
 	QSpinBox				m_WidthSpinner;
 	QSpinBox				m_HeightSpinner;
-	QDoubleSlider			m_ExposureSlider;
-	QDoubleSpinner			m_ExposureSpinner;
+	QNumericSlider			m_ExposureSlider;
 	QComboBox				m_ExposureIterationsSpinner;
 	QCheckBox				m_NoiseReduction;
 

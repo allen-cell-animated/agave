@@ -228,3 +228,59 @@ QSize QInputDialogEx::sizeHint() const
 {
 	return QSize(350, 60);
 }
+
+QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/) :
+	QWidget(pParent),
+	_slider(),
+	_spinner()
+{
+	setLayout(&_layout);
+
+	_slider.setOrientation(Qt::Horizontal);
+
+	// entire control is one single row.
+	// slider is 3/4, spinner is 1/4 of the width
+	const int sliderratio = 4;
+	_layout.addWidget(&_slider, 0, 0, 1, sliderratio-1);
+	_layout.addWidget(&_spinner, 0, sliderratio-1, 1, 1);
+
+	_layout.setContentsMargins(0, 0, 0, 0);
+
+	// keep slider and spinner in sync
+	QObject::connect(&_slider, SIGNAL(valueChanged(double)), &_spinner, SLOT(setValue(double)));
+	QObject::connect(&_spinner, SIGNAL(valueChanged(double)), &_slider, SLOT(setValue(double)));
+
+	// only slider will update the value...
+	QObject::connect(&_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
+}
+
+void QNumericSlider::OnValueChanged(double value) {
+	emit valueChanged(value);
+}
+
+double QNumericSlider::value(void) const {
+	return _spinner.value();
+}
+
+void QNumericSlider::setValue(double value, bool BlockSignals)
+{
+	// only forward the blocksignals flag for one of the two child controls.
+	// the other will always block signalling
+	_spinner.setValue(value, true);
+	_slider.setValue(value, BlockSignals);
+}
+
+void QNumericSlider::setRange(double rmin, double rmax)
+{
+	_slider.setRange(rmin, rmax);
+	_spinner.setRange(rmin, rmax);
+}
+
+void QNumericSlider::setDecimals(int decimals)
+{
+	_spinner.setDecimals(decimals);
+}
+
+void QNumericSlider::setSuffix(const QString& s) {
+	_spinner.setSuffix(s);
+}

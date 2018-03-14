@@ -15,16 +15,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QGroupBox(pParent),
 	m_MainLayout(),
 	m_DensityScaleSlider(),
-	m_DensityScaleSpinner(),
 	m_RendererType(),
 	m_ShadingType(),
 	m_GradientFactorLabel(),
 	m_GradientFactorSlider(),
-	m_GradientFactorSpinner(),
 	m_StepSizePrimaryRaySlider(),
-	m_StepSizePrimaryRaySpinner(),
 	m_StepSizeSecondaryRaySlider(),
-	m_StepSizeSecondaryRaySpinner(),
 	_transferFunction(tran)
 {
 	setLayout(&m_MainLayout);
@@ -36,16 +32,10 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
 
 	m_MainLayout.addWidget(new QLabel("Density Scale"), 2, 0);
-
-	m_DensityScaleSlider.setOrientation(Qt::Horizontal);
 	m_DensityScaleSlider.setRange(0.001, 100.0);
+	m_DensityScaleSlider.setDecimals(3);
 	m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
-	m_MainLayout.addWidget(&m_DensityScaleSlider, 2, 1);
-
-	m_DensityScaleSpinner.setRange(0.001, 100.0);
-	m_DensityScaleSpinner.setDecimals(3);
-	m_DensityScaleSpinner.setValue(rs->m_RenderSettings.m_DensityScale);
-	m_MainLayout.addWidget(&m_DensityScaleSpinner, 2, 2);
+	m_MainLayout.addWidget(&m_DensityScaleSlider, 2, 1, 1, 2);
 
 	m_MainLayout.addWidget(new QLabel("Shading Type"), 3, 0);
 
@@ -56,54 +46,28 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	m_GradientFactorLabel.setText("Gradient Factor");
 	m_MainLayout.addWidget(&m_GradientFactorLabel, 4, 0);
-	
 	m_GradientFactorSlider.setRange(0.001, 100.0);
+	m_GradientFactorSlider.setDecimals(3);
 	m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
+	m_MainLayout.addWidget(&m_GradientFactorSlider, 4, 1, 1, 2);
 
-	m_MainLayout.addWidget(&m_GradientFactorSlider, 4, 1);
-
-	m_GradientFactorSpinner.setRange(0.001, 100.0);
-	m_GradientFactorSpinner.setDecimals(3);
-	m_GradientFactorSpinner.setValue(rs->m_RenderSettings.m_GradientFactor);
-
-	m_MainLayout.addWidget(&m_GradientFactorSpinner, 4, 2);
-
-	QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), &m_DensityScaleSpinner, SLOT(setValue(double)));
-	QObject::connect(&m_DensityScaleSpinner, SIGNAL(valueChanged(double)), &m_DensityScaleSlider, SLOT(setValue(double)));
 	QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
-
-	QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), &m_GradientFactorSpinner, SLOT(setValue(double)));
-	QObject::connect(&m_GradientFactorSpinner, SIGNAL(valueChanged(double)), &m_GradientFactorSlider, SLOT(setValue(double)));
 	QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
 	m_MainLayout.addWidget(new QLabel("Primary Step Size"), 5, 0);
-
 	m_StepSizePrimaryRaySlider.setRange(1.0, 10.0);
+	m_StepSizePrimaryRaySlider.setDecimals(2);
+	m_MainLayout.addWidget(&m_StepSizePrimaryRaySlider, 5, 1, 1, 2);
 
-	m_MainLayout.addWidget(&m_StepSizePrimaryRaySlider, 5, 1);
-
-	m_StepSizePrimaryRaySpinner.setRange(1.0, 10.0);
-	m_StepSizePrimaryRaySpinner.setDecimals(2);
-
-	m_MainLayout.addWidget(&m_StepSizePrimaryRaySpinner, 5, 2);
-
-	QObject::connect(&m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), &m_StepSizePrimaryRaySpinner, SLOT(setValue(double)));
-	QObject::connect(&m_StepSizePrimaryRaySpinner, SIGNAL(valueChanged(double)), &m_StepSizePrimaryRaySlider, SLOT(setValue(double)));
 	QObject::connect(&m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
 	m_MainLayout.addWidget(new QLabel("Secondary Step Size"), 6, 0);
 
 	m_StepSizeSecondaryRaySlider.setRange(1.0, 10.0);
+	m_StepSizeSecondaryRaySlider.setDecimals(2);
 
-	m_MainLayout.addWidget(&m_StepSizeSecondaryRaySlider, 6, 1);
+	m_MainLayout.addWidget(&m_StepSizeSecondaryRaySlider, 6, 1, 1, 2);
 
-	m_StepSizeSecondaryRaySpinner.setRange(1.0, 10.0);
-	m_StepSizeSecondaryRaySpinner.setDecimals(2);
-
-	m_MainLayout.addWidget(&m_StepSizeSecondaryRaySpinner, 6, 2);
-
-	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), &m_StepSizeSecondaryRaySpinner, SLOT(setValue(double)));
-	QObject::connect(&m_StepSizeSecondaryRaySpinner, SIGNAL(valueChanged(double)), &m_StepSizeSecondaryRaySlider, SLOT(setValue(double)));
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
 	_clipRoiSection = new Section("ROI", 0);
@@ -142,56 +106,91 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	int row = 0;
 	sectionLayout->addWidget(new QLabel("AreaLight Theta"), row, 0);
-	QDoubleSlider* thetaSlider = new QDoubleSlider();
+	QNumericSlider* thetaSlider = new QNumericSlider();
 	thetaSlider->setRange(0.0, 3.14159265*2.0);
 	thetaSlider->setValue(0.0);
-	sectionLayout->addWidget(thetaSlider, row, 1);
-	QObject::connect(thetaSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
+	sectionLayout->addWidget(thetaSlider, row, 1, 1, 4);
+	QObject::connect(thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
 
 	row++;
 	sectionLayout->addWidget(new QLabel("AreaLight Phi"), row, 0);
-	QDoubleSlider* phiSlider = new QDoubleSlider();
+	QNumericSlider* phiSlider = new QNumericSlider();
 	phiSlider->setRange(0.0, 3.14159265);
 	phiSlider->setValue(0.0);
-	sectionLayout->addWidget(phiSlider, row, 1);
-	QObject::connect(phiSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
+	sectionLayout->addWidget(phiSlider, row, 1, 1, 4);
+	QObject::connect(phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
 
 	row++;
 	sectionLayout->addWidget(new QLabel("AreaLight Size"), row, 0);
-	QDoubleSlider* sizeSlider = new QDoubleSlider();
+	QNumericSlider* sizeSlider = new QNumericSlider();
 	sizeSlider->setRange(0.1, 5.0);
 	sizeSlider->setValue(1.0);
-	sectionLayout->addWidget(sizeSlider, row, 1);
-	QObject::connect(sizeSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
+	sectionLayout->addWidget(sizeSlider, row, 1, 1, 4);
+	QObject::connect(sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
 
 	row++;
 	sectionLayout->addWidget(new QLabel("AreaLight Distance"), row, 0);
-	QDoubleSlider* distSlider = new QDoubleSlider();
+	QNumericSlider* distSlider = new QNumericSlider();
 	distSlider->setRange(0.1, 100.0);
 	distSlider->setValue(10.0);
-	sectionLayout->addWidget(distSlider, row, 1);
-	QObject::connect(distSlider, &QDoubleSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
+	sectionLayout->addWidget(distSlider, row, 1, 1, 4);
+	QObject::connect(distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
 
 	row++;
 	sectionLayout->addWidget(new QLabel("AreaLight Intensity"), row, 0);
-	QDoubleSlider* intensitySlider = new QDoubleSlider();
+	QNumericSlider* intensitySlider = new QNumericSlider();
 	intensitySlider->setRange(0.1, 1000.0);
 	intensitySlider->setValue(100.0);
-	sectionLayout->addWidget(intensitySlider, row, 1);
-	QColorSelector* areaLightColorButton = new QColorSelector();
-	sectionLayout->addWidget(areaLightColorButton, row, 2);
-	QObject::connect(areaLightColorButton, &QColorSelector::currentColorChanged, 
+	sectionLayout->addWidget(intensitySlider, row, 1, 1, 3);
+	QColorPushButton* areaLightColorButton = new QColorPushButton();
+	sectionLayout->addWidget(areaLightColorButton, row, 4);
+	QObject::connect(areaLightColorButton, &QColorPushButton::currentColorChanged,
 		[this, intensitySlider](const QColor& c) { this->OnSetAreaLightColor(intensitySlider->value(), c); });
-	QObject::connect(intensitySlider, &QDoubleSlider::valueChanged, 
+	QObject::connect(intensitySlider, &QNumericSlider::valueChanged,
 		[this, areaLightColorButton](double v) { this->OnSetAreaLightColor(v, areaLightColorButton->GetColor()); });
 
+	row++;
+	sectionLayout->addWidget(new QLabel("SkyLight Top"), row, 0);
+	QNumericSlider* stintensitySlider = new QNumericSlider();
+	stintensitySlider->setRange(0.1, 10.0);
+	stintensitySlider->setValue(1.0);
+	sectionLayout->addWidget(stintensitySlider, row, 1, 1, 3);
+	QColorPushButton* stColorButton = new QColorPushButton();
+	sectionLayout->addWidget(stColorButton, row, 4);
+	QObject::connect(stColorButton, &QColorPushButton::currentColorChanged,
+		[this, stintensitySlider](const QColor& c) { this->OnSetSkyLightTopColor(stintensitySlider->value(), c); });
+	QObject::connect(stintensitySlider, &QNumericSlider::valueChanged,
+		[this, stColorButton](double v) { this->OnSetSkyLightTopColor(v, stColorButton->GetColor()); });
+
+	row++;
+	sectionLayout->addWidget(new QLabel("SkyLight Mid"), row, 0);
+	QNumericSlider* smintensitySlider = new QNumericSlider();
+	smintensitySlider->setRange(0.1, 10.0);
+	smintensitySlider->setValue(1.0);
+	sectionLayout->addWidget(smintensitySlider, row, 1, 1, 3);
+	QColorPushButton* smColorButton = new QColorPushButton();
+	sectionLayout->addWidget(smColorButton, row, 4);
+	QObject::connect(smColorButton, &QColorPushButton::currentColorChanged,
+		[this, smintensitySlider](const QColor& c) { this->OnSetSkyLightMidColor(smintensitySlider->value(), c); });
+	QObject::connect(smintensitySlider, &QNumericSlider::valueChanged,
+		[this, smColorButton](double v) { this->OnSetSkyLightMidColor(v, smColorButton->GetColor()); });
+
+	row++;
+	sectionLayout->addWidget(new QLabel("SkyLight Bot"), row, 0);
+	QNumericSlider* sbintensitySlider = new QNumericSlider();
+	sbintensitySlider->setRange(0.1, 10.0);
+	sbintensitySlider->setValue(1.0);
+	sectionLayout->addWidget(sbintensitySlider, row, 1, 1, 3);
+	QColorPushButton* sbColorButton = new QColorPushButton();
+	sectionLayout->addWidget(sbColorButton, row, 4);
+	QObject::connect(sbColorButton, &QColorPushButton::currentColorChanged,
+		[this, sbintensitySlider](const QColor& c) { this->OnSetSkyLightBotColor(sbintensitySlider->value(), c); });
+	QObject::connect(sbintensitySlider, &QNumericSlider::valueChanged,
+		[this, sbColorButton](double v) { this->OnSetSkyLightBotColor(v, sbColorButton->GetColor()); });
 
 
 	section->setContentLayout(*sectionLayout);
 	m_MainLayout.addWidget(section, 13, 0, 1, -1);
-
-
-
 
 	QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
 	QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -274,6 +273,31 @@ void QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QCol
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
+void QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+
+	_scene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+
+	_scene->_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor& color)
+{
+	qreal rgba[4];
+	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+
+	_scene->_lighting.m_Lights[0].m_ColorBottom = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+}
+
 void QAppearanceSettingsWidget::OnRenderBegin(void)
 {
 	m_DensityScaleSlider.setValue(_transferFunction->GetDensityScale());
@@ -281,9 +305,7 @@ void QAppearanceSettingsWidget::OnRenderBegin(void)
 	m_GradientFactorSlider.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_GradientFactor);
 
 	m_StepSizePrimaryRaySlider.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
-	m_StepSizePrimaryRaySpinner.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
 	m_StepSizeSecondaryRaySlider.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow, true);
-	m_StepSizeSecondaryRaySpinner.setValue(_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow, true);
 }
 
 void QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
@@ -296,7 +318,6 @@ void QAppearanceSettingsWidget::OnSetShadingType(int Index)
 	_transferFunction->SetShadingType(Index);
 	m_GradientFactorLabel.setEnabled(Index == 2);
 	m_GradientFactorSlider.setEnabled(Index == 2);
-	m_GradientFactorSpinner.setEnabled(Index == 2);
 }
 
 void QAppearanceSettingsWidget::OnSetRendererType(int Index)
@@ -324,10 +345,8 @@ void QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSize
 void QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
 {
 	m_DensityScaleSlider.setValue(_transferFunction->GetDensityScale(), true);
-	m_DensityScaleSpinner.setValue(_transferFunction->GetDensityScale(), true);
 	m_ShadingType.setCurrentIndex(_transferFunction->GetShadingType());
 	m_GradientFactorSlider.setValue(_transferFunction->GetGradientFactor(), true);
-	m_GradientFactorSpinner.setValue(_transferFunction->GetGradientFactor(), true);
 }
 
 void QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color)
@@ -380,6 +399,9 @@ void QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked) {
 
 inline QVector<QColor> rndColors(int count) {
 	QVector<QColor> colors;
+	colors.push_back(QColor(255, 0, 255));
+	colors.push_back(QColor(255, 255, 255));
+	colors.push_back(QColor(0, 255, 255));
 	float currentHue = 0.0;
 	for (int i = 0; i < count; i++) {
 		colors.push_back(QColor::fromHslF(currentHue, 1.0, 0.5));
@@ -414,22 +436,22 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 		int row = 0;
 		sectionLayout->addWidget(new QLabel("Window"), row, 0);
-		QDoubleSlider* windowSlider = new QDoubleSlider();
+		QNumericSlider* windowSlider = new QNumericSlider();
 		windowSlider->setRange(0.001, 1.0);
 		windowSlider->setValue(init_window, true);
-		sectionLayout->addWidget(windowSlider, row, 1);
+		sectionLayout->addWidget(windowSlider, row, 1, 1, 2);
 
 		row++;
 		sectionLayout->addWidget(new QLabel("Level"), row, 0);
-		QDoubleSlider* levelSlider = new QDoubleSlider();
+		QNumericSlider* levelSlider = new QNumericSlider();
 		levelSlider->setRange(0.001, 1.0);
 		levelSlider->setValue(init_level, true);
-		sectionLayout->addWidget(levelSlider, row, 1);
+		sectionLayout->addWidget(levelSlider, row, 1, 1, 2);
 
-		QObject::connect(windowSlider, &QDoubleSlider::valueChanged, [i, this, levelSlider](double d) {
+		QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
 			this->OnSetWindowLevel(i, d, levelSlider->value());
 		});
-		QObject::connect(levelSlider, &QDoubleSlider::valueChanged, [i, this, windowSlider](double d) {
+		QObject::connect(levelSlider, &QNumericSlider::valueChanged, [i, this, windowSlider](double d) {
 			this->OnSetWindowLevel(i, windowSlider->value(), d);
 		});
 		// init
@@ -437,57 +459,63 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		row++;
 		QPushButton* autoButton = new QPushButton("Auto");
 		sectionLayout->addWidget(autoButton, row, 0);
-		QObject::connect(autoButton, &QPushButton::clicked, [this, i]() {
+		QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_auto(w,l);
 			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			windowSlider->setValue(w, true);
+			levelSlider->setValue(l, true);
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 		QPushButton* auto2Button = new QPushButton("Auto2");
 		sectionLayout->addWidget(auto2Button, row, 1);
-		QObject::connect(auto2Button, &QPushButton::clicked, [this, i]() {
+		QObject::connect(auto2Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_auto2(w, l);
 			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			windowSlider->setValue(w, true);
+			levelSlider->setValue(l, true);
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 		QPushButton* bestfitButton = new QPushButton("BestFit");
 		sectionLayout->addWidget(bestfitButton, row, 2);
-		QObject::connect(bestfitButton, &QPushButton::clicked, [this, i]() {
+		QObject::connect(bestfitButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_bestFit(w, l);
+			windowSlider->setValue(w, true);
+			levelSlider->setValue(l, true);
 			LOG_DEBUG << "Window/level: " << w << " , " << l;
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 
 		row++;
-		QColorSelector* diffuseColorButton = new QColorSelector();
+		QColorPushButton* diffuseColorButton = new QColorPushButton();
 		diffuseColorButton->SetColor(colors[i], true);
 		sectionLayout->addWidget(new QLabel("DiffuseColor"), row, 0);
 		sectionLayout->addWidget(diffuseColorButton, row, 2);
-		QObject::connect(diffuseColorButton, &QColorSelector::currentColorChanged, [i, this](const QColor& c) {
+		QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
 			this->OnDiffuseColorChanged(i, c);
 		});
 		// init
 		this->OnDiffuseColorChanged(i, colors[i]);
 
 		row++;
-		QColorSelector* specularColorButton = new QColorSelector();
+		QColorPushButton* specularColorButton = new QColorPushButton();
 		specularColorButton->SetColor(QColor::fromRgbF(0.0f, 0.0f, 0.0f), true);
 		sectionLayout->addWidget(new QLabel("SpecularColor"), row, 0);
 		sectionLayout->addWidget(specularColorButton, row, 2);
-		QObject::connect(specularColorButton, &QColorSelector::currentColorChanged, [i, this](const QColor& c) {
+		QObject::connect(specularColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
 			this->OnSpecularColorChanged(i, c);
 		});
 		// init
 		this->OnSpecularColorChanged(i, QColor::fromRgbF(0.0f, 0.0f, 0.0f));
 
 		row++;
-		QColorSelector* emissiveColorButton = new QColorSelector();
+		QColorPushButton* emissiveColorButton = new QColorPushButton();
 		emissiveColorButton->SetColor(QColor::fromRgbF(0.0f, 0.0f, 0.0f), true);
 		sectionLayout->addWidget(new QLabel("EmissiveColor"), row, 0);
 		sectionLayout->addWidget(emissiveColorButton, row, 2);
-		QObject::connect(emissiveColorButton, &QColorSelector::currentColorChanged, [i, this](const QColor& c) {
+		QObject::connect(emissiveColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
 			this->OnEmissiveColorChanged(i, c);
 		});
 		// init
@@ -495,11 +523,11 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 		row++;
 		sectionLayout->addWidget(new QLabel("Glossiness"), row, 0);
-		QDoubleSlider* roughnessSlider = new QDoubleSlider();
+		QNumericSlider* roughnessSlider = new QNumericSlider();
 		roughnessSlider->setRange(0.0, 100.0);
 		roughnessSlider->setValue(0.0);
-		sectionLayout->addWidget(roughnessSlider, row, 1);
-		QObject::connect(roughnessSlider, &QDoubleSlider::valueChanged, [i, this](double d) {
+		sectionLayout->addWidget(roughnessSlider, row, 1, 1, 2);
+		QObject::connect(roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) {
 			this->OnRoughnessChanged(i, d);
 		});
 		this->OnRoughnessChanged(i, 0.0);

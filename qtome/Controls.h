@@ -109,3 +109,26 @@ public:
 
 	virtual QSize sizeHint() const;
 };
+
+class QNumericSlider : public QWidget {
+	Q_OBJECT
+public:
+	QNumericSlider(QWidget* pParent = NULL);
+
+	double value(void) const;
+	void setValue(double value, bool BlockSignals = false);
+	void setRange(double rmin, double rmax);
+	void setDecimals(int decimals);
+	void setSuffix(const QString&);
+
+private slots:
+	void	OnValueChanged(double value);
+
+signals:
+	void valueChanged(double value);
+
+private:
+	QGridLayout	_layout;
+	QDoubleSpinner _spinner;
+	QDoubleSlider _slider;
+};

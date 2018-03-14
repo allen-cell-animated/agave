@@ -15,7 +15,6 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	m_WidthSpinner(),
 	m_HeightSpinner(),
 	m_ExposureSlider(),
-	m_ExposureSpinner(),
 	m_ExposureIterationsSpinner(),
 	m_NoiseReduction(),
 	_camera(cam),
@@ -78,18 +77,11 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	// Exposure
 	m_GridLayout.addWidget(new QLabel("Exposure"), 3, 0);
 
-	m_ExposureSlider.setOrientation(Qt::Horizontal);
 	m_ExposureSlider.setRange(0.0f, 1.0f);
 	m_ExposureSlider.setValue(cam->GetFilm().GetExposure(), true);
-	m_GridLayout.addWidget(&m_ExposureSlider, 3, 1);
+	m_GridLayout.addWidget(&m_ExposureSlider, 3, 1, 1, 2);
 
-	m_ExposureSpinner.setRange(0.0f, 1.0f);
-	m_ExposureSpinner.setValue(cam->GetFilm().GetExposure(), true);
-	m_GridLayout.addWidget(&m_ExposureSpinner, 3, 2);
-
- 	QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), &m_ExposureSpinner, SLOT(setValue(double)));
  	QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), this, SLOT(SetExposure(double)));
- 	QObject::connect(&m_ExposureSpinner, SIGNAL(valueChanged(double)), &m_ExposureSlider, SLOT(setValue(double)));
 
 
 	// Exposure
@@ -196,7 +188,6 @@ void QFilmWidget::OnRenderBegin(void)
 	m_WidthSpinner.setValue(_camera->GetFilm().GetWidth());
 	m_HeightSpinner.setValue(_camera->GetFilm().GetHeight());
 	m_ExposureSlider.setValue(_camera->GetFilm().GetExposure());
-	m_ExposureSpinner.setValue(_camera->GetFilm().GetExposure());
 	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(_camera->GetFilm().GetExposureIterations()));
 
 	m_NoiseReduction.setChecked(_renderSettings->m_DenoiseParams.m_Enabled);
@@ -220,7 +211,6 @@ void QFilmWidget::OnFilmChanged(const QFilm& Film)
 
 	// Exposure
 	m_ExposureSlider.setValue(Film.GetExposure(), true);
-	m_ExposureSpinner.setValue(Film.GetExposure(), true);
 
 	m_ExposureIterationsSpinner.blockSignals(true);
 	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(Film.GetExposureIterations()));

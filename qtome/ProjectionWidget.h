@@ -19,8 +19,7 @@ private slots:
 
 private:
 	QGridLayout		m_GridLayout;
-	QDoubleSlider	m_FieldOfViewSlider;
-	QDoubleSpinner	m_FieldOfViewSpinner;
+	QNumericSlider	m_FieldOfViewSlider;
 
 	QCamera* _camera;
 };
