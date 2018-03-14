@@ -23,6 +23,7 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam) :
 	m_SizeSlider.setRange(0.0, 0.1);
 	m_SizeSlider.setSuffix(" mm");
 	m_SizeSlider.setDecimals(3);
+	m_SizeSlider.setValue(0.0);
 	m_GridLayout.addWidget(&m_SizeSlider, 3, 1, 1, 2);
 	
 	connect(&m_SizeSlider, SIGNAL(valueChanged(double)), this, SLOT(SetAperture(double)));

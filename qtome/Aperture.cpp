@@ -4,7 +4,7 @@
 
 QAperture::QAperture(QObject* pParent /*= NULL*/) :
 	QObject(pParent),
-	m_Size(0.05f)
+	m_Size(0.0f)
 {
 }
 
@@ -36,7 +36,7 @@ void QAperture::SetSize(const float& Size)
 
 void QAperture::Reset(void)
 {
-	m_Size = 0.05f;
+	m_Size = 0.0f;
 
 	emit Changed(*this);
 }

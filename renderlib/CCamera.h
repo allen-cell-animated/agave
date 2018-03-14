@@ -217,7 +217,7 @@ private:
 };
 
 #define DEF_FILM_ISO 400.0f
-#define DEF_FILM_EXPOSURE 0.5f
+#define DEF_FILM_EXPOSURE 0.25f
 #define DEF_FILM_FSTOP 8.0f
 #define DEF_FILM_GAMMA 2.2f
 
