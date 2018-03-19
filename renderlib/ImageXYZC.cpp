@@ -178,7 +178,7 @@ void FuseWorkerThread::run() {
 	emit resultReady(_thread_idx);
 }
 
-// fuse: generate volume of color data, plus volume of gradients
+// fuse: fill volume of color data, plus volume of gradients
 // n channels with n colors: use "max" or "avg"
 // n channels with gradients: use "max" or "avg"
 void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume)
@@ -186,8 +186,9 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** o
 	//todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume data in gpu mem.
 
 	// create and zero
-	uint8_t* rgbVolume = new uint8_t[3 * _x * _y * _z];
-	memset(rgbVolume, 0, 3 * _x*_y*_z * sizeof(uint8_t));
+	uint8_t* rgbVolume = *outRGBVolume;
+	memset(*outRGBVolume, 0, 3 * _x*_y*_z * sizeof(uint8_t));
+
 
 	const bool FUSE_THREADED = true;
 	if (FUSE_THREADED) {
@@ -276,7 +277,6 @@ memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
 		}
 	}
 */
-	*outRGBVolume = rgbVolume;
 }
 
 // 3d median filter?

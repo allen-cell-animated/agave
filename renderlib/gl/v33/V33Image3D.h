@@ -139,6 +139,7 @@ private:
     /// The shader program for image rendering.
 	GLBasicVolumeShader *image3d_shader;
 
+	uint8_t* _fusedrgbvolume;
 
 };
 

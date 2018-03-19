@@ -10,7 +10,7 @@
 #include <array>
 #include <iostream>
 
-Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
+Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img) :
 	vertices(0),
 	image_vertices(0),
 	image_elements(0),
@@ -22,12 +22,15 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC>  img):
 	//texcorr(1.0f),
 	_img(img),
 	image3d_shader(new GLBasicVolumeShader()),
-	_c(0)
+	_c(0),
+	_fusedrgbvolume(nullptr)
 {
 }
 
 Image3Dv33::~Image3Dv33()
 {
+	delete[] _fusedrgbvolume;
+
 	glDeleteTextures(1, &_textureid);
 	glDeleteTextures(1, &_lutid);
 	delete image3d_shader;
@@ -35,6 +38,11 @@ Image3Dv33::~Image3Dv33()
 
 void Image3Dv33::create()
 {
+	_fusedrgbvolume = new uint8_t[3 * _img->sizeX() * _img->sizeY() * _img->sizeZ()];
+	// destroy old
+	glDeleteTextures(1, &_textureid);
+	// Create image texture.
+	glGenTextures(1, &_textureid);
 
 	setSize(glm::vec2(-(_img->sizeX() / 2.0f), _img->sizeX() / 2.0f),
 		glm::vec2(-(_img->sizeY() / 2.0f), _img->sizeY() / 2.0f));
@@ -250,7 +258,6 @@ void Image3Dv33::prepareTexture(Scene& s) {
 	QElapsedTimer timer;
 	timer.start();
 
-	uint8_t* fusedrgbvolume = nullptr;
 	std::vector<glm::vec3> colors;
 	for (int i = 0; i < MAX_CPU_CHANNELS; ++i) {
 		if (s._material.enabled[i]) {
@@ -263,16 +270,16 @@ void Image3Dv33::prepareTexture(Scene& s) {
 		}
 	}
 
-	_img->fuse(colors, &fusedrgbvolume, nullptr);
+	_img->fuse(colors, &_fusedrgbvolume, nullptr);
 	
 	LOG_DEBUG << "fuse operation: " << timer.elapsed() << "ms";
 	timer.start();
 
 	// destroy old
-	glDeleteTextures(1, &_textureid);
+	//glDeleteTextures(1, &_textureid);
 
 	// Create image texture.
-	glGenTextures(1, &_textureid);
+	//glGenTextures(1, &_textureid);
 	glBindTexture(GL_TEXTURE_3D, _textureid);
 	check_gl("Bind texture");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -293,7 +300,6 @@ void Image3Dv33::prepareTexture(Scene& s) {
 	// pixel data is tightly packed
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	glBindTexture(GL_TEXTURE_3D, _textureid);
 	glTexImage3D(GL_TEXTURE_3D,         // target
 		0,                     // level, 0 = base, no minimap,
 		internal_format, // internal format
@@ -303,11 +309,10 @@ void Image3Dv33::prepareTexture(Scene& s) {
 		0,                     // border
 		external_format, // external format
 		external_type,   // external type
-		fusedrgbvolume);
+		_fusedrgbvolume);
 	check_gl("Volume Texture create");
-	glGenerateMipmap(GL_TEXTURE_3D);
+//	glGenerateMipmap(GL_TEXTURE_3D);
 
-	delete[] fusedrgbvolume;
 	LOG_DEBUG << "prepare fused 3d rgb texture in " << timer.elapsed() << "ms";
 }
 
