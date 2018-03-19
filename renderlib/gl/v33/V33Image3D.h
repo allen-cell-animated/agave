@@ -35,7 +35,7 @@ public:
 	void create();
 
 	void
-		render(const CCamera& camera);
+		render(const CCamera& camera, const Scene* scene);
 
 
 	/**

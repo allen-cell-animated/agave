@@ -79,7 +79,7 @@ void Image3Dv33::create()
 }
 
 void
-Image3Dv33::render(const CCamera& camera)
+Image3Dv33::render(const CCamera& camera, const Scene* scene)
 {
 	image3d_shader->bind();
 
@@ -93,8 +93,8 @@ Image3Dv33::render(const CCamera& camera)
 	image3d_shader->maskAlpha = 1.0;
 	image3d_shader->BREAK_STEPS = 512;
 	// axis aligned clip planes in object space
-	image3d_shader->AABB_CLIP_MIN = glm::vec3(-0.5,-0.5,-0.5);
-	image3d_shader->AABB_CLIP_MAX = glm::vec3(0.5,0.5,0.5);
+	image3d_shader->AABB_CLIP_MIN = scene->_roi.GetMinP() - glm::vec3(0.5, 0.5, 0.5);
+	image3d_shader->AABB_CLIP_MAX = scene->_roi.GetMaxP() - glm::vec3(0.5, 0.5, 0.5);
 	image3d_shader->setShadingUniforms();
 
 	// move the box to match where the camera is pointed

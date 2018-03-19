@@ -183,7 +183,7 @@ void main()
 	float tnear, tfar;
 	bool hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, tnear, tfar);
 	if (!hit) {
-		outputColour = vec4(1.0, 0.0, 1.0, 1.0);
+		outputColour = vec4(1.0, 0.0, 1.0, 0.0);
 		return;
 	}
 //else {
