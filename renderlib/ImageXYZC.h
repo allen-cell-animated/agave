@@ -56,6 +56,8 @@ struct Channelu16
 
 	void debugprint();
 
+	QString _name;
+
 	// convenience.  may not be accurate if LUT input is generalized.
 	float _window, _level;
 };
@@ -88,6 +90,7 @@ public:
 	// allocates memory for outRGBVolume and outGradientVolume
 	void fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume);
 
+	void setChannelNames(std::vector<QString>& channelNames);
 private:
 	uint32_t _x, _y, _z, _c, _bpp;
 	uint8_t* _data;

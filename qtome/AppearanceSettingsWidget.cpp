@@ -427,7 +427,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {
 		// first 3 channels will be chekced
 		bool channelenabled = (i < 3);
-		Section* section = new Section(QString("Channel %1").arg(i), 0, channelenabled);
+		Section* section = new Section(scene->_volume->channel(i)->_name, 0, channelenabled);
 
 		auto* sectionLayout = new QGridLayout();
 

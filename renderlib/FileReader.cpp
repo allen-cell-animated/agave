@@ -107,6 +107,25 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   QString physicalSizeYunit = pixelsEl.attribute("PhysicalSizeYUnit", "");
   QString physicalSizeZunit = pixelsEl.attribute("PhysicalSizeZUnit", "");
 
+  // find channel names
+  QDomNodeList channels = omexml.elementsByTagName("Channel");
+  std::vector<QString> channelNames;
+  for (int i = 0; i < channels.length(); ++i) {
+	  QDomNode dn = channels.at(i);
+	  QDomElement chel = dn.toElement();
+	  QString chid = chel.attribute("ID");
+	  QString chname = chel.attribute("Name");
+	  if (!chname.isEmpty()) {
+		  channelNames.push_back(chname);
+	  }
+	  else if (!chid.isEmpty()) {
+		  channelNames.push_back(chid);
+	  }
+	  else {
+		  channelNames.push_back(QString("%1").arg(i));
+	  }
+  }
+
 
   // Temporary variables
   uint32 width, height;
@@ -204,6 +223,8 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   timer.start();
   ImageXYZC* im = new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), data, physicalSizeX, physicalSizeY, physicalSizeZ);
   qDebug() << "ImageXYZC prepared in " << timer.elapsed() << "ms";
+  
+  im->setChannelNames(channelNames);
 
   return std::shared_ptr<ImageXYZC>(im);
 }

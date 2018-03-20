@@ -41,6 +41,12 @@ ImageXYZC::~ImageXYZC()
 	delete[] _data;
 }
 
+void ImageXYZC::setChannelNames(std::vector<QString>& channelNames) {
+	for (uint32_t i = 0; i < _c; ++i) {
+		_channels[i]->_name = channelNames[i];
+	}
+}
+
 uint32_t ImageXYZC::sizeX() const
 {
 	return _x;
