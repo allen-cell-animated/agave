@@ -294,7 +294,7 @@ function setupGui() {
 
 
         var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.1.1/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif");
+        cb.addCommand("LOAD_OME_TIF", "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif");
         cb.addCommand("SET_RESOLUTION", 512, 512);
         cb.addCommand("FRAME_SCENE");
         //cb.addCommand("EYE", 0.5, 0.408, 2.145);
@@ -361,7 +361,7 @@ function setupGui() {
           console.log(evt.data);
           return;
       }
-      
+
       var bytes = new Uint8Array(evt.data),
         binary = "",
         len = bytes.byteLength,
