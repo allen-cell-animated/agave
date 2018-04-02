@@ -79,6 +79,7 @@ signals:
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
 	void sendImage(RenderRequest *request, QImage image);
+	void sendString(RenderRequest *request, QString s);
 
 private:
 

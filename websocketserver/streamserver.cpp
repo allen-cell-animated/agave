@@ -23,6 +23,7 @@ void StreamServer::createNewRenderer(QWebSocket* client) {
 	Renderer* r = new Renderer("Thread " + QString::number(i), this);
 	this->_renderers << r;
 	connect(r, SIGNAL(requestProcessed(RenderRequest*, QImage)), this, SLOT(sendImage(RenderRequest*, QImage)));
+	connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
 
 	qDebug() << "Starting thread" << i << "...";
 	r->start();
@@ -232,4 +233,15 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 
 	// this is the end of the line for a request.
 	delete request;
+}
+
+void StreamServer::sendString(RenderRequest *request, QString s)
+{
+	QWebSocket* client = request->getClient();
+	if (client != 0 && _clients.contains(client) && client->isValid() && client->state() == QAbstractSocket::ConnectedState)
+	{
+		client->sendTextMessage(s);
+	}
+	// do not dispose of request here. 
+	// see requestProcessed<-->sendImage from Renderer.
 }

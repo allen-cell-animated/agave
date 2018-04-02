@@ -41,7 +41,6 @@ public:
 
 	void addRequest(RenderRequest *request);
 	bool processRequest();
-	void processCommandBuffer(std::vector<Command*>& cmds, QWebSocket* client);
 
 	inline int getTotalQueueDuration()
 	{
@@ -61,6 +60,7 @@ public:
 protected:
 	QString id;
 
+	void processCommandBuffer(RenderRequest* rr);
 	QImage render();
 
 	void reset(int from = 0);
@@ -115,6 +115,7 @@ private:
 signals:
 	void kill();
 	void requestProcessed(RenderRequest *request, QImage img);
+	void sendString(RenderRequest *request, QString s);
 
 };
 

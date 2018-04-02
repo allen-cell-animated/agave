@@ -1,19 +1,19 @@
 #pragma once
 
 #include <string>
+#include <QString>
 
 class CCamera;
 class Renderer;
 class RenderSettings;
 class Scene;
-class QWebSocket;
 
 struct ExecutionContext {
 	Renderer* _renderer;
 	RenderSettings* _renderSettings;
 	Scene* _appScene;
 	CCamera* _camera;
-	QWebSocket* _client;
+	QString _message;
 };
 
 class Command {
