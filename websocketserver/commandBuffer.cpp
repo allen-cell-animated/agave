@@ -72,8 +72,8 @@ FWDDECL_PARSE(SetLightColorCommand);
 FWDDECL_PARSE(SetLightSizeCommand);
 FWDDECL_PARSE(SetClipRegionCommand);
 
-#define CMD_CASE(N, CMDCLASS) \
-	case N:\
+#define CMD_CASE(CMDCLASS) \
+	case (##CMDCLASS::_ID):\
 		return parse##CMDCLASS(&iterator);\
 		break;
 
@@ -89,36 +89,36 @@ void commandBuffer::processBuffer()
 		Command* c = [cmd, &iterator]() -> Command* {
 			try {
 				switch (cmd) {
-					CMD_CASE(0, SessionCommand);
-					CMD_CASE(1, AssetPathCommand);
-					CMD_CASE(2, LoadOmeTifCommand);
-					CMD_CASE(3, SetCameraPosCommand);
-					CMD_CASE(4, SetCameraTargetCommand);
-					CMD_CASE(5, SetCameraUpCommand);
-					CMD_CASE(6, SetCameraApertureCommand);
-					CMD_CASE(7, SetCameraFovYCommand);
-					CMD_CASE(8, SetCameraFocalDistanceCommand);
-					CMD_CASE(9, SetCameraExposureCommand);
-					CMD_CASE(10, SetDiffuseColorCommand);
-					CMD_CASE(11, SetSpecularColorCommand);
-					CMD_CASE(12, SetEmissiveColorCommand);
-					CMD_CASE(13, SetRenderIterationsCommand);
-					CMD_CASE(14, SetStreamModeCommand);
-					CMD_CASE(15, RequestRedrawCommand);
-					CMD_CASE(16, SetResolutionCommand);
-					CMD_CASE(17, SetDensityCommand);
-					CMD_CASE(18, FrameSceneCommand);
-					CMD_CASE(19, SetGlossinessCommand);
-					CMD_CASE(20, EnableChannelCommand);
-					CMD_CASE(21, SetWindowLevelCommand);
-					CMD_CASE(22, OrbitCameraCommand);
-					CMD_CASE(23, SetSkylightTopColorCommand);
-					CMD_CASE(24, SetSkylightMiddleColorCommand);
-					CMD_CASE(25, SetSkylightBottomColorCommand);
-					CMD_CASE(26, SetLightPosCommand);
-					CMD_CASE(27, SetLightColorCommand);
-					CMD_CASE(28, SetLightSizeCommand);
-					CMD_CASE(29, SetClipRegionCommand);
+					CMD_CASE(SessionCommand);
+					CMD_CASE(AssetPathCommand);
+					CMD_CASE(LoadOmeTifCommand);
+					CMD_CASE(SetCameraPosCommand);
+					CMD_CASE(SetCameraTargetCommand);
+					CMD_CASE(SetCameraUpCommand);
+					CMD_CASE(SetCameraApertureCommand);
+					CMD_CASE(SetCameraFovYCommand);
+					CMD_CASE(SetCameraFocalDistanceCommand);
+					CMD_CASE(SetCameraExposureCommand);
+					CMD_CASE(SetDiffuseColorCommand);
+					CMD_CASE(SetSpecularColorCommand);
+					CMD_CASE(SetEmissiveColorCommand);
+					CMD_CASE(SetRenderIterationsCommand);
+					CMD_CASE(SetStreamModeCommand);
+					CMD_CASE(RequestRedrawCommand);
+					CMD_CASE(SetResolutionCommand);
+					CMD_CASE(SetDensityCommand);
+					CMD_CASE(FrameSceneCommand);
+					CMD_CASE(SetGlossinessCommand);
+					CMD_CASE(EnableChannelCommand);
+					CMD_CASE(SetWindowLevelCommand);
+					CMD_CASE(OrbitCameraCommand);
+					CMD_CASE(SetSkylightTopColorCommand);
+					CMD_CASE(SetSkylightMiddleColorCommand);
+					CMD_CASE(SetSkylightBottomColorCommand);
+					CMD_CASE(SetLightPosCommand);
+					CMD_CASE(SetLightColorCommand);
+					CMD_CASE(SetLightSizeCommand);
+					CMD_CASE(SetClipRegionCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
