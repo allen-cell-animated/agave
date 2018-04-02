@@ -51,6 +51,7 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 
 		// fire back some json immediately...
 		QJsonObject j;
+		j["commandId"] = (int)LoadOmeTifCommand::_ID;
 		j["x"] = (int)image->sizeX();
 		j["y"] = (int)image->sizeY();
 		j["z"] = (int)image->sizeZ();
