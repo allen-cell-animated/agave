@@ -11,6 +11,9 @@
 
 #include <QElapsedTimer>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 void SessionCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "Session command: " << _data._name;
@@ -45,6 +48,30 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		c->_renderSettings->SetNoIterations(0);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+
+		// fire back some json immediately...
+		if (c->_client != 0 && c->_client->isValid() && c->_client->state() == QAbstractSocket::ConnectedState)
+		{
+			// Get JSON object
+			QJsonObject j;
+			j["x"] = (int)image->sizeX();
+			j["y"] = (int)image->sizeY();
+			j["z"] = (int)image->sizeZ();
+			j["c"] = (int)image->sizeC();
+			j["t"] = 1;
+			j["pixel_size_x"] = image->physicalSizeX();
+			j["pixel_size_y"] = image->physicalSizeY();
+			j["pixel_size_z"] = image->physicalSizeZ();
+			QJsonArray channelNames;
+			for (uint32_t i = 0; i < image->sizeC(); ++i) {
+				channelNames.append(image->channel(i)->_name);
+			}
+			j["channel_names"] = channelNames;
+			
+			QJsonDocument doc(j);
+			c->_client->sendTextMessage(doc.toJson());
+		}
+
 	}
 }
 

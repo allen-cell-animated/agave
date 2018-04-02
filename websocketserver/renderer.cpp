@@ -141,7 +141,7 @@ bool Renderer::processRequest()
 
 	std::vector<Command*> cmds = r->getParameters();
 	if (cmds.size() > 0) {
-		this->processCommandBuffer(cmds);
+		this->processCommandBuffer(cmds, r->getClient());
 	}
 
 	QImage img = this->render();
@@ -167,7 +167,7 @@ bool Renderer::processRequest()
 	return true;
 }
 
-void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
+void Renderer::processCommandBuffer(std::vector<Command*>& cmds, QWebSocket* client)
 {
 	this->context->makeCurrent(this->surface);
 
@@ -177,6 +177,7 @@ void Renderer::processCommandBuffer(std::vector<Command*>& cmds)
 		ec._renderer = this;
 		ec._appScene = myVolumeData._scene;
 		ec._camera = myVolumeData._camera;
+		ec._client = client;
 
 		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
 			(*i)->execute(&ec);

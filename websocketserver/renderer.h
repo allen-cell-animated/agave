@@ -41,7 +41,7 @@ public:
 
 	void addRequest(RenderRequest *request);
 	bool processRequest();
-	void processCommandBuffer(std::vector<Command*>& cmds);
+	void processCommandBuffer(std::vector<Command*>& cmds, QWebSocket* client);
 
 	inline int getTotalQueueDuration()
 	{

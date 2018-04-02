@@ -357,6 +357,11 @@ function setupGui() {
     this.message0 = function (evt) {
       console.time('recv');
 
+      if (typeof(evt.data) === "string") {
+          console.log(evt.data);
+          return;
+      }
+      
       var bytes = new Uint8Array(evt.data),
         binary = "",
         len = bytes.byteLength,
