@@ -36,29 +36,13 @@
 
 
 var binarysock, jsonsock;
+var gui;
 
 function setupGui() {
 
   effectController = {
-    channel: 0,
-    colorD0: [255, 0, 255],
-    colorD1: [255, 255, 255],
-    colorD2: [0, 255, 255],
-    colorS0: [0, 0, 0],
-    colorS1: [0, 0, 0],
-    colorS2: [0, 0, 0],
-    colorE0: [0, 0, 0],
-    colorE1: [0, 0, 0],
-    colorE2: [0, 0, 0],
-    window0: 1.0,
-    window1: 1.0,
-    window2: 1.0,
-    level0: 0.5,
-    level1: 0.5,
-    level2: 0.5,
-    roughness0: 0.0,
-    roughness1: 0.0,
-    roughness2: 0.0,
+    resolution: "512x512",
+    file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif",
     density: 50.0,
     exposure: 0.5,
     stream: false,
@@ -73,9 +57,34 @@ function setupGui() {
     lightSize: 10.0
   };
 
-  var gui = new dat.GUI();
-  //var gui = new dat.GUI({autoPlace:false, width:200});
+  gui = new dat.GUI();
+  //gui = new dat.GUI({autoPlace:false, width:200});
 
+  gui.add(effectController, "file").onFinishChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("LOAD_OME_TIF", value);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+  });
+
+  gui.add(effectController, "resolution", ["256x256", "512x512", "1024x1024", "1024x768"]).onChange(function(value) {
+      var res = value.match(/(\d+)x(\d+)/);
+      if (res.length === 3) {
+        res[0] = parseInt(res[1]);
+        res[1] = parseInt(res[2]);
+        var imgholder = document.getElementById("imageA");
+        imgholder.width = res[0];
+        imgholder.height = res[1];
+        imgholder.style.width = res[0];
+        imgholder.style.height = res[1];
+
+        var cb = new commandBuffer();
+        cb.addCommand("SET_RESOLUTION", res[0], res[1]);
+        flushCommandBuffer(cb);
+      }
+  });
+
+  //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
   gui.add(effectController, "stream").onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("STREAM_MODE", value ? 1 : 0);
@@ -99,7 +108,9 @@ function setupGui() {
         _stream_mode_suspended = false;
     });
 
-    gui.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
+
+    var lighting = gui.addFolder("Lighting");
+    lighting.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_TOP_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
         flushCommandBuffer(cb);
@@ -107,7 +118,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.addColor(effectController, "skyMidColor").name("Sky Mid").onChange(function(value) { 
+    lighting.addColor(effectController, "skyMidColor").name("Sky Mid").onChange(function(value) { 
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_MIDDLE_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
         flushCommandBuffer(cb);
@@ -115,7 +126,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.addColor(effectController, "skyBotColor").name("Sky Bottom").onChange(function(value) { 
+    lighting.addColor(effectController, "skyBotColor").name("Sky Bottom").onChange(function(value) { 
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_BOTTOM_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
         flushCommandBuffer(cb);
@@ -123,8 +134,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-
-    gui.add(effectController, "lightDistance").max(100.0).min(0.0).step(0.1).onChange(function(value) {
+    lighting.add(effectController, "lightDistance").max(100.0).min(0.0).step(0.1).onChange(function(value) {
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_POS", 0, value, effectController["lightTheta"]*180.0/3.14159265, effectController["lightPhi"]*180.0/3.14159265);
         flushCommandBuffer(cb);
@@ -132,7 +142,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.add(effectController, "lightTheta").max(180.0).min(-180.0).step(1).onChange(function(value) {
+    lighting.add(effectController, "lightTheta").max(180.0).min(-180.0).step(1).onChange(function(value) {
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_POS", 0, effectController["lightDistance"], value*180.0/3.14159265, effectController["lightPhi"]*180.0/3.14159265);
         flushCommandBuffer(cb);
@@ -140,7 +150,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.add(effectController, "lightPhi").max(180.0).min(0.0).step(1).onChange(function(value) {
+    lighting.add(effectController, "lightPhi").max(180.0).min(0.0).step(1).onChange(function(value) {
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_POS", 0, effectController["lightDistance"], effectController["lightTheta"]*180.0/3.14159265, value*180.0/3.14159265);
         flushCommandBuffer(cb);
@@ -148,7 +158,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.add(effectController, "lightSize").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+    lighting.add(effectController, "lightSize").max(100.0).min(0.01).step(0.1).onChange(function(value) {
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_SIZE", 0, value, value);
         flushCommandBuffer(cb);
@@ -156,7 +166,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.add(effectController, "lightIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+    lighting.add(effectController, "lightIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_COLOR", 0, effectController["lightColor"][0]/255.0*value, effectController["lightColor"][1]/255.0*value, effectController["lightColor"][2]/255.0*value);
         flushCommandBuffer(cb);
@@ -164,7 +174,7 @@ function setupGui() {
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
-    gui.addColor(effectController, "lightColor").name("lightcolor").onChange(function(value) { 
+    lighting.addColor(effectController, "lightColor").name("lightcolor").onChange(function(value) { 
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_COLOR", 0, value[0]/255.0*effectController["lightIntensity"], value[1]/255.0*effectController["lightIntensity"], value[2]/255.0*effectController["lightIntensity"]);
         flushCommandBuffer(cb);
@@ -173,69 +183,120 @@ function setupGui() {
         _stream_mode_suspended = false;
     });  
 
-  for (var i = 0; i < 3; ++i) {
-    gui.addColor(effectController, "colorD"+i).name("Diffuse"+i).onChange(function(j) { 
-        return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("MAT_DIFFUSE", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
-                flushCommandBuffer(cb);
-            };
-    }(i));
-    gui.addColor(effectController, "colorS"+i).name("Specular"+i).onChange(function(j) {
-        return function(value) {
-            var cb = new commandBuffer();
-            cb.addCommand("MAT_SPECULAR", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
-            flushCommandBuffer(cb);
-        };
-    }(i));
-    gui.addColor(effectController, "colorE"+i).name("Emissive"+i).onChange(function(j) {
-        return function(value) {
-            var cb = new commandBuffer();
-            cb.addCommand("MAT_EMISSIVE", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
-            flushCommandBuffer(cb);
-        };
-    }(i));
-    gui.add(effectController, "window"+i).max(1.0).min(0.0).step(0.001).onChange(function(j) {
-        return function(value) {
-            var cb = new commandBuffer();
-            cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+j]);
-            flushCommandBuffer(cb);
-            _stream_mode_suspended = true;
-        }
-    }(i))
-    .onFinishChange(function(value) {
-        _stream_mode_suspended = false;
-    });
-
-    gui.add(effectController, "level"+i).max(1.0).min(0.0).step(0.001).onChange(function(j) {
-        return function(value) {
-            var cb = new commandBuffer();
-            cb.addCommand("SET_WINDOW_LEVEL", j, effectController["window"+j], value);
-            flushCommandBuffer(cb);
-            _stream_mode_suspended = true;
-        }
-    }(i))
-    .onFinishChange(function(value) {
-        _stream_mode_suspended = false;
-    });
-    gui.add(effectController, "roughness"+i).max(100.0).min(0.0).onChange(function(j) {
-        return function(value) {
-            var cb = new commandBuffer();
-            cb.addCommand("MAT_GLOSSINESS", j, value);
-            flushCommandBuffer(cb);
-            _stream_mode_suspended = true;
-        }
-    }(i))
-    .onFinishChange(function(value) {
-        _stream_mode_suspended = false;
-    });
-    
-  }
 
 //  var customContainer = document.getElementById('my-gui-container');
 //  customContainer.appendChild(gui.domElement);
 }
 
+dat.GUI.prototype.removeFolder = function(name) {
+    var folder = this.__folders[name];
+    if (!folder) {
+      return;
+    }
+    folder.close();
+    this.__ul.removeChild(folder.domElement.parentNode);
+    delete this.__folders[name];
+    this.onResize();
+}
+function onNewImage(infoObj) {
+
+    // set up positions based on sizes.
+    var x = infoObj.pixel_size_x * infoObj.x;
+    var y = infoObj.pixel_size_y * infoObj.y;
+    var z = infoObj.pixel_size_z * infoObj.z;
+    var maxdim = Math.max(x,Math.max(y,z));
+    gCamera.position.x = 0.5*x/maxdim;
+    gCamera.position.y = 0.5*y/maxdim;
+    gCamera.position.z = 1.5 + (0.5*z/maxdim);
+    gCamera.up.x = 0.0;
+    gCamera.up.y = 1.0;
+    gCamera.up.z = 0.0;
+    gControls.target.x = 0.5*x/maxdim;
+    gControls.target.y = 0.5*y/maxdim;
+    gControls.target.z = 0.5*z/maxdim;
+    gControls.target0 = gControls.target.clone();
+
+
+    setupChannelsGui(infoObj);
+} 
+function setupChannelsGui(infoObj) {
+    if (effectController && effectController.infoObj) {
+        for (var i = 0; i < effectController.infoObj.channel_names.length; ++i) {
+            gui.removeFolder("Channel " + effectController.infoObj.channel_names[i]);
+        }
+    }
+
+    effectController.infoObj = infoObj;
+    infoObj.channelGui = [];
+    for (var i = 0; i < infoObj.c; ++i) {
+        infoObj.channelGui.push({
+            colorD:[0,0,0],
+            colorS:[0,0,0],
+            colorE:[0,0,0],
+            window: 1.0,
+            level: 0.5,
+            roughness: 0.0
+        })
+        var f = gui.addFolder("Channel " + infoObj.channel_names[i]);
+        f.addColor(effectController.infoObj.channelGui[i], "colorD").name("Diffuse").onChange(function(j) { 
+            return function(value) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("MAT_DIFFUSE", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+                    flushCommandBuffer(cb);
+                };
+        }(i));
+        f.addColor(effectController.infoObj.channelGui[i], "colorS").name("Specular").onChange(function(j) {
+            return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("MAT_SPECULAR", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+                flushCommandBuffer(cb);
+            };
+        }(i));
+        f.addColor(effectController.infoObj.channelGui[i], "colorE").name("Emissive").onChange(function(j) {
+            return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("MAT_EMISSIVE", j, value[0]/255.0, value[1]/255.0, value[2]/255.0, 1.0);
+                flushCommandBuffer(cb);
+            };
+        }(i));
+        f.add(effectController.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function(j) {
+            return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+j]);
+                flushCommandBuffer(cb);
+                _stream_mode_suspended = true;
+            }
+        }(i))
+        .onFinishChange(function(value) {
+            _stream_mode_suspended = false;
+        });
+
+        f.add(effectController.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function(j) {
+            return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("SET_WINDOW_LEVEL", j, effectController["window"+j], value);
+                flushCommandBuffer(cb);
+                _stream_mode_suspended = true;
+            }
+        }(i))
+        .onFinishChange(function(value) {
+            _stream_mode_suspended = false;
+        });
+        f.add(effectController.infoObj.channelGui[i], "roughness").max(100.0).min(0.0).onChange(function(j) {
+            return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("MAT_GLOSSINESS", j, value);
+                flushCommandBuffer(cb);
+                _stream_mode_suspended = true;
+            }
+        }(i))
+        .onFinishChange(function(value) {
+            _stream_mode_suspended = false;
+        });
+        
+    }
+    
+}
   /**
    *
    */
@@ -294,7 +355,7 @@ function setupGui() {
 
 
         var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif");
+        cb.addCommand("LOAD_OME_TIF", effectController.file);
         cb.addCommand("SET_RESOLUTION", 512, 512);
         cb.addCommand("FRAME_SCENE");
         //cb.addCommand("EYE", 0.5, 0.408, 2.145);
@@ -358,7 +419,12 @@ function setupGui() {
       console.time('recv');
 
       if (typeof(evt.data) === "string") {
-          console.log(evt.data);
+          var returnedObj = JSON.parse(evt.data);
+          if (returnedObj.commandId === COMMANDS.LOAD_OME_TIF[0]) {
+              console.log(returnedObj);
+              // set up gui!
+              onNewImage(returnedObj);
+            }
           return;
       }
 
