@@ -262,7 +262,7 @@ function setupChannelsGui(infoObj) {
         f.add(effectController.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
                 var cb = new commandBuffer();
-                cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController["level"+j]);
+                cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
                 flushCommandBuffer(cb);
                 _stream_mode_suspended = true;
             }
@@ -274,7 +274,7 @@ function setupChannelsGui(infoObj) {
         f.add(effectController.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
                 var cb = new commandBuffer();
-                cb.addCommand("SET_WINDOW_LEVEL", j, effectController["window"+j], value);
+                cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
                 flushCommandBuffer(cb);
                 _stream_mode_suspended = true;
             }
