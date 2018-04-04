@@ -73,7 +73,7 @@ FWDDECL_PARSE(SetLightSizeCommand);
 FWDDECL_PARSE(SetClipRegionCommand);
 
 #define CMD_CASE(CMDCLASS) \
-	case (##CMDCLASS::_ID):\
+	case (CMDCLASS::_ID):\
 		return parse##CMDCLASS(&iterator);\
 		break;
 
