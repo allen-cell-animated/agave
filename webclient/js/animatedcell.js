@@ -23,7 +23,7 @@
 
   var _stream_mode = false;
   var _stream_mode_suspended = false;
-
+    var enqueued_image_data = null;
 
   /**
    * switches the supplied element to (in)visible
@@ -340,10 +340,17 @@ function setupChannelsGui(infoObj) {
     toggleDivVisibility(streamimg1, true);
 
     setupGui();
+
+    animate();
   }
 
-
-
+  function animate() {
+    requestAnimationFrame( animate );
+    // look for new image to show
+    if (enqueued_image_data) {
+        binarysock.draw();
+    }
+}
   /**
    * socket that exclusively receives binary data for streaming jpg images
    * @param channelnumber = 0 or 1 for left or right image => currently message0 or message1 are used since channelnumber cannot always be set via the constructor for some reason
@@ -416,7 +423,6 @@ function setupChannelsGui(infoObj) {
     };
 
     this.message0 = function (evt) {
-      console.time('recv');
 
       if (typeof(evt.data) === "string") {
           var returnedObj = JSON.parse(evt.data);
@@ -428,16 +434,10 @@ function setupChannelsGui(infoObj) {
           return;
       }
 
-      var bytes = new Uint8Array(evt.data),
-        binary = "",
-        len = bytes.byteLength,
-        i;
-      for (i=0; i<len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      imgreceived = true;
-      screenImage.set("data:image/png;base64,"+window.btoa( binary ), 0);
-      console.timeEnd('recv');
+      // TODO:enqueue this...?
+
+      enqueued_image_data = evt.data;
+
 
       if (!_stream_mode_suspended && _stream_mode && !dragFlag) {
         // let cb = new commandBuffer();
@@ -448,7 +448,6 @@ function setupChannelsGui(infoObj) {
 // why should this code be slower?
       // var reader = new FileReader();
       // reader.onload = function(e) {
-      //   imgreceived = true;
       //   screenImage.set(e.target.result, 0);
       //   console.timeEnd('recv');
       // };
@@ -456,6 +455,24 @@ function setupChannelsGui(infoObj) {
 
     };
 
+    this.draw = function() {
+        console.time('decode_img');
+        var bytes = new Uint8Array(enqueued_image_data),
+          binary = "",
+          len = bytes.byteLength,
+          i;
+        for (i=0; i<len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        binary = window.btoa(binary);
+        console.timeEnd('decode_img');
+  
+        console.time('set_img');
+        screenImage.set("data:image/png;base64,"+binary, 0);
+        console.timeEnd('set_img');  
+
+        enqueued_image_data = null;
+    }
     this.error = function (evt) {
         console.log('error', evt);
     }
