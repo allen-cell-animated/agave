@@ -10,8 +10,11 @@ document.documentElement.addEventListener('mouseup', function(e){
         dragFlag = 0;
 
         let cb = new commandBuffer();
-        cb.addCommand("REDRAW");
+        cb.addCommand("STREAM_MODE", 1);
         flushCommandBuffer(cb);
+        let cb1 = new commandBuffer();
+        cb1.addCommand("REDRAW");
+        flushCommandBuffer(cb1);
     }
 });
 
@@ -40,6 +43,9 @@ document.documentElement.addEventListener('mousemove', function(e){
 
         if(dragFlag)
         {
+            let cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 0);
+            flushCommandBuffer(cb);
             sendCameraUpdate();
         }
         this.mouseMoveTimer = null;
