@@ -131,38 +131,78 @@ bool Renderer::processRequest()
 		return false;
 	}
 
-	//remove request from the queue
-	RenderRequest *r = this->requests.takeFirst();
-	this->totalQueueDuration -= r->getDuration();
+	if (_streamMode != 0) {
+		QElapsedTimer timer;
+		timer.start();
 
-	//process it
-	QElapsedTimer timer;
-	timer.start();
 
-	std::vector<Command*> cmds = r->getParameters();
-	if (cmds.size() > 0) {
-		this->processCommandBuffer(r);
+		RenderRequest* lastReq = nullptr;
+
+		// eat requests until done, and then render
+		// note that any one request could change the streaming mode.
+		while (!this->requests.isEmpty() && _streamMode != 0) {
+
+			RenderRequest *r = this->requests.takeFirst();
+			this->totalQueueDuration -= r->getDuration();
+
+			std::vector<Command*> cmds = r->getParameters();
+			if (cmds.size() > 0) {
+				this->processCommandBuffer(r);
+			}
+
+			// the true last request will be passed to "emit" and deleted later
+			if (!this->requests.isEmpty() && _streamMode != 0) {
+				delete r;
+			}
+			else {
+				lastReq = r;
+			}
+		}
+
+		QImage img = this->render();
+
+		lastReq->setActualDuration(timer.nsecsElapsed());
+
+
+		// in stream mode:
+		// if queue is empty, then keep firing redraws back to client.
+		// test about 100 frames as a convergence limit.
+		if (_streamMode != 0 && myVolumeData._renderSettings->GetNoIterations() < 100) {
+			// push another redraw request.
+			std::vector<Command*> cmd;
+			RequestRedrawCommandD data;
+			cmd.push_back(new RequestRedrawCommand(data));
+			this->addRequest(new RenderRequest(lastReq->getClient(), cmd, false));
+		}
+
+
+		//inform the server that we are done with r
+		emit requestProcessed(lastReq, img);
+
 	}
+	else {
+		// if not in stream mode, then process one request, then re-render.
 
-	QImage img = this->render();
+		//remove request from the queue
+		RenderRequest *r = this->requests.takeFirst();
+		this->totalQueueDuration -= r->getDuration();
 
-	r->setActualDuration(timer.nsecsElapsed());
+		//process it
+		QElapsedTimer timer;
+		timer.start();
 
+		std::vector<Command*> cmds = r->getParameters();
+		if (cmds.size() > 0) {
+			this->processCommandBuffer(r);
+		}
 
-	// in stream mode:
-	// if queue is empty, then keep firing redraws back to client.
-	// test about 100 frames as a convergence limit.
-	if (_streamMode != 0 && this->requests.length() == 0 && myVolumeData._renderSettings->GetNoIterations() < 100) {
-		// push another redraw request.
-		std::vector<Command*> cmd;
-		RequestRedrawCommandD data;
-		cmd.push_back(new RequestRedrawCommand(data));
-		this->addRequest(new RenderRequest(r->getClient(), cmd, false));
+		QImage img = this->render();
+
+		r->setActualDuration(timer.nsecsElapsed());
+
+		//inform the server that we are done with r
+		emit requestProcessed(r, img);
 	}
-
-
-	//inform the server that we are done with r
-	emit requestProcessed(r, img);
 	
 	return true;
 }

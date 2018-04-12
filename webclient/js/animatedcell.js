@@ -1,6 +1,6 @@
 
-  //var wsUri = "ws://localhost:1235";
-  var wsUri = "ws://dev-aics-dtp-001:1235";
+  var wsUri = "ws://localhost:1235";
+  //var wsUri = "ws://dev-aics-dtp-001:1235";
 
   var binarysocket0 = null; //handles requests for image streaming target #1
   //var binarysocket1 = null; //handles requests for image streaming target #2
@@ -45,7 +45,7 @@ function setupGui() {
     file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif",
     density: 50.0,
     exposure: 0.5,
-    stream: false,
+    stream: true,
     skyTopColor: [255, 255, 255],
     skyMidColor: [255, 255, 255],
     skyBotColor: [255, 255, 255],
@@ -89,6 +89,10 @@ function setupGui() {
     var cb = new commandBuffer();
     cb.addCommand("STREAM_MODE", value ? 1 : 0);
     flushCommandBuffer(cb);
+    // BUG THIS SHOULD NOT BE NEEDED.
+    var cb2 = new commandBuffer();
+    cb2.addCommand("REDRAW");
+    flushCommandBuffer(cb2);
     _stream_mode = value;
   });
   gui.add(effectController, "exposure").max(1.0).min(0.0).step(0.001).onChange(function(value) {
@@ -216,6 +220,7 @@ function onNewImage(infoObj) {
     gControls.target.z = 0.5*z/maxdim;
     gControls.target0 = gControls.target.clone();
 
+    sendCameraUpdate();
 
     setupChannelsGui(infoObj);
 } 
@@ -262,24 +267,38 @@ function setupChannelsGui(infoObj) {
         f.add(effectController.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
                 var cb = new commandBuffer();
+                cb.addCommand("STREAM_MODE", 0);
                 cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
                 flushCommandBuffer(cb);
                 _stream_mode_suspended = true;
             }
         }(i))
         .onFinishChange(function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 1);
+            flushCommandBuffer(cb);
+            var cb2 = new commandBuffer();
+            cb2.addCommand("REDRAW");
+            flushCommandBuffer(cb2);
             _stream_mode_suspended = false;
         });
 
         f.add(effectController.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
                 var cb = new commandBuffer();
+                cb.addCommand("STREAM_MODE", 0);
                 cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
                 flushCommandBuffer(cb);
                 _stream_mode_suspended = true;
             }
         }(i))
         .onFinishChange(function(value) {
+            var cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 1);
+            flushCommandBuffer(cb);
+            var cb2 = new commandBuffer();
+            cb2.addCommand("REDRAW");
+            flushCommandBuffer(cb2);
             _stream_mode_suspended = false;
         });
         f.add(effectController.infoObj.channelGui[i], "roughness").max(100.0).min(0.0).onChange(function(j) {
@@ -365,8 +384,6 @@ function setupChannelsGui(infoObj) {
         cb.addCommand("LOAD_OME_TIF", effectController.file);
         cb.addCommand("SET_RESOLUTION", 512, 512);
         cb.addCommand("FRAME_SCENE");
-        //cb.addCommand("EYE", 0.5, 0.408, 2.145);
-        //cb.addCommand("TARGET", 0.5, 0.408, 0.145);
         cb.addCommand("MAT_DIFFUSE", 0, 1.0, 0.0, 1.0, 1.0);
         cb.addCommand("MAT_SPECULAR", 0, 0.0, 0.0, 0.0, 0.0);
         cb.addCommand("MAT_EMISSIVE", 0, 0.0, 0.0, 0.0, 0.0);
@@ -378,7 +395,11 @@ function setupChannelsGui(infoObj) {
         cb.addCommand("MAT_EMISSIVE", 2, 0.0, 0.0, 0.0, 0.0);
         cb.addCommand("APERTURE", 0.0);
         cb.addCommand("EXPOSURE", 0.5);
+        cb.addCommand("STREAM_MODE", 1);
         flushCommandBuffer(cb);
+        var cb2 = new commandBuffer();
+        cb2.addCommand("REDRAW");
+        flushCommandBuffer(cb2);
 
         // init camera
         var streamimg1 = document.getElementById("imageA");

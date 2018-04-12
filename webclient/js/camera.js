@@ -10,7 +10,6 @@ document.documentElement.addEventListener('mouseup', function(e){
         dragFlag = 0;
 
         let cb = new commandBuffer();
-        cb.addCommand("STREAM_MODE", _stream_mode ? 1 : 0);
         cb.addCommand("REDRAW");
         flushCommandBuffer(cb);
     }
@@ -41,20 +40,21 @@ document.documentElement.addEventListener('mousemove', function(e){
 
         if(dragFlag)
         {
-
-            cb = new commandBuffer();
-            cb.addCommand("STREAM_MODE", 0);
-            cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
-            cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
-            cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
-            cb.addCommand("REDRAW");
-            flushCommandBuffer(cb);
-
+            sendCameraUpdate();
         }
         this.mouseMoveTimer = null;
 
     }.bind(this), 50);
 });
+
+function sendCameraUpdate() {
+    cb = new commandBuffer();
+    cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
+    cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
+    cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
+    cb.addCommand("REDRAW");
+    flushCommandBuffer(cb);
+}
 
 /**
  * this object holds the image that is received from the server
@@ -119,12 +119,7 @@ function MouseDownHandler(e)
 
 function MouseWheelHandler(e)
 {
-    cb = new commandBuffer();
-    cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
-    cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
-    cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
-    cb.addCommand("REDRAW");
-    flushCommandBuffer(cb);
+    sendCameraUpdate();
 }
 
 function setVisibility(visi)
