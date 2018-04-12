@@ -17,8 +17,8 @@
 #include <QMessageBox>
 #include <QOpenGLFramebufferObjectFormat>
 
-Renderer::Renderer(QString id, QObject *parent) : QThread(parent),
-	id(id), _streamMode(0), fbo(nullptr), _width(0), _height(0)
+Renderer::Renderer(QString id, QObject *parent, QMutex& mutex) : QThread(parent),
+	id(id), _streamMode(0), fbo(nullptr), _width(0), _height(0), _openGLMutex(&mutex)
 {
 	this->totalQueueDuration = 0;
 
@@ -159,6 +159,10 @@ bool Renderer::processRequest()
 			}
 		}
 
+		QWebSocket* ws = lastReq->getClient();
+		LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" <<
+			ws->peerAddress().toString().toStdString() << ":" << QString::number(ws->peerPort()).toStdString() << ")";
+
 		QImage img = this->render();
 
 		lastReq->setActualDuration(timer.nsecsElapsed());
@@ -233,6 +237,7 @@ void Renderer::processCommandBuffer(RenderRequest* rr)
 
 QImage Renderer::render()
 {
+	_openGLMutex->lock();
 	this->context->makeCurrent(this->surface);
 
 	glEnable(GL_TEXTURE_2D);
@@ -250,6 +255,7 @@ QImage Renderer::render()
 	QImage img = fbo->toImage();
 
 	this->context->doneCurrent();
+	_openGLMutex->unlock();
 
 	return img;
 }
@@ -259,6 +265,7 @@ void Renderer::resizeGL(int width, int height)
 	if ((width == _width) && (height == _height)) {
 		return;
 	}
+	_openGLMutex->lock();
 
 	this->context->makeCurrent(this->surface);
 
@@ -280,10 +287,14 @@ void Renderer::resizeGL(int width, int height)
 
 	_width = width;
 	_height = height;
+
+	_openGLMutex->unlock();
 }
 
 void Renderer::reset(int from)
 {
+	_openGLMutex->lock();
+
 	this->context->makeCurrent(this->surface);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -294,6 +305,8 @@ void Renderer::reset(int from)
 
 	this->time.start();
 	this->time = this->time.addMSecs(-from);
+
+	_openGLMutex->unlock();
 }
 
 int Renderer::getTime()

@@ -33,7 +33,7 @@ class Renderer : public QThread
 	Q_OBJECT
 
 public:
-	Renderer(QString id, QObject *parent = 0);
+	Renderer(QString id, QObject *parent, QMutex& mutex);
 	virtual ~Renderer();
 
 	void init();
@@ -73,7 +73,7 @@ protected:
 	void shutDown();
 
 private:
-	QMutex mutex;
+	QMutex* _openGLMutex;
 
 	QOpenGLContext *context;
 	QOffscreenSurface *surface;

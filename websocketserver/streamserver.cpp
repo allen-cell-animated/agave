@@ -20,7 +20,7 @@ const char *DEFAULT_IMAGE_FORMAT = "JPG";
 
 void StreamServer::createNewRenderer(QWebSocket* client) {
 	int i = this->_renderers.length();
-	Renderer* r = new Renderer("Thread " + QString::number(i), this);
+	Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 	this->_renderers << r;
 	connect(r, SIGNAL(requestProcessed(RenderRequest*, QImage)), this, SLOT(sendImage(RenderRequest*, QImage)));
 	connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));

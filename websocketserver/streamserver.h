@@ -95,6 +95,8 @@ private:
 	bool debug;
 
 	void createNewRenderer(QWebSocket* client);
+
+	QMutex _openGLMutex;
 };
 
 #endif //STREAMSERVER_H
