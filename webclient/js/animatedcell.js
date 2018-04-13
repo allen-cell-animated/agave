@@ -44,17 +44,17 @@ function setupGui() {
     resolution: "512x512",
     file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
     density: 50.0,
-    exposure: 0.5,
+    exposure: 0.75,
     stream: true,
     skyTopColor: [255, 255, 255],
     skyMidColor: [255, 255, 255],
     skyBotColor: [255, 255, 255],
     lightColor: [255, 255, 255],
     lightIntensity: 100.0,
-    lightDistance: 100.0,
+    lightDistance: 10.0,
     lightTheta: 0.0,
     lightPhi: 0.0,
-    lightSize: 10.0
+    lightSize: 1.0
   };
 
   gui = new dat.GUI();
@@ -394,7 +394,17 @@ function setupChannelsGui(infoObj) {
         cb.addCommand("MAT_SPECULAR", 2, 0.0, 0.0, 0.0, 0.0);
         cb.addCommand("MAT_EMISSIVE", 2, 0.0, 0.0, 0.0, 0.0);
         cb.addCommand("APERTURE", 0.0);
-        cb.addCommand("EXPOSURE", 0.5);
+        cb.addCommand("EXPOSURE", effectController.exposure);
+        cb.addCommand("SKYLIGHT_TOP_COLOR", effectController.skyTopColor[0]/255.0, effectController.skyTopColor[1]/255.0, effectController.skyTopColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", effectController.skyMidColor[0]/255.0, effectController.skyMidColor[1]/255.0, effectController.skyMidColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", effectController.skyBotColor[0]/255.0, effectController.skyBotColor[1]/255.0, effectController.skyBotColor[2]/255.0);
+        cb.addCommand("LIGHT_POS", 0, effectController.lightDistance, effectController.lightTheta, effectController.lightPhi);
+        cb.addCommand("LIGHT_COLOR", 0, 
+            effectController.lightColor[0]/255.0*effectController.lightIntensity, 
+            effectController.lightColor[1]/255.0*effectController.lightIntensity, 
+            effectController.lightColor[2]/255.0*effectController.lightIntensity, 
+        );
+        cb.addCommand("LIGHT_SIZE", 0, effectController.lightSize, effectController.lightSize);
         cb.addCommand("STREAM_MODE", 1);
         flushCommandBuffer(cb);
         var cb2 = new commandBuffer();
