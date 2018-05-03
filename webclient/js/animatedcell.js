@@ -377,8 +377,6 @@ function setupChannelsGui(infoObj) {
   function binarysocket(channelnumber = 0) {
     this.channelnum = channelnumber;
     this.open = function (evt) {
-        //send the initial camera & data query upon opening the connection
-
 
         var cb = new commandBuffer();
         cb.addCommand("LOAD_OME_TIF", effectController.file);
