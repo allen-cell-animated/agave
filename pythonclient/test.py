@@ -8,7 +8,7 @@ from collections import deque
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
-# import vtk
+import vtk
 
 import numpy
 from aicsimage.io.tifReader import TifReader
@@ -133,7 +133,7 @@ class DummyClient(WebSocketClient):
             self.push_request(cb, OUTROOT + 'ZSTACK_' + prefix + '_' + str(i+offset).zfill(4) + ".png")
 
     def loop_frames(self, offset=0):
-        # interp = vtk.vtkCameraInterpolator()
+        interp = vtk.vtkCameraInterpolator()
         # interp.AddCamera(0.0, self.getCameraCopy())
         for i in range(0, 20):
             outfilepath = OUTROOT + 'combined_frame_' + str(i).zfill(2) + '.ome.tiff'
@@ -336,14 +336,14 @@ class DummyClient(WebSocketClient):
 
         # self.testrender()
 
-        self.loop_zstack(0, 0.333333, 1, 1, 0.145098, 0.072549, offset=0)
-        self.loop_zstack(1, 1, 0.666667, 1, 0.0117647, 0.00588235, offset=64)
-        self.loop_zstack(2, 1, 1, 0, 0.137255, 0.0686275, offset=128)
-        self.loop_zstack(3, 1, 0.333333, 0, 0.0745098, 0.0372549, offset=192)
+        #self.loop_zstack(0, 0.333333, 1, 1, 0.145098, 0.072549, offset=0)
+        #self.loop_zstack(1, 1, 0.666667, 1, 0.0117647, 0.00588235, offset=64)
+        #self.loop_zstack(2, 1, 1, 0, 0.137255, 0.0686275, offset=128)
+        #self.loop_zstack(3, 1, 0.333333, 0, 0.0745098, 0.0372549, offset=192)
 
         self.loop_frames(offset=256)
-        self.loop_frames(offset=276)
-        self.loop_frames(offset=296)
+        #self.loop_frames(offset=276)
+        #self.loop_frames(offset=296)
 
 
 
@@ -367,8 +367,8 @@ if __name__ == '__main__':
     try:
         # convert_combined()
         # convertFiles()
-        # ws = DummyClient('ws://dev-aics-dtp-001:1235/', protocols=['http-only', 'chat'])
-        ws = DummyClient('ws://localhost:1235/', protocols=['http-only', 'chat'])
+        ws = DummyClient('ws://dev-aics-dtp-001:1235/', protocols=['http-only', 'chat'])
+        # ws = DummyClient('ws://localhost:1235/', protocols=['http-only', 'chat'])
         ws.connect()
         ws.run_forever()
     except KeyboardInterrupt:

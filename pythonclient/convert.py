@@ -76,6 +76,13 @@ def combineFiles(files, out, channel_names=None):
         ai = AICSImage(f)
         # ai.data is 5d.
         image = ai.data
+        if image.dtype == numpy.float32:
+            # normalizes data in range 0 - uint16max
+            image = image.clip(min=0.0)
+            image = image / image.max()
+            image = 65535 * image
+            # convert float to uint16
+            image = image.astype(numpy.uint16)
         if finalimage is None:
             finalimage = [image[0]]
         else:
@@ -86,27 +93,49 @@ def combineFiles(files, out, channel_names=None):
         writer.save(finalimage, channel_names=channel_names, pixels_physical_size=[0.108, 0.108, 0.290])
 
 # for derek
-with open('\\\\allen\\aics\\microscopy\\UserFolders\\Derek\\2018-03-12_fake_fluorescence_images_v0\\resize_predictions.csv', newline='') as csvfile:
-    spamreader = csv.DictReader(csvfile)
-    i = 0
-    for row in spamreader:
-        # skip first?
-        if i > 0:
-            segfolder = '\\\\allen\\aics\\microscopy\\UserFolders\\Derek\\2018-03-12_fake_fluorescence_images_v0\\Watershed4xDownsampleOutput\\%02d\\' % i
-            predfolder = '\\\\allen\\aics\\microscopy\\UserFolders\\Derek\\2018-03-12_fake_fluorescence_images_v0\\%02d\\' % i
-            outfolder = '\\\\allen\\aics\\animated-cell\\Dan\\2018-03-12_fake_fluorescence_images_v0\\w4xd\\'
-            channel_names = [str(j) for j in range(0, 11)]
-            channel_names[7] = 'pred_memb'
-            channel_names[8] = 'pred_dna'
-            channel_names[9] = 'seg_memb'
-            channel_names[10] = 'seg_dna'
-            combineFiles([
-                row['path_czi'],
-                predfolder + 'prediction_63x_bf_membrane_caax_resized.tiff',
-                predfolder + 'prediction_dna_extended_resized.tiff',
-                segfolder + 'prediction_63x_bf_membrane_caax_resized_WatershedCellSeg.tiff',
-                segfolder + 'prediction_dna_extended_resized_WatershedNucSeg.tiff'
-            ],
-                channel_names = channel_names,
-                out=outfolder + ('big%02d.ome.tif' % i))
-        i = i + 1
+# with open('\\\\allen\\aics\\microscopy\\UserFolders\\Derek\\2018-03-12_fake_fluorescence_images_v0\\resize_predictions.csv', newline='') as csvfile:
+#     spamreader = csv.DictReader(csvfile)
+#     i = 0
+#     for row in spamreader:
+#         # skip first?
+#         if i > 0:
+#             segfolder = '\\\\allen\\aics\\microscopy\\UserFolders\\Derek\\2018-03-12_fake_fluorescence_images_v0\\Watershed4xDownsampleOutput\\%02d\\' % i
+#             predfolder = '\\\\allen\\aics\\microscopy\\UserFolders\\Derek\\2018-03-12_fake_fluorescence_images_v0\\%02d\\' % i
+#             outfolder = '\\\\allen\\aics\\animated-cell\\Dan\\2018-03-12_fake_fluorescence_images_v0\\w4xd\\'
+#             channel_names = [str(j) for j in range(0, 11)]
+#             channel_names[7] = 'pred_memb'
+#             channel_names[8] = 'pred_dna'
+#             channel_names[9] = 'seg_memb'
+#             channel_names[10] = 'seg_dna'
+#             combineFiles([
+#                 row['path_czi'],
+#                 predfolder + 'prediction_63x_bf_membrane_caax_resized.tiff',
+#                 predfolder + 'prediction_dna_extended_resized.tiff',
+#                 segfolder + 'prediction_63x_bf_membrane_caax_resized_WatershedCellSeg.tiff',
+#                 segfolder + 'prediction_dna_extended_resized_WatershedNucSeg.tiff'
+#             ],
+#                 channel_names = channel_names,
+#                 out=outfolder + ('big%02d.ome.tif' % i))
+#         i = i + 1
+
+indir = '\\\\allen\\aics\\modeling\\cheko\\projects\\for_others\\2017-11-29_for_ac\\3500000766_100X_20170328_D04_P04.czi\\'
+imgs = [
+    'img_chan_brightfield',
+    'img_chan_dna',
+    'img_chan_membrane',
+    'img_chan_structure',
+    'img_prediction_alpha_tubulin',
+    'img_prediction_beta_actin',
+    'img_prediction_dna',
+    'img_prediction_fibrillarin',
+    'img_prediction_lamin_b1',
+    'img_prediction_membrane',
+    'img_prediction_sec61_beta',
+    'img_prediction_tom20',
+    'img_segmentation'
+]
+outfolder = '\\\\allen\\aics\\animated-cell\\Dan\\labelfree\\'
+channel_names = [j[4:] for j in imgs]
+combineFiles([indir + j + '.tif' for j in imgs],
+    channel_names = channel_names,
+    out=outfolder + '881.ome.tif')
