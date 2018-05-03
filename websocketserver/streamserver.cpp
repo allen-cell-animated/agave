@@ -227,7 +227,8 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 		QBuffer buffer(&ba);
 		buffer.open(QIODevice::WriteOnly);
 		image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
-
+		LOG_DEBUG << "Send Image " << buffer.size() << " bytes to " << client->peerName().toStdString() << "(" <<
+			client->peerAddress().toString().toStdString() << ":" << QString::number(client->peerPort()).toStdString() << ")";
 		client->sendBinaryMessage(ba);
 	}
 
