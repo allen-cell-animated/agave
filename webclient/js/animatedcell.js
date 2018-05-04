@@ -266,10 +266,13 @@ function setupChannelsGui(infoObj) {
         }(i));
         f.add(effectController.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("STREAM_MODE", 0);
-                cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
-                flushCommandBuffer(cb);
+                if (!waiting_for_image) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("STREAM_MODE", 0);
+                    cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
+                    flushCommandBuffer(cb);
+                    waiting_for_image = true;
+                }
                 _stream_mode_suspended = true;
             }
         }(i))
@@ -285,10 +288,13 @@ function setupChannelsGui(infoObj) {
 
         f.add(effectController.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("STREAM_MODE", 0);
-                cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
-                flushCommandBuffer(cb);
+                if (!waiting_for_image) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("STREAM_MODE", 0);
+                    cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
+                    flushCommandBuffer(cb);
+                    waiting_for_image = true;
+                }
                 _stream_mode_suspended = true;
             }
         }(i))
@@ -303,9 +309,12 @@ function setupChannelsGui(infoObj) {
         });
         f.add(effectController.infoObj.channelGui[i], "roughness").max(100.0).min(0.0).onChange(function(j) {
             return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("MAT_GLOSSINESS", j, value);
-                flushCommandBuffer(cb);
+                if (!waiting_for_image) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("MAT_GLOSSINESS", j, value);
+                    flushCommandBuffer(cb);
+                    waiting_for_image = true;
+                }
                 _stream_mode_suspended = true;
             }
         }(i))
@@ -567,7 +576,7 @@ function setupChannelsGui(infoObj) {
    * calls the "init" method upon page load
    */
   window.addEventListener("load", init, false);
-  
+
   function sendCameraUpdate() {
     if (!waiting_for_image) {
         cb = new commandBuffer();
