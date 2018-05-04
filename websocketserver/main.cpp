@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	//QDir::setCurrent(QApplication::applicationDirPath() + "/work");
 
-	a.setApplicationName("VolumeRenderServer");
+	a.setApplicationName("AICS RENDERSERVER");
 	a.setApplicationVersion("0.0.1");
 
 	QCommandLineParser parser;

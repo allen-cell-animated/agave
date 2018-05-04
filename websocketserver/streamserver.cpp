@@ -36,7 +36,7 @@ void StreamServer::createNewRenderer(QWebSocket* client) {
 
 StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	QObject(parent),
-	_webSocketServer(new QWebSocketServer(QStringLiteral("Marion"), QWebSocketServer::NonSecureMode, this)),
+	_webSocketServer(new QWebSocketServer(QStringLiteral("AICS RENDERSERVER"), QWebSocketServer::NonSecureMode, this)),
 	_clients(),
 	_renderers(),
 	debug(debug)
@@ -149,17 +149,6 @@ void StreamServer::processTextMessage(QString message)
 		}
 		case 1:
 		{
-#if 0
-			QString json = this->getLeastBusyRenderer()->getMarion()->library("cellloader")->getInterface()->getValue("multichannel.filelist").toString();
-			//qDebug() << "the json: " << json;
-
-			if (pClient != 0)
-			{
-				pClient->sendTextMessage(json);
-			}
-
-			//qDebug() << "json:" << json;
-#endif
 			break;
 		}
 		case 2:

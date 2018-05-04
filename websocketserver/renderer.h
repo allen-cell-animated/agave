@@ -20,13 +20,7 @@ class RenderGLCuda;
 class RenderSettings;
 class Scene;
 
-//#include "dynamiclibrary.h"
-
-//#include "marion.h"
-//#include "plugins.h"
-
 #include "renderrequest.h"
-
 
 class Renderer : public QThread
 {

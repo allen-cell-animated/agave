@@ -15,8 +15,6 @@
 #define MOUSE_POS posF
 #endif
 
-//#include "marion_global.h"
-
 template <class T> class VPointer
 {
 public:
