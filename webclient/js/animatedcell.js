@@ -344,15 +344,6 @@ function setupChannelsGui(infoObj) {
 
     var streamedImg = document.getElementsByClassName("streamed_img");
 
-    // camera manipulations
-    for(var i=0; i<streamedImg.length; i++)
-    {
-        streamedImg[i].addEventListener("wheel", MouseWheelHandler, false);
-        streamedImg[i].addEventListener("mousedown", MouseDownHandler, false);
-        streamedImg[i].addEventListener('ondragstart', DragStartHandler, false);
-    }
-
-
     //set up first tab
     var streamimg1 = document.getElementById("imageA");
 
@@ -439,6 +430,9 @@ function setupChannelsGui(infoObj) {
             let cb = new commandBuffer();
             cb.addCommand("STREAM_MODE", 1);
             flushCommandBuffer(cb);
+            let cb1 = new commandBuffer();
+            cb1.addCommand("REDRAW");
+            flushCommandBuffer(cb1);
         });
 
     };
@@ -560,9 +554,6 @@ function setupChannelsGui(infoObj) {
 
   function send(msg)
   {
-      this.mouseMoveTimer = setTimeout(function () {
-        binarysocket0.send(msg);
-      }.bind(this), 200);
   }
 
   var lastmsg;
@@ -576,6 +567,49 @@ function setupChannelsGui(infoObj) {
    * calls the "init" method upon page load
    */
   window.addEventListener("load", init, false);
+  
+  function sendCameraUpdate() {
+    if (!waiting_for_image) {
+        cb = new commandBuffer();
+        cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
+        cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
+        cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
+        cb.addCommand("REDRAW");
+        flushCommandBuffer(cb);
+        waiting_for_image = true;
+    }
+}
 
+/**
+ * this object holds the image that is received from the server
+ * @type {{set: screenImage.set}}
+ */
+var screenImage = {
 
+    /**
+     * sets the image and the events. called from the websocket "message" signal
+     * @param binary
+     * @param channelnumber
+     */
+    set : function (binary, channelnumber) {
 
+        //get all the divs with the streamed_img tag and set the received binary data to the image's source
+        var tabs;
+        tabs = document.getElementsByClassName("streamed_img"+ " img" +channelnumber);
+
+        if(tabs.length > 0)
+        {
+            for(var i=0; i<tabs.length; i++)
+            {
+                tabs[i].src = binary;
+
+                img_width = tabs[i].width;
+                img_height = tabs[i].height;
+            }
+        }
+        else
+        {
+            console.warn("div 'streamed_img' not found :(");
+        }
+    }
+};
