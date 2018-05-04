@@ -24,7 +24,7 @@
   var _stream_mode = false;
   var _stream_mode_suspended = false;
     var enqueued_image_data = null;
-
+    var waiting_for_image = false;
   /**
    * switches the supplied element to (in)visible
    * @param element
@@ -429,6 +429,18 @@ function setupChannelsGui(infoObj) {
         gControls.length = 10;
         gControls.enabled = true; //turn off mouse moments by setting to false
 
+        gControls.addEventListener("change", sendCameraUpdate);
+        gControls.addEventListener("start", function() {
+            let cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 0);
+            flushCommandBuffer(cb);
+        });
+        gControls.addEventListener("end", function() {
+            let cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 1);
+            flushCommandBuffer(cb);
+        });
+
     };
     this.close = function (evt) {
         setTimeout(function () {
@@ -463,10 +475,14 @@ function setupChannelsGui(infoObj) {
           return;
       }
 
-      // TODO:enqueue this...?
 
+      // new data will be used to obliterate the previous data if it exists.
+      // in this way, two consecutive images between redraws, will not both be drawn.
+      // TODO:enqueue this...?
       enqueued_image_data = evt.data;
 
+      // the this ptr is not what I want here.
+      //binarysock.draw();
 
       if (!_stream_mode_suspended && _stream_mode && !dragFlag) {
         // let cb = new commandBuffer();
@@ -485,7 +501,7 @@ function setupChannelsGui(infoObj) {
     };
 
     this.draw = function() {
-        console.time('decode_img');
+        //console.time('decode_img');
         var bytes = new Uint8Array(enqueued_image_data),
           binary = "",
           len = bytes.byteLength,
@@ -494,13 +510,15 @@ function setupChannelsGui(infoObj) {
           binary += String.fromCharCode(bytes[i]);
         }
         binary = window.btoa(binary);
-        console.timeEnd('decode_img');
+        //console.timeEnd('decode_img');
   
-        console.time('set_img');
+        //console.time('set_img');
         screenImage.set("data:image/png;base64,"+binary, 0);
-        console.timeEnd('set_img');  
+        //console.timeEnd('set_img');  
 
+        // nothing else to draw for now.
         enqueued_image_data = null;
+        waiting_for_image = false;
     }
     this.error = function (evt) {
         console.log('error', evt);

@@ -23,43 +23,46 @@ document.documentElement.addEventListener('mouseup', function(e){
  * a new model view matrix is calculated and sent to the server.
  *
  */
-document.documentElement.addEventListener('mousemove', function(e){
+// document.documentElement.addEventListener('mousemove', function(e){
 
-    //console.log("movin!");
-    if (this.mouseMoveTimer) return;
+//     //console.log("movin!");
+//     if (this.mouseMoveTimer) return;
 
-    this.mouseMoveTimer = setTimeout(function () {
+//     this.mouseMoveTimer = setTimeout(function () {
 
-        if(slider_drag)
-        {
-            var value = $( "#slider" ).slider( "value" );
-            slider_settings[current_slider] = value / 100.0;
+//         if(slider_drag)
+//         {
+//             var value = $( "#slider" ).slider( "value" );
+//             slider_settings[current_slider] = value / 100.0;
 
-            messageobj.msgcontent = null;
-            messageobj.visibility = structure_visibility;
-            messageobj.sliderset = slider_settings;
-            triggerUpdate(messageobj);
-        }
+//             messageobj.msgcontent = null;
+//             messageobj.visibility = structure_visibility;
+//             messageobj.sliderset = slider_settings;
+//             triggerUpdate(messageobj);
+//         }
 
-        if(dragFlag)
-        {
-            let cb = new commandBuffer();
-            cb.addCommand("STREAM_MODE", 0);
-            flushCommandBuffer(cb);
-            sendCameraUpdate();
-        }
-        this.mouseMoveTimer = null;
+//         if(dragFlag)
+//         {
+//             // let cb = new commandBuffer();
+//             // cb.addCommand("STREAM_MODE", 0);
+//             // flushCommandBuffer(cb);
+//             // sendCameraUpdate();
+//         }
+//         this.mouseMoveTimer = null;
 
-    }.bind(this), 50);
-});
+//     }.bind(this), 50);
+// });
 
 function sendCameraUpdate() {
-    cb = new commandBuffer();
-    cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
-    cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
-    cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
-    cb.addCommand("REDRAW");
-    flushCommandBuffer(cb);
+    if (!waiting_for_image) {
+        cb = new commandBuffer();
+        cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
+        cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
+        cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
+        cb.addCommand("REDRAW");
+        flushCommandBuffer(cb);
+        waiting_for_image = true;
+    }
 }
 
 /**
@@ -125,7 +128,7 @@ function MouseDownHandler(e)
 
 function MouseWheelHandler(e)
 {
-    sendCameraUpdate();
+    //sendCameraUpdate();
 }
 
 function setVisibility(visi)
