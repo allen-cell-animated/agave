@@ -39,6 +39,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLCuda.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLCuda.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLOptix.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLOptix.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
