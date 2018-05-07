@@ -41,6 +41,22 @@ DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData
 	return intensity;
 }
 
+DEV f4 GetIntensity4ch(const Vec3f& P, const cudaVolume& volumeData)
+{
+	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	//factor = (factor > 0) ? 1.0 : 0.0;
+	f4 intensity;
+	intensity.vec = make_float4(0, 0, 0, 0);
+	intensity.vec = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		// 0..1
+		intensity.a[i] = intensity.a[i] / volumeData.intensityMax[i];
+		// transform through LUT
+		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
+	}
+	return intensity;
+}
+
 
 DEV float GetOpacity(const float& NormalizedIntensity)
 {
@@ -50,38 +66,97 @@ DEV float GetOpacity(const float& NormalizedIntensity)
 	return Intensity;
 }
 
+DEV float GetBlendedOpacity(const cudaVolume& volumeData, f4 intensity)
+{
+	float sum = 0.0;
+	int n = min(volumeData.nChannels, 4);
+	for (int i = 0; i < n; ++i) {
+		sum += intensity.a[i];
+	}
+	return sum / n;
+}
+
 DEV CColorRgbHdr GetDiffuseN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
-	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
-	//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
-	//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
-	//	return CColorRgbHdr(1.0, 1.0, 1.0);
-	return CColorRgbHdr(volumeData.diffuse[ch*3+0], volumeData.diffuse[ch * 3 + 1], volumeData.diffuse[ch * 3 + 2]);
+	return CColorRgbHdr(volumeData.diffuse[ch * 3 + 0], volumeData.diffuse[ch * 3 + 1], volumeData.diffuse[ch * 3 + 2]);
+}
+
+DEV CColorRgbHdr GetBlendedDiffuse(const cudaVolume& volumeData, f4 intensity)
+{
+	CColorRgbHdr retval(0.0, 0.0, 0.0);
+	float sum = 0.0;
+	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		// blend.
+		retval.r += volumeData.diffuse[i * 3 + 0] * intensity.a[i];
+		retval.g += volumeData.diffuse[i * 3 + 1] * intensity.a[i];
+		retval.b += volumeData.diffuse[i * 3 + 2] * intensity.a[i];
+		sum += intensity.a[i];
+	}
+	retval.r /= sum;
+	retval.g /= sum;
+	retval.b /= sum;
+	return retval;
 }
 
 DEV CColorRgbHdr GetSpecularN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
-	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
-	//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
-	//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
-	//	return CColorRgbHdr(1.0, 1.0, 1.0);
 	return CColorRgbHdr(volumeData.specular[ch * 3 + 0], volumeData.specular[ch * 3 + 1], volumeData.specular[ch * 3 + 2]);
+}
+
+DEV CColorRgbHdr GetBlendedSpecular(const cudaVolume& volumeData, f4 intensity)
+{
+	CColorRgbHdr retval(0.0, 0.0, 0.0);
+	float sum = 0.0;
+	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		// blend.
+		retval.r += volumeData.specular[i * 3 + 0] * intensity.a[i];
+		retval.g += volumeData.specular[i * 3 + 1] * intensity.a[i];
+		retval.b += volumeData.specular[i * 3 + 2] * intensity.a[i];
+		sum += intensity.a[i];
+	}
+	retval.r /= sum;
+	retval.g /= sum;
+	retval.b /= sum;
+	return retval;
+}
+
+DEV CColorRgbHdr GetEmissionN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
+{
+	return CColorRgbHdr(volumeData.emissive[ch * 3 + 0], volumeData.emissive[ch * 3 + 1], volumeData.emissive[ch * 3 + 2]);
+}
+
+DEV CColorRgbHdr GetBlendedEmission(const cudaVolume& volumeData, f4 intensity)
+{
+	CColorRgbHdr retval(0.0, 0.0, 0.0);
+	float sum = 0.0;
+	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		// blend.
+		retval.r += volumeData.emissive[i * 3 + 0] * intensity.a[i];
+		retval.g += volumeData.emissive[i * 3 + 1] * intensity.a[i];
+		retval.b += volumeData.emissive[i * 3 + 2] * intensity.a[i];
+		sum += intensity.a[i];
+	}
+	retval.r /= sum;
+	retval.g /= sum;
+	retval.b /= sum;
+	return retval;
 }
 
 DEV float GetRoughnessN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
 	return volumeData.roughness[ch];
-	//return NormalizedIntensity;
-	//return tex1D(gTexRoughness, NormalizedIntensity);
 }
 
-DEV CColorRgbHdr GetEmissionN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
+DEV float GetBlendedRoughness(f4 intensity, const cudaVolume& volumeData)
 {
-	//float4 Diffuse = tex1D(gTexDiffuse, NormalizedIntensity);
-	//	float4 Diffuse = make_float4(NormalizedIntensity, NormalizedIntensity, NormalizedIntensity, 1.0);
-	//	return CColorRgbHdr(Diffuse.x, Diffuse.y, Diffuse.z);
-	//	return CColorRgbHdr(1.0, 1.0, 1.0);
-	return CColorRgbHdr(volumeData.emissive[ch * 3 + 0], volumeData.emissive[ch * 3 + 1], volumeData.emissive[ch * 3 + 2]);
+	float retval = 0.0;
+	float sum = 0.0;
+	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+		// blend.
+		retval += volumeData.roughness[i] * intensity.a[i];
+		sum += intensity.a[i];
+	}
+	return retval / sum;
 }
 
 DEV inline Vec3f NormalizedGradient4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)

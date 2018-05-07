@@ -3,11 +3,18 @@
 #include "Shader.cuh"
 #include "RayMarching.cuh"
 
-DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const CudaLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
+DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, float Density, int ch, const CudaLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
 {
 	CColorXyz Ld = SPEC_BLACK, Li = SPEC_BLACK, F = SPEC_BLACK;
-	
-	CVolumeShader Shader(Type, N, Wo, GetDiffuseN(Density, volumedata, ch).ToXYZ(), GetSpecularN(Density, volumedata, ch).ToXYZ(), 2.5f/*pScene->m_IOR*/, GetRoughnessN(Density, volumedata, ch));
+
+	//CColorRgbHdr diffuse = GetBlendedDiffuse(volumedata, Density);
+	CColorRgbHdr diffuse = GetDiffuseN(Density, volumedata, ch);
+	//CColorRgbHdr specular = GetBlendedSpecular(volumedata, Density);
+	CColorRgbHdr specular = GetSpecularN(Density, volumedata, ch);
+	//float roughness = GetBlendedRoughness(volumedata, Density);
+	float roughness = GetRoughnessN(Density, volumedata, ch);
+
+	CVolumeShader Shader(Type, N, Wo, diffuse.ToXYZ(), specular.ToXYZ(), 2.5f, roughness);
 	
 	CRay Rl; 
 
@@ -67,7 +74,7 @@ DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume
 	return Ld;
 }
 
-DEV CColorXyz UniformSampleOneLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, const float& Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
+DEV CColorXyz UniformSampleOneLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, float Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
 {
 	const int NumLights = lighting.m_NoLights;
 

@@ -46,9 +46,11 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 
 		int ch = 0;
 		const float D = GetNormalizedIntensityMax4ch(Pe, volumedata, ch);
+		//const f4 D = GetIntensity4ch(Pe, volumedata);
 
 		// emission from volume
 		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
+		//Lv += GetBlendedEmission(volumedata, D).ToXYZ();
 
 		Vec3f gradient = Gradient4ch(Pe, volumedata, ch);
 		// send ray out from Pe toward light
