@@ -56,6 +56,12 @@ add_subdirectory(glad/src)
 add_subdirectory(glsl/v330)
 add_subdirectory(cudarndr)
 
+set(CMAKE_AUTOMOC OFF)
+set(CMAKE_AUTOUIC OFF)
+add_subdirectory(optixrndr)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml 
 	renderlib_cuda
