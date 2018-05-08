@@ -22,17 +22,14 @@ RenderGLCuda::RenderGLCuda(RenderSettings* rs)
 	_cudaTex(nullptr),
 	_cudaGLSurfaceObject(0),
 	_fbtex(0),
-	_quadVertexArray(0),
-	_quadVertices(0),
-	_quadTexcoords(0),
-	_quadIndices(0),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
 	_renderSettings(rs),
 	_w(0),
 	_h(0),
 	_scene(nullptr),
-	_gpuBytes(0)
+	_gpuBytes(0),
+	_imagequad(nullptr)
 {
 }
 
@@ -90,71 +87,6 @@ void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
 		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
 		cl.m_Lights[i].m_T = pScene->_lighting.m_Lights[i].m_T;
 	}
-}
-
-void RenderGLCuda::initQuad()
-{
-	// treat this as negligible use of gpu mem.
-
-	check_gl("begin initQuad ");
-	// setup geometry
-	glm::vec2 xlim(-1.0, 1.0);
-	glm::vec2 ylim(-1.0, 1.0);
-	const std::array<GLfloat, 8> square_vertices
-	{
-		xlim[0], ylim[0],
-		xlim[1], ylim[0],
-		xlim[1], ylim[1],
-		xlim[0], ylim[1]
-	};
-
-	if (_quadVertexArray == 0) {
-		glGenVertexArrays(1, &_quadVertexArray);
-	}
-	glBindVertexArray(_quadVertexArray);
-	check_gl("create and bind verts");
-
-	if (_quadVertices == 0) {
-		glGenBuffers(1, &_quadVertices);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, _quadVertices);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
-	check_gl("init vtx coord data");
-
-	glm::vec2 texxlim(0.0, 1.0);
-	glm::vec2 texylim(0.0, 1.0);
-	std::array<GLfloat, 8> square_texcoords
-	{
-		texxlim[0], texylim[0],
-		texxlim[1], texylim[0],
-		texxlim[1], texylim[1],
-		texxlim[0], texylim[1]
-	};
-
-	if (_quadTexcoords == 0) {
-		glGenBuffers(1, &_quadTexcoords);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, _quadTexcoords);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_texcoords.size(), square_texcoords.data(), GL_STATIC_DRAW);
-	check_gl("init texcoord data");
-
-	std::array<GLushort, 6> square_elements
-	{
-		// front
-		0,  1,  2,
-		2,  3,  0
-	};
-
-	if (_quadIndices == 0) {
-		glGenBuffers(1, &_quadIndices);
-	}
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _quadIndices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * square_elements.size(), square_elements.data(), GL_STATIC_DRAW);
-	num_image_elements = square_elements.size();
-	check_gl("init element data");
-
-	glBindVertexArray(0);
-	check_gl("unbind vtx array");
 }
 
 void RenderGLCuda::cleanUpFB()
@@ -271,11 +203,7 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 {
-	initQuad();
-	check_gl("init quad");
-
-	image_shader = new GLImageShader2DnoLut();
-	check_gl("init simple image shader");
+	_imagequad = new RectImage2D();
 
 	initVolumeTextureCUDA();
 
@@ -482,39 +410,7 @@ void RenderGLCuda::drawImage() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// draw quad using the tex that cudaTex was mapped to
-
-	image_shader->bind();
-	check_gl("Bind shader");
-
-	image_shader->setModelViewProjection(glm::mat4(1.0));
-
-	glActiveTexture(GL_TEXTURE0);
-	check_gl("Activate texture");
-	glBindTexture(GL_TEXTURE_2D, _fbtex);
-	check_gl("Bind texture");
-	image_shader->setTexture(0);
-
-	glBindVertexArray(_quadVertexArray);
-	check_gl("bind vtx buf");
-
-	image_shader->enableCoords();
-	image_shader->setCoords(_quadVertices, 0, 2);
-
-	image_shader->enableTexCoords();
-	image_shader->setTexCoords(_quadTexcoords, 0, 2);
-
-	// Push each element to the vertex shader
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _quadIndices);
-	check_gl("bind element buf");
-	glDrawElements(GL_TRIANGLES, (GLsizei)num_image_elements, GL_UNSIGNED_SHORT, 0);
-	check_gl("Image2D draw elements");
-
-	image_shader->disableCoords();
-	image_shader->disableTexCoords();
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	image_shader->release();
+	_imagequad->draw(_fbtex);
 }
 
 
@@ -530,21 +426,12 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 	LOG_DEBUG << "Resized window to " << w << " x " << h;
 }
 
-void RenderGLCuda::cleanUpQuad() {
-	glDeleteVertexArrays(1, &_quadVertexArray);
-	_quadVertexArray = 0;
-	glDeleteBuffers(1, &_quadVertices);
-	_quadVertices = 0;
-	glDeleteBuffers(1, &_quadTexcoords);
-	_quadTexcoords = 0;
-	glDeleteBuffers(1, &_quadIndices);
-	_quadIndices = 0;
-}
-
 void RenderGLCuda::cleanUpResources() {
 	_imgCuda.deallocGpu();
 
-	cleanUpQuad();
+	delete _imagequad;
+	_imagequad = nullptr;
+
 	cleanUpFB();
 
 }
