@@ -11,6 +11,7 @@ target_include_directories(renderlib PUBLIC
 	${GLAD_DIR}
 	${CUDA_SDK_ROOT_DIR}/common/inc
 	${CUDA_TOOLKIT_INCLUDE}
+	${OptiX_INCLUDE}
 )
 target_compile_definitions(renderlib PUBLIC
 	-DBOOST_ALL_DYN_LINK
@@ -66,4 +67,5 @@ target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml 
 	renderlib_cuda
 	${TIFF_LIBRARIES}
+	${optix_LIBRARY}
 )

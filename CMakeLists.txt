@@ -99,6 +99,7 @@ install(FILES
 	$<TARGET_FILE:Qt5::Xml>
 	$<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  ${optix_DLL}
   # note these are release build dlls.
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_chrono-vc141-mt-x64-1_66.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_date_time-vc141-mt-x64-1_66.dll

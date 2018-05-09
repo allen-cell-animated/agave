@@ -9,7 +9,7 @@ target_include_directories(CudaPTX PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${CUDA_SDK_ROOT_DIR}/common/inc
 	${CUDA_TOOLKIT_INCLUDE}
-    "C:\\ProgramData\\NVIDIA Corporation\\OptiX SDK 5.0.1\\include"
+	${OptiX_INCLUDE}
 )
 
 # drop ptx files into install target location
