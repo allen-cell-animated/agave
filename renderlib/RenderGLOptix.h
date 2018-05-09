@@ -8,9 +8,13 @@
 #include "Status.h"
 #include "Timing.h"
 
+#include <optix.h>
+//#include <optixu/optixpp.h>
+
 #include <memory>
 
 class ImageXYZC;
+class RectImage2D;
 
 class RenderGLOptix :
 	public IRenderWindow
@@ -44,9 +48,20 @@ private:
 
 	int _w, _h;
 
+	RectImage2D* _imagequad;
+
 	CStatus _status;
 
 	size_t _gpuBytes;
+
+    RTcontext _context;
+	/* Primary RTAPI objects */
+	RTprogram _ray_gen_program;
+	RTbuffer  _buffer;
+
+	/* Parameters */
+	RTvariable _result_buffer;
+	RTvariable _draw_color;
 
 };
 

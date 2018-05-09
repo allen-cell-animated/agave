@@ -129,9 +129,6 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 {
 	cleanUpFB();
 	
-	_w = w;
-	_h = h;
-
 	HandleCudaError(cudaMalloc((void**)&_cudaF32Buffer, w*h * 4 * sizeof(float)));
 	HandleCudaError(cudaMemset(_cudaF32Buffer, 0, w*h * 4 * sizeof(float)));
 	_gpuBytes += w*h * 4 * sizeof(float);
@@ -424,6 +421,9 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 
 	initFB(w, h);
 	LOG_DEBUG << "Resized window to " << w << " x " << h;
+
+	_w = w;
+	_h = h;
 }
 
 void RenderGLCuda::cleanUpResources() {
