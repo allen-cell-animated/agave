@@ -54,7 +54,8 @@ find_package(TIFF REQUIRED)
 find_package(OptiX REQUIRED)
 
 set(CMAKE_CUDA_FLAGS
-  "-gencode=arch=compute_70,code=sm_70 -Wno-deprecated-gpu-targets"
+  # Pascal target
+  "-gencode=arch=compute_61,code=sm_61 -Wno-deprecated-gpu-targets"
   # "-arch=sm_30 \
   #   -gencode=arch=compute_30,code=sm_30 \
   #   -gencode=arch=compute_50,code=sm_50 \
