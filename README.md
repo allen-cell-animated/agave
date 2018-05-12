@@ -13,20 +13,20 @@ cmake --build .
 
 For linux:
 
-* ensure boost 1.65-1 or greater is installed
+* sudo apt install libboost-all-dev
 * ensure cuda is installed properly according to http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
 ```
 source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var
 mkdir build
 cd build
-BOOST_ROOT=/path/to/boost_1_65_1_build/boost ~/cmake-3.10.2-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=Debug ..
+~/cmake-3.10.2-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 make install
 ```
 
 # add boost and optix to lib paths for running.
-LD_LIBRARY_PATH=~/git/render/thirdparty/boost_1_65_1_build/boost/lib:~/NVIDIA-OptiX-SDK-5.0.1-linux64/lib64:$LD_LIBRARY_PATH
-cd Debug/bin
+LD_LIBRARY_PATH=~/NVIDIA-OptiX-SDK-5.0.1-linux64/lib64:$LD_LIBRARY_PATH
+cd Release/bin
 ./qtomeapp 
 ./websockerserverapp
 
