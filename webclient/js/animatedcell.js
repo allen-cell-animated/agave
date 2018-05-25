@@ -45,6 +45,7 @@ function setupGui() {
     file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
     density: 50.0,
     exposure: 0.75,
+    aperture: 0.0,
     stream: true,
     skyTopColor: [255, 255, 255],
     skyMidColor: [255, 255, 255],
@@ -98,6 +99,14 @@ function setupGui() {
   gui.add(effectController, "exposure").max(1.0).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("EXPOSURE", value);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+  }).onFinishChange(function(value) {
+      _stream_mode_suspended = false;
+  });
+  gui.add(effectController, "aperture").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("APERTURE", value);
     flushCommandBuffer(cb);
     _stream_mode_suspended = true;
   }).onFinishChange(function(value) {
@@ -233,16 +242,25 @@ function setupChannelsGui(infoObj) {
 
     effectController.infoObj = infoObj;
     infoObj.channelGui = [];
+    initcolors = [[255, 0, 255], [255, 255, 255], [0, 255, 255]];
     for (var i = 0; i < infoObj.c; ++i) {
         infoObj.channelGui.push({
-            colorD:[0,0,0],
+            colorD: (i < 3) ? initcolors[i] : [255, 255, 255],
             colorS:[0,0,0],
             colorE:[0,0,0],
             window: 1.0,
             level: 0.5,
-            roughness: 0.0
-        })
+            roughness: 0.0,
+            enabled: (i < 3) ? true : false
+        });
         var f = gui.addFolder("Channel " + infoObj.channel_names[i]);
+        f.add(effectController.infoObj.channelGui[i], "enabled").onChange(function(j) {
+            return function(value) {
+                var cb = new commandBuffer();
+                cb.addCommand("ENABLE_CHANNEL", j, value ? 1 : 0);
+                flushCommandBuffer(cb);
+            };
+        }(i));
         f.addColor(effectController.infoObj.channelGui[i], "colorD").name("Diffuse").onChange(function(j) { 
             return function(value) {
                     var cb = new commandBuffer();
@@ -324,6 +342,17 @@ function setupChannelsGui(infoObj) {
         
     }
     
+    var cb = new commandBuffer();
+    for (var i = 0; i < infoObj.c; ++i) {
+        var ch = infoObj.channelGui[i];
+        cb.addCommand("ENABLE_CHANNEL", i, ch.enabled ? 1 : 0);
+        cb.addCommand("MAT_DIFFUSE", i, ch.colorD[0]/255.0, ch.colorD[1]/255.0, ch.colorD[2]/255.0, 1.0);
+        cb.addCommand("MAT_SPECULAR", i, ch.colorS[0]/255.0, ch.colorS[1]/255.0, ch.colorS[2]/255.0, 1.0);
+        cb.addCommand("MAT_EMISSIVE", i, ch.colorE[0]/255.0, ch.colorE[1]/255.0, ch.colorE[2]/255.0, 1.0);
+        //cb.addCommand("SET_WINDOW_LEVEL", i, ch.window, ch.level);
+    }
+    flushCommandBuffer(cb);
+    
 }
   /**
    *
@@ -382,16 +411,7 @@ function setupChannelsGui(infoObj) {
         cb.addCommand("LOAD_OME_TIF", effectController.file);
         cb.addCommand("SET_RESOLUTION", 512, 512);
         cb.addCommand("FRAME_SCENE");
-        cb.addCommand("MAT_DIFFUSE", 0, 1.0, 0.0, 1.0, 1.0);
-        cb.addCommand("MAT_SPECULAR", 0, 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_EMISSIVE", 0, 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_DIFFUSE", 1, 1.0, 1.0, 1.0, 1.0);
-        cb.addCommand("MAT_SPECULAR", 1, 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_EMISSIVE", 1, 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_DIFFUSE", 2, 0.0, 1.0, 1.0, 1.0);
-        cb.addCommand("MAT_SPECULAR", 2, 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("MAT_EMISSIVE", 2, 0.0, 0.0, 0.0, 0.0);
-        cb.addCommand("APERTURE", 0.0);
+        cb.addCommand("APERTURE", effectController.aperture);
         cb.addCommand("EXPOSURE", effectController.exposure);
         cb.addCommand("SKYLIGHT_TOP_COLOR", effectController.skyTopColor[0]/255.0, effectController.skyTopColor[1]/255.0, effectController.skyTopColor[2]/255.0);
         cb.addCommand("SKYLIGHT_MIDDLE_COLOR", effectController.skyMidColor[0]/255.0, effectController.skyMidColor[1]/255.0, effectController.skyMidColor[2]/255.0);
