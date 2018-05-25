@@ -46,6 +46,7 @@ function setupGui() {
     density: 50.0,
     exposure: 0.75,
     aperture: 0.0,
+    fov: 55,
     stream: true,
     skyTopColor: [255, 255, 255],
     skyMidColor: [255, 255, 255],
@@ -104,9 +105,17 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "aperture").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+  gui.add(effectController, "aperture").max(0.1).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("APERTURE", value);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+  }).onFinishChange(function(value) {
+      _stream_mode_suspended = false;
+  });
+  gui.add(effectController, "fov").max(90.0).min(0.0).step(0.001).onChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("FOV_Y", value || 0.01);
     flushCommandBuffer(cb);
     _stream_mode_suspended = true;
   }).onFinishChange(function(value) {
