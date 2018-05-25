@@ -15,6 +15,7 @@
 
 class ImageXYZC;
 class RectImage2D;
+struct OptiXMesh;
 
 class RenderGLOptix :
 	public IRenderWindow
@@ -57,11 +58,18 @@ private:
     RTcontext _context;
 	/* Primary RTAPI objects */
 	RTprogram _ray_gen_program;
+	RTprogram _miss_program;
 	RTbuffer  _buffer;
 
 	/* Parameters */
 	RTvariable _result_buffer;
 	RTvariable _draw_color;
+	RTvariable _scene_epsilon;
+	RTvariable _eye;
+	RTvariable _U;
+	RTvariable _V;
+	RTvariable _W;
 
+	OptiXMesh* _mesh;
 };
 

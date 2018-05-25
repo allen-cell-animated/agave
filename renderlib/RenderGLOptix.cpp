@@ -1,11 +1,18 @@
+#if defined(_WIN32)
+#define NOMINMAX
+#endif
+
 #include "RenderGLOptix.h"
 
 #include "glad/glad.h"
 #include "glm.h"
 
 #include "gl/Util.h"
+#include "CCamera.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
+
+#include "OptiXMesh.h"
 
 #include <optix_gl_interop.h>
 
@@ -60,9 +67,11 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	check_gl("create buffer texture");
 
+	optix::Context ctx = optix::Context::create();
+	_context = ctx->get();
 	/* Create our objects and set state */
-	RT_CHECK_ERROR( rtContextCreate( &_context ) );
-	RT_CHECK_ERROR( rtContextSetRayTypeCount( _context, 1 ) );
+	//RT_CHECK_ERROR( rtContextCreate( &_context ) );
+	RT_CHECK_ERROR( rtContextSetRayTypeCount( _context, 2 ) );
 	RT_CHECK_ERROR( rtContextSetEntryPointCount( _context, 1 ) );
 
 	RT_CHECK_ERROR(rtBufferCreateFromGLBO(_context, RT_BUFFER_OUTPUT, _pixelBuffer, &_buffer));
@@ -76,10 +85,58 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 
 	char* path_to_ptx = "./ptx/objects-Debug/CudaPTX/hello.ptx";
 	//char* path_to_ptx = "./ptx/objects-Release/CudaPTX/hello.ptx";
-	RT_CHECK_ERROR( rtProgramCreateFromPTXFile( _context, path_to_ptx, "draw_solid_color", &_ray_gen_program ) );
-	RT_CHECK_ERROR( rtProgramDeclareVariable( _ray_gen_program, "draw_color", &_draw_color ) );
-	RT_CHECK_ERROR( rtVariableSet3f( _draw_color, 0.462f, 0.725f, 0.0f ) );
-	RT_CHECK_ERROR( rtContextSetRayGenerationProgram( _context, 0, _ray_gen_program ) );
+	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "pinhole_camera", &_ray_gen_program));
+	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "miss", &_miss_program));
+	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "draw_color", &_draw_color));
+	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "scene_epsilon", &_scene_epsilon));
+	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "eye", &_eye));
+	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "U", &_U));
+	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "V", &_V));
+	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "W", &_W));
+
+	RT_CHECK_ERROR(rtVariableSet3f(_draw_color, 0.462f, 0.725f, 0.0f));
+	RT_CHECK_ERROR(rtVariableSet1f(_scene_epsilon, 1.e-4f));
+
+	RT_CHECK_ERROR(rtContextSetRayGenerationProgram(_context, 0, _ray_gen_program));
+	RT_CHECK_ERROR(rtContextSetMissProgram(_context, 0, _miss_program));
+
+	RTgroup topgroup;
+	int ok = loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", ctx, &topgroup);
+
+	{
+		struct BasicLight
+		{
+			float pos[3];
+			float color[3];
+			int    casts_shadow;
+			int    padding;      // make this structure 32 bytes -- powers of two are your friend!
+		};
+
+		BasicLight lights[] = {
+			{ { -5.0f, 60.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
+		};
+
+		RTbuffer light_buffer = 0;
+		RT_CHECK_ERROR(rtBufferCreate(_context, RT_BUFFER_OUTPUT, &light_buffer));
+		RT_CHECK_ERROR(rtBufferSetFormat(light_buffer, RT_FORMAT_USER));
+		RT_CHECK_ERROR(rtBufferSetElementSize(light_buffer, sizeof(BasicLight)));
+		RT_CHECK_ERROR(rtBufferSetSize1D(light_buffer, sizeof(lights) / sizeof(lights[0])));
+
+		void* mapped = nullptr;
+		RT_CHECK_ERROR(rtBufferMap(light_buffer, &mapped));
+		memcpy(mapped, lights, sizeof(lights));
+		RT_CHECK_ERROR(rtBufferUnmap(light_buffer));
+
+		// descend into group and get material, then get closest hit program to set light_buffer ?
+		int count;
+		rtGroupGetChildCount(topgroup, &count);
+		RTobject childob;
+		rtGroupGetChild(topgroup, 0, &childob);
+
+		RTvariable lightsvar;
+		RT_CHECK_ERROR(rtContextQueryVariable(_context, "lights", &lightsvar));
+		RT_CHECK_ERROR(rtVariableSetObject(lightsvar, light_buffer));
+	}
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -96,6 +153,11 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 //		return;
 //	}
 	
+	RT_CHECK_ERROR(rtVariableSet3f(_eye, camera.m_From.x, camera.m_From.y, camera.m_From.z));
+	RT_CHECK_ERROR(rtVariableSet3f(_U, camera.m_U.x, camera.m_U.y, camera.m_U.z));
+	RT_CHECK_ERROR(rtVariableSet3f(_V, camera.m_V.x, camera.m_V.y, camera.m_V.z));
+	RT_CHECK_ERROR(rtVariableSet3f(_W, camera.m_N.x, camera.m_N.y, camera.m_N.z));
+
 	/* Run */
 	RT_CHECK_ERROR( rtContextValidate( _context ) );
 	RT_CHECK_ERROR( rtContextLaunch2D( _context, 0 /* entry point */, _w, _h ) );

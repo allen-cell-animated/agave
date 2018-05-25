@@ -1,6 +1,8 @@
 
 add_library(CudaPTX OBJECT
-    hello.cu
+	hello.cu
+	phong.cu
+	triangle_mesh.cu
 )
 
 set_property(TARGET CudaPTX PROPERTY CUDA_PTX_COMPILATION ON)

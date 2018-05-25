@@ -14,6 +14,7 @@ cmake --build .
 For linux:
 
 * sudo apt install libboost-all-dev
+* libassimp-dev
 * ensure cuda is installed properly according to http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
 ```
 source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var

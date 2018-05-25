@@ -4,6 +4,7 @@ add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
+	${ASSIMP_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${XercesC_INCLUDE_DIRS}	
 	${GLM_INCLUDE_DIRS}
@@ -36,6 +37,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindow.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/OptiXMesh.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/OptiXMesh.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGLCuda.cpp"
@@ -50,6 +53,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
+	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.h"	
 )
 add_subdirectory(gl)
 add_subdirectory(gl/v33)
