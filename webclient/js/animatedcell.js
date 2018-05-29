@@ -56,7 +56,14 @@ function setupGui() {
     lightDistance: 10.0,
     lightTheta: 0.0,
     lightPhi: 0.0,
-    lightSize: 1.0
+    lightSize: 1.0,
+    xmin: 0.0,
+    ymin: 0.0,
+    zmin: 0.0,
+    xmax: 1.0,
+    ymax: 1.0,
+    zmax: 1.0,
+    resetCamera: resetCamera
   };
 
   gui = new dat.GUI();
@@ -86,6 +93,7 @@ function setupGui() {
       }
   });
 
+  gui.add(effectController, "resetCamera");
   //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
   gui.add(effectController, "stream").onChange(function(value) {
     var cb = new commandBuffer();
@@ -130,6 +138,56 @@ function setupGui() {
         _stream_mode_suspended = false;
     });
 
+    var clipping = gui.addFolder("Clipping Box");
+    clipping.add(effectController, "xmin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+      }).onFinishChange(function(value) {
+          _stream_mode_suspended = false;
+      });
+    clipping.add(effectController, "xmax").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "ymin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "ymax").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "zmin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "zmax").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    
 
     var lighting = gui.addFolder("Lighting");
     lighting.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
@@ -220,12 +278,11 @@ dat.GUI.prototype.removeFolder = function(name) {
     delete this.__folders[name];
     this.onResize();
 }
-function onNewImage(infoObj) {
-
+function resetCamera() {
     // set up positions based on sizes.
-    var x = infoObj.pixel_size_x * infoObj.x;
-    var y = infoObj.pixel_size_y * infoObj.y;
-    var z = infoObj.pixel_size_z * infoObj.z;
+    var x = effectController.infoObj.pixel_size_x * effectController.infoObj.x;
+    var y = effectController.infoObj.pixel_size_y * effectController.infoObj.y;
+    var z = effectController.infoObj.pixel_size_z * effectController.infoObj.z;
     var maxdim = Math.max(x,Math.max(y,z));
     gCamera.position.x = 0.5*x/maxdim;
     gCamera.position.y = 0.5*y/maxdim;
@@ -238,22 +295,25 @@ function onNewImage(infoObj) {
     gControls.target.z = 0.5*z/maxdim;
     gControls.target0 = gControls.target.clone();
 
-    sendCameraUpdate();
-
-    setupChannelsGui(infoObj);
+    sendCameraUpdate();    
+}
+function onNewImage(infoObj) {
+    effectController.infoObj = infoObj;
+    resetCamera();
+    setupChannelsGui();
 } 
-function setupChannelsGui(infoObj) {
+function setupChannelsGui() {
     if (effectController && effectController.infoObj) {
         for (var i = 0; i < effectController.infoObj.channel_names.length; ++i) {
             gui.removeFolder("Channel " + effectController.infoObj.channel_names[i]);
         }
     }
 
-    effectController.infoObj = infoObj;
-    infoObj.channelGui = [];
+    //var infoObj = effectController.infoObj;
+    effectController.infoObj.channelGui = [];
     initcolors = [[255, 0, 255], [255, 255, 255], [0, 255, 255]];
-    for (var i = 0; i < infoObj.c; ++i) {
-        infoObj.channelGui.push({
+    for (var i = 0; i < effectController.infoObj.c; ++i) {
+        effectController.infoObj.channelGui.push({
             colorD: (i < 3) ? initcolors[i] : [255, 255, 255],
             colorS:[0,0,0],
             colorE:[0,0,0],
@@ -262,7 +322,7 @@ function setupChannelsGui(infoObj) {
             roughness: 0.0,
             enabled: (i < 3) ? true : false
         });
-        var f = gui.addFolder("Channel " + infoObj.channel_names[i]);
+        var f = gui.addFolder("Channel " + effectController.infoObj.channel_names[i]);
         f.add(effectController.infoObj.channelGui[i], "enabled").onChange(function(j) {
             return function(value) {
                 var cb = new commandBuffer();
@@ -352,8 +412,8 @@ function setupChannelsGui(infoObj) {
     }
     
     var cb = new commandBuffer();
-    for (var i = 0; i < infoObj.c; ++i) {
-        var ch = infoObj.channelGui[i];
+    for (var i = 0; i < effectController.infoObj.c; ++i) {
+        var ch = effectController.infoObj.channelGui[i];
         cb.addCommand("ENABLE_CHANNEL", i, ch.enabled ? 1 : 0);
         cb.addCommand("MAT_DIFFUSE", i, ch.colorD[0]/255.0, ch.colorD[1]/255.0, ch.colorD[2]/255.0, 1.0);
         cb.addCommand("MAT_SPECULAR", i, ch.colorS[0]/255.0, ch.colorS[1]/255.0, ch.colorS[2]/255.0, 1.0);
