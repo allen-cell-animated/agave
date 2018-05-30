@@ -32,7 +32,9 @@
 #include <optixu/optixpp_namespace.h>
 #include <optixu/optixu_matrix_namespace.h>
 
-int loadAsset(const char* path, optix::Context context, RTgroup* o_group);
+class CBoundingBox;
+
+int loadAsset(const char* path, optix::Context context, RTgroup* o_group, CBoundingBox& o_bb);
 
 //------------------------------------------------------------------------------
 //

@@ -87,6 +87,8 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	//char* path_to_ptx = "./ptx/objects-Release/CudaPTX/hello.ptx";
 	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "pinhole_camera", &_ray_gen_program));
 	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "miss", &_miss_program));
+	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "exception", &_exception_program));
+
 	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "draw_color", &_draw_color));
 	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "scene_epsilon", &_scene_epsilon));
 	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "eye", &_eye));
@@ -99,9 +101,12 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 
 	RT_CHECK_ERROR(rtContextSetRayGenerationProgram(_context, 0, _ray_gen_program));
 	RT_CHECK_ERROR(rtContextSetMissProgram(_context, 0, _miss_program));
+	RT_CHECK_ERROR(rtContextSetExceptionProgram(_context, 0, _exception_program));
 
 	RTgroup topgroup;
-	int ok = loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", ctx, &topgroup);
+
+	_scene = new Scene;
+	int ok = loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", ctx, &topgroup, _scene->_boundingBox);
 
 	{
 		struct BasicLight
@@ -113,29 +118,28 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 		};
 
 		BasicLight lights[] = {
-			{ { -5.0f, 60.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
+			{ { 79.0f, 6.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
 		};
 
-		RTbuffer light_buffer = 0;
-		RT_CHECK_ERROR(rtBufferCreate(_context, RT_BUFFER_OUTPUT, &light_buffer));
-		RT_CHECK_ERROR(rtBufferSetFormat(light_buffer, RT_FORMAT_USER));
-		RT_CHECK_ERROR(rtBufferSetElementSize(light_buffer, sizeof(BasicLight)));
-		RT_CHECK_ERROR(rtBufferSetSize1D(light_buffer, sizeof(lights) / sizeof(lights[0])));
+		RT_CHECK_ERROR(rtBufferCreate(_context, RT_BUFFER_OUTPUT, &_light_buffer));
+		RT_CHECK_ERROR(rtBufferSetFormat(_light_buffer, RT_FORMAT_USER));
+		RT_CHECK_ERROR(rtBufferSetElementSize(_light_buffer, sizeof(BasicLight)));
+		RT_CHECK_ERROR(rtBufferSetSize1D(_light_buffer, sizeof(lights) / sizeof(lights[0])));
 
 		void* mapped = nullptr;
-		RT_CHECK_ERROR(rtBufferMap(light_buffer, &mapped));
+		RT_CHECK_ERROR(rtBufferMap(_light_buffer, &mapped));
 		memcpy(mapped, lights, sizeof(lights));
-		RT_CHECK_ERROR(rtBufferUnmap(light_buffer));
+		RT_CHECK_ERROR(rtBufferUnmap(_light_buffer));
 
 		// descend into group and get material, then get closest hit program to set light_buffer ?
-		int count;
-		rtGroupGetChildCount(topgroup, &count);
-		RTobject childob;
-		rtGroupGetChild(topgroup, 0, &childob);
+		//unsigned int count;
+		//rtGroupGetChildCount(topgroup, &count);
+		//RTobject childob;
+		//rtGroupGetChild(topgroup, 0, &childob);
 
 		RTvariable lightsvar;
-		RT_CHECK_ERROR(rtContextQueryVariable(_context, "lights", &lightsvar));
-		RT_CHECK_ERROR(rtVariableSetObject(lightsvar, light_buffer));
+		RT_CHECK_ERROR(rtContextDeclareVariable(_context, "lights", &lightsvar));
+		RT_CHECK_ERROR(rtVariableSetObject(lightsvar, _light_buffer));
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -153,6 +157,12 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 //		return;
 //	}
 	
+	const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MinP = _scene->_boundingBox.GetMinP();
+	const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MaxP = _scene->_boundingBox.GetMaxP();
+	// reposition to face image
+	const_cast<CCamera*>(&camera)->SetViewMode(ViewModeFront);
+	//camera.m_SceneBoundingBox = _scene->_boundingBox;
+
 	RT_CHECK_ERROR(rtVariableSet3f(_eye, camera.m_From.x, camera.m_From.y, camera.m_From.z));
 	RT_CHECK_ERROR(rtVariableSet3f(_U, camera.m_U.x, camera.m_U.y, camera.m_U.z));
 	RT_CHECK_ERROR(rtVariableSet3f(_V, camera.m_V.x, camera.m_V.y, camera.m_V.z));

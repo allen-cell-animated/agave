@@ -34,6 +34,8 @@
 #include "OptiXMesh.h"
 #include "Logging.h"
 
+#include "cudarndr/BoundingBox.h"
+
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -52,7 +54,7 @@ namespace optix {
 const aiScene* scene;
 
 optix::Group createSingleGeometryGroup(optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
-	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl) {
+	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, CBoundingBox& bb) {
 
 	optix::Group group = context->createGroup();
 	optix::Acceleration accel = context->createAcceleration("Trbvh");
@@ -77,6 +79,7 @@ optix::Group createSingleGeometryGroup(optix::Context context, optix::Program me
 			aiVector3D pos = mesh->mVertices[i];
 			aiVector3D norm = mesh->mNormals[i];
 
+			bb += glm::vec3(pos.x, pos.y, pos.z);
 			vertexMap[i + vertexOffset] = optix::make_float3(pos.x, pos.y, pos.z);// +aabb.center();
 			normalMap[i + vertexOffset] = optix::normalize(optix::make_float3(norm.x, norm.y, norm.z));
 			materialsMap[i + vertexOffset] = 0u;
@@ -129,7 +132,7 @@ optix::Group createSingleGeometryGroup(optix::Context context, optix::Program me
 	return group;
 }
 
-int loadAsset(const char* path, optix::Context context, RTgroup* o_group)
+int loadAsset(const char* path, optix::Context context, RTgroup* o_group, CBoundingBox& bb)
 {
 	Assimp::Importer importer;
 
@@ -142,7 +145,6 @@ int loadAsset(const char* path, optix::Context context, RTgroup* o_group)
 		| aiProcess_SplitLargeMeshes
 		| aiProcess_FixInfacingNormals
 	);
-
 	if (scene) {
 		//getBoundingBox(&scene_min, &scene_max);
 		//scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
@@ -203,10 +205,16 @@ int loadAsset(const char* path, optix::Context context, RTgroup* o_group)
 			context["material_buffer"]->setBuffer(materials);
 
 			optix::Group group = createSingleGeometryGroup(context, meshIntersectProgram, meshBboxProgram, vertexMap,
-				normalMap, faceMap, materialsMap, matl);
+				normalMap, faceMap, materialsMap, matl, bb);
 
 			context["top_object"]->set(group);
 			context["top_shadower"]->set(group);
+			context["max_depth"]->setInt(100);
+			context["radiance_ray_type"]->setUint(0);
+			context["shadow_ray_type"]->setUint(1);
+			//context["scene_epsilon"]->setFloat(1.e-4f);
+			context["importance_cutoff"]->setFloat(0.01f);
+			context["ambient_light_color"]->setFloat(0.31f, 0.33f, 0.28f);
 
 			vertices->unmap();
 			normals->unmap();

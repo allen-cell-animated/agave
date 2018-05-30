@@ -8,7 +8,7 @@ rtDeclareVariable(uint2, launch_index, rtLaunchIndex, );
 rtBuffer<float4, 2>   result_buffer;
 //rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 
-rtDeclareVariable(float3,                draw_color, , );
+rtDeclareVariable(float3, draw_color, , );
 
 rtDeclareVariable(float3, eye, , );
 rtDeclareVariable(float3, U, , );
@@ -22,6 +22,10 @@ RT_PROGRAM void miss()
 {
 	//result_buffer[launch_index] = make_float4(prd.result, 0.0f);
 	prd_radiance.result = draw_color;
+}
+RT_PROGRAM void exception()
+{
+	result_buffer[launch_index] = make_float4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 RT_PROGRAM void pinhole_camera()
@@ -39,11 +43,10 @@ RT_PROGRAM void pinhole_camera()
 	PerRayData_radiance prd;
 	prd.importance = 1.f;
 	prd.depth = 0;
+	//prd.result = draw_color;
 
 	rtTrace(top_object, ray, prd);
 
-	result_buffer[launch_index] = make_float4(prd.result, 0.0f);
-
-
-  //result_buffer[launch_index] = make_float4(draw_color, 0.f);
+	result_buffer[launch_index] = make_float4(prd.result, 1.0f);
+	//result_buffer[launch_index] = make_float4(draw_color, 0.f);
 }

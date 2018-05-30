@@ -59,6 +59,7 @@ private:
 	/* Primary RTAPI objects */
 	RTprogram _ray_gen_program;
 	RTprogram _miss_program;
+	RTprogram _exception_program;
 	RTbuffer  _buffer;
 
 	/* Parameters */
@@ -69,6 +70,8 @@ private:
 	RTvariable _U;
 	RTvariable _V;
 	RTvariable _W;
+
+	RTbuffer _light_buffer;
 
 	OptiXMesh* _mesh;
 };
