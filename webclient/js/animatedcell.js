@@ -48,6 +48,9 @@ function setupGui() {
     aperture: 0.0,
     fov: 55,
     stream: true,
+    skyTopIntensity: 1.0,
+    skyMidIntensity: 1.0,
+    skyBotIntensity: 1.0,
     skyTopColor: [255, 255, 255],
     skyMidColor: [255, 255, 255],
     skyBotColor: [255, 255, 255],
@@ -192,15 +195,44 @@ function setupGui() {
     var lighting = gui.addFolder("Lighting");
     lighting.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
         var cb = new commandBuffer();
-        cb.addCommand("SKYLIGHT_TOP_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        cb.addCommand("SKYLIGHT_TOP_COLOR", 
+            effectController["skyTopIntensity"]*value[0]/255.0,
+            effectController["skyTopIntensity"]*value[1]/255.0,
+            effectController["skyTopIntensity"]*value[2]/255.0);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
+    lighting.add(effectController, "skyTopIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_TOP_COLOR", 
+            effectController["skyTopColor"][0]/255.0*value,
+            effectController["skyTopColor"][1]/255.0*value,
+            effectController["skyTopColor"][2]/255.0*value);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    
     lighting.addColor(effectController, "skyMidColor").name("Sky Mid").onChange(function(value) { 
         var cb = new commandBuffer();
-        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
+            effectController["skyMidIntensity"]*value[0]/255.0,
+            effectController["skyMidIntensity"]*value[1]/255.0,
+            effectController["skyMidIntensity"]*value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    lighting.add(effectController, "skyMidIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", 
+            effectController["skyMidColor"][0]/255.0*value,
+            effectController["skyMidColor"][1]/255.0*value,
+            effectController["skyMidColor"][2]/255.0*value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function(value) {
@@ -208,7 +240,21 @@ function setupGui() {
     });
     lighting.addColor(effectController, "skyBotColor").name("Sky Bottom").onChange(function(value) { 
         var cb = new commandBuffer();
-        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", 
+            effectController["skyBotIntensity"]*value[0]/255.0, 
+            effectController["skyBotIntensity"]*value[1]/255.0, 
+            effectController["skyBotIntensity"]*value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    lighting.add(effectController, "skyBotIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
+            effectController["skyBotColor"][0]/255.0*value,
+            effectController["skyBotColor"][1]/255.0*value,
+            effectController["skyBotColor"][2]/255.0*value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function(value) {
@@ -482,9 +528,18 @@ function setupChannelsGui() {
         cb.addCommand("FRAME_SCENE");
         cb.addCommand("APERTURE", effectController.aperture);
         cb.addCommand("EXPOSURE", effectController.exposure);
-        cb.addCommand("SKYLIGHT_TOP_COLOR", effectController.skyTopColor[0]/255.0, effectController.skyTopColor[1]/255.0, effectController.skyTopColor[2]/255.0);
-        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", effectController.skyMidColor[0]/255.0, effectController.skyMidColor[1]/255.0, effectController.skyMidColor[2]/255.0);
-        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", effectController.skyBotColor[0]/255.0, effectController.skyBotColor[1]/255.0, effectController.skyBotColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_TOP_COLOR",
+            effectController.skyTopIntensity*effectController.skyTopColor[0]/255.0,
+            effectController.skyTopIntensity*effectController.skyTopColor[1]/255.0,
+            effectController.skyTopIntensity*effectController.skyTopColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
+            effectController.skyMidIntensity*effectController.skyMidColor[0]/255.0,
+            effectController.skyMidIntensity*effectController.skyMidColor[1]/255.0,
+            effectController.skyMidIntensity*effectController.skyMidColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
+            effectController.skyBotIntensity*effectController.skyBotColor[0]/255.0,
+            effectController.skyBotIntensity*effectController.skyBotColor[1]/255.0,
+            effectController.skyBotIntensity*effectController.skyBotColor[2]/255.0);
         cb.addCommand("LIGHT_POS", 0, effectController.lightDistance, effectController.lightTheta, effectController.lightPhi);
         cb.addCommand("LIGHT_COLOR", 0, 
             effectController.lightColor[0]/255.0*effectController.lightIntensity, 
