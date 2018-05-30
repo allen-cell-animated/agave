@@ -24,7 +24,7 @@
   var _stream_mode = false;
   var _stream_mode_suspended = false;
     var enqueued_image_data = null;
-
+    var waiting_for_image = false;
   /**
    * switches the supplied element to (in)visible
    * @param element
@@ -46,7 +46,11 @@ function setupGui() {
     density: 50.0,
     exposure: 0.75,
     aperture: 0.0,
+    fov: 55,
     stream: true,
+    skyTopIntensity: 1.0,
+    skyMidIntensity: 1.0,
+    skyBotIntensity: 1.0,
     skyTopColor: [255, 255, 255],
     skyMidColor: [255, 255, 255],
     skyBotColor: [255, 255, 255],
@@ -55,7 +59,14 @@ function setupGui() {
     lightDistance: 10.0,
     lightTheta: 0.0,
     lightPhi: 0.0,
-    lightSize: 1.0
+    lightSize: 1.0,
+    xmin: 0.0,
+    ymin: 0.0,
+    zmin: 0.0,
+    xmax: 1.0,
+    ymax: 1.0,
+    zmax: 1.0,
+    resetCamera: resetCamera
   };
 
   gui = new dat.GUI();
@@ -85,6 +96,7 @@ function setupGui() {
       }
   });
 
+  gui.add(effectController, "resetCamera");
   //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
   gui.add(effectController, "stream").onChange(function(value) {
     var cb = new commandBuffer();
@@ -104,9 +116,17 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "aperture").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+  gui.add(effectController, "aperture").max(0.1).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("APERTURE", value);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+  }).onFinishChange(function(value) {
+      _stream_mode_suspended = false;
+  });
+  gui.add(effectController, "fov").max(90.0).min(0.0).step(0.001).onChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("FOV_Y", value || 0.01);
     flushCommandBuffer(cb);
     _stream_mode_suspended = true;
   }).onFinishChange(function(value) {
@@ -121,19 +141,98 @@ function setupGui() {
         _stream_mode_suspended = false;
     });
 
-
-    var lighting = gui.addFolder("Lighting");
-    lighting.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
+    var clipping = gui.addFolder("Clipping Box");
+    clipping.add(effectController, "xmin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
         var cb = new commandBuffer();
-        cb.addCommand("SKYLIGHT_TOP_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+      }).onFinishChange(function(value) {
+          _stream_mode_suspended = false;
+      });
+    clipping.add(effectController, "xmax").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function(value) {
         _stream_mode_suspended = false;
     });
+    clipping.add(effectController, "ymin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "ymax").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "zmin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    clipping.add(effectController, "zmax").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    
+
+    var lighting = gui.addFolder("Lighting");
+    lighting.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function(value) { 
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_TOP_COLOR", 
+            effectController["skyTopIntensity"]*value[0]/255.0,
+            effectController["skyTopIntensity"]*value[1]/255.0,
+            effectController["skyTopIntensity"]*value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    lighting.add(effectController, "skyTopIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_TOP_COLOR", 
+            effectController["skyTopColor"][0]/255.0*value,
+            effectController["skyTopColor"][1]/255.0*value,
+            effectController["skyTopColor"][2]/255.0*value);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    
     lighting.addColor(effectController, "skyMidColor").name("Sky Mid").onChange(function(value) { 
         var cb = new commandBuffer();
-        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
+            effectController["skyMidIntensity"]*value[0]/255.0,
+            effectController["skyMidIntensity"]*value[1]/255.0,
+            effectController["skyMidIntensity"]*value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    lighting.add(effectController, "skyMidIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", 
+            effectController["skyMidColor"][0]/255.0*value,
+            effectController["skyMidColor"][1]/255.0*value,
+            effectController["skyMidColor"][2]/255.0*value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function(value) {
@@ -141,7 +240,21 @@ function setupGui() {
     });
     lighting.addColor(effectController, "skyBotColor").name("Sky Bottom").onChange(function(value) { 
         var cb = new commandBuffer();
-        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", value[0]/255.0, value[1]/255.0, value[2]/255.0);
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", 
+            effectController["skyBotIntensity"]*value[0]/255.0, 
+            effectController["skyBotIntensity"]*value[1]/255.0, 
+            effectController["skyBotIntensity"]*value[2]/255.0);
+        flushCommandBuffer(cb);
+        _stream_mode_suspended = true;
+    }).onFinishChange(function(value) {
+        _stream_mode_suspended = false;
+    });
+    lighting.add(effectController, "skyBotIntensity").max(100.0).min(0.01).step(0.1).onChange(function(value) {
+        var cb = new commandBuffer();
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
+            effectController["skyBotColor"][0]/255.0*value,
+            effectController["skyBotColor"][1]/255.0*value,
+            effectController["skyBotColor"][2]/255.0*value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function(value) {
@@ -211,12 +324,11 @@ dat.GUI.prototype.removeFolder = function(name) {
     delete this.__folders[name];
     this.onResize();
 }
-function onNewImage(infoObj) {
-
+function resetCamera() {
     // set up positions based on sizes.
-    var x = infoObj.pixel_size_x * infoObj.x;
-    var y = infoObj.pixel_size_y * infoObj.y;
-    var z = infoObj.pixel_size_z * infoObj.z;
+    var x = effectController.infoObj.pixel_size_x * effectController.infoObj.x;
+    var y = effectController.infoObj.pixel_size_y * effectController.infoObj.y;
+    var z = effectController.infoObj.pixel_size_z * effectController.infoObj.z;
     var maxdim = Math.max(x,Math.max(y,z));
     gCamera.position.x = 0.5*x/maxdim;
     gCamera.position.y = 0.5*y/maxdim;
@@ -229,22 +341,25 @@ function onNewImage(infoObj) {
     gControls.target.z = 0.5*z/maxdim;
     gControls.target0 = gControls.target.clone();
 
-    sendCameraUpdate();
-
-    setupChannelsGui(infoObj);
+    sendCameraUpdate();    
+}
+function onNewImage(infoObj) {
+    effectController.infoObj = infoObj;
+    resetCamera();
+    setupChannelsGui();
 } 
-function setupChannelsGui(infoObj) {
+function setupChannelsGui() {
     if (effectController && effectController.infoObj) {
         for (var i = 0; i < effectController.infoObj.channel_names.length; ++i) {
             gui.removeFolder("Channel " + effectController.infoObj.channel_names[i]);
         }
     }
 
-    effectController.infoObj = infoObj;
-    infoObj.channelGui = [];
+    //var infoObj = effectController.infoObj;
+    effectController.infoObj.channelGui = [];
     initcolors = [[255, 0, 255], [255, 255, 255], [0, 255, 255]];
-    for (var i = 0; i < infoObj.c; ++i) {
-        infoObj.channelGui.push({
+    for (var i = 0; i < effectController.infoObj.c; ++i) {
+        effectController.infoObj.channelGui.push({
             colorD: (i < 3) ? initcolors[i] : [255, 255, 255],
             colorS:[0,0,0],
             colorE:[0,0,0],
@@ -253,7 +368,7 @@ function setupChannelsGui(infoObj) {
             roughness: 0.0,
             enabled: (i < 3) ? true : false
         });
-        var f = gui.addFolder("Channel " + infoObj.channel_names[i]);
+        var f = gui.addFolder("Channel " + effectController.infoObj.channel_names[i]);
         f.add(effectController.infoObj.channelGui[i], "enabled").onChange(function(j) {
             return function(value) {
                 var cb = new commandBuffer();
@@ -284,10 +399,13 @@ function setupChannelsGui(infoObj) {
         }(i));
         f.add(effectController.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("STREAM_MODE", 0);
-                cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
-                flushCommandBuffer(cb);
+                if (!waiting_for_image) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("STREAM_MODE", 0);
+                    cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
+                    flushCommandBuffer(cb);
+                    waiting_for_image = true;
+                }
                 _stream_mode_suspended = true;
             }
         }(i))
@@ -303,10 +421,13 @@ function setupChannelsGui(infoObj) {
 
         f.add(effectController.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function(j) {
             return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("STREAM_MODE", 0);
-                cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
-                flushCommandBuffer(cb);
+                if (!waiting_for_image) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("STREAM_MODE", 0);
+                    cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
+                    flushCommandBuffer(cb);
+                    waiting_for_image = true;
+                }
                 _stream_mode_suspended = true;
             }
         }(i))
@@ -321,9 +442,12 @@ function setupChannelsGui(infoObj) {
         });
         f.add(effectController.infoObj.channelGui[i], "roughness").max(100.0).min(0.0).onChange(function(j) {
             return function(value) {
-                var cb = new commandBuffer();
-                cb.addCommand("MAT_GLOSSINESS", j, value);
-                flushCommandBuffer(cb);
+                if (!waiting_for_image) {
+                    var cb = new commandBuffer();
+                    cb.addCommand("MAT_GLOSSINESS", j, value);
+                    flushCommandBuffer(cb);
+                    waiting_for_image = true;
+                }
                 _stream_mode_suspended = true;
             }
         }(i))
@@ -334,8 +458,8 @@ function setupChannelsGui(infoObj) {
     }
     
     var cb = new commandBuffer();
-    for (var i = 0; i < infoObj.c; ++i) {
-        var ch = infoObj.channelGui[i];
+    for (var i = 0; i < effectController.infoObj.c; ++i) {
+        var ch = effectController.infoObj.channelGui[i];
         cb.addCommand("ENABLE_CHANNEL", i, ch.enabled ? 1 : 0);
         cb.addCommand("MAT_DIFFUSE", i, ch.colorD[0]/255.0, ch.colorD[1]/255.0, ch.colorD[2]/255.0, 1.0);
         cb.addCommand("MAT_SPECULAR", i, ch.colorS[0]/255.0, ch.colorS[1]/255.0, ch.colorS[2]/255.0, 1.0);
@@ -373,15 +497,6 @@ function setupChannelsGui(infoObj) {
 
     var streamedImg = document.getElementsByClassName("streamed_img");
 
-    // camera manipulations
-    for(var i=0; i<streamedImg.length; i++)
-    {
-        streamedImg[i].addEventListener("wheel", MouseWheelHandler, false);
-        streamedImg[i].addEventListener("mousedown", MouseDownHandler, false);
-        streamedImg[i].addEventListener('ondragstart', DragStartHandler, false);
-    }
-
-
     //set up first tab
     var streamimg1 = document.getElementById("imageA");
 
@@ -413,9 +528,18 @@ function setupChannelsGui(infoObj) {
         cb.addCommand("FRAME_SCENE");
         cb.addCommand("APERTURE", effectController.aperture);
         cb.addCommand("EXPOSURE", effectController.exposure);
-        cb.addCommand("SKYLIGHT_TOP_COLOR", effectController.skyTopColor[0]/255.0, effectController.skyTopColor[1]/255.0, effectController.skyTopColor[2]/255.0);
-        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", effectController.skyMidColor[0]/255.0, effectController.skyMidColor[1]/255.0, effectController.skyMidColor[2]/255.0);
-        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", effectController.skyBotColor[0]/255.0, effectController.skyBotColor[1]/255.0, effectController.skyBotColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_TOP_COLOR",
+            effectController.skyTopIntensity*effectController.skyTopColor[0]/255.0,
+            effectController.skyTopIntensity*effectController.skyTopColor[1]/255.0,
+            effectController.skyTopIntensity*effectController.skyTopColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
+            effectController.skyMidIntensity*effectController.skyMidColor[0]/255.0,
+            effectController.skyMidIntensity*effectController.skyMidColor[1]/255.0,
+            effectController.skyMidIntensity*effectController.skyMidColor[2]/255.0);
+        cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
+            effectController.skyBotIntensity*effectController.skyBotColor[0]/255.0,
+            effectController.skyBotIntensity*effectController.skyBotColor[1]/255.0,
+            effectController.skyBotIntensity*effectController.skyBotColor[2]/255.0);
         cb.addCommand("LIGHT_POS", 0, effectController.lightDistance, effectController.lightTheta, effectController.lightPhi);
         cb.addCommand("LIGHT_COLOR", 0, 
             effectController.lightColor[0]/255.0*effectController.lightIntensity, 
@@ -448,6 +572,21 @@ function setupChannelsGui(infoObj) {
         gControls.staticMoving = true;
         gControls.length = 10;
         gControls.enabled = true; //turn off mouse moments by setting to false
+
+        gControls.addEventListener("change", sendCameraUpdate);
+        gControls.addEventListener("start", function() {
+            let cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 0);
+            flushCommandBuffer(cb);
+        });
+        gControls.addEventListener("end", function() {
+            let cb = new commandBuffer();
+            cb.addCommand("STREAM_MODE", 1);
+            flushCommandBuffer(cb);
+            let cb1 = new commandBuffer();
+            cb1.addCommand("REDRAW");
+            flushCommandBuffer(cb1);
+        });
 
     };
     this.close = function (evt) {
@@ -483,10 +622,14 @@ function setupChannelsGui(infoObj) {
           return;
       }
 
-      // TODO:enqueue this...?
 
+      // new data will be used to obliterate the previous data if it exists.
+      // in this way, two consecutive images between redraws, will not both be drawn.
+      // TODO:enqueue this...?
       enqueued_image_data = evt.data;
 
+      // the this ptr is not what I want here.
+      //binarysock.draw();
 
       if (!_stream_mode_suspended && _stream_mode && !dragFlag) {
         // let cb = new commandBuffer();
@@ -505,7 +648,7 @@ function setupChannelsGui(infoObj) {
     };
 
     this.draw = function() {
-        console.time('decode_img');
+        //console.time('decode_img');
         var bytes = new Uint8Array(enqueued_image_data),
           binary = "",
           len = bytes.byteLength,
@@ -514,13 +657,15 @@ function setupChannelsGui(infoObj) {
           binary += String.fromCharCode(bytes[i]);
         }
         binary = window.btoa(binary);
-        console.timeEnd('decode_img');
+        //console.timeEnd('decode_img');
   
-        console.time('set_img');
+        //console.time('set_img');
         screenImage.set("data:image/png;base64,"+binary, 0);
-        console.timeEnd('set_img');  
+        //console.timeEnd('set_img');  
 
+        // nothing else to draw for now.
         enqueued_image_data = null;
+        waiting_for_image = false;
     }
     this.error = function (evt) {
         console.log('error', evt);
@@ -562,9 +707,6 @@ function setupChannelsGui(infoObj) {
 
   function send(msg)
   {
-      this.mouseMoveTimer = setTimeout(function () {
-        binarysocket0.send(msg);
-      }.bind(this), 200);
   }
 
   var lastmsg;
@@ -579,5 +721,48 @@ function setupChannelsGui(infoObj) {
    */
   window.addEventListener("load", init, false);
 
+  function sendCameraUpdate() {
+    if (!waiting_for_image) {
+        cb = new commandBuffer();
+        cb.addCommand("EYE", gCamera.position.x, gCamera.position.y, gCamera.position.z);
+        cb.addCommand("TARGET", gControls.target.x, gControls.target.y, gControls.target.z);
+        cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
+        cb.addCommand("REDRAW");
+        flushCommandBuffer(cb);
+        waiting_for_image = true;
+    }
+}
 
+/**
+ * this object holds the image that is received from the server
+ * @type {{set: screenImage.set}}
+ */
+var screenImage = {
 
+    /**
+     * sets the image and the events. called from the websocket "message" signal
+     * @param binary
+     * @param channelnumber
+     */
+    set : function (binary, channelnumber) {
+
+        //get all the divs with the streamed_img tag and set the received binary data to the image's source
+        var tabs;
+        tabs = document.getElementsByClassName("streamed_img"+ " img" +channelnumber);
+
+        if(tabs.length > 0)
+        {
+            for(var i=0; i<tabs.length; i++)
+            {
+                tabs[i].src = binary;
+
+                img_width = tabs[i].width;
+                img_height = tabs[i].height;
+            }
+        }
+        else
+        {
+            console.warn("div 'streamed_img' not found :(");
+        }
+    }
+};

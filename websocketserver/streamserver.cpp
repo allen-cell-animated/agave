@@ -22,7 +22,10 @@ void StreamServer::createNewRenderer(QWebSocket* client) {
 	int i = this->_renderers.length();
 	Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 	this->_renderers << r;
-	connect(r, SIGNAL(requestProcessed(RenderRequest*, QImage)), this, SLOT(sendImage(RenderRequest*, QImage)));
+
+	// queued across thread boundary.  typically requestProcessed is called from another thread.
+	// BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be fully async.
+	connect(r, SIGNAL(requestProcessed(RenderRequest*, QImage)), this, SLOT(sendImage(RenderRequest*, QImage)), Qt::BlockingQueuedConnection);
 	connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
 
 	qDebug() << "Starting thread" << i << "...";
@@ -33,7 +36,7 @@ void StreamServer::createNewRenderer(QWebSocket* client) {
 
 StreamServer::StreamServer(quint16 port, bool debug, QObject *parent) :
 	QObject(parent),
-	_webSocketServer(new QWebSocketServer(QStringLiteral("Marion"), QWebSocketServer::NonSecureMode, this)),
+	_webSocketServer(new QWebSocketServer(QStringLiteral("AICS RENDERSERVER"), QWebSocketServer::NonSecureMode, this)),
 	_clients(),
 	_renderers(),
 	debug(debug)
@@ -146,17 +149,6 @@ void StreamServer::processTextMessage(QString message)
 		}
 		case 1:
 		{
-#if 0
-			QString json = this->getLeastBusyRenderer()->getMarion()->library("cellloader")->getInterface()->getValue("multichannel.filelist").toString();
-			//qDebug() << "the json: " << json;
-
-			if (pClient != 0)
-			{
-				pClient->sendTextMessage(json);
-			}
-
-			//qDebug() << "json:" << json;
-#endif
 			break;
 		}
 		case 2:
@@ -227,7 +219,8 @@ void StreamServer::sendImage(RenderRequest *request, QImage image)
 		QBuffer buffer(&ba);
 		buffer.open(QIODevice::WriteOnly);
 		image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
-
+		LOG_DEBUG << "Send Image " << buffer.size() << " bytes to " << client->peerName().toStdString() << "(" <<
+			client->peerAddress().toString().toStdString() << ":" << QString::number(client->peerPort()).toStdString() << ")";
 		client->sendBinaryMessage(ba);
 	}
 

@@ -46,6 +46,7 @@ DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume
 			return false;
 		
 		SigmaT = gDensityScale * GetOpacity(GetNormalizedIntensityMax4ch(Ps, volumedata, ch));
+		//SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
 		Sum			+= SigmaT * gStepSize;
 		MinT	+= gStepSize;
@@ -82,6 +83,7 @@ DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 			return false;
 		
 		SigmaT = gDensityScale * GetOpacity(GetNormalizedIntensityMax4ch(Ps, volumedata, ch));
+		// SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
 		Sum			+= SigmaT * gStepSizeShadow;
 		MinT	+= gStepSizeShadow;
@@ -109,8 +111,10 @@ DEV inline bool NearestIntersection(CRay R, const cudaVolume& volumedata, float&
 	{
 		Ps = R.m_O + T * R.m_D;
 
-		if (GetOpacity(GetNormalizedIntensityMax4ch(Ps, volumedata, ch)) > 0.0f)
+		if (GetOpacity(GetNormalizedIntensityMax4ch(Ps, volumedata, ch)) > 0.0f) {
+		//if (GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata)) > 0.0f) {
 			return true;
+		}
 
 		T += gStepSize;
 	}

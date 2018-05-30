@@ -11,10 +11,11 @@ int main(int argc, char *argv[])
 	//set to true to show windows, or false to run as a console application
 	bool gui = true;
 
+	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QApplication a(argc, argv);
 	//QDir::setCurrent(QApplication::applicationDirPath() + "/work");
 
-	a.setApplicationName("VolumeRenderServer");
+	a.setApplicationName("AICS RENDERSERVER");
 	a.setApplicationVersion("0.0.1");
 
 	QCommandLineParser parser;

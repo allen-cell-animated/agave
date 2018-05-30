@@ -72,74 +72,74 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 }
 
 void SetCameraPosCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraPos";
+	LOG_DEBUG << "SetCameraPos " << _data._x << " " << _data._y << " " << _data._z;
 	c->_camera->m_From.x = _data._x;
 	c->_camera->m_From.y = _data._y;
 	c->_camera->m_From.z = _data._z;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraTargetCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraTarget";
+	LOG_DEBUG << "SetCameraTarget " << _data._x << " " << _data._y << " " << _data._z;
 	c->_camera->m_Target.x = _data._x;
 	c->_camera->m_Target.y = _data._y;
 	c->_camera->m_Target.z = _data._z;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraUpCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraUp";
+	LOG_DEBUG << "SetCameraUp " << _data._x << " " << _data._y << " " << _data._z;
 	c->_camera->m_Up.x = _data._x;
 	c->_camera->m_Up.y = _data._y;
 	c->_camera->m_Up.z = _data._z;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraApertureCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraAperture";
+	LOG_DEBUG << "SetCameraAperture " << _data._x;
 	c->_camera->m_Aperture.m_Size = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraFovYCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraFovY";
+	LOG_DEBUG << "SetCameraFovY " << _data._x;
 	c->_camera->m_FovV = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraFocalDistanceCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraFocalDistance";
+	LOG_DEBUG << "SetCameraFocalDistance " << _data._x;
 	c->_camera->m_Focus.m_FocalDistance = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetCameraExposureCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetCameraExposure";
+	LOG_DEBUG << "SetCameraExposure " << _data._x;
 	// 0 is darkness, 1 is max
 	c->_camera->m_Film.m_Exposure = 1.0f - _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetDiffuseColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetDiffuse";
+	LOG_DEBUG << "SetDiffuse " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_material.diffuse[_data._channel * 3 + 0] = _data._r;
 	c->_appScene->_material.diffuse[_data._channel * 3 + 1] = _data._g;
 	c->_appScene->_material.diffuse[_data._channel * 3 + 2] = _data._b;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetSpecularColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetSpecular";
+	LOG_DEBUG << "SetSpecular " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_material.specular[_data._channel * 3 + 0] = _data._r;
 	c->_appScene->_material.specular[_data._channel * 3 + 1] = _data._g;
 	c->_appScene->_material.specular[_data._channel * 3 + 2] = _data._b;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetEmissiveColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetEmissive";
+	LOG_DEBUG << "SetEmissive " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_material.emissive[_data._channel * 3 + 0] = _data._r;
 	c->_appScene->_material.emissive[_data._channel * 3 + 1] = _data._g;
 	c->_appScene->_material.emissive[_data._channel * 3 + 2] = _data._b;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetRenderIterationsCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetRenderIterations";
+	LOG_DEBUG << "SetRenderIterations " << _data._x;
 	c->_camera->m_Film.m_ExposureIterations = _data._x;
 }
 void SetStreamModeCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetStreamMode";
+	LOG_DEBUG << "SetStreamMode " << _data._x;
 	c->_renderer->setStreamMode(_data._x);
 }
 void RequestRedrawCommand::execute(ExecutionContext* c) {
@@ -147,14 +147,14 @@ void RequestRedrawCommand::execute(ExecutionContext* c) {
 	//	c->_renderer->renderNow();
 }
 void SetResolutionCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetResolution";
+	LOG_DEBUG << "SetResolution " << _data._x << " " << _data._y;
 	c->_camera->m_Film.m_Resolution.SetResX(_data._x);
 	c->_camera->m_Film.m_Resolution.SetResY(_data._y);
 	c->_renderer->resizeGL(_data._x, _data._y);
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetDensityCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetDensity";
+	LOG_DEBUG << "SetDensity " << _data._x;
 	c->_renderSettings->m_RenderSettings.m_DensityScale = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }
@@ -167,61 +167,61 @@ void FrameSceneCommand::execute(ExecutionContext* c) {
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetGlossinessCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetGlossiness";
+	LOG_DEBUG << "SetGlossiness " << _data._channel << " " << _data._glossiness;
 	c->_appScene->_material.roughness[_data._channel] = _data._glossiness;
 	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void EnableChannelCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "EnableChannel";
+	LOG_DEBUG << "EnableChannel " << _data._channel << " " << _data._enabled;
 	// 0 or 1 hopefully.
 	c->_appScene->_material.enabled[_data._channel] = (_data._enabled != 0);
 	c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 void SetWindowLevelCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetWindowLevel";
+	LOG_DEBUG << "SetWindowLevel " << _data._channel << " " << _data._window << " " << _data._level;
 	c->_appScene->_volume->channel(_data._channel)->generate_windowLevel(_data._window, _data._level);
 	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void OrbitCameraCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "OrbitCamera";
+	LOG_DEBUG << "OrbitCamera " << _data._theta << " " << _data._phi;
 	c->_camera->Orbit(_data._theta, _data._phi);
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetSkylightTopColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetSkylightTopColor";
+	LOG_DEBUG << "SetSkylightTopColor " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetSkylightMiddleColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetSkylightMiddleColor";
+	LOG_DEBUG << "SetSkylightMiddleColor " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetSkylightBottomColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetSkylightBottomColor";
+	LOG_DEBUG << "SetSkylightBottomColor " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_lighting.m_Lights[0].m_ColorBottom = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetLightPosCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetLightPos";
+	LOG_DEBUG << "SetLightPos " << _data._r << " " << _data._theta << " " << _data._phi;
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Distance = _data._r;
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Theta = _data._theta;
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Phi = _data._phi;
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetLightColorCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetLightColor";
+	LOG_DEBUG << "SetLightColor " << _data._index << " " << _data._r << " " << _data._g << " " << _data._b;
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Color = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetLightSizeCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetLightSize";
+	LOG_DEBUG << "SetLightSize " << _data._index << " " << _data._x << " " << _data._y;
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Width = _data._x;
 	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Height = _data._y;
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetClipRegionCommand::execute(ExecutionContext* c) {
-	LOG_DEBUG << "SetClipRegion";
+	LOG_DEBUG << "SetClipRegion " << _data._minx << " " << _data._maxx << " " << _data._miny << " " << _data._maxy << " " << _data._minz << " " << _data._maxz;
 	c->_appScene->_roi.SetMinP(glm::vec3(_data._minx, _data._miny, _data._minz));
 	c->_appScene->_roi.SetMaxP(glm::vec3(_data._maxx, _data._maxy, _data._maxz));
 	c->_renderSettings->m_DirtyFlags.SetFlag(RoiDirty);
