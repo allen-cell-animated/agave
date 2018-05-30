@@ -104,6 +104,10 @@ void SetCameraFovYCommand::execute(ExecutionContext* c) {
 }
 void SetCameraFocalDistanceCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraFocalDistance " << _data._x;
+
+	// TODO: how will we ever set the camera back to auto focus?
+	c->_camera->m_Focus.m_Type = CFocus::Manual;
+	
 	c->_camera->m_Focus.m_FocalDistance = _data._x;
 	c->_renderSettings->SetNoIterations(0);
 }

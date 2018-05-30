@@ -158,6 +158,17 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
 }
 
+void ComputeFocusDistance(const cudaVolume& volumedata) {
+	// fd is in camera ray direction magnitude units (world space units if ray.d is normalized)
+	float fd = NearestIntersection(volumedata);
+
+	//camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
+	// send m_FocalDistance back to gpu.
+	//CudaCamera c;
+	//FillCudaCamera(&camera, c);
+	HandleCudaError(cudaMemcpyToSymbol(gCamera, &fd, sizeof(float)));
+}
+
 // BindConstants must be called first to initialize vars used by kernels
 void Render(const int& Type, int numExposures, int w, int h,
 	cudaFB& framebuffers,
@@ -165,17 +176,6 @@ void Render(const int& Type, int numExposures, int w, int h,
 	CTiming& RenderImage, CTiming& BlurImage, CTiming& PostProcessImage, CTiming& DenoiseImage,
 	int& numIterations)
 {
-	// find nearest intersection to set camera focal distance automatically.
-	// then re-upload that data.
-	//if (camera.m_Focus.m_Type == 0) {
-		float fd = NearestIntersection(volumedata);
-		//camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
-		// send m_FocalDistance back to gpu.
-		//CudaCamera c;
-		//FillCudaCamera(&camera, c);
-		HandleCudaError(cudaMemcpyToSymbol(gCamera, &fd, sizeof(float)));
-	//}
-
 	for (int i = 0; i < numExposures; ++i) {
 		CCudaTimer TmrRender;
 

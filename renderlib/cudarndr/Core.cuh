@@ -48,7 +48,7 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	const CBoundingBox& bbox, const CBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
 	int w, int h, float gamma, float exposure);
 
-// scene needs to be mutable to get nearest intersection for focusdist.
+void ComputeFocusDistance(const cudaVolume& volumedata);
 void Render(const int& Type, int numExposures, int w, int h,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,

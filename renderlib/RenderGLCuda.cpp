@@ -423,6 +423,12 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 		}
 	}
 
+	// find nearest intersection to set camera focal distance automatically.
+	// then re-upload that data.
+	if (camera.m_Focus.m_Type == 0) {
+		ComputeFocusDistance(theCudaVolume);
+	}
+
 	int numIterations = _renderSettings->GetNoIterations();
 	Render(0, camera.m_Film.m_ExposureIterations, 
         camera.m_Film.m_Resolution.GetResX(), 

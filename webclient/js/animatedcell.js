@@ -47,6 +47,7 @@ function setupGui() {
     exposure: 0.75,
     aperture: 0.0,
     fov: 55,
+    focal_distance: 4.0,
     stream: true,
     skyTopIntensity: 1.0,
     skyMidIntensity: 1.0,
@@ -119,6 +120,14 @@ function setupGui() {
   gui.add(effectController, "aperture").max(0.1).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("APERTURE", value);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+  }).onFinishChange(function(value) {
+      _stream_mode_suspended = false;
+  });
+  gui.add(effectController, "focal_distance").max(5.0).min(0.1).step(0.001).onChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("FOCALDIST", value);
     flushCommandBuffer(cb);
     _stream_mode_suspended = true;
   }).onFinishChange(function(value) {
@@ -330,9 +339,10 @@ function resetCamera() {
     var y = effectController.infoObj.pixel_size_y * effectController.infoObj.y;
     var z = effectController.infoObj.pixel_size_z * effectController.infoObj.z;
     var maxdim = Math.max(x,Math.max(y,z));
+    const camdist = 1.5;
     gCamera.position.x = 0.5*x/maxdim;
     gCamera.position.y = 0.5*y/maxdim;
-    gCamera.position.z = 1.5 + (0.5*z/maxdim);
+    gCamera.position.z = camdist + (0.5*z/maxdim);
     gCamera.up.x = 0.0;
     gCamera.up.y = 1.0;
     gCamera.up.z = 0.0;
@@ -340,7 +350,7 @@ function resetCamera() {
     gControls.target.y = 0.5*y/maxdim;
     gControls.target.z = 0.5*z/maxdim;
     gControls.target0 = gControls.target.clone();
-
+    effectController.focal_distance = camdist;
     sendCameraUpdate();    
 }
 function onNewImage(infoObj) {

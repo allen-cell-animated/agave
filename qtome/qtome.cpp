@@ -445,6 +445,7 @@ void qtome::dumpPythonState()
 	s += QString("cb.add_command(\"EXPOSURE\", %1)\n").arg(_camera.GetFilm().GetExposure());
 	s += QString("cb.add_command(\"DENSITY\", %1)\n").arg(_renderSettings.m_RenderSettings.m_DensityScale);
 	s += QString("cb.add_command(\"APERTURE\", %1)\n").arg(_camera.GetAperture().GetSize());
+	s += QString("cb.add_command(\"FOCALDIST\", %1)\n").arg(_camera.GetFocus().GetFocalDistance());
 
 	// per-channel
 	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
