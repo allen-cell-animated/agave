@@ -109,7 +109,18 @@ function setupGui() {
     flushCommandBuffer(cb2);
     _stream_mode = value;
   });
-  gui.add(effectController, "exposure").max(1.0).min(0.0).step(0.001).onChange(function(value) {
+  gui.add(effectController, "density").max(100.0).min(0.0).step(0.001).onChange(function(value) {
+    var cb = new commandBuffer();
+    cb.addCommand("DENSITY", value);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+}).onFinishChange(function(value) {
+    _stream_mode_suspended = false;
+});
+
+
+  var cameragui = gui.addFolder("Camera");
+  cameragui.add(effectController, "exposure").max(1.0).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("EXPOSURE", value);
     flushCommandBuffer(cb);
@@ -117,7 +128,7 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "aperture").max(0.1).min(0.0).step(0.001).onChange(function(value) {
+  cameragui.add(effectController, "aperture").max(0.1).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("APERTURE", value);
     flushCommandBuffer(cb);
@@ -125,7 +136,7 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "focal_distance").max(5.0).min(0.1).step(0.001).onChange(function(value) {
+  cameragui.add(effectController, "focal_distance").max(5.0).min(0.1).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("FOCALDIST", value);
     flushCommandBuffer(cb);
@@ -133,7 +144,7 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "fov").max(90.0).min(0.0).step(0.001).onChange(function(value) {
+  cameragui.add(effectController, "fov").max(90.0).min(0.0).step(0.001).onChange(function(value) {
     var cb = new commandBuffer();
     cb.addCommand("FOV_Y", value || 0.01);
     flushCommandBuffer(cb);
@@ -141,14 +152,6 @@ function setupGui() {
   }).onFinishChange(function(value) {
       _stream_mode_suspended = false;
   });
-  gui.add(effectController, "density").max(100.0).min(0.0).step(0.001).onChange(function(value) {
-        var cb = new commandBuffer();
-        cb.addCommand("DENSITY", value);
-        flushCommandBuffer(cb);
-        _stream_mode_suspended = true;
-    }).onFinishChange(function(value) {
-        _stream_mode_suspended = false;
-    });
 
     var clipping = gui.addFolder("Clipping Box");
     clipping.add(effectController, "xmin").max(1.0).min(0.0).step(0.001).onChange(function(value) {
