@@ -192,7 +192,7 @@ void StreamServer::socketDisconnected()
 	LOG_DEBUG << "socketDisconnected: " << 
 		pClient->peerName().toStdString() << 
 		"(" << pClient->peerAddress().toString().toStdString() << ":" << QString::number(pClient->peerPort()).toStdString() << ") " << 
-		"code: (" << pClient->closeCode() << ":" << pClient->closeReason() + ")";
+		"code: (" << pClient->closeCode() << ":" << pClient->closeReason().toStdString() + ")";
 	if (pClient) {
 		Renderer* r = getRendererForClient(pClient);
 		QObject::connect(r, &Renderer::finished, r, &QObject::deleteLater);
