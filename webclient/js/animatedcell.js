@@ -364,9 +364,9 @@ function onNewImage(infoObj) {
 }
 
 function setupChannelsGui() {
-    if (effectController && effectController.infoObj) {
-        for (var i = 0; i < effectController.infoObj.channel_names.length; ++i) {
-            gui.removeFolder("Channel " + effectController.infoObj.channel_names[i]);
+    if (effectController && effectController.channelFolderNames) {
+        for (var i = 0; i < effectController.channelFolderNames.length; ++i) {
+            gui.removeFolder(effectController.channelFolderNames[i]);
         }
     }
 
@@ -377,6 +377,7 @@ function setupChannelsGui() {
         [255, 255, 255],
         [0, 255, 255]
     ];
+    effectController.channelFolderNames = []
     for (var i = 0; i < effectController.infoObj.c; ++i) {
         effectController.infoObj.channelGui.push({
             colorD: (i < 3) ? initcolors[i] : [255, 255, 255],
@@ -388,6 +389,7 @@ function setupChannelsGui() {
             enabled: (i < 3) ? true : false
         });
         var f = gui.addFolder("Channel " + effectController.infoObj.channel_names[i]);
+        effectController.channelFolderNames.push("Channel " + effectController.infoObj.channel_names[i]);
         f.add(effectController.infoObj.channelGui[i], "enabled").onChange(function (j) {
             return function (value) {
                 var cb = new commandBuffer();
