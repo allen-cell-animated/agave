@@ -66,6 +66,7 @@ qtome::qtome(QWidget *parent)
 
 	setWindowTitle(tr("OME-Files GLView"));
 
+	_appScene.initLights();
 }
 
 void qtome::createActions()

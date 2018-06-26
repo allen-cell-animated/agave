@@ -230,4 +230,12 @@ void SetClipRegionCommand::execute(ExecutionContext* c) {
 	c->_appScene->_roi.SetMaxP(glm::vec3(_data._maxx, _data._maxy, _data._maxz));
 	c->_renderSettings->m_DirtyFlags.SetFlag(RoiDirty);
 }
+void SetVoxelScaleCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "SetVoxelScale " << _data._x << " " << _data._y << " " << _data._z;
+	c->_appScene->_volume->setPhysicalSize(_data._x, _data._y, _data._z);
+	// update things that depend on this scaling!
+	c->_appScene->initSceneFromImg(c->_appScene->_volume);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
 

@@ -67,6 +67,13 @@ uint32_t ImageXYZC::maxPixelDimension() const
 	return std::max(_x, std::max(_y, _z));
 }
 
+void ImageXYZC::setPhysicalSize(float x, float y, float z)
+{
+	_scaleX = x;
+	_scaleY = y;
+	_scaleZ = z;
+}
+
 float ImageXYZC::physicalSizeX() const
 {
 	return _scaleX;

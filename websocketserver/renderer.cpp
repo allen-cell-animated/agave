@@ -47,6 +47,7 @@ void Renderer::myVolumeInit() {
 	myVolumeData._camera->m_Film.m_ExposureIterations = 1;
 
 	myVolumeData._scene = new Scene();
+	myVolumeData._scene->initLights();
 
 	myVolumeData._renderer = new RenderGLCuda(myVolumeData._renderSettings);
 	myVolumeData._renderer->initialize(1024, 1024);

@@ -42,8 +42,7 @@ void Light::Update(const CBoundingBox& BoundingBox)
 	m_V = glm::normalize(glm::cross(m_N, m_U));
 }
 
-// set up a couple of lights relative to the img's bounding box
-void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
+void Scene::initLights()
 {
 	Light BackgroundLight;
 
@@ -77,8 +76,12 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 	AreaLight.m_Color = 100.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
 	_lighting.AddLight(AreaLight);
+}
 
 
+// set up a couple of lights relative to the img's bounding box
+void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
+{
 	// point lights toward scene's bounding box
 
 	// Compute physical size

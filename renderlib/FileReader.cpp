@@ -52,6 +52,7 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
     QString msg = "Failed to open TIFF: '" + QString(filepath.c_str()) + "'";
 	LOG_ERROR << msg.toStdString();
     //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+	return std::shared_ptr<ImageXYZC>();
   }
 
 

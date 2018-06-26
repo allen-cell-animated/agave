@@ -68,6 +68,8 @@ public:
 	ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bpp, uint8_t* data=nullptr, float sx=1.0, float sy=1.0, float sz=1.0);
 	virtual ~ImageXYZC();
 
+	void setPhysicalSize(float x, float y, float z);
+
 	uint32_t sizeX() const;
 	uint32_t sizeY() const;
 	uint32_t sizeZ() const;

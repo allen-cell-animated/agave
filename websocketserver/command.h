@@ -192,4 +192,9 @@ struct SetClipRegionCommandD {
 };
 CMDDECL(SetClipRegionCommand, 29);
 
+struct SetVoxelScaleCommandD {
+	float _x, _y, _z;
+};
+CMDDECL(SetVoxelScaleCommand, 30);
+
 

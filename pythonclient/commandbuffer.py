@@ -49,6 +49,8 @@ COMMANDS = {
     "LIGHT_SIZE": [28, "I32", "F32", "F32"],
     # xmin, xmax, ymin, ymax, zmin, zmax
     "SET_CLIP_REGION": [29, "F32", "F32", "F32", "F32", "F32", "F32"],
+    # x, y, z pixel scaling
+    "SET_VOXEL_SCALE": [30, "F32", "F32", "F32"]
 }
 
 

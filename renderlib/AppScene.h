@@ -228,6 +228,7 @@ public:
     Lighting _lighting;
 
 	CBoundingBox _boundingBox;
+	void initLights();
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
 
 	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
