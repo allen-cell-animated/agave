@@ -65,7 +65,12 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 			channelNames.append(image->channel(i)->_name);
 		}
 		j["channel_names"] = channelNames;
-			
+		QJsonArray channelMaxIntensity;
+		for (uint32_t i = 0; i < image->sizeC(); ++i) {
+			channelMaxIntensity.append(image->channel(i)->_max);
+		}
+		j["channel_max_intensity"] = channelMaxIntensity;
+
 		QJsonDocument doc(j);
 		c->_message = doc.toJson();
 	}
