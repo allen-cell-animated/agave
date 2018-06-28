@@ -19,6 +19,7 @@ struct cudaFB {
 struct cudaVolume {
 	int nChannels;
 	float intensityMax[MAX_CUDA_CHANNELS];
+	float intensityMin[MAX_CUDA_CHANNELS];
 	float diffuse[MAX_CUDA_CHANNELS * 3];
 	float specular[MAX_CUDA_CHANNELS * 3];
 	float emissive[MAX_CUDA_CHANNELS * 3];
@@ -31,16 +32,8 @@ struct cudaVolume {
 
 	cudaVolume(int n) {
 		nChannels = n;
-		//volumeTexture = new cudaTextureObject_t[n];
-		//gradientVolumeTexture = new cudaTextureObject_t[n];
-		//lutTexture = new cudaTextureObject_t[n];
-		//intensityMax = new float[n];
 	}
 	~cudaVolume() {
-		//delete[] intensityMax;
-		//delete[] volumeTexture;
-		//delete[] gradientVolumeTexture;
-		//delete[] lutTexture;
 	}
 };
 

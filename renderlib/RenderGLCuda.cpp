@@ -407,6 +407,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
 			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
 			theCudaVolume.intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
+			theCudaVolume.intensityMin[activeChannel] = _scene->_volume->channel(i)->_min;
 			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
 			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
 			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
