@@ -33,12 +33,13 @@ DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeD
 
 DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
 {
-	float4 Intensity4 = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	f4 intensity;
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	// select channel
-	float intensity = ch == 0 ? Intensity4.x : ch == 1 ? Intensity4.y : ch == 2 ? Intensity4.z : Intensity4.w;
-	intensity = (intensity - volumeData.intensityMin[ch]) / (volumeData.intensityMax[ch] - volumeData.intensityMin[ch]);
+	float intensityf = intensity.a[ch];
+	intensityf = (intensityf - volumeData.intensityMin[ch]) / (volumeData.intensityMax[ch] - volumeData.intensityMin[ch]);
 	//intensity = tex1D<float>(volumeData.lutTexture[ch], intensity);
-	return intensity;
+	return intensityf;
 }
 
 DEV f4 GetIntensity4ch(const Vec3f& P, const cudaVolume& volumeData)
