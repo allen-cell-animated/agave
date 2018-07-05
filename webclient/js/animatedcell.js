@@ -1,5 +1,6 @@
 //var wsUri = "ws://localhost:1235";
 var wsUri = "ws://dev-aics-dtp-001:1235";
+//var wsUri = "ws://w10dth5blbu3.corp.alleninstitute.org:1235";  // 10.128.62.84
 
 var binarysocket0 = null; //handles requests for image streaming target #1
 //var binarysocket1 = null; //handles requests for image streaming target #2
@@ -36,50 +37,49 @@ function toggleDivVisibility(element, visible) {
 
 var binarysock, jsonsock;
 var gui;
+var uiState = {
+    resolution: "512x512",
+    file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
+    density: 50.0,
+    exposure: 0.75,
+    aperture: 0.0,
+    fov: 55,
+    focal_distance: 4.0,
+    stream: true,
+    skyTopIntensity: 1.0,
+    skyMidIntensity: 1.0,
+    skyBotIntensity: 1.0,
+    skyTopColor: [255, 255, 255],
+    skyMidColor: [255, 255, 255],
+    skyBotColor: [255, 255, 255],
+    lightColor: [255, 255, 255],
+    lightIntensity: 100.0,
+    lightDistance: 10.0,
+    lightTheta: 0.0,
+    lightPhi: 0.0,
+    lightSize: 1.0,
+    xmin: 0.0,
+    ymin: 0.0,
+    zmin: 0.0,
+    xmax: 1.0,
+    ymax: 1.0,
+    zmax: 1.0,
+    resetCamera: resetCamera
+};
 
 function setupGui() {
-
-    effectController = {
-        resolution: "512x512",
-        file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
-        density: 50.0,
-        exposure: 0.75,
-        aperture: 0.0,
-        fov: 55,
-        focal_distance: 4.0,
-        stream: true,
-        skyTopIntensity: 1.0,
-        skyMidIntensity: 1.0,
-        skyBotIntensity: 1.0,
-        skyTopColor: [255, 255, 255],
-        skyMidColor: [255, 255, 255],
-        skyBotColor: [255, 255, 255],
-        lightColor: [255, 255, 255],
-        lightIntensity: 100.0,
-        lightDistance: 10.0,
-        lightTheta: 0.0,
-        lightPhi: 0.0,
-        lightSize: 1.0,
-        xmin: 0.0,
-        ymin: 0.0,
-        zmin: 0.0,
-        xmax: 1.0,
-        ymax: 1.0,
-        zmax: 1.0,
-        resetCamera: resetCamera
-    };
 
     gui = new dat.GUI();
     //gui = new dat.GUI({autoPlace:false, width:200});
 
-    gui.add(effectController, "file").onFinishChange(function (value) {
+    gui.add(uiState, "file").onFinishChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("LOAD_OME_TIF", value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     });
 
-    gui.add(effectController, "resolution", ["256x256", "512x512", "1024x1024", "1024x768"]).onChange(function (value) {
+    gui.add(uiState, "resolution", ["256x256", "512x512", "1024x1024", "1024x768"]).onChange(function (value) {
         var res = value.match(/(\d+)x(\d+)/);
         if (res.length === 3) {
             res[0] = parseInt(res[1]);
@@ -96,9 +96,9 @@ function setupGui() {
         }
     });
 
-    gui.add(effectController, "resetCamera");
+    gui.add(uiState, "resetCamera");
     //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
-    gui.add(effectController, "stream").onChange(function (value) {
+    gui.add(uiState, "stream").onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("STREAM_MODE", value ? 1 : 0);
         flushCommandBuffer(cb);
@@ -108,7 +108,7 @@ function setupGui() {
         flushCommandBuffer(cb2);
         _stream_mode = value;
     });
-    gui.add(effectController, "density").max(100.0).min(0.0).step(0.001).onChange(function (value) {
+    gui.add(uiState, "density").max(100.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("DENSITY", value);
         flushCommandBuffer(cb);
@@ -119,7 +119,7 @@ function setupGui() {
 
 
     var cameragui = gui.addFolder("Camera");
-    cameragui.add(effectController, "exposure").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    cameragui.add(uiState, "exposure").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("EXPOSURE", value);
         flushCommandBuffer(cb);
@@ -127,7 +127,7 @@ function setupGui() {
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    cameragui.add(effectController, "aperture").max(0.1).min(0.0).step(0.001).onChange(function (value) {
+    cameragui.add(uiState, "aperture").max(0.1).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("APERTURE", value);
         flushCommandBuffer(cb);
@@ -135,7 +135,7 @@ function setupGui() {
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    cameragui.add(effectController, "focal_distance").max(5.0).min(0.1).step(0.001).onChange(function (value) {
+    cameragui.add(uiState, "focal_distance").max(5.0).min(0.1).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("FOCALDIST", value);
         flushCommandBuffer(cb);
@@ -143,7 +143,7 @@ function setupGui() {
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    cameragui.add(effectController, "fov").max(90.0).min(0.0).step(0.001).onChange(function (value) {
+    cameragui.add(uiState, "fov").max(90.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("FOV_Y", value || 0.01);
         flushCommandBuffer(cb);
@@ -153,49 +153,49 @@ function setupGui() {
     });
 
     var clipping = gui.addFolder("Clipping Box");
-    clipping.add(effectController, "xmin").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    clipping.add(uiState, "xmin").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    clipping.add(effectController, "xmax").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    clipping.add(uiState, "xmax").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    clipping.add(effectController, "ymin").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    clipping.add(uiState, "ymin").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    clipping.add(effectController, "ymax").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    clipping.add(uiState, "ymax").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    clipping.add(effectController, "zmin").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    clipping.add(uiState, "zmin").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    clipping.add(effectController, "zmax").max(1.0).min(0.0).step(0.001).onChange(function (value) {
+    clipping.add(uiState, "zmax").max(1.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("SET_CLIP_REGION", effectController.xmin, effectController.xmax, effectController.ymin, effectController.ymax, effectController.zmin, effectController.zmax);
+        cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
@@ -204,98 +204,98 @@ function setupGui() {
 
 
     var lighting = gui.addFolder("Lighting");
-    lighting.addColor(effectController, "skyTopColor").name("Sky Top").onChange(function (value) {
+    lighting.addColor(uiState, "skyTopColor").name("Sky Top").onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_TOP_COLOR",
-            effectController["skyTopIntensity"] * value[0] / 255.0,
-            effectController["skyTopIntensity"] * value[1] / 255.0,
-            effectController["skyTopIntensity"] * value[2] / 255.0);
+            uiState["skyTopIntensity"] * value[0] / 255.0,
+            uiState["skyTopIntensity"] * value[1] / 255.0,
+            uiState["skyTopIntensity"] * value[2] / 255.0);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "skyTopIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
+    lighting.add(uiState, "skyTopIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_TOP_COLOR",
-            effectController["skyTopColor"][0] / 255.0 * value,
-            effectController["skyTopColor"][1] / 255.0 * value,
-            effectController["skyTopColor"][2] / 255.0 * value);
+            uiState["skyTopColor"][0] / 255.0 * value,
+            uiState["skyTopColor"][1] / 255.0 * value,
+            uiState["skyTopColor"][2] / 255.0 * value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
 
-    lighting.addColor(effectController, "skyMidColor").name("Sky Mid").onChange(function (value) {
+    lighting.addColor(uiState, "skyMidColor").name("Sky Mid").onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
-            effectController["skyMidIntensity"] * value[0] / 255.0,
-            effectController["skyMidIntensity"] * value[1] / 255.0,
-            effectController["skyMidIntensity"] * value[2] / 255.0);
+            uiState["skyMidIntensity"] * value[0] / 255.0,
+            uiState["skyMidIntensity"] * value[1] / 255.0,
+            uiState["skyMidIntensity"] * value[2] / 255.0);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "skyMidIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
+    lighting.add(uiState, "skyMidIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
-            effectController["skyMidColor"][0] / 255.0 * value,
-            effectController["skyMidColor"][1] / 255.0 * value,
-            effectController["skyMidColor"][2] / 255.0 * value);
+            uiState["skyMidColor"][0] / 255.0 * value,
+            uiState["skyMidColor"][1] / 255.0 * value,
+            uiState["skyMidColor"][2] / 255.0 * value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.addColor(effectController, "skyBotColor").name("Sky Bottom").onChange(function (value) {
+    lighting.addColor(uiState, "skyBotColor").name("Sky Bottom").onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
-            effectController["skyBotIntensity"] * value[0] / 255.0,
-            effectController["skyBotIntensity"] * value[1] / 255.0,
-            effectController["skyBotIntensity"] * value[2] / 255.0);
+            uiState["skyBotIntensity"] * value[0] / 255.0,
+            uiState["skyBotIntensity"] * value[1] / 255.0,
+            uiState["skyBotIntensity"] * value[2] / 255.0);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "skyBotIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
+    lighting.add(uiState, "skyBotIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
-            effectController["skyBotColor"][0] / 255.0 * value,
-            effectController["skyBotColor"][1] / 255.0 * value,
-            effectController["skyBotColor"][2] / 255.0 * value);
+            uiState["skyBotColor"][0] / 255.0 * value,
+            uiState["skyBotColor"][1] / 255.0 * value,
+            uiState["skyBotColor"][2] / 255.0 * value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "lightDistance").max(100.0).min(0.0).step(0.1).onChange(function (value) {
+    lighting.add(uiState, "lightDistance").max(100.0).min(0.0).step(0.1).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("LIGHT_POS", 0, value, effectController["lightTheta"] * 180.0 / 3.14159265, effectController["lightPhi"] * 180.0 / 3.14159265);
+        cb.addCommand("LIGHT_POS", 0, value, uiState["lightTheta"] * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "lightTheta").max(180.0).min(-180.0).step(1).onChange(function (value) {
+    lighting.add(uiState, "lightTheta").max(180.0).min(-180.0).step(1).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("LIGHT_POS", 0, effectController["lightDistance"], value * 180.0 / 3.14159265, effectController["lightPhi"] * 180.0 / 3.14159265);
+        cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], value * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "lightPhi").max(180.0).min(0.0).step(1).onChange(function (value) {
+    lighting.add(uiState, "lightPhi").max(180.0).min(0.0).step(1).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("LIGHT_POS", 0, effectController["lightDistance"], effectController["lightTheta"] * 180.0 / 3.14159265, value * 180.0 / 3.14159265);
+        cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], uiState["lightTheta"] * 180.0 / 3.14159265, value * 180.0 / 3.14159265);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "lightSize").max(100.0).min(0.01).step(0.1).onChange(function (value) {
+    lighting.add(uiState, "lightSize").max(100.0).min(0.01).step(0.1).onChange(function (value) {
         var cb = new commandBuffer();
         cb.addCommand("LIGHT_SIZE", 0, value, value);
         flushCommandBuffer(cb);
@@ -303,17 +303,17 @@ function setupGui() {
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.add(effectController, "lightIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
+    lighting.add(uiState, "lightIntensity").max(100.0).min(0.01).step(0.1).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("LIGHT_COLOR", 0, effectController["lightColor"][0] / 255.0 * value, effectController["lightColor"][1] / 255.0 * value, effectController["lightColor"][2] / 255.0 * value);
+        cb.addCommand("LIGHT_COLOR", 0, uiState["lightColor"][0] / 255.0 * value, uiState["lightColor"][1] / 255.0 * value, uiState["lightColor"][2] / 255.0 * value);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
         _stream_mode_suspended = false;
     });
-    lighting.addColor(effectController, "lightColor").name("lightcolor").onChange(function (value) {
+    lighting.addColor(uiState, "lightColor").name("lightcolor").onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("LIGHT_COLOR", 0, value[0] / 255.0 * effectController["lightIntensity"], value[1] / 255.0 * effectController["lightIntensity"], value[2] / 255.0 * effectController["lightIntensity"]);
+        cb.addCommand("LIGHT_COLOR", 0, value[0] / 255.0 * uiState["lightIntensity"], value[1] / 255.0 * uiState["lightIntensity"], value[2] / 255.0 * uiState["lightIntensity"]);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {
@@ -338,9 +338,9 @@ dat.GUI.prototype.removeFolder = function (name) {
 
 function resetCamera() {
     // set up positions based on sizes.
-    var x = effectController.infoObj.pixel_size_x * effectController.infoObj.x;
-    var y = effectController.infoObj.pixel_size_y * effectController.infoObj.y;
-    var z = effectController.infoObj.pixel_size_z * effectController.infoObj.z;
+    var x = uiState.infoObj.pixel_size_x * uiState.infoObj.x;
+    var y = uiState.infoObj.pixel_size_y * uiState.infoObj.y;
+    var z = uiState.infoObj.pixel_size_z * uiState.infoObj.z;
     var maxdim = Math.max(x, Math.max(y, z));
     const camdist = 1.5;
     gCamera.position.x = 0.5 * x / maxdim;
@@ -353,33 +353,34 @@ function resetCamera() {
     gControls.target.y = 0.5 * y / maxdim;
     gControls.target.z = 0.5 * z / maxdim;
     gControls.target0 = gControls.target.clone();
-    effectController.focal_distance = camdist;
+    uiState.focal_distance = camdist;
     sendCameraUpdate();
 }
 
 function onNewImage(infoObj) {
-    effectController.infoObj = infoObj;
+    uiState.infoObj = infoObj;
     resetCamera();
     setupChannelsGui();
 }
 
 function setupChannelsGui() {
-    if (effectController && effectController.channelFolderNames) {
-        for (var i = 0; i < effectController.channelFolderNames.length; ++i) {
-            gui.removeFolder(effectController.channelFolderNames[i]);
+/*
+    if (uiState && uiState.channelFolderNames) {
+        for (var i = 0; i < uiState.channelFolderNames.length; ++i) {
+            gui.removeFolder(uiState.channelFolderNames[i]);
         }
     }
-
-    //var infoObj = effectController.infoObj;
-    effectController.infoObj.channelGui = [];
+*/
+    //var infoObj = uiState.infoObj;
+    uiState.infoObj.channelGui = [];
     initcolors = [
         [255, 0, 255],
         [255, 255, 255],
         [0, 255, 255]
     ];
-    effectController.channelFolderNames = []
-    for (var i = 0; i < effectController.infoObj.c; ++i) {
-        effectController.infoObj.channelGui.push({
+    uiState.channelFolderNames = []
+    for (var i = 0; i < uiState.infoObj.c; ++i) {
+        uiState.infoObj.channelGui.push({
             colorD: (i < 3) ? initcolors[i] : [255, 255, 255],
             colorS: [0, 0, 0],
             colorE: [0, 0, 0],
@@ -388,42 +389,44 @@ function setupChannelsGui() {
             roughness: 0.0,
             enabled: (i < 3) ? true : false
         });
-        var f = gui.addFolder("Channel " + effectController.infoObj.channel_names[i]);
-        effectController.channelFolderNames.push("Channel " + effectController.infoObj.channel_names[i]);
-        f.add(effectController.infoObj.channelGui[i], "enabled").onChange(function (j) {
+
+if (false) {        
+        var f = gui.addFolder("Channel " + uiState.infoObj.channel_names[i]);
+        uiState.channelFolderNames.push("Channel " + uiState.infoObj.channel_names[i]);
+        f.add(uiState.infoObj.channelGui[i], "enabled").onChange(function (j) {
             return function (value) {
                 var cb = new commandBuffer();
                 cb.addCommand("ENABLE_CHANNEL", j, value ? 1 : 0);
                 flushCommandBuffer(cb);
             };
         }(i));
-        f.addColor(effectController.infoObj.channelGui[i], "colorD").name("Diffuse").onChange(function (j) {
+        f.addColor(uiState.infoObj.channelGui[i], "colorD").name("Diffuse").onChange(function (j) {
             return function (value) {
                 var cb = new commandBuffer();
                 cb.addCommand("MAT_DIFFUSE", j, value[0] / 255.0, value[1] / 255.0, value[2] / 255.0, 1.0);
                 flushCommandBuffer(cb);
             };
         }(i));
-        f.addColor(effectController.infoObj.channelGui[i], "colorS").name("Specular").onChange(function (j) {
+        f.addColor(uiState.infoObj.channelGui[i], "colorS").name("Specular").onChange(function (j) {
             return function (value) {
                 var cb = new commandBuffer();
                 cb.addCommand("MAT_SPECULAR", j, value[0] / 255.0, value[1] / 255.0, value[2] / 255.0, 1.0);
                 flushCommandBuffer(cb);
             };
         }(i));
-        f.addColor(effectController.infoObj.channelGui[i], "colorE").name("Emissive").onChange(function (j) {
+        f.addColor(uiState.infoObj.channelGui[i], "colorE").name("Emissive").onChange(function (j) {
             return function (value) {
                 var cb = new commandBuffer();
                 cb.addCommand("MAT_EMISSIVE", j, value[0] / 255.0, value[1] / 255.0, value[2] / 255.0, 1.0);
                 flushCommandBuffer(cb);
             };
         }(i));
-        f.add(effectController.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function (j) {
+        f.add(uiState.infoObj.channelGui[i], "window").max(1.0).min(0.0).step(0.001).onChange(function (j) {
                 return function (value) {
                     if (!waiting_for_image) {
                         var cb = new commandBuffer();
                         cb.addCommand("STREAM_MODE", 0);
-                        cb.addCommand("SET_WINDOW_LEVEL", j, value, effectController.infoObj.channelGui[j].level);
+                        cb.addCommand("SET_WINDOW_LEVEL", j, value, uiState.infoObj.channelGui[j].level);
                         flushCommandBuffer(cb);
                         waiting_for_image = true;
                     }
@@ -440,12 +443,12 @@ function setupChannelsGui() {
                 _stream_mode_suspended = false;
             });
 
-        f.add(effectController.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function (j) {
+        f.add(uiState.infoObj.channelGui[i], "level").max(1.0).min(0.0).step(0.001).onChange(function (j) {
                 return function (value) {
                     if (!waiting_for_image) {
                         var cb = new commandBuffer();
                         cb.addCommand("STREAM_MODE", 0);
-                        cb.addCommand("SET_WINDOW_LEVEL", j, effectController.infoObj.channelGui[j].window, value);
+                        cb.addCommand("SET_WINDOW_LEVEL", j, uiState.infoObj.channelGui[j].window, value);
                         flushCommandBuffer(cb);
                         waiting_for_image = true;
                     }
@@ -461,7 +464,7 @@ function setupChannelsGui() {
                 flushCommandBuffer(cb2);
                 _stream_mode_suspended = false;
             });
-        f.add(effectController.infoObj.channelGui[i], "roughness").max(100.0).min(0.0).onChange(function (j) {
+        f.add(uiState.infoObj.channelGui[i], "roughness").max(100.0).min(0.0).onChange(function (j) {
                 return function (value) {
                     if (!waiting_for_image) {
                         var cb = new commandBuffer();
@@ -477,10 +480,10 @@ function setupChannelsGui() {
             });
 
     }
-
+}
     var cb = new commandBuffer();
-    for (var i = 0; i < effectController.infoObj.c; ++i) {
-        var ch = effectController.infoObj.channelGui[i];
+    for (var i = 0; i < uiState.infoObj.c; ++i) {
+        var ch = uiState.infoObj.channelGui[i];
         cb.addCommand("ENABLE_CHANNEL", i, ch.enabled ? 1 : 0);
         cb.addCommand("MAT_DIFFUSE", i, ch.colorD[0] / 255.0, ch.colorD[1] / 255.0, ch.colorD[2] / 255.0, 1.0);
         cb.addCommand("MAT_SPECULAR", i, ch.colorS[0] / 255.0, ch.colorS[1] / 255.0, ch.colorS[2] / 255.0, 1.0);
@@ -522,7 +525,7 @@ function init() {
 
     toggleDivVisibility(streamimg1, true);
 
-    setupGui();
+   // setupGui();
 
     animate();
 }
@@ -543,30 +546,30 @@ function binarysocket(channelnumber = 0) {
     this.open = function (evt) {
 
         var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", effectController.file);
+        cb.addCommand("LOAD_OME_TIF", uiState.file);
         cb.addCommand("SET_RESOLUTION", 512, 512);
         cb.addCommand("FRAME_SCENE");
-        cb.addCommand("APERTURE", effectController.aperture);
-        cb.addCommand("EXPOSURE", effectController.exposure);
+        cb.addCommand("APERTURE", uiState.aperture);
+        cb.addCommand("EXPOSURE", uiState.exposure);
         cb.addCommand("SKYLIGHT_TOP_COLOR",
-            effectController.skyTopIntensity * effectController.skyTopColor[0] / 255.0,
-            effectController.skyTopIntensity * effectController.skyTopColor[1] / 255.0,
-            effectController.skyTopIntensity * effectController.skyTopColor[2] / 255.0);
+            uiState.skyTopIntensity * uiState.skyTopColor[0] / 255.0,
+            uiState.skyTopIntensity * uiState.skyTopColor[1] / 255.0,
+            uiState.skyTopIntensity * uiState.skyTopColor[2] / 255.0);
         cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
-            effectController.skyMidIntensity * effectController.skyMidColor[0] / 255.0,
-            effectController.skyMidIntensity * effectController.skyMidColor[1] / 255.0,
-            effectController.skyMidIntensity * effectController.skyMidColor[2] / 255.0);
+            uiState.skyMidIntensity * uiState.skyMidColor[0] / 255.0,
+            uiState.skyMidIntensity * uiState.skyMidColor[1] / 255.0,
+            uiState.skyMidIntensity * uiState.skyMidColor[2] / 255.0);
         cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
-            effectController.skyBotIntensity * effectController.skyBotColor[0] / 255.0,
-            effectController.skyBotIntensity * effectController.skyBotColor[1] / 255.0,
-            effectController.skyBotIntensity * effectController.skyBotColor[2] / 255.0);
-        cb.addCommand("LIGHT_POS", 0, effectController.lightDistance, effectController.lightTheta, effectController.lightPhi);
+            uiState.skyBotIntensity * uiState.skyBotColor[0] / 255.0,
+            uiState.skyBotIntensity * uiState.skyBotColor[1] / 255.0,
+            uiState.skyBotIntensity * uiState.skyBotColor[2] / 255.0);
+        cb.addCommand("LIGHT_POS", 0, uiState.lightDistance, uiState.lightTheta, uiState.lightPhi);
         cb.addCommand("LIGHT_COLOR", 0,
-            effectController.lightColor[0] / 255.0 * effectController.lightIntensity,
-            effectController.lightColor[1] / 255.0 * effectController.lightIntensity,
-            effectController.lightColor[2] / 255.0 * effectController.lightIntensity,
+            uiState.lightColor[0] / 255.0 * uiState.lightIntensity,
+            uiState.lightColor[1] / 255.0 * uiState.lightIntensity,
+            uiState.lightColor[2] / 255.0 * uiState.lightIntensity,
         );
-        cb.addCommand("LIGHT_SIZE", 0, effectController.lightSize, effectController.lightSize);
+        cb.addCommand("LIGHT_SIZE", 0, uiState.lightSize, uiState.lightSize);
         cb.addCommand("STREAM_MODE", 1);
         flushCommandBuffer(cb);
         var cb2 = new commandBuffer();
@@ -780,3 +783,4 @@ var screenImage = {
         }
     }
 };
+

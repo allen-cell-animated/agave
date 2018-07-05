@@ -2,16 +2,18 @@
 <html>
 <head>
 
-
     <!--<meta http-equiv="content-type" content="text/html; charset=utf-8">-->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>Animated Cell</title>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.21.0/system.js"></script>
+
     <script src="js/three.min.js"></script>
     <script src="js/dat.gui.min.js"></script>
     <script src="js/commandbuffer.js"></script>
+    <script src="js/setupImgui.js"></script>
     <script src="js/AICStrackballControls.js"></script>
     <script src="js/animatedcell.js"></script>
 <style>
@@ -19,7 +21,14 @@
         width: 512px;
         height: 512px;
       }
-      
+    #output {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        width: 50%;
+        height: 100%;
+        z-index: 1;
+    }      
 </style>
 </head>
 
@@ -27,7 +36,7 @@
 <body>
 
 <img class="streamed_img img0 splitview square" id="imageA" ondragstart="return false;">
-
+<canvas id="output" tabindex="1"></canvas>
 
 </body>
 </html>
