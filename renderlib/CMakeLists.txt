@@ -27,6 +27,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/HardwareWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/HardwareWidget.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/Histogram.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Histogram.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcCuda.cpp"

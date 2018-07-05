@@ -237,6 +237,7 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/) :
 	setLayout(&_layout);
 
 	_slider.setOrientation(Qt::Horizontal);
+	_spinner.setDecimals(4);
 
 	// entire control is one single row.
 	// slider is 3/4, spinner is 1/4 of the width

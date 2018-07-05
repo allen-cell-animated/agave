@@ -71,6 +71,26 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
+	_scaleSection = new Section("Scale", 0);
+	auto* scaleSectionLayout = new QGridLayout();
+	scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
+	QDoubleSpinner* xscaleSpinner = new QDoubleSpinner();
+	scaleSectionLayout->addWidget(xscaleSpinner, 0, 1);
+	QObject::connect(xscaleSpinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), this, &QAppearanceSettingsWidget::OnSetScaleX);
+	scaleSectionLayout->addWidget(new QLabel("Y"), 1, 0);
+	QDoubleSpinner* yscaleSpinner = new QDoubleSpinner();
+	scaleSectionLayout->addWidget(yscaleSpinner, 1, 1);
+	QObject::connect(yscaleSpinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), this, &QAppearanceSettingsWidget::OnSetScaleY);
+	scaleSectionLayout->addWidget(new QLabel("Z"), 2, 0);
+	QDoubleSpinner* zscaleSpinner = new QDoubleSpinner();
+	scaleSectionLayout->addWidget(zscaleSpinner, 2, 1);
+	QObject::connect(zscaleSpinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), this, &QAppearanceSettingsWidget::OnSetScaleZ);
+
+	_scaleSection->setContentLayout(*scaleSectionLayout);
+	m_MainLayout.addWidget(_scaleSection, 12, 0, 1, -1);
+
+
+
 	_clipRoiSection = new Section("ROI", 0);
 	auto* roiSectionLayout = new QGridLayout();
 	roiSectionLayout->addWidget(new QLabel("X"), 0, 0);
@@ -99,7 +119,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(zSlider, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
 
 	_clipRoiSection->setContentLayout(*roiSectionLayout);
-	m_MainLayout.addWidget(_clipRoiSection, 12, 0, 1, -1);
+	m_MainLayout.addWidget(_clipRoiSection, 13, 0, 1, -1);
 
 
 	Section* section = new Section("Lighting", 0);
@@ -191,7 +211,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 
 	section->setContentLayout(*sectionLayout);
-	m_MainLayout.addWidget(section, 13, 0, 1, -1);
+	m_MainLayout.addWidget(section, 14, 0, 1, -1);
 
 	QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
 	QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -201,6 +221,27 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 }
 
+void QAppearanceSettingsWidget::OnSetScaleX(double value)
+{
+	if (!_scene) return;
+	_scene->_volume->setPhysicalSize(value, _scene->_volume->physicalSizeY(), _scene->_volume->physicalSizeZ());
+	_scene->initSceneFromImg(_scene->_volume);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void QAppearanceSettingsWidget::OnSetScaleY(double value)
+{
+	if (!_scene) return;
+	_scene->_volume->setPhysicalSize(_scene->_volume->physicalSizeX(), value, _scene->_volume->physicalSizeZ());
+	_scene->initSceneFromImg(_scene->_volume);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void QAppearanceSettingsWidget::OnSetScaleZ(double value)
+{
+	if (!_scene) return;
+	_scene->_volume->setPhysicalSize(_scene->_volume->physicalSizeX(), _scene->_volume->physicalSizeY(), value);
+	_scene->initSceneFromImg(_scene->_volume);
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+}
 void QAppearanceSettingsWidget::OnSetRoiXMin(int value)
 {
 	if (!_scene) return;
@@ -399,7 +440,7 @@ void QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& colo
 void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
 {
 	if (!_scene) return;
-	LOG_DEBUG << "window/level: " << window << ", " << level;
+	//LOG_DEBUG << "window/level: " << window << ", " << level;
 	_scene->_volume->channel((uint32_t)i)->generate_windowLevel(window, level);
 
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -483,7 +524,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_auto(w,l);
-			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			//LOG_DEBUG << "Window/level: " << w << " , " << l;
 			windowSlider->setValue(w, true);
 			levelSlider->setValue(l, true);
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -493,7 +534,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		QObject::connect(auto2Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
 			float w, l;
 			this->_scene->_volume->channel((uint32_t)i)->generate_auto2(w, l);
-			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			//LOG_DEBUG << "Window/level: " << w << " , " << l;
 			windowSlider->setValue(w, true);
 			levelSlider->setValue(l, true);
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -505,7 +546,19 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			this->_scene->_volume->channel((uint32_t)i)->generate_bestFit(w, l);
 			windowSlider->setValue(w, true);
 			levelSlider->setValue(l, true);
-			LOG_DEBUG << "Window/level: " << w << " , " << l;
+			//LOG_DEBUG << "Window/level: " << w << " , " << l;
+			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+		});
+		QPushButton* chimeraxButton = new QPushButton("ChimX");
+		sectionLayout->addWidget(chimeraxButton, row, 3);
+		QObject::connect(chimeraxButton, &QPushButton::clicked, [this, i]() {
+			this->_scene->_volume->channel((uint32_t)i)->generate_chimerax();
+			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+		});
+		QPushButton* eqButton = new QPushButton("Eq");
+		sectionLayout->addWidget(eqButton, row, 4);
+		QObject::connect(eqButton, &QPushButton::clicked, [this, i]() {
+			this->_scene->_volume->channel((uint32_t)i)->generate_equalized();
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
 
@@ -559,7 +612,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		this->OnChannelChecked(i, channelenabled);
 
 		section->setContentLayout(*sectionLayout);
-		m_MainLayout.addWidget(section, 14+i, 0, 1, -1);
+		m_MainLayout.addWidget(section, 15+i, 0, 1, -1);
 		_channelSections.push_back(section);
 	}
 }

@@ -52,16 +52,11 @@ CD CudaCamera gCamera;
 #define TF_NO_SAMPLES		128
 #define INV_TF_NO_SAMPLES	1.0f / (float)TF_NO_SAMPLES
 
-//#include "Camera.cuh"
-//#include "Model.cuh"
-//#include "View.cuh"
-//#include "Blur.cuh"
 #include "Denoise.cuh"
 #include "Estimate.cuh"
 #include "Utilities.cuh"
 #include "SingleScattering.cuh"
 #include "NearestIntersection.cuh"
-//#include "SpecularBloom.cuh"
 #include "ToneMap.cuh"
 
 
