@@ -242,5 +242,27 @@ void SetVoxelScaleCommand::execute(ExecutionContext* c) {
 	c->_appScene->initSceneFromImg(c->_appScene->_volume);
 	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
+void AutoThresholdCommand::execute(ExecutionContext* c) {
+	LOG_DEBUG << "AutoThreshold " << _data._channel << " " << _data._method;
+	float window, level;
+	switch (_data._method) {
+	case 0:
+		c->_appScene->_volume->channel(_data._channel)->generate_auto2(window, level);
+		break;
+	case 1:
+		c->_appScene->_volume->channel(_data._channel)->generate_auto(window, level);
+		break;
+	case 2:
+		c->_appScene->_volume->channel(_data._channel)->generate_bestFit(window, level);
+		break;
+	case 3:
+		c->_appScene->_volume->channel(_data._channel)->generate_chimerax();
+		break;
+	default:
+		c->_appScene->_volume->channel(_data._channel)->generate_auto2(window, level);
+		break;
+	}
+	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
 
 

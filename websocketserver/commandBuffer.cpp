@@ -72,6 +72,7 @@ FWDDECL_PARSE(SetLightColorCommand);
 FWDDECL_PARSE(SetLightSizeCommand);
 FWDDECL_PARSE(SetClipRegionCommand);
 FWDDECL_PARSE(SetVoxelScaleCommand);
+FWDDECL_PARSE(AutoThresholdCommand);
 
 #define CMD_CASE(CMDCLASS) \
 	case (CMDCLASS::_ID):\
@@ -121,6 +122,7 @@ void commandBuffer::processBuffer()
 					CMD_CASE(SetLightSizeCommand);
 					CMD_CASE(SetClipRegionCommand);
 					CMD_CASE(SetVoxelScaleCommand);
+					CMD_CASE(AutoThresholdCommand);
 				default:
 					// ERROR UNRECOGNIZED COMMAND SIGNATURE.  
 					// PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -389,4 +391,10 @@ Command* parseSetVoxelScaleCommand(CommandBufferIterator* c) {
 	data._y = c->parseFloat32();
 	data._z = c->parseFloat32();
 	return new SetVoxelScaleCommand(data);
+}
+Command* parseAutoThresholdCommand(CommandBufferIterator* c) {
+	AutoThresholdCommandD data;
+	data._channel = c->parseInt32();
+	data._method = c->parseInt32();
+	return new AutoThresholdCommand(data);
 }

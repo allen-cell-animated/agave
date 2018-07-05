@@ -55,7 +55,9 @@ var COMMANDS = {
   // xmin, xmax, ymin, ymax, zmin, zmax
   SET_CLIP_REGION: [29, "F32", "F32", "F32", "F32", "F32", "F32"],
   // x, y, z pixel scaling
-  SET_VOXEL_SCALE: [30, "F32", "F32", "F32"]
+  SET_VOXEL_SCALE: [30, "F32", "F32", "F32"],
+  // channel, method
+  AUTO_THRESHOLD: [31, "I32", "I32"]
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?

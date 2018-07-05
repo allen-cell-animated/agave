@@ -197,4 +197,9 @@ struct SetVoxelScaleCommandD {
 };
 CMDDECL(SetVoxelScaleCommand, 30);
 
+struct AutoThresholdCommandD {
+	int32_t _channel;
+	int32_t _method;
+};
+CMDDECL(AutoThresholdCommand, 31);
 
