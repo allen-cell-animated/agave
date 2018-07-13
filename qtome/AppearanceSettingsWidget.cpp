@@ -56,16 +56,18 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
 	m_MainLayout.addWidget(new QLabel("Primary Step Size"), 5, 0);
-	m_StepSizePrimaryRaySlider.setRange(1.0, 10.0);
-	m_StepSizePrimaryRaySlider.setDecimals(2);
+	m_StepSizePrimaryRaySlider.setRange(0.1, 100.0);
+	m_StepSizePrimaryRaySlider.setValue(1.0);
+	m_StepSizePrimaryRaySlider.setDecimals(3);
 	m_MainLayout.addWidget(&m_StepSizePrimaryRaySlider, 5, 1, 1, 2);
 
 	QObject::connect(&m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
 	m_MainLayout.addWidget(new QLabel("Secondary Step Size"), 6, 0);
 
-	m_StepSizeSecondaryRaySlider.setRange(1.0, 10.0);
-	m_StepSizeSecondaryRaySlider.setDecimals(2);
+	m_StepSizeSecondaryRaySlider.setRange(0.1, 100.0);
+	m_StepSizeSecondaryRaySlider.setValue(1.0);
+	m_StepSizeSecondaryRaySlider.setDecimals(3);
 
 	m_MainLayout.addWidget(&m_StepSizeSecondaryRaySlider, 6, 1, 1, 2);
 
