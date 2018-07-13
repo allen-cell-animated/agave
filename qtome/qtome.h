@@ -37,7 +37,7 @@ private slots:
 	void dumpPythonState();
 
 private:
-	enum { MaxRecentFiles = 5 };
+	enum { MaxRecentFiles = 8 };
 
 	void createActions();
 	void createMenus();

@@ -64,7 +64,7 @@ qtome::qtome(QWidget *parent)
 	//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
 
-	setWindowTitle(tr("OME-Files GLView"));
+	setWindowTitle(tr("AICS high performance volume viewer"));
 
 	_appScene.initLights();
 }
