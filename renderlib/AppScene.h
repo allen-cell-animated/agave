@@ -86,6 +86,7 @@ struct VolumeDisplay {
 	float specular[MAX_CPU_CHANNELS * 3];
 	float emissive[MAX_CPU_CHANNELS * 3];
 	float roughness[MAX_CPU_CHANNELS];
+	float opacity[MAX_CPU_CHANNELS];
 	bool enabled[MAX_CPU_CHANNELS];
 };
 

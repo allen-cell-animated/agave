@@ -418,6 +418,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
 			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
 			theCudaVolume.roughness[activeChannel] = _scene->_material.roughness[i];
+			theCudaVolume.opacity[activeChannel] = _scene->_material.opacity[i];
 
 			activeChannel++;
 			theCudaVolume.nChannels = activeChannel;

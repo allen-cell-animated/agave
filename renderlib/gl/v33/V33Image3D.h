@@ -5,6 +5,7 @@
 #include <memory>
 
 class ImageXYZC;
+class RenderSettings;
 
 /**
     * 2D (xy) image renderer.
@@ -35,7 +36,7 @@ public:
 	void create();
 
 	void
-		render(const CCamera& camera, const Scene* scene);
+		render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings);
 
 
 	/**

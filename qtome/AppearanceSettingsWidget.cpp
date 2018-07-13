@@ -446,6 +446,15 @@ void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double le
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
+void QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
+{
+	if (!_scene) return;
+	//LOG_DEBUG << "window/level: " << window << ", " << level;
+	//_scene->_volume->channel((uint32_t)i)->setOpacity(opacity);
+	_scene->_material.opacity[i] = opacity;
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
 void QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
 	if (!_scene) return;
@@ -561,6 +570,19 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			this->_scene->_volume->channel((uint32_t)i)->generate_equalized();
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
+
+		row++;
+		sectionLayout->addWidget(new QLabel("Opacity"), row, 0);
+		QNumericSlider* opacitySlider = new QNumericSlider();
+		opacitySlider->setRange(0.0, 1.0);
+		opacitySlider->setValue(1.0, true);
+		sectionLayout->addWidget(opacitySlider, row, 1, 1, 2);
+
+		QObject::connect(opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) {
+			this->OnOpacityChanged(i, d);
+		});
+		// init
+		this->OnOpacityChanged(i, 1.0);
 
 		row++;
 		QColorPushButton* diffuseColorButton = new QColorPushButton();
