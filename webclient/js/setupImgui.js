@@ -8,14 +8,18 @@ SystemJS.config({
         }
     }
 });
-Promise.all([
-        System.import("imgui-js"),
-        System.import("imgui-js/example/imgui_impl")
-    ])
-    .then((modules) => {
-        const ImGui = modules[0];
-        const ImGui_Impl = modules[1];
-
+let ImGui;
+let ImGui_Impl;
+Promise.resolve().then(() => {
+  return System.import("imgui-js").then((module) => {
+    ImGui = module;
+    return ImGui.default();
+  });
+}).then(() => {
+  return System.import("imgui-js/example/imgui_impl").then((module) => {
+    ImGui_Impl = module;
+  });
+}).then(() => {
         const canvas = document.getElementById("output");
         const devicePixelRatio = window.devicePixelRatio || 1;
         canvas.width = canvas.scrollWidth * devicePixelRatio;
@@ -44,6 +48,7 @@ Promise.all([
 
         function _loop(time) {
             ImGui_Impl.NewFrame(time);
+            ImGui.NewFrame();
 
             ImGui.SetNextWindowPos(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
             ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
@@ -106,6 +111,304 @@ Promise.all([
                     0.0, 100.0
                 );
                 ImGui.ColorEdit4("clear color", clear_color);
+
+                if (ImGui.CollapsingHeader("Camera")) {
+                    ImGui.SliderFloat("exposure", 
+                    (_ = uiState.exposure) => {
+                        if (_ !== uiState.exposure) {
+                            uiState.exposure = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("EXPOSURE", _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+                    ImGui.SliderFloat("aperture", 
+                    (_ = uiState.aperture) => {
+                        if (_ !== uiState.aperture) {
+                            uiState.aperture = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("APERTURE", _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 0.1
+                    );
+                    ImGui.SliderFloat("focal_distance", 
+                    (_ = uiState.focal_distance) => {
+                        if (_ !== uiState.focal_distance) {
+                            uiState.focal_distance = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("FOCALDIST", _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.1, 5.0
+                    );
+                    ImGui.SliderFloat("fov", 
+                    (_ = uiState.fov) => {
+                        if (_ !== uiState.fov) {
+                            uiState.fov = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("FOV_Y", _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 90.0
+                    );
+                }
+
+                if (ImGui.CollapsingHeader("Volume Clipping")) {
+                    ImGui.SliderFloat("xmin", 
+                    (_ = uiState.xmin) => {
+                        if (_ !== uiState.xmin) {
+                            uiState.xmin = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+                    ImGui.SliderFloat("xmax", 
+                    (_ = uiState.xmax) => {
+                        if (_ !== uiState.xmax) {
+                            uiState.xmax = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+                    ImGui.SliderFloat("ymin", 
+                    (_ = uiState.ymin) => {
+                        if (_ !== uiState.ymin) {
+                            uiState.ymin = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+                    ImGui.SliderFloat("ymax", 
+                    (_ = uiState.ymax) => {
+                        if (_ !== uiState.ymax) {
+                            uiState.ymax = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+                    ImGui.SliderFloat("zmin", 
+                    (_ = uiState.zmin) => {
+                        if (_ !== uiState.zmin) {
+                            uiState.zmin = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+                    ImGui.SliderFloat("zmax", 
+                    (_ = uiState.zmax) => {
+                        if (_ !== uiState.zmax) {
+                            uiState.zmax = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_CLIP_REGION", uiState.xmin, uiState.xmax, uiState.ymin, uiState.ymax, uiState.zmin, uiState.zmax);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 1.0
+                    );
+
+                }
+
+                if (ImGui.CollapsingHeader("Lighting")) {
+
+                    if (ImGui.ColorEdit3("skyTopColor", uiState.skyTopColor)) {
+                        var cb = new commandBuffer();
+                        cb.addCommand("SKYLIGHT_TOP_COLOR", 
+                            uiState["skyTopIntensity"] * uiState.skyTopColor[0],
+                            uiState["skyTopIntensity"] * uiState.skyTopColor[1],
+                            uiState["skyTopIntensity"] * uiState.skyTopColor[2]);
+                        flushCommandBuffer(cb);                
+                    }
+
+                    ImGui.SliderFloat("skyTopIntensity", 
+                    (_ = uiState.skyTopIntensity) => {
+                        if (_ !== uiState.skyTopIntensity) {
+                            uiState.skyTopIntensity = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SKYLIGHT_TOP_COLOR",
+                                uiState["skyTopColor"][0] * _,
+                                uiState["skyTopColor"][1] * _,
+                                uiState["skyTopColor"][2] * _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.01, 100.0
+                    );
+
+                    if (ImGui.ColorEdit3("skyMidColor", uiState.skyMidColor)) {
+                        var cb = new commandBuffer();
+                        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", 
+                            uiState["skyMidIntensity"] * uiState.skyMidColor[0],
+                            uiState["skyMidIntensity"] * uiState.skyMidColor[1],
+                            uiState["skyMidIntensity"] * uiState.skyMidColor[2]);
+                        flushCommandBuffer(cb);                
+                    }
+
+                    ImGui.SliderFloat("skyMidIntensity", 
+                    (_ = uiState.skyMidIntensity) => {
+                        if (_ !== uiState.skyMidIntensity) {
+                            uiState.skyMidIntensity = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
+                                uiState["skyMidColor"][0] * _,
+                                uiState["skyMidColor"][1] * _,
+                                uiState["skyMidColor"][2] * _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.01, 100.0
+                    );
+
+                    if (ImGui.ColorEdit3("skyBotColor", uiState.skyBotColor)) {
+                        var cb = new commandBuffer();
+                        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", 
+                            uiState["skyBotIntensity"] * uiState.skyBotColor[0],
+                            uiState["skyBotIntensity"] * uiState.skyBotColor[1],
+                            uiState["skyBotIntensity"] * uiState.skyBotColor[2]);
+                        flushCommandBuffer(cb);                
+                    }
+
+                    ImGui.SliderFloat("skyBotIntensity", 
+                    (_ = uiState.skyBotIntensity) => {
+                        if (_ !== uiState.skyBotIntensity) {
+                            uiState.skyBotIntensity = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
+                                uiState["skyBotColor"][0] * _,
+                                uiState["skyBotColor"][1] * _,
+                                uiState["skyBotColor"][2] * _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.01, 100.0
+                    );
+
+                    ImGui.SliderFloat("lightDistance", 
+                    (_ = uiState.lightDistance) => {
+                        if (_ !== uiState.lightDistance) {
+                            uiState.lightDistance = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("LIGHT_POS", 0, _, uiState["lightTheta"] * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 100.0
+                    );
+                    ImGui.SliderFloat("lightTheta", 
+                    (_ = uiState.lightTheta) => {
+                        if (_ !== uiState.lightTheta) {
+                            uiState.lightTheta = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], _ * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    -180.0, 180.0
+                    );
+                    ImGui.SliderFloat("lightPhi", 
+                    (_ = uiState.lightPhi) => {
+                        if (_ !== uiState.lightPhi) {
+                            uiState.lightPhi = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], uiState["lightTheta"] * 180.0 / 3.14159265, _ * 180.0 / 3.14159265);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.0, 180.0
+                    );
+
+                    ImGui.SliderFloat("lightSize", 
+                    (_ = uiState.lightSize) => {
+                        if (_ !== uiState.lightSize) {
+                            uiState.lightSize = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("LIGHT_SIZE", 0, _, _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.01, 100.0
+                    );
+
+                    ImGui.SliderFloat("lightIntensity", 
+                    (_ = uiState.lightIntensity) => {
+                        if (_ !== uiState.lightIntensity) {
+                            uiState.lightIntensity = _;
+                            var cb = new commandBuffer();
+                            cb.addCommand("LIGHT_COLOR", 0, uiState["lightColor"][0] * _, uiState["lightColor"][1] * _, uiState["lightColor"][2] * _);
+                            flushCommandBuffer(cb);                
+                            //_stream_mode_suspended = true;
+                        }
+                        return _;
+                    },
+                    0.01, 100.0
+                    );
+
+                    if (ImGui.ColorEdit3("lightColor", uiState.lightColor)) {
+                        var cb = new commandBuffer();
+                        cb.addCommand("LIGHT_COLOR", 0, 
+                            uiState.lightColor[0] * uiState["lightIntensity"], 
+                            uiState.lightColor[1] * uiState["lightIntensity"], 
+                            uiState.lightColor[2] * uiState["lightIntensity"]
+                        );
+                        flushCommandBuffer(cb);                
+                    }
+
+                }
+
             } catch (e) {
                 ImGui.TextColored(new ImGui.ImVec4(1.0, 0.0, 0.0, 1.0), "error: ");
                 ImGui.SameLine();
@@ -114,7 +417,15 @@ Promise.all([
 
             ImGui.End();
 
-            ImGui_Impl.EndFrame();
+            ImGui.SetNextWindowPos(new ImGui.ImVec2(294, 0), ImGui.Cond.FirstUseEver);
+            ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
+            ImGui.Begin("Image Channels");
+            ImGui.End();
+
+
+            ImGui.EndFrame();
+
+            ImGui.Render();
 
             const gl = ImGui_Impl.gl;
             gl && gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
