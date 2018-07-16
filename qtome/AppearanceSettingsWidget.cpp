@@ -56,16 +56,18 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
 	m_MainLayout.addWidget(new QLabel("Primary Step Size"), 5, 0);
-	m_StepSizePrimaryRaySlider.setRange(1.0, 10.0);
-	m_StepSizePrimaryRaySlider.setDecimals(2);
+	m_StepSizePrimaryRaySlider.setRange(0.1, 100.0);
+	m_StepSizePrimaryRaySlider.setValue(1.0);
+	m_StepSizePrimaryRaySlider.setDecimals(3);
 	m_MainLayout.addWidget(&m_StepSizePrimaryRaySlider, 5, 1, 1, 2);
 
 	QObject::connect(&m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
 	m_MainLayout.addWidget(new QLabel("Secondary Step Size"), 6, 0);
 
-	m_StepSizeSecondaryRaySlider.setRange(1.0, 10.0);
-	m_StepSizeSecondaryRaySlider.setDecimals(2);
+	m_StepSizeSecondaryRaySlider.setRange(0.1, 100.0);
+	m_StepSizeSecondaryRaySlider.setValue(1.0);
+	m_StepSizeSecondaryRaySlider.setDecimals(3);
 
 	m_MainLayout.addWidget(&m_StepSizeSecondaryRaySlider, 6, 1, 1, 2);
 
@@ -446,6 +448,15 @@ void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double le
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
+void QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
+{
+	if (!_scene) return;
+	//LOG_DEBUG << "window/level: " << window << ", " << level;
+	//_scene->_volume->channel((uint32_t)i)->setOpacity(opacity);
+	_scene->_material.opacity[i] = opacity;
+	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
 void QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
 	if (!_scene) return;
@@ -561,6 +572,19 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 			this->_scene->_volume->channel((uint32_t)i)->generate_equalized();
 			this->_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 		});
+
+		row++;
+		sectionLayout->addWidget(new QLabel("Opacity"), row, 0);
+		QNumericSlider* opacitySlider = new QNumericSlider();
+		opacitySlider->setRange(0.0, 1.0);
+		opacitySlider->setValue(1.0, true);
+		sectionLayout->addWidget(opacitySlider, row, 1, 1, 2);
+
+		QObject::connect(opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) {
+			this->OnOpacityChanged(i, d);
+		});
+		// init
+		this->OnOpacityChanged(i, 1.0);
 
 		row++;
 		QColorPushButton* diffuseColorButton = new QColorPushButton();

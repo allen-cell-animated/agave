@@ -24,6 +24,7 @@ struct cudaVolume {
 	float specular[MAX_CUDA_CHANNELS * 3];
 	float emissive[MAX_CUDA_CHANNELS * 3];
 	float roughness[MAX_CUDA_CHANNELS];
+	float opacity[MAX_CUDA_CHANNELS];
 
 	cudaTextureObject_t volumeTexture[MAX_CUDA_CHANNELS];
 	cudaTextureObject_t gradientVolumeTexture[MAX_CUDA_CHANNELS];

@@ -38,6 +38,7 @@ public:
 	void OnSpecularColorChanged(int i, const QColor& color);
 	void OnEmissiveColorChanged(int i, const QColor& color);
 	void OnSetWindowLevel(int i, double window, double level);
+	void OnOpacityChanged(int i, double opacity);
 	void OnRoughnessChanged(int i, double roughness);
 	void OnChannelChecked(int i, bool is_checked);
 
