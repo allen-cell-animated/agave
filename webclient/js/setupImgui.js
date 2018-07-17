@@ -10,6 +10,24 @@ SystemJS.config({
 });
 let ImGui;
 let ImGui_Impl;
+
+function PrepareImageTexture() {
+    // const gl = ImGui_Impl.gl;
+    // if (gl) {
+    //     uiState.imgTextureId = gl.createTexture();
+    //     gl.bindTexture(gl.TEXTURE_2D, uiState.imgTextureId);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    //     uiState.imgHolder = new Image();
+    //     uiState.imgHolder.addEventListener("load", (event) => {
+    //         gl.bindTexture(gl.TEXTURE_2D, uiState.imgTextureId);
+    //         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, uiState.imgHolder);
+    //     });
+    // }
+}
+
 Promise.resolve().then(() => {
   return System.import("imgui-js").then((module) => {
     ImGui = module;
@@ -33,6 +51,8 @@ Promise.resolve().then(() => {
     ImGui.CreateContext();
     ImGui_Impl.Init(canvas);
 
+    PrepareImageTexture();
+
     ImGui.StyleColorsDark();
     //ImGui.StyleColorsClassic();
 
@@ -50,8 +70,22 @@ Promise.resolve().then(() => {
         ImGui_Impl.NewFrame(time);
         ImGui.NewFrame();
 
+
+        if (uiState.imgTextureId) {
+            var res = uiState.resolutions[uiState.resolution].match(/(\d+)x(\d+)/);
+            if (res.length === 3) {
+                res[0] = parseInt(res[1]);
+                res[1] = parseInt(res[2]);
+            }
+            ImGui.SetNextWindowPos(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
+            ImGui.SetNextWindowSize(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
+            ImGui.Begin("Render");
+            ImGui.Image(uiState.imgTextureId, new ImGui.ImVec2(res[0], res[1]), new ImGui.ImVec2(0, 0), new ImGui.ImVec2(1, 1), new ImGui.ImVec4(1.0, 1.0, 1.0, 1.0), new ImGui.ImVec4(1.0, 1.0, 1.0, 0.5));
+            ImGui.End();
+        }
+
         ImGui.SetNextWindowPos(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
-        ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
+        ImGui.SetNextWindowSize(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
         ImGui.Begin("OME TIF Viewer");
 
         try {
@@ -257,7 +291,7 @@ Promise.resolve().then(() => {
         ImGui.End();
 
         ImGui.SetNextWindowPos(new ImGui.ImVec2(294, 0), ImGui.Cond.FirstUseEver);
-        ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
+        ImGui.SetNextWindowSize(new ImGui.ImVec2(0,0), ImGui.Cond.FirstUseEver);
         ImGui.Begin("Lighting");
 
         if (ImGui.ColorEdit3("skyTopColor", uiState.skyTopColor)) {
@@ -420,7 +454,7 @@ Promise.resolve().then(() => {
 
         if (uiState.infoObj && uiState.infoObj.c > 0) {
             ImGui.SetNextWindowPos(new ImGui.ImVec2(294, 0), ImGui.Cond.FirstUseEver);
-            ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
+            ImGui.SetNextWindowSize(new ImGui.ImVec2(0,0), ImGui.Cond.FirstUseEver);
             ImGui.Begin("Image Channels");
 
             for (var i = 0; i < uiState.infoObj.c; ++i) {

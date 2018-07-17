@@ -65,7 +65,8 @@ var uiState = {
     xmax: 1.0,
     ymax: 1.0,
     zmax: 1.0,
-    resetCamera: resetCamera
+    resetCamera: resetCamera,
+    imgTextureId: 0
 };
 
 function setupGui() {
@@ -768,20 +769,26 @@ var screenImage = {
      */
     set: function (binary, channelnumber) {
 
-        //get all the divs with the streamed_img tag and set the received binary data to the image's source
-        var tabs;
-        tabs = document.getElementsByClassName("streamed_img" + " img" + channelnumber);
-
-        if (tabs.length > 0) {
-            for (var i = 0; i < tabs.length; i++) {
-                tabs[i].src = binary;
-
-                img_width = tabs[i].width;
-                img_height = tabs[i].height;
-            }
-        } else {
-            console.warn("div 'streamed_img' not found :(");
+        if (uiState.imgHolder) {
+            uiState.imgHolder.src = binary;
         }
+        else {
+            //get all the divs with the streamed_img tag and set the received binary data to the image's source
+            var tabs;
+            tabs = document.getElementsByClassName("streamed_img");
+
+            if (tabs.length > 0) {
+                for (var i = 0; i < tabs.length; i++) {
+                    tabs[i].src = binary;
+
+                    img_width = tabs[i].width;
+                    img_height = tabs[i].height;
+                }
+            } else {
+                console.warn("div 'streamed_img' not found :(");
+            }
+        }
+
     }
 };
 
