@@ -249,166 +249,6 @@ Promise.resolve().then(() => {
 
                 }
 
-                if (ImGui.CollapsingHeader("Lighting")) {
-
-                    if (ImGui.ColorEdit3("skyTopColor", uiState.skyTopColor)) {
-                        var cb = new commandBuffer();
-                        cb.addCommand("SKYLIGHT_TOP_COLOR", 
-                            uiState["skyTopIntensity"] * uiState.skyTopColor[0],
-                            uiState["skyTopIntensity"] * uiState.skyTopColor[1],
-                            uiState["skyTopIntensity"] * uiState.skyTopColor[2]);
-                        flushCommandBuffer(cb);                
-                    }
-
-                    ImGui.SliderFloat("skyTopIntensity", 
-                    (_ = uiState.skyTopIntensity) => {
-                        if (_ !== uiState.skyTopIntensity) {
-                            uiState.skyTopIntensity = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("SKYLIGHT_TOP_COLOR",
-                                uiState["skyTopColor"][0] * _,
-                                uiState["skyTopColor"][1] * _,
-                                uiState["skyTopColor"][2] * _);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.01, 100.0
-                    );
-
-                    if (ImGui.ColorEdit3("skyMidColor", uiState.skyMidColor)) {
-                        var cb = new commandBuffer();
-                        cb.addCommand("SKYLIGHT_MIDDLE_COLOR", 
-                            uiState["skyMidIntensity"] * uiState.skyMidColor[0],
-                            uiState["skyMidIntensity"] * uiState.skyMidColor[1],
-                            uiState["skyMidIntensity"] * uiState.skyMidColor[2]);
-                        flushCommandBuffer(cb);                
-                    }
-
-                    ImGui.SliderFloat("skyMidIntensity", 
-                    (_ = uiState.skyMidIntensity) => {
-                        if (_ !== uiState.skyMidIntensity) {
-                            uiState.skyMidIntensity = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
-                                uiState["skyMidColor"][0] * _,
-                                uiState["skyMidColor"][1] * _,
-                                uiState["skyMidColor"][2] * _);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.01, 100.0
-                    );
-
-                    if (ImGui.ColorEdit3("skyBotColor", uiState.skyBotColor)) {
-                        var cb = new commandBuffer();
-                        cb.addCommand("SKYLIGHT_BOTTOM_COLOR", 
-                            uiState["skyBotIntensity"] * uiState.skyBotColor[0],
-                            uiState["skyBotIntensity"] * uiState.skyBotColor[1],
-                            uiState["skyBotIntensity"] * uiState.skyBotColor[2]);
-                        flushCommandBuffer(cb);                
-                    }
-
-                    ImGui.SliderFloat("skyBotIntensity", 
-                    (_ = uiState.skyBotIntensity) => {
-                        if (_ !== uiState.skyBotIntensity) {
-                            uiState.skyBotIntensity = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
-                                uiState["skyBotColor"][0] * _,
-                                uiState["skyBotColor"][1] * _,
-                                uiState["skyBotColor"][2] * _);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.01, 100.0
-                    );
-
-                    ImGui.SliderFloat("lightDistance", 
-                    (_ = uiState.lightDistance) => {
-                        if (_ !== uiState.lightDistance) {
-                            uiState.lightDistance = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("LIGHT_POS", 0, _, uiState["lightTheta"] * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.0, 100.0
-                    );
-                    ImGui.SliderFloat("lightTheta", 
-                    (_ = uiState.lightTheta) => {
-                        if (_ !== uiState.lightTheta) {
-                            uiState.lightTheta = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], _ * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    -180.0, 180.0
-                    );
-                    ImGui.SliderFloat("lightPhi", 
-                    (_ = uiState.lightPhi) => {
-                        if (_ !== uiState.lightPhi) {
-                            uiState.lightPhi = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], uiState["lightTheta"] * 180.0 / 3.14159265, _ * 180.0 / 3.14159265);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.0, 180.0
-                    );
-
-                    ImGui.SliderFloat("lightSize", 
-                    (_ = uiState.lightSize) => {
-                        if (_ !== uiState.lightSize) {
-                            uiState.lightSize = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("LIGHT_SIZE", 0, _, _);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.01, 100.0
-                    );
-
-                    ImGui.SliderFloat("lightIntensity", 
-                    (_ = uiState.lightIntensity) => {
-                        if (_ !== uiState.lightIntensity) {
-                            uiState.lightIntensity = _;
-                            var cb = new commandBuffer();
-                            cb.addCommand("LIGHT_COLOR", 0, uiState["lightColor"][0] * _, uiState["lightColor"][1] * _, uiState["lightColor"][2] * _);
-                            flushCommandBuffer(cb);                
-                            //_stream_mode_suspended = true;
-                        }
-                        return _;
-                    },
-                    0.01, 100.0
-                    );
-
-                    if (ImGui.ColorEdit3("lightColor", uiState.lightColor)) {
-                        var cb = new commandBuffer();
-                        cb.addCommand("LIGHT_COLOR", 0, 
-                            uiState.lightColor[0] * uiState["lightIntensity"], 
-                            uiState.lightColor[1] * uiState["lightIntensity"], 
-                            uiState.lightColor[2] * uiState["lightIntensity"]
-                        );
-                        flushCommandBuffer(cb);                
-                    }
-
-                }
-
             } catch (e) {
                 ImGui.TextColored(new ImGui.ImVec4(1.0, 0.0, 0.0, 1.0), "error: ");
                 ImGui.SameLine();
@@ -419,8 +259,227 @@ Promise.resolve().then(() => {
 
             ImGui.SetNextWindowPos(new ImGui.ImVec2(294, 0), ImGui.Cond.FirstUseEver);
             ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
-            ImGui.Begin("Image Channels");
+            ImGui.Begin("Lighting");
+
+            if (ImGui.ColorEdit3("skyTopColor", uiState.skyTopColor)) {
+                var cb = new commandBuffer();
+                cb.addCommand("SKYLIGHT_TOP_COLOR", 
+                    uiState["skyTopIntensity"] * uiState.skyTopColor[0],
+                    uiState["skyTopIntensity"] * uiState.skyTopColor[1],
+                    uiState["skyTopIntensity"] * uiState.skyTopColor[2]);
+                flushCommandBuffer(cb);                
+            }
+
+            ImGui.SliderFloat("skyTopIntensity", 
+            (_ = uiState.skyTopIntensity) => {
+                if (_ !== uiState.skyTopIntensity) {
+                    uiState.skyTopIntensity = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("SKYLIGHT_TOP_COLOR",
+                        uiState["skyTopColor"][0] * _,
+                        uiState["skyTopColor"][1] * _,
+                        uiState["skyTopColor"][2] * _);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.01, 100.0
+            );
+
+            if (ImGui.ColorEdit3("skyMidColor", uiState.skyMidColor)) {
+                var cb = new commandBuffer();
+                cb.addCommand("SKYLIGHT_MIDDLE_COLOR", 
+                    uiState["skyMidIntensity"] * uiState.skyMidColor[0],
+                    uiState["skyMidIntensity"] * uiState.skyMidColor[1],
+                    uiState["skyMidIntensity"] * uiState.skyMidColor[2]);
+                flushCommandBuffer(cb);                
+            }
+
+            ImGui.SliderFloat("skyMidIntensity", 
+            (_ = uiState.skyMidIntensity) => {
+                if (_ !== uiState.skyMidIntensity) {
+                    uiState.skyMidIntensity = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("SKYLIGHT_MIDDLE_COLOR",
+                        uiState["skyMidColor"][0] * _,
+                        uiState["skyMidColor"][1] * _,
+                        uiState["skyMidColor"][2] * _);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.01, 100.0
+            );
+
+            if (ImGui.ColorEdit3("skyBotColor", uiState.skyBotColor)) {
+                var cb = new commandBuffer();
+                cb.addCommand("SKYLIGHT_BOTTOM_COLOR", 
+                    uiState["skyBotIntensity"] * uiState.skyBotColor[0],
+                    uiState["skyBotIntensity"] * uiState.skyBotColor[1],
+                    uiState["skyBotIntensity"] * uiState.skyBotColor[2]);
+                flushCommandBuffer(cb);                
+            }
+
+            ImGui.SliderFloat("skyBotIntensity", 
+            (_ = uiState.skyBotIntensity) => {
+                if (_ !== uiState.skyBotIntensity) {
+                    uiState.skyBotIntensity = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("SKYLIGHT_BOTTOM_COLOR",
+                        uiState["skyBotColor"][0] * _,
+                        uiState["skyBotColor"][1] * _,
+                        uiState["skyBotColor"][2] * _);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.01, 100.0
+            );
+
+            ImGui.SliderFloat("lightDistance", 
+            (_ = uiState.lightDistance) => {
+                if (_ !== uiState.lightDistance) {
+                    uiState.lightDistance = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("LIGHT_POS", 0, _, uiState["lightTheta"] * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.0, 100.0
+            );
+            ImGui.SliderFloat("lightTheta", 
+            (_ = uiState.lightTheta) => {
+                if (_ !== uiState.lightTheta) {
+                    uiState.lightTheta = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], _ * 180.0 / 3.14159265, uiState["lightPhi"] * 180.0 / 3.14159265);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            -180.0, 180.0
+            );
+            ImGui.SliderFloat("lightPhi", 
+            (_ = uiState.lightPhi) => {
+                if (_ !== uiState.lightPhi) {
+                    uiState.lightPhi = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("LIGHT_POS", 0, uiState["lightDistance"], uiState["lightTheta"] * 180.0 / 3.14159265, _ * 180.0 / 3.14159265);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.0, 180.0
+            );
+
+            ImGui.SliderFloat("lightSize", 
+            (_ = uiState.lightSize) => {
+                if (_ !== uiState.lightSize) {
+                    uiState.lightSize = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("LIGHT_SIZE", 0, _, _);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.01, 100.0
+            );
+
+            ImGui.SliderFloat("lightIntensity", 
+            (_ = uiState.lightIntensity) => {
+                if (_ !== uiState.lightIntensity) {
+                    uiState.lightIntensity = _;
+                    var cb = new commandBuffer();
+                    cb.addCommand("LIGHT_COLOR", 0, uiState["lightColor"][0] * _, uiState["lightColor"][1] * _, uiState["lightColor"][2] * _);
+                    flushCommandBuffer(cb);                
+                    //_stream_mode_suspended = true;
+                }
+                return _;
+            },
+            0.01, 100.0
+            );
+
+            if (ImGui.ColorEdit3("lightColor", uiState.lightColor)) {
+                var cb = new commandBuffer();
+                cb.addCommand("LIGHT_COLOR", 0, 
+                    uiState.lightColor[0] * uiState["lightIntensity"], 
+                    uiState.lightColor[1] * uiState["lightIntensity"], 
+                    uiState.lightColor[2] * uiState["lightIntensity"]
+                );
+                flushCommandBuffer(cb);
+            }
+
             ImGui.End();
+
+            if (uiState.infoObj && uiState.infoObj.c > 0) {
+                ImGui.SetNextWindowPos(new ImGui.ImVec2(294, 0), ImGui.Cond.FirstUseEver);
+                ImGui.SetNextWindowSize(new ImGui.ImVec2(294, 140), ImGui.Cond.FirstUseEver);
+                ImGui.Begin("Image Channels");
+    
+                for (var i = 0; i < uiState.infoObj.c; ++i) {
+                    if (ImGui.CollapsingHeader(uiState.infoObj.channel_names[i])) {
+
+                        let chgui = uiState.infoObj.channelGui[i];
+                        if (ImGui.Checkbox("enabled##"+i, (value = chgui.enabled) => chgui.enabled = value)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("ENABLE_CHANNEL", i, chgui.enabled ? 1 : 0);
+                            flushCommandBuffer(cb);
+                        }
+                        if (ImGui.ColorEdit3("diffuse##"+i, uiState.infoObj.channelGui[i].colorD)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("MAT_DIFFUSE", i, 
+                                uiState.infoObj.channelGui[i].colorD[0], 
+                                uiState.infoObj.channelGui[i].colorD[1],
+                                uiState.infoObj.channelGui[i].colorD[2], 1.0);
+                            flushCommandBuffer(cb);                
+                        }
+                        if (ImGui.ColorEdit3("specular##"+i, uiState.infoObj.channelGui[i].colorS)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("MAT_SPECULAR", i, 
+                                uiState.infoObj.channelGui[i].colorS[0], 
+                                uiState.infoObj.channelGui[i].colorS[1],
+                                uiState.infoObj.channelGui[i].colorS[2], 1.0);
+                            flushCommandBuffer(cb);                
+                        }
+                        if (ImGui.ColorEdit3("emissive##"+i, uiState.infoObj.channelGui[i].colorE)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("MAT_EMISSIVE", i, 
+                                uiState.infoObj.channelGui[i].colorE[0], 
+                                uiState.infoObj.channelGui[i].colorE[1],
+                                uiState.infoObj.channelGui[i].colorE[2], 1.0);
+                            flushCommandBuffer(cb);                
+                        }
+                        if (ImGui.SliderFloat("Roughness##"+i, (_ = chgui.roughness) => chgui.roughness = _, 0.0, 100.0)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("MAT_GLOSSINESS", i, chgui.roughness);
+                            flushCommandBuffer(cb);                
+                        }
+    
+                        if (ImGui.SliderFloat("Window##"+i, (_ = chgui.window) => chgui.window = _, 0.0, 1.0)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_WINDOW_LEVEL", i, chgui.window, chgui.level);
+                            flushCommandBuffer(cb);                
+                        }
+                        if (ImGui.SliderFloat("Level##"+i, (_ = chgui.level) => chgui.level = _, 0.0, 1.0)) {
+                            var cb = new commandBuffer();
+                            cb.addCommand("SET_WINDOW_LEVEL", i, chgui.window, chgui.level);
+                            flushCommandBuffer(cb);                
+                        }
+    
+                    }
+                }
+            
+    
+                ImGui.End();
+            }
 
 
             ImGui.EndFrame();
