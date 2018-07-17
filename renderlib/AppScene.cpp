@@ -31,6 +31,8 @@ void Light::Update(const CBoundingBox& BoundingBox)
 	if (m_T == 1)
 	{
 		m_P = bbctr;
+		// shift by nonzero amount
+		m_Target = m_P + glm::vec3(0.0, 0.0, 1.0);
 		m_SkyRadius = 1000.0f * glm::length(BoundingBox.GetMaxP() - BoundingBox.GetMinP());
 		m_Area = 4.0f * PI_F * powf(m_SkyRadius, 2.0f);
 		m_AreaPdf = 1.0f / m_Area;
