@@ -67,13 +67,12 @@ Promise.resolve().then(() => {
                     return _;
                 }, 294
             );
-            let resolutions = ["256x256", "512x512", "1024x1024", "1024x768"];
             ImGui.Combo("Resolution", 
-                (value = resolutions.indexOf(uiState.resolution)) => {
+                (value = uiState.resolution) => {
                     if (value !== uiState.resolution)
                     {
                         uiState.resolution = value;
-                        var res = resolutions[value].match(/(\d+)x(\d+)/);
+                        var res = uiState.resolutions[value].match(/(\d+)x(\d+)/);
                         if (res.length === 3) {
                             res[0] = parseInt(res[1]);
                             res[1] = parseInt(res[2]);
@@ -90,7 +89,7 @@ Promise.resolve().then(() => {
                     }
                     return value;
                 },
-                resolutions, 4
+                uiState.resolutions, 4
             );
 
             if (ImGui.Button("Reset Camera"))

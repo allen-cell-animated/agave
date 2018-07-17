@@ -38,7 +38,8 @@ function toggleDivVisibility(element, visible) {
 var binarysock, jsonsock;
 var gui;
 var uiState = {
-    resolution: "512x512",
+    resolutions: ["256x256", "512x512", "1024x1024", "1024x768"],
+    resolution: 1,
     file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
     density: 50.0,
     exposure: 0.75,
