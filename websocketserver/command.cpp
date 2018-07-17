@@ -42,10 +42,14 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
 		c->_camera->SetViewMode(ViewModeFront);
 
+		// enable up to first three channels!
+		// TODO Why should it be three?
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
 			c->_appScene->_material.enabled[i] = (i < 3);
+			c->_appScene->_material.opacity[i] = 1.0f;
 		}
 		c->_renderSettings->SetNoIterations(0);
+		c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 
