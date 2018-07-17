@@ -249,7 +249,7 @@ void qtome::open(const QString& file)
 		QElapsedTimer t;
 		t.start();
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
-		qDebug() << "Loaded " << file << " in " << t.elapsed() << "ms";
+		LOG_DEBUG << "Loaded " << file.toStdString() << " in " << t.elapsed() << "ms";
 
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
