@@ -96,7 +96,7 @@ Promise.resolve().then(() => {
             let p = ImGui.GetWindowPos();
             var ctlholder = document.getElementById("imageAcontrols");
             ctlholder.style.left = p.x + ImGui.GetStyle().WindowBorderSize + ImGui.GetStyle().WindowPadding.x;
-            ctlholder.style.top = p.y + ImGui.GetStyle().WindowBorderSize + ImGui.GetStyle().WindowPadding.y + ImGui.GetTextLineHeight() + ImGui.GetStyle().FramePadding.y;
+            ctlholder.style.top = p.y + ImGui.GetStyle().WindowBorderSize + ImGui.GetStyle().WindowPadding.y + ImGui.GetTextLineHeight() + ImGui.GetStyle().FramePadding.y + ImGui.GetStyle().ItemSpacing.y;
 
             ImGui.End();
 
