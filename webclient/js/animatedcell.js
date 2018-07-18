@@ -1,5 +1,5 @@
-//var wsUri = "ws://localhost:1235";
-var wsUri = "ws://dev-aics-dtp-001:1235";
+var wsUri = "ws://localhost:1235";
+//var wsUri = "ws://dev-aics-dtp-001:1235";
 //var wsUri = "ws://w10dth5blbu3.corp.alleninstitute.org:1235";  // 10.128.62.84
 
 var binarysocket0 = null; //handles requests for image streaming target #1
@@ -31,13 +31,16 @@ var waiting_for_image = false;
  * @param visible
  */
 function toggleDivVisibility(element, visible) {
-    element.style.visibility = (visible ? "visible" : "hidden");
+    if (element) {
+        element.style.visibility = (visible ? "visible" : "hidden");
+    }
 }
 
 
 var binarysock, jsonsock;
 var gui;
 var uiState = {
+    renderWindowPos: {x:0, y:0},
     resolutions: ["256x256", "512x512", "1024x1024", "1024x768"],
     resolution: 1,
     file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
@@ -520,8 +523,6 @@ function init() {
     //setup tooltips
     //readTextFile("data/tooltip.csv");
 
-    var streamedImg = document.getElementsByClassName("streamed_img");
-
     //set up first tab
     var streamimg1 = document.getElementById("imageA");
 
@@ -579,7 +580,7 @@ function binarysocket(channelnumber = 0) {
         flushCommandBuffer(cb2);
 
         // init camera
-        var streamimg1 = document.getElementById("imageA");
+        var streamimg1 = document.getElementById("imageAcontrols");
         gCamera = new THREE.PerspectiveCamera(55.0, 1.0, 0.001, 20);
         gCamera.position.x = 0.5;
         gCamera.position.y = 0.5 * 0.675;

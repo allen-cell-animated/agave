@@ -11,21 +11,29 @@ SystemJS.config({
 let ImGui;
 let ImGui_Impl;
 
-function PrepareImageTexture() {
-    // const gl = ImGui_Impl.gl;
-    // if (gl) {
-    //     uiState.imgTextureId = gl.createTexture();
-    //     gl.bindTexture(gl.TEXTURE_2D, uiState.imgTextureId);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    //     uiState.imgHolder = new Image();
-    //     uiState.imgHolder.addEventListener("load", (event) => {
-    //         gl.bindTexture(gl.TEXTURE_2D, uiState.imgTextureId);
-    //         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, uiState.imgHolder);
-    //     });
-    // }
+function PrepareImageTexture(canvas) {
+    uiState.renderWindowPos = new ImGui.ImVec2(0, 0);
+
+    const gl = ImGui_Impl.gl;
+    if (gl) {
+        uiState.imgTextureId = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, uiState.imgTextureId);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        uiState.imgHolder = new Image();
+        uiState.imgHolder.addEventListener("load", (event) => {
+            gl.bindTexture(gl.TEXTURE_2D, uiState.imgTextureId);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, uiState.imgHolder);
+        });
+    }
+
+    // uiState.imgHolder = new Image();
+    // uiState.imgHolder.addEventListener("load", (event) => {
+    //     canvas.getContext("2d").drawImage(uiState.imgHolder, 0, 0);
+    // });
+
 }
 
 Promise.resolve().then(() => {
@@ -47,21 +55,24 @@ Promise.resolve().then(() => {
         canvas.width = canvas.scrollWidth * devicePixelRatio;
         canvas.height = canvas.scrollHeight * devicePixelRatio;
     });
+    
 
     ImGui.CreateContext();
     ImGui_Impl.Init(canvas);
 
-    PrepareImageTexture();
+    PrepareImageTexture(canvas);
 
     ImGui.StyleColorsDark();
     //ImGui.StyleColorsClassic();
 
-    const clear_color = new ImGui.ImVec4(0.45, 0.55, 0.60, 1.00);
+    const clear_color = new ImGui.ImVec4(1.0, 1.0, 1.0, 0.0);
 
     /* static */
     let buf = "Quick brown fox";
     /* static */
     let f = 0.6;
+
+    console.log(ImGui.GetStyle().WindowPadding);
 
     let done = false;
     window.requestAnimationFrame(_loop);
@@ -78,10 +89,18 @@ Promise.resolve().then(() => {
                 res[1] = parseInt(res[2]);
             }
             ImGui.SetNextWindowPos(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
-            ImGui.SetNextWindowSize(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
+            ImGui.SetNextWindowSize(new ImGui.ImVec2(0, 0));
             ImGui.Begin("Render");
             ImGui.Image(uiState.imgTextureId, new ImGui.ImVec2(res[0], res[1]), new ImGui.ImVec2(0, 0), new ImGui.ImVec2(1, 1), new ImGui.ImVec4(1.0, 1.0, 1.0, 1.0), new ImGui.ImVec4(1.0, 1.0, 1.0, 0.5));
+
+            let p = ImGui.GetWindowPos();
+            var ctlholder = document.getElementById("imageAcontrols");
+            ctlholder.style.left = p.x + ImGui.GetStyle().WindowBorderSize + ImGui.GetStyle().WindowPadding.x;
+            ctlholder.style.top = p.y + ImGui.GetStyle().WindowBorderSize + ImGui.GetStyle().WindowPadding.y + ImGui.GetTextLineHeight() + ImGui.GetStyle().FramePadding.y;
+
             ImGui.End();
+
+
         }
 
         ImGui.SetNextWindowPos(new ImGui.ImVec2(0, 0), ImGui.Cond.FirstUseEver);
@@ -110,11 +129,16 @@ Promise.resolve().then(() => {
                         if (res.length === 3) {
                             res[0] = parseInt(res[1]);
                             res[1] = parseInt(res[2]);
-                            var imgholder = document.getElementById("imageA");
-                            imgholder.width = res[0];
-                            imgholder.height = res[1];
-                            imgholder.style.width = res[0];
-                            imgholder.style.height = res[1];
+                            // var imgholder = document.getElementById("imageA");
+                            // imgholder.width = res[0];
+                            // imgholder.height = res[1];
+                            // imgholder.style.width = res[0];
+                            // imgholder.style.height = res[1];
+                            var ctlholder = document.getElementById("imageAcontrols");
+                            ctlholder.width = res[0];
+                            ctlholder.height = res[1];
+                            ctlholder.style.width = res[0];
+                            ctlholder.style.height = res[1];
                 
                             var cb = new commandBuffer();
                             cb.addCommand("SET_RESOLUTION", res[0], res[1]);

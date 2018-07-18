@@ -17,15 +17,29 @@
     <script src="js/AICStrackballControls.js"></script>
     <script src="js/animatedcell.js"></script>
 <style>
-    .square {
+    .streamed_img {
         width: 512px;
         height: 512px;
-      }
+        z-index: 0;
+        position: absolute;
+        left:0px;
+        top: 0px;
+    }
+    .controls {
+        width: 512px;
+        height: 512px;
+        z-index: 2;
+        position: absolute;
+        left:0px;
+        top: 0px;
+    }
     #output {
+        left:0px;
+        top:0px;
         position: absolute;
         top: 0px;
         right: 0px;
-        width: 50%;
+        width: 100%;
         height: 100%;
         z-index: 1;
     }      
@@ -33,10 +47,13 @@
 </head>
 
 
-<body>
+<body style="margin:0">
 
-<img class="streamed_img img0 splitview square" id="imageA" ondragstart="return false;">
-<canvas id="output" tabindex="1"></canvas>
+    <div style="position:relative; width:100%; height:100%">
+        <canvas id="output" tabindex="1"></canvas>
+        <div class="controls" id="imageAcontrols" ondragstart="return false;"></div>
+        <!--img class="streamed_img" id="imageA" ondragstart="return false;"></img-->
+    </div>
 
 </body>
 </html>
