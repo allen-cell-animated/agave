@@ -1,5 +1,5 @@
-var wsUri = "ws://localhost:1235";
-//var wsUri = "ws://dev-aics-dtp-001:1235";
+//var wsUri = "ws://localhost:1235";
+var wsUri = "ws://dev-aics-dtp-001:1235";
 //var wsUri = "ws://w10dth5blbu3.corp.alleninstitute.org:1235";  // 10.128.62.84
 
 var binarysocket0 = null; //handles requests for image streaming target #1
