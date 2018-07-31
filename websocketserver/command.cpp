@@ -42,10 +42,14 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
 		c->_camera->SetViewMode(ViewModeFront);
 
+		// enable up to first three channels!
+		// TODO Why should it be three?
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
 			c->_appScene->_material.enabled[i] = (i < 3);
+			c->_appScene->_material.opacity[i] = 1.0f;
 		}
 		c->_renderSettings->SetNoIterations(0);
+		c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
 		c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 
@@ -81,31 +85,31 @@ void SetCameraPosCommand::execute(ExecutionContext* c) {
 	c->_camera->m_From.x = _data._x;
 	c->_camera->m_From.y = _data._y;
 	c->_camera->m_From.z = _data._z;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetCameraTargetCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraTarget " << _data._x << " " << _data._y << " " << _data._z;
 	c->_camera->m_Target.x = _data._x;
 	c->_camera->m_Target.y = _data._y;
 	c->_camera->m_Target.z = _data._z;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetCameraUpCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraUp " << _data._x << " " << _data._y << " " << _data._z;
 	c->_camera->m_Up.x = _data._x;
 	c->_camera->m_Up.y = _data._y;
 	c->_camera->m_Up.z = _data._z;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetCameraApertureCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraAperture " << _data._x;
 	c->_camera->m_Aperture.m_Size = _data._x;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetCameraFovYCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraFovY " << _data._x;
 	c->_camera->m_FovV = _data._x;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetCameraFocalDistanceCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraFocalDistance " << _data._x;
@@ -114,13 +118,13 @@ void SetCameraFocalDistanceCommand::execute(ExecutionContext* c) {
 	c->_camera->m_Focus.m_Type = CFocus::Manual;
 	
 	c->_camera->m_Focus.m_FocalDistance = _data._x;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetCameraExposureCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetCameraExposure " << _data._x;
 	// 0 is darkness, 1 is max
 	c->_camera->m_Film.m_Exposure = 1.0f - _data._x;
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetDiffuseColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetDiffuse " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
@@ -173,7 +177,7 @@ void FrameSceneCommand::execute(ExecutionContext* c) {
 	c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->_boundingBox.GetMinP();
 	c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
 	c->_camera->SetViewMode(ViewModeFront);
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetGlossinessCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetGlossiness " << _data._channel << " " << _data._glossiness;
@@ -194,7 +198,7 @@ void SetWindowLevelCommand::execute(ExecutionContext* c) {
 void OrbitCameraCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "OrbitCamera " << _data._theta << " " << _data._phi;
 	c->_camera->Orbit(_data._theta, _data._phi);
-	c->_renderSettings->SetNoIterations(0);
+	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetSkylightTopColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetSkylightTopColor " << _data._r << " " << _data._g << " " << _data._b;
