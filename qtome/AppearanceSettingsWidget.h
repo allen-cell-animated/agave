@@ -38,6 +38,7 @@ public:
 	void OnSpecularColorChanged(int i, const QColor& color);
 	void OnEmissiveColorChanged(int i, const QColor& color);
 	void OnSetWindowLevel(int i, double window, double level);
+	void OnOpacityChanged(int i, double opacity);
 	void OnRoughnessChanged(int i, double roughness);
 	void OnChannelChecked(int i, bool is_checked);
 
@@ -57,6 +58,10 @@ public:
 	void OnSetRoiYMin(int value);
 	void OnSetRoiZMin(int value);
 
+	void OnSetScaleX(double value);
+	void OnSetScaleY(double value);
+	void OnSetScaleZ(double value);
+
 private:
 	QGridLayout		m_MainLayout;
 	QNumericSlider m_DensityScaleSlider;
@@ -70,6 +75,7 @@ private:
 	QTransferFunction* _transferFunction;
 
 	Section* _clipRoiSection;
+	Section* _scaleSection;
 
 	Scene* _scene;
 	std::vector<Section*> _channelSections;

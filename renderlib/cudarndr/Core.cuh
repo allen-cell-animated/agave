@@ -19,10 +19,12 @@ struct cudaFB {
 struct cudaVolume {
 	int nChannels;
 	float intensityMax[MAX_CUDA_CHANNELS];
+	float intensityMin[MAX_CUDA_CHANNELS];
 	float diffuse[MAX_CUDA_CHANNELS * 3];
 	float specular[MAX_CUDA_CHANNELS * 3];
 	float emissive[MAX_CUDA_CHANNELS * 3];
 	float roughness[MAX_CUDA_CHANNELS];
+	float opacity[MAX_CUDA_CHANNELS];
 
 	cudaTextureObject_t volumeTexture[MAX_CUDA_CHANNELS];
 	cudaTextureObject_t gradientVolumeTexture[MAX_CUDA_CHANNELS];
@@ -31,16 +33,8 @@ struct cudaVolume {
 
 	cudaVolume(int n) {
 		nChannels = n;
-		//volumeTexture = new cudaTextureObject_t[n];
-		//gradientVolumeTexture = new cudaTextureObject_t[n];
-		//lutTexture = new cudaTextureObject_t[n];
-		//intensityMax = new float[n];
 	}
 	~cudaVolume() {
-		//delete[] intensityMax;
-		//delete[] volumeTexture;
-		//delete[] gradientVolumeTexture;
-		//delete[] lutTexture;
 	}
 };
 
@@ -48,7 +42,7 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	const CBoundingBox& bbox, const CBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
 	int w, int h, float gamma, float exposure);
 
-// scene needs to be mutable to get nearest intersection for focusdist.
+void ComputeFocusDistance(const cudaVolume& volumedata);
 void Render(const int& Type, int numExposures, int w, int h,
 	cudaFB& framebuffers,
 	const cudaVolume& volumedata,

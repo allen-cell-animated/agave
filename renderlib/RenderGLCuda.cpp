@@ -332,6 +332,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
 			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
 			theCudaVolume.intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
+			theCudaVolume.intensityMin[activeChannel] = _scene->_volume->channel(i)->_min;
 			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
 			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
 			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
@@ -342,10 +343,17 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
 			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
 			theCudaVolume.roughness[activeChannel] = _scene->_material.roughness[i];
+			theCudaVolume.opacity[activeChannel] = _scene->_material.opacity[i];
 
 			activeChannel++;
 			theCudaVolume.nChannels = activeChannel;
 		}
+	}
+
+	// find nearest intersection to set camera focal distance automatically.
+	// then re-upload that data.
+	if (camera.m_Focus.m_Type == 0) {
+		ComputeFocusDistance(theCudaVolume);
 	}
 
 	int numIterations = _renderSettings->GetNoIterations();

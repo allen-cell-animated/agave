@@ -86,6 +86,7 @@ struct VolumeDisplay {
 	float specular[MAX_CPU_CHANNELS * 3];
 	float emissive[MAX_CPU_CHANNELS * 3];
 	float roughness[MAX_CPU_CHANNELS];
+	float opacity[MAX_CPU_CHANNELS];
 	bool enabled[MAX_CPU_CHANNELS];
 };
 
@@ -228,6 +229,7 @@ public:
     Lighting _lighting;
 
 	CBoundingBox _boundingBox;
+	void initLights();
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
 
 	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));

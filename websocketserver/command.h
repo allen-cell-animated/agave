@@ -192,4 +192,14 @@ struct SetClipRegionCommandD {
 };
 CMDDECL(SetClipRegionCommand, 29);
 
+struct SetVoxelScaleCommandD {
+	float _x, _y, _z;
+};
+CMDDECL(SetVoxelScaleCommand, 30);
+
+struct AutoThresholdCommandD {
+	int32_t _channel;
+	int32_t _method;
+};
+CMDDECL(AutoThresholdCommand, 31);
 

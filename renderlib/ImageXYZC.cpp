@@ -9,13 +9,6 @@
 #include <algorithm>
 #include <sstream>
 
-template<class T>
-const T& clamp(const T& v, const T& lo, const T& hi)
-{
-	assert(hi > lo);
-	return (v<lo) ? lo : (v>hi ? hi : v);
-}
-
 ImageXYZC::ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bpp, uint8_t* data, float sx, float sy, float sz)
 	: _x(x), _y(y), _z(z), _c(c), _bpp(bpp), _data(data), _scaleX(sx), _scaleY(sy), _scaleZ(sz)
 {
@@ -65,6 +58,13 @@ uint32_t ImageXYZC::sizeZ() const
 uint32_t ImageXYZC::maxPixelDimension() const
 {
 	return std::max(_x, std::max(_y, _z));
+}
+
+void ImageXYZC::setPhysicalSize(float x, float y, float z)
+{
+	_scaleX = x;
+	_scaleY = y;
+	_scaleZ = z;
 }
 
 float ImageXYZC::physicalSizeX() const
@@ -164,10 +164,11 @@ void FuseWorkerThread::run() {
 		// array of 256 floats
 		float* lut = _img->channel(i)->_lut;
 		float chmax = (float)_img->channel(i)->_max;
+		float chmin = (float)_img->channel(i)->_min;
 		//lut = luts[idx][c.enhancement];
 
 		for (size_t cx = 0, fx = 0; cx < num_pixels; cx++, fx += 3) {
-			value = (float)channeldata[cx] / chmax;
+			value = (float)(channeldata[cx] - chmin) / (float)(chmax-chmin);
 			//value = (float)channeldata[cx] / 65535.0f;
 			value = lut[(int)(value*255.0 + 0.5)]; // 0..255
 
@@ -300,7 +301,8 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 	_min = _histogram._dataMin;
 	_max = _histogram._dataMax;
 
-	_lut = _histogram.generate_auto2(_window, _level);
+	//_lut = _histogram.generate_auto2(_window, _level);
+	_lut = _histogram.initialize_thresholds();
 
 }
 
@@ -364,223 +366,6 @@ uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley
 	}
 
 	return outptr;
-}
-
-
-Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
-	: _bins(num_bins)
-{
-	std::fill(_bins.begin(), _bins.end(), 0);
-
-	_dataMin = 0;// data[0];
-	_dataMax = data[0];
-
-	uint16_t val;
-	for (size_t i = 0; i < length; ++i) {
-		val = data[i];
-		if (val > _dataMax) {
-			_dataMax = val;
-		}
-		else if (val < _dataMin) {
-			_dataMin = val;
-		}
-	}
-//	float fval;
-	float range = (float)(_dataMax - _dataMin);
-	float binmax = (float)(num_bins - 1);
-	for (size_t i = 0; i < length; ++i) {
-		size_t whichbin = (size_t) ( (float)(data[i] - _dataMin) / range * binmax + 0.5 );
-//		val = data[i];
-//		// normalize to 0..1 range
-//		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
-//		fval = (float)(val - _dataMin) / range;
-//		// select a bin
-//		fval *= binmax;
-//		// discretize (drop the fractional part?)
-//		size_t whichbin = (size_t)fval;
-		_bins[whichbin] ++;
-		// bins goes from min to max of data range. not datatype range.
-	}
-
-	// total number of pixels
-	_pixelCount = length;
-
-	// get the bin with the most frequently occurring NONZERO value
-	_maxBin = 1;
-	uint32_t curmax = _bins[1];
-	for (size_t i = 1; i < _bins.size(); i++) {
-		if (_bins[i] > curmax) {
-			_maxBin = i;
-			curmax = _bins[i];
-		}
-	}
-}
-
-float* Histogram::generate_fullRange(float& window, float& level, size_t length) {
-	window = 1.0;
-	level = 0.5;
-	return generate_windowLevel(window, level, length);
-}
-
-float* Histogram::generate_dataRange(float& window, float& level, size_t length) {
-	window = 1.0;
-	level = 0.5;
-	return generate_windowLevel(window, level, length);
-}
-
-float* Histogram::generate_bestFit(float& window, float& level, size_t length) {
-	size_t pixcount = _pixelCount;
-	size_t limit = pixcount / 10;
-
-	size_t i = 0;
-	size_t count = 0;
-	for (i = 0; i < _bins.size(); ++i) {
-		count += _bins[i];
-		if (count > limit) {
-			break;
-		}
-	}
-	size_t hmin = i;
-
-	count = 0;
-	for (i = _bins.size() - 1; i >= 0; --i) {
-		count += _bins[i];
-		if (count > limit) {
-			break;
-		}
-	}
-	size_t hmax = i;
-
-	size_t range = hmax - hmin;
-	if (range < 1) {
-		range = 255;
-	}
-
-	window = (float)(range) / (float)(length-1);
-	level = ((float)hmin + (float)range*0.5f) / (float)(length-1);
-	return generate_windowLevel(window, level, length);
-}
-
-// attempt to redo imagej's Auto
-float* Histogram::generate_auto2(float& window, float& level, size_t length) {
-
-	size_t AUTO_THRESHOLD = 10000;
-	size_t pixcount = _pixelCount - _bins[0];
-	//  const pixcount = this.imgData.data.length;
-	size_t limit = pixcount / 10;
-	size_t threshold = pixcount / AUTO_THRESHOLD;
-
-	size_t nbins = _bins.size();
-
-#if 0
-	size_t i = -1;
-	bool found = false;
-	int count;
-	do {
-		i++;
-		count = _bins[i];
-		if (count>limit) count = 0;
-		found = count> threshold;
-	} while (!found && i<(nbins-1));
-	size_t hmin = i;
-	i = nbins;
-	do {
-		i--;
-		count = _bins[i];
-		if (count>limit) count = 0;
-		found = count > threshold;
-	} while (!found && i > 0);
-	size_t hmax = i;
-#endif
-
-//#if 0
-	// this will skip the "zero" bin which contains pixels of zero intensity.
-	size_t hmin = nbins - 1;
-	size_t hmax = 1;
-	for (size_t i = 1; i < nbins; ++i) {
-		if (_bins[i] > threshold && _bins[i] <= limit) {
-			hmin = i;
-			break;
-		}
-	}
-	for (size_t i = nbins - 1; i >= 1; --i) {
-		if (_bins[i] > threshold && _bins[i] <= limit) {
-			hmax = i;
-			break;
-		}
-	}
-//#endif
-
-	if (hmax < hmin) {
-		// just reset to whole range in this case.
-		return generate_fullRange(window, level, length);
-	}
-	else {
-		LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
-		float range = (float)hmax - (float)hmin;
-		window = (range) / (float)(length-1);
-		level = ((float)hmin + range*0.5f) / (float)(length-1);
-		LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
-		return generate_windowLevel(window, level, length);
-	}
-}
-
-float* Histogram::generate_auto(float& window, float& level, size_t length) {
-
-	// simple linear mapping cutting elements with small appearence
-	// get 10% threshold
-	float PERCENTAGE = 0.1f;
-	float th = std::floor(_bins[_maxBin] * PERCENTAGE);
-	size_t b = 0;
-	size_t e = _bins.size() - 1;
-	for (size_t x = 0; x < _bins.size(); ++x) {
-		if (_bins[x] > th) {
-			b = x;
-			break;
-		}
-	}
-	for (size_t x = _bins.size() - 1; x >= 0; --x) {
-		if (_bins[x] > th) {
-			e = x;
-			break;
-		}
-	}
-
-	size_t range = e - b;
-	if (range < 1) {
-		range = 255;
-		b = 0;
-	}
-	// if range == e-b, then
-	// b+range/2 === e-range/2 
-	// 
-	window = (float)range / (float)(length-1);
-	level = ((float)b + (float)range*0.5f) / (float)(length-1);
-	return generate_windowLevel(window, level, length);
-}
-
-// window and level are percentages of full range 0..1
-float* Histogram::generate_windowLevel(float window, float level, size_t length)
-{
-	// return a LUT with new values(?)
-	// data type of lut values is out_phys_range (uint8)
-	// length of lut is number of histogram bins (represents the input data range)
-	float* lut = new float[length];
-
-	float a = (level - window*0.5f);
-	float b = (level + window*0.5f);
-	// b-a should be equal to window!
-	assert(fabs(b - a - window) < 0.0001);
-	float range = window;
-	//float range = b - a;
-
-	for (size_t x = 0; x < length; ++x) {
-		float v = ((float)x/(float)(length-1) - a) / range;
-		lut[x] = clamp(v, 0.0f, 1.0f);
-	}
-
-	return lut;
-
 }
 
 void Channelu16::debugprint() {

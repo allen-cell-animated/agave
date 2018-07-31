@@ -16,11 +16,11 @@ DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeD
 	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	//factor = (factor > 0) ? 1.0 : 0.0;
 	f4 intensity;
-	intensity.vec = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	float maxIn = 0;
 	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
 		// 0..1
-		intensity.a[i] = intensity.a[i] / volumeData.intensityMax[i];
+		intensity.a[i] = (intensity.a[i] - volumeData.intensityMin[i]) / (volumeData.intensityMax[i] - volumeData.intensityMin[i]);
 		// transform through LUT
 		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
 		if (intensity.a[i] > maxIn) {
@@ -33,12 +33,13 @@ DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeD
 
 DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
 {
-	float4 Intensity4 = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	f4 intensity;
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	// select channel
-	float intensity = ch == 0 ? Intensity4.x : ch == 1 ? Intensity4.y : ch == 2 ? Intensity4.z : Intensity4.w;
-	intensity = intensity / volumeData.intensityMax[ch];
+	float intensityf = intensity.a[ch];
+	intensityf = (intensityf - volumeData.intensityMin[ch]) / (volumeData.intensityMax[ch] - volumeData.intensityMin[ch]);
 	//intensity = tex1D<float>(volumeData.lutTexture[ch], intensity);
-	return intensity;
+	return intensityf;
 }
 
 DEV f4 GetIntensity4ch(const Vec3f& P, const cudaVolume& volumeData)
@@ -47,10 +48,10 @@ DEV f4 GetIntensity4ch(const Vec3f& P, const cudaVolume& volumeData)
 	//factor = (factor > 0) ? 1.0 : 0.0;
 	f4 intensity;
 	intensity.vec = make_float4(0, 0, 0, 0);
-	intensity.vec = ((float)SHRT_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
 		// 0..1
-		intensity.a[i] = intensity.a[i] / volumeData.intensityMax[i];
+		intensity.a[i] = (intensity.a[i] - volumeData.intensityMin[i]) / (volumeData.intensityMax[i] - volumeData.intensityMin[i]);
 		// transform through LUT
 		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
 	}
@@ -58,10 +59,10 @@ DEV f4 GetIntensity4ch(const Vec3f& P, const cudaVolume& volumeData)
 }
 
 
-DEV float GetOpacity(const float& NormalizedIntensity)
+DEV float GetOpacity(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
 	// apply lut
-	float Intensity = NormalizedIntensity;
+	float Intensity = NormalizedIntensity * volumeData.opacity[ch];
 	//float Intensity = tex1D<float>(texLut, NormalizedIntensity);
 	return Intensity;
 }
@@ -184,7 +185,7 @@ DEV inline Vec3f Gradient4ch(const Vec3f& P, const cudaVolume& volumeData, int c
 
 DEV float GradientMagnitude(const Vec3f& P, cudaTextureObject_t texGradientMagnitude)
 {
-	return ((float)SHRT_MAX * tex3D<float>(texGradientMagnitude, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	return ((float)UINT16_MAX * tex3D<float>(texGradientMagnitude, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 }
 
 DEV int NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, float* pPdf = NULL)

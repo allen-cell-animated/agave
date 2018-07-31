@@ -189,7 +189,10 @@ void StreamServer::socketDisconnected()
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
 	//if (m_debug)
 	//qDebug() << "new client!" << pSocket->resourceName() << "; " << pSocket->peerAddress().toString() << ":" << pSocket->peerPort() << "; " << pSocket->peerName();
-	qDebug() << "socketDisconnected:" << pClient->resourceName() << "(" << pClient->closeCode() << ":" << pClient->closeReason() + ")";
+	LOG_DEBUG << "socketDisconnected: " << 
+		pClient->peerName().toStdString() << 
+		"(" << pClient->peerAddress().toString().toStdString() << ":" << QString::number(pClient->peerPort()).toStdString() << ") " << 
+		"code: (" << pClient->closeCode() << ":" << pClient->closeReason().toStdString() + ")";
 	if (pClient) {
 		Renderer* r = getRendererForClient(pClient);
 		QObject::connect(r, &Renderer::finished, r, &QObject::deleteLater);

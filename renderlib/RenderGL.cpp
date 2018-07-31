@@ -69,7 +69,7 @@ void RenderGL::render(const CCamera& camera)
 	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
 	// Render image
-	image3d->render(camera, _scene);
+	image3d->render(camera, _scene, _renderSettings);
 
 	_timingRender.AddDuration((float)_timer.elapsed());
 	_status.SetStatisticChanged("Performance", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");

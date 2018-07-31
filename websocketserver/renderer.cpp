@@ -47,6 +47,7 @@ void Renderer::myVolumeInit() {
 	myVolumeData._camera->m_Film.m_ExposureIterations = 1;
 
 	myVolumeData._scene = new Scene();
+	myVolumeData._scene->initLights();
 
 	myVolumeData._renderer = new RenderGLCuda(myVolumeData._renderSettings);
 	myVolumeData._renderer->initialize(1024, 1024);
@@ -171,7 +172,7 @@ bool Renderer::processRequest()
 		// in stream mode:
 		// if queue is empty, then keep firing redraws back to client.
 		// test about 100 frames as a convergence limit.
-		if (_streamMode != 0 && myVolumeData._renderSettings->GetNoIterations() < 100) {
+		if (_streamMode != 0 && myVolumeData._renderSettings->GetNoIterations() < 500) {
 			// push another redraw request.
 			std::vector<Command*> cmd;
 			RequestRedrawCommandD data;

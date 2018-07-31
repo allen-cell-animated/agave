@@ -64,8 +64,9 @@ qtome::qtome(QWidget *parent)
 	//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
 
-	setWindowTitle(tr("OME-Files GLView"));
+	setWindowTitle(tr("AICS high performance volume viewer"));
 
+	_appScene.initLights();
 }
 
 void qtome::createActions()
@@ -248,7 +249,7 @@ void qtome::open(const QString& file)
 		QElapsedTimer t;
 		t.start();
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
-		qDebug() << "Loaded " << file << " in " << t.elapsed() << "ms";
+		LOG_DEBUG << "Loaded " << file.toStdString() << " in " << t.elapsed() << "ms";
 
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
@@ -445,6 +446,7 @@ void qtome::dumpPythonState()
 	s += QString("cb.add_command(\"EXPOSURE\", %1)\n").arg(_camera.GetFilm().GetExposure());
 	s += QString("cb.add_command(\"DENSITY\", %1)\n").arg(_renderSettings.m_RenderSettings.m_DensityScale);
 	s += QString("cb.add_command(\"APERTURE\", %1)\n").arg(_camera.GetAperture().GetSize());
+	s += QString("cb.add_command(\"FOCALDIST\", %1)\n").arg(_camera.GetFocus().GetFocalDistance());
 
 	// per-channel
 	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {

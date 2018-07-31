@@ -1,14 +1,16 @@
 import ws4py
 from ws4py.client.threadedclient import WebSocketClient
 import io
+import json
 import math
+import numpy
 from PIL import Image
 from commandbuffer import CommandBuffer
 from collections import deque
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
-import vtk
+# import vtk
 
 import numpy
 from aicsimage.io.tifReader import TifReader
@@ -30,6 +32,28 @@ INFILES = [
     'signal.tiff'
 ]
 
+def lerp(startframe, endframe, startval, endval):
+    x = numpy.linspace(startframe, endframe, num=endframe-startframe+1, endpoint=True)
+    y = startval + (endval-startval)*(x-startframe)/(endframe-startframe)
+    print(y)
+
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians.
+    """
+    axis = numpy.asarray(axis)
+    axis = axis/math.sqrt(numpy.dot(axis, axis))
+    a = math.cos(theta/2.0)
+    b, c, d = -axis*math.sin(theta/2.0)
+    aa, bb, cc, dd = a*a, b*b, c*c, d*d
+    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
+    return numpy.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
+                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+
+def rotate_vec(v, axis, angle):
+    return numpy.dot(rotation_matrix(axis,angle), v)
 
 def convert_tiff_to_ome_tiff_1ch(filepathin, filepathout):
     image = TifReader(filepathin).load()
@@ -133,15 +157,27 @@ class DummyClient(WebSocketClient):
             self.push_request(cb, OUTROOT + 'ZSTACK_' + prefix + '_' + str(i+offset).zfill(4) + ".png")
 
     def loop_frames(self, offset=0):
-        interp = vtk.vtkCameraInterpolator()
+        # interp = vtk.vtkCameraInterpolator()
         # interp.AddCamera(0.0, self.getCameraCopy())
+
+        eye = [0, 0, -1]
+        target = [0, 0, 0]
+        up = [0, 1, 0]
+        eye = rotate_vec(eye, [1, 0, 0], 20.0*3.14159265/180.0)
+        eye = rotate_vec(eye, [0, 1, 0], 20.0*3.14159265/180.0)
+        up = rotate_vec(up, [1,0,0], 20.0*3.14159265/180.0)
+        up = rotate_vec(up, [0,1,0], 20.0*3.14159265/180.0)
+
+        target = [0.49984+target[0], 0.297143+target[1], 0.0471128+target[2]]
+        eye = [0.49984+eye[0], 0.297143+eye[1], 0.0471128+eye[2]]
+
         for i in range(0, 20):
             outfilepath = OUTROOT + 'combined_frame_' + str(i).zfill(2) + '.ome.tiff'
 
             cb = CommandBuffer()
             cb.add_command("LOAD_OME_TIF", outfilepath)
             cb.add_command("SET_RESOLUTION", 1024, 768)
-            cb.add_command("RENDER_ITERATIONS", 256)
+            cb.add_command("RENDER_ITERATIONS", 384)
 
             # shiny
             # cb.add_command("EXPOSURE", 0.75)
@@ -178,9 +214,12 @@ class DummyClient(WebSocketClient):
 
             # test clipping
             cb.add_command("SET_CLIP_REGION", 0, 1, 0, 1, 0, 0.64)
-            cb.add_command("EYE", 0.576395, -0.264583, 0.591844)
-            cb.add_command("TARGET", 0.49984, 0.297143, 0.0471128)
-            cb.add_command("UP", 0.0994353, 0.699662, 0.707519)
+            cb.add_command("EYE", eye[0], eye[1], eye[2])
+            cb.add_command("TARGET", target[0], target[1], target[2])
+            cb.add_command("UP", up[0], up[1], up[2])
+            # cb.add_command("EYE", 0.576395, -0.264583, 0.591844)
+            # cb.add_command("TARGET", 0.49984, 0.297143, 0.0471128)
+            # cb.add_command("UP", 0.0994353, 0.699662, 0.707519)
             cb.add_command("FOV_Y", 55)
             cb.add_command("EXPOSURE", 0.35)
             cb.add_command("DENSITY", 13.8401)
@@ -358,9 +397,12 @@ class DummyClient(WebSocketClient):
 
             # imgplot.set_data(im)
         else:
-            print(m)
+            # print(m)
             if len(m) == 175:
                 self.close(reason='Bye bye')
+            else:
+                self.imgdata = json.loads(m.data)
+                # m.data is json.
 
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))
 if __name__ == '__main__':

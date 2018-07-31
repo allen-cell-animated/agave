@@ -1,6 +1,7 @@
 #include "Controls.h"
 #include "Stable.h" // for GetIcon
 
+#include <QtGlobal>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
 #include <QtWidgets/QColorDialog>
@@ -237,6 +238,7 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/) :
 	setLayout(&_layout);
 
 	_slider.setOrientation(Qt::Horizontal);
+	_spinner.setDecimals(4);
 
 	// entire control is one single row.
 	// slider is 3/4, spinner is 1/4 of the width
@@ -247,8 +249,10 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/) :
 	_layout.setContentsMargins(0, 0, 0, 0);
 
 	// keep slider and spinner in sync
-	QObject::connect(&_slider, SIGNAL(valueChanged(double)), &_spinner, SLOT(setValue(double)));
-	QObject::connect(&_spinner, SIGNAL(valueChanged(double)), &_slider, SLOT(setValue(double)));
+	QObject::connect(&_slider, QOverload<double>::of(&QDoubleSlider::valueChanged),
+		[this](double v) { this->_spinner.setValue(v, true);  });
+	QObject::connect(&_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged),
+		[this](double v) { this->_slider.setValue(v);  });
 
 	// only slider will update the value...
 	QObject::connect(&_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));

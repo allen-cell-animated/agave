@@ -1,33 +1,13 @@
 #pragma once
 
+#include "Histogram.h"
+
 #include "glm.h"
 
 #include <QThread>
 
 #include <inttypes.h>
 #include <vector>
-
-struct Histogram {
-	Histogram(uint16_t* data, size_t length, size_t bins = 256);
-
-	// no more than 2^32 pixels of any one intensity in the data!?!?!
-	std::vector<uint32_t> _bins;
-	uint16_t _dataMin;
-	uint16_t _dataMax;
-	// index of bin with most pixels
-	size_t _maxBin;
-	size_t _pixelCount;
-
-
-	float* generate_fullRange(float& window, float& level, size_t length = 256);
-	float* generate_dataRange(float& window, float& level, size_t length = 256);
-	float* generate_bestFit(float& window, float& level, size_t length = 256);
-	// attempt to redo imagej's Auto
-	float* generate_auto2(float& window, float& level, size_t length = 256);
-	float* generate_auto(float& window, float& level, size_t length = 256);
-	float* generate_windowLevel(float window, float level, size_t length = 256);
-
-};
 
 struct Channelu16
 {
@@ -53,6 +33,8 @@ struct Channelu16
 	void generate_auto2(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto2(window, level); _window = window; _level = level; }
 	void generate_auto(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto(window, level); _window = window; _level = level; }
 	void generate_bestFit(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_bestFit(window, level); _window = window; _level = level; }
+	void generate_chimerax() { delete[] _lut;  _lut = _histogram.initialize_thresholds(); }
+	void generate_equalized() { delete[] _lut;  _lut = _histogram.generate_equalized(); }
 
 	void debugprint();
 
@@ -67,6 +49,8 @@ class ImageXYZC
 public:
 	ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bpp, uint8_t* data=nullptr, float sx=1.0, float sy=1.0, float sz=1.0);
 	virtual ~ImageXYZC();
+
+	void setPhysicalSize(float x, float y, float z);
 
 	uint32_t sizeX() const;
 	uint32_t sizeY() const;

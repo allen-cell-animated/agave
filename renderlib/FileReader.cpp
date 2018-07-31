@@ -52,6 +52,7 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
     QString msg = "Failed to open TIFF: '" + QString(filepath.c_str()) + "'";
 	LOG_ERROR << msg.toStdString();
     //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+	return std::shared_ptr<ImageXYZC>();
   }
 
 
@@ -218,11 +219,11 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 
   TIFFClose(tiff);	
 
-  qDebug() << "TIFF loaded in " << timer.elapsed() << "ms";
+  LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
 
   timer.start();
   ImageXYZC* im = new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), data, physicalSizeX, physicalSizeY, physicalSizeZ);
-  qDebug() << "ImageXYZC prepared in " << timer.elapsed() << "ms";
+  LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
   
   im->setChannelNames(channelNames);
 

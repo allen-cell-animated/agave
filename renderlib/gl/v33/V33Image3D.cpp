@@ -4,6 +4,7 @@
 #include "gl/Util.h"
 #include "Logging.h"
 #include "ImageXYZC.h"
+#include "RenderSettings.h"
 
 #include <QElapsedTimer>
 
@@ -87,7 +88,7 @@ void Image3Dv33::create()
 }
 
 void
-Image3Dv33::render(const CCamera& camera, const Scene* scene)
+Image3Dv33::render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings)
 {
 	image3d_shader->bind();
 
@@ -96,8 +97,9 @@ Image3Dv33::render(const CCamera& camera, const Scene* scene)
 	image3d_shader->GAMMA_MIN = 0.0;
 	image3d_shader->GAMMA_MAX = 1.0;
 	image3d_shader->GAMMA_SCALE = 1.3657f;
-	image3d_shader->BRIGHTNESS = 1.649f;
-	image3d_shader->DENSITY = 0.06081f;
+	image3d_shader->BRIGHTNESS = (1.0f-camera.m_Film.m_Exposure) + 1.0f;
+	//_renderSettings.m_RenderSettings.m_DensityScale
+	image3d_shader->DENSITY = renderSettings->m_RenderSettings.m_DensityScale / 100.0;
 	image3d_shader->maskAlpha = 1.0;
 	image3d_shader->BREAK_STEPS = 512;
 	// axis aligned clip planes in object space
@@ -263,7 +265,7 @@ void Image3Dv33::prepareTexture(Scene& s) {
 		if (s._material.enabled[i]) {
 			colors.push_back(glm::vec3(s._material.diffuse[i * 3],
 				s._material.diffuse[i * 3 + 1],
-				s._material.diffuse[i * 3 + 2]));
+				s._material.diffuse[i * 3 + 2]) * s._material.opacity[i]);
 		}
 		else {
 			colors.push_back(glm::vec3(0, 0, 0));
