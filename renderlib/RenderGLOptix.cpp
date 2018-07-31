@@ -157,10 +157,15 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 //		return;
 //	}
 	
-	const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MinP = _scene->_boundingBox.GetMinP();
-	const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MaxP = _scene->_boundingBox.GetMaxP();
-	// reposition to face image
-	const_cast<CCamera*>(&camera)->SetViewMode(ViewModeFront);
+	static bool cameraInit = false;
+	if (!cameraInit && _scene) {
+
+		const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MinP = _scene->_boundingBox.GetMinP();
+		const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MaxP = _scene->_boundingBox.GetMaxP();
+		// reposition to face image
+		const_cast<CCamera*>(&camera)->SetViewMode(ViewModeFront);
+		cameraInit = true;
+	}
 	//camera.m_SceneBoundingBox = _scene->_boundingBox;
 
 	RT_CHECK_ERROR(rtVariableSet3f(_eye, camera.m_From.x, camera.m_From.y, camera.m_From.z));
