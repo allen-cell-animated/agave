@@ -7,7 +7,8 @@ Use vcpkg to install boost, tiff, and glm.
 ```
 mkdir build
 cd build
-cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 14 2015 Win64" -DVCPKG_TARGET_TRIPLET=x64-windows ..
+cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 14 2015 Win64" -DVCPKG_TARGET_TRIPLET=x64-windows -DOptiX_INSTALL_DIR="C:\ProgramData\NVIDIA Corporat
+ion\OptiX SDK 5.1.0" ..                                                                                                                                                                                               
 cmake --build .
 ```
 
