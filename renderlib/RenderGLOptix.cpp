@@ -29,13 +29,22 @@
     }                                                              \
   } while(0)
 
+struct BasicLight
+{
+	float pos[3];
+	float color[3];
+	int    casts_shadow;
+	int    padding;      // make this structure 32 bytes -- powers of two are your friend!
+};
+
 RenderGLOptix::RenderGLOptix(RenderSettings* rs)
 	: _renderSettings(rs),
 	_w(0),
 	_h(0),
 	_scene(nullptr),
 	_gpuBytes(0),
-	_context(0)
+	_context(0),
+	_light_buffer(0)
 {
 }
 
@@ -67,8 +76,8 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	check_gl("create buffer texture");
 
-	optix::Context ctx = optix::Context::create();
-	_context = ctx->get();
+	_ctx = optix::Context::create();
+	_context = _ctx->get();
 	/* Create our objects and set state */
 	//RT_CHECK_ERROR( rtContextCreate( &_context ) );
 	RT_CHECK_ERROR( rtContextSetRayTypeCount( _context, 2 ) );
@@ -103,19 +112,22 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	RT_CHECK_ERROR(rtContextSetMissProgram(_context, 0, _miss_program));
 	RT_CHECK_ERROR(rtContextSetExceptionProgram(_context, 0, _exception_program));
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	check_gl("init gl state");
+
+	// Size viewport
+	resize(w,h);
+}
+
+void RenderGLOptix::initOptixMesh() {
 	RTgroup topgroup;
 
-	_scene = new Scene;
-	int ok = loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", ctx, &topgroup, _scene->_boundingBox);
+	int ok = loadAsset(_scene->_mesh->GetScene(), _ctx, &topgroup, _scene->_boundingBox);
 
 	{
-		struct BasicLight
-		{
-			float pos[3];
-			float color[3];
-			int    casts_shadow;
-			int    padding;      // make this structure 32 bytes -- powers of two are your friend!
-		};
 
 		BasicLight lights[] = {
 			{ { 79.0f, 6.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
@@ -142,21 +154,18 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 		RT_CHECK_ERROR(rtVariableSetObject(lightsvar, _light_buffer));
 	}
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	check_gl("init gl state");
-
-	// Size viewport
-	resize(w,h);
 }
 
 void RenderGLOptix::doRender(const CCamera& camera) {
-//	if (!_scene || !_scene->_volume) {
-//		return;
-//	}
-	
+	if (!_scene || !_scene->_mesh) {
+		return;
+	}
+	if (_renderSettings->m_DirtyFlags.HasFlag(MeshDirty) && !_light_buffer) {
+		initOptixMesh();
+		// we have set up everything there is to do before rendering
+		//_status.SetRenderBegin();
+	}
+
 	static bool cameraInit = false;
 	if (!cameraInit && _scene) {
 
@@ -167,11 +176,34 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 		cameraInit = true;
 	}
 	//camera.m_SceneBoundingBox = _scene->_boundingBox;
+	//if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty))
+	{
+		RT_CHECK_ERROR(rtVariableSet3f(_eye, camera.m_From.x, camera.m_From.y, camera.m_From.z));
+		RT_CHECK_ERROR(rtVariableSet3f(_U, camera.m_U.x, camera.m_U.y, camera.m_U.z));
+		RT_CHECK_ERROR(rtVariableSet3f(_V, camera.m_V.x, camera.m_V.y, camera.m_V.z));
+		RT_CHECK_ERROR(rtVariableSet3f(_W, camera.m_N.x, camera.m_N.y, camera.m_N.z));
+	}
+	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty))
+	{
+		for (int i = 0; i < _scene->_lighting.m_NoLights; ++i) {
+			_scene->_lighting.m_Lights[i].Update(_scene->_boundingBox);
+		}
+		printf("LIGHT (%f, %f, %f)\n", _scene->_lighting.m_Lights[1].m_P.x, _scene->_lighting.m_Lights[1].m_P.y, _scene->_lighting.m_Lights[1].m_P.z);
 
-	RT_CHECK_ERROR(rtVariableSet3f(_eye, camera.m_From.x, camera.m_From.y, camera.m_From.z));
-	RT_CHECK_ERROR(rtVariableSet3f(_U, camera.m_U.x, camera.m_U.y, camera.m_U.z));
-	RT_CHECK_ERROR(rtVariableSet3f(_V, camera.m_V.x, camera.m_V.y, camera.m_V.z));
-	RT_CHECK_ERROR(rtVariableSet3f(_W, camera.m_N.x, camera.m_N.y, camera.m_N.z));
+	}
+	BasicLight lights[] = {
+		{ { 79.0f, 6.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
+	};
+	lights[0].pos[0] = _scene->_lighting.m_Lights[1].m_P.x;
+	lights[0].pos[1] = _scene->_lighting.m_Lights[1].m_P.y;
+	lights[0].pos[2] = _scene->_lighting.m_Lights[1].m_P.z;
+
+	void* mapped = nullptr;
+	RT_CHECK_ERROR(rtBufferMap(_light_buffer, &mapped));
+	memcpy(mapped, lights, sizeof(lights));
+	RT_CHECK_ERROR(rtBufferUnmap(_light_buffer));
+
+
 
 	/* Run */
 	RT_CHECK_ERROR( rtContextValidate( _context ) );

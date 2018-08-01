@@ -496,6 +496,10 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	// I don't own this.
 	_scene = scene;
 
+	if (!scene->_volume) {
+		return;
+	}
+
 	QVector<QColor> colors = rndColors(scene->_volume->sizeC());
 
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {

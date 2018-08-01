@@ -35,6 +35,7 @@ private slots:
 	void viewFocusChanged(GLView3D *glView);
 	void tabChanged(int index);
 	void dumpPythonState();
+	void openMesh();
 
 private:
 	enum { MaxRecentFiles = 8 };
@@ -50,6 +51,7 @@ private:
 	void setRecentFilesVisible(bool visible);
 	static QString strippedName(const QString &fullFileName);
 
+
 	QMenu *fileMenu;
 	QMenu *viewMenu;
 
@@ -58,7 +60,7 @@ private:
 	QAction *openAction;
 	QAction *quitAction;
 	QAction *dumpAction;
-
+	QAction *testMeshAction;
 	QAction *viewResetAction;
 
 	QSlider *createAngleSlider();

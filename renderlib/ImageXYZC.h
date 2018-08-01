@@ -60,6 +60,8 @@ public:
 	float physicalSizeY() const;
 	float physicalSizeZ() const;
 
+	glm::vec3 getDimensions() const;
+
 	uint32_t sizeC() const;
 
 	uint32_t sizeOfElement() const;

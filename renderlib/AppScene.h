@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include "assimp/Importer.hpp"
+
 class ImageXYZC;
 
 class DenoiseParams
@@ -221,6 +223,8 @@ public:
 
 class Scene {
 public:
+	Scene() : _mesh(0) {}
+
 	// one single volume, for now...!
     std::shared_ptr<ImageXYZC> _volume;
 	// appearance settings for a volume
@@ -231,6 +235,9 @@ public:
 	CBoundingBox _boundingBox;
 	void initLights();
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
+	void initSceneFromBoundingBox(const CBoundingBox& bb);
 
 	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
+
+	Assimp::Importer* _mesh;
 };

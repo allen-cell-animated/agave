@@ -84,21 +84,18 @@ void Scene::initLights()
 // set up a couple of lights relative to the img's bounding box
 void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 {
-	// point lights toward scene's bounding box
+	glm::vec3 dim = img->getDimensions();
 
-	// Compute physical size
-	const glm::vec3 PhysicalSize(
-		img->physicalSizeX() * (float)img->sizeX(),
-		img->physicalSizeY() * (float)img->sizeY(),
-		img->physicalSizeZ() * (float)img->sizeZ()
-	);
-	//glm::gtx::component_wise::compMax(PhysicalSize);
-	float m = std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
+	initSceneFromBoundingBox(CBoundingBox(glm::vec3(0.0f), dim));
+}
 
+void Scene::initSceneFromBoundingBox(const CBoundingBox& bb)
+{
 	// Compute the volume's bounding box
-	_boundingBox.m_MinP = glm::vec3(0.0f);
-	_boundingBox.m_MaxP = PhysicalSize / m;
+	_boundingBox.m_MinP = bb.GetMinP();
+	_boundingBox.m_MaxP = bb.GetMaxP();
 
+	// point lights toward scene's bounding box
 	for (int i = 0; i < _lighting.m_NoLights; ++i) {
 		_lighting.m_Lights[i].Update(_boundingBox);
 	}

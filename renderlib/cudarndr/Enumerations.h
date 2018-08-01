@@ -202,6 +202,7 @@ enum EDirty
 	TransferFunctionDirty	= 0x08000,
 	AnimationDirty			= 0x10000,
 	RoiDirty				= 0x20000,
+	MeshDirty				= 0x40000,
 };
 
 enum EContainment

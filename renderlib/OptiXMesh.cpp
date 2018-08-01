@@ -51,9 +51,7 @@ namespace optix {
   }
 }
 
-const aiScene* scene;
-
-optix::Group createSingleGeometryGroup(optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
+optix::Group createSingleGeometryGroup(const aiScene* scene, optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
 	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, CBoundingBox& bb) {
 
 	optix::Group group = context->createGroup();
@@ -72,7 +70,7 @@ optix::Group createSingleGeometryGroup(optix::Context context, optix::Program me
 			throw std::runtime_error("Mesh contains zero vertex normals");
 		}
 
-		printf("Mesh #%d\n\tNumVertices: %d\n\tNumFaces: %d\n", m, mesh->mNumVertices, mesh->mNumFaces);
+		//printf("Mesh #%d\n\tNumVertices: %d\n\tNumFaces: %d\n", m, mesh->mNumVertices, mesh->mNumFaces);
 
 		// add points           
 		for (unsigned int i = 0u; i < mesh->mNumVertices; i++) {
@@ -95,7 +93,7 @@ optix::Group createSingleGeometryGroup(optix::Context context, optix::Program me
 				faceMap[i + faceOffset] = optix::make_uint3(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
 			}
 			else {
-				printf("face indices != 3\n");
+				//printf("face indices != 3\n");
 				faceMap[i + faceOffset] = optix::make_uint3(-1);
 			}
 		}
@@ -115,8 +113,8 @@ optix::Group createSingleGeometryGroup(optix::Context context, optix::Program me
 
 	}
 
-	printf("VertexOffset: %d\nFaceOffset: %d\n", vertexOffset, faceOffset);
-
+	//printf("VertexOffset: %d\nFaceOffset: %d\n", vertexOffset, faceOffset);
+	//printf("BBOX: X:(%f,%f)  Y:(%f,%f)  Z:(%f,%f)\n", bb.GetMinP().x, bb.GetMaxP().x, bb.GetMinP().y, bb.GetMaxP().y, bb.GetMinP().z, bb.GetMaxP().z);
 	// add all geometry instances to a geometry group
 	optix::GeometryGroup gg = context->createGeometryGroup();
 	gg->setChildCount(static_cast<unsigned int>(gis.size()));
@@ -132,19 +130,8 @@ optix::Group createSingleGeometryGroup(optix::Context context, optix::Program me
 	return group;
 }
 
-int loadAsset(const char* path, optix::Context context, RTgroup* o_group, CBoundingBox& bb)
+int loadAsset(const aiScene* scene, optix::Context context, RTgroup* o_group, CBoundingBox& bb)
 {
-	Assimp::Importer importer;
-
-	scene = importer.ReadFile(
-		path,
-		aiProcess_Triangulate
-		//| aiProcess_JoinIdenticalVertices
-		| aiProcess_SortByPType
-		| aiProcess_ValidateDataStructure
-		| aiProcess_SplitLargeMeshes
-		| aiProcess_FixInfacingNormals
-	);
 	if (scene) {
 		//getBoundingBox(&scene_min, &scene_max);
 		//scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
@@ -159,14 +146,14 @@ int loadAsset(const char* path, optix::Context context, RTgroup* o_group, CBound
 		unsigned int numFaces = 0;
 
 		if (scene->mNumMeshes > 0) {
-			printf("Number of meshes: %d\n", scene->mNumMeshes);
+			// printf("Number of meshes: %d\n", scene->mNumMeshes);
 
 			// get the running total number of vertices & faces for all meshes
 			for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 				numVerts += scene->mMeshes[i]->mNumVertices;
 				numFaces += scene->mMeshes[i]->mNumFaces;
 			}
-			printf("Found %d Vertices and %d Faces\n", numVerts, numFaces);
+			//printf("Found %d Vertices and %d Faces\n", numVerts, numFaces);
 
 			// set up buffers
 			optix::Buffer vertices = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT3, numVerts);
@@ -204,7 +191,7 @@ int loadAsset(const char* path, optix::Context context, RTgroup* o_group, CBound
 			context["texcoord_buffer"]->setBuffer(tbuffer);
 			context["material_buffer"]->setBuffer(materials);
 
-			optix::Group group = createSingleGeometryGroup(context, meshIntersectProgram, meshBboxProgram, vertexMap,
+			optix::Group group = createSingleGeometryGroup(scene, context, meshIntersectProgram, meshBboxProgram, vertexMap,
 				normalMap, faceMap, materialsMap, matl, bb);
 
 			context["top_object"]->set(group);

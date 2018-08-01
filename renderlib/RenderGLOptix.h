@@ -9,6 +9,7 @@
 #include "Timing.h"
 
 #include <optix.h>
+#include <optixu/optixpp_namespace.h>
 //#include <optixu/optixpp.h>
 
 #include <memory>
@@ -42,6 +43,7 @@ public:
 	void drawImage();
 
 	size_t getGpuBytes();
+
 private:
 	RenderSettings* _renderSettings;
 	RenderParams _renderParams;
@@ -55,7 +57,9 @@ private:
 
 	size_t _gpuBytes;
 
+	optix::Context _ctx;
     RTcontext _context;
+
 	/* Primary RTAPI objects */
 	RTprogram _ray_gen_program;
 	RTprogram _miss_program;
@@ -73,6 +77,8 @@ private:
 
 	RTbuffer _light_buffer;
 
-	OptiXMesh* _mesh;
+	//OptiXMesh* _mesh;
+	void initOptixMesh();
+
 };
 

@@ -118,6 +118,20 @@ Channelu16* ImageXYZC::channel(uint32_t channel) const
 	return _channels[channel];
 }
 
+glm::vec3 ImageXYZC::getDimensions() const {
+	// Compute physical size
+	const glm::vec3 PhysicalSize(
+		physicalSizeX() * (float)sizeX(),
+		physicalSizeY() * (float)sizeY(),
+		physicalSizeZ() * (float)sizeZ()
+	);
+	//glm::gtx::component_wise::compMax(PhysicalSize);
+	float m = std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
+
+	// Compute the volume's max extent - scaled to max dimension.
+	return PhysicalSize / m;
+}
+
 // count is how many elements to walk for input and output.
 FuseWorkerThread::FuseWorkerThread(size_t thread_idx, size_t nthreads, uint8_t* outptr, const ImageXYZC* img, const std::vector<glm::vec3>& colors) :
 	_thread_idx(thread_idx),

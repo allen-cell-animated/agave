@@ -263,6 +263,7 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 	case 2:
 		LOG_DEBUG << "Set OptiX Renderer";
 		_renderer.reset(new RenderGLOptix(_renderSettings));
+		_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
 		break;
 	default:
 		LOG_DEBUG << "Set OpenGL Renderer";

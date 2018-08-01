@@ -96,12 +96,18 @@ void qtome::createActions()
 	dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
 	connect(dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
 
+	testMeshAction = new QAction(tr("&Open mesh..."), this);
+	//testMeshAction->setShortcuts(QKeySequence::Open);
+	testMeshAction->setStatusTip(tr("Open a mesh obj file"));
+	connect(testMeshAction, SIGNAL(triggered()), this, SLOT(openMesh()));
 }
 
 void qtome::createMenus()
 {
 	fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(openAction);
+	fileMenu->addSeparator();
+	fileMenu->addAction(testMeshAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(dumpAction);
 	fileMenu->addSeparator();
@@ -290,6 +296,30 @@ void qtome::open(const QString& file)
 		_currentFilePath = file;
 		qtome::prependToRecentFiles(file);
 	}
+
+
+
+}
+
+void qtome::openMesh() {
+	if (_appScene._volume) {
+		return;
+	}
+	// load obj file and init scene...
+	CBoundingBox bb;
+	FileReader fileReader;
+	QElapsedTimer t;
+	t.start();
+	Assimp::Importer* importer = fileReader.loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", &bb);
+	if (importer->GetScene()) {
+		_appScene._mesh = importer;
+		_appScene.initSceneFromBoundingBox(bb);
+		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
+		// tell the 3d view to update.
+		glView->onNewImage(&_appScene);
+		appearanceDockWidget->onNewImage(&_appScene);
+	}
+	LOG_DEBUG << "Loaded mesh in " << t.elapsed() << "ms";
 }
 
 void qtome::viewFocusChanged(GLView3D *newGlView)
