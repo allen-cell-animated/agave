@@ -133,7 +133,7 @@ void RenderGLOptix::initOptixMesh() {
 			{ { 79.0f, 6.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
 		};
 
-		RT_CHECK_ERROR(rtBufferCreate(_context, RT_BUFFER_OUTPUT, &_light_buffer));
+		RT_CHECK_ERROR(rtBufferCreate(_context, RT_BUFFER_INPUT, &_light_buffer));
 		RT_CHECK_ERROR(rtBufferSetFormat(_light_buffer, RT_FORMAT_USER));
 		RT_CHECK_ERROR(rtBufferSetElementSize(_light_buffer, sizeof(BasicLight)));
 		RT_CHECK_ERROR(rtBufferSetSize1D(_light_buffer, sizeof(lights) / sizeof(lights[0])));
