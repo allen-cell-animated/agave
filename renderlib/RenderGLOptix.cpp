@@ -149,9 +149,8 @@ void RenderGLOptix::initOptixMesh() {
 		//RTobject childob;
 		//rtGroupGetChild(topgroup, 0, &childob);
 
-		RTvariable lightsvar;
-		RT_CHECK_ERROR(rtContextDeclareVariable(_context, "lights", &lightsvar));
-		RT_CHECK_ERROR(rtVariableSetObject(lightsvar, _light_buffer));
+		RT_CHECK_ERROR(rtContextDeclareVariable(_context, "lights", &_lightsvar));
+		RT_CHECK_ERROR(rtVariableSetObject(_lightsvar, _light_buffer));
 	}
 
 }
@@ -197,13 +196,21 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 	lights[0].pos[0] = _scene->_lighting.m_Lights[1].m_P.x;
 	lights[0].pos[1] = _scene->_lighting.m_Lights[1].m_P.y;
 	lights[0].pos[2] = _scene->_lighting.m_Lights[1].m_P.z;
+	lights[0].color[0] = _scene->_lighting.m_Lights[1].m_Color.x;
+	lights[0].color[1] = _scene->_lighting.m_Lights[1].m_Color.y;
+	lights[0].color[2] = _scene->_lighting.m_Lights[1].m_Color.z;
 
 	void* mapped = nullptr;
+	// if number of lights changed, might need to update size of this buffer...
+	//RT_CHECK_ERROR(rtBufferSetSize1D(_light_buffer, 1));
 	RT_CHECK_ERROR(rtBufferMap(_light_buffer, &mapped));
 	memcpy(mapped, lights, sizeof(lights));
 	RT_CHECK_ERROR(rtBufferUnmap(_light_buffer));
+	//RT_CHECK_ERROR(rtVariableSetObject(_lightsvar, _light_buffer));
 
 
+	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
+	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
 	/* Run */
 	RT_CHECK_ERROR( rtContextValidate( _context ) );

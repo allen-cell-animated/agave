@@ -75,6 +75,8 @@ private:
 	RTvariable _V;
 	RTvariable _W;
 
+	RTvariable _lightsvar;
+
 	RTbuffer _light_buffer;
 
 	//OptiXMesh* _mesh;
