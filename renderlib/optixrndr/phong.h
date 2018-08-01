@@ -77,21 +77,25 @@ __device__ void phongShade( float3 p_Kd,
   // ambient contribution
 
   float3 result = p_Ka * ambient_light_color;
+  //result = p_normal * 0.5 + 0.5;
 
   // compute direct lighting
   unsigned int num_lights = lights.size();
-  for(int i = 0; i < num_lights; ++i) {
-    BasicLight light = lights[i];
+  for (int i = 0; i < num_lights; ++i) {
+	BasicLight light = lights[i];
     float Ldist = optix::length(light.pos - hit_point);
     float3 L = optix::normalize(light.pos - hit_point);
     float nDl = optix::dot( p_normal, L);
 
-    // cast shadow ray
+	//result += light.color * p_Kd;
+
+	// cast shadow ray
     float3 light_attenuation = make_float3(static_cast<float>( nDl > 0.0f ));
     if ( nDl > 0.0f && light.casts_shadow ) {
       PerRayData_shadow shadow_prd;
       shadow_prd.attenuation = make_float3(1.0f);
-      optix::Ray shadow_ray = optix::make_Ray( hit_point, L, shadow_ray_type, scene_epsilon, Ldist );
+	  // add tiny offset to shadow ray pos to avoid precision based self shadowing noise
+      optix::Ray shadow_ray = optix::make_Ray( hit_point + (p_normal*0.0001), L, shadow_ray_type, scene_epsilon, Ldist );
       rtTrace(top_shadower, shadow_ray, shadow_prd);
       light_attenuation = shadow_prd.attenuation;
     }
@@ -108,23 +112,25 @@ __device__ void phongShade( float3 p_Kd,
         float power = pow(nDh, p_phong_exp);
         result += p_Ks * power * Lc;
       }
-    }
+
+	}
+
   }
 
   if( fmaxf( p_Kr ) > 0 ) {
 
     // ray tree attenuation
-    PerRayData_radiance new_prd;             
-    new_prd.importance = prd.importance * optix::luminance( p_Kr );
-    new_prd.depth = prd.depth + 1;
+//    PerRayData_radiance new_prd;             
+//    new_prd.importance = prd.importance * optix::luminance( p_Kr );
+//    new_prd.depth = prd.depth + 1;
 
     // reflection ray
-    if( new_prd.importance >= 0.01f && new_prd.depth <= max_depth) {
-      float3 R = optix::reflect( ray.direction, p_normal );
-      optix::Ray refl_ray = optix::make_Ray( hit_point, R, radiance_ray_type, scene_epsilon, RT_DEFAULT_MAX );
-      rtTrace(top_object, refl_ray, new_prd);
-      result += p_Kr * new_prd.result;
-    }
+//    if( new_prd.importance >= 0.01f && new_prd.depth <= max_depth) {
+//      float3 R = optix::reflect( ray.direction, p_normal );
+//      optix::Ray refl_ray = optix::make_Ray( hit_point, R, radiance_ray_type, scene_epsilon, RT_DEFAULT_MAX );
+//      rtTrace(top_object, refl_ray, new_prd);
+//      result += p_Kr * new_prd.result;
+//    }
   }
   
   // pass the color back up the tree
