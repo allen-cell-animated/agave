@@ -124,7 +124,7 @@ void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongProg
 
 			// add triangles
 			if (face.mNumIndices == 3) {
-				faceMap[i + faceOffset] = optix::make_uint3(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
+				faceMap[i + faceOffset] = optix::make_uint3(face.mIndices[0]+vertexOffset, face.mIndices[1] + vertexOffset, face.mIndices[2] + vertexOffset);
 			}
 			else {
 				//printf("face indices != 3\n");
