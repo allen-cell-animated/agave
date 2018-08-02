@@ -76,11 +76,27 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	check_gl("create buffer texture");
 
+	//RT_CHECK_ERROR( rtContextCreate( &_context ) );
 	_ctx = optix::Context::create();
 	_context = _ctx->get();
+
 	/* Create our objects and set state */
-	//RT_CHECK_ERROR( rtContextCreate( &_context ) );
+	
+	optix::Group group = _ctx->createGroup();
+	_topGroup = group->get();
+	optix::Acceleration accel = _ctx->createAcceleration("Trbvh");
+	group->setAcceleration(accel);
+	_ctx["top_object"]->set(group);
+	_ctx["top_shadower"]->set(group);
+	_ctx["max_depth"]->setInt(100);
+	//_ctx["scene_epsilon"]->setFloat(1.e-4f);
+	_ctx["importance_cutoff"]->setFloat(0.01f);
+	_ctx["ambient_light_color"]->setFloat(0.31f, 0.33f, 0.28f);
+
 	RT_CHECK_ERROR( rtContextSetRayTypeCount( _context, 2 ) );
+	_ctx["radiance_ray_type"]->setUint(0);
+	_ctx["shadow_ray_type"]->setUint(1);
+
 	RT_CHECK_ERROR( rtContextSetEntryPointCount( _context, 1 ) );
 
 	RT_CHECK_ERROR(rtBufferCreateFromGLBO(_context, RT_BUFFER_OUTPUT, _pixelBuffer, &_buffer));
@@ -123,9 +139,14 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLOptix::initOptixMesh() {
-	RTgroup topgroup;
 
-	int ok = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, &topgroup, _scene->_boundingBox);
+	optix::GeometryGroup ggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, _scene->_boundingBox);
+	if (ggroup) {
+		unsigned int index = 0;
+		RT_CHECK_ERROR(rtGroupGetChildCount(_topGroup, &index));
+		RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, index + 1));
+		RT_CHECK_ERROR(rtGroupSetChild(_topGroup, index, ggroup->get()));
+	}
 
 	{
 
@@ -187,7 +208,7 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 		for (int i = 0; i < _scene->_lighting.m_NoLights; ++i) {
 			_scene->_lighting.m_Lights[i].Update(_scene->_boundingBox);
 		}
-		printf("LIGHT (%f, %f, %f)\n", _scene->_lighting.m_Lights[1].m_P.x, _scene->_lighting.m_Lights[1].m_P.y, _scene->_lighting.m_Lights[1].m_P.z);
+		//printf("LIGHT (%f, %f, %f)\n", _scene->_lighting.m_Lights[1].m_P.x, _scene->_lighting.m_Lights[1].m_P.y, _scene->_lighting.m_Lights[1].m_P.z);
 
 	}
 	BasicLight lights[] = {

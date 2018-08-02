@@ -81,6 +81,8 @@ private:
 
 	//OptiXMesh* _mesh;
 	void initOptixMesh();
+	// the scene root node...
+	RTgroup _topGroup;
 
 };
 

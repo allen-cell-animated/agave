@@ -35,7 +35,7 @@
 struct aiScene;
 class CBoundingBox;
 
-int loadAsset(const aiScene* scene, optix::Context context, RTgroup* o_group, CBoundingBox& bb);
+optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBoundingBox& bb);
 
 //------------------------------------------------------------------------------
 //

@@ -51,12 +51,9 @@ namespace optix {
   }
 }
 
-optix::Group createSingleGeometryGroup(const aiScene* scene, optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
+optix::GeometryGroup createSingleGeometryGroup(const aiScene* scene, optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
 	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, CBoundingBox& bb) {
 
-	optix::Group group = context->createGroup();
-	optix::Acceleration accel = context->createAcceleration("Trbvh");
-	group->setAcceleration(accel);
 	std::vector<optix::GeometryInstance> gis;
 	unsigned int vertexOffset = 0u;
 	unsigned int faceOffset = 0u;
@@ -124,14 +121,13 @@ optix::Group createSingleGeometryGroup(const aiScene* scene, optix::Context cont
 	optix::Acceleration a = context->createAcceleration("Trbvh");
 	gg->setAcceleration(a);
 
-	group->setChildCount(1);
-	group->setChild(0, gg);
-
-	return group;
+	return gg;
 }
 
-int loadAsset(const aiScene* scene, optix::Context context, RTgroup* o_group, CBoundingBox& bb)
+optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBoundingBox& bb)
 {
+	optix::GeometryGroup ggroup;
+
 	if (scene) {
 		unsigned int numVerts = 0;
 		unsigned int numFaces = 0;
@@ -182,27 +178,16 @@ int loadAsset(const aiScene* scene, optix::Context context, RTgroup* o_group, CB
 			context["texcoord_buffer"]->setBuffer(tbuffer);
 			context["material_buffer"]->setBuffer(materials);
 
-			optix::Group group = createSingleGeometryGroup(scene, context, meshIntersectProgram, meshBboxProgram, vertexMap,
+			ggroup = createSingleGeometryGroup(scene, context, meshIntersectProgram, meshBboxProgram, vertexMap,
 				normalMap, faceMap, materialsMap, matl, bb);
-
-			context["top_object"]->set(group);
-			context["top_shadower"]->set(group);
-			context["max_depth"]->setInt(100);
-			context["radiance_ray_type"]->setUint(0);
-			context["shadow_ray_type"]->setUint(1);
-			//context["scene_epsilon"]->setFloat(1.e-4f);
-			context["importance_cutoff"]->setFloat(0.01f);
-			context["ambient_light_color"]->setFloat(0.31f, 0.33f, 0.28f);
 
 			vertices->unmap();
 			normals->unmap();
 			faces->unmap();
 			materials->unmap();
 
-			*o_group = group->get();
 		}
 
-		return 0;
 	}
-	return 1;
+	return ggroup;
 }
