@@ -40,6 +40,13 @@
 
 struct aiScene;
 
+struct TriMeshPhongPrograms {
+	optix::Program _closestHit;
+	optix::Program _anyHit;
+	optix::Program _intersect;
+	optix::Program _boundingBox;
+};
+
 //------------------------------------------------------------------------------
 //
 // OptiX mesh consisting of a single geometry instance with one or more
@@ -55,17 +62,15 @@ struct aiScene;
 //------------------------------------------------------------------------------
 struct OptiXMesh
 {
-	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, glm::mat4& mtx);
+	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx);
+
+	// if the transform is non-null then we have successfully got through the full initialization
+	bool isValid() { return (bool)_transform; }
+
 	// Input
 	std::shared_ptr<Assimp::Importer> _cpumesh;
 
 	optix::Context _context;       // required
-
-	optix::Program _intersection;  // optional 
-	optix::Program _bounds;        // optional
-
-	optix::Program _closest_hit;   // optional multi matl override
-	optix::Program _any_hit;       // optional
 
 	// Output
 	optix::Buffer _vertices;
@@ -91,7 +96,7 @@ struct OptiXMesh
 	//optix::float3                bbox_max;
 
 private:
-	bool loadAsset(glm::mat4& mtx);
-	void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
+	bool loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx);
+	void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
 		optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx);
 };

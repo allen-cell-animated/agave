@@ -21,14 +21,14 @@ namespace optix {
   }
 }
 
-OptiXMesh::OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, glm::mat4& mtx)
+OptiXMesh::OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx)
 {
 	_cpumesh = cpumesh;
 	_context = context;
-	bool ok = loadAsset(mtx);
+	bool ok = loadAsset(programs, mtx);
 }
 
-bool OptiXMesh::loadAsset(glm::mat4& mtx)
+bool OptiXMesh::loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx)
 {
 	const aiScene* scene = _cpumesh->GetScene();
 	if (scene) {
@@ -56,20 +56,13 @@ bool OptiXMesh::loadAsset(glm::mat4& mtx)
 			_tbuffer = _context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT2, 0);
 
 			// create material
-			optix::Program phong_ch = _context->createProgramFromPTXFile("./ptx/objects-Debug/CudaPTX/phong.ptx", "closest_hit_radiance");
-			optix::Program phong_ah = _context->createProgramFromPTXFile("./ptx/objects-Debug/CudaPTX/phong.ptx", "any_hit_shadow");
-
 			_material = _context->createMaterial();
-			_material->setClosestHitProgram(0, phong_ch);
-			_material->setAnyHitProgram(1, phong_ah);
+			_material->setClosestHitProgram(0, programs._closestHit);
+			_material->setAnyHitProgram(1, programs._anyHit);
 			_material["Kd"]->setFloat(0.7f, 0.7f, 0.7f);
 			_material["Ka"]->setFloat(1.0f, 1.0f, 1.0f);
 			_material["Kr"]->setFloat(0.0f, 0.0f, 0.0f);
 			_material["phong_exp"]->setFloat(1.0f);
-
-			std::string triangle_mesh_ptx_path("./ptx/objects-Debug/CudaPTX/triangle_mesh.ptx");
-			optix::Program meshIntersectProgram = _context->createProgramFromPTXFile(triangle_mesh_ptx_path, "mesh_intersect");
-			optix::Program meshBboxProgram = _context->createProgramFromPTXFile(triangle_mesh_ptx_path, "mesh_bounds");
 
 			optix::float3 *vertexMap = reinterpret_cast<optix::float3*>(_vertices->map());
 			optix::float3 *normalMap = reinterpret_cast<optix::float3*>(_normals->map());
@@ -82,7 +75,7 @@ bool OptiXMesh::loadAsset(glm::mat4& mtx)
 			_context["texcoord_buffer"]->setBuffer(_tbuffer);
 			_context["material_buffer"]->setBuffer(_materials);
 
-			createSingleGeometryGroup(scene, meshIntersectProgram, meshBboxProgram, vertexMap,
+			createSingleGeometryGroup(scene, programs, vertexMap,
 				normalMap, faceMap, materialsMap, _material, mtx);
 
 			_vertices->unmap();
@@ -97,7 +90,7 @@ bool OptiXMesh::loadAsset(glm::mat4& mtx)
 	return false;
 }
 
-void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
+void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
 	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx) {
 
 	unsigned int vertexOffset = 0u;
@@ -143,8 +136,8 @@ void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, optix::Program m
 		// create geometry
 		optix::Geometry geometry = _context->createGeometry();
 		geometry->setPrimitiveCount(mesh->mNumFaces);
-		geometry->setIntersectionProgram(meshIntersectProgram);
-		geometry->setBoundingBoxProgram(meshBboxProgram);
+		geometry->setIntersectionProgram(programs._intersect);
+		geometry->setBoundingBoxProgram(programs._boundingBox);
 		geometry->setPrimitiveIndexOffset(faceOffset);
 
 		optix::GeometryInstance gi = _context->createGeometryInstance(geometry, &matl, &matl + 1);

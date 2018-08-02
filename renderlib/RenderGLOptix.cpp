@@ -114,6 +114,13 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "miss", &_miss_program));
 	RT_CHECK_ERROR(rtProgramCreateFromPTXFile(_context, path_to_ptx, "exception", &_exception_program));
 
+	// create material
+	_phong_closesthit_program = _ctx->createProgramFromPTXFile("./ptx/objects-Debug/CudaPTX/phong.ptx", "closest_hit_radiance");
+	_phong_anyhit_program = _ctx->createProgramFromPTXFile("./ptx/objects-Debug/CudaPTX/phong.ptx", "any_hit_shadow");
+	std::string triangle_mesh_ptx_path("./ptx/objects-Debug/CudaPTX/triangle_mesh.ptx");
+	_mesh_intersect_program = _ctx->createProgramFromPTXFile(triangle_mesh_ptx_path, "mesh_intersect");
+	_mesh_boundingbox_program = _ctx->createProgramFromPTXFile(triangle_mesh_ptx_path, "mesh_bounds");
+
 	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "draw_color", &_draw_color));
 	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "scene_epsilon", &_scene_epsilon));
 	RT_CHECK_ERROR(rtProgramDeclareVariable(_ray_gen_program, "eye", &_eye));
@@ -140,7 +147,14 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 
 void RenderGLOptix::initOptixMesh() {
 	glm::mat4 mtx(1.0);
-	OptiXMesh optixmesh(_scene->_meshes[0], _ctx, mtx);
+
+	TriMeshPhongPrograms prg;
+	prg._closestHit = _phong_closesthit_program;
+	prg._anyHit = _phong_anyhit_program;
+	prg._boundingBox = _mesh_boundingbox_program;
+	prg._intersect = _mesh_intersect_program;
+
+	OptiXMesh optixmesh(_scene->_meshes[0], _ctx, prg, mtx);
 	optix::Transform transformedggroup = optixmesh._transform;
 	//optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
 	if (transformedggroup) {

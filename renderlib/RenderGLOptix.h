@@ -66,6 +66,11 @@ private:
 	RTprogram _exception_program;
 	RTbuffer  _buffer;
 
+	optix::Program _phong_closesthit_program;
+	optix::Program _phong_anyhit_program;
+	optix::Program _mesh_intersect_program;
+	optix::Program _mesh_boundingbox_program;
+
 	/* Parameters */
 	RTvariable _result_buffer;
 	RTvariable _draw_color;
