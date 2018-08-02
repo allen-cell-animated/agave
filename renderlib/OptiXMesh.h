@@ -32,10 +32,12 @@
 #include <optixu/optixpp_namespace.h>
 #include <optixu/optixu_matrix_namespace.h>
 
+#include "glm.h"
+
 struct aiScene;
 class CBoundingBox;
 
-optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBoundingBox& bb);
+optix::Transform loadAsset(const aiScene* scene, optix::Context context, glm::mat4& mtx);
 
 //------------------------------------------------------------------------------
 //

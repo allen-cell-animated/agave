@@ -51,8 +51,8 @@ namespace optix {
   }
 }
 
-optix::GeometryGroup createSingleGeometryGroup(const aiScene* scene, optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
-	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, CBoundingBox& bb) {
+optix::Transform createSingleGeometryGroup(const aiScene* scene, optix::Context context, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
+	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx) {
 
 	std::vector<optix::GeometryInstance> gis;
 	unsigned int vertexOffset = 0u;
@@ -74,15 +74,14 @@ optix::GeometryGroup createSingleGeometryGroup(const aiScene* scene, optix::Cont
 			aiVector3D pos = mesh->mVertices[i];
 			aiVector3D norm = mesh->mNormals[i];
 
-			bb += glm::vec3(pos.x, pos.y, pos.z);
 			vertexMap[i + vertexOffset] = optix::make_float3(pos.x, pos.y, pos.z);// +aabb.center();
 			normalMap[i + vertexOffset] = optix::normalize(optix::make_float3(norm.x, norm.y, norm.z));
-			materialsMap[i + vertexOffset] = 0u;
 
 		}
 
 		// add faces
 		for (unsigned int i = 0u; i < mesh->mNumFaces; i++) {
+
 			aiFace face = mesh->mFaces[i];
 
 			// add triangles
@@ -93,6 +92,7 @@ optix::GeometryGroup createSingleGeometryGroup(const aiScene* scene, optix::Cont
 				//printf("face indices != 3\n");
 				faceMap[i + faceOffset] = optix::make_uint3(-1);
 			}
+			materialsMap[i + faceOffset] = 0u;
 		}
 
 		// create geometry
@@ -110,9 +110,9 @@ optix::GeometryGroup createSingleGeometryGroup(const aiScene* scene, optix::Cont
 
 	}
 
-	//printf("VertexOffset: %d\nFaceOffset: %d\n", vertexOffset, faceOffset);
-	//printf("BBOX: X:(%f,%f)  Y:(%f,%f)  Z:(%f,%f)\n", bb.GetMinP().x, bb.GetMaxP().x, bb.GetMinP().y, bb.GetMaxP().y, bb.GetMinP().z, bb.GetMaxP().z);
 	// add all geometry instances to a geometry group
+	optix::Transform transform = context->createTransform();
+
 	optix::GeometryGroup gg = context->createGeometryGroup();
 	gg->setChildCount(static_cast<unsigned int>(gis.size()));
 	for (unsigned i = 0u; i < gis.size(); i++) {
@@ -121,12 +121,15 @@ optix::GeometryGroup createSingleGeometryGroup(const aiScene* scene, optix::Cont
 	optix::Acceleration a = context->createAcceleration("Trbvh");
 	gg->setAcceleration(a);
 
-	return gg;
+	transform->setMatrix(false, glm::value_ptr(mtx), NULL);
+	transform->setChild(gg);
+
+	return transform;
 }
 
-optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBoundingBox& bb)
+optix::Transform loadAsset(const aiScene* scene, optix::Context context, glm::mat4& mtx)
 {
-	optix::GeometryGroup ggroup;
+	optix::Transform transformedggroup;
 
 	if (scene) {
 		unsigned int numVerts = 0;
@@ -146,7 +149,8 @@ optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBo
 			optix::Buffer vertices = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT3, numVerts);
 			optix::Buffer normals = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT3, numVerts);
 			optix::Buffer faces = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT3, numFaces);
-			optix::Buffer materials = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, numVerts);
+			// each face can have a different material...
+			optix::Buffer materials = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, numFaces);
 
 			// unused buffer
 			optix::Buffer tbuffer = context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT2, 0);
@@ -178,8 +182,8 @@ optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBo
 			context["texcoord_buffer"]->setBuffer(tbuffer);
 			context["material_buffer"]->setBuffer(materials);
 
-			ggroup = createSingleGeometryGroup(scene, context, meshIntersectProgram, meshBboxProgram, vertexMap,
-				normalMap, faceMap, materialsMap, matl, bb);
+			transformedggroup = createSingleGeometryGroup(scene, context, meshIntersectProgram, meshBboxProgram, vertexMap,
+				normalMap, faceMap, materialsMap, matl, mtx);
 
 			vertices->unmap();
 			normals->unmap();
@@ -189,5 +193,5 @@ optix::GeometryGroup loadAsset(const aiScene* scene, optix::Context context, CBo
 		}
 
 	}
-	return ggroup;
+	return transformedggroup;
 }

@@ -139,13 +139,13 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLOptix::initOptixMesh() {
-
-	optix::GeometryGroup ggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, _scene->_boundingBox);
-	if (ggroup) {
+	glm::mat4 mtx(1.0);
+	optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
+	if (transformedggroup) {
 		unsigned int index = 0;
 		RT_CHECK_ERROR(rtGroupGetChildCount(_topGroup, &index));
 		RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, index + 1));
-		RT_CHECK_ERROR(rtGroupSetChild(_topGroup, index, ggroup->get()));
+		RT_CHECK_ERROR(rtGroupSetChild(_topGroup, index, transformedggroup->get()));
 	}
 
 	{
