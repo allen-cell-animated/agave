@@ -97,6 +97,6 @@ struct OptiXMesh
 
 private:
 	bool loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx);
-	void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
+	void createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
 		optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx);
 };
