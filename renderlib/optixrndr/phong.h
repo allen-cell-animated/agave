@@ -120,17 +120,17 @@ __device__ void phongShade( float3 p_Kd,
   if( fmaxf( p_Kr ) > 0 ) {
 
     // ray tree attenuation
-//    PerRayData_radiance new_prd;             
-//    new_prd.importance = prd.importance * optix::luminance( p_Kr );
-//    new_prd.depth = prd.depth + 1;
+    PerRayData_radiance new_prd;
+    new_prd.importance = prd.importance * optix::luminance( p_Kr );
+    new_prd.depth = prd.depth + 1;
 
     // reflection ray
-//    if( new_prd.importance >= 0.01f && new_prd.depth <= max_depth) {
-//      float3 R = optix::reflect( ray.direction, p_normal );
-//      optix::Ray refl_ray = optix::make_Ray( hit_point, R, radiance_ray_type, scene_epsilon, RT_DEFAULT_MAX );
-//      rtTrace(top_object, refl_ray, new_prd);
-//      result += p_Kr * new_prd.result;
-//    }
+    if( new_prd.importance >= 0.01f && new_prd.depth <= max_depth) {
+      float3 R = optix::reflect( ray.direction, p_normal );
+      optix::Ray refl_ray = optix::make_Ray( hit_point, R, radiance_ray_type, scene_epsilon, RT_DEFAULT_MAX );
+      rtTrace(top_object, refl_ray, new_prd);
+      result += p_Kr * new_prd.result;
+    }
   }
   
   // pass the color back up the tree
