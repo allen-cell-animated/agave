@@ -247,6 +247,7 @@ Assimp::Importer* FileReader::loadAsset(const char* path, CBoundingBox* bb)
 		| aiProcess_ValidateDataStructure
 		| aiProcess_SplitLargeMeshes
 		| aiProcess_FixInfacingNormals
+		| aiProcess_GenSmoothNormals
 	);
 	if (scene) {
 		//getBoundingBox(&scene_min, &scene_max);
