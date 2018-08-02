@@ -39,9 +39,6 @@
 #include <memory>
 
 struct aiScene;
-class CBoundingBox;
-
-optix::Transform loadAsset(const aiScene* scene, optix::Context context, glm::mat4& mtx);
 
 //------------------------------------------------------------------------------
 //
