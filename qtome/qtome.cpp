@@ -99,7 +99,7 @@ void qtome::createActions()
 	testMeshAction = new QAction(tr("&Open mesh..."), this);
 	//testMeshAction->setShortcuts(QKeySequence::Open);
 	testMeshAction->setStatusTip(tr("Open a mesh obj file"));
-	connect(testMeshAction, SIGNAL(triggered()), this, SLOT(openMesh()));
+	connect(testMeshAction, SIGNAL(triggered()), this, SLOT(openMeshDialog()));
 }
 
 void qtome::createMenus()
@@ -301,7 +301,19 @@ void qtome::open(const QString& file)
 
 }
 
-void qtome::openMesh() {
+void qtome::openMeshDialog() {
+	QString file = QFileDialog::getOpenFileName(this,
+		tr("Open Mesh"),
+		QString(),
+		QString(),
+		0,
+		QFileDialog::DontResolveSymlinks);
+
+	if (!file.isEmpty())
+		openMesh(file);
+}
+
+void qtome::openMesh(const QString& file) {
 	if (_appScene._volume) {
 		return;
 	}
@@ -310,9 +322,10 @@ void qtome::openMesh() {
 	FileReader fileReader;
 	QElapsedTimer t;
 	t.start();
-	Assimp::Importer* importer = fileReader.loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", &bb);
+	//Assimp::Importer* importer = fileReader.loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", &bb);
+	Assimp::Importer* importer = fileReader.loadAsset(file.toStdString().c_str(), &bb);
 	if (importer->GetScene()) {
-		_appScene._mesh = importer;
+		_appScene._meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
 		_appScene.initSceneFromBoundingBox(bb);
 		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
 		// tell the 3d view to update.
@@ -449,8 +462,17 @@ void qtome::updateRecentFileActions()
 
 void qtome::openRecentFile()
 {
-	if (const QAction *action = qobject_cast<const QAction *>(sender()))
-		open(action->data().toString());
+	if (const QAction *action = qobject_cast<const QAction *>(sender())) {
+		QString path = action->data().toString();
+		if (path.endsWith(".obj")) {
+			// assume that .obj is mesh
+			openMesh(path);
+		}
+		else {
+			// assumption of ome.tif
+			open(path);
+		}
+	}
 }
 
 QString qtome::strippedName(const QString &fullFileName)

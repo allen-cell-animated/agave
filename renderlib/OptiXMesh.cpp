@@ -133,15 +133,6 @@ optix::Group createSingleGeometryGroup(const aiScene* scene, optix::Context cont
 int loadAsset(const aiScene* scene, optix::Context context, RTgroup* o_group, CBoundingBox& bb)
 {
 	if (scene) {
-		//getBoundingBox(&scene_min, &scene_max);
-		//scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
-		//scene_center.y = (scene_min.y + scene_max.y) / 2.0f;
-		//scene_center.z = (scene_min.z + scene_max.z) / 2.0f;
-
-		//float3 optixMin = { scene_min.x, scene_min.y, scene_min.z };
-		//float3 optixMax = { scene_max.x, scene_max.y, scene_max.z };
-		//aabb.set(optixMin, optixMax);
-
 		unsigned int numVerts = 0;
 		unsigned int numFaces = 0;
 

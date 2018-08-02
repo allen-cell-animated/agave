@@ -125,7 +125,7 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 void RenderGLOptix::initOptixMesh() {
 	RTgroup topgroup;
 
-	int ok = loadAsset(_scene->_mesh->GetScene(), _ctx, &topgroup, _scene->_boundingBox);
+	int ok = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, &topgroup, _scene->_boundingBox);
 
 	{
 
@@ -156,7 +156,7 @@ void RenderGLOptix::initOptixMesh() {
 }
 
 void RenderGLOptix::doRender(const CCamera& camera) {
-	if (!_scene || !_scene->_mesh) {
+	if (!_scene || _scene->_meshes.empty()) {
 		return;
 	}
 	if (_renderSettings->m_DirtyFlags.HasFlag(MeshDirty) && !_light_buffer) {

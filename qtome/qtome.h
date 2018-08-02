@@ -35,7 +35,8 @@ private slots:
 	void viewFocusChanged(GLView3D *glView);
 	void tabChanged(int index);
 	void dumpPythonState();
-	void openMesh();
+	void openMeshDialog();
+	void openMesh(const QString& file);
 
 private:
 	enum { MaxRecentFiles = 8 };

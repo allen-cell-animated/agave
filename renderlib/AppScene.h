@@ -4,6 +4,7 @@
 #include "BoundingBox.h"
 
 #include <memory>
+#include <vector>
 
 #include "assimp/Importer.hpp"
 
@@ -223,8 +224,6 @@ public:
 
 class Scene {
 public:
-	Scene() : _mesh(0) {}
-
 	// one single volume, for now...!
     std::shared_ptr<ImageXYZC> _volume;
 	// appearance settings for a volume
@@ -239,5 +238,5 @@ public:
 
 	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
 
-	Assimp::Importer* _mesh;
+	std::vector<std::shared_ptr<Assimp::Importer>> _meshes;
 };
