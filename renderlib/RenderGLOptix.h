@@ -79,10 +79,10 @@ private:
 
 	RTbuffer _light_buffer;
 
-	//OptiXMesh* _mesh;
 	void initOptixMesh();
 	// the scene root node...
 	RTgroup _topGroup;
 
+	std::vector<OptiXMesh> _optixmeshes;
 };
 

@@ -140,7 +140,9 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 
 void RenderGLOptix::initOptixMesh() {
 	glm::mat4 mtx(1.0);
-	optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
+	OptiXMesh optixmesh(_scene->_meshes[0], _ctx, mtx);
+	optix::Transform transformedggroup = optixmesh._transform;
+	//optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
 	if (transformedggroup) {
 		unsigned int index = 0;
 		RT_CHECK_ERROR(rtGroupGetChildCount(_topGroup, &index));

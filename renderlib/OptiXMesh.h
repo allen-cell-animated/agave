@@ -32,7 +32,11 @@
 #include <optixu/optixpp_namespace.h>
 #include <optixu/optixu_matrix_namespace.h>
 
+#include "assimp/Importer.hpp"
+
 #include "glm.h"
+
+#include <memory>
 
 struct aiScene;
 class CBoundingBox;
@@ -54,20 +58,43 @@ optix::Transform loadAsset(const aiScene* scene, optix::Context context, glm::ma
 //------------------------------------------------------------------------------
 struct OptiXMesh
 {
-  // Input
-  optix::Context               context;       // required
-  optix::Material              material;      // optional single matl override
+	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, glm::mat4& mtx);
+	// Input
+	std::shared_ptr<Assimp::Importer> _cpumesh;
 
-  optix::Program               intersection;  // optional 
-  optix::Program               bounds;        // optional
-  
-  optix::Program               closest_hit;   // optional multi matl override
-  optix::Program               any_hit;       // optional
+	optix::Context _context;       // required
 
-  // Output
-  optix::GeometryInstance      geom_instance;
-  optix::float3                bbox_min;
-  optix::float3                bbox_max;
+	optix::Program _intersection;  // optional 
+	optix::Program _bounds;        // optional
 
-  int                          num_triangles;
+	optix::Program _closest_hit;   // optional multi matl override
+	optix::Program _any_hit;       // optional
+
+	// Output
+	optix::Buffer _vertices;
+	optix::Buffer _normals;
+	optix::Buffer _faces;
+	// each face can have a different material...
+	optix::Buffer _materials;
+	// unused buffer (uv)
+	optix::Buffer _tbuffer;
+
+	// will be set by app, and ignore what comes out of the assimp importer.
+	optix::Material _material;
+
+	// top node for this mesh
+	optix::Transform _transform;
+	// child of the transform
+	optix::GeometryGroup _geometrygroup;
+	// children of the geometry group
+	std::vector<optix::GeometryInstance> _gis;
+
+
+	//optix::float3                bbox_min;
+	//optix::float3                bbox_max;
+
+private:
+	bool loadAsset(glm::mat4& mtx);
+	void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, optix::Program meshIntersectProgram, optix::Program meshBboxProgram, optix::float3 *vertexMap,
+		optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx);
 };
