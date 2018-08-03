@@ -21,13 +21,13 @@ For linux:
 source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var
 mkdir build
 cd build
-~/cmake-3.10.2-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=Release ..
+~/cmake-3.10.2-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=Release -DOptiX_INSTALL_DIR=~/NVIDIA-OptiX-SDK-5.1.0-linux64 ..
 make
 make install
 ```
 
 # add boost and optix to lib paths for running.
-LD_LIBRARY_PATH=~/NVIDIA-OptiX-SDK-5.0.1-linux64/lib64:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=~/NVIDIA-OptiX-SDK-5.1.0-linux64/lib64:$LD_LIBRARY_PATH
 cd Release/bin
 ./qtomeapp 
 ./websockerserverapp
