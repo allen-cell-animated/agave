@@ -154,14 +154,37 @@ void RenderGLOptix::initOptixMesh() {
 	prg._boundingBox = _mesh_boundingbox_program;
 	prg._intersect = _mesh_intersect_program;
 
-	OptiXMesh optixmesh(_scene->_meshes[0], _ctx, prg, mtx);
-	optix::Transform transformedggroup = optixmesh._transform;
-	//optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
-	if (transformedggroup) {
-		unsigned int index = 0;
-		RT_CHECK_ERROR(rtGroupGetChildCount(_topGroup, &index));
-		RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, index + 1));
-		RT_CHECK_ERROR(rtGroupSetChild(_topGroup, index, transformedggroup->get()));
+	// remove all children and rebuild.
+	//RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, 0));
+	//_optixmeshes.clear();
+
+	for (int i = 0; i < _scene->_meshes.size(); ++i) {
+		// see if this mesh already exists in renderable form?
+		bool found = false;
+		for (int j = 0; j < _optixmeshes.size(); ++j) {
+			if (_optixmeshes[j]->_cpumesh == _scene->_meshes[i]) {
+				found = true;
+				LOG_DEBUG << "found mesh already";
+				break;
+			}
+		}
+		if (found) {
+			continue;
+		}
+
+		OptiXMesh* optixmesh = new OptiXMesh(_scene->_meshes[i], _ctx, prg, mtx);
+
+		_optixmeshes.push_back(std::shared_ptr<OptiXMesh>(optixmesh));
+
+		optix::Transform transformedggroup = optixmesh->_transform;
+		//optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
+		if (transformedggroup) {
+			unsigned int index = 0;
+			RT_CHECK_ERROR(rtGroupGetChildCount(_topGroup, &index));
+			RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, index + 1));
+			RT_CHECK_ERROR(rtGroupSetChild(_topGroup, index, transformedggroup->get()));
+
+		}
 	}
 
 	{
@@ -422,6 +445,11 @@ void RenderGLOptix::drawImage() {
 }
 
 void RenderGLOptix::cleanUpResources() {
+	// remove all children.
+	RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, 0));
+	_optixmeshes.clear();
+
+
 	RT_CHECK_ERROR( rtBufferDestroy( _buffer ) );
 	RT_CHECK_ERROR( rtProgramDestroy( _ray_gen_program ) );
 	RT_CHECK_ERROR( rtContextDestroy( _context ) );	

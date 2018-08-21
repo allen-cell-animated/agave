@@ -69,12 +69,6 @@ bool OptiXMesh::loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx)
 			optix::uint3 *faceMap = reinterpret_cast<optix::uint3*>(_faces->map());
 			unsigned int *materialsMap = static_cast<unsigned int*>(_materials->map());
 
-			_context["vertex_buffer"]->setBuffer(_vertices);
-			_context["normal_buffer"]->setBuffer(_normals);
-			_context["index_buffer"]->setBuffer(_faces);
-			_context["texcoord_buffer"]->setBuffer(_tbuffer);
-			_context["material_buffer"]->setBuffer(_materials);
-
 			createSingleGeometryGroup(scene, programs, vertexMap,
 				normalMap, faceMap, materialsMap, _material, mtx);
 
@@ -135,6 +129,13 @@ void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongProg
 
 		// create geometry
 		optix::Geometry geometry = _context->createGeometry();
+
+		geometry["vertex_buffer"]->setBuffer(_vertices);
+		geometry["normal_buffer"]->setBuffer(_normals);
+		geometry["index_buffer"]->setBuffer(_faces);
+		geometry["texcoord_buffer"]->setBuffer(_tbuffer);
+		geometry["material_buffer"]->setBuffer(_materials);
+
 		geometry->setPrimitiveCount(mesh->mNumFaces);
 		geometry->setIntersectionProgram(programs._intersect);
 		geometry->setBoundingBoxProgram(programs._boundingBox);
@@ -161,4 +162,8 @@ void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongProg
 
 	_transform->setMatrix(false, glm::value_ptr(mtx), NULL);
 	_transform->setChild(_geometrygroup);
+}
+
+void OptiXMesh::destroy()
+{
 }

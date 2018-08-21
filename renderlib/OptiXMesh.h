@@ -64,6 +64,8 @@ struct OptiXMesh
 {
 	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx);
 
+	void destroy();
+
 	// if the transform is non-null then we have successfully got through the full initialization
 	bool isValid() { return (bool)_transform; }
 

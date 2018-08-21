@@ -88,6 +88,6 @@ private:
 	// the scene root node...
 	RTgroup _topGroup;
 
-	std::vector<OptiXMesh> _optixmeshes;
+	std::vector<std::shared_ptr<OptiXMesh>> _optixmeshes;
 };
 
