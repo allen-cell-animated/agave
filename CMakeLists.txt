@@ -48,11 +48,19 @@ find_package(Qt5Xml)
 #endif()
 
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
-
 find_package(TIFF REQUIRED)
+find_package(assimp REQUIRED)
+
+# find_package(openvdb REQUIRED)
+find_library(OPENVDB_LIB openvdb REQUIRED)
+find_library(HALF_LIB half REQUIRED)
+find_path(OPENVDB_INCLUDE_DIR openvdb/openvdb.h REQUIRED)
+find_library(TBB_LIBRARY_DEBUG tbb_debug REQUIRED)
+find_library(TBB_LIBRARY_RELEASE tbb REQUIRED)
+include(SelectLibraryConfigurations)
+select_library_configurations(TBB)
 
 find_package(OptiX REQUIRED)
-find_package(assimp REQUIRED)
 
 set(CMAKE_CUDA_FLAGS
   # Pascal target
@@ -90,6 +98,10 @@ add_subdirectory(qtome)
 # THE FRONT END QT WEBSOCKET SERVER EXE
 #######################################
 add_subdirectory(websocketserver)
+#######################################
+# A VDB CONVERTER
+#######################################
+add_subdirectory(ome2vdb)
 
 # copy all dlls into place.
 if (WIN32)
@@ -103,28 +115,42 @@ install(FILES
   ${optix_DLL}
   # note these are release build dlls.
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/assimp-vc140-mt.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/blosc.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_chrono-vc141-mt-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_date_time-vc141-mt-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_filesystem-vc141-mt-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_log-vc141-mt-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_system-vc141-mt-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_thread-vc141-mt-x64-1_67.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/Half.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/jpeg62.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/lz4.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/lzma.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/openvdb.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/snappy.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/tbb.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/tiff.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zlib1.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zstd.dll
   # debug dlls
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/assimp-vc140-mtd.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/blosc.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_chrono-vc141-mt-gd-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_date_time-vc141-mt-gd-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_filesystem-vc141-mt-gd-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_log-vc141-mt-gd-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_system-vc141-mt-gd-x64-1_67.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_thread-vc141-mt-gd-x64-1_67.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/Half.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/jpeg62.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/lz4d.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/lzma.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/openvdb.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/snappyd.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/tbb_debug.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/tiffd.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zlibd1.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zstdd.dll
 	DESTINATION bin
 )
 endif (WIN32)
