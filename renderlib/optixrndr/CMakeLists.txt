@@ -1,6 +1,13 @@
 
+set(CMAKE_CUDA_FLAGS
+	# Pascal target
+	"-gencode=arch=compute_61,code=sm_61 -Wno-deprecated-gpu-targets"
+)
+
 add_library(CudaPTX OBJECT
 	hello.cu
+	parallelogram.cu
+	pathTracer.cu
 	phong.cu
 	triangle_mesh.cu
 )
