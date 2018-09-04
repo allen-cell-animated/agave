@@ -21,14 +21,14 @@ namespace optix {
   }
 }
 
-OptiXMesh::OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx)
+OptiXMesh::OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc)
 {
 	_cpumesh = cpumesh;
 	_context = context;
-	bool ok = loadAsset(programs, mtx);
+	bool ok = loadAsset(programs, mtx, materialdesc);
 }
 
-bool OptiXMesh::loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx)
+bool OptiXMesh::loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc)
 {
 	const aiScene* scene = _cpumesh->GetScene();
 	if (scene) {
@@ -59,10 +59,15 @@ bool OptiXMesh::loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx)
 			_material = _context->createMaterial();
 			_material->setClosestHitProgram(0, programs._closestHit);
 			_material->setAnyHitProgram(1, programs._anyHit);
-			_material["Kd"]->setFloat(0.7f, 0.7f, 0.7f);
-			_material["Ka"]->setFloat(1.0f, 1.0f, 1.0f);
-			_material["Kr"]->setFloat(0.0f, 0.0f, 0.0f);
-			_material["phong_exp"]->setFloat(1.0f);
+			_material["Kd"]->setFloat(materialdesc->_reflectivity.x, materialdesc->_reflectivity.y, materialdesc->_reflectivity.z);
+			_material["Ka"]->setFloat(materialdesc->_reflectivity.x, materialdesc->_reflectivity.y, materialdesc->_reflectivity.z);
+			if (materialdesc->_dielectric) {
+				_material["Kr"]->setFloat(materialdesc->_reflectivity.x, materialdesc->_reflectivity.y, materialdesc->_reflectivity.z);
+			}
+			else {
+				_material["Kr"]->setFloat(0.0f, 0.0f, 0.0f);
+			}
+			_material["phong_exp"]->setFloat(1.0f - materialdesc->_roughness);
 
 			optix::float3 *vertexMap = reinterpret_cast<optix::float3*>(_vertices->map());
 			optix::float3 *normalMap = reinterpret_cast<optix::float3*>(_normals->map());

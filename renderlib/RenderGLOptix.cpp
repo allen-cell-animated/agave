@@ -6,6 +6,7 @@
 
 #include "glad/glad.h"
 #include "glm.h"
+#include <glm/gtx/color_space.hpp>
 
 #include "gl/Util.h"
 #include "CCamera.h"
@@ -145,6 +146,14 @@ void RenderGLOptix::initialize(uint32_t w, uint32_t h)
 	resize(w,h);
 }
 
+glm::vec3 nextColor() {
+	static float currentHue = 0.0f;
+	glm::vec3 v = glm::rgbColor(glm::vec3(currentHue * 360.0, 1.0f, 0.5f));
+	currentHue += 0.618033988749895f;
+	currentHue = std::fmod(currentHue, 1.0f);
+	return v;
+}
+
 void RenderGLOptix::initOptixMesh() {
 	glm::mat4 mtx(1.0);
 
@@ -172,7 +181,9 @@ void RenderGLOptix::initOptixMesh() {
 			continue;
 		}
 
-		OptiXMesh* optixmesh = new OptiXMesh(_scene->_meshes[i], _ctx, prg, mtx);
+		optixMeshMaterial materialdesc;
+		materialdesc._reflectivity = nextColor();
+		OptiXMesh* optixmesh = new OptiXMesh(_scene->_meshes[i], _ctx, prg, mtx, &materialdesc);
 
 		_optixmeshes.push_back(std::shared_ptr<OptiXMesh>(optixmesh));
 

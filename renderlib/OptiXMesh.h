@@ -47,6 +47,18 @@ struct TriMeshPhongPrograms {
 	optix::Program _boundingBox;
 };
 
+struct optixMeshMaterial {
+	glm::vec3 _reflectivity;  // "color"
+	float _roughness;
+	bool _dielectric;
+
+	optixMeshMaterial()
+		: _reflectivity(0.5, 0.5, 0.5),
+		_roughness(1.0),
+		_dielectric(false)
+	{}
+};
+
 //------------------------------------------------------------------------------
 //
 // OptiX mesh consisting of a single geometry instance with one or more
@@ -62,7 +74,7 @@ struct TriMeshPhongPrograms {
 //------------------------------------------------------------------------------
 struct OptiXMesh
 {
-	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx);
+	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc);
 
 	void destroy();
 
@@ -98,7 +110,7 @@ struct OptiXMesh
 	//optix::float3                bbox_max;
 
 private:
-	bool loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx);
+	bool loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc);
 	void createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
 		optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx);
 };
