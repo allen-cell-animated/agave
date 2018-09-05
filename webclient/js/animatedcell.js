@@ -553,9 +553,9 @@ function binarysocket(channelnumber = 0) {
     this.open = function (evt) {
 
         var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", effectController.file);
+        //cb.addCommand("LOAD_OME_TIF", effectController.file);
         cb.addCommand("SET_RESOLUTION", 512, 512);
-        cb.addCommand("FRAME_SCENE");
+        //cb.addCommand("FRAME_SCENE");
         cb.addCommand("APERTURE", effectController.aperture);
         cb.addCommand("EXPOSURE", effectController.exposure);
         cb.addCommand("SKYLIGHT_TOP_COLOR",

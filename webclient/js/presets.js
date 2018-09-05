@@ -1,3 +1,122 @@
+function applyPresetObj (obj) {
+    // skip obj.resolution
+    gCamera.position.x = obj.camera.eye[0];
+    gCamera.position.y = obj.camera.eye[1];
+    gCamera.position.z = obj.camera.eye[2];
+    gCamera.up.x = obj.camera.up[0];
+    gCamera.up.y = obj.camera.up[1];
+    gCamera.up.z = obj.camera.up[2];
+    gControls.target.x = obj.camera.target[0];
+    gControls.target.y = obj.camera.target[1];
+    gControls.target.z = obj.camera.target[2];
+    gControls.target0 = gControls.target.clone();
+
+    //effectController.file = "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
+    effectController.density = obj.density;
+    effectController.exposure = obj.camera.exposure;
+    effectController.fov = obj.camera.fovY;
+    effectController.focal_distance = obj.camera.focalDistance;
+
+    effectController.xmin = obj.clipRegion[0][0];
+    effectController.xmax = obj.clipRegion[0][1];
+    effectController.ymin = obj.clipRegion[1][0];
+    effectController.ymax = obj.clipRegion[1][1];
+    effectController.zmin = obj.clipRegion[2][0];
+    effectController.zmax = obj.clipRegion[2][1];
+
+    for (var i = 0; i < Math.min(effectController.infoObj.channelGui.length, obj.channels.length); ++i) {
+        let channel = effectController.infoObj.channelGui[i];
+        channel.window = obj.channels[i].window;
+        channel.level = obj.channels[i].level;    
+        channel.colorD = obj.channels[i].diffuseColor;
+        channel.colorS = obj.channels[i].specularColor;
+        channel.colorE = obj.channels[i].emissiveColor;
+
+        channel.roughness = obj.channels[i].glossiness;
+        channel.enabled = obj.channels[i].enabled;
+    }
+
+    // skyTopIntensity: 1.0,
+    // skyMidIntensity: 1.0,
+    // skyBotIntensity: 1.0,
+    // skyTopColor: [255, 255, 255],
+    // skyMidColor: [255, 255, 255],
+    // skyBotColor: [255, 255, 255],
+    // lightColor: [255, 255, 255],
+    // lightIntensity: 100.0,
+    // lightDistance: 10.0,
+    // lightTheta: 0.0,
+    // lightPhi: 0.0,
+    // lightSize: 1.0,
+
+
+    // "camera": {
+    //     "aperture": 0,
+    //     "exposure": 0.75,
+    //     "focalDistance": 0.75,
+    //     "fovY": 55,
+    // },
+    // "clipRegion": [
+    //     [
+    //         0,
+    //         1
+    //     ],
+    //     [
+    //         0,
+    //         1
+    //     ],
+    //     [
+    //         0,
+    //         1
+    //     ]
+    // ],
+    // "density": 50,
+    // "lights": [
+    //     {
+    //         "bottomColor": [
+    //             0.5,
+    //             0.5,
+    //             0.5
+    //         ],
+    //         "middleColor": [
+    //             0.5,
+    //             0.5,
+    //             0.5
+    //         ],
+    //         "topColor": [
+    //             0.5,
+    //             0.5,
+    //             0.5
+    //         ],
+    //         "type": 0
+    //     },
+    //     {
+    //         "color": [
+    //             100,
+    //             100,
+    //             100
+    //         ],
+    //         "distance": 10,
+    //         "height": 1,
+    //         "phi": 0,
+    //         "theta": 0,
+    //         "type": 1,
+    //         "width": 1
+    //     }
+    // ],
+    // "name": "C:/Users/danielt.ALLENINST/Downloads/AICS-12_881.ome.tif",
+    // "renderIterations": 277,
+    // "resolution": [
+    //     1325,
+    //     1054
+    // ]
+}
+
+
+
+
+
+
 function preset0() {
     gCamera.position.x = 0.541147;
     gCamera.position.y = 0.370615;
@@ -19,6 +138,9 @@ function preset0() {
     effectController.infoObj.channelGui[1].level = 0.668;
     effectController.infoObj.channelGui[2].window = 1;
     effectController.infoObj.channelGui[2].level = 0.7408;
+    for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+    }
 
     var cb = new commandBuffer();
     // cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-12_881.ome.tif");
@@ -117,6 +239,9 @@ function preset1() {
     effectController.infoObj.channelGui[1].level = 0.6301;
     effectController.infoObj.channelGui[2].window = 1;
     effectController.infoObj.channelGui[2].level = 0.732;
+    for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+    }
 
     var cb = new commandBuffer();
     cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-11_409.ome.tif");
@@ -202,6 +327,9 @@ function preset2() {
     //effectController.file = "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
     effectController.density = 100.0;
     effectController.exposure = 0.8179;
+    for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+    }
 
     var cb = new commandBuffer();
     //cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-13_319.ome.tif");
