@@ -81,12 +81,12 @@ function setupGui() {
     gui.add(effectController, 'preset1').name('TOM20');
     gui.add(effectController, 'preset2').name('LaminB');
 
-    gui.add(effectController, "file").onFinishChange(function (value) {
-        var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", value);
-        flushCommandBuffer(cb);
-        _stream_mode_suspended = true;
-    });
+    // gui.add(effectController, "file").onFinishChange(function (value) {
+    //     var cb = new commandBuffer();
+    //     cb.addCommand("LOAD_OME_TIF", value);
+    //     flushCommandBuffer(cb);
+    //     _stream_mode_suspended = true;
+    // });
 
     gui.add(effectController, "resolution", ["256x256", "512x512", "1024x1024", "1024x768"]).onChange(function (value) {
         var res = value.match(/(\d+)x(\d+)/);
