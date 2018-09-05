@@ -35,11 +35,14 @@ private slots:
 	void viewFocusChanged(GLView3D *glView);
 	void tabChanged(int index);
 	void dumpPythonState();
+	void dumpStateToJson();
 	void openMeshDialog();
 	void openMesh(const QString& file);
 
 private:
 	enum { MaxRecentFiles = 8 };
+
+	QJsonDocument stateToJson();
 
 	void createActions();
 	void createMenus();
@@ -61,6 +64,7 @@ private:
 	QAction *openAction;
 	QAction *quitAction;
 	QAction *dumpAction;
+	QAction *dumpJsonAction;
 	QAction *testMeshAction;
 	QAction *viewResetAction;
 

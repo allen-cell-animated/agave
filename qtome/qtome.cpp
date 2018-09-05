@@ -96,6 +96,10 @@ void qtome::createActions()
 	dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
 	connect(dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
 
+	dumpJsonAction = new QAction(tr("&Dump json obj"), this);
+	dumpJsonAction->setStatusTip(tr("Log a string containing a json object"));
+	connect(dumpJsonAction, SIGNAL(triggered()), this, SLOT(dumpStateToJson()));
+
 	testMeshAction = new QAction(tr("&Open mesh..."), this);
 	//testMeshAction->setShortcuts(QKeySequence::Open);
 	testMeshAction->setStatusTip(tr("Open a mesh obj file"));
@@ -110,6 +114,7 @@ void qtome::createMenus()
 	fileMenu->addAction(testMeshAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(dumpAction);
+	fileMenu->addAction(dumpJsonAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
 
@@ -522,4 +527,131 @@ void qtome::dumpPythonState()
 	s += "buf = cb.make_buffer()\n";
 	qDebug().noquote() << s;
 	//return s;
+}
+
+QJsonArray jsonVec3(float x, float y, float z) {
+	QJsonArray tgt;
+	tgt.append(x);
+	tgt.append(y);
+	tgt.append(z);
+	return tgt;
+}
+
+void qtome::dumpStateToJson() {
+	QJsonDocument doc = stateToJson();
+	QString s = doc.toJson();
+	qDebug().noquote() << s;
+}
+
+QJsonDocument qtome::stateToJson()
+{
+	// fire back some json...
+	QJsonObject j;
+	j["name"] = _currentFilePath;
+	
+	QJsonArray resolution;
+	resolution.append(glView->size().width());
+	resolution.append(glView->size().height());
+	j["resolution"] = resolution;
+
+	j["renderIterations"] = _renderSettings.GetNoIterations();
+
+	QJsonArray clipRegion;
+	QJsonArray clipRegionX;
+	clipRegionX.append(_appScene._roi.GetMinP().x);
+	clipRegionX.append(_appScene._roi.GetMaxP().x);
+	QJsonArray clipRegionY;
+	clipRegionY.append(_appScene._roi.GetMinP().y);
+	clipRegionY.append(_appScene._roi.GetMaxP().y);
+	QJsonArray clipRegionZ;
+	clipRegionZ.append(_appScene._roi.GetMinP().z);
+	clipRegionZ.append(_appScene._roi.GetMaxP().z);
+	clipRegion.append(clipRegionX);
+	clipRegion.append(clipRegionY);
+	clipRegion.append(clipRegionZ);
+
+	j["clipRegion"] = clipRegion;
+
+	QJsonObject camera;
+	camera["eye"] = jsonVec3(
+		glView->getCamera().m_From.x,
+		glView->getCamera().m_From.y,
+		glView->getCamera().m_From.z
+	);
+	camera["target"] = jsonVec3(
+		glView->getCamera().m_Target.x,
+		glView->getCamera().m_Target.y,
+		glView->getCamera().m_Target.z
+	);
+	camera["up"] = jsonVec3(
+		glView->getCamera().m_Up.x,
+		glView->getCamera().m_Up.y,
+		glView->getCamera().m_Up.z
+	);
+
+	camera["fovY"] = _camera.GetProjection().GetFieldOfView();
+
+	camera["exposure"] = _camera.GetFilm().GetExposure();
+	camera["aperture"] = _camera.GetAperture().GetSize();
+	camera["focalDistance"] = _camera.GetFocus().GetFocalDistance();
+	j["camera"] = camera;
+
+	QJsonArray channels;
+	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
+		QJsonObject channel;
+		channel["enabled"] = _appScene._material.enabled[i];
+		channel["diffuseColor"] = jsonVec3(
+			_appScene._material.diffuse[i * 3],
+			_appScene._material.diffuse[i * 3 + 1],
+			_appScene._material.diffuse[i * 3 + 2]
+		);
+		channel["specularColor"] = jsonVec3(
+			_appScene._material.specular[i * 3],
+			_appScene._material.specular[i * 3 + 1],
+			_appScene._material.specular[i * 3 + 2]
+		);
+		channel["emissiveColor"] = jsonVec3(
+			_appScene._material.emissive[i * 3],
+			_appScene._material.emissive[i * 3 + 1],
+			_appScene._material.emissive[i * 3 + 2]
+		);
+		channel["glossiness"] = _appScene._material.roughness[i];
+		channel["window"] = _appScene._volume->channel(i)->_window;
+		channel["level"] = _appScene._volume->channel(i)->_level;
+
+		channels.append(channel);
+	}
+	j["channels"] = channels;
+
+	j["density"] = _renderSettings.m_RenderSettings.m_DensityScale;
+
+	// lighting
+	QJsonArray lights;
+	QJsonObject light0;
+	Light& lt = _appScene._lighting.m_Lights[0];
+	light0["type"] = 0;
+	light0["topColor"] = jsonVec3(
+		lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b
+	);
+	light0["middleColor"] = jsonVec3(
+		lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b
+	);
+	light0["bottomColor"] = jsonVec3(
+		lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b
+	);
+	lights.append(light0);
+
+	QJsonObject light1;
+	lt = _appScene._lighting.m_Lights[1];
+	light1["type"] = 1;
+	light1["distance"] = lt.m_Distance;
+	light1["theta"] = lt.m_Theta;
+	light1["phi"] = lt.m_Phi;
+	light1["color"] = jsonVec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
+	light1["width"] = lt.m_Width;
+	light1["height"] = lt.m_Height;
+	lights.append(light1);
+	j["lights"] = lights;
+
+	return QJsonDocument(j);
 }
