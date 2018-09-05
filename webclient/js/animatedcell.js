@@ -24,6 +24,245 @@ var _stream_mode = false;
 var _stream_mode_suspended = false;
 var enqueued_image_data = null;
 var waiting_for_image = false;
+
+function preset0() {
+    var cb = new commandBuffer();
+    // cb.add_command("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-12_881.ome.tif");
+    // cb.add_command("SET_RESOLUTION", 1447, 1175);
+    // cb.add_command("RENDER_ITERATIONS", 239);
+    cb.add_command("SET_CLIP_REGION", 0, 1, 0, 1, 0, 1);
+    cb.add_command("EYE", 0.541147, 0.370615, 0.867704);
+    cb.add_command("TARGET", 0.5, 0.337662, 0.0825674);
+    cb.add_command("UP", -0.00219161, 0.999123, -0.0418183);
+    cb.add_command("FOV_Y", 55);
+    cb.add_command("EXPOSURE", 0.8179);
+    cb.add_command("DENSITY", 100);
+    cb.add_command("APERTURE", 0);
+    cb.add_command("FOCALDIST", 0.75);
+    cb.add_command("ENABLE_CHANNEL", 0, 1);
+    cb.add_command("MAT_DIFFUSE", 0, 1, 0, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 0, 0.423529, 0.423529, 0.423529, 0.0);
+    cb.add_command("MAT_EMISSIVE", 0, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 0, 100);
+    cb.add_command("SET_WINDOW_LEVEL", 0, 1, 0.5806);
+    cb.add_command("ENABLE_CHANNEL", 1, 1);
+    cb.add_command("MAT_DIFFUSE", 1, 1, 1, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 1, 0.368627, 0.368627, 0.368627, 0.0);
+    cb.add_command("MAT_EMISSIVE", 1, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 1, 100);
+    cb.add_command("SET_WINDOW_LEVEL", 1, 1, 0.668);
+    cb.add_command("ENABLE_CHANNEL", 2, 1);
+    cb.add_command("MAT_DIFFUSE", 2, 0, 1, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 2, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 2, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 2, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 2, 1, 0.7408);
+    cb.add_command("ENABLE_CHANNEL", 3, 0);
+    cb.add_command("MAT_DIFFUSE", 3, 1, 0, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 3, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 3, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 3, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 3, 0.380392, 0.527451);
+    cb.add_command("ENABLE_CHANNEL", 4, 0);
+    cb.add_command("MAT_DIFFUSE", 4, 0, 0.291844, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 4, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 4, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 4, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 4, 0, 1);
+    cb.add_command("ENABLE_CHANNEL", 5, 0);
+    cb.add_command("MAT_DIFFUSE", 5, 0.583673, 1, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 5, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 5, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 5, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 5, 0.921569, 0.539216);
+    cb.add_command("ENABLE_CHANNEL", 6, 0);
+    cb.add_command("MAT_DIFFUSE", 6, 1, 0, 0.875334, 1.0);
+    cb.add_command("MAT_SPECULAR", 6, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 6, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 6, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 6, 0.921569, 0.539216);
+    cb.add_command("ENABLE_CHANNEL", 7, 0);
+    cb.add_command("MAT_DIFFUSE", 7, 0, 1, 0.832837, 1.0);
+    cb.add_command("MAT_SPECULAR", 7, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 7, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 7, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 7, 0.921569, 0.539216);
+    cb.add_command("ENABLE_CHANNEL", 8, 0);
+    cb.add_command("MAT_DIFFUSE", 8, 1, 0.541009, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 8, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 8, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 8, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 8, 0.921569, 0.539216);
+    cb.add_command("SKYLIGHT_TOP_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("SKYLIGHT_MIDDLE_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("SKYLIGHT_BOTTOM_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("LIGHT_POS", 0, 10, 0, 0);
+    cb.add_command("LIGHT_COLOR", 0, 100, 100, 100);
+    cb.add_command("LIGHT_SIZE", 0, 1, 1);
+    flushCommandBuffer(cb);
+}
+function preset1() {
+    var cb = new commandBuffer();
+    cb.add_command("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-11_409.ome.tif");
+    // cb.add_command("SET_RESOLUTION", 1447, 1175);
+    // cb.add_command("RENDER_ITERATIONS", 384);
+    // cb.add_command("SET_CLIP_REGION", 0, 1, 0, 1, 0, 1);
+    cb.add_command("EYE", 0.5, 0.337662, 1.26718);
+    cb.add_command("TARGET", 0.5, 0.337662, 0.0941558);
+    cb.add_command("UP", 0, 1, 0);
+    cb.add_command("FOV_Y", 55);
+    cb.add_command("EXPOSURE", 0.8179);
+    cb.add_command("DENSITY", 100);
+    cb.add_command("APERTURE", 0);
+    cb.add_command("FOCALDIST", 0.75);
+    cb.add_command("ENABLE_CHANNEL", 0, 1);
+    cb.add_command("MAT_DIFFUSE", 0, 1, 0, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 0, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 0, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 0, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 0, 1, 0.5689);
+    cb.add_command("ENABLE_CHANNEL", 1, 1);
+    cb.add_command("MAT_DIFFUSE", 1, 1, 1, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 1, 0.415686, 0.415686, 0.415686, 0.0);
+    cb.add_command("MAT_EMISSIVE", 1, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 1, 100);
+    cb.add_command("SET_WINDOW_LEVEL", 1, 1, 0.6301);
+    cb.add_command("ENABLE_CHANNEL", 2, 1);
+    cb.add_command("MAT_DIFFUSE", 2, 0, 1, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 2, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 2, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 2, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 2, 1, 0.732);
+    cb.add_command("ENABLE_CHANNEL", 3, 0);
+    cb.add_command("MAT_DIFFUSE", 3, 1, 0, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 3, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 3, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 3, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 3, 0.290196, 0.364706);
+    cb.add_command("ENABLE_CHANNEL", 4, 0);
+    cb.add_command("MAT_DIFFUSE", 4, 0, 0.291844, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 4, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 4, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 4, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 4, 0, 1);
+    cb.add_command("ENABLE_CHANNEL", 5, 0);
+    cb.add_command("MAT_DIFFUSE", 5, 0.583673, 1, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 5, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 5, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 5, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 5, 0.898039, 0.55098);
+    cb.add_command("ENABLE_CHANNEL", 6, 0);
+    cb.add_command("MAT_DIFFUSE", 6, 1, 0, 0.875334, 1.0);
+    cb.add_command("MAT_SPECULAR", 6, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 6, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 6, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 6, 0.898039, 0.55098);
+    cb.add_command("ENABLE_CHANNEL", 7, 0);
+    cb.add_command("MAT_DIFFUSE", 7, 0, 1, 0.832837, 1.0);
+    cb.add_command("MAT_SPECULAR", 7, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 7, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 7, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 7, 0.898039, 0.55098);
+    cb.add_command("SKYLIGHT_TOP_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("SKYLIGHT_MIDDLE_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("SKYLIGHT_BOTTOM_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("LIGHT_POS", 0, 10, 0, 0);
+    cb.add_command("LIGHT_COLOR", 0, 100, 100, 100);
+    cb.add_command("LIGHT_SIZE", 0, 1, 1);
+    flushCommandBuffer(cb);
+}
+function preset2() {
+    var cb = new commandBuffer();
+    //cb.add_command("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-13_319.ome.tif");
+    //cb.add_command("SET_RESOLUTION", 1447, 1175);
+    //cb.add_command("RENDER_ITERATIONS", 222);
+    cb.add_command("SET_CLIP_REGION", 0, 1, 0, 1, 0, 1);
+    cb.add_command("EYE", 0.535138, -0.22972, 0.728428);
+    cb.add_command("TARGET", 0.5, 0.337662, 0.0579421);
+    cb.add_command("UP", 0.0337808, 0.763795, 0.644573);
+    cb.add_command("FOV_Y", 55);
+    cb.add_command("EXPOSURE", 0.8179);
+    cb.add_command("DENSITY", 100);
+    cb.add_command("APERTURE", 0);
+    cb.add_command("FOCALDIST", 0.75);
+    cb.add_command("ENABLE_CHANNEL", 0, 1);
+    cb.add_command("MAT_DIFFUSE", 0, 1, 0, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 0, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 0, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 0, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 0, 1, 0.6854);
+    cb.add_command("ENABLE_CHANNEL", 1, 1);
+    cb.add_command("MAT_DIFFUSE", 1, 1, 1, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 1, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 1, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 1, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 1, 1, 0.601);
+    cb.add_command("ENABLE_CHANNEL", 2, 1);
+    cb.add_command("MAT_DIFFUSE", 2, 0, 1, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 2, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 2, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 2, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 2, 1, 0.7757);
+    cb.add_command("ENABLE_CHANNEL", 3, 0);
+    cb.add_command("MAT_DIFFUSE", 3, 1, 0, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 3, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 3, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 3, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 3, 0.65098, 0.67451);
+    cb.add_command("ENABLE_CHANNEL", 4, 0);
+    cb.add_command("MAT_DIFFUSE", 4, 0, 0.291844, 1, 1.0);
+    cb.add_command("MAT_SPECULAR", 4, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 4, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 4, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 4, 0, 1);
+    cb.add_command("ENABLE_CHANNEL", 5, 0);
+    cb.add_command("MAT_DIFFUSE", 5, 0.583673, 1, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 5, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 5, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 5, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 5, 0.811765, 0.594118);
+    cb.add_command("ENABLE_CHANNEL", 6, 0);
+    cb.add_command("MAT_DIFFUSE", 6, 1, 0, 0.875334, 1.0);
+    cb.add_command("MAT_SPECULAR", 6, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 6, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 6, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 6, 0.811765, 0.594118);
+    cb.add_command("ENABLE_CHANNEL", 7, 0);
+    cb.add_command("MAT_DIFFUSE", 7, 0, 1, 0.832837, 1.0);
+    cb.add_command("MAT_SPECULAR", 7, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 7, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 7, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 7, 0.811765, 0.594118);
+    cb.add_command("ENABLE_CHANNEL", 8, 0);
+    cb.add_command("MAT_DIFFUSE", 8, 1, 0.541009, 0, 1.0);
+    cb.add_command("MAT_SPECULAR", 8, 0, 0, 0, 0.0);
+    cb.add_command("MAT_EMISSIVE", 8, 0, 0, 0, 0.0);
+    cb.add_command("MAT_GLOSSINESS", 8, 0);
+    cb.add_command("SET_WINDOW_LEVEL", 8, 0.811765, 0.594118);
+    cb.add_command("SKYLIGHT_TOP_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("SKYLIGHT_MIDDLE_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("SKYLIGHT_BOTTOM_COLOR", 0.5, 0.5, 0.5);
+    cb.add_command("LIGHT_POS", 0, 10, 0, 0);
+    cb.add_command("LIGHT_COLOR", 0, 100, 100, 100);
+    cb.add_command("LIGHT_SIZE", 0, 1, 1);
+    flushCommandBuffer(cb);
+}
+const pathprefix = "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/";
+const presets = [
+    {name:"2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif", f:preset0},
+    {name:"2017_07_21_Tom20/AICS-11/AICS-11_409.ome.tif", f:preset1},
+    {name:"2017_06_28_lamin/AICS-13/AICS-13_319.ome.tif", f:preset2}
+]
+let loading_preset = null;
+function executePreset(index) {
+    // load image and wait and then execute the rest of the command buffer...
+    const fpath = pathprefix + presets[index].name;
+    var cb = new commandBuffer();
+    cb.addCommand("LOAD_OME_TIF", fpath);
+    flushCommandBuffer(cb);
+    _stream_mode_suspended = true;
+}
+
 /**
  * switches the supplied element to (in)visible
  * @param element
@@ -66,11 +305,18 @@ function setupGui() {
         xmax: 1.0,
         ymax: 1.0,
         zmax: 1.0,
-        resetCamera: resetCamera
+        resetCamera: resetCamera,
+        preset0: function() { executePreset(0); loading_preset = presets[0].f;},
+        preset1: function() { executePreset(1); loading_preset = presets[1].f;},
+        preset2: function() { executePreset(2); loading_preset = presets[2].f;}
     };
 
     gui = new dat.GUI();
     //gui = new dat.GUI({autoPlace:false, width:200});
+
+    gui.add(effectController, 'preset0').name('Tubulin');
+    gui.add(effectController, 'preset1').name('TOM20');
+    gui.add(effectController, 'preset2').name('LaminB');
 
     gui.add(effectController, "file").onFinishChange(function (value) {
         var cb = new commandBuffer();
@@ -361,6 +607,10 @@ function onNewImage(infoObj) {
     effectController.infoObj = infoObj;
     resetCamera();
     setupChannelsGui();
+    if (loading_preset) {
+        loading_preset();
+        loading_preset = null;
+    }
 }
 
 function setupChannelsGui() {
