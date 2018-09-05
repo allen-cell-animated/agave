@@ -1,3 +1,15 @@
+function updateGui() {
+    for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+    }
+    for (var i in gui.__folders) {
+        for (var j in gui.__folders[i].__controllers) {
+            gui.__folders[i].__controllers[j].updateDisplay();
+        }
+    }
+
+}
+
 function applyPresetObj (obj) {
     // skip obj.resolution
     gCamera.position.x = obj.camera.eye[0];
@@ -138,9 +150,8 @@ function preset0() {
     effectController.infoObj.channelGui[1].level = 0.668;
     effectController.infoObj.channelGui[2].window = 1;
     effectController.infoObj.channelGui[2].level = 0.7408;
-    for (var i in gui.__controllers) {
-        gui.__controllers[i].updateDisplay();
-    }
+
+    updateGui();
 
     var cb = new commandBuffer();
     // cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-12_881.ome.tif");
@@ -239,10 +250,9 @@ function preset1() {
     effectController.infoObj.channelGui[1].level = 0.6301;
     effectController.infoObj.channelGui[2].window = 1;
     effectController.infoObj.channelGui[2].level = 0.732;
-    for (var i in gui.__controllers) {
-        gui.__controllers[i].updateDisplay();
-    }
 
+    updateGui();
+    
     var cb = new commandBuffer();
     cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-11_409.ome.tif");
     // cb.addCommand("SET_RESOLUTION", 1447, 1175);
@@ -327,9 +337,8 @@ function preset2() {
     //effectController.file = "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
     effectController.density = 100.0;
     effectController.exposure = 0.8179;
-    for (var i in gui.__controllers) {
-        gui.__controllers[i].updateDisplay();
-    }
+
+    updateGui();
 
     var cb = new commandBuffer();
     //cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-13_319.ome.tif");
