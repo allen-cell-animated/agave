@@ -579,9 +579,9 @@ function binarysocket(channelnumber = 0) {
         cb.addCommand("LIGHT_SIZE", 0, effectController.lightSize, effectController.lightSize);
         cb.addCommand("STREAM_MODE", 1);
         flushCommandBuffer(cb);
-        var cb2 = new commandBuffer();
-        cb2.addCommand("REDRAW");
-        flushCommandBuffer(cb2);
+        // var cb2 = new commandBuffer();
+        // cb2.addCommand("REDRAW");
+        // flushCommandBuffer(cb2);
 
         // init camera
         var streamimg1 = document.getElementById("imageA");
