@@ -64,88 +64,143 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 
     //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
   }
-  // convert c to xml doc.  if this fails then we don't have an ome tif.
-  QDomDocument omexml;
-  bool ok = omexml.setContent(QString(omexmlstr));
-  if (!ok) {
-    QString msg = "Bad ome xml content";
-	LOG_ERROR << msg.toStdString();
-	//throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-  }
-
-  // extract some necessary info from the xml:
-  QDomElement pixelsEl = omexml.elementsByTagName("Pixels").at(0).toElement();
-  if (pixelsEl.isNull()) {
-	  QString msg = "No <Pixels> element in ome xml";
-	  LOG_ERROR << msg.toStdString();
-  }
-
-  // skipping "complex", "double-complex", and "bit".
-  std::map<std::string, uint32_t> mapPixelTypeBPP = { 
-	  { "uint8", 8 },
-	  { "uint16", 16 },
-	  { "uint32", 32 },
-	  { "int8", 8 },
-	  { "int16", 16 },
-	  { "int32", 32 },
-	  { "float", 32 },
-	  { "double", 64 } 
-  };
-
-  QString pixelType = pixelsEl.attribute("PixelType", "uint16").toLower();
-  uint32_t bpp = mapPixelTypeBPP[pixelType.toStdString()];
-  uint32_t sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
-  uint32_t sizeY = requireUint32Attr(pixelsEl, "SizeY", 0);
-  uint32_t sizeZ = requireUint32Attr(pixelsEl, "SizeZ", 0);
-  uint32_t sizeC = requireUint32Attr(pixelsEl, "SizeC", 0);
-  uint32_t sizeT = requireUint32Attr(pixelsEl, "SizeT", 0);
-  // one of : "XYZCT", "XYZTC","XYCTZ","XYCZT","XYTCZ","XYTZC"
-  QString dimensionOrder = pixelsEl.attribute("DimensionOrder", "XYCZT");
-  float physicalSizeX = requireFloatAttr(pixelsEl, "PhysicalSizeX", 1.0f);
-  float physicalSizeY = requireFloatAttr(pixelsEl, "PhysicalSizeY", 1.0f);
-  float physicalSizeZ = requireFloatAttr(pixelsEl, "PhysicalSizeZ", 1.0f);
-  QString physicalSizeXunit = pixelsEl.attribute("PhysicalSizeXUnit", "");
-  QString physicalSizeYunit = pixelsEl.attribute("PhysicalSizeYUnit", "");
-  QString physicalSizeZunit = pixelsEl.attribute("PhysicalSizeZUnit", "");
-
-  // find channel names
-  QDomNodeList channels = omexml.elementsByTagName("Channel");
-  std::vector<QString> channelNames;
-  for (int i = 0; i < channels.length(); ++i) {
-	  QDomNode dn = channels.at(i);
-	  QDomElement chel = dn.toElement();
-	  QString chid = chel.attribute("ID");
-	  QString chname = chel.attribute("Name");
-	  if (!chname.isEmpty()) {
-		  channelNames.push_back(chname);
-	  }
-	  else if (!chid.isEmpty()) {
-		  channelNames.push_back(chid);
-	  }
-	  else {
-		  channelNames.push_back(QString("%1").arg(i));
-	  }
-  }
-
 
   // Temporary variables
   uint32 width, height;
-//  tsize_t scanlength;
+  //  tsize_t scanlength;
 
   // Read dimensions of image
   if (TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, &width) != 1) {
-    QString msg = "Failed to read width of TIFF: '" + QString(filepath.c_str()) + "'";
-	LOG_ERROR << msg.toStdString();
-	//throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+	  QString msg = "Failed to read width of TIFF: '" + QString(filepath.c_str()) + "'";
+	  LOG_ERROR << msg.toStdString();
+	  //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
   }
   if (TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &height) != 1) {
-    QString msg = "Failed to read height of TIFF: '" + QString(filepath.c_str()) + "'";
-	LOG_ERROR << msg.toStdString();
-	//throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+	  QString msg = "Failed to read height of TIFF: '" + QString(filepath.c_str()) + "'";
+	  LOG_ERROR << msg.toStdString();
+	  //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+  }
+
+  uint32_t bpp = 0;
+  if (TIFFGetField(tiff, TIFFTAG_BITSPERSAMPLE, &bpp) != 1) {
+	  QString msg = "Failed to read bpp of TIFF: '" + QString(filepath.c_str()) + "'";
+	  LOG_ERROR << msg.toStdString();
+	  //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+  }
+
+
+  uint32_t sizeT = 1;
+  uint32_t sizeX = width;
+  uint32_t sizeY = height;
+  uint32_t sizeZ = 1;
+  uint32_t sizeC = 1;
+  float physicalSizeX = 1.0f;
+  float physicalSizeY = 1.0f;
+  float physicalSizeZ = 1.0f;
+  std::vector<QString> channelNames;
+
+  // check for plain tiff with ImageJ imagedescription:
+  QString qomexmlstr(omexmlstr);
+  if (qomexmlstr.startsWith("ImageJ=")) {
+	  // "ImageJ=\nhyperstack=true\nimages=7900\nchannels=1\nslices=50\nframes=158"
+	  QStringList sl = qomexmlstr.split('\n');
+	  QRegExp reChannels("channels=(\\w+)");
+	  QRegExp reSlices("slices=(\\w+)");
+	  int ich = sl.indexOf(reChannels);
+	  if (ich == -1) {
+		  QString msg = "Failed to read number of channels of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
+		  LOG_ERROR << msg.toStdString();
+	  }
+
+	  int isl = sl.indexOf(reSlices);
+	  if (isl == -1) {
+		  QString msg = "Failed to read number of slices of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
+		  LOG_ERROR << msg.toStdString();
+	  }
+
+	  // get the n channels and n slices:
+	  int pos = reChannels.indexIn(sl.at(ich));
+	  if (pos > -1) {
+		  QString value = reChannels.cap(1); // "189"
+		  sizeC = value.toInt();
+	  }
+	  pos = reSlices.indexIn(sl.at(isl));
+	  if (pos > -1) {
+		  QString value = reSlices.cap(1); // "189"
+		  sizeZ = value.toInt();
+	  }
+	  for (uint32_t i = 0; i < sizeC; ++i) {
+		  channelNames.push_back(QString::number(i));
+	  }
+  }
+  else {
+	  // convert c to xml doc.  if this fails then we don't have an ome tif.
+	  QDomDocument omexml;
+	  bool ok = omexml.setContent(qomexmlstr);
+	  if (!ok) {
+		  QString msg = "Bad ome xml content";
+		  LOG_ERROR << msg.toStdString();
+		  //throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+	  }
+
+	  // extract some necessary info from the xml:
+	  QDomElement pixelsEl = omexml.elementsByTagName("Pixels").at(0).toElement();
+	  if (pixelsEl.isNull()) {
+		  QString msg = "No <Pixels> element in ome xml";
+		  LOG_ERROR << msg.toStdString();
+	  }
+
+	  // skipping "complex", "double-complex", and "bit".
+	  std::map<std::string, uint32_t> mapPixelTypeBPP = {
+		  { "uint8", 8 },
+		  { "uint16", 16 },
+		  { "uint32", 32 },
+		  { "int8", 8 },
+		  { "int16", 16 },
+		  { "int32", 32 },
+		  { "float", 32 },
+		  { "double", 64 }
+	  };
+
+	  QString pixelType = pixelsEl.attribute("PixelType", "uint16").toLower();
+	  bpp = mapPixelTypeBPP[pixelType.toStdString()];
+	  sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
+	  sizeY = requireUint32Attr(pixelsEl, "SizeY", 0);
+	  sizeZ = requireUint32Attr(pixelsEl, "SizeZ", 0);
+	  sizeC = requireUint32Attr(pixelsEl, "SizeC", 0);
+	  sizeT = requireUint32Attr(pixelsEl, "SizeT", 0);
+	  // one of : "XYZCT", "XYZTC","XYCTZ","XYCZT","XYTCZ","XYTZC"
+	  QString dimensionOrder = pixelsEl.attribute("DimensionOrder", "XYCZT");
+	  physicalSizeX = requireFloatAttr(pixelsEl, "PhysicalSizeX", 1.0f);
+	  physicalSizeY = requireFloatAttr(pixelsEl, "PhysicalSizeY", 1.0f);
+	  physicalSizeZ = requireFloatAttr(pixelsEl, "PhysicalSizeZ", 1.0f);
+	  QString physicalSizeXunit = pixelsEl.attribute("PhysicalSizeXUnit", "");
+	  QString physicalSizeYunit = pixelsEl.attribute("PhysicalSizeYUnit", "");
+	  QString physicalSizeZunit = pixelsEl.attribute("PhysicalSizeZUnit", "");
+
+	  // find channel names
+	  QDomNodeList channels = omexml.elementsByTagName("Channel");
+	  for (int i = 0; i < channels.length(); ++i) {
+		  QDomNode dn = channels.at(i);
+		  QDomElement chel = dn.toElement();
+		  QString chid = chel.attribute("ID");
+		  QString chname = chel.attribute("Name");
+		  if (!chname.isEmpty()) {
+			  channelNames.push_back(chname);
+		  }
+		  else if (!chid.isEmpty()) {
+			  channelNames.push_back(chid);
+		  }
+		  else {
+			  channelNames.push_back(QString("%1").arg(i));
+		  }
+	  }
+
   }
 
   assert(sizeX == width);
   assert(sizeY == height);
+
 
 	// allocate the destination buffer!!!!
   assert(sizeC >= 1);
