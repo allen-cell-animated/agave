@@ -1,0 +1,38 @@
+outputDirectory = "C:\\Users\\danielt.ALLENINST\\Desktop\\caroline_out\\";
+directory = "C:\\Users\\danielt.ALLENINST\\Desktop\\caroline\\";
+infile = "20171103_C04_001__AiryScanProcessed_20171103_131714.czi";
+
+//directory = getDirectory("Choose input files");
+//fileList = getFileList(directory);
+//outputDirectory = getDirectory("Choose output directory");
+
+run("Bio-Formats Macro Extensions");
+setBatchMode(true);
+
+// loop over fileList
+  file = directory + infile; // fileList[i];
+
+  Ext.setId(file);
+  Ext.getSeriesCount(seriesCount);
+  Ext.setSeries(seriesCount-1);
+  // split t
+  Ext.getSizeT(numT);
+  Ext.getSizeZ(numZ);
+  Ext.getSizeC(numC);
+  for (j = 1; j <= numT; j++){
+    run("Bio-Formats Importer", "open=["+file+"] view=Hyperstack stack_order=XYCZT series_"+d2s(seriesCount,0) + 
+      " specify_range t_begin_"+d2s(seriesCount,0)+"="+d2s(j,0)+" t_end_"+d2s(seriesCount,0)+"="+d2s(j,0)+" t_step_"+d2s(seriesCount,0)+"=1");
+
+    //Ext.openImagePlus(file);
+    outFile = outputDirectory + infile + "_T"+d2s(j,0)+".ome.tiff";
+    saveFile(outFile);
+
+  }
+  close();
+
+showStatus("Finished.");
+setBatchMode(false);
+
+function saveFile(outFile) {
+   run("Bio-Formats Exporter", "save=[" + outFile + "] compression=Uncompressed");
+}
