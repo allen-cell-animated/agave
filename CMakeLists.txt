@@ -26,7 +26,7 @@ set(CMAKE_AUTOUIC ON)
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
 if (WIN32)
-  set(QTDIR C:/Qt/5.9.1/msvc2015_64)
+  set(QTDIR C:/Qt/5.11.1/msvc2017_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 else (WIN32)
   # linux: QTDIR = /opt/qt59
@@ -56,7 +56,7 @@ find_package(assimp REQUIRED)
 
 set(CMAKE_CUDA_FLAGS
   # Pascal target
-  "-gencode=arch=compute_61,code=sm_61 -Wno-deprecated-gpu-targets"
+  "-gencode=arch=compute_50,code=sm_50 -Wno-deprecated-gpu-targets"
   # "-arch=sm_30 \
   #   -gencode=arch=compute_30,code=sm_30 \
   #   -gencode=arch=compute_50,code=sm_50 \

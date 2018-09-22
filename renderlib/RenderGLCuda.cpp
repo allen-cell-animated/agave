@@ -366,26 +366,52 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	_renderSettings->SetNoIterations(numIterations);
 	//LOG_DEBUG << "RETURN FROM RENDER";
 
-	// Tonemap into opengl display buffer
+    bool optixdenoiser = false;
+    bool cudadenoiser = true;
+    if (optixdenoiser) {
+        // input buffer is _cudaF32AccumBuffer
+        // output buffer is _cudaGLSurfaceObject
 
-	// do cuda with cudaSurfaceObj
+        _inputBuffer->setDevicePointer(_cudaF32AccumBuffer);
+        //rtBufferSetDevicePointer()
 
-	// set the lerpC here because the Render call is incrementing the number of iterations.
-	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-//	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResX() << " " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
-	CCudaTimer TmrDenoise;
-	if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
-	{
-		Denoise(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h, _renderSettings->m_DenoiseParams.m_LerpC);
-	}
-	else
-	{
-		ToneMap(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h);
-	}
-	_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
-	
-	HandleCudaError(cudaStreamSynchronize(0));
+        Variable(_denoiserStage->queryVariable("blend"))->setFloat(blend);
+        _commandListWithDenoiser->execute()
+
+        glBindTexture(GL_TEXTURE_2D, inputTexId);
+
+        // rtBufferCreateFromGLBO
+
+        // use PBO to copy back to inputTexId
+        const unsigned outputPBO = _denoisedBuffer->getGLBOId();
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, outputPBO);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_FLOAT, imageData);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    else if (cudadenoiser) {
+        // Tonemap into opengl display buffer
+
+        // do cuda with cudaSurfaceObj
+
+        // set the lerpC here because the Render call is incrementing the number of iterations.
+        //_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+        _renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+                                                                                                                           //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResX() << " " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
+        CCudaTimer TmrDenoise;
+        if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
+        {
+            Denoise(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h, _renderSettings->m_DenoiseParams.m_LerpC);
+        }
+        else
+        {
+            ToneMap(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h);
+        }
+        _timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
+
+        HandleCudaError(cudaStreamSynchronize(0));
+
+    }
 	
 	// display timings.
 	
@@ -399,6 +425,46 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	//_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
 	_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(_renderSettings->GetNoIterations()), "Iterations");
 	
+}
+
+void RenderGLCuda::setupPostprocessing()
+{
+
+    if (!tonemapStage)
+    {
+        // create stages only once: they will be reused in several command lists without being re-created
+        tonemapStage = context->createBuiltinPostProcessingStage("TonemapperSimple");
+        denoiserStage = context->createBuiltinPostProcessingStage("DLDenoiser");
+        if (trainingDataBuffer)
+        {
+            Variable trainingBuff = denoiserStage->declareVariable("training_data_buffer");
+            trainingBuff->set(trainingDataBuffer);
+        }
+
+        tonemapStage->declareVariable("input_buffer")->set(getOutputBuffer());
+        tonemapStage->declareVariable("output_buffer")->set(getTonemappedBuffer());
+        tonemapStage->declareVariable("exposure")->setFloat(0.25f);
+        tonemapStage->declareVariable("gamma")->setFloat(2.2f);
+
+        denoiserStage->declareVariable("input_buffer")->set(getTonemappedBuffer());
+        denoiserStage->declareVariable("output_buffer")->set(denoisedBuffer);
+        denoiserStage->declareVariable("blend")->setFloat(denoiseBlend);
+        denoiserStage->declareVariable("input_albedo_buffer");
+        denoiserStage->declareVariable("input_normal_buffer");
+    }
+
+    if (commandListWithDenoiser)
+    {
+        commandListWithDenoiser->destroy();
+    }
+
+    commandListWithDenoiser = context->createCommandList();
+    commandListWithDenoiser->appendLaunch(0, width, height);
+    commandListWithDenoiser->appendPostprocessingStage(tonemapStage, width, height);
+    commandListWithDenoiser->appendPostprocessingStage(denoiserStage, width, height);
+    commandListWithDenoiser->finalize();
+
+    postprocessing_needs_init = false;
 }
 
 void RenderGLCuda::render(const CCamera& camera)
