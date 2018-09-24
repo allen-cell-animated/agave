@@ -4,6 +4,8 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 
+#include "gl/Util.h"
+
 #include <QElapsedTimer>
 #include <QtDebug>
 
@@ -256,5 +258,129 @@ void ImageCuda::deallocGpu() {
 }
 
 void ImageCuda::updateLutGpu(int channel, ImageXYZC* img) {
+    _channels[channel].updateLutGpu(channel, img);
+}
+
+
+void ChannelGL::allocGpu(ImageXYZC* img, int channel) {
+    cudaExtent volumeSize;
+    volumeSize.width = img->sizeX();
+    volumeSize.height = img->sizeY();
+    volumeSize.depth = img->sizeZ();
+
+
+    Channelu16* ch = img->channel(channel);
+
+    // LUT buffer
+
+    glGenTextures(1, &_volumeLutTexture);
+    updateLutGpu(channel, img);
+}
+
+void ChannelGL::deallocGpu() {
+    glDeleteTextures(1, &_volumeLutTexture);
+    _volumeLutTexture = 0;
+    glDeleteTextures(1, &_volumeGradientTexture);
+    _volumeGradientTexture = 0;
+    glDeleteTextures(1, &_volumeTexture);
+    _volumeTexture = 0;
+
+    _gpuBytes = 0;
+}
+
+void ChannelGL::updateLutGpu(int channel, ImageXYZC* img) {
+    static const int LUT_SIZE = 256;
+    glBindTexture(GL_TEXTURE_2D, _volumeLutTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, LUT_SIZE, 1, 0, GL_RED, GL_FLOAT, img->channel(channel)->_lut);
+    //HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, img->channel(channel)->_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
+}
+
+void ImageGL::createVolumeTexture4x16(ImageXYZC* img, GLuint* volumeTexture) {
+    // assuming 16-bit data!
+    glGenTextures(1, volumeTexture);
+
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 16, 16, 16, cudaChannelFormatKindUnsigned);
+
+    // create 3D array
+    cudaExtent volumeSize;
+    volumeSize.width = img->sizeX();
+    volumeSize.height = img->sizeY();
+    volumeSize.depth = img->sizeZ();
+    _gpuBytes += (channelDesc.x + channelDesc.y + channelDesc.z + channelDesc.w) / 8 * volumeSize.width * volumeSize.height * volumeSize.depth;
+
+}
+
+void ImageGL::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
+{
+    QElapsedTimer timer;
+    timer.start();
+
+    // create gl 3d texture from imagexyzc and active channels
+    uint32_t numChannels = img->sizeC();
+
+    glGenTextures(1, &_volumeTextureInterleaved);
+    check_gl("Gen volume texture id");
+    glBindTexture(GL_TEXTURE_3D, _volumeTextureInterleaved);
+    check_gl("Bind volume texture");
+
+    const int N = 4;
+    int ch[4] = { 0, std::min(1u, numChannels - 1), std::min(2u, numChannels - 1), std::min(3u, numChannels - 1) };
+    // interleaved all channels.
+    // first 4.
+    size_t xyz = img->sizeX()*img->sizeY()*img->sizeZ();
+    uint16_t* v = new uint16_t[xyz * N];
+
+    for (uint32_t i = 0; i < xyz; ++i) {
+        for (int j = 0; j < N; ++j) {
+            v[N * (i)+j] = img->channel(ch[j])->_ptr[(i)];
+        }
+    }
+
+    LOG_DEBUG << "Prepared interleaved hostmem buffer: " << timer.elapsed() << "ms";
+    timer.start();
+
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA16UI, img->sizeX(), img->sizeY(), img->sizeZ(), 0, GL_RGBA, GL_UNSIGNED_SHORT, v);
+
+    LOG_DEBUG << "Copy volume to gpu: " << timer.elapsed() << "ms";
+
+    delete[] v;
+}
+
+void ImageGL::allocGpuInterleaved(ImageXYZC* img) {
+    deallocGpu();
+    _channels.clear();
+
+    QElapsedTimer timer;
+    timer.start();
+
+    createVolumeTexture4x16(img, &_volumeTextureInterleaved);
+    uint32_t numChannels = img->sizeC();
+    updateVolumeData4x16(img, 0, std::min(1u, numChannels - 1), std::min(2u, numChannels - 1), std::min(3u, numChannels - 1));
+
+
+    for (uint32_t i = 0; i < numChannels; ++i) {
+        ChannelCuda c;
+        c._index = i;
+        c.allocGpu(img, i, false, false);
+        _channels.push_back(c);
+
+        _gpuBytes += c._gpuBytes;
+    }
+
+    LOG_DEBUG << "allocGPUinterleaved: Image to GPU in " << timer.elapsed() << "ms";
+    LOG_DEBUG << "allocGPUinterleaved: GPU bytes: " << _gpuBytes;
+
+}
+
+void ImageGL::deallocGpu() {
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        _channels[i].deallocGpu();
+    }
+    glDeleteTextures(1, &_volumeTextureInterleaved);
+    _volumeTextureInterleaved = 0;
+    _gpuBytes = 0;
+}
+
+void ImageGL::updateLutGpu(int channel, ImageXYZC* img) {
     _channels[channel].updateLutGpu(channel, img);
 }

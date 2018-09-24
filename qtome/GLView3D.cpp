@@ -8,6 +8,7 @@
 #include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/RenderGLOptix.h"
+#include "renderlib/RenderGLPT.h"
 #include <glm.h>
 
 #include <QtGui/QMouseEvent>
@@ -265,8 +266,12 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 		_renderer.reset(new RenderGLOptix(_renderSettings));
 		_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
 		break;
-	default:
-		LOG_DEBUG << "Set OpenGL Renderer";
+    case 3:
+        LOG_DEBUG << "Set GL Pathtrace Renderer";
+        _renderer.reset(new RenderGLPT(_renderSettings));
+        break;
+    default:
+		LOG_DEBUG << "Set OpenGL Single Pass Renderer";
 		_renderer.reset(new RenderGL(_renderSettings));
 	};
 	_rendererType = rendererType;

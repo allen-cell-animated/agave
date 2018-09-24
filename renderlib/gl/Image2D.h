@@ -19,7 +19,11 @@ class ImageXYZC;
 class Image2D
 {
 public:
-	/**
+    explicit
+        Image2D();
+
+    
+    /**
 		* Create a 2D image.
 		*
 		* The size and position will be taken from the specified image.

@@ -221,6 +221,22 @@ namespace
 }
 #endif
 
+Image2D::Image2D() :
+    vertices(0),
+    image_vertices(0),
+    image_texcoords(0),
+    image_elements(0),
+    num_image_elements(0),
+    textureid(0),
+    lutid(0),
+    texmin(0.0f),
+    texmax(0.1f),
+    texcorr(1.0f),
+    _img(),
+    plane(-1)
+{
+}
+
       Image2D::Image2D(std::shared_ptr<ImageXYZC>  img):
         vertices(0),
         image_vertices(0),
