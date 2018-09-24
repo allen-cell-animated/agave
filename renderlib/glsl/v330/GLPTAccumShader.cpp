@@ -1,5 +1,5 @@
 #include "glad/glad.h"
-#include "GLPTVolumeShader.h"
+#include "GLPTAccumShader.h"
 
 #include <glm.h>
 #include <gl/Util.h>
@@ -8,7 +8,7 @@
 #include <sstream>
 
 
-GLPTVolumeShader::GLPTVolumeShader():
+GLPTAccumShader::GLPTAccumShader():
     QOpenGLShaderProgram(),
     vshader(),
     fshader()
@@ -19,6 +19,8 @@ GLPTVolumeShader::GLPTVolumeShader():
 #version 330 core
 
 layout (location = 0) in vec2 position;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 out VertexData
 {
   vec2 pObj;
@@ -33,12 +35,12 @@ void main()
 
     if (!vshader->isCompiled())
     {
-        std::cerr << "GLPTVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
+        std::cerr << "GLPTAccumShader: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
     }
 
     fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-	fshader->compileSourceCode
-	(R"(
+    fshader->compileSourceCode
+    (R"(
 #version 330 core
 
 in VertexData
@@ -48,16 +50,33 @@ in VertexData
 
 out vec4 outputColour;
 
+uniform mat4 inverseModelViewMatrix;
+
+uniform sampler2D textureRender;
+uniform sampler2D textureAccum;
+
+uniform int numIterations;
+
+vec4 CumulativeMovingAverage(vec4 A, vec4 Ax, int N)
+{
+	 return A + ((Ax - A) / max(float(N), 1.0f));
+}
+
 void main()
 {
-	outputColour = vec4(0.1, 0.0, 0.0, 1.0);
+	outputColour = vec4(1.0, 0.0, 0.0, 1.0);
+
+    vec4 accum = textureLod(textureAccum, inData.pObj, 0).rgba;
+    vec4 render = textureLod(textureRender, inData.pObj, 0).rgba;
+
+	outputColour = CumulativeMovingAverage(accum, render, numIterations);
 	return;
 }
     )");
 
     if (!fshader->isCompiled())
     {
-        std::cerr << "GLPTVolumeShader: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
+        std::cerr << "GLPTAccumShader: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
     }
 
     addShader(vshader);
@@ -66,7 +85,7 @@ void main()
 
     if (!isLinked())
     {
-        std::cerr << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
+        std::cerr << "GLPTAccumShader: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 	
 	uModelViewMatrix = uniformLocation("modelViewMatrix");
@@ -91,13 +110,13 @@ void main()
 	uDataRangeMax = uniformLocation("dataRangeMax");
 }
 
-GLPTVolumeShader::~GLPTVolumeShader()
+GLPTAccumShader::~GLPTAccumShader()
 {
 }
 
 
 void
-GLPTVolumeShader::setShadingUniforms()
+GLPTAccumShader::setShadingUniforms()
 {
 	glUniform1f(uDataRangeMin, dataRangeMin);
 	glUniform1f(uDataRangeMax, dataRangeMax);
@@ -114,7 +133,7 @@ GLPTVolumeShader::setShadingUniforms()
 }
 
 void 
-GLPTVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
+GLPTAccumShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
 	float w = (float)camera.m_Film.GetWidth();
 	float h = (float)camera.m_Film.GetHeight();

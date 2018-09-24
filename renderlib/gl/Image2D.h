@@ -49,7 +49,7 @@ public:
 	void
 	create();
 
-	protected:
+	//protected:
 	/**
 		* Set the size of the x and y dimensions.
 		*
@@ -62,13 +62,6 @@ public:
 			const glm::vec2& ylim);
 
 	public:
-	/**
-		* Set the plane to render.
-		*
-		* @param plane the plane number.
-		*/
-	void
-	setPlane(size_t plane, size_t z, size_t c);
 
 	/**
 		* Get minimum limit for linear contrast.

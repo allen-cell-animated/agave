@@ -7,6 +7,7 @@
 #include "gl/v33/V33Image3D.h"
 #include "gl/v33/V33FSQ.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
+#include "glsl/v330/GLPTAccumShader.h"
 #include "glsl/v330/GLPTVolumeShader.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
@@ -20,10 +21,13 @@
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)
 	:_glF32Buffer(0),
-	_glF32AccumBuffer(0),
+    _glF32AccumBuffer(0),
+    _glF32AccumBuffer2(0),
     _fbF32(0),
     _fbF32Accum(0),
 	_fbtex(0),
+    _renderBufferShader(nullptr),
+    _accumBufferShader(nullptr),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
 	_renderSettings(rs),
@@ -33,8 +37,6 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
 	_gpuBytes(0),
 	_imagequad(nullptr)
 {
-    _renderBufferShader = new FSQ(new GLPTVolumeShader());
-    _accumBufferShader = new FSQ(nullptr);
 }
 
 
@@ -125,6 +127,18 @@ void RenderGLPT::cleanUpFB()
         check_gl("Destroy fb texture");
         _glF32AccumBuffer = 0;
     }
+    if (_glF32AccumBuffer2) {
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &_glF32AccumBuffer2);
+        check_gl("Destroy fb2 texture");
+        _glF32AccumBuffer2 = 0;
+    }
+
+    delete _renderBufferShader;
+    _renderBufferShader = 0;
+    delete _accumBufferShader;
+    _accumBufferShader = 0;
+
 
 	_gpuBytes = 0;
 }
@@ -145,6 +159,14 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
     glBindFramebuffer(GL_FRAMEBUFFER, _fbF32);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _glF32Buffer, 0);
 
+
+    _renderBufferShader = new FSQ(new GLPTVolumeShader());
+    _accumBufferShader = new FSQ(new GLPTAccumShader());
+    _renderBufferShader->create();
+    _accumBufferShader->create();
+    _renderBufferShader->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
+    _accumBufferShader->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
+
     glGenTextures(1, &_glF32AccumBuffer);
     check_gl("Gen fb texture id");
     glBindTexture(GL_TEXTURE_2D, _glF32AccumBuffer);
@@ -152,6 +174,14 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     _gpuBytes += w*h * 4 * sizeof(float);
     check_gl("Create fb texture");
+
+    glGenTextures(1, &_glF32AccumBuffer2);
+    check_gl("Gen fb2 texture id");
+    glBindTexture(GL_TEXTURE_2D, _glF32AccumBuffer2);
+    check_gl("Bind fb2 texture");
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    _gpuBytes += w*h * 4 * sizeof(float);
+    check_gl("Create fb2 texture");
 
     glGenFramebuffers(1, &_fbF32Accum);
     glBindFramebuffer(GL_FRAMEBUFFER, _fbF32Accum);
@@ -375,6 +405,9 @@ void RenderGLPT::doRender(const CCamera& camera) {
         glBindFramebuffer(GL_FRAMEBUFFER, _fbF32Accum);
         _accumBufferShader->render(m);
         //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
+
+        // ping pong accum buffer. this will stall till previous accum render is done.
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, numIterations % 2 ? _glF32AccumBuffer2 : _glF32AccumBuffer, 0);
 
         numIterations++;
         const float NoIterations = numIterations;

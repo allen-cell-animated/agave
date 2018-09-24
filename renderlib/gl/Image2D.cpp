@@ -389,45 +389,6 @@ Image2D::Image2D() :
 
       }
 
-      void
-      Image2D::setPlane(size_t plane, size_t z, size_t c)
-      {
-        if (this->plane != plane)
-          {
-/*
-			TextureProperties tprop(*reader, series);
-
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // MultiArray buffers are packed
-
-			glBindTexture(GL_TEXTURE_2D, textureid);
-			check_gl("Bind texture");
-			glTexSubImage2D(GL_TEXTURE_2D, // target
-				0,  // level, 0 = base, no minimap,
-				0, 0, // x, y
-				(GLsizei)tprop.w,  // width
-				(GLsizei)tprop.h,  // height
-				tprop.external_format,  // format
-				tprop.external_type, // type
-									 //                      testdata);
-				_img->ptr((uint32_t)c,(uint32_t)z));
-			check_gl("Texture set pixels in subregion");
-			glGenerateMipmap(GL_TEXTURE_2D);
-			check_gl("Generate mipmaps");
-
-*/
-
-            //ome::files::VariantPixelBuffer buf;
-            //ome::files::dimension_size_type oldseries = reader->getSeries();
-            //reader->setSeries(series);
-            //reader->openBytes(plane, buf);
-            //reader->setSeries(oldseries);
-
-            //GLSetBufferVisitor v(textureid, tprop);
-            //boost::apply_visitor(v, buf.vbuffer());  // v(buf.vbuffer());
-          }
-        this->plane = plane;
-      }
-
       const glm::vec3&
       Image2D::getMin() const
       {

@@ -67,7 +67,8 @@ private:
     FSQ* _renderBufferShader;
 
 	// the rgbaf32 accumulation buffer that holds the progressively rendered image
-	GLuint _glF32AccumBuffer;
+    GLuint _glF32AccumBuffer;
+    GLuint _glF32AccumBuffer2; // for ping ponging
     GLuint _fbF32Accum;
     FSQ* _accumBufferShader;
 
