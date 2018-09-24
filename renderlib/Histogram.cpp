@@ -153,7 +153,7 @@ float* Histogram::generate_auto2(float& window, float& level, size_t length) {
 			break;
 		}
 	}
-	for (size_t i = nbins - 1; i >= 0; --i) {
+	for (int i = (int)nbins - 1; i >= 0; --i) {
 		if (_bins[i] > threshold && _bins[i] <= limit) {
 			hmax = i;
 			break;
