@@ -334,6 +334,18 @@ Image2D::Image2D() :
         check_gl("Texture create");
       }
 
+      void Image2D::destroy()
+      {
+          glDeleteVertexArrays(1, &vertices);
+          vertices = 0;
+          glDeleteBuffers(1, &image_vertices);
+          image_vertices = 0;
+          glDeleteBuffers(1, &image_texcoords);
+          image_texcoords = 0;
+          glDeleteBuffers(1, &image_elements);
+          image_elements = 0;
+
+      }
       void
       Image2D::setSize(const glm::vec2& xlim,
                        const glm::vec2& ylim)
@@ -345,18 +357,30 @@ Image2D::Image2D() :
           xlim[1], ylim[1],
           xlim[0], ylim[1]
         };
+        GLfloat square_vertices_a[8] = { xlim[0], ylim[0],
+            xlim[1], ylim[0],
+            xlim[1], ylim[1],
+            xlim[0], ylim[1] };
+
 
         if (vertices == 0) {
 			glGenVertexArrays(1, &vertices);
 		}
-		glBindVertexArray(vertices);
+        else {
+            return;
+        }
+        if (image_vertices == 0) {
+            glGenBuffers(1, &image_vertices);
+        }
+        if (image_elements == 0) {
+            glGenBuffers(1, &image_elements);
+        }
 
-		if (image_vertices == 0) {
-			glGenBuffers(1, &image_vertices);
-		}
+        glBindVertexArray(vertices);
+
         glBindBuffer(GL_ARRAY_BUFFER, image_vertices);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
-
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8, square_vertices_a, GL_STATIC_DRAW);
+        /*
         glm::vec2 texxlim(0.0, 1.0);
         glm::vec2 texylim(0.0, 1.0);
         std::array<GLfloat, 8> square_texcoords
@@ -372,6 +396,8 @@ Image2D::Image2D() :
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, image_texcoords);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_texcoords.size(), square_texcoords.data(), GL_STATIC_DRAW);
+        */
+
 
         std::array<GLushort, 6> square_elements
         {
@@ -379,13 +405,14 @@ Image2D::Image2D() :
           0,  1,  2,
           2,  3,  0
         };
+        GLushort square_elements_a[6] = { 0,1,2,2,3,0 };
 
-		if (image_elements == 0) {
-			glGenBuffers(1, &image_elements);
-		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, image_elements);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * square_elements.size(), square_elements.data(), GL_STATIC_DRAW);
-		num_image_elements = square_elements.size();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * 6, square_elements_a, GL_STATIC_DRAW);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * square_elements.size(), square_elements.data(), GL_STATIC_DRAW);
+        num_image_elements = square_elements.size();
+
+        glBindVertexArray(0);
 
       }
 
@@ -419,9 +446,4 @@ Image2D::Image2D() :
         return textureid;
       }
 
-      unsigned int
-      Image2D::lut()
-      {
-        return lutid;
-      }
 

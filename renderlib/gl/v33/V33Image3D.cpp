@@ -206,6 +206,9 @@ Image3Dv33::setSize(const glm::vec2& xlim,
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, image_elements);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * cube_indices.size(), cube_indices.data(), GL_STATIC_DRAW);
 	num_image_elements = cube_indices.size();
+
+    glBindVertexArray(0);
+
 }
 
 unsigned int

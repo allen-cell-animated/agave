@@ -339,7 +339,8 @@ void ImageGL::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c
     LOG_DEBUG << "Prepared interleaved hostmem buffer: " << timer.elapsed() << "ms";
     timer.start();
 
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA16UI, img->sizeX(), img->sizeY(), img->sizeZ(), 0, GL_RGBA, GL_UNSIGNED_SHORT, v);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA16UI, img->sizeX(), img->sizeY(), img->sizeZ(), 0, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, v);
+    check_gl("glTexImage3D");
 
     LOG_DEBUG << "Copy volume to gpu: " << timer.elapsed() << "ms";
 

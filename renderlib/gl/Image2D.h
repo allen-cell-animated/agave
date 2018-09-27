@@ -49,6 +49,8 @@ public:
 	void
 	create();
 
+    virtual void destroy();
+
 	//protected:
 	/**
 		* Set the size of the x and y dimensions.
@@ -131,17 +133,6 @@ public:
 		*/
 	unsigned int
 	texture();
-
-	/**
-		* Get LUT ID.
-		*
-		* This is the identifier of the LUT for the plane being
-		* rendered.
-		*
-		* @returns the LUT ID.
-		*/
-	unsigned int
-	lut();
 
 	protected:
 	/// The vertex array.

@@ -60,6 +60,7 @@ private:
 
 	// the rgba8 buffer for display
 	GLuint _fbtex;
+    GLuint _fb;
 
 	// the rgbaf32 buffer for rendering
 	GLuint _glF32Buffer;

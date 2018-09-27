@@ -98,7 +98,11 @@ void RenderGLPT::cleanUpFB()
 		check_gl("Destroy fb texture");
 		_fbtex = 0;
 	}
-	if (_randomSeeds1) {
+    if (_fb) {
+        glDeleteFramebuffers(1, &_fb);
+        _fb = 0;
+    }
+    if (_randomSeeds1) {
 		HandleCudaError(cudaFree(_randomSeeds1));
 		_randomSeeds1 = nullptr;
 	}
@@ -171,7 +175,8 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
     check_gl("Gen fb texture id");
     glBindTexture(GL_TEXTURE_2D, _glF32AccumBuffer);
     check_gl("Bind fb texture");
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gpuBytes += w*h * 4 * sizeof(float);
     check_gl("Create fb texture");
 
@@ -179,7 +184,8 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
     check_gl("Gen fb2 texture id");
     glBindTexture(GL_TEXTURE_2D, _glF32AccumBuffer2);
     check_gl("Bind fb2 texture");
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gpuBytes += w*h * 4 * sizeof(float);
     check_gl("Create fb2 texture");
 
@@ -212,16 +218,18 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
 	glBindTexture(GL_TEXTURE_2D, _fbtex);
 	check_gl("Bind fb texture");
 	//glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	_gpuBytes += w*h * 4;
 	check_gl("Create fb texture");
 	// this is required in order to "complete" the texture object for mipmapless shader access.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	// unbind the texture before doing cuda stuff.
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+
+    glGenFramebuffers(1, &_fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, _fb);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _fbtex, 0);
+
 }
 
 void RenderGLPT::initVolumeTextureCUDA() {
@@ -242,6 +250,7 @@ void RenderGLPT::initialize(uint32_t w, uint32_t h)
 	_imagequad = new RectImage2D();
 
 	initVolumeTextureCUDA();
+    check_gl("init gl volume");
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -337,10 +346,12 @@ void RenderGLPT::doRender(const CCamera& camera) {
 	));
 
 
-	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam,
-		_scene->_boundingBox, b, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
-		_w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
-	// Render image
+	//BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam,
+	//	_scene->_boundingBox, b, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
+	//	_w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
+
+    
+    // Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 //	cudaFB theCudaFB = {
 //		_cudaF32Buffer,
@@ -403,11 +414,11 @@ void RenderGLPT::doRender(const CCamera& camera) {
         //CCudaTimer TmrPostProcess;
         // accumulate
         glBindFramebuffer(GL_FRAMEBUFFER, _fbF32Accum);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2, 0);
         _accumBufferShader->render(m);
         //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
 
         // ping pong accum buffer. this will stall till previous accum render is done.
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, numIterations % 2 ? _glF32AccumBuffer2 : _glF32AccumBuffer, 0);
 
         numIterations++;
         const float NoIterations = numIterations;
@@ -416,9 +427,12 @@ void RenderGLPT::doRender(const CCamera& camera) {
         //HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, _fb);
+
+    // tone map into rgba8 buffer.
+    _imagequad->draw(numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2);
 
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 //    Render(0, camera.m_Film.m_ExposureIterations,
 //        camera.m_Film.m_Resolution.GetResX(), 
@@ -437,7 +451,7 @@ void RenderGLPT::doRender(const CCamera& camera) {
 	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResX() << " " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
-	CCudaTimer TmrDenoise;
+	//CCudaTimer TmrDenoise;
 	if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 	{
         // draw from accum buffer into fbtex
@@ -447,7 +461,7 @@ void RenderGLPT::doRender(const CCamera& camera) {
 	{
 		// ToneMap(_cudaF32AccumBuffer, _fbTex, _w, _h);
 	}
-	_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
+	//_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 		
 	// display timings.
 	
@@ -461,6 +475,8 @@ void RenderGLPT::doRender(const CCamera& camera) {
 	//_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
 	_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(_renderSettings->GetNoIterations()), "Iterations");
 	
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void RenderGLPT::render(const CCamera& camera)
