@@ -415,6 +415,14 @@ void RenderGLPT::doRender(const CCamera& camera) {
         // accumulate
         glBindFramebuffer(GL_FRAMEBUFFER, _fbF32Accum);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2, 0);
+
+        // the sample
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _glF32Buffer);
+        // the accum buffer
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, numIterations % 2 ? _glF32AccumBuffer2 : _glF32AccumBuffer);
+
         _accumBufferShader->render(m);
         //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
 

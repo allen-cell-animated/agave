@@ -88,26 +88,12 @@ void main()
         std::cerr << "GLPTAccumShader: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 	
-	uModelViewMatrix = uniformLocation("modelViewMatrix");
-	uProjectionMatrix = uniformLocation("projectionMatrix");
 
-	uBreakSteps = uniformLocation("BREAK_STEPS");
-	uAABBClipMin = uniformLocation("AABB_CLIP_MIN");
-	uAABBClipMax = uniformLocation("AABB_CLIP_MAX");
-	uInverseModelViewMatrix = uniformLocation("inverseModelViewMatrix");
-	//uCameraPosition = uniformLocation("cameraPosition");
-	uGammaMin = uniformLocation("GAMMA_MIN");
-	uGammaMax = uniformLocation("GAMMA_MAX");
-	uGammaScale = uniformLocation("GAMMA_SCALE");
-	uBrightness = uniformLocation("BRIGHTNESS");
-	uDensity = uniformLocation("DENSITY");
-	uMaskAlpha = uniformLocation("maskAlpha");
-	
-	uTextureAtlas = uniformLocation("textureAtlas");
-	uTextureAtlasMask = uniformLocation("textureAtlasMask");
+    uTextureRender = uniformLocation("textureRender");
+    uTextureAccum = uniformLocation("textureAccum");
 
-	uDataRangeMin = uniformLocation("dataRangeMin");
-	uDataRangeMax = uniformLocation("dataRangeMax");
+    uNumIterations = uniformLocation("numIterations");
+
 }
 
 GLPTAccumShader::~GLPTAccumShader()
@@ -118,18 +104,9 @@ GLPTAccumShader::~GLPTAccumShader()
 void
 GLPTAccumShader::setShadingUniforms()
 {
-	glUniform1f(uDataRangeMin, dataRangeMin);
-	glUniform1f(uDataRangeMax, dataRangeMax);
-	glUniform1f(uGammaMin, GAMMA_MIN);
-	glUniform1f(uGammaMax, GAMMA_MAX);
-	glUniform1f(uGammaScale, GAMMA_SCALE);
-	glUniform1f(uBrightness, BRIGHTNESS);
-	glUniform1f(uDensity, DENSITY);
-	glUniform1f(uMaskAlpha, maskAlpha);
-	glUniform1i(uBreakSteps, BREAK_STEPS);
-	// axis aligned clip planes
-	glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
-	glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
+    glUniform1i(uTextureRender, 0);
+    glUniform1i(uTextureAccum, 1);
+    glUniform1i(uNumIterations, numIterations);
 }
 
 void 
@@ -146,7 +123,7 @@ GLPTAccumShader::setTransformUniforms(const CCamera& camera, const glm::mat4& mo
 	glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Hither, camera.m_Yon);
 
 	//glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
-	glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
-	glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
-	glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
+	//glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
+	//glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
+	//glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
 }

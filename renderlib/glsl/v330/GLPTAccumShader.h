@@ -53,17 +53,7 @@ public:
 	void setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix);
 	void setShadingUniforms();
 
-	float dataRangeMin;
-	float dataRangeMax;
-	float GAMMA_MIN;
-	float GAMMA_MAX;
-	float GAMMA_SCALE;
-	float BRIGHTNESS;
-	float DENSITY;
-	float maskAlpha;
-	int BREAK_STEPS;
-	glm::vec3 AABB_CLIP_MIN;
-	glm::vec3 AABB_CLIP_MAX;
+    int numIterations;
 
 private:
     /// The vertex shader.
@@ -71,24 +61,10 @@ private:
     /// The fragment shader.
     QOpenGLShader *fshader;
 
-	int
-		uModelViewMatrix,
-		uProjectionMatrix,
-		uDataRangeMin,
-		uDataRangeMax,
-		uBreakSteps,
-		uAABBClipMin,
-		uAABBClipMax,
-		uInverseModelViewMatrix,
-		uCameraPosition,
-		uResolution,
-		uGammaMin,
-		uGammaMax,
-		uGammaScale,
-		uBrightness,
-		uDensity,
-		uMaskAlpha,
-		uTextureAtlas,
-		uTextureAtlasMask;
+    int
+        uTextureRender,
+        uTextureAccum,
+
+        uNumIterations;
 };
 
