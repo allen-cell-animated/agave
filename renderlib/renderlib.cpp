@@ -57,11 +57,14 @@ int renderlib::initialize() {
 	QOpenGLContext* context = new QOpenGLContext();
 	context->setFormat(format);    // ...and set the format on the context too
 	context->create();
+	LOG_INFO << "Created opengl context";
 
 	QOffscreenSurface* surface = new QOffscreenSurface();
 	surface->setFormat(context->format());
 	surface->create();
+	LOG_INFO << "Created offscreen surface";
 	context->makeCurrent(surface);
+	LOG_INFO << "Made context current on offscreen surface";
 
 
 //	dummyWidget = new QOpenGLWidget();
