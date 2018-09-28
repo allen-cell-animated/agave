@@ -14,7 +14,9 @@
 
 static bool renderLibInitialized = false;
 
-static QOpenGLWidget* dummyWidget = nullptr;
+static QOpenGLContext* dummyContext = nullptr;
+static QOffscreenSurface* dummySurface = nullptr;
+
 static QOpenGLDebugLogger* logger = nullptr;
 
 static const struct {
@@ -54,16 +56,16 @@ int renderlib::initialize() {
 	QSurfaceFormat::setDefaultFormat(format);
 
 
-	QOpenGLContext* context = new QOpenGLContext();
-	context->setFormat(format);    // ...and set the format on the context too
-	context->create();
+	dummyContext = new QOpenGLContext();
+	dummyContext->setFormat(format);    // ...and set the format on the context too
+	dummyContext->create();
 	LOG_INFO << "Created opengl context";
 
-	QOffscreenSurface* surface = new QOffscreenSurface();
-	surface->setFormat(context->format());
-	surface->create();
+	dummySurface = new QOffscreenSurface();
+	dummySurface->setFormat(dummyContext->format());
+	dummySurface->create();
 	LOG_INFO << "Created offscreen surface";
-	context->makeCurrent(surface);
+	dummyContext->makeCurrent(dummySurface);
 	LOG_INFO << "Made context current on offscreen surface";
 
 
@@ -106,8 +108,10 @@ void renderlib::cleanup() {
 	}
 	LOG_INFO << "Renderlib shutdown";
 
-	delete dummyWidget;
-	dummyWidget = nullptr;
+	delete dummySurface;
+	dummySurface = nullptr;
+	delete dummyContext;
+	dummyContext = nullptr;
 	delete logger;
 	logger = nullptr;
 
