@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
 	//set to true to show windows, or false to run as a console application
-	bool gui = true;
+	bool gui = false;
 
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QApplication a(argc, argv);
