@@ -18,6 +18,8 @@ class Image3Dv33;
 class RectImage2D;
 struct CudaLighting;
 struct CudaCamera;
+class GLPTAccumShader;
+class GLPTVolumeShader;
 
 class RenderGLPT :
 	public IRenderWindow
@@ -62,16 +64,18 @@ private:
 	GLuint _fbtex;
     GLuint _fb;
 
-	// the rgbaf32 buffer for rendering
+    FSQ* _fsq;
+    
+    // the rgbaf32 buffer for rendering
 	GLuint _glF32Buffer;
     GLuint _fbF32;
-    FSQ* _renderBufferShader;
+    GLPTVolumeShader* _renderBufferShader;
 
 	// the rgbaf32 accumulation buffer that holds the progressively rendered image
     GLuint _glF32AccumBuffer;
     GLuint _glF32AccumBuffer2; // for ping ponging
     GLuint _fbF32Accum;
-    FSQ* _accumBufferShader;
+    GLPTAccumShader* _accumBufferShader;
 
 	// screen size auxiliary buffers for rendering 
 	unsigned int* _randomSeeds1;

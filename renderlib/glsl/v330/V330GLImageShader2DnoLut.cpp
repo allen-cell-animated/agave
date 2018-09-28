@@ -57,6 +57,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut():
         "void main(void) {\n"
         "  vec2 flipped_texcoord = vec2(inData.f_texcoord.x, 1.0 - inData.f_texcoord.y);\n"
         "  vec4 texval = texture(tex, flipped_texcoord);\n"
+        "  texval = clamp(texval, 0.0, 1.0);\n"
         "\n"
         "  outputColour = texval;\n"
         "}\n");

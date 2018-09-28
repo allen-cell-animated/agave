@@ -28,6 +28,7 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
 	_fbtex(0),
     _renderBufferShader(nullptr),
     _accumBufferShader(nullptr),
+    _fsq(nullptr),
 	_randomSeeds1(nullptr),
 	_randomSeeds2(nullptr),
 	_renderSettings(rs),
@@ -142,7 +143,8 @@ void RenderGLPT::cleanUpFB()
     _renderBufferShader = 0;
     delete _accumBufferShader;
     _accumBufferShader = 0;
-
+    delete _fsq;
+    _fsq = 0;
 
 	_gpuBytes = 0;
 }
@@ -161,15 +163,8 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
 
     glGenFramebuffers(1, &_fbF32);
     glBindFramebuffer(GL_FRAMEBUFFER, _fbF32);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _glF32Buffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _glF32Buffer, 0);
 
-
-    _renderBufferShader = new FSQ(new GLPTVolumeShader());
-    _accumBufferShader = new FSQ(new GLPTAccumShader());
-    _renderBufferShader->create();
-    _accumBufferShader->create();
-    _renderBufferShader->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
-    _accumBufferShader->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
 
     glGenTextures(1, &_glF32AccumBuffer);
     check_gl("Gen fb texture id");
@@ -191,9 +186,15 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
 
     glGenFramebuffers(1, &_fbF32Accum);
     glBindFramebuffer(GL_FRAMEBUFFER, _fbF32Accum);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _glF32AccumBuffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _glF32AccumBuffer, 0);
 
-	{
+    _fsq = new FSQ();
+    _fsq->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
+    _fsq->create();
+    _renderBufferShader = new GLPTVolumeShader();
+    _accumBufferShader = new GLPTAccumShader();
+    
+    {
 		unsigned int* pSeeds = (unsigned int*)malloc(w*h * sizeof(unsigned int));
 
 		HandleCudaError(cudaMalloc((void**)&_randomSeeds1, w*h * sizeof(unsigned int)));
@@ -401,29 +402,41 @@ void RenderGLPT::doRender(const CCamera& camera) {
     // set all the vars
 
 
+    GLuint accumTargetTex = numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2;
+    GLuint prevAccumTargetTex = numIterations % 2 ? _glF32AccumBuffer2 : _glF32AccumBuffer;
+
     for (int i = 0; i < camera.m_Film.m_ExposureIterations; ++i) {
         //CCudaTimer TmrRender;
 
         // set the pt shader
         // draw fullscreen quad
         glBindFramebuffer(GL_FRAMEBUFFER, _fbF32);
-        _renderBufferShader->render(m);
+        _renderBufferShader->bind();
+        _fsq->render(m);
         //_timingRender.AddDuration(TmrRender.ElapsedTime());
 
         // estimate just adds to accumulation buffer.
         //CCudaTimer TmrPostProcess;
         // accumulate
         glBindFramebuffer(GL_FRAMEBUFFER, _fbF32Accum);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2, 0);
+        
+        accumTargetTex = numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2;
+        prevAccumTargetTex = numIterations % 2 ? _glF32AccumBuffer2 : _glF32AccumBuffer;
+        
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, accumTargetTex, 0);
 
         // the sample
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _glF32Buffer);
         // the accum buffer
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, numIterations % 2 ? _glF32AccumBuffer2 : _glF32AccumBuffer);
+        glBindTexture(GL_TEXTURE_2D, prevAccumTargetTex);
 
-        _accumBufferShader->render(m);
+        _accumBufferShader->bind();
+        _accumBufferShader->numIterations = numIterations;
+        _accumBufferShader->setShadingUniforms();
+        _fsq->render(m);
+        _accumBufferShader->release();
         //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
 
         // ping pong accum buffer. this will stall till previous accum render is done.
@@ -438,7 +451,7 @@ void RenderGLPT::doRender(const CCamera& camera) {
     glBindFramebuffer(GL_FRAMEBUFFER, _fb);
 
     // tone map into rgba8 buffer.
-    _imagequad->draw(numIterations % 2 ? _glF32AccumBuffer : _glF32AccumBuffer2);
+    _imagequad->draw(prevAccumTargetTex);
 
 
 

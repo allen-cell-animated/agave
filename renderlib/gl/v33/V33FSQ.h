@@ -2,8 +2,6 @@
 
 #include "gl/Image2D.h"
 
-#include <QOpenGLShaderProgram>
-
 /**
     * 2D (xy) image renderer.
     *
@@ -25,7 +23,7 @@ public:
     * @param series the image series.
     * @param parent the parent of this object.
     */
-    explicit FSQ(QOpenGLShaderProgram * shdr);
+    explicit FSQ();
 
     /// Destructor.
     virtual ~FSQ();
@@ -33,9 +31,9 @@ public:
 	void
 		render(const glm::mat4& mvp);
 
+    const int positionAttribute() const { return attr_coords; }
+
 private:
-    /// The shader program for image rendering.
-    QOpenGLShaderProgram *image_shader;
     int attr_coords;
 
 };

@@ -316,22 +316,22 @@ Image2D::Image2D() :
               lut[i][j] = (uint8_t)i;
             }
         lut[0][0] = 0;
-        lut[0][2] = 0;
+        lut[0][1] = 0;
         lut[0][2] = 255;
         lut[255][0] = 255;
         lut[255][1] = 0;
         lut[255][2] = 0;
 
-        glTexImage2D(GL_TEXTURE_1D_ARRAY, // target
-                     0,                   // level, 0 = base, no minimap,
-                     GL_RGB8,             // internal format
-                     256,                 // width
-                     1,                   // height
-                     0,                   // border
-                     GL_RGB,              // external format
-                     GL_UNSIGNED_BYTE,    // external type
-                     lut);                // LUT data
-        check_gl("Texture create");
+        //glTexImage2D(GL_TEXTURE_1D_ARRAY, // target
+        //             0,                   // level, 0 = base, no minimap,
+        //             GL_RGB8,             // internal format
+        //             256,                 // width
+        //             1,                   // height
+        //             0,                   // border
+        //             GL_RGB,              // external format
+        //             GL_UNSIGNED_BYTE,    // external type
+        //             lut);                // LUT data
+        //check_gl("Texture create");
       }
 
       void Image2D::destroy()
@@ -380,6 +380,11 @@ Image2D::Image2D() :
 
         glBindBuffer(GL_ARRAY_BUFFER, image_vertices);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8, square_vertices_a, GL_STATIC_DRAW);
+
+        // assumes position is at attribute location index 0
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
         /*
         glm::vec2 texxlim(0.0, 1.0);
         glm::vec2 texylim(0.0, 1.0);
