@@ -6,10 +6,11 @@
 
 #include <string>
 
-#include <QOpenGLWidget>
+//#include <QOpenGLWidget>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
+#include <QOffscreenSurface>
 
 static bool renderLibInitialized = false;
 
@@ -52,21 +53,23 @@ int renderlib::initialize() {
 	}
 	QSurfaceFormat::setDefaultFormat(format);
 
-	dummyWidget = new QOpenGLWidget();
-	dummyWidget->setMaximumSize(2, 2);
-	dummyWidget->show();
-	dummyWidget->hide();
-	dummyWidget->makeCurrent();
 
-	//glcontext = new QOpenGLContext();
-	//bool valid = glcontext->create();
-	//if (!valid) {
-	//	LOG_ERROR << "Failed to create default OpenGL context";
-	//}
-	//bool ok = glcontext->makeCurrent(s);
-	//	if (!ok) {
-	//		LOG_ERROR << "Failed to makeCurrent default OpenGL context";
-	//	}
+	QOpenGLContext* context = new QOpenGLContext();
+	context->setFormat(format);    // ...and set the format on the context too
+	context->create();
+
+	QOffscreenSurface* surface = new QOffscreenSurface();
+	surface->setFormat(context->format());
+	surface->create();
+	context->makeCurrent(surface);
+
+
+//	dummyWidget = new QOpenGLWidget();
+//	dummyWidget->setMaximumSize(2, 2);
+//	dummyWidget->show();
+//	dummyWidget->hide();
+//	dummyWidget->makeCurrent();
+
 	if (enableDebug)
 	{
 		logger = new QOpenGLDebugLogger();
