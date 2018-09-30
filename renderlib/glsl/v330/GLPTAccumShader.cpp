@@ -64,11 +64,10 @@ vec4 CumulativeMovingAverage(vec4 A, vec4 Ax, int N)
 
 void main()
 {
-	outputColour = vec4(1.0, 0.0, 0.0, 1.0);
-
     vec4 accum = textureLod(textureAccum, (inData.pObj+1.0) / 2.0, 0).rgba;
     vec4 render = textureLod(textureRender, (inData.pObj + 1.0) / 2.0, 0).rgba;
 
+	//outputColour = accum + render;
 	outputColour = CumulativeMovingAverage(accum, render, numIterations);
 	return;
 }

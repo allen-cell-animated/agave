@@ -158,6 +158,7 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
     glBindTexture(GL_TEXTURE_2D, _glF32Buffer);
     check_gl("Bind fb texture");
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gpuBytes += w*h * 4* sizeof(float);
     check_gl("Create fb texture");
 
@@ -435,7 +436,11 @@ void RenderGLPT::doRender(const CCamera& camera) {
         _accumBufferShader->bind();
         _accumBufferShader->numIterations = numIterations;
         _accumBufferShader->setShadingUniforms();
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
         _fsq->render(m);
+        glEnable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
         _accumBufferShader->release();
         //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
 
