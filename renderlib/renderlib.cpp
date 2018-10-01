@@ -65,8 +65,13 @@ int renderlib::initialize() {
 	dummySurface->setFormat(dummyContext->format());
 	dummySurface->create();
 	LOG_INFO << "Created offscreen surface";
-	dummyContext->makeCurrent(dummySurface);
-	LOG_INFO << "Made context current on offscreen surface";
+	bool ok = dummyContext->makeCurrent(dummySurface);
+	if (!ok) {
+		LOG_ERROR << "Failed to makeCurrent on offscreen surface";
+	}
+	else {
+		LOG_INFO << "Made context current on offscreen surface";
+	}
 
 
 //	dummyWidget = new QOpenGLWidget();
