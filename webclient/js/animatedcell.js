@@ -658,6 +658,16 @@ function binarysocket(channelnumber = 0) {
         // TODO:enqueue this...?
         enqueued_image_data = evt.data;
 
+
+        var bytes = new Uint8Array(enqueued_image_data),
+            binary = "",
+            len = bytes.byteLength,
+            i;
+        for (i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        enqueued_image_data = window.btoa(binary);
+
         // the this ptr is not what I want here.
         //binarysock.draw();
 
@@ -679,18 +689,10 @@ function binarysocket(channelnumber = 0) {
 
     this.draw = function () {
         //console.time('decode_img');
-        var bytes = new Uint8Array(enqueued_image_data),
-            binary = "",
-            len = bytes.byteLength,
-            i;
-        for (i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        binary = window.btoa(binary);
         //console.timeEnd('decode_img');
 
         //console.time('set_img');
-        screenImage.set("data:image/png;base64," + binary, 0);
+        screenImage.set("data:image/png;base64," + enqueued_image_data, 0);
         //console.timeEnd('set_img');  
 
         // nothing else to draw for now.
