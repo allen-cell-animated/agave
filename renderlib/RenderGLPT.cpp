@@ -362,40 +362,12 @@ void RenderGLPT::doRender(const CCamera& camera) {
 //		_randomSeeds2
 //	};
 
-	// single channel
-	int NC = _scene->_volume->sizeC();
-	// use first 3 channels only.
-	int activeChannel = 0;
-	cudaVolume theCudaVolume(0);
-	for (int i = 0; i < NC; ++i) {
-		if (_scene->_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
-			theCudaVolume.volumeTexture[activeChannel] = _imgCuda._volumeTextureInterleaved;
-			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
-			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
-			theCudaVolume.intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
-			theCudaVolume.intensityMin[activeChannel] = _scene->_volume->channel(i)->_min;
-			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
-			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
-			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
-			theCudaVolume.specular[activeChannel * 3 + 0] = _scene->_material.specular[i * 3 + 0];
-			theCudaVolume.specular[activeChannel * 3 + 1] = _scene->_material.specular[i * 3 + 1];
-			theCudaVolume.specular[activeChannel * 3 + 2] = _scene->_material.specular[i * 3 + 2];
-			theCudaVolume.emissive[activeChannel * 3 + 0] = _scene->_material.emissive[i * 3 + 0];
-			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
-			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
-			theCudaVolume.roughness[activeChannel] = _scene->_material.roughness[i];
-			theCudaVolume.opacity[activeChannel] = _scene->_material.opacity[i];
-
-			activeChannel++;
-			theCudaVolume.nChannels = activeChannel;
-		}
-	}
 
 	// find nearest intersection to set camera focal distance automatically.
 	// then re-upload that data.
-	if (camera.m_Focus.m_Type == 0) {
-		ComputeFocusDistance(theCudaVolume);
-	}
+//	if (camera.m_Focus.m_Type == 0) {
+//		ComputeFocusDistance(theCudaVolume);
+//	}
 
 	int numIterations = _renderSettings->GetNoIterations();
 
@@ -410,9 +382,43 @@ void RenderGLPT::doRender(const CCamera& camera) {
         //CCudaTimer TmrRender;
 
         // set the pt shader
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_3D, _imgCuda._volumeTextureInterleaved);
+
         // draw fullscreen quad
         glBindFramebuffer(GL_FRAMEBUFFER, _fbF32);
         _renderBufferShader->bind();
+        _renderBufferShader->volumeTexture = _imgCuda._volumeTextureInterleaved;
+        // single channel
+        int NC = _scene->_volume->sizeC();
+        // use first 3 channels only.
+        int activeChannel = 0;
+        for (int i = 0; i < NC; ++i) {
+            if (_scene->_material.enabled[i] && activeChannel < MAX_GL_CHANNELS) {
+                _renderBufferShader->lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
+                _renderBufferShader->intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
+                _renderBufferShader->intensityMin[activeChannel] = _scene->_volume->channel(i)->_min;
+                _renderBufferShader->diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
+                _renderBufferShader->diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
+                _renderBufferShader->diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
+                _renderBufferShader->specular[activeChannel * 3 + 0] = _scene->_material.specular[i * 3 + 0];
+                _renderBufferShader->specular[activeChannel * 3 + 1] = _scene->_material.specular[i * 3 + 1];
+                _renderBufferShader->specular[activeChannel * 3 + 2] = _scene->_material.specular[i * 3 + 2];
+                _renderBufferShader->emissive[activeChannel * 3 + 0] = _scene->_material.emissive[i * 3 + 0];
+                _renderBufferShader->emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
+                _renderBufferShader->emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
+                _renderBufferShader->roughness[activeChannel] = _scene->_material.roughness[i];
+                _renderBufferShader->opacity[activeChannel] = _scene->_material.opacity[i];
+
+                activeChannel++;
+                _renderBufferShader->nChannels = activeChannel;
+            }
+        }
+
+
+
+        _renderBufferShader->setShadingUniforms();
+
         _fsq->render(m);
         //_timingRender.AddDuration(TmrRender.ElapsedTime());
 

@@ -59,7 +59,7 @@ struct ChannelGL {
 };
 
 struct ImageGL {
-    std::vector<ChannelCuda> _channels;
+    std::vector<ChannelGL> _channels;
     GLuint _volumeTextureInterleaved = 0;
 
     size_t _gpuBytes = 0;

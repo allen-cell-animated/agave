@@ -48,9 +48,11 @@ in VertexData
 
 out vec4 outputColour;
 
+uniform sampler3D textureVolume;
+
 void main()
 {
-	outputColour = vec4(1.0, 0.0, 0.0, 1.0);
+	outputColour = vec4(0.3, 0.0, 0.0, 1.0);
 	return;
 }
     )");
@@ -69,26 +71,7 @@ void main()
         std::cerr << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 	
-	uModelViewMatrix = uniformLocation("modelViewMatrix");
-	uProjectionMatrix = uniformLocation("projectionMatrix");
-
-	uBreakSteps = uniformLocation("BREAK_STEPS");
-	uAABBClipMin = uniformLocation("AABB_CLIP_MIN");
-	uAABBClipMax = uniformLocation("AABB_CLIP_MAX");
-	uInverseModelViewMatrix = uniformLocation("inverseModelViewMatrix");
-	//uCameraPosition = uniformLocation("cameraPosition");
-	uGammaMin = uniformLocation("GAMMA_MIN");
-	uGammaMax = uniformLocation("GAMMA_MAX");
-	uGammaScale = uniformLocation("GAMMA_SCALE");
-	uBrightness = uniformLocation("BRIGHTNESS");
-	uDensity = uniformLocation("DENSITY");
-	uMaskAlpha = uniformLocation("maskAlpha");
-	
-	uTextureAtlas = uniformLocation("textureAtlas");
-	uTextureAtlasMask = uniformLocation("textureAtlasMask");
-
-	uDataRangeMin = uniformLocation("dataRangeMin");
-	uDataRangeMax = uniformLocation("dataRangeMax");
+	uTextureVolume = uniformLocation("textureVolume");
 }
 
 GLPTVolumeShader::~GLPTVolumeShader()
@@ -99,18 +82,7 @@ GLPTVolumeShader::~GLPTVolumeShader()
 void
 GLPTVolumeShader::setShadingUniforms()
 {
-	glUniform1f(uDataRangeMin, dataRangeMin);
-	glUniform1f(uDataRangeMax, dataRangeMax);
-	glUniform1f(uGammaMin, GAMMA_MIN);
-	glUniform1f(uGammaMax, GAMMA_MAX);
-	glUniform1f(uGammaScale, GAMMA_SCALE);
-	glUniform1f(uBrightness, BRIGHTNESS);
-	glUniform1f(uDensity, DENSITY);
-	glUniform1f(uMaskAlpha, maskAlpha);
-	glUniform1i(uBreakSteps, BREAK_STEPS);
-	// axis aligned clip planes
-	glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
-	glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
+	glUniform1i(uTextureVolume, 0);
 }
 
 void 

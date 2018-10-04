@@ -360,9 +360,9 @@ void ImageGL::allocGpuInterleaved(ImageXYZC* img) {
 
 
     for (uint32_t i = 0; i < numChannels; ++i) {
-        ChannelCuda c;
+        ChannelGL c;
         c._index = i;
-        c.allocGpu(img, i, false, false);
+        c.allocGpu(img, i);
         _channels.push_back(c);
 
         _gpuBytes += c._gpuBytes;
