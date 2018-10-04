@@ -257,10 +257,7 @@ void qtome::open(const QString& file)
 	{
 
 		FileReader fileReader;
-		QElapsedTimer t;
-		t.start();
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
-		LOG_DEBUG << "Loaded " << file.toStdString() << " in " << t.elapsed() << "ms";
 
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
@@ -325,8 +322,6 @@ void qtome::openMesh(const QString& file) {
 	// load obj file and init scene...
 	CBoundingBox bb;
 	FileReader fileReader;
-	QElapsedTimer t;
-	t.start();
 	//Assimp::Importer* importer = fileReader.loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", &bb);
 	Assimp::Importer* importer = fileReader.loadAsset(file.toStdString().c_str(), &bb);
 	if (importer->GetScene()) {
@@ -337,7 +332,6 @@ void qtome::openMesh(const QString& file) {
 		glView->onNewImage(&_appScene);
 		appearanceDockWidget->onNewImage(&_appScene);
 	}
-	LOG_DEBUG << "Loaded mesh in " << t.elapsed() << "ms";
 }
 
 void qtome::viewFocusChanged(GLView3D *newGlView)

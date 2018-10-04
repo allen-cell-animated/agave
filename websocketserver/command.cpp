@@ -29,10 +29,7 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 	if (info.exists())
 	{
 		FileReader fileReader;
-		QElapsedTimer t;
-		t.start();
 		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(_data._name);
-		LOG_DEBUG << "Loaded " << _data._name << " in " << t.elapsed() << "ms";
 
 		c->_appScene->_volume = image;
 		c->_appScene->initSceneFromImg(image);

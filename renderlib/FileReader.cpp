@@ -48,6 +48,9 @@ float requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal) {
 
 std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepath)
 {
+	QElapsedTimer twhole;
+	twhole.start();
+
 	QElapsedTimer timer;
 	timer.start();
 
@@ -287,11 +290,16 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
   
   im->setChannelNames(channelNames);
 
+  LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
+
   return std::shared_ptr<ImageXYZC>(im);
 }
 
 Assimp::Importer* FileReader::loadAsset(const char* path, CBoundingBox* bb)
 {
+	QElapsedTimer t;
+	t.start();
+
 	Assimp::Importer* importer = new Assimp::Importer;
 
 	const aiScene* scene = importer->ReadFile(
@@ -353,5 +361,6 @@ Assimp::Importer* FileReader::loadAsset(const char* path, CBoundingBox* bb)
 		}
 
 	}
+	LOG_DEBUG << "Loaded mesh in " << t.elapsed() << "ms";
 	return importer;
 }
