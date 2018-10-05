@@ -256,8 +256,7 @@ void qtome::open(const QString& file)
 	if (info.exists())
 	{
 
-		FileReader fileReader;
-		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
+		std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
 
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
@@ -321,9 +320,7 @@ void qtome::openMesh(const QString& file) {
 	}
 	// load obj file and init scene...
 	CBoundingBox bb;
-	FileReader fileReader;
-	//Assimp::Importer* importer = fileReader.loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", &bb);
-	Assimp::Importer* importer = fileReader.loadAsset(file.toStdString().c_str(), &bb);
+	Assimp::Importer* importer = FileReader::loadAsset(file.toStdString().c_str(), &bb);
 	if (importer->GetScene()) {
 		_appScene._meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
 		_appScene.initSceneFromBoundingBox(bb);

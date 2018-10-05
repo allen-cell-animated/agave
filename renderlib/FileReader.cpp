@@ -18,6 +18,8 @@
 
 #include <map>
 
+std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCache;
+
 FileReader::FileReader()
 {
 }
@@ -46,8 +48,15 @@ float requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal) {
 	return retval;
 }
 
-std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepath)
+std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
 {
+	// check cache first of all.
+	auto cached = sPreloadedImageCache.find(filepath);
+	if (cached != sPreloadedImageCache.end()) {
+		return cached->second;
+	}
+
+
 	QElapsedTimer twhole;
 	twhole.start();
 
@@ -292,7 +301,11 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 
   LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
 
-  return std::shared_ptr<ImageXYZC>(im);
+  std::shared_ptr<ImageXYZC> sharedImage(im);
+  if (addToCache) {
+	  sPreloadedImageCache[filepath] = sharedImage;
+  }
+  return sharedImage;
 }
 
 Assimp::Importer* FileReader::loadAsset(const char* path, CBoundingBox* bb)

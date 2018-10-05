@@ -202,7 +202,7 @@ void FuseWorkerThread::run() {
 // fuse: fill volume of color data, plus volume of gradients
 // n channels with n colors: use "max" or "avg"
 // n channels with gradients: use "max" or "avg"
-void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume)
+void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume) const
 {
 	//todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume data in gpu mem.
 

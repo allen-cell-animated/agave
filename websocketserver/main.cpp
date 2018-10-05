@@ -4,7 +4,22 @@
 
 #include "mainwindow.h"
 #include "streamserver.h"
+#include "renderlib/FileReader.h"
 #include "renderlib/renderlib.h"
+
+void preloadFiles(QStringList preloadlist) {
+	for (QString s : preloadlist) {
+		QFileInfo info(s);
+		if (info.exists())
+		{
+			FileReader::loadOMETiff_4D(info.absoluteFilePath().toStdString(), true);
+		}
+		else {
+			qDebug() << "Could not load " << s;
+		}
+	}
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +38,10 @@ int main(int argc, char *argv[])
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addPositionalArgument("port", QCoreApplication::translate("main", "Websocket connection port."));
+	QCommandLineOption preloadOption(QStringList() << "p" << "preload",
+		QCoreApplication::translate("main", "Specify ome-tiff file(s) to pre-load."),
+		QCoreApplication::translate("main", "preload"));
+	parser.addOption(preloadOption);
 
 	// Process the actual command line arguments given by the user
 	parser.process(a);
@@ -58,6 +77,9 @@ int main(int argc, char *argv[])
 	qDebug() << "working directory:" << QDir::current();
 
 	//delete logFile;
+
+	QStringList preloads = parser.values(preloadOption);
+	preloadFiles(preloads);
 
 	int result = a.exec();
 	renderlib::cleanup();

@@ -74,7 +74,7 @@ public:
 
 	// if channel color is 0, then channel will not contribute.
 	// allocates memory for outRGBVolume and outGradientVolume
-	void fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume);
+	void fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume) const;
 
 	void setChannelNames(std::vector<QString>& channelNames);
 private:

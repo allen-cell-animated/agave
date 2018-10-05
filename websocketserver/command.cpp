@@ -28,8 +28,7 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 	QFileInfo info(QString(_data._name.c_str()));
 	if (info.exists())
 	{
-		FileReader fileReader;
-		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(_data._name);
+		std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(_data._name);
 
 		c->_appScene->_volume = image;
 		c->_appScene->initSceneFromImg(image);
