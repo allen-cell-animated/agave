@@ -83,6 +83,31 @@ void
 GLPTVolumeShader::setShadingUniforms()
 {
 	glUniform1i(uTextureVolume, 0);
+
+
+    for (int i = 0; i < nChannels; ++i) {
+        if (_scene->_material.enabled[i] && activeChannel < MAX_GL_CHANNELS) {
+            _renderBufferShader->lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
+            _renderBufferShader->intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
+            _renderBufferShader->intensityMin[activeChannel] = _scene->_volume->channel(i)->_min;
+            _renderBufferShader->diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
+            _renderBufferShader->diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
+            _renderBufferShader->diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
+            _renderBufferShader->specular[activeChannel * 3 + 0] = _scene->_material.specular[i * 3 + 0];
+            _renderBufferShader->specular[activeChannel * 3 + 1] = _scene->_material.specular[i * 3 + 1];
+            _renderBufferShader->specular[activeChannel * 3 + 2] = _scene->_material.specular[i * 3 + 2];
+            _renderBufferShader->emissive[activeChannel * 3 + 0] = _scene->_material.emissive[i * 3 + 0];
+            _renderBufferShader->emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
+            _renderBufferShader->emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
+            _renderBufferShader->roughness[activeChannel] = _scene->_material.roughness[i];
+            _renderBufferShader->opacity[activeChannel] = _scene->_material.opacity[i];
+
+            activeChannel++;
+            _renderBufferShader->nChannels = activeChannel;
+        }
+    }
+
+
 }
 
 void 

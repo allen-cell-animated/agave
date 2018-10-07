@@ -414,9 +414,6 @@ void RenderGLPT::doRender(const CCamera& camera) {
                 _renderBufferShader->nChannels = activeChannel;
             }
         }
-
-
-
         _renderBufferShader->setShadingUniforms();
 
         _fsq->render(m);
