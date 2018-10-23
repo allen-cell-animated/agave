@@ -249,8 +249,8 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 				  LOG_ERROR << "Error reading tiff tile";
 			  }
 			  // copy buf into data.
-			  memcpy(destptr, buf, tilesize);
-			  destptr += tilesize;
+			  memcpy(destptr, buf, readtileok);
+			  destptr += readtileok;
 		  }
 	  }
 	  _TIFFfree(buf);
@@ -279,8 +279,8 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 				  }
 
 				  // copy buf into data.
-				  memcpy(destptr, buf, striplength);
-				  destptr += striplength;
+				  memcpy(destptr, buf, readstripok);
+				  destptr += readstripok;
 			  }
 
 		  }
