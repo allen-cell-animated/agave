@@ -62,6 +62,8 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/qtome.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TransferFunction.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TransferFunction.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
 target_link_libraries(qtomeapp 
 	renderlib 
