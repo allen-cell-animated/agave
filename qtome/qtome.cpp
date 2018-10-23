@@ -15,6 +15,7 @@
 #include "CameraDockWidget.h"
 #include "GLContainer.h"
 #include "StatisticsDockWidget.h"
+#include "ViewerState.h"
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QAction>
@@ -520,129 +521,106 @@ void qtome::dumpPythonState()
 	//return s;
 }
 
-QJsonArray jsonVec3(float x, float y, float z) {
-	QJsonArray tgt;
-	tgt.append(x);
-	tgt.append(y);
-	tgt.append(z);
-	return tgt;
-}
-
 void qtome::dumpStateToJson() {
-	QJsonDocument doc = stateToJson();
+	ViewerState st = appToViewerState();
+	QJsonDocument doc = st.stateToJson();
 	QString s = doc.toJson();
 	qDebug().noquote() << s;
 }
 
-QJsonDocument qtome::stateToJson()
-{
-	// fire back some json...
-	QJsonObject j;
-	j["name"] = _currentFilePath;
-	
-	QJsonArray resolution;
-	resolution.append(glView->size().width());
-	resolution.append(glView->size().height());
-	j["resolution"] = resolution;
+ViewerState qtome::appToViewerState() {
+	ViewerState v;
+	v._volumeImageFile = _currentFilePath;
 
-	j["renderIterations"] = _renderSettings.GetNoIterations();
+	v._resolutionX = glView->size().width();
+	v._resolutionY = glView->size().height();
+	v._renderIterations = _renderSettings.GetNoIterations();
 
-	QJsonArray clipRegion;
-	QJsonArray clipRegionX;
-	clipRegionX.append(_appScene._roi.GetMinP().x);
-	clipRegionX.append(_appScene._roi.GetMaxP().x);
-	QJsonArray clipRegionY;
-	clipRegionY.append(_appScene._roi.GetMinP().y);
-	clipRegionY.append(_appScene._roi.GetMaxP().y);
-	QJsonArray clipRegionZ;
-	clipRegionZ.append(_appScene._roi.GetMinP().z);
-	clipRegionZ.append(_appScene._roi.GetMaxP().z);
-	clipRegion.append(clipRegionX);
-	clipRegion.append(clipRegionY);
-	clipRegion.append(clipRegionZ);
+	v._roiXmax = _appScene._roi.GetMaxP().x;
+	v._roiYmax = _appScene._roi.GetMaxP().y;
+	v._roiZmax = _appScene._roi.GetMaxP().z;
+	v._roiXmin = _appScene._roi.GetMinP().x;
+	v._roiYmin = _appScene._roi.GetMinP().y;
+	v._roiZmin = _appScene._roi.GetMinP().z;
 
-	j["clipRegion"] = clipRegion;
+	v._eyeX = glView->getCamera().m_From.x;
+	v._eyeY = glView->getCamera().m_From.y;
+	v._eyeZ = glView->getCamera().m_From.z;
 
-	QJsonObject camera;
-	camera["eye"] = jsonVec3(
-		glView->getCamera().m_From.x,
-		glView->getCamera().m_From.y,
-		glView->getCamera().m_From.z
-	);
-	camera["target"] = jsonVec3(
-		glView->getCamera().m_Target.x,
-		glView->getCamera().m_Target.y,
-		glView->getCamera().m_Target.z
-	);
-	camera["up"] = jsonVec3(
-		glView->getCamera().m_Up.x,
-		glView->getCamera().m_Up.y,
-		glView->getCamera().m_Up.z
-	);
+	v._targetX = glView->getCamera().m_Target.x;
+	v._targetY = glView->getCamera().m_Target.y;
+	v._targetZ = glView->getCamera().m_Target.z;
 
-	camera["fovY"] = _camera.GetProjection().GetFieldOfView();
+	v._upX = glView->getCamera().m_Up.x;
+	v._upY = glView->getCamera().m_Up.y;
+	v._upZ = glView->getCamera().m_Up.z;
 
-	camera["exposure"] = _camera.GetFilm().GetExposure();
-	camera["aperture"] = _camera.GetAperture().GetSize();
-	camera["focalDistance"] = _camera.GetFocus().GetFocalDistance();
-	j["camera"] = camera;
+	v._fov = _camera.GetProjection().GetFieldOfView();
 
-	QJsonArray channels;
+	v._exposure = _camera.GetFilm().GetExposure();
+	v._apertureSize = _camera.GetAperture().GetSize();
+	v._focalDistance = _camera.GetFocus().GetFocalDistance();
+	v._densityScale = _renderSettings.m_RenderSettings.m_DensityScale;
+
 	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
-		QJsonObject channel;
-		channel["enabled"] = _appScene._material.enabled[i];
-		channel["diffuseColor"] = jsonVec3(
+		ChannelViewerState ch;
+		ch._enabled = _appScene._material.enabled[i];
+		ch._diffuse = glm::vec3(
 			_appScene._material.diffuse[i * 3],
 			_appScene._material.diffuse[i * 3 + 1],
 			_appScene._material.diffuse[i * 3 + 2]
 		);
-		channel["specularColor"] = jsonVec3(
+		ch._specular = glm::vec3(
 			_appScene._material.specular[i * 3],
 			_appScene._material.specular[i * 3 + 1],
 			_appScene._material.specular[i * 3 + 2]
 		);
-		channel["emissiveColor"] = jsonVec3(
+		ch._emissive = glm::vec3(
 			_appScene._material.emissive[i * 3],
 			_appScene._material.emissive[i * 3 + 1],
 			_appScene._material.emissive[i * 3 + 2]
 		);
-		channel["glossiness"] = _appScene._material.roughness[i];
-		channel["window"] = _appScene._volume->channel(i)->_window;
-		channel["level"] = _appScene._volume->channel(i)->_level;
+		ch._glossiness = _appScene._material.roughness[i];
+		ch._window = _appScene._volume->channel(i)->_window;
+		ch._level = _appScene._volume->channel(i)->_level;
 
-		channels.append(channel);
+		v._channels.push_back(ch);
 	}
-	j["channels"] = channels;
 
-	j["density"] = _renderSettings.m_RenderSettings.m_DensityScale;
 
 	// lighting
-	QJsonArray lights;
-	QJsonObject light0;
 	Light& lt = _appScene._lighting.m_Lights[0];
-	light0["type"] = 0;
-	light0["topColor"] = jsonVec3(
+	v._light0._type = lt.m_T;
+	v._light0._distance = lt.m_Distance;
+	v._light0._theta = lt.m_Theta;
+	v._light0._phi = lt.m_Phi;
+	v._light0._topColor = glm::vec3(
 		lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b
 	);
-	light0["middleColor"] = jsonVec3(
-		lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b
-	);
-	light0["bottomColor"] = jsonVec3(
+	v._light0._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
+	v._light0._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
+	v._light0._bottomColor = glm::vec3(
 		lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b
 	);
-	lights.append(light0);
+	v._light0._width = lt.m_Width;
+	v._light0._height = lt.m_Height;
 
-	QJsonObject light1;
 	lt = _appScene._lighting.m_Lights[1];
-	light1["type"] = 1;
-	light1["distance"] = lt.m_Distance;
-	light1["theta"] = lt.m_Theta;
-	light1["phi"] = lt.m_Phi;
-	light1["color"] = jsonVec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-	light1["width"] = lt.m_Width;
-	light1["height"] = lt.m_Height;
-	lights.append(light1);
-	j["lights"] = lights;
+	v._light1._type = lt.m_T;
+	v._light1._distance = lt.m_Distance;
+	v._light1._theta = lt.m_Theta;
+	v._light1._phi = lt.m_Phi;
+	v._light1._topColor = glm::vec3(
+		lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b
+	);
+	v._light1._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
+	v._light1._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
+	v._light1._bottomColor = glm::vec3(
+		lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b
+	);
+	v._light1._width = lt.m_Width;
+	v._light1._height = lt.m_Height;
 
-	return QJsonDocument(j);
+	return v;
 }
+

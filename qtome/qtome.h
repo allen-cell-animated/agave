@@ -7,6 +7,7 @@
 #include "GLView3D.h"
 #include "NavigationDock2D.h"
 #include "TransferFunction.h"
+#include "ViewerState.h"
 
 #include "renderlib/RenderSettings.h"
 #include "renderlib/AppScene.h"
@@ -42,7 +43,7 @@ private slots:
 private:
 	enum { MaxRecentFiles = 8 };
 
-	QJsonDocument stateToJson();
+	ViewerState appToViewerState();
 
 	void createActions();
 	void createMenus();
