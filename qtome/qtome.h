@@ -28,6 +28,7 @@ private:
 
 private slots:
 	void open();
+	void openJson();
 	void open(const QString& file);
 	void openRecentFile();
 	void updateRecentFileActions();
@@ -39,6 +40,8 @@ private slots:
 	void dumpStateToJson();
 	void openMeshDialog();
 	void openMesh(const QString& file);
+	void saveJson();
+
 
 private:
 	enum { MaxRecentFiles = 8 };
@@ -63,6 +66,7 @@ private:
 	QToolBar *Cam2DTools;
 
 	QAction *openAction;
+	QAction *openJsonAction;
 	QAction *quitAction;
 	QAction *dumpAction;
 	QAction *dumpJsonAction;

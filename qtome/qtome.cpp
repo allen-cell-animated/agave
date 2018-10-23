@@ -79,6 +79,11 @@ void qtome::createActions()
 	openAction->setStatusTip(tr("Open an existing image file"));
 	connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+	openJsonAction = new QAction(tr("&Open json..."), this);
+	openJsonAction->setShortcuts(QKeySequence::Open);
+	openJsonAction->setStatusTip(tr("Open an existing json settings file"));
+	connect(openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
+
 	quitAction = new QAction(tr("&Quit"), this);
 	quitAction->setShortcuts(QKeySequence::Quit);
 	quitAction->setStatusTip(tr("Quit the application"));
@@ -97,9 +102,9 @@ void qtome::createActions()
 	dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
 	connect(dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
 
-	dumpJsonAction = new QAction(tr("&Dump json obj"), this);
-	dumpJsonAction->setStatusTip(tr("Log a string containing a json object"));
-	connect(dumpJsonAction, SIGNAL(triggered()), this, SLOT(dumpStateToJson()));
+	dumpJsonAction = new QAction(tr("&Save to json"), this);
+	dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
+	connect(dumpJsonAction, SIGNAL(triggered()), this, SLOT(saveJson()));
 
 	testMeshAction = new QAction(tr("&Open mesh..."), this);
 	//testMeshAction->setShortcuts(QKeySequence::Open);
@@ -111,6 +116,7 @@ void qtome::createMenus()
 {
 	fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(openAction);
+	fileMenu->addAction(openJsonAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(testMeshAction);
 	fileMenu->addSeparator();
@@ -229,6 +235,48 @@ void qtome::open()
 
 	if (!file.isEmpty())
 		open(file);
+}
+
+void qtome::openJson()
+{
+	QString file = QFileDialog::getOpenFileName(this,
+		tr("Open Image"),
+		QString(),
+		QString(),
+		0,
+		QFileDialog::DontResolveSymlinks);
+
+	if (!file.isEmpty()) {
+		QFile loadFile(file);
+		if (!loadFile.open(QIODevice::ReadOnly)) {
+			qWarning("Couldn't open json file.");
+			return;
+		}
+		QByteArray saveData = loadFile.readAll();
+		QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+		ViewerState s;
+		s.stateFromJson(loadDoc);
+		if (!s._volumeImageFile.isEmpty()) {
+			open(s._volumeImageFile);
+		}
+	}
+}
+
+void qtome::saveJson() {
+	QString file = QFileDialog::getSaveFileName(this,
+		tr("Save Json"),
+		QString(),
+		tr("json (*.json)"));
+	if (!file.isEmpty()) {
+		ViewerState st = appToViewerState();
+		QJsonDocument doc = st.stateToJson();
+		QFile saveFile(file);
+		if (!saveFile.open(QIODevice::WriteOnly)) {
+			qWarning("Couldn't open save file.");
+			return;
+		}
+		saveFile.write(doc.toJson());
+	}
 }
 
 inline QString FormatVector(const glm::vec3& Vector, const int& Precision = 2)
