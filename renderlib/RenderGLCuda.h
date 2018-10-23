@@ -53,7 +53,7 @@ private:
 	void initVolumeTextureCUDA();
 	void cleanUpFB();
 
-	ImageCuda _imgCuda;
+	std::shared_ptr<ImageCuda> _imgCuda;
 
 	RectImage2D* _imagequad;
 

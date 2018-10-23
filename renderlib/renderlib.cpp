@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 #include "HardwareWidget.h"
 #include "Logging.h"
+#include "ImageXyzcCuda.h"
 
 #include <string>
 
@@ -18,6 +19,8 @@ static QOpenGLContext* dummyContext = nullptr;
 static QOffscreenSurface* dummySurface = nullptr;
 
 static QOpenGLDebugLogger* logger = nullptr;
+
+std::map<std::string, std::shared_ptr<ImageCuda>> renderlib::sCudaImageCache;
 
 static const struct {
 	int major = 3; 
@@ -112,6 +115,12 @@ void renderlib::cleanup() {
 		return;
 	}
 	LOG_INFO << "Renderlib shutdown";
+
+	// clean up the shared gpu cuda buffer cache
+	for (auto i : sCudaImageCache) {
+		i.second->deallocGpu();
+	}
+	sCudaImageCache.clear();
 
 	delete dummySurface;
 	dummySurface = nullptr;

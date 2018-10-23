@@ -186,16 +186,20 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
+
+	//renderlib::removeCudaImage(_imgCuda);
+	
 	// free the gpu resources of the old image.
-	_imgCuda.deallocGpu();
+	if (_imgCuda) {
+		_imgCuda->deallocGpu();
+	}
 
 	if (!_scene || !_scene->_volume) {
 		return;
 	}
-	ImageCuda cimg;
-	cimg.allocGpuInterleaved(_scene->_volume.get());
-	_imgCuda = cimg;
-
+	ImageCuda* cimg = new ImageCuda;
+	cimg->allocGpuInterleaved(_scene->_volume.get());
+	_imgCuda.reset(cimg);
 }
 
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
@@ -218,7 +222,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	if (!_scene || !_scene->_volume) {
 		return;
 	}
-	if (!_imgCuda._volumeArrayInterleaved || _renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
+	if (!_imgCuda || !_imgCuda->_volumeArrayInterleaved || _renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
 		initVolumeTextureCUDA();
 		// we have set up everything there is to do before rendering
 		_status.SetRenderBegin();
@@ -251,7 +255,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 			// TODO: only update the ones that changed.
 			int NC = _scene->_volume->sizeC();
 			for (int i = 0; i < NC; ++i) {
-				_imgCuda.updateLutGpu(i, _scene->_volume.get());
+				_imgCuda->updateLutGpu(i, _scene->_volume.get());
 			}
 		}
 
@@ -279,7 +283,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 				activeChannel++;
 			}
 		}
-		_imgCuda.updateVolumeData4x16(_scene->_volume.get(), ch[0], ch[1], ch[2], ch[3]);
+		_imgCuda->updateVolumeData4x16(_scene->_volume.get(), ch[0], ch[1], ch[2], ch[3]);
 		_renderSettings->SetNoIterations(0);
 	}
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
@@ -328,9 +332,9 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	cudaVolume theCudaVolume(0);
 	for (int i = 0; i < NC; ++i) {
 		if (_scene->_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
-			theCudaVolume.volumeTexture[activeChannel] = _imgCuda._volumeTextureInterleaved;
-			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda._channels[i]._volumeGradientTexture;
-			theCudaVolume.lutTexture[activeChannel] = _imgCuda._channels[i]._volumeLutTexture;
+			theCudaVolume.volumeTexture[activeChannel] = _imgCuda->_volumeTextureInterleaved;
+			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda->_channels[i]._volumeGradientTexture;
+			theCudaVolume.lutTexture[activeChannel] = _imgCuda->_channels[i]._volumeLutTexture;
 			theCudaVolume.intensityMax[activeChannel] = _scene->_volume->channel(i)->_max;
 			theCudaVolume.intensityMin[activeChannel] = _scene->_volume->channel(i)->_min;
 			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
@@ -435,7 +439,9 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::cleanUpResources() {
-	_imgCuda.deallocGpu();
+	if (_imgCuda) {
+		_imgCuda->deallocGpu();
+	}
 
 	delete _imagequad;
 	_imagequad = nullptr;
@@ -455,5 +461,5 @@ void RenderGLCuda::setScene(Scene* s) {
 }
 
 size_t RenderGLCuda::getGpuBytes() {
-	return _gpuBytes + _imgCuda._gpuBytes;
+	return _gpuBytes + _imgCuda->_gpuBytes;
 }

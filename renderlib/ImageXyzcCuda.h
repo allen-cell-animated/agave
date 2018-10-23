@@ -31,12 +31,19 @@ struct ImageCuda {
 
 	size_t _gpuBytes = 0;
 	
+	// no one is calling this right now.
+	// puts each channel into its own gpu volume buffer
 	void allocGpu(ImageXYZC* img);
+
+	// put first 4 channels into gpu array
 	void allocGpuInterleaved(ImageXYZC* img);
+
 	void deallocGpu();
 
     void updateLutGpu(int channel, ImageXYZC* img);
 
 	void createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cudaTextureObject_t* deviceTexture);
+
+	// similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
 	void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
 };
