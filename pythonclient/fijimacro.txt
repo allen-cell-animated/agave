@@ -14,6 +14,7 @@ setBatchMode(true);
 
   Ext.setId(file);
   Ext.getSeriesCount(seriesCount);
+  // explicitly choosing the last series in the source file ( a multi-scene czi )
   Ext.setSeries(seriesCount-1);
   // split t
   Ext.getSizeT(numT);

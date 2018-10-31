@@ -642,32 +642,24 @@ ViewerState qtome::appToViewerState() {
 	v._light0._distance = lt.m_Distance;
 	v._light0._theta = lt.m_Theta;
 	v._light0._phi = lt.m_Phi;
-	v._light0._topColor = glm::vec3(
-		lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b
-	);
+	v._light0._topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
 	v._light0._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
 	v._light0._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-	v._light0._bottomColor = glm::vec3(
-		lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b
-	);
+	v._light0._bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
 	v._light0._width = lt.m_Width;
 	v._light0._height = lt.m_Height;
 
-	lt = _appScene._lighting.m_Lights[1];
-	v._light1._type = lt.m_T;
-	v._light1._distance = lt.m_Distance;
-	v._light1._theta = lt.m_Theta;
-	v._light1._phi = lt.m_Phi;
-	v._light1._topColor = glm::vec3(
-		lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b
-	);
-	v._light1._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
-	v._light1._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-	v._light1._bottomColor = glm::vec3(
-		lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b
-	);
-	v._light1._width = lt.m_Width;
-	v._light1._height = lt.m_Height;
+	Light& lt1 = _appScene._lighting.m_Lights[1];
+	v._light1._type = lt1.m_T;
+	v._light1._distance = lt1.m_Distance;
+	v._light1._theta = lt1.m_Theta;
+	v._light1._phi = lt1.m_Phi;
+	v._light1._topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
+	v._light1._middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
+	v._light1._color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
+	v._light1._bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
+	v._light1._width = lt1.m_Width;
+	v._light1._height = lt1.m_Height;
 
 	return v;
 }

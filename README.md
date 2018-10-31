@@ -16,6 +16,8 @@ For linux:
 * sudo apt install libboost-all-dev
 * libassimp-dev
 * ensure cuda is installed properly according to http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+
+* https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
 ```
 source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var
 mkdir build
