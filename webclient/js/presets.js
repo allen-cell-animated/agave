@@ -254,7 +254,7 @@ function preset1() {
     updateGui();
     
     var cb = new commandBuffer();
-    cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-11_409.ome.tif");
+    //cb.addCommand("LOAD_OME_TIF", "C:/Users/danielt.ALLENINST/Downloads/AICS-11_409.ome.tif");
     // cb.addCommand("SET_RESOLUTION", 1447, 1175);
     // cb.addCommand("RENDER_ITERATIONS", 384);
     // cb.addCommand("SET_CLIP_REGION", 0, 1, 0, 1, 0, 1);
