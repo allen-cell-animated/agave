@@ -415,7 +415,7 @@ function preset2() {
     cb.addCommand("LIGHT_SIZE", 0, 1, 1);
     flushCommandBuffer(cb);
 }
-const pathprefix = "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/";
+const pathprefix = "/allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/";
 const presets = [
     {name:"2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif", f:preset0},
     {name:"2017_07_21_Tom20/AICS-11/AICS-11_409.ome.tif", f:preset1},
