@@ -67,7 +67,8 @@ void preloadFiles(QStringList preloadlist) {
 		QFileInfo info(s);
 		if (info.exists())
 		{
-			FileReader::loadOMETiff_4D(info.absoluteFilePath().toStdString(), true);
+			auto img = FileReader::loadOMETiff_4D(info.absoluteFilePath().toStdString(), true);
+			renderlib::imageAllocGPU_Cuda(img);
 		}
 		else {
 			qDebug() << "Could not load " << s;
@@ -124,6 +125,7 @@ int main(int argc, char *argv[])
 
 	//delete logFile;
 
+	// must happen after renderlib init
 	preloadFiles(p._preloadList);
 
 	int result = a.exec();

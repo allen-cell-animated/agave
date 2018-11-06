@@ -8,6 +8,7 @@
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
+#include "renderlib.h"
 #include "cudarndr/RenderThread.h"
 
 #include "Core.cuh"
@@ -190,16 +191,15 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 	//renderlib::removeCudaImage(_imgCuda);
 	
 	// free the gpu resources of the old image.
-	if (_imgCuda) {
-		_imgCuda->deallocGpu();
-	}
 
-	if (!_scene || !_scene->_volume) {
-		return;
+	//if (_imgCuda) {
+	//	renderlib::imageDeallocGPU_Cuda(_scene->_volume);
+	//	_imgCuda.reset();
+	//}
+
+	if (_scene && _scene->_volume) {
+		_imgCuda = renderlib::imageAllocGPU_Cuda(_scene->_volume, false);
 	}
-	ImageCuda* cimg = new ImageCuda;
-	cimg->allocGpuInterleaved(_scene->_volume.get());
-	_imgCuda.reset(cimg);
 }
 
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
@@ -439,9 +439,6 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::cleanUpResources() {
-	if (_imgCuda) {
-		_imgCuda->deallocGpu();
-	}
 
 	delete _imagequad;
 	_imagequad = nullptr;
