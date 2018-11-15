@@ -26,7 +26,7 @@ set(CMAKE_AUTOUIC ON)
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
 if (WIN32)
-  set(QTDIR C:/Qt/5.9.1/msvc2015_64)
+  set(QTDIR C:/Qt/5.11.2/msvc2017_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 else (WIN32)
   # linux: QTDIR = /opt/qt59
@@ -100,24 +100,24 @@ install(FILES
   ${optix_DLL}
   # note these are release build dlls.
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/assimp-vc140-mt.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_chrono-vc141-mt-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_date_time-vc141-mt-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_filesystem-vc141-mt-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_log-vc141-mt-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_system-vc141-mt-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_thread-vc141-mt-x64-1_67.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_chrono-vc141-mt-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_date_time-vc141-mt-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_filesystem-vc141-mt-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_log-vc141-mt-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_system-vc141-mt-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_thread-vc141-mt-x64-1_68.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/jpeg62.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/lzma.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/tiff.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zlib1.dll
   # debug dlls
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/assimp-vc140-mtd.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_chrono-vc141-mt-gd-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_date_time-vc141-mt-gd-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_filesystem-vc141-mt-gd-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_log-vc141-mt-gd-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_system-vc141-mt-gd-x64-1_67.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_thread-vc141-mt-gd-x64-1_67.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_chrono-vc141-mt-gd-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_date_time-vc141-mt-gd-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_filesystem-vc141-mt-gd-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_log-vc141-mt-gd-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_system-vc141-mt-gd-x64-1_68.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_thread-vc141-mt-gd-x64-1_68.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/jpeg62.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/lzma.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/tiffd.dll
