@@ -179,7 +179,7 @@ public:
 	HOD CColorRgbLdr& operator *= (float f)
 	{
 		for (int i = 0; i < 3; i++)
-			(&r)[i] *= f;
+			(&r)[i] = (unsigned char)((float)((&r)[i]) * f);
 
 		return *this;
 	}
@@ -298,7 +298,7 @@ public:
 	HOD CColorRgbaLdr& operator *= (float f)
 	{
 		for (int i = 0; i < 4; i++)
-			(&r)[i] *= f;
+            (&r)[i] = (unsigned char)((float)((&r)[i]) * f);
 
 		return *this;
 	}
@@ -635,7 +635,7 @@ public:
 
 	HOD float LengthSquared(void) const
 	{
-		return x * x + y * y;
+		return (float)(x * x + y * y);
 	}
 
 	HOD float Length(void) const
@@ -1222,7 +1222,7 @@ public:
 
 	HOD CPixel(const Vec2f& ImageXY, const Vec2i& Resolution)
 	{
-		m_XY	= Vec2i(floorf(ImageXY.x), floorf(ImageXY.y));
+		m_XY	= Vec2i((int)floorf(ImageXY.x), (int)floorf(ImageXY.y));
 		m_ID	= (m_XY.y * Resolution.x) + m_XY.x;
 	}
 
@@ -1282,7 +1282,7 @@ public:
 
 	HO Vec3f ToVector3(void) const
 	{
-		return Vec3f(m_XYZ.x, m_XYZ.y, m_XYZ.z);
+		return Vec3f((float)m_XYZ.x, (float)m_XYZ.y, (float)m_XYZ.z);
 	}
 
 	HO void SetResXYZ(const Vec3i& Resolution)

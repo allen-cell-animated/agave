@@ -142,7 +142,7 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpThreshold, &denoise.m_LerpThreshold, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &denoise.m_LerpC, sizeof(float)));
 
-	const float NoIterations	= numIterations;
+	const float NoIterations	= (float)numIterations;
 	const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 
 	HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
@@ -198,7 +198,7 @@ void Render(const int& Type, int numExposures, int w, int h,
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 
 		numIterations++;
-		const float NoIterations = numIterations;
+		const float NoIterations = (float)numIterations;
 		const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
