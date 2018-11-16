@@ -9,7 +9,6 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "renderlib.h"
-#include "cudarndr/RenderThread.h"
 
 #include "Core.cuh"
 #include "Lighting2.cuh"
@@ -231,18 +230,6 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	// Resizing the image canvas requires special attention
 	if (_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty))
 	{
-#if 0
-		// Allocate host image buffer, this thread will blit it's frames to this buffer
-		free(m_pRenderImage);
-		m_pRenderImage = NULL;
-
-		m_pRenderImage = (CColorRgbLdr*)malloc(_renderSettings->m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr));
-
-		if (m_pRenderImage)
-			memset(m_pRenderImage, 0, _renderSettings->m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr));
-
-		gStatus.SetStatisticChanged("Host Memory", "LDR Frame Buffer", QString::number(3 * _renderSettings->m_Camera.m_Film.m_Resolution.GetNoElements() * sizeof(CColorRgbLdr) / MB, 'f', 2), "MB");
-#endif
 		_renderSettings->SetNoIterations(0);
 
 		//Log("Render canvas resized to: " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResX()) + " x " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResY()) + " pixels", "application-resize");

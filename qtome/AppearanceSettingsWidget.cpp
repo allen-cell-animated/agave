@@ -6,7 +6,6 @@
 #include "TransferFunction.h"
 
 #include "ImageXYZC.h"
-#include "RenderThread.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/AppScene.h"
 #include "renderlib/Logging.h"

@@ -1,5 +1,4 @@
 #include "HardwareWidget.h"
-//#include "RenderThread.h"
 #include "glad/include/glad/glad.h"
 #include "CudaUtilities.h"
 #include "Logging.h"

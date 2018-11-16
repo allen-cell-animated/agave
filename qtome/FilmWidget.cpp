@@ -1,7 +1,6 @@
 #include "Stable.h"
 
 #include "FilmWidget.h"
-#include "RenderThread.h"
 #include "Camera.h"
 #include "renderlib/RenderSettings.h"
 
