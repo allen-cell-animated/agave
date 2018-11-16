@@ -2,6 +2,8 @@
 
 #include "Spectrum.h"
 
+#include "helper_math.cuh"
+
 #include <algorithm>
 #include <math.h>
 #include <stdio.h>
@@ -10,7 +12,6 @@ class CColorRgbHdr;
 class Vec2i;
 class Vec2f;
 class Vec3i;
-class Vec3f;
 class Vec4i;
 class Vec4f;
 class CColorXyz;
@@ -438,249 +439,6 @@ public:
 	int x, y, z;
 };
 
-class Vec3f
-{
-public:
-	HOD Vec3f(void)
-	{
-		x = 0.0f;
-		y = 0.0f;
-		z = 0.0f;
-	}
-
-	HOD Vec3f(const CColorRgbHdr& p)
-	{
-		x = p.r;
-		y = p.g;
-		z = p.b;
-	}
-
-	HOD Vec3f(const float& x, const float& y, const float& z)
-	{
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
-
-	HOD Vec3f(const float& xyz)
-	{
-		this->x = xyz;
-		this->y = xyz;
-		this->z = xyz;
-	}
-
-	HOD float operator[](int i) const
-	{
-		return (&x)[i];
-	}
-
-	HOD float& operator[](int i)
-	{
-		return (&x)[i];
-	}
-
-	HOD Vec3f& operator = (const Vec3f &v)
-	{
-		x = v.x; 
-		y = v.y; 
-		z = v.z;
-
-		return *this;
-	}
-
-	HOD Vec3f operator + (const Vec3f& v) const
-	{
-		return Vec3f(x + v.x, y + v.y, z + v.z);
-	}
-
-	HOD Vec3f& operator += (const Vec3f& v)
-	{
-		x += v.x; y += v.y; z += v.z;
-		return *this;
-	}
-
-	HOD Vec3f operator - (const Vec3f& v) const
-	{
-		return Vec3f(x - v.x, y - v.y, z - v.z);
-	}
-
-	HOD Vec3f& operator -= (const Vec3f& v)
-	{
-		x -= v.x; y -= v.y; z -= v.z;
-		return *this;
-	}
-
-	HOD Vec3f operator * (float f) const
-	{
-		return Vec3f(x * f, y * f, z * f);
-	}
-
-	HOD Vec3f& operator *= (float f)
-	{
-		x *= f; 
-		y *= f; 
-		z *= f;
-
-		return *this;
-	}
-
-	HOD Vec3f operator / (float f) const
-	{
-		float inv = 1.f / f;
-		return Vec3f(x * inv, y * inv, z * inv);
-	}
-
-	HOD Vec3f& operator /= (float f)
-	{
-		float inv = 1.f / f;
-		x *= inv; y *= inv; z *= inv;
-		return *this;
-	}
-
-	HOD Vec3f operator / (Vec3i V)
-	{
-		return Vec3f(x / (float)V.x, y / (float)V.y, z / (float)V.z);
-	}
-
-	HOD Vec3f& operator /= (Vec3i V)
-	{
-		x /= (float)V.x;
-		y /= (float)V.y;
-		z /= (float)V.z;
-
-		return *this;
-	}
-
-	HOD Vec3f operator-() const
-	{
-		return Vec3f(-x, -y, -z);
-	}
-
-	HOD bool operator < (const Vec3f& V) const
-	{
-		return V.x < x && V.y < y && V.z < z;
-	}
-
-	HOD bool operator > (const Vec3f& V) const
-	{
-		return V.x > x && V.y > y && V.z > z;
-	}
-
-	HOD bool operator == (const Vec3f& V) const
-	{
-		return V.x == x && V.y == y && V.z == z;
-	}
-
-	HOD float Max(void) const
-	{
-		if (x >= y && x >= z)
-		{
-			return x;
-		}		
-		else
-		{
-			if (y >= x && y >= z)
-				return y;
-			else
-				return z;
-		}
-	}
-
-	HOD float Min(void) const
-	{
-		if (x <= y && x <= z)
-		{
-			return x;
-		}		
-		else
-		{
-			if (y <= x && y <= z)
-				return y;
-			else
-				return z;
-		}
-	}
-
-	HOD float LengthSquared(void) const
-	{
-		return x * x + y * y + z * z;
-	}
-
-	HOD float Length(void) const
-	{
-		return sqrtf(LengthSquared());
-	}
-
-	HOD void Normalize(void)
-	{
-		const float L = Length();
-		x /= L;
-		y /= L;
-		z /= L;
-	}
-
-	HOD float Dot(const Vec3f& rhs) const
-	{
-		return (x * rhs.x + y * rhs.y + z * rhs.z);
-	}
-
-	HOD Vec3f Cross(const Vec3f& rhs) const
-	{
-		return Vec3f(	(y * rhs.z) - (z * rhs.y),
-							(z * rhs.x) - (x * rhs.z),
-							(x * rhs.y) - (y * rhs.x));
-	}
-
-	HOD void ScaleBy(const float& factor)
-	{
-		x *= factor;
-		y *= factor;
-		z *= factor;
-	}
-
-	HOD void RotateAxis(const Vec3f& axis, const float degrees)
-	{
-		RadianRotateAxis(axis, degrees * DEG_TO_RAD);
-	}
-
-	HOD void RadianRotateAxis(const Vec3f& axis, const float radians)
-	{
-		// Formula goes CW around axis. I prefer to think in terms of CCW
-		// rotations, to be consistant with the other rotation methods.
-		float cosAngle = cos(-radians);
-		float sinAngle = sin(-radians);
-
-		Vec3f w = axis;
-		w.Normalize();
-		float vDotW = this->Dot(w);
-		Vec3f vCrossW = this->Cross(w);
-		w.ScaleBy(vDotW); // w * (v . w)
-
-		x = w.x + (this->x - w.x) * cosAngle + vCrossW.x * sinAngle;
-		y = w.y + (this->y - w.y) * cosAngle + vCrossW.y * sinAngle;
-		z = w.z + (this->z - w.z) * cosAngle + vCrossW.z * sinAngle;
-	}
-
-	HOD float NormLengthSquared(void)
-	{
-		float vl = x * x + y * y + z * z;
-		
-		if (vl != 0.0f)
-		{
-			const float d = 1.0f / sqrt(vl);
-			x *= d; y *= d; z *= d;
-		}
-
-		return vl;
-	}
-
-	void PrintSelf(void)
-	{
-		printf("[%g, %g, %g]\n", x, y, z);
-	}
-
-	float x, y, z;
-};
 
 class Vec4i
 {
@@ -754,11 +512,6 @@ public:
 	float x, y, z, w;
 };
 
-HOD inline Vec3f Normalize(const Vec3f& v)
-{
-	return v / v.Length();
-}
-
 static HOD CColorRgbHdr operator * (const CColorRgbHdr& v, const float& f) 			{ return CColorRgbHdr(f * v.r, f * v.g, f * v.b); 					};
 static HOD CColorRgbHdr operator * (const float& f, const CColorRgbHdr& v) 			{ return CColorRgbHdr(f * v.r, f * v.g, f * v.b); 					};
 static HOD CColorRgbHdr operator * (const CColorRgbHdr& p1, const CColorRgbHdr& p2) 	{ return CColorRgbHdr(p1.r * p2.r, p1.g * p2.g, p1.b * p2.b); 		};
@@ -771,13 +524,6 @@ static inline HOD Vec2f operator * (const Vec2f& v1, const Vec2f& v2) 	{ return 
 static inline HOD Vec2f operator / (const Vec2f& v1, const Vec2f& v2) 	{ return Vec2f(v1.x / v2.x, v1.y / v2.y);			};
 // static inline HOD Vec2f operator - (const Vec2f& v1, const Vec2f& v2) 	{ return Vec2f(v1.x - v2.x, v1.y - v2.y);			};
 
-// Vec3f
-static inline HOD Vec3f operator * (const float& f, const Vec3f& v) 		{ return Vec3f(f * v.x, f * v.y, f * v.z);						};
-static inline HOD Vec3f operator * (const Vec3f& v1, const Vec3f& v2) 		{ return Vec3f(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);			};
-static inline HOD Vec3f operator / (const Vec3f& v1, const Vec3f& v2) 		{ return Vec3f(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);			};
-
-static inline HOD CColorRgbHdr operator * (const Vec3f& v1, const CColorRgbHdr& p)	{ return CColorRgbHdr(v1.x * p.r, v1.y * p.g, v1.z * p.b);				};
-
 static inline HOD Vec2f operator * (Vec2f& V2f, Vec2i& V2i)	{ return Vec2f(V2f.x * V2i.x, V2f.y * V2i.y);				};
 
 class CRay
@@ -789,11 +535,11 @@ public:
 	};
 
 	// ToDo: Add description
-	HOD CRay(Vec3f Origin, Vec3f Dir, float MinT, float MaxT = INF_MAX, int PixelID = 0)
+	HOD CRay(float3 Origin, float3 Dir, float MinT, float MaxT = INF_MAX, int PixelID = 0)
 	{
-		m_O			= Origin;
-		m_D			= Dir;
-		m_MinT		= MinT;
+        m_O = Origin;
+        m_D = Dir;
+        m_MinT		= MinT;
 		m_MaxT		= MaxT;
 		m_PixelID	= PixelID;
 	}
@@ -817,26 +563,26 @@ public:
 	}
 
 	// ToDo: Add description
-	HOD Vec3f operator()(float t) const
+	HOD float3 operator()(float t) const
 	{
-		return m_O + Normalize(m_D) * t;
+		return m_O + normalize(m_D) * t;
 	}
 
 	void PrintSelf(void)
 	{
-		printf("Origin ");
-		m_O.PrintSelf();
+		//printf("Origin ");
+		//m_O.PrintSelf();
 
-		printf("Direction ");
-		m_D.PrintSelf();
+		//printf("Direction ");
+		//m_D.PrintSelf();
 
 		printf("Min T: %4.2f\n", m_MinT);
 		printf("Max T: %4.2f\n", m_MaxT);
 		printf("Pixel ID: %d\n", m_PixelID);
 	}
 
-	Vec3f 	m_O;			/*!< Ray origin */
-	Vec3f 	m_D;			/*!< Ray direction */
+	float3 	m_O;			/*!< Ray origin */
+	float3 	m_D;			/*!< Ray direction */
 	float	m_MinT;			/*!< Minimum parametric range */
 	float	m_MaxT;			/*!< Maximum parametric range */
 	int		m_PixelID;		/*!< Pixel ID associated with the ray */
@@ -881,44 +627,6 @@ public:
 	}
 };
 
-class CSize3D
-{
-public:
-	Vec3f	m_Size;
-	Vec3f	m_InvSize;
-
-	HOD CSize3D(void) :
-		m_Size(1.0f, 1.0f, 1.0f),
-		m_InvSize(1.0f / m_Size.x, 1.0f / m_Size.y, 1.0f / m_Size.z)
-	{
-	};
-
-	HOD CSize3D(const float& X, const float& Y, const float& Z) :
-		m_Size(X, Y, Z),
-		m_InvSize(1.0f / m_Size.x, 1.0f / m_Size.y, 1.0f / m_Size.z)
-	{
-	};
-
-	HOD CSize3D(const Vec3f& V) :
-		m_Size(V),
-		m_InvSize(1.0f / m_Size.x, 1.0f / m_Size.y, 1.0f / m_Size.z)
-	{
-	};
-
-	// ToDo: Add description
-	HOD CSize3D& operator=(const CSize3D& Other)
-	{
-		m_Size		= Other.m_Size;
-		m_InvSize	= Other.m_InvSize;
-
-		return *this;
-	}
-
-	HOD void Update(void)
-	{
-		m_InvSize = Vec3f(1.0f / m_Size.x, 1.0f / m_Size.y, 1.0f / m_Size.z);
-	}
-};
 
 class CRange
 {
@@ -995,85 +703,6 @@ public:
 	int		m_ID;		/*!< Pixel ID */
 };
 
-class CResolution3D
-{
-public:
-	// ToDo: Add description
-	HO CResolution3D(void)
-	{
-		SetResX(0);
-		SetResY(0);
-		SetResZ(0);
-	}
-
-	// ToDo: Add description
-	HO CResolution3D& operator=(const CResolution3D& Other)
-	{
-		m_XYZ				= Other.m_XYZ;
-		m_InvXYZ			= Other.m_InvXYZ;
-		m_NoElements		= Other.m_NoElements;
-		m_DiagonalLength	= Other.m_DiagonalLength;
-		m_Dirty				= Other.m_Dirty;
-
-		return *this;
-	}
-
-	HO int operator[](int i) const
-	{
-		return m_XYZ[i];
-	}
-
-	HO int& operator[](int i)
-	{
-		return m_XYZ[i];
-	}
-
-	HO void Update(void)
-	{
-		m_InvXYZ.x			= m_XYZ.x == 0.0f ? 1.0f : 1.0f / (float)m_XYZ.x;
-		m_InvXYZ.y			= m_XYZ.y == 0.0f ? 1.0f : 1.0f / (float)m_XYZ.y;
-		m_InvXYZ.z			= m_XYZ.z == 0.0f ? 1.0f : 1.0f / (float)m_XYZ.z;
-		m_NoElements		= m_XYZ.x * m_XYZ.y * m_XYZ.z;
-		m_DiagonalLength	= m_XYZ.Length();
-	}
-
-	HO Vec3f ToVector3(void) const
-	{
-		return Vec3f((float)m_XYZ.x, (float)m_XYZ.y, (float)m_XYZ.z);
-	}
-
-	HO void SetResXYZ(const Vec3i& Resolution)
-	{
-		m_Dirty	= m_XYZ.x != Resolution.x || m_XYZ.y != Resolution.y || m_XYZ.z != Resolution.z;
-		m_XYZ	= Resolution;
-
-		Update();
-	}
-
-	HO Vec3i	GetResXYZ(void) const				{ return m_XYZ; }
-	HO int		GetResX(void) const					{ return m_XYZ.x; }
-	HO void	SetResX(const int& ResX)			{ m_Dirty = m_XYZ.x != ResX; m_XYZ.x = ResX; Update(); }
-	HO int		GetResY(void) const					{ return m_XYZ.y; }
-	HO void	SetResY(const int& ResY)			{ m_Dirty = m_XYZ.y != ResY; m_XYZ.y = ResY; Update(); }
-	HO int		GetResZ(void) const					{ return m_XYZ.z; }
-	HO void	SetResZ(const int& ResZ)			{ m_Dirty = m_XYZ.z != ResZ; m_XYZ.z = ResZ; Update(); }
-	HO Vec3f	GetInv(void) const					{ return m_InvXYZ; }
-	HO int		GetNoElements(void) const			{ return m_NoElements; }
-	HO int		GetMin(void) const					{ return min(GetResX(), min(GetResY(), GetResZ()));		}
-	HO int		GetMax(void) const					{ return max(GetResX(), max(GetResY(), GetResZ()));		}
-
-	HO void PrintSelf(void)
-	{
-		printf("[%d x %d x %d], %d elements\n", GetResX(), GetResY(), GetResZ(), GetNoElements());
-	}
-
-private:
-	Vec3i	m_XYZ;
-	Vec3f	m_InvXYZ;
-	int		m_NoElements;
-	float	m_DiagonalLength;
-	bool	m_Dirty;
-};
 
 HOD inline CColorRgbHdr& CColorRgbHdr::operator = (const CColorXyz& S)			
 {
@@ -1084,33 +713,13 @@ HOD inline CColorRgbHdr& CColorRgbHdr::operator = (const CColorXyz& S)
 	return *this;
 }
 
-HOD inline float Dot(const Vec3f& a, const Vec3f& b)			
+HOD inline float AbsDot(const float3& a, const float3& b)
 {
-	return a.x * b.x + a.y * b.y + a.z * b.z;			
+    return fabsf(dot(a, b));
 };
 
-HOD inline float AbsDot(const Vec3f& a, const Vec3f& b)			
-{
-	return fabsf(Dot(a, b));			
-};
-
-HOD inline Vec3f Cross(const Vec3f &v1, const Vec3f &v2)		
-{
-	return Vec3f((v1.y * v2.z) - (v1.z * v2.y), (v1.z * v2.x) - (v1.x * v2.z), (v1.x * v2.y) - (v1.y * v2.x)); 
-};
 
 // reflect
-HOD inline Vec3f Reflect(Vec3f i, Vec3f n)
-{
-	return i - 2.0f * n * Dot(n, i);
-}
-
-// reflect
-HOD inline float Length(const Vec3f& v)
-{
-	return v.Length();
-}
-
 inline HOD float Fmaxf(float a, float b)
 {
 	return a > b ? a : b;
@@ -1126,48 +735,29 @@ inline HOD float Clamp(float f, float a, float b)
 	return Fmaxf(a, Fminf(f, b));
 }
 
-// clamp
-inline HOD Vec3f Clamp(Vec3f v, float a, float b)
+HOD inline float Length(float3 p1)
 {
-	return Vec3f(Clamp(v.x, a, b), Clamp(v.y, a, b), Clamp(v.z, a, b));
+    return sqrt(dot(p1, p1));
+}
+HOD inline float LengthSquared(float3 p1)
+{
+    return dot(p1, p1);
+}
+HOD inline float DistanceSquared(float3 p1, float3 p2)
+{
+    return LengthSquared(p1 - p2);
 }
 
-inline HOD Vec3f Clamp(Vec3f v, Vec3f a, Vec3f b)
-{
-	return Vec3f(Clamp(v.x, a.x, b.x), Clamp(v.y, a.y, b.y), Clamp(v.z, a.z, b.z));
-}
-
-// floor
-HOD inline Vec3f Floor(const Vec3f v)
-{
-	return Vec3f(floor(v.x), floor(v.y), floor(v.z));
-}
-
-HOD inline float Distance(Vec3f p1, Vec3f p2)
-{
-	return (p1 - p2).Length();
-}
-
-HOD inline float DistanceSquared(Vec3f p1, Vec3f p2)
-{
-	return (p1 - p2).LengthSquared();
-}
-
-HOD inline Vec3f Reflect(Vec3f& i, Vec3f& n)
-{
-	return i - 2.0f * n * Dot(n, i);
-}
-
-HOD inline void CreateCS(const Vec3f& N, Vec3f& u, Vec3f& v)
+HOD inline void CreateCS(const float3& N, float3& u, float3& v)
 {
 	if ((N.x == 0) && (N.y == 0))
 	{
 		if (N.z < 0.0f)
-			u = Vec3f(-1.0f, 0.0f, 0.0f);
+			u = make_float3(-1.0f, 0.0f, 0.0f);
 		else
-			u = Vec3f(1.0f, 0.0f, 0.0f);
+			u = make_float3(1.0f, 0.0f, 0.0f);
 		
-		v = Vec3f(0.0f, 1.0f, 0.0f);
+		v = make_float3(0.0f, 1.0f, 0.0f);
 	}
 	else
 	{
@@ -1175,48 +765,11 @@ HOD inline void CreateCS(const Vec3f& N, Vec3f& u, Vec3f& v)
 		// N.x == 0 && N.y == 0.
 		const float d = 1.0f / sqrtf(N.y*N.y + N.x*N.x);
 		
-		u = Vec3f(N.y * d, -N.x * d, 0);
-		v = Cross(N, u);
+		u = make_float3(N.y * d, -N.x * d, 0);
+		v = cross(N, u);
 	}
 }
 
-// Computes the bary-center of a triangle
-inline void ComputeTriangleBaryCenter(const Vec3f P[3], Vec3f* pC)
-{
-	if (!pC)
-		return;
-
-	const Vec3f Edge[2] =
-	{
-		Vec3f(P[1] - P[0]),
-		Vec3f(P[2] - P[0])
-	};
-
-	*pC = P[0] + (Edge[0]  * 0.33333f) + (Edge[1] * 0.33333f);
-}
-
-// Computes the area of a triangle
-inline void ComputeTriangleArea(const Vec3f P[3], float* pArea)
-{
-	if (!pArea)
-		return;
-
-	*pArea = 0.5f * Cross(P[1] - P[0], P[2] - P[0]).Length();
-}
-
-HOD inline void CoordinateSystem(const Vec3f& v1, Vec3f* v2, Vec3f *v3)
-{
-	if (fabsf(v1.x) > fabsf(v1.y))
-	{
-		float invLen = 1.f / sqrtf(v1.x*v1.x + v1.z*v1.z);
-		*v2 = Vec3f(-v1.z * invLen, 0.f, v1.x * invLen);
-	}
-	else {
-		float invLen = 1.f / sqrtf(v1.y*v1.y + v1.z*v1.z);
-		*v2 = Vec3f(0.f, v1.z * invLen, -v1.y * invLen);
-	}
-	*v3 = Cross(v1, *v2);
-}
 
 HOD inline CColorRgbHdr Lerp(float T, const CColorRgbHdr& C1, const CColorRgbHdr& C2)
 {
@@ -1346,60 +899,3 @@ public:
 
 	T	m_D[3];
 };
-
-/*
-typedef Vec2c CVec2<char>;
-typedef Vec2uc CVec2<unsigned char>;
-typedef Vec2s CVec2<short>;
-typedef Vec2us CVec2<unsigned short>;
-typedef Vec2ui CVec2<int>;
-typedef Vec2ui CVec2<unsigned int>;
-typedef Vec2l CVec2<long>;
-typedef Vec2ul CVec2<unsigned long>;
-typedef Vec2f CVec2<float>;
-typedef Vec2uf CVec2<unsigned float>;
-typedef Vec2d CVec2<double>;
-typedef Vec2ud CVec2<unsigned double>;
-
-typedef Vec3c CVec3<char>;
-typedef Vec3uc CVec3<unsigned char>;
-typedef Vec3s CVec3<short>;
-typedef Vec3us CVec3<unsigned short>;
-typedef Vec3ui CVec3<int>;
-typedef Vec3ui CVec3<unsigned int>;
-typedef Vec3l CVec3<long>;
-typedef Vec3ul CVec3<unsigned long>;
-typedef Vec3f CVec3<float>;
-typedef Vec3uf CVec3<unsigned float>;
-typedef Vec3d CVec3<double>;
-typedef Vec3ud CVec3<unsigned double>;
-
-typedef Vec4c CVec4<char>;
-typedef Vec4uc CVec4<unsigned char>;
-typedef Vec4s CVec4<short>;
-typedef Vec4us CVec4<unsigned short>;
-typedef Vec4ui CVec4<int>;
-typedef Vec4ui CVec4<unsigned int>;
-typedef Vec4l CVec4<long>;
-typedef Vec4ul CVec4<unsigned long>;
-typedef Vec4f CVec4<float>;
-typedef Vec4uf CVec4<unsigned float>;
-typedef Vec4d CVec4<double>;
-typedef Vec4ud CVec4<unsigned double>;
-
-template <class T>
-class CColorRGBA : public CVec4<Vec4uc>
-{
-	public:
-};
-*/
-
-inline HOD Vec3f MinVec3f(Vec3f a, Vec3f b)
-{
-	return Vec3f(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
-}
-
-inline HOD Vec3f MaxVec3f(Vec3f a, Vec3f b)
-{
-	return Vec3f(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
-}

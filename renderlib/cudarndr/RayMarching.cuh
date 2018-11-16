@@ -2,12 +2,13 @@
 
 #include "Geometry.h"
 #include "CudaUtilities.h"
+#include "RNG.cuh"
 
 #define KRNL_SS_BLOCK_W		8
 #define KRNL_SS_BLOCK_H		8
 #define KRNL_SS_BLOCK_SIZE	KRNL_SS_BLOCK_W * KRNL_SS_BLOCK_H
 
-DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, Vec3f& Ps, const cudaVolume& volumedata)
+DEV inline bool SampleDistanceRM(CRay& R, CRNG& RNG, float3& Ps, const cudaVolume& volumedata)
 {
 	float MinT;
 	float MaxT;
@@ -63,7 +64,7 @@ DEV inline bool FreePathRM(CRay& R, CRNG& RNG, const cudaVolume& volumedata)
 {
 	float MinT;
 	float MaxT;
-	Vec3f Ps;
+	float3 Ps;
 
 	if (!IntersectBox(R, &MinT, &MaxT))
 		return false;
@@ -107,7 +108,7 @@ DEV inline bool NearestIntersection(CRay R, const cudaVolume& volumedata, float&
 	MinT = max(MinT, R.m_MinT);
 	MaxT = min(MaxT, R.m_MaxT);
 
-	Vec3f Ps; 
+	float3 Ps; 
 
 	T = MinT;
 	int ch = 0;

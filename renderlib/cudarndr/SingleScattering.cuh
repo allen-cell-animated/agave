@@ -27,13 +27,13 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 	Re.m_MinT = 0.0f; 
 	Re.m_MaxT = 1500000.0f;
 
-	Vec3f Pe, Pl;
+	float3 Pe, Pl;
 	
 	// find point Pe along ray Re
 	if (SampleDistanceRM(Re, RNG, Pe, volumedata))
 	{
 		// is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
-		int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, (Pe - Re.m_O).Length()), Li, Pl);
+		int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, Length(Pe - Re.m_O)), Li, Pl);
 		if (i > -1)
 		{
 			// set sample pixel value in frame estimate (prior to accumulation)
@@ -52,34 +52,34 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
 		//Lv += GetBlendedEmission(volumedata, D).ToXYZ();
 
-		Vec3f gradient = Gradient4ch(Pe, volumedata, ch);
+		float3 gradient = Gradient4ch(Pe, volumedata, ch);
 		// send ray out from Pe toward light
 		switch (gShadingType)
 		{
 			case 0:
 			{
-				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, true);
+				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, true);
 				break;
 			}
 		
 			case 1:
 			{
-				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, false);
+				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, false);
 				break;
 			}
 
 			case 2:
 			{
 				//const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * (1.0/volumedata.intensityMax[ch]);
-				const float GradMag = gradient.Length();
+				const float GradMag = Length(gradient);
 				const float PdfBrdf = (1.0f - __expf(-gGradientFactor * GradMag));
 
 				CColorXyz cls;
 				if (RNG.Get1() < PdfBrdf) {
-					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, true);
+					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, true);
 				}
 				else {
-					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, Normalize(-Re.m_D), Pe, Normalize(gradient), RNG, false);
+					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, false);
 				}
 
 				Lv += cls;

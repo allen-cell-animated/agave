@@ -34,9 +34,9 @@ public:
 		return Vec2f(Get1(), Get1());
 	}
 
-	HOD Vec3f Get3(void)
+	HOD float3 Get3(void)
 	{
-		return Vec3f(Get1(), Get1(), Get1());
+		return make_float3(Get1(), Get1(), Get1());
 	}
 
 private:
