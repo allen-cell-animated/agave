@@ -67,7 +67,9 @@ set(CMAKE_CUDA_FLAGS
 )
 
 
-set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
+# set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
+# find_path(GLM_PATH glm/glm.hpp)
+find_package( glm REQUIRED )
 
 ######################
 # THE COMMON CORE LIBRARIES

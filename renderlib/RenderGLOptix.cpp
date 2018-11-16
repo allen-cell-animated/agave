@@ -6,7 +6,6 @@
 
 #include "glad/glad.h"
 #include "glm.h"
-#include <glm/gtx/color_space.hpp>
 
 #include "gl/Util.h"
 #include "CCamera.h"

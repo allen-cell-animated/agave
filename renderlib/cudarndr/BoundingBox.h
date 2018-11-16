@@ -2,7 +2,6 @@
 
 #include "Enumerations.h"
 
-#define GLM_FORCE_PURE
 #include "glm.h"
 
 class CBoundingBox
