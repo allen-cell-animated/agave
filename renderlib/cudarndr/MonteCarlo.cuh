@@ -51,12 +51,12 @@ HOD inline Vec2f StratifiedSample2D(const int& StratumX, const int& StratumY, co
 	@param[in] N Normal vector in world coordinates
 	@return Vector in world coordinates
 */
-HOD inline Vec3f WorldToLocal(const Vec3f& W, const Vec3f& N)
+HOD inline float3 WorldToLocal(const float3& W, const float3& N)
 {
-	const Vec3f U = Normalize(Cross(N, Vec3f(0.0072f, 0.0034f, 1.0f)));
-	const Vec3f V = Normalize(Cross(N, U));
+	const float3 U = normalize(cross(N, make_float3(0.0072f, 0.0034f, 1.0f)));
+	const float3 V = normalize(cross(N, U));
 	
-	return Vec3f(Dot(W, U), Dot(W, V), Dot(W, N));
+	return make_float3(dot(W, U), dot(W, V), dot(W, N));
 }
 
 /**
@@ -65,12 +65,12 @@ HOD inline Vec3f WorldToLocal(const Vec3f& W, const Vec3f& N)
 	@param[in] N Normal vector in world coordinates
 	@return Vector in world coordinates
 */
-HOD inline Vec3f LocalToWorld(const Vec3f& W, const Vec3f& N)
+HOD inline float3 LocalToWorld(const float3& W, const float3& N)
 {
-	const Vec3f U = Normalize(Cross(N, Vec3f(0.0072f, 0.0034f, 1.0f)));
-	const Vec3f V = Normalize(Cross(N, U));
+	const float3 U = normalize(cross(N, make_float3(0.0072f, 0.0034f, 1.0f)));
+	const float3 V = normalize(cross(N, U));
 
-	return Vec3f(	U.x * W.x + V.x * W.y + N.x * W.z,
+	return make_float3(	U.x * W.x + V.x * W.y + N.x * W.z,
 						U.y * W.x + V.y * W.y + N.y * W.z,
 						U.z * W.x + V.z * W.y + N.z * W.z);
 }
@@ -81,9 +81,9 @@ HOD inline Vec3f LocalToWorld(const Vec3f& W, const Vec3f& N)
 	@param[in] N Normal vector in world coordinates
 	@return Vector in world coordinates
 */
-HOD inline Vec3f WorldToLocal(const Vec3f& U, const Vec3f& V, const Vec3f& N, const Vec3f& W)
+HOD inline float3 WorldToLocal(const float3& U, const float3& V, const float3& N, const float3& W)
 {
-	return Vec3f(Dot(W, U), Dot(W, V), Dot(W, N));
+	return make_float3(dot(W, U), dot(W, V), dot(W, N));
 }
 
 /**
@@ -92,9 +92,9 @@ HOD inline Vec3f WorldToLocal(const Vec3f& U, const Vec3f& V, const Vec3f& N, co
 	@param[in] N Normal vector in world coordinates
 	@return Vector in world coordinates
 */
-HOD inline Vec3f LocalToWorld(const Vec3f& U, const Vec3f& V, const Vec3f& N, const Vec3f& W)
+HOD inline float3 LocalToWorld(const float3& U, const float3& V, const float3& N, const float3& W)
 {
-	return Vec3f(U.x * W.x + V.x * W.y + N.x * W.z,	U.y * W.x + V.y * W.y + N.y * W.z, U.z * W.x + V.z * W.y + N.z * W.z);
+	return make_float3(U.x * W.x + V.x * W.y + N.x * W.z,	U.y * W.x + V.y * W.y + N.y * W.z, U.z * W.x + V.z * W.y + N.z * W.z);
 }
 
 /**
@@ -102,7 +102,7 @@ HOD inline Vec3f LocalToWorld(const Vec3f& U, const Vec3f& V, const Vec3f& N, co
 	@param[in] Wl Vector in local coordinates
 	@return Spherical theta
 */
-HOD inline float SphericalTheta(const Vec3f& Wl)
+HOD inline float SphericalTheta(const float3& Wl)
 {
 	return acosf(Clamp(Wl.y, -1.f, 1.f));
 }
@@ -112,7 +112,7 @@ HOD inline float SphericalTheta(const Vec3f& Wl)
 	@param[in] Wl Vector in local coordinates
 	@return Spherical phi
 */
-HOD inline float SphericalPhi(const Vec3f& Wl)
+HOD inline float SphericalPhi(const float3& Wl)
 {
 	float p = atan2f(Wl.z, Wl.x);
 	return (p < 0.f) ? p + 2.f * PI_F : p;
@@ -123,7 +123,7 @@ HOD inline float SphericalPhi(const Vec3f& Wl)
 	@param[in] Ws Spherical coordinate
 	@return Cosine of theta
 */
-HOD inline float CosTheta(const Vec3f& Ws)
+HOD inline float CosTheta(const float3& Ws)
 {
 	return Ws.z;
 }
@@ -133,7 +133,7 @@ HOD inline float CosTheta(const Vec3f& Ws)
 	@param[in] Ws Spherical coordinate
 	@return Absolute cosine of theta
 */
-HOD inline float AbsCosTheta(const Vec3f &Ws)
+HOD inline float AbsCosTheta(const float3 &Ws)
 {
 	return fabsf(CosTheta(Ws));
 }
@@ -143,7 +143,7 @@ HOD inline float AbsCosTheta(const Vec3f &Ws)
 	@param[in] Ws Spherical coordinate
 	@return Sine of theta
 */
-HOD inline float SinTheta(const Vec3f& Ws)
+HOD inline float SinTheta(const float3& Ws)
 {
 	return sqrtf(max(0.f, 1.f - Ws.z * Ws.z));
 }
@@ -153,7 +153,7 @@ HOD inline float SinTheta(const Vec3f& Ws)
 	@param[in] Ws Spherical coordinate
 	@return Squared cosine of theta
 */
-HOD inline float SinTheta2(const Vec3f& Ws)
+HOD inline float SinTheta2(const float3& Ws)
 {
 	return 1.f - CosTheta(Ws) * CosTheta(Ws);
 }
@@ -163,7 +163,7 @@ HOD inline float SinTheta2(const Vec3f& Ws)
 	@param[in] Ws Spherical coordinate
 	@return Cosine of phi
 */
-HOD inline float CosPhi(const Vec3f& Ws)
+HOD inline float CosPhi(const float3& Ws)
 {
 	return Ws.x / SinTheta(Ws);
 }
@@ -173,7 +173,7 @@ HOD inline float CosPhi(const Vec3f& Ws)
 	@param[in] Ws Spherical coordinate
 	@return Sine of phi
 */
-HOD inline float SinPhi(const Vec3f& Ws)
+HOD inline float SinPhi(const float3& Ws)
 {
 	return Ws.y / SinTheta(Ws);
 }
@@ -184,7 +184,7 @@ HOD inline float SinPhi(const Vec3f& Ws)
 	@param[in] Ww2 First vector in world coordinates
 	@return Whether two given vectors reside in the same hemisphere
 */
-HOD inline bool SameHemisphere(const Vec3f& Ww1, const Vec3f& Ww2)
+HOD inline bool SameHemisphere(const float3& Ww1, const float3& Ww2)
 {
    return Ww1.z * Ww2.z > 0.0f;
 }
@@ -196,9 +196,9 @@ HOD inline bool SameHemisphere(const Vec3f& Ww1, const Vec3f& Ww2)
 	@param[in] N First vector in world coordinates
 	@return Whether two given vectors reside in the same hemisphere
 */
-HOD inline bool SameHemisphere(const Vec3f& W1, const Vec3f& W2, const Vec3f& N)
+HOD inline bool SameHemisphere(const float3& W1, const float3& W2, const float3& N)
 {
-   return (Dot(W1, N) * Dot(W2, N)) >= 0.0f;
+   return (dot(W1, N) * dot(W2, N)) >= 0.0f;
 }
 
 /**
@@ -208,9 +208,9 @@ HOD inline bool SameHemisphere(const Vec3f& W1, const Vec3f& W2, const Vec3f& N)
 	@param[in] N Normal vector in world coordinates
 	@return Whether two given vectors reside in the same shading hemisphere
 */
-HOD inline bool InShadingHemisphere(const Vec3f& W1, const Vec3f& W2, const Vec3f& N)
+HOD inline bool InShadingHemisphere(const float3& W1, const float3& W2, const float3& N)
 {
-   return Dot(W1, N) >= 0.0f && Dot(W2, N) >= 0.0f;
+   return dot(W1, N) >= 0.0f && dot(W2, N) >= 0.0f;
 }
 
 /**
@@ -230,11 +230,11 @@ HOD inline Vec2f UniformSampleDisk(const Vec2f& U)
 	@param[in] U Random input
 	@return Uniform sample in a disk
 */
-HOD inline Vec3f UniformSampleDisk(const Vec2f& U, const Vec3f& N)
+HOD inline float3 UniformSampleDisk(const Vec2f& U, const float3& N)
 {
 	const Vec2f UV = UniformSampleDisk(U);
 
-	Vec3f Ucs, Vcs;
+	float3 Ucs, Vcs;
 
 	CreateCS(N, Ucs, Vcs);
 
@@ -304,10 +304,10 @@ HOD inline Vec2f ConcentricSampleDisk(const Vec2f& U)
 	@param[in] U Random input
 	@return Cosine weighted hemispherical sample
 */
-HOD inline Vec3f CosineWeightedHemisphere(const Vec2f& U)
+HOD inline float3 CosineWeightedHemisphere(const Vec2f& U)
 {
 	const Vec2f ret = ConcentricSampleDisk(U);
-	return Vec3f(ret.x, ret.y, sqrtf(max(0.f, 1.f - ret.x * ret.x - ret.y * ret.y)));
+	return make_float3(ret.x, ret.y, sqrtf(max(0.f, 1.f - ret.x * ret.x - ret.y * ret.y)));
 }
 
 /**
@@ -317,14 +317,14 @@ HOD inline Vec3f CosineWeightedHemisphere(const Vec2f& U)
 	@param[in] Wow Normal in world coordinates
 	@return Cosine weighted hemispherical sample in world coordinates
 */
-HOD inline Vec3f CosineWeightedHemisphere(const Vec2f& U, const Vec3f& N)
+HOD inline float3 CosineWeightedHemisphere(const Vec2f& U, const float3& N)
 {
-	const Vec3f Wl = CosineWeightedHemisphere(U);
+	const float3 Wl = CosineWeightedHemisphere(U);
 
-	const Vec3f u = Normalize(Cross(N, N));
-	const Vec3f v = Normalize(Cross(N, u));
+	const float3 u = normalize(cross(N, N));
+	const float3 v = normalize(cross(N, u));
 
-	return Vec3f(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
+	return make_float3(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
 						u.y * Wl.x + v.y * Wl.y + N.y * Wl.z,
 						u.z * Wl.x + v.z * Wl.y + N.z * Wl.z);
 }
@@ -347,12 +347,12 @@ HOD inline float CosineWeightedHemispherePdf(const float& CosTheta, const float&
 	@param[in] Phi Phi (Longitude)
 	@return Spherical sample
 */
-HOD inline Vec3f SphericalDirection(const float& SinTheta, const float& CosTheta, const float& Phi)
+HOD inline float3 SphericalDirection(const float& SinTheta, const float& CosTheta, const float& Phi)
 {
-	return Vec3f(SinTheta * cosf(Phi), SinTheta * sinf(Phi), CosTheta);
+	return make_float3(SinTheta * cosf(Phi), SinTheta * sinf(Phi), CosTheta);
 }
 
-HOD inline Vec3f SphericalDirection(float sintheta, float costheta, float phi, const Vec3f& x, const Vec3f& y, const Vec3f& z)
+HOD inline float3 SphericalDirection(float sintheta, float costheta, float phi, const float3& x, const float3& y, const float3& z)
 {
 	return sintheta * cosf(phi) * x + sintheta * sinf(phi) * y + costheta * z;
 }
@@ -364,14 +364,14 @@ HOD inline Vec3f SphericalDirection(float sintheta, float costheta, float phi, c
 	@param[in] Wow Normal in world coordinates
 	@return Cosine weighted hemispherical sample in world coordinates
 */
-HOD inline Vec3f SphericalDirection(const float& SinTheta, const float& CosTheta, const float& Phi, const Vec3f& N)
+HOD inline float3 SphericalDirection(const float& SinTheta, const float& CosTheta, const float& Phi, const float3& N)
 {
-	const Vec3f Wl = SphericalDirection(SinTheta, CosTheta, Phi);
+	const float3 Wl = SphericalDirection(SinTheta, CosTheta, Phi);
 
-	const Vec3f u = Normalize(Cross(N, Vec3f(0.0072f, 1.0f, 0.0034f)));
-	const Vec3f v = Normalize(Cross(N, u));
+	const float3 u = normalize(cross(N, make_float3(0.0072f, 1.0f, 0.0034f)));
+	const float3 v = normalize(cross(N, u));
 
-	return Vec3f(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
+	return make_float3(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
 						u.y * Wl.x + v.y * Wl.y + N.y * Wl.z,
 						u.z * Wl.x + v.z * Wl.y + N.z * Wl.z);
 }
@@ -393,14 +393,14 @@ HOD inline Vec2f UniformSampleTriangle(const Vec2f& U)
 	@param[in] U Random input
 	@return Sample in a sphere
 */
-HOD inline Vec3f UniformSampleSphere(const Vec2f& U)
+HOD inline float3 UniformSampleSphere(const Vec2f& U)
 {
 	float z = 1.f - 2.f * U.x;
 	float r = sqrtf(max(0.f, 1.f - z*z));
 	float phi = 2.f * PI_F * U.y;
 	float x = r * cosf(phi);
 	float y = r * sinf(phi);
-	return Vec3f(x, y, z);
+	return make_float3(x, y, z);
 }
 
 /**
@@ -408,14 +408,14 @@ HOD inline Vec3f UniformSampleSphere(const Vec2f& U)
 	@param[in] U Random input
 	@return Sample in a hemisphere
 */
-HOD inline Vec3f UniformSampleHemisphere(const Vec2f& U)
+HOD inline float3 UniformSampleHemisphere(const Vec2f& U)
 {
 	float z = U.x;
 	float r = sqrtf(max(0.f, 1.f - z*z));
 	float phi = 2 * PI_F * U.y;
 	float x = r * cosf(phi);
 	float y = r * sinf(phi);
-	return Vec3f(x, y, z);
+	return make_float3(x, y, z);
 }
 
 /**
@@ -424,14 +424,14 @@ HOD inline Vec3f UniformSampleHemisphere(const Vec2f& U)
 	@param[in] N Normal in world coordinates
 	@return Hemispherical sample in world coordinates
 */
-DEV inline Vec3f UniformSampleHemisphere(const Vec2f& U, const Vec3f& N)
+DEV inline float3 UniformSampleHemisphere(const Vec2f& U, const float3& N)
 {
-	const Vec3f Wl = UniformSampleHemisphere(U);
+	const float3 Wl = UniformSampleHemisphere(U);
 
-	const Vec3f u = Normalize(Cross(N, Vec3f(0.0072f, 1.0f, 0.0034f)));
-	const Vec3f v = Normalize(Cross(N, u));
+	const float3 u = normalize(cross(N, make_float3(0.0072f, 1.0f, 0.0034f)));
+	const float3 v = normalize(cross(N, u));
 
-	return Vec3f(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
+	return make_float3(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
 						u.y * Wl.x + v.y * Wl.y + N.y * Wl.z,
 						u.z * Wl.x + v.z * Wl.y + N.z * Wl.z);
 }
@@ -442,12 +442,12 @@ DEV inline Vec3f UniformSampleHemisphere(const Vec2f& U, const Vec3f& N)
 	@param[in] CosThetaMax Maximum cone angle
 	@return Sample in a cone
 */
-HOD inline Vec3f UniformSampleCone(const Vec2f& U, const float& CosThetaMax)
+HOD inline float3 UniformSampleCone(const Vec2f& U, const float& CosThetaMax)
 {
 	float costheta = Lerp(U.x, CosThetaMax, 1.f);
 	float sintheta = sqrtf(1.f - costheta*costheta);
 	float phi = U.y * 2.f * PI_F;
-	return Vec3f(cosf(phi) * sintheta, sinf(phi) * sintheta, costheta);
+	return make_float3(cosf(phi) * sintheta, sinf(phi) * sintheta, costheta);
 }
 
 /**
@@ -457,14 +457,14 @@ HOD inline Vec3f UniformSampleCone(const Vec2f& U, const float& CosThetaMax)
 	@param[in] N Normal
 	@return Sample in a cone
 */
-HOD inline Vec3f UniformSampleCone(const Vec2f& U, const float& CosThetaMax, const Vec3f& N)
+HOD inline float3 UniformSampleCone(const Vec2f& U, const float& CosThetaMax, const float3& N)
 {
-	const Vec3f Wl = UniformSampleCone(U, CosThetaMax);
+	const float3 Wl = UniformSampleCone(U, CosThetaMax);
 
-	const Vec3f u = Normalize(Cross(N, Vec3f(0.0072f, 1.0f, 0.0034f)));
-	const Vec3f v = Normalize(Cross(N, u));
+	const float3 u = normalize(cross(N, make_float3(0.0072f, 1.0f, 0.0034f)));
+	const float3 v = normalize(cross(N, u));
 
-	return Vec3f(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
+	return make_float3(	u.x * Wl.x + v.x * Wl.y + N.x * Wl.z,
 						u.y * Wl.x + v.y * Wl.y + N.y * Wl.z,
 						u.z * Wl.x + v.z * Wl.y + N.z * Wl.z);
 }
@@ -500,24 +500,24 @@ HOD inline float UniformSpherePdf(void)
 	@param[in] UV Sampled texture coordinates
 	@return Probability of a spherical sample
 */
-HOD inline Vec3f UniformSampleTriangle(Vec4i* pIndicesV, Vec3f* pVertices, Vec4i* pIndicesVN, Vec3f* pVertexNormals, int SampleTriangleIndex, Vec2f U, Vec3f& N, Vec2f& UV)
+HOD inline float3 UniformSampleTriangle(Vec4i* pIndicesV, float3* pVertices, Vec4i* pIndicesVN, float3* pVertexNormals, int SampleTriangleIndex, Vec2f U, float3& N, Vec2f& UV)
 {
 	const Vec4i Face = pIndicesV[SampleTriangleIndex];
 
-	const Vec3f P[3] = { pVertices[Face.x], pVertices[Face.y], pVertices[Face.z] };
+	const float3 P[3] = { pVertices[Face.x], pVertices[Face.y], pVertices[Face.z] };
 
 	UV = UniformSampleTriangle(U);
 
 	const float B0 = 1.0f - UV.x - UV.y;
 
-	const Vec3f VN[3] = 
+	const float3 VN[3] = 
 	{
 		pVertexNormals[pIndicesVN[SampleTriangleIndex].x],
 		pVertexNormals[pIndicesVN[SampleTriangleIndex].y],
 		pVertexNormals[pIndicesVN[SampleTriangleIndex].z]	
 	};
 
-	N = Normalize(B0 * VN[0] + UV.x * VN[1] + UV.y * VN[2]);
+	N = normalize(B0 * VN[0] + UV.x * VN[1] + UV.y * VN[2]);
 
 	return B0 * P[0] + UV.x * P[1] + UV.y * P[2];
 }
@@ -577,7 +577,7 @@ HOD inline void ShirleyDisk(const Vec2f& U, float& u, float& v)
 	@param[in] N Normal
 	@param[in] U Random input
 */
-HOD inline Vec3f ShirleyDisk(const Vec3f& N, const Vec2f& U)
+HOD inline float3 ShirleyDisk(const float3& N, const Vec2f& U)
 {
 	float u, v;
 	float phi = 0, r = 0, a = 2 * U.x - 1, b = 2 * U.y - 1;
@@ -620,7 +620,7 @@ HOD inline Vec3f ShirleyDisk(const Vec3f& N, const Vec2f& U)
 	u = r * cos(phi);
 	v = r * sin(phi);
 
-	Vec3f Ucs, Vcs;
+	float3 Ucs, Vcs;
 
 	CreateCS(N, Ucs, Vcs);
 

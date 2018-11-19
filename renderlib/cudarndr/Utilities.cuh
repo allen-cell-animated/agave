@@ -2,16 +2,13 @@
 
 #include <cuda_runtime.h>
 
-static DEV Vec3f operator + (const Vec3f& a, const float3& b) { return Vec3f(a.x + b.x, a.y + b.y, a.z + b.z); };
-static DEV Vec3f operator - (const Vec3f& a, const float3& b) { return Vec3f(a.x - b.x, a.y - b.y, a.z - b.z); };
-
 // this gives the ability to read a float4 and then loop over its elements.
 typedef union {
 	float4 vec;
 	float a[4];
 } f4;
 
-DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeData, int& ch)
+DEV float GetNormalizedIntensityMax4ch(const float3& P, const cudaVolume& volumeData, int& ch)
 {
 	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	//factor = (factor > 0) ? 1.0 : 0.0;
@@ -31,7 +28,7 @@ DEV float GetNormalizedIntensityMax4ch(const Vec3f& P, const cudaVolume& volumeD
 	return maxIn; // *factor;
 }
 
-DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
+DEV float GetNormalizedIntensity4ch(const float3& P, const cudaVolume& volumeData, int ch)
 {
 	f4 intensity;
 	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
@@ -42,7 +39,7 @@ DEV float GetNormalizedIntensity4ch(const Vec3f& P, const cudaVolume& volumeData
 	return intensityf;
 }
 
-DEV f4 GetIntensity4ch(const Vec3f& P, const cudaVolume& volumeData)
+DEV f4 GetIntensity4ch(const float3& P, const cudaVolume& volumeData)
 {
 	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	//factor = (factor > 0) ? 1.0 : 0.0;
@@ -160,21 +157,21 @@ DEV float GetBlendedRoughness(f4 intensity, const cudaVolume& volumeData)
 	return retval / sum;
 }
 
-DEV inline Vec3f NormalizedGradient4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
+DEV inline float3 NormalizedGradient4ch(const float3& P, const cudaVolume& volumeData, int ch)
 {
-	Vec3f Gradient;
+	float3 Gradient;
 
 	Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), volumeData, ch)) * gInvGradientDelta;
 	Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), volumeData, ch)) * gInvGradientDelta;
 	Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), volumeData, ch)) * gInvGradientDelta;
 
-	return Normalize(Gradient);
+	return normalize(Gradient);
 }
 // note that gInvGradientDelta is maxpixeldim of volume
 // gGradientDeltaX,Y,Z is 1/X,Y,Z of volume
-DEV inline Vec3f Gradient4ch(const Vec3f& P, const cudaVolume& volumeData, int ch)
+DEV inline float3 Gradient4ch(const float3& P, const cudaVolume& volumeData, int ch)
 {
-	Vec3f Gradient;
+	float3 Gradient;
 
 	Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), volumeData, ch)) * gInvGradientDelta;
 	Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), volumeData, ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), volumeData, ch)) * gInvGradientDelta;
@@ -183,12 +180,12 @@ DEV inline Vec3f Gradient4ch(const Vec3f& P, const cudaVolume& volumeData, int c
 	return Gradient;
 }
 
-DEV float GradientMagnitude(const Vec3f& P, cudaTextureObject_t texGradientMagnitude)
+DEV float GradientMagnitude(const float3& P, cudaTextureObject_t texGradientMagnitude)
 {
 	return ((float)UINT16_MAX * tex3D<float>(texGradientMagnitude, P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 }
 
-DEV int NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor, Vec3f& Pl, float* pPdf = NULL)
+DEV int NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor, float3& Pl, float* pPdf = NULL)
 {
 	int Hit = -1;
 	
@@ -216,11 +213,11 @@ DEV int NearestLight(const CudaLighting& lighting, CRay R, CColorXyz& LightColor
 
 DEV bool IntersectBox(const CRay& R, float* pNearT, float* pFarT)
 {
-	const Vec3f InvR		= Vec3f(1.0f, 1.0f, 1.0f) / R.m_D;
-	const Vec3f BottomT		= InvR * (Vec3f(gClippedAaBbMin.x, gClippedAaBbMin.y, gClippedAaBbMin.z) - R.m_O);
-	const Vec3f TopT		= InvR * (Vec3f(gClippedAaBbMax.x, gClippedAaBbMax.y, gClippedAaBbMax.z) - R.m_O);
-	const Vec3f MinT		= MinVec3f(TopT, BottomT);
-	const Vec3f MaxT		= MaxVec3f(TopT, BottomT);
+	const float3 InvR		= make_float3(1.0f, 1.0f, 1.0f) / R.m_D;
+	const float3 BottomT		= InvR * (make_float3(gClippedAaBbMin.x, gClippedAaBbMin.y, gClippedAaBbMin.z) - R.m_O);
+	const float3 TopT		= InvR * (make_float3(gClippedAaBbMax.x, gClippedAaBbMax.y, gClippedAaBbMax.z) - R.m_O);
+	const float3 MinT		= fminf(TopT, BottomT);
+	const float3 MaxT		= fmaxf(TopT, BottomT);
 	const float LargestMinT = fmaxf(fmaxf(MinT.x, MinT.y), fmaxf(MinT.x, MinT.z));
 	const float SmallestMaxT = fminf(fminf(MaxT.x, MaxT.y), fminf(MaxT.x, MaxT.z));
 

@@ -6,7 +6,6 @@
 #include "TransferFunction.h"
 
 #include "ImageXYZC.h"
-#include "RenderThread.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/AppScene.h"
 #include "renderlib/Logging.h"
@@ -29,6 +28,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(new QLabel("Renderer"), 1, 0);
 	m_RendererType.addItem("OpenGL simple", 0);
 	m_RendererType.addItem("CUDA full", 1);
+	m_RendererType.addItem("OptiX", 2);
 	m_RendererType.setCurrentIndex(1);
 	m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
 
@@ -494,6 +494,10 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 	// I don't own this.
 	_scene = scene;
+
+	if (!scene->_volume) {
+		return;
+	}
 
 	QVector<QColor> colors = rndColors(scene->_volume->sizeC());
 

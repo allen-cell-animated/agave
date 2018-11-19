@@ -1,0 +1,174 @@
+#if defined(_WIN32)
+#define NOMINMAX
+#endif
+#include <optixu/optixu_math_namespace.h>
+
+#include "OptiXMesh.h"
+#include "Logging.h"
+
+#include "cudarndr/BoundingBox.h"
+
+#include "assimp/scene.h"
+
+#include <algorithm>
+#include <cstring>
+#include <stdexcept>
+
+namespace optix {
+  float3 make_float3( const float* a )
+  {
+    return make_float3( a[0], a[1], a[2] );
+  }
+}
+
+OptiXMesh::OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc)
+{
+	_cpumesh = cpumesh;
+	_context = context;
+	bool ok = loadAsset(programs, mtx, materialdesc);
+}
+
+bool OptiXMesh::loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc)
+{
+	const aiScene* scene = _cpumesh->GetScene();
+	if (scene) {
+		unsigned int numVerts = 0;
+		unsigned int numFaces = 0;
+
+		if (scene->mNumMeshes > 0) {
+			// printf("Number of meshes: %d\n", scene->mNumMeshes);
+
+			// get the running total number of vertices & faces for all meshes
+			for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+				numVerts += scene->mMeshes[i]->mNumVertices;
+				numFaces += scene->mMeshes[i]->mNumFaces;
+			}
+			//printf("Found %d Vertices and %d Faces\n", numVerts, numFaces);
+
+			// set up buffers
+			_vertices = _context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT3, numVerts);
+			_normals = _context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT3, numVerts);
+			_faces = _context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT3, numFaces);
+			// each face can have a different material...
+			_materials = _context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_UNSIGNED_INT, numFaces);
+
+			// unused buffer
+			_tbuffer = _context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT2, 0);
+
+			// create material
+			_material = _context->createMaterial();
+			_material->setClosestHitProgram(0, programs._closestHit);
+			_material->setAnyHitProgram(1, programs._anyHit);
+			_material["Kd"]->setFloat(materialdesc->_reflectivity.x, materialdesc->_reflectivity.y, materialdesc->_reflectivity.z);
+			_material["Ka"]->setFloat(materialdesc->_reflectivity.x, materialdesc->_reflectivity.y, materialdesc->_reflectivity.z);
+			if (materialdesc->_dielectric) {
+				_material["Kr"]->setFloat(materialdesc->_reflectivity.x, materialdesc->_reflectivity.y, materialdesc->_reflectivity.z);
+			}
+			else {
+				_material["Kr"]->setFloat(0.0f, 0.0f, 0.0f);
+			}
+			_material["phong_exp"]->setFloat(1.0f - materialdesc->_roughness);
+
+			optix::float3 *vertexMap = reinterpret_cast<optix::float3*>(_vertices->map());
+			optix::float3 *normalMap = reinterpret_cast<optix::float3*>(_normals->map());
+			optix::uint3 *faceMap = reinterpret_cast<optix::uint3*>(_faces->map());
+			unsigned int *materialsMap = static_cast<unsigned int*>(_materials->map());
+
+			createSingleGeometryGroup(scene, programs, vertexMap,
+				normalMap, faceMap, materialsMap, _material, mtx);
+
+			_vertices->unmap();
+			_normals->unmap();
+			_faces->unmap();
+			_materials->unmap();
+
+			return true;
+		}
+		return false;
+	}
+	return false;
+}
+
+void OptiXMesh::createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
+	optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx) {
+
+	unsigned int vertexOffset = 0u;
+	unsigned int faceOffset = 0u;
+
+	for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
+		aiMesh *mesh = scene->mMeshes[m];
+		if (!mesh->HasPositions()) {
+			throw std::runtime_error("Mesh contains zero vertex positions");
+		}
+		if (!mesh->HasNormals()) {
+			throw std::runtime_error("Mesh contains zero vertex normals");
+		}
+
+		//printf("Mesh #%d\n\tNumVertices: %d\n\tNumFaces: %d\n", m, mesh->mNumVertices, mesh->mNumFaces);
+
+		// add points           
+		for (unsigned int i = 0u; i < mesh->mNumVertices; i++) {
+			aiVector3D pos = mesh->mVertices[i];
+			aiVector3D norm = mesh->mNormals[i];
+
+			vertexMap[i + vertexOffset] = optix::make_float3(pos.x, pos.y, pos.z);// +aabb.center();
+			normalMap[i + vertexOffset] = optix::normalize(optix::make_float3(norm.x, norm.y, norm.z));
+
+		}
+
+		// add faces
+		for (unsigned int i = 0u; i < mesh->mNumFaces; i++) {
+
+			aiFace face = mesh->mFaces[i];
+
+			// add triangles
+			if (face.mNumIndices == 3) {
+				faceMap[i + faceOffset] = optix::make_uint3(face.mIndices[0]+vertexOffset, face.mIndices[1] + vertexOffset, face.mIndices[2] + vertexOffset);
+			}
+			else {
+				//printf("face indices != 3\n");
+				faceMap[i + faceOffset] = optix::make_uint3(-1);
+			}
+			materialsMap[i + faceOffset] = 0u;
+		}
+
+		// create geometry
+		optix::Geometry geometry = _context->createGeometry();
+
+		geometry["vertex_buffer"]->setBuffer(_vertices);
+		geometry["normal_buffer"]->setBuffer(_normals);
+		geometry["index_buffer"]->setBuffer(_faces);
+		geometry["texcoord_buffer"]->setBuffer(_tbuffer);
+		geometry["material_buffer"]->setBuffer(_materials);
+
+		geometry->setPrimitiveCount(mesh->mNumFaces);
+		geometry->setIntersectionProgram(programs._intersect);
+		geometry->setBoundingBoxProgram(programs._boundingBox);
+		geometry->setPrimitiveIndexOffset(faceOffset);
+
+		optix::GeometryInstance gi = _context->createGeometryInstance(geometry, &matl, &matl + 1);
+		_gis.push_back(gi);
+
+		vertexOffset += mesh->mNumVertices;
+		faceOffset += mesh->mNumFaces;
+
+	}
+
+	// add all geometry instances to a geometry group
+	_transform = _context->createTransform();
+
+	_geometrygroup = _context->createGeometryGroup();
+	_geometrygroup->setChildCount(static_cast<unsigned int>(_gis.size()));
+	for (unsigned i = 0u; i < _gis.size(); i++) {
+		_geometrygroup->setChild(i, _gis[i]);
+	}
+	optix::Acceleration a = _context->createAcceleration("Trbvh");
+	_geometrygroup->setAcceleration(a);
+
+	_transform->setMatrix(false, glm::value_ptr(mtx), NULL);
+	_transform->setChild(_geometrygroup);
+}
+
+void OptiXMesh::destroy()
+{
+}

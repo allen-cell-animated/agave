@@ -12,9 +12,9 @@
 
 #include <memory>
 
-class GLImageShader2DnoLut;
 class ImageXYZC;
 class Image3Dv33;
+class RectImage2D;
 struct CudaLighting;
 struct CudaCamera;
 
@@ -49,26 +49,13 @@ private:
 	RenderParams _renderParams;
 	Scene* _scene;
 
-	void initQuad();
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();
 	void cleanUpFB();
-	void cleanUpQuad();
 
-	ImageCuda _imgCuda;
+	std::shared_ptr<ImageCuda> _imgCuda;
 
-	/// The vertex array.
-	GLuint _quadVertexArray;  // vao
-	/// The image vertices.
-	GLuint _quadVertices;  // buffer
-	/// The image texture coordinates.
-	GLuint _quadTexcoords; // buffer
-	/// The image elements.
-	GLuint _quadIndices;  // buffer
-	size_t num_image_elements;
-
-	GLImageShader2DnoLut *image_shader;
-
+	RectImage2D* _imagequad;
 
 	// the rgba8 buffer for display
 	cudaGraphicsResource* _cudaTex;

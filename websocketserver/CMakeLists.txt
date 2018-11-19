@@ -31,18 +31,11 @@ target_sources(websocketserverapp PRIVATE
 target_link_libraries(websocketserverapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	${ASSIMP_LIBRARIES}
 	${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
 )
 
-if (WIN32)
-install(FILES 
-	$<TARGET_FILE:Qt5::Widgets>
-	$<TARGET_FILE:Qt5::Core>
-	$<TARGET_FILE:Qt5::Gui>
-	$<TARGET_FILE:Qt5::Xml>
-	$<TARGET_FILE:Qt5::Network>
-	$<TARGET_FILE:Qt5::WebSockets>
-	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+install(TARGETS websocketserverapp
+   RUNTIME DESTINATION bin 
 )
-endif (WIN32)

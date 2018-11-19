@@ -17,12 +17,12 @@ public:
 	{
 	}
 
-	HOD CColorXyz F(const Vec3f& Wo, const Vec3f& Wi)
+	HOD CColorXyz F(const float3& Wo, const float3& Wi)
 	{
 		return m_Kd * INV_PI_F;
 	}
 
-	HOD CColorXyz SampleF(const Vec3f& Wo, Vec3f& Wi, float& Pdf, const Vec2f& U)
+	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const Vec2f& U)
 	{
 		Wi = CosineWeightedHemisphere(U);
 
@@ -34,7 +34,7 @@ public:
 		return this->F(Wo, Wi);
 	}
 
-	HOD float Pdf(const Vec3f& Wo, const Vec3f& Wi)
+	HOD float Pdf(const float3& Wo, const float3& Wi)
 	{
 		return SameHemisphere(Wo, Wi) ? AbsCosTheta(Wi) * INV_PI_F : 0.0f;
 	}
@@ -104,45 +104,45 @@ public:
 	  {
 	  }
 
-	  HOD void SampleF(const Vec3f& Wo, Vec3f& Wi, float& Pdf, const Vec2f& U)
+	  HOD void SampleF(const float3& Wo, float3& Wi, float& Pdf, const Vec2f& U)
 	  {
 		  // Compute sampled half-angle vector $\wh$ for Blinn distribution
 		  float costheta = powf(U.x, 1.f / (m_Exponent+1));
 		  float sintheta = sqrtf(max(0.f, 1.f - costheta*costheta));
 		  float phi = U.y * 2.f * PI_F;
 
-		  Vec3f wh = SphericalDirection(sintheta, costheta, phi);
+		  float3 wh = SphericalDirection(sintheta, costheta, phi);
 
 		  if (!SameHemisphere(Wo, wh))
 			  wh = -wh;
 
 		  // Compute incident direction by reflecting about $\wh$
-		  Wi = -Wo + 2.f * Dot(Wo, wh) * wh;
+		  Wi = (-1.0*Wo) + 2.f * dot(Wo, wh) * wh;
 
 		  // Compute PDF for $\wi$ from Blinn distribution
-		  float blinn_pdf = ((m_Exponent + 1.f) * powf(costheta, m_Exponent)) / (2.f * PI_F * 4.f * Dot(Wo, wh));
+		  float blinn_pdf = ((m_Exponent + 1.f) * powf(costheta, m_Exponent)) / (2.f * PI_F * 4.f * dot(Wo, wh));
 
-		  if (Dot(Wo, wh) <= 0.f)
+		  if (dot(Wo, wh) <= 0.f)
 			  blinn_pdf = 0.f;
 
 		  Pdf = blinn_pdf;
 	  }
 
-	  HOD float Pdf(const Vec3f& Wo, const Vec3f& Wi)
+	  HOD float Pdf(const float3& Wo, const float3& Wi)
 	  {
-		  Vec3f wh = Normalize(Wo + Wi);
+		  float3 wh = normalize(Wo + Wi);
 
 		  float costheta = AbsCosTheta(wh);
 		  // Compute PDF for $\wi$ from Blinn distribution
-		  float blinn_pdf = ((m_Exponent + 1.f) * powf(costheta, m_Exponent)) / (2.f * PI_F * 4.f * Dot(Wo, wh));
+		  float blinn_pdf = ((m_Exponent + 1.f) * powf(costheta, m_Exponent)) / (2.f * PI_F * 4.f * dot(Wo, wh));
 
-		  if (Dot(Wo, wh) <= 0.0f)
+		  if (dot(Wo, wh) <= 0.0f)
 			  blinn_pdf = 0.0f;
 
 		  return blinn_pdf;
 	  }
 
-	  HOD float D(const Vec3f& wh)
+	  HOD float D(const float3& wh)
 	  {
 		  float costhetah = AbsCosTheta(wh);
 		  return (m_Exponent+2) * INV_TWO_PI_F * powf(costhetah, m_Exponent);
@@ -165,7 +165,7 @@ public:
 	  {
 	  }
 
-	  HOD CColorXyz F(const Vec3f& wo, const Vec3f& wi)
+	  HOD CColorXyz F(const float3& wo, const float3& wi)
 	  {
 		  float cosThetaO = AbsCosTheta(wo);
 		  float cosThetaI = AbsCosTheta(wi);
@@ -173,20 +173,20 @@ public:
 		  if (cosThetaI == 0.f || cosThetaO == 0.f)
 			  return SPEC_BLACK;
 
-		  Vec3f wh = wi + wo;
+		  float3 wh = wi + wo;
 
 		  if (wh.x == 0. && wh.y == 0. && wh.z == 0.)
 			  return SPEC_BLACK;
 
-		  wh = Normalize(wh);
-		  float cosThetaH = Dot(wi, wh);
+		  wh = normalize(wh);
+		  float cosThetaH = dot(wi, wh);
 
 		  CColorXyz F = SPEC_WHITE;//m_Fresnel.Evaluate(cosThetaH);
 
 		  return m_R * m_Blinn.D(wh) * G(wo, wi, wh) * F / (4.f * cosThetaI * cosThetaO);
 	  }
 
-	  HOD CColorXyz SampleF(const Vec3f& wo, Vec3f& wi, float& Pdf, const Vec2f& U)
+	  HOD CColorXyz SampleF(const float3& wo, float3& wi, float& Pdf, const Vec2f& U)
 	  {
 		  m_Blinn.SampleF(wo, wi, Pdf, U);
 
@@ -196,7 +196,7 @@ public:
 		  return this->F(wo, wi);
 	  }
 
-	  HOD float Pdf(const Vec3f& wo, const Vec3f& wi)
+	  HOD float Pdf(const float3& wo, const float3& wi)
 	  {
 		  if (!SameHemisphere(wo, wi))
 			  return 0.0f;
@@ -204,7 +204,7 @@ public:
 		  return m_Blinn.Pdf(wo, wi);
 	  }
 
-	  HOD float G(const Vec3f& wo, const Vec3f& wi, const Vec3f& wh)
+	  HOD float G(const float3& wo, const float3& wi, const float3& wh)
 	  {
 		  float NdotWh = AbsCosTheta(wh);
 		  float NdotWo = AbsCosTheta(wo);
@@ -232,12 +232,12 @@ public:
 	{
 	}
 
-	HOD CColorXyz F(const Vec3f& Wo, const Vec3f& Wi)
+	HOD CColorXyz F(const float3& Wo, const float3& Wi)
 	{
 		return m_Kd * INV_PI_F;
 	}
 
-	HOD CColorXyz SampleF(const Vec3f& Wo, Vec3f& Wi, float& Pdf, const Vec2f& U)
+	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const Vec2f& U)
 	{
 		Wi	= UniformSampleSphere(U);
 		Pdf	= this->Pdf(Wo, Wi);
@@ -245,7 +245,7 @@ public:
 		return F(Wo, Wi);
 	}
 
-	HOD float Pdf(const Vec3f& Wo, const Vec3f& Wi)
+	HOD float Pdf(const float3& Wo, const float3& Wi)
 	{
 		return INV_4_PI_F;
 	}
@@ -256,12 +256,12 @@ public:
 class CBRDF
 {
 public:
-	HOD CBRDF(const Vec3f& N, const Vec3f& Wo, const CColorXyz& Kd, const CColorXyz& Ks, const float& Ior, const float& Exponent) :
+	HOD CBRDF(const float3& N, const float3& Wo, const CColorXyz& Kd, const CColorXyz& Ks, const float& Ior, const float& Exponent) :
 		m_Lambertian(Kd),
 		m_Microfacet(Ks, Ior, Exponent),
 		m_Nn(N),
-		m_Nu(Normalize(Cross(N, Wo))),
-		m_Nv(Normalize(Cross(N, m_Nu)))
+		m_Nu(normalize(cross(N, Wo))),
+		m_Nv(normalize(cross(N, m_Nu)))
 	{
 	}
 
@@ -269,22 +269,22 @@ public:
 	{
 	}
 
-	HOD Vec3f WorldToLocal(const Vec3f& W)
+	HOD float3 WorldToLocal(const float3& W)
 	{
-		return Vec3f(Dot(W, m_Nu), Dot(W, m_Nv), Dot(W, m_Nn));
+		return make_float3(dot(W, m_Nu), dot(W, m_Nv), dot(W, m_Nn));
 	}
 
-	HOD Vec3f LocalToWorld(const Vec3f& W)
+	HOD float3 LocalToWorld(const float3& W)
 	{
-		return Vec3f(	m_Nu.x * W.x + m_Nv.x * W.y + m_Nn.x * W.z,
+		return make_float3(	m_Nu.x * W.x + m_Nv.x * W.y + m_Nn.x * W.z,
 						m_Nu.y * W.x + m_Nv.y * W.y + m_Nn.y * W.z,
 						m_Nu.z * W.x + m_Nv.z * W.y + m_Nn.z * W.z);
 	}
 
-	HOD CColorXyz F(const Vec3f& Wo, const Vec3f& Wi)
+	HOD CColorXyz F(const float3& Wo, const float3& Wi)
 	{
-		const Vec3f Wol = WorldToLocal(Wo);
-		const Vec3f Wil = WorldToLocal(Wi);
+		const float3 Wol = WorldToLocal(Wo);
+		const float3 Wil = WorldToLocal(Wi);
 
 		CColorXyz R;
 
@@ -294,10 +294,10 @@ public:
 		return R;
 	}
 
-	HOD CColorXyz SampleF(const Vec3f& Wo, Vec3f& Wi, float& Pdf, const CBrdfSample& S)
+	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const CBrdfSample& S)
 	{
-		const Vec3f Wol = WorldToLocal(Wo);
-		Vec3f Wil;
+		const float3 Wol = WorldToLocal(Wo);
+		float3 Wil;
 
 		CColorXyz R;
 
@@ -321,10 +321,10 @@ public:
 		return R;
 	}
 
-	HOD float Pdf(const Vec3f& Wo, const Vec3f& Wi)
+	HOD float Pdf(const float3& Wo, const float3& Wi)
 	{
-		const Vec3f Wol = WorldToLocal(Wo);
-		const Vec3f Wil = WorldToLocal(Wi);
+		const float3 Wol = WorldToLocal(Wo);
+		const float3 Wil = WorldToLocal(Wi);
 
 		float Pdf = 0.0f;
 
@@ -334,9 +334,9 @@ public:
 		return Pdf;
 	}
 
-	Vec3f			m_Nn;
-	Vec3f			m_Nu;
-	Vec3f			m_Nv;
+	float3			m_Nn;
+	float3			m_Nu;
+	float3			m_Nv;
 	CLambertian		m_Lambertian;
 	CMicrofacet		m_Microfacet;
 };
@@ -350,7 +350,7 @@ public:
 		Phase
 	};
 
-	HOD CVolumeShader(const EType& Type, const Vec3f& N, const Vec3f& Wo, const CColorXyz& Kd, const CColorXyz& Ks, const float& Ior, const float& Exponent) :
+	HOD CVolumeShader(const EType& Type, const float3& N, const float3& Wo, const CColorXyz& Kd, const CColorXyz& Ks, const float& Ior, const float& Exponent) :
 		m_Type(Type),
 		m_Brdf(N, Wo, Kd, Ks, Ior, Exponent),
 		m_IsotropicPhase(Kd)
@@ -361,7 +361,7 @@ public:
 	{
 	}
 
-	HOD CColorXyz F(const Vec3f& Wo, const Vec3f& Wi)
+	HOD CColorXyz F(const float3& Wo, const float3& Wi)
 	{
 		switch (m_Type)
 		{
@@ -375,7 +375,7 @@ public:
 		return 1.0f;
 	}
 
-	HOD CColorXyz SampleF(const Vec3f& Wo, Vec3f& Wi, float& Pdf, const CBrdfSample& S)
+	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const CBrdfSample& S)
 	{
 		switch (m_Type)
 		{
@@ -389,7 +389,7 @@ public:
 		return CColorXyz(0.0f);
 	}
 
-	HOD float Pdf(const Vec3f& Wo, const Vec3f& Wi)
+	HOD float Pdf(const float3& Wo, const float3& Wi)
 	{
 		switch (m_Type)
 		{

@@ -15,6 +15,7 @@
 #include "CameraDockWidget.h"
 #include "GLContainer.h"
 #include "StatisticsDockWidget.h"
+#include "ViewerState.h"
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QAction>
@@ -78,6 +79,11 @@ void qtome::createActions()
 	openAction->setStatusTip(tr("Open an existing image file"));
 	connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+	openJsonAction = new QAction(tr("&Open json..."), this);
+	openJsonAction->setShortcuts(QKeySequence::Open);
+	openJsonAction->setStatusTip(tr("Open an existing json settings file"));
+	connect(openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
+
 	quitAction = new QAction(tr("&Quit"), this);
 	quitAction->setShortcuts(QKeySequence::Quit);
 	quitAction->setStatusTip(tr("Quit the application"));
@@ -96,14 +102,26 @@ void qtome::createActions()
 	dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
 	connect(dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
 
+	dumpJsonAction = new QAction(tr("&Save to json"), this);
+	dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
+	connect(dumpJsonAction, SIGNAL(triggered()), this, SLOT(saveJson()));
+
+	testMeshAction = new QAction(tr("&Open mesh..."), this);
+	//testMeshAction->setShortcuts(QKeySequence::Open);
+	testMeshAction->setStatusTip(tr("Open a mesh obj file"));
+	connect(testMeshAction, SIGNAL(triggered()), this, SLOT(openMeshDialog()));
 }
 
 void qtome::createMenus()
 {
 	fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(openAction);
+	fileMenu->addAction(openJsonAction);
+	fileMenu->addSeparator();
+	fileMenu->addAction(testMeshAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(dumpAction);
+	fileMenu->addAction(dumpJsonAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
 
@@ -219,6 +237,48 @@ void qtome::open()
 		open(file);
 }
 
+void qtome::openJson()
+{
+	QString file = QFileDialog::getOpenFileName(this,
+		tr("Open Image"),
+		QString(),
+		QString(),
+		0,
+		QFileDialog::DontResolveSymlinks);
+
+	if (!file.isEmpty()) {
+		QFile loadFile(file);
+		if (!loadFile.open(QIODevice::ReadOnly)) {
+			qWarning("Couldn't open json file.");
+			return;
+		}
+		QByteArray saveData = loadFile.readAll();
+		QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+		ViewerState s;
+		s.stateFromJson(loadDoc);
+		if (!s._volumeImageFile.isEmpty()) {
+			open(s._volumeImageFile);
+		}
+	}
+}
+
+void qtome::saveJson() {
+	QString file = QFileDialog::getSaveFileName(this,
+		tr("Save Json"),
+		QString(),
+		tr("json (*.json)"));
+	if (!file.isEmpty()) {
+		ViewerState st = appToViewerState();
+		QJsonDocument doc = st.stateToJson();
+		QFile saveFile(file);
+		if (!saveFile.open(QIODevice::WriteOnly)) {
+			qWarning("Couldn't open save file.");
+			return;
+		}
+		saveFile.write(doc.toJson());
+	}
+}
+
 inline QString FormatVector(const glm::vec3& Vector, const int& Precision = 2)
 {
 	return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " + QString::number(Vector.z, 'f', Precision) + "]";
@@ -245,11 +305,7 @@ void qtome::open(const QString& file)
 	if (info.exists())
 	{
 
-		FileReader fileReader;
-		QElapsedTimer t;
-		t.start();
-		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
-		LOG_DEBUG << "Loaded " << file.toStdString() << " in " << t.elapsed() << "ms";
+		std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
 
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
@@ -289,6 +345,38 @@ void qtome::open(const QString& file)
 
 		_currentFilePath = file;
 		qtome::prependToRecentFiles(file);
+	}
+
+
+
+}
+
+void qtome::openMeshDialog() {
+	QString file = QFileDialog::getOpenFileName(this,
+		tr("Open Mesh"),
+		QString(),
+		QString(),
+		0,
+		QFileDialog::DontResolveSymlinks);
+
+	if (!file.isEmpty())
+		openMesh(file);
+}
+
+void qtome::openMesh(const QString& file) {
+	if (_appScene._volume) {
+		return;
+	}
+	// load obj file and init scene...
+	CBoundingBox bb;
+	Assimp::Importer* importer = FileReader::loadAsset(file.toStdString().c_str(), &bb);
+	if (importer->GetScene()) {
+		_appScene._meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
+		_appScene.initSceneFromBoundingBox(bb);
+		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
+		// tell the 3d view to update.
+		glView->onNewImage(&_appScene);
+		appearanceDockWidget->onNewImage(&_appScene);
 	}
 }
 
@@ -419,8 +507,17 @@ void qtome::updateRecentFileActions()
 
 void qtome::openRecentFile()
 {
-	if (const QAction *action = qobject_cast<const QAction *>(sender()))
-		open(action->data().toString());
+	if (const QAction *action = qobject_cast<const QAction *>(sender())) {
+		QString path = action->data().toString();
+		if (path.endsWith(".obj")) {
+			// assume that .obj is mesh
+			openMesh(path);
+		}
+		else {
+			// assumption of ome.tif
+			open(path);
+		}
+	}
 }
 
 QString qtome::strippedName(const QString &fullFileName)
@@ -471,3 +568,99 @@ void qtome::dumpPythonState()
 	qDebug().noquote() << s;
 	//return s;
 }
+
+void qtome::dumpStateToJson() {
+	ViewerState st = appToViewerState();
+	QJsonDocument doc = st.stateToJson();
+	QString s = doc.toJson();
+	qDebug().noquote() << s;
+}
+
+ViewerState qtome::appToViewerState() {
+	ViewerState v;
+	v._volumeImageFile = _currentFilePath;
+
+	v._resolutionX = glView->size().width();
+	v._resolutionY = glView->size().height();
+	v._renderIterations = _renderSettings.GetNoIterations();
+
+	v._roiXmax = _appScene._roi.GetMaxP().x;
+	v._roiYmax = _appScene._roi.GetMaxP().y;
+	v._roiZmax = _appScene._roi.GetMaxP().z;
+	v._roiXmin = _appScene._roi.GetMinP().x;
+	v._roiYmin = _appScene._roi.GetMinP().y;
+	v._roiZmin = _appScene._roi.GetMinP().z;
+
+	v._eyeX = glView->getCamera().m_From.x;
+	v._eyeY = glView->getCamera().m_From.y;
+	v._eyeZ = glView->getCamera().m_From.z;
+
+	v._targetX = glView->getCamera().m_Target.x;
+	v._targetY = glView->getCamera().m_Target.y;
+	v._targetZ = glView->getCamera().m_Target.z;
+
+	v._upX = glView->getCamera().m_Up.x;
+	v._upY = glView->getCamera().m_Up.y;
+	v._upZ = glView->getCamera().m_Up.z;
+
+	v._fov = _camera.GetProjection().GetFieldOfView();
+
+	v._exposure = _camera.GetFilm().GetExposure();
+	v._apertureSize = _camera.GetAperture().GetSize();
+	v._focalDistance = _camera.GetFocus().GetFocalDistance();
+	v._densityScale = _renderSettings.m_RenderSettings.m_DensityScale;
+
+	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
+		ChannelViewerState ch;
+		ch._enabled = _appScene._material.enabled[i];
+		ch._diffuse = glm::vec3(
+			_appScene._material.diffuse[i * 3],
+			_appScene._material.diffuse[i * 3 + 1],
+			_appScene._material.diffuse[i * 3 + 2]
+		);
+		ch._specular = glm::vec3(
+			_appScene._material.specular[i * 3],
+			_appScene._material.specular[i * 3 + 1],
+			_appScene._material.specular[i * 3 + 2]
+		);
+		ch._emissive = glm::vec3(
+			_appScene._material.emissive[i * 3],
+			_appScene._material.emissive[i * 3 + 1],
+			_appScene._material.emissive[i * 3 + 2]
+		);
+		ch._glossiness = _appScene._material.roughness[i];
+		ch._window = _appScene._volume->channel(i)->_window;
+		ch._level = _appScene._volume->channel(i)->_level;
+
+		v._channels.push_back(ch);
+	}
+
+
+	// lighting
+	Light& lt = _appScene._lighting.m_Lights[0];
+	v._light0._type = lt.m_T;
+	v._light0._distance = lt.m_Distance;
+	v._light0._theta = lt.m_Theta;
+	v._light0._phi = lt.m_Phi;
+	v._light0._topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
+	v._light0._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
+	v._light0._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
+	v._light0._bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
+	v._light0._width = lt.m_Width;
+	v._light0._height = lt.m_Height;
+
+	Light& lt1 = _appScene._lighting.m_Lights[1];
+	v._light1._type = lt1.m_T;
+	v._light1._distance = lt1.m_Distance;
+	v._light1._theta = lt1.m_Theta;
+	v._light1._phi = lt1.m_Phi;
+	v._light1._topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
+	v._light1._middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
+	v._light1._color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
+	v._light1._bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
+	v._light1._width = lt1.m_Width;
+	v._light1._height = lt1.m_Height;
+
+	return v;
+}
+

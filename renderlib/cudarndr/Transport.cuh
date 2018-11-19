@@ -3,7 +3,7 @@
 #include "Shader.cuh"
 #include "RayMarching.cuh"
 
-DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, float Density, int ch, const CudaLight& Light, CLightingSample& LS, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG)
+DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, float Density, int ch, const CudaLight& Light, CLightingSample& LS, const float3& Wo, const float3& Pe, const float3& N, CRNG& RNG)
 {
 	CColorXyz Ld = SPEC_BLACK, Li = SPEC_BLACK, F = SPEC_BLACK;
 
@@ -20,7 +20,7 @@ DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume
 
 	float LightPdf = 1.0f, ShaderPdf = 1.0f;
 	
-	Vec3f Wi, P, Pl;
+	float3 Wi, Pl;
 
  	Li = Light.SampleL(Pe, Rl, LightPdf, LS);
 	
@@ -55,7 +55,7 @@ DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume
 
 			if ((LightPdf > 0.0f) &&
 				!Li.IsBlack()) {
-				CRay rr(Pl, Normalize(Pe - Pl), 0.0f, (Pe - Pl).Length());
+				CRay rr(Pl, normalize(Pe - Pl), 0.0f, Length(Pe - Pl));
 				if (!FreePathRM(rr, RNG, volumedata))
 				{
 					const float WeightMIS = PowerHeuristic(1.0f, ShaderPdf, 1.0f, LightPdf);
@@ -74,7 +74,7 @@ DEV CColorXyz EstimateDirectLight(const CudaLighting& lighting, const cudaVolume
 	return Ld;
 }
 
-DEV CColorXyz UniformSampleOneLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, float Density, int ch, const Vec3f& Wo, const Vec3f& Pe, const Vec3f& N, CRNG& RNG, const bool& Brdf)
+DEV CColorXyz UniformSampleOneLight(const CudaLighting& lighting, const cudaVolume& volumedata, const CVolumeShader::EType& Type, float Density, int ch, const float3& Wo, const float3& Pe, const float3& N, CRNG& RNG, const bool& Brdf)
 {
 	const int NumLights = lighting.m_NoLights;
 

@@ -1,7 +1,6 @@
 #include "Stable.h"
 
 #include "CameraWidget.h"
-#include "RenderThread.h"
 #include "RenderSettings.h"
 
 QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :

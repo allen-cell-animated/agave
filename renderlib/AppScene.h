@@ -4,6 +4,9 @@
 #include "BoundingBox.h"
 
 #include <memory>
+#include <vector>
+
+#include "assimp/Importer.hpp"
 
 class ImageXYZC;
 
@@ -231,6 +234,9 @@ public:
 	CBoundingBox _boundingBox;
 	void initLights();
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
+	void initSceneFromBoundingBox(const CBoundingBox& bb);
 
 	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
+
+	std::vector<std::shared_ptr<Assimp::Importer>> _meshes;
 };

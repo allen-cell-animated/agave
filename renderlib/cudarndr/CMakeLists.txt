@@ -40,6 +40,7 @@ target_include_directories(renderlib_cuda PUBLIC
 	${GLAD_DIR}
 	${CUDA_TOOLKIT_INCLUDE}
 	${CUDA_INCLUDE_DIRS}
+	${GLM_INCLUDE_DIRS}
 )
 
 target_compile_definitions(renderlib_cuda PUBLIC

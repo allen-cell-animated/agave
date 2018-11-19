@@ -32,7 +32,7 @@ CD float		gInvExposure;
 CD float		gGamma;
 CD float		gInvGamma;
 CD float		gDenoiseEnabled;
-CD int		gDenoiseWindowRadius;
+CD int		    gDenoiseWindowRadius;
 CD float		gDenoiseInvWindowArea;
 CD float		gDenoiseNoise;
 CD float		gDenoiseWeightThreshold;
@@ -97,9 +97,9 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	
 	const float GradientDelta		= 1.0f * renderSettings.m_GradientDelta;
 	const float InvGradientDelta	= 1.0f / GradientDelta;
-	const Vec3f GradientDeltaX(GradientDelta, 0.0f, 0.0f);
-	const Vec3f GradientDeltaY(0.0f, GradientDelta, 0.0f);
-	const Vec3f GradientDeltaZ(0.0f, 0.0f, GradientDelta);
+	const float3 GradientDeltaX = make_float3(GradientDelta, 0.0f, 0.0f);
+	const float3 GradientDeltaY = make_float3(0.0f, GradientDelta, 0.0f);
+	const float3 GradientDeltaZ = make_float3(0.0f, 0.0f, GradientDelta);
 	
 	HandleCudaError(cudaMemcpyToSymbol(gGradientDelta, &GradientDelta, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvGradientDelta, &InvGradientDelta, sizeof(float)));
@@ -142,7 +142,7 @@ void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, co
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpThreshold, &denoise.m_LerpThreshold, sizeof(float)));
 	HandleCudaError(cudaMemcpyToSymbol(gDenoiseLerpC, &denoise.m_LerpC, sizeof(float)));
 
-	const float NoIterations	= numIterations;
+	const float NoIterations	= (float)numIterations;
 	const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 
 	HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
@@ -198,7 +198,7 @@ void Render(const int& Type, int numExposures, int w, int h,
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 
 		numIterations++;
-		const float NoIterations = numIterations;
+		const float NoIterations = (float)numIterations;
 		const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
 		HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
 		HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));

@@ -31,10 +31,10 @@ struct CudaLight {
 	int				m_T;
 
 	// Samples the light
-	DEV CColorXyz SampleL(const Vec3f& P, CRay& Rl, float& Pdf, CLightingSample& LS) const;
+	DEV CColorXyz SampleL(const float3& P, CRay& Rl, float& Pdf, CLightingSample& LS) const;
 	// Intersect ray with light
 	DEV bool Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV = NULL, float* pPdf = NULL) const;
-	DEV float Pdf(const Vec3f& P, const Vec3f& Wi) const;
+	DEV float Pdf(const float3& P, const float3& Wi) const;
 	DEV CColorXyz Le(const Vec2f& UV) const;
 };
 #define MAX_CUDA_LIGHTS 4

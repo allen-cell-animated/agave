@@ -96,8 +96,6 @@ KERNEL void KrnlDenoise(float* inbuf, cudaSurfaceObject_t surfaceObj)
 		clr.y = lerpf(clr.y, clr00.y, LerpQ);
 		clr.z = lerpf(clr.z, clr00.z, LerpQ);
 
-		//CColorRgbLdr cx(255 * clr.x, 255 * clr.y, 255 * clr.z);
-		//pView->m_DisplayEstimateRgbLdr.Set(cx, X, Y);
 		uchar4 pixel = make_uchar4(__saturatef(clr.x)*255.0, __saturatef(clr.y)*255.0, __saturatef(clr.z)*255.0, __saturatef(clr00.w)*255.0);
 		surf2Dwrite(pixel, surfaceObj, X * 4, Y);
 //	}

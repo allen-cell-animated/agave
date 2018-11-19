@@ -30,7 +30,7 @@ public:
         m_Enabled			= true;
         m_Noise				= 0.05f;//0.32f * 0.32f;// / (0.1f * 0.1f);
         m_LerpC				= 0.01f;
-        m_WindowRadius		= 6.0f;
+        m_WindowRadius		= 6;
         m_WindowArea		= (2.0f * m_WindowRadius + 1.0f) * (2.0f * m_WindowRadius + 1.0f);
         m_InvWindowArea		= 1.0f / m_WindowArea;
         m_WeightThreshold	= 0.1f;

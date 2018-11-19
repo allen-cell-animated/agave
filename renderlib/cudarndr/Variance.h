@@ -47,7 +47,7 @@ public:
 
 	HOD float Mean(int ID) const
 	{
-		return (m_pN[ID] > 0) ? m_pNewM[ID] : 0.0;
+		return (m_pN[ID] > 0) ? m_pNewM[ID] : 0.0f;
 	}
 
 	HOD float GetVariance(int ID) const

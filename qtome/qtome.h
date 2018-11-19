@@ -7,6 +7,7 @@
 #include "GLView3D.h"
 #include "NavigationDock2D.h"
 #include "TransferFunction.h"
+#include "ViewerState.h"
 
 #include "renderlib/RenderSettings.h"
 #include "renderlib/AppScene.h"
@@ -27,6 +28,7 @@ private:
 
 private slots:
 	void open();
+	void openJson();
 	void open(const QString& file);
 	void openRecentFile();
 	void updateRecentFileActions();
@@ -35,9 +37,16 @@ private slots:
 	void viewFocusChanged(GLView3D *glView);
 	void tabChanged(int index);
 	void dumpPythonState();
+	void dumpStateToJson();
+	void openMeshDialog();
+	void openMesh(const QString& file);
+	void saveJson();
+
 
 private:
 	enum { MaxRecentFiles = 8 };
+
+	ViewerState appToViewerState();
 
 	void createActions();
 	void createMenus();
@@ -50,15 +59,18 @@ private:
 	void setRecentFilesVisible(bool visible);
 	static QString strippedName(const QString &fullFileName);
 
+
 	QMenu *fileMenu;
 	QMenu *viewMenu;
 
 	QToolBar *Cam2DTools;
 
 	QAction *openAction;
+	QAction *openJsonAction;
 	QAction *quitAction;
 	QAction *dumpAction;
-
+	QAction *dumpJsonAction;
+	QAction *testMeshAction;
 	QAction *viewResetAction;
 
 	QSlider *createAngleSlider();

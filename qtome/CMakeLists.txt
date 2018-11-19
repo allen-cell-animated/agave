@@ -62,25 +62,18 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/qtome.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TransferFunction.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TransferFunction.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
 target_link_libraries(qtomeapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	${ASSIMP_LIBRARIES}
 	${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
 )
 
-if (WIN32)
-install(FILES 
-	$<TARGET_FILE:Qt5::Widgets>
-	$<TARGET_FILE:Qt5::Core>
-	$<TARGET_FILE:Qt5::Gui>
-	$<TARGET_FILE:Qt5::Xml>
-	$<TARGET_FILE:Qt5::Network>
-	$<TARGET_FILE:Qt5::WebSockets>
-	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+install(TARGETS qtomeapp
+	RUNTIME DESTINATION bin 
 )
-endif (WIN32)
-
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/qtome/ome-qtwidgets-icon/actions DESTINATION dist)
 

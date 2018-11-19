@@ -3,18 +3,25 @@
 #include "glad/glad.h"
 #include "HardwareWidget.h"
 #include "Logging.h"
+#include "ImageXYZC.h"
+#include "ImageXyzcCuda.h"
 
 #include <string>
 
-#include <QOpenGLWidget>
+//#include <QOpenGLWidget>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
+#include <QOffscreenSurface>
 
 static bool renderLibInitialized = false;
 
-static QOpenGLWidget* dummyWidget = nullptr;
+static QOpenGLContext* dummyContext = nullptr;
+static QOffscreenSurface* dummySurface = nullptr;
+
 static QOpenGLDebugLogger* logger = nullptr;
+
+std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageCuda>> renderlib::sCudaImageCache;
 
 static const struct {
 	int major = 3; 
@@ -52,21 +59,31 @@ int renderlib::initialize() {
 	}
 	QSurfaceFormat::setDefaultFormat(format);
 
-	dummyWidget = new QOpenGLWidget();
-	dummyWidget->setMaximumSize(2, 2);
-	dummyWidget->show();
-	dummyWidget->hide();
-	dummyWidget->makeCurrent();
 
-	//glcontext = new QOpenGLContext();
-	//bool valid = glcontext->create();
-	//if (!valid) {
-	//	LOG_ERROR << "Failed to create default OpenGL context";
-	//}
-	//bool ok = glcontext->makeCurrent(s);
-	//	if (!ok) {
-	//		LOG_ERROR << "Failed to makeCurrent default OpenGL context";
-	//	}
+	dummyContext = new QOpenGLContext();
+	dummyContext->setFormat(format);    // ...and set the format on the context too
+	dummyContext->create();
+	LOG_INFO << "Created opengl context";
+
+	dummySurface = new QOffscreenSurface();
+	dummySurface->setFormat(dummyContext->format());
+	dummySurface->create();
+	LOG_INFO << "Created offscreen surface";
+	bool ok = dummyContext->makeCurrent(dummySurface);
+	if (!ok) {
+		LOG_ERROR << "Failed to makeCurrent on offscreen surface";
+	}
+	else {
+		LOG_INFO << "Made context current on offscreen surface";
+	}
+
+
+//	dummyWidget = new QOpenGLWidget();
+//	dummyWidget->setMaximumSize(2, 2);
+//	dummyWidget->show();
+//	dummyWidget->hide();
+//	dummyWidget->makeCurrent();
+
 	if (enableDebug)
 	{
 		logger = new QOpenGLDebugLogger();
@@ -94,17 +111,58 @@ int renderlib::initialize() {
 	return status;
 }
 
+void renderlib::clearCudaVolumeCache()
+{
+	// clean up the shared gpu cuda buffer cache
+	for (auto i : sCudaImageCache) {
+		i.second->deallocGpu();
+	}
+	sCudaImageCache.clear();
+}
+
 void renderlib::cleanup() {
 	if (!renderLibInitialized) {
 		return;
 	}
 	LOG_INFO << "Renderlib shutdown";
 
-	delete dummyWidget;
-	dummyWidget = nullptr;
+	clearCudaVolumeCache();
+
+	delete dummySurface;
+	dummySurface = nullptr;
+	delete dummyContext;
+	dummyContext = nullptr;
 	delete logger;
 	logger = nullptr;
 
 	renderLibInitialized = false;
 }
 
+std::shared_ptr<ImageCuda> renderlib::imageAllocGPU_Cuda(std::shared_ptr<ImageXYZC> image, bool do_cache)
+{
+	auto cached = sCudaImageCache.find(image);
+	if (cached != sCudaImageCache.end()) {
+		return cached->second;
+	}
+
+	ImageCuda* cimg = new ImageCuda;
+	cimg->allocGpuInterleaved(image.get());
+	std::shared_ptr<ImageCuda> shared(cimg);
+
+	if (do_cache) {
+		sCudaImageCache[image] = shared;
+	}
+
+	return shared;
+}
+
+void renderlib::imageDeallocGPU_Cuda(std::shared_ptr<ImageXYZC> image)
+{
+	auto cached = sCudaImageCache.find(image);
+	if (cached != sCudaImageCache.end()) {
+		// cached->second is a ImageCuda.
+		// outstanding shared refs to cached->second will be deallocated!?!?!?!
+		cached->second->deallocGpu();
+		sCudaImageCache.erase(image);
+	}
+}

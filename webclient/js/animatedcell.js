@@ -24,6 +24,8 @@ var _stream_mode = false;
 var _stream_mode_suspended = false;
 var enqueued_image_data = null;
 var waiting_for_image = false;
+
+
 /**
  * switches the supplied element to (in)visible
  * @param element
@@ -66,18 +68,25 @@ function setupGui() {
         xmax: 1.0,
         ymax: 1.0,
         zmax: 1.0,
-        resetCamera: resetCamera
+        resetCamera: resetCamera,
+        preset0: function() { executePreset(0); },
+        preset1: function() { executePreset(1); },
+        preset2: function() { executePreset(2); }
     };
 
     gui = new dat.GUI();
     //gui = new dat.GUI({autoPlace:false, width:200});
 
-    gui.add(effectController, "file").onFinishChange(function (value) {
-        var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", value);
-        flushCommandBuffer(cb);
-        _stream_mode_suspended = true;
-    });
+    gui.add(effectController, 'preset0').name('Tubulin');
+    gui.add(effectController, 'preset1').name('TOM20');
+    gui.add(effectController, 'preset2').name('LaminB');
+
+    // gui.add(effectController, "file").onFinishChange(function (value) {
+    //     var cb = new commandBuffer();
+    //     cb.addCommand("LOAD_OME_TIF", value);
+    //     flushCommandBuffer(cb);
+    //     _stream_mode_suspended = true;
+    // });
 
     gui.add(effectController, "resolution", ["256x256", "512x512", "1024x1024", "1024x768"]).onChange(function (value) {
         var res = value.match(/(\d+)x(\d+)/);
@@ -361,6 +370,7 @@ function onNewImage(infoObj) {
     effectController.infoObj = infoObj;
     resetCamera();
     setupChannelsGui();
+    applyPresets();
 }
 
 function setupChannelsGui() {
@@ -543,9 +553,9 @@ function binarysocket(channelnumber = 0) {
     this.open = function (evt) {
 
         var cb = new commandBuffer();
-        cb.addCommand("LOAD_OME_TIF", effectController.file);
+        //cb.addCommand("LOAD_OME_TIF", effectController.file);
         cb.addCommand("SET_RESOLUTION", 512, 512);
-        cb.addCommand("FRAME_SCENE");
+        //cb.addCommand("FRAME_SCENE");
         cb.addCommand("APERTURE", effectController.aperture);
         cb.addCommand("EXPOSURE", effectController.exposure);
         cb.addCommand("SKYLIGHT_TOP_COLOR",
@@ -569,9 +579,9 @@ function binarysocket(channelnumber = 0) {
         cb.addCommand("LIGHT_SIZE", 0, effectController.lightSize, effectController.lightSize);
         cb.addCommand("STREAM_MODE", 1);
         flushCommandBuffer(cb);
-        var cb2 = new commandBuffer();
-        cb2.addCommand("REDRAW");
-        flushCommandBuffer(cb2);
+        // var cb2 = new commandBuffer();
+        // cb2.addCommand("REDRAW");
+        // flushCommandBuffer(cb2);
 
         // init camera
         var streamimg1 = document.getElementById("imageA");
@@ -648,6 +658,16 @@ function binarysocket(channelnumber = 0) {
         // TODO:enqueue this...?
         enqueued_image_data = evt.data;
 
+
+        var bytes = new Uint8Array(enqueued_image_data),
+            binary = "",
+            len = bytes.byteLength,
+            i;
+        for (i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        enqueued_image_data = window.btoa(binary);
+
         // the this ptr is not what I want here.
         //binarysock.draw();
 
@@ -669,18 +689,10 @@ function binarysocket(channelnumber = 0) {
 
     this.draw = function () {
         //console.time('decode_img');
-        var bytes = new Uint8Array(enqueued_image_data),
-            binary = "",
-            len = bytes.byteLength,
-            i;
-        for (i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        binary = window.btoa(binary);
         //console.timeEnd('decode_img');
 
         //console.time('set_img');
-        screenImage.set("data:image/png;base64," + binary, 0);
+        screenImage.set("data:image/png;base64," + enqueued_image_data, 0);
         //console.timeEnd('set_img');  
 
         // nothing else to draw for now.

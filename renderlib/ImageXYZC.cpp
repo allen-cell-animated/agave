@@ -118,6 +118,20 @@ Channelu16* ImageXYZC::channel(uint32_t channel) const
 	return _channels[channel];
 }
 
+glm::vec3 ImageXYZC::getDimensions() const {
+	// Compute physical size
+	const glm::vec3 PhysicalSize(
+		physicalSizeX() * (float)sizeX(),
+		physicalSizeY() * (float)sizeY(),
+		physicalSizeZ() * (float)sizeZ()
+	);
+	//glm::gtx::component_wise::compMax(PhysicalSize);
+	float m = std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
+
+	// Compute the volume's max extent - scaled to max dimension.
+	return PhysicalSize / m;
+}
+
 // count is how many elements to walk for input and output.
 FuseWorkerThread::FuseWorkerThread(size_t thread_idx, size_t nthreads, uint8_t* outptr, const ImageXYZC* img, const std::vector<glm::vec3>& colors) :
 	_thread_idx(thread_idx),
@@ -188,7 +202,7 @@ void FuseWorkerThread::run() {
 // fuse: fill volume of color data, plus volume of gradients
 // n channels with n colors: use "max" or "avg"
 // n channels with gradients: use "max" or "avg"
-void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume)
+void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume) const
 {
 	//todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume data in gpu mem.
 

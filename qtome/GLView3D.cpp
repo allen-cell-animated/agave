@@ -7,6 +7,7 @@
 #include "renderlib/Logging.h"
 #include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLCuda.h"
+#include "renderlib/RenderGLOptix.h"
 #include <glm.h>
 
 #include <QtGui/QMouseEvent>
@@ -258,6 +259,11 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 	case 1:
 		LOG_DEBUG << "Set CUDA Renderer";
 		_renderer.reset(new RenderGLCuda(_renderSettings));
+		break;
+	case 2:
+		LOG_DEBUG << "Set OptiX Renderer";
+		_renderer.reset(new RenderGLOptix(_renderSettings));
+		_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
 		break;
 	default:
 		LOG_DEBUG << "Set OpenGL Renderer";
