@@ -118,9 +118,9 @@ void qtome::createMenus()
 	fileMenu->addAction(openAction);
 	fileMenu->addAction(openJsonAction);
 	fileMenu->addSeparator();
-	fileMenu->addAction(testMeshAction);
+	//fileMenu->addAction(testMeshAction);
 	fileMenu->addSeparator();
-	fileMenu->addAction(dumpAction);
+	//fileMenu->addAction(dumpAction);
 	fileMenu->addAction(dumpJsonAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
@@ -136,18 +136,19 @@ void qtome::createMenus()
 	setRecentFilesVisible(qtome::hasRecentFiles());
 
 	viewMenu = menuBar()->addMenu(tr("&View"));
-	viewMenu->addAction(viewResetAction);
+	//viewMenu->addAction(viewResetAction);
+
 	fileMenu->addSeparator();
 }
 
 void qtome::createToolbars()
 {
-	Cam2DTools = new QToolBar("2D Camera", this);
-	addToolBar(Qt::TopToolBarArea, Cam2DTools);
-	Cam2DTools->addAction(viewResetAction);
+	//Cam2DTools = new QToolBar("Camera", this);
+	//addToolBar(Qt::TopToolBarArea, Cam2DTools);
+	//Cam2DTools->addAction(viewResetAction);
 
-	viewMenu->addSeparator();
-	viewMenu->addAction(Cam2DTools->toggleViewAction());
+	//viewMenu->addSeparator();
+	//viewMenu->addAction(Cam2DTools->toggleViewAction());
 }
 
 QDockWidget* qtome::createRenderingDock() {
@@ -195,7 +196,11 @@ void qtome::createDockWindows()
 
 
 	viewMenu->addSeparator();
+	viewMenu->addAction(cameradock->toggleViewAction());
+	viewMenu->addSeparator();
 	viewMenu->addAction(appearanceDockWidget->toggleViewAction());
+	viewMenu->addSeparator();
+	viewMenu->addAction(statisticsDockWidget->toggleViewAction());
 
 //	QDockWidget* dock = createRenderingDock();
 //	addDockWidget(Qt::BottomDockWidgetArea, dock);
@@ -258,6 +263,7 @@ void qtome::openJson()
 		s.stateFromJson(loadDoc);
 		if (!s._volumeImageFile.isEmpty()) {
 			open(s._volumeImageFile);
+			// apply the ViewerState to the GUI!
 		}
 	}
 }
@@ -304,6 +310,7 @@ void qtome::open(const QString& file)
 	QFileInfo info(file);
 	if (info.exists())
 	{
+		LOG_DEBUG << "Attempting to open " << file.toStdString();
 
 		std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
 
@@ -334,17 +341,21 @@ void qtome::open(const QString& file)
 		glm::vec3 BoundingBoxMaxP = PhysicalSize / std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
 		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
 		s->SetStatisticChanged("Volume", "Bounding Box", "", "");
-		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "m");
-		s->SetStatisticChanged("Bounding Box", "Max", FormatVector(BoundingBoxMaxP, 2), "m");
-		s->SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "mm");
-		s->SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "Voxels");
-		s->SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "mm");
-		s->SetStatisticChanged("Volume", "No. Voxels", QString::number(resolution.x*resolution.y*resolution.z), "Voxels");
+		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "");
+		s->SetStatisticChanged("Bounding Box", "Max", FormatVector(BoundingBoxMaxP, 2), "");
+		s->SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "");
+		s->SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "");
+		s->SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "");
+		//s->SetStatisticChanged("Volume", "No. Voxels", QString::number((double)resolution.x * (double)resolution.y * (double)resolution.z), "Voxels");
 		// TODO: this is per channel
 		//s->SetStatisticChanged("Volume", "Density Range", "[" + QString::number(gScene.m_IntensityRange.GetMin()) + ", " + QString::number(gScene.m_IntensityRange.GetMax()) + "]", "");
 
 		_currentFilePath = file;
 		qtome::prependToRecentFiles(file);
+	}
+	else {
+		LOG_DEBUG << "Failed to open " << file.toStdString();
+
 	}
 
 

@@ -126,25 +126,29 @@ std::shared_ptr<ImageXYZC> FileReader::loadOMETiff_4D(const std::string& filepat
 	  int ich = sl.indexOf(reChannels);
 	  if (ich == -1) {
 		  QString msg = "Failed to read number of channels of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
-		  LOG_ERROR << msg.toStdString();
+		  LOG_WARNING << msg.toStdString();
 	  }
 
 	  int isl = sl.indexOf(reSlices);
 	  if (isl == -1) {
 		  QString msg = "Failed to read number of slices of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
-		  LOG_ERROR << msg.toStdString();
+		  LOG_WARNING << msg.toStdString();
 	  }
 
 	  // get the n channels and n slices:
-	  int pos = reChannels.indexIn(sl.at(ich));
-	  if (pos > -1) {
-		  QString value = reChannels.cap(1); // "189"
-		  sizeC = value.toInt();
+	  if (ich != -1) {
+		  int pos = reChannels.indexIn(sl.at(ich));
+		  if (pos > -1) {
+			  QString value = reChannels.cap(1); // "189"
+			  sizeC = value.toInt();
+		  }
 	  }
-	  pos = reSlices.indexIn(sl.at(isl));
-	  if (pos > -1) {
-		  QString value = reSlices.cap(1); // "189"
-		  sizeZ = value.toInt();
+	  if (isl != -1) {
+		  int pos = reSlices.indexIn(sl.at(isl));
+		  if (pos > -1) {
+			  QString value = reSlices.cap(1); // "189"
+			  sizeZ = value.toInt();
+		  }
 	  }
 	  for (uint32_t i = 0; i < sizeC; ++i) {
 		  channelNames.push_back(QString::number(i));
