@@ -1,6 +1,7 @@
 #include "GLView3D.h"
 
 #include "TransferFunction.h"
+#include "ViewerState.h"
 
 #include "renderlib/gl/v33/V33Image3D.h"
 #include "renderlib/ImageXYZC.h"
@@ -61,14 +62,17 @@ GLView3D::GLView3D(QCamera* cam,
 	QObject::connect(tran, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 }
 
-void GLView3D::onNewImage(Scene* scene)
+void GLView3D::initCameraFromImage(Scene* scene)
 {
 	// Tell the camera about the volume's bounding box
 	mCamera.m_SceneBoundingBox.m_MinP = scene->_boundingBox.GetMinP();
 	mCamera.m_SceneBoundingBox.m_MaxP = scene->_boundingBox.GetMaxP();
 	// reposition to face image
 	mCamera.SetViewMode(ViewModeFront);
+}
 
+void GLView3D::onNewImage(Scene* scene)
+{
 	_renderer->setScene(scene);
 	// costly teardown and rebuild.
 	this->OnUpdateRenderer(_rendererType);
@@ -278,3 +282,22 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 
 	_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+
+void GLView3D::fromViewerState(const ViewerState& s)
+{
+	mCamera.m_From = glm::vec3(s._eyeX, s._eyeY, s._eyeZ);
+	mCamera.m_Target = glm::vec3(s._targetX, s._targetY, s._targetZ);
+	mCamera.m_Up = glm::vec3(s._upX, s._upY, s._upZ);
+	mCamera.m_FovV = s._fov;
+
+	mCamera.m_Film.m_Exposure = s._exposure;
+	mCamera.m_Aperture.m_Size = s._apertureSize;
+	mCamera.m_Focus.m_FocalDistance = s._focalDistance;
+
+	// TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
+	_camera->GetProjection().SetFieldOfView(s._fov);
+	_camera->GetFilm().SetExposure(s._exposure);
+	_camera->GetAperture().SetSize(s._apertureSize);
+	_camera->GetFocus().SetFocalDistance(s._focalDistance);
+}
+

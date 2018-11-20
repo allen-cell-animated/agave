@@ -112,6 +112,10 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 	_resolutionX = res.x;
 	_resolutionY = res.y;
 
+	glm::vec3 scale(1,1,1);
+	getVec3(json, "scale", scale);
+	_scaleX = scale.x; _scaleY = scale.y; _scaleZ = scale.z;
+
 	if (json.contains("clipRegion") && json["clipRegion"].isArray()) {
 		QJsonArray ja = json["clipRegion"].toArray();
 		QJsonArray crx = ja.at(0).toArray();
@@ -210,6 +214,8 @@ QJsonDocument ViewerState::stateToJson() const
 	clipRegion.append(clipRegionZ);
 
 	j["clipRegion"] = clipRegion;
+
+	j["scale"] = jsonVec3(_scaleX, _scaleY, _scaleZ);
 
 	QJsonObject camera;
 	camera["eye"] = jsonVec3(_eyeX, _eyeY, _eyeZ);

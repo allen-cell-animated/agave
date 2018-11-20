@@ -10,6 +10,7 @@
 
 class QTransferFunction;
 class ImageXYZC;
+class RangeWidget;
 class RenderSettings;
 class Scene;
 class Section;
@@ -75,7 +76,14 @@ private:
 	QTransferFunction* _transferFunction;
 
 	Section* _clipRoiSection;
+	RangeWidget* m_roiX;
+	RangeWidget* m_roiY;
+	RangeWidget* m_roiZ;
+
 	Section* _scaleSection;
+	QDoubleSpinner* m_xscaleSpinner;
+	QDoubleSpinner* m_yscaleSpinner;
+	QDoubleSpinner* m_zscaleSpinner;
 
 	Scene* _scene;
 	std::vector<Section*> _channelSections;

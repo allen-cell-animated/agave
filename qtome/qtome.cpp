@@ -262,8 +262,7 @@ void qtome::openJson()
 		ViewerState s;
 		s.stateFromJson(loadDoc);
 		if (!s._volumeImageFile.isEmpty()) {
-			open(s._volumeImageFile);
-			// apply the ViewerState to the GUI!
+			open(s._volumeImageFile, &s);
 		}
 	}
 }
@@ -285,27 +284,7 @@ void qtome::saveJson() {
 	}
 }
 
-inline QString FormatVector(const glm::vec3& Vector, const int& Precision = 2)
-{
-	return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " + QString::number(Vector.z, 'f', Precision) + "]";
-}
-
-inline QString FormatVector(const glm::ivec3& Vector)
-{
-	return "[" + QString::number(Vector.x) + ", " + QString::number(Vector.y) + ", " + QString::number(Vector.z) + "]";
-}
-
-inline QString FormatSize(const glm::vec3& Size, const int& Precision = 2)
-{
-	return QString::number(Size.x, 'f', Precision) + " x " + QString::number(Size.y, 'f', Precision) + " x " + QString::number(Size.z, 'f', Precision);
-}
-
-inline QString FormatSize(const glm::ivec3& Size)
-{
-	return QString::number(Size.x) + " x " + QString::number(Size.y) + " x " + QString::number(Size.z);
-}
-
-void qtome::open(const QString& file)
+void qtome::open(const QString& file, const ViewerState* vs)
 {
 	QFileInfo info(file);
 	if (info.exists())
@@ -317,7 +296,14 @@ void qtome::open(const QString& file)
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
 		_appScene._volume = image;
+
 		_appScene.initSceneFromImg(image);
+		glView->initCameraFromImage(&_appScene);
+
+		// initialize _appScene from ViewerState
+		if (vs) {
+			viewerStateToApp(*vs);
+		}
 
 		// tell the 3d view to update.
 		// it causes a new renderer which owns the CStatus used below
@@ -327,28 +313,11 @@ void qtome::open(const QString& file)
 
 		appearanceDockWidget->onNewImage(&_appScene);
 
+		// set up status view with some stats.
 		CStatus* s = glView->getStatus();
 		statisticsDockWidget->setStatus(s);
+		s->onNewImage(info.fileName(), &_appScene);
 
-		glm::vec3 resolution(image->sizeX(), image->sizeY(), image->sizeZ());
-		glm::vec3 spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
-		const glm::vec3 PhysicalSize(
-			spacing.x * (float)resolution.x,
-			spacing.y * (float)resolution.y,
-			spacing.z * (float)resolution.z
-		);
-		glm::vec3 BoundingBoxMinP = glm::vec3(0.0f);
-		glm::vec3 BoundingBoxMaxP = PhysicalSize / std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
-		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
-		s->SetStatisticChanged("Volume", "Bounding Box", "", "");
-		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "");
-		s->SetStatisticChanged("Bounding Box", "Max", FormatVector(BoundingBoxMaxP, 2), "");
-		s->SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "");
-		s->SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "");
-		s->SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "");
-		//s->SetStatisticChanged("Volume", "No. Voxels", QString::number((double)resolution.x * (double)resolution.y * (double)resolution.z), "Voxels");
-		// TODO: this is per channel
-		//s->SetStatisticChanged("Volume", "Density Range", "[" + QString::number(gScene.m_IntensityRange.GetMin()) + ", " + QString::number(gScene.m_IntensityRange.GetMax()) + "]", "");
 
 		_currentFilePath = file;
 		qtome::prependToRecentFiles(file);
@@ -386,6 +355,7 @@ void qtome::openMesh(const QString& file) {
 		_appScene.initSceneFromBoundingBox(bb);
 		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
 		// tell the 3d view to update.
+		glView->initCameraFromImage(&_appScene);
 		glView->onNewImage(&_appScene);
 		appearanceDockWidget->onNewImage(&_appScene);
 	}
@@ -587,9 +557,73 @@ void qtome::dumpStateToJson() {
 	qDebug().noquote() << s;
 }
 
+void qtome::viewerStateToApp(const ViewerState& v)
+{
+	// ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
+
+	// position camera
+	glView->fromViewerState(v);
+
+	_appScene._roi.SetMinP(glm::vec3(v._roiXmin, v._roiYmin, v._roiZmin));
+	_appScene._roi.SetMaxP(glm::vec3(v._roiXmax, v._roiYmax, v._roiZmax));
+
+	_appScene._volume->setPhysicalSize(v._scaleX, v._scaleY, v._scaleZ);
+
+	_renderSettings.m_RenderSettings.m_DensityScale = v._densityScale;
+
+	// channels
+	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
+		ChannelViewerState ch = v._channels[i];
+		_appScene._material.enabled[i] = ch._enabled;
+		_appScene._material.diffuse[i * 3] = ch._diffuse.x;
+		_appScene._material.diffuse[i * 3 + 1] = ch._diffuse.y;
+		_appScene._material.diffuse[i * 3 + 2] = ch._diffuse.z;
+		_appScene._material.specular[i * 3] = ch._specular.x;
+		_appScene._material.specular[i * 3 + 1] = ch._specular.y;
+		_appScene._material.specular[i * 3 + 2] = ch._specular.z;
+		_appScene._material.emissive[i * 3] = ch._emissive.x;
+		_appScene._material.emissive[i * 3 + 1] = ch._emissive.y;
+		_appScene._material.emissive[i * 3 + 2] = ch._emissive.z;
+		_appScene._material.roughness[i] = ch._glossiness;
+		_appScene._volume->channel(i)->generate_windowLevel(ch._window, ch._level);
+	}
+
+	// lights
+	Light& lt = _appScene._lighting.m_Lights[0];
+	lt.m_T = v._light0._type;
+	lt.m_Distance = v._light0._distance;
+	lt.m_Theta = v._light0._theta;
+	lt.m_Phi = v._light0._phi;
+	lt.m_ColorTop = v._light0._topColor;
+	lt.m_ColorMiddle = v._light0._middleColor;
+	lt.m_ColorBottom = v._light0._bottomColor;
+	lt.m_Color = v._light0._color;
+	lt.m_Width = v._light0._width;
+	lt.m_Height = v._light0._height;
+
+	Light& lt1 = _appScene._lighting.m_Lights[1];
+	lt1.m_T = v._light1._type;
+	lt1.m_Distance = v._light1._distance;
+	lt1.m_Theta = v._light1._theta;
+	lt1.m_Phi = v._light1._phi;
+	lt1.m_ColorTop = v._light1._topColor;
+	lt1.m_ColorMiddle = v._light1._middleColor;
+	lt1.m_ColorBottom = v._light1._bottomColor;
+	lt1.m_Color = v._light1._color;
+	lt1.m_Width = v._light1._width;
+	lt1.m_Height = v._light1._height;
+
+	_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
+
+}
+
 ViewerState qtome::appToViewerState() {
 	ViewerState v;
 	v._volumeImageFile = _currentFilePath;
+
+	v._scaleX = _appScene._volume->physicalSizeX();
+	v._scaleY = _appScene._volume->physicalSizeY();
+	v._scaleZ = _appScene._volume->physicalSizeZ();
 
 	v._resolutionX = glView->size().width();
 	v._resolutionY = glView->size().height();

@@ -15,7 +15,7 @@ class QCamera;
 class IRenderWindow;
 class QTransferFunction;
 class Scene;
-
+struct ViewerState;
 
 /**
     * 3D GL view of an image with axes and gridlines.
@@ -57,9 +57,14 @@ public:
     */
     QSize sizeHint() const;
 	
+	void initCameraFromImage(Scene* scene);
+
 	void onNewImage(Scene* scene);
 
 	const CCamera& getCamera() { return mCamera; }
+
+	void fromViewerState(const ViewerState& s);
+
 public slots:
 
 	void OnUpdateCamera();

@@ -3,6 +3,8 @@
 #include "ImageXYZC.h"
 #include "Defines.h"
 
+#include <QColor>
+
 void Light::Update(const CBoundingBox& BoundingBox)
 {
 	m_InvWidth = 1.0f / m_Width;
@@ -81,9 +83,62 @@ void Scene::initLights()
 }
 
 
+inline std::vector<float> rndColors(int count) {
+	std::vector<float> colors;
+	//colors.push_back(QColor(255, 0, 255));
+	colors.push_back(1.0);
+	colors.push_back(0.0);
+	colors.push_back(1.0);
+
+	//colors.push_back(QColor(255, 255, 255));
+	colors.push_back(1.0);
+	colors.push_back(1.0);
+	colors.push_back(1.0);
+
+	//colors.push_back(QColor(0, 255, 255));
+	colors.push_back(0.0);
+	colors.push_back(1.0);
+	colors.push_back(1.0);
+
+	float currentHue = 0.0;
+	for (int i = 0; i < count; i++) {
+		QColor c = QColor::fromHslF(currentHue, 1.0, 0.5);
+
+		colors.push_back(c.redF());
+		colors.push_back(c.greenF());
+		colors.push_back(c.blueF());
+
+		currentHue += 0.618033988749895f;
+		currentHue = std::fmod(currentHue, 1.0f);
+	}
+	return colors;
+}
+
+
 // set up a couple of lights relative to the img's bounding box
 void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 {
+	std::vector<float> colors = rndColors(img->sizeC());
+
+
+	for (uint32_t i = 0; i < img->sizeC(); ++i) {
+		// enable first 3 channels!
+		_material.enabled[i] = (i < 3);
+
+		_material.diffuse[i * 3] = colors[i*3];
+		_material.diffuse[i * 3 + 1] = colors[i * 3 + 1];
+		_material.diffuse[i * 3 + 2] = colors[i * 3 + 2];
+		_material.specular[i * 3] = 0.0;
+		_material.specular[i * 3 + 1] = 0.0;
+		_material.specular[i * 3 + 2] = 0.0;
+		_material.emissive[i * 3] = 0.0;
+		_material.emissive[i * 3 + 1] = 0.0;
+		_material.emissive[i * 3 + 2] = 0.0;
+
+		_material.opacity[i] = 1.0;
+		_material.roughness[i] = 1.0;
+	}
+
 	glm::vec3 dim = img->getDimensions();
 
 	initSceneFromBoundingBox(CBoundingBox(glm::vec3(0.0f), dim));
