@@ -489,9 +489,12 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		return;
 	}
 
-	m_roiX->setRange(_scene->_roi.GetMinP().x, _scene->_roi.GetMaxP().x);
-	m_roiY->setRange(_scene->_roi.GetMinP().y, _scene->_roi.GetMaxP().y);
-	m_roiZ->setRange(_scene->_roi.GetMinP().z, _scene->_roi.GetMaxP().z);
+	m_roiX->setFirstValue(_scene->_roi.GetMinP().x * 100.0);
+	m_roiX->setSecondValue(_scene->_roi.GetMaxP().x * 100.0);
+	m_roiY->setFirstValue(_scene->_roi.GetMinP().y * 100.0);
+	m_roiY->setSecondValue(_scene->_roi.GetMaxP().y * 100.0);
+	m_roiZ->setFirstValue(_scene->_roi.GetMinP().z * 100.0);
+	m_roiZ->setSecondValue(_scene->_roi.GetMaxP().z * 100.0);
 
 	m_xscaleSpinner->setValue(_scene->_volume->physicalSizeX());
 	m_yscaleSpinner->setValue(_scene->_volume->physicalSizeY());
