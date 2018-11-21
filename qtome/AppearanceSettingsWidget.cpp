@@ -334,7 +334,8 @@ void QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QCol
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-	_scene->_lighting.m_Lights[1].m_Color = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_scene->_lighting.m_Lights[1].m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
+	_scene->_lighting.m_Lights[1].m_ColorIntensity = intensity;
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -344,7 +345,8 @@ void QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QC
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-	_scene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_scene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
+	_scene->_lighting.m_Lights[0].m_ColorTopIntensity = intensity;
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor& color)
@@ -353,7 +355,8 @@ void QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QC
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-	_scene->_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_scene->_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
+	_scene->_lighting.m_Lights[0].m_ColorMiddleIntensity = intensity;
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor& color)
@@ -362,7 +365,8 @@ void QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QC
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-	_scene->_lighting.m_Lights[0].m_ColorBottom = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
+	_scene->_lighting.m_Lights[0].m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
+	_scene->_lighting.m_Lights[0].m_ColorBottomIntensity = intensity;
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -484,7 +488,7 @@ void QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked) {
 inline void normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity) {
 	// if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
 	float i = std::max(incolor.x, std::max(incolor.y, incolor.z));
-	outintensity = (i > 1) ? i : 1;
+	outintensity = (i > 1.0f) ? i : 1.0f;
 	glm::vec3 voutcolor = incolor / i;
 	outcolor = QColor::fromRgbF(voutcolor.x, voutcolor.y, voutcolor.z);
 }
@@ -499,17 +503,17 @@ void QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 	QColor c;
 	float i;
 	normalizeColorForGui(scene->_lighting.m_Lights[1].m_Color, c, i);
-	_lt0gui.intensitySlider->setValue(i);
+	_lt0gui.intensitySlider->setValue(i * scene->_lighting.m_Lights[1].m_ColorIntensity);
 	_lt0gui.areaLightColorButton->SetColor(c);
 
 	normalizeColorForGui(scene->_lighting.m_Lights[0].m_ColorTop, c, i);
-	_lt1gui.stintensitySlider->setValue(i);
+	_lt1gui.stintensitySlider->setValue(i * scene->_lighting.m_Lights[1].m_ColorTopIntensity);
 	_lt1gui.stColorButton->SetColor(c);
 	normalizeColorForGui(scene->_lighting.m_Lights[0].m_ColorMiddle, c, i);
-	_lt1gui.smintensitySlider->setValue(i);
+	_lt1gui.smintensitySlider->setValue(i * scene->_lighting.m_Lights[1].m_ColorMiddleIntensity);
 	_lt1gui.smColorButton->SetColor(c);
 	normalizeColorForGui(scene->_lighting.m_Lights[0].m_ColorBottom, c, i);
-	_lt1gui.sbintensitySlider->setValue(i);
+	_lt1gui.sbintensitySlider->setValue(i * scene->_lighting.m_Lights[1].m_ColorBottomIntensity);
 	_lt1gui.sbColorButton->SetColor(c);
 }
 

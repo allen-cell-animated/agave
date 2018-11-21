@@ -598,6 +598,10 @@ void qtome::viewerStateToApp(const ViewerState& v)
 	lt.m_ColorMiddle = v._light0._middleColor;
 	lt.m_ColorBottom = v._light0._bottomColor;
 	lt.m_Color = v._light0._color;
+	lt.m_ColorTopIntensity = v._light0._topColorIntensity;
+	lt.m_ColorMiddleIntensity = v._light0._middleColorIntensity;
+	lt.m_ColorBottomIntensity = v._light0._bottomColorIntensity;
+	lt.m_ColorIntensity = v._light0._colorIntensity;
 	lt.m_Width = v._light0._width;
 	lt.m_Height = v._light0._height;
 
@@ -610,6 +614,10 @@ void qtome::viewerStateToApp(const ViewerState& v)
 	lt1.m_ColorMiddle = v._light1._middleColor;
 	lt1.m_ColorBottom = v._light1._bottomColor;
 	lt1.m_Color = v._light1._color;
+	lt1.m_ColorTopIntensity = v._light1._topColorIntensity;
+	lt1.m_ColorMiddleIntensity = v._light1._middleColorIntensity;
+	lt1.m_ColorBottomIntensity = v._light1._bottomColorIntensity;
+	lt1.m_ColorIntensity = v._light1._colorIntensity;
 	lt1.m_Width = v._light1._width;
 	lt1.m_Height = v._light1._height;
 
@@ -691,6 +699,10 @@ ViewerState qtome::appToViewerState() {
 	v._light0._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
 	v._light0._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
 	v._light0._bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
+	v._light0._topColorIntensity = lt.m_ColorTopIntensity;
+	v._light0._middleColorIntensity = lt.m_ColorMiddleIntensity;
+	v._light0._colorIntensity = lt.m_ColorIntensity;
+	v._light0._bottomColorIntensity = lt.m_ColorBottomIntensity;
 	v._light0._width = lt.m_Width;
 	v._light0._height = lt.m_Height;
 
@@ -703,6 +715,10 @@ ViewerState qtome::appToViewerState() {
 	v._light1._middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
 	v._light1._color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
 	v._light1._bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
+	v._light1._topColorIntensity = lt1.m_ColorTopIntensity;
+	v._light1._middleColorIntensity = lt1.m_ColorMiddleIntensity;
+	v._light1._colorIntensity = lt1.m_ColorIntensity;
+	v._light1._bottomColorIntensity = lt1.m_ColorBottomIntensity;
 	v._light1._width = lt1.m_Width;
 	v._light1._height = lt1.m_Height;
 

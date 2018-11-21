@@ -181,6 +181,10 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 			getVec3(lighti, "middleColor", ls._middleColor);
 			getVec3(lighti, "color", ls._color);
 			getVec3(lighti, "bottomColor", ls._bottomColor);
+			getFloat(lighti, "topColorIntensity", ls._topColorIntensity);
+			getFloat(lighti, "middleColorIntensity", ls._middleColorIntensity);
+			getFloat(lighti, "colorIntensity", ls._colorIntensity);
+			getFloat(lighti, "bottomColorIntensity", ls._bottomColorIntensity);
 			getFloat(lighti, "distance", ls._distance);
 			getFloat(lighti, "theta", ls._theta);
 			getFloat(lighti, "phi", ls._phi);
@@ -261,15 +265,19 @@ QJsonDocument ViewerState::stateToJson() const
 	light0["theta"] = _light0._theta;
 	light0["phi"] = _light0._phi;
 	light0["color"] = jsonVec3(_light0._color.r, _light0._color.g, _light0._color.b);
+	light0["colorIntensity"] = _light0._colorIntensity;
 	light0["topColor"] = jsonVec3(
 		_light0._topColor.r, _light0._topColor.g, _light0._topColor.b
 	);
+	light0["topColorIntensity"] = _light0._topColorIntensity;
 	light0["middleColor"] = jsonVec3(
 		_light0._middleColor.r, _light0._middleColor.g, _light0._middleColor.b
 	);
+	light0["middleColorIntensity"] = _light0._middleColorIntensity;
 	light0["bottomColor"] = jsonVec3(
 		_light0._bottomColor.r, _light0._bottomColor.g, _light0._bottomColor.b
 	);
+	light0["bottomColorIntensity"] = _light0._bottomColorIntensity;
 	light0["width"] = _light0._width;
 	light0["height"] = _light0._height;
 	lights.append(light0);
@@ -280,15 +288,19 @@ QJsonDocument ViewerState::stateToJson() const
 	light1["theta"] = _light1._theta;
 	light1["phi"] = _light1._phi;
 	light1["color"] = jsonVec3(_light1._color.r, _light1._color.g, _light1._color.b);
+	light1["colorIntensity"] = _light1._colorIntensity;
 	light1["topColor"] = jsonVec3(
 		_light1._topColor.r, _light1._topColor.g, _light1._topColor.b
 	);
+	light1["topColorIntensity"] = _light1._topColorIntensity;
 	light1["middleColor"] = jsonVec3(
 		_light1._middleColor.r, _light1._middleColor.g, _light1._middleColor.b
 	);
+	light1["middleColorIntensity"] = _light1._middleColorIntensity;
 	light1["bottomColor"] = jsonVec3(
 		_light1._bottomColor.r, _light1._bottomColor.g, _light1._bottomColor.b
 	);
+	light1["bottomColorIntensity"] = _light1._bottomColorIntensity;
 	light1["width"] = _light1._width;
 	light1["height"] = _light1._height;
 	lights.append(light1);

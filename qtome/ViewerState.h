@@ -18,10 +18,14 @@ struct ChannelViewerState {
 struct LightViewerState {
     int _type = 0;
 	float _theta = 0.0f, _phi = 0.0f;
+	float _colorIntensity = 1.0;
 	glm::vec3 _color = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::vec3 _topColor = glm::vec3(0.5f, 0.5f, 0.5f),
 		_middleColor = glm::vec3(0.5f, 0.5f, 0.5f),
 		_bottomColor = glm::vec3(0.5, 0.5, 0.5);
+	float _topColorIntensity = 1.0;
+	float _middleColorIntensity = 1.0;
+	float _bottomColorIntensity = 1.0;
 	float _width = 1.0f, _height = 1.0f, _distance = 10.0f;
 };
 

@@ -82,9 +82,13 @@ void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
 		cl.m_Lights[i].m_Area = pScene->_lighting.m_Lights[i].m_Area;
 		cl.m_Lights[i].m_AreaPdf = pScene->_lighting.m_Lights[i].m_AreaPdf;
 		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
+		cl.m_Lights[i].m_Color *= pScene->_lighting.m_Lights[i].m_ColorIntensity;
 		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
+		cl.m_Lights[i].m_ColorTop *= pScene->_lighting.m_Lights[i].m_ColorTopIntensity;
 		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
+		cl.m_Lights[i].m_ColorMiddle *= pScene->_lighting.m_Lights[i].m_ColorMiddleIntensity;
 		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
+		cl.m_Lights[i].m_ColorBottom *= pScene->_lighting.m_Lights[i].m_ColorBottomIntensity;
 		cl.m_Lights[i].m_T = pScene->_lighting.m_Lights[i].m_T;
 	}
 }

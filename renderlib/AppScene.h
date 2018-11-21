@@ -118,6 +118,10 @@ public:
 	glm::vec3	m_ColorTop;
 	glm::vec3	m_ColorMiddle;
 	glm::vec3	m_ColorBottom;
+	float m_ColorIntensity;
+	float m_ColorTopIntensity;
+	float m_ColorMiddleIntensity;
+	float m_ColorBottomIntensity;
 	int				m_T;
 
 	Light(void) :
@@ -144,6 +148,10 @@ public:
 		m_ColorTop(10.0f),
 		m_ColorMiddle(10.0f),
 		m_ColorBottom(10.0f),
+		m_ColorIntensity(1.0f),
+		m_ColorTopIntensity(1.0f),
+		m_ColorMiddleIntensity(1.0f),
+		m_ColorBottomIntensity(1.0f),
 		m_T(0)
 	{
 	}
@@ -173,6 +181,10 @@ public:
 		m_ColorTop			= Other.m_ColorTop;
 		m_ColorMiddle		= Other.m_ColorMiddle;
 		m_ColorBottom		= Other.m_ColorBottom;
+		m_ColorIntensity	= Other.m_ColorIntensity;
+		m_ColorTopIntensity = Other.m_ColorTopIntensity;
+		m_ColorMiddleIntensity = Other.m_ColorMiddleIntensity;
+		m_ColorBottomIntensity = Other.m_ColorBottomIntensity;
 		m_T					= Other.m_T;
 
 		return *this;
