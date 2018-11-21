@@ -112,7 +112,7 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 	_resolutionX = res.x;
 	_resolutionY = res.y;
 
-	glm::vec3 scale(1,1,1);
+	glm::vec3 scale(_scaleX, _scaleY, _scaleZ);
 	getVec3(json, "scale", scale);
 	_scaleX = scale.x; _scaleY = scale.y; _scaleZ = scale.z;
 
