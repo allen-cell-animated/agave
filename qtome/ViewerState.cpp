@@ -103,6 +103,10 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 {
 	QJsonObject json(jsonDoc.object());
 
+	glm::vec3 version(0,0,0);
+	getVec3(json, "version", version);
+	// VERSION MUST EXIST.  THROW OR PANIC IF NOT.
+
 	getString(json, "name", _volumeImageFile);
 	getInt(json, "renderIterations", _renderIterations);
 	getFloat(json, "density", _densityScale);
@@ -192,6 +196,9 @@ QJsonDocument ViewerState::stateToJson() const
 	QJsonObject j;
 	j["name"] = _volumeImageFile;
 	
+	// the version of this schema
+	j["version"] = jsonVec3(1, 0, 0);
+
 	QJsonArray resolution;
 	resolution.append(_resolutionX);
 	resolution.append(_resolutionY);
