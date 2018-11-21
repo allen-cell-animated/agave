@@ -8,50 +8,37 @@
 #include <vector>
 
 struct ChannelViewerState {
-	bool _enabled;
-	float _window, _level;
-	float _opacity;
-	float _glossiness;
-	glm::vec3 _diffuse, _specular, _emissive;
-
-	ChannelViewerState() : 
-		_enabled(true),
-		_window(1.0),
-		_level(0.5),
-		_opacity(1.0),
-		_glossiness(0.0),
-		_diffuse(0.5, 0.5, 0.5)
-	{}
+	bool _enabled = true;
+	float _window = 1.0f, _level = 0.5f;
+	float _opacity = 1.0f;
+	float _glossiness = 0.0f;
+	glm::vec3 _diffuse = glm::vec3(0.5f, 0.5f, 0.5f), _specular, _emissive;
 };
 
 struct LightViewerState {
-    int _type;
-	float _theta, _phi;
-	glm::vec3 _color;
-	glm::vec3 _topColor, _middleColor, _bottomColor;
-	float _width, _height, _distance;
-
-	LightViewerState() :
-		_theta(0), _phi(0),
-		_color(0.5, 0.5, 0.5),
-		_width(1), _height(1), _distance(10)
-	{}
+    int _type = 0;
+	float _theta = 0.0f, _phi = 0.0f;
+	glm::vec3 _color = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 _topColor = glm::vec3(0.5f, 0.5f, 0.5f),
+		_middleColor = glm::vec3(0.5f, 0.5f, 0.5f),
+		_bottomColor = glm::vec3(0.5, 0.5, 0.5);
+	float _width = 1.0f, _height = 1.0f, _distance = 10.0f;
 };
 
 struct ViewerState {
 	QString _volumeImageFile;
 	std::vector<ChannelViewerState> _channels;
-    int _resolutionX, _resolutionY;
-    int _renderIterations;
-	float _exposure;
-	float _densityScale;
-	float _fov;
-	float _apertureSize;
-    float _focalDistance;
-	float _gradientFactor;
-	float _primaryStepSize, _secondaryStepSize;
-	float _roiXmax, _roiYmax, _roiZmax, _roiXmin, _roiYmin, _roiZmin;
-	float _scaleX, _scaleY, _scaleZ;
+    int _resolutionX = 0, _resolutionY = 0;
+    int _renderIterations = 1;
+	float _exposure = 0.75f;
+	float _densityScale = 50.0f;
+	float _fov = 55.0f;
+	float _apertureSize = 0.0f;
+    float _focalDistance = 0.0f;
+	float _gradientFactor = 50.0f;
+	float _primaryStepSize = 1.0f, _secondaryStepSize = 1.0f;
+	float _roiXmax = 1.0f, _roiYmax = 1.0f, _roiZmax = 1.0f, _roiXmin = 0.0f, _roiYmin = 0.0f, _roiZmin = 0.0f;
+	float _scaleX = 1.0f, _scaleY = 1.0f, _scaleZ = 1.0f;
 
     float _eyeX, _eyeY, _eyeZ;
     float _targetX, _targetY, _targetZ;
@@ -65,4 +52,5 @@ struct ViewerState {
 
 	static ViewerState readStateFromJson(QString filePath);
     static void writeStateToJson(QString filePath, const ViewerState& state);
+
 };
