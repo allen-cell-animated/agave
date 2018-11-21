@@ -79,9 +79,9 @@ class RenderParams {
 
 #define MAX_CPU_CHANNELS 32
 struct VolumeDisplay {
-	float m_DensityScale;
-    float m_GradientFactor;
-	int m_ShadingType;
+	float m_DensityScale = 50.0f;
+    float m_GradientFactor = 10.0f;
+	int m_ShadingType = 2;
 
     // channels enabled/disabled
     // per channel colors
@@ -234,7 +234,8 @@ public:
 	CBoundingBox _boundingBox;
 	void initLights();
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
-	void initSceneFromBoundingBox(const CBoundingBox& bb);
+	void initBounds(const CBoundingBox& bb);
+	void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);
 
 	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
 

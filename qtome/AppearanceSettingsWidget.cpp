@@ -231,21 +231,21 @@ void QAppearanceSettingsWidget::OnSetScaleX(double value)
 {
 	if (!_scene) return;
 	_scene->_volume->setPhysicalSize(value, _scene->_volume->physicalSizeY(), _scene->_volume->physicalSizeZ());
-	_scene->initSceneFromImg(_scene->_volume);
+	_scene->initBoundsFromImg(_scene->_volume);
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void QAppearanceSettingsWidget::OnSetScaleY(double value)
 {
 	if (!_scene) return;
 	_scene->_volume->setPhysicalSize(_scene->_volume->physicalSizeX(), value, _scene->_volume->physicalSizeZ());
-	_scene->initSceneFromImg(_scene->_volume);
+	_scene->initBoundsFromImg(_scene->_volume);
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void QAppearanceSettingsWidget::OnSetScaleZ(double value)
 {
 	if (!_scene) return;
 	_scene->_volume->setPhysicalSize(_scene->_volume->physicalSizeX(), _scene->_volume->physicalSizeY(), value);
-	_scene->initSceneFromImg(_scene->_volume);
+	_scene->initBoundsFromImg(_scene->_volume);
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void QAppearanceSettingsWidget::OnSetRoiXMin(int value)

@@ -352,7 +352,7 @@ void qtome::openMesh(const QString& file) {
 	Assimp::Importer* importer = FileReader::loadAsset(file.toStdString().c_str(), &bb);
 	if (importer->GetScene()) {
 		_appScene._meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
-		_appScene.initSceneFromBoundingBox(bb);
+		_appScene.initBounds(bb);
 		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
 		// tell the 3d view to update.
 		glView->initCameraFromImage(&_appScene);

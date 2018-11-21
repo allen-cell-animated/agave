@@ -28,7 +28,7 @@ void DeviceSelector::EnumerateDevices(void)
 	HandleCudaError(cudaGLGetDevices(&gldeviceCount, gldevices, 8, cudaGLDeviceListAll));
 	LOG_INFO << "Found " << gldeviceCount << " GL compatible cuda devices";
 
-	for (int i = 0; i < gldeviceCount; ++i) {
+	for (unsigned int i = 0; i < gldeviceCount; ++i) {
 		int DeviceID = gldevices[i];
 
 		aicsCudaDevice CudaDevice;

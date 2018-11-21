@@ -139,12 +139,17 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 		_material.roughness[i] = 1.0;
 	}
 
-	glm::vec3 dim = img->getDimensions();
+	initBoundsFromImg(img);
 
-	initSceneFromBoundingBox(CBoundingBox(glm::vec3(0.0f), dim));
 }
 
-void Scene::initSceneFromBoundingBox(const CBoundingBox& bb)
+void Scene::initBoundsFromImg(std::shared_ptr<ImageXYZC> img)
+{
+	glm::vec3 dim = img->getDimensions();
+
+	initBounds(CBoundingBox(glm::vec3(0.0f), dim));
+}
+void Scene::initBounds(const CBoundingBox& bb)
 {
 	// Compute the volume's bounding box
 	_boundingBox.m_MinP = bb.GetMinP();
