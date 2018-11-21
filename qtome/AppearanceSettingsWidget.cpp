@@ -128,95 +128,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(_clipRoiSection, 13, 0, 1, -1);
 
 
-	Section* section = new Section("Lighting", 0);
-	auto* sectionLayout = new QGridLayout();
-
-	int row = 0;
-	sectionLayout->addWidget(new QLabel("AreaLight Theta"), row, 0);
-	QNumericSlider* thetaSlider = new QNumericSlider();
-	thetaSlider->setRange(0.0, 3.14159265*2.0);
-	thetaSlider->setValue(0.0);
-	sectionLayout->addWidget(thetaSlider, row, 1, 1, 4);
-	QObject::connect(thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
-
-	row++;
-	sectionLayout->addWidget(new QLabel("AreaLight Phi"), row, 0);
-	QNumericSlider* phiSlider = new QNumericSlider();
-	phiSlider->setRange(0.0, 3.14159265);
-	phiSlider->setValue(0.0);
-	sectionLayout->addWidget(phiSlider, row, 1, 1, 4);
-	QObject::connect(phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
-
-	row++;
-	sectionLayout->addWidget(new QLabel("AreaLight Size"), row, 0);
-	QNumericSlider* sizeSlider = new QNumericSlider();
-	sizeSlider->setRange(0.1, 5.0);
-	sizeSlider->setValue(1.0);
-	sectionLayout->addWidget(sizeSlider, row, 1, 1, 4);
-	QObject::connect(sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
-
-	row++;
-	sectionLayout->addWidget(new QLabel("AreaLight Distance"), row, 0);
-	QNumericSlider* distSlider = new QNumericSlider();
-	distSlider->setRange(0.1, 100.0);
-	distSlider->setValue(10.0);
-	sectionLayout->addWidget(distSlider, row, 1, 1, 4);
-	QObject::connect(distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
-
-	row++;
-	sectionLayout->addWidget(new QLabel("AreaLight Intensity"), row, 0);
-	QNumericSlider* intensitySlider = new QNumericSlider();
-	intensitySlider->setRange(0.1, 1000.0);
-	intensitySlider->setValue(100.0);
-	sectionLayout->addWidget(intensitySlider, row, 1, 1, 3);
-	QColorPushButton* areaLightColorButton = new QColorPushButton();
-	sectionLayout->addWidget(areaLightColorButton, row, 4);
-	QObject::connect(areaLightColorButton, &QColorPushButton::currentColorChanged,
-		[this, intensitySlider](const QColor& c) { this->OnSetAreaLightColor(intensitySlider->value(), c); });
-	QObject::connect(intensitySlider, &QNumericSlider::valueChanged,
-		[this, areaLightColorButton](double v) { this->OnSetAreaLightColor(v, areaLightColorButton->GetColor()); });
-
-	row++;
-	sectionLayout->addWidget(new QLabel("SkyLight Top"), row, 0);
-	QNumericSlider* stintensitySlider = new QNumericSlider();
-	stintensitySlider->setRange(0.1, 10.0);
-	stintensitySlider->setValue(1.0);
-	sectionLayout->addWidget(stintensitySlider, row, 1, 1, 3);
-	QColorPushButton* stColorButton = new QColorPushButton();
-	sectionLayout->addWidget(stColorButton, row, 4);
-	QObject::connect(stColorButton, &QColorPushButton::currentColorChanged,
-		[this, stintensitySlider](const QColor& c) { this->OnSetSkyLightTopColor(stintensitySlider->value(), c); });
-	QObject::connect(stintensitySlider, &QNumericSlider::valueChanged,
-		[this, stColorButton](double v) { this->OnSetSkyLightTopColor(v, stColorButton->GetColor()); });
-
-	row++;
-	sectionLayout->addWidget(new QLabel("SkyLight Mid"), row, 0);
-	QNumericSlider* smintensitySlider = new QNumericSlider();
-	smintensitySlider->setRange(0.1, 10.0);
-	smintensitySlider->setValue(1.0);
-	sectionLayout->addWidget(smintensitySlider, row, 1, 1, 3);
-	QColorPushButton* smColorButton = new QColorPushButton();
-	sectionLayout->addWidget(smColorButton, row, 4);
-	QObject::connect(smColorButton, &QColorPushButton::currentColorChanged,
-		[this, smintensitySlider](const QColor& c) { this->OnSetSkyLightMidColor(smintensitySlider->value(), c); });
-	QObject::connect(smintensitySlider, &QNumericSlider::valueChanged,
-		[this, smColorButton](double v) { this->OnSetSkyLightMidColor(v, smColorButton->GetColor()); });
-
-	row++;
-	sectionLayout->addWidget(new QLabel("SkyLight Bot"), row, 0);
-	QNumericSlider* sbintensitySlider = new QNumericSlider();
-	sbintensitySlider->setRange(0.1, 10.0);
-	sbintensitySlider->setValue(1.0);
-	sectionLayout->addWidget(sbintensitySlider, row, 1, 1, 3);
-	QColorPushButton* sbColorButton = new QColorPushButton();
-	sectionLayout->addWidget(sbColorButton, row, 4);
-	QObject::connect(sbColorButton, &QColorPushButton::currentColorChanged,
-		[this, sbintensitySlider](const QColor& c) { this->OnSetSkyLightBotColor(sbintensitySlider->value(), c); });
-	QObject::connect(sbintensitySlider, &QNumericSlider::valueChanged,
-		[this, sbColorButton](double v) { this->OnSetSkyLightBotColor(v, sbColorButton->GetColor()); });
-
-
-	section->setContentLayout(*sectionLayout);
+	Section* section = createLightingControls();
 	m_MainLayout.addWidget(section, 14, 0, 1, -1);
 
 	QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
@@ -225,6 +137,100 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	
 	QObject::connect(_transferFunction, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 
+}
+
+Section* QAppearanceSettingsWidget::createLightingControls()
+{
+	Section* section = new Section("Lighting", 0);
+	auto* sectionLayout = new QGridLayout();
+
+	int row = 0;
+	sectionLayout->addWidget(new QLabel("AreaLight Theta"), row, 0);
+	_lt0gui.thetaSlider = new QNumericSlider();
+	_lt0gui.thetaSlider->setRange(0.0, 3.14159265*2.0);
+	_lt0gui.thetaSlider->setValue(0.0);
+	sectionLayout->addWidget(_lt0gui.thetaSlider, row, 1, 1, 4);
+	QObject::connect(_lt0gui.thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Phi"), row, 0);
+	_lt0gui.phiSlider = new QNumericSlider();
+	_lt0gui.phiSlider->setRange(0.0, 3.14159265);
+	_lt0gui.phiSlider->setValue(0.0);
+	sectionLayout->addWidget(_lt0gui.phiSlider, row, 1, 1, 4);
+	QObject::connect(_lt0gui.phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Size"), row, 0);
+	_lt0gui.sizeSlider = new QNumericSlider();
+	_lt0gui.sizeSlider->setRange(0.1, 5.0);
+	_lt0gui.sizeSlider->setValue(1.0);
+	sectionLayout->addWidget(_lt0gui.sizeSlider, row, 1, 1, 4);
+	QObject::connect(_lt0gui.sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Distance"), row, 0);
+	_lt0gui.distSlider = new QNumericSlider();
+	_lt0gui.distSlider->setRange(0.1, 100.0);
+	_lt0gui.distSlider->setValue(10.0);
+	sectionLayout->addWidget(_lt0gui.distSlider, row, 1, 1, 4);
+	QObject::connect(_lt0gui.distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
+
+	row++;
+	sectionLayout->addWidget(new QLabel("AreaLight Intensity"), row, 0);
+	_lt0gui.intensitySlider = new QNumericSlider();
+	_lt0gui.intensitySlider->setRange(0.1, 1000.0);
+	_lt0gui.intensitySlider->setValue(100.0);
+	sectionLayout->addWidget(_lt0gui.intensitySlider, row, 1, 1, 3);
+	_lt0gui.areaLightColorButton = new QColorPushButton();
+	sectionLayout->addWidget(_lt0gui.areaLightColorButton, row, 4);
+	QObject::connect(_lt0gui.areaLightColorButton, &QColorPushButton::currentColorChanged,
+		[this](const QColor& c) { this->OnSetAreaLightColor(this->_lt0gui.intensitySlider->value(), c); });
+	QObject::connect(_lt0gui.intensitySlider, &QNumericSlider::valueChanged,
+		[this](double v) { this->OnSetAreaLightColor(v, this->_lt0gui.areaLightColorButton->GetColor()); });
+
+	row++;
+	sectionLayout->addWidget(new QLabel("SkyLight Top"), row, 0);
+	_lt1gui.stintensitySlider = new QNumericSlider();
+	_lt1gui.stintensitySlider->setRange(0.1, 10.0);
+	_lt1gui.stintensitySlider->setValue(1.0);
+	sectionLayout->addWidget(_lt1gui.stintensitySlider, row, 1, 1, 3);
+	_lt1gui.stColorButton = new QColorPushButton();
+	sectionLayout->addWidget(_lt1gui.stColorButton, row, 4);
+	QObject::connect(_lt1gui.stColorButton, &QColorPushButton::currentColorChanged,
+		[this](const QColor& c) { this->OnSetSkyLightTopColor(this->_lt1gui.stintensitySlider->value(), c); });
+	QObject::connect(_lt1gui.stintensitySlider, &QNumericSlider::valueChanged,
+		[this](double v) { this->OnSetSkyLightTopColor(v, this->_lt1gui.stColorButton->GetColor()); });
+
+	row++;
+	sectionLayout->addWidget(new QLabel("SkyLight Mid"), row, 0);
+	_lt1gui.smintensitySlider = new QNumericSlider();
+	_lt1gui.smintensitySlider->setRange(0.1, 10.0);
+	_lt1gui.smintensitySlider->setValue(1.0);
+	sectionLayout->addWidget(_lt1gui.smintensitySlider, row, 1, 1, 3);
+	_lt1gui.smColorButton = new QColorPushButton();
+	sectionLayout->addWidget(_lt1gui.smColorButton, row, 4);
+	QObject::connect(_lt1gui.smColorButton, &QColorPushButton::currentColorChanged,
+		[this](const QColor& c) { this->OnSetSkyLightMidColor(this->_lt1gui.smintensitySlider->value(), c); });
+	QObject::connect(_lt1gui.smintensitySlider, &QNumericSlider::valueChanged,
+		[this](double v) { this->OnSetSkyLightMidColor(v, this->_lt1gui.smColorButton->GetColor()); });
+
+	row++;
+	sectionLayout->addWidget(new QLabel("SkyLight Bot"), row, 0);
+	_lt1gui.sbintensitySlider = new QNumericSlider();
+	_lt1gui.sbintensitySlider->setRange(0.1, 10.0);
+	_lt1gui.sbintensitySlider->setValue(1.0);
+	sectionLayout->addWidget(_lt1gui.sbintensitySlider, row, 1, 1, 3);
+	_lt1gui.sbColorButton = new QColorPushButton();
+	sectionLayout->addWidget(_lt1gui.sbColorButton, row, 4);
+	QObject::connect(_lt1gui.sbColorButton, &QColorPushButton::currentColorChanged,
+		[this](const QColor& c) { this->OnSetSkyLightBotColor(this->_lt1gui.sbintensitySlider->value(), c); });
+	QObject::connect(_lt1gui.sbintensitySlider, &QNumericSlider::valueChanged,
+		[this](double v) { this->OnSetSkyLightBotColor(v, this->_lt1gui.sbColorButton->GetColor()); });
+
+
+	section->setContentLayout(*sectionLayout);
+	return section;
 }
 
 void QAppearanceSettingsWidget::OnSetScaleX(double value)
@@ -474,6 +480,39 @@ void QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked) {
 	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 
+// split color into color and intensity.
+inline void normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity) {
+	// if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
+	float i = std::max(incolor.x, std::max(incolor.y, incolor.z));
+	outintensity = (i > 1) ? i : 1;
+	glm::vec3 voutcolor = incolor / i;
+	outcolor = QColor::fromRgbF(voutcolor.x, voutcolor.y, voutcolor.z);
+}
+
+void QAppearanceSettingsWidget::initLightingControls(Scene* scene)
+{
+	_lt0gui.thetaSlider->setValue(scene->_lighting.m_Lights[1].m_Theta);
+	_lt0gui.phiSlider->setValue(scene->_lighting.m_Lights[1].m_Phi);
+	_lt0gui.sizeSlider->setValue(scene->_lighting.m_Lights[1].m_Width);
+	_lt0gui.distSlider->setValue(scene->_lighting.m_Lights[1].m_Distance);
+	// split color into color and intensity.
+	QColor c;
+	float i;
+	normalizeColorForGui(scene->_lighting.m_Lights[1].m_Color, c, i);
+	_lt0gui.intensitySlider->setValue(i);
+	_lt0gui.areaLightColorButton->SetColor(c);
+
+	normalizeColorForGui(scene->_lighting.m_Lights[0].m_ColorTop, c, i);
+	_lt1gui.stintensitySlider->setValue(i);
+	_lt1gui.stColorButton->SetColor(c);
+	normalizeColorForGui(scene->_lighting.m_Lights[0].m_ColorMiddle, c, i);
+	_lt1gui.smintensitySlider->setValue(i);
+	_lt1gui.smColorButton->SetColor(c);
+	normalizeColorForGui(scene->_lighting.m_Lights[0].m_ColorBottom, c, i);
+	_lt1gui.sbintensitySlider->setValue(i);
+	_lt1gui.sbColorButton->SetColor(c);
+}
+
 void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
 	// remove the previous per-channel ui
@@ -499,6 +538,8 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	m_xscaleSpinner->setValue(_scene->_volume->physicalSizeX());
 	m_yscaleSpinner->setValue(_scene->_volume->physicalSizeY());
 	m_zscaleSpinner->setValue(_scene->_volume->physicalSizeZ());
+
+	initLightingControls(scene);
 
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {
 		bool channelenabled = _scene->_material.enabled[i];

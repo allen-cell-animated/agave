@@ -87,4 +87,25 @@ private:
 
 	Scene* _scene;
 	std::vector<Section*> _channelSections;
+
+	struct lt0 {
+		QNumericSlider* thetaSlider;
+		QNumericSlider* phiSlider;
+		QNumericSlider* sizeSlider;
+		QNumericSlider* distSlider;
+		QNumericSlider* intensitySlider;
+		QColorPushButton* areaLightColorButton;
+	} _lt0gui;
+
+	struct lt1 {
+		QNumericSlider* stintensitySlider;
+		QColorPushButton* stColorButton;
+		QNumericSlider* smintensitySlider;
+		QColorPushButton* smColorButton;
+		QNumericSlider* sbintensitySlider;
+		QColorPushButton* sbColorButton;
+	} _lt1gui;
+
+	Section* createLightingControls();
+	void initLightingControls(Scene* scene);
 };
