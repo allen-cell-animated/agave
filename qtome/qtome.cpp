@@ -118,9 +118,7 @@ void qtome::createMenus()
 	fileMenu->addAction(openAction);
 	fileMenu->addAction(openJsonAction);
 	fileMenu->addSeparator();
-	//fileMenu->addAction(testMeshAction);
 	fileMenu->addSeparator();
-	//fileMenu->addAction(dumpAction);
 	fileMenu->addAction(dumpJsonAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
@@ -136,19 +134,12 @@ void qtome::createMenus()
 	setRecentFilesVisible(qtome::hasRecentFiles());
 
 	viewMenu = menuBar()->addMenu(tr("&View"));
-	//viewMenu->addAction(viewResetAction);
 
 	fileMenu->addSeparator();
 }
 
 void qtome::createToolbars()
 {
-	//Cam2DTools = new QToolBar("Camera", this);
-	//addToolBar(Qt::TopToolBarArea, Cam2DTools);
-	//Cam2DTools->addAction(viewResetAction);
-
-	//viewMenu->addSeparator();
-	//viewMenu->addAction(Cam2DTools->toggleViewAction());
 }
 
 QDockWidget* qtome::createRenderingDock() {

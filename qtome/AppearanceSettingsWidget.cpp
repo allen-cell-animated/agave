@@ -28,7 +28,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_MainLayout.addWidget(new QLabel("Renderer"), 1, 0);
 	m_RendererType.addItem("OpenGL simple", 0);
 	m_RendererType.addItem("CUDA full", 1);
-//	m_RendererType.addItem("OptiX", 2);
 	m_RendererType.setCurrentIndex(1);
 	m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
 

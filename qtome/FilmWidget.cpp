@@ -27,53 +27,9 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	m_GridLayout.setColumnMinimumWidth(0, 75);
 	setLayout(&m_GridLayout);
 
-/*
-	m_PresetType.addItem("NTSC D-1 (video)");
-	m_PresetType.addItem("NTSC DV (video)");
-	m_PresetType.addItem("PAL (video)");
-	m_PresetType.addItem("PAL D-1 (video)");
-	m_PresetType.addItem("HDTV (video)");
-
-	m_GridLayout.addWidget(new QLabel("Type"), 0, 0);
-	m_GridLayout.addWidget(&m_PresetType, 0, 1);
-	
-	m_GridLayout.addLayout(&m_PresetsLayout, 1, 2, 2, 1);
-	
-	m_PresetsLayout.addWidget(&m_Preset[0], 0, 1);
-	m_PresetsLayout.addWidget(&m_Preset[1], 0, 2);
-	m_PresetsLayout.addWidget(&m_Preset[2], 1, 1);
-	m_PresetsLayout.addWidget(&m_Preset[3], 1, 2);
-
-	QObject::connect(&m_PresetType, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(SetPresetType(const QString&)));
-	
-	QObject::connect(&m_Preset[0], SIGNAL(SetPreset(QFilmResolutionPreset&)), this, SLOT(SetPreset(QFilmResolutionPreset&)));
-	QObject::connect(&m_Preset[1], SIGNAL(SetPreset(QFilmResolutionPreset&)), this, SLOT(SetPreset(QFilmResolutionPreset&)));
-	QObject::connect(&m_Preset[2], SIGNAL(SetPreset(QFilmResolutionPreset&)), this, SLOT(SetPreset(QFilmResolutionPreset&)));
-	QObject::connect(&m_Preset[3], SIGNAL(SetPreset(QFilmResolutionPreset&)), this, SLOT(SetPreset(QFilmResolutionPreset&)));
-
-	m_PresetType.setCurrentIndex(4);
-*/
 	const int ResMin = powf(2.0f, 5);
 	const int ResMax = powf(2.0f, 11);
-/*
-	// Film width
-	m_GridLayout.addWidget(new QLabel("Film width"), 1, 0);
 
-    m_WidthSpinner.setRange(ResMin, ResMax);
-	m_GridLayout.addWidget(&m_WidthSpinner, 1, 1);
-	
- 	QObject::connect(&m_WidthSpinner, SIGNAL(valueChanged(int)), this, SLOT(SetWidth(int)));
-
-	QPushButton B;
-	
-	// Film height
-	m_GridLayout.addWidget(new QLabel("Film height"), 2, 0);
-
-    m_HeightSpinner.setRange(ResMin, ResMax);
-	m_GridLayout.addWidget(&m_HeightSpinner, 2, 1);
-	
- 	QObject::connect(&m_HeightSpinner, SIGNAL(valueChanged(int)), this, SLOT(SetHeight(int)));
-*/
 	// Exposure
 	m_GridLayout.addWidget(new QLabel("Exposure"), 3, 0);
 
