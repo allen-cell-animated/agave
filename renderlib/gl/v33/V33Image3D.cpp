@@ -230,8 +230,8 @@ Image3Dv33::setC(int c, bool force)
 
 		// assuming 16-bit data!
 		Channelu16* ch = _img->channel(c);
-		texmin = float(ch->_min) / (65535.0f);
-		texmax = float(ch->_max) / (65535.0f);
+		texmin = float(ch->m_min) / (65535.0f);
+		texmax = float(ch->m_max) / (65535.0f);
 
 		GLenum internal_format = GL_R16;
 		GLenum external_type = GL_UNSIGNED_SHORT;
@@ -250,7 +250,7 @@ Image3Dv33::setC(int c, bool force)
 			0,                     // border
 			external_format, // external format
 			external_type,   // external type
-			ch->_ptr);
+			ch->m_ptr);
 		check_gl("Volume Texture create");
 		glGenerateMipmap(GL_TEXTURE_3D);
 	}

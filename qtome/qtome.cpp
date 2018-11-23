@@ -525,7 +525,7 @@ void qtome::dumpPythonState()
 		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.specular[i * 3]).arg(_appScene._material.specular[i * 3 + 1]).arg(_appScene._material.specular[i * 3 + 2]);
 		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.emissive[i * 3]).arg(_appScene._material.emissive[i * 3 + 1]).arg(_appScene._material.emissive[i * 3 + 2]);
 		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(_appScene._material.roughness[i]);
-		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(_appScene._volume->channel(i)->_window).arg(_appScene._volume->channel(i)->_level);
+		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(_appScene._volume->channel(i)->m_window).arg(_appScene._volume->channel(i)->m_level);
 	}
 
 	// lighting
@@ -673,8 +673,8 @@ ViewerState qtome::appToViewerState() {
 			_appScene._material.emissive[i * 3 + 2]
 		);
 		ch.m_glossiness = _appScene._material.roughness[i];
-		ch.m_window = _appScene._volume->channel(i)->_window;
-		ch.m_level = _appScene._volume->channel(i)->_level;
+		ch.m_window = _appScene._volume->channel(i)->m_window;
+		ch.m_level = _appScene._volume->channel(i)->m_level;
 
 		v.m_channels.push_back(ch);
 	}

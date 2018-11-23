@@ -28,7 +28,7 @@ void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume, bool do_
 
 		// copy data to 3D array
 		cudaMemcpy3DParms copyParams = { 0 };
-		copyParams.srcPtr = make_cudaPitchedPtr(ch->_ptr, volumeSize.width*img->sizeOfElement(), volumeSize.width, volumeSize.height);
+		copyParams.srcPtr = make_cudaPitchedPtr(ch->m_ptr, volumeSize.width*img->sizeOfElement(), volumeSize.width, volumeSize.height);
 		copyParams.dstArray = _volumeArray;
 		copyParams.extent = volumeSize;
 		copyParams.kind = cudaMemcpyHostToDevice;
@@ -62,7 +62,7 @@ void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume, bool do_
 
 		// copy data to 3D array
 		cudaMemcpy3DParms gradientCopyParams = { 0 };
-		gradientCopyParams.srcPtr = make_cudaPitchedPtr(ch->_gradientMagnitudePtr, volumeSize.width*img->sizeOfElement(), volumeSize.width, volumeSize.height);
+		gradientCopyParams.srcPtr = make_cudaPitchedPtr(ch->m_gradientMagnitudePtr, volumeSize.width*img->sizeOfElement(), volumeSize.width, volumeSize.height);
 		gradientCopyParams.dstArray = _volumeGradientArray;
 		gradientCopyParams.extent = volumeSize;
 		gradientCopyParams.kind = cudaMemcpyHostToDevice;
@@ -92,7 +92,7 @@ void ChannelCuda::allocGpu(ImageXYZC* img, int channel, bool do_volume, bool do_
 	HandleCudaError(cudaMallocArray(&_volumeLutArray, &lutChannelDesc, LUT_SIZE, 1));
 	_gpuBytes += (lutChannelDesc.x + lutChannelDesc.y + lutChannelDesc.z + lutChannelDesc.w)/8 * LUT_SIZE;
 	// copy data to 1D array
-	HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, ch->_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
+	HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, ch->m_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
 
     // create texture objects
     cudaResourceDesc lutTexRes;
@@ -130,7 +130,7 @@ void ChannelCuda::deallocGpu() {
 
 void ChannelCuda::updateLutGpu(int channel, ImageXYZC* img) {
     static const int LUT_SIZE = 256;
-	HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, img->channel(channel)->_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
+	HandleCudaError(cudaMemcpyToArray(_volumeLutArray, 0, 0, img->channel(channel)->m_lut, LUT_SIZE * 4, cudaMemcpyHostToDevice));
 }
 
 void ImageCuda::allocGpu(ImageXYZC* img) {
@@ -192,7 +192,7 @@ void ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int
 
 	for (uint32_t i = 0; i < xyz; ++i) {
 		for (int j = 0; j < N; ++j) {
-			v[N * (i)+j] = img->channel(ch[j])->_ptr[(i)];
+			v[N * (i)+j] = img->channel(ch[j])->m_ptr[(i)];
 		}
 	}
 

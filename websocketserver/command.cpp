@@ -62,12 +62,12 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		j["pixel_size_z"] = image->physicalSizeZ();
 		QJsonArray channelNames;
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
-			channelNames.append(image->channel(i)->_name);
+			channelNames.append(image->channel(i)->m_name);
 		}
 		j["channel_names"] = channelNames;
 		QJsonArray channelMaxIntensity;
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
-			channelMaxIntensity.append(image->channel(i)->_max);
+			channelMaxIntensity.append(image->channel(i)->m_max);
 		}
 		j["channel_max_intensity"] = channelMaxIntensity;
 

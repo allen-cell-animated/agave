@@ -547,7 +547,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	for (uint32_t i = 0; i < scene->_volume->sizeC(); ++i) {
 		bool channelenabled = _scene->_material.enabled[i];
 
-		Section* section = new Section(scene->_volume->channel(i)->_name, 0, channelenabled);
+		Section* section = new Section(scene->_volume->channel(i)->m_name, 0, channelenabled);
 
 		auto* sectionLayout = new QGridLayout();
 
@@ -555,14 +555,14 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		sectionLayout->addWidget(new QLabel("Window"), row, 0);
 		QNumericSlider* windowSlider = new QNumericSlider();
 		windowSlider->setRange(0.001, 1.0);
-		windowSlider->setValue(scene->_volume->channel(i)->_window, true);
+		windowSlider->setValue(scene->_volume->channel(i)->m_window, true);
 		sectionLayout->addWidget(windowSlider, row, 1, 1, 2);
 
 		row++;
 		sectionLayout->addWidget(new QLabel("Level"), row, 0);
 		QNumericSlider* levelSlider = new QNumericSlider();
 		levelSlider->setRange(0.001, 1.0);
-		levelSlider->setValue(scene->_volume->channel(i)->_level, true);
+		levelSlider->setValue(scene->_volume->channel(i)->m_level, true);
 		sectionLayout->addWidget(levelSlider, row, 1, 1, 2);
 
 		QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
