@@ -5,11 +5,11 @@
 GLContainer::GLContainer(QWidget *parent,
                             QWindow *window):
     QWidget(parent),
-    window(window),
-    child(QWidget::createWindowContainer(window))
+    m_window(window),
+    m_child(QWidget::createWindowContainer(window))
 {
     QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(child);
+    mainLayout->addWidget(m_child);
     setLayout(mainLayout);
 }
 
@@ -20,12 +20,12 @@ GLContainer::~GLContainer()
 QWindow *
 GLContainer::getWindow() const
 {
-    return window;
+    return m_window;
 }
 
 QWidget *
 GLContainer::getContainer() const
 {
-    return child;
+    return m_child;
 }
 

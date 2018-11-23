@@ -52,13 +52,13 @@ signals:
 		cChanged(size_t c);
 
 private:
-	std::shared_ptr<ImageXYZC> _img;
+	std::shared_ptr<ImageXYZC> m_img;
 	/// The image plane.
-	size_t _c;
+	size_t m_c;
     /// Slider labels [NZTCmZmTmC].
-    QLabel *label;
+    QLabel *m_label;
     /// Sliders [NZTCmZmTmC].
-    QSlider *slider;
+    QSlider *m_slider;
     /// Numeric entries [NZTCmZmTmC].
-    QSpinBox *spinbox;
+    QSpinBox *m_spinbox;
 };

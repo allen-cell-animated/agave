@@ -7,7 +7,7 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam) :
 	QGroupBox(pParent),
 	m_GridLayout(),
 	m_SizeSlider(),
-	_camera(cam)
+	m_camera(cam)
 {
 	setTitle("Aperture");
 	setStatusTip("Aperture properties");
@@ -33,7 +33,7 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam) :
 
 void QApertureWidget::SetAperture(const double& Aperture)
 {
-	_camera->GetAperture().SetSize(Aperture);
+	m_camera->GetAperture().SetSize(Aperture);
 }
 
 void QApertureWidget::OnApertureChanged(const QAperture& Aperture)

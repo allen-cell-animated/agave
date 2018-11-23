@@ -22,5 +22,5 @@ private:
 	QComboBox		m_FocusTypeComboBox;
 	QDoubleSlider	m_FocalDistanceSlider;
 	QDoubleSpinner	m_FocalDistanceSpinner;
-	QCamera* _camera;
+	QCamera* m_qcamera;
 };

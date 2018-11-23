@@ -51,8 +51,8 @@ public:
 
 private:
     /// GL window.
-    QWindow *window;
+    QWindow *m_window;
     /// Child containing the GL window.
-    QWidget *child;
+    QWidget *m_child;
 };
 

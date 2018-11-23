@@ -9,7 +9,7 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 	m_FocusTypeComboBox(),
 	m_FocalDistanceSlider(),
 	m_FocalDistanceSpinner(),
-	_camera(cam)
+	m_qcamera(cam)
 {
 	setTitle("Focus");
 	setStatusTip("Focus properties");
@@ -50,12 +50,12 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 
 void QFocusWidget::SetFocusType(int FocusType)
 {
-	_camera->GetFocus().SetType(FocusType);
+	m_qcamera->GetFocus().SetType(FocusType);
 }
 
 void QFocusWidget::SetFocalDistance(const double& FocalDistance)
 {
-	_camera->GetFocus().SetFocalDistance(FocalDistance);
+	m_qcamera->GetFocus().SetFocalDistance(FocalDistance);
 }
 
 void QFocusWidget::OnFocusChanged(const QFocus& Focus)

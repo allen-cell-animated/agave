@@ -73,7 +73,7 @@ private:
 	QNumericSlider	m_StepSizePrimaryRaySlider;
 	QNumericSlider	m_StepSizeSecondaryRaySlider;
 
-	QTransferFunction* _transferFunction;
+	QTransferFunction* m_transferFunction;
 
 	Section* m_clipRoiSection;
 	RangeWidget* m_roiX;
@@ -85,8 +85,8 @@ private:
 	QDoubleSpinner* m_yscaleSpinner;
 	QDoubleSpinner* m_zscaleSpinner;
 
-	Scene* _scene;
-	std::vector<Section*> _channelSections;
+	Scene* m_scene;
+	std::vector<Section*> m_channelSections;
 
 	struct lt0 {
 		QNumericSlider* m_thetaSlider;

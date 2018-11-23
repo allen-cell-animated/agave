@@ -16,8 +16,8 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	m_ExposureSlider(),
 	m_ExposureIterationsSpinner(),
 	m_NoiseReduction(),
-	_camera(cam),
-	_renderSettings(rs)
+	m_qcamera(cam),
+	m_renderSettings(rs)
 {
 	setTitle("Film");
 	setStatusTip("Film properties");
@@ -120,33 +120,33 @@ void QFilmWidget::SetPreset(QFilmResolutionPreset& Preset)
 
 void QFilmWidget::SetWidth(const int& Width)
 {
-	_camera->GetFilm().SetWidth(Width);
+	m_qcamera->GetFilm().SetWidth(Width);
 }
 
 void QFilmWidget::SetHeight(const int& Height)
 {
- 	_camera->GetFilm().SetHeight(Height);
+ 	m_qcamera->GetFilm().SetHeight(Height);
 }
 
 void QFilmWidget::SetExposure(const double& Exposure)
 {
-	_camera->GetFilm().SetExposure(Exposure);
+	m_qcamera->GetFilm().SetExposure(Exposure);
 }
 
 void QFilmWidget::SetExposureIterations(const QString& ExposureIterations)
 {
 	int value = m_ExposureIterationsSpinner.currentData().toInt();
-	_camera->GetFilm().SetExposureIterations(value);
+	m_qcamera->GetFilm().SetExposureIterations(value);
 }
 
 void QFilmWidget::OnRenderBegin(void)
 {
-	m_WidthSpinner.setValue(_camera->GetFilm().GetWidth());
-	m_HeightSpinner.setValue(_camera->GetFilm().GetHeight());
-	m_ExposureSlider.setValue(_camera->GetFilm().GetExposure());
-	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(_camera->GetFilm().GetExposureIterations()));
+	m_WidthSpinner.setValue(m_qcamera->GetFilm().GetWidth());
+	m_HeightSpinner.setValue(m_qcamera->GetFilm().GetHeight());
+	m_ExposureSlider.setValue(m_qcamera->GetFilm().GetExposure());
+	m_ExposureIterationsSpinner.setCurrentIndex(m_ExposureIterationsSpinner.findData(m_qcamera->GetFilm().GetExposureIterations()));
 
-	m_NoiseReduction.setChecked(_renderSettings->m_DenoiseParams.m_Enabled);
+	m_NoiseReduction.setChecked(m_renderSettings->m_DenoiseParams.m_Enabled);
 }
 
 void QFilmWidget::OnRenderEnd(void)
@@ -175,5 +175,5 @@ void QFilmWidget::OnFilmChanged(const QFilm& Film)
 
 void QFilmWidget::OnNoiseReduction(const int& ReduceNoise)
 {
-	_camera->GetFilm().SetNoiseReduction(m_NoiseReduction.checkState());
+	m_qcamera->GetFilm().SetNoiseReduction(m_NoiseReduction.checkState());
 }

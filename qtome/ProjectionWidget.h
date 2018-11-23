@@ -21,5 +21,5 @@ private:
 	QGridLayout		m_GridLayout;
 	QNumericSlider	m_FieldOfViewSlider;
 
-	QCamera* _camera;
+	QCamera* m_qcamera;
 };

@@ -24,7 +24,7 @@ public:
 	qtome(QWidget *parent = Q_NULLPTR);
 
 private:
-	Ui::qtomeClass ui;
+	Ui::qtomeClass m_ui;
 
 private slots:
 	void open();
@@ -61,53 +61,53 @@ private:
 	static QString strippedName(const QString &fullFileName);
 
 
-	QMenu *fileMenu;
-	QMenu *viewMenu;
+	QMenu *m_fileMenu;
+	QMenu *m_viewMenu;
 
-	QToolBar *Cam2DTools;
+	QToolBar *m_Cam2DTools;
 
-	QAction *openAction;
-	QAction *openJsonAction;
-	QAction *quitAction;
-	QAction *dumpAction;
-	QAction *dumpJsonAction;
-	QAction *testMeshAction;
-	QAction *viewResetAction;
+	QAction *m_openAction;
+	QAction *m_openJsonAction;
+	QAction *m_quitAction;
+	QAction *m_dumpAction;
+	QAction *m_dumpJsonAction;
+	QAction *m_testMeshAction;
+	QAction *m_viewResetAction;
 
 	QSlider *createAngleSlider();
 	QSlider *createRangeSlider();
-	NavigationDock2D *navigation;
+	NavigationDock2D *m_navigation;
 
 	// THE camera parameter container
-	QCamera _camera;
+	QCamera m_qcamera;
 	// Camera UI
-	QCameraDockWidget* cameradock;
+	QCameraDockWidget* m_cameradock;
 	
-	QTransferFunction _transferFunction;
-	QAppearanceDockWidget* appearanceDockWidget;
+	QTransferFunction m_transferFunction;
+	QAppearanceDockWidget* m_appearanceDockWidget;
 
-	QStatisticsDockWidget* statisticsDockWidget;
+	QStatisticsDockWidget* m_statisticsDockWidget;
 
-	QTabWidget *tabs;
-	GLView3D *glView;
+	QTabWidget *m_tabs;
+	GLView3D *m_glView;
 
-	QMetaObject::Connection navigationChanged;
-	QMetaObject::Connection navigationZCChanged;
-	QMetaObject::Connection navigationUpdate;
+	QMetaObject::Connection m_navigationChanged;
+	QMetaObject::Connection m_navigationZCChanged;
+	QMetaObject::Connection m_navigationUpdate;
 
 	// THE underlying render settings container.
 	// There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
 	// if renderer is on a separate thread, then this will need a mutex guard
 	// any direct programmatic changes to this obj need to be pushed to the UI as well.
-	RenderSettings _renderSettings;
+	RenderSettings m_renderSettings;
 
 	// the app owns a scene.
 	// scene gets sent down to the renderer.
-	Scene _appScene;
+	Scene m_appScene;
 
-	QAction *recentFileActs[MaxRecentFiles];
-	QAction *recentFileSeparator;
-	QAction *recentFileSubMenuAct;
+	QAction *m_recentFileActs[MaxRecentFiles];
+	QAction *m_recentFileSeparator;
+	QAction *m_recentFileSubMenuAct;
 
-	QString _currentFilePath;
+	QString m_currentFilePath;
 };

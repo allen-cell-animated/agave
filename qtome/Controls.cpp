@@ -232,30 +232,30 @@ QSize QInputDialogEx::sizeHint() const
 
 QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/) :
 	QWidget(pParent),
-	_slider(),
-	_spinner()
+	m_slider(),
+	m_spinner()
 {
-	setLayout(&_layout);
+	setLayout(&m_layout);
 
-	_slider.setOrientation(Qt::Horizontal);
-	_spinner.setDecimals(4);
+	m_slider.setOrientation(Qt::Horizontal);
+	m_spinner.setDecimals(4);
 
 	// entire control is one single row.
 	// slider is 3/4, spinner is 1/4 of the width
 	const int sliderratio = 4;
-	_layout.addWidget(&_slider, 0, 0, 1, sliderratio-1);
-	_layout.addWidget(&_spinner, 0, sliderratio-1, 1, 1);
+	m_layout.addWidget(&m_slider, 0, 0, 1, sliderratio-1);
+	m_layout.addWidget(&m_spinner, 0, sliderratio-1, 1, 1);
 
-	_layout.setContentsMargins(0, 0, 0, 0);
+	m_layout.setContentsMargins(0, 0, 0, 0);
 
 	// keep slider and spinner in sync
-	QObject::connect(&_slider, QOverload<double>::of(&QDoubleSlider::valueChanged),
-		[this](double v) { this->_spinner.setValue(v, true);  });
-	QObject::connect(&_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged),
-		[this](double v) { this->_slider.setValue(v);  });
+	QObject::connect(&m_slider, QOverload<double>::of(&QDoubleSlider::valueChanged),
+		[this](double v) { this->m_spinner.setValue(v, true);  });
+	QObject::connect(&m_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged),
+		[this](double v) { this->m_slider.setValue(v);  });
 
 	// only slider will update the value...
-	QObject::connect(&_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
+	QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
 }
 
 void QNumericSlider::OnValueChanged(double value) {
@@ -263,28 +263,28 @@ void QNumericSlider::OnValueChanged(double value) {
 }
 
 double QNumericSlider::value(void) const {
-	return _spinner.value();
+	return m_spinner.value();
 }
 
 void QNumericSlider::setValue(double value, bool BlockSignals)
 {
 	// only forward the blocksignals flag for one of the two child controls.
 	// the other will always block signalling
-	_spinner.setValue(value, true);
-	_slider.setValue(value, BlockSignals);
+	m_spinner.setValue(value, true);
+	m_slider.setValue(value, BlockSignals);
 }
 
 void QNumericSlider::setRange(double rmin, double rmax)
 {
-	_slider.setRange(rmin, rmax);
-	_spinner.setRange(rmin, rmax);
+	m_slider.setRange(rmin, rmax);
+	m_spinner.setRange(rmin, rmax);
 }
 
 void QNumericSlider::setDecimals(int decimals)
 {
-	_spinner.setDecimals(decimals);
+	m_spinner.setDecimals(decimals);
 }
 
 void QNumericSlider::setSuffix(const QString& s) {
-	_spinner.setSuffix(s);
+	m_spinner.setSuffix(s);
 }

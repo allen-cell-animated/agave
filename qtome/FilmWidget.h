@@ -103,6 +103,6 @@ private:
 	QComboBox				m_ExposureIterationsSpinner;
 	QCheckBox				m_NoiseReduction;
 
-	QCamera* _camera;
-	RenderSettings* _renderSettings;
+	QCamera* m_qcamera;
+	RenderSettings* m_renderSettings;
 };
