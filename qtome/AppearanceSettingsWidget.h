@@ -75,36 +75,36 @@ private:
 
 	QTransferFunction* _transferFunction;
 
-	Section* _clipRoiSection;
-	RangeWidget* _roiX;
-	RangeWidget* _roiY;
-	RangeWidget* _roiZ;
+	Section* m_clipRoiSection;
+	RangeWidget* m_roiX;
+	RangeWidget* m_roiY;
+	RangeWidget* m_roiZ;
 
-	Section* _scaleSection;
-	QDoubleSpinner* _xscaleSpinner;
-	QDoubleSpinner* _yscaleSpinner;
-	QDoubleSpinner* _zscaleSpinner;
+	Section* m_scaleSection;
+	QDoubleSpinner* m_xscaleSpinner;
+	QDoubleSpinner* m_yscaleSpinner;
+	QDoubleSpinner* m_zscaleSpinner;
 
 	Scene* _scene;
 	std::vector<Section*> _channelSections;
 
 	struct lt0 {
-		QNumericSlider* _thetaSlider;
-		QNumericSlider* _phiSlider;
-		QNumericSlider* _sizeSlider;
-		QNumericSlider* _distSlider;
-		QNumericSlider* _intensitySlider;
-		QColorPushButton* _areaLightColorButton;
-	} _lt0gui;
+		QNumericSlider* m_thetaSlider;
+		QNumericSlider* m_phiSlider;
+		QNumericSlider* m_sizeSlider;
+		QNumericSlider* m_distSlider;
+		QNumericSlider* m_intensitySlider;
+		QColorPushButton* m_areaLightColorButton;
+	} m_lt0gui;
 
 	struct lt1 {
-		QNumericSlider* _stintensitySlider;
-		QColorPushButton* _stColorButton;
-		QNumericSlider* _smintensitySlider;
-		QColorPushButton* _smColorButton;
-		QNumericSlider* _sbintensitySlider;
-		QColorPushButton* _sbColorButton;
-	} _lt1gui;
+		QNumericSlider* m_stintensitySlider;
+		QColorPushButton* m_stColorButton;
+		QNumericSlider* m_smintensitySlider;
+		QColorPushButton* m_smColorButton;
+		QNumericSlider* m_sbintensitySlider;
+		QColorPushButton* m_sbColorButton;
+	} m_lt1gui;
 
 	Section* createLightingControls();
 	void initLightingControls(Scene* scene);
