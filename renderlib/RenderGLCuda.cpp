@@ -17,19 +17,19 @@
 #include <array>
 
 RenderGLCuda::RenderGLCuda(RenderSettings* rs)
-	:_cudaF32Buffer(nullptr),
-	_cudaF32AccumBuffer(nullptr),
-	_cudaTex(nullptr),
-	_cudaGLSurfaceObject(0),
-	_fbtex(0),
-	_randomSeeds1(nullptr),
-	_randomSeeds2(nullptr),
-	_renderSettings(rs),
-	_w(0),
-	_h(0),
-	_scene(nullptr),
-	_gpuBytes(0),
-	_imagequad(nullptr)
+	:m_cudaF32Buffer(nullptr),
+	m_cudaF32AccumBuffer(nullptr),
+	m_cudaTex(nullptr),
+	m_cudaGLSurfaceObject(0),
+	m_fbtex(0),
+	m_randomSeeds1(nullptr),
+	m_randomSeeds2(nullptr),
+	m_renderSettings(rs),
+	m_w(0),
+	m_h(0),
+	m_scene(nullptr),
+	m_gpuBytes(0),
+	m_imagequad(nullptr)
 {
 }
 
@@ -96,79 +96,79 @@ void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
 void RenderGLCuda::cleanUpFB()
 {
 	// completely destroy the cuda binding to the framebuffer texture
-	if (_cudaTex) {
-		HandleCudaError(cudaDestroySurfaceObject(_cudaGLSurfaceObject));
-		_cudaGLSurfaceObject = 0;
-		HandleCudaError(cudaGraphicsUnregisterResource(_cudaTex));
-		_cudaTex = nullptr;
+	if (m_cudaTex) {
+		HandleCudaError(cudaDestroySurfaceObject(m_cudaGLSurfaceObject));
+		m_cudaGLSurfaceObject = 0;
+		HandleCudaError(cudaGraphicsUnregisterResource(m_cudaTex));
+		m_cudaTex = nullptr;
 	}
 	// destroy the framebuffer texture
-	if (_fbtex) {
+	if (m_fbtex) {
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glDeleteTextures(1, &_fbtex);
+		glDeleteTextures(1, &m_fbtex);
 		check_gl("Destroy fb texture");
-		_fbtex = 0;
+		m_fbtex = 0;
 	}
-	if (_randomSeeds1) {
-		HandleCudaError(cudaFree(_randomSeeds1));
-		_randomSeeds1 = nullptr;
+	if (m_randomSeeds1) {
+		HandleCudaError(cudaFree(m_randomSeeds1));
+		m_randomSeeds1 = nullptr;
 	}
-	if (_randomSeeds2) {
-		HandleCudaError(cudaFree(_randomSeeds2));
-		_randomSeeds2 = nullptr;
+	if (m_randomSeeds2) {
+		HandleCudaError(cudaFree(m_randomSeeds2));
+		m_randomSeeds2 = nullptr;
 	}
-	if (_cudaF32Buffer) {
-		HandleCudaError(cudaFree(_cudaF32Buffer));
-		_cudaF32Buffer = nullptr;
+	if (m_cudaF32Buffer) {
+		HandleCudaError(cudaFree(m_cudaF32Buffer));
+		m_cudaF32Buffer = nullptr;
 	}
-	if (_cudaF32AccumBuffer) {
-		HandleCudaError(cudaFree(_cudaF32AccumBuffer));
-		_cudaF32AccumBuffer = nullptr;
+	if (m_cudaF32AccumBuffer) {
+		HandleCudaError(cudaFree(m_cudaF32AccumBuffer));
+		m_cudaF32AccumBuffer = nullptr;
 	}
 
-	_gpuBytes = 0;
+	m_gpuBytes = 0;
 }
 
 void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 {
 	cleanUpFB();
 	
-	HandleCudaError(cudaMalloc((void**)&_cudaF32Buffer, w*h * 4 * sizeof(float)));
-	HandleCudaError(cudaMemset(_cudaF32Buffer, 0, w*h * 4 * sizeof(float)));
-	_gpuBytes += w*h * 4 * sizeof(float);
-	HandleCudaError(cudaMalloc((void**)&_cudaF32AccumBuffer, w*h * 4 * sizeof(float)));
-	HandleCudaError(cudaMemset(_cudaF32AccumBuffer, 0, w*h * 4 * sizeof(float)));
-	_gpuBytes += w*h * 4 * sizeof(float);
+	HandleCudaError(cudaMalloc((void**)&m_cudaF32Buffer, w*h * 4 * sizeof(float)));
+	HandleCudaError(cudaMemset(m_cudaF32Buffer, 0, w*h * 4 * sizeof(float)));
+	m_gpuBytes += w*h * 4 * sizeof(float);
+	HandleCudaError(cudaMalloc((void**)&m_cudaF32AccumBuffer, w*h * 4 * sizeof(float)));
+	HandleCudaError(cudaMemset(m_cudaF32AccumBuffer, 0, w*h * 4 * sizeof(float)));
+	m_gpuBytes += w*h * 4 * sizeof(float);
 
 	{
 		unsigned int* pSeeds = (unsigned int*)malloc(w*h * sizeof(unsigned int));
 
-		HandleCudaError(cudaMalloc((void**)&_randomSeeds1, w*h * sizeof(unsigned int)));
+		HandleCudaError(cudaMalloc((void**)&m_randomSeeds1, w*h * sizeof(unsigned int)));
 		memset(pSeeds, 0, w*h * sizeof(unsigned int));
 		for (unsigned int i = 0; i < w*h; i++)
 			pSeeds[i] = rand();
-		HandleCudaError(cudaMemcpy(_randomSeeds1, pSeeds, w*h * sizeof(unsigned int), cudaMemcpyHostToDevice));
-		_gpuBytes += w*h * sizeof(unsigned int);
+		HandleCudaError(cudaMemcpy(m_randomSeeds1, pSeeds, w*h * sizeof(unsigned int), cudaMemcpyHostToDevice));
+		m_gpuBytes += w*h * sizeof(unsigned int);
 
-		HandleCudaError(cudaMalloc((void**)&_randomSeeds2, w*h * sizeof(unsigned int)));
+		HandleCudaError(cudaMalloc((void**)&m_randomSeeds2, w*h * sizeof(unsigned int)));
 		memset(pSeeds, 0, w*h * sizeof(unsigned int));
 		for (unsigned int i = 0; i < w*h; i++)
 			pSeeds[i] = rand();
-		HandleCudaError(cudaMemcpy(_randomSeeds2, pSeeds, w*h * sizeof(unsigned int), cudaMemcpyHostToDevice));
-		_gpuBytes += w*h * sizeof(unsigned int);
+		HandleCudaError(cudaMemcpy(m_randomSeeds2, pSeeds, w*h * sizeof(unsigned int), cudaMemcpyHostToDevice));
+		m_gpuBytes += w*h * sizeof(unsigned int);
 
 		free(pSeeds);
 	}
 
-	glGenTextures(1, &_fbtex);
+	glGenTextures(1, &m_fbtex);
 	check_gl("Gen fb texture id");
-	glBindTexture(GL_TEXTURE_2D, _fbtex);
+	glBindTexture(GL_TEXTURE_2D, m_fbtex);
 	check_gl("Bind fb texture");
 	//glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
 
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	_gpuBytes += w*h * 4;
+	m_gpuBytes += w*h * 4;
 	check_gl("Create fb texture");
 	// this is required in order to "complete" the texture object for mipmapless shader access.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -176,17 +176,17 @@ void RenderGLCuda::initFB(uint32_t w, uint32_t h)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	// use gl interop to let cuda write to this tex.
-	HandleCudaError(cudaGraphicsGLRegisterImage(&_cudaTex, _fbtex, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore));
+	HandleCudaError(cudaGraphicsGLRegisterImage(&m_cudaTex, m_fbtex, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore));
 
-	HandleCudaError(cudaGraphicsMapResources(1, &_cudaTex));
+	HandleCudaError(cudaGraphicsMapResources(1, &m_cudaTex));
 	cudaArray_t ca;
-	HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&ca, _cudaTex, 0, 0));
+	HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&ca, m_cudaTex, 0, 0));
 	cudaResourceDesc desc;
 	memset(&desc, 0, sizeof(desc));
 	desc.resType = cudaResourceTypeArray;
 	desc.res.array.array = ca;
-	HandleCudaError(cudaCreateSurfaceObject(&_cudaGLSurfaceObject, &desc));
-	HandleCudaError(cudaGraphicsUnmapResources(1, &_cudaTex));
+	HandleCudaError(cudaCreateSurfaceObject(&m_cudaGLSurfaceObject, &desc));
+	HandleCudaError(cudaGraphicsUnmapResources(1, &m_cudaTex));
 }
 
 void RenderGLCuda::initVolumeTextureCUDA() {
@@ -200,14 +200,14 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 	//	_imgCuda.reset();
 	//}
 
-	if (_scene && _scene->m_volume) {
-		_imgCuda = renderlib::imageAllocGPU_Cuda(_scene->m_volume, false);
+	if (m_scene && m_scene->m_volume) {
+		m_imgCuda = renderlib::imageAllocGPU_Cuda(m_scene->m_volume, false);
 	}
 }
 
 void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 {
-	_imagequad = new RectImage2D();
+	m_imagequad = new RectImage2D();
 
 	initVolumeTextureCUDA();
 
@@ -222,123 +222,123 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::doRender(const CCamera& camera) {
-	if (!_scene || !_scene->m_volume) {
+	if (!m_scene || !m_scene->m_volume) {
 		return;
 	}
-	if (!_imgCuda || !_imgCuda->_volumeArrayInterleaved || _renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
+	if (!m_imgCuda || !m_imgCuda->_volumeArrayInterleaved || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
 		initVolumeTextureCUDA();
 		// we have set up everything there is to do before rendering
-		_status.SetRenderBegin();
+		m_status.SetRenderBegin();
 	}
 
 	// Resizing the image canvas requires special attention
-	if (_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty))
+	if (m_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty))
 	{
-		_renderSettings->SetNoIterations(0);
+		m_renderSettings->SetNoIterations(0);
 
 		//Log("Render canvas resized to: " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResX()) + " x " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResY()) + " pixels", "application-resize");
 	}
 
 	// Restart the rendering when when the camera, lights and render params are dirty
-	if (_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty | RoiDirty))
+	if (m_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty | RoiDirty))
 	{
-		if (_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
+		if (m_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
 			// TODO: only update the ones that changed.
-			int NC = _scene->m_volume->sizeC();
+			int NC = m_scene->m_volume->sizeC();
 			for (int i = 0; i < NC; ++i) {
-				_imgCuda->updateLutGpu(i, _scene->m_volume.get());
+				m_imgCuda->updateLutGpu(i, m_scene->m_volume.get());
 			}
 		}
 
 		//		ResetRenderCanvasView();
 
 		// Reset no. iterations
-		_renderSettings->SetNoIterations(0);
+		m_renderSettings->SetNoIterations(0);
 	}
-	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
-		for (int i = 0; i < _scene->m_lighting.m_NoLights; ++i) {
-			_scene->m_lighting.m_Lights[i].Update(_scene->m_boundingBox);
+	if (m_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
+		for (int i = 0; i < m_scene->m_lighting.m_NoLights; ++i) {
+			m_scene->m_lighting.m_Lights[i].Update(m_scene->m_boundingBox);
 		}
 
 		// Reset no. iterations
-		_renderSettings->SetNoIterations(0);
+		m_renderSettings->SetNoIterations(0);
 	}
-	if (_renderSettings->m_DirtyFlags.HasFlag(VolumeDataDirty))
+	if (m_renderSettings->m_DirtyFlags.HasFlag(VolumeDataDirty))
 	{
 		int ch[4] = { 0, 0, 0, 0 };
 		int activeChannel = 0;
-		int NC = _scene->m_volume->sizeC();
+		int NC = m_scene->m_volume->sizeC();
 		for (int i = 0; i < NC; ++i) {
-			if (_scene->m_material.enabled[i] && activeChannel < 4) {
+			if (m_scene->m_material.enabled[i] && activeChannel < 4) {
 				ch[activeChannel] = i;
 				activeChannel++;
 			}
 		}
-		_imgCuda->updateVolumeData4x16(_scene->m_volume.get(), ch[0], ch[1], ch[2], ch[3]);
-		_renderSettings->SetNoIterations(0);
+		m_imgCuda->updateVolumeData4x16(m_scene->m_volume.get(), ch[0], ch[1], ch[2], ch[3]);
+		m_renderSettings->SetNoIterations(0);
 	}
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
-	_renderSettings->m_DirtyFlags.ClearAllFlags();
+	m_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_scene->m_volume->maxPixelDimension();
+	m_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->m_scene->m_volume->maxPixelDimension();
 
-	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
+	m_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
 	CudaLighting cudalt;
-	FillCudaLighting(_scene, cudalt);
+	FillCudaLighting(m_scene, cudalt);
     CudaCamera cudacam;
     FillCudaCamera(&(camera), cudacam);
 
-	glm::vec3 sn = _scene->m_boundingBox.GetMinP();
-	glm::vec3 ext = _scene->m_boundingBox.GetExtent();
+	glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
+	glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
 	CBoundingBox b;
 	b.SetMinP(glm::vec3(
-		ext.x*_scene->m_roi.GetMinP().x + sn.x,
-		ext.y*_scene->m_roi.GetMinP().y + sn.y,
-		ext.z*_scene->m_roi.GetMinP().z + sn.z
+		ext.x*m_scene->m_roi.GetMinP().x + sn.x,
+		ext.y*m_scene->m_roi.GetMinP().y + sn.y,
+		ext.z*m_scene->m_roi.GetMinP().z + sn.z
 	));
 	b.SetMaxP(glm::vec3(
-		ext.x*_scene->m_roi.GetMaxP().x + sn.x,
-		ext.y*_scene->m_roi.GetMaxP().y + sn.y,
-		ext.z*_scene->m_roi.GetMaxP().z + sn.z
+		ext.x*m_scene->m_roi.GetMaxP().x + sn.x,
+		ext.y*m_scene->m_roi.GetMaxP().y + sn.y,
+		ext.z*m_scene->m_roi.GetMaxP().z + sn.z
 	));
 
 
-	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam,
-		_scene->m_boundingBox, b, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
-		_w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
+	BindConstants(cudalt, m_renderSettings->m_DenoiseParams, cudacam,
+		m_scene->m_boundingBox, b, m_renderSettings->m_RenderSettings, m_renderSettings->GetNoIterations(),
+		m_w, m_h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
 	cudaFB theCudaFB = {
-		_cudaF32Buffer,
-		_cudaF32AccumBuffer,
-		_randomSeeds1,
-		_randomSeeds2
+		m_cudaF32Buffer,
+		m_cudaF32AccumBuffer,
+		m_randomSeeds1,
+		m_randomSeeds2
 	};
 
 	// single channel
-	int NC = _scene->m_volume->sizeC();
+	int NC = m_scene->m_volume->sizeC();
 	// use first 3 channels only.
 	int activeChannel = 0;
 	cudaVolume theCudaVolume(0);
 	for (int i = 0; i < NC; ++i) {
-		if (_scene->m_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
-			theCudaVolume.volumeTexture[activeChannel] = _imgCuda->_volumeTextureInterleaved;
-			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda->_channels[i]._volumeGradientTexture;
-			theCudaVolume.lutTexture[activeChannel] = _imgCuda->_channels[i]._volumeLutTexture;
-			theCudaVolume.intensityMax[activeChannel] = _scene->m_volume->channel(i)->m_max;
-			theCudaVolume.intensityMin[activeChannel] = _scene->m_volume->channel(i)->m_min;
-			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->m_material.diffuse[i * 3 + 0];
-			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->m_material.diffuse[i * 3 + 1];
-			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->m_material.diffuse[i * 3 + 2];
-			theCudaVolume.specular[activeChannel * 3 + 0] = _scene->m_material.specular[i * 3 + 0];
-			theCudaVolume.specular[activeChannel * 3 + 1] = _scene->m_material.specular[i * 3 + 1];
-			theCudaVolume.specular[activeChannel * 3 + 2] = _scene->m_material.specular[i * 3 + 2];
-			theCudaVolume.emissive[activeChannel * 3 + 0] = _scene->m_material.emissive[i * 3 + 0];
-			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->m_material.emissive[i * 3 + 1];
-			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->m_material.emissive[i * 3 + 2];
-			theCudaVolume.roughness[activeChannel] = _scene->m_material.roughness[i];
-			theCudaVolume.opacity[activeChannel] = _scene->m_material.opacity[i];
+		if (m_scene->m_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
+			theCudaVolume.volumeTexture[activeChannel] = m_imgCuda->_volumeTextureInterleaved;
+			theCudaVolume.gradientVolumeTexture[activeChannel] = m_imgCuda->_channels[i]._volumeGradientTexture;
+			theCudaVolume.lutTexture[activeChannel] = m_imgCuda->_channels[i]._volumeLutTexture;
+			theCudaVolume.intensityMax[activeChannel] = m_scene->m_volume->channel(i)->m_max;
+			theCudaVolume.intensityMin[activeChannel] = m_scene->m_volume->channel(i)->m_min;
+			theCudaVolume.diffuse[activeChannel * 3 + 0] = m_scene->m_material.diffuse[i * 3 + 0];
+			theCudaVolume.diffuse[activeChannel * 3 + 1] = m_scene->m_material.diffuse[i * 3 + 1];
+			theCudaVolume.diffuse[activeChannel * 3 + 2] = m_scene->m_material.diffuse[i * 3 + 2];
+			theCudaVolume.specular[activeChannel * 3 + 0] = m_scene->m_material.specular[i * 3 + 0];
+			theCudaVolume.specular[activeChannel * 3 + 1] = m_scene->m_material.specular[i * 3 + 1];
+			theCudaVolume.specular[activeChannel * 3 + 2] = m_scene->m_material.specular[i * 3 + 2];
+			theCudaVolume.emissive[activeChannel * 3 + 0] = m_scene->m_material.emissive[i * 3 + 0];
+			theCudaVolume.emissive[activeChannel * 3 + 1] = m_scene->m_material.emissive[i * 3 + 1];
+			theCudaVolume.emissive[activeChannel * 3 + 2] = m_scene->m_material.emissive[i * 3 + 2];
+			theCudaVolume.roughness[activeChannel] = m_scene->m_material.roughness[i];
+			theCudaVolume.opacity[activeChannel] = m_scene->m_material.opacity[i];
 
 			activeChannel++;
 			theCudaVolume.nChannels = activeChannel;
@@ -351,14 +351,14 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 		ComputeFocusDistance(theCudaVolume);
 	}
 
-	int numIterations = _renderSettings->GetNoIterations();
+	int numIterations = m_renderSettings->GetNoIterations();
 	Render(0, camera.m_Film.m_ExposureIterations, 
         camera.m_Film.m_Resolution.GetResX(), 
         camera.m_Film.m_Resolution.GetResY(),
 		theCudaFB,
 		theCudaVolume,
-		_timingRender, _timingBlur, _timingPostProcess, _timingDenoise, numIterations);
-	_renderSettings->SetNoIterations(numIterations);
+		m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise, numIterations);
+	m_renderSettings->SetNoIterations(numIterations);
 	//LOG_DEBUG << "RETURN FROM RENDER";
 
 	// Tonemap into opengl display buffer
@@ -367,32 +367,32 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 
 	// set the lerpC here because the Render call is incrementing the number of iterations.
 	//_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
-	_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
+	m_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)m_renderSettings->GetNoIterations(), 1.0f) * 0.035f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f * (float)gScene.GetNoIterations());
 //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResX() << " " << _renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
 	CCudaTimer TmrDenoise;
-	if (_renderSettings->m_DenoiseParams.m_Enabled && _renderSettings->m_DenoiseParams.m_LerpC > 0.0f && _renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
+	if (m_renderSettings->m_DenoiseParams.m_Enabled && m_renderSettings->m_DenoiseParams.m_LerpC > 0.0f && m_renderSettings->m_DenoiseParams.m_LerpC < 1.0f)
 	{
-		Denoise(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h, _renderSettings->m_DenoiseParams.m_LerpC);
+		Denoise(m_cudaF32AccumBuffer, m_cudaGLSurfaceObject, m_w, m_h, m_renderSettings->m_DenoiseParams.m_LerpC);
 	}
 	else
 	{
-		ToneMap(_cudaF32AccumBuffer, _cudaGLSurfaceObject, _w, _h);
+		ToneMap(m_cudaF32AccumBuffer, m_cudaGLSurfaceObject, m_w, m_h);
 	}
-	_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
+	m_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 	
 	HandleCudaError(cudaStreamSynchronize(0));
 	
 	// display timings.
 	
-	_status.SetStatisticChanged("Performance", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms");
-	_status.SetStatisticChanged("Performance", "Blur Estimate", QString::number(_timingBlur.m_FilteredDuration, 'f', 2), "ms");
-	_status.SetStatisticChanged("Performance", "Post Process Estimate", QString::number(_timingPostProcess.m_FilteredDuration, 'f', 2), "ms");
-	_status.SetStatisticChanged("Performance", "De-noise Image", QString::number(_timingDenoise.m_FilteredDuration, 'f', 2), "ms");
+	m_status.SetStatisticChanged("Performance", "Render Image", QString::number(m_timingRender.m_FilteredDuration, 'f', 2), "ms");
+	m_status.SetStatisticChanged("Performance", "Blur Estimate", QString::number(m_timingBlur.m_FilteredDuration, 'f', 2), "ms");
+	m_status.SetStatisticChanged("Performance", "Post Process Estimate", QString::number(m_timingPostProcess.m_FilteredDuration, 'f', 2), "ms");
+	m_status.SetStatisticChanged("Performance", "De-noise Image", QString::number(m_timingDenoise.m_FilteredDuration, 'f', 2), "ms");
 
 	//FPS.AddDuration(1000.0f / TmrFps.ElapsedTime());
 
 	//_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
-	_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(_renderSettings->GetNoIterations()), "");
+	m_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()), "");
 	
 }
 
@@ -410,7 +410,7 @@ void RenderGLCuda::drawImage() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// draw quad using the tex that cudaTex was mapped to
-	_imagequad->draw(_fbtex);
+	m_imagequad->draw(m_fbtex);
 }
 
 
@@ -418,36 +418,36 @@ void RenderGLCuda::resize(uint32_t w, uint32_t h)
 {
 	//w = 8; h = 8;
 	glViewport(0, 0, w, h);
-	if ((_w == w) && (_h == h)) {
+	if ((m_w == w) && (m_h == h)) {
 		return;
 	}
 
 	initFB(w, h);
 	LOG_DEBUG << "Resized window to " << w << " x " << h;
 
-	_w = w;
-	_h = h;
+	m_w = w;
+	m_h = h;
 }
 
 void RenderGLCuda::cleanUpResources() {
 
-	delete _imagequad;
-	_imagequad = nullptr;
+	delete m_imagequad;
+	m_imagequad = nullptr;
 
 	cleanUpFB();
 
 }
 
 RenderParams& RenderGLCuda::renderParams() {
-	return _renderParams;
+	return m_renderParams;
 }
 Scene* RenderGLCuda::scene() {
-	return _scene;
+	return m_scene;
 }
 void RenderGLCuda::setScene(Scene* s) {
-	_scene = s;
+	m_scene = s;
 }
 
 size_t RenderGLCuda::getGpuBytes() {
-	return _gpuBytes + _imgCuda->_gpuBytes;
+	return m_gpuBytes + m_imgCuda->_gpuBytes;
 }

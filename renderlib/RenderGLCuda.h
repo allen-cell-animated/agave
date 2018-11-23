@@ -33,10 +33,10 @@ public:
 	virtual Scene* scene();
 	virtual void setScene(Scene* s);
 
-	virtual CStatus* getStatusInterface() { return &_status; }
+	virtual CStatus* getStatusInterface() { return &m_status; }
 
 	Image3Dv33* getImage() const { return nullptr; };
-	RenderSettings& getRenderSettings() { return *_renderSettings; }
+	RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
 	// just draw into my own fbo.
 	void doRender(const CCamera& camera);
@@ -45,38 +45,38 @@ public:
 
 	size_t getGpuBytes();
 private:
-	RenderSettings* _renderSettings;
-	RenderParams _renderParams;
-	Scene* _scene;
+	RenderSettings* m_renderSettings;
+	RenderParams m_renderParams;
+	Scene* m_scene;
 
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();
 	void cleanUpFB();
 
-	std::shared_ptr<ImageCuda> _imgCuda;
+	std::shared_ptr<ImageCuda> m_imgCuda;
 
-	RectImage2D* _imagequad;
+	RectImage2D* m_imagequad;
 
 	// the rgba8 buffer for display
-	cudaGraphicsResource* _cudaTex;
-	cudaSurfaceObject_t _cudaGLSurfaceObject;
-	GLuint _fbtex;
+	cudaGraphicsResource* m_cudaTex;
+	cudaSurfaceObject_t m_cudaGLSurfaceObject;
+	GLuint m_fbtex;
 
 	// the rgbaf32 buffer for rendering
-	float* _cudaF32Buffer;
+	float* m_cudaF32Buffer;
 	// the rgbaf32 accumulation buffer that holds the progressively rendered image
-	float* _cudaF32AccumBuffer;
+	float* m_cudaF32AccumBuffer;
 
 	// screen size auxiliary buffers for rendering 
-	unsigned int* _randomSeeds1;
-	unsigned int* _randomSeeds2;
+	unsigned int* m_randomSeeds1;
+	unsigned int* m_randomSeeds2;
 
-	int _w, _h;
+	int m_w, m_h;
 
-	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
-	CStatus _status;
+	CTiming m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
+	CStatus m_status;
 
-	size_t _gpuBytes;
+	size_t m_gpuBytes;
 
 	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
     void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);

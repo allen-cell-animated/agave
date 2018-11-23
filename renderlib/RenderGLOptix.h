@@ -33,9 +33,9 @@ public:
 	virtual Scene* scene();
 	virtual void setScene(Scene* s);
 
-	virtual CStatus* getStatusInterface() { return &_status; }
+	virtual CStatus* getStatusInterface() { return &m_status; }
 
-	RenderSettings& getRenderSettings() { return *_renderSettings; }
+	RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
 	// just draw into my own fbo.
 	void doRender(const CCamera& camera);
@@ -45,49 +45,49 @@ public:
 	size_t getGpuBytes();
 
 private:
-	RenderSettings* _renderSettings;
-	RenderParams _renderParams;
-	Scene* _scene;
+	RenderSettings* m_renderSettings;
+	RenderParams m_renderParams;
+	Scene* m_scene;
 
-	int _w, _h;
+	int m_w, m_h;
 
-	RectImage2D* _imagequad;
+	RectImage2D* m_imagequad;
 
-	CStatus _status;
+	CStatus m_status;
 
-	size_t _gpuBytes;
+	size_t m_gpuBytes;
 
-	optix::Context _ctx;
-    RTcontext _context;
+	optix::Context m_ctx;
+    RTcontext m_context;
 
 	/* Primary RTAPI objects */
-	RTprogram _ray_gen_program;
-	RTprogram _miss_program;
-	RTprogram _exception_program;
-	RTbuffer  _buffer;
+	RTprogram m_ray_gen_program;
+	RTprogram m_miss_program;
+	RTprogram m_exception_program;
+	RTbuffer  m_buffer;
 
-	optix::Program _phong_closesthit_program;
-	optix::Program _phong_anyhit_program;
-	optix::Program _mesh_intersect_program;
-	optix::Program _mesh_boundingbox_program;
+	optix::Program m_phong_closesthit_program;
+	optix::Program m_phong_anyhit_program;
+	optix::Program m_mesh_intersect_program;
+	optix::Program m_mesh_boundingbox_program;
 
 	/* Parameters */
-	RTvariable _result_buffer;
-	RTvariable _draw_color;
-	RTvariable _scene_epsilon;
-	RTvariable _eye;
-	RTvariable _U;
-	RTvariable _V;
-	RTvariable _W;
+	RTvariable m_result_buffer;
+	RTvariable m_draw_color;
+	RTvariable m_scene_epsilon;
+	RTvariable m_eye;
+	RTvariable m_U;
+	RTvariable m_V;
+	RTvariable m_W;
 
-	RTvariable _lightsvar;
+	RTvariable m_lightsvar;
 
-	RTbuffer _light_buffer;
+	RTbuffer m_light_buffer;
 
 	void initOptixMesh();
 	// the scene root node...
-	RTgroup _topGroup;
+	RTgroup m_topGroup;
 
-	std::vector<std::shared_ptr<OptiXMesh>> _optixmeshes;
+	std::vector<std::shared_ptr<OptiXMesh>> m_optixmeshes;
 };
 
