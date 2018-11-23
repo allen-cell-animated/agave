@@ -252,8 +252,8 @@ void qtome::openJson()
 		QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
 		ViewerState s;
 		s.stateFromJson(loadDoc);
-		if (!s._volumeImageFile.isEmpty()) {
-			open(s._volumeImageFile, &s);
+		if (!s.m_volumeImageFile.isEmpty()) {
+			open(s.m_volumeImageFile, &s);
 		}
 	}
 }
@@ -555,62 +555,62 @@ void qtome::viewerStateToApp(const ViewerState& v)
 	// position camera
 	glView->fromViewerState(v);
 
-	_appScene._roi.SetMinP(glm::vec3(v._roiXmin, v._roiYmin, v._roiZmin));
-	_appScene._roi.SetMaxP(glm::vec3(v._roiXmax, v._roiYmax, v._roiZmax));
+	_appScene._roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
+	_appScene._roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
 
-	_appScene._volume->setPhysicalSize(v._scaleX, v._scaleY, v._scaleZ);
+	_appScene._volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
-	_renderSettings.m_RenderSettings.m_DensityScale = v._densityScale;
+	_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
 
 	// channels
 	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
-		ChannelViewerState ch = v._channels[i];
-		_appScene._material.enabled[i] = ch._enabled;
-		_appScene._material.diffuse[i * 3] = ch._diffuse.x;
-		_appScene._material.diffuse[i * 3 + 1] = ch._diffuse.y;
-		_appScene._material.diffuse[i * 3 + 2] = ch._diffuse.z;
-		_appScene._material.specular[i * 3] = ch._specular.x;
-		_appScene._material.specular[i * 3 + 1] = ch._specular.y;
-		_appScene._material.specular[i * 3 + 2] = ch._specular.z;
-		_appScene._material.emissive[i * 3] = ch._emissive.x;
-		_appScene._material.emissive[i * 3 + 1] = ch._emissive.y;
-		_appScene._material.emissive[i * 3 + 2] = ch._emissive.z;
-		_appScene._material.roughness[i] = ch._glossiness;
-		_appScene._volume->channel(i)->generate_windowLevel(ch._window, ch._level);
+		ChannelViewerState ch = v.m_channels[i];
+		_appScene._material.enabled[i] = ch.m_enabled;
+		_appScene._material.diffuse[i * 3] = ch.m_diffuse.x;
+		_appScene._material.diffuse[i * 3 + 1] = ch.m_diffuse.y;
+		_appScene._material.diffuse[i * 3 + 2] = ch.m_diffuse.z;
+		_appScene._material.specular[i * 3] = ch.m_specular.x;
+		_appScene._material.specular[i * 3 + 1] = ch.m_specular.y;
+		_appScene._material.specular[i * 3 + 2] = ch.m_specular.z;
+		_appScene._material.emissive[i * 3] = ch.m_emissive.x;
+		_appScene._material.emissive[i * 3 + 1] = ch.m_emissive.y;
+		_appScene._material.emissive[i * 3 + 2] = ch.m_emissive.z;
+		_appScene._material.roughness[i] = ch.m_glossiness;
+		_appScene._volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
 	}
 
 	// lights
 	Light& lt = _appScene._lighting.m_Lights[0];
-	lt.m_T = v._light0._type;
-	lt.m_Distance = v._light0._distance;
-	lt.m_Theta = v._light0._theta;
-	lt.m_Phi = v._light0._phi;
-	lt.m_ColorTop = v._light0._topColor;
-	lt.m_ColorMiddle = v._light0._middleColor;
-	lt.m_ColorBottom = v._light0._bottomColor;
-	lt.m_Color = v._light0._color;
-	lt.m_ColorTopIntensity = v._light0._topColorIntensity;
-	lt.m_ColorMiddleIntensity = v._light0._middleColorIntensity;
-	lt.m_ColorBottomIntensity = v._light0._bottomColorIntensity;
-	lt.m_ColorIntensity = v._light0._colorIntensity;
-	lt.m_Width = v._light0._width;
-	lt.m_Height = v._light0._height;
+	lt.m_T = v.m_light0.m_type;
+	lt.m_Distance = v.m_light0.m_distance;
+	lt.m_Theta = v.m_light0.m_theta;
+	lt.m_Phi = v.m_light0.m_phi;
+	lt.m_ColorTop = v.m_light0.m_topColor;
+	lt.m_ColorMiddle = v.m_light0.m_middleColor;
+	lt.m_ColorBottom = v.m_light0.m_bottomColor;
+	lt.m_Color = v.m_light0.m_color;
+	lt.m_ColorTopIntensity = v.m_light0.m_topColorIntensity;
+	lt.m_ColorMiddleIntensity = v.m_light0.m_middleColorIntensity;
+	lt.m_ColorBottomIntensity = v.m_light0.m_bottomColorIntensity;
+	lt.m_ColorIntensity = v.m_light0.m_colorIntensity;
+	lt.m_Width = v.m_light0.m_width;
+	lt.m_Height = v.m_light0.m_height;
 
 	Light& lt1 = _appScene._lighting.m_Lights[1];
-	lt1.m_T = v._light1._type;
-	lt1.m_Distance = v._light1._distance;
-	lt1.m_Theta = v._light1._theta;
-	lt1.m_Phi = v._light1._phi;
-	lt1.m_ColorTop = v._light1._topColor;
-	lt1.m_ColorMiddle = v._light1._middleColor;
-	lt1.m_ColorBottom = v._light1._bottomColor;
-	lt1.m_Color = v._light1._color;
-	lt1.m_ColorTopIntensity = v._light1._topColorIntensity;
-	lt1.m_ColorMiddleIntensity = v._light1._middleColorIntensity;
-	lt1.m_ColorBottomIntensity = v._light1._bottomColorIntensity;
-	lt1.m_ColorIntensity = v._light1._colorIntensity;
-	lt1.m_Width = v._light1._width;
-	lt1.m_Height = v._light1._height;
+	lt1.m_T = v.m_light1.m_type;
+	lt1.m_Distance = v.m_light1.m_distance;
+	lt1.m_Theta = v.m_light1.m_theta;
+	lt1.m_Phi = v.m_light1.m_phi;
+	lt1.m_ColorTop = v.m_light1.m_topColor;
+	lt1.m_ColorMiddle = v.m_light1.m_middleColor;
+	lt1.m_ColorBottom = v.m_light1.m_bottomColor;
+	lt1.m_Color = v.m_light1.m_color;
+	lt1.m_ColorTopIntensity = v.m_light1.m_topColorIntensity;
+	lt1.m_ColorMiddleIntensity = v.m_light1.m_middleColorIntensity;
+	lt1.m_ColorBottomIntensity = v.m_light1.m_bottomColorIntensity;
+	lt1.m_ColorIntensity = v.m_light1.m_colorIntensity;
+	lt1.m_Width = v.m_light1.m_width;
+	lt1.m_Height = v.m_light1.m_height;
 
 	_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
 
@@ -618,100 +618,100 @@ void qtome::viewerStateToApp(const ViewerState& v)
 
 ViewerState qtome::appToViewerState() {
 	ViewerState v;
-	v._volumeImageFile = _currentFilePath;
+	v.m_volumeImageFile = _currentFilePath;
 
-	v._scaleX = _appScene._volume->physicalSizeX();
-	v._scaleY = _appScene._volume->physicalSizeY();
-	v._scaleZ = _appScene._volume->physicalSizeZ();
+	v.m_scaleX = _appScene._volume->physicalSizeX();
+	v.m_scaleY = _appScene._volume->physicalSizeY();
+	v.m_scaleZ = _appScene._volume->physicalSizeZ();
 
-	v._resolutionX = glView->size().width();
-	v._resolutionY = glView->size().height();
-	v._renderIterations = _renderSettings.GetNoIterations();
+	v.m_resolutionX = glView->size().width();
+	v.m_resolutionY = glView->size().height();
+	v.m_renderIterations = _renderSettings.GetNoIterations();
 
-	v._roiXmax = _appScene._roi.GetMaxP().x;
-	v._roiYmax = _appScene._roi.GetMaxP().y;
-	v._roiZmax = _appScene._roi.GetMaxP().z;
-	v._roiXmin = _appScene._roi.GetMinP().x;
-	v._roiYmin = _appScene._roi.GetMinP().y;
-	v._roiZmin = _appScene._roi.GetMinP().z;
+	v.m_roiXmax = _appScene._roi.GetMaxP().x;
+	v.m_roiYmax = _appScene._roi.GetMaxP().y;
+	v.m_roiZmax = _appScene._roi.GetMaxP().z;
+	v.m_roiXmin = _appScene._roi.GetMinP().x;
+	v.m_roiYmin = _appScene._roi.GetMinP().y;
+	v.m_roiZmin = _appScene._roi.GetMinP().z;
 
-	v._eyeX = glView->getCamera().m_From.x;
-	v._eyeY = glView->getCamera().m_From.y;
-	v._eyeZ = glView->getCamera().m_From.z;
+	v.m_eyeX = glView->getCamera().m_From.x;
+	v.m_eyeY = glView->getCamera().m_From.y;
+	v.m_eyeZ = glView->getCamera().m_From.z;
 
-	v._targetX = glView->getCamera().m_Target.x;
-	v._targetY = glView->getCamera().m_Target.y;
-	v._targetZ = glView->getCamera().m_Target.z;
+	v.m_targetX = glView->getCamera().m_Target.x;
+	v.m_targetY = glView->getCamera().m_Target.y;
+	v.m_targetZ = glView->getCamera().m_Target.z;
 
-	v._upX = glView->getCamera().m_Up.x;
-	v._upY = glView->getCamera().m_Up.y;
-	v._upZ = glView->getCamera().m_Up.z;
+	v.m_upX = glView->getCamera().m_Up.x;
+	v.m_upY = glView->getCamera().m_Up.y;
+	v.m_upZ = glView->getCamera().m_Up.z;
 
-	v._fov = _camera.GetProjection().GetFieldOfView();
+	v.m_fov = _camera.GetProjection().GetFieldOfView();
 
-	v._exposure = _camera.GetFilm().GetExposure();
-	v._apertureSize = _camera.GetAperture().GetSize();
-	v._focalDistance = _camera.GetFocus().GetFocalDistance();
-	v._densityScale = _renderSettings.m_RenderSettings.m_DensityScale;
+	v.m_exposure = _camera.GetFilm().GetExposure();
+	v.m_apertureSize = _camera.GetAperture().GetSize();
+	v.m_focalDistance = _camera.GetFocus().GetFocalDistance();
+	v.m_densityScale = _renderSettings.m_RenderSettings.m_DensityScale;
 
 	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
 		ChannelViewerState ch;
-		ch._enabled = _appScene._material.enabled[i];
-		ch._diffuse = glm::vec3(
+		ch.m_enabled = _appScene._material.enabled[i];
+		ch.m_diffuse = glm::vec3(
 			_appScene._material.diffuse[i * 3],
 			_appScene._material.diffuse[i * 3 + 1],
 			_appScene._material.diffuse[i * 3 + 2]
 		);
-		ch._specular = glm::vec3(
+		ch.m_specular = glm::vec3(
 			_appScene._material.specular[i * 3],
 			_appScene._material.specular[i * 3 + 1],
 			_appScene._material.specular[i * 3 + 2]
 		);
-		ch._emissive = glm::vec3(
+		ch.m_emissive = glm::vec3(
 			_appScene._material.emissive[i * 3],
 			_appScene._material.emissive[i * 3 + 1],
 			_appScene._material.emissive[i * 3 + 2]
 		);
-		ch._glossiness = _appScene._material.roughness[i];
-		ch._window = _appScene._volume->channel(i)->_window;
-		ch._level = _appScene._volume->channel(i)->_level;
+		ch.m_glossiness = _appScene._material.roughness[i];
+		ch.m_window = _appScene._volume->channel(i)->_window;
+		ch.m_level = _appScene._volume->channel(i)->_level;
 
-		v._channels.push_back(ch);
+		v.m_channels.push_back(ch);
 	}
 
 
 	// lighting
 	Light& lt = _appScene._lighting.m_Lights[0];
-	v._light0._type = lt.m_T;
-	v._light0._distance = lt.m_Distance;
-	v._light0._theta = lt.m_Theta;
-	v._light0._phi = lt.m_Phi;
-	v._light0._topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
-	v._light0._middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
-	v._light0._color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-	v._light0._bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
-	v._light0._topColorIntensity = lt.m_ColorTopIntensity;
-	v._light0._middleColorIntensity = lt.m_ColorMiddleIntensity;
-	v._light0._colorIntensity = lt.m_ColorIntensity;
-	v._light0._bottomColorIntensity = lt.m_ColorBottomIntensity;
-	v._light0._width = lt.m_Width;
-	v._light0._height = lt.m_Height;
+	v.m_light0.m_type = lt.m_T;
+	v.m_light0.m_distance = lt.m_Distance;
+	v.m_light0.m_theta = lt.m_Theta;
+	v.m_light0.m_phi = lt.m_Phi;
+	v.m_light0.m_topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
+	v.m_light0.m_middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
+	v.m_light0.m_color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
+	v.m_light0.m_bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
+	v.m_light0.m_topColorIntensity = lt.m_ColorTopIntensity;
+	v.m_light0.m_middleColorIntensity = lt.m_ColorMiddleIntensity;
+	v.m_light0.m_colorIntensity = lt.m_ColorIntensity;
+	v.m_light0.m_bottomColorIntensity = lt.m_ColorBottomIntensity;
+	v.m_light0.m_width = lt.m_Width;
+	v.m_light0.m_height = lt.m_Height;
 
 	Light& lt1 = _appScene._lighting.m_Lights[1];
-	v._light1._type = lt1.m_T;
-	v._light1._distance = lt1.m_Distance;
-	v._light1._theta = lt1.m_Theta;
-	v._light1._phi = lt1.m_Phi;
-	v._light1._topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
-	v._light1._middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
-	v._light1._color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
-	v._light1._bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
-	v._light1._topColorIntensity = lt1.m_ColorTopIntensity;
-	v._light1._middleColorIntensity = lt1.m_ColorMiddleIntensity;
-	v._light1._colorIntensity = lt1.m_ColorIntensity;
-	v._light1._bottomColorIntensity = lt1.m_ColorBottomIntensity;
-	v._light1._width = lt1.m_Width;
-	v._light1._height = lt1.m_Height;
+	v.m_light1.m_type = lt1.m_T;
+	v.m_light1.m_distance = lt1.m_Distance;
+	v.m_light1.m_theta = lt1.m_Theta;
+	v.m_light1.m_phi = lt1.m_Phi;
+	v.m_light1.m_topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
+	v.m_light1.m_middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
+	v.m_light1.m_color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
+	v.m_light1.m_bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
+	v.m_light1.m_topColorIntensity = lt1.m_ColorTopIntensity;
+	v.m_light1.m_middleColorIntensity = lt1.m_ColorMiddleIntensity;
+	v.m_light1.m_colorIntensity = lt1.m_ColorIntensity;
+	v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
+	v.m_light1.m_width = lt1.m_Width;
+	v.m_light1.m_height = lt1.m_Height;
 
 	return v;
 }

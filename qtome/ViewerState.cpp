@@ -107,65 +107,65 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 	getVec3(json, "version", version);
 	// VERSION MUST EXIST.  THROW OR PANIC IF NOT.
 
-	getString(json, "name", _volumeImageFile);
-	getInt(json, "renderIterations", _renderIterations);
-	getFloat(json, "density", _densityScale);
+	getString(json, "name", m_volumeImageFile);
+	getInt(json, "renderIterations", m_renderIterations);
+	getFloat(json, "density", m_densityScale);
 
-	glm::ivec2 res(_resolutionX, _resolutionY);
+	glm::ivec2 res(m_resolutionX, m_resolutionY);
 	getVec2i(json, "resolution", res);
-	_resolutionX = res.x;
-	_resolutionY = res.y;
+	m_resolutionX = res.x;
+	m_resolutionY = res.y;
 
-	glm::vec3 scale(_scaleX, _scaleY, _scaleZ);
+	glm::vec3 scale(m_scaleX, m_scaleY, m_scaleZ);
 	getVec3(json, "scale", scale);
-	_scaleX = scale.x; _scaleY = scale.y; _scaleZ = scale.z;
+	m_scaleX = scale.x; m_scaleY = scale.y; m_scaleZ = scale.z;
 
 	if (json.contains("clipRegion") && json["clipRegion"].isArray()) {
 		QJsonArray ja = json["clipRegion"].toArray();
 		QJsonArray crx = ja.at(0).toArray();
-		_roiXmin = crx.at(0).toDouble(_roiXmin);
-		_roiXmax = crx.at(1).toDouble(_roiXmax);
+		m_roiXmin = crx.at(0).toDouble(m_roiXmin);
+		m_roiXmax = crx.at(1).toDouble(m_roiXmax);
 		QJsonArray cry = ja.at(1).toArray();
-		_roiYmin = cry.at(0).toDouble(_roiYmin);
-		_roiYmax = cry.at(1).toDouble(_roiYmax);
+		m_roiYmin = cry.at(0).toDouble(m_roiYmin);
+		m_roiYmax = cry.at(1).toDouble(m_roiYmax);
 		QJsonArray crz = ja.at(2).toArray();
-		_roiZmin = crz.at(0).toDouble(_roiZmin);
-		_roiZmax = crz.at(1).toDouble(_roiZmax);
+		m_roiZmin = crz.at(0).toDouble(m_roiZmin);
+		m_roiZmax = crz.at(1).toDouble(m_roiZmax);
 	}
 
 	if (json.contains("camera") && json["camera"].isObject()) {
 		QJsonObject cam = json["camera"].toObject();
 		glm::vec3 tmp;
 		getVec3(cam, "eye", tmp);
-		_eyeX = tmp.x; _eyeY = tmp.y; _eyeZ = tmp.z;
+		m_eyeX = tmp.x; m_eyeY = tmp.y; m_eyeZ = tmp.z;
 		getVec3(cam, "target", tmp);
-		_targetX = tmp.x; _targetY = tmp.y; _targetZ = tmp.z;
+		m_targetX = tmp.x; m_targetY = tmp.y; m_targetZ = tmp.z;
 		getVec3(cam, "up", tmp);
-		_upX = tmp.x; _upY = tmp.y; _upZ = tmp.z;
-		getFloat(cam, "fovY", _fov);
-		getFloat(cam, "exposure", _exposure);
-		getFloat(cam, "aperture", _apertureSize);
-		getFloat(cam, "focalDistance", _focalDistance);
+		m_upX = tmp.x; m_upY = tmp.y; m_upZ = tmp.z;
+		getFloat(cam, "fovY", m_fov);
+		getFloat(cam, "exposure", m_exposure);
+		getFloat(cam, "aperture", m_apertureSize);
+		getFloat(cam, "focalDistance", m_focalDistance);
 	}
 
 	if (json.contains("channels") && json["channels"].isArray()) {
 		QJsonArray channelsArray = json["channels"].toArray();
-		_channels.clear();
-		_channels.reserve(channelsArray.size());
+		m_channels.clear();
+		m_channels.reserve(channelsArray.size());
 		for (int i = 0; i < channelsArray.size(); ++i) {
 			ChannelViewerState ch;
 			QJsonObject channeli = channelsArray[i].toObject();
 
-			getBool(channeli, "enabled", ch._enabled);
-			getVec3(channeli, "diffuseColor", ch._diffuse);
-			getVec3(channeli, "specularColor", ch._specular);
-			getVec3(channeli, "emissiveColor", ch._emissive);
-			getFloat(channeli, "glossiness", ch._glossiness);
-			getFloat(channeli, "window", ch._window);
-			getFloat(channeli, "level", ch._level);
+			getBool(channeli, "enabled", ch.m_enabled);
+			getVec3(channeli, "diffuseColor", ch.m_diffuse);
+			getVec3(channeli, "specularColor", ch.m_specular);
+			getVec3(channeli, "emissiveColor", ch.m_emissive);
+			getFloat(channeli, "glossiness", ch.m_glossiness);
+			getFloat(channeli, "window", ch.m_window);
+			getFloat(channeli, "level", ch.m_level);
 
 			QString channelsString = channelsArray[i].toString();
-			_channels.push_back(ch);
+			m_channels.push_back(ch);
 		}
 	}
 
@@ -174,22 +174,22 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 		QJsonArray lightsArray = json["lights"].toArray();
 		// expect two.
 		for (int i = 0; i < std::min(lightsArray.size(), 2); ++i) {
-			LightViewerState& ls = (i == 0) ? _light0 : _light1;
+			LightViewerState& ls = (i == 0) ? m_light0 : m_light1;
 			QJsonObject lighti = lightsArray[i].toObject();
-			getInt(lighti, "type", ls._type);
-			getVec3(lighti, "topColor", ls._topColor);
-			getVec3(lighti, "middleColor", ls._middleColor);
-			getVec3(lighti, "color", ls._color);
-			getVec3(lighti, "bottomColor", ls._bottomColor);
-			getFloat(lighti, "topColorIntensity", ls._topColorIntensity);
-			getFloat(lighti, "middleColorIntensity", ls._middleColorIntensity);
-			getFloat(lighti, "colorIntensity", ls._colorIntensity);
-			getFloat(lighti, "bottomColorIntensity", ls._bottomColorIntensity);
-			getFloat(lighti, "distance", ls._distance);
-			getFloat(lighti, "theta", ls._theta);
-			getFloat(lighti, "phi", ls._phi);
-			getFloat(lighti, "width", ls._width);
-			getFloat(lighti, "height", ls._height);
+			getInt(lighti, "type", ls.m_type);
+			getVec3(lighti, "topColor", ls.m_topColor);
+			getVec3(lighti, "middleColor", ls.m_middleColor);
+			getVec3(lighti, "color", ls.m_color);
+			getVec3(lighti, "bottomColor", ls.m_bottomColor);
+			getFloat(lighti, "topColorIntensity", ls.m_topColorIntensity);
+			getFloat(lighti, "middleColorIntensity", ls.m_middleColorIntensity);
+			getFloat(lighti, "colorIntensity", ls.m_colorIntensity);
+			getFloat(lighti, "bottomColorIntensity", ls.m_bottomColorIntensity);
+			getFloat(lighti, "distance", ls.m_distance);
+			getFloat(lighti, "theta", ls.m_theta);
+			getFloat(lighti, "phi", ls.m_phi);
+			getFloat(lighti, "width", ls.m_width);
+			getFloat(lighti, "height", ls.m_height);
 		}
 	}
 }
@@ -198,111 +198,111 @@ QJsonDocument ViewerState::stateToJson() const
 {
 	// fire back some json...
 	QJsonObject j;
-	j["name"] = _volumeImageFile;
+	j["name"] = m_volumeImageFile;
 	
 	// the version of this schema
 	j["version"] = jsonVec3(1, 0, 0);
 
 	QJsonArray resolution;
-	resolution.append(_resolutionX);
-	resolution.append(_resolutionY);
+	resolution.append(m_resolutionX);
+	resolution.append(m_resolutionY);
 	j["resolution"] = resolution;
 
-	j["renderIterations"] = _renderIterations;
+	j["renderIterations"] = m_renderIterations;
 
 	QJsonArray clipRegion;
 	QJsonArray clipRegionX;
-	clipRegionX.append(_roiXmin);
-	clipRegionX.append(_roiXmax);
+	clipRegionX.append(m_roiXmin);
+	clipRegionX.append(m_roiXmax);
 	QJsonArray clipRegionY;
-	clipRegionY.append(_roiYmin);
-	clipRegionY.append(_roiYmax);
+	clipRegionY.append(m_roiYmin);
+	clipRegionY.append(m_roiYmax);
 	QJsonArray clipRegionZ;
-	clipRegionZ.append(_roiZmin);
-	clipRegionZ.append(_roiZmax);
+	clipRegionZ.append(m_roiZmin);
+	clipRegionZ.append(m_roiZmax);
 	clipRegion.append(clipRegionX);
 	clipRegion.append(clipRegionY);
 	clipRegion.append(clipRegionZ);
 
 	j["clipRegion"] = clipRegion;
 
-	j["scale"] = jsonVec3(_scaleX, _scaleY, _scaleZ);
+	j["scale"] = jsonVec3(m_scaleX, m_scaleY, m_scaleZ);
 
 	QJsonObject camera;
-	camera["eye"] = jsonVec3(_eyeX, _eyeY, _eyeZ);
-	camera["target"] = jsonVec3(_targetX, _targetY, _targetZ);
-	camera["up"] = jsonVec3(_upX, _upY, _upZ);
+	camera["eye"] = jsonVec3(m_eyeX, m_eyeY, m_eyeZ);
+	camera["target"] = jsonVec3(m_targetX, m_targetY, m_targetZ);
+	camera["up"] = jsonVec3(m_upX, m_upY, m_upZ);
 
-	camera["fovY"] = _fov;
+	camera["fovY"] = m_fov;
 
-	camera["exposure"] = _exposure;
-	camera["aperture"] = _apertureSize;
-	camera["focalDistance"] = _focalDistance;
+	camera["exposure"] = m_exposure;
+	camera["aperture"] = m_apertureSize;
+	camera["focalDistance"] = m_focalDistance;
 	j["camera"] = camera;
 
 	QJsonArray channels;
-	for (auto ch : _channels) {
+	for (auto ch : m_channels) {
 		QJsonObject channel;
-		channel["enabled"] = ch._enabled;
-		channel["diffuseColor"] = jsonVec3(ch._diffuse.x, ch._diffuse.y, ch._diffuse.z);
-		channel["specularColor"] = jsonVec3(ch._specular.x, ch._specular.y, ch._specular.z);
-		channel["emissiveColor"] = jsonVec3(ch._emissive.x, ch._emissive.y, ch._emissive.z);
-		channel["glossiness"] = ch._glossiness;
-		channel["window"] = ch._window;
-		channel["level"] = ch._level;
+		channel["enabled"] = ch.m_enabled;
+		channel["diffuseColor"] = jsonVec3(ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z);
+		channel["specularColor"] = jsonVec3(ch.m_specular.x, ch.m_specular.y, ch.m_specular.z);
+		channel["emissiveColor"] = jsonVec3(ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z);
+		channel["glossiness"] = ch.m_glossiness;
+		channel["window"] = ch.m_window;
+		channel["level"] = ch.m_level;
 
 		channels.append(channel);
 	}
 	j["channels"] = channels;
 
-	j["density"] = _densityScale;
+	j["density"] = m_densityScale;
 
 	// lighting
 	QJsonArray lights;
 	QJsonObject light0;
-	light0["type"] = _light0._type;
-	light0["distance"] = _light0._distance;
-	light0["theta"] = _light0._theta;
-	light0["phi"] = _light0._phi;
-	light0["color"] = jsonVec3(_light0._color.r, _light0._color.g, _light0._color.b);
-	light0["colorIntensity"] = _light0._colorIntensity;
+	light0["type"] = m_light0.m_type;
+	light0["distance"] = m_light0.m_distance;
+	light0["theta"] = m_light0.m_theta;
+	light0["phi"] = m_light0.m_phi;
+	light0["color"] = jsonVec3(m_light0.m_color.r, m_light0.m_color.g, m_light0.m_color.b);
+	light0["colorIntensity"] = m_light0.m_colorIntensity;
 	light0["topColor"] = jsonVec3(
-		_light0._topColor.r, _light0._topColor.g, _light0._topColor.b
+		m_light0.m_topColor.r, m_light0.m_topColor.g, m_light0.m_topColor.b
 	);
-	light0["topColorIntensity"] = _light0._topColorIntensity;
+	light0["topColorIntensity"] = m_light0.m_topColorIntensity;
 	light0["middleColor"] = jsonVec3(
-		_light0._middleColor.r, _light0._middleColor.g, _light0._middleColor.b
+		m_light0.m_middleColor.r, m_light0.m_middleColor.g, m_light0.m_middleColor.b
 	);
-	light0["middleColorIntensity"] = _light0._middleColorIntensity;
+	light0["middleColorIntensity"] = m_light0.m_middleColorIntensity;
 	light0["bottomColor"] = jsonVec3(
-		_light0._bottomColor.r, _light0._bottomColor.g, _light0._bottomColor.b
+		m_light0.m_bottomColor.r, m_light0.m_bottomColor.g, m_light0.m_bottomColor.b
 	);
-	light0["bottomColorIntensity"] = _light0._bottomColorIntensity;
-	light0["width"] = _light0._width;
-	light0["height"] = _light0._height;
+	light0["bottomColorIntensity"] = m_light0.m_bottomColorIntensity;
+	light0["width"] = m_light0.m_width;
+	light0["height"] = m_light0.m_height;
 	lights.append(light0);
 
 	QJsonObject light1;
-	light1["type"] = _light1._type;
-	light1["distance"] = _light1._distance;
-	light1["theta"] = _light1._theta;
-	light1["phi"] = _light1._phi;
-	light1["color"] = jsonVec3(_light1._color.r, _light1._color.g, _light1._color.b);
-	light1["colorIntensity"] = _light1._colorIntensity;
+	light1["type"] = m_light1.m_type;
+	light1["distance"] = m_light1.m_distance;
+	light1["theta"] = m_light1.m_theta;
+	light1["phi"] = m_light1.m_phi;
+	light1["color"] = jsonVec3(m_light1.m_color.r, m_light1.m_color.g, m_light1.m_color.b);
+	light1["colorIntensity"] = m_light1.m_colorIntensity;
 	light1["topColor"] = jsonVec3(
-		_light1._topColor.r, _light1._topColor.g, _light1._topColor.b
+		m_light1.m_topColor.r, m_light1.m_topColor.g, m_light1.m_topColor.b
 	);
-	light1["topColorIntensity"] = _light1._topColorIntensity;
+	light1["topColorIntensity"] = m_light1.m_topColorIntensity;
 	light1["middleColor"] = jsonVec3(
-		_light1._middleColor.r, _light1._middleColor.g, _light1._middleColor.b
+		m_light1.m_middleColor.r, m_light1.m_middleColor.g, m_light1.m_middleColor.b
 	);
-	light1["middleColorIntensity"] = _light1._middleColorIntensity;
+	light1["middleColorIntensity"] = m_light1.m_middleColorIntensity;
 	light1["bottomColor"] = jsonVec3(
-		_light1._bottomColor.r, _light1._bottomColor.g, _light1._bottomColor.b
+		m_light1.m_bottomColor.r, m_light1.m_bottomColor.g, m_light1.m_bottomColor.b
 	);
-	light1["bottomColorIntensity"] = _light1._bottomColorIntensity;
-	light1["width"] = _light1._width;
-	light1["height"] = _light1._height;
+	light1["bottomColorIntensity"] = m_light1.m_bottomColorIntensity;
+	light1["width"] = m_light1.m_width;
+	light1["height"] = m_light1.m_height;
 	lights.append(light1);
 	j["lights"] = lights;
 

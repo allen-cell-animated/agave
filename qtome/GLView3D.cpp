@@ -285,19 +285,19 @@ void GLView3D::OnUpdateRenderer(int rendererType)
 
 void GLView3D::fromViewerState(const ViewerState& s)
 {
-	mCamera.m_From = glm::vec3(s._eyeX, s._eyeY, s._eyeZ);
-	mCamera.m_Target = glm::vec3(s._targetX, s._targetY, s._targetZ);
-	mCamera.m_Up = glm::vec3(s._upX, s._upY, s._upZ);
-	mCamera.m_FovV = s._fov;
+	mCamera.m_From = glm::vec3(s.m_eyeX, s.m_eyeY, s.m_eyeZ);
+	mCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
+	mCamera.m_Up = glm::vec3(s.m_upX, s.m_upY, s.m_upZ);
+	mCamera.m_FovV = s.m_fov;
 
-	mCamera.m_Film.m_Exposure = s._exposure;
-	mCamera.m_Aperture.m_Size = s._apertureSize;
-	mCamera.m_Focus.m_FocalDistance = s._focalDistance;
+	mCamera.m_Film.m_Exposure = s.m_exposure;
+	mCamera.m_Aperture.m_Size = s.m_apertureSize;
+	mCamera.m_Focus.m_FocalDistance = s.m_focalDistance;
 
 	// TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
-	_camera->GetProjection().SetFieldOfView(s._fov);
-	_camera->GetFilm().SetExposure(s._exposure);
-	_camera->GetAperture().SetSize(s._apertureSize);
-	_camera->GetFocus().SetFocalDistance(s._focalDistance);
+	_camera->GetProjection().SetFieldOfView(s.m_fov);
+	_camera->GetFilm().SetExposure(s.m_exposure);
+	_camera->GetAperture().SetSize(s.m_apertureSize);
+	_camera->GetFocus().SetFocalDistance(s.m_focalDistance);
 }
 
