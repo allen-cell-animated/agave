@@ -237,19 +237,19 @@ public:
 class Scene {
 public:
 	// one single volume, for now...!
-    std::shared_ptr<ImageXYZC> _volume;
+    std::shared_ptr<ImageXYZC> m_volume;
 	// appearance settings for a volume
-    VolumeDisplay _material;
+    VolumeDisplay m_material;
 
-    Lighting _lighting;
+    Lighting m_lighting;
 
-	CBoundingBox _boundingBox;
+	CBoundingBox m_boundingBox;
 	void initLights();
 	void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
 	void initBounds(const CBoundingBox& bb);
 	void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);
 
-	CBoundingBox _roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
+	CBoundingBox m_roi = CBoundingBox(glm::vec3(0,0,0), glm::vec3(1,1,1));
 
-	std::vector<std::shared_ptr<Assimp::Importer>> _meshes;
+	std::vector<std::shared_ptr<Assimp::Importer>> m_meshes;
 };

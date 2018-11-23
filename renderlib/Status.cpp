@@ -70,8 +70,8 @@ void CStatus::SetStatisticChanged(const QString& Group, const QString& Name, con
 
 void CStatus::onNewImage(const QString& name, Scene* scene)
 {
-	glm::vec3 resolution(scene->_volume->sizeX(), scene->_volume->sizeY(), scene->_volume->sizeZ());
-	glm::vec3 spacing(scene->_volume->physicalSizeX(), scene->_volume->physicalSizeY(), scene->_volume->physicalSizeZ());
+	glm::vec3 resolution(scene->m_volume->sizeX(), scene->m_volume->sizeY(), scene->m_volume->sizeZ());
+	glm::vec3 spacing(scene->m_volume->physicalSizeX(), scene->m_volume->physicalSizeY(), scene->m_volume->physicalSizeZ());
 	const glm::vec3 PhysicalSize(
 		spacing.x * (float)resolution.x,
 		spacing.y * (float)resolution.y,

@@ -35,7 +35,7 @@ void RenderGL::initialize(uint32_t w, uint32_t h)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (_scene && _scene->_volume) {
+	if (_scene && _scene->m_volume) {
 		initFromScene();
 	}
 
@@ -45,7 +45,7 @@ void RenderGL::initialize(uint32_t w, uint32_t h)
 
 void RenderGL::render(const CCamera& camera)
 {
-	if (!_scene || !_scene->_volume) {
+	if (!_scene || !_scene->m_volume) {
 		return;
 	}
 	if (!image3d) {
@@ -102,7 +102,7 @@ void RenderGL::cleanUpResources() {
 void RenderGL::initFromScene() {
 	delete image3d;
 
-	image3d = new Image3Dv33(_scene->_volume);
+	image3d = new Image3Dv33(_scene->m_volume);
 	image3d->create();
 
 	// we have set up everything there is to do before rendering

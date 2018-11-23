@@ -103,8 +103,8 @@ Image3Dv33::render(const CCamera& camera, const Scene* scene, const RenderSettin
 	image3d_shader->maskAlpha = 1.0;
 	image3d_shader->BREAK_STEPS = 512;
 	// axis aligned clip planes in object space
-	image3d_shader->AABB_CLIP_MIN = scene->_roi.GetMinP() - glm::vec3(0.5, 0.5, 0.5);
-	image3d_shader->AABB_CLIP_MAX = scene->_roi.GetMaxP() - glm::vec3(0.5, 0.5, 0.5);
+	image3d_shader->AABB_CLIP_MIN = scene->m_roi.GetMinP() - glm::vec3(0.5, 0.5, 0.5);
+	image3d_shader->AABB_CLIP_MAX = scene->m_roi.GetMaxP() - glm::vec3(0.5, 0.5, 0.5);
 	image3d_shader->setShadingUniforms();
 
 	// move the box to match where the camera is pointed
@@ -262,10 +262,10 @@ void Image3Dv33::prepareTexture(Scene& s) {
 
 	std::vector<glm::vec3> colors;
 	for (int i = 0; i < MAX_CPU_CHANNELS; ++i) {
-		if (s._material.enabled[i]) {
-			colors.push_back(glm::vec3(s._material.diffuse[i * 3],
-				s._material.diffuse[i * 3 + 1],
-				s._material.diffuse[i * 3 + 2]) * s._material.opacity[i]);
+		if (s.m_material.enabled[i]) {
+			colors.push_back(glm::vec3(s.m_material.diffuse[i * 3],
+				s.m_material.diffuse[i * 3 + 1],
+				s.m_material.diffuse[i * 3 + 2]) * s.m_material.opacity[i]);
 		}
 		else {
 			colors.push_back(glm::vec3(0, 0, 0));

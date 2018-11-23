@@ -30,19 +30,19 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 	{
 		std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(_data._name);
 
-		c->_appScene->_volume = image;
+		c->_appScene->m_volume = image;
 		c->_appScene->initSceneFromImg(image);
 
 		// Tell the camera about the volume's bounding box
-		c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->_boundingBox.GetMinP();
-		c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
+		c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->m_boundingBox.GetMinP();
+		c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->m_boundingBox.GetMaxP();
 		c->_camera->SetViewMode(ViewModeFront);
 
 		// enable up to first three channels!
 		// TODO Why should it be three?
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
-			c->_appScene->_material.enabled[i] = (i < 3);
-			c->_appScene->_material.opacity[i] = 1.0f;
+			c->_appScene->m_material.enabled[i] = (i < 3);
+			c->_appScene->m_material.opacity[i] = 1.0f;
 		}
 		c->_renderSettings->SetNoIterations(0);
 		c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
@@ -124,23 +124,23 @@ void SetCameraExposureCommand::execute(ExecutionContext* c) {
 }
 void SetDiffuseColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetDiffuse " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_material.diffuse[_data._channel * 3 + 0] = _data._r;
-	c->_appScene->_material.diffuse[_data._channel * 3 + 1] = _data._g;
-	c->_appScene->_material.diffuse[_data._channel * 3 + 2] = _data._b;
+	c->_appScene->m_material.diffuse[_data._channel * 3 + 0] = _data._r;
+	c->_appScene->m_material.diffuse[_data._channel * 3 + 1] = _data._g;
+	c->_appScene->m_material.diffuse[_data._channel * 3 + 2] = _data._b;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetSpecularColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetSpecular " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_material.specular[_data._channel * 3 + 0] = _data._r;
-	c->_appScene->_material.specular[_data._channel * 3 + 1] = _data._g;
-	c->_appScene->_material.specular[_data._channel * 3 + 2] = _data._b;
+	c->_appScene->m_material.specular[_data._channel * 3 + 0] = _data._r;
+	c->_appScene->m_material.specular[_data._channel * 3 + 1] = _data._g;
+	c->_appScene->m_material.specular[_data._channel * 3 + 2] = _data._b;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetEmissiveColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetEmissive " << _data._channel << " " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_material.emissive[_data._channel * 3 + 0] = _data._r;
-	c->_appScene->_material.emissive[_data._channel * 3 + 1] = _data._g;
-	c->_appScene->_material.emissive[_data._channel * 3 + 2] = _data._b;
+	c->_appScene->m_material.emissive[_data._channel * 3 + 0] = _data._r;
+	c->_appScene->m_material.emissive[_data._channel * 3 + 1] = _data._g;
+	c->_appScene->m_material.emissive[_data._channel * 3 + 2] = _data._b;
 	c->_renderSettings->SetNoIterations(0);
 }
 void SetRenderIterationsCommand::execute(ExecutionContext* c) {
@@ -170,25 +170,25 @@ void SetDensityCommand::execute(ExecutionContext* c) {
 
 void FrameSceneCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "FrameScene";
-	c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->_boundingBox.GetMinP();
-	c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->_boundingBox.GetMaxP();
+	c->_camera->m_SceneBoundingBox.m_MinP = c->_appScene->m_boundingBox.GetMinP();
+	c->_camera->m_SceneBoundingBox.m_MaxP = c->_appScene->m_boundingBox.GetMaxP();
 	c->_camera->SetViewMode(ViewModeFront);
 	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void SetGlossinessCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetGlossiness " << _data._channel << " " << _data._glossiness;
-	c->_appScene->_material.roughness[_data._channel] = _data._glossiness;
+	c->_appScene->m_material.roughness[_data._channel] = _data._glossiness;
 	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void EnableChannelCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "EnableChannel " << _data._channel << " " << _data._enabled;
 	// 0 or 1 hopefully.
-	c->_appScene->_material.enabled[_data._channel] = (_data._enabled != 0);
+	c->_appScene->m_material.enabled[_data._channel] = (_data._enabled != 0);
 	c->_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 void SetWindowLevelCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetWindowLevel " << _data._channel << " " << _data._window << " " << _data._level;
-	c->_appScene->_volume->channel(_data._channel)->generate_windowLevel(_data._window, _data._level);
+	c->_appScene->m_volume->channel(_data._channel)->generate_windowLevel(_data._window, _data._level);
 	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void OrbitCameraCommand::execute(ExecutionContext* c) {
@@ -198,48 +198,48 @@ void OrbitCameraCommand::execute(ExecutionContext* c) {
 }
 void SetSkylightTopColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetSkylightTopColor " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(_data._r, _data._g, _data._b);
+	c->_appScene->m_lighting.m_Lights[0].m_ColorTop = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetSkylightMiddleColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetSkylightMiddleColor " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(_data._r, _data._g, _data._b);
+	c->_appScene->m_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetSkylightBottomColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetSkylightBottomColor " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_lighting.m_Lights[0].m_ColorBottom = glm::vec3(_data._r, _data._g, _data._b);
+	c->_appScene->m_lighting.m_Lights[0].m_ColorBottom = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetLightPosCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetLightPos " << _data._r << " " << _data._theta << " " << _data._phi;
-	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Distance = _data._r;
-	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Theta = _data._theta;
-	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Phi = _data._phi;
+	c->_appScene->m_lighting.m_Lights[1 + _data._index].m_Distance = _data._r;
+	c->_appScene->m_lighting.m_Lights[1 + _data._index].m_Theta = _data._theta;
+	c->_appScene->m_lighting.m_Lights[1 + _data._index].m_Phi = _data._phi;
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetLightColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetLightColor " << _data._index << " " << _data._r << " " << _data._g << " " << _data._b;
-	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Color = glm::vec3(_data._r, _data._g, _data._b);
+	c->_appScene->m_lighting.m_Lights[1 + _data._index].m_Color = glm::vec3(_data._r, _data._g, _data._b);
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetLightSizeCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetLightSize " << _data._index << " " << _data._x << " " << _data._y;
-	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Width = _data._x;
-	c->_appScene->_lighting.m_Lights[1 + _data._index].m_Height = _data._y;
+	c->_appScene->m_lighting.m_Lights[1 + _data._index].m_Width = _data._x;
+	c->_appScene->m_lighting.m_Lights[1 + _data._index].m_Height = _data._y;
 	c->_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void SetClipRegionCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetClipRegion " << _data._minx << " " << _data._maxx << " " << _data._miny << " " << _data._maxy << " " << _data._minz << " " << _data._maxz;
-	c->_appScene->_roi.SetMinP(glm::vec3(_data._minx, _data._miny, _data._minz));
-	c->_appScene->_roi.SetMaxP(glm::vec3(_data._maxx, _data._maxy, _data._maxz));
+	c->_appScene->m_roi.SetMinP(glm::vec3(_data._minx, _data._miny, _data._minz));
+	c->_appScene->m_roi.SetMaxP(glm::vec3(_data._maxx, _data._maxy, _data._maxz));
 	c->_renderSettings->m_DirtyFlags.SetFlag(RoiDirty);
 }
 void SetVoxelScaleCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetVoxelScale " << _data._x << " " << _data._y << " " << _data._z;
-	c->_appScene->_volume->setPhysicalSize(_data._x, _data._y, _data._z);
+	c->_appScene->m_volume->setPhysicalSize(_data._x, _data._y, _data._z);
 	// update things that depend on this scaling!
-	c->_appScene->initSceneFromImg(c->_appScene->_volume);
+	c->_appScene->initSceneFromImg(c->_appScene->m_volume);
 	c->_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void AutoThresholdCommand::execute(ExecutionContext* c) {
@@ -247,19 +247,19 @@ void AutoThresholdCommand::execute(ExecutionContext* c) {
 	float window, level;
 	switch (_data._method) {
 	case 0:
-		c->_appScene->_volume->channel(_data._channel)->generate_auto2(window, level);
+		c->_appScene->m_volume->channel(_data._channel)->generate_auto2(window, level);
 		break;
 	case 1:
-		c->_appScene->_volume->channel(_data._channel)->generate_auto(window, level);
+		c->_appScene->m_volume->channel(_data._channel)->generate_auto(window, level);
 		break;
 	case 2:
-		c->_appScene->_volume->channel(_data._channel)->generate_bestFit(window, level);
+		c->_appScene->m_volume->channel(_data._channel)->generate_bestFit(window, level);
 		break;
 	case 3:
-		c->_appScene->_volume->channel(_data._channel)->generate_chimerax();
+		c->_appScene->m_volume->channel(_data._channel)->generate_chimerax();
 		break;
 	default:
-		c->_appScene->_volume->channel(_data._channel)->generate_auto2(window, level);
+		c->_appScene->m_volume->channel(_data._channel)->generate_auto2(window, level);
 		break;
 	}
 	c->_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);

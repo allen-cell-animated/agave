@@ -60,36 +60,36 @@ void RenderGLCuda::FillCudaCamera(const CCamera* pCamera, CudaCamera& c) {
 }
 
 void RenderGLCuda::FillCudaLighting(Scene* pScene, CudaLighting& cl) {
-	cl.m_NoLights = pScene->_lighting.m_NoLights;
+	cl.m_NoLights = pScene->m_lighting.m_NoLights;
 	for (int i = 0; i < min(cl.m_NoLights, MAX_CUDA_LIGHTS); ++i) {
-		cl.m_Lights[i].m_Theta = pScene->_lighting.m_Lights[i].m_Theta;
-		cl.m_Lights[i].m_Phi = pScene->_lighting.m_Lights[i].m_Phi;
-		cl.m_Lights[i].m_Width = pScene->_lighting.m_Lights[i].m_Width;
-		cl.m_Lights[i].m_InvWidth = pScene->_lighting.m_Lights[i].m_InvWidth;
-		cl.m_Lights[i].m_HalfWidth = pScene->_lighting.m_Lights[i].m_HalfWidth;
-		cl.m_Lights[i].m_InvHalfWidth = pScene->_lighting.m_Lights[i].m_InvHalfWidth;
-		cl.m_Lights[i].m_Height = pScene->_lighting.m_Lights[i].m_Height;
-		cl.m_Lights[i].m_InvHeight = pScene->_lighting.m_Lights[i].m_InvHeight;
-		cl.m_Lights[i].m_HalfHeight = pScene->_lighting.m_Lights[i].m_HalfHeight;
-		cl.m_Lights[i].m_InvHalfHeight = pScene->_lighting.m_Lights[i].m_InvHalfHeight;
-		cl.m_Lights[i].m_Distance = pScene->_lighting.m_Lights[i].m_Distance;
-		cl.m_Lights[i].m_SkyRadius = pScene->_lighting.m_Lights[i].m_SkyRadius;
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
-		cl.m_Lights[i].m_Area = pScene->_lighting.m_Lights[i].m_Area;
-		cl.m_Lights[i].m_AreaPdf = pScene->_lighting.m_Lights[i].m_AreaPdf;
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
-		cl.m_Lights[i].m_Color *= pScene->_lighting.m_Lights[i].m_ColorIntensity;
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
-		cl.m_Lights[i].m_ColorTop *= pScene->_lighting.m_Lights[i].m_ColorTopIntensity;
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
-		cl.m_Lights[i].m_ColorMiddle *= pScene->_lighting.m_Lights[i].m_ColorMiddleIntensity;
-		gVec3ToFloat3(&pScene->_lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
-		cl.m_Lights[i].m_ColorBottom *= pScene->_lighting.m_Lights[i].m_ColorBottomIntensity;
-		cl.m_Lights[i].m_T = pScene->_lighting.m_Lights[i].m_T;
+		cl.m_Lights[i].m_Theta = pScene->m_lighting.m_Lights[i].m_Theta;
+		cl.m_Lights[i].m_Phi = pScene->m_lighting.m_Lights[i].m_Phi;
+		cl.m_Lights[i].m_Width = pScene->m_lighting.m_Lights[i].m_Width;
+		cl.m_Lights[i].m_InvWidth = pScene->m_lighting.m_Lights[i].m_InvWidth;
+		cl.m_Lights[i].m_HalfWidth = pScene->m_lighting.m_Lights[i].m_HalfWidth;
+		cl.m_Lights[i].m_InvHalfWidth = pScene->m_lighting.m_Lights[i].m_InvHalfWidth;
+		cl.m_Lights[i].m_Height = pScene->m_lighting.m_Lights[i].m_Height;
+		cl.m_Lights[i].m_InvHeight = pScene->m_lighting.m_Lights[i].m_InvHeight;
+		cl.m_Lights[i].m_HalfHeight = pScene->m_lighting.m_Lights[i].m_HalfHeight;
+		cl.m_Lights[i].m_InvHalfHeight = pScene->m_lighting.m_Lights[i].m_InvHalfHeight;
+		cl.m_Lights[i].m_Distance = pScene->m_lighting.m_Lights[i].m_Distance;
+		cl.m_Lights[i].m_SkyRadius = pScene->m_lighting.m_Lights[i].m_SkyRadius;
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
+		cl.m_Lights[i].m_Area = pScene->m_lighting.m_Lights[i].m_Area;
+		cl.m_Lights[i].m_AreaPdf = pScene->m_lighting.m_Lights[i].m_AreaPdf;
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
+		cl.m_Lights[i].m_Color *= pScene->m_lighting.m_Lights[i].m_ColorIntensity;
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
+		cl.m_Lights[i].m_ColorTop *= pScene->m_lighting.m_Lights[i].m_ColorTopIntensity;
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
+		cl.m_Lights[i].m_ColorMiddle *= pScene->m_lighting.m_Lights[i].m_ColorMiddleIntensity;
+		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
+		cl.m_Lights[i].m_ColorBottom *= pScene->m_lighting.m_Lights[i].m_ColorBottomIntensity;
+		cl.m_Lights[i].m_T = pScene->m_lighting.m_Lights[i].m_T;
 	}
 }
 
@@ -200,8 +200,8 @@ void RenderGLCuda::initVolumeTextureCUDA() {
 	//	_imgCuda.reset();
 	//}
 
-	if (_scene && _scene->_volume) {
-		_imgCuda = renderlib::imageAllocGPU_Cuda(_scene->_volume, false);
+	if (_scene && _scene->m_volume) {
+		_imgCuda = renderlib::imageAllocGPU_Cuda(_scene->m_volume, false);
 	}
 }
 
@@ -222,7 +222,7 @@ void RenderGLCuda::initialize(uint32_t w, uint32_t h)
 }
 
 void RenderGLCuda::doRender(const CCamera& camera) {
-	if (!_scene || !_scene->_volume) {
+	if (!_scene || !_scene->m_volume) {
 		return;
 	}
 	if (!_imgCuda || !_imgCuda->_volumeArrayInterleaved || _renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
@@ -244,9 +244,9 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	{
 		if (_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
 			// TODO: only update the ones that changed.
-			int NC = _scene->_volume->sizeC();
+			int NC = _scene->m_volume->sizeC();
 			for (int i = 0; i < NC; ++i) {
-				_imgCuda->updateLutGpu(i, _scene->_volume.get());
+				_imgCuda->updateLutGpu(i, _scene->m_volume.get());
 			}
 		}
 
@@ -256,8 +256,8 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 		_renderSettings->SetNoIterations(0);
 	}
 	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
-		for (int i = 0; i < _scene->_lighting.m_NoLights; ++i) {
-			_scene->_lighting.m_Lights[i].Update(_scene->_boundingBox);
+		for (int i = 0; i < _scene->m_lighting.m_NoLights; ++i) {
+			_scene->m_lighting.m_Lights[i].Update(_scene->m_boundingBox);
 		}
 
 		// Reset no. iterations
@@ -267,20 +267,20 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	{
 		int ch[4] = { 0, 0, 0, 0 };
 		int activeChannel = 0;
-		int NC = _scene->_volume->sizeC();
+		int NC = _scene->m_volume->sizeC();
 		for (int i = 0; i < NC; ++i) {
-			if (_scene->_material.enabled[i] && activeChannel < 4) {
+			if (_scene->m_material.enabled[i] && activeChannel < 4) {
 				ch[activeChannel] = i;
 				activeChannel++;
 			}
 		}
-		_imgCuda->updateVolumeData4x16(_scene->_volume.get(), ch[0], ch[1], ch[2], ch[3]);
+		_imgCuda->updateVolumeData4x16(_scene->m_volume.get(), ch[0], ch[1], ch[2], ch[3]);
 		_renderSettings->SetNoIterations(0);
 	}
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
 	_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_scene->_volume->maxPixelDimension();
+	_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->_scene->m_volume->maxPixelDimension();
 
 	_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
@@ -289,23 +289,23 @@ void RenderGLCuda::doRender(const CCamera& camera) {
     CudaCamera cudacam;
     FillCudaCamera(&(camera), cudacam);
 
-	glm::vec3 sn = _scene->_boundingBox.GetMinP();
-	glm::vec3 ext = _scene->_boundingBox.GetExtent();
+	glm::vec3 sn = _scene->m_boundingBox.GetMinP();
+	glm::vec3 ext = _scene->m_boundingBox.GetExtent();
 	CBoundingBox b;
 	b.SetMinP(glm::vec3(
-		ext.x*_scene->_roi.GetMinP().x + sn.x,
-		ext.y*_scene->_roi.GetMinP().y + sn.y,
-		ext.z*_scene->_roi.GetMinP().z + sn.z
+		ext.x*_scene->m_roi.GetMinP().x + sn.x,
+		ext.y*_scene->m_roi.GetMinP().y + sn.y,
+		ext.z*_scene->m_roi.GetMinP().z + sn.z
 	));
 	b.SetMaxP(glm::vec3(
-		ext.x*_scene->_roi.GetMaxP().x + sn.x,
-		ext.y*_scene->_roi.GetMaxP().y + sn.y,
-		ext.z*_scene->_roi.GetMaxP().z + sn.z
+		ext.x*_scene->m_roi.GetMaxP().x + sn.x,
+		ext.y*_scene->m_roi.GetMaxP().y + sn.y,
+		ext.z*_scene->m_roi.GetMaxP().z + sn.z
 	));
 
 
 	BindConstants(cudalt, _renderSettings->m_DenoiseParams, cudacam,
-		_scene->_boundingBox, b, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
+		_scene->m_boundingBox, b, _renderSettings->m_RenderSettings, _renderSettings->GetNoIterations(),
 		_w, _h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);
@@ -317,28 +317,28 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	};
 
 	// single channel
-	int NC = _scene->_volume->sizeC();
+	int NC = _scene->m_volume->sizeC();
 	// use first 3 channels only.
 	int activeChannel = 0;
 	cudaVolume theCudaVolume(0);
 	for (int i = 0; i < NC; ++i) {
-		if (_scene->_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
+		if (_scene->m_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
 			theCudaVolume.volumeTexture[activeChannel] = _imgCuda->_volumeTextureInterleaved;
 			theCudaVolume.gradientVolumeTexture[activeChannel] = _imgCuda->_channels[i]._volumeGradientTexture;
 			theCudaVolume.lutTexture[activeChannel] = _imgCuda->_channels[i]._volumeLutTexture;
-			theCudaVolume.intensityMax[activeChannel] = _scene->_volume->channel(i)->m_max;
-			theCudaVolume.intensityMin[activeChannel] = _scene->_volume->channel(i)->m_min;
-			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->_material.diffuse[i * 3 + 0];
-			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->_material.diffuse[i * 3 + 1];
-			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->_material.diffuse[i * 3 + 2];
-			theCudaVolume.specular[activeChannel * 3 + 0] = _scene->_material.specular[i * 3 + 0];
-			theCudaVolume.specular[activeChannel * 3 + 1] = _scene->_material.specular[i * 3 + 1];
-			theCudaVolume.specular[activeChannel * 3 + 2] = _scene->_material.specular[i * 3 + 2];
-			theCudaVolume.emissive[activeChannel * 3 + 0] = _scene->_material.emissive[i * 3 + 0];
-			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->_material.emissive[i * 3 + 1];
-			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->_material.emissive[i * 3 + 2];
-			theCudaVolume.roughness[activeChannel] = _scene->_material.roughness[i];
-			theCudaVolume.opacity[activeChannel] = _scene->_material.opacity[i];
+			theCudaVolume.intensityMax[activeChannel] = _scene->m_volume->channel(i)->m_max;
+			theCudaVolume.intensityMin[activeChannel] = _scene->m_volume->channel(i)->m_min;
+			theCudaVolume.diffuse[activeChannel * 3 + 0] = _scene->m_material.diffuse[i * 3 + 0];
+			theCudaVolume.diffuse[activeChannel * 3 + 1] = _scene->m_material.diffuse[i * 3 + 1];
+			theCudaVolume.diffuse[activeChannel * 3 + 2] = _scene->m_material.diffuse[i * 3 + 2];
+			theCudaVolume.specular[activeChannel * 3 + 0] = _scene->m_material.specular[i * 3 + 0];
+			theCudaVolume.specular[activeChannel * 3 + 1] = _scene->m_material.specular[i * 3 + 1];
+			theCudaVolume.specular[activeChannel * 3 + 2] = _scene->m_material.specular[i * 3 + 2];
+			theCudaVolume.emissive[activeChannel * 3 + 0] = _scene->m_material.emissive[i * 3 + 0];
+			theCudaVolume.emissive[activeChannel * 3 + 1] = _scene->m_material.emissive[i * 3 + 1];
+			theCudaVolume.emissive[activeChannel * 3 + 2] = _scene->m_material.emissive[i * 3 + 2];
+			theCudaVolume.roughness[activeChannel] = _scene->m_material.roughness[i];
+			theCudaVolume.opacity[activeChannel] = _scene->m_material.opacity[i];
 
 			activeChannel++;
 			theCudaVolume.nChannels = activeChannel;

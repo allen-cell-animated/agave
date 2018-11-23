@@ -286,7 +286,7 @@ void qtome::open(const QString& file, const ViewerState* vs)
 
 		// install the new volume image into the scene.
 		// this is deref'ing the previous _volume shared_ptr.
-		_appScene._volume = image;
+		_appScene.m_volume = image;
 
 		_appScene.initSceneFromImg(image);
 		glView->initCameraFromImage(&_appScene);
@@ -335,14 +335,14 @@ void qtome::openMeshDialog() {
 }
 
 void qtome::openMesh(const QString& file) {
-	if (_appScene._volume) {
+	if (_appScene.m_volume) {
 		return;
 	}
 	// load obj file and init scene...
 	CBoundingBox bb;
 	Assimp::Importer* importer = FileReader::loadAsset(file.toStdString().c_str(), &bb);
 	if (importer->GetScene()) {
-		_appScene._meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
+		_appScene.m_meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
 		_appScene.initBounds(bb);
 		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
 		// tell the 3d view to update.
@@ -505,7 +505,7 @@ void qtome::dumpPythonState()
 	s += QString("cb.add_command(\"SET_RESOLUTION\", %1, %2)\n").arg(glView->size().width()).arg(glView->size().height());
 	s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(_renderSettings.GetNoIterations());
 
-	s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n").arg(_appScene._roi.GetMinP().x).arg(_appScene._roi.GetMaxP().x).arg(_appScene._roi.GetMinP().y).arg(_appScene._roi.GetMaxP().y).arg(_appScene._roi.GetMinP().z).arg(_appScene._roi.GetMaxP().z);
+	s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n").arg(_appScene.m_roi.GetMinP().x).arg(_appScene.m_roi.GetMaxP().x).arg(_appScene.m_roi.GetMinP().y).arg(_appScene.m_roi.GetMaxP().y).arg(_appScene.m_roi.GetMinP().z).arg(_appScene.m_roi.GetMaxP().z);
 
 	s += QString("cb.add_command(\"EYE\", %1, %2, %3)\n").arg(glView->getCamera().m_From.x).arg(glView->getCamera().m_From.y).arg(glView->getCamera().m_From.z);
 	s += QString("cb.add_command(\"TARGET\", %1, %2, %3)\n").arg(glView->getCamera().m_Target.x).arg(glView->getCamera().m_Target.y).arg(glView->getCamera().m_Target.z);
@@ -518,23 +518,23 @@ void qtome::dumpPythonState()
 	s += QString("cb.add_command(\"FOCALDIST\", %1)\n").arg(_camera.GetFocus().GetFocalDistance());
 
 	// per-channel
-	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
-		bool enabled = _appScene._material.enabled[i];
+	for (uint32_t i = 0; i < _appScene.m_volume->sizeC(); ++i) {
+		bool enabled = _appScene.m_material.enabled[i];
 		s += QString("cb.add_command(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled?"1":"0");
-		s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n").arg(QString::number(i)).arg(_appScene._material.diffuse[i*3]).arg(_appScene._material.diffuse[i * 3+1]).arg(_appScene._material.diffuse[i * 3+2]);
-		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.specular[i * 3]).arg(_appScene._material.specular[i * 3 + 1]).arg(_appScene._material.specular[i * 3 + 2]);
-		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.emissive[i * 3]).arg(_appScene._material.emissive[i * 3 + 1]).arg(_appScene._material.emissive[i * 3 + 2]);
-		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(_appScene._material.roughness[i]);
-		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(_appScene._volume->channel(i)->m_window).arg(_appScene._volume->channel(i)->m_level);
+		s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n").arg(QString::number(i)).arg(_appScene.m_material.diffuse[i*3]).arg(_appScene.m_material.diffuse[i * 3+1]).arg(_appScene.m_material.diffuse[i * 3+2]);
+		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene.m_material.specular[i * 3]).arg(_appScene.m_material.specular[i * 3 + 1]).arg(_appScene.m_material.specular[i * 3 + 2]);
+		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene.m_material.emissive[i * 3]).arg(_appScene.m_material.emissive[i * 3 + 1]).arg(_appScene.m_material.emissive[i * 3 + 2]);
+		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(_appScene.m_material.roughness[i]);
+		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(_appScene.m_volume->channel(i)->m_window).arg(_appScene.m_volume->channel(i)->m_level);
 	}
 
 	// lighting
-	s += QString("cb.add_command(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorTop.r).arg(_appScene._lighting.m_Lights[0].m_ColorTop.g).arg(_appScene._lighting.m_Lights[0].m_ColorTop.b);
-	s += QString("cb.add_command(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.r).arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.g).arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.b);
-	s += QString("cb.add_command(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorBottom.r).arg(_appScene._lighting.m_Lights[0].m_ColorBottom.g).arg(_appScene._lighting.m_Lights[0].m_ColorBottom.b);
-	s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[1].m_Distance).arg(_appScene._lighting.m_Lights[1].m_Theta).arg(_appScene._lighting.m_Lights[1].m_Phi);
-	s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[1].m_Color.r).arg(_appScene._lighting.m_Lights[1].m_Color.g).arg(_appScene._lighting.m_Lights[1].m_Color.b);
-	s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n").arg(_appScene._lighting.m_Lights[1].m_Width).arg(_appScene._lighting.m_Lights[1].m_Height);
+	s += QString("cb.add_command(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n").arg(_appScene.m_lighting.m_Lights[0].m_ColorTop.r).arg(_appScene.m_lighting.m_Lights[0].m_ColorTop.g).arg(_appScene.m_lighting.m_Lights[0].m_ColorTop.b);
+	s += QString("cb.add_command(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n").arg(_appScene.m_lighting.m_Lights[0].m_ColorMiddle.r).arg(_appScene.m_lighting.m_Lights[0].m_ColorMiddle.g).arg(_appScene.m_lighting.m_Lights[0].m_ColorMiddle.b);
+	s += QString("cb.add_command(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n").arg(_appScene.m_lighting.m_Lights[0].m_ColorBottom.r).arg(_appScene.m_lighting.m_Lights[0].m_ColorBottom.g).arg(_appScene.m_lighting.m_Lights[0].m_ColorBottom.b);
+	s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n").arg(_appScene.m_lighting.m_Lights[1].m_Distance).arg(_appScene.m_lighting.m_Lights[1].m_Theta).arg(_appScene.m_lighting.m_Lights[1].m_Phi);
+	s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n").arg(_appScene.m_lighting.m_Lights[1].m_Color.r).arg(_appScene.m_lighting.m_Lights[1].m_Color.g).arg(_appScene.m_lighting.m_Lights[1].m_Color.b);
+	s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n").arg(_appScene.m_lighting.m_Lights[1].m_Width).arg(_appScene.m_lighting.m_Lights[1].m_Height);
 
 	s += "buf = cb.make_buffer()\n";
 	qDebug().noquote() << s;
@@ -555,32 +555,32 @@ void qtome::viewerStateToApp(const ViewerState& v)
 	// position camera
 	glView->fromViewerState(v);
 
-	_appScene._roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
-	_appScene._roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
+	_appScene.m_roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
+	_appScene.m_roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
 
-	_appScene._volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
+	_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
 	_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
 
 	// channels
-	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
+	for (uint32_t i = 0; i < _appScene.m_volume->sizeC(); ++i) {
 		ChannelViewerState ch = v.m_channels[i];
-		_appScene._material.enabled[i] = ch.m_enabled;
-		_appScene._material.diffuse[i * 3] = ch.m_diffuse.x;
-		_appScene._material.diffuse[i * 3 + 1] = ch.m_diffuse.y;
-		_appScene._material.diffuse[i * 3 + 2] = ch.m_diffuse.z;
-		_appScene._material.specular[i * 3] = ch.m_specular.x;
-		_appScene._material.specular[i * 3 + 1] = ch.m_specular.y;
-		_appScene._material.specular[i * 3 + 2] = ch.m_specular.z;
-		_appScene._material.emissive[i * 3] = ch.m_emissive.x;
-		_appScene._material.emissive[i * 3 + 1] = ch.m_emissive.y;
-		_appScene._material.emissive[i * 3 + 2] = ch.m_emissive.z;
-		_appScene._material.roughness[i] = ch.m_glossiness;
-		_appScene._volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
+		_appScene.m_material.enabled[i] = ch.m_enabled;
+		_appScene.m_material.diffuse[i * 3] = ch.m_diffuse.x;
+		_appScene.m_material.diffuse[i * 3 + 1] = ch.m_diffuse.y;
+		_appScene.m_material.diffuse[i * 3 + 2] = ch.m_diffuse.z;
+		_appScene.m_material.specular[i * 3] = ch.m_specular.x;
+		_appScene.m_material.specular[i * 3 + 1] = ch.m_specular.y;
+		_appScene.m_material.specular[i * 3 + 2] = ch.m_specular.z;
+		_appScene.m_material.emissive[i * 3] = ch.m_emissive.x;
+		_appScene.m_material.emissive[i * 3 + 1] = ch.m_emissive.y;
+		_appScene.m_material.emissive[i * 3 + 2] = ch.m_emissive.z;
+		_appScene.m_material.roughness[i] = ch.m_glossiness;
+		_appScene.m_volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
 	}
 
 	// lights
-	Light& lt = _appScene._lighting.m_Lights[0];
+	Light& lt = _appScene.m_lighting.m_Lights[0];
 	lt.m_T = v.m_light0.m_type;
 	lt.m_Distance = v.m_light0.m_distance;
 	lt.m_Theta = v.m_light0.m_theta;
@@ -596,7 +596,7 @@ void qtome::viewerStateToApp(const ViewerState& v)
 	lt.m_Width = v.m_light0.m_width;
 	lt.m_Height = v.m_light0.m_height;
 
-	Light& lt1 = _appScene._lighting.m_Lights[1];
+	Light& lt1 = _appScene.m_lighting.m_Lights[1];
 	lt1.m_T = v.m_light1.m_type;
 	lt1.m_Distance = v.m_light1.m_distance;
 	lt1.m_Theta = v.m_light1.m_theta;
@@ -620,20 +620,20 @@ ViewerState qtome::appToViewerState() {
 	ViewerState v;
 	v.m_volumeImageFile = _currentFilePath;
 
-	v.m_scaleX = _appScene._volume->physicalSizeX();
-	v.m_scaleY = _appScene._volume->physicalSizeY();
-	v.m_scaleZ = _appScene._volume->physicalSizeZ();
+	v.m_scaleX = _appScene.m_volume->physicalSizeX();
+	v.m_scaleY = _appScene.m_volume->physicalSizeY();
+	v.m_scaleZ = _appScene.m_volume->physicalSizeZ();
 
 	v.m_resolutionX = glView->size().width();
 	v.m_resolutionY = glView->size().height();
 	v.m_renderIterations = _renderSettings.GetNoIterations();
 
-	v.m_roiXmax = _appScene._roi.GetMaxP().x;
-	v.m_roiYmax = _appScene._roi.GetMaxP().y;
-	v.m_roiZmax = _appScene._roi.GetMaxP().z;
-	v.m_roiXmin = _appScene._roi.GetMinP().x;
-	v.m_roiYmin = _appScene._roi.GetMinP().y;
-	v.m_roiZmin = _appScene._roi.GetMinP().z;
+	v.m_roiXmax = _appScene.m_roi.GetMaxP().x;
+	v.m_roiYmax = _appScene.m_roi.GetMaxP().y;
+	v.m_roiZmax = _appScene.m_roi.GetMaxP().z;
+	v.m_roiXmin = _appScene.m_roi.GetMinP().x;
+	v.m_roiYmin = _appScene.m_roi.GetMinP().y;
+	v.m_roiZmin = _appScene.m_roi.GetMinP().z;
 
 	v.m_eyeX = glView->getCamera().m_From.x;
 	v.m_eyeY = glView->getCamera().m_From.y;
@@ -654,34 +654,34 @@ ViewerState qtome::appToViewerState() {
 	v.m_focalDistance = _camera.GetFocus().GetFocalDistance();
 	v.m_densityScale = _renderSettings.m_RenderSettings.m_DensityScale;
 
-	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
+	for (uint32_t i = 0; i < _appScene.m_volume->sizeC(); ++i) {
 		ChannelViewerState ch;
-		ch.m_enabled = _appScene._material.enabled[i];
+		ch.m_enabled = _appScene.m_material.enabled[i];
 		ch.m_diffuse = glm::vec3(
-			_appScene._material.diffuse[i * 3],
-			_appScene._material.diffuse[i * 3 + 1],
-			_appScene._material.diffuse[i * 3 + 2]
+			_appScene.m_material.diffuse[i * 3],
+			_appScene.m_material.diffuse[i * 3 + 1],
+			_appScene.m_material.diffuse[i * 3 + 2]
 		);
 		ch.m_specular = glm::vec3(
-			_appScene._material.specular[i * 3],
-			_appScene._material.specular[i * 3 + 1],
-			_appScene._material.specular[i * 3 + 2]
+			_appScene.m_material.specular[i * 3],
+			_appScene.m_material.specular[i * 3 + 1],
+			_appScene.m_material.specular[i * 3 + 2]
 		);
 		ch.m_emissive = glm::vec3(
-			_appScene._material.emissive[i * 3],
-			_appScene._material.emissive[i * 3 + 1],
-			_appScene._material.emissive[i * 3 + 2]
+			_appScene.m_material.emissive[i * 3],
+			_appScene.m_material.emissive[i * 3 + 1],
+			_appScene.m_material.emissive[i * 3 + 2]
 		);
-		ch.m_glossiness = _appScene._material.roughness[i];
-		ch.m_window = _appScene._volume->channel(i)->m_window;
-		ch.m_level = _appScene._volume->channel(i)->m_level;
+		ch.m_glossiness = _appScene.m_material.roughness[i];
+		ch.m_window = _appScene.m_volume->channel(i)->m_window;
+		ch.m_level = _appScene.m_volume->channel(i)->m_level;
 
 		v.m_channels.push_back(ch);
 	}
 
 
 	// lighting
-	Light& lt = _appScene._lighting.m_Lights[0];
+	Light& lt = _appScene.m_lighting.m_Lights[0];
 	v.m_light0.m_type = lt.m_T;
 	v.m_light0.m_distance = lt.m_Distance;
 	v.m_light0.m_theta = lt.m_Theta;
@@ -697,7 +697,7 @@ ViewerState qtome::appToViewerState() {
 	v.m_light0.m_width = lt.m_Width;
 	v.m_light0.m_height = lt.m_Height;
 
-	Light& lt1 = _appScene._lighting.m_Lights[1];
+	Light& lt1 = _appScene.m_lighting.m_Lights[1];
 	v.m_light1.m_type = lt1.m_T;
 	v.m_light1.m_distance = lt1.m_Distance;
 	v.m_light1.m_theta = lt1.m_Theta;

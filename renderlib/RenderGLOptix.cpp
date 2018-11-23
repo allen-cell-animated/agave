@@ -166,11 +166,11 @@ void RenderGLOptix::initOptixMesh() {
 	//RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, 0));
 	//_optixmeshes.clear();
 
-	for (int i = 0; i < _scene->_meshes.size(); ++i) {
+	for (int i = 0; i < _scene->m_meshes.size(); ++i) {
 		// see if this mesh already exists in renderable form?
 		bool found = false;
 		for (int j = 0; j < _optixmeshes.size(); ++j) {
-			if (_optixmeshes[j]->_cpumesh == _scene->_meshes[i]) {
+			if (_optixmeshes[j]->_cpumesh == _scene->m_meshes[i]) {
 				found = true;
 				LOG_DEBUG << "found mesh already";
 				break;
@@ -182,7 +182,7 @@ void RenderGLOptix::initOptixMesh() {
 
 		optixMeshMaterial materialdesc;
 		materialdesc._reflectivity = nextColor();
-		OptiXMesh* optixmesh = new OptiXMesh(_scene->_meshes[i], _ctx, prg, mtx, &materialdesc);
+		OptiXMesh* optixmesh = new OptiXMesh(_scene->m_meshes[i], _ctx, prg, mtx, &materialdesc);
 
 		_optixmeshes.push_back(std::shared_ptr<OptiXMesh>(optixmesh));
 
@@ -226,7 +226,7 @@ void RenderGLOptix::initOptixMesh() {
 }
 
 void RenderGLOptix::doRender(const CCamera& camera) {
-	if (!_scene || _scene->_meshes.empty()) {
+	if (!_scene || _scene->m_meshes.empty()) {
 		return;
 	}
 	if (_renderSettings->m_DirtyFlags.HasFlag(MeshDirty) && !_light_buffer) {
@@ -238,8 +238,8 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 	static bool cameraInit = false;
 	if (!cameraInit && _scene) {
 
-		const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MinP = _scene->_boundingBox.GetMinP();
-		const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MaxP = _scene->_boundingBox.GetMaxP();
+		const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MinP = _scene->m_boundingBox.GetMinP();
+		const_cast<CCamera*>(&camera)->m_SceneBoundingBox.m_MaxP = _scene->m_boundingBox.GetMaxP();
 		// reposition to face image
 		const_cast<CCamera*>(&camera)->SetViewMode(ViewModeFront);
 		cameraInit = true;
@@ -254,8 +254,8 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 	}
 	if (_renderSettings->m_DirtyFlags.HasFlag(LightsDirty))
 	{
-		for (int i = 0; i < _scene->_lighting.m_NoLights; ++i) {
-			_scene->_lighting.m_Lights[i].Update(_scene->_boundingBox);
+		for (int i = 0; i < _scene->m_lighting.m_NoLights; ++i) {
+			_scene->m_lighting.m_Lights[i].Update(_scene->m_boundingBox);
 		}
 		//printf("LIGHT (%f, %f, %f)\n", _scene->_lighting.m_Lights[1].m_P.x, _scene->_lighting.m_Lights[1].m_P.y, _scene->_lighting.m_Lights[1].m_P.z);
 
@@ -263,12 +263,12 @@ void RenderGLOptix::doRender(const CCamera& camera) {
 	BasicLight lights[] = {
 		{ { 79.0f, 6.0f, -16.0f },{ 1.0f, 1.0f, 1.0f }, 1 }
 	};
-	lights[0].pos[0] = _scene->_lighting.m_Lights[1].m_P.x;
-	lights[0].pos[1] = _scene->_lighting.m_Lights[1].m_P.y;
-	lights[0].pos[2] = _scene->_lighting.m_Lights[1].m_P.z;
-	lights[0].color[0] = _scene->_lighting.m_Lights[1].m_Color.x;
-	lights[0].color[1] = _scene->_lighting.m_Lights[1].m_Color.y;
-	lights[0].color[2] = _scene->_lighting.m_Lights[1].m_Color.z;
+	lights[0].pos[0] = _scene->m_lighting.m_Lights[1].m_P.x;
+	lights[0].pos[1] = _scene->m_lighting.m_Lights[1].m_P.y;
+	lights[0].pos[2] = _scene->m_lighting.m_Lights[1].m_P.z;
+	lights[0].color[0] = _scene->m_lighting.m_Lights[1].m_Color.x;
+	lights[0].color[1] = _scene->m_lighting.m_Lights[1].m_Color.y;
+	lights[0].color[2] = _scene->m_lighting.m_Lights[1].m_Color.z;
 
 	void* mapped = nullptr;
 	// if number of lights changed, might need to update size of this buffer...
