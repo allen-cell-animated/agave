@@ -157,10 +157,10 @@ void RenderGLOptix::initOptixMesh() {
 	glm::mat4 mtx(1.0);
 
 	TriMeshPhongPrograms prg;
-	prg._closestHit = m_phong_closesthit_program;
-	prg._anyHit = m_phong_anyhit_program;
-	prg._boundingBox = m_mesh_boundingbox_program;
-	prg._intersect = m_mesh_intersect_program;
+	prg.m_closestHit = m_phong_closesthit_program;
+	prg.m_anyHit = m_phong_anyhit_program;
+	prg.m_boundingBox = m_mesh_boundingbox_program;
+	prg.m_intersect = m_mesh_intersect_program;
 
 	// remove all children and rebuild.
 	//RT_CHECK_ERROR(rtGroupSetChildCount(_topGroup, 0));
@@ -170,7 +170,7 @@ void RenderGLOptix::initOptixMesh() {
 		// see if this mesh already exists in renderable form?
 		bool found = false;
 		for (int j = 0; j < m_optixmeshes.size(); ++j) {
-			if (m_optixmeshes[j]->_cpumesh == m_scene->m_meshes[i]) {
+			if (m_optixmeshes[j]->m_cpumesh == m_scene->m_meshes[i]) {
 				found = true;
 				LOG_DEBUG << "found mesh already";
 				break;
@@ -181,12 +181,12 @@ void RenderGLOptix::initOptixMesh() {
 		}
 
 		optixMeshMaterial materialdesc;
-		materialdesc._reflectivity = nextColor();
+		materialdesc.m_reflectivity = nextColor();
 		OptiXMesh* optixmesh = new OptiXMesh(m_scene->m_meshes[i], m_ctx, prg, mtx, &materialdesc);
 
 		m_optixmeshes.push_back(std::shared_ptr<OptiXMesh>(optixmesh));
 
-		optix::Transform transformedggroup = optixmesh->_transform;
+		optix::Transform transformedggroup = optixmesh->m_transform;
 		//optix::Transform transformedggroup = loadAsset(_scene->_meshes[0]->GetScene(), _ctx, mtx);
 		if (transformedggroup) {
 			unsigned int index = 0;

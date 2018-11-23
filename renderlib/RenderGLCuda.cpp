@@ -225,7 +225,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	if (!m_scene || !m_scene->m_volume) {
 		return;
 	}
-	if (!m_imgCuda || !m_imgCuda->_volumeArrayInterleaved || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
+	if (!m_imgCuda || !m_imgCuda->m_volumeArrayInterleaved || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
 		initVolumeTextureCUDA();
 		// we have set up everything there is to do before rendering
 		m_status.SetRenderBegin();
@@ -323,9 +323,9 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	cudaVolume theCudaVolume(0);
 	for (int i = 0; i < NC; ++i) {
 		if (m_scene->m_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
-			theCudaVolume.volumeTexture[activeChannel] = m_imgCuda->_volumeTextureInterleaved;
-			theCudaVolume.gradientVolumeTexture[activeChannel] = m_imgCuda->_channels[i]._volumeGradientTexture;
-			theCudaVolume.lutTexture[activeChannel] = m_imgCuda->_channels[i]._volumeLutTexture;
+			theCudaVolume.volumeTexture[activeChannel] = m_imgCuda->m_volumeTextureInterleaved;
+			theCudaVolume.gradientVolumeTexture[activeChannel] = m_imgCuda->m_channels[i].m_volumeGradientTexture;
+			theCudaVolume.lutTexture[activeChannel] = m_imgCuda->m_channels[i].m_volumeLutTexture;
 			theCudaVolume.intensityMax[activeChannel] = m_scene->m_volume->channel(i)->m_max;
 			theCudaVolume.intensityMin[activeChannel] = m_scene->m_volume->channel(i)->m_min;
 			theCudaVolume.diffuse[activeChannel * 3 + 0] = m_scene->m_material.diffuse[i * 3 + 0];
@@ -449,5 +449,5 @@ void RenderGLCuda::setScene(Scene* s) {
 }
 
 size_t RenderGLCuda::getGpuBytes() {
-	return m_gpuBytes + m_imgCuda->_gpuBytes;
+	return m_gpuBytes + m_imgCuda->m_gpuBytes;
 }

@@ -7,16 +7,16 @@
 class ImageXYZC;
 
 struct ChannelCuda {
-	cudaArray_t _volumeArray = nullptr;
-	cudaArray_t _volumeGradientArray = nullptr;
-	cudaArray_t _volumeLutArray = nullptr;
+	cudaArray_t m_volumeArray = nullptr;
+	cudaArray_t m_volumeGradientArray = nullptr;
+	cudaArray_t m_volumeLutArray = nullptr;
 
-    cudaTextureObject_t _volumeTexture = 0;
-    cudaTextureObject_t _volumeGradientTexture = 0;
-    cudaTextureObject_t _volumeLutTexture = 0;
+    cudaTextureObject_t m_volumeTexture = 0;
+    cudaTextureObject_t m_volumeGradientTexture = 0;
+    cudaTextureObject_t m_volumeLutTexture = 0;
 
-    int _index;
-	size_t _gpuBytes = 0;
+    int m_index;
+	size_t m_gpuBytes = 0;
 
     void allocGpu(ImageXYZC* img, int channel, bool do_volume = true, bool do_gradient_volume = true);
     void deallocGpu();
@@ -25,11 +25,11 @@ struct ChannelCuda {
 };
 
 struct ImageCuda {
-    std::vector<ChannelCuda> _channels;
-	cudaArray_t _volumeArrayInterleaved = nullptr;
-	cudaTextureObject_t _volumeTextureInterleaved = 0;
+    std::vector<ChannelCuda> m_channels;
+	cudaArray_t m_volumeArrayInterleaved = nullptr;
+	cudaTextureObject_t m_volumeTextureInterleaved = 0;
 
-	size_t _gpuBytes = 0;
+	size_t m_gpuBytes = 0;
 	
 	// no one is calling this right now.
 	// puts each channel into its own gpu volume buffer

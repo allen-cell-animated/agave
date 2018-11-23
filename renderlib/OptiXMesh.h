@@ -41,21 +41,21 @@
 struct aiScene;
 
 struct TriMeshPhongPrograms {
-	optix::Program _closestHit;
-	optix::Program _anyHit;
-	optix::Program _intersect;
-	optix::Program _boundingBox;
+	optix::Program m_closestHit;
+	optix::Program m_anyHit;
+	optix::Program m_intersect;
+	optix::Program m_boundingBox;
 };
 
 struct optixMeshMaterial {
-	glm::vec3 _reflectivity;  // "color"
-	float _roughness;
-	bool _dielectric;
+	glm::vec3 m_reflectivity;  // "color"
+	float m_roughness;
+	bool m_dielectric;
 
 	optixMeshMaterial()
-		: _reflectivity(0.5, 0.5, 0.5),
-		_roughness(1.0),
-		_dielectric(false)
+		: m_reflectivity(0.5, 0.5, 0.5),
+		m_roughness(1.0),
+		m_dielectric(false)
 	{}
 };
 
@@ -79,31 +79,31 @@ struct OptiXMesh
 	void destroy();
 
 	// if the transform is non-null then we have successfully got through the full initialization
-	bool isValid() { return (bool)_transform; }
+	bool isValid() { return (bool)m_transform; }
 
 	// Input
-	std::shared_ptr<Assimp::Importer> _cpumesh;
+	std::shared_ptr<Assimp::Importer> m_cpumesh;
 
-	optix::Context _context;       // required
+	optix::Context m_context;       // required
 
 	// Output
-	optix::Buffer _vertices;
-	optix::Buffer _normals;
-	optix::Buffer _faces;
+	optix::Buffer m_vertices;
+	optix::Buffer m_normals;
+	optix::Buffer m_faces;
 	// each face can have a different material...
-	optix::Buffer _materials;
+	optix::Buffer m_materials;
 	// unused buffer (uv)
-	optix::Buffer _tbuffer;
+	optix::Buffer m_tbuffer;
 
 	// will be set by app, and ignore what comes out of the assimp importer.
-	optix::Material _material;
+	optix::Material m_material;
 
 	// top node for this mesh
-	optix::Transform _transform;
+	optix::Transform m_transform;
 	// child of the transform
-	optix::GeometryGroup _geometrygroup;
+	optix::GeometryGroup m_geometrygroup;
 	// children of the geometry group
-	std::vector<optix::GeometryInstance> _gis;
+	std::vector<optix::GeometryInstance> m_gis;
 
 
 	//optix::float3                bbox_min;

@@ -7,15 +7,15 @@
 
 GLFlatShader2D::GLFlatShader2D():
     QOpenGLShaderProgram(),
-    vshader(),
-    fshader(),
-    attr_coords(),
-    uniform_colour(),
-    uniform_offset(),
-    uniform_mvp()
+    m_vshader(),
+    m_fshader(),
+    m_attr_coords(),
+    m_uniform_colour(),
+    m_uniform_offset(),
+    m_uniform_mvp()
 {
-    vshader = new QOpenGLShader(QOpenGLShader::Vertex);
-    vshader->compileSourceCode
+    m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+    m_vshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
         "uniform vec4 colour;\n"
@@ -33,13 +33,13 @@ GLFlatShader2D::GLFlatShader2D():
         "  gl_Position = mvp * vec4(coord2d+offset, 2.0, 1.0);\n"
         "  outData.f_colour = colour;\n"
         "}\n");
-    if (!vshader->isCompiled())
+    if (!m_vshader->isCompiled())
     {
-        std::cerr << "Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
+        std::cerr << "Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
     }
 
-    fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-    fshader->compileSourceCode
+    m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+    m_fshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
         "in VertexData\n"
@@ -52,13 +52,13 @@ GLFlatShader2D::GLFlatShader2D():
         "void main(void) {\n"
         "  outputColour = inData.f_colour;\n"
         "}\n");
-    if (!fshader->isCompiled())
+    if (!m_fshader->isCompiled())
     {
-        std::cerr << "V330GLFlatShader2D: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
+        std::cerr << "V330GLFlatShader2D: Failed to compile fragment shader\n" << m_fshader->log().toStdString() << std::endl;
     }
 
-    addShader(vshader);
-    addShader(fshader);
+    addShader(m_vshader);
+    addShader(m_fshader);
     link();
 
     if (!isLinked())
@@ -66,20 +66,20 @@ GLFlatShader2D::GLFlatShader2D():
         std::cerr << "V330GLFlatShader2D: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 
-    attr_coords = attributeLocation("coord2d");
-    if (attr_coords == -1)
+    m_attr_coords = attributeLocation("coord2d");
+    if (m_attr_coords == -1)
     std::cerr << "V330GLFlatShader2D: Failed to bind coordinate location" << std::endl;
 
-    uniform_colour = uniformLocation("colour");
-    if (uniform_colour == -1)
+    m_uniform_colour = uniformLocation("colour");
+    if (m_uniform_colour == -1)
     std::cerr << "V330GLFlatShader2D: Failed to bind colour" << std::endl;
 
-    uniform_offset = uniformLocation("offset");
-    if (uniform_offset == -1)
+    m_uniform_offset = uniformLocation("offset");
+    if (m_uniform_offset == -1)
     std::cerr << "V330GLFlatShader2D: Failed to bind offset" << std::endl;
 
-    uniform_mvp = uniformLocation("mvp");
-    if (uniform_mvp == -1)
+    m_uniform_mvp = uniformLocation("mvp");
+    if (m_uniform_mvp == -1)
     std::cerr << "V330GLFlatShader2D: Failed to bind transform" << std::endl;
 }
 
@@ -90,13 +90,13 @@ GLFlatShader2D::~GLFlatShader2D()
 void
 GLFlatShader2D::enableCoords()
 {
-    enableAttributeArray(attr_coords);
+    enableAttributeArray(m_attr_coords);
 }
 
 void
 GLFlatShader2D::disableCoords()
 {
-    disableAttributeArray(attr_coords);
+    disableAttributeArray(m_attr_coords);
 }
 
 void
@@ -104,7 +104,7 @@ GLFlatShader2D::setCoords(const GLfloat *offset,
                             int            tupleSize,
                             int            stride)
 {
-    setAttributeArray(attr_coords, offset, tupleSize, stride);
+    setAttributeArray(m_attr_coords, offset, tupleSize, stride);
     check_gl("Set flatcoords");
 }
 
@@ -122,21 +122,21 @@ GLFlatShader2D::setCoords(GLuint  coords,
 void
 GLFlatShader2D::setColour(const glm::vec4& colour)
 {
-    glUniform4fv(uniform_colour, 1, glm::value_ptr(colour));
+    glUniform4fv(m_uniform_colour, 1, glm::value_ptr(colour));
     check_gl("Set flat uniform colour");
 }
 
 void
 GLFlatShader2D::setOffset(const glm::vec2& offset)
 {
-    glUniform2fv(uniform_offset, 1, glm::value_ptr(offset));
+    glUniform2fv(m_uniform_offset, 1, glm::value_ptr(offset));
     check_gl("Set flat uniform offset");
 }
 
 void
 GLFlatShader2D::setModelViewProjection(const glm::mat4& mvp)
 {
-    glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(m_uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
     check_gl("Set flat uniform mvp");
 }
 

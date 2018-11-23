@@ -111,17 +111,17 @@ public:
 
 private:
     /// The vertex shader.
-    QOpenGLShader *vshader;
+    QOpenGLShader *m_vshader;
     /// The fragment shader.
-    QOpenGLShader *fshader;
+    QOpenGLShader *m_fshader;
 
     /// Vertex coordinates attribute.
-    int attr_coords;
+    int m_attr_coords;
     /// Texture coordinates attribute.
-    int attr_texcoords;
+    int m_attr_texcoords;
     /// Model view projection uniform.
-    int uniform_mvp;
+    int m_uniform_mvp;
     /// Texture uniform.
-    int uniform_texture;
+    int m_uniform_texture;
 };
 

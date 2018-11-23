@@ -116,31 +116,31 @@ protected:
 			const glm::vec2& ylim);
 
 	/// The vertex array.
-	GLuint vertices;  // vao
+	GLuint m_vertices;  // vao
 	/// The image vertices.
-	GLuint image_vertices;  // buffer
+	GLuint m_image_vertices;  // buffer
 	/// The image elements.
-	GLuint image_elements;  // buffer
-	size_t num_image_elements;
+	GLuint m_image_elements;  // buffer
+	size_t m_num_image_elements;
 	/// The identifier of the texture owned and used by this object.
-	unsigned int _textureid;
+	unsigned int m_textureid;
 	/// The identifier of the LUTs owned and used by this object.
-	unsigned int _lutid;
+	unsigned int m_lutid;
 	/// Linear contrast minimum limits.
-	float texmin;
+	float m_texmin;
 	/// Linear contrast maximum limits.
-	float texmax;
+	float m_texmax;
 	/// Linear contrast correction multipliers.
 	//glm::vec3 texcorr;
 	/// The image wrapped as a flat data ptr
-	std::shared_ptr<ImageXYZC> _img;
-	int _c;
+	std::shared_ptr<ImageXYZC> m_img;
+	int m_c;
 
 private:
     /// The shader program for image rendering.
-	GLBasicVolumeShader *image3d_shader;
+	GLBasicVolumeShader *m_image3d_shader;
 
-	uint8_t* _fusedrgbvolume;
+	uint8_t* m_fusedrgbvolume;
 
 };
 

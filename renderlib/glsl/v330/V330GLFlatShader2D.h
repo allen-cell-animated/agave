@@ -64,16 +64,16 @@ public:
 
 private:
     /// @copydoc GLImageShader2D::vshader
-    QOpenGLShader *vshader;
+    QOpenGLShader *m_vshader;
     /// @copydoc GLImageShader2D::fshader
-    QOpenGLShader *fshader;
+    QOpenGLShader *m_fshader;
 
     /// @copydoc GLImageShader2D::attr_coords
-    int attr_coords;
+    int m_attr_coords;
     /// Fill colour uniform.
-    int uniform_colour;
+    int m_uniform_colour;
     /// Model offset uniform.
-    int uniform_offset;
+    int m_uniform_offset;
     /// @copydoc GLImageShader2D::uniform_mvp
-    int uniform_mvp;
+    int m_uniform_mvp;
 };
