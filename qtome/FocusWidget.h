@@ -3,6 +3,8 @@
 #include "Controls.h"
 #include "Focus.h"
 
+#include <QGroupBox>
+
 class QCamera;
 
 class QFocusWidget : public QGroupBox

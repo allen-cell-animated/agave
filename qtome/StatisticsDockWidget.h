@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtGui>
+#include <QDockWidget>
 #include <QGraphicsScene>
 
 #include "StatisticsWidget.h"

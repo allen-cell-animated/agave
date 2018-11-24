@@ -1,6 +1,8 @@
-#include "Stable.h"
-
 #include "StatisticsWidget.h"
+
+#include "Status.h"
+
+#include <QHeaderView>
 
 QStatisticsWidget::QStatisticsWidget(QWidget* pParent) :
 	QTreeWidget(pParent),
@@ -29,7 +31,7 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent) :
 	header()->resizeSection(0, 260);
 	header()->resizeSection(1, 350);
 	header()->resizeSection(2, 100);
-	header()->setWindowIcon(GetIcon("table-export"));
+	//header()->setWindowIcon(GetIcon("table-export"));
 	header()->setVisible(false);
 
 	PopulateTree();
@@ -66,7 +68,7 @@ QTreeWidgetItem* QStatisticsWidget::AddItem(QTreeWidgetItem* pParent, const QStr
 	pItem->setText(0, Property);
 	pItem->setText(1, Value);
 	pItem->setText(2, Unit);
-	pItem->setIcon(0, GetIcon(Icon));
+	//pItem->setIcon(0, GetIcon(Icon));
 
 	if (!pParent)
 		addTopLevelItem(pItem);

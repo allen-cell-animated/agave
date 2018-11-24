@@ -1,9 +1,8 @@
-#include "Stable.h"
-
 #include "FilmWidget.h"
 #include "Camera.h"
 #include "renderlib/RenderSettings.h"
 
+#include <QLabel>
 #include <QVariant>
 
 QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :

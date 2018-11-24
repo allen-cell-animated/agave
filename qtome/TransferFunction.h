@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QObject>
+
 class RenderSettings;
 
 class QTransferFunction : public QObject

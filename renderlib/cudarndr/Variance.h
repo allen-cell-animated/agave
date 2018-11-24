@@ -2,6 +2,8 @@
 
 #include "Defines.h"
 
+#include <math.h>
+
 class CStatus;
 
 class CVariance
@@ -57,7 +59,7 @@ public:
 
 	HOD float StandardDeviation(int ID) const
 	{
-		return sqrt( GetVariance(ID) );
+		return sqrtf( GetVariance(ID) );
 	}
 
 private:

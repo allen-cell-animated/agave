@@ -1,7 +1,7 @@
-#include "Stable.h"
-
 #include "FocusWidget.h"
 #include "Camera.h"
+
+#include <QLabel>
 
 QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 	QGroupBox(pParent),

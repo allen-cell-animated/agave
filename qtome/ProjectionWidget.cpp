@@ -1,9 +1,9 @@
-#include "Stable.h"
-
 #include "ProjectionWidget.h"
 #include "Camera.h"
 
 #include "renderlib/RenderSettings.h"
+
+#include <QLabel>
 
 QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	QGroupBox(pParent),

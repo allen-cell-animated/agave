@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "RenderSettings.h"
 #include "ImageXYZC.h"
 

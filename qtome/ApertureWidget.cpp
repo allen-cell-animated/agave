@@ -1,7 +1,7 @@
-#include "Stable.h"
-
 #include "ApertureWidget.h"
 #include "Camera.h"
+
+#include <QLabel>
 
 QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam) :
 	QGroupBox(pParent),

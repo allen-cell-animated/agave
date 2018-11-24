@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "Status.h"
 
 #include "AppScene.h"

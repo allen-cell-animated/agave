@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "AppearanceSettingsWidget.h"
 #include "RangeWidget.h"
 #include "Section.h"

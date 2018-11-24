@@ -1,6 +1,6 @@
-#include "Stable.h"
-
 #include "Variance.h"
+
+#include "Status.h"
 
 CVariance::CVariance(void) : 
 	m_Width(0),

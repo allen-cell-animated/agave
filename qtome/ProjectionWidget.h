@@ -3,6 +3,8 @@
 #include "Controls.h"
 #include "Projection.h"
 
+#include <QGroupBox>
+
 class QCamera;
 class RenderSettings;
 

@@ -1,5 +1,4 @@
 #include "Controls.h"
-#include "Stable.h" // for GetIcon
 
 #include <QtGlobal>
 #include <QtGui/QPainter>
@@ -51,7 +50,7 @@ void QColorPushButton::mousePressEvent(QMouseEvent* pEvent)
 
 	connect(&ColorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
 
-	ColorDialog.setWindowIcon(GetIcon("color--pencil"));
+	//ColorDialog.setWindowIcon(GetIcon("color--pencil"));
 	ColorDialog.setCurrentColor(m_Color);
 	ColorDialog.exec();
 
@@ -222,7 +221,7 @@ void QDoubleSpinner::setValue(double Value, bool BlockSignals)
 QInputDialogEx::QInputDialogEx(QWidget* pParent /*= NULL*/, Qt::WindowFlags Flags /*= 0*/) :
 	QInputDialog(pParent, Flags)
 {
-	setWindowIcon(GetIcon("pencil-field"));
+	//setWindowIcon(GetIcon("pencil-field"));
 }
 
 QSize QInputDialogEx::sizeHint() const

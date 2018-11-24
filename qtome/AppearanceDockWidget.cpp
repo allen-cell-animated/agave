@@ -1,6 +1,6 @@
-#include "Stable.h"
-
 #include "AppearanceDockWidget.h"
+
+#include <QScrollArea>
 
 QAppearanceWidget::QAppearanceWidget(QWidget* pParent, QTransferFunction* tran, RenderSettings* rs) :
 	QWidget(pParent),
@@ -51,7 +51,7 @@ QAppearanceDockWidget::QAppearanceDockWidget(QWidget *parent, QTransferFunction*
 {
 	setWindowTitle("Appearance");
 	setToolTip("<img src=':/Images/palette.png'><div>Volume Appearance</div>");
-	setWindowIcon(GetIcon("palette"));
+	//setWindowIcon(GetIcon("palette"));
 
 	m_VolumeAppearanceWidget.setParent(this);
 

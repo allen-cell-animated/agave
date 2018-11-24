@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "TransferFunction.h"
 
 #include "RenderSettings.h"
