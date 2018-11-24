@@ -17,7 +17,7 @@ DEV inline float CumulativeMovingAverage(const float i, const float Ai, const fl
 	@param[in] NumY Kernel size Y
 	@return Stratified sample
 */
-HOD inline Vec2f StratifiedSample2D(const int& Pass, const Vec2f& U, const int& NumX = 4, const int& NumY = 4)
+HOD inline float2 StratifiedSample2D(const int& Pass, const float2& U, const int& NumX = 4, const int& NumY = 4)
 {
 	const float Dx	= 1.0f / (float)NumX;
 	const float Dy	= 1.0f / (float)NumY;
@@ -25,7 +25,7 @@ HOD inline Vec2f StratifiedSample2D(const int& Pass, const Vec2f& U, const int& 
 	const int Y	= (int)((float)Pass / (float)NumX);
 	const int X	= Pass - (Y * NumX);
 	
-	return Vec2f((float)(X + U.x) * Dx, (float)(Y + U.y) * Dy);
+	return make_float2((float)(X + U.x) * Dx, (float)(Y + U.y) * Dy);
 }
 
 /**
@@ -37,12 +37,12 @@ HOD inline Vec2f StratifiedSample2D(const int& Pass, const Vec2f& U, const int& 
 	@param[in] NumY Kernel size Y
 	@return Stratified sample
 */
-HOD inline Vec2f StratifiedSample2D(const int& StratumX, const int& StratumY, const Vec2f& U, const int& NumX = 4, const int& NumY = 4)
+HOD inline float2 StratifiedSample2D(const int& StratumX, const int& StratumY, const float2& U, const int& NumX = 4, const int& NumY = 4)
 {
 	const float Dx	= 1.0f / ((float)NumX);
 	const float Dy	= 1.0f / ((float)NumY);
 
-	return Vec2f((float)(StratumX + U.x) * Dx, (float)(StratumY + U.y) * Dy);
+	return make_float2((float)(StratumX + U.x) * Dx, (float)(StratumY + U.y) * Dy);
 }
 
 /**
@@ -218,11 +218,11 @@ HOD inline bool InShadingHemisphere(const float3& W1, const float3& W2, const fl
 	@param[in] U Random input
 	@return Uniform sample in a disk
 */
-HOD inline Vec2f UniformSampleDisk(const Vec2f& U)
+HOD inline float2 UniformSampleDisk(const float2& U)
 {
 	float r = sqrtf(U.x);
 	float theta = 2.0f * PI_F * U.y;
-	return Vec2f(r * cosf(theta), r * sinf(theta));
+	return make_float2(r * cosf(theta), r * sinf(theta));
 }
 
 /**
@@ -230,9 +230,9 @@ HOD inline Vec2f UniformSampleDisk(const Vec2f& U)
 	@param[in] U Random input
 	@return Uniform sample in a disk
 */
-HOD inline float3 UniformSampleDisk(const Vec2f& U, const float3& N)
+HOD inline float3 UniformSampleDisk(const float2& U, const float3& N)
 {
-	const Vec2f UV = UniformSampleDisk(U);
+	const float2 UV = UniformSampleDisk(U);
 
 	float3 Ucs, Vcs;
 
@@ -246,7 +246,7 @@ HOD inline float3 UniformSampleDisk(const Vec2f& U, const float3& N)
 	@param[in] U Random input
 	@return Concentric sample in a disk
 */
-HOD inline Vec2f ConcentricSampleDisk(const Vec2f& U)
+HOD inline float2 ConcentricSampleDisk(const float2& U)
 {
 	float r, theta;
 	// Map uniform random numbers to $[-1,1]^2$
@@ -257,7 +257,7 @@ HOD inline Vec2f ConcentricSampleDisk(const Vec2f& U)
 	
 	if (sx == 0.0 && sy == 0.0)
 	{
-		return Vec2f(0.0f);
+		return make_float2(0.0f);
 	}
 
 	if (sx >= -sy)
@@ -296,7 +296,7 @@ HOD inline Vec2f ConcentricSampleDisk(const Vec2f& U)
 	
 	theta *= PI_F / 4.f;
 
-	return Vec2f(r*cosf(theta), r*sinf(theta));
+	return make_float2(r*cosf(theta), r*sinf(theta));
 }
 
 /**
@@ -304,9 +304,9 @@ HOD inline Vec2f ConcentricSampleDisk(const Vec2f& U)
 	@param[in] U Random input
 	@return Cosine weighted hemispherical sample
 */
-HOD inline float3 CosineWeightedHemisphere(const Vec2f& U)
+HOD inline float3 CosineWeightedHemisphere(const float2& U)
 {
-	const Vec2f ret = ConcentricSampleDisk(U);
+	const float2 ret = ConcentricSampleDisk(U);
 	return make_float3(ret.x, ret.y, sqrtf(max(0.f, 1.f - ret.x * ret.x - ret.y * ret.y)));
 }
 
@@ -317,7 +317,7 @@ HOD inline float3 CosineWeightedHemisphere(const Vec2f& U)
 	@param[in] Wow Normal in world coordinates
 	@return Cosine weighted hemispherical sample in world coordinates
 */
-HOD inline float3 CosineWeightedHemisphere(const Vec2f& U, const float3& N)
+HOD inline float3 CosineWeightedHemisphere(const float2& U, const float3& N)
 {
 	const float3 Wl = CosineWeightedHemisphere(U);
 
@@ -381,11 +381,11 @@ HOD inline float3 SphericalDirection(const float& SinTheta, const float& CosThet
 	@param[in] U Random input
 	@return Sample in a triangle
 */
-HOD inline Vec2f UniformSampleTriangle(const Vec2f& U)
+HOD inline float2 UniformSampleTriangle(const float2& U)
 {
 	float su1 = sqrtf(U.x);
 
-	return Vec2f(1.0f - su1, U.y * su1);
+	return make_float2(1.0f - su1, U.y * su1);
 }
 
 /**
@@ -393,7 +393,7 @@ HOD inline Vec2f UniformSampleTriangle(const Vec2f& U)
 	@param[in] U Random input
 	@return Sample in a sphere
 */
-HOD inline float3 UniformSampleSphere(const Vec2f& U)
+HOD inline float3 UniformSampleSphere(const float2& U)
 {
 	float z = 1.f - 2.f * U.x;
 	float r = sqrtf(max(0.f, 1.f - z*z));
@@ -408,7 +408,7 @@ HOD inline float3 UniformSampleSphere(const Vec2f& U)
 	@param[in] U Random input
 	@return Sample in a hemisphere
 */
-HOD inline float3 UniformSampleHemisphere(const Vec2f& U)
+HOD inline float3 UniformSampleHemisphere(const float2& U)
 {
 	float z = U.x;
 	float r = sqrtf(max(0.f, 1.f - z*z));
@@ -424,7 +424,7 @@ HOD inline float3 UniformSampleHemisphere(const Vec2f& U)
 	@param[in] N Normal in world coordinates
 	@return Hemispherical sample in world coordinates
 */
-DEV inline float3 UniformSampleHemisphere(const Vec2f& U, const float3& N)
+DEV inline float3 UniformSampleHemisphere(const float2& U, const float3& N)
 {
 	const float3 Wl = UniformSampleHemisphere(U);
 
@@ -442,7 +442,7 @@ DEV inline float3 UniformSampleHemisphere(const Vec2f& U, const float3& N)
 	@param[in] CosThetaMax Maximum cone angle
 	@return Sample in a cone
 */
-HOD inline float3 UniformSampleCone(const Vec2f& U, const float& CosThetaMax)
+HOD inline float3 UniformSampleCone(const float2& U, const float& CosThetaMax)
 {
 	float costheta = Lerp(U.x, CosThetaMax, 1.f);
 	float sintheta = sqrtf(1.f - costheta*costheta);
@@ -457,7 +457,7 @@ HOD inline float3 UniformSampleCone(const Vec2f& U, const float& CosThetaMax)
 	@param[in] N Normal
 	@return Sample in a cone
 */
-HOD inline float3 UniformSampleCone(const Vec2f& U, const float& CosThetaMax, const float3& N)
+HOD inline float3 UniformSampleCone(const float2& U, const float& CosThetaMax, const float3& N)
 {
 	const float3 Wl = UniformSampleCone(U, CosThetaMax);
 
@@ -500,7 +500,7 @@ HOD inline float UniformSpherePdf(void)
 	@param[in] UV Sampled texture coordinates
 	@return Probability of a spherical sample
 */
-HOD inline float3 UniformSampleTriangle(Vec4i* pIndicesV, float3* pVertices, Vec4i* pIndicesVN, float3* pVertexNormals, int SampleTriangleIndex, Vec2f U, float3& N, Vec2f& UV)
+HOD inline float3 UniformSampleTriangle(Vec4i* pIndicesV, float3* pVertices, Vec4i* pIndicesVN, float3* pVertexNormals, int SampleTriangleIndex, float2 U, float3& N, float2& UV)
 {
 	const Vec4i Face = pIndicesV[SampleTriangleIndex];
 
@@ -529,7 +529,7 @@ HOD inline float3 UniformSampleTriangle(Vec4i* pIndicesV, float3* pVertices, Vec
 	@param[out] u Output u coordinate
 	@param[out] v Output v coordinate
 */
-HOD inline void ShirleyDisk(const Vec2f& U, float& u, float& v)
+HOD inline void ShirleyDisk(const float2& U, float& u, float& v)
 {
 	float phi = 0, r = 0, a = 2 * U.x - 1, b = 2 * U.y - 1;
 	
@@ -577,7 +577,7 @@ HOD inline void ShirleyDisk(const Vec2f& U, float& u, float& v)
 	@param[in] N Normal
 	@param[in] U Random input
 */
-HOD inline float3 ShirleyDisk(const float3& N, const Vec2f& U)
+HOD inline float3 ShirleyDisk(const float3& N, const float2& U)
 {
 	float u, v;
 	float phi = 0, r = 0, a = 2 * U.x - 1, b = 2 * U.y - 1;

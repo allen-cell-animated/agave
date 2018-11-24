@@ -20,7 +20,7 @@ KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned i
 
 	CRay Re;
 	
-	const Vec2f UV = Vec2f(X, Y) + RNG.Get2();
+	const float2 UV = make_float2(X, Y) + RNG.Get2();
 
  	GenerateRay(gCamera, UV, RNG.Get2(), Re.m_O, Re.m_D);
 

@@ -10,9 +10,9 @@ KERNEL void KrnlNearestIntersection(float* pT, cudaVolume volumedata)
 {
 	CRay Rc;
 	
-	const Vec2f UV(0.5f * (float)gFilmWidth, 0.5f * (float)gFilmHeight);
+	const float2 UV = make_float2(0.5f * (float)gFilmWidth, 0.5f * (float)gFilmHeight);
 
-	GenerateRay(gCamera, UV, Vec2f(0.0f), Rc.m_O, Rc.m_D);
+	GenerateRay(gCamera, UV, make_float2(0.0f), Rc.m_O, Rc.m_D);
 
 	Rc.m_MinT = 0.0f;
 	Rc.m_MaxT = INF_MAX;

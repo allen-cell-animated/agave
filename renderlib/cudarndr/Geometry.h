@@ -10,7 +10,6 @@
 
 class CColorRgbHdr;
 class Vec2i;
-class Vec2f;
 class Vec3i;
 class Vec4i;
 class Vec4f;
@@ -145,120 +144,6 @@ public:
 	float	b;
 };
 
-
-class Vec2f
-{
-public:
-	HOD Vec2f(void)
-	{
-		this->x = 0.0f;
-		this->y = 0.0f;
-	}
-
-	HOD Vec2f(const float& x, const float& y)
-	{
-		this->x = x;
-		this->y = y;
-	}
-
-	HOD Vec2f(const float& xy)
-	{
-		this->x = xy;
-		this->y = xy;
-	}
-
-	HOD Vec2f(const Vec2f& v)
-	{
-		this->x = v.x;
-		this->y = v.y;
-	}
-
-	HOD float operator[](int i) const
-	{
-		return (&x)[i];
-	}
-
-	HOD float& operator[](int i)
-	{
-		return (&x)[i];
-	}
-
-	HOD Vec2f& operator = (const Vec2f& v)
-	{
-		x = v.x; 
-		y = v.y; 
-
-		return *this;
-	}
-
-	HOD Vec2f operator + (const Vec2f& v) const
-	{
-		return Vec2f(x + v.x, y + v.y);
-	}
-
-	HOD Vec2f& operator += (const Vec2f& v)
-	{
-		x += v.x; y += v.y;
-		return *this;
-	}
-
-	HOD Vec2f operator - (const Vec2f& v) const
-	{
-		return Vec2f(x - v.x, y - v.y);
-	}
-
-	HOD Vec2f& operator -= (const Vec2f& v)
-	{
-		x -= v.x; y -= v.y;
-		return *this;
-	}
-
-	HOD Vec2f operator * (float f) const
-	{
-		return Vec2f(x * f, y * f);
-	}
-
-	HOD Vec2f& operator *= (float f)
-	{
-		x *= f; 
-		y *= f; 
-
-		return *this;
-	}
-
-	HOD bool operator < (const Vec2f& V) const
-	{
-		return V.x < x && V.y < y;
-	}
-
-	HOD bool operator > (const Vec2f& V) const
-	{
-		return V.x > x && V.y > y;
-	}
-
-	HOD bool operator == (const Vec2f& V) const
-	{
-		return V.x == x && V.y == y;
-	}
-
-	HOD float LengthSquared(void) const
-	{
-		return x * x + y * y;
-	}
-
-	HOD float Length(void) const
-	{
-		return sqrtf(LengthSquared());
-	}
-
-	void PrintSelf(void)
-	{
-		printf("[%g, %g]\n", x, y);
-	}
-
-	float x, y;
-};
-
 class Vec2i
 {
 public:
@@ -278,12 +163,6 @@ public:
 	{
 		this->x = x;
 		this->y = y;
-	}
-
-	HOD Vec2i(const Vec2f& V)
-	{
-		this->x = (int)V.x;
-		this->y = (int)V.y;
 	}
 
 	HOD Vec2i(const int& xy)
@@ -517,15 +396,6 @@ static HOD CColorRgbHdr operator * (const float& f, const CColorRgbHdr& v) 			{ 
 static HOD CColorRgbHdr operator * (const CColorRgbHdr& p1, const CColorRgbHdr& p2) 	{ return CColorRgbHdr(p1.r * p2.r, p1.g * p2.g, p1.b * p2.b); 		};
 static HOD CColorRgbHdr operator + (const CColorRgbHdr& a, const CColorRgbHdr& b)		{ return CColorRgbHdr(a.r + b.r, a.g + b.g, a.b + b.b);				};
 
-// Vec2f
-static inline HOD Vec2f operator * (const Vec2f& v, const float& f) 	{ return Vec2f(f * v.x, f * v.y);					};
-static inline HOD Vec2f operator * (const float& f, const Vec2f& v) 	{ return Vec2f(f * v.x, f * v.y);					};
-static inline HOD Vec2f operator * (const Vec2f& v1, const Vec2f& v2) 	{ return Vec2f(v1.x * v2.x, v1.y * v2.y);			};
-static inline HOD Vec2f operator / (const Vec2f& v1, const Vec2f& v2) 	{ return Vec2f(v1.x / v2.x, v1.y / v2.y);			};
-// static inline HOD Vec2f operator - (const Vec2f& v1, const Vec2f& v2) 	{ return Vec2f(v1.x - v2.x, v1.y - v2.y);			};
-
-static inline HOD Vec2f operator * (Vec2f& V2f, Vec2i& V2i)	{ return Vec2f(V2f.x * V2i.x, V2f.y * V2i.y);				};
-
 class CRay
 {	
 public:
@@ -588,46 +458,6 @@ public:
 	int		m_PixelID;		/*!< Pixel ID associated with the ray */
 };
 
-class CSize2D
-{
-public:
-	Vec2f	m_Size;
-	Vec2f	m_InvSize;
-
-	HOD CSize2D(void) :
-		m_Size(1.0f, 1.0f),
-		m_InvSize(1.0f / m_Size.x, 1.0f / m_Size.y)
-	{
-	};
-
-	HOD CSize2D(const float& X, const float& Y) :
-		m_Size(X, Y),
-		m_InvSize(1.0f / m_Size.x, 1.0f / m_Size.y)
-	{
-	};
-
-	HOD CSize2D(const Vec2f& V) :
-		m_Size(V),
-		m_InvSize(1.0f / m_Size.x, 1.0f / m_Size.y)
-	{
-	};
-
-	// ToDo: Add description
-	HOD CSize2D& operator=(const CSize2D& Other)
-	{
-		m_Size		= Other.m_Size;
-		m_InvSize	= Other.m_InvSize;
-
-		return *this;
-	}
-
-	HOD void Update(void)
-	{
-		m_InvSize = Vec2f(1.0f / m_Size.x, 1.0f / m_Size.y);
-	}
-};
-
-
 class CRange
 {
 public:
@@ -675,34 +505,6 @@ private:
 	float	m_Range;
 	float	m_InvRange;
 };
-
-class CPixel
-{
-public:
-	HOD CPixel(void)
-	{
-		m_XY	= Vec2i(256);
-		m_ID	= 0;
-	}
-
-	HOD CPixel(const Vec2f& ImageXY, const Vec2i& Resolution)
-	{
-		m_XY	= Vec2i((int)floorf(ImageXY.x), (int)floorf(ImageXY.y));
-		m_ID	= (m_XY.y * Resolution.x) + m_XY.x;
-	}
-
-	HOD CPixel& operator = (const CPixel& Other)
-	{
-		m_XY	= Other.m_XY; 
-		m_ID	= Other.m_ID;
-
-		return *this;
-	}
-
-	Vec2i	m_XY;		/*!< Pixel coordinates */
-	int		m_ID;		/*!< Pixel ID */
-};
-
 
 HOD inline CColorRgbHdr& CColorRgbHdr::operator = (const CColorXyz& S)			
 {
