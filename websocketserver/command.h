@@ -9,11 +9,11 @@ class RenderSettings;
 class Scene;
 
 struct ExecutionContext {
-	Renderer* _renderer;
-	RenderSettings* _renderSettings;
-	Scene* _appScene;
-	CCamera* _camera;
-	QString _message;
+	Renderer* m_renderer;
+	RenderSettings* m_renderSettings;
+	Scene* m_appScene;
+	CCamera* m_camera;
+	QString m_message;
 };
 
 class Command {
@@ -25,87 +25,87 @@ public:
 #define CMDDECL(NAME, CMDID)\
 	class NAME : public Command {\
 		public:\
-			NAME(NAME##D d) : _data(d) {}\
+			NAME(NAME##D d) : m_data(d) {}\
 			virtual void execute(ExecutionContext* context);\
-			static const uint32_t _ID = CMDID;\
-			NAME##D _data;\
+			static const uint32_t m_ID = CMDID;\
+			NAME##D m_data;\
 	};
 
 struct SessionCommandD {
-	std::string _name;
+	std::string m_name;
 };
 CMDDECL(SessionCommand, 0);
 
 struct AssetPathCommandD {
-	std::string _name;
+	std::string m_name;
 };
 CMDDECL(AssetPathCommand, 1);
 
 struct LoadOmeTifCommandD {
-	std::string _name;
+	std::string m_name;
 };
 CMDDECL(LoadOmeTifCommand, 2);
 
 struct SetCameraPosCommandD {
-	float _x, _y, _z;
+	float m_x, m_y, m_z;
 };
 CMDDECL(SetCameraPosCommand, 3);
 
 struct SetCameraTargetCommandD {
-	float _x, _y, _z;
+	float m_x, m_y, m_z;
 };
 CMDDECL(SetCameraTargetCommand, 4);
 
 struct SetCameraUpCommandD {
-	float _x, _y, _z;
+	float m_x, m_y, m_z;
 };
 CMDDECL(SetCameraUpCommand, 5);
 
 struct SetCameraApertureCommandD {
-	float _x;
+	float m_x;
 };
 CMDDECL(SetCameraApertureCommand, 6);
 
 struct SetCameraFovYCommandD {
-	float _x;
+	float m_x;
 };
 CMDDECL(SetCameraFovYCommand, 7);
 
 struct SetCameraFocalDistanceCommandD {
-	float _x;
+	float m_x;
 };
 CMDDECL(SetCameraFocalDistanceCommand, 8);
 
 struct SetCameraExposureCommandD {
-	float _x;
+	float m_x;
 };
 CMDDECL(SetCameraExposureCommand, 9);
 
 struct SetDiffuseColorCommandD {
-	int32_t _channel;
-	float _r, _g, _b, _a;
+	int32_t m_channel;
+	float m_r, m_g, m_b, m_a;
 };
 CMDDECL(SetDiffuseColorCommand, 10);
 
 struct SetSpecularColorCommandD {
-	int32_t _channel;
-	float _r, _g, _b, _a;
+	int32_t m_channel;
+	float m_r, m_g, m_b, m_a;
 };
 CMDDECL(SetSpecularColorCommand, 11);
 
 struct SetEmissiveColorCommandD {
-	int32_t _channel;
-	float _r, _g, _b, _a;
+	int32_t m_channel;
+	float m_r, m_g, m_b, m_a;
 };
 CMDDECL(SetEmissiveColorCommand, 12);
 
 struct SetRenderIterationsCommandD {
-	int32_t _x;
+	int32_t m_x;
 };
 CMDDECL(SetRenderIterationsCommand, 13);
 
 struct SetStreamModeCommandD {
-	int32_t _x;
+	int32_t m_x;
 };
 CMDDECL(SetStreamModeCommand, 14);
 
@@ -114,12 +114,12 @@ struct RequestRedrawCommandD {
 CMDDECL(RequestRedrawCommand, 15);
 
 struct SetResolutionCommandD {
-	int32_t _x, _y;
+	int32_t m_x, m_y;
 };
 CMDDECL(SetResolutionCommand, 16);
 
 struct SetDensityCommandD {
-	float _x;
+	float m_x;
 };
 CMDDECL(SetDensityCommand, 17);
 
@@ -128,78 +128,78 @@ struct FrameSceneCommandD {
 CMDDECL(FrameSceneCommand, 18);
 
 struct SetGlossinessCommandD {
-	int32_t _channel;
-	float _glossiness;
+	int32_t m_channel;
+	float m_glossiness;
 };
 CMDDECL(SetGlossinessCommand, 19);
 
 struct EnableChannelCommandD {
-	int32_t _channel;
-	int32_t _enabled;
+	int32_t m_channel;
+	int32_t m_enabled;
 };
 CMDDECL(EnableChannelCommand, 20);
 
 struct SetWindowLevelCommandD {
-	int32_t _channel;
-	float _window;
-	float _level;
+	int32_t m_channel;
+	float m_window;
+	float m_level;
 };
 CMDDECL(SetWindowLevelCommand, 21);
 
 struct OrbitCameraCommandD {
-	float _theta;
-	float _phi;
+	float m_theta;
+	float m_phi;
 };
 CMDDECL(OrbitCameraCommand, 22);
 
 struct SetSkylightTopColorCommandD {
-	float _r, _g, _b;
+	float m_r, m_g, m_b;
 };
 CMDDECL(SetSkylightTopColorCommand, 23);
 
 struct SetSkylightMiddleColorCommandD {
-	float _r, _g, _b;
+	float m_r, m_g, m_b;
 };
 CMDDECL(SetSkylightMiddleColorCommand, 24);
 
 struct SetSkylightBottomColorCommandD {
-	float _r, _g, _b;
+	float m_r, m_g, m_b;
 };
 CMDDECL(SetSkylightBottomColorCommand, 25);
 
 struct SetLightPosCommandD {
-	int32_t _index;
-	float _r, _theta, _phi;
+	int32_t m_index;
+	float m_r, m_theta, m_phi;
 };
 CMDDECL(SetLightPosCommand, 26);
 
 struct SetLightColorCommandD {
-	int32_t _index;
-	float _r, _g, _b;
+	int32_t m_index;
+	float m_r, m_g, m_b;
 };
 CMDDECL(SetLightColorCommand, 27);
 
 struct SetLightSizeCommandD {
-	int32_t _index;
-	float _x, _y;
+	int32_t m_index;
+	float m_x, m_y;
 };
 CMDDECL(SetLightSizeCommand, 28);
 
 struct SetClipRegionCommandD {
-	float _minx, _maxx;
-	float _miny, _maxy;
-	float _minz, _maxz;
+	float m_minx, m_maxx;
+	float m_miny, m_maxy;
+	float m_minz, m_maxz;
 };
 CMDDECL(SetClipRegionCommand, 29);
 
 struct SetVoxelScaleCommandD {
-	float _x, _y, _z;
+	float m_x, m_y, m_z;
 };
 CMDDECL(SetVoxelScaleCommand, 30);
 
 struct AutoThresholdCommandD {
-	int32_t _channel;
-	int32_t _method;
+	int32_t m_channel;
+	int32_t m_method;
 };
 CMDDECL(AutoThresholdCommand, 31);
 

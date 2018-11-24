@@ -14,16 +14,16 @@ public:
 
 	QHash<QString, QString> urlDecode(QString urlEncoded);
 
-	QHash<QString, QString> env;
-	QHash<QString, QString> get;
-	QHash<QString, QString> post;
-	QHash<QString, QString> cookie;
+	QHash<QString, QString> m_env;
+	QHash<QString, QString> m_get;
+	QHash<QString, QString> m_post;
+	QHash<QString, QString> m_cookie;
 
 private:
-	QString script;
-	QString getString;
-	QString postString;
-	QString cookieString;
+	QString m_script;
+	QString m_getString;
+	QString m_postString;
+	QString m_cookieString;
 
 };
 

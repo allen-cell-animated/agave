@@ -75,7 +75,7 @@ FWDDECL_PARSE(SetVoxelScaleCommand);
 FWDDECL_PARSE(AutoThresholdCommand);
 
 #define CMD_CASE(CMDCLASS) \
-	case (CMDCLASS::_ID):\
+	case (CMDCLASS::m_ID):\
 		return parse##CMDCLASS(&iterator);\
 		break;
 
@@ -183,95 +183,95 @@ std::string CommandBufferIterator::parseString() {
 ////////////////////////////////////////////
 Command* parseSessionCommand(CommandBufferIterator* c) {
 	SessionCommandD data;
-	data._name = c->parseString();
+	data.m_name = c->parseString();
 	return new SessionCommand(data);
 }
 Command* parseAssetPathCommand(CommandBufferIterator* c) {
 	AssetPathCommandD data;
-	data._name = c->parseString();
+	data.m_name = c->parseString();
 	return new AssetPathCommand(data);
 }
 Command* parseLoadOmeTifCommand(CommandBufferIterator* c) {
 	LoadOmeTifCommandD data;
-	data._name = c->parseString();
+	data.m_name = c->parseString();
 	return new LoadOmeTifCommand(data);
 }
 Command* parseSetCameraPosCommand(CommandBufferIterator* c) {
 	SetCameraPosCommandD data;
-	data._x = c->parseFloat32();
-	data._y = c->parseFloat32();
-	data._z = c->parseFloat32();
+	data.m_x = c->parseFloat32();
+	data.m_y = c->parseFloat32();
+	data.m_z = c->parseFloat32();
 	return new SetCameraPosCommand(data);
 }
 Command* parseSetCameraUpCommand(CommandBufferIterator* c) {
 	SetCameraUpCommandD data;
-	data._x = c->parseFloat32();
-	data._y = c->parseFloat32();
-	data._z = c->parseFloat32();
+	data.m_x = c->parseFloat32();
+	data.m_y = c->parseFloat32();
+	data.m_z = c->parseFloat32();
 	return new SetCameraUpCommand(data);
 }
 Command* parseSetCameraTargetCommand(CommandBufferIterator* c) {
 	SetCameraTargetCommandD data;
-	data._x = c->parseFloat32();
-	data._y = c->parseFloat32();
-	data._z = c->parseFloat32();
+	data.m_x = c->parseFloat32();
+	data.m_y = c->parseFloat32();
+	data.m_z = c->parseFloat32();
 	return new SetCameraTargetCommand(data);
 }
 Command* parseSetCameraApertureCommand(CommandBufferIterator* c) {
 	SetCameraApertureCommandD data;
-	data._x = c->parseFloat32();
+	data.m_x = c->parseFloat32();
 	return new SetCameraApertureCommand(data);
 }
 Command* parseSetCameraFovYCommand(CommandBufferIterator* c) {
 	SetCameraFovYCommandD data;
-	data._x = c->parseFloat32();
+	data.m_x = c->parseFloat32();
 	return new SetCameraFovYCommand(data);
 }
 Command* parseSetCameraFocalDistanceCommand(CommandBufferIterator* c) {
 	SetCameraFocalDistanceCommandD data;
-	data._x = c->parseFloat32();
+	data.m_x = c->parseFloat32();
 	return new SetCameraFocalDistanceCommand(data);
 }
 Command* parseSetCameraExposureCommand(CommandBufferIterator* c) {
 	SetCameraExposureCommandD data;
-	data._x = c->parseFloat32();
+	data.m_x = c->parseFloat32();
 	return new SetCameraExposureCommand(data);
 }
 Command* parseSetDiffuseColorCommand(CommandBufferIterator* c) {
 	SetDiffuseColorCommandD data;
-	data._channel = c->parseInt32();
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
-	data._a = c->parseFloat32();
+	data.m_channel = c->parseInt32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
+	data.m_a = c->parseFloat32();
 	return new SetDiffuseColorCommand(data);
 }
 Command* parseSetSpecularColorCommand(CommandBufferIterator* c) {
 	SetSpecularColorCommandD data;
-	data._channel = c->parseInt32();
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
-	data._a = c->parseFloat32();
+	data.m_channel = c->parseInt32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
+	data.m_a = c->parseFloat32();
 	return new SetSpecularColorCommand(data);
 }
 Command* parseSetEmissiveColorCommand(CommandBufferIterator* c) {
 	SetEmissiveColorCommandD data;
-	data._channel = c->parseInt32();
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
-	data._a = c->parseFloat32();
+	data.m_channel = c->parseInt32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
+	data.m_a = c->parseFloat32();
 	return new SetEmissiveColorCommand(data);
 }
 Command* parseSetRenderIterationsCommand(CommandBufferIterator* c) {
 	SetRenderIterationsCommandD data;
-	data._x = c->parseInt32();
+	data.m_x = c->parseInt32();
 	return new SetRenderIterationsCommand(data);
 }
 Command* parseSetStreamModeCommand(CommandBufferIterator* c) {
 	SetStreamModeCommandD data;
-	data._x = c->parseInt32();
+	data.m_x = c->parseInt32();
 	return new SetStreamModeCommand(data);
 }
 Command* parseRequestRedrawCommand(CommandBufferIterator* c) {
@@ -280,13 +280,13 @@ Command* parseRequestRedrawCommand(CommandBufferIterator* c) {
 }
 Command* parseSetResolutionCommand(CommandBufferIterator* c) {
 	SetResolutionCommandD data;
-	data._x = c->parseInt32();
-	data._y = c->parseInt32();
+	data.m_x = c->parseInt32();
+	data.m_y = c->parseInt32();
 	return new SetResolutionCommand(data);
 }
 Command* parseSetDensityCommand(CommandBufferIterator* c) {
 	SetDensityCommandD data;
-	data._x = c->parseFloat32();
+	data.m_x = c->parseFloat32();
 	return new SetDensityCommand(data);
 }
 Command* parseFrameSceneCommand(CommandBufferIterator* c) {
@@ -295,72 +295,72 @@ Command* parseFrameSceneCommand(CommandBufferIterator* c) {
 }
 Command* parseSetGlossinessCommand(CommandBufferIterator* c) {
 	SetGlossinessCommandD data;
-	data._channel = c->parseInt32();
-	data._glossiness = c->parseFloat32();
+	data.m_channel = c->parseInt32();
+	data.m_glossiness = c->parseFloat32();
 	return new SetGlossinessCommand(data);
 }
 Command* parseEnableChannelCommand(CommandBufferIterator* c) {
 	EnableChannelCommandD data;
-	data._channel = c->parseInt32();
-	data._enabled = c->parseInt32();
+	data.m_channel = c->parseInt32();
+	data.m_enabled = c->parseInt32();
 	return new EnableChannelCommand(data);
 }
 Command* parseSetWindowLevelCommand(CommandBufferIterator* c) {
 	SetWindowLevelCommandD data;
-	data._channel = c->parseInt32();
-	data._window = c->parseFloat32();
-	data._level = c->parseFloat32();
+	data.m_channel = c->parseInt32();
+	data.m_window = c->parseFloat32();
+	data.m_level = c->parseFloat32();
 	return new SetWindowLevelCommand(data);
 }
 Command* parseOrbitCameraCommand(CommandBufferIterator* c) {
 	OrbitCameraCommandD data;
-	data._theta = c->parseFloat32();
-	data._phi = c->parseFloat32();
+	data.m_theta = c->parseFloat32();
+	data.m_phi = c->parseFloat32();
 	return new OrbitCameraCommand(data);
 }
 Command* parseSetSkylightTopColorCommand(CommandBufferIterator* c) {
 	SetSkylightTopColorCommandD data;
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
 	return new SetSkylightTopColorCommand(data);
 }
 Command* parseSetSkylightMiddleColorCommand(CommandBufferIterator* c) {
 	SetSkylightMiddleColorCommandD data;
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
 	return new SetSkylightMiddleColorCommand(data);
 }
 Command* parseSetSkylightBottomColorCommand(CommandBufferIterator* c) {
 	SetSkylightBottomColorCommandD data;
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
 	return new SetSkylightBottomColorCommand(data);
 }
 
 Command* parseSetLightPosCommand(CommandBufferIterator* c) {
 	SetLightPosCommandD data;
-	data._index = c->parseInt32();
-	data._r = c->parseFloat32();
-	data._theta = c->parseFloat32();
-	data._phi = c->parseFloat32();
+	data.m_index = c->parseInt32();
+	data.m_r = c->parseFloat32();
+	data.m_theta = c->parseFloat32();
+	data.m_phi = c->parseFloat32();
 	return new SetLightPosCommand(data);
 }
 Command* parseSetLightColorCommand(CommandBufferIterator* c) {
 	SetLightColorCommandD data;
-	data._index = c->parseInt32();
-	data._r = c->parseFloat32();
-	data._g = c->parseFloat32();
-	data._b = c->parseFloat32();
+	data.m_index = c->parseInt32();
+	data.m_r = c->parseFloat32();
+	data.m_g = c->parseFloat32();
+	data.m_b = c->parseFloat32();
 	return new SetLightColorCommand(data);
 }
 Command* parseSetLightSizeCommand(CommandBufferIterator* c) {
 	SetLightSizeCommandD data;
-	data._index = c->parseInt32();
-	data._x = c->parseFloat32();
-	data._y = c->parseFloat32();
+	data.m_index = c->parseInt32();
+	data.m_x = c->parseFloat32();
+	data.m_y = c->parseFloat32();
 	return new SetLightSizeCommand(data);
 }
 
@@ -370,31 +370,31 @@ float clamp(float x, float bottom, float top) {
 
 Command* parseSetClipRegionCommand(CommandBufferIterator* c) {
 	SetClipRegionCommandD data;
-	data._minx = c->parseFloat32();
-	data._minx = clamp(data._minx, 0.0, 1.0);
-	data._maxx = c->parseFloat32();
-	data._maxx = clamp(data._maxx, 0.0, 1.0);
-	data._miny = c->parseFloat32();
-	data._miny = clamp(data._miny, 0.0, 1.0);
-	data._maxy = c->parseFloat32();
-	data._maxy = clamp(data._maxy, 0.0, 1.0);
-	data._minz = c->parseFloat32();
-	data._minz = clamp(data._minz, 0.0, 1.0);
-	data._maxz = c->parseFloat32();
-	data._maxz = clamp(data._maxz, 0.0, 1.0);
+	data.m_minx = c->parseFloat32();
+	data.m_minx = clamp(data.m_minx, 0.0, 1.0);
+	data.m_maxx = c->parseFloat32();
+	data.m_maxx = clamp(data.m_maxx, 0.0, 1.0);
+	data.m_miny = c->parseFloat32();
+	data.m_miny = clamp(data.m_miny, 0.0, 1.0);
+	data.m_maxy = c->parseFloat32();
+	data.m_maxy = clamp(data.m_maxy, 0.0, 1.0);
+	data.m_minz = c->parseFloat32();
+	data.m_minz = clamp(data.m_minz, 0.0, 1.0);
+	data.m_maxz = c->parseFloat32();
+	data.m_maxz = clamp(data.m_maxz, 0.0, 1.0);
 	return new SetClipRegionCommand(data);
 }
 
 Command* parseSetVoxelScaleCommand(CommandBufferIterator* c) {
 	SetVoxelScaleCommandD data;
-	data._x = c->parseFloat32();
-	data._y = c->parseFloat32();
-	data._z = c->parseFloat32();
+	data.m_x = c->parseFloat32();
+	data.m_y = c->parseFloat32();
+	data.m_z = c->parseFloat32();
 	return new SetVoxelScaleCommand(data);
 }
 Command* parseAutoThresholdCommand(CommandBufferIterator* c) {
 	AutoThresholdCommandD data;
-	data._channel = c->parseInt32();
-	data._method = c->parseInt32();
+	data.m_channel = c->parseInt32();
+	data.m_method = c->parseInt32();
 	return new AutoThresholdCommand(data);
 }

@@ -6,40 +6,40 @@ CgiParser::CgiParser(int argc, char *argv[])
 	QProcessEnvironment e(QProcessEnvironment::systemEnvironment());
 	foreach (QString key, e.keys())
 	{
-		this->env.insert(key, e.value(key));
+		this->m_env.insert(key, e.value(key));
 	}
 
 	//load the script
-	this->script = "";
+	this->m_script = "";
 
 	if (argc > 1)
 	{
 		QFile scriptFile(argv[1]);
 		scriptFile.open(QIODevice::ReadOnly);
-		this->script = scriptFile.readAll();
+		this->m_script = scriptFile.readAll();
 		scriptFile.close();
 	}
 
 	//get request
-	this->getString = QString(qgetenv("QUERY_STRING"));
-	this->get = this->urlDecode(this->getString);
+	this->m_getString = QString(qgetenv("QUERY_STRING"));
+	this->m_get = this->urlDecode(this->m_getString);
 
 	//cookie request
-	this->cookieString = QString(qgetenv("HTTP_COOKIE"));
-	this->cookie = this->urlDecode(this->cookieString);
+	this->m_cookieString = QString(qgetenv("HTTP_COOKIE"));
+	this->m_cookie = this->urlDecode(this->m_cookieString);
 
 	//post request
-	this->postString = "";
+	this->m_postString = "";
 	QTextStream in(stdin);
 
 	QString line;
 	do {
 		line = in.readLine();
 
-		this->postString += line + "\n";
+		this->m_postString += line + "\n";
 	} while (!line.isNull());
 
-	this->post = this->urlDecode(this->postString);
+	this->m_post = this->urlDecode(this->m_postString);
 }
 
 QHash<QString, QString> CgiParser::urlDecode(QString urlEncoded)
