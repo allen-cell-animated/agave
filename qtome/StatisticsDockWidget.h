@@ -18,5 +18,5 @@ public:
 private:
 	QGridLayout			m_MainLayout;
 	QStatisticsWidget	m_StatisticsWidget;
-	QGraphicsScene scene;
+	QGraphicsScene m_scene;
 };

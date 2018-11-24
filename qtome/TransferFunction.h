@@ -28,7 +28,7 @@ public:
 	static QTransferFunction	Default(void);
 
 	void setRenderSettings(RenderSettings& rs);
-	RenderSettings* renderSettings() { return _renderSettings; }
+	RenderSettings* renderSettings() { return m_renderSettings; }
 
 signals:
 	void	Changed(void);
@@ -43,5 +43,5 @@ private:
 	float m_Window;
 	float m_Level;
 
-	RenderSettings* _renderSettings;
+	RenderSettings* m_renderSettings;
 };
