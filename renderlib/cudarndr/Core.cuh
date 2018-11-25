@@ -9,6 +9,11 @@ struct CudaCamera;
 struct CudaLighting;
 struct CRenderSettings;
 
+struct cudaBoundingBox {
+    float3 m_min;
+    float3 m_max;
+};
+
 struct cudaFB {
 	float* m_fb;
 	float* m_fbaccum;
@@ -39,7 +44,7 @@ struct cudaVolume {
 };
 
 void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
-	const CBoundingBox& bbox, const CBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
+	const cudaBoundingBox& bbox, const cudaBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
 	int w, int h, float gamma, float exposure);
 
 void ComputeFocusDistance(const cudaVolume& volumedata);

@@ -303,9 +303,15 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 		ext.z*m_scene->m_roi.GetMaxP().z + sn.z
 	));
 
+    cudaBoundingBox clipbb;
+    clipbb.m_min = make_float3(b.GetMinP().x, b.GetMinP().y, b.GetMinP().z);
+    clipbb.m_max = make_float3(b.GetMaxP().x, b.GetMaxP().y, b.GetMaxP().z);
+    cudaBoundingBox aabb;
+    aabb.m_min = make_float3(m_scene->m_boundingBox.GetMinP().x, m_scene->m_boundingBox.GetMinP().y, m_scene->m_boundingBox.GetMinP().z);
+    aabb.m_max = make_float3(m_scene->m_boundingBox.GetMaxP().x, m_scene->m_boundingBox.GetMaxP().y, m_scene->m_boundingBox.GetMaxP().z);
 
 	BindConstants(cudalt, m_renderSettings->m_DenoiseParams, cudacam,
-		m_scene->m_boundingBox, b, m_renderSettings->m_RenderSettings, m_renderSettings->GetNoIterations(),
+		aabb, clipbb, m_renderSettings->m_RenderSettings, m_renderSettings->GetNoIterations(),
 		m_w, m_h, camera.m_Film.m_Gamma, camera.m_Film.m_Exposure);
 	// Render image
 	//RayMarchVolume(_cudaF32Buffer, _volumeTex, _volumeGradientTex, _renderSettings, _w, _h, 2.0f, 20.0f, glm::value_ptr(m), _channelMin, _channelMax);

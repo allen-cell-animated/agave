@@ -6,7 +6,6 @@
 #include "Lighting2.cuh"
 #include "Lighting2Impl.cuh"
 #include "DenoiseParams.cuh"
-#include "BoundingBox.h"
 
 CD float3		gClippedAaBbMin;
 CD float3		gClippedAaBbMax;
@@ -59,25 +58,24 @@ CD CudaCamera gCamera;
 #include "NearestIntersection.cuh"
 #include "ToneMap.cuh"
 
-
-void BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
-	const CBoundingBox& bbox, const CBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
+void __host__ BindConstants(const CudaLighting& cudalt, const CDenoiseParams& denoise, const CudaCamera& cudacam, 
+	const cudaBoundingBox& bbox, const cudaBoundingBox& clipped_bbox, const CRenderSettings& renderSettings, int numIterations,
 	int w, int h, float gamma, float exposure)
 {
-	const float3 ClipAaBbMin = make_float3(clipped_bbox.GetMinP().x, clipped_bbox.GetMinP().y, clipped_bbox.GetMinP().z);
-	const float3 ClipAaBbMax = make_float3(clipped_bbox.GetMaxP().x, clipped_bbox.GetMaxP().y, clipped_bbox.GetMaxP().z);
+	//const float3 ClipAaBbMin = make_float3(clipped_bbox.GetMinP().x, clipped_bbox.GetMinP().y, clipped_bbox.GetMinP().z);
+	//const float3 ClipAaBbMax = make_float3(clipped_bbox.GetMaxP().x, clipped_bbox.GetMaxP().y, clipped_bbox.GetMaxP().z);
 
-	HandleCudaError(cudaMemcpyToSymbol(gClippedAaBbMin, &ClipAaBbMin, sizeof(float3)));
-	HandleCudaError(cudaMemcpyToSymbol(gClippedAaBbMax, &ClipAaBbMax, sizeof(float3)));
+	HandleCudaError(cudaMemcpyToSymbol(gClippedAaBbMin, &clipped_bbox.m_min, sizeof(float3)));
+	HandleCudaError(cudaMemcpyToSymbol(gClippedAaBbMax, &clipped_bbox.m_max, sizeof(float3)));
 
-	const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
-	const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
+	//const float3 AaBbMin = make_float3(bbox.GetMinP().x, bbox.GetMinP().y, bbox.GetMinP().z);
+	//const float3 AaBbMax = make_float3(bbox.GetMaxP().x, bbox.GetMaxP().y, bbox.GetMaxP().z);
 
-	HandleCudaError(cudaMemcpyToSymbol(gAaBbMin, &AaBbMin, sizeof(float3)));
-	HandleCudaError(cudaMemcpyToSymbol(gAaBbMax, &AaBbMax, sizeof(float3)));
+	HandleCudaError(cudaMemcpyToSymbol(gAaBbMin, &bbox.m_min, sizeof(float3)));
+	HandleCudaError(cudaMemcpyToSymbol(gAaBbMax, &bbox.m_max, sizeof(float3)));
 
-	const float3 InvAaBbMin = make_float3(bbox.GetInvMinP().x, bbox.GetInvMinP().y, bbox.GetInvMinP().z);
-	const float3 InvAaBbMax = make_float3(bbox.GetInvMaxP().x, bbox.GetInvMaxP().y, bbox.GetInvMaxP().z);
+	const float3 InvAaBbMin = make_float3(1.0f / bbox.m_min.x, 1.0f / bbox.m_min.y, 1.0f / bbox.m_min.z);
+	const float3 InvAaBbMax = make_float3(1.0f / bbox.m_max.x, 1.0f / bbox.m_max.y, 1.0f / bbox.m_max.z);
 
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMin, &InvAaBbMin, sizeof(float3)));
 	HandleCudaError(cudaMemcpyToSymbol(gInvAaBbMax, &InvAaBbMax, sizeof(float3)));
@@ -174,21 +172,9 @@ void Render(const int& Type, int numExposures, int w, int h,
 	for (int i = 0; i < numExposures; ++i) {
 		CCudaTimer TmrRender;
 
-		switch (Type)
-		{
-		case 0:
-		{
-			SingleScattering(w, h,
-				volumedata, framebuffers.m_fb, framebuffers.m_randomSeeds1, framebuffers.m_randomSeeds2);
-			break;
-		}
+		SingleScattering(w, h,
+			volumedata, framebuffers.m_fb, framebuffers.m_randomSeeds1, framebuffers.m_randomSeeds2);
 
-		case 1:
-		{
-			//			MultipleScattering(&Scene);
-			break;
-		}
-		}
 		RenderImage.AddDuration(TmrRender.ElapsedTime());
 
 		// estimate just adds to accumulation buffer.
