@@ -179,7 +179,7 @@ void Render(const int& Type, int numExposures, int w, int h,
 		case 0:
 		{
 			SingleScattering(w, h,
-				volumedata, framebuffers.fb, framebuffers.randomSeeds1, framebuffers.randomSeeds2);
+				volumedata, framebuffers.m_fb, framebuffers.m_randomSeeds1, framebuffers.m_randomSeeds2);
 			break;
 		}
 
@@ -194,7 +194,7 @@ void Render(const int& Type, int numExposures, int w, int h,
 		// estimate just adds to accumulation buffer.
 		CCudaTimer TmrPostProcess;
 		Estimate(w, h, 
-			framebuffers.fb, framebuffers.fbaccum);
+			framebuffers.m_fb, framebuffers.m_fbaccum);
 		PostProcessImage.AddDuration(TmrPostProcess.ElapsedTime());
 
 		numIterations++;
