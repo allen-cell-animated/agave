@@ -39,6 +39,7 @@ CD float		gDenoiseLerpThreshold;
 CD float		gDenoiseLerpC;
 CD float		gNoIterations;
 CD float		gInvNoIterations;
+CD bool         gShowLightsBackground;
 
 CD int gShadingType;
 CD float gGradientFactor;
@@ -149,6 +150,8 @@ void __host__ BindConstants(const CudaLighting& cudalt, const CDenoiseParams& de
 	HandleCudaError(cudaMemcpyToSymbol(gCamera, &cudacam, sizeof(CudaCamera)));
 
 	HandleCudaError(cudaMemcpyToSymbol(gLighting, &cudalt, sizeof(CudaLighting)));
+
+    HandleCudaError(cudaMemcpyToSymbol(gShowLightsBackground, &renderSettings.m_ShowLightsBackground, sizeof(bool)));
 }
 
 void ComputeFocusDistance(const cudaVolume& volumedata) {

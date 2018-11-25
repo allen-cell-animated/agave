@@ -67,6 +67,7 @@ struct CRenderSettings {
 	float				m_StepSizeFactorShadow;
 	float				m_GradientDelta;
 	float				m_GradientFactor;
+    bool                m_ShowLightsBackground;
 
 	CRenderSettings() :
 		m_DensityScale(50.0f),
@@ -74,7 +75,8 @@ struct CRenderSettings {
 		m_StepSizeFactor(1.0f),
 		m_StepSizeFactorShadow(1.0f),
 		m_GradientDelta(4.0f),
-		m_GradientFactor(50.0f)
+		m_GradientFactor(50.0f),
+        m_ShowLightsBackground(false)
 	{
 	}
 };
