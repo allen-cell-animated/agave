@@ -1,7 +1,7 @@
-For windows: make sure you are in an environment where vsvarsall has been run, e.g. a "VS2015 x64 Native Tools Command Prompt"
+For windows: make sure you are in an environment where vsvarsall has been run, e.g. a "VS2017 x64 Native Tools Command Prompt"
 
 Install CUDA.
-Use vcpkg to install boost, tiff, and glm.
+Use vcpkg to install boost, tiff, assimp, glm.
 
 * for CUDA 9, need to use at least boost 1.65-1 due to an issue with __CUDACC_VER__ .
 ```
@@ -18,6 +18,8 @@ For linux:
 * ensure cuda is installed properly according to http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
 
 * https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
+
+* current Qt is available via: https://launchpad.net/~beineri (tested with Qt 5.11.2 and 5.9.x)
 ```
 source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var
 mkdir build
@@ -27,7 +29,7 @@ make
 make install
 ```
 
-# add boost and optix to lib paths for running.
+# add optix to lib paths for running.
 LD_LIBRARY_PATH=~/NVIDIA-OptiX-SDK-5.1.0-linux64/lib64:$LD_LIBRARY_PATH
 cd Release/bin
 ./qtomeapp 
