@@ -29,7 +29,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	m_RendererType.setCurrentIndex(1);
 	m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
 
-	m_MainLayout.addWidget(new QLabel("Density Scale"), 2, 0);
+	m_MainLayout.addWidget(new QLabel("Scattering Density"), 2, 0);
 	m_DensityScaleSlider.setRange(0.001, 100.0);
 	m_DensityScaleSlider.setDecimals(3);
 	m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
@@ -39,11 +39,11 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	m_ShadingType.addItem("BRDF Only", 0);
 	m_ShadingType.addItem("Phase Function Only", 1);
-	m_ShadingType.addItem("Hybrid", 2);
+	m_ShadingType.addItem("Mixed", 2);
 	m_ShadingType.setCurrentIndex(rs->m_RenderSettings.m_ShadingType);
 	m_MainLayout.addWidget(&m_ShadingType, 3, 1, 1, 2);
 
-	m_GradientFactorLabel.setText("Gradient Factor");
+	m_GradientFactorLabel.setText("Shading Type Mixture");
 	m_MainLayout.addWidget(&m_GradientFactorLabel, 4, 0);
 	m_GradientFactorSlider.setRange(0.001, 100.0);
 	m_GradientFactorSlider.setDecimals(3);
@@ -53,7 +53,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 	QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
 	QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
-	m_MainLayout.addWidget(new QLabel("Primary Step Size"), 5, 0);
+	m_MainLayout.addWidget(new QLabel("Primary Ray Step Size"), 5, 0);
 	m_StepSizePrimaryRaySlider.setRange(0.1, 100.0);
 	m_StepSizePrimaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactor);
 	m_StepSizePrimaryRaySlider.setDecimals(3);
@@ -61,7 +61,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	QObject::connect(&m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
-	m_MainLayout.addWidget(new QLabel("Secondary Step Size"), 6, 0);
+	m_MainLayout.addWidget(new QLabel("Secondary Ray Step Size"), 6, 0);
 
 	m_StepSizeSecondaryRaySlider.setRange(0.1, 100.0);
 	m_StepSizeSecondaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactorShadow);
@@ -71,7 +71,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
 	QObject::connect(&m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
-	m_scaleSection = new Section("Scale", 0);
+	m_scaleSection = new Section("Volume Scale", 0);
 	auto* scaleSectionLayout = new QGridLayout();
 	scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
 	m_xscaleSpinner = new QDoubleSpinner();
