@@ -17,9 +17,9 @@ std::string toStr(float f, int dec) {
 
 void DeviceSelector::EnumerateDevices(void)
 {
-	int NoDevices = 0;
-	HandleCudaError(cudaGetDeviceCount(&NoDevices), "no. Cuda capable devices");
-	LOG_INFO << "Found " << NoDevices << " cuda devices";
+	int numDevices = 0;
+	HandleCudaError(cudaGetDeviceCount(&numDevices), "number of Cuda capable devices");
+	LOG_INFO << "Found " << numDevices << " cuda devices";
 
 	// only consider devices that are compatible with the current opengl context!!!
 	// this library and apps that use it depend on CUDA/OpenGL interop!
