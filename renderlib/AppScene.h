@@ -158,34 +158,34 @@ public:
 
 	Light& operator=(const Light& Other)
 	{
-		m_Theta				= Other.m_Theta;
-		m_Phi				= Other.m_Phi;
-		m_Width				= Other.m_Width;
-		m_InvWidth			= Other.m_InvWidth;
-		m_HalfWidth			= Other.m_HalfWidth;
-		m_InvHalfWidth		= Other.m_InvHalfWidth;
-		m_Height			= Other.m_Height;
-		m_InvHeight			= Other.m_InvHeight;
-		m_HalfHeight		= Other.m_HalfHeight;
-		m_InvHalfHeight		= Other.m_InvHalfHeight;
-		m_Distance			= Other.m_Distance;
-		m_SkyRadius			= Other.m_SkyRadius;
-		m_P					= Other.m_P;
-		m_Target			= Other.m_Target;
-		m_N					= Other.m_N;
-		m_U					= Other.m_U;
-		m_V					= Other.m_V;
-		m_Area				= Other.m_Area;
-		m_AreaPdf			= Other.m_AreaPdf;
-		m_Color				= Other.m_Color;
-		m_ColorTop			= Other.m_ColorTop;
-		m_ColorMiddle		= Other.m_ColorMiddle;
-		m_ColorBottom		= Other.m_ColorBottom;
-		m_ColorIntensity	= Other.m_ColorIntensity;
-		m_ColorTopIntensity = Other.m_ColorTopIntensity;
-		m_ColorMiddleIntensity = Other.m_ColorMiddleIntensity;
-		m_ColorBottomIntensity = Other.m_ColorBottomIntensity;
-		m_T					= Other.m_T;
+		m_Theta					= Other.m_Theta;
+		m_Phi					= Other.m_Phi;
+		m_Width					= Other.m_Width;
+		m_InvWidth				= Other.m_InvWidth;
+		m_HalfWidth				= Other.m_HalfWidth;
+		m_InvHalfWidth			= Other.m_InvHalfWidth;
+		m_Height				= Other.m_Height;
+		m_InvHeight				= Other.m_InvHeight;
+		m_HalfHeight			= Other.m_HalfHeight;
+		m_InvHalfHeight			= Other.m_InvHalfHeight;
+		m_Distance				= Other.m_Distance;
+		m_SkyRadius				= Other.m_SkyRadius;
+		m_P						= Other.m_P;
+		m_Target				= Other.m_Target;
+		m_N						= Other.m_N;
+		m_U						= Other.m_U;
+		m_V						= Other.m_V;
+		m_Area					= Other.m_Area;
+		m_AreaPdf				= Other.m_AreaPdf;
+		m_Color					= Other.m_Color;
+		m_ColorTop				= Other.m_ColorTop;
+		m_ColorMiddle			= Other.m_ColorMiddle;
+		m_ColorBottom			= Other.m_ColorBottom;
+		m_ColorIntensity		= Other.m_ColorIntensity;
+		m_ColorTopIntensity		= Other.m_ColorTopIntensity;
+		m_ColorMiddleIntensity	= Other.m_ColorMiddleIntensity;
+		m_ColorBottomIntensity	= Other.m_ColorBottomIntensity;
+		m_T						= Other.m_T;
 
 		return *this;
 	}

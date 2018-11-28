@@ -108,6 +108,8 @@ inline std::vector<float> rndColors(int count) {
 		colors.push_back(c.greenF());
 		colors.push_back(c.blueF());
 
+		// this add plus the mod is simulating a jump that will cycle 
+		// in a pseudo-random fashion
 		currentHue += 0.618033988749895f;
 		currentHue = std::fmod(currentHue, 1.0f);
 	}
@@ -125,12 +127,14 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 		// enable first 3 channels!
 		m_material.enabled[i] = (i < 3);
 
-		m_material.diffuse[i * 3] = colors[i*3];
+		m_material.diffuse[i * 3] = colors[i * 3];
 		m_material.diffuse[i * 3 + 1] = colors[i * 3 + 1];
 		m_material.diffuse[i * 3 + 2] = colors[i * 3 + 2];
+
 		m_material.specular[i * 3] = 0.0;
 		m_material.specular[i * 3 + 1] = 0.0;
 		m_material.specular[i * 3 + 2] = 0.0;
+		
 		m_material.emissive[i * 3] = 0.0;
 		m_material.emissive[i * 3 + 1] = 0.0;
 		m_material.emissive[i * 3 + 2] = 0.0;
@@ -149,6 +153,7 @@ void Scene::initBoundsFromImg(std::shared_ptr<ImageXYZC> img)
 
 	initBounds(CBoundingBox(glm::vec3(0.0f), dim));
 }
+
 void Scene::initBounds(const CBoundingBox& bb)
 {
 	// Compute the volume's bounding box
