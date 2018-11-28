@@ -2,6 +2,8 @@
 
 #include <QObject>
 
+class Scene;
+
 class CStatus : public QObject
 {
 	Q_OBJECT
@@ -15,6 +17,8 @@ public:
 	void SetResize(void);
 	void SetLoadPreset(const QString& PresetName);
 	void SetStatisticChanged(const QString& Group, const QString& Name, const QString& Value, const QString& Unit = "", const QString& Icon = "");
+
+	void onNewImage(const QString& name, Scene* scene);
 
 signals:
 	void RenderBegin(void);

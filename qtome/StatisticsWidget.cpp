@@ -27,7 +27,7 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent) :
 //	header()->setResizeMode(1, QHeaderView::ResizeToContents);
 //	header()->setResizeMode(2, QHeaderView::ResizeToContents);
 	header()->resizeSection(0, 260);
-	header()->resizeSection(1, 150);
+	header()->resizeSection(1, 350);
 	header()->resizeSection(2, 100);
 	header()->setWindowIcon(GetIcon("table-export"));
 	header()->setVisible(false);
@@ -55,9 +55,6 @@ void QStatisticsWidget::PopulateTree(void)
 	// Populate tree with top-level items
 	AddItem(NULL, "Performance", "", "", "application-monitor");
 	AddItem(NULL, "Volume", "", "", "grid");
-	AddItem(NULL, "Memory", "", "", "memory");
-	AddItem(NULL, "Camera", "", "", "camera");
-	AddItem(NULL, "Graphics Card", "", "", "graphic-card");
 }
 
 QTreeWidgetItem* QStatisticsWidget::AddItem(QTreeWidgetItem* pParent, const QString& Property, const QString& Value, const QString& Unit, const QString& Icon)

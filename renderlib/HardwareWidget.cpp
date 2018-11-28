@@ -17,12 +17,20 @@ std::string toStr(float f, int dec) {
 
 void DeviceSelector::EnumerateDevices(void)
 {
-	int NoDevices = 0;
+	int numDevices = 0;
+	HandleCudaError(cudaGetDeviceCount(&numDevices), "number of Cuda capable devices");
+	LOG_INFO << "Found " << numDevices << " cuda devices";
 
-	HandleCudaError(cudaGetDeviceCount(&NoDevices), "no. Cuda capable devices");
+	// only consider devices that are compatible with the current opengl context!!!
+	// this library and apps that use it depend on CUDA/OpenGL interop!
+	uint32_t gldeviceCount;
+	int32_t gldevices[8];
+	HandleCudaError(cudaGLGetDevices(&gldeviceCount, gldevices, 8, cudaGLDeviceListAll));
+	LOG_INFO << "Found " << gldeviceCount << " GL compatible cuda devices";
 
-	for (int DeviceID = 0; DeviceID < NoDevices; DeviceID++)
-	{
+	for (unsigned int i = 0; i < gldeviceCount; ++i) {
+		int DeviceID = gldevices[i];
+
 		aicsCudaDevice CudaDevice;
 
 		cudaDeviceProp DeviceProperties;
@@ -88,7 +96,8 @@ void DeviceSelector::OnOptimalDevice(void)
 {
 	const int MaxGigaFlopsDeviceID = GetMaxGigaFlopsDeviceID();
 
-	_selectedDevice = MaxGigaFlopsDeviceID;
+	// just choose the first device in the list, since it was determined to be compatible with opengl interop
+	_selectedDevice = listOfPairs[0].m_ID;
 	OnCudaDeviceChanged();
 }
 

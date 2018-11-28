@@ -29,7 +29,7 @@ private:
 private slots:
 	void open();
 	void openJson();
-	void open(const QString& file);
+	void open(const QString& file, const ViewerState* v = nullptr);
 	void openRecentFile();
 	void updateRecentFileActions();
 	void quit();
@@ -47,6 +47,7 @@ private:
 	enum { MaxRecentFiles = 8 };
 
 	ViewerState appToViewerState();
+	void viewerStateToApp(const ViewerState& s);
 
 	void createActions();
 	void createMenus();

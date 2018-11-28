@@ -103,6 +103,10 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 {
 	QJsonObject json(jsonDoc.object());
 
+	glm::vec3 version(0,0,0);
+	getVec3(json, "version", version);
+	// VERSION MUST EXIST.  THROW OR PANIC IF NOT.
+
 	getString(json, "name", _volumeImageFile);
 	getInt(json, "renderIterations", _renderIterations);
 	getFloat(json, "density", _densityScale);
@@ -111,6 +115,10 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 	getVec2i(json, "resolution", res);
 	_resolutionX = res.x;
 	_resolutionY = res.y;
+
+	glm::vec3 scale(_scaleX, _scaleY, _scaleZ);
+	getVec3(json, "scale", scale);
+	_scaleX = scale.x; _scaleY = scale.y; _scaleZ = scale.z;
 
 	if (json.contains("clipRegion") && json["clipRegion"].isArray()) {
 		QJsonArray ja = json["clipRegion"].toArray();
@@ -173,6 +181,10 @@ void ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 			getVec3(lighti, "middleColor", ls._middleColor);
 			getVec3(lighti, "color", ls._color);
 			getVec3(lighti, "bottomColor", ls._bottomColor);
+			getFloat(lighti, "topColorIntensity", ls._topColorIntensity);
+			getFloat(lighti, "middleColorIntensity", ls._middleColorIntensity);
+			getFloat(lighti, "colorIntensity", ls._colorIntensity);
+			getFloat(lighti, "bottomColorIntensity", ls._bottomColorIntensity);
 			getFloat(lighti, "distance", ls._distance);
 			getFloat(lighti, "theta", ls._theta);
 			getFloat(lighti, "phi", ls._phi);
@@ -188,6 +200,9 @@ QJsonDocument ViewerState::stateToJson() const
 	QJsonObject j;
 	j["name"] = _volumeImageFile;
 	
+	// the version of this schema
+	j["version"] = jsonVec3(1, 0, 0);
+
 	QJsonArray resolution;
 	resolution.append(_resolutionX);
 	resolution.append(_resolutionY);
@@ -210,6 +225,8 @@ QJsonDocument ViewerState::stateToJson() const
 	clipRegion.append(clipRegionZ);
 
 	j["clipRegion"] = clipRegion;
+
+	j["scale"] = jsonVec3(_scaleX, _scaleY, _scaleZ);
 
 	QJsonObject camera;
 	camera["eye"] = jsonVec3(_eyeX, _eyeY, _eyeZ);
@@ -248,15 +265,19 @@ QJsonDocument ViewerState::stateToJson() const
 	light0["theta"] = _light0._theta;
 	light0["phi"] = _light0._phi;
 	light0["color"] = jsonVec3(_light0._color.r, _light0._color.g, _light0._color.b);
+	light0["colorIntensity"] = _light0._colorIntensity;
 	light0["topColor"] = jsonVec3(
 		_light0._topColor.r, _light0._topColor.g, _light0._topColor.b
 	);
+	light0["topColorIntensity"] = _light0._topColorIntensity;
 	light0["middleColor"] = jsonVec3(
 		_light0._middleColor.r, _light0._middleColor.g, _light0._middleColor.b
 	);
+	light0["middleColorIntensity"] = _light0._middleColorIntensity;
 	light0["bottomColor"] = jsonVec3(
 		_light0._bottomColor.r, _light0._bottomColor.g, _light0._bottomColor.b
 	);
+	light0["bottomColorIntensity"] = _light0._bottomColorIntensity;
 	light0["width"] = _light0._width;
 	light0["height"] = _light0._height;
 	lights.append(light0);
@@ -267,15 +288,19 @@ QJsonDocument ViewerState::stateToJson() const
 	light1["theta"] = _light1._theta;
 	light1["phi"] = _light1._phi;
 	light1["color"] = jsonVec3(_light1._color.r, _light1._color.g, _light1._color.b);
+	light1["colorIntensity"] = _light1._colorIntensity;
 	light1["topColor"] = jsonVec3(
 		_light1._topColor.r, _light1._topColor.g, _light1._topColor.b
 	);
+	light1["topColorIntensity"] = _light1._topColorIntensity;
 	light1["middleColor"] = jsonVec3(
 		_light1._middleColor.r, _light1._middleColor.g, _light1._middleColor.b
 	);
+	light1["middleColorIntensity"] = _light1._middleColorIntensity;
 	light1["bottomColor"] = jsonVec3(
 		_light1._bottomColor.r, _light1._bottomColor.g, _light1._bottomColor.b
 	);
+	light1["bottomColorIntensity"] = _light1._bottomColorIntensity;
 	light1["width"] = _light1._width;
 	light1["height"] = _light1._height;
 	lights.append(light1);

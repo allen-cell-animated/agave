@@ -303,7 +303,9 @@ memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
 // 3d median filter?
 
 Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
-	: _histogram(ptr, x*y*z)
+	: _histogram(ptr, x*y*z),
+	_window(1.0f),
+	_level(0.5f)
 {
 	_gradientMagnitudePtr = nullptr;
 	_ptr = ptr;
