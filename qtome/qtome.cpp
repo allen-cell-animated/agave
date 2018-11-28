@@ -519,12 +519,12 @@ void qtome::dumpPythonState()
 
 	// per-channel
 	for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-		bool enabled = m_appScene.m_material.enabled[i];
+		bool enabled = m_appScene.m_material.m_enabled[i];
 		s += QString("cb.add_command(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled?"1":"0");
-		s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n").arg(QString::number(i)).arg(m_appScene.m_material.diffuse[i*3]).arg(m_appScene.m_material.diffuse[i * 3+1]).arg(m_appScene.m_material.diffuse[i * 3+2]);
-		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(m_appScene.m_material.specular[i * 3]).arg(m_appScene.m_material.specular[i * 3 + 1]).arg(m_appScene.m_material.specular[i * 3 + 2]);
-		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(m_appScene.m_material.emissive[i * 3]).arg(m_appScene.m_material.emissive[i * 3 + 1]).arg(m_appScene.m_material.emissive[i * 3 + 2]);
-		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(m_appScene.m_material.roughness[i]);
+		s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_diffuse[i*3]).arg(m_appScene.m_material.m_diffuse[i * 3+1]).arg(m_appScene.m_material.m_diffuse[i * 3+2]);
+		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_specular[i * 3]).arg(m_appScene.m_material.m_specular[i * 3 + 1]).arg(m_appScene.m_material.m_specular[i * 3 + 2]);
+		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_emissive[i * 3]).arg(m_appScene.m_material.m_emissive[i * 3 + 1]).arg(m_appScene.m_material.m_emissive[i * 3 + 2]);
+		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_roughness[i]);
 		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(m_appScene.m_volume->channel(i)->m_window).arg(m_appScene.m_volume->channel(i)->m_level);
 	}
 
@@ -565,17 +565,21 @@ void qtome::viewerStateToApp(const ViewerState& v)
 	// channels
 	for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
 		ChannelViewerState ch = v.m_channels[i];
-		m_appScene.m_material.enabled[i] = ch.m_enabled;
-		m_appScene.m_material.diffuse[i * 3] = ch.m_diffuse.x;
-		m_appScene.m_material.diffuse[i * 3 + 1] = ch.m_diffuse.y;
-		m_appScene.m_material.diffuse[i * 3 + 2] = ch.m_diffuse.z;
-		m_appScene.m_material.specular[i * 3] = ch.m_specular.x;
-		m_appScene.m_material.specular[i * 3 + 1] = ch.m_specular.y;
-		m_appScene.m_material.specular[i * 3 + 2] = ch.m_specular.z;
-		m_appScene.m_material.emissive[i * 3] = ch.m_emissive.x;
-		m_appScene.m_material.emissive[i * 3 + 1] = ch.m_emissive.y;
-		m_appScene.m_material.emissive[i * 3 + 2] = ch.m_emissive.z;
-		m_appScene.m_material.roughness[i] = ch.m_glossiness;
+		m_appScene.m_material.m_enabled[i] = ch.m_enabled;
+
+		m_appScene.m_material.m_diffuse[i * 3] = ch.m_diffuse.x;
+		m_appScene.m_material.m_diffuse[i * 3 + 1] = ch.m_diffuse.y;
+		m_appScene.m_material.m_diffuse[i * 3 + 2] = ch.m_diffuse.z;
+		
+		m_appScene.m_material.m_specular[i * 3] = ch.m_specular.x;
+		m_appScene.m_material.m_specular[i * 3 + 1] = ch.m_specular.y;
+		m_appScene.m_material.m_specular[i * 3 + 2] = ch.m_specular.z;
+		
+		m_appScene.m_material.m_emissive[i * 3] = ch.m_emissive.x;
+		m_appScene.m_material.m_emissive[i * 3 + 1] = ch.m_emissive.y;
+		m_appScene.m_material.m_emissive[i * 3 + 2] = ch.m_emissive.z;
+		
+		m_appScene.m_material.m_roughness[i] = ch.m_glossiness;
 		m_appScene.m_volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
 	}
 
@@ -656,23 +660,23 @@ ViewerState qtome::appToViewerState() {
 
 	for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
 		ChannelViewerState ch;
-		ch.m_enabled = m_appScene.m_material.enabled[i];
+		ch.m_enabled = m_appScene.m_material.m_enabled[i];
 		ch.m_diffuse = glm::vec3(
-			m_appScene.m_material.diffuse[i * 3],
-			m_appScene.m_material.diffuse[i * 3 + 1],
-			m_appScene.m_material.diffuse[i * 3 + 2]
+			m_appScene.m_material.m_diffuse[i * 3],
+			m_appScene.m_material.m_diffuse[i * 3 + 1],
+			m_appScene.m_material.m_diffuse[i * 3 + 2]
 		);
 		ch.m_specular = glm::vec3(
-			m_appScene.m_material.specular[i * 3],
-			m_appScene.m_material.specular[i * 3 + 1],
-			m_appScene.m_material.specular[i * 3 + 2]
+			m_appScene.m_material.m_specular[i * 3],
+			m_appScene.m_material.m_specular[i * 3 + 1],
+			m_appScene.m_material.m_specular[i * 3 + 2]
 		);
 		ch.m_emissive = glm::vec3(
-			m_appScene.m_material.emissive[i * 3],
-			m_appScene.m_material.emissive[i * 3 + 1],
-			m_appScene.m_material.emissive[i * 3 + 2]
+			m_appScene.m_material.m_emissive[i * 3],
+			m_appScene.m_material.m_emissive[i * 3 + 1],
+			m_appScene.m_material.m_emissive[i * 3 + 2]
 		);
-		ch.m_glossiness = m_appScene.m_material.roughness[i];
+		ch.m_glossiness = m_appScene.m_material.m_roughness[i];
 		ch.m_window = m_appScene.m_volume->channel(i)->m_window;
 		ch.m_level = m_appScene.m_volume->channel(i)->m_level;
 

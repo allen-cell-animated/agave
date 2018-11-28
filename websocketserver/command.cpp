@@ -41,8 +41,8 @@ void LoadOmeTifCommand::execute(ExecutionContext* c) {
 		// enable up to first three channels!
 		// TODO Why should it be three?
 		for (uint32_t i = 0; i < image->sizeC(); ++i) {
-			c->m_appScene->m_material.enabled[i] = (i < 3);
-			c->m_appScene->m_material.opacity[i] = 1.0f;
+			c->m_appScene->m_material.m_enabled[i] = (i < 3);
+			c->m_appScene->m_material.m_opacity[i] = 1.0f;
 		}
 		c->m_renderSettings->SetNoIterations(0);
 		c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
@@ -124,23 +124,23 @@ void SetCameraExposureCommand::execute(ExecutionContext* c) {
 }
 void SetDiffuseColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetDiffuse " << m_data.m_channel << " " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-	c->m_appScene->m_material.diffuse[m_data.m_channel * 3 + 0] = m_data.m_r;
-	c->m_appScene->m_material.diffuse[m_data.m_channel * 3 + 1] = m_data.m_g;
-	c->m_appScene->m_material.diffuse[m_data.m_channel * 3 + 2] = m_data.m_b;
+	c->m_appScene->m_material.m_diffuse[m_data.m_channel * 3 + 0] = m_data.m_r;
+	c->m_appScene->m_material.m_diffuse[m_data.m_channel * 3 + 1] = m_data.m_g;
+	c->m_appScene->m_material.m_diffuse[m_data.m_channel * 3 + 2] = m_data.m_b;
 	c->m_renderSettings->SetNoIterations(0);
 }
 void SetSpecularColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetSpecular " << m_data.m_channel << " " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-	c->m_appScene->m_material.specular[m_data.m_channel * 3 + 0] = m_data.m_r;
-	c->m_appScene->m_material.specular[m_data.m_channel * 3 + 1] = m_data.m_g;
-	c->m_appScene->m_material.specular[m_data.m_channel * 3 + 2] = m_data.m_b;
+	c->m_appScene->m_material.m_specular[m_data.m_channel * 3 + 0] = m_data.m_r;
+	c->m_appScene->m_material.m_specular[m_data.m_channel * 3 + 1] = m_data.m_g;
+	c->m_appScene->m_material.m_specular[m_data.m_channel * 3 + 2] = m_data.m_b;
 	c->m_renderSettings->SetNoIterations(0);
 }
 void SetEmissiveColorCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetEmissive " << m_data.m_channel << " " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-	c->m_appScene->m_material.emissive[m_data.m_channel * 3 + 0] = m_data.m_r;
-	c->m_appScene->m_material.emissive[m_data.m_channel * 3 + 1] = m_data.m_g;
-	c->m_appScene->m_material.emissive[m_data.m_channel * 3 + 2] = m_data.m_b;
+	c->m_appScene->m_material.m_emissive[m_data.m_channel * 3 + 0] = m_data.m_r;
+	c->m_appScene->m_material.m_emissive[m_data.m_channel * 3 + 1] = m_data.m_g;
+	c->m_appScene->m_material.m_emissive[m_data.m_channel * 3 + 2] = m_data.m_b;
 	c->m_renderSettings->SetNoIterations(0);
 }
 void SetRenderIterationsCommand::execute(ExecutionContext* c) {
@@ -177,13 +177,13 @@ void FrameSceneCommand::execute(ExecutionContext* c) {
 }
 void SetGlossinessCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "SetGlossiness " << m_data.m_channel << " " << m_data.m_glossiness;
-	c->m_appScene->m_material.roughness[m_data.m_channel] = m_data.m_glossiness;
+	c->m_appScene->m_material.m_roughness[m_data.m_channel] = m_data.m_glossiness;
 	c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void EnableChannelCommand::execute(ExecutionContext* c) {
 	LOG_DEBUG << "EnableChannel " << m_data.m_channel << " " << m_data.m_enabled;
 	// 0 or 1 hopefully.
-	c->m_appScene->m_material.enabled[m_data.m_channel] = (m_data.m_enabled != 0);
+	c->m_appScene->m_material.m_enabled[m_data.m_channel] = (m_data.m_enabled != 0);
 	c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 void SetWindowLevelCommand::execute(ExecutionContext* c) {

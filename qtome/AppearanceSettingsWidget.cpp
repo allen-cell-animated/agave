@@ -423,9 +423,9 @@ void QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color
 	if (!m_scene) return;
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
-	m_scene->m_material.diffuse[i * 3 + 0] = rgba[0];
-	m_scene->m_material.diffuse[i * 3 + 1] = rgba[1];
-	m_scene->m_material.diffuse[i * 3 + 2] = rgba[2];
+	m_scene->m_material.m_diffuse[i * 3 + 0] = rgba[0];
+	m_scene->m_material.m_diffuse[i * 3 + 1] = rgba[1];
+	m_scene->m_material.m_diffuse[i * 3 + 2] = rgba[2];
 	m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
@@ -434,9 +434,9 @@ void QAppearanceSettingsWidget::OnSpecularColorChanged(int i, const QColor& colo
 	if (!m_scene) return;
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
-	m_scene->m_material.specular[i * 3 + 0] = rgba[0];
-	m_scene->m_material.specular[i * 3 + 1] = rgba[1];
-	m_scene->m_material.specular[i * 3 + 2] = rgba[2];
+	m_scene->m_material.m_specular[i * 3 + 0] = rgba[0];
+	m_scene->m_material.m_specular[i * 3 + 1] = rgba[1];
+	m_scene->m_material.m_specular[i * 3 + 2] = rgba[2];
 	m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
@@ -445,9 +445,9 @@ void QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& colo
 	if (!m_scene) return;
 	qreal rgba[4];
 	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
-	m_scene->m_material.emissive[i * 3 + 0] = rgba[0];
-	m_scene->m_material.emissive[i * 3 + 1] = rgba[1];
-	m_scene->m_material.emissive[i * 3 + 2] = rgba[2];
+	m_scene->m_material.m_emissive[i * 3 + 0] = rgba[0];
+	m_scene->m_material.m_emissive[i * 3 + 1] = rgba[1];
+	m_scene->m_material.m_emissive[i * 3 + 2] = rgba[2];
 	m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 void QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
@@ -464,20 +464,20 @@ void QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
 	if (!m_scene) return;
 	//LOG_DEBUG << "window/level: " << window << ", " << level;
 	//_scene->_volume->channel((uint32_t)i)->setOpacity(opacity);
-	m_scene->m_material.opacity[i] = opacity;
+	m_scene->m_material.m_opacity[i] = opacity;
 	m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 void QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
 	if (!m_scene) return;
-	m_scene->m_material.roughness[i] = roughness;
+	m_scene->m_material.m_roughness[i] = roughness;
 	m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 void QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked) {
 	if (!m_scene) return;
-	m_scene->m_material.enabled[i] = is_checked;
+	m_scene->m_material.m_enabled[i] = is_checked;
 	m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
 }
 
@@ -543,7 +543,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 	initLightingControls(scene);
 
 	for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
-		bool channelenabled = m_scene->m_material.enabled[i];
+		bool channelenabled = m_scene->m_material.m_enabled[i];
 
 		Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, channelenabled);
 
@@ -619,18 +619,18 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		sectionLayout->addWidget(new QLabel("Opacity"), row, 0);
 		QNumericSlider* opacitySlider = new QNumericSlider();
 		opacitySlider->setRange(0.0, 1.0);
-		opacitySlider->setValue(scene->m_material.opacity[i], true);
+		opacitySlider->setValue(scene->m_material.m_opacity[i], true);
 		sectionLayout->addWidget(opacitySlider, row, 1, 1, 2);
 
 		QObject::connect(opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) {
 			this->OnOpacityChanged(i, d);
 		});
 		// init
-		this->OnOpacityChanged(i, scene->m_material.opacity[i]);
+		this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
 		row++;
 		QColorPushButton* diffuseColorButton = new QColorPushButton();
-		QColor cdiff = QColor::fromRgbF(scene->m_material.diffuse[i * 3 + 0], scene->m_material.diffuse[i * 3 + 1], scene->m_material.diffuse[i * 3 + 2]);
+		QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0], scene->m_material.m_diffuse[i * 3 + 1], scene->m_material.m_diffuse[i * 3 + 2]);
 		diffuseColorButton->SetColor(cdiff, true);
 		sectionLayout->addWidget(new QLabel("DiffuseColor"), row, 0);
 		sectionLayout->addWidget(diffuseColorButton, row, 2);
@@ -642,7 +642,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 		row++;
 		QColorPushButton* specularColorButton = new QColorPushButton();
-		QColor cspec = QColor::fromRgbF(scene->m_material.specular[i * 3 + 0], scene->m_material.specular[i * 3 + 1], scene->m_material.specular[i * 3 + 2]);
+		QColor cspec = QColor::fromRgbF(scene->m_material.m_specular[i * 3 + 0], scene->m_material.m_specular[i * 3 + 1], scene->m_material.m_specular[i * 3 + 2]);
 		specularColorButton->SetColor(cspec, true);
 		sectionLayout->addWidget(new QLabel("SpecularColor"), row, 0);
 		sectionLayout->addWidget(specularColorButton, row, 2);
@@ -654,7 +654,7 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
 		row++;
 		QColorPushButton* emissiveColorButton = new QColorPushButton();
-		QColor cemis = QColor::fromRgbF(scene->m_material.emissive[i * 3 + 0], scene->m_material.emissive[i * 3 + 1], scene->m_material.emissive[i * 3 + 2]);
+		QColor cemis = QColor::fromRgbF(scene->m_material.m_emissive[i * 3 + 0], scene->m_material.m_emissive[i * 3 + 1], scene->m_material.m_emissive[i * 3 + 2]);
 		emissiveColorButton->SetColor(cemis, true);
 		sectionLayout->addWidget(new QLabel("EmissiveColor"), row, 0);
 		sectionLayout->addWidget(emissiveColorButton, row, 2);
@@ -668,12 +668,12 @@ void QAppearanceSettingsWidget::onNewImage(Scene* scene)
 		sectionLayout->addWidget(new QLabel("Glossiness"), row, 0);
 		QNumericSlider* roughnessSlider = new QNumericSlider();
 		roughnessSlider->setRange(0.0, 100.0);
-		roughnessSlider->setValue(scene->m_material.roughness[i]);
+		roughnessSlider->setValue(scene->m_material.m_roughness[i]);
 		sectionLayout->addWidget(roughnessSlider, row, 1, 1, 2);
 		QObject::connect(roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) {
 			this->OnRoughnessChanged(i, d);
 		});
-		this->OnRoughnessChanged(i, scene->m_material.roughness[i]);
+		this->OnRoughnessChanged(i, scene->m_material.m_roughness[i]);
 
 		QObject::connect(section, &Section::checked, [i, this](bool is_checked) {
 			this->OnChannelChecked(i, is_checked);

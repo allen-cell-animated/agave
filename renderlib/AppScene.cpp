@@ -125,22 +125,22 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 
 	for (uint32_t i = 0; i < img->sizeC(); ++i) {
 		// enable first 3 channels!
-		m_material.enabled[i] = (i < 3);
+		m_material.m_enabled[i] = (i < 3);
 
-		m_material.diffuse[i * 3] = colors[i * 3];
-		m_material.diffuse[i * 3 + 1] = colors[i * 3 + 1];
-		m_material.diffuse[i * 3 + 2] = colors[i * 3 + 2];
+		m_material.m_diffuse[i * 3] = colors[i * 3];
+		m_material.m_diffuse[i * 3 + 1] = colors[i * 3 + 1];
+		m_material.m_diffuse[i * 3 + 2] = colors[i * 3 + 2];
 
-		m_material.specular[i * 3] = 0.0;
-		m_material.specular[i * 3 + 1] = 0.0;
-		m_material.specular[i * 3 + 2] = 0.0;
+		m_material.m_specular[i * 3] = 0.0;
+		m_material.m_specular[i * 3 + 1] = 0.0;
+		m_material.m_specular[i * 3 + 2] = 0.0;
 		
-		m_material.emissive[i * 3] = 0.0;
-		m_material.emissive[i * 3 + 1] = 0.0;
-		m_material.emissive[i * 3 + 2] = 0.0;
+		m_material.m_emissive[i * 3] = 0.0;
+		m_material.m_emissive[i * 3 + 1] = 0.0;
+		m_material.m_emissive[i * 3 + 2] = 0.0;
 
-		m_material.opacity[i] = 1.0;
-		m_material.roughness[i] = 1.0;
+		m_material.m_opacity[i] = 1.0;
+		m_material.m_roughness[i] = 1.0;
 	}
 
 	initBoundsFromImg(img);

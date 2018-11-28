@@ -85,12 +85,12 @@ struct VolumeDisplay {
 
     // channels enabled/disabled
     // per channel colors
-	float diffuse[MAX_CPU_CHANNELS * 3];
-	float specular[MAX_CPU_CHANNELS * 3];
-	float emissive[MAX_CPU_CHANNELS * 3];
-	float roughness[MAX_CPU_CHANNELS];
-	float opacity[MAX_CPU_CHANNELS];
-	bool enabled[MAX_CPU_CHANNELS];
+	float m_diffuse[MAX_CPU_CHANNELS * 3];
+	float m_specular[MAX_CPU_CHANNELS * 3];
+	float m_emissive[MAX_CPU_CHANNELS * 3];
+	float m_roughness[MAX_CPU_CHANNELS];
+	float m_opacity[MAX_CPU_CHANNELS];
+	bool m_enabled[MAX_CPU_CHANNELS];
 };
 
 class Light {

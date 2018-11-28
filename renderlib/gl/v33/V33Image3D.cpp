@@ -262,10 +262,10 @@ void Image3Dv33::prepareTexture(Scene& s) {
 
 	std::vector<glm::vec3> colors;
 	for (int i = 0; i < MAX_CPU_CHANNELS; ++i) {
-		if (s.m_material.enabled[i]) {
-			colors.push_back(glm::vec3(s.m_material.diffuse[i * 3],
-				s.m_material.diffuse[i * 3 + 1],
-				s.m_material.diffuse[i * 3 + 2]) * s.m_material.opacity[i]);
+		if (s.m_material.m_enabled[i]) {
+			colors.push_back(glm::vec3(s.m_material.m_diffuse[i * 3],
+				s.m_material.m_diffuse[i * 3 + 1],
+				s.m_material.m_diffuse[i * 3 + 2]) * s.m_material.m_opacity[i]);
 		}
 		else {
 			colors.push_back(glm::vec3(0, 0, 0));

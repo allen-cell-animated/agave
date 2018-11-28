@@ -269,7 +269,7 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 		int activeChannel = 0;
 		int NC = m_scene->m_volume->sizeC();
 		for (int i = 0; i < NC; ++i) {
-			if (m_scene->m_material.enabled[i] && activeChannel < 4) {
+			if (m_scene->m_material.m_enabled[i] && activeChannel < 4) {
 				ch[activeChannel] = i;
 				activeChannel++;
 			}
@@ -328,23 +328,23 @@ void RenderGLCuda::doRender(const CCamera& camera) {
 	int activeChannel = 0;
 	cudaVolume theCudaVolume(0);
 	for (int i = 0; i < NC; ++i) {
-		if (m_scene->m_material.enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
+		if (m_scene->m_material.m_enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
 			theCudaVolume.m_volumeTexture[activeChannel] = m_imgCuda->m_volumeTextureInterleaved;
 			theCudaVolume.m_gradientVolumeTexture[activeChannel] = m_imgCuda->m_channels[i].m_volumeGradientTexture;
 			theCudaVolume.m_lutTexture[activeChannel] = m_imgCuda->m_channels[i].m_volumeLutTexture;
 			theCudaVolume.m_intensityMax[activeChannel] = m_scene->m_volume->channel(i)->m_max;
 			theCudaVolume.m_intensityMin[activeChannel] = m_scene->m_volume->channel(i)->m_min;
-			theCudaVolume.m_diffuse[activeChannel * 3 + 0] = m_scene->m_material.diffuse[i * 3 + 0];
-			theCudaVolume.m_diffuse[activeChannel * 3 + 1] = m_scene->m_material.diffuse[i * 3 + 1];
-			theCudaVolume.m_diffuse[activeChannel * 3 + 2] = m_scene->m_material.diffuse[i * 3 + 2];
-			theCudaVolume.m_specular[activeChannel * 3 + 0] = m_scene->m_material.specular[i * 3 + 0];
-			theCudaVolume.m_specular[activeChannel * 3 + 1] = m_scene->m_material.specular[i * 3 + 1];
-			theCudaVolume.m_specular[activeChannel * 3 + 2] = m_scene->m_material.specular[i * 3 + 2];
-			theCudaVolume.m_emissive[activeChannel * 3 + 0] = m_scene->m_material.emissive[i * 3 + 0];
-			theCudaVolume.m_emissive[activeChannel * 3 + 1] = m_scene->m_material.emissive[i * 3 + 1];
-			theCudaVolume.m_emissive[activeChannel * 3 + 2] = m_scene->m_material.emissive[i * 3 + 2];
-			theCudaVolume.m_roughness[activeChannel] = m_scene->m_material.roughness[i];
-			theCudaVolume.m_opacity[activeChannel] = m_scene->m_material.opacity[i];
+			theCudaVolume.m_diffuse[activeChannel * 3 + 0] = m_scene->m_material.m_diffuse[i * 3 + 0];
+			theCudaVolume.m_diffuse[activeChannel * 3 + 1] = m_scene->m_material.m_diffuse[i * 3 + 1];
+			theCudaVolume.m_diffuse[activeChannel * 3 + 2] = m_scene->m_material.m_diffuse[i * 3 + 2];
+			theCudaVolume.m_specular[activeChannel * 3 + 0] = m_scene->m_material.m_specular[i * 3 + 0];
+			theCudaVolume.m_specular[activeChannel * 3 + 1] = m_scene->m_material.m_specular[i * 3 + 1];
+			theCudaVolume.m_specular[activeChannel * 3 + 2] = m_scene->m_material.m_specular[i * 3 + 2];
+			theCudaVolume.m_emissive[activeChannel * 3 + 0] = m_scene->m_material.m_emissive[i * 3 + 0];
+			theCudaVolume.m_emissive[activeChannel * 3 + 1] = m_scene->m_material.m_emissive[i * 3 + 1];
+			theCudaVolume.m_emissive[activeChannel * 3 + 2] = m_scene->m_material.m_emissive[i * 3 + 2];
+			theCudaVolume.m_roughness[activeChannel] = m_scene->m_material.m_roughness[i];
+			theCudaVolume.m_opacity[activeChannel] = m_scene->m_material.m_opacity[i];
 
 			activeChannel++;
 			theCudaVolume.m_nChannels = activeChannel;
