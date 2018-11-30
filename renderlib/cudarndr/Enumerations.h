@@ -1,23 +1,5 @@
 #pragma once
 
-enum EStatistics
-{
-	StatisticsFPS					= 0x0001,
-	StatisticsNumVertices			= 0x0002,
-	StatisticsNumVertexNormals		= 0x0004,
-	StatisticsNumFaces				= 0x0008,
-	StatisticsDisplayOptions		= 0x0010,
-	StatisticsResolution			= 0x0020,
-	StatisticsRaysPerSecond			= 0x0040,
-	StatisticsMousePosition			= 0x0080,
-	StatisticsCameraFieldOfView		= 0x0100,
-	StatisticsCameraFocalDistance	= 0x0200,
-	StatisticsCameraAperture		= 0x0400,
-	StatisticsRenderType			= 0x0800,
-	StatisticsDocumentPath			= 0x1000,
-	StatisticsAll					= StatisticsFPS | StatisticsNumVertices | StatisticsNumVertexNormals | StatisticsNumFaces | StatisticsDisplayOptions | StatisticsResolution | StatisticsRaysPerSecond | StatisticsMousePosition | StatisticsCameraFieldOfView | StatisticsCameraFocalDistance | StatisticsCameraAperture | StatisticsRenderType | StatisticsDocumentPath
-};
-
 // View modes
 enum EViewMode
 {

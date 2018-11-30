@@ -157,13 +157,13 @@ protected:
 
 private:
     /// Update at next opportunity?
-    bool update_pending;
+    bool m_update_pending;
     /// Animation enabled?
-    bool animating;
+    bool m_animating;
     /// OpenGL context.
-    QOpenGLContext *glcontext;
+    QOpenGLContext *m_glcontext;
     /// OpenGL paint device (if render is not reimplemented in subclass).
-    QOpenGLPaintDevice *device;
+    QOpenGLPaintDevice *m_device;
     /// OpenGL debug logger (if logging enabled).
-    QOpenGLDebugLogger *logger;
+    QOpenGLDebugLogger *m_logger;
 };

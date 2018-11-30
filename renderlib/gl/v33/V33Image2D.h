@@ -36,6 +36,6 @@ public:
 
 private:
     /// The shader program for image rendering.
-	GLImageShader2D *image_shader;
+	GLImageShader2D *m_image_shader;
 };
 

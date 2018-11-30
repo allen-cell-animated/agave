@@ -10,17 +10,17 @@
 #include <iostream>
 
 RenderGL::RenderGL(RenderSettings* rs)
-	:image3d(nullptr),
-	_w(0),
-	_h(0),
-	_renderSettings(rs),
-	_scene(nullptr)
+	:m_image3d(nullptr),
+	m_w(0),
+	m_h(0),
+	m_renderSettings(rs),
+	m_scene(nullptr)
 {
 }
 
 RenderGL::~RenderGL()
 {
-	delete image3d;
+	delete m_image3d;
 }
 
 void RenderGL::initialize(uint32_t w, uint32_t h)
@@ -35,7 +35,7 @@ void RenderGL::initialize(uint32_t w, uint32_t h)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (_scene && _scene->_volume) {
+	if (m_scene && m_scene->m_volume) {
 		initFromScene();
 	}
 
@@ -45,67 +45,67 @@ void RenderGL::initialize(uint32_t w, uint32_t h)
 
 void RenderGL::render(const CCamera& camera)
 {
-	if (!_scene || !_scene->_volume) {
+	if (!m_scene || !m_scene->m_volume) {
 		return;
 	}
-	if (!image3d) {
+	if (!m_image3d) {
 		initFromScene();
 	}
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (!image3d) {
+	if (!m_image3d) {
 		return;
 	}
 
 
-	if (_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty))
+	if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty))
 	{
-		image3d->prepareTexture(*_scene);
+		m_image3d->prepareTexture(*m_scene);
 	}
 
 	// At this point, all dirty flags should have been taken care of, since the flags in the original scene are now cleared
-	_renderSettings->m_DirtyFlags.ClearAllFlags();
+	m_renderSettings->m_DirtyFlags.ClearAllFlags();
 
 	// Render image
-	image3d->render(camera, _scene, _renderSettings);
+	m_image3d->render(camera, m_scene, m_renderSettings);
 
-	_timingRender.AddDuration((float)_timer.elapsed());
-	_status.SetStatisticChanged("Performance", "Render Image", QString::number(_timingRender.m_FilteredDuration, 'f', 2), "ms.");
-	_timer.start();
+	m_timingRender.AddDuration((float)m_timer.elapsed());
+	m_status.SetStatisticChanged("Performance", "Render Image", QString::number(m_timingRender.m_FilteredDuration, 'f', 2), "ms.");
+	m_timer.start();
 
 }
 
 void RenderGL::resize(uint32_t w, uint32_t h)
 {
-	_w = w;
-	_h = h;
+	m_w = w;
+	m_h = h;
 	glViewport(0, 0, w, h);
 }
 
 RenderParams& RenderGL::renderParams() {
-	return _renderParams;
+	return m_renderParams;
 }
 Scene* RenderGL::scene() {
-	return _scene;
+	return m_scene;
 }
 void RenderGL::setScene(Scene* s) {
-	_scene = s;
+	m_scene = s;
 }
 
 void RenderGL::cleanUpResources() {
-	delete image3d;
-	image3d = nullptr;
+	delete m_image3d;
+	m_image3d = nullptr;
 }
 
 void RenderGL::initFromScene() {
-	delete image3d;
+	delete m_image3d;
 
-	image3d = new Image3Dv33(_scene->_volume);
-	image3d->create();
+	m_image3d = new Image3Dv33(m_scene->m_volume);
+	m_image3d->create();
 
 	// we have set up everything there is to do before rendering
-	_timer.start();
-	_status.SetRenderBegin();
+	m_timer.start();
+	m_status.SetRenderBegin();
 }

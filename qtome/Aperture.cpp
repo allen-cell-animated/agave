@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "Aperture.h"
 
 QAperture::QAperture(QObject* pParent /*= NULL*/) :

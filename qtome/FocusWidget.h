@@ -3,6 +3,8 @@
 #include "Controls.h"
 #include "Focus.h"
 
+#include <QGroupBox>
+
 class QCamera;
 
 class QFocusWidget : public QGroupBox
@@ -22,5 +24,5 @@ private:
 	QComboBox		m_FocusTypeComboBox;
 	QDoubleSlider	m_FocalDistanceSlider;
 	QDoubleSpinner	m_FocalDistanceSpinner;
-	QCamera* _camera;
+	QCamera* m_qcamera;
 };

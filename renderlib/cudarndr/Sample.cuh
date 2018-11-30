@@ -7,12 +7,12 @@
 class CLightSample
 {
 public:
-	Vec2f m_Pos;
+	float2 m_Pos;
 	float m_Component;
 
 	HOD CLightSample(void)
 	{
-		m_Pos	 	= Vec2f(0.0f);
+		m_Pos	 	= make_float2(0.0f);
 		m_Component	= 0.0f;
 	}
 
@@ -35,15 +35,15 @@ class CBrdfSample
 {
 public:
 	float	m_Component;
-	Vec2f	m_Dir;
+	float2	m_Dir;
 
 	HOD CBrdfSample(void)
 	{
 		m_Component = 0.0f;
-		m_Dir 		= Vec2f(0.0f);
+		m_Dir 		= make_float2(0.0f);
 	}
 
-	HOD CBrdfSample(const float& Component, const Vec2f& Dir)
+	HOD CBrdfSample(const float& Component, const float2& Dir)
 	{
 		m_Component = Component;
 		m_Dir 		= Dir;
@@ -97,13 +97,13 @@ public:
 class CCameraSample
 {
 public:
-	Vec2f	m_ImageXY;
-	Vec2f	m_LensUV;
+	float2	m_ImageXY;
+	float2	m_LensUV;
 
 	DEV CCameraSample(void)
 	{
-		m_ImageXY	= Vec2f(0.0f);
-		m_LensUV	= Vec2f(0.0f);
+		m_ImageXY	= make_float2(0.0f);
+		m_LensUV	= make_float2(0.0f);
 	}
 
 	DEV CCameraSample& operator=(const CCameraSample& Other)
@@ -114,9 +114,9 @@ public:
 		return *this;
 	}
 
-	DEV void LargeStep(Vec2f& ImageUV, Vec2f& LensUV, const int& X, const int& Y, const int& KernelSize)
+	DEV void LargeStep(float2& ImageUV, float2& LensUV, const int& X, const int& Y, const int& KernelSize)
 	{
-		m_ImageXY	= Vec2f(X + ImageUV.x, Y + ImageUV.y);
+		m_ImageXY	= make_float2(X + ImageUV.x, Y + ImageUV.y);
 		m_LensUV	= LensUV;
 	}
 };

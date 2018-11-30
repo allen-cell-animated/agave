@@ -10,15 +10,15 @@
 #include <sstream>
 
 ImageXYZC::ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bpp, uint8_t* data, float sx, float sy, float sz)
-	: _x(x), _y(y), _z(z), _c(c), _bpp(bpp), _data(data), _scaleX(sx), _scaleY(sy), _scaleZ(sz)
+	: m_x(x), m_y(y), m_z(z), m_c(c), m_bpp(bpp), m_data(data), m_scaleX(sx), m_scaleY(sy), m_scaleZ(sz)
 {
-	for (uint32_t i = 0; i < _c; ++i) {
-		_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
+	for (uint32_t i = 0; i < m_c; ++i) {
+		m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
 	}
-	for (uint32_t i = 0; i < _c; ++i) {
-		_channels[i]->generateGradientMagnitudeVolume(physicalSizeX(), physicalSizeY(), physicalSizeZ());
+	for (uint32_t i = 0; i < m_c; ++i) {
+		m_channels[i]->generateGradientMagnitudeVolume(physicalSizeX(), physicalSizeY(), physicalSizeZ());
 
-		LOG_INFO << "Channel " << i << ":" << (_channels[i]->_min) << "," << (_channels[i]->_max);
+		LOG_INFO << "Channel " << i << ":" << (m_channels[i]->m_min) << "," << (m_channels[i]->m_max);
 		//LOG_INFO << "gradient range " << i << ":" << (_channels[i]->_gradientMagnitudeMin) << "," << (_channels[i]->_gradientMagnitudeMax);
 	}
 
@@ -27,95 +27,95 @@ ImageXYZC::ImageXYZC(uint32_t x, uint32_t y, uint32_t z, uint32_t c, uint32_t bp
 
 ImageXYZC::~ImageXYZC()
 {
-	for (uint32_t i = 0; i < _c; ++i) {
-		delete _channels[i];
-		_channels[i] = nullptr;
+	for (uint32_t i = 0; i < m_c; ++i) {
+		delete m_channels[i];
+		m_channels[i] = nullptr;
 	}
-	delete[] _data;
+	delete[] m_data;
 }
 
 void ImageXYZC::setChannelNames(std::vector<QString>& channelNames) {
-	for (uint32_t i = 0; i < _c; ++i) {
-		_channels[i]->_name = channelNames[i];
+	for (uint32_t i = 0; i < m_c; ++i) {
+		m_channels[i]->m_name = channelNames[i];
 	}
 }
 
 uint32_t ImageXYZC::sizeX() const
 {
-	return _x;
+	return m_x;
 }
 
 uint32_t ImageXYZC::sizeY() const
 {
-	return _y;
+	return m_y;
 }
 
 uint32_t ImageXYZC::sizeZ() const
 {
-	return _z;
+	return m_z;
 }
 
 uint32_t ImageXYZC::maxPixelDimension() const
 {
-	return std::max(_x, std::max(_y, _z));
+	return std::max(m_x, std::max(m_y, m_z));
 }
 
 void ImageXYZC::setPhysicalSize(float x, float y, float z)
 {
-	_scaleX = x;
-	_scaleY = y;
-	_scaleZ = z;
+	m_scaleX = x;
+	m_scaleY = y;
+	m_scaleZ = z;
 }
 
 float ImageXYZC::physicalSizeX() const
 {
-	return _scaleX;
+	return m_scaleX;
 }
 
 float ImageXYZC::physicalSizeY() const
 {
-	return _scaleY;
+	return m_scaleY;
 }
 
 float ImageXYZC::physicalSizeZ() const
 {
-	return _scaleZ;
+	return m_scaleZ;
 }
 
 uint32_t ImageXYZC::sizeC() const
 {
-	return _c;
+	return m_c;
 }
 
 uint32_t ImageXYZC::sizeOfElement() const
 {
-	return _bpp/8;
+	return m_bpp/8;
 }
 
 size_t ImageXYZC::sizeOfPlane() const
 {
-	return _x * _y * sizeOfElement();
+	return m_x * m_y * sizeOfElement();
 }
 
 size_t ImageXYZC::sizeOfChannel() const
 {
-	return sizeOfPlane() * _z;
+	return sizeOfPlane() * m_z;
 }
 
 size_t ImageXYZC::size() const
 {
-	return sizeOfChannel() * _c;
+	return sizeOfChannel() * m_c;
 }
 
 uint8_t* ImageXYZC::ptr(uint32_t channel, uint32_t z) const
 {
 	// advance ptr by this amount of uint8s.
-	return _data + ((channel*sizeOfChannel()) + (z*sizeOfPlane()));
+	return m_data + ((channel*sizeOfChannel()) + (z*sizeOfPlane()));
 }
 
 Channelu16* ImageXYZC::channel(uint32_t channel) const
 {
-	return _channels[channel];
+	return m_channels[channel];
 }
 
 glm::vec3 ImageXYZC::getDimensions() const {
@@ -134,11 +134,11 @@ glm::vec3 ImageXYZC::getDimensions() const {
 
 // count is how many elements to walk for input and output.
 FuseWorkerThread::FuseWorkerThread(size_t thread_idx, size_t nthreads, uint8_t* outptr, const ImageXYZC* img, const std::vector<glm::vec3>& colors) :
-	_thread_idx(thread_idx),
-	_nthreads(nthreads),
-	_outptr(outptr),
-	_channelColors(colors),
-	_img(img)
+	m_thread_idx(thread_idx),
+	m_nthreads(nthreads),
+	m_outptr(outptr),
+	m_channelColors(colors),
+	m_img(img)
 {
 	//size_t num_pixels = _img->sizeX() * _img->sizeY() * _img->sizeZ();
 	//num_pixels /= _nthreads;
@@ -149,36 +149,36 @@ void FuseWorkerThread::run() {
 	float r = 0, g = 0, b = 0;
 	uint8_t ar = 0, ag = 0, ab = 0;
 
-	size_t num_total_pixels = _img->sizeX() * _img->sizeY() * _img->sizeZ();
-	size_t num_pixels = num_total_pixels / _nthreads;
+	size_t num_total_pixels = m_img->sizeX() * m_img->sizeY() * m_img->sizeZ();
+	size_t num_pixels = num_total_pixels / m_nthreads;
 	// last one gets the extras.
-	if (_thread_idx == _nthreads - 1) {
-		num_pixels += num_total_pixels % _nthreads;
+	if (m_thread_idx == m_nthreads - 1) {
+		num_pixels += num_total_pixels % m_nthreads;
 	}
 
-	size_t ncolors = _channelColors.size();
-	size_t nch = std::min((size_t)_img->sizeC(), ncolors);
+	size_t ncolors = m_channelColors.size();
+	size_t nch = std::min((size_t)m_img->sizeC(), ncolors);
 
-	uint8_t* outptr = _outptr;
-	outptr += ((num_total_pixels / _nthreads) * 3 * _thread_idx);
+	uint8_t* outptr = m_outptr;
+	outptr += ((num_total_pixels / m_nthreads) * 3 * m_thread_idx);
 
 	for (uint32_t i = 0; i < nch; ++i) {
-		glm::vec3 c = _channelColors[i];
+		glm::vec3 c = m_channelColors[i];
 		if (c == glm::vec3(0, 0, 0)) {
 			continue;
 		}
 		r = c.x; // 0..1
 		g = c.y;
 		b = c.z;
-		uint16_t* channeldata = reinterpret_cast<uint16_t*>(_img->ptr(i));
+		uint16_t* channeldata = reinterpret_cast<uint16_t*>(m_img->ptr(i));
 		// jump to offset for this thread.
-		channeldata += ((num_total_pixels / _nthreads) * _thread_idx);
+		channeldata += ((num_total_pixels / m_nthreads) * m_thread_idx);
 
 
 		// array of 256 floats
-		float* lut = _img->channel(i)->_lut;
-		float chmax = (float)_img->channel(i)->_max;
-		float chmin = (float)_img->channel(i)->_min;
+		float* lut = m_img->channel(i)->m_lut;
+		float chmax = (float)m_img->channel(i)->m_max;
+		float chmin = (float)m_img->channel(i)->m_min;
 		//lut = luts[idx][c.enhancement];
 
 		for (size_t cx = 0, fx = 0; cx < num_pixels; cx++, fx += 3) {
@@ -196,7 +196,7 @@ void FuseWorkerThread::run() {
 		}
 	}
 
-	emit resultReady(_thread_idx);
+	emit resultReady(m_thread_idx);
 }
 
 // fuse: fill volume of color data, plus volume of gradients
@@ -208,7 +208,7 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** o
 
 	// create and zero
 	uint8_t* rgbVolume = *outRGBVolume;
-	memset(*outRGBVolume, 0, 3 * _x*_y*_z * sizeof(uint8_t));
+	memset(*outRGBVolume, 0, 3 * m_x*m_y*m_z * sizeof(uint8_t));
 
 
 	const bool FUSE_THREADED = true;
@@ -248,7 +248,7 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** o
 		uint8_t ar = 0, ag = 0, ab = 0;
 
 		size_t ncolors = colorsPerChannel.size();
-		size_t nch = std::min((size_t)_c, ncolors);
+		size_t nch = std::min((size_t)m_c, ncolors);
 		for (uint32_t i = 0; i < nch; ++i) {
 			glm::vec3 c = colorsPerChannel[i];
 			if (c == glm::vec3(0, 0, 0)) {
@@ -260,11 +260,11 @@ void ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** o
 			uint16_t* channeldata = reinterpret_cast<uint16_t*>(ptr(i));
 
 			// array of 256 floats
-			float* lut = this->channel(i)->_lut;
-			float chmax = (float)this->channel(i)->_max;
+			float* lut = this->channel(i)->m_lut;
+			float chmax = (float)this->channel(i)->m_max;
 			//lut = luts[idx][c.enhancement];
 
-			for (size_t cx = 0, fx = 0; cx < _x*_y*_z; cx++, fx += 3) {
+			for (size_t cx = 0, fx = 0; cx < m_x*m_y*m_z; cx++, fx += 3) {
 				value = (float)channeldata[cx] / chmax;
 				//value = (float)channeldata[cx] / 65535.0f;
 				value = lut[(int)(value*255.0 + 0.5)]; // 0..255
@@ -303,29 +303,29 @@ memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
 // 3d median filter?
 
 Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
-	: _histogram(ptr, x*y*z),
-	_window(1.0f),
-	_level(0.5f)
+	: m_histogram(ptr, x*y*z),
+	m_window(1.0f),
+	m_level(0.5f)
 {
-	_gradientMagnitudePtr = nullptr;
-	_ptr = ptr;
+	m_gradientMagnitudePtr = nullptr;
+	m_ptr = ptr;
 
-	_x = x;
-	_y = y;
-	_z = z;
+	m_x = x;
+	m_y = y;
+	m_z = z;
 
-	_min = _histogram._dataMin;
-	_max = _histogram._dataMax;
+	m_min = m_histogram._dataMin;
+	m_max = m_histogram._dataMax;
 
 	//_lut = _histogram.generate_auto2(_window, _level);
-	_lut = _histogram.initialize_thresholds();
+	m_lut = m_histogram.initialize_thresholds();
 
 }
 
 Channelu16::~Channelu16() 
 {
-	delete[] _lut;
-	delete[] _gradientMagnitudePtr;
+	delete[] m_lut;
+	delete[] m_gradientMagnitudePtr;
 }
 
 uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley, float scalez) {
@@ -334,30 +334,30 @@ uint16_t* Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley
 	float yspacing = scaley / maxspacing;
 	float zspacing = scalez / maxspacing;
 
-	uint16_t* outptr = new uint16_t[_x*_y*_z];
-	_gradientMagnitudePtr = outptr;
+	uint16_t* outptr = new uint16_t[m_x*m_y*m_z];
+	m_gradientMagnitudePtr = outptr;
 
 	int useZmin, useZmax, useYmin, useYmax, useXmin, useXmax;
 
 	double d, sum;
 
 	// deltaz is one plane of data (x*y pixels)
-	const int32_t dz = _x*_y;
+	const int32_t dz = m_x*m_y;
 	// deltay is one row of data (x pixels)
-	const int32_t dy = _x;
+	const int32_t dy = m_x;
 	// deltax is one pixel
 	const int32_t dx = 1;
 
-	uint16_t* inptr = _ptr;
-	for (uint32_t z = 0; z < _z; ++z) {
+	uint16_t* inptr = m_ptr;
+	for (uint32_t z = 0; z < m_z; ++z) {
 		useZmin = (z <= 0) ? 0 : -dz;
-		useZmax = (z >= _z-1) ? 0 : dz;
-		for (uint32_t y = 0; y < _y; ++y) {
+		useZmax = (z >= m_z-1) ? 0 : dz;
+		for (uint32_t y = 0; y < m_y; ++y) {
 			useYmin = (y <= 0) ? 0 : -dy;
-			useYmax = (y >= _y - 1) ? 0 : dy;
-			for (uint32_t x = 0; x < _x; ++x) {
+			useYmax = (y >= m_y - 1) ? 0 : dy;
+			for (uint32_t x = 0; x < m_x; ++x) {
 				useXmin = (x <= 0) ? 0 : -dx;
-				useXmax = (x >= _x - 1) ? 0 : dx;
+				useXmax = (x >= m_x - 1) ? 0 : dx;
 
 				d = static_cast<double>(inptr[useXmin]);
 				d -= static_cast<double>(inptr[useXmax]);
@@ -388,7 +388,7 @@ void Channelu16::debugprint() {
 	// stringify for output
 	std::stringstream ss;
 	for (size_t x = 0; x < 256; ++x) {
-		ss << _lut[x] << ", ";
+		ss << m_lut[x] << ", ";
 	}
 	LOG_DEBUG << "LUT: " << ss.str();
 }

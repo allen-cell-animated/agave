@@ -128,7 +128,7 @@ signals:
 	void valueChanged(double value);
 
 private:
-	QGridLayout	_layout;
-	QDoubleSpinner _spinner;
-	QDoubleSlider _slider;
+	QGridLayout	m_layout;
+	QDoubleSpinner m_spinner;
+	QDoubleSlider m_slider;
 };

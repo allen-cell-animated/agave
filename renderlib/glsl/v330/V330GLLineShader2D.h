@@ -93,17 +93,17 @@ public:
 
 private:
     /// @copydoc GLImageShader2D::vshader
-    QOpenGLShader *vshader;
+    QOpenGLShader *m_vshader;
     /// @copydoc GLImageShader2D::fshader
-    QOpenGLShader *fshader;
+    QOpenGLShader *m_fshader;
 
     /// @copydoc GLImageShader2D::attr_coords
-    int attr_coords;
+    int m_attr_coords;
     /// Vertex colour attribute
-    int attr_colour;
+    int m_attr_colour;
     /// @copydoc GLImageShader2D::uniform_mvp
-    int uniform_mvp;
+    int m_uniform_mvp;
     /// Zoom uniform.
-    int uniform_zoom;
+    int m_uniform_zoom;
 };
 

@@ -8,48 +8,48 @@
 #include <vector>
 
 struct ChannelViewerState {
-	bool _enabled = true;
-	float _window = 1.0f, _level = 0.5f;
-	float _opacity = 1.0f;
-	float _glossiness = 0.0f;
-	glm::vec3 _diffuse = glm::vec3(0.5f, 0.5f, 0.5f), _specular, _emissive;
+	bool m_enabled = true;
+	float m_window = 1.0f, m_level = 0.5f;
+	float m_opacity = 1.0f;
+	float m_glossiness = 0.0f;
+	glm::vec3 m_diffuse = glm::vec3(0.5f, 0.5f, 0.5f), m_specular, m_emissive;
 };
 
 struct LightViewerState {
-    int _type = 0;
-	float _theta = 0.0f, _phi = 0.0f;
-	float _colorIntensity = 1.0;
-	glm::vec3 _color = glm::vec3(0.5f, 0.5f, 0.5f);
-	glm::vec3 _topColor = glm::vec3(0.5f, 0.5f, 0.5f),
-		_middleColor = glm::vec3(0.5f, 0.5f, 0.5f),
-		_bottomColor = glm::vec3(0.5, 0.5, 0.5);
-	float _topColorIntensity = 1.0;
-	float _middleColorIntensity = 1.0;
-	float _bottomColorIntensity = 1.0;
-	float _width = 1.0f, _height = 1.0f, _distance = 10.0f;
+    int m_type = 0;
+	float m_theta = 0.0f, m_phi = 0.0f;
+	float m_colorIntensity = 1.0;
+	glm::vec3 m_color = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 m_topColor = glm::vec3(0.5f, 0.5f, 0.5f),
+		m_middleColor = glm::vec3(0.5f, 0.5f, 0.5f),
+		m_bottomColor = glm::vec3(0.5, 0.5, 0.5);
+	float m_topColorIntensity = 1.0;
+	float m_middleColorIntensity = 1.0;
+	float m_bottomColorIntensity = 1.0;
+	float m_width = 1.0f, m_height = 1.0f, m_distance = 10.0f;
 };
 
 struct ViewerState {
-	QString _volumeImageFile;
-	std::vector<ChannelViewerState> _channels;
-    int _resolutionX = 0, _resolutionY = 0;
-    int _renderIterations = 1;
-	float _exposure = 0.75f;
-	float _densityScale = 50.0f;
-	float _fov = 55.0f;
-	float _apertureSize = 0.0f;
-    float _focalDistance = 0.0f;
-	float _gradientFactor = 50.0f;
-	float _primaryStepSize = 1.0f, _secondaryStepSize = 1.0f;
-	float _roiXmax = 1.0f, _roiYmax = 1.0f, _roiZmax = 1.0f, _roiXmin = 0.0f, _roiYmin = 0.0f, _roiZmin = 0.0f;
-	float _scaleX = 1.0f, _scaleY = 1.0f, _scaleZ = 1.0f;
+	QString m_volumeImageFile;
+	std::vector<ChannelViewerState> m_channels;
+    int m_resolutionX = 0, m_resolutionY = 0;
+    int m_renderIterations = 1;
+	float m_exposure = 0.75f;
+	float m_densityScale = 50.0f;
+	float m_fov = 55.0f;
+	float m_apertureSize = 0.0f;
+    float m_focalDistance = 0.0f;
+	float m_gradientFactor = 50.0f;
+	float m_primaryStepSize = 1.0f, m_secondaryStepSize = 1.0f;
+	float m_roiXmax = 1.0f, m_roiYmax = 1.0f, m_roiZmax = 1.0f, m_roiXmin = 0.0f, m_roiYmin = 0.0f, m_roiZmin = 0.0f;
+	float m_scaleX = 1.0f, m_scaleY = 1.0f, m_scaleZ = 1.0f;
 
-    float _eyeX, _eyeY, _eyeZ;
-    float _targetX, _targetY, _targetZ;
-    float _upX, _upY, _upZ;
+    float m_eyeX, m_eyeY, m_eyeZ;
+    float m_targetX, m_targetY, m_targetZ;
+    float m_upX, m_upY, m_upZ;
 
-	LightViewerState _light0;
-	LightViewerState _light1;
+	LightViewerState m_light0;
+	LightViewerState m_light1;
 
 	QJsonDocument stateToJson() const;
 	void stateFromJson(QJsonDocument& jsonDoc);

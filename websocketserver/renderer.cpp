@@ -219,17 +219,17 @@ void Renderer::processCommandBuffer(RenderRequest* rr)
 	std::vector<Command*> cmds = rr->getParameters();
 	if (cmds.size() > 0) {
 		ExecutionContext ec;
-		ec._renderSettings = myVolumeData._renderSettings;
-		ec._renderer = this;
-		ec._appScene = myVolumeData._scene;
-		ec._camera = myVolumeData._camera;
-		ec._message = "";
+		ec.m_renderSettings = myVolumeData._renderSettings;
+		ec.m_renderer = this;
+		ec.m_appScene = myVolumeData._scene;
+		ec.m_camera = myVolumeData._camera;
+		ec.m_message = "";
 
 		for (auto i = cmds.begin(); i != cmds.end(); ++i) {
 			(*i)->execute(&ec);
-			if (!ec._message.isEmpty()) {
-				emit sendString(rr, ec._message);
-				ec._message = "";
+			if (!ec.m_message.isEmpty()) {
+				emit sendString(rr, ec.m_message);
+				ec.m_message = "";
 			}
 		}
 

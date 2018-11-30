@@ -61,7 +61,7 @@ public:
 
 	void onNewImage(Scene* scene);
 
-	const CCamera& getCamera() { return mCamera; }
+	const CCamera& getCamera() { return m_CCamera; }
 
 	void fromViewerState(const ViewerState& s);
 
@@ -123,19 +123,19 @@ protected:
     timerEvent (QTimerEvent *event);
 
 private:
-	CCamera mCamera;
-    CameraController _cameraController;
-	QCamera* _camera;
-	QTransferFunction* _transferFunction;
+	CCamera m_CCamera;
+    CameraController m_cameraController;
+	QCamera* m_qcamera;
+	QTransferFunction* m_transferFunction;
 
     /// Rendering timer.
-    QElapsedTimer etimer;
+    QElapsedTimer m_etimer;
 
     /// Last mouse position.
-    QPoint lastPos;
+    QPoint m_lastPos;
 
-	RenderSettings* _renderSettings;
+	RenderSettings* m_renderSettings;
 
-	std::unique_ptr<IRenderWindow> _renderer;
-	int _rendererType;
+	std::unique_ptr<IRenderWindow> m_renderer;
+	int m_rendererType;
 };

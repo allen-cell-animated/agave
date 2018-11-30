@@ -67,7 +67,7 @@ void Scene::initLights()
 	BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
 	BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
 
-	_lighting.AddLight(BackgroundLight);
+	m_lighting.AddLight(BackgroundLight);
 
 	Light AreaLight;
 
@@ -79,7 +79,7 @@ void Scene::initLights()
 	AreaLight.m_Distance = 10.0f;
 	AreaLight.m_Color = 100.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
-	_lighting.AddLight(AreaLight);
+	m_lighting.AddLight(AreaLight);
 }
 
 
@@ -107,7 +107,7 @@ inline std::vector<float> rndColors(int count) {
 		colors.push_back(c.redF());
 		colors.push_back(c.greenF());
 		colors.push_back(c.blueF());
-		
+
 		// this add plus the mod is simulating a jump that will cycle 
 		// in a pseudo-random fashion
 		currentHue += 0.618033988749895f;
@@ -125,22 +125,22 @@ void Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 
 	for (uint32_t i = 0; i < img->sizeC(); ++i) {
 		// enable first 3 channels!
-		_material.enabled[i] = (i < 3);
+		m_material.m_enabled[i] = (i < 3);
 
-		_material.diffuse[i * 3] = colors[i * 3];
-		_material.diffuse[i * 3 + 1] = colors[i * 3 + 1];
-		_material.diffuse[i * 3 + 2] = colors[i * 3 + 2];
+		m_material.m_diffuse[i * 3] = colors[i * 3];
+		m_material.m_diffuse[i * 3 + 1] = colors[i * 3 + 1];
+		m_material.m_diffuse[i * 3 + 2] = colors[i * 3 + 2];
 
-		_material.specular[i * 3] = 0.0;
-		_material.specular[i * 3 + 1] = 0.0;
-		_material.specular[i * 3 + 2] = 0.0;
+		m_material.m_specular[i * 3] = 0.0;
+		m_material.m_specular[i * 3 + 1] = 0.0;
+		m_material.m_specular[i * 3 + 2] = 0.0;
 		
-		_material.emissive[i * 3] = 0.0;
-		_material.emissive[i * 3 + 1] = 0.0;
-		_material.emissive[i * 3 + 2] = 0.0;
+		m_material.m_emissive[i * 3] = 0.0;
+		m_material.m_emissive[i * 3 + 1] = 0.0;
+		m_material.m_emissive[i * 3 + 2] = 0.0;
 
-		_material.opacity[i] = 1.0;
-		_material.roughness[i] = 1.0;
+		m_material.m_opacity[i] = 1.0;
+		m_material.m_roughness[i] = 1.0;
 	}
 
 	initBoundsFromImg(img);
@@ -157,11 +157,11 @@ void Scene::initBoundsFromImg(std::shared_ptr<ImageXYZC> img)
 void Scene::initBounds(const CBoundingBox& bb)
 {
 	// Compute the volume's bounding box
-	_boundingBox.m_MinP = bb.GetMinP();
-	_boundingBox.m_MaxP = bb.GetMaxP();
+	m_boundingBox.m_MinP = bb.GetMinP();
+	m_boundingBox.m_MaxP = bb.GetMaxP();
 
 	// point lights toward scene's bounding box
-	for (int i = 0; i < _lighting.m_NoLights; ++i) {
-		_lighting.m_Lights[i].Update(_boundingBox);
+	for (int i = 0; i < m_lighting.m_NoLights; ++i) {
+		m_lighting.m_Lights[i].Update(m_boundingBox);
 	}
 }

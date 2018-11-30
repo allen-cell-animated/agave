@@ -13,13 +13,13 @@ DEV float GetNormalizedIntensityMax4ch(const float3& P, const cudaVolume& volume
 	//float factor = (tex3D<float>(volumeData.volumeTexture[5], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	//factor = (factor > 0) ? 1.0 : 0.0;
 	f4 intensity;
-	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.m_volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	float maxIn = 0;
-	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+	for (int i = 0; i < min(volumeData.m_nChannels, 4); ++i) {
 		// 0..1
-		intensity.a[i] = (intensity.a[i] - volumeData.intensityMin[i]) / (volumeData.intensityMax[i] - volumeData.intensityMin[i]);
+		intensity.a[i] = (intensity.a[i] - volumeData.m_intensityMin[i]) / (volumeData.m_intensityMax[i] - volumeData.m_intensityMin[i]);
 		// transform through LUT
-		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
+		intensity.a[i] = tex1D<float>(volumeData.m_lutTexture[i], intensity.a[i]);
 		if (intensity.a[i] > maxIn) {
 			maxIn = intensity.a[i];
 			ch = i;
@@ -31,10 +31,10 @@ DEV float GetNormalizedIntensityMax4ch(const float3& P, const cudaVolume& volume
 DEV float GetNormalizedIntensity4ch(const float3& P, const cudaVolume& volumeData, int ch)
 {
 	f4 intensity;
-	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.m_volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
 	// select channel
 	float intensityf = intensity.a[ch];
-	intensityf = (intensityf - volumeData.intensityMin[ch]) / (volumeData.intensityMax[ch] - volumeData.intensityMin[ch]);
+	intensityf = (intensityf - volumeData.m_intensityMin[ch]) / (volumeData.m_intensityMax[ch] - volumeData.m_intensityMin[ch]);
 	//intensity = tex1D<float>(volumeData.lutTexture[ch], intensity);
 	return intensityf;
 }
@@ -45,12 +45,12 @@ DEV f4 GetIntensity4ch(const float3& P, const cudaVolume& volumeData)
 	//factor = (factor > 0) ? 1.0 : 0.0;
 	f4 intensity;
 	intensity.vec = make_float4(0, 0, 0, 0);
-	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
-	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+	intensity.vec = ((float)UINT16_MAX * tex3D<float4>(volumeData.m_volumeTexture[0], P.x * gInvAaBbMax.x, P.y * gInvAaBbMax.y, P.z * gInvAaBbMax.z));
+	for (int i = 0; i < min(volumeData.m_nChannels, 4); ++i) {
 		// 0..1
-		intensity.a[i] = (intensity.a[i] - volumeData.intensityMin[i]) / (volumeData.intensityMax[i] - volumeData.intensityMin[i]);
+		intensity.a[i] = (intensity.a[i] - volumeData.m_intensityMin[i]) / (volumeData.m_intensityMax[i] - volumeData.m_intensityMin[i]);
 		// transform through LUT
-		intensity.a[i] = tex1D<float>(volumeData.lutTexture[i], intensity.a[i]);
+		intensity.a[i] = tex1D<float>(volumeData.m_lutTexture[i], intensity.a[i]);
 	}
 	return intensity;
 }
@@ -59,7 +59,7 @@ DEV f4 GetIntensity4ch(const float3& P, const cudaVolume& volumeData)
 DEV float GetOpacity(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
 	// apply lut
-	float Intensity = NormalizedIntensity * volumeData.opacity[ch];
+	float Intensity = NormalizedIntensity * volumeData.m_opacity[ch];
 	//float Intensity = tex1D<float>(texLut, NormalizedIntensity);
 	return Intensity;
 }
@@ -67,7 +67,7 @@ DEV float GetOpacity(const float& NormalizedIntensity, const cudaVolume& volumeD
 DEV float GetBlendedOpacity(const cudaVolume& volumeData, f4 intensity)
 {
 	float sum = 0.0;
-	int n = min(volumeData.nChannels, 4);
+	int n = min(volumeData.m_nChannels, 4);
 	for (int i = 0; i < n; ++i) {
 		sum += intensity.a[i];
 	}
@@ -76,18 +76,18 @@ DEV float GetBlendedOpacity(const cudaVolume& volumeData, f4 intensity)
 
 DEV CColorRgbHdr GetDiffuseN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
-	return CColorRgbHdr(volumeData.diffuse[ch * 3 + 0], volumeData.diffuse[ch * 3 + 1], volumeData.diffuse[ch * 3 + 2]);
+	return CColorRgbHdr(volumeData.m_diffuse[ch * 3 + 0], volumeData.m_diffuse[ch * 3 + 1], volumeData.m_diffuse[ch * 3 + 2]);
 }
 
 DEV CColorRgbHdr GetBlendedDiffuse(const cudaVolume& volumeData, f4 intensity)
 {
 	CColorRgbHdr retval(0.0, 0.0, 0.0);
 	float sum = 0.0;
-	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+	for (int i = 0; i < min(volumeData.m_nChannels, 4); ++i) {
 		// blend.
-		retval.r += volumeData.diffuse[i * 3 + 0] * intensity.a[i];
-		retval.g += volumeData.diffuse[i * 3 + 1] * intensity.a[i];
-		retval.b += volumeData.diffuse[i * 3 + 2] * intensity.a[i];
+		retval.r += volumeData.m_diffuse[i * 3 + 0] * intensity.a[i];
+		retval.g += volumeData.m_diffuse[i * 3 + 1] * intensity.a[i];
+		retval.b += volumeData.m_diffuse[i * 3 + 2] * intensity.a[i];
 		sum += intensity.a[i];
 	}
 	retval.r /= sum;
@@ -98,18 +98,18 @@ DEV CColorRgbHdr GetBlendedDiffuse(const cudaVolume& volumeData, f4 intensity)
 
 DEV CColorRgbHdr GetSpecularN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
-	return CColorRgbHdr(volumeData.specular[ch * 3 + 0], volumeData.specular[ch * 3 + 1], volumeData.specular[ch * 3 + 2]);
+	return CColorRgbHdr(volumeData.m_specular[ch * 3 + 0], volumeData.m_specular[ch * 3 + 1], volumeData.m_specular[ch * 3 + 2]);
 }
 
 DEV CColorRgbHdr GetBlendedSpecular(const cudaVolume& volumeData, f4 intensity)
 {
 	CColorRgbHdr retval(0.0, 0.0, 0.0);
 	float sum = 0.0;
-	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+	for (int i = 0; i < min(volumeData.m_nChannels, 4); ++i) {
 		// blend.
-		retval.r += volumeData.specular[i * 3 + 0] * intensity.a[i];
-		retval.g += volumeData.specular[i * 3 + 1] * intensity.a[i];
-		retval.b += volumeData.specular[i * 3 + 2] * intensity.a[i];
+		retval.r += volumeData.m_specular[i * 3 + 0] * intensity.a[i];
+		retval.g += volumeData.m_specular[i * 3 + 1] * intensity.a[i];
+		retval.b += volumeData.m_specular[i * 3 + 2] * intensity.a[i];
 		sum += intensity.a[i];
 	}
 	retval.r /= sum;
@@ -120,18 +120,18 @@ DEV CColorRgbHdr GetBlendedSpecular(const cudaVolume& volumeData, f4 intensity)
 
 DEV CColorRgbHdr GetEmissionN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
-	return CColorRgbHdr(volumeData.emissive[ch * 3 + 0], volumeData.emissive[ch * 3 + 1], volumeData.emissive[ch * 3 + 2]);
+	return CColorRgbHdr(volumeData.m_emissive[ch * 3 + 0], volumeData.m_emissive[ch * 3 + 1], volumeData.m_emissive[ch * 3 + 2]);
 }
 
 DEV CColorRgbHdr GetBlendedEmission(const cudaVolume& volumeData, f4 intensity)
 {
 	CColorRgbHdr retval(0.0, 0.0, 0.0);
 	float sum = 0.0;
-	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+	for (int i = 0; i < min(volumeData.m_nChannels, 4); ++i) {
 		// blend.
-		retval.r += volumeData.emissive[i * 3 + 0] * intensity.a[i];
-		retval.g += volumeData.emissive[i * 3 + 1] * intensity.a[i];
-		retval.b += volumeData.emissive[i * 3 + 2] * intensity.a[i];
+		retval.r += volumeData.m_emissive[i * 3 + 0] * intensity.a[i];
+		retval.g += volumeData.m_emissive[i * 3 + 1] * intensity.a[i];
+		retval.b += volumeData.m_emissive[i * 3 + 2] * intensity.a[i];
 		sum += intensity.a[i];
 	}
 	retval.r /= sum;
@@ -142,16 +142,16 @@ DEV CColorRgbHdr GetBlendedEmission(const cudaVolume& volumeData, f4 intensity)
 
 DEV float GetRoughnessN(const float& NormalizedIntensity, const cudaVolume& volumeData, int ch)
 {
-	return volumeData.roughness[ch];
+	return volumeData.m_roughness[ch];
 }
 
 DEV float GetBlendedRoughness(f4 intensity, const cudaVolume& volumeData)
 {
 	float retval = 0.0;
 	float sum = 0.0;
-	for (int i = 0; i < min(volumeData.nChannels, 4); ++i) {
+	for (int i = 0; i < min(volumeData.m_nChannels, 4); ++i) {
 		// blend.
-		retval += volumeData.roughness[i] * intensity.a[i];
+		retval += volumeData.m_roughness[i] * intensity.a[i];
 		sum += intensity.a[i];
 	}
 	return retval / sum;

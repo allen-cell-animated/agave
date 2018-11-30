@@ -5,9 +5,9 @@
 #include "MonteCarlo.cuh"
 #include "RNG.cuh"
 
-DEV void GenerateRay(const CudaCamera& cam, const Vec2f& Pixel, const Vec2f& ApertureRnd, float3& RayO, float3& RayD)
+DEV void GenerateRay(const CudaCamera& cam, const float2& Pixel, const float2& ApertureRnd, float3& RayO, float3& RayD)
 {
-	Vec2f ScreenPoint;
+	float2 ScreenPoint;
 
 	ScreenPoint.x = cam.m_Screen[0][0] + (cam.m_InvScreen[0] * Pixel.x);
 	ScreenPoint.y = cam.m_Screen[1][0] + (cam.m_InvScreen[1] * Pixel.y);
@@ -18,7 +18,7 @@ DEV void GenerateRay(const CudaCamera& cam, const Vec2f& Pixel, const Vec2f& Ape
 
 	if (cam.m_ApertureSize != 0.0f)
 	{
-		Vec2f LensUV = cam.m_ApertureSize * ConcentricSampleDisk(ApertureRnd);
+		float2 LensUV = cam.m_ApertureSize * ConcentricSampleDisk(ApertureRnd);
 
 		float3 LI = (cam.m_U * LensUV.x + cam.m_V * LensUV.y);
 		RayO += LI;

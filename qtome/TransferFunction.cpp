@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "TransferFunction.h"
 
 #include "RenderSettings.h"
@@ -37,7 +35,7 @@ QTransferFunction& QTransferFunction::operator = (const QTransferFunction& Other
 }
 
 void QTransferFunction::setRenderSettings(RenderSettings& rs) {
-	_renderSettings = &rs;
+	m_renderSettings = &rs;
 
 	m_DensityScale = rs.m_RenderSettings.m_DensityScale;
 	m_ShadingType = rs.m_RenderSettings.m_ShadingType;

@@ -22,7 +22,7 @@ DEV CColorXyz CudaLight::SampleL(const float3& P, CRay& Rl, float& Pdf, CLightin
 	{
 		Rl.m_O = (m_P + ((-0.5f + LS.m_LightSample.m_Pos.x) * m_Width * m_U) + ((-0.5f + LS.m_LightSample.m_Pos.y) * m_Height * m_V));
 		Rl.m_D = normalize(P - Rl.m_O);
-		L = dot(Rl.m_D, m_N) > 0.0f ? Le(Vec2f(0.0f)) : SPEC_BLACK;
+		L = dot(Rl.m_D, m_N) > 0.0f ? Le(make_float2(0.0f)) : SPEC_BLACK;
 		Pdf = AbsDot(Rl.m_D, m_N) > 0.0f ? DistanceSquared(P, Rl.m_O) / (AbsDot(Rl.m_D, m_N) * m_Area) : 0.0f;
 	}
 
@@ -30,7 +30,7 @@ DEV CColorXyz CudaLight::SampleL(const float3& P, CRay& Rl, float& Pdf, CLightin
 	{
 		Rl.m_O = (m_P) + m_SkyRadius * UniformSampleSphere(LS.m_LightSample.m_Pos);
 		Rl.m_D = normalize(P - Rl.m_O);
-		L = Le(Vec2f(1.0f) - 2.0f * LS.m_LightSample.m_Pos);
+		L = Le(make_float2(1.0f) - 2.0f * LS.m_LightSample.m_Pos);
 		Pdf = powf(m_SkyRadius, 2.0f) / m_Area;
 	}
 
@@ -41,7 +41,7 @@ DEV CColorXyz CudaLight::SampleL(const float3& P, CRay& Rl, float& Pdf, CLightin
 }
 
 // Intersect ray with light
-DEV bool CudaLight::Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV, float* pPdf) const
+DEV bool CudaLight::Intersect(CRay& R, float& T, CColorXyz& L, float2* pUV, float* pPdf) const
 {
 	if (m_T == 0)
 	{
@@ -66,7 +66,7 @@ DEV bool CudaLight::Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV, float
 		const float3 Wl = Pl - (m_P);
 
 		// Compute texture coordinates
-		const Vec2f UV = Vec2f(dot(Wl, m_U), dot(Wl, m_V));
+		const float2 UV = make_float2(dot(Wl, m_U), dot(Wl, m_V));
 
 		// Check if within bounds of light surface
 		if (UV.x > m_HalfWidth || UV.x < -m_HalfWidth || UV.y > m_HalfHeight || UV.y < -m_HalfHeight)
@@ -98,9 +98,9 @@ DEV bool CudaLight::Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV, float
 
 		R.m_MaxT = T;
 
-		Vec2f UV = Vec2f(SphericalPhi(R.m_D) * INV_TWO_PI_F, SphericalTheta(R.m_D) * INV_PI_F);
+		float2 UV = make_float2(SphericalPhi(R.m_D) * INV_TWO_PI_F, SphericalTheta(R.m_D) * INV_PI_F);
 
-		L = Le(Vec2f(1.0f) - 2.0f * UV);
+		L = Le(make_float2(1.0f) - 2.0f * UV);
 
 		if (pPdf)
 			*pPdf = powf(m_SkyRadius, 2.0f) / m_Area;
@@ -114,7 +114,7 @@ DEV bool CudaLight::Intersect(CRay& R, float& T, CColorXyz& L, Vec2f* pUV, float
 DEV float CudaLight::Pdf(const float3& P, const float3& Wi) const
 {
 	CColorXyz L;
-	Vec2f UV;
+	//float2 UV;
 	float Pdf = 1.0f;
 
 	CRay Rl = CRay(P, Wi, 0.0f, INF_MAX);
@@ -144,7 +144,7 @@ DEV inline CColorRgbHdr Lerp(float T, const float3& C1, const float3& C2)
 	return CColorRgbHdr(OneMinusT * C1.x + T * C2.x, OneMinusT * C1.y + T * C2.y, OneMinusT * C1.z + T * C2.z);
 }
 
-DEV CColorXyz CudaLight::Le(const Vec2f& UV) const
+DEV CColorXyz CudaLight::Le(const float2& UV) const
 {
 	if (m_T == 0)
 		return CColorXyz::FromRGB(m_Color.x, m_Color.y, m_Color.z) / m_Area;

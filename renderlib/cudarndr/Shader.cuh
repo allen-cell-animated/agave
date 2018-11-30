@@ -22,7 +22,7 @@ public:
 		return m_Kd * INV_PI_F;
 	}
 
-	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const Vec2f& U)
+	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const float2& U)
 	{
 		Wi = CosineWeightedHemisphere(U);
 
@@ -104,7 +104,7 @@ public:
 	  {
 	  }
 
-	  HOD void SampleF(const float3& Wo, float3& Wi, float& Pdf, const Vec2f& U)
+	  HOD void SampleF(const float3& Wo, float3& Wi, float& Pdf, const float2& U)
 	  {
 		  // Compute sampled half-angle vector $\wh$ for Blinn distribution
 		  float costheta = powf(U.x, 1.f / (m_Exponent+1));
@@ -186,7 +186,7 @@ public:
 		  return m_R * m_Blinn.D(wh) * G(wo, wi, wh) * F / (4.f * cosThetaI * cosThetaO);
 	  }
 
-	  HOD CColorXyz SampleF(const float3& wo, float3& wi, float& Pdf, const Vec2f& U)
+	  HOD CColorXyz SampleF(const float3& wo, float3& wi, float& Pdf, const float2& U)
 	  {
 		  m_Blinn.SampleF(wo, wi, Pdf, U);
 
@@ -237,7 +237,7 @@ public:
 		return m_Kd * INV_PI_F;
 	}
 
-	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const Vec2f& U)
+	HOD CColorXyz SampleF(const float3& Wo, float3& Wi, float& Pdf, const float2& U)
 	{
 		Wi	= UniformSampleSphere(U);
 		Pdf	= this->Pdf(Wo, Wi);

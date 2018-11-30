@@ -4,17 +4,17 @@
 
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget *parent)
     : QWidget(parent),
-      _orientation(orientation),
-      _handleWidth(8),
-      _handleHeight(20),
-      _minimum(0),
-      _maximum(100),
-      _firstValue(10),
-      _secondValue(90),
-      _firstHandlePressed(false),
-      _secondHandlePressed(false),
-      _firstHandleColor(style()->standardPalette().highlight().color()),
-      _secondHandleColor(style()->standardPalette().highlight().color())
+      m_orientation(orientation),
+      m_handleWidth(8),
+      m_handleHeight(20),
+      m_minimum(0),
+      m_maximum(100),
+      m_firstValue(10),
+      m_secondValue(90),
+      m_firstHandlePressed(false),
+      m_secondHandlePressed(false),
+      m_firstHandleColor(style()->standardPalette().highlight().color()),
+      m_secondHandleColor(style()->standardPalette().highlight().color())
 {
     setMouseTracking(true);
 }
@@ -25,27 +25,27 @@ void RangeWidget::paintEvent(QPaintEvent *event)
 
     // First value handle rect
     QRectF rv1 = firstHandleRect();
-    QColor c1(_firstHandleColor);
-    if(_firstHandleHovered)
+    QColor c1(m_firstHandleColor);
+    if(m_firstHandleHovered)
         c1 = c1.darker();
 
     // Second value handle rect
     QRectF rv2 = secondHandleRect();
-    QColor c2(_secondHandleColor);
-    if(_secondHandleHovered)
+    QColor c2(m_secondHandleColor);
+    if(m_secondHandleHovered)
         c2 = c2.darker();
 
     // Background
     QRect r;
-    if(_orientation == Qt::Horizontal)
-        r = QRect(0, (height()-_handleWidth)/2, width()-1, _handleWidth);
+    if(m_orientation == Qt::Horizontal)
+        r = QRect(0, (height()-m_handleWidth)/2, width()-1, m_handleWidth);
     else
-        r = QRect((width()-_handleWidth)/2, 0, _handleWidth, height()-1);
+        r = QRect((width()-m_handleWidth)/2, 0, m_handleWidth, height()-1);
     p.drawRect(r);
 
     // Handles
     QRectF rf(r);
-    if(_orientation == Qt::Horizontal)
+    if(m_orientation == Qt::Horizontal)
     {
         rf.setLeft(rv1.right());
         rf.setRight(rv2.left());
@@ -64,22 +64,22 @@ void RangeWidget::paintEvent(QPaintEvent *event)
 
 qreal RangeWidget::span() const
 {
-    int interval = qAbs(_maximum-_minimum);
+    int interval = qAbs(m_maximum-m_minimum);
 
-    if(_orientation == Qt::Horizontal)
-        return qreal(width()-_handleWidth)/qreal(interval);
+    if(m_orientation == Qt::Horizontal)
+        return qreal(width()-m_handleWidth)/qreal(interval);
     else
-        return qreal(height()-_handleWidth)/qreal(interval);
+        return qreal(height()-m_handleWidth)/qreal(interval);
 }
 
 QRectF RangeWidget::firstHandleRect() const
 {
-    return handleRect(_firstValue);
+    return handleRect(m_firstValue);
 }
 
 QRectF RangeWidget::secondHandleRect() const
 {
-    return handleRect(_secondValue);
+    return handleRect(m_secondValue);
 }
 
 QRectF RangeWidget::handleRect(int value) const
@@ -87,15 +87,15 @@ QRectF RangeWidget::handleRect(int value) const
     qreal s = span();
 
     QRectF r;
-    if(_orientation == Qt::Horizontal)
+    if(m_orientation == Qt::Horizontal)
     {
-        r = QRectF(0, (height()-_handleHeight)/2, _handleWidth, _handleHeight);
-        r.moveLeft(s*(value-_minimum));
+        r = QRectF(0, (height()-m_handleHeight)/2, m_handleWidth, m_handleHeight);
+        r.moveLeft(s*(value-m_minimum));
     }
     else
     {
-        r = QRectF((width()-_handleHeight)/2, 0, _handleHeight, _handleWidth);
-        r.moveTop(s*(value-_minimum));
+        r = QRectF((width()-m_handleHeight)/2, 0, m_handleHeight, m_handleWidth);
+        r.moveTop(s*(value-m_minimum));
     }
     return r;
 }
@@ -104,8 +104,8 @@ void RangeWidget::mousePressEvent(QMouseEvent* event)
 {
     if(event->buttons() & Qt::LeftButton)
     {
-        _secondHandlePressed = secondHandleRect().contains(event->pos());
-        _firstHandlePressed = !_secondHandlePressed && firstHandleRect().contains(event->pos());
+        m_secondHandlePressed = secondHandleRect().contains(event->pos());
+        m_firstHandlePressed = !m_secondHandlePressed && firstHandleRect().contains(event->pos());
         emit sliderPressed();
     }
 }
@@ -114,70 +114,70 @@ void RangeWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if(event->buttons() & Qt::LeftButton)
     {
-        int interval = qAbs(_maximum-_minimum);
+        int interval = qAbs(m_maximum-m_minimum);
 
-        if(_secondHandlePressed)
+        if(m_secondHandlePressed)
         {
-            if(_orientation == Qt::Horizontal)
-                setSecondValue(event->pos().x()*interval/(width()-_handleWidth));
+            if(m_orientation == Qt::Horizontal)
+                setSecondValue(event->pos().x()*interval/(width()-m_handleWidth));
             else
-                setSecondValue(event->pos().y()*interval/(height()-_handleWidth));
+                setSecondValue(event->pos().y()*interval/(height()-m_handleWidth));
         }
-        else if(_firstHandlePressed)
+        else if(m_firstHandlePressed)
         {
-            if(_orientation == Qt::Horizontal)
-                setFirstValue(event->pos().x()*interval/(width()-_handleWidth));
+            if(m_orientation == Qt::Horizontal)
+                setFirstValue(event->pos().x()*interval/(width()-m_handleWidth));
             else
-                setFirstValue(event->pos().y()*interval/(height()-_handleWidth));
+                setFirstValue(event->pos().y()*interval/(height()-m_handleWidth));
         }
     }
 
     QRectF rv2 = secondHandleRect();
     QRectF rv1 = firstHandleRect();
-    _secondHandleHovered = _secondHandlePressed || (!_firstHandlePressed && rv2.contains(event->pos()));
-    _firstHandleHovered = _firstHandlePressed || (!_secondHandleHovered && rv1.contains(event->pos()));
+    m_secondHandleHovered = m_secondHandlePressed || (!m_firstHandlePressed && rv2.contains(event->pos()));
+    m_firstHandleHovered = m_firstHandlePressed || (!m_secondHandleHovered && rv1.contains(event->pos()));
     update(rv2.toRect());
     update(rv1.toRect());
 }
 
 void RangeWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-    if(_firstHandlePressed || _secondHandlePressed)
+    if(m_firstHandlePressed || m_secondHandlePressed)
         emit sliderReleased();
 
-    _firstHandlePressed = false;
-    _secondHandlePressed = false;
+    m_firstHandlePressed = false;
+    m_secondHandlePressed = false;
 }
 
 QSize RangeWidget::minimumSizeHint() const
 {
-    return QSize(_handleHeight, _handleHeight);
+    return QSize(m_handleHeight, m_handleHeight);
 }
 
 void RangeWidget::setSecondValue(int secondValue)
 {
-    if(secondValue > _maximum)
-        secondValue = _maximum;
+    if(secondValue > m_maximum)
+        secondValue = m_maximum;
 
-    if(secondValue < _minimum)
-        secondValue = _minimum;
+    if(secondValue < m_minimum)
+        secondValue = m_minimum;
 
-    _secondValue = secondValue;
-    emit secondValueChanged(_secondValue);
+    m_secondValue = secondValue;
+    emit secondValueChanged(m_secondValue);
 
     update();
 }
 
 void RangeWidget::setFirstValue(int firstValue)
 {
-    if(firstValue > _maximum)
-        firstValue = _maximum;
+    if(firstValue > m_maximum)
+        firstValue = m_maximum;
 
-    if(firstValue < _minimum)
-        firstValue = _minimum;
+    if(firstValue < m_minimum)
+        firstValue = m_minimum;
 
-    _firstValue = firstValue;
-    emit firstValueChanged(_firstValue);
+    m_firstValue = firstValue;
+    emit firstValueChanged(m_firstValue);
 
     update();
 }
@@ -185,12 +185,12 @@ void RangeWidget::setFirstValue(int firstValue)
 void RangeWidget::setMaximum(int max)
 {
     if(max >= minimum())
-        _maximum = max;
+        m_maximum = max;
     else
     {
         int oldMin = minimum();
-        _maximum = oldMin;
-        _minimum = max;
+        m_maximum = oldMin;
+        m_minimum = max;
     }
 
     update();
@@ -213,12 +213,12 @@ void RangeWidget::setRange(int min, int max)
 void RangeWidget::setMinimum(int min)
 {
     if(min <= maximum())
-        _minimum = min;
+        m_minimum = min;
     else
     {
         int oldMax = maximum();
-        _minimum = oldMax;
-        _maximum = min;
+        m_minimum = oldMax;
+        m_maximum = min;
     }
 
     update();
@@ -234,9 +234,9 @@ void RangeWidget::setMinimum(int min)
 
 void RangeWidget::setOrientation(Qt::Orientation orientation)
 {
-    if(_orientation == orientation)
+    if(m_orientation == orientation)
         return;
 
-    _orientation = orientation;
+    m_orientation = orientation;
     update();
 }

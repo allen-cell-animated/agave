@@ -14,34 +14,34 @@ struct Channelu16
 	Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr);
 	~Channelu16();
 
-	uint32_t _x, _y, _z;
+	uint32_t m_x, m_y, m_z;
 
-	uint16_t* _ptr;
-	uint16_t _min;
-	uint16_t _max;
+	uint16_t* m_ptr;
+	uint16_t m_min;
+	uint16_t m_max;
 
-	uint16_t* _gradientMagnitudePtr;
+	uint16_t* m_gradientMagnitudePtr;
 	//uint16_t _gradientMagnitudeMin;
 	//uint16_t _gradientMagnitudeMax;
 
-	Histogram _histogram;
-	float* _lut;
+	Histogram m_histogram;
+	float* m_lut;
 
 	uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
-	void generate_windowLevel(float window, float level) { delete[] _lut;  _lut = _histogram.generate_windowLevel(window, level); _window = window; _level = level; }
-	void generate_auto2(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto2(window, level); _window = window; _level = level; }
-	void generate_auto(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_auto(window, level); _window = window; _level = level; }
-	void generate_bestFit(float& window, float& level) { delete[] _lut;  _lut = _histogram.generate_bestFit(window, level); _window = window; _level = level; }
-	void generate_chimerax() { delete[] _lut;  _lut = _histogram.initialize_thresholds(); }
-	void generate_equalized() { delete[] _lut;  _lut = _histogram.generate_equalized(); }
+	void generate_windowLevel(float window, float level) { delete[] m_lut;  m_lut = m_histogram.generate_windowLevel(window, level); m_window = window; m_level = level; }
+	void generate_auto2(float& window, float& level) { delete[] m_lut;  m_lut = m_histogram.generate_auto2(window, level); m_window = window; m_level = level; }
+	void generate_auto(float& window, float& level) { delete[] m_lut;  m_lut = m_histogram.generate_auto(window, level); m_window = window; m_level = level; }
+	void generate_bestFit(float& window, float& level) { delete[] m_lut;  m_lut = m_histogram.generate_bestFit(window, level); m_window = window; m_level = level; }
+	void generate_chimerax() { delete[] m_lut;  m_lut = m_histogram.initialize_thresholds(); }
+	void generate_equalized() { delete[] m_lut;  m_lut = m_histogram.generate_equalized(); }
 
 	void debugprint();
 
-	QString _name;
+	QString m_name;
 
 	// convenience.  may not be accurate if LUT input is generalized.
-	float _window, _level;
+	float m_window, m_level;
 };
 
 class ImageXYZC
@@ -78,10 +78,10 @@ public:
 
 	void setChannelNames(std::vector<QString>& channelNames);
 private:
-	uint32_t _x, _y, _z, _c, _bpp;
-	uint8_t* _data;
-	float _scaleX, _scaleY, _scaleZ;
-	std::vector<Channelu16*> _channels;
+	uint32_t m_x, m_y, m_z, m_c, m_bpp;
+	uint8_t* m_data;
+	float m_scaleX, m_scaleY, m_scaleZ;
+	std::vector<Channelu16*> m_channels;
 };
 
 
@@ -93,13 +93,13 @@ public:
 	FuseWorkerThread(size_t thread_idx, size_t nthreads, uint8_t* outptr, const ImageXYZC* img, const std::vector<glm::vec3>& colors);
 	void run() override;
 private:
-	size_t _thread_idx;
-	size_t _nthreads;
-	uint8_t* _outptr;
+	size_t m_thread_idx;
+	size_t m_nthreads;
+	uint8_t* m_outptr;
 
 	// read only!
-	const ImageXYZC* _img;
-	const std::vector<glm::vec3>& _channelColors;
+	const ImageXYZC* m_img;
+	const std::vector<glm::vec3>& m_channelColors;
 signals:
 	void resultReady(size_t threadidx);
 };

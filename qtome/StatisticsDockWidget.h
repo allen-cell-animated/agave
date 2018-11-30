@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtGui>
+#include <QDockWidget>
 #include <QGraphicsScene>
 
 #include "StatisticsWidget.h"
@@ -18,5 +19,5 @@ public:
 private:
 	QGridLayout			m_MainLayout;
 	QStatisticsWidget	m_StatisticsWidget;
-	QGraphicsScene scene;
+	QGraphicsScene m_scene;
 };

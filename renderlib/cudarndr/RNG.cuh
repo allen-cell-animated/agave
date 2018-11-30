@@ -29,9 +29,9 @@ public:
 		return (res.f - 2.f) / 2.f;
 	}
 
-	HOD Vec2f Get2(void)
+	HOD float2 Get2(void)
 	{
-		return Vec2f(Get1(), Get1());
+		return make_float2(Get1(), Get1());
 	}
 
 	HOD float3 Get3(void)

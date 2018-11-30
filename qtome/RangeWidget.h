@@ -12,25 +12,25 @@ class RangeWidget : public QWidget
 private:
     Q_DISABLE_COPY(RangeWidget)
 
-    Qt::Orientation _orientation;
+    Qt::Orientation m_orientation;
 
-    int _handleWidth;
-    int _handleHeight;
+    int m_handleWidth;
+    int m_handleHeight;
 
-    int _minimum;
-    int _maximum;
+    int m_minimum;
+    int m_maximum;
 
-    int _firstValue;
-    int _secondValue;
+    int m_firstValue;
+    int m_secondValue;
 
-    bool _firstHandlePressed;
-    bool _secondHandlePressed;
+    bool m_firstHandlePressed;
+    bool m_secondHandlePressed;
 
-    bool _firstHandleHovered;
-    bool _secondHandleHovered;
+    bool m_firstHandleHovered;
+    bool m_secondHandleHovered;
 
-    QColor _firstHandleColor;
-    QColor _secondHandleColor;
+    QColor m_firstHandleColor;
+    QColor m_secondHandleColor;
 
 protected:
     void paintEvent(QPaintEvent* event);
@@ -48,11 +48,11 @@ public:
 
     QSize minimumSizeHint() const;
 
-    inline int firstValue() const { return _firstValue; }
-    inline int secondValue() const { return _secondValue; }
-    inline int minimum() const { return _minimum; }
-    inline int maximum() const { return _maximum; }
-    inline Qt::Orientation orientation() const { return _orientation; }
+    inline int firstValue() const { return m_firstValue; }
+    inline int secondValue() const { return m_secondValue; }
+    inline int minimum() const { return m_minimum; }
+    inline int maximum() const { return m_maximum; }
+    inline Qt::Orientation orientation() const { return m_orientation; }
     inline int interval() const { return secondValue()-firstValue(); }
     inline unsigned int absInterval() const { return qAbs(interval()); }
 

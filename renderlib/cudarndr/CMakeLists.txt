@@ -56,8 +56,6 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Geometry.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Spectrum.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Spectrum.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Stable.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Stable.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Variance.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Variance.h"
 )

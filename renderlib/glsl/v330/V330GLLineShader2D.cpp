@@ -8,14 +8,14 @@
 
 GLLineShader2D::GLLineShader2D():
     QOpenGLShaderProgram(),
-    vshader(),
-    fshader(),
-    attr_coords(),
-    attr_colour(),
-    uniform_mvp()
+    m_vshader(),
+    m_fshader(),
+    m_attr_coords(),
+    m_attr_colour(),
+    m_uniform_mvp()
 {
-    vshader = new QOpenGLShader(QOpenGLShader::Vertex);
-    vshader->compileSourceCode
+    m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+    m_vshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
         "uniform mat4 mvp;\n"
@@ -37,13 +37,13 @@ GLLineShader2D::GLLineShader2D():
         "  log10(zoom, logzoom);\n"
         "  outData.f_colour = vec4(colour, 1.0 / (1.0 + pow(10.0,((-logzoom-1.0+coord2d[2])*30.0))));\n"
         "}\n");
-    if (!vshader->isCompiled())
+    if (!m_vshader->isCompiled())
     {
-        std::cerr << "V330GLLineShader2D: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
+        std::cerr << "V330GLLineShader2D: Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
     }
 
-    fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-    fshader->compileSourceCode
+    m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+    m_fshader->compileSourceCode
     ("#version 330 core\n"
         "\n"
         "in VertexData\n"
@@ -56,13 +56,13 @@ GLLineShader2D::GLLineShader2D():
         "void main(void) {\n"
         "  outputColour = inData.f_colour;\n"
         "}\n");
-    if (!fshader->isCompiled())
+    if (!m_fshader->isCompiled())
     {
-        std::cerr << "V330GLLineShader2D: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
+        std::cerr << "V330GLLineShader2D: Failed to compile fragment shader\n" << m_fshader->log().toStdString() << std::endl;
     }
 
-    addShader(vshader);
-    addShader(fshader);
+    addShader(m_vshader);
+    addShader(m_fshader);
     link();
 
     if (!isLinked())
@@ -70,20 +70,20 @@ GLLineShader2D::GLLineShader2D():
         std::cerr << "V330GLLineShader2D: Failed to link shader program\n" << log().toStdString() << std::endl;
     }
 
-    attr_coords = attributeLocation("coord2d");
-    if (attr_coords == -1)
+    m_attr_coords = attributeLocation("coord2d");
+    if (m_attr_coords == -1)
     std::cerr << "V330GLLineShader2D: Failed to bind coordinate location" << std::endl;
 
-    attr_colour = attributeLocation("colour");
-    if (attr_coords == -1)
+    m_attr_colour = attributeLocation("colour");
+    if (m_attr_coords == -1)
     std::cerr << "V330GLLineShader2D: Failed to bind colour location" << std::endl;
 
-    uniform_mvp = uniformLocation("mvp");
-    if (uniform_mvp == -1)
+    m_uniform_mvp = uniformLocation("mvp");
+    if (m_uniform_mvp == -1)
     std::cerr << "V330GLLineShader2D: Failed to bind transform" << std::endl;
 
-    uniform_zoom = uniformLocation("zoom");
-    if (uniform_zoom == -1)
+    m_uniform_zoom = uniformLocation("zoom");
+    if (m_uniform_zoom == -1)
     std::cerr << "V330GLLineShader2D: Failed to bind zoom factor" << std::endl;
 }
 
@@ -94,13 +94,13 @@ GLLineShader2D::~GLLineShader2D()
 void
 GLLineShader2D::enableCoords()
 {
-    enableAttributeArray(attr_coords);
+    enableAttributeArray(m_attr_coords);
 }
 
 void
 GLLineShader2D::disableCoords()
 {
-    disableAttributeArray(attr_coords);
+    disableAttributeArray(m_attr_coords);
 }
 
 void
@@ -108,7 +108,7 @@ GLLineShader2D::setCoords(const GLfloat *offset,
                             int            tupleSize,
                             int            stride)
 {
-    setAttributeArray(attr_coords, offset, tupleSize, stride);
+    setAttributeArray(m_attr_coords, offset, tupleSize, stride);
 }
 
 void
@@ -125,13 +125,13 @@ GLLineShader2D::setCoords(GLuint coords,
 void
 GLLineShader2D::enableColour()
 {
-    enableAttributeArray(attr_colour);
+    enableAttributeArray(m_attr_colour);
 }
 
 void
 GLLineShader2D::disableColour()
 {
-    disableAttributeArray(attr_colour);
+    disableAttributeArray(m_attr_colour);
 }
 
 void
@@ -139,7 +139,7 @@ GLLineShader2D::setColour(const GLfloat *offset,
                             int            tupleSize,
                             int            stride)
 {
-    setAttributeArray(attr_colour, offset, tupleSize, stride);
+    setAttributeArray(m_attr_colour, offset, tupleSize, stride);
 }
 
 void
@@ -156,13 +156,13 @@ GLLineShader2D::setColour(GLuint  colour,
 void
 GLLineShader2D::setModelViewProjection(const glm::mat4& mvp)
 {
-    glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(m_uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
     check_gl("Set line uniform mvp");
 }
 
 void
 GLLineShader2D::setZoom(float zoom)
 {
-    glUniform1f(uniform_zoom, zoom);
+    glUniform1f(m_uniform_zoom, zoom);
     check_gl("Set line zoom level");
 }

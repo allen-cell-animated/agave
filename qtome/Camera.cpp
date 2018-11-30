@@ -1,5 +1,3 @@
-#include "Stable.h"
-
 #include "Camera.h"
 
 #include "renderlib/RenderSettings.h"

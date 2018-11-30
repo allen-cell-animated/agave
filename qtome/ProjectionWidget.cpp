@@ -1,15 +1,15 @@
-#include "Stable.h"
-
 #include "ProjectionWidget.h"
 #include "Camera.h"
 
 #include "renderlib/RenderSettings.h"
 
+#include <QLabel>
+
 QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs) :
 	QGroupBox(pParent),
 	m_GridLayout(),
 	m_FieldOfViewSlider(),
-	_camera(cam)
+	m_qcamera(cam)
 {
 	setTitle("Projection");
 	setStatusTip("Projection properties");
@@ -34,7 +34,7 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSetti
 
 void QProjectionWidget::SetFieldOfView(const double& FieldOfView)
 {
-	_camera->GetProjection().SetFieldOfView(FieldOfView);
+	m_qcamera->GetProjection().SetFieldOfView(FieldOfView);
 }
 
 void QProjectionWidget::OnProjectionChanged(const QProjection& Projection)

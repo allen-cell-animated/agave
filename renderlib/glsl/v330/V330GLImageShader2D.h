@@ -151,25 +151,25 @@ public:
 
 private:
     /// The vertex shader.
-    QOpenGLShader *vshader;
+    QOpenGLShader *m_vshader;
     /// The fragment shader.
-    QOpenGLShader *fshader;
+    QOpenGLShader *m_fshader;
 
     /// Vertex coordinates attribute.
-    int attr_coords;
+    int m_attr_coords;
     /// Texture coordinates attribute.
-    int attr_texcoords;
+    int m_attr_texcoords;
     /// Model view projection uniform.
-    int uniform_mvp;
+    int m_uniform_mvp;
     /// Texture uniform.
-    int uniform_texture;
+    int m_uniform_texture;
     /// LUT uniform.
-    int uniform_lut;
+    int m_uniform_lut;
     /// Minimum limits for linear contrast uniform.
-    int uniform_min;
+    int m_uniform_min;
     /// Maximum limits for linear contrast uniform.
-    int uniform_max;
+    int m_uniform_max;
     /// Correction multiplier for linear contrast uniform.
-    int uniform_corr;
+    int m_uniform_corr;
 };
 

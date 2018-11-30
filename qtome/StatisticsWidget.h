@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QTreeWidget>
+#include <QGridLayout>
 
 class CStatus;
 

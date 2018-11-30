@@ -3,6 +3,8 @@
 #include "Controls.h"
 #include "Projection.h"
 
+#include <QGroupBox>
+
 class QCamera;
 class RenderSettings;
 
@@ -21,5 +23,5 @@ private:
 	QGridLayout		m_GridLayout;
 	QNumericSlider	m_FieldOfViewSlider;
 
-	QCamera* _camera;
+	QCamera* m_qcamera;
 };

@@ -1,7 +1,7 @@
-#include "Stable.h"
-
 #include "FocusWidget.h"
 #include "Camera.h"
+
+#include <QLabel>
 
 QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 	QGroupBox(pParent),
@@ -9,7 +9,7 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 	m_FocusTypeComboBox(),
 	m_FocalDistanceSlider(),
 	m_FocalDistanceSpinner(),
-	_camera(cam)
+	m_qcamera(cam)
 {
 	setTitle("Focus");
 	setStatusTip("Focus properties");
@@ -18,27 +18,17 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 	m_GridLayout.setColumnMinimumWidth(0, 75);
 	setLayout(&m_GridLayout);
 
-	// Focus type
-	m_GridLayout.addWidget(new QLabel("Type"), 0, 0);
-
-	m_FocusTypeComboBox.addItem("Automatic");
-// 	m_FocusTypeComboBox.addItem("Pick");
- 	m_FocusTypeComboBox.addItem("Manual");
-	m_GridLayout.addWidget(&m_FocusTypeComboBox, 0, 1, 1, 2);
-	
-	connect(&m_FocusTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(SetFocusType(int)));
-
 	// Focal distance
-	m_GridLayout.addWidget(new QLabel("Focal distance"), 1, 0);
+	m_GridLayout.addWidget(new QLabel("Focal distance"), 0, 0);
 
 	m_FocalDistanceSlider.setOrientation(Qt::Horizontal);
     m_FocalDistanceSlider.setTickPosition(QDoubleSlider::NoTicks);
-	m_FocalDistanceSlider.setRange(0.0, 5.0);
-	m_GridLayout.addWidget(&m_FocalDistanceSlider, 1, 1);
+	m_FocalDistanceSlider.setRange(0.0, 15.0);
+	m_GridLayout.addWidget(&m_FocalDistanceSlider, 0, 1);
 	
-    m_FocalDistanceSpinner.setRange(0.0, 5.0);
+    m_FocalDistanceSpinner.setRange(0.0, 15.0);
 	m_FocalDistanceSpinner.setSuffix(" m");
-	m_GridLayout.addWidget(&m_FocalDistanceSpinner, 1, 2);
+	m_GridLayout.addWidget(&m_FocalDistanceSpinner, 0, 2);
 	
 	connect(&m_FocalDistanceSlider, SIGNAL(valueChanged(double)), &m_FocalDistanceSpinner, SLOT(setValue(double)));
 	connect(&m_FocalDistanceSlider, SIGNAL(valueChanged(double)), this, SLOT(SetFocalDistance(double)));
@@ -50,12 +40,12 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam) :
 
 void QFocusWidget::SetFocusType(int FocusType)
 {
-	_camera->GetFocus().SetType(FocusType);
+	m_qcamera->GetFocus().SetType(FocusType);
 }
 
 void QFocusWidget::SetFocalDistance(const double& FocalDistance)
 {
-	_camera->GetFocus().SetFocalDistance(FocalDistance);
+	m_qcamera->GetFocus().SetFocalDistance(FocalDistance);
 }
 
 void QFocusWidget::OnFocusChanged(const QFocus& Focus)

@@ -39,28 +39,28 @@ namespace
 
 NavigationDock2D::NavigationDock2D(QWidget *parent):
     QDockWidget(tr("Navigation"), parent),
-    _c(0),
-    label(),
-    slider(),
-    spinbox()
+    m_c(0),
+    m_label(),
+    m_slider(),
+    m_spinbox()
 {
     QGridLayout *layout = new QGridLayout;
 
-    label = new QLabel(tr("C"));
-	slider = createSlider();
-	spinbox = createSpinBox();
-	layout->addWidget(label, 0, 0);
-	layout->addWidget(slider, 0, 1);
-	layout->addWidget(spinbox, 0, 2);
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(sliderChangedDimension(int)));
-    connect(spinbox, SIGNAL(valueChanged(int)), this, SLOT(spinBoxChangedDimension(int)));
+    m_label = new QLabel(tr("C"));
+	m_slider = createSlider();
+	m_spinbox = createSpinBox();
+	layout->addWidget(m_label, 0, 0);
+	layout->addWidget(m_slider, 0, 1);
+	layout->addWidget(m_spinbox, 0, 2);
+    connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(sliderChangedDimension(int)));
+    connect(m_spinbox, SIGNAL(valueChanged(int)), this, SLOT(spinBoxChangedDimension(int)));
 
     QWidget *mainWidget = new QWidget(this);
     mainWidget->setLayout(layout);
     setWidget(mainWidget);
 
     /// Enable widgets.
-    setReader(_img);
+    setReader(m_img);
 }
 
 NavigationDock2D::~NavigationDock2D()
@@ -70,7 +70,7 @@ NavigationDock2D::~NavigationDock2D()
 void
 NavigationDock2D::setReader(std::shared_ptr<ImageXYZC> img)
 {
-    this->_img = img;
+    this->m_img = img;
 
     if (img)
     {
@@ -87,48 +87,48 @@ NavigationDock2D::setReader(std::shared_ptr<ImageXYZC> img)
 
         if (max > 1)
         {
-            label->show();
-            slider->show();
-            spinbox->show();
-            slider->setEnabled(true);
-            slider->setRange(0, (int)max - 1);
-            spinbox->setEnabled(true);
-            spinbox->setRange(0, (int)max - 1);
+            m_label->show();
+            m_slider->show();
+            m_spinbox->show();
+            m_slider->setEnabled(true);
+            m_slider->setRange(0, (int)max - 1);
+            m_spinbox->setEnabled(true);
+            m_spinbox->setRange(0, (int)max - 1);
         }
         else
         {
-            label->hide();
-			slider->hide();
-			spinbox->hide();
-	        slider->setEnabled(false);
-		    spinbox->setEnabled(false);
-            slider->setRange(0, 1);
-            spinbox->setRange(0, 1);
+            m_label->hide();
+			m_slider->hide();
+			m_spinbox->hide();
+	        m_slider->setEnabled(false);
+		    m_spinbox->setEnabled(false);
+            m_slider->setRange(0, 1);
+            m_spinbox->setRange(0, 1);
         }
     }
     else
     {
-        label->hide();
-        slider->hide();
-        spinbox->hide();
-        slider->setEnabled(false);
-        spinbox->setEnabled(false);
+        m_label->hide();
+        m_slider->hide();
+        m_spinbox->hide();
+        m_slider->setEnabled(false);
+        m_spinbox->setEnabled(false);
     }
 }
 
 void NavigationDock2D::setC(size_t c) {
-	if (c != _c) {
-		_c = c;
-		emit cChanged(_c);
+	if (c != m_c) {
+		m_c = c;
+		emit cChanged(m_c);
 	}
 }
 
 void
 NavigationDock2D::sliderChangedDimension(int c)
 {
-	if (_img)
+	if (m_img)
     {
-		spinbox->setValue(c);
+		m_spinbox->setValue(c);
 		setC(c);
     }
 }
@@ -136,9 +136,9 @@ NavigationDock2D::sliderChangedDimension(int c)
 void
 NavigationDock2D::spinBoxChangedDimension(int c)
 {
-    if (_img)
+    if (m_img)
     {
-		slider->setValue(c);
+		m_slider->setValue(c);
 		setC(c);
 	}
 

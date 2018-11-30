@@ -21,7 +21,7 @@ public:
 		Right	= 0x0004
 	};
 
-	void setRenderSettings(RenderSettings& rs) { _renderSettings = &rs; }
+	void setRenderSettings(RenderSettings& rs) { m_renderSettings = &rs; }
 
 	virtual void OnMouseWheelForward(void);
 	virtual void OnMouseWheelBackward(void);
@@ -38,7 +38,7 @@ public:
 	static float m_ApertureSpeed;
 	static float m_FovSpeed;
 
-	RenderSettings* _renderSettings;
-	QCamera* _camera;
-	CCamera* mCamera;
+	RenderSettings* m_renderSettings;
+	QCamera* m_qcamera;
+	CCamera* m_CCamera;
 };
