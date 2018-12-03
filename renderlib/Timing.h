@@ -2,6 +2,8 @@
 
 #include "Defines.h"
 
+#include <string.h> //for memset etc
+
 #include <algorithm>
 
 #define MAX_NO_DURATIONS 30

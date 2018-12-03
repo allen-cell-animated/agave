@@ -2,6 +2,8 @@
 
 #include <cuda_runtime.h>
 
+#include <stdint.h>
+
 // this gives the ability to read a float4 and then loop over its elements.
 typedef union {
 	float4 vec;
