@@ -1,23 +1,21 @@
 #pragma once
 
-#include <QtGui>
 #include <QDockWidget>
 #include <QGraphicsScene>
+#include <QtGui>
 
 #include "StatisticsWidget.h"
 
 class QStatisticsDockWidget : public QDockWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    QStatisticsDockWidget(QWidget* pParent = 0);
-	void setStatus(CStatus* s) {
-		m_StatisticsWidget.set(s);
-	}
+  QStatisticsDockWidget(QWidget* pParent = 0);
+  void setStatus(CStatus* s) { m_StatisticsWidget.set(s); }
 
 private:
-	QGridLayout			m_MainLayout;
-	QStatisticsWidget	m_StatisticsWidget;
-	QGraphicsScene m_scene;
+  QGridLayout m_MainLayout;
+  QStatisticsWidget m_StatisticsWidget;
+  QGraphicsScene m_scene;
 };

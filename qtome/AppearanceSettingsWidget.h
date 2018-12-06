@@ -17,95 +17,97 @@ class Section;
 
 class QAppearanceSettingsWidget : public QGroupBox
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-    QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, RenderSettings* rs = nullptr);
+  QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, RenderSettings* rs = nullptr);
 
-	void onNewImage(Scene* scene);
+  void onNewImage(Scene* scene);
 
 public slots:
-	void OnRenderBegin(void);
-	void OnSetDensityScale(double DensityScale);
-	void OnTransferFunctionChanged(void);
-	void OnSetRendererType(int Index);
-	void OnSetShadingType(int Index);
-	void OnSetGradientFactor(double GradientFactor);
-	void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
-	void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
+  void OnRenderBegin(void);
+  void OnSetDensityScale(double DensityScale);
+  void OnTransferFunctionChanged(void);
+  void OnSetRendererType(int Index);
+  void OnSetShadingType(int Index);
+  void OnSetGradientFactor(double GradientFactor);
+  void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
+  void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
 
 public:
-	void OnDiffuseColorChanged(int i, const QColor& color);
-	void OnSpecularColorChanged(int i, const QColor& color);
-	void OnEmissiveColorChanged(int i, const QColor& color);
-	void OnSetWindowLevel(int i, double window, double level);
-	void OnOpacityChanged(int i, double opacity);
-	void OnRoughnessChanged(int i, double roughness);
-	void OnChannelChecked(int i, bool is_checked);
+  void OnDiffuseColorChanged(int i, const QColor& color);
+  void OnSpecularColorChanged(int i, const QColor& color);
+  void OnEmissiveColorChanged(int i, const QColor& color);
+  void OnSetWindowLevel(int i, double window, double level);
+  void OnOpacityChanged(int i, double opacity);
+  void OnRoughnessChanged(int i, double roughness);
+  void OnChannelChecked(int i, bool is_checked);
 
-	void OnSetAreaLightTheta(double value);
-	void OnSetAreaLightPhi(double value);
-	void OnSetAreaLightSize(double value);
-	void OnSetAreaLightDistance(double value);
-	void OnSetAreaLightColor(double intensity, const QColor& color);
-	void OnSetSkyLightTopColor(double intensity, const QColor& color);
-	void OnSetSkyLightMidColor(double intensity, const QColor& color);
-	void OnSetSkyLightBotColor(double intensity, const QColor& color);
+  void OnSetAreaLightTheta(double value);
+  void OnSetAreaLightPhi(double value);
+  void OnSetAreaLightSize(double value);
+  void OnSetAreaLightDistance(double value);
+  void OnSetAreaLightColor(double intensity, const QColor& color);
+  void OnSetSkyLightTopColor(double intensity, const QColor& color);
+  void OnSetSkyLightMidColor(double intensity, const QColor& color);
+  void OnSetSkyLightBotColor(double intensity, const QColor& color);
 
-	void OnSetRoiXMax(int value);
-	void OnSetRoiYMax(int value);
-	void OnSetRoiZMax(int value);
-	void OnSetRoiXMin(int value);
-	void OnSetRoiYMin(int value);
-	void OnSetRoiZMin(int value);
+  void OnSetRoiXMax(int value);
+  void OnSetRoiYMax(int value);
+  void OnSetRoiZMax(int value);
+  void OnSetRoiXMin(int value);
+  void OnSetRoiYMin(int value);
+  void OnSetRoiZMin(int value);
 
-	void OnSetScaleX(double value);
-	void OnSetScaleY(double value);
-	void OnSetScaleZ(double value);
+  void OnSetScaleX(double value);
+  void OnSetScaleY(double value);
+  void OnSetScaleZ(double value);
 
 private:
-	QGridLayout		m_MainLayout;
-	QNumericSlider m_DensityScaleSlider;
-	QComboBox		m_RendererType;
-	QComboBox		m_ShadingType;
-	QLabel			m_GradientFactorLabel;
-	QNumericSlider	m_GradientFactorSlider;
-	QNumericSlider	m_StepSizePrimaryRaySlider;
-	QNumericSlider	m_StepSizeSecondaryRaySlider;
+  QGridLayout m_MainLayout;
+  QNumericSlider m_DensityScaleSlider;
+  QComboBox m_RendererType;
+  QComboBox m_ShadingType;
+  QLabel m_GradientFactorLabel;
+  QNumericSlider m_GradientFactorSlider;
+  QNumericSlider m_StepSizePrimaryRaySlider;
+  QNumericSlider m_StepSizeSecondaryRaySlider;
 
-	QTransferFunction* m_transferFunction;
+  QTransferFunction* m_transferFunction;
 
-	Section* m_clipRoiSection;
-	RangeWidget* m_roiX;
-	RangeWidget* m_roiY;
-	RangeWidget* m_roiZ;
+  Section* m_clipRoiSection;
+  RangeWidget* m_roiX;
+  RangeWidget* m_roiY;
+  RangeWidget* m_roiZ;
 
-	Section* m_scaleSection;
-	QDoubleSpinner* m_xscaleSpinner;
-	QDoubleSpinner* m_yscaleSpinner;
-	QDoubleSpinner* m_zscaleSpinner;
+  Section* m_scaleSection;
+  QDoubleSpinner* m_xscaleSpinner;
+  QDoubleSpinner* m_yscaleSpinner;
+  QDoubleSpinner* m_zscaleSpinner;
 
-	Scene* m_scene;
-	std::vector<Section*> m_channelSections;
+  Scene* m_scene;
+  std::vector<Section*> m_channelSections;
 
-	struct lt0 {
-		QNumericSlider* m_thetaSlider;
-		QNumericSlider* m_phiSlider;
-		QNumericSlider* m_sizeSlider;
-		QNumericSlider* m_distSlider;
-		QNumericSlider* m_intensitySlider;
-		QColorPushButton* m_areaLightColorButton;
-	} m_lt0gui;
+  struct lt0
+  {
+    QNumericSlider* m_thetaSlider;
+    QNumericSlider* m_phiSlider;
+    QNumericSlider* m_sizeSlider;
+    QNumericSlider* m_distSlider;
+    QNumericSlider* m_intensitySlider;
+    QColorPushButton* m_areaLightColorButton;
+  } m_lt0gui;
 
-	struct lt1 {
-		QNumericSlider* m_stintensitySlider;
-		QColorPushButton* m_stColorButton;
-		QNumericSlider* m_smintensitySlider;
-		QColorPushButton* m_smColorButton;
-		QNumericSlider* m_sbintensitySlider;
-		QColorPushButton* m_sbColorButton;
-	} m_lt1gui;
+  struct lt1
+  {
+    QNumericSlider* m_stintensitySlider;
+    QColorPushButton* m_stColorButton;
+    QNumericSlider* m_smintensitySlider;
+    QColorPushButton* m_smColorButton;
+    QNumericSlider* m_sbintensitySlider;
+    QColorPushButton* m_sbColorButton;
+  } m_lt1gui;
 
-	Section* createLightingControls();
-	void initLightingControls(Scene* scene);
+  Section* createLightingControls();
+  void initLightingControls(Scene* scene);
 };

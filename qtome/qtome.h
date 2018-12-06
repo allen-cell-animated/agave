@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
 #include "ui_qtome.h"
+#include <QtWidgets/QMainWindow>
 
 #include "Camera.h"
 #include "GLView3D.h"
@@ -9,8 +9,8 @@
 #include "TransferFunction.h"
 #include "ViewerState.h"
 
-#include "renderlib/RenderSettings.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/RenderSettings.h"
 
 class QAppearanceDockWidget;
 class QCameraDockWidget;
@@ -18,96 +18,97 @@ class QStatisticsDockWidget;
 
 class qtome : public QMainWindow
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	qtome(QWidget *parent = Q_NULLPTR);
+  qtome(QWidget* parent = Q_NULLPTR);
 
 private:
-	Ui::qtomeClass m_ui;
+  Ui::qtomeClass m_ui;
 
 private slots:
-	void open();
-	void openJson();
-	void open(const QString& file, const ViewerState* v = nullptr);
-	void openRecentFile();
-	void updateRecentFileActions();
-	void quit();
-	void view_reset();
-	void viewFocusChanged(GLView3D *glView);
-	void tabChanged(int index);
-	void dumpPythonState();
-	void dumpStateToJson();
-	void openMeshDialog();
-	void openMesh(const QString& file);
-	void saveJson();
-
+  void open();
+  void openJson();
+  void open(const QString& file, const ViewerState* v = nullptr);
+  void openRecentFile();
+  void updateRecentFileActions();
+  void quit();
+  void view_reset();
+  void viewFocusChanged(GLView3D* glView);
+  void tabChanged(int index);
+  void dumpPythonState();
+  void dumpStateToJson();
+  void openMeshDialog();
+  void openMesh(const QString& file);
+  void saveJson();
 
 private:
-	enum { MaxRecentFiles = 8 };
+  enum
+  {
+    MaxRecentFiles = 8
+  };
 
-	ViewerState appToViewerState();
-	void viewerStateToApp(const ViewerState& s);
+  ViewerState appToViewerState();
+  void viewerStateToApp(const ViewerState& s);
 
-	void createActions();
-	void createMenus();
-	void createToolbars();
-	void createDockWindows();
-	QDockWidget* createRenderingDock();
+  void createActions();
+  void createMenus();
+  void createToolbars();
+  void createDockWindows();
+  QDockWidget* createRenderingDock();
 
-	static bool hasRecentFiles();
-	void prependToRecentFiles(const QString &fileName);
-	void setRecentFilesVisible(bool visible);
-	static QString strippedName(const QString &fullFileName);
+  static bool hasRecentFiles();
+  void prependToRecentFiles(const QString& fileName);
+  void setRecentFilesVisible(bool visible);
+  static QString strippedName(const QString& fullFileName);
 
+  QMenu* m_fileMenu;
+  QMenu* m_viewMenu;
 
-	QMenu *m_fileMenu;
-	QMenu *m_viewMenu;
+  QToolBar* m_Cam2DTools;
 
-	QToolBar *m_Cam2DTools;
+  QAction* m_openAction;
+  QAction* m_openJsonAction;
+  QAction* m_quitAction;
+  QAction* m_dumpAction;
+  QAction* m_dumpJsonAction;
+  QAction* m_testMeshAction;
+  QAction* m_viewResetAction;
 
-	QAction *m_openAction;
-	QAction *m_openJsonAction;
-	QAction *m_quitAction;
-	QAction *m_dumpAction;
-	QAction *m_dumpJsonAction;
-	QAction *m_testMeshAction;
-	QAction *m_viewResetAction;
+  QSlider* createAngleSlider();
+  QSlider* createRangeSlider();
+  NavigationDock2D* m_navigation;
 
-	QSlider *createAngleSlider();
-	QSlider *createRangeSlider();
-	NavigationDock2D *m_navigation;
+  // THE camera parameter container
+  QCamera m_qcamera;
+  // Camera UI
+  QCameraDockWidget* m_cameradock;
 
-	// THE camera parameter container
-	QCamera m_qcamera;
-	// Camera UI
-	QCameraDockWidget* m_cameradock;
-	
-	QTransferFunction m_transferFunction;
-	QAppearanceDockWidget* m_appearanceDockWidget;
+  QTransferFunction m_transferFunction;
+  QAppearanceDockWidget* m_appearanceDockWidget;
 
-	QStatisticsDockWidget* m_statisticsDockWidget;
+  QStatisticsDockWidget* m_statisticsDockWidget;
 
-	QTabWidget *m_tabs;
-	GLView3D *m_glView;
+  QTabWidget* m_tabs;
+  GLView3D* m_glView;
 
-	QMetaObject::Connection m_navigationChanged;
-	QMetaObject::Connection m_navigationZCChanged;
-	QMetaObject::Connection m_navigationUpdate;
+  QMetaObject::Connection m_navigationChanged;
+  QMetaObject::Connection m_navigationZCChanged;
+  QMetaObject::Connection m_navigationUpdate;
 
-	// THE underlying render settings container.
-	// There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
-	// if renderer is on a separate thread, then this will need a mutex guard
-	// any direct programmatic changes to this obj need to be pushed to the UI as well.
-	RenderSettings m_renderSettings;
+  // THE underlying render settings container.
+  // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
+  // if renderer is on a separate thread, then this will need a mutex guard
+  // any direct programmatic changes to this obj need to be pushed to the UI as well.
+  RenderSettings m_renderSettings;
 
-	// the app owns a scene.
-	// scene gets sent down to the renderer.
-	Scene m_appScene;
+  // the app owns a scene.
+  // scene gets sent down to the renderer.
+  Scene m_appScene;
 
-	QAction *m_recentFileActs[MaxRecentFiles];
-	QAction *m_recentFileSeparator;
-	QAction *m_recentFileSubMenuAct;
+  QAction* m_recentFileActs[MaxRecentFiles];
+  QAction* m_recentFileSeparator;
+  QAction* m_recentFileSubMenuAct;
 
-	QString m_currentFilePath;
+  QString m_currentFilePath;
 };

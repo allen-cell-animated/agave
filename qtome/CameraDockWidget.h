@@ -6,11 +6,11 @@
 
 class QCameraDockWidget : public QDockWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    QCameraDockWidget(QWidget* pParent = NULL, QCamera* cam = NULL, RenderSettings* rs = NULL);
+  QCameraDockWidget(QWidget* pParent = NULL, QCamera* cam = NULL, RenderSettings* rs = NULL);
 
 private:
-	QCameraWidget	m_CameraWidget;
+  QCameraWidget m_CameraWidget;
 };
