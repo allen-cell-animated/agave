@@ -10,24 +10,32 @@
 class CCudaTimer
 {
 public:
-	CCudaTimer(void);
-	virtual ~CCudaTimer(void);
+  CCudaTimer(void);
+  virtual ~CCudaTimer(void);
 
-	void	StartTimer(void);
-	float	StopTimer(void);
-	float	ElapsedTime(void);
+  void StartTimer(void);
+  float StopTimer(void);
+  float ElapsedTime(void);
 
 private:
-	bool			m_Started;
-	cudaEvent_t 	m_EventStart;
-	cudaEvent_t 	m_EventStop;
+  bool m_Started;
+  cudaEvent_t m_EventStart;
+  cudaEvent_t m_EventStop;
 };
 
-void HandleCudaError(const cudaError_t CudaError, const char* pDescription = "");
-void HandleCudaKernelError(const cudaError_t CudaError, const char* pName = "");
-size_t GetTotalCudaMemory(void);
-size_t GetAvailableCudaMemory(void);
-size_t GetUsedCudaMemory(void);
-int GetMaxGigaFlopsDeviceID(void);
-bool SetCudaDevice(const int& CudaDeviceID);
-void ResetDevice(void);
+void
+HandleCudaError(const cudaError_t CudaError, const char* pDescription = "");
+void
+HandleCudaKernelError(const cudaError_t CudaError, const char* pName = "");
+size_t
+GetTotalCudaMemory(void);
+size_t
+GetAvailableCudaMemory(void);
+size_t
+GetUsedCudaMemory(void);
+int
+GetMaxGigaFlopsDeviceID(void);
+bool
+SetCudaDevice(const int& CudaDeviceID);
+void
+ResetDevice(void);

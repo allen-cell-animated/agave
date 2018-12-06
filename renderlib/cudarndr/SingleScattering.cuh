@@ -2,118 +2,138 @@
 
 #include "Transport.cuh"
 
-KERNEL void KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
+KERNEL void
+KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
 {
-	const int X		= blockIdx.x * blockDim.x + threadIdx.x;
-	const int Y		= blockIdx.y * blockDim.y + threadIdx.y;
+  const int X = blockIdx.x * blockDim.x + threadIdx.x;
+  const int Y = blockIdx.y * blockDim.y + threadIdx.y;
 
-	if (X >= gFilmWidth || Y >= gFilmHeight)
-		return;
-	
-	// pixel offset of this thread
-	int pixoffset = Y*(gFilmWidth)+(X);
-	int floatoffset = pixoffset * 4;
+  if (X >= gFilmWidth || Y >= gFilmHeight)
+    return;
 
-	CRNG RNG(&rnd1[pixoffset], &rnd2[pixoffset]);
+  // pixel offset of this thread
+  int pixoffset = Y * (gFilmWidth) + (X);
+  int floatoffset = pixoffset * 4;
 
-	CColorXyz Lv = SPEC_BLACK, Li = SPEC_BLACK;
+  CRNG RNG(&rnd1[pixoffset], &rnd2[pixoffset]);
 
-	CRay Re;
-	
-	const float2 UV = make_float2(X, Y) + RNG.Get2();
+  CColorXyz Lv = SPEC_BLACK, Li = SPEC_BLACK;
 
- 	GenerateRay(gCamera, UV, RNG.Get2(), Re.m_O, Re.m_D);
+  CRay Re;
 
-	Re.m_MinT = 0.0f; 
-	Re.m_MaxT = 1500000.0f;
+  const float2 UV = make_float2(X, Y) + RNG.Get2();
 
-	float3 Pe, Pl;
-	
-	// find point Pe along ray Re
-	if (SampleDistanceRM(Re, RNG, Pe, volumedata))
-	{
-		// is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
-		int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, Length(Pe - Re.m_O)), Li, Pl);
-		if (i > -1)
-		{
-			// set sample pixel value in frame estimate (prior to accumulation)
-			pView[floatoffset] = Li.c[0];
-			pView[floatoffset + 1] = Li.c[1];
-			pView[floatoffset + 2] = Li.c[2];
-			pView[floatoffset + 3] = 1.0;
-			return;
-		}
+  GenerateRay(gCamera, UV, RNG.Get2(), Re.m_O, Re.m_D);
 
-		int ch = 0;
-		const float D = GetNormalizedIntensityMax4ch(Pe, volumedata, ch);
-		//const f4 D = GetIntensity4ch(Pe, volumedata);
+  Re.m_MinT = 0.0f;
+  Re.m_MaxT = 1500000.0f;
 
-		// emission from volume
-		Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
-		//Lv += GetBlendedEmission(volumedata, D).ToXYZ();
+  float3 Pe, Pl;
 
-		float3 gradient = Gradient4ch(Pe, volumedata, ch);
-		// send ray out from Pe toward light
-		switch (gShadingType)
-		{
-			case 0:
-			{
-				Lv += UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, true);
-				break;
-			}
-		
-			case 1:
-			{
-				Lv += 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, false);
-				break;
-			}
+  // find point Pe along ray Re
+  if (SampleDistanceRM(Re, RNG, Pe, volumedata)) {
+    // is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
+    int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, Length(Pe - Re.m_O)), Li, Pl);
+    if (i > -1) {
+      // set sample pixel value in frame estimate (prior to accumulation)
+      pView[floatoffset] = Li.c[0];
+      pView[floatoffset + 1] = Li.c[1];
+      pView[floatoffset + 2] = Li.c[2];
+      pView[floatoffset + 3] = 1.0;
+      return;
+    }
 
-			case 2:
-			{
-				//const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) * (1.0/volumedata.intensityMax[ch]);
-				const float GradMag = Length(gradient);
-				const float PdfBrdf = (1.0f - __expf(-gGradientFactor * GradMag));
+    int ch = 0;
+    const float D = GetNormalizedIntensityMax4ch(Pe, volumedata, ch);
+    // const f4 D = GetIntensity4ch(Pe, volumedata);
 
-				CColorXyz cls;
-				if (RNG.Get1() < PdfBrdf) {
-					cls = UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, true);
-				}
-				else {
-					cls = 0.5f * UniformSampleOneLight(gLighting, volumedata, CVolumeShader::Phase, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, false);
-				}
+    // emission from volume
+    Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
+    // Lv += GetBlendedEmission(volumedata, D).ToXYZ();
 
-				Lv += cls;
+    float3 gradient = Gradient4ch(Pe, volumedata, ch);
+    // send ray out from Pe toward light
+    switch (gShadingType) {
+      case 0: {
+        Lv += UniformSampleOneLight(
+          gLighting, volumedata, CVolumeShader::Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, true);
+        break;
+      }
 
-				break;
-			}
-		}
-	}
-	else
-	{
-		// background color
-        //if (gShowLightsBackground) {
-        //    int n = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl);
-        //    if (n > -1) {
-        //        Lv = Li;
-        //    }
-       // }
-	}
+      case 1: {
+        Lv += 0.5f * UniformSampleOneLight(gLighting,
+                                           volumedata,
+                                           CVolumeShader::Phase,
+                                           D,
+                                           ch,
+                                           normalize(-Re.m_D),
+                                           Pe,
+                                           normalize(gradient),
+                                           RNG,
+                                           false);
+        break;
+      }
 
-	// set sample pixel value in frame estimate (prior to accumulation)
+      case 2: {
+        // const float GradMag = GradientMagnitude(Pe, volumedata.gradientVolumeTexture[ch]) *
+        // (1.0/volumedata.intensityMax[ch]);
+        const float GradMag = Length(gradient);
+        const float PdfBrdf = (1.0f - __expf(-gGradientFactor * GradMag));
 
-	pView[floatoffset] = Lv.c[0];
-	pView[floatoffset + 1] = Lv.c[1];
-	pView[floatoffset + 2] = Lv.c[2];
-	pView[floatoffset + 3] = 1.0;
+        CColorXyz cls;
+        if (RNG.Get1() < PdfBrdf) {
+          cls = UniformSampleOneLight(
+            gLighting, volumedata, CVolumeShader::Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), RNG, true);
+        } else {
+          cls = 0.5f * UniformSampleOneLight(gLighting,
+                                             volumedata,
+                                             CVolumeShader::Phase,
+                                             D,
+                                             ch,
+                                             normalize(-Re.m_D),
+                                             Pe,
+                                             normalize(gradient),
+                                             RNG,
+                                             false);
+        }
+
+        Lv += cls;
+
+        break;
+      }
+    }
+  } else {
+    // background color
+    // if (gShowLightsBackground) {
+    //    int n = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl);
+    //    if (n > -1) {
+    //        Lv = Li;
+    //    }
+    // }
+  }
+
+  // set sample pixel value in frame estimate (prior to accumulation)
+
+  pView[floatoffset] = Lv.c[0];
+  pView[floatoffset + 1] = Lv.c[1];
+  pView[floatoffset + 2] = Lv.c[2];
+  pView[floatoffset + 3] = 1.0;
 }
 
-void SingleScattering(int res_x, int res_y, const cudaVolume& volumedata, float* pView, unsigned int* rnd1, unsigned int* rnd2)
+void
+SingleScattering(int res_x,
+                 int res_y,
+                 const cudaVolume& volumedata,
+                 float* pView,
+                 unsigned int* rnd1,
+                 unsigned int* rnd2)
 {
-	const dim3 KernelBlock(KRNL_SS_BLOCK_W, KRNL_SS_BLOCK_H);
-	const dim3 KernelGrid((int)ceilf((float)res_x / (float)KernelBlock.x), (int)ceilf((float)res_y / (float)KernelBlock.y));
+  const dim3 KernelBlock(KRNL_SS_BLOCK_W, KRNL_SS_BLOCK_H);
+  const dim3 KernelGrid((int)ceilf((float)res_x / (float)KernelBlock.x),
+                        (int)ceilf((float)res_y / (float)KernelBlock.y));
 
-	KrnlSingleScattering<<<KernelGrid, KernelBlock>>>(volumedata, pView, rnd1, rnd2);
-	HandleCudaKernelError(cudaGetLastError(), "Single Scattering kernel");
-	cudaDeviceSynchronize();
-	HandleCudaKernelError(cudaGetLastError(), "Single Scattering devicesync");
+  KrnlSingleScattering<<<KernelGrid, KernelBlock>>>(volumedata, pView, rnd1, rnd2);
+  HandleCudaKernelError(cudaGetLastError(), "Single Scattering kernel");
+  cudaDeviceSynchronize();
+  HandleCudaKernelError(cudaGetLastError(), "Single Scattering devicesync");
 }
