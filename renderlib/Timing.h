@@ -11,68 +11,67 @@
 class CTiming
 {
 public:
-	CTiming(void):m_NoDurations(MAX_NO_DURATIONS), m_FilteredDuration(0.0f) {
-		for (int i = 0; i < MAX_NO_DURATIONS; i++)
-		{
-			m_Durations[i] = 0.0f;
-		}
+  CTiming(void)
+    : m_NoDurations(MAX_NO_DURATIONS)
+    , m_FilteredDuration(0.0f)
+  {
+    for (int i = 0; i < MAX_NO_DURATIONS; i++) {
+      m_Durations[i] = 0.0f;
+    }
+  };
 
-	};
-
-	HO CTiming(const char* pName)
-	{
+  HO CTiming(const char* pName)
+  {
 #ifndef __CUDACC__
-		sprintf(m_Name, "%s", pName);
+    sprintf(m_Name, "%s", pName);
 #endif
-		memset(m_Durations, 0, MAX_NO_DURATIONS * sizeof(float));
+    memset(m_Durations, 0, MAX_NO_DURATIONS * sizeof(float));
 
-		m_NoDurations		= 0;
-		m_FilteredDuration	= 0.0f;
-	}
+    m_NoDurations = 0;
+    m_FilteredDuration = 0.0f;
+  }
 
-		virtual ~CTiming(void) {};
+  virtual ~CTiming(void){};
 
-		HO CTiming& operator=(const CTiming& Other)
-		{
-				strcpy(m_Name, Other.m_Name);
-		
-					for (int i = 0; i < MAX_NO_DURATIONS; i++)
-					{
-							m_Durations[i]	= Other.m_Durations[i];
-						}
-		
-					m_NoDurations		= Other.m_NoDurations;
-				m_FilteredDuration	= Other.m_FilteredDuration;
-		
-					return *this;
-			}
+  HO CTiming& operator=(const CTiming& Other)
+  {
+    strcpy(m_Name, Other.m_Name);
 
-	void AddDuration(const float& Duration)
-	{
-		float TempDurations[MAX_NO_DURATIONS];
-		
-		memcpy(TempDurations, m_Durations, MAX_NO_DURATIONS * sizeof(float));
-		
-		m_Durations[0] = Duration;
-		
-//		m_FilteredDuration = Duration;
-//		return;
-			
-		float SumDuration = Duration;
-		
- 		for (int i = 0; i < m_NoDurations - 1; i++)
- 		{
- 			m_Durations[i + 1] = TempDurations[i];
- 			SumDuration += TempDurations[i];
- 		}
-		
-		m_FilteredDuration = SumDuration / (float)m_NoDurations;
-		
-		m_NoDurations = std::min<int>(MAX_NO_DURATIONS, m_NoDurations + 1);
-	}
+    for (int i = 0; i < MAX_NO_DURATIONS; i++) {
+      m_Durations[i] = Other.m_Durations[i];
+    }
 
-	char		m_Name[MAX_CHAR_SIZE];
-	float		m_Durations[MAX_NO_DURATIONS];
-	int			m_NoDurations;
-	float		m_FilteredDuration;
+    m_NoDurations = Other.m_NoDurations;
+    m_FilteredDuration = Other.m_FilteredDuration;
+
+    return *this;
+  }
+
+  void AddDuration(const float& Duration)
+  {
+    float TempDurations[MAX_NO_DURATIONS];
+
+    memcpy(TempDurations, m_Durations, MAX_NO_DURATIONS * sizeof(float));
+
+    m_Durations[0] = Duration;
+
+    //		m_FilteredDuration = Duration;
+    //		return;
+
+    float SumDuration = Duration;
+
+    for (int i = 0; i < m_NoDurations - 1; i++) {
+      m_Durations[i + 1] = TempDurations[i];
+      SumDuration += TempDurations[i];
+    }
+
+    m_FilteredDuration = SumDuration / (float)m_NoDurations;
+
+    m_NoDurations = std::min<int>(MAX_NO_DURATIONS, m_NoDurations + 1);
+  }
+
+  char m_Name[MAX_CHAR_SIZE];
+  float m_Durations[MAX_NO_DURATIONS];
+  int m_NoDurations;
+  float m_FilteredDuration;
 };

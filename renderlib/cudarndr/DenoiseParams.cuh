@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Defines.h"
+
 class CDenoiseParams
 {
 public:

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2017 NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
 #include <optixu/optixpp_namespace.h>
@@ -40,23 +39,25 @@
 
 struct aiScene;
 
-struct TriMeshPhongPrograms {
-	optix::Program m_closestHit;
-	optix::Program m_anyHit;
-	optix::Program m_intersect;
-	optix::Program m_boundingBox;
+struct TriMeshPhongPrograms
+{
+  optix::Program m_closestHit;
+  optix::Program m_anyHit;
+  optix::Program m_intersect;
+  optix::Program m_boundingBox;
 };
 
-struct optixMeshMaterial {
-	glm::vec3 m_reflectivity;  // "color"
-	float m_roughness;
-	bool m_dielectric;
+struct optixMeshMaterial
+{
+  glm::vec3 m_reflectivity; // "color"
+  float m_roughness;
+  bool m_dielectric;
 
-	optixMeshMaterial()
-		: m_reflectivity(0.5, 0.5, 0.5),
-		m_roughness(1.0),
-		m_dielectric(false)
-	{}
+  optixMeshMaterial()
+    : m_reflectivity(0.5, 0.5, 0.5)
+    , m_roughness(1.0)
+    , m_dielectric(false)
+  {}
 };
 
 //------------------------------------------------------------------------------
@@ -66,51 +67,60 @@ struct optixMeshMaterial {
 //
 // Mesh buffer variables are set on Geometry node:
 //   vertex_buffer  : float3 vertex positions
-//   normal_buffer  : float3 per vertex normals, may be zero length 
+//   normal_buffer  : float3 per vertex normals, may be zero length
 //   texcoord_buffer: float2 vertex texture coordinates, may be zero length
-//   index_buffer   : int3 indices shared by vertex, normal, texcoord buffers 
+//   index_buffer   : int3 indices shared by vertex, normal, texcoord buffers
 //   material_buffer: int indices into material list
 //
 //------------------------------------------------------------------------------
 struct OptiXMesh
 {
-	OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh, optix::Context context, TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc);
+  OptiXMesh(std::shared_ptr<Assimp::Importer> cpumesh,
+            optix::Context context,
+            TriMeshPhongPrograms& programs,
+            glm::mat4& mtx,
+            optixMeshMaterial* materialdesc);
 
-	void destroy();
+  void destroy();
 
-	// if the transform is non-null then we have successfully got through the full initialization
-	bool isValid() { return (bool)m_transform; }
+  // if the transform is non-null then we have successfully got through the full initialization
+  bool isValid() { return (bool)m_transform; }
 
-	// Input
-	std::shared_ptr<Assimp::Importer> m_cpumesh;
+  // Input
+  std::shared_ptr<Assimp::Importer> m_cpumesh;
 
-	optix::Context m_context;       // required
+  optix::Context m_context; // required
 
-	// Output
-	optix::Buffer m_vertices;
-	optix::Buffer m_normals;
-	optix::Buffer m_faces;
-	// each face can have a different material...
-	optix::Buffer m_materials;
-	// unused buffer (uv)
-	optix::Buffer m_tbuffer;
+  // Output
+  optix::Buffer m_vertices;
+  optix::Buffer m_normals;
+  optix::Buffer m_faces;
+  // each face can have a different material...
+  optix::Buffer m_materials;
+  // unused buffer (uv)
+  optix::Buffer m_tbuffer;
 
-	// will be set by app, and ignore what comes out of the assimp importer.
-	optix::Material m_material;
+  // will be set by app, and ignore what comes out of the assimp importer.
+  optix::Material m_material;
 
-	// top node for this mesh
-	optix::Transform m_transform;
-	// child of the transform
-	optix::GeometryGroup m_geometrygroup;
-	// children of the geometry group
-	std::vector<optix::GeometryInstance> m_gis;
+  // top node for this mesh
+  optix::Transform m_transform;
+  // child of the transform
+  optix::GeometryGroup m_geometrygroup;
+  // children of the geometry group
+  std::vector<optix::GeometryInstance> m_gis;
 
-
-	//optix::float3                bbox_min;
-	//optix::float3                bbox_max;
+  // optix::float3                bbox_min;
+  // optix::float3                bbox_max;
 
 private:
-	bool loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc);
-	void createSingleGeometryGroup(const aiScene* scene, TriMeshPhongPrograms& programs, optix::float3 *vertexMap,
-		optix::float3 *normalMap, optix::uint3 *faceMap, unsigned int *materialsMap, optix::Material matl, glm::mat4& mtx);
+  bool loadAsset(TriMeshPhongPrograms& programs, glm::mat4& mtx, optixMeshMaterial* materialdesc);
+  void createSingleGeometryGroup(const aiScene* scene,
+                                 TriMeshPhongPrograms& programs,
+                                 optix::float3* vertexMap,
+                                 optix::float3* normalMap,
+                                 optix::uint3* faceMap,
+                                 unsigned int* materialsMap,
+                                 optix::Material matl,
+                                 glm::mat4& mtx);
 };

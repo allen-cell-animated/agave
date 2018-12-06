@@ -8,6 +8,7 @@
 
 #include <QElapsedTimer>
 
+#include <algorithm>
 #include <array>
 #include <iostream>
 
@@ -112,7 +113,7 @@ Image3Dv33::render(const CCamera& camera, const Scene* scene, const RenderSettin
   glm::vec3 dims(m_img->sizeX() * m_img->physicalSizeX(),
                  m_img->sizeY() * m_img->physicalSizeY(),
                  m_img->sizeZ() * m_img->physicalSizeZ());
-  float maxd = std::max(dims.x, std::max(dims.y, dims.z));
+  float maxd = (std::max)(dims.x, (std::max)(dims.y, dims.z));
   glm::vec3 scales(dims.x / maxd, dims.y / maxd, dims.z / maxd);
   // it helps to imagine these transforming the space in reverse order
   // (first translate by 0.5, and then scale)
