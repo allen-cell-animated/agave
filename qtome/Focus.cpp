@@ -1,53 +1,57 @@
 #include "Focus.h"
 
-QFocus::QFocus(QObject* pParent /*= NULL*/) :
-	QObject(pParent),
-	m_FocalDistance(0.75f)
-{
-}
+QFocus::QFocus(QObject* pParent /*= NULL*/)
+  : QObject(pParent)
+  , m_FocalDistance(0.75f)
+{}
 
 QFocus::QFocus(const QFocus& Other)
 {
-	*this = Other;
+  *this = Other;
 }
 
-QFocus& QFocus::operator=(const QFocus& Other)
+QFocus&
+QFocus::operator=(const QFocus& Other)
 {
-	m_FocalDistance = Other.m_FocalDistance;
+  m_FocalDistance = Other.m_FocalDistance;
 
-	emit Changed(*this);
+  emit Changed(*this);
 
-	return *this;
+  return *this;
 }
 
-int QFocus::GetType(void) const
+int
+QFocus::GetType(void) const
 {
-	return m_Type;
+  return m_Type;
 }
 
-void QFocus::SetType(const int& Type)
+void
+QFocus::SetType(const int& Type)
 {
-	m_Type = Type;
+  m_Type = Type;
 
-	emit Changed(*this);
+  emit Changed(*this);
 }
 
-float QFocus::GetFocalDistance(void) const
+float
+QFocus::GetFocalDistance(void) const
 {
-	return m_FocalDistance;
+  return m_FocalDistance;
 }
 
-void QFocus::SetFocalDistance(const float& FocalDistance)
+void
+QFocus::SetFocalDistance(const float& FocalDistance)
 {
-	m_FocalDistance = FocalDistance;
+  m_FocalDistance = FocalDistance;
 
-	emit Changed(*this);
+  emit Changed(*this);
 }
 
-void QFocus::Reset(void)
+void
+QFocus::Reset(void)
 {
-	m_FocalDistance = 1.0f;
+  m_FocalDistance = 1.0f;
 
-	emit Changed(*this);
+  emit Changed(*this);
 }
-

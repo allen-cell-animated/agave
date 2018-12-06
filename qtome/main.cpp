@@ -2,21 +2,21 @@
 #include "renderlib/renderlib.h"
 #include <QtWidgets/QApplication>
 
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
-	QApplication a(argc, argv);
-	
-	if (!renderlib::initialize())
-	{
-		renderlib::cleanup();
-		return 0;
-	}
+  QApplication a(argc, argv);
 
-	qtome w;
-	w.show();
-	int result = a.exec();
+  if (!renderlib::initialize()) {
+    renderlib::cleanup();
+    return 0;
+  }
 
-	renderlib::cleanup();
+  qtome w;
+  w.show();
+  int result = a.exec();
 
-	return result;
+  renderlib::cleanup();
+
+  return result;
 }

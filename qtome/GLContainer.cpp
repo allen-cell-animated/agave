@@ -2,30 +2,26 @@
 
 #include <QtWidgets>
 
-GLContainer::GLContainer(QWidget *parent,
-                            QWindow *window):
-    QWidget(parent),
-    m_window(window),
-    m_child(QWidget::createWindowContainer(window))
+GLContainer::GLContainer(QWidget* parent, QWindow* window)
+  : QWidget(parent)
+  , m_window(window)
+  , m_child(QWidget::createWindowContainer(window))
 {
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(m_child);
-    setLayout(mainLayout);
+  QVBoxLayout* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(m_child);
+  setLayout(mainLayout);
 }
 
-GLContainer::~GLContainer()
-{
-}
+GLContainer::~GLContainer() {}
 
-QWindow *
+QWindow*
 GLContainer::getWindow() const
 {
-    return m_window;
+  return m_window;
 }
 
-QWidget *
+QWidget*
 GLContainer::getContainer() const
 {
-    return m_child;
+  return m_child;
 }
-
