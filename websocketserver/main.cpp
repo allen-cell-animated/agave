@@ -7,7 +7,9 @@
 
 #include "mainwindow.h"
 #include "renderlib/FileReader.h"
+#include "renderlib/Logging.h"
 #include "renderlib/renderlib.h"
+#include "renderlib/version.h"
 #include "streamserver.h"
 
 struct ServerParams
@@ -90,8 +92,11 @@ main(int argc, char* argv[])
   QApplication a(argc, argv);
   // QDir::setCurrent(QApplication::applicationDirPath() + "/work");
 
+  a.setOrganizationName("AICS");
+  a.setOrganizationDomain("allencell.org");
   a.setApplicationName("AICS RENDERSERVER");
-  a.setApplicationVersion("0.0.1");
+  a.setApplicationVersion(AICS_VERSION_STRING);
+  LOG_INFO << a.organizationName().toStdString() << " " << a.applicationName().toStdString() << " " << a.applicationVersion().toStdString();
 
   QCommandLineParser parser;
   parser.setApplicationDescription("Remote rendering service via websockets");

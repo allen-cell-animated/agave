@@ -31,10 +31,6 @@
 qtome::qtome(QWidget* parent)
   : QMainWindow(parent)
 {
-  QCoreApplication::setOrganizationName("AICS");
-  QCoreApplication::setOrganizationDomain("allencell.org");
-  QCoreApplication::setApplicationName("VolumeRenderer");
-
   m_ui.setupUi(this);
 
   createActions();
@@ -64,7 +60,11 @@ qtome::qtome(QWidget* parent)
   m_tabs->addTab(glContainer, "None");
   // navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
-  setWindowTitle(tr("AICS high performance volume viewer"));
+  QString windowTitle = 
+    QApplication::instance()->organizationName() + " " + 
+    QApplication::instance()->applicationName() + " " + 
+    QApplication::instance()->applicationVersion();
+  setWindowTitle(windowTitle);
 
   m_appScene.initLights();
 }
