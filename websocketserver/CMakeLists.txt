@@ -27,6 +27,9 @@ target_sources(websocketserverapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/util.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/util.h"	
 )
+if (MSVC) 
+	target_sources(websocketserverapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
+endif (MSVC)
 
 target_link_libraries(websocketserverapp 
 	renderlib 

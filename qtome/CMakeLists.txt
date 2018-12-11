@@ -65,6 +65,11 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
+
+if (MSVC) 
+	target_sources(qtomeapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
+endif (MSVC)
+
 target_link_libraries(qtomeapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
