@@ -1,22 +1,20 @@
-#include "glad/glad.h"
 #include "GLBasicVolumeShader.h"
+#include "glad/glad.h"
 
-#include <glm.h>
 #include <gl/Util.h>
+#include <glm.h>
 
 #include <iostream>
 #include <sstream>
 
-
-GLBasicVolumeShader::GLBasicVolumeShader():
-    QOpenGLShaderProgram(),
-    vshader(),
-    fshader(),
-    attr_coords()
+GLBasicVolumeShader::GLBasicVolumeShader()
+  : QOpenGLShaderProgram()
+  , vshader()
+  , fshader()
+  , attr_coords()
 {
-    vshader = new QOpenGLShader(QOpenGLShader::Vertex);
-	vshader->compileSourceCode
-	(R"(
+  vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  vshader->compileSourceCode(R"(
 #version 330 core
 
 layout (location = 0) in vec3 position;
@@ -34,14 +32,12 @@ void main()
 }
 	)");
 
-    if (!vshader->isCompiled())
-    {
-        std::cerr << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
-    }
+  if (!vshader->isCompiled()) {
+    std::cerr << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
+  }
 
-    fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-	fshader->compileSourceCode
-	(R"(
+  fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  fshader->compileSourceCode(R"(
 #version 330 core
 
 in VertexData
@@ -203,129 +199,126 @@ void main()
 }
     )");
 
-    if (!fshader->isCompiled())
-    {
-        std::cerr << "GLBasicVolumeShader: Failed to compile fragment shader\n" << fshader->log().toStdString() << std::endl;
-    }
+  if (!fshader->isCompiled()) {
+    std::cerr << "GLBasicVolumeShader: Failed to compile fragment shader\n"
+              << fshader->log().toStdString() << std::endl;
+  }
 
-    addShader(vshader);
-    addShader(fshader);
-    link();
+  addShader(vshader);
+  addShader(fshader);
+  link();
 
-    if (!isLinked())
-    {
-        std::cerr << "GLBasicVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
-    }
+  if (!isLinked()) {
+    std::cerr << "GLBasicVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
+  }
 
-    attr_coords = attributeLocation("position");
-    if (attr_coords == -1)
+  attr_coords = attributeLocation("position");
+  if (attr_coords == -1)
     std::cerr << "GLBasicVolumeShader: Failed to bind coordinates" << std::endl;
-	
-	uModelViewMatrix = uniformLocation("modelViewMatrix");
-	uProjectionMatrix = uniformLocation("projectionMatrix");
 
-	uBreakSteps = uniformLocation("BREAK_STEPS");
-	uAABBClipMin = uniformLocation("AABB_CLIP_MIN");
-	uAABBClipMax = uniformLocation("AABB_CLIP_MAX");
-	uInverseModelViewMatrix = uniformLocation("inverseModelViewMatrix");
-	//uCameraPosition = uniformLocation("cameraPosition");
-	uGammaMin = uniformLocation("GAMMA_MIN");
-	uGammaMax = uniformLocation("GAMMA_MAX");
-	uGammaScale = uniformLocation("GAMMA_SCALE");
-	uBrightness = uniformLocation("BRIGHTNESS");
-	uDensity = uniformLocation("DENSITY");
-	uMaskAlpha = uniformLocation("maskAlpha");
-	
-	uTextureAtlas = uniformLocation("textureAtlas");
-	uTextureAtlasMask = uniformLocation("textureAtlasMask");
+  uModelViewMatrix = uniformLocation("modelViewMatrix");
+  uProjectionMatrix = uniformLocation("projectionMatrix");
 
-	uDataRangeMin = uniformLocation("dataRangeMin");
-	uDataRangeMax = uniformLocation("dataRangeMax");
+  uBreakSteps = uniformLocation("BREAK_STEPS");
+  uAABBClipMin = uniformLocation("AABB_CLIP_MIN");
+  uAABBClipMax = uniformLocation("AABB_CLIP_MAX");
+  uInverseModelViewMatrix = uniformLocation("inverseModelViewMatrix");
+  // uCameraPosition = uniformLocation("cameraPosition");
+  uGammaMin = uniformLocation("GAMMA_MIN");
+  uGammaMax = uniformLocation("GAMMA_MAX");
+  uGammaScale = uniformLocation("GAMMA_SCALE");
+  uBrightness = uniformLocation("BRIGHTNESS");
+  uDensity = uniformLocation("DENSITY");
+  uMaskAlpha = uniformLocation("maskAlpha");
+
+  uTextureAtlas = uniformLocation("textureAtlas");
+  uTextureAtlasMask = uniformLocation("textureAtlasMask");
+
+  uDataRangeMin = uniformLocation("dataRangeMin");
+  uDataRangeMax = uniformLocation("dataRangeMax");
 }
 
-GLBasicVolumeShader::~GLBasicVolumeShader()
-{
-}
+GLBasicVolumeShader::~GLBasicVolumeShader() {}
 
 void
 GLBasicVolumeShader::enableCoords()
 {
-    enableAttributeArray(attr_coords);
+  enableAttributeArray(attr_coords);
 }
 
 void
 GLBasicVolumeShader::disableCoords()
 {
-    disableAttributeArray(attr_coords);
+  disableAttributeArray(attr_coords);
 }
 
 void
-GLBasicVolumeShader::setCoords(const GLfloat *offset, int tupleSize, int stride)
+GLBasicVolumeShader::setCoords(const GLfloat* offset, int tupleSize, int stride)
 {
-    setAttributeArray(attr_coords, offset, tupleSize, stride);
+  setAttributeArray(attr_coords, offset, tupleSize, stride);
 }
 
 void
-GLBasicVolumeShader::setCoords(GLuint coords, const GLfloat *offset, int tupleSize, int stride)
+GLBasicVolumeShader::setCoords(GLuint coords, const GLfloat* offset, int tupleSize, int stride)
 {
-	glBindBuffer(GL_ARRAY_BUFFER, coords);
-    setCoords(offset, tupleSize, stride);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, coords);
+  setCoords(offset, tupleSize, stride);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void
 GLBasicVolumeShader::setTexture(int texunit)
 {
-    glUniform1i(uTextureAtlas, texunit);
-    check_gl("Set image texture");
+  glUniform1i(uTextureAtlas, texunit);
+  check_gl("Set image texture");
 }
 
 void
 GLBasicVolumeShader::setCorrection(const glm::vec3& corr)
 {
-//    glUniform3fv(uniform_corr, 1, glm::value_ptr(corr));
-    check_gl("Set correction multiplier");
+  //    glUniform3fv(uniform_corr, 1, glm::value_ptr(corr));
+  check_gl("Set correction multiplier");
 }
 
 void
 GLBasicVolumeShader::setLUT(int texunit)
 {
- //   glUniform1i(uniform_lut, texunit);
-    check_gl("Set LUT texture");
+  //   glUniform1i(uniform_lut, texunit);
+  check_gl("Set LUT texture");
 }
 
 void
 GLBasicVolumeShader::setShadingUniforms()
 {
-	glUniform1f(uDataRangeMin, dataRangeMin);
-	glUniform1f(uDataRangeMax, dataRangeMax);
-	glUniform1f(uGammaMin, GAMMA_MIN);
-	glUniform1f(uGammaMax, GAMMA_MAX);
-	glUniform1f(uGammaScale, GAMMA_SCALE);
-	glUniform1f(uBrightness, BRIGHTNESS);
-	glUniform1f(uDensity, DENSITY);
-	glUniform1f(uMaskAlpha, maskAlpha);
-	glUniform1i(uBreakSteps, BREAK_STEPS);
-	// axis aligned clip planes
-	glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
-	glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
+  glUniform1f(uDataRangeMin, dataRangeMin);
+  glUniform1f(uDataRangeMax, dataRangeMax);
+  glUniform1f(uGammaMin, GAMMA_MIN);
+  glUniform1f(uGammaMax, GAMMA_MAX);
+  glUniform1f(uGammaScale, GAMMA_SCALE);
+  glUniform1f(uBrightness, BRIGHTNESS);
+  glUniform1f(uDensity, DENSITY);
+  glUniform1f(uMaskAlpha, maskAlpha);
+  glUniform1i(uBreakSteps, BREAK_STEPS);
+  // axis aligned clip planes
+  glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
+  glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
 }
 
-void 
+void
 GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
-	float w = (float)camera.m_Film.GetWidth();
-	float h = (float)camera.m_Film.GetHeight();
-	float vfov = camera.m_FovV * DEG_TO_RAD;
+  float w = (float)camera.m_Film.GetWidth();
+  float h = (float)camera.m_Film.GetHeight();
+  float vfov = camera.m_FovV * DEG_TO_RAD;
 
-	glm::vec3 eye(camera.m_From.x, camera.m_From.y, camera.m_From.z);
-	glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
-	glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
-	glm::mat4 cv = glm::lookAt(eye, center, up);
-	glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Hither, camera.m_Yon);
+  glm::vec3 eye(camera.m_From.x, camera.m_From.y, camera.m_From.z);
+  glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
+  glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
+  glm::mat4 cv = glm::lookAt(eye, center, up);
+  glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Hither, camera.m_Yon);
 
-	//glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
-	glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
-	glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
-	glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
+  // glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
+  glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
+  glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
+  glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
 }

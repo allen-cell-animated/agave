@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtWidgets/QFrame>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QPushButton>
@@ -10,125 +10,126 @@
 
 class QColorPushButton : public QPushButton
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	QColorPushButton(QWidget* pParent = NULL);
+  QColorPushButton(QWidget* pParent = NULL);
 
-	virtual QSize sizeHint() const;
-	virtual void paintEvent(QPaintEvent* pPaintEvent);
-	virtual void mousePressEvent(QMouseEvent* pEvent);
+  virtual QSize sizeHint() const;
+  virtual void paintEvent(QPaintEvent* pPaintEvent);
+  virtual void mousePressEvent(QMouseEvent* pEvent);
 
-	int		GetMargin(void) const;
-	void	SetMargin(const int& Margin);
-	int		GetRadius(void) const;
-	void	SetRadius(const int& Radius);
-	QColor	GetColor(void) const;
-	void	SetColor(const QColor& Color, bool BlockSignals = false);
+  int GetMargin(void) const;
+  void SetMargin(const int& Margin);
+  int GetRadius(void) const;
+  void SetRadius(const int& Radius);
+  QColor GetColor(void) const;
+  void SetColor(const QColor& Color, bool BlockSignals = false);
 
 private slots:
-	void OnCurrentColorChanged(const QColor& Color);
+  void OnCurrentColorChanged(const QColor& Color);
 
 signals:
-	void currentColorChanged(const QColor&);
+  void currentColorChanged(const QColor&);
 
 private:
-	int		m_Margin;
-	int		m_Radius;
-	QColor	m_Color;
+  int m_Margin;
+  int m_Radius;
+  QColor m_Color;
 };
 
 class QColorSelector : public QFrame
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	QColorSelector(QWidget* pParent = NULL);
+  QColorSelector(QWidget* pParent = NULL);
 
-//	virtual QSize sizeHint() const;
+  //	virtual QSize sizeHint() const;
 
-	QColor	GetColor(void) const;
-	void	SetColor(const QColor& Color, bool BlockSignals = false);
+  QColor GetColor(void) const;
+  void SetColor(const QColor& Color, bool BlockSignals = false);
 
 private slots:
-	void	OnCurrentColorChanged(const QColor& Color);
+  void OnCurrentColorChanged(const QColor& Color);
 
 signals:
-	void currentColorChanged(const QColor&);
+  void currentColorChanged(const QColor&);
 
 private:
-	QGridLayout			m_MainLayout;
-	QColorPushButton	m_ColorButton;
-	QComboBox			m_ColorCombo;
+  QGridLayout m_MainLayout;
+  QColorPushButton m_ColorButton;
+  QComboBox m_ColorCombo;
 };
 
 class QDoubleSlider : public QSlider
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    QDoubleSlider(QWidget* pParent = NULL);
-	
-	void setRange(double Min, double Max);
-	void setMinimum(double Min);
-	double minimum() const;
-	void setMaximum(double Max);
-	double maximum() const;
-	double value() const;
+  QDoubleSlider(QWidget* pParent = NULL);
+
+  void setRange(double Min, double Max);
+  void setMinimum(double Min);
+  double minimum() const;
+  void setMaximum(double Max);
+  double maximum() const;
+  double value() const;
 
 public slots:
-	void setValue(int value);
-	void setValue(double Value, bool BlockSignals = false);
+  void setValue(int value);
+  void setValue(double Value, bool BlockSignals = false);
 
 private slots:
 
 signals:
-	void valueChanged(double Value);
-	void rangeChanged(double Min, double Max);
+  void valueChanged(double Value);
+  void rangeChanged(double Min, double Max);
 
 private:
-	double	m_Multiplier;
+  double m_Multiplier;
 };
 
 class QDoubleSpinner : public QDoubleSpinBox
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
+  QDoubleSpinner(QWidget* pParent = NULL);
+  ;
 
-	QDoubleSpinner(QWidget* pParent = NULL);;
-
-	virtual QSize sizeHint() const;
-	void setValue(double Value, bool BlockSignals = false);
+  virtual QSize sizeHint() const;
+  void setValue(double Value, bool BlockSignals = false);
 };
 
 class QInputDialogEx : public QInputDialog
 {
 public:
-	QInputDialogEx(QWidget* pParent = NULL, Qt::WindowFlags Flags = 0);
+  QInputDialogEx(QWidget* pParent = NULL, Qt::WindowFlags Flags = 0);
 
-	virtual QSize sizeHint() const;
+  virtual QSize sizeHint() const;
 };
 
-class QNumericSlider : public QWidget {
-	Q_OBJECT
+class QNumericSlider : public QWidget
+{
+  Q_OBJECT
 public:
-	QNumericSlider(QWidget* pParent = NULL);
+  QNumericSlider(QWidget* pParent = NULL);
 
-	double value(void) const;
-	void setValue(double value, bool BlockSignals = false);
-	void setRange(double rmin, double rmax);
-	void setDecimals(int decimals);
-	void setSuffix(const QString&);
+  double value(void) const;
+  void setValue(double value, bool BlockSignals = false);
+  void setRange(double rmin, double rmax);
+  void setDecimals(int decimals);
+  void setSuffix(const QString&);
 
 private slots:
-	void	OnValueChanged(double value);
+  void OnValueChanged(double value);
 
 signals:
-	void valueChanged(double value);
+  void valueChanged(double value);
 
 private:
-	QGridLayout	_layout;
-	QDoubleSpinner _spinner;
-	QDoubleSlider _slider;
+  QGridLayout m_layout;
+  QDoubleSpinner m_spinner;
+  QDoubleSlider m_slider;
 };

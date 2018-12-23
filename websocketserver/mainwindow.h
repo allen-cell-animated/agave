@@ -4,26 +4,26 @@
 #include <QMainWindow>
 #include <QTimer>
 
-#include "streamserver.h"
 #include "renderer.h"
+#include "streamserver.h"
 
 #include <QTextEdit>
 
 class MainWindow : public QMainWindow
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	MainWindow(StreamServer *server);
-	~MainWindow();
+  MainWindow(StreamServer* server);
+  ~MainWindow();
 
 private:
-	QTimer *timer;
-	StreamServer *server;
-	QTextEdit *output;
+  QTimer* timer;
+  StreamServer* server;
+  QTextEdit* output;
 
-	public slots:
-	void updateStats();
+public slots:
+  void updateStats();
 };
 
 #endif // MAINWINDOW_H

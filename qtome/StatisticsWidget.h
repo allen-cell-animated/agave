@@ -1,35 +1,48 @@
 #pragma once
 
+#include <QGridLayout>
 #include <QtWidgets/QTreeWidget>
 
 class CStatus;
 
 class QStatisticsWidget : public QTreeWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    QStatisticsWidget(QWidget* pParent = NULL);
+  QStatisticsWidget(QWidget* pParent = NULL);
 
-	QSize sizeHint() const;
+  QSize sizeHint() const;
 
-	void Init(void);
-	void ExpandAll(const bool& Expand);
+  void Init(void);
+  void ExpandAll(const bool& Expand);
 
-	void set(CStatus* status);
+  void set(CStatus* status);
 
 private:
-	void PopulateTree(void);
-	QTreeWidgetItem* AddItem(QTreeWidgetItem* pParent, const QString& Property, const QString& Value = "", const QString& Unit = "", const QString& Icon = "");
-	void UpdateStatistic(const QString& Group, const QString& Name, const QString& Value, const QString& Unit, const QString& Icon = "");
-	QTreeWidgetItem* FindItem(const QString& Name);
-	void RemoveChildren(const QString& Name);
+  void PopulateTree(void);
+  QTreeWidgetItem* AddItem(QTreeWidgetItem* pParent,
+                           const QString& Property,
+                           const QString& Value = "",
+                           const QString& Unit = "",
+                           const QString& Icon = "");
+  void UpdateStatistic(const QString& Group,
+                       const QString& Name,
+                       const QString& Value,
+                       const QString& Unit,
+                       const QString& Icon = "");
+  QTreeWidgetItem* FindItem(const QString& Name);
+  void RemoveChildren(const QString& Name);
 
 public slots:
-	void OnRenderBegin(void);
-	void OnRenderEnd(void);
-	void OnStatisticChanged(const QString& Group, const QString& Name, const QString& Value, const QString& Unit, const QString& Icon = "");
-	
+  void OnRenderBegin(void);
+  void OnRenderEnd(void);
+  void OnStatisticChanged(const QString& Group,
+                          const QString& Name,
+                          const QString& Value,
+                          const QString& Unit,
+                          const QString& Icon = "");
+
 private:
-	QGridLayout		m_MainLayout;
+  QGridLayout m_MainLayout;
 };

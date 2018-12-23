@@ -15,643 +15,761 @@
 #include "CameraDockWidget.h"
 #include "GLContainer.h"
 #include "StatisticsDockWidget.h"
+#include "ViewerState.h"
 
-#include <QtWidgets/QHBoxLayout>
+#include <QtCore/QElapsedTimer>
+#include <QtCore/QSettings>
 #include <QtWidgets/QAction>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QFileDialog>
-#include <QtCore/QElapsedTimer>
-#include <QtCore/QSettings>
 
 #include <boost/filesystem/path.hpp>
 
-qtome::qtome(QWidget *parent)
-	: QMainWindow(parent)
+qtome::qtome(QWidget* parent)
+  : QMainWindow(parent)
 {
-	QCoreApplication::setOrganizationName("AICS");
-	QCoreApplication::setOrganizationDomain("allencell.org");
-	QCoreApplication::setApplicationName("VolumeRenderer");
+  m_ui.setupUi(this);
 
-	ui.setupUi(this);
+  createActions();
+  createMenus();
+  createToolbars();
+  createDockWindows();
+  setDockOptions(AllowTabbedDocks);
 
-	createActions();
-	createMenus();
-	createToolbars();
-	createDockWindows();
-	setDockOptions(AllowTabbedDocks);
+  m_tabs = new QTabWidget(this);
 
-	tabs = new QTabWidget(this);
+  QHBoxLayout* mainLayout = new QHBoxLayout;
+  mainLayout->addWidget(m_tabs);
 
-	QHBoxLayout *mainLayout = new QHBoxLayout;
-	mainLayout->addWidget(tabs);
+  QWidget* central = new QWidget(this);
+  central->setLayout(mainLayout);
 
-	QWidget *central = new QWidget(this);
-	central->setLayout(mainLayout);
+  setCentralWidget(central);
 
-	setCentralWidget(central);
+  connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
-	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+  // add the single gl view as a tab
+  m_glView = new GLView3D(&m_qcamera, &m_transferFunction, &m_renderSettings, this);
+  QWidget* glContainer = new GLContainer(this, m_glView);
+  m_glView->setObjectName("glcontainer");
+  // We need a minimum size or else the size defaults to zero.
+  glContainer->setMinimumSize(512, 512);
+  m_tabs->addTab(glContainer, "None");
+  // navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
-	// add the single gl view as a tab
-	glView = new GLView3D(&_camera, &_transferFunction, &_renderSettings, this);
-	QWidget *glContainer = new GLContainer(this, glView);
-	glView->setObjectName("glcontainer");
-	// We need a minimum size or else the size defaults to zero.
-	glContainer->setMinimumSize(512, 512);
-	tabs->addTab(glContainer, "None");
-	//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
+  QString windowTitle = 
+    QApplication::instance()->organizationName() + " " + 
+    QApplication::instance()->applicationName() + " " + 
+    QApplication::instance()->applicationVersion();
+  setWindowTitle(windowTitle);
 
-
-	setWindowTitle(tr("AICS high performance volume viewer"));
-
-	_appScene.initLights();
+  m_appScene.initLights();
 }
 
-void qtome::createActions()
+void
+qtome::createActions()
 {
-	boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
+  boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
 
-	openAction = new QAction(tr("&Open image..."), this);
-	openAction->setShortcuts(QKeySequence::Open);
-	openAction->setStatusTip(tr("Open an existing image file"));
-	connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
+  m_openAction = new QAction(tr("&Open image..."), this);
+  m_openAction->setShortcuts(QKeySequence::Open);
+  m_openAction->setStatusTip(tr("Open an existing image file"));
+  connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-	quitAction = new QAction(tr("&Quit"), this);
-	quitAction->setShortcuts(QKeySequence::Quit);
-	quitAction->setStatusTip(tr("Quit the application"));
-	connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
+  m_openJsonAction = new QAction(tr("&Open json..."), this);
+  m_openJsonAction->setShortcuts(QKeySequence::Open);
+  m_openJsonAction->setStatusTip(tr("Open an existing json settings file"));
+  connect(m_openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
 
-	viewResetAction = new QAction(tr("&Reset"), this);
-	viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
-	viewResetAction->setStatusTip(tr("Reset the current view"));
-	QIcon reset_icon(QString((iconpath / "actions/ome-reset2d.svg").string().c_str()));
-	viewResetAction->setIcon(reset_icon);
-	viewResetAction->setEnabled(false);
-	connect(viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
+  m_quitAction = new QAction(tr("&Quit"), this);
+  m_quitAction->setShortcuts(QKeySequence::Quit);
+  m_quitAction->setStatusTip(tr("Quit the application"));
+  connect(m_quitAction, SIGNAL(triggered()), this, SLOT(quit()));
 
-	dumpAction = new QAction(tr("&Dump python commands"), this);
-	//dumpAction->setShortcuts(QKeySequence::Open);
-	dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
-	connect(dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
+  m_viewResetAction = new QAction(tr("&Reset"), this);
+  m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
+  m_viewResetAction->setStatusTip(tr("Reset the current view"));
+  QIcon reset_icon(QString((iconpath / "actions/ome-reset2d.svg").string().c_str()));
+  m_viewResetAction->setIcon(reset_icon);
+  m_viewResetAction->setEnabled(false);
+  connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
-	dumpJsonAction = new QAction(tr("&Dump json obj"), this);
-	dumpJsonAction->setStatusTip(tr("Log a string containing a json object"));
-	connect(dumpJsonAction, SIGNAL(triggered()), this, SLOT(dumpStateToJson()));
+  m_dumpAction = new QAction(tr("&Dump python commands"), this);
+  // dumpAction->setShortcuts(QKeySequence::Open);
+  m_dumpAction->setStatusTip(tr("Log a string containing a command buffer to paste into python"));
+  connect(m_dumpAction, SIGNAL(triggered()), this, SLOT(dumpPythonState()));
 
-	testMeshAction = new QAction(tr("&Open mesh..."), this);
-	//testMeshAction->setShortcuts(QKeySequence::Open);
-	testMeshAction->setStatusTip(tr("Open a mesh obj file"));
-	connect(testMeshAction, SIGNAL(triggered()), this, SLOT(openMeshDialog()));
+  m_dumpJsonAction = new QAction(tr("&Save to json"), this);
+  m_dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
+  connect(m_dumpJsonAction, SIGNAL(triggered()), this, SLOT(saveJson()));
+
+  m_testMeshAction = new QAction(tr("&Open mesh..."), this);
+  // testMeshAction->setShortcuts(QKeySequence::Open);
+  m_testMeshAction->setStatusTip(tr("Open a mesh obj file"));
+  connect(m_testMeshAction, SIGNAL(triggered()), this, SLOT(openMeshDialog()));
 }
 
-void qtome::createMenus()
+void
+qtome::createMenus()
 {
-	fileMenu = menuBar()->addMenu(tr("&File"));
-	fileMenu->addAction(openAction);
-	fileMenu->addSeparator();
-	fileMenu->addAction(testMeshAction);
-	fileMenu->addSeparator();
-	fileMenu->addAction(dumpAction);
-	fileMenu->addAction(dumpJsonAction);
-	fileMenu->addSeparator();
-	fileMenu->addAction(quitAction);
+  m_fileMenu = menuBar()->addMenu(tr("&File"));
+  m_fileMenu->addAction(m_openAction);
+  m_fileMenu->addAction(m_openJsonAction);
+  m_fileMenu->addSeparator();
+  m_fileMenu->addSeparator();
+  m_fileMenu->addAction(m_dumpJsonAction);
+  m_fileMenu->addSeparator();
+  m_fileMenu->addAction(m_quitAction);
 
-	QMenu *recentMenu = fileMenu->addMenu(tr("Recent..."));
-	connect(recentMenu, &QMenu::aboutToShow, this, &qtome::updateRecentFileActions);
-	recentFileSubMenuAct = recentMenu->menuAction();
-	for (int i = 0; i < MaxRecentFiles; ++i) {
-		recentFileActs[i] = recentMenu->addAction(QString(), this, &qtome::openRecentFile);
-		recentFileActs[i]->setVisible(false);
-	}
-	recentFileSeparator = fileMenu->addSeparator();
-	setRecentFilesVisible(qtome::hasRecentFiles());
+  QMenu* recentMenu = m_fileMenu->addMenu(tr("Recent..."));
+  connect(recentMenu, &QMenu::aboutToShow, this, &qtome::updateRecentFileActions);
+  m_recentFileSubMenuAct = recentMenu->menuAction();
+  for (int i = 0; i < MaxRecentFiles; ++i) {
+    m_recentFileActs[i] = recentMenu->addAction(QString(), this, &qtome::openRecentFile);
+    m_recentFileActs[i]->setVisible(false);
+  }
+  m_recentFileSeparator = m_fileMenu->addSeparator();
+  setRecentFilesVisible(qtome::hasRecentFiles());
 
-	viewMenu = menuBar()->addMenu(tr("&View"));
-	viewMenu->addAction(viewResetAction);
-	fileMenu->addSeparator();
+  m_viewMenu = menuBar()->addMenu(tr("&View"));
+
+  m_fileMenu->addSeparator();
 }
 
-void qtome::createToolbars()
+void
+qtome::createToolbars()
+{}
+
+QDockWidget*
+qtome::createRenderingDock()
 {
-	Cam2DTools = new QToolBar("2D Camera", this);
-	addToolBar(Qt::TopToolBarArea, Cam2DTools);
-	Cam2DTools->addAction(viewResetAction);
+  QDockWidget* dock = new QDockWidget(tr("Rendering"), this);
+  dock->setAllowedAreas(Qt::AllDockWidgetAreas);
 
-	viewMenu->addSeparator();
-	viewMenu->addAction(Cam2DTools->toggleViewAction());
+  QGridLayout* layout = new QGridLayout;
+
+  QLabel* minLabel = new QLabel(tr("Min"));
+  QLabel* maxLabel = new QLabel(tr("Max"));
+  // minSlider = createRangeSlider();
+  // maxSlider = createRangeSlider();
+
+  layout->addWidget(minLabel, 0, 0);
+  // layout->addWidget(minSlider, 0, 1);
+  layout->addWidget(maxLabel, 1, 0);
+  // layout->addWidget(maxSlider, 1, 1);
+
+  QWidget* mainWidget = new QWidget(this);
+  mainWidget->setLayout(layout);
+  dock->setWidget(mainWidget);
+  return dock;
 }
 
-QDockWidget* qtome::createRenderingDock() {
-	QDockWidget *dock = new QDockWidget(tr("Rendering"), this);
-	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-	QGridLayout *layout = new QGridLayout;
-
-	QLabel *minLabel = new QLabel(tr("Min"));
-	QLabel *maxLabel = new QLabel(tr("Max"));
-	//minSlider = createRangeSlider();
-	//maxSlider = createRangeSlider();
-
-	layout->addWidget(minLabel, 0, 0);
-	//layout->addWidget(minSlider, 0, 1);
-	layout->addWidget(maxLabel, 1, 0);
-	//layout->addWidget(maxSlider, 1, 1);
-
-	QWidget *mainWidget = new QWidget(this);
-	mainWidget->setLayout(layout);
-	dock->setWidget(mainWidget);
-	return dock;
-}
-
-void qtome::createDockWindows()
+void
+qtome::createDockWindows()
 {
-	//navigation = new NavigationDock2D(this);
-	//navigation->setAllowedAreas(Qt::AllDockWidgetAreas);
-	//addDockWidget(Qt::BottomDockWidgetArea, navigation);
+  // navigation = new NavigationDock2D(this);
+  // navigation->setAllowedAreas(Qt::AllDockWidgetAreas);
+  // addDockWidget(Qt::BottomDockWidgetArea, navigation);
 
-	cameradock = new QCameraDockWidget(this, &_camera, &_renderSettings);
-	cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
-	addDockWidget(Qt::RightDockWidgetArea, cameradock);
+  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings);
+  m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 
-	appearanceDockWidget = new QAppearanceDockWidget(this, &_transferFunction, &_renderSettings);
-	appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
-	addDockWidget(Qt::RightDockWidgetArea, appearanceDockWidget);
+  m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_transferFunction, &m_renderSettings);
+  m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_appearanceDockWidget);
 
-	statisticsDockWidget = new QStatisticsDockWidget(this);
-	// Statistics dock widget
-	statisticsDockWidget->setEnabled(true);
-	statisticsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
-	addDockWidget(Qt::RightDockWidgetArea, statisticsDockWidget);
-	//m_pViewMenu->addAction(m_StatisticsDockWidget.toggleViewAction());
+  m_statisticsDockWidget = new QStatisticsDockWidget(this);
+  // Statistics dock widget
+  m_statisticsDockWidget->setEnabled(true);
+  m_statisticsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
+  // m_pViewMenu->addAction(m_StatisticsDockWidget.toggleViewAction());
 
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_appearanceDockWidget->toggleViewAction());
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_statisticsDockWidget->toggleViewAction());
 
-	viewMenu->addSeparator();
-	viewMenu->addAction(appearanceDockWidget->toggleViewAction());
-
-//	QDockWidget* dock = createRenderingDock();
-//	addDockWidget(Qt::BottomDockWidgetArea, dock);
-//	viewMenu->addAction(dock->toggleViewAction());
+  //	QDockWidget* dock = createRenderingDock();
+  //	addDockWidget(Qt::BottomDockWidgetArea, dock);
+  //	viewMenu->addAction(dock->toggleViewAction());
 }
 
-QSlider *qtome::createAngleSlider()
+QSlider*
+qtome::createAngleSlider()
 {
-	QSlider *slider = new QSlider(Qt::Vertical);
-	slider->setRange(0, 365 * 16);
-	slider->setSingleStep(16);
-	slider->setPageStep(8 * 16);
-	slider->setTickInterval(8 * 16);
-	slider->setTickPosition(QSlider::TicksRight);
-	return slider;
+  QSlider* slider = new QSlider(Qt::Vertical);
+  slider->setRange(0, 365 * 16);
+  slider->setSingleStep(16);
+  slider->setPageStep(8 * 16);
+  slider->setTickInterval(8 * 16);
+  slider->setTickPosition(QSlider::TicksRight);
+  return slider;
 }
 
-QSlider *qtome::createRangeSlider()
+QSlider*
+qtome::createRangeSlider()
 {
-	QSlider *slider = new QSlider(Qt::Horizontal);
-	slider->setRange(0, 255 * 16);
-	slider->setSingleStep(16);
-	slider->setPageStep(8 * 16);
-	slider->setTickInterval(8 * 16);
-	slider->setTickPosition(QSlider::TicksRight);
-	return slider;
+  QSlider* slider = new QSlider(Qt::Horizontal);
+  slider->setRange(0, 255 * 16);
+  slider->setSingleStep(16);
+  slider->setPageStep(8 * 16);
+  slider->setTickInterval(8 * 16);
+  slider->setTickPosition(QSlider::TicksRight);
+  return slider;
 }
 
-void qtome::open()
+void
+qtome::open()
 {
-	QString file = QFileDialog::getOpenFileName(this,
-		tr("Open Image"),
-		QString(),
-		QString(),
-		0,
-		QFileDialog::DontResolveSymlinks);
+  QString file =
+    QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, QFileDialog::DontResolveSymlinks);
 
-	if (!file.isEmpty())
-		open(file);
+  if (!file.isEmpty())
+    open(file);
 }
 
-inline QString FormatVector(const glm::vec3& Vector, const int& Precision = 2)
+void
+qtome::openJson()
 {
-	return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " + QString::number(Vector.z, 'f', Precision) + "]";
+  QString file =
+    QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, QFileDialog::DontResolveSymlinks);
+
+  if (!file.isEmpty()) {
+    QFile loadFile(file);
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+      qWarning("Couldn't open json file.");
+      return;
+    }
+    QByteArray saveData = loadFile.readAll();
+    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+    ViewerState s;
+    s.stateFromJson(loadDoc);
+    if (!s.m_volumeImageFile.isEmpty()) {
+      open(s.m_volumeImageFile, &s);
+    }
+  }
 }
 
-inline QString FormatVector(const glm::ivec3& Vector)
+void
+qtome::saveJson()
 {
-	return "[" + QString::number(Vector.x) + ", " + QString::number(Vector.y) + ", " + QString::number(Vector.z) + "]";
+  QString file = QFileDialog::getSaveFileName(this, tr("Save Json"), QString(), tr("json (*.json)"));
+  if (!file.isEmpty()) {
+    ViewerState st = appToViewerState();
+    QJsonDocument doc = st.stateToJson();
+    QFile saveFile(file);
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+      qWarning("Couldn't open save file.");
+      return;
+    }
+    saveFile.write(doc.toJson());
+  }
 }
 
-inline QString FormatSize(const glm::vec3& Size, const int& Precision = 2)
+void
+qtome::open(const QString& file, const ViewerState* vs)
 {
-	return QString::number(Size.x, 'f', Precision) + " x " + QString::number(Size.y, 'f', Precision) + " x " + QString::number(Size.z, 'f', Precision);
+  QFileInfo info(file);
+  if (info.exists()) {
+    LOG_DEBUG << "Attempting to open " << file.toStdString();
+
+    std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
+
+    // install the new volume image into the scene.
+    // this is deref'ing the previous _volume shared_ptr.
+    m_appScene.m_volume = image;
+
+    m_appScene.initSceneFromImg(image);
+    m_glView->initCameraFromImage(&m_appScene);
+
+    // initialize _appScene from ViewerState
+    if (vs) {
+      viewerStateToApp(*vs);
+    }
+
+    // tell the 3d view to update.
+    // it causes a new renderer which owns the CStatus used below
+    m_glView->onNewImage(&m_appScene);
+    m_tabs->setTabText(0, info.fileName());
+    // navigation->setReader(image);
+
+    m_appearanceDockWidget->onNewImage(&m_appScene);
+
+    // set up status view with some stats.
+    CStatus* s = m_glView->getStatus();
+    m_statisticsDockWidget->setStatus(s);
+    s->onNewImage(info.fileName(), &m_appScene);
+
+    m_currentFilePath = file;
+    qtome::prependToRecentFiles(file);
+  } else {
+    LOG_DEBUG << "Failed to open " << file.toStdString();
+  }
 }
 
-inline QString FormatSize(const glm::ivec3& Size)
+void
+qtome::openMeshDialog()
 {
-	return QString::number(Size.x) + " x " + QString::number(Size.y) + " x " + QString::number(Size.z);
+  QString file =
+    QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, QFileDialog::DontResolveSymlinks);
+
+  if (!file.isEmpty())
+    openMesh(file);
 }
 
-void qtome::open(const QString& file)
+void
+qtome::openMesh(const QString& file)
 {
-	QFileInfo info(file);
-	if (info.exists())
-	{
-
-		FileReader fileReader;
-		QElapsedTimer t;
-		t.start();
-		std::shared_ptr<ImageXYZC> image = fileReader.loadOMETiff_4D(file.toStdString());
-		LOG_DEBUG << "Loaded " << file.toStdString() << " in " << t.elapsed() << "ms";
-
-		// install the new volume image into the scene.
-		// this is deref'ing the previous _volume shared_ptr.
-		_appScene._volume = image;
-		_appScene.initSceneFromImg(image);
-
-		// tell the 3d view to update.
-		// it causes a new renderer which owns the CStatus used below
-		glView->onNewImage(&_appScene);
-		tabs->setTabText(0, info.fileName());
-		//navigation->setReader(image);
-
-		appearanceDockWidget->onNewImage(&_appScene);
-
-		CStatus* s = glView->getStatus();
-		statisticsDockWidget->setStatus(s);
-
-		glm::vec3 resolution(image->sizeX(), image->sizeY(), image->sizeZ());
-		glm::vec3 spacing(image->physicalSizeX(), image->physicalSizeY(), image->physicalSizeZ());
-		const glm::vec3 PhysicalSize(
-			spacing.x * (float)resolution.x,
-			spacing.y * (float)resolution.y,
-			spacing.z * (float)resolution.z
-		);
-		glm::vec3 BoundingBoxMinP = glm::vec3(0.0f);
-		glm::vec3 BoundingBoxMaxP = PhysicalSize / std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
-		s->SetStatisticChanged("Volume", "File", info.fileName(), "");
-		s->SetStatisticChanged("Volume", "Bounding Box", "", "");
-		s->SetStatisticChanged("Bounding Box", "Min", FormatVector(BoundingBoxMinP, 2), "m");
-		s->SetStatisticChanged("Bounding Box", "Max", FormatVector(BoundingBoxMaxP, 2), "m");
-		s->SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "mm");
-		s->SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "Voxels");
-		s->SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "mm");
-		s->SetStatisticChanged("Volume", "No. Voxels", QString::number(resolution.x*resolution.y*resolution.z), "Voxels");
-		// TODO: this is per channel
-		//s->SetStatisticChanged("Volume", "Density Range", "[" + QString::number(gScene.m_IntensityRange.GetMin()) + ", " + QString::number(gScene.m_IntensityRange.GetMax()) + "]", "");
-
-		_currentFilePath = file;
-		qtome::prependToRecentFiles(file);
-	}
-
-
-
+  if (m_appScene.m_volume) {
+    return;
+  }
+  // load obj file and init scene...
+  CBoundingBox bb;
+  Assimp::Importer* importer = FileReader::loadAsset(file.toStdString().c_str(), &bb);
+  if (importer->GetScene()) {
+    m_appScene.m_meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
+    m_appScene.initBounds(bb);
+    m_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
+    // tell the 3d view to update.
+    m_glView->initCameraFromImage(&m_appScene);
+    m_glView->onNewImage(&m_appScene);
+    m_appearanceDockWidget->onNewImage(&m_appScene);
+  }
 }
 
-void qtome::openMeshDialog() {
-	QString file = QFileDialog::getOpenFileName(this,
-		tr("Open Mesh"),
-		QString(),
-		QString(),
-		0,
-		QFileDialog::DontResolveSymlinks);
-
-	if (!file.isEmpty())
-		openMesh(file);
-}
-
-void qtome::openMesh(const QString& file) {
-	if (_appScene._volume) {
-		return;
-	}
-	// load obj file and init scene...
-	CBoundingBox bb;
-	FileReader fileReader;
-	QElapsedTimer t;
-	t.start();
-	//Assimp::Importer* importer = fileReader.loadAsset("C:\\Users\\danielt.ALLENINST\\Downloads\\nucleus.obj", &bb);
-	Assimp::Importer* importer = fileReader.loadAsset(file.toStdString().c_str(), &bb);
-	if (importer->GetScene()) {
-		_appScene._meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
-		_appScene.initSceneFromBoundingBox(bb);
-		_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
-		// tell the 3d view to update.
-		glView->onNewImage(&_appScene);
-		appearanceDockWidget->onNewImage(&_appScene);
-	}
-	LOG_DEBUG << "Loaded mesh in " << t.elapsed() << "ms";
-}
-
-void qtome::viewFocusChanged(GLView3D *newGlView)
+void
+qtome::viewFocusChanged(GLView3D* newGlView)
 {
-	if (glView == newGlView)
-		return;
-	
-	//disconnect(navigationChanged);
-	//disconnect(navigationZCChanged);
-	//disconnect(navigationUpdate);
+  if (m_glView == newGlView)
+    return;
 
-	viewResetAction->setEnabled(false);
+  // disconnect(navigationChanged);
+  // disconnect(navigationZCChanged);
+  // disconnect(navigationUpdate);
 
-	if (newGlView)
-	{
-		//navigation->setReader(newGlView->getImage());
-		//navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), newGlView, SLOT(setC(size_t)));
+  m_viewResetAction->setEnabled(false);
 
-	}
-	else
-	{
-		//navigation->setReader(std::shared_ptr<ImageXYZC>());
-	}
+  if (newGlView) {
+    // navigation->setReader(newGlView->getImage());
+    // navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), newGlView, SLOT(setC(size_t)));
 
-	bool enable(newGlView != 0);
+  } else {
+    // navigation->setReader(std::shared_ptr<ImageXYZC>());
+  }
 
-	viewResetAction->setEnabled(enable);
+  bool enable(newGlView != 0);
 
-	glView = newGlView;
+  m_viewResetAction->setEnabled(enable);
+
+  m_glView = newGlView;
 }
 
-void qtome::tabChanged(int index)
+void
+qtome::tabChanged(int index)
 {
-	GLView3D *current = 0;
-	if (index >= 0)
-	{
-		QWidget *w = tabs->currentWidget();
-		if (w)
-		{
-			GLContainer *container = static_cast<GLContainer *>(w);
-			if (container)
-				current = static_cast<GLView3D *>(container->getWindow());
-		}
-	}
-	viewFocusChanged(current);
+  GLView3D* current = 0;
+  if (index >= 0) {
+    QWidget* w = m_tabs->currentWidget();
+    if (w) {
+      GLContainer* container = static_cast<GLContainer*>(w);
+      if (container)
+        current = static_cast<GLView3D*>(container->getWindow());
+    }
+  }
+  viewFocusChanged(current);
 }
 
-void qtome::quit()
+void
+qtome::quit()
 {
-	close();
+  close();
 }
 
-void qtome::view_reset()
+void
+qtome::view_reset()
+{}
+
+void
+qtome::setRecentFilesVisible(bool visible)
 {
+  m_recentFileSubMenuAct->setVisible(visible);
+  m_recentFileSeparator->setVisible(visible);
 }
 
-void qtome::setRecentFilesVisible(bool visible)
+static inline QString
+recentFilesKey()
 {
-	recentFileSubMenuAct->setVisible(visible);
-	recentFileSeparator->setVisible(visible);
+  return QStringLiteral("recentFileList");
 }
-
-static inline QString recentFilesKey() { return QStringLiteral("recentFileList"); }
-static inline QString fileKey() { return QStringLiteral("file"); }
-
-static QStringList readRecentFiles(QSettings &settings)
+static inline QString
+fileKey()
 {
-	QStringList result;
-	const int count = settings.beginReadArray(recentFilesKey());
-	for (int i = 0; i < count; ++i) {
-		settings.setArrayIndex(i);
-		result.append(settings.value(fileKey()).toString());
-	}
-	settings.endArray();
-	return result;
+  return QStringLiteral("file");
 }
 
-static void writeRecentFiles(const QStringList &files, QSettings &settings)
+static QStringList
+readRecentFiles(QSettings& settings)
 {
-	const int count = files.size();
-	settings.beginWriteArray(recentFilesKey());
-	for (int i = 0; i < count; ++i) {
-		settings.setArrayIndex(i);
-		settings.setValue(fileKey(), files.at(i));
-	}
-	settings.endArray();
+  QStringList result;
+  const int count = settings.beginReadArray(recentFilesKey());
+  for (int i = 0; i < count; ++i) {
+    settings.setArrayIndex(i);
+    result.append(settings.value(fileKey()).toString());
+  }
+  settings.endArray();
+  return result;
 }
 
-bool qtome::hasRecentFiles()
+static void
+writeRecentFiles(const QStringList& files, QSettings& settings)
 {
-	QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-	const int count = settings.beginReadArray(recentFilesKey());
-	settings.endArray();
-	return count > 0;
+  const int count = files.size();
+  settings.beginWriteArray(recentFilesKey());
+  for (int i = 0; i < count; ++i) {
+    settings.setArrayIndex(i);
+    settings.setValue(fileKey(), files.at(i));
+  }
+  settings.endArray();
 }
 
-void qtome::prependToRecentFiles(const QString &fileName)
+bool
+qtome::hasRecentFiles()
 {
-	QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-
-	const QStringList oldRecentFiles = readRecentFiles(settings);
-	QStringList recentFiles = oldRecentFiles;
-	recentFiles.removeAll(fileName);
-	recentFiles.prepend(fileName);
-	if (oldRecentFiles != recentFiles)
-		writeRecentFiles(recentFiles, settings);
-
-	setRecentFilesVisible(!recentFiles.isEmpty());
+  QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+  const int count = settings.beginReadArray(recentFilesKey());
+  settings.endArray();
+  return count > 0;
 }
 
-void qtome::updateRecentFileActions()
+void
+qtome::prependToRecentFiles(const QString& fileName)
 {
-	QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+  QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
 
-	const QStringList recentFiles = readRecentFiles(settings);
-	const int count = qMin(int(MaxRecentFiles), recentFiles.size());
-	int i = 0;
-	for (; i < count; ++i) {
-		const QString fileName = qtome::strippedName(recentFiles.at(i));
-		recentFileActs[i]->setText(tr("&%1 %2").arg(i + 1).arg(fileName));
-		recentFileActs[i]->setData(recentFiles.at(i));
-		recentFileActs[i]->setVisible(true);
-	}
-	for (; i < MaxRecentFiles; ++i)
-		recentFileActs[i]->setVisible(false);
+  const QStringList oldRecentFiles = readRecentFiles(settings);
+  QStringList recentFiles = oldRecentFiles;
+  recentFiles.removeAll(fileName);
+  recentFiles.prepend(fileName);
+  if (oldRecentFiles != recentFiles)
+    writeRecentFiles(recentFiles, settings);
+
+  setRecentFilesVisible(!recentFiles.isEmpty());
 }
 
-void qtome::openRecentFile()
+void
+qtome::updateRecentFileActions()
 {
-	if (const QAction *action = qobject_cast<const QAction *>(sender())) {
-		QString path = action->data().toString();
-		if (path.endsWith(".obj")) {
-			// assume that .obj is mesh
-			openMesh(path);
-		}
-		else {
-			// assumption of ome.tif
-			open(path);
-		}
-	}
+  QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+
+  const QStringList recentFiles = readRecentFiles(settings);
+  const int count = qMin(int(MaxRecentFiles), recentFiles.size());
+  int i = 0;
+  for (; i < count; ++i) {
+    const QString fileName = qtome::strippedName(recentFiles.at(i));
+    m_recentFileActs[i]->setText(tr("&%1 %2").arg(i + 1).arg(fileName));
+    m_recentFileActs[i]->setData(recentFiles.at(i));
+    m_recentFileActs[i]->setVisible(true);
+  }
+  for (; i < MaxRecentFiles; ++i)
+    m_recentFileActs[i]->setVisible(false);
 }
 
-QString qtome::strippedName(const QString &fullFileName)
+void
+qtome::openRecentFile()
 {
-	return QFileInfo(fullFileName).fileName();
+  if (const QAction* action = qobject_cast<const QAction*>(sender())) {
+    QString path = action->data().toString();
+    if (path.endsWith(".obj")) {
+      // assume that .obj is mesh
+      openMesh(path);
+    } else {
+      // assumption of ome.tif
+      open(path);
+    }
+  }
 }
 
-void qtome::dumpPythonState()
+QString
+qtome::strippedName(const QString& fullFileName)
 {
-	QString s;
-	s += "cb = CommandBuffer()\n";
-	s += QString("cb.add_command(\"LOAD_OME_TIF\", \"%1\")\n").arg(_currentFilePath);
-	s += QString("cb.add_command(\"SET_RESOLUTION\", %1, %2)\n").arg(glView->size().width()).arg(glView->size().height());
-	s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(_renderSettings.GetNoIterations());
-
-	s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n").arg(_appScene._roi.GetMinP().x).arg(_appScene._roi.GetMaxP().x).arg(_appScene._roi.GetMinP().y).arg(_appScene._roi.GetMaxP().y).arg(_appScene._roi.GetMinP().z).arg(_appScene._roi.GetMaxP().z);
-
-	s += QString("cb.add_command(\"EYE\", %1, %2, %3)\n").arg(glView->getCamera().m_From.x).arg(glView->getCamera().m_From.y).arg(glView->getCamera().m_From.z);
-	s += QString("cb.add_command(\"TARGET\", %1, %2, %3)\n").arg(glView->getCamera().m_Target.x).arg(glView->getCamera().m_Target.y).arg(glView->getCamera().m_Target.z);
-	s += QString("cb.add_command(\"UP\", %1, %2, %3)\n").arg(glView->getCamera().m_Up.x).arg(glView->getCamera().m_Up.y).arg(glView->getCamera().m_Up.z);
-	s += QString("cb.add_command(\"FOV_Y\", %1)\n").arg(_camera.GetProjection().GetFieldOfView());
-	
-	s += QString("cb.add_command(\"EXPOSURE\", %1)\n").arg(_camera.GetFilm().GetExposure());
-	s += QString("cb.add_command(\"DENSITY\", %1)\n").arg(_renderSettings.m_RenderSettings.m_DensityScale);
-	s += QString("cb.add_command(\"APERTURE\", %1)\n").arg(_camera.GetAperture().GetSize());
-	s += QString("cb.add_command(\"FOCALDIST\", %1)\n").arg(_camera.GetFocus().GetFocalDistance());
-
-	// per-channel
-	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
-		bool enabled = _appScene._material.enabled[i];
-		s += QString("cb.add_command(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled?"1":"0");
-		s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n").arg(QString::number(i)).arg(_appScene._material.diffuse[i*3]).arg(_appScene._material.diffuse[i * 3+1]).arg(_appScene._material.diffuse[i * 3+2]);
-		s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.specular[i * 3]).arg(_appScene._material.specular[i * 3 + 1]).arg(_appScene._material.specular[i * 3 + 2]);
-		s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n").arg(QString::number(i)).arg(_appScene._material.emissive[i * 3]).arg(_appScene._material.emissive[i * 3 + 1]).arg(_appScene._material.emissive[i * 3 + 2]);
-		s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(_appScene._material.roughness[i]);
-		s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n").arg(QString::number(i)).arg(_appScene._volume->channel(i)->_window).arg(_appScene._volume->channel(i)->_level);
-	}
-
-	// lighting
-	s += QString("cb.add_command(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorTop.r).arg(_appScene._lighting.m_Lights[0].m_ColorTop.g).arg(_appScene._lighting.m_Lights[0].m_ColorTop.b);
-	s += QString("cb.add_command(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.r).arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.g).arg(_appScene._lighting.m_Lights[0].m_ColorMiddle.b);
-	s += QString("cb.add_command(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[0].m_ColorBottom.r).arg(_appScene._lighting.m_Lights[0].m_ColorBottom.g).arg(_appScene._lighting.m_Lights[0].m_ColorBottom.b);
-	s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[1].m_Distance).arg(_appScene._lighting.m_Lights[1].m_Theta).arg(_appScene._lighting.m_Lights[1].m_Phi);
-	s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n").arg(_appScene._lighting.m_Lights[1].m_Color.r).arg(_appScene._lighting.m_Lights[1].m_Color.g).arg(_appScene._lighting.m_Lights[1].m_Color.b);
-	s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n").arg(_appScene._lighting.m_Lights[1].m_Width).arg(_appScene._lighting.m_Lights[1].m_Height);
-
-	s += "buf = cb.make_buffer()\n";
-	qDebug().noquote() << s;
-	//return s;
+  return QFileInfo(fullFileName).fileName();
 }
 
-QJsonArray jsonVec3(float x, float y, float z) {
-	QJsonArray tgt;
-	tgt.append(x);
-	tgt.append(y);
-	tgt.append(z);
-	return tgt;
-}
-
-void qtome::dumpStateToJson() {
-	QJsonDocument doc = stateToJson();
-	QString s = doc.toJson();
-	qDebug().noquote() << s;
-}
-
-QJsonDocument qtome::stateToJson()
+void
+qtome::dumpPythonState()
 {
-	// fire back some json...
-	QJsonObject j;
-	j["name"] = _currentFilePath;
-	
-	QJsonArray resolution;
-	resolution.append(glView->size().width());
-	resolution.append(glView->size().height());
-	j["resolution"] = resolution;
+  QString s;
+  s += "cb = CommandBuffer()\n";
+  s += QString("cb.add_command(\"LOAD_OME_TIF\", \"%1\")\n").arg(m_currentFilePath);
+  s += QString("cb.add_command(\"SET_RESOLUTION\", %1, %2)\n")
+         .arg(m_glView->size().width())
+         .arg(m_glView->size().height());
+  s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(m_renderSettings.GetNoIterations());
 
-	j["renderIterations"] = _renderSettings.GetNoIterations();
+  s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n")
+         .arg(m_appScene.m_roi.GetMinP().x)
+         .arg(m_appScene.m_roi.GetMaxP().x)
+         .arg(m_appScene.m_roi.GetMinP().y)
+         .arg(m_appScene.m_roi.GetMaxP().y)
+         .arg(m_appScene.m_roi.GetMinP().z)
+         .arg(m_appScene.m_roi.GetMaxP().z);
 
-	QJsonArray clipRegion;
-	QJsonArray clipRegionX;
-	clipRegionX.append(_appScene._roi.GetMinP().x);
-	clipRegionX.append(_appScene._roi.GetMaxP().x);
-	QJsonArray clipRegionY;
-	clipRegionY.append(_appScene._roi.GetMinP().y);
-	clipRegionY.append(_appScene._roi.GetMaxP().y);
-	QJsonArray clipRegionZ;
-	clipRegionZ.append(_appScene._roi.GetMinP().z);
-	clipRegionZ.append(_appScene._roi.GetMaxP().z);
-	clipRegion.append(clipRegionX);
-	clipRegion.append(clipRegionY);
-	clipRegion.append(clipRegionZ);
+  s += QString("cb.add_command(\"EYE\", %1, %2, %3)\n")
+         .arg(m_glView->getCamera().m_From.x)
+         .arg(m_glView->getCamera().m_From.y)
+         .arg(m_glView->getCamera().m_From.z);
+  s += QString("cb.add_command(\"TARGET\", %1, %2, %3)\n")
+         .arg(m_glView->getCamera().m_Target.x)
+         .arg(m_glView->getCamera().m_Target.y)
+         .arg(m_glView->getCamera().m_Target.z);
+  s += QString("cb.add_command(\"UP\", %1, %2, %3)\n")
+         .arg(m_glView->getCamera().m_Up.x)
+         .arg(m_glView->getCamera().m_Up.y)
+         .arg(m_glView->getCamera().m_Up.z);
+  s += QString("cb.add_command(\"FOV_Y\", %1)\n").arg(m_qcamera.GetProjection().GetFieldOfView());
 
-	j["clipRegion"] = clipRegion;
+  s += QString("cb.add_command(\"EXPOSURE\", %1)\n").arg(m_qcamera.GetFilm().GetExposure());
+  s += QString("cb.add_command(\"DENSITY\", %1)\n").arg(m_renderSettings.m_RenderSettings.m_DensityScale);
+  s += QString("cb.add_command(\"APERTURE\", %1)\n").arg(m_qcamera.GetAperture().GetSize());
+  s += QString("cb.add_command(\"FOCALDIST\", %1)\n").arg(m_qcamera.GetFocus().GetFocalDistance());
 
-	QJsonObject camera;
-	camera["eye"] = jsonVec3(
-		glView->getCamera().m_From.x,
-		glView->getCamera().m_From.y,
-		glView->getCamera().m_From.z
-	);
-	camera["target"] = jsonVec3(
-		glView->getCamera().m_Target.x,
-		glView->getCamera().m_Target.y,
-		glView->getCamera().m_Target.z
-	);
-	camera["up"] = jsonVec3(
-		glView->getCamera().m_Up.x,
-		glView->getCamera().m_Up.y,
-		glView->getCamera().m_Up.z
-	);
+  // per-channel
+  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+    bool enabled = m_appScene.m_material.m_enabled[i];
+    s += QString("cb.add_command(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled ? "1" : "0");
+    s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n")
+           .arg(QString::number(i))
+           .arg(m_appScene.m_material.m_diffuse[i * 3])
+           .arg(m_appScene.m_material.m_diffuse[i * 3 + 1])
+           .arg(m_appScene.m_material.m_diffuse[i * 3 + 2]);
+    s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n")
+           .arg(QString::number(i))
+           .arg(m_appScene.m_material.m_specular[i * 3])
+           .arg(m_appScene.m_material.m_specular[i * 3 + 1])
+           .arg(m_appScene.m_material.m_specular[i * 3 + 2]);
+    s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n")
+           .arg(QString::number(i))
+           .arg(m_appScene.m_material.m_emissive[i * 3])
+           .arg(m_appScene.m_material.m_emissive[i * 3 + 1])
+           .arg(m_appScene.m_material.m_emissive[i * 3 + 2]);
+    s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n")
+           .arg(QString::number(i))
+           .arg(m_appScene.m_material.m_roughness[i]);
+    s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n")
+           .arg(QString::number(i))
+           .arg(m_appScene.m_volume->channel(i)->m_window)
+           .arg(m_appScene.m_volume->channel(i)->m_level);
+  }
 
-	camera["fovY"] = _camera.GetProjection().GetFieldOfView();
+  // lighting
+  s += QString("cb.add_command(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n")
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorTop.r)
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorTop.g)
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorTop.b);
+  s += QString("cb.add_command(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n")
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorMiddle.r)
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorMiddle.g)
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorMiddle.b);
+  s += QString("cb.add_command(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n")
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorBottom.r)
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorBottom.g)
+         .arg(m_appScene.m_lighting.m_Lights[0].m_ColorBottom.b);
+  s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n")
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Distance)
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Theta)
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Phi);
+  s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n")
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Color.r)
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Color.g)
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Color.b);
+  s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n")
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Width)
+         .arg(m_appScene.m_lighting.m_Lights[1].m_Height);
 
-	camera["exposure"] = _camera.GetFilm().GetExposure();
-	camera["aperture"] = _camera.GetAperture().GetSize();
-	camera["focalDistance"] = _camera.GetFocus().GetFocalDistance();
-	j["camera"] = camera;
+  s += "buf = cb.make_buffer()\n";
+  qDebug().noquote() << s;
+  // return s;
+}
 
-	QJsonArray channels;
-	for (uint32_t i = 0; i < _appScene._volume->sizeC(); ++i) {
-		QJsonObject channel;
-		channel["enabled"] = _appScene._material.enabled[i];
-		channel["diffuseColor"] = jsonVec3(
-			_appScene._material.diffuse[i * 3],
-			_appScene._material.diffuse[i * 3 + 1],
-			_appScene._material.diffuse[i * 3 + 2]
-		);
-		channel["specularColor"] = jsonVec3(
-			_appScene._material.specular[i * 3],
-			_appScene._material.specular[i * 3 + 1],
-			_appScene._material.specular[i * 3 + 2]
-		);
-		channel["emissiveColor"] = jsonVec3(
-			_appScene._material.emissive[i * 3],
-			_appScene._material.emissive[i * 3 + 1],
-			_appScene._material.emissive[i * 3 + 2]
-		);
-		channel["glossiness"] = _appScene._material.roughness[i];
-		channel["window"] = _appScene._volume->channel(i)->_window;
-		channel["level"] = _appScene._volume->channel(i)->_level;
+void
+qtome::dumpStateToJson()
+{
+  ViewerState st = appToViewerState();
+  QJsonDocument doc = st.stateToJson();
+  QString s = doc.toJson();
+  qDebug().noquote() << s;
+}
 
-		channels.append(channel);
-	}
-	j["channels"] = channels;
+void
+qtome::viewerStateToApp(const ViewerState& v)
+{
+  // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
 
-	j["density"] = _renderSettings.m_RenderSettings.m_DensityScale;
+  // position camera
+  m_glView->fromViewerState(v);
 
-	// lighting
-	QJsonArray lights;
-	QJsonObject light0;
-	Light& lt = _appScene._lighting.m_Lights[0];
-	light0["type"] = 0;
-	light0["topColor"] = jsonVec3(
-		lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b
-	);
-	light0["middleColor"] = jsonVec3(
-		lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b
-	);
-	light0["bottomColor"] = jsonVec3(
-		lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b
-	);
-	lights.append(light0);
+  m_appScene.m_roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
+  m_appScene.m_roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
 
-	QJsonObject light1;
-	lt = _appScene._lighting.m_Lights[1];
-	light1["type"] = 1;
-	light1["distance"] = lt.m_Distance;
-	light1["theta"] = lt.m_Theta;
-	light1["phi"] = lt.m_Phi;
-	light1["color"] = jsonVec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-	light1["width"] = lt.m_Width;
-	light1["height"] = lt.m_Height;
-	lights.append(light1);
-	j["lights"] = lights;
+  m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
-	return QJsonDocument(j);
+  m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
+
+  // channels
+  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+    ChannelViewerState ch = v.m_channels[i];
+    m_appScene.m_material.m_enabled[i] = ch.m_enabled;
+
+    m_appScene.m_material.m_diffuse[i * 3] = ch.m_diffuse.x;
+    m_appScene.m_material.m_diffuse[i * 3 + 1] = ch.m_diffuse.y;
+    m_appScene.m_material.m_diffuse[i * 3 + 2] = ch.m_diffuse.z;
+
+    m_appScene.m_material.m_specular[i * 3] = ch.m_specular.x;
+    m_appScene.m_material.m_specular[i * 3 + 1] = ch.m_specular.y;
+    m_appScene.m_material.m_specular[i * 3 + 2] = ch.m_specular.z;
+
+    m_appScene.m_material.m_emissive[i * 3] = ch.m_emissive.x;
+    m_appScene.m_material.m_emissive[i * 3 + 1] = ch.m_emissive.y;
+    m_appScene.m_material.m_emissive[i * 3 + 2] = ch.m_emissive.z;
+
+    m_appScene.m_material.m_roughness[i] = ch.m_glossiness;
+    m_appScene.m_volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
+  }
+
+  // lights
+  Light& lt = m_appScene.m_lighting.m_Lights[0];
+  lt.m_T = v.m_light0.m_type;
+  lt.m_Distance = v.m_light0.m_distance;
+  lt.m_Theta = v.m_light0.m_theta;
+  lt.m_Phi = v.m_light0.m_phi;
+  lt.m_ColorTop = v.m_light0.m_topColor;
+  lt.m_ColorMiddle = v.m_light0.m_middleColor;
+  lt.m_ColorBottom = v.m_light0.m_bottomColor;
+  lt.m_Color = v.m_light0.m_color;
+  lt.m_ColorTopIntensity = v.m_light0.m_topColorIntensity;
+  lt.m_ColorMiddleIntensity = v.m_light0.m_middleColorIntensity;
+  lt.m_ColorBottomIntensity = v.m_light0.m_bottomColorIntensity;
+  lt.m_ColorIntensity = v.m_light0.m_colorIntensity;
+  lt.m_Width = v.m_light0.m_width;
+  lt.m_Height = v.m_light0.m_height;
+
+  Light& lt1 = m_appScene.m_lighting.m_Lights[1];
+  lt1.m_T = v.m_light1.m_type;
+  lt1.m_Distance = v.m_light1.m_distance;
+  lt1.m_Theta = v.m_light1.m_theta;
+  lt1.m_Phi = v.m_light1.m_phi;
+  lt1.m_ColorTop = v.m_light1.m_topColor;
+  lt1.m_ColorMiddle = v.m_light1.m_middleColor;
+  lt1.m_ColorBottom = v.m_light1.m_bottomColor;
+  lt1.m_Color = v.m_light1.m_color;
+  lt1.m_ColorTopIntensity = v.m_light1.m_topColorIntensity;
+  lt1.m_ColorMiddleIntensity = v.m_light1.m_middleColorIntensity;
+  lt1.m_ColorBottomIntensity = v.m_light1.m_bottomColorIntensity;
+  lt1.m_ColorIntensity = v.m_light1.m_colorIntensity;
+  lt1.m_Width = v.m_light1.m_width;
+  lt1.m_Height = v.m_light1.m_height;
+
+  m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+ViewerState
+qtome::appToViewerState()
+{
+  ViewerState v;
+  v.m_volumeImageFile = m_currentFilePath;
+
+  v.m_scaleX = m_appScene.m_volume->physicalSizeX();
+  v.m_scaleY = m_appScene.m_volume->physicalSizeY();
+  v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+
+  v.m_resolutionX = m_glView->size().width();
+  v.m_resolutionY = m_glView->size().height();
+  v.m_renderIterations = m_renderSettings.GetNoIterations();
+
+  v.m_roiXmax = m_appScene.m_roi.GetMaxP().x;
+  v.m_roiYmax = m_appScene.m_roi.GetMaxP().y;
+  v.m_roiZmax = m_appScene.m_roi.GetMaxP().z;
+  v.m_roiXmin = m_appScene.m_roi.GetMinP().x;
+  v.m_roiYmin = m_appScene.m_roi.GetMinP().y;
+  v.m_roiZmin = m_appScene.m_roi.GetMinP().z;
+
+  v.m_eyeX = m_glView->getCamera().m_From.x;
+  v.m_eyeY = m_glView->getCamera().m_From.y;
+  v.m_eyeZ = m_glView->getCamera().m_From.z;
+
+  v.m_targetX = m_glView->getCamera().m_Target.x;
+  v.m_targetY = m_glView->getCamera().m_Target.y;
+  v.m_targetZ = m_glView->getCamera().m_Target.z;
+
+  v.m_upX = m_glView->getCamera().m_Up.x;
+  v.m_upY = m_glView->getCamera().m_Up.y;
+  v.m_upZ = m_glView->getCamera().m_Up.z;
+
+  v.m_fov = m_qcamera.GetProjection().GetFieldOfView();
+
+  v.m_exposure = m_qcamera.GetFilm().GetExposure();
+  v.m_apertureSize = m_qcamera.GetAperture().GetSize();
+  v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
+  v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
+
+  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+    ChannelViewerState ch;
+    ch.m_enabled = m_appScene.m_material.m_enabled[i];
+    ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
+                             m_appScene.m_material.m_diffuse[i * 3 + 1],
+                             m_appScene.m_material.m_diffuse[i * 3 + 2]);
+    ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
+                              m_appScene.m_material.m_specular[i * 3 + 1],
+                              m_appScene.m_material.m_specular[i * 3 + 2]);
+    ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
+                              m_appScene.m_material.m_emissive[i * 3 + 1],
+                              m_appScene.m_material.m_emissive[i * 3 + 2]);
+    ch.m_glossiness = m_appScene.m_material.m_roughness[i];
+    ch.m_window = m_appScene.m_volume->channel(i)->m_window;
+    ch.m_level = m_appScene.m_volume->channel(i)->m_level;
+
+    v.m_channels.push_back(ch);
+  }
+
+  // lighting
+  Light& lt = m_appScene.m_lighting.m_Lights[0];
+  v.m_light0.m_type = lt.m_T;
+  v.m_light0.m_distance = lt.m_Distance;
+  v.m_light0.m_theta = lt.m_Theta;
+  v.m_light0.m_phi = lt.m_Phi;
+  v.m_light0.m_topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
+  v.m_light0.m_middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
+  v.m_light0.m_color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
+  v.m_light0.m_bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
+  v.m_light0.m_topColorIntensity = lt.m_ColorTopIntensity;
+  v.m_light0.m_middleColorIntensity = lt.m_ColorMiddleIntensity;
+  v.m_light0.m_colorIntensity = lt.m_ColorIntensity;
+  v.m_light0.m_bottomColorIntensity = lt.m_ColorBottomIntensity;
+  v.m_light0.m_width = lt.m_Width;
+  v.m_light0.m_height = lt.m_Height;
+
+  Light& lt1 = m_appScene.m_lighting.m_Lights[1];
+  v.m_light1.m_type = lt1.m_T;
+  v.m_light1.m_distance = lt1.m_Distance;
+  v.m_light1.m_theta = lt1.m_Theta;
+  v.m_light1.m_phi = lt1.m_Phi;
+  v.m_light1.m_topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
+  v.m_light1.m_middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
+  v.m_light1.m_color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
+  v.m_light1.m_bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
+  v.m_light1.m_topColorIntensity = lt1.m_ColorTopIntensity;
+  v.m_light1.m_middleColorIntensity = lt1.m_ColorMiddleIntensity;
+  v.m_light1.m_colorIntensity = lt1.m_ColorIntensity;
+  v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
+  v.m_light1.m_width = lt1.m_Width;
+  v.m_light1.m_height = lt1.m_Height;
+
+  return v;
 }

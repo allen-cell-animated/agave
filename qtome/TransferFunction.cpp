@@ -1,141 +1,158 @@
-#include "Stable.h"
-
 #include "TransferFunction.h"
 
 #include "RenderSettings.h"
 
-QTransferFunction::QTransferFunction(QObject* pParent) :
-	QObject(pParent),
-	m_DensityScale(100.0f),
-	m_ShadingType(2),
-	m_RendererType(1),
-	m_GradientFactor(10.0f),
-	m_Window(1.0),
-	m_Level(0.5)
-{
-}
+QTransferFunction::QTransferFunction(QObject* pParent)
+  : QObject(pParent)
+  , m_DensityScale(100.0f)
+  , m_ShadingType(2)
+  , m_RendererType(1)
+  , m_GradientFactor(10.0f)
+  , m_Window(1.0)
+  , m_Level(0.5)
+{}
 
 QTransferFunction::QTransferFunction(const QTransferFunction& Other)
 {
-	*this = Other;
+  *this = Other;
 };
 
-QTransferFunction& QTransferFunction::operator = (const QTransferFunction& Other)			
+QTransferFunction&
+QTransferFunction::operator=(const QTransferFunction& Other)
 {
-	blockSignals(true);
-	
-	m_DensityScale		= Other.m_DensityScale;
-	m_ShadingType		= Other.m_ShadingType;
-	m_GradientFactor	= Other.m_GradientFactor;
+  blockSignals(true);
 
-	blockSignals(false);
+  m_DensityScale = Other.m_DensityScale;
+  m_ShadingType = Other.m_ShadingType;
+  m_GradientFactor = Other.m_GradientFactor;
 
-	// Notify others that the function has changed selection has changed
-	emit Changed();
+  blockSignals(false);
 
-	return *this;
+  // Notify others that the function has changed selection has changed
+  emit Changed();
+
+  return *this;
 }
 
-void QTransferFunction::setRenderSettings(RenderSettings& rs) {
-	_renderSettings = &rs;
-
-	m_DensityScale = rs.m_RenderSettings.m_DensityScale;
-	m_ShadingType = rs.m_RenderSettings.m_ShadingType;
-	m_GradientFactor = rs.m_RenderSettings.m_GradientFactor;
-
-	emit Changed();
-}
-
-float QTransferFunction::GetDensityScale(void) const
+void
+QTransferFunction::setRenderSettings(RenderSettings& rs)
 {
-	return m_DensityScale;
+  m_renderSettings = &rs;
+
+  m_DensityScale = rs.m_RenderSettings.m_DensityScale;
+  m_ShadingType = rs.m_RenderSettings.m_ShadingType;
+  m_GradientFactor = rs.m_RenderSettings.m_GradientFactor;
+
+  emit Changed();
 }
 
-void QTransferFunction::SetDensityScale(const float& DensityScale)
+float
+QTransferFunction::GetDensityScale(void) const
 {
-	if (DensityScale == m_DensityScale)
-		return;
-
-	m_DensityScale = DensityScale;
-
-	emit Changed();
+  return m_DensityScale;
 }
 
-int QTransferFunction::GetShadingType(void) const
+void
+QTransferFunction::SetDensityScale(const float& DensityScale)
 {
-	return m_ShadingType;
+  if (DensityScale == m_DensityScale)
+    return;
+
+  m_DensityScale = DensityScale;
+
+  emit Changed();
 }
 
-void QTransferFunction::SetShadingType(const int& ShadingType)
+int
+QTransferFunction::GetShadingType(void) const
 {
-	if (ShadingType == m_ShadingType)
-		return;
-
-	m_ShadingType = ShadingType;
-
-	emit Changed();
+  return m_ShadingType;
 }
 
-int QTransferFunction::GetRendererType(void) const
+void
+QTransferFunction::SetShadingType(const int& ShadingType)
 {
-	return m_RendererType;
+  if (ShadingType == m_ShadingType)
+    return;
+
+  m_ShadingType = ShadingType;
+
+  emit Changed();
 }
 
-void QTransferFunction::SetRendererType(const int& RendererType)
+int
+QTransferFunction::GetRendererType(void) const
 {
-	if (RendererType == m_RendererType)
-		return;
-
-	m_RendererType = RendererType;
-
-	emit ChangedRenderer(RendererType);
+  return m_RendererType;
 }
 
-float QTransferFunction::GetGradientFactor(void) const
+void
+QTransferFunction::SetRendererType(const int& RendererType)
 {
-	return m_GradientFactor;
+  if (RendererType == m_RendererType)
+    return;
+
+  m_RendererType = RendererType;
+
+  emit ChangedRenderer(RendererType);
 }
 
-void QTransferFunction::SetGradientFactor(const float& GradientFactor)
+float
+QTransferFunction::GetGradientFactor(void) const
 {
-	if (GradientFactor == m_GradientFactor)
-		return;
-
-	m_GradientFactor = GradientFactor;
-
-	emit Changed();
+  return m_GradientFactor;
 }
 
-QTransferFunction QTransferFunction::Default(void)
+void
+QTransferFunction::SetGradientFactor(const float& GradientFactor)
 {
-	QTransferFunction DefaultTransferFunction;
+  if (GradientFactor == m_GradientFactor)
+    return;
 
-	DefaultTransferFunction.SetDensityScale(100.0f);
-	DefaultTransferFunction.SetShadingType(2);
-	DefaultTransferFunction.SetGradientFactor(10.0f);
-	
-	return DefaultTransferFunction;
+  m_GradientFactor = GradientFactor;
+
+  emit Changed();
 }
 
-float QTransferFunction::GetWindow(void) const {
-	return m_Window;
+QTransferFunction
+QTransferFunction::Default(void)
+{
+  QTransferFunction DefaultTransferFunction;
+
+  DefaultTransferFunction.SetDensityScale(100.0f);
+  DefaultTransferFunction.SetShadingType(2);
+  DefaultTransferFunction.SetGradientFactor(10.0f);
+
+  return DefaultTransferFunction;
 }
-void QTransferFunction::SetWindow(const float& Window) {
-	if (Window == m_Window)
-		return;
 
-	m_Window = Window;
-
-	emit Changed();
+float
+QTransferFunction::GetWindow(void) const
+{
+  return m_Window;
 }
-float QTransferFunction::GetLevel(void) const {
-	return m_Level;
+void
+QTransferFunction::SetWindow(const float& Window)
+{
+  if (Window == m_Window)
+    return;
+
+  m_Window = Window;
+
+  emit Changed();
 }
-void QTransferFunction::SetLevel(const float& Level) {
-	if (Level == m_Level)
-		return;
+float
+QTransferFunction::GetLevel(void) const
+{
+  return m_Level;
+}
+void
+QTransferFunction::SetLevel(const float& Level)
+{
+  if (Level == m_Level)
+    return;
 
-	m_Level = Level;
+  m_Level = Level;
 
-	emit Changed();
+  emit Changed();
 }

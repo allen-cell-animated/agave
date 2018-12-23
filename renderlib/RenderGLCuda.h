@@ -1,12 +1,12 @@
 #pragma once
 #include "IRenderWindow.h"
 
-#include "AppScene.h"
-#include "RenderSettings.h"
-
 #include "glad/include/glad/glad.h"
+
+#include "AppScene.h"
 #include "CudaUtilities.h"
 #include "ImageXyzcCuda.h"
+#include "RenderSettings.h"
 #include "Status.h"
 #include "Timing.h"
 
@@ -18,68 +18,66 @@ class RectImage2D;
 struct CudaLighting;
 struct CudaCamera;
 
-class RenderGLCuda :
-	public IRenderWindow
+class RenderGLCuda : public IRenderWindow
 {
 public:
-	RenderGLCuda(RenderSettings* rs);
-	virtual ~RenderGLCuda();
+  RenderGLCuda(RenderSettings* rs);
+  virtual ~RenderGLCuda();
 
-	virtual void initialize(uint32_t w, uint32_t h);
-	virtual void render(const CCamera& camera);
-	virtual void resize(uint32_t w, uint32_t h);
-	virtual void cleanUpResources();
-	virtual RenderParams& renderParams();
-	virtual Scene* scene();
-	virtual void setScene(Scene* s);
+  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void render(const CCamera& camera);
+  virtual void resize(uint32_t w, uint32_t h);
+  virtual void cleanUpResources();
+  virtual RenderParams& renderParams();
+  virtual Scene* scene();
+  virtual void setScene(Scene* s);
 
-	virtual CStatus* getStatusInterface() { return &_status; }
+  virtual CStatus* getStatusInterface() { return &m_status; }
 
-	Image3Dv33* getImage() const { return nullptr; };
-	RenderSettings& getRenderSettings() { return *_renderSettings; }
+  Image3Dv33* getImage() const { return nullptr; };
+  RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
-	// just draw into my own fbo.
-	void doRender(const CCamera& camera);
-	// draw my fbo texture into the current render target
-	void drawImage();
+  // just draw into my own fbo.
+  void doRender(const CCamera& camera);
+  // draw my fbo texture into the current render target
+  void drawImage();
 
-	size_t getGpuBytes();
+  size_t getGpuBytes();
+
 private:
-	RenderSettings* _renderSettings;
-	RenderParams _renderParams;
-	Scene* _scene;
+  RenderSettings* m_renderSettings;
+  RenderParams m_renderParams;
+  Scene* m_scene;
 
-	void initFB(uint32_t w, uint32_t h);
-	void initVolumeTextureCUDA();
-	void cleanUpFB();
+  void initFB(uint32_t w, uint32_t h);
+  void initVolumeTextureCUDA();
+  void cleanUpFB();
 
-	ImageCuda _imgCuda;
+  std::shared_ptr<ImageCuda> m_imgCuda;
 
-	RectImage2D* _imagequad;
+  RectImage2D* m_imagequad;
 
-	// the rgba8 buffer for display
-	cudaGraphicsResource* _cudaTex;
-	cudaSurfaceObject_t _cudaGLSurfaceObject;
-	GLuint _fbtex;
+  // the rgba8 buffer for display
+  cudaGraphicsResource* m_cudaTex;
+  cudaSurfaceObject_t m_cudaGLSurfaceObject;
+  GLuint m_fbtex;
 
-	// the rgbaf32 buffer for rendering
-	float* _cudaF32Buffer;
-	// the rgbaf32 accumulation buffer that holds the progressively rendered image
-	float* _cudaF32AccumBuffer;
+  // the rgbaf32 buffer for rendering
+  float* m_cudaF32Buffer;
+  // the rgbaf32 accumulation buffer that holds the progressively rendered image
+  float* m_cudaF32AccumBuffer;
 
-	// screen size auxiliary buffers for rendering 
-	unsigned int* _randomSeeds1;
-	unsigned int* _randomSeeds2;
+  // screen size auxiliary buffers for rendering
+  unsigned int* m_randomSeeds1;
+  unsigned int* m_randomSeeds2;
 
-	int _w, _h;
+  int m_w, m_h;
 
-	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
-	CStatus _status;
+  CTiming m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
+  CStatus m_status;
 
-	size_t _gpuBytes;
+  size_t m_gpuBytes;
 
-	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
-    void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
-
+  void FillCudaLighting(Scene* pScene, CudaLighting& cl);
+  void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
 };
-

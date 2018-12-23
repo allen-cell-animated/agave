@@ -7,183 +7,162 @@
 class CBoundingBox
 {
 public:
-	glm::vec3	m_MinP;
-	glm::vec3	m_MaxP;
-		
-	CBoundingBox(void) :
-		m_MinP(FLT_MAX, FLT_MAX, FLT_MAX),
-		m_MaxP(-FLT_MAX, -FLT_MAX, -FLT_MAX)
-	{
-	};
- 
-	CBoundingBox(const glm::vec3 &v1, const glm::vec3 &v2) :
-		m_MinP(v1),
-		m_MaxP(v2)
-	{
-	}
-	
-	CBoundingBox& operator = (const CBoundingBox& B)
-	{
-		m_MinP = B.m_MinP; 
-		m_MaxP = B.m_MaxP; 
+  glm::vec3 m_MinP;
+  glm::vec3 m_MaxP;
 
-		return *this;
-	}
+  CBoundingBox(void)
+    : m_MinP(FLT_MAX, FLT_MAX, FLT_MAX)
+    , m_MaxP(-FLT_MAX, -FLT_MAX, -FLT_MAX)
+  {}
 
-	// Adds a point to this bounding box
-	CBoundingBox& operator += (const glm::vec3& P)
-	{
-		if (!Contains(P))
-		{
-			for (int i = 0; i < 3; i++)
-			{
-				if (P[i] < m_MinP[i])
-					m_MinP[i] = P[i];
+  CBoundingBox(const glm::vec3& v1, const glm::vec3& v2)
+    : m_MinP(v1)
+    , m_MaxP(v2)
+  {}
 
-				if (P[i] > m_MaxP[i])
-					m_MaxP[i] = P[i];
-			}
-		}
+  CBoundingBox& operator=(const CBoundingBox& B)
+  {
+    m_MinP = B.m_MinP;
+    m_MaxP = B.m_MaxP;
 
-		return *this;
-	}
+    return *this;
+  }
 
-	// Adds a bounding box to this bounding box
-	CBoundingBox& operator += (const CBoundingBox& B)
-	{
-		*this += B.m_MinP;
-		*this += B.m_MaxP;
+  // Adds a point to this bounding box
+  CBoundingBox& operator+=(const glm::vec3& P)
+  {
+    if (!Contains(P)) {
+      for (int i = 0; i < 3; i++) {
+        if (P[i] < m_MinP[i])
+          m_MinP[i] = P[i];
 
-		return *this;
-	}
+        if (P[i] > m_MaxP[i])
+          m_MaxP[i] = P[i];
+      }
+    }
 
-	glm::vec3 &operator[](int i)
-	{
-		return (&m_MinP)[i];
-	}
+    return *this;
+  }
 
-	const glm::vec3 &operator[](int i) const
-	{
-		return (&m_MinP)[i];
-	}
+  // Adds a bounding box to this bounding box
+  CBoundingBox& operator+=(const CBoundingBox& B)
+  {
+    *this += B.m_MinP;
+    *this += B.m_MaxP;
 
-	float LengthX(void) const	{ return fabs(m_MaxP.x - m_MinP.x); };
-	float LengthY(void) const	{ return fabs(m_MaxP.y - m_MinP.y); };
-	float LengthZ(void) const	{ return fabs(m_MaxP.z - m_MinP.z); };
-	
-	glm::vec3 GetCenter(void) const
-	{
-		return glm::vec3(0.5f * (m_MinP.x + m_MaxP.x), 0.5f * (m_MinP.y + m_MaxP.y), 0.5f * (m_MinP.z + m_MaxP.z));
-	}
+    return *this;
+  }
 
-	EContainment Contains(const glm::vec3& P) const
-	{
-		for (int i = 0; i < 3; i++)
-		{
-			if (P[i] < m_MinP[i] || P[i] > m_MaxP[i])
-				return ContainmentNone;
-		}
+  glm::vec3& operator[](int i) { return (&m_MinP)[i]; }
 
-		return ContainmentFull;
-	};
+  const glm::vec3& operator[](int i) const { return (&m_MinP)[i]; }
 
-	EContainment Contains(const glm::vec3* pPoints, long PointCount) const
-	{
-		long Contain = 0;
+  float LengthX(void) const { return fabs(m_MaxP.x - m_MinP.x); };
+  float LengthY(void) const { return fabs(m_MaxP.y - m_MinP.y); };
+  float LengthZ(void) const { return fabs(m_MaxP.z - m_MinP.z); };
 
-		for (int i = 0; i < PointCount; i++)
-		{
-			if (Contains(pPoints[i]) == ContainmentFull)
-				Contain++;
-		}
+  glm::vec3 GetCenter(void) const
+  {
+    return glm::vec3(0.5f * (m_MinP.x + m_MaxP.x), 0.5f * (m_MinP.y + m_MaxP.y), 0.5f * (m_MinP.z + m_MaxP.z));
+  }
 
-		if (Contain == 0)
-			return ContainmentNone;
-		else
-		{
-			if (Contain == PointCount)
-				return ContainmentFull;
-			else
-				return ContainmentPartial;
-		}
-	}
+  EContainment Contains(const glm::vec3& P) const
+  {
+    for (int i = 0; i < 3; i++) {
+      if (P[i] < m_MinP[i] || P[i] > m_MaxP[i])
+        return ContainmentNone;
+    }
 
-	EContainment Contains(const CBoundingBox& B) const
-	{
-		bool ContainsMin = false, ContainsMax = false;
+    return ContainmentFull;
+  };
 
-		if (Contains(B.m_MinP) == ContainmentFull)
-			ContainsMin = true;
+  EContainment Contains(const glm::vec3* pPoints, long PointCount) const
+  {
+    long Contain = 0;
 
-		if (Contains(B.m_MaxP) == ContainmentFull)
-			ContainsMax = true;
+    for (int i = 0; i < PointCount; i++) {
+      if (Contains(pPoints[i]) == ContainmentFull)
+        Contain++;
+    }
 
-		if (!ContainsMin && !ContainsMax)
-			return ContainmentNone;
-		else
-		{
-			if (ContainsMin && ContainsMax)
-				return ContainmentFull;
-			else
-				return ContainmentPartial;
-		}
-	}
+    if (Contain == 0)
+      return ContainmentNone;
+    else {
+      if (Contain == PointCount)
+        return ContainmentFull;
+      else
+        return ContainmentPartial;
+    }
+  }
 
-	EAxis GetDominantAxis(void) const
-	{
-		return (LengthX() > LengthY() && LengthX() > LengthZ()) ? AxisX : ((LengthY() > LengthZ()) ? AxisY : AxisZ);
-	}
+  EContainment Contains(const CBoundingBox& B) const
+  {
+    bool ContainsMin = false, ContainsMax = false;
 
-	glm::vec3				GetMinP(void) const		{ return m_MinP;				}
-	glm::vec3				GetInvMinP(void) const	{ return glm::vec3(1.0f) / m_MinP;	}
-	void				SetMinP(glm::vec3 MinP)		{ m_MinP = MinP;				}
-	glm::vec3				GetMaxP(void) const		{ return m_MaxP;				}
-	glm::vec3				GetInvMaxP(void) const	{ return glm::vec3(1.0f) / m_MaxP;	}
-	void				SetMaxP(glm::vec3 MaxP)		{ m_MaxP = MaxP;				}
+    if (Contains(B.m_MinP) == ContainmentFull)
+      ContainsMin = true;
 
-	float GetMaxLength(EAxis* pAxis = NULL) const
-	{
-		if (pAxis)
-			*pAxis = GetDominantAxis();
+    if (Contains(B.m_MaxP) == ContainmentFull)
+      ContainsMax = true;
 
-		const glm::vec3& MinMax = GetExtent();
+    if (!ContainsMin && !ContainsMax)
+      return ContainmentNone;
+    else {
+      if (ContainsMin && ContainsMax)
+        return ContainmentFull;
+      else
+        return ContainmentPartial;
+    }
+  }
 
-		return MinMax[GetDominantAxis()];
-	}
+  EAxis GetDominantAxis(void) const
+  {
+    return (LengthX() > LengthY() && LengthX() > LengthZ()) ? AxisX : ((LengthY() > LengthZ()) ? AxisY : AxisZ);
+  }
 
-	float GetDiagonalLength() const
-	{
-		return sqrt(LengthX()*LengthX() + LengthY()*LengthY() + LengthZ()*LengthZ());
-	}
+  glm::vec3 GetMinP(void) const { return m_MinP; }
+  glm::vec3 GetInvMinP(void) const { return glm::vec3(1.0f) / m_MinP; }
+  void SetMinP(glm::vec3 MinP) { m_MinP = MinP; }
+  glm::vec3 GetMaxP(void) const { return m_MaxP; }
+  glm::vec3 GetInvMaxP(void) const { return glm::vec3(1.0f) / m_MaxP; }
+  void SetMaxP(glm::vec3 MaxP) { m_MaxP = MaxP; }
 
-	float HalfSurfaceArea(void) const
-	{
-		const glm::vec3 e(GetExtent());
-		return e.x * e.y + e.y * e.z + e.x * e.z;
-	}
+  float GetMaxLength(EAxis* pAxis = NULL) const
+  {
+    if (pAxis)
+      *pAxis = GetDominantAxis();
 
-	float GetArea(void) const
-	{
-		const glm::vec3 ext(m_MaxP-m_MinP);
-		return float(ext.x)*float(ext.y) + float(ext.y)*float(ext.z) + float(ext.x)*float(ext.z);
-	}
+    const glm::vec3& MinMax = GetExtent();
 
-	glm::vec3 GetExtent(void) const
-	{
-		return m_MaxP - m_MinP;
-	}
+    return MinMax[GetDominantAxis()];
+  }
 
-	float GetEquivalentRadius(void) const
-	{
-		return 0.5f * glm::length(GetExtent());
-	}
+  float GetDiagonalLength() const
+  {
+    return sqrt(LengthX() * LengthX() + LengthY() * LengthY() + LengthZ() * LengthZ());
+  }
 
-	bool Inside(const glm::vec3& pt)
-	{
-		return (pt.x >= m_MinP.x && pt.x <= m_MaxP.x &&
-				pt.y >= m_MinP.y && pt.y <= m_MaxP.y &&
-				pt.z >= m_MinP.z && pt.z <= m_MaxP.z);
-	}
+  float HalfSurfaceArea(void) const
+  {
+    const glm::vec3 e(GetExtent());
+    return e.x * e.y + e.y * e.z + e.x * e.z;
+  }
+
+  float GetArea(void) const
+  {
+    const glm::vec3 ext(m_MaxP - m_MinP);
+    return float(ext.x) * float(ext.y) + float(ext.y) * float(ext.z) + float(ext.x) * float(ext.z);
+  }
+
+  glm::vec3 GetExtent(void) const { return m_MaxP - m_MinP; }
+
+  float GetEquivalentRadius(void) const { return 0.5f * glm::length(GetExtent()); }
+
+  bool Inside(const glm::vec3& pt)
+  {
+    return (pt.x >= m_MinP.x && pt.x <= m_MaxP.x && pt.y >= m_MinP.y && pt.y <= m_MaxP.y && pt.z >= m_MinP.z &&
+            pt.z <= m_MaxP.z);
+  }
 
 #if 0
 	// Performs a line box intersection

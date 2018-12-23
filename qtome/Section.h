@@ -8,26 +8,27 @@
 #include <QToolButton>
 #include <QWidget>
 
-class Section : public QWidget {
-    Q_OBJECT
+class Section : public QWidget
+{
+  Q_OBJECT
 private:
+  QGridLayout* m_mainLayout;
+  QToolButton* m_toggleButton;
+  QFrame* m_headerLine;
+  QParallelAnimationGroup* m_toggleAnimation;
+  QScrollArea* m_contentArea;
+  int m_animationDuration;
 
-    QGridLayout* mainLayout;
-    QToolButton* toggleButton;
-    QFrame* headerLine;
-    QParallelAnimationGroup* toggleAnimation;
-    QScrollArea* contentArea;
-    int animationDuration;
-
-	QCheckBox* checkBox;
+  QCheckBox* m_checkBox;
 
 public:
-    explicit Section(const QString & title = "", const int animationDuration = 100, bool is_checked = true, QWidget* parent = 0);
+  explicit Section(const QString& title = "",
+                   const int animationDuration = 100,
+                   bool is_checked = true,
+                   QWidget* parent = 0);
 
-    void setContentLayout(QLayout & contentLayout);
+  void setContentLayout(QLayout& contentLayout);
 
 signals:
-	void checked(bool checked);
-
+  void checked(bool checked);
 };
-

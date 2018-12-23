@@ -1,6 +1,6 @@
 #pragma once
-#include "IRenderWindow.h"
 #include "AppScene.h"
+#include "IRenderWindow.h"
 #include "Status.h"
 #include "Timing.h"
 
@@ -12,36 +12,36 @@ class Image3Dv33;
 class ImageXYZC;
 class RenderSettings;
 
-class RenderGL :
-	public IRenderWindow
+class RenderGL : public IRenderWindow
 {
 public:
-	RenderGL(RenderSettings* rs);
-	virtual ~RenderGL();
+  RenderGL(RenderSettings* rs);
+  virtual ~RenderGL();
 
-	virtual void initialize(uint32_t w, uint32_t h);
-	virtual void render(const CCamera& camera);
-	virtual void resize(uint32_t w, uint32_t h);
-	virtual void cleanUpResources();
+  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void render(const CCamera& camera);
+  virtual void resize(uint32_t w, uint32_t h);
+  virtual void cleanUpResources();
 
-	virtual CStatus* getStatusInterface() { return &_status; }
-	virtual RenderParams& renderParams();
-	virtual Scene* scene();
-	virtual void setScene(Scene* s);
+  virtual CStatus* getStatusInterface() { return &m_status; }
+  virtual RenderParams& renderParams();
+  virtual Scene* scene();
+  virtual void setScene(Scene* s);
 
-	Image3Dv33* getImage() const { return image3d; };
+  Image3Dv33* getImage() const { return m_image3d; };
+
 private:
-	Image3Dv33 *image3d;
-	RenderSettings* _renderSettings;
+  Image3Dv33* m_image3d;
+  RenderSettings* m_renderSettings;
 
-	Scene* _scene;
-	RenderParams _renderParams;
+  Scene* m_scene;
+  RenderParams m_renderParams;
 
-	CStatus _status;
-	CTiming _timingRender;
-	QElapsedTimer _timer;
+  CStatus m_status;
+  CTiming m_timingRender;
+  QElapsedTimer m_timer;
 
-	int _w, _h;
+  int m_w, m_h;
 
-	void initFromScene();
+  void initFromScene();
 };

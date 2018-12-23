@@ -12,163 +12,162 @@
 #include <QtGui/QOpenGLPaintDevice>
 #include <QtGui/QPainter>
 
-GLWindow::GLWindow(QWindow *parent):
-    QWindow(parent),
-    update_pending(false),
-    animating(false),
-    glcontext(0),
-    device(0),
-    logger(0)
+GLWindow::GLWindow(QWindow* parent)
+  : QWindow(parent)
+  , m_update_pending(false)
+  , m_animating(false)
+  , m_glcontext(0)
+  , m_device(0)
+  , m_logger(0)
 {
-    setSurfaceType(QWindow::OpenGLSurface);
+  setSurfaceType(QWindow::OpenGLSurface);
 }
 
 GLWindow::~GLWindow()
 {
-    if (logger)
-		logger->stopLogging();
-    delete device;
+  if (m_logger)
+    m_logger->stopLogging();
+  delete m_device;
 }
 
 void
-GLWindow::render(QPainter *painter)
+GLWindow::render(QPainter* painter)
 {
-    Q_UNUSED(painter);
+  Q_UNUSED(painter);
 }
 
 void
 GLWindow::initialize()
-{
-}
+{}
 
 void
 GLWindow::resize()
-{
-}
+{}
 
 void
 GLWindow::render()
 {
-    if (!device)
-	    device = new QOpenGLPaintDevice;
+  if (!m_device)
+    m_device = new QOpenGLPaintDevice;
 
-//      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  //      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    device->setSize(size());
+  m_device->setSize(size());
 
-    QPainter painter(device);
-    render(&painter);
+  QPainter painter(m_device);
+  render(&painter);
 }
 
 void
 GLWindow::renderLater()
 {
-    if (!update_pending) {
-		update_pending = true;
-		QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
-    }
+  if (!m_update_pending) {
+    m_update_pending = true;
+    QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
+  }
 }
 
 bool
-GLWindow::event(QEvent *event)
+GLWindow::event(QEvent* event)
 {
-    switch (event->type()) {
-		case QEvent::UpdateRequest:
-			update_pending = false;
-			renderNow();
-			return true;
-		default:
-			return QWindow::event(event);
-    }
+  switch (event->type()) {
+    case QEvent::UpdateRequest:
+      m_update_pending = false;
+      renderNow();
+      return true;
+    default:
+      return QWindow::event(event);
+  }
 }
 
 void
-GLWindow::exposeEvent(QExposeEvent *event)
+GLWindow::exposeEvent(QExposeEvent* event)
 {
-    Q_UNUSED(event);
+  Q_UNUSED(event);
 
-    if (isExposed())
-		renderNow();
+  if (isExposed())
+    renderNow();
 }
 
-void GLWindow::resizeEvent(QResizeEvent * /* event */)
+void
+GLWindow::resizeEvent(QResizeEvent* /* event */)
 {
-    if (glcontext)
-		resize();
+  if (m_glcontext)
+    resize();
 }
 
-QOpenGLContext *
+QOpenGLContext*
 GLWindow::context() const
 {
-    return glcontext;
+  return m_glcontext;
 }
 
 void
 GLWindow::makeCurrent()
 {
-    if (glcontext)
-		glcontext->makeCurrent(this);
+  if (m_glcontext)
+    m_glcontext->makeCurrent(this);
 }
 
-void GLWindow::renderNow()
+void
+GLWindow::renderNow()
 {
-    if (!isExposed())
-		return;
+  if (!isExposed())
+    return;
 
-    bool needsInitialize = false;
-    bool enableDebug = false;
+  bool needsInitialize = false;
+  bool enableDebug = false;
 
-    if (std::getenv("OME_QTWIDGETS_OPENGL_DEBUG"))
-		enableDebug = true;
+  if (std::getenv("OME_QTWIDGETS_OPENGL_DEBUG"))
+    enableDebug = true;
 
-    if (!glcontext) {
-		glcontext = new QOpenGLContext(this);
-		bool valid = glcontext->create();
-		std::cerr << "Valid OpenGL context: " << valid << std::endl;
-		makeCurrent();
-
-		if (enableDebug)
-        {
-			logger = new QOpenGLDebugLogger(this);
-			connect(logger, SIGNAL(messageLogged(QOpenGLDebugMessage)),
-                this, SLOT(logMessage(QOpenGLDebugMessage)),
-                Qt::DirectConnection);
-			if (logger->initialize())
-            {
-				logger->startLogging(QOpenGLDebugLogger::SynchronousLogging);
-				logger->enableMessages();
-            }
-        }
-
-		needsInitialize = true;
-    }
-
+  if (!m_glcontext) {
+    m_glcontext = new QOpenGLContext(this);
+    bool valid = m_glcontext->create();
+    std::cerr << "Valid OpenGL context: " << valid << std::endl;
     makeCurrent();
 
-    if (needsInitialize)
-    {
-        initialize();
+    if (enableDebug) {
+      m_logger = new QOpenGLDebugLogger(this);
+      connect(m_logger,
+              SIGNAL(messageLogged(QOpenGLDebugMessage)),
+              this,
+              SLOT(logMessage(QOpenGLDebugMessage)),
+              Qt::DirectConnection);
+      if (m_logger->initialize()) {
+        m_logger->startLogging(QOpenGLDebugLogger::SynchronousLogging);
+        m_logger->enableMessages();
+      }
     }
 
-    render();
+    needsInitialize = true;
+  }
 
-    glcontext->swapBuffers(this);
+  makeCurrent();
 
-    if (animating)
-		renderLater();
+  if (needsInitialize) {
+    initialize();
+  }
+
+  render();
+
+  m_glcontext->swapBuffers(this);
+
+  if (m_animating)
+    renderLater();
 }
 
 void
 GLWindow::setAnimating(bool animating)
 {
-    this->animating = animating;
+  this->m_animating = animating;
 
-    if (this->animating)
-		renderLater();
+  if (this->m_animating)
+    renderLater();
 }
 
 void
 GLWindow::logMessage(QOpenGLDebugMessage message)
 {
-    std::cerr << message.message().toStdString();
+  std::cerr << message.message().toStdString();
 }

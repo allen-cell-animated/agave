@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -11,12 +12,13 @@ class ImageXYZC;
 class FileReader
 {
 public:
-	FileReader();
-	virtual ~FileReader();
+  FileReader();
+  virtual ~FileReader();
 
-	std::shared_ptr<ImageXYZC> loadOMETiff_4D(const std::string& filepath);
-	
-	Assimp::Importer* loadAsset(const char* path, CBoundingBox* bb);
+  static std::shared_ptr<ImageXYZC> loadOMETiff_4D(const std::string& filepath, bool addToCache = false);
 
+  static Assimp::Importer* loadAsset(const char* path, CBoundingBox* bb);
+
+private:
+  static std::map<std::string, std::shared_ptr<ImageXYZC>> sPreloadedImageCache;
 };
-

@@ -2,41 +2,45 @@
 
 #include "CudaUtilities.h"
 
-#define KRNL_NI_BLOCK_W		1
-#define KRNL_NI_BLOCK_H		1
-#define KRNL_NI_BLOCK_SIZE	KRNL_NI_BLOCK_W * KRNL_NI_BLOCK_H
+#include "RayMarching.cuh"
 
-KERNEL void KrnlNearestIntersection(float* pT, cudaVolume volumedata)
+#define KRNL_NI_BLOCK_W 1
+#define KRNL_NI_BLOCK_H 1
+#define KRNL_NI_BLOCK_SIZE (KRNL_NI_BLOCK_W * KRNL_NI_BLOCK_H)
+
+KERNEL void
+KrnlNearestIntersection(float* pT, cudaVolume volumedata)
 {
-	CRay Rc;
-	
-	const Vec2f UV(0.5f * (float)gFilmWidth, 0.5f * (float)gFilmHeight);
+  CRay Rc;
 
-	GenerateRay(gCamera, UV, Vec2f(0.0f), Rc.m_O, Rc.m_D);
+  const float2 UV = make_float2(0.5f * (float)gFilmWidth, 0.5f * (float)gFilmHeight);
 
-	Rc.m_MinT = 0.0f;
-	Rc.m_MaxT = INF_MAX;
+  GenerateRay(gCamera, UV, make_float2(0.0f), Rc.m_O, Rc.m_D);
 
-	NearestIntersection(Rc, volumedata, *pT);
+  Rc.m_MinT = 0.0f;
+  Rc.m_MaxT = INF_MAX;
+
+  NearestIntersection(Rc, volumedata, *pT);
 }
 
-float NearestIntersection(const cudaVolume& volumedata)
+float
+NearestIntersection(const cudaVolume& volumedata)
 {
-	const dim3 KernelBlock(KRNL_NI_BLOCK_W, KRNL_NI_BLOCK_H);
-	const dim3 KernelGrid(1, 1);
-	
-	float T = 0.0f;
+  const dim3 KernelBlock(KRNL_NI_BLOCK_W, KRNL_NI_BLOCK_H);
+  const dim3 KernelGrid(1, 1);
 
-	float* pDevT = NULL;
+  float T = 0.0f;
 
-	HandleCudaError(cudaMalloc(&pDevT, sizeof(float)));
+  float* pDevT = NULL;
 
-	KrnlNearestIntersection<<<KernelGrid, KernelBlock>>>(pDevT, volumedata);
-	HandleCudaError(cudaGetLastError());
-	cudaDeviceSynchronize();
+  HandleCudaError(cudaMalloc(&pDevT, sizeof(float)));
 
-	HandleCudaError(cudaMemcpy(&T, pDevT, sizeof(float), cudaMemcpyDeviceToHost));
-	HandleCudaError(cudaFree(pDevT));
+  KrnlNearestIntersection<<<KernelGrid, KernelBlock>>>(pDevT, volumedata);
+  HandleCudaError(cudaGetLastError());
+  cudaDeviceSynchronize();
 
-	return T;
+  HandleCudaError(cudaMemcpy(&T, pDevT, sizeof(float), cudaMemcpyDeviceToHost));
+  HandleCudaError(cudaFree(pDevT));
+
+  return T;
 }
