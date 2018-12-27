@@ -33,7 +33,6 @@ struct ImageCuda
   cudaTextureObject_t m_volumeTextureInterleaved = 0;
   
   GLuint m_VolumeGLTexture = 0;
-  cudaGraphicsResource* m_cudaGLtexture = nullptr;
 
   size_t m_gpuBytes = 0;
 
@@ -48,7 +47,7 @@ struct ImageCuda
 
   void updateLutGpu(int channel, ImageXYZC* img);
 
-  void createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cudaTextureObject_t* deviceTexture);
+  void createVolumeTexture4x16(ImageXYZC* img);
 
   // similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
   void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);

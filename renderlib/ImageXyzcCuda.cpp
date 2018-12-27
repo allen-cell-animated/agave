@@ -166,7 +166,7 @@ ImageCuda::allocGpu(ImageXYZC* img)
 }
 
 void
-ImageCuda::createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cudaTextureObject_t* deviceTexture)
+ImageCuda::createVolumeTexture4x16(ImageXYZC* img)
 {
   // assuming 16-bit data!
   cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 16, 16, 16, cudaChannelFormatKindUnsigned);
@@ -188,6 +188,32 @@ ImageCuda::createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cud
   glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA16, img->sizeX(), img->sizeY(), img->sizeZ());
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("volume texture creation");
+
+  /////////////////////
+  // use gl interop to let cuda read this tex.
+  cudaGraphicsResource* cudaGLtexture = nullptr;
+  HandleCudaError(
+    cudaGraphicsGLRegisterImage(&cudaGLtexture, m_VolumeGLTexture, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
+
+  HandleCudaError(cudaGraphicsMapResources(1, &cudaGLtexture));
+
+  HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&m_volumeArrayInterleaved, cudaGLtexture, 0, 0));
+
+  cudaResourceDesc texRes;
+  memset(&texRes, 0, sizeof(cudaResourceDesc));
+  texRes.resType = cudaResourceTypeArray;
+  texRes.res.array.array = m_volumeArrayInterleaved;
+  cudaTextureDesc texDescr;
+  memset(&texDescr, 0, sizeof(cudaTextureDesc));
+  texDescr.normalizedCoords = 1;
+  texDescr.filterMode = cudaFilterModeLinear;
+  texDescr.addressMode[0] = cudaAddressModeClamp; // clamp
+  texDescr.addressMode[1] = cudaAddressModeClamp;
+  texDescr.addressMode[2] = cudaAddressModeClamp;
+  texDescr.readMode = cudaReadModeNormalizedFloat;
+
+  HandleCudaError(cudaCreateTextureObject(&m_volumeTextureInterleaved, &texRes, &texDescr, NULL));
+  HandleCudaError(cudaGraphicsUnmapResources(1, &cudaGLtexture));
 }
 
 void
@@ -220,39 +246,6 @@ ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("update volume texture");
 
-  /////////////////////
-  // use gl interop to let cuda write to this tex.
-  HandleCudaError(
-    cudaGraphicsGLRegisterImage(&m_cudaGLtexture, m_VolumeGLTexture, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
-
-  HandleCudaError(cudaGraphicsMapResources(1, &m_cudaGLtexture));
-
-  HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&m_volumeArrayInterleaved, m_cudaGLtexture, 0, 0));
-
-  // assuming 16-bit data!
-  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 16, 16, 16, cudaChannelFormatKindUnsigned);
-
-  cudaExtent volumeSize;
-  volumeSize.width = img->sizeX();
-  volumeSize.height = img->sizeY();
-  volumeSize.depth = img->sizeZ();
-  // create texture tied to array
-  cudaResourceDesc texRes;
-  memset(&texRes, 0, sizeof(cudaResourceDesc));
-  texRes.resType = cudaResourceTypeArray;
-  texRes.res.array.array = m_volumeArrayInterleaved;
-  cudaTextureDesc texDescr;
-  memset(&texDescr, 0, sizeof(cudaTextureDesc));
-  texDescr.normalizedCoords = 1;
-  texDescr.filterMode = cudaFilterModeLinear;
-  texDescr.addressMode[0] = cudaAddressModeClamp; // clamp
-  texDescr.addressMode[1] = cudaAddressModeClamp;
-  texDescr.addressMode[2] = cudaAddressModeClamp;
-  texDescr.readMode = cudaReadModeNormalizedFloat;
-
-  HandleCudaError(cudaCreateTextureObject(&m_volumeTextureInterleaved, &texRes, &texDescr, NULL));
-  HandleCudaError(cudaGraphicsUnmapResources(1, &m_cudaGLtexture));
-/////////////////////
   LOG_DEBUG << "Copy volume to gpu: " << timer.elapsed() << "ms";
 
   delete[] v;
@@ -267,7 +260,7 @@ ImageCuda::allocGpuInterleaved(ImageXYZC* img)
   QElapsedTimer timer;
   timer.start();
 
-  createVolumeTexture4x16(img, &m_volumeArrayInterleaved, &m_volumeTextureInterleaved);
+  createVolumeTexture4x16(img);
   uint32_t numChannels = img->sizeC();
   updateVolumeData4x16(
     img, 0, std::min(1u, numChannels - 1), std::min(2u, numChannels - 1), std::min(3u, numChannels - 1));
