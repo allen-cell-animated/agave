@@ -93,12 +93,13 @@ add_subdirectory(websocketserver)
 # copy all dlls into place.
 if (WIN32)
 install(FILES 
-	$<TARGET_FILE:Qt5::Widgets>
-	$<TARGET_FILE:Qt5::Core>
-	$<TARGET_FILE:Qt5::Gui>
-	$<TARGET_FILE:Qt5::Xml>
-	$<TARGET_FILE:Qt5::Network>
+  $<TARGET_FILE:Qt5::Widgets>
+  $<TARGET_FILE:Qt5::Core>
+  $<TARGET_FILE:Qt5::Gui>
+  $<TARGET_FILE:Qt5::Xml>
+  $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
   ${optix_DLL}
   # note these are release build dlls.
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/assimp-vc140-mt.dll
