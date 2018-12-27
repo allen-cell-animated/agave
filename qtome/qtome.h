@@ -1,16 +1,17 @@
 #pragma once
 
 #include "ui_qtome.h"
-#include <QtWidgets/QMainWindow>
 
 #include "Camera.h"
 #include "GLView3D.h"
-#include "NavigationDock2D.h"
 #include "TransferFunction.h"
 #include "ViewerState.h"
 
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
+
+#include <QMainWindow>
+#include <QSlider>
 
 class QAppearanceDockWidget;
 class QCameraDockWidget;
@@ -77,7 +78,6 @@ private:
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
-  NavigationDock2D* m_navigation;
 
   // THE camera parameter container
   QCamera m_qcamera;
@@ -91,10 +91,6 @@ private:
 
   QTabWidget* m_tabs;
   GLView3D* m_glView;
-
-  QMetaObject::Connection m_navigationChanged;
-  QMetaObject::Connection m_navigationZCChanged;
-  QMetaObject::Connection m_navigationUpdate;
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.

@@ -58,7 +58,6 @@ qtome::qtome(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   glContainer->setMinimumSize(512, 512);
   m_tabs->addTab(glContainer, "None");
-  // navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), glView, SLOT(setC(size_t)));
 
   QString windowTitle = 
     QApplication::instance()->organizationName() + " " + 
@@ -170,10 +169,6 @@ qtome::createRenderingDock()
 void
 qtome::createDockWindows()
 {
-  // navigation = new NavigationDock2D(this);
-  // navigation->setAllowedAreas(Qt::AllDockWidgetAreas);
-  // addDockWidget(Qt::BottomDockWidgetArea, navigation);
-
   m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
@@ -298,7 +293,6 @@ qtome::open(const QString& file, const ViewerState* vs)
     // it causes a new renderer which owns the CStatus used below
     m_glView->onNewImage(&m_appScene);
     m_tabs->setTabText(0, info.fileName());
-    // navigation->setReader(image);
 
     m_appearanceDockWidget->onNewImage(&m_appScene);
 
@@ -350,19 +344,7 @@ qtome::viewFocusChanged(GLView3D* newGlView)
   if (m_glView == newGlView)
     return;
 
-  // disconnect(navigationChanged);
-  // disconnect(navigationZCChanged);
-  // disconnect(navigationUpdate);
-
   m_viewResetAction->setEnabled(false);
-
-  if (newGlView) {
-    // navigation->setReader(newGlView->getImage());
-    // navigationZCChanged = connect(navigation, SIGNAL(cChanged(size_t)), newGlView, SLOT(setC(size_t)));
-
-  } else {
-    // navigation->setReader(std::shared_ptr<ImageXYZC>());
-  }
 
   bool enable(newGlView != 0);
 

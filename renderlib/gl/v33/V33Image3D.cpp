@@ -50,8 +50,6 @@ Image3Dv33::create()
   setSize(glm::vec2(-(m_img->sizeX() / 2.0f), m_img->sizeX() / 2.0f),
           glm::vec2(-(m_img->sizeY() / 2.0f), m_img->sizeY() / 2.0f));
 
-  // setC(_c, true);
-  // prepareTexture();
   // Create LUT texture.
   glGenTextures(1, &m_lutid);
   glBindTexture(GL_TEXTURE_1D_ARRAY, m_lutid);
@@ -257,41 +255,6 @@ unsigned int
 Image3Dv33::lut()
 {
   return m_lutid;
-}
-
-void
-Image3Dv33::setC(int c, bool force)
-{
-  if (force || (c != m_c)) {
-    m_c = c;
-    // only update C here!!
-
-    // assuming 16-bit data!
-    Channelu16* ch = m_img->channel(c);
-    m_texmin = float(ch->m_min) / (65535.0f);
-    m_texmax = float(ch->m_max) / (65535.0f);
-
-    GLenum internal_format = GL_R16;
-    GLenum external_type = GL_UNSIGNED_SHORT;
-    GLenum external_format = GL_RED;
-
-    // pixel data is tightly packed
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glBindTexture(GL_TEXTURE_3D, m_textureid);
-    glTexImage3D(GL_TEXTURE_3D,           // target
-                 0,                       // level, 0 = base, no minimap,
-                 internal_format,         // internal format
-                 (GLsizei)m_img->sizeX(), // width
-                 (GLsizei)m_img->sizeY(), // height
-                 (GLsizei)m_img->sizeZ(),
-                 0,               // border
-                 external_format, // external format
-                 external_type,   // external type
-                 ch->m_ptr);
-    check_gl("Volume Texture create");
-    glGenerateMipmap(GL_TEXTURE_3D);
-  }
 }
 
 void

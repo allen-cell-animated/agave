@@ -42,8 +42,6 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLView3D.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLWindow.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLWindow.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/NavigationDock2D.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/NavigationDock2D.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ProjectionWidget.cpp"
