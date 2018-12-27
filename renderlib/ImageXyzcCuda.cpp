@@ -3,6 +3,7 @@
 #include "CudaUtilities.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
+#include "gl/Util.h"
 
 #include "gl/Util.h"
 
@@ -175,24 +176,18 @@ ImageCuda::createVolumeTexture4x16(ImageXYZC* img, cudaArray_t* deviceArray, cud
   volumeSize.width = img->sizeX();
   volumeSize.height = img->sizeY();
   volumeSize.depth = img->sizeZ();
-  HandleCudaError(cudaMalloc3DArray(deviceArray, &channelDesc, volumeSize));
+
   m_gpuBytes += (channelDesc.x + channelDesc.y + channelDesc.z + channelDesc.w) / 8 * volumeSize.width *
                 volumeSize.height * volumeSize.depth;
 
-  // create texture tied to array
-  cudaResourceDesc texRes;
-  memset(&texRes, 0, sizeof(cudaResourceDesc));
-  texRes.resType = cudaResourceTypeArray;
-  texRes.res.array.array = *deviceArray;
-  cudaTextureDesc texDescr;
-  memset(&texDescr, 0, sizeof(cudaTextureDesc));
-  texDescr.normalizedCoords = 1;
-  texDescr.filterMode = cudaFilterModeLinear;
-  texDescr.addressMode[0] = cudaAddressModeClamp; // clamp
-  texDescr.addressMode[1] = cudaAddressModeClamp;
-  texDescr.addressMode[2] = cudaAddressModeClamp;
-  texDescr.readMode = cudaReadModeNormalizedFloat;
-  HandleCudaError(cudaCreateTextureObject(deviceTexture, &texRes, &texDescr, NULL));
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glGenTextures(1, &m_VolumeGLTexture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
+  glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA16, img->sizeX(), img->sizeY(), img->sizeZ());
+  glBindTexture(GL_TEXTURE_3D, 0);
+  check_gl("volume texture creation");
 }
 
 void
@@ -217,19 +212,47 @@ ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   LOG_DEBUG << "Prepared interleaved hostmem buffer: " << timer.elapsed() << "ms";
   timer.start();
 
-  // copy data to 3D array
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
+  glTexSubImage3D(GL_TEXTURE_3D, 0, 0,0,0, img->sizeX(), img->sizeY(), img->sizeZ(), GL_RGBA, GL_UNSIGNED_SHORT, v);
+  glBindTexture(GL_TEXTURE_3D, 0);
+  check_gl("update volume texture");
+
+  /////////////////////
+  // use gl interop to let cuda write to this tex.
+  HandleCudaError(
+    cudaGraphicsGLRegisterImage(&m_cudaGLtexture, m_VolumeGLTexture, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
+
+  HandleCudaError(cudaGraphicsMapResources(1, &m_cudaGLtexture));
+
+  HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&m_volumeArrayInterleaved, m_cudaGLtexture, 0, 0));
+
+  // assuming 16-bit data!
+  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 16, 16, 16, cudaChannelFormatKindUnsigned);
+
   cudaExtent volumeSize;
   volumeSize.width = img->sizeX();
   volumeSize.height = img->sizeY();
   volumeSize.depth = img->sizeZ();
-  cudaMemcpy3DParms copyParams = { 0 };
-  copyParams.srcPtr =
-    make_cudaPitchedPtr(v, volumeSize.width * img->sizeOfElement() * N, volumeSize.width, volumeSize.height);
-  copyParams.dstArray = m_volumeArrayInterleaved;
-  copyParams.extent = volumeSize;
-  copyParams.kind = cudaMemcpyHostToDevice;
-  HandleCudaError(cudaMemcpy3D(&copyParams));
+  // create texture tied to array
+  cudaResourceDesc texRes;
+  memset(&texRes, 0, sizeof(cudaResourceDesc));
+  texRes.resType = cudaResourceTypeArray;
+  texRes.res.array.array = m_volumeArrayInterleaved;
+  cudaTextureDesc texDescr;
+  memset(&texDescr, 0, sizeof(cudaTextureDesc));
+  texDescr.normalizedCoords = 1;
+  texDescr.filterMode = cudaFilterModeLinear;
+  texDescr.addressMode[0] = cudaAddressModeClamp; // clamp
+  texDescr.addressMode[1] = cudaAddressModeClamp;
+  texDescr.addressMode[2] = cudaAddressModeClamp;
+  texDescr.readMode = cudaReadModeNormalizedFloat;
 
+  HandleCudaError(cudaCreateTextureObject(&m_volumeTextureInterleaved, &texRes, &texDescr, NULL));
+  HandleCudaError(cudaGraphicsUnmapResources(1, &m_cudaGLtexture));
+/////////////////////
   LOG_DEBUG << "Copy volume to gpu: " << timer.elapsed() << "ms";
 
   delete[] v;
@@ -272,6 +295,13 @@ ImageCuda::deallocGpu()
   m_volumeTextureInterleaved = 0;
   HandleCudaError(cudaFreeArray(m_volumeArrayInterleaved));
   m_volumeArrayInterleaved = nullptr;
+  
+//  check_gl("delete gl volume tex");
+//  glBindTexture(GL_TEXTURE_3D, 0);
+//  check_gl("delete gl volume tex");
+//  glDeleteTextures(1, &m_VolumeGLTexture);
+//  check_gl("delete gl volume tex");
+//  m_VolumeGLTexture = 0;
 
   m_gpuBytes = 0;
 }

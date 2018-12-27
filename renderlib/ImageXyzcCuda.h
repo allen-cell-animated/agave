@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glad/include/glad/glad.h"
+#include <glad/glad.h>
 
 #include <vector>
 
@@ -31,6 +31,9 @@ struct ImageCuda
   std::vector<ChannelCuda> m_channels;
   cudaArray_t m_volumeArrayInterleaved = nullptr;
   cudaTextureObject_t m_volumeTextureInterleaved = 0;
+  
+  GLuint m_VolumeGLTexture = 0;
+  cudaGraphicsResource* m_cudaGLtexture = nullptr;
 
   size_t m_gpuBytes = 0;
 
