@@ -671,14 +671,14 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QNumericSlider* windowSlider = new QNumericSlider();
     windowSlider->setRange(0.001, 1.0);
     windowSlider->setValue(scene->m_volume->channel(i)->m_window, true);
-    sectionLayout->addWidget(windowSlider, row, 1, 1, 2);
+    sectionLayout->addWidget(windowSlider, row, 1, 1, 4);
 
     row++;
     sectionLayout->addWidget(new QLabel("Level"), row, 0);
     QNumericSlider* levelSlider = new QNumericSlider();
     levelSlider->setRange(0.001, 1.0);
     levelSlider->setValue(scene->m_volume->channel(i)->m_level, true);
-    sectionLayout->addWidget(levelSlider, row, 1, 1, 2);
+    sectionLayout->addWidget(levelSlider, row, 1, 1, 4);
 
     QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
       this->OnSetWindowLevel(i, d, levelSlider->value());
@@ -737,7 +737,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
     opacitySlider->setValue(scene->m_material.m_opacity[i], true);
-    sectionLayout->addWidget(opacitySlider, row, 1, 1, 2);
+    sectionLayout->addWidget(opacitySlider, row, 1, 1, 4);
 
     QObject::connect(
       opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
@@ -791,7 +791,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QNumericSlider* roughnessSlider = new QNumericSlider();
     roughnessSlider->setRange(0.0, 100.0);
     roughnessSlider->setValue(scene->m_material.m_roughness[i]);
-    sectionLayout->addWidget(roughnessSlider, row, 1, 1, 2);
+    sectionLayout->addWidget(roughnessSlider, row, 1, 1, 4);
     QObject::connect(
       roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnRoughnessChanged(i, d); });
     this->OnRoughnessChanged(i, scene->m_material.m_roughness[i]);
