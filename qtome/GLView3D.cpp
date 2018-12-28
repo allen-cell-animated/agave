@@ -8,7 +8,9 @@
 #include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/RenderGLOptix.h"
+#include "renderlib/gl/Util.h"
 #include "renderlib/gl/v33/V33Image3D.h"
+
 #include <glm.h>
 
 #include <QtGui/QMouseEvent>
@@ -34,8 +36,8 @@ qNormalizeAngle(int& angle)
 
 }
 
-GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* /* parent */)
-  : GLWindow()
+GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent)
+  : QOpenGLWidget(parent)
   , m_etimer()
   , m_lastPos(0, 0)
   , m_renderSettings(rs)
@@ -82,6 +84,8 @@ GLView3D::onNewImage(Scene* scene)
 GLView3D::~GLView3D()
 {
   makeCurrent();
+  check_gl("view dtor makecurrent");
+  //doneCurrent();
 }
 
 QSize
@@ -97,7 +101,7 @@ GLView3D::sizeHint() const
 }
 
 void
-GLView3D::initialize()
+GLView3D::initializeGL()
 {
   makeCurrent();
 
@@ -109,11 +113,11 @@ GLView3D::initialize()
   m_etimer.start();
 
   // Size viewport
-  resize();
+  resizeGL(newsize.width(), newsize.height());
 }
 
 void
-GLView3D::render()
+GLView3D::paintGL()
 {
   makeCurrent();
 
@@ -123,14 +127,13 @@ GLView3D::render()
 }
 
 void
-GLView3D::resize()
+GLView3D::resizeGL(int w, int h)
 {
   makeCurrent();
 
-  QSize newsize = size();
-  m_CCamera.m_Film.m_Resolution.SetResX(newsize.width());
-  m_CCamera.m_Film.m_Resolution.SetResY(newsize.height());
-  m_renderer->resize(newsize.width(), newsize.height());
+  m_CCamera.m_Film.m_Resolution.SetResX(w);
+  m_CCamera.m_Film.m_Resolution.SetResY(h);
+  m_renderer->resize(w, h);
 }
 
 void
@@ -187,9 +190,9 @@ GLView3D::timerEvent(QTimerEvent* event)
 {
   makeCurrent();
 
-  GLWindow::timerEvent(event);
+  QOpenGLWidget::timerEvent(event);
 
-  renderLater();
+  update();
 }
 
 void

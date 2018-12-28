@@ -13,7 +13,6 @@
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
-#include "GLContainer.h"
 #include "StatisticsDockWidget.h"
 #include "ViewerState.h"
 
@@ -53,11 +52,10 @@ qtome::qtome(QWidget* parent)
 
   // add the single gl view as a tab
   m_glView = new GLView3D(&m_qcamera, &m_transferFunction, &m_renderSettings, this);
-  QWidget* glContainer = new GLContainer(this, m_glView);
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
-  glContainer->setMinimumSize(512, 512);
-  m_tabs->addTab(glContainer, "None");
+  m_glView->setMinimumSize(512, 512);
+  m_tabs->addTab(m_glView, "None");
 
   QString windowTitle = 
     QApplication::instance()->organizationName() + " " + 
@@ -360,9 +358,7 @@ qtome::tabChanged(int index)
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
-      GLContainer* container = static_cast<GLContainer*>(w);
-      if (container)
-        current = static_cast<GLView3D*>(container->getWindow());
+      current = static_cast<GLView3D*>(w);
     }
   }
   viewFocusChanged(current);

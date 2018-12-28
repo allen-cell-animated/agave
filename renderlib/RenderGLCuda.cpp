@@ -434,6 +434,7 @@ RenderGLCuda::render(const CCamera& camera)
 
   // put _fbtex to main render target
   drawImage();
+  check_gl("post draw image");
 }
 
 void

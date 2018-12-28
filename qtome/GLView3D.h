@@ -3,11 +3,11 @@
 #include <memory>
 
 #include "CameraController.h"
-#include "GLWindow.h"
 #include "glm.h"
 #include "renderlib/CCamera.h"
 
 #include <QElapsedTimer>
+#include <QOpenGLWidget>
 
 class CStatus;
 class ImageXYZC;
@@ -20,7 +20,7 @@ struct ViewerState;
 /**
  * 3D GL view of an image with axes and gridlines.
  */
-class GLView3D : public GLWindow
+class GLView3D : public QOpenGLWidget
 {
   Q_OBJECT
 
@@ -72,15 +72,13 @@ public:
 
 protected:
   /// Set up GL context and subsidiary objects.
-  void initialize();
-
-  using GLWindow::render;
+  void initializeGL();
 
   /// Render the scene with the current view settings.
-  void render();
+  void paintGL();
 
   /// Resize the view.
-  void resize();
+  void resizeGL(int w, int h);
 
   /**
    * Handle mouse button press events.

@@ -289,12 +289,13 @@ ImageCuda::deallocGpu()
   HandleCudaError(cudaFreeArray(m_volumeArrayInterleaved));
   m_volumeArrayInterleaved = nullptr;
   
-//  check_gl("delete gl volume tex");
-//  glBindTexture(GL_TEXTURE_3D, 0);
-//  check_gl("delete gl volume tex");
-//  glDeleteTextures(1, &m_VolumeGLTexture);
-//  check_gl("delete gl volume tex");
-//  m_VolumeGLTexture = 0;
+  // needs current gl context.
+
+  check_gl("pre-destroy gl volume texture");
+  //  glBindTexture(GL_TEXTURE_3D, 0);
+  glDeleteTextures(1, &m_VolumeGLTexture);
+  check_gl("destroy gl volume texture");
+  m_VolumeGLTexture = 0;
 
   m_gpuBytes = 0;
 }
