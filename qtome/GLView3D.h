@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "glad/glad.h"
+
 #include "CameraController.h"
 #include "glm.h"
 #include "renderlib/CCamera.h"
