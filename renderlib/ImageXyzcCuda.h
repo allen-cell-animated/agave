@@ -48,6 +48,7 @@ struct ImageCuda
   void updateLutGpu(int channel, ImageXYZC* img);
 
   void createVolumeTexture4x16(ImageXYZC* img);
+  void createVolumeTextureFusedRGBA8(ImageXYZC* img);
 
   // similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
   void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
