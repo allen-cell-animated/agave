@@ -5,14 +5,6 @@ MainWindow::MainWindow(StreamServer* server)
   this->server = server;
   this->setWindowTitle(qAppName() + " " + qApp->applicationVersion());
 
-  /*canvas = new Canvas();
-  this->setCentralWidget(canvas);*/
-
-  // canvas->setFocusPolicy(Qt::StrongFocus);
-  // oglWindow->grabKeyboard();*/
-
-  // connect(canvas, SIGNAL(kill()), this, SLOT(close()));
-
   this->output = new QTextEdit(this);
 
   this->setCentralWidget(this->output);
