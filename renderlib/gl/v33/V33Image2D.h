@@ -25,7 +25,7 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  explicit Image2Dv33(std::shared_ptr<ImageXYZC> img);
+  explicit Image2Dv33();
 
   /// Destructor.
   virtual ~Image2Dv33();

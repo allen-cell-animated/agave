@@ -2,11 +2,10 @@
 
 #include <memory>
 
+#include <glad/glad.h>
+
 #include "glm.h"
 
-#include "glad/include/glad/glad.h"
-
-class ImageXYZC;
 
 /**
  * 2D (xy) image renderer.
@@ -19,16 +18,7 @@ class ImageXYZC;
 class Image2D
 {
 public:
-  /**
-   * Create a 2D image.
-   *
-   * The size and position will be taken from the specified image.
-   *
-   * @param reader the image reader.
-   * @param series the image series.
-   * @param parent the parent of this object.
-   */
-  explicit Image2D(std::shared_ptr<ImageXYZC> img);
+  Image2D();
 
   /// Destructor.
   virtual ~Image2D() = 0;
@@ -50,12 +40,6 @@ public:
   virtual void setSize(const glm::vec2& xlim, const glm::vec2& ylim);
 
 public:
-  /**
-   * Set the plane to render.
-   *
-   * @param plane the plane number.
-   */
-  void setPlane(size_t plane, size_t z, size_t c);
 
   /**
    * Get minimum limit for linear contrast.
@@ -130,27 +114,25 @@ public:
   unsigned int lut();
 
 protected:
+  void destroy();
+
   /// The vertex array.
-  GLuint vertices; // vao
+  GLuint m_vertices; // vao
   /// The image vertices.
-  GLuint image_vertices; // buffer
+  GLuint m_image_vertices; // buffer
   /// The image texture coordinates.
-  GLuint image_texcoords; // buffer
+  GLuint m_image_texcoords; // buffer
   /// The image elements.
-  GLuint image_elements; // buffer
-  size_t num_image_elements;
+  GLuint m_image_elements; // buffer
+  size_t m_num_image_elements;
   /// The identifier of the texture owned and used by this object.
-  unsigned int textureid;
+  unsigned int m_textureid;
   /// The identifier of the LUTs owned and used by this object.
-  unsigned int lutid;
+  unsigned int m_lutid;
   /// Linear contrast minimum limits.
-  glm::vec3 texmin;
+  glm::vec3 m_texmin;
   /// Linear contrast maximum limits.
-  glm::vec3 texmax;
+  glm::vec3 m_texmax;
   /// Linear contrast correction multipliers.
-  glm::vec3 texcorr;
-  /// The image wrapped as a flat data ptr
-  std::shared_ptr<ImageXYZC> _img;
-  /// The current image plane.
-  size_t plane;
+  glm::vec3 m_texcorr;
 };
