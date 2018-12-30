@@ -328,7 +328,8 @@ memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
           // get gradient data for channel
           uint16_t* gradientData = reinterpret_cast<uint16_t*>(ptr(i));
           //lut = luts[idx][c.enhancement];
-          
+          
+
           for (size_t cx = 0; cx < _x*_y*_z; cx++) {
                   outGradientVolume[cx] = std::max(outGradientVolume[cx], gradientData[cx]);
           }

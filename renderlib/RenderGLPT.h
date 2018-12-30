@@ -1,10 +1,11 @@
 #pragma once
 #include "IRenderWindow.h"
 
+#include <glad/glad.h>
+
 #include "AppScene.h"
 #include "RenderSettings.h"
 
-#include "glad/include/glad/glad.h"
 #include "CudaUtilities.h"
 #include "ImageXyzcCuda.h"
 #include "Status.h"
@@ -36,10 +37,10 @@ public:
 	virtual Scene* scene();
 	virtual void setScene(Scene* s);
 
-	virtual CStatus* getStatusInterface() { return &_status; }
+	virtual CStatus* getStatusInterface() { return &m_status; }
 
 	Image3Dv33* getImage() const { return nullptr; };
-	RenderSettings& getRenderSettings() { return *_renderSettings; }
+	RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
 	// just draw into my own fbo.
 	void doRender(const CCamera& camera);
@@ -48,45 +49,45 @@ public:
 
 	size_t getGpuBytes();
 private:
-	RenderSettings* _renderSettings;
-	RenderParams _renderParams;
-	Scene* _scene;
+	RenderSettings* m_renderSettings;
+	RenderParams m_renderParams;
+	Scene* m_scene;
 
 	void initFB(uint32_t w, uint32_t h);
 	void initVolumeTextureCUDA();
 	void cleanUpFB();
 
-	ImageGL _imgCuda;
+	ImageCuda m_imgCuda;
 
-	RectImage2D* _imagequad;
+	RectImage2D* m_imagequad;
 
 	// the rgba8 buffer for display
-	GLuint _fbtex;
-    GLuint _fb;
+	GLuint m_fbtex;
+    GLuint m_fb;
 
-    FSQ* _fsq;
+    FSQ* m_fsq;
     
     // the rgbaf32 buffer for rendering
-	GLuint _glF32Buffer;
-    GLuint _fbF32;
-    GLPTVolumeShader* _renderBufferShader;
+	GLuint m_glF32Buffer;
+    GLuint m_fbF32;
+    GLPTVolumeShader* m_renderBufferShader;
 
 	// the rgbaf32 accumulation buffer that holds the progressively rendered image
-    GLuint _glF32AccumBuffer;
-    GLuint _glF32AccumBuffer2; // for ping ponging
-    GLuint _fbF32Accum;
-    GLPTAccumShader* _accumBufferShader;
+    GLuint m_glF32AccumBuffer;
+    GLuint m_glF32AccumBuffer2; // for ping ponging
+    GLuint m_fbF32Accum;
+    GLPTAccumShader* m_accumBufferShader;
 
 	// screen size auxiliary buffers for rendering 
-	unsigned int* _randomSeeds1;
-	unsigned int* _randomSeeds2;
+	unsigned int* m_randomSeeds1;
+	unsigned int* m_randomSeeds2;
 
-	int _w, _h;
+	int m_w, m_h;
 
-	CTiming _timingRender, _timingBlur, _timingPostProcess, _timingDenoise;
-	CStatus _status;
+	CTiming m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
+	CStatus m_status;
 
-	size_t _gpuBytes;
+	size_t m_gpuBytes;
 
 	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
     void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);

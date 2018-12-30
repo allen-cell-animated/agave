@@ -41,7 +41,6 @@ public:
    */
   virtual void create();
 
-protected:
   /**
    * Set the size of the x and y dimensions.
    *
