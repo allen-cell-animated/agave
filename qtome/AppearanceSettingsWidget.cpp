@@ -143,13 +143,9 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   QObject::connect(m_transferFunction, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
-void QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
 Section*
 QAppearanceSettingsWidget::createLightingControls()
 {
-	if (!_scene) return;
-	_scene->_lighting.m_Lights[1].m_Theta = value;
-	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
   Section* section = new Section("Lighting", 0);
   auto* sectionLayout = new QGridLayout();
 
@@ -252,57 +248,40 @@ QAppearanceSettingsWidget::createLightingControls()
   section->setContentLayout(*sectionLayout);
   return section;
 }
-void QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
 
 void
 QAppearanceSettingsWidget::OnSetScaleX(double value)
 {
-	if (!_scene) return;
-	_scene->_lighting.m_Lights[1].m_Phi = value;
-	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
   if (!m_scene)
     return;
   m_scene->m_volume->setPhysicalSize(value, m_scene->m_volume->physicalSizeY(), m_scene->m_volume->physicalSizeZ());
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
-void QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
+
 void
 QAppearanceSettingsWidget::OnSetScaleY(double value)
 {
-	if (!_scene) return;
-	_scene->_lighting.m_Lights[1].m_Width = value;
-	_scene->_lighting.m_Lights[1].m_Height = value;
-	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
   if (!m_scene)
     return;
   m_scene->m_volume->setPhysicalSize(m_scene->m_volume->physicalSizeX(), value, m_scene->m_volume->physicalSizeZ());
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
-void QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
+
 void
 QAppearanceSettingsWidget::OnSetScaleZ(double value)
 {
-	if (!_scene) return;
-	_scene->_lighting.m_Lights[1].m_Distance = value;
-	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
   if (!m_scene)
     return;
   m_scene->m_volume->setPhysicalSize(m_scene->m_volume->physicalSizeX(), m_scene->m_volume->physicalSizeY(), value);
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
-void QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& color)
+
 void
 QAppearanceSettingsWidget::OnSetRoiXMin(int value)
 {
-	if (!_scene) return;
-	qreal rgba[4];
-	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
-
-	_scene->_lighting.m_Lights[1].m_Color = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
-	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
@@ -311,16 +290,9 @@ QAppearanceSettingsWidget::OnSetRoiXMin(int value)
   m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
 
-void QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor& color)
 void
 QAppearanceSettingsWidget::OnSetRoiYMin(int value)
 {
-	if (!_scene) return;
-	qreal rgba[4];
-	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
-
-	_scene->_lighting.m_Lights[0].m_ColorTop = glm::vec3(intensity * rgba[0], intensity*rgba[1], intensity*rgba[2]);
-	_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
@@ -328,13 +300,10 @@ QAppearanceSettingsWidget::OnSetRoiYMin(int value)
   m_scene->m_roi.SetMinP(v);
   m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
-void QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor& color)
+
 void
 QAppearanceSettingsWidget::OnSetRoiZMin(int value)
 {
-	if (!_scene) return;
-	qreal rgba[4];
-	color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
