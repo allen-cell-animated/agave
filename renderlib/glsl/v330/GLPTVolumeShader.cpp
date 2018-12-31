@@ -23,7 +23,7 @@ GLPTVolumeShader::GLPTVolumeShader()
   m_vshader->compileSourceCode(R"(
 #version 330 core
 
-layout (location = 0) in vec2 position;
+layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 uv;
 out vec2 vUv;
 
@@ -1262,18 +1262,27 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
                                      int w,
                                      int h,
                                      const ImageCuda& imggpu,
-    GLuint accumulationTexture)
+                                     GLuint accumulationTexture)
 {
+  check_gl("before pathtrace shader uniform binding");
+
   glUniform1i(m_volumeTexture, 0);
+  check_gl("post vol textures");
+
   glActiveTexture(GL_TEXTURE0);
+  check_gl("post vol textures");
+  glBindTexture(GL_TEXTURE_2D, 0);
+  check_gl("post vol textures");
   glBindTexture(GL_TEXTURE_3D, imggpu.m_VolumeGLTexture);
+  check_gl("post vol textures");
 
   glUniform1i(m_tPreviousTexture, 1);
   glActiveTexture(GL_TEXTURE0 + 1);
   glBindTexture(GL_TEXTURE_2D, accumulationTexture);
+  check_gl("post accum textures");
 
-  glUniform1i(m_uSampleCounter, numIterations);
-  glUniform1i(m_uFrameCounter, numIterations);
+  glUniform1f(m_uSampleCounter, (float)numIterations);
+  glUniform1f(m_uFrameCounter, (float)numIterations);
 
   glUniform2f(m_uResolution, (float)w, (float)h);
   glUniform3fv(m_gClippedAaBbMax, 1, glm::value_ptr(clipped_bbox.GetMaxP()));
@@ -1306,6 +1315,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform2fv(m_cameraInvScreen, 1, glm::value_ptr(cam.m_Film.m_InvScreen));
   glUniform1f(m_cameraFocalDistance, cam.m_Focus.m_FocalDistance);
   glUniform1f(m_cameraApertureSize, cam.m_Aperture.m_Size);
+  check_gl("pre lights");
 
   const Light& l = scene->m_lighting.m_Lights[0];
   glUniform1f(m_light0theta, l.m_Theta);
@@ -1323,10 +1333,10 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform3fv(m_light0V, 1, glm::value_ptr(l.m_V));
   glUniform1f(m_light0area, l.m_Area);
   glUniform1f(m_light0areaPdf, l.m_AreaPdf);
-  glUniform3fv(m_light0color, 1, glm::value_ptr(l.m_Color*l.m_ColorIntensity));
-  glUniform3fv(m_light0colorTop, 1, glm::value_ptr(l.m_ColorTop*l.m_ColorTopIntensity));
-  glUniform3fv(m_light0colorMiddle, 1, glm::value_ptr(l.m_ColorMiddle*l.m_ColorMiddleIntensity));
-  glUniform3fv(m_light0colorBottom, 1, glm::value_ptr(l.m_ColorBottom*l.m_ColorBottomIntensity));
+  glUniform3fv(m_light0color, 1, glm::value_ptr(l.m_Color * l.m_ColorIntensity));
+  glUniform3fv(m_light0colorTop, 1, glm::value_ptr(l.m_ColorTop * l.m_ColorTopIntensity));
+  glUniform3fv(m_light0colorMiddle, 1, glm::value_ptr(l.m_ColorMiddle * l.m_ColorMiddleIntensity));
+  glUniform3fv(m_light0colorBottom, 1, glm::value_ptr(l.m_ColorBottom * l.m_ColorBottomIntensity));
   glUniform1i(m_light0T, l.m_T);
 
   const Light& l1 = scene->m_lighting.m_Lights[1];
@@ -1356,17 +1366,17 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   int NC = scene->m_volume->sizeC();
   // use first 3 channels only.
   int activeChannel = 0;
-  int luttex[4];
-  float intensitymax[4];
-  float intensitymin[4];
+  int luttex[4] = { 0, 0, 0, 0 };
+  float intensitymax[4] = {1,1,1,1};
+  float intensitymin[4] = {0,0,0,0};
   float diffuse[3 * 4];
   float specular[3 * 4];
   float emissive[3 * 4];
-  float roughness[4];
-  float opacity[4];
+  float roughness[4] = {0,0,0,0};
+  float opacity[4] = {1,1,1,1};
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
-      luttex[activeChannel] = imggpu.m_channels[i].m_volumeLutTexture;
+      luttex[activeChannel] = imggpu.m_channels[i].m_VolumeLutGLTexture;
       intensitymax[activeChannel] = scene->m_volume->channel(i)->m_max;
       intensitymin[activeChannel] = scene->m_volume->channel(i)->m_min;
       diffuse[activeChannel * 3 + 0] = scene->m_material.m_diffuse[i * 3 + 0];
@@ -1385,26 +1395,32 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
     }
   }
   glUniform1i(m_g_nChannels, activeChannel);
+  check_gl("pre lut textures");
 
   glUniform1i(m_lutTexture0, 3);
   glActiveTexture(GL_TEXTURE0 + 3);
   glBindTexture(GL_TEXTURE_2D, luttex[0]);
+  check_gl("lut 0");
 
   glUniform1i(m_lutTexture1, 4);
   glActiveTexture(GL_TEXTURE0 + 4);
   glBindTexture(GL_TEXTURE_2D, luttex[1]);
+  check_gl("lut 1");
 
   glUniform1i(m_lutTexture2, 5);
   glActiveTexture(GL_TEXTURE0 + 5);
   glBindTexture(GL_TEXTURE_2D, luttex[2]);
+  check_gl("lut 2");
 
   glUniform1i(m_lutTexture3, 6);
   glActiveTexture(GL_TEXTURE0 + 6);
   glBindTexture(GL_TEXTURE_2D, luttex[3]);
+  check_gl("lut 3");
 
   glUniform4fv(m_intensityMax, 1, intensitymax);
   glUniform4fv(m_intensityMin, 1, intensitymin);
-  glUniform4fv(m_opacity, 1, opacity);
+  glUniform1fv(m_opacity, 4, opacity);
+  //glUniform4fv(m_opacity, 1, opacity);
   glUniform3fv(m_emissive0, 1, emissive + 0);
   glUniform3fv(m_emissive1, 1, emissive + 3);
   glUniform3fv(m_emissive2, 1, emissive + 6);
@@ -1417,9 +1433,12 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform3fv(m_specular1, 1, specular + 3);
   glUniform3fv(m_specular2, 1, specular + 6);
   glUniform3fv(m_specular3, 1, specular + 9);
-  glUniform4fv(m_roughness, 1, roughness);
+  glUniform1fv(m_roughness, 4, roughness);
+  //glUniform4fv(m_roughness, 1, roughness);
 
   glUniform1i(m_uShowLights, 0);
+
+  check_gl("pathtrace shader uniform binding");
 }
 
 void

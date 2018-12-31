@@ -35,7 +35,6 @@ struct cudaVolume
   float m_opacity[MAX_CUDA_CHANNELS];
 
   cudaTextureObject_t m_volumeTexture[MAX_CUDA_CHANNELS];
-  cudaTextureObject_t m_gradientVolumeTexture[MAX_CUDA_CHANNELS];
   cudaTextureObject_t m_lutTexture[MAX_CUDA_CHANNELS];
 
   cudaVolume(int n) { m_nChannels = n; }

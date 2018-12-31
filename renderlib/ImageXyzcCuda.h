@@ -10,18 +10,14 @@ class ImageXYZC;
 
 struct ChannelCuda
 {
-  cudaArray_t m_volumeArray = nullptr;
-  cudaArray_t m_volumeGradientArray = nullptr;
   cudaArray_t m_volumeLutArray = nullptr;
-
-  cudaTextureObject_t m_volumeTexture = 0;
-  cudaTextureObject_t m_volumeGradientTexture = 0;
   cudaTextureObject_t m_volumeLutTexture = 0;
+  GLuint m_VolumeLutGLTexture = 0;
 
   int m_index;
   size_t m_gpuBytes = 0;
 
-  void allocGpu(ImageXYZC* img, int channel, bool do_volume = true, bool do_gradient_volume = true);
+  void allocGpu(ImageXYZC* img, int channel);
   void deallocGpu();
   void updateLutGpu(int channel, ImageXYZC* img);
 };
@@ -35,10 +31,6 @@ struct ImageCuda
   GLuint m_VolumeGLTexture = 0;
 
   size_t m_gpuBytes = 0;
-
-  // no one is calling this right now.
-  // puts each channel into its own gpu volume buffer
-  void allocGpu(ImageXYZC* img);
 
   // put first 4 channels into gpu array
   void allocGpuInterleaved(ImageXYZC* img);

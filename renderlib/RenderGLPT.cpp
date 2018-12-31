@@ -241,9 +241,10 @@ void RenderGLPT::initVolumeTextureCUDA() {
     if (!m_scene || !m_scene->m_volume) {
         return;
     }
-    ImageCuda cimg;
-    cimg.allocGpuInterleaved(m_scene->m_volume.get());
-    m_imgCuda = cimg;
+//    ImageCuda cimg;
+//    cimg.allocGpuInterleaved(m_scene->m_volume.get());
+//    m_imgCuda = cimg;
+    m_imgCuda.allocGpuInterleaved(m_scene->m_volume.get());
 
 }
 
@@ -382,7 +383,7 @@ void RenderGLPT::doRender(const CCamera& camera) {
 
         m_renderBufferShader->setShadingUniforms(m_scene, m_renderSettings->m_DenoiseParams, camera,
             b, m_renderSettings->m_RenderSettings, numIterations,
-            m_w, m_h, m_imgCuda, accumTargetTex);
+            m_w, m_h, m_imgCuda, prevAccumTargetTex);
 
         m_fsq->render(m);
         //_timingRender.AddDuration(TmrRender.ElapsedTime());

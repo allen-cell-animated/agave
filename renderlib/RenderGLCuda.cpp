@@ -341,7 +341,6 @@ RenderGLCuda::doRender(const CCamera& camera)
   for (int i = 0; i < NC; ++i) {
     if (m_scene->m_material.m_enabled[i] && activeChannel < MAX_CUDA_CHANNELS) {
       theCudaVolume.m_volumeTexture[activeChannel] = m_imgCuda->m_volumeTextureInterleaved;
-      theCudaVolume.m_gradientVolumeTexture[activeChannel] = m_imgCuda->m_channels[i].m_volumeGradientTexture;
       theCudaVolume.m_lutTexture[activeChannel] = m_imgCuda->m_channels[i].m_volumeLutTexture;
       theCudaVolume.m_intensityMax[activeChannel] = m_scene->m_volume->channel(i)->m_max;
       theCudaVolume.m_intensityMin[activeChannel] = m_scene->m_volume->channel(i)->m_min;
