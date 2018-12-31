@@ -8,6 +8,7 @@
 #include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLCuda.h"
 #include "renderlib/RenderGLOptix.h"
+#include "renderlib/RenderGLPT.h"
 #include "renderlib/gl/Util.h"
 #include "renderlib/gl/v33/V33Image3D.h"
 
@@ -270,6 +271,11 @@ GLView3D::OnUpdateRenderer(int rendererType)
       m_renderer.reset(new RenderGLCuda(m_renderSettings));
       break;
     case 2:
+      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
+      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
+      break;
+    case 3:
       LOG_DEBUG << "Set OptiX Renderer";
       m_renderer.reset(new RenderGLOptix(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
