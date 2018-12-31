@@ -390,10 +390,19 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
   vmax = 1.0;
 
   if ((vlow < vmid) && (vmid < vmax)) {
-    return generate_controlPoints({ { 0.0f, 0.0f }, { vlow, ilow }, { vmid, imid }, { vmax, imax } });
+    if (vlow == 0.0f) {
+      return generate_controlPoints({ { vlow, ilow }, { vmid, imid }, { vmax, imax } });
+    } else {
+      return generate_controlPoints({ { 0.0f, 0.0f }, { vlow, ilow }, { vmid, imid }, { vmax, imax } });    
+    }
   } else {
-    return generate_controlPoints(
-      { { 0.0f, 0.0f }, { vlow, ilow }, { 0.9f * vlow + 0.1f * vmax, imid }, { vmax, imax } });
+    if (vlow == 0.0f) {
+      return generate_controlPoints(
+        { { vlow, ilow }, { 0.9f * vlow + 0.1f * vmax, imid }, { vmax, imax } });
+    } else {
+      return generate_controlPoints(
+        { { 0.0f, 0.0f }, { vlow, ilow }, { 0.9f * vlow + 0.1f * vmax, imid }, { vmax, imax } });
+    }
   }
 }
 
