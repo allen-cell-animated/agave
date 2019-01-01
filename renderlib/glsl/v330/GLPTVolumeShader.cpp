@@ -264,7 +264,7 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   vec3 RayO = cam.m_from;
   // negating ScreenPoint.y flips the up/down direction. depends on whether you want pixel 0 at top or bottom
   // we could also have flipped m_screen and m_invScreen, or cam.m_V?
-  vec3 RayD = normalize(cam.m_N + (ScreenPoint.x * cam.m_U) + (-ScreenPoint.y * cam.m_V));
+  vec3 RayD = normalize(cam.m_N + (ScreenPoint.x * cam.m_U) + (ScreenPoint.y * cam.m_V));
 
   if (cam.m_apertureSize != 0.0f)
   {
@@ -296,19 +296,19 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 
 // assume volume is centered at 0,0,0 so p spans -bounds to + bounds
 vec3 PtoVolumeTex(vec3 p) {
-  //return (p-gClippedAaBbMin)*gInvAaBbMax;
-  return p*gInvAaBbMax + vec3(0.5, 0.5, 0.5);
+  return (p-gClippedAaBbMin)*gInvAaBbMax;
+  //return p*gInvAaBbMax + vec3(0.5, 0.5, 0.5);
 }
 
-const float UINT8_MAX = 1.0;//255.0;
+const float UINT16_MAX = 65535.0;
 float GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
 {
-  vec4 intensity = UINT8_MAX * texture(volumeTexture, PtoVolumeTex(P));
+  vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P));
 
   float maxIn = 0.0;
   ch = 0;
 
-  //intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
+  intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
   intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
   intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
   intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
@@ -325,18 +325,18 @@ float GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
 
 float GetNormalizedIntensity(in vec3 P, in int ch)
 {
-  float intensity = UINT8_MAX * texture(volumeTexture, PtoVolumeTex(P))[ch];
-//  intensity = (intensity - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
+  float intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P))[ch];
+  intensity = (intensity - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
   intensity = texture(g_lutTexture[ch], vec2(intensity, 0.5)).x;
   return intensity;
 }
 
 float GetNormalizedIntensity4ch(vec3 P, int ch)
 {
-  vec4 intensity = UINT8_MAX * texture(volumeTexture, PtoVolumeTex(P));
+  vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P));
   // select channel
   float intensityf = intensity[ch];
-//  intensityf = (intensityf - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
+  intensityf = (intensityf - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
   //intensityf = texture(g_lutTexture[ch], vec2(intensityf, 0.5)).x;
 
   return intensityf;
@@ -1037,6 +1037,8 @@ vec4 CalculateRadiance(inout uvec2 seed) {
   // find point Pe along ray Re
   if (SampleDistanceRM(Re, seed, Pe))
   {
+      //return vec4(1.0, 1.0, 1.0, 1.0);
+
     // is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
     // (test to see if area light was hit before volume.)
     int i = NearestLight(Ray(Re.m_O, Re.m_D, 0.0f, length(Pe - Re.m_O)), Li, Pl, lpdf);

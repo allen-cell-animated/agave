@@ -7,8 +7,10 @@
 #include "gl/v33/V33Image3D.h"
 #include "gl/v33/V33FSQ.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
+#include "glsl/v330/GLCopyShader.h"
 #include "glsl/v330/GLPTAccumShader.h"
 #include "glsl/v330/GLPTVolumeShader.h"
+#include "glsl/v330/GLToneMapShader.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 //#include "cudarndr/RenderThread.h"
@@ -26,9 +28,10 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
     m_fbF32(0),
     m_fbF32Accum(0),
 	m_fbtex(0),
-    m_renderBufferShader(nullptr),
-    m_accumBufferShader(nullptr),
-    m_fsq(nullptr),
+    m_renderBufferShader(nullptr), m_copyShader(nullptr)
+  , m_toneMapShader(nullptr)
+  , m_fsq(nullptr)
+  ,
 	m_randomSeeds1(nullptr),
 	m_randomSeeds2(nullptr),
 	m_renderSettings(rs),
@@ -141,8 +144,10 @@ void RenderGLPT::cleanUpFB()
 
     delete m_renderBufferShader;
     m_renderBufferShader = 0;
-    delete m_accumBufferShader;
-    m_accumBufferShader = 0;
+    delete m_copyShader;
+    m_copyShader = 0;
+    delete m_toneMapShader;
+    m_toneMapShader = 0;
     delete m_fsq;
     m_fsq = 0;
 
@@ -193,7 +198,8 @@ void RenderGLPT::initFB(uint32_t w, uint32_t h)
     m_fsq->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
     m_fsq->create();
     m_renderBufferShader = new GLPTVolumeShader();
-    m_accumBufferShader = new GLPTAccumShader();
+    m_copyShader = new GLCopyShader();
+    m_toneMapShader = new GLToneMapShader();
     
     {
 		unsigned int* pSeeds = (unsigned int*)malloc(w*h * sizeof(unsigned int));
@@ -269,6 +275,9 @@ void RenderGLPT::doRender(const CCamera& camera) {
 	if (!m_scene || !m_scene->m_volume) {
 		return;
 	}
+
+    GLint drawFboId = 0;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 
     if (!m_imgCuda.m_volumeTextureInterleaved || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
 		initVolumeTextureCUDA();
@@ -371,13 +380,15 @@ void RenderGLPT::doRender(const CCamera& camera) {
     // set all the vars
 
 
-    GLuint accumTargetTex = numIterations % 2 ? m_glF32AccumBuffer : m_glF32AccumBuffer2;
-    GLuint prevAccumTargetTex = numIterations % 2 ? m_glF32AccumBuffer2 : m_glF32AccumBuffer;
+//    GLuint accumTargetTex = numIterations % 2 ? m_glF32AccumBuffer : m_glF32AccumBuffer2;
+//    GLuint prevAccumTargetTex = numIterations % 2 ? m_glF32AccumBuffer2 : m_glF32AccumBuffer;
+    GLuint accumTargetTex = m_glF32Buffer; // the texture of m_fbF32
+    GLuint prevAccumTargetTex = m_glF32AccumBuffer; // the texture that will be tonemapped to screen, a copy of m_fbF32
 
     for (int i = 0; i < camera.m_Film.m_ExposureIterations; ++i) {
         //CCudaTimer TmrRender;
 
-        // draw fullscreen quad
+        // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
         m_renderBufferShader->bind();
 
@@ -386,51 +397,52 @@ void RenderGLPT::doRender(const CCamera& camera) {
             m_w, m_h, m_imgCuda, prevAccumTargetTex);
 
         m_fsq->render(m);
-        //_timingRender.AddDuration(TmrRender.ElapsedTime());
 
-        // estimate just adds to accumulation buffer.
-        //CCudaTimer TmrPostProcess;
-        // accumulate
+        // unbind the prevAccumTargetTex
+        glActiveTexture(GL_TEXTURE0+1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // 2. copy to accumTargetTex texture that will be used as accumulator for next pass
+
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
         
-        accumTargetTex = numIterations % 2 ? m_glF32AccumBuffer : m_glF32AccumBuffer2;
-        prevAccumTargetTex = numIterations % 2 ? m_glF32AccumBuffer2 : m_glF32AccumBuffer;
-        
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, accumTargetTex, 0);
-
         // the sample
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_glF32Buffer);
-        // the accum buffer
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, prevAccumTargetTex);
 
-        m_accumBufferShader->bind();
-        m_accumBufferShader->numIterations = numIterations;
-        m_accumBufferShader->setShadingUniforms();
+        m_copyShader->bind();
+        m_copyShader->setShadingUniforms();
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
         m_fsq->render(m);
         glEnable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
-        m_accumBufferShader->release();
+        m_copyShader->release();
         //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
 
         // ping pong accum buffer. this will stall till previous accum render is done.
 
         numIterations++;
         const float NoIterations = numIterations;
-        const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
+        //const float InvNoIterations = 1.0f / ((NoIterations > 1.0f) ? NoIterations : 1.0f);
         //HandleCudaError(cudaMemcpyToSymbol(gNoIterations, &NoIterations, sizeof(float)));
         //HandleCudaError(cudaMemcpyToSymbol(gInvNoIterations, &InvNoIterations, sizeof(float)));
     }
 
+    // tone map into rgba8 buffer.
     glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
 
-    // tone map into rgba8 buffer.
-    m_imagequad->draw(prevAccumTargetTex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer);
 
-
+    m_toneMapShader->bind();
+    m_toneMapShader->setShadingUniforms(1.0 / camera.m_Film.m_Exposure);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    m_fsq->render(m);
+    glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    m_toneMapShader->release();
 
 //    Render(0, camera.m_Film.m_ExposureIterations,
 //        camera.m_Film.m_Resolution.GetResX(), 
@@ -473,8 +485,7 @@ void RenderGLPT::doRender(const CCamera& camera) {
 	//m_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
 	m_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()), "Iterations");
 	
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+    glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
 }
 
 void RenderGLPT::render(const CCamera& camera)

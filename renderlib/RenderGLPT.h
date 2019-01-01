@@ -19,8 +19,10 @@ class Image3Dv33;
 class RectImage2D;
 struct CudaLighting;
 struct CudaCamera;
+class GLCopyShader;
 class GLPTAccumShader;
 class GLPTVolumeShader;
+class GLToneMapShader;
 
 class RenderGLPT :
 	public IRenderWindow
@@ -76,7 +78,8 @@ private:
     GLuint m_glF32AccumBuffer;
     GLuint m_glF32AccumBuffer2; // for ping ponging
     GLuint m_fbF32Accum;
-    GLPTAccumShader* m_accumBufferShader;
+    GLCopyShader* m_copyShader;
+    GLToneMapShader* m_toneMapShader;
 
 	// screen size auxiliary buffers for rendering 
 	unsigned int* m_randomSeeds1;

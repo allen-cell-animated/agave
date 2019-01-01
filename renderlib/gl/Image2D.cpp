@@ -239,85 +239,16 @@ Image2D::~Image2D() {}
 void
 Image2D::create()
 {
-  /*
-                    TextureProperties tprop(*reader, series);
-
-          ome::files::dimension_size_type oldseries = reader->getSeries();
-          reader->setSeries(series);
-          ome::files::dimension_size_type sizeX = reader->getSizeX();
-          ome::files::dimension_size_type sizeY = reader->getSizeY();
-          setSize(glm::vec2(-(sizeX/2.0f), sizeX/2.0f),
-                  glm::vec2(-(sizeY/2.0f), sizeY/2.0f));
-          ome::files::dimension_size_type rbpp = reader->getBitsPerPixel();
-          ome::files::dimension_size_type bpp = ome::files::bitsPerPixel(reader->getPixelType());
-          texcorr[0] = texcorr[1] = texcorr[2] = float(1 << (bpp - rbpp));
-          reader->setSeries(oldseries);
-
-          // Create image texture.
-          glGenTextures(1, &textureid);
-          glBindTexture(GL_TEXTURE_2D, textureid);
-          check_gl("Bind texture");
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tprop.min_filter);
-          check_gl("Set texture min filter");
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tprop.mag_filter);
-          check_gl("Set texture mag filter");
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-          check_gl("Set texture wrap s");
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-          check_gl("Set texture wrap t");
-
-          glTexImage2D(GL_TEXTURE_2D,         // target
-                       0,                     // level, 0 = base, no minimap,
-                       tprop.internal_format, // internal format
-                       (GLsizei)sizeX,                 // width
-                                           (GLsizei)sizeY,                 // height
-                       0,                     // border
-                       tprop.external_format, // external format
-                       tprop.external_type,   // external type
-                       0);                    // no image data at this point
-          check_gl("Texture create");
-
-          // Create LUT texture.
-          glGenTextures(1, &lutid);
-          glBindTexture(GL_TEXTURE_1D_ARRAY, lutid);
-          check_gl("Bind texture");
-          glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-          check_gl("Set texture min filter");
-          glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-          check_gl("Set texture mag filter");
-          glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-          check_gl("Set texture wrap s");
-  */
-  // HiLo
-  uint8_t lut[256][3];
-  for (uint16_t i = 0; i < 256; ++i)
-    for (uint16_t j = 0; j < 3; ++j) {
-      lut[i][j] = (uint8_t)i;
-    }
-  lut[0][0] = 0;
-  lut[0][2] = 0;
-  lut[0][2] = 255;
-  lut[255][0] = 255;
-  lut[255][1] = 0;
-  lut[255][2] = 0;
-
-  glTexImage2D(GL_TEXTURE_1D_ARRAY, // target
-               0,                   // level, 0 = base, no minimap,
-               GL_RGB8,             // internal format
-               256,                 // width
-               1,                   // height
-               0,                   // border
-               GL_RGB,              // external format
-               GL_UNSIGNED_BYTE,    // external type
-               lut);                // LUT data
-  check_gl("Texture create");
 }
 
 void
 Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 {
-  const std::array<GLfloat, 8> square_vertices{
-    xlim[0], ylim[0], xlim[1], ylim[0], xlim[1], ylim[1], xlim[0], ylim[1]
+  const std::array<GLfloat, 12> square_vertices{
+    xlim[0], ylim[0], 0, 
+    xlim[1], ylim[0], 0,
+    xlim[1], ylim[1], 0,
+    xlim[0], ylim[1], 0
   };
 
   if (m_vertices == 0) {
@@ -330,6 +261,8 @@ Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
   }
   glBindBuffer(GL_ARRAY_BUFFER, m_image_vertices);
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
 
   glm::vec2 texxlim(0.0, 1.0);
   glm::vec2 texylim(0.0, 1.0);
@@ -341,6 +274,8 @@ Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
   }
   glBindBuffer(GL_ARRAY_BUFFER, m_image_texcoords);
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_texcoords.size(), square_texcoords.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(1);
 
   std::array<GLushort, 6> square_elements{ // front
                                            0, 1, 2, 2, 3, 0

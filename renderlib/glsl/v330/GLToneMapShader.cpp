@@ -56,6 +56,10 @@ vec3 XYZtoRGB(vec3 xyz) {
 void main()
 {
     vec4 pixelColor = texture(tTexture0, vUv);
+    
+    //out_FragColor = pixelColor;
+    //return;
+
     pixelColor.rgb = XYZtoRGB(pixelColor.rgb);
       
     pixelColor.rgb = 1.0-exp(-pixelColor.rgb*gInvExposure);
