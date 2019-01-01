@@ -37,60 +37,6 @@ public:
 
   void render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings);
 
-  /**
-   * Get minimum limit for linear contrast.
-   *
-   * @returns the limits for three channels.
-   */
-  const glm::vec3& getMin() const;
-
-  /**
-   * Set minimum limit for linear contrast.
-   *
-   * Note that depending upon the image type, not all channels may
-   * be used.
-   *
-   * @param min the limits for three channels.
-   */
-  void setMin(const glm::vec3& min) {}
-
-  /**
-   * Get maximum limit for linear contrast.
-   *
-   * @returns the limits for three channels.
-   */
-  const glm::vec3& getMax() const;
-
-  /**
-   * Set maximum limit for linear contrast.
-   *
-   * Note that depending upon the image type, not all channels may
-   * be used.
-   *
-   * @param max the limits for three channels.
-   */
-  void setMax(const glm::vec3& max) {}
-
-  /**
-   * Get texture ID.
-   *
-   * This is the identifier of the texture for the plane being
-   * rendered.
-   *
-   * @returns the texture ID.
-   */
-  unsigned int texture();
-
-  /**
-   * Get LUT ID.
-   *
-   * This is the identifier of the LUT for the plane being
-   * rendered.
-   *
-   * @returns the LUT ID.
-   */
-  unsigned int lut();
-
   void prepareTexture(Scene& s);
 
 protected:
@@ -111,17 +57,8 @@ protected:
   size_t m_num_image_elements;
   /// The identifier of the texture owned and used by this object.
   unsigned int m_textureid;
-  /// The identifier of the LUTs owned and used by this object.
-  unsigned int m_lutid;
-  /// Linear contrast minimum limits.
-  float m_texmin;
-  /// Linear contrast maximum limits.
-  float m_texmax;
-  /// Linear contrast correction multipliers.
-  // glm::vec3 texcorr;
   /// The image wrapped as a flat data ptr
   std::shared_ptr<ImageXYZC> m_img;
-  int m_c;
 
 private:
   /// The shader program for image rendering.

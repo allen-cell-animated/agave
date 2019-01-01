@@ -18,14 +18,8 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC> img)
   , m_image_elements(0)
   , m_num_image_elements(0)
   , m_textureid(0)
-  , m_lutid(0)
-  , m_texmin(0.0f)
-  , m_texmax(1.0f)
-  ,
-  // texcorr(1.0f),
-  m_img(img)
+  , m_img(img)
   , m_image3d_shader(new GLBasicVolumeShader())
-  , m_c(0)
   , m_fusedrgbvolume(nullptr)
 {}
 
@@ -34,7 +28,6 @@ Image3Dv33::~Image3Dv33()
   delete[] m_fusedrgbvolume;
 
   glDeleteTextures(1, &m_textureid);
-  glDeleteTextures(1, &m_lutid);
   delete m_image3d_shader;
 }
 
@@ -49,17 +42,6 @@ Image3Dv33::create()
 
   setSize(glm::vec2(-(m_img->sizeX() / 2.0f), m_img->sizeX() / 2.0f),
           glm::vec2(-(m_img->sizeY() / 2.0f), m_img->sizeY() / 2.0f));
-
-  // Create LUT texture.
-  glGenTextures(1, &m_lutid);
-  glBindTexture(GL_TEXTURE_1D_ARRAY, m_lutid);
-  check_gl("Bind texture");
-  glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  check_gl("Set texture min filter");
-  glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  check_gl("Set texture mag filter");
-  glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  check_gl("Set texture wrap s");
 
   // HiLo
   uint8_t lut[256][3];
@@ -91,13 +73,10 @@ Image3Dv33::render(const CCamera& camera, const Scene* scene, const RenderSettin
 {
   m_image3d_shader->bind();
 
-  m_image3d_shader->dataRangeMin = m_texmin;
-  m_image3d_shader->dataRangeMax = m_texmax;
   m_image3d_shader->GAMMA_MIN = 0.0;
   m_image3d_shader->GAMMA_MAX = 1.0;
   m_image3d_shader->GAMMA_SCALE = 1.3657f;
   m_image3d_shader->BRIGHTNESS = (1.0f - camera.m_Film.m_Exposure) + 1.0f;
-  //_renderSettings.m_RenderSettings.m_DensityScale
   m_image3d_shader->DENSITY = renderSettings->m_RenderSettings.m_DensityScale / 100.0;
   m_image3d_shader->maskAlpha = 1.0;
   m_image3d_shader->BREAK_STEPS = 512;
@@ -125,12 +104,6 @@ Image3Dv33::render(const CCamera& camera, const Scene* scene, const RenderSettin
   glBindTexture(GL_TEXTURE_3D, m_textureid);
   check_gl("Bind texture");
   m_image3d_shader->setTexture(0);
-
-  glActiveTexture(GL_TEXTURE1);
-  check_gl("Activate texture");
-  glBindTexture(GL_TEXTURE_1D_ARRAY, m_lutid);
-  check_gl("Bind texture");
-  m_image3d_shader->setLUT(1);
 
   glBindVertexArray(m_vertices);
 
@@ -243,18 +216,6 @@ Image3Dv33::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_image_elements);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * cube_indices.size(), cube_indices.data(), GL_STATIC_DRAW);
   m_num_image_elements = cube_indices.size();
-}
-
-unsigned int
-Image3Dv33::texture()
-{
-  return m_textureid;
-}
-
-unsigned int
-Image3Dv33::lut()
-{
-  return m_lutid;
 }
 
 void

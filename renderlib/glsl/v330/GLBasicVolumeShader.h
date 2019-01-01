@@ -57,20 +57,6 @@ public:
   void setTexture(int texunit);
 
   /**
-   * Set minimum limits for linear contrast.
-   *
-   * @param min the RGB channel limits.
-   */
-  void setMin(float min);
-
-  /**
-   * Set maximum limits for linear contrast.
-   *
-   * @param max the RGB channel limits.
-   */
-  void setMax(float max);
-
-  /**
    * Set correction multipliers to normalise pixel intensity.
    *
    * Use to correct the pixel value limits to the storage size

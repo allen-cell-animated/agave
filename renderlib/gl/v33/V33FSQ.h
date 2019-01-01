@@ -28,13 +28,9 @@ public:
     /// Destructor.
     virtual ~FSQ();
 
-	void
-		render(const glm::mat4& mvp);
-
-    const int positionAttribute() const { return attr_coords; }
+	void render(const glm::mat4& mvp);
 
 private:
-    int attr_coords;
 
 };
 
