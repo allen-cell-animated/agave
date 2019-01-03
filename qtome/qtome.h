@@ -42,6 +42,7 @@ private slots:
   void openMeshDialog();
   void openMesh(const QString& file);
   void saveJson();
+  void OnUpdateRenderer();
 
 private:
   enum

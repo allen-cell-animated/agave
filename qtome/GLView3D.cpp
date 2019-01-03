@@ -86,7 +86,7 @@ GLView3D::~GLView3D()
 {
   makeCurrent();
   check_gl("view dtor makecurrent");
-  //doneCurrent();
+  // doneCurrent();
 }
 
 QSize
@@ -269,11 +269,12 @@ GLView3D::OnUpdateRenderer(int rendererType)
     case 1:
       LOG_DEBUG << "Set CUDA Renderer";
       m_renderer.reset(new RenderGLCuda(m_renderSettings));
+      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
       m_renderer.reset(new RenderGLPT(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
+      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 3:
       LOG_DEBUG << "Set OptiX Renderer";
@@ -292,6 +293,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
   m_renderer->initialize(newsize.width(), newsize.height());
 
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+
+  emit ChangedRenderer();
 }
 
 void

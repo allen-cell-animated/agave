@@ -52,18 +52,27 @@ qtome::qtome(QWidget* parent)
 
   // add the single gl view as a tab
   m_glView = new GLView3D(&m_qcamera, &m_transferFunction, &m_renderSettings, this);
+  QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
+
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(512, 512);
   m_tabs->addTab(m_glView, "None");
 
-  QString windowTitle = 
-    QApplication::instance()->organizationName() + " " + 
-    QApplication::instance()->applicationName() + " " + 
-    QApplication::instance()->applicationVersion();
+  QString windowTitle = QApplication::instance()->organizationName() + " " +
+                        QApplication::instance()->applicationName() + " " +
+                        QApplication::instance()->applicationVersion();
   setWindowTitle(windowTitle);
 
   m_appScene.initLights();
+}
+
+void
+qtome::OnUpdateRenderer()
+{
+  CStatus* s = m_glView->getStatus();
+  m_statisticsDockWidget->setStatus(s);
+  // s->onNewImage(info.fileName(), &m_appScene);
 }
 
 void

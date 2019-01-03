@@ -138,3 +138,83 @@ RectImage2D::draw(GLuint texture2d)
 
   _image_shader->release();
 }
+
+GLTimer::GLTimer(void)
+{
+  StartTimer();
+}
+
+GLTimer::~GLTimer(void)
+{
+  glDeleteQueries(1, &m_EventStart);
+  glDeleteQueries(1, &m_EventStop);
+}
+
+void
+GLTimer::StartTimer(void)
+{
+  glGenQueries(1, &m_EventStart);
+  glGenQueries(1, &m_EventStop);
+  glQueryCounter(m_EventStart, GL_TIMESTAMP);
+
+  m_Started = true;
+}
+
+float
+GLTimer::StopTimer(void)
+{
+  if (!m_Started)
+    return 0.0f;
+
+  glQueryCounter(m_EventStop, GL_TIMESTAMP);
+  synchronize(m_EventStop);
+
+  float TimeDelta = 0.0f;
+
+  eventElapsedTime(&TimeDelta, m_EventStart, m_EventStop);
+  glDeleteQueries(1, &m_EventStart);
+  glDeleteQueries(1, &m_EventStop);
+
+  m_Started = false;
+
+  return TimeDelta;
+}
+
+float
+GLTimer::ElapsedTime(void)
+{
+  if (!m_Started)
+    return 0.0f;
+
+  glQueryCounter(m_EventStop, GL_TIMESTAMP);
+  synchronize(m_EventStop);
+
+  float TimeDelta = 0.0f;
+
+  eventElapsedTime(&TimeDelta, m_EventStart, m_EventStop);
+
+  m_Started = false;
+
+  return TimeDelta;
+}
+
+void
+GLTimer::synchronize(GLuint eventid)
+{
+  // wait until the results are available
+  GLint stopTimerAvailable = 0;
+  while (!stopTimerAvailable) {
+    glGetQueryObjectiv(eventid, GL_QUERY_RESULT_AVAILABLE, &stopTimerAvailable);
+  }
+}
+
+void
+GLTimer::eventElapsedTime(float* result, GLuint startEvent, GLuint stopEvent)
+{
+  GLuint64 startTime, stopTime;
+  // get query results
+  glGetQueryObjectui64v(startEvent, GL_QUERY_RESULT, &startTime);
+  glGetQueryObjectui64v(stopEvent, GL_QUERY_RESULT, &stopTime);
+
+  *result = (float)((double)(stopTime - startTime) / 1000000.0);
+}

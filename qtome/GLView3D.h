@@ -63,6 +63,9 @@ public:
 
   void fromViewerState(const ViewerState& s);
 
+signals:
+  void ChangedRenderer();
+
 public slots:
 
   void OnUpdateCamera();

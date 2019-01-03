@@ -25,17 +25,24 @@ private:
 
 void
 HandleCudaError(const cudaError_t CudaError, const char* pDescription = "");
+
 void
 HandleCudaKernelError(const cudaError_t CudaError, const char* pName = "");
+
 size_t
 GetTotalCudaMemory(void);
+
 size_t
 GetAvailableCudaMemory(void);
+
 size_t
 GetUsedCudaMemory(void);
+
 int
 GetMaxGigaFlopsDeviceID(void);
+
 bool
 SetCudaDevice(const int& CudaDeviceID);
+
 void
 ResetDevice(void);

@@ -38,3 +38,22 @@ private:
 
   GLImageShader2DnoLut* _image_shader;
 };
+
+class GLTimer
+{
+public:
+  GLTimer(void);
+  virtual ~GLTimer(void);
+
+  void StartTimer(void);
+  float StopTimer(void);
+  float ElapsedTime(void);
+
+private:
+  bool m_Started;
+  GLuint m_EventStart;
+  GLuint m_EventStop;
+
+  void synchronize(GLuint eventid);
+  void eventElapsedTime(float* result, GLuint startEvent, GLuint stopEvent);
+};

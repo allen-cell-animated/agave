@@ -1284,7 +1284,8 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("post accum textures");
 
   glUniform1f(m_uSampleCounter, (float)numIterations);
-  glUniform1f(m_uFrameCounter, (float)numIterations);
+  glUniform1f(m_uFrameCounter, (float)(numIterations + 1));
+  // glUniform1f(m_uFrameCounter, 1.0f);
 
   glUniform2f(m_uResolution, (float)w, (float)h);
   glUniform3fv(m_gClippedAaBbMax, 1, glm::value_ptr(clipped_bbox.GetMaxP()));
@@ -1364,18 +1365,17 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1i(m_light1T, l1.m_T);
 
   // per channel
-  // single channel
   int NC = scene->m_volume->sizeC();
-  // use first 3 channels only.
+
   int activeChannel = 0;
   int luttex[4] = { 0, 0, 0, 0 };
-  float intensitymax[4] = {1,1,1,1};
-  float intensitymin[4] = {0,0,0,0};
-  float diffuse[3 * 4];
-  float specular[3 * 4];
-  float emissive[3 * 4];
-  float roughness[4] = {0,0,0,0};
-  float opacity[4] = {1,1,1,1};
+  float intensitymax[4] = { 1, 1, 1, 1 };
+  float intensitymin[4] = { 0, 0, 0, 0 };
+  float diffuse[3 * 4] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+  float specular[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  float roughness[4] = { 0, 0, 0, 0 };
+  float opacity[4] = { 1, 1, 1, 1 };
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
       luttex[activeChannel] = imggpu.m_channels[i].m_VolumeLutGLTexture;
@@ -1422,7 +1422,6 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform4fv(m_intensityMax, 1, intensitymax);
   glUniform4fv(m_intensityMin, 1, intensitymin);
   glUniform1fv(m_opacity, 4, opacity);
-  //glUniform4fv(m_opacity, 1, opacity);
   glUniform3fv(m_emissive0, 1, emissive + 0);
   glUniform3fv(m_emissive1, 1, emissive + 3);
   glUniform3fv(m_emissive2, 1, emissive + 6);
@@ -1436,7 +1435,6 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform3fv(m_specular2, 1, specular + 6);
   glUniform3fv(m_specular3, 1, specular + 9);
   glUniform1fv(m_roughness, 4, roughness);
-  //glUniform4fv(m_roughness, 1, roughness);
 
   glUniform1i(m_uShowLights, 0);
 
