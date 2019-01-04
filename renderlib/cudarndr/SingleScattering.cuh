@@ -31,7 +31,7 @@ KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, un
   float3 Pe, Pl;
 
   // find point Pe along ray Re
-  if (SampleDistanceRM(Re, RNG, Pe, volumedata)) {
+  if (volumedata.m_nChannels > 0 && SampleDistanceRM(Re, RNG, Pe, volumedata)) {
     // is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
     int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, Length(Pe - Re.m_O)), Li, Pl);
     if (i > -1) {

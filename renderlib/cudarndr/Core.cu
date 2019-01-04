@@ -169,8 +169,12 @@ BindConstants(const CudaLighting& cudalt,
 void
 ComputeFocusDistance(const cudaVolume& volumedata)
 {
+
   // fd is in camera ray direction magnitude units (world space units if ray.d is normalized)
-  float fd = NearestIntersection(volumedata);
+  float fd = 0.0f;
+  if (volumedata.m_nChannels > 0) {
+    fd = NearestIntersection(volumedata);
+  }
 
   // camera.m_Focus.m_FocalDistance = NearestIntersection(volumedata);
   // send m_FocalDistance back to gpu.
