@@ -6,6 +6,8 @@
 
 #include "assimp/Importer.hpp"
 
+#include <QString>
+
 class CBoundingBox;
 class ImageXYZC;
 
@@ -21,4 +23,13 @@ public:
 
 private:
   static std::map<std::string, std::shared_ptr<ImageXYZC>> sPreloadedImageCache;
+
+  static void getZCT(uint32_t i,
+                     QString dimensionOrder,
+                     uint32_t size_z,
+                     uint32_t size_c,
+                     uint32_t size_t,
+                     uint32_t& z,
+                     uint32_t& c,
+                     uint32_t& t);
 };

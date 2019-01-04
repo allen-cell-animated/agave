@@ -47,6 +47,41 @@ requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal)
   return retval;
 }
 
+void
+FileReader::getZCT(uint32_t i,
+                   QString dimensionOrder,
+                   uint32_t sizeZ,
+                   uint32_t sizeC,
+                   uint32_t sizeT,
+                   uint32_t& z,
+                   uint32_t& c,
+                   uint32_t& t)
+{
+  // assume t = 0 for everything.
+  assert(sizeT == 1);
+  QString order = dimensionOrder.remove("XY");
+  t = 0;
+  if (order == "CTZ") {
+    c = i % (sizeC);
+    z = i / sizeC;
+  } else if (order == "CZT") {
+    c = i % (sizeC);
+    z = i / sizeC;
+  } else if (order == "ZCT") {
+    c = i / (sizeZ);
+    z = i % sizeZ;
+  } else if (order == "ZTC") {
+    c = i / (sizeZ);
+    z = i % sizeZ;
+  } else if (order == "TCZ") {
+    c = i % (sizeC);
+    z = i / sizeC;
+  } else if (order == "TZC") {
+    c = i / (sizeZ);
+    z = i % sizeZ;
+  }
+}
+
 std::shared_ptr<ImageXYZC>
 FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
 {
@@ -112,6 +147,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
   std::vector<QString> channelNames;
+  QString dimensionOrder = "XYCZT";
 
   // check for plain tiff with ImageJ imagedescription:
   QString qomexmlstr(omexmlstr);
@@ -150,6 +186,27 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     for (uint32_t i = 0; i < sizeC; ++i) {
       channelNames.push_back(QString::number(i));
     }
+  } else if (qomexmlstr.startsWith("{\"shape\":")) {
+    // expect a 4d shape array of C,Z,Y,X
+    int firstBracket = qomexmlstr.indexOf('[');
+    int lastBracket = qomexmlstr.lastIndexOf(']');
+    QString shape = qomexmlstr.mid(firstBracket + 1, lastBracket - firstBracket - 1);
+    LOG_INFO << shape.toStdString();
+    QStringList shapelist = shape.split(',');
+    assert(shapelist.size() == 4);
+    if (shapelist.size() != 4) {
+      QString msg = "Expected shape to be 4D TIFF: '" + QString(filepath.c_str()) + "'";
+      LOG_ERROR << msg.toStdString();
+    }
+    dimensionOrder = "XYZCT";
+    sizeX = shapelist[3].toInt();
+    sizeY = shapelist[2].toInt();
+    sizeZ = shapelist[1].toInt();
+    sizeC = shapelist[0].toInt();
+    for (uint32_t i = 0; i < sizeC; ++i) {
+      channelNames.push_back(QString("%1").arg(i));
+    }
+
   } else {
     // convert c to xml doc.  if this fails then we don't have an ome tif.
     QDomDocument omexml;
@@ -180,7 +237,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     sizeC = requireUint32Attr(pixelsEl, "SizeC", 0);
     sizeT = requireUint32Attr(pixelsEl, "SizeT", 0);
     // one of : "XYZCT", "XYZTC","XYCTZ","XYCZT","XYTCZ","XYTZC"
-    QString dimensionOrder = pixelsEl.attribute("DimensionOrder", "XYCZT");
+    dimensionOrder = pixelsEl.attribute("DimensionOrder", dimensionOrder);
     physicalSizeX = requireFloatAttr(pixelsEl, "PhysicalSizeX", 1.0f);
     physicalSizeY = requireFloatAttr(pixelsEl, "PhysicalSizeY", 1.0f);
     physicalSizeZ = requireFloatAttr(pixelsEl, "PhysicalSizeZ", 1.0f);
@@ -219,26 +276,33 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
 
   uint8_t* destptr = data;
 
+  // use dimensionOrderZCT to determine whether Z or C comes first!
+  // assume XY are not transposed.
+  QString dimensionOrderZCT = dimensionOrder.remove("XY");
+
   if (TIFFIsTiled(tiff)) {
     tsize_t tilesize = TIFFTileSize(tiff);
     uint32 ntiles = TIFFNumberOfTiles(tiff);
     assert(ntiles == 1);
     // assuming ntiles == 1 for all IFDs
     tdata_t buf = _TIFFmalloc(tilesize);
-    for (uint32_t i = 0; i < sizeC; ++i) {
-      for (uint32_t j = 0; j < sizeZ; ++j) {
-        int setdirok = TIFFSetDirectory(tiff, j + i * sizeZ);
-        if (setdirok == 0) {
-          LOG_ERROR << "Bad tiff directory specified: " << (j + i * sizeZ);
-        }
-        int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
-        if (readtileok < 0) {
-          LOG_ERROR << "Error reading tiff tile";
-        }
-        // copy buf into data.
-        memcpy(destptr, buf, readtileok);
-        destptr += readtileok;
+    for (uint32_t i = 0; i < sizeZ * sizeC; ++i) {
+      int setdirok = TIFFSetDirectory(tiff, i);
+      if (setdirok == 0) {
+        LOG_ERROR << "Bad tiff directory specified: " << (i);
       }
+      int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
+      if (readtileok < 0) {
+        LOG_ERROR << "Error reading tiff tile";
+      }
+      // copy buf into data.
+      uint32_t t = 0;
+      uint32_t z = 0;
+      uint32_t c = 0;
+      getZCT(i, dimensionOrderZCT, sizeZ, sizeC, sizeT, z, c, t);
+      uint32_t planeindexinbuffer = c * sizeZ + z;
+      destptr = data + (planesize * (planeindexinbuffer));
+      memcpy(destptr, buf, readtileok);
     }
     _TIFFfree(buf);
   } else {
@@ -246,27 +310,30 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     // Number of bytes in a decoded scanline
     tsize_t striplength = TIFFStripSize(tiff);
     tdata_t buf = _TIFFmalloc(striplength);
-    for (uint32_t i = 0; i < sizeZ; ++i) {
-      for (uint32_t j = 0; j < sizeC; ++j) {
-        uint32_t planeindexintiff = j + i * sizeC;
-        int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
-        if (setdirok == 0) {
-          LOG_ERROR << "Bad tiff directory specified: " << (j + i * sizeC);
-        }
-        // ensure channels are coalesced (transposing from xycz to xyzc)
-        uint32_t planeindexinbuffer = i + j * sizeZ;
-        destptr = data + (planesize * (planeindexinbuffer));
-        uint32 nstrips = TIFFNumberOfStrips(tiff);
-        for (tstrip_t strip = 0; strip < nstrips; strip++) {
-          int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
-          if (readstripok < 0) {
-            LOG_ERROR << "Error reading tiff strip";
-          }
 
-          // copy buf into data.
-          memcpy(destptr, buf, readstripok);
-          destptr += readstripok;
+    for (uint32_t i = 0; i < sizeZ * sizeC; ++i) {
+      uint32_t planeindexintiff = i;
+      int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
+      if (setdirok == 0) {
+        LOG_ERROR << "Bad tiff directory specified: " << (i);
+      }
+      // ensure channels are coalesced (transposing from xycz to xyzc)
+      uint32_t t = 0;
+      uint32_t z = 0;
+      uint32_t c = 0;
+      getZCT(i, dimensionOrderZCT, sizeZ, sizeC, sizeT, z, c, t);
+      uint32_t planeindexinbuffer = c * sizeZ + z;
+      destptr = data + (planesize * (planeindexinbuffer));
+      uint32 nstrips = TIFFNumberOfStrips(tiff);
+      for (tstrip_t strip = 0; strip < nstrips; strip++) {
+        int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
+        if (readstripok < 0) {
+          LOG_ERROR << "Error reading tiff strip";
         }
+
+        // copy buf into data.
+        memcpy(destptr, buf, readstripok);
+        destptr += readstripok;
       }
     }
     _TIFFfree(buf);
