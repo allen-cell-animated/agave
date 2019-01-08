@@ -93,6 +93,8 @@ add_subdirectory(websocketserver)
 # copy all dlls into place.
 if (WIN32)
 install(FILES 
+  ${PROJECT_SOURCE_DIR}/LICENSE.txt
+  ${PROJECT_SOURCE_DIR}/HELP.txt
   $<TARGET_FILE:Qt5::Widgets>
   $<TARGET_FILE:Qt5::Core>
   $<TARGET_FILE:Qt5::Gui>

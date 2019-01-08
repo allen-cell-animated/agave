@@ -1,0 +1,37 @@
+DESKTOP VIEWER DOCUMENTATION
+
+The volume viewer is designed and optimized for display of multi-channel, single-time OME TIFF files.
+
+1. This viewer requires a current CUDA runtime from NVIDIA: make sure you have the latest NVIDIA drivers installed for your system (start at https://www.nvidia.com/drivers).
+
+2. Unzip the zip file and run qtomeapp.exe.   A console window will open, and if initialization is successful, a GUI window will open.
+
+3. File-->Open Image.  The viewer currently only supports .ome.tif files (TIFF files containing OME-XML metadata in the imagedescription tag) and has limited support for some tif files generated in ImageJ.  
+The volume data must fit in GPU memory, so please try loading no more than a few GB.  The test data set for the development of this viewer was the data set of the Allen Institute for Cell Science.  Images from that data set are found at https://www.allencell.org/3d-cell-viewer.html . Those images should be expected to load correctly.
+
+4. Initially, it is very likely that your volume data will appear as a solid brick.  The Appearance tab is the one to focus on first.  Note that you can “tear away” the tab to place it anywhere on your desktop and resize it. (Drag and drop from the “Appearance” title area.)
+
+5. At the bottom of the Appearance tab (after the Lighting section) will be the controls for each channel in your volume data. The first adjustment to make is typically to drag the Level slider to the right.   Moving the Window and Level sliders will control the relative intensities of the volume data in the rendering.  The Auto buttons just below will attempt to find reasonable settings for Window and Level.
+
+5a. Up to four channels can be displayed at a time. Hide or show channels by clicking the checkbox at the top right of each channel’s section in the panel. 
+
+6.  Rotate in the 3D view with left-click dragging.  Zoom in and out with right-click drag up/down.  Pan the volume with middle-click drag.
+
+7.  Once you can see the expected structure in your volume data, you can start exploring the other controls. The most coarse grained controls for overall image appearance are:  Exposure (Camera panel) and Scattering Density (Appearance panel).  Use Camera Aperture Size and Camera Focal Distance to control depth of field blurring.  
+
+8. The Lighting section lets you control two light sources:  one square-shaped area light, and one spherical environment light that has a three color gradient from north pole to south pole.
+
+9.  The Appearance panel has a ROI section to enable you to clip the volume along its axes.
+
+10. You can save the current viewer settings to a json file (File ? Save to json), to be reloaded later.  The path to the volume data file will be saved in the json. 
+
+DESKTOP VIEWER TROUBLESHOOTING
+
+A “logfile.log” file will be created in the same directory as the executable.  If errors occur, please send that file and as much information as possible about the bug case to: recyclebin@alleninstitute.org [TODO: GET A REAL EMAIL ADDRESS]
+Please include, if possible:
+Windows version
+Amount of RAM
+Type of GPU and amount of GPU memory
+What function were you performing when the error occurred (e.g. starting the app, rotating the volume with mouse, moving the Exposure slider, etc)
+Logfile.log
+Whether you would like us to make contact.  The best chance to reproduce the problem is for us to load the same volume data that was being used, in which case we would need to arrange for how to obtain it.
