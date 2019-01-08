@@ -24,76 +24,74 @@ class GLPTAccumShader;
 class GLPTVolumeShader;
 class GLToneMapShader;
 
-class RenderGLPT :
-	public IRenderWindow
+class RenderGLPT : public IRenderWindow
 {
 public:
-	RenderGLPT(RenderSettings* rs);
-	virtual ~RenderGLPT();
+  RenderGLPT(RenderSettings* rs);
+  virtual ~RenderGLPT();
 
-	virtual void initialize(uint32_t w, uint32_t h);
-	virtual void render(const CCamera& camera);
-	virtual void resize(uint32_t w, uint32_t h);
-	virtual void cleanUpResources();
-	virtual RenderParams& renderParams();
-	virtual Scene* scene();
-	virtual void setScene(Scene* s);
+  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void render(const CCamera& camera);
+  virtual void resize(uint32_t w, uint32_t h);
+  virtual void cleanUpResources();
+  virtual RenderParams& renderParams();
+  virtual Scene* scene();
+  virtual void setScene(Scene* s);
 
-	virtual CStatus* getStatusInterface() { return &m_status; }
+  virtual CStatus* getStatusInterface() { return &m_status; }
 
-	Image3Dv33* getImage() const { return nullptr; };
-	RenderSettings& getRenderSettings() { return *m_renderSettings; }
+  Image3Dv33* getImage() const { return nullptr; };
+  RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
-	// just draw into my own fbo.
-	void doRender(const CCamera& camera);
-	// draw my fbo texture into the current render target
-	void drawImage();
+  // just draw into my own fbo.
+  void doRender(const CCamera& camera);
+  // draw my fbo texture into the current render target
+  void drawImage();
 
-	size_t getGpuBytes();
+  size_t getGpuBytes();
+
 private:
-	RenderSettings* m_renderSettings;
-	RenderParams m_renderParams;
-	Scene* m_scene;
+  RenderSettings* m_renderSettings;
+  RenderParams m_renderParams;
+  Scene* m_scene;
 
-	void initFB(uint32_t w, uint32_t h);
-	void initVolumeTextureCUDA();
-	void cleanUpFB();
+  void initFB(uint32_t w, uint32_t h);
+  void initVolumeTextureCUDA();
+  void cleanUpFB();
 
-	ImageCuda m_imgCuda;
+  ImageCuda m_imgCuda;
 
-	RectImage2D* m_imagequad;
+  RectImage2D* m_imagequad;
 
-	// the rgba8 buffer for display
-	GLuint m_fbtex;
-    GLuint m_fb;
+  // the rgba8 buffer for display
+  GLuint m_fbtex;
+  GLuint m_fb;
 
-    FSQ* m_fsq;
-    
-    // the rgbaf32 buffer for rendering
-	GLuint m_glF32Buffer;
-    GLuint m_fbF32;
-    GLPTVolumeShader* m_renderBufferShader;
+  FSQ* m_fsq;
 
-	// the rgbaf32 accumulation buffer that holds the progressively rendered image
-    GLuint m_glF32AccumBuffer;
-    GLuint m_glF32AccumBuffer2; // for ping ponging
-    GLuint m_fbF32Accum;
-    GLCopyShader* m_copyShader;
-    GLToneMapShader* m_toneMapShader;
+  // the rgbaf32 buffer for rendering
+  GLuint m_glF32Buffer;
+  GLuint m_fbF32;
+  GLPTVolumeShader* m_renderBufferShader;
 
-	// screen size auxiliary buffers for rendering 
-	unsigned int* m_randomSeeds1;
-	unsigned int* m_randomSeeds2;
+  // the rgbaf32 accumulation buffer that holds the progressively rendered image
+  GLuint m_glF32AccumBuffer;
+  GLuint m_glF32AccumBuffer2; // for ping ponging
+  GLuint m_fbF32Accum;
+  GLCopyShader* m_copyShader;
+  GLToneMapShader* m_toneMapShader;
 
-	int m_w, m_h;
+  // screen size auxiliary buffers for rendering
+  unsigned int* m_randomSeeds1;
+  unsigned int* m_randomSeeds2;
 
-	CTiming m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
-	CStatus m_status;
+  int m_w, m_h;
 
-	size_t m_gpuBytes;
+  Timing m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
+  CStatus m_status;
 
-	void FillCudaLighting(Scene* pScene, CudaLighting& cl);
-    void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
+  size_t m_gpuBytes;
 
+  void FillCudaLighting(Scene* pScene, CudaLighting& cl);
+  void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
 };
-

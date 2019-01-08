@@ -62,6 +62,8 @@ public:
 #define DEF_APERTURE_BIAS BiasNone
 #define DEF_APERTURE_ROTATION 0.0f
 
+#define MAX_BOKEH_DATA (12)
+
 class CAperture
 {
 public:

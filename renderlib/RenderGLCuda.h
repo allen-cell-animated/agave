@@ -73,7 +73,7 @@ private:
 
   int m_w, m_h;
 
-  CTiming m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
+  Timing m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
   CStatus m_status;
 
   size_t m_gpuBytes;

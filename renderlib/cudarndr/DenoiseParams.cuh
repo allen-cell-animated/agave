@@ -2,7 +2,7 @@
 
 #include "Defines.h"
 
-class CDenoiseParams
+class DenoiseParams
 {
 public:
   bool m_Enabled;
@@ -15,7 +15,7 @@ public:
   float m_LerpThreshold;
 
 public:
-  HO CDenoiseParams(void)
+  HO DenoiseParams(void)
   {
     /*
     m_Enabled			= true;
@@ -39,7 +39,7 @@ public:
     /**/
   }
 
-  HO CDenoiseParams& operator=(const CDenoiseParams& Other)
+  HO DenoiseParams& operator=(const DenoiseParams& Other)
   {
     m_Enabled = Other.m_Enabled;
     m_Noise = Other.m_Noise;
@@ -61,7 +61,7 @@ public:
   }
 };
 
-struct CRenderSettings
+struct PathTraceRenderSettings
 {
   float m_DensityScale;
   int m_ShadingType;
@@ -71,7 +71,7 @@ struct CRenderSettings
   float m_GradientFactor;
   bool m_ShowLightsBackground;
 
-  CRenderSettings()
+  PathTraceRenderSettings()
     : m_DensityScale(50.0f)
     , m_ShadingType(2)
     , m_StepSizeFactor(1.0f)

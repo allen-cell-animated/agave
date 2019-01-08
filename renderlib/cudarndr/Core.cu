@@ -61,11 +61,11 @@ CD CudaCamera gCamera;
 
 void __host__
 BindConstants(const CudaLighting& cudalt,
-              const CDenoiseParams& denoise,
+              const DenoiseParams& denoise,
               const CudaCamera& cudacam,
               const cudaBoundingBox& bbox,
               const cudaBoundingBox& clipped_bbox,
-              const CRenderSettings& renderSettings,
+              const PathTraceRenderSettings& renderSettings,
               int numIterations,
               int w,
               int h,
@@ -191,10 +191,10 @@ Render(const int& Type,
        int h,
        cudaFB& framebuffers,
        const cudaVolume& volumedata,
-       CTiming& RenderImage,
-       CTiming& BlurImage,
-       CTiming& PostProcessImage,
-       CTiming& DenoiseImage,
+       Timing& RenderImage,
+       Timing& BlurImage,
+       Timing& PostProcessImage,
+       Timing& DenoiseImage,
        int& numIterations)
 {
   for (int i = 0; i < numExposures; ++i) {

@@ -7,11 +7,12 @@
 #include <algorithm>
 
 #define MAX_NO_DURATIONS 30
+#define MAX_CHAR_SIZE (128)
 
-class CTiming
+class Timing
 {
 public:
-  CTiming(void)
+  Timing(void)
     : m_NoDurations(MAX_NO_DURATIONS)
     , m_FilteredDuration(0.0f)
   {
@@ -20,7 +21,7 @@ public:
     }
   };
 
-  HO CTiming(const char* pName)
+  HO Timing(const char* pName)
   {
 #ifndef __CUDACC__
     sprintf(m_Name, "%s", pName);
@@ -31,9 +32,9 @@ public:
     m_FilteredDuration = 0.0f;
   }
 
-  virtual ~CTiming(void){};
+  virtual ~Timing(void){};
 
-  HO CTiming& operator=(const CTiming& Other)
+  HO Timing& operator=(const Timing& Other)
   {
     strcpy(m_Name, Other.m_Name);
 

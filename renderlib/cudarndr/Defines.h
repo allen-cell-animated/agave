@@ -22,7 +22,5 @@
 #define INF_MAX FLT_MAX
 #define RAY_MIN (-100000.0f)
 #define RAY_MAX (100000.0f)
-#define MAX_CHAR_SIZE (128)
 #define KERNEL __global__
-#define MAX_BOKEH_DATA (12)
 #define MB powf(1024.0f, 2.0f)

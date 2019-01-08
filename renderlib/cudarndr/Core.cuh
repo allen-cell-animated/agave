@@ -2,12 +2,12 @@
 
 class CBoundingBox;
 class CCamera;
-class CDenoiseParams;
-class CTiming;
+class DenoiseParams;
+class Timing;
 class CVariance;
 struct CudaCamera;
 struct CudaLighting;
-struct CRenderSettings;
+struct PathTraceRenderSettings;
 
 struct cudaBoundingBox
 {
@@ -22,6 +22,7 @@ struct cudaFB
   unsigned int* m_randomSeeds1;
   unsigned int* m_randomSeeds2;
 };
+
 #define MAX_CUDA_CHANNELS 4
 struct cudaVolume
 {
@@ -43,11 +44,11 @@ struct cudaVolume
 
 void
 BindConstants(const CudaLighting& cudalt,
-              const CDenoiseParams& denoise,
+              const DenoiseParams& denoise,
               const CudaCamera& cudacam,
               const cudaBoundingBox& bbox,
               const cudaBoundingBox& clipped_bbox,
-              const CRenderSettings& renderSettings,
+              const PathTraceRenderSettings& renderSettings,
               int numIterations,
               int w,
               int h,
@@ -56,6 +57,7 @@ BindConstants(const CudaLighting& cudalt,
 
 void
 ComputeFocusDistance(const cudaVolume& volumedata);
+
 void
 Render(const int& Type,
        int numExposures,
@@ -63,12 +65,14 @@ Render(const int& Type,
        int h,
        cudaFB& framebuffers,
        const cudaVolume& volumedata,
-       CTiming& RenderImage,
-       CTiming& BlurImage,
-       CTiming& PostProcessImage,
-       CTiming& DenoiseImage,
+       Timing& RenderImage,
+       Timing& BlurImage,
+       Timing& PostProcessImage,
+       Timing& DenoiseImage,
        int& numIterations);
+
 void
 ToneMap(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h);
+
 void
 Denoise(float* inbuf, cudaSurfaceObject_t surfaceObj, int w, int h, float lerpC);

@@ -38,7 +38,7 @@ private:
   RenderParams m_renderParams;
 
   CStatus m_status;
-  CTiming m_timingRender;
+  Timing m_timingRender;
   QElapsedTimer m_timer;
 
   int m_w, m_h;

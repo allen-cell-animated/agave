@@ -11,8 +11,8 @@ public:
   RenderSettings& operator=(const RenderSettings& Other);
 
   CFlags m_DirtyFlags;
-  CRenderSettings m_RenderSettings;
-  CDenoiseParams m_DenoiseParams;
+  PathTraceRenderSettings m_RenderSettings;
+  DenoiseParams m_DenoiseParams;
 
   int GetNoIterations(void) const { return m_NoIterations; }
   void SetNoIterations(const int& NoIterations) { m_NoIterations = NoIterations; }

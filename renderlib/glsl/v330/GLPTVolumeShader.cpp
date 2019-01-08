@@ -1256,10 +1256,10 @@ GLPTVolumeShader::~GLPTVolumeShader() {}
 
 void
 GLPTVolumeShader::setShadingUniforms(const Scene* scene,
-                                     const CDenoiseParams& denoise,
+                                     const DenoiseParams& denoise,
                                      const CCamera& cam,
                                      const CBoundingBox& clipped_bbox,
-                                     const CRenderSettings& renderSettings,
+                                     const PathTraceRenderSettings& renderSettings,
                                      int numIterations,
                                      int w,
                                      int h,
