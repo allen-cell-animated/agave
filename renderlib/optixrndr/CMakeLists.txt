@@ -23,6 +23,6 @@ target_include_directories(CudaPTX PUBLIC
 
 # drop ptx files into install target location
 install(TARGETS CudaPTX
-   OBJECTS DESTINATION bin/ptx 
+   OBJECTS DESTINATION ${INSTALLDIR}/ptx 
 )
 
