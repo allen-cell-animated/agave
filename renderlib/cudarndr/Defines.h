@@ -16,7 +16,6 @@
 #define FOUR_PI_F (4.0f * PI_F)
 #define INV_4_PI_F (1.0f / FOUR_PI_F)
 #define RAD_F (57.29577951308232f)
-#define TWO_RAD_F (2.0f * RAD_F)
 #define DEG_TO_RAD (1.0f / RAD_F)
 #define INF_MIN (-FLT_MAX)
 #define INF_MAX FLT_MAX

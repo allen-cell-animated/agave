@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Defines.h"
-
 class DenoiseParams
 {
 public:
@@ -15,31 +13,19 @@ public:
   float m_LerpThreshold;
 
 public:
-  HO DenoiseParams(void)
+  DenoiseParams(void)
   {
-    /*
-    m_Enabled			= true;
-    m_Noise				= 1.0f / (0.32f * 0.32f);
-    m_LerpC				= 0.2f;
-    m_WindowRadius		= 2.0f;
-    m_WindowArea		= (2.0f * m_WindowRadius + 1.0f) * (2.0f * m_WindowRadius + 1.0f);
-    m_InvWindowArea		= 1.0f / m_WindowArea;
-    m_WeightThreshold	= 0.02f;
-    m_LerpThreshold		= 0.79f;
-    */
-
     m_Enabled = true;
-    m_Noise = 0.05f; // 0.32f * 0.32f;// / (0.1f * 0.1f);
+    m_Noise = 0.05f;
     m_LerpC = 0.01f;
     m_WindowRadius = 6;
     m_WindowArea = (2.0f * m_WindowRadius + 1.0f) * (2.0f * m_WindowRadius + 1.0f);
     m_InvWindowArea = 1.0f / m_WindowArea;
     m_WeightThreshold = 0.1f;
     m_LerpThreshold = 0.0f;
-    /**/
   }
 
-  HO DenoiseParams& operator=(const DenoiseParams& Other)
+  DenoiseParams& operator=(const DenoiseParams& Other)
   {
     m_Enabled = Other.m_Enabled;
     m_Noise = Other.m_Noise;
@@ -53,7 +39,7 @@ public:
     return *this;
   }
 
-  HO void SetWindowRadius(const int& WindowRadius)
+  void SetWindowRadius(const int& WindowRadius)
   {
     m_WindowRadius = WindowRadius;
     m_WindowArea = (2.0f * m_WindowRadius + 1.0f) * (2.0f * m_WindowRadius + 1.0f);
