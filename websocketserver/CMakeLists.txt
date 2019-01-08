@@ -1,5 +1,5 @@
 add_executable(websocketserverapp "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
-
+set_target_properties(websocketserverapp PROPERTIES OUTPUT_NAME "agave-server")
 target_include_directories(websocketserverapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
@@ -40,5 +40,5 @@ target_link_libraries(websocketserverapp
 )
 
 install(TARGETS websocketserverapp
-   RUNTIME DESTINATION bin 
+   RUNTIME DESTINATION ${INSTALLDIR} 
 )
