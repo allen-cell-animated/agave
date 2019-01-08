@@ -56,7 +56,7 @@ qtome::qtome(QWidget* parent)
 
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
-  m_glView->setMinimumSize(512, 512);
+  m_glView->setMinimumSize(256, 512);
   m_tabs->addTab(m_glView, "None");
 
   QString windowTitle = QApplication::instance()->organizationName() + " " +
@@ -65,6 +65,8 @@ qtome::qtome(QWidget* parent)
   setWindowTitle(windowTitle);
 
   m_appScene.initLights();
+
+  resize(1280, 720);
 }
 
 void
@@ -182,7 +184,7 @@ qtome::createDockWindows()
 
   m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_transferFunction, &m_renderSettings);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::RightDockWidgetArea, m_appearanceDockWidget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 
   m_statisticsDockWidget = new QStatisticsDockWidget(this);
   // Statistics dock widget
