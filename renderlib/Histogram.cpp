@@ -175,11 +175,11 @@ Histogram::generate_auto2(float& window, float& level, size_t length)
     // just reset to whole range in this case.
     return generate_fullRange(window, level, length);
   } else {
-    LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
+    //LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
     float range = (float)hmax - (float)hmin;
     window = (range) / (float)(nbins - 1);
     level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
-    LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
+    //LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
     return generate_windowLevel(window, level, length);
   }
 }
@@ -224,7 +224,7 @@ Histogram::generate_auto(float& window, float& level, size_t length)
 float*
 Histogram::generate_windowLevel(float window, float level, size_t length)
 {
-  LOG_DEBUG << "window/level: " << window << ", " << level;
+  //LOG_DEBUG << "window/level: " << window << ", " << level;
 
   // return a LUT with new values(?)
   // data type of lut values is out_phys_range (uint8)
@@ -382,7 +382,7 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
   float vlow = rank_data_value(1.0f - vfrac_max);
   float vmid = rank_data_value(1.0f - vfrac_min);
   float vmax = _dataMax;
-  LOG_DEBUG << "LOW: " << vlow << " HIGH: " << vmid;
+  //LOG_DEBUG << "LOW: " << vlow << " HIGH: " << vmid;
 
   // normalize to 0..1
   vlow = (vlow - _dataMin) / (_dataMax - _dataMin);
