@@ -7,6 +7,8 @@
 #define DEV __device__
 #define HOD __host__ __device__
 #define CD __device__ __constant__
+#define KERNEL __global__
+
 #define PI_F (3.141592654f)
 #define HALF_PI_F (0.5f * PI_F)
 #define QUARTER_PI_F (0.25f * PI_F)
@@ -21,5 +23,4 @@
 #define INF_MAX FLT_MAX
 #define RAY_MIN (-100000.0f)
 #define RAY_MAX (100000.0f)
-#define KERNEL __global__
 #define MB powf(1024.0f, 2.0f)
