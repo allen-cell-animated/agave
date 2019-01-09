@@ -2,23 +2,23 @@
 
 #include "Defines.h"
 
-class CFlags
+class Flags
 {
 private:
   long m_Bits;
 
 public:
-  CFlags(void)
+  Flags(void)
     : m_Bits(0)
   {}
 
-  CFlags(long b)
+  Flags(long b)
     : m_Bits(b)
   {}
 
-  virtual ~CFlags(void){};
+  virtual ~Flags(void){};
 
-  HO CFlags& operator=(const CFlags& Other)
+  HO Flags& operator=(const Flags& Other)
   {
     m_Bits = Other.m_Bits;
 

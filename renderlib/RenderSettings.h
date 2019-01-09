@@ -10,7 +10,7 @@ public:
   RenderSettings(const RenderSettings& Other);
   RenderSettings& operator=(const RenderSettings& Other);
 
-  CFlags m_DirtyFlags;
+  Flags m_DirtyFlags;
   PathTraceRenderSettings m_RenderSettings;
   DenoiseParams m_DenoiseParams;
 
