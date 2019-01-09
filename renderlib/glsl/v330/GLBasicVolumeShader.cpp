@@ -315,7 +315,7 @@ GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4
   glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
   glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
   glm::mat4 cv = glm::lookAt(eye, center, up);
-  glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Hither, camera.m_Yon);
+  glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Near, camera.m_Far);
 
   // glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
   glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));

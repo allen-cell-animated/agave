@@ -288,8 +288,8 @@ public:
 //#define DEF_CAMERA_TYPE						Perspective
 #define DEF_CAMERA_OPERATOR CameraOperatorUndefined
 #define DEF_CAMERA_VIEW_MODE ViewModeBack
-#define DEF_CAMERA_HITHER 0.01f
-#define DEF_CAMERA_YON 20.0f
+#define DEF_CAMERA_NEAR 0.01f
+#define DEF_CAMERA_FAR 20.0f
 #define DEF_CAMERA_ENABLE_CLIPPING true
 #define DEF_CAMERA_GAMMA 2.2f
 #define DEF_CAMERA_FIELD_OF_VIEW 55.0f
@@ -305,8 +305,8 @@ class CCamera
 {
 public:
   CBoundingBox m_SceneBoundingBox;
-  float m_Hither;
-  float m_Yon;
+  float m_Near;
+  float m_Far;
   bool m_EnableClippingPlanes;
   glm::vec3 m_From;
   glm::vec3 m_Target;
@@ -323,8 +323,8 @@ public:
 
   CCamera(void)
   {
-    m_Hither = DEF_CAMERA_HITHER;
-    m_Yon = DEF_CAMERA_YON;
+    m_Near = DEF_CAMERA_NEAR;
+    m_Far = DEF_CAMERA_FAR;
     m_EnableClippingPlanes = DEF_CAMERA_ENABLE_CLIPPING;
     m_From = glm::vec3(500.0f, 500.0f, 500.0f);
     m_Target = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -339,8 +339,8 @@ public:
   CCamera& operator=(const CCamera& Other)
   {
     m_SceneBoundingBox = Other.m_SceneBoundingBox;
-    m_Hither = Other.m_Hither;
-    m_Yon = Other.m_Yon;
+    m_Near = Other.m_Near;
+    m_Far = Other.m_Far;
     m_EnableClippingPlanes = Other.m_EnableClippingPlanes;
     m_From = Other.m_From;
     m_Target = Other.m_Target;
