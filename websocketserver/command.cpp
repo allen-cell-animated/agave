@@ -128,7 +128,7 @@ SetCameraFocalDistanceCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "SetCameraFocalDistance " << m_data.m_x;
 
   // TODO: how will we ever set the camera back to auto focus?
-  c->m_camera->m_Focus.m_Type = CFocus::Manual;
+  c->m_camera->m_Focus.m_Type = Focus::Manual;
 
   c->m_camera->m_Focus.m_FocalDistance = m_data.m_x;
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);

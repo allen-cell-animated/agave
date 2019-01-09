@@ -225,7 +225,7 @@ GLView3D::OnUpdateCamera()
   m_CCamera.m_FovV = m_qcamera->GetProjection().GetFieldOfView();
 
   // Focus
-  m_CCamera.m_Focus.m_Type = (CFocus::EType)m_qcamera->GetFocus().GetType();
+  m_CCamera.m_Focus.m_Type = (Focus::EType)m_qcamera->GetFocus().GetType();
   m_CCamera.m_Focus.m_FocalDistance = m_qcamera->GetFocus().GetFocalDistance();
 
   rs.m_DenoiseParams.m_Enabled = m_qcamera->GetFilm().GetNoiseReduction();

@@ -13,7 +13,7 @@
 #define DEF_FOCUS_N glm::vec3(0.0f)
 #define DEF_FOCUS_DOT_WN 0.0f
 
-class CFocus
+class Focus
 {
 public:
   enum EType
@@ -32,7 +32,7 @@ public:
   glm::vec3 m_N;
   float m_DotWN;
 
-  CFocus(void)
+  Focus(void)
   {
     m_Type = DEF_FOCUS_TYPE;
     m_SensorPosCanvas = DEF_FOCUS_SENSOR_POS_CANVAS;
@@ -43,7 +43,7 @@ public:
     m_DotWN = DEF_FOCUS_DOT_WN;
   }
 
-  CFocus& operator=(const CFocus& Other)
+  Focus& operator=(const Focus& Other)
   {
     m_Type = Other.m_Type;
     m_SensorPosCanvas = Other.m_SensorPosCanvas;
@@ -64,7 +64,7 @@ public:
 
 #define MAX_BOKEH_DATA (12)
 
-class CAperture
+class Aperture
 {
 public:
   enum EBias
@@ -80,7 +80,7 @@ public:
   float m_Rotation;
   float m_Data[MAX_BOKEH_DATA];
 
-  CAperture(void)
+  Aperture(void)
   {
     m_Size = DEF_APERTURE_SIZE;
     m_NoBlades = DEF_APERTURE_NO_BLADES;
@@ -91,7 +91,7 @@ public:
       m_Data[i] = 0.0f;
   }
 
-  CAperture& operator=(const CAperture& Other)
+  Aperture& operator=(const Aperture& Other)
   {
     m_Size = Other.m_Size;
     m_NoBlades = Other.m_NoBlades;
@@ -123,26 +123,26 @@ public:
   }
 };
 
-class CResolution2D
+class Resolution2D
 {
 public:
-  CResolution2D(const float& Width, const float& Height)
+  Resolution2D(const float& Width, const float& Height)
   {
     m_XY = glm::ivec2(Width, Height);
 
     Update();
   }
 
-  CResolution2D(void)
+  Resolution2D(void)
   {
     m_XY = glm::ivec2(640, 480);
 
     Update();
   }
 
-  ~CResolution2D(void) {}
+  ~Resolution2D(void) {}
 
-  CResolution2D& operator=(const CResolution2D& Other)
+  Resolution2D& operator=(const Resolution2D& Other)
   {
     m_XY = Other.m_XY;
     m_InvXY = Other.m_InvXY;
@@ -157,12 +157,12 @@ public:
 
   int& operator[](int i) { return m_XY[i]; }
 
-  bool operator==(const CResolution2D& Other) const
+  bool operator==(const Resolution2D& Other) const
   {
     return GetResX() == Other.GetResX() && GetResY() == Other.GetResY();
   }
 
-  bool operator!=(const CResolution2D& Other) const
+  bool operator!=(const Resolution2D& Other) const
   {
     return GetResX() != Other.GetResX() || GetResY() != Other.GetResY();
   }
@@ -215,10 +215,10 @@ private:
 #define DEF_FILM_FSTOP 8.0f
 #define DEF_FILM_GAMMA 2.2f
 
-class CFilm
+class Film
 {
 public:
-  CResolution2D m_Resolution;
+  Resolution2D m_Resolution;
   float m_Screen[2][2];
   glm::vec2 m_InvScreen;
   float m_Iso;
@@ -228,7 +228,7 @@ public:
   float m_Gamma;
 
   // ToDo: Add description
-  CFilm(void)
+  Film(void)
   {
     m_Screen[0][0] = 0.0f;
     m_Screen[0][1] = 0.0f;
@@ -242,7 +242,7 @@ public:
     m_Gamma = DEF_FILM_GAMMA;
   }
 
-  CFilm& operator=(const CFilm& Other)
+  Film& operator=(const Film& Other)
   {
     m_Resolution = Other.m_Resolution;
     m_Screen[0][0] = Other.m_Screen[0][0];
@@ -316,9 +316,9 @@ public:
   glm::vec3 m_N;
   glm::vec3 m_U;
   glm::vec3 m_V;
-  CFilm m_Film;
-  CFocus m_Focus;
-  CAperture m_Aperture;
+  Film m_Film;
+  Focus m_Focus;
+  Aperture m_Aperture;
   bool m_Dirty;
 
   CCamera(void)

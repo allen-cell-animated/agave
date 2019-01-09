@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Defines.h"
-
 class Flags
 {
 private:
@@ -18,7 +16,7 @@ public:
 
   virtual ~Flags(void){};
 
-  HO Flags& operator=(const Flags& Other)
+  Flags& operator=(const Flags& Other)
   {
     m_Bits = Other.m_Bits;
 
