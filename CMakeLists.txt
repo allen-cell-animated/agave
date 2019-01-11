@@ -102,7 +102,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
   ${optix_DLL}
   # note these are release build dlls.
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/assimp-vc140-mt.dll
@@ -131,6 +130,10 @@ install(FILES
 	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zlibd1.dll
 	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zstdd.dll
 	DESTINATION ${INSTALLDIR}
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
+  DESTINATION ${INSTALLDIR}/platforms/
 )
 endif (WIN32)
 
