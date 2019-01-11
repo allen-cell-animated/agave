@@ -6,8 +6,6 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLBasicVolumeShader.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLCopyShader.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLCopyShader.h"	
-	"${CMAKE_CURRENT_SOURCE_DIR}/GLPTAccumShader.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/GLPTAccumShader.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLPTVolumeShader.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLPTVolumeShader.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLToneMapShader.cpp"

@@ -1033,10 +1033,12 @@ vec4 CalculateRadiance(inout uvec2 seed) {
 
   vec3 Pe = vec3(0,0,0), Pl = vec3(0,0,0);
   float lpdf = 0.0;
+  float alpha = 0.0;
   
   // find point Pe along ray Re
   if (SampleDistanceRM(Re, seed, Pe))
   {
+    alpha = 1.0;
       //return vec4(1.0, 1.0, 1.0, 1.0);
 
     // is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
@@ -1106,7 +1108,7 @@ vec4 CalculateRadiance(inout uvec2 seed) {
 
   // set sample pixel value in frame estimate (prior to accumulation)
 
-  return vec4(Lv, 1.0);
+  return vec4(Lv, alpha);
 }
 
 vec4 CumulativeMovingAverage(vec4 A, vec4 Ax, float N)

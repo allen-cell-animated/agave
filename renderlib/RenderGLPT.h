@@ -20,7 +20,6 @@ class RectImage2D;
 struct CudaLighting;
 struct CudaCamera;
 class GLCopyShader;
-class GLPTAccumShader;
 class GLPTVolumeShader;
 class GLToneMapShader;
 
