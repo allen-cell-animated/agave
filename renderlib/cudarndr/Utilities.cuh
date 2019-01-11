@@ -270,11 +270,8 @@ IntersectBox(const CRay& R, float* pNearT, float* pFarT)
   return SmallestMaxT > LargestMinT;
 }
 
-DEV CColorXyza
-CumulativeMovingAverage(const CColorXyza& A, const CColorXyza& Ax, const int& N)
+DEV float4
+CumulativeMovingAverage(const float4& A, const float4& Ax, int N)
 {
-  //	if (gNoIterations == 0)
-  //		return CColorXyza(0.0f);
-
-  return A + ((Ax - A) / max((float)N, 1.0f));
+  return A + ((Ax - A) / max(float(N), 1.0f));
 }

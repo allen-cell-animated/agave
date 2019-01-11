@@ -4,12 +4,6 @@
 
 #include "RNG.cuh"
 
-DEV inline float
-CumulativeMovingAverage(const float i, const float Ai, const float Xi)
-{
-  return Ai + (Xi - Ai) / (i + 1);
-}
-
 /**
         @brief Generate a 2D stratified sample
         @param[in] Pass Pass ID

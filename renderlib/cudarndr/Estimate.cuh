@@ -19,22 +19,22 @@ KrnlEstimate(float* pView, float* pViewAccum)
   int pixoffset = Y * (gFilmWidth) + (X);
   int floatoffset = pixoffset * 4;
 
-  CColorXyza ac;
-  ac.c[0] = pViewAccum[floatoffset];
-  ac.c[1] = pViewAccum[floatoffset + 1];
-  ac.c[2] = pViewAccum[floatoffset + 2];
-  ac.c[3] = pViewAccum[floatoffset + 3];
-  CColorXyza sample;
-  sample.c[0] = pView[floatoffset];
-  sample.c[1] = pView[floatoffset + 1];
-  sample.c[2] = pView[floatoffset + 2];
-  sample.c[3] = pView[floatoffset + 3];
-  CColorXyza cx = CumulativeMovingAverage(ac, sample, gNoIterations);
-  pViewAccum[floatoffset] = cx.c[0];
-  pViewAccum[floatoffset + 1] = cx.c[1];
-  pViewAccum[floatoffset + 2] = cx.c[2];
+  float4 ac;
+  ac.x = pViewAccum[floatoffset];
+  ac.y = pViewAccum[floatoffset + 1];
+  ac.z = pViewAccum[floatoffset + 2];
+  ac.w = pViewAccum[floatoffset + 3];
+  float4 sample;
+  sample.x = pView[floatoffset];
+  sample.y = pView[floatoffset + 1];
+  sample.z = pView[floatoffset + 2];
+  sample.w = pView[floatoffset + 3];
+  float4 cx = CumulativeMovingAverage(ac, sample, gNoIterations);
+  pViewAccum[floatoffset] = cx.x;
+  pViewAccum[floatoffset + 1] = cx.y;
+  pViewAccum[floatoffset + 2] = cx.z;
   // what is the correct alpha?
-  pViewAccum[floatoffset + 3] = 1.0f; // cx.c[3];
+  pViewAccum[floatoffset + 3] = cx.w;
 }
 
 void

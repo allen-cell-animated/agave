@@ -29,9 +29,10 @@ KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, un
   Re.m_MaxT = 1500000.0f;
 
   float3 Pe, Pl;
-
+  float alpha = 0.0;
   // find point Pe along ray Re
   if (volumedata.m_nChannels > 0 && SampleDistanceRM(Re, RNG, Pe, volumedata)) {
+    alpha = 1.0;
     // is there a light between Re.m_O and Pe? (ray's maxT is distance to Pe)
     int i = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, Length(Pe - Re.m_O)), Li, Pl);
     if (i > -1) {
@@ -45,11 +46,9 @@ KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, un
 
     int ch = 0;
     const float D = GetNormalizedIntensityMax4ch(Pe, volumedata, ch);
-    // const f4 D = GetIntensity4ch(Pe, volumedata);
 
     // emission from volume
     Lv += GetEmissionN(D, volumedata, ch).ToXYZ();
-    // Lv += GetBlendedEmission(volumedata, D).ToXYZ();
 
     float3 gradient = Gradient4ch(Pe, volumedata, ch);
     // send ray out from Pe toward light
@@ -103,6 +102,8 @@ KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, un
       }
     }
   } else {
+    // set alpha...?
+
     // background color
     // if (gShowLightsBackground) {
     //    int n = NearestLight(gLighting, CRay(Re.m_O, Re.m_D, 0.0f, INF_MAX), Li, Pl);
@@ -117,7 +118,7 @@ KrnlSingleScattering(cudaVolume volumedata, float* pView, unsigned int* rnd1, un
   pView[floatoffset] = Lv.c[0];
   pView[floatoffset + 1] = Lv.c[1];
   pView[floatoffset + 2] = Lv.c[2];
-  pView[floatoffset + 3] = 1.0;
+  pView[floatoffset + 3] = alpha;
 }
 
 void
