@@ -1,6 +1,6 @@
 #include "renderlib.h"
 
-#include "HardwareWidget.h"
+//#include "HardwareWidget.h"
 #include "ImageXYZC.h"
 #include "ImageXyzcCuda.h"
 #include "Logging.h"
@@ -104,7 +104,7 @@ renderlib::initialize()
   LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
   LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
 
-  DeviceSelector d;
+  //DeviceSelector d;
 
   return status;
 }

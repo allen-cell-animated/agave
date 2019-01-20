@@ -1,6 +1,5 @@
 #include "ImageXyzcCuda.h"
 
-#include "CudaUtilities.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "gl/Util.h"
@@ -13,19 +12,13 @@
 void
 ChannelCuda::allocGpu(ImageXYZC* img, int channel)
 {
-  cudaExtent volumeSize;
-  volumeSize.width = img->sizeX();
-  volumeSize.height = img->sizeY();
-  volumeSize.depth = img->sizeZ();
-
   Channelu16* ch = img->channel(channel);
 
   // LUT buffer
 
   const int LUT_SIZE = 256;
 
-  cudaChannelFormatDesc lutChannelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-  m_gpuBytes += (lutChannelDesc.x + lutChannelDesc.y + lutChannelDesc.z + lutChannelDesc.w) / 8 * LUT_SIZE;
+  m_gpuBytes += (32) / 8 * LUT_SIZE;
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenTextures(1, &m_VolumeLutGLTexture);
@@ -42,43 +35,11 @@ ChannelCuda::allocGpu(ImageXYZC* img, int channel)
 
   glBindTexture(GL_TEXTURE_2D, 0);
   check_gl("volume lut texture creation");
-
-  /////////////////////
-  // use gl interop to let cuda read this tex.
-  cudaGraphicsResource* cudaGLtexture = nullptr;
-  HandleCudaError(cudaGraphicsGLRegisterImage(
-    &cudaGLtexture, m_VolumeLutGLTexture, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsReadOnly));
-
-  HandleCudaError(cudaGraphicsMapResources(1, &cudaGLtexture));
-
-  HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&m_volumeLutArray, cudaGLtexture, 0, 0));
-
-  cudaResourceDesc texRes;
-  memset(&texRes, 0, sizeof(cudaResourceDesc));
-  texRes.resType = cudaResourceTypeArray;
-  texRes.res.array.array = m_volumeLutArray;
-  cudaTextureDesc texDescr;
-  memset(&texDescr, 0, sizeof(cudaTextureDesc));
-  texDescr.normalizedCoords = 1;
-  texDescr.filterMode = cudaFilterModeLinear;
-  texDescr.addressMode[0] = cudaAddressModeClamp; // clamp
-  texDescr.addressMode[1] = cudaAddressModeClamp;
-  texDescr.addressMode[2] = cudaAddressModeClamp;
-  texDescr.readMode = cudaReadModeElementType; // direct read the (filtered) value
-
-  HandleCudaError(cudaCreateTextureObject(&m_volumeLutTexture, &texRes, &texDescr, NULL));
-  HandleCudaError(cudaGraphicsUnmapResources(1, &cudaGLtexture));
 }
 
 void
 ChannelCuda::deallocGpu()
 {
-  HandleCudaError(cudaDestroyTextureObject(m_volumeLutTexture));
-  m_volumeLutTexture = 0;
-
-  HandleCudaError(cudaFreeArray(m_volumeLutArray));
-  m_volumeLutArray = nullptr;
-
   glDeleteTextures(1, &m_VolumeLutGLTexture);
   m_VolumeLutGLTexture = 0;
 
@@ -126,17 +87,7 @@ ImageCuda::createVolumeTextureFusedRGBA8(ImageXYZC* img)
 void
 ImageCuda::createVolumeTexture4x16(ImageXYZC* img)
 {
-  // assuming 16-bit data!
-  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(16, 16, 16, 16, cudaChannelFormatKindUnsigned);
-
-  // create 3D array
-  cudaExtent volumeSize;
-  volumeSize.width = img->sizeX();
-  volumeSize.height = img->sizeY();
-  volumeSize.depth = img->sizeZ();
-
-  m_gpuBytes += (channelDesc.x + channelDesc.y + channelDesc.z + channelDesc.w) / 8 * volumeSize.width *
-                volumeSize.height * volumeSize.depth;
+  m_gpuBytes += (16 * 4) / 8 * img->sizeX() * img->sizeY() * img->sizeZ();
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenTextures(1, &m_VolumeGLTexture);
@@ -152,32 +103,6 @@ ImageCuda::createVolumeTexture4x16(ImageXYZC* img)
   glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA16, img->sizeX(), img->sizeY(), img->sizeZ());
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("volume texture creation");
-
-  /////////////////////
-  // use gl interop to let cuda read this tex.
-  cudaGraphicsResource* cudaGLtexture = nullptr;
-  HandleCudaError(
-    cudaGraphicsGLRegisterImage(&cudaGLtexture, m_VolumeGLTexture, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
-
-  HandleCudaError(cudaGraphicsMapResources(1, &cudaGLtexture));
-
-  HandleCudaError(cudaGraphicsSubResourceGetMappedArray(&m_volumeArrayInterleaved, cudaGLtexture, 0, 0));
-
-  cudaResourceDesc texRes;
-  memset(&texRes, 0, sizeof(cudaResourceDesc));
-  texRes.resType = cudaResourceTypeArray;
-  texRes.res.array.array = m_volumeArrayInterleaved;
-  cudaTextureDesc texDescr;
-  memset(&texDescr, 0, sizeof(cudaTextureDesc));
-  texDescr.normalizedCoords = 1;
-  texDescr.filterMode = cudaFilterModeLinear;
-  texDescr.addressMode[0] = cudaAddressModeClamp; // clamp
-  texDescr.addressMode[1] = cudaAddressModeClamp;
-  texDescr.addressMode[2] = cudaAddressModeClamp;
-  texDescr.readMode = cudaReadModeNormalizedFloat;
-
-  HandleCudaError(cudaCreateTextureObject(&m_volumeTextureInterleaved, &texRes, &texDescr, NULL));
-  HandleCudaError(cudaGraphicsUnmapResources(1, &cudaGLtexture));
 }
 
 void
@@ -248,10 +173,6 @@ ImageCuda::deallocGpu()
   for (size_t i = 0; i < m_channels.size(); ++i) {
     m_channels[i].deallocGpu();
   }
-  HandleCudaError(cudaDestroyTextureObject(m_volumeTextureInterleaved));
-  m_volumeTextureInterleaved = 0;
-  HandleCudaError(cudaFreeArray(m_volumeArrayInterleaved));
-  m_volumeArrayInterleaved = nullptr;
   
   // needs current gl context.
 

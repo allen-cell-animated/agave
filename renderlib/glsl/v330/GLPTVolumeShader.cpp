@@ -1,12 +1,12 @@
 #include "GLPTVolumeShader.h"
 
 #include "AppScene.h"
-#include "BoundingBox.h"
+#include "cudarndr/BoundingBox.h"
 #include "CCamera.h"
 #include "ImageXYZC.h"
 #include "ImageXyzcCuda.h"
 
-#include "DenoiseParams.cuh"
+#include "cudarndr/DenoiseParams.cuh"
 
 #include <gl/Util.h>
 #include <glm.h>

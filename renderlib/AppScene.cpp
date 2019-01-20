@@ -1,6 +1,6 @@
 #include "AppScene.h"
 
-#include "Defines.h"
+#include "cudarndr/Defines.h"
 #include "ImageXYZC.h"
 
 #include <QColor>

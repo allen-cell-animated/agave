@@ -18,7 +18,7 @@
 class commandBuffer;
 class CCamera;
 class ImageXYZC;
-class RenderGLCuda;
+class RenderGLPT;
 class RenderSettings;
 class Scene;
 
@@ -96,7 +96,7 @@ private:
   struct myVolumeData
   {
     RenderSettings* _renderSettings;
-    RenderGLCuda* _renderer;
+    RenderGLPT* _renderer;
     Scene* _scene;
     CCamera* _camera;
 

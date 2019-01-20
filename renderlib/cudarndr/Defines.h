@@ -1,13 +1,11 @@
 #pragma once
 
-#include <cuda_runtime_api.h>
 #include <float.h>
 
-#define HO __host__
-#define DEV __device__
-#define HOD __host__ __device__
-#define CD __device__ __constant__
-#define KERNEL __global__
+#define HO 
+#define DEV 
+#define HOD 
+#define CD 
 
 #define PI_F (3.141592654f)
 #define HALF_PI_F (0.5f * PI_F)

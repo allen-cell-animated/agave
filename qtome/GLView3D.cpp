@@ -6,8 +6,6 @@
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderGL.h"
-#include "renderlib/RenderGLCuda.h"
-#include "renderlib/RenderGLOptix.h"
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/gl/Util.h"
 #include "renderlib/gl/v33/V33Image3D.h"
@@ -42,7 +40,7 @@ GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QW
   , m_etimer()
   , m_lastPos(0, 0)
   , m_renderSettings(rs)
-  , m_renderer(new RenderGLCuda(rs))
+  , m_renderer(new RenderGLPT(rs))
   ,
   //    _renderer(new RenderGL(img))
   m_qcamera(cam)
@@ -268,7 +266,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
   switch (rendererType) {
     case 1:
       LOG_DEBUG << "Set CUDA Renderer";
-      m_renderer.reset(new RenderGLCuda(m_renderSettings));
+      m_renderer.reset(new RenderGLPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
@@ -278,7 +276,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
       break;
     case 3:
       LOG_DEBUG << "Set OptiX Renderer";
-      m_renderer.reset(new RenderGLOptix(m_renderSettings));
+      m_renderer.reset(new RenderGLPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
       break;
     default:

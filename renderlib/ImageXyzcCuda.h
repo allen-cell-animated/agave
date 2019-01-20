@@ -4,14 +4,10 @@
 
 #include <vector>
 
-#include <cuda_runtime.h>
-
 class ImageXYZC;
 
 struct ChannelCuda
 {
-  cudaArray_t m_volumeLutArray = nullptr;
-  cudaTextureObject_t m_volumeLutTexture = 0;
   GLuint m_VolumeLutGLTexture = 0;
 
   int m_index;
@@ -25,8 +21,6 @@ struct ChannelCuda
 struct ImageCuda
 {
   std::vector<ChannelCuda> m_channels;
-  cudaArray_t m_volumeArrayInterleaved = nullptr;
-  cudaTextureObject_t m_volumeTextureInterleaved = 0;
   
   GLuint m_VolumeGLTexture = 0;
 

@@ -2,7 +2,7 @@
 
 #include "Spectrum.h"
 
-#include "helper_math.cuh"
+//#include "helper_math.cuh"
 
 #include <algorithm>
 #include <math.h>
@@ -161,61 +161,6 @@ operator+(const CColorRgbHdr& a, const CColorRgbHdr& b)
   return CColorRgbHdr(a.r + b.r, a.g + b.g, a.b + b.b);
 };
 
-class CRay
-{
-public:
-  // ToDo: Add description
-  HOD CRay(void){};
-
-  // ToDo: Add description
-  HOD CRay(float3 Origin, float3 Dir, float MinT, float MaxT = INF_MAX, int PixelID = 0)
-  {
-    m_O = Origin;
-    m_D = Dir;
-    m_MinT = MinT;
-    m_MaxT = MaxT;
-    m_PixelID = PixelID;
-  }
-
-  // ToDo: Add description
-  HOD ~CRay(void) {}
-
-  // ToDo: Add description
-  HOD CRay& operator=(const CRay& Other)
-  {
-    m_O = Other.m_O;
-    m_D = Other.m_D;
-    m_MinT = Other.m_MinT;
-    m_MaxT = Other.m_MaxT;
-    m_PixelID = Other.m_PixelID;
-
-    // By convention, always return *this
-    return *this;
-  }
-
-  // ToDo: Add description
-  HOD float3 operator()(float t) const { return m_O + normalize(m_D) * t; }
-
-  void PrintSelf(void)
-  {
-    // printf("Origin ");
-    // m_O.PrintSelf();
-
-    // printf("Direction ");
-    // m_D.PrintSelf();
-
-    printf("Min T: %4.2f\n", m_MinT);
-    printf("Max T: %4.2f\n", m_MaxT);
-    printf("Pixel ID: %d\n", m_PixelID);
-  }
-
-  float3 m_O;    /*!< Ray origin */
-  float3 m_D;    /*!< Ray direction */
-  float m_MinT;  /*!< Minimum parametric range */
-  float m_MaxT;  /*!< Maximum parametric range */
-  int m_PixelID; /*!< Pixel ID associated with the ray */
-};
-
 HOD inline CColorRgbHdr&
 CColorRgbHdr::operator=(const CColorXyz& S)
 {
@@ -225,12 +170,6 @@ CColorRgbHdr::operator=(const CColorXyz& S)
 
   return *this;
 }
-
-HOD inline float
-AbsDot(const float3& a, const float3& b)
-{
-  return fabsf(dot(a, b));
-};
 
 // reflect
 inline HOD float
@@ -249,42 +188,6 @@ inline HOD float
 Clamp(float f, float a, float b)
 {
   return Fmaxf(a, Fminf(f, b));
-}
-
-HOD inline float
-Length(float3 p1)
-{
-  return sqrt(dot(p1, p1));
-}
-HOD inline float
-LengthSquared(float3 p1)
-{
-  return dot(p1, p1);
-}
-HOD inline float
-DistanceSquared(float3 p1, float3 p2)
-{
-  return LengthSquared(p1 - p2);
-}
-
-HOD inline void
-CreateCS(const float3& N, float3& u, float3& v)
-{
-  if ((N.x == 0) && (N.y == 0)) {
-    if (N.z < 0.0f)
-      u = make_float3(-1.0f, 0.0f, 0.0f);
-    else
-      u = make_float3(1.0f, 0.0f, 0.0f);
-
-    v = make_float3(0.0f, 1.0f, 0.0f);
-  } else {
-    // Note: The root cannot become zero if
-    // N.x == 0 && N.y == 0.
-    const float d = 1.0f / sqrtf(N.y * N.y + N.x * N.x);
-
-    u = make_float3(N.y * d, -N.x * d, 0);
-    v = cross(N, u);
-  }
 }
 
 HOD inline CColorRgbHdr

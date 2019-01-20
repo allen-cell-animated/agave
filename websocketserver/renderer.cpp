@@ -4,7 +4,7 @@
 #include "renderlib/FileReader.h"
 #include "renderlib/HardwareWidget.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGLCuda.h"
+#include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/renderlib.h"
 
@@ -46,7 +46,7 @@ Renderer::~Renderer()
 void
 Renderer::myVolumeInit()
 {
-  DeviceSelector d;
+  //DeviceSelector d;
 
   myVolumeData._renderSettings = new RenderSettings();
 
@@ -56,7 +56,7 @@ Renderer::myVolumeInit()
   myVolumeData._scene = new Scene();
   myVolumeData._scene->initLights();
 
-  myVolumeData._renderer = new RenderGLCuda(myVolumeData._renderSettings);
+  myVolumeData._renderer = new RenderGLPT(myVolumeData._renderSettings);
   myVolumeData._renderer->initialize(1024, 1024);
   myVolumeData._renderer->setScene(myVolumeData._scene);
 }

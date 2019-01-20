@@ -1,7 +1,7 @@
 #pragma once
 
-#include "BoundingBox.h"
-#include "Defines.h"
+#include "cudarndr/BoundingBox.h"
+#include "cudarndr/Defines.h"
 
 #include "glm.h"
 

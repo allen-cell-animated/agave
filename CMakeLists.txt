@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.6)
 project(
   agave 
   VERSION 0.0.1.0
-  LANGUAGES C CXX CUDA
+  LANGUAGES C CXX
 )
 set(INSTALLDIR "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
 
@@ -52,21 +52,7 @@ find_package(Boost COMPONENTS chrono log log_setup iostreams thread system files
 
 find_package(TIFF REQUIRED)
 
-find_package(OptiX REQUIRED)
 find_package(assimp REQUIRED)
-
-set(CMAKE_CUDA_FLAGS
-  # Pascal target
-  "-gencode=arch=compute_61,code=sm_61 -Wno-deprecated-gpu-targets \
-    -gencode=arch=compute_30,code=sm_30 \
-    -gencode=arch=compute_50,code=sm_50 \
-    -gencode=arch=compute_52,code=sm_52 \
-    -gencode=arch=compute_60,code=sm_60 \
-    -gencode=arch=compute_62,code=sm_62 \
-    -gencode=arch=compute_70,code=sm_70 \
-    -gencode=arch=compute_70,code=compute_70"
-)
-
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 # find_path(GLM_PATH glm/glm.hpp)
@@ -102,7 +88,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  ${optix_DLL}
   # note these are release build dlls.
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/assimp-vc140-mt.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_chrono-vc141-mt-x64-1_68.dll

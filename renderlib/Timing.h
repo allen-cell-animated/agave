@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Defines.h"
+#include "cudarndr/Defines.h"
 
 #include <string.h> //for memset etc
 

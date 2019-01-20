@@ -1,7 +1,7 @@
 #pragma once
 
-#include "BoundingBox.h"
-#include "DenoiseParams.cuh"
+#include "cudarndr/BoundingBox.h"
+#include "cudarndr/DenoiseParams.cuh"
 #include "glm.h"
 
 #include <memory>

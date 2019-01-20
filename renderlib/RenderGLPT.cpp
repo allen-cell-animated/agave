@@ -13,8 +13,8 @@
 #include "glsl/v330/GLToneMapShader.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 
-#include "Camera2.cuh"
-#include "Lighting2.cuh"
+//#include "cudarndr/Camera2.cuh"
+//#include "cudarndr/Lighting2.cuh"
 
 #include <array>
 
@@ -42,55 +42,6 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
 RenderGLPT::~RenderGLPT() {}
 
 void
-RenderGLPT::FillCudaCamera(const CCamera* pCamera, CudaCamera& c)
-{
-  //    gVec3ToFloat3(&pCamera->m_From, &c.m_From);
-  //    gVec3ToFloat3(&pCamera->m_N, &c.m_N);
-  //    gVec3ToFloat3(&pCamera->m_U, &c.m_U);
-  //    gVec3ToFloat3(&pCamera->m_V, &c.m_V);
-  c.m_ApertureSize = pCamera->m_Aperture.m_Size;
-  c.m_FocalDistance = pCamera->m_Focus.m_FocalDistance;
-  c.m_InvScreen[0] = pCamera->m_Film.m_InvScreen.x;
-  c.m_InvScreen[1] = pCamera->m_Film.m_InvScreen.y;
-  c.m_Screen[0][0] = pCamera->m_Film.m_Screen[0][0];
-  c.m_Screen[1][0] = pCamera->m_Film.m_Screen[1][0];
-  c.m_Screen[0][1] = pCamera->m_Film.m_Screen[0][1];
-  c.m_Screen[1][1] = pCamera->m_Film.m_Screen[1][1];
-}
-
-void
-RenderGLPT::FillCudaLighting(Scene* pScene, CudaLighting& cl)
-{
-  cl.m_NoLights = pScene->m_lighting.m_NoLights;
-  for (int i = 0; i < min(cl.m_NoLights, MAX_CUDA_LIGHTS); ++i) {
-    cl.m_Lights[i].m_Theta = pScene->m_lighting.m_Lights[i].m_Theta;
-    cl.m_Lights[i].m_Phi = pScene->m_lighting.m_Lights[i].m_Phi;
-    cl.m_Lights[i].m_Width = pScene->m_lighting.m_Lights[i].m_Width;
-    cl.m_Lights[i].m_InvWidth = pScene->m_lighting.m_Lights[i].m_InvWidth;
-    cl.m_Lights[i].m_HalfWidth = pScene->m_lighting.m_Lights[i].m_HalfWidth;
-    cl.m_Lights[i].m_InvHalfWidth = pScene->m_lighting.m_Lights[i].m_InvHalfWidth;
-    cl.m_Lights[i].m_Height = pScene->m_lighting.m_Lights[i].m_Height;
-    cl.m_Lights[i].m_InvHeight = pScene->m_lighting.m_Lights[i].m_InvHeight;
-    cl.m_Lights[i].m_HalfHeight = pScene->m_lighting.m_Lights[i].m_HalfHeight;
-    cl.m_Lights[i].m_InvHalfHeight = pScene->m_lighting.m_Lights[i].m_InvHalfHeight;
-    cl.m_Lights[i].m_Distance = pScene->m_lighting.m_Lights[i].m_Distance;
-    cl.m_Lights[i].m_SkyRadius = pScene->m_lighting.m_Lights[i].m_SkyRadius;
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_P, &cl.m_Lights[i].m_P);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_Target, &cl.m_Lights[i].m_Target);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_N, &cl.m_Lights[i].m_N);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_U, &cl.m_Lights[i].m_U);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_V, &cl.m_Lights[i].m_V);
-    cl.m_Lights[i].m_Area = pScene->m_lighting.m_Lights[i].m_Area;
-    cl.m_Lights[i].m_AreaPdf = pScene->m_lighting.m_Lights[i].m_AreaPdf;
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_Color, &cl.m_Lights[i].m_Color);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_ColorTop, &cl.m_Lights[i].m_ColorTop);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_ColorMiddle, &cl.m_Lights[i].m_ColorMiddle);
-    //		gVec3ToFloat3(&pScene->m_lighting.m_Lights[i].m_ColorBottom, &cl.m_Lights[i].m_ColorBottom);
-    cl.m_Lights[i].m_T = pScene->m_lighting.m_Lights[i].m_T;
-  }
-}
-
-void
 RenderGLPT::cleanUpFB()
 {
   // destroy the framebuffer texture
@@ -103,14 +54,6 @@ RenderGLPT::cleanUpFB()
   if (m_fb) {
     glDeleteFramebuffers(1, &m_fb);
     m_fb = 0;
-  }
-  if (m_randomSeeds1) {
-    HandleCudaError(cudaFree(m_randomSeeds1));
-    m_randomSeeds1 = nullptr;
-  }
-  if (m_randomSeeds2) {
-    HandleCudaError(cudaFree(m_randomSeeds2));
-    m_randomSeeds2 = nullptr;
   }
 
   if (m_fbF32) {
@@ -201,21 +144,10 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 
   {
     unsigned int* pSeeds = (unsigned int*)malloc(w * h * sizeof(unsigned int));
-
-    HandleCudaError(cudaMalloc((void**)&m_randomSeeds1, w * h * sizeof(unsigned int)));
     memset(pSeeds, 0, w * h * sizeof(unsigned int));
     for (unsigned int i = 0; i < w * h; i++)
       pSeeds[i] = rand();
-    HandleCudaError(cudaMemcpy(m_randomSeeds1, pSeeds, w * h * sizeof(unsigned int), cudaMemcpyHostToDevice));
-    m_gpuBytes += w * h * sizeof(unsigned int);
-
-    HandleCudaError(cudaMalloc((void**)&m_randomSeeds2, w * h * sizeof(unsigned int)));
-    memset(pSeeds, 0, w * h * sizeof(unsigned int));
-    for (unsigned int i = 0; i < w * h; i++)
-      pSeeds[i] = rand();
-    HandleCudaError(cudaMemcpy(m_randomSeeds2, pSeeds, w * h * sizeof(unsigned int), cudaMemcpyHostToDevice));
-    m_gpuBytes += w * h * sizeof(unsigned int);
-
+    //m_gpuBytes += w * h * sizeof(unsigned int);
     free(pSeeds);
   }
 
@@ -280,7 +212,7 @@ RenderGLPT::doRender(const CCamera& camera)
   GLint drawFboId = 0;
   glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 
-  if (!m_imgCuda.m_volumeTextureInterleaved || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
+  if (!m_imgCuda.m_VolumeGLTexture || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
     initVolumeTextureCUDA();
     // we have set up everything there is to do before rendering
     m_status.SetRenderBegin();
@@ -339,10 +271,10 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
-  CudaLighting cudalt;
-  FillCudaLighting(m_scene, cudalt);
-  CudaCamera cudacam;
-  FillCudaCamera(&(camera), cudacam);
+  //CudaLighting cudalt;
+  //FillCudaLighting(m_scene, cudalt);
+  //CudaCamera cudacam;
+  //FillCudaCamera(&(camera), cudacam);
 
   glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
   glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
@@ -418,7 +350,7 @@ RenderGLPT::doRender(const CCamera& camera)
   // m_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)m_renderSettings->GetNoIterations(), 1.0f)
   // * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
   // (float)gScene.GetNoIterations());
-  m_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)m_renderSettings->GetNoIterations(), 1.0f) * 0.035f);
+  m_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (std::max((float)m_renderSettings->GetNoIterations(), 1.0f) * 0.035f);
   // 1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
   // (float)gScene.GetNoIterations());
   //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResX()

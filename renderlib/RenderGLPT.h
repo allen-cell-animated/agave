@@ -6,7 +6,7 @@
 #include "AppScene.h"
 #include "RenderSettings.h"
 
-#include "CudaUtilities.h"
+//#include "CudaUtilities.h"
 #include "ImageXyzcCuda.h"
 #include "Status.h"
 #include "Timing.h"
