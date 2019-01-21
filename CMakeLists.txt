@@ -31,6 +31,8 @@ if (WIN32)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 else (WIN32)
   # linux: QTDIR = /opt/qt59
+  set(QTDIR /opt/local/libexec/qt5)
+  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 endif (WIN32)
 
 find_package(Qt5Widgets)
