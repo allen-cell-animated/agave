@@ -33,7 +33,6 @@ endif (MSVC)
 target_link_libraries(websocketserverapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
-	${ASSIMP_LIBRARIES}
 	${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
 )

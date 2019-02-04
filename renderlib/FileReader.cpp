@@ -12,10 +12,6 @@
 #include <tiff.h>
 #include <tiffio.h>
 
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
-#include "assimp/scene.h"
-
 #include <map>
 
 std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCache;
@@ -359,72 +355,3 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   return sharedImage;
 }
 
-Assimp::Importer*
-FileReader::loadAsset(const char* path, CBoundingBox* bb)
-{
-  QElapsedTimer t;
-  t.start();
-
-  Assimp::Importer* importer = new Assimp::Importer;
-
-  const aiScene* scene =
-    importer->ReadFile(path,
-                       aiProcess_Triangulate
-                         //| aiProcess_JoinIdenticalVertices
-                         | aiProcess_SortByPType | aiProcess_ValidateDataStructure | aiProcess_SplitLargeMeshes |
-                         aiProcess_FixInfacingNormals | aiProcess_GenSmoothNormals);
-  if (scene) {
-    // getBoundingBox(&scene_min, &scene_max);
-    // scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
-    // scene_center.y = (scene_min.y + scene_max.y) / 2.0f;
-    // scene_center.z = (scene_min.z + scene_max.z) / 2.0f;
-
-    // float3 optixMin = { scene_min.x, scene_min.y, scene_min.z };
-    // float3 optixMax = { scene_max.x, scene_max.y, scene_max.z };
-    // aabb.set(optixMin, optixMax);
-
-    unsigned int numVerts = 0;
-    unsigned int numFaces = 0;
-
-    if (scene->mNumMeshes > 0) {
-      printf("Number of meshes: %d\n", scene->mNumMeshes);
-
-      // get the running total number of vertices & faces for all meshes
-      for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
-        numVerts += scene->mMeshes[i]->mNumVertices;
-        numFaces += scene->mMeshes[i]->mNumFaces;
-      }
-      printf("Found %d Vertices and %d Faces\n", numVerts, numFaces);
-
-      for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
-        aiMesh* mesh = scene->mMeshes[m];
-        if (!mesh->HasPositions()) {
-          throw std::runtime_error("Mesh contains zero vertex positions");
-        }
-        if (!mesh->HasNormals()) {
-          throw std::runtime_error("Mesh contains zero vertex normals");
-        }
-
-        printf("Mesh #%d\n\tNumVertices: %d\n\tNumFaces: %d\n", m, mesh->mNumVertices, mesh->mNumFaces);
-
-        // add points
-        for (unsigned int i = 0u; i < mesh->mNumVertices; i++) {
-          aiVector3D pos = mesh->mVertices[i];
-          aiVector3D norm = mesh->mNormals[i];
-
-          *bb += glm::vec3(pos.x, pos.y, pos.z);
-        }
-      }
-
-      printf("BBOX: X:(%f,%f)  Y:(%f,%f)  Z:(%f,%f)\n",
-             bb->GetMinP().x,
-             bb->GetMaxP().x,
-             bb->GetMinP().y,
-             bb->GetMaxP().y,
-             bb->GetMinP().z,
-             bb->GetMaxP().z);
-    }
-  }
-  LOG_DEBUG << "Loaded mesh in " << t.elapsed() << "ms";
-  return importer;
-}

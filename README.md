@@ -1,7 +1,7 @@
 For windows: make sure you are in an environment where vsvarsall has been run, e.g. a "VS2017 x64 Native Tools Command Prompt"
 
 Install CUDA.
-Use vcpkg to install boost, tiff, assimp, glm.
+Use vcpkg to install boost, tiff, glm.
 
 * for CUDA 9, need to use at least boost 1.65-1 due to an issue with __CUDACC_VER__ .
 ```
@@ -12,14 +12,13 @@ cmake --build .
 ```
 Mac:
 sudo port install boost
-sudo port install assimp
 sudo port install glm
 sudo port install qt5
+cmake -G Xcode ..
 
 For linux:
 
 * sudo apt install libboost-all-dev
-* libassimp-dev
 * ensure cuda is installed properly according to http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
 
 * https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux

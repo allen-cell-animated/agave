@@ -9,7 +9,6 @@ add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${ASSIMP_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 	${TIFF_INCLUDE_DIR}

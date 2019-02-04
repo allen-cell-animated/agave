@@ -7,8 +7,6 @@
 #include <memory>
 #include <vector>
 
-#include "assimp/Importer.hpp"
-
 class ImageXYZC;
 
 class RenderParams
@@ -192,5 +190,4 @@ public:
 
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 
-  std::vector<std::shared_ptr<Assimp::Importer>> m_meshes;
 };
