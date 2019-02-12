@@ -71,7 +71,13 @@ target_link_libraries(qtomeapp
 	${Boost_LIBRARIES}
 )
 
+if (APPLE)
+install(TARGETS qtomeapp
+	RUNTIME DESTINATION ./MacOS/ 
+)
+else ()
 install(TARGETS qtomeapp
 	RUNTIME DESTINATION ${INSTALLDIR} 
 )
+endif(APPLE)
 

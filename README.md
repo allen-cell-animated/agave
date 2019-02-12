@@ -10,11 +10,24 @@ cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 15 2017 Win64" -DVCPKG_TARGET_TRIPLET=x64-windows -DOptiX_INSTALL_DIR="C:\ProgramData\NVIDIA Corporation\OptiX SDK 5.1.1" ..
 cmake --build .
 ```
-Mac:
+
+For Mac: (using macports)
+
+```
 sudo port install boost
 sudo port install glm
 sudo port install qt5
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+sudo cpack -G DragNDrop CPackConfig.cmake
+```
+OR
+```
 cmake -G Xcode ..
+```
 
 For linux:
 

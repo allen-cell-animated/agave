@@ -37,6 +37,12 @@ target_link_libraries(websocketserverapp
 	${Boost_LIBRARIES}
 )
 
+if (APPLE)
 install(TARGETS websocketserverapp
-   RUNTIME DESTINATION ${INSTALLDIR} 
+	RUNTIME DESTINATION ./MacOS/ 
 )
+else ()
+install(TARGETS websocketserverapp
+	RUNTIME DESTINATION ${INSTALLDIR} 
+)
+endif(APPLE)

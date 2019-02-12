@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.6)
 
+if (APPLE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
+endif(APPLE)
+
 project(
   agave 
   VERSION 0.0.1.0
   LANGUAGES C CXX
 )
-set(INSTALLDIR "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
 
 # Add paths to our CMake code to the module path, so they can be found automatically by
 # CMake.
@@ -36,9 +39,9 @@ else (WIN32)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 endif (WIN32)
 
-if (MACOS)
+if (APPLE)
   set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
-endif (MACOS)
+endif (APPLE)
 
 find_package(Qt5Widgets)
 find_package(Qt5Core)
@@ -71,7 +74,15 @@ add_subdirectory(renderlib)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+if (APPLE)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.app/Contents)
+  set(INSTALLDIR "${CMAKE_INSTALL_PREFIX}")
+else ()
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+  set(INSTALLDIR "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
+endif(APPLE)
+message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "INSTALLDIR: ${INSTALLDIR}")
 
 ######################
 # THE FRONT END QT EXE
@@ -81,6 +92,11 @@ add_subdirectory(qtome)
 # THE FRONT END QT WEBSOCKET SERVER EXE
 #######################################
 add_subdirectory(websocketserver)
+
+######################
+# CPack
+######################
+
 
 # copy all dlls into place.
 if (WIN32)
@@ -123,7 +139,109 @@ install(FILES
   $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
   DESTINATION ${INSTALLDIR}/platforms/
 )
+
+# Note Mac specific extension .app
+set(APPS ${INSTALLDIR})
+
+# Directories to look for dependencies
+set(DIRS "${CMAKE_BINARY_DIR}")
+
+# Path used for searching by FIND_XXX(), with appropriate suffixes added
+if(CMAKE_PREFIX_PATH)
+  foreach(dir ${CMAKE_PREFIX_PATH})
+    list(APPEND DIRS "${dir}/bin" "${dir}/lib")
+  endforeach()
+endif()
+
+# Append Qt's lib folder which is two levels above Qt5Widgets_DIR
+list(APPEND DIRS "${Qt5Widgets_DIR}/../..")
+list(APPEND DIRS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+
+include(InstallRequiredSystemLibraries)
+
+message(STATUS "APPS: ${APPS}")
+message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
+message(STATUS "DIRS: ${DIRS}")
+
+install(CODE "include(BundleUtilities)
+  fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
+
+elseif (APPLE)
+
+set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
+add_definitions(-DPACKAGE_OSX_TARGET)
+
+install(FILES 
+  # ${PROJECT_SOURCE_DIR}/LICENSE.txt
+  # ${PROJECT_SOURCE_DIR}/HELP.txt
+  $<TARGET_FILE:Qt5::Widgets>
+  $<TARGET_FILE:Qt5::Core>
+  $<TARGET_FILE:Qt5::Gui>
+  $<TARGET_FILE:Qt5::Xml>
+  $<TARGET_FILE:Qt5::Network>
+  $<TARGET_FILE:Qt5::WebSockets>
+	DESTINATION ./Frameworks/
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
+  DESTINATION ./PlugIns/platforms/
+)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+  "[Paths]\nPlugins = PlugIns\n")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+  DESTINATION ./Resources/)
+
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+  DESTINATION .)
+
+# Note Mac specific extension .app
+set(APPS ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.app)
+
+# Directories to look for dependencies
+set(DIRS "${CMAKE_BINARY_DIR}")
+
+# Path used for searching by FIND_XXX(), with appropriate suffixes added
+if(CMAKE_PREFIX_PATH)
+  foreach(dir ${CMAKE_PREFIX_PATH})
+    list(APPEND DIRS "${dir}/bin" "${dir}/lib")
+  endforeach()
+endif()
+
+# Append Qt's lib folder
+# list(APPEND DIRS "${QTDIR}/lib")
+list(APPEND DIRS "/opt/local/lib")
+list(APPEND DIRS "/usr/local/opt/libtiff/lib")
+
+include(InstallRequiredSystemLibraries)
+
+message(STATUS "APPS: ${APPS}")
+message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
+message(STATUS "DIRS: ${DIRS}")
+
+install(CODE "include(BundleUtilities)
+  fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
+
+set(CPACK_GENERATOR "DRAGNDROP")
+# SET(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a volume viewer using cinematic rendering techniques with realistic lighting")
+SET(CPACK_PACKAGE_VENDOR "AICS")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "agave")
+# SET(CPACK_STRIP_FILES ON)
+SET(CPACK_PACKAGE_EXECUTABLES "agave-desktop" "Agave")
+# SET(CPACK_RPM_PACKAGE_LICENSE "GPLv2+")
+# SET(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
+# SET(CPACK_RPM_PACKAGE_URL "http://allencell.org/")
+# SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <animated-cell@allencell.org>")
+# SET(CPACK_DEBIAN_PACKAGE_SECTION "science") # or graphics?
+# SET(CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}+deb1")
+# SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_RPM_PACKAGE_URL}")
+# SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+include(CPack)
+
 endif (WIN32)
-
-
-
