@@ -22,6 +22,8 @@ class Command
 public:
   // return number of bytes advanced
   virtual void execute(ExecutionContext* context) = 0;
+
+  virtual ~Command() {}
 };
 
 #define CMDDECL(NAME, CMDID)                                                                                           \
