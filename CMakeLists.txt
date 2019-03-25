@@ -41,6 +41,7 @@ endif (WIN32)
 
 if (APPLE)
   set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
+  set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
 find_package(Qt5Widgets)
@@ -83,6 +84,9 @@ else ()
 endif(APPLE)
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "INSTALLDIR: ${INSTALLDIR}")
+message(STATUS "CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 ######################
 # THE FRONT END QT EXE
@@ -222,7 +226,10 @@ message(STATUS "DIRS: ${DIRS}")
 install(CODE "include(BundleUtilities)
   fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
 
-set(CPACK_GENERATOR "DRAGNDROP")
+set(CPACK_GENERATOR "DragNDrop")
+set(CPACK_DMG_FORMAT "UDBZ")
+set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")
+set(CPACK_SYSTEM_NAME "OSX")
 # SET(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a volume viewer using cinematic rendering techniques with realistic lighting")
 SET(CPACK_PACKAGE_VENDOR "AICS")
