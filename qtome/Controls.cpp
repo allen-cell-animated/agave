@@ -70,7 +70,7 @@ QColorPushButton::GetMargin(void) const
 void
 QColorPushButton::SetMargin(const int& Margin)
 {
-  m_Margin = m_Margin;
+  m_Margin = Margin;
   update();
 }
 
@@ -83,7 +83,7 @@ QColorPushButton::GetRadius(void) const
 void
 QColorPushButton::SetRadius(const int& Radius)
 {
-  m_Radius = m_Radius;
+  m_Radius = Radius;
   update();
 }
 

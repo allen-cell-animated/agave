@@ -492,6 +492,7 @@ public:
       case ViewModeIsometricBackRightBottom:
         m_From = m_Target + glm::vec3(-Length, -Length, Length);
         break;
+      default: break;
     }
 
     Update();
