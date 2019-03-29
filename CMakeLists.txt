@@ -36,7 +36,8 @@ if (WIN32)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 else (WIN32)
   # linux: QTDIR = /opt/qt59
-  set(QTDIR /opt/local/libexec/qt5)
+  # mac official Qt install:
+  set(QTDIR ~/Qt/5.12.2/clang_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 endif (WIN32)
 
