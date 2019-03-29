@@ -1,4 +1,4 @@
-add_executable(qtomeapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+add_executable(qtomeapp WIN32 MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(qtomeapp PROPERTIES OUTPUT_NAME "agave-desktop")
 target_include_directories(qtomeapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"

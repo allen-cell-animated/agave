@@ -1,4 +1,4 @@
-add_executable(websocketserverapp "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+add_executable(websocketserverapp WIN32 MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(websocketserverapp PROPERTIES OUTPUT_NAME "agave-server")
 target_include_directories(websocketserverapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
@@ -37,12 +37,7 @@ target_link_libraries(websocketserverapp
 	${Boost_LIBRARIES}
 )
 
-if (APPLE)
 install(TARGETS websocketserverapp
-	RUNTIME DESTINATION ./MacOS/ 
-)
-else ()
-install(TARGETS websocketserverapp
+	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR} 
 )
-endif(APPLE)
