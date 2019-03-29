@@ -1,4 +1,4 @@
-add_executable(qtomeapp "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+add_executable(qtomeapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(qtomeapp PROPERTIES OUTPUT_NAME "agave-desktop")
 target_include_directories(qtomeapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
@@ -66,18 +66,13 @@ endif (MSVC)
 
 target_link_libraries(qtomeapp 
 	renderlib 
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::Xml
 	${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
 )
 
-if (APPLE)
 install(TARGETS qtomeapp
-	RUNTIME DESTINATION ./MacOS/ 
-)
-else ()
-install(TARGETS qtomeapp
+	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR} 
 )
-endif(APPLE)
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 if (APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
 project(
@@ -75,13 +75,9 @@ add_subdirectory(renderlib)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-if (APPLE)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.app/Contents)
-  set(INSTALLDIR "${CMAKE_INSTALL_PREFIX}")
-else ()
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-  set(INSTALLDIR "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
-endif(APPLE)
+set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+set(INSTALLDIR "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
+
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "INSTALLDIR: ${INSTALLDIR}")
 message(STATUS "CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
@@ -95,7 +91,7 @@ add_subdirectory(qtome)
 #######################################
 # THE FRONT END QT WEBSOCKET SERVER EXE
 #######################################
-add_subdirectory(websocketserver)
+# add_subdirectory(websocketserver)
 
 ######################
 # CPack
@@ -170,37 +166,40 @@ message(STATUS "DIRS: ${DIRS}")
 install(CODE "include(BundleUtilities)
   fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
 
+################
 elseif (APPLE)
+################
 
 set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
 add_definitions(-DPACKAGE_OSX_TARGET)
 
 install(FILES 
-  # ${PROJECT_SOURCE_DIR}/LICENSE.txt
-  # ${PROJECT_SOURCE_DIR}/HELP.txt
   $<TARGET_FILE:Qt5::Widgets>
   $<TARGET_FILE:Qt5::Core>
   $<TARGET_FILE:Qt5::Gui>
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
-  $<TARGET_FILE:Qt5::WebSockets>
-	DESTINATION ./Frameworks/
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/Frameworks/
 )
 install(FILES 
   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
-  DESTINATION ./PlugIns/platforms/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/PlugIns/platforms/
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/MacOS/platforms/
 )
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
   "[Paths]\nPlugins = PlugIns\n")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-  DESTINATION ./Resources/)
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/Resources/)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-  DESTINATION .)
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/)
 
 # Note Mac specific extension .app
-set(APPS ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.app)
+set(APPS "\${CMAKE_INSTALL_PREFIX}/agave-desktop.app")
 
 # Directories to look for dependencies
 set(DIRS "${CMAKE_BINARY_DIR}")
@@ -219,36 +218,48 @@ list(APPEND DIRS "/usr/local/opt/libtiff/lib")
 
 include(InstallRequiredSystemLibraries)
 
-message(STATUS "APPS: ${APPS}")
-message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
-message(STATUS "DIRS: ${DIRS}")
+# message(STATUS "APPS: ${APPS}")
+# message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
+# message(STATUS "DIRS: ${DIRS}")
 
-install(CODE "include(BundleUtilities)
-  fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
+# install(CODE "include(BundleUtilities)
+#   fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
+
+
+IF(APPLE)
+  # set how it shows up in the Info.plist file
+  # SET(MACOSX_BUNDLE_ICON_FILE JPSvis.icns)
+  # SET(MACOSX_GUI_ICON JPSvis.icns)
+  # set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist.in)
+  SET(MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
+  SET(MACOSX_BUNDLE_BUNDLE_NAME "agave-desktop")
+  SET(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
+  SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version ${PROJECT_VERSION}")
+  SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
+  SET(MACOSX_GUI_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
+  SET(MACOSX_BUNDLE_GUI_IDENTIFIER "www.allencell.org")
+ENDIF(APPLE)
+
+
+set(CPACK_BINARY_DRAGNDROP ON)
+set(CPACK_PACKAGE_NAME "agave-desktop")
+set(CPACK_PACKAGE_VENDOR "www.allencell.org")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "agave - Advanced GPU Allen Volume Explorer")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+SET(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+# set(CPACK_PACKAGE_INSTALL_DIRECTORY "agave_dir")
+
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
 
 set(CPACK_GENERATOR "DragNDrop")
 set(CPACK_DMG_FORMAT "UDBZ")
 set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")
 set(CPACK_SYSTEM_NAME "OSX")
-# SET(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a volume viewer using cinematic rendering techniques with realistic lighting")
-SET(CPACK_PACKAGE_VENDOR "AICS")
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "agave")
-# SET(CPACK_STRIP_FILES ON)
-SET(CPACK_PACKAGE_EXECUTABLES "agave-desktop" "Agave")
-# SET(CPACK_RPM_PACKAGE_LICENSE "GPLv2+")
-# SET(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
-# SET(CPACK_RPM_PACKAGE_URL "http://allencell.org/")
-# SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <animated-cell@allencell.org>")
-# SET(CPACK_DEBIAN_PACKAGE_SECTION "science") # or graphics?
-# SET(CPACK_DEBIAN_PACKAGE_VERSION "${VERSION}+deb1")
-# SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_RPM_PACKAGE_URL}")
-# SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")  
+
 include(CPack)
 
 endif (WIN32)

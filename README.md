@@ -22,7 +22,8 @@ cd build
 cmake ..
 make
 sudo make install
-sudo cpack -G DragNDrop CPackConfig.cmake
+sudo /opt/local/libexec/qt5/bin/macdeployqt agave-desktop.app -libpath=/opt/local/lib
+# sudo cpack -G DragNDrop CPackConfig.cmake
 ```
 OR
 ```
