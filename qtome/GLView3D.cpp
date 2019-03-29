@@ -265,7 +265,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
 
   switch (rendererType) {
     case 1:
-      LOG_DEBUG << "Set CUDA Renderer";
+      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
       m_renderer.reset(new RenderGLPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
@@ -280,7 +280,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
       m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
       break;
     default:
-      LOG_DEBUG << "Set OpenGL Renderer";
+      LOG_DEBUG << "Set OpenGL single pass Renderer";
       m_renderer.reset(new RenderGL(m_renderSettings));
   };
   m_rendererType = rendererType;
