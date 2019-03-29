@@ -14,15 +14,15 @@ cmake --build .
 For Mac: (using macports)
 
 ```
+# use official install of Qt for Mac
 sudo port install boost
 sudo port install glm
-sudo port install qt5
 mkdir build
 cd build
 cmake ..
 make
 sudo make install
-sudo /opt/local/libexec/qt5/bin/macdeployqt agave-desktop.app -libpath=/opt/local/lib
+sudo $HOME/Qt/5.12.2/clang_64/bin/macdeployqt agave-desktop.app -libpath=/opt/local/lib -always-overwrite -appstore-compliant
 # sudo cpack -G DragNDrop CPackConfig.cmake
 ```
 OR
