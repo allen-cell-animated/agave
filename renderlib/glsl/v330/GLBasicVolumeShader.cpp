@@ -1,6 +1,8 @@
 #include "GLBasicVolumeShader.h"
 #include "glad/glad.h"
 
+#include "Logging.h"
+
 #include <gl/Util.h>
 #include <glm.h>
 
@@ -33,7 +35,7 @@ void main()
 	)");
 
   if (!vshader->isCompiled()) {
-    std::cerr << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString() << std::endl;
+    LOG_ERROR << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString();
   }
 
   fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -200,8 +202,8 @@ void main()
     )");
 
   if (!fshader->isCompiled()) {
-    std::cerr << "GLBasicVolumeShader: Failed to compile fragment shader\n"
-              << fshader->log().toStdString() << std::endl;
+    LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n"
+              << fshader->log().toStdString();
   }
 
   addShader(vshader);
@@ -209,12 +211,12 @@ void main()
   link();
 
   if (!isLinked()) {
-    std::cerr << "GLBasicVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
+    LOG_ERROR << "GLBasicVolumeShader: Failed to link shader program\n" << log().toStdString();
   }
 
   attr_coords = attributeLocation("position");
   if (attr_coords == -1)
-    std::cerr << "GLBasicVolumeShader: Failed to bind coordinates" << std::endl;
+    LOG_ERROR << "GLBasicVolumeShader: Failed to bind coordinates";
 
   uModelViewMatrix = uniformLocation("modelViewMatrix");
   uProjectionMatrix = uniformLocation("projectionMatrix");

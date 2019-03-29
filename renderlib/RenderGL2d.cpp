@@ -31,7 +31,7 @@ void RenderGL2d::initialize(uint32_t w, uint32_t h)
 
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
-	std::cout << "Texture unit count: " << max_combined_texture_image_units << std::endl;
+	LOG_INFO << "Texture unit count: " << max_combined_texture_image_units;
 
 	image->create();
 

@@ -5,6 +5,7 @@
 #include "CCamera.h"
 #include "ImageXYZC.h"
 #include "ImageXyzcCuda.h"
+#include "Logging.h"
 
 #include "cudarndr/DenoiseParams.cuh"
 
@@ -36,7 +37,7 @@ void main()
 	)");
 
   if (!m_vshader->isCompiled()) {
-    std::cerr << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
+    LOG_ERROR << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -1134,7 +1135,7 @@ void main()
     )");
 
   if (!m_fshader->isCompiled()) {
-    std::cerr << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString() << std::endl;
+    LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);
@@ -1142,7 +1143,7 @@ void main()
   link();
 
   if (!isLinked()) {
-    std::cerr << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
+    LOG_ERROR << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString();
   }
 
   m_volumeTexture = uniformLocation("volumeTexture");

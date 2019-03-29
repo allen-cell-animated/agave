@@ -2,6 +2,8 @@
 #include <gl/Util.h>
 #include <glm.h>
 
+#include "Logging.h"
+
 #include <iostream>
 
 GLFlatShader2D::GLFlatShader2D()
@@ -32,7 +34,7 @@ GLFlatShader2D::GLFlatShader2D()
                                "  outData.f_colour = colour;\n"
                                "}\n");
   if (!m_vshader->isCompiled()) {
-    std::cerr << "Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
+    LOG_ERROR << "Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -49,8 +51,8 @@ GLFlatShader2D::GLFlatShader2D()
                                "  outputColour = inData.f_colour;\n"
                                "}\n");
   if (!m_fshader->isCompiled()) {
-    std::cerr << "V330GLFlatShader2D: Failed to compile fragment shader\n"
-              << m_fshader->log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLFlatShader2D: Failed to compile fragment shader\n"
+              << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);
@@ -58,24 +60,24 @@ GLFlatShader2D::GLFlatShader2D()
   link();
 
   if (!isLinked()) {
-    std::cerr << "V330GLFlatShader2D: Failed to link shader program\n" << log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLFlatShader2D: Failed to link shader program\n" << log().toStdString();
   }
 
   m_attr_coords = attributeLocation("coord2d");
   if (m_attr_coords == -1)
-    std::cerr << "V330GLFlatShader2D: Failed to bind coordinate location" << std::endl;
+    LOG_ERROR << "V330GLFlatShader2D: Failed to bind coordinate location";
 
   m_uniform_colour = uniformLocation("colour");
   if (m_uniform_colour == -1)
-    std::cerr << "V330GLFlatShader2D: Failed to bind colour" << std::endl;
+    LOG_ERROR << "V330GLFlatShader2D: Failed to bind colour";
 
   m_uniform_offset = uniformLocation("offset");
   if (m_uniform_offset == -1)
-    std::cerr << "V330GLFlatShader2D: Failed to bind offset" << std::endl;
+    LOG_ERROR << "V330GLFlatShader2D: Failed to bind offset";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
-    std::cerr << "V330GLFlatShader2D: Failed to bind transform" << std::endl;
+    LOG_ERROR << "V330GLFlatShader2D: Failed to bind transform";
 }
 
 GLFlatShader2D::~GLFlatShader2D() {}

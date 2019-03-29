@@ -1,5 +1,7 @@
 #include "V330GLLineShader2D.h"
 
+#include "Logging.h"
+
 #include <gl/Util.h>
 #include <glm.h>
 
@@ -37,7 +39,7 @@ GLLineShader2D::GLLineShader2D()
     "  outData.f_colour = vec4(colour, 1.0 / (1.0 + pow(10.0,((-logzoom-1.0+coord2d[2])*30.0))));\n"
     "}\n");
   if (!m_vshader->isCompiled()) {
-    std::cerr << "V330GLLineShader2D: Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -54,8 +56,8 @@ GLLineShader2D::GLLineShader2D()
                                "  outputColour = inData.f_colour;\n"
                                "}\n");
   if (!m_fshader->isCompiled()) {
-    std::cerr << "V330GLLineShader2D: Failed to compile fragment shader\n"
-              << m_fshader->log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to compile fragment shader\n"
+              << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);
@@ -63,24 +65,24 @@ GLLineShader2D::GLLineShader2D()
   link();
 
   if (!isLinked()) {
-    std::cerr << "V330GLLineShader2D: Failed to link shader program\n" << log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to link shader program\n" << log().toStdString();
   }
 
   m_attr_coords = attributeLocation("coord2d");
   if (m_attr_coords == -1)
-    std::cerr << "V330GLLineShader2D: Failed to bind coordinate location" << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to bind coordinate location";
 
   m_attr_colour = attributeLocation("colour");
   if (m_attr_coords == -1)
-    std::cerr << "V330GLLineShader2D: Failed to bind colour location" << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to bind colour location";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
-    std::cerr << "V330GLLineShader2D: Failed to bind transform" << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to bind transform";
 
   m_uniform_zoom = uniformLocation("zoom");
   if (m_uniform_zoom == -1)
-    std::cerr << "V330GLLineShader2D: Failed to bind zoom factor" << std::endl;
+    LOG_ERROR << "V330GLLineShader2D: Failed to bind zoom factor";
 }
 
 GLLineShader2D::~GLLineShader2D() {}

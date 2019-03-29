@@ -1,6 +1,8 @@
 #include "glad/glad.h"
 #include "GLToneMapShader.h"
 
+#include "Logging.h"
+
 #include <glm.h>
 #include <gl/Util.h>
 
@@ -32,7 +34,7 @@ void main()
 
     if (!m_vshader->isCompiled())
     {
-        std::cerr << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
+        LOG_ERROR << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
     }
 
     m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -72,7 +74,7 @@ void main()
 
     if (!m_fshader->isCompiled())
     {
-        std::cerr << "GLToneMapShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString() << std::endl;
+        LOG_ERROR << "GLToneMapShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
     }
 
     addShader(m_vshader);
@@ -81,7 +83,7 @@ void main()
 
     if (!isLinked())
     {
-        std::cerr << "GLToneMapShader: Failed to link shader program\n" << log().toStdString() << std::endl;
+        LOG_ERROR << "GLToneMapShader: Failed to link shader program\n" << log().toStdString();
     }
 	
     m_texture = uniformLocation("tTexture0");

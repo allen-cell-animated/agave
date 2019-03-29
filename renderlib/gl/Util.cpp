@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
+#include "Logging.h"
 
 #include "glm.h"
 
@@ -12,34 +13,34 @@ check_gl(std::string const& message)
 {
   GLenum err = GL_NO_ERROR;
   while ((err = glGetError()) != GL_NO_ERROR) {
-    std::cerr << "GL error (" << message << ") :";
+    std::string msg = "GL error (" + message + ") :";
     switch (err) {
       case GL_INVALID_ENUM:
-        std::cerr << "Invalid enum";
+        msg += "Invalid enum";
         break;
       case GL_INVALID_VALUE:
-        std::cerr << "Invalid value";
+        msg += "Invalid value";
         break;
       case GL_INVALID_OPERATION:
-        std::cerr << "Invalid operation";
+        msg += "Invalid operation";
         break;
       case GL_INVALID_FRAMEBUFFER_OPERATION:
-        std::cerr << "Invalid framebuffer operation";
+        msg += "Invalid framebuffer operation";
         break;
       case GL_OUT_OF_MEMORY:
-        std::cerr << "Out of memory";
+        msg += "Out of memory";
         break;
       case GL_STACK_UNDERFLOW:
-        std::cerr << "Stack underflow";
+        msg += "Stack underflow";
         break;
       case GL_STACK_OVERFLOW:
-        std::cerr << "Stack overflow";
+        msg += "Stack overflow";
         break;
       default:
-        std::cerr << "Unknown (" << err << ')';
+        msg += "Unknown (" + std::to_string(err) + ')';
         break;
     }
-    std::cerr << std::endl;
+    LOG_DEBUG << msg;
   }
 }
 
