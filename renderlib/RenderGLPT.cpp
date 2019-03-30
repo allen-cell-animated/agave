@@ -152,6 +152,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glGenFramebuffers(1, &m_fb);
   glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fbtex, 0);
+  check_glfb("resized main fb");
 }
 
 void
@@ -284,6 +285,8 @@ RenderGLPT::doRender(const CCamera& camera)
     // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
     check_glfb("bind framebuffer for pathtrace iteration");
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
     m_renderBufferShader->bind();
@@ -427,6 +430,8 @@ RenderGLPT::resize(uint32_t w, uint32_t h)
 
   m_w = w;
   m_h = h;
+
+  m_renderSettings->SetNoIterations(0);
 }
 
 void
