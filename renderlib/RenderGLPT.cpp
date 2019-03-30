@@ -21,7 +21,6 @@
 RenderGLPT::RenderGLPT(RenderSettings* rs)
   : m_glF32Buffer(0)
   , m_glF32AccumBuffer(0)
-  , m_glF32AccumBuffer2(0)
   , m_fbF32(0)
   , m_fbF32Accum(0)
   , m_fbtex(0)
@@ -76,12 +75,6 @@ RenderGLPT::cleanUpFB()
     check_gl("Destroy fb texture");
     m_glF32AccumBuffer = 0;
   }
-  if (m_glF32AccumBuffer2) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_glF32AccumBuffer2);
-    check_gl("Destroy fb2 texture");
-    m_glF32AccumBuffer2 = 0;
-  }
 
   delete m_renderBufferShader;
   m_renderBufferShader = 0;
@@ -122,18 +115,10 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   m_gpuBytes += w * h * 4 * sizeof(float);
   check_gl("Create fb texture");
 
-  glGenTextures(1, &m_glF32AccumBuffer2);
-  check_gl("Gen fb2 texture id");
-  glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer2);
-  check_gl("Bind fb2 texture");
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  m_gpuBytes += w * h * 4 * sizeof(float);
-  check_gl("Create fb2 texture");
-
   glGenFramebuffers(1, &m_fbF32Accum);
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32AccumBuffer, 0);
+  check_glfb("resized float accumulation fb");
 
   m_fsq = new FSQ();
   m_fsq->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
