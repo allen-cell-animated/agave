@@ -8,9 +8,39 @@
 #include <array>
 #include <iostream>
 
+static bool GL_ERROR_CHECKS_ENABLED = true;
+
+void
+check_glfb(std::string const& message) {
+  if (!GL_ERROR_CHECKS_ENABLED) {
+    return;
+  }
+  check_gl(message);
+  GLint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+  if (status != GL_FRAMEBUFFER_COMPLETE) {
+    std::string statusstr = "Unknown " + std::to_string(status); 
+    switch(status) {
+      case GL_FRAMEBUFFER_UNDEFINED: statusstr = "GL_FRAMEBUFFER_UNDEFINED"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"; break;
+      case GL_FRAMEBUFFER_UNSUPPORTED: statusstr = "GL_FRAMEBUFFER_UNSUPPORTED"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"; break;
+      default:break;
+    }
+    LOG_DEBUG << "Framebuffer not complete! Error code: " << statusstr;
+  }
+}
+
 void
 check_gl(std::string const& message)
 {
+  if (!GL_ERROR_CHECKS_ENABLED) {
+    return;
+  }
+
   GLenum err = GL_NO_ERROR;
   while ((err = glGetError()) != GL_NO_ERROR) {
     std::string msg = "GL error (" + message + ") :";

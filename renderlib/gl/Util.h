@@ -14,6 +14,8 @@
  */
 extern void
 check_gl(std::string const& message);
+extern void
+check_glfb(std::string const& message);
 
 class GLImageShader2DnoLut;
 class RectImage2D

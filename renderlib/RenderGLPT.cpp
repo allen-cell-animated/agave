@@ -298,6 +298,9 @@ RenderGLPT::doRender(const CCamera& camera)
 
     // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
+    check_glfb("bind framebuffer for pathtrace iteration");
+
+
     m_renderBufferShader->bind();
 
     m_renderBufferShader->setShadingUniforms(m_scene,
@@ -322,6 +325,7 @@ RenderGLPT::doRender(const CCamera& camera)
     // 2. copy to accumTargetTex texture that will be used as accumulator for next pass
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
+    check_glfb("bind framebuffer for accumulator");
 
     // the sample
     glActiveTexture(GL_TEXTURE0);
@@ -366,6 +370,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
   // Tonemap into opengl display buffer
   glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
+  check_glfb("bind framebuffer for tone map");
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer);
@@ -399,6 +404,8 @@ RenderGLPT::doRender(const CCamera& camera)
     "Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()), "Iterations");
 
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
+  check_glfb("bind framebuffer for final draw");
+
 }
 
 void
