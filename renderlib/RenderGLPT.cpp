@@ -153,6 +153,10 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fbtex, 0);
   check_glfb("resized main fb");
+
+  // clear this fb to black 
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void
