@@ -139,7 +139,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
     memset(pSeeds, 0, w * h * sizeof(unsigned int));
     for (unsigned int i = 0; i < w * h; i++)
       pSeeds[i] = rand();
-    //m_gpuBytes += w * h * sizeof(unsigned int);
+    // m_gpuBytes += w * h * sizeof(unsigned int);
     free(pSeeds);
   }
 
@@ -161,7 +161,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fbtex, 0);
   check_glfb("resized main fb");
 
-  // clear this fb to black 
+  // clear this fb to black
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -268,10 +268,10 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
-  //CudaLighting cudalt;
-  //FillCudaLighting(m_scene, cudalt);
-  //CudaCamera cudacam;
-  //FillCudaCamera(&(camera), cudacam);
+  // CudaLighting cudalt;
+  // FillCudaLighting(m_scene, cudalt);
+  // CudaCamera cudacam;
+  // FillCudaCamera(&(camera), cudacam);
 
   glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
   glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
@@ -354,7 +354,8 @@ RenderGLPT::doRender(const CCamera& camera)
   // m_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (max((float)m_renderSettings->GetNoIterations(), 1.0f)
   // * 1.0f);//1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
   // (float)gScene.GetNoIterations());
-  m_renderSettings->m_DenoiseParams.m_LerpC = 0.33f * (std::max((float)m_renderSettings->GetNoIterations(), 1.0f) * 0.035f);
+  m_renderSettings->m_DenoiseParams.m_LerpC =
+    0.33f * (std::max((float)m_renderSettings->GetNoIterations(), 1.0f) * 0.035f);
   // 1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
   // (float)gScene.GetNoIterations());
   //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResX()
