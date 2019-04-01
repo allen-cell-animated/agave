@@ -291,6 +291,9 @@ RenderGLPT::doRender(const CCamera& camera)
   GLuint accumTargetTex = m_glF32Buffer;          // the texture of m_fbF32
   GLuint prevAccumTargetTex = m_glF32AccumBuffer; // the texture that will be tonemapped to screen, a copy of m_fbF32
 
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+
   for (int i = 0; i < camera.m_Film.m_ExposureIterations; ++i) {
     GLTimer TmrRender;
 
@@ -312,11 +315,7 @@ RenderGLPT::doRender(const CCamera& camera)
                                              m_imgCuda,
                                              prevAccumTargetTex);
 
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
     m_fsq->render(m);
-    glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
 
     m_timingRender.AddDuration(TmrRender.ElapsedTime());
 
@@ -335,11 +334,9 @@ RenderGLPT::doRender(const CCamera& camera)
 
     m_copyShader->bind();
     m_copyShader->setShadingUniforms();
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
+
     m_fsq->render(m);
-    glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
+
     m_copyShader->release();
     //_timingPostProcess.AddDuration(TmrPostProcess.ElapsedTime());
 
@@ -381,11 +378,9 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_toneMapShader->bind();
   m_toneMapShader->setShadingUniforms(1.0f / camera.m_Film.m_Exposure);
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_BLEND);
+
   m_fsq->render(m);
-  glEnable(GL_BLEND);
-  glEnable(GL_DEPTH_TEST);
+
   m_toneMapShader->release();
 
   // LOG_DEBUG << "RETURN FROM RENDER";
@@ -409,6 +404,9 @@ RenderGLPT::doRender(const CCamera& camera)
 
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
   check_glfb("bind framebuffer for final draw");
+
+  glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
 }
 
 void
