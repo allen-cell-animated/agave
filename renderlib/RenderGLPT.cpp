@@ -105,6 +105,10 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glGenFramebuffers(1, &m_fbF32);
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32Buffer, 0);
+  check_glfb("resized float pathtrace sample fb");
+
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
 
   glGenTextures(1, &m_glF32AccumBuffer);
   check_gl("Gen fb texture id");
@@ -119,6 +123,9 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32AccumBuffer, 0);
   check_glfb("resized float accumulation fb");
+
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
 
   m_fsq = new FSQ();
   m_fsq->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
@@ -289,9 +296,6 @@ RenderGLPT::doRender(const CCamera& camera)
     // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
     check_glfb("bind framebuffer for pathtrace iteration");
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     m_renderBufferShader->bind();
 
@@ -306,7 +310,11 @@ RenderGLPT::doRender(const CCamera& camera)
                                              m_imgCuda,
                                              prevAccumTargetTex);
 
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
     m_fsq->render(m);
+    glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 
     m_timingRender.AddDuration(TmrRender.ElapsedTime());
 
@@ -397,7 +405,6 @@ RenderGLPT::doRender(const CCamera& camera)
 
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
   check_glfb("bind framebuffer for final draw");
-
 }
 
 void
