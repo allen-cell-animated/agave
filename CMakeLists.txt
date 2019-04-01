@@ -197,8 +197,20 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/Resources/)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/)
+set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
+# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+#   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/)
+# set how it shows up in the Info.plist file
+# SET(MACOSX_BUNDLE_ICON_FILE JPSvis.icns)
+# SET(MACOSX_GUI_ICON JPSvis.icns)
+# SET(MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
+# SET(MACOSX_BUNDLE_BUNDLE_NAME "agave-desktop")
+# SET(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
+# SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version ${PROJECT_VERSION}")
+# SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
+# SET(MACOSX_GUI_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
+# SET(MACOSX_BUNDLE_GUI_IDENTIFIER "www.allencell.org")
+
 
 # Note Mac specific extension .app
 set(APPS "\${CMAKE_INSTALL_PREFIX}/agave-desktop.app")
@@ -226,22 +238,6 @@ include(InstallRequiredSystemLibraries)
 
 # install(CODE "include(BundleUtilities)
 #   fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
-
-
-IF(APPLE)
-  # set how it shows up in the Info.plist file
-  # SET(MACOSX_BUNDLE_ICON_FILE JPSvis.icns)
-  # SET(MACOSX_GUI_ICON JPSvis.icns)
-  # set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist.in)
-  SET(MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
-  SET(MACOSX_BUNDLE_BUNDLE_NAME "agave-desktop")
-  SET(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
-  SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version ${PROJECT_VERSION}")
-  SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
-  SET(MACOSX_GUI_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
-  SET(MACOSX_BUNDLE_GUI_IDENTIFIER "www.allencell.org")
-ENDIF(APPLE)
-
 
 set(CPACK_BINARY_DRAGNDROP ON)
 set(CPACK_PACKAGE_NAME "agave-desktop")
