@@ -134,6 +134,13 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
   }
 
+  uint16_t sampleFormat = 0; 
+  if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) { 
+    QString msg = "Failed to read sampleformat of TIFF: '" + QString(filepath.c_str()) + "'"; 
+    LOG_ERROR << msg.toStdString(); 
+    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__); 
+  }
+
   uint32_t sizeT = 1;
   uint32_t sizeX = width;
   uint32_t sizeY = height;
@@ -338,6 +345,8 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   TIFFClose(tiff);
 
   LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
+
+  // TODO: convert data to uint16_t pixels. 
 
   timer.start();
   ImageXYZC* im =
