@@ -36,6 +36,7 @@ public:
                           const CBoundingBox& clipped_bbox,
                           const PathTraceRenderSettings& renderSettings,
                           int numIterations,
+                          int randSeed,
                           int w,
                           int h,
                           const ImageCuda& imggpu,

@@ -36,6 +36,7 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_scene(nullptr)
   , m_gpuBytes(0)
   , m_imagequad(nullptr)
+  , m_RandSeed(0)
 {}
 
 RenderGLPT::~RenderGLPT() {}
@@ -301,6 +302,7 @@ RenderGLPT::doRender(const CCamera& camera)
                                              b,
                                              m_renderSettings->m_RenderSettings,
                                              numIterations,
+                                             m_RandSeed,
                                              m_w,
                                              m_h,
                                              m_imgCuda,
@@ -336,6 +338,7 @@ RenderGLPT::doRender(const CCamera& camera)
     // ping pong accum buffer. this will stall till previous accum render is done.
 
     numIterations++;
+    m_RandSeed++;
   }
 
   m_renderSettings->SetNoIterations(numIterations);

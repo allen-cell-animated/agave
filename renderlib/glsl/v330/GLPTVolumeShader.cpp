@@ -1264,6 +1264,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
                                      const CBoundingBox& clipped_bbox,
                                      const PathTraceRenderSettings& renderSettings,
                                      int numIterations,
+                                     int randSeed,
                                      int w,
                                      int h,
                                      const ImageCuda& imggpu,
@@ -1287,7 +1288,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("post accum textures");
 
   glUniform1f(m_uSampleCounter, (float)numIterations);
-  glUniform1f(m_uFrameCounter, (float)(numIterations + 1));
+  glUniform1f(m_uFrameCounter, (float)(randSeed + 1));
   // glUniform1f(m_uFrameCounter, 1.0f);
 
   glUniform2f(m_uResolution, (float)w, (float)h);

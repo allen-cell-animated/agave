@@ -82,6 +82,8 @@ private:
   // screen size auxiliary buffers for rendering
   unsigned int* m_randomSeeds1;
   unsigned int* m_randomSeeds2;
+  // incrementing integer to give to shader
+  int m_RandSeed;
 
   int m_w, m_h;
 
@@ -92,4 +94,5 @@ private:
 
   void FillCudaLighting(Scene* pScene, CudaLighting& cl);
   void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
+
 };
