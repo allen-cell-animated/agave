@@ -13,6 +13,8 @@
 #include <glm.h>
 
 #include <QtGui/QMouseEvent>
+#include <QApplication>
+#include <QDesktopWidget>
 
 #include <cmath>
 #include <iostream>
@@ -105,7 +107,9 @@ GLView3D::initializeGL()
   makeCurrent();
 
   QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height());
+
+  m_renderer->initialize(newsize.width()* QApplication::desktop()->devicePixelRatio(),
+    newsize.height()* QApplication::desktop()->devicePixelRatio());
 
   // Start timers
   startTimer(0);
@@ -129,6 +133,9 @@ void
 GLView3D::resizeGL(int w, int h)
 {
   makeCurrent();
+
+  w = w * QApplication::desktop()->devicePixelRatio();
+  h = h * QApplication::desktop()->devicePixelRatio();
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
@@ -288,7 +295,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
   QSize newsize = size();
   // need to update the scene in QAppearanceSettingsWidget.
   m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height());
+  m_renderer->initialize(newsize.width()* QApplication::desktop()->devicePixelRatio(), 
+    newsize.height() * QApplication::desktop()->devicePixelRatio());
 
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 
