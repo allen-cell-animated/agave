@@ -2,11 +2,6 @@
 
 #include <float.h>
 
-#define HO 
-#define DEV 
-#define HOD 
-#define CD 
-
 #define PI_F (3.141592654f)
 #define HALF_PI_F (0.5f * PI_F)
 #define QUARTER_PI_F (0.25f * PI_F)

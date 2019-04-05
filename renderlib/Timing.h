@@ -21,7 +21,7 @@ public:
     }
   };
 
-  HO Timing(const char* pName)
+  Timing(const char* pName)
   {
 #ifndef __CUDACC__
     sprintf(m_Name, "%s", pName);
@@ -34,7 +34,7 @@ public:
 
   virtual ~Timing(void){};
 
-  HO Timing& operator=(const Timing& Other)
+  Timing& operator=(const Timing& Other)
   {
     strcpy(m_Name, Other.m_Name);
 
