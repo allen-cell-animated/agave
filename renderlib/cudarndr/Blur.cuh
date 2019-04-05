@@ -2,7 +2,6 @@
 
 #include "Geometry.h"
 #include "CudaUtilities.h"
-//#include "helper_math.h"
 
 #define KRNL_BLUR_BLOCK_W		16
 #define KRNL_BLUR_BLOCK_H		8

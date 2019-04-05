@@ -1,6 +1,5 @@
 #include "renderlib.h"
 
-//#include "HardwareWidget.h"
 #include "ImageXYZC.h"
 #include "ImageXyzcCuda.h"
 #include "Logging.h"
@@ -8,7 +7,6 @@
 
 #include <string>
 
-//#include <QOpenGLWidget>
 #include <QOffscreenSurface>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLDebugLogger>

@@ -13,9 +13,6 @@
 #include "glsl/v330/GLToneMapShader.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 
-//#include "cudarndr/Camera2.cuh"
-//#include "cudarndr/Lighting2.cuh"
-
 #include <array>
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)

@@ -2,8 +2,6 @@
 
 #include "Spectrum.h"
 
-//#include "helper_math.cuh"
-
 #include <algorithm>
 #include <math.h>
 #include <stdio.h>
