@@ -590,13 +590,13 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorTopIntensity);
+  m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorTopIntensity);
   m_lt1gui.m_stColorButton->SetColor(c);
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorMiddleIntensity);
+  m_lt1gui.m_smintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorMiddleIntensity);
   m_lt1gui.m_smColorButton->SetColor(c);
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorBottomIntensity);
+  m_lt1gui.m_sbintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorBottomIntensity);
   m_lt1gui.m_sbColorButton->SetColor(c);
 }
 
