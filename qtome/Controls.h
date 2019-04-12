@@ -119,6 +119,7 @@ public:
   double value(void) const;
   void setValue(double value, bool BlockSignals = false);
   void setRange(double rmin, double rmax);
+  void setSingleStep(double val);
   void setDecimals(int decimals);
   void setSuffix(const QString&);
 

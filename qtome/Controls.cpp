@@ -312,6 +312,12 @@ QNumericSlider::setRange(double rmin, double rmax)
 }
 
 void
+QNumericSlider::setSingleStep(double val)
+{
+  m_spinner.setSingleStep(val);
+}
+
+void
 QNumericSlider::setDecimals(int decimals)
 {
   m_spinner.setDecimals(decimals);
