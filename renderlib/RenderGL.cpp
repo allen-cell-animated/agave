@@ -7,6 +7,9 @@
 #include "RenderSettings.h"
 #include "gl/v33/V33Image3D.h"
 
+#include <QApplication>
+#include <QDesktopWidget>
+
 #include <iostream>
 
 RenderGL::RenderGL(RenderSettings* rs)
@@ -68,6 +71,10 @@ RenderGL::render(const CCamera& camera)
   // cleared
   m_renderSettings->m_DirtyFlags.ClearAllFlags();
 
+  glViewport(0, 0, 
+    m_w * QApplication::desktop()->devicePixelRatio(), 
+    m_h * QApplication::desktop()->devicePixelRatio()
+  );
   // Render image
   m_image3d->render(camera, m_scene, m_renderSettings);
 

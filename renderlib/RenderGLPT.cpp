@@ -13,6 +13,9 @@
 #include "glsl/v330/GLToneMapShader.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 
+#include <QApplication>
+#include <QDesktopWidget>
+
 #include <array>
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)
@@ -203,6 +206,8 @@ RenderGLPT::doRender(const CCamera& camera)
   if (!m_scene || !m_scene->m_volume) {
     return;
   }
+
+  glViewport(0, 0, m_w, m_h);
 
   GLint drawFboId = 0;
   glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
@@ -421,6 +426,11 @@ RenderGLPT::drawImage()
 {
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glViewport(0, 0, 
+    m_w * QApplication::desktop()->devicePixelRatio(), 
+    m_h * QApplication::desktop()->devicePixelRatio()
+  );
 
   // draw quad using the tex that cudaTex was mapped to
   m_imagequad->draw(m_fbtex);
