@@ -142,32 +142,6 @@ install(FILES
   DESTINATION ${INSTALLDIR}/platforms/
 )
 
-# Note Mac specific extension .app
-set(APPS ${INSTALLDIR})
-
-# Directories to look for dependencies
-set(DIRS "${CMAKE_BINARY_DIR}")
-
-# Path used for searching by FIND_XXX(), with appropriate suffixes added
-if(CMAKE_PREFIX_PATH)
-  foreach(dir ${CMAKE_PREFIX_PATH})
-    list(APPEND DIRS "${dir}/bin" "${dir}/lib")
-  endforeach()
-endif()
-
-# Append Qt's lib folder which is two levels above Qt5Widgets_DIR
-list(APPEND DIRS "${Qt5Widgets_DIR}/../..")
-list(APPEND DIRS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
-
-include(InstallRequiredSystemLibraries)
-
-message(STATUS "APPS: ${APPS}")
-message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
-message(STATUS "DIRS: ${DIRS}")
-
-install(CODE "include(BundleUtilities)
-  fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
-
 ################
 elseif (APPLE)
 ################
