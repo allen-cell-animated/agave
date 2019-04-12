@@ -137,6 +137,11 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   Section* section = createLightingControls();
   m_MainLayout.addWidget(section, 14, 0, 1, -1);
 
+  QFrame* lineA = new QFrame();
+  lineA->setFrameShape(QFrame::HLine);
+  lineA->setFrameShadow(QFrame::Sunken);
+  m_MainLayout.addWidget(lineA, 15, 0, 1, -1);
+
   QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
   QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
   // QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
@@ -770,7 +775,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnChannelChecked(i, channelenabled);
 
     section->setContentLayout(*sectionLayout);
-    m_MainLayout.addWidget(section, 15 + i, 0, 1, -1);
+    m_MainLayout.addWidget(section, 16 + i, 0, 1, -1);
     m_channelSections.push_back(section);
   }
 }
