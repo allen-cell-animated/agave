@@ -1,23 +1,22 @@
 #include "glad/glad.h"
+
 #include "GLToneMapShader.h"
 
 #include "Logging.h"
 
-#include <glm.h>
 #include <gl/Util.h>
+#include <glm.h>
 
 #include <iostream>
 #include <sstream>
 
-
-GLToneMapShader::GLToneMapShader():
-    QOpenGLShaderProgram(),
-    m_vshader(),
-    m_fshader()
+GLToneMapShader::GLToneMapShader()
+  : QOpenGLShaderProgram()
+  , m_vshader()
+  , m_fshader()
 {
-    m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
-	m_vshader->compileSourceCode
-	(R"(
+  m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  m_vshader->compileSourceCode(R"(
 #version 330 core
 
 layout (location = 0) in vec3 position;
@@ -32,14 +31,12 @@ void main()
 }
 	)");
 
-    if (!m_vshader->isCompiled())
-    {
-        LOG_ERROR << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
-    }
+  if (!m_vshader->isCompiled()) {
+    LOG_ERROR << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+  }
 
-    m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-    m_fshader->compileSourceCode
-    (R"(
+  m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  m_fshader->compileSourceCode(R"(
 #version 330 core
 
 uniform float gInvExposure;
@@ -69,31 +66,96 @@ void main()
       
     out_FragColor = pixelColor;
     //out_FragColor = pow(pixelColor, vec4(1.0/2.2));
+
+return;
+
+/*
+    /////////////////////
+    /////////////////////
+    /////////////////////
+    /////////////////////
+    //// DENOISING FILTER
+
+    vec4 clr00 = pixelColor;
+    vec4 rgbsample = clr00;
+    // convert XYZ to RGB here.
+    rgbsample.rgb = XYZtoRGB(clr00.rgb);
+    // tone map!
+    rgbsample.rgb = 1.0 - exp(-rgbsample.rgb * gInvExposure);
+    rgbsample = clamp(rgbsample, 0.0, 1.0);
+    clr00 = rgbsample;
+
+    float fCount = 0.0;
+    float SumWeights = 0.0;
+    vec3 clr = vec3(0.0, 0.0, 0.0);
+
+    for (int i = -gDenoiseWindowRadius; i <= gDenoiseWindowRadius; i++) {
+      for (int j = -gDenoiseWindowRadius; j <= gDenoiseWindowRadius; j++) {
+        // sad face...
+        if (Y + i < 0)
+          continue;
+        if (X + j < 0)
+          continue;
+        if (Y + i >= gFilmHeight)
+          continue;
+        if (X + j >= gFilmWidth)
+          continue;
+
+        vec4 clrIJ = texture(tTexture0, vUv + vec2(i,j));
+        rgbsample.rgb = XYZToRGB(clrIJ.rgb);
+        // tone map!
+        rgbsample.rgb = 1.0 - exp(-rgbsample.rgb * gInvExposure);
+        rgbsample = clamp(rgbsample, 0.0, 1.0);
+
+        clrIJ = rgbsample;
+
+        float distanceIJ = vecLen(clr00, clrIJ);
+
+        // gDenoiseNoise = 1/h^2
+        //
+        float weightIJ = expf(-(distanceIJ * gDenoiseNoise + (float)(i * i + j * j) * gDenoiseInvWindowArea));
+
+        clr.x += clrIJ.x * weightIJ;
+        clr.y += clrIJ.y * weightIJ;
+        clr.z += clrIJ.z * weightIJ;
+
+        SumWeights += weightIJ;
+
+        fCount += (weightIJ > gDenoiseWeightThreshold) ? gDenoiseInvWindowArea : 0;
+      }
+    }
+
+    SumWeights = 1.0f / SumWeights;
+
+    clr.rgb *= SumWeights;
+
+    float LerpQ = (fCount > gDenoiseLerpThreshold) ? gDenoiseLerpC : 1.0f - gDenoiseLerpC;
+
+    clr.rgb = mix(clr.rgb, clr00.rgb, LerpQ);
+    clr.rgb = clamp(clr.rgb, 0.0, 1.0);
+
+    out_FragColor = vec4(clr.rgb, clr00.a);
+*/
 }
     )");
 
-    if (!m_fshader->isCompiled())
-    {
-        LOG_ERROR << "GLToneMapShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
-    }
+  if (!m_fshader->isCompiled()) {
+    LOG_ERROR << "GLToneMapShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+  }
 
-    addShader(m_vshader);
-    addShader(m_fshader);
-    link();
+  addShader(m_vshader);
+  addShader(m_fshader);
+  link();
 
-    if (!isLinked())
-    {
-        LOG_ERROR << "GLToneMapShader: Failed to link shader program\n" << log().toStdString();
-    }
-	
-    m_texture = uniformLocation("tTexture0");
-    m_InvExposure = uniformLocation("gInvExposure");
+  if (!isLinked()) {
+    LOG_ERROR << "GLToneMapShader: Failed to link shader program\n" << log().toStdString();
+  }
+
+  m_texture = uniformLocation("tTexture0");
+  m_InvExposure = uniformLocation("gInvExposure");
 }
 
-GLToneMapShader::~GLToneMapShader()
-{
-}
-
+GLToneMapShader::~GLToneMapShader() {}
 
 void
 GLToneMapShader::setShadingUniforms(float invExposure)
