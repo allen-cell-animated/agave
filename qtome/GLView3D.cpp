@@ -32,7 +32,6 @@ qNormalizeAngle(int& angle)
   while (angle > 360 * 16)
     angle -= 360 * 16;
 }
-
 }
 
 GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent)
@@ -132,7 +131,7 @@ GLView3D::resizeGL(int w, int h)
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h);
+  m_renderer->resize(w, h, devicePixelRatioF());
 }
 
 void

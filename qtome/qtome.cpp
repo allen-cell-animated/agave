@@ -571,7 +571,7 @@ qtome::dumpPythonState()
          .arg(m_appScene.m_lighting.m_Lights[1].m_Height);
 
   s += "buf = cb.make_buffer()\n";
-  qDebug().noquote() << s;
+  LOG_DEBUG << s.toStdString();
   // return s;
 }
 
@@ -581,7 +581,7 @@ qtome::dumpStateToJson()
   ViewerState st = appToViewerState();
   QJsonDocument doc = st.stateToJson();
   QString s = doc.toJson();
-  qDebug().noquote() << s;
+  LOG_DEBUG << s.toStdString();
 }
 
 void

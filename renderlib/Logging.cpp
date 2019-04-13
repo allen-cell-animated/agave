@@ -43,6 +43,9 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(logger, src::severity_logger_mt)
   // add "console" output stream to our sink
   sink->locked_backend()->add_stream(boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter()));
 
+  // don't require explicit flushing of log file
+  sink->locked_backend()->auto_flush(true);
+
   // specify the format of the log message
   logging::formatter formatter = expr::stream << std::setw(7) << std::setfill('0') << line_id << std::setfill(' ')
                                               << " | " << expr::format_date_time(timestamp, "%Y-%m-%d, %H:%M:%S.%f")

@@ -1,6 +1,7 @@
 #include "ViewerState.h"
 
-#include <QDebug>
+#include "renderlib/Logging.h"
+
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -106,14 +107,14 @@ ViewerState::readStateFromJson(QString filePath)
   // try to open server.cfg
   QFile loadFile(filePath);
   if (!loadFile.open(QIODevice::ReadOnly)) {
-    qDebug() << "No config file found openable at " << filePath;
+    LOG_DEBUG << "No config file found openable at " << filePath.toStdString();
     return p;
   }
 
   QByteArray jsonData = loadFile.readAll();
   QJsonDocument jsonDoc(QJsonDocument::fromJson(jsonData));
   if (jsonDoc.isNull()) {
-    qDebug() << "Invalid config file format. Make sure it is json.";
+    LOG_DEBUG << "Invalid config file format. Make sure it is json.";
     return p;
   }
 
