@@ -22,7 +22,7 @@ cd build
 cmake ..
 make
 sudo make install
-sudo $HOME/Qt/5.12.2/clang_64/bin/macdeployqt agave-desktop.app -libpath=/opt/local/lib -always-overwrite -appstore-compliant
+sudo $HOME/Qt/5.12.2/clang_64/bin/macdeployqt agave.app -libpath=/opt/local/lib -always-overwrite -appstore-compliant
 # sudo cpack -G DragNDrop CPackConfig.cmake
 ```
 OR

@@ -58,10 +58,14 @@ COMMANDS = {
 
 # strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
 class CommandBuffer:
-    def __init__(self):
+    def __init__(self, command_list=None):
         # [command, args],...
         self.prebuffer = []
         self.buffer = None
+        self.has_load_command = False
+        if command_list:
+            for c in command_list:
+                self.add_command(*c)
 
     def compute_size(self):
         # iterate length of prebuffer to compute size.
@@ -103,6 +107,9 @@ class CommandBuffer:
         offset = 0
         for cmd in self.prebuffer:
             commandCode = cmd[0]
+            if commandCode == "LOAD_OME_TIF":
+                self.has_load_command = True
+
             signature = COMMANDS[commandCode]
             nArgsExpected = len(signature)-1
 

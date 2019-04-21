@@ -18,9 +18,9 @@ public:
   RenderGL(RenderSettings* rs);
   virtual ~RenderGL();
 
-  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void render(const CCamera& camera);
-  virtual void resize(uint32_t w, uint32_t h);
+  virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
 
   virtual CStatus* getStatusInterface() { return &m_status; }
@@ -42,6 +42,7 @@ private:
   QElapsedTimer m_timer;
 
   int m_w, m_h;
+  float m_devicePixelRatio;
 
   void initFromScene();
 };

@@ -31,7 +31,7 @@ ChannelCuda::allocGpu(ImageXYZC* img, int channel)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
   glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, LUT_SIZE, 1);
-  //glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, LUT_SIZE, 1, 0, GL_RED, GL_FLOAT, ch->m_lut);
+  // glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, LUT_SIZE, 1, 0, GL_RED, GL_FLOAT, ch->m_lut);
 
   glBindTexture(GL_TEXTURE_2D, 0);
   check_gl("volume lut texture creation");
@@ -131,7 +131,7 @@ ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
-  glTexSubImage3D(GL_TEXTURE_3D, 0, 0,0,0, img->sizeX(), img->sizeY(), img->sizeZ(), GL_RGBA, GL_UNSIGNED_SHORT, v);
+  glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, img->sizeX(), img->sizeY(), img->sizeZ(), GL_RGBA, GL_UNSIGNED_SHORT, v);
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("update volume texture");
 
@@ -173,7 +173,7 @@ ImageCuda::deallocGpu()
   for (size_t i = 0; i < m_channels.size(); ++i) {
     m_channels[i].deallocGpu();
   }
-  
+
   // needs current gl context.
 
   check_gl("pre-destroy gl volume texture");

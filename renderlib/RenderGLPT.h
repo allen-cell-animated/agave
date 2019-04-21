@@ -28,9 +28,9 @@ public:
   RenderGLPT(RenderSettings* rs);
   virtual ~RenderGLPT();
 
-  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void render(const CCamera& camera);
-  virtual void resize(uint32_t w, uint32_t h);
+  virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
   virtual RenderParams& renderParams();
   virtual Scene* scene();
@@ -85,6 +85,7 @@ private:
   int m_RandSeed;
 
   int m_w, m_h;
+  float m_devicePixelRatio;
 
   Timing m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
   CStatus m_status;
@@ -93,5 +94,4 @@ private:
 
   void FillCudaLighting(Scene* pScene, CudaLighting& cl);
   void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
-
 };

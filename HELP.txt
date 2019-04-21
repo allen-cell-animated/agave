@@ -5,7 +5,7 @@ The volume viewer is designed and optimized for display of multi-channel, single
 
 1. This viewer requires a current OpenGL driver.  A discrete GPU is preferred for best performance. (start at https://www.nvidia.com/drivers).
 
-2. Unzip the zip file and run the agave-desktop app.  A GUI window will open. If initialization fails for some reason, a logfile.log file will be produced in the same directory as the app.
+2. Unzip the zip file and run the agave app.  A GUI window will open. If initialization fails for some reason, a logfile.log file will be produced in the same directory as the app.
 
 3. File-->Open Image.  The viewer currently only supports .ome.tif files (TIFF files containing OME-XML metadata in the imagedescription tag) and has limited support for some tif files generated in ImageJ.  Currently only 16-but unsigned pixels are supported.  
 The volume data must fit in GPU memory uncompressed, so please try loading no more than a few GB.  The test data set for the development of this viewer was the data set of the Allen Institute for Cell Science.  Images from that data set are found at https://www.allencell.org/3d-cell-viewer.html and https://www.allencell.org/cell-feature-explorer.html where you can load a cell into the 3D viewer in your browser and click the Download button to get the full resolution OME TIFF file. Those images should load correctly into this viewer.

@@ -7,9 +7,6 @@
 #include "RenderSettings.h"
 #include "gl/v33/V33Image3D.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-
 #include <iostream>
 
 RenderGL::RenderGL(RenderSettings* rs)
@@ -18,6 +15,7 @@ RenderGL::RenderGL(RenderSettings* rs)
   , m_h(0)
   , m_renderSettings(rs)
   , m_scene(nullptr)
+  , m_devicePixelRatio(1.0f)
 {}
 
 RenderGL::~RenderGL()
@@ -26,7 +24,7 @@ RenderGL::~RenderGL()
 }
 
 void
-RenderGL::initialize(uint32_t w, uint32_t h)
+RenderGL::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   GLint max_combined_texture_image_units;
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
@@ -43,7 +41,7 @@ RenderGL::initialize(uint32_t w, uint32_t h)
   }
 
   // Size viewport
-  resize(w, h);
+  resize(w, h, devicePixelRatio);
 }
 
 void
@@ -71,10 +69,7 @@ RenderGL::render(const CCamera& camera)
   // cleared
   m_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-  glViewport(0, 0, 
-    m_w * QApplication::desktop()->devicePixelRatio(), 
-    m_h * QApplication::desktop()->devicePixelRatio()
-  );
+  glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
   // Render image
   m_image3d->render(camera, m_scene, m_renderSettings);
 
@@ -85,10 +80,11 @@ RenderGL::render(const CCamera& camera)
 }
 
 void
-RenderGL::resize(uint32_t w, uint32_t h)
+RenderGL::resize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   m_w = w;
   m_h = h;
+  m_devicePixelRatio = devicePixelRatio;
   glViewport(0, 0, w, h);
 }
 

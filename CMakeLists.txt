@@ -155,30 +155,31 @@ install(FILES
   $<TARGET_FILE:Qt5::Gui>
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/Frameworks/
+  $<TARGET_FILE:Qt5::WebSockets>
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 install(FILES 
   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/PlugIns/platforms/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/PlugIns/platforms/
 )
 install(FILES 
   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/MacOS/platforms/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/MacOS/platforms/
 )
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
   "[Paths]\nPlugins = PlugIns\n")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/Resources/)
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
 # install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-#   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave-desktop.app/Contents/)
+#   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/)
 # set how it shows up in the Info.plist file
 # SET(MACOSX_BUNDLE_ICON_FILE JPSvis.icns)
 # SET(MACOSX_GUI_ICON JPSvis.icns)
 # SET(MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
-# SET(MACOSX_BUNDLE_BUNDLE_NAME "agave-desktop")
+# SET(MACOSX_BUNDLE_BUNDLE_NAME "agave")
 # SET(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
 # SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version ${PROJECT_VERSION}")
 # SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
@@ -187,7 +188,7 @@ set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURR
 
 
 # Note Mac specific extension .app
-set(APPS "\${CMAKE_INSTALL_PREFIX}/agave-desktop.app")
+set(APPS "\${CMAKE_INSTALL_PREFIX}/agave.app")
 
 # Directories to look for dependencies
 set(DIRS "${CMAKE_BINARY_DIR}")
@@ -214,7 +215,7 @@ include(InstallRequiredSystemLibraries)
 #   fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
 
 set(CPACK_BINARY_DRAGNDROP ON)
-set(CPACK_PACKAGE_NAME "agave-desktop")
+set(CPACK_PACKAGE_NAME "agave")
 set(CPACK_PACKAGE_VENDOR "www.allencell.org")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "agave - Advanced GPU Allen Volume Explorer")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})

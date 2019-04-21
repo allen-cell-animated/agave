@@ -37,6 +37,7 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_gpuBytes(0)
   , m_imagequad(nullptr)
   , m_RandSeed(0)
+  , m_devicePixelRatio(1.0f)
 {}
 
 RenderGLPT::~RenderGLPT() {}
@@ -170,6 +171,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 void
 RenderGLPT::initVolumeTextureCUDA()
 {
+
   // free the gpu resources of the old image.
   m_imgCuda.deallocGpu();
 
@@ -183,7 +185,7 @@ RenderGLPT::initVolumeTextureCUDA()
 }
 
 void
-RenderGLPT::initialize(uint32_t w, uint32_t h)
+RenderGLPT::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   m_imagequad = new RectImage2D();
 
@@ -197,7 +199,7 @@ RenderGLPT::initialize(uint32_t w, uint32_t h)
   check_gl("init gl state");
 
   // Size viewport
-  resize(w, h);
+  resize(w, h, devicePixelRatio);
 }
 
 void
@@ -427,21 +429,18 @@ RenderGLPT::drawImage()
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glViewport(0, 0, 
-    m_w * QApplication::desktop()->devicePixelRatio(), 
-    m_h * QApplication::desktop()->devicePixelRatio()
-  );
+  glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
 
   // draw quad using the tex that cudaTex was mapped to
   m_imagequad->draw(m_fbtex);
 }
 
 void
-RenderGLPT::resize(uint32_t w, uint32_t h)
+RenderGLPT::resize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   // w = 8; h = 8;
   glViewport(0, 0, w, h);
-  if ((m_w == w) && (m_h == h)) {
+  if ((m_w == w) && (m_h == h) && (m_devicePixelRatio == devicePixelRatio)) {
     return;
   }
 
@@ -450,6 +449,7 @@ RenderGLPT::resize(uint32_t w, uint32_t h)
 
   m_w = w;
   m_h = h;
+  m_devicePixelRatio = devicePixelRatio;
 
   m_renderSettings->SetNoIterations(0);
 }

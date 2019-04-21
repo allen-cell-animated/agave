@@ -32,7 +32,6 @@ qNormalizeAngle(int& angle)
   while (angle > 360 * 16)
     angle -= 360 * 16;
 }
-
 }
 
 GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent)
@@ -105,7 +104,7 @@ GLView3D::initializeGL()
   makeCurrent();
 
   QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height());
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
   // Start timers
   startTimer(0);
@@ -132,7 +131,7 @@ GLView3D::resizeGL(int w, int h)
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h);
+  m_renderer->resize(w, h, devicePixelRatioF());
 }
 
 void
@@ -288,7 +287,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
   QSize newsize = size();
   // need to update the scene in QAppearanceSettingsWidget.
   m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height());
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 
