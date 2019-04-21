@@ -24,7 +24,7 @@ RenderGL::~RenderGL()
 }
 
 void
-RenderGL::initialize(uint32_t w, uint32_t h)
+RenderGL::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   GLint max_combined_texture_image_units;
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
@@ -41,7 +41,7 @@ RenderGL::initialize(uint32_t w, uint32_t h)
   }
 
   // Size viewport
-  resize(w, h);
+  resize(w, h, devicePixelRatio);
 }
 
 void

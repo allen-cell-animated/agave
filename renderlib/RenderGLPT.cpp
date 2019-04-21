@@ -185,7 +185,7 @@ RenderGLPT::initVolumeTextureCUDA()
 }
 
 void
-RenderGLPT::initialize(uint32_t w, uint32_t h)
+RenderGLPT::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   m_imagequad = new RectImage2D();
 
@@ -199,7 +199,7 @@ RenderGLPT::initialize(uint32_t w, uint32_t h)
   check_gl("init gl state");
 
   // Size viewport
-  resize(w, h);
+  resize(w, h, devicePixelRatio);
 }
 
 void

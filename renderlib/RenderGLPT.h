@@ -28,7 +28,7 @@ public:
   RenderGLPT(RenderSettings* rs);
   virtual ~RenderGLPT();
 
-  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void render(const CCamera& camera);
   virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
