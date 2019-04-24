@@ -169,6 +169,5 @@ GLWindow::setAnimating(bool animating)
 void
 GLWindow::logMessage(QOpenGLDebugMessage message)
 {
-  // std::cerr << message.message().toStdString();
   LOG_DEBUG << message.message();
 }

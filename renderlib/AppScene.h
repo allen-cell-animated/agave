@@ -1,7 +1,7 @@
 #pragma once
 
-#include "cudarndr/BoundingBox.h"
-#include "cudarndr/DenoiseParams.cuh"
+#include "BoundingBox.h"
+#include "DenoiseParams.h"
 #include "glm.h"
 
 #include <memory>
@@ -189,5 +189,4 @@ public:
   void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);
 
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
-
 };

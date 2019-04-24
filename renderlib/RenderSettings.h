@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cudarndr/DenoiseParams.cuh"
+#include "DenoiseParams.h"
 #include "Flags.h"
 
 class RenderSettings

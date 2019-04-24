@@ -1,8 +1,8 @@
 #include "FileReader.h"
 
+#include "BoundingBox.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
-#include "cudarndr/BoundingBox.h"
 
 #include <QDomDocument>
 #include <QElapsedTimer>
@@ -134,11 +134,11 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
   }
 
-  uint16_t sampleFormat = 0; 
-  if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) { 
-    QString msg = "Failed to read sampleformat of TIFF: '" + QString(filepath.c_str()) + "'"; 
-    LOG_ERROR << msg.toStdString(); 
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__); 
+  uint16_t sampleFormat = 0;
+  if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
+    QString msg = "Failed to read sampleformat of TIFF: '" + QString(filepath.c_str()) + "'";
+    LOG_ERROR << msg.toStdString();
+    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
   }
 
   uint32_t sizeT = 1;
@@ -346,7 +346,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
 
   LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
 
-  // TODO: convert data to uint16_t pixels. 
+  // TODO: convert data to uint16_t pixels.
 
   timer.start();
   ImageXYZC* im =
@@ -363,4 +363,3 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   }
   return sharedImage;
 }
-

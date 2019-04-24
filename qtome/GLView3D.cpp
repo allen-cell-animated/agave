@@ -273,11 +273,6 @@ GLView3D::OnUpdateRenderer(int rendererType)
       m_renderer.reset(new RenderGLPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
-    case 3:
-      LOG_DEBUG << "Set OptiX Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
-      break;
     default:
       LOG_DEBUG << "Set OpenGL single pass Renderer";
       m_renderer.reset(new RenderGL(m_renderSettings));

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "cudarndr/BoundingBox.h"
-#include "cudarndr/Defines.h"
-
+#include "BoundingBox.h"
+#include "Defines.h"
 #include "glm.h"
 
 #define DEF_FOCUS_TYPE CenterScreen
@@ -492,7 +491,8 @@ public:
       case ViewModeIsometricBackRightBottom:
         m_From = m_Target + glm::vec3(-Length, -Length, Length);
         break;
-      default: break;
+      default:
+        break;
     }
 
     Update();
