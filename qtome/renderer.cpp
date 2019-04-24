@@ -2,7 +2,6 @@
 
 #include "renderlib/CCamera.h"
 #include "renderlib/FileReader.h"
-#include "renderlib/HardwareWidget.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
@@ -41,8 +40,6 @@ Renderer::~Renderer()
 void
 Renderer::myVolumeInit()
 {
-  // DeviceSelector d;
-
   myVolumeData._renderSettings = new RenderSettings();
 
   myVolumeData._camera = new CCamera();
