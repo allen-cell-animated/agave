@@ -13,9 +13,6 @@
 #include "glsl/v330/GLToneMapShader.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-
 #include <array>
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)
@@ -155,7 +152,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   check_gl("Create fb texture");
   // this is required in order to "complete" the texture object for mipmapless shader access.
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  // unbind the texture before doing cuda stuff.
+  // unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glGenFramebuffers(1, &m_fb);
@@ -169,19 +166,17 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 }
 
 void
-RenderGLPT::initVolumeTextureCUDA()
+RenderGLPT::initVolumeTextureGpu()
 {
 
   // free the gpu resources of the old image.
-  m_imgCuda.deallocGpu();
+  m_imgGpu.deallocGpu();
 
   if (!m_scene || !m_scene->m_volume) {
     return;
   }
-  //    ImageCuda cimg;
-  //    cimg.allocGpuInterleaved(m_scene->m_volume.get());
-  //    m_imgCuda = cimg;
-  m_imgCuda.allocGpuInterleaved(m_scene->m_volume.get());
+
+  m_imgGpu.allocGpuInterleaved(m_scene->m_volume.get());
 }
 
 void
@@ -189,7 +184,7 @@ RenderGLPT::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
 {
   m_imagequad = new RectImage2D();
 
-  initVolumeTextureCUDA();
+  initVolumeTextureGpu();
   check_gl("init gl volume");
 
   glEnable(GL_DEPTH_TEST);
@@ -214,8 +209,8 @@ RenderGLPT::doRender(const CCamera& camera)
   GLint drawFboId = 0;
   glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 
-  if (!m_imgCuda.m_VolumeGLTexture || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
-    initVolumeTextureCUDA();
+  if (!m_imgGpu.m_VolumeGLTexture || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
+    initVolumeTextureGpu();
     // we have set up everything there is to do before rendering
     m_status.SetRenderBegin();
   }
@@ -235,7 +230,7 @@ RenderGLPT::doRender(const CCamera& camera)
       // TODO: only update the ones that changed.
       int NC = m_scene->m_volume->sizeC();
       for (int i = 0; i < NC; ++i) {
-        m_imgCuda.updateLutGpu(i, m_scene->m_volume.get());
+        m_imgGpu.updateLutGpu(i, m_scene->m_volume.get());
       }
     }
 
@@ -262,7 +257,7 @@ RenderGLPT::doRender(const CCamera& camera)
         activeChannel++;
       }
     }
-    m_imgCuda.updateVolumeData4x16(m_scene->m_volume.get(), ch[0], ch[1], ch[2], ch[3]);
+    m_imgGpu.updateVolumeData4x16(m_scene->m_volume.get(), ch[0], ch[1], ch[2], ch[3]);
     m_renderSettings->SetNoIterations(0);
   }
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now
@@ -272,11 +267,6 @@ RenderGLPT::doRender(const CCamera& camera)
   m_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->m_scene->m_volume->maxPixelDimension();
 
   m_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
-
-  // CudaLighting cudalt;
-  // FillCudaLighting(m_scene, cudalt);
-  // CudaCamera cudacam;
-  // FillCudaCamera(&(camera), cudacam);
 
   glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
   glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
@@ -316,7 +306,7 @@ RenderGLPT::doRender(const CCamera& camera)
                                              m_RandSeed,
                                              m_w,
                                              m_h,
-                                             m_imgCuda,
+                                             m_imgGpu,
                                              prevAccumTargetTex);
 
     m_fsq->render(m);
@@ -363,13 +353,13 @@ RenderGLPT::doRender(const CCamera& camera)
   // 1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
   // (float)gScene.GetNoIterations());
   //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResX()
-  //<< " " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResY(); CCudaTimer TmrDenoise;
+  //<< " " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
   if (m_renderSettings->m_DenoiseParams.m_Enabled && m_renderSettings->m_DenoiseParams.m_LerpC > 0.0f &&
       m_renderSettings->m_DenoiseParams.m_LerpC < 1.0f) {
     // draw from accum buffer into fbtex
-    // Denoise(_cudaF32AccumBuffer, _fbTex, _w, _h, m_renderSettings->m_DenoiseParams.m_LerpC);
+    // Denoise(_F32AccumBuffer, _fbTex, _w, _h, m_renderSettings->m_DenoiseParams.m_LerpC);
   } else {
-    // ToneMap(_cudaF32AccumBuffer, _fbTex, _w, _h);
+    // ToneMap(_F32AccumBuffer, _fbTex, _w, _h);
   }
   //_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 
@@ -457,7 +447,7 @@ RenderGLPT::resize(uint32_t w, uint32_t h, float devicePixelRatio)
 void
 RenderGLPT::cleanUpResources()
 {
-  m_imgCuda.deallocGpu();
+  m_imgGpu.deallocGpu();
 
   delete m_imagequad;
   m_imagequad = nullptr;
@@ -486,5 +476,5 @@ RenderGLPT::setScene(Scene* s)
 size_t
 RenderGLPT::getGpuBytes()
 {
-  return m_gpuBytes + m_imgCuda.m_gpuBytes;
+  return m_gpuBytes + m_imgGpu.m_gpuBytes;
 }

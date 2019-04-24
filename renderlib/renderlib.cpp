@@ -1,7 +1,7 @@
 #include "renderlib.h"
 
 #include "ImageXYZC.h"
-#include "ImageXyzcCuda.h"
+#include "ImageXyzcGpu.h"
 #include "Logging.h"
 #include "glad/glad.h"
 
@@ -19,7 +19,7 @@ static QOffscreenSurface* dummySurface = nullptr;
 
 static QOpenGLDebugLogger* logger = nullptr;
 
-std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageCuda>> renderlib::sCudaImageCache;
+std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> renderlib::sGpuImageCache;
 
 static const struct
 {
@@ -106,13 +106,13 @@ renderlib::initialize()
 }
 
 void
-renderlib::clearCudaVolumeCache()
+renderlib::clearGpuVolumeCache()
 {
-  // clean up the shared gpu cuda buffer cache
-  for (auto i : sCudaImageCache) {
+  // clean up the shared gpu buffer cache
+  for (auto i : sGpuImageCache) {
     i.second->deallocGpu();
   }
-  sCudaImageCache.clear();
+  sGpuImageCache.clear();
 }
 
 void
@@ -123,7 +123,7 @@ renderlib::cleanup()
   }
   LOG_INFO << "Renderlib shutdown";
 
-  clearCudaVolumeCache();
+  clearGpuVolumeCache();
 
   delete dummySurface;
   dummySurface = nullptr;
@@ -135,33 +135,33 @@ renderlib::cleanup()
   renderLibInitialized = false;
 }
 
-std::shared_ptr<ImageCuda>
-renderlib::imageAllocGPU_Cuda(std::shared_ptr<ImageXYZC> image, bool do_cache)
+std::shared_ptr<ImageGpu>
+renderlib::imageAllocGPU(std::shared_ptr<ImageXYZC> image, bool do_cache)
 {
-  auto cached = sCudaImageCache.find(image);
-  if (cached != sCudaImageCache.end()) {
+  auto cached = sGpuImageCache.find(image);
+  if (cached != sGpuImageCache.end()) {
     return cached->second;
   }
 
-  ImageCuda* cimg = new ImageCuda;
+  ImageGpu* cimg = new ImageGpu;
   cimg->allocGpuInterleaved(image.get());
-  std::shared_ptr<ImageCuda> shared(cimg);
+  std::shared_ptr<ImageGpu> shared(cimg);
 
   if (do_cache) {
-    sCudaImageCache[image] = shared;
+    sGpuImageCache[image] = shared;
   }
 
   return shared;
 }
 
 void
-renderlib::imageDeallocGPU_Cuda(std::shared_ptr<ImageXYZC> image)
+renderlib::imageDeallocGPU(std::shared_ptr<ImageXYZC> image)
 {
-  auto cached = sCudaImageCache.find(image);
-  if (cached != sCudaImageCache.end()) {
-    // cached->second is a ImageCuda.
+  auto cached = sGpuImageCache.find(image);
+  if (cached != sGpuImageCache.end()) {
+    // cached->second is a ImageGpu.
     // outstanding shared refs to cached->second will be deallocated!?!?!?!
     cached->second->deallocGpu();
-    sCudaImageCache.erase(image);
+    sGpuImageCache.erase(image);
   }
 }

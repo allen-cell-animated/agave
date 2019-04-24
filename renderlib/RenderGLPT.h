@@ -6,7 +6,7 @@
 #include "AppScene.h"
 #include "RenderSettings.h"
 
-#include "ImageXyzcCuda.h"
+#include "ImageXyzcGpu.h"
 #include "Status.h"
 #include "Timing.h"
 
@@ -16,8 +16,6 @@ class FSQ;
 class ImageXYZC;
 class Image3Dv33;
 class RectImage2D;
-struct CudaLighting;
-struct CudaCamera;
 class GLCopyShader;
 class GLPTVolumeShader;
 class GLToneMapShader;
@@ -54,10 +52,10 @@ private:
   Scene* m_scene;
 
   void initFB(uint32_t w, uint32_t h);
-  void initVolumeTextureCUDA();
+  void initVolumeTextureGpu();
   void cleanUpFB();
 
-  ImageCuda m_imgCuda;
+  ImageGpu m_imgGpu;
 
   RectImage2D* m_imagequad;
 
@@ -91,7 +89,4 @@ private:
   CStatus m_status;
 
   size_t m_gpuBytes;
-
-  void FillCudaLighting(Scene* pScene, CudaLighting& cl);
-  void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
 };

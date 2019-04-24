@@ -1,4 +1,4 @@
-#include "ImageXyzcCuda.h"
+#include "ImageXyzcGpu.h"
 
 #include "ImageXYZC.h"
 #include "Logging.h"
@@ -10,7 +10,7 @@
 #include <QtDebug>
 
 void
-ChannelCuda::allocGpu(ImageXYZC* img, int channel)
+ChannelGpu::allocGpu(ImageXYZC* img, int channel)
 {
   Channelu16* ch = img->channel(channel);
 
@@ -38,7 +38,7 @@ ChannelCuda::allocGpu(ImageXYZC* img, int channel)
 }
 
 void
-ChannelCuda::deallocGpu()
+ChannelGpu::deallocGpu()
 {
   glDeleteTextures(1, &m_VolumeLutGLTexture);
   m_VolumeLutGLTexture = 0;
@@ -47,7 +47,7 @@ ChannelCuda::deallocGpu()
 }
 
 void
-ChannelCuda::updateLutGpu(int channel, ImageXYZC* img)
+ChannelGpu::updateLutGpu(int channel, ImageXYZC* img)
 {
   static const int LUT_SIZE = 256;
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -65,7 +65,7 @@ ChannelCuda::updateLutGpu(int channel, ImageXYZC* img)
 }
 
 void
-ImageCuda::createVolumeTextureFusedRGBA8(ImageXYZC* img)
+ImageGpu::createVolumeTextureFusedRGBA8(ImageXYZC* img)
 {
   m_gpuBytes += (8 + 8 + 8 + 8) / 8 * img->sizeX() * img->sizeY() * img->sizeZ();
 
@@ -85,7 +85,7 @@ ImageCuda::createVolumeTextureFusedRGBA8(ImageXYZC* img)
 }
 
 void
-ImageCuda::createVolumeTexture4x16(ImageXYZC* img)
+ImageGpu::createVolumeTexture4x16(ImageXYZC* img)
 {
   m_gpuBytes += (16 * 4) / 8 * img->sizeX() * img->sizeY() * img->sizeZ();
 
@@ -106,7 +106,7 @@ ImageCuda::createVolumeTexture4x16(ImageXYZC* img)
 }
 
 void
-ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
+ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
 {
   QElapsedTimer timer;
   timer.start();
@@ -141,7 +141,7 @@ ImageCuda::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
 }
 
 void
-ImageCuda::allocGpuInterleaved(ImageXYZC* img)
+ImageGpu::allocGpuInterleaved(ImageXYZC* img)
 {
   deallocGpu();
   m_channels.clear();
@@ -155,7 +155,7 @@ ImageCuda::allocGpuInterleaved(ImageXYZC* img)
     img, 0, std::min(1u, numChannels - 1), std::min(2u, numChannels - 1), std::min(3u, numChannels - 1));
 
   for (uint32_t i = 0; i < numChannels; ++i) {
-    ChannelCuda c;
+    ChannelGpu c;
     c.m_index = i;
     c.allocGpu(img, i);
     m_channels.push_back(c);
@@ -168,7 +168,7 @@ ImageCuda::allocGpuInterleaved(ImageXYZC* img)
 }
 
 void
-ImageCuda::deallocGpu()
+ImageGpu::deallocGpu()
 {
   for (size_t i = 0; i < m_channels.size(); ++i) {
     m_channels[i].deallocGpu();
@@ -186,7 +186,7 @@ ImageCuda::deallocGpu()
 }
 
 void
-ImageCuda::updateLutGpu(int channel, ImageXYZC* img)
+ImageGpu::updateLutGpu(int channel, ImageXYZC* img)
 {
   m_channels[channel].updateLutGpu(channel, img);
 }

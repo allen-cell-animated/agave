@@ -5,7 +5,7 @@
 #include "CCamera.h"
 #include "DenoiseParams.h"
 #include "ImageXYZC.h"
-#include "ImageXyzcCuda.h"
+#include "ImageXyzcGpu.h"
 #include "Logging.h"
 
 #include <gl/Util.h>
@@ -1266,7 +1266,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
                                      int randSeed,
                                      int w,
                                      int h,
-                                     const ImageCuda& imggpu,
+                                     const ImageGpu& imggpu,
                                      GLuint accumulationTexture)
 {
   check_gl("before pathtrace shader uniform binding");

@@ -6,7 +6,7 @@
 
 class ImageXYZC;
 
-struct ChannelCuda
+struct ChannelGpu
 {
   GLuint m_VolumeLutGLTexture = 0;
 
@@ -18,10 +18,10 @@ struct ChannelCuda
   void updateLutGpu(int channel, ImageXYZC* img);
 };
 
-struct ImageCuda
+struct ImageGpu
 {
-  std::vector<ChannelCuda> m_channels;
-  
+  std::vector<ChannelGpu> m_channels;
+
   GLuint m_VolumeGLTexture = 0;
 
   size_t m_gpuBytes = 0;
@@ -39,5 +39,5 @@ struct ImageCuda
   // similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
   void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
 
-  ~ImageCuda() { deallocGpu(); }
+  ~ImageGpu() { deallocGpu(); }
 };
