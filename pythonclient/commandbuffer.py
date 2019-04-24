@@ -52,7 +52,7 @@ COMMANDS = {
     # x, y, z pixel scaling
     "SET_VOXEL_SCALE": [30, "F32", "F32", "F32"],
     # channel, method
-    "AUTO_THRESHOLD": [31, "I32", "I32"]
+    "AUTO_THRESHOLD": [31, "I32", "I32"],
 }
 
 
@@ -78,26 +78,31 @@ class CommandBuffer:
 
             commandCode = command[0]
             signature = COMMANDS[commandCode]
-            nArgsExpected = len(signature)-1
+            nArgsExpected = len(signature) - 1
             # for each arg:
-            if len(command)-1 != nArgsExpected:
-                print("BAD COMMAND: EXPECTED " + str(nArgsExpected) + " args and got " + str(len(command)-1))
+            if len(command) - 1 != nArgsExpected:
+                print(
+                    "BAD COMMAND: EXPECTED "
+                    + str(nArgsExpected)
+                    + " args and got "
+                    + str(len(command) - 1)
+                )
                 return 0
 
             for j in range(0, nArgsExpected):
                 # get arg type
-                argtype = signature[j+1]
+                argtype = signature[j + 1]
                 if argtype == "S":
                     # one int32 for string length
                     bytesize += 4
                     # followed by one byte per char.
-                    bytesize += len(command[j+1])
+                    bytesize += len(command[j + 1])
                 elif argtype == "F32":
                     bytesize += 4
                 elif argtype == "I32":
                     bytesize += 4
         return bytesize
-        
+
     def make_buffer(self):
         bytesize = self.compute_size()
 
@@ -111,26 +116,26 @@ class CommandBuffer:
                 self.has_load_command = True
 
             signature = COMMANDS[commandCode]
-            nArgsExpected = len(signature)-1
+            nArgsExpected = len(signature) - 1
 
             # the numeric code for the command
-            struct.pack_into('>i', self.buffer, offset, signature[0])
+            struct.pack_into(">i", self.buffer, offset, signature[0])
             offset += 4
             for j in range(0, nArgsExpected):
                 # get arg type
-                argtype = signature[j+1]
+                argtype = signature[j + 1]
                 if argtype == "S":
-                    sstr = cmd[j+1]
-                    struct.pack_into('>i', self.buffer, offset, len(sstr))
+                    sstr = cmd[j + 1]
+                    struct.pack_into(">i", self.buffer, offset, len(sstr))
                     offset += 4
                     for k in sstr:
-                        struct.pack_into('B', self.buffer, offset, ord(k))
+                        struct.pack_into("B", self.buffer, offset, ord(k))
                         offset += 1
                 elif argtype == "F32":
-                    struct.pack_into('f', self.buffer, offset, cmd[j+1])
+                    struct.pack_into("f", self.buffer, offset, cmd[j + 1])
                     offset += 4
                 elif argtype == "I32":
-                    struct.pack_into('>i', self.buffer, offset, cmd[j+1])
+                    struct.pack_into(">i", self.buffer, offset, cmd[j + 1])
                     offset += 4
         # result is in this.buffer
         return self.buffer
@@ -141,7 +146,7 @@ class CommandBuffer:
         self.prebuffer.append(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cb = CommandBuffer()
     cb.add_command("EYE", 1.0, 1.0, 5.0)
     cb.add_command("TARGET", 3.0, 3.0, 0.0)

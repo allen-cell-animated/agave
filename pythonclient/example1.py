@@ -1,10 +1,13 @@
 import agaveclient
 
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     per_frame_commands = [
-        ("LOAD_OME_TIF", "D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.tif"),
+        (
+            "LOAD_OME_TIF",
+            "D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.tif",
+        ),
         ("SET_RESOLUTION", 1024, 1024),
         ("SET_VOXEL_SCALE", 0.8, -0.8, 2.0),
         ("RENDER_ITERATIONS", 512),
@@ -44,7 +47,10 @@ if __name__ == '__main__':
         ("LIGHT_SIZE", 0, 1, 1),
     ]
     per_frame_commands2 = [
-        ("LOAD_OME_TIF", "D:\\data\\april2019\\aligned_100s\\Interphase\\TUBA1B_71126_raw.ome.tif"),
+        (
+            "LOAD_OME_TIF",
+            "D:\\data\\april2019\\aligned_100s\\Interphase\\TUBA1B_71126_raw.ome.tif",
+        ),
         ("SET_RESOLUTION", 1024, 1024),
         ("SET_VOXEL_SCALE", 0.8, -0.8, 2.0),
         ("RENDER_ITERATIONS", 512),
@@ -84,14 +90,19 @@ if __name__ == '__main__':
         ("LIGHT_SIZE", 0, 1, 1),
     ]
     try:
-        ws = agaveclient.AgaveClient('ws://localhost:1235/', protocols=['http-only', 'chat'])
+        ws = agaveclient.AgaveClient(
+            "ws://localhost:1235/", protocols=["http-only", "chat"]
+        )
         print("created client")
 
         def onGetInfo(jsondict):
             print(jsondict)
 
         def onOpen():
-            ws.get_info("D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.tif", onGetInfo)
+            ws.get_info(
+                "D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.tif",
+                onGetInfo,
+            )
             ws.render_frame(per_frame_commands, 1, "one")
             ws.render_frame(per_frame_commands2, 2, "two")
 

@@ -8,13 +8,15 @@ from PIL import Image
 from commandbuffer import CommandBuffer
 from collections import deque
 import matplotlib
-matplotlib.use('TkAgg')
+
+matplotlib.use("TkAgg")
 
 
 def lerp(startframe, endframe, startval, endval):
-    x = numpy.linspace(startframe, endframe, num=endframe-startframe+1,
-                       endpoint=True)
-    y = startval + (endval-startval)*(x-startframe)/(endframe-startframe)
+    x = numpy.linspace(
+        startframe, endframe, num=endframe - startframe + 1, endpoint=True
+    )
+    y = startval + (endval - startval) * (x - startframe) / (endframe - startframe)
     print(y)
 
 
@@ -24,14 +26,18 @@ def rotation_matrix(axis, theta):
     the given axis by theta radians.
     """
     axis = numpy.asarray(axis)
-    axis = axis/math.sqrt(numpy.dot(axis, axis))
-    a = math.cos(theta/2.0)
-    b, c, d = -axis*math.sin(theta/2.0)
-    aa, bb, cc, dd = a*a, b*b, c*c, d*d
-    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    return numpy.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                        [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                        [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+    axis = axis / math.sqrt(numpy.dot(axis, axis))
+    a = math.cos(theta / 2.0)
+    b, c, d = -axis * math.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return numpy.array(
+        [
+            [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
+        ]
+    )
 
 
 def rotate_vec(v, axis, angle):
@@ -50,7 +56,9 @@ class AgaveClient(WebSocketClient):
 
     def render_frame(self, command_list, number=0, output_name="frame", callback=None):
         cb = CommandBuffer(command_list)
-        self.push_request(cb, output_name+'_'+str(number).zfill(4)+".png", callback=callback)
+        self.push_request(
+            cb, output_name + "_" + str(number).zfill(4) + ".png", callback=callback
+        )
 
     def render_sequence(self, sequence):
         # wait for each image in the sequence to be returned before
@@ -107,7 +115,7 @@ class AgaveClient(WebSocketClient):
         else:
             # print(m)
             if len(m) == 175:
-                self.close(reason='Bye bye')
+                self.close(reason="Bye bye")
             else:
                 # should be json data coming from an "info" request
                 self._handleInfoText(m, req)
@@ -116,9 +124,9 @@ class AgaveClient(WebSocketClient):
 
 
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
-        ws = AgaveClient('ws://localhost:1235/', protocols=['http-only', 'chat'])
+        ws = AgaveClient("ws://localhost:1235/", protocols=["http-only", "chat"])
         print("created client")
 
         def onOpen():
