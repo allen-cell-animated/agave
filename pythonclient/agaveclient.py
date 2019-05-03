@@ -44,6 +44,36 @@ def rotate_vec(v, axis, angle):
     return numpy.dot(rotation_matrix(axis, angle), v)
 
 
+def vec_sub(v1, v2):
+    return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]
+
+
+def vec_add(v1, v2):
+    return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]]
+
+
+def vec_normalize(v):
+    vmag = math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+    return [v[0] / vmag, v[1] / vmag, v[2] / vmag]
+
+
+def vec_cross(v1, v2):
+    c = [
+        v1[1] * v2[2] - v1[2] * v2[1],
+        v1[2] * v2[0] - v1[0] * v2[2],
+        v1[0] * v2[1] - v1[1] * v2[0],
+    ]
+    return c
+
+
+def get_vertical_axis(lookdir, up):
+    eyeDirection = vec_normalize(lookdir)
+    objectUpDirection = vec_normalize(up)
+    objectSidewaysDirection = vec_normalize(vec_cross(objectUpDirection, eyeDirection))
+    axis = vec_normalize(vec_cross(objectSidewaysDirection, lookdir))
+    return axis
+
+
 # assumptions: every commandbuffer send should result in one image.
 # also, they arrive in the order the buffers were sent.
 class AgaveClient(WebSocketClient):
@@ -60,12 +90,75 @@ class AgaveClient(WebSocketClient):
             cb, output_name + "_" + str(number).zfill(4) + ".png", callback=callback
         )
 
-    def render_sequence(self, sequence):
-        # wait for each image in the sequence to be returned before
-        # sending the next request
-        self.sequence = sequence
-        self.connect()
-        self.run_forever()
+    def render_sequence(
+        self, sequence, output_name="frame", first_frame=0, callback=None
+    ):
+        # sequence is a list of lists of commands.
+        # each list describes one frame
+        for i, cmds in enumerate(sequence):
+            self.render_frame(
+                command_list=cmds,
+                number=i + first_frame,
+                output_name=output_name,
+                callback=callback,
+            )
+
+    def render_turntable(
+        self,
+        command_list,
+        number_of_frames=90,
+        direction=1,
+        output_name="frame",
+        first_frame=0,
+        callback=None,
+    ):
+        # direction must be +/-1
+        if direction != 1 and direction != -1:
+            return
+
+        # issue the first command buffer.
+        self.render_frame(
+            command_list, number=first_frame, output_name=output_name, callback=callback
+        )
+
+        # then orbit the camera parametrically
+        for i in range(1, number_of_frames):
+            self.render_frame(
+                [("ORBIT_CAMERA", 0.0, direction * (360.0 / float(number_of_frames)))],
+                number=i + first_frame,
+                output_name=output_name,
+                callback=callback,
+            )
+
+    def render_rocker(
+        self,
+        command_list,
+        number_of_frames=90,
+        angle=30,
+        direction=1,
+        output_name="frame",
+        first_frame=0,
+        callback=None,
+    ):
+        # direction must be +/-1
+        if direction != 1 and direction != -1:
+            return
+
+        # issue the first command buffer.
+        self.render_frame(
+            command_list, number=first_frame, output_name=output_name, callback=callback
+        )
+        # then orbit the camera parametrically
+        angledelta = 4.0 * float(angle) / float(number_of_frames)
+        for i in range(1, number_of_frames):
+            quadrant = (i * 4) // number_of_frames
+            quadrantdirection = 1 if quadrant == 0 or quadrant == 3 else -1
+            self.render_frame(
+                [("ORBIT_CAMERA", 0.0, angledelta * direction * quadrantdirection)],
+                number=i + first_frame,
+                output_name=output_name,
+                callback=callback,
+            )
 
     def get_info(self, filepath, callback):
         print("Get info: " + filepath)
@@ -109,9 +202,10 @@ class AgaveClient(WebSocketClient):
             # print(req)
             # number = req[0]
             name = req[1]
-            im = Image.open(io.BytesIO(m.data))
-            im.save(name)
-            print("Saved frame " + str(req[0]) + " : " + name)
+            if name != "info":
+                im = Image.open(io.BytesIO(m.data))
+                im.save(name)
+                print("Saved frame " + str(req[0]) + " : " + name)
         else:
             # print(m)
             if len(m) == 175:

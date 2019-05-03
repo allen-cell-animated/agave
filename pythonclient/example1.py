@@ -3,24 +3,25 @@ import agaveclient
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))
 if __name__ == "__main__":
 
+    filename = (
+        "D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.cropped.tif"
+    )
     per_frame_commands = [
-        (
-            "LOAD_OME_TIF",
-            "D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.tif",
-        ),
-        ("SET_RESOLUTION", 1024, 1024),
-        ("SET_VOXEL_SCALE", 0.8, -0.8, 2.0),
-        ("RENDER_ITERATIONS", 512),
+        ("LOAD_OME_TIF", filename),
+        ("SET_RESOLUTION", 512, 512),
+        ("SET_VOXEL_SCALE", 1.0, -1.0, 2.9),
+        ("RENDER_ITERATIONS", 128),
         ("SET_CLIP_REGION", 0, 1, 0, 1, 0, 1),
-        ("EYE", 0.5, -0.5, 1.39614),
-        ("TARGET", 0.5, -0.5, 0.0),
-        ("UP", 0.0, 1.0, 0.0),
         ("FOV_Y", 55),
+        # ("EYE", 0.5, -0.5, 1.0),
+        # ("TARGET", 0.5, -0.5, 0.3625),
+        # ("UP", 0.0, 1.0, 0.0),
+        ("FRAME_SCENE",),
         ("EXPOSURE", 0.8714),
         ("DENSITY", 100),
         ("APERTURE", 0),
         ("FOCALDIST", 0.75),
-        ("ENABLE_CHANNEL", 0, 1),
+        ("ENABLE_CHANNEL", 0, 0),
         ("MAT_DIFFUSE", 0, 1, 0, 1, 1.0),
         ("MAT_SPECULAR", 0, 0, 0, 0, 0.0),
         ("MAT_EMISSIVE", 0, 0, 0, 0, 0.0),
@@ -46,11 +47,11 @@ if __name__ == "__main__":
         ("LIGHT_COLOR", 0, 122.926, 122.926, 125.999),
         ("LIGHT_SIZE", 0, 1, 1),
     ]
+    filename2 = (
+        "D:\\data\\april2019\\aligned_100s\\Interphase\\TUBA1B_71126_raw.ome.tif"
+    )
     per_frame_commands2 = [
-        (
-            "LOAD_OME_TIF",
-            "D:\\data\\april2019\\aligned_100s\\Interphase\\TUBA1B_71126_raw.ome.tif",
-        ),
+        ("LOAD_OME_TIF", filename2),
         ("SET_RESOLUTION", 1024, 1024),
         ("SET_VOXEL_SCALE", 0.8, -0.8, 2.0),
         ("RENDER_ITERATIONS", 512),
@@ -97,14 +98,16 @@ if __name__ == "__main__":
 
         def onGetInfo(jsondict):
             print(jsondict)
+            # compute z dist for size of volume
+            # ws.render_turntable(
+            #     per_frame_commands, number_of_frames=45, output_name="turntable"
+            # )
+            ws.render_rocker(
+                per_frame_commands, number_of_frames=40, angle=30, output_name="rocker"
+            )
 
         def onOpen():
-            ws.get_info(
-                "D:\\data\\april2019\\aligned_100s\\Interphase\\ACTB_36972_seg.ome.tif",
-                onGetInfo,
-            )
-            ws.render_frame(per_frame_commands, 1, "one")
-            ws.render_frame(per_frame_commands2, 2, "two")
+            ws.get_info(filename, onGetInfo)
 
         ws.onOpened = onOpen
         ws.connect()
