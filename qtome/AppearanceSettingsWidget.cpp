@@ -706,6 +706,16 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       this->m_scene->m_volume->channel((uint32_t)i)->generate_equalized();
       this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     });
+    QPushButton* pct98Button = new QPushButton("Pct98");
+    sectionLayout->addWidget(pct98Button, row, 5);
+    QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
+      float w, l;
+      this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l, 0.5f, 0.983f);
+      // LOG_DEBUG << "Window/level: " << w << " , " << l;
+      windowSlider->setValue(w, true);
+      levelSlider->setValue(l, true);
+      this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    });
 
     row++;
     sectionLayout->addWidget(new QLabel("Opacity"), row, 0);

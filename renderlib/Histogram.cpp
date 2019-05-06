@@ -220,12 +220,24 @@ Histogram::generate_auto(float& window, float& level, size_t length)
   return generate_windowLevel(window, level, length);
 }
 
+/**
+ * Generate a piecewise linear lookup table that ramps up from 0 to 1 over the b to e domain
+ *  |
+ * 1|               +---------+-----
+ *  |              /
+ *  |             /
+ *  |            /
+ *  |           /
+ *  |          /
+ * 0+=========+---------------+-----
+ *  0         b    e          1
+ * window = e-b      width of range e,b
+ * level = 0.5*(e+b) midpoint of e,b
+ */
 // window and level are percentages of full range 0..1
 float*
 Histogram::generate_windowLevel(float window, float level, size_t length)
 {
-  //LOG_DEBUG << "window/level: " << window << ", " << level;
-
   // return a LUT with new values(?)
   // data type of lut values is out_phys_range (uint8)
   // length of lut is number of histogram bins (represents the input data range)
@@ -244,6 +256,44 @@ Histogram::generate_windowLevel(float window, float level, size_t length)
   }
 
   return lut;
+}
+
+float*
+Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length)
+{
+  // e.g. 0.50, 0.983 starts from 50th percentile bucket and ends at 98.3 percentile bucket.
+  if (lo > hi) {
+    std::swap(hi, lo);
+  }
+
+  size_t lowlimit = size_t(_pixelCount * lo);
+  size_t hilimit = size_t(_pixelCount * hi);
+
+  // TODO use _ccounts in these loops!!
+
+  size_t i = 0;
+  size_t count = 0;
+  for (i = 0; i < _bins.size(); ++i) {
+    count += _bins[i];
+    if (count > lowlimit) {
+      break;
+    }
+  }
+  size_t hmin = i;
+
+  count = 0;
+  for (i = 0; i < _bins.size(); ++i) {
+    count += _bins[i];
+    if (count > hilimit) {
+      break;
+    }
+  }
+  size_t hmax = i;
+
+  // calculate a window and level that are percentages of the full range (0 .. length-1)
+  window = (float)(hmax - hmin) / (float)(length - 1);
+  level = (float)(hmin + hmax) * 0.5f / (float)(length - 1);
+  return generate_windowLevel(window, level, length);
 }
 
 float*
@@ -393,12 +443,11 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
     if (vlow == 0.0f) {
       return generate_controlPoints({ { vlow, ilow }, { vmid, imid }, { vmax, imax } });
     } else {
-      return generate_controlPoints({ { 0.0f, 0.0f }, { vlow, ilow }, { vmid, imid }, { vmax, imax } });    
+      return generate_controlPoints({ { 0.0f, 0.0f }, { vlow, ilow }, { vmid, imid }, { vmax, imax } });
     }
   } else {
     if (vlow == 0.0f) {
-      return generate_controlPoints(
-        { { vlow, ilow }, { 0.9f * vlow + 0.1f * vmax, imid }, { vmax, imax } });
+      return generate_controlPoints({ { vlow, ilow }, { 0.9f * vlow + 0.1f * vmax, imid }, { vmax, imax } });
     } else {
       return generate_controlPoints(
         { { 0.0f, 0.0f }, { vlow, ilow }, { 0.9f * vlow + 0.1f * vmax, imid }, { vmax, imax } });

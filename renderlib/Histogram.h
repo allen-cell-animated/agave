@@ -24,6 +24,7 @@ struct Histogram
   // attempt to redo imagej's Auto
   float* generate_auto2(float& window, float& level, size_t length = 256);
   float* generate_auto(float& window, float& level, size_t length = 256);
+  float* generate_percentiles(float& window, float& level, float lo, float hi, size_t length = 256);
   float* generate_windowLevel(float window, float level, size_t length = 256);
   float* generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length = 256);
   float* generate_equalized(size_t length = 256);
