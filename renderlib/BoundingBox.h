@@ -4,6 +4,8 @@
 
 #include "glm.h"
 
+#include <sstream>
+
 class CBoundingBox
 {
 public:
@@ -155,6 +157,11 @@ public:
   }
 
   glm::vec3 GetExtent(void) const { return m_MaxP - m_MinP; }
+  glm::vec3 GetInverseExtent(void) const
+  {
+    glm::vec3 v = GetExtent();
+    return glm::vec3(1.0f / v.x, 1.0f / v.y, 1.0f / v.z);
+  }
 
   float GetEquivalentRadius(void) const { return 0.5f * glm::length(GetExtent()); }
 
@@ -162,6 +169,14 @@ public:
   {
     return (pt.x >= m_MinP.x && pt.x <= m_MaxP.x && pt.y >= m_MinP.y && pt.y <= m_MaxP.y && pt.z >= m_MinP.z &&
             pt.z <= m_MaxP.z);
+  }
+
+  std::string ToString() const
+  {
+    std::stringstream ss;
+    ss << "Min(" << m_MinP.x << "," << m_MinP.y << "," << m_MinP.z << "), Max(" << m_MaxP.x << "," << m_MaxP.y << ","
+       << m_MaxP.z << ")";
+    return ss.str();
   }
 
 #if 0

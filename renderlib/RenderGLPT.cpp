@@ -268,6 +268,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
 
+  // scene bounds are min=0.0, max=image physical dims scaled to max dim so that max dim is 1.0
   glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
   glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
   CBoundingBox b;
@@ -277,6 +278,8 @@ RenderGLPT::doRender(const CCamera& camera)
   b.SetMaxP(glm::vec3(ext.x * m_scene->m_roi.GetMaxP().x + sn.x,
                       ext.y * m_scene->m_roi.GetMaxP().y + sn.y,
                       ext.z * m_scene->m_roi.GetMaxP().z + sn.z));
+  // LOG_DEBUG << "CLIPPED BOUNDS" << b.ToString();
+  // LOG_DEBUG << "FULL BOUNDS" << m_scene->m_boundingBox.ToString();
 
   int numIterations = m_renderSettings->GetNoIterations();
 

@@ -50,7 +50,7 @@ private:
 
   int m_volumeTexture;
   int m_tPreviousTexture, m_uSampleCounter, m_uFrameCounter, m_uResolution, m_gClippedAaBbMin, m_gClippedAaBbMax,
-    m_gDensityScale, m_gStepSize, m_gStepSizeShadow, m_gInvAaBbMax, m_g_nChannels, m_gShadingType, m_gGradientDeltaX,
+    m_gDensityScale, m_gStepSize, m_gStepSizeShadow, m_gInvAaBbSize, m_g_nChannels, m_gShadingType, m_gGradientDeltaX,
     m_gGradientDeltaY, m_gGradientDeltaZ, m_gInvGradientDelta, m_gGradientFactor;
   int m_cameraFrom, m_cameraU, m_cameraV, m_cameraN, m_cameraScreen, m_cameraInvScreen, m_cameraFocalDistance,
     m_cameraApertureSize;
