@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QVariant>
 
+#include <math.h>
+
 QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   : QGroupBox(pParent)
   , m_GridLayout()

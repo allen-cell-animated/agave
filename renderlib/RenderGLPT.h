@@ -6,8 +6,7 @@
 #include "AppScene.h"
 #include "RenderSettings.h"
 
-#include "CudaUtilities.h"
-#include "ImageXyzcCuda.h"
+#include "ImageXyzcGpu.h"
 #include "Status.h"
 #include "Timing.h"
 
@@ -17,8 +16,6 @@ class FSQ;
 class ImageXYZC;
 class Image3Dv33;
 class RectImage2D;
-struct CudaLighting;
-struct CudaCamera;
 class GLCopyShader;
 class GLPTVolumeShader;
 class GLToneMapShader;
@@ -29,9 +26,9 @@ public:
   RenderGLPT(RenderSettings* rs);
   virtual ~RenderGLPT();
 
-  virtual void initialize(uint32_t w, uint32_t h);
+  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void render(const CCamera& camera);
-  virtual void resize(uint32_t w, uint32_t h);
+  virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
   virtual RenderParams& renderParams();
   virtual Scene* scene();
@@ -55,10 +52,10 @@ private:
   Scene* m_scene;
 
   void initFB(uint32_t w, uint32_t h);
-  void initVolumeTextureCUDA();
+  void initVolumeTextureGpu();
   void cleanUpFB();
 
-  ImageCuda m_imgCuda;
+  ImageGpu m_imgGpu;
 
   RectImage2D* m_imagequad;
 
@@ -75,7 +72,6 @@ private:
 
   // the rgbaf32 accumulation buffer that holds the progressively rendered image
   GLuint m_glF32AccumBuffer;
-  GLuint m_glF32AccumBuffer2; // for ping ponging
   GLuint m_fbF32Accum;
   GLCopyShader* m_copyShader;
   GLToneMapShader* m_toneMapShader;
@@ -83,14 +79,14 @@ private:
   // screen size auxiliary buffers for rendering
   unsigned int* m_randomSeeds1;
   unsigned int* m_randomSeeds2;
+  // incrementing integer to give to shader
+  int m_RandSeed;
 
   int m_w, m_h;
+  float m_devicePixelRatio;
 
   Timing m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
   CStatus m_status;
 
   size_t m_gpuBytes;
-
-  void FillCudaLighting(Scene* pScene, CudaLighting& cl);
-  void FillCudaCamera(const CCamera* pCamera, CudaCamera& c);
 };

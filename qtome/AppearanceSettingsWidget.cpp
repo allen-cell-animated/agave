@@ -25,7 +25,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
   m_MainLayout.addWidget(new QLabel("Renderer"), 1, 0);
   m_RendererType.addItem("OpenGL simple", 0);
-  m_RendererType.addItem("CUDA full", 1);
+  m_RendererType.addItem("Path Traced", 1);
   // m_RendererType.addItem("OpenGL full", 2);
   m_RendererType.setCurrentIndex(1);
   m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
@@ -136,6 +136,11 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 
   Section* section = createLightingControls();
   m_MainLayout.addWidget(section, 14, 0, 1, -1);
+
+  QFrame* lineA = new QFrame();
+  lineA->setFrameShape(QFrame::HLine);
+  lineA->setFrameShadow(QFrame::Sunken);
+  m_MainLayout.addWidget(lineA, 15, 0, 1, -1);
 
   QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
   QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -590,13 +595,13 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorTopIntensity);
+  m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorTopIntensity);
   m_lt1gui.m_stColorButton->SetColor(c);
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorMiddleIntensity);
+  m_lt1gui.m_smintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorMiddleIntensity);
   m_lt1gui.m_smColorButton->SetColor(c);
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorBottomIntensity);
+  m_lt1gui.m_sbintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorBottomIntensity);
   m_lt1gui.m_sbColorButton->SetColor(c);
 }
 
@@ -770,7 +775,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnChannelChecked(i, channelenabled);
 
     section->setContentLayout(*sectionLayout);
-    m_MainLayout.addWidget(section, 15 + i, 0, 1, -1);
+    m_MainLayout.addWidget(section, 16 + i, 0, 1, -1);
     m_channelSections.push_back(section);
   }
 }

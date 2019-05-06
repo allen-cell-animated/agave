@@ -11,7 +11,7 @@
 
 class DenoiseParams;
 struct PathTraceRenderSettings;
-struct ImageCuda;
+struct ImageGpu;
 class Scene;
 
 class GLPTVolumeShader : public QOpenGLShaderProgram
@@ -36,9 +36,10 @@ public:
                           const CBoundingBox& clipped_bbox,
                           const PathTraceRenderSettings& renderSettings,
                           int numIterations,
+                          int randSeed,
                           int w,
                           int h,
-                          const ImageCuda& imggpu,
+                          const ImageGpu& imggpu,
                           GLuint accumulationTexture);
 
 private:

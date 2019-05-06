@@ -1,45 +1,76 @@
 #include "Util.h"
 
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
+#include "Logging.h"
 
 #include "glm.h"
 
 #include <array>
 #include <iostream>
 
+static bool GL_ERROR_CHECKS_ENABLED = true;
+
+void
+check_glfb(std::string const& message) {
+  if (!GL_ERROR_CHECKS_ENABLED) {
+    return;
+  }
+  check_gl(message);
+  GLint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+  if (status != GL_FRAMEBUFFER_COMPLETE) {
+    std::string statusstr = "Unknown " + std::to_string(status); 
+    switch(status) {
+      case GL_FRAMEBUFFER_UNDEFINED: statusstr = "GL_FRAMEBUFFER_UNDEFINED"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"; break;
+      case GL_FRAMEBUFFER_UNSUPPORTED: statusstr = "GL_FRAMEBUFFER_UNSUPPORTED"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"; break;
+      case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"; break;
+      default:break;
+    }
+    LOG_DEBUG << "Framebuffer not complete! Error code: " << statusstr;
+  }
+}
+
 void
 check_gl(std::string const& message)
 {
+  if (!GL_ERROR_CHECKS_ENABLED) {
+    return;
+  }
+
   GLenum err = GL_NO_ERROR;
   while ((err = glGetError()) != GL_NO_ERROR) {
-    std::cerr << "GL error (" << message << ") :";
+    std::string msg = "GL error (" + message + ") :";
     switch (err) {
       case GL_INVALID_ENUM:
-        std::cerr << "Invalid enum";
+        msg += "Invalid enum";
         break;
       case GL_INVALID_VALUE:
-        std::cerr << "Invalid value";
+        msg += "Invalid value";
         break;
       case GL_INVALID_OPERATION:
-        std::cerr << "Invalid operation";
+        msg += "Invalid operation";
         break;
       case GL_INVALID_FRAMEBUFFER_OPERATION:
-        std::cerr << "Invalid framebuffer operation";
+        msg += "Invalid framebuffer operation";
         break;
       case GL_OUT_OF_MEMORY:
-        std::cerr << "Out of memory";
+        msg += "Out of memory";
         break;
       case GL_STACK_UNDERFLOW:
-        std::cerr << "Stack underflow";
+        msg += "Stack underflow";
         break;
       case GL_STACK_OVERFLOW:
-        std::cerr << "Stack overflow";
+        msg += "Stack overflow";
         break;
       default:
-        std::cerr << "Unknown (" << err << ')';
+        msg += "Unknown (" + std::to_string(err) + ')';
         break;
     }
-    std::cerr << std::endl;
+    LOG_DEBUG << msg;
   }
 }
 

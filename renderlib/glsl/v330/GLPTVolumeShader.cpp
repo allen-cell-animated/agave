@@ -3,10 +3,10 @@
 #include "AppScene.h"
 #include "BoundingBox.h"
 #include "CCamera.h"
+#include "DenoiseParams.h"
 #include "ImageXYZC.h"
-#include "ImageXyzcCuda.h"
-
-#include "DenoiseParams.cuh"
+#include "ImageXyzcGpu.h"
+#include "Logging.h"
 
 #include <gl/Util.h>
 #include <glm.h>
@@ -36,7 +36,7 @@ void main()
 	)");
 
   if (!m_vshader->isCompiled()) {
-    std::cerr << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString() << std::endl;
+    LOG_ERROR << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -1134,7 +1134,7 @@ void main()
     )");
 
   if (!m_fshader->isCompiled()) {
-    std::cerr << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString() << std::endl;
+    LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);
@@ -1142,7 +1142,7 @@ void main()
   link();
 
   if (!isLinked()) {
-    std::cerr << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString() << std::endl;
+    LOG_ERROR << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString();
   }
 
   m_volumeTexture = uniformLocation("volumeTexture");
@@ -1263,9 +1263,10 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
                                      const CBoundingBox& clipped_bbox,
                                      const PathTraceRenderSettings& renderSettings,
                                      int numIterations,
+                                     int randSeed,
                                      int w,
                                      int h,
-                                     const ImageCuda& imggpu,
+                                     const ImageGpu& imggpu,
                                      GLuint accumulationTexture)
 {
   check_gl("before pathtrace shader uniform binding");
@@ -1286,7 +1287,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("post accum textures");
 
   glUniform1f(m_uSampleCounter, (float)numIterations);
-  glUniform1f(m_uFrameCounter, (float)(numIterations + 1));
+  glUniform1f(m_uFrameCounter, (float)(randSeed + 1));
   // glUniform1f(m_uFrameCounter, 1.0f);
 
   glUniform2f(m_uResolution, (float)w, (float)h);

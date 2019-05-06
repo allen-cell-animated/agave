@@ -1,5 +1,7 @@
 #include "V330GLImageShader2DnoLut.h"
 
+#include "Logging.h"
+
 #include <gl/Util.h>
 #include <glm.h>
 
@@ -34,8 +36,8 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_vshader->isCompiled()) {
-    std::cerr << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n"
-              << m_vshader->log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n"
+              << m_vshader->log().toStdString();
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -58,8 +60,8 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_fshader->isCompiled()) {
-    std::cerr << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n"
-              << m_fshader->log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n"
+              << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);
@@ -67,24 +69,24 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
   link();
 
   if (!isLinked()) {
-    std::cerr << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log().toStdString() << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log().toStdString();
   }
 
   m_attr_coords = attributeLocation("coord2d");
   if (m_attr_coords == -1)
-    std::cerr << "V330GLImageShader2DnoLut: Failed to bind coordinates" << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind coordinates";
 
   m_attr_texcoords = attributeLocation("texcoord");
   if (m_attr_texcoords == -1)
-    std::cerr << "V330GLImageShader2DnoLut: Failed to bind texture coordinates" << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind texture coordinates";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
-    std::cerr << "V330GLImageShader2DnoLut: Failed to bind transform" << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind transform";
 
   m_uniform_texture = uniformLocation("tex");
   if (m_uniform_texture == -1)
-    std::cerr << "V330GLImageShader2DnoLut: Failed to bind texture uniform " << std::endl;
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind texture uniform ";
 }
 
 GLImageShader2DnoLut::~GLImageShader2DnoLut() {}

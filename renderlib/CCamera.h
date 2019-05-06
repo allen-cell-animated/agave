@@ -2,7 +2,6 @@
 
 #include "BoundingBox.h"
 #include "Defines.h"
-
 #include "glm.h"
 
 #define DEF_FOCUS_TYPE CenterScreen
@@ -491,6 +490,8 @@ public:
         break;
       case ViewModeIsometricBackRightBottom:
         m_From = m_Target + glm::vec3(-Length, -Length, Length);
+        break;
+      default:
         break;
     }
 

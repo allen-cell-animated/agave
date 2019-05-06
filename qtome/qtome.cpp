@@ -333,18 +333,6 @@ qtome::openMesh(const QString& file)
   if (m_appScene.m_volume) {
     return;
   }
-  // load obj file and init scene...
-  CBoundingBox bb;
-  Assimp::Importer* importer = FileReader::loadAsset(file.toStdString().c_str(), &bb);
-  if (importer->GetScene()) {
-    m_appScene.m_meshes.push_back(std::shared_ptr<Assimp::Importer>(importer));
-    m_appScene.initBounds(bb);
-    m_renderSettings.m_DirtyFlags.SetFlag(MeshDirty);
-    // tell the 3d view to update.
-    m_glView->initCameraFromImage(&m_appScene);
-    m_glView->onNewImage(&m_appScene);
-    m_appearanceDockWidget->onNewImage(&m_appScene);
-  }
 }
 
 void
@@ -583,7 +571,7 @@ qtome::dumpPythonState()
          .arg(m_appScene.m_lighting.m_Lights[1].m_Height);
 
   s += "buf = cb.make_buffer()\n";
-  qDebug().noquote() << s;
+  LOG_DEBUG << s.toStdString();
   // return s;
 }
 
@@ -593,7 +581,7 @@ qtome::dumpStateToJson()
   ViewerState st = appToViewerState();
   QJsonDocument doc = st.stateToJson();
   QString s = doc.toJson();
-  qDebug().noquote() << s;
+  LOG_DEBUG << s.toStdString();
 }
 
 void

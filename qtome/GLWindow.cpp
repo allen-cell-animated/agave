@@ -124,7 +124,7 @@ GLWindow::renderNow()
   if (!m_glcontext) {
     m_glcontext = new QOpenGLContext(this);
     bool valid = m_glcontext->create();
-    std::cerr << "Valid OpenGL context: " << valid << std::endl;
+    LOG_DEBUG << "Valid OpenGL context: " << valid;
     makeCurrent();
 
     if (enableDebug) {
@@ -169,5 +169,5 @@ GLWindow::setAnimating(bool animating)
 void
 GLWindow::logMessage(QOpenGLDebugMessage message)
 {
-  std::cerr << message.message().toStdString();
+  LOG_DEBUG << message.message();
 }

@@ -68,9 +68,9 @@ QColorPushButton::GetMargin(void) const
 }
 
 void
-QColorPushButton::SetMargin(const int& Margin)
+QColorPushButton::SetMargin(const int& margin)
 {
-  m_Margin = m_Margin;
+  m_Margin = margin;
   update();
 }
 
@@ -81,9 +81,9 @@ QColorPushButton::GetRadius(void) const
 }
 
 void
-QColorPushButton::SetRadius(const int& Radius)
+QColorPushButton::SetRadius(const int& radius)
 {
-  m_Radius = m_Radius;
+  m_Radius = radius;
   update();
 }
 
@@ -94,20 +94,20 @@ QColorPushButton::GetColor(void) const
 }
 
 void
-QColorPushButton::SetColor(const QColor& Color, bool BlockSignals)
+QColorPushButton::SetColor(const QColor& color, bool blockSignals)
 {
-  blockSignals(BlockSignals);
+  this->blockSignals(blockSignals);
 
-  m_Color = Color;
+  m_Color = color;
   update();
 
-  blockSignals(false);
+  this->blockSignals(false);
 }
 
 void
-QColorPushButton::OnCurrentColorChanged(const QColor& Color)
+QColorPushButton::OnCurrentColorChanged(const QColor& color)
 {
-  SetColor(Color);
+  SetColor(color);
 
   emit currentColorChanged(m_Color);
 }
@@ -137,15 +137,15 @@ QColorSelector::GetColor(void) const
 }
 
 void
-QColorSelector::SetColor(const QColor& Color, bool BlockSignals /*= false*/)
+QColorSelector::SetColor(const QColor& color, bool blockSignals /*= false*/)
 {
-  m_ColorButton.SetColor(Color, BlockSignals);
+  m_ColorButton.SetColor(color, blockSignals);
 }
 
 void
-QColorSelector::OnCurrentColorChanged(const QColor& Color)
+QColorSelector::OnCurrentColorChanged(const QColor& color)
 {
-  emit currentColorChanged(Color);
+  emit currentColorChanged(color);
 }
 
 QDoubleSlider::QDoubleSlider(QWidget* pParent /*= NULL*/)
@@ -161,36 +161,36 @@ QDoubleSlider::QDoubleSlider(QWidget* pParent /*= NULL*/)
 }
 
 void
-QDoubleSlider::setValue(int Value)
+QDoubleSlider::setValue(int value)
 {
-  emit valueChanged((double)Value / m_Multiplier);
+  emit valueChanged((double)value / m_Multiplier);
 }
 
 void
-QDoubleSlider::setValue(double Value, bool BlockSignals)
+QDoubleSlider::setValue(double value, bool blockSignals)
 {
-  QSlider::blockSignals(BlockSignals);
+  QSlider::blockSignals(blockSignals);
 
-  QSlider::setValue(Value * m_Multiplier);
+  QSlider::setValue(value * m_Multiplier);
 
-  if (!BlockSignals)
-    emit valueChanged(Value);
+  if (!blockSignals)
+    emit valueChanged(value);
 
   QSlider::blockSignals(false);
 }
 
 void
-QDoubleSlider::setRange(double Min, double Max)
+QDoubleSlider::setRange(double rmin, double rmax)
 {
-  QSlider::setRange(Min * m_Multiplier, Max * m_Multiplier);
+  QSlider::setRange(rmin * m_Multiplier, rmax * m_Multiplier);
 
-  emit rangeChanged(Min, Max);
+  emit rangeChanged(rmin, rmax);
 }
 
 void
-QDoubleSlider::setMinimum(double Min)
+QDoubleSlider::setMinimum(double dmin)
 {
-  QSlider::setMinimum(Min * m_Multiplier);
+  QSlider::setMinimum(dmin * m_Multiplier);
 
   emit rangeChanged(minimum(), maximum());
 }
@@ -202,9 +202,9 @@ QDoubleSlider::minimum() const
 }
 
 void
-QDoubleSlider::setMaximum(double Max)
+QDoubleSlider::setMaximum(double dmax)
 {
-  QSlider::setMaximum(Max * m_Multiplier);
+  QSlider::setMaximum(dmax * m_Multiplier);
 
   emit rangeChanged(minimum(), maximum());
 }
@@ -218,8 +218,8 @@ QDoubleSlider::maximum() const
 double
 QDoubleSlider::value() const
 {
-  int Value = QSlider::value();
-  return (double)Value / m_Multiplier;
+  int value = QSlider::value();
+  return (double)value / m_Multiplier;
 }
 
 QSize
@@ -233,20 +233,18 @@ QDoubleSpinner::QDoubleSpinner(QWidget* pParent /*= NULL*/)
 {}
 
 void
-QDoubleSpinner::setValue(double Value, bool BlockSignals)
+QDoubleSpinner::setValue(double value, bool blockSignals)
 {
-  blockSignals(BlockSignals);
+  this->blockSignals(blockSignals);
 
-  QDoubleSpinBox::setValue(Value);
+  QDoubleSpinBox::setValue(value);
 
-  blockSignals(false);
+  this->blockSignals(false);
 }
 
-QInputDialogEx::QInputDialogEx(QWidget* pParent /*= NULL*/, Qt::WindowFlags Flags /*= 0*/)
-  : QInputDialog(pParent, Flags)
-{
-  // setWindowIcon(GetIcon("pencil-field"));
-}
+QInputDialogEx::QInputDialogEx(QWidget* pParent /*= NULL*/, Qt::WindowFlags flags /*= 0*/)
+  : QInputDialog(pParent, flags)
+{}
 
 QSize
 QInputDialogEx::sizeHint() const
@@ -296,12 +294,12 @@ QNumericSlider::value(void) const
 }
 
 void
-QNumericSlider::setValue(double value, bool BlockSignals)
+QNumericSlider::setValue(double value, bool blockSignals)
 {
   // only forward the blocksignals flag for one of the two child controls.
   // the other will always block signalling
   m_spinner.setValue(value, true);
-  m_slider.setValue(value, BlockSignals);
+  m_slider.setValue(value, blockSignals);
 }
 
 void
@@ -309,6 +307,12 @@ QNumericSlider::setRange(double rmin, double rmax)
 {
   m_slider.setRange(rmin, rmax);
   m_spinner.setRange(rmin, rmax);
+}
+
+void
+QNumericSlider::setSingleStep(double val)
+{
+  m_spinner.setSingleStep(val);
 }
 
 void

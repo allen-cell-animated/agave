@@ -6,8 +6,6 @@
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderGL.h"
-#include "renderlib/RenderGLCuda.h"
-#include "renderlib/RenderGLOptix.h"
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/gl/Util.h"
 #include "renderlib/gl/v33/V33Image3D.h"
@@ -34,7 +32,6 @@ qNormalizeAngle(int& angle)
   while (angle > 360 * 16)
     angle -= 360 * 16;
 }
-
 }
 
 GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent)
@@ -42,7 +39,7 @@ GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QW
   , m_etimer()
   , m_lastPos(0, 0)
   , m_renderSettings(rs)
-  , m_renderer(new RenderGLCuda(rs))
+  , m_renderer(new RenderGLPT(rs))
   ,
   //    _renderer(new RenderGL(img))
   m_qcamera(cam)
@@ -107,7 +104,7 @@ GLView3D::initializeGL()
   makeCurrent();
 
   QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height());
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
   // Start timers
   startTimer(0);
@@ -134,7 +131,7 @@ GLView3D::resizeGL(int w, int h)
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h);
+  m_renderer->resize(w, h, devicePixelRatioF());
 }
 
 void
@@ -267,8 +264,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
 
   switch (rendererType) {
     case 1:
-      LOG_DEBUG << "Set CUDA Renderer";
-      m_renderer.reset(new RenderGLCuda(m_renderSettings));
+      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
+      m_renderer.reset(new RenderGLPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
@@ -276,13 +273,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
       m_renderer.reset(new RenderGLPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
-    case 3:
-      LOG_DEBUG << "Set OptiX Renderer";
-      m_renderer.reset(new RenderGLOptix(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(MeshDirty);
-      break;
     default:
-      LOG_DEBUG << "Set OpenGL Renderer";
+      LOG_DEBUG << "Set OpenGL single pass Renderer";
       m_renderer.reset(new RenderGL(m_renderSettings));
   };
   m_rendererType = rendererType;
@@ -290,7 +282,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
   QSize newsize = size();
   // need to update the scene in QAppearanceSettingsWidget.
   m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height());
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 

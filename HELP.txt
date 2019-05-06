@@ -1,13 +1,13 @@
 AICS GPU Advanced Volume Explorer
-WINDOWS DESKTOP VIEWER DOCUMENTATION
+DESKTOP VIEWER DOCUMENTATION
 
 The volume viewer is designed and optimized for display of multi-channel, single-time OME TIFF files.
 
-1. This viewer requires a current CUDA runtime from NVIDIA: make sure you have the latest NVIDIA drivers installed for your system (start at https://www.nvidia.com/drivers).
+1. This viewer requires a current OpenGL driver.  A discrete GPU is preferred for best performance. (start at https://www.nvidia.com/drivers).
 
-2. Unzip the zip file and run agave-desktop.exe.   A console window will open, and if initialization is successful, a GUI window will open.
+2. Unzip the zip file and run the agave app.  A GUI window will open. If initialization fails for some reason, a logfile.log file will be produced in the same directory as the app.
 
-3. File-->Open Image.  The viewer currently only supports .ome.tif files (TIFF files containing OME-XML metadata in the imagedescription tag) and has limited support for some tif files generated in ImageJ.  
+3. File-->Open Image.  The viewer currently only supports .ome.tif files (TIFF files containing OME-XML metadata in the imagedescription tag) and has limited support for some tif files generated in ImageJ.  Currently only 16-but unsigned pixels are supported.  
 The volume data must fit in GPU memory uncompressed, so please try loading no more than a few GB.  The test data set for the development of this viewer was the data set of the Allen Institute for Cell Science.  Images from that data set are found at https://www.allencell.org/3d-cell-viewer.html and https://www.allencell.org/cell-feature-explorer.html where you can load a cell into the 3D viewer in your browser and click the Download button to get the full resolution OME TIFF file. Those images should load correctly into this viewer.
 
 4. Initially, it is very likely that your volume data will appear as a solid brick.  The Appearance panel is the one to focus on first.  Note that you can "tear away" the tab to place it anywhere on your desktop and resize it. (Drag and drop from the "Appearance" title area.)
