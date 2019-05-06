@@ -323,10 +323,10 @@ AutoThresholdCommand::execute(ExecutionContext* c)
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_chimerax();
       break;
     case 4:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level, 0.5f, 0.983f);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
       break;
     default:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level, 0.5f, 0.983f);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
       break;
   }
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);

@@ -710,7 +710,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addWidget(pct98Button, row, 5);
     QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
       float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l, 0.5f, 0.983f);
+      this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l);
       // LOG_DEBUG << "Window/level: " << w << " , " << l;
       windowSlider->setValue(w, true);
       levelSlider->setValue(l, true);

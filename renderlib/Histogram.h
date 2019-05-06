@@ -8,6 +8,9 @@ struct Histogram
 {
   Histogram(uint16_t* data, size_t length, size_t bins = 256);
 
+  static const float DEFAULT_PCT_LOW;
+  static const float DEFAULT_PCT_HIGH;
+
   // no more than 2^32 pixels of any one intensity in the data!?!?!
   std::vector<uint32_t> _bins;
   // cumulative counts from low to high
@@ -24,7 +27,11 @@ struct Histogram
   // attempt to redo imagej's Auto
   float* generate_auto2(float& window, float& level, size_t length = 256);
   float* generate_auto(float& window, float& level, size_t length = 256);
-  float* generate_percentiles(float& window, float& level, float lo, float hi, size_t length = 256);
+  float* generate_percentiles(float& window,
+                              float& level,
+                              float lo = DEFAULT_PCT_LOW,
+                              float hi = DEFAULT_PCT_HIGH,
+                              size_t length = 256);
   float* generate_windowLevel(float window, float level, size_t length = 256);
   float* generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length = 256);
   float* generate_equalized(size_t length = 256);

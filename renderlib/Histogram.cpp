@@ -13,6 +13,9 @@ clamp(const T& v, const T& lo, const T& hi)
   return (v < lo) ? lo : (v > hi ? hi : v);
 }
 
+const float Histogram::DEFAULT_PCT_LOW = 0.5f;
+const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
+
 Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   : _bins(num_bins)
   , _ccounts(num_bins)
@@ -175,11 +178,11 @@ Histogram::generate_auto2(float& window, float& level, size_t length)
     // just reset to whole range in this case.
     return generate_fullRange(window, level, length);
   } else {
-    //LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
+    // LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
     float range = (float)hmax - (float)hmin;
     window = (range) / (float)(nbins - 1);
     level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
-    //LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
+    // LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
     return generate_windowLevel(window, level, length);
   }
 }
@@ -432,7 +435,7 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
   float vlow = rank_data_value(1.0f - vfrac_max);
   float vmid = rank_data_value(1.0f - vfrac_min);
   float vmax = _dataMax;
-  //LOG_DEBUG << "LOW: " << vlow << " HIGH: " << vmid;
+  // LOG_DEBUG << "LOW: " << vlow << " HIGH: " << vmid;
 
   // normalize to 0..1
   vlow = (vlow - _dataMin) / (_dataMax - _dataMin);

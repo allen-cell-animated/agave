@@ -32,11 +32,7 @@ ImageXYZC::ImageXYZC(uint32_t x,
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
   }
   for (uint32_t i = 0; i < m_c; ++i) {
-    //m_channels[i]->generateGradientMagnitudeVolume(physicalSizeX(), physicalSizeY(), physicalSizeZ());
-
     LOG_INFO << "Channel " << i << ":" << (m_channels[i]->m_min) << "," << (m_channels[i]->m_max);
-    // LOG_INFO << "gradient range " << i << ":" << (_channels[i]->_gradientMagnitudeMin) << "," <<
-    // (_channels[i]->_gradientMagnitudeMax);
   }
 }
 
@@ -315,26 +311,6 @@ ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel,
       }
     }
   }
-  /*
-outGradientVolume = new uint16_t[_x * _y * _z];
-memset(outGradientVolume, 0, _x*_y*_z*sizeof(uint16_t));
-
-  // todo: gradient fusion
-  for (uint32_t i = 0; i < _c; ++i) {
-          glm::vec3 c = colorsPerChannel[i];
-          if (c == glm::vec3(0, 0, 0)) {
-                  continue;
-          }
-          // get gradient data for channel
-          uint16_t* gradientData = reinterpret_cast<uint16_t*>(ptr(i));
-          //lut = luts[idx][c.enhancement];
-          
-
-          for (size_t cx = 0; cx < _x*_y*_z; cx++) {
-                  outGradientVolume[cx] = std::max(outGradientVolume[cx], gradientData[cx]);
-          }
-  }
-*/
 }
 
 // 3d median filter?
@@ -354,8 +330,7 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_min = m_histogram._dataMin;
   m_max = m_histogram._dataMax;
 
-  //_lut = _histogram.generate_auto2(_window, _level);
-  m_lut = m_histogram.initialize_thresholds();
+  m_lut = m_histogram.generate_percentiles(m_window, m_level);
 }
 
 Channelu16::~Channelu16()
