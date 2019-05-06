@@ -40,7 +40,7 @@ void main()
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-  m_fshader->compileSourceCode(R"(
+  char* fsPiece1 = R"(
 #version 330 core
 
 #define PI (3.1415926535897932384626433832795)
@@ -150,7 +150,9 @@ vec3 RGBtoXYZ(vec3 rgb) {
     0.019334f*rgb[0] + 0.119193f*rgb[1] + 0.950227f*rgb[2]
   );
 }
+)";
 
+  char* fsPiece2 = R"(
 vec3 getUniformSphereSample(in vec2 U)
 {
   float z = 1.f - 2.f * U.x;
@@ -382,7 +384,9 @@ float GetRoughnessN(float NormalizedIntensity, int ch)
 {
   return g_roughness[ch];
 }
+)";
 
+  char* fsPiece3 = R"(
 // a bsdf sample, a sample on a light source, and a randomly chosen light index
 struct CLightingSample {
   float m_bsdfComponent;
@@ -687,9 +691,6 @@ float Blinn_Pdf(in CVolumeShader shader, in vec3 Wo, in vec3 Wi)
   return blinn_pdf;
 }
 
-)" // truncate string and continue to fix error C2026 in MSVC
-                               R"(
-
 vec3 Microfacet_SampleF(in CVolumeShader shader, in vec3 wo, out vec3 wi, out float Pdf, in vec2 U)
 {
   Blinn_SampleF(shader, wo, wi, Pdf, U);
@@ -794,8 +795,9 @@ vec3 Shader_SampleF(in CVolumeShader shader, in CLightingSample S, in vec3 Wo, o
     return ShaderPhase_SampleF(shader, Wo, Wi, Pdf, U);
   }
 }
+)";
 
-
+  char* fsPiece4 = R"(
 bool IsBlack(in vec3 v) {
   return (v.x==0.0 && v.y == 0.0 && v.z == 0.0);
 }
@@ -1131,8 +1133,9 @@ void main()
 
   out_FragColor = CumulativeMovingAverage(previousColor, pixelColor, uSampleCounter);
 }
-    )");
+)";
 
+  m_fshader->compileSourceCode(QString(fsPiece1) + QString(fsPiece2) + QString(fsPiece3) + QString(fsPiece4));
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }
