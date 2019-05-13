@@ -58,7 +58,7 @@ struct PathTraceRenderSettings
   bool m_ShowLightsBackground;
 
   PathTraceRenderSettings()
-    : m_DensityScale(50.0f)
+    : m_DensityScale(8.5f)
     , m_ShadingType(2)
     , m_StepSizeFactor(1.0f)
     , m_StepSizeFactorShadow(1.0f)

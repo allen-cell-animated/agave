@@ -67,6 +67,16 @@ struct Channelu16
     delete[] m_lut;
     m_lut = m_histogram.generate_equalized();
   }
+  void generate_percentiles(float& window,
+                            float& level,
+                            float lo = Histogram::DEFAULT_PCT_LOW,
+                            float hi = Histogram::DEFAULT_PCT_HIGH)
+  {
+    delete[] m_lut;
+    m_lut = m_histogram.generate_percentiles(window, level, lo, hi);
+    m_window = window;
+    m_level = level;
+  }
 
   void debugprint();
 

@@ -40,7 +40,7 @@ void main()
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-  m_fshader->compileSourceCode(R"(
+  char* fsPiece1 = R"(
 #version 330 core
 
 #define PI (3.1415926535897932384626433832795)
@@ -100,7 +100,7 @@ uniform float gDensityScale;
 uniform float gStepSize;
 uniform float gStepSizeShadow;
 uniform sampler3D volumeTexture;
-uniform vec3 gInvAaBbMax;
+uniform vec3 gInvAaBbSize;
 uniform int g_nChannels;
 uniform int gShadingType;
 uniform vec3 gGradientDeltaX;
@@ -150,7 +150,9 @@ vec3 RGBtoXYZ(vec3 rgb) {
     0.019334f*rgb[0] + 0.119193f*rgb[1] + 0.950227f*rgb[2]
   );
 }
+)";
 
+  char* fsPiece2 = R"(
 vec3 getUniformSphereSample(in vec2 U)
 {
   float z = 1.f - 2.f * U.x;
@@ -294,10 +296,10 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
   return smallestMaxT > largestMinT;
 }
 
-// assume volume is centered at 0,0,0 so p spans -bounds to + bounds
-vec3 PtoVolumeTex(vec3 p) {
-  return (p-gClippedAaBbMin)*gInvAaBbMax;
-  //return p*gInvAaBbMax + vec3(0.5, 0.5, 0.5);
+vec3 PtoVolumeTex(vec3 p) {  
+  // center of volume is 0.5*extents
+  // this needs to return a number in 0..1 range, so just rescale to bounds.
+  return p * gInvAaBbSize;
 }
 
 const float UINT16_MAX = 65535.0;
@@ -382,7 +384,9 @@ float GetRoughnessN(float NormalizedIntensity, int ch)
 {
   return g_roughness[ch];
 }
+)";
 
+  char* fsPiece3 = R"(
 // a bsdf sample, a sample on a light source, and a randomly chosen light index
 struct CLightingSample {
   float m_bsdfComponent;
@@ -687,9 +691,6 @@ float Blinn_Pdf(in CVolumeShader shader, in vec3 Wo, in vec3 Wi)
   return blinn_pdf;
 }
 
-)" // truncate string and continue to fix error C2026 in MSVC
-                               R"(
-
 vec3 Microfacet_SampleF(in CVolumeShader shader, in vec3 wo, out vec3 wi, out float Pdf, in vec2 U)
 {
   Blinn_SampleF(shader, wo, wi, Pdf, U);
@@ -794,8 +795,9 @@ vec3 Shader_SampleF(in CVolumeShader shader, in CLightingSample S, in vec3 Wo, o
     return ShaderPhase_SampleF(shader, Wo, Wi, Pdf, U);
   }
 }
+)";
 
-
+  char* fsPiece4 = R"(
 bool IsBlack(in vec3 v) {
   return (v.x==0.0 && v.y == 0.0 && v.z == 0.0);
 }
@@ -1131,8 +1133,9 @@ void main()
 
   out_FragColor = CumulativeMovingAverage(previousColor, pixelColor, uSampleCounter);
 }
-    )");
+)";
 
+  m_fshader->compileSourceCode(QString(fsPiece1) + QString(fsPiece2) + QString(fsPiece3) + QString(fsPiece4));
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }
@@ -1159,7 +1162,7 @@ void main()
   m_gDensityScale = uniformLocation("gDensityScale");     // : { type : "f", value : 50.0 },
   m_gStepSize = uniformLocation("gStepSize");             // : { type : "f", value : 1.0 },
   m_gStepSizeShadow = uniformLocation("gStepSizeShadow"); // : { type : "f", value : 1.0 },
-  m_gInvAaBbMax = uniformLocation("gInvAaBbMax");         // : { type : "v3", value : new THREE.Vector3() },
+  m_gInvAaBbSize = uniformLocation("gInvAaBbSize");       // : { type : "v3", value : new THREE.Vector3() },
   m_g_nChannels = uniformLocation("g_nChannels");         // : { type : "i", value : 1 },
   m_gShadingType = uniformLocation("gShadingType");       // : { type : "i", value : 2 },
   m_gGradientDeltaX = uniformLocation("gGradientDeltaX"); // : { type : "v3", value : new THREE.Vector3(0.01, 0, 0) },
@@ -1298,7 +1301,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1f(m_gDensityScale, renderSettings.m_DensityScale);
   glUniform1f(m_gStepSize, renderSettings.m_StepSizeFactor * renderSettings.m_GradientDelta);
   glUniform1f(m_gStepSizeShadow, renderSettings.m_StepSizeFactorShadow * renderSettings.m_GradientDelta);
-  glUniform3fv(m_gInvAaBbMax, 1, glm::value_ptr(scene->m_boundingBox.GetInvMaxP()));
+  glUniform3fv(m_gInvAaBbSize, 1, glm::value_ptr(scene->m_boundingBox.GetInverseExtent()));
   glUniform1i(m_gShadingType, renderSettings.m_ShadingType);
 
   const float GradientDelta = 1.0f * renderSettings.m_GradientDelta;
