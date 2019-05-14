@@ -53,6 +53,8 @@ COMMANDS = {
     "SET_VOXEL_SCALE": [30, "F32", "F32", "F32"],
     # channel, method
     "AUTO_THRESHOLD": [31, "I32", "I32"],
+    # channel index, pct_low, pct_high.  (Do I ever set these independently?)
+    "SET_PERCENTILE_THRESHOLD": [32, "I32", "F32", "F32"],
 }
 
 

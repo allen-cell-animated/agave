@@ -68,6 +68,7 @@ FWDDECL_PARSE(SetLightSizeCommand);
 FWDDECL_PARSE(SetClipRegionCommand);
 FWDDECL_PARSE(SetVoxelScaleCommand);
 FWDDECL_PARSE(AutoThresholdCommand);
+FWDDECL_PARSE(SetPercentileThresholdCommand);
 
 #define CMD_CASE(CMDCLASS)                                                                                             \
   case (CMDCLASS::m_ID):                                                                                               \
@@ -119,6 +120,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetClipRegionCommand);
           CMD_CASE(SetVoxelScaleCommand);
           CMD_CASE(AutoThresholdCommand);
+          CMD_CASE(SetPercentileThresholdCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -466,4 +468,13 @@ parseAutoThresholdCommand(CommandBufferIterator* c)
   data.m_channel = c->parseInt32();
   data.m_method = c->parseInt32();
   return new AutoThresholdCommand(data);
+}
+Command*
+parseSetPercentileThresholdCommand(CommandBufferIterator* c)
+{
+  SetPercentileThresholdCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_pctLow = c->parseFloat32();
+  data.m_pctHigh = c->parseFloat32();
+  return new SetPercentileThresholdCommand(data);
 }

@@ -326,8 +326,18 @@ AutoThresholdCommand::execute(ExecutionContext* c)
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
       break;
     default:
+      LOG_WARNING << "AutoThreshold got unexpected method parameter " << m_data.m_method;
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
       break;
   }
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+void
+SetPercentileThresholdCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetPercentileThreshold " << m_data.m_channel << " " << m_data.m_pctLow << " " << m_data.m_pctHigh;
+  float window, level;
+  c->m_appScene->m_volume->channel(m_data.m_channel)
+    ->generate_percentiles(window, level, m_data.m_pctLow, m_data.m_pctHigh);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }

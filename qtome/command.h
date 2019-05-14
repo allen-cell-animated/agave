@@ -239,3 +239,11 @@ struct AutoThresholdCommandD
   int32_t m_method;
 };
 CMDDECL(AutoThresholdCommand, 31);
+
+struct SetPercentileThresholdCommandD
+{
+  int32_t m_channel;
+  float m_pctLow;
+  float m_pctHigh;
+};
+CMDDECL(SetPercentileThresholdCommand, 32);
