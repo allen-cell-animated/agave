@@ -118,7 +118,9 @@ class CommandBuffer:
             if commandCode == "LOAD_OME_TIF":
                 self.has_load_command = True
 
-            signature = COMMANDS[commandCode]
+            signature = COMMANDS.get(commandCode)
+            if signature is None:
+                raise KeyError(f"CommandBuffer: Unrecognized command {commandCode}")
             nArgsExpected = len(signature) - 1
 
             # the numeric code for the command

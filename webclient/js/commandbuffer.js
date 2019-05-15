@@ -83,6 +83,9 @@ commandBuffer.prototype = {
       var command = this.prebuffer[i];
       var commandCode = command[0];
       var signature = COMMANDS[commandCode];
+      if (!signature) {
+        console.error("CommandBuffer: Unrecognized command " + commandCode);
+      }
       var nArgsExpected = signature.length-1;
       // for each arg:
       if (command.length-1 !== nArgsExpected) {
