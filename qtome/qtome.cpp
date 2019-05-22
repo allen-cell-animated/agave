@@ -489,7 +489,10 @@ qtome::dumpPythonState()
          .arg(m_glView->size().width())
          .arg(m_glView->size().height());
   s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(m_renderSettings.GetNoIterations());
-
+  s += QString("cb.add_command(\"SET_VOXEL_SCALE\", %1, %2, %3)\n") 
+         .arg(m_appScene.m_volume->physicalSizeX()) 
+         .arg(m_appScene.m_volume->physicalSizeY()) 
+         .arg(m_appScene.m_volume->physicalSizeZ()); 
   s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n")
          .arg(m_appScene.m_roi.GetMinP().x)
          .arg(m_appScene.m_roi.GetMaxP().x)
