@@ -483,17 +483,16 @@ void
 qtome::dumpPythonState()
 {
   QString s;
-  s += "cb = CommandBuffer()\n";
-  s += QString("cb.add_command(\"LOAD_OME_TIF\", \"%1\")\n").arg(m_currentFilePath);
-  s += QString("cb.add_command(\"SET_RESOLUTION\", %1, %2)\n")
+  s += QString("(\"LOAD_OME_TIF\", \"%1\")\n").arg(m_currentFilePath);
+  s += QString("(\"SET_RESOLUTION\", %1, %2)\n")
          .arg(m_glView->size().width())
          .arg(m_glView->size().height());
-  s += QString("cb.add_command(\"RENDER_ITERATIONS\", %1)\n").arg(m_renderSettings.GetNoIterations());
-  s += QString("cb.add_command(\"SET_VOXEL_SCALE\", %1, %2, %3)\n") 
+  s += QString("(\"RENDER_ITERATIONS\", %1)\n").arg(m_renderSettings.GetNoIterations());
+  s += QString("(\"SET_VOXEL_SCALE\", %1, %2, %3)\n") 
          .arg(m_appScene.m_volume->physicalSizeX()) 
          .arg(m_appScene.m_volume->physicalSizeY()) 
          .arg(m_appScene.m_volume->physicalSizeZ()); 
-  s += QString("cb.add_command(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n")
+  s += QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n")
          .arg(m_appScene.m_roi.GetMinP().x)
          .arg(m_appScene.m_roi.GetMaxP().x)
          .arg(m_appScene.m_roi.GetMinP().y)
@@ -501,82 +500,81 @@ qtome::dumpPythonState()
          .arg(m_appScene.m_roi.GetMinP().z)
          .arg(m_appScene.m_roi.GetMaxP().z);
 
-  s += QString("cb.add_command(\"EYE\", %1, %2, %3)\n")
+  s += QString("(\"EYE\", %1, %2, %3)\n")
          .arg(m_glView->getCamera().m_From.x)
          .arg(m_glView->getCamera().m_From.y)
          .arg(m_glView->getCamera().m_From.z);
-  s += QString("cb.add_command(\"TARGET\", %1, %2, %3)\n")
+  s += QString("(\"TARGET\", %1, %2, %3)\n")
          .arg(m_glView->getCamera().m_Target.x)
          .arg(m_glView->getCamera().m_Target.y)
          .arg(m_glView->getCamera().m_Target.z);
-  s += QString("cb.add_command(\"UP\", %1, %2, %3)\n")
+  s += QString("(\"UP\", %1, %2, %3)\n")
          .arg(m_glView->getCamera().m_Up.x)
          .arg(m_glView->getCamera().m_Up.y)
          .arg(m_glView->getCamera().m_Up.z);
-  s += QString("cb.add_command(\"FOV_Y\", %1)\n").arg(m_qcamera.GetProjection().GetFieldOfView());
+  s += QString("(\"FOV_Y\", %1)\n").arg(m_qcamera.GetProjection().GetFieldOfView());
 
-  s += QString("cb.add_command(\"EXPOSURE\", %1)\n").arg(m_qcamera.GetFilm().GetExposure());
-  s += QString("cb.add_command(\"DENSITY\", %1)\n").arg(m_renderSettings.m_RenderSettings.m_DensityScale);
-  s += QString("cb.add_command(\"APERTURE\", %1)\n").arg(m_qcamera.GetAperture().GetSize());
-  s += QString("cb.add_command(\"FOCALDIST\", %1)\n").arg(m_qcamera.GetFocus().GetFocalDistance());
+  s += QString("(\"EXPOSURE\", %1)\n").arg(m_qcamera.GetFilm().GetExposure());
+  s += QString("(\"DENSITY\", %1)\n").arg(m_renderSettings.m_RenderSettings.m_DensityScale);
+  s += QString("(\"APERTURE\", %1)\n").arg(m_qcamera.GetAperture().GetSize());
+  s += QString("(\"FOCALDIST\", %1)\n").arg(m_qcamera.GetFocus().GetFocalDistance());
 
   // per-channel
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
     bool enabled = m_appScene.m_material.m_enabled[i];
-    s += QString("cb.add_command(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled ? "1" : "0");
-    s += QString("cb.add_command(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n")
+    s += QString("(\"ENABLE_CHANNEL\", %1, %2)\n").arg(QString::number(i), enabled ? "1" : "0");
+    s += QString("(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_material.m_diffuse[i * 3])
            .arg(m_appScene.m_material.m_diffuse[i * 3 + 1])
            .arg(m_appScene.m_material.m_diffuse[i * 3 + 2]);
-    s += QString("cb.add_command(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n")
+    s += QString("(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_material.m_specular[i * 3])
            .arg(m_appScene.m_material.m_specular[i * 3 + 1])
            .arg(m_appScene.m_material.m_specular[i * 3 + 2]);
-    s += QString("cb.add_command(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n")
+    s += QString("(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_material.m_emissive[i * 3])
            .arg(m_appScene.m_material.m_emissive[i * 3 + 1])
            .arg(m_appScene.m_material.m_emissive[i * 3 + 2]);
-    s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n")
+    s += QString("(\"MAT_GLOSSINESS\", %1, %2)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_material.m_roughness[i]);
-    s += QString("cb.add_command(\"MAT_OPACITY\", %1, %2)\n")
+    s += QString("(\"MAT_OPACITY\", %1, %2)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_material.m_opacity[i]);
-    s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n")
+    s += QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_volume->channel(i)->m_window)
            .arg(m_appScene.m_volume->channel(i)->m_level);
   }
 
   // lighting
-  s += QString("cb.add_command(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n")
+  s += QString("(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3)\n")
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorTop.r)
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorTop.g)
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorTop.b);
-  s += QString("cb.add_command(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n")
+  s += QString("(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3)\n")
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorMiddle.r)
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorMiddle.g)
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorMiddle.b);
-  s += QString("cb.add_command(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n")
+  s += QString("(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3)\n")
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorBottom.r)
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorBottom.g)
          .arg(m_appScene.m_lighting.m_Lights[0].m_ColorBottom.b);
-  s += QString("cb.add_command(\"LIGHT_POS\", 0, %1, %2, %3)\n")
+  s += QString("(\"LIGHT_POS\", 0, %1, %2, %3)\n")
          .arg(m_appScene.m_lighting.m_Lights[1].m_Distance)
          .arg(m_appScene.m_lighting.m_Lights[1].m_Theta)
          .arg(m_appScene.m_lighting.m_Lights[1].m_Phi);
-  s += QString("cb.add_command(\"LIGHT_COLOR\", 0, %1, %2, %3)\n")
+  s += QString("(\"LIGHT_COLOR\", 0, %1, %2, %3)\n")
          .arg(m_appScene.m_lighting.m_Lights[1].m_Color.r)
          .arg(m_appScene.m_lighting.m_Lights[1].m_Color.g)
          .arg(m_appScene.m_lighting.m_Lights[1].m_Color.b);
-  s += QString("cb.add_command(\"LIGHT_SIZE\", 0, %1, %2)\n")
+  s += QString("(\"LIGHT_SIZE\", 0, %1, %2)\n")
          .arg(m_appScene.m_lighting.m_Lights[1].m_Width)
          .arg(m_appScene.m_lighting.m_Lights[1].m_Height);
 
-  s += "buf = cb.make_buffer()\n";
   LOG_DEBUG << s.toStdString();
   // return s;
 }
