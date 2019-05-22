@@ -60,6 +60,7 @@ var COMMANDS = {
   AUTO_THRESHOLD: [31, "I32", "I32"],
   // channel index, pct_low, pct_high.  (Do I ever set these independently?)
   SET_PERCENTILE_THRESHOLD: [32, "I32", "F32", "F32"],
+  MAT_OPACITY: [33, "I32", "F32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?

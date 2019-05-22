@@ -539,6 +539,9 @@ qtome::dumpPythonState()
     s += QString("cb.add_command(\"MAT_GLOSSINESS\", %1, %2)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_material.m_roughness[i]);
+    s += QString("cb.add_command(\"MAT_OPACITY\", %1, %2)\n")
+           .arg(QString::number(i))
+           .arg(m_appScene.m_material.m_opacity[i]);
     s += QString("cb.add_command(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_volume->channel(i)->m_window)
@@ -709,6 +712,7 @@ qtome::appToViewerState()
                               m_appScene.m_material.m_emissive[i * 3 + 1],
                               m_appScene.m_material.m_emissive[i * 3 + 2]);
     ch.m_glossiness = m_appScene.m_material.m_roughness[i];
+    ch.m_opacity = m_appScene.m_material.m_opacity[i];
     ch.m_window = m_appScene.m_volume->channel(i)->m_window;
     ch.m_level = m_appScene.m_volume->channel(i)->m_level;
 

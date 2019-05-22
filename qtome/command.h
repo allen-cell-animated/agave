@@ -247,3 +247,10 @@ struct SetPercentileThresholdCommandD
   float m_pctHigh;
 };
 CMDDECL(SetPercentileThresholdCommand, 32);
+
+struct SetOpacityCommandD
+{
+  int32_t m_channel;
+  float m_opacity;
+};
+CMDDECL(SetOpacityCommand, 33);

@@ -341,3 +341,10 @@ SetPercentileThresholdCommand::execute(ExecutionContext* c)
     ->generate_percentiles(window, level, m_data.m_pctLow, m_data.m_pctHigh);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
+void
+SetOpacityCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetOpacity " << m_data.m_channel << " " << m_data.m_opacity;
+  c->m_appScene->m_material.m_opacity[m_data.m_channel] = m_data.m_opacity;
+  c->m_renderSettings->SetNoIterations(0);
+}

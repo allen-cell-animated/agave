@@ -128,7 +128,7 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 {
   QJsonObject json(jsonDoc.object());
 
-  glm::vec3 version(0, 0, 0);
+  glm::vec3 version(0, 0, 1);
   getVec3(json, "version", version);
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
 
@@ -194,6 +194,7 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
       getVec3(channeli, "specularColor", ch.m_specular);
       getVec3(channeli, "emissiveColor", ch.m_emissive);
       getFloat(channeli, "glossiness", ch.m_glossiness);
+      getFloat(channeli, "opacity", ch.m_opacity);
       getFloat(channeli, "window", ch.m_window);
       getFloat(channeli, "level", ch.m_level);
 
@@ -282,6 +283,7 @@ ViewerState::stateToJson() const
     channel["specularColor"] = jsonVec3(ch.m_specular.x, ch.m_specular.y, ch.m_specular.z);
     channel["emissiveColor"] = jsonVec3(ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z);
     channel["glossiness"] = ch.m_glossiness;
+    channel["opacity"] = ch.m_opacity;
     channel["window"] = ch.m_window;
     channel["level"] = ch.m_level;
 
