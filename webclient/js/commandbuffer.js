@@ -60,6 +60,7 @@ var COMMANDS = {
   AUTO_THRESHOLD: [31, "I32", "I32"],
   // channel index, pct_low, pct_high.  (Do I ever set these independently?)
   SET_PERCENTILE_THRESHOLD: [32, "I32", "F32", "F32"],
+  MAT_OPACITY: [33, "I32", "F32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
@@ -82,6 +83,9 @@ commandBuffer.prototype = {
       var command = this.prebuffer[i];
       var commandCode = command[0];
       var signature = COMMANDS[commandCode];
+      if (!signature) {
+        console.error("CommandBuffer: Unrecognized command " + commandCode);
+      }
       var nArgsExpected = signature.length-1;
       // for each arg:
       if (command.length-1 !== nArgsExpected) {

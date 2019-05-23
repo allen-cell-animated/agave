@@ -55,6 +55,7 @@ COMMANDS = {
     "AUTO_THRESHOLD": [31, "I32", "I32"],
     # channel index, pct_low, pct_high.  (Do I ever set these independently?)
     "SET_PERCENTILE_THRESHOLD": [32, "I32", "F32", "F32"],
+    "MAT_OPACITY": [33, "I32", "F32"],
 }
 
 
@@ -117,7 +118,9 @@ class CommandBuffer:
             if commandCode == "LOAD_OME_TIF":
                 self.has_load_command = True
 
-            signature = COMMANDS[commandCode]
+            signature = COMMANDS.get(commandCode)
+            if signature is None:
+                raise KeyError(f"CommandBuffer: Unrecognized command {commandCode}")
             nArgsExpected = len(signature) - 1
 
             # the numeric code for the command
