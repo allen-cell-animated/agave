@@ -156,36 +156,59 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   QString qomexmlstr(omexmlstr);
   if (qomexmlstr.startsWith("ImageJ=")) {
     // "ImageJ=\nhyperstack=true\nimages=7900\nchannels=1\nslices=50\nframes=158"
+    // "ImageJ=1.52i\nimages=126\nchannels=2\nslices=63\nhyperstack=true\nmode=composite\nunit=
+    //      micron\nfinterval=299.2315368652344\nspacing=0.2245383462882669\nloop=false\nmin=9768.0\nmax=
+    //        14591.0\n"
     QStringList sl = qomexmlstr.split('\n');
-    QRegExp reChannels("channels=(\\w+)");
-    QRegExp reSlices("slices=(\\w+)");
-    int ich = sl.indexOf(reChannels);
-    if (ich == -1) {
+    // split each string into name/value pairs,
+    // then look up as a map.
+    QMap<QString, QString> imagejmetadata;
+    for (int i = 0; i < sl.size(); ++i) {
+      QStringList namevalue = sl.at(i).split('=');
+      if (namevalue.size() == 2) {
+        imagejmetadata.insert(namevalue[0], namevalue[1]);
+      } else if (namevalue.size() == 1) {
+        imagejmetadata.insert(namevalue[0], "");
+      } else {
+        QString msg = "Unexpected name/value pair in TIFF ImageJ metadata: " + sl.at(i);
+        LOG_ERROR << msg.toStdString();
+      }
+    }
+
+    if (imagejmetadata.contains("channels")) {
+      QString value = imagejmetadata.value("channels");
+      sizeC = value.toInt();
+    } else {
       QString msg = "Failed to read number of channels of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
       LOG_WARNING << msg.toStdString();
     }
 
-    int isl = sl.indexOf(reSlices);
-    if (isl == -1) {
+    if (imagejmetadata.contains("slices")) {
+      QString value = imagejmetadata.value("slices");
+      sizeZ = value.toInt();
+    } else {
       QString msg = "Failed to read number of slices of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
       LOG_WARNING << msg.toStdString();
     }
 
-    // get the n channels and n slices:
-    if (ich != -1) {
-      int pos = reChannels.indexIn(sl.at(ich));
-      if (pos > -1) {
-        QString value = reChannels.cap(1); // "189"
-        sizeC = value.toInt();
+    if (imagejmetadata.contains("spacing")) {
+      QString value = imagejmetadata.value("spacing");
+      bool ok;
+      physicalSizeZ = value.toFloat(&ok);
+      if (!ok) {
+        QString msg = "Failed to read spacing of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
+        LOG_WARNING << msg.toStdString();
+        physicalSizeZ = 1.0f;
+      } else {
+        if (physicalSizeZ < 0.0f) {
+          physicalSizeZ = -physicalSizeZ;
+        }
+        // WHY?  NEED TO FIGURE OUT UNITS HERE.
+        physicalSizeX = 0.1f;
+        physicalSizeY = 0.1f;
       }
     }
-    if (isl != -1) {
-      int pos = reSlices.indexIn(sl.at(isl));
-      if (pos > -1) {
-        QString value = reSlices.cap(1); // "189"
-        sizeZ = value.toInt();
-      }
-    }
+
     for (uint32_t i = 0; i < sizeC; ++i) {
       channelNames.push_back(QString::number(i));
     }
