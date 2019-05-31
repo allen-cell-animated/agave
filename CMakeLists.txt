@@ -7,7 +7,7 @@ endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.2.0
+  VERSION 0.0.2.1
   LANGUAGES C CXX
 )
 
@@ -37,7 +37,7 @@ if (WIN32)
 else (WIN32)
   # linux: QTDIR = /opt/qt59
   # mac official Qt install:
-  set(QTDIR ~/Qt/5.12.2/clang_64)
+  set(QTDIR ~/Qt/5.12.3/clang_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 endif (WIN32)
 

@@ -26,12 +26,13 @@ For Mac: (using macports)
 # use official install of Qt for Mac
 sudo port install boost
 sudo port install glm
+sudo port install tiff
 mkdir build
 cd build
 cmake ..
 make
 sudo make install
-sudo $HOME/Qt/5.12.2/clang_64/bin/macdeployqt agave.app -libpath=/opt/local/lib -always-overwrite -appstore-compliant
+sudo $HOME/Qt/5.12.3/clang_64/bin/macdeployqt agave.app -libpath=/opt/local/lib -always-overwrite -appstore-compliant
 ```
 
 OR
