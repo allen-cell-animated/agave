@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BoundingBox.h"
+#include "Defines.h"
 #include "DenoiseParams.h"
 #include "glm.h"
 
@@ -67,7 +68,7 @@ public:
 
   Light(void)
     : m_Theta(0.0f)
-    , m_Phi(0.0f)
+    , m_Phi(HALF_PI_F)
     , m_Width(1.0f)
     , m_InvWidth(1.0f / m_Width)
     , m_HalfWidth(0.5f * m_Width)
