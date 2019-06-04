@@ -18,9 +18,9 @@ Light::Update(const CBoundingBox& BoundingBox)
   m_Target = bbctr;
 
   // Determine light position
-  m_P.x = m_Distance * cosf(m_Phi) * sinf(m_Theta);
-  m_P.z = m_Distance * cosf(m_Phi) * cosf(m_Theta);
-  m_P.y = m_Distance * sinf(m_Phi);
+  m_P.x = m_Distance * sinf(m_Phi) * sinf(m_Theta);
+  m_P.z = m_Distance * sinf(m_Phi) * cosf(m_Theta);
+  m_P.y = m_Distance * cosf(m_Phi);
 
   m_P += m_Target;
 
@@ -41,7 +41,13 @@ Light::Update(const CBoundingBox& BoundingBox)
 
   // Compute orthogonal basis frame
   m_N = glm::normalize(m_Target - m_P);
-  m_U = glm::normalize(glm::cross(m_N, glm::vec3(0.0f, 1.0f, 0.0f)));
+  // if N and "up" are parallel, then just choose a different "up"
+  if (m_N.y == 1.0f || m_N.y == -1.0f) {
+    m_U = glm::normalize(glm::cross(m_N, glm::vec3(1.0f, 0.0f, 0.0f)));
+  } else {
+    // standard "up" vector
+    m_U = glm::normalize(glm::cross(m_N, glm::vec3(0.0f, 1.0f, 0.0f)));
+  }
   m_V = glm::normalize(glm::cross(m_N, m_U));
 }
 
@@ -72,8 +78,8 @@ Scene::initLights()
   Light AreaLight;
 
   AreaLight.m_T = 0;
-  AreaLight.m_Theta = 0.0f / RAD_F; // numerator is degrees
-  AreaLight.m_Phi = 0.0f / RAD_F;
+  AreaLight.m_Theta = 0.0f;
+  AreaLight.m_Phi = HALF_PI_F;
   AreaLight.m_Width = 1.0f;
   AreaLight.m_Height = 1.0f;
   AreaLight.m_Distance = 10.0f;

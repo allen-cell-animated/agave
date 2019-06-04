@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include "renderlib/Defines.h"
 #include "renderlib/Logging.h"
 
 #include <QFile>
@@ -276,7 +277,7 @@ Util::mix(qreal a0, qreal a1, qreal x)
 qreal
 Util::mixCos(qreal a0, qreal a1, qreal x)
 {
-  qreal f = (1.0 - cos(x * PI)) * 0.5;
+  qreal f = (1.0 - cos(x * PI_F)) * 0.5;
   return a0 * (1.0 - f) + a1 * f;
 }
 

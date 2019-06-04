@@ -158,7 +158,7 @@ QAppearanceSettingsWidget::createLightingControls()
   int row = 0;
   sectionLayout->addWidget(new QLabel("AreaLight Theta"), row, 0);
   m_lt0gui.m_thetaSlider = new QNumericSlider();
-  m_lt0gui.m_thetaSlider->setRange(0.0, 3.14159265 * 2.0);
+  m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
   m_lt0gui.m_thetaSlider->setValue(0.0);
   sectionLayout->addWidget(m_lt0gui.m_thetaSlider, row, 1, 1, 4);
   QObject::connect(
@@ -167,8 +167,8 @@ QAppearanceSettingsWidget::createLightingControls()
   row++;
   sectionLayout->addWidget(new QLabel("AreaLight Phi"), row, 0);
   m_lt0gui.m_phiSlider = new QNumericSlider();
-  m_lt0gui.m_phiSlider->setRange(0.0, 3.14159265);
-  m_lt0gui.m_phiSlider->setValue(0.0);
+  m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
+  m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
   sectionLayout->addWidget(m_lt0gui.m_phiSlider, row, 1, 1, 4);
   QObject::connect(
     m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);

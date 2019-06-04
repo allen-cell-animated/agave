@@ -7,8 +7,6 @@
 #include <cmath>
 #include <qopenglshaderprogram.h>
 
-#define PI 3.14159265358979323846264338327950
-
 #if QT_VERSION >= 0x050000
 #define MOUSE_POS localPos
 #else
