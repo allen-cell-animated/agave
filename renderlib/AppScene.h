@@ -37,7 +37,9 @@ struct VolumeDisplay
 class Light
 {
 public:
+  // range is 0..2pi
   float m_Theta;
+  // range is 0..pi
   float m_Phi;
   float m_Width;
   float m_InvWidth;

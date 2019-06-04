@@ -44,10 +44,9 @@ Light::Update(const CBoundingBox& BoundingBox)
   // if N and "up" are parallel, then just choose a different "up"
   if (m_N.y == 1.0f || m_N.y == -1.0f) {
     m_U = glm::normalize(glm::cross(m_N, glm::vec3(1.0f, 0.0f, 0.0f)));
-  }
-  else {
+  } else {
     // standard "up" vector
-  m_U = glm::normalize(glm::cross(m_N, glm::vec3(0.0f, 1.0f, 0.0f)));
+    m_U = glm::normalize(glm::cross(m_N, glm::vec3(0.0f, 1.0f, 0.0f)));
   }
   m_V = glm::normalize(glm::cross(m_N, m_U));
 }
@@ -79,8 +78,8 @@ Scene::initLights()
   Light AreaLight;
 
   AreaLight.m_T = 0;
-  AreaLight.m_Theta = 0.0f / RAD_F; // numerator is degrees, range is 0..2pi
-  AreaLight.m_Phi = HALF_PI_F; // range is 0..pi
+  AreaLight.m_Theta = 0.0f;
+  AreaLight.m_Phi = HALF_PI_F;
   AreaLight.m_Width = 1.0f;
   AreaLight.m_Height = 1.0f;
   AreaLight.m_Distance = 10.0f;
