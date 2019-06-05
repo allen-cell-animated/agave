@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <math.h>
 
 template<class T>
 const T&
