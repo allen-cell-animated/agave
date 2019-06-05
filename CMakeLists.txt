@@ -237,4 +237,22 @@ set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
 
 include(CPack)
 
+else() # Linux
+
+install(FILES 
+  ${PROJECT_SOURCE_DIR}/LICENSE.txt
+  ${PROJECT_SOURCE_DIR}/HELP.txt
+  $<TARGET_FILE:Qt5::Widgets>
+  $<TARGET_FILE:Qt5::Core>
+  $<TARGET_FILE:Qt5::Gui>
+  $<TARGET_FILE:Qt5::Xml>
+  $<TARGET_FILE:Qt5::Network>
+  $<TARGET_FILE:Qt5::WebSockets>
+	DESTINATION ${INSTALLDIR}
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QXcbIntegrationPlugin>
+  DESTINATION ${INSTALLDIR}/platforms/
+)
+
 endif (WIN32)
