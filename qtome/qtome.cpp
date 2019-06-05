@@ -100,8 +100,6 @@ qtome::createActions()
   m_viewResetAction = new QAction(tr("&Reset"), this);
   m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
-  QIcon reset_icon(QString((iconpath / "actions/ome-reset2d.svg").string().c_str()));
-  m_viewResetAction->setIcon(reset_icon);
   m_viewResetAction->setEnabled(false);
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
