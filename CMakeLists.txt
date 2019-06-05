@@ -34,10 +34,12 @@ set(CMAKE_AUTOUIC ON)
 if (WIN32)
   set(QTDIR C:/Qt/5.12.3/msvc2017_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
-else (WIN32)
-  # linux: QTDIR = /opt/qt59
+elseif (APPLE)
   # mac official Qt install:
   set(QTDIR ~/Qt/5.12.3/clang_64)
+  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+else ()
+  set(QTDIR ~/Qt/5.12.3/gcc_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
 endif (WIN32)
 
