@@ -495,14 +495,12 @@ qtome::dumpPythonState()
 {
   QString s;
   s += QString("(\"LOAD_OME_TIF\", \"%1\")\n").arg(m_currentFilePath);
-  s += QString("(\"SET_RESOLUTION\", %1, %2)\n")
-         .arg(m_glView->size().width())
-         .arg(m_glView->size().height());
+  s += QString("(\"SET_RESOLUTION\", %1, %2)\n").arg(m_glView->size().width()).arg(m_glView->size().height());
   s += QString("(\"RENDER_ITERATIONS\", %1)\n").arg(m_renderSettings.GetNoIterations());
-  s += QString("(\"SET_VOXEL_SCALE\", %1, %2, %3)\n") 
-         .arg(m_appScene.m_volume->physicalSizeX()) 
-         .arg(m_appScene.m_volume->physicalSizeY()) 
-         .arg(m_appScene.m_volume->physicalSizeZ()); 
+  s += QString("(\"SET_VOXEL_SCALE\", %1, %2, %3)\n")
+         .arg(m_appScene.m_volume->physicalSizeX())
+         .arg(m_appScene.m_volume->physicalSizeY())
+         .arg(m_appScene.m_volume->physicalSizeZ());
   s += QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n")
          .arg(m_appScene.m_roi.GetMinP().x)
          .arg(m_appScene.m_roi.GetMaxP().x)
@@ -549,12 +547,8 @@ qtome::dumpPythonState()
            .arg(m_appScene.m_material.m_emissive[i * 3])
            .arg(m_appScene.m_material.m_emissive[i * 3 + 1])
            .arg(m_appScene.m_material.m_emissive[i * 3 + 2]);
-    s += QString("(\"MAT_GLOSSINESS\", %1, %2)\n")
-           .arg(QString::number(i))
-           .arg(m_appScene.m_material.m_roughness[i]);
-    s += QString("(\"MAT_OPACITY\", %1, %2)\n")
-           .arg(QString::number(i))
-           .arg(m_appScene.m_material.m_opacity[i]);
+    s += QString("(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_roughness[i]);
+    s += QString("(\"MAT_OPACITY\", %1, %2)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_opacity[i]);
     s += QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_volume->channel(i)->m_window)
