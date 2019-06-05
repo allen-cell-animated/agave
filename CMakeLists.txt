@@ -41,6 +41,7 @@ elseif (APPLE)
 else ()
   set(QTDIR ~/Qt/5.12.3/gcc_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif (WIN32)
 
 if (APPLE)
