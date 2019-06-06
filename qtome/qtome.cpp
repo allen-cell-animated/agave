@@ -230,12 +230,11 @@ qtome::createRangeSlider()
 void
 qtome::open()
 {
-  QString file = QFileDialog::getOpenFileName(this,
-                                              tr("Open Image"),
-                                              QString(),
-                                              QString(),
-                                              0,
-                                              QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, options);
 
   if (!file.isEmpty())
     open(file);
@@ -244,12 +243,11 @@ qtome::open()
 void
 qtome::openJson()
 {
-  QString file = QFileDialog::getOpenFileName(this,
-                                              tr("Open Image"),
-                                              QString(),
-                                              QString(),
-                                              0,
-                                              QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
@@ -270,8 +268,11 @@ qtome::openJson()
 void
 qtome::saveJson()
 {
-  QString file = QFileDialog::getSaveFileName(
-    this, tr("Save Json"), QString(), tr("json (*.json)"), nullptr, QFileDialog::DontUseNativeDialog);
+  QFileDialog::Options options = 0;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getSaveFileName(this, tr("Save Json"), QString(), tr("json (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
     ViewerState st = appToViewerState();
     QJsonDocument doc = st.stateToJson();
@@ -327,12 +328,11 @@ qtome::open(const QString& file, const ViewerState* vs)
 void
 qtome::openMeshDialog()
 {
-  QString file = QFileDialog::getOpenFileName(this,
-                                              tr("Open Mesh"),
-                                              QString(),
-                                              QString(),
-                                              0,
-                                              QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, options);
 
   if (!file.isEmpty())
     openMesh(file);
