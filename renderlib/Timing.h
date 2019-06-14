@@ -2,6 +2,7 @@
 
 #include "Defines.h"
 
+#include <stdio.h>
 #include <string.h> //for memset etc
 
 #include <algorithm>

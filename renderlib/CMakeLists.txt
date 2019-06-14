@@ -60,4 +60,5 @@ add_subdirectory(glsl/v330)
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml 
 	${TIFF_LIBRARIES}
+	${CMAKE_DL_LIBS}
 )

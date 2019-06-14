@@ -44,18 +44,15 @@ cmake -G Xcode ..
 For linux:
 
 - sudo apt install libboost-all-dev
+- sudo apt install libtiff-dev
+- sudo apt install libglm-dev
+- sudo apt install libgl1-mesa-dev
 
-- current Qt is available via: https://launchpad.net/~beineri (tested with Qt 5.11.2 and 5.9.x)
+- use official Qt 5.12.3 installer for linux and install into default location (~/Qt)
 
 ```
-source /opt/qt59/bin/qt59-env.sh # sets QTDIR env var
 mkdir build
 cd build
-~/cmake-3.10.2-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake ..
 make
-make install
 ```
-
-cd Release/bin
-./qtomeapp
-./websockerserverapp

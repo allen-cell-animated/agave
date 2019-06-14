@@ -100,8 +100,6 @@ qtome::createActions()
   m_viewResetAction = new QAction(tr("&Reset"), this);
   m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
-  QIcon reset_icon(QString((iconpath / "actions/ome-reset2d.svg").string().c_str()));
-  m_viewResetAction->setIcon(reset_icon);
   m_viewResetAction->setEnabled(false);
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
@@ -232,8 +230,11 @@ qtome::createRangeSlider()
 void
 qtome::open()
 {
-  QString file =
-    QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, QFileDialog::DontResolveSymlinks);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, options);
 
   if (!file.isEmpty())
     open(file);
@@ -242,8 +243,11 @@ qtome::open()
 void
 qtome::openJson()
 {
-  QString file =
-    QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, QFileDialog::DontResolveSymlinks);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
@@ -264,7 +268,11 @@ qtome::openJson()
 void
 qtome::saveJson()
 {
-  QString file = QFileDialog::getSaveFileName(this, tr("Save Json"), QString(), tr("json (*.json)"));
+  QFileDialog::Options options = 0;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getSaveFileName(this, tr("Save Json"), QString(), tr("json (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
     ViewerState st = appToViewerState();
     QJsonDocument doc = st.stateToJson();
@@ -320,8 +328,11 @@ qtome::open(const QString& file, const ViewerState* vs)
 void
 qtome::openMeshDialog()
 {
-  QString file =
-    QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, QFileDialog::DontResolveSymlinks);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, options);
 
   if (!file.isEmpty())
     openMesh(file);
@@ -484,14 +495,12 @@ qtome::dumpPythonState()
 {
   QString s;
   s += QString("(\"LOAD_OME_TIF\", \"%1\")\n").arg(m_currentFilePath);
-  s += QString("(\"SET_RESOLUTION\", %1, %2)\n")
-         .arg(m_glView->size().width())
-         .arg(m_glView->size().height());
+  s += QString("(\"SET_RESOLUTION\", %1, %2)\n").arg(m_glView->size().width()).arg(m_glView->size().height());
   s += QString("(\"RENDER_ITERATIONS\", %1)\n").arg(m_renderSettings.GetNoIterations());
-  s += QString("(\"SET_VOXEL_SCALE\", %1, %2, %3)\n") 
-         .arg(m_appScene.m_volume->physicalSizeX()) 
-         .arg(m_appScene.m_volume->physicalSizeY()) 
-         .arg(m_appScene.m_volume->physicalSizeZ()); 
+  s += QString("(\"SET_VOXEL_SCALE\", %1, %2, %3)\n")
+         .arg(m_appScene.m_volume->physicalSizeX())
+         .arg(m_appScene.m_volume->physicalSizeY())
+         .arg(m_appScene.m_volume->physicalSizeZ());
   s += QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6)\n")
          .arg(m_appScene.m_roi.GetMinP().x)
          .arg(m_appScene.m_roi.GetMaxP().x)
@@ -538,12 +547,8 @@ qtome::dumpPythonState()
            .arg(m_appScene.m_material.m_emissive[i * 3])
            .arg(m_appScene.m_material.m_emissive[i * 3 + 1])
            .arg(m_appScene.m_material.m_emissive[i * 3 + 2]);
-    s += QString("(\"MAT_GLOSSINESS\", %1, %2)\n")
-           .arg(QString::number(i))
-           .arg(m_appScene.m_material.m_roughness[i]);
-    s += QString("(\"MAT_OPACITY\", %1, %2)\n")
-           .arg(QString::number(i))
-           .arg(m_appScene.m_material.m_opacity[i]);
+    s += QString("(\"MAT_GLOSSINESS\", %1, %2)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_roughness[i]);
+    s += QString("(\"MAT_OPACITY\", %1, %2)\n").arg(QString::number(i)).arg(m_appScene.m_material.m_opacity[i]);
     s += QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3)\n")
            .arg(QString::number(i))
            .arg(m_appScene.m_volume->channel(i)->m_window)

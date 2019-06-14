@@ -34,11 +34,14 @@ set(CMAKE_AUTOUIC ON)
 if (WIN32)
   set(QTDIR C:/Qt/5.12.3/msvc2017_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
-else (WIN32)
-  # linux: QTDIR = /opt/qt59
+elseif (APPLE)
   # mac official Qt install:
   set(QTDIR ~/Qt/5.12.3/clang_64)
   list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+else ()
+  set(QTDIR ~/Qt/5.12.3/gcc_64)
+  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif (WIN32)
 
 if (APPLE)
@@ -234,5 +237,23 @@ set(CPACK_SYSTEM_NAME "OSX")
 set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")  
 
 include(CPack)
+
+else() # Linux
+
+install(FILES 
+  ${PROJECT_SOURCE_DIR}/LICENSE.txt
+  ${PROJECT_SOURCE_DIR}/HELP.txt
+  $<TARGET_FILE:Qt5::Widgets>
+  $<TARGET_FILE:Qt5::Core>
+  $<TARGET_FILE:Qt5::Gui>
+  $<TARGET_FILE:Qt5::Xml>
+  $<TARGET_FILE:Qt5::Network>
+  $<TARGET_FILE:Qt5::WebSockets>
+	DESTINATION ${INSTALLDIR}
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QXcbIntegrationPlugin>
+  DESTINATION ${INSTALLDIR}/platforms/
+)
 
 endif (WIN32)
