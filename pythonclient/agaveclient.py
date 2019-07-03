@@ -84,11 +84,15 @@ class AgaveClient(WebSocketClient):
         self.requested_frame = 0
         self.queue = deque([])
 
-    def render_frame(self, command_list, number=0, output_name="frame", callback=None):
+    def render_frame(
+        self, command_list, number=None, output_name="frame", callback=None
+    ):
         cb = CommandBuffer(command_list)
-        self.push_request(
-            cb, output_name + "_" + str(number).zfill(4) + ".png", callback=callback
-        )
+        if number is not None:
+            out = output_name + "_" + str(int(number)).zfill(4) + ".png"
+        else:
+            out = output_name + ".png"
+        self.push_request(cb, out, callback=callback)
 
     def render_sequence(
         self, sequence, output_name="frame", first_frame=0, callback=None
@@ -215,6 +219,26 @@ class AgaveClient(WebSocketClient):
                 self._handleInfoText(m, req)
                 # return request back on queue for the actual image
                 self.queue.appendleft(req)
+
+
+def agaveclient(port=1235, renderfunc=None):
+    if renderfunc is None:
+        return
+    try:
+        ws = AgaveClient(
+            "ws://localhost:" + str(port) + "/", protocols=["http-only", "chat"]
+        )
+        print("created client")
+
+        def onOpen():
+            renderfunc(ws)
+
+        ws.onOpened = onOpen
+        ws.connect()
+        ws.run_forever()
+    except KeyboardInterrupt:
+        print("keyboard")
+        ws.close()
 
 
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))

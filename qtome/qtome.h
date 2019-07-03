@@ -37,11 +37,11 @@ private slots:
   void view_reset();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
-  void dumpPythonState();
   void dumpStateToJson();
   void openMeshDialog();
   void openMesh(const QString& file);
   void saveJson();
+  void savePython();
   void OnUpdateRenderer();
 
 private:
@@ -72,8 +72,8 @@ private:
   QAction* m_openAction;
   QAction* m_openJsonAction;
   QAction* m_quitAction;
-  QAction* m_dumpAction;
   QAction* m_dumpJsonAction;
+  QAction* m_dumpPythonAction;
   QAction* m_testMeshAction;
   QAction* m_viewResetAction;
 
