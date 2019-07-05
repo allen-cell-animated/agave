@@ -187,7 +187,7 @@ void main()
 		float zDist = 2.0;
 		eyeRay_d = (inverseModelViewMatrix*vec4(0.0, 0.0, -zDist, 0.0)).xyz;
 		vec4 ray_o = vec4(2.0*vUv - 1.0, 1.0, 1.0);
-		ray_o.xy *= orthoScale*0.5;
+		ray_o.xy *= orthoScale;
 		ray_o.x *= iResolution.x/iResolution.y;
 		eyeRay_o = (inverseModelViewMatrix*ray_o).xyz;
 	}
