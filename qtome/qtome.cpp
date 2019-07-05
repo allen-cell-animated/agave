@@ -80,15 +80,15 @@ qtome::OnUpdateRenderer()
 void
 qtome::createActions()
 {
-  boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
+  // boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
 
+  // TODO ensure a proper title, shortcut, icon, and statustip for every action
   m_openAction = new QAction(tr("&Open image..."), this);
   m_openAction->setShortcuts(QKeySequence::Open);
   m_openAction->setStatusTip(tr("Open an existing image file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  m_openJsonAction = new QAction(tr("&Open json..."), this);
-  m_openJsonAction->setShortcuts(QKeySequence::Open);
+  m_openJsonAction = new QAction(tr("Open json..."), this);
   m_openJsonAction->setStatusTip(tr("Open an existing json settings file"));
   connect(m_openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
 
@@ -100,7 +100,6 @@ qtome::createActions()
   m_viewResetAction = new QAction(tr("&Reset"), this);
   m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
-  m_viewResetAction->setEnabled(false);
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
   m_dumpJsonAction = new QAction(tr("&Save to json"), this);
@@ -112,9 +111,12 @@ qtome::createActions()
   connect(m_dumpPythonAction, SIGNAL(triggered()), this, SLOT(savePython()));
 
   m_testMeshAction = new QAction(tr("&Open mesh..."), this);
-  // testMeshAction->setShortcuts(QKeySequence::Open);
   m_testMeshAction->setStatusTip(tr("Open a mesh obj file"));
   connect(m_testMeshAction, SIGNAL(triggered()), this, SLOT(openMeshDialog()));
+
+  m_toggleCameraProjectionAction = new QAction(tr("Persp/Ortho"), this);
+  m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
+  connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
 }
 
 void
@@ -147,7 +149,16 @@ qtome::createMenus()
 
 void
 qtome::createToolbars()
-{}
+{
+  m_ui.mainToolBar->addAction(m_openAction);
+  m_ui.mainToolBar->addAction(m_openJsonAction);
+  m_ui.mainToolBar->addSeparator();
+  m_ui.mainToolBar->addAction(m_dumpJsonAction);
+  m_ui.mainToolBar->addAction(m_dumpPythonAction);
+  m_ui.mainToolBar->addSeparator();
+  m_ui.mainToolBar->addAction(m_viewResetAction);
+  m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
+}
 
 QDockWidget*
 qtome::createRenderingDock()
@@ -189,7 +200,6 @@ qtome::createDockWindows()
   m_statisticsDockWidget->setEnabled(true);
   m_statisticsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
-  // m_pViewMenu->addAction(m_StatisticsDockWidget.toggleViewAction());
 
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_cameradock->toggleViewAction());
@@ -382,7 +392,15 @@ qtome::quit()
 
 void
 qtome::view_reset()
-{}
+{
+  m_glView->initCameraFromImage(&m_appScene);
+}
+
+void
+qtome::view_toggleProjection()
+{
+  m_glView->toggleCameraProjection();
+}
 
 void
 qtome::setRecentFilesVisible(bool visible)

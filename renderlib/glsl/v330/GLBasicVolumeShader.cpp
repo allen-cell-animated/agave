@@ -56,6 +56,9 @@ uniform sampler2D textureAtlasMask;
 //uniform sampler2D lut;
 
 #define M_PI 3.14159265358979323846
+uniform vec2 iResolution;
+uniform float isPerspective;
+uniform float orthoScale;
 uniform float GAMMA_MIN;
 uniform float GAMMA_MAX;
 uniform float GAMMA_SCALE;
@@ -173,9 +176,22 @@ vec4 integrateVolume(vec4 eye_o, vec4 eye_d,
 void main()
 {
 	outputColour = vec4(1.0, 0.0, 0.0, 1.0);
+	vec2 vUv = gl_FragCoord.xy/iResolution.xy;
 
-	vec3 eyeRay_o = (inverseModelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-	vec3 eyeRay_d = normalize(inData.pObj - eyeRay_o);
+	vec3 eyeRay_o, eyeRay_d;
+	if (isPerspective != 0.0) {
+		eyeRay_o = (inverseModelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+		eyeRay_d = normalize(inData.pObj - eyeRay_o);
+	}
+	else {
+		float zDist = 2.0;
+		eyeRay_d = (inverseModelViewMatrix*vec4(0.0, 0.0, -zDist, 0.0)).xyz;
+		vec4 ray_o = vec4(2.0*vUv - 1.0, 1.0, 1.0);
+		ray_o.xy *= orthoScale*0.5;
+		ray_o.x *= iResolution.x/iResolution.y;
+		eyeRay_o = (inverseModelViewMatrix*ray_o).xyz;
+	}
+
 	vec3 boxMin = AABB_CLIP_MIN;
 	vec3 boxMax = AABB_CLIP_MAX;
 	float tnear, tfar;
@@ -202,8 +218,7 @@ void main()
     )");
 
   if (!fshader->isCompiled()) {
-    LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n"
-              << fshader->log().toStdString();
+    LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n" << fshader->log().toStdString();
   }
 
   addShader(vshader);
@@ -238,6 +253,10 @@ void main()
 
   uDataRangeMin = uniformLocation("dataRangeMin");
   uDataRangeMax = uniformLocation("dataRangeMax");
+
+  uIsPerspective = uniformLocation("isPerspective");
+  uOrthoScale = uniformLocation("orthoScale");
+  uResolution = uniformLocation("iResolution");
 }
 
 GLBasicVolumeShader::~GLBasicVolumeShader() {}
@@ -300,10 +319,13 @@ GLBasicVolumeShader::setShadingUniforms()
   glUniform1f(uBrightness, BRIGHTNESS);
   glUniform1f(uDensity, DENSITY);
   glUniform1f(uMaskAlpha, maskAlpha);
+  glUniform1f(uIsPerspective, isPerspective);
+  glUniform1f(uOrthoScale, orthoScale);
   glUniform1i(uBreakSteps, BREAK_STEPS);
   // axis aligned clip planes
   glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
   glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
+  glUniform2fv(uResolution, 1, glm::value_ptr(resolution));
 }
 
 void
@@ -317,7 +339,17 @@ GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4
   glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
   glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
   glm::mat4 cv = glm::lookAt(eye, center, up);
-  glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Near, camera.m_Far);
+  glm::mat4 cp;
+  if (camera.m_Projection == PERSPECTIVE) {
+    cp = glm::perspectiveFov(vfov, w, h, camera.m_Near, camera.m_Far);
+  } else {
+    cp = glm::ortho(-(w / h) * camera.m_OrthoScale,
+                    (w / h) * camera.m_OrthoScale,
+                    -1.0f * camera.m_OrthoScale,
+                    1.0f * camera.m_OrthoScale,
+                    camera.m_Near,
+                    camera.m_Far);
+  }
 
   // glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
   glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));

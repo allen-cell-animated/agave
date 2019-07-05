@@ -35,6 +35,7 @@ private slots:
   void updateRecentFileActions();
   void quit();
   void view_reset();
+  void view_toggleProjection();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
   void dumpStateToJson();
@@ -76,6 +77,7 @@ private:
   QAction* m_dumpPythonAction;
   QAction* m_testMeshAction;
   QAction* m_viewResetAction;
+  QAction* m_toggleCameraProjectionAction;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

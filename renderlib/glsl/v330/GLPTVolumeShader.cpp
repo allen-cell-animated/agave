@@ -65,6 +65,7 @@ struct Camera {
   vec2 m_invScreen;  // 1/w, 1/h
   float m_focalDistance;
   float m_apertureSize;
+  float m_isPerspective;
 };
 
 uniform Camera gCamera;
@@ -264,9 +265,15 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   ScreenPoint.y = cam.m_screen.z + (cam.m_invScreen.y * Pixel.y);
 
   vec3 RayO = cam.m_from;
+  if (cam.m_isPerspective == 0.0) {
+    RayO += (ScreenPoint.x * cam.m_U) + (ScreenPoint.y * cam.m_V);
+  }
   // negating ScreenPoint.y flips the up/down direction. depends on whether you want pixel 0 at top or bottom
   // we could also have flipped m_screen and m_invScreen, or cam.m_V?
   vec3 RayD = normalize(cam.m_N + (ScreenPoint.x * cam.m_U) + (ScreenPoint.y * cam.m_V));
+  if (cam.m_isPerspective == 0.0) {
+    RayD = cam.m_N;
+  }
 
   if (cam.m_apertureSize != 0.0f)
   {
@@ -1179,6 +1186,7 @@ void main()
   m_cameraInvScreen = uniformLocation("gCamera.m_invScreen");
   m_cameraFocalDistance = uniformLocation("gCamera.m_focalDistance");
   m_cameraApertureSize = uniformLocation("gCamera.m_apertureSize");
+  m_cameraProjectionMode = uniformLocation("gCamera.m_isPerspective");
 
   // Camera struct
   //          m_from : new THREE.Vector3(),
@@ -1324,6 +1332,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform2fv(m_cameraInvScreen, 1, glm::value_ptr(cam.m_Film.m_InvScreen));
   glUniform1f(m_cameraFocalDistance, cam.m_Focus.m_FocalDistance);
   glUniform1f(m_cameraApertureSize, cam.m_Aperture.m_Size);
+  glUniform1f(m_cameraProjectionMode, (cam.m_Projection == PERSPECTIVE) ? 1.0f : 0.0f);
   check_gl("pre lights");
 
   const Light& l = scene->m_lighting.m_Lights[0];

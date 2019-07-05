@@ -53,7 +53,7 @@ private:
     m_gDensityScale, m_gStepSize, m_gStepSizeShadow, m_gInvAaBbSize, m_g_nChannels, m_gShadingType, m_gGradientDeltaX,
     m_gGradientDeltaY, m_gGradientDeltaZ, m_gInvGradientDelta, m_gGradientFactor;
   int m_cameraFrom, m_cameraU, m_cameraV, m_cameraN, m_cameraScreen, m_cameraInvScreen, m_cameraFocalDistance,
-    m_cameraApertureSize;
+    m_cameraApertureSize, m_cameraProjectionMode;
 
   int m_light0theta, m_light0phi, m_light0width, m_light0halfWidth, m_light0height, m_light0halfHeight,
     m_light0distance, m_light0skyRadius, m_light0P, m_light0target, m_light0N, m_light0U, m_light0V, m_light0area,

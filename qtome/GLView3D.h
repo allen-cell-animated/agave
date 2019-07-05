@@ -56,6 +56,7 @@ public:
   QSize sizeHint() const;
 
   void initCameraFromImage(Scene* scene);
+  void toggleCameraProjection();
 
   void onNewImage(Scene* scene);
 
