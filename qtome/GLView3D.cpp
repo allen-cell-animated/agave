@@ -309,6 +309,8 @@ GLView3D::fromViewerState(const ViewerState& s)
   m_CCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
   m_CCamera.m_Up = glm::vec3(s.m_upX, s.m_upY, s.m_upZ);
   m_CCamera.m_FovV = s.m_fov;
+  m_CCamera.SetProjectionMode(s.m_projection == ViewerState::Projection::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
+  m_CCamera.m_OrthoScale = s.m_orthoScale;
 
   m_CCamera.m_Film.m_Exposure = s.m_exposure;
   m_CCamera.m_Aperture.m_Size = s.m_apertureSize;

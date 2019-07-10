@@ -116,10 +116,16 @@ SetCameraApertureCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
-SetCameraFovYCommand::execute(ExecutionContext* c)
+SetCameraProjectionCommand::execute(ExecutionContext* c)
 {
-  LOG_DEBUG << "SetCameraFovY " << m_data.m_x;
-  c->m_camera->m_FovV = m_data.m_x;
+  LOG_DEBUG << "SetCameraProjection " << m_data.m_projectionType << " " << m_data.m_x;
+  // 0 is PERSPECTIVE, 1 is ORTHOGRAPHIC, else is PERSPECTIVE
+  c->m_camera->SetProjectionMode(m_data.m_projectionType == 1 ? ORTHOGRAPHIC : PERSPECTIVE);
+  if (c->m_camera->m_Projection == ORTHOGRAPHIC) {
+    c->m_camera->m_OrthoScale = m_data.m_x;
+  } else {
+    c->m_camera->m_FovV = m_data.m_x;
+  }
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void

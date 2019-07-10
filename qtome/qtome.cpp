@@ -642,6 +642,9 @@ qtome::appToViewerState()
   v.m_upY = m_glView->getCamera().m_Up.y;
   v.m_upZ = m_glView->getCamera().m_Up.z;
 
+  v.m_projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? ViewerState::Projection::PERSPECTIVE
+                                                                     : ViewerState::Projection::ORTHOGRAPHIC;
+  v.m_orthoScale = m_glView->getCamera().m_OrthoScale;
   v.m_fov = m_qcamera.GetProjection().GetFieldOfView();
 
   v.m_exposure = m_qcamera.GetFilm().GetExposure();

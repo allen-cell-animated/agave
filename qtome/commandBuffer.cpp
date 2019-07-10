@@ -44,7 +44,7 @@ FWDDECL_PARSE(SetCameraUpCommand);
 FWDDECL_PARSE(SetCameraTargetCommand);
 FWDDECL_PARSE(SetCameraTargetCommand);
 FWDDECL_PARSE(SetCameraApertureCommand);
-FWDDECL_PARSE(SetCameraFovYCommand);
+FWDDECL_PARSE(SetCameraProjectionCommand);
 FWDDECL_PARSE(SetCameraFocalDistanceCommand);
 FWDDECL_PARSE(SetCameraExposureCommand);
 FWDDECL_PARSE(SetDiffuseColorCommand);
@@ -98,7 +98,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetCameraTargetCommand);
           CMD_CASE(SetCameraUpCommand);
           CMD_CASE(SetCameraApertureCommand);
-          CMD_CASE(SetCameraFovYCommand);
+          CMD_CASE(SetCameraProjectionCommand);
           CMD_CASE(SetCameraFocalDistanceCommand);
           CMD_CASE(SetCameraExposureCommand);
           CMD_CASE(SetDiffuseColorCommand);
@@ -253,11 +253,12 @@ parseSetCameraApertureCommand(CommandBufferIterator* c)
   return new SetCameraApertureCommand(data);
 }
 Command*
-parseSetCameraFovYCommand(CommandBufferIterator* c)
+parseSetCameraProjectionCommand(CommandBufferIterator* c)
 {
-  SetCameraFovYCommandD data;
+  SetCameraProjectionCommandD data;
+  data.m_projectionType = c->parseInt32();
   data.m_x = c->parseFloat32();
-  return new SetCameraFovYCommand(data);
+  return new SetCameraProjectionCommand(data);
 }
 Command*
 parseSetCameraFocalDistanceCommand(CommandBufferIterator* c)
