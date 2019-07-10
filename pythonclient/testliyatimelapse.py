@@ -89,7 +89,7 @@ class DummyClient(WebSocketClient):
         # cb.add_command("UP", -0.00492508, 0.995561, 0.0939797)
         cb.add_command("SET_VOXEL_SCALE", 0.0826135, 0.0826135, 0.2079217)
         # cb.add_command("SET_RESOLUTION", 1024, 1024)
-        # cb.add_command("FOV_Y", 55)
+        # cb.add_command("CAMERA_PROJECTION", 0, 55)
         # cb.add_command("FRAME_SCENE")
         # cb.add_command("ORBIT_CAMERA", 10, 10)
 
@@ -128,14 +128,13 @@ class DummyClient(WebSocketClient):
         # cb.add_command("LIGHT_COLOR", 0, 414.043, 414.043, 424.394)
         # cb.add_command("LIGHT_SIZE", 0, 0.3931, 0.3931)
 
-
         cb.add_command("SET_RESOLUTION", 1024, 1024)
         cb.add_command("RENDER_ITERATIONS", 256)
         cb.add_command("SET_CLIP_REGION", 0, 1, 0, 1, 0, 1)
         # cb.add_command("EYE", 0.243166, 0.301235, 1.36233)
         # cb.add_command("TARGET", 0.5, 0.5, 0.0410354)
         # cb.add_command("UP", -0.0278741, 0.989272, 0.143399)
-        cb.add_command("FOV_Y", 55)
+        cb.add_command("CAMERA_PROJECTION", 0, 55)
         cb.add_command("EXPOSURE", 0.75)
         cb.add_command("DENSITY", 4.0)
         cb.add_command("APERTURE", 0)
