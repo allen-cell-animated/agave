@@ -71,7 +71,7 @@ RenderGL::render(const CCamera& camera)
 
   glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
   // Render image
-  m_image3d->render(camera, m_scene, m_renderSettings);
+  m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
 
   m_timingRender.AddDuration((float)m_timer.elapsed());
   m_status.SetStatisticChanged(
