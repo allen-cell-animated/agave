@@ -606,6 +606,8 @@ qtome::viewerStateToApp(const ViewerState& v)
   lt1.m_Width = v.m_light1.m_width;
   lt1.m_Height = v.m_light1.m_height;
 
+  m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
+  m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
