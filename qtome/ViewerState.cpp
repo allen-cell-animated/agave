@@ -3,6 +3,7 @@
 #include "renderlib/Logging.h"
 
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonObject>
 
@@ -337,4 +338,98 @@ void
 ViewerState::writeStateToJson(QString filePath, const ViewerState& state)
 {
   QJsonDocument d = state.stateToJson();
+}
+
+QString
+ViewerState::stateToPythonScript() const
+{
+  {
+    QFileInfo fi(m_volumeImageFile);
+    QString outFileName = fi.baseName();
+
+    QString s;
+    s += QString("import agaveclient\n\n\n");
+    s += QString("def renderfunc(server):\n");
+    s += QString("    server.render_frame(\n");
+    s += QString("        [\n");
+
+    QString indent("            ");
+    s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
+    s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
+    s += indent + QString("(\"RENDER_ITERATIONS\", %1),\n").arg(m_renderIterations);
+    s += indent + QString("(\"SET_VOXEL_SCALE\", %1, %2, %3),\n").arg(m_scaleX).arg(m_scaleY).arg(m_scaleZ);
+    s += indent + QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6),\n")
+                    .arg(m_roiXmin)
+                    .arg(m_roiXmax)
+                    .arg(m_roiYmin)
+                    .arg(m_roiYmax)
+                    .arg(m_roiZmin)
+                    .arg(m_roiZmax);
+
+    s += indent + QString("(\"EYE\", %1, %2, %3),\n").arg(m_eyeX).arg(m_eyeY).arg(m_eyeZ);
+    s += indent + QString("(\"TARGET\", %1, %2, %3),\n").arg(m_targetX).arg(m_targetY).arg(m_targetZ);
+    s += indent + QString("(\"UP\", %1, %2, %3),\n").arg(m_upX).arg(m_upY).arg(m_upZ);
+    s += indent + QString("(\"FOV_Y\", %1),\n").arg(m_fov);
+
+    s += indent + QString("(\"EXPOSURE\", %1),\n").arg(m_exposure);
+    s += indent + QString("(\"DENSITY\", %1),\n").arg(m_densityScale);
+    s += indent + QString("(\"APERTURE\", %1),\n").arg(m_apertureSize);
+    s += indent + QString("(\"FOCALDIST\", %1),\n").arg(m_focalDistance);
+
+    // per-channel
+    for (std::size_t i = 0; i < m_channels.size(); ++i) {
+      const ChannelViewerState& ch = m_channels[i];
+      s += indent + QString("(\"ENABLE_CHANNEL\", %1, %2),\n").arg(QString::number(i), ch.m_enabled ? "1" : "0");
+      s += indent + QString("(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0),\n")
+                      .arg(QString::number(i))
+                      .arg(ch.m_diffuse.x)
+                      .arg(ch.m_diffuse.y)
+                      .arg(ch.m_diffuse.z);
+      s += indent + QString("(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0),\n")
+                      .arg(QString::number(i))
+                      .arg(ch.m_specular.x)
+                      .arg(ch.m_specular.y)
+                      .arg(ch.m_specular.z);
+      s += indent + QString("(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0),\n")
+                      .arg(QString::number(i))
+                      .arg(ch.m_emissive.x)
+                      .arg(ch.m_emissive.y)
+                      .arg(ch.m_emissive.z);
+      s += indent + QString("(\"MAT_GLOSSINESS\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_glossiness);
+      s += indent + QString("(\"MAT_OPACITY\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_opacity);
+      s += indent +
+           QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3),\n").arg(QString::number(i)).arg(ch.m_window).arg(ch.m_level);
+    }
+
+    // lighting
+    s += indent + QString("(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3),\n")
+                    .arg(m_light0.m_topColor.r * m_light0.m_topColorIntensity)
+                    .arg(m_light0.m_topColor.g * m_light0.m_topColorIntensity)
+                    .arg(m_light0.m_topColor.b * m_light0.m_topColorIntensity);
+    s += indent + QString("(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3),\n")
+                    .arg(m_light0.m_middleColor.r * m_light0.m_middleColorIntensity)
+                    .arg(m_light0.m_middleColor.g * m_light0.m_middleColorIntensity)
+                    .arg(m_light0.m_middleColor.b * m_light0.m_middleColorIntensity);
+    s += indent + QString("(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3),\n")
+                    .arg(m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity)
+                    .arg(m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity)
+                    .arg(m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity);
+    s +=
+      indent +
+      QString("(\"LIGHT_POS\", 0, %1, %2, %3),\n").arg(m_light1.m_distance).arg(m_light1.m_theta).arg(m_light1.m_phi);
+    s += indent + QString("(\"LIGHT_COLOR\", 0, %1, %2, %3),\n")
+                    .arg(m_light1.m_color.r * m_light1.m_colorIntensity)
+                    .arg(m_light1.m_color.g * m_light1.m_colorIntensity)
+                    .arg(m_light1.m_color.b * m_light1.m_colorIntensity);
+    s += indent + QString("(\"LIGHT_SIZE\", 0, %1, %2),\n").arg(m_light1.m_width).arg(m_light1.m_height);
+
+    s += QString("        ],\n");
+    s += QString("        output_name=\"%1\",\n").arg(outFileName);
+    s += QString("    )\n");
+    s += QString("\n");
+    s += QString("agaveclient.agaveclient(renderfunc=renderfunc)\n");
+
+    // LOG_DEBUG << s.toStdString();
+    return s;
+  }
 }
