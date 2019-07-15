@@ -194,7 +194,7 @@ QAppearanceSettingsWidget::createLightingControls()
   row++;
   sectionLayout->addWidget(new QLabel("AreaLight Intensity"), row, 0);
   m_lt0gui.m_intensitySlider = new QNumericSlider();
-  m_lt0gui.m_intensitySlider->setRange(0.1, 1000.0);
+  m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
   sectionLayout->addWidget(m_lt0gui.m_intensitySlider, row, 1, 1, 3);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
@@ -209,7 +209,7 @@ QAppearanceSettingsWidget::createLightingControls()
   row++;
   sectionLayout->addWidget(new QLabel("SkyLight Top"), row, 0);
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
-  m_lt1gui.m_stintensitySlider->setRange(0.1, 10.0);
+  m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_stintensitySlider->setValue(1.0);
   sectionLayout->addWidget(m_lt1gui.m_stintensitySlider, row, 1, 1, 3);
   m_lt1gui.m_stColorButton = new QColorPushButton();
@@ -224,7 +224,7 @@ QAppearanceSettingsWidget::createLightingControls()
   row++;
   sectionLayout->addWidget(new QLabel("SkyLight Mid"), row, 0);
   m_lt1gui.m_smintensitySlider = new QNumericSlider();
-  m_lt1gui.m_smintensitySlider->setRange(0.1, 10.0);
+  m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_smintensitySlider->setValue(1.0);
   sectionLayout->addWidget(m_lt1gui.m_smintensitySlider, row, 1, 1, 3);
   m_lt1gui.m_smColorButton = new QColorPushButton();
@@ -239,7 +239,7 @@ QAppearanceSettingsWidget::createLightingControls()
   row++;
   sectionLayout->addWidget(new QLabel("SkyLight Bot"), row, 0);
   m_lt1gui.m_sbintensitySlider = new QNumericSlider();
-  m_lt1gui.m_sbintensitySlider->setRange(0.1, 10.0);
+  m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_sbintensitySlider->setValue(1.0);
   sectionLayout->addWidget(m_lt1gui.m_sbintensitySlider, row, 1, 1, 3);
   m_lt1gui.m_sbColorButton = new QColorPushButton();
@@ -645,6 +645,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addWidget(new QLabel("Window"), row, 0);
     QNumericSlider* windowSlider = new QNumericSlider();
     windowSlider->setRange(0.001, 1.0);
+    windowSlider->setSingleStep(0.01);
     windowSlider->setValue(scene->m_volume->channel(i)->m_window, true);
     sectionLayout->addWidget(windowSlider, row, 1, 1, 4);
 
@@ -652,6 +653,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addWidget(new QLabel("Level"), row, 0);
     QNumericSlider* levelSlider = new QNumericSlider();
     levelSlider->setRange(0.001, 1.0);
+    levelSlider->setSingleStep(0.01);
     levelSlider->setValue(scene->m_volume->channel(i)->m_level, true);
     sectionLayout->addWidget(levelSlider, row, 1, 1, 4);
 
@@ -711,6 +713,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addWidget(new QLabel("Opacity"), row, 0);
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
+    opacitySlider->setSingleStep(0.01);
     opacitySlider->setValue(scene->m_material.m_opacity[i], true);
     sectionLayout->addWidget(opacitySlider, row, 1, 1, 4);
 
@@ -765,6 +768,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addWidget(new QLabel("Glossiness"), row, 0);
     QNumericSlider* roughnessSlider = new QNumericSlider();
     roughnessSlider->setRange(0.0, 100.0);
+    roughnessSlider->setSingleStep(0.01);
     roughnessSlider->setValue(scene->m_material.m_roughness[i]);
     sectionLayout->addWidget(roughnessSlider, row, 1, 1, 4);
     QObject::connect(
