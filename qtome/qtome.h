@@ -58,7 +58,6 @@ private:
   void createMenus();
   void createToolbars();
   void createDockWindows();
-  QDockWidget* createRenderingDock();
 
   static bool hasRecentFiles();
   void prependToRecentFiles(const QString& fileName);

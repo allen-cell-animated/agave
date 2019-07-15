@@ -160,30 +160,6 @@ qtome::createToolbars()
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
 }
 
-QDockWidget*
-qtome::createRenderingDock()
-{
-  QDockWidget* dock = new QDockWidget(tr("Rendering"), this);
-  dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-  QGridLayout* layout = new QGridLayout;
-
-  QLabel* minLabel = new QLabel(tr("Min"));
-  QLabel* maxLabel = new QLabel(tr("Max"));
-  // minSlider = createRangeSlider();
-  // maxSlider = createRangeSlider();
-
-  layout->addWidget(minLabel, 0, 0);
-  // layout->addWidget(minSlider, 0, 1);
-  layout->addWidget(maxLabel, 1, 0);
-  // layout->addWidget(maxSlider, 1, 1);
-
-  QWidget* mainWidget = new QWidget(this);
-  mainWidget->setLayout(layout);
-  dock->setWidget(mainWidget);
-  return dock;
-}
-
 void
 qtome::createDockWindows()
 {
@@ -207,10 +183,6 @@ qtome::createDockWindows()
   m_viewMenu->addAction(m_appearanceDockWidget->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_statisticsDockWidget->toggleViewAction());
-
-  //	QDockWidget* dock = createRenderingDock();
-  //	addDockWidget(Qt::BottomDockWidgetArea, dock);
-  //	viewMenu->addAction(dock->toggleViewAction());
 }
 
 QSlider*
