@@ -192,7 +192,7 @@ QAppearanceSettingsWidget::createLightingControls()
   m_lt0gui.m_intensitySlider = new QNumericSlider();
   m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
-  arealightLayout->addWidget(m_lt0gui.m_intensitySlider);
+  arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
   arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton);
   sectionLayout->addRow("AreaLight Intensity", arealightLayout);
@@ -207,7 +207,7 @@ QAppearanceSettingsWidget::createLightingControls()
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
   m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_stintensitySlider->setValue(1.0);
-  skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider);
+  skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider, 1);
   m_lt1gui.m_stColorButton = new QColorPushButton();
   skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
   sectionLayout->addRow("SkyLight Top", skylightTopLayout);
@@ -222,7 +222,7 @@ QAppearanceSettingsWidget::createLightingControls()
   m_lt1gui.m_smintensitySlider = new QNumericSlider();
   m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_smintensitySlider->setValue(1.0);
-  skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider);
+  skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider, 1);
   m_lt1gui.m_smColorButton = new QColorPushButton();
   skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
   sectionLayout->addRow("SkyLight Mid", skylightMidLayout);
@@ -237,7 +237,7 @@ QAppearanceSettingsWidget::createLightingControls()
   m_lt1gui.m_sbintensitySlider = new QNumericSlider();
   m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_sbintensitySlider->setValue(1.0);
-  skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider);
+  skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider, 1);
   m_lt1gui.m_sbColorButton = new QColorPushButton();
   skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
   sectionLayout->addRow("SkyLight Bot", skylightBotLayout);
