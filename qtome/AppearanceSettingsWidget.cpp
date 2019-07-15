@@ -16,7 +16,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   , m_DensityScaleSlider()
   , m_RendererType()
   , m_ShadingType()
-  , m_GradientFactorLabel()
   , m_GradientFactorSlider()
   , m_StepSizePrimaryRaySlider()
   , m_StepSizeSecondaryRaySlider()
@@ -25,53 +24,43 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
 {
   setLayout(&m_MainLayout);
 
-  m_MainLayout.addWidget(new QLabel("Renderer"), 1, 0);
   m_RendererType.addItem("OpenGL simple", 0);
   m_RendererType.addItem("Path Traced", 1);
   // m_RendererType.addItem("OpenGL full", 2);
   m_RendererType.setCurrentIndex(1);
-  m_MainLayout.addWidget(&m_RendererType, 1, 1, 1, 2);
+  m_MainLayout.addRow("Renderer", &m_RendererType);
 
-  m_MainLayout.addWidget(new QLabel("Scattering Density"), 2, 0);
   m_DensityScaleSlider.setRange(0.001, 100.0);
   m_DensityScaleSlider.setDecimals(3);
   m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
-  m_MainLayout.addWidget(&m_DensityScaleSlider, 2, 1, 1, 2);
-
-  m_MainLayout.addWidget(new QLabel("Shading Type"), 3, 0);
+  m_MainLayout.addRow("Scattering Density", &m_DensityScaleSlider);
 
   m_ShadingType.addItem("BRDF Only", 0);
   m_ShadingType.addItem("Phase Function Only", 1);
   m_ShadingType.addItem("Mixed", 2);
   m_ShadingType.setCurrentIndex(rs->m_RenderSettings.m_ShadingType);
-  m_MainLayout.addWidget(&m_ShadingType, 3, 1, 1, 2);
+  m_MainLayout.addRow("Shading Type", &m_ShadingType);
 
-  m_GradientFactorLabel.setText("Shading Type Mixture");
-  m_MainLayout.addWidget(&m_GradientFactorLabel, 4, 0);
   m_GradientFactorSlider.setRange(0.001, 100.0);
   m_GradientFactorSlider.setDecimals(3);
   m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
-  m_MainLayout.addWidget(&m_GradientFactorSlider, 4, 1, 1, 2);
+  m_MainLayout.addRow("Shading Type Mixture", &m_GradientFactorSlider);
 
   QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
   QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
-  m_MainLayout.addWidget(new QLabel("Primary Ray Step Size"), 5, 0);
   m_StepSizePrimaryRaySlider.setRange(0.1, 100.0);
   m_StepSizePrimaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactor);
   m_StepSizePrimaryRaySlider.setDecimals(3);
-  m_MainLayout.addWidget(&m_StepSizePrimaryRaySlider, 5, 1, 1, 2);
+  m_MainLayout.addRow("Primary Ray Step Size", &m_StepSizePrimaryRaySlider);
 
   QObject::connect(
     &m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
-  m_MainLayout.addWidget(new QLabel("Secondary Ray Step Size"), 6, 0);
-
   m_StepSizeSecondaryRaySlider.setRange(0.1, 100.0);
   m_StepSizeSecondaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactorShadow);
   m_StepSizeSecondaryRaySlider.setDecimals(3);
-
-  m_MainLayout.addWidget(&m_StepSizeSecondaryRaySlider, 6, 1, 1, 2);
+  m_MainLayout.addRow("Secondary Ray Step Size", &m_StepSizeSecondaryRaySlider);
 
   QObject::connect(
     &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
@@ -104,7 +93,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
                    &QAppearanceSettingsWidget::OnSetScaleZ);
 
   m_scaleSection->setContentLayout(*scaleSectionLayout);
-  m_MainLayout.addWidget(m_scaleSection, 12, 0, 1, -1);
+  m_MainLayout.addRow(m_scaleSection);
 
   m_clipRoiSection = new Section("ROI", 0);
   auto* roiSectionLayout = new QGridLayout();
@@ -134,15 +123,15 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   QObject::connect(m_roiZ, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
-  m_MainLayout.addWidget(m_clipRoiSection, 13, 0, 1, -1);
+  m_MainLayout.addRow(m_clipRoiSection);
 
   Section* section = createLightingControls();
-  m_MainLayout.addWidget(section, 14, 0, 1, -1);
+  m_MainLayout.addRow(section);
 
   QFrame* lineA = new QFrame();
   lineA->setFrameShape(QFrame::HLine);
   lineA->setFrameShadow(QFrame::Sunken);
-  m_MainLayout.addWidget(lineA, 15, 0, 1, -1);
+  m_MainLayout.addRow(lineA);
 
   QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
   QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -461,7 +450,6 @@ void
 QAppearanceSettingsWidget::OnSetShadingType(int Index)
 {
   m_transferFunction->SetShadingType(Index);
-  m_GradientFactorLabel.setEnabled(Index == 2);
   m_GradientFactorSlider.setEnabled(Index == 2);
 }
 
@@ -787,7 +775,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnChannelChecked(i, channelenabled);
 
     section->setContentLayout(*sectionLayout);
-    m_MainLayout.addWidget(section, 16 + i, 0, 1, -1);
+    m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }
 }
