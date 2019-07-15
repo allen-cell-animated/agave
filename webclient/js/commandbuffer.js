@@ -21,7 +21,8 @@ var COMMANDS = {
   // set camera up direction
   UP: [5, "F32", "F32", "F32"],
   APERTURE: [6, "F32"],
-  FOV_Y: [7, "F32"],
+  // perspective(0)/ortho(1), fov(degrees)/orthoscale(world units)
+  CAMERA_PROJECTION: [7, "I32", "F32"],
   FOCALDIST: [8, "F32"],
   EXPOSURE: [9, "F32"],
   MAT_DIFFUSE: [10, "I32", "F32", "F32", "F32", "F32"],

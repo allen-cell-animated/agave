@@ -154,7 +154,7 @@ function setupGui() {
     });
     cameragui.add(effectController, "fov").max(90.0).min(0.0).step(0.001).onChange(function (value) {
         var cb = new commandBuffer();
-        cb.addCommand("FOV_Y", value || 0.01);
+        cb.addCommand("CAMERA_PROJECTION", 0, value || 0.01);
         flushCommandBuffer(cb);
         _stream_mode_suspended = true;
     }).onFinishChange(function (value) {

@@ -35,6 +35,7 @@ private slots:
   void updateRecentFileActions();
   void quit();
   void view_reset();
+  void view_toggleProjection();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
   void dumpStateToJson();
@@ -57,7 +58,6 @@ private:
   void createMenus();
   void createToolbars();
   void createDockWindows();
-  QDockWidget* createRenderingDock();
 
   static bool hasRecentFiles();
   void prependToRecentFiles(const QString& fileName);
@@ -76,6 +76,7 @@ private:
   QAction* m_dumpPythonAction;
   QAction* m_testMeshAction;
   QAction* m_viewResetAction;
+  QAction* m_toggleCameraProjectionAction;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

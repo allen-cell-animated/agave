@@ -38,7 +38,14 @@ struct ViewerState
   int m_renderIterations = 1;
   float m_exposure = 0.75f;
   float m_densityScale = 50.0f;
+  enum Projection
+  {
+    PERSPECTIVE,
+    ORTHOGRAPHIC
+  };
+  int m_projection = Projection::PERSPECTIVE;
   float m_fov = 55.0f;
+  float m_orthoScale = 1.0f;
   float m_apertureSize = 0.0f;
   float m_focalDistance = 0.0f;
   float m_gradientFactor = 50.0f;

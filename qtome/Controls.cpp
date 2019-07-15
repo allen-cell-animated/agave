@@ -100,6 +100,9 @@ QColorPushButton::SetColor(const QColor& color, bool blockSignals)
 
   m_Color = color;
   update();
+  if (!blockSignals) {
+    emit currentColorChanged(m_Color);
+  }
 
   this->blockSignals(false);
 }
@@ -107,7 +110,7 @@ QColorPushButton::SetColor(const QColor& color, bool blockSignals)
 void
 QColorPushButton::OnCurrentColorChanged(const QColor& color)
 {
-  SetColor(color);
+  SetColor(color, true);
 
   emit currentColorChanged(m_Color);
 }

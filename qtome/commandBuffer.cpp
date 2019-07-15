@@ -1,6 +1,7 @@
 #include "commandBuffer.h"
 
 #include "command.h"
+#include "renderlib/Logging.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -43,7 +44,7 @@ FWDDECL_PARSE(SetCameraUpCommand);
 FWDDECL_PARSE(SetCameraTargetCommand);
 FWDDECL_PARSE(SetCameraTargetCommand);
 FWDDECL_PARSE(SetCameraApertureCommand);
-FWDDECL_PARSE(SetCameraFovYCommand);
+FWDDECL_PARSE(SetCameraProjectionCommand);
 FWDDECL_PARSE(SetCameraFocalDistanceCommand);
 FWDDECL_PARSE(SetCameraExposureCommand);
 FWDDECL_PARSE(SetDiffuseColorCommand);
@@ -79,6 +80,7 @@ FWDDECL_PARSE(SetOpacityCommand);
 void
 commandBuffer::processBuffer()
 {
+  int32_t previousCmd = -1;
   CommandBufferIterator iterator(this);
   while (!iterator.end()) {
     // new command.
@@ -96,7 +98,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetCameraTargetCommand);
           CMD_CASE(SetCameraUpCommand);
           CMD_CASE(SetCameraApertureCommand);
-          CMD_CASE(SetCameraFovYCommand);
+          CMD_CASE(SetCameraProjectionCommand);
           CMD_CASE(SetCameraFocalDistanceCommand);
           CMD_CASE(SetCameraExposureCommand);
           CMD_CASE(SetDiffuseColorCommand);
@@ -126,13 +128,16 @@ commandBuffer::processBuffer()
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
+            LOG_WARNING << "Unrecognized command index: " << cmd;
             return nullptr;
             break;
         }
       } catch (...) {
         // buffer error?
+        LOG_WARNING << "Exception thrown when parsing command index: " << cmd;
         return nullptr;
       }
+      // we should never get here
       return nullptr;
     }();
 
@@ -141,7 +146,11 @@ commandBuffer::processBuffer()
       _commands.push_back(c);
     } else {
       // error! do something.
+      LOG_WARNING << "Previous parsed command :" << previousCmd;
+      LOG_WARNING << "No further commands will be parsed for this batch.";
+      break;
     }
+    previousCmd = cmd;
   }
 }
 
@@ -244,11 +253,12 @@ parseSetCameraApertureCommand(CommandBufferIterator* c)
   return new SetCameraApertureCommand(data);
 }
 Command*
-parseSetCameraFovYCommand(CommandBufferIterator* c)
+parseSetCameraProjectionCommand(CommandBufferIterator* c)
 {
-  SetCameraFovYCommandD data;
+  SetCameraProjectionCommandD data;
+  data.m_projectionType = c->parseInt32();
   data.m_x = c->parseFloat32();
-  return new SetCameraFovYCommand(data);
+  return new SetCameraProjectionCommand(data);
 }
 Command*
 parseSetCameraFocalDistanceCommand(CommandBufferIterator* c)

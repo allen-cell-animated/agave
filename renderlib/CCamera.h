@@ -12,6 +12,12 @@
 #define DEF_FOCUS_N glm::vec3(0.0f)
 #define DEF_FOCUS_DOT_WN 0.0f
 
+enum ProjectionMode
+{
+  PERSPECTIVE,
+  ORTHOGRAPHIC
+};
+
 class Focus
 {
 public:
@@ -258,11 +264,11 @@ public:
     return *this;
   }
 
-  void Update(const float& FovV, const float& Aperture)
+  void Update(const float& FovV, const float& Aperture, const ProjectionMode& projection, const float& orthoScale)
   {
     float Scale = 0.0f;
 
-    Scale = tanf(0.5f * (FovV * DEG_TO_RAD));
+    Scale = (projection == ORTHOGRAPHIC) ? orthoScale : tanf(0.5f * (FovV * DEG_TO_RAD));
 
     m_Screen[0][0] = -Scale * m_Resolution.GetAspectRatio();
     m_Screen[0][1] = Scale * m_Resolution.GetAspectRatio();
@@ -295,6 +301,7 @@ public:
 #define DEF_CAMERA_NUM_APERTURE_BLADES 4
 #define DEF_CAMERA_APERTURE_BLADES_ANGLE 0.0f
 #define DEF_CAMERA_ASPECT_RATIO 1.0f
+#define DEF_ORTHO_SCALE 0.5f
 //#define DEF_CAMERA_ZOOM_SPEED				1.0f
 //#define DEF_CAMERA_ORBIT_SPEED				5.0f
 //#define DEF_CAMERA_APERTURE_SPEED			0.25f
@@ -319,6 +326,8 @@ public:
   Focus m_Focus;
   Aperture m_Aperture;
   bool m_Dirty;
+  ProjectionMode m_Projection;
+  float m_OrthoScale;
 
   CCamera(void)
   {
@@ -333,6 +342,8 @@ public:
     m_U = glm::vec3(1.0f, 0.0f, 0.0f);
     m_V = glm::vec3(0.0f, 1.0f, 0.0f);
     m_Dirty = true;
+    m_Projection = PERSPECTIVE;
+    m_OrthoScale = DEF_ORTHO_SCALE;
   }
 
   CCamera& operator=(const CCamera& Other)
@@ -353,6 +364,7 @@ public:
     m_Focus = Other.m_Focus;
     m_Aperture = Other.m_Aperture;
     m_Dirty = Other.m_Dirty;
+    m_Projection = Other.m_Projection;
 
     return *this;
   }
@@ -368,13 +380,13 @@ public:
     // camera up/down
     m_V = glm::normalize(glm::cross(m_U, m_N));
 
-    m_Film.Update(m_FovV, m_Aperture.m_Size);
+    m_Film.Update(m_FovV, m_Aperture.m_Size, m_Projection, m_OrthoScale);
 
     m_AreaPixel = m_Film.m_Resolution.GetAspectRatio() / (m_Focus.m_FocalDistance * m_Focus.m_FocalDistance);
 
     m_Aperture.Update(m_Film.m_FStop);
 
-    m_Film.Update(m_FovV, m_Aperture.m_Size);
+    m_Film.Update(m_FovV, m_Aperture.m_Size, m_Projection, m_OrthoScale);
   }
 
   void Zoom(float amount)
@@ -382,10 +394,14 @@ public:
     glm::vec3 reverseLoS = m_From - m_Target;
 
     if (amount > 0) {
-      reverseLoS *= 1.1f;
+      float factor = 1.1f;
+      reverseLoS *= factor;
+      m_OrthoScale *= factor;
     } else if (amount < 0) {
       if (glm::length(reverseLoS) > 0.0005f) {
-        reverseLoS *= 0.9f;
+        float factor = 0.9f;
+        reverseLoS *= factor;
+        m_OrthoScale *= factor;
       }
     }
 
@@ -430,6 +446,12 @@ public:
     m_From = ReverseLoS + m_Target;
   }
 
+  void SetProjectionMode(const ProjectionMode projectionMode)
+  {
+    m_Projection = projectionMode;
+    Update();
+  }
+
   void SetViewMode(const EViewMode ViewMode)
   {
     if (ViewMode == ViewModeUser)
@@ -440,7 +462,9 @@ public:
     m_Up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     const float size = m_SceneBoundingBox.GetDiagonalLength();
-    const float Length = size * 0.5 / tan(0.5 * m_FovV * DEG_TO_RAD);
+    const float Length = (m_Projection == ORTHOGRAPHIC) ? 2.0f : size * 0.5 / tan(0.5 * m_FovV * DEG_TO_RAD);
+    m_OrthoScale = DEF_ORTHO_SCALE;
+
     // const float Distance = 0.866f;
     // const float Length = Distance * m_SceneBoundingBox.GetMaxLength();
 

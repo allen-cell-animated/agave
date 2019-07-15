@@ -81,6 +81,7 @@ public:
   void setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix);
   void setShadingUniforms();
 
+  // TODO constant buffer.
   float dataRangeMin;
   float dataRangeMax;
   float GAMMA_MIN;
@@ -92,6 +93,9 @@ public:
   int BREAK_STEPS;
   glm::vec3 AABB_CLIP_MIN;
   glm::vec3 AABB_CLIP_MAX;
+  glm::vec2 resolution;
+  float isPerspective;
+  float orthoScale;
 
 private:
   /// The vertex shader.
@@ -103,5 +107,5 @@ private:
   int attr_coords;
   int uModelViewMatrix, uProjectionMatrix, uDataRangeMin, uDataRangeMax, uBreakSteps, uAABBClipMin, uAABBClipMax,
     uInverseModelViewMatrix, uCameraPosition, uResolution, uGammaMin, uGammaMax, uGammaScale, uBrightness, uDensity,
-    uMaskAlpha, uTextureAtlas, uTextureAtlasMask;
+    uMaskAlpha, uTextureAtlas, uTextureAtlasMask, uIsPerspective, uOrthoScale;
 };

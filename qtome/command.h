@@ -80,11 +80,14 @@ struct SetCameraApertureCommandD
 };
 CMDDECL(SetCameraApertureCommand, 6);
 
-struct SetCameraFovYCommandD
+struct SetCameraProjectionCommandD
 {
+  // perspective or ortho
+  int32_t m_projectionType;
+  // fov degrees or ortho scale
   float m_x;
 };
-CMDDECL(SetCameraFovYCommand, 7);
+CMDDECL(SetCameraProjectionCommand, 7);
 
 struct SetCameraFocalDistanceCommandD
 {

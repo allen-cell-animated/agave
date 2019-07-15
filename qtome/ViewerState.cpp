@@ -176,10 +176,12 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
     m_upX = tmp.x;
     m_upY = tmp.y;
     m_upZ = tmp.z;
+    getFloat(cam, "orthoScale", m_orthoScale);
     getFloat(cam, "fovY", m_fov);
     getFloat(cam, "exposure", m_exposure);
     getFloat(cam, "aperture", m_apertureSize);
     getFloat(cam, "focalDistance", m_focalDistance);
+    getInt(cam, "projection", m_projection);
   }
 
   if (json.contains("channels") && json["channels"].isArray()) {
@@ -269,7 +271,9 @@ ViewerState::stateToJson() const
   camera["target"] = jsonVec3(m_targetX, m_targetY, m_targetZ);
   camera["up"] = jsonVec3(m_upX, m_upY, m_upZ);
 
+  camera["projection"] = m_projection;
   camera["fovY"] = m_fov;
+  camera["orthoScale"] = m_orthoScale;
 
   camera["exposure"] = m_exposure;
   camera["aperture"] = m_apertureSize;
@@ -369,7 +373,9 @@ ViewerState::stateToPythonScript() const
     s += indent + QString("(\"EYE\", %1, %2, %3),\n").arg(m_eyeX).arg(m_eyeY).arg(m_eyeZ);
     s += indent + QString("(\"TARGET\", %1, %2, %3),\n").arg(m_targetX).arg(m_targetY).arg(m_targetZ);
     s += indent + QString("(\"UP\", %1, %2, %3),\n").arg(m_upX).arg(m_upY).arg(m_upZ);
-    s += indent + QString("(\"FOV_Y\", %1),\n").arg(m_fov);
+    s += indent + QString("(\"CAMERA_PROJECTION\", %1, %2),\n")
+                    .arg(m_projection)
+                    .arg(m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale);
 
     s += indent + QString("(\"EXPOSURE\", %1),\n").arg(m_exposure);
     s += indent + QString("(\"DENSITY\", %1),\n").arg(m_densityScale);

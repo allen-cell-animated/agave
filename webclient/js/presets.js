@@ -161,7 +161,7 @@ function preset0() {
     cb.addCommand("EYE", 0.541147, 0.370615, 0.867704);
     cb.addCommand("TARGET", 0.5, 0.337662, 0.0825674);
     cb.addCommand("UP", -0.00219161, 0.999123, -0.0418183);
-    cb.addCommand("FOV_Y", 55);
+    cb.addCommand("CAMERA_PROJECTION", 0, 55);
     cb.addCommand("EXPOSURE", 0.8179);
     cb.addCommand("DENSITY", 100);
     cb.addCommand("APERTURE", 0);
@@ -261,7 +261,7 @@ function preset1() {
     cb.addCommand("EYE", 0.5, 0.337662, 1.26718);
     cb.addCommand("TARGET", 0.5, 0.337662, 0.0941558);
     cb.addCommand("UP", 0, 1, 0);
-    cb.addCommand("FOV_Y", 55);
+    cb.addCommand("CAMERA_PROJECTION", 0, 55);
     cb.addCommand("EXPOSURE", 0.8179);
     cb.addCommand("DENSITY", 100);
     cb.addCommand("APERTURE", 0);
@@ -348,7 +348,7 @@ function preset2() {
     cb.addCommand("EYE", 0.535138, -0.22972, 0.728428);
     cb.addCommand("TARGET", 0.5, 0.337662, 0.0579421);
     cb.addCommand("UP", 0.0337808, 0.763795, 0.644573);
-    cb.addCommand("FOV_Y", 55);
+    cb.addCommand("CAMERA_PROJECTION", 0, 55);
     cb.addCommand("EXPOSURE", 0.8179);
     cb.addCommand("DENSITY", 100);
     cb.addCommand("APERTURE", 0);

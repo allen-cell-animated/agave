@@ -67,6 +67,19 @@ GLView3D::initCameraFromImage(Scene* scene)
   m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
   // reposition to face image
   m_CCamera.SetViewMode(ViewModeFront);
+
+  RenderSettings& rs = *m_renderSettings;
+  rs.m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+GLView3D::toggleCameraProjection()
+{
+  ProjectionMode p = m_CCamera.m_Projection;
+  m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
+
+  RenderSettings& rs = *m_renderSettings;
+  rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
@@ -209,7 +222,7 @@ GLView3D::OnUpdateCamera()
     m_CCamera.m_Film.m_Resolution.SetResY(FilmHeight);
     m_CCamera.Update();
     m_qcamera->GetFilm().UnDirty();
-    // 		//
+
     rs.m_DirtyFlags.SetFlag(FilmResolutionDirty);
   }
 
@@ -296,6 +309,8 @@ GLView3D::fromViewerState(const ViewerState& s)
   m_CCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
   m_CCamera.m_Up = glm::vec3(s.m_upX, s.m_upY, s.m_upZ);
   m_CCamera.m_FovV = s.m_fov;
+  m_CCamera.SetProjectionMode(s.m_projection == ViewerState::Projection::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
+  m_CCamera.m_OrthoScale = s.m_orthoScale;
 
   m_CCamera.m_Film.m_Exposure = s.m_exposure;
   m_CCamera.m_Aperture.m_Size = s.m_apertureSize;
