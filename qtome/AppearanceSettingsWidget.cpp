@@ -633,7 +633,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
 
-    Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, channelenabled);
+    Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
 
     auto* sectionLayout = new QGridLayout();
 
