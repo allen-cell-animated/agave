@@ -119,7 +119,8 @@ void
 SetCameraProjectionCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetCameraProjection " << m_data.m_projectionType << " " << m_data.m_x;
-  // 0 is PERSPECTIVE, 1 is ORTHOGRAPHIC, else is PERSPECTIVE
+  // We expect to get a 0 for PERSPECTIVE, or 1 for ORTHOGRAPHIC
+  // Anything else will be treated as PERSPECTIVE
   c->m_camera->SetProjectionMode(m_data.m_projectionType == 1 ? ORTHOGRAPHIC : PERSPECTIVE);
   if (c->m_camera->m_Projection == ORTHOGRAPHIC) {
     c->m_camera->m_OrthoScale = m_data.m_x;
