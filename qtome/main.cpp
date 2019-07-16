@@ -87,9 +87,11 @@ preloadFiles(QStringList preloadlist)
 int
 main(int argc, char* argv[])
 {
+  printf("started");
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication a(argc, argv);
+  printf("created QApplication object");
   a.setOrganizationName("AICS");
   a.setOrganizationDomain("allencell.org");
   a.setApplicationName("GPU Volume Explorer");
@@ -117,6 +119,7 @@ main(int argc, char* argv[])
     renderlib::cleanup();
     return 0;
   }
+  printf("initialized renderlib");
 
   bool isServer = parser.isSet(serverOption);
   if (isServer) {
@@ -124,6 +127,7 @@ main(int argc, char* argv[])
     ServerParams p = readConfig(configPath);
 
     StreamServer* server = new StreamServer(p._port, false, 0);
+    printf("created server");
 
     // set to true to show windows, or false to run as a console application
     static const bool gui = false;
