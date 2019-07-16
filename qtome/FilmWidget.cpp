@@ -9,7 +9,7 @@
 
 QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   : QGroupBox(pParent)
-  , m_GridLayout()
+  , m_Layout()
   , m_PresetType()
   , m_PresetsLayout()
   , m_WidthSpinner()
@@ -25,33 +25,27 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   setToolTip("Film properties");
 
   // Create grid layout
-  m_GridLayout.setColumnMinimumWidth(0, 75);
-  setLayout(&m_GridLayout);
+  setLayout(&m_Layout);
 
   const int ResMin = powf(2.0f, 5);
   const int ResMax = powf(2.0f, 11);
 
   // Exposure
-  m_GridLayout.addWidget(new QLabel("Exposure"), 3, 0);
 
   m_ExposureSlider.setRange(0.0f, 1.0f);
   m_ExposureSlider.setValue(cam->GetFilm().GetExposure());
-  m_GridLayout.addWidget(&m_ExposureSlider, 3, 1, 1, 2);
+  m_Layout.addRow("Exposure", &m_ExposureSlider);
 
   QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), this, SLOT(SetExposure(double)));
 
   // Exposure
-  m_GridLayout.addWidget(new QLabel("Exposure Time"), 4, 0);
-
   m_ExposureIterationsSpinner.addItem("1", 1);
   m_ExposureIterationsSpinner.addItem("2", 2);
   m_ExposureIterationsSpinner.addItem("4", 4);
   m_ExposureIterationsSpinner.addItem("8", 8);
-
   m_ExposureIterationsSpinner.setCurrentIndex(
     m_ExposureIterationsSpinner.findData(cam->GetFilm().GetExposureIterations()));
-  m_GridLayout.addWidget(&m_ExposureIterationsSpinner, 4, 1);
-  // QObject::connect(&m_ExposureIterationsSpinner, SIGNAL(valueChanged(int)), this, SLOT(SetExposureIterations(int)));
+  m_Layout.addRow("Exposure Time", &m_ExposureIterationsSpinner);
   QObject::connect(&m_ExposureIterationsSpinner,
                    SIGNAL(currentIndexChanged(const QString&)),
                    this,
@@ -59,9 +53,9 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 
   // gStatus.SetStatisticChanged("Camera", "Film", "", "", "");
 
-  m_NoiseReduction.setText("Noise Reduction");
+  // m_NoiseReduction.setText("Noise Reduction");
   m_NoiseReduction.setCheckState(rs->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-  m_GridLayout.addWidget(&m_NoiseReduction, 5, 1);
+  m_Layout.addRow("Noise Reduction", &m_NoiseReduction);
 
   QObject::connect(&m_NoiseReduction, SIGNAL(stateChanged(const int&)), this, SLOT(OnNoiseReduction(const int&)));
 

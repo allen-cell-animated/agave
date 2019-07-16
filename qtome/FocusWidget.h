@@ -20,9 +20,8 @@ private slots:
   void OnFocusChanged(const QFocus& Focus);
 
 private:
-  QGridLayout m_GridLayout;
+  QFormLayout m_Layout;
   QComboBox m_FocusTypeComboBox;
-  QDoubleSlider m_FocalDistanceSlider;
-  QDoubleSpinner m_FocalDistanceSpinner;
+  QNumericSlider m_FocalDistanceSlider;
   QCamera* m_qcamera;
 };

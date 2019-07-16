@@ -7,7 +7,7 @@
 
 QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   : QGroupBox(pParent)
-  , m_GridLayout()
+  , m_Layout()
   , m_FieldOfViewSlider()
   , m_qcamera(cam)
 {
@@ -15,16 +15,13 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSetti
   setStatusTip("Projection properties");
   setToolTip("Projection properties");
 
-  m_GridLayout.setColumnMinimumWidth(0, 75);
-  setLayout(&m_GridLayout);
+  setLayout(&m_Layout);
 
   // Field of view
-  m_GridLayout.addWidget(new QLabel("Field of view"), 4, 0);
-
   m_FieldOfViewSlider.setRange(10.0, 150.0);
   m_FieldOfViewSlider.setValue(cam->GetProjection().GetFieldOfView());
   m_FieldOfViewSlider.setSuffix(" deg.");
-  m_GridLayout.addWidget(&m_FieldOfViewSlider, 4, 1, 1, 2);
+  m_Layout.addRow("Field of view", &m_FieldOfViewSlider);
 
   connect(&m_FieldOfViewSlider, SIGNAL(valueChanged(double)), this, SLOT(SetFieldOfView(double)));
   connect(

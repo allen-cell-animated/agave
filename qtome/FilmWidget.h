@@ -85,7 +85,7 @@ public slots:
   void OnNoiseReduction(const int& ReduceNoise);
 
 private:
-  QGridLayout m_GridLayout;
+  QFormLayout m_Layout;
   QComboBox m_PresetType;
   QGridLayout m_PresetsLayout;
   QFilmResolutionButton m_Preset[4];
