@@ -396,8 +396,7 @@ RenderGLPT::doRender(const CCamera& camera)
   // FPS.AddDuration(1000.0f / TmrFps.ElapsedTime());
 
   // m_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
-  m_status.SetStatisticChanged(
-    "Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()), "Iterations");
+  m_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()));
 
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
   check_glfb("bind framebuffer for final draw");
