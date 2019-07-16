@@ -233,7 +233,9 @@ QDoubleSpinner::sizeHint() const
 
 QDoubleSpinner::QDoubleSpinner(QWidget* pParent /*= NULL*/)
   : QDoubleSpinBox(pParent)
-{}
+{
+  setKeyboardTracking(false);
+}
 
 void
 QDoubleSpinner::setValue(double value, bool blockSignals)
