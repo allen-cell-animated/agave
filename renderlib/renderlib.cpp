@@ -63,13 +63,20 @@ renderlib::initialize()
 
   dummyContext = new QOpenGLContext();
   dummyContext->setFormat(format); // ...and set the format on the context too
-  dummyContext->create();
-  LOG_INFO << "Created opengl context";
+  bool createdOk = dummyContext->create();
+  if (!createdOk) {
+    LOG_ERROR << "Failed to create OpenGL Context";
+  } else {
+    LOG_INFO << "Created opengl context";
+  }
 
   dummySurface = new QOffscreenSurface();
   dummySurface->setFormat(dummyContext->format());
   dummySurface->create();
   LOG_INFO << "Created offscreen surface";
+  if (!dummySurface->isValid()) {
+    LOG_ERROR << "QOffscreenSurface is not valid";
+  }
   bool ok = dummyContext->makeCurrent(dummySurface);
   if (!ok) {
     LOG_ERROR << "Failed to makeCurrent on offscreen surface";
