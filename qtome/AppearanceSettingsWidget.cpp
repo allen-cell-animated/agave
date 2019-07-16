@@ -635,23 +635,19 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
 
-    auto* sectionLayout = new QGridLayout();
+    auto* sectionLayout = new QFormLayout();
 
-    int row = 0;
-    sectionLayout->addWidget(new QLabel("Window"), row, 0);
     QNumericSlider* windowSlider = new QNumericSlider();
     windowSlider->setRange(0.001, 1.0);
     windowSlider->setSingleStep(0.01);
     windowSlider->setValue(scene->m_volume->channel(i)->m_window, true);
-    sectionLayout->addWidget(windowSlider, row, 1, 1, 4);
+    sectionLayout->addRow("Window", windowSlider);
 
-    row++;
-    sectionLayout->addWidget(new QLabel("Level"), row, 0);
     QNumericSlider* levelSlider = new QNumericSlider();
     levelSlider->setRange(0.001, 1.0);
     levelSlider->setSingleStep(0.01);
     levelSlider->setValue(scene->m_volume->channel(i)->m_level, true);
-    sectionLayout->addWidget(levelSlider, row, 1, 1, 4);
+    sectionLayout->addRow("Level", levelSlider);
 
     QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
       this->OnSetWindowLevel(i, d, levelSlider->value());
@@ -659,11 +655,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QObject::connect(levelSlider, &QNumericSlider::valueChanged, [i, this, windowSlider](double d) {
       this->OnSetWindowLevel(i, windowSlider->value(), d);
     });
-    // init
-    // this->OnSetWindowLevel(i, init_window, init_level);
-    row++;
+
     QPushButton* autoButton = new QPushButton("Auto");
-    sectionLayout->addWidget(autoButton, row, 0);
     QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
       float w, l;
       this->m_scene->m_volume->channel((uint32_t)i)->generate_auto2(w, l);
@@ -673,7 +666,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     });
     QPushButton* bestfitButton = new QPushButton("BestFit");
-    sectionLayout->addWidget(bestfitButton, row, 1);
     QObject::connect(bestfitButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
       float w, l;
       this->m_scene->m_volume->channel((uint32_t)i)->generate_bestFit(w, l);
@@ -683,19 +675,16 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     });
     QPushButton* chimeraxButton = new QPushButton("ChimX");
-    sectionLayout->addWidget(chimeraxButton, row, 2);
     QObject::connect(chimeraxButton, &QPushButton::clicked, [this, i]() {
       this->m_scene->m_volume->channel((uint32_t)i)->generate_chimerax();
       this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     });
     QPushButton* eqButton = new QPushButton("Eq");
-    sectionLayout->addWidget(eqButton, row, 3);
     QObject::connect(eqButton, &QPushButton::clicked, [this, i]() {
       this->m_scene->m_volume->channel((uint32_t)i)->generate_equalized();
       this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     });
     QPushButton* pct98Button = new QPushButton("Pct98");
-    sectionLayout->addWidget(pct98Button, row, 4);
     QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
       float w, l;
       this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l);
@@ -704,69 +693,66 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       levelSlider->setValue(l, true);
       this->m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     });
+    auto buttonRowLayout = new QHBoxLayout();
+    buttonRowLayout->addWidget(autoButton);
+    buttonRowLayout->addWidget(bestfitButton);
+    buttonRowLayout->addWidget(chimeraxButton);
+    buttonRowLayout->addWidget(eqButton);
+    buttonRowLayout->addWidget(pct98Button);
+    sectionLayout->addRow(buttonRowLayout);
 
-    row++;
-    sectionLayout->addWidget(new QLabel("Opacity"), row, 0);
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
     opacitySlider->setSingleStep(0.01);
     opacitySlider->setValue(scene->m_material.m_opacity[i], true);
-    sectionLayout->addWidget(opacitySlider, row, 1, 1, 4);
+    sectionLayout->addRow("Opacity", opacitySlider);
 
     QObject::connect(
       opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
-    row++;
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
                                     scene->m_material.m_diffuse[i * 3 + 1],
                                     scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
-    sectionLayout->addWidget(new QLabel("DiffuseColor"), row, 0);
-    sectionLayout->addWidget(diffuseColorButton, row, 2);
+    sectionLayout->addRow("DiffuseColor", diffuseColorButton);
     QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
     });
     // init
     this->OnDiffuseColorChanged(i, cdiff);
 
-    row++;
     QColorPushButton* specularColorButton = new QColorPushButton();
     QColor cspec = QColor::fromRgbF(scene->m_material.m_specular[i * 3 + 0],
                                     scene->m_material.m_specular[i * 3 + 1],
                                     scene->m_material.m_specular[i * 3 + 2]);
     specularColorButton->SetColor(cspec, true);
-    sectionLayout->addWidget(new QLabel("SpecularColor"), row, 0);
-    sectionLayout->addWidget(specularColorButton, row, 2);
+    sectionLayout->addRow("SpecularColor", specularColorButton);
     QObject::connect(specularColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnSpecularColorChanged(i, c);
     });
     // init
     this->OnSpecularColorChanged(i, cspec);
 
-    row++;
     QColorPushButton* emissiveColorButton = new QColorPushButton();
     QColor cemis = QColor::fromRgbF(scene->m_material.m_emissive[i * 3 + 0],
                                     scene->m_material.m_emissive[i * 3 + 1],
                                     scene->m_material.m_emissive[i * 3 + 2]);
     emissiveColorButton->SetColor(cemis, true);
-    sectionLayout->addWidget(new QLabel("EmissiveColor"), row, 0);
-    sectionLayout->addWidget(emissiveColorButton, row, 2);
+    sectionLayout->addRow("EmissiveColor", emissiveColorButton);
     QObject::connect(emissiveColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnEmissiveColorChanged(i, c);
     });
     // init
     this->OnEmissiveColorChanged(i, cemis);
 
-    row++;
-    sectionLayout->addWidget(new QLabel("Glossiness"), row, 0);
     QNumericSlider* roughnessSlider = new QNumericSlider();
     roughnessSlider->setRange(0.0, 100.0);
     roughnessSlider->setSingleStep(0.01);
     roughnessSlider->setValue(scene->m_material.m_roughness[i]);
-    sectionLayout->addWidget(roughnessSlider, row, 1, 1, 4);
+    sectionLayout->addRow("Glossiness", roughnessSlider);
     QObject::connect(
       roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnRoughnessChanged(i, d); });
     this->OnRoughnessChanged(i, scene->m_material.m_roughness[i]);
