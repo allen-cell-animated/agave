@@ -16,23 +16,19 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent)
   setStatusTip("Statistics");
 
   // Configure tree
-  setColumnCount(3);
+  setColumnCount(2);
 
   QStringList ColumnNames;
-
   ColumnNames << "Property"
-              << "Value"
-              << "Unit";
-
+              << "Value";
   setHeaderLabels(ColumnNames);
 
   // Configure headers
   //	header()->setResizeMode(0, QHeaderView::ResizeToContents);
   //	header()->setResizeMode(1, QHeaderView::ResizeToContents);
   //	header()->setResizeMode(2, QHeaderView::ResizeToContents);
-  header()->resizeSection(0, 260);
-  header()->resizeSection(1, 350);
-  header()->resizeSection(2, 100);
+  header()->resizeSection(0, 160);
+  header()->resizeSection(1, 250);
   // header()->setWindowIcon(GetIcon("table-export"));
   header()->setVisible(false);
 
@@ -59,7 +55,7 @@ QStatisticsWidget::set(CStatus* status)
 QSize
 QStatisticsWidget::sizeHint() const
 {
-  return QSize(550, 900);
+  return QSize(250, 900);
 }
 
 void
@@ -82,8 +78,7 @@ QStatisticsWidget::AddItem(QTreeWidgetItem* pParent,
 
   // Set item properties
   pItem->setText(0, Property);
-  pItem->setText(1, Value);
-  pItem->setText(2, Unit);
+  pItem->setText(1, Value + " " + Unit);
   // pItem->setIcon(0, GetIcon(Icon));
 
   if (!pParent)
@@ -110,9 +105,7 @@ QStatisticsWidget::UpdateStatistic(const QString& Group,
 
     for (int i = 0; i < pGroup->childCount(); i++) {
       if (pGroup->child(i)->text(0) == Name) {
-        pGroup->child(i)->setText(1, Value);
-        pGroup->child(i)->setText(2, Unit);
-
+        pGroup->child(i)->setText(1, Value + " " + Unit);
         Found = true;
       }
     }
