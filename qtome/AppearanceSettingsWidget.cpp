@@ -22,6 +22,10 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   , m_transferFunction(tran)
   , m_scene(nullptr)
 {
+  m_MainLayout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+  m_MainLayout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  m_MainLayout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  m_MainLayout.setLabelAlignment(Qt::AlignLeft);
   setLayout(&m_MainLayout);
 
   m_RendererType.addItem("OpenGL simple", 0);
@@ -156,7 +160,7 @@ Section*
 QAppearanceSettingsWidget::createLightingControls()
 {
   Section* section = new Section("Lighting", 0);
-  auto* sectionLayout = new QFormLayout();
+  auto* sectionLayout = Controls::createFormLayout();
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip("Set angle theta for area light");
@@ -635,7 +639,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
 
-    auto* sectionLayout = new QFormLayout();
+    auto* sectionLayout = Controls::createFormLayout();
 
     QNumericSlider* windowSlider = new QNumericSlider();
     windowSlider->setRange(0.001, 1.0);
