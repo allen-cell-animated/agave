@@ -24,7 +24,8 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   setStatusTip("Film properties");
   setToolTip("Film properties");
 
-  // Create grid layout
+  // Create layout
+  Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   const int ResMin = powf(2.0f, 5);

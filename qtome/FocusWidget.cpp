@@ -14,6 +14,7 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam)
   setStatusTip("Focus properties");
   setToolTip("Focus properties");
 
+  Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   // Focal distance

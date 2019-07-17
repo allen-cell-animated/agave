@@ -13,6 +13,7 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam)
   setStatusTip("Aperture properties");
   setToolTip("Aperture properties");
 
+  Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   // Aperture size

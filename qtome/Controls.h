@@ -15,11 +15,15 @@ public:
   static QFormLayout* createFormLayout()
   {
     QFormLayout* layout = new QFormLayout();
-    layout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-    layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-    layout->setLabelAlignment(Qt::AlignLeft);
+    initFormLayout(*layout);
     return layout;
+  }
+  static void initFormLayout(QFormLayout& layout)
+  {
+    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+    layout.setLabelAlignment(Qt::AlignLeft);
   }
 };
 

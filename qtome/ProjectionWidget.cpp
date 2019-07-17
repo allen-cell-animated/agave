@@ -15,6 +15,7 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSetti
   setStatusTip("Projection properties");
   setToolTip("Projection properties");
 
+  Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   // Field of view

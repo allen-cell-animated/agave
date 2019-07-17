@@ -22,10 +22,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   , m_transferFunction(tran)
   , m_scene(nullptr)
 {
-  m_MainLayout.setRowWrapPolicy(QFormLayout::DontWrapRows);
-  m_MainLayout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-  m_MainLayout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-  m_MainLayout.setLabelAlignment(Qt::AlignLeft);
+  Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
 
   m_RendererType.addItem("OpenGL simple", 0);
