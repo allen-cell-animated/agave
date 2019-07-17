@@ -55,7 +55,8 @@ renderlib::initialize()
   format.setDepthBufferSize(24);
   format.setStencilBufferSize(8);
   format.setVersion(AICS_GL_VERSION.major, AICS_GL_VERSION.minor);
-  // format.setProfile(QSurfaceFormat::CoreProfile);
+  // necessary on MacOS at least:
+  format.setProfile(QSurfaceFormat::CoreProfile);
   if (enableDebug) {
     format.setOption(QSurfaceFormat::DebugContext);
   }
