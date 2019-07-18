@@ -446,6 +446,29 @@ public:
     m_From = ReverseLoS + m_Target;
   }
 
+  void Trackball(float DownDegrees, float RightDegrees)
+  {
+    float angle = sqrtf(DownDegrees * DownDegrees + RightDegrees * RightDegrees);
+    angle = DEG_TO_RAD * angle;
+
+    glm::vec3 _eye = m_From - m_Target;
+
+    glm::vec3 objectUpDirection = m_Up; // or m_V; ???
+    glm::vec3 objectSidewaysDirection = m_U;
+
+    objectUpDirection *= DownDegrees;
+    objectSidewaysDirection *= -RightDegrees;
+
+    glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
+
+    glm::vec3 axis = glm::normalize(glm::cross(moveDirection, _eye));
+
+    _eye = glm::rotate(_eye, angle, axis);
+    m_Up = glm::rotate(m_Up, angle, axis);
+
+    m_From = _eye + m_Target;
+  }
+
   void SetProjectionMode(const ProjectionMode projectionMode)
   {
     m_Projection = projectionMode;
