@@ -40,7 +40,7 @@ void main()
   }
 
   m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-  char* fsPiece1 = R"(
+  const char* fsPiece1 = R"(
 #version 330 core
 
 #define PI (3.1415926535897932384626433832795)
@@ -153,7 +153,7 @@ vec3 RGBtoXYZ(vec3 rgb) {
 }
 )";
 
-  char* fsPiece2 = R"(
+  const char* fsPiece2 = R"(
 vec3 getUniformSphereSample(in vec2 U)
 {
   float z = 1.f - 2.f * U.x;
@@ -393,7 +393,7 @@ float GetRoughnessN(float NormalizedIntensity, int ch)
 }
 )";
 
-  char* fsPiece3 = R"(
+  const char* fsPiece3 = R"(
 // a bsdf sample, a sample on a light source, and a randomly chosen light index
 struct CLightingSample {
   float m_bsdfComponent;
@@ -804,7 +804,7 @@ vec3 Shader_SampleF(in CVolumeShader shader, in CLightingSample S, in vec3 Wo, o
 }
 )";
 
-  char* fsPiece4 = R"(
+  const char* fsPiece4 = R"(
 bool IsBlack(in vec3 v) {
   return (v.x==0.0 && v.y == 0.0 && v.z == 0.0);
 }

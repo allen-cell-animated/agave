@@ -19,7 +19,7 @@ public slots:
   void OnApertureChanged(const QAperture& Aperture);
 
 private:
-  QGridLayout m_GridLayout;
+  QFormLayout m_Layout;
   QNumericSlider m_SizeSlider;
 
   QCamera* m_camera;

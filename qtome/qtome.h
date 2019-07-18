@@ -63,6 +63,8 @@ private:
   void prependToRecentFiles(const QString& fileName);
   void setRecentFilesVisible(bool visible);
   static QString strippedName(const QString& fullFileName);
+  void writeRecentDirectory(const QString& directory);
+  QString readRecentDirectory();
 
   QMenu* m_fileMenu;
   QMenu* m_viewMenu;

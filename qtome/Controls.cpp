@@ -17,7 +17,7 @@ QColorPushButton::QColorPushButton(QWidget* pParent)
 QSize
 QColorPushButton::sizeHint() const
 {
-  return QSize(20, 20);
+  return QSize(30, 20);
 }
 
 void
@@ -228,12 +228,14 @@ QDoubleSlider::value() const
 QSize
 QDoubleSpinner::sizeHint() const
 {
-  return QSize(90, 20);
+  return QSize(50, 20);
 }
 
 QDoubleSpinner::QDoubleSpinner(QWidget* pParent /*= NULL*/)
   : QDoubleSpinBox(pParent)
-{}
+{
+  setKeyboardTracking(false);
+}
 
 void
 QDoubleSpinner::setValue(double value, bool blockSignals)

@@ -212,11 +212,13 @@ qtome::createRangeSlider()
 void
 qtome::open()
 {
+  QString dir = readRecentDirectory();
+
   QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), dir, QString(), 0, options);
 
   if (!file.isEmpty())
     open(file);
@@ -225,11 +227,13 @@ qtome::open()
 void
 qtome::openJson()
 {
+  QString dir = readRecentDirectory();
+
   QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QString(), QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open json"), dir, QString(), 0, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
@@ -302,6 +306,7 @@ qtome::open(const QString& file, const ViewerState* vs)
 
     m_currentFilePath = file;
     qtome::prependToRecentFiles(file);
+    writeRecentDirectory(info.absolutePath());
   } else {
     LOG_DEBUG << "Failed to open " << file.toStdString();
   }
@@ -382,6 +387,11 @@ qtome::setRecentFilesVisible(bool visible)
 }
 
 static inline QString
+recentDirectoryKey()
+{
+  return QStringLiteral("recentDirectory");
+}
+static inline QString
 recentFilesKey()
 {
   return QStringLiteral("recentFileList");
@@ -415,6 +425,21 @@ writeRecentFiles(const QStringList& files, QSettings& settings)
     settings.setValue(fileKey(), files.at(i));
   }
   settings.endArray();
+}
+
+void
+qtome::writeRecentDirectory(const QString& directory)
+{
+  QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+  settings.setValue(recentDirectoryKey(), directory);
+}
+
+QString
+qtome::readRecentDirectory()
+{
+  QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+  QString result = settings.value(recentDirectoryKey()).toString();
+  return result;
 }
 
 bool

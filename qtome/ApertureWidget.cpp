@@ -5,7 +5,7 @@
 
 QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam)
   : QGroupBox(pParent)
-  , m_GridLayout()
+  , m_Layout()
   , m_SizeSlider()
   , m_camera(cam)
 {
@@ -13,17 +13,15 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam)
   setStatusTip("Aperture properties");
   setToolTip("Aperture properties");
 
-  m_GridLayout.setColumnMinimumWidth(0, 75);
-  setLayout(&m_GridLayout);
+  Controls::initFormLayout(m_Layout);
+  setLayout(&m_Layout);
 
   // Aperture size
-  m_GridLayout.addWidget(new QLabel("Size"), 3, 0);
-
   m_SizeSlider.setRange(0.0, 0.1);
   m_SizeSlider.setSuffix(" mm");
   m_SizeSlider.setDecimals(3);
   m_SizeSlider.setValue(0.0);
-  m_GridLayout.addWidget(&m_SizeSlider, 3, 1, 1, 2);
+  m_Layout.addRow("Size", &m_SizeSlider);
 
   connect(&m_SizeSlider, SIGNAL(valueChanged(double)), this, SLOT(SetAperture(double)));
   connect(&cam->GetAperture(), SIGNAL(Changed(const QAperture&)), this, SLOT(OnApertureChanged(const QAperture&)));

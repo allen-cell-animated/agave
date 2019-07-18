@@ -1,12 +1,31 @@
 #pragma once
 
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QFormLayout>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
+
+class Controls
+{
+public:
+  static QFormLayout* createFormLayout()
+  {
+    QFormLayout* layout = new QFormLayout();
+    initFormLayout(*layout);
+    return layout;
+  }
+  static void initFormLayout(QFormLayout& layout)
+  {
+    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+    layout.setLabelAlignment(Qt::AlignLeft);
+  }
+};
 
 class QColorPushButton : public QPushButton
 {
@@ -96,7 +115,6 @@ class QDoubleSpinner : public QDoubleSpinBox
 
 public:
   QDoubleSpinner(QWidget* pParent = NULL);
-  ;
 
   virtual QSize sizeHint() const;
   void setValue(double Value, bool BlockSignals = false);

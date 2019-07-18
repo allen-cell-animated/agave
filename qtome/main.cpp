@@ -133,7 +133,7 @@ main(int argc, char* argv[])
       _->show();
     }
 
-    LOG_INFO << "working directory:" << QDir::currentPath().toStdString();
+    LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
 
     // delete logFile;
 

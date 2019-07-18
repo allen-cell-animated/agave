@@ -20,7 +20,7 @@ private slots:
   void OnProjectionChanged(const QProjection& Film);
 
 private:
-  QGridLayout m_GridLayout;
+  QFormLayout m_Layout;
   QNumericSlider m_FieldOfViewSlider;
 
   QCamera* m_qcamera;

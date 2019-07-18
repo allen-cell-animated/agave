@@ -24,6 +24,7 @@ private:
 public:
   explicit Section(const QString& title = "",
                    const int animationDuration = 100,
+                   bool use_checkbox = false,
                    bool is_checked = true,
                    QWidget* parent = 0);
 

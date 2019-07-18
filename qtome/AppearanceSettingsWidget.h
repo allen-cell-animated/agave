@@ -2,6 +2,7 @@
 
 #include "Controls.h"
 
+#include <QFormLayout>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
@@ -64,11 +65,10 @@ public:
   void OnSetScaleZ(double value);
 
 private:
-  QGridLayout m_MainLayout;
+  QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;
   QComboBox m_RendererType;
   QComboBox m_ShadingType;
-  QLabel m_GradientFactorLabel;
   QNumericSlider m_GradientFactorSlider;
   QNumericSlider m_StepSizePrimaryRaySlider;
   QNumericSlider m_StepSizeSecondaryRaySlider;
