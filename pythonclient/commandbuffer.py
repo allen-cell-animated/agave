@@ -57,6 +57,8 @@ COMMANDS = {
     # channel index, pct_low, pct_high.  (Do I ever set these independently?)
     "SET_PERCENTILE_THRESHOLD": [32, "I32", "F32", "F32"],
     "MAT_OPACITY": [33, "I32", "F32"],
+    "SET_PRIMARY_RAY_STEP_SIZE": [34, "F32"],
+    "SET_SECONDARY_RAY_STEP_SIZE": [35, "F32"],
 }
 
 

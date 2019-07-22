@@ -548,6 +548,8 @@ qtome::viewerStateToApp(const ViewerState& v)
   m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
+  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
+  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -567,6 +569,7 @@ qtome::viewerStateToApp(const ViewerState& v)
     m_appScene.m_material.m_emissive[i * 3 + 2] = ch.m_emissive.z;
 
     m_appScene.m_material.m_roughness[i] = ch.m_glossiness;
+    m_appScene.m_material.m_opacity[i] = ch.m_opacity;
     m_appScene.m_volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
   }
 
@@ -650,6 +653,9 @@ qtome::appToViewerState()
   v.m_apertureSize = m_qcamera.GetAperture().GetSize();
   v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
+
+  v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
+  v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
     ChannelViewerState ch;

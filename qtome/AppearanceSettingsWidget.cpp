@@ -618,6 +618,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     return;
   }
 
+  m_StepSizePrimaryRaySlider.setValue(m_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor);
+  m_StepSizeSecondaryRaySlider.setValue(m_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
+
   m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * 100.0);
   m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * 100.0);
   m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * 100.0);

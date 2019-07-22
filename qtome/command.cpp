@@ -355,3 +355,17 @@ SetOpacityCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_opacity[m_data.m_channel] = m_data.m_opacity;
   c->m_renderSettings->SetNoIterations(0);
 }
+void
+SetPrimaryRayStepSizeCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetPrimaryRayStepSize " << m_data.m_stepSize;
+  c->m_renderSettings->m_RenderSettings.m_StepSizeFactor = m_data.m_stepSize;
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+void
+SetSecondaryRayStepSizeCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetSecondaryRayStepSize " << m_data.m_stepSize;
+  c->m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow = m_data.m_stepSize;
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}

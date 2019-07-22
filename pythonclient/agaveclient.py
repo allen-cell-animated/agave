@@ -84,6 +84,9 @@ class AgaveClient(WebSocketClient):
         self.requested_frame = 0
         self.queue = deque([])
 
+    def load_image(self, image_path, onLoaded=None):
+        self.get_info(image_path, callback=onLoaded)
+
     def render_frame(
         self, command_list, number=None, output_name="frame", callback=None
     ):

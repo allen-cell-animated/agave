@@ -257,3 +257,15 @@ struct SetOpacityCommandD
   float m_opacity;
 };
 CMDDECL(SetOpacityCommand, 33);
+
+struct SetPrimaryRayStepSizeCommandD
+{
+  float m_stepSize;
+};
+CMDDECL(SetPrimaryRayStepSizeCommand, 34);
+
+struct SetSecondaryRayStepSizeCommandD
+{
+  float m_stepSize;
+};
+CMDDECL(SetSecondaryRayStepSizeCommand, 35);
