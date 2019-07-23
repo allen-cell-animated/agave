@@ -161,6 +161,12 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
     m_roiZmax = crz.at(1).toDouble(m_roiZmax);
   }
 
+  if (json.contains("pathTracer") && json["pathTracer"].isObject()) {
+    QJsonObject pathTracer = json["pathTracer"].toObject();
+    getFloat(pathTracer, "primaryStepSize", m_primaryStepSize);
+    getFloat(pathTracer, "secondaryStepSize", m_secondaryStepSize);
+  }
+
   if (json.contains("camera") && json["camera"].isObject()) {
     QJsonObject cam = json["camera"].toObject();
     glm::vec3 tmp;
@@ -247,6 +253,11 @@ ViewerState::stateToJson() const
   j["resolution"] = resolution;
 
   j["renderIterations"] = m_renderIterations;
+
+  QJsonObject pathTracer;
+  pathTracer["primaryStepSize"] = m_primaryStepSize;
+  pathTracer["secondaryStepSize"] = m_secondaryStepSize;
+  j["pathTracer"] = pathTracer;
 
   QJsonArray clipRegion;
   QJsonArray clipRegionX;
@@ -361,6 +372,8 @@ ViewerState::stateToPythonScript() const
     s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
     s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
     s += indent + QString("(\"RENDER_ITERATIONS\", %1),\n").arg(m_renderIterations);
+    s += indent + QString("(\"SET_PRIMARY_RAY_STEP_SIZE\", %1),\n").arg(m_primaryStepSize);
+    s += indent + QString("(\"SET_SECONDARY_RAY_STEP_SIZE\", %1),\n").arg(m_secondaryStepSize);
     s += indent + QString("(\"SET_VOXEL_SCALE\", %1, %2, %3),\n").arg(m_scaleX).arg(m_scaleY).arg(m_scaleZ);
     s += indent + QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6),\n")
                     .arg(m_roiXmin)

@@ -71,6 +71,8 @@ FWDDECL_PARSE(SetVoxelScaleCommand);
 FWDDECL_PARSE(AutoThresholdCommand);
 FWDDECL_PARSE(SetPercentileThresholdCommand);
 FWDDECL_PARSE(SetOpacityCommand);
+FWDDECL_PARSE(SetPrimaryRayStepSizeCommand);
+FWDDECL_PARSE(SetSecondaryRayStepSizeCommand);
 
 #define CMD_CASE(CMDCLASS)                                                                                             \
   case (CMDCLASS::m_ID):                                                                                               \
@@ -125,6 +127,8 @@ commandBuffer::processBuffer()
           CMD_CASE(AutoThresholdCommand);
           CMD_CASE(SetPercentileThresholdCommand);
           CMD_CASE(SetOpacityCommand);
+          CMD_CASE(SetPrimaryRayStepSizeCommand);
+          CMD_CASE(SetSecondaryRayStepSizeCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -497,4 +501,18 @@ parseSetOpacityCommand(CommandBufferIterator* c)
   data.m_channel = c->parseInt32();
   data.m_opacity = c->parseFloat32();
   return new SetOpacityCommand(data);
+}
+Command*
+parseSetPrimaryRayStepSizeCommand(CommandBufferIterator* c)
+{
+  SetPrimaryRayStepSizeCommandD data;
+  data.m_stepSize = c->parseFloat32();
+  return new SetPrimaryRayStepSizeCommand(data);
+}
+Command*
+parseSetSecondaryRayStepSizeCommand(CommandBufferIterator* c)
+{
+  SetSecondaryRayStepSizeCommandD data;
+  data.m_stepSize = c->parseFloat32();
+  return new SetSecondaryRayStepSizeCommand(data);
 }
