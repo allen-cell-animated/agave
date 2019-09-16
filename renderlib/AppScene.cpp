@@ -172,3 +172,21 @@ Scene::initBounds(const CBoundingBox& bb)
     m_lighting.m_Lights[i].Update(m_boundingBox);
   }
 }
+
+void
+Scene::getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32_t& c3) const
+{
+  int ch[4] = { 0, 0, 0, 0 };
+  int activeChannel = 0;
+  int NC = m_volume->sizeC();
+  for (int i = 0; i < NC; ++i) {
+    if (m_material.m_enabled[i] && activeChannel < 4) {
+      ch[activeChannel] = i;
+      activeChannel++;
+    }
+  }
+  c0 = ch[0];
+  c1 = ch[1];
+  c2 = ch[2];
+  c3 = ch[3];
+}

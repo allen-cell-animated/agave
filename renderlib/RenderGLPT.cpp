@@ -176,7 +176,10 @@ RenderGLPT::initVolumeTextureGpu()
     return;
   }
 
-  m_imgGpu.allocGpuInterleaved(m_scene->m_volume.get());
+  uint32_t c0, c1, c2, c3;
+  m_scene->getFirst4EnabledChannels(c0, c1, c2, c3);
+
+  m_imgGpu.allocGpuInterleaved(m_scene->m_volume.get(), c0, c1, c2, c3);
 }
 
 void
@@ -248,16 +251,9 @@ RenderGLPT::doRender(const CCamera& camera)
     m_renderSettings->SetNoIterations(0);
   }
   if (m_renderSettings->m_DirtyFlags.HasFlag(VolumeDataDirty)) {
-    int ch[4] = { 0, 0, 0, 0 };
-    int activeChannel = 0;
-    int NC = m_scene->m_volume->sizeC();
-    for (int i = 0; i < NC; ++i) {
-      if (m_scene->m_material.m_enabled[i] && activeChannel < 4) {
-        ch[activeChannel] = i;
-        activeChannel++;
-      }
-    }
-    m_imgGpu.updateVolumeData4x16(m_scene->m_volume.get(), ch[0], ch[1], ch[2], ch[3]);
+    uint32_t c0, c1, c2, c3;
+    m_scene->getFirst4EnabledChannels(c0, c1, c2, c3);
+    m_imgGpu.updateVolumeData4x16(m_scene->m_volume.get(), c0, c1, c2, c3);
     m_renderSettings->SetNoIterations(0);
   }
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now
