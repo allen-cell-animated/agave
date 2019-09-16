@@ -141,7 +141,7 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
 }
 
 void
-ImageGpu::allocGpuInterleaved(ImageXYZC* img)
+ImageGpu::allocGpuInterleaved(ImageXYZC* img, uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3)
 {
   deallocGpu();
   m_channels.clear();
@@ -151,8 +151,11 @@ ImageGpu::allocGpuInterleaved(ImageXYZC* img)
 
   createVolumeTexture4x16(img);
   uint32_t numChannels = img->sizeC();
-  updateVolumeData4x16(
-    img, 0, std::min(1u, numChannels - 1), std::min(2u, numChannels - 1), std::min(3u, numChannels - 1));
+  updateVolumeData4x16(img,
+                       std::min(c0, numChannels - 1),
+                       std::min(c1, numChannels - 1),
+                       std::min(c2, numChannels - 1),
+                       std::min(c3, numChannels - 1));
 
   for (uint32_t i = 0; i < numChannels; ++i) {
     ChannelGpu c;

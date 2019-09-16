@@ -190,6 +190,7 @@ public:
   void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
   void initBounds(const CBoundingBox& bb);
   void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);
+  void getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32_t& c3) const;
 
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 };

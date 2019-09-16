@@ -126,19 +126,32 @@ install(FILES
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/tiff.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zlib1.dll
 	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zstd.dll
+  DESTINATION ${INSTALLDIR}
+  CONFIGURATIONS Release
+)
+install(FILES 
+  ${PROJECT_SOURCE_DIR}/LICENSE.txt
+  ${PROJECT_SOURCE_DIR}/HELP.txt
+  $<TARGET_FILE:Qt5::Widgets>
+  $<TARGET_FILE:Qt5::Core>
+  $<TARGET_FILE:Qt5::Gui>
+  $<TARGET_FILE:Qt5::Xml>
+  $<TARGET_FILE:Qt5::Network>
+  $<TARGET_FILE:Qt5::WebSockets>
   # debug dlls
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_chrono-vc142-mt-gd-x64-1_70.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_date_time-vc142-mt-gd-x64-1_70.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_filesystem-vc142-mt-gd-x64-1_70.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_log-vc142-mt-gd-x64-1_70.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_system-vc142-mt-gd-x64-1_70.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_thread-vc142-mt-gd-x64-1_70.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/jpeg62.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/lzma.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/tiffd.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zlibd1.dll
-	# ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zstdd.dll
-	DESTINATION ${INSTALLDIR}
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_chrono-vc142-mt-gd-x64-1_70.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_date_time-vc142-mt-gd-x64-1_70.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_filesystem-vc142-mt-gd-x64-1_70.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_log-vc142-mt-gd-x64-1_70.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_system-vc142-mt-gd-x64-1_70.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_thread-vc142-mt-gd-x64-1_70.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/jpeg62.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/lzmad.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/tiffd.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zlibd1.dll
+	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zstdd.dll
+  DESTINATION ${INSTALLDIR}
+  CONFIGURATIONS Debug
 )
 install(FILES 
   $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
