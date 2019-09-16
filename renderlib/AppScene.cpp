@@ -176,11 +176,11 @@ Scene::initBounds(const CBoundingBox& bb)
 void
 Scene::getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32_t& c3) const
 {
-  int ch[4] = { 0, 0, 0, 0 };
-  int activeChannel = 0;
-  int NC = m_volume->sizeC();
-  for (int i = 0; i < NC; ++i) {
-    if (m_material.m_enabled[i] && activeChannel < 4) {
+  uint32_t ch[4] = { 0u, 0u, 0u, 0u };
+  uint32_t activeChannel = 0u;
+  uint32_t NC = m_volume->sizeC();
+  for (uint32_t i = 0; i < NC; ++i) {
+    if (m_material.m_enabled[i] && activeChannel < 4u) {
       ch[activeChannel] = i;
       activeChannel++;
     }
