@@ -207,11 +207,6 @@ RenderGLPT::doRender(const CCamera& camera)
     return;
   }
 
-  glViewport(0, 0, m_w, m_h);
-
-  GLint drawFboId = 0;
-  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
-
   if (!m_imgGpu.m_VolumeGLTexture || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
     initVolumeTextureGpu();
     // we have set up everything there is to do before rendering
@@ -284,6 +279,9 @@ RenderGLPT::doRender(const CCamera& camera)
   GLuint accumTargetTex = m_glF32Buffer;          // the texture of m_fbF32
   GLuint prevAccumTargetTex = m_glF32AccumBuffer; // the texture that will be tonemapped to screen, a copy of m_fbF32
 
+  GLint drawFboId = 0;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 
@@ -292,6 +290,8 @@ RenderGLPT::doRender(const CCamera& camera)
 
     // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
+    glViewport(0, 0, m_w, m_h);
+
     check_glfb("bind framebuffer for pathtrace iteration");
 
     m_renderBufferShader->bind();
@@ -394,6 +394,7 @@ RenderGLPT::doRender(const CCamera& camera)
   // m_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
   m_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()));
 
+  // restore prior framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
   check_glfb("bind framebuffer for final draw");
 

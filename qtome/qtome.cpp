@@ -287,21 +287,22 @@ qtome::saveImage()
   QString file =
     QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
   if (!file.isEmpty()) {
-    // get the current QScreen
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (const QWindow* window = windowHandle()) {
-      screen = window->screen();
-    }
-    if (!screen) {
-      qWarning("Couldn't capture screen to save image file.");
+    // capture the viewport
+    /*
+    QPixmap pixmap = m_glView->capture();
+    if (pixmap.isNull()) {
+      qWarning("Failed to capture 3d viewport.");
       return;
+    } else {
+      if (!pixmap.save(file)) {
+        qWarning("Couldn't save image file.");
+        return;
+      }
     }
-    // simply grab the glview window
-    QPixmap originalPixmap = screen->grabWindow(m_glView->winId());
-    if (!originalPixmap.save(file)) {
-      qWarning("Couldn't save image file.");
-      return;
-    }
+        */
+    QImage im = m_glView->captureQimage();
+
+    im.save(file);
   }
 }
 
