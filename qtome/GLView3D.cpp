@@ -12,6 +12,11 @@
 
 #include <glm.h>
 
+#include <QGuiApplication>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObjectFormat>
+#include <QScreen>
+#include <QWindow>
 #include <QtGui/QMouseEvent>
 
 #include <cmath>
@@ -21,18 +26,6 @@
 #ifdef _MSVC_VER
 #pragma warning(disable : 4351)
 #endif
-
-namespace {
-
-void
-qNormalizeAngle(int& angle)
-{
-  while (angle < 0)
-    angle += 360 * 16;
-  while (angle > 360 * 16)
-    angle -= 360 * 16;
-}
-}
 
 GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent)
   : QOpenGLWidget(parent)
@@ -321,4 +314,57 @@ GLView3D::fromViewerState(const ViewerState& s)
   m_qcamera->GetFilm().SetExposure(s.m_exposure);
   m_qcamera->GetAperture().SetSize(s.m_apertureSize);
   m_qcamera->GetFocus().SetFocalDistance(s.m_focalDistance);
+}
+
+QPixmap
+GLView3D::capture()
+{
+  // get the current QScreen
+  QScreen* screen = QGuiApplication::primaryScreen();
+  if (const QWindow* window = windowHandle()) {
+    screen = window->screen();
+  }
+  if (!screen) {
+    qWarning("Couldn't capture screen to save image file.");
+    return QPixmap();
+  }
+  // simply grab the glview window
+  return screen->grabWindow(winId());
+}
+
+QImage
+GLView3D::captureQimage()
+{
+  makeCurrent();
+
+  // Create a one-time FBO to receive the image
+  QOpenGLFramebufferObjectFormat fboFormat;
+  fboFormat.setAttachment(QOpenGLFramebufferObject::NoAttachment);
+  fboFormat.setMipmap(false);
+  fboFormat.setSamples(0);
+  fboFormat.setTextureTarget(GL_TEXTURE_2D);
+  // NOTE NO ALPHA. if alpha then this will get premultiplied and wash out colors
+  fboFormat.setInternalTextureFormat(GL_RGB8);
+  check_gl("pre screen capture");
+
+  QOpenGLFramebufferObject* fbo =
+    new QOpenGLFramebufferObject(width() * devicePixelRatioF(), height() * devicePixelRatioF(), fboFormat);
+
+  glEnable(GL_TEXTURE_2D);
+
+  fbo->bind();
+  check_glfb("bind framebuffer for screen capture");
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // do a render into the temp framebuffer
+  glViewport(0, 0, fbo->width(), fbo->height());
+  m_renderer->render(m_CCamera);
+  fbo->release();
+
+  QImage img(fbo->toImage());
+
+  delete fbo;
+
+  return img;
 }

@@ -12,6 +12,7 @@
 
 #include <memory>
 
+class Framebuffer;
 class FSQ;
 class ImageXYZC;
 class Image3Dv33;
@@ -60,19 +61,16 @@ private:
   RectImage2D* m_imagequad;
 
   // the rgba8 buffer for display
-  GLuint m_fbtex;
-  GLuint m_fb;
+  Framebuffer* m_fb;
 
   FSQ* m_fsq;
 
   // the rgbaf32 buffer for rendering
-  GLuint m_glF32Buffer;
-  GLuint m_fbF32;
+  Framebuffer* m_fbF32;
   GLPTVolumeShader* m_renderBufferShader;
 
   // the rgbaf32 accumulation buffer that holds the progressively rendered image
-  GLuint m_glF32AccumBuffer;
-  GLuint m_fbF32Accum;
+  Framebuffer* m_fbF32Accum;
   GLCopyShader* m_copyShader;
   GLToneMapShader* m_toneMapShader;
 

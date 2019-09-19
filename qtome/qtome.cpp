@@ -83,9 +83,9 @@ qtome::createActions()
   // boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
 
   // TODO ensure a proper title, shortcut, icon, and statustip for every action
-  m_openAction = new QAction(tr("&Open image..."), this);
+  m_openAction = new QAction(tr("&Open volume..."), this);
   m_openAction->setShortcuts(QKeySequence::Open);
-  m_openAction->setStatusTip(tr("Open an existing image file"));
+  m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
   m_openJsonAction = new QAction(tr("Open json..."), this);
@@ -117,6 +117,10 @@ qtome::createActions()
   m_toggleCameraProjectionAction = new QAction(tr("Persp/Ortho"), this);
   m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
+
+  m_saveImageAction = new QAction(tr("&Save image..."), this);
+  m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
+  connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
 }
 
 void
@@ -127,6 +131,7 @@ qtome::createMenus()
   m_fileMenu->addAction(m_openJsonAction);
   m_fileMenu->addSeparator();
   m_fileMenu->addSeparator();
+  m_fileMenu->addAction(m_saveImageAction);
   m_fileMenu->addAction(m_dumpJsonAction);
   m_fileMenu->addAction(m_dumpPythonAction);
   m_fileMenu->addSeparator();
@@ -153,6 +158,7 @@ qtome::createToolbars()
   m_ui.mainToolBar->addAction(m_openAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
+  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
   m_ui.mainToolBar->addSeparator();
@@ -218,7 +224,7 @@ qtome::open()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), dir, QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
 
   if (!file.isEmpty())
     open(file);
@@ -248,6 +254,31 @@ qtome::openJson()
     if (!s.m_volumeImageFile.isEmpty()) {
       open(s.m_volumeImageFile, &s);
     }
+  }
+}
+
+void
+qtome::saveImage()
+{
+  QFileDialog::Options options = 0;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+
+  const QByteArrayList supportedFormats = QImageWriter::supportedImageFormats();
+
+  QStringList formatFilters;
+  foreach (const QByteArray& supportedFormatName, supportedFormats) {
+    formatFilters.append("*." + supportedFormatName);
+  }
+  QString allSupportedFormatsFilter = QString("Images (%1)").arg(formatFilters.join(' '));
+
+  QString file =
+    QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
+  if (!file.isEmpty()) {
+    // capture the viewport
+    QImage im = m_glView->captureQimage();
+    im.save(file);
   }
 }
 

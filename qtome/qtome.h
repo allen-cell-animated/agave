@@ -41,6 +41,7 @@ private slots:
   void dumpStateToJson();
   void openMeshDialog();
   void openMesh(const QString& file);
+  void saveImage();
   void saveJson();
   void savePython();
   void OnUpdateRenderer();
@@ -79,6 +80,7 @@ private:
   QAction* m_testMeshAction;
   QAction* m_viewResetAction;
   QAction* m_toggleCameraProjectionAction;
+  QAction* m_saveImageAction;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

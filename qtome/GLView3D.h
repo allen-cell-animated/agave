@@ -64,6 +64,9 @@ public:
 
   void fromViewerState(const ViewerState& s);
 
+  QPixmap capture();
+  QImage captureQimage();
+
 signals:
   void ChangedRenderer();
 

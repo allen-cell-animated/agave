@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 #include "glm.h"
 
+#include "Framebuffer.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "gl/Util.h"
@@ -16,11 +17,8 @@
 #include <array>
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)
-  : m_glF32Buffer(0)
-  , m_glF32AccumBuffer(0)
-  , m_fbF32(0)
-  , m_fbF32Accum(0)
-  , m_fbtex(0)
+  : m_fbF32(nullptr)
+  , m_fbF32Accum(nullptr)
   , m_renderBufferShader(nullptr)
   , m_copyShader(nullptr)
   , m_toneMapShader(nullptr)
@@ -30,6 +28,7 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_renderSettings(rs)
   , m_w(0)
   , m_h(0)
+  , m_fb(nullptr)
   , m_scene(nullptr)
   , m_gpuBytes(0)
   , m_imagequad(nullptr)
@@ -42,38 +41,14 @@ RenderGLPT::~RenderGLPT() {}
 void
 RenderGLPT::cleanUpFB()
 {
-  // destroy the framebuffer texture
-  if (m_fbtex) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_fbtex);
-    check_gl("Destroy fb texture");
-    m_fbtex = 0;
-  }
-  if (m_fb) {
-    glDeleteFramebuffers(1, &m_fb);
-    m_fb = 0;
-  }
+  delete m_fb;
+  m_fb = nullptr;
 
-  if (m_fbF32) {
-    glDeleteFramebuffers(1, &m_fbF32);
-    m_fbF32 = 0;
-  }
-  if (m_glF32Buffer) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_glF32Buffer);
-    check_gl("Destroy fb texture");
-    m_glF32Buffer = 0;
-  }
-  if (m_fbF32Accum) {
-    glDeleteFramebuffers(1, &m_fbF32Accum);
-    m_fbF32Accum = 0;
-  }
-  if (m_glF32AccumBuffer) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_glF32AccumBuffer);
-    check_gl("Destroy fb texture");
-    m_glF32AccumBuffer = 0;
-  }
+  delete m_fbF32;
+  m_fbF32 = nullptr;
+
+  delete m_fbF32Accum;
+  m_fbF32Accum = nullptr;
 
   delete m_renderBufferShader;
   m_renderBufferShader = 0;
@@ -92,37 +67,19 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 {
   cleanUpFB();
 
-  glGenTextures(1, &m_glF32Buffer);
-  check_gl("Gen fb texture id");
-  glBindTexture(GL_TEXTURE_2D, m_glF32Buffer);
-  check_gl("Bind fb texture");
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  m_fbF32 = new Framebuffer(w, h, GL_RGBA32F);
   m_gpuBytes += w * h * 4 * sizeof(float);
-  check_gl("Create fb texture");
-
-  glGenFramebuffers(1, &m_fbF32);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32Buffer, 0);
   check_glfb("resized float pathtrace sample fb");
 
+  // clear the newly created FB
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  glGenTextures(1, &m_glF32AccumBuffer);
-  check_gl("Gen fb texture id");
-  glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer);
-  check_gl("Bind fb texture");
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  m_fbF32Accum = new Framebuffer(w, h, GL_RGBA32F);
   m_gpuBytes += w * h * 4 * sizeof(float);
-  check_gl("Create fb texture");
-
-  glGenFramebuffers(1, &m_fbF32Accum);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32AccumBuffer, 0);
   check_glfb("resized float accumulation fb");
 
+  // clear the newly created FB
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -142,23 +99,8 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
     free(pSeeds);
   }
 
-  glGenTextures(1, &m_fbtex);
-  check_gl("Gen fb texture id");
-  glBindTexture(GL_TEXTURE_2D, m_fbtex);
-  check_gl("Bind fb texture");
-  // glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  m_fb = new Framebuffer(w, h);
   m_gpuBytes += w * h * 4;
-  check_gl("Create fb texture");
-  // this is required in order to "complete" the texture object for mipmapless shader access.
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  // unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  glGenFramebuffers(1, &m_fb);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fbtex, 0);
-  check_glfb("resized main fb");
 
   // clear this fb to black
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -206,11 +148,6 @@ RenderGLPT::doRender(const CCamera& camera)
   if (!m_scene || !m_scene->m_volume) {
     return;
   }
-
-  glViewport(0, 0, m_w, m_h);
-
-  GLint drawFboId = 0;
-  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 
   if (!m_imgGpu.m_VolumeGLTexture || m_renderSettings->m_DirtyFlags.HasFlag(VolumeDirty)) {
     initVolumeTextureGpu();
@@ -281,8 +218,11 @@ RenderGLPT::doRender(const CCamera& camera)
 
   glm::mat4 m(1.0);
 
-  GLuint accumTargetTex = m_glF32Buffer;          // the texture of m_fbF32
-  GLuint prevAccumTargetTex = m_glF32AccumBuffer; // the texture that will be tonemapped to screen, a copy of m_fbF32
+  GLuint accumTargetTex = m_fbF32->colorTextureId(); // the texture of m_fbF32
+  GLuint prevAccumTargetTex = m_fbF32Accum->colorTextureId(); // the texture that will be tonemapped to screen, a copy of m_fbF32
+
+  GLint drawFboId = 0;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
@@ -291,7 +231,9 @@ RenderGLPT::doRender(const CCamera& camera)
     GLTimer TmrRender;
 
     // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32->id());
+    glViewport(0, 0, m_w, m_h);
+
     check_glfb("bind framebuffer for pathtrace iteration");
 
     m_renderBufferShader->bind();
@@ -318,12 +260,12 @@ RenderGLPT::doRender(const CCamera& camera)
 
     // 2. copy to accumTargetTex texture that will be used as accumulator for next pass
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum->id());
     check_glfb("bind framebuffer for accumulator");
 
     // the sample
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_glF32Buffer);
+    glBindTexture(GL_TEXTURE_2D, m_fbF32->colorTextureId());
 
     m_copyShader->bind();
     m_copyShader->setShadingUniforms();
@@ -363,11 +305,11 @@ RenderGLPT::doRender(const CCamera& camera)
   //_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 
   // Tonemap into opengl display buffer
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fb->id());
   check_glfb("bind framebuffer for tone map");
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer);
+  glBindTexture(GL_TEXTURE_2D, m_fbF32Accum->colorTextureId());
 
   m_toneMapShader->bind();
   m_toneMapShader->setShadingUniforms(1.0f / camera.m_Film.m_Exposure);
@@ -394,6 +336,7 @@ RenderGLPT::doRender(const CCamera& camera)
   // m_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
   m_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()));
 
+  // restore prior framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
   check_glfb("bind framebuffer for final draw");
 
@@ -420,7 +363,7 @@ RenderGLPT::drawImage()
   glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
 
   // draw quad using the tex that cudaTex was mapped to
-  m_imagequad->draw(m_fbtex);
+  m_imagequad->draw(m_fb->colorTextureId());
 }
 
 void
