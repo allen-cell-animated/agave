@@ -265,24 +265,13 @@ qtome::saveImage()
   options |= QFileDialog::DontUseNativeDialog;
 #endif
 
-  // get supported image file types
-  QStringList mimeTypeFilters;
-  const QByteArrayList supportedMimeTypes = QImageWriter::supportedMimeTypes();
-  foreach (const QByteArray& mimeTypeName, supportedMimeTypes) {
-    mimeTypeFilters.append(mimeTypeName);
-  }
-  mimeTypeFilters.sort(Qt::CaseInsensitive);
+  const QByteArrayList supportedFormats = QImageWriter::supportedImageFormats();
 
-  // compose filter for all supported types
-  QMimeDatabase mimeDB;
-  QStringList allSupportedFormats;
-  for (const QString& mimeTypeFilter : mimeTypeFilters) {
-    QMimeType mimeType = mimeDB.mimeTypeForName(mimeTypeFilter);
-    if (mimeType.isValid()) {
-      allSupportedFormats.append(mimeType.globPatterns());
-    }
+  QStringList formatFilters;
+  foreach (const QByteArray& supportedFormatName, supportedFormats) {
+    formatFilters.append("*." + supportedFormatName);
   }
-  QString allSupportedFormatsFilter = QString("Supported formats (%1)").arg(allSupportedFormats.join(' '));
+  QString allSupportedFormatsFilter = QString("Images (%1)").arg(formatFilters.join(' '));
 
   QString file =
     QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
