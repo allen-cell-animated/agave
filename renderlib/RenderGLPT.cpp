@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 #include "glm.h"
 
+#include "Framebuffer.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "gl/Util.h"
@@ -20,7 +21,6 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_glF32AccumBuffer(0)
   , m_fbF32(0)
   , m_fbF32Accum(0)
-  , m_fbtex(0)
   , m_renderBufferShader(nullptr)
   , m_copyShader(nullptr)
   , m_toneMapShader(nullptr)
@@ -30,6 +30,7 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_renderSettings(rs)
   , m_w(0)
   , m_h(0)
+  , m_fb(nullptr)
   , m_scene(nullptr)
   , m_gpuBytes(0)
   , m_imagequad(nullptr)
@@ -42,17 +43,8 @@ RenderGLPT::~RenderGLPT() {}
 void
 RenderGLPT::cleanUpFB()
 {
-  // destroy the framebuffer texture
-  if (m_fbtex) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_fbtex);
-    check_gl("Destroy fb texture");
-    m_fbtex = 0;
-  }
-  if (m_fb) {
-    glDeleteFramebuffers(1, &m_fb);
-    m_fb = 0;
-  }
+  delete m_fb;
+  m_fb = nullptr;
 
   if (m_fbF32) {
     glDeleteFramebuffers(1, &m_fbF32);
@@ -142,23 +134,8 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
     free(pSeeds);
   }
 
-  glGenTextures(1, &m_fbtex);
-  check_gl("Gen fb texture id");
-  glBindTexture(GL_TEXTURE_2D, m_fbtex);
-  check_gl("Bind fb texture");
-  // glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  m_fb = new Framebuffer(w, h);
   m_gpuBytes += w * h * 4;
-  check_gl("Create fb texture");
-  // this is required in order to "complete" the texture object for mipmapless shader access.
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  // unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  glGenFramebuffers(1, &m_fb);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fbtex, 0);
-  check_glfb("resized main fb");
 
   // clear this fb to black
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -363,7 +340,7 @@ RenderGLPT::doRender(const CCamera& camera)
   //_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 
   // Tonemap into opengl display buffer
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fb->id());
   check_glfb("bind framebuffer for tone map");
 
   glActiveTexture(GL_TEXTURE0);
@@ -421,7 +398,7 @@ RenderGLPT::drawImage()
   glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
 
   // draw quad using the tex that cudaTex was mapped to
-  m_imagequad->draw(m_fbtex);
+  m_imagequad->draw(m_fb->colorTextureId());
 }
 
 void

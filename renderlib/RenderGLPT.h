@@ -12,6 +12,7 @@
 
 #include <memory>
 
+class Framebuffer;
 class FSQ;
 class ImageXYZC;
 class Image3Dv33;
@@ -60,8 +61,7 @@ private:
   RectImage2D* m_imagequad;
 
   // the rgba8 buffer for display
-  GLuint m_fbtex;
-  GLuint m_fb;
+  Framebuffer* m_fb;
 
   FSQ* m_fsq;
 
