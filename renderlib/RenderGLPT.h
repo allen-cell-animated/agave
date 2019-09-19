@@ -66,8 +66,7 @@ private:
   FSQ* m_fsq;
 
   // the rgbaf32 buffer for rendering
-  GLuint m_glF32Buffer;
-  GLuint m_fbF32;
+  Framebuffer* m_fbF32;
   GLPTVolumeShader* m_renderBufferShader;
 
   // the rgbaf32 accumulation buffer that holds the progressively rendered image

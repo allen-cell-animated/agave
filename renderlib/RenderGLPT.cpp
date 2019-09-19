@@ -17,9 +17,8 @@
 #include <array>
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)
-  : m_glF32Buffer(0)
-  , m_glF32AccumBuffer(0)
-  , m_fbF32(0)
+  : m_glF32AccumBuffer(0)
+  , m_fbF32(nullptr)
   , m_fbF32Accum(0)
   , m_renderBufferShader(nullptr)
   , m_copyShader(nullptr)
@@ -46,16 +45,9 @@ RenderGLPT::cleanUpFB()
   delete m_fb;
   m_fb = nullptr;
 
-  if (m_fbF32) {
-    glDeleteFramebuffers(1, &m_fbF32);
-    m_fbF32 = 0;
-  }
-  if (m_glF32Buffer) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_glF32Buffer);
-    check_gl("Destroy fb texture");
-    m_glF32Buffer = 0;
-  }
+  delete m_fbF32;
+  m_fbF32 = nullptr;
+
   if (m_fbF32Accum) {
     glDeleteFramebuffers(1, &m_fbF32Accum);
     m_fbF32Accum = 0;
@@ -84,20 +76,11 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 {
   cleanUpFB();
 
-  glGenTextures(1, &m_glF32Buffer);
-  check_gl("Gen fb texture id");
-  glBindTexture(GL_TEXTURE_2D, m_glF32Buffer);
-  check_gl("Bind fb texture");
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  m_fbF32 = new Framebuffer(w, h, GL_RGBA32F);
   m_gpuBytes += w * h * 4 * sizeof(float);
-  check_gl("Create fb texture");
-
-  glGenFramebuffers(1, &m_fbF32);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32Buffer, 0);
   check_glfb("resized float pathtrace sample fb");
 
+  // clear the newly created FB
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -253,7 +236,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
   glm::mat4 m(1.0);
 
-  GLuint accumTargetTex = m_glF32Buffer;          // the texture of m_fbF32
+  GLuint accumTargetTex = m_fbF32->colorTextureId(); // the texture of m_fbF32
   GLuint prevAccumTargetTex = m_glF32AccumBuffer; // the texture that will be tonemapped to screen, a copy of m_fbF32
 
   GLint drawFboId = 0;
@@ -266,7 +249,7 @@ RenderGLPT::doRender(const CCamera& camera)
     GLTimer TmrRender;
 
     // 1. draw pathtrace pass and accumulate, using prevAccumTargetTex as previous accumulation
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32->id());
     glViewport(0, 0, m_w, m_h);
 
     check_glfb("bind framebuffer for pathtrace iteration");
@@ -300,7 +283,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
     // the sample
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_glF32Buffer);
+    glBindTexture(GL_TEXTURE_2D, m_fbF32->colorTextureId());
 
     m_copyShader->bind();
     m_copyShader->setShadingUniforms();
