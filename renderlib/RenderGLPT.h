@@ -70,8 +70,7 @@ private:
   GLPTVolumeShader* m_renderBufferShader;
 
   // the rgbaf32 accumulation buffer that holds the progressively rendered image
-  GLuint m_glF32AccumBuffer;
-  GLuint m_fbF32Accum;
+  Framebuffer* m_fbF32Accum;
   GLCopyShader* m_copyShader;
   GLToneMapShader* m_toneMapShader;
 

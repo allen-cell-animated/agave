@@ -17,9 +17,8 @@
 #include <array>
 
 RenderGLPT::RenderGLPT(RenderSettings* rs)
-  : m_glF32AccumBuffer(0)
-  , m_fbF32(nullptr)
-  , m_fbF32Accum(0)
+  : m_fbF32(nullptr)
+  , m_fbF32Accum(nullptr)
   , m_renderBufferShader(nullptr)
   , m_copyShader(nullptr)
   , m_toneMapShader(nullptr)
@@ -48,16 +47,8 @@ RenderGLPT::cleanUpFB()
   delete m_fbF32;
   m_fbF32 = nullptr;
 
-  if (m_fbF32Accum) {
-    glDeleteFramebuffers(1, &m_fbF32Accum);
-    m_fbF32Accum = 0;
-  }
-  if (m_glF32AccumBuffer) {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &m_glF32AccumBuffer);
-    check_gl("Destroy fb texture");
-    m_glF32AccumBuffer = 0;
-  }
+  delete m_fbF32Accum;
+  m_fbF32Accum = nullptr;
 
   delete m_renderBufferShader;
   m_renderBufferShader = 0;
@@ -84,20 +75,11 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  glGenTextures(1, &m_glF32AccumBuffer);
-  check_gl("Gen fb texture id");
-  glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer);
-  check_gl("Bind fb texture");
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  m_fbF32Accum = new Framebuffer(w, h, GL_RGBA32F);
   m_gpuBytes += w * h * 4 * sizeof(float);
-  check_gl("Create fb texture");
-
-  glGenFramebuffers(1, &m_fbF32Accum);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glF32AccumBuffer, 0);
   check_glfb("resized float accumulation fb");
 
+  // clear the newly created FB
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -237,7 +219,7 @@ RenderGLPT::doRender(const CCamera& camera)
   glm::mat4 m(1.0);
 
   GLuint accumTargetTex = m_fbF32->colorTextureId(); // the texture of m_fbF32
-  GLuint prevAccumTargetTex = m_glF32AccumBuffer; // the texture that will be tonemapped to screen, a copy of m_fbF32
+  GLuint prevAccumTargetTex = m_fbF32Accum->colorTextureId(); // the texture that will be tonemapped to screen, a copy of m_fbF32
 
   GLint drawFboId = 0;
   glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
@@ -278,7 +260,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
     // 2. copy to accumTargetTex texture that will be used as accumulator for next pass
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbF32Accum->id());
     check_glfb("bind framebuffer for accumulator");
 
     // the sample
@@ -327,7 +309,7 @@ RenderGLPT::doRender(const CCamera& camera)
   check_glfb("bind framebuffer for tone map");
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_glF32AccumBuffer);
+  glBindTexture(GL_TEXTURE_2D, m_fbF32Accum->colorTextureId());
 
   m_toneMapShader->bind();
   m_toneMapShader->setShadingUniforms(1.0f / camera.m_Film.m_Exposure);
