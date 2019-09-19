@@ -288,20 +288,7 @@ qtome::saveImage()
     QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
   if (!file.isEmpty()) {
     // capture the viewport
-    /*
-    QPixmap pixmap = m_glView->capture();
-    if (pixmap.isNull()) {
-      qWarning("Failed to capture 3d viewport.");
-      return;
-    } else {
-      if (!pixmap.save(file)) {
-        qWarning("Couldn't save image file.");
-        return;
-      }
-    }
-        */
     QImage im = m_glView->captureQimage();
-
     im.save(file);
   }
 }

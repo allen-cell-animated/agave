@@ -335,13 +335,11 @@ GLView3D::capture()
 QImage
 GLView3D::captureQimage()
 {
-  //_openGLMutex->lock();
   makeCurrent();
 
   // Create a one-time FBO to receive the image
   QOpenGLFramebufferObjectFormat fboFormat;
   fboFormat.setAttachment(QOpenGLFramebufferObject::NoAttachment);
-  // fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
   fboFormat.setMipmap(false);
   fboFormat.setSamples(0);
   fboFormat.setTextureTarget(GL_TEXTURE_2D);
@@ -359,6 +357,7 @@ GLView3D::captureQimage()
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  // do a render into the temp framebuffer
   glViewport(0, 0, fbo->width(), fbo->height());
   m_renderer->render(m_CCamera);
   fbo->release();
@@ -366,8 +365,6 @@ GLView3D::captureQimage()
   QImage img(fbo->toImage());
 
   delete fbo;
-
-  // doneCurrent();
 
   return img;
 }
