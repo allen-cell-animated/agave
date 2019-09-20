@@ -233,7 +233,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       channelNames.push_back(QString("%1").arg(i));
     }
 
-  } else {
+  } else if (qomexmlstr.startsWith("<?xml version") && qomexmlstr.endsWith("OME>")) {
     // convert c to xml doc.  if this fails then we don't have an ome tif.
     QDomDocument omexml;
     bool ok = omexml.setContent(qomexmlstr);
@@ -286,6 +286,15 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
         channelNames.push_back(QString("%1").arg(i));
       }
     }
+  } else {
+    // unrecognized string / no metadata.
+    // walk the file and count the directories and assume that is Z
+    // sizeZ was initialized to 1.
+    sizeZ = 0;
+    while (TIFFSetDirectory(tiff, sizeZ)) {
+      sizeZ++;
+    };
+    channelNames.push_back("0");
   }
 
   assert(sizeX == width);
