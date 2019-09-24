@@ -52,20 +52,36 @@ GetCtrlKey()
 {
   return QGuiApplication::keyboardModifiers() & Qt::ControlModifier;
 }
+bool
+GetAltKey()
+{
+  return QGuiApplication::keyboardModifiers() & Qt::AltModifier;
+}
 
 void
 CameraController::OnMouseMove(QMouseEvent* event)
 {
   float devicePixelRatio = QApplication::desktop()->devicePixelRatioF();
-  // Orbiting
   if (event->buttons() & Qt::LeftButton) {
-    if (GetShiftKey() && GetCtrlKey()) {
+    if (GetCtrlKey()) {
+      // Zooming (Dolly): ctrl + left drag
       m_NewPos[0] = event->x();
       m_NewPos[1] = event->y();
 
-      m_qcamera->GetFocus().SetFocalDistance(std::max(
-        0.0f,
-        m_CCamera->m_Focus.m_FocalDistance + m_ApertureSpeed * (float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio));
+      m_CCamera->Zoom(-(float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio);
+
+      m_OldPos[0] = event->x();
+      m_OldPos[1] = event->y();
+
+      // Flag the camera as dirty, this will restart the rendering
+      m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+    } else if (GetAltKey()) {
+      // Panning (tracking): alt + left drag
+      m_NewPos[0] = event->x();
+      m_NewPos[1] = event->y();
+
+      m_CCamera->Pan(m_PanSpeed * (float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio,
+                     -m_PanSpeed * ((float)(m_NewPos[0] - m_OldPos[0]) / devicePixelRatio));
 
       m_OldPos[0] = event->x();
       m_OldPos[1] = event->y();
@@ -73,50 +89,25 @@ CameraController::OnMouseMove(QMouseEvent* event)
       // Flag the camera as dirty, this will restart the rendering
       m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
     } else {
-      if (GetShiftKey()) {
-        m_NewPos[0] = event->x();
-        m_NewPos[1] = event->y();
+      // Orbiting: unmodified left button
 
-        m_qcamera->GetAperture().SetSize(std::max(
-          0.0f,
-          m_CCamera->m_Aperture.m_Size + m_ApertureSpeed * (float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio));
+      m_NewPos[0] = event->x();
+      m_NewPos[1] = event->y();
+
+      if (m_NewPos[1] != m_OldPos[1] || m_NewPos[0] != m_OldPos[0]) {
+        m_CCamera->Trackball(-m_OrbitSpeed * (float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio,
+                             -m_OrbitSpeed * (float)(m_NewPos[0] - m_OldPos[0]) / devicePixelRatio);
 
         m_OldPos[0] = event->x();
         m_OldPos[1] = event->y();
 
         // Flag the camera as dirty, this will restart the rendering
         m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-      } else if (GetCtrlKey()) {
-        m_NewPos[0] = event->x();
-        m_NewPos[1] = event->y();
-
-        m_qcamera->GetProjection().SetFieldOfView(
-          std::max(0.0f, m_CCamera->m_FovV - m_FovSpeed * (float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio));
-
-        m_OldPos[0] = event->x();
-        m_OldPos[1] = event->y();
-
-        /// Flag the camera as dirty, this will restart the rendering
-        m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-      } else {
-        m_NewPos[0] = event->x();
-        m_NewPos[1] = event->y();
-
-        if (m_NewPos[1] != m_OldPos[1] || m_NewPos[0] != m_OldPos[0]) {
-          m_CCamera->Trackball(-m_OrbitSpeed * (float)(m_NewPos[1] - m_OldPos[1]) / devicePixelRatio,
-                               -m_OrbitSpeed * (float)(m_NewPos[0] - m_OldPos[0]) / devicePixelRatio);
-
-          m_OldPos[0] = event->x();
-          m_OldPos[1] = event->y();
-
-          // Flag the camera as dirty, this will restart the rendering
-          m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-        }
       }
     }
   }
 
-  // Panning
+  // Panning (tracking): middle mouse drag
   if (event->buttons() & Qt::MiddleButton) {
     m_NewPos[0] = event->x();
     m_NewPos[1] = event->y();
@@ -131,7 +122,7 @@ CameraController::OnMouseMove(QMouseEvent* event)
     m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
   }
 
-  // Zooming
+  // Zooming (Dolly): right mouse drag
   if (event->buttons() & Qt::RightButton) {
     m_NewPos[0] = event->x();
     m_NewPos[1] = event->y();
