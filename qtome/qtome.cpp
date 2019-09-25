@@ -266,12 +266,15 @@ qtome::saveImage()
 #endif
 
   const QByteArrayList supportedFormats = QImageWriter::supportedImageFormats();
+  static const QStringList desiredFormats = { "png", "jpg", "tif" };
 
   QStringList formatFilters;
   foreach (const QByteArray& supportedFormatName, supportedFormats) {
-    formatFilters.append("*." + supportedFormatName);
+    if (desiredFormats.contains(supportedFormatName.toLower())) {
+      formatFilters.append(supportedFormatName.toUpper() + " (*." + supportedFormatName + ")");
+    }
   }
-  QString allSupportedFormatsFilter = QString("Images (%1)").arg(formatFilters.join(' '));
+  QString allSupportedFormatsFilter = formatFilters.join(";;");
 
   QString file =
     QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
