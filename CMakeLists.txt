@@ -7,7 +7,7 @@ endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.4.1
+  VERSION 0.0.4.2
   LANGUAGES C CXX
 )
 
@@ -157,6 +157,11 @@ install(FILES
   $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
   DESTINATION ${INSTALLDIR}/platforms/
 )
+install(FILES 
+  $<TARGET_FILE:Qt5::QJpegPlugin>
+  $<TARGET_FILE:Qt5::QTiffPlugin>
+  DESTINATION ${INSTALLDIR}/imageformats/
+)
 
 ################
 elseif (APPLE)
@@ -182,6 +187,17 @@ install(FILES
   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/MacOS/platforms/
 )
+install(FILES 
+  $<TARGET_FILE:Qt5::QJpegPlugin>
+  $<TARGET_FILE:Qt5::QTiffPlugin>
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/PlugIns/imageformats/
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QJpegPlugin>
+  $<TARGET_FILE:Qt5::QTiffPlugin>
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/MacOS/imageformats/
+)
+
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
   "[Paths]\nPlugins = PlugIns\n")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
@@ -267,6 +283,11 @@ install(FILES
 install(FILES 
   $<TARGET_FILE:Qt5::QXcbIntegrationPlugin>
   DESTINATION ${INSTALLDIR}/platforms/
+)
+install(FILES 
+  $<TARGET_FILE:Qt5::QJpegPlugin>
+  $<TARGET_FILE:Qt5::QTiffPlugin>
+  DESTINATION ${INSTALLDIR}/imageformats/
 )
 
 endif (WIN32)
