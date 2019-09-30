@@ -21,6 +21,7 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam)
   m_SizeSlider.setSuffix(" mm");
   m_SizeSlider.setDecimals(3);
   m_SizeSlider.setValue(0.0);
+  m_SizeSlider.setSingleStep(0.01);
   m_Layout.addRow("Size", &m_SizeSlider);
 
   connect(&m_SizeSlider, SIGNAL(valueChanged(double)), this, SLOT(SetAperture(double)));

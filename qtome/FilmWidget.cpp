@@ -35,6 +35,9 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 
   m_ExposureSlider.setRange(0.0f, 1.0f);
   m_ExposureSlider.setValue(cam->GetFilm().GetExposure());
+  m_ExposureSlider.setDecimals(3);
+  m_ExposureSlider.setSingleStep(0.01);
+
   m_Layout.addRow("Exposure", &m_ExposureSlider);
 
   QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), this, SLOT(SetExposure(double)));
