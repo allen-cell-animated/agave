@@ -82,6 +82,8 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
 
+add_subdirectory(tfeditor)
+
 if (MSVC) 
 	target_sources(qtomeapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
 endif (MSVC)

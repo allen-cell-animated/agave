@@ -7,6 +7,7 @@
 #include "renderlib/AppScene.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
+#include "tfeditor/gradients.h"
 
 #include <QFormLayout>
 
@@ -640,6 +641,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
 
     auto* sectionLayout = Controls::createFormLayout();
+
+    GradientEditor* editor = new GradientEditor();
+    sectionLayout->addRow("Gradient", editor);
 
     QNumericSlider* windowSlider = new QNumericSlider();
     windowSlider->setRange(0.001, 1.0);
