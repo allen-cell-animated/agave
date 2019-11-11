@@ -116,69 +116,12 @@ private:
   ShadeWidget* m_alpha_shade;
 };
 
-class GradientRenderer : public QWidget
-{
-  Q_OBJECT
-
-public:
-  GradientRenderer(QWidget* parent);
-  void paint(QPainter* p);
-
-  QSize sizeHint() const override { return QSize(400, 400); }
-
-  HoverPoints* hoverPoints() const { return m_hoverPoints; }
-  void mousePressEvent(QMouseEvent* e) override;
-  void paintEvent(QPaintEvent* e) override;
-
-public slots:
-  void setGradientStops(const QGradientStops& stops);
-
-  void setPadSpread()
-  {
-    m_spread = QGradient::PadSpread;
-    update();
-  }
-  void setRepeatSpread()
-  {
-    m_spread = QGradient::RepeatSpread;
-    update();
-  }
-  void setReflectSpread()
-  {
-    m_spread = QGradient::ReflectSpread;
-    update();
-  }
-
-  void setLinearGradient()
-  {
-    m_gradientType = Qt::LinearGradientPattern;
-    update();
-  }
-  void setRadialGradient()
-  {
-    m_gradientType = Qt::RadialGradientPattern;
-    update();
-  }
-  void setConicalGradient()
-  {
-    m_gradientType = Qt::ConicalGradientPattern;
-    update();
-  }
-
-private:
-  QGradientStops m_stops;
-  HoverPoints* m_hoverPoints;
-
-  QGradient::Spread m_spread;
-  Qt::BrushStyle m_gradientType;
-};
-
 class GradientWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  GradientWidget(QWidget* parent);
+  GradientWidget(QWidget* parent = nullptr);
 
 public slots:
   void setDefault1() { setDefault(1); }
@@ -194,15 +137,8 @@ private:
   void updatePresetName();
   void changePresetBy(int indexOffset);
 
-  GradientRenderer* m_renderer;
   GradientEditor* m_editor;
 
-  QRadioButton* m_linearButton;
-  QRadioButton* m_radialButton;
-  QRadioButton* m_conicalButton;
-  QRadioButton* m_padSpreadButton;
-  QRadioButton* m_reflectSpreadButton;
-  QRadioButton* m_repeatSpreadButton;
   QPushButton* m_presetButton;
 
   int m_presetIndex = 0;

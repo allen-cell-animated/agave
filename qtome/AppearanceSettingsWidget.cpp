@@ -642,7 +642,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* sectionLayout = Controls::createFormLayout();
 
-    GradientEditor* editor = new GradientEditor();
+    GradientWidget* editor = new GradientWidget();
     sectionLayout->addRow("Gradient", editor);
 
     QNumericSlider* windowSlider = new QNumericSlider();

@@ -284,26 +284,12 @@ GradientWidget::GradientWidget(QWidget* parent)
 {
   setWindowTitle(tr("Gradients"));
 
-  m_renderer = new GradientRenderer(this);
-
   QGroupBox* mainGroup = new QGroupBox(this);
   mainGroup->setTitle(tr("Gradients"));
 
   QGroupBox* editorGroup = new QGroupBox(mainGroup);
   editorGroup->setTitle(tr("Color Editor"));
   m_editor = new GradientEditor(editorGroup);
-
-  QGroupBox* typeGroup = new QGroupBox(mainGroup);
-  typeGroup->setTitle(tr("Gradient Type"));
-  m_linearButton = new QRadioButton(tr("Linear Gradient"), typeGroup);
-  m_radialButton = new QRadioButton(tr("Radial Gradient"), typeGroup);
-  m_conicalButton = new QRadioButton(tr("Conical Gradient"), typeGroup);
-
-  QGroupBox* spreadGroup = new QGroupBox(mainGroup);
-  spreadGroup->setTitle(tr("Spread Method"));
-  m_padSpreadButton = new QRadioButton(tr("Pad Spread"), spreadGroup);
-  m_reflectSpreadButton = new QRadioButton(tr("Reflect Spread"), spreadGroup);
-  m_repeatSpreadButton = new QRadioButton(tr("Repeat Spread"), spreadGroup);
 
   QGroupBox* presetsGroup = new QGroupBox(mainGroup);
   presetsGroup->setTitle(tr("Presets"));
@@ -319,42 +305,19 @@ GradientWidget::GradientWidget(QWidget* parent)
   QPushButton* default3Button = new QPushButton(tr("3"), defaultsGroup);
   QPushButton* default4Button = new QPushButton(tr("Reset"), editorGroup);
 
-  QPushButton* showSourceButton = new QPushButton(mainGroup);
-  showSourceButton->setText(tr("Show Source"));
-
-  QPushButton* whatsThisButton = new QPushButton(mainGroup);
-  whatsThisButton->setText(tr("What's This?"));
-  whatsThisButton->setCheckable(true);
-
   // Layouts
   QHBoxLayout* mainLayout = new QHBoxLayout(this);
-  mainLayout->addWidget(m_renderer);
   mainLayout->addWidget(mainGroup);
 
   mainGroup->setFixedWidth(200);
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(mainGroup);
   mainGroupLayout->addWidget(editorGroup);
-  mainGroupLayout->addWidget(typeGroup);
-  mainGroupLayout->addWidget(spreadGroup);
   mainGroupLayout->addWidget(presetsGroup);
   mainGroupLayout->addWidget(defaultsGroup);
   mainGroupLayout->addStretch(1);
-  mainGroupLayout->addWidget(showSourceButton);
-
-  mainGroupLayout->addWidget(whatsThisButton);
 
   QVBoxLayout* editorGroupLayout = new QVBoxLayout(editorGroup);
   editorGroupLayout->addWidget(m_editor);
-
-  QVBoxLayout* typeGroupLayout = new QVBoxLayout(typeGroup);
-  typeGroupLayout->addWidget(m_linearButton);
-  typeGroupLayout->addWidget(m_radialButton);
-  typeGroupLayout->addWidget(m_conicalButton);
-
-  QVBoxLayout* spreadGroupLayout = new QVBoxLayout(spreadGroup);
-  spreadGroupLayout->addWidget(m_padSpreadButton);
-  spreadGroupLayout->addWidget(m_repeatSpreadButton);
-  spreadGroupLayout->addWidget(m_reflectSpreadButton);
 
   QHBoxLayout* presetsGroupLayout = new QHBoxLayout(presetsGroup);
   presetsGroupLayout->addWidget(prevPresetButton);
@@ -367,14 +330,7 @@ GradientWidget::GradientWidget(QWidget* parent)
   defaultsGroupLayout->addWidget(default3Button);
   editorGroupLayout->addWidget(default4Button);
 
-  connect(m_editor, &GradientEditor::gradientStopsChanged, m_renderer, &GradientRenderer::setGradientStops);
-  connect(m_linearButton, &QRadioButton::clicked, m_renderer, &GradientRenderer::setLinearGradient);
-  connect(m_radialButton, &QRadioButton::clicked, m_renderer, &GradientRenderer::setRadialGradient);
-  connect(m_conicalButton, &QRadioButton::clicked, m_renderer, &GradientRenderer::setConicalGradient);
-
-  connect(m_padSpreadButton, &QRadioButton::clicked, m_renderer, &GradientRenderer::setPadSpread);
-  connect(m_reflectSpreadButton, &QRadioButton::clicked, m_renderer, &GradientRenderer::setReflectSpread);
-  connect(m_repeatSpreadButton, &QRadioButton::clicked, m_renderer, &GradientRenderer::setRepeatSpread);
+  //  connect(m_editor, &GradientEditor::gradientStopsChanged, m_renderer, &GradientRenderer::setGradientStops);
 
   connect(prevPresetButton, &QPushButton::clicked, this, &GradientWidget::setPrevPreset);
   connect(m_presetButton, &QPushButton::clicked, this, &GradientWidget::setPreset);
@@ -384,11 +340,6 @@ GradientWidget::GradientWidget(QWidget* parent)
   connect(default2Button, &QPushButton::clicked, this, &GradientWidget::setDefault2);
   connect(default3Button, &QPushButton::clicked, this, &GradientWidget::setDefault3);
   connect(default4Button, &QPushButton::clicked, this, &GradientWidget::setDefault4);
-
-  // connect(showSourceButton, &QPushButton::clicked, m_renderer, &GradientRenderer::showSource);
-
-  // m_renderer->loadSourceFile(":res/gradients/gradients.cpp");
-  // m_renderer->loadDescription(":res/gradients/gradients.html");
 
   QTimer::singleShot(50, this, SLOT(setDefault1()));
 }
@@ -409,8 +360,6 @@ GradientWidget::setDefault(int config)
       stops << QGradientStop(0.92, QColor::fromRgba(0xff5353d9));
       stops << QGradientStop(0.96, QColor::fromRgba(0xff262666));
       stops << QGradientStop(1.00, QColor::fromRgba(0));
-      m_linearButton->animateClick();
-      m_repeatSpreadButton->animateClick();
       break;
 
     case 2:
@@ -422,8 +371,6 @@ GradientWidget::setDefault(int config)
       stops << QGradientStop(0.87, QColor::fromRgba(0xff264619));
       stops << QGradientStop(0.96, QColor::fromRgba(0xff0c1306));
       stops << QGradientStop(1.00, QColor::fromRgba(0));
-      m_radialButton->animateClick();
-      m_padSpreadButton->animateClick();
       break;
 
     case 3:
@@ -434,8 +381,6 @@ GradientWidget::setDefault(int config)
       stops << QGradientStop(0.72, QColor::fromRgba(0xff0680ac));
       stops << QGradientStop(0.92, QColor::fromRgba(0xffb9d9e6));
       stops << QGradientStop(1.00, QColor::fromRgba(0));
-      m_conicalButton->animateClick();
-      m_padSpreadButton->animateClick();
       break;
 
     case 4:
@@ -448,15 +393,7 @@ GradientWidget::setDefault(int config)
       break;
   }
 
-  QPolygonF pts;
-  int h_off = m_renderer->width() / 10;
-  int v_off = m_renderer->height() / 8;
-  pts << QPointF(m_renderer->width() / 2, m_renderer->height() / 2)
-      << QPointF(m_renderer->width() / 2 - h_off, m_renderer->height() / 2 - v_off);
-
   m_editor->setGradientStops(stops);
-  m_renderer->hoverPoints()->setPoints(pts);
-  m_renderer->setGradientStops(stops);
 }
 
 void
@@ -477,132 +414,7 @@ GradientWidget::changePresetBy(int indexOffset)
   if (gradient.type() != QGradient::LinearGradient)
     return;
 
-  QLinearGradient* linearGradientPointer = static_cast<QLinearGradient*>(&gradient);
-  QLineF objectStopsLine(linearGradientPointer->start(), linearGradientPointer->finalStop());
-  qreal scaleX = qFuzzyIsNull(objectStopsLine.dx()) ? 1.0 : (0.8 * m_renderer->width() / qAbs(objectStopsLine.dx()));
-  qreal scaleY = qFuzzyIsNull(objectStopsLine.dy()) ? 1.0 : (0.8 * m_renderer->height() / qAbs(objectStopsLine.dy()));
-  QLineF logicalStopsLine = QTransform::fromScale(scaleX, scaleY).map(objectStopsLine);
-  logicalStopsLine.translate(m_renderer->rect().center() - logicalStopsLine.center());
-  QPolygonF logicalStops;
-  logicalStops << logicalStopsLine.p1() << logicalStopsLine.p2();
-
-  m_linearButton->animateClick();
-  m_padSpreadButton->animateClick();
   m_editor->setGradientStops(gradient.stops());
-  m_renderer->hoverPoints()->setPoints(logicalStops);
-  m_renderer->setGradientStops(gradient.stops());
 
   updatePresetName();
-}
-
-GradientRenderer::GradientRenderer(QWidget* parent)
-  : QWidget(parent)
-{
-  m_hoverPoints = new HoverPoints(this, HoverPoints::CircleShape);
-  m_hoverPoints->setPointSize(QSize(20, 20));
-  m_hoverPoints->setConnectionType(HoverPoints::NoConnection);
-  m_hoverPoints->setEditable(false);
-
-  QVector<QPointF> points;
-  points << QPointF(100, 100) << QPointF(200, 200);
-  m_hoverPoints->setPoints(points);
-
-  m_spread = QGradient::PadSpread;
-  m_gradientType = Qt::LinearGradientPattern;
-}
-
-void
-GradientRenderer::setGradientStops(const QGradientStops& stops)
-{
-  m_stops = stops;
-  update();
-}
-
-void
-GradientRenderer::mousePressEvent(QMouseEvent*)
-{
-  // setDescriptionEnabled(false);
-}
-
-void
-GradientRenderer::paintEvent(QPaintEvent* e)
-{
-  static QImage* static_image = 0;
-
-  QPainter painter;
-
-  painter.begin(this);
-
-  painter.setClipRect(e->rect());
-
-  painter.setRenderHint(QPainter::Antialiasing);
-
-  QPainterPath clipPath;
-
-  QRect r = rect();
-  qreal left = r.x() + 1;
-  qreal top = r.y() + 1;
-  qreal right = r.right();
-  qreal bottom = r.bottom();
-  qreal radius2 = 8 * 2;
-
-  clipPath.moveTo(right - radius2, top);
-  clipPath.arcTo(right - radius2, top, radius2, radius2, 90, -90);
-  clipPath.arcTo(right - radius2, bottom - radius2, radius2, radius2, 0, -90);
-  clipPath.arcTo(left, bottom - radius2, radius2, radius2, 270, -90);
-  clipPath.arcTo(left, top, radius2, radius2, 180, -90);
-  clipPath.closeSubpath();
-
-  painter.save();
-  // painter.setClipPath(clipPath, Qt::IntersectClip);
-
-  // painter.drawTiledPixmap(rect(), m_tile);
-
-  // client painting
-
-  paint(&painter);
-
-  painter.restore();
-
-  painter.save();
-  // if (m_show_doc)
-  //  paintDescription(&painter);
-  painter.restore();
-
-  int level = 180;
-  painter.setPen(QPen(QColor(level, level, level), 2));
-  painter.setBrush(Qt::NoBrush);
-  painter.drawPath(clipPath);
-}
-
-void
-GradientRenderer::paint(QPainter* p)
-{
-  QPolygonF pts = m_hoverPoints->points();
-
-  QGradient g;
-
-  if (m_gradientType == Qt::LinearGradientPattern) {
-    g = QLinearGradient(pts.at(0), pts.at(1));
-
-  } else if (m_gradientType == Qt::RadialGradientPattern) {
-    g = QRadialGradient(pts.at(0), qMin(width(), height()) / 3.0, pts.at(1));
-
-  } else {
-    QLineF l(pts.at(0), pts.at(1));
-    qreal angle = l.angle(QLineF(0, 0, 1, 0));
-    if (l.dy() > 0)
-      angle = 360 - angle;
-    g = QConicalGradient(pts.at(0), angle);
-  }
-
-  for (int i = 0; i < m_stops.size(); ++i)
-    g.setColorAt(m_stops.at(i).first, m_stops.at(i).second);
-
-  g.setSpread(m_spread);
-
-  p->setBrush(g);
-  p->setPen(Qt::NoPen);
-
-  p->drawRect(rect());
 }
