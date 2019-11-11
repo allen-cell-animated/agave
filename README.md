@@ -17,6 +17,8 @@ Use vcpkg to install boost, tiff, glm.
 mkdir build
 cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 15 2017 Win64" -DVCPKG_TARGET_TRIPLET=x64-windows ..
+OR (vs 2019 with v141 (vs2017) toolset installed.   vs2017 required due to qt build version)
+cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64 -T v141 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
 ```
 
