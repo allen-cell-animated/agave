@@ -139,7 +139,17 @@ ShadeWidget::paintEvent(QPaintEvent*)
 
   QPainter p(this);
   p.drawImage(0, 0, m_shade);
+  /*
+        qreal barWidth = width() / (qreal)m_histogram.size();
 
+      for (int i = 0; i < m_histogram.size(); ++i) {
+          qreal h = m_histogram[i] * height();
+          // draw level
+          painter.fillRect(barWidth * i, height() - h, barWidth * (i + 1), height(), Qt::red);
+          // clear the rest of the control
+          painter.fillRect(barWidth * i, 0, barWidth * (i + 1), height() - h, Qt::black);
+      }
+  */
   p.setPen(QColor(146, 146, 146));
   p.drawRect(0, 0, width() - 1, height() - 1);
 }
@@ -192,14 +202,14 @@ GradientEditor::GradientEditor(QWidget* parent)
   m_blue_shade = new ShadeWidget(ShadeWidget::BlueShade, this);
   m_alpha_shade = new ShadeWidget(ShadeWidget::ARGBShade, this);
 
-  vbox->addWidget(m_red_shade);
-  vbox->addWidget(m_green_shade);
-  vbox->addWidget(m_blue_shade);
+  //  vbox->addWidget(m_red_shade);
+  //  vbox->addWidget(m_green_shade);
+  //  vbox->addWidget(m_blue_shade);
   vbox->addWidget(m_alpha_shade);
 
-  connect(m_red_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
-  connect(m_green_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
-  connect(m_blue_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
+  //  connect(m_red_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
+  //  connect(m_green_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
+  //  connect(m_blue_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
   connect(m_alpha_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
 }
 
@@ -341,7 +351,15 @@ GradientWidget::GradientWidget(QWidget* parent)
   connect(default3Button, &QPushButton::clicked, this, &GradientWidget::setDefault3);
   connect(default4Button, &QPushButton::clicked, this, &GradientWidget::setDefault4);
 
+  connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
+
   QTimer::singleShot(50, this, SLOT(setDefault1()));
+}
+
+void
+GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
+{
+  emit gradientStopsChanged(stops);
 }
 
 void

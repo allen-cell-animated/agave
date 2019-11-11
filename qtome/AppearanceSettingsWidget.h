@@ -39,6 +39,8 @@ public:
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
+  void OnUpdateLut(int i, const QGradientStops& stops);
+
   void OnSetWindowLevel(int i, double window, double level);
   void OnOpacityChanged(int i, double opacity);
   void OnRoughnessChanged(int i, double roughness);

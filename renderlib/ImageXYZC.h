@@ -62,6 +62,11 @@ struct Channelu16
     delete[] m_lut;
     m_lut = m_histogram.initialize_thresholds();
   }
+  void generate_controlPoints(std::vector<std::pair<float, float>> pts)
+  {
+    delete[] m_lut;
+    m_lut = m_histogram.generate_controlPoints(pts);
+  }
   void generate_equalized()
   {
     delete[] m_lut;

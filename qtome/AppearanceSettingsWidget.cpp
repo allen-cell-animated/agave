@@ -10,6 +10,7 @@
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
+#include <QLinearGradient>
 
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransferFunction* tran, RenderSettings* rs)
   : QGroupBox(pParent)
@@ -527,6 +528,24 @@ QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
   m_scene->m_material.m_emissive[i * 3 + 2] = rgba[2];
   m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+
+void
+QAppearanceSettingsWidget::OnUpdateLut(int i, const QGradientStops& stops)
+{
+  if (!m_scene)
+    return;
+  LOG_DEBUG << "update LUT";
+
+  // convert stops to control points
+  std::vector<std::pair<float, float>> pts;
+  for (int i = 0; i < stops.size(); ++i) {
+    pts.push_back(std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+  }
+
+  m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(pts);
+  m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
 void
 QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
 {
@@ -642,8 +661,13 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* sectionLayout = Controls::createFormLayout();
 
+    // GradientWidget* editor = new GradientWidget(scene->m_volume->channel(i));
     GradientWidget* editor = new GradientWidget();
     sectionLayout->addRow("Gradient", editor);
+
+    QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
+      this->OnUpdateLut(i, stops);
+    });
 
     QNumericSlider* windowSlider = new QNumericSlider();
     windowSlider->setRange(0.001, 1.0);

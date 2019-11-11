@@ -131,6 +131,10 @@ public slots:
   void setPreset() { changePresetBy(0); }
   void setPrevPreset() { changePresetBy(-1); }
   void setNextPreset() { changePresetBy(1); }
+  void onGradientStopsChanged(const QGradientStops& stops);
+
+signals:
+  void gradientStopsChanged(const QGradientStops& stops);
 
 private:
   void setDefault(int i);
