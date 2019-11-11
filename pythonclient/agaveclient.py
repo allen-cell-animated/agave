@@ -1,3 +1,4 @@
+# require pillow, numpy, ws4py
 from ws4py.client.threadedclient import WebSocketClient
 import io
 import json
@@ -7,9 +8,9 @@ import numpy
 from PIL import Image
 from commandbuffer import CommandBuffer
 from collections import deque
-import matplotlib
+# import matplotlib
 
-matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg")
 
 
 def lerp(startframe, endframe, startval, endval):
