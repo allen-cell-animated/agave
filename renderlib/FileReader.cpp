@@ -400,15 +400,12 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
 
   LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
 
-  // we can release the smartPtr because ImageXYZC will now own the raw data memory
-  uint8_t* releasedPtr = smartPtr.release();
-  assert(releasedPtr == data);
-
   // TODO: convert data to uint16_t pixels.
 
   timer.start();
-  ImageXYZC* im =
-    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), data, physicalSizeX, physicalSizeY, physicalSizeZ);
+  // we can release the smartPtr because ImageXYZC will now own the raw data memory
+  ImageXYZC* im = new ImageXYZC(
+    sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), smartPtr.release(), physicalSizeX, physicalSizeY, physicalSizeZ);
   LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
   im->setChannelNames(channelNames);
