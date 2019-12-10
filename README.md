@@ -27,6 +27,10 @@ For Mac: (using macports)
 sudo port install boost
 sudo port install glm
 sudo port install tiff
+
+# or
+brew install boost glm libtiff
+
 mkdir build
 cd build
 cmake ..

@@ -15,7 +15,7 @@ target_include_directories(renderlib PUBLIC
 	${GLAD_DIR}
 )
 target_compile_definitions(renderlib PUBLIC
-	-DBOOST_ALL_DYN_LINK
+	BOOST_ALL_DYN_LINK
 )
 target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.cpp"
