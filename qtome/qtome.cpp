@@ -318,6 +318,10 @@ qtome::open(const QString& file, const ViewerState* vs)
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
     std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
+    if (!image) {
+      LOG_DEBUG << "Failed to open " << file.toStdString();    
+      return;
+    }
 
     // install the new volume image into the scene.
     // this is deref'ing the previous _volume shared_ptr.
