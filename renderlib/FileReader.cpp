@@ -421,3 +421,57 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   }
   return sharedImage;
 }
+
+std::shared_ptr<ImageXYZC>
+FileReader::loadFromArray_4D(uint8_t* dataArray,
+                             std::vector<uint32_t> shape,
+                             const std::string& name,
+                             std::vector<char> dims,
+                             std::vector<std::string> channelNames,
+                             std::vector<float> physicalSizes,
+                             bool addToCache)
+{
+  // check cache first of all.
+  auto cached = sPreloadedImageCache.find(name);
+  if (cached != sPreloadedImageCache.end()) {
+    return cached->second;
+  }
+
+  // assume data is in CZYX order
+
+  size_t ndim = shape.size();
+  assert(ndim == 4);
+
+  uint32_t bpp = 16;
+  uint32_t sizeT = 1;
+  uint32_t sizeX = shape[ndim - 1];
+  uint32_t sizeY = shape[ndim - 2];
+  uint32_t sizeZ = shape[ndim - 3];
+  uint32_t sizeC = shape[ndim - 4];
+  assert(physicalSizes.size() == 3);
+  float physicalSizeX = physicalSizes[0];
+  float physicalSizeY = physicalSizes[1];
+  float physicalSizeZ = physicalSizes[2];
+
+  // product of all shape elements must equal number of elements in dataArray
+  // dims must either be empty or must be of same length as shape, and end in (Y, X), and start with CZ or ZC or Z ?
+
+  QElapsedTimer timer;
+  timer.start();
+  // we can release the smartPtr because ImageXYZC will now own the raw data memory
+  ImageXYZC* im =
+    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ);
+  LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
+
+  std::vector<QString> qchannelNames;
+  for (auto name : channelNames) {
+    qchannelNames.push_back(QString::fromStdString(name));
+  }
+  im->setChannelNames(qchannelNames);
+
+  std::shared_ptr<ImageXYZC> sharedImage(im);
+  if (addToCache) {
+    sPreloadedImageCache[name] = sharedImage;
+  }
+  return sharedImage;
+}
