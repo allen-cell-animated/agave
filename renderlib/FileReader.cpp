@@ -434,17 +434,18 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
     return cached->second;
   }
 
-  // assume data is in CZYX order
+  // assume data is in CZYX order:
+  static const XDIM = 3, YDIM = 2, ZDIM = 1, CDIM = 0;
 
   size_t ndim = shape.size();
   assert(ndim == 4);
 
   uint32_t bpp = 16;
   uint32_t sizeT = 1;
-  uint32_t sizeX = shape[ndim - 1];
-  uint32_t sizeY = shape[ndim - 2];
-  uint32_t sizeZ = shape[ndim - 3];
-  uint32_t sizeC = shape[ndim - 4];
+  uint32_t sizeX = shape[XDIM];
+  uint32_t sizeY = shape[YDIM];
+  uint32_t sizeZ = shape[ZDIM];
+  uint32_t sizeC = shape[CDIM];
   assert(physicalSizes.size() == 3);
   float physicalSizeX = physicalSizes[0];
   float physicalSizeY = physicalSizes[1];
