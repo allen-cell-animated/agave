@@ -319,7 +319,7 @@ Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size
         // what fraction of this interval in x?
         float fxi = (fx - pts[i].first) / (pts[i + 1].first - pts[i].first);
         // use that fraction against y range
-        lut[x] = fxi * (pts[i + 1].second - pts[i].second);
+        lut[x] = pts[i].second + fxi * (pts[i + 1].second - pts[i].second);
         break;
       }
     }
