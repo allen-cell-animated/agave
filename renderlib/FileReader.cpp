@@ -456,7 +456,8 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
 
   QElapsedTimer timer;
   timer.start();
-  // we can release the smartPtr because ImageXYZC will now own the raw data memory
+
+  // note that im will take ownership of dataArray
   ImageXYZC* im =
     new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ);
   LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
