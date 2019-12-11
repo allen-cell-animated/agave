@@ -168,7 +168,7 @@ ShadeWidget::generateShade()
 
       p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
       QLinearGradient fade(0, 0, 0, height()-1);
-      fade.setColorAt(0, QColor(0, 0, 0, 255));
+      fade.setColorAt(0, QColor(255, 255, 255, 255));
       fade.setColorAt(1, QColor(0, 0, 0, 0));
       p.fillRect(rect(), fade);
 

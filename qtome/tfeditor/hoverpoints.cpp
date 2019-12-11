@@ -61,7 +61,8 @@ HoverPoints::HoverPoints(QWidget* widget, PointShape shape)
   widget->installEventFilter(this);
   widget->setAttribute(Qt::WA_AcceptTouchEvents);
 
-  m_connectionType = CurveConnection;
+  //m_connectionType = CurveConnection;
+  m_connectionType = LineConnection;
   m_sortType = NoSort;
   m_shape = shape;
   m_pointPen = QPen(QColor(255, 255, 255, 191), 1);
