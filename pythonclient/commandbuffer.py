@@ -59,6 +59,7 @@ COMMANDS = {
     "MAT_OPACITY": [33, "I32", "F32"],
     "SET_PRIMARY_RAY_STEP_SIZE": [34, "F32"],
     "SET_SECONDARY_RAY_STEP_SIZE": [35, "F32"],
+    "BACKGROUND_COLOR": [36, "F32", "F32", "F32"],
 }
 
 

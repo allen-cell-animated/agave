@@ -660,6 +660,10 @@ qtome::appToViewerState()
   v.m_scaleY = m_appScene.m_volume->physicalSizeY();
   v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
 
+  v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
+                                  m_appScene.m_material.m_backgroundColor[1],
+                                  m_appScene.m_material.m_backgroundColor[2]);
+
   v.m_resolutionX = m_glView->size().width();
   v.m_resolutionY = m_glView->size().height();
   v.m_renderIterations = m_renderSettings.GetNoIterations();
