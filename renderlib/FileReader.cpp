@@ -435,7 +435,7 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
   }
 
   // assume data is in CZYX order:
-  static const XDIM = 3, YDIM = 2, ZDIM = 1, CDIM = 0;
+  static const int XDIM = 3, YDIM = 2, ZDIM = 1, CDIM = 0;
 
   size_t ndim = shape.size();
   assert(ndim == 4);
