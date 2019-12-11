@@ -311,13 +311,13 @@ bound_point(const QPointF& point, const QRectF& bounds, int lock)
 
   if (p.x() < left || (lock & HoverPoints::LockToLeft))
     p.setX(left);
-  else if (p.x() > right || (lock & HoverPoints::LockToRight))
-    p.setX(right);
+  else if (p.x() >= right || (lock & HoverPoints::LockToRight))
+    p.setX(right - 1);
 
   if (p.y() < top || (lock & HoverPoints::LockToTop))
     p.setY(top);
-  else if (p.y() > bottom || (lock & HoverPoints::LockToBottom))
-    p.setY(bottom);
+  else if (p.y() >= bottom || (lock & HoverPoints::LockToBottom))
+    p.setY(bottom - 1);
 
   return p;
 }

@@ -167,7 +167,7 @@ ShadeWidget::generateShade()
       p.fillRect(rect(), m_alpha_gradient);
 
       p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-      QLinearGradient fade(0, 0, 0, height());
+      QLinearGradient fade(0, 0, 0, height()-1);
       fade.setColorAt(0, QColor(0, 0, 0, 255));
       fade.setColorAt(1, QColor(0, 0, 0, 0));
       p.fillRect(rect(), fade);
@@ -239,10 +239,12 @@ GradientEditor::pointsUpdated()
     qreal x = int(points.at(i).x());
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
-    QColor color((0x00ff0000 & m_alpha_shade->colorAt(int(x))) >> 16,
-                 (0x0000ff00 & m_alpha_shade->colorAt(int(x))) >> 8,
-                 (0x000000ff & m_alpha_shade->colorAt(int(x))),
-                 (0xff000000 & m_alpha_shade->colorAt(int(x))) >> 24);
+    unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
+    unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
+    unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
+    unsigned int b = (0x000000ff & pixelvalue);
+    unsigned int a = (0xff000000 & pixelvalue) >> 24;
+    QColor color(r,g,b,a);
 
     if (x / w > 1)
       return;
