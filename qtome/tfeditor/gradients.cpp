@@ -197,9 +197,9 @@ GradientEditor::GradientEditor(QWidget* parent)
   vbox->setSpacing(1);
   vbox->setMargin(1);
 
-  m_red_shade = new ShadeWidget(ShadeWidget::RedShade, this);
-  m_green_shade = new ShadeWidget(ShadeWidget::GreenShade, this);
-  m_blue_shade = new ShadeWidget(ShadeWidget::BlueShade, this);
+  //m_red_shade = new ShadeWidget(ShadeWidget::RedShade, this);
+  //m_green_shade = new ShadeWidget(ShadeWidget::GreenShade, this);
+  //m_blue_shade = new ShadeWidget(ShadeWidget::BlueShade, this);
   m_alpha_shade = new ShadeWidget(ShadeWidget::ARGBShade, this);
 
   //  vbox->addWidget(m_red_shade);
@@ -228,9 +228,9 @@ GradientEditor::pointsUpdated()
 
   QPolygonF points;
 
-  points += m_red_shade->points();
-  points += m_green_shade->points();
-  points += m_blue_shade->points();
+  //points += m_red_shade->points();
+  //points += m_green_shade->points();
+  //points += m_blue_shade->points();
   points += m_alpha_shade->points();
 
   std::sort(points.begin(), points.end(), x_less_than);
@@ -239,9 +239,9 @@ GradientEditor::pointsUpdated()
     qreal x = int(points.at(i).x());
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
-    QColor color((0x00ff0000 & m_red_shade->colorAt(int(x))) >> 16,
-                 (0x0000ff00 & m_green_shade->colorAt(int(x))) >> 8,
-                 (0x000000ff & m_blue_shade->colorAt(int(x))),
+    QColor color((0x00ff0000 & m_alpha_shade->colorAt(int(x))) >> 16,
+                 (0x0000ff00 & m_alpha_shade->colorAt(int(x))) >> 8,
+                 (0x000000ff & m_alpha_shade->colorAt(int(x))),
                  (0xff000000 & m_alpha_shade->colorAt(int(x))) >> 24);
 
     if (x / w > 1)
@@ -269,23 +269,23 @@ GradientEditor::setGradientStops(const QGradientStops& stops)
 {
   QPolygonF pts_red, pts_green, pts_blue, pts_alpha;
 
-  qreal h_red = m_red_shade->height();
-  qreal h_green = m_green_shade->height();
-  qreal h_blue = m_blue_shade->height();
+  //qreal h_red = m_red_shade->height();
+  //qreal h_green = m_green_shade->height();
+  //qreal h_blue = m_blue_shade->height();
   qreal h_alpha = m_alpha_shade->height();
 
   for (int i = 0; i < stops.size(); ++i) {
     qreal pos = stops.at(i).first;
     QRgb color = stops.at(i).second.rgba();
-    pts_red << QPointF(pos * m_red_shade->width(), h_red - qRed(color) * h_red / 255);
-    pts_green << QPointF(pos * m_green_shade->width(), h_green - qGreen(color) * h_green / 255);
-    pts_blue << QPointF(pos * m_blue_shade->width(), h_blue - qBlue(color) * h_blue / 255);
+    //pts_red << QPointF(pos * m_red_shade->width(), h_red - qRed(color) * h_red / 255);
+    //pts_green << QPointF(pos * m_green_shade->width(), h_green - qGreen(color) * h_green / 255);
+    //pts_blue << QPointF(pos * m_blue_shade->width(), h_blue - qBlue(color) * h_blue / 255);
     pts_alpha << QPointF(pos * m_alpha_shade->width(), h_alpha - qAlpha(color) * h_alpha / 255);
   }
 
-  set_shade_points(pts_red, m_red_shade);
-  set_shade_points(pts_green, m_green_shade);
-  set_shade_points(pts_blue, m_blue_shade);
+  //set_shade_points(pts_red, m_red_shade);
+  //set_shade_points(pts_green, m_green_shade);
+  //set_shade_points(pts_blue, m_blue_shade);
   set_shade_points(pts_alpha, m_alpha_shade);
 }
 
@@ -353,7 +353,7 @@ GradientWidget::GradientWidget(QWidget* parent)
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
 
-  QTimer::singleShot(50, this, SLOT(setDefault1()));
+  QTimer::singleShot(50, this, SLOT(setDefault4()));
 }
 
 void
