@@ -25,7 +25,7 @@ void
 ScriptServer::runScriptFile(const std::string& path)
 {
   py::scoped_interpreter guard{}; // start the interpreter and keep it alive
-
+  auto agave_module = py::module::import("agave");
   py::print("Hello, World!"); // use the Python API
 }
 
