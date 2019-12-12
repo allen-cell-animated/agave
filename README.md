@@ -2,7 +2,8 @@ AGAVE : Advanced GPU Accelerated Volume Explorer
 
 Agave is a desktop application for viewing 16-bit unsigned multichannel ome-tif files.
 
-The code is currently organized into two sections: 
+The code is currently organized into two sections:
+
 1. qtome is the Qt front end of the application
 2. renderlib is the code responsible for dealing with volume images and rendering them
 

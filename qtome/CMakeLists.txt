@@ -81,6 +81,7 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
+add_subdirectory(python)
 
 if (MSVC) 
 	target_sources(qtomeapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
@@ -91,6 +92,7 @@ target_link_libraries(qtomeapp
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
+	pybind11::embed 
 )
 
 install(TARGETS qtomeapp
