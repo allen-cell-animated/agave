@@ -8,7 +8,7 @@ add(int i, int j)
   return i + j;
 }
 
-PYBIND11_MODULE(agave, m)
+PYBIND11_EMBEDDED_MODULE(agave, m)
 {
   m.doc() = "agave plugin"; // optional module docstring
 
