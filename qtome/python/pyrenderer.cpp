@@ -35,12 +35,14 @@ OffscreenRenderer::myVolumeInit()
 
   myVolumeData._camera = new CCamera();
   myVolumeData._camera->m_Film.m_ExposureIterations = 1;
+  myVolumeData._camera->m_Film.m_Resolution.SetResX(_width);
+  myVolumeData._camera->m_Film.m_Resolution.SetResY(_height);
 
   myVolumeData._scene = new Scene();
   myVolumeData._scene->initLights();
 
   myVolumeData._renderer = new RenderGLPT(myVolumeData._renderSettings);
-  myVolumeData._renderer->initialize(1024, 1024);
+  myVolumeData._renderer->initialize(_width, _height);
   myVolumeData._renderer->setScene(myVolumeData._scene);
 
   // execution context for commands to run
@@ -76,8 +78,6 @@ OffscreenRenderer::init()
   this->context->moveToThread(this);*/
   this->context->makeCurrent(this->surface);
 
-  myVolumeInit();
-
   // int status = gladLoadGL();
   // if (!status) {
   //  LOG_INFO << "COULD NOT LOAD GL";
@@ -96,6 +96,8 @@ OffscreenRenderer::init()
   glEnable(GL_MULTISAMPLE);
 
   reset();
+
+  myVolumeInit();
 
   this->context->doneCurrent();
 }
@@ -139,7 +141,9 @@ OffscreenRenderer::render()
 
   // COPY TO MY FBO
   this->fbo->bind();
-  glViewport(0, 0, fbo->width(), fbo->height());
+  int vw = fbo->width();
+  int vh = fbo->height();
+  glViewport(0, 0, vw, vh);
   myVolumeData._renderer->drawImage();
   this->fbo->release();
 
@@ -333,8 +337,13 @@ OffscreenRenderer::Redraw()
 int
 OffscreenRenderer::SetResolution(int32_t x, int32_t y)
 {
-  SetResolutionCommand cmd({ x, y });
-  cmd.execute(&m_ec);
+  m_ec.m_camera->m_Film.m_Resolution.SetResX(x);
+  m_ec.m_camera->m_Film.m_Resolution.SetResY(y);
+  this->resizeGL(x, y);
+  m_ec.m_renderSettings->SetNoIterations(0);
+
+  // SetResolutionCommand cmd({ x, y });
+  // cmd.execute(&m_ec);
   return 1;
 }
 int

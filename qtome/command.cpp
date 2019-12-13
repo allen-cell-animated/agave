@@ -34,6 +34,9 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
   QFileInfo info(QString(m_data.m_name.c_str()));
   if (info.exists()) {
     std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(m_data.m_name);
+    if (!image) {
+      return;
+    }
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -53,7 +56,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
-
+    c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     // fire back some json immediately...
     QJsonObject j;
     j["commandId"] = (int)LoadOmeTifCommand::m_ID;
