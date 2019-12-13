@@ -56,7 +56,6 @@ void
 OffscreenRenderer::init()
 {
   LOG_DEBUG << "INIT RENDERER";
-  myVolumeInit();
 
   // this->setFixedSize(1920, 1080);
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
@@ -76,6 +75,8 @@ OffscreenRenderer::init()
   /*this->context->doneCurrent();
   this->context->moveToThread(this);*/
   this->context->makeCurrent(this->surface);
+
+  myVolumeInit();
 
   // int status = gladLoadGL();
   // if (!status) {
