@@ -44,6 +44,8 @@ Renderer::myVolumeInit()
 
   myVolumeData._camera = new CCamera();
   myVolumeData._camera->m_Film.m_ExposureIterations = 1;
+  myVolumeData._camera->m_Film.m_Resolution.SetResX(1024);
+  myVolumeData._camera->m_Film.m_Resolution.SetResY(1024);
 
   myVolumeData._scene = new Scene();
   myVolumeData._scene->initLights();
