@@ -40,18 +40,20 @@ Renderer::~Renderer()
 void
 Renderer::myVolumeInit()
 {
+  static const int initWidth = 1024, initHeight = 1024;
+
   myVolumeData._renderSettings = new RenderSettings();
 
   myVolumeData._camera = new CCamera();
   myVolumeData._camera->m_Film.m_ExposureIterations = 1;
-  myVolumeData._camera->m_Film.m_Resolution.SetResX(1024);
-  myVolumeData._camera->m_Film.m_Resolution.SetResY(1024);
+  myVolumeData._camera->m_Film.m_Resolution.SetResX(initWidth);
+  myVolumeData._camera->m_Film.m_Resolution.SetResY(initHeight);
 
   myVolumeData._scene = new Scene();
   myVolumeData._scene->initLights();
 
   myVolumeData._renderer = new RenderGLPT(myVolumeData._renderSettings);
-  myVolumeData._renderer->initialize(1024, 1024);
+  myVolumeData._renderer->initialize(initWidth, initHeight);
   myVolumeData._renderer->setScene(myVolumeData._scene);
 }
 
