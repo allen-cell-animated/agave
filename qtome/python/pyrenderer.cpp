@@ -55,6 +55,7 @@ OffscreenRenderer::myVolumeInit()
 void
 OffscreenRenderer::init()
 {
+  LOG_DEBUG << "INIT RENDERER";
   myVolumeInit();
 
   // this->setFixedSize(1920, 1080);
@@ -214,8 +215,9 @@ OffscreenRenderer::shutDown()
 
 // tell server to identify this session?
 int
-OffscreenRenderer::Session(const std::string&)
+OffscreenRenderer::Session(const std::string& s)
 {
+  m_session = s;
   return 1;
 }
 // tell server where files might be (appends to existing)
@@ -323,8 +325,8 @@ int OffscreenRenderer::StreamMode(int32_t)
 int
 OffscreenRenderer::Redraw()
 {
-  // DO THE DRAW AND DEAL WITH THE QIMAGE SOMEWHERE
-  // RequestRedrawCommand cmd
+  m_lastRenderedImage = this->render();
+  m_lastRenderedImage.save(QString::fromStdString(m_session));
   return 1;
 }
 int

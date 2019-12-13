@@ -17,6 +17,7 @@
 #include <QThread>
 
 #include <memory>
+#include <string>
 
 class commandBuffer;
 class CCamera;
@@ -129,6 +130,9 @@ private:
   } myVolumeData;
 
   ExecutionContext m_ec;
+
+  QImage m_lastRenderedImage;
+  std::string m_session;
 };
 
 #endif // OFFSCREEN_RENDERER_H

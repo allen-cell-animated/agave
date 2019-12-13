@@ -319,7 +319,7 @@ qtome::open(const QString& file, const ViewerState* vs)
 
     std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
     if (!image) {
-      LOG_DEBUG << "Failed to open " << file.toStdString();    
+      LOG_DEBUG << "Failed to open " << file.toStdString();
       return;
     }
 
