@@ -7,9 +7,6 @@
 #include "renderlib/RenderSettings.h"
 #include "renderlib/renderlib.h"
 
-#include "command.h"
-#include "commandBuffer.h"
-
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QMessageBox>
@@ -45,6 +42,14 @@ OffscreenRenderer::myVolumeInit()
   myVolumeData._renderer = new RenderGLPT(myVolumeData._renderSettings);
   myVolumeData._renderer->initialize(1024, 1024);
   myVolumeData._renderer->setScene(myVolumeData._scene);
+
+  // execution context for commands to run
+  m_ec.m_renderSettings = myVolumeData._renderSettings;
+  // RENDERER MUST SUPPORT RESIZEGL AND SETSTREAMMODE; SEE command.cpp
+  m_ec.m_renderer = nullptr;
+  m_ec.m_appScene = myVolumeData._scene;
+  m_ec.m_camera = myVolumeData._camera;
+  m_ec.m_message = "";
 }
 
 void
@@ -203,4 +208,279 @@ OffscreenRenderer::shutDown()
 
   // schedule this to be deleted only after we're done cleaning up
   surface->deleteLater();
+}
+
+// RenderInterface
+
+// tell server to identify this session?
+int
+OffscreenRenderer::Session(const std::string&)
+{
+  return 1;
+}
+// tell server where files might be (appends to existing)
+int
+OffscreenRenderer::AssetPath(const std::string&)
+{
+  return 1;
+}
+// load a volume
+int
+OffscreenRenderer::LoadOmeTif(const std::string& s)
+{
+  LoadOmeTifCommand cmd({ s });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// set camera pos
+int
+OffscreenRenderer::Eye(float x, float y, float z)
+{
+  SetCameraPosCommand cmd({ x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// set camera target pt
+int
+OffscreenRenderer::Target(float x, float y, float z)
+{
+  SetCameraTargetCommand cmd({ x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// set camera up direction
+int
+OffscreenRenderer::Up(float x, float y, float z)
+{
+  SetCameraUpCommand cmd({ x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::Aperture(float x)
+{
+  SetCameraApertureCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// perspective(0)/ortho(1), fov(degrees)/orthoscale(world units)
+int
+OffscreenRenderer::CameraProjection(int32_t t, float x)
+{
+  SetCameraProjectionCommand cmd({ t, x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::Focaldist(float x)
+{
+  SetCameraFocalDistanceCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::Exposure(float x)
+{
+  SetCameraExposureCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::MatDiffuse(int32_t c, float r, float g, float b, float a)
+{
+  SetDiffuseColorCommand cmd({ c, r, g, b, a });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::MatSpecular(int32_t c, float r, float g, float b, float a)
+{
+  SetSpecularColorCommand cmd({ c, r, g, b, a });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::MatEmissive(int32_t c, float r, float g, float b, float a)
+{
+  SetEmissiveColorCommand cmd({ c, r, g, b, a });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// set num render iterations
+int
+OffscreenRenderer::RenderIterations(int32_t x)
+{
+  SetRenderIterationsCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// (continuous or on-demand frames)
+int OffscreenRenderer::StreamMode(int32_t)
+{
+  return 1;
+}
+// request new image
+int
+OffscreenRenderer::Redraw()
+{
+  // DO THE DRAW AND DEAL WITH THE QIMAGE SOMEWHERE
+  // RequestRedrawCommand cmd
+  return 1;
+}
+int
+OffscreenRenderer::SetResolution(int32_t x, int32_t y)
+{
+  SetResolutionCommand cmd({ x, y });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::Density(float x)
+{
+  SetDensityCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// move camera to bound and look at the scene contents
+int
+OffscreenRenderer::FrameScene()
+{
+  FrameSceneCommand cmd({});
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::MatGlossiness(int32_t c, float g)
+{
+  SetGlossinessCommand cmd({ c, g });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// channel index, 1/0 for enable/disable
+int
+OffscreenRenderer::EnableChannel(int32_t c, int32_t e)
+{
+  EnableChannelCommand cmd({ c, e });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// channel index, window, level.  (Do I ever set these independently?)
+int
+OffscreenRenderer::SetWindowLevel(int32_t c, float w, float l)
+{
+  SetWindowLevelCommand cmd({ c, w, l });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// theta, phi in degrees
+int
+OffscreenRenderer::OrbitCamera(float t, float p)
+{
+  OrbitCameraCommand cmd({ t, p });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SkylightTopColor(float r, float g, float b)
+{
+  SetSkylightTopColorCommand cmd({ r, g, b });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SkylightMiddleColor(float r, float g, float b)
+{
+  SetSkylightMiddleColorCommand cmd({ r, g, b });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SkylightBottomColor(float r, float g, float b)
+{
+  SetSkylightBottomColorCommand cmd({ r, g, b });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// r, theta, phi
+int
+OffscreenRenderer::LightPos(int32_t i, float x, float y, float z)
+{
+  SetLightPosCommand cmd({ i, x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::LightColor(int32_t i, float r, float g, float b)
+{
+  SetLightColorCommand cmd({ i, r, g, b });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// x by y size
+int
+OffscreenRenderer::LightSize(int32_t i, float x, float y)
+{
+  SetLightSizeCommand cmd({ i, x, y });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// xmin, xmax, ymin, ymax, zmin, zmax
+int
+OffscreenRenderer::SetClipRegion(float x0, float x1, float y0, float y1, float z0, float z1)
+{
+  SetClipRegionCommand cmd({ x0, x1, y0, y1, z0, z1 });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// x, y, z pixel scaling
+int
+OffscreenRenderer::SetVoxelScale(float x, float y, float z)
+{
+  SetVoxelScaleCommand cmd({ x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// channel, method
+int
+OffscreenRenderer::AutoThreshold(int32_t c, int32_t m)
+{
+  AutoThresholdCommand cmd({ c, m });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// channel index, pct_low, pct_high.  (Do I ever set these independently?)
+int
+OffscreenRenderer::SetPercentileThreshold(int32_t c, float l, float h)
+{
+  SetPercentileThresholdCommand cmd({ c, l, h });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::MatOpacity(int32_t c, float x)
+{
+  SetOpacityCommand cmd({ c, x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SetPrimaryRayStepSize(float x)
+{
+  SetPrimaryRayStepSizeCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SetSecondaryRayStepSize(float x)
+{
+  SetSecondaryRayStepSizeCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::BackgroundColor(float r, float g, float b)
+{
+  SetBackgroundColorCommand cmd({ r, g, b });
+  cmd.execute(&m_ec);
+  return 1;
 }

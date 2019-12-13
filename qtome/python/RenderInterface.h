@@ -60,6 +60,7 @@ public:
   // channel index, pct_low, pct_high.  (Do I ever set these independently?)
   virtual int SetPercentileThreshold(int32_t, float, float) = 0;
   virtual int MatOpacity(int32_t, float) = 0;
-  virtual int SetPrimaryStepSize(float) = 0;
-  virtual int SetSecondaryStepSize(float) = 0;
+  virtual int SetPrimaryRayStepSize(float) = 0;
+  virtual int SetSecondaryRayStepSize(float) = 0;
+  virtual int BackgroundColor(float, float, float) = 0;
 };

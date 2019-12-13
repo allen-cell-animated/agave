@@ -7,7 +7,6 @@ ScriptServer::ScriptServer() {}
 
 ScriptServer::~ScriptServer()
 {
-  delete m_renderer;
 }
 
 void
