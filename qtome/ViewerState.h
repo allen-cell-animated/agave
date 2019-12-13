@@ -62,6 +62,7 @@ struct ViewerState
   LightViewerState m_light1;
 
   QJsonDocument stateToJson() const;
+  QString stateToPythonWebsocketScript() const;
   QString stateToPythonScript() const;
 
   void stateFromJson(QJsonDocument& jsonDoc);
