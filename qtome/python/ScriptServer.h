@@ -4,8 +4,6 @@
 
 #include <string>
 
-class OffscreenRenderer;
-
 class ScriptServer
 {
 public:
@@ -16,6 +14,4 @@ public:
   void runScript(const std::string& source);
 
 private:
-  OffscreenRenderer* m_renderer;
-  ExecutionContext m_ec;
 };

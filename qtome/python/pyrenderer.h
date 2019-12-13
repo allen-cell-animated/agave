@@ -4,6 +4,8 @@
 
 #include "glad/glad.h"
 
+#include "RenderInterface.h"
+
 #include <QList>
 #include <QObject>
 
@@ -22,17 +24,17 @@ class RenderGLPT;
 class RenderSettings;
 class Scene;
 
-class OffscreenRenderer
+class OffscreenRenderer : public RenderInterface
 {
 public:
   OffscreenRenderer();
   virtual ~OffscreenRenderer();
 
+protected:
   void init();
 
   void resizeGL(int internalWidth, int internalHeight);
 
-protected:
   QImage render();
 
   void reset(int from = 0);
