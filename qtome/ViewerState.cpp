@@ -148,6 +148,10 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
   m_scaleY = scale.y;
   m_scaleZ = scale.z;
 
+  glm::vec3 bgcolor = m_backgroundColor;
+  getVec3(json, "backgroundColor", bgcolor);
+  m_backgroundColor = bgcolor;
+
   if (json.contains("clipRegion") && json["clipRegion"].isArray()) {
     QJsonArray ja = json["clipRegion"].toArray();
     QJsonArray crx = ja.at(0).toArray();
@@ -291,6 +295,8 @@ ViewerState::stateToJson() const
   camera["focalDistance"] = m_focalDistance;
   j["camera"] = camera;
 
+  j["backgroundColor"] = jsonVec3(m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z);
+
   QJsonArray channels;
   for (auto ch : m_channels) {
     QJsonObject channel;
@@ -371,6 +377,10 @@ ViewerState::stateToPythonScript() const
     QString indent("            ");
     s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
     s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
+    s += indent + QString("(\"BACKGROUND_COLOR\", %1, %2, %3),\n")
+                    .arg(m_backgroundColor.x)
+                    .arg(m_backgroundColor.y)
+                    .arg(m_backgroundColor.z);
     s += indent + QString("(\"RENDER_ITERATIONS\", %1),\n").arg(m_renderIterations);
     s += indent + QString("(\"SET_PRIMARY_RAY_STEP_SIZE\", %1),\n").arg(m_primaryStepSize);
     s += indent + QString("(\"SET_SECONDARY_RAY_STEP_SIZE\", %1),\n").arg(m_secondaryStepSize);
