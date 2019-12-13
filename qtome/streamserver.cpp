@@ -49,7 +49,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
 {
   connect(this, &StreamServer::closed, qApp, &QApplication::quit);
 
-  LOG_INFO << "Server is starting up with" << THREAD_COUNT << " max threads, listening on port" << port << "...";
+  LOG_INFO << "Server is starting up with " << THREAD_COUNT << " max threads, listening on port " << port << " ...";
 
   QSslConfiguration sslConfiguration;
   QFile certFile(QStringLiteral("mr.crt"));

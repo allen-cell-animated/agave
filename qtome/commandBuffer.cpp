@@ -73,6 +73,7 @@ FWDDECL_PARSE(SetPercentileThresholdCommand);
 FWDDECL_PARSE(SetOpacityCommand);
 FWDDECL_PARSE(SetPrimaryRayStepSizeCommand);
 FWDDECL_PARSE(SetSecondaryRayStepSizeCommand);
+FWDDECL_PARSE(SetBackgroundColorCommand);
 
 #define CMD_CASE(CMDCLASS)                                                                                             \
   case (CMDCLASS::m_ID):                                                                                               \
@@ -129,6 +130,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetOpacityCommand);
           CMD_CASE(SetPrimaryRayStepSizeCommand);
           CMD_CASE(SetSecondaryRayStepSizeCommand);
+          CMD_CASE(SetBackgroundColorCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -515,4 +517,13 @@ parseSetSecondaryRayStepSizeCommand(CommandBufferIterator* c)
   SetSecondaryRayStepSizeCommandD data;
   data.m_stepSize = c->parseFloat32();
   return new SetSecondaryRayStepSizeCommand(data);
+}
+Command*
+parseSetBackgroundColorCommand(CommandBufferIterator* c)
+{
+  SetBackgroundColorCommandD data;
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetBackgroundColorCommand(data);
 }

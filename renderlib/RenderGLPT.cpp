@@ -219,7 +219,8 @@ RenderGLPT::doRender(const CCamera& camera)
   glm::mat4 m(1.0);
 
   GLuint accumTargetTex = m_fbF32->colorTextureId(); // the texture of m_fbF32
-  GLuint prevAccumTargetTex = m_fbF32Accum->colorTextureId(); // the texture that will be tonemapped to screen, a copy of m_fbF32
+  GLuint prevAccumTargetTex =
+    m_fbF32Accum->colorTextureId(); // the texture that will be tonemapped to screen, a copy of m_fbF32
 
   GLint drawFboId = 0;
   glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
@@ -357,7 +358,14 @@ RenderGLPT::render(const CCamera& camera)
 void
 RenderGLPT::drawImage()
 {
-  glClearColor(0.0, 0.0, 0.0, 1.0);
+  if (m_scene) {
+    glClearColor(m_scene->m_material.m_backgroundColor[0],
+                 m_scene->m_material.m_backgroundColor[1],
+                 m_scene->m_material.m_backgroundColor[2],
+                 1.0);
+  } else {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+  }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
