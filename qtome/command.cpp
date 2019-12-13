@@ -188,7 +188,9 @@ void
 SetStreamModeCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetStreamMode " << m_data.m_x;
-  c->m_renderer->setStreamMode(m_data.m_x);
+  if (c->m_renderer) {
+    c->m_renderer->setStreamMode(m_data.m_x);
+  }
 }
 void
 RequestRedrawCommand::execute(ExecutionContext* c)
@@ -202,7 +204,9 @@ SetResolutionCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "SetResolution " << m_data.m_x << " " << m_data.m_y;
   c->m_camera->m_Film.m_Resolution.SetResX(m_data.m_x);
   c->m_camera->m_Film.m_Resolution.SetResY(m_data.m_y);
-  c->m_renderer->resizeGL(m_data.m_x, m_data.m_y);
+  if (c->m_renderer) {
+    c->m_renderer->resizeGL(m_data.m_x, m_data.m_y);
+  }
   c->m_renderSettings->SetNoIterations(0);
 }
 void
