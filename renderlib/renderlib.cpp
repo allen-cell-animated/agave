@@ -35,6 +35,22 @@ logMessage(QOpenGLDebugMessage message)
 }
 }
 
+QSurfaceFormat
+renderlib::getQSurfaceFormat(bool enableDebug)
+{
+  QSurfaceFormat format;
+  // format.setSamples(8);
+  format.setDepthBufferSize(24);
+  format.setStencilBufferSize(8);
+  format.setVersion(AICS_GL_VERSION.major, AICS_GL_VERSION.minor);
+  // necessary on MacOS at least:
+  format.setProfile(QSurfaceFormat::CoreProfile);
+  if (enableDebug) {
+    format.setOption(QSurfaceFormat::DebugContext);
+  }
+  return format;
+}
+
 int
 renderlib::initialize()
 {
@@ -50,16 +66,7 @@ renderlib::initialize()
   if (std::getenv("OME_QTWIDGETS_OPENGL_DEBUG"))
     enableDebug = true;
 
-  QSurfaceFormat format;
-  // format.setSamples(8);
-  format.setDepthBufferSize(24);
-  format.setStencilBufferSize(8);
-  format.setVersion(AICS_GL_VERSION.major, AICS_GL_VERSION.minor);
-  // necessary on MacOS at least:
-  format.setProfile(QSurfaceFormat::CoreProfile);
-  if (enableDebug) {
-    format.setOption(QSurfaceFormat::DebugContext);
-  }
+  QSurfaceFormat format = getQSurfaceFormat();
   QSurfaceFormat::setDefaultFormat(format);
 
   dummyContext = new QOpenGLContext();

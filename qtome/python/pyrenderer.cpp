@@ -63,17 +63,7 @@ OffscreenRenderer::init()
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
   // "Working Directory: " + QDir::currentPath());
 
-  QSurfaceFormat format;
-  // format.setSamples(8);
-  format.setDepthBufferSize(24);
-  format.setStencilBufferSize(8);
-  format.setVersion(3, 3);
-  // necessary on MacOS at least:
-  format.setProfile(QSurfaceFormat::CoreProfile);
-  // if (enableDebug) {
-  //   format.setOption(QSurfaceFormat::DebugContext);
-  // }
-  QSurfaceFormat::setDefaultFormat(format);
+  QSurfaceFormat format = renderlib::getQSurfaceFormat();
 
   this->context = new QOpenGLContext();
   this->context->setFormat(format); // ...and set the format on the context too
