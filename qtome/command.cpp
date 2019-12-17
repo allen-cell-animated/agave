@@ -80,7 +80,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     j["channel_max_intensity"] = channelMaxIntensity;
 
     QJsonDocument doc(j);
-    c->m_message = doc.toJson();
+    c->m_message = doc.toJson().toStdString();
   }
 }
 

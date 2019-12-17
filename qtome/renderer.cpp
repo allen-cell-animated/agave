@@ -225,8 +225,8 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 
     for (auto i = cmds.begin(); i != cmds.end(); ++i) {
       (*i)->execute(&ec);
-      if (!ec.m_message.isEmpty()) {
-        emit sendString(rr, ec.m_message);
+      if (!ec.m_message.empty()) {
+        emit sendString(rr, QString::fromStdString(ec.m_message));
         ec.m_message = "";
       }
     }
