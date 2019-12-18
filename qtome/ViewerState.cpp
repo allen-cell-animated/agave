@@ -1,11 +1,14 @@
 #include "ViewerState.h"
 
+#include "command.h"
 #include "renderlib/Logging.h"
 
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonObject>
+
+#include <sstream>
 
 QJsonArray
 jsonVec3(float x, float y, float z)
@@ -367,89 +370,88 @@ ViewerState::stateToPythonScript() const
   QFileInfo fi(m_volumeImageFile);
   QString outFileName = fi.baseName();
 
-  QString s;
-  s += QString("# agave --script myscript.py\n\n");
-  s += QString("import agave\n");
-  s += QString("r = agave.renderer()\n");
-  s += QString("r.load_ome_tif(\"%1\")\n").arg(m_volumeImageFile);
+  std::ostringstream ss;
+  ss << "# agave --script myscript.py" << std::endl << std::endl;
+  ss << "import agave" << std::endl;
+  ss << "r = agave.renderer()" << std::endl;
+  std::string obj = "r.";
+  ss << obj << Command::toPythonString<LoadOmeTifCommand>(m_volumeImageFile) << std::endl;
+  ss << obj << Command::toPythonString<SetResolutionCommand>(m_resolutionX, m_resolutionY) << std::endl;
+  ss << obj
+     << Command::toPythonString<SetBackgroundColorCommand>(
+          m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z)
+     << std::endl;
+  ss << obj << Command::toPythonString<SetRenderIterationsCommand>(m_renderIterations) << std::endl;
+  ss << obj << Command::toPythonString<SetPrimaryRayStepSizeCommand>(m_primaryStepSize) << std::endl;
+  ss << obj << Command::toPythonString<SetSecondaryRayStepSizeCommand>(m_secondaryStepSize) << std::endl;
+  ss << obj << Command::toPythonString<SetVoxelScaleCommand>(m_scaleX, m_scaleY, m_scaleZ) << std::endl;
+  ss << obj
+     << Command::toPythonString<SetClipRegionCommand>(m_roiXmin, m_roiXmax, m_roiYmin, m_roiYmax, m_roiZmin, m_roiZmax)
+     << std::endl;
+  ss << obj << Command::toPythonString<SetCameraPosCommand>(m_eyeX, m_eyeY, m_eyeZ) << std::endl;
+  ss << obj << Command::toPythonString<SetCameraTargetCommand>(m_targetX, m_targetY, m_targetZ) << std::endl;
+  ss << obj << Command::toPythonString<SetCameraUpCommand>(m_upX, m_upY, m_upZ) << std::endl;
+  ss << obj
+     << Command::toPythonString<SetCameraProjectionCommand>(
+          m_projection, m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale)
+     << std::endl;
 
-  s += QString("r.set_resolution(%1, %2)\n").arg(m_resolutionX).arg(m_resolutionY);
-  s += QString("r.background_color(%1, %2, %3)\n")
-         .arg(m_backgroundColor.x)
-         .arg(m_backgroundColor.y)
-         .arg(m_backgroundColor.z);
-  s += QString("r.render_iterations(%1)\n").arg(m_renderIterations);
-  s += QString("r.set_primary_ray_step_size(%1)\n").arg(m_primaryStepSize);
-  s += QString("r.set_secondary_ray_step_size(%1)\n").arg(m_secondaryStepSize);
-  s += QString("r.set_voxel_scale(%1, %2, %3)\n").arg(m_scaleX).arg(m_scaleY).arg(m_scaleZ);
-  s += QString("r.set_clip_region(%1, %2, %3, %4, %5, %6)\n")
-         .arg(m_roiXmin)
-         .arg(m_roiXmax)
-         .arg(m_roiYmin)
-         .arg(m_roiYmax)
-         .arg(m_roiZmin)
-         .arg(m_roiZmax);
-
-  s += QString("r.eye(%1, %2, %3)\n").arg(m_eyeX).arg(m_eyeY).arg(m_eyeZ);
-  s += QString("r.target(%1, %2, %3)\n").arg(m_targetX).arg(m_targetY).arg(m_targetZ);
-  s += QString("r.up(%1, %2, %3)\n").arg(m_upX).arg(m_upY).arg(m_upZ);
-  s += QString("r.camera_projection(%1, %2)\n")
-         .arg(m_projection)
-         .arg(m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale);
-
-  s += QString("r.exposure(%1)\n").arg(m_exposure);
-  s += QString("r.density(%1)\n").arg(m_densityScale);
-  s += QString("r.aperture(%1)\n").arg(m_apertureSize);
-  s += QString("r.focaldist(%1)\n").arg(m_focalDistance);
+  ss << obj << Command::toPythonString<SetCameraExposureCommand>(m_exposure) << std::endl;
+  ss << obj << Command::toPythonString<SetDensityCommand>(m_densityScale) << std::endl;
+  ss << obj << Command::toPythonString<SetCameraApertureCommand>(m_apertureSize) << std::endl;
+  ss << obj << Command::toPythonString<SetCameraFocalDistanceCommand>(m_focalDistance) << std::endl;
 
   // per-channel
   for (std::size_t i = 0; i < m_channels.size(); ++i) {
     const ChannelViewerState& ch = m_channels[i];
-    s += QString("r.enable_channel(%1, %2)\n").arg(QString::number(i), ch.m_enabled ? "1" : "0");
-    s += QString("r.mat_diffuse(%1, %2, %3, %4, 1.0)\n")
-           .arg(QString::number(i))
-           .arg(ch.m_diffuse.x)
-           .arg(ch.m_diffuse.y)
-           .arg(ch.m_diffuse.z);
-    s += QString("r.mat_specular(%1, %2, %3, %4, 0.0)\n")
-           .arg(QString::number(i))
-           .arg(ch.m_specular.x)
-           .arg(ch.m_specular.y)
-           .arg(ch.m_specular.z);
-    s += QString("r.mat_emissive(%1, %2, %3, %4, 0.0)\n")
-           .arg(QString::number(i))
-           .arg(ch.m_emissive.x)
-           .arg(ch.m_emissive.y)
-           .arg(ch.m_emissive.z);
-    s += QString("r.mat_glossiness(%1, %2)\n").arg(QString::number(i)).arg(ch.m_glossiness);
-    s += QString("r.mat_opacity(%1, %2)\n").arg(QString::number(i)).arg(ch.m_opacity);
-    s += QString("r.set_window_level(%1, %2, %3)\n").arg(QString::number(i)).arg(ch.m_window).arg(ch.m_level);
+    ss << obj << Command::toPythonString<EnableChannelCommand>(i, ch.m_enabled ? 1 : 0) << std::endl;
+    ss << obj
+       << Command::toPythonString<SetDiffuseColorCommand>(i, ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z, 1.0f)
+       << std::endl;
+    ss << obj
+       << Command::toPythonString<SetSpecularColorCommand>(i, ch.m_specular.x, ch.m_specular.y, ch.m_specular.z, 0.0f)
+       << std::endl;
+    ss << obj
+       << Command::toPythonString<SetEmissiveColorCommand>(i, ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z, 0.0f)
+       << std::endl;
+    ss << obj << Command::toPythonString<SetGlossinessCommand>(i, ch.m_glossiness) << std::endl;
+    ss << obj << Command::toPythonString<SetOpacityCommand>(i, ch.m_opacity) << std::endl;
+    ss << obj << Command::toPythonString<SetWindowLevelCommand>(i, ch.m_window, ch.m_level) << std::endl;
   }
 
   // lighting
-  s += QString("r.skylight_top_color(%1, %2, %3)\n")
-         .arg(m_light0.m_topColor.r * m_light0.m_topColorIntensity)
-         .arg(m_light0.m_topColor.g * m_light0.m_topColorIntensity)
-         .arg(m_light0.m_topColor.b * m_light0.m_topColorIntensity);
-  s += QString("r.skylight_middle_color(%1, %2, %3)\n")
-         .arg(m_light0.m_middleColor.r * m_light0.m_middleColorIntensity)
-         .arg(m_light0.m_middleColor.g * m_light0.m_middleColorIntensity)
-         .arg(m_light0.m_middleColor.b * m_light0.m_middleColorIntensity);
-  s += QString("r.skylight_bottom_color(%1, %2, %3)\n")
-         .arg(m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity)
-         .arg(m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity)
-         .arg(m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity);
-  s += QString("r.light_pos(0, %1, %2, %3)\n").arg(m_light1.m_distance).arg(m_light1.m_theta).arg(m_light1.m_phi);
-  s += QString("r.light_color(0, %1, %2, %3)\n")
-         .arg(m_light1.m_color.r * m_light1.m_colorIntensity)
-         .arg(m_light1.m_color.g * m_light1.m_colorIntensity)
-         .arg(m_light1.m_color.b * m_light1.m_colorIntensity);
-  s += QString("r.light_size(0, %1, %2)\n").arg(m_light1.m_width).arg(m_light1.m_height);
+  ss << obj
+     << Command::toPythonString<SetSkylightTopColorCommand>(m_light0.m_topColor.r * m_light0.m_topColorIntensity,
+                                                            m_light0.m_topColor.g * m_light0.m_topColorIntensity,
+                                                            m_light0.m_topColor.b * m_light0.m_topColorIntensity)
+     << std::endl;
+  ss << obj
+     << Command::toPythonString<SetSkylightMiddleColorCommand>(
+          m_light0.m_middleColor.r * m_light0.m_middleColorIntensity,
+          m_light0.m_middleColor.g * m_light0.m_middleColorIntensity,
+          m_light0.m_middleColor.b * m_light0.m_middleColorIntensity)
+     << std::endl;
+  ss << obj
+     << Command::toPythonString<SetSkylightBottomColorCommand>(
+          m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity,
+          m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity,
+          m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity)
+     << std::endl;
+  ss << obj << Command::toPythonString<SetLightPosCommand>(0, m_light1.m_distance, m_light1.m_theta, m_light1.m_phi)
+     << std::endl;
+  ss << obj
+     << Command::toPythonString<SetLightColorCommand>(0,
+                                                      m_light1.m_color.r * m_light1.m_colorIntensity,
+                                                      m_light1.m_color.g * m_light1.m_colorIntensity,
+                                                      m_light1.m_color.b * m_light1.m_colorIntensity)
+     << std::endl;
+  ss << obj << Command::toPythonString<SetLightSizeCommand>(0, m_light1.m_width, m_light1.m_height) << std::endl;
 
-  s += QString("r.session(\"%1.png\")\n").arg(outFileName);
-  s += QString("r.redraw()\n");
-  // LOG_DEBUG << s.toStdString();
-  return s;
+  ss << obj << Command::toPythonString<SessionCommand>(outFileName + ".png") << std::endl;
+  ss << obj << Command::toPythonString<RequestRedrawCommand>() << std::endl;
+  std::string s(ss.str());
+  // LOG_DEBUG << s;
+  return QString::fromStdString(s);
 }
 
 QString

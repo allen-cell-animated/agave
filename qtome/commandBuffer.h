@@ -1,10 +1,11 @@
 #pragma once
 
+#include "command.h"
+
 #include <stdint.h>
 #include <string>
 #include <vector>
 
-class Command;
 struct ExecutionContext;
 class Renderer;
 class CScene;
@@ -31,16 +32,16 @@ private:
   std::vector<Command*> _commands;
 };
 
-class CommandBufferIterator
+class CommandBufferIterator : public ParseableStream
 {
 public:
   CommandBufferIterator(commandBuffer* buf);
 
   bool end();
 
-  int32_t parseInt32();
-  float parseFloat32();
-  std::string parseString();
+  virtual int32_t parseInt32();
+  virtual float parseFloat32();
+  virtual std::string parseString();
 
   commandBuffer* _commandBuffer;
   uint8_t* _currentPos;
