@@ -64,8 +64,7 @@ Renderer::init()
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
   // "Working Directory: " + QDir::currentPath());
 
-  QSurfaceFormat format;
-  format.setSamples(16); // Set the number of samples used for multisampling
+  QSurfaceFormat format = renderlib::getQSurfaceFormat();
 
   this->context = new QOpenGLContext();
   this->context->setFormat(format); // ...and set the format on the context too
@@ -226,8 +225,8 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 
     for (auto i = cmds.begin(); i != cmds.end(); ++i) {
       (*i)->execute(&ec);
-      if (!ec.m_message.isEmpty()) {
-        emit sendString(rr, ec.m_message);
+      if (!ec.m_message.empty()) {
+        emit sendString(rr, QString::fromStdString(ec.m_message));
         ec.m_message = "";
       }
     }
