@@ -17,32 +17,25 @@ Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64
 ```
 mkdir build
 cd build
-# (vs 2017)
-cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 15 2017 Win64" -DVCPKG_TARGET_TRIPLET=x64-windows ..
-# OR (vs 2019 with v141 (vs2017) toolset installed.   vs2017 required due to qt build version)
-cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64 -T v141 -DVCPKG_TARGET_TRIPLET=x64-windows ..
-# OR (vs 2019)
+# (vs 2019)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
 ```
 
-For Mac: (using macports)
+For Mac: (using homebrew)
 
 ```
 # use official install of Qt for Mac
-sudo port install boost
-sudo port install glm
-sudo port install tiff
-
-# or
+# and then:
 brew install boost glm libtiff
 
 mkdir build
 cd build
 cmake ..
 make
+# after make, you should have a runnable agave.app
+# or, to build a redistributable bundle:
 sudo make install
-sudo $HOME/Qt/5.12.5/clang_64/bin/macdeployqt agave.app -libpath=/opt/local/lib -always-overwrite -appstore-compliant
 ```
 
 OR

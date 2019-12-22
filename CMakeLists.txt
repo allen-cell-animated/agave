@@ -2,12 +2,11 @@ cmake_minimum_required(VERSION 3.6)
 
 if (APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
-  # set(CMAKE_OSX_SYSROOT "10.12" CACHE STRING "OS X SDK version" FORCE)
 endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.4.2
+  VERSION 0.0.5.0
   LANGUAGES C CXX
 )
 
@@ -46,7 +45,7 @@ endif (WIN32)
 
 if (APPLE)
   set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
-  set(CMAKE_MACOSX_RPATH TRUE)
+  # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
 find_package(Qt5Widgets)
@@ -100,6 +99,7 @@ add_subdirectory(qtome)
 #######################################
 # THE FRONT END QT WEBSOCKET SERVER EXE
 #######################################
+# currently this is folded into the main agave app with the --server command line arg
 # add_subdirectory(websocketserver)
 
 ######################
@@ -176,6 +176,24 @@ elseif (APPLE)
 set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
 add_definitions(-DPACKAGE_OSX_TARGET)
 
+# based on code from CMake's QtDialog/CMakeLists.txt
+macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _prefix)
+    get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
+    if(EXISTS "${_qt_plugin_path}")
+        get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
+        get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
+        get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
+        set(_qt_plugin_dest "${_prefix}/PlugIns/${_qt_plugin_type}")
+        install(FILES "${_qt_plugin_path}"
+            DESTINATION "${_qt_plugin_dest}")
+        set(${_qt_plugins_var}
+            "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
+    else()
+        message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found")
+    endif()
+endmacro()
+
+
 install(FILES 
   $<TARGET_FILE:Qt5::Widgets>
   $<TARGET_FILE:Qt5::Core>
@@ -186,10 +204,13 @@ install(FILES
   ${PYTHON_LIBRARIES}
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
-install(FILES 
-  $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/PlugIns/platforms/
-)
+install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}agave.app/Contents)
+# set(${QT_PLUGINS} 
+#             "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
+# install(FILES 
+#   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
+#   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/PlugIns/platforms/
+# )
 install(FILES 
   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/MacOS/platforms/
@@ -212,19 +233,6 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
-# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-#   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/)
-# set how it shows up in the Info.plist file
-# SET(MACOSX_BUNDLE_ICON_FILE JPSvis.icns)
-# SET(MACOSX_GUI_ICON JPSvis.icns)
-# SET(MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
-# SET(MACOSX_BUNDLE_BUNDLE_NAME "agave")
-# SET(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
-# SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version ${PROJECT_VERSION}")
-# SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
-# SET(MACOSX_GUI_COPYRIGHT "Copyright (c) 2019 Allen Institute for Cell Science. All rights reserved.")
-# SET(MACOSX_BUNDLE_GUI_IDENTIFIER "www.allencell.org")
-
 
 # Note Mac specific extension .app
 set(APPS "\${CMAKE_INSTALL_PREFIX}/agave.app")
@@ -235,43 +243,27 @@ set(DIRS "${CMAKE_BINARY_DIR}")
 # Path used for searching by FIND_XXX(), with appropriate suffixes added
 if(CMAKE_PREFIX_PATH)
   foreach(dir ${CMAKE_PREFIX_PATH})
+    # note that this should get the necessary Qt lib directories
     list(APPEND DIRS "${dir}/bin" "${dir}/lib")
   endforeach()
 endif()
 
 # Append Qt's lib folder
 # list(APPEND DIRS "${QTDIR}/lib")
-list(APPEND DIRS "/opt/local/lib")
-list(APPEND DIRS "/usr/local/opt/libtiff/lib")
+# list(APPEND DIRS "${Qt5Widgets_DIR}/../..")
 
 include(InstallRequiredSystemLibraries)
 
-# message(STATUS "APPS: ${APPS}")
-# message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
-# message(STATUS "DIRS: ${DIRS}")
+message(STATUS "PYTHON_INTERP: ${PythonInterp}")
+message(STATUS "PYTHON_LIBRARIES: ${PYTHON_LIBRARIES}")
+message(STATUS "APPS: ${APPS}")
+message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
+message(STATUS "DIRS: ${DIRS}")
 
-# install(CODE "include(BundleUtilities)
-#   fixup_bundle(\"${APPS}\" \"${QT_PLUGINS}\" \"${DIRS}\")")
-
-set(CPACK_BINARY_DRAGNDROP ON)
-set(CPACK_PACKAGE_NAME "agave")
-set(CPACK_PACKAGE_VENDOR "www.allencell.org")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "agave - Advanced GPU Allen Volume Explorer")
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-SET(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-# set(CPACK_PACKAGE_INSTALL_DIRECTORY "agave_dir")
-
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+install(CODE "include(BundleUtilities)
+    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${QT_PLUGINS}\" \"${DIRS}\")" COMPONENT Runtime)
 
 set(CPACK_GENERATOR "DragNDrop")
-set(CPACK_DMG_FORMAT "UDBZ")
-set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")
-set(CPACK_SYSTEM_NAME "OSX")
-set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")  
-
 include(CPack)
 
 else() # Linux

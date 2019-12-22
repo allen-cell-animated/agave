@@ -1,11 +1,5 @@
 add_executable(qtomeapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(qtomeapp PROPERTIES OUTPUT_NAME "agave")
-set_property(
-    TARGET qtomeapp
-    PROPERTY INSTALL_RPATH
-    "@executable_path/../Frameworks"
-    "/Library/Frameworks"
-)
 target_include_directories(qtomeapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
