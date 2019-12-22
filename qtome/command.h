@@ -36,45 +36,9 @@ class Command
 {
 public:
   virtual void execute(ExecutionContext* context) = 0;
+  virtual std::string toPythonString() const = 0;
 
   virtual ~Command() {}
-
-  // DANGER: must pass a number of args same as length of ArgTypes array, and of correct (convertable to) argtypes
-  // is there a variadic template that can do this?
-  template<class COMMANDTYPE>
-  static std::string toPythonString(...)
-  {
-    const std::vector<CommandArgType> argtypes = COMMANDTYPE::ArgTypes();
-
-    std::ostringstream ss;
-    ss << COMMANDTYPE::PythonName() << "(";
-
-    size_t count = argtypes.size();
-    va_list ap;
-    va_start(ap, count);
-
-    // Iterate over all args
-    for (size_t i = 0; i < count; i++) {
-      std::string comma = (i < count - 1) ? ", " : "";
-      switch (argtypes[i]) {
-        case CommandArgType::F32:
-          ss << va_arg(ap, float) << comma;
-          break;
-        case CommandArgType::I32:
-          ss << va_arg(ap, int32_t) << comma;
-          break;
-        case CommandArgType::STR:
-          ss << "\"" << va_arg(ap, std::string) << "\"" << comma;
-          break;
-      }
-    }
-
-    va_end(ap);
-
-    ss << ")";
-    std::string s(ss.str());
-    return s;
-  }
 };
 
 #define CMDDECL(NAME, CMDID, PYTHONNAME, ARGTYPES)                                                                     \
@@ -85,6 +49,7 @@ public:
       : m_data(d)                                                                                                      \
     {}                                                                                                                 \
     virtual void execute(ExecutionContext* context);                                                                   \
+    virtual std::string toPythonString() const;                                                                        \
     static NAME* parse(ParseableStream* buffer);                                                                       \
     static const uint32_t m_ID = CMDID;                                                                                \
     static const std::string PythonName()                                                                              \

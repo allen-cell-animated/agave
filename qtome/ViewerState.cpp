@@ -375,80 +375,80 @@ ViewerState::stateToPythonScript() const
   ss << "import agave" << std::endl;
   ss << "r = agave.renderer()" << std::endl;
   std::string obj = "r.";
-  ss << obj << Command::toPythonString<LoadOmeTifCommand>(m_volumeImageFile) << std::endl;
-  ss << obj << Command::toPythonString<SetResolutionCommand>(m_resolutionX, m_resolutionY) << std::endl;
+  ss << obj << LoadOmeTifCommand({ m_volumeImageFile.toStdString() }).toPythonString() << std::endl;
+  ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
   ss << obj
-     << Command::toPythonString<SetBackgroundColorCommand>(
-          m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z)
+     << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()
      << std::endl;
-  ss << obj << Command::toPythonString<SetRenderIterationsCommand>(m_renderIterations) << std::endl;
-  ss << obj << Command::toPythonString<SetPrimaryRayStepSizeCommand>(m_primaryStepSize) << std::endl;
-  ss << obj << Command::toPythonString<SetSecondaryRayStepSizeCommand>(m_secondaryStepSize) << std::endl;
-  ss << obj << Command::toPythonString<SetVoxelScaleCommand>(m_scaleX, m_scaleY, m_scaleZ) << std::endl;
+  ss << obj << SetRenderIterationsCommand({ m_renderIterations }).toPythonString() << std::endl;
+  ss << obj << SetPrimaryRayStepSizeCommand({ m_primaryStepSize }).toPythonString() << std::endl;
+  ss << obj << SetSecondaryRayStepSizeCommand({ m_secondaryStepSize }).toPythonString() << std::endl;
+  ss << obj << SetVoxelScaleCommand({ m_scaleX, m_scaleY, m_scaleZ }).toPythonString() << std::endl;
   ss << obj
-     << Command::toPythonString<SetClipRegionCommand>(m_roiXmin, m_roiXmax, m_roiYmin, m_roiYmax, m_roiZmin, m_roiZmax)
+     << SetClipRegionCommand({ m_roiXmin, m_roiXmax, m_roiYmin, m_roiYmax, m_roiZmin, m_roiZmax }).toPythonString()
      << std::endl;
-  ss << obj << Command::toPythonString<SetCameraPosCommand>(m_eyeX, m_eyeY, m_eyeZ) << std::endl;
-  ss << obj << Command::toPythonString<SetCameraTargetCommand>(m_targetX, m_targetY, m_targetZ) << std::endl;
-  ss << obj << Command::toPythonString<SetCameraUpCommand>(m_upX, m_upY, m_upZ) << std::endl;
+  ss << obj << SetCameraPosCommand({ m_eyeX, m_eyeY, m_eyeZ }).toPythonString() << std::endl;
+  ss << obj << SetCameraTargetCommand({ m_targetX, m_targetY, m_targetZ }).toPythonString() << std::endl;
+  ss << obj << SetCameraUpCommand({ m_upX, m_upY, m_upZ }).toPythonString() << std::endl;
   ss << obj
-     << Command::toPythonString<SetCameraProjectionCommand>(
-          m_projection, m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale)
+     << SetCameraProjectionCommand({ m_projection, m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale })
+          .toPythonString()
      << std::endl;
 
-  ss << obj << Command::toPythonString<SetCameraExposureCommand>(m_exposure) << std::endl;
-  ss << obj << Command::toPythonString<SetDensityCommand>(m_densityScale) << std::endl;
-  ss << obj << Command::toPythonString<SetCameraApertureCommand>(m_apertureSize) << std::endl;
-  ss << obj << Command::toPythonString<SetCameraFocalDistanceCommand>(m_focalDistance) << std::endl;
+  ss << obj << SetCameraExposureCommand({ m_exposure }).toPythonString() << std::endl;
+  ss << obj << SetDensityCommand({ m_densityScale }).toPythonString() << std::endl;
+  ss << obj << SetCameraApertureCommand({ m_apertureSize }).toPythonString() << std::endl;
+  ss << obj << SetCameraFocalDistanceCommand({ m_focalDistance }).toPythonString() << std::endl;
 
   // per-channel
-  for (std::size_t i = 0; i < m_channels.size(); ++i) {
+  for (std::int32_t i = 0; i < m_channels.size(); ++i) {
     const ChannelViewerState& ch = m_channels[i];
-    ss << obj << Command::toPythonString<EnableChannelCommand>(i, ch.m_enabled ? 1 : 0) << std::endl;
-    ss << obj
-       << Command::toPythonString<SetDiffuseColorCommand>(i, ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z, 1.0f)
+    ss << obj << EnableChannelCommand({ i, ch.m_enabled ? 1 : 0 }).toPythonString() << std::endl;
+    ss << obj << SetDiffuseColorCommand({ i, ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z, 1.0f }).toPythonString()
        << std::endl;
     ss << obj
-       << Command::toPythonString<SetSpecularColorCommand>(i, ch.m_specular.x, ch.m_specular.y, ch.m_specular.z, 0.0f)
+       << SetSpecularColorCommand({ i, ch.m_specular.x, ch.m_specular.y, ch.m_specular.z, 0.0f }).toPythonString()
        << std::endl;
     ss << obj
-       << Command::toPythonString<SetEmissiveColorCommand>(i, ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z, 0.0f)
+       << SetEmissiveColorCommand({ i, ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z, 0.0f }).toPythonString()
        << std::endl;
-    ss << obj << Command::toPythonString<SetGlossinessCommand>(i, ch.m_glossiness) << std::endl;
-    ss << obj << Command::toPythonString<SetOpacityCommand>(i, ch.m_opacity) << std::endl;
-    ss << obj << Command::toPythonString<SetWindowLevelCommand>(i, ch.m_window, ch.m_level) << std::endl;
+    ss << obj << SetGlossinessCommand({ i, ch.m_glossiness }).toPythonString() << std::endl;
+    ss << obj << SetOpacityCommand({ i, ch.m_opacity }).toPythonString() << std::endl;
+    ss << obj << SetWindowLevelCommand({ i, ch.m_window, ch.m_level }).toPythonString() << std::endl;
   }
 
   // lighting
   ss << obj
-     << Command::toPythonString<SetSkylightTopColorCommand>(m_light0.m_topColor.r * m_light0.m_topColorIntensity,
-                                                            m_light0.m_topColor.g * m_light0.m_topColorIntensity,
-                                                            m_light0.m_topColor.b * m_light0.m_topColorIntensity)
+     << SetSkylightTopColorCommand({ m_light0.m_topColor.r * m_light0.m_topColorIntensity,
+                                     m_light0.m_topColor.g * m_light0.m_topColorIntensity,
+                                     m_light0.m_topColor.b * m_light0.m_topColorIntensity })
+          .toPythonString()
      << std::endl;
   ss << obj
-     << Command::toPythonString<SetSkylightMiddleColorCommand>(
-          m_light0.m_middleColor.r * m_light0.m_middleColorIntensity,
-          m_light0.m_middleColor.g * m_light0.m_middleColorIntensity,
-          m_light0.m_middleColor.b * m_light0.m_middleColorIntensity)
+     << SetSkylightMiddleColorCommand({ m_light0.m_middleColor.r * m_light0.m_middleColorIntensity,
+                                        m_light0.m_middleColor.g * m_light0.m_middleColorIntensity,
+                                        m_light0.m_middleColor.b * m_light0.m_middleColorIntensity })
+          .toPythonString()
      << std::endl;
   ss << obj
-     << Command::toPythonString<SetSkylightBottomColorCommand>(
-          m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity,
-          m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity,
-          m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity)
+     << SetSkylightBottomColorCommand({ m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity,
+                                        m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity,
+                                        m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity })
+          .toPythonString()
      << std::endl;
-  ss << obj << Command::toPythonString<SetLightPosCommand>(0, m_light1.m_distance, m_light1.m_theta, m_light1.m_phi)
+  ss << obj << SetLightPosCommand({ 0, m_light1.m_distance, m_light1.m_theta, m_light1.m_phi }).toPythonString()
      << std::endl;
   ss << obj
-     << Command::toPythonString<SetLightColorCommand>(0,
-                                                      m_light1.m_color.r * m_light1.m_colorIntensity,
-                                                      m_light1.m_color.g * m_light1.m_colorIntensity,
-                                                      m_light1.m_color.b * m_light1.m_colorIntensity)
+     << SetLightColorCommand({ 0,
+                               m_light1.m_color.r * m_light1.m_colorIntensity,
+                               m_light1.m_color.g * m_light1.m_colorIntensity,
+                               m_light1.m_color.b * m_light1.m_colorIntensity })
+          .toPythonString()
      << std::endl;
-  ss << obj << Command::toPythonString<SetLightSizeCommand>(0, m_light1.m_width, m_light1.m_height) << std::endl;
+  ss << obj << SetLightSizeCommand({ 0, m_light1.m_width, m_light1.m_height }).toPythonString() << std::endl;
 
-  ss << obj << Command::toPythonString<SessionCommand>(outFileName + ".png") << std::endl;
-  ss << obj << Command::toPythonString<RequestRedrawCommand>() << std::endl;
+  ss << obj << SessionCommand({ outFileName.toStdString() + ".png" }).toPythonString() << std::endl;
+  ss << obj << RequestRedrawCommand({}).toPythonString() << std::endl;
   std::string s(ss.str());
   // LOG_DEBUG << s;
   return QString::fromStdString(s);

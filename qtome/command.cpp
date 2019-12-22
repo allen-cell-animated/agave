@@ -713,3 +713,338 @@ SetBackgroundColorCommand::parse(ParseableStream* c)
   data.m_b = c->parseFloat32();
   return new SetBackgroundColorCommand(data);
 }
+
+std::string
+SessionCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_name;
+  ss << ")";
+  return ss.str();
+}
+std::string
+AssetPathCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_name;
+  ss << ")";
+  return ss.str();
+}
+std::string
+LoadOmeTifCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_name;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraPosCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraUpCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraTargetCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraApertureCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraProjectionCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_projectionType << ", " << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraFocalDistanceCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraExposureCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetDiffuseColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSpecularColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetEmissiveColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetRenderIterationsCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetStreamModeCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+RequestRedrawCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetResolutionCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetDensityCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+FrameSceneCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetGlossinessCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_glossiness;
+  ss << ")";
+  return ss.str();
+}
+std::string
+EnableChannelCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_enabled;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetWindowLevelCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_window << ", " << m_data.m_level;
+  ss << ")";
+  return ss.str();
+}
+std::string
+OrbitCameraCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_theta << ", " << m_data.m_phi;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSkylightTopColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSkylightMiddleColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSkylightBottomColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetLightPosCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_index << ", " << m_data.m_r << ", " << m_data.m_theta << ", " << m_data.m_phi;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetLightColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_index << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetLightSizeCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_index << ", " << m_data.m_x << ", " << m_data.m_y;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetClipRegionCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_minx << ", " << m_data.m_maxx << ", " << m_data.m_miny << ", " << m_data.m_maxy << ", " << m_data.m_minz << ", " << m_data.m_maxz;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetVoxelScaleCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+AutoThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_method;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetPercentileThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_pctLow << ", " << m_data.m_pctHigh;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetOpacityCommand::toPythonString() const
+{
+    std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_opacity;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetPrimaryRayStepSizeCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_stepSize;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSecondaryRayStepSizeCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_stepSize;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetBackgroundColorCommand::toPythonString() const
+{
+  std::ostringstream ss; 
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
