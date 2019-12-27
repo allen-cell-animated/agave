@@ -36,6 +36,7 @@ public slots:
   void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
 
 public:
+  void OnBackgroundColorChanged(const QColor& color);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
@@ -74,6 +75,7 @@ private:
   QNumericSlider m_GradientFactorSlider;
   QNumericSlider m_StepSizePrimaryRaySlider;
   QNumericSlider m_StepSizeSecondaryRaySlider;
+  QColorPushButton m_backgroundColorButton;
 
   QTransferFunction* m_transferFunction;
 

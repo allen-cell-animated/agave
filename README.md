@@ -2,7 +2,8 @@ AGAVE : Advanced GPU Accelerated Volume Explorer
 
 Agave is a desktop application for viewing 16-bit unsigned multichannel ome-tif files.
 
-The code is currently organized into two sections: 
+The code is currently organized into two sections:
+
 1. qtome is the Qt front end of the application
 2. renderlib is the code responsible for dealing with volume images and rendering them
 
@@ -10,15 +11,18 @@ How to build from source:
 
 For windows: make sure you are in an environment where vsvarsall has been run, e.g. a "VS2017 x64 Native Tools Command Prompt"
 
-Use official install of Qt 5.12.5 or greater. 
-Use vcpkg to install boost, tiff, glm.
+Use official install of Qt 5.12.5 or greater.
+Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64-windows.
 
 ```
 mkdir build
 cd build
+# (vs 2017)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 15 2017 Win64" -DVCPKG_TARGET_TRIPLET=x64-windows ..
-OR (vs 2019 with v141 (vs2017) toolset installed.   vs2017 required due to qt build version)
+# OR (vs 2019 with v141 (vs2017) toolset installed.   vs2017 required due to qt build version)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64 -T v141 -DVCPKG_TARGET_TRIPLET=x64-windows ..
+# OR (vs 2019)
+cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
 ```
 

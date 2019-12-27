@@ -269,3 +269,9 @@ struct SetSecondaryRayStepSizeCommandD
   float m_stepSize;
 };
 CMDDECL(SetSecondaryRayStepSizeCommand, 35);
+
+struct SetBackgroundColorCommandD
+{
+  float m_r, m_g, m_b;
+};
+CMDDECL(SetBackgroundColorCommand, 36);

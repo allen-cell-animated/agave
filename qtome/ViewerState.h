@@ -34,6 +34,7 @@ struct ViewerState
 {
   QString m_volumeImageFile;
   std::vector<ChannelViewerState> m_channels;
+  glm::vec3 m_backgroundColor;
   int m_resolutionX = 0, m_resolutionY = 0;
   int m_renderIterations = 1;
   float m_exposure = 0.75f;

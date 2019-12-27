@@ -369,3 +369,12 @@ SetSecondaryRayStepSizeCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow = m_data.m_stepSize;
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+void
+SetBackgroundColorCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetBackgroundColor " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  c->m_appScene->m_material.m_backgroundColor[0] = m_data.m_r;
+  c->m_appScene->m_material.m_backgroundColor[1] = m_data.m_g;
+  c->m_appScene->m_material.m_backgroundColor[2] = m_data.m_b;
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
