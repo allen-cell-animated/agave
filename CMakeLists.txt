@@ -204,6 +204,8 @@ install(FILES
   ${PYTHON_LIBRARIES}
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
+
+
 install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}agave.app/Contents)
 # set(${QT_PLUGINS} 
 #             "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
@@ -252,16 +254,17 @@ endif()
 # list(APPEND DIRS "${QTDIR}/lib")
 # list(APPEND DIRS "${Qt5Widgets_DIR}/../..")
 
+set(PLUGINS "${QT_PLUGINS}")
+
 include(InstallRequiredSystemLibraries)
 
-message(STATUS "PYTHON_INTERP: ${PythonInterp}")
 message(STATUS "PYTHON_LIBRARIES: ${PYTHON_LIBRARIES}")
 message(STATUS "APPS: ${APPS}")
-message(STATUS "QT_PLUGINS: ${QT_PLUGINS}")
+message(STATUS "PLUGINS: ${PLUGINS}")
 message(STATUS "DIRS: ${DIRS}")
 
 install(CODE "include(BundleUtilities)
-    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${QT_PLUGINS}\" \"${DIRS}\")" COMPONENT Runtime)
+    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" IGNORE_ITEM \"Python\")" COMPONENT Runtime)
 
 set(CPACK_GENERATOR "DragNDrop")
 include(CPack)
