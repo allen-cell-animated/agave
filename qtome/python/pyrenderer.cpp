@@ -59,10 +59,6 @@ OffscreenRenderer::init()
 {
   LOG_DEBUG << "INIT RENDERER";
 
-  // this->setFixedSize(1920, 1080);
-  // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
-  // "Working Directory: " + QDir::currentPath());
-
   QSurfaceFormat format = renderlib::getQSurfaceFormat();
 
   this->context = new QOpenGLContext();
@@ -73,18 +69,7 @@ OffscreenRenderer::init()
   this->surface->setFormat(this->context->format());
   this->surface->create();
 
-  /*this->context->doneCurrent();
-  this->context->moveToThread(this);*/
   this->context->makeCurrent(this->surface);
-
-  // int status = gladLoadGL();
-  // if (!status) {
-  //  LOG_INFO << "COULD NOT LOAD GL";
-  //}
-
-  ///////////////////////////////////
-  // INIT THE RENDER LIB
-  ///////////////////////////////////
 
   this->resizeGL(1024, 1024);
 
@@ -100,32 +85,6 @@ OffscreenRenderer::init()
 
   this->context->doneCurrent();
 }
-
-#if 0 
-void
-OffscreenRenderer::processCommandBuffer(RenderRequest* rr)
-{
-  this->context->makeCurrent(this->surface);
-
-  std::vector<Command*> cmds = rr->getParameters();
-  if (cmds.size() > 0) {
-    ExecutionContext ec;
-    ec.m_renderSettings = myVolumeData._renderSettings;
-    ec.m_renderer = this;
-    ec.m_appScene = myVolumeData._scene;
-    ec.m_camera = myVolumeData._camera;
-    ec.m_message = "";
-
-    for (auto i = cmds.begin(); i != cmds.end(); ++i) {
-      (*i)->execute(&ec);
-      if (!ec.m_message.isEmpty()) {
-        emit sendString(rr, QString::fromStdString(ec.m_message));
-        ec.m_message = "";
-      }
-    }
-  }
-}
-#endif
 
 QImage
 OffscreenRenderer::render()
@@ -188,7 +147,6 @@ OffscreenRenderer::reset(int from)
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
   glEnable(GL_BLEND);
   glEnable(GL_LINE_SMOOTH);
 }
