@@ -27,6 +27,10 @@ static const struct
   int minor = 3;
 } AICS_GL_VERSION;
 
+static const uint32_t AICS_DEFAULT_STENCIL_BUFFER_BITS = 8;
+
+static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
+
 namespace {
 static void
 logMessage(QOpenGLDebugMessage message)
@@ -40,8 +44,8 @@ renderlib::getQSurfaceFormat(bool enableDebug)
 {
   QSurfaceFormat format;
   // format.setSamples(8);
-  format.setDepthBufferSize(24);
-  format.setStencilBufferSize(8);
+  format.setDepthBufferSize(AICS_DEFAULT_DEPTH_BUFFER_BITS);
+  format.setStencilBufferSize(AICS_DEFAULT_STENCIL_BUFFER_BITS);
   format.setVersion(AICS_GL_VERSION.major, AICS_GL_VERSION.minor);
   // necessary on MacOS at least:
   format.setProfile(QSurfaceFormat::CoreProfile);
