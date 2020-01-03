@@ -717,34 +717,34 @@ SetBackgroundColorCommand::parse(ParseableStream* c)
 std::string
 SessionCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << m_data.m_name;
+  ss << "\"" << m_data.m_name << "\"";
   ss << ")";
   return ss.str();
 }
 std::string
 AssetPathCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << m_data.m_name;
+  ss << "\"" << m_data.m_name << "\"";
   ss << ")";
   return ss.str();
 }
 std::string
 LoadOmeTifCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << m_data.m_name;
+  ss << "\"" << m_data.m_name << "\"";
   ss << ")";
   return ss.str();
 }
 std::string
 SetCameraPosCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
   ss << ")";
@@ -753,7 +753,7 @@ SetCameraPosCommand::toPythonString() const
 std::string
 SetCameraUpCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
   ss << ")";
@@ -762,7 +762,7 @@ SetCameraUpCommand::toPythonString() const
 std::string
 SetCameraTargetCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
   ss << ")";
@@ -771,7 +771,7 @@ SetCameraTargetCommand::toPythonString() const
 std::string
 SetCameraApertureCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x;
   ss << ")";
@@ -780,7 +780,7 @@ SetCameraApertureCommand::toPythonString() const
 std::string
 SetCameraProjectionCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_projectionType << ", " << m_data.m_x;
   ss << ")";
@@ -789,7 +789,7 @@ SetCameraProjectionCommand::toPythonString() const
 std::string
 SetCameraFocalDistanceCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x;
   ss << ")";
@@ -798,7 +798,7 @@ SetCameraFocalDistanceCommand::toPythonString() const
 std::string
 SetCameraExposureCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x;
   ss << ")";
@@ -807,7 +807,7 @@ SetCameraExposureCommand::toPythonString() const
 std::string
 SetDiffuseColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
   ss << ")";
@@ -816,7 +816,7 @@ SetDiffuseColorCommand::toPythonString() const
 std::string
 SetSpecularColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
   ss << ")";
@@ -825,7 +825,7 @@ SetSpecularColorCommand::toPythonString() const
 std::string
 SetEmissiveColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
   ss << ")";
@@ -834,7 +834,7 @@ SetEmissiveColorCommand::toPythonString() const
 std::string
 SetRenderIterationsCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x;
   ss << ")";
@@ -843,7 +843,7 @@ SetRenderIterationsCommand::toPythonString() const
 std::string
 SetStreamModeCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x;
   ss << ")";
@@ -852,7 +852,7 @@ SetStreamModeCommand::toPythonString() const
 std::string
 RequestRedrawCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << ")";
   return ss.str();
@@ -860,7 +860,7 @@ RequestRedrawCommand::toPythonString() const
 std::string
 SetResolutionCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y;
   ss << ")";
@@ -869,7 +869,7 @@ SetResolutionCommand::toPythonString() const
 std::string
 SetDensityCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x;
   ss << ")";
@@ -878,7 +878,7 @@ SetDensityCommand::toPythonString() const
 std::string
 FrameSceneCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << ")";
   return ss.str();
@@ -886,7 +886,7 @@ FrameSceneCommand::toPythonString() const
 std::string
 SetGlossinessCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_glossiness;
   ss << ")";
@@ -895,7 +895,7 @@ SetGlossinessCommand::toPythonString() const
 std::string
 EnableChannelCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_enabled;
   ss << ")";
@@ -904,7 +904,7 @@ EnableChannelCommand::toPythonString() const
 std::string
 SetWindowLevelCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_window << ", " << m_data.m_level;
   ss << ")";
@@ -913,7 +913,7 @@ SetWindowLevelCommand::toPythonString() const
 std::string
 OrbitCameraCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_theta << ", " << m_data.m_phi;
   ss << ")";
@@ -922,7 +922,7 @@ OrbitCameraCommand::toPythonString() const
 std::string
 SetSkylightTopColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
   ss << ")";
@@ -931,7 +931,7 @@ SetSkylightTopColorCommand::toPythonString() const
 std::string
 SetSkylightMiddleColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
   ss << ")";
@@ -940,7 +940,7 @@ SetSkylightMiddleColorCommand::toPythonString() const
 std::string
 SetSkylightBottomColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
   ss << ")";
@@ -950,7 +950,7 @@ SetSkylightBottomColorCommand::toPythonString() const
 std::string
 SetLightPosCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_index << ", " << m_data.m_r << ", " << m_data.m_theta << ", " << m_data.m_phi;
   ss << ")";
@@ -959,7 +959,7 @@ SetLightPosCommand::toPythonString() const
 std::string
 SetLightColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_index << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
   ss << ")";
@@ -968,7 +968,7 @@ SetLightColorCommand::toPythonString() const
 std::string
 SetLightSizeCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_index << ", " << m_data.m_x << ", " << m_data.m_y;
   ss << ")";
@@ -978,9 +978,10 @@ SetLightSizeCommand::toPythonString() const
 std::string
 SetClipRegionCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << m_data.m_minx << ", " << m_data.m_maxx << ", " << m_data.m_miny << ", " << m_data.m_maxy << ", " << m_data.m_minz << ", " << m_data.m_maxz;
+  ss << m_data.m_minx << ", " << m_data.m_maxx << ", " << m_data.m_miny << ", " << m_data.m_maxy << ", "
+     << m_data.m_minz << ", " << m_data.m_maxz;
   ss << ")";
   return ss.str();
 }
@@ -988,7 +989,7 @@ SetClipRegionCommand::toPythonString() const
 std::string
 SetVoxelScaleCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
   ss << ")";
@@ -997,7 +998,7 @@ SetVoxelScaleCommand::toPythonString() const
 std::string
 AutoThresholdCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_method;
   ss << ")";
@@ -1006,7 +1007,7 @@ AutoThresholdCommand::toPythonString() const
 std::string
 SetPercentileThresholdCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_pctLow << ", " << m_data.m_pctHigh;
   ss << ")";
@@ -1015,7 +1016,7 @@ SetPercentileThresholdCommand::toPythonString() const
 std::string
 SetOpacityCommand::toPythonString() const
 {
-    std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_opacity;
   ss << ")";
@@ -1024,7 +1025,7 @@ SetOpacityCommand::toPythonString() const
 std::string
 SetPrimaryRayStepSizeCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_stepSize;
   ss << ")";
@@ -1033,7 +1034,7 @@ SetPrimaryRayStepSizeCommand::toPythonString() const
 std::string
 SetSecondaryRayStepSizeCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_stepSize;
   ss << ")";
@@ -1042,7 +1043,7 @@ SetSecondaryRayStepSizeCommand::toPythonString() const
 std::string
 SetBackgroundColorCommand::toPythonString() const
 {
-  std::ostringstream ss; 
+  std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
   ss << ")";
