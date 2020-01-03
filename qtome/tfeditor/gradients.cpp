@@ -167,7 +167,7 @@ ShadeWidget::generateShade()
       p.fillRect(rect(), m_alpha_gradient);
 
       p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-      QLinearGradient fade(0, 0, 0, height()-1);
+      QLinearGradient fade(0, 0, 0, height() - 1);
       fade.setColorAt(0, QColor(255, 255, 255, 255));
       fade.setColorAt(1, QColor(0, 0, 0, 0));
       p.fillRect(rect(), fade);
@@ -197,9 +197,9 @@ GradientEditor::GradientEditor(QWidget* parent)
   vbox->setSpacing(1);
   vbox->setMargin(1);
 
-  //m_red_shade = new ShadeWidget(ShadeWidget::RedShade, this);
-  //m_green_shade = new ShadeWidget(ShadeWidget::GreenShade, this);
-  //m_blue_shade = new ShadeWidget(ShadeWidget::BlueShade, this);
+  // m_red_shade = new ShadeWidget(ShadeWidget::RedShade, this);
+  // m_green_shade = new ShadeWidget(ShadeWidget::GreenShade, this);
+  // m_blue_shade = new ShadeWidget(ShadeWidget::BlueShade, this);
   m_alpha_shade = new ShadeWidget(ShadeWidget::ARGBShade, this);
 
   //  vbox->addWidget(m_red_shade);
@@ -228,9 +228,9 @@ GradientEditor::pointsUpdated()
 
   QPolygonF points;
 
-  //points += m_red_shade->points();
-  //points += m_green_shade->points();
-  //points += m_blue_shade->points();
+  // points += m_red_shade->points();
+  // points += m_green_shade->points();
+  // points += m_blue_shade->points();
   points += m_alpha_shade->points();
 
   std::sort(points.begin(), points.end(), x_less_than);
@@ -244,7 +244,7 @@ GradientEditor::pointsUpdated()
     unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
     unsigned int b = (0x000000ff & pixelvalue);
     unsigned int a = (0xff000000 & pixelvalue) >> 24;
-    QColor color(r,g,b,a);
+    QColor color(r, g, b, a);
 
     if (x / w > 1)
       return;
@@ -271,23 +271,23 @@ GradientEditor::setGradientStops(const QGradientStops& stops)
 {
   QPolygonF pts_red, pts_green, pts_blue, pts_alpha;
 
-  //qreal h_red = m_red_shade->height();
-  //qreal h_green = m_green_shade->height();
-  //qreal h_blue = m_blue_shade->height();
+  // qreal h_red = m_red_shade->height();
+  // qreal h_green = m_green_shade->height();
+  // qreal h_blue = m_blue_shade->height();
   qreal h_alpha = m_alpha_shade->height();
 
   for (int i = 0; i < stops.size(); ++i) {
     qreal pos = stops.at(i).first;
     QRgb color = stops.at(i).second.rgba();
-    //pts_red << QPointF(pos * m_red_shade->width(), h_red - qRed(color) * h_red / 255);
-    //pts_green << QPointF(pos * m_green_shade->width(), h_green - qGreen(color) * h_green / 255);
-    //pts_blue << QPointF(pos * m_blue_shade->width(), h_blue - qBlue(color) * h_blue / 255);
+    // pts_red << QPointF(pos * m_red_shade->width(), h_red - qRed(color) * h_red / 255);
+    // pts_green << QPointF(pos * m_green_shade->width(), h_green - qGreen(color) * h_green / 255);
+    // pts_blue << QPointF(pos * m_blue_shade->width(), h_blue - qBlue(color) * h_blue / 255);
     pts_alpha << QPointF(pos * m_alpha_shade->width(), h_alpha - qAlpha(color) * h_alpha / 255);
   }
 
-  //set_shade_points(pts_red, m_red_shade);
-  //set_shade_points(pts_green, m_green_shade);
-  //set_shade_points(pts_blue, m_blue_shade);
+  // set_shade_points(pts_red, m_red_shade);
+  // set_shade_points(pts_green, m_green_shade);
+  // set_shade_points(pts_blue, m_blue_shade);
   set_shade_points(pts_alpha, m_alpha_shade);
 }
 
@@ -296,21 +296,21 @@ GradientWidget::GradientWidget(QWidget* parent)
 {
   setWindowTitle(tr("Gradients"));
 
-  QGroupBox* mainGroup = new QGroupBox(this);
-  mainGroup->setTitle(tr("Gradients"));
+  // QGroupBox* mainGroup = new QGroupBox(this);
+  // mainGroup->setTitle(tr("Gradients"));
 
-  QGroupBox* editorGroup = new QGroupBox(mainGroup);
+  QGroupBox* editorGroup = new QGroupBox(this);
   editorGroup->setTitle(tr("Color Editor"));
   m_editor = new GradientEditor(editorGroup);
 
-  QGroupBox* presetsGroup = new QGroupBox(mainGroup);
+  QGroupBox* presetsGroup = new QGroupBox(this);
   presetsGroup->setTitle(tr("Presets"));
   QPushButton* prevPresetButton = new QPushButton(tr("<"), presetsGroup);
   m_presetButton = new QPushButton(tr("(unset)"), presetsGroup);
   QPushButton* nextPresetButton = new QPushButton(tr(">"), presetsGroup);
   updatePresetName();
 
-  QGroupBox* defaultsGroup = new QGroupBox(mainGroup);
+  QGroupBox* defaultsGroup = new QGroupBox(this);
   defaultsGroup->setTitle(tr("Examples"));
   QPushButton* default1Button = new QPushButton(tr("1"), defaultsGroup);
   QPushButton* default2Button = new QPushButton(tr("2"), defaultsGroup);
@@ -318,11 +318,11 @@ GradientWidget::GradientWidget(QWidget* parent)
   QPushButton* default4Button = new QPushButton(tr("Reset"), editorGroup);
 
   // Layouts
-  QHBoxLayout* mainLayout = new QHBoxLayout(this);
-  mainLayout->addWidget(mainGroup);
+  // QHBoxLayout* mainLayout = new QHBoxLayout(this);
+  // mainLayout->addWidget(mainGroup);
 
-  mainGroup->setFixedWidth(200);
-  QVBoxLayout* mainGroupLayout = new QVBoxLayout(mainGroup);
+  // mainGroup->setFixedWidth(200);
+  QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
   mainGroupLayout->addWidget(editorGroup);
   mainGroupLayout->addWidget(presetsGroup);
   mainGroupLayout->addWidget(defaultsGroup);
