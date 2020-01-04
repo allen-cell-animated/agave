@@ -43,7 +43,6 @@ QSurfaceFormat
 renderlib::getQSurfaceFormat(bool enableDebug)
 {
   QSurfaceFormat format;
-  // format.setSamples(8);
   format.setDepthBufferSize(AICS_DEFAULT_DEPTH_BUFFER_BITS);
   format.setStencilBufferSize(AICS_DEFAULT_STENCIL_BUFFER_BITS);
   format.setVersion(AICS_GL_VERSION.major, AICS_GL_VERSION.minor);
