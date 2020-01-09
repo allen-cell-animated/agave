@@ -13,9 +13,9 @@
 #include <QOpenGLFramebufferObjectFormat>
 
 OffscreenRenderer::OffscreenRenderer()
-  : fbo(nullptr)
-  , _width(0)
-  , _height(0)
+  : m_fbo(nullptr)
+  , m_width(0)
+  , m_height(0)
 {
   LOG_DEBUG << "Initializing renderer for python script";
   this->init();
@@ -23,34 +23,34 @@ OffscreenRenderer::OffscreenRenderer()
 
 OffscreenRenderer::~OffscreenRenderer()
 {
-  this->context->makeCurrent(this->surface);
-  myVolumeData._renderer->cleanUpResources();
+  this->m_glContext->makeCurrent(this->m_surface);
+  m_myVolumeData.m_renderer->cleanUpResources();
   shutDown();
 }
 
 void
 OffscreenRenderer::myVolumeInit()
 {
-  myVolumeData._renderSettings = new RenderSettings();
+  m_myVolumeData.m_renderSettings = new RenderSettings();
 
-  myVolumeData._camera = new CCamera();
-  myVolumeData._camera->m_Film.m_ExposureIterations = 1;
-  myVolumeData._camera->m_Film.m_Resolution.SetResX(_width);
-  myVolumeData._camera->m_Film.m_Resolution.SetResY(_height);
+  m_myVolumeData.m_camera = new CCamera();
+  m_myVolumeData.m_camera->m_Film.m_ExposureIterations = 1;
+  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(m_width);
+  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(m_height);
 
-  myVolumeData._scene = new Scene();
-  myVolumeData._scene->initLights();
+  m_myVolumeData.m_scene = new Scene();
+  m_myVolumeData.m_scene->initLights();
 
-  myVolumeData._renderer = new RenderGLPT(myVolumeData._renderSettings);
-  myVolumeData._renderer->initialize(_width, _height);
-  myVolumeData._renderer->setScene(myVolumeData._scene);
+  m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
+  m_myVolumeData.m_renderer->initialize(m_width, m_height);
+  m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
 
   // execution context for commands to run
-  m_ec.m_renderSettings = myVolumeData._renderSettings;
+  m_ec.m_renderSettings = m_myVolumeData.m_renderSettings;
   // RENDERER MUST SUPPORT RESIZEGL AND SETSTREAMMODE; SEE command.cpp
   m_ec.m_renderer = nullptr;
-  m_ec.m_appScene = myVolumeData._scene;
-  m_ec.m_camera = myVolumeData._camera;
+  m_ec.m_appScene = m_myVolumeData.m_scene;
+  m_ec.m_camera = m_myVolumeData.m_camera;
   m_ec.m_message = "";
 }
 
@@ -61,15 +61,15 @@ OffscreenRenderer::init()
 
   QSurfaceFormat format = renderlib::getQSurfaceFormat();
 
-  this->context = new QOpenGLContext();
-  this->context->setFormat(format); // ...and set the format on the context too
-  this->context->create();
+  this->m_glContext = new QOpenGLContext();
+  this->m_glContext->setFormat(format); // ...and set the format on the context too
+  this->m_glContext->create();
 
-  this->surface = new QOffscreenSurface();
-  this->surface->setFormat(this->context->format());
-  this->surface->create();
+  this->m_surface = new QOffscreenSurface();
+  this->m_surface->setFormat(this->m_glContext->format());
+  this->m_surface->create();
 
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   this->resizeGL(1024, 1024);
 
@@ -83,67 +83,67 @@ OffscreenRenderer::init()
 
   myVolumeInit();
 
-  this->context->doneCurrent();
+  this->m_glContext->doneCurrent();
 }
 
 QImage
 OffscreenRenderer::render()
 {
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   glEnable(GL_TEXTURE_2D);
 
   // DRAW
-  myVolumeData._camera->Update();
-  myVolumeData._renderer->doRender(*(myVolumeData._camera));
+  m_myVolumeData.m_camera->Update();
+  m_myVolumeData.m_renderer->doRender(*(m_myVolumeData.m_camera));
 
   // COPY TO MY FBO
-  this->fbo->bind();
-  int vw = fbo->width();
-  int vh = fbo->height();
+  this->m_fbo->bind();
+  int vw = m_fbo->width();
+  int vh = m_fbo->height();
   glViewport(0, 0, vw, vh);
-  myVolumeData._renderer->drawImage();
-  this->fbo->release();
+  m_myVolumeData.m_renderer->drawImage();
+  this->m_fbo->release();
 
-  QImage img = fbo->toImage();
+  QImage img = m_fbo->toImage();
 
-  this->context->doneCurrent();
+  this->m_glContext->doneCurrent();
   return img;
 }
 
 void
 OffscreenRenderer::resizeGL(int width, int height)
 {
-  if ((width == _width) && (height == _height)) {
+  if ((width == m_width) && (height == m_height)) {
     return;
   }
 
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   // RESIZE THE RENDER INTERFACE
-  if (myVolumeData._renderer) {
-    myVolumeData._renderer->resize(width, height);
+  if (m_myVolumeData.m_renderer) {
+    m_myVolumeData.m_renderer->resize(width, height);
   }
 
-  delete this->fbo;
+  delete this->m_fbo;
   QOpenGLFramebufferObjectFormat fboFormat;
   fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
   fboFormat.setMipmap(false);
   fboFormat.setSamples(0);
   fboFormat.setTextureTarget(GL_TEXTURE_2D);
   fboFormat.setInternalTextureFormat(GL_RGBA8);
-  this->fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
+  this->m_fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
 
   glViewport(0, 0, width, height);
 
-  _width = width;
-  _height = height;
+  m_width = width;
+  m_height = height;
 }
 
 void
 OffscreenRenderer::reset(int from)
 {
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -154,23 +154,23 @@ OffscreenRenderer::reset(int from)
 void
 OffscreenRenderer::shutDown()
 {
-  context->makeCurrent(surface);
-  delete this->fbo;
+  m_glContext->makeCurrent(m_surface);
+  delete this->m_fbo;
 
-  delete myVolumeData._renderSettings;
-  delete myVolumeData._camera;
-  delete myVolumeData._scene;
-  delete myVolumeData._renderer;
-  myVolumeData._camera = nullptr;
-  myVolumeData._scene = nullptr;
-  myVolumeData._renderSettings = nullptr;
-  myVolumeData._renderer = nullptr;
+  delete m_myVolumeData.m_renderSettings;
+  delete m_myVolumeData.m_camera;
+  delete m_myVolumeData.m_scene;
+  delete m_myVolumeData.m_renderer;
+  m_myVolumeData.m_camera = nullptr;
+  m_myVolumeData.m_scene = nullptr;
+  m_myVolumeData.m_renderSettings = nullptr;
+  m_myVolumeData.m_renderer = nullptr;
 
-  context->doneCurrent();
-  delete context;
+  m_glContext->doneCurrent();
+  delete m_glContext;
 
   // schedule this to be deleted only after we're done cleaning up
-  surface->deleteLater();
+  m_surface->deleteLater();
 }
 
 // RenderInterface
