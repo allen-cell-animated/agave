@@ -87,6 +87,8 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     return cached->second;
   }
 
+  std::shared_ptr<ImageXYZC> emptyimage;
+
   QElapsedTimer twhole;
   twhole.start();
 
@@ -99,7 +101,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     QString msg = "Failed to open TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return std::shared_ptr<ImageXYZC>();
+    return emptyimage;
   }
 
   char* omexmlstr = nullptr;
@@ -109,6 +111,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     LOG_ERROR << msg.toStdString();
 
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+    return emptyimage;
   }
 
   // Temporary variables
@@ -120,11 +123,13 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     QString msg = "Failed to read width of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+    return emptyimage;
   }
   if (TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &height) != 1) {
     QString msg = "Failed to read height of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+    return emptyimage;
   }
 
   uint32_t bpp = 0;
@@ -132,6 +137,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     QString msg = "Failed to read bpp of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+    return emptyimage;
   }
 
   uint16_t sampleFormat = 0;
@@ -139,6 +145,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     QString msg = "Failed to read sampleformat of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
     // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+    return emptyimage;
   }
 
   uint32_t sizeT = 1;
@@ -172,6 +179,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       } else {
         QString msg = "Unexpected name/value pair in TIFF ImageJ metadata: " + sl.at(i);
         LOG_ERROR << msg.toStdString();
+        return emptyimage;
       }
     }
 
@@ -223,6 +231,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     if (shapelist.size() != 4) {
       QString msg = "Expected shape to be 4D TIFF: '" + QString(filepath.c_str()) + "'";
       LOG_ERROR << msg.toStdString();
+      return emptyimage;
     }
     dimensionOrder = "XYZCT";
     sizeX = shapelist[3].toInt();
@@ -241,6 +250,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       QString msg = "Bad ome xml content";
       LOG_ERROR << msg.toStdString();
       // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+      return emptyimage;
     }
 
     // extract some necessary info from the xml:
@@ -248,6 +258,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     if (pixelsEl.isNull()) {
       QString msg = "No <Pixels> element in ome xml";
       LOG_ERROR << msg.toStdString();
+      return emptyimage;
     }
 
     // skipping "complex", "double-complex", and "bit".
@@ -255,8 +266,13 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
                                                         { "int8", 8 },   { "int16", 16 },  { "int32", 32 },
                                                         { "float", 32 }, { "double", 64 } };
 
-    QString pixelType = pixelsEl.attribute("PixelType", "uint16").toLower();
+    QString pixelType = pixelsEl.attribute("Type", "uint16").toLower();
+    LOG_INFO << "pixel type: " << pixelType.toStdString();
     bpp = mapPixelTypeBPP[pixelType.toStdString()];
+    if (bpp != 16) {
+      LOG_ERROR << "Image must be 16-bit";
+      return emptyimage;
+    }
     sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
     sizeY = requireUint32Attr(pixelsEl, "SizeY", 0);
     sizeZ = requireUint32Attr(pixelsEl, "SizeZ", 0);
@@ -308,6 +324,8 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   size_t planesize = sizeX * sizeY * bpp / 8;
   uint8_t* data = new uint8_t[planesize * sizeZ * sizeC];
   memset(data, 0, planesize * sizeZ * sizeC);
+  // stash it here in case of early exit, it will be deleted
+  std::unique_ptr<uint8_t[]> smartPtr(data);
 
   uint8_t* destptr = data;
 
@@ -325,10 +343,12 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       int setdirok = TIFFSetDirectory(tiff, i);
       if (setdirok == 0) {
         LOG_ERROR << "Bad tiff directory specified: " << (i);
+        return emptyimage;
       }
       int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
       if (readtileok < 0) {
         LOG_ERROR << "Error reading tiff tile";
+        return emptyimage;
       }
       // copy buf into data.
       uint32_t t = 0;
@@ -351,6 +371,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
       if (setdirok == 0) {
         LOG_ERROR << "Bad tiff directory specified: " << (i);
+        return emptyimage;
       }
       // ensure channels are coalesced (transposing from xycz to xyzc)
       uint32_t t = 0;
@@ -364,6 +385,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
         int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
         if (readstripok < 0) {
           LOG_ERROR << "Error reading tiff strip";
+          return emptyimage;
         }
 
         // copy buf into data.
@@ -381,8 +403,9 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   // TODO: convert data to uint16_t pixels.
 
   timer.start();
-  ImageXYZC* im =
-    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), data, physicalSizeX, physicalSizeY, physicalSizeZ);
+  // we can release the smartPtr because ImageXYZC will now own the raw data memory
+  ImageXYZC* im = new ImageXYZC(
+    sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), smartPtr.release(), physicalSizeX, physicalSizeY, physicalSizeZ);
   LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
   im->setChannelNames(channelNames);
@@ -392,6 +415,62 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   std::shared_ptr<ImageXYZC> sharedImage(im);
   if (addToCache) {
     sPreloadedImageCache[filepath] = sharedImage;
+  }
+  return sharedImage;
+}
+
+std::shared_ptr<ImageXYZC>
+FileReader::loadFromArray_4D(uint8_t* dataArray,
+                             std::vector<uint32_t> shape,
+                             const std::string& name,
+                             std::vector<char> dims,
+                             std::vector<std::string> channelNames,
+                             std::vector<float> physicalSizes,
+                             bool addToCache)
+{
+  // check cache first of all.
+  auto cached = sPreloadedImageCache.find(name);
+  if (cached != sPreloadedImageCache.end()) {
+    return cached->second;
+  }
+
+  // assume data is in CZYX order:
+  static const int XDIM = 3, YDIM = 2, ZDIM = 1, CDIM = 0;
+
+  size_t ndim = shape.size();
+  assert(ndim == 4);
+
+  uint32_t bpp = 16;
+  uint32_t sizeT = 1;
+  uint32_t sizeX = shape[XDIM];
+  uint32_t sizeY = shape[YDIM];
+  uint32_t sizeZ = shape[ZDIM];
+  uint32_t sizeC = shape[CDIM];
+  assert(physicalSizes.size() == 3);
+  float physicalSizeX = physicalSizes[0];
+  float physicalSizeY = physicalSizes[1];
+  float physicalSizeZ = physicalSizes[2];
+
+  // product of all shape elements must equal number of elements in dataArray
+  // dims must either be empty or must be of same length as shape, and end in (Y, X), and start with CZ or ZC or Z ?
+
+  QElapsedTimer timer;
+  timer.start();
+
+  // note that im will take ownership of dataArray
+  ImageXYZC* im =
+    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ);
+  LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
+
+  std::vector<QString> qchannelNames;
+  for (auto name : channelNames) {
+    qchannelNames.push_back(QString::fromStdString(name));
+  }
+  im->setChannelNames(qchannelNames);
+
+  std::shared_ptr<ImageXYZC> sharedImage(im);
+  if (addToCache) {
+    sPreloadedImageCache[name] = sharedImage;
   }
   return sharedImage;
 }

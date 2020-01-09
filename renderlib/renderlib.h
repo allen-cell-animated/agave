@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QSurfaceFormat>
+
 #include <map>
 #include <memory>
 #include <string>
@@ -31,6 +33,8 @@ public:
   //    load new image or shutdown
   static std::shared_ptr<ImageGpu> imageAllocGPU(std::shared_ptr<ImageXYZC> image, bool do_cache = true);
   static void imageDeallocGPU(std::shared_ptr<ImageXYZC> image);
+
+  static QSurfaceFormat getQSurfaceFormat(bool enableDebug = false);
 
 private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> sGpuImageCache;

@@ -68,6 +68,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QTransfer
   QObject::connect(
     &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
+  m_backgroundColorButton.SetColor(QColor(0, 0, 0, 0), true);
+  m_MainLayout.addRow("BackgroundColor", &m_backgroundColorButton);
+
+  QObject::connect(&m_backgroundColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+    this->OnBackgroundColorChanged(c);
+  });
+
   m_scaleSection = new Section("Volume Scale", 0);
   auto* scaleSectionLayout = new QGridLayout();
   scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
@@ -491,6 +498,19 @@ QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
 }
 
 void
+QAppearanceSettingsWidget::OnBackgroundColorChanged(const QColor& color)
+{
+  if (!m_scene)
+    return;
+  qreal rgba[4];
+  color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+  m_scene->m_material.m_backgroundColor[0] = rgba[0];
+  m_scene->m_material.m_backgroundColor[1] = rgba[1];
+  m_scene->m_material.m_backgroundColor[2] = rgba[2];
+  m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
 QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
@@ -640,6 +660,11 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
   m_StepSizePrimaryRaySlider.setValue(m_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactor);
   m_StepSizeSecondaryRaySlider.setValue(m_transferFunction->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
+
+  QColor cbg = QColor::fromRgbF(m_scene->m_material.m_backgroundColor[0],
+                                m_scene->m_material.m_backgroundColor[1],
+                                m_scene->m_material.m_backgroundColor[2]);
+  m_backgroundColorButton.SetColor(cbg);
 
   m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * 100.0);
   m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * 100.0);

@@ -1,11 +1,14 @@
 #include "ViewerState.h"
 
+#include "command.h"
 #include "renderlib/Logging.h"
 
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonObject>
+
+#include <sstream>
 
 QJsonArray
 jsonVec3(float x, float y, float z)
@@ -147,6 +150,10 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
   m_scaleX = scale.x;
   m_scaleY = scale.y;
   m_scaleZ = scale.z;
+
+  glm::vec3 bgcolor = m_backgroundColor;
+  getVec3(json, "backgroundColor", bgcolor);
+  m_backgroundColor = bgcolor;
 
   if (json.contains("clipRegion") && json["clipRegion"].isArray()) {
     QJsonArray ja = json["clipRegion"].toArray();
@@ -291,6 +298,8 @@ ViewerState::stateToJson() const
   camera["focalDistance"] = m_focalDistance;
   j["camera"] = camera;
 
+  j["backgroundColor"] = jsonVec3(m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z);
+
   QJsonArray channels;
   for (auto ch : m_channels) {
     QJsonObject channel;
@@ -358,97 +367,188 @@ ViewerState::writeStateToJson(QString filePath, const ViewerState& state)
 QString
 ViewerState::stateToPythonScript() const
 {
-  {
-    QFileInfo fi(m_volumeImageFile);
-    QString outFileName = fi.baseName();
+  QFileInfo fi(m_volumeImageFile);
+  QString outFileName = fi.baseName();
 
-    QString s;
-    s += QString("import agaveclient\n\n\n");
-    s += QString("def renderfunc(server):\n");
-    s += QString("    server.render_frame(\n");
-    s += QString("        [\n");
+  std::ostringstream ss;
+  ss << "# agave --script myscript.py" << std::endl << std::endl;
+  ss << "import agave" << std::endl;
+  ss << "r = agave.renderer()" << std::endl;
+  std::string obj = "r.";
+  ss << obj << LoadOmeTifCommand({ m_volumeImageFile.toStdString() }).toPythonString() << std::endl;
+  ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
+  ss << obj
+     << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()
+     << std::endl;
+  ss << obj << SetRenderIterationsCommand({ m_renderIterations }).toPythonString() << std::endl;
+  ss << obj << SetPrimaryRayStepSizeCommand({ m_primaryStepSize }).toPythonString() << std::endl;
+  ss << obj << SetSecondaryRayStepSizeCommand({ m_secondaryStepSize }).toPythonString() << std::endl;
+  ss << obj << SetVoxelScaleCommand({ m_scaleX, m_scaleY, m_scaleZ }).toPythonString() << std::endl;
+  ss << obj
+     << SetClipRegionCommand({ m_roiXmin, m_roiXmax, m_roiYmin, m_roiYmax, m_roiZmin, m_roiZmax }).toPythonString()
+     << std::endl;
+  ss << obj << SetCameraPosCommand({ m_eyeX, m_eyeY, m_eyeZ }).toPythonString() << std::endl;
+  ss << obj << SetCameraTargetCommand({ m_targetX, m_targetY, m_targetZ }).toPythonString() << std::endl;
+  ss << obj << SetCameraUpCommand({ m_upX, m_upY, m_upZ }).toPythonString() << std::endl;
+  ss << obj
+     << SetCameraProjectionCommand({ m_projection, m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale })
+          .toPythonString()
+     << std::endl;
 
-    QString indent("            ");
-    s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
-    s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
-    s += indent + QString("(\"RENDER_ITERATIONS\", %1),\n").arg(m_renderIterations);
-    s += indent + QString("(\"SET_PRIMARY_RAY_STEP_SIZE\", %1),\n").arg(m_primaryStepSize);
-    s += indent + QString("(\"SET_SECONDARY_RAY_STEP_SIZE\", %1),\n").arg(m_secondaryStepSize);
-    s += indent + QString("(\"SET_VOXEL_SCALE\", %1, %2, %3),\n").arg(m_scaleX).arg(m_scaleY).arg(m_scaleZ);
-    s += indent + QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6),\n")
-                    .arg(m_roiXmin)
-                    .arg(m_roiXmax)
-                    .arg(m_roiYmin)
-                    .arg(m_roiYmax)
-                    .arg(m_roiZmin)
-                    .arg(m_roiZmax);
+  ss << obj << SetCameraExposureCommand({ m_exposure }).toPythonString() << std::endl;
+  ss << obj << SetDensityCommand({ m_densityScale }).toPythonString() << std::endl;
+  ss << obj << SetCameraApertureCommand({ m_apertureSize }).toPythonString() << std::endl;
+  ss << obj << SetCameraFocalDistanceCommand({ m_focalDistance }).toPythonString() << std::endl;
 
-    s += indent + QString("(\"EYE\", %1, %2, %3),\n").arg(m_eyeX).arg(m_eyeY).arg(m_eyeZ);
-    s += indent + QString("(\"TARGET\", %1, %2, %3),\n").arg(m_targetX).arg(m_targetY).arg(m_targetZ);
-    s += indent + QString("(\"UP\", %1, %2, %3),\n").arg(m_upX).arg(m_upY).arg(m_upZ);
-    s += indent + QString("(\"CAMERA_PROJECTION\", %1, %2),\n")
-                    .arg(m_projection)
-                    .arg(m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale);
-
-    s += indent + QString("(\"EXPOSURE\", %1),\n").arg(m_exposure);
-    s += indent + QString("(\"DENSITY\", %1),\n").arg(m_densityScale);
-    s += indent + QString("(\"APERTURE\", %1),\n").arg(m_apertureSize);
-    s += indent + QString("(\"FOCALDIST\", %1),\n").arg(m_focalDistance);
-
-    // per-channel
-    for (std::size_t i = 0; i < m_channels.size(); ++i) {
-      const ChannelViewerState& ch = m_channels[i];
-      s += indent + QString("(\"ENABLE_CHANNEL\", %1, %2),\n").arg(QString::number(i), ch.m_enabled ? "1" : "0");
-      s += indent + QString("(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0),\n")
-                      .arg(QString::number(i))
-                      .arg(ch.m_diffuse.x)
-                      .arg(ch.m_diffuse.y)
-                      .arg(ch.m_diffuse.z);
-      s += indent + QString("(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0),\n")
-                      .arg(QString::number(i))
-                      .arg(ch.m_specular.x)
-                      .arg(ch.m_specular.y)
-                      .arg(ch.m_specular.z);
-      s += indent + QString("(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0),\n")
-                      .arg(QString::number(i))
-                      .arg(ch.m_emissive.x)
-                      .arg(ch.m_emissive.y)
-                      .arg(ch.m_emissive.z);
-      s += indent + QString("(\"MAT_GLOSSINESS\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_glossiness);
-      s += indent + QString("(\"MAT_OPACITY\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_opacity);
-      s += indent +
-           QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3),\n").arg(QString::number(i)).arg(ch.m_window).arg(ch.m_level);
-    }
-
-    // lighting
-    s += indent + QString("(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3),\n")
-                    .arg(m_light0.m_topColor.r * m_light0.m_topColorIntensity)
-                    .arg(m_light0.m_topColor.g * m_light0.m_topColorIntensity)
-                    .arg(m_light0.m_topColor.b * m_light0.m_topColorIntensity);
-    s += indent + QString("(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3),\n")
-                    .arg(m_light0.m_middleColor.r * m_light0.m_middleColorIntensity)
-                    .arg(m_light0.m_middleColor.g * m_light0.m_middleColorIntensity)
-                    .arg(m_light0.m_middleColor.b * m_light0.m_middleColorIntensity);
-    s += indent + QString("(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3),\n")
-                    .arg(m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity)
-                    .arg(m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity)
-                    .arg(m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity);
-    s +=
-      indent +
-      QString("(\"LIGHT_POS\", 0, %1, %2, %3),\n").arg(m_light1.m_distance).arg(m_light1.m_theta).arg(m_light1.m_phi);
-    s += indent + QString("(\"LIGHT_COLOR\", 0, %1, %2, %3),\n")
-                    .arg(m_light1.m_color.r * m_light1.m_colorIntensity)
-                    .arg(m_light1.m_color.g * m_light1.m_colorIntensity)
-                    .arg(m_light1.m_color.b * m_light1.m_colorIntensity);
-    s += indent + QString("(\"LIGHT_SIZE\", 0, %1, %2),\n").arg(m_light1.m_width).arg(m_light1.m_height);
-
-    s += QString("        ],\n");
-    s += QString("        output_name=\"%1\",\n").arg(outFileName);
-    s += QString("    )\n");
-    s += QString("\n");
-    s += QString("agaveclient.agaveclient(renderfunc=renderfunc)\n");
-
-    // LOG_DEBUG << s.toStdString();
-    return s;
+  // per-channel
+  for (std::int32_t i = 0; i < m_channels.size(); ++i) {
+    const ChannelViewerState& ch = m_channels[i];
+    ss << obj << EnableChannelCommand({ i, ch.m_enabled ? 1 : 0 }).toPythonString() << std::endl;
+    ss << obj << SetDiffuseColorCommand({ i, ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z, 1.0f }).toPythonString()
+       << std::endl;
+    ss << obj
+       << SetSpecularColorCommand({ i, ch.m_specular.x, ch.m_specular.y, ch.m_specular.z, 0.0f }).toPythonString()
+       << std::endl;
+    ss << obj
+       << SetEmissiveColorCommand({ i, ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z, 0.0f }).toPythonString()
+       << std::endl;
+    ss << obj << SetGlossinessCommand({ i, ch.m_glossiness }).toPythonString() << std::endl;
+    ss << obj << SetOpacityCommand({ i, ch.m_opacity }).toPythonString() << std::endl;
+    ss << obj << SetWindowLevelCommand({ i, ch.m_window, ch.m_level }).toPythonString() << std::endl;
   }
+
+  // lighting
+  ss << obj
+     << SetSkylightTopColorCommand({ m_light0.m_topColor.r * m_light0.m_topColorIntensity,
+                                     m_light0.m_topColor.g * m_light0.m_topColorIntensity,
+                                     m_light0.m_topColor.b * m_light0.m_topColorIntensity })
+          .toPythonString()
+     << std::endl;
+  ss << obj
+     << SetSkylightMiddleColorCommand({ m_light0.m_middleColor.r * m_light0.m_middleColorIntensity,
+                                        m_light0.m_middleColor.g * m_light0.m_middleColorIntensity,
+                                        m_light0.m_middleColor.b * m_light0.m_middleColorIntensity })
+          .toPythonString()
+     << std::endl;
+  ss << obj
+     << SetSkylightBottomColorCommand({ m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity,
+                                        m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity,
+                                        m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity })
+          .toPythonString()
+     << std::endl;
+  ss << obj << SetLightPosCommand({ 0, m_light1.m_distance, m_light1.m_theta, m_light1.m_phi }).toPythonString()
+     << std::endl;
+  ss << obj
+     << SetLightColorCommand({ 0,
+                               m_light1.m_color.r * m_light1.m_colorIntensity,
+                               m_light1.m_color.g * m_light1.m_colorIntensity,
+                               m_light1.m_color.b * m_light1.m_colorIntensity })
+          .toPythonString()
+     << std::endl;
+  ss << obj << SetLightSizeCommand({ 0, m_light1.m_width, m_light1.m_height }).toPythonString() << std::endl;
+
+  ss << obj << SessionCommand({ outFileName.toStdString() + ".png" }).toPythonString() << std::endl;
+  ss << obj << RequestRedrawCommand({}).toPythonString() << std::endl;
+  std::string s(ss.str());
+  // LOG_DEBUG << s;
+  return QString::fromStdString(s);
+}
+
+QString
+ViewerState::stateToPythonWebsocketScript() const
+{
+  QFileInfo fi(m_volumeImageFile);
+  QString outFileName = fi.baseName();
+
+  QString s;
+  s += QString("import agaveclient\n\n\n");
+  s += QString("def renderfunc(server):\n");
+  s += QString("    server.render_frame(\n");
+  s += QString("        [\n");
+
+  QString indent("            ");
+  s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
+  s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
+  s += indent + QString("(\"BACKGROUND_COLOR\", %1, %2, %3),\n")
+                  .arg(m_backgroundColor.x)
+                  .arg(m_backgroundColor.y)
+                  .arg(m_backgroundColor.z);
+  s += indent + QString("(\"RENDER_ITERATIONS\", %1),\n").arg(m_renderIterations);
+  s += indent + QString("(\"SET_PRIMARY_RAY_STEP_SIZE\", %1),\n").arg(m_primaryStepSize);
+  s += indent + QString("(\"SET_SECONDARY_RAY_STEP_SIZE\", %1),\n").arg(m_secondaryStepSize);
+  s += indent + QString("(\"SET_VOXEL_SCALE\", %1, %2, %3),\n").arg(m_scaleX).arg(m_scaleY).arg(m_scaleZ);
+  s += indent + QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6),\n")
+                  .arg(m_roiXmin)
+                  .arg(m_roiXmax)
+                  .arg(m_roiYmin)
+                  .arg(m_roiYmax)
+                  .arg(m_roiZmin)
+                  .arg(m_roiZmax);
+
+  s += indent + QString("(\"EYE\", %1, %2, %3),\n").arg(m_eyeX).arg(m_eyeY).arg(m_eyeZ);
+  s += indent + QString("(\"TARGET\", %1, %2, %3),\n").arg(m_targetX).arg(m_targetY).arg(m_targetZ);
+  s += indent + QString("(\"UP\", %1, %2, %3),\n").arg(m_upX).arg(m_upY).arg(m_upZ);
+  s += indent + QString("(\"CAMERA_PROJECTION\", %1, %2),\n")
+                  .arg(m_projection)
+                  .arg(m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale);
+
+  s += indent + QString("(\"EXPOSURE\", %1),\n").arg(m_exposure);
+  s += indent + QString("(\"DENSITY\", %1),\n").arg(m_densityScale);
+  s += indent + QString("(\"APERTURE\", %1),\n").arg(m_apertureSize);
+  s += indent + QString("(\"FOCALDIST\", %1),\n").arg(m_focalDistance);
+
+  // per-channel
+  for (std::size_t i = 0; i < m_channels.size(); ++i) {
+    const ChannelViewerState& ch = m_channels[i];
+    s += indent + QString("(\"ENABLE_CHANNEL\", %1, %2),\n").arg(QString::number(i), ch.m_enabled ? "1" : "0");
+    s += indent + QString("(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0),\n")
+                    .arg(QString::number(i))
+                    .arg(ch.m_diffuse.x)
+                    .arg(ch.m_diffuse.y)
+                    .arg(ch.m_diffuse.z);
+    s += indent + QString("(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0),\n")
+                    .arg(QString::number(i))
+                    .arg(ch.m_specular.x)
+                    .arg(ch.m_specular.y)
+                    .arg(ch.m_specular.z);
+    s += indent + QString("(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0),\n")
+                    .arg(QString::number(i))
+                    .arg(ch.m_emissive.x)
+                    .arg(ch.m_emissive.y)
+                    .arg(ch.m_emissive.z);
+    s += indent + QString("(\"MAT_GLOSSINESS\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_glossiness);
+    s += indent + QString("(\"MAT_OPACITY\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_opacity);
+    s += indent +
+         QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3),\n").arg(QString::number(i)).arg(ch.m_window).arg(ch.m_level);
+  }
+
+  // lighting
+  s += indent + QString("(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3),\n")
+                  .arg(m_light0.m_topColor.r * m_light0.m_topColorIntensity)
+                  .arg(m_light0.m_topColor.g * m_light0.m_topColorIntensity)
+                  .arg(m_light0.m_topColor.b * m_light0.m_topColorIntensity);
+  s += indent + QString("(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3),\n")
+                  .arg(m_light0.m_middleColor.r * m_light0.m_middleColorIntensity)
+                  .arg(m_light0.m_middleColor.g * m_light0.m_middleColorIntensity)
+                  .arg(m_light0.m_middleColor.b * m_light0.m_middleColorIntensity);
+  s += indent + QString("(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3),\n")
+                  .arg(m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity)
+                  .arg(m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity)
+                  .arg(m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity);
+  s += indent +
+       QString("(\"LIGHT_POS\", 0, %1, %2, %3),\n").arg(m_light1.m_distance).arg(m_light1.m_theta).arg(m_light1.m_phi);
+  s += indent + QString("(\"LIGHT_COLOR\", 0, %1, %2, %3),\n")
+                  .arg(m_light1.m_color.r * m_light1.m_colorIntensity)
+                  .arg(m_light1.m_color.g * m_light1.m_colorIntensity)
+                  .arg(m_light1.m_color.b * m_light1.m_colorIntensity);
+  s += indent + QString("(\"LIGHT_SIZE\", 0, %1, %2),\n").arg(m_light1.m_width).arg(m_light1.m_height);
+
+  s += QString("        ],\n");
+  s += QString("        output_name=\"%1\",\n").arg(outFileName);
+  s += QString("    )\n");
+  s += QString("\n");
+  s += QString("agaveclient.agaveclient(renderfunc=renderfunc)\n");
+
+  // LOG_DEBUG << s.toStdString();
+  return s;
 }

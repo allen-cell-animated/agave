@@ -318,6 +318,10 @@ qtome::open(const QString& file, const ViewerState* vs)
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
     std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
+    if (!image) {
+      LOG_DEBUG << "Failed to open " << file.toStdString();
+      return;
+    }
 
     // install the new volume image into the scene.
     // this is deref'ing the previous _volume shared_ptr.
@@ -586,6 +590,10 @@ qtome::viewerStateToApp(const ViewerState& v)
 
   m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
+  m_appScene.m_material.m_backgroundColor[0] = v.m_backgroundColor.x;
+  m_appScene.m_material.m_backgroundColor[1] = v.m_backgroundColor.y;
+  m_appScene.m_material.m_backgroundColor[2] = v.m_backgroundColor.z;
+
   m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
@@ -659,6 +667,10 @@ qtome::appToViewerState()
   v.m_scaleX = m_appScene.m_volume->physicalSizeX();
   v.m_scaleY = m_appScene.m_volume->physicalSizeY();
   v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+
+  v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
+                                  m_appScene.m_material.m_backgroundColor[1],
+                                  m_appScene.m_material.m_backgroundColor[2]);
 
   v.m_resolutionX = m_glView->size().width();
   v.m_resolutionY = m_glView->size().height();

@@ -20,6 +20,7 @@ class RenderParams
 #define MAX_CPU_CHANNELS 32
 struct VolumeDisplay
 {
+  float m_backgroundColor[3] = { 0.0f, 0.0f, 0.0f };
   float m_DensityScale = 50.0f;
   float m_GradientFactor = 10.0f;
   int m_ShadingType = 2;

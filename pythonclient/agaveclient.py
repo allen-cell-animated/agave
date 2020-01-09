@@ -2,15 +2,11 @@
 from ws4py.client.threadedclient import WebSocketClient
 import io
 import json
-import logging
 import math
 import numpy
 from PIL import Image
 from commandbuffer import CommandBuffer
 from collections import deque
-# import matplotlib
-
-# matplotlib.use("TkAgg")
 
 
 def lerp(startframe, endframe, startval, endval):
