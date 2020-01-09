@@ -103,15 +103,3 @@ QRenderSettings::SetGradientFactor(const float& GradientFactor)
 
   emit Changed();
 }
-
-// QRenderSettings
-// QRenderSettings::Default(void)
-// {
-//   QRenderSettings DefaultTransferFunction;
-
-//   DefaultTransferFunction.SetDensityScale(100.0f);
-//   DefaultTransferFunction.SetShadingType(2);
-//   DefaultTransferFunction.SetGradientFactor(10.0f);
-
-//   return DefaultTransferFunction;
-// }

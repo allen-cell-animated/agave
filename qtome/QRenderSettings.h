@@ -22,8 +22,6 @@ public:
   float GetGradientFactor(void) const;
   void SetGradientFactor(const float& GradientFactor);
 
-  // static QRenderSettings Default(void);
-
   void setRenderSettings(RenderSettings& rs);
   RenderSettings* renderSettings() { return m_renderSettings; }
 
