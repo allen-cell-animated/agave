@@ -1,6 +1,7 @@
 #include "qtome.h"
 
 #include "mainwindow.h"
+#include "python/ScriptServer.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
 #include "renderlib/renderlib.h"
@@ -109,6 +110,11 @@ main(int argc, char* argv[])
                                         QCoreApplication::translate("main", "config"),
                                         QCoreApplication::translate("main", "setup.cfg"));
   parser.addOption(serverConfigOption);
+  QCommandLineOption scriptOption("script",
+                                  QCoreApplication::translate("main", "Path to a script to be run in agave"),
+                                  QCoreApplication::translate("main", "script"),
+                                  QCoreApplication::translate("main", ""));
+  parser.addOption(scriptOption);
 
   // Process the actual command line arguments given by the user
   parser.process(a);
@@ -118,8 +124,17 @@ main(int argc, char* argv[])
     return 0;
   }
 
+  int result = 0;
+
+  bool isScript = parser.isSet(scriptOption);
   bool isServer = parser.isSet(serverOption);
-  if (isServer) {
+  if (isScript) {
+    // TODO allow script to run in GUI or non GUI mode.
+    QString scriptPath = parser.value(scriptOption);
+    ScriptServer* server = new ScriptServer();
+    server->runScriptFile(scriptPath.toStdString());
+    delete server;
+  } else if (isServer) {
     QString configPath = parser.value(serverConfigOption);
     ServerParams p = readConfig(configPath);
 
@@ -139,13 +154,13 @@ main(int argc, char* argv[])
 
     // must happen after renderlib init
     preloadFiles(p._preloadList);
-
+    
+    result = a.exec();
   } else {
     qtome* w = new qtome();
     w->show();
+    result = a.exec();
   }
-
-  int result = a.exec();
 
   renderlib::cleanup();
 

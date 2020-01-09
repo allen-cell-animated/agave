@@ -1,11 +1,5 @@
 add_executable(qtomeapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(qtomeapp PROPERTIES OUTPUT_NAME "agave")
-set_property(
-    TARGET qtomeapp
-    PROPERTY INSTALL_RPATH
-    "@executable_path/../Frameworks"
-    "/Library/Frameworks"
-)
 target_include_directories(qtomeapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
@@ -81,6 +75,7 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
+add_subdirectory(python)
 
 if (MSVC) 
 	target_sources(qtomeapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
@@ -91,6 +86,7 @@ target_link_libraries(qtomeapp
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
+	pybind11::embed 
 )
 
 install(TARGETS qtomeapp

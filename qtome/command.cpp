@@ -34,6 +34,9 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
   QFileInfo info(QString(m_data.m_name.c_str()));
   if (info.exists()) {
     std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(m_data.m_name);
+    if (!image) {
+      return;
+    }
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -53,7 +56,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
-
+    c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     // fire back some json immediately...
     QJsonObject j;
     j["commandId"] = (int)LoadOmeTifCommand::m_ID;
@@ -77,7 +80,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     j["channel_max_intensity"] = channelMaxIntensity;
 
     QJsonDocument doc(j);
-    c->m_message = doc.toJson();
+    c->m_message = doc.toJson().toStdString();
   }
 }
 
@@ -90,6 +93,7 @@ SetCameraPosCommand::execute(ExecutionContext* c)
   c->m_camera->m_From.z = m_data.m_z;
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 SetCameraTargetCommand::execute(ExecutionContext* c)
 {
@@ -99,6 +103,7 @@ SetCameraTargetCommand::execute(ExecutionContext* c)
   c->m_camera->m_Target.z = m_data.m_z;
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 SetCameraUpCommand::execute(ExecutionContext* c)
 {
@@ -108,6 +113,7 @@ SetCameraUpCommand::execute(ExecutionContext* c)
   c->m_camera->m_Up.z = m_data.m_z;
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 SetCameraApertureCommand::execute(ExecutionContext* c)
 {
@@ -185,7 +191,9 @@ void
 SetStreamModeCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetStreamMode " << m_data.m_x;
-  c->m_renderer->setStreamMode(m_data.m_x);
+  if (c->m_renderer) {
+    c->m_renderer->setStreamMode(m_data.m_x);
+  }
 }
 void
 RequestRedrawCommand::execute(ExecutionContext* c)
@@ -199,7 +207,9 @@ SetResolutionCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "SetResolution " << m_data.m_x << " " << m_data.m_y;
   c->m_camera->m_Film.m_Resolution.SetResX(m_data.m_x);
   c->m_camera->m_Film.m_Resolution.SetResY(m_data.m_y);
-  c->m_renderer->resizeGL(m_data.m_x, m_data.m_y);
+  if (c->m_renderer) {
+    c->m_renderer->resizeGL(m_data.m_x, m_data.m_y);
+  }
   c->m_renderSettings->SetNoIterations(0);
 }
 void
@@ -377,4 +387,665 @@ SetBackgroundColorCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_backgroundColor[1] = m_data.m_g;
   c->m_appScene->m_material.m_backgroundColor[2] = m_data.m_b;
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+SessionCommand*
+SessionCommand::parse(ParseableStream* c)
+{
+  SessionCommandD data;
+  data.m_name = c->parseString();
+  return new SessionCommand(data);
+}
+AssetPathCommand*
+AssetPathCommand::parse(ParseableStream* c)
+{
+  AssetPathCommandD data;
+  data.m_name = c->parseString();
+  return new AssetPathCommand(data);
+}
+LoadOmeTifCommand*
+LoadOmeTifCommand::parse(ParseableStream* c)
+{
+  LoadOmeTifCommandD data;
+  data.m_name = c->parseString();
+  return new LoadOmeTifCommand(data);
+}
+SetCameraPosCommand*
+SetCameraPosCommand::parse(ParseableStream* c)
+{
+  SetCameraPosCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  return new SetCameraPosCommand(data);
+}
+SetCameraUpCommand*
+SetCameraUpCommand::parse(ParseableStream* c)
+{
+  SetCameraUpCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  return new SetCameraUpCommand(data);
+}
+SetCameraTargetCommand*
+SetCameraTargetCommand::parse(ParseableStream* c)
+{
+  SetCameraTargetCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  return new SetCameraTargetCommand(data);
+}
+SetCameraApertureCommand*
+SetCameraApertureCommand::parse(ParseableStream* c)
+{
+  SetCameraApertureCommandD data;
+  data.m_x = c->parseFloat32();
+  return new SetCameraApertureCommand(data);
+}
+SetCameraProjectionCommand*
+SetCameraProjectionCommand::parse(ParseableStream* c)
+{
+  SetCameraProjectionCommandD data;
+  data.m_projectionType = c->parseInt32();
+  data.m_x = c->parseFloat32();
+  return new SetCameraProjectionCommand(data);
+}
+SetCameraFocalDistanceCommand*
+SetCameraFocalDistanceCommand::parse(ParseableStream* c)
+{
+  SetCameraFocalDistanceCommandD data;
+  data.m_x = c->parseFloat32();
+  return new SetCameraFocalDistanceCommand(data);
+}
+SetCameraExposureCommand*
+SetCameraExposureCommand::parse(ParseableStream* c)
+{
+  SetCameraExposureCommandD data;
+  data.m_x = c->parseFloat32();
+  return new SetCameraExposureCommand(data);
+}
+SetDiffuseColorCommand*
+SetDiffuseColorCommand::parse(ParseableStream* c)
+{
+  SetDiffuseColorCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  data.m_a = c->parseFloat32();
+  return new SetDiffuseColorCommand(data);
+}
+SetSpecularColorCommand*
+SetSpecularColorCommand::parse(ParseableStream* c)
+{
+  SetSpecularColorCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  data.m_a = c->parseFloat32();
+  return new SetSpecularColorCommand(data);
+}
+SetEmissiveColorCommand*
+SetEmissiveColorCommand::parse(ParseableStream* c)
+{
+  SetEmissiveColorCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  data.m_a = c->parseFloat32();
+  return new SetEmissiveColorCommand(data);
+}
+SetRenderIterationsCommand*
+SetRenderIterationsCommand::parse(ParseableStream* c)
+{
+  SetRenderIterationsCommandD data;
+  data.m_x = c->parseInt32();
+  return new SetRenderIterationsCommand(data);
+}
+SetStreamModeCommand*
+SetStreamModeCommand::parse(ParseableStream* c)
+{
+  SetStreamModeCommandD data;
+  data.m_x = c->parseInt32();
+  return new SetStreamModeCommand(data);
+}
+RequestRedrawCommand*
+RequestRedrawCommand::parse(ParseableStream* c)
+{
+  RequestRedrawCommandD data;
+  return new RequestRedrawCommand(data);
+}
+SetResolutionCommand*
+SetResolutionCommand::parse(ParseableStream* c)
+{
+  SetResolutionCommandD data;
+  data.m_x = c->parseInt32();
+  data.m_y = c->parseInt32();
+  return new SetResolutionCommand(data);
+}
+SetDensityCommand*
+SetDensityCommand::parse(ParseableStream* c)
+{
+  SetDensityCommandD data;
+  data.m_x = c->parseFloat32();
+  return new SetDensityCommand(data);
+}
+FrameSceneCommand*
+FrameSceneCommand::parse(ParseableStream* c)
+{
+  FrameSceneCommandD data;
+  return new FrameSceneCommand(data);
+}
+SetGlossinessCommand*
+SetGlossinessCommand::parse(ParseableStream* c)
+{
+  SetGlossinessCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_glossiness = c->parseFloat32();
+  return new SetGlossinessCommand(data);
+}
+EnableChannelCommand*
+EnableChannelCommand::parse(ParseableStream* c)
+{
+  EnableChannelCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_enabled = c->parseInt32();
+  return new EnableChannelCommand(data);
+}
+SetWindowLevelCommand*
+SetWindowLevelCommand::parse(ParseableStream* c)
+{
+  SetWindowLevelCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_window = c->parseFloat32();
+  data.m_level = c->parseFloat32();
+  return new SetWindowLevelCommand(data);
+}
+OrbitCameraCommand*
+OrbitCameraCommand::parse(ParseableStream* c)
+{
+  OrbitCameraCommandD data;
+  data.m_theta = c->parseFloat32();
+  data.m_phi = c->parseFloat32();
+  return new OrbitCameraCommand(data);
+}
+SetSkylightTopColorCommand*
+SetSkylightTopColorCommand::parse(ParseableStream* c)
+{
+  SetSkylightTopColorCommandD data;
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetSkylightTopColorCommand(data);
+}
+SetSkylightMiddleColorCommand*
+SetSkylightMiddleColorCommand::parse(ParseableStream* c)
+{
+  SetSkylightMiddleColorCommandD data;
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetSkylightMiddleColorCommand(data);
+}
+SetSkylightBottomColorCommand*
+SetSkylightBottomColorCommand::parse(ParseableStream* c)
+{
+  SetSkylightBottomColorCommandD data;
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetSkylightBottomColorCommand(data);
+}
+
+SetLightPosCommand*
+SetLightPosCommand::parse(ParseableStream* c)
+{
+  SetLightPosCommandD data;
+  data.m_index = c->parseInt32();
+  data.m_r = c->parseFloat32();
+  data.m_theta = c->parseFloat32();
+  data.m_phi = c->parseFloat32();
+  return new SetLightPosCommand(data);
+}
+SetLightColorCommand*
+SetLightColorCommand::parse(ParseableStream* c)
+{
+  SetLightColorCommandD data;
+  data.m_index = c->parseInt32();
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetLightColorCommand(data);
+}
+SetLightSizeCommand*
+SetLightSizeCommand::parse(ParseableStream* c)
+{
+  SetLightSizeCommandD data;
+  data.m_index = c->parseInt32();
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  return new SetLightSizeCommand(data);
+}
+
+float
+clamp(float x, float bottom, float top)
+{
+  return std::min(top, std::max(bottom, x));
+}
+
+SetClipRegionCommand*
+SetClipRegionCommand::parse(ParseableStream* c)
+{
+  SetClipRegionCommandD data;
+  data.m_minx = c->parseFloat32();
+  data.m_minx = clamp(data.m_minx, 0.0, 1.0);
+  data.m_maxx = c->parseFloat32();
+  data.m_maxx = clamp(data.m_maxx, 0.0, 1.0);
+  data.m_miny = c->parseFloat32();
+  data.m_miny = clamp(data.m_miny, 0.0, 1.0);
+  data.m_maxy = c->parseFloat32();
+  data.m_maxy = clamp(data.m_maxy, 0.0, 1.0);
+  data.m_minz = c->parseFloat32();
+  data.m_minz = clamp(data.m_minz, 0.0, 1.0);
+  data.m_maxz = c->parseFloat32();
+  data.m_maxz = clamp(data.m_maxz, 0.0, 1.0);
+  return new SetClipRegionCommand(data);
+}
+
+SetVoxelScaleCommand*
+SetVoxelScaleCommand::parse(ParseableStream* c)
+{
+  SetVoxelScaleCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  return new SetVoxelScaleCommand(data);
+}
+AutoThresholdCommand*
+AutoThresholdCommand::parse(ParseableStream* c)
+{
+  AutoThresholdCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_method = c->parseInt32();
+  return new AutoThresholdCommand(data);
+}
+SetPercentileThresholdCommand*
+SetPercentileThresholdCommand::parse(ParseableStream* c)
+{
+  SetPercentileThresholdCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_pctLow = c->parseFloat32();
+  data.m_pctHigh = c->parseFloat32();
+  return new SetPercentileThresholdCommand(data);
+}
+SetOpacityCommand*
+SetOpacityCommand::parse(ParseableStream* c)
+{
+  SetOpacityCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_opacity = c->parseFloat32();
+  return new SetOpacityCommand(data);
+}
+SetPrimaryRayStepSizeCommand*
+SetPrimaryRayStepSizeCommand::parse(ParseableStream* c)
+{
+  SetPrimaryRayStepSizeCommandD data;
+  data.m_stepSize = c->parseFloat32();
+  return new SetPrimaryRayStepSizeCommand(data);
+}
+SetSecondaryRayStepSizeCommand*
+SetSecondaryRayStepSizeCommand::parse(ParseableStream* c)
+{
+  SetSecondaryRayStepSizeCommandD data;
+  data.m_stepSize = c->parseFloat32();
+  return new SetSecondaryRayStepSizeCommand(data);
+}
+SetBackgroundColorCommand*
+SetBackgroundColorCommand::parse(ParseableStream* c)
+{
+  SetBackgroundColorCommandD data;
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetBackgroundColorCommand(data);
+}
+
+std::string
+SessionCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << "\"" << m_data.m_name << "\"";
+  ss << ")";
+  return ss.str();
+}
+std::string
+AssetPathCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << "\"" << m_data.m_name << "\"";
+  ss << ")";
+  return ss.str();
+}
+std::string
+LoadOmeTifCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << "\"" << m_data.m_name << "\"";
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraPosCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraUpCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraTargetCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraApertureCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraProjectionCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_projectionType << ", " << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraFocalDistanceCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetCameraExposureCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetDiffuseColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSpecularColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetEmissiveColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b << ", " << m_data.m_a;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetRenderIterationsCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetStreamModeCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+RequestRedrawCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetResolutionCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetDensityCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x;
+  ss << ")";
+  return ss.str();
+}
+std::string
+FrameSceneCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetGlossinessCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_glossiness;
+  ss << ")";
+  return ss.str();
+}
+std::string
+EnableChannelCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_enabled;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetWindowLevelCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_window << ", " << m_data.m_level;
+  ss << ")";
+  return ss.str();
+}
+std::string
+OrbitCameraCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_theta << ", " << m_data.m_phi;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSkylightTopColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSkylightMiddleColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSkylightBottomColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetLightPosCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_index << ", " << m_data.m_r << ", " << m_data.m_theta << ", " << m_data.m_phi;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetLightColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_index << ", " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetLightSizeCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_index << ", " << m_data.m_x << ", " << m_data.m_y;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetClipRegionCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_minx << ", " << m_data.m_maxx << ", " << m_data.m_miny << ", " << m_data.m_maxy << ", "
+     << m_data.m_minz << ", " << m_data.m_maxz;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetVoxelScaleCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+std::string
+AutoThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_method;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetPercentileThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_pctLow << ", " << m_data.m_pctHigh;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetOpacityCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_opacity;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetPrimaryRayStepSizeCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_stepSize;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetSecondaryRayStepSizeCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_stepSize;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetBackgroundColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
 }
