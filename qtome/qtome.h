@@ -4,7 +4,7 @@
 
 #include "Camera.h"
 #include "GLView3D.h"
-#include "TransferFunction.h"
+#include "QRenderSettings.h"
 #include "ViewerState.h"
 
 #include "renderlib/AppScene.h"
@@ -90,7 +90,7 @@ private:
   // Camera UI
   QCameraDockWidget* m_cameradock;
 
-  QTransferFunction m_transferFunction;
+  QRenderSettings m_qrendersettings;
   QAppearanceDockWidget* m_appearanceDockWidget;
 
   QStatisticsDockWidget* m_statisticsDockWidget;
