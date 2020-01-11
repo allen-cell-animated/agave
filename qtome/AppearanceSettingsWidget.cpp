@@ -563,7 +563,7 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const QGradientStops& stops)
   }
 
   m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(pts);
-  m_transferFunction->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 void
