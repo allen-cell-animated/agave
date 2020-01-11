@@ -72,7 +72,7 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
 }
 
 float*
-Histogram::generate_fullRange(float& window, float& level, size_t length)
+Histogram::generate_fullRange(float& window, float& level, size_t length) const
 {
   window = 1.0;
   level = 0.5;
@@ -80,7 +80,7 @@ Histogram::generate_fullRange(float& window, float& level, size_t length)
 }
 
 float*
-Histogram::generate_dataRange(float& window, float& level, size_t length)
+Histogram::generate_dataRange(float& window, float& level, size_t length) const
 {
   window = 1.0;
   level = 0.5;
@@ -88,7 +88,7 @@ Histogram::generate_dataRange(float& window, float& level, size_t length)
 }
 
 float*
-Histogram::generate_bestFit(float& window, float& level, size_t length)
+Histogram::generate_bestFit(float& window, float& level, size_t length) const
 {
   size_t pixcount = _pixelCount;
   size_t limit = pixcount / 10;
@@ -124,7 +124,7 @@ Histogram::generate_bestFit(float& window, float& level, size_t length)
 
 // attempt to redo imagej's Auto
 float*
-Histogram::generate_auto2(float& window, float& level, size_t length)
+Histogram::generate_auto2(float& window, float& level, size_t length) const
 {
 
   size_t AUTO_THRESHOLD = 10000;
@@ -189,7 +189,7 @@ Histogram::generate_auto2(float& window, float& level, size_t length)
 }
 
 float*
-Histogram::generate_auto(float& window, float& level, size_t length)
+Histogram::generate_auto(float& window, float& level, size_t length) const
 {
 
   // simple linear mapping cutting elements with small appearence
@@ -240,7 +240,7 @@ Histogram::generate_auto(float& window, float& level, size_t length)
  */
 // window and level are percentages of full range 0..1
 float*
-Histogram::generate_windowLevel(float window, float level, size_t length)
+Histogram::generate_windowLevel(float window, float level, size_t length) const
 {
   // return a LUT with new values(?)
   // data type of lut values is out_phys_range (uint8)
@@ -302,14 +302,14 @@ Histogram::computeWindowLevelFromPercentiles(float pct_low, float pct_high, floa
 }
 
 float*
-Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length)
+Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length) const
 {
   computeWindowLevelFromPercentiles(lo, hi, window, level);
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length)
+Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length) const
 {
   // pts is piecewise linear from first to last control point.
   // pts is in order of increasing x value (the first element of the pair)
@@ -336,7 +336,7 @@ Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size
 }
 
 void
-Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize)
+Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
 {
   uint16_t dmin = _dataMin;
   uint16_t dmax = _dataMax;
@@ -417,7 +417,7 @@ Histogram::bin_counts(uint32_t nbins)
 // Find the data value where a specified fraction of voxels have lower value.
 // Result is an approximation using binned data.
 float
-Histogram::rank_data_value(float fraction)
+Histogram::rank_data_value(float fraction) const
 {
   float targetcount = fraction * _ccounts[_ccounts.size() - 1];
   int b = 0;
@@ -436,7 +436,7 @@ Histogram::rank_data_value(float fraction)
 }
 
 float*
-Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*= 0.90*/)
+Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*= 0.90*/) const
 {
   float ilow = 0.0f;
   float imid = 0.8f;
@@ -468,7 +468,7 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
 }
 
 float*
-Histogram::generate_equalized(size_t length)
+Histogram::generate_equalized(size_t length) const
 {
   float* lut = new float[length];
 
