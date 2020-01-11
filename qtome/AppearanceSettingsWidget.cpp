@@ -686,8 +686,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* sectionLayout = Controls::createFormLayout();
 
-    // GradientWidget* editor = new GradientWidget(scene->m_volume->channel(i));
-    GradientWidget* editor = new GradientWidget();
+    GradientWidget* editor = new GradientWidget(scene->m_volume->channel(i)->m_histogram);
+    // GradientWidget* editor = new GradientWidget();
     sectionLayout->addRow("Gradient", editor);
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {

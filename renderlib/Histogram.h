@@ -21,6 +21,8 @@ struct Histogram
   size_t _maxBin;
   size_t _pixelCount;
 
+  void computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const;
+
   float* generate_fullRange(float& window, float& level, size_t length = 256);
   float* generate_dataRange(float& window, float& level, size_t length = 256);
   float* generate_bestFit(float& window, float& level, size_t length = 256);

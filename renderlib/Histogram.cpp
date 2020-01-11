@@ -3,8 +3,8 @@
 #include "Logging.h"
 
 #include <algorithm>
-#include <numeric>
 #include <math.h>
+#include <numeric>
 
 template<class T>
 const T&
@@ -262,16 +262,18 @@ Histogram::generate_windowLevel(float window, float level, size_t length)
   return lut;
 }
 
-float*
-Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length)
+void
+Histogram::computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const
 {
   // e.g. 0.50, 0.983 starts from 50th percentile bucket and ends at 98.3 percentile bucket.
-  if (lo > hi) {
-    std::swap(hi, lo);
+  if (pct_low > pct_high) {
+    std::swap(pct_high, pct_low);
   }
 
-  size_t lowlimit = size_t(_pixelCount * lo);
-  size_t hilimit = size_t(_pixelCount * hi);
+  size_t length = _bins.size();
+
+  size_t lowlimit = size_t(_pixelCount * pct_low);
+  size_t hilimit = size_t(_pixelCount * pct_high);
 
   // TODO use _ccounts in these loops!!
 
@@ -297,6 +299,12 @@ Histogram::generate_percentiles(float& window, float& level, float lo, float hi,
   // calculate a window and level that are percentages of the full range (0 .. length-1)
   window = (float)(hmax - hmin) / (float)(length - 1);
   level = (float)(hmin + hmax) * 0.5f / (float)(length - 1);
+}
+
+float*
+Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length)
+{
+  computeWindowLevelFromPercentiles(lo, hi, window, level);
   return generate_windowLevel(window, level, length);
 }
 
