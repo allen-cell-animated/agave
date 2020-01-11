@@ -1,6 +1,6 @@
 #include "GLView3D.h"
 
-#include "TransferFunction.h"
+#include "QRenderSettings.h"
 #include "ViewerState.h"
 
 #include "renderlib/ImageXYZC.h"
@@ -27,7 +27,7 @@
 #pragma warning(disable : 4351)
 #endif
 
-GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent)
+GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
   : QOpenGLWidget(parent)
   , m_etimer()
   , m_lastPos(0, 0)
@@ -37,19 +37,19 @@ GLView3D::GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QW
   //    _renderer(new RenderGL(img))
   m_qcamera(cam)
   , m_cameraController(cam, &m_CCamera)
-  , m_transferFunction(tran)
+  , m_qrendersettings(qrs)
   , m_rendererType(1)
 {
   // The GLView3D owns one CScene
 
   m_cameraController.setRenderSettings(*m_renderSettings);
-  m_transferFunction->setRenderSettings(*m_renderSettings);
+  m_qrendersettings->setRenderSettings(*m_renderSettings);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
   // GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
   QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
-  QObject::connect(tran, SIGNAL(Changed()), this, SLOT(OnUpdateTransferFunction()));
-  QObject::connect(tran, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
+  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
+  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 }
 
 void
@@ -236,14 +236,14 @@ GLView3D::OnUpdateCamera()
   rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
-GLView3D::OnUpdateTransferFunction(void)
+GLView3D::OnUpdateQRenderSettings(void)
 {
   // QMutexLocker Locker(&gSceneMutex);
   RenderSettings& rs = *m_renderSettings;
 
-  rs.m_RenderSettings.m_DensityScale = m_transferFunction->GetDensityScale();
-  rs.m_RenderSettings.m_ShadingType = m_transferFunction->GetShadingType();
-  rs.m_RenderSettings.m_GradientFactor = m_transferFunction->GetGradientFactor();
+  rs.m_RenderSettings.m_DensityScale = m_qrendersettings->GetDensityScale();
+  rs.m_RenderSettings.m_ShadingType = m_qrendersettings->GetShadingType();
+  rs.m_RenderSettings.m_GradientFactor = m_qrendersettings->GetGradientFactor();
 
   // update window/levels / transfer function here!!!!
 

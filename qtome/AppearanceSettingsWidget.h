@@ -9,7 +9,7 @@
 
 #include <memory>
 
-class QTransferFunction;
+class QRenderSettings;
 class ImageXYZC;
 class RangeWidget;
 class RenderSettings;
@@ -21,7 +21,7 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL, QTransferFunction* tran = nullptr, RenderSettings* rs = nullptr);
+  QAppearanceSettingsWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
 
   void onNewImage(Scene* scene);
 
@@ -77,7 +77,7 @@ private:
   QNumericSlider m_StepSizeSecondaryRaySlider;
   QColorPushButton m_backgroundColorButton;
 
-  QTransferFunction* m_transferFunction;
+  QRenderSettings* m_qrendersettings;
 
   Section* m_clipRoiSection;
   RangeWidget* m_roiX;

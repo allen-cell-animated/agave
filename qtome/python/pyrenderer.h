@@ -104,30 +104,28 @@ protected:
   void shutDown();
 
 private:
-  QOpenGLContext* context;
-  QOffscreenSurface* surface;
-  QOpenGLFramebufferObject* fbo;
+  QOpenGLContext* m_glContext;
+  QOffscreenSurface* m_surface;
+  QOpenGLFramebufferObject* m_fbo;
 
-  int32_t _width, _height;
-
-  int frameNumber;
+  int32_t m_width, m_height;
 
   // TODO move this info.  This class only knows about some abstract renderer and a scene object.
   void myVolumeInit();
   struct myVolumeData
   {
-    RenderSettings* _renderSettings;
-    RenderGLPT* _renderer;
-    Scene* _scene;
-    CCamera* _camera;
+    RenderSettings* m_renderSettings;
+    RenderGLPT* m_renderer;
+    Scene* m_scene;
+    CCamera* m_camera;
 
     myVolumeData()
-      : _camera(nullptr)
-      , _scene(nullptr)
-      , _renderSettings(nullptr)
-      , _renderer(nullptr)
+      : m_camera(nullptr)
+      , m_scene(nullptr)
+      , m_renderSettings(nullptr)
+      , m_renderer(nullptr)
     {}
-  } myVolumeData;
+  } m_myVolumeData;
 
   ExecutionContext m_ec;
 
