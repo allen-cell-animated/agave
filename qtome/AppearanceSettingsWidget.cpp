@@ -698,69 +698,50 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       this->OnUpdateLut(i, stops);
     });
 
-    QNumericSlider* windowSlider = new QNumericSlider();
-    windowSlider->setRange(0.001, 1.0);
-    windowSlider->setSingleStep(0.01);
-    windowSlider->setValue(scene->m_volume->channel(i)->m_window, true);
-    sectionLayout->addRow("Window", windowSlider);
-
-    QNumericSlider* levelSlider = new QNumericSlider();
-    levelSlider->setRange(0.001, 1.0);
-    levelSlider->setSingleStep(0.01);
-    levelSlider->setValue(scene->m_volume->channel(i)->m_level, true);
-    sectionLayout->addRow("Level", levelSlider);
-
-    QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
-      this->OnSetWindowLevel(i, d, levelSlider->value());
-    });
-    QObject::connect(levelSlider, &QNumericSlider::valueChanged, [i, this, windowSlider](double d) {
-      this->OnSetWindowLevel(i, windowSlider->value(), d);
-    });
-
-    QPushButton* autoButton = new QPushButton("Auto");
-    QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-      float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_auto2(w, l);
-      // LOG_DEBUG << "Window/level: " << w << " , " << l;
-      windowSlider->setValue(w, true);
-      levelSlider->setValue(l, true);
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* bestfitButton = new QPushButton("BestFit");
-    QObject::connect(bestfitButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-      float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_bestFit(w, l);
-      windowSlider->setValue(w, true);
-      levelSlider->setValue(l, true);
-      // LOG_DEBUG << "Window/level: " << w << " , " << l;
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* chimeraxButton = new QPushButton("ChimX");
-    QObject::connect(chimeraxButton, &QPushButton::clicked, [this, i]() {
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_chimerax();
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* eqButton = new QPushButton("Eq");
-    QObject::connect(eqButton, &QPushButton::clicked, [this, i]() {
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_equalized();
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* pct98Button = new QPushButton("Pct98");
-    QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-      float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l);
-      // LOG_DEBUG << "Window/level: " << w << " , " << l;
-      windowSlider->setValue(w, true);
-      levelSlider->setValue(l, true);
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    auto buttonRowLayout = new QHBoxLayout();
-    buttonRowLayout->addWidget(autoButton);
-    buttonRowLayout->addWidget(bestfitButton);
-    buttonRowLayout->addWidget(chimeraxButton);
-    buttonRowLayout->addWidget(eqButton);
-    buttonRowLayout->addWidget(pct98Button);
-    sectionLayout->addRow(buttonRowLayout);
+    // QPushButton* autoButton = new QPushButton("Auto");
+    // QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
+    //   float w, l;
+    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_auto2(w, l);
+    //   // LOG_DEBUG << "Window/level: " << w << " , " << l;
+    //   windowSlider->setValue(w, true);
+    //   levelSlider->setValue(l, true);
+    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // });
+    // QPushButton* bestfitButton = new QPushButton("BestFit");
+    // QObject::connect(bestfitButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
+    //   float w, l;
+    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_bestFit(w, l);
+    //   windowSlider->setValue(w, true);
+    //   levelSlider->setValue(l, true);
+    //   // LOG_DEBUG << "Window/level: " << w << " , " << l;
+    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // });
+    // QPushButton* chimeraxButton = new QPushButton("ChimX");
+    // QObject::connect(chimeraxButton, &QPushButton::clicked, [this, i]() {
+    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_chimerax();
+    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // });
+    // QPushButton* eqButton = new QPushButton("Eq");
+    // QObject::connect(eqButton, &QPushButton::clicked, [this, i]() {
+    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_equalized();
+    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // });
+    // QPushButton* pct98Button = new QPushButton("Pct98");
+    // QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
+    //   float w, l;
+    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l);
+    //   // LOG_DEBUG << "Window/level: " << w << " , " << l;
+    //   windowSlider->setValue(w, true);
+    //   levelSlider->setValue(l, true);
+    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // });
+    // auto buttonRowLayout = new QHBoxLayout();
+    // buttonRowLayout->addWidget(autoButton);
+    // buttonRowLayout->addWidget(bestfitButton);
+    // buttonRowLayout->addWidget(chimeraxButton);
+    // buttonRowLayout->addWidget(eqButton);
+    // buttonRowLayout->addWidget(pct98Button);
+    // sectionLayout->addRow(buttonRowLayout);
 
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
