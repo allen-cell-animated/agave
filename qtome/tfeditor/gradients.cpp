@@ -56,12 +56,12 @@
 
 #include <algorithm>
 
-ShadeWidget::ShadeWidget(ShadeType type, QWidget* parent)
+ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent)
   : QWidget(parent)
   , m_shade_type(type)
   , m_alpha_gradient(QLinearGradient(0, 0, 0, 0))
+  , m_histogram(histogram)
 {
-
   // Checkers background
   if (m_shade_type == ARGBShade) {
     QPixmap pm(20, 20);
@@ -158,25 +158,44 @@ ShadeWidget::paintEvent(QPaintEvent*)
 }
 
 void
+ShadeWidget::drawHistogram(QPainter& p, int w, int h)
+{
+  size_t nbins = m_histogram._bins.size();
+  int maxbinsize = m_histogram._bins[m_histogram._maxBin];
+  for (size_t i = 0; i < nbins; ++i) {
+    float binheight = (float)m_histogram._bins[i] * (float)(h - 1) / (float)maxbinsize;
+    p.fillRect(
+      QRectF((float)i * (float)(w - 1) / (float)nbins, h - 1 - binheight, (float)(w - 1) / (float)nbins, binheight),
+      QColor(0, 0, 0, 255));
+  }
+}
+
+void
 ShadeWidget::generateShade()
 {
   if (m_shade.isNull() || m_shade.size() != size()) {
 
+    QRect qrect = rect();
+    QSize qsize = size();
     if (m_shade_type == ARGBShade) {
-      m_shade = QImage(size(), QImage::Format_ARGB32_Premultiplied);
+      m_shade = QImage(qsize, QImage::Format_ARGB32_Premultiplied);
       m_shade.fill(0);
 
       QPainter p(&m_shade);
-      p.fillRect(rect(), m_alpha_gradient);
+      p.fillRect(qrect, m_alpha_gradient);
 
       p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
       QLinearGradient fade(0, 0, 0, height() - 1);
       fade.setColorAt(0, QColor(255, 255, 255, 255));
       fade.setColorAt(1, QColor(0, 0, 0, 0));
-      p.fillRect(rect(), fade);
+      p.fillRect(qrect, fade);
+
+      p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+      drawHistogram(p, qsize.width(), qsize.height());
 
     } else {
-      m_shade = QImage(size(), QImage::Format_RGB32);
+      m_shade = QImage(qsize, QImage::Format_RGB32);
       QLinearGradient shade(0, 0, 0, height());
       shade.setColorAt(1, Qt::black);
 
@@ -188,19 +207,23 @@ ShadeWidget::generateShade()
         shade.setColorAt(0, Qt::blue);
 
       QPainter p(&m_shade);
-      p.fillRect(rect(), shade);
+      p.fillRect(qrect, shade);
+
+      p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+      drawHistogram(p, qsize.width(), qsize.height());
     }
   }
 }
 
-GradientEditor::GradientEditor(QWidget* parent)
+GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
 {
   QVBoxLayout* vbox = new QVBoxLayout(this);
   vbox->setSpacing(1);
   vbox->setMargin(1);
 
-  m_alpha_shade = new ShadeWidget(ShadeWidget::ARGBShade, this);
+  m_alpha_shade = new ShadeWidget(histogram, ShadeWidget::ARGBShade, this);
 
   vbox->addWidget(m_alpha_shade);
 
@@ -283,7 +306,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
 
   // QGroupBox* editorGroup = new QGroupBox(this);
   // editorGroup->setTitle(tr("Color Editor"));
-  m_editor = new GradientEditor(this);
+  m_editor = new GradientEditor(m_histogram, this);
 
   auto* sectionLayout = Controls::createFormLayout();
 

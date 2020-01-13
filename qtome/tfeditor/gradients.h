@@ -70,7 +70,7 @@ public:
     ARGBShade
   };
 
-  ShadeWidget(ShadeType type, QWidget* parent);
+  ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent);
 
   void setGradientStops(const QGradientStops& stops);
 
@@ -88,11 +88,14 @@ signals:
 
 private:
   void generateShade();
+  void drawHistogram(QPainter& p, int w, int h);
 
   ShadeType m_shade_type;
   QImage m_shade;
   HoverPoints* m_hoverPoints;
   QLinearGradient m_alpha_gradient;
+
+  Histogram m_histogram;
 };
 
 class GradientEditor : public QWidget
@@ -100,7 +103,7 @@ class GradientEditor : public QWidget
   Q_OBJECT
 
 public:
-  GradientEditor(QWidget* parent = nullptr);
+  GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setGradientStops(const QGradientStops& stops);
 
