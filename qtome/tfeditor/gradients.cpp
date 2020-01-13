@@ -105,6 +105,9 @@ uint
 ShadeWidget::colorAt(int x)
 {
   generateShade();
+  if (m_shade.isNull()) {
+    return 0;
+  }
 
   QPolygonF pts = m_hoverPoints->points();
   for (int i = 1; i < pts.size(); ++i) {
@@ -179,6 +182,9 @@ ShadeWidget::generateShade()
     QSize qsize = size();
     if (m_shade_type == ARGBShade) {
       m_shade = QImage(qsize, QImage::Format_ARGB32_Premultiplied);
+      if (m_shade.isNull()) {
+        return;
+      }
       m_shade.fill(0);
 
       QPainter p(&m_shade);
@@ -196,6 +202,9 @@ ShadeWidget::generateShade()
 
     } else {
       m_shade = QImage(qsize, QImage::Format_RGB32);
+      if (m_shade.isNull()) {
+        return;
+      }
       QLinearGradient shade(0, 0, 0, height());
       shade.setColorAt(1, Qt::black);
 

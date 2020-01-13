@@ -61,7 +61,7 @@ HoverPoints::HoverPoints(QWidget* widget, PointShape shape)
   widget->installEventFilter(this);
   widget->setAttribute(Qt::WA_AcceptTouchEvents);
 
-  //m_connectionType = CurveConnection;
+  // m_connectionType = CurveConnection;
   m_connectionType = LineConnection;
   m_sortType = NoSort;
   m_shape = shape;
@@ -233,6 +233,8 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
       case QEvent::Resize: {
         QResizeEvent* e = (QResizeEvent*)event;
         if (e->oldSize().width() == 0 || e->oldSize().height() == 0)
+          break;
+        if (e->size().width() == 0 || e->size().height() == 0)
           break;
         qreal stretch_x = e->size().width() / qreal(e->oldSize().width());
         qreal stretch_y = e->size().height() / qreal(e->oldSize().height());
