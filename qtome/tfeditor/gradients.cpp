@@ -281,9 +281,9 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
 {
   setWindowTitle(tr("Gradients"));
 
-  QGroupBox* editorGroup = new QGroupBox(this);
-  editorGroup->setTitle(tr("Color Editor"));
-  m_editor = new GradientEditor(editorGroup);
+  // QGroupBox* editorGroup = new QGroupBox(this);
+  // editorGroup->setTitle(tr("Color Editor"));
+  m_editor = new GradientEditor(this);
 
   auto* sectionLayout = Controls::createFormLayout();
 
@@ -369,14 +369,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   // Layouts
 
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
-  mainGroupLayout->addWidget(editorGroup);
+  mainGroupLayout->addWidget(m_editor);
   mainGroupLayout->addLayout(sectionLayout);
   // mainGroupLayout->addWidget(presetsGroup);
   // mainGroupLayout->addWidget(defaultsGroup);
   mainGroupLayout->addStretch(1);
 
-  QVBoxLayout* editorGroupLayout = new QVBoxLayout(editorGroup);
-  editorGroupLayout->addWidget(m_editor);
+  // QVBoxLayout* editorGroupLayout = new QVBoxLayout(editorGroup);
+  // editorGroupLayout->addWidget(m_editor);
 
   // QHBoxLayout* presetsGroupLayout = new QHBoxLayout(presetsGroup);
   // presetsGroupLayout->addWidget(prevPresetButton);
