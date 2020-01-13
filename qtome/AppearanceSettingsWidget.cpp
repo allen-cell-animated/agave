@@ -743,55 +743,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // buttonRowLayout->addWidget(pct98Button);
     // sectionLayout->addRow(buttonRowLayout);
 
-    QComboBox* lutEditorControlChoice = new QComboBox();
-    lutEditorControlChoice->addItem("Window/Level", 0);
-    lutEditorControlChoice->addItem("Percentiles", 1);
-    lutEditorControlChoice->addItem("IsoThreshold", 2);
-    lutEditorControlChoice->addItem("IsoValue", 3);
-    lutEditorControlChoice->setCurrentIndex(0);
-    sectionLayout->addRow("LUT controller", lutEditorControlChoice);
-
-    QObject::connect(lutEditorControlChoice, QOverload<int>::of(&QComboBox::currentIndexChanged), [i, this](int index) {
-      LOG_DEBUG << "choose lut controls " << index;
-    });
-
-    QNumericSlider* isovalueSlider = new QNumericSlider();
-    isovalueSlider->setRange(0.000, 1.0);
-    isovalueSlider->setSingleStep(0.01);
-    isovalueSlider->setValue(0.0, true);
-    sectionLayout->addRow("Isovalue", isovalueSlider);
-
-    QNumericSlider* pctMinSlider = new QNumericSlider();
-    pctMinSlider->setRange(0.000, 1.0);
-    pctMinSlider->setSingleStep(0.01);
-    pctMinSlider->setValue(0.0, true);
-    sectionLayout->addRow("Pct Min", pctMinSlider);
-
-    QNumericSlider* pctMaxSlider = new QNumericSlider();
-    pctMaxSlider->setRange(0.000, 1.0);
-    pctMaxSlider->setSingleStep(0.01);
-    pctMaxSlider->setValue(1.0, true);
-    sectionLayout->addRow("Pct Max", pctMaxSlider);
-
-    QNumericSlider* windowSlider = new QNumericSlider();
-    windowSlider->setRange(0.001, 1.0);
-    windowSlider->setSingleStep(0.01);
-    windowSlider->setValue(scene->m_volume->channel(i)->m_window, true);
-    sectionLayout->addRow("Window", windowSlider);
-
-    QNumericSlider* levelSlider = new QNumericSlider();
-    levelSlider->setRange(0.001, 1.0);
-    levelSlider->setSingleStep(0.01);
-    levelSlider->setValue(scene->m_volume->channel(i)->m_level, true);
-    sectionLayout->addRow("Level", levelSlider);
-
-    QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
-      this->OnSetWindowLevel(i, d, levelSlider->value());
-    });
-    QObject::connect(levelSlider, &QNumericSlider::valueChanged, [i, this, windowSlider](double d) {
-      this->OnSetWindowLevel(i, windowSlider->value(), d);
-    });
-
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
     opacitySlider->setSingleStep(0.01);
