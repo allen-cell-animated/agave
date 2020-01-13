@@ -51,6 +51,9 @@
 #include "gradients.h"
 #include "hoverpoints.h"
 
+#include "Controls.h"
+#include "Defines.h"
+
 #include <algorithm>
 
 ShadeWidget::ShadeWidget(ShadeType type, QWidget* parent)
@@ -197,19 +200,10 @@ GradientEditor::GradientEditor(QWidget* parent)
   vbox->setSpacing(1);
   vbox->setMargin(1);
 
-  // m_red_shade = new ShadeWidget(ShadeWidget::RedShade, this);
-  // m_green_shade = new ShadeWidget(ShadeWidget::GreenShade, this);
-  // m_blue_shade = new ShadeWidget(ShadeWidget::BlueShade, this);
   m_alpha_shade = new ShadeWidget(ShadeWidget::ARGBShade, this);
 
-  //  vbox->addWidget(m_red_shade);
-  //  vbox->addWidget(m_green_shade);
-  //  vbox->addWidget(m_blue_shade);
   vbox->addWidget(m_alpha_shade);
 
-  //  connect(m_red_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
-  //  connect(m_green_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
-  //  connect(m_blue_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
   connect(m_alpha_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
 }
 
@@ -228,9 +222,6 @@ GradientEditor::pointsUpdated()
 
   QPolygonF points;
 
-  // points += m_red_shade->points();
-  // points += m_green_shade->points();
-  // points += m_blue_shade->points();
   points += m_alpha_shade->points();
 
   std::sort(points.begin(), points.end(), x_less_than);
@@ -240,6 +231,8 @@ GradientEditor::pointsUpdated()
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
     unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
+    // TODO let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl click or
+    // some other means
     unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
     unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
     unsigned int b = (0x000000ff & pixelvalue);
@@ -271,87 +264,141 @@ GradientEditor::setGradientStops(const QGradientStops& stops)
 {
   QPolygonF pts_red, pts_green, pts_blue, pts_alpha;
 
-  // qreal h_red = m_red_shade->height();
-  // qreal h_green = m_green_shade->height();
-  // qreal h_blue = m_blue_shade->height();
   qreal h_alpha = m_alpha_shade->height();
 
   for (int i = 0; i < stops.size(); ++i) {
     qreal pos = stops.at(i).first;
     QRgb color = stops.at(i).second.rgba();
-    // pts_red << QPointF(pos * m_red_shade->width(), h_red - qRed(color) * h_red / 255);
-    // pts_green << QPointF(pos * m_green_shade->width(), h_green - qGreen(color) * h_green / 255);
-    // pts_blue << QPointF(pos * m_blue_shade->width(), h_blue - qBlue(color) * h_blue / 255);
     pts_alpha << QPointF(pos * m_alpha_shade->width(), h_alpha - qAlpha(color) * h_alpha / 255);
   }
 
-  // set_shade_points(pts_red, m_red_shade);
-  // set_shade_points(pts_green, m_green_shade);
-  // set_shade_points(pts_blue, m_blue_shade);
   set_shade_points(pts_alpha, m_alpha_shade);
 }
 
-GradientWidget::GradientWidget(QWidget* parent)
+GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
+  , m_histogram(histogram)
 {
   setWindowTitle(tr("Gradients"));
-
-  // QGroupBox* mainGroup = new QGroupBox(this);
-  // mainGroup->setTitle(tr("Gradients"));
 
   QGroupBox* editorGroup = new QGroupBox(this);
   editorGroup->setTitle(tr("Color Editor"));
   m_editor = new GradientEditor(editorGroup);
 
-  QGroupBox* presetsGroup = new QGroupBox(this);
-  presetsGroup->setTitle(tr("Presets"));
-  QPushButton* prevPresetButton = new QPushButton(tr("<"), presetsGroup);
-  m_presetButton = new QPushButton(tr("(unset)"), presetsGroup);
-  QPushButton* nextPresetButton = new QPushButton(tr(">"), presetsGroup);
-  updatePresetName();
+  auto* sectionLayout = Controls::createFormLayout();
 
-  QGroupBox* defaultsGroup = new QGroupBox(this);
-  defaultsGroup->setTitle(tr("Examples"));
-  QPushButton* default1Button = new QPushButton(tr("1"), defaultsGroup);
-  QPushButton* default2Button = new QPushButton(tr("2"), defaultsGroup);
-  QPushButton* default3Button = new QPushButton(tr("3"), defaultsGroup);
-  QPushButton* default4Button = new QPushButton(tr("Reset"), editorGroup);
+  QNumericSlider* windowSlider = new QNumericSlider();
+  windowSlider->setStatusTip("Set angle theta for area light");
+  windowSlider->setToolTip("Set angle theta for area light");
+  windowSlider->setRange(0.0, 1.0);
+  windowSlider->setValue(0.25);
+  sectionLayout->addRow("Window", windowSlider);
+  QNumericSlider* levelSlider = new QNumericSlider();
+  levelSlider->setStatusTip("Set angle theta for area light");
+  levelSlider->setToolTip("Set angle theta for area light");
+  levelSlider->setRange(0.0, 1.0);
+  levelSlider->setValue(0.5);
+  sectionLayout->addRow("Level", levelSlider);
+  connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
+    this->onSetWindowLevel(d, levelSlider->value());
+  });
+  connect(levelSlider, &QNumericSlider::valueChanged, [this, windowSlider](double d) {
+    this->onSetWindowLevel(windowSlider->value(), d);
+  });
+
+  QNumericSlider* isovalueSlider = new QNumericSlider();
+  isovalueSlider->setStatusTip("Set angle theta for area light");
+  isovalueSlider->setToolTip("Set angle theta for area light");
+  isovalueSlider->setRange(0.0, 1.0);
+  isovalueSlider->setValue(0.5);
+  sectionLayout->addRow("Isovalue", isovalueSlider);
+  QNumericSlider* isorangeSlider = new QNumericSlider();
+  isorangeSlider->setStatusTip("Set angle theta for area light");
+  isorangeSlider->setToolTip("Set angle theta for area light");
+  isorangeSlider->setRange(0.0, 1.0);
+  isorangeSlider->setValue(0.01);
+  sectionLayout->addRow("Iso-range", isorangeSlider);
+  connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
+    this->onSetIsovalue(d, isorangeSlider->value());
+  });
+  connect(isorangeSlider, &QNumericSlider::valueChanged, [this, isovalueSlider](double d) {
+    this->onSetIsovalue(isovalueSlider->value(), d);
+  });
+
+  QNumericSlider* pctLowSlider = new QNumericSlider();
+  pctLowSlider->setStatusTip("Set angle theta for area light");
+  pctLowSlider->setToolTip("Set angle theta for area light");
+  pctLowSlider->setRange(0.0, 1.0);
+  pctLowSlider->setValue(0.5);
+  sectionLayout->addRow("Pct Min", pctLowSlider);
+  QNumericSlider* pctHighSlider = new QNumericSlider();
+  pctHighSlider->setStatusTip("Set angle theta for area light");
+  pctHighSlider->setToolTip("Set angle theta for area light");
+  pctHighSlider->setRange(0.0, 1.0);
+  pctHighSlider->setValue(0.98);
+  sectionLayout->addRow("Pct Max", pctHighSlider);
+  connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
+    float pctLo = d;
+    float pctHi = pctHighSlider->value();
+    float window, level;
+    m_histogram.computeWindowLevelFromPercentiles(pctLo, pctHi, window, level);
+    this->onSetWindowLevel(window, level);
+  });
+  connect(pctHighSlider, &QNumericSlider::valueChanged, [this, pctLowSlider](double d) {
+    float pctLo = pctLowSlider->value();
+    float pctHi = d;
+    float window, level;
+    m_histogram.computeWindowLevelFromPercentiles(pctLo, pctHi, window, level);
+    this->onSetWindowLevel(window, level);
+  });
+
+  // QGroupBox* presetsGroup = new QGroupBox(this);
+  // presetsGroup->setTitle(tr("Presets"));
+  // QPushButton* prevPresetButton = new QPushButton(tr("<"), presetsGroup);
+  // m_presetButton = new QPushButton(tr("(unset)"), presetsGroup);
+  // QPushButton* nextPresetButton = new QPushButton(tr(">"), presetsGroup);
+  // updatePresetName();
+
+  // QGroupBox* defaultsGroup = new QGroupBox(this);
+  // defaultsGroup->setTitle(tr("Examples"));
+  // QPushButton* default1Button = new QPushButton(tr("1"), defaultsGroup);
+  // QPushButton* default2Button = new QPushButton(tr("2"), defaultsGroup);
+  // QPushButton* default3Button = new QPushButton(tr("3"), defaultsGroup);
+  // QPushButton* default4Button = new QPushButton(tr("Reset"), editorGroup);
 
   // Layouts
-  // QHBoxLayout* mainLayout = new QHBoxLayout(this);
-  // mainLayout->addWidget(mainGroup);
 
-  // mainGroup->setFixedWidth(200);
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
   mainGroupLayout->addWidget(editorGroup);
-  mainGroupLayout->addWidget(presetsGroup);
-  mainGroupLayout->addWidget(defaultsGroup);
+  mainGroupLayout->addLayout(sectionLayout);
+  // mainGroupLayout->addWidget(presetsGroup);
+  // mainGroupLayout->addWidget(defaultsGroup);
   mainGroupLayout->addStretch(1);
 
   QVBoxLayout* editorGroupLayout = new QVBoxLayout(editorGroup);
   editorGroupLayout->addWidget(m_editor);
 
-  QHBoxLayout* presetsGroupLayout = new QHBoxLayout(presetsGroup);
-  presetsGroupLayout->addWidget(prevPresetButton);
-  presetsGroupLayout->addWidget(m_presetButton, 1);
-  presetsGroupLayout->addWidget(nextPresetButton);
+  // QHBoxLayout* presetsGroupLayout = new QHBoxLayout(presetsGroup);
+  // presetsGroupLayout->addWidget(prevPresetButton);
+  // presetsGroupLayout->addWidget(m_presetButton, 1);
+  // presetsGroupLayout->addWidget(nextPresetButton);
 
-  QHBoxLayout* defaultsGroupLayout = new QHBoxLayout(defaultsGroup);
-  defaultsGroupLayout->addWidget(default1Button);
-  defaultsGroupLayout->addWidget(default2Button);
-  defaultsGroupLayout->addWidget(default3Button);
-  editorGroupLayout->addWidget(default4Button);
+  // QHBoxLayout* defaultsGroupLayout = new QHBoxLayout(defaultsGroup);
+  // defaultsGroupLayout->addWidget(default1Button);
+  // defaultsGroupLayout->addWidget(default2Button);
+  // defaultsGroupLayout->addWidget(default3Button);
+  // editorGroupLayout->addWidget(default4Button);
 
   //  connect(m_editor, &GradientEditor::gradientStopsChanged, m_renderer, &GradientRenderer::setGradientStops);
 
-  connect(prevPresetButton, &QPushButton::clicked, this, &GradientWidget::setPrevPreset);
-  connect(m_presetButton, &QPushButton::clicked, this, &GradientWidget::setPreset);
-  connect(nextPresetButton, &QPushButton::clicked, this, &GradientWidget::setNextPreset);
+  // connect(prevPresetButton, &QPushButton::clicked, this, &GradientWidget::setPrevPreset);
+  // connect(m_presetButton, &QPushButton::clicked, this, &GradientWidget::setPreset);
+  // connect(nextPresetButton, &QPushButton::clicked, this, &GradientWidget::setNextPreset);
 
-  connect(default1Button, &QPushButton::clicked, this, &GradientWidget::setDefault1);
-  connect(default2Button, &QPushButton::clicked, this, &GradientWidget::setDefault2);
-  connect(default3Button, &QPushButton::clicked, this, &GradientWidget::setDefault3);
-  connect(default4Button, &QPushButton::clicked, this, &GradientWidget::setDefault4);
+  // connect(default1Button, &QPushButton::clicked, this, &GradientWidget::setDefault1);
+  // connect(default2Button, &QPushButton::clicked, this, &GradientWidget::setDefault2);
+  // connect(default3Button, &QPushButton::clicked, this, &GradientWidget::setDefault3);
+  // connect(default4Button, &QPushButton::clicked, this, &GradientWidget::setDefault4);
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
 
@@ -361,6 +408,48 @@ GradientWidget::GradientWidget(QWidget* parent)
 void
 GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
 {
+  emit gradientStopsChanged(stops);
+}
+
+void
+GradientWidget::onSetWindowLevel(float window, float level)
+{
+  QGradientStops stops;
+  QPolygonF points;
+  float lowEnd = level - window * 0.5;
+  float highEnd = level + window * 0.5;
+  if (lowEnd <= 0.0) {
+    float val = -lowEnd / (highEnd - lowEnd);
+    stops << QGradientStop(0.0, QColor::fromRgbF(val, val, val, val));
+  } else {
+    stops << QGradientStop(0.0, QColor::fromRgba(0));
+    stops << QGradientStop(lowEnd, QColor::fromRgba(0));
+  }
+  if (highEnd >= 1.0) {
+    float val = (1.0 - lowEnd) / (highEnd - lowEnd);
+    stops << QGradientStop(1.0, QColor::fromRgbF(val, val, val, val));
+  } else {
+    stops << QGradientStop(highEnd, QColor::fromRgba(0xffffffff));
+    stops << QGradientStop(1.0, QColor::fromRgba(0xffffffff));
+  }
+  m_editor->setGradientStops(stops);
+  emit gradientStopsChanged(stops);
+}
+
+void
+GradientWidget::onSetIsovalue(float isovalue, float width)
+{
+  QGradientStops stops;
+  QPolygonF points;
+  float lowEnd = isovalue - width * 0.5;
+  float highEnd = isovalue + width * 0.5;
+  stops << QGradientStop(0.00, QColor::fromRgba(0));
+  stops << QGradientStop(lowEnd, QColor::fromRgba(0));
+  stops << QGradientStop(lowEnd, QColor::fromRgba(0xffffffff));
+  stops << QGradientStop(highEnd, QColor::fromRgba(0xffffffff));
+  stops << QGradientStop(highEnd, QColor::fromRgba(0));
+  stops << QGradientStop(1.0, QColor::fromRgba(0));
+  m_editor->setGradientStops(stops);
   emit gradientStopsChanged(stops);
 }
 

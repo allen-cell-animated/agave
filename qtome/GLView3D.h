@@ -15,7 +15,7 @@ class CStatus;
 class ImageXYZC;
 class QCamera;
 class IRenderWindow;
-class QTransferFunction;
+class QRenderSettings;
 class Scene;
 struct ViewerState;
 
@@ -36,7 +36,7 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  GLView3D(QCamera* cam, QTransferFunction* tran, RenderSettings* rs, QWidget* parent = 0);
+  GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
 
   /// Destructor.
   ~GLView3D();
@@ -73,7 +73,7 @@ signals:
 public slots:
 
   void OnUpdateCamera();
-  void OnUpdateTransferFunction(void);
+  void OnUpdateQRenderSettings(void);
   void OnUpdateRenderer(int);
 
 public:
@@ -121,7 +121,7 @@ private:
   CCamera m_CCamera;
   CameraController m_cameraController;
   QCamera* m_qcamera;
-  QTransferFunction* m_transferFunction;
+  QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.
   QElapsedTimer m_etimer;

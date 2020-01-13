@@ -38,17 +38,17 @@ public:
   void addRequest(RenderRequest* request);
   bool processRequest();
 
-  inline int getTotalQueueDuration() { return this->totalQueueDuration; }
+  inline int getTotalQueueDuration() { return this->m_totalQueueDuration; }
 
-  inline int getRequestCount() { return this->requests.count(); }
+  inline int getRequestCount() { return this->m_requests.count(); }
 
   // 1 = continuous re-render, 0 = only wait for redraw commands
-  void setStreamMode(int32_t mode) { _streamMode = mode; }
+  void setStreamMode(int32_t mode) { m_streamMode = mode; }
 
   void resizeGL(int internalWidth, int internalHeight);
 
 protected:
-  QString id;
+  QString m_id;
 
   void processCommandBuffer(RenderRequest* rr);
   QImage render();
@@ -57,56 +57,55 @@ protected:
 
   int getTime();
 
-  QList<RenderRequest*> requests;
-  int totalQueueDuration;
+  QList<RenderRequest*> m_requests;
+  int m_totalQueueDuration;
 
   void shutDown();
 
 private:
-  QMutex* _openGLMutex;
+  QMutex* m_openGLMutex;
 
-  QOpenGLContext* context;
-  QOffscreenSurface* surface;
-  QOpenGLFramebufferObject* fbo;
+  QOpenGLContext* m_glContext;
+  QOffscreenSurface* m_surface;
+  QOpenGLFramebufferObject* m_fbo;
 
-  int32_t _streamMode;
-  int32_t _width, _height;
+  int32_t m_streamMode;
+  int32_t m_width, m_height;
 
-  int frameNumber;
-  QTime time;
+  QTime m_time;
 
   class SceneDescription
   {
   public:
     inline SceneDescription(QString name, int start, int end)
-      : name(name)
-      , start(start)
-      , end(end)
+      : m_name(name)
+      , m_start(start)
+      , m_end(end)
     {}
 
-    QString name;
-    int start;
-    int end;
+    QString m_name;
+    int m_start;
+    int m_end;
   };
 
-  QList<SceneDescription> scenes;
+  QList<SceneDescription> m_scenes;
 
   // TODO move this info.  This class only knows about some abstract renderer and a scene object.
   void myVolumeInit();
   struct myVolumeData
   {
-    RenderSettings* _renderSettings;
-    RenderGLPT* _renderer;
-    Scene* _scene;
-    CCamera* _camera;
+    RenderSettings* m_renderSettings;
+    RenderGLPT* m_renderer;
+    Scene* m_scene;
+    CCamera* m_camera;
 
     myVolumeData()
-      : _camera(nullptr)
-      , _scene(nullptr)
-      , _renderSettings(nullptr)
-      , _renderer(nullptr)
+      : m_camera(nullptr)
+      , m_scene(nullptr)
+      , m_renderSettings(nullptr)
+      , m_renderer(nullptr)
     {}
-  } myVolumeData;
+  } m_myVolumeData;
 
 signals:
   void kill();

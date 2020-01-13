@@ -51,11 +51,12 @@
 #ifndef GRADIENTS_H
 #define GRADIENTS_H
 
+#include "Histogram.h"
+
 #include <QPushButton>
 #include <QRadioButton>
 
 class HoverPoints;
-
 class ShadeWidget : public QWidget
 {
   Q_OBJECT
@@ -110,9 +111,6 @@ signals:
   void gradientStopsChanged(const QGradientStops& stops);
 
 private:
-  ShadeWidget* m_red_shade;
-  ShadeWidget* m_green_shade;
-  ShadeWidget* m_blue_shade;
   ShadeWidget* m_alpha_shade;
 };
 
@@ -121,7 +119,7 @@ class GradientWidget : public QWidget
   Q_OBJECT
 
 public:
-  GradientWidget(QWidget* parent = nullptr);
+  GradientWidget(const Histogram& histogram, QWidget* parent = nullptr);
 
 public slots:
   void setDefault1() { setDefault(1); }
@@ -140,8 +138,11 @@ private:
   void setDefault(int i);
   void updatePresetName();
   void changePresetBy(int indexOffset);
+  void onSetWindowLevel(float window, float level);
+  void onSetIsovalue(float isovalue, float width);
 
   GradientEditor* m_editor;
+  Histogram m_histogram;
 
   QPushButton* m_presetButton;
 

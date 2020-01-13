@@ -12,9 +12,9 @@
 class Controls
 {
 public:
-  static QFormLayout* createFormLayout()
+  static QFormLayout* createFormLayout(QWidget* parent = nullptr)
   {
-    QFormLayout* layout = new QFormLayout();
+    QFormLayout* layout = new QFormLayout(parent);
     initFormLayout(*layout);
     return layout;
   }

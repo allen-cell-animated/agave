@@ -17,14 +17,14 @@
 
 Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   : QThread(parent)
-  , id(id)
-  , _streamMode(0)
-  , fbo(nullptr)
-  , _width(0)
-  , _height(0)
-  , _openGLMutex(&mutex)
+  , m_id(id)
+  , m_streamMode(0)
+  , m_fbo(nullptr)
+  , m_width(0)
+  , m_height(0)
+  , m_openGLMutex(&mutex)
 {
-  this->totalQueueDuration = 0;
+  this->m_totalQueueDuration = 0;
 
   LOG_DEBUG << "Renderer " << id.toStdString() << " -- Initializing rendering thread...";
   this->init();
@@ -34,23 +34,27 @@ Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
 Renderer::~Renderer()
 {
   // delete all outstanding requests.
-  qDeleteAll(this->requests);
+  qDeleteAll(this->m_requests);
 }
 
 void
 Renderer::myVolumeInit()
 {
-  myVolumeData._renderSettings = new RenderSettings();
+  static const int initWidth = 1024, initHeight = 1024;
 
-  myVolumeData._camera = new CCamera();
-  myVolumeData._camera->m_Film.m_ExposureIterations = 1;
+  m_myVolumeData.m_renderSettings = new RenderSettings();
 
-  myVolumeData._scene = new Scene();
-  myVolumeData._scene->initLights();
+  m_myVolumeData.m_camera = new CCamera();
+  m_myVolumeData.m_camera->m_Film.m_ExposureIterations = 1;
+  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(initWidth);
+  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(initHeight);
 
-  myVolumeData._renderer = new RenderGLPT(myVolumeData._renderSettings);
-  myVolumeData._renderer->initialize(1024, 1024);
-  myVolumeData._renderer->setScene(myVolumeData._scene);
+  m_myVolumeData.m_scene = new Scene();
+  m_myVolumeData.m_scene->initLights();
+
+  m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
+  m_myVolumeData.m_renderer->initialize(initWidth, initHeight);
+  m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
 }
 
 void
@@ -60,24 +64,23 @@ Renderer::init()
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
   // "Working Directory: " + QDir::currentPath());
 
-  QSurfaceFormat format;
-  format.setSamples(16); // Set the number of samples used for multisampling
+  QSurfaceFormat format = renderlib::getQSurfaceFormat();
 
-  this->context = new QOpenGLContext();
-  this->context->setFormat(format); // ...and set the format on the context too
-  this->context->create();
+  this->m_glContext = new QOpenGLContext();
+  this->m_glContext->setFormat(format); // ...and set the format on the context too
+  this->m_glContext->create();
 
-  this->surface = new QOffscreenSurface();
-  this->surface->setFormat(this->context->format());
-  this->surface->create();
+  this->m_surface = new QOffscreenSurface();
+  this->m_surface->setFormat(this->m_glContext->format());
+  this->m_surface->create();
 
   /*this->context->doneCurrent();
   this->context->moveToThread(this);*/
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(m_surface);
 
   int status = gladLoadGL();
   if (!status) {
-    LOG_INFO << id.toStdString() << "COULD NOT LOAD GL ON THREAD";
+    LOG_INFO << m_id.toStdString() << "COULD NOT LOAD GL ON THREAD";
   }
 
   ///////////////////////////////////
@@ -88,20 +91,20 @@ Renderer::init()
 
   int MaxSamples = 0;
   glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
-  LOG_INFO << id.toStdString() << "max samples" << MaxSamples;
+  LOG_INFO << m_id.toStdString() << "max samples" << MaxSamples;
 
   glEnable(GL_MULTISAMPLE);
 
   reset();
 
-  this->context->doneCurrent();
-  this->context->moveToThread(this);
+  this->m_glContext->doneCurrent();
+  this->m_glContext->moveToThread(this);
 }
 
 void
 Renderer::run()
 {
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   // TODO: PUT THIS KIND OF INIT SOMEWHERE ELSE
   myVolumeInit();
@@ -112,26 +115,26 @@ Renderer::run()
     QApplication::processEvents();
   }
 
-  this->context->makeCurrent(this->surface);
-  myVolumeData._renderer->cleanUpResources();
+  this->m_glContext->makeCurrent(this->m_surface);
+  m_myVolumeData.m_renderer->cleanUpResources();
   shutDown();
 }
 
 void
 Renderer::addRequest(RenderRequest* request)
 {
-  this->requests << request;
-  this->totalQueueDuration += request->getDuration();
+  this->m_requests << request;
+  this->m_totalQueueDuration += request->getDuration();
 }
 
 bool
 Renderer::processRequest()
 {
-  if (this->requests.isEmpty()) {
+  if (this->m_requests.isEmpty()) {
     return false;
   }
 
-  if (_streamMode != 0) {
+  if (m_streamMode != 0) {
     QElapsedTimer timer;
     timer.start();
 
@@ -139,10 +142,10 @@ Renderer::processRequest()
 
     // eat requests until done, and then render
     // note that any one request could change the streaming mode.
-    while (!this->requests.isEmpty() && _streamMode != 0) {
+    while (!this->m_requests.isEmpty() && m_streamMode != 0) {
 
-      RenderRequest* r = this->requests.takeFirst();
-      this->totalQueueDuration -= r->getDuration();
+      RenderRequest* r = this->m_requests.takeFirst();
+      this->m_totalQueueDuration -= r->getDuration();
 
       std::vector<Command*> cmds = r->getParameters();
       if (cmds.size() > 0) {
@@ -150,7 +153,7 @@ Renderer::processRequest()
       }
 
       // the true last request will be passed to "emit" and deleted later
-      if (!this->requests.isEmpty() && _streamMode != 0) {
+      if (!this->m_requests.isEmpty() && m_streamMode != 0) {
         delete r;
       } else {
         lastReq = r;
@@ -168,7 +171,7 @@ Renderer::processRequest()
     // in stream mode:
     // if queue is empty, then keep firing redraws back to client.
     // test about 100 frames as a convergence limit.
-    if (_streamMode != 0 && myVolumeData._renderSettings->GetNoIterations() < 500) {
+    if (m_streamMode != 0 && m_myVolumeData.m_renderSettings->GetNoIterations() < 500) {
       // push another redraw request.
       std::vector<Command*> cmd;
       RequestRedrawCommandD data;
@@ -183,8 +186,8 @@ Renderer::processRequest()
     // if not in stream mode, then process one request, then re-render.
 
     // remove request from the queue
-    RenderRequest* r = this->requests.takeFirst();
-    this->totalQueueDuration -= r->getDuration();
+    RenderRequest* r = this->m_requests.takeFirst();
+    this->m_totalQueueDuration -= r->getDuration();
 
     // process it
     QElapsedTimer timer;
@@ -209,21 +212,21 @@ Renderer::processRequest()
 void
 Renderer::processCommandBuffer(RenderRequest* rr)
 {
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   std::vector<Command*> cmds = rr->getParameters();
   if (cmds.size() > 0) {
     ExecutionContext ec;
-    ec.m_renderSettings = myVolumeData._renderSettings;
+    ec.m_renderSettings = m_myVolumeData.m_renderSettings;
     ec.m_renderer = this;
-    ec.m_appScene = myVolumeData._scene;
-    ec.m_camera = myVolumeData._camera;
+    ec.m_appScene = m_myVolumeData.m_scene;
+    ec.m_camera = m_myVolumeData.m_camera;
     ec.m_message = "";
 
     for (auto i = cmds.begin(); i != cmds.end(); ++i) {
       (*i)->execute(&ec);
-      if (!ec.m_message.isEmpty()) {
-        emit sendString(rr, ec.m_message);
+      if (!ec.m_message.empty()) {
+        emit sendString(rr, QString::fromStdString(ec.m_message));
         ec.m_message = "";
       }
     }
@@ -233,25 +236,25 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 QImage
 Renderer::render()
 {
-  _openGLMutex->lock();
-  this->context->makeCurrent(this->surface);
+  m_openGLMutex->lock();
+  this->m_glContext->makeCurrent(this->m_surface);
 
   glEnable(GL_TEXTURE_2D);
 
   // DRAW
-  myVolumeData._camera->Update();
-  myVolumeData._renderer->doRender(*(myVolumeData._camera));
+  m_myVolumeData.m_camera->Update();
+  m_myVolumeData.m_renderer->doRender(*(m_myVolumeData.m_camera));
 
   // COPY TO MY FBO
-  this->fbo->bind();
-  glViewport(0, 0, fbo->width(), fbo->height());
-  myVolumeData._renderer->drawImage();
-  this->fbo->release();
+  this->m_fbo->bind();
+  glViewport(0, 0, m_fbo->width(), m_fbo->height());
+  m_myVolumeData.m_renderer->drawImage();
+  this->m_fbo->release();
 
-  QImage img = fbo->toImage();
+  QImage img = m_fbo->toImage();
 
-  this->context->doneCurrent();
-  _openGLMutex->unlock();
+  this->m_glContext->doneCurrent();
+  m_openGLMutex->unlock();
 
   return img;
 }
@@ -259,41 +262,41 @@ Renderer::render()
 void
 Renderer::resizeGL(int width, int height)
 {
-  if ((width == _width) && (height == _height)) {
+  if ((width == m_width) && (height == m_height)) {
     return;
   }
-  _openGLMutex->lock();
+  m_openGLMutex->lock();
 
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   // RESIZE THE RENDER INTERFACE
-  if (myVolumeData._renderer) {
-    myVolumeData._renderer->resize(width, height);
+  if (m_myVolumeData.m_renderer) {
+    m_myVolumeData.m_renderer->resize(width, height);
   }
 
-  delete this->fbo;
+  delete this->m_fbo;
   QOpenGLFramebufferObjectFormat fboFormat;
   fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
   fboFormat.setMipmap(false);
   fboFormat.setSamples(0);
   fboFormat.setTextureTarget(GL_TEXTURE_2D);
   fboFormat.setInternalTextureFormat(GL_RGBA8);
-  this->fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
+  this->m_fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
 
   glViewport(0, 0, width, height);
 
-  _width = width;
-  _height = height;
+  m_width = width;
+  m_height = height;
 
-  _openGLMutex->unlock();
+  m_openGLMutex->unlock();
 }
 
 void
 Renderer::reset(int from)
 {
-  _openGLMutex->lock();
+  m_openGLMutex->lock();
 
-  this->context->makeCurrent(this->surface);
+  this->m_glContext->makeCurrent(this->m_surface);
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -301,38 +304,38 @@ Renderer::reset(int from)
   glEnable(GL_BLEND);
   glEnable(GL_LINE_SMOOTH);
 
-  this->time.start();
-  this->time = this->time.addMSecs(-from);
+  this->m_time.start();
+  this->m_time = this->m_time.addMSecs(-from);
 
-  _openGLMutex->unlock();
+  m_openGLMutex->unlock();
 }
 
 int
 Renderer::getTime()
 {
-  return this->time.elapsed();
+  return this->m_time.elapsed();
 }
 
 void
 Renderer::shutDown()
 {
-  context->makeCurrent(surface);
-  delete this->fbo;
+  m_glContext->makeCurrent(m_surface);
+  delete this->m_fbo;
 
-  delete myVolumeData._renderSettings;
-  delete myVolumeData._camera;
-  delete myVolumeData._scene;
-  delete myVolumeData._renderer;
-  myVolumeData._camera = nullptr;
-  myVolumeData._scene = nullptr;
-  myVolumeData._renderSettings = nullptr;
-  myVolumeData._renderer = nullptr;
+  delete m_myVolumeData.m_renderSettings;
+  delete m_myVolumeData.m_camera;
+  delete m_myVolumeData.m_scene;
+  delete m_myVolumeData.m_renderer;
+  m_myVolumeData.m_camera = nullptr;
+  m_myVolumeData.m_scene = nullptr;
+  m_myVolumeData.m_renderSettings = nullptr;
+  m_myVolumeData.m_renderer = nullptr;
 
-  context->doneCurrent();
-  delete context;
+  m_glContext->doneCurrent();
+  delete m_glContext;
 
   // schedule this to be deleted only after we're done cleaning up
-  surface->deleteLater();
+  m_surface->deleteLater();
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
   exit();
