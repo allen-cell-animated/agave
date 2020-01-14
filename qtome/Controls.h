@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QFrame>
@@ -8,24 +9,6 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
-
-class Controls
-{
-public:
-  static QFormLayout* createFormLayout(QWidget* parent = nullptr)
-  {
-    QFormLayout* layout = new QFormLayout(parent);
-    initFormLayout(*layout);
-    return layout;
-  }
-  static void initFormLayout(QFormLayout& layout)
-  {
-    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
-    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-    layout.setLabelAlignment(Qt::AlignLeft);
-  }
-};
 
 class QColorPushButton : public QPushButton
 {
@@ -151,4 +134,49 @@ private:
   QGridLayout m_layout;
   QDoubleSpinner m_spinner;
   QDoubleSlider m_slider;
+};
+
+class Controls
+{
+public:
+  static QFormLayout* createFormLayout(QWidget* parent = nullptr)
+  {
+    QFormLayout* layout = new QFormLayout(parent);
+    initFormLayout(*layout);
+    return layout;
+  }
+  static void initFormLayout(QFormLayout& layout)
+  {
+    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+    layout.setLabelAlignment(Qt::AlignLeft);
+  }
+
+  struct NumericSliderSpec
+  {
+    QString name;
+    QString toolTip;   // shorter
+    QString statusTip; // slightly longer
+    float rangeMin, rangeMax, initialValue, stepSize;
+  };
+  static QNumericSlider* addNumericSlider(QFormLayout& formLayout, const NumericSliderSpec& spec);
+  struct CheckBoxSpec
+  {
+    QString name;
+    QString toolTip;   // shorter
+    QString statusTip; // slightly longer
+    bool initialValue;
+  };
+  static QCheckBox* addCheckBox(QFormLayout& formLayout, const CheckBoxSpec& spec);
+
+  struct ComboBoxSpec
+  {
+    QString name;
+    QString toolTip;   // shorter
+    QString statusTip; // slightly longer
+    std::vector<std::string> choices;
+    int initialSelection;
+  };
+  static QComboBox* addComboBox(QFormLayout& formLayout, const ComboBoxSpec& spec);
 };

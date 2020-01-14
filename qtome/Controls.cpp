@@ -333,3 +333,16 @@ QNumericSlider::setSuffix(const QString& s)
 {
   m_spinner.setSuffix(s);
 }
+
+QNumericSlider*
+Controls::addNumericSlider(QFormLayout& formLayout, const NumericSliderSpec& spec)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(spec.statusTip);
+  slider->setToolTip(spec.toolTip);
+  slider->setRange(spec.rangeMin, spec.rangeMax);
+  slider->setValue(spec.initialValue);
+  slider->setSingleStep(spec.stepSize);
+  formLayout.addRow(spec.name, slider);
+  return slider;
+}
