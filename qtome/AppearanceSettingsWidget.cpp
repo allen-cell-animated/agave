@@ -550,19 +550,13 @@ QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
 }
 
 void
-QAppearanceSettingsWidget::OnUpdateLut(int i, const QGradientStops& stops)
+QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<std::pair<float, float>>& stops)
 {
   if (!m_scene)
     return;
   LOG_DEBUG << "update LUT";
 
-  // convert stops to control points
-  std::vector<std::pair<float, float>> pts;
-  for (int i = 0; i < stops.size(); ++i) {
-    pts.push_back(std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
-  }
-
-  m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(pts);
+  m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -695,7 +689,13 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addRow("Gradient", editor);
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
-      this->OnUpdateLut(i, stops);
+      // convert stops to control points
+      std::vector<std::pair<float, float>> pts;
+      for (int i = 0; i < stops.size(); ++i) {
+        pts.push_back(std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+      }
+
+      this->OnUpdateLut(i, pts);
     });
 
     // QPushButton* autoButton = new QPushButton("Auto");
