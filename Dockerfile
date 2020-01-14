@@ -28,6 +28,7 @@ RUN ./qt-opensource-linux-x64-${QT_VERSION_B}.run --script qt-noninteractive.qs 
 
 # copy agave project
 COPY . /agave
+RUN rm -rf /agave/build/*
 WORKDIR /agave
 
 # install submodules
