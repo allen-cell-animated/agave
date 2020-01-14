@@ -35,6 +35,7 @@ WORKDIR /agave
 RUN git submodule update --init --recursive
 
 # build agentsim project
+ENV QTDIR=/qt/${QT_VERSION_B}/gcc_64
 RUN cd ./build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make
