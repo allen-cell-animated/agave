@@ -53,6 +53,7 @@
 
 #include "Controls.h"
 #include "Defines.h"
+#include "Logging.h"
 
 #include <algorithm>
 
@@ -319,18 +320,77 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
 
   auto* sectionLayout = Controls::createFormLayout();
 
+  QButtonGroup* btnGroup = new QButtonGroup(this);
+  btnGroup->addButton(new QPushButton("Wnd/Lvl"), 131);
+  btnGroup->addButton(new QPushButton("Iso"), 132);
+  btnGroup->addButton(new QPushButton("Pct"), 133);
+  btnGroup->addButton(new QPushButton("Custom"), 134);
+  QHBoxLayout* hbox = new QHBoxLayout();
+  hbox->setSpacing(0);
+  for (auto btn : btnGroup->buttons()) {
+    btn->setCheckable(true);
+    hbox->addWidget(btn);
+  }
+
+  QWidget* firstPageWidget = new QWidget;
+  auto* section0Layout = Controls::createFormLayout();
+  firstPageWidget->setLayout(section0Layout);
+
+  QWidget* secondPageWidget = new QWidget;
+  auto* section1Layout = Controls::createFormLayout();
+  secondPageWidget->setLayout(section1Layout);
+
+  QWidget* thirdPageWidget = new QWidget;
+  auto* section2Layout = Controls::createFormLayout();
+  thirdPageWidget->setLayout(section2Layout);
+
+  QWidget* fourthPageWidget = new QWidget;
+  auto* section3Layout = Controls::createFormLayout();
+  fourthPageWidget->setLayout(section3Layout);
+
+  QStackedLayout* stackedLayout = new QStackedLayout;
+  stackedLayout->addWidget(firstPageWidget);
+  stackedLayout->addWidget(secondPageWidget);
+  stackedLayout->addWidget(thirdPageWidget);
+  stackedLayout->addWidget(fourthPageWidget);
+
+  connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
+    switch (id) {
+      case 131:
+        stackedLayout->setCurrentIndex(0);
+        // update graph with window/level
+        LOG_DEBUG << "window/level";
+        break;
+      case 132:
+        stackedLayout->setCurrentIndex(1);
+        // update graph with iso
+        LOG_DEBUG << "iso";
+        break;
+      case 133:
+        stackedLayout->setCurrentIndex(2);
+        // update graph with percentile settings
+        LOG_DEBUG << "pct";
+        break;
+      case 134:
+        stackedLayout->setCurrentIndex(3);
+        // restore custom graph
+        LOG_DEBUG << "custom";
+        break;
+    }
+  });
+
   QNumericSlider* windowSlider = new QNumericSlider();
   windowSlider->setStatusTip("Set angle theta for area light");
   windowSlider->setToolTip("Set angle theta for area light");
   windowSlider->setRange(0.0, 1.0);
   windowSlider->setValue(0.25);
-  sectionLayout->addRow("Window", windowSlider);
+  section0Layout->addRow("Window", windowSlider);
   QNumericSlider* levelSlider = new QNumericSlider();
   levelSlider->setStatusTip("Set angle theta for area light");
   levelSlider->setToolTip("Set angle theta for area light");
   levelSlider->setRange(0.0, 1.0);
   levelSlider->setValue(0.5);
-  sectionLayout->addRow("Level", levelSlider);
+  section0Layout->addRow("Level", levelSlider);
   connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
     this->onSetWindowLevel(d, levelSlider->value());
   });
@@ -343,13 +403,13 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   isovalueSlider->setToolTip("Set angle theta for area light");
   isovalueSlider->setRange(0.0, 1.0);
   isovalueSlider->setValue(0.5);
-  sectionLayout->addRow("Isovalue", isovalueSlider);
+  section1Layout->addRow("Isovalue", isovalueSlider);
   QNumericSlider* isorangeSlider = new QNumericSlider();
   isorangeSlider->setStatusTip("Set angle theta for area light");
   isorangeSlider->setToolTip("Set angle theta for area light");
   isorangeSlider->setRange(0.0, 1.0);
   isorangeSlider->setValue(0.01);
-  sectionLayout->addRow("Iso-range", isorangeSlider);
+  section1Layout->addRow("Iso-range", isorangeSlider);
   connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
     this->onSetIsovalue(d, isorangeSlider->value());
   });
@@ -362,13 +422,13 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   pctLowSlider->setToolTip("Set angle theta for area light");
   pctLowSlider->setRange(0.0, 1.0);
   pctLowSlider->setValue(0.5);
-  sectionLayout->addRow("Pct Min", pctLowSlider);
+  section2Layout->addRow("Pct Min", pctLowSlider);
   QNumericSlider* pctHighSlider = new QNumericSlider();
   pctHighSlider->setStatusTip("Set angle theta for area light");
   pctHighSlider->setToolTip("Set angle theta for area light");
   pctHighSlider->setRange(0.0, 1.0);
   pctHighSlider->setValue(0.98);
-  sectionLayout->addRow("Pct Max", pctHighSlider);
+  section2Layout->addRow("Pct Max", pctHighSlider);
   connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
     float pctLo = d;
     float pctHi = pctHighSlider->value();
@@ -402,6 +462,8 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
 
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
   mainGroupLayout->addWidget(m_editor);
+  mainGroupLayout->addLayout(hbox);
+  mainGroupLayout->addLayout(stackedLayout);
   mainGroupLayout->addLayout(sectionLayout);
   // mainGroupLayout->addWidget(presetsGroup);
   // mainGroupLayout->addWidget(defaultsGroup);
