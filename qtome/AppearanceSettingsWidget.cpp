@@ -172,27 +172,37 @@ QAppearanceSettingsWidget::createLightingControls()
   m_lt0gui.m_thetaSlider->setStatusTip("Set angle theta for area light");
   m_lt0gui.m_thetaSlider->setToolTip("Set angle theta for area light");
   m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
+  m_lt0gui.m_thetaSlider->setSingleStep(TWO_PI_F / 100.0);
   m_lt0gui.m_thetaSlider->setValue(0.0);
   sectionLayout->addRow("AreaLight Theta", m_lt0gui.m_thetaSlider);
   QObject::connect(
     m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
 
   m_lt0gui.m_phiSlider = new QNumericSlider();
+  m_lt0gui.m_phiSlider->setStatusTip("Set angle phi for area light");
+  m_lt0gui.m_phiSlider->setToolTip("Set angle phi for area light");
   m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
+  m_lt0gui.m_phiSlider->setSingleStep(PI_F / 100.0);
   m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
   sectionLayout->addRow("AreaLight Phi", m_lt0gui.m_phiSlider);
   QObject::connect(
     m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
 
   m_lt0gui.m_sizeSlider = new QNumericSlider();
+  m_lt0gui.m_sizeSlider->setStatusTip("Set size for area light");
+  m_lt0gui.m_sizeSlider->setToolTip("Set size for area light");
   m_lt0gui.m_sizeSlider->setRange(0.1, 5.0);
+  m_lt0gui.m_sizeSlider->setSingleStep(5.0 / 100.0);
   m_lt0gui.m_sizeSlider->setValue(1.0);
   sectionLayout->addRow("AreaLight Size", m_lt0gui.m_sizeSlider);
   QObject::connect(
     m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
 
   m_lt0gui.m_distSlider = new QNumericSlider();
+  m_lt0gui.m_distSlider->setStatusTip("Set distance for area light");
+  m_lt0gui.m_distSlider->setToolTip("Set distance for area light");
   m_lt0gui.m_distSlider->setRange(0.1, 100.0);
+  m_lt0gui.m_distSlider->setSingleStep(1.0);
   m_lt0gui.m_distSlider->setValue(10.0);
   sectionLayout->addRow("AreaLight Distance", m_lt0gui.m_distSlider);
   QObject::connect(
@@ -200,10 +210,15 @@ QAppearanceSettingsWidget::createLightingControls()
 
   auto* arealightLayout = new QHBoxLayout();
   m_lt0gui.m_intensitySlider = new QNumericSlider();
+  m_lt0gui.m_intensitySlider->setStatusTip("Set intensity for area light");
+  m_lt0gui.m_intensitySlider->setToolTip("Set intensity for area light");
   m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
+  m_lt0gui.m_intensitySlider->setSingleStep(1.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
   arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
+  m_lt0gui.m_areaLightColorButton->setStatusTip("Set color for area light");
+  m_lt0gui.m_areaLightColorButton->setToolTip("Set color for area light");
   arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton);
   sectionLayout->addRow("AreaLight Intensity", arealightLayout);
   QObject::connect(m_lt0gui.m_areaLightColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
