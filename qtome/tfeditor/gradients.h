@@ -150,6 +150,7 @@ private:
   QPushButton* m_presetButton;
 
   int m_presetIndex = 0;
+  int m_editMode = 0;
 };
 
 #endif // GRADIENTS_H

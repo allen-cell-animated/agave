@@ -321,10 +321,10 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   auto* sectionLayout = Controls::createFormLayout();
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
-  btnGroup->addButton(new QPushButton("Wnd/Lvl"), 131);
-  btnGroup->addButton(new QPushButton("Iso"), 132);
-  btnGroup->addButton(new QPushButton("Pct"), 133);
-  btnGroup->addButton(new QPushButton("Custom"), 134);
+  btnGroup->addButton(new QPushButton("Wnd/Lvl"), 0);
+  btnGroup->addButton(new QPushButton("Iso"), 1);
+  btnGroup->addButton(new QPushButton("Pct"), 2);
+  btnGroup->addButton(new QPushButton("Custom"), 3);
   QHBoxLayout* hbox = new QHBoxLayout();
   hbox->setSpacing(0);
   for (auto btn : btnGroup->buttons()) {
@@ -355,27 +355,12 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   stackedLayout->addWidget(fourthPageWidget);
 
   connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
-    switch (id) {
-      case 131:
-        stackedLayout->setCurrentIndex(0);
-        // update graph with window/level
-        LOG_DEBUG << "window/level";
-        break;
-      case 132:
-        stackedLayout->setCurrentIndex(1);
-        // update graph with iso
-        LOG_DEBUG << "iso";
-        break;
-      case 133:
-        stackedLayout->setCurrentIndex(2);
-        // update graph with percentile settings
-        LOG_DEBUG << "pct";
-        break;
-      case 134:
-        stackedLayout->setCurrentIndex(3);
-        // restore custom graph
-        LOG_DEBUG << "custom";
-        break;
+    // if not current mode, then set mode and update:
+    if (this->m_editMode != id) {
+      // assumes button ids are same values as stacked widget indices
+      stackedLayout->setCurrentIndex(id);
+      // update graph
+      this->m_editMode = id;
     }
   });
 
