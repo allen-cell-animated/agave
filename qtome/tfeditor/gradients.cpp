@@ -321,10 +321,23 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   auto* sectionLayout = Controls::createFormLayout();
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
-  btnGroup->addButton(new QPushButton("Wnd/Lvl"), 0);
-  btnGroup->addButton(new QPushButton("Iso"), 1);
-  btnGroup->addButton(new QPushButton("Pct"), 2);
-  btnGroup->addButton(new QPushButton("Custom"), 3);
+  QPushButton* windowLevelButton = new QPushButton("Wnd/Lvl");
+  windowLevelButton->setToolTip("Window/Level");
+  windowLevelButton->setStatusTip("Choose Window/Level mode");
+  QPushButton* isoButton = new QPushButton("Iso");
+  isoButton->setToolTip("Isovalue");
+  isoButton->setStatusTip("Choose Isovalue mode");
+  QPushButton* pctButton = new QPushButton("Pct");
+  pctButton->setToolTip("Histogram Percentiles");
+  pctButton->setStatusTip("Choose Histogram percentiles mode");
+  QPushButton* customButton = new QPushButton("Custom");
+  customButton->setToolTip("Custom");
+  customButton->setStatusTip("Choose Custom editing mode");
+
+  btnGroup->addButton(windowLevelButton, 0);
+  btnGroup->addButton(isoButton, 1);
+  btnGroup->addButton(pctButton, 2);
+  btnGroup->addButton(customButton, 3);
   QHBoxLayout* hbox = new QHBoxLayout();
   hbox->setSpacing(0);
   for (auto btn : btnGroup->buttons()) {
@@ -365,14 +378,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   });
 
   QNumericSlider* windowSlider = new QNumericSlider();
-  windowSlider->setStatusTip("Set angle theta for area light");
-  windowSlider->setToolTip("Set angle theta for area light");
+  windowSlider->setStatusTip("Window");
+  windowSlider->setToolTip("Window");
   windowSlider->setRange(0.0, 1.0);
   windowSlider->setValue(0.25);
   section0Layout->addRow("Window", windowSlider);
   QNumericSlider* levelSlider = new QNumericSlider();
-  levelSlider->setStatusTip("Set angle theta for area light");
-  levelSlider->setToolTip("Set angle theta for area light");
+  levelSlider->setStatusTip("Level");
+  levelSlider->setToolTip("Level");
   levelSlider->setRange(0.0, 1.0);
   levelSlider->setValue(0.5);
   section0Layout->addRow("Level", levelSlider);
@@ -384,14 +397,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   });
 
   QNumericSlider* isovalueSlider = new QNumericSlider();
-  isovalueSlider->setStatusTip("Set angle theta for area light");
-  isovalueSlider->setToolTip("Set angle theta for area light");
+  isovalueSlider->setStatusTip("Isovalue");
+  isovalueSlider->setToolTip("Set Isovalue");
   isovalueSlider->setRange(0.0, 1.0);
   isovalueSlider->setValue(0.5);
   section1Layout->addRow("Isovalue", isovalueSlider);
   QNumericSlider* isorangeSlider = new QNumericSlider();
-  isorangeSlider->setStatusTip("Set angle theta for area light");
-  isorangeSlider->setToolTip("Set angle theta for area light");
+  isorangeSlider->setStatusTip("Isovalue range");
+  isorangeSlider->setToolTip("Set range above and below isovalue");
   isorangeSlider->setRange(0.0, 1.0);
   isorangeSlider->setValue(0.01);
   section1Layout->addRow("Iso-range", isorangeSlider);
@@ -403,14 +416,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   });
 
   QNumericSlider* pctLowSlider = new QNumericSlider();
-  pctLowSlider->setStatusTip("Set angle theta for area light");
-  pctLowSlider->setToolTip("Set angle theta for area light");
+  pctLowSlider->setStatusTip("Low percentile");
+  pctLowSlider->setToolTip("Set bottom percentile");
   pctLowSlider->setRange(0.0, 1.0);
   pctLowSlider->setValue(0.5);
   section2Layout->addRow("Pct Min", pctLowSlider);
   QNumericSlider* pctHighSlider = new QNumericSlider();
-  pctHighSlider->setStatusTip("Set angle theta for area light");
-  pctHighSlider->setToolTip("Set angle theta for area light");
+  pctHighSlider->setStatusTip("High percentile");
+  pctHighSlider->setToolTip("Set top percentile");
   pctHighSlider->setRange(0.0, 1.0);
   pctHighSlider->setValue(0.98);
   section2Layout->addRow("Pct Max", pctHighSlider);
@@ -429,20 +442,6 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
     this->onSetWindowLevel(window, level);
   });
 
-  // QGroupBox* presetsGroup = new QGroupBox(this);
-  // presetsGroup->setTitle(tr("Presets"));
-  // QPushButton* prevPresetButton = new QPushButton(tr("<"), presetsGroup);
-  // m_presetButton = new QPushButton(tr("(unset)"), presetsGroup);
-  // QPushButton* nextPresetButton = new QPushButton(tr(">"), presetsGroup);
-  // updatePresetName();
-
-  // QGroupBox* defaultsGroup = new QGroupBox(this);
-  // defaultsGroup->setTitle(tr("Examples"));
-  // QPushButton* default1Button = new QPushButton(tr("1"), defaultsGroup);
-  // QPushButton* default2Button = new QPushButton(tr("2"), defaultsGroup);
-  // QPushButton* default3Button = new QPushButton(tr("3"), defaultsGroup);
-  // QPushButton* default4Button = new QPushButton(tr("Reset"), editorGroup);
-
   // Layouts
 
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
@@ -450,34 +449,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   mainGroupLayout->addLayout(hbox);
   mainGroupLayout->addLayout(stackedLayout);
   mainGroupLayout->addLayout(sectionLayout);
-  // mainGroupLayout->addWidget(presetsGroup);
-  // mainGroupLayout->addWidget(defaultsGroup);
   mainGroupLayout->addStretch(1);
-
-  // QVBoxLayout* editorGroupLayout = new QVBoxLayout(editorGroup);
-  // editorGroupLayout->addWidget(m_editor);
-
-  // QHBoxLayout* presetsGroupLayout = new QHBoxLayout(presetsGroup);
-  // presetsGroupLayout->addWidget(prevPresetButton);
-  // presetsGroupLayout->addWidget(m_presetButton, 1);
-  // presetsGroupLayout->addWidget(nextPresetButton);
-
-  // QHBoxLayout* defaultsGroupLayout = new QHBoxLayout(defaultsGroup);
-  // defaultsGroupLayout->addWidget(default1Button);
-  // defaultsGroupLayout->addWidget(default2Button);
-  // defaultsGroupLayout->addWidget(default3Button);
-  // editorGroupLayout->addWidget(default4Button);
-
-  //  connect(m_editor, &GradientEditor::gradientStopsChanged, m_renderer, &GradientRenderer::setGradientStops);
-
-  // connect(prevPresetButton, &QPushButton::clicked, this, &GradientWidget::setPrevPreset);
-  // connect(m_presetButton, &QPushButton::clicked, this, &GradientWidget::setPreset);
-  // connect(nextPresetButton, &QPushButton::clicked, this, &GradientWidget::setNextPreset);
-
-  // connect(default1Button, &QPushButton::clicked, this, &GradientWidget::setDefault1);
-  // connect(default2Button, &QPushButton::clicked, this, &GradientWidget::setDefault2);
-  // connect(default3Button, &QPushButton::clicked, this, &GradientWidget::setDefault3);
-  // connect(default4Button, &QPushButton::clicked, this, &GradientWidget::setDefault4);
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
 
