@@ -355,10 +355,21 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   customButton->setToolTip("Custom");
   customButton->setStatusTip("Choose Custom editing mode");
 
-  btnGroup->addButton(windowLevelButton, 1);
-  btnGroup->addButton(isoButton, 2);
-  btnGroup->addButton(pctButton, 3);
-  btnGroup->addButton(customButton, 4);
+  static const int WINDOW_LEVEL_BTNID = 1;
+  static const int ISO_BTNID = 2;
+  static const int PCT_BTNID = 3;
+  static const int CUSTOM_BTNID = 4;
+  static std::map<int, GradientEditMode> btnIdToGradientMode = { { WINDOW_LEVEL_BTNID, GradientEditMode::WINDOW_LEVEL },
+                                                                 { ISO_BTNID, GradientEditMode::ISOVALUE },
+                                                                 { PCT_BTNID, GradientEditMode::PERCENTILE },
+                                                                 { CUSTOM_BTNID, GradientEditMode::CUSTOM } };
+  static std::map<int, int> btnIdToStackedPage = {
+    { WINDOW_LEVEL_BTNID, 0 }, { ISO_BTNID, 1 }, { PCT_BTNID, 2 }, { CUSTOM_BTNID, 3 }
+  };
+  btnGroup->addButton(windowLevelButton, WINDOW_LEVEL_BTNID);
+  btnGroup->addButton(isoButton, ISO_BTNID);
+  btnGroup->addButton(pctButton, PCT_BTNID);
+  btnGroup->addButton(customButton, CUSTOM_BTNID);
   QHBoxLayout* hbox = new QHBoxLayout();
   hbox->setSpacing(0);
   for (auto btn : btnGroup->buttons()) {
@@ -389,45 +400,37 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   stackedLayout->addWidget(fourthPageWidget);
 
   connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
-    GradientEditMode modeToSet;
-    switch (id) {
-      case 1:
-        modeToSet = GradientEditMode::WINDOW_LEVEL;
+    GradientEditMode modeToSet = btnIdToGradientMode[id];
+    // if mode is not changing, we are done.
+    if (modeToSet == this->m_gradientData.m_editMode) {
+      return;
+    }
+    this->m_gradientData.m_editMode = modeToSet;
+    // assumes button ids are same values as stacked widget indices
+    stackedLayout->setCurrentIndex(btnIdToStackedPage[id]);
+
+    switch (modeToSet) {
+      case GradientEditMode::WINDOW_LEVEL:
         stackedLayout->setCurrentIndex(0);
         this->onSetWindowLevel(this->m_gradientData.m_window, this->m_gradientData.m_level);
         break;
-      case 2:
-        modeToSet = GradientEditMode::ISOVALUE;
+      case GradientEditMode::ISOVALUE:
         stackedLayout->setCurrentIndex(1);
         this->onSetIsovalue(this->m_gradientData.m_isovalue, this->m_gradientData.m_isorange);
         break;
-      case 3:
-        modeToSet = GradientEditMode::PERCENTILE;
+      case GradientEditMode::PERCENTILE:
         stackedLayout->setCurrentIndex(2);
         this->onSetHistogramPercentiles(this->m_gradientData.m_pctLow, this->m_gradientData.m_pctHigh);
         break;
-      case 4: {
-        modeToSet = GradientEditMode::CUSTOM;
+      case GradientEditMode::CUSTOM: {
         stackedLayout->setCurrentIndex(3);
-
         QGradientStops stops = vectorToGradientStops(this->m_gradientData.m_customControlPoints);
         m_editor->setGradientStops(stops);
         emit gradientStopsChanged(stops);
-
-        // this->onSetControlPoints(this->m_gradientData.m_customControlPoints);
-
       } break;
       default:
-        LOG_ERROR << "Bad button id for gradient editor mode";
+        LOG_ERROR << "Bad gradient editor mode";
         break;
-    }
-    // if not current mode, then set mode and update:
-    if (this->m_gradientData.m_editMode != modeToSet) {
-      this->m_gradientData.m_editMode = modeToSet;
-      // assumes button ids are same values as stacked widget indices
-      stackedLayout->setCurrentIndex(id - 1);
-      // update graph
-      this->m_gradientData.m_editMode = modeToSet;
     }
   });
 
