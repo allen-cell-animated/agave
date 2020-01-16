@@ -72,7 +72,8 @@ vectorToGradientStops(std::vector<std::pair<float, float>>& v)
 {
   QGradientStops stops;
   for (int i = 0; i < v.size(); ++i) {
-    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor(v[i].second, v[i].second, v[i].second, v[i].second)));
+    stops.push_back(
+      QPair<qreal, QColor>(v[i].first, QColor::fromRgbF(v[i].second, v[i].second, v[i].second, v[i].second)));
   }
   return stops;
 }
