@@ -117,6 +117,26 @@ private:
   ShadeWidget* m_alpha_shade;
 };
 
+enum class GradientEditMode
+{
+  WINDOW_LEVEL,
+  ISOVALUE,
+  PERCENTILE,
+  CUSTOM
+};
+
+struct GradientData
+{
+  GradientEditMode m_editMode = GradientEditMode::WINDOW_LEVEL;
+  float m_window = 0.25f;
+  float m_level = 0.5f;
+  float m_isovalue = 0.5f;
+  float m_isorange = 0.1f;
+  float m_pctLow = 0.5f;
+  float m_pctHigh = 0.98f;
+  std::vector<std::pair<float, float>> m_customControlPoints;
+};
+
 class GradientWidget : public QWidget
 {
   Q_OBJECT
@@ -143,6 +163,7 @@ private:
   void changePresetBy(int indexOffset);
   void onSetWindowLevel(float window, float level);
   void onSetIsovalue(float isovalue, float width);
+  void onSetHistogramPercentiles(float pctLow, float pctHigh);
 
   GradientEditor* m_editor;
   Histogram m_histogram;
@@ -150,7 +171,7 @@ private:
   QPushButton* m_presetButton;
 
   int m_presetIndex = 0;
-  int m_editMode = 0;
+  GradientData m_gradientData;
 };
 
 #endif // GRADIENTS_H

@@ -57,6 +57,26 @@
 
 #include <algorithm>
 
+std::vector<std::pair<float, float>>
+gradientStopsToVector(QGradientStops& stops)
+{
+  std::vector<std::pair<float, float>> v;
+  for (int i = 0; i < stops.size(); ++i) {
+    v.push_back(std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+  }
+  return v;
+}
+
+QGradientStops
+vectorToGradientStops(std::vector<std::pair<float, float>>& v)
+{
+  QGradientStops stops;
+  for (int i = 0; i < v.size(); ++i) {
+    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor(v[i].second, v[i].second, v[i].second, v[i].second)));
+  }
+  return stops;
+}
+
 ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent)
   : QWidget(parent)
   , m_shade_type(type)
@@ -334,10 +354,10 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   customButton->setToolTip("Custom");
   customButton->setStatusTip("Choose Custom editing mode");
 
-  btnGroup->addButton(windowLevelButton, 0);
-  btnGroup->addButton(isoButton, 1);
-  btnGroup->addButton(pctButton, 2);
-  btnGroup->addButton(customButton, 3);
+  btnGroup->addButton(windowLevelButton, 1);
+  btnGroup->addButton(isoButton, 2);
+  btnGroup->addButton(pctButton, 3);
+  btnGroup->addButton(customButton, 4);
   QHBoxLayout* hbox = new QHBoxLayout();
   hbox->setSpacing(0);
   for (auto btn : btnGroup->buttons()) {
@@ -368,12 +388,45 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   stackedLayout->addWidget(fourthPageWidget);
 
   connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
+    GradientEditMode modeToSet;
+    switch (id) {
+      case 1:
+        modeToSet = GradientEditMode::WINDOW_LEVEL;
+        stackedLayout->setCurrentIndex(0);
+        this->onSetWindowLevel(this->m_gradientData.m_window, this->m_gradientData.m_level);
+        break;
+      case 2:
+        modeToSet = GradientEditMode::ISOVALUE;
+        stackedLayout->setCurrentIndex(1);
+        this->onSetIsovalue(this->m_gradientData.m_isovalue, this->m_gradientData.m_isorange);
+        break;
+      case 3:
+        modeToSet = GradientEditMode::PERCENTILE;
+        stackedLayout->setCurrentIndex(2);
+        this->onSetHistogramPercentiles(this->m_gradientData.m_pctLow, this->m_gradientData.m_pctHigh);
+        break;
+      case 4: {
+        modeToSet = GradientEditMode::CUSTOM;
+        stackedLayout->setCurrentIndex(3);
+
+        QGradientStops stops = vectorToGradientStops(this->m_gradientData.m_customControlPoints);
+        m_editor->setGradientStops(stops);
+        emit gradientStopsChanged(stops);
+
+        // this->onSetControlPoints(this->m_gradientData.m_customControlPoints);
+
+      } break;
+      default:
+        LOG_ERROR << "Bad button id for gradient editor mode";
+        break;
+    }
     // if not current mode, then set mode and update:
-    if (this->m_editMode != id) {
+    if (this->m_gradientData.m_editMode != modeToSet) {
+      this->m_gradientData.m_editMode = modeToSet;
       // assumes button ids are same values as stacked widget indices
-      stackedLayout->setCurrentIndex(id);
+      stackedLayout->setCurrentIndex(id - 1);
       // update graph
-      this->m_editMode = id;
+      this->m_gradientData.m_editMode = modeToSet;
     }
   });
 
@@ -390,9 +443,11 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   levelSlider->setValue(0.5);
   section0Layout->addRow("Level", levelSlider);
   connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
+    this->m_gradientData.m_window = d;
     this->onSetWindowLevel(d, levelSlider->value());
   });
   connect(levelSlider, &QNumericSlider::valueChanged, [this, windowSlider](double d) {
+    this->m_gradientData.m_level = d;
     this->onSetWindowLevel(windowSlider->value(), d);
   });
 
@@ -409,9 +464,11 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   isorangeSlider->setValue(0.01);
   section1Layout->addRow("Iso-range", isorangeSlider);
   connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
+    this->m_gradientData.m_isovalue = d;
     this->onSetIsovalue(d, isorangeSlider->value());
   });
   connect(isorangeSlider, &QNumericSlider::valueChanged, [this, isovalueSlider](double d) {
+    this->m_gradientData.m_isorange = d;
     this->onSetIsovalue(isovalueSlider->value(), d);
   });
 
@@ -428,18 +485,12 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   pctHighSlider->setValue(0.98);
   section2Layout->addRow("Pct Max", pctHighSlider);
   connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
-    float pctLo = d;
-    float pctHi = pctHighSlider->value();
-    float window, level;
-    m_histogram.computeWindowLevelFromPercentiles(pctLo, pctHi, window, level);
-    this->onSetWindowLevel(window, level);
+    this->m_gradientData.m_pctLow = d;
+    this->onSetHistogramPercentiles(d, pctHighSlider->value());
   });
   connect(pctHighSlider, &QNumericSlider::valueChanged, [this, pctLowSlider](double d) {
-    float pctLo = pctLowSlider->value();
-    float pctHi = d;
-    float window, level;
-    m_histogram.computeWindowLevelFromPercentiles(pctLo, pctHi, window, level);
-    this->onSetWindowLevel(window, level);
+    this->m_gradientData.m_pctHigh = d;
+    this->onSetHistogramPercentiles(pctLowSlider->value(), d);
   });
 
   // Layouts
@@ -459,7 +510,22 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
 void
 GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
 {
+  // update the data stored in m_gradientData
+  m_gradientData.m_customControlPoints.clear();
+  for (int i = 0; i < stops.size(); ++i) {
+    m_gradientData.m_customControlPoints.push_back(
+      std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+  }
+
   emit gradientStopsChanged(stops);
+}
+
+void
+GradientWidget::onSetHistogramPercentiles(float pctLow, float pctHigh)
+{
+  float window, level;
+  m_histogram.computeWindowLevelFromPercentiles(pctLow, pctHigh, window, level);
+  this->onSetWindowLevel(window, level);
 }
 
 void
@@ -501,6 +567,8 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
   stops << QGradientStop(highEnd, QColor::fromRgba(0));
   stops << QGradientStop(1.0, QColor::fromRgba(0));
   m_editor->setGradientStops(stops);
+  m_gradientData.m_isovalue = isovalue;
+  m_gradientData.m_isorange = width;
   emit gradientStopsChanged(stops);
 }
 
