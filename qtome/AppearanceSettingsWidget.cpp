@@ -569,8 +569,6 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<std::pair<float,
 {
   if (!m_scene)
     return;
-  LOG_DEBUG << "update LUT";
-
   m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
