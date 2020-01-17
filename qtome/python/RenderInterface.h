@@ -63,4 +63,5 @@ public:
   virtual int SetPrimaryRayStepSize(float) = 0;
   virtual int SetSecondaryRayStepSize(float) = 0;
   virtual int BackgroundColor(float, float, float) = 0;
+  virtual int SetIsovalueThreshold(int32_t, float, float) = 0;
 };

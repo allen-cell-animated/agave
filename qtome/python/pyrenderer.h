@@ -91,6 +91,7 @@ public:
   virtual int SetPrimaryRayStepSize(float);
   virtual int SetSecondaryRayStepSize(float);
   virtual int BackgroundColor(float, float, float);
+  virtual int SetIsovalueThreshold(int32_t, float, float);
 
 protected:
   void init();

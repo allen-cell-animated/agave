@@ -453,3 +453,10 @@ OffscreenRenderer::BackgroundColor(float r, float g, float b)
   cmd.execute(&m_ec);
   return 1;
 }
+int
+OffscreenRenderer::SetIsovalueThreshold(int32_t channel, float isovalue, float isorange)
+{
+  SetIsovalueThresholdCommand cmd({ channel, isovalue, isorange });
+  cmd.execute(&m_ec);
+  return 1;
+}
