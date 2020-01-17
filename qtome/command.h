@@ -357,3 +357,14 @@ CMDDECL(SetBackgroundColorCommand,
         36,
         "background_color",
         CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
+
+struct SetIsovalueThresholdCommandD
+{
+  int32_t m_channel;
+  float m_isovalue;
+  float m_isorange;
+};
+CMDDECL(SetIsovalueThresholdCommand,
+        37,
+        "set_isovalue_threshold",
+        CMD_ARGS({ CommandArgType::I32, CommandArgType::F32, CommandArgType::F32 }));

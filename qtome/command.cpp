@@ -388,6 +388,24 @@ SetBackgroundColorCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_backgroundColor[2] = m_data.m_b;
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+void
+SetIsovalueThresholdCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetIsovalueThreshold " << m_data.m_channel << " " << m_data.m_isovalue << " " << m_data.m_isorange;
+
+  std::vector<std::pair<float, float>> stops;
+  float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
+  float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
+  // TODO check for lowEnd <=0 or highEnd >= 1 ???
+  stops.push_back({ 0.0, 0.0 });
+  stops.push_back({ lowEnd, 0.0 });
+  stops.push_back({ lowEnd, 1.0 });
+  stops.push_back({ highEnd, 1.0 });
+  stops.push_back({ highEnd, 0.0 });
+  stops.push_back({ 1.0, 0.0 });
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
 
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
@@ -712,6 +730,15 @@ SetBackgroundColorCommand::parse(ParseableStream* c)
   data.m_g = c->parseFloat32();
   data.m_b = c->parseFloat32();
   return new SetBackgroundColorCommand(data);
+}
+SetIsovalueThresholdCommand*
+SetIsovalueThresholdCommand::parse(ParseableStream* c)
+{
+  SetIsovalueThresholdCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_isovalue = c->parseFloat32();
+  data.m_isorange = c->parseFloat32();
+  return new SetIsovalueThresholdCommand(data);
 }
 
 std::string
@@ -1046,6 +1073,15 @@ SetBackgroundColorCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetIsovalueThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_isovalue << ", " << m_data.m_isorange;
   ss << ")";
   return ss.str();
 }
