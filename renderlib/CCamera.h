@@ -177,7 +177,7 @@ public:
     m_InvXY = glm::vec2(1.0f / m_XY.x, 1.0f / m_XY.y);
     m_NoElements = m_XY.x * m_XY.y;
     m_AspectRatio = (float)m_XY.x / (float)m_XY.y;
-    m_DiagonalLength = sqrtf(powf(m_XY.x, 2.0f) + powf(m_XY.y, 2.0f));
+    m_DiagonalLength = sqrtf(powf((float)m_XY.x, 2.0f) + powf((float)m_XY.y, 2.0f));
   }
 
   glm::ivec2 ToVector(void) const { return glm::ivec2(m_XY.x, m_XY.y); }
@@ -485,7 +485,7 @@ public:
     m_Up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     const float size = m_SceneBoundingBox.GetDiagonalLength();
-    const float Length = (m_Projection == ORTHOGRAPHIC) ? 2.0f : size * 0.5 / tan(0.5 * m_FovV * DEG_TO_RAD);
+    const float Length = (m_Projection == ORTHOGRAPHIC) ? 2.0f : size * 0.5f / tan(0.5f * m_FovV * DEG_TO_RAD);
     m_OrthoScale = DEF_ORTHO_SCALE;
 
     // const float Distance = 0.866f;
@@ -550,7 +550,7 @@ public:
     // convert horz fov to vert fov
     // w/d = 2*tan(hfov/2)
     // h/d = 2*tan(vfov/2)
-    float hfov = 2.0 * atan((float)m_Film.GetWidth() / (float)m_Film.GetHeight() * tan(m_FovV * 0.5 * DEG_TO_RAD));
+    float hfov = 2.0f * atan((float)m_Film.GetWidth() / (float)m_Film.GetHeight() * tan(m_FovV * 0.5f * DEG_TO_RAD));
     return hfov;
   }
   float GetVerticalFOV_radians() { return m_FovV * DEG_TO_RAD; }
