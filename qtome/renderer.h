@@ -22,9 +22,12 @@ class RenderGLPT;
 class RenderSettings;
 class Scene;
 
+#include "renderlib/command.h"
 #include "renderrequest.h"
 
-class Renderer : public QThread
+class Renderer
+  : public QThread
+  , public RendererCommandInterface
 {
   Q_OBJECT
 
@@ -43,9 +46,9 @@ public:
   inline int getRequestCount() { return this->m_requests.count(); }
 
   // 1 = continuous re-render, 0 = only wait for redraw commands
-  void setStreamMode(int32_t mode) { m_streamMode = mode; }
+  virtual void setStreamMode(int32_t mode) { m_streamMode = mode; }
 
-  void resizeGL(int internalWidth, int internalHeight);
+  virtual void resizeGL(int internalWidth, int internalHeight);
 
 protected:
   QString m_id;

@@ -8,6 +8,13 @@ class Renderer;
 class RenderSettings;
 class Scene;
 
+class RendererCommandInterface
+{
+public:
+  virtual void setStreamMode(int32_t mode) = 0;
+  virtual void resizeGL(int x, int y) = 0;
+};
+
 class ParseableStream
 {
 public:
@@ -25,7 +32,7 @@ enum class CommandArgType
 
 struct ExecutionContext
 {
-  Renderer* m_renderer;
+  RendererCommandInterface* m_renderer;
   RenderSettings* m_renderSettings;
   Scene* m_appScene;
   CCamera* m_camera;

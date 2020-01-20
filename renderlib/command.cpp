@@ -1,13 +1,11 @@
 #include "command.h"
 
-#include "renderer.h"
-
-#include "renderlib/AppScene.h"
-#include "renderlib/CCamera.h"
-#include "renderlib/FileReader.h"
-#include "renderlib/ImageXYZC.h"
-#include "renderlib/Logging.h"
-#include "renderlib/RenderSettings.h"
+#include "AppScene.h"
+#include "CCamera.h"
+#include "FileReader.h"
+#include "ImageXYZC.h"
+#include "Logging.h"
+#include "RenderSettings.h"
 
 #include <QElapsedTimer>
 #include <QFileInfo>
