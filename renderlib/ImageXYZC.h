@@ -21,8 +21,6 @@ struct Channelu16
   uint16_t m_max;
 
   uint16_t* m_gradientMagnitudePtr;
-  // uint16_t _gradientMagnitudeMin;
-  // uint16_t _gradientMagnitudeMax;
 
   Histogram m_histogram;
   float* m_lut;
@@ -33,29 +31,21 @@ struct Channelu16
   {
     delete[] m_lut;
     m_lut = m_histogram.generate_windowLevel(window, level);
-    m_window = window;
-    m_level = level;
   }
   void generate_auto2(float& window, float& level)
   {
     delete[] m_lut;
     m_lut = m_histogram.generate_auto2(window, level);
-    m_window = window;
-    m_level = level;
   }
   void generate_auto(float& window, float& level)
   {
     delete[] m_lut;
     m_lut = m_histogram.generate_auto(window, level);
-    m_window = window;
-    m_level = level;
   }
   void generate_bestFit(float& window, float& level)
   {
     delete[] m_lut;
     m_lut = m_histogram.generate_bestFit(window, level);
-    m_window = window;
-    m_level = level;
   }
   void generate_chimerax()
   {
@@ -79,16 +69,11 @@ struct Channelu16
   {
     delete[] m_lut;
     m_lut = m_histogram.generate_percentiles(window, level, lo, hi);
-    m_window = window;
-    m_level = level;
   }
 
   void debugprint();
 
   QString m_name;
-
-  // convenience.  may not be accurate if LUT input is generalized.
-  float m_window, m_level;
 };
 
 class ImageXYZC
