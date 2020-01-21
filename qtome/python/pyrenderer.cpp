@@ -460,3 +460,10 @@ OffscreenRenderer::SetIsovalueThreshold(int32_t channel, float isovalue, float i
   cmd.execute(&m_ec);
   return 1;
 }
+int
+OffscreenRenderer::SetControlPoints(int32_t channel, std::vector<float> controlPoints)
+{
+  SetControlPointsCommand cmd({ channel, controlPoints });
+  cmd.execute(&m_ec);
+  return 1;
+}

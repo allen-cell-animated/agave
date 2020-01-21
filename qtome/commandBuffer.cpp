@@ -160,3 +160,13 @@ CommandBufferIterator::parseString()
   _currentPos += len;
   return s;
 }
+
+std::vector<float>
+CommandBufferIterator::parseFloat32Array()
+{
+  int32_t len = parseInt32();
+  float* p = (float*)(_currentPos);
+  std::vector<float> v(p, p + len);
+  _currentPos += len * sizeof(float);
+  return v;
+}

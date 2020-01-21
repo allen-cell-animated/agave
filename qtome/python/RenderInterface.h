@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <string>
+#include <vector>
 
 class RenderInterface
 {
@@ -64,4 +65,5 @@ public:
   virtual int SetSecondaryRayStepSize(float) = 0;
   virtual int BackgroundColor(float, float, float) = 0;
   virtual int SetIsovalueThreshold(int32_t, float, float) = 0;
+  virtual int SetControlPoints(int32_t, std::vector<float>) = 0;
 };

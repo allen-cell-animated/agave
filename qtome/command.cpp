@@ -388,6 +388,7 @@ SetBackgroundColorCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_backgroundColor[2] = m_data.m_b;
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+
 void
 SetIsovalueThresholdCommand::execute(ExecutionContext* c)
 {
@@ -403,6 +404,23 @@ SetIsovalueThresholdCommand::execute(ExecutionContext* c)
   stops.push_back({ highEnd, 1.0 });
   stops.push_back({ highEnd, 0.0 });
   stops.push_back({ 1.0, 0.0 });
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void
+SetControlPointsCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetControlPoints " << m_data.m_channel;
+  // TODO debug print the data
+
+  std::vector<std::pair<float, float>> stops;
+  // 5 floats per stop.  first is position, next four are rgba.  use a only, for now.
+  // TODO SHOULD PARSE DO THIS JOB?
+  for (size_t i = 0; i < m_data.m_data.size() / 5; ++i) {
+    stops.push_back({ m_data.m_data[i * 5], m_data.m_data[i * 5 + 4] });
+  }
+
   c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
@@ -739,6 +757,14 @@ SetIsovalueThresholdCommand::parse(ParseableStream* c)
   data.m_isovalue = c->parseFloat32();
   data.m_isorange = c->parseFloat32();
   return new SetIsovalueThresholdCommand(data);
+}
+SetControlPointsCommand*
+SetControlPointsCommand::parse(ParseableStream* c)
+{
+  SetControlPointsCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_data = c->parseFloat32Array();
+  return new SetControlPointsCommand(data);
 }
 
 std::string
@@ -1082,6 +1108,23 @@ SetIsovalueThresholdCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_isovalue << ", " << m_data.m_isorange;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetControlPointsCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_channel << ", [";
+  // insert comma delimited but no comma after the last entry
+  if (!m_data.m_data.empty()) {
+    std::copy(m_data.m_data.begin(), std::prev(m_data.m_data.end()), std::ostream_iterator<float>(ss, ", "));
+    ss << m_data.m_data.back();
+  }
+  ss << "]";
+
   ss << ")";
   return ss.str();
 }
