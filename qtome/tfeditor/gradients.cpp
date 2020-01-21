@@ -402,10 +402,10 @@ GradientWidget::GradientWidget(const Histogram& histogram, QWidget* parent)
   connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
     GradientEditMode modeToSet = btnIdToGradientMode[id];
     // if mode is not changing, we are done.
-    if (modeToSet == this->m_gradientData.m_editMode) {
+    if (modeToSet == this->m_gradientData.m_activeMode) {
       return;
     }
-    this->m_gradientData.m_editMode = modeToSet;
+    this->m_gradientData.m_activeMode = modeToSet;
     // assumes button ids are same values as stacked widget indices
     stackedLayout->setCurrentIndex(btnIdToStackedPage[id]);
 

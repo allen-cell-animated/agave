@@ -1,12 +1,24 @@
 #pragma once
 
+#include "renderlib/AppScene.h" // for GradientEditMode enum
+
 #include <glm.h>
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
 
+#include <map>
 #include <vector>
+
+std::map<GradientEditMode, int> g_GradientModeToPermId = { { GradientEditMode::WINDOW_LEVEL, 0 },
+                                                           { GradientEditMode::ISOVALUE, 1 },
+                                                           { GradientEditMode::PERCENTILE, 2 },
+                                                           { GradientEditMode::CUSTOM, 3 } };
+std::map<int, GradientEditMode> g_PermIdToGradientMode = { { 0, GradientEditMode::WINDOW_LEVEL },
+                                                           { 1, GradientEditMode::ISOVALUE },
+                                                           { 2, GradientEditMode::PERCENTILE },
+                                                           { 3, GradientEditMode::CUSTOM } };
 
 struct LutParams
 {

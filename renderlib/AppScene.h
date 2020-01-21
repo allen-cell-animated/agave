@@ -17,6 +17,26 @@ class RenderParams
   float m_StepSizeFactorShadow;
 };
 
+enum class GradientEditMode
+{
+  WINDOW_LEVEL,
+  ISOVALUE,
+  PERCENTILE,
+  CUSTOM
+};
+
+struct GradientData
+{
+  GradientEditMode m_activeMode = GradientEditMode::WINDOW_LEVEL;
+  float m_window = 0.25f;
+  float m_level = 0.5f;
+  float m_isovalue = 0.5f;
+  float m_isorange = 0.1f;
+  float m_pctLow = 0.5f;
+  float m_pctHigh = 0.98f;
+  std::vector<std::pair<float, float>> m_customControlPoints;
+};
+
 #define MAX_CPU_CHANNELS 32
 struct VolumeDisplay
 {
@@ -33,6 +53,8 @@ struct VolumeDisplay
   float m_roughness[MAX_CPU_CHANNELS];
   float m_opacity[MAX_CPU_CHANNELS];
   bool m_enabled[MAX_CPU_CHANNELS];
+
+  GradientData m_gradientData[MAX_CPU_CHANNELS];
 };
 
 class Light

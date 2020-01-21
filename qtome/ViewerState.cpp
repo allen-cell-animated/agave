@@ -646,12 +646,15 @@ ViewerState::stateToPythonWebsocketScript() const
           v.push_back(p.second);
           v.push_back(p.second);
         }
-        ss << obj << SetControlPointsCommand({ i, v }).toPythonString() << std::endl;
+        s += indent + QString("(\"SET_CONTROL_POINTS_COMMAND\", %1, %2, ").arg(QString::number(i)).arg(v.size());
+        for (auto f : v) {
+          s += QString("%1, ").arg(f);
+        }
+        // remove last comma and space
+        s.chop(2);
+        s += QString("),\n");
         break;
     }
-
-    s += indent +
-         QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3),\n").arg(QString::number(i)).arg(ch.m_window).arg(ch.m_level);
   }
 
   // lighting
