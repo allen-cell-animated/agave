@@ -28,8 +28,6 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"	
-	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Controls.cpp"
