@@ -123,7 +123,7 @@ class GradientWidget : public QWidget
   Q_OBJECT
 
 public:
-  GradientWidget(const Histogram& histogram, QWidget* parent = nullptr);
+  GradientWidget(const Histogram& histogram, GradientData* dataObject, QWidget* parent = nullptr);
 
 public slots:
   void setDefault1() { setDefault(1); }
@@ -145,6 +145,7 @@ private:
   void onSetWindowLevel(float window, float level);
   void onSetIsovalue(float isovalue, float width);
   void onSetHistogramPercentiles(float pctLow, float pctHigh);
+  void forceDataUpdate();
 
   GradientEditor* m_editor;
   Histogram m_histogram;
@@ -152,7 +153,8 @@ private:
   QPushButton* m_presetButton;
 
   int m_presetIndex = 0;
-  GradientData m_gradientData;
+  // owned externally, passed in via ctor
+  GradientData* m_gradientData;
 };
 
 #endif // GRADIENTS_H

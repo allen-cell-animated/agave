@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <vector>
 
+struct GradientData;
+
 struct Histogram
 {
   Histogram(uint16_t* data, size_t length, size_t bins = 256);
@@ -43,4 +45,6 @@ struct Histogram
   std::vector<uint32_t> bin_counts(uint32_t nbins);
   float rank_data_value(float fraction) const;
   float* initialize_thresholds(float vfrac_min = 0.01f, float vfrac_max = 0.90f) const;
+
+  float* generateFromGradientData(const GradientData& gradientData, size_t length = 256) const;
 };

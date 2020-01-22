@@ -11,17 +11,11 @@
 #include <map>
 #include <vector>
 
-std::map<GradientEditMode, int> g_GradientModeToPermId = { { GradientEditMode::WINDOW_LEVEL, 0 },
-                                                           { GradientEditMode::ISOVALUE, 1 },
-                                                           { GradientEditMode::PERCENTILE, 2 },
-                                                           { GradientEditMode::CUSTOM, 3 } };
-std::map<int, GradientEditMode> g_PermIdToGradientMode = { { 0, GradientEditMode::WINDOW_LEVEL },
-                                                           { 1, GradientEditMode::ISOVALUE },
-                                                           { 2, GradientEditMode::PERCENTILE },
-                                                           { 3, GradientEditMode::CUSTOM } };
-
 struct LutParams
 {
+  static std::map<GradientEditMode, int> g_GradientModeToPermId;
+  static std::map<int, GradientEditMode> g_PermIdToGradientMode;
+
   float m_window = 1.0f, m_level = 0.5f;
   float m_isovalue = 0.5f, m_isorange = 0.1f;
   float m_pctLow = 0.5f, m_pctHigh = 0.98f;

@@ -1,5 +1,6 @@
 #include "Histogram.h"
 
+#include "GradientData.h"
 #include "Logging.h"
 
 #include <algorithm>
@@ -501,4 +502,32 @@ Histogram::generate_equalized(size_t length) const
     lut[x] = std::max(0.0f, std::min(sum * scale, 1.0f));
   }
   return lut;
+}
+
+float*
+Histogram::generateFromGradientData(const GradientData& gradientData, size_t length) const
+{
+  float wnd, lvl;
+  switch (gradientData.m_activeMode) {
+    case GradientEditMode::WINDOW_LEVEL:
+      return generate_windowLevel(gradientData.m_window, gradientData.m_level, length);
+    case GradientEditMode::PERCENTILE:
+      return generate_percentiles(wnd, lvl, gradientData.m_pctLow, gradientData.m_pctHigh, length);
+    case GradientEditMode::ISOVALUE: {
+      float lowEnd = gradientData.m_isovalue - gradientData.m_isorange * 0.5f;
+      float highEnd = gradientData.m_isovalue + gradientData.m_isorange * 0.5f;
+      std::vector<std::pair<float, float>> pts;
+      pts.push_back({ 0.0f, 0.0f });
+      pts.push_back({ lowEnd, 0.0f });
+      pts.push_back({ lowEnd, 1.0f });
+      pts.push_back({ highEnd, 1.0f });
+      pts.push_back({ highEnd, 0.0f });
+      pts.push_back({ 1.0f, 0.0f });
+      return generate_controlPoints(pts, length);
+    }
+    case GradientEditMode::CUSTOM:
+      return generate_controlPoints(gradientData.m_customControlPoints, length);
+    default:
+      return generate_fullRange(wnd, lvl, length);
+  }
 }

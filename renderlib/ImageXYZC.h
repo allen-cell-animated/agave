@@ -27,6 +27,12 @@ struct Channelu16
 
   uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
+  void generateFromGradientData(const GradientData& gradientData)
+  {
+    delete[] m_lut;
+    m_lut = m_histogram.generateFromGradientData(gradientData);
+  }
+
   void generate_windowLevel(float window, float level)
   {
     delete[] m_lut;

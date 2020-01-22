@@ -569,7 +569,9 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<std::pair<float,
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
+  m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
+
+  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -697,8 +699,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* sectionLayout = Controls::createFormLayout();
 
-    GradientWidget* editor = new GradientWidget(scene->m_volume->channel(i)->m_histogram);
-    // GradientWidget* editor = new GradientWidget();
+    GradientWidget* editor =
+      new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);
     sectionLayout->addRow("Gradient", editor);
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {

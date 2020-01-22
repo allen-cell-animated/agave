@@ -619,7 +619,7 @@ qtome::viewerStateToApp(const ViewerState& v)
     m_appScene.m_material.m_opacity[i] = ch.m_opacity;
 
     // TODO convert mode from permanent I/O id value in ViewerState
-    m_appScene.m_material.m_gradientData[i].m_activeMode = g_PermIdToGradientMode[ch.m_lutParams.m_mode];
+    m_appScene.m_material.m_gradientData[i].m_activeMode = LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode];
     m_appScene.m_material.m_gradientData[i].m_window = ch.m_lutParams.m_window;
     m_appScene.m_material.m_gradientData[i].m_level = ch.m_lutParams.m_level;
     m_appScene.m_material.m_gradientData[i].m_pctLow = ch.m_lutParams.m_pctLow;
@@ -734,7 +734,7 @@ qtome::appToViewerState()
     ch.m_opacity = m_appScene.m_material.m_opacity[i];
 
     // TODO convert activemode to permanent I/O id value in ViewerState
-    ch.m_lutParams.m_mode = g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
+    ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
     ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
     ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
     ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;

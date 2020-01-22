@@ -148,6 +148,15 @@ ViewerState::readStateFromJson(QString filePath)
   return p;
 }
 
+std::map<GradientEditMode, int> LutParams::g_GradientModeToPermId = { { GradientEditMode::WINDOW_LEVEL, 0 },
+                                                                      { GradientEditMode::ISOVALUE, 1 },
+                                                                      { GradientEditMode::PERCENTILE, 2 },
+                                                                      { GradientEditMode::CUSTOM, 3 } };
+std::map<int, GradientEditMode> LutParams::g_PermIdToGradientMode = { { 0, GradientEditMode::WINDOW_LEVEL },
+                                                                      { 1, GradientEditMode::ISOVALUE },
+                                                                      { 2, GradientEditMode::PERCENTILE },
+                                                                      { 3, GradientEditMode::CUSTOM } };
+
 LutParams
 ViewerState::lutParamsFromJson(QJsonObject& jsonObj)
 {
