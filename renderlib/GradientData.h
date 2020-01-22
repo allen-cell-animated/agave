@@ -2,6 +2,8 @@
 
 #include <vector>
 
+using LutControlPoint = std::pair<float, float>;
+
 enum class GradientEditMode
 {
   WINDOW_LEVEL,
@@ -19,5 +21,5 @@ struct GradientData
   float m_isorange = 0.1f;
   float m_pctLow = 0.5f;
   float m_pctHigh = 0.98f;
-  std::vector<std::pair<float, float>> m_customControlPoints;
+  std::vector<LutControlPoint> m_customControlPoints;
 };

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "GradientData.h"
+
 #include <inttypes.h>
 #include <stddef.h>
 #include <vector>
-
-struct GradientData;
 
 struct Histogram
 {
@@ -25,19 +25,15 @@ struct Histogram
 
   void computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const;
 
-  float* generate_fullRange(float& window, float& level, size_t length = 256) const;
-  float* generate_dataRange(float& window, float& level, size_t length = 256) const;
-  float* generate_bestFit(float& window, float& level, size_t length = 256) const;
+  float* generate_fullRange(size_t length = 256) const;
+  float* generate_dataRange(size_t length = 256) const;
+  float* generate_bestFit(size_t length = 256) const;
   // attempt to redo imagej's Auto
-  float* generate_auto2(float& window, float& level, size_t length = 256) const;
-  float* generate_auto(float& window, float& level, size_t length = 256) const;
-  float* generate_percentiles(float& window,
-                              float& level,
-                              float lo = DEFAULT_PCT_LOW,
-                              float hi = DEFAULT_PCT_HIGH,
-                              size_t length = 256) const;
+  float* generate_auto2(size_t length = 256) const;
+  float* generate_auto(size_t length = 256) const;
+  float* generate_percentiles(float lo = DEFAULT_PCT_LOW, float hi = DEFAULT_PCT_HIGH, size_t length = 256) const;
   float* generate_windowLevel(float window, float level, size_t length = 256) const;
-  float* generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length = 256) const;
+  float* generate_controlPoints(std::vector<LutControlPoint> pts, size_t length = 256) const;
   float* generate_equalized(size_t length = 256) const;
 
   // Determine center values for first and last bins, and bin size.

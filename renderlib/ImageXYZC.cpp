@@ -328,8 +328,7 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_min = m_histogram._dataMin;
   m_max = m_histogram._dataMax;
 
-  float window, level;
-  m_lut = m_histogram.generate_percentiles(window, level);
+  m_lut = m_histogram.generate_percentiles();
 }
 
 Channelu16::~Channelu16()

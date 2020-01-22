@@ -565,7 +565,7 @@ QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
 }
 
 void
-QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<std::pair<float, float>>& stops)
+QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>& stops)
 {
   if (!m_scene)
     return;
@@ -705,9 +705,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
       // convert stops to control points
-      std::vector<std::pair<float, float>> pts;
+      std::vector<LutControlPoint> pts;
       for (int i = 0; i < stops.size(); ++i) {
-        pts.push_back(std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+        pts.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
       }
 
       this->OnUpdateLut(i, pts);

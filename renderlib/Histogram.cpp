@@ -73,23 +73,23 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
 }
 
 float*
-Histogram::generate_fullRange(float& window, float& level, size_t length) const
+Histogram::generate_fullRange(size_t length) const
 {
-  window = 1.0;
-  level = 0.5;
+  float window = 1.0;
+  float level = 0.5;
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_dataRange(float& window, float& level, size_t length) const
+Histogram::generate_dataRange(size_t length) const
 {
-  window = 1.0;
-  level = 0.5;
+  float window = 1.0;
+  float level = 0.5;
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_bestFit(float& window, float& level, size_t length) const
+Histogram::generate_bestFit(size_t length) const
 {
   size_t pixcount = _pixelCount;
   size_t limit = pixcount / 10;
@@ -118,14 +118,14 @@ Histogram::generate_bestFit(float& window, float& level, size_t length) const
     range = _bins.size() - 1;
   }
 
-  window = (float)(range) / (float)(_bins.size() - 1);
-  level = ((float)hmin + (float)range * 0.5f) / (float)(_bins.size() - 1);
+  float window = (float)(range) / (float)(_bins.size() - 1);
+  float level = ((float)hmin + (float)range * 0.5f) / (float)(_bins.size() - 1);
   return generate_windowLevel(window, level, length);
 }
 
 // attempt to redo imagej's Auto
 float*
-Histogram::generate_auto2(float& window, float& level, size_t length) const
+Histogram::generate_auto2(size_t length) const
 {
 
   size_t AUTO_THRESHOLD = 10000;
@@ -178,19 +178,19 @@ Histogram::generate_auto2(float& window, float& level, size_t length) const
 
   if (hmax < hmin) {
     // just reset to whole range in this case.
-    return generate_fullRange(window, level, length);
+    return generate_fullRange(length);
   } else {
     // LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
     float range = (float)hmax - (float)hmin;
-    window = (range) / (float)(nbins - 1);
-    level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
+    float window = (range) / (float)(nbins - 1);
+    float level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
     // LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
     return generate_windowLevel(window, level, length);
   }
 }
 
 float*
-Histogram::generate_auto(float& window, float& level, size_t length) const
+Histogram::generate_auto(size_t length) const
 {
 
   // simple linear mapping cutting elements with small appearence
@@ -220,8 +220,8 @@ Histogram::generate_auto(float& window, float& level, size_t length) const
   // if range == e-b, then
   // b+range/2 === e-range/2
   //
-  window = (float)range / (float)(_bins.size() - 1);
-  level = ((float)b + (float)range * 0.5f) / (float)(_bins.size() - 1);
+  float window = (float)range / (float)(_bins.size() - 1);
+  float level = ((float)b + (float)range * 0.5f) / (float)(_bins.size() - 1);
   return generate_windowLevel(window, level, length);
 }
 
@@ -303,14 +303,15 @@ Histogram::computeWindowLevelFromPercentiles(float pct_low, float pct_high, floa
 }
 
 float*
-Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length) const
+Histogram::generate_percentiles(float lo, float hi, size_t length) const
 {
+  float window, level;
   computeWindowLevelFromPercentiles(lo, hi, window, level);
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length) const
+Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t length) const
 {
   // pts is piecewise linear from first to last control point.
   // pts is in order of increasing x value (the first element of the pair)
@@ -507,16 +508,15 @@ Histogram::generate_equalized(size_t length) const
 float*
 Histogram::generateFromGradientData(const GradientData& gradientData, size_t length) const
 {
-  float wnd, lvl;
   switch (gradientData.m_activeMode) {
     case GradientEditMode::WINDOW_LEVEL:
       return generate_windowLevel(gradientData.m_window, gradientData.m_level, length);
     case GradientEditMode::PERCENTILE:
-      return generate_percentiles(wnd, lvl, gradientData.m_pctLow, gradientData.m_pctHigh, length);
+      return generate_percentiles(gradientData.m_pctLow, gradientData.m_pctHigh, length);
     case GradientEditMode::ISOVALUE: {
       float lowEnd = gradientData.m_isovalue - gradientData.m_isorange * 0.5f;
       float highEnd = gradientData.m_isovalue + gradientData.m_isorange * 0.5f;
-      std::vector<std::pair<float, float>> pts;
+      std::vector<LutControlPoint> pts;
       pts.push_back({ 0.0f, 0.0f });
       pts.push_back({ lowEnd, 0.0f });
       pts.push_back({ lowEnd, 1.0f });
@@ -528,6 +528,6 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
     case GradientEditMode::CUSTOM:
       return generate_controlPoints(gradientData.m_customControlPoints, length);
     default:
-      return generate_fullRange(wnd, lvl, length);
+      return generate_fullRange(length);
   }
 }

@@ -323,26 +323,25 @@ void
 AutoThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "AutoThreshold " << m_data.m_channel << " " << m_data.m_method;
-  float window, level;
   switch (m_data.m_method) {
     case 0:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2();
       break;
     case 1:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto();
       break;
     case 2:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_bestFit(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_bestFit();
       break;
     case 3:
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_chimerax();
       break;
     case 4:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
       break;
     default:
       LOG_WARNING << "AutoThreshold got unexpected method parameter " << m_data.m_method;
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
       break;
   }
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -351,9 +350,7 @@ void
 SetPercentileThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetPercentileThreshold " << m_data.m_channel << " " << m_data.m_pctLow << " " << m_data.m_pctHigh;
-  float window, level;
-  c->m_appScene->m_volume->channel(m_data.m_channel)
-    ->generate_percentiles(window, level, m_data.m_pctLow, m_data.m_pctHigh);
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(m_data.m_pctLow, m_data.m_pctHigh);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void
@@ -392,7 +389,7 @@ SetIsovalueThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetIsovalueThreshold " << m_data.m_channel << " " << m_data.m_isovalue << " " << m_data.m_isorange;
 
-  std::vector<std::pair<float, float>> stops;
+  std::vector<LutControlPoint> stops;
   float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
   float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
   // TODO check for lowEnd <=0 or highEnd >= 1 ???
@@ -412,7 +409,7 @@ SetControlPointsCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "SetControlPoints " << m_data.m_channel;
   // TODO debug print the data
 
-  std::vector<std::pair<float, float>> stops;
+  std::vector<LutControlPoint> stops;
   // 5 floats per stop.  first is position, next four are rgba.  use a only, for now.
   // TODO SHOULD PARSE DO THIS JOB?
   for (size_t i = 0; i < m_data.m_data.size() / 5; ++i) {

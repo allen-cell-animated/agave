@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Controls.h"
+#include "renderlib/GradientData.h"
 
 #include <QFormLayout>
 #include <QtWidgets/QComboBox>
@@ -40,7 +41,7 @@ public:
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
-  void OnUpdateLut(int i, const std::vector<std::pair<float, float>>& stops);
+  void OnUpdateLut(int i, const std::vector<LutControlPoint>& stops);
 
   void OnSetWindowLevel(int i, double window, double level);
   void OnOpacityChanged(int i, double opacity);

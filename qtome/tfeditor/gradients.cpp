@@ -57,18 +57,18 @@
 
 #include <algorithm>
 
-std::vector<std::pair<float, float>>
+std::vector<LutControlPoint>
 gradientStopsToVector(QGradientStops& stops)
 {
-  std::vector<std::pair<float, float>> v;
+  std::vector<LutControlPoint> v;
   for (int i = 0; i < stops.size(); ++i) {
-    v.push_back(std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+    v.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
   }
   return v;
 }
 
 QGradientStops
-vectorToGradientStops(std::vector<std::pair<float, float>>& v)
+vectorToGradientStops(std::vector<LutControlPoint>& v)
 {
   QGradientStops stops;
   for (int i = 0; i < v.size(); ++i) {
@@ -539,8 +539,7 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
   // update the data stored in m_gradientData
   m_gradientData->m_customControlPoints.clear();
   for (int i = 0; i < stops.size(); ++i) {
-    m_gradientData->m_customControlPoints.push_back(
-      std::pair<float, float>(stops.at(i).first, stops.at(i).second.alphaF()));
+    m_gradientData->m_customControlPoints.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
   }
 
   emit gradientStopsChanged(stops);

@@ -19,7 +19,7 @@ struct LutParams
   float m_window = 1.0f, m_level = 0.5f;
   float m_isovalue = 0.5f, m_isorange = 0.1f;
   float m_pctLow = 0.5f, m_pctHigh = 0.98f;
-  std::vector<std::pair<float, float>> m_customControlPoints;
+  std::vector<LutControlPoint> m_customControlPoints;
   // permanent id value for serialization???
   int m_mode;
 };
