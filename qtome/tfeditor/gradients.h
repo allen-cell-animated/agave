@@ -107,6 +107,7 @@ public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setGradientStops(const QGradientStops& stops);
+  void setControlPoints(const std::vector<LutControlPoint>& points);
 
 public slots:
   void pointsUpdated();

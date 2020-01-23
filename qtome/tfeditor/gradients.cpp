@@ -103,7 +103,7 @@ ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* pa
   }
 
   QPolygonF points;
-  points << QPointF(0, 1.0) << QPointF(1.0, 0);
+  points << QPointF(0.0f, 0.0f) << QPointF(1.0f, 1.0f);
 
   m_hoverPoints = new HoverPoints(this, HoverPoints::CircleShape);
   //     m_hoverPoints->setConnectionType(HoverPoints::LineConnection);
@@ -284,7 +284,7 @@ GradientEditor::pointsUpdated()
     qreal x = points.at(i).x();
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
-    float pixelvalue = 1.0 - points.at(i).y();
+    float pixelvalue = points.at(i).y();
     // TODO let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl click or
     // some other means
     // unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
@@ -328,7 +328,19 @@ GradientEditor::setGradientStops(const QGradientStops& stops)
   for (int i = 0; i < stops.size(); ++i) {
     qreal pos = stops.at(i).first;
     QRgb color = stops.at(i).second.rgba();
-    pts_alpha << QPointF(pos, 1.0 - qAlpha(color) / 255);
+    pts_alpha << QPointF(pos, qAlpha(color) / 255);
+  }
+
+  set_shade_points(pts_alpha, m_alpha_shade);
+}
+
+void
+GradientEditor::setControlPoints(const std::vector<LutControlPoint>& points)
+{
+  QPolygonF pts_alpha;
+
+  for (auto p : points) {
+    pts_alpha << QPointF(p.first, p.second);
   }
 
   set_shade_points(pts_alpha, m_alpha_shade);
@@ -339,11 +351,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   , m_histogram(histogram)
   , m_gradientData(dataObject)
 {
-  setWindowTitle(tr("Gradients"));
+  QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
+
+  // setWindowTitle(tr("Gradients"));
 
   // QGroupBox* editorGroup = new QGroupBox(this);
   // editorGroup->setTitle(tr("Color Editor"));
   m_editor = new GradientEditor(m_histogram, this);
+  mainGroupLayout->addWidget(m_editor);
 
   auto* sectionLayout = Controls::createFormLayout();
 
@@ -396,6 +411,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
     }
     hbox->addWidget(btn);
   }
+  mainGroupLayout->addLayout(hbox);
 
   QWidget* firstPageWidget = new QWidget;
   auto* section0Layout = Controls::createFormLayout();
@@ -413,7 +429,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   auto* section3Layout = Controls::createFormLayout();
   fourthPageWidget->setLayout(section3Layout);
 
-  QStackedLayout* stackedLayout = new QStackedLayout;
+  QStackedLayout* stackedLayout = new QStackedLayout(mainGroupLayout);
   stackedLayout->addWidget(firstPageWidget);
   stackedLayout->addWidget(secondPageWidget);
   stackedLayout->addWidget(thirdPageWidget);
@@ -498,12 +514,6 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
     this->onSetHistogramPercentiles(pctLowSlider->value(), d);
   });
 
-  // Layouts
-
-  QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
-  mainGroupLayout->addWidget(m_editor);
-  mainGroupLayout->addLayout(hbox);
-  mainGroupLayout->addLayout(stackedLayout);
   mainGroupLayout->addLayout(sectionLayout);
   mainGroupLayout->addStretch(1);
 
@@ -528,8 +538,8 @@ GradientWidget::forceDataUpdate()
       this->onSetHistogramPercentiles(this->m_gradientData->m_pctLow, this->m_gradientData->m_pctHigh);
       break;
     case GradientEditMode::CUSTOM: {
+      m_editor->setControlPoints(this->m_gradientData->m_customControlPoints);
       QGradientStops stops = vectorToGradientStops(this->m_gradientData->m_customControlPoints);
-      m_editor->setGradientStops(stops);
       emit gradientStopsChanged(stops);
     } break;
     default:
@@ -561,45 +571,43 @@ GradientWidget::onSetHistogramPercentiles(float pctLow, float pctHigh)
 void
 GradientWidget::onSetWindowLevel(float window, float level)
 {
-  QGradientStops stops;
-  QPolygonF points;
-  float lowEnd = level - window * 0.5;
-  float highEnd = level + window * 0.5;
-  if (lowEnd <= 0.0) {
+  std::vector<LutControlPoint> points;
+  float lowEnd = level - window * 0.5f;
+  float highEnd = level + window * 0.5f;
+  if (lowEnd <= 0.0f) {
     float val = -lowEnd / (highEnd - lowEnd);
-    stops << QGradientStop(0.0, QColor::fromRgbF(val, val, val, val));
+    points.push_back({ 0.0f, val });
   } else {
-    stops << QGradientStop(0.0, QColor::fromRgba(0));
-    stops << QGradientStop(lowEnd, QColor::fromRgba(0));
+    points.push_back({ 0.0f, 0.0f });
+    points.push_back({ lowEnd, 0.0f });
   }
-  if (highEnd >= 1.0) {
-    float val = (1.0 - lowEnd) / (highEnd - lowEnd);
-    stops << QGradientStop(1.0, QColor::fromRgbF(val, val, val, val));
+  if (highEnd >= 1.0f) {
+    float val = (1.0f - lowEnd) / (highEnd - lowEnd);
+    points.push_back({ 1.0f, val });
   } else {
-    stops << QGradientStop(highEnd, QColor::fromRgba(0xffffffff));
-    stops << QGradientStop(1.0, QColor::fromRgba(0xffffffff));
+    points.push_back({ highEnd, 1.0f });
+    points.push_back({ 1.0f, 1.0f });
   }
-  m_editor->setGradientStops(stops);
-  emit gradientStopsChanged(stops);
+  m_editor->setControlPoints(points);
+  emit gradientStopsChanged(vectorToGradientStops(points));
 }
 
 void
 GradientWidget::onSetIsovalue(float isovalue, float width)
 {
-  QGradientStops stops;
-  QPolygonF points;
-  float lowEnd = isovalue - width * 0.5;
-  float highEnd = isovalue + width * 0.5;
-  stops << QGradientStop(0.0, QColor::fromRgba(0));
-  stops << QGradientStop(lowEnd, QColor::fromRgba(0));
-  stops << QGradientStop(lowEnd, QColor::fromRgba(0xffffffff));
-  stops << QGradientStop(highEnd, QColor::fromRgba(0xffffffff));
-  stops << QGradientStop(highEnd, QColor::fromRgba(0));
-  stops << QGradientStop(1.0, QColor::fromRgba(0));
-  m_editor->setGradientStops(stops);
+  std::vector<LutControlPoint> points;
+  float lowEnd = isovalue - width * 0.5f;
+  float highEnd = isovalue + width * 0.5f;
+  points.push_back({ 0.0f, 0.0f });
+  points.push_back({ lowEnd, 0.0f });
+  points.push_back({ lowEnd, 1.0f });
+  points.push_back({ highEnd, 1.0f });
+  points.push_back({ highEnd, 0.0f });
+  points.push_back({ 1.0f, 0.0f });
+  m_editor->setControlPoints(points);
   m_gradientData->m_isovalue = isovalue;
   m_gradientData->m_isorange = width;
-  emit gradientStopsChanged(stops);
+  emit gradientStopsChanged(vectorToGradientStops(points));
 }
 
 void

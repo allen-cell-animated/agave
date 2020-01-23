@@ -168,8 +168,9 @@ inline QPointF
 HoverPoints::pointInPixels(const QPointF& p) const
 {
   QPointF pout = p;
-  pout.setX(p.x() * (float)m_widget->size().width());
-  pout.setY(p.y() * (float)m_widget->size().height());
+  pout.setX(p.x() * (float)(m_widget->size().width() - 1));
+  // y = 1.0 is at top of window, which is pixel height 0
+  pout.setY((1.0f - p.y()) * (float)(m_widget->size().height() - 1));
   return pout;
 }
 
@@ -177,8 +178,9 @@ inline QPointF
 HoverPoints::normalizePoint(const QPointF& p) const
 {
   QPointF pout = p;
-  pout.setX(p.x() / (float)m_widget->size().width());
-  pout.setY(p.y() / (float)m_widget->size().height());
+  pout.setX(p.x() / (float)(m_widget->size().width() - 1));
+  // y = 1.0 is at top of window, which is pixel height 0
+  pout.setY(1.0f - p.y() / (float)(m_widget->size().height()-1));
   return pout;
 }
 
