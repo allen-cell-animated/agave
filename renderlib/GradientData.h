@@ -21,5 +21,5 @@ struct GradientData
   float m_isorange = 0.1f;
   float m_pctLow = 0.5f;
   float m_pctHigh = 0.98f;
-  std::vector<LutControlPoint> m_customControlPoints;
+  std::vector<LutControlPoint> m_customControlPoints = { { 0.0, 0.0 }, { 1.0, 1.0 } };
 };

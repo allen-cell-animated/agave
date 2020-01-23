@@ -118,20 +118,24 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
             int pos = 0;
             // Insert sort for x or y
             if (m_sortType == XSort) {
-              for (int i = 0; i < m_points.size(); ++i)
-                if (m_points.at(i).x() > clickPos.x()) {
+              for (int i = 0; i < m_points.size(); ++i) {
+                QPointF p = pointInPixels(i);
+                if (p.x() > clickPos.x()) {
                   pos = i;
                   break;
                 }
+              }
             } else if (m_sortType == YSort) {
-              for (int i = 0; i < m_points.size(); ++i)
-                if (m_points.at(i).y() > clickPos.y()) {
+              for (int i = 0; i < m_points.size(); ++i) {
+                QPointF p = pointInPixels(i);
+                if (p.y() > clickPos.y()) {
                   pos = i;
                   break;
                 }
+              }
             }
 
-            m_points.insert(pos, clickPos);
+            m_points.insert(pos, normalizePoint(clickPos));
             m_locks.insert(pos, 0);
             m_currentIndex = pos;
             firePointChange();
@@ -187,7 +191,7 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
                   if (activePoints.contains(i))
                     continue;
 
-                  qreal d = QLineF(touchPoint.pos(), m_points.at(i)).length();
+                  qreal d = QLineF(touchPoint.pos(), pointInPixels(i)).length();
                   if ((distance < 0 && d < 12 * pointSize) || d < distance) {
                     distance = d;
                     activePoint = i;
@@ -230,22 +234,22 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
         return true;
         break;
 
-      case QEvent::Resize: {
-        QResizeEvent* e = (QResizeEvent*)event;
-        if (e->oldSize().width() == 0 || e->oldSize().height() == 0)
-          break;
-        if (e->size().width() == 0 || e->size().height() == 0)
-          break;
-        qreal stretch_x = e->size().width() / qreal(e->oldSize().width());
-        qreal stretch_y = e->size().height() / qreal(e->oldSize().height());
-        for (int i = 0; i < m_points.size(); ++i) {
-          QPointF p = m_points[i];
-          movePoint(i, QPointF(p.x() * stretch_x, p.y() * stretch_y), false);
-        }
+        // case QEvent::Resize: {
+        //   QResizeEvent* e = (QResizeEvent*)event;
+        //   if (e->oldSize().width() == 0 || e->oldSize().height() == 0)
+        //     break;
+        //   if (e->size().width() == 0 || e->size().height() == 0)
+        //     break;
+        //   qreal stretch_x = e->size().width() / qreal(e->oldSize().width());
+        //   qreal stretch_y = e->size().height() / qreal(e->oldSize().height());
+        //   for (int i = 0; i < m_points.size(); ++i) {
+        //     QPointF p = m_points[i];
+        //     movePoint(i, QPointF(p.x() * stretch_x, p.y() * stretch_y), false);
+        //   }
 
-        firePointChange();
-        break;
-      }
+        //   firePointChange();
+        //   break;
+        // }
 
       case QEvent::Paint: {
         QWidget* that_widget = m_widget;
@@ -276,17 +280,21 @@ HoverPoints::paintPoints()
 
     if (m_connectionType == CurveConnection) {
       QPainterPath path;
-      path.moveTo(m_points.at(0));
+      path.moveTo(pointInPixels(0));
       for (int i = 1; i < m_points.size(); ++i) {
-        QPointF p1 = m_points.at(i - 1);
-        QPointF p2 = m_points.at(i);
+        QPointF p1 = pointInPixels(i - 1);
+        QPointF p2 = pointInPixels(i);
         qreal distance = p2.x() - p1.x();
 
         path.cubicTo(p1.x() + distance / 2, p1.y(), p1.x() + distance / 2, p2.y(), p2.x(), p2.y());
       }
       p.drawPath(path);
     } else {
-      p.drawPolyline(m_points);
+      QPolygonF polygon;
+      for (int i = 0; i < m_points.size(); ++i) {
+        polygon += pointInPixels(i);
+      }
+      p.drawPolyline(polygon);
     }
   }
 
@@ -328,11 +336,13 @@ bound_point(const QPointF& point, const QRectF& bounds, int lock)
 void
 HoverPoints::setPoints(const QPolygonF& points)
 {
-  if (points.size() != m_points.size())
+  if (points.size() != m_points.size()) {
     m_fingerPointMapping.clear();
+  }
   m_points.clear();
-  for (int i = 0; i < points.size(); ++i)
-    m_points << bound_point(points.at(i), boundingRect(), 0);
+  for (int i = 0; i < points.size(); ++i) {
+    m_points << normalizePoint(bound_point(pointInPixels(points.at(i)), boundingRect(), 0));
+  }
 
   m_locks.clear();
   if (m_points.size() > 0) {
@@ -345,7 +355,7 @@ HoverPoints::setPoints(const QPolygonF& points)
 void
 HoverPoints::movePoint(int index, const QPointF& point, bool emitUpdate)
 {
-  m_points[index] = bound_point(point, boundingRect(), m_locks.at(index));
+  m_points[index] = normalizePoint(bound_point(point, boundingRect(), m_locks.at(index)));
   if (emitUpdate)
     firePointChange();
 }

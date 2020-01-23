@@ -103,7 +103,7 @@ ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* pa
   }
 
   QPolygonF points;
-  points << QPointF(0, sizeHint().height()) << QPointF(sizeHint().width(), 0);
+  points << QPointF(0, 1.0) << QPointF(1.0, 0);
 
   m_hoverPoints = new HoverPoints(this, HoverPoints::CircleShape);
   //     m_hoverPoints->setConnectionType(HoverPoints::LineConnection);
@@ -270,7 +270,7 @@ x_less_than(const QPointF& p1, const QPointF& p2)
 void
 GradientEditor::pointsUpdated()
 {
-  qreal w = m_alpha_shade->width();
+  // qreal w = m_alpha_shade->width();
 
   QGradientStops stops;
 
@@ -281,22 +281,26 @@ GradientEditor::pointsUpdated()
   std::sort(points.begin(), points.end(), x_less_than);
 
   for (int i = 0; i < points.size(); ++i) {
-    qreal x = int(points.at(i).x());
+    qreal x = points.at(i).x();
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
-    unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
+    float pixelvalue = 1.0 - points.at(i).y();
     // TODO let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl click or
     // some other means
-    unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
-    unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
-    unsigned int b = (0x000000ff & pixelvalue);
-    unsigned int a = (0xff000000 & pixelvalue) >> 24;
-    QColor color(r, g, b, a);
+    // unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
+    // unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
+    // unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
+    // unsigned int b = (0x000000ff & pixelvalue);
+    // unsigned int a = (0xff000000 & pixelvalue) >> 24;
+    // QColor color(r, g, b, a);
 
-    if (x / w > 1)
+    QColor color = QColor::fromRgbF(pixelvalue, pixelvalue, pixelvalue, pixelvalue);
+    if (x > 1) {
+      LOG_ERROR << "control point x greater than 1";
       return;
+    }
 
-    stops << QGradientStop(x / w, color);
+    stops << QGradientStop(x, color);
   }
 
   m_alpha_shade->setGradientStops(stops);
@@ -307,6 +311,9 @@ GradientEditor::pointsUpdated()
 static void
 set_shade_points(const QPolygonF& points, ShadeWidget* shade)
 {
+  if (points.size() < 2) {
+    return;
+  }
   shade->hoverPoints()->setPoints(points);
   shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
   shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
@@ -316,14 +323,12 @@ set_shade_points(const QPolygonF& points, ShadeWidget* shade)
 void
 GradientEditor::setGradientStops(const QGradientStops& stops)
 {
-  QPolygonF pts_red, pts_green, pts_blue, pts_alpha;
-
-  qreal h_alpha = m_alpha_shade->height();
+  QPolygonF pts_alpha;
 
   for (int i = 0; i < stops.size(); ++i) {
     qreal pos = stops.at(i).first;
     QRgb color = stops.at(i).second.rgba();
-    pts_alpha << QPointF(pos * m_alpha_shade->width(), h_alpha - qAlpha(color) * h_alpha / 255);
+    pts_alpha << QPointF(pos, 1.0 - qAlpha(color) / 255);
   }
 
   set_shade_points(pts_alpha, m_alpha_shade);
