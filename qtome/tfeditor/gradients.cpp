@@ -267,6 +267,12 @@ x_less_than(const QPointF& p1, const QPointF& p2)
   return p1.x() < p2.x();
 }
 
+inline static bool
+controlpoint_x_less_than(const LutControlPoint& p1, const LutControlPoint& p2)
+{
+  return p1.first < p2.first;
+}
+
 void
 GradientEditor::pointsUpdated()
 {
@@ -285,8 +291,8 @@ GradientEditor::pointsUpdated()
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
     float pixelvalue = points.at(i).y();
-    // TODO let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl click or
-    // some other means
+    // TODO future: let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl
+    // click or some other means
     // unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
     // unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
     // unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
@@ -318,20 +324,6 @@ set_shade_points(const QPolygonF& points, ShadeWidget* shade)
   shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
   shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
   shade->update();
-}
-
-void
-GradientEditor::setGradientStops(const QGradientStops& stops)
-{
-  QPolygonF pts_alpha;
-
-  for (int i = 0; i < stops.size(); ++i) {
-    qreal pos = stops.at(i).first;
-    QRgb color = stops.at(i).second.rgba();
-    pts_alpha << QPointF(pos, qAlpha(color) / 255);
-  }
-
-  set_shade_points(pts_alpha, m_alpha_shade);
 }
 
 void
@@ -572,6 +564,8 @@ void
 GradientWidget::onSetWindowLevel(float window, float level)
 {
   std::vector<LutControlPoint> points;
+  static const float epsilon = 0.000001f;
+  window = std::max(window, epsilon);
   float lowEnd = level - window * 0.5f;
   float highEnd = level + window * 0.5f;
   if (lowEnd <= 0.0f) {
@@ -598,89 +592,13 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
   std::vector<LutControlPoint> points;
   float lowEnd = isovalue - width * 0.5f;
   float highEnd = isovalue + width * 0.5f;
+  static const float epsilon = 0.00001f;
   points.push_back({ 0.0f, 0.0f });
-  points.push_back({ lowEnd, 0.0f });
-  points.push_back({ lowEnd, 1.0f });
-  points.push_back({ highEnd, 1.0f });
-  points.push_back({ highEnd, 0.0f });
+  points.push_back({ lowEnd - epsilon, 0.0f });
+  points.push_back({ lowEnd + epsilon, 1.0f });
+  points.push_back({ highEnd - epsilon, 1.0f });
+  points.push_back({ highEnd + epsilon, 0.0f });
   points.push_back({ 1.0f, 0.0f });
   m_editor->setControlPoints(points);
-  m_gradientData->m_isovalue = isovalue;
-  m_gradientData->m_isorange = width;
   emit gradientStopsChanged(vectorToGradientStops(points));
-}
-
-void
-GradientWidget::setDefault(int config)
-{
-  QGradientStops stops;
-  QPolygonF points;
-  switch (config) {
-    case 1:
-      stops << QGradientStop(0.00, QColor::fromRgba(0));
-      stops << QGradientStop(0.04, QColor::fromRgba(0xff131360));
-      stops << QGradientStop(0.08, QColor::fromRgba(0xff202ccc));
-      stops << QGradientStop(0.42, QColor::fromRgba(0xff93d3f9));
-      stops << QGradientStop(0.51, QColor::fromRgba(0xffb3e6ff));
-      stops << QGradientStop(0.73, QColor::fromRgba(0xffffffec));
-      stops << QGradientStop(0.92, QColor::fromRgba(0xff5353d9));
-      stops << QGradientStop(0.96, QColor::fromRgba(0xff262666));
-      stops << QGradientStop(1.00, QColor::fromRgba(0));
-      break;
-
-    case 2:
-      stops << QGradientStop(0.00, QColor::fromRgba(0xffffffff));
-      stops << QGradientStop(0.11, QColor::fromRgba(0xfff9ffa0));
-      stops << QGradientStop(0.13, QColor::fromRgba(0xfff9ff99));
-      stops << QGradientStop(0.14, QColor::fromRgba(0xfff3ff86));
-      stops << QGradientStop(0.49, QColor::fromRgba(0xff93b353));
-      stops << QGradientStop(0.87, QColor::fromRgba(0xff264619));
-      stops << QGradientStop(0.96, QColor::fromRgba(0xff0c1306));
-      stops << QGradientStop(1.00, QColor::fromRgba(0));
-      break;
-
-    case 3:
-      stops << QGradientStop(0.00, QColor::fromRgba(0));
-      stops << QGradientStop(0.10, QColor::fromRgba(0xffe0cc73));
-      stops << QGradientStop(0.17, QColor::fromRgba(0xffc6a006));
-      stops << QGradientStop(0.46, QColor::fromRgba(0xff600659));
-      stops << QGradientStop(0.72, QColor::fromRgba(0xff0680ac));
-      stops << QGradientStop(0.92, QColor::fromRgba(0xffb9d9e6));
-      stops << QGradientStop(1.00, QColor::fromRgba(0));
-      break;
-
-    case 4:
-      stops << QGradientStop(0.00, QColor::fromRgba(0xff000000));
-      stops << QGradientStop(1.00, QColor::fromRgba(0xffffffff));
-      break;
-
-    default:
-      qWarning("bad default: %d\n", config);
-      break;
-  }
-
-  m_editor->setGradientStops(stops);
-}
-
-void
-GradientWidget::updatePresetName()
-{
-  QMetaEnum presetEnum = QMetaEnum::fromType<QGradient::Preset>();
-  m_presetButton->setText(QLatin1String(presetEnum.key(m_presetIndex)));
-}
-
-void
-GradientWidget::changePresetBy(int indexOffset)
-{
-  QMetaEnum presetEnum = QMetaEnum::fromType<QGradient::Preset>();
-  m_presetIndex = qBound(0, m_presetIndex + indexOffset, presetEnum.keyCount() - 1);
-
-  QGradient::Preset preset = static_cast<QGradient::Preset>(presetEnum.value(m_presetIndex));
-  QGradient gradient(preset);
-  if (gradient.type() != QGradient::LinearGradient)
-    return;
-
-  m_editor->setGradientStops(gradient.stops());
-
-  updatePresetName();
 }

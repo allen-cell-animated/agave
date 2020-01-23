@@ -106,7 +106,6 @@ class GradientEditor : public QWidget
 public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
-  void setGradientStops(const QGradientStops& stops);
   void setControlPoints(const std::vector<LutControlPoint>& points);
 
 public slots:
@@ -127,22 +126,12 @@ public:
   GradientWidget(const Histogram& histogram, GradientData* dataObject, QWidget* parent = nullptr);
 
 public slots:
-  void setDefault1() { setDefault(1); }
-  void setDefault2() { setDefault(2); }
-  void setDefault3() { setDefault(3); }
-  void setDefault4() { setDefault(4); }
-  void setPreset() { changePresetBy(0); }
-  void setPrevPreset() { changePresetBy(-1); }
-  void setNextPreset() { changePresetBy(1); }
   void onGradientStopsChanged(const QGradientStops& stops);
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);
 
 private:
-  void setDefault(int i);
-  void updatePresetName();
-  void changePresetBy(int indexOffset);
   void onSetWindowLevel(float window, float level);
   void onSetIsovalue(float isovalue, float width);
   void onSetHistogramPercentiles(float pctLow, float pctHigh);
@@ -151,9 +140,6 @@ private:
   GradientEditor* m_editor;
   Histogram m_histogram;
 
-  QPushButton* m_presetButton;
-
-  int m_presetIndex = 0;
   // owned externally, passed in via ctor
   GradientData* m_gradientData;
 };
