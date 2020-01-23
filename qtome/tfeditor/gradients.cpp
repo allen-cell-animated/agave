@@ -273,17 +273,9 @@ controlpoint_x_less_than(const LutControlPoint& p1, const LutControlPoint& p2)
   return p1.first < p2.first;
 }
 
-void
-GradientEditor::pointsUpdated()
+QGradientStops pointsToGradientStops(QPolygonF points)
 {
-  // qreal w = m_alpha_shade->width();
-
   QGradientStops stops;
-
-  QPolygonF points;
-
-  points += m_alpha_shade->points();
-
   std::sort(points.begin(), points.end(), x_less_than);
 
   for (int i = 0; i < points.size(); ++i) {
@@ -303,11 +295,20 @@ GradientEditor::pointsUpdated()
     QColor color = QColor::fromRgbF(pixelvalue, pixelvalue, pixelvalue, pixelvalue);
     if (x > 1) {
       LOG_ERROR << "control point x greater than 1";
-      return;
+      return stops;
     }
 
     stops << QGradientStop(x, color);
   }
+  return stops;
+}
+
+void
+GradientEditor::pointsUpdated()
+{
+  // qreal w = m_alpha_shade->width();
+
+  QGradientStops stops = pointsToGradientStops(m_alpha_shade->points());
 
   m_alpha_shade->setGradientStops(stops);
 
@@ -320,6 +321,10 @@ set_shade_points(const QPolygonF& points, ShadeWidget* shade)
   if (points.size() < 2) {
     return;
   }
+
+  QGradientStops stops = pointsToGradientStops(points);
+  shade->setGradientStops(stops);
+
   shade->hoverPoints()->setPoints(points);
   shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
   shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
