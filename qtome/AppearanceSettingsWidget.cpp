@@ -697,11 +697,15 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
 
+    auto* fullLayout = new QVBoxLayout();
+
     auto* sectionLayout = Controls::createFormLayout();
 
     GradientWidget* editor =
       new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);
-    sectionLayout->addRow("Gradient", editor);
+    fullLayout->addWidget(editor);
+    // sectionLayout->addRow("Gradient", editor);
+    fullLayout->addLayout(sectionLayout);
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
       // convert stops to control points
@@ -817,7 +821,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QObject::connect(section, &Section::checked, [i, this](bool is_checked) { this->OnChannelChecked(i, is_checked); });
     this->OnChannelChecked(i, channelenabled);
 
-    section->setContentLayout(*sectionLayout);
+    section->setContentLayout(*fullLayout);
     m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }
