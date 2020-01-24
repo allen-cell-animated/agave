@@ -273,7 +273,8 @@ controlpoint_x_less_than(const LutControlPoint& p1, const LutControlPoint& p2)
   return p1.first < p2.first;
 }
 
-QGradientStops pointsToGradientStops(QPolygonF points)
+QGradientStops
+pointsToGradientStops(QPolygonF points)
 {
   QGradientStops stops;
   std::sort(points.begin(), points.end(), x_less_than);
@@ -452,12 +453,15 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   windowSlider->setStatusTip("Window");
   windowSlider->setToolTip("Window");
   windowSlider->setRange(0.0, 1.0);
+  windowSlider->setSingleStep(0.01);
+
   windowSlider->setValue(m_gradientData->m_window);
   section0Layout->addRow("Window", windowSlider);
   QNumericSlider* levelSlider = new QNumericSlider();
   levelSlider->setStatusTip("Level");
   levelSlider->setToolTip("Level");
   levelSlider->setRange(0.0, 1.0);
+  levelSlider->setSingleStep(0.01);
   levelSlider->setValue(m_gradientData->m_level);
   section0Layout->addRow("Level", levelSlider);
   connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
@@ -473,12 +477,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   isovalueSlider->setStatusTip("Isovalue");
   isovalueSlider->setToolTip("Set Isovalue");
   isovalueSlider->setRange(0.0, 1.0);
+  isovalueSlider->setSingleStep(0.01);
   isovalueSlider->setValue(m_gradientData->m_isovalue);
   section1Layout->addRow("Isovalue", isovalueSlider);
   QNumericSlider* isorangeSlider = new QNumericSlider();
   isorangeSlider->setStatusTip("Isovalue range");
   isorangeSlider->setToolTip("Set range above and below isovalue");
   isorangeSlider->setRange(0.0, 1.0);
+  isorangeSlider->setSingleStep(0.01);
   isorangeSlider->setValue(m_gradientData->m_isorange);
   section1Layout->addRow("Iso-range", isorangeSlider);
   connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
@@ -494,12 +500,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctLowSlider->setStatusTip("Low percentile");
   pctLowSlider->setToolTip("Set bottom percentile");
   pctLowSlider->setRange(0.0, 1.0);
+  pctLowSlider->setSingleStep(0.01);
   pctLowSlider->setValue(m_gradientData->m_pctLow);
   section2Layout->addRow("Pct Min", pctLowSlider);
   QNumericSlider* pctHighSlider = new QNumericSlider();
   pctHighSlider->setStatusTip("High percentile");
   pctHighSlider->setToolTip("Set top percentile");
   pctHighSlider->setRange(0.0, 1.0);
+  pctHighSlider->setSingleStep(0.01);
   pctHighSlider->setValue(m_gradientData->m_pctHigh);
   section2Layout->addRow("Pct Max", pctHighSlider);
   connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
