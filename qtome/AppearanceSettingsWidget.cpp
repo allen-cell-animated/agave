@@ -705,51 +705,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       this->OnUpdateLut(i, pts);
     });
 
-    // QPushButton* autoButton = new QPushButton("Auto");
-    // QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-    //   float w, l;
-    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_auto2(w, l);
-    //   // LOG_DEBUG << "Window/level: " << w << " , " << l;
-    //   windowSlider->setValue(w, true);
-    //   levelSlider->setValue(l, true);
-    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    // });
-    // QPushButton* bestfitButton = new QPushButton("BestFit");
-    // QObject::connect(bestfitButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-    //   float w, l;
-    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_bestFit(w, l);
-    //   windowSlider->setValue(w, true);
-    //   levelSlider->setValue(l, true);
-    //   // LOG_DEBUG << "Window/level: " << w << " , " << l;
-    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    // });
-    // QPushButton* chimeraxButton = new QPushButton("ChimX");
-    // QObject::connect(chimeraxButton, &QPushButton::clicked, [this, i]() {
-    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_chimerax();
-    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    // });
-    // QPushButton* eqButton = new QPushButton("Eq");
-    // QObject::connect(eqButton, &QPushButton::clicked, [this, i]() {
-    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_equalized();
-    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    // });
-    // QPushButton* pct98Button = new QPushButton("Pct98");
-    // QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-    //   float w, l;
-    //   this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l);
-    //   // LOG_DEBUG << "Window/level: " << w << " , " << l;
-    //   windowSlider->setValue(w, true);
-    //   levelSlider->setValue(l, true);
-    //   this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    // });
-    // auto buttonRowLayout = new QHBoxLayout();
-    // buttonRowLayout->addWidget(autoButton);
-    // buttonRowLayout->addWidget(bestfitButton);
-    // buttonRowLayout->addWidget(chimeraxButton);
-    // buttonRowLayout->addWidget(eqButton);
-    // buttonRowLayout->addWidget(pct98Button);
-    // sectionLayout->addRow(buttonRowLayout);
-
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
     opacitySlider->setSingleStep(0.01);
