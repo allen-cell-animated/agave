@@ -514,7 +514,7 @@ ViewerState::stateToPythonScript() const
            << std::endl;
         break;
       case GradientEditMode::CUSTOM:
-        std::vector<float> v(ch.m_lutParams.m_customControlPoints.size() * 5);
+        std::vector<float> v;
         for (auto p : ch.m_lutParams.m_customControlPoints) {
           v.push_back(p.first);
           v.push_back(p.second);
