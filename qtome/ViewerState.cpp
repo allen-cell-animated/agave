@@ -273,9 +273,12 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
         QJsonObject lutParamsObj = channeli["lutParams"].toObject();
         ch.m_lutParams = lutParamsFromJson(lutParamsObj);
       } else {
+        // TODO use versioning.  Serialization could use an overhaul with a library like cereal.
         // deprecated, old io format
         getFloat(channeli, "window", ch.m_lutParams.m_window);
         getFloat(channeli, "level", ch.m_lutParams.m_level);
+        // set window/level as active mode since that's what we found in the file
+        ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[GradientEditMode::WINDOW_LEVEL];
       }
 
       QString channelsString = channelsArray[i].toString();
@@ -495,22 +498,22 @@ ViewerState::stateToPythonScript() const
     ss << obj << SetGlossinessCommand({ i, ch.m_glossiness }).toPythonString() << std::endl;
     ss << obj << SetOpacityCommand({ i, ch.m_opacity }).toPythonString() << std::endl;
     // depending on current mode:
-    switch (ch.m_lutParams.m_mode) {
-      case 0:
+    switch (LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode]) {
+      case GradientEditMode::WINDOW_LEVEL:
         ss << obj << SetWindowLevelCommand({ i, ch.m_lutParams.m_window, ch.m_lutParams.m_level }).toPythonString()
            << std::endl;
         break;
-      case 1:
+      case GradientEditMode::ISOVALUE:
         ss << obj
            << SetIsovalueThresholdCommand({ i, ch.m_lutParams.m_isovalue, ch.m_lutParams.m_isorange }).toPythonString()
            << std::endl;
         break;
-      case 2:
+      case GradientEditMode::PERCENTILE:
         ss << obj
            << SetPercentileThresholdCommand({ i, ch.m_lutParams.m_pctLow, ch.m_lutParams.m_pctHigh }).toPythonString()
            << std::endl;
         break;
-      case 3:
+      case GradientEditMode::CUSTOM:
         std::vector<float> v(ch.m_lutParams.m_customControlPoints.size() * 5);
         for (auto p : ch.m_lutParams.m_customControlPoints) {
           v.push_back(p.first);
@@ -627,26 +630,26 @@ ViewerState::stateToPythonWebsocketScript() const
     s += indent + QString("(\"MAT_OPACITY\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_opacity);
 
     // depending on current mode:
-    switch (ch.m_lutParams.m_mode) {
-      case 0:
+    switch (LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode]) {
+      case GradientEditMode::WINDOW_LEVEL:
         s += indent + QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3),\n")
                         .arg(QString::number(i))
                         .arg(ch.m_lutParams.m_window)
                         .arg(ch.m_lutParams.m_level);
         break;
-      case 1:
+      case GradientEditMode::ISOVALUE:
         s += indent + QString("(\"SET_ISOVALUE\", %1, %2, %3),\n")
                         .arg(QString::number(i))
                         .arg(ch.m_lutParams.m_isovalue)
                         .arg(ch.m_lutParams.m_isorange);
         break;
-      case 2:
+      case GradientEditMode::PERCENTILE:
         s += indent + QString("(\"SET_PERCENTILE_THRESHOLD\", %1, %2, %3),\n")
                         .arg(QString::number(i))
                         .arg(ch.m_lutParams.m_pctLow)
                         .arg(ch.m_lutParams.m_pctHigh);
         break;
-      case 3:
+      case GradientEditMode::CUSTOM:
         std::vector<float> v(ch.m_lutParams.m_customControlPoints.size() * 5);
         for (auto p : ch.m_lutParams.m_customControlPoints) {
           v.push_back(p.first);

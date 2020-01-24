@@ -150,18 +150,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
-// QWidget* addNumericSliderRow(QString& label, QString& tip = "", double initVal = 0.0, double minVal = 0.0, double
-// maxVal = 1.0, double stepSize = 0.01)
-// {
-//   sectionLayout->addWidget(new QLabel(label), row, 0);
-//   m_lt0gui.m_thetaSlider = new QNumericSlider();
-//   m_lt0gui.m_thetaSlider->setStatusTip(tip);
-//   m_lt0gui.m_thetaSlider->setToolTip(tip);
-//   m_lt0gui.m_thetaSlider->setRange(minVal, maxVal);
-//   m_lt0gui.m_thetaSlider->setValue(initVal);
-//   sectionLayout->addWidget(m_lt0gui.m_thetaSlider, row, 1, 1, 4);
-// }
-
 Section*
 QAppearanceSettingsWidget::createLightingControls()
 {

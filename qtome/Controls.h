@@ -152,31 +152,4 @@ public:
     layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
     layout.setLabelAlignment(Qt::AlignLeft);
   }
-
-  struct NumericSliderSpec
-  {
-    QString name;
-    QString toolTip;   // shorter
-    QString statusTip; // slightly longer
-    float rangeMin, rangeMax, initialValue, stepSize;
-  };
-  static QNumericSlider* addNumericSlider(QFormLayout& formLayout, const NumericSliderSpec& spec);
-  struct CheckBoxSpec
-  {
-    QString name;
-    QString toolTip;   // shorter
-    QString statusTip; // slightly longer
-    bool initialValue;
-  };
-  static QCheckBox* addCheckBox(QFormLayout& formLayout, const CheckBoxSpec& spec);
-
-  struct ComboBoxSpec
-  {
-    QString name;
-    QString toolTip;   // shorter
-    QString statusTip; // slightly longer
-    std::vector<std::string> choices;
-    int initialSelection;
-  };
-  static QComboBox* addComboBox(QFormLayout& formLayout, const ComboBoxSpec& spec);
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderlib/AppScene.h" // for GradientEditMode enum
+#include "renderlib/GradientData.h" // for GradientEditMode enum
 
 #include <glm.h>
 
