@@ -564,17 +564,6 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
 }
 
 void
-QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
-{
-  if (!m_scene)
-    return;
-  // LOG_DEBUG << "window/level: " << window << ", " << level;
-  m_scene->m_volume->channel((uint32_t)i)->generate_windowLevel(window, level);
-
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-}
-
-void
 QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
 {
   if (!m_scene)
