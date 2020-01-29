@@ -1,16 +1,33 @@
 #pragma once
 
+#include "renderlib/GradientData.h" // for GradientEditMode enum
+
 #include <glm.h>
 
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QString>
 
+#include <map>
 #include <vector>
+
+struct LutParams
+{
+  static std::map<GradientEditMode, int> g_GradientModeToPermId;
+  static std::map<int, GradientEditMode> g_PermIdToGradientMode;
+
+  float m_window = 1.0f, m_level = 0.5f;
+  float m_isovalue = 0.5f, m_isorange = 0.1f;
+  float m_pctLow = 0.5f, m_pctHigh = 0.98f;
+  std::vector<LutControlPoint> m_customControlPoints;
+  // permanent id value for serialization???
+  int m_mode;
+};
 
 struct ChannelViewerState
 {
   bool m_enabled = true;
-  float m_window = 1.0f, m_level = 0.5f;
+  LutParams m_lutParams;
   float m_opacity = 1.0f;
   float m_glossiness = 0.0f;
   glm::vec3 m_diffuse = glm::vec3(0.5f, 0.5f, 0.5f), m_specular, m_emissive;
@@ -69,4 +86,7 @@ struct ViewerState
 
   static ViewerState readStateFromJson(QString filePath);
   static void writeStateToJson(QString filePath, const ViewerState& state);
+
+private:
+  LutParams lutParamsFromJson(QJsonObject& jsonObj);
 };

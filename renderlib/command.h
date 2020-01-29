@@ -8,11 +8,19 @@ class Renderer;
 class RenderSettings;
 class Scene;
 
+class RendererCommandInterface
+{
+public:
+  virtual void setStreamMode(int32_t mode) = 0;
+  virtual void resizeGL(int x, int y) = 0;
+};
+
 class ParseableStream
 {
 public:
   virtual int32_t parseInt32() = 0;
   virtual float parseFloat32() = 0;
+  virtual std::vector<float> parseFloat32Array() = 0;
   virtual std::string parseString() = 0;
 };
 
@@ -20,12 +28,13 @@ enum class CommandArgType
 {
   I32,
   F32,
-  STR
+  STR,
+  F32A
 };
 
 struct ExecutionContext
 {
-  Renderer* m_renderer;
+  RendererCommandInterface* m_renderer;
   RenderSettings* m_renderSettings;
   Scene* m_appScene;
   CCamera* m_camera;
@@ -357,3 +366,21 @@ CMDDECL(SetBackgroundColorCommand,
         36,
         "background_color",
         CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
+
+struct SetIsovalueThresholdCommandD
+{
+  int32_t m_channel;
+  float m_isovalue;
+  float m_isorange;
+};
+CMDDECL(SetIsovalueThresholdCommand,
+        37,
+        "set_isovalue_threshold",
+        CMD_ARGS({ CommandArgType::I32, CommandArgType::F32, CommandArgType::F32 }));
+
+struct SetControlPointsCommandD
+{
+  int32_t m_channel;
+  std::vector<float> m_data;
+};
+CMDDECL(SetControlPointsCommand, 38, "set_control_points", CMD_ARGS({ CommandArgType::I32, CommandArgType::F32A }));

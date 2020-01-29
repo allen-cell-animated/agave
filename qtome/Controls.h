@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QFrame>
@@ -8,24 +9,6 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
-
-class Controls
-{
-public:
-  static QFormLayout* createFormLayout()
-  {
-    QFormLayout* layout = new QFormLayout();
-    initFormLayout(*layout);
-    return layout;
-  }
-  static void initFormLayout(QFormLayout& layout)
-  {
-    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
-    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-    layout.setLabelAlignment(Qt::AlignLeft);
-  }
-};
 
 class QColorPushButton : public QPushButton
 {
@@ -151,4 +134,22 @@ private:
   QGridLayout m_layout;
   QDoubleSpinner m_spinner;
   QDoubleSlider m_slider;
+};
+
+class Controls
+{
+public:
+  static QFormLayout* createFormLayout(QWidget* parent = nullptr)
+  {
+    QFormLayout* layout = new QFormLayout(parent);
+    initFormLayout(*layout);
+    return layout;
+  }
+  static void initFormLayout(QFormLayout& layout)
+  {
+    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+    layout.setLabelAlignment(Qt::AlignLeft);
+  }
 };

@@ -28,8 +28,6 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"	
-	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Controls.cpp"
@@ -77,8 +75,20 @@ target_sources(qtomeapp PRIVATE
 	)
 add_subdirectory(python)
 
+add_subdirectory(tfeditor)
+
 if (MSVC) 
 	target_sources(qtomeapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
+	set_property(
+		TARGET qtomeapp
+		PROPERTY VS_DEBUGGER_WORKING_DIRECTORY
+		"${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}"
+	)
+	set_property(
+		TARGET qtomeapp
+		PROPERTY VS_DEBUGGER_COMMAND
+		"${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}/$(TargetFileName)"
+	)
 endif (MSVC)
 
 target_link_libraries(qtomeapp 

@@ -617,7 +617,15 @@ qtome::viewerStateToApp(const ViewerState& v)
 
     m_appScene.m_material.m_roughness[i] = ch.m_glossiness;
     m_appScene.m_material.m_opacity[i] = ch.m_opacity;
-    m_appScene.m_volume->channel(i)->generate_windowLevel(ch.m_window, ch.m_level);
+
+    m_appScene.m_material.m_gradientData[i].m_activeMode = LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode];
+    m_appScene.m_material.m_gradientData[i].m_window = ch.m_lutParams.m_window;
+    m_appScene.m_material.m_gradientData[i].m_level = ch.m_lutParams.m_level;
+    m_appScene.m_material.m_gradientData[i].m_pctLow = ch.m_lutParams.m_pctLow;
+    m_appScene.m_material.m_gradientData[i].m_pctHigh = ch.m_lutParams.m_pctHigh;
+    m_appScene.m_material.m_gradientData[i].m_isovalue = ch.m_lutParams.m_isovalue;
+    m_appScene.m_material.m_gradientData[i].m_isorange = ch.m_lutParams.m_isorange;
+    m_appScene.m_material.m_gradientData[i].m_customControlPoints = ch.m_lutParams.m_customControlPoints;
   }
 
   // lights
@@ -656,6 +664,7 @@ qtome::viewerStateToApp(const ViewerState& v)
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
+  m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 ViewerState
@@ -722,8 +731,15 @@ qtome::appToViewerState()
                               m_appScene.m_material.m_emissive[i * 3 + 2]);
     ch.m_glossiness = m_appScene.m_material.m_roughness[i];
     ch.m_opacity = m_appScene.m_material.m_opacity[i];
-    ch.m_window = m_appScene.m_volume->channel(i)->m_window;
-    ch.m_level = m_appScene.m_volume->channel(i)->m_level;
+
+    ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
+    ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
+    ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
+    ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
+    ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
+    ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
+    ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
+    ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
 
     v.m_channels.push_back(ch);
   }

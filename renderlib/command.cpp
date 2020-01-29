@@ -1,13 +1,11 @@
 #include "command.h"
 
-#include "renderer.h"
-
-#include "renderlib/AppScene.h"
-#include "renderlib/CCamera.h"
-#include "renderlib/FileReader.h"
-#include "renderlib/ImageXYZC.h"
-#include "renderlib/Logging.h"
-#include "renderlib/RenderSettings.h"
+#include "AppScene.h"
+#include "CCamera.h"
+#include "FileReader.h"
+#include "ImageXYZC.h"
+#include "Logging.h"
+#include "RenderSettings.h"
 
 #include <QElapsedTimer>
 #include <QFileInfo>
@@ -325,26 +323,25 @@ void
 AutoThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "AutoThreshold " << m_data.m_channel << " " << m_data.m_method;
-  float window, level;
   switch (m_data.m_method) {
     case 0:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2();
       break;
     case 1:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto();
       break;
     case 2:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_bestFit(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_bestFit();
       break;
     case 3:
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_chimerax();
       break;
     case 4:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
       break;
     default:
       LOG_WARNING << "AutoThreshold got unexpected method parameter " << m_data.m_method;
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(window, level);
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
       break;
   }
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -353,9 +350,7 @@ void
 SetPercentileThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetPercentileThreshold " << m_data.m_channel << " " << m_data.m_pctLow << " " << m_data.m_pctHigh;
-  float window, level;
-  c->m_appScene->m_volume->channel(m_data.m_channel)
-    ->generate_percentiles(window, level, m_data.m_pctLow, m_data.m_pctHigh);
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(m_data.m_pctLow, m_data.m_pctHigh);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void
@@ -387,6 +382,42 @@ SetBackgroundColorCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_backgroundColor[1] = m_data.m_g;
   c->m_appScene->m_material.m_backgroundColor[2] = m_data.m_b;
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
+SetIsovalueThresholdCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetIsovalueThreshold " << m_data.m_channel << " " << m_data.m_isovalue << " " << m_data.m_isorange;
+
+  std::vector<LutControlPoint> stops;
+  float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
+  float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
+  // TODO check for lowEnd <=0 or highEnd >= 1 ???
+  stops.push_back({ 0.0, 0.0 });
+  stops.push_back({ lowEnd, 0.0 });
+  stops.push_back({ lowEnd, 1.0 });
+  stops.push_back({ highEnd, 1.0 });
+  stops.push_back({ highEnd, 0.0 });
+  stops.push_back({ 1.0, 0.0 });
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void
+SetControlPointsCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetControlPoints " << m_data.m_channel;
+  // TODO debug print the data
+
+  std::vector<LutControlPoint> stops;
+  // 5 floats per stop.  first is position, next four are rgba.  use a only, for now.
+  // TODO SHOULD PARSE DO THIS JOB?
+  for (size_t i = 0; i < m_data.m_data.size() / 5; ++i) {
+    stops.push_back({ m_data.m_data[i * 5], m_data.m_data[i * 5 + 4] });
+  }
+
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 SessionCommand*
@@ -712,6 +743,23 @@ SetBackgroundColorCommand::parse(ParseableStream* c)
   data.m_g = c->parseFloat32();
   data.m_b = c->parseFloat32();
   return new SetBackgroundColorCommand(data);
+}
+SetIsovalueThresholdCommand*
+SetIsovalueThresholdCommand::parse(ParseableStream* c)
+{
+  SetIsovalueThresholdCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_isovalue = c->parseFloat32();
+  data.m_isorange = c->parseFloat32();
+  return new SetIsovalueThresholdCommand(data);
+}
+SetControlPointsCommand*
+SetControlPointsCommand::parse(ParseableStream* c)
+{
+  SetControlPointsCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_data = c->parseFloat32Array();
+  return new SetControlPointsCommand(data);
 }
 
 std::string
@@ -1046,6 +1094,32 @@ SetBackgroundColorCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetIsovalueThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_isovalue << ", " << m_data.m_isorange;
+  ss << ")";
+  return ss.str();
+}
+std::string
+SetControlPointsCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_channel << ", [";
+  // insert comma delimited but no comma after the last entry
+  if (!m_data.m_data.empty()) {
+    std::copy(m_data.m_data.begin(), std::prev(m_data.m_data.end()), std::ostream_iterator<float>(ss, ", "));
+    ss << m_data.m_data.back();
+  }
+  ss << "]";
+
   ss << ")";
   return ss.str();
 }

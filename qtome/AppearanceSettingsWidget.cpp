@@ -7,8 +7,10 @@
 #include "renderlib/AppScene.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
+#include "tfeditor/gradients.h"
 
 #include <QFormLayout>
+#include <QLinearGradient>
 
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSettings* qrs, RenderSettings* rs)
   : QGroupBox(pParent)
@@ -148,18 +150,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
-// QWidget* addNumericSliderRow(QString& label, QString& tip = "", double initVal = 0.0, double minVal = 0.0, double
-// maxVal = 1.0, double stepSize = 0.01)
-// {
-//   sectionLayout->addWidget(new QLabel(label), row, 0);
-//   m_lt0gui.m_thetaSlider = new QNumericSlider();
-//   m_lt0gui.m_thetaSlider->setStatusTip(tip);
-//   m_lt0gui.m_thetaSlider->setToolTip(tip);
-//   m_lt0gui.m_thetaSlider->setRange(minVal, maxVal);
-//   m_lt0gui.m_thetaSlider->setValue(initVal);
-//   sectionLayout->addWidget(m_lt0gui.m_thetaSlider, row, 1, 1, 4);
-// }
-
 Section*
 QAppearanceSettingsWidget::createLightingControls()
 {
@@ -170,27 +160,37 @@ QAppearanceSettingsWidget::createLightingControls()
   m_lt0gui.m_thetaSlider->setStatusTip("Set angle theta for area light");
   m_lt0gui.m_thetaSlider->setToolTip("Set angle theta for area light");
   m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
+  m_lt0gui.m_thetaSlider->setSingleStep(TWO_PI_F / 100.0);
   m_lt0gui.m_thetaSlider->setValue(0.0);
   sectionLayout->addRow("AreaLight Theta", m_lt0gui.m_thetaSlider);
   QObject::connect(
     m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
 
   m_lt0gui.m_phiSlider = new QNumericSlider();
+  m_lt0gui.m_phiSlider->setStatusTip("Set angle phi for area light");
+  m_lt0gui.m_phiSlider->setToolTip("Set angle phi for area light");
   m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
+  m_lt0gui.m_phiSlider->setSingleStep(PI_F / 100.0);
   m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
   sectionLayout->addRow("AreaLight Phi", m_lt0gui.m_phiSlider);
   QObject::connect(
     m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
 
   m_lt0gui.m_sizeSlider = new QNumericSlider();
+  m_lt0gui.m_sizeSlider->setStatusTip("Set size for area light");
+  m_lt0gui.m_sizeSlider->setToolTip("Set size for area light");
   m_lt0gui.m_sizeSlider->setRange(0.1, 5.0);
+  m_lt0gui.m_sizeSlider->setSingleStep(5.0 / 100.0);
   m_lt0gui.m_sizeSlider->setValue(1.0);
   sectionLayout->addRow("AreaLight Size", m_lt0gui.m_sizeSlider);
   QObject::connect(
     m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
 
   m_lt0gui.m_distSlider = new QNumericSlider();
+  m_lt0gui.m_distSlider->setStatusTip("Set distance for area light");
+  m_lt0gui.m_distSlider->setToolTip("Set distance for area light");
   m_lt0gui.m_distSlider->setRange(0.1, 100.0);
+  m_lt0gui.m_distSlider->setSingleStep(1.0);
   m_lt0gui.m_distSlider->setValue(10.0);
   sectionLayout->addRow("AreaLight Distance", m_lt0gui.m_distSlider);
   QObject::connect(
@@ -198,10 +198,15 @@ QAppearanceSettingsWidget::createLightingControls()
 
   auto* arealightLayout = new QHBoxLayout();
   m_lt0gui.m_intensitySlider = new QNumericSlider();
+  m_lt0gui.m_intensitySlider->setStatusTip("Set intensity for area light");
+  m_lt0gui.m_intensitySlider->setToolTip("Set intensity for area light");
   m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
+  m_lt0gui.m_intensitySlider->setSingleStep(1.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
   arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
+  m_lt0gui.m_areaLightColorButton->setStatusTip("Set color for area light");
+  m_lt0gui.m_areaLightColorButton->setToolTip("Set color for area light");
   arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton);
   sectionLayout->addRow("AreaLight Intensity", arealightLayout);
   QObject::connect(m_lt0gui.m_areaLightColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -546,14 +551,15 @@ QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
   m_scene->m_material.m_emissive[i * 3 + 2] = rgba[2];
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+
 void
-QAppearanceSettingsWidget::OnSetWindowLevel(int i, double window, double level)
+QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>& stops)
 {
   if (!m_scene)
     return;
-  // LOG_DEBUG << "window/level: " << window << ", " << level;
-  m_scene->m_volume->channel((uint32_t)i)->generate_windowLevel(window, level);
+  m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
 
+  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -668,71 +674,25 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
 
+    auto* fullLayout = new QVBoxLayout();
+
     auto* sectionLayout = Controls::createFormLayout();
 
-    QNumericSlider* windowSlider = new QNumericSlider();
-    windowSlider->setRange(0.001, 1.0);
-    windowSlider->setSingleStep(0.01);
-    windowSlider->setValue(scene->m_volume->channel(i)->m_window, true);
-    sectionLayout->addRow("Window", windowSlider);
+    GradientWidget* editor =
+      new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);
+    fullLayout->addWidget(editor);
+    // sectionLayout->addRow("Gradient", editor);
+    fullLayout->addLayout(sectionLayout);
 
-    QNumericSlider* levelSlider = new QNumericSlider();
-    levelSlider->setRange(0.001, 1.0);
-    levelSlider->setSingleStep(0.01);
-    levelSlider->setValue(scene->m_volume->channel(i)->m_level, true);
-    sectionLayout->addRow("Level", levelSlider);
+    QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
+      // convert stops to control points
+      std::vector<LutControlPoint> pts;
+      for (int i = 0; i < stops.size(); ++i) {
+        pts.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
+      }
 
-    QObject::connect(windowSlider, &QNumericSlider::valueChanged, [i, this, levelSlider](double d) {
-      this->OnSetWindowLevel(i, d, levelSlider->value());
+      this->OnUpdateLut(i, pts);
     });
-    QObject::connect(levelSlider, &QNumericSlider::valueChanged, [i, this, windowSlider](double d) {
-      this->OnSetWindowLevel(i, windowSlider->value(), d);
-    });
-
-    QPushButton* autoButton = new QPushButton("Auto");
-    QObject::connect(autoButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-      float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_auto2(w, l);
-      // LOG_DEBUG << "Window/level: " << w << " , " << l;
-      windowSlider->setValue(w, true);
-      levelSlider->setValue(l, true);
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* bestfitButton = new QPushButton("BestFit");
-    QObject::connect(bestfitButton, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-      float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_bestFit(w, l);
-      windowSlider->setValue(w, true);
-      levelSlider->setValue(l, true);
-      // LOG_DEBUG << "Window/level: " << w << " , " << l;
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* chimeraxButton = new QPushButton("ChimX");
-    QObject::connect(chimeraxButton, &QPushButton::clicked, [this, i]() {
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_chimerax();
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* eqButton = new QPushButton("Eq");
-    QObject::connect(eqButton, &QPushButton::clicked, [this, i]() {
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_equalized();
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    QPushButton* pct98Button = new QPushButton("Pct98");
-    QObject::connect(pct98Button, &QPushButton::clicked, [this, i, windowSlider, levelSlider]() {
-      float w, l;
-      this->m_scene->m_volume->channel((uint32_t)i)->generate_percentiles(w, l);
-      // LOG_DEBUG << "Window/level: " << w << " , " << l;
-      windowSlider->setValue(w, true);
-      levelSlider->setValue(l, true);
-      this->m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    });
-    auto buttonRowLayout = new QHBoxLayout();
-    buttonRowLayout->addWidget(autoButton);
-    buttonRowLayout->addWidget(bestfitButton);
-    buttonRowLayout->addWidget(chimeraxButton);
-    buttonRowLayout->addWidget(eqButton);
-    buttonRowLayout->addWidget(pct98Button);
-    sectionLayout->addRow(buttonRowLayout);
 
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
@@ -793,7 +753,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QObject::connect(section, &Section::checked, [i, this](bool is_checked) { this->OnChannelChecked(i, is_checked); });
     this->OnChannelChecked(i, channelenabled);
 
-    section->setContentLayout(*sectionLayout);
+    section->setContentLayout(*fullLayout);
     m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }

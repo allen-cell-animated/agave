@@ -1,10 +1,11 @@
 #include "Histogram.h"
 
+#include "GradientData.h"
 #include "Logging.h"
 
 #include <algorithm>
-#include <numeric>
 #include <math.h>
+#include <numeric>
 
 template<class T>
 const T&
@@ -72,23 +73,23 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
 }
 
 float*
-Histogram::generate_fullRange(float& window, float& level, size_t length)
+Histogram::generate_fullRange(size_t length) const
 {
-  window = 1.0;
-  level = 0.5;
+  float window = 1.0;
+  float level = 0.5;
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_dataRange(float& window, float& level, size_t length)
+Histogram::generate_dataRange(size_t length) const
 {
-  window = 1.0;
-  level = 0.5;
+  float window = 1.0;
+  float level = 0.5;
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_bestFit(float& window, float& level, size_t length)
+Histogram::generate_bestFit(size_t length) const
 {
   size_t pixcount = _pixelCount;
   size_t limit = pixcount / 10;
@@ -117,14 +118,14 @@ Histogram::generate_bestFit(float& window, float& level, size_t length)
     range = _bins.size() - 1;
   }
 
-  window = (float)(range) / (float)(_bins.size() - 1);
-  level = ((float)hmin + (float)range * 0.5f) / (float)(_bins.size() - 1);
+  float window = (float)(range) / (float)(_bins.size() - 1);
+  float level = ((float)hmin + (float)range * 0.5f) / (float)(_bins.size() - 1);
   return generate_windowLevel(window, level, length);
 }
 
 // attempt to redo imagej's Auto
 float*
-Histogram::generate_auto2(float& window, float& level, size_t length)
+Histogram::generate_auto2(size_t length) const
 {
 
   size_t AUTO_THRESHOLD = 10000;
@@ -177,19 +178,19 @@ Histogram::generate_auto2(float& window, float& level, size_t length)
 
   if (hmax < hmin) {
     // just reset to whole range in this case.
-    return generate_fullRange(window, level, length);
+    return generate_fullRange(length);
   } else {
     // LOG_DEBUG << "auto2 range: " << hmin << "..." << hmax;
     float range = (float)hmax - (float)hmin;
-    window = (range) / (float)(nbins - 1);
-    level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
+    float window = (range) / (float)(nbins - 1);
+    float level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
     // LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
     return generate_windowLevel(window, level, length);
   }
 }
 
 float*
-Histogram::generate_auto(float& window, float& level, size_t length)
+Histogram::generate_auto(size_t length) const
 {
 
   // simple linear mapping cutting elements with small appearence
@@ -219,8 +220,8 @@ Histogram::generate_auto(float& window, float& level, size_t length)
   // if range == e-b, then
   // b+range/2 === e-range/2
   //
-  window = (float)range / (float)(_bins.size() - 1);
-  level = ((float)b + (float)range * 0.5f) / (float)(_bins.size() - 1);
+  float window = (float)range / (float)(_bins.size() - 1);
+  float level = ((float)b + (float)range * 0.5f) / (float)(_bins.size() - 1);
   return generate_windowLevel(window, level, length);
 }
 
@@ -240,7 +241,7 @@ Histogram::generate_auto(float& window, float& level, size_t length)
  */
 // window and level are percentages of full range 0..1
 float*
-Histogram::generate_windowLevel(float window, float level, size_t length)
+Histogram::generate_windowLevel(float window, float level, size_t length) const
 {
   // return a LUT with new values(?)
   // data type of lut values is out_phys_range (uint8)
@@ -262,16 +263,18 @@ Histogram::generate_windowLevel(float window, float level, size_t length)
   return lut;
 }
 
-float*
-Histogram::generate_percentiles(float& window, float& level, float lo, float hi, size_t length)
+void
+Histogram::computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const
 {
   // e.g. 0.50, 0.983 starts from 50th percentile bucket and ends at 98.3 percentile bucket.
-  if (lo > hi) {
-    std::swap(hi, lo);
+  if (pct_low > pct_high) {
+    std::swap(pct_high, pct_low);
   }
 
-  size_t lowlimit = size_t(_pixelCount * lo);
-  size_t hilimit = size_t(_pixelCount * hi);
+  size_t length = _bins.size();
+
+  size_t lowlimit = size_t(_pixelCount * pct_low);
+  size_t hilimit = size_t(_pixelCount * pct_high);
 
   // TODO use _ccounts in these loops!!
 
@@ -297,11 +300,18 @@ Histogram::generate_percentiles(float& window, float& level, float lo, float hi,
   // calculate a window and level that are percentages of the full range (0 .. length-1)
   window = (float)(hmax - hmin) / (float)(length - 1);
   level = (float)(hmin + hmax) * 0.5f / (float)(length - 1);
+}
+
+float*
+Histogram::generate_percentiles(float lo, float hi, size_t length) const
+{
+  float window, level;
+  computeWindowLevelFromPercentiles(lo, hi, window, level);
   return generate_windowLevel(window, level, length);
 }
 
 float*
-Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size_t length)
+Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t length) const
 {
   // pts is piecewise linear from first to last control point.
   // pts is in order of increasing x value (the first element of the pair)
@@ -319,7 +329,7 @@ Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size
         // what fraction of this interval in x?
         float fxi = (fx - pts[i].first) / (pts[i + 1].first - pts[i].first);
         // use that fraction against y range
-        lut[x] = fxi * (pts[i + 1].second - pts[i].second);
+        lut[x] = pts[i].second + fxi * (pts[i + 1].second - pts[i].second);
         break;
       }
     }
@@ -328,7 +338,7 @@ Histogram::generate_controlPoints(std::vector<std::pair<float, float>> pts, size
 }
 
 void
-Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize)
+Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
 {
   uint16_t dmin = _dataMin;
   uint16_t dmax = _dataMax;
@@ -409,7 +419,7 @@ Histogram::bin_counts(uint32_t nbins)
 // Find the data value where a specified fraction of voxels have lower value.
 // Result is an approximation using binned data.
 float
-Histogram::rank_data_value(float fraction)
+Histogram::rank_data_value(float fraction) const
 {
   float targetcount = fraction * _ccounts[_ccounts.size() - 1];
   int b = 0;
@@ -428,7 +438,7 @@ Histogram::rank_data_value(float fraction)
 }
 
 float*
-Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*= 0.90*/)
+Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*= 0.90*/) const
 {
   float ilow = 0.0f;
   float imid = 0.8f;
@@ -460,7 +470,7 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
 }
 
 float*
-Histogram::generate_equalized(size_t length)
+Histogram::generate_equalized(size_t length) const
 {
   float* lut = new float[length];
 
@@ -493,4 +503,31 @@ Histogram::generate_equalized(size_t length)
     lut[x] = std::max(0.0f, std::min(sum * scale, 1.0f));
   }
   return lut;
+}
+
+float*
+Histogram::generateFromGradientData(const GradientData& gradientData, size_t length) const
+{
+  switch (gradientData.m_activeMode) {
+    case GradientEditMode::WINDOW_LEVEL:
+      return generate_windowLevel(gradientData.m_window, gradientData.m_level, length);
+    case GradientEditMode::PERCENTILE:
+      return generate_percentiles(gradientData.m_pctLow, gradientData.m_pctHigh, length);
+    case GradientEditMode::ISOVALUE: {
+      float lowEnd = gradientData.m_isovalue - gradientData.m_isorange * 0.5f;
+      float highEnd = gradientData.m_isovalue + gradientData.m_isorange * 0.5f;
+      std::vector<LutControlPoint> pts;
+      pts.push_back({ 0.0f, 0.0f });
+      pts.push_back({ lowEnd, 0.0f });
+      pts.push_back({ lowEnd, 1.0f });
+      pts.push_back({ highEnd, 1.0f });
+      pts.push_back({ highEnd, 0.0f });
+      pts.push_back({ 1.0f, 0.0f });
+      return generate_controlPoints(pts, length);
+    }
+    case GradientEditMode::CUSTOM:
+      return generate_controlPoints(gradientData.m_customControlPoints, length);
+    default:
+      return generate_fullRange(length);
+  }
 }

@@ -1,79 +1,80 @@
-// types: FLOAT32(f), INT32(i), STRING(s)=int32 and array of bytes
-var types = { I32 : 4, F32 : 4, S : -1 }
+// types: FLOAT32(f), INT32(i), STRING(s)=int32 and array of bytes, FLOAT32ARRAY=int32 and array of floats
+var types = { I32: 4, F32: 4, S: -1, F32A: -1 };
 
 // command id will be int32 to future-proof it.
 // note that the server needs to know these signatures too.
 var COMMANDS = {
   // tell server to identify this session?
-  SESSION : [ 0, "S" ],
+  SESSION: [0, "S"],
   // tell server where files might be (appends to existing)
-  ASSET_PATH : [ 1, "S" ],
+  ASSET_PATH: [1, "S"],
   // load a volume
-  LOAD_OME_TIF : [ 2, "S" ],
+  LOAD_OME_TIF: [2, "S"],
   // set camera pos
-  EYE : [ 3, "F32", "F32", "F32" ],
+  EYE: [3, "F32", "F32", "F32"],
   // set camera target pt
-  TARGET : [ 4, "F32", "F32", "F32" ],
+  TARGET: [4, "F32", "F32", "F32"],
   // set camera up direction
-  UP : [ 5, "F32", "F32", "F32" ],
-  APERTURE : [ 6, "F32" ],
+  UP: [5, "F32", "F32", "F32"],
+  APERTURE: [6, "F32"],
   // perspective(0)/ortho(1), fov(degrees)/orthoscale(world units)
-  CAMERA_PROJECTION : [ 7, "I32", "F32" ],
-  FOCALDIST : [ 8, "F32" ],
-  EXPOSURE : [ 9, "F32" ],
-  MAT_DIFFUSE : [ 10, "I32", "F32", "F32", "F32", "F32" ],
-  MAT_SPECULAR : [ 11, "I32", "F32", "F32", "F32", "F32" ],
-  MAT_EMISSIVE : [ 12, "I32", "F32", "F32", "F32", "F32" ],
+  CAMERA_PROJECTION: [7, "I32", "F32"],
+  FOCALDIST: [8, "F32"],
+  EXPOSURE: [9, "F32"],
+  MAT_DIFFUSE: [10, "I32", "F32", "F32", "F32", "F32"],
+  MAT_SPECULAR: [11, "I32", "F32", "F32", "F32", "F32"],
+  MAT_EMISSIVE: [12, "I32", "F32", "F32", "F32", "F32"],
   // set num render iterations
-  RENDER_ITERATIONS : [ 13, "I32" ],
+  RENDER_ITERATIONS: [13, "I32"],
   // (continuous or on-demand frames)
-  STREAM_MODE : [ 14, "I32" ],
+  STREAM_MODE: [14, "I32"],
   // request new image
-  REDRAW : [ 15 ],
-  SET_RESOLUTION : [ 16, "I32", "I32" ],
-  DENSITY : [ 17, "F32" ],
+  REDRAW: [15],
+  SET_RESOLUTION: [16, "I32", "I32"],
+  DENSITY: [17, "F32"],
   // move camera to bound and look at the scene contents
-  FRAME_SCENE : [ 18 ],
-  MAT_GLOSSINESS : [ 19, "I32", "F32" ],
+  FRAME_SCENE: [18],
+  MAT_GLOSSINESS: [19, "I32", "F32"],
   // channel index, 1/0 for enable/disable
-  ENABLE_CHANNEL : [ 20, "I32", "I32" ],
+  ENABLE_CHANNEL: [20, "I32", "I32"],
   // channel index, window, level.  (Do I ever set these independently?)
-  SET_WINDOW_LEVEL : [ 21, "I32", "F32", "F32" ],
+  SET_WINDOW_LEVEL: [21, "I32", "F32", "F32"],
   // theta, phi in degrees
-  ORBIT_CAMERA : [ 22, "F32", "F32" ],
-  SKYLIGHT_TOP_COLOR : [ 23, "F32", "F32", "F32" ],
-  SKYLIGHT_MIDDLE_COLOR : [ 24, "F32", "F32", "F32" ],
-  SKYLIGHT_BOTTOM_COLOR : [ 25, "F32", "F32", "F32" ],
+  ORBIT_CAMERA: [22, "F32", "F32"],
+  SKYLIGHT_TOP_COLOR: [23, "F32", "F32", "F32"],
+  SKYLIGHT_MIDDLE_COLOR: [24, "F32", "F32", "F32"],
+  SKYLIGHT_BOTTOM_COLOR: [25, "F32", "F32", "F32"],
   // r, theta, phi
-  LIGHT_POS : [ 26, "I32", "F32", "F32", "F32" ],
-  LIGHT_COLOR : [ 27, "I32", "F32", "F32", "F32" ],
+  LIGHT_POS: [26, "I32", "F32", "F32", "F32"],
+  LIGHT_COLOR: [27, "I32", "F32", "F32", "F32"],
   // x by y size
-  LIGHT_SIZE : [ 28, "I32", "F32", "F32" ],
+  LIGHT_SIZE: [28, "I32", "F32", "F32"],
   // xmin, xmax, ymin, ymax, zmin, zmax
-  SET_CLIP_REGION : [ 29, "F32", "F32", "F32", "F32", "F32", "F32" ],
+  SET_CLIP_REGION: [29, "F32", "F32", "F32", "F32", "F32", "F32"],
   // x, y, z pixel scaling
-  SET_VOXEL_SCALE : [ 30, "F32", "F32", "F32" ],
+  SET_VOXEL_SCALE: [30, "F32", "F32", "F32"],
   // channel, method
-  AUTO_THRESHOLD : [ 31, "I32", "I32" ],
+  AUTO_THRESHOLD: [31, "I32", "I32"],
   // channel index, pct_low, pct_high.  (Do I ever set these independently?)
-  SET_PERCENTILE_THRESHOLD : [ 32, "I32", "F32", "F32" ],
-  MAT_OPACITY : [ 33, "I32", "F32" ],
-  SET_PRIMARY_RAY_STEP_SIZE : [ 34, "F32" ],
-  SET_SECONDARY_RAY_STEP_SIZE : [ 35, "F32" ],
-  BACKGROUND_COLOR : [ 36, "F32", "F32", "F32" ],
+  SET_PERCENTILE_THRESHOLD: [32, "I32", "F32", "F32"],
+  MAT_OPACITY: [33, "I32", "F32"],
+  SET_PRIMARY_RAY_STEP_SIZE: [34, "F32"],
+  SET_SECONDARY_RAY_STEP_SIZE: [35, "F32"],
+  BACKGROUND_COLOR: [36, "F32", "F32", "F32"],
+  SET_ISOVALUE_THRESHOLD: [37, "I32", "F32", "F32"],
+  SET_CONTROL_POINTS: [38, "I32", "F32A"]
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
 // to binary before sending?
-function commandBuffer()
-{
+function commandBuffer() {
   // [command, args],...
   this.prebuffer = [];
   this.buffer = null;
 }
 
 commandBuffer.prototype = {
-  prebufferToBuffer : function() {
+  prebufferToBuffer: function() {
     // iterate length of prebuffer to compute size.
     var bytesize = 0;
     for (var i = 0; i < this.prebuffer.length; ++i) {
@@ -91,8 +92,13 @@ commandBuffer.prototype = {
       var nArgsExpected = signature.length - 1;
       // for each arg:
       if (command.length - 1 !== nArgsExpected) {
-        console.error("BAD COMMAND: EXPECTED " + nArgsExpected +
-                      " args and got " + command.length - 1);
+        console.error(
+          "BAD COMMAND: EXPECTED " +
+            nArgsExpected +
+            " args and got " +
+            command.length -
+            1
+        );
       }
 
       for (var j = 0; j < nArgsExpected; ++j) {
@@ -103,6 +109,11 @@ commandBuffer.prototype = {
           bytesize += 4;
           // followed by one byte per char.
           bytesize += command[j + 1].length;
+        } else if (argtype === "F32A") {
+          // one int32 for array length
+          bytesize += 4;
+          // followed by 4 bytes per float in the array
+          bytesize += 4 * command[j + 1].length;
         } else {
           bytesize += types[argtype];
         }
@@ -143,6 +154,15 @@ commandBuffer.prototype = {
             dataview.setInt32(offset, cmd[j + 1]);
             offset += 4;
             break;
+          case "F32A":
+            var flist = cmd[j + 1];
+            dataview.setInt32(offset, flist.length);
+            offset += 4;
+            for (var k = 0; k < flist.length; ++k) {
+              dataview.setFloat32(offset, flist[k], LITTLE_ENDIAN);
+              offset += 4;
+            }
+            break;
         }
       }
     }
@@ -151,10 +171,9 @@ commandBuffer.prototype = {
   },
   // commands are added by command code string name followed by appropriate
   // signature args.
-  addCommand : function() {
+  addCommand: function() {
     var args = [].slice.call(arguments);
     // TODO: check against signature!!!
     this.prebuffer.push(args);
-  },
-
+  }
 };

@@ -91,6 +91,8 @@ public:
   virtual int SetPrimaryRayStepSize(float);
   virtual int SetSecondaryRayStepSize(float);
   virtual int BackgroundColor(float, float, float);
+  virtual int SetIsovalueThreshold(int32_t, float, float);
+  virtual int SetControlPoints(int32_t, std::vector<float>);
 
 protected:
   void init();

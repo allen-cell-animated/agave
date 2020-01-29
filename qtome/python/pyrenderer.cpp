@@ -453,3 +453,17 @@ OffscreenRenderer::BackgroundColor(float r, float g, float b)
   cmd.execute(&m_ec);
   return 1;
 }
+int
+OffscreenRenderer::SetIsovalueThreshold(int32_t channel, float isovalue, float isorange)
+{
+  SetIsovalueThresholdCommand cmd({ channel, isovalue, isorange });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SetControlPoints(int32_t channel, std::vector<float> controlPoints)
+{
+  SetControlPointsCommand cmd({ channel, controlPoints });
+  cmd.execute(&m_ec);
+  return 1;
+}

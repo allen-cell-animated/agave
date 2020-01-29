@@ -317,8 +317,6 @@ ImageXYZC::fuse(const std::vector<glm::vec3>& colorsPerChannel,
 
 Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   : m_histogram(ptr, x * y * z)
-  , m_window(1.0f)
-  , m_level(0.5f)
 {
   m_gradientMagnitudePtr = nullptr;
   m_ptr = ptr;
@@ -330,7 +328,7 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_min = m_histogram._dataMin;
   m_max = m_histogram._dataMax;
 
-  m_lut = m_histogram.generate_percentiles(m_window, m_level);
+  m_lut = m_histogram.generate_percentiles();
 }
 
 Channelu16::~Channelu16()

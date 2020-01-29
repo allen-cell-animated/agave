@@ -41,6 +41,7 @@ public:
 
   virtual int32_t parseInt32();
   virtual float parseFloat32();
+  virtual std::vector<float> parseFloat32Array();
   virtual std::string parseString();
 
   commandBuffer* _commandBuffer;
