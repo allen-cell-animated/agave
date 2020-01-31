@@ -1,0 +1,39 @@
+name: C++ Build
+on: [push]
+jobs:
+  cmake-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 6
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        compiler: [llvm, gnu]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: llvm build and test
+        if: matrix.compiler == 'llvm'
+        env:
+          CC: clang
+          CXX: clang++
+        run: |
+          mkdir ./build
+          cd build
+          cmake ..
+          cmake --build .
+        shell: bash
+      - name: gnu build and test
+        if: matrix.compiler == 'gnu'
+        env:
+          CC: gcc
+          CXX: g++
+          RUN_TESTS: true
+        run: |
+          pwd
+          mkdir ./build
+          cd build
+          cmake ..
+          cmake --build .
+        shell: bash
