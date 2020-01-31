@@ -45,3 +45,13 @@ jobs:
           cmake ..
           cmake --build .
         shell: bash
+      - name: windows build and test
+        if: matrix.os == 'windows-latest'
+        run: |
+          vcpkg install boost tiff glm
+          pwd          
+          mkdir ./build
+          cd build
+          cmake ..
+          cmake --build .
+
