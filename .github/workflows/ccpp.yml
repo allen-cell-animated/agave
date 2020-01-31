@@ -7,14 +7,13 @@ jobs:
       max-parallel: 6
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        compiler: [llvm, gnu]
 
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - name: llvm build and test
-        if: matrix.compiler == 'llvm'
+      - name: macos build and test
+        if: matrix.os == 'macOS-latest'
         env:
           CC: clang
           CXX: clang++
@@ -24,12 +23,11 @@ jobs:
           cmake ..
           cmake --build .
         shell: bash
-      - name: gnu build and test
-        if: matrix.compiler == 'gnu'
+      - name: linux build and test
+        if: matrix.os == 'ubuntu-latest'
         env:
           CC: gcc
           CXX: g++
-          RUN_TESTS: true
         run: |
           pwd
           mkdir ./build
