@@ -15,7 +15,10 @@ jobs:
         run: |
           auth_header="$(git config --local --get http.https://github.com/.extraheader)"
           git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1        
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Install Qt
+        uses: jurple1/install-qt-action@v2
+        version: 5.12.6     
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
         env:
