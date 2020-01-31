@@ -66,7 +66,6 @@ TEST_CASE("Histogram LUT generation is working", "[histogram]")
     Histogram h(nullptr, 0);
 
     // value at 16/255, and at 197/255
-    // discontinuity at 0.5
     std::vector<LutControlPoint> pts = {
       { 0.0f, 0.0f }, { 16.0f / 255.0f, 0.5f }, { 197.0f / 255.0f, 0.75f }, { 1.0f, 1.0f }
     };
