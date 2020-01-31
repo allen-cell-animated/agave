@@ -26,6 +26,7 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
+          brew install boost glm libtiff
           mkdir ./build
           cd build
           cmake ..
