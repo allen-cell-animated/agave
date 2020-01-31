@@ -38,7 +38,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          apt install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
+          sudo apt-get install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
           pwd          
           mkdir ./build
           cd build
