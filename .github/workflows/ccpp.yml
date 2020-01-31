@@ -37,7 +37,8 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          pwd
+          apt install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
+          pwd          
           mkdir ./build
           cd build
           cmake ..
