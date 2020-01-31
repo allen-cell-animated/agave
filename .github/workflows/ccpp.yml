@@ -52,6 +52,6 @@ jobs:
           pwd          
           mkdir ./build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build .
 
