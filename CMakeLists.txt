@@ -10,6 +10,18 @@ project(
   LANGUAGES C CXX
 )
 
+set(CMAKE_CXX_STANDARD 14)
+
+IF (WIN32)
+    set(PYBIND11_CPP_STANDARD /std:c++14)
+ELSE()
+    set(PYBIND11_CPP_STANDARD -std=c++14)
+    # most of this is for libCZI:
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++14 -fPIC -O0 -g -D_FILE_OFFSET_BITS=64 -fvisibility=hidden")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__ANSI__ -fPIC -D_FILE_OFFSET_BITS=64")
+    add_compile_definitions(LINUXENV)
+ENDIF(WIN32)
+
 # Add paths to our CMake code to the module path, so they can be found automatically by
 # CMake.
 set(CMAKE_MODULE_PATH
@@ -30,30 +42,26 @@ set(CMAKE_AUTOUIC ON)
 # or the Qt5<Module>_DIR must be set in the CMake cache to the location of the Qt5WidgetsConfig.cmake 
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
+if(DEFINED ENV{Qt5_DIR})
+  list(INSERT CMAKE_PREFIX_PATH 0 $ENV{Qt5_DIR})
+endif()
+
 if (WIN32)
-  set(QTDIR C:/Qt/5.12.6/msvc2017_64)
-  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(GUESS_Qt5_DIR C:/Qt/5.12.6/msvc2017_64 CACHE STRING "Qt5 directory")
 elseif (APPLE)
-  # mac official Qt install:
-  set(QTDIR ~/Qt/5.12.6/clang_64)
-  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(GUESS_Qt5_DIR ~/Qt/5.12.6/clang_64)
 else ()
-  set(QTDIR /qt/5.12.6/gcc_64)
-  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(GUESS_Qt5_DIR /qt/5.12.6/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif (WIN32)
+list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
 
 if (APPLE)
   set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
-find_package(Qt5Widgets)
-find_package(Qt5Core)
-find_package(Qt5Gui)
-find_package(Qt5Network)
-find_package(Qt5WebSockets)
-find_package(Qt5Xml)
+find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 
 #if(MSVC)
   # Debug library suffix.
@@ -66,6 +74,7 @@ find_package(Qt5Xml)
 # the following line is a workaround for homebrew boost 1.71 + cmake not finding the boost multithreaded libs
 # https://gitlab.kitware.com/cmake/cmake/issues/19714
 set(Boost_NO_BOOST_CMAKE ON)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
 
@@ -74,6 +83,11 @@ find_package(TIFF REQUIRED)
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 # find_path(GLM_PATH glm/glm.hpp)
 find_package( glm REQUIRED )
+
+find_package (Python3 COMPONENTS Interpreter Development)
+get_target_property(py_location Python3::Interpreter LOCATION)
+message(STATUS "PYTHON3 Location: ${py_location}")
+set(PYTHON_EXECUTABLE ${py_location})
 
 ######################
 # THE COMMON CORE LIBRARIES
@@ -84,7 +98,7 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-set(INSTALLDIR "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION}")
+set(INSTALLDIR "${CMAKE_PROJECT_NAME}-install")
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "INSTALLDIR: ${INSTALLDIR}")
@@ -123,6 +137,7 @@ install(
   CONFIGURATIONS Debug
   FILES_MATCHING PATTERN "*.dll"
 )
+
 install(FILES 
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
   ${PROJECT_SOURCE_DIR}/HELP.txt
@@ -132,6 +147,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:Python3::Python>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
@@ -144,6 +160,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:Python3::Python>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )
@@ -189,7 +206,8 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  ${PYTHON_LIBRARIES}
+  $<TARGET_FILE:Python3::Python>
+  # ${PYTHON_LIBRARIES}
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 
@@ -268,7 +286,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  ${PYTHON_LIBRARIES}
+  $<TARGET_FILE:Python3::Python>
 	DESTINATION ${INSTALLDIR}
 )
 install(FILES 
