@@ -26,7 +26,7 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          brew install glm libtiff
+          brew install boost libtiff glm
           mkdir ./build
           cd build
           cmake ..
@@ -38,7 +38,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libtiff-dev libglm-dev libgl1-mesa-dev
+          sudo apt-get install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
           pwd          
           mkdir ./build
           cd build
@@ -48,7 +48,7 @@ jobs:
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         run: |
-          vcpkg install --triplet x64-windows tiff glm
+          vcpkg install --triplet x64-windows boost tiff glm
           pwd          
           mkdir ./build
           cd build
