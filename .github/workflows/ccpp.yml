@@ -49,8 +49,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           vcpkg install --triplet x64-windows tiff glm
-          pwd          
-          mkdir ./build
+          mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build .
