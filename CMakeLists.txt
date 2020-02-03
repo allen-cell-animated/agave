@@ -30,30 +30,26 @@ set(CMAKE_AUTOUIC ON)
 # or the Qt5<Module>_DIR must be set in the CMake cache to the location of the Qt5WidgetsConfig.cmake 
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
+if(DEFINED ENV{Qt5_DIR})
+  list(INSERT CMAKE_PREFIX_PATH 0 $ENV{Qt5_DIR})
+endif()
+
 if (WIN32)
-  set(QTDIR C:/Qt/5.12.6/msvc2017_64)
-  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(GUESS_Qt5_DIR C:/Qt/5.12.6/msvc2017_64 CACHE STRING "Qt5 directory")
 elseif (APPLE)
-  # mac official Qt install:
-  set(QTDIR ~/Qt/5.12.6/clang_64)
-  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(GUESS_Qt5_DIR ~/Qt/5.12.6/clang_64)
 else ()
-  set(QTDIR /qt/5.12.6/gcc_64)
-  list(INSERT CMAKE_PREFIX_PATH 0 ${QTDIR})
+  set(GUESS_Qt5_DIR /qt/5.12.6/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif (WIN32)
+list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
 
 if (APPLE)
   set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
-find_package(Qt5Widgets)
-find_package(Qt5Core)
-find_package(Qt5Gui)
-find_package(Qt5Network)
-find_package(Qt5WebSockets)
-find_package(Qt5Xml)
+find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 
 #if(MSVC)
   # Debug library suffix.
