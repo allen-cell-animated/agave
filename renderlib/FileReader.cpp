@@ -140,12 +140,11 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     return emptyimage;
   }
 
-  uint16_t sampleFormat = 0;
+  uint16_t sampleFormat = SAMPLEFORMAT_UINT;
   if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
+    // just warn here.  We are not yet using sampleFormat!
     QString msg = "Failed to read sampleformat of TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return emptyimage;
+    LOG_WARNING << msg.toStdString();
   }
 
   uint32_t sizeT = 1;
