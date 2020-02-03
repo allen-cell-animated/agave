@@ -21,11 +21,15 @@ const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
 Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   : _bins(num_bins)
   , _ccounts(num_bins)
+  , _dataMin(0)
+  , _dataMax(0)
 {
   std::fill(_bins.begin(), _bins.end(), 0);
 
-  _dataMin = data[0];
-  _dataMax = data[0];
+  if (data) {
+    _dataMin = data[0];
+    _dataMax = data[0];
+  }
 
   uint16_t val;
   for (size_t i = 0; i < length; ++i) {
@@ -318,7 +322,7 @@ Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t lengt
   // pts[0].first === 0
   // pts[pts.size()-1].first === 1
 
-  float* lut = new float[length];
+  float* lut = new float[length]{ 0 };
 
   for (size_t x = 0; x < length; ++x) {
     float fx = (float)x / (float)(length - 1);

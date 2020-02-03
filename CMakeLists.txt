@@ -93,9 +93,15 @@ message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY
 message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 ######################
+# UNIT TESTING
+######################
+add_subdirectory(test)
+
+######################
 # THE FRONT END QT EXE
 ######################
 add_subdirectory(qtome)
+
 #######################################
 # THE FRONT END QT WEBSOCKET SERVER EXE
 #######################################
