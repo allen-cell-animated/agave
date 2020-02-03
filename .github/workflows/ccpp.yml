@@ -30,7 +30,6 @@ jobs:
           mkdir ./build
           cd build
           cmake ..
-          cmake --build . --target agave_test
           cmake --build .
         shell: bash
       - name: linux build and test
@@ -44,7 +43,6 @@ jobs:
           mkdir ./build
           cd build
           cmake ..
-          cmake --build . --target agave_test
           cmake --build .
         shell: bash
       - name: windows build and test
@@ -54,7 +52,6 @@ jobs:
           mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
-          cmake --build . --target agave_test
           cmake --build .
         shell: cmd
 
