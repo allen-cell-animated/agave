@@ -65,7 +65,7 @@ find_package(Qt5Xml)
 
 # the following line is a workaround for homebrew boost 1.71 + cmake not finding the boost multithreaded libs
 # https://gitlab.kitware.com/cmake/cmake/issues/19714
-set(Boost_NO_BOOST_CMAKE 1)
+set(Boost_NO_BOOST_CMAKE ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
 
@@ -93,14 +93,14 @@ message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY
 message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 ######################
+# UNIT TESTING
+######################
+add_subdirectory(test)
+
+######################
 # THE FRONT END QT EXE
 ######################
 add_subdirectory(qtome)
-#######################################
-# THE FRONT END QT WEBSOCKET SERVER EXE
-#######################################
-# currently this is folded into the main agave app with the --server command line arg
-# add_subdirectory(websocketserver)
 
 ######################
 # CPack
@@ -109,6 +109,11 @@ add_subdirectory(qtome)
 
 # copy all dlls into place.
 if (WIN32)
+
+# assuming vcpkg has done some work already to get dlls in here
+file(GLOB RELEASE_DLLS ${CMAKE_BINARY_DIR}/Release/*.dll)
+file(GLOB DEBUG_DLLS ${CMAKE_BINARY_DIR}/Debug/*.dll)
+
 install(FILES 
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
   ${PROJECT_SOURCE_DIR}/HELP.txt
@@ -120,17 +125,7 @@ install(FILES
   $<TARGET_FILE:Qt5::WebSockets>
   # note these are release build dlls.
   ${PYTHON_LIBRARIES}
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_chrono-vc142-mt-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_date_time-vc142-mt-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_filesystem-vc142-mt-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_log-vc142-mt-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_system-vc142-mt-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/boost_thread-vc142-mt-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/jpeg62.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/lzma.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/tiff.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zlib1.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/zstd.dll
+  ${RELEASE_DLLS}
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
@@ -145,17 +140,7 @@ install(FILES
   $<TARGET_FILE:Qt5::WebSockets>
   # debug dlls
   ${PYTHON_LIBRARIES}
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_chrono-vc142-mt-gd-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_date_time-vc142-mt-gd-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_filesystem-vc142-mt-gd-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_log-vc142-mt-gd-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_system-vc142-mt-gd-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/boost_thread-vc142-mt-gd-x64-1_70.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/jpeg62.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/lzmad.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/tiffd.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zlibd1.dll
-	${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin/zstdd.dll
+  ${DEBUG_DLLS}
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )
