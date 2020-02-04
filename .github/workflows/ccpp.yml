@@ -32,6 +32,7 @@ jobs:
           cmake ..
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
+          zip -vr agave_macOS.zip agave.app/
         shell: bash
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
@@ -61,7 +62,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
-          files: build/agave.app
+          files: build/agave_macOS.app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
