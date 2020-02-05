@@ -171,7 +171,7 @@ def save_timepoint_as_tiff(dask_array, idx):
 @task
 def generate_timepoints_array(img):
     timepoints = []
-    for i in range(img.size_t()):
+    for i in range(img.size_t):
         timepoints.append(img.dask_data[0, i, :])
     # timepoints.append(img.dask_data[0, 0, :])
     return timepoints
@@ -182,7 +182,7 @@ def czi_to_tiffs(img_path):
 
     executor = DaskExecutor()
     img = AICSImage(img_path)
-    num_t = img.size_t()
+    num_t = img.size_t
     try:
         physical_pixel_size = img.reader.get_physical_pixel_size()
     except AttributeError:
