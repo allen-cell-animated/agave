@@ -182,6 +182,7 @@ def czi_to_tiffs(img_path):
 
     executor = DaskExecutor()
     img = AICSImage(img_path)
+    num_t = img.size_t()
     try:
         physical_pixel_size = img.reader.get_physical_pixel_size()
     except AttributeError:
@@ -189,7 +190,7 @@ def czi_to_tiffs(img_path):
 
     with Flow("convertCziToTimeOmeTiffs") as flow:
         timepoints = generate_timepoints_array(img)
-        save_timepoint_as_tiff.map(timepoints, list(range(500)))
+        save_timepoint_as_tiff.map(timepoints, list(range(num_t)))
     flow.run(executor=executor)
 
 
