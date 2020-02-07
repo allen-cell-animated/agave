@@ -13,8 +13,156 @@
 #include <tiffio.h>
 
 #include <map>
+#include <set>
 
 std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCache;
+
+bool
+startsWith(std::string mainStr, std::string toMatch)
+{
+  // std::string::find returns 0 if toMatch is found at starting
+  if (mainStr.find(toMatch) == 0)
+    return true;
+  else
+    return false;
+}
+
+bool
+VolumeDimensions::validate() const
+{
+  bool ok = true;
+  if (dimensionOrder == "") {
+    LOG_ERROR << "Dimension order is null";
+    ok = false;
+  }
+  if (!startsWith(dimensionOrder, "XY") && !startsWith(dimensionOrder, "YX")) {
+    LOG_ERROR << "Invalid dimension order: " << dimensionOrder;
+    ok = false;
+  }
+  // legal characters in DimensionOrder:
+  static const std::set<char> standardDims = { 'X', 'Y', 'Z', 'C', 'T' };
+  // check for any dups or extra
+  std::set<char> dimsInDimOrder;
+  bool dups = false;
+  bool badDims = false;
+  for (auto d : dimensionOrder) {
+    if (dimsInDimOrder.count(d) == 0) {
+      dimsInDimOrder.insert(d);
+    } else {
+      dups = true;
+    }
+    if (standardDims.count(d) == 0) {
+      badDims = true;
+    }
+  }
+  if (dups || badDims) {
+    LOG_ERROR << "Invalid dimension order: " << dimensionOrder;
+    ok = false;
+  }
+
+  if (sizeX <= 0) {
+    LOG_ERROR << "Invalid X size: " << sizeX;
+    ok = false;
+  }
+  if (sizeY <= 0) {
+    LOG_ERROR << "Invalid Y size: " << sizeY;
+    ok = false;
+  }
+  if (sizeZ <= 0) {
+    LOG_ERROR << "Invalid Z size: " << sizeZ;
+    ok = false;
+  }
+  if (sizeC <= 0) {
+    LOG_ERROR << "Invalid C size: " << sizeC;
+    ok = false;
+  }
+  if (sizeT <= 0) {
+    LOG_ERROR << "Invalid T size: " << sizeT;
+    ok = false;
+  }
+
+  if (physicalSizeX <= 0) {
+    LOG_ERROR << "Invalid physical pixel size x: " << physicalSizeX;
+    ok = false;
+  }
+  if (physicalSizeY <= 0) {
+    LOG_ERROR << "Invalid physical pixel size y: " << physicalSizeY;
+    ok = false;
+  }
+  if (physicalSizeZ <= 0) {
+    LOG_ERROR << "Invalid physical pixel size z: " << physicalSizeZ;
+    ok = false;
+  }
+
+  if (!channelNames.empty() && channelNames.size() != sizeC) {
+    LOG_ERROR << "Invalid number of channel names: " << channelNames.size() << " for " << sizeC << " channels";
+    ok = false;
+  }
+
+  return ok;
+}
+
+uint32_t
+VolumeDimensions::getPlaneIndex(uint32_t z, uint32_t c, uint32_t t) const
+{
+  size_t iz = dimensionOrder.find('Z') - 2;
+  size_t ic = dimensionOrder.find('C') - 2;
+  size_t it = dimensionOrder.find('T') - 2;
+  // assuming dims.validate() == true :
+  // assert (iz < 0 || iz > 2 || ic < 0 || ic > 2 || it < 0 || it > 2);
+
+  // check SizeZ
+  if (z < 0 || z >= sizeZ) {
+    LOG_ERROR << "Invalid Z index: " << z << "/" << sizeZ;
+  }
+
+  // check SizeC
+  if (c < 0 || c >= sizeC) {
+    LOG_ERROR << "Invalid C index: " << c << "/" << sizeC;
+  }
+
+  // check SizeT
+  if (t < 0 || t >= sizeT) {
+    LOG_ERROR << "Invalid T index: " << t << "/" << sizeT;
+  }
+
+  // assign rasterization order
+  int v0 = iz == 0 ? z : (ic == 0 ? c : t);
+  int v1 = iz == 1 ? z : (ic == 1 ? c : t);
+  int v2 = iz == 2 ? z : (ic == 2 ? c : t);
+  int len0 = iz == 0 ? sizeZ : (ic == 0 ? sizeC : sizeT);
+  int len1 = iz == 1 ? sizeZ : (ic == 1 ? sizeC : sizeT);
+
+  return v0 + v1 * len0 + v2 * len0 * len1;
+}
+
+std::vector<uint32_t>
+VolumeDimensions::getPlaneZCT(uint32_t planeIndex) const
+{
+  size_t iz = dimensionOrder.find('Z') - 2;
+  size_t ic = dimensionOrder.find('C') - 2;
+  size_t it = dimensionOrder.find('T') - 2;
+  // assuming dims.validate() == true :
+  // assert (iz < 0 || iz > 2 || ic < 0 || ic > 2 || it < 0 || it > 2);
+
+  // check image count
+  if (planeIndex < 0 || planeIndex >= sizeZ * sizeC * sizeT) {
+    LOG_ERROR << "Invalid image index: " << planeIndex << "/" << (sizeZ * sizeC * sizeT);
+  }
+
+  // assign rasterization order
+  int len0 = iz == 0 ? sizeZ : (ic == 0 ? sizeC : sizeT);
+  int len1 = iz == 1 ? sizeZ : (ic == 1 ? sizeC : sizeT);
+  // int len2 = iz == 2 ? sizeZ : (ic == 2 ? sizeC : sizeT);
+  int v0 = planeIndex % len0;
+  int v1 = planeIndex / len0 % len1;
+  int v2 = planeIndex / len0 / len1;
+  uint32_t z = iz == 0 ? v0 : (iz == 1 ? v1 : v2);
+  uint32_t c = ic == 0 ? v0 : (ic == 1 ? v1 : v2);
+  uint32_t t = it == 0 ? v0 : (it == 1 ? v1 : v2);
+
+  return { z, c, t };
+}
 
 FileReader::FileReader() {}
 
@@ -43,75 +191,15 @@ requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal)
   return retval;
 }
 
-void
-FileReader::getZCT(uint32_t i,
-                   QString dimensionOrder,
-                   uint32_t sizeZ,
-                   uint32_t sizeC,
-                   uint32_t sizeT,
-                   uint32_t& z,
-                   uint32_t& c,
-                   uint32_t& t)
+bool
+readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dims)
 {
-  // assume t = 0 for everything.
-  assert(sizeT == 1);
-  QString order = dimensionOrder.remove("XY");
-  t = 0;
-  if (order == "CTZ") {
-    c = i % (sizeC);
-    z = i / sizeC;
-  } else if (order == "CZT") {
-    c = i % (sizeC);
-    z = i / sizeC;
-  } else if (order == "ZCT") {
-    c = i / (sizeZ);
-    z = i % sizeZ;
-  } else if (order == "ZTC") {
-    c = i / (sizeZ);
-    z = i % sizeZ;
-  } else if (order == "TCZ") {
-    c = i % (sizeC);
-    z = i / sizeC;
-  } else if (order == "TZC") {
-    c = i / (sizeZ);
-    z = i % sizeZ;
-  }
-}
-
-std::shared_ptr<ImageXYZC>
-FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
-{
-  // check cache first of all.
-  auto cached = sPreloadedImageCache.find(filepath);
-  if (cached != sPreloadedImageCache.end()) {
-    return cached->second;
-  }
-
-  std::shared_ptr<ImageXYZC> emptyimage;
-
-  QElapsedTimer twhole;
-  twhole.start();
-
-  QElapsedTimer timer;
-  timer.start();
-
-  // Loads tiff file
-  TIFF* tiff = TIFFOpen(filepath.c_str(), "r");
-  if (!tiff) {
-    QString msg = "Failed to open TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return emptyimage;
-  }
-
   char* omexmlstr = nullptr;
   // ome-xml is in ImageDescription of first IFD in the file.
   if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &omexmlstr) != 1) {
     QString msg = "Failed to read imagedescription of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
-
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return emptyimage;
+    return false;
   }
 
   // Temporary variables
@@ -122,22 +210,19 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   if (TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, &width) != 1) {
     QString msg = "Failed to read width of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return emptyimage;
+    return false;
   }
   if (TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &height) != 1) {
     QString msg = "Failed to read height of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return emptyimage;
+    return false;
   }
 
   uint32_t bpp = 0;
   if (TIFFGetField(tiff, TIFFTAG_BITSPERSAMPLE, &bpp) != 1) {
     QString msg = "Failed to read bpp of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-    return emptyimage;
+    return false;
   }
 
   uint16_t sampleFormat = SAMPLEFORMAT_UINT;
@@ -155,11 +240,13 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   float physicalSizeX = 1.0f;
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
-  std::vector<QString> channelNames;
+  std::vector<std::string> channelNames;
   QString dimensionOrder = "XYCZT";
 
-  // check for plain tiff with ImageJ imagedescription:
+  // convert to QString for convenience functions
   QString qomexmlstr(omexmlstr);
+
+  // check for plain tiff with ImageJ imagedescription:
   if (qomexmlstr.startsWith("ImageJ=")) {
     // "ImageJ=\nhyperstack=true\nimages=7900\nchannels=1\nslices=50\nframes=158"
     // "ImageJ=1.52i\nimages=126\nchannels=2\nslices=63\nhyperstack=true\nmode=composite\nunit=
@@ -178,7 +265,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       } else {
         QString msg = "Unexpected name/value pair in TIFF ImageJ metadata: " + sl.at(i);
         LOG_ERROR << msg.toStdString();
-        return emptyimage;
+        return false;
       }
     }
 
@@ -217,7 +304,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     }
 
     for (uint32_t i = 0; i < sizeC; ++i) {
-      channelNames.push_back(QString::number(i));
+      channelNames.push_back(QString::number(i).toStdString());
     }
   } else if (qomexmlstr.startsWith("{\"shape\":")) {
     // expect a 4d shape array of C,Z,Y,X
@@ -230,7 +317,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     if (shapelist.size() != 4) {
       QString msg = "Expected shape to be 4D TIFF: '" + QString(filepath.c_str()) + "'";
       LOG_ERROR << msg.toStdString();
-      return emptyimage;
+      return false;
     }
     dimensionOrder = "XYZCT";
     sizeX = shapelist[3].toInt();
@@ -238,7 +325,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     sizeZ = shapelist[1].toInt();
     sizeC = shapelist[0].toInt();
     for (uint32_t i = 0; i < sizeC; ++i) {
-      channelNames.push_back(QString("%1").arg(i));
+      channelNames.push_back(QString("%1").arg(i).toStdString());
     }
 
   } else if (qomexmlstr.startsWith("<?xml version") && qomexmlstr.endsWith("OME>")) {
@@ -248,8 +335,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     if (!ok) {
       QString msg = "Bad ome xml content";
       LOG_ERROR << msg.toStdString();
-      // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
-      return emptyimage;
+      return false;
     }
 
     // extract some necessary info from the xml:
@@ -257,7 +343,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     if (pixelsEl.isNull()) {
       QString msg = "No <Pixels> element in ome xml";
       LOG_ERROR << msg.toStdString();
-      return emptyimage;
+      return false;
     }
 
     // skipping "complex", "double-complex", and "bit".
@@ -270,7 +356,7 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     bpp = mapPixelTypeBPP[pixelType.toStdString()];
     if (bpp != 16) {
       LOG_ERROR << "Image must be 16-bit";
-      return emptyimage;
+      return false;
     }
     sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
     sizeY = requireUint32Attr(pixelsEl, "SizeY", 0);
@@ -294,11 +380,11 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
       QString chid = chel.attribute("ID");
       QString chname = chel.attribute("Name");
       if (!chname.isEmpty()) {
-        channelNames.push_back(chname);
+        channelNames.push_back(chname.toStdString());
       } else if (!chid.isEmpty()) {
-        channelNames.push_back(chid);
+        channelNames.push_back(chid.toStdString());
       } else {
-        channelNames.push_back(QString("%1").arg(i));
+        channelNames.push_back(QString("%1").arg(i).toStdString());
       }
     }
   } else {
@@ -320,44 +406,53 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
   assert(sizeX >= 1);
   assert(sizeY >= 1);
   assert(sizeZ >= 1);
-  size_t planesize = sizeX * sizeY * bpp / 8;
-  uint8_t* data = new uint8_t[planesize * sizeZ * sizeC];
-  memset(data, 0, planesize * sizeZ * sizeC);
-  // stash it here in case of early exit, it will be deleted
-  std::unique_ptr<uint8_t[]> smartPtr(data);
 
-  uint8_t* destptr = data;
+  dims.sizeX = sizeX;
+  dims.sizeY = sizeY;
+  dims.sizeZ = sizeZ;
+  dims.sizeC = sizeC;
+  dims.sizeT = sizeT;
+  dims.dimensionOrder = dimensionOrder.toStdString();
+  dims.physicalSizeX = physicalSizeX;
+  dims.physicalSizeY = physicalSizeY;
+  dims.physicalSizeZ = physicalSizeZ;
+  dims.bitsPerPixel = bpp;
+  dims.channelNames = channelNames;
 
-  // use dimensionOrderZCT to determine whether Z or C comes first!
-  // assume XY are not transposed.
-  QString dimensionOrderZCT = dimensionOrder.remove("XY");
+  return dims.validate();
+}
 
+// DANGER: assumes dataPtr has enough space allocated!!!!
+bool
+readTiffPlane(TIFF* tiff, int planeIndex, uint8_t* dataPtr)
+{
+  // TODO future optimize:
+  // This function is usually called in a loop. We could factor out the TIFFmalloc and TIFFfree calls.
+  // Should profile to see if the repeated malloc/frees are any kind of loading bottleneck.
   if (TIFFIsTiled(tiff)) {
     tsize_t tilesize = TIFFTileSize(tiff);
     uint32 ntiles = TIFFNumberOfTiles(tiff);
     assert(ntiles == 1);
     // assuming ntiles == 1 for all IFDs
     tdata_t buf = _TIFFmalloc(tilesize);
-    for (uint32_t i = 0; i < sizeZ * sizeC; ++i) {
-      int setdirok = TIFFSetDirectory(tiff, i);
-      if (setdirok == 0) {
-        LOG_ERROR << "Bad tiff directory specified: " << (i);
-        return emptyimage;
-      }
-      int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
-      if (readtileok < 0) {
-        LOG_ERROR << "Error reading tiff tile";
-        return emptyimage;
-      }
-      // copy buf into data.
-      uint32_t t = 0;
-      uint32_t z = 0;
-      uint32_t c = 0;
-      getZCT(i, dimensionOrderZCT, sizeZ, sizeC, sizeT, z, c, t);
-      uint32_t planeindexinbuffer = c * sizeZ + z;
-      destptr = data + (planesize * (planeindexinbuffer));
-      memcpy(destptr, buf, readtileok);
+
+    uint32_t i = planeIndex;
+
+    int setdirok = TIFFSetDirectory(tiff, i);
+    if (setdirok == 0) {
+      LOG_ERROR << "Bad tiff directory specified: " << (i);
+      _TIFFfree(buf);
+      return false;
     }
+    int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
+    if (readtileok < 0) {
+      LOG_ERROR << "Error reading tiff tile";
+      _TIFFfree(buf);
+      return false;
+    }
+    // copy buf into data.
+    memcpy(dataPtr, buf, readtileok);
+
     _TIFFfree(buf);
   } else {
     // stripped.
@@ -365,49 +460,104 @@ FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
     tsize_t striplength = TIFFStripSize(tiff);
     tdata_t buf = _TIFFmalloc(striplength);
 
-    for (uint32_t i = 0; i < sizeZ * sizeC; ++i) {
-      uint32_t planeindexintiff = i;
-      int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
-      if (setdirok == 0) {
-        LOG_ERROR << "Bad tiff directory specified: " << (i);
-        return emptyimage;
-      }
-      // ensure channels are coalesced (transposing from xycz to xyzc)
-      uint32_t t = 0;
-      uint32_t z = 0;
-      uint32_t c = 0;
-      getZCT(i, dimensionOrderZCT, sizeZ, sizeC, sizeT, z, c, t);
-      uint32_t planeindexinbuffer = c * sizeZ + z;
-      destptr = data + (planesize * (planeindexinbuffer));
-      uint32 nstrips = TIFFNumberOfStrips(tiff);
-      for (tstrip_t strip = 0; strip < nstrips; strip++) {
-        int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
-        if (readstripok < 0) {
-          LOG_ERROR << "Error reading tiff strip";
-          return emptyimage;
-        }
+    uint32_t i = planeIndex;
 
-        // copy buf into data.
-        memcpy(destptr, buf, readstripok);
-        destptr += readstripok;
+    uint32_t planeindexintiff = i;
+    int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
+    if (setdirok == 0) {
+      LOG_ERROR << "Bad tiff directory specified: " << (i);
+      _TIFFfree(buf);
+      return false;
+    }
+    uint32 nstrips = TIFFNumberOfStrips(tiff);
+    for (tstrip_t strip = 0; strip < nstrips; strip++) {
+      int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
+      if (readstripok < 0) {
+        LOG_ERROR << "Error reading tiff strip";
+        _TIFFfree(buf);
+        return false;
       }
+
+      // copy buf into data.
+      memcpy(dataPtr, buf, readstripok);
+      dataPtr += readstripok;
     }
     _TIFFfree(buf);
+  }
+  return true;
+}
+
+std::shared_ptr<ImageXYZC>
+FileReader::loadOMETiff_4D(const std::string& filepath, bool addToCache)
+{
+  // check cache first of all.
+  auto cached = sPreloadedImageCache.find(filepath);
+  if (cached != sPreloadedImageCache.end()) {
+    return cached->second;
+  }
+
+  std::shared_ptr<ImageXYZC> emptyimage;
+
+  QElapsedTimer twhole;
+  twhole.start();
+
+  QElapsedTimer timer;
+  timer.start();
+
+  // Loads tiff file
+  TIFF* tiff = TIFFOpen(filepath.c_str(), "r");
+  if (!tiff) {
+    QString msg = "Failed to open TIFF: '" + QString(filepath.c_str()) + "'";
+    LOG_ERROR << msg.toStdString();
+    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
+    return emptyimage;
+  }
+
+  VolumeDimensions dims;
+  bool dims_ok = readTiffDimensions(tiff, filepath, dims);
+  if (!dims_ok) {
+    return emptyimage;
+  }
+
+  size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
+  uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
+  memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
+  // stash it here in case of early exit, it will be deleted
+  std::unique_ptr<uint8_t[]> smartPtr(data);
+
+  uint8_t* destptr = data;
+
+  // now ready to read channels one by one.
+  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+    for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
+      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, 0);
+      destptr = data + planesize * (channel * dims.sizeZ + slice);
+      if (!readTiffPlane(tiff, planeIndex, destptr)) {
+        return emptyimage;
+      }
+    }
   }
 
   TIFFClose(tiff);
 
   LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
 
-  // TODO: convert data to uint16_t pixels.
+  // TODO: convert data to uint16_t pixels if not already.
 
   timer.start();
   // we can release the smartPtr because ImageXYZC will now own the raw data memory
-  ImageXYZC* im = new ImageXYZC(
-    sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), smartPtr.release(), physicalSizeX, physicalSizeY, physicalSizeZ);
+  ImageXYZC* im = new ImageXYZC(dims.sizeX,
+                                dims.sizeY,
+                                dims.sizeZ,
+                                dims.sizeC,
+                                dims.bitsPerPixel,
+                                smartPtr.release(),
+                                dims.physicalSizeX,
+                                dims.physicalSizeY,
+                                dims.physicalSizeZ);
   LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
-  im->setChannelNames(channelNames);
+  im->setChannelNames(dims.channelNames);
 
   LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
 
@@ -461,11 +611,7 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
     new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ);
   LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
-  std::vector<QString> qchannelNames;
-  for (auto name : channelNames) {
-    qchannelNames.push_back(QString::fromStdString(name));
-  }
-  im->setChannelNames(qchannelNames);
+  im->setChannelNames(channelNames);
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
   if (addToCache) {

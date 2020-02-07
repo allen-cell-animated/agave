@@ -68,7 +68,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     j["pixel_size_z"] = image->physicalSizeZ();
     QJsonArray channelNames;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelNames.append(image->channel(i)->m_name);
+      channelNames.append(QString::fromStdString(image->channel(i)->m_name));
     }
     j["channel_names"] = channelNames;
     QJsonArray channelMaxIntensity;

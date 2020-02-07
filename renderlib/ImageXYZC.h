@@ -76,7 +76,7 @@ struct Channelu16
 
   void debugprint();
 
-  QString m_name;
+  std::string m_name;
 };
 
 class ImageXYZC
@@ -119,7 +119,7 @@ public:
   // allocates memory for outRGBVolume and outGradientVolume
   void fuse(const std::vector<glm::vec3>& colorsPerChannel, uint8_t** outRGBVolume, uint16_t** outGradientVolume) const;
 
-  void setChannelNames(std::vector<QString>& channelNames);
+  void setChannelNames(std::vector<std::string>& channelNames);
 
 private:
   uint32_t m_x, m_y, m_z, m_c, m_bpp;
