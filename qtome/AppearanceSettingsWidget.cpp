@@ -588,8 +588,11 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
   if (!m_scene)
     return;
-  m_scene->m_material.m_enabled[i] = is_checked;
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
+  bool old_value = m_scene->m_material.m_enabled[i];
+  if (old_value != is_checked) {
+    m_scene->m_material.m_enabled[i] = is_checked;
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);  
+  }
 }
 
 // split color into color and intensity.
