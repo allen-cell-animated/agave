@@ -8,6 +8,8 @@ from pathlib import Path
 
 from prefect import task, Flow
 
+# from psutil import Process
+
 OUTROOT = "//allen/aics/animated-cell/Dan/2018-02-14_dan_vday_mitosis/timelapse_wt2_s2/"
 CHNAMES = ["dna", "fibrillarin", "lamin_b1", "tom20", "brightfield"]
 INFILES = [
@@ -40,7 +42,7 @@ def convert_combined():
         finalimage = None
         for i in range(0, len(INFILES)):
             infilepath = inroot + str(j).zfill(2) + "\\" + INFILES[i]
-            image = TifReader(infilepath).load()
+            image = TiffReader(infilepath).load()
             image = image.transpose([1, 0, 2, 3])
             # normalizes data in range 0 - uint16max
             image = image.clip(min=0.0)
@@ -180,17 +182,17 @@ def generate_timepoints_array(img):
 def czi_to_tiffs(img_path):
     from prefect.engine.executors import DaskExecutor
 
-    executor = DaskExecutor()
     img = AICSImage(img_path)
     num_t = img.size_t
-    # try:
-    #     physical_pixel_size = img.reader.get_physical_pixel_size()
-    # except AttributeError:
-    #     physical_pixel_size = (1.0, 1.0, 1.0)
+    # physical_pixel_size = img.reader.get_physical_pixel_size()
+    # LOL WTF GTFO
+    # img.reader._metadata = None
 
     with Flow("convertCziToTimeOmeTiffs") as flow:
         timepoints = generate_timepoints_array(img)
         save_timepoint_as_tiff.map(timepoints, list(range(num_t)))
+
+    executor = DaskExecutor()
     flow.run(executor=executor)
 
 
