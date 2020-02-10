@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
-#include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
+#include "renderlib/VolumeDimensions.h"
 
 TEST_CASE("VolumeDimensions", "[volumeDimensions]")
 {
