@@ -62,3 +62,9 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(logger, src::severity_logger_mt)
 
   return logger;
 }
+
+void
+Logging::Enable(bool enabled)
+{
+  boost::log::core::get()->set_logging_enabled(enabled);
+}
