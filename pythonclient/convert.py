@@ -22,7 +22,7 @@ INFILES = [
 
 
 def convert_tiff_to_ome_tiff_1ch(filepathin, filepathout):
-    image = TiffReader(filepathin).load()
+    image = TiffReader(filepathin).data
     image = image.transpose([1, 0, 2, 3])
     # normalizes data in range 0 - uint16max
     image = image.clip(min=0.0)
@@ -42,7 +42,7 @@ def convert_combined():
         finalimage = None
         for i in range(0, len(INFILES)):
             infilepath = inroot + str(j).zfill(2) + "\\" + INFILES[i]
-            image = TiffReader(infilepath).load()
+            image = TiffReader(infilepath).data
             image = image.transpose([1, 0, 2, 3])
             # normalizes data in range 0 - uint16max
             image = image.clip(min=0.0)
@@ -84,7 +84,7 @@ def combineFiles(files, out, channel_names=None):
     finalimage = None
     for f in files:
         ai = AICSImage(f)
-        # ai.data is 5d.
+        # ai.data is 6d.
         image = ai.data
         if image.dtype == numpy.float32:
             # normalizes data in range 0 - uint16max
@@ -94,9 +94,9 @@ def combineFiles(files, out, channel_names=None):
             # convert float to uint16
             image = image.astype(numpy.uint16)
         if finalimage is None:
-            finalimage = [image[0]]
+            finalimage = [image[0][0]]
         else:
-            finalimage = numpy.append(finalimage, [image[0]], axis=1)
+            finalimage = numpy.append(finalimage, [image[0][0]], axis=1)
     print(finalimage.shape)
     finalimage = finalimage.transpose([0, 2, 1, 3, 4])
     with OmeTiffWriter(file_path=out, overwrite_file=True) as writer:
@@ -135,7 +135,7 @@ def combineFiles(files, out, channel_names=None):
 
 
 def convert_labefreetestdata():
-    indir = "\\\\allen\\aics\\modeling\\cheko\\projects\\for_others\\2017-11-29_for_ac\\3500000766_100X_20170328_D04_P04.czi\\"
+    indir = "\\\\allen\\aics\\modeling\\cheko\\for_others\\2017-11-29_for_ac\\3500000766_100X_20170328_D04_P04.czi\\"
     imgs = [
         "img_chan_brightfield",
         "img_chan_dna",
