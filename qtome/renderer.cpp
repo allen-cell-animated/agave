@@ -239,8 +239,6 @@ Renderer::render()
   m_openGLMutex->lock();
   this->m_glContext->makeCurrent(this->m_surface);
 
-  glEnable(GL_TEXTURE_2D);
-
   // DRAW
   m_myVolumeData.m_camera->Update();
   m_myVolumeData.m_renderer->doRender(*(m_myVolumeData.m_camera));
