@@ -24,16 +24,8 @@ public:
                                                      std::vector<std::string> channelNames = {},
                                                      std::vector<float> physicalSizes = { 1.0f, 1.0f, 1.0f },
                                                      bool addToCache = false);
+  // static void tiffReadChannelXYZ(uint8_t* byteptr, const VolumeDimensions& dims, int c, int t = 0);
 
 private:
   static std::map<std::string, std::shared_ptr<ImageXYZC>> sPreloadedImageCache;
-
-  static void getZCT(uint32_t i,
-                     QString dimensionOrder,
-                     uint32_t size_z,
-                     uint32_t size_c,
-                     uint32_t size_t,
-                     uint32_t& z,
-                     uint32_t& c,
-                     uint32_t& t);
 };

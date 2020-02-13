@@ -54,6 +54,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"	
 )
 add_subdirectory(gl)
 add_subdirectory(gl/v33)

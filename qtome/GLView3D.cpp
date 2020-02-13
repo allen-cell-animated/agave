@@ -349,8 +349,7 @@ GLView3D::captureQimage()
 
   QOpenGLFramebufferObject* fbo =
     new QOpenGLFramebufferObject(width() * devicePixelRatioF(), height() * devicePixelRatioF(), fboFormat);
-
-  glEnable(GL_TEXTURE_2D);
+  check_gl("create fbo");
 
   fbo->bind();
   check_glfb("bind framebuffer for screen capture");

@@ -588,8 +588,11 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
   if (!m_scene)
     return;
-  m_scene->m_material.m_enabled[i] = is_checked;
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
+  bool old_value = m_scene->m_material.m_enabled[i];
+  if (old_value != is_checked) {
+    m_scene->m_material.m_enabled[i] = is_checked;
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);  
+  }
 }
 
 // split color into color and intensity.
@@ -672,7 +675,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
 
-    Section* section = new Section(scene->m_volume->channel(i)->m_name, 0, true, channelenabled);
+    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
 
     auto* fullLayout = new QVBoxLayout();
 

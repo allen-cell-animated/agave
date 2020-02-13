@@ -46,7 +46,7 @@ ImageXYZC::~ImageXYZC()
 }
 
 void
-ImageXYZC::setChannelNames(std::vector<QString>& channelNames)
+ImageXYZC::setChannelNames(std::vector<std::string>& channelNames)
 {
   for (uint32_t i = 0; i < m_c; ++i) {
     m_channels[i]->m_name = channelNames[i];
