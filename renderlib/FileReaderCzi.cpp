@@ -78,9 +78,10 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   });
 
   libCZI::ScalingInfo scalingInfo = docinfo->GetScalingInfo();
-  dims.physicalSizeX = scalingInfo.scaleX;
-  dims.physicalSizeY = scalingInfo.scaleY;
-  dims.physicalSizeZ = scalingInfo.scaleZ;
+  // convert meters to microns?
+  dims.physicalSizeX = scalingInfo.scaleX * 1000000.0f;
+  dims.physicalSizeY = scalingInfo.scaleY * 1000000.0f;
+  dims.physicalSizeZ = scalingInfo.scaleZ * 1000000.0f;
 
   // get all dimension bounds and enumerate
   statistics.dimBounds.EnumValidDimensions([&](libCZI::DimensionIndex dimensionIndex, int start, int size) -> bool {
@@ -183,7 +184,7 @@ bool
 readCziPlane(std::shared_ptr<libCZI::ISingleChannelTileAccessor>& accessor,
              const libCZI::IntRect& planeRect,
              const libCZI::CDimCoordinate& planeCoord,
-    const VolumeDimensions& volumeDims,
+             const VolumeDimensions& volumeDims,
              uint8_t* dataPtr)
 {
   std::shared_ptr<libCZI::IBitmapData> multiTileComposit = accessor->Get(planeRect, &planeCoord, nullptr);
@@ -238,8 +239,8 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
 
     size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
     uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
-    //memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
-    memset(data, 1, planesize * dims.sizeZ * dims.sizeC);
+    memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
+    
     // stash it here in case of early exit, it will be deleted
     std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -254,7 +255,7 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
     statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::T, &startT, &sizeT);
     statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::Z, &startZ, &sizeZ);
     statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::C, &startC, &sizeC);
-#if 0
+
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
         destptr = data + planesize * (channel * dims.sizeZ + slice);
@@ -270,7 +271,7 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
         }
       }
     }
-    #endif
+
     cziReader->Close();
 
     LOG_DEBUG << "CZI loaded in " << timer.elapsed() << "ms";
