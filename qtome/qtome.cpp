@@ -7,7 +7,6 @@
 
 #include "renderlib/AppScene.h"
 #include "renderlib/FileReader.h"
-#include "renderlib/FileReaderCzi.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
