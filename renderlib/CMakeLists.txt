@@ -25,6 +25,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Framebuffer.cpp"
@@ -62,8 +64,21 @@ add_subdirectory(gl/v33)
 add_subdirectory(glad/src)
 add_subdirectory(glsl/v330)
 
+# libCZI dependency for renderlib
+add_compile_definitions(_STATICLIBBUILD)
+# I prefer target_compile_definitions but the target has to exist first
+add_subdirectory(libCZI/Src/JxrDecode)
+add_subdirectory(libCZI/Src/libCZI)
+find_library(libCZI REQUIRED PATHS ${CMAKE_SOURCE_DIR}/libCZI)
+set_target_properties(libCZI PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+# end libczi dependency
+
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml 
 	${TIFF_LIBRARIES}
 	${CMAKE_DL_LIBS}
+	libCZIStatic
+	JxrDecodeStatic # libCZI depends on it
 )
+
+
