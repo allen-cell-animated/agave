@@ -181,30 +181,37 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
 
 // DANGER: assumes dataPtr has enough space allocated!!!!
 bool
-readCziPlane(std::shared_ptr<libCZI::ISingleChannelTileAccessor>& accessor,
+readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
              const libCZI::IntRect& planeRect,
              const libCZI::CDimCoordinate& planeCoord,
              const VolumeDimensions& volumeDims,
              uint8_t* dataPtr)
 {
-  std::shared_ptr<libCZI::IBitmapData> multiTileComposit = accessor->Get(planeRect, &planeCoord, nullptr);
+  reader->EnumSubset(&planeCoord, &planeRect, true, [&](int idx, const libCZI::SubBlockInfo& info) -> bool {
+    // accept first subblock
+    std::shared_ptr<libCZI::ISubBlock> subblock = reader->ReadSubBlock(idx);
 
-  // copy bitmap into dataPtr
-  libCZI::IntSize size = multiTileComposit->GetSize();
-  {
-    libCZI::ScopedBitmapLockerSP lckScoped{ multiTileComposit };
-    assert(lckScoped.stride >= size.w * 2);
-    assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
-    assert(volumeDims.sizeX == size.w);
-    assert(volumeDims.sizeY == size.h);
-    size_t bytesPerRow = size.w * 2; // destination stride
-    // stridewise copying
-    for (std::uint32_t y = 0; y < size.h; ++y) {
-      const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
-      // uint16 is 2 bytes per pixel
-      memcpy(dataPtr + (bytesPerRow * y), ptrLine, bytesPerRow);
+    std::shared_ptr<libCZI::IBitmapData> bitmap = subblock->CreateBitmap();
+    // and copy memory
+    libCZI::IntSize size = bitmap->GetSize();
+    {
+      libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
+      assert(lckScoped.stride >= size.w * 2);
+      assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
+      assert(volumeDims.sizeX == size.w);
+      assert(volumeDims.sizeY == size.h);
+      size_t bytesPerRow = size.w * 2; // destination stride
+      // stridewise copying
+      for (std::uint32_t y = 0; y < size.h; ++y) {
+        const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
+        // uint16 is 2 bytes per pixel
+        memcpy(dataPtr + (bytesPerRow * y), ptrLine, bytesPerRow);
+      }
     }
-  }
+
+    // stop iterating, on the assumption that there is only one subblock that fits this planecoordinate
+    return false;
+  });
 
   return true;
 }
@@ -240,14 +247,13 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
     size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
     uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
     memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
-    
+
     // stash it here in case of early exit, it will be deleted
     std::unique_ptr<uint8_t[]> smartPtr(data);
 
     uint8_t* destptr = data;
 
     // now ready to read channels one by one.
-    auto accessor = cziReader->CreateSingleChannelTileAccessor();
 
     int startT = 0, sizeT = 0;
     int startC = 0, sizeC = 0;
@@ -262,11 +268,11 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
 
         // adjust coordinates by offsets from dims
         libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::C, (int)channel + startC },
-                                           // S can not be in a CDimCoordinate  { libCZI::DimensionIndex::S, 0 },
+                                           { libCZI::DimensionIndex::S, 0 },
                                            { libCZI::DimensionIndex::Z, (int)slice + startZ },
                                            { libCZI::DimensionIndex::T, 0 + startT } };
 
-        if (!readCziPlane(accessor, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {
+        if (!readCziPlane(cziReader, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {
           return emptyimage;
         }
       }
