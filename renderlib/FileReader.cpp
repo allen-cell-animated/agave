@@ -31,9 +31,14 @@ FileReader::loadFromFile_4D(const std::string& filepath, bool addToCache)
   boost::filesystem::path fpath(filepath);
 
   boost::filesystem::path ext = fpath.extension();
-  if (ext == ".tif" || ext == ".tiff") {
+  std::string extstr = ext.string();
+  for (std::string::size_type i = 0; i < extstr.length(); ++i) {
+    extstr[i] = std::tolower(extstr[i]);
+  }
+
+  if (extstr == ".tif" || extstr == ".tiff") {
     image = FileReaderTIFF::loadOMETiff_4D(filepath);
-  } else if (ext == ".czi") {
+  } else if (extstr == ".czi") {
     image = FileReaderCzi::loadCzi_4D(filepath);
   }
 
