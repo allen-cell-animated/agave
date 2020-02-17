@@ -246,6 +246,23 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
     if (!dims_ok) {
       return emptyimage;
     }
+    int startT = 0, sizeT = 0;
+    int startC = 0, sizeC = 0;
+    int startZ = 0, sizeZ = 0;
+    int startS = 0, sizeS = 0;
+    bool hasT = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::T, &startT, &sizeT);
+    bool hasZ = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::Z, &startZ, &sizeZ);
+    bool hasC = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::C, &startC, &sizeC);
+    bool hasS = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::S, &startS, &sizeS);
+
+    if (!hasZ) {
+      LOG_ERROR << "Agave can only read zstack volume data";
+      return emptyimage;
+    }
+    if (dims.sizeC != sizeC || !hasC) {
+      LOG_ERROR << "Inconsistent Channel count in czi file";
+      return emptyimage;
+    }
 
     size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
     uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
@@ -258,22 +275,21 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
 
     // now ready to read channels one by one.
 
-    int startT = 0, sizeT = 0;
-    int startC = 0, sizeC = 0;
-    int startZ = 0, sizeZ = 0;
-    statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::T, &startT, &sizeT);
-    statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::Z, &startZ, &sizeZ);
-    statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::C, &startC, &sizeC);
-
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
         destptr = data + planesize * (channel * dims.sizeZ + slice);
 
         // adjust coordinates by offsets from dims
-        libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::C, (int)channel + startC },
-                                           { libCZI::DimensionIndex::S, 0 },
-                                           { libCZI::DimensionIndex::Z, (int)slice + startZ },
-                                           { libCZI::DimensionIndex::T, 0 + startT } };
+        libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::Z, (int)slice + startZ } };
+        if (hasC) {
+          planeCoord.Set(libCZI::DimensionIndex::C, (int)channel + startC);
+        }
+        if (hasS) {
+          planeCoord.Set(libCZI::DimensionIndex::S, 0 + startS);
+        }
+        if (hasT) {
+          planeCoord.Set(libCZI::DimensionIndex::T, 0 + startT);
+        }
 
         if (!readCziPlane(cziReader, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {
           return emptyimage;
