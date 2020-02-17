@@ -323,6 +323,10 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
     std::shared_ptr<ImageXYZC> sharedImage(im);
     return sharedImage;
 
+  } catch (std::exception& e) {
+    LOG_ERROR << e.what();
+    LOG_ERROR << "Failed to read " << filepath;
+    return emptyimage;
   } catch (...) {
     LOG_ERROR << "Failed to read " << filepath;
     return emptyimage;
