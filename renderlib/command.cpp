@@ -31,7 +31,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
   QFileInfo info(QString(m_data.m_name.c_str()));
   if (info.exists()) {
-    std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(m_data.m_name);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(m_data.m_name);
     if (!image) {
       return;
     }

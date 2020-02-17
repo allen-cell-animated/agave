@@ -7,6 +7,7 @@
 
 #include "renderlib/AppScene.h"
 #include "renderlib/FileReader.h"
+#include "renderlib/FileReaderCzi.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
@@ -317,7 +318,7 @@ qtome::open(const QString& file, const ViewerState* vs)
   if (info.exists()) {
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
-    std::shared_ptr<ImageXYZC> image = FileReader::loadOMETiff_4D(file.toStdString());
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(file.toStdString());
     if (!image) {
       LOG_DEBUG << "Failed to open " << file.toStdString();
       return;

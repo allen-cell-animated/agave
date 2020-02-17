@@ -27,6 +27,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Framebuffer.cpp"
