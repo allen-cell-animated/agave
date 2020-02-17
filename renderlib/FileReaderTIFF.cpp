@@ -46,9 +46,9 @@ requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal)
 bool
 readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dims)
 {
-  char* omexmlstr = nullptr;
-  // ome-xml is in ImageDescription of first IFD in the file.
-  if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &omexmlstr) != 1) {
+  char* imagedescription = nullptr;
+  // metadata is in ImageDescription of first IFD in the file.
+  if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &imagedescription) != 1) {
     QString msg = "Failed to read imagedescription of TIFF: '" + QString(filepath.c_str()) + "'";
     LOG_ERROR << msg.toStdString();
     return false;
@@ -96,15 +96,15 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   QString dimensionOrder = "XYCZT";
 
   // convert to QString for convenience functions
-  QString qomexmlstr(omexmlstr);
+  QString imagedescriptionQString(imagedescription);
 
   // check for plain tiff with ImageJ imagedescription:
-  if (qomexmlstr.startsWith("ImageJ=")) {
+  if (imagedescriptionQString.startsWith("ImageJ=")) {
     // "ImageJ=\nhyperstack=true\nimages=7900\nchannels=1\nslices=50\nframes=158"
     // "ImageJ=1.52i\nimages=126\nchannels=2\nslices=63\nhyperstack=true\nmode=composite\nunit=
     //      micron\nfinterval=299.2315368652344\nspacing=0.2245383462882669\nloop=false\nmin=9768.0\nmax=
     //        14591.0\n"
-    QStringList sl = qomexmlstr.split('\n');
+    QStringList sl = imagedescriptionQString.split('\n');
     // split each string into name/value pairs,
     // then look up as a map.
     QMap<QString, QString> imagejmetadata;
@@ -137,6 +137,14 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       LOG_WARNING << msg.toStdString();
     }
 
+    if (imagejmetadata.contains("frames")) {
+      QString value = imagejmetadata.value("frames");
+      sizeT = value.toInt();
+    } else {
+      QString msg = "Failed to read number of frames of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
+      LOG_WARNING << msg.toStdString();
+    }
+
     if (imagejmetadata.contains("spacing")) {
       QString value = imagejmetadata.value("spacing");
       bool ok;
@@ -149,41 +157,44 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
         if (physicalSizeZ < 0.0f) {
           physicalSizeZ = -physicalSizeZ;
         }
-        // WHY?  NEED TO FIGURE OUT UNITS HERE.
-        physicalSizeX = 0.1f;
-        physicalSizeY = 0.1f;
+        physicalSizeX = physicalSizeZ;
+        physicalSizeY = physicalSizeZ;
       }
     }
 
     for (uint32_t i = 0; i < sizeC; ++i) {
       channelNames.push_back(QString::number(i).toStdString());
     }
-  } else if (qomexmlstr.startsWith("{\"shape\":")) {
-    // expect a 4d shape array of C,Z,Y,X
-    int firstBracket = qomexmlstr.indexOf('[');
-    int lastBracket = qomexmlstr.lastIndexOf(']');
-    QString shape = qomexmlstr.mid(firstBracket + 1, lastBracket - firstBracket - 1);
+  } else if (imagedescriptionQString.startsWith("{\"shape\":")) {
+    // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
+    int firstBracket = imagedescriptionQString.indexOf('[');
+    int lastBracket = imagedescriptionQString.lastIndexOf(']');
+    QString shape = imagedescriptionQString.mid(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape.toStdString();
     QStringList shapelist = shape.split(',');
-    assert(shapelist.size() == 4);
-    if (shapelist.size() != 4) {
-      QString msg = "Expected shape to be 4D TIFF: '" + QString(filepath.c_str()) + "'";
+    if (shapelist.size() != 4 || shapelist.size() != 5) {
+      QString msg = "Expected shape to be 4D or 5D TIFF: '" + QString(filepath.c_str()) + "'";
       LOG_ERROR << msg.toStdString();
       return false;
     }
     dimensionOrder = "XYZCT";
-    sizeX = shapelist[3].toInt();
-    sizeY = shapelist[2].toInt();
-    sizeZ = shapelist[1].toInt();
-    sizeC = shapelist[0].toInt();
+    bool hasT = (shapelist.size() == 5);
+    int shapeIndex = 0;
+    if (hasT) {
+      sizeT = shapelist[shapeIndex++].toInt();
+    }
+    sizeC = shapelist[shapeIndex++].toInt();
+    sizeZ = shapelist[shapeIndex++].toInt();
+    sizeY = shapelist[shapeIndex++].toInt();
+    sizeX = shapelist[shapeIndex++].toInt();
     for (uint32_t i = 0; i < sizeC; ++i) {
-      channelNames.push_back(QString("%1").arg(i).toStdString());
+      channelNames.push_back(QString::number(i).toStdString());
     }
 
-  } else if (qomexmlstr.startsWith("<?xml version") && qomexmlstr.endsWith("OME>")) {
+  } else if (imagedescriptionQString.startsWith("<?xml version") && imagedescriptionQString.endsWith("OME>")) {
     // convert c to xml doc.  if this fails then we don't have an ome tif.
     QDomDocument omexml;
-    bool ok = omexml.setContent(qomexmlstr);
+    bool ok = omexml.setContent(imagedescriptionQString);
     if (!ok) {
       QString msg = "Bad ome xml content";
       LOG_ERROR << msg.toStdString();
@@ -236,7 +247,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       } else if (!chid.isEmpty()) {
         channelNames.push_back(chid.toStdString());
       } else {
-        channelNames.push_back(QString("%1").arg(i).toStdString());
+        channelNames.push_back(QString::number(i).toStdString());
       }
     }
   } else {
@@ -254,6 +265,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   assert(sizeY == height);
 
   // allocate the destination buffer!!!!
+  assert(sizeT >= 1);
   assert(sizeC >= 1);
   assert(sizeX >= 1);
   assert(sizeY >= 1);
