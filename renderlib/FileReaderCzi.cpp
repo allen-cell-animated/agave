@@ -10,6 +10,8 @@
 #include <QDomDocument>
 #include <QElapsedTimer>
 
+#include <boost/filesystem.hpp>
+
 #include <map>
 #include <set>
 
@@ -228,8 +230,9 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
   timer.start();
 
   try {
-    // TODO FIXME make this more robust, it can not stay like this
-    std::wstring widestr = std::wstring(filepath.begin(), filepath.end());
+    // get path as a wchar_t pointer for libCZI
+    boost::filesystem::path fpath(filepath);
+    const std::wstring widestr = fpath.wstring();
 
     std::shared_ptr<libCZI::IStream> stream = libCZI::CreateStreamFromFile(widestr.c_str());
     std::shared_ptr<libCZI::ICZIReader> cziReader = libCZI::CreateCZIReader();
