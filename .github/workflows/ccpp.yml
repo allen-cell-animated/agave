@@ -34,6 +34,12 @@ jobs:
           sudo cmake --build . --target install --config Release
           zip -vr agave_macOS.zip agave.app/
         shell: bash
+      - name: Upload mac artifact
+        if: matrix.os == 'macOS-latest'
+        uses: actions/upload-artifact@v1
+        with:
+          name: agave-mac
+          path: ./build/agave_macOS.zip
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -60,8 +66,15 @@ jobs:
         shell: cmd
         
   make-release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: cmake-build
     steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: agave-mac
+          path: build/agave_macOS.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
