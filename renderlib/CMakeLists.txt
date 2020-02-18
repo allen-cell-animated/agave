@@ -54,6 +54,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TexelProperties.h"	
+	"${CMAKE_CURRENT_SOURCE_DIR}/Timeline.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Timeline.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
