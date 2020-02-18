@@ -458,7 +458,9 @@ ViewerState::stateToPythonScript() const
   ss << "import agave" << std::endl;
   ss << "r = agave.renderer()" << std::endl;
   std::string obj = "r.";
-  ss << obj << LoadOmeTifCommand({ m_volumeImageFile.toStdString() }).toPythonString() << std::endl;
+  ss << obj
+     << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), 0 /* scene */, 0 /* time */ }).toPythonString()
+     << std::endl;
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
   ss << obj
      << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()

@@ -194,6 +194,14 @@ OffscreenRenderer::LoadOmeTif(const std::string& s)
   cmd.execute(&m_ec);
   return 1;
 }
+// load a volume
+int
+OffscreenRenderer::LoadVolumeFromFile(const std::string& s, int time, int scene)
+{
+  LoadVolumeFromFileCommand cmd({ s, scene, time });
+  cmd.execute(&m_ec);
+  return 1;
+}
 // set camera pos
 int
 OffscreenRenderer::Eye(float x, float y, float z)

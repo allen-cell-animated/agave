@@ -352,7 +352,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, uint8_t* dataPtr)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderTIFF::loadOMETiff_4D(const std::string& filepath)
+FileReaderTIFF::loadOMETiff(const std::string& filepath, int32_t time, int32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -377,6 +377,15 @@ FileReaderTIFF::loadOMETiff_4D(const std::string& filepath)
     return emptyimage;
   }
 
+  if (scene > 0) {
+    LOG_WARNING << "Multiscene tiff not supported yet. Using scene 0";
+    scene = 0;
+  }
+  if (time > (int32_t)(dims.sizeT - 1)) {
+    LOG_ERROR << "Time " << time << " exceeds time samples in file: " << dims.sizeT;
+    return emptyimage;
+  }
+
   size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
   uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
   memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
@@ -388,7 +397,7 @@ FileReaderTIFF::loadOMETiff_4D(const std::string& filepath)
   // now ready to read channels one by one.
   for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, 0);
+      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
       destptr = data + planesize * (channel * dims.sizeZ + slice);
       if (!readTiffPlane(tiff, planeIndex, destptr)) {
         return emptyimage;

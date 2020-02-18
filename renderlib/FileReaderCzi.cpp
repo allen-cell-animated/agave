@@ -219,7 +219,7 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderCzi::loadCzi_4D(const std::string& filepath)
+FileReaderCzi::loadCzi(const std::string& filepath, int32_t time, int32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -285,10 +285,10 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
           planeCoord.Set(libCZI::DimensionIndex::C, (int)channel + startC);
         }
         if (hasS) {
-          planeCoord.Set(libCZI::DimensionIndex::S, 0 + startS);
+          planeCoord.Set(libCZI::DimensionIndex::S, scene + startS);
         }
         if (hasT) {
-          planeCoord.Set(libCZI::DimensionIndex::T, 0 + startT);
+          planeCoord.Set(libCZI::DimensionIndex::T, time + startT);
         }
 
         if (!readCziPlane(cziReader, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {

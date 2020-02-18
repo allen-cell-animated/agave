@@ -420,6 +420,64 @@ SetControlPointsCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
+void
+LoadVolumeFromFileCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
+  QFileInfo info(QString(m_data.m_path.c_str()));
+  if (info.exists()) {
+    // note T and S args are swapped in order here. this is intentional.
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, m_data.m_time, m_data.m_scene);
+    if (!image) {
+      return;
+    }
+
+    c->m_appScene->m_volume = image;
+    c->m_appScene->initSceneFromImg(image);
+
+    // Tell the camera about the volume's bounding box
+    c->m_camera->m_SceneBoundingBox.m_MinP = c->m_appScene->m_boundingBox.GetMinP();
+    c->m_camera->m_SceneBoundingBox.m_MaxP = c->m_appScene->m_boundingBox.GetMaxP();
+    c->m_camera->SetViewMode(ViewModeFront);
+
+    // enable up to first three channels!
+    // TODO Why should it be three?
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      c->m_appScene->m_material.m_enabled[i] = (i < 3);
+      c->m_appScene->m_material.m_opacity[i] = 1.0f;
+    }
+    c->m_renderSettings->SetNoIterations(0);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // fire back some json immediately...
+    QJsonObject j;
+    j["commandId"] = (int)LoadOmeTifCommand::m_ID;
+    j["x"] = (int)image->sizeX();
+    j["y"] = (int)image->sizeY();
+    j["z"] = (int)image->sizeZ();
+    j["c"] = (int)image->sizeC();
+    j["t"] = 1;
+    j["pixel_size_x"] = image->physicalSizeX();
+    j["pixel_size_y"] = image->physicalSizeY();
+    j["pixel_size_z"] = image->physicalSizeZ();
+    QJsonArray channelNames;
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      channelNames.append(QString::fromStdString(image->channel(i)->m_name));
+    }
+    j["channel_names"] = channelNames;
+    QJsonArray channelMaxIntensity;
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      channelMaxIntensity.append(image->channel(i)->m_max);
+    }
+    j["channel_max_intensity"] = channelMaxIntensity;
+
+    QJsonDocument doc(j);
+    c->m_message = doc.toJson().toStdString();
+  }
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -760,6 +818,16 @@ SetControlPointsCommand::parse(ParseableStream* c)
   data.m_channel = c->parseInt32();
   data.m_data = c->parseFloat32Array();
   return new SetControlPointsCommand(data);
+}
+
+LoadVolumeFromFileCommand*
+LoadVolumeFromFileCommand::parse(ParseableStream* c)
+{
+  LoadVolumeFromFileCommandD data;
+  data.m_path = c->parseString();
+  data.m_scene = c->parseInt32();
+  data.m_time = c->parseInt32();
+  return new LoadVolumeFromFileCommand(data);
 }
 
 std::string
@@ -1119,6 +1187,19 @@ SetControlPointsCommand::toPythonString() const
     ss << m_data.m_data.back();
   }
   ss << "]";
+
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+LoadVolumeFromFileCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << "\"" << m_data.m_path << "\", ";
+  ss << m_data.m_scene << ", " << m_data.m_time;
 
   ss << ")";
   return ss.str();

@@ -14,5 +14,5 @@ public:
   FileReaderCzi();
   virtual ~FileReaderCzi();
 
-  static std::shared_ptr<ImageXYZC> loadCzi_4D(const std::string& filepath);
+  static std::shared_ptr<ImageXYZC> loadCzi(const std::string& filepath, int32_t time = 0, int32_t scene = 0);
 };
