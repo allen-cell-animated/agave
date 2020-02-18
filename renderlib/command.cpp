@@ -28,6 +28,7 @@ AssetPathCommand::execute(ExecutionContext* c)
 void
 LoadOmeTifCommand::execute(ExecutionContext* c)
 {
+  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
   QFileInfo info(QString(m_data.m_name.c_str()));
   if (info.exists()) {
@@ -495,6 +496,7 @@ AssetPathCommand::parse(ParseableStream* c)
 LoadOmeTifCommand*
 LoadOmeTifCommand::parse(ParseableStream* c)
 {
+  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   LoadOmeTifCommandD data;
   data.m_name = c->parseString();
   return new LoadOmeTifCommand(data);
@@ -851,6 +853,7 @@ AssetPathCommand::toPythonString() const
 std::string
 LoadOmeTifCommand::toPythonString() const
 {
+  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << "\"" << m_data.m_name << "\"";
