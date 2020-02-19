@@ -394,7 +394,7 @@ FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, int32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderTIFF::loadOMETiff(const std::string& filepath, int32_t time, int32_t scene)
+FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDims, int32_t time, int32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -467,5 +467,8 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, int32_t time, int32_t s
   LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
+  if (outDims != nullptr) {
+    *outDims = dims;
+  }
   return sharedImage;
 }

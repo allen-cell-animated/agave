@@ -428,7 +428,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
   QFileInfo info(QString(m_data.m_path.c_str()));
   if (info.exists()) {
     // note T and S args are swapped in order here. this is intentional.
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, m_data.m_time, m_data.m_scene);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, nullptr, m_data.m_time, m_data.m_scene);
     if (!image) {
       return;
     }
