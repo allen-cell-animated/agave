@@ -20,6 +20,29 @@ FileReaderTIFF::FileReaderTIFF() {}
 
 FileReaderTIFF::~FileReaderTIFF() {}
 
+class ScopedTiffReader
+{
+public:
+  ScopedTiffReader(const std::string& filepath)
+  {
+    // Loads tiff file
+    m_tiff = TIFFOpen(filepath.c_str(), "r");
+    if (!m_tiff) {
+      LOG_ERROR << "Failed to open TIFF: '" << filepath << "'";
+    }
+  }
+  ~ScopedTiffReader()
+  {
+    if (m_tiff) {
+      TIFFClose(m_tiff);
+    }
+  }
+  TIFF* reader() { return m_tiff; }
+
+protected:
+  TIFF* m_tiff;
+};
+
 uint32_t
 requireUint32Attr(QDomElement& el, const QString& attr, uint32_t defaultVal)
 {
@@ -351,6 +374,25 @@ readTiffPlane(TIFF* tiff, int planeIndex, uint8_t* dataPtr)
   return true;
 }
 
+VolumeDimensions
+FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, int32_t scene)
+{
+  ScopedTiffReader tiffreader(filepath);
+  TIFF* tiff = tiffreader.reader();
+  // Loads tiff file
+  if (!tiff) {
+    return VolumeDimensions();
+  }
+
+  VolumeDimensions dims;
+  bool dims_ok = readTiffDimensions(tiff, filepath, dims);
+  if (!dims_ok) {
+    return VolumeDimensions();
+  }
+
+  return dims;
+}
+
 std::shared_ptr<ImageXYZC>
 FileReaderTIFF::loadOMETiff(const std::string& filepath, int32_t time, int32_t scene)
 {
@@ -363,11 +405,9 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, int32_t time, int32_t s
   timer.start();
 
   // Loads tiff file
-  TIFF* tiff = TIFFOpen(filepath.c_str(), "r");
+  ScopedTiffReader tiffreader(filepath);
+  TIFF* tiff = tiffreader.reader();
   if (!tiff) {
-    QString msg = "Failed to open TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
-    // throw new Exception(NULL, msg, this, __FUNCTION__, __LINE__);
     return emptyimage;
   }
 
@@ -404,8 +444,6 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, int32_t time, int32_t s
       }
     }
   }
-
-  TIFFClose(tiff);
 
   LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
 
