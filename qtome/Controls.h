@@ -136,6 +136,30 @@ private:
   QDoubleSlider m_slider;
 };
 
+class QIntSlider : public QWidget
+{
+  Q_OBJECT
+public:
+  QIntSlider(QWidget* pParent = NULL);
+
+  int value(void) const;
+  void setValue(int value, bool BlockSignals = false);
+  void setRange(int rmin, int rmax);
+  void setSingleStep(int val);
+  void setSuffix(const QString&);
+
+private slots:
+  void OnValueChanged(int value);
+
+signals:
+  void valueChanged(int value);
+
+private:
+  QGridLayout m_layout;
+  QSpinBox m_spinner;
+  QSlider m_slider;
+};
+
 class Controls
 {
 public:

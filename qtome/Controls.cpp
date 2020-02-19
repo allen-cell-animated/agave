@@ -333,3 +333,78 @@ QNumericSlider::setSuffix(const QString& s)
 {
   m_spinner.setSuffix(s);
 }
+
+QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
+  : QWidget(pParent)
+  , m_slider()
+  , m_spinner()
+{
+  setLayout(&m_layout);
+
+  m_slider.setOrientation(Qt::Horizontal);
+
+  // entire control is one single row.
+  // slider is 3/4, spinner is 1/4 of the width
+  const int sliderratio = 4;
+  m_layout.addWidget(&m_slider, 0, 0, 1, sliderratio - 1);
+  m_layout.addWidget(&m_spinner, 0, sliderratio - 1, 1, 1);
+
+  m_layout.setContentsMargins(0, 0, 0, 0);
+
+  // keep slider and spinner in sync
+  QObject::connect(&m_slider, QOverload<int>::of(&QSlider::valueChanged), [this](int v) {
+    this->m_spinner.blockSignals(true);
+    this->m_spinner.setValue(v);
+    this->m_spinner.blockSignals(false);
+  });
+  QObject::connect(
+    &m_spinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->m_slider.setValue(v); });
+
+  // only slider will update the value...
+  QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(int)));
+  QObject::connect(&m_slider, SIGNAL(sliderReleased()), this, SLOT(OnValueChanged(int)));
+}
+
+void
+QIntSlider::OnValueChanged(int value)
+{
+  emit valueChanged(value);
+}
+
+int
+QIntSlider::value(void) const
+{
+  return m_spinner.value();
+}
+
+void
+QIntSlider::setValue(int value, bool blockSignals)
+{
+  // only forward the blocksignals flag for one of the two child controls.
+  // the other will always block signalling
+  m_spinner.blockSignals(true);
+  m_slider.blockSignals(blockSignals);
+  m_spinner.setValue(value);
+  m_slider.setValue(value);
+  m_spinner.blockSignals(false);
+  m_slider.blockSignals(false);
+}
+
+void
+QIntSlider::setRange(int rmin, int rmax)
+{
+  m_slider.setRange(rmin, rmax);
+  m_spinner.setRange(rmin, rmax);
+}
+
+void
+QIntSlider::setSingleStep(int val)
+{
+  m_spinner.setSingleStep(val);
+}
+
+void
+QIntSlider::setSuffix(const QString& s)
+{
+  m_spinner.setSuffix(s);
+}

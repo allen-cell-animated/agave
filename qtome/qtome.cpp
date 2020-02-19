@@ -10,6 +10,7 @@
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
+#include "renderlib/VolumeDimensions.h"
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
@@ -317,11 +318,14 @@ qtome::open(const QString& file, const ViewerState* vs)
   if (info.exists()) {
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(file.toStdString());
+    VolumeDimensions dims;
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, 0, 0);
     if (!image) {
       LOG_DEBUG << "Failed to open " << file.toStdString();
       return;
     }
+
+    m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
 
     // install the new volume image into the scene.
     // this is deref'ing the previous _volume shared_ptr.

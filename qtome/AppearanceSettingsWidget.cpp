@@ -23,6 +23,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
   , m_scene(nullptr)
+  , m_timelineSection(nullptr)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
@@ -591,7 +592,7 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   bool old_value = m_scene->m_material.m_enabled[i];
   if (old_value != is_checked) {
     m_scene->m_material.m_enabled[i] = is_checked;
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);  
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
   }
 }
 
@@ -672,10 +673,28 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
   initLightingControls(scene);
 
+  // if timeline has a range greater than 1, then show a timeline section.
+  delete m_timelineSection;
+  if (m_scene->m_timeLine.maxTime() > m_scene->m_timeLine.minTime()) {
+    // create a section for time and add it to layout.
+    m_timelineSection = new Section("Time", 0, false);
+    auto* fullLayout = new QVBoxLayout();
+
+    QIntSlider* timeSlider = new QIntSlider();
+    timeSlider->setRange(m_scene->m_timeLine.minTime(), m_scene->m_timeLine.maxTime());
+    timeSlider->setSingleStep(1);
+    timeSlider->setValue(scene->m_timeLine.currentTime(), true);
+    fullLayout->addWidget(timeSlider);
+    m_timelineSection->setContentLayout(*fullLayout);
+
+    QObject::connect(timeSlider, &QIntSlider::valueChanged, [this](int d) { this->OnTimeChanged(d); });
+  }
+
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
 
-    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
+    Section* section =
+      new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
 
     auto* fullLayout = new QVBoxLayout();
 
@@ -757,6 +776,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnChannelChecked(i, channelenabled);
 
     section->setContentLayout(*fullLayout);
+    // assumes per-channel sections are at the very end of the m_MainLayout
     m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }

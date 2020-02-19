@@ -92,6 +92,8 @@ private:
   Scene* m_scene;
   std::vector<Section*> m_channelSections;
 
+  Section* m_timelineSection;
+
   struct lt0
   {
     QNumericSlider* m_thetaSlider;
