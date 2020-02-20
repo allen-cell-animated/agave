@@ -706,7 +706,10 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene, std::string filepath)
   initLightingControls(scene);
 
   // if timeline has a range greater than 1, then show a timeline section.
-  delete m_timelineSection;
+  if (m_timelineSection) {
+    delete m_timelineSection;
+    m_timelineSection = nullptr;
+  }
   if (m_scene->m_timeLine.maxTime() > m_scene->m_timeLine.minTime()) {
     // create a section for time and add it to layout.
     m_timelineSection = new Section("Time", 0, false);
