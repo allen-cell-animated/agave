@@ -359,16 +359,28 @@ QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
   });
   QObject::connect(
     &m_spinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->m_slider.setValue(v); });
+  QObject::connect(&m_spinner, SIGNAL(valueChanged(int)), this, SLOT(OnSpinnerValueChanged(int)));
 
-  // only slider will update the value...
-  QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(int)));
-  QObject::connect(&m_slider, SIGNAL(sliderReleased()), this, SLOT(OnValueChanged(int)));
+  QObject::connect(&m_slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
+
+  // only slider will emit the full valueChanged signal
+  QObject::connect(&m_slider, SIGNAL(valueChanged(int)), this, SLOT(OnValueChanged(int)));
 }
 
 void
 QIntSlider::OnValueChanged(int value)
 {
   emit valueChanged(value);
+}
+void
+QIntSlider::OnSpinnerValueChanged(int value)
+{
+  emit spinnerValueChanged(value);
+}
+void
+QIntSlider::OnSliderReleased()
+{
+  emit sliderReleased();
 }
 
 int
@@ -407,4 +419,15 @@ void
 QIntSlider::setSuffix(const QString& s)
 {
   m_spinner.setSuffix(s);
+}
+
+void
+QIntSlider::setTickPosition(QSlider::TickPosition position)
+{
+  m_slider.setTickPosition(position);
+}
+void
+QIntSlider::setTickInterval(int ti)
+{
+  m_slider.setTickInterval(ti);
 }

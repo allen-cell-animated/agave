@@ -148,11 +148,18 @@ public:
   void setSingleStep(int val);
   void setSuffix(const QString&);
 
+  void setTickPosition(QSlider::TickPosition position);
+  void setTickInterval(int ti);
+
 private slots:
   void OnValueChanged(int value);
+  void OnSliderReleased();
+  void OnSpinnerValueChanged(int value);
 
 signals:
   void valueChanged(int value);
+  void sliderReleased();
+  void spinnerValueChanged(int value);
 
 private:
   QGridLayout m_layout;

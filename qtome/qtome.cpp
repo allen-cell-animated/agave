@@ -319,7 +319,10 @@ qtome::open(const QString& file, const ViewerState* vs)
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
     VolumeDimensions dims;
+
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, 0, 0);
+    QApplication::restoreOverrideCursor();
     if (!image) {
       LOG_DEBUG << "Failed to open " << file.toStdString();
       return;
@@ -344,7 +347,7 @@ qtome::open(const QString& file, const ViewerState* vs)
     m_glView->onNewImage(&m_appScene);
     m_tabs->setTabText(0, info.fileName());
 
-    m_appearanceDockWidget->onNewImage(&m_appScene);
+    m_appearanceDockWidget->onNewImage(&m_appScene, file.toStdString());
 
     // set up status view with some stats.
     CStatus* s = m_glView->getStatus();

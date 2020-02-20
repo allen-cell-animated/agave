@@ -24,7 +24,7 @@ class QAppearanceSettingsWidget : public QGroupBox
 public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
 
-  void onNewImage(Scene* scene);
+  void onNewImage(Scene* scene, std::string filepath);
 
 public slots:
   void OnRenderBegin(void);
@@ -47,6 +47,8 @@ public:
   void OnRoughnessChanged(int i, double roughness);
   void OnChannelChecked(int i, bool is_checked);
 
+  void OnTimeChanged(int newTime);
+
   void OnSetAreaLightTheta(double value);
   void OnSetAreaLightPhi(double value);
   void OnSetAreaLightSize(double value);
@@ -68,6 +70,9 @@ public:
   void OnSetScaleZ(double value);
 
 private:
+  Scene* m_scene;
+  std::string m_filepath;
+
   QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;
   QComboBox m_RendererType;
@@ -89,7 +94,6 @@ private:
   QDoubleSpinner* m_yscaleSpinner;
   QDoubleSpinner* m_zscaleSpinner;
 
-  Scene* m_scene;
   std::vector<Section*> m_channelSections;
 
   Section* m_timelineSection;

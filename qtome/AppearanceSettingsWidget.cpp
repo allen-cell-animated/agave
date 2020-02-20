@@ -5,10 +5,12 @@
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
 
+#include <QApplication>
 #include <QFormLayout>
 #include <QLinearGradient>
 
@@ -596,6 +598,35 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   }
 }
 
+void
+QAppearanceSettingsWidget::OnTimeChanged(int newTime)
+{
+  if (!m_scene)
+    return;
+  if (m_scene->m_timeLine.currentTime() != newTime) {
+    m_scene->m_timeLine.setCurrentTime(newTime);
+    // assume a new time sample will have same exact channel configuration and dimensions as previous time.
+    // we are just updating volume data.
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, 0);
+    QApplication::restoreOverrideCursor();
+    if (!image) {
+      // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
+      LOG_DEBUG << "Failed to open " << m_filepath;
+      return;
+    }
+    m_scene->m_volume = image;
+
+    // TODO update the channel settings gui with new Histograms
+    for (uint32_t i = 0; i < m_scene->m_volume->sizeC(); ++i) {
+      OnUpdateLut(i, std::vector<LutControlPoint>());
+    }
+
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  }
+}
+
 // split color into color and intensity.
 inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
@@ -633,7 +664,7 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 }
 
 void
-QAppearanceSettingsWidget::onNewImage(Scene* scene)
+QAppearanceSettingsWidget::onNewImage(Scene* scene, std::string filepath)
 {
   // remove the previous per-channel ui
   for (auto s : m_channelSections) {
@@ -643,6 +674,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
   // I don't own this.
   m_scene = scene;
+  m_filepath = filepath;
 
   if (!scene->m_volume) {
     return;
@@ -684,10 +716,21 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     timeSlider->setRange(m_scene->m_timeLine.minTime(), m_scene->m_timeLine.maxTime());
     timeSlider->setSingleStep(1);
     timeSlider->setValue(scene->m_timeLine.currentTime(), true);
+    timeSlider->setTickInterval((m_scene->m_timeLine.maxTime() - m_scene->m_timeLine.minTime()) / 10);
+    timeSlider->setTickPosition(QSlider::TickPosition::TicksBelow);
     fullLayout->addWidget(timeSlider);
     m_timelineSection->setContentLayout(*fullLayout);
 
-    QObject::connect(timeSlider, &QIntSlider::valueChanged, [this](int d) { this->OnTimeChanged(d); });
+    // Do not use the valueChanged event because it fires every time the slider is moved.
+    // It could be used if the loading were happening asynchronously.
+    // Instead use the sliderReleased or spinnerValueChanged.
+    QObject::connect(timeSlider, &QIntSlider::sliderReleased, [this, timeSlider]() {
+      int t = timeSlider->value();
+      this->OnTimeChanged(t);
+    });
+    QObject::connect(timeSlider, &QIntSlider::spinnerValueChanged, [this](int t) { this->OnTimeChanged(t); });
+
+    m_MainLayout.addRow(m_timelineSection);
   }
 
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
