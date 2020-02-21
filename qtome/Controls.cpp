@@ -224,7 +224,13 @@ double
 QDoubleSlider::value() const
 {
   int value = QSlider::value();
-  return (double)value / m_Multiplier;
+  return sliderPositionToValue(value);
+}
+
+double
+QDoubleSlider::sliderPositionToValue(int pos) const
+{
+  return (double)pos / m_Multiplier;
 }
 
 QSize
@@ -249,16 +255,6 @@ QDoubleSpinner::setValue(double value, bool blockSignals)
   this->blockSignals(false);
 }
 
-QInputDialogEx::QInputDialogEx(QWidget* pParent /*= NULL*/, Qt::WindowFlags flags /*= 0*/)
-  : QInputDialog(pParent, flags)
-{}
-
-QSize
-QInputDialogEx::sizeHint() const
-{
-  return QSize(350, 60);
-}
-
 QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   : QWidget(pParent)
   , m_slider()
@@ -267,6 +263,7 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   setLayout(&m_layout);
 
   m_slider.setOrientation(Qt::Horizontal);
+
   m_spinner.setDecimals(4);
 
   // entire control is one single row.
@@ -277,14 +274,43 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   m_layout.setContentsMargins(0, 0, 0, 0);
 
-  // keep slider and spinner in sync
-  QObject::connect(&m_slider, QOverload<double>::of(&QDoubleSlider::valueChanged), [this](double v) {
-    this->m_spinner.setValue(v, true);
-  });
-  QObject::connect(
-    &m_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), [this](double v) { this->m_slider.setValue(v); });
+  // // keep slider and spinner in sync
+  // QObject::connect(&m_slider, QOverload<double>::of(&QDoubleSlider::valueChanged), [this](double v) {
+  //   this->m_spinner.setValue(v, true);
+  // });
+  // QObject::connect(
+  //   &m_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), [this](double v) { this->m_slider.setValue(v);
+  //   });
 
-  // only slider will update the value...
+  // // only slider will update the value...
+  // QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
+
+  // keep slider and spinner in sync
+  QObject::connect(&m_slider, QOverload<int>::of(&QDoubleSlider::sliderMoved), [this](int v) {
+    this->m_spinner.blockSignals(true);
+    this->m_spinner.setValue(this->m_slider.sliderPositionToValue(v), true);
+    this->m_spinner.blockSignals(false);
+  });
+
+  QObject::connect(&m_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), [this](double v) {
+    // Disabling the spinner only because the valueChanged handler might do a long operation when the spinner is
+    // clicked.
+    //
+    // If the operation is "too long" then the mouserelease of the spinner will kick in after a certain timeout
+    // and trigger one more increment.
+    //
+    // If the owner has disabled tracking, that's a good bet that the increments are
+    // expected to be "too long".
+    if (!this->m_slider.hasTracking()) {
+      this->m_spinner.setEnabled(false);
+    }
+    this->m_slider.setValue(v);
+    if (!this->m_slider.hasTracking()) {
+      this->m_spinner.setEnabled(true);
+    }
+  });
+
+  // only slider will emit the value...
   QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
 }
 
@@ -334,6 +360,12 @@ QNumericSlider::setSuffix(const QString& s)
   m_spinner.setSuffix(s);
 }
 
+void
+QNumericSlider::setTracking(bool enabled)
+{
+  m_slider.setTracking(enabled);
+}
+
 QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
   : QWidget(pParent)
   , m_slider()
@@ -342,6 +374,9 @@ QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
   setLayout(&m_layout);
 
   m_slider.setOrientation(Qt::Horizontal);
+  m_slider.setFocusPolicy(Qt::NoFocus);
+
+  m_spinner.setKeyboardTracking(false);
 
   // entire control is one single row.
   // slider is 3/4, spinner is 1/4 of the width
@@ -352,18 +387,31 @@ QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
   m_layout.setContentsMargins(0, 0, 0, 0);
 
   // keep slider and spinner in sync
-  QObject::connect(&m_slider, QOverload<int>::of(&QSlider::valueChanged), [this](int v) {
+  QObject::connect(&m_slider, QOverload<int>::of(&QSlider::sliderMoved), [this](int v) {
     this->m_spinner.blockSignals(true);
     this->m_spinner.setValue(v);
     this->m_spinner.blockSignals(false);
   });
-  QObject::connect(
-    &m_spinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->m_slider.setValue(v); });
-  QObject::connect(&m_spinner, SIGNAL(valueChanged(int)), this, SLOT(OnSpinnerValueChanged(int)));
 
-  QObject::connect(&m_slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
+  QObject::connect(&m_spinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) {
+    // Disabling the spinner only because the valueChanged handler might do a long operation when the spinner is
+    // clicked.
+    //
+    // If the operation is "too long" then the mouserelease of the spinner will kick in after a certain timeout
+    // and trigger one more increment.
+    //
+    // If the owner has disabled tracking, that's a good bet that the increments are
+    // expected to be "too long".
+    if (!this->m_slider.hasTracking()) {
+      this->m_spinner.setEnabled(false);
+    }
+    this->m_slider.setValue(v);
+    if (!this->m_slider.hasTracking()) {
+      this->m_spinner.setEnabled(true);
+    }
+  });
 
-  // only slider will emit the full valueChanged signal
+  // only slider will emit the value...
   QObject::connect(&m_slider, SIGNAL(valueChanged(int)), this, SLOT(OnValueChanged(int)));
 }
 
@@ -371,16 +419,6 @@ void
 QIntSlider::OnValueChanged(int value)
 {
   emit valueChanged(value);
-}
-void
-QIntSlider::OnSpinnerValueChanged(int value)
-{
-  emit spinnerValueChanged(value);
-}
-void
-QIntSlider::OnSliderReleased()
-{
-  emit sliderReleased();
 }
 
 int
@@ -400,6 +438,9 @@ QIntSlider::setValue(int value, bool blockSignals)
   m_slider.setValue(value);
   m_spinner.blockSignals(false);
   m_slider.blockSignals(false);
+  if (!blockSignals) {
+    emit valueChanged(value);
+  }
 }
 
 void
@@ -426,8 +467,15 @@ QIntSlider::setTickPosition(QSlider::TickPosition position)
 {
   m_slider.setTickPosition(position);
 }
+
 void
 QIntSlider::setTickInterval(int ti)
 {
   m_slider.setTickInterval(ti);
+}
+
+void
+QIntSlider::setTracking(bool enabled)
+{
+  m_slider.setTracking(enabled);
 }

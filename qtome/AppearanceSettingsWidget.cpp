@@ -25,7 +25,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
   , m_scene(nullptr)
-  , m_timelineSection(nullptr)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
@@ -598,35 +597,6 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   }
 }
 
-void
-QAppearanceSettingsWidget::OnTimeChanged(int newTime)
-{
-  if (!m_scene)
-    return;
-  if (m_scene->m_timeLine.currentTime() != newTime) {
-    m_scene->m_timeLine.setCurrentTime(newTime);
-    // assume a new time sample will have same exact channel configuration and dimensions as previous time.
-    // we are just updating volume data.
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, 0);
-    QApplication::restoreOverrideCursor();
-    if (!image) {
-      // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
-      LOG_DEBUG << "Failed to open " << m_filepath;
-      return;
-    }
-    m_scene->m_volume = image;
-
-    // TODO update the channel settings gui with new Histograms
-    for (uint32_t i = 0; i < m_scene->m_volume->sizeC(); ++i) {
-      OnUpdateLut(i, std::vector<LutControlPoint>());
-    }
-
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-  }
-}
-
 // split color into color and intensity.
 inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
@@ -704,37 +674,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene, std::string filepath)
   m_zscaleSpinner->setValue(m_scene->m_volume->physicalSizeZ());
 
   initLightingControls(scene);
-
-  // if timeline has a range greater than 1, then show a timeline section.
-  if (m_timelineSection) {
-    delete m_timelineSection;
-    m_timelineSection = nullptr;
-  }
-  if (m_scene->m_timeLine.maxTime() > m_scene->m_timeLine.minTime()) {
-    // create a section for time and add it to layout.
-    m_timelineSection = new Section("Time", 0, false);
-    auto* fullLayout = new QVBoxLayout();
-
-    QIntSlider* timeSlider = new QIntSlider();
-    timeSlider->setRange(m_scene->m_timeLine.minTime(), m_scene->m_timeLine.maxTime());
-    timeSlider->setSingleStep(1);
-    timeSlider->setValue(scene->m_timeLine.currentTime(), true);
-    timeSlider->setTickInterval((m_scene->m_timeLine.maxTime() - m_scene->m_timeLine.minTime()) / 10);
-    timeSlider->setTickPosition(QSlider::TickPosition::TicksBelow);
-    fullLayout->addWidget(timeSlider);
-    m_timelineSection->setContentLayout(*fullLayout);
-
-    // Do not use the valueChanged event because it fires every time the slider is moved.
-    // It could be used if the loading were happening asynchronously.
-    // Instead use the sliderReleased or spinnerValueChanged.
-    QObject::connect(timeSlider, &QIntSlider::sliderReleased, [this, timeSlider]() {
-      int t = timeSlider->value();
-      this->OnTimeChanged(t);
-    });
-    QObject::connect(timeSlider, &QIntSlider::spinnerValueChanged, [this](int t) { this->OnTimeChanged(t); });
-
-    m_MainLayout.addRow(m_timelineSection);
-  }
 
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];

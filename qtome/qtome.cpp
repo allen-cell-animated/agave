@@ -15,6 +15,7 @@
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
 #include "StatisticsDockWidget.h"
+#include "TimelineDockWidget.h"
 #include "ViewerState.h"
 
 #include <QtCore/QElapsedTimer>
@@ -174,6 +175,10 @@ qtome::createDockWindows()
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 
+  m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
+  m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
+
   m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
@@ -186,6 +191,8 @@ qtome::createDockWindows()
 
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_cameradock->toggleViewAction());
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_appearanceDockWidget->toggleViewAction());
   m_viewMenu->addSeparator();
@@ -348,6 +355,7 @@ qtome::open(const QString& file, const ViewerState* vs)
     m_tabs->setTabText(0, info.fileName());
 
     m_appearanceDockWidget->onNewImage(&m_appScene, file.toStdString());
+    m_timelinedock->onNewImage(&m_appScene, file.toStdString());
 
     // set up status view with some stats.
     CStatus* s = m_glView->getStatus();

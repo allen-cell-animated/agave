@@ -47,8 +47,6 @@ public:
   void OnRoughnessChanged(int i, double roughness);
   void OnChannelChecked(int i, bool is_checked);
 
-  void OnTimeChanged(int newTime);
-
   void OnSetAreaLightTheta(double value);
   void OnSetAreaLightPhi(double value);
   void OnSetAreaLightSize(double value);
@@ -95,8 +93,6 @@ private:
   QDoubleSpinner* m_zscaleSpinner;
 
   std::vector<Section*> m_channelSections;
-
-  Section* m_timelineSection;
 
   struct lt0
   {
