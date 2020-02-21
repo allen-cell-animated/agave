@@ -231,6 +231,13 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
     getFloat(pathTracer, "secondaryStepSize", m_secondaryStepSize);
   }
 
+  if (json.contains("timeline") && json["timeline"].isObject()) {
+    QJsonObject timeline = json["timeline"].toObject();
+    getInt(timeline, "minTime", m_minTime);
+    getInt(timeline, "maxTime", m_maxTime);
+    getInt(timeline, "currentTime", m_currentTime);
+  }
+
   if (json.contains("camera") && json["camera"].isObject()) {
     QJsonObject cam = json["camera"].toObject();
     glm::vec3 tmp;
@@ -332,6 +339,11 @@ ViewerState::stateToJson() const
   pathTracer["primaryStepSize"] = m_primaryStepSize;
   pathTracer["secondaryStepSize"] = m_secondaryStepSize;
   j["pathTracer"] = pathTracer;
+
+  QJsonObject timeline;
+  timeline["minTime"] = m_minTime;
+  timeline["maxTime"] = m_maxTime;
+  timeline["currentTime"] = m_currentTime;
 
   QJsonArray clipRegion;
   QJsonArray clipRegionX;
@@ -459,7 +471,7 @@ ViewerState::stateToPythonScript() const
   ss << "r = agave.renderer()" << std::endl;
   std::string obj = "r.";
   ss << obj
-     << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), 0 /* scene */, 0 /* time */ }).toPythonString()
+     << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), 0 /* scene */, m_currentTime }).toPythonString()
      << std::endl;
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
   ss << obj
@@ -579,7 +591,8 @@ ViewerState::stateToPythonWebsocketScript() const
   s += QString("        [\n");
 
   QString indent("            ");
-  s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
+  s +=
+    indent + QString("(\"LOAD_VOLUME_FROM_FILE\", \"%1\", %2, %3),\n").arg(m_volumeImageFile).arg(0).arg(m_currentTime);
   s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
   s += indent + QString("(\"BACKGROUND_COLOR\", %1, %2, %3),\n")
                   .arg(m_backgroundColor.x)

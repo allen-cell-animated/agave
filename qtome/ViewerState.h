@@ -75,6 +75,9 @@ struct ViewerState
   float m_targetX, m_targetY, m_targetZ;
   float m_upX, m_upY, m_upZ;
 
+  // timeline state
+  int32_t m_minTime, m_maxTime, m_currentTime;
+
   LightViewerState m_light0;
   LightViewerState m_light1;
 
