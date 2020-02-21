@@ -18,7 +18,11 @@ FileReader::FileReader() {}
 FileReader::~FileReader() {}
 
 std::shared_ptr<ImageXYZC>
-FileReader::loadFromFile_4D(const std::string& filepath, bool addToCache)
+FileReader::loadFromFile(const std::string& filepath,
+                         VolumeDimensions* dims,
+                         int32_t time,
+                         int32_t scene,
+                         bool addToCache)
 {
   // check cache first of all.
   auto cached = sPreloadedImageCache.find(filepath);
@@ -37,15 +41,21 @@ FileReader::loadFromFile_4D(const std::string& filepath, bool addToCache)
   }
 
   if (extstr == ".tif" || extstr == ".tiff") {
-    image = FileReaderTIFF::loadOMETiff_4D(filepath);
+    image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);
   } else if (extstr == ".czi") {
-    image = FileReaderCzi::loadCzi_4D(filepath);
+    image = FileReaderCzi::loadCzi(filepath, dims, time, scene);
   }
 
   if (addToCache && image) {
     sPreloadedImageCache[filepath] = image;
   }
   return image;
+}
+
+std::shared_ptr<ImageXYZC>
+FileReader::loadFromFile_4D(const std::string& filepath, VolumeDimensions* dims, bool addToCache)
+{
+  return FileReader::loadFromFile(filepath, dims, 0, 0, addToCache);
 }
 
 std::shared_ptr<ImageXYZC>

@@ -384,3 +384,14 @@ struct SetControlPointsCommandD
   std::vector<float> m_data;
 };
 CMDDECL(SetControlPointsCommand, 38, "set_control_points", CMD_ARGS({ CommandArgType::I32, CommandArgType::F32A }));
+
+struct LoadVolumeFromFileCommandD
+{
+  std::string m_path;
+  int32_t m_scene;
+  int32_t m_time;
+};
+CMDDECL(LoadVolumeFromFileCommand,
+        39,
+        "load_volume_from_file",
+        CMD_ARGS({ CommandArgType::STR, CommandArgType::I32, CommandArgType::I32 }));

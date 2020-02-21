@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include "DenoiseParams.h"
 #include "GradientData.h"
+#include "Timeline.h"
 #include "glm.h"
 
 #include <memory>
@@ -182,6 +183,7 @@ public:
 class Scene
 {
 public:
+  Timeline m_timeLine;
   // one single volume, for now...!
   std::shared_ptr<ImageXYZC> m_volume;
   // appearance settings for a volume

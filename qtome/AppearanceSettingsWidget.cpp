@@ -591,7 +591,7 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   bool old_value = m_scene->m_material.m_enabled[i];
   if (old_value != is_checked) {
     m_scene->m_material.m_enabled[i] = is_checked;
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);  
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
   }
 }
 
@@ -675,7 +675,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
 
-    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
+    Section* section =
+      new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
 
     auto* fullLayout = new QVBoxLayout();
 
@@ -696,6 +697,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
       this->OnUpdateLut(i, pts);
     });
+    this->OnUpdateLut(i, std::vector<LutControlPoint>());
 
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
@@ -757,6 +759,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnChannelChecked(i, channelenabled);
 
     section->setContentLayout(*fullLayout);
+    // assumes per-channel sections are at the very end of the m_MainLayout
     m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }

@@ -90,6 +90,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetPrimaryRayStepSizeCommand);
           CMD_CASE(SetSecondaryRayStepSizeCommand);
           CMD_CASE(SetBackgroundColorCommand);
+          CMD_CASE(LoadVolumeFromFileCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!

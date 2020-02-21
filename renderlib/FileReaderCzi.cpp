@@ -19,6 +19,31 @@ FileReaderCzi::FileReaderCzi() {}
 
 FileReaderCzi::~FileReaderCzi() {}
 
+class ScopedCziReader
+{
+public:
+  ScopedCziReader(const std::string& filepath)
+  {
+    boost::filesystem::path fpath(filepath);
+    const std::wstring widestr = fpath.wstring();
+
+    std::shared_ptr<libCZI::IStream> stream = libCZI::CreateStreamFromFile(widestr.c_str());
+    m_reader = libCZI::CreateCZIReader();
+
+    m_reader->Open(stream);
+  }
+  ~ScopedCziReader()
+  {
+    if (m_reader) {
+      m_reader->Close();
+    }
+  }
+  std::shared_ptr<libCZI::ICZIReader> reader() { return m_reader; }
+
+protected:
+  std::shared_ptr<libCZI::ICZIReader> m_reader;
+};
+
 libCZI::IntRect
 getSceneYXSize(libCZI::SubBlockStatistics& statistics, int sceneIndex = 0)
 {
@@ -73,11 +98,6 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   auto mds = reader->ReadMetadataSegment();
   std::shared_ptr<libCZI::ICziMetadata> md = mds->CreateMetaFromMetadataSegment();
   std::shared_ptr<libCZI::ICziMultiDimensionDocumentInfo> docinfo = md->GetDocumentInfo();
-
-  docinfo->EnumDimensions([&](libCZI::DimensionIndex dimensionIndex) -> bool {
-    std::shared_ptr<libCZI::IDimensionInfo> dimInfo = docinfo->GetDimensionInfo(dimensionIndex);
-    return true;
-  });
 
   libCZI::ScalingInfo scalingInfo = docinfo->GetScalingInfo();
   // convert meters to microns?
@@ -218,8 +238,35 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
   return true;
 }
 
+VolumeDimensions
+FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
+{
+  VolumeDimensions dims;
+  try {
+    ScopedCziReader scopedReader(filepath);
+    std::shared_ptr<libCZI::ICZIReader> cziReader = scopedReader.reader();
+
+    auto statistics = cziReader->GetStatistics();
+
+    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims);
+    if (!dims_ok) {
+      return VolumeDimensions();
+    }
+
+    return dims;
+
+  } catch (std::exception& e) {
+    LOG_ERROR << e.what();
+    LOG_ERROR << "Failed to read " << filepath;
+    return VolumeDimensions();
+  } catch (...) {
+    LOG_ERROR << "Failed to read " << filepath;
+    return VolumeDimensions();
+  }
+}
+
 std::shared_ptr<ImageXYZC>
-FileReaderCzi::loadCzi_4D(const std::string& filepath)
+FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, int32_t time, int32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -230,14 +277,8 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
   timer.start();
 
   try {
-    // get path as a wchar_t pointer for libCZI
-    boost::filesystem::path fpath(filepath);
-    const std::wstring widestr = fpath.wstring();
-
-    std::shared_ptr<libCZI::IStream> stream = libCZI::CreateStreamFromFile(widestr.c_str());
-    std::shared_ptr<libCZI::ICZIReader> cziReader = libCZI::CreateCZIReader();
-
-    cziReader->Open(stream);
+    ScopedCziReader scopedReader(filepath);
+    std::shared_ptr<libCZI::ICZIReader> cziReader = scopedReader.reader();
 
     auto statistics = cziReader->GetStatistics();
 
@@ -285,10 +326,10 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
           planeCoord.Set(libCZI::DimensionIndex::C, (int)channel + startC);
         }
         if (hasS) {
-          planeCoord.Set(libCZI::DimensionIndex::S, 0 + startS);
+          planeCoord.Set(libCZI::DimensionIndex::S, scene + startS);
         }
         if (hasT) {
-          planeCoord.Set(libCZI::DimensionIndex::T, 0 + startT);
+          planeCoord.Set(libCZI::DimensionIndex::T, time + startT);
         }
 
         if (!readCziPlane(cziReader, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {
@@ -296,8 +337,6 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
         }
       }
     }
-
-    cziReader->Close();
 
     LOG_DEBUG << "CZI loaded in " << timer.elapsed() << "ms";
 
@@ -321,6 +360,9 @@ FileReaderCzi::loadCzi_4D(const std::string& filepath)
     LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
 
     std::shared_ptr<ImageXYZC> sharedImage(im);
+    if (outDims != nullptr) {
+      *outDims = dims;
+    }
     return sharedImage;
 
   } catch (std::exception& e) {

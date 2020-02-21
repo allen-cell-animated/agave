@@ -10,10 +10,12 @@
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
+#include "renderlib/VolumeDimensions.h"
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
 #include "StatisticsDockWidget.h"
+#include "TimelineDockWidget.h"
 #include "ViewerState.h"
 
 #include <QtCore/QElapsedTimer>
@@ -173,6 +175,10 @@ qtome::createDockWindows()
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 
+  m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
+  m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
+
   m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
@@ -185,6 +191,8 @@ qtome::createDockWindows()
 
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_cameradock->toggleViewAction());
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_appearanceDockWidget->toggleViewAction());
   m_viewMenu->addSeparator();
@@ -317,11 +325,28 @@ qtome::open(const QString& file, const ViewerState* vs)
   if (info.exists()) {
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(file.toStdString());
+    VolumeDimensions dims;
+
+    int timeToLoad = vs ? vs->m_currentTime : 0;
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, timeToLoad, 0);
+    QApplication::restoreOverrideCursor();
     if (!image) {
       LOG_DEBUG << "Failed to open " << file.toStdString();
       return;
     }
+
+    if (vs) {
+      // make sure that ViewerState is consistent with loaded file
+      if (dims.sizeT - 1 != vs->m_maxTime) {
+        LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
+                  << " in the loaded file.";
+      }
+      if (0 != vs->m_minTime) {
+        LOG_ERROR << "Min timline time is not zero.";
+      }
+    }
+    m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
 
     // install the new volume image into the scene.
     // this is deref'ing the previous _volume shared_ptr.
@@ -341,6 +366,7 @@ qtome::open(const QString& file, const ViewerState* vs)
     m_tabs->setTabText(0, info.fileName());
 
     m_appearanceDockWidget->onNewImage(&m_appScene);
+    m_timelinedock->onNewImage(&m_appScene, file.toStdString());
 
     // set up status view with some stats.
     CStatus* s = m_glView->getStatus();
@@ -588,6 +614,9 @@ qtome::viewerStateToApp(const ViewerState& v)
   m_appScene.m_roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
   m_appScene.m_roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
 
+  m_appScene.m_timeLine.setRange(v.m_minTime, v.m_maxTime);
+  m_appScene.m_timeLine.setCurrentTime(v.m_currentTime);
+
   m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
   m_appScene.m_material.m_backgroundColor[0] = v.m_backgroundColor.x;
@@ -684,6 +713,10 @@ qtome::appToViewerState()
   v.m_resolutionX = m_glView->size().width();
   v.m_resolutionY = m_glView->size().height();
   v.m_renderIterations = m_renderSettings.GetNoIterations();
+
+  v.m_minTime = m_appScene.m_timeLine.minTime();
+  v.m_maxTime = m_appScene.m_timeLine.maxTime();
+  v.m_currentTime = m_appScene.m_timeLine.currentTime();
 
   v.m_roiXmax = m_appScene.m_roi.GetMaxP().x;
   v.m_roiYmax = m_appScene.m_roi.GetMaxP().y;

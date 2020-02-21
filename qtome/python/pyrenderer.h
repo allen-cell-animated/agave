@@ -40,6 +40,8 @@ public:
   virtual int AssetPath(const std::string&);
   // load a volume
   virtual int LoadOmeTif(const std::string&);
+  // load a volume
+  virtual int LoadVolumeFromFile(const std::string&, int, int);
   // set camera pos
   virtual int Eye(float, float, float);
   // set camera target pt

@@ -9,10 +9,13 @@ The code is currently organized into two sections:
 
 How to build from source:
 
-For windows: make sure you are in an environment where vsvarsall has been run, e.g. a "VS2017 x64 Native Tools Command Prompt"
+For windows:
+Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
-Use official install of Qt 5.12.6 or greater.
+Use official install of Qt 5.12.6.
 Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64-windows.
+
+The build will pick up the first python version it sees. To explicitly select, run these steps in a python virtual environment or use -DPYBIND11_PYTHON_VERSION=3.7
 
 ```
 mkdir build
