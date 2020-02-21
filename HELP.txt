@@ -1,18 +1,18 @@
 AICS GPU Advanced Volume Explorer
 DESKTOP VIEWER DOCUMENTATION
 
-The volume viewer is designed and optimized for display of multi-channel, single-time OME TIFF files.
+The volume viewer is designed and optimized for display of multi-channel 16-bit unsigned OME TIFF and CZI files.
 
 1. This viewer requires a current OpenGL driver.  A discrete GPU is preferred for best performance. (start at https://www.nvidia.com/drivers).
 
 2. Unzip the zip file and run the agave app.  A GUI window will open. If initialization fails for some reason, a logfile.log file will be produced in the same directory as the app.
 
-3. File-->Open Image.  The viewer currently only supports .ome.tif files (TIFF files containing OME-XML metadata in the imagedescription tag) and has limited support for some tif files generated in ImageJ.  Currently only 16-but unsigned pixels are supported.  
-The volume data must fit in GPU memory uncompressed, so please try loading no more than a few GB.  The test data set for the development of this viewer was the data set of the Allen Institute for Cell Science.  Images from that data set are found at https://www.allencell.org/3d-cell-viewer.html and https://www.allencell.org/cell-feature-explorer.html where you can load a cell into the 3D viewer in your browser and click the Download button to get the full resolution OME TIFF file. Those images should load correctly into this viewer.
+3. File-->Open volume...  The viewer currently only supports .tif or .czi files containing z-stack data.  Currently only 16-bit unsigned pixels are supported.  
+The volume data must fit in GPU memory uncompressed, so please try loading no more than a few GB.  Files containing time sequences will only load the first time sample.  The test data set for the development of this viewer was the data set of the Allen Institute for Cell Science.  Images from that data set are found at https://www.allencell.org/3d-cell-viewer.html and https://www.allencell.org/cell-feature-explorer.html where you can load a cell into the 3D viewer in your browser and click the Download button to get the full resolution OME TIFF file. Those images should load correctly into this viewer.
 
-4. Initially, it is very likely that your volume data will appear as a solid brick.  The Appearance panel is the one to focus on first.  Note that you can "tear away" the tab to place it anywhere on your desktop and resize it. (Drag and drop from the "Appearance" title area.)
+4. Initially, it is likely that your volume data will appear as a solid brick.  The Appearance panel is the one to focus on first.  Note that you can "tear away" the tab to place it anywhere on your desktop and resize it. (Drag and drop from the "Appearance" title area.)
 
-5. At the bottom of the Appearance tab (after the Lighting section) will be the controls for each channel in your volume data. The first adjustment to make is typically to drag the Level slider to the right.   Moving the Window and Level sliders will control the relative intensities of the volume data in the rendering.  The Auto buttons just below will attempt to find reasonable settings for Window and Level.
+5. At the bottom of the Appearance tab (after the Lighting section) will be the controls for each channel in your volume data. The first adjustment to make is typically to drag the "Pct Min" slider to the right.   Moving the sliders will control the relative intensities of the volume data in the rendering.
 
 5a. Up to four channels can be displayed at a time. Hide or show channels by clicking the checkbox at the top right of each channel's section in the panel. 
 
@@ -26,6 +26,8 @@ The volume data must fit in GPU memory uncompressed, so please try loading no mo
 
 10. You can save the current viewer settings to a json file (File --> Save to json), to be reloaded later.  The absolute path to the volume data file will be saved in the json.  This implies that if the volume data is moved, the json will no longer be able to find it.  
 
+11. There is a time slider which will only be functional for time-series data.  There will be some delay in changing time while the data loads on demand.
+
 DESKTOP VIEWER TROUBLESHOOTING
 
 Most problems getting started will be related to having old GPU drivers or an unsupported GPU.  
@@ -33,7 +35,7 @@ If the viewer does not work as expected, or you have suggestions, we invite you 
 A "logfile.log" file will be created in the same directory as the executable.  It may help us to diagnose if you attach the log file to your post.
 
 Please include, if possible:
-1. Windows version
+1. OS and version
 2. Amount of RAM
 3. Type of GPU and amount of GPU memory
 4. What function were you performing when the error occurred (e.g. starting the app, rotating the volume with mouse, moving the Exposure slider, etc)
