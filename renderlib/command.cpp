@@ -6,6 +6,7 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "RenderSettings.h"
+#include "VolumeDimensions.h"
 
 #include <QElapsedTimer>
 #include <QFileInfo>
@@ -427,11 +428,15 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
   QFileInfo info(QString(m_data.m_path.c_str()));
   if (info.exists()) {
+    VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, nullptr, m_data.m_time, m_data.m_scene);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, &dims, m_data.m_time, m_data.m_scene);
     if (!image) {
       return;
     }
+
+    c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
+    c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -459,7 +464,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     j["y"] = (int)image->sizeY();
     j["z"] = (int)image->sizeZ();
     j["c"] = (int)image->sizeC();
-    j["t"] = 1;
+    j["t"] = dims.sizeT;
     j["pixel_size_x"] = image->physicalSizeX();
     j["pixel_size_y"] = image->physicalSizeY();
     j["pixel_size_z"] = image->physicalSizeZ();
