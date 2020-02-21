@@ -464,7 +464,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     j["y"] = (int)image->sizeY();
     j["z"] = (int)image->sizeZ();
     j["c"] = (int)image->sizeC();
-    j["t"] = dims.sizeT;
+    j["t"] = (int)dims.sizeT;
     j["pixel_size_x"] = image->physicalSizeX();
     j["pixel_size_y"] = image->physicalSizeY();
     j["pixel_size_z"] = image->physicalSizeZ();
