@@ -6,7 +6,7 @@ endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.6.0
+  VERSION 0.0.7.0
   LANGUAGES C CXX
 )
 
@@ -107,9 +107,18 @@ add_subdirectory(qtome)
 if (WIN32)
 
 # assuming vcpkg has done some work already to get dlls in here
-file(GLOB RELEASE_DLLS ${CMAKE_BINARY_DIR}/Release/*.dll)
-file(GLOB DEBUG_DLLS ${CMAKE_BINARY_DIR}/Debug/*.dll)
-
+install(
+  DIRECTORY ${CMAKE_BINARY_DIR}/Release/
+  DESTINATION ${INSTALLDIR}
+  CONFIGURATIONS Release
+  FILES_MATCHING PATTERN "*.dll"
+)
+install(
+  DIRECTORY ${CMAKE_BINARY_DIR}/Debug/
+  DESTINATION ${INSTALLDIR}
+  CONFIGURATIONS Debug
+  FILES_MATCHING PATTERN "*.dll"
+)
 install(FILES 
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
   ${PROJECT_SOURCE_DIR}/HELP.txt
@@ -119,9 +128,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  # note these are release build dlls.
-  ${PYTHON_LIBRARIES}
-  ${RELEASE_DLLS}
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
@@ -134,9 +140,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  # debug dlls
-  ${PYTHON_LIBRARIES}
-  ${DEBUG_DLLS}
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )

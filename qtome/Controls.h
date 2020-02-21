@@ -78,6 +78,8 @@ public:
   double maximum() const;
   double value() const;
 
+  double sliderPositionToValue(int pos) const;
+
 public slots:
   void setValue(int value);
   void setValue(double Value, bool BlockSignals = false);
@@ -103,14 +105,6 @@ public:
   void setValue(double Value, bool BlockSignals = false);
 };
 
-class QInputDialogEx : public QInputDialog
-{
-public:
-  QInputDialogEx(QWidget* pParent = NULL, Qt::WindowFlags Flags = 0);
-
-  virtual QSize sizeHint() const;
-};
-
 class QNumericSlider : public QWidget
 {
   Q_OBJECT
@@ -124,6 +118,8 @@ public:
   void setDecimals(int decimals);
   void setSuffix(const QString&);
 
+  void setTracking(bool enable);
+
 private slots:
   void OnValueChanged(double value);
 
@@ -134,6 +130,34 @@ private:
   QGridLayout m_layout;
   QDoubleSpinner m_spinner;
   QDoubleSlider m_slider;
+};
+
+class QIntSlider : public QWidget
+{
+  Q_OBJECT
+public:
+  QIntSlider(QWidget* pParent = NULL);
+
+  int value(void) const;
+  void setValue(int value, bool BlockSignals = false);
+  void setRange(int rmin, int rmax);
+  void setSingleStep(int val);
+  void setSuffix(const QString&);
+
+  void setTickPosition(QSlider::TickPosition position);
+  void setTickInterval(int ti);
+
+  void setTracking(bool enable);
+private slots:
+  void OnValueChanged(int value);
+
+signals:
+  void valueChanged(int value);
+
+private:
+  QGridLayout m_layout;
+  QSpinBox m_spinner;
+  QSlider m_slider;
 };
 
 class Controls

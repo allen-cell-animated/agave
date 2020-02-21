@@ -16,6 +16,7 @@
 class QAppearanceDockWidget;
 class QCameraDockWidget;
 class QStatisticsDockWidget;
+class QTimelineDockWidget;
 
 class qtome : public QMainWindow
 {
@@ -89,6 +90,8 @@ private:
   QCamera m_qcamera;
   // Camera UI
   QCameraDockWidget* m_cameradock;
+  // Timeline UI
+  QTimelineDockWidget* m_timelinedock;
 
   QRenderSettings m_qrendersettings;
   QAppearanceDockWidget* m_appearanceDockWidget;

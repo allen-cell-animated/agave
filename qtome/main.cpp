@@ -77,7 +77,7 @@ preloadFiles(QStringList preloadlist)
   for (QString s : preloadlist) {
     QFileInfo info(s);
     if (info.exists()) {
-      auto img = FileReader::loadOMETiff_4D(info.absoluteFilePath().toStdString(), true);
+      auto img = FileReader::loadFromFile_4D(info.absoluteFilePath().toStdString(), nullptr, true);
       renderlib::imageAllocGPU(img);
     } else {
       LOG_INFO << "Could not load " << s.toStdString();
@@ -154,7 +154,7 @@ main(int argc, char* argv[])
 
     // must happen after renderlib init
     preloadFiles(p._preloadList);
-    
+
     result = a.exec();
   } else {
     qtome* w = new qtome();

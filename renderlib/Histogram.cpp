@@ -42,6 +42,9 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   }
   //	float fval;
   float range = (float)(_dataMax - _dataMin);
+  if (range == 0.0f) {
+    range = 1.0f;
+  }
   float binmax = (float)(num_bins - 1);
   for (size_t i = 0; i < length; ++i) {
     size_t whichbin = (size_t)((float)(data[i] - _dataMin) / range * binmax + 0.5);
@@ -453,9 +456,13 @@ Histogram::initialize_thresholds(float vfrac_min /*= 0.01*/, float vfrac_max /*=
   // LOG_DEBUG << "LOW: " << vlow << " HIGH: " << vmid;
 
   // normalize to 0..1
-  vlow = (vlow - _dataMin) / (_dataMax - _dataMin);
-  vmid = (vmid - _dataMin) / (_dataMax - _dataMin);
-  vmax = 1.0;
+  float range = (float)(_dataMax - _dataMin);
+  if (range == 0.0f) {
+    range = 1.0f;
+  }
+  vlow = (vlow - _dataMin) / range;
+  vmid = (vmid - _dataMin) / range;
+  vmax = 1.0f;
 
   if ((vlow < vmid) && (vmid < vmax)) {
     if (vlow == 0.0f) {

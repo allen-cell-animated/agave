@@ -2,6 +2,7 @@
 
 #include "command.h"
 #include "renderlib/Logging.h"
+#include "renderlib/version.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -231,6 +232,13 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
     getFloat(pathTracer, "secondaryStepSize", m_secondaryStepSize);
   }
 
+  if (json.contains("timeline") && json["timeline"].isObject()) {
+    QJsonObject timeline = json["timeline"].toObject();
+    getInt(timeline, "minTime", m_minTime);
+    getInt(timeline, "maxTime", m_maxTime);
+    getInt(timeline, "currentTime", m_currentTime);
+  }
+
   if (json.contains("camera") && json["camera"].isObject()) {
     QJsonObject cam = json["camera"].toObject();
     glm::vec3 tmp;
@@ -319,7 +327,8 @@ ViewerState::stateToJson() const
   j["name"] = m_volumeImageFile;
 
   // the version of this schema
-  j["version"] = jsonVec3(1, 0, 0);
+  // use app version
+  j["version"] = jsonVec3(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
 
   QJsonArray resolution;
   resolution.append(m_resolutionX);
@@ -332,6 +341,12 @@ ViewerState::stateToJson() const
   pathTracer["primaryStepSize"] = m_primaryStepSize;
   pathTracer["secondaryStepSize"] = m_secondaryStepSize;
   j["pathTracer"] = pathTracer;
+
+  QJsonObject timeline;
+  timeline["minTime"] = m_minTime;
+  timeline["maxTime"] = m_maxTime;
+  timeline["currentTime"] = m_currentTime;
+  j["timeline"] = timeline;
 
   QJsonArray clipRegion;
   QJsonArray clipRegionX;
@@ -393,6 +408,7 @@ ViewerState::stateToJson() const
       controlPoints.append(controlPointObj);
     }
     lutParams["controlPoints"] = controlPoints;
+    lutParams["mode"] = ch.m_lutParams.m_mode;
     channel["lutParams"] = lutParams;
 
     channels.append(channel);
@@ -458,7 +474,9 @@ ViewerState::stateToPythonScript() const
   ss << "import agave" << std::endl;
   ss << "r = agave.renderer()" << std::endl;
   std::string obj = "r.";
-  ss << obj << LoadOmeTifCommand({ m_volumeImageFile.toStdString() }).toPythonString() << std::endl;
+  ss << obj
+     << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), 0 /* scene */, m_currentTime }).toPythonString()
+     << std::endl;
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
   ss << obj
      << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()
@@ -577,7 +595,8 @@ ViewerState::stateToPythonWebsocketScript() const
   s += QString("        [\n");
 
   QString indent("            ");
-  s += indent + QString("(\"LOAD_OME_TIF\", \"%1\"),\n").arg(m_volumeImageFile);
+  s +=
+    indent + QString("(\"LOAD_VOLUME_FROM_FILE\", \"%1\", %2, %3),\n").arg(m_volumeImageFile).arg(0).arg(m_currentTime);
   s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
   s += indent + QString("(\"BACKGROUND_COLOR\", %1, %2, %3),\n")
                   .arg(m_backgroundColor.x)

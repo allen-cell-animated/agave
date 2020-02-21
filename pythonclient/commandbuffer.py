@@ -59,9 +59,14 @@ COMMANDS = {
     "MAT_OPACITY": [33, "I32", "F32"],
     "SET_PRIMARY_RAY_STEP_SIZE": [34, "F32"],
     "SET_SECONDARY_RAY_STEP_SIZE": [35, "F32"],
+    # r, g, b
     "BACKGROUND_COLOR": [36, "F32", "F32", "F32"],
+    # channel index, isovalue, isorange
     "SET_ISOVALUE_THRESHOLD": [37, "I32", "F32", "F32"],
+    # channel index, array of [stop, r, g, b, a]
     "SET_CONTROL_POINTS": [38, "I32", "F32A"],
+    # path, scene, time
+    "LOAD_VOLUME_FROM_FILE": [39, "S", "I32", "I32"],
 }
 
 

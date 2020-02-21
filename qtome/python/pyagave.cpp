@@ -49,5 +49,6 @@ PYBIND11_EMBEDDED_MODULE(agave, m)
     .def(SetSecondaryRayStepSizeCommand::PythonName().c_str(), &OffscreenRenderer::SetSecondaryRayStepSize)
     .def(SetBackgroundColorCommand::PythonName().c_str(), &OffscreenRenderer::BackgroundColor)
     .def(SetIsovalueThresholdCommand::PythonName().c_str(), &OffscreenRenderer::SetIsovalueThreshold)
-    .def(SetControlPointsCommand::PythonName().c_str(), &OffscreenRenderer::SetControlPoints);
+    .def(SetControlPointsCommand::PythonName().c_str(), &OffscreenRenderer::SetControlPoints)
+    .def(LoadVolumeFromFileCommand::PythonName().c_str(), &OffscreenRenderer::LoadVolumeFromFile);
 }

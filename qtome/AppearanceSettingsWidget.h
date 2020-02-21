@@ -68,6 +68,8 @@ public:
   void OnSetScaleZ(double value);
 
 private:
+  Scene* m_scene;
+
   QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;
   QComboBox m_RendererType;
@@ -89,7 +91,6 @@ private:
   QDoubleSpinner* m_yscaleSpinner;
   QDoubleSpinner* m_zscaleSpinner;
 
-  Scene* m_scene;
   std::vector<Section*> m_channelSections;
 
   struct lt0
