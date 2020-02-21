@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-set(CMAKE_CXX_STANDARD 11)
-
 if (APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
@@ -11,6 +9,18 @@ project(
   VERSION 0.0.7.0
   LANGUAGES C CXX
 )
+
+set(CMAKE_CXX_STANDARD 14)
+
+IF (WIN32)
+    set(PYBIND11_CPP_STANDARD /std:c++14)
+ELSE()
+    set(PYBIND11_CPP_STANDARD -std=c++14)
+    # most of this is for libCZI:
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++14 -fPIC -O0 -g -D_FILE_OFFSET_BITS=64 -fvisibility=hidden")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__ANSI__ -fPIC -D_FILE_OFFSET_BITS=64")
+    add_compile_definitions(LINUXENV)
+ENDIF(WIN32)
 
 # Add paths to our CMake code to the module path, so they can be found automatically by
 # CMake.
