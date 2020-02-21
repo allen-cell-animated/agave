@@ -9,7 +9,6 @@
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
 
-#include <QApplication>
 #include <QFormLayout>
 #include <QLinearGradient>
 
