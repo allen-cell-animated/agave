@@ -344,6 +344,7 @@ ViewerState::stateToJson() const
   timeline["minTime"] = m_minTime;
   timeline["maxTime"] = m_maxTime;
   timeline["currentTime"] = m_currentTime;
+  j["timeline"] = timeline;
 
   QJsonArray clipRegion;
   QJsonArray clipRegionX;
@@ -405,6 +406,7 @@ ViewerState::stateToJson() const
       controlPoints.append(controlPointObj);
     }
     lutParams["controlPoints"] = controlPoints;
+    lutParams["mode"] = ch.m_lutParams.m_mode;
     channel["lutParams"] = lutParams;
 
     channels.append(channel);

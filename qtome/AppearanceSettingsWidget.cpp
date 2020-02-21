@@ -697,6 +697,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
       this->OnUpdateLut(i, pts);
     });
+    this->OnUpdateLut(i, std::vector<LutControlPoint>());
 
     QNumericSlider* opacitySlider = new QNumericSlider();
     opacitySlider->setRange(0.0, 1.0);
