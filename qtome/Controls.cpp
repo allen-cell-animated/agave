@@ -274,17 +274,6 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   m_layout.setContentsMargins(0, 0, 0, 0);
 
-  // // keep slider and spinner in sync
-  // QObject::connect(&m_slider, QOverload<double>::of(&QDoubleSlider::valueChanged), [this](double v) {
-  //   this->m_spinner.setValue(v, true);
-  // });
-  // QObject::connect(
-  //   &m_spinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), [this](double v) { this->m_slider.setValue(v);
-  //   });
-
-  // // only slider will update the value...
-  // QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
-
   // keep slider and spinner in sync
   QObject::connect(&m_slider, QOverload<int>::of(&QDoubleSlider::sliderMoved), [this](int v) {
     this->m_spinner.blockSignals(true);
