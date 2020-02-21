@@ -24,7 +24,7 @@ class QAppearanceSettingsWidget : public QGroupBox
 public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
 
-  void onNewImage(Scene* scene, std::string filepath);
+  void onNewImage(Scene* scene);
 
 public slots:
   void OnRenderBegin(void);
@@ -69,7 +69,6 @@ public:
 
 private:
   Scene* m_scene;
-  std::string m_filepath;
 
   QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;

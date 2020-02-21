@@ -5,7 +5,6 @@
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
-#include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
@@ -634,7 +633,7 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 }
 
 void
-QAppearanceSettingsWidget::onNewImage(Scene* scene, std::string filepath)
+QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
   // remove the previous per-channel ui
   for (auto s : m_channelSections) {
@@ -644,7 +643,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene, std::string filepath)
 
   // I don't own this.
   m_scene = scene;
-  m_filepath = filepath;
 
   if (!scene->m_volume) {
     return;

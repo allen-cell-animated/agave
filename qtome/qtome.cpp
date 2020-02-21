@@ -354,7 +354,7 @@ qtome::open(const QString& file, const ViewerState* vs)
     m_glView->onNewImage(&m_appScene);
     m_tabs->setTabText(0, info.fileName());
 
-    m_appearanceDockWidget->onNewImage(&m_appScene, file.toStdString());
+    m_appearanceDockWidget->onNewImage(&m_appScene);
     m_timelinedock->onNewImage(&m_appScene, file.toStdString());
 
     // set up status view with some stats.
