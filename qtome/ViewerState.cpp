@@ -2,6 +2,7 @@
 
 #include "command.h"
 #include "renderlib/Logging.h"
+#include "renderlib/version.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -326,7 +327,8 @@ ViewerState::stateToJson() const
   j["name"] = m_volumeImageFile;
 
   // the version of this schema
-  j["version"] = jsonVec3(1, 0, 0);
+  // use app version
+  j["version"] = jsonVec3(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
 
   QJsonArray resolution;
   resolution.append(m_resolutionX);
