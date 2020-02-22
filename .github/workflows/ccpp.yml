@@ -60,10 +60,9 @@ jobs:
           vcpkg install --triplet x64-windows tiff glm
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
-        shell: cmd
         
   make-release:
     runs-on: ubuntu-latest
