@@ -68,7 +68,7 @@ jobs:
           cd Release
           dir
           dumpbin /dependents .\agave_test.exe /nologo
-          powershell -noprofile -executionpolicy Bypass -file $env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary ./agave_test.exe -installedDir $env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/debug/bin -OutVariable out
+          powershell -noprofile -executionpolicy Bypass -file "$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/msbuild/applocal.ps1" -targetBinary ./agave_test.exe -installedDir "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/debug/bin" -OutVariable out
           dir
           agave_test
         shell:
