@@ -66,6 +66,7 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target install --config Release
           cd Release
+          dumpbin /dependents .\agave_test.exe /nologo
           agave_test
         shell:
           cmd
