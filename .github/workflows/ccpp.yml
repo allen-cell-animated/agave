@@ -66,7 +66,10 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target install --config Release
           cd Release
+          dir
           dumpbin /dependents .\agave_test.exe /nologo
+          powershell -noprofile -executionpolicy Bypass -file $env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary ./agave_test.exe -installedDir $env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/debug/bin -OutVariable out
+          dir
           agave_test
         shell:
           cmd
