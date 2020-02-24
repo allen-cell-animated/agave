@@ -66,7 +66,7 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
-          zip -vr agave_win.zip agave-install/
+          powershell Compress-Archive -Path .\agave-install -DestinationPath agave_win.zip
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
