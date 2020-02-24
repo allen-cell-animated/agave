@@ -24,8 +24,8 @@ target_link_libraries(agave_test
 	pybind11::embed 
 )
 
-# add_custom_command(TARGET agave_test POST_BUILD
-#         COMMAND agave_test
-#         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
-#         COMMENT "Running tests..."
-#         )
+add_custom_command(TARGET agave_test POST_BUILD
+        COMMAND agave_test
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
+        COMMENT "Running tests..."
+        )

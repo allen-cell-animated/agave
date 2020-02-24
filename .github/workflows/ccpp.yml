@@ -60,18 +60,12 @@ jobs:
         env:
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
-          vcpkg install --triplet x64-windows tiff glm
+          vcpkg install --triplet x64-windows tiff glm boost-chrono boost-log boost-log_setup boost-iostreams boost-thread boost-system boost-filesystem boost-date_time boost-atomic
           mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
-          cd Release
-          dir
-          dumpbin /dependents .\agave_test.exe /nologo
-          powershell -noprofile -executionpolicy Bypass -file "%VCPKG_INSTALLATION_ROOT%/scripts/buildsystems/msbuild/applocal.ps1" -targetBinary ./agave_test.exe -installedDir "%VCPKG_INSTALLATION_ROOT%/installed/x64-windows/debug/bin" -OutVariable out
-          powershell -noprofile -executionpolicy Bypass -file "$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/msbuild/applocal.ps1" -targetBinary ./agave_test.exe -installedDir "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/debug/bin" -OutVariable out
-          dir
-          agave_test
         shell:
           cmd
         
