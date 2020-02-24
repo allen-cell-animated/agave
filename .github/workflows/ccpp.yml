@@ -84,12 +84,12 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: agave-mac
-          path: build/agave_macOS.zip
+          path: agave_macOS.zip
       - name: Get windows build artifact
         uses: actions/download-artifact@v1
         with:
           name: agave-win
-          path: build/agave_win.zip
+          path: agave_win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
@@ -97,7 +97,7 @@ jobs:
           draft: true
           prerelease: true
           files: |
-            build/agave_macOS.zip
-            build/agave_win.zip
+            agave_macOS.zip
+            agave_win.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
