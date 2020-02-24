@@ -60,7 +60,7 @@ jobs:
         env:
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
-          vcpkg install --triplet x64-windows tiff glm boost-chrono boost-log boost-log_setup boost-iostreams boost-thread boost-system boost-filesystem boost-date_time boost-atomic
+          vcpkg install --triplet x64-windows tiff glm boost-chrono boost-log boost-iostreams boost-thread boost-system boost-filesystem boost-date-time boost-atomic
           mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
