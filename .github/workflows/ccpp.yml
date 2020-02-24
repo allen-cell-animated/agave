@@ -20,7 +20,7 @@ jobs:
       - name: Install Qt
         uses: ouuan/install-qt-action@v2.3.1
         with:
-          version: 5.12.6     
+          version: 5.12.6
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
         env:
@@ -48,7 +48,7 @@ jobs:
           CXX: g++
         run: |
           sudo apt-get install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
-          pwd          
+          pwd
           mkdir ./build
           cd build
           cmake ..
@@ -66,26 +66,38 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
-        shell:
-          cmd
-        
+          zip -vr agave_win.zip agave-install/
+        shell: cmd
+      - name: Upload windows artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v1
+        with:
+          name: agave-win
+          path: ./build/agave_win.zip
+
   make-release:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     needs: cmake-build
     steps:
-      - name: Get build artifacts
+      - name: Get mac build artifact
         uses: actions/download-artifact@v1
         with:
           name: agave-mac
           path: build/agave_macOS.zip
+      - name: Get windows build artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: agave-win
+          path: build/agave_win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           draft: true
           prerelease: true
-          files: build/agave_macOS.zip
+          files: |
+            build/agave_macOS.zip
+            build/agave_win.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
