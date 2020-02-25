@@ -18,7 +18,7 @@ jobs:
           git submodule sync --recursive
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
       - name: Install Qt
-        uses: ouuan/install-qt-action@v2.3.1
+        uses: ouuan/install-qt-action@v2.4.1
         with:
           version: 5.12.6
       - name: macos build and test
