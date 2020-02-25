@@ -100,7 +100,7 @@ jobs:
           draft: true
           prerelease: true
           files: |
-            ${{ github.workspace }}/agave_macOS.zip
-            ${{ github.workspace }}/agave_win.zip
+            ${{ github.workspace }}/agave-mac/agave_macOS.zip
+            ${{ github.workspace }}/agave-win/agave_win.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
