@@ -11,6 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: ilammy/msvc-dev-cmd@v1.0.1
+      - name: Install Python 3.8 version
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+          architecture: "x64"
       - name: Checkout submodules
         shell: bash
         run: |
