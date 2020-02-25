@@ -85,15 +85,12 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: agave-mac
-          path: agave_macOS.zip
       - name: Get windows build artifact
         uses: actions/download-artifact@v1
         with:
           name: agave-win
-          path: agave_win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/v')
         with:
           draft: true
           prerelease: true
