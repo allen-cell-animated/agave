@@ -1,5 +1,5 @@
 name: C++ Build
-on: [push]
+on: push
 jobs:
   cmake-build:
     runs-on: ${{ matrix.os }}
