@@ -123,6 +123,12 @@ ShadeWidget::points() const
   return m_hoverPoints->points();
 }
 
+void
+ShadeWidget::setEditable(bool editable)
+{
+  m_hoverPoints->setEditable(editable);
+}
+
 uint
 ShadeWidget::colorAt(int x)
 {
@@ -435,6 +441,8 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 
   int initialStackedPageIndex = btnIdToStackedPage[initialButtonId];
   stackedLayout->setCurrentIndex(initialStackedPageIndex);
+  // if this is not custom mode, then disable the gradient editor
+  m_editor->setEditable(m == GradientEditMode::CUSTOM);
 
   connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
     GradientEditMode modeToSet = btnIdToGradientMode[id];
@@ -445,6 +453,9 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
     this->m_gradientData->m_activeMode = modeToSet;
 
     stackedLayout->setCurrentIndex(btnIdToStackedPage[id]);
+
+    // if this is not custom mode, then disable the gradient editor
+    m_editor->setEditable(modeToSet == GradientEditMode::CUSTOM);
 
     this->forceDataUpdate();
   });

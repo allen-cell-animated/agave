@@ -166,7 +166,7 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
       case QEvent::MouseMove:
         if (!m_fingerPointMapping.isEmpty())
           return true;
-        if (m_currentIndex >= 0)
+        if (m_editable && m_currentIndex >= 0)
           movePoint(m_currentIndex, ((QMouseEvent*)event)->pos());
         break;
       case QEvent::TouchBegin:
