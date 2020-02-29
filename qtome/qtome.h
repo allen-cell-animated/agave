@@ -28,10 +28,11 @@ public:
 private:
   Ui::qtomeClass m_ui;
 
+  bool open(const QString& file, const ViewerState* v = nullptr);
+
 private slots:
   void open();
   void openJson();
-  void open(const QString& file, const ViewerState* v = nullptr);
   void openRecentFile();
   void updateRecentFileActions();
   void quit();
@@ -60,6 +61,8 @@ private:
   void createMenus();
   void createToolbars();
   void createDockWindows();
+
+  void showOpenFailedMessageBox(QString path);
 
   static bool hasRecentFiles();
   void prependToRecentFiles(const QString& fileName);
