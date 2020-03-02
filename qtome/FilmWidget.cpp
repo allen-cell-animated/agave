@@ -31,8 +31,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   const int ResMin = powf(2.0f, 5);
   const int ResMax = powf(2.0f, 11);
 
-  // Exposure
-
+  // Exposure, controls how bright or dim overall scene is
   m_ExposureSlider.setStatusTip(tr("Set Exposure"));
   m_ExposureSlider.setToolTip(tr("Set camera exposure"));
   m_ExposureSlider.setRange(0.0f, 1.0f);
@@ -44,7 +43,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 
   QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), this, SLOT(SetExposure(double)));
 
-  // Exposure
+  // Number of render iterations per viewport update
   m_ExposureIterationsSpinner.setStatusTip(tr("Set Exposure Time"));
   m_ExposureIterationsSpinner.setToolTip(tr("Set number of samples to accumulate per viewport update"));
   m_ExposureIterationsSpinner.addItem("1", 1);
