@@ -21,8 +21,8 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   , m_renderSettings(rs)
 {
   setTitle("Film");
-  setStatusTip("Film properties");
-  setToolTip("Film properties");
+  setStatusTip(tr("Film properties"));
+  setToolTip(tr("Film properties"));
 
   // Create layout
   Controls::initFormLayout(m_Layout);
@@ -33,6 +33,8 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 
   // Exposure
 
+  m_ExposureSlider.setStatusTip(tr("Set Exposure"));
+  m_ExposureSlider.setToolTip(tr("Set camera exposure"));
   m_ExposureSlider.setRange(0.0f, 1.0f);
   m_ExposureSlider.setValue(cam->GetFilm().GetExposure());
   m_ExposureSlider.setDecimals(3);
@@ -43,6 +45,8 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   QObject::connect(&m_ExposureSlider, SIGNAL(valueChanged(double)), this, SLOT(SetExposure(double)));
 
   // Exposure
+  m_ExposureIterationsSpinner.setStatusTip(tr("Set Exposure Time"));
+  m_ExposureIterationsSpinner.setToolTip(tr("Set number of samples to accumulate per viewport update"));
   m_ExposureIterationsSpinner.addItem("1", 1);
   m_ExposureIterationsSpinner.addItem("2", 2);
   m_ExposureIterationsSpinner.addItem("4", 4);
@@ -58,6 +62,8 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   // gStatus.SetStatisticChanged("Camera", "Film", "", "", "");
 
   // m_NoiseReduction.setText("Noise Reduction");
+  m_NoiseReduction.setStatusTip(tr("Enable denoising pass"));
+  m_NoiseReduction.setToolTip(tr("Enable denoising pass"));
   m_NoiseReduction.setCheckState(rs->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
   m_Layout.addRow("Noise Reduction", &m_NoiseReduction);
 

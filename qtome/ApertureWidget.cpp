@@ -9,14 +9,16 @@ QApertureWidget::QApertureWidget(QWidget* pParent, QCamera* cam)
   , m_SizeSlider()
   , m_camera(cam)
 {
-  setTitle("Aperture");
-  setStatusTip("Aperture properties");
-  setToolTip("Aperture properties");
+  setTitle(tr("Aperture"));
+  setStatusTip(tr("Aperture properties"));
+  setToolTip(tr("Aperture properties"));
 
   Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   // Aperture size
+  m_SizeSlider.setStatusTip(tr("Set camera aperture size"));
+  m_SizeSlider.setToolTip(tr("Set camera aperture size"));
   m_SizeSlider.setRange(0.0, 0.1);
   m_SizeSlider.setSuffix(" mm");
   m_SizeSlider.setDecimals(3);

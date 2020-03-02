@@ -368,17 +368,17 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
   QPushButton* windowLevelButton = new QPushButton("Wnd/Lvl");
-  windowLevelButton->setToolTip("Window/Level");
-  windowLevelButton->setStatusTip("Choose Window/Level mode");
+  windowLevelButton->setToolTip(tr("Window/Level"));
+  windowLevelButton->setStatusTip(tr("Choose Window/Level mode"));
   QPushButton* isoButton = new QPushButton("Iso");
-  isoButton->setToolTip("Isovalue");
-  isoButton->setStatusTip("Choose Isovalue mode");
+  isoButton->setToolTip(tr("Isovalue"));
+  isoButton->setStatusTip(tr("Choose Isovalue mode"));
   QPushButton* pctButton = new QPushButton("Pct");
-  pctButton->setToolTip("Histogram Percentiles");
-  pctButton->setStatusTip("Choose Histogram percentiles mode");
+  pctButton->setToolTip(tr("Histogram Percentiles"));
+  pctButton->setStatusTip(tr("Choose Histogram percentiles mode"));
   QPushButton* customButton = new QPushButton("Custom");
-  customButton->setToolTip("Custom");
-  customButton->setStatusTip("Choose Custom editing mode");
+  customButton->setToolTip(tr("Custom"));
+  customButton->setStatusTip(tr("Choose Custom editing mode"));
 
   static const int WINDOW_LEVEL_BTNID = 1;
   static const int ISO_BTNID = 2;
@@ -461,16 +461,16 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   });
 
   QNumericSlider* windowSlider = new QNumericSlider();
-  windowSlider->setStatusTip("Window");
-  windowSlider->setToolTip("Window");
+  windowSlider->setStatusTip(tr("Window"));
+  windowSlider->setToolTip(tr("Set size of range of intensities"));
   windowSlider->setRange(0.0, 1.0);
   windowSlider->setSingleStep(0.01);
 
   windowSlider->setValue(m_gradientData->m_window);
   section0Layout->addRow("Window", windowSlider);
   QNumericSlider* levelSlider = new QNumericSlider();
-  levelSlider->setStatusTip("Level");
-  levelSlider->setToolTip("Level");
+  levelSlider->setStatusTip(tr("Level"));
+  levelSlider->setToolTip(tr("Set level of mid intensity"));
   levelSlider->setRange(0.0, 1.0);
   levelSlider->setSingleStep(0.01);
   levelSlider->setValue(m_gradientData->m_level);
@@ -485,15 +485,15 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   });
 
   QNumericSlider* isovalueSlider = new QNumericSlider();
-  isovalueSlider->setStatusTip("Isovalue");
-  isovalueSlider->setToolTip("Set Isovalue");
+  isovalueSlider->setStatusTip(tr("Isovalue"));
+  isovalueSlider->setToolTip(tr("Set Isovalue"));
   isovalueSlider->setRange(0.0, 1.0);
   isovalueSlider->setSingleStep(0.01);
   isovalueSlider->setValue(m_gradientData->m_isovalue);
   section1Layout->addRow("Isovalue", isovalueSlider);
   QNumericSlider* isorangeSlider = new QNumericSlider();
-  isorangeSlider->setStatusTip("Isovalue range");
-  isorangeSlider->setToolTip("Set range above and below isovalue");
+  isorangeSlider->setStatusTip(tr("Isovalue range"));
+  isorangeSlider->setToolTip(tr("Set range above and below isovalue"));
   isorangeSlider->setRange(0.0, 1.0);
   isorangeSlider->setSingleStep(0.01);
   isorangeSlider->setValue(m_gradientData->m_isorange);
@@ -508,15 +508,15 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   });
 
   QNumericSlider* pctLowSlider = new QNumericSlider();
-  pctLowSlider->setStatusTip("Low percentile");
-  pctLowSlider->setToolTip("Set bottom percentile");
+  pctLowSlider->setStatusTip(tr("Low percentile"));
+  pctLowSlider->setToolTip(tr("Set bottom percentile"));
   pctLowSlider->setRange(0.0, 1.0);
   pctLowSlider->setSingleStep(0.01);
   pctLowSlider->setValue(m_gradientData->m_pctLow);
   section2Layout->addRow("Pct Min", pctLowSlider);
   QNumericSlider* pctHighSlider = new QNumericSlider();
-  pctHighSlider->setStatusTip("High percentile");
-  pctHighSlider->setToolTip("Set top percentile");
+  pctHighSlider->setStatusTip(tr("High percentile"));
+  pctHighSlider->setToolTip(tr("Set top percentile"));
   pctHighSlider->setRange(0.0, 1.0);
   pctHighSlider->setSingleStep(0.01);
   pctHighSlider->setValue(m_gradientData->m_pctHigh);

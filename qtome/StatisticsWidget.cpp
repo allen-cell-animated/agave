@@ -12,8 +12,8 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent)
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
   // Status and tooltip
-  setToolTip("Statistics");
-  setStatusTip("Statistics");
+  setToolTip(tr("Statistics"));
+  setStatusTip(tr("Statistics"));
 
   // Configure tree
   setColumnCount(2);
