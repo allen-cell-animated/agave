@@ -59,9 +59,6 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
                    this,
                    SLOT(SetExposureIterations(const QString&)));
 
-  // gStatus.SetStatisticChanged("Camera", "Film", "", "", "");
-
-  // m_NoiseReduction.setText("Noise Reduction");
   m_NoiseReduction.setStatusTip(tr("Enable denoising pass"));
   m_NoiseReduction.setToolTip(tr("Enable denoising pass"));
   m_NoiseReduction.setCheckState(rs->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
@@ -69,12 +66,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 
   QObject::connect(&m_NoiseReduction, SIGNAL(stateChanged(const int&)), this, SLOT(OnNoiseReduction(const int&)));
 
-  // QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
-  // QObject::connect(&gStatus, SIGNAL(RenderEnd()), this, SLOT(OnRenderEnd()));
-
   QObject::connect(&cam->GetFilm(), SIGNAL(Changed(const QFilm&)), this, SLOT(OnFilmChanged(const QFilm&)));
-
-  //	OnRenderBegin();
 }
 
 void
