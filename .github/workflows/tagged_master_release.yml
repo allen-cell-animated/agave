@@ -35,7 +35,6 @@ jobs:
         uses: ouuan/install-qt-action@v2.4.1
         with:
           version: 5.12.6
-          aqtversion: "==0.7.1"
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
         env:
