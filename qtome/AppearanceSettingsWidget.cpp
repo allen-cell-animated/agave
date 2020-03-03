@@ -27,23 +27,32 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
 
-  m_RendererType.addItem("OpenGL simple", 0);
+  m_RendererType.setStatusTip(tr("Select volume rendering type"));
+  m_RendererType.setToolTip(tr("Select volume rendering type"));
+
+  m_RendererType.addItem("Ray march blending", 0);
   m_RendererType.addItem("Path Traced", 1);
-  // m_RendererType.addItem("OpenGL full", 2);
+
   m_RendererType.setCurrentIndex(1);
   m_MainLayout.addRow("Renderer", &m_RendererType);
 
+  m_DensityScaleSlider.setStatusTip(tr("Set scattering density for volume"));
+  m_DensityScaleSlider.setToolTip(tr("Set scattering density for volume"));
   m_DensityScaleSlider.setRange(0.001, 100.0);
   m_DensityScaleSlider.setDecimals(3);
   m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
   m_MainLayout.addRow("Scattering Density", &m_DensityScaleSlider);
 
+  m_ShadingType.setStatusTip(tr("Select volume shading style"));
+  m_ShadingType.setToolTip(tr("Select volume shading style"));
   m_ShadingType.addItem("BRDF Only", 0);
   m_ShadingType.addItem("Phase Function Only", 1);
   m_ShadingType.addItem("Mixed", 2);
   m_ShadingType.setCurrentIndex(rs->m_RenderSettings.m_ShadingType);
   m_MainLayout.addRow("Shading Type", &m_ShadingType);
 
+  m_GradientFactorSlider.setStatusTip(tr("Mix between BRDF and Phase shading"));
+  m_GradientFactorSlider.setToolTip(tr("Mix between BRDF and Phase shading"));
   m_GradientFactorSlider.setRange(0.001, 100.0);
   m_GradientFactorSlider.setDecimals(3);
   m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
@@ -52,6 +61,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
   QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
+  m_StepSizePrimaryRaySlider.setStatusTip(tr("Set volume ray march step size for camera rays"));
+  m_StepSizePrimaryRaySlider.setToolTip(tr("Set volume ray march step size for camera rays"));
   m_StepSizePrimaryRaySlider.setRange(0.1, 100.0);
   m_StepSizePrimaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactor);
   m_StepSizePrimaryRaySlider.setDecimals(3);
@@ -60,6 +71,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(
     &m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
+  m_StepSizeSecondaryRaySlider.setStatusTip(tr("Set volume ray march step size for scattered rays"));
+  m_StepSizeSecondaryRaySlider.setToolTip(tr("Set volume ray march step size for scattered rays"));
   m_StepSizeSecondaryRaySlider.setRange(0.1, 100.0);
   m_StepSizeSecondaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactorShadow);
   m_StepSizeSecondaryRaySlider.setDecimals(3);
@@ -68,6 +81,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(
     &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
+  m_backgroundColorButton.setStatusTip(tr("Set background color"));
+  m_backgroundColorButton.setToolTip(tr("Set background color"));
   m_backgroundColorButton.SetColor(QColor(0, 0, 0, 0), true);
   m_MainLayout.addRow("BackgroundColor", &m_backgroundColorButton);
 
@@ -79,6 +94,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   auto* scaleSectionLayout = new QGridLayout();
   scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
   m_xscaleSpinner = new QDoubleSpinner();
+  m_xscaleSpinner->setStatusTip(tr("Scale volume in X dimension"));
+  m_xscaleSpinner->setToolTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_xscaleSpinner, 0, 1);
   QObject::connect(m_xscaleSpinner,
@@ -87,6 +104,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
                    &QAppearanceSettingsWidget::OnSetScaleX);
   scaleSectionLayout->addWidget(new QLabel("Y"), 1, 0);
   m_yscaleSpinner = new QDoubleSpinner();
+  m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
+  m_yscaleSpinner->setToolTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_yscaleSpinner, 1, 1);
   QObject::connect(m_yscaleSpinner,
@@ -95,6 +114,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
                    &QAppearanceSettingsWidget::OnSetScaleY);
   scaleSectionLayout->addWidget(new QLabel("Z"), 2, 0);
   m_zscaleSpinner = new QDoubleSpinner();
+  m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
+  m_zscaleSpinner->setToolTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_zscaleSpinner, 2, 1);
   QObject::connect(m_zscaleSpinner,
@@ -109,6 +130,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   auto* roiSectionLayout = new QGridLayout();
   roiSectionLayout->addWidget(new QLabel("X"), 0, 0);
   m_roiX = new RangeWidget(Qt::Horizontal);
+  m_roiX->setStatusTip(tr("Set clip planes along X axis"));
+  m_roiX->setToolTip(tr("Set clip planes along X axis"));
   m_roiX->setRange(0, 100);
   m_roiX->setFirstValue(0);
   m_roiX->setSecondValue(100);
@@ -117,6 +140,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(m_roiX, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMax);
   roiSectionLayout->addWidget(new QLabel("Y"), 1, 0);
   m_roiY = new RangeWidget(Qt::Horizontal);
+  m_roiY->setStatusTip(tr("Set clip planes along Y axis"));
+  m_roiY->setToolTip(tr("Set clip planes along Y axis"));
   m_roiY->setRange(0, 100);
   m_roiY->setFirstValue(0);
   m_roiY->setSecondValue(100);
@@ -125,6 +150,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   QObject::connect(m_roiY, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMax);
   roiSectionLayout->addWidget(new QLabel("Z"), 2, 0);
   m_roiZ = new RangeWidget(Qt::Horizontal);
+  m_roiZ->setStatusTip(tr("Set clip planes along Z axis"));
+  m_roiZ->setToolTip(tr("Set clip planes along Z axis"));
   m_roiZ->setRange(0, 100);
   m_roiZ->setFirstValue(0);
   m_roiZ->setSecondValue(100);
@@ -157,8 +184,8 @@ QAppearanceSettingsWidget::createLightingControls()
   auto* sectionLayout = Controls::createFormLayout();
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
-  m_lt0gui.m_thetaSlider->setStatusTip("Set angle theta for area light");
-  m_lt0gui.m_thetaSlider->setToolTip("Set angle theta for area light");
+  m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
+  m_lt0gui.m_thetaSlider->setToolTip(tr("Set angle theta for area light"));
   m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
   m_lt0gui.m_thetaSlider->setSingleStep(TWO_PI_F / 100.0);
   m_lt0gui.m_thetaSlider->setValue(0.0);
@@ -167,8 +194,8 @@ QAppearanceSettingsWidget::createLightingControls()
     m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
 
   m_lt0gui.m_phiSlider = new QNumericSlider();
-  m_lt0gui.m_phiSlider->setStatusTip("Set angle phi for area light");
-  m_lt0gui.m_phiSlider->setToolTip("Set angle phi for area light");
+  m_lt0gui.m_phiSlider->setStatusTip(tr("Set angle phi for area light"));
+  m_lt0gui.m_phiSlider->setToolTip(tr("Set angle phi for area light"));
   m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
   m_lt0gui.m_phiSlider->setSingleStep(PI_F / 100.0);
   m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
@@ -177,8 +204,8 @@ QAppearanceSettingsWidget::createLightingControls()
     m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
 
   m_lt0gui.m_sizeSlider = new QNumericSlider();
-  m_lt0gui.m_sizeSlider->setStatusTip("Set size for area light");
-  m_lt0gui.m_sizeSlider->setToolTip("Set size for area light");
+  m_lt0gui.m_sizeSlider->setStatusTip(tr("Set size for area light"));
+  m_lt0gui.m_sizeSlider->setToolTip(tr("Set size for area light"));
   m_lt0gui.m_sizeSlider->setRange(0.1, 5.0);
   m_lt0gui.m_sizeSlider->setSingleStep(5.0 / 100.0);
   m_lt0gui.m_sizeSlider->setValue(1.0);
@@ -187,8 +214,8 @@ QAppearanceSettingsWidget::createLightingControls()
     m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
 
   m_lt0gui.m_distSlider = new QNumericSlider();
-  m_lt0gui.m_distSlider->setStatusTip("Set distance for area light");
-  m_lt0gui.m_distSlider->setToolTip("Set distance for area light");
+  m_lt0gui.m_distSlider->setStatusTip(tr("Set distance for area light"));
+  m_lt0gui.m_distSlider->setToolTip(tr("Set distance for area light"));
   m_lt0gui.m_distSlider->setRange(0.1, 100.0);
   m_lt0gui.m_distSlider->setSingleStep(1.0);
   m_lt0gui.m_distSlider->setValue(10.0);
@@ -198,15 +225,15 @@ QAppearanceSettingsWidget::createLightingControls()
 
   auto* arealightLayout = new QHBoxLayout();
   m_lt0gui.m_intensitySlider = new QNumericSlider();
-  m_lt0gui.m_intensitySlider->setStatusTip("Set intensity for area light");
-  m_lt0gui.m_intensitySlider->setToolTip("Set intensity for area light");
+  m_lt0gui.m_intensitySlider->setStatusTip(tr("Set intensity for area light"));
+  m_lt0gui.m_intensitySlider->setToolTip(tr("Set intensity for area light"));
   m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
   m_lt0gui.m_intensitySlider->setSingleStep(1.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
   arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
-  m_lt0gui.m_areaLightColorButton->setStatusTip("Set color for area light");
-  m_lt0gui.m_areaLightColorButton->setToolTip("Set color for area light");
+  m_lt0gui.m_areaLightColorButton->setStatusTip(tr("Set color for area light"));
+  m_lt0gui.m_areaLightColorButton->setToolTip(tr("Set color for area light"));
   arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton);
   sectionLayout->addRow("AreaLight Intensity", arealightLayout);
   QObject::connect(m_lt0gui.m_areaLightColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -218,10 +245,14 @@ QAppearanceSettingsWidget::createLightingControls()
 
   auto* skylightTopLayout = new QHBoxLayout();
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
+  m_lt1gui.m_stintensitySlider->setStatusTip(tr("Set intensity for top of skylight sphere"));
+  m_lt1gui.m_stintensitySlider->setToolTip(tr("Set intensity for top of skylight sphere"));
   m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_stintensitySlider->setValue(1.0);
   skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider, 1);
   m_lt1gui.m_stColorButton = new QColorPushButton();
+  m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
+  m_lt1gui.m_stColorButton->setToolTip(tr("Set color for top of skylight sphere"));
   skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
   sectionLayout->addRow("SkyLight Top", skylightTopLayout);
   QObject::connect(m_lt1gui.m_stColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -233,10 +264,14 @@ QAppearanceSettingsWidget::createLightingControls()
 
   auto* skylightMidLayout = new QHBoxLayout();
   m_lt1gui.m_smintensitySlider = new QNumericSlider();
+  m_lt1gui.m_smintensitySlider->setStatusTip(tr("Set intensity for middle of skylight sphere"));
+  m_lt1gui.m_smintensitySlider->setToolTip(tr("Set intensity for middle of skylight sphere"));
   m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_smintensitySlider->setValue(1.0);
   skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider, 1);
   m_lt1gui.m_smColorButton = new QColorPushButton();
+  m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
+  m_lt1gui.m_smColorButton->setToolTip(tr("Set color for middle of skylight sphere"));
   skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
   sectionLayout->addRow("SkyLight Mid", skylightMidLayout);
   QObject::connect(m_lt1gui.m_smColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -248,10 +283,14 @@ QAppearanceSettingsWidget::createLightingControls()
 
   auto* skylightBotLayout = new QHBoxLayout();
   m_lt1gui.m_sbintensitySlider = new QNumericSlider();
+  m_lt1gui.m_sbintensitySlider->setStatusTip(tr("Set intensity for bottom of skylight sphere"));
+  m_lt1gui.m_sbintensitySlider->setToolTip(tr("Set intensity for bottom of skylight sphere"));
   m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_sbintensitySlider->setValue(1.0);
   skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider, 1);
   m_lt1gui.m_sbColorButton = new QColorPushButton();
+  m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));
+  m_lt1gui.m_sbColorButton->setToolTip(tr("Set color for bottom of skylight sphere"));
   skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
   sectionLayout->addRow("SkyLight Bot", skylightBotLayout);
   QObject::connect(m_lt1gui.m_sbColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -700,6 +739,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnUpdateLut(i, std::vector<LutControlPoint>());
 
     QNumericSlider* opacitySlider = new QNumericSlider();
+    opacitySlider->setStatusTip(tr("Set opacity for channel"));
+    opacitySlider->setToolTip(tr("Set opacity for channel"));
     opacitySlider->setRange(0.0, 1.0);
     opacitySlider->setSingleStep(0.01);
     opacitySlider->setValue(scene->m_material.m_opacity[i], true);
@@ -711,6 +752,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
+    diffuseColorButton->setStatusTip(tr("Set color for channel"));
+    diffuseColorButton->setToolTip(tr("Set color for channel"));
     QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
                                     scene->m_material.m_diffuse[i * 3 + 1],
                                     scene->m_material.m_diffuse[i * 3 + 2]);
@@ -723,6 +766,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnDiffuseColorChanged(i, cdiff);
 
     QColorPushButton* specularColorButton = new QColorPushButton();
+    specularColorButton->setStatusTip(tr("Set specular color for channel"));
+    specularColorButton->setToolTip(tr("Set specular color for channel"));
     QColor cspec = QColor::fromRgbF(scene->m_material.m_specular[i * 3 + 0],
                                     scene->m_material.m_specular[i * 3 + 1],
                                     scene->m_material.m_specular[i * 3 + 2]);
@@ -735,6 +780,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnSpecularColorChanged(i, cspec);
 
     QColorPushButton* emissiveColorButton = new QColorPushButton();
+    emissiveColorButton->setStatusTip(tr("Set emissive color for channel"));
+    emissiveColorButton->setToolTip(tr("Set emissive color for channel"));
     QColor cemis = QColor::fromRgbF(scene->m_material.m_emissive[i * 3 + 0],
                                     scene->m_material.m_emissive[i * 3 + 1],
                                     scene->m_material.m_emissive[i * 3 + 2]);
@@ -747,6 +794,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     this->OnEmissiveColorChanged(i, cemis);
 
     QNumericSlider* roughnessSlider = new QNumericSlider();
+    roughnessSlider->setStatusTip(tr("Set specular glossiness for channel"));
+    roughnessSlider->setToolTip(tr("Set specular glossiness for channel"));
     roughnessSlider->setRange(0.0, 100.0);
     roughnessSlider->setSingleStep(0.01);
     roughnessSlider->setValue(scene->m_material.m_roughness[i]);

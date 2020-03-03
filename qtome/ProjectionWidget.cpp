@@ -12,13 +12,15 @@ QProjectionWidget::QProjectionWidget(QWidget* pParent, QCamera* cam, RenderSetti
   , m_qcamera(cam)
 {
   setTitle("Projection");
-  setStatusTip("Projection properties");
-  setToolTip("Projection properties");
+  setStatusTip(tr("Projection properties"));
+  setToolTip(tr("Projection properties"));
 
   Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   // Field of view
+  m_FieldOfViewSlider.setStatusTip(tr("Set camera field of view angle"));
+  m_FieldOfViewSlider.setToolTip(tr("Set camera field of view angle"));
   m_FieldOfViewSlider.setRange(10.0, 150.0);
   m_FieldOfViewSlider.setValue(cam->GetProjection().GetFieldOfView());
   m_FieldOfViewSlider.setSuffix(" deg.");

@@ -23,8 +23,6 @@ QAppearanceDockWidget::QAppearanceDockWidget(QWidget* parent, QRenderSettings* q
   , m_VolumeAppearanceWidget(nullptr, qrs, rs)
 {
   setWindowTitle("Appearance");
-  // setToolTip("<img src=':/Images/palette.png'><div>Volume Appearance</div>");
-  // setWindowIcon(GetIcon("palette"));
 
   m_VolumeAppearanceWidget.setParent(this);
 

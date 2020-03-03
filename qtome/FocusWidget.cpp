@@ -11,15 +11,15 @@ QFocusWidget::QFocusWidget(QWidget* pParent, QCamera* cam)
   , m_qcamera(cam)
 {
   setTitle("Focus");
-  setStatusTip("Focus properties");
-  setToolTip("Focus properties");
+  setStatusTip(tr("Focus properties"));
+  setToolTip(tr("Focus properties"));
 
   Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
   // Focal distance
-  m_FocalDistanceSlider.setStatusTip("Set angle theta for area light");
-  m_FocalDistanceSlider.setToolTip("Set angle theta for area light");
+  m_FocalDistanceSlider.setStatusTip(tr("Set focal distance"));
+  m_FocalDistanceSlider.setToolTip(tr("Set focal distance"));
   m_FocalDistanceSlider.setRange(0.0, 15.0);
   m_FocalDistanceSlider.setValue(0.0);
   m_FocalDistanceSlider.setSuffix(" m");

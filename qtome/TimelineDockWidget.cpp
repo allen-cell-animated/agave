@@ -28,6 +28,8 @@ QTimelineWidget::QTimelineWidget(QWidget* pParent, QRenderSettings* qrs)
   auto* fullLayout = new QVBoxLayout();
 
   m_TimeSlider = new QIntSlider();
+  m_TimeSlider->setStatusTip(tr("Set current time sample"));
+  m_TimeSlider->setToolTip(tr("Set current time sample"));
   m_TimeSlider->setTracking(false);
   m_TimeSlider->setRange(0, 0);
   m_TimeSlider->setSingleStep(1);
@@ -56,7 +58,7 @@ void
 QTimelineWidget::OnTimeChanged(int newTime)
 {
   if (!m_scene) {
-    return;  
+    return;
   }
   if (m_scene->m_timeLine.currentTime() != newTime) {
     m_scene->m_timeLine.setCurrentTime(newTime);
@@ -87,8 +89,6 @@ QTimelineDockWidget::QTimelineDockWidget(QWidget* parent, QRenderSettings* qrs)
   , m_TimelineWidget(nullptr, qrs)
 {
   setWindowTitle("Time");
-  // setToolTip("<img src=':/Images/palette.png'><div>Volume Appearance</div>");
-  // setWindowIcon(GetIcon("palette"));
 
   m_TimelineWidget.setParent(this);
 

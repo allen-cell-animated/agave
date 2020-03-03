@@ -25,6 +25,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QToolBar>
 
 #include <boost/filesystem/path.hpp>
@@ -101,6 +102,7 @@ qtome::createActions()
 
   m_viewResetAction = new QAction(tr("&Reset"), this);
   m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
+  m_viewResetAction->setToolTip(tr("Reset the current view"));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
@@ -117,6 +119,7 @@ qtome::createActions()
   connect(m_testMeshAction, SIGNAL(triggered()), this, SLOT(openMeshDialog()));
 
   m_toggleCameraProjectionAction = new QAction(tr("Persp/Ortho"), this);
+  m_toggleCameraProjectionAction->setToolTip(tr("Toggle perspective and orthographic camera projection modes"));
   m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
 
@@ -234,8 +237,11 @@ qtome::open()
 #endif
   QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
 
-  if (!file.isEmpty())
-    open(file);
+  if (!file.isEmpty()) {
+    if (!open(file)) {
+      showOpenFailedMessageBox(file);
+    }
+  }
 }
 
 void
@@ -260,7 +266,9 @@ qtome::openJson()
     ViewerState s;
     s.stateFromJson(loadDoc);
     if (!s.m_volumeImageFile.isEmpty()) {
-      open(s.m_volumeImageFile, &s);
+      if (!open(s.m_volumeImageFile, &s)) {
+        showOpenFailedMessageBox(file);
+      }
     }
   }
 }
@@ -318,7 +326,7 @@ qtome::saveJson()
   }
 }
 
-void
+bool
 qtome::open(const QString& file, const ViewerState* vs)
 {
   QFileInfo info(file);
@@ -333,7 +341,7 @@ qtome::open(const QString& file, const ViewerState* vs)
     QApplication::restoreOverrideCursor();
     if (!image) {
       LOG_DEBUG << "Failed to open " << file.toStdString();
-      return;
+      return false;
     }
 
     if (vs) {
@@ -376,9 +384,13 @@ qtome::open(const QString& file, const ViewerState* vs)
     m_currentFilePath = file;
     qtome::prependToRecentFiles(file);
     writeRecentDirectory(info.absolutePath());
+
+    return true;
   } else {
     LOG_DEBUG << "Failed to open " << file.toStdString();
+    return false;
   }
+  return true;
 }
 
 void
@@ -554,6 +566,17 @@ qtome::updateRecentFileActions()
 }
 
 void
+qtome::showOpenFailedMessageBox(QString path)
+{
+  QMessageBox msgBox;
+  msgBox.setIcon(QMessageBox::Warning);
+  msgBox.setWindowTitle(tr("Error opening file"));
+  msgBox.setText(tr("Failed to open ") + path);
+  msgBox.setInformativeText(tr("Check logfile.log for more detailed error information."));
+  msgBox.exec();
+}
+
+void
 qtome::openRecentFile()
 {
   if (const QAction* action = qobject_cast<const QAction*>(sender())) {
@@ -563,7 +586,9 @@ qtome::openRecentFile()
       openMesh(path);
     } else {
       // assumption of ome.tif
-      open(path);
+      if (!open(path)) {
+        showOpenFailedMessageBox(path);
+      }
     }
   }
 }

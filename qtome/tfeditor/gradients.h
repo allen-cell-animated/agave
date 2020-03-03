@@ -75,6 +75,8 @@ public:
 
   void setGradientStops(const QGradientStops& stops);
 
+  void setEditable(bool editable); 
+  
   void paintEvent(QPaintEvent* e) override;
 
   QSize sizeHint() const override { return QSize(150, 40); }
@@ -107,7 +109,7 @@ public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setControlPoints(const std::vector<LutControlPoint>& points);
-
+  void setEditable(bool editable) { m_alpha_shade->setEditable(editable); }
 public slots:
   void pointsUpdated();
 
