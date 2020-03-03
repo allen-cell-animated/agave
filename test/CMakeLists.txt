@@ -6,9 +6,6 @@ target_include_directories(agave_test PUBLIC
 	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 )
-target_compile_definitions(agave_test PUBLIC
-	BOOST_ALL_DYN_LINK
-)
 target_sources(agave_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/test_histogram.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp"
