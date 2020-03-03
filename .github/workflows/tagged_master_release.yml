@@ -1,4 +1,4 @@
-name: C++ Build
+name: C++ Release Build
 on:
   push:
     branches:
