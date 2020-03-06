@@ -1,12 +1,12 @@
-add_executable(qtomeapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
-set_target_properties(qtomeapp PROPERTIES OUTPUT_NAME "agave")
-target_include_directories(qtomeapp PUBLIC
+add_executable(agaveapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+set_target_properties(agaveapp PROPERTIES OUTPUT_NAME "agave")
+target_include_directories(agaveapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 )
-target_sources(qtomeapp PRIVATE
+target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ApertureWidget.cpp"
@@ -75,20 +75,20 @@ add_subdirectory(python)
 add_subdirectory(tfeditor)
 
 if (MSVC) 
-	target_sources(qtomeapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
+	target_sources(agaveapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
 	set_property(
-		TARGET qtomeapp
+		TARGET agaveapp
 		PROPERTY VS_DEBUGGER_WORKING_DIRECTORY
 		"${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}"
 	)
 	set_property(
-		TARGET qtomeapp
+		TARGET agaveapp
 		PROPERTY VS_DEBUGGER_COMMAND
 		"${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}/$(TargetFileName)"
 	)
 endif (MSVC)
 
-target_link_libraries(qtomeapp 
+target_link_libraries(agaveapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${TIFF_LIBRARIES}
@@ -96,7 +96,7 @@ target_link_libraries(qtomeapp
 	pybind11::embed 
 )
 
-install(TARGETS qtomeapp
+install(TARGETS agaveapp
 	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR} 
 )
