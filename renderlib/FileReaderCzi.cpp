@@ -117,6 +117,8 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
       case libCZI::DimensionIndex::T:
         dims.sizeT = size;
         break;
+      default:
+        break;
     }
     return true;
   });
