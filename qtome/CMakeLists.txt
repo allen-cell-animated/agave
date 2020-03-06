@@ -67,8 +67,6 @@ target_sources(qtomeapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/util.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/util.h"	
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
 	)
