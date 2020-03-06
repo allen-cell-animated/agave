@@ -30,7 +30,7 @@
 
 #include <boost/filesystem/path.hpp>
 
-qtome::qtome(QWidget* parent)
+agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
   m_ui.setupUi(this);
@@ -73,7 +73,7 @@ qtome::qtome(QWidget* parent)
 }
 
 void
-qtome::OnUpdateRenderer()
+agaveGui::OnUpdateRenderer()
 {
   CStatus* s = m_glView->getStatus();
   m_statisticsDockWidget->setStatus(s);
@@ -81,7 +81,7 @@ qtome::OnUpdateRenderer()
 }
 
 void
-qtome::createActions()
+agaveGui::createActions()
 {
   // boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
 
@@ -129,7 +129,7 @@ qtome::createActions()
 }
 
 void
-qtome::createMenus()
+agaveGui::createMenus()
 {
   m_fileMenu = menuBar()->addMenu(tr("&File"));
   m_fileMenu->addAction(m_openAction);
@@ -143,14 +143,14 @@ qtome::createMenus()
   m_fileMenu->addAction(m_quitAction);
 
   QMenu* recentMenu = m_fileMenu->addMenu(tr("Recent..."));
-  connect(recentMenu, &QMenu::aboutToShow, this, &qtome::updateRecentFileActions);
+  connect(recentMenu, &QMenu::aboutToShow, this, &agaveGui::updateRecentFileActions);
   m_recentFileSubMenuAct = recentMenu->menuAction();
   for (int i = 0; i < MaxRecentFiles; ++i) {
-    m_recentFileActs[i] = recentMenu->addAction(QString(), this, &qtome::openRecentFile);
+    m_recentFileActs[i] = recentMenu->addAction(QString(), this, &agaveGui::openRecentFile);
     m_recentFileActs[i]->setVisible(false);
   }
   m_recentFileSeparator = m_fileMenu->addSeparator();
-  setRecentFilesVisible(qtome::hasRecentFiles());
+  setRecentFilesVisible(agaveGui::hasRecentFiles());
 
   m_viewMenu = menuBar()->addMenu(tr("&View"));
 
@@ -158,7 +158,7 @@ qtome::createMenus()
 }
 
 void
-qtome::createToolbars()
+agaveGui::createToolbars()
 {
   m_ui.mainToolBar->addAction(m_openAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
@@ -172,7 +172,7 @@ qtome::createToolbars()
 }
 
 void
-qtome::createDockWindows()
+agaveGui::createDockWindows()
 {
   m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -203,7 +203,7 @@ qtome::createDockWindows()
 }
 
 QSlider*
-qtome::createAngleSlider()
+agaveGui::createAngleSlider()
 {
   QSlider* slider = new QSlider(Qt::Vertical);
   slider->setRange(0, 365 * 16);
@@ -215,7 +215,7 @@ qtome::createAngleSlider()
 }
 
 QSlider*
-qtome::createRangeSlider()
+agaveGui::createRangeSlider()
 {
   QSlider* slider = new QSlider(Qt::Horizontal);
   slider->setRange(0, 255 * 16);
@@ -227,7 +227,7 @@ qtome::createRangeSlider()
 }
 
 void
-qtome::open()
+agaveGui::open()
 {
   QString dir = readRecentDirectory();
 
@@ -245,7 +245,7 @@ qtome::open()
 }
 
 void
-qtome::openJson()
+agaveGui::openJson()
 {
   QString dir = readRecentDirectory();
 
@@ -274,7 +274,7 @@ qtome::openJson()
 }
 
 void
-qtome::saveImage()
+agaveGui::saveImage()
 {
   QFileDialog::Options options = 0;
 #ifdef __linux__
@@ -307,7 +307,7 @@ qtome::saveImage()
 }
 
 void
-qtome::saveJson()
+agaveGui::saveJson()
 {
   QFileDialog::Options options = 0;
 #ifdef __linux__
@@ -327,7 +327,7 @@ qtome::saveJson()
 }
 
 bool
-qtome::open(const QString& file, const ViewerState* vs)
+agaveGui::open(const QString& file, const ViewerState* vs)
 {
   QFileInfo info(file);
   if (info.exists()) {
@@ -382,7 +382,7 @@ qtome::open(const QString& file, const ViewerState* vs)
     s->onNewImage(info.fileName(), &m_appScene);
 
     m_currentFilePath = file;
-    qtome::prependToRecentFiles(file);
+    agaveGui::prependToRecentFiles(file);
     writeRecentDirectory(info.absolutePath());
 
     return true;
@@ -394,7 +394,7 @@ qtome::open(const QString& file, const ViewerState* vs)
 }
 
 void
-qtome::openMeshDialog()
+agaveGui::openMeshDialog()
 {
   QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
 #ifdef __linux__
@@ -407,7 +407,7 @@ qtome::openMeshDialog()
 }
 
 void
-qtome::openMesh(const QString& file)
+agaveGui::openMesh(const QString& file)
 {
   if (m_appScene.m_volume) {
     return;
@@ -415,7 +415,7 @@ qtome::openMesh(const QString& file)
 }
 
 void
-qtome::viewFocusChanged(GLView3D* newGlView)
+agaveGui::viewFocusChanged(GLView3D* newGlView)
 {
   if (m_glView == newGlView)
     return;
@@ -430,7 +430,7 @@ qtome::viewFocusChanged(GLView3D* newGlView)
 }
 
 void
-qtome::tabChanged(int index)
+agaveGui::tabChanged(int index)
 {
   GLView3D* current = 0;
   if (index >= 0) {
@@ -443,25 +443,25 @@ qtome::tabChanged(int index)
 }
 
 void
-qtome::quit()
+agaveGui::quit()
 {
   close();
 }
 
 void
-qtome::view_reset()
+agaveGui::view_reset()
 {
   m_glView->initCameraFromImage(&m_appScene);
 }
 
 void
-qtome::view_toggleProjection()
+agaveGui::view_toggleProjection()
 {
   m_glView->toggleCameraProjection();
 }
 
 void
-qtome::setRecentFilesVisible(bool visible)
+agaveGui::setRecentFilesVisible(bool visible)
 {
   m_recentFileSubMenuAct->setVisible(visible);
   m_recentFileSeparator->setVisible(visible);
@@ -509,14 +509,14 @@ writeRecentFiles(const QStringList& files, QSettings& settings)
 }
 
 void
-qtome::writeRecentDirectory(const QString& directory)
+agaveGui::writeRecentDirectory(const QString& directory)
 {
   QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
   settings.setValue(recentDirectoryKey(), directory);
 }
 
 QString
-qtome::readRecentDirectory()
+agaveGui::readRecentDirectory()
 {
   QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
   QString result = settings.value(recentDirectoryKey()).toString();
@@ -524,7 +524,7 @@ qtome::readRecentDirectory()
 }
 
 bool
-qtome::hasRecentFiles()
+agaveGui::hasRecentFiles()
 {
   QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
   const int count = settings.beginReadArray(recentFilesKey());
@@ -533,7 +533,7 @@ qtome::hasRecentFiles()
 }
 
 void
-qtome::prependToRecentFiles(const QString& fileName)
+agaveGui::prependToRecentFiles(const QString& fileName)
 {
   QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
 
@@ -548,7 +548,7 @@ qtome::prependToRecentFiles(const QString& fileName)
 }
 
 void
-qtome::updateRecentFileActions()
+agaveGui::updateRecentFileActions()
 {
   QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
 
@@ -556,7 +556,7 @@ qtome::updateRecentFileActions()
   const int count = qMin(int(MaxRecentFiles), recentFiles.size());
   int i = 0;
   for (; i < count; ++i) {
-    const QString fileName = qtome::strippedName(recentFiles.at(i));
+    const QString fileName = agaveGui::strippedName(recentFiles.at(i));
     m_recentFileActs[i]->setText(tr("&%1 %2").arg(i + 1).arg(fileName));
     m_recentFileActs[i]->setData(recentFiles.at(i));
     m_recentFileActs[i]->setVisible(true);
@@ -566,7 +566,7 @@ qtome::updateRecentFileActions()
 }
 
 void
-qtome::showOpenFailedMessageBox(QString path)
+agaveGui::showOpenFailedMessageBox(QString path)
 {
   QMessageBox msgBox;
   msgBox.setIcon(QMessageBox::Warning);
@@ -577,7 +577,7 @@ qtome::showOpenFailedMessageBox(QString path)
 }
 
 void
-qtome::openRecentFile()
+agaveGui::openRecentFile()
 {
   if (const QAction* action = qobject_cast<const QAction*>(sender())) {
     QString path = action->data().toString();
@@ -594,13 +594,13 @@ qtome::openRecentFile()
 }
 
 QString
-qtome::strippedName(const QString& fullFileName)
+agaveGui::strippedName(const QString& fullFileName)
 {
   return QFileInfo(fullFileName).fileName();
 }
 
 void
-qtome::savePython()
+agaveGui::savePython()
 {
   QFileDialog::Options options = 0;
 #ifdef __linux__
@@ -620,7 +620,7 @@ qtome::savePython()
 }
 
 void
-qtome::dumpStateToJson()
+agaveGui::dumpStateToJson()
 {
   ViewerState st = appToViewerState();
   QJsonDocument doc = st.stateToJson();
@@ -629,7 +629,7 @@ qtome::dumpStateToJson()
 }
 
 void
-qtome::viewerStateToApp(const ViewerState& v)
+agaveGui::viewerStateToApp(const ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
 
@@ -722,7 +722,7 @@ qtome::viewerStateToApp(const ViewerState& v)
 }
 
 ViewerState
-qtome::appToViewerState()
+agaveGui::appToViewerState()
 {
   ViewerState v;
   v.m_volumeImageFile = m_currentFilePath;

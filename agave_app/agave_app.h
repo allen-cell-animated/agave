@@ -18,12 +18,12 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
-class qtome : public QMainWindow
+class agaveGui : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  qtome(QWidget* parent = Q_NULLPTR);
+  agaveGui(QWidget* parent = Q_NULLPTR);
 
 private:
   Ui::agave_appClass m_ui;
