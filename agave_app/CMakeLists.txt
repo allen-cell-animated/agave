@@ -7,6 +7,10 @@ target_include_directories(agaveapp PUBLIC
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agaveapp PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.qrc"
+	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ApertureWidget.cpp"
@@ -47,10 +51,6 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ProjectionWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/QRenderSettings.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/QRenderSettings.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/agave_app.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/agave_app.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/agave_app.qrc"
-	"${CMAKE_CURRENT_SOURCE_DIR}/agave_app.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"

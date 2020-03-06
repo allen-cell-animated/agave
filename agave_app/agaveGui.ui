@@ -1,8 +1,8 @@
 <UI version="4.0" >
- <class>agave_appClass</class>
- <widget class="QMainWindow" name="agave_appClass" >
+ <class>agaveGuiClass</class>
+ <widget class="QMainWindow" name="agaveGuiClass" >
   <property name="objectName" >
-   <string notr="true">agave_appClass</string>
+   <string notr="true">agaveGuiClass</string>
   </property>
   <property name="geometry" >
    <rect>
@@ -23,7 +23,7 @@
  <layoutDefault spacing="6" margin="11" />
  <pixmapfunction></pixmapfunction>
  <resources>
-   <include location="agave_app.qrc"/>
+   <include location="agaveGui.qrc"/>
  </resources>
  <connections/>
 </UI>

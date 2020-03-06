@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui_agave_app.h"
+#include "ui_agaveGui.h"
 
 #include "Camera.h"
 #include "GLView3D.h"
@@ -26,7 +26,7 @@ public:
   agaveGui(QWidget* parent = Q_NULLPTR);
 
 private:
-  Ui::agave_appClass m_ui;
+  Ui::agaveGuiClass m_ui;
 
   bool open(const QString& file, const ViewerState* v = nullptr);
 

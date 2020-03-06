@@ -1,4 +1,4 @@
-#include "agave_app.h"
+#include "agaveGui.h"
 
 #include "mainwindow.h"
 #include "python/ScriptServer.h"
