@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui_qtome.h"
+#include "ui_agaveGui.h"
 
 #include "Camera.h"
 #include "GLView3D.h"
@@ -18,15 +18,15 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
-class qtome : public QMainWindow
+class agaveGui : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  qtome(QWidget* parent = Q_NULLPTR);
+  agaveGui(QWidget* parent = Q_NULLPTR);
 
 private:
-  Ui::qtomeClass m_ui;
+  Ui::agaveGuiClass m_ui;
 
   bool open(const QString& file, const ViewerState* v = nullptr);
 

@@ -114,7 +114,7 @@ add_subdirectory(test)
 ######################
 # THE FRONT END QT EXE
 ######################
-add_subdirectory(qtome)
+add_subdirectory(agave_app)
 
 ######################
 # CPack
@@ -240,7 +240,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
-set_target_properties(qtomeapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
+set_target_properties(agaveapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
 
 # Note Mac specific extension .app
 set(APPS "\${CMAKE_INSTALL_PREFIX}/agave.app")

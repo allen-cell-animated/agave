@@ -1,8 +1,8 @@
 <UI version="4.0" >
- <class>qtomeClass</class>
- <widget class="QMainWindow" name="qtomeClass" >
+ <class>agaveGuiClass</class>
+ <widget class="QMainWindow" name="agaveGuiClass" >
   <property name="objectName" >
-   <string notr="true">qtomeClass</string>
+   <string notr="true">agaveGuiClass</string>
   </property>
   <property name="geometry" >
    <rect>
@@ -13,7 +13,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>qtome</string>
+   <string>AGAVE</string>
   </property>
   <widget class="QMenuBar" name="menuBar" />
   <widget class="QToolBar" name="mainToolBar" />
@@ -23,7 +23,7 @@
  <layoutDefault spacing="6" margin="11" />
  <pixmapfunction></pixmapfunction>
  <resources>
-   <include location="qtome.qrc"/>
+   <include location="agaveGui.qrc"/>
  </resources>
  <connections/>
 </UI>

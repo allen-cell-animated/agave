@@ -1,4 +1,4 @@
-#include "qtome.h"
+#include "agaveGui.h"
 
 #include "mainwindow.h"
 #include "python/ScriptServer.h"
@@ -157,7 +157,7 @@ main(int argc, char* argv[])
 
     result = a.exec();
   } else {
-    qtome* w = new qtome();
+    agaveGui* w = new agaveGui();
     w->show();
     result = a.exec();
   }
