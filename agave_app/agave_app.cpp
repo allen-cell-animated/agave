@@ -3,7 +3,7 @@
 // the TIFF enums.
 #include <memory>
 
-#include "qtome.h"
+#include "agave_app.h"
 
 #include "renderlib/AppScene.h"
 #include "renderlib/FileReader.h"

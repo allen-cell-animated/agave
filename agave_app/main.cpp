@@ -1,4 +1,4 @@
-#include "qtome.h"
+#include "agave_app.h"
 
 #include "mainwindow.h"
 #include "python/ScriptServer.h"
