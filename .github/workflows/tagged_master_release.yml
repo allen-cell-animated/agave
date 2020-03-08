@@ -1,8 +1,6 @@
 name: C++ Release Build
 on:
   push:
-    branches:
-      - master
     tags:
       - v*
 
@@ -90,6 +88,7 @@ jobs:
           path: ./build/agave_win.zip
 
   make-release:
+    if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: cmake-build
     steps:

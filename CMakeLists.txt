@@ -97,7 +97,11 @@ add_subdirectory(renderlib)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+else ()
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+endif ()
 set(INSTALLDIR "${CMAKE_PROJECT_NAME}-install")
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
@@ -173,6 +177,10 @@ install(FILES
   $<TARGET_FILE:Qt5::QTiffPlugin>
   DESTINATION ${INSTALLDIR}/imageformats/
 )
+install(FILES 
+  $<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>
+  DESTINATION ${INSTALLDIR}/styles/
+)
 
 ################
 elseif (APPLE)
@@ -207,32 +215,14 @@ install(FILES
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
   $<TARGET_FILE:Python3::Python>
-  # ${PYTHON_LIBRARIES}
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 
-
-install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}agave.app/Contents)
-# set(${QT_PLUGINS} 
-#             "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
-# install(FILES 
-#   $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
-#   DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/PlugIns/platforms/
-# )
-install(FILES 
-  $<TARGET_FILE:Qt5::QCocoaIntegrationPlugin>
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/MacOS/platforms/
-)
-install(FILES 
-  $<TARGET_FILE:Qt5::QJpegPlugin>
-  $<TARGET_FILE:Qt5::QTiffPlugin>
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/PlugIns/imageformats/
-)
-install(FILES 
-  $<TARGET_FILE:Qt5::QJpegPlugin>
-  $<TARGET_FILE:Qt5::QTiffPlugin>
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/MacOS/imageformats/
-)
+# calls cmake install command and also adds to the QT_PLUGINS list for use below
+install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+install_qt5_plugin("Qt5::QJpegPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+install_qt5_plugin("Qt5::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+install_qt5_plugin("Qt5::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
   "[Paths]\nPlugins = PlugIns\n")
