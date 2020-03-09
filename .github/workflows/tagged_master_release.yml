@@ -71,7 +71,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: ${{ matrix.msvc_arch }}
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
           vcpkg install --triplet x64-windows tiff glm
           mkdir build
