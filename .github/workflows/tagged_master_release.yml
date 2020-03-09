@@ -104,7 +104,7 @@ jobs:
       - name: Get mac build artifact
         uses: actions/download-artifact@v1
         with:
-          name: agave-mac
+          name: agave-macos
       - name: Get windows build artifact
         uses: actions/download-artifact@v1
         with:
@@ -113,7 +113,7 @@ jobs:
         env:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
         run:
-          mv ${{ github.workspace }}/agave-mac/agave-macos.zip ${{ github.workspace }}/agave-mac/agave-$VERSION-macos.zip
+          mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-$VERSION-macos.zip
           mv ${{ github.workspace }}/agave-win/agave-win.zip ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -124,5 +124,5 @@ jobs:
           draft: true
           prerelease: true
           files: |
-            ${{ github.workspace }}/agave-mac/agave-$VERSION-macos.zip
+            ${{ github.workspace }}/agave-macos/agave-$VERSION-macos.zip
             ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
