@@ -110,19 +110,16 @@ jobs:
         with:
           name: agave-win
       - name: Version the artifacts
-        env:
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
-          mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-$VERSION-macos.zip
-          mv ${{ github.workspace }}/agave-win/agave-win.zip ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
+          mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
+          mv ${{ github.workspace }}/agave-win/agave-win.zip ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
         with:
           draft: true
           prerelease: true
           files: |
-            ${{ github.workspace }}/agave-macos/agave-$VERSION-macos.zip
-            ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
+            ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
+            ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.zip
