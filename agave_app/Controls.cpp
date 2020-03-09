@@ -14,12 +14,6 @@ QColorPushButton::QColorPushButton(QWidget* pParent)
   setText("");
 }
 
-QSize
-QColorPushButton::sizeHint() const
-{
-  return QSize(30, 20);
-}
-
 void
 QColorPushButton::paintEvent(QPaintEvent* pPaintEvent)
 {
