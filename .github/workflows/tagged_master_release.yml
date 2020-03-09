@@ -112,7 +112,7 @@ jobs:
       - name: Version the artifacts
         env:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
-        run:
+        run: |
           mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-$VERSION-macos.zip
           mv ${{ github.workspace }}/agave-win/agave-win.zip ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
       - name: Create Release
