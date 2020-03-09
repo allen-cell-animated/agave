@@ -118,6 +118,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.get_version.outputs.VERSION }}
         with:
           draft: true
@@ -125,5 +126,3 @@ jobs:
           files: |
             ${{ github.workspace }}/agave-mac/agave-$VERSION-macos.zip
             ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
