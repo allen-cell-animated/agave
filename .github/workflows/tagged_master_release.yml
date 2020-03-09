@@ -45,14 +45,14 @@ jobs:
           cmake ..
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
-          zip -vr agave_macOS.zip agave.app/
+          zip -vr agave-macos.zip agave.app/
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macOS-latest'
         uses: actions/upload-artifact@v1
         with:
-          name: agave-mac
-          path: ./build/agave_macOS.zip
+          name: agave-macos
+          path: ./build/agave-macos.zip
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -71,6 +71,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: ${{ matrix.msvc_arch }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
           vcpkg install --triplet x64-windows tiff glm
           mkdir build
@@ -78,20 +79,28 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
-          powershell Compress-Archive -Path .\agave-install -DestinationPath agave_win.zip
+          powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v1
         with:
           name: agave-win
-          path: ./build/agave_win.zip
+          path: ./build/agave-win.zip
 
   make-release:
     if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: cmake-build
     steps:
+      # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
+      # create it by ourselves. It is then made available to other steps in this job as a step.outputs
+      # variable
+      - name: Get the version (git tag)
+        id: get_version
+        run: |
+          echo ${GITHUB_REF/refs\/tags\//}
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: Get mac build artifact
         uses: actions/download-artifact@v1
         with:
@@ -100,13 +109,21 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: agave-win
+      - name: Version the artifacts
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run:
+          mv ${{ github.workspace }}/agave-mac/agave-macos.zip ${{ github.workspace }}/agave-mac/agave-$VERSION-macos.zip
+          mv ${{ github.workspace }}/agave-win/agave-win.zip ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
         with:
           draft: true
           prerelease: true
           files: |
-            ${{ github.workspace }}/agave-mac/agave_macOS.zip
-            ${{ github.workspace }}/agave-win/agave_win.zip
+            ${{ github.workspace }}/agave-mac/agave-$VERSION-macos.zip
+            ${{ github.workspace }}/agave-win/agave-$VERSION-win.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
