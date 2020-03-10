@@ -6,7 +6,7 @@ endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.9.2
+  VERSION 0.0.9.3
   LANGUAGES C CXX
 )
 
