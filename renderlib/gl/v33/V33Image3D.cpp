@@ -1,6 +1,7 @@
 
 #include "gl/v33/V33Image3D.h"
 
+#include "Fuse.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "RenderSettings.h"
@@ -242,7 +243,7 @@ Image3Dv33::prepareTexture(Scene& s)
     }
   }
 
-  m_img->fuse(colors, &m_fusedrgbvolume, nullptr);
+  Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
 
   LOG_DEBUG << "fuse operation: " << timer.elapsed() << "ms";
   timer.start();
