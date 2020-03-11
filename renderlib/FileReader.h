@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-#include <QString>
-
 class ImageXYZC;
 struct VolumeDimensions;
 
