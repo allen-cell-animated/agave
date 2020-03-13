@@ -225,6 +225,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
 
     // extract some necessary info from the xml:
+    // use the FIRST Pixels element found.
     QDomElement pixelsEl = omexml.elementsByTagName("Pixels").at(0).toElement();
     if (pixelsEl.isNull()) {
       QString msg = "No <Pixels> element in ome xml";
@@ -259,7 +260,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     QString physicalSizeZunit = pixelsEl.attribute("PhysicalSizeZUnit", "");
 
     // find channel names
-    QDomNodeList channels = omexml.elementsByTagName("Channel");
+    QDomNodeList channels = pixelsEl.elementsByTagName("Channel");
     for (int i = 0; i < channels.length(); ++i) {
       QDomNode dn = channels.at(i);
       QDomElement chel = dn.toElement();
