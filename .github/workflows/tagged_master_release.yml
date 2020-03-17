@@ -30,7 +30,7 @@ jobs:
           python-version: "3.7"
           architecture: "x64"
       - name: Install Qt
-        uses: ouuan/install-qt-action@v2.3.1
+        uses: jurplel/install-qt-action@v2.5.2
         with:
           version: 5.12.6
       - name: macos build and test
