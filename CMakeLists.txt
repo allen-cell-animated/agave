@@ -57,7 +57,7 @@ endif (WIN32)
 list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
 
 if (APPLE)
-  set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
+  set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /usr/local/lib)
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
