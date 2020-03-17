@@ -245,6 +245,8 @@ if(CMAKE_PREFIX_PATH)
     list(APPEND DIRS "${dir}/bin" "${dir}/lib")
   endforeach()
 endif()
+# homebrew lib path
+list(APPEND DIRS "/usr/local/lib")
 
 # Append Qt's lib folder
 # list(APPEND DIRS "${QTDIR}/lib")
