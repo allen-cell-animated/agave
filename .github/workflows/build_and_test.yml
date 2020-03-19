@@ -37,7 +37,8 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          brew install boost libtiff glm
+          export MACOSX_DEPLOYMENT_TARGET=10.12
+          brew reinstall --build-from-source boost libtiff glm
           mkdir ./build
           cd build
           cmake ..
