@@ -61,7 +61,7 @@ if (APPLE)
   # homebrew
   set(CMAKE_LIBRARY_PATH /usr/local/lib ${CMAKE_LIBRARY_PATH})
   set(CMAKE_INCLUDE_PATH /usr/local/include ${CMAKE_INCLUDE_PATH})
-  set(TIFF_INCLUDE_DIR "/usr/local/include" CACHE)
+  set(TIFF_INCLUDE_DIR "/usr/local/include" CACHE STRING "libtiff include dir")
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
