@@ -11,7 +11,7 @@ target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
-	${TIFF_INCLUDE_DIR}
+	${TIFF_INCLUDE_DIRS}
 	${GLAD_DIR}
 )
 target_sources(renderlib PRIVATE

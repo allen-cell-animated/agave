@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 if (APPLE)
+  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.12")
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
@@ -60,7 +61,7 @@ if (APPLE)
   # homebrew
   set(CMAKE_LIBRARY_PATH /usr/local/lib ${CMAKE_LIBRARY_PATH})
   set(CMAKE_INCLUDE_PATH /usr/local/include ${CMAKE_INCLUDE_PATH})
-  set(TIFF_INCLUDE_DIR "/usr/local/include")
+  set(TIFF_INCLUDE_DIR "/usr/local/include" CACHE)
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
