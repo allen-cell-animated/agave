@@ -31,6 +31,14 @@ jobs:
         uses: jurplel/install-qt-action@v2.5.2
         with:
           version: 5.12.6
+      - name: macos install deps
+        if: matrix.os == 'macOS-latest'
+        env:
+          CC: clang
+          CXX: clang++
+        run: |
+          export MACOSX_DEPLOYMENT_TARGET=10.12
+          brew reinstall --build-from-source libtiff glm
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
         env:
@@ -38,7 +46,6 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.12
-          brew reinstall --build-from-source boost libtiff glm
           mkdir ./build
           cd build
           cmake ..
@@ -52,13 +59,19 @@ jobs:
         with:
           name: agave-mac
           path: ./build/agave_macOS.zip
-      - name: linux build and test
+      - name: linux install deps
         if: matrix.os == 'ubuntu-latest'
         env:
           CC: gcc
           CXX: g++
         run: |
           sudo apt-get install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
+      - name: linux build and test
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          CC: gcc
+          CXX: g++
+        run: |
           pwd
           mkdir ./build
           cd build
@@ -66,12 +79,17 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
-      - name: windows build and test
+      - name: windows install deps
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
           vcpkg install --triplet x64-windows tiff glm
+      - name: windows build and test
+        if: matrix.os == 'windows-latest'
+        env:
+          vc_arch: ${{ matrix.msvc_arch }}
+        run: |
           mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
