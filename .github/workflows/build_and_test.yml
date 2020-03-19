@@ -38,6 +38,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.12
+          brew install boost
           brew reinstall --build-from-source libtiff glm
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
