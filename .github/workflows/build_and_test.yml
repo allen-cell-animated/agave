@@ -16,8 +16,6 @@ jobs:
       - name: Checkout submodules
         shell: bash
         run: |
-          # If your submodules are configured to use SSH instead of HTTPS please uncomment the following line
-          # git config --global url."https://github.com/".insteadOf "git@github.com:"
           git submodule sync --recursive
           git submodule update --init --force --recursive --depth=50
       - uses: ilammy/msvc-dev-cmd@v1.0.1
@@ -37,8 +35,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.12
-          brew install boost
-          brew reinstall --build-from-source libtiff glm
+          brew install boost glm
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
         env:
@@ -51,21 +48,21 @@ jobs:
           cmake ..
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
-          zip -vr agave_macOS.zip agave.app/
+          zip -vr agave-macos.zip agave.app/
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macOS-latest'
         uses: actions/upload-artifact@v1
         with:
-          name: agave-mac
-          path: ./build/agave_macOS.zip
+          name: agave-macos
+          path: ./build/agave-macos.zip
       - name: linux install deps
         if: matrix.os == 'ubuntu-latest'
         env:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libboost-all-dev libtiff-dev libglm-dev libgl1-mesa-dev
+          sudo apt-get install libboost-all-dev libglm-dev libgl1-mesa-dev
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -84,7 +81,7 @@ jobs:
         env:
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
-          vcpkg install --triplet x64-windows tiff glm
+          vcpkg install --triplet x64-windows glm
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
@@ -95,11 +92,11 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
-          powershell Compress-Archive -Path .\agave-install -DestinationPath agave_win.zip
+          powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v1
         with:
           name: agave-win
-          path: ./build/agave_win.zip
+          path: ./build/agave-win.zip
