@@ -81,7 +81,7 @@ jobs:
         env:
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
-          vcpkg install --triplet x64-windows glm
+          vcpkg install --triplet x64-windows glm zlib libjpeg-turbo liblzma
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
