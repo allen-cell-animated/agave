@@ -61,7 +61,7 @@ if (APPLE)
   # homebrew
   set(CMAKE_LIBRARY_PATH /usr/local/lib ${CMAKE_LIBRARY_PATH})
   set(CMAKE_INCLUDE_PATH /usr/local/include ${CMAKE_INCLUDE_PATH})
-  set(TIFF_INCLUDE_DIR "/usr/local/include" CACHE STRING "libtiff include dir")
+  # set(TIFF_INCLUDE_DIR "/usr/local/include" CACHE STRING "libtiff include dir")
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
@@ -82,7 +82,7 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
 
-find_package(TIFF REQUIRED)
+# find_package(TIFF REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 # find_path(GLM_PATH glm/glm.hpp)
@@ -93,19 +93,20 @@ get_target_property(py_location Python3::Interpreter LOCATION)
 message(STATUS "PYTHON3 Location: ${py_location}")
 set(PYTHON_EXECUTABLE ${py_location})
 
-######################
-# THE COMMON CORE LIBRARIES
-######################
-add_subdirectory(renderlib)
-
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 else ()
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 endif ()
+
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+######################
+# THE COMMON CORE LIBRARIES
+######################
+add_subdirectory(renderlib)
+
 set(INSTALLDIR "${CMAKE_PROJECT_NAME}-install")
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
