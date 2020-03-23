@@ -91,7 +91,6 @@ endif (MSVC)
 target_link_libraries(agaveapp 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
-	# ${TIFF_LIBRARIES}
 	${Boost_LIBRARIES}
 	pybind11::embed 
 )

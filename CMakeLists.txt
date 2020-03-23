@@ -61,7 +61,6 @@ if (APPLE)
   # homebrew
   set(CMAKE_LIBRARY_PATH /usr/local/lib ${CMAKE_LIBRARY_PATH})
   set(CMAKE_INCLUDE_PATH /usr/local/include ${CMAKE_INCLUDE_PATH})
-  # set(TIFF_INCLUDE_DIR "/usr/local/include" CACHE STRING "libtiff include dir")
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
@@ -81,8 +80,6 @@ set(Boost_NO_BOOST_CMAKE ON)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
-
-# find_package(TIFF REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 # find_path(GLM_PATH glm/glm.hpp)
