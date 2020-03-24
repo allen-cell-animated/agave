@@ -7,7 +7,7 @@ endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.9.5
+  VERSION 0.0.9.7
   LANGUAGES C CXX
 )
 
@@ -48,11 +48,11 @@ if(DEFINED ENV{Qt5_DIR})
 endif()
 
 if (WIN32)
-  set(GUESS_Qt5_DIR C:/Qt/5.12.6/msvc2017_64 CACHE STRING "Qt5 directory")
+  set(GUESS_Qt5_DIR C:/Qt/5.12.7/msvc2017_64 CACHE STRING "Qt5 directory")
 elseif (APPLE)
-  set(GUESS_Qt5_DIR ~/Qt/5.12.6/clang_64)
+  set(GUESS_Qt5_DIR ~/Qt/5.12.7/clang_64)
 else ()
-  set(GUESS_Qt5_DIR /qt/5.12.6/gcc_64)
+  set(GUESS_Qt5_DIR /qt/5.12.7/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif (WIN32)
 list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
