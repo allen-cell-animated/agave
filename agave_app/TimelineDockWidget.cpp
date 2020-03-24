@@ -48,10 +48,17 @@ QTimelineWidget::onNewImage(Scene* s, std::string filepath)
 {
   m_scene = s;
   m_filepath = filepath;
-  m_TimeSlider->setRange(m_scene->m_timeLine.minTime(), m_scene->m_timeLine.maxTime());
+
+  int32_t minT = m_scene->m_timeLine.minTime();
+  int32_t maxT = m_scene->m_timeLine.maxTime();
+
+  m_TimeSlider->setRange(minT, maxT);
   m_TimeSlider->setValue(m_scene->m_timeLine.currentTime(), true);
-  m_TimeSlider->setTickInterval((m_scene->m_timeLine.maxTime() - m_scene->m_timeLine.minTime()) / 10);
+  m_TimeSlider->setTickInterval((maxT - minT) / 10);
   m_TimeSlider->setSingleStep(1);
+
+  // disable the slider if there is less than 2 time samples.
+  m_TimeSlider->setEnabled(maxT > minT);
 }
 
 void

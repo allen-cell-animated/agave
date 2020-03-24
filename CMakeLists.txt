@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.6)
 
 if (APPLE)
+  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.12")
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
 project(
   agave 
-  VERSION 0.0.9.3
+  VERSION 0.0.9.5
   LANGUAGES C CXX
 )
 
@@ -57,7 +58,9 @@ endif (WIN32)
 list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
 
 if (APPLE)
-  set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
+  # homebrew
+  set(CMAKE_LIBRARY_PATH /usr/local/lib ${CMAKE_LIBRARY_PATH})
+  set(CMAKE_INCLUDE_PATH /usr/local/include ${CMAKE_INCLUDE_PATH})
   # set(CMAKE_MACOSX_RPATH TRUE)
 endif (APPLE)
 
@@ -78,8 +81,6 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
 
-find_package(TIFF REQUIRED)
-
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 # find_path(GLM_PATH glm/glm.hpp)
 find_package( glm REQUIRED )
@@ -89,19 +90,20 @@ get_target_property(py_location Python3::Interpreter LOCATION)
 message(STATUS "PYTHON3 Location: ${py_location}")
 set(PYTHON_EXECUTABLE ${py_location})
 
-######################
-# THE COMMON CORE LIBRARIES
-######################
-add_subdirectory(renderlib)
-
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 else ()
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 endif ()
+
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+######################
+# THE COMMON CORE LIBRARIES
+######################
+add_subdirectory(renderlib)
+
 set(INSTALLDIR "${CMAKE_PROJECT_NAME}-install")
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
@@ -245,6 +247,8 @@ if(CMAKE_PREFIX_PATH)
     list(APPEND DIRS "${dir}/bin" "${dir}/lib")
   endforeach()
 endif()
+# homebrew lib path
+list(APPEND DIRS "/usr/local/lib")
 
 # Append Qt's lib folder
 # list(APPEND DIRS "${QTDIR}/lib")
