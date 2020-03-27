@@ -49,8 +49,8 @@ QTimelineWidget::onNewImage(Scene* s, std::string filepath)
   m_scene = s;
   m_filepath = filepath;
 
-  int32_t minT = m_scene->m_timeLine.minTime();
-  int32_t maxT = m_scene->m_timeLine.maxTime();
+  int32_t minT = m_scene ? m_scene->m_timeLine.minTime() : 0;
+  int32_t maxT = m_scene ? m_scene->m_timeLine.maxTime() : 0;
 
   m_TimeSlider->setRange(minT, maxT);
   m_TimeSlider->setValue(m_scene->m_timeLine.currentTime(), true);
@@ -59,6 +59,7 @@ QTimelineWidget::onNewImage(Scene* s, std::string filepath)
 
   // disable the slider if there is less than 2 time samples.
   m_TimeSlider->setEnabled(maxT > minT);
+  this->parentWidget()->setWindowTitle(maxT > minT ? tr("Time") : tr("Time (disabled)"));
 }
 
 void
@@ -93,9 +94,9 @@ QTimelineWidget::OnTimeChanged(int newTime)
 
 QTimelineDockWidget::QTimelineDockWidget(QWidget* parent, QRenderSettings* qrs)
   : QDockWidget(parent)
-  , m_TimelineWidget(nullptr, qrs)
+  , m_TimelineWidget(this, qrs)
 {
-  setWindowTitle("Time");
+  setWindowTitle(tr("Time"));
 
   m_TimelineWidget.setParent(this);
 
