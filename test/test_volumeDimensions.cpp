@@ -17,7 +17,7 @@ TEST_CASE("VolumeDimensions", "[volumeDimensions]")
   {
     VolumeDimensions d;
     std::vector<std::string> good_orders = {
-      "XYZCT", "XYZTC", "XYCTZ", "XYCTZ", "XYTCZ", "XYTZC", "YXZCT", "YXZTC", "YXCTZ", "YXCTZ", "YXTCZ", "YXTZC",
+      "XYZCT", "XYZTC", "XYCTZ", "XYCZT", "XYTCZ", "XYTZC", "YXZCT", "YXZTC", "YXCTZ", "YXCZT", "YXTCZ", "YXTZC",
     };
     std::vector<std::string> bad_orders = { "TCZYX", "TZCYX", "CZTYX", "CTZYX", "ZCTYX", "ZTCYX", "TCZXY",  "TZCXY",
                                             "CZTXY", "CTZXY", "ZCTXY", "ZTCXY", "XX",    "ABC",   "XYCZTB", "XXZCT" };
