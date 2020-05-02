@@ -309,6 +309,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
 
+  dims.log();
+
   return dims.validate();
 }
 

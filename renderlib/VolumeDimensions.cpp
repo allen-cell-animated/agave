@@ -150,3 +150,18 @@ VolumeDimensions::getPlaneZCT(uint32_t planeIndex) const
 
   return { z, c, t };
 }
+
+void
+VolumeDimensions::log() const
+{
+  LOG_INFO << "Begin VolumeDimensions";
+  LOG_INFO << "sizeX: " << sizeX;
+  LOG_INFO << "sizeY: " << sizeY;
+  LOG_INFO << "sizeZ: " << sizeZ;
+  LOG_INFO << "sizeC: " << sizeC;
+  LOG_INFO << "sizeT: " << sizeT;
+  LOG_INFO << "DimensionOrder: " << dimensionOrder;
+  LOG_INFO << "PhysicalPixelSize: [" << physicalSizeX << ", " << physicalSizeY << ", " << physicalSizeZ << "]";
+  LOG_INFO << "bitsPerPixel: " << bitsPerPixel;
+  LOG_INFO << "End VolumeDimensions";
+}
