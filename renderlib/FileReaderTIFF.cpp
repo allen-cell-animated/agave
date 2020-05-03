@@ -399,7 +399,6 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
           _TIFFfree(buf);
           return false;
         }
-        LOG_DEBUG << "STRIP BYTES " << numBytesRead;
         // convert pixels
         // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
         uint8_t* stripbytes = reinterpret_cast<uint8_t*>(buf);
@@ -515,7 +514,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
                                 dims.sizeY,
                                 dims.sizeZ,
                                 dims.sizeC,
-                                dims.bitsPerPixel,
+                                IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
