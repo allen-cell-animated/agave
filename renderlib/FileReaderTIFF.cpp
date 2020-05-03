@@ -318,6 +318,12 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 bool
 readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t* dataPtr)
 {
+  int setdirok = TIFFSetDirectory(tiff, planeIndex);
+  if (setdirok == 0) {
+    LOG_ERROR << "Bad tiff directory specified: " << (planeIndex);
+    return false;
+  }
+
   int numBytesRead = 0;
   // TODO future optimize:
   // This function is usually called in a loop. We could factor out the TIFFmalloc and TIFFfree calls.
@@ -334,12 +340,6 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
 
     uint32_t i = planeIndex;
 
-    int setdirok = TIFFSetDirectory(tiff, i);
-    if (setdirok == 0) {
-      LOG_ERROR << "Bad tiff directory specified: " << (i);
-      _TIFFfree(buf);
-      return false;
-    }
     numBytesRead = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
     if (numBytesRead < 0) {
       LOG_ERROR << "Error reading tiff tile";
@@ -372,17 +372,10 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
     uint32_t i = planeIndex;
 
     uint32_t planeindexintiff = i;
-    int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
-    if (setdirok == 0) {
-      LOG_ERROR << "Bad tiff directory specified: " << (i);
-      return false;
-    }
 
     // Number of bytes in a decoded scanline
     tsize_t striplength = TIFFStripSize(tiff);
     tdata_t buf = _TIFFmalloc(striplength);
-
-    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dataPtr);
 
     uint32 nstrips = TIFFNumberOfStrips(tiff);
     // LOG_DEBUG << nstrips;     // num y rows
@@ -398,6 +391,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       // copy buf into data.
       if (IN_MEMORY_BPP == dims.bitsPerPixel) {
         memcpy(dataPtr, buf, numBytesRead);
+        // advance to where the next strip will go
         dataPtr += numBytesRead;
       } else {
         if (dims.bitsPerPixel != 8) {
@@ -405,17 +399,16 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
           _TIFFfree(buf);
           return false;
         }
+        LOG_DEBUG << "STRIP BYTES " << numBytesRead;
         // convert pixels
         // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
         uint8_t* stripbytes = reinterpret_cast<uint8_t*>(buf);
+        uint16_t* data16 = reinterpret_cast<uint16_t*>(dataPtr);
         for (size_t b = 0; b < numBytesRead; ++b) {
-          // convert value
-          *dataptr16 = (uint16_t)(*stripbytes);
-          // advance pointers
-          dataptr16++;
-          stripbytes++;
+          *data16++ = *stripbytes++;
+          dataPtr++;
+          dataPtr++;
         }
-        dataPtr += numBytesRead;
       }
     }
     _TIFFfree(buf);
@@ -492,9 +485,10 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
   }
 
-  size_t planesize = dims.sizeX * dims.sizeY * IN_MEMORY_BPP / 8;
-  uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
-  memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
+  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
+  memset(data, 0, channelsize_bytes * dims.sizeC);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -504,7 +498,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
       uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
-      destptr = data + planesize * (channel * dims.sizeZ + slice);
+      destptr = data + channel * channelsize_bytes + slice * planesize_bytes;
       if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
         return emptyimage;
       }
