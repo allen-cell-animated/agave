@@ -85,6 +85,7 @@ jobs:
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
+          BOOST_ROOT: ${BOOST_ROOT_1_72_0}
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
           mkdir build
