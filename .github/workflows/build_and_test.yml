@@ -18,7 +18,7 @@ jobs:
         run: |
           git submodule sync --recursive
           git submodule update --init --force --recursive --depth=50
-      - uses: ilammy/msvc-dev-cmd@v1.0.1
+      - uses: ilammy/msvc-dev-cmd@v1.2.0
       - name: Install Python 3.7 version
         uses: actions/setup-python@v1
         with:
