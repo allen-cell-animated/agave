@@ -336,8 +336,9 @@ agaveGui::open(const QString& file, const ViewerState* vs)
     VolumeDimensions dims;
 
     int timeToLoad = vs ? vs->m_currentTime : 0;
+    int sceneToLoad = vs ? vs->m_currentScene : 0;
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, timeToLoad, 0);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, timeToLoad, sceneToLoad);
     QApplication::restoreOverrideCursor();
     if (!image) {
       LOG_DEBUG << "Failed to open " << file.toStdString();
@@ -642,6 +643,8 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_appScene.m_timeLine.setRange(v.m_minTime, v.m_maxTime);
   m_appScene.m_timeLine.setCurrentTime(v.m_currentTime);
 
+  m_currentScene = v.m_currentScene;
+
   m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
 
   m_appScene.m_material.m_backgroundColor[0] = v.m_backgroundColor.x;
@@ -742,6 +745,8 @@ agaveGui::appToViewerState()
   v.m_minTime = m_appScene.m_timeLine.minTime();
   v.m_maxTime = m_appScene.m_timeLine.maxTime();
   v.m_currentTime = m_appScene.m_timeLine.currentTime();
+
+  v.m_currentScene = m_currentScene;
 
   v.m_roiXmax = m_appScene.m_roi.GetMaxP().x;
   v.m_roiYmax = m_appScene.m_roi.GetMaxP().y;

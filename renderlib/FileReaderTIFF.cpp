@@ -74,8 +74,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   char* imagedescription = nullptr;
   // metadata is in ImageDescription of first IFD in the file.
   if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &imagedescription) != 1) {
-    QString msg = "Failed to read imagedescription of TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
+    LOG_ERROR << "Failed to read imagedescription of TIFF: '" << filepath << "'";
     return false;
   }
 
@@ -85,28 +84,24 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
   // Read dimensions of image
   if (TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, &width) != 1) {
-    QString msg = "Failed to read width of TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
+    LOG_ERROR << "Failed to read width of TIFF: '" << filepath << "'";
     return false;
   }
   if (TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &height) != 1) {
-    QString msg = "Failed to read height of TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
+    LOG_ERROR << "Failed to read height of TIFF: '" << filepath << "'";
     return false;
   }
 
   uint32_t bpp = 0;
   if (TIFFGetField(tiff, TIFFTAG_BITSPERSAMPLE, &bpp) != 1) {
-    QString msg = "Failed to read bpp of TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_ERROR << msg.toStdString();
+    LOG_ERROR << "Failed to read bpp of TIFF: '" << filepath << "'";
     return false;
   }
 
   uint16_t sampleFormat = SAMPLEFORMAT_UINT;
   if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
     // just warn here.  We are not yet using sampleFormat!
-    QString msg = "Failed to read sampleformat of TIFF: '" + QString(filepath.c_str()) + "'";
-    LOG_WARNING << msg.toStdString();
+    LOG_WARNING << "Failed to read sampleformat of TIFF: '" << filepath << "'";
   }
 
   uint32_t sizeT = 1;
@@ -140,8 +135,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       } else if (namevalue.size() == 1) {
         imagejmetadata.insert(namevalue[0], "");
       } else {
-        QString msg = "Unexpected name/value pair in TIFF ImageJ metadata: " + sl.at(i);
-        LOG_ERROR << msg.toStdString();
+        LOG_ERROR << "Unexpected name/value pair in TIFF ImageJ metadata: " << sl.at(i).toStdString();
         return false;
       }
     }
@@ -150,24 +144,21 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       QString value = imagejmetadata.value("channels");
       sizeC = value.toInt();
     } else {
-      QString msg = "Failed to read number of channels of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
-      LOG_WARNING << msg.toStdString();
+      LOG_WARNING << "Failed to read number of channels of ImageJ TIFF: '" << filepath << "'";
     }
 
     if (imagejmetadata.contains("slices")) {
       QString value = imagejmetadata.value("slices");
       sizeZ = value.toInt();
     } else {
-      QString msg = "Failed to read number of slices of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
-      LOG_WARNING << msg.toStdString();
+      LOG_WARNING << "Failed to read number of slices of ImageJ TIFF: '" << filepath << "'";
     }
 
     if (imagejmetadata.contains("frames")) {
       QString value = imagejmetadata.value("frames");
       sizeT = value.toInt();
     } else {
-      QString msg = "Failed to read number of frames of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
-      LOG_WARNING << msg.toStdString();
+      LOG_WARNING << "Failed to read number of frames of ImageJ TIFF: '" << filepath << "'";
     }
 
     if (imagejmetadata.contains("spacing")) {
@@ -175,8 +166,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       bool ok;
       physicalSizeZ = value.toFloat(&ok);
       if (!ok) {
-        QString msg = "Failed to read spacing of ImageJ TIFF: '" + QString(filepath.c_str()) + "'";
-        LOG_WARNING << msg.toStdString();
+        LOG_WARNING << "Failed to read spacing of ImageJ TIFF: '" << filepath << "'";
         physicalSizeZ = 1.0f;
       } else {
         if (physicalSizeZ < 0.0f) {
@@ -198,8 +188,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     LOG_INFO << shape.toStdString();
     QStringList shapelist = shape.split(',');
     if (shapelist.size() != 4 || shapelist.size() != 5) {
-      QString msg = "Expected shape to be 4D or 5D TIFF: '" + QString(filepath.c_str()) + "'";
-      LOG_ERROR << msg.toStdString();
+      LOG_ERROR << "Expected shape to be 4D or 5D TIFF: '" << filepath << "'";
       return false;
     }
     dimensionOrder = "XYZCT";
@@ -221,8 +210,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     QDomDocument omexml;
     bool ok = omexml.setContent(imagedescriptionQString);
     if (!ok) {
-      QString msg = "Bad ome xml content";
-      LOG_ERROR << msg.toStdString();
+      LOG_ERROR << "Bad ome xml content";
       return false;
     }
 
@@ -230,8 +218,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     // use the FIRST Pixels element found.
     QDomElement pixelsEl = omexml.elementsByTagName("Pixels").at(0).toElement();
     if (pixelsEl.isNull()) {
-      QString msg = "No <Pixels> element in ome xml";
-      LOG_ERROR << msg.toStdString();
+      LOG_ERROR << "No <Pixels> element in ome xml";
       return false;
     }
 

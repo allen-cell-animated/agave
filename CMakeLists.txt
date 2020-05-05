@@ -5,9 +5,13 @@ if (APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
+if (POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif (POLICY CMP0048)
+
 project(
   agave 
-  VERSION 0.0.9.7
+  VERSION 0.9.0.0
   LANGUAGES C CXX
 )
 
