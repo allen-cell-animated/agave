@@ -13,15 +13,56 @@
 
 std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCache;
 
+// return file extension as lowercase
+std::string
+getExtension(const std::string filepath)
+{
+  boost::filesystem::path fpath(filepath);
+
+  boost::filesystem::path ext = fpath.extension();
+  std::string extstr = ext.string();
+  for (std::string::size_type i = 0; i < extstr.length(); ++i) {
+    extstr[i] = std::tolower(extstr[i]);
+  }
+
+  return extstr;
+}
+
 FileReader::FileReader() {}
 
 FileReader::~FileReader() {}
 
+uint32_t
+FileReader::loadNumScenes(const std::string& filepath)
+{
+  std::string extstr = getExtension(filepath);
+
+  if (extstr == ".tif" || extstr == ".tiff") {
+    return FileReaderTIFF::loadNumScenesTiff(filepath);
+  } else if (extstr == ".czi") {
+    return FileReaderCzi::loadNumScenesCzi(filepath);
+  }
+  return 0;
+}
+
+VolumeDimensions
+FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
+{
+  std::string extstr = getExtension(filepath);
+
+  if (extstr == ".tif" || extstr == ".tiff") {
+    return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
+  } else if (extstr == ".czi") {
+    return FileReaderCzi::loadDimensionsCzi(filepath, scene);
+  }
+  return VolumeDimensions();
+}
+
 std::shared_ptr<ImageXYZC>
 FileReader::loadFromFile(const std::string& filepath,
                          VolumeDimensions* dims,
-                         int32_t time,
-                         int32_t scene,
+                         uint32_t time,
+                         uint32_t scene,
                          bool addToCache)
 {
   // check cache first of all.
@@ -32,13 +73,7 @@ FileReader::loadFromFile(const std::string& filepath,
 
   std::shared_ptr<ImageXYZC> image;
 
-  boost::filesystem::path fpath(filepath);
-
-  boost::filesystem::path ext = fpath.extension();
-  std::string extstr = ext.string();
-  for (std::string::size_type i = 0; i < extstr.length(); ++i) {
-    extstr[i] = std::tolower(extstr[i]);
-  }
+  std::string extstr = getExtension(filepath);
 
   if (extstr == ".tif" || extstr == ".tiff") {
     image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);

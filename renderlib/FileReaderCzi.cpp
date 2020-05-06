@@ -88,7 +88,8 @@ bool
 readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
                   const std::string filepath,
                   libCZI::SubBlockStatistics& statistics,
-                  VolumeDimensions& dims)
+                  VolumeDimensions& dims,
+                  uint32_t scene)
 {
   // check for mosaic.  we can't (won't) handle those right now.
   if (statistics.maxMindex > 0) {
@@ -257,8 +258,14 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
   return true;
 }
 
+uint32_t
+FileReaderCzi::loadNumScenesCzi(const std::string& filepath)
+{
+  return 1;
+}
+
 VolumeDimensions
-FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
+FileReaderCzi::loadDimensionsCzi(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
   try {
@@ -267,7 +274,7 @@ FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
 
     auto statistics = cziReader->GetStatistics();
 
-    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims);
+    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims, scene);
     if (!dims_ok) {
       return VolumeDimensions();
     }
@@ -285,7 +292,7 @@ FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, int32_t time, int32_t scene)
+FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -302,7 +309,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, i
     auto statistics = cziReader->GetStatistics();
 
     VolumeDimensions dims;
-    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims);
+    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims, scene);
     if (!dims_ok) {
       return emptyimage;
     }

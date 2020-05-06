@@ -68,8 +68,14 @@ requireFloatAttr(QDomElement& el, const QString& attr, float defaultVal)
   return retval;
 }
 
+uint32_t
+FileReaderTIFF::loadNumScenesTiff(const std::string& filepath)
+{
+  return 1;
+}
+
 bool
-readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dims)
+readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dims, uint32_t scene)
 {
   char* imagedescription = nullptr;
   // metadata is in ImageDescription of first IFD in the file.
@@ -215,10 +221,18 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
 
     // extract some necessary info from the xml:
+
+    // count how many <Image> tags and that is our number of scenes.
+    uint32_t numScenes = omexml.elementsByTagName("Image").size();
+    if (scene >= numScenes) {
+      LOG_ERROR << "Requested invalid scene index " << scene << " in OME TIFF; returning scene 0";
+      scene = 0;
+    }
+
     // use the FIRST Pixels element found.
-    QDomElement pixelsEl = omexml.elementsByTagName("Pixels").at(0).toElement();
+    QDomElement pixelsEl = omexml.elementsByTagName("Pixels").at(scene).toElement();
     if (pixelsEl.isNull()) {
-      LOG_ERROR << "No <Pixels> element in ome xml";
+      LOG_ERROR << "No <Pixels> element in ome xml for scene " << scene;
       return false;
     }
 
@@ -405,7 +419,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
 }
 
 VolumeDimensions
-FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, int32_t scene)
+FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, uint32_t scene)
 {
   ScopedTiffReader tiffreader(filepath);
   TIFF* tiff = tiffreader.reader();
@@ -415,16 +429,16 @@ FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, int32_t scene)
   }
 
   VolumeDimensions dims;
-  bool dims_ok = readTiffDimensions(tiff, filepath, dims);
+  int32_t numScenesInFile = 0;
+  bool dims_ok = readTiffDimensions(tiff, filepath, dims, scene);
   if (!dims_ok) {
     return VolumeDimensions();
   }
-
   return dims;
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDims, int32_t time, int32_t scene)
+FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -442,7 +456,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   }
 
   VolumeDimensions dims;
-  bool dims_ok = readTiffDimensions(tiff, filepath, dims);
+  bool dims_ok = readTiffDimensions(tiff, filepath, dims, scene);
   if (!dims_ok) {
     return emptyimage;
   }
