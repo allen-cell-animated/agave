@@ -108,7 +108,9 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   dims.physicalSizeY = scalingInfo.scaleY * 1000000.0f;
   dims.physicalSizeZ = scalingInfo.scaleZ * 1000000.0f;
 
-  // get all dimension bounds and enumerate
+  // get all dimension bounds and enumerate.
+  // I am making an assumption here that each scene has the same Z C and T dimensions.
+  // If acquisition ended early, then the data might not be complete and that will have to be caught later.
   statistics.dimBounds.EnumValidDimensions([&](libCZI::DimensionIndex dimensionIndex, int start, int size) -> bool {
     switch (dimensionIndex) {
       case libCZI::DimensionIndex::Z:
@@ -126,7 +128,7 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
     return true;
   });
 
-  libCZI::IntRect planebox = getSceneYXSize(statistics);
+  libCZI::IntRect planebox = getSceneYXSize(statistics, scene);
   dims.sizeX = planebox.w;
   dims.sizeY = planebox.h;
 
@@ -214,6 +216,7 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
              const VolumeDimensions& volumeDims,
              uint8_t* dataPtr)
 {
+  // if the plane at these coordinates is not found, then we will do nothing and return without error.
   reader->EnumSubset(&planeCoord, &planeRect, true, [&](int idx, const libCZI::SubBlockInfo& info) -> bool {
     // accept first subblock
     std::shared_ptr<libCZI::ISubBlock> subblock = reader->ReadSubBlock(idx);
@@ -261,7 +264,29 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
 uint32_t
 FileReaderCzi::loadNumScenesCzi(const std::string& filepath)
 {
-  return 1;
+  try {
+    ScopedCziReader scopedReader(filepath);
+    std::shared_ptr<libCZI::ICZIReader> cziReader = scopedReader.reader();
+
+    auto statistics = cziReader->GetStatistics();
+    int sceneStart = 0;
+    int sceneSize = 0;
+    bool scenesDefined = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::S, &sceneStart, &sceneSize);
+    if (!scenesDefined) {
+      // assume just one?
+      return 1;
+    }
+    return sceneSize;
+
+  } catch (std::exception& e) {
+    LOG_ERROR << e.what();
+    LOG_ERROR << "Failed to read " << filepath;
+    return 0;
+  } catch (...) {
+    LOG_ERROR << "Failed to read " << filepath;
+    return 0;
+  }
+  return 0;
 }
 
 VolumeDimensions
