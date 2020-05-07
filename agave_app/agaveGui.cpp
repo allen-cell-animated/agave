@@ -333,10 +333,30 @@ agaveGui::open(const QString& file, const ViewerState* vs)
   if (info.exists()) {
     LOG_DEBUG << "Attempting to open " << file.toStdString();
 
+    int sceneToLoad = vs ? vs->m_currentScene : 0;
+
+    // check number of scenes in file.
+    int numScenes = FileReader::loadNumScenes(file.toStdString());
+    // if current scene is out of range or if there is not currently a scene selected
+    bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
+    if (needSelectScene) {
+      QStringList items;
+      for (int i = 0; i < numScenes; ++i) {
+        items.append(QString::number(i));
+      }
+      bool ok = false;
+      QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
+      if (ok && !text.isEmpty()) {
+        sceneToLoad = text.toInt();
+      } else {
+        LOG_DEBUG << "Canceled scene selection.";
+        return false;
+      }
+    }
+
     VolumeDimensions dims;
 
     int timeToLoad = vs ? vs->m_currentTime : 0;
-    int sceneToLoad = vs ? vs->m_currentScene : 0;
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, timeToLoad, sceneToLoad);
     QApplication::restoreOverrideCursor();
