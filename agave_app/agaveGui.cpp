@@ -337,6 +337,7 @@ agaveGui::open(const QString& file, const ViewerState* vs)
 
     // check number of scenes in file.
     int numScenes = FileReader::loadNumScenes(file.toStdString());
+    LOG_INFO << "Found " << numScenes << " scene(s)";
     // if current scene is out of range or if there is not currently a scene selected
     bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
     if (needSelectScene) {
