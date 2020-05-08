@@ -214,34 +214,33 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
   auto bitmap = accessor->Get(planeRect, &planeCoord, nullptr);
   libCZI::IntSize size = bitmap->GetSize();
   {
-libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
-      assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
-      assert(volumeDims.sizeX == size.w);
-      assert(volumeDims.sizeY == size.h);
-      size_t bytesPerRow = size.w * 2; // destination stride
-      if (volumeDims.bitsPerPixel == 16) {
-        assert(lckScoped.stride >= size.w * 2);
-        // stridewise copying
-        for (std::uint32_t y = 0; y < size.h; ++y) {
-          const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
-          // uint16 is 2 bytes per pixel
-          memcpy(dataPtr + (bytesPerRow * y), ptrLine, bytesPerRow);
-        }
-      } else if (volumeDims.bitsPerPixel == 8) {
-        assert(lckScoped.stride >= size.w);
-        // stridewise copying
-        for (std::uint32_t y = 0; y < size.h; ++y) {
-          const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
-          uint16_t* destLine = reinterpret_cast<uint16_t*>(dataPtr + (bytesPerRow * y));
-          for (size_t x = 0; x < size.w; ++x) {
-            *destLine++ = *(ptrLine + x);
-          }
+    libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
+    assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
+    assert(volumeDims.sizeX == size.w);
+    assert(volumeDims.sizeY == size.h);
+    size_t bytesPerRow = size.w * 2; // destination stride
+    if (volumeDims.bitsPerPixel == 16) {
+      assert(lckScoped.stride >= size.w * 2);
+      // stridewise copying
+      for (std::uint32_t y = 0; y < size.h; ++y) {
+        const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
+        // uint16 is 2 bytes per pixel
+        memcpy(dataPtr + (bytesPerRow * y), ptrLine, bytesPerRow);
+      }
+    } else if (volumeDims.bitsPerPixel == 8) {
+      assert(lckScoped.stride >= size.w);
+      // stridewise copying
+      for (std::uint32_t y = 0; y < size.h; ++y) {
+        const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
+        uint16_t* destLine = reinterpret_cast<uint16_t*>(dataPtr + (bytesPerRow * y));
+        for (size_t x = 0; x < size.w; ++x) {
+          *destLine++ = *(ptrLine + x);
         }
       }
-      // else do nothing.
-      // buffer is already initialized to zero,
-      // and dimension validation earlier should prevent anything unintentional here.
     }
+    // else do nothing.
+    // buffer is already initialized to zero,
+    // and dimension validation earlier should prevent anything unintentional here.
   }
   return true;
 }
