@@ -314,6 +314,30 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   return dims.validate();
 }
 
+// return number of bytes copied to dest
+size_t
+copyAndConvert(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPixel)
+{
+  // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
+  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+    memcpy(dest, src, numBytes);
+    return numBytes;
+  } else if (srcBitsPerPixel == 8) {
+    // convert pixels
+    // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
+    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
+    for (size_t b = 0; b < numBytes; ++b) {
+      *dataptr16 = (uint16_t)src[b];
+      dataptr16++;
+    }
+    return numBytes * 2;
+  } else {
+    LOG_ERROR << "Unexpected tiff pixel size " << srcBitsPerPixel << " bits";
+    return 0;
+  }
+  return 0;
+}
+
 // DANGER: assumes dataPtr has enough space allocated!!!!
 bool
 readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t* dataPtr)
@@ -347,25 +371,14 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       return false;
     }
     // copy buf into data.
-    if (IN_MEMORY_BPP == dims.bitsPerPixel) {
-      memcpy(dataPtr, buf, numBytesRead);
-    } else {
-      // convert pixels
-      if (dims.bitsPerPixel != 8) {
-        LOG_ERROR << "Unexpected tiff pixel size " << dims.bitsPerPixel << " bits";
-        _TIFFfree(buf);
-        return false;
-      }
-      // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
-      uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dataPtr);
-      uint8_t* tilebytes = reinterpret_cast<uint8_t*>(buf);
-      for (size_t b = 0; b < numBytesRead; ++b) {
-        *dataptr16 = (uint16_t)tilebytes[b];
-        dataptr16++;
-      }
-    }
+    size_t numBytesCopied = copyAndConvert(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
 
     _TIFFfree(buf);
+    // if something went wrong at this level, bail out
+    if (numBytesCopied == 0) {
+      return false;
+    }
+
   } else {
     // stripped.
 
@@ -389,26 +402,15 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       }
 
       // copy buf into data.
-      if (IN_MEMORY_BPP == dims.bitsPerPixel) {
-        memcpy(dataPtr, buf, numBytesRead);
-        // advance to where the next strip will go
-        dataPtr += numBytesRead;
-      } else {
-        if (dims.bitsPerPixel != 8) {
-          LOG_ERROR << "Unexpected tiff pixel size " << dims.bitsPerPixel << " bits";
-          _TIFFfree(buf);
-          return false;
-        }
-        // convert pixels
-        // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
-        uint8_t* stripbytes = reinterpret_cast<uint8_t*>(buf);
-        uint16_t* data16 = reinterpret_cast<uint16_t*>(dataPtr);
-        for (size_t b = 0; b < numBytesRead; ++b) {
-          *data16++ = *stripbytes++;
-          dataPtr++;
-          dataPtr++;
-        }
+      size_t numBytesCopied = copyAndConvert(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
+
+      // if something went wrong at this level, bail out
+      if (numBytesCopied == 0) {
+        _TIFFfree(buf);
+        return false;
       }
+      // advance to next strip
+      dataPtr += numBytesCopied;
     }
     _TIFFfree(buf);
   }
