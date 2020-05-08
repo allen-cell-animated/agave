@@ -91,12 +91,6 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
                   VolumeDimensions& dims,
                   uint32_t scene)
 {
-  // check for mosaic.  we can't (won't) handle those right now.
-  if (statistics.maxMindex > 0) {
-    LOG_ERROR << "CZI file is mosaic; mosaic reading not yet implemented";
-    return false;
-  }
-
   // metadata xml
   auto mds = reader->ReadMetadataSegment();
   std::shared_ptr<libCZI::ICziMetadata> md = mds->CreateMetaFromMetadataSegment();
@@ -216,16 +210,11 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
              const VolumeDimensions& volumeDims,
              uint8_t* dataPtr)
 {
-  // if the plane at these coordinates is not found, then we will do nothing and return without error.
-  reader->EnumSubset(&planeCoord, &planeRect, true, [&](int idx, const libCZI::SubBlockInfo& info) -> bool {
-    // accept first subblock
-    std::shared_ptr<libCZI::ISubBlock> subblock = reader->ReadSubBlock(idx);
-
-    std::shared_ptr<libCZI::IBitmapData> bitmap = subblock->CreateBitmap();
-    // and copy memory
-    libCZI::IntSize size = bitmap->GetSize();
-    {
-      libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
+  auto accessor = reader->CreateSingleChannelTileAccessor();
+  auto bitmap = accessor->Get(planeRect, &planeCoord, nullptr);
+  libCZI::IntSize size = bitmap->GetSize();
+  {
+libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
       assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
       assert(volumeDims.sizeX == size.w);
       assert(volumeDims.sizeY == size.h);
@@ -253,11 +242,7 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
       // buffer is already initialized to zero,
       // and dimension validation earlier should prevent anything unintentional here.
     }
-
-    // stop iterating, on the assumption that there is only one subblock that fits this planecoordinate
-    return false;
-  });
-
+  }
   return true;
 }
 
@@ -366,6 +351,12 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
     uint8_t* destptr = data;
 
     // now ready to read channels one by one.
+    libCZI::IntRect planeRect;
+    if (hasS) {
+      planeRect = statistics.sceneBoundingBoxes[startS + scene].boundingBoxLayer0;
+    } else {
+      planeRect = statistics.boundingBoxLayer0Only;
+    }
 
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
@@ -376,14 +367,13 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
         if (hasC) {
           planeCoord.Set(libCZI::DimensionIndex::C, (int)channel + startC);
         }
-        if (hasS) {
-          planeCoord.Set(libCZI::DimensionIndex::S, scene + startS);
-        }
         if (hasT) {
           planeCoord.Set(libCZI::DimensionIndex::T, time + startT);
         }
+        // since scene tiles can not overlap, passing the scene bounding box in to readCziPlane is enough produce the
+        // scene, and I don't need to add Scene to the planeCoord.
 
-        if (!readCziPlane(cziReader, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {
+        if (!readCziPlane(cziReader, planeRect, planeCoord, dims, destptr)) {
           return emptyimage;
         }
       }
