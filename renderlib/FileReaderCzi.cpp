@@ -245,6 +245,9 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
           }
         }
       }
+      // else do nothing.
+      // buffer is already initialized to zero,
+      // and dimension validation earlier should prevent anything unintentional here.
     }
 
     // stop iterating, on the assumption that there is only one subblock that fits this planecoordinate
