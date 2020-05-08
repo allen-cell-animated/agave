@@ -19,7 +19,7 @@ jobs:
         run: |
           git submodule sync --recursive
           git submodule update --init --force --recursive --depth=50
-      - uses: ilammy/msvc-dev-cmd@v1.0.1
+      - uses: ilammy/msvc-dev-cmd@v1.2.0
       - name: Install Python 3.7 version
         uses: actions/setup-python@v1
         with:
@@ -90,7 +90,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DBOOST_INCLUDEDIR=%BOOST_ROOT_1_72_0%/boost/include -DBOOST_LIBRARYDIR=%BOOST_ROOT_1_72_0%/lib -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip

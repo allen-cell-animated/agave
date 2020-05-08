@@ -21,4 +21,5 @@ struct VolumeDimensions
   std::vector<uint32_t> getPlaneZCT(uint32_t planeIndex) const;
 
   bool validate() const;
+  void log() const;
 };

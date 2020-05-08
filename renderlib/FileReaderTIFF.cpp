@@ -16,6 +16,8 @@
 #include <map>
 #include <set>
 
+static const uint32_t IN_MEMORY_BPP = 16;
+
 FileReaderTIFF::FileReaderTIFF() {}
 
 FileReaderTIFF::~FileReaderTIFF() {}
@@ -241,8 +243,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     QString pixelType = pixelsEl.attribute("Type", "uint16").toLower();
     LOG_INFO << "pixel type: " << pixelType.toStdString();
     bpp = mapPixelTypeBPP[pixelType.toStdString()];
-    if (bpp != 16) {
-      LOG_ERROR << "Image must be 16-bit";
+    if (bpp != 16 && bpp != 8) {
+      LOG_ERROR << "Image must be 8 or 16-bit integer typed";
       return false;
     }
     sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
@@ -307,68 +309,108 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
 
+  dims.log();
+
   return dims.validate();
+}
+
+// return number of bytes copied to dest
+size_t
+copyAndConvert(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPixel)
+{
+  // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
+  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+    memcpy(dest, src, numBytes);
+    return numBytes;
+  } else if (srcBitsPerPixel == 8) {
+    // convert pixels
+    // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
+    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
+    for (size_t b = 0; b < numBytes; ++b) {
+      *dataptr16 = (uint16_t)src[b];
+      dataptr16++;
+    }
+    return numBytes * 2;
+  } else {
+    LOG_ERROR << "Unexpected tiff pixel size " << srcBitsPerPixel << " bits";
+    return 0;
+  }
+  return 0;
 }
 
 // DANGER: assumes dataPtr has enough space allocated!!!!
 bool
-readTiffPlane(TIFF* tiff, int planeIndex, uint8_t* dataPtr)
+readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t* dataPtr)
 {
+  int setdirok = TIFFSetDirectory(tiff, planeIndex);
+  if (setdirok == 0) {
+    LOG_ERROR << "Bad tiff directory specified: " << (planeIndex);
+    return false;
+  }
+
+  int numBytesRead = 0;
   // TODO future optimize:
   // This function is usually called in a loop. We could factor out the TIFFmalloc and TIFFfree calls.
   // Should profile to see if the repeated malloc/frees are any kind of loading bottleneck.
   if (TIFFIsTiled(tiff)) {
     tsize_t tilesize = TIFFTileSize(tiff);
     uint32 ntiles = TIFFNumberOfTiles(tiff);
-    assert(ntiles == 1);
+    if (ntiles != 1) {
+      LOG_ERROR << "Reader doesn't support more than 1 tile per plane";
+      return false;
+    }
     // assuming ntiles == 1 for all IFDs
     tdata_t buf = _TIFFmalloc(tilesize);
 
     uint32_t i = planeIndex;
 
-    int setdirok = TIFFSetDirectory(tiff, i);
-    if (setdirok == 0) {
-      LOG_ERROR << "Bad tiff directory specified: " << (i);
-      _TIFFfree(buf);
-      return false;
-    }
-    int readtileok = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
-    if (readtileok < 0) {
+    numBytesRead = TIFFReadEncodedTile(tiff, 0, buf, tilesize);
+    if (numBytesRead < 0) {
       LOG_ERROR << "Error reading tiff tile";
       _TIFFfree(buf);
       return false;
     }
     // copy buf into data.
-    memcpy(dataPtr, buf, readtileok);
+    size_t numBytesCopied = copyAndConvert(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
 
     _TIFFfree(buf);
+    // if something went wrong at this level, bail out
+    if (numBytesCopied == 0) {
+      return false;
+    }
+
   } else {
     // stripped.
-    // Number of bytes in a decoded scanline
-    tsize_t striplength = TIFFStripSize(tiff);
-    tdata_t buf = _TIFFmalloc(striplength);
 
     uint32_t i = planeIndex;
 
     uint32_t planeindexintiff = i;
-    int setdirok = TIFFSetDirectory(tiff, planeindexintiff);
-    if (setdirok == 0) {
-      LOG_ERROR << "Bad tiff directory specified: " << (i);
-      _TIFFfree(buf);
-      return false;
-    }
+
+    // Number of bytes in a decoded scanline
+    tsize_t striplength = TIFFStripSize(tiff);
+    tdata_t buf = _TIFFmalloc(striplength);
+
     uint32 nstrips = TIFFNumberOfStrips(tiff);
+    // LOG_DEBUG << nstrips;     // num y rows
+    // LOG_DEBUG << striplength; // x width * rows per strip
     for (tstrip_t strip = 0; strip < nstrips; strip++) {
-      int readstripok = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
-      if (readstripok < 0) {
+      numBytesRead = TIFFReadEncodedStrip(tiff, strip, buf, striplength);
+      if (numBytesRead < 0) {
         LOG_ERROR << "Error reading tiff strip";
         _TIFFfree(buf);
         return false;
       }
 
       // copy buf into data.
-      memcpy(dataPtr, buf, readstripok);
-      dataPtr += readstripok;
+      size_t numBytesCopied = copyAndConvert(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
+
+      // if something went wrong at this level, bail out
+      if (numBytesCopied == 0) {
+        _TIFFfree(buf);
+        return false;
+      }
+      // advance to next strip
+      dataPtr += numBytesCopied;
     }
     _TIFFfree(buf);
   }
@@ -427,9 +469,27 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     return emptyimage;
   }
 
-  size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
-  uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
-  memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
+  LOG_DEBUG << "Reading " << (TIFFIsTiled(tiff) ? "tiled" : "stripped") << " tiff...";
+
+  uint32_t rowsPerStrip = 0;
+  if (TIFFGetField(tiff, TIFFTAG_ROWSPERSTRIP, &rowsPerStrip)) {
+    LOG_DEBUG << "ROWSPERSTRIP: " << rowsPerStrip;
+    uint32_t StripsPerImage = ((dims.sizeY + rowsPerStrip - 1) / rowsPerStrip);
+    LOG_DEBUG << "Strips per image: " << StripsPerImage;
+  }
+  uint32_t samplesPerPixel = 0;
+  if (TIFFGetField(tiff, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel)) {
+    LOG_DEBUG << "SamplesPerPixel: " << samplesPerPixel;
+  }
+  uint32_t planarConfig = 0;
+  if (TIFFGetField(tiff, TIFFTAG_PLANARCONFIG, &planarConfig)) {
+    LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
+  }
+
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
+  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
+  memset(data, 0, channelsize_bytes * dims.sizeC);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -439,8 +499,8 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
       uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
-      destptr = data + planesize * (channel * dims.sizeZ + slice);
-      if (!readTiffPlane(tiff, planeIndex, destptr)) {
+      destptr = data + channel * channelsize_bytes + slice * planesize_bytes;
+      if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
         return emptyimage;
       }
     }
@@ -456,7 +516,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
                                 dims.sizeY,
                                 dims.sizeZ,
                                 dims.sizeC,
-                                dims.bitsPerPixel,
+                                IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
