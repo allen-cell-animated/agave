@@ -88,14 +88,9 @@ bool
 readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
                   const std::string filepath,
                   libCZI::SubBlockStatistics& statistics,
-                  VolumeDimensions& dims)
+                  VolumeDimensions& dims,
+                  uint32_t scene)
 {
-  // check for mosaic.  we can't (won't) handle those right now.
-  if (statistics.maxMindex > 0) {
-    LOG_ERROR << "CZI file is mosaic; mosaic reading not yet implemented";
-    return false;
-  }
-
   // metadata xml
   auto mds = reader->ReadMetadataSegment();
   std::shared_ptr<libCZI::ICziMetadata> md = mds->CreateMetaFromMetadataSegment();
@@ -107,7 +102,9 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   dims.physicalSizeY = scalingInfo.scaleY * 1000000.0f;
   dims.physicalSizeZ = scalingInfo.scaleZ * 1000000.0f;
 
-  // get all dimension bounds and enumerate
+  // get all dimension bounds and enumerate.
+  // I am making an assumption here that each scene has the same Z C and T dimensions.
+  // If acquisition ended early, then the data might not be complete and that will have to be caught later.
   statistics.dimBounds.EnumValidDimensions([&](libCZI::DimensionIndex dimensionIndex, int start, int size) -> bool {
     switch (dimensionIndex) {
       case libCZI::DimensionIndex::Z:
@@ -125,7 +122,7 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
     return true;
   });
 
-  libCZI::IntRect planebox = getSceneYXSize(statistics);
+  libCZI::IntRect planebox = getSceneYXSize(statistics, scene);
   dims.sizeX = planebox.w;
   dims.sizeY = planebox.h;
 
@@ -213,52 +210,71 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
              const VolumeDimensions& volumeDims,
              uint8_t* dataPtr)
 {
-  reader->EnumSubset(&planeCoord, &planeRect, true, [&](int idx, const libCZI::SubBlockInfo& info) -> bool {
-    // accept first subblock
-    std::shared_ptr<libCZI::ISubBlock> subblock = reader->ReadSubBlock(idx);
-
-    std::shared_ptr<libCZI::IBitmapData> bitmap = subblock->CreateBitmap();
-    // and copy memory
-    libCZI::IntSize size = bitmap->GetSize();
-    {
-      libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
-      assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
-      assert(volumeDims.sizeX == size.w);
-      assert(volumeDims.sizeY == size.h);
-      size_t bytesPerRow = size.w * 2; // destination stride
-      if (volumeDims.bitsPerPixel == 16) {
-        assert(lckScoped.stride >= size.w * 2);
-        // stridewise copying
-        for (std::uint32_t y = 0; y < size.h; ++y) {
-          const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
-          // uint16 is 2 bytes per pixel
-          memcpy(dataPtr + (bytesPerRow * y), ptrLine, bytesPerRow);
-        }
-      } else if (volumeDims.bitsPerPixel == 8) {
-        assert(lckScoped.stride >= size.w);
-        // stridewise copying
-        for (std::uint32_t y = 0; y < size.h; ++y) {
-          const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
-          uint16_t* destLine = reinterpret_cast<uint16_t*>(dataPtr + (bytesPerRow * y));
-          for (size_t x = 0; x < size.w; ++x) {
-            *destLine++ = *(ptrLine + x);
-          }
+  auto accessor = reader->CreateSingleChannelTileAccessor();
+  auto bitmap = accessor->Get(planeRect, &planeCoord, nullptr);
+  libCZI::IntSize size = bitmap->GetSize();
+  {
+    libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
+    assert(lckScoped.ptrDataRoi == lckScoped.ptrData);
+    assert(volumeDims.sizeX == size.w);
+    assert(volumeDims.sizeY == size.h);
+    size_t bytesPerRow = size.w * 2; // destination stride
+    if (volumeDims.bitsPerPixel == 16) {
+      assert(lckScoped.stride >= size.w * 2);
+      // stridewise copying
+      for (std::uint32_t y = 0; y < size.h; ++y) {
+        const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
+        // uint16 is 2 bytes per pixel
+        memcpy(dataPtr + (bytesPerRow * y), ptrLine, bytesPerRow);
+      }
+    } else if (volumeDims.bitsPerPixel == 8) {
+      assert(lckScoped.stride >= size.w);
+      // stridewise copying
+      for (std::uint32_t y = 0; y < size.h; ++y) {
+        const std::uint8_t* ptrLine = ((const std::uint8_t*)lckScoped.ptrDataRoi) + y * lckScoped.stride;
+        uint16_t* destLine = reinterpret_cast<uint16_t*>(dataPtr + (bytesPerRow * y));
+        for (size_t x = 0; x < size.w; ++x) {
+          *destLine++ = *(ptrLine + x);
         }
       }
-      // else do nothing.
-      // buffer is already initialized to zero,
-      // and dimension validation earlier should prevent anything unintentional here.
     }
-
-    // stop iterating, on the assumption that there is only one subblock that fits this planecoordinate
-    return false;
-  });
-
+    // else do nothing.
+    // buffer is already initialized to zero,
+    // and dimension validation earlier should prevent anything unintentional here.
+  }
   return true;
 }
 
+uint32_t
+FileReaderCzi::loadNumScenesCzi(const std::string& filepath)
+{
+  try {
+    ScopedCziReader scopedReader(filepath);
+    std::shared_ptr<libCZI::ICZIReader> cziReader = scopedReader.reader();
+
+    auto statistics = cziReader->GetStatistics();
+    int sceneStart = 0;
+    int sceneSize = 0;
+    bool scenesDefined = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::S, &sceneStart, &sceneSize);
+    if (!scenesDefined) {
+      // assume just one?
+      return 1;
+    }
+    return sceneSize;
+
+  } catch (std::exception& e) {
+    LOG_ERROR << e.what();
+    LOG_ERROR << "Failed to read " << filepath;
+    return 0;
+  } catch (...) {
+    LOG_ERROR << "Failed to read " << filepath;
+    return 0;
+  }
+  return 0;
+}
+
 VolumeDimensions
-FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
+FileReaderCzi::loadDimensionsCzi(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
   try {
@@ -267,7 +283,7 @@ FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
 
     auto statistics = cziReader->GetStatistics();
 
-    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims);
+    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims, scene);
     if (!dims_ok) {
       return VolumeDimensions();
     }
@@ -285,7 +301,7 @@ FileReaderCzi::loadDimensionsCzi(const std::string& filepath, int32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, int32_t time, int32_t scene)
+FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
@@ -302,7 +318,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, i
     auto statistics = cziReader->GetStatistics();
 
     VolumeDimensions dims;
-    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims);
+    bool dims_ok = readCziDimensions(cziReader, filepath, statistics, dims, scene);
     if (!dims_ok) {
       return emptyimage;
     }
@@ -334,6 +350,12 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, i
     uint8_t* destptr = data;
 
     // now ready to read channels one by one.
+    libCZI::IntRect planeRect;
+    if (hasS) {
+      planeRect = statistics.sceneBoundingBoxes[startS + scene].boundingBoxLayer0;
+    } else {
+      planeRect = statistics.boundingBoxLayer0Only;
+    }
 
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
@@ -344,14 +366,13 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, i
         if (hasC) {
           planeCoord.Set(libCZI::DimensionIndex::C, (int)channel + startC);
         }
-        if (hasS) {
-          planeCoord.Set(libCZI::DimensionIndex::S, scene + startS);
-        }
         if (hasT) {
           planeCoord.Set(libCZI::DimensionIndex::T, time + startT);
         }
+        // since scene tiles can not overlap, passing the scene bounding box in to readCziPlane is enough produce the
+        // scene, and I don't need to add Scene to the planeCoord.
 
-        if (!readCziPlane(cziReader, statistics.boundingBoxLayer0Only, planeCoord, dims, destptr)) {
+        if (!readCziPlane(cziReader, planeRect, planeCoord, dims, destptr)) {
           return emptyimage;
         }
       }

@@ -14,10 +14,15 @@ public:
   FileReader();
   virtual ~FileReader();
 
+  static uint32_t loadNumScenes(const std::string& filepath);
+
+  // return dimensions from scene in file
+  static VolumeDimensions loadFileDimensions(const std::string& filepath, uint32_t scene = 0);
+
   static std::shared_ptr<ImageXYZC> loadFromFile(const std::string& filepath,
                                                  VolumeDimensions* dims = nullptr,
-                                                 int32_t time = 0,
-                                                 int32_t scene = 0,
+                                                 uint32_t time = 0,
+                                                 uint32_t scene = 0,
                                                  bool addToCache = false);
 
   static std::shared_ptr<ImageXYZC> loadFromFile_4D(const std::string& filepath,

@@ -113,6 +113,7 @@ private:
   // the app owns a scene.
   // scene gets sent down to the renderer.
   Scene m_appScene;
+  int m_currentScene = 0;
 
   QAction* m_recentFileActs[MaxRecentFiles];
   QAction* m_recentFileSeparator;

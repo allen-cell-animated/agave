@@ -15,7 +15,8 @@ public:
 
   static std::shared_ptr<ImageXYZC> loadOMETiff(const std::string& filepath,
                                                 VolumeDimensions* dims = nullptr,
-                                                int32_t time = 0,
-                                                int32_t scene = 0);
-  static VolumeDimensions loadDimensionsTiff(const std::string& filepath, int32_t scene = 0);
+                                                uint32_t time = 0,
+                                                uint32_t scene = 0);
+  static VolumeDimensions loadDimensionsTiff(const std::string& filepath, uint32_t scene = 0);
+  static uint32_t loadNumScenesTiff(const std::string& filepath);
 };
