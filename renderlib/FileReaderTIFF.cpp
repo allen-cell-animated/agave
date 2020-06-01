@@ -193,7 +193,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     QString shape = imagedescriptionQString.mid(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape.toStdString();
     QStringList shapelist = shape.split(',');
-    if (shapelist.size() != 4 || shapelist.size() != 5) {
+    if ((shapelist.size() != 4) && (shapelist.size() != 5)) {
       LOG_ERROR << "Expected shape to be 4D or 5D TIFF: '" << filepath << "'";
       return false;
     }
