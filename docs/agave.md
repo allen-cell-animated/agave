@@ -4,6 +4,17 @@ Agave is a desktop application for viewing multichannel volume data.
 
 The viewing engine is at its heart a "progressive path tracer". In interactive use, your image will appear noisy or grainy at first, but will refine over time as the rendering system builds up more and more render passes. As soon as you change any viewing parameter, including your camera angle, the image will reset and start over. The faster your GPU, the quicker the image will resolve itself.
 
+## Contents
+
+- [Overview](#user-interface-overview)
+- [Loading Volume Data](#loading-volume-data)
+- [Adjusting the 3D Camera](#adjusting-the-camera-view)
+- [Appearance Panel](#appearance-panel)
+- [Volume Channel Settings](#volume-channel-settings)
+- [Output: Saving Results](#output-saving-results)
+- [Camera Panel](#camera-panel)
+- [Time Panel](#time-panel)
+
 ## User Interface Overview
 
 Agave is a windowed desktop application.
@@ -118,25 +129,25 @@ These X, Y, and Z values describe the physical dimensions of the volume data rel
 
 The three sliders presented here let you clip the volume along each of its three axes. These sliders have two handles each, which let you clip each dimension from either side. For example, to see only the bottom Z half of your volume (or display the cross section middle slice), move the rightmost Z handle about halfway to the left.
 
-## Lighting
+### Lighting
 
 There are two types of light illuminating your volume. One is an Area Light, represented by an imaginary square-shaped light source that can be moved anywhere around the volume. The second is a Sky Sphere, which can illuminate the volume from all directions.
 
 Tip: it can be useful to turn one light off while tuning the settings for the other.
 
-### Area Light Theta, Phi, and Distance
+#### Area Light Theta, Phi, and Distance
 
 These three coordinates let you position the light anywhere on a sphere around the volume. Theta and Phi are in radians (where 3.14159 radians is half a circle) (INSERT ILLUSTRATION HERE DESCRIBING THE SPHERICAL COORDINATES)
 
-### Area Light Size
+#### Area Light Size
 
 The size of the light controls the spread of its illumination over the volume. A smaller light closer to the volume will appear very dramatic with exaggerated shadows, due to its rays spread over a wide angle. A larger light will give more even illumination.
 
-### Area Light Intensity
+#### Area Light Intensity
 
 You may select a RGB color for the area light, and modify it with a scalar intensity value to brighten or darken it. Note that you can turn the light off by setting its color to black or its intensity to 0.
 
-### SkyLight Top, Middle, and Bottom
+#### SkyLight Top, Middle, and Bottom
 
 The Sky Light is described by a sphere completely surrounding the volume. You can set a color and intensity for the "north pole" (Top) of the sphere, the "equator" (Middle) and the "south pole" (Bottom). These values will be interpolated to compute the light at any point in between. The Sky Light can be turned off by setting its intensities to 0 or its colors to black.
 
