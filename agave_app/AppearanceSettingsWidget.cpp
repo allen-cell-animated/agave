@@ -53,7 +53,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
 
   m_GradientFactorSlider.setStatusTip(tr("Mix between BRDF and Phase shading"));
   m_GradientFactorSlider.setToolTip(tr("Mix between BRDF and Phase shading"));
-  m_GradientFactorSlider.setRange(0.001, 100.0);
+  m_GradientFactorSlider.setRange(0.0, 1.0);
   m_GradientFactorSlider.setDecimals(3);
   m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
   m_MainLayout.addRow("Shading Type Mixture", &m_GradientFactorSlider);

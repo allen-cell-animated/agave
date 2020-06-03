@@ -66,7 +66,7 @@ struct ViewerState
   float m_orthoScale = 1.0f;
   float m_apertureSize = 0.0f;
   float m_focalDistance = 0.0f;
-  float m_gradientFactor = 50.0f;
+  float m_gradientFactor = 0.5f;
   float m_primaryStepSize = 4.0f, m_secondaryStepSize = 4.0f;
   float m_roiXmax = 1.0f, m_roiYmax = 1.0f, m_roiZmax = 1.0f, m_roiXmin = 0.0f, m_roiYmin = 0.0f, m_roiZmin = 0.0f;
   float m_scaleX = 1.0f, m_scaleY = 1.0f, m_scaleZ = 1.0f;

@@ -675,6 +675,7 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
+  m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -797,6 +798,7 @@ agaveGui::appToViewerState()
   v.m_apertureSize = m_qcamera.GetAperture().GetSize();
   v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
+  v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
   v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
