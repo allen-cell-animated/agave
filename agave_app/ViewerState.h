@@ -87,9 +87,6 @@ struct ViewerState
 
   void stateFromJson(QJsonDocument& jsonDoc);
 
-  static ViewerState readStateFromJson(QString filePath);
-  static void writeStateToJson(QString filePath, const ViewerState& state);
-
 private:
   LutParams lutParamsFromJson(QJsonObject& jsonObj);
 };

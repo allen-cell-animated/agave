@@ -263,6 +263,11 @@ agaveGui::openJson()
     }
     QByteArray saveData = loadFile.readAll();
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+    if (loadDoc.isNull()) {
+      LOG_DEBUG << "Invalid config file format. Make sure it is json.";
+      return;
+    }
+
     ViewerState s;
     s.stateFromJson(loadDoc);
     if (!s.m_volumeImageFile.isEmpty()) {
@@ -639,15 +644,6 @@ agaveGui::savePython()
     QString doc = st.stateToPythonScript();
     saveFile.write(doc.toUtf8());
   }
-}
-
-void
-agaveGui::dumpStateToJson()
-{
-  ViewerState st = appToViewerState();
-  QJsonDocument doc = st.stateToJson();
-  QString s = doc.toJson();
-  LOG_DEBUG << s.toStdString();
 }
 
 void

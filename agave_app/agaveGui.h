@@ -40,7 +40,6 @@ private slots:
   void view_toggleProjection();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
-  void dumpStateToJson();
   void openMeshDialog();
   void openMesh(const QString& file);
   void saveImage();
