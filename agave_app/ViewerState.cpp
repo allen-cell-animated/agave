@@ -300,12 +300,18 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 QJsonDocument
 ViewerState::stateToJson() const
 {
+  // TODO Store all these names in symbolic constants so they can be spelled out only in one place,
+  // and referenced in both the read and write functions
+
   // fire back some json...
   QJsonObject j;
   j["name"] = m_volumeImageFile;
 
   // the version of this schema
   // use app version
+  // TODO conside whether it makes sense for the I/O serialization version to just be the same as the app version.
+  //   for io versioning fixups at read time, we have to do comparisons like if read_version < 1.2.1 then change data
+  //   or expect different names
   j["version"] = jsonVec3(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
 
   QJsonArray resolution;
