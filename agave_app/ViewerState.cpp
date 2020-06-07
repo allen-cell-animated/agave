@@ -124,31 +124,6 @@ getVec2i(QJsonObject obj, QString prop, glm::ivec2& value)
   }
 }
 
-ViewerState
-ViewerState::readStateFromJson(QString filePath)
-{
-  // defaults from default ctor
-  ViewerState p;
-
-  // try to open server.cfg
-  QFile loadFile(filePath);
-  if (!loadFile.open(QIODevice::ReadOnly)) {
-    LOG_DEBUG << "No config file found openable at " << filePath.toStdString();
-    return p;
-  }
-
-  QByteArray jsonData = loadFile.readAll();
-  QJsonDocument jsonDoc(QJsonDocument::fromJson(jsonData));
-  if (jsonDoc.isNull()) {
-    LOG_DEBUG << "Invalid config file format. Make sure it is json.";
-    return p;
-  }
-
-  p.stateFromJson(jsonDoc);
-
-  return p;
-}
-
 std::map<GradientEditMode, int> LutParams::g_GradientModeToPermId = { { GradientEditMode::WINDOW_LEVEL, 0 },
                                                                       { GradientEditMode::ISOVALUE, 1 },
                                                                       { GradientEditMode::PERCENTILE, 2 },
@@ -195,6 +170,7 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
 
   getString(json, "name", m_volumeImageFile);
+  // this value should not be used when read back in to the gui since the gui has to progressively render anyway.
   getInt(json, "renderIterations", m_renderIterations);
   getFloat(json, "density", m_densityScale);
 
@@ -324,12 +300,18 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 QJsonDocument
 ViewerState::stateToJson() const
 {
+  // TODO Store all these names in symbolic constants so they can be spelled out only in one place,
+  // and referenced in both the read and write functions
+
   // fire back some json...
   QJsonObject j;
   j["name"] = m_volumeImageFile;
 
   // the version of this schema
   // use app version
+  // TODO consider whether it makes sense for the I/O serialization version to just be the same as the app version.
+  //   for io versioning fixups at read time, we have to do comparisons like if read_version < 1.2.1 then change data
+  //   or expect different names
   j["version"] = jsonVec3(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
 
   QJsonArray resolution;
@@ -458,12 +440,6 @@ ViewerState::stateToJson() const
   j["lights"] = lights;
 
   return QJsonDocument(j);
-}
-
-void
-ViewerState::writeStateToJson(QString filePath, const ViewerState& state)
-{
-  QJsonDocument d = state.stateToJson();
 }
 
 QString

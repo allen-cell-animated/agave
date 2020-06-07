@@ -263,6 +263,11 @@ agaveGui::openJson()
     }
     QByteArray saveData = loadFile.readAll();
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+    if (loadDoc.isNull()) {
+      LOG_DEBUG << "Invalid config file format. Make sure it is json.";
+      return;
+    }
+
     ViewerState s;
     s.stateFromJson(loadDoc);
     if (!s.m_volumeImageFile.isEmpty()) {
@@ -642,15 +647,6 @@ agaveGui::savePython()
 }
 
 void
-agaveGui::dumpStateToJson()
-{
-  ViewerState st = appToViewerState();
-  QJsonDocument doc = st.stateToJson();
-  QString s = doc.toJson();
-  LOG_DEBUG << s.toStdString();
-}
-
-void
 agaveGui::viewerStateToApp(const ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
@@ -675,6 +671,7 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
+  m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -797,6 +794,7 @@ agaveGui::appToViewerState()
   v.m_apertureSize = m_qcamera.GetAperture().GetSize();
   v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
+  v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
   v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
