@@ -53,7 +53,7 @@ endif()
 
 set(AGAVE_QT_VERSION 5.15.0)
 if (WIN32)
-  set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2017_64 CACHE STRING "Qt5 directory")
+  set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
 elseif (APPLE)
   set(GUESS_Qt5_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
 else ()

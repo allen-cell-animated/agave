@@ -28,7 +28,7 @@ Controller.prototype.ComponentSelectionPageCallback = function() {
 
     // everything except source?
     widget.selectAll();
-    widget.deselectComponent('qt.5126.src');
+    widget.deselectComponent('qt.5150.src');
 
     // widget.deselectAll();
     // widget.selectComponent("qt.5126.gcc_64")
