@@ -18,7 +18,7 @@ RUN mkdir /agave && \
 # get Qt installed
 ENV QT_VERSION_A=5.15
 ENV QT_VERSION_B=5.15.0
-ENV QT_VERSION_SCRIPT=5126
+ENV QT_VERSION_SCRIPT=5150
 RUN wget https://download.qt.io/archive/qt/${QT_VERSION_A}/${QT_VERSION_B}/qt-opensource-linux-x64-${QT_VERSION_B}.run
 RUN chmod +x qt-opensource-linux-x64-${QT_VERSION_B}.run 
 COPY ci/qt-noninteractive.qs /qt-noninteractive.qs
