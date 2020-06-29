@@ -25,9 +25,9 @@ jobs:
           python-version: "3.7"
           architecture: "x64"
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2.5.2
+        uses: jurplel/install-qt-action@v2.7.1
         with:
-          version: 5.12.7
+          version: 5.15.0
       - name: macos install deps
         if: matrix.os == 'macOS-latest'
         env:
