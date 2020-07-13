@@ -91,8 +91,8 @@ agaveGui::createActions()
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  m_openJsonAction = new QAction(tr("Open json..."), this);
-  m_openJsonAction->setStatusTip(tr("Open an existing json settings file"));
+  m_openJsonAction = new QAction(tr("Open JSON..."), this);
+  m_openJsonAction->setStatusTip(tr("Open an existing JSON settings file"));
   connect(m_openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
 
   m_quitAction = new QAction(tr("&Quit"), this);
@@ -106,7 +106,7 @@ agaveGui::createActions()
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
-  m_dumpJsonAction = new QAction(tr("&Save to json"), this);
+  m_dumpJsonAction = new QAction(tr("&Save to JSON"), this);
   m_dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
   connect(m_dumpJsonAction, SIGNAL(triggered()), this, SLOT(saveJson()));
 
@@ -253,18 +253,18 @@ agaveGui::openJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open json"), dir, QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), 0, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
     if (!loadFile.open(QIODevice::ReadOnly)) {
-      qWarning("Couldn't open json file.");
+      qWarning("Couldn't open JSON file.");
       return;
     }
     QByteArray saveData = loadFile.readAll();
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
     if (loadDoc.isNull()) {
-      LOG_DEBUG << "Invalid config file format. Make sure it is json.";
+      LOG_DEBUG << "Invalid config file format. Make sure it is JSON.";
       return;
     }
 
@@ -318,7 +318,7 @@ agaveGui::saveJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getSaveFileName(this, tr("Save Json"), QString(), tr("json (*.json)"), nullptr, options);
+  QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("json (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
     ViewerState st = appToViewerState();
     QJsonDocument doc = st.stateToJson();

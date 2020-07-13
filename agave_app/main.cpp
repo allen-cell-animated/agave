@@ -42,7 +42,7 @@ readConfig(QString configPath)
   QByteArray jsonData = loadFile.readAll();
   QJsonDocument jsonDoc(QJsonDocument::fromJson(jsonData));
   if (jsonDoc.isNull()) {
-    LOG_INFO << "Invalid server config file format. Make sure it is json.";
+    LOG_INFO << "Invalid server config file format. Make sure it is JSON.";
     return p;
   }
 
