@@ -75,15 +75,15 @@ private:
 
   QToolBar* m_Cam2DTools;
 
-  QAction* m_openAction;
-  QAction* m_openJsonAction;
-  QAction* m_quitAction;
-  QAction* m_dumpJsonAction;
-  QAction* m_dumpPythonAction;
-  QAction* m_testMeshAction;
-  QAction* m_viewResetAction;
-  QAction* m_toggleCameraProjectionAction;
-  QAction* m_saveImageAction;
+  QAction* m_openAction = nullptr;
+  QAction* m_openJsonAction = nullptr;
+  QAction* m_quitAction = nullptr;
+  QAction* m_dumpJsonAction = nullptr;
+  QAction* m_dumpPythonAction = nullptr;
+  QAction* m_testMeshAction = nullptr;
+  QAction* m_viewResetAction = nullptr;
+  QAction* m_toggleCameraProjectionAction = nullptr;
+  QAction* m_saveImageAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
