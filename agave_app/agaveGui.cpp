@@ -318,7 +318,7 @@ agaveGui::saveJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("json (*.json)"), nullptr, options);
+  QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
     ViewerState st = appToViewerState();
     QJsonDocument doc = st.stateToJson();
