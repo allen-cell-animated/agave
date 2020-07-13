@@ -88,6 +88,8 @@ preloadFiles(QStringList preloadlist)
 int
 main(int argc, char* argv[])
 {
+  Logging::Init();
+
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication a(argc, argv);
