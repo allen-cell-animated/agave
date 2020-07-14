@@ -16,7 +16,9 @@
 
 #include <fstream>
 #include <ostream>
+#if defined(__APPLE__) || defined(__linux__)
 #include <pwd.h>
+#endif
 
 namespace logging = boost::log;
 namespace src = boost::log::sources;
