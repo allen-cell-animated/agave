@@ -45,7 +45,7 @@ File-->Open Volume or \[Open Volume\] toolbar button
 
 \[Open Volume\] will pop open a file browser dialog in which you can navigate to the volume file of choice.
 
-If the file you select cannot be loaded, an error dialog will pop open to notify you. There are several possible reasons why this operation may fail and if AGAVE can determine the reason, it will be displayed in the AGAVE log (see description of the AGAVE log under [Troubleshooting](#troubleshooting)). If the file is multi-scene, a dialog will pop up to let you select the scene you wish to view. To view a different scene, just re-open the same file using \[Open Volume\]. For files with many time samples, there is a Time panel in the user interface with a slider. Nothing will be loaded while dragging the slider; AGAVE will load the new time sample when the slider is released or the numeric input is incremented.
+If the file you select cannot be loaded, an error dialog will pop open to notify you. There are several possible reasons why this operation may fail and if AGAVE can determine the reason, it will be displayed in the [AGAVE log](#agave-log). If the file is multi-scene, a dialog will pop up to let you select the scene you wish to view. To view a different scene, just re-open the same file using \[Open Volume\]. For files with many time samples, there is a Time panel in the user interface with a slider. Nothing will be loaded while dragging the slider; AGAVE will load the new time sample when the slider is released or the numeric input is incremented.
 
 ### Open JSON
 
@@ -250,4 +250,5 @@ The AGAVE log is a plain text stream of informational output from AGAVE.  It can
 * Windows:  C:\Users\username\AppData\Local\AllenInstitute\agave\logfile.log
 * Mac OS:  ~/Library/Logs/AllenInstitute/agave/logfile.log
 * Linux:  ~/.agave/logfile.log
+
 For troubleshooting, it can be useful to refer to this file or send it with any communication about issues in AGAVE.
