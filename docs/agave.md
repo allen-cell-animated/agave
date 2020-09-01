@@ -49,7 +49,7 @@ If the file you select cannot be loaded, an error dialog will pop open to notify
 
 ### Open JSON
 
-File-->Open Json or \[Open Json\] toolbar button
+File-->Open JSON or \[Open JSON\] toolbar button
 
 \[Open JSON\] can be used when you have previously saved an AGAVE session. This will load the volume file associated with that session, along with all of the AGAVE settings as they were when you saved (if you encounter problems, see [Save JSON](#save-json) below for details about proper file and filepath structure).
 
