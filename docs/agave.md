@@ -35,7 +35,7 @@ AGAVE can load multi-scene, multi-time, and multi-channel files. It can present 
 
 Metadata embedded in the file is important for AGAVE to display the volume properly. AGAVE can decode OME metadata (OME-TIFF files), ImageJ metadata (TIFF files exported from ImageJ/FIJI), and Zeiss CZI metadata.
 
-We recommend preparing or converting your volumetric files to OME-TIFF (see Preparing an AGAVE Compatible ome-tiff file with Fiji <link to Preparing an AGAVE Compatible ome-tiff file with Fiji at bottom of this document> to ensure the expected data structure, channel order, etc.
+We recommend preparing or converting your volumetric files to OME-TIFF (see [Preparing an AGAVE Compatible ome-tiff file with Fiji](#preparing-an-agave-compatible-ome-tiff-file-with-fiji) to ensure the expected data structure, channel order, etc.)
 
 AGAVE currently supports ome.tiff, tiff, and .czi image file formats containing either 8-bit or 16-bit unsigned pixel intensities. CZI is the native file format produced by Zeiss microscopes. See https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html for more information.  TIFF (Tagged Image File Format) is an open image file format commonly used to store microscopy data. See https://docs.openmicroscopy.org/ome-model/latest/ for more information.
 
@@ -252,3 +252,20 @@ The AGAVE log is a plain text stream of informational output from AGAVE.  It can
 * Linux:  ~/.agave/logfile.log
 
 For troubleshooting, it can be useful to refer to this file or send it with any communication about issues in AGAVE.
+
+## Preparing an AGAVE Compatible ome-tiff file with Fiji
+
+Use [Fiji](https://fiji.sc/) to combine volume channels together into a single multichannel file:
+1. File/Import/BioFormats 
+    * To convert an existing multichannel file to ome-tiff select a multichannel file, e.g .czi or similar
+    * To convert multiple single channel files into a compatible ome-tiff open all the tiff stacks in FIJI as separate images at the same time. (this assumes each tiff is a z-stack representing one channel, and all the Tiffs have the same X,Y,Z dimensions)
+    * When using Import⇾BioFormats, make sure "Hyperstack" and "Split Channels" is checked.
+2. Ensure every channel is 16-bit using Image⇾Type⇾16-bit
+3. Image->Colors->Merge Channels
+    * select each channel one by one in the dialog that opens.
+    * uncheck [ ] Create composite
+    * Click OK
+4. File->Save As (select ome-tiff)
+5. Note that the channel names will not be saved!
+
+To Open in AGAVE see the [File Open](#file-open) section above.
