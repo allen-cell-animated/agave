@@ -256,11 +256,11 @@ For troubleshooting, it can be useful to refer to this file or send it with any 
 ## Preparing an AGAVE Compatible ome-tiff file with Fiji
 
 Use [Fiji](https://fiji.sc/) to combine volume channels together into a single multichannel file:
-1. File/Import/BioFormats 
+1. File->Import->BioFormats 
     * To convert an existing multichannel file to ome-tiff select a multichannel file, e.g .czi or similar
     * To convert multiple single channel files into a compatible ome-tiff open all the tiff stacks in FIJI as separate images at the same time. (this assumes each tiff is a z-stack representing one channel, and all the Tiffs have the same X,Y,Z dimensions)
-    * When using Import⇾BioFormats, make sure "Hyperstack" and "Split Channels" is checked.
-2. Ensure every channel is 16-bit using Image⇾Type⇾16-bit
+    * When using Import->BioFormats, make sure "Hyperstack" and "Split Channels" is checked.
+2. Ensure every channel is 16-bit using Image->Type->16-bit
 3. Image->Colors->Merge Channels
     * select each channel one by one in the dialog that opens.
     * uncheck [ ] Create composite
