@@ -71,7 +71,7 @@ add_compile_definitions(_STATICLIBBUILD)
 # I prefer target_compile_definitions but the target has to exist first
 add_subdirectory(libCZI/Src/JxrDecode)
 add_subdirectory(libCZI/Src/libCZI)
-find_library(libCZI REQUIRED PATHS ${CMAKE_SOURCE_DIR}/libCZI)
+find_library(libCZI REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/libCZI)
 message(STATUS "libCZI: ${libCZI}")
 set_target_properties(libCZI PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 # end libczi dependency
