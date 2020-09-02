@@ -63,7 +63,7 @@ struct PathTraceRenderSettings
     , m_StepSizeFactor(4.0f)
     , m_StepSizeFactorShadow(4.0f)
     , m_GradientDelta(4.0f)
-    , m_GradientFactor(50.0f)
+    , m_GradientFactor(0.5f)
     , m_ShowLightsBackground(false)
   {}
 };

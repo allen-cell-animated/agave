@@ -91,8 +91,8 @@ agaveGui::createActions()
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  m_openJsonAction = new QAction(tr("Open json..."), this);
-  m_openJsonAction->setStatusTip(tr("Open an existing json settings file"));
+  m_openJsonAction = new QAction(tr("Open JSON..."), this);
+  m_openJsonAction->setStatusTip(tr("Open an existing JSON settings file"));
   connect(m_openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
 
   m_quitAction = new QAction(tr("&Quit"), this);
@@ -106,13 +106,16 @@ agaveGui::createActions()
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
 
-  m_dumpJsonAction = new QAction(tr("&Save to json"), this);
+  m_dumpJsonAction = new QAction(tr("&Save to JSON"), this);
   m_dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
   connect(m_dumpJsonAction, SIGNAL(triggered()), this, SLOT(saveJson()));
 
+  // TODO: this is disabled for release but stays here to be developed for a post-1.0 feature.
+#ifdef NDEBUG
   m_dumpPythonAction = new QAction(tr("&Save to python script"), this);
   m_dumpPythonAction->setStatusTip(tr("Save a python script containing all render settings and loaded volume path"));
   connect(m_dumpPythonAction, SIGNAL(triggered()), this, SLOT(savePython()));
+#endif
 
   m_testMeshAction = new QAction(tr("&Open mesh..."), this);
   m_testMeshAction->setStatusTip(tr("Open a mesh obj file"));
@@ -138,7 +141,9 @@ agaveGui::createMenus()
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_saveImageAction);
   m_fileMenu->addAction(m_dumpJsonAction);
+#ifdef NDEBUG
   m_fileMenu->addAction(m_dumpPythonAction);
+#endif
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_quitAction);
 
@@ -165,7 +170,9 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
+#ifdef NDEBUG
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
+#endif
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
@@ -253,16 +260,21 @@ agaveGui::openJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open json"), dir, QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), 0, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
     if (!loadFile.open(QIODevice::ReadOnly)) {
-      qWarning("Couldn't open json file.");
+      qWarning("Couldn't open JSON file.");
       return;
     }
     QByteArray saveData = loadFile.readAll();
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+    if (loadDoc.isNull()) {
+      LOG_DEBUG << "Invalid config file format. Make sure it is JSON.";
+      return;
+    }
+
     ViewerState s;
     s.stateFromJson(loadDoc);
     if (!s.m_volumeImageFile.isEmpty()) {
@@ -313,7 +325,7 @@ agaveGui::saveJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getSaveFileName(this, tr("Save Json"), QString(), tr("json (*.json)"), nullptr, options);
+  QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
     ViewerState st = appToViewerState();
     QJsonDocument doc = st.stateToJson();
@@ -642,15 +654,6 @@ agaveGui::savePython()
 }
 
 void
-agaveGui::dumpStateToJson()
-{
-  ViewerState st = appToViewerState();
-  QJsonDocument doc = st.stateToJson();
-  QString s = doc.toJson();
-  LOG_DEBUG << s.toStdString();
-}
-
-void
 agaveGui::viewerStateToApp(const ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
@@ -675,6 +678,7 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
+  m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -797,6 +801,7 @@ agaveGui::appToViewerState()
   v.m_apertureSize = m_qcamera.GetAperture().GetSize();
   v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
+  v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
   v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;

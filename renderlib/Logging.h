@@ -27,6 +27,11 @@ BOOST_LOG_GLOBAL_LOGGER(logger, boost::log::sources::severity_logger_mt<boost::l
 
 namespace Logging {
 
-void Enable(bool enabled);
+// must be called early at app startup to ensure safety.
+void
+Init();
+
+void
+Enable(bool enabled);
 
 };
