@@ -97,3 +97,13 @@ jobs:
         with:
           name: agave-win
           path: ./build/agave-win.zip
+      - name: Publish PDF Document
+        uses: shrink/actions-document-publish@v1
+        id: publish-document
+        with:
+          sources: 'docs/agave.md'
+      - name: Upload PDF Document
+        uses: actions/upload-artifact@v1
+        with:
+          name: agave-docs.pdf
+          path: ${{ steps.publish-document.outputs.pdf }}
