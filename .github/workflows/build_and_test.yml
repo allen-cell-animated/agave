@@ -98,11 +98,13 @@ jobs:
           name: agave-win
           path: ./build/agave-win.zip
       - name: Publish PDF Document
+        if: matrix.os == 'ubuntu-latest'
         uses: shrink/actions-document-publish@v1
         id: publish-document
         with:
           sources: 'docs/agave.md'
       - name: Upload PDF Document
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v1
         with:
           name: agave-docs.pdf
