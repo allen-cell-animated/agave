@@ -79,16 +79,18 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 #endif()
 
-# the following line is a workaround for homebrew boost 1.71 + cmake not finding the boost multithreaded libs
-# https://gitlab.kitware.com/cmake/cmake/issues/19714
-# set(Boost_NO_BOOST_CMAKE ON)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
-# find_path(GLM_PATH glm/glm.hpp)
+if (APPLE)
+# On MacOS, newer homebrew glm is broken with respect to cmake.
+# Revisit in a future version to try to remove this conditional.
+find_path(GLM_PATH glm/glm.hpp)
+else()
 find_package( glm REQUIRED )
+endif(APPLE)
 
 find_package (Python3 COMPONENTS Interpreter Development)
 get_target_property(py_location Python3::Interpreter LOCATION)

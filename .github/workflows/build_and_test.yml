@@ -13,16 +13,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Checkout submodules
-        shell: bash
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --force --recursive --depth=50
+        with:
+          submodules: "recursive"
       - uses: ilammy/msvc-dev-cmd@v1.2.0
-      - name: Install Python 3.7 version
+      - name: Install Python 3.8 version
         uses: actions/setup-python@v1
         with:
-          python-version: "3.7"
+          python-version: "3.8"
           architecture: "x64"
       - name: Install Qt
         uses: jurplel/install-qt-action@v2.7.1
