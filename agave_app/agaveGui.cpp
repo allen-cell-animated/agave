@@ -288,7 +288,7 @@ agaveGui::openJson()
 void
 agaveGui::saveImage()
 {
-  QFileDialog::Options options = 0;
+  QFileDialog::Options options;
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
@@ -321,7 +321,7 @@ agaveGui::saveImage()
 void
 agaveGui::saveJson()
 {
-  QFileDialog::Options options = 0;
+  QFileDialog::Options options;
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
@@ -636,7 +636,7 @@ agaveGui::strippedName(const QString& fullFileName)
 void
 agaveGui::savePython()
 {
-  QFileDialog::Options options = 0;
+  QFileDialog::Options options;
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif

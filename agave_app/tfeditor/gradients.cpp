@@ -444,7 +444,8 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   // if this is not custom mode, then disable the gradient editor
   m_editor->setEditable(m == GradientEditMode::CUSTOM);
 
-  connect(btnGroup, QOverload<int>::of(&QButtonGroup::buttonClicked), [this, stackedLayout](int id) {
+  connect(btnGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), [this, btnGroup, stackedLayout](QAbstractButton* button) {
+    int id = btnGroup->id(button);
     GradientEditMode modeToSet = btnIdToGradientMode[id];
     // if mode is not changing, we are done.
     if (modeToSet == this->m_gradientData->m_activeMode) {
