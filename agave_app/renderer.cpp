@@ -303,7 +303,6 @@ Renderer::reset(int from)
   glEnable(GL_LINE_SMOOTH);
 
   this->m_time.start();
-  this->m_time = this->m_time.addMSecs(-from);
 
   m_openGLMutex->unlock();
 }

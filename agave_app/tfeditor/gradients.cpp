@@ -99,7 +99,7 @@ ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* pa
     setPalette(pal);
 
   } else {
-    setAttribute(Qt::WA_NoBackground);
+    setAttribute(Qt::WA_OpaquePaintEvent);
   }
 
   QPolygonF points;
