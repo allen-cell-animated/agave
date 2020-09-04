@@ -20,7 +20,7 @@ AGAVE’s core viewing engine uses a "progressive path tracer". During interacti
 
    AGAVE <agave>
 
-.. mdinclude:: ./agave.md
+.. include:: ./agave.rst
 
 Indices and tables
 ==================
