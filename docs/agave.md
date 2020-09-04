@@ -138,7 +138,7 @@ Tip: it can be useful to turn one light off while tuning the settings for the ot
 
 These three coordinates let you position the light anywhere on a sphere around the volume. Theta and Phi are in radians (where 3.14159 radians is half a circle).
 
-<img src="Light_SphericalCoordinate-1.png" height="600px"/>
+![](Light_SphericalCoordinate-1.png){:height="600px"}
 
 #### Area Light Size
 
