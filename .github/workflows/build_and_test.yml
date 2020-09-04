@@ -99,13 +99,12 @@ jobs:
           path: ./build/agave-win.zip
       - name: Publish PDF Document
         if: matrix.os == 'ubuntu-latest'
-        uses: shrink/actions-document-publish@v1
-        id: publish-document
+        uses: docker://pandoc/latex:2.9
         with:
-          sources: 'docs/agave.md'
+          args: --output=./docs/agave.pdf ./docs/agave.md
       - name: Upload PDF Document
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v1
         with:
           name: agave-docs.pdf
-          path: ${{ steps.publish-document.outputs.pdf }}
+          path: ./docs/agave.pdf
