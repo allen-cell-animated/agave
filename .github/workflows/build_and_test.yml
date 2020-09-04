@@ -101,7 +101,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: docker://pandoc/latex:2.9
         with:
-          args: -f gfm -t pdf --self-contained --resource-path=./docs --output=./docs/agave.pdf ./docs/agave.md
+          args: -f gfm -t html --self-contained --resource-path=./docs --output=./docs/agave.pdf ./docs/agave.md
       - name: Upload PDF Document
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v1
