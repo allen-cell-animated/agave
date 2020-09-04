@@ -249,7 +249,7 @@ If your volume contains multiple time steps in the file, move the time slider or
 ### AGAVE Log
 
 The AGAVE log is a plain text stream of informational output from AGAVE.  It can be found in the following locations: 
-* Windows:  C:\Users\username\AppData\Local\AllenInstitute\agave\logfile.log
+* Windows:  C:\\Users\\username\\AppData\\Local\\AllenInstitute\\agave\\logfile.log
 * Mac OS:  ~/Library/Logs/AllenInstitute/agave/logfile.log
 * Linux:  ~/.agave/logfile.log
 
