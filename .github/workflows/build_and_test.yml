@@ -4,6 +4,19 @@ on:
     branches-ignore:
       - "master"
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+      - uses: actions/upload-artifact@v1
+        with:
+          name: DocumentationHTML
+          path: docs/_build/html/
   cmake-build:
     strategy:
       matrix:
@@ -97,14 +110,3 @@ jobs:
         with:
           name: agave-win
           path: ./build/agave-win.zip
-      - name: Publish PDF Document
-        if: matrix.os == 'ubuntu-latest'
-        uses: docker://pandoc/latex:2.9
-        with:
-          args: -f gfm -t pdf --self-contained --resource-path=./docs --output=./docs/agave.pdf ./docs/agave.md
-      - name: Upload PDF Document
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v1
-        with:
-          name: agave-docs.pdf
-          path: ./docs/agave.pdf

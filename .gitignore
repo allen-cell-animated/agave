@@ -1,8 +1,12 @@
 thirdparty/
+
 build/
 renderlib/version.h
+docs/_build/
 GeneratedFiles/
+
 x64/
+
 .vs/
 *.vcxproj.filters
 *.vcxproj.user
