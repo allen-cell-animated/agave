@@ -1,22 +1,3 @@
-# AGAVE
-## Advanced GPU Accelerated Volume Explorer
-
-AGAVE is a desktop application for viewing multichannel volume data.
-
-AGAVE’s core viewing engine uses a "progressive path tracer". During interactive use, your image will appear grainy at first, but will refine over time as the rendering system builds up more and more render passes. The speed of refinement depends on your hardware, the size and complexity of the image, and the AGAVE parameters you set, i.e., the faster your GPU, the quicker a rendering will resolve. GPU memory dictates the maximum size of the files AGAVE can load. As soon as you change any viewing parameter, including your camera angle, the rendering will start over.
-
-## Contents
-
-- [User Interface Overview](#user-interface-overview)
-- [Loading Volume Data](#loading-volume-data)
-- [Adjusting the 3D Camera View](#adjusting-the-camera-view)
-- [Appearance Panel](#appearance-panel)
-- [Volume Channel Settings](#volume-channel-settings)
-- [Output: Saving Results](#output-saving-results)
-- [Camera Panel](#camera-panel)
-- [Time Panel](#time-panel)
-- [Troubleshooting](#troubleshooting)
-
 ## User Interface Overview
 
 AGAVE is a windowed desktop application.
