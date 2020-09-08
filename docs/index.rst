@@ -20,7 +20,3 @@ AGAVE’s core viewing engine uses a "progressive path tracer". During interacti
 
    AGAVE <agave>
 
-Indices and tables
-==================
-
-* :ref:`genindex`
