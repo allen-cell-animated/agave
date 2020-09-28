@@ -19,9 +19,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>@PACKAGE_VERSION@</string>
+	<string>@PROJECT_VERSION@</string>
 	<key>CFBundleShortVersionString</key>
-	<string>@PACKAGE_VERSION@</string>
+	<string>@PROJECT_VERSION@</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>@PACKAGE_OSX_TARGET@</string>
 	<key>NSPrincipalClass</key>
