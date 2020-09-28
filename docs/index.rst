@@ -15,7 +15,7 @@ AGAVE’s core viewing engine uses a "progressive path tracer". During interacti
 
 .. toctree::
    :includehidden:
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents
 
    AGAVE <agave>
