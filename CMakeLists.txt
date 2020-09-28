@@ -11,7 +11,7 @@ endif (POLICY CMP0048)
 
 project(
   agave 
-  VERSION 0.9.2.0
+  VERSION 0.9.9.0
   LANGUAGES C CXX
 )
 
@@ -128,6 +128,11 @@ add_subdirectory(test)
 # THE FRONT END QT EXE
 ######################
 add_subdirectory(agave_app)
+
+######################
+# Documentation
+######################
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/conf.py @ONLY)
 
 ######################
 # CPack
