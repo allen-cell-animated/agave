@@ -24,7 +24,11 @@ jobs:
           path: docs/_build/html/
       - uses: actions/upload-artifact@v1
         with:
-          name: DocumentationPDF
+          name: agave-macos
+          path: docs/_build/latex/agave.pdf
+      - uses: actions/upload-artifact@v1
+        with:
+          name: agave-win
           path: docs/_build/latex/agave.pdf
   cmake-build:
     strategy:
