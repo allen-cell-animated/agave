@@ -18,15 +18,15 @@ jobs:
           docs-folder: "docs/"
           pre-build-command: "apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: agave-macos
           path: docs/_build/latex/agave.pdf
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: agave-win
           path: docs/_build/latex/agave.pdf
@@ -75,7 +75,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macOS-latest'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: agave-macos
           path: ./build/agave.app/
@@ -119,7 +119,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: agave-win
           path: ./build/agave-install/
