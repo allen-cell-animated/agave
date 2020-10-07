@@ -71,13 +71,14 @@ jobs:
           cmake ..
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
+          zip -vr agave-macos.zip agave.app/
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macOS-latest'
         uses: actions/upload-artifact@v2
         with:
           name: agave-macos
-          path: ./build/agave.app/
+          path: ./build/agave-macos.zip
       - name: linux install deps
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -114,10 +115,11 @@ jobs:
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DBOOST_INCLUDEDIR=%BOOST_ROOT_1_72_0%/boost/include -DBOOST_LIBRARYDIR=%BOOST_ROOT_1_72_0%/lib -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
+          powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v2
         with:
           name: agave-win
-          path: ./build/agave-install/
+          path: ./build/agave-win.zip
