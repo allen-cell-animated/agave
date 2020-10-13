@@ -1,0 +1,697 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>User Interface Overview &mdash; AGAVE 0.9.9.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="AGAVE" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> AGAVE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Interface Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#loading-volume-data">Loading volume data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#open-volume">Open Volume</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#open-json">Open JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recent">Recent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#adjusting-the-camera-view">Adjusting the camera view</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#rotate">Rotate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#zoom">Zoom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pan">Pan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reset">Reset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#perspective-orthographic">Perspective/Orthographic</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#appearance-panel">Appearance Panel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#global-rendering-settings">Global Rendering Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#renderer">Renderer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scattering-density">Scattering Density</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shading-type">Shading Type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shading-type-mixture">Shading Type Mixture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#primary-ray-step-size">Primary Ray Step Size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#secondary-ray-step-size">Secondary Ray Step Size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#background-color">Background Color</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-scale">Volume Scale</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#region-of-interest-roi">Region Of Interest (ROI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lighting">Lighting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#area-light-theta-phi-and-distance">Area Light Theta, Phi, and Distance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#area-light-size">Area Light Size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#area-light-intensity">Area Light Intensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#skylight-top-middle-and-bottom">SkyLight Top, Middle, and Bottom</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#volume-channel-settings">Volume Channel Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#transfer-function-editor">Transfer Function Editor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#window-level">Window / Level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#isovalue">Isovalue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#histogram-percentile">Histogram Percentile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#custom">Custom</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#color-settings">Color settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#diffuse-color">Diffuse Color</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#specular-color">Specular Color</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#emissive-color">Emissive Color</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#glossiness">Glossiness</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#output-saving-results">Output: Saving Results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#save-image">Save Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#save-json">Save JSON</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#camera-panel">Camera Panel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#film-exposure">Film Exposure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exposure-time">Exposure Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#noise-reduction">Noise Reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#aperture-size">Aperture Size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#projection-field-of-view">Projection Field of View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#focal-distance">Focal Distance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#time-panel">Time Panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#agave-log">AGAVE Log</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#preparing-an-agave-compatible-ome-tiff-file-with-fiji">Preparing an AGAVE Compatible ome-tiff file with Fiji</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AGAVE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>User Interface Overview</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/agave.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="user-interface-overview">
+<h1>User Interface Overview<a class="headerlink" href="#user-interface-overview" title="Permalink to this headline">¶</a></h1>
+<p>AGAVE is a windowed desktop application.</p>
+<p>The application is divided into several panels. All of the panels except
+for the 3D view can be undocked by dragging their title bar with the
+mouse. Undocked panels can float independently or the interface can be
+reconfigured by re-docking them in a different position. Note:
+currently, restarting AGAVE will reset the interface to the default
+configuration.</p>
+<p>All panels can be resized by dragging from their edges. Your cursor
+should change to indicate when you are hovering over an edge that can be
+resized.</p>
+<p>Tip: On some screens, the panels may be too narrow to have enough range
+to move the horizontal sliders. In that case, it can help to un-dock the
+panel and stretch it wider.</p>
+<p>If you close any panels, you can always reopen them from the View menu.</p>
+</div>
+<div class="section" id="loading-volume-data">
+<h1>Loading volume data<a class="headerlink" href="#loading-volume-data" title="Permalink to this headline">¶</a></h1>
+<p>AGAVE can load multi-scene, multi-time, and multi-channel files. It can
+present up to 4 channels concurrently and offers a time slider when time
+channels are detected.</p>
+<p>Metadata embedded in the file is important for AGAVE to display the
+volume properly. AGAVE can decode OME metadata (OME-TIFF files), ImageJ
+metadata (TIFF files exported from ImageJ/FIJI), and Zeiss CZI metadata.</p>
+<p>We recommend preparing or converting your volumetric files to OME-TIFF
+(see <a class="reference external" href="#preparing-an-agave-compatible-ome-tiff-file-with-fiji">Preparing an AGAVE Compatible ome-tiff file with
+Fiji</a> to
+ensure the expected data structure, channel order, etc.)</p>
+<p>AGAVE currently supports ome.tiff, tiff, and .czi image file formats
+containing either 8-bit or 16-bit unsigned pixel intensities. CZI is the
+native file format produced by Zeiss microscopes. See
+<a class="reference external" href="https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html">https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html</a>
+for more information. TIFF (Tagged Image File Format) is an open image
+file format commonly used to store microscopy data. See
+<a class="reference external" href="https://docs.openmicroscopy.org/ome-model/latest/">https://docs.openmicroscopy.org/ome-model/latest/</a> for more information.</p>
+<div class="section" id="open-volume">
+<h2>Open Volume<a class="headerlink" href="#open-volume" title="Permalink to this headline">¶</a></h2>
+<p>File–&gt;Open Volume or [Open Volume] toolbar button</p>
+<p>[Open Volume] will pop open a file browser dialog in which you can navigate to the
+volume file of choice.</p>
+<p>If the file you select cannot be loaded, an error dialog will pop open
+to notify you. There are several possible reasons why this operation may
+fail and if AGAVE can determine the reason, it will be displayed in the
+<a class="reference external" href="#agave-log">AGAVE log</a>. If the file is multi-scene, a dialog will
+pop up to let you select the scene you wish to view. To view a different
+scene, just re-open the same file using [Open Volume]. For files with many time samples, there is a Time panel in the user
+interface with a slider. Nothing will be loaded while dragging the
+slider; AGAVE will load the new time sample when the slider is released
+or the numeric input is incremented.</p>
+</div>
+<div class="section" id="open-json">
+<h2>Open JSON<a class="headerlink" href="#open-json" title="Permalink to this headline">¶</a></h2>
+<p>File–&gt;Open JSON or [Open JSON] toolbar button</p>
+<p>[Open JSON] can be used when you have previously saved an AGAVE session. This will
+load the volume file associated with that session, along with all of the
+AGAVE settings as they were when you saved (if you encounter problems,
+see <a class="reference external" href="#save-json">Save JSON</a> below for details about proper file and
+filepath structure).</p>
+</div>
+<div class="section" id="recent">
+<h2>Recent<a class="headerlink" href="#recent" title="Permalink to this headline">¶</a></h2>
+<p>File–&gt;Recent…</p>
+<p>This menu will present a list of the most recently opened volume files
+for quick selection if AGAVE was previously used on your computer.</p>
+</div>
+</div>
+<div class="section" id="adjusting-the-camera-view">
+<h1>Adjusting the camera view<a class="headerlink" href="#adjusting-the-camera-view" title="Permalink to this headline">¶</a></h1>
+<p>The 3D viewport in Agave supports direct manipulation by <em>zoom</em>, <em>pan</em>,
+and <em>rotate</em>.</p>
+<div class="section" id="rotate">
+<h2>Rotate<a class="headerlink" href="#rotate" title="Permalink to this headline">¶</a></h2>
+<p>To rotate the volume, left-click and drag the mouse.</p>
+</div>
+<div class="section" id="zoom">
+<h2>Zoom<a class="headerlink" href="#zoom" title="Permalink to this headline">¶</a></h2>
+<p>To zoom in or out, right-click and drag up or down. On Mac trackpad,
+Command-click and drag up or down, or drag up or down with two fingers
+as if scrolling.</p>
+</div>
+<div class="section" id="pan">
+<h2>Pan<a class="headerlink" href="#pan" title="Permalink to this headline">¶</a></h2>
+<p>To slide the camera parallel to the screen, middle-click and drag in the
+view. On Mac, Option-click and drag in the view.</p>
+</div>
+<div class="section" id="reset">
+<h2>Reset<a class="headerlink" href="#reset" title="Permalink to this headline">¶</a></h2>
+<p>The [Reset] button in the toolbar will return your camera to a default view position
+that should frame the volume data in the window.</p>
+</div>
+<div class="section" id="perspective-orthographic">
+<h2>Perspective/Orthographic<a class="headerlink" href="#perspective-orthographic" title="Permalink to this headline">¶</a></h2>
+<p>The [Persp/Ortho] toolbar button will toggle between a perspective projection and an
+orthographic one. In a perspective projection, parallel lines will meet
+in the distance and 3D objects will be foreshortened. This is considered
+a “realistic” view. In orthographic projection, parallel lines receding
+into the distance will remain parallel no matter which direction they
+go. There is no foreshortening or tapering of the volume.</p>
+</div>
+</div>
+<div class="section" id="appearance-panel">
+<h1>Appearance Panel<a class="headerlink" href="#appearance-panel" title="Permalink to this headline">¶</a></h1>
+<p>The appearance panel has the majority of the controls you will use to
+adjust the image. In particular, you will adjust volume channel
+intensities and colors, control how transparent or opaque the volume
+appears, and control lights and shadows.</p>
+<div class="line-block">
+<div class="line">This panel is split into the following subsections, each detailed below:</div>
+<div class="line">[<em>Global Rendering</em> controls], [<em>Volume Scale</em> controls], [<em>Region of Interest Clipping</em>], [<em>Lighting per-channel</em>], [<em>volume data</em>] controls (only appear after a volume has been loaded).</div>
+</div>
+<div class="section" id="global-rendering-settings">
+<h2>Global Rendering Settings<a class="headerlink" href="#global-rendering-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="renderer">
+<h3>Renderer<a class="headerlink" href="#renderer" title="Permalink to this headline">¶</a></h3>
+<p>Select [Path Traced] for the standard high quality rendering system. Select [Ray March Blending]
+for a faster performing but simplified renderer. The Ray Marching
+renderer will not do advanced lighting and shadowing, but can still
+provide a useful view of your volume data. It does not behave in a
+progressive fashion, instead giving you the finished image immediately
+with no waiting.</p>
+</div>
+<div class="section" id="scattering-density">
+<h3>Scattering Density<a class="headerlink" href="#scattering-density" title="Permalink to this headline">¶</a></h3>
+<p><em>Scattering density</em> controls how dense (opaque) or sparse (translucent)
+the volume appears. Higher density can be helpful for objects with well
+defined edges and less noisy data. It also tends to bring out the
+lighting in a more pronounced way. Lower density can be useful for
+multichannel viewing in which the data has a lot of overlap.</p>
+</div>
+<div class="section" id="shading-type">
+<h3>Shading Type<a class="headerlink" href="#shading-type" title="Permalink to this headline">¶</a></h3>
+<p>There are two shading methods: [BRDF] and [Phase]. The [Mixed]
+setting combines the two and is the default. The BRDF (Bidirectional
+Reflectance Distribution Function) is more sensitive to lighting angle
+and can produce a shiny reflective appearance, whereas the Phase
+function does not produce glossy highlights.</p>
+</div>
+<div class="section" id="shading-type-mixture">
+<h3>Shading Type Mixture<a class="headerlink" href="#shading-type-mixture" title="Permalink to this headline">¶</a></h3>
+<p>In Mixed shading mode, this slider controls the relative contribution of
+Phase and BRDF.</p>
+</div>
+<div class="section" id="primary-ray-step-size">
+<h3>Primary Ray Step Size<a class="headerlink" href="#primary-ray-step-size" title="Permalink to this headline">¶</a></h3>
+<p>The <em>primary ray step size</em> controls the distance rays can travel into
+the volume before hitting something. Larger values will render faster
+but also result in some rays bypassing important parts of the volume.
+This can be used for quicker preview rendering. Smaller values will be
+more precise and ensure that you are capturing every detail in the
+volume data.</p>
+</div>
+<div class="section" id="secondary-ray-step-size">
+<h3>Secondary Ray Step Size<a class="headerlink" href="#secondary-ray-step-size" title="Permalink to this headline">¶</a></h3>
+<p>The <em>secondary ray step size</em> controls the distance rays will travel
+after they have scattered within the volume and are bouncing out toward
+the light sources. Higher values will brighten the image and reduce
+shadows because more rays will penetrate through the volume and make it
+out to the lights. Smaller values will ensure that some rays are stopped
+by volume data, which will increase the accuracy of cast shadows.</p>
+</div>
+<div class="section" id="background-color">
+<h3>Background Color<a class="headerlink" href="#background-color" title="Permalink to this headline">¶</a></h3>
+<p>Clicking on the color square next to Background Color allows you to
+change the image background color from black (default) to any other
+color.</p>
+</div>
+</div>
+<div class="section" id="volume-scale">
+<h2>Volume Scale<a class="headerlink" href="#volume-scale" title="Permalink to this headline">¶</a></h2>
+<p>These X, Y, and Z values describe the physical dimensions of the volume
+data relative to the number of pixels. Often microscopes do not have the
+same physical dimensions in Z that they do in X and Y. Usually these
+values are read from the volume file’s metadata. If they could not be
+found in the metadata, they will often appear here as X=1, Y=1, Z=1.
+They can be modified here.</p>
+</div>
+<div class="section" id="region-of-interest-roi">
+<h2>Region Of Interest (ROI)<a class="headerlink" href="#region-of-interest-roi" title="Permalink to this headline">¶</a></h2>
+<p>Three sliders presented here let you clip the volume along each of its
+three axes. These sliders have two handles each, which let you clip each
+dimension from either side. For example, to see only the bottom Z half
+of your volume (or display the cross section middle slice), move the
+rightmost Z handle about halfway to the left.</p>
+</div>
+<div class="section" id="lighting">
+<h2>Lighting<a class="headerlink" href="#lighting" title="Permalink to this headline">¶</a></h2>
+<p>There are two types of light illuminating your volume. One is an “Area
+Light”, represented by an imaginary square-shaped light source that can
+be moved anywhere around the volume. The second is a “Sky Sphere”, which
+can illuminate the volume from all directions.</p>
+<p>Tip: it can be useful to turn one light off while tuning the settings
+for the other.</p>
+<div class="section" id="area-light-theta-phi-and-distance">
+<h3>Area Light Theta, Phi, and Distance<a class="headerlink" href="#area-light-theta-phi-and-distance" title="Permalink to this headline">¶</a></h3>
+<p>These three coordinates let you position the light anywhere on a sphere
+around the volume. Theta and Phi are in radians (where 3.14159 radians
+is half a circle).</p>
+<p><img alt="image0" src="_images/Light_SphericalCoordinate-1.png" /></p>
+</div>
+<div class="section" id="area-light-size">
+<h3>Area Light Size<a class="headerlink" href="#area-light-size" title="Permalink to this headline">¶</a></h3>
+<p>The size of the light controls the spread of its illumination over the
+volume. A smaller light closer to the volume will appear very dramatic
+with exaggerated shadows, due to its rays spreading over a wide angle. A
+larger light will give a more even illumination.</p>
+</div>
+<div class="section" id="area-light-intensity">
+<h3>Area Light Intensity<a class="headerlink" href="#area-light-intensity" title="Permalink to this headline">¶</a></h3>
+<p>You may select a RGB color for the area light, and modify it with a
+scalar intensity value to brighten or darken it. Note that you can turn
+the light off by setting its color to black or its intensity to 0.</p>
+</div>
+<div class="section" id="skylight-top-middle-and-bottom">
+<h3>SkyLight Top, Middle, and Bottom<a class="headerlink" href="#skylight-top-middle-and-bottom" title="Permalink to this headline">¶</a></h3>
+<p>The Sky Light is described by a sphere completely surrounding the
+volume. You can set a color and intensity for the “north pole” (Top) of
+the sphere, the “equator” (Middle) and the “south pole” (Bottom). These
+values will be interpolated to compute the light at any point in
+between. The Sky Light can be turned off by setting its intensities to 0
+or its colors to black.</p>
+</div>
+</div>
+</div>
+<div class="section" id="volume-channel-settings">
+<h1>Volume Channel Settings<a class="headerlink" href="#volume-channel-settings" title="Permalink to this headline">¶</a></h1>
+<p>Each volume channel contains adjustable settings. Expand the channel
+menus to access the following parameters.</p>
+<div class="section" id="transfer-function-editor">
+<h2>Transfer Function Editor<a class="headerlink" href="#transfer-function-editor" title="Permalink to this headline">¶</a></h2>
+<p>The transfer function editor lets you transform the intensity values in
+your volume data to clarify and fine-tune your visual analysis. You can
+select particular intensity ranges to view, to pick out particular
+details in the volume.</p>
+<p>The editor displays a graph at the top. The background of the graph
+contains a histogram in black, showing where the volume intensity is
+distributed (Y axis) along the intensity range (X axis). The white line
+shows how volume intensities X are remapped to new intensities Y.</p>
+<p>The editor has 4 mutually exclusive modes. You can switch between any of
+the modes and each mode’s settings will be remembered.</p>
+<div class="section" id="window-level">
+<h3>Window / Level<a class="headerlink" href="#window-level" title="Permalink to this headline">¶</a></h3>
+<p>Window/Level lets you remap the data range to a narrower range and clip
+data above and below the selected range. AGAVE provides two controls:
+one to define how wide the range is (the window), and another to control
+where the window lies in the raw intensity range (the level).</p>
+</div>
+<div class="section" id="isovalue">
+<h3>Isovalue<a class="headerlink" href="#isovalue" title="Permalink to this headline">¶</a></h3>
+<p>Isovalue lets you select a range of intensity values and clips all other
+values to 0. You may select a middle intensity value and a range of
+values above and below it. A thinner range will let you isolate one
+particular intensity.</p>
+</div>
+<div class="section" id="histogram-percentile">
+<h3>Histogram Percentile<a class="headerlink" href="#histogram-percentile" title="Permalink to this headline">¶</a></h3>
+<p>Percentile mode is similar to Window/Level as it results in the same
+linear remapping, but the choice of start and end is based on a
+percentage of the total pixels in the image. The default is to clip the
+bottom 50% of pixels to zero, and clip the upper 2% of pixels to
+maximum.</p>
+</div>
+<div class="section" id="custom">
+<h3>Custom<a class="headerlink" href="#custom" title="Permalink to this headline">¶</a></h3>
+<p>In Custom mode, you are free to edit the graph yourself. You will create
+your own piecewise linear transfer function. You start by default with a
+1-1 intensity remapping, with one point in the bottom left corner and
+another in the upper right. Click in the graph anywhere to create a new
+vertex. It will be represented by a white circle. Click the middle of a
+circle and drag to move it.</p>
+</div>
+</div>
+<div class="section" id="color-settings">
+<h2>Color settings<a class="headerlink" href="#color-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="diffuse-color">
+<h3>Diffuse Color<a class="headerlink" href="#diffuse-color" title="Permalink to this headline">¶</a></h3>
+<p>This should be thought of as the main color for this channel.</p>
+</div>
+<div class="section" id="specular-color">
+<h3>Specular Color<a class="headerlink" href="#specular-color" title="Permalink to this headline">¶</a></h3>
+<p>This is the color for reflective highlights. It is additive on top of
+the diffuse color. Leave it at black to have no shiny highlights at all.
+This color should be tuned in conjunction with the Glossiness slider.</p>
+</div>
+<div class="section" id="emissive-color">
+<h3>Emissive Color<a class="headerlink" href="#emissive-color" title="Permalink to this headline">¶</a></h3>
+<p>This color is not truly light-emitting, but can not be darkened by the
+effects of shadowing from other lights. It should be used sparingly, if
+at all.</p>
+</div>
+<div class="section" id="glossiness">
+<h3>Glossiness<a class="headerlink" href="#glossiness" title="Permalink to this headline">¶</a></h3>
+<p>The glossiness value controls how sharp the reflected Specular
+highlights are. It defaults to a low value which makes them seem more
+diffuse. Higher values will appear shinier or glossier.</p>
+</div>
+</div>
+</div>
+<div class="section" id="output-saving-results">
+<h1>Output: Saving Results<a class="headerlink" href="#output-saving-results" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="save-image">
+<h2>Save Image<a class="headerlink" href="#save-image" title="Permalink to this headline">¶</a></h2>
+<p>File–&gt;Save image or the [Save image] toolbar button</p>
+<p>Save the current viewport window as a PNG, or JPG file.</p>
+</div>
+<div class="section" id="save-json">
+<h2>Save JSON<a class="headerlink" href="#save-json" title="Permalink to this headline">¶</a></h2>
+<p>File–&gt;Save to JSON or [Save to JSON] toolbar button</p>
+<p>Save to JSON will save the current AGAVE session into a small file that
+records every setting so you can pick up work where you left off. The
+JSON file is a text file, which you can (carefully) hand-edit if you
+need to. The file name of the currently loaded volume file is embedded
+in the JSON, so if you copy the file around you should bring the volume
+data file with it. It is best to keep them in the same directory if
+possible.</p>
+</div>
+</div>
+<div class="section" id="camera-panel">
+<h1>Camera Panel<a class="headerlink" href="#camera-panel" title="Permalink to this headline">¶</a></h1>
+<p>The camera panel controls will let you affect the image’s exposure
+amount, and control the focus blurring.</p>
+<div class="section" id="film-exposure">
+<h2>Film Exposure<a class="headerlink" href="#film-exposure" title="Permalink to this headline">¶</a></h2>
+<p>The exposure value will brighten or darken the overall image.</p>
+</div>
+<div class="section" id="exposure-time">
+<h2>Exposure Time<a class="headerlink" href="#exposure-time" title="Permalink to this headline">¶</a></h2>
+<p>This setting should normally be kept at 1, but if you have a
+sufficiently powerful GPU, increasing it will render more paths before
+refreshing the view, and make the image resolve faster. Only change this
+if your image already resolves very quickly.</p>
+</div>
+<div class="section" id="noise-reduction">
+<h2>Noise Reduction<a class="headerlink" href="#noise-reduction" title="Permalink to this headline">¶</a></h2>
+<p>Noise reduction applies a filter to the image to reduce the graininess
+of early render passes. After the image has resolved beyond a certain
+level, the denoiser will shut off and have no effect. The image will
+continue to accumulate samples and resolve via brute force computation.</p>
+</div>
+<div class="section" id="aperture-size">
+<h2>Aperture Size<a class="headerlink" href="#aperture-size" title="Permalink to this headline">¶</a></h2>
+<p>Aperture size affects the depth of focus, or how much of the image is in
+focus. A small aperture size will keep the entire image in focus at all
+times. A large aperture size will let you only focus on a thin plane a
+specific distance from the camera.</p>
+</div>
+<div class="section" id="projection-field-of-view">
+<h2>Projection Field of View<a class="headerlink" href="#projection-field-of-view" title="Permalink to this headline">¶</a></h2>
+<p>The field of view is an angle in degrees describing how narrow or wide
+an angle your camera can cover. A smaller field of view will span a very
+small section of your volume and will give the impression of zooming in
+while at the same time reducing the perspective foreshortening. A large
+field of view will have increased perspective distortion and give the
+impression of zooming out as the camera angle can show more and more of
+the scene being displayed.</p>
+</div>
+<div class="section" id="focal-distance">
+<h2>Focal Distance<a class="headerlink" href="#focal-distance" title="Permalink to this headline">¶</a></h2>
+<p>Focal distance describes the distance from the camera lens that is the
+center of focus. For aperture size 0, this has no effect, since the
+entire image will remain in focus (effectively an infinite focus depth
+range).</p>
+</div>
+</div>
+<div class="section" id="time-panel">
+<h1>Time Panel<a class="headerlink" href="#time-panel" title="Permalink to this headline">¶</a></h1>
+<p>If your volume contains multiple time steps in the file, move the time
+slider or change the numeric input to load a new time sample. Beware
+that this is loading a whole new volume and can take some time. If your
+volume only has a single time, then the slider will have no effect.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="agave-log">
+<h2>AGAVE Log<a class="headerlink" href="#agave-log" title="Permalink to this headline">¶</a></h2>
+<p>The AGAVE log is a plain text stream of informational output from AGAVE.
+It can be found in the following locations:</p>
+<ul class="simple">
+<li><p>Windows:
+C:\Users\username\AppData\Local\AllenInstitute\agave\logfile.log</p></li>
+<li><p>Mac OS: ~/Library/Logs/AllenInstitute/agave/logfile.log</p></li>
+<li><p>Linux: ~/.agave/logfile.log</p></li>
+</ul>
+<p>For troubleshooting, it can be useful to refer to this file or send it
+with any communication about issues in AGAVE.</p>
+</div>
+</div>
+<div class="section" id="preparing-an-agave-compatible-ome-tiff-file-with-fiji">
+<h1>Preparing an AGAVE Compatible ome-tiff file with Fiji<a class="headerlink" href="#preparing-an-agave-compatible-ome-tiff-file-with-fiji" title="Permalink to this headline">¶</a></h1>
+<p>Use <a class="reference external" href="https://fiji.sc/">Fiji</a> to combine volume channels together into
+a single multichannel file:</p>
+<ol class="arabic simple">
+<li><p>File-&gt;Import-&gt;BioFormats</p>
+<ul class="simple">
+<li><p>To convert an existing multichannel file to ome-tiff select a
+multichannel file, e.g .czi or similar</p></li>
+<li><p>To convert multiple single channel files into a compatible
+ome-tiff open all the tiff stacks in FIJI as separate images at
+the same time. (this assumes each tiff is a z-stack representing
+one channel, and all the Tiffs have the same X,Y,Z dimensions)</p></li>
+<li><p>When using Import-&gt;BioFormats, make sure “Hyperstack” and “Split
+Channels” is checked.</p></li>
+</ul>
+</li>
+<li><p>Ensure every channel is 16-bit using Image-&gt;Type-&gt;16-bit</p></li>
+<li><p>Image-&gt;Colors-&gt;Merge Channels</p>
+<ul class="simple">
+<li><p>select each channel one by one in the dialog that opens.</p></li>
+<li><p>uncheck [ ] Create composite</p></li>
+<li><p>Click OK</p></li>
+</ul>
+</li>
+<li><p>File-&gt;Save As (select ome-tiff)</p></li>
+<li><p>Note that the channel names will not be saved!</p></li>
+</ol>
+<p>To Open in AGAVE see the <a class="reference external" href="#open-volume">Open Volume</a> section above.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="AGAVE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Allen Institute for Cell Science
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
