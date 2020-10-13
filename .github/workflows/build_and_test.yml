@@ -4,6 +4,32 @@ on:
     branches-ignore:
       - "master"
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+          pre-build-command: "apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          build-command: "make latexpdf"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: DocumentationHTML
+          path: docs/_build/html/
+      - uses: actions/upload-artifact@v2
+        with:
+          name: agave-macos
+          path: docs/_build/latex/agave.pdf
+      - uses: actions/upload-artifact@v2
+        with:
+          name: agave-win
+          path: docs/_build/latex/agave.pdf
   cmake-build:
     strategy:
       matrix:
@@ -13,16 +39,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Checkout submodules
-        shell: bash
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --force --recursive --depth=50
+        with:
+          submodules: "recursive"
       - uses: ilammy/msvc-dev-cmd@v1.2.0
-      - name: Install Python 3.7 version
+      - name: Install Python 3.8 version
         uses: actions/setup-python@v1
         with:
-          python-version: "3.7"
+          python-version: "3.8"
           architecture: "x64"
       - name: Install Qt
         uses: jurplel/install-qt-action@v2.7.1
@@ -52,7 +75,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macOS-latest'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: agave-macos
           path: ./build/agave-macos.zip
@@ -96,7 +119,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: agave-win
           path: ./build/agave-win.zip

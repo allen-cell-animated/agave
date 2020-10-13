@@ -3,9 +3,9 @@
 
 #include "glad/glad.h"
 
+#include <QtCore/QElapsedTimer>
 #include <QList>
 #include <QObject>
-
 #include <QMutex>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
@@ -75,7 +75,7 @@ private:
   int32_t m_streamMode;
   int32_t m_width, m_height;
 
-  QTime m_time;
+  QElapsedTimer m_time;
 
   class SceneDescription
   {

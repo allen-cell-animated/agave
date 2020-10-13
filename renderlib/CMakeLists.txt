@@ -71,7 +71,7 @@ add_compile_definitions(_STATICLIBBUILD)
 # I prefer target_compile_definitions but the target has to exist first
 add_subdirectory(libCZI/Src/JxrDecode)
 add_subdirectory(libCZI/Src/libCZI)
-find_library(libCZI REQUIRED PATHS ${CMAKE_SOURCE_DIR}/libCZI)
+find_library(libCZI PATHS ${CMAKE_BINARY_DIR}/renderlib/libCZI/Src/libCZI)
 message(STATUS "libCZI: ${libCZI}")
 set_target_properties(libCZI PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 # end libczi dependency
@@ -79,7 +79,7 @@ set_target_properties(libCZI PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 # libtiff dependency for renderlib
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 add_subdirectory(libtiff)
-find_library(tiff REQUIRED PATHS ${CMAKE_BINARY_DIR}/renderlib/libtiff/libtiff)
+find_library(tiff PATHS ${CMAKE_BINARY_DIR}/renderlib/libtiff/libtiff)
 message(STATUS "libtiff: ${CMAKE_BINARY_DIR}/renderlib/libtiff/libtiff")
 message(STATUS "libtiff: ${tiff}")
 # end libtiff dependency
