@@ -477,4 +477,4 @@ a single multichannel file:
 
 To Open in AGAVE see the `Open Volume <#open-volume>`__ section above.
 
-.. |image0| image:: Light_SphericalCoordinate-1.png
+.. |image0| image:: Light_SphericalCoordinate_1-2.png
