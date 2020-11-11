@@ -148,6 +148,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: agave-win
+      - name: Get PDF documentation build artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: DocumentationPDF
       - name: Version the artifacts
         run: |
           mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
@@ -162,3 +166,4 @@ jobs:
           files: |
             ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
             ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.zip
+            ${{ github.workspace }}/DocumentationPDF/agave.pdf
