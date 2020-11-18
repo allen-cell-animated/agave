@@ -106,8 +106,12 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
   uint16_t sampleFormat = SAMPLEFORMAT_UINT;
   if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
-    // just warn here.  We are not yet using sampleFormat!
-    LOG_WARNING << "Failed to read sampleformat of TIFF: '" << filepath << "'";
+    LOG_ERROR << "Failed to read sampleformat of TIFF: '" << filepath << "'";
+    return false;
+  }
+  if (sampleFormat != SAMPLEFORMAT_UINT && sampleFormat != SAMPLEFORMAT_IEEEFP) {
+    LOG_ERROR << "Unsupported tiff SAMPLEFORMAT " << sampleFormat << " for '" << filepath << "'";
+    return false;
   }
 
   uint32_t sizeT = 1;
@@ -244,8 +248,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     QString pixelType = pixelsEl.attribute("Type", "uint16").toLower();
     LOG_INFO << "pixel type: " << pixelType.toStdString();
     bpp = mapPixelTypeBPP[pixelType.toStdString()];
-    if (bpp != 16 && bpp != 8) {
-      LOG_ERROR << "Image must be 8 or 16-bit integer typed";
+    if (bpp != 32 && bpp != 16 && bpp != 8) {
+      LOG_ERROR << "Image must be 8 or 16-bit integer, or 32-bit float typed";
       return false;
     }
     sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
@@ -309,6 +313,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.physicalSizeZ = physicalSizeZ;
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
+  dims.sampleFormat = sampleFormat;
 
   dims.log();
 
@@ -332,6 +337,19 @@ copyAndConvert(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPe
       dataptr16++;
     }
     return numBytes * 2;
+  } else if (srcBitsPerPixel == 32) {
+    // convert pixels
+    // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
+    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
+    const float* src32 = reinterpret_cast<const float*>(src);
+    for (size_t b = 0; b < numBytes / 4; ++b) {
+      // BIG ASSUMPTION: float data is in 0..1 range!
+      // I am not computing a global max and rescaling to that max.
+      // This operation will overflow/underflow for anything outside 0..1
+      *dataptr16 = (uint16_t)(src32[b] * 65535.0);
+      dataptr16++;
+    }
+    return numBytes / 2;
   } else {
     LOG_ERROR << "Unexpected tiff pixel size " << srcBitsPerPixel << " bits";
     return 0;
@@ -482,6 +500,11 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   if (TIFFGetField(tiff, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel)) {
     LOG_DEBUG << "SamplesPerPixel: " << samplesPerPixel;
   }
+  if (samplesPerPixel != 1) {
+    LOG_ERROR << "" << samplesPerPixel << " samples per pixel is not supported in tiff";
+    return emptyimage;
+  }
+
   uint32_t planarConfig = 0;
   if (TIFFGetField(tiff, TIFFTAG_PLANARCONFIG, &planarConfig)) {
     LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
