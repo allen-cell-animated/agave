@@ -36,6 +36,21 @@ ImageXYZC::ImageXYZC(uint32_t x,
   }
 }
 
+bool
+ImageXYZC::append(const ImageXYZC& other)
+{
+  if (m_x != other.m_x || m_y != other.m_y || m_z != other.m_z) {
+    LOG_INFO("Can not append due to xyz dimensions mismatch");
+    return false;
+  }
+  // copy( or move ?) channels out of other and into this
+  for (uint32_t i = 0; i < other.m_c; ++i) {
+    m_channels.push_back(new Channelu16(m_x, m_y, m_z, other.m_channels[i]->m_ptr));
+  }
+
+  return false;
+}
+
 ImageXYZC::~ImageXYZC()
 {
   for (uint32_t i = 0; i < m_c; ++i) {

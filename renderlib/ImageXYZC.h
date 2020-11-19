@@ -116,6 +116,8 @@ public:
 
   void setChannelNames(std::vector<std::string>& channelNames);
 
+  bool append(const ImageXYZC& other);
+
 private:
   uint32_t m_x, m_y, m_z, m_c, m_bpp;
   uint8_t* m_data;
