@@ -86,6 +86,10 @@ VolumeDimensions::validate() const
     ok = false;
   }
 
+  if (bitsPerPixel % 8 != 0) {
+    LOG_ERROR << "Bits per pixel " << bitsPerPixel << " is expected to be divisible by 8";
+  }
+
   return ok;
 }
 

@@ -14,7 +14,7 @@ ImageXYZC::ImageXYZC(uint32_t x,
                      uint32_t z,
                      uint32_t c,
                      uint32_t bpp,
-                     uint8_t* data,
+                     std::vector<uint8_t*> channelData,
                      float sx,
                      float sy,
                      float sz)
@@ -23,13 +23,12 @@ ImageXYZC::ImageXYZC(uint32_t x,
   , m_z(z)
   , m_c(c)
   , m_bpp(bpp)
-  , m_data(data)
   , m_scaleX(sx)
   , m_scaleY(sy)
   , m_scaleZ(sz)
 {
   for (uint32_t i = 0; i < m_c; ++i) {
-    m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
+    m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(channelData[i])));
   }
   for (uint32_t i = 0; i < m_c; ++i) {
     LOG_INFO << "Channel " << i << ":" << (m_channels[i]->m_min) << "," << (m_channels[i]->m_max);
@@ -40,7 +39,7 @@ bool
 ImageXYZC::append(const ImageXYZC& other)
 {
   if (m_x != other.m_x || m_y != other.m_y || m_z != other.m_z) {
-    LOG_INFO("Can not append due to xyz dimensions mismatch");
+    LOG_INFO << "Can not append due to xyz dimensions mismatch";
     return false;
   }
   // copy( or move ?) channels out of other and into this
@@ -57,7 +56,6 @@ ImageXYZC::~ImageXYZC()
     delete m_channels[i];
     m_channels[i] = nullptr;
   }
-  delete[] m_data;
 }
 
 void
@@ -152,7 +150,7 @@ uint8_t*
 ImageXYZC::ptr(uint32_t channel, uint32_t z) const
 {
   // advance ptr by this amount of uint8s.
-  return m_data + ((channel * sizeOfChannel()) + (z * sizeOfPlane()));
+  return reinterpret_cast<uint8_t*>(m_channels[channel]->m_ptr + (z * m_x * m_y));
 }
 
 Channelu16*
@@ -196,6 +194,7 @@ Channelu16::~Channelu16()
 {
   delete[] m_lut;
   delete[] m_gradientMagnitudePtr;
+  delete[] m_ptr;
 }
 
 uint16_t*

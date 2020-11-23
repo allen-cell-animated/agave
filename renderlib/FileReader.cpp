@@ -131,9 +131,16 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
   QElapsedTimer timer;
   timer.start();
 
-  // note that im will take ownership of dataArray
+  // note that im will not take ownership of the input dataArray; instead we copy it channel by channel
+  std::vector<uint8_t*> channelPtrs;
+  size_t channelSize = sizeX * sizeY * sizeZ * (bpp / 8);
+  for (uint32_t i = 0; i < sizeC; ++i) {
+    uint8_t* channelPtr = new uint8_t[channelSize];
+    memcpy(channelPtr, dataArray + i * (channelSize), channelSize);
+    channelPtrs.push_back(channelPtr);
+  }
   ImageXYZC* im =
-    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ);
+    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), channelPtrs, physicalSizeX, physicalSizeY, physicalSizeZ);
   LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
   im->setChannelNames(channelNames);

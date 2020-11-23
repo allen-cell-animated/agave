@@ -534,12 +534,14 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
 
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
-  // stash it here in case of early exit, it will be deleted
-  std::unique_ptr<uint8_t[]> smartPtr(data);
 
-  uint8_t* destptr = data;
+  std::vector<std::unique_ptr<uint8_t[]>> channelDataPtrs;
+  for (uint32_t i = 0; i < dims.sizeC; ++i) {
+    uint8_t* channelData = new uint8_t[channelsize_bytes];
+    memset(channelData, 0, channelsize_bytes);
+    // stash it here in case of early exit, it will be deleted
+    channelDataPtrs.push_back(std::unique_ptr<uint8_t[]>(channelData));
+  }
 
   // still assuming 1 sample per pixel (scalar data) here.
   size_t rawPlanesize = dims.sizeX * dims.sizeY * (dims.bitsPerPixel / 8);
@@ -555,21 +557,25 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     // read entire channel into its native size
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
       uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
-      destptr = channelRawMem + slice * rawPlanesize;
+      uint8_t* destptr = channelRawMem + slice * rawPlanesize;
       if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
         return emptyimage;
       }
     }
 
     // convert to our internal format (IN_MEMORY_BPP)
-    if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
+    if (!convertChannelData(channelDataPtrs[channel].get(), channelRawMem, dims)) {
       return emptyimage;
     }
   }
 
   LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
 
-  // TODO: convert data to uint16_t pixels if not already.
+  // move ptrs into raw form.  This will invalidate the unique_ptrs now.
+  std::vector<uint8_t*> channelRawDataPtrs;
+  for (uint32_t i = 0; i < dims.sizeC; ++i) {
+    channelRawDataPtrs.push_back(channelDataPtrs[i].release());
+  }
 
   timer.start();
   // we can release the smartPtr because ImageXYZC will now own the raw data memory
@@ -578,7 +584,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
                                 dims.sizeZ,
                                 dims.sizeC,
                                 IN_MEMORY_BPP, // dims.bitsPerPixel,
-                                smartPtr.release(),
+                                channelRawDataPtrs,
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);

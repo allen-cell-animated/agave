@@ -340,14 +340,16 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
       return emptyimage;
     }
 
-    size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
-    uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
-    memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
+    // assumes dims.bitsPerPixel is divisible by 8
+    size_t planesize = dims.sizeX * dims.sizeY * (dims.bitsPerPixel / 8);
 
-    // stash it here in case of early exit, it will be deleted
-    std::unique_ptr<uint8_t[]> smartPtr(data);
-
-    uint8_t* destptr = data;
+    std::vector<std::unique_ptr<uint8_t[]>> channelDataPtrs;
+    for (uint32_t i = 0; i < dims.sizeC; ++i) {
+      uint8_t* channelData = new uint8_t[planesize * dims.sizeZ];
+      memset(channelData, 0, planesize * dims.sizeZ);
+      // stash it here in case of early exit, it will be deleted
+      channelDataPtrs.push_back(std::unique_ptr<uint8_t[]>(channelData));
+    }
 
     // now ready to read channels one by one.
     libCZI::IntRect planeRect;
@@ -358,8 +360,9 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
     }
 
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+      uint8_t* channelPtr = channelDataPtrs[channel].get();
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-        destptr = data + planesize * (channel * dims.sizeZ + slice);
+        uint8_t* destptr = channelPtr + (planesize * slice);
 
         // adjust coordinates by offsets from dims
         libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::Z, (int)slice + startZ } };
@@ -372,6 +375,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
         // since scene tiles can not overlap, passing the scene bounding box in to readCziPlane is enough produce the
         // scene, and I don't need to add Scene to the planeCoord.
 
+        // TODO: convert data to uint16_t pixels if not already.
         if (!readCziPlane(cziReader, planeRect, planeCoord, dims, destptr)) {
           return emptyimage;
         }
@@ -380,7 +384,11 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
 
     LOG_DEBUG << "CZI loaded in " << timer.elapsed() << "ms";
 
-    // TODO: convert data to uint16_t pixels if not already.
+    // move ptrs into raw form.  This will invalidate the unique_ptrs now.
+    std::vector<uint8_t*> channelRawDataPtrs;
+    for (uint32_t i = 0; i < dims.sizeC; ++i) {
+      channelRawDataPtrs.push_back(channelDataPtrs[i].release());
+    }
 
     timer.start();
     // we can release the smartPtr because ImageXYZC will now own the raw data memory
@@ -389,7 +397,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
                                   dims.sizeZ,
                                   dims.sizeC,
                                   IN_MEMORY_BPP, // dims.bitsPerPixel,
-                                  smartPtr.release(),
+                                  channelRawDataPtrs,
                                   dims.physicalSizeX,
                                   dims.physicalSizeY,
                                   dims.physicalSizeZ);

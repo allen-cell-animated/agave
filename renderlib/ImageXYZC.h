@@ -86,7 +86,7 @@ public:
             uint32_t z,
             uint32_t c,
             uint32_t bpp,
-            uint8_t* data = nullptr,
+            std::vector<uint8_t*> channelData,
             float sx = 1.0,
             float sy = 1.0,
             float sz = 1.0);
@@ -120,7 +120,6 @@ public:
 
 private:
   uint32_t m_x, m_y, m_z, m_c, m_bpp;
-  uint8_t* m_data;
   float m_scaleX, m_scaleY, m_scaleZ;
   std::vector<Channelu16*> m_channels;
 };
