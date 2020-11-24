@@ -748,7 +748,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addRow("Opacity", opacitySlider);
 
     QObject::connect(
-      opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
+      opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d * d * d * d); });
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
