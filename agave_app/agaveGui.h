@@ -29,9 +29,11 @@ private:
   Ui::agaveGuiClass m_ui;
 
   bool open(const QString& file, const ViewerState* v = nullptr);
+  bool append(const QString& file);
 
 private slots:
   void open();
+  void append();
   void openJson();
   void openRecentFile();
   void updateRecentFileActions();
@@ -76,6 +78,7 @@ private:
   QToolBar* m_Cam2DTools;
 
   QAction* m_openAction = nullptr;
+  QAction* m_appendAction = nullptr;
   QAction* m_openJsonAction = nullptr;
   QAction* m_quitAction = nullptr;
   QAction* m_dumpJsonAction = nullptr;

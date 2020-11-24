@@ -127,9 +127,9 @@ rndColors(int count)
 void
 Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 {
-  std::vector<float> colors = rndColors(img->sizeC());
+  std::vector<float> colors = rndColors(MAX_CPU_CHANNELS); // img->sizeC());
 
-  for (uint32_t i = 0; i < img->sizeC(); ++i) {
+  for (uint32_t i = 0; i < MAX_CPU_CHANNELS; ++i) {
     // enable first 3 channels!
     m_material.m_enabled[i] = (i < 3);
 

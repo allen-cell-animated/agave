@@ -91,6 +91,11 @@ agaveGui::createActions()
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+  m_appendAction = new QAction(tr("&Add volume..."), this);
+  m_appendAction->setShortcuts(QKeySequence::Open);
+  m_appendAction->setStatusTip(tr("Add an existing volume file with same xyz dimensions"));
+  connect(m_appendAction, SIGNAL(triggered()), this, SLOT(append()));
+
   m_openJsonAction = new QAction(tr("Open JSON..."), this);
   m_openJsonAction->setStatusTip(tr("Open an existing JSON settings file"));
   connect(m_openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
@@ -136,6 +141,7 @@ agaveGui::createMenus()
 {
   m_fileMenu = menuBar()->addMenu(tr("&File"));
   m_fileMenu->addAction(m_openAction);
+  m_fileMenu->addAction(m_appendAction);
   m_fileMenu->addAction(m_openJsonAction);
   m_fileMenu->addSeparator();
   m_fileMenu->addSeparator();
@@ -246,6 +252,24 @@ agaveGui::open()
 
   if (!file.isEmpty()) {
     if (!open(file)) {
+      showOpenFailedMessageBox(file);
+    }
+  }
+}
+
+void
+agaveGui::append()
+{
+  QString dir = readRecentDirectory();
+
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
+
+  if (!file.isEmpty()) {
+    if (!append(file)) {
       showOpenFailedMessageBox(file);
     }
   }
@@ -409,6 +433,79 @@ agaveGui::open(const QString& file, const ViewerState* vs)
 
     m_appearanceDockWidget->onNewImage(&m_appScene);
     m_timelinedock->onNewImage(&m_appScene, file.toStdString());
+
+    // set up status view with some stats.
+    CStatus* s = m_glView->getStatus();
+    m_statisticsDockWidget->setStatus(s);
+    s->onNewImage(info.fileName(), &m_appScene);
+
+    m_currentFilePath = file;
+    agaveGui::prependToRecentFiles(file);
+    writeRecentDirectory(info.absolutePath());
+
+    return true;
+  } else {
+    LOG_DEBUG << "Failed to open " << file.toStdString();
+    return false;
+  }
+  return true;
+}
+
+bool
+agaveGui::append(const QString& file)
+{
+  QFileInfo info(file);
+  if (info.exists()) {
+    LOG_DEBUG << "Attempting to open " << file.toStdString();
+
+    int sceneToLoad = 0;
+
+    // check number of scenes in file.
+    int numScenes = FileReader::loadNumScenes(file.toStdString());
+    LOG_INFO << "Found " << numScenes << " scene(s)";
+    // if current scene is out of range or if there is not currently a scene selected
+    bool needSelectScene = (numScenes > 1);
+    if (needSelectScene) {
+      QStringList items;
+      for (int i = 0; i < numScenes; ++i) {
+        items.append(QString::number(i));
+      }
+      bool ok = false;
+      QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
+      if (ok && !text.isEmpty()) {
+        sceneToLoad = text.toInt();
+      } else {
+        LOG_DEBUG << "Canceled scene selection.";
+        return false;
+      }
+    }
+
+    VolumeDimensions dims;
+
+    int timeToLoad = 0;
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, timeToLoad, sceneToLoad);
+    QApplication::restoreOverrideCursor();
+    if (!image) {
+      LOG_DEBUG << "Failed to open " << file.toStdString();
+      return false;
+    }
+
+    // install the new volume image into the scene.
+    // this is deref'ing the previous _volume shared_ptr.
+    bool appended_ok = m_appScene.m_volume->append(*image);
+    if (!appended_ok) {
+      LOG_DEBUG << "Can not append from " << file.toStdString();
+      return false;
+    }
+
+    m_renderSettings.m_DirtyFlags.SetFlag(VolumeDirty);
+
+    // m_appScene.initSceneFromImg(image);
+    // m_glView->initCameraFromImage(&m_appScene);
+
+    m_appearanceDockWidget->onNewImage(&m_appScene);
+    // m_timelinedock->onNewImage(&m_appScene, file.toStdString());
 
     // set up status view with some stats.
     CStatus* s = m_glView->getStatus();

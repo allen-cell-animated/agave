@@ -45,9 +45,12 @@ ImageXYZC::append(const ImageXYZC& other)
   // copy( or move ?) channels out of other and into this
   for (uint32_t i = 0; i < other.m_c; ++i) {
     m_channels.push_back(new Channelu16(m_x, m_y, m_z, other.m_channels[i]->m_ptr));
+    other.m_channels[i]->m_ptr = nullptr;
   }
 
-  return false;
+  m_c += other.m_c;
+
+  return true;
 }
 
 ImageXYZC::~ImageXYZC()
