@@ -106,8 +106,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
   uint16_t sampleFormat = SAMPLEFORMAT_UINT;
   if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
-    LOG_ERROR << "Failed to read sampleformat of TIFF: '" << filepath << "'";
-    return false;
+    LOG_WARNING << "Failed to read sampleformat of TIFF: '" << filepath << "'";
   }
   if (sampleFormat != SAMPLEFORMAT_UINT && sampleFormat != SAMPLEFORMAT_IEEEFP) {
     LOG_ERROR << "Unsupported tiff SAMPLEFORMAT " << sampleFormat << " for '" << filepath << "'";
