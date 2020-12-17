@@ -19,7 +19,7 @@ class RenderParams
   float m_StepSizeFactorShadow;
 };
 
-#define MAX_CPU_CHANNELS 32
+#define MAX_CPU_CHANNELS 96
 struct VolumeDisplay
 {
   float m_backgroundColor[3] = { 0.0f, 0.0f, 0.0f };
