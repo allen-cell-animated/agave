@@ -330,7 +330,7 @@ copyDirect(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPix
 // convert pixels
 // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
 // assumes dest is of format IN_MEMORY_BPP
-// return number of bytes copied to dest
+// return 1 for successful conversion, 0 on failure (e.g. unacceptable srcBitsPerPixel)
 size_t
 convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& dims)
 {
