@@ -37,7 +37,8 @@ Fiji <#preparing-an-agave-compatible-ome-tiff-file-with-fiji>`__ to
 ensure the expected data structure, channel order, etc.)
 
 AGAVE currently supports ome.tiff, tiff, and .czi image file formats
-containing either 8-bit or 16-bit unsigned pixel intensities. CZI is the
+containing either 8-bit or 16-bit unsigned pixel intensities. AGAVE also
+supports 32-bit floating point pixels in TIFFs. CZI is the
 native file format produced by Zeiss microscopes. See
 https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html
 for more information. TIFF (Tagged Image File Format) is an open image
