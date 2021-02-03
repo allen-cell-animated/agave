@@ -411,7 +411,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       return false;
     }
     // copy buf into data.
-    size_t numBytesCopied = copyDirect(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
+    size_t numBytesCopied = copyDirect(dataPtr, static_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
 
     _TIFFfree(buf);
     // if something went wrong at this level, bail out
@@ -442,7 +442,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       }
 
       // copy buf into data.
-      size_t numBytesCopied = copyDirect(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
+      size_t numBytesCopied = copyDirect(dataPtr, static_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
 
       // if something went wrong at this level, bail out
       if (numBytesCopied == 0) {
