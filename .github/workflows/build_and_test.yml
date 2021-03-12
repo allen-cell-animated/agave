@@ -108,6 +108,8 @@ jobs:
       - name: windows install boost
         if: matrix.os == 'windows-latest'
         uses: MarkusJx/install-boost@v1.0.1
+        with:
+          boost_version: 1.72.0
         id: install-boost-windows
       - name: windows build and test
         if: matrix.os == 'windows-latest'
