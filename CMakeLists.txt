@@ -93,10 +93,12 @@ else()
 find_package( glm REQUIRED )
 endif(APPLE)
 
+#set(Python_FIND_VIRTUALENV "ONLY")
+#set(Python_FIND_REGISTRY "NEVER")
 find_package (Python3 COMPONENTS Interpreter Development)
 get_target_property(py_location Python3::Interpreter LOCATION)
 message(STATUS "PYTHON3 Location: ${py_location}")
-set(PYTHON_EXECUTABLE ${py_location})
+#set(PYTHON_EXECUTABLE ${py_location})
 
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
