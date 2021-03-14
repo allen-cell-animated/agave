@@ -12,8 +12,11 @@ How to build from source:
 For windows:
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
-Use official install of Qt LTS 5.15.0.
+Use official install of Qt LTS 5.15.2.
 Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64-windows.
+```
+vcpkg install boost tiff glm --triplet x64-windows
+```
 
 The build will pick up the first python version it sees. To explicitly select, run the build steps in a python virtual environment or use -DPYBIND11_PYTHON_VERSION=3.7 with cmake.
 
@@ -54,7 +57,7 @@ For linux:
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
 
-- use official Qt 5.15.0 installer for linux and install into default location (~/Qt)
+- use official Qt 5.15.2 installer for linux and install into default location (~/Qt)
 
 ```
 mkdir build
