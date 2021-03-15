@@ -409,7 +409,7 @@ agaveGui::open(const QString& file, const ViewerState* vs)
     m_tabs->setTabText(0, info.fileName());
 
     m_appearanceDockWidget->onNewImage(&m_appScene);
-    m_timelinedock->onNewImage(&m_appScene, file.toStdString());
+    m_timelinedock->onNewImage(&m_appScene, file.toStdString(), m_currentScene);
 
     // set up status view with some stats.
     CStatus* s = m_glView->getStatus();

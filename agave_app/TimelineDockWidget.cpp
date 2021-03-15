@@ -44,8 +44,9 @@ QTimelineWidget::QTimelineWidget(QWidget* pParent, QRenderSettings* qrs)
 }
 
 void
-QTimelineWidget::onNewImage(Scene* s, std::string filepath)
+QTimelineWidget::onNewImage(Scene* s, std::string filepath, int sceneIndex)
 {
+  m_currentScene = sceneIndex;
   m_scene = s;
   m_filepath = filepath;
 
@@ -73,7 +74,7 @@ QTimelineWidget::OnTimeChanged(int newTime)
     // assume a new time sample will have same exact channel configuration and dimensions as previous time.
     // we are just updating volume data.
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, 0);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, m_currentScene);
     QApplication::restoreOverrideCursor();
     if (!image) {
       // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
