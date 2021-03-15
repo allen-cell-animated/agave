@@ -13,6 +13,11 @@ For windows:
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
 Use official install of Qt LTS 5.15.2.
+In your favorite python virtual environment:
+```
+pip install aqtinstall
+aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
+```
 Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64-windows.
 ```
 vcpkg install boost tiff glm --triplet x64-windows

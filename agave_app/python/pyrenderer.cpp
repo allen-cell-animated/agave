@@ -196,7 +196,7 @@ OffscreenRenderer::LoadOmeTif(const std::string& s)
 }
 // load a volume
 int
-OffscreenRenderer::LoadVolumeFromFile(const std::string& s, int time, int scene)
+OffscreenRenderer::LoadVolumeFromFile(const std::string& s, int scene, int time)
 {
   LoadVolumeFromFileCommand cmd({ s, scene, time });
   cmd.execute(&m_ec);

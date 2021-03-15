@@ -388,6 +388,7 @@ agaveGui::open(const QString& file, const ViewerState* vs)
         LOG_ERROR << "Min timline time is not zero.";
       }
     }
+    m_currentScene = sceneToLoad;
     m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
 
     // install the new volume image into the scene.
