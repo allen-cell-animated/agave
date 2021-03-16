@@ -16,7 +16,7 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     REQUIRE(h._dataMin == VALUE);
 
     // all data in first bin
-    REQUIRE(h._ccounts[255] == h._pixelCount);
+    REQUIRE(h._ccounts[h._bins.size()-1] == h._pixelCount);
     REQUIRE(h._ccounts[0] == h._pixelCount);
     REQUIRE(h._bins[0] == h._pixelCount);
   }
@@ -34,9 +34,9 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
 
     // only 2 bins with data
     REQUIRE(h._bins[0] == 2);
-    REQUIRE(h._bins[255] == 2);
-    REQUIRE(h._ccounts[255] == h._pixelCount);
-    REQUIRE(h._ccounts[254] == 2);
+    REQUIRE(h._bins[h._bins.size() - 1] == 2);
+    REQUIRE(h._ccounts[h._bins.size() - 1] == h._pixelCount);
+    REQUIRE(h._ccounts[h._bins.size() - 2] == 2);
     REQUIRE(h._ccounts[1] == 2);
     REQUIRE(h._ccounts[0] == 2);
   }
@@ -51,16 +51,16 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     REQUIRE(h._dataMax == 512);
     REQUIRE(h._dataMin == 0);
 
-    // only 4 bins with data
-    REQUIRE(h._bins[0] == 4);
+    REQUIRE(h._bins[0] == 2);
     REQUIRE(h._bins[1] == 2);
-    REQUIRE(h._bins[127] == 0);
-    REQUIRE(h._bins[254] == 2);
-    REQUIRE(h._bins[255] == 4);
-    REQUIRE(h._ccounts[255] == h._pixelCount);
-    REQUIRE(h._ccounts[254] == h._pixelCount - 4);
-    REQUIRE(h._ccounts[1] == 6);
-    REQUIRE(h._ccounts[0] == 4);
+    REQUIRE(h._bins[2] == 2);
+    REQUIRE(h._bins[h._bins.size() / 2 - 1] == 0);
+    REQUIRE(h._bins[h._bins.size() - 2] == 2);
+    REQUIRE(h._bins[h._bins.size() - 1] == 2);
+    REQUIRE(h._ccounts[h._bins.size() - 1] == h._pixelCount);
+    REQUIRE(h._ccounts[h._bins.size() - 2] == h._pixelCount - 2);
+    REQUIRE(h._ccounts[1] == 4);
+    REQUIRE(h._ccounts[0] == 2);
   }
 }
 

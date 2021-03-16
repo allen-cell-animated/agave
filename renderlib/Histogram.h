@@ -8,7 +8,7 @@
 
 struct Histogram
 {
-  Histogram(uint16_t* data, size_t length, size_t bins = 256);
+  Histogram(uint16_t* data, size_t length, size_t bins = 512);
 
   static const float DEFAULT_PCT_LOW;
   static const float DEFAULT_PCT_HIGH;
