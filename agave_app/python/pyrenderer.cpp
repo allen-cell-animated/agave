@@ -202,6 +202,13 @@ OffscreenRenderer::LoadVolumeFromFile(const std::string& s, int scene, int time)
   cmd.execute(&m_ec);
   return 1;
 }
+// change load same volume file, different time index
+int OffscreenRenderer::SetTime(int time)
+{
+  SetTimeCommand cmd({time});
+  cmd.execute(&m_ec);
+  return 1;
+}
 // set camera pos
 int
 OffscreenRenderer::Eye(float x, float y, float z)
