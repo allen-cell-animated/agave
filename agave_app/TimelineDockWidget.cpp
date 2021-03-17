@@ -70,7 +70,6 @@ QTimelineWidget::OnTimeChanged(int newTime)
     return;
   }
   if (m_scene->m_timeLine.currentTime() != newTime) {
-    m_scene->m_timeLine.setCurrentTime(newTime);
     // assume a new time sample will have same exact channel configuration and dimensions as previous time.
     // we are just updating volume data.
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -78,9 +77,10 @@ QTimelineWidget::OnTimeChanged(int newTime)
     QApplication::restoreOverrideCursor();
     if (!image) {
       // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
-      LOG_DEBUG << "Failed to open " << m_filepath;
+      LOG_DEBUG << "Failed to open " << m_filepath << " at scene " << m_currentScene << " at time " << newTime;
       return;
     }
+    m_scene->m_timeLine.setCurrentTime(newTime);
     m_scene->m_volume = image;
 
     // TODO update the AppearanceSettings channel gui with new Histograms
