@@ -34,6 +34,10 @@ enum class CommandArgType
 
 struct ExecutionContext
 {
+  // we may need to reload data from the file again
+  std::string m_currentFilePath;
+  int m_currentScene = 0;
+
   RendererCommandInterface* m_renderer;
   RenderSettings* m_renderSettings;
   Scene* m_appScene;
@@ -50,6 +54,8 @@ public:
   virtual ~Command() {}
 };
 
+// commands should be named NameOfCommand 
+// and their parameters in a struct called NameOfCommandD (D for Data)
 #define CMDDECL(NAME, CMDID, PYTHONNAME, ARGTYPES)                                                                     \
   class NAME : public Command                                                                                          \
   {                                                                                                                    \
@@ -395,3 +401,12 @@ CMDDECL(LoadVolumeFromFileCommand,
         39,
         "load_volume_from_file",
         CMD_ARGS({ CommandArgType::STR, CommandArgType::I32, CommandArgType::I32 }));
+
+struct SetTimeCommandD
+{
+  int32_t m_time;
+};
+CMDDECL(SetTimeCommand,
+        40,
+        "set_time",
+        CMD_ARGS({ CommandArgType::I32 }));

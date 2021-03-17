@@ -435,6 +435,9 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
       return;
     }
 
+    c->m_currentFilePath = m_data.m_path;
+    c->m_currentScene = m_data.m_scene;
+
     c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
 
@@ -473,6 +476,44 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
       channelNames.append(QString::fromStdString(image->channel(i)->m_name));
     }
     j["channel_names"] = channelNames;
+    QJsonArray channelMaxIntensity;
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      channelMaxIntensity.append(image->channel(i)->m_max);
+    }
+    j["channel_max_intensity"] = channelMaxIntensity;
+
+    QJsonDocument doc(j);
+    c->m_message = doc.toJson().toStdString();
+  }
+}
+
+void
+SetTimeCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetTime command: " << " T=" << m_data.m_time;
+
+  QFileInfo info(QString(c->m_currentFilePath.c_str()));
+  if (info.exists()) {
+    VolumeDimensions dims;
+    // note T and S args are swapped in order here. this is intentional.
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(c->m_currentFilePath, &dims, m_data.m_time, c->m_currentScene);
+    if (!image) {
+      return;
+    }
+
+    c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+
+    c->m_appScene->m_volume = image;
+
+    // we expect the scene volume dimensions to be the same; we want to preserve all view settings here.
+    // BUT we want to convert the old histograms to new histograms if we are preserving absolute transfer function settings
+
+    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    // fire back some json immediately...
+    QJsonObject j;
+    j["commandId"] = (int)SetTimeCommand::m_ID;
     QJsonArray channelMaxIntensity;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
       channelMaxIntensity.append(image->channel(i)->m_max);
@@ -835,6 +876,14 @@ LoadVolumeFromFileCommand::parse(ParseableStream* c)
   data.m_scene = c->parseInt32();
   data.m_time = c->parseInt32();
   return new LoadVolumeFromFileCommand(data);
+}
+
+SetTimeCommand*
+SetTimeCommand::parse(ParseableStream* c)
+{
+  SetTimeCommandD data;
+  data.m_time = c->parseInt32();
+  return new SetTimeCommand(data);
 }
 
 std::string
@@ -1208,6 +1257,18 @@ LoadVolumeFromFileCommand::toPythonString() const
 
   ss << "\"" << m_data.m_path << "\", ";
   ss << m_data.m_scene << ", " << m_data.m_time;
+
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetTimeCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_time;
 
   ss << ")";
   return ss.str();

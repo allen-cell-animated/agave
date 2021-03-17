@@ -63,11 +63,12 @@ var COMMANDS = {
   // r, g, b
   BACKGROUND_COLOR: [36, "F32", "F32", "F32"],
   // channel index, isovalue, isorange
-  SET_ISOVALUE_THRESHOLD: [37, "I32", "F32", "F32"],\
+  SET_ISOVALUE_THRESHOLD: [37, "I32", "F32", "F32"],
   // channel index, array of [stop, r, g, b, a]
   SET_CONTROL_POINTS: [38, "I32", "F32A"],
   // path, scene, time
-  LOAD_VOLUME_FROM_FILE: [39, "S", "I32", "I32"]
+  LOAD_VOLUME_FROM_FILE: [39, "S", "I32", "I32"],
+  SET_TIME: [40, "I32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
