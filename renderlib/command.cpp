@@ -463,6 +463,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    
     // fire back some json immediately...
     QJsonObject j;
     j["commandId"] = (int)LoadOmeTifCommand::m_ID;
@@ -495,6 +496,11 @@ SetTimeCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetTime command: " << " T=" << m_data.m_time;
 
+  // setting same time is a no-op.
+  if (m_data.m_time == c->m_appScene->m_timeLine.currentTime()) {
+    return;
+  }
+
   QFileInfo info(QString(c->m_currentFilePath.c_str()));
   if (info.exists()) {
     VolumeDimensions dims;
@@ -514,7 +520,7 @@ SetTimeCommand::execute(ExecutionContext* c)
     if (image->sizeC() != c->m_appScene->m_volume->sizeC()) {
       LOG_ERROR << "Channel count mismatch for different times in same file";
     }
-    
+
     // remap LUTs to preserve absolute thresholding
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
       GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
@@ -527,6 +533,7 @@ SetTimeCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+
     // fire back some json immediately...
     QJsonObject j;
     j["commandId"] = (int)SetTimeCommand::m_ID;
