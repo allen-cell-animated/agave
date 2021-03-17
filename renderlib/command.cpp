@@ -38,6 +38,9 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
       return;
     }
 
+    c->m_currentFilePath = m_data.m_name;
+    c->m_currentScene = 0;
+
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
 
@@ -503,10 +506,23 @@ SetTimeCommand::execute(ExecutionContext* c)
 
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
 
-    c->m_appScene->m_volume = image;
-
     // we expect the scene volume dimensions to be the same; we want to preserve all view settings here.
-    // BUT we want to convert the old histograms to new histograms if we are preserving absolute transfer function settings
+    // BUT we want to convert the old lookup tables to new lookup tables
+    // if we are preserving absolute transfer function settings
+
+    // assume sizeC is same for both previous image and new image!
+    if (image->sizeC() != c->m_appScene->m_volume->sizeC()) {
+      LOG_ERROR << "Channel count mismatch for different times in same file";
+    }
+    
+    // remap LUTs to preserve absolute thresholding
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
+      lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
+    }
+
+    // now we're ready to lose the old channel histograms
+    c->m_appScene->m_volume = image;
 
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
@@ -522,6 +538,9 @@ SetTimeCommand::execute(ExecutionContext* c)
 
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
+  }
+  else {
+    LOG_WARNING << "SetTime command called without a file loaded";
   }
 }
 
