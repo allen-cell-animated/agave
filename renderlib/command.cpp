@@ -463,7 +463,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-    
+
     // fire back some json immediately...
     QJsonObject j;
     j["commandId"] = (int)LoadOmeTifCommand::m_ID;
