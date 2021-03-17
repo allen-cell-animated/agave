@@ -54,7 +54,7 @@ public:
   virtual ~Command() {}
 };
 
-// commands should be named NameOfCommand 
+// commands should be named NameOfCommand
 // and their parameters in a struct called NameOfCommandD (D for Data)
 #define CMDDECL(NAME, CMDID, PYTHONNAME, ARGTYPES)                                                                     \
   class NAME : public Command                                                                                          \
@@ -406,7 +406,4 @@ struct SetTimeCommandD
 {
   int32_t m_time;
 };
-CMDDECL(SetTimeCommand,
-        40,
-        "set_time",
-        CMD_ARGS({ CommandArgType::I32 }));
+CMDDECL(SetTimeCommand, 40, "set_time", CMD_ARGS({ CommandArgType::I32 }));

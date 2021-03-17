@@ -494,7 +494,8 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 void
 SetTimeCommand::execute(ExecutionContext* c)
 {
-  LOG_DEBUG << "SetTime command: " << " T=" << m_data.m_time;
+  LOG_DEBUG << "SetTime command: "
+            << " T=" << m_data.m_time;
 
   // setting same time is a no-op.
   if (m_data.m_time == c->m_appScene->m_timeLine.currentTime()) {
@@ -505,7 +506,8 @@ SetTimeCommand::execute(ExecutionContext* c)
   if (info.exists()) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(c->m_currentFilePath, &dims, m_data.m_time, c->m_currentScene);
+    std::shared_ptr<ImageXYZC> image =
+      FileReader::loadFromFile(c->m_currentFilePath, &dims, m_data.m_time, c->m_currentScene);
     if (!image) {
       return;
     }
@@ -545,8 +547,7 @@ SetTimeCommand::execute(ExecutionContext* c)
 
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
-  }
-  else {
+  } else {
     LOG_WARNING << "SetTime command called without a file loaded";
   }
 }
