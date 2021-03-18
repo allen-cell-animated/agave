@@ -251,7 +251,11 @@ void
 SetWindowLevelCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetWindowLevel " << m_data.m_channel << " " << m_data.m_window << " " << m_data.m_level;
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_windowLevel(m_data.m_window, m_data.m_level);
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::WINDOW_LEVEL;
+  lutInfo.m_window = m_data.m_window;
+  lutInfo.m_level = m_data.m_level;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void
@@ -355,7 +359,11 @@ void
 SetPercentileThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetPercentileThreshold " << m_data.m_channel << " " << m_data.m_pctLow << " " << m_data.m_pctHigh;
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(m_data.m_pctLow, m_data.m_pctHigh);
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::PERCENTILE;
+  lutInfo.m_pctLow = m_data.m_pctLow;
+  lutInfo.m_pctHigh = m_data.m_pctHigh;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void
@@ -394,17 +402,23 @@ SetIsovalueThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetIsovalueThreshold " << m_data.m_channel << " " << m_data.m_isovalue << " " << m_data.m_isorange;
 
-  std::vector<LutControlPoint> stops;
-  float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
-  float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
-  // TODO check for lowEnd <=0 or highEnd >= 1 ???
-  stops.push_back({ 0.0, 0.0 });
-  stops.push_back({ lowEnd, 0.0 });
-  stops.push_back({ lowEnd, 1.0 });
-  stops.push_back({ highEnd, 1.0 });
-  stops.push_back({ highEnd, 0.0 });
-  stops.push_back({ 1.0, 0.0 });
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::ISOVALUE;
+  lutInfo.m_isorange = m_data.m_isorange;
+  lutInfo.m_isovalue = m_data.m_isovalue;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
+
+  // std::vector<LutControlPoint> stops;
+  // float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
+  // float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
+  // // TODO check for lowEnd <=0 or highEnd >= 1 ???
+  // stops.push_back({ 0.0, 0.0 });
+  // stops.push_back({ lowEnd, 0.0 });
+  // stops.push_back({ lowEnd, 1.0 });
+  // stops.push_back({ highEnd, 1.0 });
+  // stops.push_back({ highEnd, 0.0 });
+  // stops.push_back({ 1.0, 0.0 });
+  // c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -413,7 +427,8 @@ SetControlPointsCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetControlPoints " << m_data.m_channel;
   // TODO debug print the data
-
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::CUSTOM;
   std::vector<LutControlPoint> stops;
   // 5 floats per stop.  first is position, next four are rgba.  use a only, for now.
   // TODO SHOULD PARSE DO THIS JOB?
@@ -421,7 +436,9 @@ SetControlPointsCommand::execute(ExecutionContext* c)
     stops.push_back({ m_data.m_data[i * 5], m_data.m_data[i * 5 + 4] });
   }
 
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  lutInfo.m_customControlPoints = stops;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
+
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -527,6 +544,8 @@ SetTimeCommand::execute(ExecutionContext* c)
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
       GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
       lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
+
+      c->m_appScene->m_volume->channel(i)->generateFromGradientData(lutInfo);
     }
 
     // now we're ready to lose the old channel histograms
