@@ -545,7 +545,7 @@ SetTimeCommand::execute(ExecutionContext* c)
       GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
       lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
 
-      c->m_appScene->m_volume->channel(i)->generateFromGradientData(lutInfo);
+      image->channel(i)->generateFromGradientData(lutInfo);
     }
 
     // now we're ready to lose the old channel histograms

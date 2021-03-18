@@ -80,13 +80,19 @@ QTimelineWidget::OnTimeChanged(int newTime)
       LOG_DEBUG << "Failed to open " << m_filepath << " at scene " << m_currentScene << " at time " << newTime;
       return;
     }
+
+    // remap LUTs to preserve absolute thresholding
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      GradientData& lutInfo = m_scene->m_material.m_gradientData[i];
+      lutInfo.convert(m_scene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
+
+      image->channel(i)->generateFromGradientData(lutInfo);
+    }
+
     m_scene->m_timeLine.setCurrentTime(newTime);
     m_scene->m_volume = image;
 
     // TODO update the AppearanceSettings channel gui with new Histograms
-    for (uint32_t i = 0; i < m_scene->m_volume->sizeC(); ++i) {
-      m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
-    }
 
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
