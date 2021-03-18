@@ -332,25 +332,37 @@ void
 AutoThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "AutoThreshold " << m_data.m_channel << " " << m_data.m_method;
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+
   switch (m_data.m_method) {
     case 0:
+      // TODO generate custom control points for a CUSTOM GradientEditMode 
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2();
       break;
     case 1:
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto();
       break;
     case 2:
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_bestFit();
       break;
     case 3:
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_chimerax();
       break;
     case 4:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
+      lutInfo.m_activeMode = GradientEditMode::PERCENTILE;
+      lutInfo.m_pctLow = Histogram::DEFAULT_PCT_LOW;
+      lutInfo.m_pctHigh = Histogram::DEFAULT_PCT_HIGH;
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
       break;
     default:
       LOG_WARNING << "AutoThreshold got unexpected method parameter " << m_data.m_method;
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
+      lutInfo.m_activeMode = GradientEditMode::PERCENTILE;
+      lutInfo.m_pctLow = Histogram::DEFAULT_PCT_LOW;
+      lutInfo.m_pctHigh = Histogram::DEFAULT_PCT_HIGH;
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
       break;
   }
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -407,18 +419,6 @@ SetIsovalueThresholdCommand::execute(ExecutionContext* c)
   lutInfo.m_isorange = m_data.m_isorange;
   lutInfo.m_isovalue = m_data.m_isovalue;
   c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
-
-  // std::vector<LutControlPoint> stops;
-  // float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
-  // float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
-  // // TODO check for lowEnd <=0 or highEnd >= 1 ???
-  // stops.push_back({ 0.0, 0.0 });
-  // stops.push_back({ lowEnd, 0.0 });
-  // stops.push_back({ lowEnd, 1.0 });
-  // stops.push_back({ highEnd, 1.0 });
-  // stops.push_back({ highEnd, 0.0 });
-  // stops.push_back({ 1.0, 0.0 });
-  // c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
