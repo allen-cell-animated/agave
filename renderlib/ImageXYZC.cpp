@@ -185,8 +185,9 @@ Channelu16::~Channelu16()
 
 // does not affect histogram immediately but computations downstream might.
 void
-Channelu16::fillPlaneHack(uint32_t z, uint16_t value = 65535) {
+Channelu16::fillPlaneHack(uint32_t z, uint16_t value /* = 65535 */) {
   if (z >= m_z) {
+    LOG_DEBUG << "can't fill z = " << z;
     return;
   }
   size_t offset = z*m_x*m_y;

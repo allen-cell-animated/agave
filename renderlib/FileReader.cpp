@@ -81,6 +81,8 @@ FileReader::loadFromFile(const std::string& filepath,
     image = FileReaderCzi::loadCzi(filepath, dims, time, scene);
   }
 
+  image->channel(0)->fillPlaneHack(dims->sizeZ - 1);
+
   if (addToCache && image) {
     sPreloadedImageCache[filepath] = image;
   }
