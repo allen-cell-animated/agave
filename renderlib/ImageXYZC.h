@@ -24,6 +24,9 @@ struct Channelu16
   Histogram m_histogram;
   float* m_lut;
 
+  // does not affect histogram immediately but computations downstream might.
+  void fillPlaneHack(uint32_t z, uint16_t value = 65535);
+
   uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
   void generateFromGradientData(const GradientData& gradientData)

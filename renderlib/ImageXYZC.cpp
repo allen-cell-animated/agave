@@ -183,6 +183,18 @@ Channelu16::~Channelu16()
   delete[] m_gradientMagnitudePtr;
 }
 
+// does not affect histogram immediately but computations downstream might.
+void
+Channelu16::fillPlaneHack(uint32_t z, uint16_t value = 65535) {
+  if (z >= m_z) {
+    return;
+  }
+  size_t offset = z*m_x*m_y;
+  for (size_t i = offset; i < (z+1)*m_x*m_y; ++i) {
+    m_ptr[i] = value;
+  }
+}
+
 uint16_t*
 Channelu16::generateGradientMagnitudeVolume(float scalex, float scaley, float scalez)
 {
