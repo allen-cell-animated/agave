@@ -14,6 +14,10 @@ struct VolumeDimensions
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
   uint32_t bitsPerPixel = 16;
+  // SAMPLEFORMAT_UINT = 1;
+  // SAMPLEFORMAT_INT = 2;
+  // SAMPLEFORMAT_IEEEFP = 3;
+  uint16_t sampleFormat = 1;
   std::string dimensionOrder = "XYZCT";
   std::vector<std::string> channelNames;
 

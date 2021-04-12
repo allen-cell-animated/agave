@@ -64,9 +64,10 @@ list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
 
 if (APPLE)
   # homebrew
-  set(CMAKE_LIBRARY_PATH /usr/local/lib ${CMAKE_LIBRARY_PATH})
-  set(CMAKE_INCLUDE_PATH /usr/local/include ${CMAKE_INCLUDE_PATH})
+  list(APPEND CMAKE_LIBRARY_PATH /usr/local/lib /usr/local/opt/icu4c/lib)
+  list(APPEND CMAKE_INCLUDE_PATH /usr/local/include)
   # set(CMAKE_MACOSX_RPATH TRUE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/usr/local/opt/icu4c/lib -I/usr/local/opt/icu4c/include")
 endif (APPLE)
 
 find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)

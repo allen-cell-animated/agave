@@ -163,5 +163,6 @@ VolumeDimensions::log() const
   LOG_INFO << "DimensionOrder: " << dimensionOrder;
   LOG_INFO << "PhysicalPixelSize: [" << physicalSizeX << ", " << physicalSizeY << ", " << physicalSizeZ << "]";
   LOG_INFO << "bitsPerPixel: " << bitsPerPixel;
+  LOG_INFO << "sampleFormat: " << sampleFormat;
   LOG_INFO << "End VolumeDimensions";
 }

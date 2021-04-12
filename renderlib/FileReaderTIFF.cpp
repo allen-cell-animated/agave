@@ -106,8 +106,11 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
   uint16_t sampleFormat = SAMPLEFORMAT_UINT;
   if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
-    // just warn here.  We are not yet using sampleFormat!
     LOG_WARNING << "Failed to read sampleformat of TIFF: '" << filepath << "'";
+  }
+  if (sampleFormat != SAMPLEFORMAT_UINT && sampleFormat != SAMPLEFORMAT_IEEEFP) {
+    LOG_ERROR << "Unsupported tiff SAMPLEFORMAT " << sampleFormat << " for '" << filepath << "'";
+    return false;
   }
 
   uint32_t sizeT = 1;
@@ -244,8 +247,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     QString pixelType = pixelsEl.attribute("Type", "uint16").toLower();
     LOG_INFO << "pixel type: " << pixelType.toStdString();
     bpp = mapPixelTypeBPP[pixelType.toStdString()];
-    if (bpp != 16 && bpp != 8) {
-      LOG_ERROR << "Image must be 8 or 16-bit integer typed";
+    if (bpp != 32 && bpp != 16 && bpp != 8) {
+      LOG_ERROR << "Image must be 8 or 16-bit integer, or 32-bit float typed";
       return false;
     }
     sizeX = requireUint32Attr(pixelsEl, "SizeX", 0);
@@ -309,6 +312,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.physicalSizeZ = physicalSizeZ;
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
+  dims.sampleFormat = sampleFormat;
 
   dims.log();
 
@@ -317,21 +321,56 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
 // return number of bytes copied to dest
 size_t
-copyAndConvert(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPixel)
+copyDirect(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPixel)
 {
+  memcpy(dest, src, numBytes);
+  return numBytes;
+}
+
+// convert pixels
+// this assumes tight packing of pixels in both buf(source) and dataptr(dest)
+// assumes dest is of format IN_MEMORY_BPP
+// return 1 for successful conversion, 0 on failure (e.g. unacceptable srcBitsPerPixel)
+size_t
+convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& dims)
+{
+  // how many pixels in this channel:
+  size_t numPixels = dims.sizeX * dims.sizeY * dims.sizeZ;
+  int srcBitsPerPixel = dims.bitsPerPixel;
+
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
   if (IN_MEMORY_BPP == srcBitsPerPixel) {
-    memcpy(dest, src, numBytes);
-    return numBytes;
+    memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
+    return 1;
   } else if (srcBitsPerPixel == 8) {
-    // convert pixels
-    // this assumes tight packing of pixels in both buf(source) and dataptr(dest)
     uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
-    for (size_t b = 0; b < numBytes; ++b) {
+    for (size_t b = 0; b < numPixels; ++b) {
       *dataptr16 = (uint16_t)src[b];
       dataptr16++;
     }
-    return numBytes * 2;
+    return 1;
+  } else if (srcBitsPerPixel == 32) {
+    // assumes 32-bit floating point (not int or uint)
+    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
+    const float* src32 = reinterpret_cast<const float*>(src);
+    // compute min and max; and then rescale values to fill dynamic range.
+    float lowest = FLT_MAX;
+    float highest = -FLT_MAX;
+    float f;
+    for (size_t b = 0; b < numPixels; ++b) {
+      f = src32[b];
+      if (f < lowest) {
+        lowest = f;
+      }
+      if (f > highest) {
+        highest = f;
+      }
+    }
+    for (size_t b = 0; b < numPixels; ++b) {
+      *dataptr16 = (uint16_t)((src32[b] - lowest) / (highest - lowest) * 65535.0);
+      dataptr16++;
+    }
+    return 1;
   } else {
     LOG_ERROR << "Unexpected tiff pixel size " << srcBitsPerPixel << " bits";
     return 0;
@@ -372,7 +411,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       return false;
     }
     // copy buf into data.
-    size_t numBytesCopied = copyAndConvert(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
+    size_t numBytesCopied = copyDirect(dataPtr, static_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
 
     _TIFFfree(buf);
     // if something went wrong at this level, bail out
@@ -403,7 +442,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
       }
 
       // copy buf into data.
-      size_t numBytesCopied = copyAndConvert(dataPtr, reinterpret_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
+      size_t numBytesCopied = copyDirect(dataPtr, static_cast<uint8_t*>(buf), numBytesRead, dims.bitsPerPixel);
 
       // if something went wrong at this level, bail out
       if (numBytesCopied == 0) {
@@ -482,6 +521,11 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   if (TIFFGetField(tiff, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel)) {
     LOG_DEBUG << "SamplesPerPixel: " << samplesPerPixel;
   }
+  if (samplesPerPixel != 1) {
+    LOG_ERROR << "" << samplesPerPixel << " samples per pixel is not supported in tiff";
+    return emptyimage;
+  }
+
   uint32_t planarConfig = 0;
   if (TIFFGetField(tiff, TIFFTAG_PLANARCONFIG, &planarConfig)) {
     LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
@@ -496,14 +540,29 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
 
   uint8_t* destptr = data;
 
+  // still assuming 1 sample per pixel (scalar data) here.
+  size_t rawPlanesize = dims.sizeX * dims.sizeY * (dims.bitsPerPixel / 8);
+  // allocate temp data for one channel
+  uint8_t* channelRawMem = new uint8_t[dims.sizeZ * rawPlanesize];
+  memset(channelRawMem, 0, dims.sizeZ * rawPlanesize);
+
+  // stash it here in case of early exit, it will be deleted
+  std::unique_ptr<uint8_t[]> smartPtrTemp(channelRawMem);
+
   // now ready to read channels one by one.
   for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+    // read entire channel into its native size
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
       uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
-      destptr = data + channel * channelsize_bytes + slice * planesize_bytes;
+      destptr = channelRawMem + slice * rawPlanesize;
       if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
         return emptyimage;
       }
+    }
+
+    // convert to our internal format (IN_MEMORY_BPP)
+    if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
+      return emptyimage;
     }
   }
 
