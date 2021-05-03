@@ -12,7 +12,7 @@ class ImageXYZC;
 class renderlib
 {
 public:
-  static int initialize();
+  static int initialize(bool headless = false);
   static void clearGpuVolumeCache();
   static void cleanup();
 
@@ -35,6 +35,7 @@ public:
   static void imageDeallocGPU(std::shared_ptr<ImageXYZC> image);
 
   static QSurfaceFormat getQSurfaceFormat(bool enableDebug = false);
+  static QOpenGLContext* createOpenGLContext();
 
 private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> sGpuImageCache;

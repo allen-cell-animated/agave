@@ -59,11 +59,7 @@ OffscreenRenderer::init()
 {
   LOG_DEBUG << "INIT RENDERER";
 
-  QSurfaceFormat format = renderlib::getQSurfaceFormat();
-
-  this->m_glContext = new QOpenGLContext();
-  this->m_glContext->setFormat(format); // ...and set the format on the context too
-  this->m_glContext->create();
+  this->m_glContext = renderlib::createOpenGLContext();
 
   this->m_surface = new QOffscreenSurface();
   this->m_surface->setFormat(this->m_glContext->format());

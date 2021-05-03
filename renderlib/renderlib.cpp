@@ -12,7 +12,13 @@
 #include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
 
+#include <EGL/egl.h>
+
 static bool renderLibInitialized = false;
+
+static bool renderLibHeadless = false;
+static EGLDisplay eglDpy = NULL;
+static EGLContext eglCtx = NULL;
 
 static QOpenGLContext* dummyContext = nullptr;
 static QOffscreenSurface* dummySurface = nullptr;
@@ -54,32 +60,78 @@ renderlib::getQSurfaceFormat(bool enableDebug)
   return format;
 }
 
-int
-renderlib::initialize()
-{
-  if (renderLibInitialized) {
-    return 1;
+QOpenGLContext* renderlib::createOpenGLContext() {
+  QOpenGLContext* context = new QOpenGLContext();
+
+  if (renderLibHeadless) {
+    context->setNativeHandle(QVariant::fromValue(QEGLNativeContext(eglCtx, eglDpy)));
   }
-  renderLibInitialized = true;
-
-  // boost::log::add_file_log("renderlib.log");
-  LOG_INFO << "Renderlib startup";
-
-  bool enableDebug = false;
-  if (std::getenv("OME_QTWIDGETS_OPENGL_DEBUG"))
-    enableDebug = true;
-
-  QSurfaceFormat format = getQSurfaceFormat();
-  QSurfaceFormat::setDefaultFormat(format);
-
-  dummyContext = new QOpenGLContext();
-  dummyContext->setFormat(format); // ...and set the format on the context too
-  bool createdOk = dummyContext->create();
+  else {
+    context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
+  }
+  bool createdOk = context->create();
   if (!createdOk) {
     LOG_ERROR << "Failed to create OpenGL Context";
   } else {
     LOG_INFO << "Created opengl context";
   }
+  if (!context->isValid()) {
+    LOG_ERROR << "Created GL Context is not valid";
+  }
+
+  return context;
+}
+
+int
+renderlib::initialize(bool headless)
+{
+  if (renderLibInitialized) {
+    return 1;
+  }
+  renderLibInitialized = true;
+  renderLibHeadless = headless;
+
+  // boost::log::add_file_log("renderlib.log");
+  LOG_INFO << "Renderlib startup";
+
+  bool enableDebug = false;
+
+  QSurfaceFormat format = getQSurfaceFormat();
+  QSurfaceFormat::setDefaultFormat(format);
+
+  if (headless) {
+    // 1. Initialize EGL
+    eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLint major, minor;
+
+    eglInitialize(eglDpy, &major, &minor);
+
+    // 2. Select an appropriate configuration
+    EGLint numConfigs;
+    EGLConfig eglCfg;
+
+    static const EGLint configAttribs[] = {
+              EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+              EGL_BLUE_SIZE, 8,
+              EGL_GREEN_SIZE, 8,
+              EGL_RED_SIZE, 8,
+              EGL_DEPTH_SIZE, 8,
+              EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+              EGL_NONE
+    };
+    eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+
+    // 3. create a surface (SKIPPING)
+
+    // 4. Bind the API
+    eglBindAPI(EGL_OPENGL_API);
+
+    // 5. Create a context and make it current
+    eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
+                                        NULL);
+  }
+
+  dummyContext = renderlib::createOpenGLContext();
 
   dummySurface = new QOffscreenSurface();
   dummySurface->setFormat(dummyContext->format());
@@ -150,6 +202,9 @@ renderlib::cleanup()
   delete logger;
   logger = nullptr;
 
+  if (renderLibHeadless) {
+    eglTerminate(eglDpy);
+  }
   renderLibInitialized = false;
 }
 

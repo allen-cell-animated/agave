@@ -40,3 +40,6 @@ ENV QTDIR=/qt/${QT_VERSION}/gcc_64
 RUN cd ./build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make
+
+EXPOSE 1235
+CMD ["agave", "--server"]
