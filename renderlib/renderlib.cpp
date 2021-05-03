@@ -90,6 +90,11 @@ renderlib::initialize(bool headless)
     return 1;
   }
   renderLibInitialized = true;
+  
+  // no MACOS support for EGL
+  #ifdef APPLE
+  headless = false;
+  #endif
   renderLibHeadless = headless;
 
   // boost::log::add_file_log("renderlib.log");
