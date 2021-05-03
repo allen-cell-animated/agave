@@ -11,7 +11,8 @@ RUN mkdir /agave && \
     libboost-all-dev \
     libtiff-dev \
     libglm-dev \
-    libgl1-mesa-dev
+    libgl1-mesa-dev \
+    libegl1-mesa-dev
 
 # get a current cmake
 RUN apt-get update && apt-get install -y software-properties-common

@@ -125,7 +125,10 @@ renderlib::initialize(bool headless)
     eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     EGLint major, minor;
 
-    eglInitialize(eglDpy, &major, &minor);
+    EGLBoolean init_ok = eglInitialize(eglDpy, &major, &minor);
+    if(init_ok == EGL_FALSE) {
+      LOG_ERROR << "renderlib::initialize, eglInitialize failed";
+    }
 
     // 2. Select an appropriate configuration
     EGLint numConfigs;
@@ -133,23 +136,33 @@ renderlib::initialize(bool headless)
 
     static const EGLint configAttribs[] = {
               EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+              EGL_ALPHA_SIZE, 8,
               EGL_BLUE_SIZE, 8,
               EGL_GREEN_SIZE, 8,
               EGL_RED_SIZE, 8,
-              EGL_DEPTH_SIZE, 8,
+              EGL_DEPTH_SIZE, 24,
               EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
               EGL_NONE
     };
-    eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+    EGLBoolean chooseConfig_ok = eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+    if (chooseConfig_ok == EGL_FALSE) {
+      LOG_ERROR << "renderlib::initialize, eglChooseConfig failed";
+    }
 
     // 3. create a surface (SKIPPING)
 
     // 4. Bind the API
-    eglBindAPI(EGL_OPENGL_API);
+    EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
+    if(bindapi_ok == EGL_FALSE) {
+      LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
+    }
 
     // 5. Create a context and make it current
     eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
                                         NULL);
+    if (eglCtx == EGL_NO_CONTEXT) {
+      LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
+    }
     #endif
   }
 
