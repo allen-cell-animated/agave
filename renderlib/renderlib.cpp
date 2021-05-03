@@ -12,8 +12,13 @@
 #include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_WIN32)
+#define HAS_EGL false
 #else
+#define HAS_EGL true
+#endif
+
+#if HAS_EGL
 #include <EGL/egl.h>
 #include <QtPlatformHeaders/QEGLNativeContext>
 #endif
@@ -21,8 +26,7 @@
 static bool renderLibInitialized = false;
 
 static bool renderLibHeadless = false;
-#ifdef __APPLE__
-#else 
+#if HAS_EGL
 static EGLDisplay eglDpy = NULL;
 static EGLContext eglCtx = NULL;
 #endif
@@ -71,8 +75,7 @@ QOpenGLContext* renderlib::createOpenGLContext() {
   QOpenGLContext* context = new QOpenGLContext();
 
   if (renderLibHeadless) {
-    #ifdef __APPLE__
-    #else
+    #if HAS_EGL
     context->setNativeHandle(QVariant::fromValue(QEGLNativeContext(eglCtx, eglDpy)));
     #endif
   }
@@ -101,7 +104,8 @@ renderlib::initialize(bool headless)
   renderLibInitialized = true;
 
   // no MACOS support for EGL
-  #ifdef __APPLE__
+  #if HAS_EGL
+  #else
   headless = false;
   #endif
   renderLibHeadless = headless;
@@ -115,8 +119,7 @@ renderlib::initialize(bool headless)
   QSurfaceFormat::setDefaultFormat(format);
 
   if (headless) {
-    #ifdef __APPLE__
-    #else 
+    #if HAS_EGL
 
     // 1. Initialize EGL
     eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -222,8 +225,7 @@ renderlib::cleanup()
   logger = nullptr;
 
   if (renderLibHeadless) {
-    #ifdef __APPLE__
-    #else
+    #if HAS_EGL
     eglTerminate(eglDpy);
     #endif
   }
