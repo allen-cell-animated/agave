@@ -93,6 +93,8 @@ else()
 find_package( glm REQUIRED )
 endif(APPLE)
 
+find_package(OpenGL)
+
 find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
 get_target_property(py_location Python3::Interpreter LOCATION)
 message(STATUS "PYTHON3 Location: ${py_location}")
