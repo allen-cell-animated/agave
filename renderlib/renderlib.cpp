@@ -158,8 +158,13 @@ renderlib::initialize(bool headless)
     }
 
     // 5. Create a context and make it current
+    static const EGLint contextAttribs[] = {
+              EGL_CONTEXT_MAJOR_VERSION, AICS_GL_VERSION.major,
+              EGL_CONTEXT_MINOR_VERSION, AICS_GL_VERSION.minor,
+              EGL_NONE
+    };
     eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
-                                        NULL);
+                                        contextAttribs);
     if (eglCtx == EGL_NO_CONTEXT) {
       LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
     }
