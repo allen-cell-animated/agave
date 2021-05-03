@@ -28,7 +28,6 @@ static bool renderLibInitialized = false;
 static bool renderLibHeadless = false;
 #if HAS_EGL
 static EGLDisplay eglDpy = NULL;
-static EGLContext eglCtx = NULL;
 #endif
 
 static QOpenGLContext* dummyContext = nullptr;
@@ -76,6 +75,22 @@ QOpenGLContext* renderlib::createOpenGLContext() {
 
   if (renderLibHeadless) {
     #if HAS_EGL
+    // Create a context and make it current
+    static const EGLint contextAttribs[] = {
+              EGL_CONTEXT_MAJOR_VERSION, AICS_GL_VERSION.major,
+              EGL_CONTEXT_MINOR_VERSION, AICS_GL_VERSION.minor,
+              EGL_NONE
+    };
+    EGLContext eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
+                                        contextAttribs);
+    if (eglCtx == EGL_NO_CONTEXT) {
+      LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
+    }
+    else {
+      LOG_INFO << "created a egl context";
+    }
+
+    // TODO FIXME the eglCtx is not being destroyed...
     context->setNativeHandle(QVariant::fromValue(QEGLNativeContext(eglCtx, eglDpy)));
     #endif
     context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
@@ -141,7 +156,8 @@ renderlib::initialize(bool headless)
               EGL_BLUE_SIZE, 8,
               EGL_GREEN_SIZE, 8,
               EGL_RED_SIZE, 8,
-              EGL_DEPTH_SIZE, 24,
+              EGL_DEPTH_SIZE, AICS_DEFAULT_DEPTH_BUFFER_BITS,
+              EGL_STENCIL_SIZE, AICS_DEFAULT_STENCIL_BUFFER_BITS,
               EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
               EGL_NONE
     };
@@ -156,21 +172,6 @@ renderlib::initialize(bool headless)
     EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
     if(bindapi_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
-    }
-
-    // 5. Create a context and make it current
-    static const EGLint contextAttribs[] = {
-              EGL_CONTEXT_MAJOR_VERSION, AICS_GL_VERSION.major,
-              EGL_CONTEXT_MINOR_VERSION, AICS_GL_VERSION.minor,
-              EGL_NONE
-    };
-    eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
-                                        contextAttribs);
-    if (eglCtx == EGL_NO_CONTEXT) {
-      LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
-    }
-    else {
-      LOG_INFO << "created a egl context";
     }
     #endif
   }
