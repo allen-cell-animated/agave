@@ -78,6 +78,7 @@ QOpenGLContext* renderlib::createOpenGLContext() {
     #if HAS_EGL
     context->setNativeHandle(QVariant::fromValue(QEGLNativeContext(eglCtx, eglDpy)));
     #endif
+    context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
   }
   else {
     context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
