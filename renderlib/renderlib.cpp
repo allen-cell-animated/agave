@@ -12,14 +12,20 @@
 #include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
 
+#ifdef __APPLE__
+#else
 #include <EGL/egl.h>
 #include <QtPlatformHeaders/QEGLNativeContext>
+#endif
 
 static bool renderLibInitialized = false;
 
 static bool renderLibHeadless = false;
+#ifdef __APPLE__
+#else 
 static EGLDisplay eglDpy = NULL;
 static EGLContext eglCtx = NULL;
+#endif
 
 static QOpenGLContext* dummyContext = nullptr;
 static QOffscreenSurface* dummySurface = nullptr;
@@ -65,7 +71,10 @@ QOpenGLContext* renderlib::createOpenGLContext() {
   QOpenGLContext* context = new QOpenGLContext();
 
   if (renderLibHeadless) {
+    #ifdef __APPLE__
+    #else
     context->setNativeHandle(QVariant::fromValue(QEGLNativeContext(eglCtx, eglDpy)));
+    #endif
   }
   else {
     context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
@@ -90,9 +99,9 @@ renderlib::initialize(bool headless)
     return 1;
   }
   renderLibInitialized = true;
-  
+
   // no MACOS support for EGL
-  #ifdef APPLE
+  #ifdef __APPLE__
   headless = false;
   #endif
   renderLibHeadless = headless;
@@ -106,6 +115,9 @@ renderlib::initialize(bool headless)
   QSurfaceFormat::setDefaultFormat(format);
 
   if (headless) {
+    #ifdef __APPLE__
+    #else 
+
     // 1. Initialize EGL
     eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     EGLint major, minor;
@@ -135,6 +147,7 @@ renderlib::initialize(bool headless)
     // 5. Create a context and make it current
     eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
                                         NULL);
+    #endif
   }
 
   dummyContext = renderlib::createOpenGLContext();
@@ -209,7 +222,10 @@ renderlib::cleanup()
   logger = nullptr;
 
   if (renderLibHeadless) {
+    #ifdef __APPLE__
+    #else
     eglTerminate(eglDpy);
+    #endif
   }
   renderLibInitialized = false;
 }
