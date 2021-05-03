@@ -75,6 +75,7 @@ QOpenGLContext* renderlib::createOpenGLContext() {
 
   if (renderLibHeadless) {
     #if HAS_EGL
+    EGLint lastError = EGL_SUCCESS;
     // Select an appropriate configuration
     EGLint numConfigs;
     EGLConfig eglCfg;
@@ -94,6 +95,9 @@ QOpenGLContext* renderlib::createOpenGLContext() {
     if (chooseConfig_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglChooseConfig failed";
     }
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
+    }
 
     // Create a context and make it current
     static const EGLint contextAttribs[] = {
@@ -108,6 +112,9 @@ QOpenGLContext* renderlib::createOpenGLContext() {
     }
     else {
       LOG_INFO << "created a egl context";
+    }
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
     }
 
     // TODO FIXME the eglCtx is not being destroyed...
@@ -156,6 +163,7 @@ renderlib::initialize(bool headless)
 
   if (headless) {
     #if HAS_EGL
+    EGLint lastError = EGL_SUCCESS;
 
     // 1. Initialize EGL
     eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -165,10 +173,16 @@ renderlib::initialize(bool headless)
     if(init_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglInitialize failed";
     }
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
+    }
     // 2. Bind the API
     EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
     if(bindapi_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
+    }
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
     }
     #endif
   }
