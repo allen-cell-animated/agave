@@ -163,6 +163,9 @@ renderlib::initialize(bool headless)
     if (eglCtx == EGL_NO_CONTEXT) {
       LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
     }
+    else {
+      LOG_INFO << "created a egl context";
+    }
     #endif
   }
 
