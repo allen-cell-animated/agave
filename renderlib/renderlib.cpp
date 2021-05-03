@@ -13,6 +13,7 @@
 #include <QtGui/QWindow>
 
 #include <EGL/egl.h>
+#include <QtPlatformHeaders/QEGLNativeContext>
 
 static bool renderLibInitialized = false;
 
