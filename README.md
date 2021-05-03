@@ -61,6 +61,7 @@ For linux:
 - sudo apt install libtiff-dev
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
+- sudo apt install libegl1-mesa-dev
 
 - use official Qt 5.15.2 installer for linux and install into default location (~/Qt)
 
