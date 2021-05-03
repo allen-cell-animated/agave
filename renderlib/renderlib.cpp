@@ -75,6 +75,26 @@ QOpenGLContext* renderlib::createOpenGLContext() {
 
   if (renderLibHeadless) {
     #if HAS_EGL
+    // Select an appropriate configuration
+    EGLint numConfigs;
+    EGLConfig eglCfg;
+
+    static const EGLint configAttribs[] = {
+              EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+              EGL_ALPHA_SIZE, 8,
+              EGL_BLUE_SIZE, 8,
+              EGL_GREEN_SIZE, 8,
+              EGL_RED_SIZE, 8,
+              EGL_DEPTH_SIZE, AICS_DEFAULT_DEPTH_BUFFER_BITS,
+              EGL_STENCIL_SIZE, AICS_DEFAULT_STENCIL_BUFFER_BITS,
+              EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+              EGL_NONE
+    };
+    EGLBoolean chooseConfig_ok = eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+    if (chooseConfig_ok == EGL_FALSE) {
+      LOG_ERROR << "renderlib::initialize, eglChooseConfig failed";
+    }
+
     // Create a context and make it current
     static const EGLint contextAttribs[] = {
               EGL_CONTEXT_MAJOR_VERSION, AICS_GL_VERSION.major,
@@ -145,30 +165,7 @@ renderlib::initialize(bool headless)
     if(init_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglInitialize failed";
     }
-
-    // 2. Select an appropriate configuration
-    EGLint numConfigs;
-    EGLConfig eglCfg;
-
-    static const EGLint configAttribs[] = {
-              EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-              EGL_ALPHA_SIZE, 8,
-              EGL_BLUE_SIZE, 8,
-              EGL_GREEN_SIZE, 8,
-              EGL_RED_SIZE, 8,
-              EGL_DEPTH_SIZE, AICS_DEFAULT_DEPTH_BUFFER_BITS,
-              EGL_STENCIL_SIZE, AICS_DEFAULT_STENCIL_BUFFER_BITS,
-              EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-              EGL_NONE
-    };
-    EGLBoolean chooseConfig_ok = eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
-    if (chooseConfig_ok == EGL_FALSE) {
-      LOG_ERROR << "renderlib::initialize, eglChooseConfig failed";
-    }
-
-    // 3. create a surface (SKIPPING)
-
-    // 4. Bind the API
+    // 2. Bind the API
     EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
     if(bindapi_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
