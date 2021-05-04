@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+#include "glad/glad.h"
+
 #if defined(__APPLE__) || defined(_WIN32)
 #define HAS_EGL false
 #else

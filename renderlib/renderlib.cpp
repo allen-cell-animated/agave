@@ -3,7 +3,6 @@
 #include "ImageXYZC.h"
 #include "ImageXyzcGpu.h"
 #include "Logging.h"
-#include "glad/glad.h"
 
 #include <string>
 
