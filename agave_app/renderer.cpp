@@ -5,7 +5,6 @@
 #include "renderlib/Logging.h"
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
-#include "renderlib/renderlib.h"
 
 #include "command.h"
 #include "commandBuffer.h"
@@ -27,7 +26,6 @@ Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   this->m_totalQueueDuration = 0;
 
   LOG_DEBUG << "Renderer " << id.toStdString() << " -- Initializing rendering thread...";
-  this->init();
   LOG_DEBUG << "Renderer " << id.toStdString() << " -- Done.";
 }
 
@@ -64,6 +62,10 @@ Renderer::init()
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
   // "Working Directory: " + QDir::currentPath());
 
+#if HAS_EGL
+  this->m_glContext = new HeadlessGLContext();
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext = renderlib::createOpenGLContext();
 
   this->m_surface = new QOffscreenSurface();
@@ -73,6 +75,7 @@ Renderer::init()
   /*this->context->doneCurrent();
   this->context->moveToThread(this);*/
   this->m_glContext->makeCurrent(m_surface);
+#endif
 
   int status = gladLoadGL();
   if (!status) {
@@ -94,13 +97,22 @@ Renderer::init()
   reset();
 
   this->m_glContext->doneCurrent();
+#if HAS_EGL
+#else
   this->m_glContext->moveToThread(this);
+#endif
 }
 
 void
 Renderer::run()
 {
+  this->init();
+
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   // TODO: PUT THIS KIND OF INIT SOMEWHERE ELSE
   myVolumeInit();
@@ -111,7 +123,11 @@ Renderer::run()
     QApplication::processEvents();
   }
 
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
   m_myVolumeData.m_renderer->cleanUpResources();
   shutDown();
 }
@@ -208,7 +224,11 @@ Renderer::processRequest()
 void
 Renderer::processCommandBuffer(RenderRequest* rr)
 {
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   std::vector<Command*> cmds = rr->getParameters();
   if (cmds.size() > 0) {
@@ -233,7 +253,11 @@ QImage
 Renderer::render()
 {
   m_openGLMutex->lock();
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   // DRAW
   m_myVolumeData.m_camera->Update();
@@ -261,8 +285,11 @@ Renderer::resizeGL(int width, int height)
   }
   m_openGLMutex->lock();
 
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
-
+#endif
   // RESIZE THE RENDER INTERFACE
   if (m_myVolumeData.m_renderer) {
     m_myVolumeData.m_renderer->resize(width, height);
@@ -290,7 +317,11 @@ Renderer::reset(int from)
 {
   m_openGLMutex->lock();
 
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -312,7 +343,11 @@ Renderer::getTime()
 void
 Renderer::shutDown()
 {
-  m_glContext->makeCurrent(m_surface);
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
+  this->m_glContext->makeCurrent(this->m_surface);
+#endif
   delete this->m_fbo;
 
   delete m_myVolumeData.m_renderSettings;
@@ -327,8 +362,11 @@ Renderer::shutDown()
   m_glContext->doneCurrent();
   delete m_glContext;
 
+#if HAS_EGL
+#else
   // schedule this to be deleted only after we're done cleaning up
   m_surface->deleteLater();
+#endif
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
   exit();

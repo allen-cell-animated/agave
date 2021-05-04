@@ -6,6 +6,15 @@
 #include <memory>
 #include <string>
 
+#if defined(__APPLE__) || defined(_WIN32)
+#define HAS_EGL false
+#else
+#define HAS_EGL true
+#endif
+#if HAS_EGL
+#include <EGL/egl.h>
+#endif
+
 struct ImageGpu;
 class ImageXYZC;
 
@@ -39,4 +48,18 @@ public:
 
 private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> sGpuImageCache;
+};
+
+class HeadlessGLContext
+{
+public:
+  HeadlessGLContext();
+  ~HeadlessGLContext();
+  void makeCurrent();
+  void doneCurrent();
+
+private:
+#if HAS_EGL
+  EGLcontext m_eglCtx;
+#endif
 };

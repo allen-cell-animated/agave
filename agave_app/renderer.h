@@ -3,15 +3,15 @@
 
 #include "glad/glad.h"
 
-#include <QtCore/QElapsedTimer>
 #include <QList>
-#include <QObject>
 #include <QMutex>
+#include <QObject>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLTexture>
 #include <QThread>
+#include <QtCore/QElapsedTimer>
 
 #include <memory>
 
@@ -23,6 +23,7 @@ class RenderSettings;
 class Scene;
 
 #include "renderlib/command.h"
+#include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
 class Renderer
@@ -68,8 +69,13 @@ protected:
 private:
   QMutex* m_openGLMutex;
 
+#if HAS_EGL
+  HeadlessContext* m_glContext;
+#else
   QOpenGLContext* m_glContext;
   QOffscreenSurface* m_surface;
+#endif
+
   QOpenGLFramebufferObject* m_fbo;
 
   int32_t m_streamMode;

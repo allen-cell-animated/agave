@@ -12,12 +12,6 @@
 #include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
 
-#if defined(__APPLE__) || defined(_WIN32)
-#define HAS_EGL false
-#else
-#define HAS_EGL true
-#endif
-
 #if HAS_EGL
 #include <EGL/egl.h>
 #include <QtPlatformHeaders/QEGLNativeContext>
@@ -70,61 +64,12 @@ renderlib::getQSurfaceFormat(bool enableDebug)
   return format;
 }
 
-QOpenGLContext* renderlib::createOpenGLContext() {
+QOpenGLContext*
+renderlib::createOpenGLContext()
+{
   QOpenGLContext* context = new QOpenGLContext();
+  context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
 
-  if (renderLibHeadless) {
-    #if HAS_EGL
-    EGLint lastError = EGL_SUCCESS;
-    // Select an appropriate configuration
-    EGLint numConfigs;
-    EGLConfig eglCfg;
-
-    static const EGLint configAttribs[] = {
-              EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-              EGL_ALPHA_SIZE, 8,
-              EGL_BLUE_SIZE, 8,
-              EGL_GREEN_SIZE, 8,
-              EGL_RED_SIZE, 8,
-              EGL_DEPTH_SIZE, AICS_DEFAULT_DEPTH_BUFFER_BITS,
-              EGL_STENCIL_SIZE, AICS_DEFAULT_STENCIL_BUFFER_BITS,
-              EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-              EGL_NONE
-    };
-    EGLBoolean chooseConfig_ok = eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
-    if (chooseConfig_ok == EGL_FALSE) {
-      LOG_ERROR << "renderlib::initialize, eglChooseConfig failed";
-    }
-    if ((lastError = eglGetError()) != EGL_SUCCESS) {
-      LOG_ERROR << "eglGetError " << lastError;
-    }
-
-    // Create a context and make it current
-    static const EGLint contextAttribs[] = {
-              EGL_CONTEXT_MAJOR_VERSION, AICS_GL_VERSION.major,
-              EGL_CONTEXT_MINOR_VERSION, AICS_GL_VERSION.minor,
-              EGL_NONE
-    };
-    EGLContext eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
-                                        contextAttribs);
-    if (eglCtx == EGL_NO_CONTEXT) {
-      LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
-    }
-    else {
-      LOG_INFO << "created a egl context";
-    }
-    if ((lastError = eglGetError()) != EGL_SUCCESS) {
-      LOG_ERROR << "eglGetError " << lastError;
-    }
-
-    // TODO FIXME the eglCtx is not being destroyed...
-    context->setNativeHandle(QVariant::fromValue(QEGLNativeContext(eglCtx, eglDpy)));
-    #endif
-    context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
-  }
-  else {
-    context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
-  }
   bool createdOk = context->create();
   if (!createdOk) {
     LOG_ERROR << "Failed to create OpenGL Context";
@@ -146,11 +91,11 @@ renderlib::initialize(bool headless)
   }
   renderLibInitialized = true;
 
-  // no MACOS support for EGL
-  #if HAS_EGL
-  #else
+// no MACOS support for EGL
+#if HAS_EGL
+#else
   headless = false;
-  #endif
+#endif
   renderLibHeadless = headless;
 
   // boost::log::add_file_log("renderlib.log");
@@ -162,7 +107,10 @@ renderlib::initialize(bool headless)
   QSurfaceFormat::setDefaultFormat(format);
 
   if (headless) {
-    #if HAS_EGL
+#if HAS_EGL
+
+    // one-time EGL init
+
     EGLint lastError = EGL_SUCCESS;
 
     // 1. Initialize EGL
@@ -170,7 +118,7 @@ renderlib::initialize(bool headless)
     EGLint major, minor;
 
     EGLBoolean init_ok = eglInitialize(eglDpy, &major, &minor);
-    if(init_ok == EGL_FALSE) {
+    if (init_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglInitialize failed";
     }
     if ((lastError = eglGetError()) != EGL_SUCCESS) {
@@ -178,36 +126,33 @@ renderlib::initialize(bool headless)
     }
     // 2. Bind the API
     EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
-    if(bindapi_ok == EGL_FALSE) {
+    if (bindapi_ok == EGL_FALSE) {
       LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
     }
     if ((lastError = eglGetError()) != EGL_SUCCESS) {
       LOG_ERROR << "eglGetError " << lastError;
     }
-    #endif
-  }
-
-  dummyContext = renderlib::createOpenGLContext();
-
-  dummySurface = new QOffscreenSurface();
-  dummySurface->setFormat(dummyContext->format());
-  dummySurface->create();
-  LOG_INFO << "Created offscreen surface";
-  if (!dummySurface->isValid()) {
-    LOG_ERROR << "QOffscreenSurface is not valid";
-  }
-  bool ok = dummyContext->makeCurrent(dummySurface);
-  if (!ok) {
-    LOG_ERROR << "Failed to makeCurrent on offscreen surface";
+#else
+    LOG_ERROR << "Headless operation without EGL support is not available";
+#endif
   } else {
-    LOG_INFO << "Made context current on offscreen surface";
-  }
+    dummyContext = renderlib::createOpenGLContext();
 
-  //	dummyWidget = new QOpenGLWidget();
-  //	dummyWidget->setMaximumSize(2, 2);
-  //	dummyWidget->show();
-  //	dummyWidget->hide();
-  //	dummyWidget->makeCurrent();
+    dummySurface = new QOffscreenSurface();
+    dummySurface->setFormat(dummyContext->format());
+    dummySurface->create();
+    LOG_INFO << "Created offscreen surface";
+    if (!dummySurface->isValid()) {
+      LOG_ERROR << "QOffscreenSurface is not valid";
+    }
+
+    bool ok = dummyContext->makeCurrent(dummySurface);
+    if (!ok) {
+      LOG_ERROR << "Failed to makeCurrent on offscreen surface";
+    } else {
+      LOG_INFO << "Made context current on offscreen surface";
+    }
+  }
 
   if (enableDebug) {
     logger = new QOpenGLDebugLogger();
@@ -259,9 +204,9 @@ renderlib::cleanup()
   logger = nullptr;
 
   if (renderLibHeadless) {
-    #if HAS_EGL
+#if HAS_EGL
     eglTerminate(eglDpy);
-    #endif
+#endif
   }
   renderLibInitialized = false;
 }
@@ -295,4 +240,78 @@ renderlib::imageDeallocGPU(std::shared_ptr<ImageXYZC> image)
     cached->second->deallocGpu();
     sGpuImageCache.erase(image);
   }
+}
+
+HeadlessGLContext::HeadlessGLContext()
+{
+#if HAS_EGL
+  EGLint lastError = EGL_SUCCESS;
+  // Select an appropriate configuration
+  EGLint numConfigs;
+  EGLConfig eglCfg;
+
+  static const EGLint configAttribs[] = { EGL_SURFACE_TYPE,
+                                          EGL_PBUFFER_BIT,
+                                          EGL_ALPHA_SIZE,
+                                          8,
+                                          EGL_BLUE_SIZE,
+                                          8,
+                                          EGL_GREEN_SIZE,
+                                          8,
+                                          EGL_RED_SIZE,
+                                          8,
+                                          EGL_DEPTH_SIZE,
+                                          AICS_DEFAULT_DEPTH_BUFFER_BITS,
+                                          EGL_STENCIL_SIZE,
+                                          AICS_DEFAULT_STENCIL_BUFFER_BITS,
+                                          EGL_RENDERABLE_TYPE,
+                                          EGL_OPENGL_BIT,
+                                          EGL_NONE };
+  EGLBoolean chooseConfig_ok = eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+  if (chooseConfig_ok == EGL_FALSE) {
+    LOG_ERROR << "renderlib::initialize, eglChooseConfig failed";
+  }
+  if ((lastError = eglGetError()) != EGL_SUCCESS) {
+    LOG_ERROR << "eglGetError " << lastError;
+  }
+
+  // Create a context and make it current
+  static const EGLint contextAttribs[] = {
+    EGL_CONTEXT_MAJOR_VERSION, AICS_GL_VERSION.major, EGL_CONTEXT_MINOR_VERSION, AICS_GL_VERSION.minor, EGL_NONE
+  };
+  EGLContext eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT, contextAttribs);
+  if (eglCtx == EGL_NO_CONTEXT) {
+    LOG_ERROR << "renderlib::initialize, eglCreateContext failed";
+  } else {
+    LOG_INFO << "created a egl context";
+  }
+  if ((lastError = eglGetError()) != EGL_SUCCESS) {
+    LOG_ERROR << "eglGetError " << lastError;
+  }
+
+  m_eglCtx = eglCtx;
+#endif
+}
+
+HeadlessGLContext::~HeadlessGLContext()
+{
+#if HAS_EGL
+  eglDestroyContext(eglDpy, m_eglCtx);
+#endif
+}
+
+void
+HeadlessGLContext::makeCurrent()
+{
+#if HAS_EGL
+  eglMakeCurrent(eglDpy, EGL_NO_SURFACE, EGL_NO_SURFACE, m_eglCtx);
+#endif
+}
+
+void
+HeadlessGLContext::doneCurrent()
+{
+#if HAS_EGL
+  eglMakeCurrent(eglDpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+#endif
 }
