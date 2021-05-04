@@ -99,6 +99,8 @@ renderlib::initialize(bool headless)
   QSurfaceFormat format = getQSurfaceFormat();
   QSurfaceFormat::setDefaultFormat(format);
 
+  HeadlessGLContext* dummyHeadlessContext = nullptr;
+
   if (headless) {
 #if HAS_EGL
 
@@ -125,6 +127,8 @@ renderlib::initialize(bool headless)
     if ((lastError = eglGetError()) != EGL_SUCCESS) {
       LOG_ERROR << "eglGetError " << lastError;
     }
+    dummyHeadlessContext = new HeadlessGLContext();
+    dummyHeadlessContext->makeCurrent();
 #else
     LOG_ERROR << "Headless operation without EGL support is not available";
 #endif
@@ -166,6 +170,7 @@ renderlib::initialize(bool headless)
   LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
   LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
 
+  delete dummyHeadlessContext;
   return status;
 }
 
