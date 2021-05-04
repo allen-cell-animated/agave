@@ -3,7 +3,9 @@
 
 #include "glad/glad.h"
 
+#include "renderlib/command.h"
 #include "renderlib/renderlib.h"
+#include "renderrequest.h"
 
 #include <QList>
 #include <QMutex>
@@ -23,9 +25,6 @@ class ImageXYZC;
 class RenderGLPT;
 class RenderSettings;
 class Scene;
-
-#include "renderlib/command.h"
-#include "renderrequest.h"
 
 class Renderer
   : public QThread
