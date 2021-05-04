@@ -3,6 +3,8 @@
 
 #include "glad/glad.h"
 
+#include "renderlib/renderlib.h"
+
 #include <QList>
 #include <QMutex>
 #include <QObject>
@@ -23,7 +25,6 @@ class RenderSettings;
 class Scene;
 
 #include "renderlib/command.h"
-#include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
 class Renderer
