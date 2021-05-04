@@ -1,13 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QTimer>
-
 #include "renderer.h"
 #include "streamserver.h"
 
+#include <QMainWindow>
 #include <QTextEdit>
+#include <QTimer>
 
 class MainWindow : public QMainWindow
 {
