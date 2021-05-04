@@ -61,6 +61,6 @@ public:
 
 private:
 #if HAS_EGL
-  EGLcontext m_eglCtx;
+  EGLContext m_eglCtx;
 #endif
 };
