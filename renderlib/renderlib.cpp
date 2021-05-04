@@ -6,6 +6,10 @@
 
 #include <string>
 
+#if HAS_EGL
+#include <EGL/egl.h>
+#endif
+
 static bool renderLibInitialized = false;
 
 static bool renderLibHeadless = false;

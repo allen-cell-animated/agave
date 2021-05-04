@@ -18,12 +18,10 @@
 #define HAS_EGL true
 #endif
 
-#if HAS_EGL
-#include <EGL/egl.h>
-#endif
-
 struct ImageGpu;
 class ImageXYZC;
+
+typedef void* EGLContext; // Forward declaration from EGL.h.
 
 class renderlib
 {
