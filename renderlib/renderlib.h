@@ -1,5 +1,7 @@
 #pragma once
 
+#include "glad/glad.h"
+
 #include <QOffscreenSurface>
 #include <QSurfaceFormat>
 #include <QtGui/QOpenGLContext>
@@ -9,8 +11,6 @@
 #include <map>
 #include <memory>
 #include <string>
-
-#include "glad/glad.h"
 
 #if defined(__APPLE__) || defined(_WIN32)
 #define HAS_EGL false
