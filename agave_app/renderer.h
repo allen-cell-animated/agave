@@ -70,7 +70,7 @@ private:
   QMutex* m_openGLMutex;
 
 #if HAS_EGL
-  HeadlessContext* m_glContext;
+  HeadlessGLContext* m_glContext;
 #else
   QOpenGLContext* m_glContext;
   QOffscreenSurface* m_surface;
