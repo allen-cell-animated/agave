@@ -14,7 +14,6 @@
 
 #if HAS_EGL
 #include <EGL/egl.h>
-#include <QtPlatformHeaders/QEGLNativeContext>
 #endif
 
 static bool renderLibInitialized = false;

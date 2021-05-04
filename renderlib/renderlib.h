@@ -11,6 +11,7 @@
 #else
 #define HAS_EGL true
 #endif
+
 #if HAS_EGL
 #include <EGL/egl.h>
 #endif
