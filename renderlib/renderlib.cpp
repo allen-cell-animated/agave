@@ -7,15 +7,6 @@
 
 #include <string>
 
-#include <QOffscreenSurface>
-#include <QtGui/QOpenGLContext>
-#include <QtGui/QOpenGLDebugLogger>
-#include <QtGui/QWindow>
-
-#if HAS_EGL
-#include <EGL/egl.h>
-#endif
-
 static bool renderLibInitialized = false;
 
 static bool renderLibHeadless = false;
