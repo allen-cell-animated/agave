@@ -343,7 +343,7 @@ GLFramebufferObject::bind()
 void
 GLFramebufferObject::release()
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 int
 GLFramebufferObject::width() const
