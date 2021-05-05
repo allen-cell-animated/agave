@@ -244,6 +244,16 @@ HeadlessGLContext::HeadlessGLContext()
 {
 #if HAS_EGL
   EGLint lastError = EGL_SUCCESS;
+
+  // Bind the API
+  EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
+  if (bindapi_ok == EGL_FALSE) {
+    LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
+  }
+  if ((lastError = eglGetError()) != EGL_SUCCESS) {
+    LOG_ERROR << "eglGetError " << lastError;
+  }
+
   // Select an appropriate configuration
   EGLint numConfigs;
   EGLConfig eglCfg;
