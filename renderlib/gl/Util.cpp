@@ -1,7 +1,7 @@
 #include "Util.h"
 
-#include "glsl/v330/V330GLImageShader2DnoLut.h"
 #include "Logging.h"
+#include "glsl/v330/V330GLImageShader2DnoLut.h"
 
 #include "glm.h"
 
@@ -10,27 +10,48 @@
 
 static bool GL_ERROR_CHECKS_ENABLED = true;
 
-void
-check_glfb(std::string const& message) {
+bool
+check_glfb(std::string const& message)
+{
   if (!GL_ERROR_CHECKS_ENABLED) {
-    return;
+    return true;
   }
   check_gl(message);
   GLint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
-    std::string statusstr = "Unknown " + std::to_string(status); 
-    switch(status) {
-      case GL_FRAMEBUFFER_UNDEFINED: statusstr = "GL_FRAMEBUFFER_UNDEFINED"; break;
-      case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"; break;
-      case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"; break;
-      case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"; break;
-      case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"; break;
-      case GL_FRAMEBUFFER_UNSUPPORTED: statusstr = "GL_FRAMEBUFFER_UNSUPPORTED"; break;
-      case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"; break;
-      case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: statusstr = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"; break;
-      default:break;
+    std::string statusstr = "Unknown " + std::to_string(status);
+    switch (status) {
+      case GL_FRAMEBUFFER_UNDEFINED:
+        statusstr = "GL_FRAMEBUFFER_UNDEFINED";
+        break;
+      case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        statusstr = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+        break;
+      case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+        break;
+      case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+        statusstr = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+        break;
+      case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+        statusstr = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+        break;
+      case GL_FRAMEBUFFER_UNSUPPORTED:
+        statusstr = "GL_FRAMEBUFFER_UNSUPPORTED";
+        break;
+      case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+        statusstr = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+        break;
+      case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+        statusstr = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+        break;
+      default:
+        break;
     }
     LOG_DEBUG << "Framebuffer not complete! Error code: " << statusstr;
+    return false;
+  } else {
+    return true;
   }
 }
 
@@ -248,4 +269,118 @@ GLTimer::eventElapsedTime(float* result, GLuint startEvent, GLuint stopEvent)
   glGetQueryObjectui64v(stopEvent, GL_QUERY_RESULT, &stopTime);
 
   *result = (float)((double)(stopTime - startTime) / 1000000.0);
+}
+
+GLFramebufferObject::GLFramebufferObject(int width, int height, GLint colorInternalFormat)
+{
+  m_fbo = 0;
+  m_texture = 0;
+  m_depth_buffer = 0;
+  m_width = 0;
+  m_height = 0;
+
+  GLuint fbo = 0;
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  // init texture
+  GLuint target = GL_TEXTURE_2D;
+  GLuint texture = 0;
+
+  glGenTextures(1, &texture);
+  glBindTexture(target, texture);
+
+  glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(target, 0, colorInternalFormat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 0, target, texture, 0);
+  // unbind as current gl texture
+  glBindTexture(target, 0);
+
+  // init depth
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+  // depth and stencil buffer needs another extension
+  GLuint depth_buffer;
+  glGenRenderbuffers(1, &depth_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+  if (!glIsRenderbuffer(depth_buffer)) {
+    LOG_ERROR << "framebuffer depth buffer is not renderbuffer";
+  }
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+
+  GLuint stencil_buffer = depth_buffer;
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencil_buffer);
+
+  bool valid = check_glfb("GLFramebufferObject creation");
+  if (!valid) {
+    glDeleteTextures(1, &texture);
+    glDeleteRenderbuffers(1, &depth_buffer);
+    glDeleteFramebuffers(1, &fbo);
+  } else {
+    m_fbo = fbo;
+    m_texture = texture;
+    m_depth_buffer = depth_buffer;
+    m_width = width;
+    m_height = height;
+  }
+}
+
+GLFramebufferObject::~GLFramebufferObject()
+{
+  glDeleteTextures(1, &m_texture);
+  glDeleteRenderbuffers(1, &m_depth_buffer);
+  glDeleteFramebuffers(1, &m_fbo);
+}
+
+void
+GLFramebufferObject::bind()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+}
+void
+GLFramebufferObject::release()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+}
+int
+GLFramebufferObject::width() const
+{
+  return m_width;
+}
+int
+GLFramebufferObject::height() const
+{
+  return m_height;
+}
+QImage
+GLFramebufferObject::toImage(bool include_alpha /* = false */)
+{
+  GLuint prevFbo = 0;
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&prevFbo);
+
+  if (prevFbo != m_fbo) {
+    bind();
+  }
+
+  glReadBuffer(GL_COLOR_ATTACHMENT0 + 0);
+
+  const int w = width();
+  const int h = height();
+
+  // ASSUMING RGBA internal format
+
+  QImage img(QSize(w, h), include_alpha ? QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB32);
+  glReadPixels(0, 0, w, h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, img.bits());
+  //    QImage rgbaImage(size, include_alpha ? QImage::Format_RGBA8888_Premultiplied : QImage::Format_RGBX8888);
+  //    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, rgbaImage.bits());
+
+  glReadBuffer(GL_COLOR_ATTACHMENT0);
+  if (prevFbo != m_fbo) {
+    glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+  }
+
+  return img;
 }

@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 
 #include "renderlib/command.h"
+#include "renderlib/gl/Util.h"
 #include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
@@ -12,7 +13,6 @@
 #include <QObject>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
-#include <QOpenGLFramebufferObject>
 #include <QOpenGLTexture>
 #include <QThread>
 #include <QtCore/QElapsedTimer>
@@ -76,7 +76,7 @@ private:
   QOffscreenSurface* m_surface;
 #endif
 
-  QOpenGLFramebufferObject* m_fbo;
+  GLFramebufferObject* m_fbo;
 
   int32_t m_streamMode;
   int32_t m_width, m_height;

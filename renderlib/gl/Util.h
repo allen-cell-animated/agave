@@ -2,6 +2,9 @@
 
 #include "glad/glad.h"
 
+#include "Logging.h"
+
+#include <QImage>
 #include <string>
 
 /**
@@ -14,7 +17,7 @@
  */
 extern void
 check_gl(std::string const& message);
-extern void
+extern bool
 check_glfb(std::string const& message);
 
 class GLImageShader2DnoLut;
@@ -58,4 +61,26 @@ private:
 
   void synchronize(GLuint eventid);
   void eventElapsedTime(float* result, GLuint startEvent, GLuint stopEvent);
+};
+
+// RAII; must have a current gl context at creation time.
+class GLFramebufferObject
+{
+public:
+  GLFramebufferObject(int width, int height, GLint colorInternalFormat);
+
+  ~GLFramebufferObject();
+
+  void bind();
+  void release();
+  int width() const;
+  int height() const;
+  QImage toImage(bool include_alpha = false);
+
+private:
+  GLuint m_fbo;
+  GLuint m_texture;
+  GLuint m_depth_buffer;
+  int m_width;
+  int m_height;
 };
