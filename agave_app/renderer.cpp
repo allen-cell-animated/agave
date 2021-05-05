@@ -281,6 +281,7 @@ void
 Renderer::resizeGL(int width, int height)
 {
   if ((width == m_width) && (height == m_height)) {
+    LOG_INFO << "resizing with same size; early exit";
     return;
   }
   m_openGLMutex->lock();
@@ -292,7 +293,9 @@ Renderer::resizeGL(int width, int height)
 #endif
   // RESIZE THE RENDER INTERFACE
   if (m_myVolumeData.m_renderer) {
+    LOG_INFO << "resizeGL entering volume renderer resize";
     m_myVolumeData.m_renderer->resize(width, height);
+    LOG_INFO << "resizeGL completed volume renderer resize";
   }
 
   delete this->m_fbo;
@@ -302,6 +305,7 @@ Renderer::resizeGL(int width, int height)
   fboFormat.setSamples(0);
   fboFormat.setTextureTarget(GL_TEXTURE_2D);
   fboFormat.setInternalTextureFormat(GL_RGBA8);
+  LOG_INFO << "creating QOpenGLFramebufferObject";
   this->m_fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
 
   LOG_INFO << "resizeGL about to set glViewport";
