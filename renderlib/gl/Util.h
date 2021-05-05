@@ -94,6 +94,7 @@ public:
   bool compileSourceCode(const char* sourceCode);
   bool isCompiled() const;
   QString log() const;
+  GLuint id() const { return m_shader; }
 
 protected:
   bool m_isCompiled;
@@ -106,20 +107,24 @@ class GLShaderProgram
 {
 public:
   GLShaderProgram();
+  ~GLShaderProgram();
 
   void addShader(GLShader* shader);
-  void link();
+  bool link();
   bool isLinked();
-  int attributeLocation(std::string const& attribute);
-  int uniformLocation(std::string const& attribute);
+  int attributeLocation(const char* name);
+  int uniformLocation(const char* name);
 
   void enableAttributeArray(int location);
   void disableAttributeArray(int location);
   void setAttributeArray(int location, const GLfloat* values, int tupleSize, int stride = 0);
 
-  void bind();
+  bool bind();
+  void release();
 
 private:
-  std::vector<GLShader> m_shaders;
+  // std::vector<GLShader> m_shaders;
   GLuint m_program;
+  bool m_isLinked;
+  QString m_log;
 };

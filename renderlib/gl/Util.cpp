@@ -496,46 +496,124 @@ GLShader::log() const
   return m_log;
 }
 
-GLShaderProgram::GLShaderProgram() {}
+GLShaderProgram::GLShaderProgram()
+{
+  m_isLinked = false;
+  m_program = glCreateProgram();
+}
+
+GLShaderProgram::~GLShaderProgram()
+{
+  glDeleteProgram(m_program);
+}
 
 void
 GLShaderProgram::addShader(GLShader* shader)
-{}
+{
+  glAttachShader(m_program, shader->id());
+  m_isLinked = false;
+}
 
-void
+bool
 GLShaderProgram::link()
-{}
+{
+  GLint value;
+
+  // Check to see if the program is already linked and
+  // bail out if so.
+  value = 0;
+  glGetProgramiv(m_program, GL_LINK_STATUS, &value);
+  m_isLinked = (value != 0);
+  if (m_isLinked) {
+    return true;
+  }
+
+  glLinkProgram(m_program);
+  value = 0;
+  glGetProgramiv(m_program, GL_LINK_STATUS, &value);
+  m_isLinked = (value != 0);
+  value = 0;
+  glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &value);
+  m_log = QString();
+  if (value > 1) {
+    char* logbuf = new char[value];
+    GLint len;
+    glGetProgramInfoLog(m_program, value, &len, logbuf);
+    m_log = QString::fromLatin1(logbuf);
+    if (!m_isLinked) {
+      qWarning("QOpenGLShader::link: %ls", qUtf16Printable(m_log));
+    }
+    delete[] logbuf;
+  }
+  return m_isLinked;
+}
 
 bool
 GLShaderProgram::isLinked()
 {
-  return false;
+  return m_isLinked;
 }
 
 int
-GLShaderProgram::attributeLocation(std::string const& attribute)
+GLShaderProgram::attributeLocation(const char* name)
 {
-  return -1;
+  if (m_isLinked && m_program) {
+    return glGetAttribLocation(m_program, name);
+  } else {
+    qWarning("GLShaderProgram::attributeLocation(%s): shader program is not linked", name);
+    return -1;
+  }
 }
 
 int
-GLShaderProgram::uniformLocation(std::string const& attribute)
+GLShaderProgram::uniformLocation(const char* name)
 {
-  return -1;
+  if (m_isLinked && m_program) {
+    return glGetUniformLocation(m_program, name);
+  } else {
+    qWarning("GLShaderProgram::uniformLocation(%s): shader program is not linked", name);
+    return -1;
+  }
 }
 
 void
 GLShaderProgram::enableAttributeArray(int location)
-{}
+{
+  if (location != -1) {
+    glEnableVertexAttribArray(location);
+  }
+}
 
 void
 GLShaderProgram::disableAttributeArray(int location)
-{}
+{
+  if (location != -1) {
+    glDisableVertexAttribArray(location);
+  }
+}
 
 void
 GLShaderProgram::setAttributeArray(int location, const GLfloat* values, int tupleSize, int stride)
-{}
+{
+  if (location != -1) {
+    glVertexAttribPointer(location, tupleSize, GL_FLOAT, GL_FALSE, stride, values);
+  }
+}
+
+bool
+GLShaderProgram::bind()
+{
+  if (!m_program)
+    return false;
+  if (!m_isLinked && !link())
+    return false;
+
+  glUseProgram(m_program);
+  return true;
+}
 
 void
-GLShaderProgram::bind()
-{}
+GLShaderProgram::release()
+{
+  glUseProgram(0);
+}
