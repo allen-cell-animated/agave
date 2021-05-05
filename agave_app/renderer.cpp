@@ -79,7 +79,7 @@ Renderer::init()
 
   int status = gladLoadGL();
   if (!status) {
-    LOG_INFO << m_id.toStdString() << "COULD NOT LOAD GL ON THREAD";
+    LOG_INFO << m_id.toStdString() << " COULD NOT LOAD GL ON THREAD";
   }
 
   ///////////////////////////////////
@@ -304,6 +304,7 @@ Renderer::resizeGL(int width, int height)
   fboFormat.setInternalTextureFormat(GL_RGBA8);
   this->m_fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
 
+  LOG_INFO << "resizeGL about to set glViewport";
   glViewport(0, 0, width, height);
 
   m_width = width;
