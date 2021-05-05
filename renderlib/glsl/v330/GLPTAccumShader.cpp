@@ -9,11 +9,11 @@
 #include <sstream>
 
 GLPTAccumShader::GLPTAccumShader()
-  : QOpenGLShaderProgram()
+  : GLShaderProgram()
   , vshader()
   , fshader()
 {
-  vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  vshader = new GLShader(GL_VERTEX_SHADER);
   vshader->compileSourceCode(R"(
 #version 330 core
 
@@ -36,7 +36,7 @@ void main()
     LOG_ERROR << "GLPTAccumShader: Failed to compile vertex shader\n" << vshader->log().toStdString();
   }
 
-  fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  fshader = new GLShader(GL_FRAGMENT_SHADER);
   fshader->compileSourceCode(R"(
 #version 330 core
 

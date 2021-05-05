@@ -122,6 +122,8 @@ public:
   bool bind();
   void release();
 
+  QString log() { return m_log; }
+
 private:
   // std::vector<GLShader> m_shaders;
   GLuint m_program;
