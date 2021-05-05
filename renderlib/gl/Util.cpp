@@ -384,3 +384,158 @@ GLFramebufferObject::toImage(bool include_alpha /* = false */)
 
   return img;
 }
+
+GLShader::GLShader(GLenum shaderType)
+{
+  m_isCompiled = false;
+  m_shader = glCreateShader(shaderType);
+  m_shaderType = shaderType;
+}
+
+GLShader::~GLShader()
+{
+  glDeleteShader(m_shader);
+}
+
+bool
+GLShader::compileSourceCode(const char* sourceCode)
+{
+  glShaderSource(m_shader, 1, &sourceCode, NULL);
+
+  glCompileShader(m_shader);
+
+  GLint value = 0;
+
+  // Get compilation status
+  glGetShaderiv(m_shader, GL_COMPILE_STATUS, &value);
+  m_isCompiled = (value != 0);
+
+  if (!m_isCompiled) {
+    const char* types[] = { "Fragment", "Vertex", "Geometry", "Tessellation Control", "Tessellation Evaluation",
+                            "Compute",  "" };
+
+    const char* type = types[6];
+    switch (m_shaderType) {
+      case GL_FRAGMENT_SHADER:
+        type = types[0];
+        break;
+      case GL_VERTEX_SHADER:
+        type = types[1];
+        break;
+      case GL_GEOMETRY_SHADER:
+        type = types[2];
+        break;
+      case GL_TESS_CONTROL_SHADER:
+        type = types[3];
+        break;
+      case GL_TESS_EVALUATION_SHADER:
+        type = types[4];
+        break;
+      case GL_COMPUTE_SHADER:
+        type = types[5];
+        break;
+    }
+
+    // Get info and source code lengths
+    GLint infoLogLength = 0;
+    GLint sourceCodeLength = 0;
+    char* logBuffer = nullptr;
+    char* sourceCodeBuffer = nullptr;
+
+    // Get the compilation info log
+    glGetShaderiv(m_shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+    if (infoLogLength > 1) {
+      GLint temp;
+      logBuffer = new char[infoLogLength];
+      glGetShaderInfoLog(m_shader, infoLogLength, &temp, logBuffer);
+    }
+
+    // Get the source code
+    glGetShaderiv(m_shader, GL_SHADER_SOURCE_LENGTH, &sourceCodeLength);
+
+    if (sourceCodeLength > 1) {
+      GLint temp;
+      sourceCodeBuffer = new char[sourceCodeLength];
+      glGetShaderSource(m_shader, sourceCodeLength, &temp, sourceCodeBuffer);
+    }
+
+    if (logBuffer)
+      m_log = QString::fromLatin1(logBuffer);
+    else
+      m_log = QLatin1String("failed");
+
+    qWarning("QOpenGLShader::compile(%s): %s", type, qPrintable(m_log));
+
+    // Dump the source code if we got it
+    if (sourceCodeBuffer) {
+      qWarning("*** Problematic %s shader source code ***\n"
+               "%ls\n"
+               "***",
+               type,
+               qUtf16Printable(QString::fromLatin1(sourceCodeBuffer)));
+    }
+
+    // Cleanup
+    delete[] logBuffer;
+    delete[] sourceCodeBuffer;
+  }
+
+  return m_isCompiled;
+}
+
+bool
+GLShader::isCompiled() const
+{
+  return m_isCompiled;
+}
+
+QString
+GLShader::log() const
+{
+  return m_log;
+}
+
+GLShaderProgram::GLShaderProgram() {}
+
+void
+GLShaderProgram::addShader(GLShader* shader)
+{}
+
+void
+GLShaderProgram::link()
+{}
+
+bool
+GLShaderProgram::isLinked()
+{
+  return false;
+}
+
+int
+GLShaderProgram::attributeLocation(std::string const& attribute)
+{
+  return -1;
+}
+
+int
+GLShaderProgram::uniformLocation(std::string const& attribute)
+{
+  return -1;
+}
+
+void
+GLShaderProgram::enableAttributeArray(int location)
+{}
+
+void
+GLShaderProgram::disableAttributeArray(int location)
+{}
+
+void
+GLShaderProgram::setAttributeArray(int location, const GLfloat* values, int tupleSize, int stride)
+{}
+
+void
+GLShaderProgram::bind()
+{}

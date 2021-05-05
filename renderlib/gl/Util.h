@@ -84,3 +84,42 @@ private:
   int m_width;
   int m_height;
 };
+
+class GLShader
+{
+public:
+  GLShader(GLenum shaderType);
+  ~GLShader();
+
+  bool compileSourceCode(const char* sourceCode);
+  bool isCompiled() const;
+  QString log() const;
+
+protected:
+  bool m_isCompiled;
+  GLuint m_shader;
+  GLenum m_shaderType;
+  QString m_log;
+};
+
+class GLShaderProgram
+{
+public:
+  GLShaderProgram();
+
+  void addShader(GLShader* shader);
+  void link();
+  bool isLinked();
+  int attributeLocation(std::string const& attribute);
+  int uniformLocation(std::string const& attribute);
+
+  void enableAttributeArray(int location);
+  void disableAttributeArray(int location);
+  void setAttributeArray(int location, const GLfloat* values, int tupleSize, int stride = 0);
+
+  void bind();
+
+private:
+  std::vector<GLShader> m_shaders;
+  GLuint m_program;
+};
