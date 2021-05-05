@@ -343,7 +343,8 @@ GLFramebufferObject::bind()
 void
 GLFramebufferObject::release()
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // TODO what about headless offscreen?  there is no default surface?
+  // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 int
 GLFramebufferObject::width() const
