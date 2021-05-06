@@ -182,8 +182,11 @@ OffscreenRenderer::shutDown()
   m_glContext->doneCurrent();
   delete m_glContext;
 
+#if HAS_EGL
+#else
   // schedule this to be deleted only after we're done cleaning up
   m_surface->deleteLater();
+#endif
 }
 
 // RenderInterface
