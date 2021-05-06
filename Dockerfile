@@ -43,4 +43,7 @@ RUN cd ./build && \
     make
 
 EXPOSE 1235
-CMD ["agave", "--server"]
+
+#CMD ["agave", "-platform offscreen", "--server"]
+COPY docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
