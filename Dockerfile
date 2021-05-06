@@ -1,3 +1,5 @@
+# docker build -t alleninstitute/agave_server -t alleninstitute/agave_server:1.0.0 .
+
 ### Build image ###
 FROM nvidia/cudagl:11.2.2-devel-ubuntu18.04 as build
 

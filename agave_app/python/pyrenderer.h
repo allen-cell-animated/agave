@@ -6,6 +6,8 @@
 
 #include "RenderInterface.h"
 #include "command.h"
+#include "renderlib/gl/Util.h"
+#include "renderlib/renderlib.h"
 
 #include <QList>
 #include <QObject>
@@ -110,9 +112,14 @@ protected:
   void shutDown();
 
 private:
+#if HAS_EGL
+  HeadlessGLContext* m_glContext;
+#else
   QOpenGLContext* m_glContext;
   QOffscreenSurface* m_surface;
-  QOpenGLFramebufferObject* m_fbo;
+#endif
+
+  GLFramebufferObject* m_fbo;
 
   int32_t m_width, m_height;
 

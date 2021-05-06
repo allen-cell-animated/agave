@@ -299,12 +299,6 @@ Renderer::resizeGL(int width, int height)
   }
 
   delete this->m_fbo;
-  // QOpenGLFramebufferObjectFormat fboFormat;
-  // fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-  // fboFormat.setMipmap(false);
-  // fboFormat.setSamples(0);
-  // fboFormat.setTextureTarget(GL_TEXTURE_2D);
-  // fboFormat.setInternalTextureFormat(GL_RGBA8);
   LOG_INFO << "creating GLFramebufferObject";
   this->m_fbo = new GLFramebufferObject(width, height, GL_RGBA8);
 
