@@ -8,7 +8,7 @@
 
 struct Histogram
 {
-  Histogram(uint16_t* data, size_t length, size_t bins = 256);
+  Histogram(uint16_t* data, size_t length, size_t bins = 512);
 
   static const float DEFAULT_PCT_LOW;
   static const float DEFAULT_PCT_HIGH;
@@ -36,6 +36,8 @@ struct Histogram
   float* generate_controlPoints(std::vector<LutControlPoint> pts, size_t length = 256) const;
   float* generate_equalized(size_t length = 256) const;
 
+  uint16_t dataRange() const {return _dataMax-_dataMin;}
+  
   // Determine center values for first and last bins, and bin size.
   void bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const;
   std::vector<uint32_t> bin_counts(uint32_t nbins);

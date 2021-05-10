@@ -14,6 +14,8 @@ public:
   // load a volume
   virtual int LoadOmeTif(const std::string&) = 0;
   virtual int LoadVolumeFromFile(const std::string&, int, int) = 0;
+  // change load same volume file, different time index
+  virtual int SetTime(int) = 0;
   // set camera pos
   virtual int Eye(float, float, float) = 0;
   // set camera target pt

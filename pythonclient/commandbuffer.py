@@ -67,6 +67,7 @@ COMMANDS = {
     "SET_CONTROL_POINTS": [38, "I32", "F32A"],
     # path, scene, time
     "LOAD_VOLUME_FROM_FILE": [39, "S", "I32", "I32"],
+    "SET_TIME": [40, "I32"],
 }
 
 

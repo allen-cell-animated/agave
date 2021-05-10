@@ -196,9 +196,17 @@ OffscreenRenderer::LoadOmeTif(const std::string& s)
 }
 // load a volume
 int
-OffscreenRenderer::LoadVolumeFromFile(const std::string& s, int time, int scene)
+OffscreenRenderer::LoadVolumeFromFile(const std::string& s, int scene, int time)
 {
   LoadVolumeFromFileCommand cmd({ s, scene, time });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// change load same volume file, different time index
+int
+OffscreenRenderer::SetTime(int time)
+{
+  SetTimeCommand cmd({ time });
   cmd.execute(&m_ec);
   return 1;
 }
@@ -295,6 +303,7 @@ OffscreenRenderer::Redraw()
 {
   m_lastRenderedImage = this->render();
   m_lastRenderedImage.save(QString::fromStdString(m_session));
+  LOG_DEBUG << "Saved image " << m_session;
   return 1;
 }
 int

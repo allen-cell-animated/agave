@@ -41,13 +41,15 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
     }
   }
   //	float fval;
-  float range = (float)(_dataMax - _dataMin);
+  float rangeMin = (float)_dataMin;
+  float rangeMax = (float)_dataMax;
+  float range = (float)(rangeMax - rangeMin);
   if (range == 0.0f) {
     range = 1.0f;
   }
   float binmax = (float)(num_bins - 1);
   for (size_t i = 0; i < length; ++i) {
-    size_t whichbin = (size_t)((float)(data[i] - _dataMin) / range * binmax + 0.5);
+    size_t whichbin = (size_t)((float)(data[i] - rangeMin) / range * binmax + 0.5);
     //		val = data[i];
     //		// normalize to 0..1 range
     //		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.

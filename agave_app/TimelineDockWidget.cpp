@@ -44,8 +44,9 @@ QTimelineWidget::QTimelineWidget(QWidget* pParent, QRenderSettings* qrs)
 }
 
 void
-QTimelineWidget::onNewImage(Scene* s, std::string filepath)
+QTimelineWidget::onNewImage(Scene* s, std::string filepath, int sceneIndex)
 {
+  m_currentScene = sceneIndex;
   m_scene = s;
   m_filepath = filepath;
 
@@ -69,23 +70,29 @@ QTimelineWidget::OnTimeChanged(int newTime)
     return;
   }
   if (m_scene->m_timeLine.currentTime() != newTime) {
-    m_scene->m_timeLine.setCurrentTime(newTime);
     // assume a new time sample will have same exact channel configuration and dimensions as previous time.
     // we are just updating volume data.
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, 0);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, m_currentScene);
     QApplication::restoreOverrideCursor();
     if (!image) {
       // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
-      LOG_DEBUG << "Failed to open " << m_filepath;
+      LOG_DEBUG << "Failed to open " << m_filepath << " at scene " << m_currentScene << " at time " << newTime;
       return;
     }
+
+    // remap LUTs to preserve absolute thresholding
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      GradientData& lutInfo = m_scene->m_material.m_gradientData[i];
+      lutInfo.convert(m_scene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
+
+      image->channel(i)->generateFromGradientData(lutInfo);
+    }
+
+    m_scene->m_timeLine.setCurrentTime(newTime);
     m_scene->m_volume = image;
 
     // TODO update the AppearanceSettings channel gui with new Histograms
-    for (uint32_t i = 0; i < m_scene->m_volume->sizeC(); ++i) {
-      m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
-    }
 
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);

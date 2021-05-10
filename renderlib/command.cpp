@@ -38,6 +38,9 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
       return;
     }
 
+    c->m_currentFilePath = m_data.m_name;
+    c->m_currentScene = 0;
+
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
 
@@ -248,7 +251,11 @@ void
 SetWindowLevelCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetWindowLevel " << m_data.m_channel << " " << m_data.m_window << " " << m_data.m_level;
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_windowLevel(m_data.m_window, m_data.m_level);
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::WINDOW_LEVEL;
+  lutInfo.m_window = m_data.m_window;
+  lutInfo.m_level = m_data.m_level;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void
@@ -325,25 +332,37 @@ void
 AutoThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "AutoThreshold " << m_data.m_channel << " " << m_data.m_method;
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+
   switch (m_data.m_method) {
     case 0:
+      // TODO generate custom control points for a CUSTOM GradientEditMode 
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2();
       break;
     case 1:
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto();
       break;
     case 2:
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_bestFit();
       break;
     case 3:
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_chimerax();
       break;
     case 4:
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
+      lutInfo.m_activeMode = GradientEditMode::PERCENTILE;
+      lutInfo.m_pctLow = Histogram::DEFAULT_PCT_LOW;
+      lutInfo.m_pctHigh = Histogram::DEFAULT_PCT_HIGH;
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
       break;
     default:
       LOG_WARNING << "AutoThreshold got unexpected method parameter " << m_data.m_method;
-      c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles();
+      lutInfo.m_activeMode = GradientEditMode::PERCENTILE;
+      lutInfo.m_pctLow = Histogram::DEFAULT_PCT_LOW;
+      lutInfo.m_pctHigh = Histogram::DEFAULT_PCT_HIGH;
+      c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
       break;
   }
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
@@ -352,7 +371,11 @@ void
 SetPercentileThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetPercentileThreshold " << m_data.m_channel << " " << m_data.m_pctLow << " " << m_data.m_pctHigh;
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_percentiles(m_data.m_pctLow, m_data.m_pctHigh);
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::PERCENTILE;
+  lutInfo.m_pctLow = m_data.m_pctLow;
+  lutInfo.m_pctHigh = m_data.m_pctHigh;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 void
@@ -391,17 +414,11 @@ SetIsovalueThresholdCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetIsovalueThreshold " << m_data.m_channel << " " << m_data.m_isovalue << " " << m_data.m_isorange;
 
-  std::vector<LutControlPoint> stops;
-  float lowEnd = m_data.m_isovalue - m_data.m_isorange * 0.5;
-  float highEnd = m_data.m_isovalue + m_data.m_isorange * 0.5;
-  // TODO check for lowEnd <=0 or highEnd >= 1 ???
-  stops.push_back({ 0.0, 0.0 });
-  stops.push_back({ lowEnd, 0.0 });
-  stops.push_back({ lowEnd, 1.0 });
-  stops.push_back({ highEnd, 1.0 });
-  stops.push_back({ highEnd, 0.0 });
-  stops.push_back({ 1.0, 0.0 });
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::ISOVALUE;
+  lutInfo.m_isorange = m_data.m_isorange;
+  lutInfo.m_isovalue = m_data.m_isovalue;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -410,7 +427,8 @@ SetControlPointsCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetControlPoints " << m_data.m_channel;
   // TODO debug print the data
-
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::CUSTOM;
   std::vector<LutControlPoint> stops;
   // 5 floats per stop.  first is position, next four are rgba.  use a only, for now.
   // TODO SHOULD PARSE DO THIS JOB?
@@ -418,7 +436,9 @@ SetControlPointsCommand::execute(ExecutionContext* c)
     stops.push_back({ m_data.m_data[i * 5], m_data.m_data[i * 5 + 4] });
   }
 
-  c->m_appScene->m_volume->channel(m_data.m_channel)->generate_controlPoints(stops);
+  lutInfo.m_customControlPoints = stops;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
+
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -434,6 +454,9 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     if (!image) {
       return;
     }
+
+    c->m_currentFilePath = m_data.m_path;
+    c->m_currentScene = m_data.m_scene;
 
     c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
@@ -457,6 +480,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+
     // fire back some json immediately...
     QJsonObject j;
     j["commandId"] = (int)LoadOmeTifCommand::m_ID;
@@ -481,6 +505,69 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
+  }
+}
+
+void
+SetTimeCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetTime command: "
+            << " T=" << m_data.m_time;
+
+  // setting same time is a no-op.
+  if (m_data.m_time == c->m_appScene->m_timeLine.currentTime()) {
+    return;
+  }
+
+  QFileInfo info(QString(c->m_currentFilePath.c_str()));
+  if (info.exists()) {
+    VolumeDimensions dims;
+    // note T and S args are swapped in order here. this is intentional.
+    std::shared_ptr<ImageXYZC> image =
+      FileReader::loadFromFile(c->m_currentFilePath, &dims, m_data.m_time, c->m_currentScene);
+    if (!image) {
+      return;
+    }
+
+    c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+
+    // we expect the scene volume dimensions to be the same; we want to preserve all view settings here.
+    // BUT we want to convert the old lookup tables to new lookup tables
+    // if we are preserving absolute transfer function settings
+
+    // assume sizeC is same for both previous image and new image!
+    if (image->sizeC() != c->m_appScene->m_volume->sizeC()) {
+      LOG_ERROR << "Channel count mismatch for different times in same file";
+    }
+
+    // remap LUTs to preserve absolute thresholding
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
+      lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
+
+      image->channel(i)->generateFromGradientData(lutInfo);
+    }
+
+    // now we're ready to lose the old channel histograms
+    c->m_appScene->m_volume = image;
+
+    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+    c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+
+    // fire back some json immediately...
+    QJsonObject j;
+    j["commandId"] = (int)SetTimeCommand::m_ID;
+    QJsonArray channelMaxIntensity;
+    for (uint32_t i = 0; i < image->sizeC(); ++i) {
+      channelMaxIntensity.append(image->channel(i)->m_max);
+    }
+    j["channel_max_intensity"] = channelMaxIntensity;
+
+    QJsonDocument doc(j);
+    c->m_message = doc.toJson().toStdString();
+  } else {
+    LOG_WARNING << "SetTime command called without a file loaded";
   }
 }
 
@@ -835,6 +922,14 @@ LoadVolumeFromFileCommand::parse(ParseableStream* c)
   data.m_scene = c->parseInt32();
   data.m_time = c->parseInt32();
   return new LoadVolumeFromFileCommand(data);
+}
+
+SetTimeCommand*
+SetTimeCommand::parse(ParseableStream* c)
+{
+  SetTimeCommandD data;
+  data.m_time = c->parseInt32();
+  return new SetTimeCommand(data);
 }
 
 std::string
@@ -1208,6 +1303,18 @@ LoadVolumeFromFileCommand::toPythonString() const
 
   ss << "\"" << m_data.m_path << "\", ";
   ss << m_data.m_scene << ", " << m_data.m_time;
+
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetTimeCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_time;
 
   ss << ")";
   return ss.str();

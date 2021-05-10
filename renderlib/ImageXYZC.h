@@ -32,11 +32,6 @@ struct Channelu16
     m_lut = m_histogram.generateFromGradientData(gradientData);
   }
 
-  void generate_windowLevel(float window, float level)
-  {
-    delete[] m_lut;
-    m_lut = m_histogram.generate_windowLevel(window, level);
-  }
   void generate_auto2()
   {
     delete[] m_lut;
@@ -57,20 +52,11 @@ struct Channelu16
     delete[] m_lut;
     m_lut = m_histogram.initialize_thresholds();
   }
-  void generate_controlPoints(std::vector<LutControlPoint> pts)
-  {
-    delete[] m_lut;
-    m_lut = m_histogram.generate_controlPoints(pts);
-  }
+
   void generate_equalized()
   {
     delete[] m_lut;
     m_lut = m_histogram.generate_equalized();
-  }
-  void generate_percentiles(float lo = Histogram::DEFAULT_PCT_LOW, float hi = Histogram::DEFAULT_PCT_HIGH)
-  {
-    delete[] m_lut;
-    m_lut = m_histogram.generate_percentiles(lo, hi);
   }
 
   void debugprint();

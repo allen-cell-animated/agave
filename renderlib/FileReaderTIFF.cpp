@@ -126,6 +126,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
   // convert to QString for convenience functions
   QString imagedescriptionQString(imagedescription);
+  imagedescriptionQString = imagedescriptionQString.trimmed();
 
   // check for plain tiff with ImageJ imagedescription:
   if (imagedescriptionQString.startsWith("ImageJ=")) {

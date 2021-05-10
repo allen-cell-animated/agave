@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+struct Histogram;
 
 using LutControlPoint = std::pair<float, float>;
 
@@ -22,4 +23,6 @@ struct GradientData
   float m_pctLow = 0.5f;
   float m_pctHigh = 0.98f;
   std::vector<LutControlPoint> m_customControlPoints = { { 0.0, 0.0 }, { 1.0, 1.0 } };
+
+  void convert(const Histogram& oldHistogram, const Histogram& newHistogram);
 };
