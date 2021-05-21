@@ -6,6 +6,8 @@
 # export DISPLAY=:99
 
 cd /agave/build
-agave -platform offscreen --server
+# agave -platform offscreen --server
 
+file="$(agave -platform offscreen --server)" && echo $file
+echo $(agave -platform offscreen --server)
 # kill $XVFB_PROC
