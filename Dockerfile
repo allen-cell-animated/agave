@@ -30,6 +30,9 @@ ENV QT_VERSION=5.15.2
 RUN pip3 install aqtinstall
 RUN aqt install --outputdir /qt ${QT_VERSION} linux desktop gcc_64
 
+# required for qt offscreen platform plugin
+RUN apt-get install -y libfontconfig
+
 # copy agave project
 COPY . /agave
 RUN rm -rf /agave/build/*
