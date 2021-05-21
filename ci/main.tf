@@ -84,7 +84,7 @@ resource "aws_iam_role" "agave_ecs_agent" {
 }
 resource "aws_iam_role_policy_attachment" "agave_ecs_agent" {
   role       = aws_iam_role.agave_ecs_agent.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceForEC2Role"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 resource "aws_iam_instance_profile" "agave_instance_profile" {
   name = "agave-instance-profile"
@@ -169,11 +169,12 @@ resource "aws_ecs_task_definition" "agave_task" {
 
 
 resource "aws_ecs_service" "agave_service" {
-  name            = "agave-service"                        # Naming our first service
-  cluster         = aws_ecs_cluster.agave_cluster.id       # Referencing our created Cluster
-  task_definition = aws_ecs_task_definition.agave_task.arn # Referencing the task our service will spin up
-  launch_type     = "EC2"
-  desired_count   = 1
+  name                       = "agave-service"                        # Naming our first service
+  cluster                    = aws_ecs_cluster.agave_cluster.id       # Referencing our created Cluster
+  task_definition            = aws_ecs_task_definition.agave_task.arn # Referencing the task our service will spin up
+  launch_type                = "EC2"
+  desired_count              = 1
+  deployment_maximum_percent = 200
 
   # network_configuration {
   #   subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}", "${aws_default_subnet.default_subnet_c.id}"]
