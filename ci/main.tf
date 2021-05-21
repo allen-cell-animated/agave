@@ -108,8 +108,11 @@ resource "aws_launch_configuration" "ecs_launch_config" {
   image_id             = "ami-0a8c654409fed3d9a"
   iam_instance_profile = aws_iam_instance_profile.agave_instance_profile.name
   security_groups      = [aws_security_group.agave_security_group.id]
-  user_data            = "#!/bin/bash\necho ECS_CLUSTER=my-cluster >> /etc/ecs/ecs.config"
+  user_data            = "#!/bin/bash\necho ECS_CLUSTER=agave-cluster >> /etc/ecs/ecs.config"
   instance_type        = "g3s.xlarge"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 resource "aws_autoscaling_group" "failure_analysis_ecs_asg" {
   name                      = "asg"
@@ -120,6 +123,45 @@ resource "aws_autoscaling_group" "failure_analysis_ecs_asg" {
   max_size                  = 1
   health_check_grace_period = 300
   health_check_type         = "EC2"
+  lifecycle {
+    create_before_destroy = true
+  }
+  tag {
+    key                 = "AmazonECSManaged"
+    value               = ""
+    propagate_at_launch = true
+  }
+}
+resource "aws_ecs_capacity_provider" "agave_capacity_provider" {
+  name = "test"
+
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.failure_analysis_ecs_asg.arn
+    # managed_termination_protection = "ENABLED"
+
+    # managed_scaling {
+    #   maximum_scaling_step_size = 1
+    #   minimum_scaling_step_size = 1
+    #   status                    = "ENABLED"
+    #   target_capacity           = 1
+    # }
+  }
+}
+resource "aws_ecs_cluster" "agave_cluster" {
+  name               = "agave-cluster" # Naming the cluster
+  capacity_providers = [aws_ecs_capacity_provider.agave_capacity_provider.name]
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.agave_capacity_provider.name
+    base              = 1
+    weight            = 100
+  }
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
@@ -141,17 +183,13 @@ resource "aws_ecr_repository" "agave_ecr_repo" {
 # 4. Run the following command to push this image to your newly created AWS repository:
 # docker push 769425812337.dkr.ecr.us-west-2.amazonaws.com/agave-ecr-repo:latest
 
-resource "aws_ecs_cluster" "agave_cluster" {
-  name = "agave-cluster" # Naming the cluster
-}
-
 resource "aws_ecs_task_definition" "agave_task" {
   family                = "agave-task" # Naming our first task
   container_definitions = <<DEFINITION
   [
     {
       "name": "agave-task",
-      "image": "${aws_ecr_repository.agave_ecr_repo.repository_url}",
+      "image": "${aws_ecr_repository.agave_ecr_repo.repository_url}:latest",
       "essential": true,
       "portMappings": [
         {
@@ -159,9 +197,23 @@ resource "aws_ecs_task_definition" "agave_task" {
           "hostPort": 1235
         }
       ],
-      "memory": 512,
+      "memory": 4096,
       "cpu": 4096,
-      "gpu": 1
+      "gpu": 1,
+      "resourceRequirements": [
+        { 
+          "type" : "GPU",
+          "value" : "1"
+        }
+      ],
+      "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "agaveloggroup",
+            "awslogs-region": "us-west-2",
+            "awslogs-stream-prefix": "agave"
+          }
+        }
     }
   ]
   DEFINITION
@@ -182,4 +234,8 @@ resource "aws_ecs_service" "agave_service" {
   #   security_groups  = ["${aws_security_group.agave_security_group.id}"] # Setting the security group
   # }
 }
+
+# aws ecs update-service --cluster agave-cluster --service agave-service --force-new-deployment
+
+
 
