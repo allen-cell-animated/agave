@@ -14,7 +14,11 @@ RUN mkdir /agave && \
     libtiff-dev \
     libglm-dev \
     libgl1-mesa-dev \
-    libegl1-mesa-dev
+    libegl1-mesa-dev \
+    libgles2-mesa \
+    libegl1 \
+    xvfb \
+    xauth
 
 # get a current cmake
 RUN apt-get update && apt-get install -y software-properties-common
