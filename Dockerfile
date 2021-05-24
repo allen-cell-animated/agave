@@ -54,6 +54,11 @@ RUN cd ./build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make
 
+RUN mkdir /agavedata
+RUN cp AICS-11_409.ome.tif /agavedata/
+RUN cp AICS-12_881.ome.tif /agavedata/
+RUN cp AICS-13_319.ome.tif /agavedata/
+
 EXPOSE 1235
 
 #CMD ["agave", "-platform offscreen", "--server"]

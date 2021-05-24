@@ -1,6 +1,6 @@
 //var wsUri = "ws://localhost:1235";
-var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
-
+//var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
+var wsUri = "ws://ec2-54-212-39-244.us-west-2.compute.amazonaws.com:1235";
 var binarysocket0 = null; //handles requests for image streaming target #1
 //var binarysocket1 = null; //handles requests for image streaming target #2
 var jsonsocket0 = null; //handles requests for dynamically populating the menu entries based on server feedback
@@ -40,8 +40,7 @@ var gui;
 function setupGui() {
   effectController = {
     resolution: "512x512",
-    file:
-      "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
+    file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
     density: 50.0,
     exposure: 0.75,
     aperture: 0.0,
