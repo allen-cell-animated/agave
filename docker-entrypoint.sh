@@ -6,8 +6,8 @@
 # export DISPLAY=:99
 
 cd /agave/build
-# ./agave -platform offscreen --server
+./agave -platform offscreen --server
 
-file="$(QT_DEBUG_PLUGINS=1 ./agave -platform offscreen --server)" && echo $file
+# file="$(QT_DEBUG_PLUGINS=1 ./agave -platform offscreen --server)" && echo $file
 # echo $(./agave -platform offscreen --server)
 # kill $XVFB_PROC
