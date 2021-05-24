@@ -110,6 +110,11 @@ renderlib::initialize(bool headless)
 
     // 1. Initialize EGL
     eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    LOG_INFO << "eglGetDisplay returns " << eglDpy;
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
+    }
+
     EGLint major, minor;
 
     EGLBoolean init_ok = eglInitialize(eglDpy, &major, &minor);
