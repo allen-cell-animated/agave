@@ -115,12 +115,14 @@ resource "aws_iam_instance_profile" "agave_instance_profile" {
 # Value
 # ami-0a8c654409fed3d9a
 
+# I manually created the Key Pair "agave-ecs"
 resource "aws_launch_configuration" "ecs_launch_config" {
   image_id             = "ami-0a8c654409fed3d9a"
   iam_instance_profile = aws_iam_instance_profile.agave_instance_profile.name
   security_groups      = [aws_security_group.agave_security_group.id]
   user_data            = "#!/bin/bash\necho ECS_CLUSTER=agave-cluster >> /etc/ecs/ecs.config"
   instance_type        = "g3s.xlarge"
+  key_name             = "agave-ecs"
   lifecycle {
     create_before_destroy = true
   }
