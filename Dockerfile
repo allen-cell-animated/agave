@@ -15,7 +15,7 @@ RUN mkdir /agave && \
     libglm-dev \
     libgl1-mesa-dev \
     libegl1-mesa-dev \
-    libgles2-mesa \
+    libgles2-mesa-dev \
     libegl1 \
     xvfb \
     xauth
