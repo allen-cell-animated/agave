@@ -7,27 +7,34 @@ terraform {
   }
 }
 provider "aws" {
-  region  = "us-west-2"
+  region = "us-west-2"
+  # this is specific to the way MY (danielt) credentials are stored for now.
   profile = "animatedcell"
 }
 
-# Providing a reference to our default VPC
+# generic default
 resource "aws_default_vpc" "default_vpc" {
 }
 
-# Providing a reference to our default subnets
+# generic default
 resource "aws_default_subnet" "default_subnet_a" {
   availability_zone = "us-west-2a"
 }
 
+# generic default
 resource "aws_default_subnet" "default_subnet_b" {
   availability_zone = "us-west-2b"
 }
 
+# generic default
 resource "aws_default_subnet" "default_subnet_c" {
   availability_zone = "us-west-2c"
 }
 
+# we want to allow access over
+# port 22 for SSH, 
+# port 443 for the docker pull, 
+# and the application ports (for agave, 1235)
 resource "aws_security_group" "agave_security_group" {
   # SSH access from anywhere
   ingress {
@@ -92,10 +99,14 @@ resource "aws_iam_instance_profile" "agave_instance_profile" {
 }
 
 
-# create an autoscaling group
+# create an autoscaling group and tie it to an ECS cluster/service
+
+# (1) the lightest/cheapest GPU server is this one:
 
 # g3s.xlarge
 # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-gpu.html
+
+# (2) this is the AMI that has gpu+ECS compatibility:
 
 # aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended
 # https://us-west-2.console.aws.amazon.com/systems-manager/parameters/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id/description?region=us-west-2#
@@ -137,14 +148,6 @@ resource "aws_ecs_capacity_provider" "agave_capacity_provider" {
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.failure_analysis_ecs_asg.arn
-    # managed_termination_protection = "ENABLED"
-
-    # managed_scaling {
-    #   maximum_scaling_step_size = 1
-    #   minimum_scaling_step_size = 1
-    #   status                    = "ENABLED"
-    #   target_capacity           = 1
-    # }
   }
 }
 resource "aws_ecs_cluster" "agave_cluster" {
@@ -169,20 +172,6 @@ resource "aws_ecr_repository" "agave_ecr_repo" {
   name = "agave-ecr-repo"
 }
 
-# 1. Retrieve an authentication token and authenticate your Docker client to your registry.
-# Use the AWS CLI: (DMT: use --profile animatedcell in the aws command)
-# aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 769425812337.dkr.ecr.us-west-2.amazonaws.com
-
-# Note: If you receive an error using the AWS CLI, make sure that you have the latest version of the AWS CLI and Docker installed.
-# 2. Build your Docker image using the following command. For information on building a Docker file from scratch see the instructions here . You can skip this step if your image is already built:
-# docker build -t agave-ecr-repo .
-
-# 3. After the build completes, tag your image so you can push the image to this repository:
-# docker tag agave-ecr-repo:latest 769425812337.dkr.ecr.us-west-2.amazonaws.com/agave-ecr-repo:latest
-
-# 4. Run the following command to push this image to your newly created AWS repository:
-# docker push 769425812337.dkr.ecr.us-west-2.amazonaws.com/agave-ecr-repo:latest
-
 resource "aws_ecs_task_definition" "agave_task" {
   family                = "agave-task" # Naming our first task
   container_definitions = <<DEFINITION
@@ -205,15 +194,7 @@ resource "aws_ecs_task_definition" "agave_task" {
           "type" : "GPU",
           "value" : "1"
         }
-      ],
-      "logConfiguration": {
-          "logDriver": "awslogs",
-          "options": {
-            "awslogs-group": "agaveloggroup",
-            "awslogs-region": "us-west-2",
-            "awslogs-stream-prefix": "agave"
-          }
-        }
+      ]
     }
   ]
   DEFINITION
@@ -227,15 +208,29 @@ resource "aws_ecs_service" "agave_service" {
   launch_type                = "EC2"
   desired_count              = 1
   deployment_maximum_percent = 200
-
-  # network_configuration {
-  #   subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}", "${aws_default_subnet.default_subnet_c.id}"]
-  #   assign_public_ip = true                                                # Providing our containers with public IPs
-  #   security_groups  = ["${aws_security_group.agave_security_group.id}"] # Setting the security group
-  # }
 }
+
+# to force an image update:
 
 # aws ecs update-service --cluster agave-cluster --service agave-service --force-new-deployment
 
+# 1. Retrieve an authentication token and authenticate your Docker client to your registry.
+# Use the AWS CLI: (DMT: use --profile animatedcell in the aws command, specific to how my credentials are stored)
+#
+# aws ecr get-login-password --region us-west-2 --profile animatedcell | docker login --username AWS --password-stdin 769425812337.dkr.ecr.us-west-2.amazonaws.com
+
+
+# Note: If you receive an error using the AWS CLI, make sure that you have the latest version of the AWS CLI and Docker installed.
+# 2. Build your Docker image using the following command. For information on building a Docker file from scratch see the instructions here . You can skip this step if your image is already built:
+#
+# docker build -t agave-ecr-repo .
+
+# 3. After the build completes, tag your image so you can push the image to this repository:
+#
+# docker tag agave-ecr-repo:latest 769425812337.dkr.ecr.us-west-2.amazonaws.com/agave-ecr-repo:latest
+
+# 4. Run the following command to push this image to your newly created AWS repository:
+#
+# docker push 769425812337.dkr.ecr.us-west-2.amazonaws.com/agave-ecr-repo:latest
 
 
