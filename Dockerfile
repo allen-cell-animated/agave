@@ -7,6 +7,7 @@ FROM nvidia/cudagl:11.2.2-devel-ubuntu18.04 as build
 RUN mkdir /agave && \
     mkdir /agave/build && \
     apt-get update && apt-get install -y \
+    apt-utils \
     build-essential \
     git \
     wget \
