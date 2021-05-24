@@ -21,9 +21,11 @@ RUN mkdir /agave && \
     xauth
 
 # get a current cmake
-RUN apt-get update && apt-get install -y software-properties-common
+RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg software-properties-common
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+RUN apt-get install kitware-archive-keyring
+RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
 RUN apt-get update && apt-get install -y cmake
 
 # get python
