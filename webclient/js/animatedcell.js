@@ -1,6 +1,6 @@
 //var wsUri = "ws://localhost:1235";
 //var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
-var wsUri = "ws://ec2-54-212-39-244.us-west-2.compute.amazonaws.com:1235";
+var wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
 var binarysocket0 = null; //handles requests for image streaming target #1
 //var binarysocket1 = null; //handles requests for image streaming target #2
 var jsonsocket0 = null; //handles requests for dynamically populating the menu entries based on server feedback
