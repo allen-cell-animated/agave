@@ -1,3 +1,7 @@
+#########################################
+## EXPERIMENTAL, Not ready for production
+#########################################
+
 terraform {
   required_providers {
     aws = {
@@ -32,8 +36,8 @@ resource "aws_default_subnet" "default_subnet_c" {
 }
 
 # we want to allow access over
-# port 22 for SSH, 
-# port 443 for the docker pull, 
+# port 22 for SSH,
+# port 443 for the docker pull,
 # and the application ports (for agave, 1235)
 resource "aws_security_group" "agave_security_group" {
   # SSH access from anywhere
@@ -70,7 +74,7 @@ resource "aws_security_group" "agave_security_group" {
   egress {
     from_port   = 0             # Allowing any incoming port
     to_port     = 0             # Allowing any outgoing port
-    protocol    = "-1"          # Allowing any outgoing protocol 
+    protocol    = "-1"          # Allowing any outgoing protocol
     cidr_blocks = ["0.0.0.0/0"] # Allowing traffic out to all IP addresses
   }
 }
@@ -192,7 +196,7 @@ resource "aws_ecs_task_definition" "agave_task" {
       "cpu": 4096,
       "gpu": 1,
       "resourceRequirements": [
-        { 
+        {
           "type" : "GPU",
           "value" : "1"
         }
