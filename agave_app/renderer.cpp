@@ -281,7 +281,6 @@ void
 Renderer::resizeGL(int width, int height)
 {
   if ((width == m_width) && (height == m_height)) {
-    LOG_INFO << "resizing with same size; early exit";
     return;
   }
   m_openGLMutex->lock();
@@ -293,16 +292,12 @@ Renderer::resizeGL(int width, int height)
 #endif
   // RESIZE THE RENDER INTERFACE
   if (m_myVolumeData.m_renderer) {
-    LOG_INFO << "resizeGL entering volume renderer resize";
     m_myVolumeData.m_renderer->resize(width, height);
-    LOG_INFO << "resizeGL completed volume renderer resize";
   }
 
   delete this->m_fbo;
-  LOG_INFO << "creating GLFramebufferObject";
   this->m_fbo = new GLFramebufferObject(width, height, GL_RGBA8);
 
-  LOG_INFO << "resizeGL about to set glViewport";
   glViewport(0, 0, width, height);
 
   m_width = width;
