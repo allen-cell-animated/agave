@@ -1,5 +1,3 @@
-# docker build -t alleninstitute/agave_server -t alleninstitute/agave_server:1.0.0 .
-
 ### Build image ###
 FROM nvidia/cudagl:11.2.2-devel-ubuntu18.04 as build
 
@@ -54,14 +52,14 @@ RUN cd ./build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make
 
-RUN mkdir /agavedata
-RUN cp AICS-11_409.ome.tif /agavedata/
-RUN cp AICS-12_881.ome.tif /agavedata/
-RUN cp AICS-13_319.ome.tif /agavedata/
+# leaving this here to show how to load example data into docker image
+# RUN mkdir /agavedata
+# RUN cp AICS-11_409.ome.tif /agavedata/
+# RUN cp AICS-12_881.ome.tif /agavedata/
+# RUN cp AICS-13_319.ome.tif /agavedata/
 
 EXPOSE 1235
 
-#CMD ["agave", "-platform offscreen", "--server"]
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ["chmod", "+x", "/usr/local/bin/docker-entrypoint.sh"]
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
