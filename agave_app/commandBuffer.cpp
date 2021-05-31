@@ -90,6 +90,8 @@ commandBuffer::processBuffer()
           CMD_CASE(SetPrimaryRayStepSizeCommand);
           CMD_CASE(SetSecondaryRayStepSizeCommand);
           CMD_CASE(SetBackgroundColorCommand);
+          CMD_CASE(SetIsovalueThresholdCommand);
+          CMD_CASE(SetControlPointsCommand);
           CMD_CASE(LoadVolumeFromFileCommand);
           CMD_CASE(SetTimeCommand);
           default:
