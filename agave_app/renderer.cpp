@@ -90,7 +90,7 @@ Renderer::init()
 
   int MaxSamples = 0;
   glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
-  LOG_INFO << m_id.toStdString() << "max samples" << MaxSamples;
+  LOG_INFO << m_id.toStdString() << " max samples" << MaxSamples;
 
   glEnable(GL_MULTISAMPLE);
 
