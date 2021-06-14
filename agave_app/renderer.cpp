@@ -232,18 +232,17 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 
   std::vector<Command*> cmds = rr->getParameters();
   if (cmds.size() > 0) {
-    ExecutionContext ec;
-    ec.m_renderSettings = m_myVolumeData.m_renderSettings;
-    ec.m_renderer = this;
-    ec.m_appScene = m_myVolumeData.m_scene;
-    ec.m_camera = m_myVolumeData.m_camera;
-    ec.m_message = "";
+    m_ec.m_renderSettings = m_myVolumeData.m_renderSettings;
+    m_ec.m_renderer = this;
+    m_ec.m_appScene = m_myVolumeData.m_scene;
+    m_ec.m_camera = m_myVolumeData.m_camera;
+    m_ec.m_message = "";
 
     for (auto i = cmds.begin(); i != cmds.end(); ++i) {
-      (*i)->execute(&ec);
-      if (!ec.m_message.empty()) {
-        emit sendString(rr, QString::fromStdString(ec.m_message));
-        ec.m_message = "";
+      (*i)->execute(&m_ec);
+      if (!m_ec.m_message.empty()) {
+        emit sendString(rr, QString::fromStdString(m_ec.m_message));
+        m_ec.m_message = "";
       }
     }
   }

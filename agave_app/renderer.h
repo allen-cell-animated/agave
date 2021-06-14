@@ -116,6 +116,8 @@ private:
     {}
   } m_myVolumeData;
 
+  ExecutionContext m_ec;
+
 signals:
   void kill();
   void requestProcessed(RenderRequest* request, QImage img);
