@@ -9,16 +9,25 @@ The code is currently organized into two main sections:
 
 How to build from source:
 
-For windows:
+After cloning this repo, initialize the submodules, which contain a couple of dependency libraries:
+
+```
+git submodule update --init
+```
+
+For WINDOWS:
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
-Use official install of Qt LTS 5.15.2.
-In your favorite python virtual environment:
+Install Qt LTS 5.15.2.
+In your favorite Python virtual environment:
+
 ```
 pip install aqtinstall
 aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
 ```
+
 Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64-windows.
+
 ```
 vcpkg install boost tiff glm --triplet x64-windows
 ```
@@ -33,10 +42,13 @@ cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visua
 cmake --build .
 ```
 
-For Mac: (using homebrew)
+For MAC OS: (using homebrew)
 
 ```
-# use official install of Qt for Mac
+# Install Qt. In your favorite Python virtual environment:
+pip install aqtinstall
+aqt install --outputdir ~/Qt 5.15.2 mac desktop
+export Qt_DIR=~/Qt/5.15.2/clang_64
 # and then:
 brew install boost glm libtiff
 
@@ -49,21 +61,23 @@ make
 sudo make install
 ```
 
-OR
+For LINUX:
+
+Install Qt 5.15.2 in your directory of choice and tell the build where to find it.
+In your favorite Python virtual environment:
 
 ```
-cmake -G Xcode ..
+pip install aqtinstall
+aqt install --outputdir ~/Qt 5.15.2 linux desktop
+# the next line is needed for CMake
+export Qt_DIR=~/Qt/5.15.2/gcc_64
 ```
-
-For linux:
 
 - sudo apt install libboost-all-dev
 - sudo apt install libtiff-dev
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
-
-- use official Qt 5.15.2 installer for linux and install into default location (~/Qt)
 
 ```
 mkdir build
