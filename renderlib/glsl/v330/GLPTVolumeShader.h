@@ -2,9 +2,9 @@
 
 #include "glad/glad.h"
 
-#include <QOpenGLShaderProgram>
-
 #include "CCamera.h"
+#include "gl/Util.h"
+
 #include <glm.h>
 
 #define MAX_GL_CHANNELS 4
@@ -14,7 +14,7 @@ struct PathTraceRenderSettings;
 struct ImageGpu;
 class Scene;
 
-class GLPTVolumeShader : public QOpenGLShaderProgram
+class GLPTVolumeShader : public GLShaderProgram
 {
 
 public:
@@ -44,9 +44,9 @@ public:
 
 private:
   /// The vertex shader.
-  QOpenGLShader* m_vshader;
+  GLShader* m_vshader;
   /// The fragment shader.
-  QOpenGLShader* m_fshader;
+  GLShader* m_fshader;
 
   int m_volumeTexture;
   int m_tPreviousTexture, m_uSampleCounter, m_uFrameCounter, m_uResolution, m_gClippedAaBbMin, m_gClippedAaBbMax,

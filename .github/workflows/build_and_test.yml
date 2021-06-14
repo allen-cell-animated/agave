@@ -85,7 +85,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libboost-all-dev libglm-dev libgl1-mesa-dev
+          sudo apt-get install libboost-all-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:

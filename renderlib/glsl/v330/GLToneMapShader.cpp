@@ -11,11 +11,11 @@
 #include <sstream>
 
 GLToneMapShader::GLToneMapShader()
-  : QOpenGLShaderProgram()
+  : GLShaderProgram()
   , m_vshader()
   , m_fshader()
 {
-  m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
   m_vshader->compileSourceCode(R"(
 #version 330 core
 
@@ -35,7 +35,7 @@ void main()
     LOG_ERROR << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
-  m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
   m_fshader->compileSourceCode(R"(
 #version 330 core
 

@@ -9,7 +9,7 @@ PYBIND11_EMBEDDED_MODULE(agave, m)
 {
   m.doc() = "agave plugin"; // optional module docstring
 
-  py::class_<OffscreenRenderer>(m, "renderer")
+  py::class_<OffscreenRenderer>(m, "AgaveRenderer")
     .def(py::init<>())
     .def(SessionCommand::PythonName().c_str(), &OffscreenRenderer::Session)
     .def(AssetPathCommand::PythonName().c_str(), &OffscreenRenderer::AssetPath)

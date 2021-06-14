@@ -3,15 +3,19 @@
 
 #include "glad/glad.h"
 
-#include <QtCore/QElapsedTimer>
+#include "renderlib/command.h"
+#include "renderlib/gl/Util.h"
+#include "renderlib/renderlib.h"
+#include "renderrequest.h"
+
 #include <QList>
-#include <QObject>
 #include <QMutex>
+#include <QObject>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
-#include <QOpenGLFramebufferObject>
 #include <QOpenGLTexture>
 #include <QThread>
+#include <QtCore/QElapsedTimer>
 
 #include <memory>
 
@@ -21,9 +25,6 @@ class ImageXYZC;
 class RenderGLPT;
 class RenderSettings;
 class Scene;
-
-#include "renderlib/command.h"
-#include "renderrequest.h"
 
 class Renderer
   : public QThread
@@ -68,9 +69,14 @@ protected:
 private:
   QMutex* m_openGLMutex;
 
+#if HAS_EGL
+  HeadlessGLContext* m_glContext;
+#else
   QOpenGLContext* m_glContext;
   QOffscreenSurface* m_surface;
-  QOpenGLFramebufferObject* m_fbo;
+#endif
+
+  GLFramebufferObject* m_fbo;
 
   int32_t m_streamMode;
   int32_t m_width, m_height;
@@ -109,6 +115,8 @@ private:
       , m_renderer(nullptr)
     {}
   } m_myVolumeData;
+
+  ExecutionContext m_ec;
 
 signals:
   void kill();

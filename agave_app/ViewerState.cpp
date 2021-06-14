@@ -449,9 +449,10 @@ ViewerState::stateToPythonScript() const
   QString outFileName = fi.baseName();
 
   std::ostringstream ss;
-  ss << "# agave --script myscript.py" << std::endl << std::endl;
+  ss << "# agave --server &" << std::endl;
+  ss << "# python myscript.py" << std::endl << std::endl;
   ss << "import agave" << std::endl;
-  ss << "r = agave.renderer()" << std::endl;
+  ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
   ss << obj
      << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), m_currentScene, m_currentTime }).toPythonString()

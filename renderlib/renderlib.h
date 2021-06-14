@@ -1,18 +1,32 @@
 #pragma once
 
+#include "glad/glad.h"
+
+#include <QOffscreenSurface>
 #include <QSurfaceFormat>
+#include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLDebugLogger>
+#include <QtGui/QWindow>
 
 #include <map>
 #include <memory>
 #include <string>
 
+#if defined(__APPLE__) || defined(_WIN32)
+#define HAS_EGL false
+#else
+#define HAS_EGL true
+#endif
+
 struct ImageGpu;
 class ImageXYZC;
+
+typedef void* EGLContext; // Forward declaration from EGL.h.
 
 class renderlib
 {
 public:
-  static int initialize();
+  static int initialize(bool headless = false);
   static void clearGpuVolumeCache();
   static void cleanup();
 
@@ -35,7 +49,22 @@ public:
   static void imageDeallocGPU(std::shared_ptr<ImageXYZC> image);
 
   static QSurfaceFormat getQSurfaceFormat(bool enableDebug = false);
+  static QOpenGLContext* createOpenGLContext();
 
 private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> sGpuImageCache;
+};
+
+class HeadlessGLContext
+{
+public:
+  HeadlessGLContext();
+  ~HeadlessGLContext();
+  void makeCurrent();
+  void doneCurrent();
+
+private:
+#if HAS_EGL
+  EGLContext m_eglCtx;
+#endif
 };

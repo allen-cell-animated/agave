@@ -2,6 +2,9 @@
 
 #include "glad/glad.h"
 
+#include "Logging.h"
+
+#include <QImage>
 #include <string>
 
 /**
@@ -14,7 +17,7 @@
  */
 extern void
 check_gl(std::string const& message);
-extern void
+extern bool
 check_glfb(std::string const& message);
 
 class GLImageShader2DnoLut;
@@ -58,4 +61,72 @@ private:
 
   void synchronize(GLuint eventid);
   void eventElapsedTime(float* result, GLuint startEvent, GLuint stopEvent);
+};
+
+// RAII; must have a current gl context at creation time.
+class GLFramebufferObject
+{
+public:
+  GLFramebufferObject(int width, int height, GLint colorInternalFormat);
+
+  ~GLFramebufferObject();
+
+  void bind();
+  void release();
+  int width() const;
+  int height() const;
+  QImage toImage(bool include_alpha = false);
+
+private:
+  GLuint m_fbo;
+  GLuint m_texture;
+  GLuint m_depth_buffer;
+  int m_width;
+  int m_height;
+};
+
+class GLShader
+{
+public:
+  GLShader(GLenum shaderType);
+  ~GLShader();
+
+  bool compileSourceCode(const char* sourceCode);
+  bool isCompiled() const;
+  QString log() const;
+  GLuint id() const { return m_shader; }
+
+protected:
+  bool m_isCompiled;
+  GLuint m_shader;
+  GLenum m_shaderType;
+  QString m_log;
+};
+
+class GLShaderProgram
+{
+public:
+  GLShaderProgram();
+  ~GLShaderProgram();
+
+  void addShader(GLShader* shader);
+  bool link();
+  bool isLinked();
+  int attributeLocation(const char* name);
+  int uniformLocation(const char* name);
+
+  void enableAttributeArray(int location);
+  void disableAttributeArray(int location);
+  void setAttributeArray(int location, const GLfloat* values, int tupleSize, int stride = 0);
+
+  bool bind();
+  void release();
+
+  QString log() { return m_log; }
+
+private:
+  // std::vector<GLShader> m_shaders;
+  GLuint m_program;
+  bool m_isLinked;
+  QString m_log;
 };

@@ -121,15 +121,17 @@ main(int argc, char* argv[])
   // Process the actual command line arguments given by the user
   parser.process(a);
 
-  if (!renderlib::initialize()) {
+  // TODO allow script to run in GUI or non GUI mode.
+  bool isScript = parser.isSet(scriptOption);
+  bool isServer = parser.isSet(serverOption);
+
+  if (!renderlib::initialize(isServer)) {
     renderlib::cleanup();
     return 0;
   }
 
   int result = 0;
 
-  bool isScript = parser.isSet(scriptOption);
-  bool isServer = parser.isSet(serverOption);
   if (isScript) {
     // TODO allow script to run in GUI or non GUI mode.
     QString scriptPath = parser.value(scriptOption);

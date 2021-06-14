@@ -91,6 +91,7 @@ target_link_libraries(renderlib
 	tiff
 	libCZIStatic
 	JxrDecodeStatic # libCZI depends on it
+	${OPENGL_egl_LIBRARY}
 )
 
 

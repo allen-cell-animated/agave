@@ -23,7 +23,11 @@ OffscreenRenderer::OffscreenRenderer()
 
 OffscreenRenderer::~OffscreenRenderer()
 {
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
   m_myVolumeData.m_renderer->cleanUpResources();
   shutDown();
 }
@@ -59,17 +63,18 @@ OffscreenRenderer::init()
 {
   LOG_DEBUG << "INIT RENDERER";
 
-  QSurfaceFormat format = renderlib::getQSurfaceFormat();
-
-  this->m_glContext = new QOpenGLContext();
-  this->m_glContext->setFormat(format); // ...and set the format on the context too
-  this->m_glContext->create();
+#if HAS_EGL
+  this->m_glContext = new HeadlessGLContext();
+  this->m_glContext->makeCurrent();
+#else
+  this->m_glContext = renderlib::createOpenGLContext();
 
   this->m_surface = new QOffscreenSurface();
   this->m_surface->setFormat(this->m_glContext->format());
   this->m_surface->create();
 
-  this->m_glContext->makeCurrent(this->m_surface);
+  this->m_glContext->makeCurrent(m_surface);
+#endif
 
   this->resizeGL(1024, 1024);
 
@@ -89,7 +94,11 @@ OffscreenRenderer::init()
 QImage
 OffscreenRenderer::render()
 {
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   // DRAW
   m_myVolumeData.m_camera->Update();
@@ -116,7 +125,11 @@ OffscreenRenderer::resizeGL(int width, int height)
     return;
   }
 
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   // RESIZE THE RENDER INTERFACE
   if (m_myVolumeData.m_renderer) {
@@ -124,13 +137,7 @@ OffscreenRenderer::resizeGL(int width, int height)
   }
 
   delete this->m_fbo;
-  QOpenGLFramebufferObjectFormat fboFormat;
-  fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-  fboFormat.setMipmap(false);
-  fboFormat.setSamples(0);
-  fboFormat.setTextureTarget(GL_TEXTURE_2D);
-  fboFormat.setInternalTextureFormat(GL_RGBA8);
-  this->m_fbo = new QOpenGLFramebufferObject(width, height, fboFormat);
+  this->m_fbo = new GLFramebufferObject(width, height, GL_RGBA8);
 
   glViewport(0, 0, width, height);
 
@@ -141,7 +148,11 @@ OffscreenRenderer::resizeGL(int width, int height)
 void
 OffscreenRenderer::reset(int from)
 {
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
   this->m_glContext->makeCurrent(this->m_surface);
+#endif
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -152,7 +163,11 @@ OffscreenRenderer::reset(int from)
 void
 OffscreenRenderer::shutDown()
 {
-  m_glContext->makeCurrent(m_surface);
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
+  this->m_glContext->makeCurrent(this->m_surface);
+#endif
   delete this->m_fbo;
 
   delete m_myVolumeData.m_renderSettings;
@@ -167,8 +182,11 @@ OffscreenRenderer::shutDown()
   m_glContext->doneCurrent();
   delete m_glContext;
 
+#if HAS_EGL
+#else
   // schedule this to be deleted only after we're done cleaning up
   m_surface->deleteLater();
+#endif
 }
 
 // RenderInterface

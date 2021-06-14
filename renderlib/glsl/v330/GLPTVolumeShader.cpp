@@ -15,11 +15,11 @@
 #include <sstream>
 
 GLPTVolumeShader::GLPTVolumeShader()
-  : QOpenGLShaderProgram()
+  : GLShaderProgram()
   , m_vshader()
   , m_fshader()
 {
-  m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
   m_vshader->compileSourceCode(R"(
 #version 330 core
 
@@ -39,7 +39,7 @@ void main()
     LOG_ERROR << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
-  m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
   const char* fsPiece1 = R"(
 #version 330 core
 
@@ -1142,7 +1142,8 @@ void main()
 }
 )";
 
-  m_fshader->compileSourceCode(QString(fsPiece1) + QString(fsPiece2) + QString(fsPiece3) + QString(fsPiece4));
+  m_fshader->compileSourceCode(
+    qPrintable(QString(fsPiece1) + QString(fsPiece2) + QString(fsPiece3) + QString(fsPiece4)));
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }

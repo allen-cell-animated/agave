@@ -9,7 +9,7 @@
 #include <sstream>
 
 GLImageShader2DnoLut::GLImageShader2DnoLut()
-  : QOpenGLShaderProgram()
+  : GLShaderProgram()
   , m_vshader()
   , m_fshader()
   , m_attr_coords()
@@ -17,7 +17,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
   , m_uniform_mvp()
   , m_uniform_texture()
 {
-  m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
 
   m_vshader->compileSourceCode("#version 330 core\n"
                                "\n"
@@ -36,11 +36,10 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n"
-              << m_vshader->log().toStdString();
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
-  m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
   m_fshader->compileSourceCode("#version 330 core\n"
                                "\n"
                                "uniform sampler2D tex;\n"
@@ -60,8 +59,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n"
-              << m_fshader->log().toStdString();
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);

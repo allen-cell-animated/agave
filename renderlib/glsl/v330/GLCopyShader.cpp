@@ -1,23 +1,21 @@
-#include "glad/glad.h"
 #include "GLCopyShader.h"
+#include "glad/glad.h"
 
 #include "Logging.h"
 
-#include <glm.h>
 #include <gl/Util.h>
+#include <glm.h>
 
 #include <iostream>
 #include <sstream>
 
-
-GLCopyShader::GLCopyShader():
-    QOpenGLShaderProgram(),
-    m_vshader(),
-    m_fshader()
+GLCopyShader::GLCopyShader()
+  : GLShaderProgram()
+  , m_vshader()
+  , m_fshader()
 {
-    m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
-	m_vshader->compileSourceCode
-	(R"(
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
+  m_vshader->compileSourceCode(R"(
 #version 330 core
 
 layout (location = 0) in vec3 position;
@@ -32,14 +30,12 @@ void main()
 }
 	)");
 
-    if (!m_vshader->isCompiled())
-    {
-        LOG_ERROR << "GLCopyShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
-    }
+  if (!m_vshader->isCompiled()) {
+    LOG_ERROR << "GLCopyShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+  }
 
-    m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
-    m_fshader->compileSourceCode
-    (R"(
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
+  m_fshader->compileSourceCode(R"(
 #version 330 core
 
 uniform sampler2D tTexture0;
@@ -52,30 +48,25 @@ void main()
 }
     )");
 
-    if (!m_fshader->isCompiled())
-    {
-        LOG_ERROR << "GLCopyShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
-    }
+  if (!m_fshader->isCompiled()) {
+    LOG_ERROR << "GLCopyShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+  }
 
-    addShader(m_vshader);
-    addShader(m_fshader);
-    link();
+  addShader(m_vshader);
+  addShader(m_fshader);
+  link();
 
-    if (!isLinked())
-    {
-        LOG_ERROR << "GLCopyShader: Failed to link shader program\n" << log().toStdString();
-    }
-	
-    m_texture = uniformLocation("tTexture0");
+  if (!isLinked()) {
+    LOG_ERROR << "GLCopyShader: Failed to link shader program\n" << log().toStdString();
+  }
+
+  m_texture = uniformLocation("tTexture0");
 }
 
-GLCopyShader::~GLCopyShader()
-{
-}
-
+GLCopyShader::~GLCopyShader() {}
 
 void
 GLCopyShader::setShadingUniforms()
 {
-    glUniform1i(m_texture, 0);
+  glUniform1i(m_texture, 0);
 }

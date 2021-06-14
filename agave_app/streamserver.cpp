@@ -120,7 +120,7 @@ StreamServer::onNewConnection()
   createNewRenderer(pSocket);
 
   // if (m_debug)
-  LOG_DEBUG << "new client!" << pSocket->resourceName().toStdString() << "; "
+  LOG_DEBUG << "new client! " << pSocket->resourceName().toStdString() << "; "
             << pSocket->peerAddress().toString().toStdString() << ":" << pSocket->peerPort() << "; "
             << pSocket->peerName().toStdString();
 }
