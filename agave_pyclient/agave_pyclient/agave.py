@@ -7,8 +7,9 @@ import math
 import numpy
 import queue
 from PIL import Image
-from commandbuffer import CommandBuffer
 from typing import List
+
+from .commandbuffer import CommandBuffer
 
 
 def lerp(startframe, endframe, startval, endval):
