@@ -8,7 +8,6 @@ import numpy
 import queue
 from PIL import Image
 from commandbuffer import CommandBuffer
-from collections import deque
 from typing import List
 
 
@@ -91,11 +90,6 @@ class AgaveClient(WebSocketClient):
         if self.onOpened:
             self.onOpened()
 
-    def closed(self, code, reason=None):
-        print("Closed down", code, reason)
-        if self.onClose:
-            self.onClose()
-
     def wait_for_image(self):
         while True:
             m = self.receive()
@@ -130,6 +124,9 @@ class AgaveClient(WebSocketClient):
         # on the message queue to signal there's nothing left
         # to wait for
         self.messages.put(StopIteration)
+        print("Closed down", code, reason)
+        if self.onClose:
+            self.onClose()
 
     def receive(self, block=True):
         """
