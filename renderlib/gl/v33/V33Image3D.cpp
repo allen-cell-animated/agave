@@ -243,7 +243,7 @@ Image3Dv33::prepareTexture(Scene& s)
   Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
 
   auto endTime = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed = endTime - mStartTime;
+  std::chrono::duration<double> elapsed = endTime - startTime;
   LOG_DEBUG << "fuse operation: " << (elapsed.count() * 1000.0) << "ms";
   startTime = std::chrono::high_resolution_clock::now();
 
@@ -286,6 +286,6 @@ Image3Dv33::prepareTexture(Scene& s)
   //	glGenerateMipmap(GL_TEXTURE_3D);
 
   endTime = std::chrono::high_resolution_clock::now();
-  elapsed = endTime - mStartTime;
+  elapsed = endTime - startTime;
   LOG_DEBUG << "prepare fused 3d rgb texture in " << (elapsed.count() * 1000.0) << "ms";
 }
