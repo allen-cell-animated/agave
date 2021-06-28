@@ -8,10 +8,10 @@
 #include <libCZI/Src/libCZI/libCZI.h>
 
 #include <QDomDocument>
-#include <QElapsedTimer>
 
 #include <boost/filesystem.hpp>
 
+#include <chrono>
 #include <map>
 #include <set>
 
@@ -305,11 +305,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
-  QElapsedTimer twhole;
-  twhole.start();
-
-  QElapsedTimer timer;
-  timer.start();
+  auto tStart = std::chrono::high_resolution_clock::now();
 
   try {
     ScopedCziReader scopedReader(filepath);
@@ -378,11 +374,13 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
       }
     }
 
-    LOG_DEBUG << "CZI loaded in " << timer.elapsed() << "ms";
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = tEnd - tStart;
+    LOG_DEBUG << "CZI loaded in " << (elapsed.count() * 1000.0) << "ms";
+
+    auto tStartImage = std::chrono::high_resolution_clock::now();
 
     // TODO: convert data to uint16_t pixels if not already.
-
-    timer.start();
     // we can release the smartPtr because ImageXYZC will now own the raw data memory
     ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                   dims.sizeY,
@@ -393,11 +391,15 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
                                   dims.physicalSizeX,
                                   dims.physicalSizeY,
                                   dims.physicalSizeZ);
-    LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
     im->setChannelNames(dims.channelNames);
 
-    LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
+    tEnd = std::chrono::high_resolution_clock::now();
+    elapsed = tEnd - tStartImage;
+    LOG_DEBUG << "ImageXYZC prepared in " << (elapsed.count() * 1000.0) << "ms";
+
+    elapsed = tEnd - tStart;
+    LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
     std::shared_ptr<ImageXYZC> sharedImage(im);
     if (outDims != nullptr) {
