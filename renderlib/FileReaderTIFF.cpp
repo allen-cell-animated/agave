@@ -85,7 +85,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   }
 
   // Temporary variables
-  uint32 width, height;
+  uint32_t width, height;
   //  tsize_t scanlength;
 
   // Read dimensions of image
@@ -395,7 +395,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
   // Should profile to see if the repeated malloc/frees are any kind of loading bottleneck.
   if (TIFFIsTiled(tiff)) {
     tsize_t tilesize = TIFFTileSize(tiff);
-    uint32 ntiles = TIFFNumberOfTiles(tiff);
+    uint32_t ntiles = TIFFNumberOfTiles(tiff);
     if (ntiles != 1) {
       LOG_ERROR << "Reader doesn't support more than 1 tile per plane";
       return false;
@@ -431,7 +431,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
     tsize_t striplength = TIFFStripSize(tiff);
     tdata_t buf = _TIFFmalloc(striplength);
 
-    uint32 nstrips = TIFFNumberOfStrips(tiff);
+    uint32_t nstrips = TIFFNumberOfStrips(tiff);
     // LOG_DEBUG << nstrips;     // num y rows
     // LOG_DEBUG << striplength; // x width * rows per strip
     for (tstrip_t strip = 0; strip < nstrips; strip++) {

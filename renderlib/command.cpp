@@ -8,11 +8,11 @@
 #include "RenderSettings.h"
 #include "VolumeDimensions.h"
 
-#include <QElapsedTimer>
-#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include <sys/stat.h>
 
 void
 SessionCommand::execute(ExecutionContext* c)
@@ -31,8 +31,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
 {
   LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
-  QFileInfo info(QString(m_data.m_name.c_str()));
-  if (info.exists()) {
+  if (stat(m_data.m_name.c_str(), nullptr) == 0) {
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(m_data.m_name);
     if (!image) {
       return;
@@ -336,7 +335,7 @@ AutoThresholdCommand::execute(ExecutionContext* c)
 
   switch (m_data.m_method) {
     case 0:
-      // TODO generate custom control points for a CUSTOM GradientEditMode 
+      // TODO generate custom control points for a CUSTOM GradientEditMode
       c->m_appScene->m_volume->channel(m_data.m_channel)->generate_auto2();
       break;
     case 1:
@@ -446,8 +445,7 @@ void
 LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
-  QFileInfo info(QString(m_data.m_path.c_str()));
-  if (info.exists()) {
+  if (stat(m_data.m_path.c_str(), nullptr) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, &dims, m_data.m_time, m_data.m_scene);
@@ -519,8 +517,7 @@ SetTimeCommand::execute(ExecutionContext* c)
     return;
   }
 
-  QFileInfo info(QString(c->m_currentFilePath.c_str()));
-  if (info.exists()) {
+  if (stat(c->m_currentFilePath.c_str(), nullptr) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image =
