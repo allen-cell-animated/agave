@@ -3,7 +3,7 @@
 #include "Defines.h"
 #include "ImageXYZC.h"
 
-#include <QColor>
+#include <glm/gtx/color_space.hpp>
 
 void
 Light::Update(const CBoundingBox& BoundingBox)
@@ -109,11 +109,16 @@ rndColors(int count)
 
   float currentHue = 0.0;
   for (int i = 0; i < count; i++) {
-    QColor c = QColor::fromHslF(currentHue, 1.0, 0.5);
+    glm::vec3 rgb = glm::rgbColor(glm::vec3(currentHue * 360.0f, 1.0f, 0.5f));
+    colors.push_back(rgb.x);
+    colors.push_back(rgb.y);
+    colors.push_back(rgb.z);
 
-    colors.push_back(c.redF());
-    colors.push_back(c.greenF());
-    colors.push_back(c.blueF());
+    // QColor c = QColor::fromHslF(currentHue, 1.0, 0.5);
+
+    // colors.push_back(c.redF());
+    // colors.push_back(c.greenF());
+    // colors.push_back(c.blueF());
 
     // this add plus the mod is simulating a jump that will cycle
     // in a pseudo-random fashion
