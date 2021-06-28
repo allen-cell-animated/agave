@@ -2,14 +2,14 @@
 
 #include "glad/glad.h"
 
-#include <QOpenGLShaderProgram>
-
 #include "CCamera.h"
+#include "gl/Util.h"
+
 #include <glm.h>
 
 /**
  */
-class GLBasicVolumeShader : public QOpenGLShaderProgram
+class GLBasicVolumeShader : public GLShaderProgram
 {
 
 public:
@@ -99,9 +99,9 @@ public:
 
 private:
   /// The vertex shader.
-  QOpenGLShader* vshader;
+  GLShader* vshader;
   /// The fragment shader.
-  QOpenGLShader* fshader;
+  GLShader* fshader;
 
   /// Vertex coordinates attribute.
   int attr_coords;

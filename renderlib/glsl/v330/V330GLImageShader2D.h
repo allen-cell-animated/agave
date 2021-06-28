@@ -1,14 +1,15 @@
 #pragma once
 
 #include "glad/glad.h"
-#include <QOpenGLShaderProgram>
+
+#include "gl/Util.h"
 
 #include <glm.h>
 
 /**
  * 2D image shader program (simple, up to three channels).
  */
-class GLImageShader2D : public QOpenGLShaderProgram
+class GLImageShader2D : public GLShaderProgram
 {
 
 public:
@@ -127,9 +128,9 @@ public:
 
 private:
   /// The vertex shader.
-  QOpenGLShader* m_vshader;
+  GLShader* m_vshader;
   /// The fragment shader.
-  QOpenGLShader* m_fshader;
+  GLShader* m_fshader;
 
   /// Vertex coordinates attribute.
   int m_attr_coords;

@@ -8,14 +8,14 @@
 #include <iostream>
 
 GLLineShader2D::GLLineShader2D()
-  : QOpenGLShaderProgram()
+  : GLShaderProgram()
   , m_vshader()
   , m_fshader()
   , m_attr_coords()
   , m_attr_colour()
   , m_uniform_mvp()
 {
-  m_vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
   m_vshader->compileSourceCode(
     "#version 330 core\n"
     "\n"
@@ -42,7 +42,7 @@ GLLineShader2D::GLLineShader2D()
     LOG_ERROR << "V330GLLineShader2D: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
   }
 
-  m_fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
   m_fshader->compileSourceCode("#version 330 core\n"
                                "\n"
                                "in VertexData\n"
@@ -56,8 +56,7 @@ GLLineShader2D::GLLineShader2D()
                                "  outputColour = inData.f_colour;\n"
                                "}\n");
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLLineShader2D: Failed to compile fragment shader\n"
-              << m_fshader->log().toStdString();
+    LOG_ERROR << "V330GLLineShader2D: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
   }
 
   addShader(m_vshader);

@@ -1,14 +1,15 @@
 #pragma once
 
 #include "glad/glad.h"
-#include <QOpenGLShaderProgram>
+
+#include "gl/Util.h"
 
 #include <glm.h>
 
 /**
  * 2D flat (solid fill) shader program.
  */
-class GLFlatShader2D : public QOpenGLShaderProgram
+class GLFlatShader2D : public GLShaderProgram
 {
 
 public:
@@ -53,9 +54,9 @@ public:
 
 private:
   /// @copydoc GLImageShader2D::vshader
-  QOpenGLShader* m_vshader;
+  GLShader* m_vshader;
   /// @copydoc GLImageShader2D::fshader
-  QOpenGLShader* m_fshader;
+  GLShader* m_fshader;
 
   /// @copydoc GLImageShader2D::attr_coords
   int m_attr_coords;
