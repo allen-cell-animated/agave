@@ -2,9 +2,6 @@
 
 #include "Logging.h"
 
-#include <QCoreApplication>
-#include <QThread>
-
 #include <algorithm>
 #include <math.h>
 #include <sstream>
