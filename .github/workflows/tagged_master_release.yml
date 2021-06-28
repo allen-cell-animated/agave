@@ -91,10 +91,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: ${{ matrix.msvc_arch }}
+          BOOST_ROOT: ${{ steps.install-boost-windows.outputs.BOOST_ROOT }}
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DBOOST_INCLUDEDIR=%BOOST_ROOT_1_72_0%/boost/include -DBOOST_LIBRARYDIR=%BOOST_ROOT_1_72_0%/lib -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
