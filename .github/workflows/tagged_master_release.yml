@@ -129,7 +129,7 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
-          user: aicspypi
+          user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
           packages_dir: agave_pyclient/dist/
           verbose: true
