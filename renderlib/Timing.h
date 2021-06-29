@@ -6,6 +6,9 @@
 #include <string.h> //for memset etc
 
 #include <algorithm>
+#include <sstream>
+#include <string>
+
 
 #define MAX_NO_DURATIONS 30
 #define MAX_CHAR_SIZE (128)
@@ -70,6 +73,14 @@ public:
     m_FilteredDuration = SumDuration / (float)m_NoDurations;
 
     m_NoDurations = std::min<int>(MAX_NO_DURATIONS, m_NoDurations + 1);
+  }
+
+  std::string filteredDurationAsString(int decimalPlaces = 2)
+  {
+    std::ostringstream ss;
+    ss.precision(decimalPlaces);
+    ss << m_FilteredDuration;
+    return ss.str();
   }
 
   char m_Name[MAX_CHAR_SIZE];

@@ -85,8 +85,7 @@ RenderGL::render(const CCamera& camera)
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - mStartTime;
   m_timingRender.AddDuration((elapsed.count() * 1000.0));
-  m_status.SetStatisticChanged(
-    "Performance", "Render Image", QString::number(m_timingRender.m_FilteredDuration, 'f', 2), "ms.");
+  m_status.SetStatisticChanged("Performance", "Render Image", m_timingRender.filteredDurationAsString(), "ms.");
   mStartTime = std::chrono::high_resolution_clock::now();
 }
 
