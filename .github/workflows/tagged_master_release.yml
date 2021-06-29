@@ -132,6 +132,7 @@ jobs:
           user: aicspypi
           password: ${{ secrets.PYPI_TOKEN }}
           packages_dir: agave_pyclient/dist/
+          verbose: true
 
   docs:
     runs-on: ubuntu-latest
