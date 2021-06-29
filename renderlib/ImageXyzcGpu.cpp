@@ -6,8 +6,6 @@
 
 #include "gl/Util.h"
 
-#include <QtDebug>
-
 #include <chrono>
 
 void
