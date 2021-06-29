@@ -43,6 +43,13 @@ public:
   void onNewImage(const std::string& name, Scene* scene);
 
   void addObserver(IStatusObserver* ob) { mObservers.push_back(ob); }
-  void removeObserver(IStatusObserver* ob) { auto iter = std::remove(mObservers.begin(), mObservers.end(), ob); }
+  void removeObserver(IStatusObserver* ob)
+  {
+    auto iter = std::find(mObservers.begin(), mObservers.end(), ob);
+    if (iter != mObservers.end()) {
+      mObservers.erase(iter);
+    }
+  }
+
   std::vector<IStatusObserver*> mObservers;
 };
