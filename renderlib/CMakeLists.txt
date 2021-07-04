@@ -21,6 +21,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
