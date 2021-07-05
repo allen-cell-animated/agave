@@ -131,7 +131,7 @@ jobs:
         with:
           name: agave-win
           path: ./build/agave-win.zip
-  lint-pyclient:
+  lint-and-test-pyclient:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -149,3 +149,4 @@ jobs:
           cd agave_pyclient
           flake8 agave_pyclient --count --verbose --show-source --statistics
           black --check --exclude vendor agave_pyclient
+          pytest agave_pyclient/tests/
