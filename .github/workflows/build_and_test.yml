@@ -131,3 +131,21 @@ jobs:
         with:
           name: agave-win
           path: ./build/agave-win.zip
+  lint-pyclient:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd agave_pyclient
+          pip install .[test]
+      - name: Lint with flake8
+        run: |
+          cd agave_pyclient
+          flake8 agave_pyclient --count --verbose --show-source --statistics
+          black --check --exclude vendor agave_pyclient
