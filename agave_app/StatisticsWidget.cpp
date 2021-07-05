@@ -46,7 +46,7 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent)
 void
 QStatisticsWidget::set(CStatus* status)
 {
-  if (status != mStatusObject) {
+  if (status != mStatusObject && mStatusObject != nullptr) {
     mStatusObject->removeObserver(&mStatusObserver);
   }
   mStatusObject = status;
