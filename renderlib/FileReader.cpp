@@ -41,7 +41,7 @@ FileReader::loadNumScenes(const std::string& filepath)
     return FileReaderTIFF::loadNumScenesTiff(filepath);
   } else if (extstr == ".czi") {
     return FileReaderCzi::loadNumScenesCzi(filepath);
-  } else if (extstr == ".map") {
+  } else if (extstr == ".map" || extstr == ".mrc") {
     return FileReaderCCP4::loadNumScenesCCP4(filepath);
   }
   return 0;
@@ -56,7 +56,7 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
     return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
   } else if (extstr == ".czi") {
     return FileReaderCzi::loadDimensionsCzi(filepath, scene);
-  } else if (extstr == ".map") {
+  } else if (extstr == ".map" || extstr == ".mrc") {
     return FileReaderCCP4::loadDimensionsCCP4(filepath, scene);
   }
   return VolumeDimensions();
@@ -83,7 +83,7 @@ FileReader::loadFromFile(const std::string& filepath,
     image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);
   } else if (extstr == ".czi") {
     image = FileReaderCzi::loadCzi(filepath, dims, time, scene);
-  } else if (extstr == ".map") {
+  } else if (extstr == ".map" || extstr == ".mrc") {
     image = FileReaderCCP4::loadCCP4(filepath, dims, time, scene);
   }
 

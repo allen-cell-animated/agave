@@ -137,6 +137,7 @@ readCCP4Dimensions(const std::string filepath, VolumeDimensions& dims, uint32_t 
   // 3 = Transform stored as Complex Integer*2
   // 4 = Transform stored as Complex Reals
   // 5 == 0
+  // 6 == 16-bit unsigned int
   // SAMPLEFORMAT_UINT = 1;
   // SAMPLEFORMAT_INT = 2;
   // SAMPLEFORMAT_IEEEFP = 3;
@@ -147,7 +148,7 @@ readCCP4Dimensions(const std::string filepath, VolumeDimensions& dims, uint32_t 
       dims.sampleFormat = 2;
       break;
     case 1:
-      dims.bitsPerPixel = 64;
+      dims.bitsPerPixel = 16;
       dims.sampleFormat = 2;
       break;
     case 2:
@@ -155,13 +156,16 @@ readCCP4Dimensions(const std::string filepath, VolumeDimensions& dims, uint32_t 
       dims.sampleFormat = 3;
       break;
     case 3:
-      dims.bitsPerPixel = 128;
+      dims.bitsPerPixel = 32;
       dims.sampleFormat = 2;
       break;
     case 4:
       dims.bitsPerPixel = 64;
       dims.sampleFormat = 3;
       break;
+    case 6:
+      dims.bitsPerPixel = 16;
+      dims.sampleFormat = 1;
     default:
       LOG_ERROR << "Bad file read from " << filepath;
       return false;
