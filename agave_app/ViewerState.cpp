@@ -449,9 +449,10 @@ ViewerState::stateToPythonScript() const
   QString outFileName = fi.baseName();
 
   std::ostringstream ss;
+  ss << "# pip install agave_pyclient" << std::endl;
   ss << "# agave --server &" << std::endl;
   ss << "# python myscript.py" << std::endl << std::endl;
-  ss << "import agave" << std::endl;
+  ss << "import agave_pyclient as agave" << std::endl << std::endl;
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
   ss << obj

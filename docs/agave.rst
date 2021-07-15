@@ -48,7 +48,7 @@ https://docs.openmicroscopy.org/ome-model/latest/ for more information.
 Open Volume
 ~~~~~~~~~~~
 
-File-->Open Volume or \[Open Volume\] toolbar button 
+File-->Open Volume or \[Open Volume\] toolbar button
 
 \[Open Volume\] will pop open a file browser dialog in which you can navigate to the
 volume file of choice.
@@ -370,6 +370,15 @@ in the JSON, so if you copy the file around you should bring the volume
 data file with it. It is best to keep them in the same directory if
 possible.
 
+Save To Python Script
+~~~~~~~~~~~~~~~~~~~~~
+
+File-->Save to Python script or \[Save to Python script\] toolbar button
+
+Save to Python script will save the current AGAVE session into a small Python file.
+See [Python Interface] for how to use the Python programming language to automate
+AGAVE to create animation sequences or batch rendering of many images.
+
 Camera Panel
 ------------
 
@@ -431,6 +440,35 @@ If your volume contains multiple time steps in the file, move the time
 slider or change the numeric input to load a new time sample. Beware
 that this is loading a whole new volume and can take some time. If your
 volume only has a single time, then the slider will have no effect.
+
+Python Interface
+----------------
+
+AGAVE can be automated and controlled via Python when it is launched in
+server mode from the command line.
+First, install the AGAVE Python client:
+::
+
+    pip install agave_pyclient
+
+To run AGAVE as a server, run:
+::
+
+    agave --server
+
+Now the Python client will be able to find the running AGAVE server session,
+and send commands to it.
+A Python script exported from the AGAVE GUI using "Save to Python script" will re-create the session and produce an image when run.
+::
+
+    python my_script.py
+
+The AGAVE Python client provides commands for every setting in the user
+interface, and also provides two additional convenience commands for creating
+an image sequence for a turntable rotation, and for a rocker (side to side) rotation.
+For Python users, the AGAVE Python client project full documentation can be found here:
+https://allen-cell-animated.github.io/agave/agave_pyclient
+
 
 Troubleshooting
 ---------------

@@ -71,7 +71,8 @@ COMMANDS = {
 }
 
 
-# strategy: add elements to prebuffer, and then traverse prebuffer to convert to binary before sending?
+# strategy: add elements to prebuffer,
+# and then traverse prebuffer to convert to binary before sending?
 class CommandBuffer:
     def __init__(self, command_list=None):
         # [command, args],...
@@ -167,7 +168,8 @@ class CommandBuffer:
         # result is in this.buffer
         return self.buffer
 
-    # commands are added by command code string name followed by appropriate signature args.
+    # commands are added by command code string name
+    # followed by appropriate signature args.
     def add_command(self, *args):
         # TODO: check against signature!!!
         self.prebuffer.append(args)

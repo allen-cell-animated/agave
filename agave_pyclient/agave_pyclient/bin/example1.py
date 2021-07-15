@@ -43,4 +43,3 @@ if __name__ == "__main__":
 
     r.batch_render_rocker(number_of_frames=40, angle=30, output_name="rocker")
     r.batch_render_turntable(number_of_frames=90, output_name="turntable")
-

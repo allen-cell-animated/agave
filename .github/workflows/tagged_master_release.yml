@@ -17,10 +17,10 @@ jobs:
         with:
           submodules: "recursive"
       - uses: ilammy/msvc-dev-cmd@v1
-      - name: Install Python 3.8 version
+      - name: Install Python 3.9 version
         uses: actions/setup-python@v1
         with:
-          python-version: "3.8"
+          python-version: "3.9"
           architecture: "x64"
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
@@ -80,14 +80,22 @@ jobs:
           vc_arch: ${{ matrix.msvc_arch }}
         run: |
           vcpkg install --triplet x64-windows glm zlib libjpeg-turbo liblzma
+      - name: windows install boost
+        if: matrix.os == 'windows-latest'
+        uses: MarkusJx/install-boost@v1.0.1
+        with:
+          boost_version: 1.72.0
+          toolset: msvc14.2
+        id: install-boost-windows
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: ${{ matrix.msvc_arch }}
+          BOOST_ROOT: ${{ steps.install-boost-windows.outputs.BOOST_ROOT }}
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DBOOST_INCLUDEDIR=%BOOST_ROOT_1_72_0%/boost/include -DBOOST_LIBRARYDIR=%BOOST_ROOT_1_72_0%/lib -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
@@ -98,6 +106,33 @@ jobs:
         with:
           name: agave-win
           path: ./build/agave-win.zip
+
+  publish_pythonclient:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Install Python 3.9 version
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.9"
+          architecture: "x64"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+      - name: Build Package
+        run: |
+          cd agave_pyclient
+          python setup.py sdist bdist_wheel
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+          packages_dir: agave_pyclient/dist/
+          verbose: true
 
   docs:
     runs-on: ubuntu-latest
