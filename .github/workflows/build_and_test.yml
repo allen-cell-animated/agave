@@ -30,6 +30,32 @@ jobs:
         with:
           name: agave-win
           path: docs/_build/latex/agave.pdf
+  docs_pythoncient:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "agave_pyclient/docs/"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "agave_pyclient/docs/"
+          pre-build-command: "apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          build-command: "make latexpdf"
+      - uses: actions/upload-artifact@v1
+        with:
+          name: DocumentationPythonClientHTML
+          path: agave_pyclient/docs/_build/html/
+      - uses: actions/upload-artifact@v1
+        with:
+          name: agave-macos
+          path: agave_pyclient/docs/_build/latex/agave.pdf
+      - uses: actions/upload-artifact@v1
+        with:
+          name: agave-win
+          path: agave_pyclient/docs/_build/latex/agave.pdf
   cmake-build:
     strategy:
       matrix:

@@ -872,7 +872,7 @@ class AgaveRenderer:
         Loop to render a rocker sequence, an oscillating partial rotation about the
         vertical axis.  Other commands must have been previously issued to load the
         data and set all the viewing parameters.
-        
+
         Parameters
         ----------
         number_of_frames: int
