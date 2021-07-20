@@ -7,7 +7,10 @@
 QStatisticsWidget::QStatisticsWidget(QWidget* pParent)
   : QTreeWidget(pParent)
   , m_MainLayout()
+  , mStatusObject(nullptr)
 {
+  mStatusObserver.mWidget = this;
+
   // Set the size policy, making sure the widget fits nicely in the layout
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
@@ -43,13 +46,11 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent)
 void
 QStatisticsWidget::set(CStatus* status)
 {
-  // TODO this does not disconnect the previous.
-  connect(status,
-          SIGNAL(StatisticChanged(const QString&, const QString&, const QString&, const QString&, const QString&)),
-          this,
-          SLOT(OnStatisticChanged(const QString&, const QString&, const QString&, const QString&, const QString&)));
-  connect(status, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
-  connect(status, SIGNAL(RenderEnd()), this, SLOT(OnRenderEnd()));
+  if (status != mStatusObject && mStatusObject != nullptr) {
+    mStatusObject->removeObserver(&mStatusObserver);
+  }
+  mStatusObject = status;
+  mStatusObject->addObserver(&mStatusObserver);
 }
 
 QSize

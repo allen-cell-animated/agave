@@ -7,8 +7,6 @@
 #include "RenderSettings.h"
 #include "gl/Util.h"
 
-#include <QElapsedTimer>
-
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -229,8 +227,7 @@ Image3Dv33::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 void
 Image3Dv33::prepareTexture(Scene& s)
 {
-  QElapsedTimer timer;
-  timer.start();
+  auto startTime = std::chrono::high_resolution_clock::now();
 
   std::vector<glm::vec3> colors;
   for (int i = 0; i < MAX_CPU_CHANNELS; ++i) {
@@ -245,8 +242,10 @@ Image3Dv33::prepareTexture(Scene& s)
 
   Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
 
-  LOG_DEBUG << "fuse operation: " << timer.elapsed() << "ms";
-  timer.start();
+  auto endTime = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = endTime - startTime;
+  LOG_DEBUG << "fuse operation: " << (elapsed.count() * 1000.0) << "ms";
+  startTime = std::chrono::high_resolution_clock::now();
 
   // destroy old
   // glDeleteTextures(1, &_textureid);
@@ -286,5 +285,7 @@ Image3Dv33::prepareTexture(Scene& s)
   check_gl("Volume Texture create");
   //	glGenerateMipmap(GL_TEXTURE_3D);
 
-  LOG_DEBUG << "prepare fused 3d rgb texture in " << timer.elapsed() << "ms";
+  endTime = std::chrono::high_resolution_clock::now();
+  elapsed = endTime - startTime;
+  LOG_DEBUG << "prepare fused 3d rgb texture in " << (elapsed.count() * 1000.0) << "ms";
 }

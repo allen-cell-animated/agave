@@ -34,3 +34,15 @@ Typical steps to contribute:
 Talk to us on [one of our community forums][community].
 
 [community]: https://forum.allencell.org/
+
+## Releases
+
+on main branch:
+
+1. update the version number in the "project()" in CMakeLists.txt
+
+2. cd agave_pyclient
+
+3. bump2version --current-version oldVersion --new-version newVersion --tag
+
+4. upon push, github actions will automatically build the release.

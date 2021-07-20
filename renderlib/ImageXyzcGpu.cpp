@@ -6,8 +6,7 @@
 
 #include "gl/Util.h"
 
-#include <QElapsedTimer>
-#include <QtDebug>
+#include <chrono>
 
 void
 ChannelGpu::allocGpu(ImageXYZC* img, int channel)
@@ -108,8 +107,7 @@ ImageGpu::createVolumeTexture4x16(ImageXYZC* img)
 void
 ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
 {
-  QElapsedTimer timer;
-  timer.start();
+  auto startTime = std::chrono::high_resolution_clock::now();
 
   const int N = 4;
   int ch[4] = { c0, c1, c2, c3 };
@@ -124,8 +122,11 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
     }
   }
 
-  LOG_DEBUG << "Prepared interleaved hostmem buffer: " << timer.elapsed() << "ms";
-  timer.start();
+  auto endTime = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = endTime - startTime;
+  LOG_DEBUG << "Prepared interleaved hostmem buffer: " << (elapsed.count() * 1000.0) << "ms";
+
+  startTime = std::chrono::high_resolution_clock::now();
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glActiveTexture(GL_TEXTURE0);
@@ -135,7 +136,9 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("update volume texture");
 
-  LOG_DEBUG << "Copy volume to gpu: " << timer.elapsed() << "ms";
+  endTime = std::chrono::high_resolution_clock::now();
+  elapsed = endTime - startTime;
+  LOG_DEBUG << "Copy volume to gpu: " << (elapsed.count() * 1000.0) << "ms";
 
   delete[] v;
 }
@@ -146,8 +149,7 @@ ImageGpu::allocGpuInterleaved(ImageXYZC* img, uint32_t c0, uint32_t c1, uint32_t
   deallocGpu();
   m_channels.clear();
 
-  QElapsedTimer timer;
-  timer.start();
+  auto startTime = std::chrono::high_resolution_clock::now();
 
   createVolumeTexture4x16(img);
   uint32_t numChannels = img->sizeC();
@@ -166,7 +168,9 @@ ImageGpu::allocGpuInterleaved(ImageXYZC* img, uint32_t c0, uint32_t c1, uint32_t
     m_gpuBytes += c.m_gpuBytes;
   }
 
-  LOG_DEBUG << "allocGPUinterleaved: Image to GPU in " << timer.elapsed() << "ms";
+  auto endTime = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = endTime - startTime;
+  LOG_DEBUG << "allocGPUinterleaved: Image to GPU in " << (elapsed.count() * 1000.0) << "ms";
   LOG_DEBUG << "allocGPUinterleaved: GPU bytes: " << m_gpuBytes;
 }
 

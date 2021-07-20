@@ -466,7 +466,7 @@ GLShader::compileSourceCode(const char* sourceCode)
     else
       m_log = QLatin1String("failed");
 
-    qWarning("QOpenGLShader::compile(%s): %s", type, qPrintable(m_log));
+    qWarning("GLShader::compile(%s): %s", type, qPrintable(m_log));
 
     // Dump the source code if we got it
     if (sourceCodeBuffer) {
@@ -542,7 +542,7 @@ GLShaderProgram::link()
     glGetProgramInfoLog(m_program, value, &len, logbuf);
     m_log = QString::fromLatin1(logbuf);
     if (!m_isLinked) {
-      qWarning("QOpenGLShader::link: %ls", qUtf16Printable(m_log));
+      qWarning("GLShaderProgram::link: %ls", qUtf16Printable(m_log));
     }
     delete[] logbuf;
   }

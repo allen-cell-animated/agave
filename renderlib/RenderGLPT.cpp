@@ -322,20 +322,16 @@ RenderGLPT::doRender(const CCamera& camera)
   // LOG_DEBUG << "RETURN FROM RENDER";
 
   // display timings.
-
+  m_status.SetStatisticChanged("Performance", "Render Image", m_timingRender.filteredDurationAsString(), "ms.");
+  m_status.SetStatisticChanged("Performance", "Blur Estimate", m_timingBlur.filteredDurationAsString(), "ms.");
   m_status.SetStatisticChanged(
-    "Performance", "Render Image", QString::number(m_timingRender.m_FilteredDuration, 'f', 2), "ms.");
-  m_status.SetStatisticChanged(
-    "Performance", "Blur Estimate", QString::number(m_timingBlur.m_FilteredDuration, 'f', 2), "ms.");
-  m_status.SetStatisticChanged(
-    "Performance", "Post Process Estimate", QString::number(m_timingPostProcess.m_FilteredDuration, 'f', 2), "ms.");
-  m_status.SetStatisticChanged(
-    "Performance", "De-noise Image", QString::number(m_timingDenoise.m_FilteredDuration, 'f', 2), "ms.");
+    "Performance", "Post Process Estimate", m_timingPostProcess.filteredDurationAsString(), "ms.");
+  m_status.SetStatisticChanged("Performance", "De-noise Image", m_timingDenoise.filteredDurationAsString(), "ms.");
 
   // FPS.AddDuration(1000.0f / TmrFps.ElapsedTime());
 
   // m_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
-  m_status.SetStatisticChanged("Performance", "No. Iterations", QString::number(m_renderSettings->GetNoIterations()));
+  m_status.SetStatisticChanged("Performance", "No. Iterations", std::to_string(m_renderSettings->GetNoIterations()));
 
   // restore prior framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);

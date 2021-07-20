@@ -10,12 +10,12 @@
 #include <sstream>
 
 GLBasicVolumeShader::GLBasicVolumeShader()
-  : QOpenGLShaderProgram()
+  : GLShaderProgram()
   , vshader()
   , fshader()
   , attr_coords()
 {
-  vshader = new QOpenGLShader(QOpenGLShader::Vertex);
+  vshader = new GLShader(GL_VERTEX_SHADER);
   vshader->compileSourceCode(R"(
 #version 330 core
 
@@ -38,7 +38,7 @@ void main()
     LOG_ERROR << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString();
   }
 
-  fshader = new QOpenGLShader(QOpenGLShader::Fragment);
+  fshader = new GLShader(GL_FRAGMENT_SHADER);
   fshader->compileSourceCode(R"(
 #version 330 core
 
@@ -166,9 +166,9 @@ vec4 integrateVolume(vec4 eye_o, vec4 eye_d,
 		C = (1.0 - C.w)*col + C;
 		t += tstep;
 		numSteps = i;
-		if (t > tend) 
+		if (t > tend)
 			break;
-		if (C.w > 1.0) 
+		if (C.w > 1.0)
 			break;
 	}
 	return C;

@@ -6,13 +6,13 @@
 #include "VolumeDimensions.h"
 
 #include <QDomDocument>
-#include <QElapsedTimer>
 #include <QString>
 #include <QtDebug>
 
 #include <tiff.h>
 #include <tiffio.h>
 
+#include <chrono>
 #include <map>
 #include <set>
 
@@ -85,7 +85,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   }
 
   // Temporary variables
-  uint32 width, height;
+  uint32_t width, height;
   //  tsize_t scanlength;
 
   // Read dimensions of image
@@ -395,7 +395,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
   // Should profile to see if the repeated malloc/frees are any kind of loading bottleneck.
   if (TIFFIsTiled(tiff)) {
     tsize_t tilesize = TIFFTileSize(tiff);
-    uint32 ntiles = TIFFNumberOfTiles(tiff);
+    uint32_t ntiles = TIFFNumberOfTiles(tiff);
     if (ntiles != 1) {
       LOG_ERROR << "Reader doesn't support more than 1 tile per plane";
       return false;
@@ -431,7 +431,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
     tsize_t striplength = TIFFStripSize(tiff);
     tdata_t buf = _TIFFmalloc(striplength);
 
-    uint32 nstrips = TIFFNumberOfStrips(tiff);
+    uint32_t nstrips = TIFFNumberOfStrips(tiff);
     // LOG_DEBUG << nstrips;     // num y rows
     // LOG_DEBUG << striplength; // x width * rows per strip
     for (tstrip_t strip = 0; strip < nstrips; strip++) {
@@ -482,11 +482,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
 {
   std::shared_ptr<ImageXYZC> emptyimage;
 
-  QElapsedTimer twhole;
-  twhole.start();
-
-  QElapsedTimer timer;
-  timer.start();
+  auto tStart = std::chrono::high_resolution_clock::now();
 
   // Loads tiff file
   ScopedTiffReader tiffreader(filepath);
@@ -567,11 +563,13 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     }
   }
 
-  LOG_DEBUG << "TIFF loaded in " << timer.elapsed() << "ms";
+  auto tEnd = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = tEnd - tStart;
+  LOG_DEBUG << "TIFF loaded in " << (elapsed.count() * 1000.0) << "ms";
+
+  auto tStartImage = std::chrono::high_resolution_clock::now();
 
   // TODO: convert data to uint16_t pixels if not already.
-
-  timer.start();
   // we can release the smartPtr because ImageXYZC will now own the raw data memory
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
@@ -582,11 +580,15 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
-  LOG_DEBUG << "ImageXYZC prepared in " << timer.elapsed() << "ms";
 
   im->setChannelNames(dims.channelNames);
 
-  LOG_DEBUG << "Loaded " << filepath << " in " << twhole.elapsed() << "ms";
+  tEnd = std::chrono::high_resolution_clock::now();
+  elapsed = tEnd - tStartImage;
+  LOG_DEBUG << "ImageXYZC prepared in " << (elapsed.count() * 1000.0) << "ms";
+
+  elapsed = tEnd - tStart;
+  LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
   if (outDims != nullptr) {

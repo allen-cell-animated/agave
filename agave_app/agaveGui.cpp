@@ -413,8 +413,9 @@ agaveGui::open(const QString& file, const ViewerState* vs)
 
     // set up status view with some stats.
     CStatus* s = m_glView->getStatus();
+    // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
     m_statisticsDockWidget->setStatus(s);
-    s->onNewImage(info.fileName(), &m_appScene);
+    s->onNewImage(info.fileName().toStdString(), &m_appScene);
 
     m_currentFilePath = file;
     agaveGui::prependToRecentFiles(file);

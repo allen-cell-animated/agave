@@ -4,8 +4,7 @@
 #include "Status.h"
 #include "Timing.h"
 
-#include <QElapsedTimer>
-
+#include <chrono>
 #include <memory>
 
 class Image3Dv33;
@@ -39,7 +38,7 @@ private:
 
   CStatus m_status;
   Timing m_timingRender;
-  QElapsedTimer m_timer;
+  std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
 
   int m_w, m_h;
   float m_devicePixelRatio;

@@ -6,86 +6,108 @@
 // Render status singleton
 CStatus gStatus;
 
-inline QString
+inline std::string
 FormatVector(const glm::vec3& Vector, const int& Precision = 2)
 {
-  return "[" + QString::number(Vector.x, 'f', Precision) + ", " + QString::number(Vector.y, 'f', Precision) + ", " +
-         QString::number(Vector.z, 'f', Precision) + "]";
+  std::ostringstream ss;
+  ss << "[" << Vector.x << ", " << Vector.y << ", " << Vector.z << "]";
+  return ss.str();
 }
 
-inline QString
+inline std::string
 FormatVector(const glm::ivec3& Vector)
 {
-  return "[" + QString::number(Vector.x) + ", " + QString::number(Vector.y) + ", " + QString::number(Vector.z) + "]";
+  std::ostringstream ss;
+  ss << "[" << Vector.x << ", " << Vector.y << ", " << Vector.z << "]";
+  return ss.str();
 }
 
-inline QString
+inline std::string
 FormatSize(const glm::vec3& Size, const int& Precision = 2)
 {
-  return QString::number(Size.x, 'f', Precision) + " x " + QString::number(Size.y, 'f', Precision) + " x " +
-         QString::number(Size.z, 'f', Precision);
+  std::ostringstream ss;
+  ss << Size.x << " x " << Size.y << " x " << Size.z;
+  return ss.str();
 }
 
-inline QString
+inline std::string
 FormatSize(const glm::ivec3& Size)
 {
-  return QString::number(Size.x) + " x " + QString::number(Size.y) + " x " + QString::number(Size.z);
+  std::ostringstream ss;
+  ss << Size.x << " x " << Size.y << " x " << Size.z;
+  return ss.str();
 }
 
 void
 CStatus::SetRenderBegin(void)
 {
-  emit RenderBegin();
+  for (IStatusObserver* ob : mObservers) {
+    ob->RenderBegin();
+  }
 }
 
 void
 CStatus::SetRenderEnd(void)
 {
-  emit RenderEnd();
+  for (IStatusObserver* ob : mObservers) {
+    ob->RenderEnd();
+  }
 }
 
 void
 CStatus::SetPreRenderFrame(void)
 {
-  emit PreRenderFrame();
+  for (IStatusObserver* ob : mObservers) {
+    ob->PreRenderFrame();
+  }
 }
 
 void
 CStatus::SetPostRenderFrame(void)
 {
-  emit PostRenderFrame();
+  for (IStatusObserver* ob : mObservers) {
+    ob->PostRenderFrame();
+  }
 }
 
 void
 CStatus::SetRenderPause(const bool& Pause)
 {
-  emit RenderPause(Pause);
+  for (IStatusObserver* ob : mObservers) {
+    ob->RenderPause(Pause);
+  }
 }
 
 void
 CStatus::SetResize(void)
 {
-  emit Resize();
+  for (IStatusObserver* ob : mObservers) {
+    ob->Resize();
+  }
 }
 
 void
-CStatus::SetLoadPreset(const QString& PresetName)
+CStatus::SetLoadPreset(const std::string& PresetName)
 {
-  emit LoadPreset(PresetName);
+  for (IStatusObserver* ob : mObservers) {
+    ob->LoadPreset(PresetName);
+  }
 }
 
 void
-CStatus::SetStatisticChanged(const QString& Group,
-                             const QString& Name,
-                             const QString& Value,
-                             const QString& Unit /*= ""*/,
-                             const QString& Icon /*= ""*/)
+CStatus::SetStatisticChanged(const std::string& Group,
+                             const std::string& Name,
+                             const std::string& Value,
+                             const std::string& Unit /*= ""*/,
+                             const std::string& Icon /*= ""*/)
 {
-  emit StatisticChanged(Group, Name, Value, Unit, Icon);
+  for (IStatusObserver* ob : mObservers) {
+    ob->StatisticChanged(Group, Name, Value, Unit, Icon);
+  }
 }
 
 void
-CStatus::onNewImage(const QString& name, Scene* scene)
+CStatus::onNewImage(const std::string& name, Scene* scene)
 {
   glm::vec3 resolution(scene->m_volume->sizeX(), scene->m_volume->sizeY(), scene->m_volume->sizeZ());
   glm::vec3 spacing(
