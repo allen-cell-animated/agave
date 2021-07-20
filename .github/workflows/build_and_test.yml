@@ -52,11 +52,11 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: agave-macos
-          path: agave_pyclient/docs/_build/latex/agave.pdf
+          path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
       - uses: actions/upload-artifact@v1
         with:
           name: agave-win
-          path: agave_pyclient/docs/_build/latex/agave.pdf
+          path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
   cmake-build:
     strategy:
       matrix:

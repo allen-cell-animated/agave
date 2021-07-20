@@ -145,10 +145,11 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "agave_pyclient/docs/"
+          pre-build-command: "pip install -e ./agave_pyclient"
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          pre-build-command: "pip install -e ./agave_pyclient && apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
       - uses: actions/upload-artifact@v1
         with:
@@ -157,7 +158,7 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: DocumentationPythonClientPDF
-          path: agave_pyclient/docs/_build/latex/agave.pdf
+          path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
       - name: Publish Docs
         uses: JamesIves/github-pages-deploy-action@3.6.2
         with:
