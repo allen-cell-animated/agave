@@ -133,7 +133,7 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
           packages_dir: agave_pyclient/dist/
           verbose: true
-  docs_pythoncient:
+  docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
