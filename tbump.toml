@@ -26,6 +26,7 @@ tag_template = "v{new_version}"
 src = "CMakeLists.txt"
 [[file]]
 src = "agave_pyclient/setup.py"
+search = 'version="{current_version}"'
 [[file]]
 src = "agave_pyclient/agave_pyclient/__init__.py"
 [[file]]
