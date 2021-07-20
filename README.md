@@ -92,5 +92,13 @@ Use tbump (https://github.com/dmerejkowsky/tbump).  See the tbump.toml file whic
 
 Just run 
 ```
+tbump major.minor.patch --dry-run
+```
+and if everything looks ok
+```
 tbump major.minor.patch
+```
+or, to do the git steps manually:
+```
+tbump major.minor.patch --only-patch
 ```
