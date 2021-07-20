@@ -26,8 +26,8 @@ std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> renderlib::sGpuI
 
 static const struct
 {
-  int major = 3;
-  int minor = 3;
+  int major = 4;
+  int minor = 1;
 } AICS_GL_VERSION;
 
 static const uint32_t AICS_DEFAULT_STENCIL_BUFFER_BITS = 8;

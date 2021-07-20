@@ -178,6 +178,7 @@ class AgaveRenderer:
         """
         Set the current session name.  Use the full path to the name of the output
         image here.
+
         Parameters
         ----------
         name: str
@@ -191,6 +192,7 @@ class AgaveRenderer:
     def asset_path(self, name: str):
         """
         Sets a search path for volume files. NOT YET IMPLEMENTED.
+
         Parameters
         ----------
         name: str
@@ -210,6 +212,7 @@ class AgaveRenderer:
         """
         Set the viewer camera position.
         Default is (500,500,500).
+
         Parameters
         ----------
         x: float
@@ -226,6 +229,7 @@ class AgaveRenderer:
         """
         Set the viewer target position. This is a point toward which we are looking.
         Default is (0,0,0).
+
         Parameters
         ----------
         x: float
@@ -244,6 +248,7 @@ class AgaveRenderer:
         perpendicular to the view direction (target-eye), and defines the "roll" amount
         for the camera.
         Default is (0,0,1).
+
         Parameters
         ----------
         x: float
@@ -259,6 +264,7 @@ class AgaveRenderer:
     def aperture(self, x: float):
         """
         Set the viewer camera aperture size.
+
         Parameters
         ----------
         x: float
@@ -272,6 +278,7 @@ class AgaveRenderer:
     def camera_projection(self, projection_type: int, x: float):
         """
         Set the viewer camera projection type, along with a relevant parameter.
+
         Parameters
         ----------
         projection_type: int
@@ -287,6 +294,7 @@ class AgaveRenderer:
     def focaldist(self, x: float):
         """
         Set the viewer camera focal distance
+
         Parameters
         ----------
         x: float
@@ -298,6 +306,7 @@ class AgaveRenderer:
     def exposure(self, x: float):
         """
         Set the exposure level
+
         Parameters
         ----------
         x: float
@@ -310,6 +319,7 @@ class AgaveRenderer:
     def mat_diffuse(self, channel: int, r: float, g: float, b: float, a: float):
         """
         Set the diffuse color of a channel
+
         Parameters
         ----------
         channel: int
@@ -330,6 +340,7 @@ class AgaveRenderer:
         """
         Set the specular color of a channel (defaults to black, for no specular
         response)
+
         Parameters
         ----------
         channel: int
@@ -349,6 +360,7 @@ class AgaveRenderer:
     def mat_emissive(self, channel: int, r: float, g: float, b: float, a: float):
         """
         Set the emissive color of a channel (defaults to black, for no emission)
+
         Parameters
         ----------
         channel: int
@@ -368,6 +380,7 @@ class AgaveRenderer:
     def render_iterations(self, x: int):
         """
         Set the number of paths per pixel to accumulate.
+
         Parameters
         ----------
         x: int
@@ -381,6 +394,7 @@ class AgaveRenderer:
         Turn stream mode on or off.  Stream mode will send an image back to the client
         on each iteration up to some server-defined amount.  This mode is useful for
         interactive client-server applications but not for batch-mode offline rendering.
+
         Parameters
         ----------
         x: int
@@ -415,6 +429,7 @@ class AgaveRenderer:
     def set_resolution(self, x: int, y: int):
         """
         Set the image resolution in pixels.
+
         Parameters
         ----------
         x: int
@@ -428,6 +443,7 @@ class AgaveRenderer:
     def density(self, x: float):
         """
         Set the scattering density.
+
         Parameters
         ----------
         x: float
@@ -448,6 +464,7 @@ class AgaveRenderer:
     def mat_glossiness(self, channel: int, glossiness: float):
         """
         Set the channel's glossiness.
+
         Parameters
         ----------
         channel: int
@@ -461,6 +478,7 @@ class AgaveRenderer:
     def enable_channel(self, channel: int, enabled: int):
         """
         Show or hide a given channel
+
         Parameters
         ----------
         channel: int
@@ -474,6 +492,7 @@ class AgaveRenderer:
     def set_window_level(self, channel: int, window: float, level: float):
         """
         Set intensity threshold for a given channel based on Window/Level
+
         Parameters
         ----------
         channel: int
@@ -489,6 +508,7 @@ class AgaveRenderer:
     def orbit_camera(self, theta: float, phi: float):
         """
         Rotate the camera around the volume by angle deltas
+
         Parameters
         ----------
         theta: float
@@ -502,6 +522,7 @@ class AgaveRenderer:
     def skylight_top_color(self, r: float, g: float, b: float):
         """
         Set the "north pole" color of the sky sphere
+
         Parameters
         ----------
         r: float
@@ -517,6 +538,7 @@ class AgaveRenderer:
     def skylight_middle_color(self, r: float, g: float, b: float):
         """
         Set the "equator" color of the sky sphere
+
         Parameters
         ----------
         r: float
@@ -532,6 +554,7 @@ class AgaveRenderer:
     def skylight_bottom_color(self, r: float, g: float, b: float):
         """
         Set the "south pole" color of the sky sphere
+
         Parameters
         ----------
         r: float
@@ -547,6 +570,7 @@ class AgaveRenderer:
     def light_pos(self, index: int, r: float, theta: float, phi: float):
         """
         Set the position of an area light, in spherical coordinates
+
         Parameters
         ----------
         index: int
@@ -565,6 +589,7 @@ class AgaveRenderer:
         """
         Set the color of an area light. Overdrive the values higher than 1 to increase
         the light's intensity.
+
         Parameters
         ----------
         index: int
@@ -582,6 +607,7 @@ class AgaveRenderer:
     def light_size(self, index: int, x: float, y: float):
         """
         Set the size dimensions of a rectangular area light.
+
         Parameters
         ----------
         index: int
@@ -608,6 +634,7 @@ class AgaveRenderer:
         relative, where 0 is one extent of the volume and 1 is the opposite extent.
         For example, (0,1, 0,1, 0,0.5) will select the lower half of the volume's z
         slices.
+
         Parameters
         ----------
         minx: float
@@ -631,6 +658,7 @@ class AgaveRenderer:
         Set the relative scale of the pixels in the volume. Typically this is filled in
         with the physical pixel dimensions from the microscope metadata.  Often the x
         and y scale will differ from the z scale.  Defaults to (1,1,1)
+
         Parameters
         ----------
         x: float
@@ -646,6 +674,7 @@ class AgaveRenderer:
     def auto_threshold(self, channel: int, method: int):
         """
         Automatically determine the intensity thresholds
+
         Parameters
         ----------
         channel: int
@@ -665,6 +694,7 @@ class AgaveRenderer:
         """
         Set intensity thresholds based on percentiles of pixels to clip min and max
         intensity
+
         Parameters
         ----------
         channel: int
@@ -681,6 +711,7 @@ class AgaveRenderer:
         """
         Set channel opacity. This is a multiplier against all intensity values in the
         channel.
+
         Parameters
         ----------
         channel: int
@@ -696,6 +727,7 @@ class AgaveRenderer:
         Set primary ray step size. This is an accuracy versus speed tradeoff.  Low
         values are more accurate. High values will render faster.
         Primary rays are the rays that are cast from the camera out into the volume.
+
         Parameters
         ----------
         step_size: float
@@ -710,6 +742,7 @@ class AgaveRenderer:
         values are more accurate. High values will render faster.
         The secondary rays are rays which are cast toward lights after they have
         scattered within the volume.
+
         Parameters
         ----------
         step_size: float
@@ -721,6 +754,7 @@ class AgaveRenderer:
     def background_color(self, r: float, g: float, b: float):
         """
         Set the background color of the rendering
+
         Parameters
         ----------
         r: float
@@ -736,6 +770,7 @@ class AgaveRenderer:
     def set_isovalue_threshold(self, channel: int, isovalue: float, isorange: float):
         """
         Set intensity thresholds based on values around an isovalue.
+
         Parameters
         ----------
         channel: int
@@ -752,6 +787,7 @@ class AgaveRenderer:
     def set_control_points(self, channel: int, data: List[float]):
         """
         Set intensity thresholds based on a piecewise linear transfer function.
+
         Parameters
         ----------
         channel: int
@@ -767,6 +803,7 @@ class AgaveRenderer:
     def load_volume_from_file(self, path: str, scene: int, time: int):
         """
         Load a volume
+
         Parameters
         ----------
         path: str
@@ -783,6 +820,7 @@ class AgaveRenderer:
     def set_time(self, time: int):
         """
         Load a time from the current volume file
+
         Parameters
         ----------
         time: int
@@ -798,6 +836,7 @@ class AgaveRenderer:
         Loop to render a turntable sequence, a 360 degree rotation about the vertical
         axis.  Other commands must have been previously issued to load the data and set
         all the viewing parameters.
+
         Parameters
         ----------
         number_of_frames: int
@@ -833,6 +872,7 @@ class AgaveRenderer:
         Loop to render a rocker sequence, an oscillating partial rotation about the
         vertical axis.  Other commands must have been previously issued to load the
         data and set all the viewing parameters.
+
         Parameters
         ----------
         number_of_frames: int

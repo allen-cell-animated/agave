@@ -52,12 +52,8 @@ Ready to contribute? Here's how to set up `agave_pyclient` for local development
 
 A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed.
-Then run:
 
-```bash
-bump2version patch # possible: major / minor / patch
-git push
-git push --tags
-```
+Currently this Python package is to be kept in version lockstep with its parent AGAVE.
+Please follow the AGAVE deployment/versioning instructions. 
 
 This will release a new package version on Git + GitHub and publish to PyPI.
