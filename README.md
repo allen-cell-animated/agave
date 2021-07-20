@@ -85,3 +85,12 @@ cd build
 cmake ..
 make
 ```
+
+Versioned Releases
+
+Use tbump (https://github.com/dmerejkowsky/tbump).  See the tbump.toml file which shows all the files that contain necessary version info.
+
+Just run 
+```
+tbump major.minor.patch
+```
