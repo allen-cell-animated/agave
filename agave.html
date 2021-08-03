@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>User Interface Overview &mdash; AGAVE 1.0.0.1 documentation</title>
+  <title>User Interface Overview &mdash; AGAVE 1.0.1 documentation</title>
   
 
   
@@ -143,6 +143,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#output-saving-results">Output: Saving Results</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#save-image">Save Image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#save-json">Save JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#save-to-python-script">Save To Python Script</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#camera-panel">Camera Panel</a><ul>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#time-panel">Time Panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#python-interface">Python Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#agave-log">AGAVE Log</a></li>
 </ul>
@@ -544,6 +546,13 @@ in the JSON, so if you copy the file around you should bring the volume
 data file with it. It is best to keep them in the same directory if
 possible.</p>
 </div>
+<div class="section" id="save-to-python-script">
+<h2>Save To Python Script<a class="headerlink" href="#save-to-python-script" title="Permalink to this headline">¶</a></h2>
+<p>File–&gt;Save to Python script or [Save to Python script] toolbar button</p>
+<p>Save to Python script will save the current AGAVE session into a small Python file.
+See [Python Interface] for how to use the Python programming language to automate
+AGAVE to create animation sequences or batch rendering of many images.</p>
+</div>
 </div>
 <div class="section" id="camera-panel">
 <h1>Camera Panel<a class="headerlink" href="#camera-panel" title="Permalink to this headline">¶</a></h1>
@@ -598,6 +607,30 @@ range).</p>
 slider or change the numeric input to load a new time sample. Beware
 that this is loading a whole new volume and can take some time. If your
 volume only has a single time, then the slider will have no effect.</p>
+</div>
+<div class="section" id="python-interface">
+<h1>Python Interface<a class="headerlink" href="#python-interface" title="Permalink to this headline">¶</a></h1>
+<p>AGAVE can be automated and controlled via Python when it is launched in
+server mode from the command line.
+First, install the AGAVE Python client:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">agave_pyclient</span>
+</pre></div>
+</div>
+<p>To run AGAVE as a server, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">agave</span> <span class="o">--</span><span class="n">server</span>
+</pre></div>
+</div>
+<p>Now the Python client will be able to find the running AGAVE server session,
+and send commands to it.
+A Python script exported from the AGAVE GUI using “Save to Python script” will re-create the session and produce an image when run.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">my_script</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>The AGAVE Python client provides commands for every setting in the user
+interface, and also provides two additional convenience commands for creating
+an image sequence for a turntable rotation, and for a rocker (side to side) rotation.
+For Python users, the AGAVE Python client project full documentation can be found here:
+<a class="reference external" href="https://allen-cell-animated.github.io/agave/agave_pyclient">https://allen-cell-animated.github.io/agave/agave_pyclient</a></p>
 </div>
 <div class="section" id="troubleshooting">
 <h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
