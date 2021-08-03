@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Welcome to agave_pyclient’s documentation! &mdash; agave_pyclient 1.0.2 documentation</title>
+  <title>AGAVE &mdash; AGAVE 1.0.1 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="AgaveRenderer" href="agave_renderer.html" /> 
+    <link rel="next" title="User Interface Overview" href="agave.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -53,7 +53,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> agave_pyclient
+            <a href="#" class="icon icon-home"> AGAVE
           
 
           
@@ -84,10 +84,19 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="agave_renderer.html">AgaveRenderer</a></li>
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="agave.html">User Interface Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#loading-volume-data">Loading volume data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#adjusting-the-camera-view">Adjusting the camera view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#appearance-panel">Appearance Panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#volume-channel-settings">Volume Channel Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#output-saving-results">Output: Saving Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#camera-panel">Camera Panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#time-panel">Time Panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#python-interface">Python Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#preparing-an-agave-compatible-ome-tiff-file-with-fiji">Preparing an AGAVE Compatible ome-tiff file with Fiji</a></li>
 </ul>
 
             
@@ -103,7 +112,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">agave_pyclient</a>
+          <a href="#">AGAVE</a>
         
       </nav>
 
@@ -136,7 +145,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Welcome to agave_pyclient’s documentation!</li>
+      <li>AGAVE</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -150,53 +159,71 @@
   </ul>
 
   
-  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
-      
-        <a href="agave_renderer.html" class="btn btn-neutral float-right" title="AgaveRenderer" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-      
-      
-  </div>
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-agave-pyclient-s-documentation">
-<h1>Welcome to agave_pyclient’s documentation!<a class="headerlink" href="#welcome-to-agave-pyclient-s-documentation" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="quick-start">
-<h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install agave_pyclient</span>
-</pre></div>
-</div>
-<p>You must have Agave installed separately. On command line, run:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">agave --server &amp;</span>
-</pre></div>
-</div>
-<p>And then in your Python code, import and use the <a class="reference internal" href="agave_renderer.html#agave-renderer-label"><span class="std std-ref">AgaveRenderer</span></a> class.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">agave_pyclient</span> <span class="kn">import</span> <span class="n">AgaveRenderer</span>
-
-<span class="c1"># 1. connect to the agave server</span>
-<span class="n">r</span> <span class="o">=</span> <span class="n">agave_pyclient</span><span class="o">.</span><span class="n">AgaveRenderer</span><span class="p">()</span>
-<span class="c1"># 2. tell it what data to load</span>
-<span class="n">r</span><span class="o">.</span><span class="n">load_volume_from_file</span><span class="p">(</span><span class="s2">&quot;my_favorite.ome.tiff&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="c1"># 3. set some render settings (abbreviated list here)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">set_resolution</span><span class="p">(</span><span class="mi">681</span><span class="p">,</span> <span class="mi">612</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">background_color</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">render_iterations</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">set_primary_ray_step_size</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">set_secondary_ray_step_size</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">set_voxel_scale</span><span class="p">(</span><span class="mf">0.270833</span><span class="p">,</span> <span class="mf">0.270833</span><span class="p">,</span> <span class="mf">0.53</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">exposure</span><span class="p">(</span><span class="mf">0.75</span><span class="p">)</span>
-<span class="n">r</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="mf">28.7678</span><span class="p">)</span>
-<span class="c1"># 4. give the output a name</span>
-<span class="n">r</span><span class="o">.</span><span class="n">session</span><span class="p">(</span><span class="s2">&quot;output.png&quot;</span><span class="p">)</span>
-<span class="c1"># 5. wait for render and then save output</span>
-<span class="n">r</span><span class="o">.</span><span class="n">redraw</span><span class="p">()</span>
-</pre></div>
-</div>
+  <div class="section" id="agave">
+<h1>AGAVE<a class="headerlink" href="#agave" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="advanced-gpu-accelerated-volume-explorer">
+<h2>Advanced GPU Accelerated Volume Explorer<a class="headerlink" href="#advanced-gpu-accelerated-volume-explorer" title="Permalink to this headline">¶</a></h2>
+<p>AGAVE is a desktop application for viewing multichannel volume data.</p>
+<p>AGAVE’s core viewing engine uses a “progressive path tracer”. During interactive use, your image will appear grainy at first, but will refine over time as the rendering system builds up more and more render passes. The speed of refinement depends on your hardware, the size and complexity of the image, and the AGAVE parameters you set, i.e., the faster your GPU, the quicker a rendering will resolve. GPU memory dictates the maximum size of the files AGAVE can load. As soon as you change any viewing parameter, including your camera angle, the rendering will start over.</p>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="agave.html">User Interface Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#loading-volume-data">Loading volume data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#open-volume">Open Volume</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#open-json">Open JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#recent">Recent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#adjusting-the-camera-view">Adjusting the camera view</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#rotate">Rotate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#zoom">Zoom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#pan">Pan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#reset">Reset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#perspective-orthographic">Perspective/Orthographic</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#appearance-panel">Appearance Panel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#global-rendering-settings">Global Rendering Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#volume-scale">Volume Scale</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#region-of-interest-roi">Region Of Interest (ROI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#lighting">Lighting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#volume-channel-settings">Volume Channel Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#transfer-function-editor">Transfer Function Editor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#color-settings">Color settings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#output-saving-results">Output: Saving Results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#save-image">Save Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#save-json">Save JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#save-to-python-script">Save To Python Script</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#camera-panel">Camera Panel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#film-exposure">Film Exposure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#exposure-time">Exposure Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#noise-reduction">Noise Reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#aperture-size">Aperture Size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#projection-field-of-view">Projection Field of View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#focal-distance">Focal Distance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#time-panel">Time Panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#python-interface">Python Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#agave-log">AGAVE Log</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#preparing-an-agave-compatible-ome-tiff-file-with-fiji">Preparing an AGAVE Compatible ome-tiff file with Fiji</a></li>
+</ul>
+</div>
 </div>
 </div>
 
@@ -205,12 +232,15 @@
            
           </div>
           <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="agave.html" class="btn btn-neutral float-right" title="User Interface Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2021, Daniel Toloudis.
+        &#169; Copyright 2020, Allen Institute for Cell Science.
 
     </p>
   </div>
