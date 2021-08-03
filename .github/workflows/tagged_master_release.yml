@@ -160,13 +160,13 @@ jobs:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
       - name: Publish Docs
-        uses: JamesIves/github-pages-deploy-action@3.6.2
+        uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: agave_pyclient/docs/_build/html/ # The folder the action should deploy.
+          token: ${{ secrets.ACCESS_TOKEN }}
+          branch: gh-pages # The branch the action should deploy to.
+          folder: agave_pyclient/docs/_build/html/ # The folder the action should deploy.
           target-folder: agave_pyclient/
-          CLEAN: true
+          clean: false
   docs:
     runs-on: ubuntu-latest
     steps:
@@ -190,12 +190,12 @@ jobs:
           name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
       - name: Publish Docs
-        uses: JamesIves/github-pages-deploy-action@3.6.2
+        uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: docs/_build/html/ # The folder the action should deploy.
-          CLEAN: true
+          token: ${{ secrets.ACCESS_TOKEN }}
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs/_build/html/ # The folder the action should deploy.
+          clean: false
   make-release:
     runs-on: ubuntu-latest
     needs: cmake-build
