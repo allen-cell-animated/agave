@@ -133,7 +133,40 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
           packages_dir: agave_pyclient/dist/
           verbose: true
-
+  docs_pythonclient:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - run: |
+          cd agave_pyclient
+          pip install .
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "agave_pyclient/docs/"
+          pre-build-command: "pip install -e ./agave_pyclient"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "agave_pyclient/docs/"
+          pre-build-command: "pip install -e ./agave_pyclient && apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          build-command: "make latexpdf"
+      - uses: actions/upload-artifact@v1
+        with:
+          name: DocumentationPythonClientHTML
+          path: agave_pyclient/docs/_build/html/
+      - uses: actions/upload-artifact@v1
+        with:
+          name: DocumentationPythonClientPDF
+          path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
+      - name: Publish Docs
+        uses: JamesIves/github-pages-deploy-action@3.6.2
+        with:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: agave_pyclient/docs/_build/html/ # The folder the action should deploy.
+          target-folder: agave_pyclient/
+          CLEAN: true
   docs:
     runs-on: ubuntu-latest
     steps:
