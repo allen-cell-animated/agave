@@ -53,7 +53,7 @@ Ready to contribute? Here's how to set up `agave_pyclient` for local development
 A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed.
 
-Currently this Python package is to be kept in version lockstep with its parent AGAVE.
+This Python package is to be kept in version lockstep with its parent AGAVE.
 Please follow the AGAVE deployment/versioning instructions. 
 
 This will release a new package version on Git + GitHub and publish to PyPI.
