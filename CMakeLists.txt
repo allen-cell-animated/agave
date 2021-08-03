@@ -11,7 +11,7 @@ endif (POLICY CMP0048)
 
 project(
   agave 
-  VERSION 1.0.3
+  VERSION 1.0.4
   LANGUAGES C CXX
 )
 
