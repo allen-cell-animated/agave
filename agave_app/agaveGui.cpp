@@ -110,12 +110,9 @@ agaveGui::createActions()
   m_dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
   connect(m_dumpJsonAction, SIGNAL(triggered()), this, SLOT(saveJson()));
 
-  // TODO: this is disabled for release but stays here to be developed for a post-1.0 feature.
-#ifdef NDEBUG
-  m_dumpPythonAction = new QAction(tr("&Save to python script"), this);
-  m_dumpPythonAction->setStatusTip(tr("Save a python script containing all render settings and loaded volume path"));
+  m_dumpPythonAction = new QAction(tr("&Save to Python script"), this);
+  m_dumpPythonAction->setStatusTip(tr("Save a Python script usable with agave_pyclient"));
   connect(m_dumpPythonAction, SIGNAL(triggered()), this, SLOT(savePython()));
-#endif
 
   m_testMeshAction = new QAction(tr("&Open mesh..."), this);
   m_testMeshAction->setStatusTip(tr("Open a mesh obj file"));
@@ -141,9 +138,7 @@ agaveGui::createMenus()
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_saveImageAction);
   m_fileMenu->addAction(m_dumpJsonAction);
-#ifdef NDEBUG
   m_fileMenu->addAction(m_dumpPythonAction);
-#endif
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_quitAction);
 
@@ -170,9 +165,7 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
-#ifdef NDEBUG
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
-#endif
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
