@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <errno.h>
 #include <sys/stat.h>
 
 void
@@ -446,7 +447,8 @@ void
 LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
-  if (stat(m_data.m_path.c_str(), nullptr) == 0) {
+  struct stat buf;
+  if (stat(m_data.m_path.c_str(), &buf) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, &dims, m_data.m_time, m_data.m_scene);
@@ -520,7 +522,8 @@ SetTimeCommand::execute(ExecutionContext* c)
     return;
   }
 
-  if (stat(c->m_currentFilePath.c_str(), nullptr) == 0) {
+  struct stat buf;
+  if (stat(c->m_currentFilePath.c_str(), &buf) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image =
