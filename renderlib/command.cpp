@@ -85,6 +85,8 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
 
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
+  } else {
+    LOG_WARNING << "stat failed on image with errno " << errno;
   }
 }
 
@@ -570,6 +572,7 @@ SetTimeCommand::execute(ExecutionContext* c)
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
   } else {
+    LOG_WARNING << "stat failed on image with errno " << errno;
     LOG_WARNING << "SetTime command called without a file loaded";
   }
 }
