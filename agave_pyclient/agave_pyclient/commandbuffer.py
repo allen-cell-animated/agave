@@ -162,7 +162,7 @@ class CommandBuffer:
                     struct.pack_into(">i", self.buffer, offset, len(flist))
                     offset += 4
                     for k in flist:
-                        struct.pack_into("f", self.buffer, offset, flist[k])
+                        struct.pack_into("f", self.buffer, offset, k)
                         offset += 4
 
         # result is in this.buffer
