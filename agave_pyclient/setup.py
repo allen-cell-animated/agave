@@ -84,6 +84,6 @@ setup(
     url="https://github.com/allen-cell-animated/agave",
     # Do not edit this string manually, always use bumpversion
     # Details in CONTRIBUTING.rst
-    version="1.0.5",
+    version="1.0.6",
     zip_safe=False,
 )
