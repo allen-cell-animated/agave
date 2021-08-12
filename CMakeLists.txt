@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
 if (APPLE)
-  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.12")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version" FORCE)
+  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.13")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
 if (POLICY CMP0048)

@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <errno.h>
 #include <sys/stat.h>
 
 void
@@ -31,7 +32,8 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
 {
   LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
-  if (stat(m_data.m_name.c_str(), nullptr) == 0) {
+  struct stat buf;
+  if (stat(m_data.m_name.c_str(), &buf) == 0) {
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(m_data.m_name);
     if (!image) {
       return;
@@ -83,6 +85,8 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
 
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
+  } else {
+    LOG_WARNING << "stat failed on image with errno " << errno;
   }
 }
 
@@ -324,7 +328,7 @@ SetVoxelScaleCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "SetVoxelScale " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z;
   c->m_appScene->m_volume->setPhysicalSize(m_data.m_x, m_data.m_y, m_data.m_z);
   // update things that depend on this scaling!
-  c->m_appScene->initSceneFromImg(c->m_appScene->m_volume);
+  c->m_appScene->initBoundsFromImg(c->m_appScene->m_volume);
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
@@ -445,7 +449,8 @@ void
 LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
-  if (stat(m_data.m_path.c_str(), nullptr) == 0) {
+  struct stat buf;
+  if (stat(m_data.m_path.c_str(), &buf) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, &dims, m_data.m_time, m_data.m_scene);
@@ -503,6 +508,8 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
+  } else {
+    LOG_WARNING << "stat failed on image with errno " << errno;
   }
 }
 
@@ -517,7 +524,8 @@ SetTimeCommand::execute(ExecutionContext* c)
     return;
   }
 
-  if (stat(c->m_currentFilePath.c_str(), nullptr) == 0) {
+  struct stat buf;
+  if (stat(c->m_currentFilePath.c_str(), &buf) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image =
@@ -564,6 +572,7 @@ SetTimeCommand::execute(ExecutionContext* c)
     QJsonDocument doc(j);
     c->m_message = doc.toJson().toStdString();
   } else {
+    LOG_WARNING << "stat failed on image with errno " << errno;
     LOG_WARNING << "SetTime command called without a file loaded";
   }
 }

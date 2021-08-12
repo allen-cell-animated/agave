@@ -32,7 +32,7 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          export MACOSX_DEPLOYMENT_TARGET=10.12
+          export MACOSX_DEPLOYMENT_TARGET=10.13
           brew install boost glm
       - name: macos build and test
         if: matrix.os == 'macOS-latest'
@@ -40,7 +40,7 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          export MACOSX_DEPLOYMENT_TARGET=10.12
+          export MACOSX_DEPLOYMENT_TARGET=10.13
           mkdir ./build
           cd build
           cmake ..
