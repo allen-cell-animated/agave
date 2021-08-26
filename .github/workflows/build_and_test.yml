@@ -16,7 +16,7 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "docs/"
-          pre-build-command: "apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
       - uses: actions/upload-artifact@v2
         with:
@@ -43,7 +43,7 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "pip install -e ./agave_pyclient && apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
       - uses: actions/upload-artifact@v1
         with:
