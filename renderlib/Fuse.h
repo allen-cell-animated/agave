@@ -2,8 +2,6 @@
 
 #include "glm.h"
 
-#include <QThread>
-
 #include <vector>
 
 class ImageXYZC;
@@ -21,9 +19,8 @@ public:
                    uint16_t** outGradientVolume);
 };
 
-class FuseWorkerThread : public QThread
+class FuseWorkerThread
 {
-  Q_OBJECT
 public:
   // count is how many elements to walk for input and output.
   FuseWorkerThread(size_t thread_idx,
@@ -31,7 +28,7 @@ public:
                    uint8_t* outptr,
                    const ImageXYZC* img,
                    const std::vector<glm::vec3>& colors);
-  void run() override;
+  void run();
 
 private:
   size_t m_thread_idx;
@@ -41,6 +38,6 @@ private:
   // read only!
   const ImageXYZC* m_img;
   const std::vector<glm::vec3>& m_channelColors;
-signals:
-  void resultReady(size_t threadidx);
+
+  // void resultReady(size_t threadidx);
 };
