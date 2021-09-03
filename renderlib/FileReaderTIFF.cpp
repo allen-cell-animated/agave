@@ -20,6 +20,7 @@ FileReaderTIFF::FileReaderTIFF() {}
 
 FileReaderTIFF::~FileReaderTIFF() {}
 
+// TODO: move into a String Utils
 static std::string
 trim(const std::string& str, const std::string& whitespace = " \t")
 {
@@ -32,6 +33,8 @@ trim(const std::string& str, const std::string& whitespace = " \t")
 
   return str.substr(strBegin, strRange);
 }
+
+// TODO: move into a String Utils
 static bool
 startsWith(const std::string mainStr, const std::string toMatch)
 {
@@ -41,6 +44,8 @@ startsWith(const std::string mainStr, const std::string toMatch)
   else
     return false;
 }
+
+// TODO: move into a String Utils
 static bool
 endsWith(std::string const& value, std::string const& ending)
 {
@@ -48,6 +53,8 @@ endsWith(std::string const& value, std::string const& ending)
     return false;
   return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
+
+// TODO: move into a String Utils
 static void
 split(const std::string& s, char delim, std::vector<std::string>& elems)
 {
@@ -83,13 +90,13 @@ protected:
 };
 
 uint32_t
-requireUint32Attr(pugi::xml_node& el, const std::string& attr, uint32_t defaultVal)
+requireUint32Attr(pugi_agave::xml_node& el, const std::string& attr, uint32_t defaultVal)
 {
   return (uint32_t)el.attribute(attr.c_str()).as_uint(defaultVal);
 }
 
 float
-requireFloatAttr(pugi::xml_node& el, const std::string& attr, float defaultVal)
+requireFloatAttr(pugi_agave::xml_node& el, const std::string& attr, float defaultVal)
 {
   return el.attribute(attr.c_str()).as_float(defaultVal);
 }
@@ -244,22 +251,22 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
   } else if (startsWith(simagedescription, "<?xml version") && endsWith(simagedescription, "OME>")) {
     // convert c to xml doc.  if this fails then we don't have an ome tif.
-    pugi::xml_document omexml;
-    pugi::xml_parse_result parseOk = omexml.load_string(simagedescription.c_str());
+    pugi_agave::xml_document omexml;
+    pugi_agave::xml_parse_result parseOk = omexml.load_string(simagedescription.c_str());
     if (!parseOk) {
       LOG_ERROR << "Bad OME xml metadata content";
       return false;
     }
 
-    pugi::xml_node omenode = omexml.child("OME");
+    pugi_agave::xml_node omenode = omexml.child("OME");
 
     // extract some necessary info from the xml:
 
     // count how many <Image> tags and that is our number of scenes.
     uint32_t numScenes = 0;
-    pugi::xml_node imageEl;
-    pugi::xml_node pixelsEl;
-    for (pugi::xml_node imagenode : omenode.children("Image")) {
+    pugi_agave::xml_node imageEl;
+    pugi_agave::xml_node pixelsEl;
+    for (pugi_agave::xml_node imagenode : omenode.children("Image")) {
       // get the Image and Pixels element of scene
       if (numScenes == scene) {
         imageEl = imagenode;
@@ -307,7 +314,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
     // find channel names
     int i = 0;
-    for (pugi::xml_node node : pixelsEl.children("Channel")) {
+    for (pugi_agave::xml_node node : pixelsEl.children("Channel")) {
       std::string chid = node.attribute("ID").value();
       std::string chname = node.attribute("Name").value();
       if (!chname.empty()) {

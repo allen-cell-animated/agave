@@ -62,10 +62,10 @@ getSceneYXSize(libCZI::SubBlockStatistics& statistics, int sceneIndex = 0)
   return statistics.boundingBoxLayer0Only;
 }
 
-pugi::xml_node
-firstChild(pugi::xml_node& el, std::string tag)
+pugi_agave::xml_node
+firstChild(pugi_agave::xml_node& el, std::string tag)
 {
-  pugi::xml_node child = el.child(tag.c_str());
+  pugi_agave::xml_node child = el.child(tag.c_str());
   if (!child) {
     LOG_ERROR << "No " << tag << "element in xml";
   }
@@ -86,9 +86,9 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
 
   libCZI::ScalingInfo scalingInfo = docinfo->GetScalingInfo();
   // convert meters to microns?
-  dims.physicalSizeX = scalingInfo.scaleX * 1000000.0f;
-  dims.physicalSizeY = scalingInfo.scaleY * 1000000.0f;
-  dims.physicalSizeZ = scalingInfo.scaleZ * 1000000.0f;
+  dims.physicalSizeX = (float)(scalingInfo.scaleX * 1000000.0);
+  dims.physicalSizeY = (float)(scalingInfo.scaleY * 1000000.0);
+  dims.physicalSizeZ = (float)(scalingInfo.scaleZ * 1000000.0);
 
   // get all dimension bounds and enumerate.
   // I am making an assumption here that each scene has the same Z C and T dimensions.
@@ -116,37 +116,37 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
 
   std::string xml = md->GetXml();
 
-  pugi::xml_document czixml;
-  pugi::xml_parse_result parseOk = czixml.load_string(xml.c_str());
+  pugi_agave::xml_document czixml;
+  pugi_agave::xml_parse_result parseOk = czixml.load_string(xml.c_str());
   if (!parseOk) {
     LOG_ERROR << "Bad CZI xml metadata content";
     return false;
   }
 
   // first Metadata child by tag
-  pugi::xml_node metadataEl = czixml.child("Metadata");
+  pugi_agave::xml_node metadataEl = czixml.child("Metadata");
   if (!metadataEl) {
     LOG_ERROR << "No Metadata element in czi xml";
     return false;
   }
-  pugi::xml_node informationEl = firstChild(metadataEl, "Information");
+  pugi_agave::xml_node informationEl = firstChild(metadataEl, "Information");
   if (!informationEl) {
     return false;
   }
-  pugi::xml_node imageEl = firstChild(informationEl, "Image");
+  pugi_agave::xml_node imageEl = firstChild(informationEl, "Image");
   if (!imageEl) {
     return false;
   }
-  pugi::xml_node dimensionsEl = firstChild(imageEl, "Dimensions");
+  pugi_agave::xml_node dimensionsEl = firstChild(imageEl, "Dimensions");
   if (!dimensionsEl) {
     return false;
   }
-  pugi::xml_node channelsEl = firstChild(dimensionsEl, "Channels");
+  pugi_agave::xml_node channelsEl = firstChild(dimensionsEl, "Channels");
   if (!channelsEl) {
     return false;
   }
   std::vector<std::string> channelNames;
-  for (pugi::xml_node node : channelsEl.children("Channel")) {
+  for (pugi_agave::xml_node node : channelsEl.children("Channel")) {
     channelNames.push_back(node.attribute("Name").value());
   }
   dims.channelNames = channelNames;
