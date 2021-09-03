@@ -7,7 +7,7 @@
 
 #include <libCZI/Src/libCZI/libCZI.h>
 
-#include <QDomDocument>
+#include "pugixml/pugixml.hpp"
 
 #include <boost/filesystem.hpp>
 
@@ -62,24 +62,12 @@ getSceneYXSize(libCZI::SubBlockStatistics& statistics, int sceneIndex = 0)
   return statistics.boundingBoxLayer0Only;
 }
 
-float
-requireFloatValue(QDomElement& el, float defaultVal)
+pugi::xml_node
+firstChild(pugi::xml_node& el, std::string tag)
 {
-  QString val = el.text();
-  bool ok;
-  float retval = val.toFloat(&ok);
-  if (!ok) {
-    retval = defaultVal;
-  }
-  return retval;
-}
-
-QDomElement
-firstChild(QDomElement el, QString tag)
-{
-  QDomElement child = el.elementsByTagName(tag).at(0).toElement();
-  if (child.isNull()) {
-    LOG_ERROR << "No " << tag.toStdString() << "element in xml";
+  pugi::xml_node child = el.child(tag.c_str());
+  if (!child) {
+    LOG_ERROR << "No " << tag << "element in xml";
   }
   return child;
 }
@@ -127,50 +115,44 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   dims.sizeY = planebox.h;
 
   std::string xml = md->GetXml();
-  // convert to QString for convenience functions
-  QString qxmlstr = QString::fromStdString(xml);
-  QDomDocument czixml;
-  bool ok = czixml.setContent(qxmlstr);
-  if (!ok) {
+
+  pugi::xml_document czixml;
+  pugi::xml_parse_result parseOk = czixml.load_string(xml.c_str());
+  if (!parseOk) {
     LOG_ERROR << "Bad CZI xml metadata content";
     return false;
   }
 
-  QDomElement metadataEl = czixml.elementsByTagName("Metadata").at(0).toElement();
-  if (metadataEl.isNull()) {
+  // first Metadata child by tag
+  pugi::xml_node metadataEl = czixml.child("Metadata");
+  if (!metadataEl) {
     LOG_ERROR << "No Metadata element in czi xml";
     return false;
   }
-  QDomElement informationEl = firstChild(metadataEl, "Information");
-  if (informationEl.isNull()) {
+  pugi::xml_node informationEl = firstChild(metadataEl, "Information");
+  if (!informationEl) {
     return false;
   }
-  QDomElement imageEl = firstChild(informationEl, "Image");
-  if (imageEl.isNull()) {
+  pugi::xml_node imageEl = firstChild(informationEl, "Image");
+  if (!imageEl) {
     return false;
   }
-  QDomElement dimensionsEl = firstChild(imageEl, "Dimensions");
-  if (dimensionsEl.isNull()) {
+  pugi::xml_node dimensionsEl = firstChild(imageEl, "Dimensions");
+  if (!dimensionsEl) {
     return false;
   }
-  QDomElement channelsEl = firstChild(dimensionsEl, "Channels");
-  if (channelsEl.isNull()) {
+  pugi::xml_node channelsEl = firstChild(dimensionsEl, "Channels");
+  if (!channelsEl) {
     return false;
   }
-  QDomNodeList channelEls = channelsEl.elementsByTagName("Channel");
   std::vector<std::string> channelNames;
-  for (int i = 0; i < channelEls.count(); ++i) {
-    QDomNode node = channelEls.at(i);
-    if (node.isElement()) {
-      QDomElement el = node.toElement();
-      channelNames.push_back(el.attribute("Name").toStdString());
-    }
+  for (pugi::xml_node node : channelsEl.children("Channel")) {
+    channelNames.push_back(node.attribute("Name").value());
   }
-
   dims.channelNames = channelNames;
 
   libCZI::SubBlockInfo info;
-  ok = reader->TryGetSubBlockInfoOfArbitrarySubBlockInChannel(0, info);
+  bool ok = reader->TryGetSubBlockInfoOfArbitrarySubBlockInChannel(0, info);
   if (ok) {
     switch (info.pixelType) {
       case libCZI::PixelType::Gray8:

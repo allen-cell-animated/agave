@@ -64,6 +64,7 @@ add_subdirectory(gl)
 add_subdirectory(gl/v33)
 add_subdirectory(glad/src)
 add_subdirectory(glsl/v330)
+add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib
 add_compile_definitions(_STATICLIBBUILD)
