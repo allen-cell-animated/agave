@@ -168,7 +168,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       std::vector<std::string> namevalue;
       split(sl[i], '=', namevalue);
       if (namevalue.size() == 2) {
-        imagejmetadata.insert(namevalue[0], namevalue[1]);
+        imagejmetadata[namevalue[0]] = namevalue[1];
       } else if (namevalue.size() == 1) {
         imagejmetadata[namevalue[0]] = "";
       } else {
@@ -200,7 +200,6 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
 
     iter = imagejmetadata.find("spacing");
     if (iter != imagejmetadata.end()) {
-      bool ok;
       try {
         physicalSizeZ = std::stof((*iter).second);
         if (physicalSizeZ < 0.0f) {
@@ -219,8 +218,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
   } else if (startsWith(simagedescription, "{\"shape\":")) {
     // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
-    int firstBracket = simagedescription.find_first_of('[');
-    int lastBracket = simagedescription.find_last_of(']');
+    size_t firstBracket = simagedescription.find_first_of('[');
+    size_t lastBracket = simagedescription.find_last_of(']');
     std::string shape = simagedescription.substr(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape;
     std::vector<std::string> shapelist;
@@ -284,7 +283,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
                                                         { "float", 32 }, { "double", 64 } };
 
     std::string pixelType = pixelsEl.attribute("Type").as_string("uint16");
-    std::transform(pixelType.begin(), pixelType.end(), pixelType.begin(), std::tolower);
+    std::transform(
+      pixelType.begin(), pixelType.end(), pixelType.begin(), [](unsigned char c) { return std::tolower(c); });
     LOG_INFO << "pixel type: " << pixelType;
     bpp = mapPixelTypeBPP[pixelType];
     if (bpp != 32 && bpp != 16 && bpp != 8) {
@@ -427,7 +427,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
     return false;
   }
 
-  int numBytesRead = 0;
+  tmsize_t numBytesRead = 0;
   // TODO future optimize:
   // This function is usually called in a loop. We could factor out the TIFFmalloc and TIFFfree calls.
   // Should profile to see if the repeated malloc/frees are any kind of loading bottleneck.
