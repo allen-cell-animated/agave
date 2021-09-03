@@ -1,7 +1,7 @@
 #include "agaveGui.h"
 
 #include "mainwindow.h"
-#include "python/ScriptServer.h"
+//#include "python/ScriptServer.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
 #include "renderlib/renderlib.h"
@@ -134,10 +134,10 @@ main(int argc, char* argv[])
 
   if (isScript) {
     // TODO allow script to run in GUI or non GUI mode.
-    QString scriptPath = parser.value(scriptOption);
-    ScriptServer* server = new ScriptServer();
-    server->runScriptFile(scriptPath.toStdString());
-    delete server;
+    // QString scriptPath = parser.value(scriptOption);
+    // ScriptServer* server = new ScriptServer();
+    // server->runScriptFile(scriptPath.toStdString());
+    // delete server;
   } else if (isServer) {
     QString configPath = parser.value(serverConfigOption);
     ServerParams p = readConfig(configPath);
