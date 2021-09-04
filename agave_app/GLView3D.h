@@ -77,7 +77,7 @@ public slots:
   void OnUpdateRenderer(int);
 
 public:
-  CStatus* getStatus();
+  std::shared_ptr<CStatus> getStatus();
 
 protected:
   /// Set up GL context and subsidiary objects.

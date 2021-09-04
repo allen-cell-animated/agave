@@ -16,6 +16,7 @@ RenderGL::RenderGL(RenderSettings* rs)
   , m_renderSettings(rs)
   , m_scene(nullptr)
   , m_devicePixelRatio(1.0f)
+  , m_status(new CStatus)
 {
   mStartTime = std::chrono::high_resolution_clock::now();
 }
@@ -85,7 +86,7 @@ RenderGL::render(const CCamera& camera)
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - mStartTime;
   m_timingRender.AddDuration((elapsed.count() * 1000.0));
-  m_status.SetStatisticChanged("Performance", "Render Image", m_timingRender.filteredDurationAsString(), "ms.");
+  m_status->SetStatisticChanged("Performance", "Render Image", m_timingRender.filteredDurationAsString(), "ms.");
   mStartTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -131,5 +132,5 @@ RenderGL::initFromScene()
 
   // we have set up everything there is to do before rendering
   mStartTime = std::chrono::high_resolution_clock::now();
-  m_status.SetRenderBegin();
+  m_status->SetRenderBegin();
 }

@@ -250,7 +250,7 @@ GLView3D::OnUpdateQRenderSettings(void)
   rs.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
-CStatus*
+std::shared_ptr<CStatus>
 GLView3D::getStatus()
 {
   return m_renderer->getStatusInterface();
@@ -268,6 +268,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
 
   Scene* sc = m_renderer->scene();
 
+  // deleting renderer deletes status object, which is held also by the status widget.
+  // pass status interface into renderer instead? and have app/status widget be source of truth?
   switch (rendererType) {
     case 1:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";

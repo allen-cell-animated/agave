@@ -7,6 +7,8 @@ class CStatus;
 class RenderParams;
 class Scene;
 
+#include <memory>
+
 class IRenderWindow
 {
 public:
@@ -19,7 +21,7 @@ public:
   virtual void cleanUpResources() {}
 
   // an interface for reporting statistics and other data updates
-  virtual CStatus* getStatusInterface() { return nullptr; }
+  virtual std::shared_ptr<CStatus> getStatusInterface() { return nullptr; }
 
   // I own these.
   virtual RenderParams& renderParams() = 0;
