@@ -4,7 +4,7 @@
 #include "ImageXYZC.h"
 
 // Render status singleton
-CStatus gStatus;
+// CStatus gStatus;
 
 inline std::string
 FormatVector(const glm::vec3& Vector, const int& Precision = 2)

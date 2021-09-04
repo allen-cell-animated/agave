@@ -44,7 +44,7 @@ QStatisticsWidget::QStatisticsWidget(QWidget* pParent)
 }
 
 void
-QStatisticsWidget::set(CStatus* status)
+QStatisticsWidget::set(std::shared_ptr<CStatus> status)
 {
   if (status != mStatusObject && mStatusObject != nullptr) {
     mStatusObject->removeObserver(&mStatusObserver);

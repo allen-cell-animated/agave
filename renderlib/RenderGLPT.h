@@ -35,7 +35,7 @@ public:
   virtual Scene* scene();
   virtual void setScene(Scene* s);
 
-  virtual CStatus* getStatusInterface() { return &m_status; }
+  virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
 
   Image3Dv33* getImage() const { return nullptr; };
   RenderSettings& getRenderSettings() { return *m_renderSettings; }
@@ -84,7 +84,7 @@ private:
   float m_devicePixelRatio;
 
   Timing m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
-  CStatus m_status;
+  std::shared_ptr<CStatus> m_status;
 
   size_t m_gpuBytes;
 };
