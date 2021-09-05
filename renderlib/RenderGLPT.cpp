@@ -200,7 +200,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_renderSettings->m_RenderSettings.m_GradientDelta = 1.0f / (float)this->m_scene->m_volume->maxPixelDimension();
 
-  m_renderSettings->m_DenoiseParams.SetWindowRadius(3.0f);
+  m_renderSettings->m_DenoiseParams.SetWindowRadius(3);
 
   // scene bounds are min=0.0, max=image physical dims scaled to max dim so that max dim is 1.0
   glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
@@ -365,7 +365,7 @@ RenderGLPT::drawImage()
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
+  glViewport(0, 0, (GLsizei)(m_w * m_devicePixelRatio), (GLsizei)(m_h * m_devicePixelRatio));
 
   // draw quad using the tex that cudaTex was mapped to
   m_imagequad->draw(m_fb->colorTextureId());

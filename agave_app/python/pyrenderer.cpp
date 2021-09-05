@@ -112,7 +112,9 @@ OffscreenRenderer::render()
   m_myVolumeData.m_renderer->drawImage();
   this->m_fbo->release();
 
-  QImage img = m_fbo->toImage();
+  std::unique_ptr<uint8_t> bytes(new uint8_t[vw * vh * 4]);
+  m_fbo->toImage(bytes.get());
+  QImage img = QImage(bytes.get(), vw, vh, QImage::Format_RGB32).copy().mirrored();
 
   this->m_glContext->doneCurrent();
   return img;

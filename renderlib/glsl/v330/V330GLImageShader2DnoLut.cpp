@@ -36,7 +36,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -59,7 +59,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -67,7 +67,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log();
   }
 
   m_attr_coords = attributeLocation("coord2d");

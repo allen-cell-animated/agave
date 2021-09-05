@@ -4,7 +4,6 @@
 
 #include "Logging.h"
 
-#include <QImage>
 #include <string>
 
 /**
@@ -75,7 +74,9 @@ public:
   void release();
   int width() const;
   int height() const;
-  QImage toImage(bool include_alpha = false);
+
+  // pixels must be preallocated with 32bits per pixel, ASSUMING RGBA internal format
+  void toImage(void* pixels);
 
 private:
   GLuint m_fbo;
@@ -93,14 +94,14 @@ public:
 
   bool compileSourceCode(const char* sourceCode);
   bool isCompiled() const;
-  QString log() const;
+  std::string log() const;
   GLuint id() const { return m_shader; }
 
 protected:
   bool m_isCompiled;
   GLuint m_shader;
   GLenum m_shaderType;
-  QString m_log;
+  std::string m_log;
 };
 
 class GLShaderProgram
@@ -122,11 +123,11 @@ public:
   bool bind();
   void release();
 
-  QString log() { return m_log; }
+  std::string log() { return m_log; }
 
 private:
   // std::vector<GLShader> m_shaders;
   GLuint m_program;
   bool m_isLinked;
-  QString m_log;
+  std::string m_log;
 };

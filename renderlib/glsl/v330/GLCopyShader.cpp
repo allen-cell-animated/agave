@@ -31,7 +31,7 @@ void main()
 	)");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "GLCopyShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+    LOG_ERROR << "GLCopyShader: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -49,7 +49,7 @@ void main()
     )");
 
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "GLCopyShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+    LOG_ERROR << "GLCopyShader: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -57,7 +57,7 @@ void main()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLCopyShader: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "GLCopyShader: Failed to link shader program\n" << log();
   }
 
   m_texture = uniformLocation("tTexture0");

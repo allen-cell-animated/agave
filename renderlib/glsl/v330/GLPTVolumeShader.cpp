@@ -36,7 +36,7 @@ void main()
 	)");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+    LOG_ERROR << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -111,7 +111,7 @@ uniform float gInvGradientDelta;
 uniform float gGradientFactor;
 uniform float uShowLights;
 
-// per channel 
+// per channel
 uniform sampler2D g_lutTexture[4];
 uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
@@ -188,7 +188,7 @@ vec2 getConcentricDiskSample(in vec2 U)
   float sy = 2.0 * U.y - 1.0;
   // Map square to (r,theta)
   // Handle degeneracy at the origin
-  
+
   if (sx == 0.0 && sy == 0.0)
   {
     return vec2(0.0f, 0.0f);
@@ -227,7 +227,7 @@ vec2 getConcentricDiskSample(in vec2 U)
       theta = 6.0f + sx/r;
     }
   }
-  
+
   theta *= PI_OVER_4;
 
   return vec2(r*cos(theta), r*sin(theta));
@@ -303,7 +303,7 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
   return smallestMaxT > largestMinT;
 }
 
-vec3 PtoVolumeTex(vec3 p) {  
+vec3 PtoVolumeTex(vec3 p) {
   // center of volume is 0.5*extents
   // this needs to return a number in 0..1 range, so just rescale to bounds.
   return p * gInvAaBbSize;
@@ -405,10 +405,10 @@ struct CLightingSample {
 
 CLightingSample LightingSample_LargeStep(inout uvec2 seed) {
   return CLightingSample(
-    rand(seed), 
+    rand(seed),
     vec2(rand(seed), rand(seed)),
     vec2(rand(seed), rand(seed)),
-    rand(seed), 
+    rand(seed),
     rand(seed)
     );
 }
@@ -813,7 +813,7 @@ float PowerHeuristic(float nf, float fPdf, float ng, float gPdf)
 {
   float f = nf * fPdf;
   float g = ng * gPdf;
-  return (f * f) / (f * f + g * g); 
+  return (f * f) / (f * f + g * g);
 }
 
 // "shadow ray" using gStepSizeShadow, test whether it can exit the volume or not
@@ -842,7 +842,7 @@ bool FreePathRM(inout Ray R, inout uvec2 seed)
 
     if (MinT > MaxT)
       return false;
-    
+
     intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
 
@@ -857,7 +857,7 @@ bool FreePathRM(inout Ray R, inout uvec2 seed)
 int NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
 {
   int Hit = -1;
-  
+
   float T = 0.0f;
 
   Ray RayCopy = R;
@@ -892,21 +892,21 @@ vec3 EstimateDirectLight(int shaderType, float Density, int ch, in Light light, 
   CVolumeShader Shader = CVolumeShader(shaderType, RGBtoXYZ(diffuse), RGBtoXYZ(specular), 2.5f, roughness, N, nu, nv);
 
   float LightPdf = 1.0f, ShaderPdf = 1.0f;
-  
 
-  Ray Rl = Ray(vec3(0,0,0), vec3(0,0,1.0), 0.0, 1500000.0f); 
+
+  Ray Rl = Ray(vec3(0,0,0), vec3(0,0,1.0), 0.0, 1500000.0f);
   Li = Light_SampleL(light, Pe, Rl, LightPdf, LS);
-  
+
   vec3 Wi = -Rl.m_D, P = vec3(0,0,0);
 
-  F = Shader_F(Shader,Wo, Wi); 
+  F = Shader_F(Shader,Wo, Wi);
 
   ShaderPdf = Shader_Pdf(Shader, Wo, Wi);
 
   if (!IsBlack(Li) && (ShaderPdf > 0.0f) && (LightPdf > 0.0f) && !FreePathRM(Rl, seed))
   {
     float WeightMIS = PowerHeuristic(1.0f, LightPdf, 1.0f, ShaderPdf);
-    
+
     if (shaderType == ShaderType_Brdf){
       Ld += F * Li * abs(dot(Wi, N)) * WeightMIS / LightPdf;
     }
@@ -965,8 +965,8 @@ vec3 UniformSampleOneLight(int shaderType, float Density, int ch, in vec3 Wo, in
   Light light = gLights[WhichLight];
 
   return float(NUM_LIGHTS) * EstimateDirectLight(shaderType, Density, ch, light, LS, Wo, Pe, N, seed);
-  
-}    
+
+}
 
 bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
 {
@@ -981,7 +981,7 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
 
   // ray march along the ray's projected path and keep an average sigmaT value.
   // The distance is weighted by the intensity at each ray step sample. High intensity increases the apparent distance.
-  // When the distance has become greater than the average sigmaT value given by -log(RandomFloat[0, 1]) / averageSigmaT 
+  // When the distance has become greater than the average sigmaT value given by -log(RandomFloat[0, 1]) / averageSigmaT
   // then that would be considered the interaction position.
 
   // sigmaT = sigmaA + sigmaS = absorption coeff + scattering coeff = extinction coeff
@@ -1007,7 +1007,7 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
 
     if (MinT > MaxT)
       return false;
-    
+
     intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
     //SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
@@ -1028,22 +1028,22 @@ vec4 CalculateRadiance(inout uvec2 seed) {
   vec3 Lv = BLACK, Li = BLACK;
 
   //Ray Re = Ray(vec3(0,0,0), vec3(0,0,1), 0.0, 1500000.0);
-  
+
   vec2 UV = vUv*uResolution + vec2(rand(seed), rand(seed));
 
   Ray Re = GenerateCameraRay(gCamera, UV, vec2(rand(seed), rand(seed)));
-  
+
   //return vec4(vUv, 0.0, 1.0);
   //return vec4(0.5*(Re.m_D + 1.0), 1.0);
   //return vec4(Re.m_D, 1.0);
 
-  //Re.m_MinT = 0.0f; 
+  //Re.m_MinT = 0.0f;
   //Re.m_MaxT = 1500000.0f;
 
   vec3 Pe = vec3(0,0,0), Pl = vec3(0,0,0);
   float lpdf = 0.0;
   float alpha = 0.0;
-  
+
   // find point Pe along ray Re
   if (SampleDistanceRM(Re, seed, Pe))
   {
@@ -1058,7 +1058,7 @@ vec4 CalculateRadiance(inout uvec2 seed) {
       // set sample pixel value in frame estimate (prior to accumulation)
       return vec4(Li, 1.0);
     }
-    
+
     int ch = 0;
     float D = GetNormalizedIntensityMax4ch(Pe, ch);
 
@@ -1074,7 +1074,7 @@ vec4 CalculateRadiance(inout uvec2 seed) {
         Lv += UniformSampleOneLight(ShaderType_Brdf, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), seed);
         break;
       }
-    
+
       case 1:
       {
         Lv += 0.5f * UniformSampleOneLight(ShaderType_Phase, D, ch, normalize(-Re.m_D), Pe, normalize(gradient), seed);
@@ -1108,7 +1108,7 @@ vec4 CalculateRadiance(inout uvec2 seed) {
 //    if (uShowLights > 0.0) {
 //      int n = NearestLight(Ray(Re.m_O, Re.m_D, 0.0f, 1000000.0f), Li, Pl, lpdf);
 //      if (n > -1)
-//        Lv = Li;  
+//        Lv = Li;
 //    }
 
     //Lv = vec3(r,0,0);
@@ -1132,7 +1132,7 @@ void main()
 
   // perform path tracing and get resulting pixel color
   vec4 pixelColor = CalculateRadiance( seed );
-    
+
   vec4 previousColor = texture(tPreviousTexture, vUv);
   if (uSampleCounter < 1.0) {
     previousColor = vec4(0,0,0,0);
@@ -1143,9 +1143,9 @@ void main()
 )";
 
   m_fshader->compileSourceCode(
-    qPrintable(QString(fsPiece1) + QString(fsPiece2) + QString(fsPiece3) + QString(fsPiece4)));
+    (std::string(fsPiece1) + std::string(fsPiece2) + std::string(fsPiece3) + std::string(fsPiece4)).c_str());
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+    LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -1153,7 +1153,7 @@ void main()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLPTVolumeShader: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "GLPTVolumeShader: Failed to link shader program\n" << log();
   }
 
   m_volumeTexture = uniformLocation("volumeTexture");

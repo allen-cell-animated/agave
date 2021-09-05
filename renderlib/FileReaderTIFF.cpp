@@ -157,7 +157,6 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   std::vector<std::string> channelNames;
   std::string dimensionOrder = "XYCZT";
 
-  // convert to QString for convenience functions
   std::string simagedescription = trim(imagedescription);
 
   // check for plain tiff with ImageJ imagedescription:
