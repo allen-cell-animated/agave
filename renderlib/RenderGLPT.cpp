@@ -159,9 +159,6 @@ RenderGLPT::doRender(const CCamera& camera)
   // Resizing the image canvas requires special attention
   if (m_renderSettings->m_DirtyFlags.HasFlag(FilmResolutionDirty)) {
     m_renderSettings->SetNoIterations(0);
-
-    // Log("Render canvas resized to: " + QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResX()) + " x " +
-    // QString::number(SceneCopy.m_Camera.m_Film.m_Resolution.GetResY()) + " pixels", "application-resize");
   }
 
   // Restart the rendering when when the camera, lights and render params are dirty
@@ -320,8 +317,6 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_toneMapShader->release();
 
-  // LOG_DEBUG << "RETURN FROM RENDER";
-
   // display timings.
   m_status->SetStatisticChanged("Performance", "Render Image", m_timingRender.filteredDurationAsString(), "ms.");
   m_status->SetStatisticChanged("Performance", "Blur Estimate", m_timingBlur.filteredDurationAsString(), "ms.");
@@ -329,9 +324,6 @@ RenderGLPT::doRender(const CCamera& camera)
     "Performance", "Post Process Estimate", m_timingPostProcess.filteredDurationAsString(), "ms.");
   m_status->SetStatisticChanged("Performance", "De-noise Image", m_timingDenoise.filteredDurationAsString(), "ms.");
 
-  // FPS.AddDuration(1000.0f / TmrFps.ElapsedTime());
-
-  // m_status.SetStatisticChanged("Performance", "FPS", QString::number(FPS.m_FilteredDuration, 'f', 2), "Frames/Sec.");
   m_status->SetStatisticChanged("Performance", "No. Iterations", std::to_string(m_renderSettings->GetNoIterations()));
 
   // restore prior framebuffer

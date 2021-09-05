@@ -124,9 +124,4 @@ CStatus::onNewImage(const std::string& name, Scene* scene)
   SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "");
   SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "");
   SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "");
-  // s->SetStatisticChanged("Volume", "No. Voxels", QString::number((double)resolution.x * (double)resolution.y *
-  // (double)resolution.z), "Voxels");
-  // TODO: this is per channel
-  // s->SetStatisticChanged("Volume", "Density Range", "[" + QString::number(gScene.m_IntensityRange.GetMin()) + ", " +
-  // QString::number(gScene.m_IntensityRange.GetMax()) + "]", "");
 }
