@@ -10,8 +10,8 @@ if (POLICY CMP0048)
 endif (POLICY CMP0048)
 
 project(
-  agave
-  VERSION 1.1.1
+  agave 
+  VERSION 1.1.2
   LANGUAGES C CXX
 )
 
