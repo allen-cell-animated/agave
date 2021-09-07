@@ -17,7 +17,6 @@ target_link_libraries(agave_test
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${Boost_LIBRARIES}
-	pybind11::embed 
 )
 
 add_custom_command(TARGET agave_test POST_BUILD

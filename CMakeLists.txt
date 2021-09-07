@@ -18,9 +18,7 @@ project(
 set(CMAKE_CXX_STANDARD 14)
 
 IF (WIN32)
-    set(PYBIND11_CPP_STANDARD /std:c++14)
 ELSE()
-    set(PYBIND11_CPP_STANDARD -std=c++14)
     # most of this is for libCZI:
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++14 -fPIC -O0 -g -D_FILE_OFFSET_BITS=64 -fvisibility=hidden")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__ANSI__ -fPIC -D_FILE_OFFSET_BITS=64")
@@ -96,10 +94,6 @@ endif(APPLE)
 
 find_package(OpenGL)
 
-find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
-get_target_property(py_location Python3::Interpreter LOCATION)
-message(STATUS "PYTHON3 Location: ${py_location}")
-
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 else ()
@@ -168,7 +162,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
@@ -181,7 +174,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )
@@ -231,7 +223,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 
@@ -273,13 +264,12 @@ set(PLUGINS "${QT_PLUGINS}")
 
 include(InstallRequiredSystemLibraries)
 
-message(STATUS "PYTHON_LIBRARIES: ${PYTHON_LIBRARIES}")
 message(STATUS "APPS: ${APPS}")
 message(STATUS "PLUGINS: ${PLUGINS}")
 message(STATUS "DIRS: ${DIRS}")
 
 install(CODE "include(BundleUtilities)
-    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" IGNORE_ITEM \"Python\")" COMPONENT Runtime)
+    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" )" COMPONENT Runtime)
 
 set(CPACK_GENERATOR "DragNDrop")
 include(CPack)
@@ -295,7 +285,6 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
 	DESTINATION ${INSTALLDIR}
 )
 install(FILES
