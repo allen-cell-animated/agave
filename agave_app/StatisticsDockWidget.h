@@ -12,7 +12,7 @@ class QStatisticsDockWidget : public QDockWidget
 
 public:
   QStatisticsDockWidget(QWidget* pParent = 0);
-  void setStatus(CStatus* s) { m_StatisticsWidget.set(s); }
+  void setStatus(std::shared_ptr<CStatus> s) { m_StatisticsWidget.set(s); }
 
 private:
   QGridLayout m_MainLayout;

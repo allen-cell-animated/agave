@@ -22,7 +22,7 @@ public:
   virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
 
-  virtual CStatus* getStatusInterface() { return &m_status; }
+  virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
   virtual RenderParams& renderParams();
   virtual Scene* scene();
   virtual void setScene(Scene* s);
@@ -36,7 +36,7 @@ private:
   Scene* m_scene;
   RenderParams m_renderParams;
 
-  CStatus m_status;
+  std::shared_ptr<CStatus> m_status;
   Timing m_timingRender;
   std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
 

@@ -75,7 +75,7 @@ agaveGui::agaveGui(QWidget* parent)
 void
 agaveGui::OnUpdateRenderer()
 {
-  CStatus* s = m_glView->getStatus();
+  std::shared_ptr<CStatus> s = m_glView->getStatus();
   m_statisticsDockWidget->setStatus(s);
   // s->onNewImage(info.fileName(), &m_appScene);
 }
@@ -405,7 +405,7 @@ agaveGui::open(const QString& file, const ViewerState* vs)
     m_timelinedock->onNewImage(&m_appScene, file.toStdString(), m_currentScene);
 
     // set up status view with some stats.
-    CStatus* s = m_glView->getStatus();
+    std::shared_ptr<CStatus> s = m_glView->getStatus();
     // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
     m_statisticsDockWidget->setStatus(s);
     s->onNewImage(info.fileName().toStdString(), &m_appScene);

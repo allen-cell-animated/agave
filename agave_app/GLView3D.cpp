@@ -250,7 +250,7 @@ GLView3D::OnUpdateQRenderSettings(void)
   rs.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
-CStatus*
+std::shared_ptr<CStatus>
 GLView3D::getStatus()
 {
   return m_renderer->getStatusInterface();

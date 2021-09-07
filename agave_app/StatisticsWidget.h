@@ -19,7 +19,7 @@ public:
   void Init(void);
   void ExpandAll(const bool& Expand);
 
-  void set(CStatus* status);
+  void set(std::shared_ptr<CStatus> status);
 
 private:
   void PopulateTree(void);
@@ -75,5 +75,5 @@ private:
     QStatisticsWidget* mWidget;
   } mStatusObserver;
 
-  CStatus* mStatusObject;
+  std::shared_ptr<CStatus> mStatusObject;
 };
