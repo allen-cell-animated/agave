@@ -8,6 +8,7 @@
 
 #if HAS_EGL
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #endif
 
 static bool renderLibInitialized = false;
@@ -76,6 +77,81 @@ renderlib::createOpenGLContext()
   return context;
 }
 
+#if HAS_EGL
+
+void
+checkEGLError(std::string message)
+{
+  EGLint lastError = EGL_SUCCESS;
+  if ((lastError = eglGetError()) != EGL_SUCCESS) {
+    LOG_ERROR << "eglGetError " << lastError;
+    LOG_ERROR << message;
+  }
+}
+
+EGLDisplay
+getEGLDefaultDisplay()
+{
+  EGLint lastError = EGL_SUCCESS;
+  EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  LOG_INFO << "eglGetDisplay returns " << eglDpy;
+  checkEGLError("Failed eglGetDisplay");
+  return eglDisplay;
+}
+
+EGLDisplay
+initEGLDisplay()
+{
+  PFNEGLQUERYDEVICESEXTPROC eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC)eglGetProcAddress("eglQueryDevicesEXT");
+  checkEGLError("Failed to get EGLEXT: eglQueryDevicesEXT");
+  PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT =
+    (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress("eglGetPlatformDisplayEXT");
+  checkEGLError("Failed to get EGLEXT: eglGetPlatformDisplayEXT");
+  PFNEGLQUERYDEVICEATTRIBEXTPROC eglQueryDeviceAttribEXT =
+    (PFNEGLQUERYDEVICEATTRIBEXTPROC)eglGetProcAddress("eglQueryDeviceAttribEXT");
+  checkEGLError("Failed to get EGLEXT: eglQueryDeviceAttribEXT");
+  PFNEGLQUERYDEVICESTRINGEXTPROC eglQueryDeviceStringEXT =
+    (PFNEGLQUERYDEVICESTRINGEXTPROC)eglGetProcAddress("eglQueryDeviceStringEXT");
+  checkEGLError("Failed to get EGLEXT: eglQueryDeviceStringEXT");
+
+  if (!eglQueryDevicesEXT || !eglGetPlatformDisplayEXT || !eglQueryDeviceAtribEXT || !eglQueryDeviceStringEXT) {
+    return getEGLDefaultDisplay();
+  }
+
+  EGLint numberDevices;
+  // Get number of devices
+  EGLBoolean ok = eglQueryDevicesEXT(0, NULL, &numberDevices);
+  if (!ok) {
+    LOG_ERROR << "Failed to get number of devices. Bad parameter suspected";
+  }
+  checkEGLError("Error getting number of devices: eglQueryDevicesEXT");
+
+  LOG_INFO << numberDevices << " devices found";
+  if (numberDevices > 0) {
+    EGLDeviceEXT* eglDevs = new EGLDeviceEXT[numberDevices];
+    ok = eglQueryDevicesEXT(numberDevices, eglDevs, &numberDevices);
+    if (!ok) {
+      LOG_ERROR << "Failed to get devices. Bad parameter suspected";
+    }
+    checkEGLError("Error getting number of devices: eglQueryDevicesEXT");
+    for (int i = 0; i < numberDevices; ++i) {
+      LOG_INFO << "Device " << i << ":";
+      const char* vendorstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_VENDOR);
+      checkEGLError("Error retreiving EGL_VENDOR string for device");
+      LOG_INFO << "  " << vendorstring;
+      const char* rendererstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_RENDERER_EXT);
+      checkEGLError("Error retreiving EGL_RENDERER_EXT string for device");
+      LOG_INFO << "  " << rendererstring;
+    }
+    // select device by index
+    EGLDisplay eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[i], 0);
+    checkEGLError("Error getting Platform Display: eglGetPlatformDisplayEXT");
+  } else {
+    return getEGLDefaultDisplay();
+  }
+}
+#endif
+
 int
 renderlib::initialize(bool headless)
 {
@@ -109,11 +185,7 @@ renderlib::initialize(bool headless)
     EGLint lastError = EGL_SUCCESS;
 
     // 1. Initialize EGL
-    eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    LOG_INFO << "eglGetDisplay returns " << eglDpy;
-    if ((lastError = eglGetError()) != EGL_SUCCESS) {
-      LOG_ERROR << "eglGetError " << lastError;
-    }
+    eglDpy = initEGLDisplay();
 
     EGLint major, minor;
 
