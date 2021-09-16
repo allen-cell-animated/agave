@@ -114,7 +114,7 @@ initEGLDisplay()
     (PFNEGLQUERYDEVICESTRINGEXTPROC)eglGetProcAddress("eglQueryDeviceStringEXT");
   checkEGLError("Failed to get EGLEXT: eglQueryDeviceStringEXT");
 
-  if (!eglQueryDevicesEXT || !eglGetPlatformDisplayEXT || !eglQueryDeviceAtribEXT || !eglQueryDeviceStringEXT) {
+  if (!eglQueryDevicesEXT || !eglGetPlatformDisplayEXT || !eglQueryDeviceAttribEXT || !eglQueryDeviceStringEXT) {
     return getEGLDefaultDisplay();
   }
 
@@ -139,7 +139,7 @@ initEGLDisplay()
       const char* vendorstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_VENDOR);
       checkEGLError("Error retreiving EGL_VENDOR string for device");
       LOG_INFO << "  " << vendorstring;
-      const char* rendererstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_RENDERER_EXT);
+      const char* rendererstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_RENDERER);
       checkEGLError("Error retreiving EGL_RENDERER_EXT string for device");
       LOG_INFO << "  " << rendererstring;
     }
