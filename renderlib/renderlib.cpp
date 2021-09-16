@@ -139,9 +139,9 @@ initEGLDisplay()
       const char* vendorstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_VENDOR);
       checkEGLError("Error retreiving EGL_VENDOR string for device");
       LOG_INFO << "  " << vendorstring;
-      const char* rendererstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_RENDERER);
-      checkEGLError("Error retreiving EGL_RENDERER_EXT string for device");
-      LOG_INFO << "  " << rendererstring;
+      const char* extensionsstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_EXTENSIONS);
+      checkEGLError("Error retreiving EGL_EXTENSIONS string for device");
+      LOG_INFO << "  " << extensionsstring;
     }
     // select device by index
     EGLDisplay eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[i], 0);
