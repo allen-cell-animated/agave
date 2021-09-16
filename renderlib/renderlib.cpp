@@ -144,7 +144,7 @@ initEGLDisplay()
       LOG_INFO << "  " << extensionsstring;
     }
     // select device by index
-    EGLDisplay eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[i], 0);
+    EGLDisplay eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[0], 0);
     checkEGLError("Error getting Platform Display: eglGetPlatformDisplayEXT");
   } else {
     return getEGLDefaultDisplay();
