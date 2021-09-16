@@ -26,7 +26,7 @@ typedef void* EGLContext; // Forward declaration from EGL.h.
 class renderlib
 {
 public:
-  static int initialize(bool headless = false);
+  static int initialize(bool headless = false, bool listDevices = false);
   static void clearGpuVolumeCache();
   static void cleanup();
 

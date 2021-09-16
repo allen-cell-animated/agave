@@ -106,6 +106,9 @@ main(int argc, char* argv[])
   parser.addVersionOption();
   QCommandLineOption serverOption("server", QCoreApplication::translate("main", "Run as websocket server without GUI"));
   parser.addOption(serverOption);
+  QCommandLineOption listDevicesOption(
+    "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)"));
+  parser.addOption(listDevicesOption);
   QCommandLineOption serverConfigOption("config",
                                         QCoreApplication::translate("main", "Path to config file"),
                                         QCoreApplication::translate("main", "config"),
@@ -116,8 +119,9 @@ main(int argc, char* argv[])
   parser.process(a);
 
   bool isServer = parser.isSet(serverOption);
+  bool listDevices = parser.isSet(listDevicesOption);
 
-  if (!renderlib::initialize(isServer)) {
+  if (!renderlib::initialize(isServer, listDevices)) {
     renderlib::cleanup();
     return 0;
   }
