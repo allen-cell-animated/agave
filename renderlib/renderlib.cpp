@@ -169,7 +169,7 @@ initEGLDisplay()
 #endif
 
 int
-renderlib::initialize(bool headless)
+renderlib::initialize(bool headless, bool listDevices)
 {
   if (renderLibInitialized) {
     return 1;
@@ -202,6 +202,10 @@ renderlib::initialize(bool headless)
 
     // 1. Initialize EGL
     eglDpy = initEGLDisplay();
+
+    if (listDevices) {
+      return 0;
+    }
 
     EGLint major, minor;
 
