@@ -100,7 +100,7 @@ getEGLDefaultDisplay()
 }
 
 EGLDisplay
-initEGLDisplay()
+initEGLDisplay(int selectedGpu)
 {
   PFNEGLQUERYDEVICESEXTPROC eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC)eglGetProcAddress("eglQueryDevicesEXT");
   checkEGLError("Failed to get EGLEXT: eglQueryDevicesEXT");
@@ -158,6 +158,10 @@ initEGLDisplay()
       }
 #endif
     }
+    if (selectedGpu >= numberDevices || selectedGpu < 0) {
+      LOG_WARNING << "Invalid GPU " << selectedGpu << " requested. Using default gpu.";
+      return getEGLDefaultDisplay();
+    }
     // select device by index
     EGLDisplay eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[0], 0);
     checkEGLError("Error getting Platform Display: eglGetPlatformDisplayEXT");
@@ -169,7 +173,7 @@ initEGLDisplay()
 #endif
 
 int
-renderlib::initialize(bool headless, bool listDevices)
+renderlib::initialize(bool headless, bool listDevices, int selectedGpu)
 {
   if (renderLibInitialized) {
     return 1;
@@ -201,7 +205,7 @@ renderlib::initialize(bool headless, bool listDevices)
     EGLint lastError = EGL_SUCCESS;
 
     // 1. Initialize EGL
-    eglDpy = initEGLDisplay();
+    eglDpy = initEGLDisplay(selectedGpu);
 
     if (listDevices) {
       return 0;

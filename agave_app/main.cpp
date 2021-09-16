@@ -105,13 +105,20 @@ main(int argc, char* argv[])
   parser.setApplicationDescription("Advanced GPU Accelerated Volume Explorer");
   parser.addHelpOption();
   parser.addVersionOption();
-  QCommandLineOption serverOption("server", QCoreApplication::translate("main", "Run as websocket server without GUI"));
+  QCommandLineOption serverOption("server",
+                                  QCoreApplication::translate("main", "Run as websocket server without GUI."));
   parser.addOption(serverOption);
   QCommandLineOption listDevicesOption(
-    "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)"));
+    "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)."));
   parser.addOption(listDevicesOption);
+  QCommandLineOption selectGpuOption(
+    "gpu",
+    QCoreApplication::translate("main", "Select EGL device by index (only valid in --server mode)."),
+    QCoreApplication::translate("main", "gpu"),
+    "0");
+  parser.addOption(selectGpuOption);
   QCommandLineOption serverConfigOption("config",
-                                        QCoreApplication::translate("main", "Path to config file"),
+                                        QCoreApplication::translate("main", "Path to config file."),
                                         QCoreApplication::translate("main", "config"),
                                         QCoreApplication::translate("main", "setup.cfg"));
   parser.addOption(serverConfigOption);
@@ -128,8 +135,9 @@ main(int argc, char* argv[])
   bool isScript = parser.isSet(scriptOption);
   bool isServer = parser.isSet(serverOption);
   bool listDevices = parser.isSet(listDevicesOption);
+  int selectedGpu = parser.value(selectGpuOption).toInt();
 
-  if (!renderlib::initialize(isServer, listDevices)) {
+  if (!renderlib::initialize(isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
     return 0;
   }
