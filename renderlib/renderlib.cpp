@@ -139,17 +139,23 @@ initEGLDisplay()
 #ifdef EGL_VENDOR
       const char* vendorstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_VENDOR);
       checkEGLError("Error retreiving EGL_VENDOR string for device");
-      LOG_INFO << "  Vendor: " << vendorstring;
+      if (vendorstring) {
+        LOG_INFO << "  Vendor: " << vendorstring;
+      }
 #endif
 #ifdef EGL_RENDERER_EXT
       const char* rendererstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_RENDERER_EXT);
       checkEGLError("Error retreiving EGL_RENDERER_EXT string for device");
-      LOG_INFO << "  Renderer: " << rendererstring;
+      if (rendererstring) {
+        LOG_INFO << "  Renderer: " << rendererstring;
+      }
 #endif
 #ifdef EGL_EXTENSIONS
       const char* extensionsstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_EXTENSIONS);
       checkEGLError("Error retreiving EGL_EXTENSIONS string for device");
-      LOG_INFO << "  Extensions: " << extensionsstring;
+      if (extensionsstring) {
+        LOG_INFO << "  Extensions: " << extensionsstring;
+      }
 #endif
     }
     // select device by index
