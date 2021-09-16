@@ -146,6 +146,7 @@ initEGLDisplay()
     // select device by index
     EGLDisplay eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[0], 0);
     checkEGLError("Error getting Platform Display: eglGetPlatformDisplayEXT");
+    return eglDisplay;
   } else {
     return getEGLDefaultDisplay();
   }
