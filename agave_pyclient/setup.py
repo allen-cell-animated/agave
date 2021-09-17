@@ -37,7 +37,7 @@ dev_requirements = [
     "wheel>=0.34.2",
 ]
 
-requirements = ["numpy", "ws4py==0.5.1", "Pillow==8.2.0"]
+requirements = ["numpy", "ws4py==0.5.1", "Pillow==8.3.2"]
 
 extra_requirements = {
     "setup": setup_requirements,
