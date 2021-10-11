@@ -407,3 +407,18 @@ struct SetTimeCommandD
   int32_t m_time;
 };
 CMDDECL(SetTimeCommand, 40, "set_time", CMD_ARGS({ CommandArgType::I32 }));
+
+struct SetBoundingBoxColorCommandD
+{
+  float m_r, m_g, m_b;
+};
+CMDDECL(SetBoundingBoxColorCommand,
+        41,
+        "bounding_box_color",
+        CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
+
+struct ShowBoundingBoxCommandD
+{
+  int32_t m_on;
+};
+CMDDECL(ShowBoundingBoxCommand, 42, "show_bounding_box", CMD_ARGS({ CommandArgType::I32 }));

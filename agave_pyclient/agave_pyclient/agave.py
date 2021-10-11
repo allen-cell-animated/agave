@@ -829,6 +829,34 @@ class AgaveRenderer:
         # 40
         self.cb.add_command("SET_TIME", time)
 
+    def set_bounding_box_color(self, r: float, g: float, b: float):
+        """
+        Set the color for the bounding box display
+
+        Parameters
+        ----------
+        r: float
+            the red value, from 0 to 1
+        g: float
+            the green value, from 0 to 1
+        b: float
+            the blue value, from 0 to 1
+        """
+        # 41
+        self.cb.add_command("SET_BOUNDING_BOX_COLOR", r, g, b)
+
+    def show_bounding_box(self, on: int):
+        """
+        Turn bounding box display on or off
+
+        Parameters
+        ----------
+        on: int
+            0 to hide bounding box, 1 to show it
+        """
+        # 42
+        self.cb.add_command("SHOW_BOUNDING_BOX", on)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):

@@ -124,6 +124,23 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleZ);
 
+  m_showBoundingBoxCheckBox.setChecked(false);
+  scaleSectionLayout->addWidget(new QLabel("Show Bounds"), 3, 0);
+  scaleSectionLayout->addWidget(&m_showBoundingBoxCheckBox, 3, 1);
+  QObject::connect(&m_showBoundingBoxCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
+    this->OnShowBoundsChecked(is_checked);
+  });
+
+  m_boundingBoxColorButton.setStatusTip(tr("Set bounding box color"));
+  m_boundingBoxColorButton.setToolTip(tr("Set bounding box color"));
+  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255, 255), true);
+  scaleSectionLayout->addWidget(new QLabel("Bounding Box Color"), 4, 0);
+  scaleSectionLayout->addWidget(&m_boundingBoxColorButton, 4, 1);
+
+  QObject::connect(&m_boundingBoxColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+    this->OnBoundingBoxColorChanged(c);
+  });
+
   m_scaleSection->setContentLayout(*scaleSectionLayout);
   m_MainLayout.addRow(m_scaleSection);
 
@@ -552,6 +569,26 @@ QAppearanceSettingsWidget::OnBackgroundColorChanged(const QColor& color)
   m_scene->m_material.m_backgroundColor[2] = rgba[2];
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+void
+QAppearanceSettingsWidget::OnBoundingBoxColorChanged(const QColor& color)
+{
+  if (!m_scene)
+    return;
+  qreal rgba[4];
+  color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
+  m_scene->m_material.m_boundingBoxColor[0] = rgba[0];
+  m_scene->m_material.m_boundingBoxColor[1] = rgba[1];
+  m_scene->m_material.m_boundingBoxColor[2] = rgba[2];
+  // should not disrupt pathtrace. need new flag?
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+void
+QAppearanceSettingsWidget::OnShowBoundsChecked(bool isChecked)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_material.m_showBoundingBox = isChecked;
+}
 
 void
 QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color)
@@ -709,6 +746,12 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());
   m_zscaleSpinner->setValue(m_scene->m_volume->physicalSizeZ());
+
+  QColor cbbox = QColor::fromRgbF(m_scene->m_material.m_boundingBoxColor[0],
+                                  m_scene->m_material.m_boundingBoxColor[1],
+                                  m_scene->m_material.m_boundingBoxColor[2]);
+  m_boundingBoxColorButton.SetColor(cbbox);
+  m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
 
   initLightingControls(scene);
 

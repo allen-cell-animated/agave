@@ -489,6 +489,20 @@ OffscreenRenderer::BackgroundColor(float r, float g, float b)
   return 1;
 }
 int
+OffscreenRenderer::SetBoundingBoxColor(float r, float g, float b)
+{
+  SetBoundingBoxColorCommand cmd({ r, g, b });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::ShowBoundingBox(int32_t on)
+{
+  ShowBoundingBoxCommand cmd({ on });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
 OffscreenRenderer::SetIsovalueThreshold(int32_t channel, float isovalue, float isorange)
 {
   SetIsovalueThresholdCommand cmd({ channel, isovalue, isorange });
