@@ -470,6 +470,31 @@ For Python users, the AGAVE Python client project full documentation can be foun
 https://allen-cell-animated.github.io/agave/agave_pyclient
 
 
+Command Line Interface
+----------------------
+
+AGAVE supports the following command line options:
+
+``--server``
+
+  Runs AGAVE without opening a window. AGAVE will wait for a local websocket connection on port 1235 by default. See `Python Interface`_ for more information about how to communicate with AGAVE in server mode.
+
+``--config filepath``
+
+  Provides a JSON configuration file for server mode that contains a custom port number.  Filepath is defaulted to setup.cfg. The JSON must be of the form ``{ port: portnumber }``.
+
+``--list_devices``
+
+  Only valid in server mode on Linux.  AGAVE will dump a list of possible GPU devices and then exit. 
+
+``--gpu number``
+
+  Only valid in server mode on Linux. Selects a device to use from the list provided by list_devices. The device is specified as a zero-based index into the list.
+
+``-platform offscreen``
+
+  Only valid in server mode on Linux. Allows AGAVE to run as a server on a headless cluster node.  On other platforms AGAVE must be run in a windowed desktop environment, even in server mode.
+
 Troubleshooting
 ---------------
 
