@@ -325,30 +325,28 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_toneMapShader->release();
 
-  // draw bounding box on top.
-  // m_boundingBoxDrawable->draw(glm::mat4(1.0f),
-  //                             glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
-  //                                       m_scene->m_material.m_boundingBoxColor[1],
-  //                                       m_scene->m_material.m_boundingBoxColor[2],
-  //                                       1.0));
-  // move the box to match where the camera is pointed
-  // transform the box from -0.5..0.5 to 0..physicalsize
-  glm::vec3 dims = ext;
-  // glm::vec3 dims(m_img->sizeX() * m_img->physicalSizeX(),
-  //                m_img->sizeY() * m_img->physicalSizeY(),
-  //                m_img->sizeZ() * m_img->physicalSizeZ());
-  float maxd = (std::max)(dims.x, (std::max)(dims.y, dims.z));
-  glm::vec3 scales(dims.x / maxd, dims.y / maxd, dims.z / maxd);
-  // it helps to imagine these transforming the space in reverse order
-  // (first translate by 0.5, and then scale)
-  glm::mat4 mm = glm::scale(glm::mat4(1.0f), scales);
-  mm = glm::translate(mm, glm::vec3(0.5, 0.5, 0.5));
-  glm::mat4 viewMatrix(1.0);
-  glm::mat4 projMatrix(1.0);
-  camera.getProjMatrix(projMatrix);
-  camera.getViewMatrix(viewMatrix);
+  if (m_scene->m_material.m_showBoundingBox) {
+    // draw bounding box on top.
+    // move the box to match where the camera is pointed
+    // transform the box from -1..1 to 0..physicalsize
+    glm::vec3 dims = ext;
+    float maxd = (std::max)(dims.x, (std::max)(dims.y, dims.z));
+    glm::vec3 scales(0.5 * dims.x / maxd, 0.5 * dims.y / maxd, 0.5 * dims.z / maxd);
+    // it helps to imagine these transforming the space in reverse order
+    // (first translate by 1.0, and then scale down)
+    glm::mat4 mm = glm::scale(glm::mat4(1.0f), scales);
+    mm = glm::translate(mm, glm::vec3(1.0, 1.0, 1.0));
+    glm::mat4 viewMatrix(1.0);
+    glm::mat4 projMatrix(1.0);
+    camera.getProjMatrix(projMatrix);
+    camera.getViewMatrix(viewMatrix);
 
-  m_boundingBoxDrawable->draw(projMatrix * viewMatrix * mm, glm::vec4(1.0, 0.0, 0.0, 1.0));
+    m_boundingBoxDrawable->draw(projMatrix * viewMatrix * mm,
+                                glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
+                                          m_scene->m_material.m_boundingBoxColor[1],
+                                          m_scene->m_material.m_boundingBoxColor[2],
+                                          1.0));
+  }
 
   // LOG_DEBUG << "RETURN FROM RENDER";
 
