@@ -582,7 +582,7 @@ SetBoundingBoxColorCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_boundingBoxColor[2] = m_data.m_b;
   // should not cause path tracing disruption as it goes to different buffer
   // new flag?
-  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  //c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void
@@ -592,7 +592,7 @@ ShowBoundingBoxCommand::execute(ExecutionContext* c)
   c->m_appScene->m_material.m_showBoundingBox = m_data.m_on ? true : false;
   // should not cause path tracing disruption as it goes to different buffer
   // new flag?
-  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  //c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 SessionCommand*
