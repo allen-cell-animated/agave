@@ -60,7 +60,7 @@ GLFlatShader2D::GLFlatShader2D()
     LOG_ERROR << "V330GLFlatShader2D: Failed to link shader program\n" << log();
   }
 
-  m_attr_coords = attributeLocation("coord2d");
+  m_attr_coords = attributeLocation("position");
   if (m_attr_coords == -1)
     LOG_ERROR << "V330GLFlatShader2D: Failed to bind coordinate location";
 
