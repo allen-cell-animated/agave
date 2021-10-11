@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "Logging.h"
+#include "glsl/v330/V330GLFlatShader2D.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 
 #include "glm.h"
@@ -189,6 +190,78 @@ RectImage2D::draw(GLuint texture2d)
   glBindTexture(GL_TEXTURE_2D, 0);
 
   _image_shader->release();
+}
+
+BoundingBoxDrawable::BoundingBoxDrawable()
+{
+  // setup geometry
+  const std::array<GLfloat, 8 * 3> square_vertices{
+    -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1,
+  };
+
+  glGenVertexArrays(1, &_vertexArray);
+  glBindVertexArray(_vertexArray);
+  check_gl("create and bind verts");
+
+  glGenBuffers(1, &_vertices);
+  glBindBuffer(GL_ARRAY_BUFFER, _vertices);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
+  check_gl("init vtx coord data");
+
+  // 12 line segments to make the box
+  std::array<GLushort, 12 * 2> box_elements{
+    0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
+  };
+
+  glGenBuffers(1, &_indices);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indices);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * box_elements.size(), box_elements.data(), GL_STATIC_DRAW);
+  _num_image_elements = box_elements.size();
+  check_gl("init element data");
+
+  glBindVertexArray(0);
+  check_gl("unbind vtx array");
+
+  _shader = new GLFlatShader2D();
+}
+
+BoundingBoxDrawable::~BoundingBoxDrawable()
+{
+  delete _shader;
+
+  glDeleteVertexArrays(1, &_vertexArray);
+  _vertexArray = 0;
+  glDeleteBuffers(1, &_vertices);
+  _vertices = 0;
+  glDeleteBuffers(1, &_indices);
+  _indices = 0;
+}
+
+void
+BoundingBoxDrawable::draw(const glm::mat4& transform, const glm::vec4& color)
+{
+  _shader->bind();
+  check_gl("Bind shader");
+
+  _shader->setModelViewProjection(transform);
+  _shader->setColour(color);
+
+  glBindVertexArray(_vertexArray);
+  check_gl("bind vtx buf");
+
+  _shader->enableCoords();
+  _shader->setCoords(_vertices, 0, 3);
+
+  // Push each element to the vertex shader
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indices);
+  check_gl("bind element buf");
+  glDrawElements(GL_LINES, (GLsizei)_num_image_elements, GL_UNSIGNED_SHORT, 0);
+  check_gl("bounding box draw elements");
+
+  _shader->disableCoords();
+  glBindVertexArray(0);
+
+  _shader->release();
 }
 
 GLTimer::GLTimer(void)

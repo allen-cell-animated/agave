@@ -125,6 +125,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
                    &QAppearanceSettingsWidget::OnSetScaleZ);
 
   m_showBoundingBoxCheckBox.setChecked(false);
+  m_showBoundingBoxCheckBox.setStatusTip(tr("Show/hide bounding box"));
+  m_showBoundingBoxCheckBox.setToolTip(tr("Show/hide bounding box"));
   scaleSectionLayout->addWidget(new QLabel("Show Bounds"), 3, 0);
   scaleSectionLayout->addWidget(&m_showBoundingBoxCheckBox, 3, 1);
   QObject::connect(&m_showBoundingBoxCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {

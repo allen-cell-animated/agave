@@ -12,17 +12,15 @@ GLFlatShader2D::GLFlatShader2D()
   , m_fshader()
   , m_attr_coords()
   , m_uniform_colour()
-  , m_uniform_offset()
   , m_uniform_mvp()
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
   m_vshader->compileSourceCode("#version 330 core\n"
                                "\n"
                                "uniform vec4 colour;\n"
-                               "uniform vec2 offset;\n"
                                "uniform mat4 mvp;\n"
                                "\n"
-                               "layout (location = 0) in vec2 coord2d;\n"
+                               "layout (location = 0) in vec3 position;\n"
                                "\n"
                                "out VertexData\n"
                                "{\n"
@@ -30,7 +28,7 @@ GLFlatShader2D::GLFlatShader2D()
                                "} outData;\n"
                                "\n"
                                "void main(void) {\n"
-                               "  gl_Position = mvp * vec4(coord2d+offset, 2.0, 1.0);\n"
+                               "  gl_Position = mvp * vec4(position, 1.0);\n"
                                "  outData.f_colour = colour;\n"
                                "}\n");
   if (!m_vshader->isCompiled()) {
@@ -69,10 +67,6 @@ GLFlatShader2D::GLFlatShader2D()
   m_uniform_colour = uniformLocation("colour");
   if (m_uniform_colour == -1)
     LOG_ERROR << "V330GLFlatShader2D: Failed to bind colour";
-
-  m_uniform_offset = uniformLocation("offset");
-  if (m_uniform_offset == -1)
-    LOG_ERROR << "V330GLFlatShader2D: Failed to bind offset";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
@@ -113,13 +107,6 @@ GLFlatShader2D::setColour(const glm::vec4& colour)
 {
   glUniform4fv(m_uniform_colour, 1, glm::value_ptr(colour));
   check_gl("Set flat uniform colour");
-}
-
-void
-GLFlatShader2D::setOffset(const glm::vec2& offset)
-{
-  glUniform2fv(m_uniform_offset, 1, glm::value_ptr(offset));
-  check_gl("Set flat uniform offset");
 }
 
 void

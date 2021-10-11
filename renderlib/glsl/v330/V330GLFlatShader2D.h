@@ -42,13 +42,6 @@ public:
    */
   void setColour(const glm::vec4& colour);
 
-  /**
-   * Set xy offset in model space.
-   *
-   * @param offset the offset to apply to the model.
-   */
-  void setOffset(const glm::vec2& offset);
-
   /// @copydoc GLImageShader2D::setModelViewProjection(const glm::mat4& mvp)
   void setModelViewProjection(const glm::mat4& mvp);
 
@@ -62,8 +55,6 @@ private:
   int m_attr_coords;
   /// Fill colour uniform.
   int m_uniform_colour;
-  /// Model offset uniform.
-  int m_uniform_offset;
   /// @copydoc GLImageShader2D::uniform_mvp
   int m_uniform_mvp;
 };
