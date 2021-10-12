@@ -49,7 +49,7 @@ Framebuffer::resize(uint32_t w, uint32_t h)
     glBindTexture(GL_TEXTURE_2D, m_depthTextureId);
     check_gl("Bind fb depth texture");
     // glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
     check_gl("Create fb depth texture");
     // this is required in order to "complete" the texture object for mipmapless shader access.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

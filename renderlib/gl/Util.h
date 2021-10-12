@@ -53,6 +53,7 @@ public:
   ~BoundingBoxDrawable();
 
   void drawLines(const glm::mat4& transform, const glm::vec4& color);
+  void drawFaces(const glm::mat4& transform, const glm::vec4& color);
 
 private:
   /// The vertex array.
@@ -62,7 +63,8 @@ private:
   /// The image elements.
   GLuint _line_indices; // buffer
   GLuint _face_indices; // buffer
-  size_t _num_image_elements;
+  size_t _num_line_elements;
+  size_t _num_face_elements;
 
   GLFlatShader2D* _shader;
 };
