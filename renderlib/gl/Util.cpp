@@ -196,7 +196,14 @@ BoundingBoxDrawable::BoundingBoxDrawable()
 {
   // setup geometry
   const std::array<GLfloat, 8 * 3> square_vertices{
-    -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1,
+    -1, -1, -1, 
+    -1, -1, 1, 
+    -1, 1, 1, 
+    -1, 1, -1, 
+    1, -1, -1, 
+    1, -1, 1, 
+    1, 1, 1, 
+    1, 1, -1,
   };
 
   glGenVertexArrays(1, &_vertexArray);
@@ -212,9 +219,20 @@ BoundingBoxDrawable::BoundingBoxDrawable()
   std::array<GLushort, 12 * 2> box_elements{
     0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
   };
+  std::array<GLushort, 36> face_elements{
+      0,1,2, 2,3,0, 
+      4,5,6, 5,6,4,
+      0,1,4, 4,5,0,
+      2,3,6, 6,7,2,
+      0,3,4, 3,4,7,
+      1,2,5, 5,6,1
+  };
 
-  glGenBuffers(1, &_indices);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indices);
+  glGenBuffers(1, &_face_indices);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _face_indices);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * face_elements.size(), face_elements.data(), GL_STATIC_DRAW);
+  glGenBuffers(1, &_line_indices);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _line_indices);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * box_elements.size(), box_elements.data(), GL_STATIC_DRAW);
   _num_image_elements = box_elements.size();
   check_gl("init element data");
@@ -233,12 +251,14 @@ BoundingBoxDrawable::~BoundingBoxDrawable()
   _vertexArray = 0;
   glDeleteBuffers(1, &_vertices);
   _vertices = 0;
-  glDeleteBuffers(1, &_indices);
-  _indices = 0;
+  glDeleteBuffers(1, &_line_indices);
+  _line_indices = 0;
+  glDeleteBuffers(1, &_face_indices);
+  _face_indices = 0;
 }
 
 void
-BoundingBoxDrawable::draw(const glm::mat4& transform, const glm::vec4& color)
+BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& color)
 {
   _shader->bind();
   check_gl("Bind shader");
@@ -253,7 +273,7 @@ BoundingBoxDrawable::draw(const glm::mat4& transform, const glm::vec4& color)
   _shader->setCoords(_vertices, 0, 3);
 
   // Push each element to the vertex shader
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indices);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _line_indices);
   check_gl("bind element buf");
   glDrawElements(GL_LINES, (GLsizei)_num_image_elements, GL_UNSIGNED_SHORT, 0);
   check_gl("bounding box draw elements");

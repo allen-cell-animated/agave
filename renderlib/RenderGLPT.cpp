@@ -341,7 +341,7 @@ RenderGLPT::doRender(const CCamera& camera)
     camera.getProjMatrix(projMatrix);
     camera.getViewMatrix(viewMatrix);
 
-    m_boundingBoxDrawable->draw(projMatrix * viewMatrix * mm,
+    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * mm,
                                 glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
                                           m_scene->m_material.m_boundingBoxColor[1],
                                           m_scene->m_material.m_boundingBoxColor[2],
