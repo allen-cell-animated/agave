@@ -347,8 +347,8 @@ RenderGLPT::doRender(const CCamera& camera)
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_GREATER);
-    //glEnable(GL_LINE_SMOOTH);
-    //glEnable(GL_BLEND);
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
     m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix,
                                      glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
                                                m_scene->m_material.m_boundingBoxColor[1],
@@ -390,15 +390,12 @@ RenderGLPT::doRender(const CCamera& camera)
 
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_FALSE);
-    //glEnable(GL_LINE_SMOOTH);
-    //glEnable(GL_BLEND);
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
     m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix,
-                                    //  glm::vec4(1,
-                                    //            0,
-                                    //            0,
-                                                glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
-                                                          m_scene->m_material.m_boundingBoxColor[1],
-                                                          m_scene->m_material.m_boundingBoxColor[2],
+                                     glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
+                                               m_scene->m_material.m_boundingBoxColor[1],
+                                               m_scene->m_material.m_boundingBoxColor[2],
                                                1.0));
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
