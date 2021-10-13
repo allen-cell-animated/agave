@@ -829,7 +829,7 @@ class AgaveRenderer:
         # 40
         self.cb.add_command("SET_TIME", time)
 
-    def set_bounding_box_color(self, r: float, g: float, b: float):
+    def bounding_box_color(self, r: float, g: float, b: float):
         """
         Set the color for the bounding box display
 
