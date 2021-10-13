@@ -373,9 +373,9 @@ RenderGLPT::doRender(const CCamera& camera)
   // draw front of bounding box
   if (m_scene->m_material.m_showBoundingBox) {
     glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
     glDisable(GL_CULL_FACE);
