@@ -573,14 +573,14 @@ public:
       // HACK
       // FIXME
       // TODO
-      // negate vfov and h to have a vertical flip
-      // We don't really want these negations here but they are specifically here to make bounding box drawing
+      // apply a vertical flip. We don't really want these negations here but
+      // they are specifically here to make bounding box drawing
       // match up with regular pathtrace mode.
       projMatrix =
         glm::perspectiveFov(vfov, w, h, m_Near, m_Far) * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
     } else {
       projMatrix = glm::ortho(
-        -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, -1.0f * m_OrthoScale, 1.0f * m_OrthoScale, m_Near, m_Far);
+        -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, 1.0f * m_OrthoScale, -1.0f * m_OrthoScale, m_Near, m_Far);
     }
   }
 };

@@ -107,7 +107,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 
   // clear this fb to black
   glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void
@@ -319,42 +319,91 @@ RenderGLPT::doRender(const CCamera& camera)
   }
   //_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 
-  // Tonemap into opengl display buffer
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fb->id());
-  glClear(GL_DEPTH_BUFFER_BIT);
-  glDepthMask(GL_FALSE);
+  // Composite into final frame:
   // draw back of bounding box
-  // overlay volume
+  // draw volume
   // draw front of bounding box
 
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fb->id());
   check_glfb("bind framebuffer for tone map");
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_fbF32Accum->colorTextureId());
-
-  m_toneMapShader->bind();
-  m_toneMapShader->setShadingUniforms(1.0f / camera.m_Film.m_Exposure);
-
-  m_fsq->render(m);
-
-  m_toneMapShader->release();
-
+  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+  // draw back of bounding box
   if (m_scene->m_material.m_showBoundingBox) {
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
 
+    glDepthMask(GL_TRUE);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix,
-                                     glm::vec4(1.0,1.0,1.0,1.0));
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+
+    glPolygonOffset(-1.0, -1.0);
+    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix, glm::vec4(1.0, 1.0, 1.0, 1.0));
+    glEnable(GL_CULL_FACE);
+    glPolygonOffset(0.0, 0.0);
+
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
+    glDepthFunc(GL_GREATER);
+    //glEnable(GL_LINE_SMOOTH);
+    //glEnable(GL_BLEND);
     m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix,
                                      glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
                                                m_scene->m_material.m_boundingBoxColor[1],
                                                m_scene->m_material.m_boundingBoxColor[2],
                                                1.0));
     glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
   }
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_fbF32Accum->colorTextureId());
+
+  // Tonemap into opengl display buffer
+  m_toneMapShader->bind();
+  m_toneMapShader->setShadingUniforms(1.0f / camera.m_Film.m_Exposure);
+  glDepthMask(GL_FALSE);
+
+  m_fsq->render(m);
+
+  m_toneMapShader->release();
+
+  // draw front of bounding box
+  if (m_scene->m_material.m_showBoundingBox) {
+    glDisable(GL_BLEND);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(1.0, 1.0);
+    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix, glm::vec4(1.0, 1.0, 1.0, 1.0));
+    glPolygonOffset(0.0, 0.0);
+    glEnable(GL_CULL_FACE);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_FALSE);
+    //glEnable(GL_LINE_SMOOTH);
+    //glEnable(GL_BLEND);
+    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix,
+                                    //  glm::vec4(1,
+                                    //            0,
+                                    //            0,
+                                                glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
+                                                          m_scene->m_material.m_boundingBoxColor[1],
+                                                          m_scene->m_material.m_boundingBoxColor[2],
+                                               1.0));
+    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+  }
+  glDisable(GL_BLEND);
 
   // LOG_DEBUG << "RETURN FROM RENDER";
 
