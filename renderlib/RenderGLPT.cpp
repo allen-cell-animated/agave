@@ -419,6 +419,7 @@ RenderGLPT::doRender(const CCamera& camera)
 
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
 }
 
 void

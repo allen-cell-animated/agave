@@ -581,8 +581,6 @@ QAppearanceSettingsWidget::OnBoundingBoxColorChanged(const QColor& color)
   m_scene->m_material.m_boundingBoxColor[0] = rgba[0];
   m_scene->m_material.m_boundingBoxColor[1] = rgba[1];
   m_scene->m_material.m_boundingBoxColor[2] = rgba[2];
-  // should not disrupt pathtrace. need new flag?
-  //m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 void
 QAppearanceSettingsWidget::OnShowBoundsChecked(bool isChecked)
