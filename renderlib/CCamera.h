@@ -557,6 +557,8 @@ public:
 
   void getViewMatrix(glm::mat4& viewMatrix) const
   {
+    // TODO future just do this inside of Update()
+
     glm::vec3 eye(m_From.x, m_From.y, m_From.z);
     glm::vec3 center(m_Target.x, m_Target.y, m_Target.z);
     glm::vec3 up(m_Up.x, m_Up.y, m_Up.z);
@@ -565,17 +567,20 @@ public:
 
   void getProjMatrix(glm::mat4& projMatrix) const
   {
+    // TODO future just do this inside of Update()
+
     float w = (float)m_Film.GetWidth();
     float h = (float)m_Film.GetHeight();
     float vfov = m_FovV * DEG_TO_RAD;
 
+    // apply a vertical flip in both ortho and perspective.
+    // We don't really want these negations here but
+    // they are specifically here to make bounding box drawing
+    // match up with regular pathtrace mode.
+    // In other words, there are flips in other places...
+    // a code audit (and some unit tests) could clean this all up,
+    // starting in part by keeping these unflipped.
     if (m_Projection == PERSPECTIVE) {
-      // HACK
-      // FIXME
-      // TODO
-      // apply a vertical flip. We don't really want these negations here but
-      // they are specifically here to make bounding box drawing
-      // match up with regular pathtrace mode.
       projMatrix =
         glm::perspectiveFov(vfov, w, h, m_Near, m_Far) * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
     } else {
