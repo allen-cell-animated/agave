@@ -195,17 +195,32 @@ RectImage2D::draw(GLuint texture2d)
 BoundingBoxDrawable::BoundingBoxDrawable()
 {
   // setup geometry
-  const std::array<GLfloat, 8 * 3> square_vertices{
-    // front
-    -1.0, -1.0, 1.0,
-    1.0, -1.0, 1.0,
-    1.0, 1.0, 1.0,
-    -1.0, 1.0, 1.0,
-    // back
-    -1.0, -1.0, -1.0,
-    1.0, -1.0, -1.0,
-    1.0, 1.0, -1.0,
-    -1.0, 1.0, -1.0
+  const std::array<GLfloat, 8 * 3> square_vertices{ // front
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    // back
+                                                    -1.0,
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    -1.0
   };
 
   glGenVertexArrays(1, &_vertexArray);
@@ -221,19 +236,48 @@ BoundingBoxDrawable::BoundingBoxDrawable()
   std::array<GLushort, 12 * 2> box_elements{
     0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
   };
-  std::array<GLushort, 36> face_elements{ 
-      // front
-      0,1,2, 2,3,0,
-      // right
-      1,5,6, 6,2,1,
-      // back
-      7,6,5, 5,4,7,
-      // left
-      4,0,3, 3,7,4,
-      // bottom
-      4,5,1, 1,0,4,
-      // top
-      3,2,6, 6,7,3
+  std::array<GLushort, 36> face_elements{ // front
+                                          0,
+                                          1,
+                                          2,
+                                          2,
+                                          3,
+                                          0,
+                                          // right
+                                          1,
+                                          5,
+                                          6,
+                                          6,
+                                          2,
+                                          1,
+                                          // back
+                                          7,
+                                          6,
+                                          5,
+                                          5,
+                                          4,
+                                          7,
+                                          // left
+                                          4,
+                                          0,
+                                          3,
+                                          3,
+                                          7,
+                                          4,
+                                          // bottom
+                                          4,
+                                          5,
+                                          1,
+                                          1,
+                                          0,
+                                          4,
+                                          // top
+                                          3,
+                                          2,
+                                          6,
+                                          6,
+                                          7,
+                                          3
   };
 
   glGenBuffers(1, &_face_indices);
