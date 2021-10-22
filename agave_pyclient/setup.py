@@ -37,7 +37,7 @@ dev_requirements = [
     "wheel>=0.34.2",
 ]
 
-requirements = ["numpy", "ws4py==0.5.1", "Pillow==8.2.0"]
+requirements = ["numpy", "ws4py==0.5.1", "Pillow==8.3.2"]
 
 extra_requirements = {
     "setup": setup_requirements,
@@ -84,6 +84,6 @@ setup(
     url="https://github.com/allen-cell-animated/agave",
     # Do not edit this string manually, always use bumpversion
     # Details in CONTRIBUTING.rst
-    version="1.1.2",
+    version="1.1.3",
     zip_safe=False,
 )
