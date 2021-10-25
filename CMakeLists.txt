@@ -36,10 +36,6 @@ set(CMAKE_MODULE_PATH
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Instruct CMake to run moc automatically when needed.
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-
 # Find the Qt libraries
 # In order for find_package to be successful, Qt 5 must be found below the CMAKE_PREFIX_PATH,
 # or the Qt5<Module>_DIR must be set in the CMake cache to the location of the Qt5WidgetsConfig.cmake

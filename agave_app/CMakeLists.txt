@@ -1,5 +1,7 @@
 add_executable(agaveapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(agaveapp PROPERTIES OUTPUT_NAME "agave")
+set_property(TARGET agaveapp PROPERTY AUTOMOC ON)
+set_property(TARGET agaveapp PROPERTY AUTOUIC ON)
 target_include_directories(agaveapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
