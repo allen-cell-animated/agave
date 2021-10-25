@@ -67,7 +67,7 @@ firstChild(pugi_agave::xml_node& el, std::string tag)
 {
   pugi_agave::xml_node child = el.child(tag.c_str());
   if (!child) {
-    LOG_ERROR << "No " << tag << "element in xml";
+    LOG_ERROR << "No " << tag << " element in xml";
   }
   return child;
 }
@@ -123,10 +123,12 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
     return false;
   }
 
-  // first Metadata child by tag
-  pugi_agave::xml_node metadataEl = czixml.child("Metadata");
+  pugi_agave::xml_node imageDocumentEl = firstChild(czixml, "ImageDocument");
+  if (!imageDocumentEl) {
+    return false;
+  }
+  pugi_agave::xml_node metadataEl = firstChild(imageDocumentEl, "Metadata");
   if (!metadataEl) {
-    LOG_ERROR << "No Metadata element in czi xml";
     return false;
   }
   pugi_agave::xml_node informationEl = firstChild(metadataEl, "Information");
