@@ -2,6 +2,8 @@
 
 #include "ImageXYZC.h"
 
+#include <thread>
+
 // fuse: fill volume of color data, plus volume of gradients
 // n channels with n colors: use "max" or "avg"
 // n channels with gradients: use "max" or "avg"
@@ -22,26 +24,21 @@ Fuse::fuse(const ImageXYZC* img,
   if (FUSE_THREADED) {
 
     const size_t NTHREADS = 4;
-    // set a bit for each thread as they complete
-    uint32_t done = 0;
-    FuseWorkerThread** workers = new FuseWorkerThread*[NTHREADS];
+    std::vector<std::thread> workers;
     for (size_t i = 0; i < NTHREADS; ++i) {
-      workers[i] = new FuseWorkerThread(i, NTHREADS, rgbVolume, img, colorsPerChannel);
-      QObject::connect(
-        workers[i], &FuseWorkerThread::resultReady, [&done](size_t whichThread) { done |= (1 << whichThread); });
-      QObject::connect(workers[i], &FuseWorkerThread::finished, workers[i], &QObject::deleteLater);
-      workers[i]->start();
+      workers.emplace_back(std::thread([i, NTHREADS, &rgbVolume, &img, &colorsPerChannel]() {
+        FuseWorkerThread t(i, NTHREADS, rgbVolume, img, colorsPerChannel);
+        t.run();
+      }));
     }
     // WAIT FOR ALL.
-    // (1 << 4) - 1 = 10000 -1 = 01111
-    //		while (done < ((uint32_t)1 << NTHREADS) - (uint32_t)1) {
-    //		}
-    for (size_t i = 0; i < NTHREADS; ++i) {
-      workers[i]->wait();
+    for (auto& worker : workers) {
+      worker.join();
     }
-    assert(done == ((uint32_t)1 << NTHREADS) - (uint32_t)1);
-    delete[] workers;
-    // Instead of waiting, handle completion in the resultReady callback.
+
+    // THIS IS TOO SLOW AS IS.
+    // TODO:
+    // Instead of waiting, handle completion in an atomic counter or some kind of signalling.
     // when a new fuse call comes in, and fuse threads are currently active, then queue it:
     // if there is already a fuse waiting to happen, replace it with the new req.
     // when fuse is done, check to see if there's a queued one.
@@ -155,5 +152,5 @@ FuseWorkerThread::run()
     }
   }
 
-  emit resultReady(m_thread_idx);
+  // emit resultReady(m_thread_idx);
 }

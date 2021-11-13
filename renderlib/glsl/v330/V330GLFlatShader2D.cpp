@@ -34,7 +34,7 @@ GLFlatShader2D::GLFlatShader2D()
                                "  outData.f_colour = colour;\n"
                                "}\n");
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+    LOG_ERROR << "Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -51,7 +51,7 @@ GLFlatShader2D::GLFlatShader2D()
                                "  outputColour = inData.f_colour;\n"
                                "}\n");
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLFlatShader2D: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+    LOG_ERROR << "V330GLFlatShader2D: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -59,7 +59,7 @@ GLFlatShader2D::GLFlatShader2D()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "V330GLFlatShader2D: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "V330GLFlatShader2D: Failed to link shader program\n" << log();
   }
 
   m_attr_coords = attributeLocation("coord2d");

@@ -268,7 +268,9 @@ Renderer::render()
   m_myVolumeData.m_renderer->drawImage();
   this->m_fbo->release();
 
-  QImage img = m_fbo->toImage();
+  std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
+  m_fbo->toImage(bytes.get());
+  QImage img = QImage(bytes.get(), m_fbo->width(), m_fbo->height(), QImage::Format_RGB32).copy().mirrored();
 
   this->m_glContext->doneCurrent();
   m_openGLMutex->unlock();

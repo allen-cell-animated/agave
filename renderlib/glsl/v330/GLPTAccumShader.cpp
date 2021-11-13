@@ -33,7 +33,7 @@ void main()
 	)");
 
   if (!vshader->isCompiled()) {
-    LOG_ERROR << "GLPTAccumShader: Failed to compile vertex shader\n" << vshader->log().toStdString();
+    LOG_ERROR << "GLPTAccumShader: Failed to compile vertex shader\n" << vshader->log();
   }
 
   fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -71,7 +71,7 @@ void main()
     )");
 
   if (!fshader->isCompiled()) {
-    LOG_ERROR << "GLPTAccumShader: Failed to compile fragment shader\n" << fshader->log().toStdString();
+    LOG_ERROR << "GLPTAccumShader: Failed to compile fragment shader\n" << fshader->log();
   }
 
   addShader(vshader);
@@ -79,7 +79,7 @@ void main()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLPTAccumShader: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "GLPTAccumShader: Failed to link shader program\n" << log();
   }
 
   uTextureRender = uniformLocation("textureRender");

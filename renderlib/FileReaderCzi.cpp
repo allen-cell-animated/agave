@@ -7,7 +7,7 @@
 
 #include <libCZI/Src/libCZI/libCZI.h>
 
-#include <QDomDocument>
+#include "pugixml/pugixml.hpp"
 
 #include <boost/filesystem.hpp>
 
@@ -62,24 +62,12 @@ getSceneYXSize(libCZI::SubBlockStatistics& statistics, int sceneIndex = 0)
   return statistics.boundingBoxLayer0Only;
 }
 
-float
-requireFloatValue(QDomElement& el, float defaultVal)
+pugi_agave::xml_node
+firstChild(pugi_agave::xml_node& el, std::string tag)
 {
-  QString val = el.text();
-  bool ok;
-  float retval = val.toFloat(&ok);
-  if (!ok) {
-    retval = defaultVal;
-  }
-  return retval;
-}
-
-QDomElement
-firstChild(QDomElement el, QString tag)
-{
-  QDomElement child = el.elementsByTagName(tag).at(0).toElement();
-  if (child.isNull()) {
-    LOG_ERROR << "No " << tag.toStdString() << "element in xml";
+  pugi_agave::xml_node child = el.child(tag.c_str());
+  if (!child) {
+    LOG_ERROR << "No " << tag << " element in xml";
   }
   return child;
 }
@@ -98,9 +86,9 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
 
   libCZI::ScalingInfo scalingInfo = docinfo->GetScalingInfo();
   // convert meters to microns?
-  dims.physicalSizeX = scalingInfo.scaleX * 1000000.0f;
-  dims.physicalSizeY = scalingInfo.scaleY * 1000000.0f;
-  dims.physicalSizeZ = scalingInfo.scaleZ * 1000000.0f;
+  dims.physicalSizeX = (float)(scalingInfo.scaleX * 1000000.0);
+  dims.physicalSizeY = (float)(scalingInfo.scaleY * 1000000.0);
+  dims.physicalSizeZ = (float)(scalingInfo.scaleZ * 1000000.0);
 
   // get all dimension bounds and enumerate.
   // I am making an assumption here that each scene has the same Z C and T dimensions.
@@ -127,50 +115,46 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   dims.sizeY = planebox.h;
 
   std::string xml = md->GetXml();
-  // convert to QString for convenience functions
-  QString qxmlstr = QString::fromStdString(xml);
-  QDomDocument czixml;
-  bool ok = czixml.setContent(qxmlstr);
-  if (!ok) {
+
+  pugi_agave::xml_document czixml;
+  pugi_agave::xml_parse_result parseOk = czixml.load_string(xml.c_str());
+  if (!parseOk) {
     LOG_ERROR << "Bad CZI xml metadata content";
     return false;
   }
 
-  QDomElement metadataEl = czixml.elementsByTagName("Metadata").at(0).toElement();
-  if (metadataEl.isNull()) {
-    LOG_ERROR << "No Metadata element in czi xml";
+  pugi_agave::xml_node imageDocumentEl = firstChild(czixml, "ImageDocument");
+  if (!imageDocumentEl) {
     return false;
   }
-  QDomElement informationEl = firstChild(metadataEl, "Information");
-  if (informationEl.isNull()) {
+  pugi_agave::xml_node metadataEl = firstChild(imageDocumentEl, "Metadata");
+  if (!metadataEl) {
     return false;
   }
-  QDomElement imageEl = firstChild(informationEl, "Image");
-  if (imageEl.isNull()) {
+  pugi_agave::xml_node informationEl = firstChild(metadataEl, "Information");
+  if (!informationEl) {
     return false;
   }
-  QDomElement dimensionsEl = firstChild(imageEl, "Dimensions");
-  if (dimensionsEl.isNull()) {
+  pugi_agave::xml_node imageEl = firstChild(informationEl, "Image");
+  if (!imageEl) {
     return false;
   }
-  QDomElement channelsEl = firstChild(dimensionsEl, "Channels");
-  if (channelsEl.isNull()) {
+  pugi_agave::xml_node dimensionsEl = firstChild(imageEl, "Dimensions");
+  if (!dimensionsEl) {
     return false;
   }
-  QDomNodeList channelEls = channelsEl.elementsByTagName("Channel");
+  pugi_agave::xml_node channelsEl = firstChild(dimensionsEl, "Channels");
+  if (!channelsEl) {
+    return false;
+  }
   std::vector<std::string> channelNames;
-  for (int i = 0; i < channelEls.count(); ++i) {
-    QDomNode node = channelEls.at(i);
-    if (node.isElement()) {
-      QDomElement el = node.toElement();
-      channelNames.push_back(el.attribute("Name").toStdString());
-    }
+  for (pugi_agave::xml_node node : channelsEl.children("Channel")) {
+    channelNames.push_back(node.attribute("Name").value());
   }
-
   dims.channelNames = channelNames;
 
   libCZI::SubBlockInfo info;
-  ok = reader->TryGetSubBlockInfoOfArbitrarySubBlockInChannel(0, info);
+  bool ok = reader->TryGetSubBlockInfoOfArbitrarySubBlockInChannel(0, info);
   if (ok) {
     switch (info.pixelType) {
       case libCZI::PixelType::Gray8:

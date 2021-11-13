@@ -79,13 +79,13 @@ RenderGL::render(const CCamera& camera)
   // cleared
   m_renderSettings->m_DirtyFlags.ClearAllFlags();
 
-  glViewport(0, 0, m_w * m_devicePixelRatio, m_h * m_devicePixelRatio);
+  glViewport(0, 0, (GLsizei)(m_w * m_devicePixelRatio), (GLsizei)(m_h * m_devicePixelRatio));
   // Render image
   m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - mStartTime;
-  m_timingRender.AddDuration((elapsed.count() * 1000.0));
+  m_timingRender.AddDuration((float)(elapsed.count() * 1000.0));
   m_status->SetStatisticChanged("Performance", "Render Image", m_timingRender.filteredDurationAsString(), "ms.");
   mStartTime = std::chrono::high_resolution_clock::now();
 }

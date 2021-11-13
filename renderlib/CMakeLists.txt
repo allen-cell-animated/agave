@@ -6,7 +6,7 @@ configure_file (
 )
 
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
-
+set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
@@ -64,15 +64,14 @@ add_subdirectory(gl)
 add_subdirectory(gl/v33)
 add_subdirectory(glad/src)
 add_subdirectory(glsl/v330)
+add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib
-add_compile_definitions(_STATICLIBBUILD)
-# I prefer target_compile_definitions but the target has to exist first
-add_subdirectory(libCZI/Src/JxrDecode)
-add_subdirectory(libCZI/Src/libCZI)
-find_library(libCZI PATHS ${CMAKE_BINARY_DIR}/renderlib/libCZI/Src/libCZI)
-message(STATUS "libCZI: ${libCZI}")
-set_target_properties(libCZI PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+add_compile_definitions(_LIBCZISTATICLIB)
+set(LIBCZI_BUILD_UNITTESTS OFF)
+set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_CZICMD OFF)
+add_subdirectory(libCZI)
 # end libczi dependency
 
 # libtiff dependency for renderlib

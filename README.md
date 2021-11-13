@@ -32,8 +32,6 @@ Use vcpkg to install boost, tiff, glm. Make sure the vcpkg target triplet is x64
 vcpkg install boost tiff glm --triplet x64-windows
 ```
 
-The build will pick up the first python version it sees. To explicitly select, run the build steps in a python virtual environment or use -DPYBIND11_PYTHON_VERSION=3.7 with cmake.
-
 ```
 mkdir build
 cd build

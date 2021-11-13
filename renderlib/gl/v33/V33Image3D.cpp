@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <iostream>
 
 Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC> img)
@@ -79,7 +80,7 @@ Image3Dv33::render(const CCamera& camera,
   m_image3d_shader->GAMMA_MAX = 1.0;
   m_image3d_shader->GAMMA_SCALE = 1.3657f;
   m_image3d_shader->BRIGHTNESS = (1.0f - camera.m_Film.m_Exposure) + 1.0f;
-  m_image3d_shader->DENSITY = renderSettings->m_RenderSettings.m_DensityScale / 100.0;
+  m_image3d_shader->DENSITY = renderSettings->m_RenderSettings.m_DensityScale / 100.0f;
   m_image3d_shader->maskAlpha = 1.0;
   m_image3d_shader->BREAK_STEPS = 512;
   // axis aligned clip planes in object space

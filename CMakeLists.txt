@@ -18,9 +18,7 @@ project(
 set(CMAKE_CXX_STANDARD 14)
 
 IF (WIN32)
-    set(PYBIND11_CPP_STANDARD /std:c++14)
 ELSE()
-    set(PYBIND11_CPP_STANDARD -std=c++14)
     # most of this is for libCZI:
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++14 -fPIC -O0 -g -D_FILE_OFFSET_BITS=64 -fvisibility=hidden")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__ANSI__ -fPIC -D_FILE_OFFSET_BITS=64")
@@ -38,13 +36,9 @@ set(CMAKE_MODULE_PATH
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Instruct CMake to run moc automatically when needed.
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-
 # Find the Qt libraries
-# In order for find_package to be successful, Qt 5 must be found below the CMAKE_PREFIX_PATH, 
-# or the Qt5<Module>_DIR must be set in the CMake cache to the location of the Qt5WidgetsConfig.cmake 
+# In order for find_package to be successful, Qt 5 must be found below the CMAKE_PREFIX_PATH,
+# or the Qt5<Module>_DIR must be set in the CMake cache to the location of the Qt5WidgetsConfig.cmake
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
 # the install prefix of Qt 5.
 if(DEFINED ENV{Qt5_DIR})
@@ -75,7 +69,7 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 
 #if(MSVC)
   # Debug library suffix.
-  set(CMAKE_DEBUG_POSTFIX "d")
+  #set(CMAKE_DEBUG_POSTFIX "d")
   # To prevent a lot of spam warnings about standard POSIX functions
   # and unsafe use of the standard library.
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
@@ -83,7 +77,7 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS chrono log log_setup iostreams thread system filesystem date_time atomic REQUIRED)
+find_package(Boost COMPONENTS log log_setup filesystem REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 if (APPLE)
@@ -95,10 +89,6 @@ find_package( glm REQUIRED )
 endif(APPLE)
 
 find_package(OpenGL)
-
-find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
-get_target_property(py_location Python3::Interpreter LOCATION)
-message(STATUS "PYTHON3 Location: ${py_location}")
 
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
@@ -159,7 +149,7 @@ install(
   FILES_MATCHING PATTERN "*.dll"
 )
 
-install(FILES 
+install(FILES
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
   ${PROJECT_SOURCE_DIR}/HELP.txt
   $<TARGET_FILE:Qt5::Widgets>
@@ -168,11 +158,10 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
-install(FILES 
+install(FILES
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
   ${PROJECT_SOURCE_DIR}/HELP.txt
   $<TARGET_FILE:Qt5::Widgets>
@@ -181,20 +170,19 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )
-install(FILES 
+install(FILES
   $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
   DESTINATION ${INSTALLDIR}/platforms/
 )
-install(FILES 
+install(FILES
   $<TARGET_FILE:Qt5::QJpegPlugin>
   $<TARGET_FILE:Qt5::QTiffPlugin>
   DESTINATION ${INSTALLDIR}/imageformats/
 )
-install(FILES 
+install(FILES
   $<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>
   DESTINATION ${INSTALLDIR}/styles/
 )
@@ -224,14 +212,13 @@ macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _prefix)
 endmacro()
 
 
-install(FILES 
+install(FILES
   $<TARGET_FILE:Qt5::Widgets>
   $<TARGET_FILE:Qt5::Core>
   $<TARGET_FILE:Qt5::Gui>
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 
@@ -273,20 +260,19 @@ set(PLUGINS "${QT_PLUGINS}")
 
 include(InstallRequiredSystemLibraries)
 
-message(STATUS "PYTHON_LIBRARIES: ${PYTHON_LIBRARIES}")
 message(STATUS "APPS: ${APPS}")
 message(STATUS "PLUGINS: ${PLUGINS}")
 message(STATUS "DIRS: ${DIRS}")
 
 install(CODE "include(BundleUtilities)
-    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" IGNORE_ITEM \"Python\")" COMPONENT Runtime)
+    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" )" COMPONENT Runtime)
 
 set(CPACK_GENERATOR "DragNDrop")
 include(CPack)
 
 else() # Linux
 
-install(FILES 
+install(FILES
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
   ${PROJECT_SOURCE_DIR}/HELP.txt
   $<TARGET_FILE:Qt5::Widgets>
@@ -295,14 +281,13 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
-  $<TARGET_FILE:Python3::Python>
 	DESTINATION ${INSTALLDIR}
 )
-install(FILES 
+install(FILES
   $<TARGET_FILE:Qt5::QXcbIntegrationPlugin>
   DESTINATION ${INSTALLDIR}/platforms/
 )
-install(FILES 
+install(FILES
   $<TARGET_FILE:Qt5::QJpegPlugin>
   $<TARGET_FILE:Qt5::QTiffPlugin>
   DESTINATION ${INSTALLDIR}/imageformats/

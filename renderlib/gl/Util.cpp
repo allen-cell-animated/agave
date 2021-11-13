@@ -356,8 +356,10 @@ GLFramebufferObject::height() const
 {
   return m_height;
 }
-QImage
-GLFramebufferObject::toImage(bool include_alpha /* = false */)
+
+// pixels must be preallocated with 32bits per pixel, ASSUMING RGBA internal format
+void
+GLFramebufferObject::toImage(void* pixels)
 {
   GLuint prevFbo = 0;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&prevFbo);
@@ -372,18 +374,12 @@ GLFramebufferObject::toImage(bool include_alpha /* = false */)
   const int h = height();
 
   // ASSUMING RGBA internal format
-
-  QImage img(QSize(w, h), include_alpha ? QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB32);
-  glReadPixels(0, 0, w, h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, img.bits());
-  //    QImage rgbaImage(size, include_alpha ? QImage::Format_RGBA8888_Premultiplied : QImage::Format_RGBX8888);
-  //    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, rgbaImage.bits());
+  glReadPixels(0, 0, w, h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, pixels);
 
   glReadBuffer(GL_COLOR_ATTACHMENT0);
   if (prevFbo != m_fbo) {
     glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
   }
-
-  return img;
 }
 
 GLShader::GLShader(GLenum shaderType)
@@ -462,19 +458,16 @@ GLShader::compileSourceCode(const char* sourceCode)
     }
 
     if (logBuffer)
-      m_log = QString::fromLatin1(logBuffer);
+      m_log = logBuffer;
     else
-      m_log = QLatin1String("failed");
+      m_log = "failed";
 
-    qWarning("GLShader::compile(%s): %s", type, qPrintable(m_log));
+    LOG_WARNING << "GLShader::compile(" << std::string(type) << "): " << m_log;
 
     // Dump the source code if we got it
     if (sourceCodeBuffer) {
-      qWarning("*** Problematic %s shader source code ***\n"
-               "%ls\n"
-               "***",
-               type,
-               qUtf16Printable(QString::fromLatin1(sourceCodeBuffer)));
+      LOG_WARNING << "*** Problematic " << std::string(type) << " shader source code ***\n"
+                  << std::string(sourceCodeBuffer);
     }
 
     // Cleanup
@@ -491,7 +484,7 @@ GLShader::isCompiled() const
   return m_isCompiled;
 }
 
-QString
+std::string
 GLShader::log() const
 {
   return m_log;
@@ -535,14 +528,14 @@ GLShaderProgram::link()
   m_isLinked = (value != 0);
   value = 0;
   glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &value);
-  m_log = QString();
+  m_log = "";
   if (value > 1) {
     char* logbuf = new char[value];
     GLint len;
     glGetProgramInfoLog(m_program, value, &len, logbuf);
-    m_log = QString::fromLatin1(logbuf);
+    m_log = logbuf;
     if (!m_isLinked) {
-      qWarning("GLShaderProgram::link: %ls", qUtf16Printable(m_log));
+      LOG_WARNING << "GLShaderProgram::link: " << m_log;
     }
     delete[] logbuf;
   }
@@ -561,7 +554,7 @@ GLShaderProgram::attributeLocation(const char* name)
   if (m_isLinked && m_program) {
     return glGetAttribLocation(m_program, name);
   } else {
-    qWarning("GLShaderProgram::attributeLocation(%s): shader program is not linked", name);
+    LOG_WARNING << "GLShaderProgram::attributeLocation(" << std::string(name) << "): shader program is not linked";
     return -1;
   }
 }
@@ -572,7 +565,7 @@ GLShaderProgram::uniformLocation(const char* name)
   if (m_isLinked && m_program) {
     return glGetUniformLocation(m_program, name);
   } else {
-    qWarning("GLShaderProgram::uniformLocation(%s): shader program is not linked", name);
+    LOG_WARNING << "GLShaderProgram::uniformLocation(" << std::string(name) << "): shader program is not linked";
     return -1;
   }
 }

@@ -35,7 +35,7 @@ void main()
 	)");
 
   if (!vshader->isCompiled()) {
-    LOG_ERROR << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log().toStdString();
+    LOG_ERROR << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log();
   }
 
   fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -218,7 +218,7 @@ void main()
     )");
 
   if (!fshader->isCompiled()) {
-    LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n" << fshader->log().toStdString();
+    LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n" << fshader->log();
   }
 
   addShader(vshader);
@@ -226,7 +226,7 @@ void main()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLBasicVolumeShader: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "GLBasicVolumeShader: Failed to link shader program\n" << log();
   }
 
   attr_coords = attributeLocation("position");

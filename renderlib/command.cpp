@@ -8,9 +8,7 @@
 #include "RenderSettings.h"
 #include "VolumeDimensions.h"
 
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include "json/json.hpp"
 
 #include <errno.h>
 #include <sys/stat.h>
@@ -62,7 +60,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     // fire back some json immediately...
-    QJsonObject j;
+    nlohmann::json j;
     j["commandId"] = (int)LoadOmeTifCommand::m_ID;
     j["x"] = (int)image->sizeX();
     j["y"] = (int)image->sizeY();
@@ -72,19 +70,18 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     j["pixel_size_x"] = image->physicalSizeX();
     j["pixel_size_y"] = image->physicalSizeY();
     j["pixel_size_z"] = image->physicalSizeZ();
-    QJsonArray channelNames;
+    std::vector<std::string> channelNames;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelNames.append(QString::fromStdString(image->channel(i)->m_name));
+      channelNames.push_back((image->channel(i)->m_name));
     }
     j["channel_names"] = channelNames;
-    QJsonArray channelMaxIntensity;
+    std::vector<uint16_t> channelMaxIntensity;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelMaxIntensity.append(image->channel(i)->m_max);
+      channelMaxIntensity.push_back(image->channel(i)->m_max);
     }
     j["channel_max_intensity"] = channelMaxIntensity;
 
-    QJsonDocument doc(j);
-    c->m_message = doc.toJson().toStdString();
+    c->m_message = j.dump();
   } else {
     LOG_WARNING << "stat failed on image with errno " << errno;
   }
@@ -485,29 +482,28 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 
     // fire back some json immediately...
-    QJsonObject j;
-    j["commandId"] = (int)LoadOmeTifCommand::m_ID;
+    nlohmann::json j;
+    j["commandId"] = (int)LoadVolumeFromFileCommand::m_ID;
     j["x"] = (int)image->sizeX();
     j["y"] = (int)image->sizeY();
     j["z"] = (int)image->sizeZ();
     j["c"] = (int)image->sizeC();
-    j["t"] = (int)dims.sizeT;
+    j["t"] = 1;
     j["pixel_size_x"] = image->physicalSizeX();
     j["pixel_size_y"] = image->physicalSizeY();
     j["pixel_size_z"] = image->physicalSizeZ();
-    QJsonArray channelNames;
+    std::vector<std::string> channelNames;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelNames.append(QString::fromStdString(image->channel(i)->m_name));
+      channelNames.push_back((image->channel(i)->m_name));
     }
     j["channel_names"] = channelNames;
-    QJsonArray channelMaxIntensity;
+    std::vector<uint16_t> channelMaxIntensity;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelMaxIntensity.append(image->channel(i)->m_max);
+      channelMaxIntensity.push_back(image->channel(i)->m_max);
     }
     j["channel_max_intensity"] = channelMaxIntensity;
 
-    QJsonDocument doc(j);
-    c->m_message = doc.toJson().toStdString();
+    c->m_message = j.dump();
   } else {
     LOG_WARNING << "stat failed on image with errno " << errno;
   }
@@ -561,16 +557,16 @@ SetTimeCommand::execute(ExecutionContext* c)
     c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 
     // fire back some json immediately...
-    QJsonObject j;
+    nlohmann::json j;
     j["commandId"] = (int)SetTimeCommand::m_ID;
-    QJsonArray channelMaxIntensity;
+    std::vector<uint16_t> channelMaxIntensity;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelMaxIntensity.append(image->channel(i)->m_max);
+      channelMaxIntensity.push_back(image->channel(i)->m_max);
     }
     j["channel_max_intensity"] = channelMaxIntensity;
 
-    QJsonDocument doc(j);
-    c->m_message = doc.toJson().toStdString();
+    c->m_message = j.dump();
+
   } else {
     LOG_WARNING << "stat failed on image with errno " << errno;
     LOG_WARNING << "SetTime command called without a file loaded";

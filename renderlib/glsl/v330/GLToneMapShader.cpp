@@ -23,7 +23,7 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 uv;
 
 out vec2 vUv;
-      
+
 void main()
 {
   vUv = uv;
@@ -32,7 +32,7 @@ void main()
 	)");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log().toStdString();
+    LOG_ERROR << "GLToneMapShader: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -43,7 +43,7 @@ uniform float gInvExposure;
 uniform sampler2D tTexture0;
 in vec2 vUv;
 out vec4 out_FragColor;
-      
+
 vec3 XYZtoRGB(vec3 xyz) {
     return vec3(
         3.240479f*xyz[0] - 1.537150f*xyz[1] - 0.498535f*xyz[2],
@@ -51,19 +51,19 @@ vec3 XYZtoRGB(vec3 xyz) {
         0.055648f*xyz[0] - 0.204043f*xyz[1] + 1.057311f*xyz[2]
     );
 }
-      
+
 void main()
 {
     vec4 pixelColor = texture(tTexture0, vUv);
-    
+
     //out_FragColor = pixelColor;
     //return;
 
     pixelColor.rgb = XYZtoRGB(pixelColor.rgb);
-      
+
     pixelColor.rgb = 1.0-exp(-pixelColor.rgb*gInvExposure);
     pixelColor = clamp(pixelColor, 0.0, 1.0);
-      
+
     out_FragColor = pixelColor;
     //out_FragColor = pow(pixelColor, vec4(1.0/2.2));
 
@@ -140,7 +140,7 @@ return;
     )");
 
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "GLToneMapShader: Failed to compile fragment shader\n" << m_fshader->log().toStdString();
+    LOG_ERROR << "GLToneMapShader: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -148,7 +148,7 @@ return;
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLToneMapShader: Failed to link shader program\n" << log().toStdString();
+    LOG_ERROR << "GLToneMapShader: Failed to link shader program\n" << log();
   }
 
   m_texture = uniformLocation("tTexture0");
