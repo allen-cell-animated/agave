@@ -85,10 +85,26 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_backgroundColorButton.setStatusTip(tr("Set background color"));
   m_backgroundColorButton.setToolTip(tr("Set background color"));
   m_backgroundColorButton.SetColor(QColor(0, 0, 0, 0), true);
-  m_MainLayout.addRow("BackgroundColor", &m_backgroundColorButton);
+  m_MainLayout.addRow("Background Color", &m_backgroundColorButton);
 
   QObject::connect(&m_backgroundColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnBackgroundColorChanged(c);
+  });
+
+  m_showBoundingBoxCheckBox.setChecked(false);
+  m_showBoundingBoxCheckBox.setStatusTip(tr("Show/hide bounding box"));
+  m_showBoundingBoxCheckBox.setToolTip(tr("Show/hide bounding box"));
+  m_MainLayout.addRow("Show Bounds", &m_showBoundingBoxCheckBox);
+  QObject::connect(&m_showBoundingBoxCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
+    this->OnShowBoundsChecked(is_checked);
+  });
+
+  m_boundingBoxColorButton.setStatusTip(tr("Set bounding box color"));
+  m_boundingBoxColorButton.setToolTip(tr("Set bounding box color"));
+  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255, 255), true);
+  m_MainLayout.addRow("Bounding Box Color", &m_boundingBoxColorButton);
+  QObject::connect(&m_boundingBoxColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+    this->OnBoundingBoxColorChanged(c);
   });
 
   m_scaleSection = new Section("Volume Scale", 0);
@@ -123,25 +139,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleZ);
-
-  m_showBoundingBoxCheckBox.setChecked(false);
-  m_showBoundingBoxCheckBox.setStatusTip(tr("Show/hide bounding box"));
-  m_showBoundingBoxCheckBox.setToolTip(tr("Show/hide bounding box"));
-  scaleSectionLayout->addWidget(new QLabel("Show Bounds"), 3, 0);
-  scaleSectionLayout->addWidget(&m_showBoundingBoxCheckBox, 3, 1);
-  QObject::connect(&m_showBoundingBoxCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
-    this->OnShowBoundsChecked(is_checked);
-  });
-
-  m_boundingBoxColorButton.setStatusTip(tr("Set bounding box color"));
-  m_boundingBoxColorButton.setToolTip(tr("Set bounding box color"));
-  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255, 255), true);
-  scaleSectionLayout->addWidget(new QLabel("Bounding Box Color"), 4, 0);
-  scaleSectionLayout->addWidget(&m_boundingBoxColorButton, 4, 1);
-
-  QObject::connect(&m_boundingBoxColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnBoundingBoxColorChanged(c);
-  });
 
   m_scaleSection->setContentLayout(*scaleSectionLayout);
   m_MainLayout.addRow(m_scaleSection);
