@@ -75,6 +75,12 @@ add_subdirectory(libCZI)
 # end libczi dependency
 
 # libtiff dependency for renderlib
+if (WIN32)
+	# the following two lines are from libCZI, to avoid errors linking zstd twice.
+	set(CMAKE_INCLUDE_PATH ${zstd_SOURCE_DIR}/../../lib;${CMAKE_INCLUDE_PATH})
+	set(CMAKE_LIBRARY_PATH ${zstd_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE};${CMAKE_LIBRARY_PATH})
+	message(STATUS "zstd: ${zstd_SOURCE_DIR} ${zstd_BINARY_DIR}")
+endif (WIN32)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 add_subdirectory(libtiff)
 find_library(tiff PATHS ${CMAKE_BINARY_DIR}/renderlib/libtiff/libtiff)
