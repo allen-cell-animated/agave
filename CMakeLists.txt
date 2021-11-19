@@ -159,7 +159,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
   DESTINATION ${INSTALLDIR}
-  CONFIGURATIONS Release
+  CONFIGURATIONS Release RelWithDebInfo
 )
 install(FILES
   ${PROJECT_SOURCE_DIR}/LICENSE.txt
