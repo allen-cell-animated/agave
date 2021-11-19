@@ -241,7 +241,9 @@ Image3Dv33::prepareTexture(Scene& s)
     }
   }
 
+  // make this async.  if currently fusing, save latest request to fuxe again once done.
   Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
+  // everything after this is only to be run once a fuse is completed.
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - startTime;

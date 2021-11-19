@@ -10,12 +10,12 @@ if (POLICY CMP0048)
 endif (POLICY CMP0048)
 
 project(
-  agave 
+  agave
   VERSION 1.1.3
   LANGUAGES C CXX
 )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 IF (WIN32)
 ELSE()
