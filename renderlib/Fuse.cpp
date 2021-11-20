@@ -337,106 +337,77 @@ private:
   inline static const unsigned int K = 2;
 };
 
+const bool Fuse::FUSE_THREADED = true;
+
+Fuse::Fuse(const ImageXYZC* img, uint8_t* outRGBVolume)
+{
+  m_img = img;
+  m_outRGBVolume = outRGBVolume;
+  if (FUSE_THREADED) {
+    // start the threadpool.
+
+    const size_t NTHREADS = 4;
+    for (size_t i = 0; i < NTHREADS; ++i) {
+      m_threads.emplace_back(std::thread(&Fuse::fuseThreadWorker, this, i, NTHREADS));
+    }
+  }
+}
+
+void
+Fuse::fuseThreadWorker(size_t whichThread, size_t nThreads)
+{
+  while (true) {
+    // poll for stoppage
+    // check for signalled new fuse request
+    if (hasNewFuseTask) {
+      doFuse(whichThread, nThreads, colorsPerChannel);
+      m_nThreadsWorking--;
+      // check for doneness and then check for ONE outstanding fuse request
+    }
+  }
+}
+
 // fuse: fill volume of color data, plus volume of gradients
 // n channels with n colors: use "max" or "avg"
 // n channels with gradients: use "max" or "avg"
 void
-Fuse::fuse(const ImageXYZC* img,
-           const std::vector<glm::vec3>& colorsPerChannel,
-           uint8_t** outRGBVolume,
-           uint16_t** outGradientVolume)
+Fuse::fuse(const std::vector<glm::vec3>& colorsPerChannel)
 {
-  // todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume
-  // data in gpu mem.
-
-  uint8_t* rgbVolume = *outRGBVolume;
-
-  const bool FUSE_THREADED = true;
+  // if threads are working, stash this request.
+  // notify threads with colorsPerChannel info
   if (FUSE_THREADED) {
-      struct FuseRequest
-      {
-        std::vector<glm::vec3>& colorsPerChannel;
-        const ImageXYZC* img;
-        uint8_t* outRGBVolume;
-      };
-
-    const size_t NTHREADS = 4;
-    std::atomic_uint8_t nActiveThreads = NTHREADS;
-    std::vector<std::thread> workers;
-    for (size_t i = 0; i < NTHREADS; ++i) {
-      workers.emplace_back(std::thread([i, NTHREADS, &nActiveThreads, &rgbVolume, &img, &colorsPerChannel]() {
-        while (threadsAlive) {
-          if (hasNewFuseTask) {
-            FuseWorkerThread t(i, NTHREADS, rgbVolume, img, colorsPerChannel);
-            t.run();
-            nActiveThreads--;          
-          }
-        }
-      }));
-    }
-    // WAIT FOR ALL.
-    while (nActiveThreads > 0) {
-      // spin forever?
-    }
-    for (auto& worker : workers) {
-      worker.join();
-    }
-
-    // THIS IS TOO SLOW AS IS.
-    // TODO:
-    // Instead of waiting, handle completion in an atomic counter or some kind of signalling.
-    // when a new fuse call comes in, and fuse threads are currently active, then queue it:
-    // if there is already a fuse waiting to happen, replace it with the new req.
-    // when fuse is done, check to see if there's a queued one.
   } else {
-      // just run as single thread
-    FuseWorkerThread t(0, 1, rgbVolume, img, colorsPerChannel);
-    t.run();
+    // just run as single thread
+    doFuse(0, 1, colorsPerChannel);
   }
 }
 
 // count is how many elements to walk for input and output.
-FuseWorkerThread::FuseWorkerThread(size_t thread_idx,
-                                   size_t nthreads,
-                                   uint8_t* outptr,
-                                   const ImageXYZC* img,
-                                   const std::vector<glm::vec3>& colors)
-  : m_thread_idx(thread_idx)
-  , m_nthreads(nthreads)
-  , m_outptr(outptr)
-  , m_channelColors(colors)
-  , m_img(img)
-{
-  // size_t num_pixels = _img->sizeX() * _img->sizeY() * _img->sizeZ();
-  // num_pixels /= _nthreads;
-  // assert(num_pixels * _nthreads == _img->sizeX() * _img->sizeY() * _img->sizeZ());
-}
-
 void
-FuseWorkerThread::run()
+Fuse::doFuse(size_t thread_idx, size_t nThreads, const std::vector<glm::vec3>& colors)
 {
   float value = 0;
   float r = 0, g = 0, b = 0;
   uint8_t ar = 0, ag = 0, ab = 0;
 
   size_t num_total_pixels = m_img->sizeX() * m_img->sizeY() * m_img->sizeZ();
-  size_t num_pixels = num_total_pixels / m_nthreads;
+  size_t num_pixels = num_total_pixels / nThreads;
   // last one gets the extras.
-  if (m_thread_idx == m_nthreads - 1) {
-    num_pixels += num_total_pixels % m_nthreads;
+  if (thread_idx == nThreads - 1) {
+    num_pixels += num_total_pixels % nThreads;
   }
 
-  size_t ncolors = m_channelColors.size();
+  size_t ncolors = colors.size();
   size_t nch = std::min((size_t)m_img->sizeC(), ncolors);
 
-  uint8_t* outptr = m_outptr;
-  outptr += ((num_total_pixels / m_nthreads) * 3 * m_thread_idx);
+  uint8_t* outptr = m_outRGBVolume;
+  outptr += ((num_total_pixels / nThreads) * 3 * thread_idx);
 
   // init with zeros first. is this needed?
-  memset(outPtr, 0, 3 * num_pixels * sizeof(uint8_t));
+  memset(outptr, 0, 3 * num_pixels * sizeof(uint8_t));
 
   for (uint32_t i = 0; i < nch; ++i) {
-    glm::vec3 c = m_channelColors[i];
+    glm::vec3 c = colors[i];
     if (c == glm::vec3(0, 0, 0)) {
       continue;
     }
@@ -445,7 +416,7 @@ FuseWorkerThread::run()
     b = c.z;
     uint16_t* channeldata = reinterpret_cast<uint16_t*>(m_img->ptr(i));
     // jump to offset for this thread.
-    channeldata += ((num_total_pixels / m_nthreads) * m_thread_idx);
+    channeldata += ((num_total_pixels / nThreads) * thread_idx);
 
     // array of 256 floats
     float* lut = m_img->channel(i)->m_lut;

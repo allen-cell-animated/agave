@@ -7,16 +7,29 @@
 class ImageXYZC;
 
 // Runs a processing step that applies a color into each channel,
-// and then combines the channels to result in a single RGB colored volume
+// and then combines the channels to result in a single RGB colored volume.
+// This class should be instantiated only once per new ImageXYZC.
 class Fuse
 {
 public:
+  Fuse(const ImageXYZC* img, uint8_t* outRGBVolume);
   // if channel color is 0, then channel will not contribute.
-  // allocates memory for outRGBVolume and outGradientVolume
-  static void fuse(const ImageXYZC* img,
-                   const std::vector<glm::vec3>& colorsPerChannel,
-                   uint8_t** outRGBVolume,
-                   uint16_t** outGradientVolume);
+  // requests a fuse operation but does not block unless Fuse class is set to single thread.
+  void fuse(const std::vector<glm::vec3>& colorsPerChannel);
+
+private:
+  static const bool FUSE_THREADED;
+
+  std::atomic_uint8_t m_nThreadsWorking = 0;
+  std::vector<std::thread> m_threads;
+
+  // the read-only volume data
+  const ImageXYZC* m_img;
+  // the fused result (always rewrite to same mem location)
+  uint8_t* m_outRGBVolume;
+
+  void fuseThreadWorker(size_t whichThread, size_t nThreads);
+  void doFuse(size_t whichThread, size_t nThreads, const std::vector<glm::vec3>& colors);
 };
 
 class FuseWorkerThread
