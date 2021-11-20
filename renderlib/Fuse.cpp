@@ -349,22 +349,35 @@ Fuse::fuse(const ImageXYZC* img,
   // todo: this can easily be a cuda kernel that loops over channels and does a max operation, if it has the full volume
   // data in gpu mem.
 
-  // create and zero
   uint8_t* rgbVolume = *outRGBVolume;
-  memset(*outRGBVolume, 0, 3 * img->sizeX() * img->sizeY() * img->sizeZ() * sizeof(uint8_t));
 
   const bool FUSE_THREADED = true;
   if (FUSE_THREADED) {
+      struct FuseRequest
+      {
+        std::vector<glm::vec3>& colorsPerChannel;
+        const ImageXYZC* img;
+        uint8_t* outRGBVolume;
+      };
 
     const size_t NTHREADS = 4;
+    std::atomic_uint8_t nActiveThreads = NTHREADS;
     std::vector<std::thread> workers;
     for (size_t i = 0; i < NTHREADS; ++i) {
-      workers.emplace_back(std::thread([i, NTHREADS, &rgbVolume, &img, &colorsPerChannel]() {
-        FuseWorkerThread t(i, NTHREADS, rgbVolume, img, colorsPerChannel);
-        t.run();
+      workers.emplace_back(std::thread([i, NTHREADS, &nActiveThreads, &rgbVolume, &img, &colorsPerChannel]() {
+        while (threadsAlive) {
+          if (hasNewFuseTask) {
+            FuseWorkerThread t(i, NTHREADS, rgbVolume, img, colorsPerChannel);
+            t.run();
+            nActiveThreads--;          
+          }
+        }
       }));
     }
     // WAIT FOR ALL.
+    while (nActiveThreads > 0) {
+      // spin forever?
+    }
     for (auto& worker : workers) {
       worker.join();
     }
@@ -376,42 +389,9 @@ Fuse::fuse(const ImageXYZC* img,
     // if there is already a fuse waiting to happen, replace it with the new req.
     // when fuse is done, check to see if there's a queued one.
   } else {
-
-    float value = 0;
-    float r = 0, g = 0, b = 0;
-    uint8_t ar = 0, ag = 0, ab = 0;
-
-    size_t ncolors = colorsPerChannel.size();
-    size_t nch = std::min((size_t)img->sizeC(), ncolors);
-    for (uint32_t i = 0; i < nch; ++i) {
-      glm::vec3 c = colorsPerChannel[i];
-      if (c == glm::vec3(0, 0, 0)) {
-        continue;
-      }
-      r = c.x; // 0..1
-      g = c.y;
-      b = c.z;
-      uint16_t* channeldata = reinterpret_cast<uint16_t*>(img->ptr(i));
-
-      // array of 256 floats
-      float* lut = img->channel(i)->m_lut;
-      float chmax = (float)img->channel(i)->m_max;
-      // lut = luts[idx][c.enhancement];
-
-      for (size_t cx = 0, fx = 0; cx < img->sizeX() * img->sizeY() * img->sizeZ(); cx++, fx += 3) {
-        value = (float)channeldata[cx] / chmax;
-        // value = (float)channeldata[cx] / 65535.0f;
-        value = lut[(int)(value * 255.0 + 0.5)]; // 0..255
-
-        // what if rgb*value > 1?
-        ar = rgbVolume[fx + 0];
-        rgbVolume[fx + 0] = std::max(ar, static_cast<uint8_t>(r * value * 255));
-        ag = rgbVolume[fx + 1];
-        rgbVolume[fx + 1] = std::max(ag, static_cast<uint8_t>(g * value * 255));
-        ab = rgbVolume[fx + 2];
-        rgbVolume[fx + 2] = std::max(ab, static_cast<uint8_t>(b * value * 255));
-      }
-    }
+      // just run as single thread
+    FuseWorkerThread t(0, 1, rgbVolume, img, colorsPerChannel);
+    t.run();
   }
 }
 
@@ -451,6 +431,9 @@ FuseWorkerThread::run()
 
   uint8_t* outptr = m_outptr;
   outptr += ((num_total_pixels / m_nthreads) * 3 * m_thread_idx);
+
+  // init with zeros first. is this needed?
+  memset(outPtr, 0, 3 * num_pixels * sizeof(uint8_t));
 
   for (uint32_t i = 0; i < nch; ++i) {
     glm::vec3 c = m_channelColors[i];
