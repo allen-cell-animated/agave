@@ -66,6 +66,8 @@ Image3Dv33::create()
                GL_UNSIGNED_BYTE,    // external type
                lut);                // LUT data
   check_gl("Texture create");
+
+  m_fuse.init(m_img.get(), m_fusedrgbvolume);
 }
 
 void
@@ -226,10 +228,8 @@ Image3Dv33::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 }
 
 void
-Image3Dv33::prepareTexture(Scene& s)
+Image3Dv33::requestFuse(Scene& s)
 {
-  auto startTime = std::chrono::high_resolution_clock::now();
-
   std::vector<glm::vec3> colors;
   for (int i = 0; i < MAX_CPU_CHANNELS; ++i) {
     if (s.m_material.m_enabled[i]) {
@@ -242,13 +242,13 @@ Image3Dv33::prepareTexture(Scene& s)
   }
 
   // make this async.  if currently fusing, save latest request to fuxe again once done.
-  Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
-  // everything after this is only to be run once a fuse is completed.
+  m_fuse.fuse(colors); // Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
+}
 
-  auto endTime = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed = endTime - startTime;
-  LOG_DEBUG << "fuse operation: " << (elapsed.count() * 1000.0) << "ms";
-  startTime = std::chrono::high_resolution_clock::now();
+void
+Image3Dv33::checkForCompletedFuse()
+{
+  auto startTime = std::chrono::high_resolution_clock::now();
 
   // destroy old
   // glDeleteTextures(1, &_textureid);

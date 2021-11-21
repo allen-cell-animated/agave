@@ -12,7 +12,8 @@ class ImageXYZC;
 class Fuse
 {
 public:
-  Fuse(const ImageXYZC* img, uint8_t* outRGBVolume);
+  Fuse();
+  void init(const ImageXYZC* img, uint8_t* outRGBVolume);
   // if channel color is 0, then channel will not contribute.
   // requests a fuse operation but does not block unless Fuse class is set to single thread.
   void fuse(const std::vector<glm::vec3>& colorsPerChannel);

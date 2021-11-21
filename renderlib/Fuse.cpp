@@ -339,7 +339,13 @@ private:
 
 const bool Fuse::FUSE_THREADED = true;
 
-Fuse::Fuse(const ImageXYZC* img, uint8_t* outRGBVolume)
+Fuse::Fuse()
+  : m_img(nullptr)
+  , m_outRGBVolume(nullptr)
+{}
+
+void
+Fuse::init(const ImageXYZC* img, uint8_t* outRGBVolume)
 {
   m_img = img;
   m_outRGBVolume = outRGBVolume;

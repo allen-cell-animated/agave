@@ -1,6 +1,8 @@
 #pragma once
 
 #include "AppScene.h"
+#include "Fuse.h"
+
 #include "glsl/v330/GLBasicVolumeShader.h"
 #include <memory>
 
@@ -37,7 +39,8 @@ public:
 
   void render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings, float devicePixelRatio);
 
-  void prepareTexture(Scene& s);
+  void requestFuse(Scene& s);
+  void checkForCompletedFuse();
 
 protected:
   /**
@@ -65,4 +68,6 @@ private:
   GLBasicVolumeShader* m_image3d_shader;
 
   uint8_t* m_fusedrgbvolume;
+
+  Fuse m_fuse;
 };
