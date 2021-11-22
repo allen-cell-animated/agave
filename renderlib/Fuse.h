@@ -2,6 +2,9 @@
 
 #include "glm.h"
 
+#include <atomic>
+#include <thread>
+#include <type_traits>
 #include <vector>
 
 class ImageXYZC;
