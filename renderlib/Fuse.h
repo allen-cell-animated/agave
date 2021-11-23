@@ -3,6 +3,7 @@
 #include "glm.h"
 
 #include <atomic>
+#include <condition_variable>
 #include <thread>
 #include <type_traits>
 #include <vector>
