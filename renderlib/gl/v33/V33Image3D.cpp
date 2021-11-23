@@ -288,7 +288,7 @@ Image3Dv33::checkForCompletedFuse()
   check_gl("Volume Texture create");
   //	glGenerateMipmap(GL_TEXTURE_3D);
 
-  endTime = std::chrono::high_resolution_clock::now();
-  elapsed = endTime - startTime;
+  auto endTime = std::chrono::high_resolution_clock::now();
+  auto elapsed = endTime - startTime;
   LOG_DEBUG << "prepare fused 3d rgb texture in " << (elapsed.count() * 1000.0) << "ms";
 }

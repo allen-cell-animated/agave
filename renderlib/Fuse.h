@@ -16,6 +16,7 @@ class Fuse
 {
 public:
   Fuse();
+  ~Fuse();
   void init(const ImageXYZC* img, uint8_t* outRGBVolume);
   // if channel color is 0, then channel will not contribute.
   // requests a fuse operation but does not block unless Fuse class is set to single thread.
@@ -26,6 +27,10 @@ private:
 
   std::atomic_uint8_t m_nThreadsWorking = 0;
   std::vector<std::thread> m_threads;
+
+  std::condition_variable m_conditionVar;
+  std::mutex m_mutex;
+  bool m_stop = false;
 
   // the read-only volume data
   const ImageXYZC* m_img;

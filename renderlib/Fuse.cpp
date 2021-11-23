@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <atomic>
 #include <future>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -344,6 +345,18 @@ Fuse::Fuse()
   , m_outRGBVolume(nullptr)
 {}
 
+Fuse::~Fuse()
+{
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_stop = true;
+  }
+  m_conditionVar.notify_all();
+  for (auto& thread : m_threads) {
+    thread.join();
+  }
+}
+
 void
 Fuse::init(const ImageXYZC* img, uint8_t* outRGBVolume)
 {
@@ -362,15 +375,23 @@ Fuse::init(const ImageXYZC* img, uint8_t* outRGBVolume)
 void
 Fuse::fuseThreadWorker(size_t whichThread, size_t nThreads)
 {
-  while (true) {
-    // poll for stoppage
-    // check for signalled new fuse request
-    if (hasNewFuseTask) {
-      doFuse(whichThread, nThreads, colorsPerChannel);
-      m_nThreadsWorking--;
-      // check for doneness and then check for ONE outstanding fuse request
-    }
+  std::cout << "THREAD " << whichThread << " LAUNCHED" << std::endl;
+  // lock to check value of m_stop
+  std::unique_lock<std::mutex> lock(m_mutex);
+  while (!m_stop) {
+    std::cout << "THREAD " << whichThread << " IN LOOP, WAITING" << std::endl;
+    // wait but relinquish the lock back to main thread
+    // m_conditionVar.wait(lock, check_for_fuse_work);
+    m_conditionVar.wait(lock);
+
+    std::cout << "THREAD " << whichThread << " SIGNALLED, RUNNING" << std::endl;
+    //    if (hasNewFuseTask) {
+    //      doFuse(whichThread, nThreads, colorsPerChannel);
+    // m_nThreadsWorking--;
+    // check for doneness and then check for ONE outstanding fuse request
+    //    }
   }
+  std::cout << "THREAD " << whichThread << " EXITING" << std::endl;
 }
 
 // fuse: fill volume of color data, plus volume of gradients
@@ -379,9 +400,12 @@ Fuse::fuseThreadWorker(size_t whichThread, size_t nThreads)
 void
 Fuse::fuse(const std::vector<glm::vec3>& colorsPerChannel)
 {
+  std::cout << "fuse requested" << std::endl;
   // if threads are working, stash this request.
   // notify threads with colorsPerChannel info
   if (FUSE_THREADED) {
+    // signal the threads
+    m_conditionVar.notify_all();
   } else {
     // just run as single thread
     doFuse(0, 1, colorsPerChannel);
