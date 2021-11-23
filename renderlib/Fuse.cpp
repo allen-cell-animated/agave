@@ -339,6 +339,7 @@ private:
 };
 
 const bool Fuse::FUSE_THREADED = true;
+const size_t Fuse::NTHREADS = 1;
 
 Fuse::Fuse()
   : m_img(nullptr)
@@ -365,7 +366,6 @@ Fuse::init(const ImageXYZC* img, uint8_t* outRGBVolume)
   if (FUSE_THREADED) {
     // start the threadpool.
 
-    const size_t NTHREADS = 4;
     for (size_t i = 0; i < NTHREADS; ++i) {
       m_threads.emplace_back(std::thread(&Fuse::fuseThreadWorker, this, i, NTHREADS));
     }
@@ -381,7 +381,7 @@ Fuse::fuseThreadWorker(size_t whichThread, size_t nThreads)
   while (!m_stop) {
     std::cout << "THREAD " << whichThread << " IN LOOP, WAITING" << std::endl;
     // wait but relinquish the lock back to main thread
-    // m_conditionVar.wait(lock, check_for_fuse_work);
+    // m_conditionVar.wait(lock, check_for_fuse_work_or_stopped);
     m_conditionVar.wait(lock);
 
     std::cout << "THREAD " << whichThread << " SIGNALLED, RUNNING" << std::endl;

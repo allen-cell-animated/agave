@@ -25,6 +25,7 @@ public:
 
 private:
   static const bool FUSE_THREADED;
+  static const size_t NTHREADS;
 
   std::atomic_uint8_t m_nThreadsWorking = 0;
   std::vector<std::thread> m_threads;
