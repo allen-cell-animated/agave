@@ -113,8 +113,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   char* imagedescription = nullptr;
   // metadata is in ImageDescription of first IFD in the file.
   if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &imagedescription) != 1) {
-    LOG_ERROR << "Failed to read imagedescription of TIFF: '" << filepath << "'";
-    return false;
+    imagedescription = nullptr;
+    LOG_WARNING << "Failed to read imagedescription of TIFF: '" << filepath << "';  interpreting as single channel.";
   }
 
   // Temporary variables

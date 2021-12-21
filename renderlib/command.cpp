@@ -573,6 +573,22 @@ SetTimeCommand::execute(ExecutionContext* c)
   }
 }
 
+void
+SetBoundingBoxColorCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetBoundingBoxColor " << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  c->m_appScene->m_material.m_boundingBoxColor[0] = m_data.m_r;
+  c->m_appScene->m_material.m_boundingBoxColor[1] = m_data.m_g;
+  c->m_appScene->m_material.m_boundingBoxColor[2] = m_data.m_b;
+}
+
+void
+ShowBoundingBoxCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "ShowBoundingBox " << m_data.m_on;
+  c->m_appScene->m_material.m_showBoundingBox = m_data.m_on ? true : false;
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -932,6 +948,22 @@ SetTimeCommand::parse(ParseableStream* c)
   SetTimeCommandD data;
   data.m_time = c->parseInt32();
   return new SetTimeCommand(data);
+}
+SetBoundingBoxColorCommand*
+SetBoundingBoxColorCommand::parse(ParseableStream* c)
+{
+  SetBoundingBoxColorCommandD data;
+  data.m_r = c->parseFloat32();
+  data.m_g = c->parseFloat32();
+  data.m_b = c->parseFloat32();
+  return new SetBoundingBoxColorCommand(data);
+}
+ShowBoundingBoxCommand*
+ShowBoundingBoxCommand::parse(ParseableStream* c)
+{
+  ShowBoundingBoxCommandD data;
+  data.m_on = c->parseInt32();
+  return new ShowBoundingBoxCommand(data);
 }
 
 std::string
@@ -1317,6 +1349,28 @@ SetTimeCommand::toPythonString() const
   ss << PythonName() << "(";
 
   ss << m_data.m_time;
+
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetBoundingBoxColorCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_r << ", " << m_data.m_g << ", " << m_data.m_b;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+ShowBoundingBoxCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_on;
 
   ss << ")";
   return ss.str();

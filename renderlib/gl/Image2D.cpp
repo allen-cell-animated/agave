@@ -19,18 +19,13 @@ Image2D::~Image2D() {}
 
 void
 Image2D::create()
-{
-}
+{}
 
 void
 Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 {
-  const std::array<GLfloat, 12> square_vertices{
-    xlim[0], ylim[0], 0, 
-    xlim[1], ylim[0], 0,
-    xlim[1], ylim[1], 0,
-    xlim[0], ylim[1], 0
-  };
+  const std::array<GLfloat, 12> square_vertices{ xlim[0], ylim[0], 0, xlim[1], ylim[0], 0,
+                                                 xlim[1], ylim[1], 0, xlim[0], ylim[1], 0 };
 
   if (m_vertices == 0) {
     glGenVertexArrays(1, &m_vertices);
@@ -72,7 +67,7 @@ Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 }
 
 void
-Image2D::destroy() 
+Image2D::destroy()
 {
   glDeleteBuffers(1, &m_image_elements);
   glDeleteBuffers(1, &m_image_texcoords);

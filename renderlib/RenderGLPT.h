@@ -12,6 +12,7 @@
 
 #include <memory>
 
+class BoundingBoxDrawable;
 class Framebuffer;
 class FSQ;
 class ImageXYZC;
@@ -73,6 +74,8 @@ private:
   Framebuffer* m_fbF32Accum;
   GLCopyShader* m_copyShader;
   GLToneMapShader* m_toneMapShader;
+
+  BoundingBoxDrawable* m_boundingBoxDrawable;
 
   // screen size auxiliary buffers for rendering
   unsigned int* m_randomSeeds1;

@@ -4,6 +4,7 @@
 #include "renderlib/GradientData.h"
 
 #include <QFormLayout>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
@@ -38,6 +39,8 @@ public slots:
 
 public:
   void OnBackgroundColorChanged(const QColor& color);
+  void OnBoundingBoxColorChanged(const QColor& color);
+  void OnShowBoundsChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
@@ -90,6 +93,8 @@ private:
   QDoubleSpinner* m_xscaleSpinner;
   QDoubleSpinner* m_yscaleSpinner;
   QDoubleSpinner* m_zscaleSpinner;
+  QCheckBox m_showBoundingBoxCheckBox;
+  QColorPushButton m_boundingBoxColorButton;
 
   std::vector<Section*> m_channelSections;
 

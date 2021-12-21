@@ -22,7 +22,7 @@ copyright = '2020, Allen Institute for Cell Science'
 author = 'Allen Institute for Cell Science'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.2'
+release = '1.1.3'
 
 
 # -- General configuration ---------------------------------------------------

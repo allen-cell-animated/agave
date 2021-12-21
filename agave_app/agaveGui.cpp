@@ -670,6 +670,12 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_appScene.m_material.m_backgroundColor[1] = v.m_backgroundColor.y;
   m_appScene.m_material.m_backgroundColor[2] = v.m_backgroundColor.z;
 
+  m_appScene.m_material.m_boundingBoxColor[0] = v.m_boundingBoxColor.x;
+  m_appScene.m_material.m_boundingBoxColor[1] = v.m_boundingBoxColor.y;
+  m_appScene.m_material.m_boundingBoxColor[2] = v.m_boundingBoxColor.z;
+
+  m_appScene.m_material.m_showBoundingBox = v.m_showBoundingBox;
+
   m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
@@ -757,6 +763,11 @@ agaveGui::appToViewerState()
   v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
                                   m_appScene.m_material.m_backgroundColor[1],
                                   m_appScene.m_material.m_backgroundColor[2]);
+
+  v.m_boundingBoxColor = glm::vec3(m_appScene.m_material.m_boundingBoxColor[0],
+                                   m_appScene.m_material.m_boundingBoxColor[1],
+                                   m_appScene.m_material.m_boundingBoxColor[2]);
+  v.m_showBoundingBox = m_appScene.m_material.m_showBoundingBox;
 
   v.m_resolutionX = m_glView->size().width();
   v.m_resolutionY = m_glView->size().height();

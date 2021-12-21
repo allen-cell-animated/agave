@@ -185,6 +185,12 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
   m_scaleY = scale.y;
   m_scaleZ = scale.z;
 
+  getBool(json, "showBoundingBox", m_showBoundingBox);
+
+  glm::vec3 bboxColor = m_boundingBoxColor;
+  getVec3(json, "boundingBoxColor", bboxColor);
+  m_boundingBoxColor = bboxColor;
+
   glm::vec3 bgcolor = m_backgroundColor;
   getVec3(json, "backgroundColor", bgcolor);
   m_backgroundColor = bgcolor;
@@ -367,6 +373,9 @@ ViewerState::stateToJson() const
 
   j["backgroundColor"] = jsonVec3(m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z);
 
+  j["boundingBoxColor"] = jsonVec3(m_boundingBoxColor.x, m_boundingBoxColor.y, m_boundingBoxColor.z);
+  j["showBoundingBox"] = m_showBoundingBox;
+
   QJsonArray channels;
   for (auto ch : m_channels) {
     QJsonObject channel;
@@ -462,6 +471,11 @@ ViewerState::stateToPythonScript() const
   ss << obj
      << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()
      << std::endl;
+  ss << obj << ShowBoundingBoxCommand({ m_showBoundingBox }).toPythonString() << std::endl;
+  ss
+    << obj
+    << SetBoundingBoxColorCommand({ m_boundingBoxColor.x, m_boundingBoxColor.y, m_boundingBoxColor.z }).toPythonString()
+    << std::endl;
   ss << obj << SetRenderIterationsCommand({ m_renderIterations }).toPythonString() << std::endl;
   ss << obj << SetPrimaryRayStepSizeCommand({ m_primaryStepSize }).toPythonString() << std::endl;
   ss << obj << SetSecondaryRayStepSizeCommand({ m_secondaryStepSize }).toPythonString() << std::endl;
@@ -561,143 +575,4 @@ ViewerState::stateToPythonScript() const
   std::string s(ss.str());
   // LOG_DEBUG << s;
   return QString::fromStdString(s);
-}
-
-QString
-ViewerState::stateToPythonWebsocketScript() const
-{
-  QFileInfo fi(m_volumeImageFile);
-  QString outFileName = fi.baseName();
-
-  QString s;
-  s += QString("import agaveclient\n\n\n");
-  s += QString("def renderfunc(server):\n");
-  s += QString("    server.render_frame(\n");
-  s += QString("        [\n");
-
-  QString indent("            ");
-  s += indent + QString("(\"LOAD_VOLUME_FROM_FILE\", \"%1\", %2, %3),\n")
-                  .arg(m_volumeImageFile)
-                  .arg(m_currentScene)
-                  .arg(m_currentTime);
-  s += indent + QString("(\"SET_RESOLUTION\", %1, %2),\n").arg(m_resolutionX).arg(m_resolutionY);
-  s += indent + QString("(\"BACKGROUND_COLOR\", %1, %2, %3),\n")
-                  .arg(m_backgroundColor.x)
-                  .arg(m_backgroundColor.y)
-                  .arg(m_backgroundColor.z);
-  s += indent + QString("(\"RENDER_ITERATIONS\", %1),\n").arg(m_renderIterations);
-  s += indent + QString("(\"SET_PRIMARY_RAY_STEP_SIZE\", %1),\n").arg(m_primaryStepSize);
-  s += indent + QString("(\"SET_SECONDARY_RAY_STEP_SIZE\", %1),\n").arg(m_secondaryStepSize);
-  s += indent + QString("(\"SET_VOXEL_SCALE\", %1, %2, %3),\n").arg(m_scaleX).arg(m_scaleY).arg(m_scaleZ);
-  s += indent + QString("(\"SET_CLIP_REGION\", %1, %2, %3, %4, %5, %6),\n")
-                  .arg(m_roiXmin)
-                  .arg(m_roiXmax)
-                  .arg(m_roiYmin)
-                  .arg(m_roiYmax)
-                  .arg(m_roiZmin)
-                  .arg(m_roiZmax);
-
-  s += indent + QString("(\"EYE\", %1, %2, %3),\n").arg(m_eyeX).arg(m_eyeY).arg(m_eyeZ);
-  s += indent + QString("(\"TARGET\", %1, %2, %3),\n").arg(m_targetX).arg(m_targetY).arg(m_targetZ);
-  s += indent + QString("(\"UP\", %1, %2, %3),\n").arg(m_upX).arg(m_upY).arg(m_upZ);
-  s += indent + QString("(\"CAMERA_PROJECTION\", %1, %2),\n")
-                  .arg(m_projection)
-                  .arg(m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale);
-
-  s += indent + QString("(\"EXPOSURE\", %1),\n").arg(m_exposure);
-  s += indent + QString("(\"DENSITY\", %1),\n").arg(m_densityScale);
-  s += indent + QString("(\"APERTURE\", %1),\n").arg(m_apertureSize);
-  s += indent + QString("(\"FOCALDIST\", %1),\n").arg(m_focalDistance);
-
-  // per-channel
-  for (std::size_t i = 0; i < m_channels.size(); ++i) {
-    const ChannelViewerState& ch = m_channels[i];
-    s += indent + QString("(\"ENABLE_CHANNEL\", %1, %2),\n").arg(QString::number(i), ch.m_enabled ? "1" : "0");
-    s += indent + QString("(\"MAT_DIFFUSE\", %1, %2, %3, %4, 1.0),\n")
-                    .arg(QString::number(i))
-                    .arg(ch.m_diffuse.x)
-                    .arg(ch.m_diffuse.y)
-                    .arg(ch.m_diffuse.z);
-    s += indent + QString("(\"MAT_SPECULAR\", %1, %2, %3, %4, 0.0),\n")
-                    .arg(QString::number(i))
-                    .arg(ch.m_specular.x)
-                    .arg(ch.m_specular.y)
-                    .arg(ch.m_specular.z);
-    s += indent + QString("(\"MAT_EMISSIVE\", %1, %2, %3, %4, 0.0),\n")
-                    .arg(QString::number(i))
-                    .arg(ch.m_emissive.x)
-                    .arg(ch.m_emissive.y)
-                    .arg(ch.m_emissive.z);
-    s += indent + QString("(\"MAT_GLOSSINESS\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_glossiness);
-    s += indent + QString("(\"MAT_OPACITY\", %1, %2),\n").arg(QString::number(i)).arg(ch.m_opacity);
-
-    // depending on current mode:
-    switch (LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode]) {
-      case GradientEditMode::WINDOW_LEVEL:
-        s += indent + QString("(\"SET_WINDOW_LEVEL\", %1, %2, %3),\n")
-                        .arg(QString::number(i))
-                        .arg(ch.m_lutParams.m_window)
-                        .arg(ch.m_lutParams.m_level);
-        break;
-      case GradientEditMode::ISOVALUE:
-        s += indent + QString("(\"SET_ISOVALUE\", %1, %2, %3),\n")
-                        .arg(QString::number(i))
-                        .arg(ch.m_lutParams.m_isovalue)
-                        .arg(ch.m_lutParams.m_isorange);
-        break;
-      case GradientEditMode::PERCENTILE:
-        s += indent + QString("(\"SET_PERCENTILE_THRESHOLD\", %1, %2, %3),\n")
-                        .arg(QString::number(i))
-                        .arg(ch.m_lutParams.m_pctLow)
-                        .arg(ch.m_lutParams.m_pctHigh);
-        break;
-      case GradientEditMode::CUSTOM:
-        std::vector<float> v(ch.m_lutParams.m_customControlPoints.size() * 5);
-        for (auto p : ch.m_lutParams.m_customControlPoints) {
-          v.push_back(p.first);
-          v.push_back(p.second);
-          v.push_back(p.second);
-          v.push_back(p.second);
-          v.push_back(p.second);
-        }
-        s += indent + QString("(\"SET_CONTROL_POINTS_COMMAND\", %1, %2, ").arg(QString::number(i)).arg(v.size());
-        for (auto f : v) {
-          s += QString("%1, ").arg(f);
-        }
-        // remove last comma and space
-        s.chop(2);
-        s += QString("),\n");
-        break;
-    }
-  }
-
-  // lighting
-  s += indent + QString("(\"SKYLIGHT_TOP_COLOR\", %1, %2, %3),\n")
-                  .arg(m_light0.m_topColor.r * m_light0.m_topColorIntensity)
-                  .arg(m_light0.m_topColor.g * m_light0.m_topColorIntensity)
-                  .arg(m_light0.m_topColor.b * m_light0.m_topColorIntensity);
-  s += indent + QString("(\"SKYLIGHT_MIDDLE_COLOR\", %1, %2, %3),\n")
-                  .arg(m_light0.m_middleColor.r * m_light0.m_middleColorIntensity)
-                  .arg(m_light0.m_middleColor.g * m_light0.m_middleColorIntensity)
-                  .arg(m_light0.m_middleColor.b * m_light0.m_middleColorIntensity);
-  s += indent + QString("(\"SKYLIGHT_BOTTOM_COLOR\", %1, %2, %3),\n")
-                  .arg(m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity)
-                  .arg(m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity)
-                  .arg(m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity);
-  s += indent +
-       QString("(\"LIGHT_POS\", 0, %1, %2, %3),\n").arg(m_light1.m_distance).arg(m_light1.m_theta).arg(m_light1.m_phi);
-  s += indent + QString("(\"LIGHT_COLOR\", 0, %1, %2, %3),\n")
-                  .arg(m_light1.m_color.r * m_light1.m_colorIntensity)
-                  .arg(m_light1.m_color.g * m_light1.m_colorIntensity)
-                  .arg(m_light1.m_color.b * m_light1.m_colorIntensity);
-  s += indent + QString("(\"LIGHT_SIZE\", 0, %1, %2),\n").arg(m_light1.m_width).arg(m_light1.m_height);
-
-  s += QString("        ],\n");
-  s += QString("        output_name=\"%1\",\n").arg(outFileName);
-  s += QString("    )\n");
-  s += QString("\n");
-  s += QString("agaveclient.agaveclient(renderfunc=renderfunc)\n");
-
-  // LOG_DEBUG << s.toStdString();
-  return s;
 }

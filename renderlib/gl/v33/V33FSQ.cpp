@@ -3,26 +3,23 @@
 
 #include <iostream>
 
-
-FSQ::FSQ():
-    Image2D()
-{
-}
+FSQ::FSQ()
+  : Image2D()
+{}
 
 FSQ::~FSQ()
 {
-    destroy();
+  destroy();
 }
 
 void
 FSQ::render(const glm::mat4& mvp)
-{    
-    glBindVertexArray(m_vertices);
-    check_gl("Image2D bound buffers");
+{
+  glBindVertexArray(m_vertices);
+  check_gl("Image2D bound buffers");
 
-    glDrawElements(GL_TRIANGLES, (GLsizei)m_num_image_elements, GL_UNSIGNED_SHORT, 0);
-    check_gl("Image2D draw elements");
+  glDrawElements(GL_TRIANGLES, (GLsizei)m_num_image_elements, GL_UNSIGNED_SHORT, 0);
+  check_gl("Image2D draw elements");
 
-    glBindVertexArray(0);
+  glBindVertexArray(0);
 }
-

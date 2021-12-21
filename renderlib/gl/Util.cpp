@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "Logging.h"
+#include "glsl/v330/V330GLFlatShader2D.h"
 #include "glsl/v330/V330GLImageShader2DnoLut.h"
 
 #include "glm.h"
@@ -189,6 +190,178 @@ RectImage2D::draw(GLuint texture2d)
   glBindTexture(GL_TEXTURE_2D, 0);
 
   _image_shader->release();
+}
+
+BoundingBoxDrawable::BoundingBoxDrawable()
+{
+  // setup geometry
+  const std::array<GLfloat, 8 * 3> square_vertices{ // front
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    // back
+                                                    -1.0,
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    1.0,
+                                                    -1.0,
+                                                    -1.0,
+                                                    1.0,
+                                                    -1.0
+  };
+
+  glGenVertexArrays(1, &_vertexArray);
+  glBindVertexArray(_vertexArray);
+  check_gl("create and bind verts");
+
+  glGenBuffers(1, &_vertices);
+  glBindBuffer(GL_ARRAY_BUFFER, _vertices);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
+  check_gl("init vtx coord data");
+
+  // 12 line segments to make the box
+  std::array<GLushort, 12 * 2> box_elements{
+    0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
+  };
+  std::array<GLushort, 36> face_elements{ // front
+                                          0,
+                                          1,
+                                          2,
+                                          2,
+                                          3,
+                                          0,
+                                          // right
+                                          1,
+                                          5,
+                                          6,
+                                          6,
+                                          2,
+                                          1,
+                                          // back
+                                          7,
+                                          6,
+                                          5,
+                                          5,
+                                          4,
+                                          7,
+                                          // left
+                                          4,
+                                          0,
+                                          3,
+                                          3,
+                                          7,
+                                          4,
+                                          // bottom
+                                          4,
+                                          5,
+                                          1,
+                                          1,
+                                          0,
+                                          4,
+                                          // top
+                                          3,
+                                          2,
+                                          6,
+                                          6,
+                                          7,
+                                          3
+  };
+
+  glGenBuffers(1, &_face_indices);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _face_indices);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * face_elements.size(), face_elements.data(), GL_STATIC_DRAW);
+  _num_face_elements = face_elements.size();
+  glGenBuffers(1, &_line_indices);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _line_indices);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * box_elements.size(), box_elements.data(), GL_STATIC_DRAW);
+  _num_line_elements = box_elements.size();
+  check_gl("init element data");
+
+  glBindVertexArray(0);
+  check_gl("unbind vtx array");
+
+  _shader = new GLFlatShader2D();
+}
+
+BoundingBoxDrawable::~BoundingBoxDrawable()
+{
+  delete _shader;
+
+  glDeleteVertexArrays(1, &_vertexArray);
+  _vertexArray = 0;
+  glDeleteBuffers(1, &_vertices);
+  _vertices = 0;
+  glDeleteBuffers(1, &_line_indices);
+  _line_indices = 0;
+  glDeleteBuffers(1, &_face_indices);
+  _face_indices = 0;
+}
+
+void
+BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& color)
+{
+  _shader->bind();
+  check_gl("Bind shader");
+
+  _shader->setModelViewProjection(transform);
+  _shader->setColour(color);
+
+  glBindVertexArray(_vertexArray);
+  check_gl("bind vtx buf");
+
+  _shader->enableCoords();
+  _shader->setCoords(_vertices, 0, 3);
+
+  // Push each element to the vertex shader
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _line_indices);
+  check_gl("bind element buf");
+  glDrawElements(GL_LINES, (GLsizei)_num_line_elements, GL_UNSIGNED_SHORT, 0);
+  check_gl("bounding box draw elements");
+
+  _shader->disableCoords();
+  glBindVertexArray(0);
+
+  _shader->release();
+}
+
+void
+BoundingBoxDrawable::drawFaces(const glm::mat4& transform, const glm::vec4& color)
+{
+  _shader->bind();
+  check_gl("Bind shader");
+
+  _shader->setModelViewProjection(transform);
+  _shader->setColour(color);
+
+  glBindVertexArray(_vertexArray);
+  check_gl("bind vtx buf");
+
+  _shader->enableCoords();
+  _shader->setCoords(_vertices, 0, 3);
+
+  // Push each element to the vertex shader
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _face_indices);
+  check_gl("bind element buf");
+  glDrawElements(GL_TRIANGLES, (GLsizei)_num_face_elements, GL_UNSIGNED_SHORT, 0);
+  check_gl("bounding box draw elements");
+
+  _shader->disableCoords();
+  glBindVertexArray(0);
+
+  _shader->release();
 }
 
 GLTimer::GLTimer(void)

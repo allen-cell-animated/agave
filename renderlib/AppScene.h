@@ -22,6 +22,8 @@ class RenderParams
 #define MAX_CPU_CHANNELS 32
 struct VolumeDisplay
 {
+  bool m_showBoundingBox = true;
+  float m_boundingBoxColor[3] = { 1.0f, 1.0f, 1.0f };
   float m_backgroundColor[3] = { 0.0f, 0.0f, 0.0f };
   float m_DensityScale = 50.0f;
   float m_GradientFactor = 0.1f;

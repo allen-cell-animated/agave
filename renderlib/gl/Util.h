@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glad/glad.h"
+#include "glm.h"
 
 #include "Logging.h"
 
@@ -41,6 +42,31 @@ private:
   size_t _num_image_elements;
 
   GLImageShader2DnoLut* _image_shader;
+};
+
+class GLFlatShader2D;
+class BoundingBoxDrawable
+{
+
+public:
+  BoundingBoxDrawable();
+  ~BoundingBoxDrawable();
+
+  void drawLines(const glm::mat4& transform, const glm::vec4& color);
+  void drawFaces(const glm::mat4& transform, const glm::vec4& color);
+
+private:
+  /// The vertex array.
+  GLuint _vertexArray; // vao
+  /// The image vertices.
+  GLuint _vertices; // buffer
+  /// The image elements.
+  GLuint _line_indices; // buffer
+  GLuint _face_indices; // buffer
+  size_t _num_line_elements;
+  size_t _num_face_elements;
+
+  GLFlatShader2D* _shader;
 };
 
 class GLTimer

@@ -6,7 +6,6 @@
 
 #include "glm.h"
 
-
 /**
  * 2D (xy) image renderer.
  *
