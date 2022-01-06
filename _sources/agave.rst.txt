@@ -197,6 +197,13 @@ Clicking on the color square next to Background Color allows you to
 change the image background color from black (default) to any other
 color.
 
+Bounding Box
+^^^^^^^^^^^^
+
+Click the checkbox to show or hide a bounding box line around the volume data.
+Clicking on the color square allows you to select a color for the bounding
+box lines.
+
 Volume Scale
 ~~~~~~~~~~~~
 
@@ -485,7 +492,7 @@ AGAVE supports the following command line options:
 
 ``--list_devices``
 
-  Only valid in server mode on Linux.  AGAVE will dump a list of possible GPU devices and then exit. 
+  Only valid in server mode on Linux.  AGAVE will dump a list of possible GPU devices and then exit.
 
 ``--gpu number``
 
