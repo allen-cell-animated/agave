@@ -183,4 +183,4 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run docker build
         run: |
-          docker build -t alleninstitute/agave_server:1.2.0
+          docker build -t alleninstitute/agave_server:1.2.0 .
