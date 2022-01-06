@@ -177,3 +177,10 @@ jobs:
           flake8 agave_pyclient --count --verbose --show-source --statistics
           black --check --exclude vendor agave_pyclient
           pytest agave_pyclient/tests/
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run docker build
+        run: |
+          docker build -t alleninstitute/agave_server:1.2.0
