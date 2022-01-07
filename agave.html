@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface Overview &mdash; AGAVE 1.1.3 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>User Interface Overview &mdash; AGAVE 1.2.2 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -169,14 +169,15 @@ metadata (TIFF files exported from ImageJ/FIJI), and Zeiss CZI metadata.</p>
 (see <a class="reference external" href="#preparing-an-agave-compatible-ome-tiff-file-with-fiji">Preparing an AGAVE Compatible ome-tiff file with
 Fiji</a> to
 ensure the expected data structure, channel order, etc.)</p>
-<p>AGAVE currently supports ome.tiff, tiff, and .czi image file formats
-containing either 8-bit or 16-bit unsigned pixel intensities. AGAVE also
-supports 32-bit floating point pixels in TIFFs. CZI is the
+<p>AGAVE currently supports ome.tiff, tiff, .czi, and .map/.mrc image file formats
+containing either 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  CZI is the
 native file format produced by Zeiss microscopes. See
 <a class="reference external" href="https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html">https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html</a>
 for more information. TIFF (Tagged Image File Format) is an open image
 file format commonly used to store microscopy data. See
-<a class="reference external" href="https://docs.openmicroscopy.org/ome-model/latest/">https://docs.openmicroscopy.org/ome-model/latest/</a> for more information.</p>
+<a class="reference external" href="https://docs.openmicroscopy.org/ome-model/latest/">https://docs.openmicroscopy.org/ome-model/latest/</a> for more information.  The
+MRC/CCP4 file format is typically used in electron cryo-microscopy. See
+<a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc_format.php">https://www.ccpem.ac.uk/mrc_format/mrc_format.php</a> for more information.</p>
 <div class="section" id="open-volume">
 <h2>Open Volume<a class="headerlink" href="#open-volume" title="Permalink to this headline">¶</a></h2>
 <p>File–&gt;Open Volume or [Open Volume] toolbar button</p>
