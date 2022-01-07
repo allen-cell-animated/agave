@@ -31,6 +31,8 @@ search = 'version="{current_version}"'
 src = "agave_pyclient/agave_pyclient/__init__.py"
 [[file]]
 src = "agave_pyclient/docs/conf.py"
+[[file]]
+src = "docs/conf.py"
 
 # You can specify a list of commands to
 # run after the files have been patched
