@@ -36,14 +36,15 @@ We recommend preparing or converting your volumetric files to OME-TIFF
 Fiji <#preparing-an-agave-compatible-ome-tiff-file-with-fiji>`__ to
 ensure the expected data structure, channel order, etc.)
 
-AGAVE currently supports ome.tiff, tiff, and .czi image file formats
-containing either 8-bit or 16-bit unsigned pixel intensities. AGAVE also
-supports 32-bit floating point pixels in TIFFs. CZI is the
+AGAVE currently supports ome.tiff, tiff, .czi, and .map/.mrc image file formats
+containing either 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  CZI is the
 native file format produced by Zeiss microscopes. See
 https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html
 for more information. TIFF (Tagged Image File Format) is an open image
 file format commonly used to store microscopy data. See
-https://docs.openmicroscopy.org/ome-model/latest/ for more information.
+https://docs.openmicroscopy.org/ome-model/latest/ for more information.  The
+MRC/CCP4 file format is typically used in electron cryo-microscopy. See
+https://www.ccpem.ac.uk/mrc_format/mrc_format.php for more information.
 
 Open Volume
 ~~~~~~~~~~~
