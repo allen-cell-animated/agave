@@ -22,7 +22,7 @@ FileReaderTIFF::~FileReaderTIFF() {}
 
 // TODO: move into a String Utils
 static std::string
-trim(const std::string& str, const std::string& whitespace = " \t")
+trim(const std::string& str, const std::string& whitespace = " \t\r\n")
 {
   const auto strBegin = str.find_first_not_of(whitespace);
   if (strBegin == std::string::npos)
