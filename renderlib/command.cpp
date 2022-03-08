@@ -13,6 +13,20 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#if defined(WIN32)
+#define STAT64_STRUCT __stat64
+#define STAT64_FUNCTION _stat64
+#elif defined(__APPLE__)
+#define STAT64_STRUCT stat
+#define STAT64_FUNCTION stat
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+#define STAT64_STRUCT stat
+#define STAT64_FUNCTION stat
+#else
+#define STAT64_STRUCT stat64
+#define STAT64_FUNCTION stat64
+#endif
+
 void
 SessionCommand::execute(ExecutionContext* c)
 {
@@ -30,8 +44,8 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
 {
   LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
-  struct stat64 buf;
-  if (stat64(m_data.m_name.c_str(), &buf) == 0) {
+  struct STAT64_STRUCT buf;
+  if (STAT64_FUNCTION(m_data.m_name.c_str(), &buf) == 0) {
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(m_data.m_name);
     if (!image) {
       return;
@@ -446,8 +460,8 @@ void
 LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
-  struct stat buf;
-  if (stat(m_data.m_path.c_str(), &buf) == 0) {
+  struct STAT64_STRUCT buf;
+  if (STAT64_FUNCTION(m_data.m_path.c_str(), &buf) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, &dims, m_data.m_time, m_data.m_scene);
@@ -506,6 +520,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     c->m_message = j.dump();
   } else {
     LOG_WARNING << "stat failed on image with errno " << errno;
+    LOG_WARNING << "Image will not be loaded";
   }
 }
 
@@ -520,8 +535,8 @@ SetTimeCommand::execute(ExecutionContext* c)
     return;
   }
 
-  struct stat buf;
-  if (stat(c->m_currentFilePath.c_str(), &buf) == 0) {
+  struct STAT64_STRUCT buf;
+  if (STAT64_FUNCTION(c->m_currentFilePath.c_str(), &buf) == 0) {
     VolumeDimensions dims;
     // note T and S args are swapped in order here. this is intentional.
     std::shared_ptr<ImageXYZC> image =
