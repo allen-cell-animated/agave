@@ -30,8 +30,8 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
 {
   LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
-  struct stat buf;
-  if (stat(m_data.m_name.c_str(), &buf) == 0) {
+  struct stat64 buf;
+  if (stat64(m_data.m_name.c_str(), &buf) == 0) {
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(m_data.m_name);
     if (!image) {
       return;
