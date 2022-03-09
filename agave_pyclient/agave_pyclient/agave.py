@@ -900,7 +900,7 @@ class AgaveRenderer:
             self.session(f"{output_name}_{i+first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
-            self.orbit_camera(0.0, direction * (360.0 / float(number_of_frames)))
+            self.trackball_camera(0.0, direction * (360.0 / float(number_of_frames)))
 
     def batch_render_rocker(
         self,
@@ -941,4 +941,4 @@ class AgaveRenderer:
             self.session(f"{output_name}_{i+first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
-            self.orbit_camera(0.0, angledelta * direction * quadrantdirection)
+            self.trackball_camera(0.0, angledelta * direction * quadrantdirection)
