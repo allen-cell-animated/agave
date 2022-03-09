@@ -422,3 +422,10 @@ struct ShowBoundingBoxCommandD
   int32_t m_on;
 };
 CMDDECL(ShowBoundingBoxCommand, 42, "show_bounding_box", CMD_ARGS({ CommandArgType::I32 }));
+
+struct TrackballCameraCommandD
+{
+  float m_theta;
+  float m_phi;
+};
+CMDDECL(TrackballCameraCommand, 43, "trackball_camera", CMD_ARGS({ CommandArgType::F32, CommandArgType::F32 }));

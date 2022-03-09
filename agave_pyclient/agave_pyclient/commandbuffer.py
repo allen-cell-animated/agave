@@ -70,6 +70,7 @@ COMMANDS = {
     "SET_TIME": [40, "I32"],
     "SET_BOUNDING_BOX_COLOR": [41, "F32", "F32", "F32"],
     "SHOW_BOUNDING_BOX": [42, "I32"],
+    "TRACKBALL_CAMERA": [43, "F32", "F32"],
 }
 
 
