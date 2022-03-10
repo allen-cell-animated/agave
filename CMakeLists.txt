@@ -8,6 +8,10 @@ endif(APPLE)
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
+# removes tons of warnings in cmake run:
+if (POLICY CMP0127)
+  cmake_policy(SET CMP0127 OLD)
+endif (POLICY CMP0127)
 
 project(
   agave 
