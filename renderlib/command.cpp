@@ -603,6 +603,13 @@ ShowBoundingBoxCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "ShowBoundingBox " << m_data.m_on;
   c->m_appScene->m_material.m_showBoundingBox = m_data.m_on ? true : false;
 }
+void
+TrackballCameraCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "TrackballCamera " << m_data.m_theta << " " << m_data.m_phi;
+  c->m_camera->Trackball(m_data.m_theta, m_data.m_phi);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+}
 
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
@@ -979,6 +986,14 @@ ShowBoundingBoxCommand::parse(ParseableStream* c)
   ShowBoundingBoxCommandD data;
   data.m_on = c->parseInt32();
   return new ShowBoundingBoxCommand(data);
+}
+TrackballCameraCommand*
+TrackballCameraCommand::parse(ParseableStream* c)
+{
+  TrackballCameraCommandD data;
+  data.m_theta = c->parseFloat32();
+  data.m_phi = c->parseFloat32();
+  return new TrackballCameraCommand(data);
 }
 
 std::string
@@ -1387,6 +1402,15 @@ ShowBoundingBoxCommand::toPythonString() const
 
   ss << m_data.m_on;
 
+  ss << ")";
+  return ss.str();
+}
+std::string
+TrackballCameraCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_theta << ", " << m_data.m_phi;
   ss << ")";
   return ss.str();
 }

@@ -313,7 +313,8 @@ OffscreenRenderer::RenderIterations(int32_t x)
   return 1;
 }
 // (continuous or on-demand frames)
-int OffscreenRenderer::StreamMode(int32_t)
+int
+OffscreenRenderer::StreamMode(int32_t)
 {
   return 1;
 }
@@ -381,6 +382,14 @@ int
 OffscreenRenderer::OrbitCamera(float t, float p)
 {
   OrbitCameraCommand cmd({ t, p });
+  cmd.execute(&m_ec);
+  return 1;
+}
+// theta, phi in degrees
+int
+OffscreenRenderer::TrackballCamera(float t, float p)
+{
+  TrackballCameraCommand cmd({ t, p });
   cmd.execute(&m_ec);
   return 1;
 }

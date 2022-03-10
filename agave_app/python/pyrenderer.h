@@ -77,6 +77,7 @@ public:
   virtual int SetWindowLevel(int32_t, float, float);
   // theta, phi in degrees
   virtual int OrbitCamera(float, float);
+  virtual int TrackballCamera(float, float);
   virtual int SkylightTopColor(float, float, float);
   virtual int SkylightMiddleColor(float, float, float);
   virtual int SkylightBottomColor(float, float, float);

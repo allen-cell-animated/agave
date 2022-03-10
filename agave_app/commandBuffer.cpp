@@ -96,6 +96,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetTimeCommand);
           CMD_CASE(SetBoundingBoxColorCommand);
           CMD_CASE(ShowBoundingBoxCommand);
+          CMD_CASE(TrackballCameraCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!

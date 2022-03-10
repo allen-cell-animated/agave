@@ -519,6 +519,20 @@ class AgaveRenderer:
         # 22
         self.cb.add_command("ORBIT_CAMERA", theta, phi)
 
+    def trackball_camera(self, theta: float, phi: float):
+        """
+        Rotate the camera around the volume by angle deltas
+
+        Parameters
+        ----------
+        theta: float
+            vertical screen angle in degrees
+        phi: float
+            horizontal screen angle in degrees
+        """
+        # 43
+        self.cb.add_command("TRACKBALL_CAMERA", theta, phi)
+
     def skylight_top_color(self, r: float, g: float, b: float):
         """
         Set the "north pole" color of the sky sphere
@@ -886,7 +900,7 @@ class AgaveRenderer:
             self.session(f"{output_name}_{i+first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
-            self.orbit_camera(0.0, direction * (360.0 / float(number_of_frames)))
+            self.trackball_camera(0.0, direction * (360.0 / float(number_of_frames)))
 
     def batch_render_rocker(
         self,
@@ -927,4 +941,4 @@ class AgaveRenderer:
             self.session(f"{output_name}_{i+first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
-            self.orbit_camera(0.0, angledelta * direction * quadrantdirection)
+            self.trackball_camera(0.0, angledelta * direction * quadrantdirection)
