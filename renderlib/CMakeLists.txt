@@ -93,5 +93,7 @@ target_link_libraries(renderlib
 	JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
 )
-
+IF(WIN32)
+	target_link_libraries(renderlib glm::glm)
+ENDIF(WIN32)
 

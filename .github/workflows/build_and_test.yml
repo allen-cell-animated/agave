@@ -69,17 +69,12 @@ jobs:
         with:
           submodules: "recursive"
       - uses: ilammy/msvc-dev-cmd@v1
-      - name: Install Python 3.9 version
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.9"
-          architecture: "x64"
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
           version: 5.15.2
       - name: macos install deps
-        if: matrix.os == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         env:
           CC: clang
           CXX: clang++
@@ -87,7 +82,7 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.13
           brew install boost glm
       - name: macos build and test
-        if: matrix.os == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         env:
           CC: clang
           CXX: clang++
@@ -101,7 +96,7 @@ jobs:
           zip -vr agave-macos.zip agave.app/
         shell: bash
       - name: Upload mac artifact
-        if: matrix.os == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
         with:
           name: agave-macos
