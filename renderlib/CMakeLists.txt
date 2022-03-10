@@ -10,7 +10,6 @@ set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
-	${glm_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 	${GLAD_DIR}
 )
