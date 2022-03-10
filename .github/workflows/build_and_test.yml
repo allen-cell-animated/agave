@@ -134,10 +134,11 @@ jobs:
           vcpkg install --triplet x64-windows glm zlib libjpeg-turbo liblzma
       - name: windows install boost
         if: matrix.os == 'windows-latest'
-        uses: MarkusJx/install-boost@v1.0.1
+        uses: MarkusJx/install-boost@v2.1.0
         with:
-          boost_version: 1.72.0
-          toolset: msvc14.2
+          boost_version: 1.78.0
+          platform_version: 2019
+          toolset: msvc
         id: install-boost-windows
       - name: windows build and test
         if: matrix.os == 'windows-latest'
@@ -147,7 +148,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -G "Visual Studio 16 2019" -A x64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
