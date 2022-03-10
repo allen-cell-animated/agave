@@ -91,7 +91,6 @@ target_link_libraries(renderlib
 	libCZIStatic
 	JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
-	glm::glm
 )
 
 
