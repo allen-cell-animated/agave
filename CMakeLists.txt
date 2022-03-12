@@ -10,11 +10,11 @@ if (POLICY CMP0048)
 endif (POLICY CMP0048)
 # removes tons of warnings in cmake run:
 if (POLICY CMP0127)
-  cmake_policy(SET CMP0127 OLD)
+  cmake_policy(SET CMP0127 NEW)
 endif (POLICY CMP0127)
 
 project(
-  agave 
+  agave
   VERSION 1.2.4
   LANGUAGES C CXX
 )
