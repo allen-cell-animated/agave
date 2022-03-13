@@ -140,7 +140,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
-          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+          BOOST_ROOT: ${{ steps.install-boost-windows.outputs.BOOST_ROOT }}
         run: |
           mkdir build
           cd build
