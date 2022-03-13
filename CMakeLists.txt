@@ -48,6 +48,13 @@ endif()
 set(AGAVE_QT_VERSION 5.15.2)
 if (WIN32)
   set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
+  set(_verbose_flag "/VERBOSE:LIB")
+  set(CMAKE_EXE_LINKER_FLAGS
+    "${CMAKE_EXE_LINKER_FLAGS} ${_verbose_flag}")
+  set(CMAKE_MODULE_LINKER_FLAGS
+    "${CMAKE_MODULE_LINKER_FLAGS} ${_verbose_flag}")
+  set(CMAKE_SHARED_LINKER_FLAGS
+    "${CMAKE_SHARED_LINKER_FLAGS} ${_verbose_flag}")
 elseif (APPLE)
   set(GUESS_Qt5_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
 else ()

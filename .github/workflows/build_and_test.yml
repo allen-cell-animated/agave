@@ -114,7 +114,6 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          pwd
           mkdir ./build
           cd build
           cmake ..
