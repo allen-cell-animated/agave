@@ -134,12 +134,13 @@ jobs:
           boost_version: 1.78.0
           platform_version: 2019
           toolset: msvc
+          link: static+shared
         id: install-boost-windows
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
-          BOOST_ROOT: ${{ steps.install-boost-windows.outputs.BOOST_ROOT }}
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
         run: |
           mkdir build
           cd build
