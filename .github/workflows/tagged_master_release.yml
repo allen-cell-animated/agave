@@ -8,7 +8,7 @@ jobs:
   cmake-build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, windows-2019, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -16,26 +16,20 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
-      - uses: ilammy/msvc-dev-cmd@v1
-      - name: Install Python 3.9 version
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.9"
-          architecture: "x64"
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
           version: 5.15.2
       - name: macos install deps
-        if: matrix.os == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         env:
           CC: clang
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install boost glm
+          brew install boost glm libtiff
       - name: macos build and test
-        if: matrix.os == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         env:
           CC: clang
           CXX: clang++
@@ -49,7 +43,7 @@ jobs:
           zip -vr agave-macos.zip agave.app/
         shell: bash
       - name: Upload mac artifact
-        if: matrix.os == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v1
         with:
           name: agave-macos
@@ -60,7 +54,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libboost-all-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev
+          sudo apt-get install libboost-all-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -75,33 +69,26 @@ jobs:
           cmake --build . --target install --config Release
         shell: bash
       - name: windows install deps
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         env:
-          vc_arch: ${{ matrix.msvc_arch }}
+          vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows glm zlib libjpeg-turbo liblzma
-      - name: windows install boost
-        if: matrix.os == 'windows-latest'
-        uses: MarkusJx/install-boost@v1.0.1
-        with:
-          boost_version: 1.72.0
-          toolset: msvc14.2
-        id: install-boost-windows
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma boost-log boost-filesystem
       - name: windows build and test
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         env:
-          vc_arch: ${{ matrix.msvc_arch }}
-          BOOST_ROOT: ${{ steps.install-boost-windows.outputs.BOOST_ROOT }}
+          vc_arch: "x64"
         run: |
           mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
           cmake --build . --target agave_test --config Release
-          cmake --build . --target install --config Release
+          cmake --build . --target agaveapp --config Release
+          cmake --install .
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
       - name: Upload windows artifact
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: actions/upload-artifact@v1
         with:
           name: agave-win

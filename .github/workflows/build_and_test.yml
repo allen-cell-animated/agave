@@ -125,18 +125,10 @@ jobs:
           vc_arch: "x64"
         run: |
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma boost-log boost-filesystem
-      # - name: windows install boost
-      #   if: matrix.os == 'windows-2019'
-      #   uses: MarkusJx/install-boost@v2.1.0
-      #   with:
-      #     boost_version: 1.72.0
-      #     platform_version: 2019
-      #   id: install-boost-windows
       - name: windows build and test
         if: matrix.os == 'windows-2019'
         env:
           vc_arch: "x64"
-          # BOOST_ROOT: ${{ steps.install-boost-windows.outputs.BOOST_ROOT }}
         run: |
           mkdir build
           cd build
