@@ -85,6 +85,7 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 #endif()
 
 set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS log log_setup filesystem REQUIRED)
 
