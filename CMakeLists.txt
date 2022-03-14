@@ -8,6 +8,7 @@ endif(APPLE)
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
+cmake_policy(SET CMP0091 NEW) # enable new "MSVC runtime library selection" (https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html)
 
 project(
   agave
@@ -48,6 +49,7 @@ endif()
 set(AGAVE_QT_VERSION 5.15.2)
 if (WIN32)
   set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   set(_verbose_flag "/VERBOSE:LIB")
   set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} ${_verbose_flag}")
