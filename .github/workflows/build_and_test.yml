@@ -130,7 +130,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: MarkusJx/install-boost@v2.1.0
         with:
-          boost_version: 1.78.0
+          boost_version: 1.78.0.beta1
           platform_version: 2022
           toolset: msvc
           link: static
