@@ -131,7 +131,6 @@ jobs:
         with:
           boost_version: 1.72.0
           platform_version: 2019
-          toolset: msvc
         id: install-boost-windows
       - name: windows build and test
         if: matrix.os == 'windows-2019'
