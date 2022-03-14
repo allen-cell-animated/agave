@@ -50,6 +50,8 @@ set(AGAVE_QT_VERSION 5.15.2)
 if (WIN32)
   set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set(Boost_USE_STATIC_RUNTIME ON)
+
   set(_verbose_flag "/VERBOSE:LIB")
   set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} ${_verbose_flag}")
@@ -85,7 +87,6 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 #endif()
 
 set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS log log_setup filesystem REQUIRED)
 
