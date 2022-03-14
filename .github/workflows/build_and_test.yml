@@ -131,7 +131,7 @@ jobs:
         uses: MarkusJx/install-boost@v2.1.0
         with:
           boost_version: 1.78.0
-          platform_version: 2019
+          platform_version: 2022
           toolset: msvc
           link: static
         id: install-boost-windows
