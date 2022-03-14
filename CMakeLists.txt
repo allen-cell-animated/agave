@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
 if (APPLE)
-  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.13")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
+  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.15")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
 if (POLICY CMP0048)
@@ -170,6 +170,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
@@ -182,6 +183,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )
@@ -231,6 +233,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 
@@ -293,6 +296,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
 	DESTINATION ${INSTALLDIR}
 )
 install(FILES
