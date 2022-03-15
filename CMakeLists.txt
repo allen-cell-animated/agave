@@ -1,16 +1,17 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
 if (APPLE)
-  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.13")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
+  set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.15")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif(APPLE)
 
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
+cmake_policy(SET CMP0091 NEW) # enable new "MSVC runtime library selection" (https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html)
 
 project(
-  agave 
+  agave
   VERSION 1.2.4
   LANGUAGES C CXX
 )
@@ -48,6 +49,7 @@ endif()
 set(AGAVE_QT_VERSION 5.15.2)
 if (WIN32)
   set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 elseif (APPLE)
   set(GUESS_Qt5_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
 else ()
@@ -87,6 +89,8 @@ find_path(GLM_PATH glm/glm.hpp)
 else()
 find_package( glm REQUIRED )
 endif(APPLE)
+
+find_package(TIFF)
 
 find_package(OpenGL)
 
@@ -158,6 +162,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Release
 )
@@ -170,6 +175,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
   DESTINATION ${INSTALLDIR}
   CONFIGURATIONS Debug
 )
@@ -219,6 +225,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
 )
 
@@ -281,6 +288,7 @@ install(FILES
   $<TARGET_FILE:Qt5::Xml>
   $<TARGET_FILE:Qt5::Network>
   $<TARGET_FILE:Qt5::WebSockets>
+  $<TARGET_FILE:TIFF::TIFF>
 	DESTINATION ${INSTALLDIR}
 )
 install(FILES

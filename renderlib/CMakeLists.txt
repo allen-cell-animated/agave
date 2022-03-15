@@ -7,6 +7,7 @@ configure_file (
 
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 set_property(TARGET renderlib PROPERTY AUTOMOC ON)
+set_target_properties(renderlib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${Boost_INCLUDE_DIRS}
@@ -76,21 +77,15 @@ set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
 # end libczi dependency
 
-# libtiff dependency for renderlib
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
-add_subdirectory(libtiff)
-find_library(tiff PATHS ${CMAKE_BINARY_DIR}/renderlib/libtiff/libtiff)
-message(STATUS "libtiff: ${CMAKE_BINARY_DIR}/renderlib/libtiff/libtiff")
-message(STATUS "libtiff: ${tiff}")
-# end libtiff dependency
-
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${CMAKE_DL_LIBS}
-	tiff
+	${TIFF_LIBRARIES}
 	libCZIStatic
 	JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
 )
-
+IF(WIN32)
+	target_link_libraries(renderlib glm::glm)
+ENDIF(WIN32)
 

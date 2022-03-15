@@ -28,7 +28,7 @@ aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
 
 Use vcpkg (must use target triplet x64-windows) to install the following:
 ```
-vcpkg install boost-log boost-filesystem glm zlib libjpeg-turbo liblzma --triplet x64-windows
+vcpkg install boost-log boost-filesystem glm zlib libjpeg-turbo liblzma tiff --triplet x64-windows
 ```
 
 ```
