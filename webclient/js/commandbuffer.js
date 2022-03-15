@@ -69,6 +69,9 @@ var COMMANDS = {
   // path, scene, time
   LOAD_VOLUME_FROM_FILE: [39, "S", "I32", "I32"],
   SET_TIME: [40, "I32"],
+  SET_BOUNDING_BOX_COLOR: [41, "F32", "F32", "F32"],
+  SHOW_BOUNDING_BOX: [42, "I32"],
+  TRACKBALL_CAMERA: [43, "F32", "F32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
@@ -80,7 +83,7 @@ function commandBuffer() {
 }
 
 commandBuffer.prototype = {
-  prebufferToBuffer: function() {
+  prebufferToBuffer: function () {
     // iterate length of prebuffer to compute size.
     var bytesize = 0;
     for (var i = 0; i < this.prebuffer.length; ++i) {
@@ -177,9 +180,9 @@ commandBuffer.prototype = {
   },
   // commands are added by command code string name followed by appropriate
   // signature args.
-  addCommand: function() {
+  addCommand: function () {
     var args = [].slice.call(arguments);
     // TODO: check against signature!!!
     this.prebuffer.push(args);
-  }
+  },
 };
