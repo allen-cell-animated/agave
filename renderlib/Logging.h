@@ -1,6 +1,6 @@
 #pragma once
 
-// remove after boost fixes issue in boost 1.78
+// TODO: remove after boost fixes issue in boost 1.78
 #define BOOST_USE_WINAPI_VERSION BOOST_WINAPI_VERSION_WIN7
 
 //#define BOOST_LOG_DYN_LINK // necessary when linking the boost_log library dynamically
