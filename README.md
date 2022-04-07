@@ -67,7 +67,7 @@ In your favorite Python virtual environment:
 pip install aqtinstall
 aqt install --outputdir ~/Qt 5.15.2 linux desktop
 # the next line is needed for CMake
-export Qt_DIR=~/Qt/5.15.2/gcc_64
+export Qt5_DIR=~/Qt/5.15.2/gcc_64
 ```
 
 - sudo apt install libboost-all-dev
