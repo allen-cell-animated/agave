@@ -8,7 +8,7 @@
 #include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/gl/Util.h"
-#include "renderlib/gl/v33/V33Image3D.h"
+#include "renderlib/gl/V33Image3D.h"
 
 #include <glm.h>
 

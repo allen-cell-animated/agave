@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AppScene.h"
-#include "glsl/v330/GLBasicVolumeShader.h"
+#include "glsl/GLBasicVolumeShader.h"
 #include <memory>
 
 class ImageXYZC;

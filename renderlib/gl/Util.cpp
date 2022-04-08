@@ -1,8 +1,8 @@
 #include "Util.h"
 
 #include "Logging.h"
-#include "glsl/v330/V330GLFlatShader2D.h"
-#include "glsl/v330/V330GLImageShader2DnoLut.h"
+#include "glsl/V330GLFlatShader2D.h"
+#include "glsl/V330GLImageShader2DnoLut.h"
 
 #include "glm.h"
 

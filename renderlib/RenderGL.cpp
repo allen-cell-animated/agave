@@ -5,7 +5,7 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "RenderSettings.h"
-#include "gl/v33/V33Image3D.h"
+#include "gl/V33Image3D.h"
 
 #include <iostream>
 
