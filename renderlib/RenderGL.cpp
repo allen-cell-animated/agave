@@ -127,7 +127,7 @@ RenderGL::initFromScene()
 {
   delete m_image3d;
 
-  m_image3d = new Image3Dv33(m_scene->m_volume);
+  m_image3d = new Image3D(m_scene->m_volume);
   m_image3d->create();
 
   // we have set up everything there is to do before rendering

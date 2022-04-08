@@ -36,7 +36,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile vertex shader\n" << m_vshader->log();
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -59,7 +59,7 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
                                "}\n");
 
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to compile fragment shader\n" << m_fshader->log();
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -67,24 +67,24 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to link shader program\n" << log();
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to link shader program\n" << log();
   }
 
   m_attr_coords = attributeLocation("coord2d");
   if (m_attr_coords == -1)
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind coordinates";
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to bind coordinates";
 
   m_attr_texcoords = attributeLocation("texcoord");
   if (m_attr_texcoords == -1)
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind texture coordinates";
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to bind texture coordinates";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind transform";
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to bind transform";
 
   m_uniform_texture = uniformLocation("tex");
   if (m_uniform_texture == -1)
-    LOG_ERROR << "V330GLImageShader2DnoLut: Failed to bind texture uniform ";
+    LOG_ERROR << "GLImageShader2DnoLut: Failed to bind texture uniform ";
 }
 
 GLImageShader2DnoLut::~GLImageShader2DnoLut() {}

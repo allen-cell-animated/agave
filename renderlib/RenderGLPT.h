@@ -16,7 +16,7 @@ class BoundingBoxDrawable;
 class Framebuffer;
 class FSQ;
 class ImageXYZC;
-class Image3Dv33;
+class Image3D;
 class RectImage2D;
 class GLCopyShader;
 class GLPTVolumeShader;
@@ -38,7 +38,7 @@ public:
 
   virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
 
-  Image3Dv33* getImage() const { return nullptr; };
+  Image3D* getImage() const { return nullptr; };
   RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
   // just draw into my own fbo.

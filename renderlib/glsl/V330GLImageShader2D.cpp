@@ -39,7 +39,7 @@ GLImageShader2D::GLImageShader2D()
                                "}\n");
 
   if (!m_vshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2D: Failed to compile vertex shader\n" << m_vshader->log();
+    LOG_ERROR << "GLImageShader2D: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
@@ -67,7 +67,7 @@ GLImageShader2D::GLImageShader2D()
                                "}\n");
 
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLImageShader2D: Failed to compile fragment shader\n" << m_fshader->log();
+    LOG_ERROR << "GLImageShader2D: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -75,40 +75,40 @@ GLImageShader2D::GLImageShader2D()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "V330GLImageShader2D: Failed to link shader program\n" << log();
+    LOG_ERROR << "GLImageShader2D: Failed to link shader program\n" << log();
   }
 
   m_attr_coords = attributeLocation("coord2d");
   if (m_attr_coords == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind coordinates";
+    LOG_ERROR << "GLImageShader2D: Failed to bind coordinates";
 
   m_attr_texcoords = attributeLocation("texcoord");
   if (m_attr_texcoords == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind texture coordinates";
+    LOG_ERROR << "GLImageShader2D: Failed to bind texture coordinates";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind transform";
+    LOG_ERROR << "GLImageShader2D: Failed to bind transform";
 
   m_uniform_texture = uniformLocation("tex");
   if (m_uniform_texture == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind texture uniform ";
+    LOG_ERROR << "GLImageShader2D: Failed to bind texture uniform ";
 
   m_uniform_lut = uniformLocation("lut");
   if (m_uniform_lut == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind lut uniform ";
+    LOG_ERROR << "GLImageShader2D: Failed to bind lut uniform ";
 
   m_uniform_min = uniformLocation("texmin");
   if (m_uniform_min == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind min uniform ";
+    LOG_ERROR << "GLImageShader2D: Failed to bind min uniform ";
 
   m_uniform_max = uniformLocation("texmax");
   if (m_uniform_max == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind max uniform ";
+    LOG_ERROR << "GLImageShader2D: Failed to bind max uniform ";
 
   m_uniform_corr = uniformLocation("correction");
   if (m_uniform_corr == -1)
-    LOG_ERROR << "V330GLImageShader2D: Failed to bind correction uniform ";
+    LOG_ERROR << "GLImageShader2D: Failed to bind correction uniform ";
 }
 
 GLImageShader2D::~GLImageShader2D() {}
