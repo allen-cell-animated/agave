@@ -15,7 +15,7 @@ GLFlatShader2D::GLFlatShader2D()
   , m_uniform_mvp()
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
-  m_vshader->compileSourceCode("#version 330 core\n"
+  m_vshader->compileSourceCode("#version 400 core\n"
                                "\n"
                                "uniform vec4 colour;\n"
                                "uniform mat4 mvp;\n"
@@ -36,7 +36,7 @@ GLFlatShader2D::GLFlatShader2D()
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
-  m_fshader->compileSourceCode("#version 330 core\n"
+  m_fshader->compileSourceCode("#version 400 core\n"
                                "\n"
                                "in VertexData\n"
                                "{\n"

@@ -21,7 +21,7 @@ GLPTVolumeShader::GLPTVolumeShader()
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
   m_vshader->compileSourceCode(R"(
-#version 330 core
+#version 400 core
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 uv;
@@ -41,7 +41,7 @@ void main()
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
   const char* fsPiece1 = R"(
-#version 330 core
+#version 400 core
 
 #define PI (3.1415926535897932384626433832795)
 #define PI_OVER_2 (1.57079632679489661923)

@@ -22,7 +22,7 @@ GLImageShader2D::GLImageShader2D()
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
 
-  m_vshader->compileSourceCode("#version 330 core\n"
+  m_vshader->compileSourceCode("#version 400 core\n"
                                "\n"
                                "layout (location = 0) in vec2 coord2d;\n"
                                "layout (location = 1) in vec2 texcoord;\n"
@@ -43,7 +43,7 @@ GLImageShader2D::GLImageShader2D()
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
-  m_fshader->compileSourceCode("#version 330 core\n"
+  m_fshader->compileSourceCode("#version 400 core\n"
                                "\n"
                                "uniform sampler2D tex;\n"
                                "uniform sampler1DArray lut;\n"
