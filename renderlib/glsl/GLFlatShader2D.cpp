@@ -1,4 +1,4 @@
-#include "V330GLFlatShader2D.h"
+#include "GLFlatShader2D.h"
 #include <gl/Util.h>
 #include <glm.h>
 

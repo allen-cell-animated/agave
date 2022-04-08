@@ -10,10 +10,9 @@
 #include "gl/V33FSQ.h"
 #include "gl/V33Image3D.h"
 #include "glsl/GLCopyShader.h"
+#include "glsl/GLImageShader2DnoLut.h"
 #include "glsl/GLPTVolumeShader.h"
 #include "glsl/GLToneMapShader.h"
-#include "glsl/V330GLFlatShader2D.h"
-#include "glsl/V330GLImageShader2DnoLut.h"
 
 #include <array>
 
