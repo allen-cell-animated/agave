@@ -1,5 +1,5 @@
 
-#include "gl/V33Image3D.h"
+#include "gl/Image3D.h"
 
 #include "Fuse.h"
 #include "ImageXYZC.h"
