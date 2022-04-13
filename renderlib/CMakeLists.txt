@@ -96,8 +96,8 @@ ExternalProject_Add(
 ExternalProject_Get_Property(wgpu_native BINARY_DIR)
 add_dependencies(renderlib wgpu_native)
 target_link_libraries(renderlib
-    debug "${BINARY_DIR}/target/debug/wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    optimized "${BINARY_DIR}/target/release/wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    debug "${BINARY_DIR}/target/debug/libwgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    optimized "${BINARY_DIR}/target/release/libwgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
 
 

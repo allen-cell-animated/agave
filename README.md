@@ -62,6 +62,8 @@ sudo make install
 
 For LINUX:
 
+Make sure you have Rust 1.59 or greater installed for the wgpu-native dependency.
+
 Install Qt 5.15.2 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
@@ -72,6 +74,8 @@ aqt install --outputdir ~/Qt 5.15.2 linux desktop
 export Qt5_DIR=~/Qt/5.15.2/gcc_64
 ```
 
+
+- sudo apt install libclang-dev # for rust / wgpu-native
 - sudo apt install libtiff-dev
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
