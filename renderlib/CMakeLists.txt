@@ -85,7 +85,8 @@ ExternalProject_Add(
         GIT_REPOSITORY "https://github.com/gfx-rs/wgpu-native.git"
         GIT_TAG "v0.12.0.1"
 		CONFIGURE_COMMAND ""
-        BUILD_COMMAND cargo build "--$<$<CONFIG:Release>: release>"
+        BUILD_COMMAND cargo build
+		COMMAND cargo build --release
         BUILD_IN_SOURCE true
         INSTALL_COMMAND ""
 		LOG_BUILD ON
