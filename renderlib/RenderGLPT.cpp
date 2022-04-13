@@ -6,14 +6,13 @@
 #include "Framebuffer.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
+#include "gl/FSQ.h"
+#include "gl/Image3D.h"
 #include "gl/Util.h"
-#include "gl/v33/V33FSQ.h"
-#include "gl/v33/V33Image3D.h"
-#include "glsl/v330/GLCopyShader.h"
-#include "glsl/v330/GLPTVolumeShader.h"
-#include "glsl/v330/GLToneMapShader.h"
-#include "glsl/v330/V330GLFlatShader2D.h"
-#include "glsl/v330/V330GLImageShader2DnoLut.h"
+#include "glsl/GLCopyShader.h"
+#include "glsl/GLImageShader2DnoLut.h"
+#include "glsl/GLPTVolumeShader.h"
+#include "glsl/GLToneMapShader.h"
 
 #include <array>
 

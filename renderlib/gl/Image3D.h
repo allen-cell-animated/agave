@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AppScene.h"
-#include "glsl/v330/GLBasicVolumeShader.h"
+#include "glsl/GLBasicVolumeShader.h"
 #include <memory>
 
 class ImageXYZC;
@@ -15,7 +15,7 @@ class RenderSettings;
  * The render is greyscale with a per-channel min/max for linear
  * contrast.
  */
-class Image3Dv33
+class Image3D
 {
 
 public:
@@ -28,10 +28,10 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  explicit Image3Dv33(std::shared_ptr<ImageXYZC> img);
+  explicit Image3D(std::shared_ptr<ImageXYZC> img);
 
   /// Destructor.
-  virtual ~Image3Dv33();
+  virtual ~Image3D();
 
   void create();
 

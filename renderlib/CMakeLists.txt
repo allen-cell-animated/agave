@@ -64,9 +64,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"
 )
 add_subdirectory(gl)
-add_subdirectory(gl/v33)
 add_subdirectory(glad/src)
-add_subdirectory(glsl/v330)
+add_subdirectory(glsl)
 add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib

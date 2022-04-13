@@ -7,7 +7,7 @@
 #include <chrono>
 #include <memory>
 
-class Image3Dv33;
+class Image3D;
 class ImageXYZC;
 class RenderSettings;
 
@@ -27,10 +27,10 @@ public:
   virtual Scene* scene();
   virtual void setScene(Scene* s);
 
-  Image3Dv33* getImage() const { return m_image3d; };
+  Image3D* getImage() const { return m_image3d; };
 
 private:
-  Image3Dv33* m_image3d;
+  Image3D* m_image3d;
   RenderSettings* m_renderSettings;
 
   Scene* m_scene;

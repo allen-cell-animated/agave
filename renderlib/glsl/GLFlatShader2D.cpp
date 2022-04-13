@@ -1,4 +1,4 @@
-#include "V330GLFlatShader2D.h"
+#include "GLFlatShader2D.h"
 #include <gl/Util.h>
 #include <glm.h>
 
@@ -15,7 +15,7 @@ GLFlatShader2D::GLFlatShader2D()
   , m_uniform_mvp()
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
-  m_vshader->compileSourceCode("#version 330 core\n"
+  m_vshader->compileSourceCode("#version 400 core\n"
                                "\n"
                                "uniform vec4 colour;\n"
                                "uniform mat4 mvp;\n"
@@ -36,7 +36,7 @@ GLFlatShader2D::GLFlatShader2D()
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
-  m_fshader->compileSourceCode("#version 330 core\n"
+  m_fshader->compileSourceCode("#version 400 core\n"
                                "\n"
                                "in VertexData\n"
                                "{\n"
@@ -49,7 +49,7 @@ GLFlatShader2D::GLFlatShader2D()
                                "  outputColour = inData.f_colour;\n"
                                "}\n");
   if (!m_fshader->isCompiled()) {
-    LOG_ERROR << "V330GLFlatShader2D: Failed to compile fragment shader\n" << m_fshader->log();
+    LOG_ERROR << "GLFlatShader2D: Failed to compile fragment shader\n" << m_fshader->log();
   }
 
   addShader(m_vshader);
@@ -57,20 +57,20 @@ GLFlatShader2D::GLFlatShader2D()
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "V330GLFlatShader2D: Failed to link shader program\n" << log();
+    LOG_ERROR << "GLFlatShader2D: Failed to link shader program\n" << log();
   }
 
   m_attr_coords = attributeLocation("position");
   if (m_attr_coords == -1)
-    LOG_ERROR << "V330GLFlatShader2D: Failed to bind coordinate location";
+    LOG_ERROR << "GLFlatShader2D: Failed to bind coordinate location";
 
   m_uniform_colour = uniformLocation("colour");
   if (m_uniform_colour == -1)
-    LOG_ERROR << "V330GLFlatShader2D: Failed to bind colour";
+    LOG_ERROR << "GLFlatShader2D: Failed to bind colour";
 
   m_uniform_mvp = uniformLocation("mvp");
   if (m_uniform_mvp == -1)
-    LOG_ERROR << "V330GLFlatShader2D: Failed to bind transform";
+    LOG_ERROR << "GLFlatShader2D: Failed to bind transform";
 }
 
 GLFlatShader2D::~GLFlatShader2D() {}

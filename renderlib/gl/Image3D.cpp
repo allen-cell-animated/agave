@@ -1,5 +1,5 @@
 
-#include "gl/v33/V33Image3D.h"
+#include "gl/Image3D.h"
 
 #include "Fuse.h"
 #include "ImageXYZC.h"
@@ -12,7 +12,7 @@
 #include <chrono>
 #include <iostream>
 
-Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC> img)
+Image3D::Image3D(std::shared_ptr<ImageXYZC> img)
   : m_vertices(0)
   , m_image_vertices(0)
   , m_image_elements(0)
@@ -23,7 +23,7 @@ Image3Dv33::Image3Dv33(std::shared_ptr<ImageXYZC> img)
   , m_fusedrgbvolume(nullptr)
 {}
 
-Image3Dv33::~Image3Dv33()
+Image3D::~Image3D()
 {
   delete[] m_fusedrgbvolume;
 
@@ -32,7 +32,7 @@ Image3Dv33::~Image3Dv33()
 }
 
 void
-Image3Dv33::create()
+Image3D::create()
 {
   m_fusedrgbvolume = new uint8_t[3 * m_img->sizeX() * m_img->sizeY() * m_img->sizeZ()];
   // destroy old
@@ -69,10 +69,7 @@ Image3Dv33::create()
 }
 
 void
-Image3Dv33::render(const CCamera& camera,
-                   const Scene* scene,
-                   const RenderSettings* renderSettings,
-                   float devicePixelRatio)
+Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings, float devicePixelRatio)
 {
   m_image3d_shader->bind();
 
@@ -120,7 +117,7 @@ Image3Dv33::render(const CCamera& camera,
   // Push each element to the vertex shader
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_image_elements);
   glDrawElements(GL_TRIANGLES, (GLsizei)m_num_image_elements, GL_UNSIGNED_SHORT, 0);
-  check_gl("Image3Dv33 draw elements");
+  check_gl("Image3D draw elements");
 
   m_image3d_shader->disableCoords();
   glBindVertexArray(0);
@@ -129,7 +126,7 @@ Image3Dv33::render(const CCamera& camera,
 }
 
 void
-Image3Dv33::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
+Image3D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 {
   const std::array<GLfloat, 3 * 4 * 2> cube_vertices{
     // front
@@ -226,7 +223,7 @@ Image3Dv33::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
 }
 
 void
-Image3Dv33::prepareTexture(Scene& s)
+Image3D::prepareTexture(Scene& s)
 {
   auto startTime = std::chrono::high_resolution_clock::now();
 

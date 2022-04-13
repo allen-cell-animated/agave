@@ -17,7 +17,7 @@ GLBasicVolumeShader::GLBasicVolumeShader()
 {
   vshader = new GLShader(GL_VERTEX_SHADER);
   vshader->compileSourceCode(R"(
-#version 330 core
+#version 400 core
 
 layout (location = 0) in vec3 position;
 uniform mat4 modelViewMatrix;
@@ -40,7 +40,7 @@ void main()
 
   fshader = new GLShader(GL_FRAGMENT_SHADER);
   fshader->compileSourceCode(R"(
-#version 330 core
+#version 400 core
 
 in VertexData
 {
