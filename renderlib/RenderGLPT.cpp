@@ -438,9 +438,9 @@ RenderGLPT::drawImage()
     glClearColor(m_scene->m_material.m_backgroundColor[0],
                  m_scene->m_material.m_backgroundColor[1],
                  m_scene->m_material.m_backgroundColor[2],
-                 1.0);
+                 0.0);
   } else {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
