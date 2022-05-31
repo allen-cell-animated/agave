@@ -94,10 +94,10 @@ RangeWidget::handleRect(int value) const
 
   QRectF r;
   if (m_orientation == Qt::Horizontal) {
-    r = QRectF(0, (height() - m_handleHeight) / 2, m_handleWidth, m_handleHeight/2);
+    r = QRectF(0, (height() - m_handleHeight) / 2, m_handleWidth, m_handleHeight / 2);
     r.moveLeft(s * (value - m_minimum));
   } else {
-    r = QRectF((width() - m_handleHeight) / 2, 0, m_handleHeight/2, m_handleWidth);
+    r = QRectF((width() - m_handleHeight) / 2, 0, m_handleHeight / 2, m_handleWidth);
     r.moveTop(s * (value - m_minimum));
   }
   return r;
@@ -127,10 +127,10 @@ RangeWidget::textRect(int value, QPainter& p) const
   if (m_orientation == Qt::Horizontal) {
     r = rt;
     r.moveLeft(s * (value - m_minimum));
-    r.moveTop(height()*0.66);
+    r.moveTop(height() * 0.66);
   } else {
     r = rt;
-    r.moveLeft(width()*0.66);
+    r.moveLeft(width() * 0.66);
     r.moveTop(s * (value - m_minimum));
   }
   return r;
@@ -186,7 +186,7 @@ RangeWidget::mouseReleaseEvent(QMouseEvent* event)
 QSize
 RangeWidget::minimumSizeHint() const
 {
-  return QSize(m_handleHeight*2, m_handleHeight*2);
+  return QSize(m_handleHeight * 2, m_handleHeight * 2);
 }
 
 void
