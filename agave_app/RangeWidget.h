@@ -44,7 +44,7 @@ protected:
   QRectF firstTextRect(QPainter& p) const;
   QRectF secondTextRect(QPainter& p) const;
   QRectF textRect(int value, QPainter& p) const;
-  qreal span(int w=-1) const;
+  qreal span(int w = -1) const;
 
 public:
   RangeWidget(Qt::Orientation orientation = Qt::Vertical, QWidget* parent = nullptr);
