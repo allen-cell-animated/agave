@@ -1,5 +1,7 @@
 #include "RangeWidget.h"
 
+#include "Logging.h"
+
 #include <QtDebug>
 
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
@@ -13,6 +15,8 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_secondValue(90)
   , m_firstHandlePressed(false)
   , m_secondHandlePressed(false)
+  , m_trackHovered(false)
+  , m_trackPressed(false)
   , m_firstHandleColor(style()->standardPalette().highlight().color())
   , m_secondHandleColor(style()->standardPalette().highlight().color())
 {
@@ -58,6 +62,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
     rf.setRight(rf.right() + 1);
   }
   p.fillRect(rf, QColor(Qt::green).darker(150));
+  m_trackRect = rf;
   p.fillRect(rv1, c1);
   p.fillRect(rv2, c2);
   p.drawText(rt1, Qt::AlignmentFlag::AlignCenter, QString::number(m_firstValue));
@@ -142,6 +147,10 @@ RangeWidget::mousePressEvent(QMouseEvent* event)
   if (event->buttons() & Qt::LeftButton) {
     m_secondHandlePressed = secondHandleRect().contains(event->pos());
     m_firstHandlePressed = !m_secondHandlePressed && firstHandleRect().contains(event->pos());
+    m_trackPressed = !m_secondHandlePressed && !m_firstHandlePressed && m_trackRect.contains(event->pos());
+    if (m_trackPressed) {
+      m_trackPos = event->pos();
+    }
     emit sliderPressed();
   }
 }
@@ -162,6 +171,22 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
         setFirstValue(event->pos().x() * interval / (width() - m_handleWidth));
       else
         setFirstValue(event->pos().y() * interval / (height() - m_handleWidth));
+    } else if (m_trackPressed) {
+      int dx = event->pos().x() - m_trackPos.x();
+      int dy = event->pos().y() - m_trackPos.y();
+      m_trackPos = event->pos();
+      qreal dvalue = 0.0;
+      qreal s = span();
+      if (m_orientation == Qt::Horizontal) {
+        dvalue = dx / s;
+      } else {
+        dvalue = dy / s;
+      }
+      // LOG_DEBUG << "track delta " << dvalue;
+      if (m_firstValue + (int)dvalue >= m_minimum && m_secondValue + (int)dvalue <= m_maximum) {
+        setFirstValue(m_firstValue + (int)dvalue);
+        setSecondValue(m_secondValue + (int)dvalue);
+      }
     }
   }
 
@@ -169,8 +194,10 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
   QRectF rv1 = firstHandleRect();
   m_secondHandleHovered = m_secondHandlePressed || (!m_firstHandlePressed && rv2.contains(event->pos()));
   m_firstHandleHovered = m_firstHandlePressed || (!m_secondHandleHovered && rv1.contains(event->pos()));
+  m_trackHovered = m_trackPressed || (m_trackRect.contains(event->pos()));
   update(rv2.toRect());
   update(rv1.toRect());
+  update(m_trackRect.toRect());
 }
 
 void

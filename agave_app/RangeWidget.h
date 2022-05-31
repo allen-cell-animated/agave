@@ -29,8 +29,14 @@ private:
   bool m_firstHandleHovered;
   bool m_secondHandleHovered;
 
+  bool m_trackHovered;
+  bool m_trackPressed;
+
   QColor m_firstHandleColor;
   QColor m_secondHandleColor;
+
+  QRectF m_trackRect;
+  QPoint m_trackPos;
 
 protected:
   void paintEvent(QPaintEvent* event);
