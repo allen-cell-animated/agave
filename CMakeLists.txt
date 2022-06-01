@@ -16,7 +16,7 @@ project(
   LANGUAGES C CXX
 )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 IF (WIN32)
 ELSE()
@@ -69,6 +69,9 @@ endif (APPLE)
 
 find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 
+find_package(Vulkan)
+find_package(OpenGL)
+
 #if(MSVC)
   # Debug library suffix.
   #set(CMAKE_DEBUG_POSTFIX "d")
@@ -92,8 +95,6 @@ endif(APPLE)
 
 find_package(TIFF)
 
-find_package(OpenGL)
-
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 else ()
@@ -107,6 +108,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # THE COMMON CORE LIBRARIES
 ######################
 add_subdirectory(renderlib)
+add_subdirectory(renderlib2)
 
 set(INSTALLDIR "${CMAKE_PROJECT_NAME}-install")
 

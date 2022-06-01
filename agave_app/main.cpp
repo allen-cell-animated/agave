@@ -5,6 +5,7 @@
 #include "renderlib/Logging.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
+#include "renderlib2/renderlib2.h"
 #include "streamserver.h"
 
 #include <QApplication>
@@ -128,6 +129,12 @@ main(int argc, char* argv[])
   bool isServer = parser.isSet(serverOption);
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
+
+  if (!renderlib2::initialize(isServer, listDevices, selectedGpu)) {
+    LOG_ERROR << "FAILED TO INIT RENDERLIB2";
+    renderlib2::cleanup();
+    return 0;
+  }
 
   if (!renderlib::initialize(isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
