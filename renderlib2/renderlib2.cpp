@@ -47,24 +47,26 @@ createInstance()
 
   std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
-  /***
-    // Enable surface extensions depending on os
-  #if defined(_WIN32)
-    instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-  #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-    instanceExtensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-  #elif defined(_DIRECT2DISPLAY)
-    instanceExtensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-  #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-    instanceExtensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-  #elif defined(VK_USE_PLATFORM_XCB_KHR)
-    instanceExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-  #elif defined(VK_USE_PLATFORM_IOS_MVK)
-    instanceExtensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
-  #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-    instanceExtensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-  #endif
-  ****/
+  // Enable surface extensions depending on os
+#if defined(_WIN32)
+  instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+  instanceExtensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+#elif defined(_DIRECT2DISPLAY)
+  instanceExtensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_DIRECTFB_EXT)
+  instanceExtensions.push_back(VK_EXT_DIRECTFB_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
+  instanceExtensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+  instanceExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_IOS_MVK)
+  instanceExtensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+  instanceExtensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_HEADLESS_EXT)
+  instanceExtensions.push_back(VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME);
+#endif
 
   enabledInstanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
@@ -88,24 +90,34 @@ createInstance()
   if (g_validation) {
     // The VK_LAYER_KHRONOS_validation contains all current validation functionality.
     // Note that on Android this layer requires at least NDK r20
-    const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
+    std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation",
+                                                  "VK_LAYER_LUNARG_standard_validation" };
     // Check if this layer is available at instance level
     uint32_t instanceLayerCount;
     vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
     std::vector<VkLayerProperties> instanceLayerProperties(instanceLayerCount);
     vkEnumerateInstanceLayerProperties(&instanceLayerCount, instanceLayerProperties.data());
     bool validationLayerPresent = false;
-    for (VkLayerProperties layer : instanceLayerProperties) {
-      if (strcmp(layer.layerName, validationLayerName) == 0) {
-        validationLayerPresent = true;
-        break;
+
+    for (const char* layerName : validationLayers) {
+      bool layerFound = false;
+
+      for (const auto& layerProperties : instanceLayerProperties) {
+        if (strcmp(layerName, layerProperties.layerName) == 0) {
+          layerFound = true;
+          break;
+        }
+      }
+      if (!layerFound) {
+        LOG_ERROR << "Validation layer " << layerName << " not present, validation is disabled";
+        g_validation = false;
       }
     }
-    if (validationLayerPresent) {
-      instanceCreateInfo.ppEnabledLayerNames = &validationLayerName;
-      instanceCreateInfo.enabledLayerCount = 1;
+    if (g_validation) {
+      instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+      instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
     } else {
-      std::cerr << "Validation layer VK_LAYER_KHRONOS_validation not present, validation is disabled";
+      instanceCreateInfo.enabledLayerCount = 0;
     }
   }
 
@@ -151,7 +163,8 @@ renderlib2::instance()
 
 void
 renderlib2::clearGpuVolumeCache()
-{}
+{
+}
 
 void
 renderlib2::cleanup()

@@ -9,11 +9,13 @@
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/gl/Image3D.h"
 #include "renderlib/gl/Util.h"
+#include "renderlib2/renderlib2.h"
 
 #include <glm.h>
 
 #include <QGuiApplication>
 #include <QScreen>
+#include <QVulkanInstance>
 #include <QWindow>
 #include <QtGui/QMouseEvent>
 
@@ -38,6 +40,15 @@ VkView3D::VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs)
   , m_qrendersettings(qrs)
   , m_rendererType(1)
 {
+  QVulkanInstance inst;
+  inst.setVkInstance(renderlib2::instance());
+  // // enable the standard validation layers, when available
+  // inst.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
+  if (!inst.create()) {
+    LOG_ERROR << "Failed to create Vulkan instance: " << inst.errorCode();
+  }
+  this->setVulkanInstance(&inst);
+
   // The VkView3D owns one CScene
 
   m_cameraController.setRenderSettings(*m_renderSettings);
