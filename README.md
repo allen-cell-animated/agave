@@ -27,8 +27,9 @@ aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
 ```
 
 Use vcpkg (must use target triplet x64-windows) to install the following:
+
 ```
-vcpkg install boost-log boost-filesystem glm zlib libjpeg-turbo liblzma tiff --triplet x64-windows
+vcpkg install boost-log glm zlib libjpeg-turbo liblzma tiff --triplet x64-windows
 ```
 
 ```
@@ -85,17 +86,22 @@ make
 
 Versioned Releases
 
-Use tbump (https://github.com/dmerejkowsky/tbump).  See the tbump.toml file which shows all the files that contain necessary version info.
+Use tbump (https://github.com/dmerejkowsky/tbump). See the tbump.toml file which shows all the files that contain necessary version info.
 
-Just run 
+Just run
+
 ```
 tbump major.minor.patch --dry-run
 ```
+
 and if everything looks ok
+
 ```
 tbump major.minor.patch
 ```
+
 or, to do the git steps manually:
+
 ```
 tbump major.minor.patch --only-patch
 ```

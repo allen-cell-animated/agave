@@ -9,7 +9,7 @@
 
 #include "pugixml/pugixml.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <chrono>
 #include <map>
@@ -26,7 +26,7 @@ class ScopedCziReader
 public:
   ScopedCziReader(const std::string& filepath)
   {
-    boost::filesystem::path fpath(filepath);
+    std::filesystem::path fpath(filepath);
     const std::wstring widestr = fpath.wstring();
 
     std::shared_ptr<libCZI::IStream> stream = libCZI::CreateStreamFromFile(widestr.c_str());

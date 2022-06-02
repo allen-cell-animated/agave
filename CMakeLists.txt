@@ -82,7 +82,7 @@ find_package(OpenGL)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS log log_setup filesystem REQUIRED)
+find_package(Boost COMPONENTS log log_setup REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 if (APPLE)

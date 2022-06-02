@@ -1,7 +1,6 @@
 #include "Logging.h"
 
 #include <boost/core/null_deleter.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/log/core/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/expressions/formatters/date_time.hpp>
@@ -14,6 +13,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <filesystem>
 #include <fstream>
 #include <ostream>
 #if defined(__APPLE__) || defined(__linux__)
@@ -26,7 +26,7 @@ namespace expr = boost::log::expressions;
 namespace sinks = boost::log::sinks;
 namespace attrs = boost::log::attributes;
 
-static boost::filesystem::path sLogFileDirectory = "";
+static std::filesystem::path sLogFileDirectory = "";
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(line_id, "LineID", unsigned int)
 BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "TimeStamp", boost::posix_time::ptime)
@@ -45,7 +45,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(logger, src::severity_logger_mt)
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
 
   // add a logfile stream to our sink
-  boost::filesystem::path p = sLogFileDirectory / LOGFILE;
+  std::filesystem::path p = sLogFileDirectory / LOGFILE;
   sink->locked_backend()->add_stream(boost::make_shared<std::ofstream>(p.string()));
 
   // add "console" output stream to our sink
@@ -77,12 +77,12 @@ Logging::Enable(bool enabled)
   boost::log::core::get()->set_logging_enabled(enabled);
 }
 
-boost::filesystem::path
+std::filesystem::path
 getLogPath()
 {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
   const char* rootdir = getenv("LOCALAPPDATA");
-  return boost::filesystem::path(rootdir) / "AllenInstitute" / "agave";
+  return std::filesystem::path(rootdir) / "AllenInstitute" / "agave";
 #elif __APPLE__
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
@@ -90,7 +90,7 @@ getLogPath()
     if (pwd)
       rootdir = pwd->pw_dir;
   }
-  return boost::filesystem::path(rootdir) / "Library" / "Logs" / "AllenInstitute" / "agave";
+  return std::filesystem::path(rootdir) / "Library" / "Logs" / "AllenInstitute" / "agave";
 #elif __linux__
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
@@ -98,7 +98,7 @@ getLogPath()
     if (pwd)
       rootdir = pwd->pw_dir;
   }
-  return boost::filesystem::path(rootdir) / ".agave";
+  return std::filesystem::path(rootdir) / ".agave";
 #else
 #error "Unknown compiler"
 #endif
@@ -109,6 +109,6 @@ Logging::Init()
 {
   sLogFileDirectory = getLogPath();
   // make dir if doesn't exist.  throws on error
-  boost::filesystem::create_directories(sLogFileDirectory);
+  std::filesystem::create_directories(sLogFileDirectory);
   LOG_INFO << "Logging initialized";
 }
