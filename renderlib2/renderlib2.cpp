@@ -86,10 +86,11 @@ createInstance()
     instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
     instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
   }
-  if (g_validation) {
+  std::vector<const char*> validationLayers = {};
+  if (g_validation) { 
+    validationLayers.push_back("VK_LAYER_KHRONOS_validation");
     // The VK_LAYER_KHRONOS_validation contains all current validation functionality.
     // Note that on Android this layer requires at least NDK r20
-    std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
     // Check if this layer is available at instance level
     uint32_t instanceLayerCount;
     vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
@@ -109,14 +110,15 @@ createInstance()
       if (!layerFound) {
         LOG_ERROR << "Validation layer " << layerName << " not present, validation is disabled";
         g_validation = false;
+        break;
       }
     }
-    if (g_validation) {
-      instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-      instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
-    } else {
-      instanceCreateInfo.enabledLayerCount = 0;
-    }
+  }
+  if (g_validation) {
+    instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+  } else {
+    instanceCreateInfo.enabledLayerCount = 0;
   }
 
   VkInstance instance = nullptr;
