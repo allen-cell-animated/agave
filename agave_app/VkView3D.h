@@ -54,6 +54,7 @@ private:
  */
 class VkView3D : public QVulkanWindow
 {
+    Q_OBJECT
 public:
   /**
    * Create a 3D image view.
