@@ -24,7 +24,8 @@ class VulkanWindowRenderer : public QVulkanWindowRenderer
 public:
   VulkanWindowRenderer(QVulkanWindow* w)
     : m_window(w)
-  {}
+  {
+  }
 
   void initResources() override
   {
@@ -41,7 +42,7 @@ public:
     // ...
     // m_devFuncs->vkCmdBeginRenderPass(...);
     // ...
-    m_window->frameReady();
+    // m_window->frameReady();
   }
 
 private:
@@ -54,7 +55,7 @@ private:
  */
 class VkView3D : public QVulkanWindow
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   /**
    * Create a 3D image view.

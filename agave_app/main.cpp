@@ -23,7 +23,8 @@ struct ServerParams
   // defaults
   ServerParams()
     : _port(1235)
-  {}
+  {
+  }
 };
 
 ServerParams
@@ -166,12 +167,18 @@ main(int argc, char* argv[])
 
     result = a.exec();
   } else {
-    agaveGui* w = new agaveGui();
-    w->show();
-    result = a.exec();
+    try {
+      agaveGui* w = new agaveGui();
+      w->show();
+      result = a.exec();
+
+    } catch (...) {
+      LOG_ERROR << "Exception caught in main";
+    }
   }
 
   renderlib::cleanup();
+  renderlib2::cleanup();
 
   return result;
 }

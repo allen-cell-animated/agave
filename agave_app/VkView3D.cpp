@@ -42,8 +42,6 @@ VkView3D::VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs)
 {
   QVulkanInstance inst;
   inst.setVkInstance(renderlib2::instance());
-  // // enable the standard validation layers, when available
-  // inst.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
   if (!inst.create()) {
     LOG_ERROR << "Failed to create Vulkan instance: " << inst.errorCode();
   }

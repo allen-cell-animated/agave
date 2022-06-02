@@ -13,7 +13,6 @@
     VkResult err = x;                                                                                                  \
     if (err) {                                                                                                         \
       LOG_ERROR << "Detected Vulkan error: " << err;                                                                   \
-      abort();                                                                                                         \
     }                                                                                                                  \
   } while (0)
 
@@ -90,8 +89,7 @@ createInstance()
   if (g_validation) {
     // The VK_LAYER_KHRONOS_validation contains all current validation functionality.
     // Note that on Android this layer requires at least NDK r20
-    std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation",
-                                                  "VK_LAYER_LUNARG_standard_validation" };
+    std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
     // Check if this layer is available at instance level
     uint32_t instanceLayerCount;
     vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
