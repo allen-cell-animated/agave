@@ -3,9 +3,10 @@
 #include "ui_agaveGui.h"
 
 #include "Camera.h"
-#include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
+#include "VkView3D.h"
+
 
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
@@ -38,7 +39,7 @@ private slots:
   void quit();
   void view_reset();
   void view_toggleProjection();
-  void viewFocusChanged(GLView3D* glView);
+  void viewFocusChanged(VkView3D* glView);
   void tabChanged(int index);
   void openMeshDialog();
   void openMesh(const QString& file);
@@ -101,7 +102,7 @@ private:
   QStatisticsDockWidget* m_statisticsDockWidget;
 
   QTabWidget* m_tabs;
-  GLView3D* m_glView;
+  VkView3D* m_glView;
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.

@@ -54,13 +54,14 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
+  m_glView = new VkView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
 
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
-  m_glView->setMinimumSize(256, 512);
-  m_tabs->addTab(m_glView, "None");
+  m_glView->setMinimumSize(QSize(256, 512));
+
+  m_tabs->addTab(QWidget::createWindowContainer(m_glView, this), "None");
 
   QString windowTitle = QApplication::instance()->organizationName() + " " +
                         QApplication::instance()->applicationName() + " " +
@@ -445,7 +446,7 @@ agaveGui::openMesh(const QString& file)
 }
 
 void
-agaveGui::viewFocusChanged(GLView3D* newGlView)
+agaveGui::viewFocusChanged(VkView3D* newGlView)
 {
   if (m_glView == newGlView)
     return;
@@ -462,14 +463,14 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
-  if (index >= 0) {
-    QWidget* w = m_tabs->currentWidget();
-    if (w) {
-      current = static_cast<GLView3D*>(w);
-    }
-  }
-  viewFocusChanged(current);
+  // VkView3D* current = 0;
+  // if (index >= 0) {
+  //   QWidget* w = m_tabs->currentWidget();
+  //   if (w) {
+  //     current = static_cast<GLView3D*>(w);
+  //   }
+  // }
+  // viewFocusChanged(current);
 }
 
 void

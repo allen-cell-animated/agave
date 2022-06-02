@@ -30,7 +30,7 @@ VkView3D::VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs)
   , m_etimer()
   , m_lastPos(0, 0)
   , m_renderSettings(rs)
-  , m_renderer(new RenderGLPT(rs))
+  //, m_renderer(new RenderGLPT(rs))
   ,
   //    _renderer(new RenderGL(img))
   m_qcamera(cam)
@@ -76,16 +76,15 @@ VkView3D::toggleCameraProjection()
 void
 VkView3D::onNewImage(Scene* scene)
 {
-  m_renderer->setScene(scene);
-  // costly teardown and rebuild.
-  this->OnUpdateRenderer(m_rendererType);
+  // m_renderer->setScene(scene);
+  //  costly teardown and rebuild.
+  // this->OnUpdateRenderer(m_rendererType);
+
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
 }
 
-VkView3D::~VkView3D()
-{
-}
+VkView3D::~VkView3D() {}
 
 QSize
 VkView3D::minimumSizeHint() const
@@ -104,7 +103,7 @@ VkView3D::initializeGL()
 {
 
   QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
+  // m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
 
   // Start timers
   startTimer(0);
@@ -119,7 +118,7 @@ VkView3D::paintGL()
 {
   m_CCamera.Update();
 
-  m_renderer->render(m_CCamera);
+  // m_renderer->render(m_CCamera);
 }
 
 void
@@ -127,7 +126,7 @@ VkView3D::resizeGL(int w, int h)
 {
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h, devicePixelRatio());
+  // m_renderer->resize(w, h, devicePixelRatio());
 }
 
 void
@@ -155,8 +154,7 @@ VkView3D::mouseReleaseEvent(QMouseEvent* event)
 #endif
 
 // x, y in 0..1 relative to screen
-static 
-glm::vec3
+static glm::vec3
 get_arcball_vector(float xndc, float yndc)
 {
   glm::vec3 P = glm::vec3(1.0 * xndc * 2 - 1.0, 1.0 * yndc * 2 - 1.0, 0);
@@ -274,8 +272,10 @@ VkView3D::OnUpdateRenderer(int rendererType)
 
   QSize newsize = size();
   // need to update the scene in QAppearanceSettingsWidget.
-  m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
+  if (m_renderer) {
+    m_renderer->setScene(sc);
+    m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
+  }
 
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 
