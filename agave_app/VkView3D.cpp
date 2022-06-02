@@ -25,8 +25,8 @@
 #pragma warning(disable : 4351)
 #endif
 
-VkView3D::VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
-  : QOpenGLWidget(parent)
+VkView3D::VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs)
+  : QVulkanWindow()
   , m_etimer()
   , m_lastPos(0, 0)
   , m_renderSettings(rs)
@@ -85,9 +85,6 @@ VkView3D::onNewImage(Scene* scene)
 
 VkView3D::~VkView3D()
 {
-  makeCurrent();
-  check_gl("view dtor makecurrent");
-  // doneCurrent();
 }
 
 QSize
@@ -105,10 +102,9 @@ VkView3D::sizeHint() const
 void
 VkView3D::initializeGL()
 {
-  makeCurrent();
 
   QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
 
   // Start timers
   startTimer(0);
@@ -121,8 +117,6 @@ VkView3D::initializeGL()
 void
 VkView3D::paintGL()
 {
-  makeCurrent();
-
   m_CCamera.Update();
 
   m_renderer->render(m_CCamera);
@@ -131,11 +125,9 @@ VkView3D::paintGL()
 void
 VkView3D::resizeGL(int w, int h)
 {
-  makeCurrent();
-
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h, devicePixelRatioF());
+  m_renderer->resize(w, h, devicePixelRatio());
 }
 
 void
@@ -163,6 +155,7 @@ VkView3D::mouseReleaseEvent(QMouseEvent* event)
 #endif
 
 // x, y in 0..1 relative to screen
+static 
 glm::vec3
 get_arcball_vector(float xndc, float yndc)
 {
@@ -190,11 +183,9 @@ VkView3D::mouseMoveEvent(QMouseEvent* event)
 void
 VkView3D::timerEvent(QTimerEvent* event)
 {
-  makeCurrent();
+  QVulkanWindow::timerEvent(event);
 
-  QOpenGLWidget::timerEvent(event);
-
-  update();
+  requestUpdate();
 }
 
 void
@@ -257,8 +248,6 @@ VkView3D::getStatus()
 void
 VkView3D::OnUpdateRenderer(int rendererType)
 {
-  makeCurrent();
-
   // clean up old renderer.
   if (m_renderer) {
     m_renderer->cleanUpResources();
@@ -286,7 +275,7 @@ VkView3D::OnUpdateRenderer(int rendererType)
   QSize newsize = size();
   // need to update the scene in QAppearanceSettingsWidget.
   m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
 
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 
@@ -319,9 +308,7 @@ VkView3D::capture()
 {
   // get the current QScreen
   QScreen* screen = QGuiApplication::primaryScreen();
-  if (const QWindow* window = windowHandle()) {
-    screen = window->screen();
-  }
+  screen = this->screen();
   if (!screen) {
     qWarning("Couldn't capture screen to save image file.");
     return QPixmap();
@@ -333,43 +320,5 @@ VkView3D::capture()
 QImage
 VkView3D::captureQimage()
 {
-  makeCurrent();
-
-  // Create a one-time FBO to receive the image
-  QOpenGLFramebufferObjectFormat fboFormat;
-  fboFormat.setAttachment(QOpenGLFramebufferObject::NoAttachment);
-  fboFormat.setMipmap(false);
-  fboFormat.setSamples(0);
-  fboFormat.setTextureTarget(GL_TEXTURE_2D);
-
-  fboFormat.setInternalTextureFormat(GL_RGBA8);
-  check_gl("pre screen capture");
-
-  QOpenGLFramebufferObject* fbo =
-    new QOpenGLFramebufferObject(width() * devicePixelRatioF(), height() * devicePixelRatioF(), fboFormat);
-  check_gl("create fbo");
-
-  fbo->bind();
-  check_glfb("bind framebuffer for screen capture");
-  // float opacity = 0.0f;
-  // Scene* scene = m_renderer->scene();
-  // if (scene) {
-  //   glClearColor(scene->m_material.m_backgroundColor[0],
-  //                scene->m_material.m_backgroundColor[1],
-  //                scene->m_material.m_backgroundColor[2],
-  //                opacity);
-  // } else {
-  //   glClearColor(0.0, 0.0, 0.0, opacity);
-  // }
-  // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // do a render into the temp framebuffer
-  glViewport(0, 0, fbo->width(), fbo->height());
-  m_renderer->render(m_CCamera);
-  fbo->release();
-
-  QImage fboImage(fbo->toImage());
-  delete fbo;
-
-  return fboImage;
+  return grab();
 }

@@ -22,7 +22,7 @@ struct ViewerState;
 class VulkanWindowRenderer : public QVulkanWindowRenderer
 {
 public:
-  VulkanRenderer(QVulkanWindow* w)
+  VulkanWindowRenderer(QVulkanWindow* w)
     : m_window(w)
   {}
 
@@ -64,7 +64,7 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs);
 
   /// Destructor.
   ~VkView3D();
@@ -95,11 +95,11 @@ public:
   QPixmap capture();
   QImage captureQimage();
 
+  QVulkanWindowRenderer* createRenderer() override { return new VulkanWindowRenderer(this); }
+
 signals:
   void ChangedRenderer();
 
-public:
-  QVulkanWindowRenderer* createRenderer() override { return new VulkanWindowRenderer(this); }
 public slots:
 
   void OnUpdateCamera();
