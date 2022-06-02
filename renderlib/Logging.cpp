@@ -110,4 +110,5 @@ Logging::Init()
   sLogFileDirectory = getLogPath();
   // make dir if doesn't exist.  throws on error
   boost::filesystem::create_directories(sLogFileDirectory);
+  LOG_INFO << "Logging initialized";
 }
