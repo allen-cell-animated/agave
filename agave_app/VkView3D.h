@@ -25,13 +25,14 @@ class VulkanWindowRenderer : public QVulkanWindowRenderer
 public:
   VulkanWindowRenderer(QVulkanWindow* w)
     : m_window(w)
-  {
-  }
+  {}
 
   void preInitResources() override {}
   void initResources() override
   {
+    // this is the earliest you can call m_window->device()
     m_devFuncs = m_window->vulkanInstance()->deviceFunctions(m_window->device());
+    // essentially at this point we should hand window->device to the agave volume renderer
     //...
   }
   void initSwapChainResources() override {}
@@ -41,7 +42,9 @@ public:
   void startNextFrame() override
   {
     LOG_DEBUG << "startNextFrame";
-    // VkCommandBuffer cmdBuf = m_window->currentCommandBuffer();
+    // TODO fill cmdBuf with window frame contents.
+    // only this cmdBuf will be the one queued for present to the window's swapchain image
+    VkCommandBuffer cmdBuf = m_window->currentCommandBuffer();
     // ...
     // m_devFuncs->vkCmdBeginRenderPass(...);
     // ...
@@ -100,9 +103,10 @@ public:
   QPixmap capture();
   QImage captureQimage();
 
-  QVulkanWindowRenderer* createRenderer() override { 
+  QVulkanWindowRenderer* createRenderer() override
+  {
     LOG_DEBUG << "createRenderer";
-      return new VulkanWindowRenderer(this);
+    return new VulkanWindowRenderer(this);
   }
 
 signals:
