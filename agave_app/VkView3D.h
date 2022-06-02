@@ -5,6 +5,7 @@
 #include "CameraController.h"
 #include "glm.h"
 #include "renderlib/CCamera.h"
+#include "renderlib/Logging.h"
 
 #include <QElapsedTimer>
 #include <QVulkanDeviceFunctions>
@@ -27,6 +28,7 @@ public:
   {
   }
 
+  void preInitResources() override {}
   void initResources() override
   {
     m_devFuncs = m_window->vulkanInstance()->deviceFunctions(m_window->device());
@@ -38,11 +40,12 @@ public:
 
   void startNextFrame() override
   {
+    LOG_DEBUG << "startNextFrame";
     // VkCommandBuffer cmdBuf = m_window->currentCommandBuffer();
     // ...
     // m_devFuncs->vkCmdBeginRenderPass(...);
     // ...
-    // m_window->frameReady();
+    m_window->frameReady();
   }
 
 private:
@@ -97,7 +100,10 @@ public:
   QPixmap capture();
   QImage captureQimage();
 
-  QVulkanWindowRenderer* createRenderer() override { return new VulkanWindowRenderer(this); }
+  QVulkanWindowRenderer* createRenderer() override { 
+    LOG_DEBUG << "createRenderer";
+      return new VulkanWindowRenderer(this);
+  }
 
 signals:
   void ChangedRenderer();
@@ -150,6 +156,8 @@ protected:
   void timerEvent(QTimerEvent* event);
 
 private:
+  QVulkanInstance* m_inst;
+
   CCamera m_CCamera;
   CameraController m_cameraController;
   QCamera* m_qcamera;

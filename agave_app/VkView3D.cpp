@@ -40,12 +40,12 @@ VkView3D::VkView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs)
   , m_qrendersettings(qrs)
   , m_rendererType(1)
 {
-  QVulkanInstance inst;
-  inst.setVkInstance(renderlib2::instance());
-  if (!inst.create()) {
-    LOG_ERROR << "Failed to create Vulkan instance: " << inst.errorCode();
+  m_inst = new QVulkanInstance();
+  m_inst->setVkInstance(renderlib2::instance());
+  if (!m_inst->create()) {
+    LOG_ERROR << "Failed to create Vulkan instance: " << m_inst->errorCode();
   }
-  this->setVulkanInstance(&inst);
+  this->setVulkanInstance(m_inst);
 
   // The VkView3D owns one CScene
 
@@ -110,7 +110,7 @@ VkView3D::sizeHint() const
 void
 VkView3D::initializeGL()
 {
-
+  LOG_DEBUG << "initializeGL";
   QSize newsize = size();
   // m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatio());
 
@@ -125,6 +125,8 @@ VkView3D::initializeGL()
 void
 VkView3D::paintGL()
 {
+  LOG_DEBUG << "paintGL";
+
   m_CCamera.Update();
 
   // m_renderer->render(m_CCamera);
@@ -190,6 +192,8 @@ VkView3D::mouseMoveEvent(QMouseEvent* event)
 void
 VkView3D::timerEvent(QTimerEvent* event)
 {
+  LOG_DEBUG << "timerEvent";
+
   QVulkanWindow::timerEvent(event);
 
   requestUpdate();
@@ -249,12 +253,22 @@ VkView3D::OnUpdateQRenderSettings(void)
 std::shared_ptr<CStatus>
 VkView3D::getStatus()
 {
-  return m_renderer->getStatusInterface();
+  LOG_DEBUG << "getStatus";
+  if (m_renderer) {
+
+    return m_renderer->getStatusInterface();
+  } else {
+    return std::shared_ptr<CStatus>();
+  }
 }
 
 void
 VkView3D::OnUpdateRenderer(int rendererType)
 {
+  if (!m_renderer) {
+    return;
+  }
+
   // clean up old renderer.
   if (m_renderer) {
     m_renderer->cleanUpResources();
