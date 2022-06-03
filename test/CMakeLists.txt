@@ -5,7 +5,6 @@ set_target_properties(agave_test PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$
 target_include_directories(agave_test PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agave_test PRIVATE
@@ -18,7 +17,6 @@ target_sources(agave_test PRIVATE
 target_link_libraries(agave_test 
 	renderlib 
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
-	${Boost_LIBRARIES}
 )
 
 add_custom_command(TARGET agave_test POST_BUILD

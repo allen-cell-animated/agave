@@ -15,4 +15,4 @@
 ///
 ///
 void
-parallel_for(size_t nb_elements, std::function<void(int start, int end)> functor, bool use_threads = true);
+parallel_for(size_t nb_elements, std::function<void(size_t start, size_t end)> functor, bool use_threads = true);

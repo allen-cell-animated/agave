@@ -28,7 +28,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QToolBar>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
@@ -83,8 +83,6 @@ agaveGui::OnUpdateRenderer()
 void
 agaveGui::createActions()
 {
-  // boost::filesystem::path iconpath(QCoreApplication::applicationDirPath().toStdString());
-
   // TODO ensure a proper title, shortcut, icon, and statustip for every action
   m_openAction = new QAction(tr("&Open volume..."), this);
   m_openAction->setShortcuts(QKeySequence::Open);

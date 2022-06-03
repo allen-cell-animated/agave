@@ -9,7 +9,7 @@ RUN mkdir /agave && \
     build-essential \
     git \
     wget \
-    libboost-all-dev \
+    libspdlog-dev \
     libtiff-dev \
     libglm-dev \
     libgl1-mesa-dev \
