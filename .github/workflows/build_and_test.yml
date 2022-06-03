@@ -59,6 +59,7 @@ jobs:
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
   cmake-build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-2019, macos-latest]
 
