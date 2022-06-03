@@ -1,20 +1,13 @@
 #include "renderlib2.h"
 
+#include "Enumerate.hpp"
+#include "vk.h"
+
 #include "../renderlib/Logging.h"
 
 #include <iostream>
 #include <string>
 #include <vector>
-
-// we want to immediately abort when there is an error.
-// In normal engines this would give an error message to the user, or perform a dump of state.
-#define VK_CHECK(x)                                                                                                    \
-  do {                                                                                                                 \
-    VkResult err = x;                                                                                                  \
-    if (err) {                                                                                                         \
-      LOG_ERROR << "Detected Vulkan error: " << err;                                                                   \
-    }                                                                                                                  \
-  } while (0)
 
 static bool renderLibInitialized = false;
 
@@ -25,7 +18,9 @@ static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
 
 static bool g_validation = true;
 static std::vector<const char*> enabledInstanceExtensions;
+
 static VkInstance sInstance = VK_NULL_HANDLE;
+static std::vector<VkPhysicalDevice> sPhysicalDevices;
 
 VkInstance
 createInstance()
@@ -87,7 +82,7 @@ createInstance()
     instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
   }
   std::vector<const char*> validationLayers = {};
-  if (g_validation) { 
+  if (g_validation) {
     validationLayers.push_back("VK_LAYER_KHRONOS_validation");
     // The VK_LAYER_KHRONOS_validation contains all current validation functionality.
     // Note that on Android this layer requires at least NDK r20
@@ -127,6 +122,18 @@ createInstance()
   return instance;
 }
 
+void
+GetVulkanPhysicalDevices()
+{
+  GetEnumerateVector(sInstance, vkEnumeratePhysicalDevices, sPhysicalDevices);
+
+  for (auto device : sPhysicalDevices) {
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+    LOG_INFO << "Physical device: " << deviceProperties.deviceName;
+  }
+}
+
 int
 renderlib2::initialize(bool headless, bool listDevices, int selectedGpu)
 {
@@ -134,13 +141,21 @@ renderlib2::initialize(bool headless, bool listDevices, int selectedGpu)
     return 1;
   }
 
+  LOG_INFO << "Renderlib2 startup";
+
   sInstance = createInstance();
+  if (!sInstance) {
+    LOG_ERROR << "Failed to create Vulkan instance";
+  }
+
+  GetVulkanPhysicalDevices();
+  if (sPhysicalDevices.empty()) {
+    LOG_ERROR << "Found no Vulkan physical devices";
+  }
 
   renderLibInitialized = true;
 
   renderLibHeadless = headless;
-
-  LOG_INFO << "Renderlib2 startup";
 
   bool enableDebug = false;
 
@@ -172,7 +187,7 @@ renderlib2::cleanup()
   if (!renderLibInitialized) {
     return;
   }
-  LOG_INFO << "Renderlib shutdown";
+  LOG_INFO << "Renderlib2 shutdown";
 
   clearGpuVolumeCache();
 

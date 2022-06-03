@@ -12,7 +12,7 @@ target_include_directories(renderlib2 PUBLIC
 	${GLAD_DIR}
 )
 target_sources(renderlib2 PRIVATE
-	"${CMAKE_CURRENT_SOURCE_DIR}/device.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Enumerate.hpp"
 )
 
 target_link_libraries(renderlib2
