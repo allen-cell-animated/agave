@@ -6,7 +6,6 @@ set_property(TARGET agaveapp PROPERTY AUTOUIC ON)
 target_include_directories(agaveapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agaveapp PRIVATE
@@ -97,7 +96,6 @@ target_link_libraries(agaveapp PRIVATE
 	renderlib
 	renderlib2
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
-	${Boost_LIBRARIES}
 )
 
 install(TARGETS agaveapp

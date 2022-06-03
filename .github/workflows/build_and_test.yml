@@ -85,7 +85,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install boost glm libtiff
+          brew install spdlog glm libtiff
       - name: macos build and test
         if: matrix.os == 'macos-latest'
         env:
@@ -112,7 +112,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libboost-all-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev
+          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -130,7 +130,7 @@ jobs:
         env:
           vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma boost-log
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog
       - name: windows build and test
         if: matrix.os == 'windows-2019'
         env:

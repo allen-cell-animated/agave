@@ -8,7 +8,6 @@ set_property(TARGET renderlib2 PROPERTY AUTOMOC ON)
 set_target_properties(renderlib2 PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(renderlib2 PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 	${GLAD_DIR}
 )

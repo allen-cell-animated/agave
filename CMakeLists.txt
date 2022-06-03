@@ -72,6 +72,8 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 find_package(Vulkan)
 find_package(OpenGL)
 
+find_package(spdlog REQUIRED)
+
 #if(MSVC)
   # Debug library suffix.
   #set(CMAKE_DEBUG_POSTFIX "d")
@@ -79,10 +81,6 @@ find_package(OpenGL)
   # and unsafe use of the standard library.
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 #endif()
-
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS log log_setup REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 if (APPLE)

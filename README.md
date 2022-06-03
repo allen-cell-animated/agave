@@ -29,7 +29,7 @@ aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
 Use vcpkg (must use target triplet x64-windows) to install the following:
 
 ```
-vcpkg install boost-log glm zlib libjpeg-turbo liblzma tiff --triplet x64-windows
+vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff --triplet x64-windows
 ```
 
 ```
@@ -48,7 +48,7 @@ pip install aqtinstall
 aqt install --outputdir ~/Qt 5.15.2 mac desktop
 export Qt_DIR=~/Qt/5.15.2/clang_64
 # and then:
-brew install boost glm libtiff
+brew install spdlog glm libtiff
 
 mkdir build
 cd build
@@ -71,11 +71,11 @@ aqt install --outputdir ~/Qt 5.15.2 linux desktop
 export Qt5_DIR=~/Qt/5.15.2/gcc_64
 ```
 
-- sudo apt install libboost-all-dev
 - sudo apt install libtiff-dev
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
+- sudo apt install libspdlog-dev
 
 ```
 mkdir build

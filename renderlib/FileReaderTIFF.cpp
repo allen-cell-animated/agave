@@ -10,6 +10,7 @@
 #include <tiff.h>
 #include <tiffio.h>
 
+#include <algorithm>
 #include <chrono>
 #include <map>
 #include <set>
