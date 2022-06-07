@@ -192,10 +192,16 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
              const libCZI::IntRect& planeRect,
              const libCZI::CDimCoordinate& planeCoord,
              const VolumeDimensions& volumeDims,
+             const libCZI::ISingleChannelPyramidLayerTileAccessor::Options* options,
              uint8_t* dataPtr)
 {
-  auto accessor = reader->CreateSingleChannelTileAccessor();
-  auto bitmap = accessor->Get(planeRect, &planeCoord, nullptr);
+  auto accessor = reader->CreateSingleChannelPyramidLayerTileAccessor();
+  
+  libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyrLyrInfo;
+  pyrLyrInfo.minificationFactor = 1;
+  pyrLyrInfo.pyramidLayerNo = 0;
+
+  auto bitmap = accessor->Get(planeRect, &planeCoord, pyrLyrInfo, options);
   libCZI::IntSize size = bitmap->GetSize();
   {
     libCZI::ScopedBitmapLockerSP lckScoped{ bitmap };
@@ -309,6 +315,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
     bool hasT = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::T, &startT, &sizeT);
     bool hasZ = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::Z, &startZ, &sizeZ);
     bool hasC = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::C, &startC, &sizeC);
+    hasC = hasC && statistics.dimBounds.IsValid(libCZI::DimensionIndex::C);
     bool hasS = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::S, &startS, &sizeS);
 
     if (!hasZ) {
@@ -337,6 +344,15 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
       planeRect = statistics.boundingBoxLayer0Only;
     }
 
+    libCZI::ISingleChannelPyramidLayerTileAccessor::Options o;
+    o.Clear();
+    if (hasS) {
+      std::wstringstream wss;
+      wss << scene;
+      o.sceneFilter = libCZI::Utils::IndexSetFromString(wss.str());
+    }
+
+
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
         destptr = data + planesize * (channel * dims.sizeZ + slice);
@@ -352,7 +368,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
         // since scene tiles can not overlap, passing the scene bounding box in to readCziPlane is enough produce the
         // scene, and I don't need to add Scene to the planeCoord.
 
-        if (!readCziPlane(cziReader, planeRect, planeCoord, dims, destptr)) {
+        if (!readCziPlane(cziReader, planeRect, planeCoord, dims, &o, destptr)) {
           return emptyimage;
         }
       }
