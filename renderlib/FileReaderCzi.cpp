@@ -315,7 +315,6 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
     bool hasT = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::T, &startT, &sizeT);
     bool hasZ = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::Z, &startZ, &sizeZ);
     bool hasC = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::C, &startC, &sizeC);
-    hasC = hasC && statistics.dimBounds.IsValid(libCZI::DimensionIndex::C);
     bool hasS = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::S, &startS, &sizeS);
 
     if (!hasZ) {
