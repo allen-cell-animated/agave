@@ -1042,8 +1042,7 @@ uint ReverseBits(uint x) {
     x = ((x & 0xf0f0f0f0u) >> 4) | ((x & 0x0f0f0f0fu) << 4);
     x = ((x & 0xff00ff00u) >> 8) | ((x & 0x00ff00ffu) << 8);
     return (x >> 16) | (x << 16);
-
-	//return bitfieldReverse(x);
+    //return bitfieldReverse(x);
 }
 
 // EDIT: updated with a new hash that fixes an issue with the old one.
@@ -1064,11 +1063,10 @@ uint OwenScramble(uint p, uint seed) {
 }
 
 vec2 OwenScrambledSobol(uint iter) {
-	uvec2 ip = Sobol(iter);
+    uvec2 ip = Sobol(iter);
     ip.x = OwenScramble(ip.x, 0xe7843fbfu);
     ip.y = OwenScramble(ip.y, 0x8d8fb1e0u);
-	return vec2(ip) / float(0xffffffffu);
-	//return ip;
+    return vec2(ip) / float(0xffffffffu);
 }
 
 vec4 CalculateRadiance(inout uvec2 seed) {
@@ -1079,7 +1077,7 @@ vec4 CalculateRadiance(inout uvec2 seed) {
 
   //Ray Re = Ray(vec3(0,0,0), vec3(0,0,1), 0.0, 1500000.0);
   //vec2 pixSample = vec2(rand(seed), rand(seed));
-	vec2 pixSample = OwenScrambledSobol(uint(uSampleCounter));
+  vec2 pixSample = OwenScrambledSobol(uint(uSampleCounter));
 
   vec2 UV = vUv*uResolution + pixSample;
 
