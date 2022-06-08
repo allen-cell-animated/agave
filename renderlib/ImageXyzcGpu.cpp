@@ -116,12 +116,6 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   size_t xyz = img->sizeX() * img->sizeY() * img->sizeZ();
   uint16_t* v = new uint16_t[xyz * N];
 
-  // for (uint32_t i = 0; i < xyz; ++i) {
-  //   for (int j = 0; j < N; ++j) {
-  //     v[N * (i) + j] = img->channel(ch[j])->m_ptr[(i)];
-  //   }
-  // }
-
   parallel_for(xyz, [&N, &v, &img, &ch](size_t s, size_t e) {
     for (size_t i = s; i < e; ++i) {
       for (int j = 0; j < N; ++j) {

@@ -361,8 +361,8 @@ GLView3D::captureQimage()
   m_renderer->render(m_CCamera);
   fbo->release();
 
-  QImage fboImage(fbo->toImage());
+  QImage img(fbo->toImage());
   delete fbo;
 
-  return fboImage;
+  return img;
 }
