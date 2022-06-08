@@ -305,7 +305,6 @@ agaveGui::saveImage()
   if (!file.isEmpty()) {
     // capture the viewport
     QImage im = m_glView->captureQimage();
-    QImage image(im.constBits(), im.width(), im.height(), im.format());
     im.save(file);
   }
 }

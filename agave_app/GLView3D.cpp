@@ -10,7 +10,6 @@
 #include "renderlib/gl/Image3D.h"
 #include "renderlib/gl/Util.h"
 
-
 #include <glm.h>
 
 #include <QGuiApplication>
@@ -346,7 +345,8 @@ GLView3D::captureQimage()
   fboFormat.setTextureTarget(GL_TEXTURE_2D);
 
   // NOTE NO ALPHA. if alpha then this will get premultiplied and wash out colors
-  fboFormat.setInternalTextureFormat(GL_RGBA8);
+  // TODO : allow user option for transparent qimage, and then put GL_RGBA8 back here
+  fboFormat.setInternalTextureFormat(GL_RGB8);
   check_gl("pre screen capture");
 
   QOpenGLFramebufferObject* fbo =
@@ -355,17 +355,6 @@ GLView3D::captureQimage()
 
   fbo->bind();
   check_glfb("bind framebuffer for screen capture");
-  // float opacity = 0.0f;
-  // Scene* scene = m_renderer->scene();
-  // if (scene) {
-  //   glClearColor(scene->m_material.m_backgroundColor[0],
-  //                scene->m_material.m_backgroundColor[1],
-  //                scene->m_material.m_backgroundColor[2],
-  //                opacity);
-  // } else {
-  //   glClearColor(0.0, 0.0, 0.0, opacity);
-  // }
-  // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // do a render into the temp framebuffer
   glViewport(0, 0, fbo->width(), fbo->height());
