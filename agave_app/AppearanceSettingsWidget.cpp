@@ -361,7 +361,7 @@ QAppearanceSettingsWidget::OnSetRoiXMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.x = (float)value / 100.0;
+  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -372,7 +372,7 @@ QAppearanceSettingsWidget::OnSetRoiYMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.y = (float)value / 100.0;
+  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -383,7 +383,7 @@ QAppearanceSettingsWidget::OnSetRoiZMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.z = (float)value / 100.0;
+  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
