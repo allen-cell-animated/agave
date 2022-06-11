@@ -9,18 +9,6 @@ target_sources(renderlib_wgpu PRIVATE
 )
 
 # wgpu-native dep
-if(MSVC)
-    add_definitions(-DWGPU_TARGET=WGPU_TARGET_WINDOWS)
-    target_compile_options(renderlib_wgpu PRIVATE /W4)
-    set(OS_LIBRARIES "userenv" "ws2_32" "Dwmapi" "dbghelp" "d3dcompiler" "D3D12" "D3D11" "DXGI" "setupapi" "Bcrypt")
-elseif(APPLE)
-    add_definitions(-DWGPU_TARGET=WGPU_TARGET_MACOS)
-    set(OS_LIBRARIES "-framework Cocoa" "-framework CoreVideo" "-framework IOKit" "-framework QuartzCore")
-    target_compile_options(renderlib_wgpu PRIVATE -x objective-c++)
-else(MSVC)
-    add_definitions(-DWGPU_TARGET=WGPU_TARGET_LINUX)
-    target_compile_options(renderlib_wgpu PRIVATE -Wall -Wextra -pedantic)
-endif(MSVC)
 include(ExternalProject)
 ExternalProject_Add(
 	wgpu_native
@@ -36,6 +24,24 @@ ExternalProject_Add(
 	LOG_CONFIGURE ON  # redirect output to log-file (so that we have less clutter)
 )
 ExternalProject_Get_Property(wgpu_native BINARY_DIR)
+
+if(MSVC)
+    add_definitions(-DWGPU_TARGET=WGPU_TARGET_WINDOWS)
+    target_compile_options(renderlib_wgpu PRIVATE /W4)
+    set(OS_LIBRARIES "userenv" "ws2_32" "Dwmapi" "dbghelp" "d3dcompiler" "D3D12" "D3D11" "DXGI" "setupapi" "Bcrypt")
+elseif(APPLE)
+    add_definitions(-DWGPU_TARGET=WGPU_TARGET_MACOS)
+    set(OS_LIBRARIES "-framework Cocoa" "-framework CoreVideo" "-framework IOKit" "-framework QuartzCore")
+    target_compile_options(renderlib_wgpu PRIVATE -x objective-c++)
+else(MSVC)
+if(USE_WAYLAND)
+    add_definitions(-DWGPU_TARGET=WGPU_TARGET_LINUX_WAYLAND)
+else(USE_WAYLAND)
+    add_definitions(-DWGPU_TARGET=WGPU_TARGET_LINUX_X11)
+endif(USE_WAYLAND)
+    target_compile_options(renderlib_wgpu PRIVATE -Wall -Wextra -pedantic)
+endif(MSVC)
+
 find_library(WGPU_LIBRARY wgpu_native
     HINTS "${BINARY_DIR}/target/debug"
 )
@@ -49,7 +55,7 @@ target_link_libraries(renderlib_wgpu
 ExternalProject_Get_Property(wgpu_native SOURCE_DIR)
 target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/ffi)
 target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/)
-message(STATUS "wgpu_native: ${SOURCE_DIR}/ffi")
+# message(STATUS "wgpu_native: ${SOURCE_DIR}/ffi")
 
 
 target_link_libraries(renderlib_wgpu
