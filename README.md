@@ -80,6 +80,7 @@ export Qt5_DIR=~/Qt/5.15.2/gcc_64
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
+- sudo apt install mesa-vulkan-drivers
 - sudo apt install libspdlog-dev
 
 ```
