@@ -71,6 +71,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/wgpuView3D.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/wgpuView3D.h"
 	)
 add_subdirectory(python)
 
