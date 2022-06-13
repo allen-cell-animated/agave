@@ -19,9 +19,9 @@ ExternalProject_Add(
 	COMMAND cargo build --release
 	BUILD_IN_SOURCE true
 	INSTALL_COMMAND ""
-	LOG_BUILD ON
-	LOG_DOWNLOAD ON   # redirect output to log-file (so that we have less clutter)
-	LOG_CONFIGURE ON  # redirect output to log-file (so that we have less clutter)
+	LOG_BUILD OFF
+	LOG_DOWNLOAD OFF   # redirect output to log-file (so that we have less clutter)
+	LOG_CONFIGURE OFF  # redirect output to log-file (so that we have less clutter)
 )
 ExternalProject_Get_Property(wgpu_native BINARY_DIR)
 
