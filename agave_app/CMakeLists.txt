@@ -92,6 +92,7 @@ endif (MSVC)
 
 target_link_libraries(agaveapp PRIVATE
 	renderlib
+	renderlib_wgpu
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 )
 

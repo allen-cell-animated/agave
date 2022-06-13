@@ -15,8 +15,9 @@ target_sources(agave_test PRIVATE
 )
 
 target_link_libraries(agave_test 
-	renderlib 
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+  renderlib 
+  renderlib_wgpu
+  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 )
 
 add_custom_command(TARGET agave_test POST_BUILD
