@@ -13,7 +13,7 @@ public:
   static int initialize(bool headless = false, bool listDevices = false, int selectedGpu = 0);
   static void cleanup();
 
-  static WGPUSurface get_surface_id_from_canvas(void* win_id, void* display_id);
+  static WGPUSurface get_surface_id_from_canvas(void* win_id);
 
   static void* getMetalLayerFromWindow(void* win_id);
 };

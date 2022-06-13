@@ -6,7 +6,10 @@
 #import <Cocoa/Cocoa.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <QuartzCore/CAMetalLayer.h>
-
+#elif __linux__
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xos.h>
 #endif
 
 #include <string>
@@ -19,10 +22,10 @@ static const uint32_t AICS_DEFAULT_STENCIL_BUFFER_BITS = 8;
 
 static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
 
+#ifdef __APPLE__
 static void*
 getMetalLayerFromWindow(void* win_id)
 {
-#ifdef __APPLE__
   // #     id metal_layer = NULL;
   // #     NSWindow *ns_window = glfwGetCocoaWindow(window);
   // #     [ns_window.contentView setWantsLayer:YES];
@@ -46,10 +49,8 @@ getMetalLayerFromWindow(void* win_id)
   }
 
   return metal_layer;
-#else
-  return nullptr;
-#endif
 }
+#endif
 
 int
 renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
@@ -95,7 +96,7 @@ renderlib_wgpu::cleanup()
 }
 
 WGPUSurface
-renderlib_wgpu::get_surface_id_from_canvas(void* win_id, void* display_id)
+renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
 {
   // ""
   // "Get an id representing the surface to render to. The way to
@@ -115,7 +116,7 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id, void* display_id)
   wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromMetalLayer;
 
 #elif __linux__
-  display_id = this->get_display_id();
+  Display* display_id = XOpenDisplay(nullptr);
   bool is_wayland = "wayland" in os.getenv("XDG_SESSION_TYPE", "").lower();
   bool is_xcb = false;
   if (is_wayland) {
@@ -129,7 +130,7 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id, void* display_id)
     WGPUSurfaceDescriptorFromXcbWindow wgpustruct;
     wgpustruct.connection = nullptr; // ?? ffi.cast("void *", display_id);
     wgpustruct.window = win_id;
-    wgpustruct.chain.sType = lib.WGPUSType_SurfaceDescriptorFromXlibWindow;
+    wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
   } else {
     WGPUSurfaceDescriptorFromXlibWindow wgpustruct;
     wgpustruct.display = display_id;

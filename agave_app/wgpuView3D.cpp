@@ -5,7 +5,9 @@
 
 #include "renderlib/AppScene.h"
 #include "renderlib/ImageXYZC.h"
+#include "renderlib/IRenderWindow.h"
 #include "renderlib/Logging.h"
+#include "renderlib/RenderSettings.h"
 
 #include "renderlib_wgpu/renderlib_wgpu.h"
 
@@ -32,110 +34,109 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_renderer()
   , m_qcamera(cam)
   , m_cameraController(cam, &m_CCamera)
-  , m_qrendersettings(qrs)
-  , m_rendererType(1)
+, m_qrendersettings(qrs)
+, m_rendererType(1)
 {
 
-  WGPUSurface s = renderlib_wgpu::get_surface_id_from_canvas(this->winId(), this->displayId());
+    WGPUSurface s = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
 
-  // The WgpuView3D owns one CScene
+    // The WgpuView3D owns one CScene
 
-  m_cameraController.setRenderSettings(*m_renderSettings);
-  m_qrendersettings->setRenderSettings(*m_renderSettings);
+    m_cameraController.setRenderSettings(*m_renderSettings);
+    m_qrendersettings->setRenderSettings(*m_renderSettings);
 
-  // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
-  // GUI updates --> QT Object Changed() --> cam->Changed() --> WgpuView3D->OnUpdateCamera
-  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
-  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
-  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
+    // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
+    // GUI updates --> QT Object Changed() --> cam->Changed() --> WgpuView3D->OnUpdateCamera
+    QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
+    QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
+    QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 }
 
 void
 WgpuView3D::initCameraFromImage(Scene* scene)
 {
-  // Tell the camera about the volume's bounding box
-  m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
-  m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
-  // reposition to face image
-  m_CCamera.SetViewMode(ViewModeFront);
+    // Tell the camera about the volume's bounding box
+    m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+    m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+    // reposition to face image
+    m_CCamera.SetViewMode(ViewModeFront);
 
-  RenderSettings& rs = *m_renderSettings;
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+    RenderSettings& rs = *m_renderSettings;
+    rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 WgpuView3D::toggleCameraProjection()
 {
-  ProjectionMode p = m_CCamera.m_Projection;
-  m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
+    ProjectionMode p = m_CCamera.m_Projection;
+    m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
 
-  RenderSettings& rs = *m_renderSettings;
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+    RenderSettings& rs = *m_renderSettings;
+    rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 WgpuView3D::onNewImage(Scene* scene)
 {
-  m_renderer->setScene(scene);
-  // costly teardown and rebuild.
-  this->OnUpdateRenderer(m_rendererType);
-  // would be better to preserve renderer and just change the scene data to include the new image.
-  // how tightly coupled is renderer and scene????
+    m_renderer->setScene(scene);
+    // costly teardown and rebuild.
+    this->OnUpdateRenderer(m_rendererType);
+    // would be better to preserve renderer and just change the scene data to include the new image.
+    // how tightly coupled is renderer and scene????
 }
 
 WgpuView3D::~WgpuView3D()
 {
-  makeCurrent();
-  check_gl("view dtor makecurrent");
-  // doneCurrent();
 }
 
 QSize
 WgpuView3D::minimumSizeHint() const
 {
-  return QSize(800, 600);
+    return QSize(800, 600);
 }
 
 QSize
 WgpuView3D::sizeHint() const
 {
-  return QSize(800, 600);
+    return QSize(800, 600);
 }
 
 void
 WgpuView3D::initializeGL()
 {
-  makeCurrent();
+    if (!m_renderer) {
+        return;
+    }
+    QSize newsize = size();
+    m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
-  QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+    // Start timers
+    startTimer(0);
+    m_etimer.start();
 
-  // Start timers
-  startTimer(0);
-  m_etimer.start();
-
-  // Size viewport
-  resizeGL(newsize.width(), newsize.height());
+    // Size viewport
+    resizeGL(newsize.width(), newsize.height());
 }
 
 void
 WgpuView3D::paintGL()
 {
-  makeCurrent();
+    if (!m_renderer) {
+        return;
+    }
+    m_CCamera.Update();
 
-  m_CCamera.Update();
-
-  m_renderer->render(m_CCamera);
+    m_renderer->render(m_CCamera);
 }
 
 void
 WgpuView3D::resizeGL(int w, int h)
 {
-  makeCurrent();
-
-  m_CCamera.m_Film.m_Resolution.SetResX(w);
-  m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h, devicePixelRatioF());
+    m_CCamera.m_Film.m_Resolution.SetResX(w);
+    m_CCamera.m_Film.m_Resolution.SetResY(h);
+    if (m_renderer) {
+        m_renderer->resize(w, h, devicePixelRatioF());
+    }
 }
 
 void
@@ -190,9 +191,8 @@ WgpuView3D::mouseMoveEvent(QMouseEvent* event)
 void
 WgpuView3D::timerEvent(QTimerEvent* event)
 {
-  makeCurrent();
 
-  QOpenGLWidget::timerEvent(event);
+  QWidget::timerEvent(event);
 
   update();
 }
@@ -257,8 +257,7 @@ WgpuView3D::getStatus()
 void
 WgpuView3D::OnUpdateRenderer(int rendererType)
 {
-  makeCurrent();
-
+    #if 0
   // clean up old renderer.
   if (m_renderer) {
     m_renderer->cleanUpResources();
@@ -291,6 +290,7 @@ WgpuView3D::OnUpdateRenderer(int rendererType)
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 
   emit ChangedRenderer();
+  #endif
 }
 
 void
@@ -333,6 +333,7 @@ WgpuView3D::capture()
 QImage
 WgpuView3D::captureQimage()
 {
+    #if 0
   makeCurrent();
 
   // Create a one-time FBO to receive the image
@@ -363,4 +364,6 @@ WgpuView3D::captureQimage()
   delete fbo;
 
   return img;
+  #endif
+  return QImage();
 }
