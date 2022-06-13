@@ -361,7 +361,7 @@ QAppearanceSettingsWidget::OnSetRoiXMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.x = (float)value / 100.0;
+  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -372,7 +372,7 @@ QAppearanceSettingsWidget::OnSetRoiYMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.y = (float)value / 100.0;
+  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -383,7 +383,7 @@ QAppearanceSettingsWidget::OnSetRoiZMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.z = (float)value / 100.0;
+  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -393,7 +393,7 @@ QAppearanceSettingsWidget::OnSetRoiXMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.x = (float)value / 100.0;
+  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -403,7 +403,7 @@ QAppearanceSettingsWidget::OnSetRoiYMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.y = (float)value / 100.0;
+  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -413,7 +413,7 @@ QAppearanceSettingsWidget::OnSetRoiZMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.z = (float)value / 100.0;
+  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -737,12 +737,22 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                 m_scene->m_material.m_backgroundColor[2]);
   m_backgroundColorButton.SetColor(cbg);
 
-  m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * 100.0);
-  m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * 100.0);
-  m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * 100.0);
-  m_roiY->setSecondValue(m_scene->m_roi.GetMaxP().y * 100.0);
-  m_roiZ->setFirstValue(m_scene->m_roi.GetMinP().z * 100.0);
-  m_roiZ->setSecondValue(m_scene->m_roi.GetMaxP().z * 100.0);
+  size_t xmax = m_scene->m_volume->sizeX() - 1;
+  size_t ymax = m_scene->m_volume->sizeY() - 1;
+  size_t zmax = m_scene->m_volume->sizeZ() - 1;
+
+  m_roiX->setMinimum(0);
+  m_roiX->setMaximum(xmax);
+  m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * xmax);
+  m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * xmax);
+  m_roiY->setMinimum(0);
+  m_roiY->setMaximum(ymax);
+  m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * ymax);
+  m_roiY->setSecondValue(m_scene->m_roi.GetMaxP().y * ymax);
+  m_roiZ->setMinimum(0);
+  m_roiZ->setMaximum(zmax);
+  m_roiZ->setFirstValue(m_scene->m_roi.GetMinP().z * zmax);
+  m_roiZ->setSecondValue(m_scene->m_roi.GetMaxP().z * zmax);
 
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());

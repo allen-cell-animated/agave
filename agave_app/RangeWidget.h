@@ -29,8 +29,14 @@ private:
   bool m_firstHandleHovered;
   bool m_secondHandleHovered;
 
+  bool m_trackHovered;
+  bool m_trackPressed;
+
   QColor m_firstHandleColor;
   QColor m_secondHandleColor;
+
+  QRectF m_trackRect;
+  QPoint m_trackPos;
 
 protected:
   void paintEvent(QPaintEvent* event);
@@ -41,7 +47,10 @@ protected:
   QRectF firstHandleRect() const;
   QRectF secondHandleRect() const;
   QRectF handleRect(int value) const;
-  qreal span() const;
+  QRectF firstTextRect(QPainter& p) const;
+  QRectF secondTextRect(QPainter& p) const;
+  QRectF textRect(int value, QPainter& p) const;
+  qreal span(int w = -1) const;
 
 public:
   RangeWidget(Qt::Orientation orientation = Qt::Vertical, QWidget* parent = nullptr);
