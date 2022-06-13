@@ -47,14 +47,15 @@ endif(MSVC)
 
 add_dependencies(renderlib_wgpu wgpu_native)
 
-ExternalProject_Get_Property(wgpu_native BINARY_DIR)
+ExternalProject_Get_Property(wgpu_native SOURCE_DIR)
+# ExternalProject_Get_Property(wgpu_native BINARY_DIR)
 target_link_libraries(renderlib_wgpu
-    debug "${BINARY_DIR}/target/debug/libwgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    optimized "${BINARY_DIR}/target/release/libwgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    debug "${SOURCE_DIR}/target/debug/wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    optimized "${SOURCE_DIR}/target/release/wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
+# C:\Users\dmt\source\repos\agave\build\renderlib_wgpu\wgpu_native-prefix\src\wgpu_native\target\release
 
 # get the include dir for the c header file
-ExternalProject_Get_Property(wgpu_native SOURCE_DIR)
 target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/ffi)
 target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/)
 # message(STATUS "wgpu_native: ${SOURCE_DIR}/ffi")

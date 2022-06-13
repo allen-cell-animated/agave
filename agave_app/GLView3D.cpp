@@ -165,7 +165,7 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
 #endif
 
 // x, y in 0..1 relative to screen
-glm::vec3
+static glm::vec3
 get_arcball_vector(float xndc, float yndc)
 {
   glm::vec3 P = glm::vec3(1.0 * xndc * 2 - 1.0, 1.0 * yndc * 2 - 1.0, 0);
