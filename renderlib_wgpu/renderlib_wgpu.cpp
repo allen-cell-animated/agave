@@ -2,11 +2,11 @@
 
 #include "../renderlib/Logging.h"
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #import <Cocoa/Cocoa.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <QuartzCore/CAMetalLayer.h>
-#elif __linux__
+#elif defined(__linux__)
 #include <X11/Xlib.h>
 #include <X11/Xos.h>
 #include <X11/Xutil.h>
@@ -24,7 +24,7 @@ static const uint32_t AICS_DEFAULT_STENCIL_BUFFER_BITS = 8;
 static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
 
 #ifdef __APPLE__
-static void*
+extern "C" static void*
 getMetalLayerFromWindow(void* win_id)
 {
   // #     id metal_layer = NULL;
@@ -113,7 +113,7 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromWindowsHWND;
   surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct);
 
-#elif __APPLE__
+#elif defined(__APPLE__)
   void* metal_layer_ptr = getMetalLayerFromWindow((void*)win_id);
 
   WGPUSurfaceDescriptorFromMetalLayer wgpustruct;

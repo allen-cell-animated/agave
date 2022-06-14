@@ -28,7 +28,7 @@ getLogPath()
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
   const char* rootdir = getenv("LOCALAPPDATA");
   return std::filesystem::path(rootdir) / "AllenInstitute" / "agave";
-#elif __APPLE__
+#elif defined(__APPLE__)
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
     struct passwd* pwd = getpwuid(getuid());
@@ -36,7 +36,7 @@ getLogPath()
       rootdir = pwd->pw_dir;
   }
   return std::filesystem::path(rootdir) / "Library" / "Logs" / "AllenInstitute" / "agave";
-#elif __linux__
+#elif defined(__linux__)
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
     struct passwd* pwd = getpwuid(getuid());
