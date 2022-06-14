@@ -50,8 +50,8 @@ add_dependencies(renderlib_wgpu wgpu_native)
 ExternalProject_Get_Property(wgpu_native SOURCE_DIR)
 # ExternalProject_Get_Property(wgpu_native BINARY_DIR)
 target_link_libraries(renderlib_wgpu
-    debug "${SOURCE_DIR}/target/debug/wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    optimized "${SOURCE_DIR}/target/release/wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    debug "${SOURCE_DIR}/target/debug/${CMAKE_STATIC_LIBRARY_PREFIX}wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    optimized "${SOURCE_DIR}/target/release/${CMAKE_STATIC_LIBRARY_PREFIX}wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
 # C:\Users\dmt\source\repos\agave\build\renderlib_wgpu\wgpu_native-prefix\src\wgpu_native\target\release
 
