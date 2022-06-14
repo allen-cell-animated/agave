@@ -103,18 +103,23 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   // "Get an id representing the surface to render to. The way to
   //   obtain this id differs per platform and GUI toolkit.""
   //                                                       "
+  WGPUSurfaceDescriptor surface_descriptor;
+  surface_descriptor.label = nullptr;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
   WGPUSurfaceDescriptorFromWindowsHWND wgpustruct;
   wgpustruct.hinstance = nullptr;
   wgpustruct.hwnd = win_id;
   wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromWindowsHWND;
+  surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct);
+
 #elif __APPLE__
   void* metal_layer_ptr = getMetalLayerFromWindow((void*)win_id);
 
   WGPUSurfaceDescriptorFromMetalLayer wgpustruct;
   wgpustruct.layer = metal_layer_ptr;
   wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromMetalLayer;
+  surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct);
 
 #elif __linux__
   Display* display_id = XOpenDisplay(nullptr);
@@ -122,31 +127,31 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   std::string xdgsessiontype_str = xdgsessiontype ? xdgsessiontype : "";
   bool is_wayland = (xdgsessiontype_str.find("wayland") != std::string::npos);
   bool is_xcb = false;
+  WGPUSurfaceDescriptorFromWaylandSurface wgpustruct1;
+  WGPUSurfaceDescriptorFromXcbWindow wgpustruct2;
+  WGPUSurfaceDescriptorFromXlibWindow wgpustruct3;
   if (is_wayland) {
     //# todo: wayland seems to be broken right now
-    WGPUSurfaceDescriptorFromWaylandSurface wgpustruct;
-    wgpustruct.display = display_id;
-    wgpustruct.surface = win_id;
-    wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromWaylandSurface;
+    wgpustruct1.display = display_id;
+    wgpustruct1.surface = win_id;
+    wgpustruct1.chain.sType = WGPUSType_SurfaceDescriptorFromWaylandSurface;
+    surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct1);
   } else if (is_xcb) {
     //# todo: xcb untested
-    WGPUSurfaceDescriptorFromXcbWindow wgpustruct;
-    wgpustruct.connection = nullptr; // ?? ffi.cast("void *", display_id);
-    wgpustruct.window = win_id;
-    wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
+    wgpustruct2.connection = nullptr; // ?? ffi.cast("void *", display_id);
+    wgpustruct2.window = (uint32_t)win_id;
+    wgpustruct2.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
+    surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct2);
   } else {
-    WGPUSurfaceDescriptorFromXlibWindow wgpustruct;
-    wgpustruct.display = display_id;
-    wgpustruct.window = win_id;
-    wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
+    wgpustruct3.display = display_id;
+    wgpustruct3.window = (uint32_t)win_id;
+    wgpustruct3.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
+    surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct3);
   }
+
 #else
   throw("Cannot get surface id: unsupported platform.");
 #endif
-
-  WGPUSurfaceDescriptor surface_descriptor;
-  surface_descriptor.label = nullptr;
-  surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct);
 
   WGPUInstance instance_id = nullptr;
   return wgpuInstanceCreateSurface(instance_id, &surface_descriptor);
