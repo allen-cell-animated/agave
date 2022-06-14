@@ -139,12 +139,12 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   } else if (is_xcb) {
     //# todo: xcb untested
     wgpustruct2.connection = nullptr; // ?? ffi.cast("void *", display_id);
-    wgpustruct2.window = (uint32_t)win_id;
+    wgpustruct2.window = *((uint32_t*)(&win_id));
     wgpustruct2.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct2);
   } else {
     wgpustruct3.display = display_id;
-    wgpustruct3.window = (uint32_t)win_id;
+    wgpustruct3.window = *((uint32_t*)(&win_id));
     wgpustruct3.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct3);
   }
