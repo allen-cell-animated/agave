@@ -24,7 +24,7 @@ static const uint32_t AICS_DEFAULT_STENCIL_BUFFER_BITS = 8;
 static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
 
 #ifdef __APPLE__
-extern "C" static void*
+static void*
 getMetalLayerFromWindow(void* win_id)
 {
   // #     id metal_layer = NULL;
