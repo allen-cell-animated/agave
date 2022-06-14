@@ -8,8 +8,9 @@
 #import <QuartzCore/CAMetalLayer.h>
 #elif __linux__
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
 #include <X11/Xos.h>
+#include <X11/Xutil.h>
+
 #endif
 
 #include <string>
@@ -117,7 +118,9 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
 
 #elif __linux__
   Display* display_id = XOpenDisplay(nullptr);
-  bool is_wayland = "wayland" in os.getenv("XDG_SESSION_TYPE", "").lower();
+  const char* xdgsessiontype = getenv("XDG_SESSION_TYPE");
+  std::string xdgsessiontype_str = xdgsessiontype ? xdgsessiontype : "";
+  bool is_wayland = (xdgsessiontype_str.find("wayland") != std::string::npos);
   bool is_xcb = false;
   if (is_wayland) {
     //# todo: wayland seems to be broken right now
