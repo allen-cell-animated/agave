@@ -155,6 +155,16 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   float physicalSizeX = 1.0f;
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
+  // see if we can glean xy resolution from the tiff tags
+  float tiffXResolution = 1.0f;
+  if (TIFFGetField(tiff, TIFFTAG_XRESOLUTION, &tiffXResolution) == 1) {
+    physicalSizeX = 1.0f / tiffXResolution;
+  }
+  float tiffYResolution = 1.0f;
+  if (TIFFGetField(tiff, TIFFTAG_YRESOLUTION, &tiffYResolution) == 1) {
+    physicalSizeY = 1.0f / tiffYResolution;
+  }
+
   std::vector<std::string> channelNames;
   std::string dimensionOrder = "XYCZT";
 
@@ -212,8 +222,6 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
         if (physicalSizeZ < 0.0f) {
           physicalSizeZ = -physicalSizeZ;
         }
-        physicalSizeX = physicalSizeZ;
-        physicalSizeY = physicalSizeZ;
       } catch (...) {
         LOG_WARNING << "Failed to read spacing of ImageJ TIFF: '" << filepath << "'";
         physicalSizeZ = 1.0f;
