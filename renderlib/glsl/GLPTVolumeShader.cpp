@@ -1020,6 +1020,54 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
   return true;
 }
 
+uvec2 Sobol(uint n) {
+    uvec2 p = uvec2(0u);
+    uvec2 d = uvec2(0x80000000u);
+
+    for(; n != 0u; n >>= 1u) {
+        if((n & 1u) != 0u)
+            p ^= d;
+
+        d.x >>= 1u; // 1st dimension Sobol matrix, is same as base 2 Van der Corput
+        d.y ^= d.y >> 1u; // 2nd dimension Sobol matrix
+    }
+
+    return p;
+}
+
+// adapted from: https://www.shadertoy.com/view/3lcczS
+uint ReverseBits(uint x) {
+    x = ((x & 0xaaaaaaaau) >> 1) | ((x & 0x55555555u) << 1);
+    x = ((x & 0xccccccccu) >> 2) | ((x & 0x33333333u) << 2);
+    x = ((x & 0xf0f0f0f0u) >> 4) | ((x & 0x0f0f0f0fu) << 4);
+    x = ((x & 0xff00ff00u) >> 8) | ((x & 0x00ff00ffu) << 8);
+    return (x >> 16) | (x << 16);
+    //return bitfieldReverse(x);
+}
+
+// EDIT: updated with a new hash that fixes an issue with the old one.
+// details in the post linked at the top.
+uint OwenHash(uint x, uint seed) { // works best with random seeds
+    x ^= x * 0x3d20adeau;
+    x += seed;
+    x *= (seed >> 16) | 1u;
+    x ^= x * 0x05526c56u;
+    x ^= x * 0x53a22864u;
+    return x;
+}
+
+uint OwenScramble(uint p, uint seed) {
+    p = ReverseBits(p);
+    p = OwenHash(p, seed);
+    return ReverseBits(p);
+}
+
+vec2 OwenScrambledSobol(uint iter) {
+    uvec2 ip = Sobol(iter);
+    ip.x = OwenScramble(ip.x, 0xe7843fbfu);
+    ip.y = OwenScramble(ip.y, 0x8d8fb1e0u);
+    return vec2(ip) / float(0xffffffffu);
+}
 
 vec4 CalculateRadiance(inout uvec2 seed) {
   float r = rand(seed);
@@ -1028,8 +1076,10 @@ vec4 CalculateRadiance(inout uvec2 seed) {
   vec3 Lv = BLACK, Li = BLACK;
 
   //Ray Re = Ray(vec3(0,0,0), vec3(0,0,1), 0.0, 1500000.0);
+  //vec2 pixSample = vec2(rand(seed), rand(seed));
+  vec2 pixSample = OwenScrambledSobol(uint(uSampleCounter));
 
-  vec2 UV = vUv*uResolution + vec2(rand(seed), rand(seed));
+  vec2 UV = vUv*uResolution + pixSample;
 
   Ray Re = GenerateCameraRay(gCamera, UV, vec2(rand(seed), rand(seed)));
 

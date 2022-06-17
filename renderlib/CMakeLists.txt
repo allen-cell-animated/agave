@@ -10,7 +10,6 @@ set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 set_target_properties(renderlib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${Boost_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIRS}
 	${GLAD_DIR}
 )
@@ -54,6 +53,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/threading.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/threading.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timeline.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timeline.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp"
@@ -83,6 +84,7 @@ target_link_libraries(renderlib
 	libCZIStatic
 	JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
+	spdlog::spdlog_header_only
 )
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)

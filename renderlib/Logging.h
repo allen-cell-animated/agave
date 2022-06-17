@@ -1,32 +1,57 @@
 #pragma once
 
-// TODO: remove after boost fixes issue in boost 1.78
-#define BOOST_USE_WINAPI_VERSION BOOST_WINAPI_VERSION_WIN7
+#include <spdlog/spdlog.h>
 
-//#define BOOST_LOG_DYN_LINK // necessary when linking the boost_log library dynamically
+#include <sstream>
 
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/trivial.hpp>
+#define SPDLOG_LOGGER_STREAM(log, lvl)                                                                                 \
+  log && log->should_log(lvl) &&                                                                                       \
+    LogStream(log, lvl, spdlog::source_loc{ __FILE__, __LINE__, SPDLOG_FUNCTION }) == LogLine()
 
-// the logs are also written to LOGFILE
-#define LOGFILE "logfile.log"
+class LogLine
+{
+  std::ostringstream m_ss;
 
-// just log messages with severity >= SEVERITY_THRESHOLD are written
-#define SEVERITY_THRESHOLD boost::log::trivial::trace
+public:
+  LogLine() {}
+  template<typename T>
+  LogLine& operator<<(const T& t)
+  {
+    m_ss << t;
+    return *this;
+  }
+  std::string str() const { return m_ss.str(); }
+};
 
-// register a global logger
-BOOST_LOG_GLOBAL_LOGGER(logger, boost::log::sources::severity_logger_mt<boost::log::trivial::severity_level>)
+class LogStream
+{
+  spdlog::logger* m_log;
+  spdlog::level::level_enum m_lvl;
+  spdlog::source_loc m_loc;
 
-// just a helper macro used by the macros below - don't use it in your code
-#define LOG(severity) BOOST_LOG_SEV(logger::get(), boost::log::trivial::severity)
+public:
+  LogStream(spdlog::logger* log, spdlog::level::level_enum lvl, spdlog::source_loc loc)
+    : m_log{ log }
+    , m_lvl{ lvl }
+    , m_loc{ loc }
+  {}
+  bool operator==(const LogLine& line)
+  {
+    m_log->log(m_loc, m_lvl, "{}", line.str());
+    return true;
+  }
+};
 
-// ===== log macros =====
-#define LOG_TRACE LOG(trace)
-#define LOG_DEBUG LOG(debug)
-#define LOG_INFO LOG(info)
-#define LOG_WARNING LOG(warning)
-#define LOG_ERROR LOG(error)
-#define LOG_FATAL LOG(fatal)
+// specific log implementation macros
+
+#define LOG(x) SPDLOG_LOGGER_STREAM(spdlog::default_logger_raw(), x)
+
+#define LOG_TRACE LOG(spdlog::level::trace)
+#define LOG_DEBUG LOG(spdlog::level::debug)
+#define LOG_INFO LOG(spdlog::level::info)
+#define LOG_WARNING LOG(spdlog::level::warn)
+#define LOG_ERROR LOG(spdlog::level::err)
+#define LOG_FATAL LOG(spdlog::level::critical)
 
 namespace Logging {
 

@@ -6,7 +6,7 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <chrono>
 #include <map>
@@ -17,9 +17,9 @@ std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCac
 std::string
 getExtension(const std::string filepath)
 {
-  boost::filesystem::path fpath(filepath);
+  std::filesystem::path fpath(filepath);
 
-  boost::filesystem::path ext = fpath.extension();
+  std::filesystem::path ext = fpath.extension();
   std::string extstr = ext.string();
   for (std::string::size_type i = 0; i < extstr.length(); ++i) {
     extstr[i] = std::tolower(extstr[i]);

@@ -187,7 +187,6 @@ renderlib::initialize(bool headless, bool listDevices, int selectedGpu)
 #endif
   renderLibHeadless = headless;
 
-  // boost::log::add_file_log("renderlib.log");
   LOG_INFO << "Renderlib startup";
 
   bool enableDebug = false;

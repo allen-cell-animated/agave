@@ -16,7 +16,7 @@ project(
   LANGUAGES C CXX
 )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 IF (WIN32)
 ELSE()
@@ -69,6 +69,7 @@ endif (APPLE)
 
 find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
 
+find_package(spdlog REQUIRED)
 #if(MSVC)
   # Debug library suffix.
   #set(CMAKE_DEBUG_POSTFIX "d")
@@ -76,10 +77,6 @@ find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
   # and unsafe use of the standard library.
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 #endif()
-
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS log log_setup filesystem REQUIRED)
 
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
 if (APPLE)

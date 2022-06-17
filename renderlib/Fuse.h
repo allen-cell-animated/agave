@@ -18,26 +18,3 @@ public:
                    uint8_t** outRGBVolume,
                    uint16_t** outGradientVolume);
 };
-
-class FuseWorkerThread
-{
-public:
-  // count is how many elements to walk for input and output.
-  FuseWorkerThread(size_t thread_idx,
-                   size_t nthreads,
-                   uint8_t* outptr,
-                   const ImageXYZC* img,
-                   const std::vector<glm::vec3>& colors);
-  void run();
-
-private:
-  size_t m_thread_idx;
-  size_t m_nthreads;
-  uint8_t* m_outptr;
-
-  // read only!
-  const ImageXYZC* m_img;
-  const std::vector<glm::vec3>& m_channelColors;
-
-  // void resultReady(size_t threadidx);
-};
