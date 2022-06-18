@@ -16,7 +16,7 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     REQUIRE(h._dataMin == VALUE);
 
     // all data in first bin
-    REQUIRE(h._ccounts[h._bins.size()-1] == h._pixelCount);
+    REQUIRE(h._ccounts[h._bins.size() - 1] == h._pixelCount);
     REQUIRE(h._ccounts[0] == h._pixelCount);
     REQUIRE(h._bins[0] == h._pixelCount);
   }
