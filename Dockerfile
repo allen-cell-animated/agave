@@ -1,7 +1,8 @@
 ### Build image ###
-FROM nvidia/cudagl:11.2.2-devel-ubuntu18.04 as build
+FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04 as build
 
 # install dependencies
+ARG DEBIAN_FRONTEND=noninteractive
 RUN mkdir /agave && \
     mkdir /agave/build && \
     apt-get update && apt-get install -y \
@@ -28,7 +29,8 @@ RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
 RUN apt-get update && apt-get install -y cmake
 
 # get python
-RUN apt-get install -y python3.8-dev python3-pip
+RUN apt-get install -y python3.9-dev python3-pip
+RUN pip3 install --upgrade pip
 
 # get Qt installed
 ENV QT_VERSION=5.15.2
