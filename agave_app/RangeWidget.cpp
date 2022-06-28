@@ -219,7 +219,7 @@ RangeWidget::minimumSizeHint() const
 }
 
 void
-RangeWidget::setSecondValue(int secondValue)
+RangeWidget::setSecondValue(int secondValue, bool blockSignals)
 {
   if (secondValue > m_maximum)
     secondValue = m_maximum;
@@ -228,13 +228,15 @@ RangeWidget::setSecondValue(int secondValue)
     secondValue = m_minimum;
 
   m_secondValue = secondValue;
-  emit secondValueChanged(m_secondValue);
+  if (!blockSignals) {
+    emit secondValueChanged(m_secondValue);
+  }
 
   update();
 }
 
 void
-RangeWidget::setFirstValue(int firstValue)
+RangeWidget::setFirstValue(int firstValue, bool blockSignals)
 {
   if (firstValue > m_maximum)
     firstValue = m_maximum;
@@ -243,13 +245,16 @@ RangeWidget::setFirstValue(int firstValue)
     firstValue = m_minimum;
 
   m_firstValue = firstValue;
-  emit firstValueChanged(m_firstValue);
+
+  if (!blockSignals) {
+    emit firstValueChanged(m_firstValue);
+  }
 
   update();
 }
 
 void
-RangeWidget::setMaximum(int max)
+RangeWidget::setMaximum(int max, bool blockSignals)
 {
   if (max >= minimum())
     m_maximum = max;
@@ -262,23 +267,25 @@ RangeWidget::setMaximum(int max)
   update();
 
   if (firstValue() > maximum())
-    setFirstValue(maximum());
+    setFirstValue(maximum(), blockSignals);
 
   if (secondValue() > maximum())
-    setSecondValue(maximum());
+    setSecondValue(maximum(), blockSignals);
 
-  emit rangeChanged(minimum(), maximum());
+  if (!blockSignals) {
+    emit rangeChanged(minimum(), maximum());
+  }
 }
 
 void
-RangeWidget::setRange(int min, int max)
+RangeWidget::setRange(int min, int max, bool blockSignals)
 {
-  setMinimum(min);
-  setMaximum(max);
+  setMinimum(min, blockSignals);
+  setMaximum(max, blockSignals);
 }
 
 void
-RangeWidget::setMinimum(int min)
+RangeWidget::setMinimum(int min, bool blockSignals)
 {
   if (min <= maximum())
     m_minimum = min;
@@ -291,12 +298,14 @@ RangeWidget::setMinimum(int min)
   update();
 
   if (firstValue() < minimum())
-    setFirstValue(minimum());
+    setFirstValue(minimum(), blockSignals);
 
   if (secondValue() < minimum())
-    setSecondValue(minimum());
+    setSecondValue(minimum(), blockSignals);
 
-  emit rangeChanged(minimum(), maximum());
+  if (!blockSignals) {
+    emit rangeChanged(minimum(), maximum());
+  }
 }
 
 void

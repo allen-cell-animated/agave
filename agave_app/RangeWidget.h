@@ -73,11 +73,11 @@ signals:
   void sliderReleased();
 
 public slots:
-  void setFirstValue(int firstValue);
-  void setSecondValue(int secondValue);
-  void setMinimum(int min);
-  void setMaximum(int max);
-  void setRange(int min, int max);
+  void setFirstValue(int firstValue, bool blockSignals = false);
+  void setSecondValue(int secondValue, bool blockSignals = false);
+  void setMinimum(int min, bool blockSignals = false);
+  void setMaximum(int max, bool blockSignals = false);
+  void setRange(int min, int max, bool blockSignals = false);
   void setOrientation(Qt::Orientation orientation);
 };
 

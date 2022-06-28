@@ -715,6 +715,9 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 void
 QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
+  // Don't forget that most ui updating triggered in this function should
+  // NOT signal changes to the scene.
+
   // remove the previous per-channel ui
   for (auto s : m_channelSections) {
     delete s;
@@ -744,18 +747,16 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   size_t ymax = m_scene->m_volume->sizeY() - 1;
   size_t zmax = m_scene->m_volume->sizeZ() - 1;
 
-  m_roiX->setMinimum(0);
-  m_roiX->setMaximum(xmax);
-  m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * xmax);
-  m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * xmax);
-  m_roiY->setMinimum(0);
-  m_roiY->setMaximum(ymax);
-  m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * ymax);
-  m_roiY->setSecondValue(m_scene->m_roi.GetMaxP().y * ymax);
-  m_roiZ->setMinimum(0);
-  m_roiZ->setMaximum(zmax);
-  m_roiZ->setFirstValue(m_scene->m_roi.GetMinP().z * zmax);
-  m_roiZ->setSecondValue(m_scene->m_roi.GetMaxP().z * zmax);
+  m_roiX->setRange(0, xmax, true);
+  m_roiY->setRange(0, ymax, true);
+  m_roiZ->setRange(0, zmax, true);
+
+  m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * xmax, true);
+  m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * xmax, true);
+  m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * ymax, true);
+  m_roiY->setSecondValue(m_scene->m_roi.GetMaxP().y * ymax, true);
+  m_roiZ->setFirstValue(m_scene->m_roi.GetMinP().z * zmax, true);
+  m_roiZ->setSecondValue(m_scene->m_roi.GetMaxP().z * zmax, true);
 
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());
