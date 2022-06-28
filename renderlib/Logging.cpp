@@ -69,5 +69,7 @@ Logging::Init()
   spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
   spdlog::flush_on(spdlog::level::trace);
 
+  Logging::Enable(true);
+
   LOG_INFO << "Logging Init DONE";
 }
