@@ -176,13 +176,15 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
     } else if (m_trackPressed) {
       int dx = event->pos().x() - m_trackPos.x();
       int dy = event->pos().y() - m_trackPos.y();
-      m_trackPos = event->pos();
-      qreal dvalue = 0.0;
+      int dvalue = 0;
       qreal s = span();
       if (m_orientation == Qt::Horizontal) {
-        dvalue = dx / s;
+        dvalue = (int)(dx / s + 0.5f);
       } else {
-        dvalue = dy / s;
+        dvalue = (int)(dy / s + 0.5f);
+      }
+      if (dvalue != 0) {
+        m_trackPos = event->pos();
       }
       // LOG_DEBUG << "track delta " << dvalue;
       if (m_firstValue + (int)dvalue >= m_minimum && m_secondValue + (int)dvalue <= m_maximum) {
