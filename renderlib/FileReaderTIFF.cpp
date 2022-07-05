@@ -257,7 +257,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       channelNames.push_back(std::to_string(i));
     }
 
-  } else if (startsWith(simagedescription, "<?xml version") && endsWith(simagedescription, "OME>")) {
+  } else if ((startsWith(simagedescription, "<?xml version") || startsWith(simagedescription, "<OME xmlns")) &&
+             endsWith(simagedescription, "OME>")) {
     // convert c to xml doc.  if this fails then we don't have an ome tif.
     pugi_agave::xml_document omexml;
     pugi_agave::xml_parse_result parseOk = omexml.load_string(simagedescription.c_str());
