@@ -17,6 +17,7 @@
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
+#include "renderDialog.h"
 
 #include <QtCore/QElapsedTimer>
 #include <QtCore/QSettings>
@@ -124,6 +125,10 @@ agaveGui::createActions()
   m_saveImageAction = new QAction(tr("&Save image..."), this);
   m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
   connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
+
+  m_quickRenderAction = new QAction(tr("&Quick Render..."), this);
+  m_quickRenderAction->setStatusTip(tr("Do a quick render"));
+  connect(m_quickRenderAction, SIGNAL(triggered()), this, SLOT(onQuickRender()));
 }
 
 void
@@ -135,6 +140,7 @@ agaveGui::createMenus()
   m_fileMenu->addSeparator();
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_saveImageAction);
+  m_fileMenu->addAction(m_quickRenderAction);
   m_fileMenu->addAction(m_dumpJsonAction);
   m_fileMenu->addAction(m_dumpPythonAction);
   m_fileMenu->addSeparator();
@@ -164,6 +170,7 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
+  m_ui.mainToolBar->addAction(m_quickRenderAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
@@ -307,6 +314,25 @@ agaveGui::saveImage()
     QImage im = m_glView->captureQimage();
     im.save(file);
   }
+}
+
+void
+agaveGui::onQuickRender()
+{
+  // hand over AppScene and RenderSettings to RenderDialog?
+  // or a ViewerState?
+  // ViewerState st = appToViewerState();
+  // tell the renderdialog what the viewerstate currently is.
+  // renderdialog can turn it into a list of render commands
+  // share already loaded volume data with the RenderDialog's rendering resources
+  // (GL context sharing?)
+
+  RenderDialog* rdialog = new RenderDialog(this);
+  rdialog->resize(800, 600);
+  rdialog->show();
+  rdialog->raise();
+  // rdialog->update();
+  rdialog->activateWindow();
 }
 
 void

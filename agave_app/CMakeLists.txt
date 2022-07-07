@@ -57,6 +57,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
