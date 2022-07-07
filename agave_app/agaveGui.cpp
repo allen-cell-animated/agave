@@ -321,7 +321,7 @@ agaveGui::onQuickRender()
 {
   // hand over AppScene and RenderSettings to RenderDialog?
   // or a ViewerState?
-  // ViewerState st = appToViewerState();
+  ViewerState st = appToViewerState();
   // tell the renderdialog what the viewerstate currently is.
   // renderdialog can turn it into a list of render commands
   // share already loaded volume data with the RenderDialog's rendering resources
@@ -780,9 +780,11 @@ agaveGui::appToViewerState()
   ViewerState v;
   v.m_volumeImageFile = m_currentFilePath;
 
-  v.m_scaleX = m_appScene.m_volume->physicalSizeX();
-  v.m_scaleY = m_appScene.m_volume->physicalSizeY();
-  v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+  if (m_appScene.m_volume) {
+    v.m_scaleX = m_appScene.m_volume->physicalSizeX();
+    v.m_scaleY = m_appScene.m_volume->physicalSizeY();
+    v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+  }
 
   v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
                                   m_appScene.m_material.m_backgroundColor[1],
@@ -836,31 +838,33 @@ agaveGui::appToViewerState()
   v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
-  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-    ChannelViewerState ch;
-    ch.m_enabled = m_appScene.m_material.m_enabled[i];
-    ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
-                             m_appScene.m_material.m_diffuse[i * 3 + 1],
-                             m_appScene.m_material.m_diffuse[i * 3 + 2]);
-    ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
-                              m_appScene.m_material.m_specular[i * 3 + 1],
-                              m_appScene.m_material.m_specular[i * 3 + 2]);
-    ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
-                              m_appScene.m_material.m_emissive[i * 3 + 1],
-                              m_appScene.m_material.m_emissive[i * 3 + 2]);
-    ch.m_glossiness = m_appScene.m_material.m_roughness[i];
-    ch.m_opacity = m_appScene.m_material.m_opacity[i];
+  if (m_appScene.m_volume) {
+    for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+      ChannelViewerState ch;
+      ch.m_enabled = m_appScene.m_material.m_enabled[i];
+      ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
+                               m_appScene.m_material.m_diffuse[i * 3 + 1],
+                               m_appScene.m_material.m_diffuse[i * 3 + 2]);
+      ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
+                                m_appScene.m_material.m_specular[i * 3 + 1],
+                                m_appScene.m_material.m_specular[i * 3 + 2]);
+      ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
+                                m_appScene.m_material.m_emissive[i * 3 + 1],
+                                m_appScene.m_material.m_emissive[i * 3 + 2]);
+      ch.m_glossiness = m_appScene.m_material.m_roughness[i];
+      ch.m_opacity = m_appScene.m_material.m_opacity[i];
 
-    ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
-    ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
-    ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
-    ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
-    ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
-    ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
-    ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
-    ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
+      ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
+      ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
+      ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
+      ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
+      ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
+      ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
+      ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
+      ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
 
-    v.m_channels.push_back(ch);
+      v.m_channels.push_back(ch);
+    }
   }
 
   // lighting
