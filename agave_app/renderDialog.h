@@ -27,6 +27,7 @@ class RenderDialog : public QDialog
 public:
   RenderDialog(QWidget* parent = Q_NULLPTR);
 
+  void setImage(QImage* image);
 private slots:
   void render();
 

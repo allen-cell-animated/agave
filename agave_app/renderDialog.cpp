@@ -75,6 +75,12 @@ RenderDialog::RenderDialog(QWidget* parent)
 }
 
 void
+RenderDialog::setImage(QImage* image)
+{
+  mImageView->setImage(image);
+}
+
+void
 RenderDialog::render()
 {
   LOG_INFO << "Render button clicked";

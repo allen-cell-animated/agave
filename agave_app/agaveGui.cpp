@@ -327,8 +327,13 @@ agaveGui::onQuickRender()
   // share already loaded volume data with the RenderDialog's rendering resources
   // (GL context sharing?)
 
+  // extract Renderer from GLView3D to hand to RenderDialog?
   RenderDialog* rdialog = new RenderDialog(this);
   rdialog->resize(800, 600);
+
+  QImage im = m_glView->captureQimage();
+  rdialog->setImage(&im);
+
   rdialog->show();
   rdialog->raise();
   // rdialog->update();
