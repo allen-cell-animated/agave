@@ -54,7 +54,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
+  m_glView = new WgpuView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
 
   m_glView->setObjectName("glcontainer");
@@ -442,7 +442,7 @@ agaveGui::openMesh(const QString& file)
 }
 
 void
-agaveGui::viewFocusChanged(GLView3D* newGlView)
+agaveGui::viewFocusChanged(WgpuView3D* newGlView)
 {
   if (m_glView == newGlView)
     return;
@@ -459,11 +459,11 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
+  WgpuView3D* current = 0;
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
-      current = static_cast<GLView3D*>(w);
+      current = static_cast<WgpuView3D*>(w);
     }
   }
   viewFocusChanged(current);

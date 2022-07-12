@@ -6,6 +6,8 @@
 #include "glm.h"
 #include "renderlib/CCamera.h"
 
+#include "renderlib_wgpu/renderlib_wgpu.h"
+
 #include <QElapsedTimer>
 #include <QWidget>
 
@@ -84,8 +86,8 @@ protected:
   /// Render the scene with the current view settings.
   void paintGL();
 
-  /// Resize the view.
-  void resizeGL(int w, int h);
+  void resizeEvent(QResizeEvent* event);
+  void paintEvent(QPaintEvent* event);
 
   /**
    * Handle mouse button press events.
@@ -131,4 +133,13 @@ private:
 
   std::unique_ptr<IRenderWindow> m_renderer;
   int m_rendererType;
+
+  bool m_initialized;
+  bool m_fakeHidden;
+  void render();
+  void invokeUserPaint();
+  WGPUSwapChain m_swapChain;
+  WGPUTextureFormat m_swapChainFormat;
+  WGPUSurface m_surface;
+  WGPUDevice m_device;
 };

@@ -13,7 +13,7 @@ include(ExternalProject)
 ExternalProject_Add(
 	wgpu_native
 	GIT_REPOSITORY "https://github.com/gfx-rs/wgpu-native.git"
-	GIT_TAG "v0.12.0.1"
+	GIT_TAG "origin/master" # "v0.12.0.1"
 	CONFIGURE_COMMAND ""
 	BUILD_COMMAND cargo build
 	COMMAND cargo build --release

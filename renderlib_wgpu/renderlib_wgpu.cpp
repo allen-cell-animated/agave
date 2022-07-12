@@ -4,7 +4,7 @@
 
 #if defined(__APPLE__)
 #import <Cocoa/Cocoa.h>
-#import <CoreFoundation/CoreFoundation.h>
+#import <Foundation/Foundation.h>
 #import <QuartzCore/CAMetalLayer.h>
 #elif defined(__linux__)
 #include <X11/Xlib.h>
@@ -35,21 +35,19 @@ getMetalLayerFromWindow(void* win_id)
   // #     surface = wgpu_create_surface_from_metal_layer(metal_layer);
   // # }
 
-  NSView* ns_view = (NSView*)(win_id);
-  NSWindow* cw = ns_view.window;
-  NSView* cv = cw.contentView;
-
-  CAMetalLayer* metal_layer = nullptr;
-  if (cv.layer && [cv.layer isKindOfClass:[CAMetalLayer class]]) {
-    //# No need to create a metal layer again
-    metal_layer = static_cast<CAMetalLayer*>(cv.layer);
-  } else {
-    metal_layer = [CAMetalLayer layer];
-    cv.layer = metal_layer;
-    cv.wantsLayer = true;
+  NSView* view = (NSView*)(win_id);
+  if (![view isKindOfClass:[NSView class]]) {
+    LOG_ERROR << "Failed to get NSView from Qt window id";
   }
 
-  return metal_layer;
+  if (![view.layer isKindOfClass:[CAMetalLayer class]]) {
+    // orilayer = [view layer];
+    [view setLayer:[CAMetalLayer layer]];
+    //[view setWantsLayer:NO];
+  }
+
+  // TODO cleanup later?
+  return [view layer];
 }
 #endif
 
@@ -118,6 +116,7 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
 
   WGPUSurfaceDescriptorFromMetalLayer wgpustruct;
   wgpustruct.layer = metal_layer_ptr;
+  wgpustruct.chain.next = nullptr;
   wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromMetalLayer;
   surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct);
 

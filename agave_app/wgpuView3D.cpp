@@ -4,12 +4,10 @@
 #include "ViewerState.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/ImageXYZC.h"
 #include "renderlib/IRenderWindow.h"
+#include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
-
-#include "renderlib_wgpu/renderlib_wgpu.h"
 
 #include <glm.h>
 
@@ -26,6 +24,104 @@
 #pragma warning(disable : 4351)
 #endif
 
+static void
+request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char* message, void* userdata)
+{
+  //  UNUSED(status);
+  //  UNUSED(message);
+
+  *(WGPUAdapter*)userdata = received;
+}
+static void
+request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, const char* message, void* userdata)
+{
+  // UNUSED(status);
+  // UNUSED(message);
+
+  *(WGPUDevice*)userdata = received;
+}
+static void
+handle_device_lost(WGPUDeviceLostReason reason, char const* message, void* userdata)
+{
+  // UNUSED(userdata);
+
+  printf("DEVICE LOST (%d): %s\n", reason, message);
+}
+
+static void
+handle_uncaptured_error(WGPUErrorType type, char const* message, void* userdata)
+{
+  // UNUSED(userdata);
+
+  printf("UNCAPTURED ERROR (%d): %s\n", type, message);
+}
+
+static void
+printAdapterFeatures(WGPUAdapter adapter)
+{
+  size_t count = wgpuAdapterEnumerateFeatures(adapter, NULL);
+  WGPUFeatureName* features = (WGPUFeatureName*)malloc(count * sizeof(WGPUFeatureName));
+  wgpuAdapterEnumerateFeatures(adapter, features);
+
+  printf("[]WGPUFeatureName {\n");
+
+  for (size_t i = 0; i < count; i++) {
+    uint32_t feature = features[i];
+    switch (feature) {
+      case WGPUFeatureName_DepthClipControl:
+        printf("\tDepthClipControl\n");
+        break;
+
+      case WGPUFeatureName_Depth24UnormStencil8:
+        printf("\tDepth24UnormStencil8\n");
+        break;
+
+      case WGPUFeatureName_Depth32FloatStencil8:
+        printf("\tDepth32FloatStencil8\n");
+        break;
+
+      case WGPUFeatureName_TimestampQuery:
+        printf("\tTimestampQuery\n");
+        break;
+
+      case WGPUFeatureName_PipelineStatisticsQuery:
+        printf("\tPipelineStatisticsQuery\n");
+        break;
+
+      case WGPUFeatureName_TextureCompressionBC:
+        printf("\tTextureCompressionBC\n");
+        break;
+
+      case WGPUFeatureName_TextureCompressionETC2:
+        printf("\tTextureCompressionETC2\n");
+        break;
+
+      case WGPUFeatureName_TextureCompressionASTC:
+        printf("\tTextureCompressionASTC\n");
+        break;
+
+      case WGPUFeatureName_IndirectFirstInstance:
+        printf("\tIndirectFirstInstance\n");
+        break;
+
+        // case WGPUNativeFeature_PUSH_CONSTANTS:
+        //   printf("\tWGPUNativeFeature_PUSH_CONSTANTS\n");
+        //   break;
+
+      case WGPUNativeFeature_TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES:
+        printf("\tWGPUNativeFeature_TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES\n");
+        break;
+
+      default:
+        printf("\tUnknown=%d\n", feature);
+    }
+  }
+
+  printf("}\n");
+
+  free(features);
+}
+
 WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
   : QWidget(parent)
   , m_etimer()
@@ -34,109 +130,220 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_renderer()
   , m_qcamera(cam)
   , m_cameraController(cam, &m_CCamera)
-, m_qrendersettings(qrs)
-, m_rendererType(1)
+  , m_qrendersettings(qrs)
+  , m_rendererType(1)
+  , m_initialized(false)
+  , m_fakeHidden(false)
 {
+  setAttribute(Qt::WA_NativeWindow);
+  setAttribute(Qt::WA_NoSystemBackground);
 
-    WGPUSurface s = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
+  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
+  WGPUAdapter adapter;
+  WGPURequestAdapterOptions options = {
+    .nextInChain = NULL,
+    .compatibleSurface = m_surface,
+  };
+  wgpuInstanceRequestAdapter(NULL, &options, request_adapter_callback, (void*)&adapter);
+  printAdapterFeatures(adapter);
 
-    // The WgpuView3D owns one CScene
+  WGPURequiredLimits requiredLimits = {
+    .nextInChain = NULL,
+    .limits =
+      (WGPULimits){
+        .maxBindGroups = 1,
+      },
+  };
+  WGPUDeviceExtras deviceExtras = {
+    .chain =
+      (WGPUChainedStruct){
+        .next = NULL,
+        .sType = (WGPUSType)WGPUSType_DeviceExtras,
+      },
+    .label = "Device",
+    .tracePath = NULL,
+  };
+  WGPUDeviceDescriptor deviceDescriptor = {
+    .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
+    .requiredLimits = &requiredLimits,
+    .defaultQueue =
+      (WGPUQueueDescriptor){
+        .nextInChain = NULL,
+        .label = NULL,
+      },
+  };
 
-    m_cameraController.setRenderSettings(*m_renderSettings);
-    m_qrendersettings->setRenderSettings(*m_renderSettings);
+  // creates/ fills in m_device!
+  wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&m_device);
 
-    // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
-    // GUI updates --> QT Object Changed() --> cam->Changed() --> WgpuView3D->OnUpdateCamera
-    QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
-    QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
-    QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
+  wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
+  wgpuDeviceSetDeviceLostCallback(m_device, handle_device_lost, NULL);
+
+  m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
+  WGPUSwapChainDescriptor swapChainDescriptor = {
+    .usage = WGPUTextureUsage_RenderAttachment,
+    .format = m_swapChainFormat,
+    .width = (uint32_t)width(),
+    .height = (uint32_t)height(),
+    .presentMode = WGPUPresentMode_Fifo,
+  };
+  // need to do this on resize
+  m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+
+  // The WgpuView3D owns one CScene
+
+  m_cameraController.setRenderSettings(*m_renderSettings);
+  m_qrendersettings->setRenderSettings(*m_renderSettings);
+
+  // IMPORTANT this is where the QT gui container classes send their values down into the
+  // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
+  // WgpuView3D->OnUpdateCamera
+  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
+  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
+  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 }
 
 void
 WgpuView3D::initCameraFromImage(Scene* scene)
 {
-    // Tell the camera about the volume's bounding box
-    m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
-    m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
-    // reposition to face image
-    m_CCamera.SetViewMode(ViewModeFront);
+  // Tell the camera about the volume's bounding box
+  m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  // reposition to face image
+  m_CCamera.SetViewMode(ViewModeFront);
 
-    RenderSettings& rs = *m_renderSettings;
-    rs.m_DirtyFlags.SetFlag(CameraDirty);
+  RenderSettings& rs = *m_renderSettings;
+  rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 WgpuView3D::toggleCameraProjection()
 {
-    ProjectionMode p = m_CCamera.m_Projection;
-    m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
+  ProjectionMode p = m_CCamera.m_Projection;
+  m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
 
-    RenderSettings& rs = *m_renderSettings;
-    rs.m_DirtyFlags.SetFlag(CameraDirty);
+  RenderSettings& rs = *m_renderSettings;
+  rs.m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 WgpuView3D::onNewImage(Scene* scene)
 {
-    m_renderer->setScene(scene);
-    // costly teardown and rebuild.
-    this->OnUpdateRenderer(m_rendererType);
-    // would be better to preserve renderer and just change the scene data to include the new image.
-    // how tightly coupled is renderer and scene????
+  m_renderer->setScene(scene);
+  // costly teardown and rebuild.
+  this->OnUpdateRenderer(m_rendererType);
+  // would be better to preserve renderer and just change the scene data to include the new image.
+  // how tightly coupled is renderer and scene????
 }
 
-WgpuView3D::~WgpuView3D()
-{
-}
+WgpuView3D::~WgpuView3D() {}
 
 QSize
 WgpuView3D::minimumSizeHint() const
 {
-    return QSize(800, 600);
+  return QSize(800, 600);
 }
 
 QSize
 WgpuView3D::sizeHint() const
 {
-    return QSize(800, 600);
+  return QSize(800, 600);
 }
 
 void
 WgpuView3D::initializeGL()
 {
-    if (!m_renderer) {
-        return;
-    }
-    QSize newsize = size();
-    m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+  if (!m_renderer) {
+    return;
+  }
+  QSize newsize = size();
+  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
-    // Start timers
-    startTimer(0);
-    m_etimer.start();
+  // Start timers
+  startTimer(0);
+  m_etimer.start();
 
-    // Size viewport
-    resizeGL(newsize.width(), newsize.height());
+  // // Size viewport
+  // resizeGL(newsize.width(), newsize.height());
+}
+
+void
+WgpuView3D::paintEvent(QPaintEvent* e)
+{
+  Q_UNUSED(e);
+  if (!m_initialized)
+    return;
+  if (updatesEnabled())
+    render();
+}
+
+void
+WgpuView3D::render()
+{
+  if (m_fakeHidden || !m_initialized) {
+    return;
+  }
+
+  QWindow* win = windowHandle();
+  if (!win || !win->isExposed())
+    return;
+  invokeUserPaint();
+
+  wgpuSwapChainPresent(m_swapChain);
+}
+
+void
+WgpuView3D::invokeUserPaint()
+{
+  paintGL();
+  // flush? (queue submit?)
 }
 
 void
 WgpuView3D::paintGL()
 {
-    if (!m_renderer) {
-        return;
-    }
-    m_CCamera.Update();
+  if (!m_renderer) {
+    return;
+  }
+  m_CCamera.Update();
 
-    m_renderer->render(m_CCamera);
+  m_renderer->render(m_CCamera);
 }
 
 void
-WgpuView3D::resizeGL(int w, int h)
+WgpuView3D::resizeEvent(QResizeEvent* event)
 {
-    m_CCamera.m_Film.m_Resolution.SetResX(w);
-    m_CCamera.m_Film.m_Resolution.SetResY(h);
-    if (m_renderer) {
-        m_renderer->resize(w, h, devicePixelRatioF());
-    }
+  if (event->size().isEmpty()) {
+    m_fakeHidden = true;
+    return;
+  }
+  m_fakeHidden = false;
+  initializeGL();
+  if (!m_initialized) {
+    return;
+  }
+
+  int w = event->size().width();
+  int h = event->size().height();
+
+  m_CCamera.m_Film.m_Resolution.SetResX(w);
+  m_CCamera.m_Film.m_Resolution.SetResY(h);
+
+  // (if w or h actually changed...)
+  WGPUSwapChainDescriptor swapChainDescriptor = {
+    .usage = WGPUTextureUsage_RenderAttachment,
+    .format = m_swapChainFormat,
+    .width = (uint32_t)w,
+    .height = (uint32_t)h,
+    .presentMode = WGPUPresentMode_Fifo,
+  };
+  m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+
+  if (m_renderer) {
+    m_renderer->resize(w, h, devicePixelRatioF());
+  }
+
+  invokeUserPaint();
 }
 
 void
@@ -257,7 +464,7 @@ WgpuView3D::getStatus()
 void
 WgpuView3D::OnUpdateRenderer(int rendererType)
 {
-    #if 0
+#if 0
   // clean up old renderer.
   if (m_renderer) {
     m_renderer->cleanUpResources();
@@ -290,7 +497,7 @@ WgpuView3D::OnUpdateRenderer(int rendererType)
   m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 
   emit ChangedRenderer();
-  #endif
+#endif
 }
 
 void
@@ -333,7 +540,7 @@ WgpuView3D::capture()
 QImage
 WgpuView3D::captureQimage()
 {
-    #if 0
+#if 0
   makeCurrent();
 
   // Create a one-time FBO to receive the image
@@ -364,6 +571,6 @@ WgpuView3D::captureQimage()
   delete fbo;
 
   return img;
-  #endif
+#endif
   return QImage();
 }
