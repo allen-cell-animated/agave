@@ -84,7 +84,7 @@ protected:
   void initializeGL();
 
   /// Render the scene with the current view settings.
-  void paintGL();
+  void paintGL(WGPUTextureView nextTexture);
 
   void resizeEvent(QResizeEvent* event);
   void paintEvent(QPaintEvent* event);
@@ -137,9 +137,11 @@ private:
   bool m_initialized;
   bool m_fakeHidden;
   void render();
-  void invokeUserPaint();
+  void invokeUserPaint(WGPUTextureView nextTexture);
   WGPUSwapChain m_swapChain;
   WGPUTextureFormat m_swapChainFormat;
   WGPUSurface m_surface;
   WGPUDevice m_device;
+
+  WGPURenderPipeline m_pipeline;
 };

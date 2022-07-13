@@ -43,7 +43,7 @@ getMetalLayerFromWindow(void* win_id)
   if (![view.layer isKindOfClass:[CAMetalLayer class]]) {
     // orilayer = [view layer];
     [view setLayer:[CAMetalLayer layer]];
-    //[view setWantsLayer:NO];
+    [view setWantsLayer:YES];
   }
 
   // TODO cleanup later?

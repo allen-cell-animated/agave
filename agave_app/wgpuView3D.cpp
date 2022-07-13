@@ -104,9 +104,9 @@ printAdapterFeatures(WGPUAdapter adapter)
         printf("\tIndirectFirstInstance\n");
         break;
 
-        // case WGPUNativeFeature_PUSH_CONSTANTS:
-        //   printf("\tWGPUNativeFeature_PUSH_CONSTANTS\n");
-        //   break;
+      case WGPUNativeFeature_PUSH_CONSTANTS:
+        printf("\tWGPUNativeFeature_PUSH_CONSTANTS\n");
+        break;
 
       case WGPUNativeFeature_TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES:
         printf("\tWGPUNativeFeature_TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES\n");
@@ -135,8 +135,8 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_initialized(false)
   , m_fakeHidden(false)
 {
-  setAttribute(Qt::WA_NativeWindow);
-  setAttribute(Qt::WA_NoSystemBackground);
+  setAttribute(Qt::WA_PaintOnScreen);
+  setAutoFillBackground(false);
 
   m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
   WGPUAdapter adapter;
@@ -253,6 +253,56 @@ WgpuView3D::sizeHint() const
 void
 WgpuView3D::initializeGL()
 {
+  WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = { .bindGroupLayouts = NULL, .bindGroupLayoutCount = 0 };
+  WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(m_device, &pipelineLayoutDescriptor);
+  WGPUBlendState blendState = { .color =
+                                  (WGPUBlendComponent){
+                                    .srcFactor = WGPUBlendFactor_One,
+                                    .dstFactor = WGPUBlendFactor_Zero,
+                                    .operation = WGPUBlendOperation_Add,
+                                  },
+                                .alpha = (WGPUBlendComponent){
+                                  .srcFactor = WGPUBlendFactor_One,
+                                  .dstFactor = WGPUBlendFactor_Zero,
+                                  .operation = WGPUBlendOperation_Add,
+                                } };
+
+  WGPUColorTargetState colorTargetState = { .format = m_swapChainFormat,
+                                            .blend = &blendState,
+                                            .writeMask = WGPUColorWriteMask_All };
+  WGPUFragmentState fragmentState = {
+    .module = nullptr, // shader,
+    .entryPoint = "fs_main",
+    .targetCount = 1,
+    .targets = &colorTargetState,
+  };
+
+  WGPURenderPipelineDescriptor renderPipelineDescriptor = {
+    .label = "Render pipeline",
+    .layout = pipelineLayout,
+    .vertex =
+      (WGPUVertexState){
+        .module = nullptr, // shader,
+        .entryPoint = "",  //"vs_main",
+        .bufferCount = 0,
+        .buffers = NULL,
+      },
+    .primitive = (WGPUPrimitiveState){ .topology = WGPUPrimitiveTopology_TriangleList,
+                                       .stripIndexFormat = WGPUIndexFormat_Undefined,
+                                       .frontFace = WGPUFrontFace_CCW,
+                                       .cullMode = WGPUCullMode_None },
+    .multisample =
+      (WGPUMultisampleState){
+        .count = 1,
+        .mask = (uint32_t)~0,
+        .alphaToCoverageEnabled = false,
+      },
+    .fragment = nullptr, //&fragmentState,
+    .depthStencil = NULL,
+  };
+
+  m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
+  m_initialized = true;
   if (!m_renderer) {
     return;
   }
@@ -287,21 +337,54 @@ WgpuView3D::render()
   QWindow* win = windowHandle();
   if (!win || !win->isExposed())
     return;
-  invokeUserPaint();
+  WGPUTextureView nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
+  invokeUserPaint(nextTexture);
 
   wgpuSwapChainPresent(m_swapChain);
 }
 
 void
-WgpuView3D::invokeUserPaint()
+WgpuView3D::invokeUserPaint(WGPUTextureView nextTexture)
 {
-  paintGL();
+  paintGL(nextTexture);
   // flush? (queue submit?)
 }
 
 void
-WgpuView3D::paintGL()
+WgpuView3D::paintGL(WGPUTextureView nextTexture)
 {
+  WGPUCommandEncoderDescriptor commandEncoderDescriptor = { .label = "Command Encoder" };
+  WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(m_device, &commandEncoderDescriptor);
+  WGPURenderPassColorAttachment renderPassColorAttachment = {
+    .view = nextTexture,
+    .resolveTarget = 0,
+    .loadOp = WGPULoadOp_Clear,
+    .storeOp = WGPUStoreOp_Store,
+    .clearValue =
+      (WGPUColor){
+        .r = 0.0,
+        .g = 1.0,
+        .b = 0.0,
+        .a = 1.0,
+      },
+  };
+  WGPURenderPassDescriptor renderPassDescriptor = {
+    .colorAttachments = &renderPassColorAttachment,
+    .colorAttachmentCount = 1,
+    .depthStencilAttachment = NULL,
+  };
+  WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
+
+  // wgpuRenderPassEncoderSetPipeline(renderPass, pipeline);
+  // wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
+  wgpuRenderPassEncoderEnd(renderPass);
+  wgpuTextureViewDrop(nextTexture);
+
+  WGPUQueue queue = wgpuDeviceGetQueue(m_device);
+  WGPUCommandBufferDescriptor commandBufferDescriptor = { .label = NULL };
+  WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &commandBufferDescriptor);
+  wgpuQueueSubmit(queue, 1, &cmdBuffer);
+
   if (!m_renderer) {
     return;
   }
@@ -343,7 +426,7 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
     m_renderer->resize(w, h, devicePixelRatioF());
   }
 
-  invokeUserPaint();
+  // invokeUserPaint();
 }
 
 void
