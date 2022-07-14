@@ -150,13 +150,13 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   WGPURequiredLimits requiredLimits = {
     .nextInChain = NULL,
     .limits =
-      (WGPULimits){
+      WGPULimits{
         .maxBindGroups = 1,
       },
   };
   WGPUDeviceExtras deviceExtras = {
     .chain =
-      (WGPUChainedStruct){
+      WGPUChainedStruct{
         .next = NULL,
         .sType = (WGPUSType)WGPUSType_DeviceExtras,
       },
@@ -167,7 +167,7 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
     .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
     .requiredLimits = &requiredLimits,
     .defaultQueue =
-      (WGPUQueueDescriptor){
+      WGPUQueueDescriptor{
         .nextInChain = NULL,
         .label = NULL,
       },
@@ -253,18 +253,18 @@ WgpuView3D::sizeHint() const
 void
 WgpuView3D::initializeGL()
 {
-  WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = { .bindGroupLayouts = NULL, .bindGroupLayoutCount = 0 };
+  WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = { .bindGroupLayoutCount = 0, .bindGroupLayouts = NULL };
   WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(m_device, &pipelineLayoutDescriptor);
   WGPUBlendState blendState = { .color =
-                                  (WGPUBlendComponent){
+                                  WGPUBlendComponent{
+                                    .operation = WGPUBlendOperation_Add,
                                     .srcFactor = WGPUBlendFactor_One,
                                     .dstFactor = WGPUBlendFactor_Zero,
-                                    .operation = WGPUBlendOperation_Add,
                                   },
-                                .alpha = (WGPUBlendComponent){
+                                .alpha = WGPUBlendComponent{
+                                  .operation = WGPUBlendOperation_Add,
                                   .srcFactor = WGPUBlendFactor_One,
                                   .dstFactor = WGPUBlendFactor_Zero,
-                                  .operation = WGPUBlendOperation_Add,
                                 } };
 
   WGPUColorTargetState colorTargetState = { .format = m_swapChainFormat,
@@ -281,24 +281,24 @@ WgpuView3D::initializeGL()
     .label = "Render pipeline",
     .layout = pipelineLayout,
     .vertex =
-      (WGPUVertexState){
+      WGPUVertexState{
         .module = nullptr, // shader,
         .entryPoint = "",  //"vs_main",
         .bufferCount = 0,
         .buffers = NULL,
       },
-    .primitive = (WGPUPrimitiveState){ .topology = WGPUPrimitiveTopology_TriangleList,
-                                       .stripIndexFormat = WGPUIndexFormat_Undefined,
-                                       .frontFace = WGPUFrontFace_CCW,
-                                       .cullMode = WGPUCullMode_None },
+    .primitive = WGPUPrimitiveState{ .topology = WGPUPrimitiveTopology_TriangleList,
+                                     .stripIndexFormat = WGPUIndexFormat_Undefined,
+                                     .frontFace = WGPUFrontFace_CCW,
+                                     .cullMode = WGPUCullMode_None },
+    .depthStencil = NULL,
     .multisample =
-      (WGPUMultisampleState){
+      WGPUMultisampleState{
         .count = 1,
         .mask = (uint32_t)~0,
         .alphaToCoverageEnabled = false,
       },
     .fragment = nullptr, //&fragmentState,
-    .depthStencil = NULL,
   };
 
   m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
@@ -361,7 +361,7 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
     .loadOp = WGPULoadOp_Clear,
     .storeOp = WGPUStoreOp_Store,
     .clearValue =
-      (WGPUColor){
+      WGPUColor{
         .r = 0.0,
         .g = 1.0,
         .b = 0.0,
@@ -369,8 +369,8 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
       },
   };
   WGPURenderPassDescriptor renderPassDescriptor = {
-    .colorAttachments = &renderPassColorAttachment,
     .colorAttachmentCount = 1,
+    .colorAttachments = &renderPassColorAttachment,
     .depthStencilAttachment = NULL,
   };
   WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
