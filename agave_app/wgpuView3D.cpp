@@ -301,7 +301,7 @@ WgpuView3D::initializeGL()
     .fragment = nullptr, //&fragmentState,
   };
 
-  m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
+  //m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
   m_initialized = true;
   if (!m_renderer) {
     return;
