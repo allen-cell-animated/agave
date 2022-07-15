@@ -27,6 +27,9 @@
 static void
 request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char* message, void* userdata)
 {
+  if (message) {
+    LOG_INFO << "request adapter callback: " << message;
+  }
   //  UNUSED(status);
   //  UNUSED(message);
 
@@ -35,6 +38,9 @@ request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, 
 static void
 request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, const char* message, void* userdata)
 {
+  if (message) {
+    LOG_INFO << "request device callback: " << message;
+  }
   // UNUSED(status);
   // UNUSED(message);
 
@@ -43,9 +49,8 @@ request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, con
 static void
 handle_device_lost(WGPUDeviceLostReason reason, char const* message, void* userdata)
 {
+  LOG_INFO << "DEVICE LOST (" << reason << "): " << message;
   // UNUSED(userdata);
-
-  printf("DEVICE LOST (%d): %s\n", reason, message);
 }
 
 static void
@@ -53,7 +58,7 @@ handle_uncaptured_error(WGPUErrorType type, char const* message, void* userdata)
 {
   // UNUSED(userdata);
 
-  printf("UNCAPTURED ERROR (%d): %s\n", type, message);
+  LOG_INFO << "UNCAPTURED ERROR (" << type << "): " << message;
 }
 
 static void
@@ -66,8 +71,8 @@ printAdapterFeatures(WGPUAdapter adapter)
   printf("[]WGPUFeatureName {\n");
 
   for (size_t i = 0; i < count; i++) {
-    uint32_t feature = features[i];
-    switch (feature) {
+    WGPUFeatureName feature = features[i];
+    switch ((uint32_t)feature) {
       case WGPUFeatureName_DepthClipControl:
         printf("\tDepthClipControl\n");
         break;
@@ -138,62 +143,6 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   setAttribute(Qt::WA_PaintOnScreen);
   setAutoFillBackground(false);
 
-  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
-  WGPUAdapter adapter;
-  WGPURequestAdapterOptions options = {
-    .nextInChain = NULL,
-    .compatibleSurface = m_surface,
-  };
-  wgpuInstanceRequestAdapter(NULL, &options, request_adapter_callback, (void*)&adapter);
-  printAdapterFeatures(adapter);
-
-  WGPURequiredLimits requiredLimits = {
-    .nextInChain = NULL,
-    .limits =
-      WGPULimits{
-        .maxBindGroups = 1,
-      },
-  };
-  WGPUDeviceExtras deviceExtras = {
-    .chain =
-      WGPUChainedStruct{
-        .next = NULL,
-        .sType = (WGPUSType)WGPUSType_DeviceExtras,
-      },
-    .label = "Device",
-    .tracePath = NULL,
-  };
-  WGPUDeviceDescriptor deviceDescriptor = {
-    .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
-    .requiredLimits = &requiredLimits,
-    .defaultQueue =
-      WGPUQueueDescriptor{
-        .nextInChain = NULL,
-        .label = NULL,
-      },
-  };
-
-  // creates/ fills in m_device!
-  wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&m_device);
-
-  wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
-  wgpuDeviceSetDeviceLostCallback(m_device, handle_device_lost, NULL);
-
-  m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
-  WGPUSwapChainDescriptor swapChainDescriptor = {
-    .usage = WGPUTextureUsage_RenderAttachment,
-    .format = m_swapChainFormat,
-    .width = (uint32_t)width(),
-    .height = (uint32_t)height(),
-    .presentMode = WGPUPresentMode_Fifo,
-  };
-  // need to do this on resize
-  m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
-
-  // The WgpuView3D owns one CScene
-
-  m_cameraController.setRenderSettings(*m_renderSettings);
-  m_qrendersettings->setRenderSettings(*m_renderSettings);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the
   // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
@@ -253,6 +202,68 @@ WgpuView3D::sizeHint() const
 void
 WgpuView3D::initializeGL()
 {
+  if (m_initialized) {
+    return;
+  }
+  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
+  WGPUAdapter adapter;
+  WGPURequestAdapterOptions options = {
+    .nextInChain = NULL,
+    .compatibleSurface = m_surface,
+  };
+  wgpuInstanceRequestAdapter(NULL, &options, request_adapter_callback, (void*)&adapter);
+  printAdapterFeatures(adapter);
+
+  WGPURequiredLimits requiredLimits = {
+    .nextInChain = NULL,
+    .limits =
+      WGPULimits{
+        .maxBindGroups = 1,
+      },
+  };
+  WGPUDeviceExtras deviceExtras = {
+    .chain =
+      WGPUChainedStruct{
+        .next = NULL,
+        .sType = (WGPUSType)WGPUSType_DeviceExtras,
+      },
+    .label = "Device",
+    .tracePath = NULL,
+  };
+  WGPUDeviceDescriptor deviceDescriptor = {
+    .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
+    .requiredLimits = &requiredLimits,
+    .defaultQueue =
+      WGPUQueueDescriptor{
+        .nextInChain = NULL,
+        .label = NULL,
+      },
+  };
+
+  // creates/ fills in m_device!
+  wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&m_device);
+
+  wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
+  wgpuDeviceSetDeviceLostCallback(m_device, handle_device_lost, NULL);
+
+  m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
+  WGPUSwapChainDescriptor swapChainDescriptor = {
+    .usage = WGPUTextureUsage_RenderAttachment,
+    .format = m_swapChainFormat,
+    .width = (uint32_t)width(),
+    .height = (uint32_t)height(),
+    .presentMode = WGPUPresentMode_Fifo,
+  };
+  // need to do this on resize
+  m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+
+  // The WgpuView3D owns one CScene
+
+  m_cameraController.setRenderSettings(*m_renderSettings);
+  m_qrendersettings->setRenderSettings(*m_renderSettings);
+
+
+
   WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = { .bindGroupLayoutCount = 0, .bindGroupLayouts = NULL };
   WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(m_device, &pipelineLayoutDescriptor);
   WGPUBlendState blendState = { .color =
@@ -283,7 +294,7 @@ WgpuView3D::initializeGL()
     .vertex =
       WGPUVertexState{
         .module = nullptr, // shader,
-        .entryPoint = "",  //"vs_main",
+        .entryPoint = nullptr,//"",  //"vs_main",
         .bufferCount = 0,
         .buffers = NULL,
       },
@@ -338,6 +349,19 @@ WgpuView3D::render()
   if (!win || !win->isExposed())
     return;
   WGPUTextureView nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
+  if (!nextTexture) {
+      // try one time to re-create swap chain
+    WGPUSwapChainDescriptor swapChainDescriptor = {
+      .usage = WGPUTextureUsage_RenderAttachment,
+      .format = m_swapChainFormat,
+        .width = (uint32_t)width(),
+        .height = (uint32_t)height(),
+      .presentMode = WGPUPresentMode_Fifo,
+    };
+    m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+    nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
+
+  }
   invokeUserPaint(nextTexture);
 
   wgpuSwapChainPresent(m_swapChain);

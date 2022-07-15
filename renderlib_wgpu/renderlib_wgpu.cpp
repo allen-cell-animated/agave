@@ -105,9 +105,11 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   surface_descriptor.label = nullptr;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+  HINSTANCE hinstance = GetModuleHandle(NULL);
   WGPUSurfaceDescriptorFromWindowsHWND wgpustruct;
-  wgpustruct.hinstance = nullptr;
+  wgpustruct.hinstance = hinstance;
   wgpustruct.hwnd = win_id;
+  wgpustruct.chain.next = nullptr;
   wgpustruct.chain.sType = WGPUSType_SurfaceDescriptorFromWindowsHWND;
   surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct);
 
@@ -133,17 +135,20 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
     //# todo: wayland seems to be broken right now
     wgpustruct1.display = display_id;
     wgpustruct1.surface = win_id;
+    wgpustruct1.chain.next = nullptr;
     wgpustruct1.chain.sType = WGPUSType_SurfaceDescriptorFromWaylandSurface;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct1);
   } else if (is_xcb) {
     //# todo: xcb untested
     wgpustruct2.connection = nullptr; // ?? ffi.cast("void *", display_id);
     wgpustruct2.window = *((uint32_t*)(&win_id));
+    wgpustruct2.chain.next = nullptr;
     wgpustruct2.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct2);
   } else {
     wgpustruct3.display = display_id;
     wgpustruct3.window = *((uint32_t*)(&win_id));
+    wgpustruct3.chain.next = nullptr;
     wgpustruct3.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct3);
   }
