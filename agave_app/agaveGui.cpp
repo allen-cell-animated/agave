@@ -332,7 +332,8 @@ agaveGui::onQuickRender()
   rdialog->resize(800, 600);
 
   QImage im = m_glView->captureQimage();
-  rdialog->setImage(&im);
+  QImage* imcopy = new QImage(im);
+  rdialog->setImage(imcopy);
 
   rdialog->show();
   rdialog->raise();
