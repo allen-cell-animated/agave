@@ -10,7 +10,11 @@
 #include <QSslKey>
 
 #include "commandBuffer.h"
+#include "renderlib/AppScene.h"
+#include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
+#include "renderlib/RenderGLPT.h"
+#include "renderlib/RenderSettings.h"
 
 QT_USE_NAMESPACE
 
@@ -21,6 +25,20 @@ StreamServer::createNewRenderer(QWebSocket* client)
 {
   int i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
+
+  RenderSettings* rs = new RenderSettings();
+  CCamera* camera = new CCamera();
+  camera->m_Film.m_ExposureIterations = 1;
+  camera->m_Film.m_Resolution.SetResX(1024);
+  camera->m_Film.m_Resolution.SetResY(1024);
+  Scene* scene = new Scene();
+  scene->initLights();
+  RenderGLPT* renderer = new RenderGLPT(rs);
+  renderer->initialize(1024, 1024);
+  renderer->setScene(scene);
+
+  r->configure(renderer, *rs, *scene, *camera);
+
   this->_renderers << r;
 
   // queued across thread boundary.  typically requestProcessed is called from another thread.

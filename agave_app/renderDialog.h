@@ -1,21 +1,24 @@
 #pragma once
 
+#include "renderlib/CCamera.h"
+
 #include <QDialog>
 
 class QImage;
 class QWidget;
 class QPushButton;
 
+class IRenderWindow;
 class Renderer;
 class RenderSettings;
 class Scene;
-class CCamera;
 
 class ImageDisplay : public QWidget
 {
   Q_OBJECT
 public:
   ImageDisplay(QWidget* parent = 0);
+  ~ImageDisplay();
   void setImage(QImage* image);
 
 private:

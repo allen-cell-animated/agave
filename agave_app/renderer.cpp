@@ -1,5 +1,6 @@
 #include "renderer.h"
 
+#include "renderlib/AppScene.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
@@ -53,6 +54,28 @@ Renderer::myVolumeInit()
   m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
   m_myVolumeData.m_renderer->initialize(initWidth, initHeight);
   m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
+  m_myVolumeData.ownRenderer = true;
+}
+void
+Renderer::configure(IRenderWindow* renderer,
+                    const RenderSettings& renderSettings,
+                    const Scene& scene,
+                    const CCamera& camera)
+{
+  // assumes scene is already set in renderer and everything is initialized
+  // except for film resolution?
+  m_myVolumeData.m_renderSettings = new RenderSettings(renderSettings);
+  m_myVolumeData.m_camera = new CCamera(camera);
+  m_myVolumeData.m_scene = new Scene(scene);
+  if (!renderer) {
+    m_myVolumeData.ownRenderer = true;
+    m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
+    m_myVolumeData.m_renderer->initialize(1024, 1024);
+    m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
+  } else {
+    m_myVolumeData.ownRenderer = false;
+    m_myVolumeData.m_renderer = renderer;
+  }
 }
 
 void
@@ -115,7 +138,7 @@ Renderer::run()
 #endif
 
   // TODO: PUT THIS KIND OF INIT SOMEWHERE ELSE
-  myVolumeInit();
+  // myVolumeInit();
 
   while (!QThread::currentThread()->isInterruptionRequested()) {
     this->processRequest();
@@ -128,7 +151,9 @@ Renderer::run()
 #else
   this->m_glContext->makeCurrent(this->m_surface);
 #endif
-  m_myVolumeData.m_renderer->cleanUpResources();
+  if (m_myVolumeData.ownRenderer) {
+    m_myVolumeData.m_renderer->cleanUpResources();
+  }
   shutDown();
 }
 
@@ -258,14 +283,21 @@ Renderer::render()
   this->m_glContext->makeCurrent(this->m_surface);
 #endif
 
+  // get the renderer we need
+  RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_myVolumeData.m_renderer);
+  if (!r) {
+    LOG_ERROR << "Unsupported renderer: Renderer is not of type RenderGLPT";
+    return QImage();
+  }
+
   // DRAW
   m_myVolumeData.m_camera->Update();
-  m_myVolumeData.m_renderer->doRender(*(m_myVolumeData.m_camera));
+  r->doRender(*(m_myVolumeData.m_camera));
 
   // COPY TO MY FBO
   this->m_fbo->bind();
   glViewport(0, 0, m_fbo->width(), m_fbo->height());
-  m_myVolumeData.m_renderer->drawImage();
+  r->drawImage();
   this->m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
@@ -348,7 +380,9 @@ Renderer::shutDown()
   delete m_myVolumeData.m_renderSettings;
   delete m_myVolumeData.m_camera;
   delete m_myVolumeData.m_scene;
-  delete m_myVolumeData.m_renderer;
+  if (m_myVolumeData.ownRenderer) {
+    delete m_myVolumeData.m_renderer;
+  }
   m_myVolumeData.m_camera = nullptr;
   m_myVolumeData.m_scene = nullptr;
   m_myVolumeData.m_renderSettings = nullptr;

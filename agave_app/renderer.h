@@ -22,7 +22,7 @@
 class commandBuffer;
 class CCamera;
 class ImageXYZC;
-class RenderGLPT;
+class IRenderWindow;
 class RenderSettings;
 class Scene;
 
@@ -35,6 +35,11 @@ class Renderer
 public:
   Renderer(QString id, QObject* parent, QMutex& mutex);
   virtual ~Renderer();
+
+  void configure(IRenderWindow* renderer,
+                 const RenderSettings& renderSettings,
+                 const Scene& scene,
+                 const CCamera& camera);
 
   void init();
   void run();
@@ -90,7 +95,8 @@ private:
       : m_name(name)
       , m_start(start)
       , m_end(end)
-    {}
+    {
+    }
 
     QString m_name;
     int m_start;
@@ -103,8 +109,9 @@ private:
   void myVolumeInit();
   struct myVolumeData
   {
+    bool ownRenderer;
     RenderSettings* m_renderSettings;
-    RenderGLPT* m_renderer;
+    IRenderWindow* m_renderer;
     Scene* m_scene;
     CCamera* m_camera;
 
@@ -113,7 +120,9 @@ private:
       , m_scene(nullptr)
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
-    {}
+      , ownRenderer(false)
+    {
+    }
   } m_myVolumeData;
 
   ExecutionContext m_ec;

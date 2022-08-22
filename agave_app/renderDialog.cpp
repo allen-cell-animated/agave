@@ -19,9 +19,15 @@ ImageDisplay::ImageDisplay(QWidget* parent)
   m_image->fill(Qt::white);
 }
 
+ImageDisplay::~ImageDisplay()
+{
+  delete m_image;
+}
+
 void
 ImageDisplay::setImage(QImage* image)
 {
+  delete m_image;
   m_image = image;
   repaint();
 }
@@ -95,16 +101,19 @@ RenderDialog::render()
   LOG_INFO << "Render button clicked";
   // when render is done, draw QImage to widget and save to file if autosave?
   QMutex mutex;
-  Renderer* r = new Renderer("Thread " + QString::number(i), this, mutex);
+  Renderer* r = new Renderer("Render dialog render thread ", this, mutex);
+  // now get our rendering resources into this Renderer object
+  r->configure(m_renderer, m_renderSettings, m_scene, m_camera);
+
   this->m_renderThread = r;
   // queued across thread boundary.  typically requestProcessed is called from another thread.
   // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be fully
   // async.
   connect(
     r,
-    SIGNAL(requestProcessed(RenderRequest*, QImage)),
+    &Renderer::requestProcessed,
     this,
-    [this](RenderRequest* req, QImage image) { this->setImage(image); },
+    [this](RenderRequest* req, QImage image) { this->setImage(new QImage(image)); },
     Qt::BlockingQueuedConnection);
   // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
   LOG_INFO << "Starting render thread...";
@@ -115,6 +124,12 @@ void
 RenderDialog::stop()
 {
   this->m_renderer = nullptr;
-  this->m_renderThread->stop();
+  this->m_renderThread->requestInterruption();
+  bool ok = this->m_renderThread->wait(QDeadlineTimer(1000));
+  if (ok) {
+    LOG_DEBUG << "Render thread stopped cleanly";
+  } else {
+    LOG_DEBUG << "Render thread did not stop cleanly";
+  }
   delete m_renderThread;
 }
