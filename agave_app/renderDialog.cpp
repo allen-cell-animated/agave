@@ -1,4 +1,5 @@
 #include "renderDialog.h"
+#include "renderer.h"
 
 #include "renderlib/Logging.h"
 
@@ -50,8 +51,16 @@ ImageDisplay::paintEvent(QPaintEvent*)
   painter.drawImage(targetRect, *m_image, m_image->rect());
 }
 
-RenderDialog::RenderDialog(QWidget* parent)
-  : QDialog(parent)
+RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
+                           const RenderSettings& renderSettings,
+                           const Scene& scene,
+                           CCamera camera,
+                           QWidget* parent)
+  : m_renderer(borrowedRenderer)
+  , m_renderSettings(renderSettings)
+  , m_scene(scene)
+  , m_camera(camera)
+  , QDialog(parent)
 {
   setWindowTitle(tr("Render"));
 
@@ -85,4 +94,27 @@ RenderDialog::render()
 {
   LOG_INFO << "Render button clicked";
   // when render is done, draw QImage to widget and save to file if autosave?
+  QMutex mutex;
+  Renderer* r = new Renderer("Thread " + QString::number(i), this, mutex);
+  this->m_renderThread = r;
+  // queued across thread boundary.  typically requestProcessed is called from another thread.
+  // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be fully
+  // async.
+  connect(
+    r,
+    SIGNAL(requestProcessed(RenderRequest*, QImage)),
+    this,
+    [this](RenderRequest* req, QImage image) { this->setImage(image); },
+    Qt::BlockingQueuedConnection);
+  // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
+  LOG_INFO << "Starting render thread...";
+  r->start();
+}
+
+void
+RenderDialog::stop()
+{
+  this->m_renderer = nullptr;
+  this->m_renderThread->stop();
+  delete m_renderThread;
 }

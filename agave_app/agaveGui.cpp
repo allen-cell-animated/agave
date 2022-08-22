@@ -319,7 +319,10 @@ agaveGui::saveImage()
 void
 agaveGui::onQuickRender()
 {
-  // hand over AppScene and RenderSettings to RenderDialog?
+  // copy of camera
+  // const appscene ref?
+  // const rendersettings ref?
+  // hand over Camera, AppScene and RenderSettings to RenderDialog?
   // or a ViewerState?
   ViewerState st = appToViewerState();
   // tell the renderdialog what the viewerstate currently is.
@@ -327,17 +330,29 @@ agaveGui::onQuickRender()
   // share already loaded volume data with the RenderDialog's rendering resources
   // (GL context sharing?)
 
-  // extract Renderer from GLView3D to hand to RenderDialog?
-  RenderDialog* rdialog = new RenderDialog(this);
-  rdialog->resize(800, 600);
+  // if we are disabling the 3d view then might consider just making this modal
+  m_glView->setEnabled(false);
+  // extract Renderer from GLView3D to hand to RenderDialog
+  IRenderWindow* renderer = m_glView->borrowRenderer();
 
+  // copy of camera
+  // const appscene ref?
+  // const rendersettings ref?
+  RenderDialog* rdialog = new RenderDialog(renderer, m_renderSettings, m_appScene, m_glView->getCamera(), this);
+  rdialog->resize(800, 600);
+  connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
+    // get renderer from RenderDialog and hand it back to GLView3D
+    rdialog->stop();
+    LOG_DEBUG << "RenderDialog finished with result " << result;
+    m_glView->resizeGL(m_glView->width(), m_glView->height());
+    m_glView->setEnabled(true);
+  });
   QImage im = m_glView->captureQimage();
   QImage* imcopy = new QImage(im);
   rdialog->setImage(imcopy);
 
   rdialog->show();
   rdialog->raise();
-  // rdialog->update();
   rdialog->activateWindow();
 }
 

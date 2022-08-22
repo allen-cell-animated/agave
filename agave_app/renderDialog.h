@@ -6,6 +6,11 @@ class QImage;
 class QWidget;
 class QPushButton;
 
+class Renderer;
+class RenderSettings;
+class Scene;
+class CCamera;
+
 class ImageDisplay : public QWidget
 {
   Q_OBJECT
@@ -25,13 +30,24 @@ class RenderDialog : public QDialog
   Q_OBJECT
 
 public:
-  RenderDialog(QWidget* parent = Q_NULLPTR);
+  RenderDialog(IRenderWindow* borrowedRenderer,
+               const RenderSettings& renderSettings,
+               const Scene& scene,
+               CCamera camera,
+               QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
+  void stop();
 private slots:
   void render();
 
 private:
+  Renderer* m_renderThread;
+  IRenderWindow* m_renderer;
+  const RenderSettings& m_renderSettings;
+  const Scene& m_scene;
+  CCamera m_camera;
+
   ImageDisplay* mImageView; // ? or a GLView3D?
   QPushButton* mRenderButton;
   QPushButton* mCloseButton;
