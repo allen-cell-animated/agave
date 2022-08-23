@@ -142,7 +142,6 @@ RenderDialog::done(int r)
   } else {
     LOG_DEBUG << "Render thread did not stop cleanly";
   }
-    m_renderThread->deleteLater();
-    QDialog::done(r);
-
+  m_renderThread->deleteLater();
+  QDialog::done(r);
 }
