@@ -331,6 +331,7 @@ agaveGui::onQuickRender()
   // (GL context sharing?)
 
   // if we are disabling the 3d view then might consider just making this modal
+  m_glView->doneCurrent();
   m_glView->setEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
@@ -340,9 +341,8 @@ agaveGui::onQuickRender()
   // const rendersettings ref?
   RenderDialog* rdialog = new RenderDialog(renderer, m_renderSettings, m_appScene, m_glView->getCamera(), this);
   rdialog->resize(800, 600);
-  connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
+  connect(rdialog, &QDialog::finished, this, [this](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
-    rdialog->stop();
     LOG_DEBUG << "RenderDialog finished with result " << result;
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setEnabled(true);

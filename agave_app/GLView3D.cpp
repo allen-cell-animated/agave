@@ -128,6 +128,8 @@ GLView3D::paintGL()
   m_CCamera.Update();
 
   m_renderer->render(m_CCamera);
+
+  doneCurrent();
 }
 
 void
@@ -138,6 +140,8 @@ GLView3D::resizeGL(int w, int h)
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
   m_renderer->resize(w, h, devicePixelRatioF());
+
+  doneCurrent();
 }
 
 void

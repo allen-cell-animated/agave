@@ -104,16 +104,24 @@ RenderDialog::render()
   Renderer* r = new Renderer("Render dialog render thread ", this, mutex);
   // now get our rendering resources into this Renderer object
   r->configure(m_renderer, m_renderSettings, m_scene, m_camera);
+  r->setStreamMode(1);
 
   this->m_renderThread = r;
   // queued across thread boundary.  typically requestProcessed is called from another thread.
   // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be fully
   // async.
+  static int N = 1;
   connect(
     r,
     &Renderer::requestProcessed,
     this,
-    [this](RenderRequest* req, QImage image) { this->setImage(new QImage(image)); },
+    [this](RenderRequest* req, QImage image) {
+      this->setImage(new QImage(image));
+      N = N + 1;
+      if (N % 100 == 0) {
+        image.save("C:\\Users\\dmt\\Pictures\\test.png");
+      }
+    },
     Qt::BlockingQueuedConnection);
   // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
   LOG_INFO << "Starting render thread...";
@@ -121,7 +129,7 @@ RenderDialog::render()
 }
 
 void
-RenderDialog::stop()
+RenderDialog::done(int r)
 {
   this->m_renderer = nullptr;
   this->m_renderThread->requestInterruption();
@@ -131,5 +139,6 @@ RenderDialog::stop()
   } else {
     LOG_DEBUG << "Render thread did not stop cleanly";
   }
-  delete m_renderThread;
+  //delete m_renderThread;
 }
+

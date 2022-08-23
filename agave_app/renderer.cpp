@@ -42,7 +42,6 @@ Renderer::myVolumeInit()
   static const int initWidth = 1024, initHeight = 1024;
 
   m_myVolumeData.m_renderSettings = new RenderSettings();
-
   m_myVolumeData.m_camera = new CCamera();
   m_myVolumeData.m_camera->m_Film.m_ExposureIterations = 1;
   m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(initWidth);

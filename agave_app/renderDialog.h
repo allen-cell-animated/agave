@@ -40,7 +40,7 @@ public:
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
-  void stop();
+  void done(int r);
 private slots:
   void render();
 
