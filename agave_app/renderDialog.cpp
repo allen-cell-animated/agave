@@ -2,6 +2,7 @@
 #include "renderer.h"
 
 #include "renderlib/Logging.h"
+#include "renderlib/command.h"
 
 #include <QHBoxLayout>
 #include <QPainter>
@@ -102,12 +103,16 @@ RenderDialog::render()
 {
   LOG_INFO << "Render button clicked";
   // when render is done, draw QImage to widget and save to file if autosave?
-  QMutex mutex;
-  Renderer* r = new Renderer("Render dialog render thread ", this, mutex);
+  Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
   // now get our rendering resources into this Renderer object
   r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
   m_glContext->moveToThread(r);
   r->setStreamMode(1);
+
+  std::vector<Command*> cmd;
+  RequestRedrawCommandD data;
+  cmd.push_back(new RequestRedrawCommand(data));
+  r->addRequest(new RenderRequest(nullptr, cmd, false));
 
   this->m_renderThread = r;
   // queued across thread boundary.  typically requestProcessed is called from another thread.
@@ -122,7 +127,7 @@ RenderDialog::render()
       this->setImage(new QImage(image));
       N = N + 1;
       if (N % 100 == 0) {
-        image.save("C:\\Users\\dmt\\Pictures\\test.png");
+        image.save("~/test.png"); // "C:\\Users\\dmt\\test.png");
       }
     },
     Qt::BlockingQueuedConnection);

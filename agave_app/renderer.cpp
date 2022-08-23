@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QMessageBox>
+#include <QMutexLocker>
 #include <QOpenGLFramebufferObjectFormat>
 
 Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
@@ -205,8 +206,10 @@ Renderer::processRequest()
     }
 
     QWebSocket* ws = lastReq->getClient();
-    LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" << ws->peerAddress().toString().toStdString()
-              << ":" << QString::number(ws->peerPort()).toStdString() << ")";
+    if (ws) {
+      LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" << ws->peerAddress().toString().toStdString()
+                << ":" << QString::number(ws->peerPort()).toStdString() << ")";
+    }
 
     QImage img = this->render();
 
@@ -283,7 +286,7 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 QImage
 Renderer::render()
 {
-  m_openGLMutex->lock();
+  QMutexLocker locker(m_openGLMutex);
 #if HAS_EGL
   this->m_glContext->makeCurrent();
 #else
@@ -312,7 +315,6 @@ Renderer::render()
   QImage img = QImage(bytes.get(), m_fbo->width(), m_fbo->height(), QImage::Format_RGB32).copy().mirrored();
 
   this->m_glContext->doneCurrent();
-  m_openGLMutex->unlock();
 
   return img;
 }
@@ -323,7 +325,7 @@ Renderer::resizeGL(int width, int height)
   if ((width == m_width) && (height == m_height)) {
     return;
   }
-  m_openGLMutex->lock();
+  QMutexLocker locker(m_openGLMutex);
 
 #if HAS_EGL
   this->m_glContext->makeCurrent();
@@ -342,14 +344,12 @@ Renderer::resizeGL(int width, int height)
 
   m_width = width;
   m_height = height;
-
-  m_openGLMutex->unlock();
 }
 
 void
 Renderer::reset(int from)
 {
-  m_openGLMutex->lock();
+  QMutexLocker locker(m_openGLMutex);
 
 #if HAS_EGL
   this->m_glContext->makeCurrent();
@@ -366,7 +366,6 @@ Renderer::reset(int from)
   this->m_time.start();
 
   this->m_glContext->doneCurrent();
-  m_openGLMutex->unlock();
 }
 
 int

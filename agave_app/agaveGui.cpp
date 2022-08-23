@@ -333,6 +333,7 @@ agaveGui::onQuickRender()
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
+  m_glView->setUpdatesEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
 
@@ -347,6 +348,7 @@ agaveGui::onQuickRender()
     LOG_DEBUG << "RenderDialog finished with result " << result;
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setEnabled(true);
+    m_glView->setUpdatesEnabled(true);
   });
   QImage im = m_glView->captureQimage();
   QImage* imcopy = new QImage(im);

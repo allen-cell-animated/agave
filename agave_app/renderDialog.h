@@ -3,6 +3,7 @@
 #include "renderlib/CCamera.h"
 
 #include <QDialog>
+#include <QMutex>
 
 class QImage;
 class QOpenGLContext;
@@ -47,6 +48,7 @@ private slots:
   void render();
 
 private:
+  QMutex m_mutex;
   QOpenGLContext* m_glContext;
   Renderer* m_renderThread;
   IRenderWindow* m_renderer;

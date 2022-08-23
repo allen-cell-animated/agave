@@ -107,6 +107,7 @@ GLView3D::sizeHint() const
 void
 GLView3D::initializeGL()
 {
+
   makeCurrent();
 
   QSize newsize = size();
@@ -126,7 +127,7 @@ GLView3D::paintGL()
   if (!isEnabled()) {
     return;
   }
-   makeCurrent();
+  makeCurrent();
 
   m_CCamera.Update();
 
@@ -138,9 +139,9 @@ GLView3D::paintGL()
 void
 GLView3D::resizeGL(int w, int h)
 {
-    if (!isEnabled()) {
-      return;
-    }
+  if (!isEnabled()) {
+    return;
+  }
   makeCurrent();
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
@@ -153,6 +154,9 @@ GLView3D::resizeGL(int w, int h)
 void
 GLView3D::mousePressEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
@@ -161,6 +165,9 @@ GLView3D::mousePressEvent(QMouseEvent* event)
 void
 GLView3D::mouseReleaseEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
@@ -191,6 +198,9 @@ get_arcball_vector(float xndc, float yndc)
 void
 GLView3D::mouseMoveEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_cameraController.OnMouseMove(event);
   m_lastPos = event->pos();
 }
@@ -202,9 +212,9 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
 void
 GLView3D::timerEvent(QTimerEvent* event)
 {
-    if (!isEnabled()) {
-      return;
-    }
+  if (!isEnabled()) {
+    return;
+  }
 
   makeCurrent();
 
@@ -273,6 +283,11 @@ GLView3D::getStatus()
 void
 GLView3D::OnUpdateRenderer(int rendererType)
 {
+  if (!isEnabled()) {
+    LOG_ERROR << "attempted to update GLView3D renderer when view is disabled";
+    return;
+  }
+
   makeCurrent();
 
   // clean up old renderer.
@@ -349,6 +364,10 @@ GLView3D::capture()
 QImage
 GLView3D::captureQimage()
 {
+  if (!isEnabled()) {
+    return;
+  }
+
   makeCurrent();
 
   // Create a one-time FBO to receive the image
