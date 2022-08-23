@@ -146,7 +146,10 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_fakeHidden(false)
 {
   setAttribute(Qt::WA_PaintOnScreen);
+  setAttribute(Qt::WA_NativeWindow);
+  setAttribute(Qt::WA_NoSystemBackground);
   setAutoFillBackground(false);
+  WId v = winId();
 
   // IMPORTANT this is where the QT gui container classes send their values down into the
   // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
@@ -209,6 +212,7 @@ WgpuView3D::initializeGL()
   if (m_initialized) {
     return;
   }
+  LOG_INFO << "calling get_surface_id_from_canvas";
   m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
   WGPUAdapter adapter;
   WGPURequestAdapterOptions options = {
@@ -347,21 +351,40 @@ WgpuView3D::render()
   }
 
   QWindow* win = windowHandle();
-  if (!win || !win->isExposed())
+  if (!win || !win->isExposed()) {
     return;
-  WGPUTextureView nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
-  if (!nextTexture) {
-    // try one time to re-create swap chain
-    WGPUSwapChainDescriptor swapChainDescriptor = {
-      .usage = WGPUTextureUsage_RenderAttachment,
-      .format = m_swapChainFormat,
-      .width = (uint32_t)width(),
-      .height = (uint32_t)height(),
-      .presentMode = WGPUPresentMode_Fifo,
-    };
-    m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
-    nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
   }
+  WGPUTextureView nextTexture = 0;
+  int prevWidth = 1;
+  for (int attempt = 0; attempt < 2; attempt++) {
+    if (prevWidth == 0) {
+      // try one time to re-create swap chain
+      WGPUSwapChainDescriptor swapChainDescriptor = {
+        .usage = WGPUTextureUsage_RenderAttachment,
+        .format = m_swapChainFormat,
+        .width = (uint32_t)width(),
+        .height = (uint32_t)height(),
+        .presentMode = WGPUPresentMode_Fifo,
+      };
+      m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+    }
+
+    nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
+
+    if (attempt == 0 && !nextTexture) {
+      LOG_WARNING << "wgpuSwapChainGetCurrentTextureView() failed; trying to create a new swap chain...";
+      prevWidth = 0;
+      continue;
+    }
+
+    break;
+  }
+
+  if (!nextTexture) {
+    LOG_ERROR << "Cannot acquire next swap chain texture";
+    return;
+  }
+
   invokeUserPaint(nextTexture);
 
   wgpuSwapChainPresent(m_swapChain);
@@ -450,7 +473,8 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
     m_renderer->resize(w, h, devicePixelRatioF());
   }
 
-  // invokeUserPaint();
+  update();
+  //  invokeUserPaint();
 }
 
 void
