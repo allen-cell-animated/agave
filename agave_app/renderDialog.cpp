@@ -136,11 +136,13 @@ RenderDialog::done(int r)
 {
   this->m_renderer = nullptr;
   this->m_renderThread->requestInterruption();
-  bool ok = this->m_renderThread->wait(QDeadlineTimer(1000));
+  bool ok = this->m_renderThread->wait(QDeadlineTimer(2000));
   if (ok) {
     LOG_DEBUG << "Render thread stopped cleanly";
   } else {
     LOG_DEBUG << "Render thread did not stop cleanly";
   }
-  // delete m_renderThread;
+    m_renderThread->deleteLater();
+    QDialog::done(r);
+
 }

@@ -138,6 +138,9 @@ GLView3D::paintGL()
 void
 GLView3D::resizeGL(int w, int h)
 {
+    if (!isEnabled()) {
+      return;
+    }
   makeCurrent();
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
@@ -199,6 +202,10 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
 void
 GLView3D::timerEvent(QTimerEvent* event)
 {
+    if (!isEnabled()) {
+      return;
+    }
+
   makeCurrent();
 
   QOpenGLWidget::timerEvent(event);

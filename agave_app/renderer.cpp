@@ -93,7 +93,7 @@ Renderer::init()
   // this->setFixedSize(1920, 1080);
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
   // "Working Directory: " + QDir::currentPath());
-  m_openGLMutex->lock();
+  //m_openGLMutex->lock();
 
 #if HAS_EGL
   this->m_glContext = new HeadlessGLContext();
@@ -132,7 +132,7 @@ Renderer::init()
   reset();
 
   this->m_glContext->doneCurrent();
-  m_openGLMutex->unlock();
+  //m_openGLMutex->unlock();
 }
 
 void
