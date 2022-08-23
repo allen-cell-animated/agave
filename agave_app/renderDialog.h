@@ -5,6 +5,7 @@
 #include <QDialog>
 
 class QImage;
+class QOpenGLContext;
 class QWidget;
 class QPushButton;
 
@@ -37,6 +38,7 @@ public:
                const RenderSettings& renderSettings,
                const Scene& scene,
                CCamera camera,
+               QOpenGLContext* glContext,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
@@ -45,6 +47,7 @@ private slots:
   void render();
 
 private:
+  QOpenGLContext* m_glContext;
   Renderer* m_renderThread;
   IRenderWindow* m_renderer;
   const RenderSettings& m_renderSettings;

@@ -39,9 +39,9 @@ public:
   void configure(IRenderWindow* renderer,
                  const RenderSettings& renderSettings,
                  const Scene& scene,
-                 const CCamera& camera);
+                 const CCamera& camera,
+                 QOpenGLContext* glContext = nullptr);
 
-  void init();
   void run();
 
   void addRequest(RenderRequest* request);
@@ -69,11 +69,13 @@ protected:
   QList<RenderRequest*> m_requests;
   int m_totalQueueDuration;
 
+  void init();
   void shutDown();
 
 private:
   QMutex* m_openGLMutex;
 
+  bool m_ownGLContext;
 #if HAS_EGL
   HeadlessGLContext* m_glContext;
 #else

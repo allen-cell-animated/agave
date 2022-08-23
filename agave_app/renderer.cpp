@@ -23,6 +23,7 @@ Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   , m_width(0)
   , m_height(0)
   , m_openGLMutex(&mutex)
+  , m_ownGLContext(true)
 {
   this->m_totalQueueDuration = 0;
 
@@ -59,7 +60,8 @@ void
 Renderer::configure(IRenderWindow* renderer,
                     const RenderSettings& renderSettings,
                     const Scene& scene,
-                    const CCamera& camera)
+                    const CCamera& camera,
+                    QOpenGLContext* glContext)
 {
   // assumes scene is already set in renderer and everything is initialized
   // except for film resolution?
@@ -75,6 +77,14 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.ownRenderer = false;
     m_myVolumeData.m_renderer = renderer;
   }
+
+#if HAS_EGL
+#else
+  if (glContext) {
+    m_glContext = glContext;
+    m_ownGLContext = false;
+  }
+#endif
 }
 
 void
@@ -88,7 +98,11 @@ Renderer::init()
   this->m_glContext = new HeadlessGLContext();
   this->m_glContext->makeCurrent();
 #else
-  this->m_glContext = renderlib::createOpenGLContext();
+  if (m_ownGLContext) {
+    this->m_glContext = renderlib::createOpenGLContext();
+  } else {
+    this->m_glContext->moveToThread(this);
+  }
 
   this->m_surface = new QOffscreenSurface();
   this->m_surface->setFormat(this->m_glContext->format());
@@ -388,7 +402,9 @@ Renderer::shutDown()
   m_myVolumeData.m_renderer = nullptr;
 
   m_glContext->doneCurrent();
-  delete m_glContext;
+  if (m_ownGLContext) {
+    delete m_glContext;
+  }
 
 #if HAS_EGL
 #else

@@ -61,11 +61,13 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            const RenderSettings& renderSettings,
                            const Scene& scene,
                            CCamera camera,
+                           QOpenGLContext* glContext,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
   , m_renderSettings(renderSettings)
   , m_scene(scene)
   , m_camera(camera)
+  , m_glContext(glContext)
   , QDialog(parent)
 {
   setWindowTitle(tr("Render"));
@@ -103,7 +105,7 @@ RenderDialog::render()
   QMutex mutex;
   Renderer* r = new Renderer("Render dialog render thread ", this, mutex);
   // now get our rendering resources into this Renderer object
-  r->configure(m_renderer, m_renderSettings, m_scene, m_camera);
+  r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
   r->setStreamMode(1);
 
   this->m_renderThread = r;
@@ -139,6 +141,5 @@ RenderDialog::done(int r)
   } else {
     LOG_DEBUG << "Render thread did not stop cleanly";
   }
-  //delete m_renderThread;
+  // delete m_renderThread;
 }
-
