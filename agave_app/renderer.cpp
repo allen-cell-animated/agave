@@ -93,6 +93,7 @@ Renderer::init()
   // this->setFixedSize(1920, 1080);
   // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
   // "Working Directory: " + QDir::currentPath());
+  m_openGLMutex->lock();
 
 #if HAS_EGL
   this->m_glContext = new HeadlessGLContext();
@@ -100,8 +101,6 @@ Renderer::init()
 #else
   if (m_ownGLContext) {
     this->m_glContext = renderlib::createOpenGLContext();
-  } else {
-    this->m_glContext->moveToThread(this);
   }
 
   this->m_surface = new QOffscreenSurface();
@@ -133,10 +132,7 @@ Renderer::init()
   reset();
 
   this->m_glContext->doneCurrent();
-#if HAS_EGL
-#else
-  this->m_glContext->moveToThread(this);
-#endif
+  m_openGLMutex->unlock();
 }
 
 void
@@ -371,6 +367,7 @@ Renderer::reset(int from)
 
   this->m_time.start();
 
+  this->m_glContext->doneCurrent();
   m_openGLMutex->unlock();
 }
 
@@ -404,6 +401,9 @@ Renderer::shutDown()
   m_glContext->doneCurrent();
   if (m_ownGLContext) {
     delete m_glContext;
+  }
+else {
+   m_glContext->moveToThread(QGuiApplication::instance()->thread());
   }
 
 #if HAS_EGL

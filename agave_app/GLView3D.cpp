@@ -123,7 +123,10 @@ GLView3D::initializeGL()
 void
 GLView3D::paintGL()
 {
-  makeCurrent();
+  if (!isEnabled()) {
+    return;
+  }
+   makeCurrent();
 
   m_CCamera.Update();
 

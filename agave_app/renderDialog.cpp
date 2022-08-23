@@ -106,6 +106,7 @@ RenderDialog::render()
   Renderer* r = new Renderer("Render dialog render thread ", this, mutex);
   // now get our rendering resources into this Renderer object
   r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
+  m_glContext->moveToThread(r);
   r->setStreamMode(1);
 
   this->m_renderThread = r;
