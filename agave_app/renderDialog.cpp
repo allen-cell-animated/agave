@@ -4,6 +4,7 @@
 #include "renderlib/Logging.h"
 #include "renderlib/command.h"
 
+#include <QApplication>
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QPushButton>
@@ -141,7 +142,13 @@ RenderDialog::done(int r)
 {
   this->m_renderer = nullptr;
   this->m_renderThread->requestInterruption();
-  bool ok = this->m_renderThread->wait(QDeadlineTimer(2000));
+  bool ok = false;
+  int n = 0;
+  while (!ok && n < 30) {
+    ok = this->m_renderThread->wait(QDeadlineTimer(2000));
+    n = n + 1;
+    QApplication::processEvents();
+  }
   if (ok) {
     LOG_DEBUG << "Render thread stopped cleanly";
   } else {
