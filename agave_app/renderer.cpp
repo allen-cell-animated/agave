@@ -79,6 +79,8 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.m_renderer = renderer;
   }
 
+      // TODO what do we do when running on Linux desktop??
+      // need a "don't bother with EGL switch"
 #if HAS_EGL
 #else
   if (glContext) {
@@ -399,7 +401,10 @@ Renderer::shutDown()
   if (m_ownGLContext) {
     delete m_glContext;
   } else {
+#if HAS_EGL
+#else
     m_glContext->moveToThread(QGuiApplication::instance()->thread());
+#endif
   }
 
 #if HAS_EGL
