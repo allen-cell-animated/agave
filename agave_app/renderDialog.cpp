@@ -70,6 +70,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_scene(scene)
   , m_camera(camera)
   , m_glContext(glContext)
+  , m_renderThread(nullptr)
   , QDialog(parent)
 {
   setWindowTitle(tr("Render"));
@@ -128,7 +129,7 @@ RenderDialog::render()
       this->setImage(new QImage(image));
       N = N + 1;
       if (N % 100 == 0) {
-        image.save("~/test.png"); // "C:\\Users\\dmt\\test.png");
+       // image.save("C:\\Users\\dmt\\test.png");
       }
     },
     Qt::BlockingQueuedConnection);
@@ -141,19 +142,21 @@ void
 RenderDialog::done(int r)
 {
   this->m_renderer = nullptr;
-  this->m_renderThread->requestInterruption();
-  bool ok = false;
-  int n = 0;
-  while (!ok && n < 30) {
-    ok = this->m_renderThread->wait(QDeadlineTimer(2000));
-    n = n + 1;
-    QApplication::processEvents();
+  if (m_renderThread) {
+    this->m_renderThread->requestInterruption();
+    bool ok = false;
+    int n = 0;
+    while (!ok && n < 30) {
+      ok = this->m_renderThread->wait(QDeadlineTimer(2000));
+      n = n + 1;
+      QApplication::processEvents();
+    }
+    if (ok) {
+      LOG_DEBUG << "Render thread stopped cleanly";
+    } else {
+      LOG_DEBUG << "Render thread did not stop cleanly";
+    }
+    m_renderThread->deleteLater();
   }
-  if (ok) {
-    LOG_DEBUG << "Render thread stopped cleanly";
-  } else {
-    LOG_DEBUG << "Render thread did not stop cleanly";
-  }
-  m_renderThread->deleteLater();
   QDialog::done(r);
 }

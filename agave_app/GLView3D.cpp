@@ -365,7 +365,7 @@ QImage
 GLView3D::captureQimage()
 {
   if (!isEnabled()) {
-    return;
+    return QImage();
   }
 
   makeCurrent();
