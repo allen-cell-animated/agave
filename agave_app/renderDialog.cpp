@@ -5,6 +5,7 @@
 #include "renderlib/command.h"
 
 #include <QApplication>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QPushButton>
@@ -33,6 +34,12 @@ ImageDisplay::setImage(QImage* image)
   m_image = image;
   repaint();
 }
+
+  void
+ImageDisplay::save(QString filename)
+{
+    m_image->save(filename);
+  }
 
 void
 ImageDisplay::paintEvent(QPaintEvent*)
@@ -77,13 +84,16 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("&Render", this);
+  mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
 
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
+  connect(mSaveButton, SIGNAL(clicked()), this, SLOT(save()));
   connect(mCloseButton, SIGNAL(clicked()), this, SLOT(close()));
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
+  bottomButtonslayout->addWidget(mSaveButton);
   bottomButtonslayout->addWidget(mCloseButton);
 
   QVBoxLayout* layout = new QVBoxLayout(this);
@@ -92,6 +102,19 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   layout->addLayout(bottomButtonslayout);
 
   setLayout(layout);
+}
+
+void
+RenderDialog::save()
+{
+  // pause rendering
+  pauseRendering();
+	
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::currentPath(), tr("Images (*.png)"));
+  if (fileName.isEmpty()) {
+    return;
+  }
+  mImageView->save(fileName);
 }
 
 void
@@ -139,9 +162,8 @@ RenderDialog::render()
 }
 
 void
-RenderDialog::done(int r)
+RenderDialog::pauseRendering()
 {
-  this->m_renderer = nullptr;
   if (m_renderThread) {
     this->m_renderThread->requestInterruption();
     bool ok = false;
@@ -156,6 +178,15 @@ RenderDialog::done(int r)
     } else {
       LOG_DEBUG << "Render thread did not stop cleanly";
     }
+  }
+}
+
+void
+RenderDialog::done(int r)
+{
+  this->m_renderer = nullptr;
+  pauseRendering();
+  if (m_renderThread) {
     m_renderThread->deleteLater();
   }
   QDialog::done(r);

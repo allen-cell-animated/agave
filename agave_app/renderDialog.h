@@ -22,6 +22,7 @@ public:
   ImageDisplay(QWidget* parent = 0);
   ~ImageDisplay();
   void setImage(QImage* image);
+  void save(QString filename);
 
 private:
   QImage* m_image;
@@ -44,8 +45,10 @@ public:
 
   void setImage(QImage* image);
   void done(int r);
+
 private slots:
   void render();
+  void save();
 
 private:
   QMutex m_mutex;
@@ -58,6 +61,7 @@ private:
 
   ImageDisplay* mImageView; // ? or a GLView3D?
   QPushButton* mRenderButton;
+  QPushButton* mSaveButton;
   QPushButton* mCloseButton;
 
   // TODO controls to put in a render dialog:
@@ -71,4 +75,6 @@ private:
   // xy resolution
 
   // "quick render" means render image at current settings and exit
+
+void pauseRendering();
 };
