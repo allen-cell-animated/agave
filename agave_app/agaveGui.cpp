@@ -346,8 +346,8 @@ agaveGui::onQuickRender()
   connect(rdialog, &QDialog::finished, this, [this](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
-    m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setEnabled(true);
+    m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
   });
   QImage im = m_glView->captureQimage();

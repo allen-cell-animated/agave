@@ -65,9 +65,10 @@ Renderer::configure(IRenderWindow* renderer,
                     QOpenGLContext* glContext)
 {
   // assumes scene is already set in renderer and everything is initialized
-  // except for film resolution?
   m_myVolumeData.m_renderSettings = new RenderSettings(renderSettings);
   m_myVolumeData.m_camera = new CCamera(camera);
+  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(1024);
+  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(1024);
   m_myVolumeData.m_scene = new Scene(scene);
   if (!renderer) {
     m_myVolumeData.ownRenderer = true;
