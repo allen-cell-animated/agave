@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QImageWriter>
 #include <QPainter>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -109,8 +110,33 @@ RenderDialog::save()
 {
   // pause rendering
   pauseRendering();
-	
-  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::currentPath(), tr("Images (*.png)"));
+
+
+  QFileDialog::Options options;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+
+  const QByteArrayList supportedFormats = QImageWriter::supportedImageFormats();
+  QStringList supportedFormatStrings;
+  foreach (const QByteArray& item, supportedFormats) {
+    supportedFormatStrings.append(QString::fromLocal8Bit(item)); // Assuming local 8-bit.
+  }
+
+  static const QStringList desiredFormats = { "png", "jpg", "tif" };
+
+  QStringList formatFilters;
+  foreach (const QString& desiredFormatName, desiredFormats) {
+    if (supportedFormatStrings.contains(desiredFormatName, Qt::CaseInsensitive)) {
+      formatFilters.append(desiredFormatName.toUpper() + " (*." + desiredFormatName + ")");
+    }
+  }
+  QString allSupportedFormatsFilter = formatFilters.join(";;");
+
+  QString fileName =
+    QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
+
+
   if (fileName.isEmpty()) {
     return;
   }
