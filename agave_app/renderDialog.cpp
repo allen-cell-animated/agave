@@ -190,17 +190,21 @@ RenderDialog::render()
 void
 RenderDialog::pauseRendering()
 {
-  if (m_renderThread) {
+  if (m_renderThread && m_renderThread->isRunning()) {
+	
+    // TODO NOT THREAD SAFE??? make atomic
+    m_renderThread->setStreamMode(0);
+	
     this->m_renderThread->requestInterruption();
     bool ok = false;
     int n = 0;
     while (!ok && n < 30) {
-      ok = this->m_renderThread->wait(QDeadlineTimer(2000));
+      ok = this->m_renderThread->wait(QDeadlineTimer(20));
       n = n + 1;
       QApplication::processEvents();
     }
     if (ok) {
-      LOG_DEBUG << "Render thread stopped cleanly";
+      LOG_DEBUG << "Render thread stopped cleanly after " << n << " tries";
     } else {
       LOG_DEBUG << "Render thread did not stop cleanly";
     }

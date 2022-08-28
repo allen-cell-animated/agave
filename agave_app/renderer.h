@@ -52,7 +52,7 @@ public:
   inline int getRequestCount() { return this->m_requests.count(); }
 
   // 1 = continuous re-render, 0 = only wait for redraw commands
-  virtual void setStreamMode(int32_t mode) { m_streamMode = mode; }
+  virtual void setStreamMode(int32_t mode) { m_streamMode = mode > 0 ? true : false; }
 
   virtual void resizeGL(int internalWidth, int internalHeight);
 
@@ -85,7 +85,7 @@ private:
 
   GLFramebufferObject* m_fbo;
 
-  int32_t m_streamMode;
+  std::atomic<bool> m_streamMode;
   int32_t m_width, m_height;
 
   QElapsedTimer m_time;

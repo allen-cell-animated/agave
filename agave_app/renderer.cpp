@@ -19,7 +19,7 @@
 Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   : QThread(parent)
   , m_id(id)
-  , m_streamMode(0)
+  , m_streamMode(false)
   , m_fbo(nullptr)
   , m_width(0)
   , m_height(0)
@@ -154,6 +154,7 @@ Renderer::run()
   while (!QThread::currentThread()->isInterruptionRequested()) {
     this->processRequest();
 
+	// should be harmless... and maybe handle some signal/slot stuff
     QApplication::processEvents();
   }
 
@@ -182,7 +183,7 @@ Renderer::processRequest()
     return false;
   }
 
-  if (m_streamMode != 0) {
+  if (m_streamMode) {
     QElapsedTimer timer;
     timer.start();
 
@@ -190,7 +191,7 @@ Renderer::processRequest()
 
     // eat requests until done, and then render
     // note that any one request could change the streaming mode.
-    while (!this->m_requests.isEmpty() && m_streamMode != 0) {
+    while (!this->m_requests.isEmpty() && m_streamMode) {
 
       RenderRequest* r = this->m_requests.takeFirst();
       this->m_totalQueueDuration -= r->getDuration();
@@ -201,7 +202,7 @@ Renderer::processRequest()
       }
 
       // the true last request will be passed to "emit" and deleted later
-      if (!this->m_requests.isEmpty() && m_streamMode != 0) {
+      if (!this->m_requests.isEmpty() && m_streamMode) {
         delete r;
       } else {
         lastReq = r;
@@ -221,7 +222,7 @@ Renderer::processRequest()
     // in stream mode:
     // if queue is empty, then keep firing redraws back to client.
     // test about 100 frames as a convergence limit.
-    if (m_streamMode != 0 && m_myVolumeData.m_renderSettings->GetNoIterations() < 500) {
+    if (m_streamMode && m_myVolumeData.m_renderSettings->GetNoIterations() < 500) {
       // push another redraw request.
       std::vector<Command*> cmd;
       RequestRedrawCommandD data;
