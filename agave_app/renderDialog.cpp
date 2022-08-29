@@ -280,6 +280,10 @@ RenderDialog::resumeRendering()
     m_renderThread->setStreamMode(1);
 
     std::vector<Command*> cmd;
+    SetResolutionCommandD resdata;
+    resdata.m_x = mWidth;
+    resdata.m_y = mHeight;
+    cmd.push_back(new SetResolutionCommand(resdata));
     RequestRedrawCommandD data;
     cmd.push_back(new RequestRedrawCommand(data));
     m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
