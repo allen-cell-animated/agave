@@ -47,7 +47,7 @@ ImageDisplay::paintEvent(QPaintEvent*)
 {
   QPainter painter(this);
   painter.drawRect(0, 0, width(), height());
-  painter.fillRect(0, 0, width(), height(), Qt::black);
+  painter.fillRect(0, 0, width(), height(), Qt::darkGray);
   if (!m_image) {
     return;
   }
@@ -192,14 +192,12 @@ RenderDialog::pauseRendering()
 {
   if (m_renderThread && m_renderThread->isRunning()) {
 	
-    // TODO NOT THREAD SAFE??? make atomic
     m_renderThread->setStreamMode(0);
-	
-    this->m_renderThread->requestInterruption();
+	m_renderThread->requestInterruption();
     bool ok = false;
     int n = 0;
     while (!ok && n < 30) {
-      ok = this->m_renderThread->wait(QDeadlineTimer(20));
+      ok = m_renderThread->wait(QDeadlineTimer(20));
       n = n + 1;
       QApplication::processEvents();
     }
