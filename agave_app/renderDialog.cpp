@@ -36,11 +36,11 @@ ImageDisplay::setImage(QImage* image)
   repaint();
 }
 
-  void
+void
 ImageDisplay::save(QString filename)
 {
-    m_image->save(filename);
-  }
+  m_image->save(filename);
+}
 
 void
 ImageDisplay::paintEvent(QPaintEvent*)
@@ -111,7 +111,6 @@ RenderDialog::save()
   // pause rendering
   pauseRendering();
 
-
   QFileDialog::Options options;
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
@@ -135,7 +134,6 @@ RenderDialog::save()
 
   QString fileName =
     QFileDialog::getSaveFileName(this, tr("Save Image"), QString(), allSupportedFormatsFilter, nullptr, options);
-
 
   if (fileName.isEmpty()) {
     return;
@@ -178,7 +176,7 @@ RenderDialog::render()
       this->setImage(new QImage(image));
       N = N + 1;
       if (N % 100 == 0) {
-       // image.save("C:\\Users\\dmt\\test.png");
+        // image.save("C:\\Users\\dmt\\test.png");
       }
     },
     Qt::BlockingQueuedConnection);
@@ -191,9 +189,9 @@ void
 RenderDialog::pauseRendering()
 {
   if (m_renderThread && m_renderThread->isRunning()) {
-	
+
     m_renderThread->setStreamMode(0);
-	m_renderThread->requestInterruption();
+    m_renderThread->requestInterruption();
     bool ok = false;
     int n = 0;
     while (!ok && n < 30) {

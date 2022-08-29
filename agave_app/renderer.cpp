@@ -80,8 +80,8 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.m_renderer = renderer;
   }
 
-      // TODO what do we do when running on Linux desktop??
-      // need a "don't bother with EGL switch"
+  // TODO what do we do when running on Linux desktop??
+  // need a "don't bother with EGL switch"
 #if HAS_EGL
 #else
   if (glContext) {
@@ -154,7 +154,7 @@ Renderer::run()
   while (!QThread::currentThread()->isInterruptionRequested()) {
     this->processRequest();
 
-	// should be harmless... and maybe handle some signal/slot stuff
+    // should be harmless... and maybe handle some signal/slot stuff
     QApplication::processEvents();
   }
 

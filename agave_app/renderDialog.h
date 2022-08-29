@@ -76,5 +76,5 @@ private:
 
   // "quick render" means render image at current settings and exit
 
-void pauseRendering();
+  void pauseRendering();
 };
