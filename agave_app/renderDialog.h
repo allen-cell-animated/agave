@@ -5,10 +5,12 @@
 #include <QDialog>
 #include <QMutex>
 
+class QComboBox;
 class QImage;
 class QOpenGLContext;
 class QWidget;
 class QPushButton;
+class QSpinBox;
 
 class IRenderWindow;
 class Renderer;
@@ -52,6 +54,9 @@ private slots:
   void pauseRendering();
   void stopRendering();
   void resumeRendering();
+  void onResolutionPreset(int index);
+  void updateWidth(int w);
+  void updateHeight(int h);
 
 private:
   QMutex m_mutex;
@@ -68,7 +73,12 @@ private:
   QPushButton* mStopRenderButton;
   QPushButton* mSaveButton;
   QPushButton* mCloseButton;
+  QSpinBox* mWidthInput;
+  QSpinBox* mHeightInput;
+  QComboBox* mResolutionPresets;
 
+  int mWidth;
+  int mHeight;
   int m_totalRenderTime;
   // TODO controls to put in a render dialog:
   // save button

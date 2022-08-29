@@ -6,11 +6,14 @@
 #include "renderlib/command.h"
 
 #include <QApplication>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QImageWriter>
+#include <QLabel>
 #include <QPainter>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -68,6 +71,19 @@ ImageDisplay::paintEvent(QPaintEvent*)
   painter.drawImage(targetRect, *m_image, m_image->rect());
 }
 
+struct ResolutionPreset
+{
+  const char* label;
+  int w;
+  int h;
+};
+ResolutionPreset resolutionPresets[] = {
+  { "4:3 640x480", 640, 480 },       { "4:3 1024x768", 1024, 768 },     { "4:3 1280x960", 1280, 960 },
+  { "4:3 1600x1200", 1600, 1200 },   { "16:9 640x360", 640, 360 },      { "16:9 960x540", 960, 540 },
+  { "16:9 1280x720", 1280, 720 },    { "16:9 1920x1080", 1920, 1080 },  { "16:9 3840x2160", 3840, 2160 },
+  { "16:10 1920x1200", 1920, 1200 }, { "16:10 2560x1440", 2560, 1440 }, { "16:10 3840x2160", 3840, 2160 },
+};
+
 RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            const RenderSettings& renderSettings,
                            const Scene& scene,
@@ -81,6 +97,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_glContext(glContext)
   , m_renderThread(nullptr)
   , m_totalRenderTime(0)
+  , mWidth(512)
+  , mHeight(512)
   , QDialog(parent)
 {
   setWindowTitle(tr("Render"));
@@ -91,12 +109,33 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
+  mWidthInput = new QSpinBox(this);
+  mWidthInput->setMaximum(4096);
+  mWidthInput->setMinimum(2);
+  mHeightInput = new QSpinBox(this);
+  mHeightInput->setMaximum(4096);
+  mHeightInput->setMinimum(2);
+  mResolutionPresets = new QComboBox(this);
+  mResolutionPresets->addItem("Choose a preset...");
+  for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
+    mResolutionPresets->addItem(resolutionPresets[i].label);
+  }
 
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
   connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
   connect(mStopRenderButton, SIGNAL(clicked()), this, SLOT(stopRendering()));
   connect(mSaveButton, SIGNAL(clicked()), this, SLOT(save()));
   connect(mCloseButton, SIGNAL(clicked()), this, SLOT(close()));
+  connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
+  connect(mWidthInput, SIGNAL(valueChanged(int)), this, SLOT(updateWidth(int)));
+  connect(mHeightInput, SIGNAL(valueChanged(int)), this, SLOT(updateHeight(int)));
+
+  QHBoxLayout* topButtonsLayout = new QHBoxLayout();
+  topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
+  topButtonsLayout->addWidget(mWidthInput, 1);
+  topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
+  topButtonsLayout->addWidget(mHeightInput, 1);
+  topButtonsLayout->addWidget(mResolutionPresets, 1);
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
@@ -107,6 +146,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 
+  layout->addLayout(topButtonsLayout);
   layout->addWidget(mImageView);
   layout->addLayout(bottomButtonslayout);
 
@@ -255,4 +295,28 @@ RenderDialog::done(int r)
     m_renderThread->deleteLater();
   }
   QDialog::done(r);
+}
+
+void
+RenderDialog::onResolutionPreset(int index)
+{
+  // find preset res and set w/h
+  const ResolutionPreset& preset = resolutionPresets[index - 1];
+  mWidthInput->setValue((preset.w));
+  mHeightInput->setValue((preset.h));
+}
+
+void
+RenderDialog::updateWidth(int w)
+{
+  mWidth = w;
+
+  // fire a setResolution command
+}
+
+void
+RenderDialog::updateHeight(int h)
+{
+  mHeight = h;
+  // fire a setResolution command
 }
