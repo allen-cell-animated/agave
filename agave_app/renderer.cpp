@@ -57,6 +57,7 @@ Renderer::myVolumeInit()
   m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
   m_myVolumeData.ownRenderer = true;
 }
+
 void
 Renderer::configure(IRenderWindow* renderer,
                     const RenderSettings& renderSettings,
@@ -78,6 +79,7 @@ Renderer::configure(IRenderWindow* renderer,
   } else {
     m_myVolumeData.ownRenderer = false;
     m_myVolumeData.m_renderer = renderer;
+    // TODO renderer has its own RenderSettings but we just made a local copy here
   }
 
   // TODO what do we do when running on Linux desktop??
@@ -220,9 +222,9 @@ Renderer::processRequest()
     lastReq->setActualDuration(timer.nsecsElapsed());
 
     // in stream mode:
-    // if queue is empty, then keep firing redraws back to client.
-    // test about 100 frames as a convergence limit.
-    if (m_streamMode && m_myVolumeData.m_renderSettings->GetNoIterations() < 500) {
+    // if queue is empty, then keep firing redraws back to client, to build up iterations.
+    static const int MAX_ITERATIONS = 1024;
+    if (m_streamMode && m_myVolumeData.m_renderSettings->GetNoIterations() < MAX_ITERATIONS) {
       // push another redraw request.
       std::vector<Command*> cmd;
       RequestRedrawCommandD data;

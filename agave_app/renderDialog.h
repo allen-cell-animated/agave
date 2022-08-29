@@ -49,6 +49,9 @@ public:
 private slots:
   void render();
   void save();
+  void pauseRendering();
+  void stopRendering();
+  void resumeRendering();
 
 private:
   QMutex m_mutex;
@@ -61,9 +64,12 @@ private:
 
   ImageDisplay* mImageView; // ? or a GLView3D?
   QPushButton* mRenderButton;
+  QPushButton* mPauseRenderButton;
+  QPushButton* mStopRenderButton;
   QPushButton* mSaveButton;
   QPushButton* mCloseButton;
 
+  int m_totalRenderTime;
   // TODO controls to put in a render dialog:
   // save button
   // play controls for time series / anim sequence
@@ -75,6 +81,5 @@ private:
   // xy resolution
 
   // "quick render" means render image at current settings and exit
-
-  void pauseRendering();
+  void endRenderThread();
 };

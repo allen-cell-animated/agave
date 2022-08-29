@@ -2,6 +2,7 @@
 #include "renderer.h"
 
 #include "renderlib/Logging.h"
+#include "renderlib/RenderGLPT.h"
 #include "renderlib/command.h"
 
 #include <QApplication>
@@ -79,21 +80,28 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_camera(camera)
   , m_glContext(glContext)
   , m_renderThread(nullptr)
+  , m_totalRenderTime(0)
   , QDialog(parent)
 {
   setWindowTitle(tr("Render"));
 
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("&Render", this);
+  mPauseRenderButton = new QPushButton("&Pause", this);
+  mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
 
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
+  connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
+  connect(mStopRenderButton, SIGNAL(clicked()), this, SLOT(stopRendering()));
   connect(mSaveButton, SIGNAL(clicked()), this, SLOT(save()));
   connect(mCloseButton, SIGNAL(clicked()), this, SLOT(close()));
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
+  bottomButtonslayout->addWidget(mPauseRenderButton);
+  bottomButtonslayout->addWidget(mStopRenderButton);
   bottomButtonslayout->addWidget(mSaveButton);
   bottomButtonslayout->addWidget(mCloseButton);
 
@@ -151,38 +159,36 @@ void
 RenderDialog::render()
 {
   LOG_INFO << "Render button clicked";
-  // when render is done, draw QImage to widget and save to file if autosave?
-  Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
-  // now get our rendering resources into this Renderer object
-  r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
-  m_glContext->moveToThread(r);
-  r->setStreamMode(1);
+  if (!this->m_renderThread) {
 
-  std::vector<Command*> cmd;
-  RequestRedrawCommandD data;
-  cmd.push_back(new RequestRedrawCommand(data));
-  r->addRequest(new RenderRequest(nullptr, cmd, false));
+    // when render is done, draw QImage to widget and save to file if autosave?
+    Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
+    // now get our rendering resources into this Renderer object
+    r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
+    m_glContext->moveToThread(r);
 
-  this->m_renderThread = r;
-  // queued across thread boundary.  typically requestProcessed is called from another thread.
-  // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be fully
-  // async.
-  static int N = 1;
-  connect(
-    r,
-    &Renderer::requestProcessed,
-    this,
-    [this](RenderRequest* req, QImage image) {
-      this->setImage(new QImage(image));
-      N = N + 1;
-      if (N % 100 == 0) {
-        // image.save("C:\\Users\\dmt\\test.png");
-      }
-    },
-    Qt::BlockingQueuedConnection);
-  // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
-  LOG_INFO << "Starting render thread...";
-  r->start();
+    // first time in, set up stream mode and give the first draw request
+    resumeRendering();
+
+    this->m_renderThread = r;
+    // queued across thread boundary.  typically requestProcessed is called from another thread.
+    // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
+    // fully async.
+    connect(
+      r,
+      &Renderer::requestProcessed,
+      this,
+      [this](RenderRequest* req, QImage image) {
+        this->m_totalRenderTime += req->getActualDuration();
+        this->setImage(new QImage(image));
+      },
+      Qt::BlockingQueuedConnection);
+    // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
+    LOG_INFO << "Starting render thread...";
+    r->start();
+  } else {
+    resumeRendering();
+  }
 }
 
 void
@@ -191,6 +197,26 @@ RenderDialog::pauseRendering()
   if (m_renderThread && m_renderThread->isRunning()) {
 
     m_renderThread->setStreamMode(0);
+  }
+}
+
+void
+RenderDialog::stopRendering()
+{
+  if (m_renderThread && m_renderThread->isRunning()) {
+    m_renderThread->setStreamMode(0);
+    this->m_totalRenderTime = 0;
+
+    RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
+    r->getRenderSettings().SetNoIterations(0);
+  }
+}
+
+void
+RenderDialog::endRenderThread()
+{
+  pauseRendering();
+  if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
     bool ok = false;
     int n = 0;
@@ -208,10 +234,23 @@ RenderDialog::pauseRendering()
 }
 
 void
+RenderDialog::resumeRendering()
+{
+  if (m_renderThread && m_renderThread->isRunning()) {
+    m_renderThread->setStreamMode(1);
+
+    std::vector<Command*> cmd;
+    RequestRedrawCommandD data;
+    cmd.push_back(new RequestRedrawCommand(data));
+    m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
+  }
+}
+
+void
 RenderDialog::done(int r)
 {
   this->m_renderer = nullptr;
-  pauseRendering();
+  endRenderThread();
   if (m_renderThread) {
     m_renderThread->deleteLater();
   }
