@@ -33,6 +33,8 @@
 
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
+  , m_lastRenderResolutionX(640)
+  , m_lastRenderResolutionY(480)
 {
   m_ui.setupUi(this);
 
@@ -340,10 +342,15 @@ agaveGui::onQuickRender()
   // copy of camera
   // const appscene ref?
   // const rendersettings ref?
-  RenderDialog* rdialog =
-    new RenderDialog(renderer, m_renderSettings, m_appScene, m_glView->getCamera(), m_glView->context(), this);
+  CCamera camera = m_glView->getCamera();
+  camera.m_Film.m_Resolution.SetResX(m_lastRenderResolutionX);
+  camera.m_Film.m_Resolution.SetResY(m_lastRenderResolutionY);
+  RenderDialog* rdialog = new RenderDialog(renderer, m_renderSettings, m_appScene, camera, m_glView->context(), this);
   rdialog->resize(800, 600);
-  connect(rdialog, &QDialog::finished, this, [this](int result) {
+  connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
+    // remember last render resolution:
+    m_lastRenderResolutionX = rdialog->getXResolution();
+    m_lastRenderResolutionY = rdialog->getYResolution();
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
     m_glView->setEnabled(true);

@@ -47,6 +47,8 @@ public:
 
   void setImage(QImage* image);
   void done(int r);
+  int getXResolution();
+  int getYResolution();
 
 private slots:
   void render();

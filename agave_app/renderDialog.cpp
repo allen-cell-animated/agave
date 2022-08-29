@@ -97,11 +97,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_glContext(glContext)
   , m_renderThread(nullptr)
   , m_totalRenderTime(0)
-  , mWidth(512)
-  , mHeight(512)
+  , mWidth(0)
+  , mHeight(0)
   , QDialog(parent)
 {
-  setWindowTitle(tr("Render"));
+  setWindowTitle(tr("AGAVE Render"));
 
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("&Render", this);
@@ -109,12 +109,18 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
+
+  mWidth = camera.m_Film.m_Resolution.GetResX();
+  mHeight = camera.m_Film.m_Resolution.GetResY();
+
   mWidthInput = new QSpinBox(this);
   mWidthInput->setMaximum(4096);
   mWidthInput->setMinimum(2);
+  mWidthInput->setValue(mWidth);
   mHeightInput = new QSpinBox(this);
   mHeightInput->setMaximum(4096);
   mHeightInput->setMinimum(2);
+  mHeightInput->setValue(mHeight);
   mResolutionPresets = new QComboBox(this);
   mResolutionPresets->addItem("Choose a preset...");
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
@@ -203,6 +209,7 @@ RenderDialog::render()
 
     // when render is done, draw QImage to widget and save to file if autosave?
     Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
+    this->m_renderThread = r;
     // now get our rendering resources into this Renderer object
     r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
     m_glContext->moveToThread(r);
@@ -210,7 +217,6 @@ RenderDialog::render()
     // first time in, set up stream mode and give the first draw request
     resumeRendering();
 
-    this->m_renderThread = r;
     // queued across thread boundary.  typically requestProcessed is called from another thread.
     // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
     // fully async.
@@ -234,7 +240,7 @@ RenderDialog::render()
 void
 RenderDialog::pauseRendering()
 {
-  if (m_renderThread && m_renderThread->isRunning()) {
+  if (m_renderThread) {
 
     m_renderThread->setStreamMode(0);
   }
@@ -276,7 +282,7 @@ RenderDialog::endRenderThread()
 void
 RenderDialog::resumeRendering()
 {
-  if (m_renderThread && m_renderThread->isRunning()) {
+  if (m_renderThread) {
     m_renderThread->setStreamMode(1);
 
     std::vector<Command*> cmd;
@@ -314,13 +320,24 @@ void
 RenderDialog::updateWidth(int w)
 {
   mWidth = w;
-
-  // fire a setResolution command
+  m_camera.m_Film.m_Resolution.SetResX(w);
 }
 
 void
 RenderDialog::updateHeight(int h)
 {
   mHeight = h;
-  // fire a setResolution command
+  m_camera.m_Film.m_Resolution.SetResY(h);
+}
+
+int
+RenderDialog::getXResolution()
+{
+  return m_camera.m_Film.m_Resolution.GetResX();
+}
+
+int
+RenderDialog::getYResolution()
+{
+  return m_camera.m_Film.m_Resolution.GetResY();
 }

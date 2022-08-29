@@ -111,6 +111,9 @@ private:
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
   RenderSettings m_renderSettings;
 
+  int m_lastRenderResolutionX = 0;
+  int m_lastRenderResolutionY = 0;
+
   // the app owns a scene.
   // scene gets sent down to the renderer.
   Scene m_appScene;
