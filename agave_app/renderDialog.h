@@ -9,6 +9,7 @@ class QComboBox;
 class QImage;
 class QOpenGLContext;
 class QWidget;
+class QPixmap;
 class QPushButton;
 class QSpinBox;
 
@@ -27,6 +28,7 @@ public:
   void save(QString filename);
 
 private:
+  QPixmap* m_pixmap;
   QImage* m_image;
 
 protected:

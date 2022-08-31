@@ -20,29 +20,36 @@
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
 {
-  m_image = 0;
+  m_pixmap = nullptr;
+  m_image = nullptr;
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   // TODO this image should not be owned by the widget
   m_image = new QImage(256, 256, QImage::Format_RGB888);
   m_image->fill(Qt::white);
+  m_pixmap = new QPixmap(256, 256);
+  m_pixmap->convertFromImage(*m_image);
 }
 
 ImageDisplay::~ImageDisplay()
 {
   delete m_image;
+  delete m_pixmap;
 }
 
 void
 ImageDisplay::setImage(QImage* image)
 {
+  delete m_pixmap;
   delete m_image;
   m_image = image;
+  m_pixmap->convertFromImage(*m_image);
   repaint();
 }
 
 void
 ImageDisplay::save(QString filename)
 {
+  // m_pixmap->save(filename);
   m_image->save(filename);
 }
 
@@ -68,7 +75,8 @@ ImageDisplay::paintEvent(QPaintEvent*)
     targetRect.setWidth(targetRect.height() * imageaspect);
     targetRect.moveLeft((width() - targetRect.width()) / 2);
   }
-  painter.drawImage(targetRect, *m_image, m_image->rect());
+  // painter.drawImage(targetRect, *m_image, m_image->rect());
+  painter.drawPixmap(targetRect, *m_pixmap, m_pixmap->rect());
 }
 
 struct ResolutionPreset
