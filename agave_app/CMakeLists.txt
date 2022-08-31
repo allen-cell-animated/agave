@@ -69,6 +69,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/streamtestclient.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/streamtestclient.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
