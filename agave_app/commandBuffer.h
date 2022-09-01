@@ -17,6 +17,8 @@ public:
   commandBuffer(size_t len, const uint8_t* buf);
   virtual ~commandBuffer();
 
+  static commandBuffer* createBuffer(const std::vector<Command*> commands);
+
   void processBuffer();
   void execute(ExecutionContext* c);
   const uint8_t* head() { return _headPos; }
@@ -46,4 +48,31 @@ public:
 
   commandBuffer* _commandBuffer;
   uint8_t* _currentPos;
+};
+
+class CommandBufferWriter : public WriteableStream
+{
+public:
+  CommandBufferWriter(commandBuffer* buf);
+
+  // bool end();
+
+  virtual size_t writeInt32(int32_t);
+  virtual size_t writeFloat32(float);
+  virtual size_t writeFloat32Array(const std::vector<float>&);
+  virtual size_t writeString(const std::string&);
+
+  commandBuffer* _commandBuffer;
+  uint8_t* _currentPos;
+};
+
+class CommandBufferSizer : public WriteableStream
+{
+public:
+  CommandBufferSizer() {}
+
+  virtual size_t writeInt32(int32_t);
+  virtual size_t writeFloat32(float);
+  virtual size_t writeFloat32Array(const std::vector<float>&);
+  virtual size_t writeString(const std::string&);
 };

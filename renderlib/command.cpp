@@ -618,6 +618,15 @@ SessionCommand::parse(ParseableStream* c)
   data.m_name = c->parseString();
   return new SessionCommand(data);
 }
+size_t
+SessionCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeString(m_data.m_name);
+  return bytesWritten;
+}
+
 AssetPathCommand*
 AssetPathCommand::parse(ParseableStream* c)
 {
@@ -625,6 +634,15 @@ AssetPathCommand::parse(ParseableStream* c)
   data.m_name = c->parseString();
   return new AssetPathCommand(data);
 }
+size_t
+AssetPathCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeString(m_data.m_name);
+  return bytesWritten;
+}
+
 LoadOmeTifCommand*
 LoadOmeTifCommand::parse(ParseableStream* c)
 {
@@ -633,6 +651,15 @@ LoadOmeTifCommand::parse(ParseableStream* c)
   data.m_name = c->parseString();
   return new LoadOmeTifCommand(data);
 }
+size_t
+LoadOmeTifCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeString(m_data.m_name);
+  return bytesWritten;
+}
+
 SetCameraPosCommand*
 SetCameraPosCommand::parse(ParseableStream* c)
 {
@@ -642,6 +669,17 @@ SetCameraPosCommand::parse(ParseableStream* c)
   data.m_z = c->parseFloat32();
   return new SetCameraPosCommand(data);
 }
+size_t
+SetCameraPosCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  return bytesWritten;
+}
+
 SetCameraUpCommand*
 SetCameraUpCommand::parse(ParseableStream* c)
 {
@@ -651,6 +689,17 @@ SetCameraUpCommand::parse(ParseableStream* c)
   data.m_z = c->parseFloat32();
   return new SetCameraUpCommand(data);
 }
+size_t
+SetCameraUpCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  return bytesWritten;
+}
+
 SetCameraTargetCommand*
 SetCameraTargetCommand::parse(ParseableStream* c)
 {
@@ -660,6 +709,17 @@ SetCameraTargetCommand::parse(ParseableStream* c)
   data.m_z = c->parseFloat32();
   return new SetCameraTargetCommand(data);
 }
+size_t
+SetCameraTargetCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  return bytesWritten;
+}
+
 SetCameraApertureCommand*
 SetCameraApertureCommand::parse(ParseableStream* c)
 {
@@ -667,6 +727,15 @@ SetCameraApertureCommand::parse(ParseableStream* c)
   data.m_x = c->parseFloat32();
   return new SetCameraApertureCommand(data);
 }
+size_t
+SetCameraApertureCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  return bytesWritten;
+}
+
 SetCameraProjectionCommand*
 SetCameraProjectionCommand::parse(ParseableStream* c)
 {
@@ -675,6 +744,16 @@ SetCameraProjectionCommand::parse(ParseableStream* c)
   data.m_x = c->parseFloat32();
   return new SetCameraProjectionCommand(data);
 }
+size_t
+SetCameraProjectionCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_projectionType);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  return bytesWritten;
+}
+
 SetCameraFocalDistanceCommand*
 SetCameraFocalDistanceCommand::parse(ParseableStream* c)
 {
@@ -682,6 +761,15 @@ SetCameraFocalDistanceCommand::parse(ParseableStream* c)
   data.m_x = c->parseFloat32();
   return new SetCameraFocalDistanceCommand(data);
 }
+size_t
+SetCameraFocalDistanceCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  return bytesWritten;
+}
+
 SetCameraExposureCommand*
 SetCameraExposureCommand::parse(ParseableStream* c)
 {
@@ -689,6 +777,15 @@ SetCameraExposureCommand::parse(ParseableStream* c)
   data.m_x = c->parseFloat32();
   return new SetCameraExposureCommand(data);
 }
+size_t
+SetCameraExposureCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  return bytesWritten;
+}
+
 SetDiffuseColorCommand*
 SetDiffuseColorCommand::parse(ParseableStream* c)
 {
@@ -700,6 +797,19 @@ SetDiffuseColorCommand::parse(ParseableStream* c)
   data.m_a = c->parseFloat32();
   return new SetDiffuseColorCommand(data);
 }
+size_t
+SetDiffuseColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  bytesWritten += o->writeFloat32(m_data.m_a);
+  return bytesWritten;
+}
+
 SetSpecularColorCommand*
 SetSpecularColorCommand::parse(ParseableStream* c)
 {
@@ -711,6 +821,19 @@ SetSpecularColorCommand::parse(ParseableStream* c)
   data.m_a = c->parseFloat32();
   return new SetSpecularColorCommand(data);
 }
+size_t
+SetSpecularColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  bytesWritten += o->writeFloat32(m_data.m_a);
+  return bytesWritten;
+}
+
 SetEmissiveColorCommand*
 SetEmissiveColorCommand::parse(ParseableStream* c)
 {
@@ -722,6 +845,19 @@ SetEmissiveColorCommand::parse(ParseableStream* c)
   data.m_a = c->parseFloat32();
   return new SetEmissiveColorCommand(data);
 }
+size_t
+SetEmissiveColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  bytesWritten += o->writeFloat32(m_data.m_a);
+  return bytesWritten;
+}
+
 SetRenderIterationsCommand*
 SetRenderIterationsCommand::parse(ParseableStream* c)
 {
@@ -729,6 +865,15 @@ SetRenderIterationsCommand::parse(ParseableStream* c)
   data.m_x = c->parseInt32();
   return new SetRenderIterationsCommand(data);
 }
+size_t
+SetRenderIterationsCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_x);
+  return bytesWritten;
+}
+
 SetStreamModeCommand*
 SetStreamModeCommand::parse(ParseableStream* c)
 {
@@ -736,12 +881,29 @@ SetStreamModeCommand::parse(ParseableStream* c)
   data.m_x = c->parseInt32();
   return new SetStreamModeCommand(data);
 }
+size_t
+SetStreamModeCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_x);
+  return bytesWritten;
+}
+
 RequestRedrawCommand*
 RequestRedrawCommand::parse(ParseableStream* c)
 {
   RequestRedrawCommandD data;
   return new RequestRedrawCommand(data);
 }
+size_t
+RequestRedrawCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  return bytesWritten;
+}
+
 SetResolutionCommand*
 SetResolutionCommand::parse(ParseableStream* c)
 {
@@ -750,6 +912,16 @@ SetResolutionCommand::parse(ParseableStream* c)
   data.m_y = c->parseInt32();
   return new SetResolutionCommand(data);
 }
+size_t
+SetResolutionCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_x);
+  bytesWritten += o->writeInt32(m_data.m_y);
+  return bytesWritten;
+}
+
 SetDensityCommand*
 SetDensityCommand::parse(ParseableStream* c)
 {
@@ -757,12 +929,29 @@ SetDensityCommand::parse(ParseableStream* c)
   data.m_x = c->parseFloat32();
   return new SetDensityCommand(data);
 }
+size_t
+SetDensityCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  return bytesWritten;
+}
+
 FrameSceneCommand*
 FrameSceneCommand::parse(ParseableStream* c)
 {
   FrameSceneCommandD data;
   return new FrameSceneCommand(data);
 }
+size_t
+FrameSceneCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  return bytesWritten;
+}
+
 SetGlossinessCommand*
 SetGlossinessCommand::parse(ParseableStream* c)
 {
@@ -771,6 +960,16 @@ SetGlossinessCommand::parse(ParseableStream* c)
   data.m_glossiness = c->parseFloat32();
   return new SetGlossinessCommand(data);
 }
+size_t
+SetGlossinessCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_glossiness);
+  return bytesWritten;
+}
+
 EnableChannelCommand*
 EnableChannelCommand::parse(ParseableStream* c)
 {
@@ -779,6 +978,16 @@ EnableChannelCommand::parse(ParseableStream* c)
   data.m_enabled = c->parseInt32();
   return new EnableChannelCommand(data);
 }
+size_t
+EnableChannelCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeInt32(m_data.m_enabled);
+  return bytesWritten;
+}
+
 SetWindowLevelCommand*
 SetWindowLevelCommand::parse(ParseableStream* c)
 {
@@ -788,6 +997,17 @@ SetWindowLevelCommand::parse(ParseableStream* c)
   data.m_level = c->parseFloat32();
   return new SetWindowLevelCommand(data);
 }
+size_t
+SetWindowLevelCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_window);
+  bytesWritten += o->writeFloat32(m_data.m_level);
+  return bytesWritten;
+}
+
 OrbitCameraCommand*
 OrbitCameraCommand::parse(ParseableStream* c)
 {
@@ -796,6 +1016,16 @@ OrbitCameraCommand::parse(ParseableStream* c)
   data.m_phi = c->parseFloat32();
   return new OrbitCameraCommand(data);
 }
+size_t
+OrbitCameraCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_theta);
+  bytesWritten += o->writeFloat32(m_data.m_phi);
+  return bytesWritten;
+}
+
 SetSkylightTopColorCommand*
 SetSkylightTopColorCommand::parse(ParseableStream* c)
 {
@@ -805,6 +1035,17 @@ SetSkylightTopColorCommand::parse(ParseableStream* c)
   data.m_b = c->parseFloat32();
   return new SetSkylightTopColorCommand(data);
 }
+size_t
+SetSkylightTopColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  return bytesWritten;
+}
+
 SetSkylightMiddleColorCommand*
 SetSkylightMiddleColorCommand::parse(ParseableStream* c)
 {
@@ -814,6 +1055,17 @@ SetSkylightMiddleColorCommand::parse(ParseableStream* c)
   data.m_b = c->parseFloat32();
   return new SetSkylightMiddleColorCommand(data);
 }
+size_t
+SetSkylightMiddleColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  return bytesWritten;
+}
+
 SetSkylightBottomColorCommand*
 SetSkylightBottomColorCommand::parse(ParseableStream* c)
 {
@@ -822,6 +1074,16 @@ SetSkylightBottomColorCommand::parse(ParseableStream* c)
   data.m_g = c->parseFloat32();
   data.m_b = c->parseFloat32();
   return new SetSkylightBottomColorCommand(data);
+}
+size_t
+SetSkylightBottomColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  return bytesWritten;
 }
 
 SetLightPosCommand*
@@ -834,6 +1096,18 @@ SetLightPosCommand::parse(ParseableStream* c)
   data.m_phi = c->parseFloat32();
   return new SetLightPosCommand(data);
 }
+size_t
+SetLightPosCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_index);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_theta);
+  bytesWritten += o->writeFloat32(m_data.m_phi);
+  return bytesWritten;
+}
+
 SetLightColorCommand*
 SetLightColorCommand::parse(ParseableStream* c)
 {
@@ -844,6 +1118,18 @@ SetLightColorCommand::parse(ParseableStream* c)
   data.m_b = c->parseFloat32();
   return new SetLightColorCommand(data);
 }
+size_t
+SetLightColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_index);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  return bytesWritten;
+}
+
 SetLightSizeCommand*
 SetLightSizeCommand::parse(ParseableStream* c)
 {
@@ -852,6 +1138,16 @@ SetLightSizeCommand::parse(ParseableStream* c)
   data.m_x = c->parseFloat32();
   data.m_y = c->parseFloat32();
   return new SetLightSizeCommand(data);
+}
+size_t
+SetLightSizeCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_index);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  return bytesWritten;
 }
 
 float
@@ -878,6 +1174,19 @@ SetClipRegionCommand::parse(ParseableStream* c)
   data.m_maxz = clamp(data.m_maxz, 0.0, 1.0);
   return new SetClipRegionCommand(data);
 }
+size_t
+SetClipRegionCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_minx);
+  bytesWritten += o->writeFloat32(m_data.m_maxx);
+  bytesWritten += o->writeFloat32(m_data.m_miny);
+  bytesWritten += o->writeFloat32(m_data.m_maxy);
+  bytesWritten += o->writeFloat32(m_data.m_minz);
+  bytesWritten += o->writeFloat32(m_data.m_maxz);
+  return bytesWritten;
+}
 
 SetVoxelScaleCommand*
 SetVoxelScaleCommand::parse(ParseableStream* c)
@@ -888,6 +1197,17 @@ SetVoxelScaleCommand::parse(ParseableStream* c)
   data.m_z = c->parseFloat32();
   return new SetVoxelScaleCommand(data);
 }
+size_t
+SetVoxelScaleCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  return bytesWritten;
+}
+
 AutoThresholdCommand*
 AutoThresholdCommand::parse(ParseableStream* c)
 {
@@ -896,6 +1216,16 @@ AutoThresholdCommand::parse(ParseableStream* c)
   data.m_method = c->parseInt32();
   return new AutoThresholdCommand(data);
 }
+size_t
+AutoThresholdCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeInt32(m_data.m_method);
+  return bytesWritten;
+}
+
 SetPercentileThresholdCommand*
 SetPercentileThresholdCommand::parse(ParseableStream* c)
 {
@@ -905,6 +1235,17 @@ SetPercentileThresholdCommand::parse(ParseableStream* c)
   data.m_pctHigh = c->parseFloat32();
   return new SetPercentileThresholdCommand(data);
 }
+size_t
+SetPercentileThresholdCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_pctLow);
+  bytesWritten += o->writeFloat32(m_data.m_pctHigh);
+  return bytesWritten;
+}
+
 SetOpacityCommand*
 SetOpacityCommand::parse(ParseableStream* c)
 {
@@ -913,6 +1254,16 @@ SetOpacityCommand::parse(ParseableStream* c)
   data.m_opacity = c->parseFloat32();
   return new SetOpacityCommand(data);
 }
+size_t
+SetOpacityCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_opacity);
+  return bytesWritten;
+}
+
 SetPrimaryRayStepSizeCommand*
 SetPrimaryRayStepSizeCommand::parse(ParseableStream* c)
 {
@@ -920,6 +1271,15 @@ SetPrimaryRayStepSizeCommand::parse(ParseableStream* c)
   data.m_stepSize = c->parseFloat32();
   return new SetPrimaryRayStepSizeCommand(data);
 }
+size_t
+SetPrimaryRayStepSizeCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_stepSize);
+  return bytesWritten;
+}
+
 SetSecondaryRayStepSizeCommand*
 SetSecondaryRayStepSizeCommand::parse(ParseableStream* c)
 {
@@ -927,6 +1287,15 @@ SetSecondaryRayStepSizeCommand::parse(ParseableStream* c)
   data.m_stepSize = c->parseFloat32();
   return new SetSecondaryRayStepSizeCommand(data);
 }
+size_t
+SetSecondaryRayStepSizeCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_stepSize);
+  return bytesWritten;
+}
+
 SetBackgroundColorCommand*
 SetBackgroundColorCommand::parse(ParseableStream* c)
 {
@@ -936,6 +1305,17 @@ SetBackgroundColorCommand::parse(ParseableStream* c)
   data.m_b = c->parseFloat32();
   return new SetBackgroundColorCommand(data);
 }
+size_t
+SetBackgroundColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  return bytesWritten;
+}
+
 SetIsovalueThresholdCommand*
 SetIsovalueThresholdCommand::parse(ParseableStream* c)
 {
@@ -945,6 +1325,17 @@ SetIsovalueThresholdCommand::parse(ParseableStream* c)
   data.m_isorange = c->parseFloat32();
   return new SetIsovalueThresholdCommand(data);
 }
+size_t
+SetIsovalueThresholdCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32(m_data.m_isovalue);
+  bytesWritten += o->writeFloat32(m_data.m_isorange);
+  return bytesWritten;
+}
+
 SetControlPointsCommand*
 SetControlPointsCommand::parse(ParseableStream* c)
 {
@@ -952,6 +1343,15 @@ SetControlPointsCommand::parse(ParseableStream* c)
   data.m_channel = c->parseInt32();
   data.m_data = c->parseFloat32Array();
   return new SetControlPointsCommand(data);
+}
+size_t
+SetControlPointsCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeFloat32Array(m_data.m_data);
+  return bytesWritten;
 }
 
 LoadVolumeFromFileCommand*
@@ -963,6 +1363,16 @@ LoadVolumeFromFileCommand::parse(ParseableStream* c)
   data.m_time = c->parseInt32();
   return new LoadVolumeFromFileCommand(data);
 }
+size_t
+LoadVolumeFromFileCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeString(m_data.m_path);
+  bytesWritten += o->writeInt32(m_data.m_scene);
+  bytesWritten += o->writeInt32(m_data.m_time);
+  return bytesWritten;
+}
 
 SetTimeCommand*
 SetTimeCommand::parse(ParseableStream* c)
@@ -971,6 +1381,15 @@ SetTimeCommand::parse(ParseableStream* c)
   data.m_time = c->parseInt32();
   return new SetTimeCommand(data);
 }
+size_t
+SetTimeCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_time);
+  return bytesWritten;
+}
+
 SetBoundingBoxColorCommand*
 SetBoundingBoxColorCommand::parse(ParseableStream* c)
 {
@@ -980,6 +1399,17 @@ SetBoundingBoxColorCommand::parse(ParseableStream* c)
   data.m_b = c->parseFloat32();
   return new SetBoundingBoxColorCommand(data);
 }
+size_t
+SetBoundingBoxColorCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_r);
+  bytesWritten += o->writeFloat32(m_data.m_g);
+  bytesWritten += o->writeFloat32(m_data.m_b);
+  return bytesWritten;
+}
+
 ShowBoundingBoxCommand*
 ShowBoundingBoxCommand::parse(ParseableStream* c)
 {
@@ -987,6 +1417,15 @@ ShowBoundingBoxCommand::parse(ParseableStream* c)
   data.m_on = c->parseInt32();
   return new ShowBoundingBoxCommand(data);
 }
+size_t
+ShowBoundingBoxCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_on);
+  return bytesWritten;
+}
+
 TrackballCameraCommand*
 TrackballCameraCommand::parse(ParseableStream* c)
 {
@@ -994,6 +1433,15 @@ TrackballCameraCommand::parse(ParseableStream* c)
   data.m_theta = c->parseFloat32();
   data.m_phi = c->parseFloat32();
   return new TrackballCameraCommand(data);
+}
+size_t
+TrackballCameraCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_theta);
+  bytesWritten += o->writeFloat32(m_data.m_phi);
+  return bytesWritten;
 }
 
 std::string

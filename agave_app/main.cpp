@@ -6,6 +6,7 @@
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "streamserver.h"
+#include "streamtestclient.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -145,10 +146,13 @@ main(int argc, char* argv[])
 
     // set to true to show windows, or false to run as a console application
     static const bool gui = false;
+    static const bool serverTest = true;
     if (gui) {
       MainWindow* _ = new MainWindow(server);
       _->resize(512, 512);
       _->show();
+    } else if (serverTest) {
+      StreamTestClient* client = new StreamTestClient(QUrl("ws://localhost:1235"), true);
     }
 
     LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
