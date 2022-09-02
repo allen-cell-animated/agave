@@ -71,16 +71,24 @@ void
 Framebuffer::destroyFb()
 {
   glBindTexture(GL_TEXTURE_2D, 0);
-  glDeleteTextures(1, &m_colorTextureId);
-  check_gl("Destroy fb texture");
+  check_gl("bind 0 texture");
+  if (glIsTexture(m_colorTextureId)) {
+    glDeleteTextures(1, &m_colorTextureId);
+    check_gl("Destroy fb texture");
+  }
   m_colorTextureId = 0;
 
   if (m_hasDepth) {
-    glDeleteTextures(1, &m_depthTextureId);
-    check_gl("Destroy fb depth texture");
+    if (glIsTexture(m_depthTextureId)) {
+      glDeleteTextures(1, &m_depthTextureId);
+      check_gl("Destroy fb depth texture");    
+    }
     m_depthTextureId = 0;
   }
 
-  glDeleteFramebuffers(1, &m_id);
+  if (glIsFramebuffer(m_id)) {
+    glDeleteFramebuffers(1, &m_id);  
+	check_gl("delete framebuffer id");
+  }
   m_id = 0;
 }

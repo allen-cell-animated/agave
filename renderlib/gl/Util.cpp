@@ -671,8 +671,11 @@ GLShaderProgram::GLShaderProgram()
 
 GLShaderProgram::~GLShaderProgram()
 {
-  glDeleteProgram(m_program);
+  if (glIsProgram(m_program)) {
+    glDeleteProgram(m_program);
+  }
 }
+  
 
 void
 GLShaderProgram::addShader(GLShader* shader)

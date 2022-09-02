@@ -75,7 +75,6 @@ Renderer::configure(IRenderWindow* renderer,
 
     m_myVolumeData.ownRenderer = true;
     m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
-    m_myVolumeData.m_renderer->initialize(1024, 1024);
     m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
   } else {
     m_myVolumeData.ownRenderer = false;
@@ -125,6 +124,10 @@ Renderer::init()
   ///////////////////////////////////
   // INIT THE RENDER LIB
   ///////////////////////////////////
+  if (m_myVolumeData.ownRenderer) {
+    m_myVolumeData.m_renderer->initialize(m_myVolumeData.m_camera->m_Film.m_Resolution.GetResX(),
+                                          m_myVolumeData.m_camera->m_Film.m_Resolution.GetResY());
+  }
 
   this->resizeGL(m_myVolumeData.m_camera->m_Film.m_Resolution.GetResX(),
                  m_myVolumeData.m_camera->m_Film.m_Resolution.GetResY());
