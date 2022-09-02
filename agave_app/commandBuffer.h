@@ -17,7 +17,7 @@ public:
   commandBuffer(size_t len, const uint8_t* buf);
   virtual ~commandBuffer();
 
-  static commandBuffer* createBuffer(const std::vector<Command*> commands);
+  static commandBuffer* createBuffer(const std::vector<Command*>& commands);
 
   void processBuffer();
   void execute(ExecutionContext* c);

@@ -42,7 +42,7 @@ CommandBufferIterator::CommandBufferIterator(commandBuffer* buf)
     break;
 
 commandBuffer*
-commandBuffer::createBuffer(const std::vector<Command*> commands)
+commandBuffer::createBuffer(const std::vector<Command*>& commands)
 {
   // compute space for allocation
   size_t len = 0;
@@ -234,6 +234,7 @@ CommandBufferWriter::writeFloat32Array(const std::vector<float>& v)
 {
   writeInt32((int32_t)v.size());
   memcpy(_currentPos, v.data(), v.size() * sizeof(float));
+  _currentPos += v.size() * sizeof(float);
   return 4 + v.size() * sizeof(float);
 }
 
@@ -242,6 +243,7 @@ CommandBufferWriter::writeString(const std::string& s)
 {
   writeInt32((int32_t)s.size());
   memcpy(_currentPos, s.data(), s.size() * sizeof(uint8_t));
+  _currentPos += s.size() * sizeof(uint8_t);
   return 4 + s.size() * sizeof(uint8_t);
 }
 

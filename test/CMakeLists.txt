@@ -8,10 +8,13 @@ target_include_directories(agave_test PUBLIC
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agave_test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_commands.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_histogram.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_timeLine.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_volumeDimensions.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../agave_app/commandBuffer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../agave_app/commandBuffer.h"
 )
 
 target_link_libraries(agave_test 
