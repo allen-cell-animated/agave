@@ -39,10 +39,11 @@ ImageDisplay::~ImageDisplay()
 void
 ImageDisplay::setImage(QImage* image)
 {
-  delete m_pixmap;
   delete m_image;
   m_image = image;
-  m_pixmap->convertFromImage(*m_image);
+  if (image) {
+    m_pixmap->convertFromImage(*m_image);
+  }
   repaint();
 }
 
