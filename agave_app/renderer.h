@@ -15,6 +15,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLTexture>
 #include <QThread>
+#include <QWaitCondition>
 #include <QtCore/QElapsedTimer>
 
 #include <memory>
@@ -66,7 +67,11 @@ protected:
 
   int getTime();
 
+  // this is a task queue
   QList<RenderRequest*> m_requests;
+  QMutex m_requestMutex;
+  QWaitCondition m_wait;
+
   int m_totalQueueDuration;
 
   void init();

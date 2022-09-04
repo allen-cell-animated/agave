@@ -25,6 +25,7 @@ Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   , m_height(0)
   , m_openGLMutex(&mutex)
   , m_ownGLContext(true)
+  , m_wait()
 {
   this->m_totalQueueDuration = 0;
 
@@ -158,7 +159,14 @@ Renderer::run()
   // myVolumeInit();
 
   while (!QThread::currentThread()->isInterruptionRequested()) {
+    m_requestMutex.lock();
+    if (m_requests.isEmpty()) {
+      m_wait.wait(&m_requestMutex);
+    }
+
     this->processRequest();
+
+    m_requestMutex.unlock();
 
     // should be harmless... and maybe handle some signal/slot stuff
     QApplication::processEvents();
@@ -178,8 +186,13 @@ Renderer::run()
 void
 Renderer::addRequest(RenderRequest* request)
 {
+  m_requestMutex.lock();
+
   this->m_requests << request;
   this->m_totalQueueDuration += request->getDuration();
+  m_requestMutex.unlock();
+
+  this->m_wait.wakeAll();
 }
 
 bool
@@ -233,7 +246,12 @@ Renderer::processRequest()
       std::vector<Command*> cmd;
       RequestRedrawCommandD data;
       cmd.push_back(new RequestRedrawCommand(data));
-      this->addRequest(new RenderRequest(lastReq->getClient(), cmd, false));
+      RenderRequest* rr = new RenderRequest(lastReq->getClient(), cmd, false);
+
+      // this->addRequest(rr);
+
+      this->m_requests << rr;
+      this->m_totalQueueDuration += rr->getDuration();
     }
 
     // inform the server that we are done with r
