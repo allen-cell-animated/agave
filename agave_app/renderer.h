@@ -45,6 +45,8 @@ public:
 
   void run();
 
+  void wakeUp();
+
   void addRequest(RenderRequest* request);
   bool processRequest();
 

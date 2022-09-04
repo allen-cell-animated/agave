@@ -184,6 +184,12 @@ Renderer::run()
 }
 
 void
+Renderer::wakeUp()
+{
+  m_wait.wakeAll();
+}
+
+void
 Renderer::addRequest(RenderRequest* request)
 {
   m_requestMutex.lock();

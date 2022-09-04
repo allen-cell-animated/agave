@@ -62,6 +62,9 @@ private slots:
   void updateWidth(int w);
   void updateHeight(int h);
 
+signals:
+  void setRenderResolution(int x, int y);
+
 private:
   QMutex m_mutex;
   QOpenGLContext* m_glContext;

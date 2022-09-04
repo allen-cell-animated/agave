@@ -273,6 +273,8 @@ RenderDialog::endRenderThread()
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
+    m_renderThread->wakeUp();
+    
     bool ok = false;
     int n = 0;
     while (!ok && n < 30) {
@@ -323,6 +325,7 @@ RenderDialog::onResolutionPreset(int index)
   const ResolutionPreset& preset = resolutionPresets[index - 1];
   mWidthInput->setValue((preset.w));
   mHeightInput->setValue((preset.h));
+  emit setRenderResolution(mWidth, mHeight);
 }
 
 void
@@ -330,6 +333,7 @@ RenderDialog::updateWidth(int w)
 {
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
+  emit setRenderResolution(mWidth, mHeight);
 }
 
 void
@@ -337,6 +341,7 @@ RenderDialog::updateHeight(int h)
 {
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
+  emit setRenderResolution(mWidth, mHeight);
 }
 
 int

@@ -347,10 +347,12 @@ agaveGui::onQuickRender()
   camera.m_Film.m_Resolution.SetResY(m_lastRenderResolutionY);
   RenderDialog* rdialog = new RenderDialog(renderer, m_renderSettings, m_appScene, camera, m_glView->context(), this);
   rdialog->resize(800, 600);
-  connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
+  connect(rdialog, &RenderDialog::setRenderResolution, this, [this](int x, int y) {
     // remember last render resolution:
-    m_lastRenderResolutionX = rdialog->getXResolution();
-    m_lastRenderResolutionY = rdialog->getYResolution();
+    m_lastRenderResolutionX = x;
+    m_lastRenderResolutionY = y;
+  });
+  connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
     m_glView->setEnabled(true);
