@@ -10,6 +10,7 @@ class QImage;
 class QOpenGLContext;
 class QWidget;
 class QPixmap;
+class QProgressBar;
 class QPushButton;
 class QSpinBox;
 
@@ -83,6 +84,7 @@ private:
   QSpinBox* mWidthInput;
   QSpinBox* mHeightInput;
   QComboBox* mResolutionPresets;
+  QProgressBar* mProgressBar;
 
   int mWidth;
   int mHeight;

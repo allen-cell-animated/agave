@@ -12,10 +12,14 @@
 #include <QImageWriter>
 #include <QLabel>
 #include <QPainter>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QVBoxLayout>
 #include <QWidget>
+
+static const int stop_wallTime = 0;
+static const int stop_samplesPerPixel = 1;
 
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
@@ -118,6 +122,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
+  mProgressBar = new QProgressBar(this);
 
   mWidth = camera.m_Film.m_Resolution.GetResX();
   mHeight = camera.m_Film.m_Resolution.GetResY();
@@ -163,6 +168,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   layout->addLayout(topButtonsLayout);
   layout->addWidget(mImageView);
+  layout->addWidget(mProgressBar);
   layout->addLayout(bottomButtonslayout);
 
   setLayout(layout);
@@ -235,6 +241,9 @@ RenderDialog::render()
       this,
       [this](RenderRequest* req, QImage image) {
         this->m_totalRenderTime += req->getActualDuration();
+        // increment progress
+        mProgressBar->setValue(mProgressBar->value() + 1);
+        // update display
         this->setImage(new QImage(image));
       },
       Qt::BlockingQueuedConnection);
@@ -264,6 +273,8 @@ RenderDialog::stopRendering()
 
     RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
     r->getRenderSettings().SetNoIterations(0);
+
+    mProgressBar->reset();
   }
 }
 
@@ -274,7 +285,7 @@ RenderDialog::endRenderThread()
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
     m_renderThread->wakeUp();
-    
+
     bool ok = false;
     int n = 0;
     while (!ok && n < 30) {
@@ -333,6 +344,8 @@ RenderDialog::updateWidth(int w)
 {
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
+  mProgressBar->reset();
+
   emit setRenderResolution(mWidth, mHeight);
 }
 
@@ -341,6 +354,7 @@ RenderDialog::updateHeight(int h)
 {
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
+  mProgressBar->reset();
   emit setRenderResolution(mWidth, mHeight);
 }
 
