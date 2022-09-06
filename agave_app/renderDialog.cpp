@@ -276,7 +276,8 @@ RenderDialog::render()
           mProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
         }
         if (mProgressBar->value() >= mProgressBar->maximum()) {
-          stopRendering();
+			// what needs to happen?
+          pauseRendering();
         } else {
           // update display
           this->setImage(new QImage(image));
