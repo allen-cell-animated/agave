@@ -20,9 +20,9 @@ public:
 
   inline bool isDebug() { return debug; }
 
-  inline void setActualDuration(int actualDuration) { this->actualDuration = actualDuration; }
+  inline void setActualDuration(qint64 actualDuration) { this->actualDuration = actualDuration; }
 
-  inline int getActualDuration() { return actualDuration; }
+  inline qint64 getActualDuration() { return actualDuration; }
 
 private:
   QWebSocket* client;
@@ -32,7 +32,7 @@ private:
   int estimatedDuration;
 
   // how many nanoseconds did it actually take
-  int actualDuration;
+  qint64 actualDuration;
 
   bool debug;
 };

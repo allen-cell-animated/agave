@@ -11,15 +11,14 @@
 #include <QHBoxLayout>
 #include <QImageWriter>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTimeEdit>
 #include <QVBoxLayout>
 #include <QWidget>
-
-static const int stop_wallTime = 0;
-static const int stop_samplesPerPixel = 1;
 
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
@@ -122,7 +121,19 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
+  static const int defaultRenderIterations = 1024;
   mProgressBar = new QProgressBar(this);
+  mProgressBar->setRange(0, defaultRenderIterations);
+  // mRenderDurationEdit = new QLineEdit(this);
+  mRenderSamplesEdit = new QSpinBox(this);
+  mRenderSamplesEdit->setMinimum(1);
+  mRenderSamplesEdit->setMaximum(65536);
+  mRenderSamplesEdit->setValue(defaultRenderIterations);
+  mRenderTimeEdit = new QTimeEdit(this);
+  mRenderTimeEdit->setDisplayFormat("hh:mm:ss");
+  mRenderTimeEdit->setTime(QTime(0, 0, 30));
+
+  setRenderDurationType(eRenderDurationType::SAMPLES);
 
   mWidth = camera.m_Film.m_Resolution.GetResX();
   mHeight = camera.m_Film.m_Resolution.GetResY();
@@ -149,6 +160,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
   connect(mWidthInput, SIGNAL(valueChanged(int)), this, SLOT(updateWidth(int)));
   connect(mHeightInput, SIGNAL(valueChanged(int)), this, SLOT(updateHeight(int)));
+  connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
+  connect(mRenderTimeEdit, SIGNAL(valueChanged(QTime)), this, SLOT(updateRenderTime(QTime)));
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -156,6 +169,13 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mResolutionPresets, 1);
+
+  QHBoxLayout* durationsLayout = new QHBoxLayout();
+  durationsLayout->addWidget(new QLabel(tr("Time:")), 0);
+  durationsLayout->addWidget(mRenderTimeEdit, 1);
+  durationsLayout->addWidget(new QLabel(tr("Samples:")), 0);
+  durationsLayout->addWidget(mRenderSamplesEdit, 1);
+  //  durationsLayout->addWidget(mRenderDurationTypeEdit, 1);
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
@@ -167,6 +187,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   QVBoxLayout* layout = new QVBoxLayout(this);
 
   layout->addLayout(topButtonsLayout);
+  layout->addLayout(durationsLayout);
   layout->addWidget(mImageView);
   layout->addWidget(mProgressBar);
   layout->addLayout(bottomButtonslayout);
@@ -242,7 +263,11 @@ RenderDialog::render()
       [this](RenderRequest* req, QImage image) {
         this->m_totalRenderTime += req->getActualDuration();
         // increment progress
-        mProgressBar->setValue(mProgressBar->value() + 1);
+        if (mRenderDurationType == eRenderDurationType::SAMPLES) {
+          mProgressBar->setValue(mProgressBar->value() + 1);
+        } else {
+          mProgressBar->setValue(m_totalRenderTime / (1000 * 1000));
+        }
         // update display
         this->setImage(new QImage(image));
       },
@@ -269,12 +294,8 @@ RenderDialog::stopRendering()
 {
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->setStreamMode(0);
-    this->m_totalRenderTime = 0;
 
-    RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
-    r->getRenderSettings().SetNoIterations(0);
-
-    mProgressBar->reset();
+    resetProgress();
   }
 }
 
@@ -344,7 +365,7 @@ RenderDialog::updateWidth(int w)
 {
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
-  mProgressBar->reset();
+  resetProgress();
 
   emit setRenderResolution(mWidth, mHeight);
 }
@@ -354,7 +375,7 @@ RenderDialog::updateHeight(int h)
 {
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
-  mProgressBar->reset();
+  resetProgress();
   emit setRenderResolution(mWidth, mHeight);
 }
 
@@ -368,4 +389,43 @@ int
 RenderDialog::getYResolution()
 {
   return m_camera.m_Film.m_Resolution.GetResY();
+}
+
+void
+RenderDialog::setRenderDurationType(eRenderDurationType type)
+{
+  mRenderDurationType = type;
+  if (mRenderDurationType == eRenderDurationType::SAMPLES) {
+    mRenderTimeEdit->setEnabled(false);
+    mRenderSamplesEdit->setEnabled(true);
+  } else {
+    mRenderTimeEdit->setEnabled(true);
+    mRenderSamplesEdit->setEnabled(false);
+  }
+}
+
+void
+RenderDialog::updateRenderSamples(int s)
+{
+  if (mRenderDurationType == eRenderDurationType::SAMPLES) {
+    mProgressBar->setMaximum(s);
+  }
+}
+
+void
+RenderDialog::updateRenderTime(QTime t)
+{
+  if (mRenderDurationType == eRenderDurationType::TIME) {
+    mProgressBar->setMaximum(t.hour() * 3600 + t.minute() * 60 + t.second());
+  }
+}
+
+void
+RenderDialog::resetProgress()
+{
+  RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
+  r->getRenderSettings().SetNoIterations(0);
+
+  mProgressBar->reset();
+  m_totalRenderTime = 0;
 }

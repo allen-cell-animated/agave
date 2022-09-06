@@ -9,10 +9,12 @@ class QComboBox;
 class QImage;
 class QOpenGLContext;
 class QWidget;
+class QLineEdit;
 class QPixmap;
 class QProgressBar;
 class QPushButton;
 class QSpinBox;
+class QTimeEdit;
 
 class IRenderWindow;
 class Renderer;
@@ -34,6 +36,12 @@ private:
 
 protected:
   void paintEvent(QPaintEvent* event) override;
+};
+
+enum eRenderDurationType
+{
+  TIME = 0,
+  SAMPLES = 1
 };
 
 class RenderDialog : public QDialog
@@ -62,6 +70,8 @@ private slots:
   void onResolutionPreset(int index);
   void updateWidth(int w);
   void updateHeight(int h);
+  void updateRenderSamples(int s);
+  void updateRenderTime(QTime t);
 
 signals:
   void setRenderResolution(int x, int y);
@@ -85,10 +95,13 @@ private:
   QSpinBox* mHeightInput;
   QComboBox* mResolutionPresets;
   QProgressBar* mProgressBar;
+  QLineEdit* mRenderDurationEdit;
+  QSpinBox* mRenderSamplesEdit;
+  QTimeEdit* mRenderTimeEdit;
 
   int mWidth;
   int mHeight;
-  int m_totalRenderTime;
+  qint64 m_totalRenderTime;
   // TODO controls to put in a render dialog:
   // save button
   // play controls for time series / anim sequence
@@ -101,4 +114,7 @@ private:
 
   // "quick render" means render image at current settings and exit
   void endRenderThread();
+  void setRenderDurationType(eRenderDurationType type);
+  eRenderDurationType mRenderDurationType;
+  void resetProgress();
 };
