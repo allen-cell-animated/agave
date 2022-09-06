@@ -72,6 +72,7 @@ private slots:
   void updateHeight(int h);
   void updateRenderSamples(int s);
   void updateRenderTime(QTime t);
+  void onRenderDurationTypeChanged(int index);
 
 signals:
   void setRenderResolution(int x, int y);
@@ -95,7 +96,7 @@ private:
   QSpinBox* mHeightInput;
   QComboBox* mResolutionPresets;
   QProgressBar* mProgressBar;
-  QLineEdit* mRenderDurationEdit;
+  QComboBox* mRenderDurationEdit;
   QSpinBox* mRenderSamplesEdit;
   QTimeEdit* mRenderTimeEdit;
 

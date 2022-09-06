@@ -124,7 +124,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   static const int defaultRenderIterations = 1024;
   mProgressBar = new QProgressBar(this);
   mProgressBar->setRange(0, defaultRenderIterations);
-  // mRenderDurationEdit = new QLineEdit(this);
+
+  mRenderDurationEdit = new QComboBox(this);
+  mRenderDurationEdit->addItem("Samples");
+  mRenderDurationEdit->addItem("Time");
+
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
   mRenderSamplesEdit->setMaximum(65536);
@@ -162,6 +166,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mHeightInput, SIGNAL(valueChanged(int)), this, SLOT(updateHeight(int)));
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(valueChanged(QTime)), this, SLOT(updateRenderTime(QTime)));
+  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -171,6 +176,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(mResolutionPresets, 1);
 
   QHBoxLayout* durationsLayout = new QHBoxLayout();
+  durationsLayout->addWidget(mRenderDurationEdit, 0);
   durationsLayout->addWidget(new QLabel(tr("Time:")), 0);
   durationsLayout->addWidget(mRenderTimeEdit, 1);
   durationsLayout->addWidget(new QLabel(tr("Samples:")), 0);
@@ -266,10 +272,15 @@ RenderDialog::render()
         if (mRenderDurationType == eRenderDurationType::SAMPLES) {
           mProgressBar->setValue(mProgressBar->value() + 1);
         } else {
-          mProgressBar->setValue(m_totalRenderTime / (1000 * 1000));
+          // nano to seconds.  render durations in the dialog are specified in seconds.
+          mProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
         }
-        // update display
-        this->setImage(new QImage(image));
+        if (mProgressBar->value() >= mProgressBar->maximum()) {
+          stopRendering();
+        } else {
+          // update display
+          this->setImage(new QImage(image));
+        }
       },
       Qt::BlockingQueuedConnection);
     // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
@@ -428,4 +439,16 @@ RenderDialog::resetProgress()
 
   mProgressBar->reset();
   m_totalRenderTime = 0;
+}
+
+void
+RenderDialog::onRenderDurationTypeChanged(int index)
+{
+  if (index == 0) {
+    setRenderDurationType(eRenderDurationType::SAMPLES);
+    updateRenderSamples(mRenderSamplesEdit->value());
+  } else {
+    setRenderDurationType(eRenderDurationType::TIME);
+    updateRenderTime(mRenderTimeEdit->time());
+  }
 }
