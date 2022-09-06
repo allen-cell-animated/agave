@@ -122,8 +122,13 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
   static const int defaultRenderIterations = 1024;
-  mProgressBar = new QProgressBar(this);
-  mProgressBar->setRange(0, defaultRenderIterations);
+
+  mFrameProgressBar = new QProgressBar(this);
+  mFrameProgressBar->setRange(0, defaultRenderIterations);
+
+  mTimeSeriesProgressBar = new QProgressBar(this);
+  mTimeSeriesProgressBar->setRange(0, 1);
+  mTimeSeriesProgressBar->setEnabled(false);
 
   mRenderDurationEdit = new QComboBox(this);
   mRenderDurationEdit->addItem("Samples");
@@ -195,7 +200,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   layout->addLayout(topButtonsLayout);
   layout->addLayout(durationsLayout);
   layout->addWidget(mImageView);
-  layout->addWidget(mProgressBar);
+  layout->addWidget(mFrameProgressBar);
+  layout->addWidget(mTimeSeriesProgressBar);
   layout->addLayout(bottomButtonslayout);
 
   setLayout(layout);
@@ -270,13 +276,13 @@ RenderDialog::render()
         this->m_totalRenderTime += req->getActualDuration();
         // increment progress
         if (mRenderDurationType == eRenderDurationType::SAMPLES) {
-          mProgressBar->setValue(mProgressBar->value() + 1);
+          mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
         } else {
           // nano to seconds.  render durations in the dialog are specified in seconds.
-          mProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
+          mFrameProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
         }
-        if (mProgressBar->value() >= mProgressBar->maximum()) {
-			// what needs to happen?
+        if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+          // what needs to happen?
           pauseRendering();
         } else {
           // update display
@@ -420,7 +426,7 @@ void
 RenderDialog::updateRenderSamples(int s)
 {
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
-    mProgressBar->setMaximum(s);
+    mFrameProgressBar->setMaximum(s);
   }
 }
 
@@ -428,7 +434,7 @@ void
 RenderDialog::updateRenderTime(QTime t)
 {
   if (mRenderDurationType == eRenderDurationType::TIME) {
-    mProgressBar->setMaximum(t.hour() * 3600 + t.minute() * 60 + t.second());
+    mFrameProgressBar->setMaximum(t.hour() * 3600 + t.minute() * 60 + t.second());
   }
 }
 
@@ -438,7 +444,7 @@ RenderDialog::resetProgress()
   RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
   r->getRenderSettings().SetNoIterations(0);
 
-  mProgressBar->reset();
+  mFrameProgressBar->reset();
   m_totalRenderTime = 0;
 }
 
