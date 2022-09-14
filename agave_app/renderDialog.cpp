@@ -42,7 +42,7 @@ ImageDisplay::setImage(QImage* image)
 {
   if (image) {
 
-    m_pixmap->convertFromImage(*image);
+    m_pixmap->convertFromImage(*image, Qt::ColorOnly);
     if (image->hasAlphaChannel()) {
       //      LOG_DEBUG << "image has alpha";
     }
@@ -63,6 +63,12 @@ void
 ImageDisplay::paintEvent(QPaintEvent*)
 {
   QPainter painter(this);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform);
+  painter.setCompositionMode(QPainter::CompositionMode_Source);
+  painter.setOpacity(1.0);
+  painter.setBackgroundMode(Qt::OpaqueMode);
+  //  painter.setBackground(QBrush(Qt::darkGray));
+
   painter.drawRect(0, 0, width(), height());
   painter.fillRect(0, 0, width(), height(), Qt::darkGray);
   if (!m_pixmap) {
@@ -81,9 +87,6 @@ ImageDisplay::paintEvent(QPaintEvent*)
     targetRect.setWidth(targetRect.height() * imageaspect);
     targetRect.moveLeft((width() - targetRect.width()) / 2);
   }
-  painter.setRenderHint(QPainter::SmoothPixmapTransform);
-  painter.setCompositionMode(QPainter::CompositionMode_Source);
-  painter.setOpacity(1.0);
   painter.drawPixmap(targetRect, *m_pixmap, m_pixmap->rect());
 }
 
