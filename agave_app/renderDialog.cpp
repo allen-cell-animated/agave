@@ -24,28 +24,31 @@ ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
 {
   m_pixmap = nullptr;
-  m_image = nullptr;
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   // TODO this image should not be owned by the widget
-  m_image = new QImage(256, 256, QImage::Format_RGB888);
-  m_image->fill(Qt::white);
+  // m_image = new QImage(256, 256, QImage::Format_RGB888);
+  // m_image->fill(Qt::white);
   m_pixmap = new QPixmap(256, 256);
-  m_pixmap->convertFromImage(*m_image);
+  //  m_pixmap->convertFromImage(*m_image);
 }
 
 ImageDisplay::~ImageDisplay()
 {
-  delete m_image;
   delete m_pixmap;
 }
 
 void
 ImageDisplay::setImage(QImage* image)
 {
-  delete m_image;
-  m_image = image;
   if (image) {
-    m_pixmap->convertFromImage(*m_image);
+
+    m_pixmap->convertFromImage(*image);
+    if (image->hasAlphaChannel()) {
+      //      LOG_DEBUG << "image has alpha";
+    }
+    if (m_pixmap->hasAlphaChannel() && m_pixmap->hasAlpha()) {
+      //      LOG_DEBUG << "pixmap has alpha";
+    }
   }
   repaint();
 }
@@ -53,8 +56,7 @@ ImageDisplay::setImage(QImage* image)
 void
 ImageDisplay::save(QString filename)
 {
-  // m_pixmap->save(filename);
-  m_image->save(filename);
+  m_pixmap->save(filename);
 }
 
 void
@@ -63,12 +65,12 @@ ImageDisplay::paintEvent(QPaintEvent*)
   QPainter painter(this);
   painter.drawRect(0, 0, width(), height());
   painter.fillRect(0, 0, width(), height(), Qt::darkGray);
-  if (!m_image) {
+  if (!m_pixmap) {
     return;
   }
   // fit image aspect ratio within the given widget rectangle.
-  int w = m_image->width();
-  int h = m_image->height();
+  int w = m_pixmap->width();
+  int h = m_pixmap->height();
   float imageaspect = (float)w / (float)h;
   float widgetaspect = (float)width() / (float)height();
   QRect targetRect = rect();
@@ -79,7 +81,9 @@ ImageDisplay::paintEvent(QPaintEvent*)
     targetRect.setWidth(targetRect.height() * imageaspect);
     targetRect.moveLeft((width() - targetRect.width()) / 2);
   }
-  // painter.drawImage(targetRect, *m_image, m_image->rect());
+  painter.setRenderHint(QPainter::SmoothPixmapTransform);
+  painter.setCompositionMode(QPainter::CompositionMode_Source);
+  painter.setOpacity(1.0);
   painter.drawPixmap(targetRect, *m_pixmap, m_pixmap->rect());
 }
 
@@ -269,32 +273,36 @@ RenderDialog::render()
     // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
     // fully async.
     connect(
-      r,
-      &Renderer::requestProcessed,
-      this,
-      [this](RenderRequest* req, QImage image) {
-        this->m_totalRenderTime += req->getActualDuration();
-        // increment progress
-        if (mRenderDurationType == eRenderDurationType::SAMPLES) {
-          mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
-        } else {
-          // nano to seconds.  render durations in the dialog are specified in seconds.
-          mFrameProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
-        }
-        if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
-          // what needs to happen?
-          pauseRendering();
-        } else {
-          // update display
-          this->setImage(new QImage(image));
-        }
-      },
-      Qt::BlockingQueuedConnection);
+      r, &Renderer::requestProcessed, this, &RenderDialog::onRenderRequestProcessed, Qt::BlockingQueuedConnection);
     // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
     LOG_INFO << "Starting render thread...";
     r->start();
   } else {
     resumeRendering();
+  }
+}
+
+void
+RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
+{
+  // this is called after the render thread has completed a render request
+  // the QImage is sent here from the thread.
+  // this is an incremental update of a render and our chance to update the GUI and state of our processing
+
+  this->m_totalRenderTime += req->getActualDuration();
+  // increment progress
+  if (mRenderDurationType == eRenderDurationType::SAMPLES) {
+    mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
+  } else {
+    // nano to seconds.  render durations in the dialog are specified in seconds.
+    mFrameProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
+  }
+  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+    // what needs to happen?
+    pauseRendering();
+  } else {
+    // update display
+    this->setImage(new QImage(image));
   }
 }
 

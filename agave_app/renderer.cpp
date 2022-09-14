@@ -346,7 +346,7 @@ Renderer::render()
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
   m_fbo->toImage(bytes.get());
-  QImage img = QImage(bytes.get(), m_fbo->width(), m_fbo->height(), QImage::Format_RGB32).copy().mirrored();
+  QImage img = QImage(bytes.get(), m_fbo->width(), m_fbo->height(), QImage::Format_ARGB32).copy().mirrored();
 
   this->m_glContext->doneCurrent();
 

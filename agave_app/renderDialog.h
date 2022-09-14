@@ -18,6 +18,7 @@ class QTimeEdit;
 
 class IRenderWindow;
 class Renderer;
+class RenderRequest;
 class RenderSettings;
 class Scene;
 
@@ -119,4 +120,6 @@ private:
   void setRenderDurationType(eRenderDurationType type);
   eRenderDurationType mRenderDurationType;
   void resetProgress();
+
+  void onRenderRequestProcessed(RenderRequest* req, QImage image);
 };
