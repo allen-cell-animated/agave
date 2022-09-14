@@ -12,6 +12,7 @@
 #include <QImageWriter>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
@@ -20,8 +21,10 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
+  , m_scale(1.0)
 {
   m_pixmap = nullptr;
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -47,8 +50,10 @@ ImageDisplay::setImage(QImage* image)
     QImage im = image->convertToFormat(QImage::Format_RGB32);
 	
     m_pixmap->convertFromImage(im, Qt::ColorOnly);
+    m_rect = m_pixmap->rect();
+    m_rect.translate(-m_rect.center());
   }
-  repaint();
+  repaint(); // update() ?
 }
 
 void
@@ -69,6 +74,16 @@ ImageDisplay::paintEvent(QPaintEvent*)
 
   painter.drawRect(0, 0, width(), height());
   painter.fillRect(0, 0, width(), height(), Qt::darkGray);
+
+  if (!m_pixmap) {
+    return;
+  }
+  painter.translate(rect().center());
+  painter.scale(m_scale, m_scale);
+  painter.translate(m_delta);
+  painter.drawPixmap(m_rect.topLeft(), *m_pixmap);
+#if 0
+
   if (!m_pixmap) {
     return;
   }
@@ -86,6 +101,48 @@ ImageDisplay::paintEvent(QPaintEvent*)
     targetRect.moveLeft((width() - targetRect.width()) / 2);
   }
   painter.drawPixmap(targetRect, *m_pixmap, m_pixmap->rect());
+#endif
+}
+
+void
+ImageDisplay::mousePressEvent(QMouseEvent* event) 
+{
+  m_reference = event->pos();
+  qApp->setOverrideCursor(Qt::ClosedHandCursor);
+  setMouseTracking(true);
+}
+
+void
+ImageDisplay::mouseMoveEvent(QMouseEvent* event) 
+{
+  m_delta += (event->pos() - m_reference) * 1.0 / m_scale;
+  m_reference = event->pos();
+  update();
+}
+
+void
+ImageDisplay::mouseReleaseEvent(QMouseEvent*) 
+{
+  qApp->restoreOverrideCursor();
+  setMouseTracking(false);
+}
+
+void
+ImageDisplay::scale(qreal s)
+{
+  m_scale *= s;
+  repaint();
+  //update();
+}
+
+void
+ImageDisplay::fit()
+{
+  m_scale = 1.0;
+  m_delta = QPointF();
+  m_reference = QPointF();
+  repaint();
+  // update();
 }
 
 struct ResolutionPreset
@@ -126,6 +183,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
+
   static const int defaultRenderIterations = 1024;
 
   mFrameProgressBar = new QProgressBar(this);
@@ -166,6 +224,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
 
+  mZoomInButton = new QPushButton("+", this);
+  mZoomOutButton = new QPushButton("-", this);
+  mZoomFitButton = new QPushButton("[]", this);
+
+
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
   connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
   connect(mStopRenderButton, SIGNAL(clicked()), this, SLOT(stopRendering()));
@@ -185,6 +248,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mResolutionPresets, 1);
 
+  QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
+  zoomButtonsLayout->addWidget(mZoomInButton, 1);
+  zoomButtonsLayout->addWidget(mZoomOutButton, 1);
+  zoomButtonsLayout->addWidget(mZoomFitButton, 1);
+
   QHBoxLayout* durationsLayout = new QHBoxLayout();
   durationsLayout->addWidget(mRenderDurationEdit, 0);
   durationsLayout->addWidget(new QLabel(tr("Time:")), 0);
@@ -202,7 +270,9 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 
+// see layout->setmenubar !
   layout->addLayout(topButtonsLayout);
+  layout->addLayout(zoomButtonsLayout);
   layout->addLayout(durationsLayout);
   layout->addWidget(mImageView);
   layout->addWidget(mFrameProgressBar);

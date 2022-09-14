@@ -31,9 +31,21 @@ public:
   void setImage(QImage* image);
   void save(QString filename);
 
+  void scale(qreal s);
+  void fit();
+
 private:
   QPixmap* m_pixmap;
   QImage* m_image;
+
+  QRectF m_rect;
+  QPointF m_reference;
+  QPointF m_delta;
+  qreal m_scale = 1.0;
+
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent*) override;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -101,6 +113,10 @@ private:
   QComboBox* mRenderDurationEdit;
   QSpinBox* mRenderSamplesEdit;
   QTimeEdit* mRenderTimeEdit;
+  QPushButton* mZoomInButton;
+  QPushButton* mZoomOutButton;
+  QPushButton* mZoomFitButton;
+
 
   int mWidth;
   int mHeight;
