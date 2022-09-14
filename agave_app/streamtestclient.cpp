@@ -52,7 +52,7 @@ StreamTestClient::onConnected()
   commands.push_back(new SetGlossinessCommand({ 0, 1 }));
   commands.push_back(new SetOpacityCommand({ 0, 1 }));
   commands.push_back(new SetPercentileThresholdCommand({ 0, 0.5, 0.98 }));
-  commands.push_back(new EnableChannelCommand({ 1, 0 }));
+  commands.push_back(new EnableChannelCommand({ 1, 1 }));
   commands.push_back(new SetDiffuseColorCommand({ 1, 1, 1, 1, 1 }));
   commands.push_back(new SetSpecularColorCommand({ 1, 0, 0, 0, 0 }));
   commands.push_back(new SetEmissiveColorCommand({ 1, 0, 0, 0, 0 }));
