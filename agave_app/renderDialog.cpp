@@ -41,14 +41,12 @@ void
 ImageDisplay::setImage(QImage* image)
 {
   if (image) {
-
-    m_pixmap->convertFromImage(*image, Qt::ColorOnly);
-    if (image->hasAlphaChannel()) {
-      //      LOG_DEBUG << "image has alpha";
-    }
-    if (m_pixmap->hasAlphaChannel() && m_pixmap->hasAlpha()) {
-      //      LOG_DEBUG << "pixmap has alpha";
-    }
+    // TODO: sometimes we want to hold on to the transparent image with alphas, sometimes we don't!!!!	
+	// users may want to save the image with or without the background!
+	// can this step be skipped at all?
+    QImage im = image->convertToFormat(QImage::Format_RGB32);
+	
+    m_pixmap->convertFromImage(im, Qt::ColorOnly);
   }
   repaint();
 }
