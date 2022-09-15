@@ -172,9 +172,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_camera(camera)
   , m_glContext(glContext)
   , m_renderThread(nullptr)
-  , m_totalRenderTime(0)
+  , m_frameRenderTime(0)
   , mWidth(0)
   , mHeight(0)
+  , mFrameNumber(0)
+  , mTotalFrames(1)
   , QDialog(parent)
 {
   setWindowTitle(tr("AGAVE Render"));
@@ -192,7 +194,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mFrameProgressBar->setRange(0, defaultRenderIterations);
 
   mTimeSeriesProgressBar = new QProgressBar(this);
-  mTimeSeriesProgressBar->setRange(0, 1);
+  mTimeSeriesProgressBar->setRange(0, mTotalFrames);
   mTimeSeriesProgressBar->setEnabled(false);
 
   mRenderDurationEdit = new QComboBox(this);
@@ -360,21 +362,57 @@ RenderDialog::render()
 void
 RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 {
+  // note that every render request that comes thru here sends a
+  // whole new image.
+  // this is likely much less efficient than writing the image in-place
+
   // this is called after the render thread has completed a render request
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
-  this->m_totalRenderTime += req->getActualDuration();
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+    return;
+  }
+
+  // increment our time counter
+  this->m_frameRenderTime += req->getActualDuration();
+
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
   } else {
     // nano to seconds.  render durations in the dialog are specified in seconds.
-    mFrameProgressBar->setValue(m_totalRenderTime / (1000 * 1000 * 1000));
+    mFrameProgressBar->setValue(m_frameRenderTime / (1000 * 1000 * 1000));
   }
+
+  // did a frame finish?
   if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
-    // what needs to happen?
-    pauseRendering();
+    this->setImage(new QImage(image));
+
+    // save image
+    if (true) {
+      QString autosavePath = "/Users/danielt/testrender";
+      QString fileName = autosavePath + QString("/frame_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+      image.save(fileName);
+    }
+
+    // increment frame
+    mFrameNumber += 1;
+    mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
+
+    // done with LAST frame? halt everything.
+    if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+      pauseRendering();
+      stopRendering();
+    } else {
+      // reset progress and render time
+      mFrameProgressBar->setValue(0);
+      m_frameRenderTime = 0;
+
+      // set up for next frame!
+      // run some code to increment T or rotation angle etc.
+    }
+
   } else {
     // update display
     this->setImage(new QImage(image));
@@ -528,7 +566,11 @@ RenderDialog::resetProgress()
   r->getRenderSettings().SetNoIterations(0);
 
   mFrameProgressBar->reset();
-  m_totalRenderTime = 0;
+  m_frameRenderTime = 0; // FIX per frame render time vs total render time elapsed
+
+  // TODO reset time series too?
+  mTimeSeriesProgressBar->reset();
+  mFrameNumber = 0;
 }
 
 void

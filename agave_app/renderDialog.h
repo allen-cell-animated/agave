@@ -118,21 +118,13 @@ private:
   QPushButton* mZoomOutButton;
   QPushButton* mZoomFitButton;
 
-
   int mWidth;
   int mHeight;
-  qint64 m_totalRenderTime;
+  qint64 m_frameRenderTime;
   // TODO controls to put in a render dialog:
   // save button
   // play controls for time series / anim sequence
-  // cancel button to stop everything
-  // termination criteria
-  // - how many iterations
-  // - how many seconds
-  // - render until stopped
-  // xy resolution
 
-  // "quick render" means render image at current settings and exit
   void endRenderThread();
   void setRenderDurationType(eRenderDurationType type);
   eRenderDurationType mRenderDurationType;
@@ -142,4 +134,7 @@ private:
   void onZoomInClicked();
   void onZoomOutClicked();
   void onZoomFitClicked();
+
+  int mFrameNumber;
+  int mTotalFrames;
 };
