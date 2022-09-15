@@ -165,12 +165,14 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            const Scene& scene,
                            CCamera camera,
                            QOpenGLContext* glContext,
+    std::string volumeFilePath,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
   , m_renderSettings(renderSettings)
   , m_scene(scene)
   , m_camera(camera)
   , m_glContext(glContext)
+  , mVolumeFilePath(volumeFilePath)
   , m_renderThread(nullptr)
   , m_frameRenderTime(0)
   , mWidth(0)
@@ -230,12 +232,12 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mStartTimeInput = new QSpinBox(this);
   mStartTimeInput->setMinimum(0);
-  mStartTimeInput->setMaximum(0);
-  mStartTimeInput->setValue(0);
+  mStartTimeInput->setMaximum(scene.m_timeLine.maxTime());
+  mStartTimeInput->setValue(scene.m_timeLine.currentTime());
   mEndTimeInput = new QSpinBox(this);
   mEndTimeInput->setMinimum(0);
-  mEndTimeInput->setMaximum(0);
-  mEndTimeInput->setValue(0);
+  mEndTimeInput->setMaximum(scene.m_timeLine.maxTime());
+  mEndTimeInput->setValue(scene.m_timeLine.currentTime());
 
   mTimeSeriesProgressBar = new QProgressBar(this);
   mTimeSeriesProgressBar->setRange(mStartTimeInput->value(), mEndTimeInput->value() + 1);
@@ -254,6 +256,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
   connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
   connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
+  connect(mStartTimeInput, QOverload<int>::of( & QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
+  connect(mEndTimeInput, QOverload<int>::of( & QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -352,7 +356,7 @@ RenderDialog::render()
     Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
     this->m_renderThread = r;
     // now get our rendering resources into this Renderer object
-    r->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_glContext);
+    r->configure(m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_glContext);
     m_glContext->moveToThread(r);
 
     // first time in, set up stream mode and give the first draw request
@@ -383,6 +387,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
   if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
+    LOG_DEBUG << "received frame after timeline completed";
     return;
   }
 
@@ -399,6 +404,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // did a frame finish?
   if (mFrameProgressBar->value() >= mFrameProgressBar->maximum() - 1) {
+    LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
     // update display with finished frame
     this->setImage(new QImage(image));
 
@@ -419,15 +425,28 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
     // done with LAST frame? halt everything.
     if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
+      LOG_DEBUG << "all frames completed.  pausing render";
       pauseRendering();
       // stopRendering();
     } else {
+      LOG_DEBUG << "reset frame progress for next frame";
       // reset progress and render time
       mFrameProgressBar->setValue(0);
       m_frameRenderTime = 0;
 
+      //m_scene.m_timeLine.increment(1);
+
       // set up for next frame!
+      // 
       // run some code to increment T or rotation angle etc.
+      LOG_DEBUG << "queue setTime " << mFrameNumber
+                << " command ";
+      std::vector<Command*> cmd;
+      SetTimeCommandD timedata;
+      timedata.m_time = mFrameNumber;
+      cmd.push_back(new SetTimeCommand(timedata));
+      m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
+
     }
 
   } else {
@@ -619,4 +638,15 @@ RenderDialog::onZoomFitClicked()
   int w = mWidth;
   int h = mHeight;
   mImageView->fit(w, h);
+}
+
+void
+RenderDialog::onStartTimeChanged(int t)
+{
+}
+void
+RenderDialog::onEndTimeChanged(int t)
+{
+  mTimeSeriesProgressBar->setMaximum(t);
+  mTotalFrames = t;
 }

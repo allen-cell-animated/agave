@@ -64,12 +64,15 @@ Renderer::configure(IRenderWindow* renderer,
                     const RenderSettings& renderSettings,
                     const Scene& scene,
                     const CCamera& camera,
+                    std::string volumeFilePath,
                     QOpenGLContext* glContext)
 {
   // assumes scene is already set in renderer and everything is initialized
   m_myVolumeData.m_renderSettings = new RenderSettings(renderSettings);
   m_myVolumeData.m_camera = new CCamera(camera);
   m_myVolumeData.m_scene = new Scene(scene);
+  m_myVolumeData.mVolumeFilePath = volumeFilePath;
+  m_ec.m_currentFilePath = volumeFilePath;
   if (!renderer) {
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(1024);
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(1024);
@@ -159,14 +162,7 @@ Renderer::run()
   // myVolumeInit();
 
   while (!QThread::currentThread()->isInterruptionRequested()) {
-    m_requestMutex.lock();
-    if (m_requests.isEmpty()) {
-      m_wait.wait(&m_requestMutex);
-    }
-
     this->processRequest();
-
-    m_requestMutex.unlock();
 
     // should be harmless... and maybe handle some signal/slot stuff
     QApplication::processEvents();
@@ -204,15 +200,20 @@ Renderer::addRequest(RenderRequest* request)
 bool
 Renderer::processRequest()
 {
-  if (this->m_requests.isEmpty()) {
+  m_requestMutex.lock();
+  if (m_requests.isEmpty()) {
+    m_wait.wait(&m_requestMutex);
+  }
+  if (m_requests.isEmpty()) {
+    m_requestMutex.unlock();
     return false;
   }
 
+  RenderRequest* lastReq = nullptr;
+  QImage img;
   if (m_streamMode) {
     QElapsedTimer timer;
     timer.start();
-
-    RenderRequest* lastReq = nullptr;
 
     // eat requests until done, and then render
     // note that any one request could change the streaming mode.
@@ -240,7 +241,7 @@ Renderer::processRequest()
                 << ":" << QString::number(ws->peerPort()).toStdString() << ")";
     }
 
-    QImage img = this->render();
+    img = this->render();
 
     lastReq->setActualDuration(timer.nsecsElapsed());
 
@@ -260,8 +261,6 @@ Renderer::processRequest()
       this->m_totalQueueDuration += rr->getDuration();
     }
 
-    // inform the server that we are done with r
-    emit requestProcessed(lastReq, img);
 
   } else {
     // if not in stream mode, then process one request, then re-render.
@@ -279,14 +278,17 @@ Renderer::processRequest()
       this->processCommandBuffer(r);
     }
 
-    QImage img = this->render();
+    img = this->render();
 
     r->setActualDuration(timer.nsecsElapsed());
-
-    // inform the server that we are done with r
-    emit requestProcessed(r, img);
+    lastReq = r;
   }
 
+// unlock mutex in case the signal handler wants to add a request
+  m_requestMutex.unlock();
+
+  // inform the server that we are done with r
+  emit requestProcessed(lastReq, img);
   return true;
 }
 

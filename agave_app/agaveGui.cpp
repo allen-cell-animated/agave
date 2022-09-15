@@ -345,7 +345,8 @@ agaveGui::onQuickRender()
   CCamera camera = m_glView->getCamera();
   camera.m_Film.m_Resolution.SetResX(m_lastRenderResolutionX);
   camera.m_Film.m_Resolution.SetResY(m_lastRenderResolutionY);
-  RenderDialog* rdialog = new RenderDialog(renderer, m_renderSettings, m_appScene, camera, m_glView->context(), this);
+  RenderDialog* rdialog =
+    new RenderDialog(renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_currentFilePath.toStdString(), this);
   rdialog->resize(800, 600);
   connect(rdialog, &RenderDialog::setRenderResolution, this, [this](int x, int y) {
     // remember last render resolution:

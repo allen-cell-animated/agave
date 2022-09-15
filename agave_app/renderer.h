@@ -41,7 +41,9 @@ public:
                  const RenderSettings& renderSettings,
                  const Scene& scene,
                  const CCamera& camera,
-                 QOpenGLContext* glContext = nullptr);
+                 std::string volumeFilePath = "",
+                 QOpenGLContext* glContext = nullptr
+                 );
 
   void run();
 
@@ -123,6 +125,7 @@ private:
     IRenderWindow* m_renderer;
     Scene* m_scene;
     CCamera* m_camera;
+    std::string mVolumeFilePath;
 
     myVolumeData()
       : m_camera(nullptr)
@@ -130,6 +133,7 @@ private:
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
       , ownRenderer(false)
+      , mVolumeFilePath("")
     {
     }
   } m_myVolumeData;

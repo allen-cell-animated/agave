@@ -68,6 +68,7 @@ public:
                const Scene& scene,
                CCamera camera,
                QOpenGLContext* glContext,
+	std::string volumeFilePath,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
@@ -98,6 +99,7 @@ private:
   IRenderWindow* m_renderer;
   const RenderSettings& m_renderSettings;
   const Scene& m_scene;
+  std::string mVolumeFilePath;
   CCamera m_camera;
 
   ImageDisplay* mImageView; // ? or a GLView3D?
@@ -140,4 +142,7 @@ private:
 
   int mFrameNumber;
   int mTotalFrames;
+
+  void onStartTimeChanged(int);
+  void onEndTimeChanged(int);
 };
