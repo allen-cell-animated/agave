@@ -193,10 +193,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mFrameProgressBar = new QProgressBar(this);
   mFrameProgressBar->setRange(0, defaultRenderIterations);
 
-  mTimeSeriesProgressBar = new QProgressBar(this);
-  mTimeSeriesProgressBar->setRange(0, mTotalFrames);
-  mTimeSeriesProgressBar->setEnabled(false);
-
   mRenderDurationEdit = new QComboBox(this);
   mRenderDurationEdit->addItem("Samples");
   mRenderDurationEdit->addItem("Time");
@@ -232,6 +228,18 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mZoomOutButton = new QPushButton("-", this);
   mZoomFitButton = new QPushButton("[]", this);
 
+  mStartTimeInput = new QSpinBox(this);
+  mStartTimeInput->setMinimum(0);
+  mStartTimeInput->setMaximum(0);
+  mStartTimeInput->setValue(0);
+  mEndTimeInput = new QSpinBox(this);
+  mEndTimeInput->setMinimum(0);
+  mEndTimeInput->setMaximum(0);
+  mEndTimeInput->setValue(0);
+
+  mTimeSeriesProgressBar = new QProgressBar(this);
+  mTimeSeriesProgressBar->setRange(mStartTimeInput->value(), mEndTimeInput->value() + 1);
+
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
   connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
   connect(mStopRenderButton, SIGNAL(clicked()), this, SLOT(stopRendering()));
@@ -253,6 +261,10 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mResolutionPresets, 1);
+  topButtonsLayout->addWidget(new QLabel(tr("T0:")), 0);
+  topButtonsLayout->addWidget(mStartTimeInput, 1);
+  topButtonsLayout->addWidget(new QLabel(tr("T1:")), 0);
+  topButtonsLayout->addWidget(mEndTimeInput, 1);
 
   QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
   zoomButtonsLayout->addWidget(mZoomInButton, 1);
@@ -392,8 +404,12 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
     // save image
     if (true) {
-      QString autosavePath = "/Users/danielt/testrender";
-      QString fileName = autosavePath + QString("/frame_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+      // TODO set up autosave path when we start rendering
+      QString autosavePath = "/Users/danielt/testrender/";
+      QDir d;
+      d.mkpath(autosavePath);
+      // save!
+      QString fileName = autosavePath + QString("frame_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
       image.save(fileName);
     }
 

@@ -109,6 +109,9 @@ private:
   QSpinBox* mWidthInput;
   QSpinBox* mHeightInput;
   QComboBox* mResolutionPresets;
+  QSpinBox* mStartTimeInput;
+  QSpinBox* mEndTimeInput;
+
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
   QComboBox* mRenderDurationEdit;
