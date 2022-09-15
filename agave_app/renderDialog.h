@@ -32,7 +32,8 @@ public:
   void save(QString filename);
 
   void scale(qreal s);
-  void fit();
+  void setScale(qreal s);
+  void fit(int w, int h);
 
 private:
   QPixmap* m_pixmap;
@@ -138,4 +139,7 @@ private:
   void resetProgress();
 
   void onRenderRequestProcessed(RenderRequest* req, QImage image);
+  void onZoomInClicked();
+  void onZoomOutClicked();
+  void onZoomFitClicked();
 };

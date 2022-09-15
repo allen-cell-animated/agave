@@ -134,11 +134,33 @@ ImageDisplay::scale(qreal s)
   repaint();
   //update();
 }
+void
+ImageDisplay::setScale(qreal s)
+{
+  m_scale = s;
+  repaint();
+  //update();
+}
 
 void
-ImageDisplay::fit()
+ImageDisplay::fit(int w, int h)
 {
-  m_scale = 1.0;
+  // fit image aspect ratio within the given widget rectangle.
+  float imageaspect = (float)w / (float)h;
+  float widgetaspect = (float)width() / (float)height();
+  // window rect
+  QRect targetRect = rect();
+  if (imageaspect > widgetaspect) {
+    targetRect.setHeight(targetRect.width() / imageaspect);
+    targetRect.moveTop((height() - targetRect.height()) / 2);
+    // scale value from width!
+	m_scale = ((float)targetRect.width() / (float)w);
+  } else {
+    targetRect.setWidth(targetRect.height() * imageaspect);
+    targetRect.moveLeft((width() - targetRect.width()) / 2);
+	m_scale= ((float)targetRect.height() / (float)h);
+  }
+
   m_delta = QPointF();
   m_reference = QPointF();
   repaint();
@@ -240,6 +262,9 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(valueChanged(QTime)), this, SLOT(updateRenderTime(QTime)));
   connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
+  connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
+  connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -537,4 +562,24 @@ RenderDialog::onRenderDurationTypeChanged(int index)
     setRenderDurationType(eRenderDurationType::TIME);
     updateRenderTime(mRenderTimeEdit->time());
   }
+}
+
+void
+RenderDialog::onZoomInClicked()
+{
+  mImageView->scale(1.1);
+}
+void
+RenderDialog::onZoomOutClicked()
+{
+  mImageView->scale(1.0 / 1.1);
+}
+void
+RenderDialog::onZoomFitClicked()
+{
+  // fit image aspect ratio within the given widget rectangle.
+  int w = mWidth;
+  int h = mHeight;
+  mImageView->fit(w, h);
+
 }
