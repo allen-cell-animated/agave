@@ -42,8 +42,7 @@ public:
                  const Scene& scene,
                  const CCamera& camera,
                  std::string volumeFilePath = "",
-                 QOpenGLContext* glContext = nullptr
-                 );
+                 QOpenGLContext* glContext = nullptr);
 
   void run();
 

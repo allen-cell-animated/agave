@@ -165,7 +165,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            const Scene& scene,
                            CCamera camera,
                            QOpenGLContext* glContext,
-    std::string volumeFilePath,
+                           std::string volumeFilePath,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
   , m_renderSettings(renderSettings)
@@ -256,8 +256,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
   connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
   connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
-  connect(mStartTimeInput, QOverload<int>::of( & QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
-  connect(mEndTimeInput, QOverload<int>::of( & QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
+  connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
+  connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -434,19 +434,17 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       mFrameProgressBar->setValue(0);
       m_frameRenderTime = 0;
 
-      //m_scene.m_timeLine.increment(1);
+      // m_scene.m_timeLine.increment(1);
 
       // set up for next frame!
-      // 
+      //
       // run some code to increment T or rotation angle etc.
-      LOG_DEBUG << "queue setTime " << mFrameNumber
-                << " command ";
+      LOG_DEBUG << "queue setTime " << mFrameNumber << " command ";
       std::vector<Command*> cmd;
       SetTimeCommandD timedata;
       timedata.m_time = mFrameNumber;
       cmd.push_back(new SetTimeCommand(timedata));
       m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
-
     }
 
   } else {

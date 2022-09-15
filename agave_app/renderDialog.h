@@ -68,7 +68,7 @@ public:
                const Scene& scene,
                CCamera camera,
                QOpenGLContext* glContext,
-	std::string volumeFilePath,
+               std::string volumeFilePath,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);

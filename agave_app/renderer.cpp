@@ -261,7 +261,6 @@ Renderer::processRequest()
       this->m_totalQueueDuration += rr->getDuration();
     }
 
-
   } else {
     // if not in stream mode, then process one request, then re-render.
 
@@ -284,7 +283,7 @@ Renderer::processRequest()
     lastReq = r;
   }
 
-// unlock mutex in case the signal handler wants to add a request
+  // unlock mutex in case the signal handler wants to add a request
   m_requestMutex.unlock();
 
   // inform the server that we are done with r
