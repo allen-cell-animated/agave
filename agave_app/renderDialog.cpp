@@ -370,7 +370,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
-  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
     return;
   }
 
@@ -386,7 +386,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   }
 
   // did a frame finish?
-  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum() - 1) {
+    // update display with finished frame
     this->setImage(new QImage(image));
 
     // save image
@@ -401,9 +402,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
 
     // done with LAST frame? halt everything.
-    if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+    if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
       pauseRendering();
-      stopRendering();
+      // stopRendering();
     } else {
       // reset progress and render time
       mFrameProgressBar->setValue(0);
@@ -414,7 +415,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     }
 
   } else {
-    // update display
+    // update display if it's time to do so.
     this->setImage(new QImage(image));
   }
 }
