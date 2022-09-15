@@ -21,6 +21,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+static const float ZOOM_STEP = 1.1f;
 
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
@@ -44,11 +45,11 @@ void
 ImageDisplay::setImage(QImage* image)
 {
   if (image) {
-    // TODO: sometimes we want to hold on to the transparent image with alphas, sometimes we don't!!!!	
-	// users may want to save the image with or without the background!
-	// can this step be skipped at all?
+    // TODO: sometimes we want to hold on to the transparent image with alphas, sometimes we don't!!!!
+    // users may want to save the image with or without the background!
+    // can this step be skipped at all?
     QImage im = image->convertToFormat(QImage::Format_RGB32);
-	
+
     m_pixmap->convertFromImage(im, Qt::ColorOnly);
     m_rect = m_pixmap->rect();
     m_rect.translate(-m_rect.center());
@@ -67,10 +68,6 @@ ImageDisplay::paintEvent(QPaintEvent*)
 {
   QPainter painter(this);
   painter.setRenderHint(QPainter::SmoothPixmapTransform);
-  painter.setCompositionMode(QPainter::CompositionMode_Source);
-  painter.setOpacity(1.0);
-  painter.setBackgroundMode(Qt::OpaqueMode);
-  //  painter.setBackground(QBrush(Qt::darkGray));
 
   painter.drawRect(0, 0, width(), height());
   painter.fillRect(0, 0, width(), height(), Qt::darkGray);
@@ -82,30 +79,10 @@ ImageDisplay::paintEvent(QPaintEvent*)
   painter.scale(m_scale, m_scale);
   painter.translate(m_delta);
   painter.drawPixmap(m_rect.topLeft(), *m_pixmap);
-#if 0
-
-  if (!m_pixmap) {
-    return;
-  }
-  // fit image aspect ratio within the given widget rectangle.
-  int w = m_pixmap->width();
-  int h = m_pixmap->height();
-  float imageaspect = (float)w / (float)h;
-  float widgetaspect = (float)width() / (float)height();
-  QRect targetRect = rect();
-  if (imageaspect > widgetaspect) {
-    targetRect.setHeight(targetRect.width() / imageaspect);
-    targetRect.moveTop((height() - targetRect.height()) / 2);
-  } else {
-    targetRect.setWidth(targetRect.height() * imageaspect);
-    targetRect.moveLeft((width() - targetRect.width()) / 2);
-  }
-  painter.drawPixmap(targetRect, *m_pixmap, m_pixmap->rect());
-#endif
 }
 
 void
-ImageDisplay::mousePressEvent(QMouseEvent* event) 
+ImageDisplay::mousePressEvent(QMouseEvent* event)
 {
   m_reference = event->pos();
   qApp->setOverrideCursor(Qt::ClosedHandCursor);
@@ -113,7 +90,7 @@ ImageDisplay::mousePressEvent(QMouseEvent* event)
 }
 
 void
-ImageDisplay::mouseMoveEvent(QMouseEvent* event) 
+ImageDisplay::mouseMoveEvent(QMouseEvent* event)
 {
   m_delta += (event->pos() - m_reference) * 1.0 / m_scale;
   m_reference = event->pos();
@@ -121,7 +98,7 @@ ImageDisplay::mouseMoveEvent(QMouseEvent* event)
 }
 
 void
-ImageDisplay::mouseReleaseEvent(QMouseEvent*) 
+ImageDisplay::mouseReleaseEvent(QMouseEvent*)
 {
   qApp->restoreOverrideCursor();
   setMouseTracking(false);
@@ -132,14 +109,14 @@ ImageDisplay::scale(qreal s)
 {
   m_scale *= s;
   repaint();
-  //update();
+  // update();
 }
 void
 ImageDisplay::setScale(qreal s)
 {
   m_scale = s;
   repaint();
-  //update();
+  // update();
 }
 
 void
@@ -148,21 +125,24 @@ ImageDisplay::fit(int w, int h)
   // fit image aspect ratio within the given widget rectangle.
   float imageaspect = (float)w / (float)h;
   float widgetaspect = (float)width() / (float)height();
-  // window rect
+  // targetRect will describe a sub-rectangle of the ImageDisplay's client rect
   QRect targetRect = rect();
   if (imageaspect > widgetaspect) {
     targetRect.setHeight(targetRect.width() / imageaspect);
     targetRect.moveTop((height() - targetRect.height()) / 2);
     // scale value from width!
-	m_scale = ((float)targetRect.width() / (float)w);
+    m_scale = ((float)targetRect.width() / (float)w);
   } else {
     targetRect.setWidth(targetRect.height() * imageaspect);
     targetRect.moveLeft((width() - targetRect.width()) / 2);
-	m_scale= ((float)targetRect.height() / (float)h);
+    // scale value from height!
+    m_scale = ((float)targetRect.height() / (float)h);
   }
 
+  // center image
   m_delta = QPointF();
   m_reference = QPointF();
+
   repaint();
   // update();
 }
@@ -250,7 +230,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mZoomOutButton = new QPushButton("-", this);
   mZoomFitButton = new QPushButton("[]", this);
 
-
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
   connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
   connect(mStopRenderButton, SIGNAL(clicked()), this, SLOT(stopRendering()));
@@ -295,10 +274,10 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 
-// see layout->setmenubar !
+  // TODO see layout->setmenubar !
   layout->addLayout(topButtonsLayout);
-  layout->addLayout(zoomButtonsLayout);
   layout->addLayout(durationsLayout);
+  layout->addLayout(zoomButtonsLayout);
   layout->addWidget(mImageView);
   layout->addWidget(mFrameProgressBar);
   layout->addWidget(mTimeSeriesProgressBar);
@@ -567,12 +546,12 @@ RenderDialog::onRenderDurationTypeChanged(int index)
 void
 RenderDialog::onZoomInClicked()
 {
-  mImageView->scale(1.1);
+  mImageView->scale(ZOOM_STEP);
 }
 void
 RenderDialog::onZoomOutClicked()
 {
-  mImageView->scale(1.0 / 1.1);
+  mImageView->scale(1.0 / ZOOM_STEP);
 }
 void
 RenderDialog::onZoomFitClicked()
@@ -581,5 +560,4 @@ RenderDialog::onZoomFitClicked()
   int w = mWidth;
   int h = mHeight;
   mImageView->fit(w, h);
-
 }
