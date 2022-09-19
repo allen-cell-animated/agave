@@ -392,7 +392,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   static int imagesReceived = 0;
   imagesReceived = imagesReceived+1;
 
-  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()+1) {
     LOG_DEBUG << "received frame after timeline completed";
     return;
   }
@@ -402,7 +402,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
-    mFrameProgressBar->setValue(imagesReceived);
+    mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
+    //mFrameProgressBar->setValue(imagesReceived);
   } else {
     // nano to seconds.  render durations in the dialog are specified in seconds.
     mFrameProgressBar->setValue(m_frameRenderTime / (1000 * 1000 * 1000));
@@ -410,10 +411,14 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // did a frame finish?
   if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+    // we just received the last sample.
+    // however, another sample was already enqueued!!!!
+    // so we know we will have one sample to discard.
+    
     LOG_DEBUG << imagesReceived << " images received";
     LOG_DEBUG << "Progress " << mFrameProgressBar->value() << " / " << mFrameProgressBar->maximum();
-    imagesReceived = 0;
     LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
+    imagesReceived = 0;
     // update display with finished frame
     this->setImage(new QImage(image));
 
@@ -434,7 +439,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     LOG_DEBUG << "Total Progress " << mTimeSeriesProgressBar->value() << " / " << mTimeSeriesProgressBar->maximum();
 
     // done with LAST frame? halt everything.
-    if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
+    if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
       LOG_DEBUG << "all frames completed.  pausing render";
       pauseRendering();
       // stopRendering();
