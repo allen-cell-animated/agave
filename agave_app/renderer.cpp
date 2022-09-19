@@ -287,6 +287,9 @@ Renderer::processRequest()
   m_requestMutex.unlock();
 
   // inform the server that we are done with r
+  // TODO : have a mode where we don't need a QImage
+  // and can just return rgba byte array as a thread safe shared ptr
+  // writable by render thread and readable by anyone else
   emit requestProcessed(lastReq, img);
   return true;
 }

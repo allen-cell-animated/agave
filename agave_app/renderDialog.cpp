@@ -352,6 +352,9 @@ RenderDialog::render()
   LOG_INFO << "Render button clicked";
   if (!this->m_renderThread) {
 
+    mFrameProgressBar->setValue(0);
+    mTimeSeriesProgressBar->setValue(0);
+
     // when render is done, draw QImage to widget and save to file if autosave?
     Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
     this->m_renderThread = r;
@@ -386,7 +389,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
-  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
+  static int imagesReceived = 0;
+  imagesReceived = imagesReceived+1;
+
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
     LOG_DEBUG << "received frame after timeline completed";
     return;
   }
@@ -396,14 +402,17 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
-    mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
+    mFrameProgressBar->setValue(imagesReceived);
   } else {
     // nano to seconds.  render durations in the dialog are specified in seconds.
     mFrameProgressBar->setValue(m_frameRenderTime / (1000 * 1000 * 1000));
   }
 
   // did a frame finish?
-  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum() - 1) {
+  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+    LOG_DEBUG << imagesReceived << " images received";
+    LOG_DEBUG << "Progress " << mFrameProgressBar->value() << " / " << mFrameProgressBar->maximum();
+    imagesReceived = 0;
     LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
     // update display with finished frame
     this->setImage(new QImage(image));
@@ -422,6 +431,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // increment frame
     mFrameNumber += 1;
     mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
+    LOG_DEBUG << "Total Progress " << mTimeSeriesProgressBar->value() << " / " << mTimeSeriesProgressBar->maximum();
 
     // done with LAST frame? halt everything.
     if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() - 1) {
