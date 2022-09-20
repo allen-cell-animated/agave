@@ -427,10 +427,16 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       // TODO set up autosave path when we start rendering
       QString autosavePath = "/Users/danielt/testrender/";
       QDir d;
-      d.mkpath(autosavePath);
+      bool pathOk = d.mkpath(autosavePath);
+      if (!pathOk) {
+        LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
+      }
       // save!
       QString fileName = autosavePath + QString("frame_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
-      image.save(fileName);
+      bool ok = image.save(fileName);
+      if (!ok) {
+        LOG_ERROR << "Failed to save render " << fileName.toStdString();
+      }
     }
 
     // increment frame
