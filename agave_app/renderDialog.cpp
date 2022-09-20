@@ -240,7 +240,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mEndTimeInput->setValue(scene.m_timeLine.currentTime());
 
   mTimeSeriesProgressBar = new QProgressBar(this);
-  mTimeSeriesProgressBar->setRange(mStartTimeInput->value(), mEndTimeInput->value() + 1);
+  mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value())+1);
 
   connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
   connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
@@ -354,6 +354,7 @@ RenderDialog::render()
 
     mFrameProgressBar->setValue(0);
     mTimeSeriesProgressBar->setValue(0);
+    mFrameNumber = mStartTimeInput->value();
 
     // when render is done, draw QImage to widget and save to file if autosave?
     Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
@@ -527,6 +528,9 @@ RenderDialog::resumeRendering()
     resdata.m_x = mWidth;
     resdata.m_y = mHeight;
     cmd.push_back(new SetResolutionCommand(resdata));
+    SetTimeCommandD timedata;
+    timedata.m_time = mFrameNumber;
+    cmd.push_back(new SetTimeCommand(timedata));
     RequestRedrawCommandD data;
     cmd.push_back(new RequestRedrawCommand(data));
     m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
@@ -625,7 +629,7 @@ RenderDialog::resetProgress()
 
   // TODO reset time series too?
   mTimeSeriesProgressBar->reset();
-  mFrameNumber = 0;
+  mFrameNumber = mStartTimeInput->value();
 }
 
 void
@@ -662,10 +666,14 @@ RenderDialog::onZoomFitClicked()
 void
 RenderDialog::onStartTimeChanged(int t)
 {
+  mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
+
+  mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
 }
 void
 RenderDialog::onEndTimeChanged(int t)
 {
-  mTimeSeriesProgressBar->setMaximum(t);
-  mTotalFrames = t;
+  mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
+
+  mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
 }
