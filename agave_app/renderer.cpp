@@ -84,6 +84,8 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.ownRenderer = false;
     m_myVolumeData.m_renderer = renderer;
     // TODO renderer has its own RenderSettings but we just made a local copy here
+    // this is responsible for a bug in which SetTImeCommand tries to modify rendersettings
+	// but the true renderer doesn't pick it up
   }
 
   // TODO what do we do when running on Linux desktop??
