@@ -421,7 +421,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
     imagesReceived = 0;
     // update display with finished frame
-    this->setImage(new QImage(image));
+    this->setImage(&image);
 
     // save image
     if (true) {
@@ -471,7 +471,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   } else {
     // update display if it's time to do so.
-    this->setImage(new QImage(image));
+    this->setImage(&image);
   }
 }
 
