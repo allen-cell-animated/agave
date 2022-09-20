@@ -461,6 +461,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       // set up for next frame!
       //
       // run some code to increment T or rotation angle etc.
+      RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
+      r->getRenderSettings().SetNoIterations(0);
+
       LOG_DEBUG << "queue setTime " << mFrameNumber << " command ";
       std::vector<Command*> cmd;
       SetTimeCommandD timedata;
