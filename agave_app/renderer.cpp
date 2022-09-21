@@ -307,9 +307,15 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 
   std::vector<Command*> cmds = rr->getParameters();
   if (cmds.size() > 0) {
-    m_ec.m_renderSettings = m_myVolumeData.m_renderSettings;
+    // get the renderer we need
+    RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_myVolumeData.m_renderer);
+    if (!r) {
+      LOG_ERROR << "Unsupported renderer: Renderer is not of type RenderGLPT";
+    }
+	
+    m_ec.m_renderSettings = &r->getRenderSettings();  // m_myVolumeData.m_renderSettings;
     m_ec.m_renderer = this;
-    m_ec.m_appScene = m_myVolumeData.m_scene;
+    m_ec.m_appScene = r->scene();  // m_myVolumeData.m_scene;
     m_ec.m_camera = m_myVolumeData.m_camera;
     m_ec.m_message = "";
 
