@@ -17,6 +17,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QStandardPaths>
 #include <QTimeEdit>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -242,22 +243,30 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mTimeSeriesProgressBar = new QProgressBar(this);
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value())+1);
 
-  connect(mRenderButton, SIGNAL(clicked()), this, SLOT(render()));
-  connect(mPauseRenderButton, SIGNAL(clicked()), this, SLOT(pauseRendering()));
-  connect(mStopRenderButton, SIGNAL(clicked()), this, SLOT(stopRendering()));
-  connect(mSaveButton, SIGNAL(clicked()), this, SLOT(save()));
-  connect(mCloseButton, SIGNAL(clicked()), this, SLOT(close()));
+  mSelectSaveDirectoryButton = new QPushButton("Dir...", this);
+
+  mSaveDirectoryLabel = new QLabel(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), this);
+  mSaveFilePrefix = new QLineEdit("frame", this);
+
+  connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
+  connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
+  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::stopRendering);
+  connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
+  connect(mCloseButton, &QPushButton::clicked, this, &RenderDialog::close);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
   connect(mWidthInput, SIGNAL(valueChanged(int)), this, SLOT(updateWidth(int)));
   connect(mHeightInput, SIGNAL(valueChanged(int)), this, SLOT(updateHeight(int)));
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
-  connect(mRenderTimeEdit, SIGNAL(valueChanged(QTime)), this, SLOT(updateRenderTime(QTime)));
+  connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
   connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
   connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
   connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
   connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
   connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
   connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
+  connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
+  connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
+
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -269,6 +278,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(mStartTimeInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T1:")), 0);
   topButtonsLayout->addWidget(mEndTimeInput, 1);
+
+  QHBoxLayout* saveButtonsLayout = new QHBoxLayout();
+  saveButtonsLayout->addWidget(mSaveFilePrefix, 1);
+  saveButtonsLayout->addWidget(mSaveDirectoryLabel, 1);
+  saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
   QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
   zoomButtonsLayout->addWidget(mZoomInButton, 1);
@@ -295,6 +309,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   // TODO see layout->setmenubar !
   layout->addLayout(topButtonsLayout);
   layout->addLayout(durationsLayout);
+  layout->addLayout(saveButtonsLayout);
   layout->addLayout(zoomButtonsLayout);
   layout->addWidget(mImageView);
   layout->addWidget(mFrameProgressBar);
@@ -426,17 +441,20 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // save image
     if (true) {
       // TODO set up autosave path when we start rendering
-      QString autosavePath = "/Users/danielt/testrender/";
-      QDir d;
+      QString autosavePath = mSaveDirectoryLabel->text();
+      QDir d(autosavePath);
       bool pathOk = d.mkpath(autosavePath);
       if (!pathOk) {
         LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
       }
       // save!
-      QString fileName = autosavePath + QString("frame_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
-      bool ok = image.save(fileName);
+      QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+      QFileInfo fileInfo(d, filename);
+      bool ok = image.save(fileInfo.absolutePath());
       if (!ok) {
-        LOG_ERROR << "Failed to save render " << fileName.toStdString();
+        LOG_ERROR << "Failed to save render " << fileInfo.absolutePath().toStdString();
+      } else {
+        LOG_INFO << "Saved " << fileInfo.absolutePath().toStdString();
       }
     }
 
@@ -614,7 +632,7 @@ RenderDialog::updateRenderSamples(int s)
 }
 
 void
-RenderDialog::updateRenderTime(QTime t)
+RenderDialog::updateRenderTime(const QTime& t)
 {
   if (mRenderDurationType == eRenderDurationType::TIME) {
     mFrameProgressBar->setMaximum(t.hour() * 3600 + t.minute() * 60 + t.second());
@@ -679,4 +697,21 @@ RenderDialog::onEndTimeChanged(int t)
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
   mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
+}
+
+void
+RenderDialog::onSelectSaveDirectoryClicked()
+{
+  QString dir = QFileDialog::getExistingDirectory(this,
+                                                  tr("Select Directory"),
+                                                  mSaveDirectoryLabel->text(),
+                                                  QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+  if (!dir.isEmpty()) {
+    mSaveDirectoryLabel->setText(dir);
+  }
+}
+
+void
+RenderDialog::onSaveFilePrefixChanged(const QString& value)
+{
 }

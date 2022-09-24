@@ -9,6 +9,7 @@ class QComboBox;
 class QImage;
 class QOpenGLContext;
 class QWidget;
+class QLabel;
 class QLineEdit;
 class QPixmap;
 class QProgressBar;
@@ -86,7 +87,7 @@ private slots:
   void updateWidth(int w);
   void updateHeight(int h);
   void updateRenderSamples(int s);
-  void updateRenderTime(QTime t);
+  void updateRenderTime(const QTime& t);
   void onRenderDurationTypeChanged(int index);
 
 signals:
@@ -113,6 +114,10 @@ private:
   QComboBox* mResolutionPresets;
   QSpinBox* mStartTimeInput;
   QSpinBox* mEndTimeInput;
+
+  QPushButton* mSelectSaveDirectoryButton;
+  QLabel* mSaveDirectoryLabel;
+  QLineEdit* mSaveFilePrefix;
 
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
@@ -145,4 +150,7 @@ private:
 
   void onStartTimeChanged(int);
   void onEndTimeChanged(int);
+
+  void onSelectSaveDirectoryClicked();
+  void onSaveFilePrefixChanged(const QString& value);
 };
