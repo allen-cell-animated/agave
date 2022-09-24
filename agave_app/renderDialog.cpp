@@ -450,11 +450,12 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       // save!
       QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
       QFileInfo fileInfo(d, filename);
-      bool ok = image.save(fileInfo.absolutePath());
+      QString saveFilePath = fileInfo.absoluteFilePath();
+      bool ok = image.save(saveFilePath);
       if (!ok) {
-        LOG_ERROR << "Failed to save render " << fileInfo.absolutePath().toStdString();
+        LOG_ERROR << "Failed to save render " << saveFilePath.toStdString();
       } else {
-        LOG_INFO << "Saved " << fileInfo.absolutePath().toStdString();
+        LOG_INFO << "Saved " << saveFilePath.toStdString();
       }
     }
 
