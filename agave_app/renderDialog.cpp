@@ -715,4 +715,5 @@ RenderDialog::onSelectSaveDirectoryClicked()
 void
 RenderDialog::onSaveFilePrefixChanged(const QString& value)
 {
+    // nothing really to do here?
 }
