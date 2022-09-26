@@ -326,7 +326,7 @@ agaveGui::onQuickRender()
   // const rendersettings ref?
   // hand over Camera, AppScene and RenderSettings to RenderDialog?
   // or a ViewerState?
-  ViewerState st = appToViewerState();
+  // ViewerState st = appToViewerState();
   // tell the renderdialog what the viewerstate currently is.
   // renderdialog can turn it into a list of render commands
   // share already loaded volume data with the RenderDialog's rendering resources
@@ -345,8 +345,14 @@ agaveGui::onQuickRender()
   CCamera camera = m_glView->getCamera();
   camera.m_Film.m_Resolution.SetResX(m_lastRenderResolutionX);
   camera.m_Film.m_Resolution.SetResY(m_lastRenderResolutionY);
-  RenderDialog* rdialog =
-    new RenderDialog(renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_currentFilePath.toStdString(), this);
+  RenderDialog* rdialog = new RenderDialog(renderer,
+                                           m_renderSettings,
+                                           m_appScene,
+                                           camera,
+                                           m_glView->context(),
+                                           m_currentFilePath.toStdString(),
+                                           &m_captureSettings,
+                                           this);
   rdialog->resize(800, 600);
   connect(rdialog, &RenderDialog::setRenderResolution, this, [this](int x, int y) {
     // remember last render resolution:
@@ -802,6 +808,17 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   lt1.m_Width = v.m_light1.m_width;
   lt1.m_Height = v.m_light1.m_height;
 
+  // capture settings
+  m_captureSettings.width = v.m_captureState.mWidth;
+  m_captureSettings.height = v.m_captureState.mHeight;
+  m_captureSettings.samples = v.m_captureState.mSamples;
+  m_captureSettings.duration = v.m_captureState.mDuration;
+  m_captureSettings.durationType = (eRenderDurationType)v.m_captureState.mDurationType;
+  m_captureSettings.startTime = v.m_captureState.mStartTime;
+  m_captureSettings.endTime = v.m_captureState.mEndTime;
+  m_captureSettings.outputDir = v.m_captureState.mOutputDir.toStdString();
+  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix.toStdString();
+
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
@@ -933,6 +950,17 @@ agaveGui::appToViewerState()
   v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
   v.m_light1.m_width = lt1.m_Width;
   v.m_light1.m_height = lt1.m_Height;
+
+  // capture settings
+  v.m_captureState.mWidth = m_captureSettings.width;
+  v.m_captureState.mHeight = m_captureSettings.height;
+  v.m_captureState.mSamples = m_captureSettings.samples;
+  v.m_captureState.mDuration = m_captureSettings.duration;
+  v.m_captureState.mDurationType = m_captureSettings.durationType;
+  v.m_captureState.mStartTime = m_captureSettings.startTime;
+  v.m_captureState.mEndTime = m_captureSettings.endTime;
+  v.m_captureState.mOutputDir = QString::fromStdString(m_captureSettings.outputDir);
+  v.m_captureState.mFilenamePrefix = QString::fromStdString(m_captureSettings.filenamePrefix);
 
   return v;
 }

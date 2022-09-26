@@ -47,6 +47,20 @@ struct LightViewerState
   float m_width = 1.0f, m_height = 1.0f, m_distance = 10.0f;
 };
 
+struct CaptureState
+{
+  QString mOutputDir;
+  QString mFilenamePrefix;
+  int mWidth;
+  int mHeight;
+  int mSamples;
+  int mDuration; // in seconds
+  // permanent id value for serialization???
+  int mDurationType; // samples or seconds
+  int mStartTime;
+  int mEndTime;
+};
+
 struct ViewerState
 {
   QString m_volumeImageFile;
@@ -82,6 +96,7 @@ struct ViewerState
 
   LightViewerState m_light0;
   LightViewerState m_light1;
+  CaptureState m_captureState;
 
   QJsonDocument stateToJson() const;
   QString stateToPythonScript() const;

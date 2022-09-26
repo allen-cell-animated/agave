@@ -4,6 +4,7 @@
 
 #include <QDialog>
 #include <QMutex>
+#include <QStandardPaths>
 
 class QComboBox;
 class QImage;
@@ -53,10 +54,40 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
+// serialized so permanent?
 enum eRenderDurationType
 {
   TIME = 0,
   SAMPLES = 1
+};
+
+struct CaptureSettings
+{
+  std::string outputDir;
+  std::string filenamePrefix;
+  int width;
+  int height;
+  int samples;
+  int duration; // in seconds
+  eRenderDurationType durationType;
+  int startTime;
+  int endTime;
+
+  CaptureSettings()
+  {
+    // defaults!
+    QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    outputDir = docs.toStdString();
+
+    filenamePrefix = "frame";
+    width = 640;
+    height = 480;
+    samples = 32;
+    duration = 10;
+    durationType = SAMPLES;
+    startTime = 0;
+    endTime = 0;
+  }
 };
 
 class RenderDialog : public QDialog
@@ -70,6 +101,7 @@ public:
                CCamera camera,
                QOpenGLContext* glContext,
                std::string volumeFilePath,
+               CaptureSettings* captureSettings,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
@@ -101,6 +133,8 @@ private:
   const RenderSettings& m_renderSettings;
   const Scene& m_scene;
   std::string mVolumeFilePath;
+  // reference that I don't own
+  CaptureSettings* mCaptureSettings;
   CCamera m_camera;
 
   ImageDisplay* mImageView; // ? or a GLView3D?

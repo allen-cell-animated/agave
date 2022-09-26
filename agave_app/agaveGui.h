@@ -6,6 +6,8 @@
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
+#include "renderDialog.h"
+
 
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
@@ -110,6 +112,9 @@ private:
   // if renderer is on a separate thread, then this will need a mutex guard
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
   RenderSettings m_renderSettings;
+
+  // the render dialog will modify the contents of this object
+  CaptureSettings m_captureSettings;
 
   int m_lastRenderResolutionX = 0;
   int m_lastRenderResolutionY = 0;

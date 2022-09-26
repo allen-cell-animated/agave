@@ -167,6 +167,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            CCamera camera,
                            QOpenGLContext* glContext,
                            std::string volumeFilePath,
+                           CaptureSettings* captureSettings,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
   , m_renderSettings(renderSettings)
@@ -180,6 +181,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , mHeight(0)
   , mFrameNumber(0)
   , mTotalFrames(1)
+  , mCaptureSettings(captureSettings)
   , QDialog(parent)
 {
   setWindowTitle(tr("AGAVE Render"));
@@ -194,24 +196,39 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   static const int defaultRenderIterations = 1024;
 
   mFrameProgressBar = new QProgressBar(this);
-  mFrameProgressBar->setRange(0, defaultRenderIterations);
+  if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
+    mFrameProgressBar->setRange(0, mCaptureSettings->samples);
+  } else {
+    mFrameProgressBar->setRange(0, mCaptureSettings->duration);
+  }
 
   mRenderDurationEdit = new QComboBox(this);
-  mRenderDurationEdit->addItem("Samples");
-  mRenderDurationEdit->addItem("Time");
+  mRenderDurationEdit->addItem("Samples", eRenderDurationType::SAMPLES);
+  mRenderDurationEdit->addItem("Time", eRenderDurationType::TIME);
+  auto mapDurationTypeToUIIndex = std::map<eRenderDurationType, int>{
+    { eRenderDurationType::SAMPLES, 0 },
+    { eRenderDurationType::TIME, 1 },
+  };
+  mRenderDurationEdit->setCurrentIndex(mapDurationTypeToUIIndex[mCaptureSettings->durationType]);
 
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
   mRenderSamplesEdit->setMaximum(65536);
-  mRenderSamplesEdit->setValue(defaultRenderIterations);
+  mRenderSamplesEdit->setValue(mCaptureSettings->samples);
   mRenderTimeEdit = new QTimeEdit(this);
   mRenderTimeEdit->setDisplayFormat("hh:mm:ss");
-  mRenderTimeEdit->setTime(QTime(0, 0, 30));
+  int h = mCaptureSettings->duration / (60 * 60);
+  int m = (mCaptureSettings->duration - h * 60 * 60) / 60;
+  int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
+  mRenderTimeEdit->setTime(QTime(h, m, s));
 
-  setRenderDurationType(eRenderDurationType::SAMPLES);
+  setRenderDurationType(mCaptureSettings->durationType);
 
-  mWidth = camera.m_Film.m_Resolution.GetResX();
-  mHeight = camera.m_Film.m_Resolution.GetResY();
+  mWidth = mCaptureSettings->width;
+  mHeight = mCaptureSettings->height;
+  // copy the window width in case user wants this
+  // mWidth = camera.m_Film.m_Resolution.GetResX();
+  // mHeight = camera.m_Film.m_Resolution.GetResY();
 
   mWidthInput = new QSpinBox(this);
   mWidthInput->setMaximum(4096);
@@ -234,19 +251,19 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mStartTimeInput = new QSpinBox(this);
   mStartTimeInput->setMinimum(0);
   mStartTimeInput->setMaximum(scene.m_timeLine.maxTime());
-  mStartTimeInput->setValue(scene.m_timeLine.currentTime());
+  mStartTimeInput->setValue(mCaptureSettings->startTime);
   mEndTimeInput = new QSpinBox(this);
   mEndTimeInput->setMinimum(0);
   mEndTimeInput->setMaximum(scene.m_timeLine.maxTime());
-  mEndTimeInput->setValue(scene.m_timeLine.currentTime());
+  mEndTimeInput->setValue(mCaptureSettings->endTime);
 
   mTimeSeriesProgressBar = new QProgressBar(this);
-  mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value())+1);
+  mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
   mSelectSaveDirectoryButton = new QPushButton("Dir...", this);
 
-  mSaveDirectoryLabel = new QLabel(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), this);
-  mSaveFilePrefix = new QLineEdit("frame", this);
+  mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
+  mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
   connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
@@ -266,7 +283,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
   connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
   connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
-
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
@@ -378,6 +394,7 @@ RenderDialog::render()
     r->configure(m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_glContext);
     m_glContext->moveToThread(r);
 
+    onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request
     resumeRendering();
 
@@ -406,9 +423,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
   static int imagesReceived = 0;
-  imagesReceived = imagesReceived+1;
+  imagesReceived = imagesReceived + 1;
 
-  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()+1) {
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() + 1) {
     LOG_DEBUG << "received frame after timeline completed";
     return;
   }
@@ -419,7 +436,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
-    //mFrameProgressBar->setValue(imagesReceived);
+    // mFrameProgressBar->setValue(imagesReceived);
   } else {
     // nano to seconds.  render durations in the dialog are specified in seconds.
     mFrameProgressBar->setValue(m_frameRenderTime / (1000 * 1000 * 1000));
@@ -430,7 +447,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // we just received the last sample.
     // however, another sample was already enqueued!!!!
     // so we know we will have one sample to discard.
-    
+
     LOG_DEBUG << imagesReceived << " images received";
     LOG_DEBUG << "Progress " << mFrameProgressBar->value() << " / " << mFrameProgressBar->maximum();
     LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
@@ -585,6 +602,7 @@ RenderDialog::updateWidth(int w)
 {
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
+  mCaptureSettings->width = w;
   resetProgress();
 
   emit setRenderResolution(mWidth, mHeight);
@@ -595,6 +613,7 @@ RenderDialog::updateHeight(int h)
 {
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
+  mCaptureSettings->height = h;
   resetProgress();
   emit setRenderResolution(mWidth, mHeight);
 }
@@ -614,6 +633,8 @@ RenderDialog::getYResolution()
 void
 RenderDialog::setRenderDurationType(eRenderDurationType type)
 {
+  mCaptureSettings->durationType = type;
+
   mRenderDurationType = type;
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mRenderTimeEdit->setEnabled(false);
@@ -627,6 +648,7 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
 void
 RenderDialog::updateRenderSamples(int s)
 {
+  mCaptureSettings->samples = s;
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setMaximum(s);
   }
@@ -635,8 +657,10 @@ RenderDialog::updateRenderSamples(int s)
 void
 RenderDialog::updateRenderTime(const QTime& t)
 {
+  mCaptureSettings->duration = t.hour() * 60 * 60 + t.minute() * 60 + t.second();
+
   if (mRenderDurationType == eRenderDurationType::TIME) {
-    mFrameProgressBar->setMaximum(t.hour() * 3600 + t.minute() * 60 + t.second());
+    mFrameProgressBar->setMaximum(mCaptureSettings->duration);
   }
 }
 
@@ -691,6 +715,8 @@ RenderDialog::onStartTimeChanged(int t)
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
   mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
+
+  mCaptureSettings->startTime = t;
 }
 void
 RenderDialog::onEndTimeChanged(int t)
@@ -698,6 +724,8 @@ RenderDialog::onEndTimeChanged(int t)
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
   mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
+
+  mCaptureSettings->endTime = t;
 }
 
 void
@@ -709,11 +737,12 @@ RenderDialog::onSelectSaveDirectoryClicked()
                                                   QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   if (!dir.isEmpty()) {
     mSaveDirectoryLabel->setText(dir);
+    mCaptureSettings->outputDir = dir.toStdString();
   }
 }
 
 void
 RenderDialog::onSaveFilePrefixChanged(const QString& value)
 {
-    // nothing really to do here?
+  mCaptureSettings->filenamePrefix = value.toStdString();
 }
