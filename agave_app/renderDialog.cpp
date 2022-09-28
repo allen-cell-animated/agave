@@ -425,7 +425,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   static int imagesReceived = 0;
   imagesReceived = imagesReceived + 1;
 
-  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum() + 1) {
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
     LOG_DEBUG << "received frame after timeline completed";
     return;
   }
