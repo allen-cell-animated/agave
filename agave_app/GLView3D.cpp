@@ -403,6 +403,13 @@ GLView3D::captureQimage()
 void
 GLView3D::pauseRenderLoop()
 {
+  std::shared_ptr<CStatus> s = getStatus();
+// the CStatus updtes can cause Qt GUI work to happen,
+// which can not be called from a separate thread.
+// so when we start rendering from another thread,
+// we need to either make status updates thread safe,
+// or just disable them here.
+  s->EnableUpdates(false);
   m_etimer.invalidate();
 }
 
@@ -410,4 +417,6 @@ void
 GLView3D::restartRenderLoop()
 {
   m_etimer.restart();
+  std::shared_ptr<CStatus> s = getStatus();
+  s->EnableUpdates(true);
 }

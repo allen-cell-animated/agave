@@ -187,4 +187,6 @@ private:
 
   void onSelectSaveDirectoryClicked();
   void onSaveFilePrefixChanged(const QString& value);
+  void onRenderThreadFinished();
+
 };

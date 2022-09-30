@@ -381,31 +381,40 @@ void
 RenderDialog::render()
 {
   LOG_INFO << "Render button clicked";
-  if (!this->m_renderThread) {
+  if (!this->m_renderThread || m_renderThread->isFinished()) {
 
-    mFrameProgressBar->setValue(0);
-    mTimeSeriesProgressBar->setValue(0);
-    mFrameNumber = mStartTimeInput->value();
+    resetProgress();
+//    mFrameProgressBar->setValue(0);
+  //  mTimeSeriesProgressBar->setValue(0);
+    //mFrameNumber = mStartTimeInput->value();
 
     // when render is done, draw QImage to widget and save to file if autosave?
-    Renderer* r = new Renderer("Render dialog render thread ", this, m_mutex);
-    this->m_renderThread = r;
+    if (!m_renderThread) {
+
+      m_renderThread = new Renderer("Render dialog render thread ", this, m_mutex);
+
+    // queued across thread boundary.  typically requestProcessed is called from another thread.
+      // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
+      // fully async.
+      connect(m_renderThread,
+              &Renderer::requestProcessed,
+              this,
+              &RenderDialog::onRenderRequestProcessed,
+              Qt::BlockingQueuedConnection);
+      connect(m_renderThread, &Renderer::finished, this, &RenderDialog::onRenderThreadFinished);
+      // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
+    }
+
     // now get our rendering resources into this Renderer object
-    r->configure(m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_glContext);
-    m_glContext->moveToThread(r);
+    m_renderThread->configure(m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_glContext);
 
     onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request
     resumeRendering();
 
-    // queued across thread boundary.  typically requestProcessed is called from another thread.
-    // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
-    // fully async.
-    connect(
-      r, &Renderer::requestProcessed, this, &RenderDialog::onRenderRequestProcessed, Qt::BlockingQueuedConnection);
-    // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
     LOG_INFO << "Starting render thread...";
-    r->start();
+    m_glContext->moveToThread(m_renderThread);
+    m_renderThread->start();
   } else {
     resumeRendering();
   }
@@ -422,9 +431,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
-  static int imagesReceived = 0;
-  imagesReceived = imagesReceived + 1;
-
+    if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
+    LOG_DEBUG << "received sample after render terminated";
+    }
   if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
     LOG_DEBUG << "received frame after timeline completed";
     return;
@@ -436,7 +445,6 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setValue(mFrameProgressBar->value() + 1);
-    // mFrameProgressBar->setValue(imagesReceived);
   } else {
     // nano to seconds.  render durations in the dialog are specified in seconds.
     mFrameProgressBar->setValue(m_frameRenderTime / (1000 * 1000 * 1000));
@@ -448,10 +456,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // however, another sample was already enqueued!!!!
     // so we know we will have one sample to discard.
 
-    LOG_DEBUG << imagesReceived << " images received";
+    LOG_DEBUG << mFrameProgressBar->value() << " images received";
     LOG_DEBUG << "Progress " << mFrameProgressBar->value() << " / " << mFrameProgressBar->maximum();
     LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
-    imagesReceived = 0;
     // update display with finished frame
     this->setImage(&image);
 
@@ -483,9 +490,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
     // done with LAST frame? halt everything.
     if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
-      LOG_DEBUG << "all frames completed.  pausing render";
-      pauseRendering();
-      // stopRendering();
+      LOG_DEBUG << "all frames completed.  ending render";
+      //pauseRendering();
+      stopRendering();
     } else {
       LOG_DEBUG << "reset frame progress for next frame";
       // reset progress and render time
@@ -526,10 +533,9 @@ RenderDialog::pauseRendering()
 void
 RenderDialog::stopRendering()
 {
-  if (m_renderThread && m_renderThread->isRunning()) {
-    m_renderThread->setStreamMode(0);
-
-    resetProgress();
+  if (m_renderThread) {
+    endRenderThread();
+    //resetProgress();
   }
 }
 
@@ -538,21 +544,24 @@ RenderDialog::endRenderThread()
 {
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
-    m_renderThread->requestInterruption();
-    m_renderThread->wakeUp();
 
     bool ok = false;
     int n = 0;
-    while (!ok && n < 30) {
-      ok = m_renderThread->wait(QDeadlineTimer(20));
-      n = n + 1;
-      QApplication::processEvents();
-    }
-    if (ok) {
-      LOG_DEBUG << "Render thread stopped cleanly after " << n << " tries";
-    } else {
-      LOG_DEBUG << "Render thread did not stop cleanly";
-    }
+//    while (!ok && !m_renderThread->isFinished()) {
+      m_renderThread->requestInterruption();
+//      m_renderThread->wakeUp();
+//      ok = m_renderThread->wait(QDeadlineTimer(20));
+//      n = n + 1;
+ //     QApplication::processEvents();
+//    }
+//    if (ok) {
+//      LOG_DEBUG << "Render thread stopped cleanly after " << n << " tries";
+//    } else {
+//      LOG_DEBUG << "Render thread did not stop cleanly";
+//    }
+
+//    delete m_renderThread;
+//    m_renderThread = nullptr;
   }
 }
 
@@ -671,10 +680,13 @@ RenderDialog::resetProgress()
   r->getRenderSettings().SetNoIterations(0);
 
   mFrameProgressBar->reset();
+  mFrameProgressBar->setValue(0);
+
   m_frameRenderTime = 0; // FIX per frame render time vs total render time elapsed
 
   // TODO reset time series too?
   mTimeSeriesProgressBar->reset();
+  mTimeSeriesProgressBar->setValue(0);
   mFrameNumber = mStartTimeInput->value();
 }
 
@@ -745,4 +757,11 @@ void
 RenderDialog::onSaveFilePrefixChanged(const QString& value)
 {
   mCaptureSettings->filenamePrefix = value.toStdString();
+}
+
+void
+RenderDialog::onRenderThreadFinished()
+{
+  m_renderThread->deleteLater();
+  m_renderThread = nullptr;
 }

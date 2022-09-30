@@ -285,7 +285,7 @@ Renderer::processRequest()
     lastReq = r;
   }
 
-  // unlock mutex in case the signal handler wants to add a request
+  // unlock mutex BEFORE emit, in case the signal handler wants to add a request
   m_requestMutex.unlock();
 
   // inform the server that we are done with r
@@ -431,14 +431,17 @@ Renderer::shutDown()
   delete this->m_fbo;
 
   delete m_myVolumeData.m_renderSettings;
+  m_myVolumeData.m_renderSettings = nullptr;
+
   delete m_myVolumeData.m_camera;
+  m_myVolumeData.m_camera = nullptr;
+
   delete m_myVolumeData.m_scene;
+  m_myVolumeData.m_scene = nullptr;
+
   if (m_myVolumeData.ownRenderer) {
     delete m_myVolumeData.m_renderer;
   }
-  m_myVolumeData.m_camera = nullptr;
-  m_myVolumeData.m_scene = nullptr;
-  m_myVolumeData.m_renderSettings = nullptr;
   m_myVolumeData.m_renderer = nullptr;
 
   m_glContext->doneCurrent();
