@@ -333,6 +333,7 @@ agaveGui::onQuickRender()
   // (GL context sharing?)
 
   // if we are disabling the 3d view then might consider just making this modal
+  m_glView->pauseRenderLoop();
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
@@ -365,6 +366,8 @@ agaveGui::onQuickRender()
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
+    m_glView->restartRenderLoop();
+
   });
   QImage im = m_glView->captureQimage();
   QImage* imcopy = new QImage(im);

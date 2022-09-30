@@ -399,3 +399,15 @@ GLView3D::captureQimage()
 
   return img;
 }
+
+void
+GLView3D::pauseRenderLoop()
+{
+  m_etimer.invalidate();
+}
+
+void
+GLView3D::restartRenderLoop()
+{
+  m_etimer.restart();
+}
