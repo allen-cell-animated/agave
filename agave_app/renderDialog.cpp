@@ -226,9 +226,9 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mWidth = mCaptureSettings->width;
   mHeight = mCaptureSettings->height;
-  // copy the window width in case user wants this
-  // mWidth = camera.m_Film.m_Resolution.GetResX();
-  // mHeight = camera.m_Film.m_Resolution.GetResY();
+
+  m_camera.m_Film.m_Resolution.SetResX(mWidth);
+  m_camera.m_Film.m_Resolution.SetResY(mHeight);
 
   mWidthInput = new QSpinBox(this);
   mWidthInput->setMaximum(4096);
@@ -239,6 +239,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mHeightInput->setMinimum(2);
   mHeightInput->setValue(mHeight);
   mResolutionPresets = new QComboBox(this);
+  // TODO should we have a button to capture window dims?
   mResolutionPresets->addItem("Choose a preset...");
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
     mResolutionPresets->addItem(resolutionPresets[i].label);
@@ -603,7 +604,6 @@ RenderDialog::onResolutionPreset(int index)
   const ResolutionPreset& preset = resolutionPresets[index - 1];
   mWidthInput->setValue((preset.w));
   mHeightInput->setValue((preset.h));
-  emit setRenderResolution(mWidth, mHeight);
 }
 
 void
@@ -613,8 +613,6 @@ RenderDialog::updateWidth(int w)
   m_camera.m_Film.m_Resolution.SetResX(w);
   mCaptureSettings->width = w;
   resetProgress();
-
-  emit setRenderResolution(mWidth, mHeight);
 }
 
 void
@@ -624,7 +622,6 @@ RenderDialog::updateHeight(int h)
   m_camera.m_Film.m_Resolution.SetResY(h);
   mCaptureSettings->height = h;
   resetProgress();
-  emit setRenderResolution(mWidth, mHeight);
 }
 
 int
@@ -707,11 +704,13 @@ RenderDialog::onZoomInClicked()
 {
   mImageView->scale(ZOOM_STEP);
 }
+
 void
 RenderDialog::onZoomOutClicked()
 {
   mImageView->scale(1.0 / ZOOM_STEP);
 }
+
 void
 RenderDialog::onZoomFitClicked()
 {
@@ -730,6 +729,7 @@ RenderDialog::onStartTimeChanged(int t)
 
   mCaptureSettings->startTime = t;
 }
+
 void
 RenderDialog::onEndTimeChanged(int t)
 {

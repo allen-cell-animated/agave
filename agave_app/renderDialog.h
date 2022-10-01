@@ -122,9 +122,6 @@ private slots:
   void updateRenderTime(const QTime& t);
   void onRenderDurationTypeChanged(int index);
 
-signals:
-  void setRenderResolution(int x, int y);
-
 private:
   QMutex m_mutex;
   QOpenGLContext* m_glContext;
@@ -188,5 +185,4 @@ private:
   void onSelectSaveDirectoryClicked();
   void onSaveFilePrefixChanged(const QString& value);
   void onRenderThreadFinished();
-
 };
