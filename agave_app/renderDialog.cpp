@@ -30,11 +30,8 @@ ImageDisplay::ImageDisplay(QWidget* parent)
 {
   m_pixmap = nullptr;
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-  // TODO this image should not be owned by the widget
-  // m_image = new QImage(256, 256, QImage::Format_RGB888);
-  // m_image->fill(Qt::white);
   m_pixmap = new QPixmap(256, 256);
-  //  m_pixmap->convertFromImage(*m_image);
+  m_pixmap->fill(Qt::black);
 }
 
 ImageDisplay::~ImageDisplay()
@@ -48,7 +45,9 @@ ImageDisplay::setImage(QImage* image)
   if (image) {
     // TODO: sometimes we want to hold on to the transparent image with alphas, sometimes we don't!!!!
     // users may want to save the image with or without the background!
-    // can this step be skipped at all?
+    // can this processing step be skipped at all?
+
+    // remove alphas from image for display here
     QImage im = image->convertToFormat(QImage::Format_RGB32);
 
     m_pixmap->convertFromImage(im, Qt::ColorOnly);
@@ -193,8 +192,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mSaveButton = new QPushButton("&Save", this);
   mCloseButton = new QPushButton("&Close", this);
 
-  static const int defaultRenderIterations = 1024;
-
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setRange(0, mCaptureSettings->samples);
@@ -213,6 +210,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
+  // arbitrarily chosen
   mRenderSamplesEdit->setMaximum(65536);
   mRenderSamplesEdit->setValue(mCaptureSettings->samples);
   mRenderTimeEdit = new QTimeEdit(this);
@@ -312,7 +310,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   durationsLayout->addWidget(mRenderTimeEdit, 1);
   durationsLayout->addWidget(new QLabel(tr("Samples:")), 0);
   durationsLayout->addWidget(mRenderSamplesEdit, 1);
-  //  durationsLayout->addWidget(mRenderDurationTypeEdit, 1);
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
@@ -339,7 +336,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 void
 RenderDialog::save()
 {
-  // pause rendering
   pauseRendering();
 
   QFileDialog::Options options;
@@ -385,25 +381,22 @@ RenderDialog::render()
   if (!this->m_renderThread || m_renderThread->isFinished()) {
 
     resetProgress();
-//    mFrameProgressBar->setValue(0);
-  //  mTimeSeriesProgressBar->setValue(0);
-    //mFrameNumber = mStartTimeInput->value();
 
     // when render is done, draw QImage to widget and save to file if autosave?
     if (!m_renderThread) {
 
       m_renderThread = new Renderer("Render dialog render thread ", this, m_mutex);
 
-    // queued across thread boundary.  typically requestProcessed is called from another thread.
+      // queued across thread boundary.  typically requestProcessed is called from another thread.
       // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
       // fully async.
       connect(m_renderThread,
               &Renderer::requestProcessed,
               this,
               &RenderDialog::onRenderRequestProcessed,
+              // TODO test wthout this
               Qt::BlockingQueuedConnection);
       connect(m_renderThread, &Renderer::finished, this, &RenderDialog::onRenderThreadFinished);
-      // connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
     }
 
     // now get our rendering resources into this Renderer object
@@ -432,9 +425,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
-    if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
+  if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
     LOG_DEBUG << "received sample after render terminated";
-    }
+  }
   if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
     LOG_DEBUG << "received frame after timeline completed";
     return;
@@ -460,6 +453,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     LOG_DEBUG << mFrameProgressBar->value() << " images received";
     LOG_DEBUG << "Progress " << mFrameProgressBar->value() << " / " << mFrameProgressBar->maximum();
     LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
+
     // update display with finished frame
     this->setImage(&image);
 
@@ -492,11 +486,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // done with LAST frame? halt everything.
     if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
       LOG_DEBUG << "all frames completed.  ending render";
-      //pauseRendering();
       stopRendering();
     } else {
       LOG_DEBUG << "reset frame progress for next frame";
-      // reset progress and render time
+      // reset frame progress and render time
       mFrameProgressBar->setValue(0);
       m_frameRenderTime = 0;
 
@@ -504,11 +497,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
       // set up for next frame!
       //
-      // run some code to increment T or rotation angle etc.
       RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
       r->getRenderSettings().SetNoIterations(0);
 
-      LOG_DEBUG << "queue setTime " << mFrameNumber << " command ";
+      LOG_DEBUG << "queueing setTime " << mFrameNumber << " command ";
       std::vector<Command*> cmd;
       SetTimeCommandD timedata;
       timedata.m_time = mFrameNumber;
@@ -525,8 +517,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 void
 RenderDialog::pauseRendering()
 {
+  // note this leaves the render thread alive and well
   if (m_renderThread) {
-
     m_renderThread->setStreamMode(0);
   }
 }
@@ -536,7 +528,6 @@ RenderDialog::stopRendering()
 {
   if (m_renderThread) {
     endRenderThread();
-    //resetProgress();
   }
 }
 
@@ -545,24 +536,7 @@ RenderDialog::endRenderThread()
 {
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
-
-    bool ok = false;
-    int n = 0;
-//    while (!ok && !m_renderThread->isFinished()) {
-      m_renderThread->requestInterruption();
-//      m_renderThread->wakeUp();
-//      ok = m_renderThread->wait(QDeadlineTimer(20));
-//      n = n + 1;
- //     QApplication::processEvents();
-//    }
-//    if (ok) {
-//      LOG_DEBUG << "Render thread stopped cleanly after " << n << " tries";
-//    } else {
-//      LOG_DEBUG << "Render thread did not stop cleanly";
-//    }
-
-//    delete m_renderThread;
-//    m_renderThread = nullptr;
+    m_renderThread->requestInterruption();
   }
 }
 
@@ -573,15 +547,22 @@ RenderDialog::resumeRendering()
     m_renderThread->setStreamMode(1);
 
     std::vector<Command*> cmd;
+
+    // 1. pick up any resolution changes?
     SetResolutionCommandD resdata;
     resdata.m_x = mWidth;
     resdata.m_y = mHeight;
     cmd.push_back(new SetResolutionCommand(resdata));
+
+    // 2. make sure we set the right time
     SetTimeCommandD timedata;
     timedata.m_time = mFrameNumber;
     cmd.push_back(new SetTimeCommand(timedata));
+
+    // 3. the redraw request
     RequestRedrawCommandD data;
     cmd.push_back(new RequestRedrawCommand(data));
+
     m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
   }
 }
@@ -690,11 +671,12 @@ RenderDialog::resetProgress()
 void
 RenderDialog::onRenderDurationTypeChanged(int index)
 {
-  if (index == 0) {
-    setRenderDurationType(eRenderDurationType::SAMPLES);
+  // get userdata from value
+  eRenderDurationType type = (eRenderDurationType)mRenderDurationEdit->itemData(index).toInt();
+  setRenderDurationType(type);
+  if (type == eRenderDurationType::SAMPLES) {
     updateRenderSamples(mRenderSamplesEdit->value());
   } else {
-    setRenderDurationType(eRenderDurationType::TIME);
     updateRenderTime(mRenderTimeEdit->time());
   }
 }
