@@ -470,7 +470,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
       QFileInfo fileInfo(d, filename);
       QString saveFilePath = fileInfo.absoluteFilePath();
-      bool ok = image.save(saveFilePath);
+
+      // TODO don't throw away alpha - rethink how image is composited with background color
+      QImage im = image.convertToFormat(QImage::Format_RGB32);
+      bool ok = im.save(saveFilePath);
       if (!ok) {
         LOG_ERROR << "Failed to save render " << saveFilePath.toStdString();
       } else {
