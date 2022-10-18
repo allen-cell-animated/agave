@@ -17,6 +17,7 @@ class QProgressBar;
 class QPushButton;
 class QSpinBox;
 class QTimeEdit;
+class QToolBar;
 
 class IRenderWindow;
 class Renderer;
@@ -158,6 +159,8 @@ private:
   QPushButton* mZoomInButton;
   QPushButton* mZoomOutButton;
   QPushButton* mZoomFitButton;
+
+  QToolBar* mToolbar;
 
   int mWidth;
   int mHeight;

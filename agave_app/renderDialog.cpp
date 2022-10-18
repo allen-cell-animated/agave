@@ -19,6 +19,7 @@
 #include <QSpinBox>
 #include <QStandardPaths>
 #include <QTimeEdit>
+#include <QToolBar>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -243,9 +244,9 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
 
-  mZoomInButton = new QPushButton("+", this);
-  mZoomOutButton = new QPushButton("-", this);
-  mZoomFitButton = new QPushButton("[]", this);
+  // mZoomInButton = new QPushButton("+", this);
+  // mZoomOutButton = new QPushButton("-", this);
+  // mZoomFitButton = new QPushButton("[ ]", this);
 
   mStartTimeInput = new QSpinBox(this);
   mStartTimeInput->setMinimum(0);
@@ -264,6 +265,14 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
 
+  mToolbar = new QToolBar(this);
+  // mToolbar->addWidget(mZoomInButton);
+  // mToolbar->addWidget(mZoomOutButton);
+  // mToolbar->addWidget(mZoomFitButton);
+  mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
+  mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
+  mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
+
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
   connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
   connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::stopRendering);
@@ -275,9 +284,9 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
   connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
-  connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
-  connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
+  // connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
+  // connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
+  // connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
   connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
   connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
   connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
@@ -299,10 +308,10 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   saveButtonsLayout->addWidget(mSaveDirectoryLabel, 1);
   saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
-  QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
-  zoomButtonsLayout->addWidget(mZoomInButton, 1);
-  zoomButtonsLayout->addWidget(mZoomOutButton, 1);
-  zoomButtonsLayout->addWidget(mZoomFitButton, 1);
+  // QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
+  // zoomButtonsLayout->addWidget(mZoomInButton, 1);
+  // zoomButtonsLayout->addWidget(mZoomOutButton, 1);
+  // zoomButtonsLayout->addWidget(mZoomFitButton, 1);
 
   QHBoxLayout* durationsLayout = new QHBoxLayout();
   durationsLayout->addWidget(mRenderDurationEdit, 0);
@@ -320,15 +329,15 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 
-  // TODO see layout->setmenubar !
-  layout->addLayout(topButtonsLayout);
-  layout->addLayout(durationsLayout);
-  layout->addLayout(saveButtonsLayout);
-  layout->addLayout(zoomButtonsLayout);
+  layout->setMenuBar(mToolbar);
   layout->addWidget(mImageView);
   layout->addWidget(mFrameProgressBar);
   layout->addWidget(mTimeSeriesProgressBar);
   layout->addLayout(bottomButtonslayout);
+  layout->addLayout(topButtonsLayout);
+  layout->addLayout(durationsLayout);
+  layout->addLayout(saveButtonsLayout);
+  // layout->addLayout(zoomButtonsLayout);
 
   setLayout(layout);
 }
