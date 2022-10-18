@@ -1,0 +1,3 @@
+[submodule "renderlib/libCZI"]
+	path = renderlib/libCZI
+	url = https://github.com/ZEISS/libczi.git
