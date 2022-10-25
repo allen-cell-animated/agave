@@ -143,7 +143,6 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   setAttribute(Qt::WA_PaintOnScreen);
   setAutoFillBackground(false);
 
-
   // IMPORTANT this is where the QT gui container classes send their values down into the
   // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
   // WgpuView3D->OnUpdateCamera
@@ -227,7 +226,6 @@ WgpuView3D::initializeGL()
         .next = NULL,
         .sType = (WGPUSType)WGPUSType_DeviceExtras,
       },
-    .label = "Device",
     .tracePath = NULL,
   };
   WGPUDeviceDescriptor deviceDescriptor = {
@@ -262,8 +260,6 @@ WgpuView3D::initializeGL()
   m_cameraController.setRenderSettings(*m_renderSettings);
   m_qrendersettings->setRenderSettings(*m_renderSettings);
 
-
-
   WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = { .bindGroupLayoutCount = 0, .bindGroupLayouts = NULL };
   WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(m_device, &pipelineLayoutDescriptor);
   WGPUBlendState blendState = { .color =
@@ -293,8 +289,8 @@ WgpuView3D::initializeGL()
     .layout = pipelineLayout,
     .vertex =
       WGPUVertexState{
-        .module = nullptr, // shader,
-        .entryPoint = nullptr,//"",  //"vs_main",
+        .module = nullptr,     // shader,
+        .entryPoint = nullptr, //"",  //"vs_main",
         .bufferCount = 0,
         .buffers = NULL,
       },
@@ -312,7 +308,7 @@ WgpuView3D::initializeGL()
     .fragment = nullptr, //&fragmentState,
   };
 
-  //m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
+  // m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
   m_initialized = true;
   if (!m_renderer) {
     return;
@@ -350,17 +346,16 @@ WgpuView3D::render()
     return;
   WGPUTextureView nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
   if (!nextTexture) {
-      // try one time to re-create swap chain
+    // try one time to re-create swap chain
     WGPUSwapChainDescriptor swapChainDescriptor = {
       .usage = WGPUTextureUsage_RenderAttachment,
       .format = m_swapChainFormat,
-        .width = (uint32_t)width(),
-        .height = (uint32_t)height(),
+      .width = (uint32_t)width(),
+      .height = (uint32_t)height(),
       .presentMode = WGPUPresentMode_Fifo,
     };
     m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
     nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
-
   }
   invokeUserPaint(nextTexture);
 
