@@ -352,6 +352,7 @@ agaveGui::onQuickRender()
                                            camera,
                                            m_glView->context(),
                                            m_currentFilePath.toStdString(),
+                                           m_currentScene,
                                            &m_captureSettings,
                                            this);
   rdialog->resize(800, 600);

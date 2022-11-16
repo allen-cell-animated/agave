@@ -65,6 +65,7 @@ Renderer::configure(IRenderWindow* renderer,
                     const Scene& scene,
                     const CCamera& camera,
                     std::string volumeFilePath,
+                    int fileCurrentScene,
                     QOpenGLContext* glContext)
 {
   // assumes scene is already set in renderer and everything is initialized
@@ -73,6 +74,7 @@ Renderer::configure(IRenderWindow* renderer,
   m_myVolumeData.m_scene = new Scene(scene);
   m_myVolumeData.mVolumeFilePath = volumeFilePath;
   m_ec.m_currentFilePath = volumeFilePath;
+  m_ec.m_currentScene = fileCurrentScene;
   if (!renderer) {
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(1024);
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(1024);

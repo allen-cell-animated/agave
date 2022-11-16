@@ -101,6 +101,7 @@ public:
                CCamera camera,
                QOpenGLContext* glContext,
                std::string volumeFilePath,
+               int fileCurrentScene,
                CaptureSettings* captureSettings,
                QWidget* parent = Q_NULLPTR);
 
@@ -133,6 +134,7 @@ private:
   const RenderSettings& m_renderSettings;
   const Scene& m_scene;
   std::string mVolumeFilePath;
+  int m_fileCurrentScene;
   // reference that I don't own
   CaptureSettings* mCaptureSettings;
   CCamera m_camera;
