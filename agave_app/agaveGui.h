@@ -8,7 +8,6 @@
 #include "ViewerState.h"
 #include "renderDialog.h"
 
-
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
 
@@ -115,9 +114,6 @@ private:
 
   // the render dialog will modify the contents of this object
   CaptureSettings m_captureSettings;
-
-  int m_lastRenderResolutionX = 0;
-  int m_lastRenderResolutionY = 0;
 
   // the app owns a scene.
   // scene gets sent down to the renderer.

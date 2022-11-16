@@ -16,6 +16,89 @@
 #include <QMutexLocker>
 #include <QOpenGLFramebufferObjectFormat>
 
+RendererGLContext::RendererGLContext()
+  : m_ownGLContext(true)
+  , m_glContext(nullptr)
+#if HAS_EGL
+#else
+  , m_surface(nullptr)
+#endif
+{
+}
+
+RendererGLContext::~RendererGLContext() {}
+
+void
+RendererGLContext::destroy()
+{
+  if (m_ownGLContext) {
+    delete m_glContext;
+  } else {
+#if HAS_EGL
+#else
+    m_glContext->moveToThread(QGuiApplication::instance()->thread());
+#endif
+  }
+
+#if HAS_EGL
+#else
+  // schedule this to be deleted only after we're done cleaning up
+  m_surface->deleteLater();
+#endif
+}
+
+// to be run from main thread prior to starting render thread
+void
+RendererGLContext::configure(QOpenGLContext* glContext)
+{
+  // TODO what do we do when running on Linux desktop??
+  // need a "don't bother with EGL switch"?
+
+#if HAS_EGL
+#else
+  if (glContext) {
+    m_glContext = glContext;
+    m_ownGLContext = false;
+  }
+#endif
+}
+
+// to be run from render thread
+// context is current when returning from this function
+void
+RendererGLContext::init()
+{
+#if HAS_EGL
+  this->m_glContext = new HeadlessGLContext();
+  this->m_glContext->makeCurrent();
+#else
+  if (m_ownGLContext) {
+    this->m_glContext = renderlib::createOpenGLContext();
+  }
+
+  this->m_surface = new QOffscreenSurface();
+  this->m_surface->setFormat(this->m_glContext->format());
+  this->m_surface->create();
+
+  this->m_glContext->makeCurrent(m_surface);
+#endif
+}
+
+void
+RendererGLContext::makeCurrent()
+{
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
+  this->m_glContext->makeCurrent(this->m_surface);
+#endif
+}
+void
+RendererGLContext::doneCurrent()
+{
+  this->m_glContext->doneCurrent();
+}
+
 Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   : QThread(parent)
   , m_id(id)
@@ -24,8 +107,8 @@ Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   , m_width(0)
   , m_height(0)
   , m_openGLMutex(&mutex)
-  , m_ownGLContext(true)
   , m_wait()
+  , m_rglContext()
 {
   this->m_totalQueueDuration = 0;
 
@@ -85,44 +168,15 @@ Renderer::configure(IRenderWindow* renderer,
   } else {
     m_myVolumeData.ownRenderer = false;
     m_myVolumeData.m_renderer = renderer;
-    // TODO renderer has its own RenderSettings but we just made a local copy here
-    // this is responsible for a bug in which SetTImeCommand tries to modify rendersettings
-	// but the true renderer doesn't pick it up
   }
 
-  // TODO what do we do when running on Linux desktop??
-  // need a "don't bother with EGL switch"
-#if HAS_EGL
-#else
-  if (glContext) {
-    m_glContext = glContext;
-    m_ownGLContext = false;
-  }
-#endif
+  m_rglContext.configure(glContext);
 }
 
 void
 Renderer::init()
 {
-  // this->setFixedSize(1920, 1080);
-  // QMessageBox::information(this, "Info:", "Application Directory: " + QApplication::applicationDirPath() + "\n" +
-  // "Working Directory: " + QDir::currentPath());
-  // m_openGLMutex->lock();
-
-#if HAS_EGL
-  this->m_glContext = new HeadlessGLContext();
-  this->m_glContext->makeCurrent();
-#else
-  if (m_ownGLContext) {
-    this->m_glContext = renderlib::createOpenGLContext();
-  }
-
-  this->m_surface = new QOffscreenSurface();
-  this->m_surface->setFormat(this->m_glContext->format());
-  this->m_surface->create();
-
-  this->m_glContext->makeCurrent(m_surface);
-#endif
+  m_rglContext.init();
 
   int status = gladLoadGL();
   if (!status) {
@@ -147,8 +201,7 @@ Renderer::init()
 
   reset();
 
-  this->m_glContext->doneCurrent();
-  // m_openGLMutex->unlock();
+  m_rglContext.doneCurrent();
 }
 
 void
@@ -156,14 +209,7 @@ Renderer::run()
 {
   this->init();
 
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
-
-  // TODO: PUT THIS KIND OF INIT SOMEWHERE ELSE
-  // myVolumeInit();
+  m_rglContext.makeCurrent();
 
   while (!QThread::currentThread()->isInterruptionRequested()) {
     this->processRequest();
@@ -172,11 +218,7 @@ Renderer::run()
     QApplication::processEvents();
   }
 
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
+  m_rglContext.makeCurrent();
   if (m_myVolumeData.ownRenderer) {
     m_myVolumeData.m_renderer->cleanUpResources();
   }
@@ -301,11 +343,7 @@ Renderer::processRequest()
 void
 Renderer::processCommandBuffer(RenderRequest* rr)
 {
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
+  m_rglContext.makeCurrent();
 
   std::vector<Command*> cmds = rr->getParameters();
   if (cmds.size() > 0) {
@@ -314,10 +352,10 @@ Renderer::processCommandBuffer(RenderRequest* rr)
     if (!r) {
       LOG_ERROR << "Unsupported renderer: Renderer is not of type RenderGLPT";
     }
-	
-    m_ec.m_renderSettings = &r->getRenderSettings();  // m_myVolumeData.m_renderSettings;
+
+    m_ec.m_renderSettings = &r->getRenderSettings(); // m_myVolumeData.m_renderSettings;
     m_ec.m_renderer = this;
-    m_ec.m_appScene = r->scene();  // m_myVolumeData.m_scene;
+    m_ec.m_appScene = r->scene(); // m_myVolumeData.m_scene;
     m_ec.m_camera = m_myVolumeData.m_camera;
     m_ec.m_message = "";
 
@@ -335,11 +373,8 @@ QImage
 Renderer::render()
 {
   QMutexLocker locker(m_openGLMutex);
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
+
+  m_rglContext.makeCurrent();
 
   // get the renderer we need
   RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_myVolumeData.m_renderer);
@@ -362,7 +397,7 @@ Renderer::render()
   m_fbo->toImage(bytes.get());
   QImage img = QImage(bytes.get(), m_fbo->width(), m_fbo->height(), QImage::Format_ARGB32).copy().mirrored();
 
-  this->m_glContext->doneCurrent();
+  m_rglContext.doneCurrent();
 
   return img;
 }
@@ -373,13 +408,10 @@ Renderer::resizeGL(int width, int height)
   if ((width == m_width) && (height == m_height)) {
     return;
   }
-  QMutexLocker locker(m_openGLMutex);
 
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
+  QMutexLocker locker(m_openGLMutex);
+  m_rglContext.makeCurrent();
+
   // RESIZE THE RENDER INTERFACE
   if (m_myVolumeData.m_renderer) {
     m_myVolumeData.m_renderer->resize(width, height);
@@ -399,11 +431,7 @@ Renderer::reset(int from)
 {
   QMutexLocker locker(m_openGLMutex);
 
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
+  m_rglContext.makeCurrent();
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -413,7 +441,7 @@ Renderer::reset(int from)
 
   this->m_time.start();
 
-  this->m_glContext->doneCurrent();
+  m_rglContext.doneCurrent();
 }
 
 int
@@ -425,11 +453,8 @@ Renderer::getTime()
 void
 Renderer::shutDown()
 {
-#if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
-#endif
+  m_rglContext.makeCurrent();
+
   delete this->m_fbo;
 
   delete m_myVolumeData.m_renderSettings;
@@ -446,21 +471,9 @@ Renderer::shutDown()
   }
   m_myVolumeData.m_renderer = nullptr;
 
-  m_glContext->doneCurrent();
-  if (m_ownGLContext) {
-    delete m_glContext;
-  } else {
-#if HAS_EGL
-#else
-    m_glContext->moveToThread(QGuiApplication::instance()->thread());
-#endif
-  }
+  m_rglContext.doneCurrent();
 
-#if HAS_EGL
-#else
-  // schedule this to be deleted only after we're done cleaning up
-  m_surface->deleteLater();
-#endif
+  m_rglContext.destroy();
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
   exit();
