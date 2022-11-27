@@ -19,6 +19,8 @@ git submodule update --init
 For WINDOWS:
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
+tensorstore requires perl via its aom dependency from within cmake
+
 Install Qt LTS 5.15.2.
 In your favorite Python virtual environment:
 
@@ -30,7 +32,7 @@ aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
 Use vcpkg (must use target triplet x64-windows) to install the following:
 
 ```
-vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff netcdf-cxx4 --triplet x64-windows
+vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff aws-sdk-cpp[s3] netcdf-c --triplet x64-windows
 ```
 
 ```
