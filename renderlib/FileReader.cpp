@@ -6,9 +6,10 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 
-#include <filesystem>
+#include "netcdf.h"
 
 #include <chrono>
+#include <filesystem>
 #include <map>
 
 std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCache;
@@ -58,6 +59,10 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
     return FileReaderCzi::loadDimensionsCzi(filepath, scene);
   } else if (extstr == ".map" || extstr == ".mrc") {
     return FileReaderCCP4::loadDimensionsCCP4(filepath, scene);
+  } else if (extstr == ".zarr") {
+    int ncid;
+    nc_create("file://./CBCT.zarr#mode=nczarr,file", NC_CLOBBER, &ncid);
+    // return FileReaderZarr::loadDimensionsZarr(filepath, scene);
   }
   return VolumeDimensions();
 }

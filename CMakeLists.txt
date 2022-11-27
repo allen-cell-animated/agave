@@ -88,6 +88,7 @@ find_package( glm REQUIRED )
 endif(APPLE)
 
 find_package(TIFF)
+find_package(netcdfcxx)
 
 find_package(OpenGL)
 

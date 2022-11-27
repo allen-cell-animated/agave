@@ -1,8 +1,8 @@
 set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
 
 configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
-	"${CMAKE_CURRENT_SOURCE_DIR}/version.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/version.h"
 )
 
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
@@ -83,6 +83,7 @@ target_link_libraries(renderlib
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
 	libCZI
+	${netCDF_LIBRARIES}
 
 	# JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
@@ -92,3 +93,4 @@ target_link_libraries(renderlib
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)
 ENDIF(WIN32)
+
