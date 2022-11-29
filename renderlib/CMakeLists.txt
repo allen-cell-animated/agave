@@ -81,6 +81,7 @@ add_subdirectory(libCZI)
 # end libczi dependency
 
 # tensorstore dependency for renderlib
+set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 FetchContent_Declare(
 	tensorstore
 	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.28.tar.gz"
