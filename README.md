@@ -19,7 +19,13 @@ git submodule update --init
 For WINDOWS:
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
-tensorstore requires perl via its aom dependency from within cmake
+tensorstore requires:
+
+- Python 3.7 or later
+- CMake 3.24 or later
+- Perl, for building libaom from source (default). Must be in PATH. Not required if -DTENSORSTORE_USE_SYSTEM_LIBAOM=ON is specified.
+- NASM, for building libjpeg-turbo, libaom, and dav1d from source (default). Must be in PATH.Not required if -DTENSORSTORE*USE_SYSTEM*{JPEG,LIBAOM,DAV1D}=ON is specified.
+- GNU Patch or equivalent. Must be in PATH.
 
 Install Qt LTS 5.15.2.
 In your favorite Python virtual environment:

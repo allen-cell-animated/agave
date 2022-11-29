@@ -6,8 +6,8 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 
-#define ENABLE_S3_SDK
-#include "netcdf.h"
+//#define ENABLE_S3_SDK
+//#include "netcdf.h"
 
 #include <chrono>
 #include <filesystem>
@@ -54,9 +54,9 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
 {
   std::string extstr = getExtension(filepath);
 
-  int ncid;
-  int ok =
-    nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0", NC_NOWRITE, &ncid);
+  // int ncid;
+  // int ok =
+  //   nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0", NC_NOWRITE, &ncid);
 
   if (extstr == ".tif" || extstr == ".tiff") {
     return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
@@ -65,9 +65,10 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
   } else if (extstr == ".map" || extstr == ".mrc") {
     return FileReaderCCP4::loadDimensionsCCP4(filepath, scene);
   } else if (extstr == ".zarr") {
-    int ncid;
-    int ok =
-      nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0", NC_NOWRITE, &ncid);
+    // int ncid;
+    // int ok =
+    //   nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0", NC_NOWRITE,
+    //   &ncid);
     // nc_create("file://./CBCT.zarr#mode=nczarr,file", NC_CLOBBER, &ncid);
     //  return FileReaderZarr::loadDimensionsZarr(filepath, scene);
   }
@@ -91,9 +92,10 @@ FileReader::loadFromFile(const std::string& filepath,
 
   std::string extstr = getExtension(filepath);
 
-    int ncid;
-  int ok =
-    nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0#mode=zarr,s3", NC_NOWRITE, &ncid);
+  // int ncid;
+  // int ok = nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0#mode=zarr,s3",
+  //                  NC_NOWRITE,
+  //                  &ncid);
 
   if (extstr == ".tif" || extstr == ".tiff") {
     image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);
