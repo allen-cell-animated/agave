@@ -96,7 +96,8 @@ target_link_libraries(renderlib
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
 	libCZI
-	${AWSSDK_LINK_LIBRARIES}
+
+	# ${AWSSDK_LINK_LIBRARIES}
 
 	# ${netCDF_LIBRARIES}
 	# netCDF::netcdf
