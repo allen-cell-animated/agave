@@ -35,7 +35,7 @@ set(CMAKE_MODULE_PATH
 )
 
 # Find includes in corresponding build directories
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Find the Qt libraries
 # In order for find_package to be successful, Qt 5 must be found below the CMAKE_PREFIX_PATH,
