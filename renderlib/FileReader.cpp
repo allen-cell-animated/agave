@@ -6,6 +6,8 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 
+#include "tensorstore/context.h"
+#include "tensorstore/open.h"
 //#define ENABLE_S3_SDK
 //#include "netcdf.h"
 
@@ -30,6 +32,37 @@ getExtension(const std::string filepath)
   return extstr;
 }
 
+int
+zarrtest()
+{
+  tensorstore::Context context = tensorstore::Context::Default();
+
+  auto openFuture = tensorstore::Open(
+    {
+      { "driver", "zarr" },
+      { "kvstore",
+        { { "driver", "http" },
+          { "base_url", "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/" },
+          { "path", "Image_0/0/" } } },
+    },
+    context,
+    tensorstore::OpenMode::open,
+    tensorstore::RecheckCached{ false },
+    tensorstore::ReadWriteMode::read);
+
+  auto result = openFuture.result();
+  if (result.ok()) {
+    std::cout << "status OK";
+    auto store = result.value();
+    std::cout << store.domain().shape();
+  } else {
+    std::cout << "status BAD\n" << result.status();
+    return 1;
+  }
+
+  return 0;
+}
+
 FileReader::FileReader() {}
 
 FileReader::~FileReader() {}
@@ -37,6 +70,8 @@ FileReader::~FileReader() {}
 uint32_t
 FileReader::loadNumScenes(const std::string& filepath)
 {
+  int a = zarrtest();
+
   std::string extstr = getExtension(filepath);
 
   if (extstr == ".tif" || extstr == ".tiff") {
@@ -52,11 +87,10 @@ FileReader::loadNumScenes(const std::string& filepath)
 VolumeDimensions
 FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
 {
-  std::string extstr = getExtension(filepath);
 
-  // int ncid;
-  // int ok =
-  //   nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0", NC_NOWRITE, &ncid);
+  int a = zarrtest();
+
+  std::string extstr = getExtension(filepath);
 
   if (extstr == ".tif" || extstr == ".tiff") {
     return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
@@ -91,11 +125,6 @@ FileReader::loadFromFile(const std::string& filepath,
   std::shared_ptr<ImageXYZC> image;
 
   std::string extstr = getExtension(filepath);
-
-  // int ncid;
-  // int ok = nc_open("https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0#mode=zarr,s3",
-  //                  NC_NOWRITE,
-  //                  &ncid);
 
   if (extstr == ".tif" || extstr == ".tiff") {
     image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);
