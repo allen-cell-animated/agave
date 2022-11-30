@@ -162,6 +162,8 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
               .value();
           tensorstore::DataType dtype = store.dtype();
           auto shape_span = store.domain().shape();
+          std::cout << "Level " << multiscaleDims.size()
+                    << " shape " << shape_span << std::endl;
           std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
           auto scale = dataset["coordinateTransformations"][0]["scale"];
