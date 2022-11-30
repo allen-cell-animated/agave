@@ -100,13 +100,8 @@ target_link_libraries(renderlib
 	${TIFF_LIBRARIES}
 	libCZI
 
-	# ${AWSSDK_LINK_LIBRARIES}
-
-	# ${netCDF_LIBRARIES}
-	# netCDF::netcdf
 	tensorstore::tensorstore tensorstore::all_drivers
 
-	# JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
 	spdlog::spdlog_header_only
 )

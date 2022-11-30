@@ -93,10 +93,8 @@ else()
   find_package(glm REQUIRED)
 endif(APPLE)
 
-# find_package(AWSSDK REQUIRED COMPONENTS s3)
 find_package(TIFF)
 
-# find_package(netCDF CONFIG REQUIRED)
 find_package(OpenGL)
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
