@@ -6,8 +6,8 @@
 #include "VolumeDimensions.h"
 
 #include "tensorstore/context.h"
-#include "tensorstore/open.h"
 #include "tensorstore/index_space/dim_expression.h"
+#include "tensorstore/open.h"
 
 #include <algorithm>
 #include <chrono>
@@ -15,6 +15,21 @@
 #include <set>
 
 static const uint32_t IN_MEMORY_BPP = 16;
+
+// test urls:
+struct ZarrTestDataSpec
+{
+  std::string base_url;
+  std::string path;
+};
+static ZarrTestDataSpec TESTDATASET[3] = {
+  { "https://s3.us-west-2.amazonaws.com/aind-open-data/",
+    "exaSPIM_609281_2022-11-03_13-49-18/exaSPIM/exaSPIM/tile_x_0014_y_0000_z_0000_ch_488/" },
+  { "https://aind-open-data.s3-us-west-2.amazonaws.com/",
+    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/OMEZarr/Ex_445_Em_469.zarr/" },
+  { "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/", "Image_0/" }
+};
+static ZarrTestDataSpec TESTDATA = TESTDATASET[2];
 
 FileReaderZarr::FileReaderZarr() {}
 
@@ -28,9 +43,7 @@ jsonRead()
     tensorstore::Open<::nlohmann::json, 0>(
       { { "driver", "json" },
         { "kvstore",
-          { { "driver", "http" },
-            { "base_url", "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/" },
-            { "path", "Image_0/.zattrs" } } } })
+          { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + ".zattrs" } } } })
       .result()
       .value();
 
@@ -47,82 +60,6 @@ jsonRead()
     std::cout << "Error: " << attrs_array_result.status();
   }
   return attrs;
-}
-
-int
-zarrtest()
-{
-  jsonRead();
-  tensorstore::Context context = tensorstore::Context::Default();
-
-  auto openFuture = tensorstore::Open(
-    {
-      { "driver", "zarr" },
-      { "kvstore",
-        { { "driver", "http" },
-          { "base_url", "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/" },
-          { "path", "Image_0/0/" } } },
-    },
-    context,
-    tensorstore::OpenMode::open,
-    tensorstore::RecheckCached{ false },
-    tensorstore::ReadWriteMode::read);
-
-  auto result = openFuture.result();
-  if (result.ok()) {
-    auto store = result.value();
-    auto domain = store.domain();
-    std::cout << "domain.shape(): " << domain.shape() << std::endl;
-    std::cout << "domain.origin(): " << domain.origin() << std::endl;
-    auto shape_span = store.domain().shape();
-
-    std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
-
-    tensorstore::DataType dtype = store.dtype();
-    std::cout << "dtype: " << dtype << std::endl;
-    if (dtype == tensorstore::dtype_v<uint16_t>) {
-      tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(store.domain());
-      for (unsigned d = 0; d < shape.size(); ++d) {
-        transform = (std::move(transform) | tensorstore::Dims(d).HalfOpenInterval(0, shape[d] / 2)).value();
-      }
-      auto x = tensorstore::Read<tensorstore::zero_origin>(store | transform).value();
-
-      auto* p = reinterpret_cast<uint16_t*>(x.data());
-      std::cout << "p: " << *p << " " << p[1] << " " << p[2] << " " << p[3] << " " << p[4] << std::endl;
-    } else {
-      std::cerr << "Unsupported dtype";
-      return 1;
-    }
-  } else {
-    std::cout << "status BAD\n" << result.status();
-    return 1;
-  }
-
-  return 0;
-
-
-    // auto shape_span = store.domain().shape();
-    // std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
-    // // similar for origin
-
-    // tensorstore::DataType dtype = store.dtype();
-    // if (dtype == tensorstore::dtype_v<int32_t>) { /* ... */ }
-
-    // auto attrs_store = tensorstore::Open<::nlohmann::json, 0>({{"driver", "json"}, {"kvstore", {{"driver", "file"},
-    // {"path", ".../.zattrs"}}}}).result().value();
-
-    // // Sets attrs_array to a rank-0 array of ::nlohmann::json
-    // auto attrs_array_result = tensorstore::Read(attrs_store).result();
-
-    // ::nlohmann::json attrs;
-    // if (attrs_array_result.ok()) {
-    //   attrs = attrs_array_result->value()();
-    // } else if (absl::IsNotFound(attrs_array_result.status()) {
-    //   attrs = ::nlohmann::json::object_t();
-    // } else {
-    //   return attrs_array_result.status();
-    // }
-
 }
 
 uint32_t
@@ -195,22 +132,65 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
 
+  // pre-fetch dims for the different multiscales
+  struct ZarrMultiscaleDims
+  {
+    std::vector<float> scale;
+    std::vector<int64_t> shape;
+    tensorstore::DataType dtype;
+  };
+  std::vector<ZarrMultiscaleDims> multiscaleDims;
+
   nlohmann::json attrs = jsonRead();
+  auto multiscales = attrs["multiscales"];
+  if (multiscales.is_array()) {
+    // take the first one for now.
+    auto multiscale = multiscales[0];
+    auto datasets = multiscale["datasets"];
+    if (datasets.is_array()) {
+      for (auto& dataset : datasets) {
+        auto path = dataset["path"];
+        if (path.is_string()) {
+          std::string pathstr = path;
+          auto store =
+            tensorstore::Open(
+              { { "driver", "zarr" },
+                { "kvstore",
+                  { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + pathstr } } } })
+              .result()
+              .value();
+          tensorstore::DataType dtype = store.dtype();
+          auto shape_span = store.domain().shape();
+          std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+
+          auto scale = dataset["coordinateTransformations"][0]["scale"];
+          if (scale.is_array()) {
+            std::vector<float> scalevec;
+            for (auto& s : scale) {
+              scalevec.push_back(s);
+            }
+            ZarrMultiscaleDims zmd;
+            zmd.scale = scalevec;
+            zmd.shape = shape;
+            zmd.dtype = dtype;
+            multiscaleDims.push_back(zmd);
+          }
+        }
+      }
+    }
+  }
   // TODO take the level 0 multiscale scale factors:
-  //float physicalSizeX = 1.0f;
-  //float physicalSizeY = 1.0f;
-  //float physicalSizeZ = 1.0f;
-// TODO read channel names
+  // float physicalSizeX = 1.0f;
+  // float physicalSizeY = 1.0f;
+  // float physicalSizeZ = 1.0f;
+  // TODO read channel names
 
   tensorstore::Context context = tensorstore::Context::Default();
 
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore",
-        { { "driver", "http" },
-          { "base_url", "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/" },
-          { "path", "Image_0/0/" } } },
+      { "kvstore", { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + "0/" } } },
     },
     context,
     tensorstore::OpenMode::open,
@@ -242,7 +222,7 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
       dims.bitsPerPixel = 16;
       dims.sampleFormat = 1;
     } else {
-    
+
       LOG_ERROR << "Unrecognized format " << dtype;
     }
   }
@@ -273,7 +253,6 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   // load channels
   std::shared_ptr<ImageXYZC> emptyimage;
 
-
   VolumeDimensions dims = FileReaderZarr::loadDimensionsZarr("");
   if (!dims.validate()) {
     return emptyimage;
@@ -284,10 +263,7 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore",
-        { { "driver", "http" },
-          { "base_url", "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/" },
-          { "path", "Image_0/0/" } } },
+      { "kvstore", { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + "0/" } } },
     },
     context,
     tensorstore::OpenMode::open,
@@ -300,12 +276,12 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   }
 
   auto store = result.value();
-    auto domain = store.domain();
-    std::cout << "domain.shape(): " << domain.shape() << std::endl;
-    std::cout << "domain.origin(): " << domain.origin() << std::endl;
-    auto shape_span = store.domain().shape();
+  auto domain = store.domain();
+  std::cout << "domain.shape(): " << domain.shape() << std::endl;
+  std::cout << "domain.origin(): " << domain.origin() << std::endl;
+  auto shape_span = store.domain().shape();
 
-    std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+  std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
@@ -328,39 +304,33 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   // now ready to read channels one by one.
   for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
     // read entire channel into its native size
-//    for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-  //    uint32_t planeIndex = dims.getPlaneIndex(0, channel, time);
-      destptr = channelRawMem;
+    //    for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
+    //    uint32_t planeIndex = dims.getPlaneIndex(0, channel, time);
+    destptr = channelRawMem;
 
+    tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(store.domain());
+    // T value:
+    // transform = (std::move(transform) | tensorstore::Dims(0).IndexSlice(time)).value();
+    // C value:
+    // transform = (std::move(transform) | tensorstore::Dims(1).IndexSlice(channel)).value();
+    // for (unsigned d = 0; d < shape.size(); ++d) {
+    //  transform = (std::move(transform) | tensorstore::Dims(d).HalfOpenInterval(0, shape[d] / 2)).value();
+    //}
+    // auto x = tensorstore::Read<tensorstore::zero_origin>(store | transform).value();
+    // auto* p = reinterpret_cast<uint16_t*>(x.data());
 
-      tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(store.domain());
-	// T value:
-      //transform = (std::move(transform) | tensorstore::Dims(0).IndexSlice(time)).value();
-	// C value:
-      //transform = (std::move(transform) | tensorstore::Dims(1).IndexSlice(channel)).value();
-      //for (unsigned d = 0; d < shape.size(); ++d) {
-      //  transform = (std::move(transform) | tensorstore::Dims(d).HalfOpenInterval(0, shape[d] / 2)).value();
-      //}
-      //auto x = tensorstore::Read<tensorstore::zero_origin>(store | transform).value();
-      //auto* p = reinterpret_cast<uint16_t*>(x.data());
+    transform = (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(time, time + 1)).value();
+    transform = (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channel, channel + 1)).value();
+    transform = (std::move(transform) | tensorstore::Dims(2).HalfOpenInterval(0, shape[2])).value();
+    transform = (std::move(transform) | tensorstore::Dims(3).HalfOpenInterval(0, shape[3])).value();
+    transform = (std::move(transform) | tensorstore::Dims(4).HalfOpenInterval(0, shape[4])).value();
 
+    auto arr = tensorstore::Array(
+      reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
+    tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
 
-      transform = (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(time, time+1)).value();
-      transform = (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channel, channel+1)).value();
-      transform = (std::move(transform) | tensorstore::Dims(2).HalfOpenInterval(0, shape[2])).value();
-      transform = (std::move(transform) | tensorstore::Dims(3).HalfOpenInterval(0, shape[3])).value();
-      transform = (std::move(transform) | tensorstore::Dims(4).HalfOpenInterval(0, shape[4])).value();
-
-	
-      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-      tensorstore::Read(store | transform,
-                        tensorstore::UnownedToShared(arr))
-        .value();
-
-
-	
-//      if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
-  //      return emptyimage;
+    //      if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
+    //      return emptyimage;
     //  }
     //}
 

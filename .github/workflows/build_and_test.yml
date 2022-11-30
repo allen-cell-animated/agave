@@ -7,7 +7,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
@@ -33,7 +33,7 @@ jobs:
   docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
@@ -66,7 +66,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - name: Install Qt
@@ -151,7 +151,7 @@ jobs:
   lint-and-test-pyclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v1
         with:

@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - name: Install Qt
@@ -97,7 +97,7 @@ jobs:
   publish_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - name: Install Python 3.9 version
@@ -123,7 +123,7 @@ jobs:
   docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - run: |
@@ -157,7 +157,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
