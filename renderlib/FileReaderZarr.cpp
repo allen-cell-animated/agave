@@ -26,10 +26,10 @@ static ZarrTestDataSpec TESTDATASET[3] = {
   { "https://s3.us-west-2.amazonaws.com/aind-open-data/",
     "exaSPIM_609281_2022-11-03_13-49-18/exaSPIM/exaSPIM/tile_x_0014_y_0000_z_0000_ch_488/" },
   { "https://aind-open-data.s3-us-west-2.amazonaws.com/",
-    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/OMEZarr/Ex_445_Em_469.zarr/" },
+    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/OMEZarr/Ex_445_Em_469.zarr" },
   { "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/", "Image_0/" }
 };
-static ZarrTestDataSpec TESTDATA = TESTDATASET[2];
+static ZarrTestDataSpec TESTDATA = TESTDATASET[0];
 
 FileReaderZarr::FileReaderZarr() {}
 
@@ -138,6 +138,7 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
     std::vector<float> scale;
     std::vector<int64_t> shape;
     tensorstore::DataType dtype;
+    std::string path;
   };
   std::vector<ZarrMultiscaleDims> multiscaleDims;
 
@@ -173,58 +174,36 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
             zmd.scale = scalevec;
             zmd.shape = shape;
             zmd.dtype = dtype;
+            zmd.path = pathstr;
             multiscaleDims.push_back(zmd);
           }
         }
       }
     }
   }
-  // TODO take the level 0 multiscale scale factors:
-  // float physicalSizeX = 1.0f;
-  // float physicalSizeY = 1.0f;
-  // float physicalSizeZ = 1.0f;
-  // TODO read channel names
+// select a mltiscale level here!
+  int level = multiscaleDims.size() - 1;
+  ZarrMultiscaleDims levelDims = multiscaleDims[level];
+  dims.zarrSubpath = levelDims.path;
 
-  tensorstore::Context context = tensorstore::Context::Default();
+  dims.sizeX = levelDims.shape[4];
+  dims.sizeY = levelDims.shape[3];
+  dims.sizeZ = levelDims.shape[2];
+  dims.sizeC = levelDims.shape[1];
+  dims.sizeT = levelDims.shape[0];
+  dims.dimensionOrder = "XYZCT";
+  dims.physicalSizeX = levelDims.scale[4];
+  dims.physicalSizeY = levelDims.scale[3];
+  dims.physicalSizeZ = levelDims.scale[2];
+  if (levelDims.dtype == tensorstore::dtype_v<int32_t>) {
+    dims.bitsPerPixel = 32;
+    dims.sampleFormat = 2;
+  } else if (levelDims.dtype == tensorstore::dtype_v<uint16_t>) {
+    dims.bitsPerPixel = 16;
+    dims.sampleFormat = 1;
+  } else {
 
-  auto openFuture = tensorstore::Open(
-    {
-      { "driver", "zarr" },
-      { "kvstore", { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + "0/" } } },
-    },
-    context,
-    tensorstore::OpenMode::open,
-    tensorstore::RecheckCached{ false },
-    tensorstore::ReadWriteMode::read);
-
-  auto result = openFuture.result();
-  if (result.ok()) {
-    auto store = result.value();
-    auto domain = store.domain();
-    std::cout << "domain.shape(): " << domain.shape() << std::endl;
-    std::cout << "domain.origin(): " << domain.origin() << std::endl;
-    auto shape_span = store.domain().shape();
-
-    std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
-
-    dims.sizeX = shape[4];
-    dims.sizeY = shape[3];
-    dims.sizeZ = shape[2];
-    dims.sizeC = shape[1];
-    dims.sizeT = shape[0];
-    dims.dimensionOrder = "XYZCT";
-
-    tensorstore::DataType dtype = store.dtype();
-    if (dtype == tensorstore::dtype_v<int32_t>) {
-      dims.bitsPerPixel = 32;
-      dims.sampleFormat = 2;
-    } else if (dtype == tensorstore::dtype_v<uint16_t>) {
-      dims.bitsPerPixel = 16;
-      dims.sampleFormat = 1;
-    } else {
-
-      LOG_ERROR << "Unrecognized format " << dtype;
-    }
+    LOG_ERROR << "Unrecognized format " << levelDims.dtype;
   }
 
   std::vector<std::string> channelNames;
@@ -232,10 +211,6 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
     channelNames.push_back(std::to_string(i));
   }
   dims.channelNames = channelNames;
-
-  dims.physicalSizeX = 1.0f;
-  dims.physicalSizeY = 1.0f;
-  dims.physicalSizeZ = 1.0f;
 
   dims.log();
 
@@ -263,7 +238,7 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore", { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + "0/" } } },
+      { "kvstore", { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + dims.zarrSubpath } } },
     },
     context,
     tensorstore::OpenMode::open,
