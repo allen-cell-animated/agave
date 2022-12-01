@@ -26,10 +26,10 @@ static ZarrTestDataSpec TESTDATASET[3] = {
   { "https://s3.us-west-2.amazonaws.com/aind-open-data/",
     "exaSPIM_609281_2022-11-03_13-49-18/exaSPIM/exaSPIM/tile_x_0014_y_0000_z_0000_ch_488/" },
   { "https://aind-open-data.s3-us-west-2.amazonaws.com/",
-    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/OMEZarr/Ex_445_Em_469.zarr" },
+    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/processed/OMEZarr/Ex_445_Em_469.zarr" },
   { "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/", "Image_0/" }
 };
-static ZarrTestDataSpec TESTDATA = TESTDATASET[0];
+static ZarrTestDataSpec TESTDATA = TESTDATASET[1];
 
 FileReaderZarr::FileReaderZarr() {}
 
@@ -162,8 +162,7 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
               .value();
           tensorstore::DataType dtype = store.dtype();
           auto shape_span = store.domain().shape();
-          std::cout << "Level " << multiscaleDims.size()
-                    << " shape " << shape_span << std::endl;
+          std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
           std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
           auto scale = dataset["coordinateTransformations"][0]["scale"];
@@ -183,7 +182,7 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
       }
     }
   }
-// select a mltiscale level here!
+  // select a mltiscale level here!
   int level = multiscaleDims.size() - 1;
   ZarrMultiscaleDims levelDims = multiscaleDims[level];
   dims.zarrSubpath = levelDims.path;
@@ -240,7 +239,8 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore", { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + dims.zarrSubpath } } },
+      { "kvstore",
+        { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + dims.zarrSubpath } } },
     },
     context,
     tensorstore::OpenMode::open,
