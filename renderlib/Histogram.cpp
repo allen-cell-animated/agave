@@ -202,7 +202,7 @@ float*
 Histogram::generate_auto(size_t length) const
 {
 
-  // simple linear mapping cutting elements with small appearence
+  // simple linear mapping cutting elements with small appearance
   // get 10% threshold
   float PERCENTAGE = 0.1f;
   float th = std::floor(_bins[_maxBin] * PERCENTAGE);
