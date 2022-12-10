@@ -4,6 +4,7 @@
 #include <functional>
 #include <future>
 #include <mutex>
+#include <vector>
 
 /// @param[in] nb_elements : size of your for loop
 /// @param[in] functor(start, end) :
