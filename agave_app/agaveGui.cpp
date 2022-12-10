@@ -90,6 +90,11 @@ agaveGui::createActions()
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+  m_openUrlAction = new QAction(tr("&Open volume from url..."), this);
+  m_openUrlAction->setShortcuts(QKeySequence::Open);
+  m_openUrlAction->setStatusTip(tr("Open an existing volume file in the cloud"));
+  connect(m_openUrlAction, SIGNAL(triggered()), this, SLOT(openUrl()));
+
   m_openJsonAction = new QAction(tr("Open JSON..."), this);
   m_openJsonAction->setStatusTip(tr("Open an existing JSON settings file"));
   connect(m_openJsonAction, SIGNAL(triggered()), this, SLOT(openJson()));
@@ -136,6 +141,7 @@ agaveGui::createMenus()
 {
   m_fileMenu = menuBar()->addMenu(tr("&File"));
   m_fileMenu->addAction(m_openAction);
+  m_fileMenu->addAction(m_openUrlAction);
   m_fileMenu->addAction(m_openJsonAction);
   m_fileMenu->addSeparator();
   m_fileMenu->addSeparator();
@@ -165,6 +171,7 @@ void
 agaveGui::createToolbars()
 {
   m_ui.mainToolBar->addAction(m_openAction);
+  m_ui.mainToolBar->addAction(m_openUrlAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_saveImageAction);
@@ -247,6 +254,24 @@ agaveGui::open()
       showOpenFailedMessageBox(file);
     }
   }
+}
+
+bool
+agaveGui::openUrl()
+{
+  std::string urlToLoad = "";
+  bool ok = false;
+  QString text = QInputDialog::getText(this, tr("Enter url"), tr("URL"), QLineEdit::Normal, "", &ok);
+  if (ok && !text.isEmpty()) {
+    urlToLoad = text.toStdString();
+  } else {
+    LOG_DEBUG << "Canceled load from url.";
+    showOpenFailedMessageBox(text);
+    return false;
+  }
+
+  // read some metadata from the cloud and present the next dialog
+  // if successful
 }
 
 void
