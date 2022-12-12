@@ -17,6 +17,7 @@
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
+#include "loadDialog.h"
 #include "renderDialog.h"
 
 #include <QtCore/QElapsedTimer>
@@ -272,6 +273,22 @@ agaveGui::openUrl()
 
   // read some metadata from the cloud and present the next dialog
   // if successful
+  LoadDialog* loadDialog = new LoadDialog(urlToLoad, this);
+  if (loadDialog->exec() == QDialog::Accepted) {
+    LOG_DEBUG << "OK load from url.";
+    // load the volume
+    //    if (!open(urlToLoad)) {
+    //    showOpenFailedMessageBox(text);
+    //  return false;
+  }
+
+  else {
+    LOG_DEBUG << "Canceled load from url.";
+    showOpenFailedMessageBox(text);
+    return false;
+  }
+
+  return true;
 }
 
 void
