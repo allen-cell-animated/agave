@@ -2,8 +2,11 @@
 
 #include <QDialog>
 
+class QLabel;
 class QSpinBox;
 class QTreeWidget;
+
+class RangeWidget;
 
 class LoadDialog : public QDialog
 {
@@ -21,7 +24,10 @@ private:
 
   QSpinBox* mSceneInput;
   QTreeWidget* mMetadataTree;
-
+  QLabel* mMemoryEstimateLabel;
+  RangeWidget* m_roiX;
+  RangeWidget* m_roiY;
+  RangeWidget* m_roiZ;
   // show multiresolutions
 
   // select region of interest in zyx
