@@ -167,7 +167,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            CCamera camera,
                            QOpenGLContext* glContext,
                            std::string volumeFilePath,
-	                       int fileCurrentScene,
+                           int fileCurrentScene,
                            CaptureSettings* captureSettings,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
@@ -176,7 +176,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_camera(camera)
   , m_glContext(glContext)
   , mVolumeFilePath(volumeFilePath)
-	, m_fileCurrentScene(fileCurrentScene)
+  , m_fileCurrentScene(fileCurrentScene)
   , m_renderThread(nullptr)
   , m_frameRenderTime(0)
   , mWidth(0)
@@ -241,7 +241,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mHeightInput->setValue(mHeight);
   mResolutionPresets = new QComboBox(this);
   // TODO should we have a button to capture window dims?
-  mResolutionPresets->addItem("Choose a preset...");
+  mResolutionPresets->addItem("Choose Preset...");
+  mResolutionPresets->addItem("Main window");
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
@@ -295,11 +296,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
+  topButtonsLayout->addWidget(mResolutionPresets, 1);
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
   topButtonsLayout->addWidget(mWidthInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
-  topButtonsLayout->addWidget(mResolutionPresets, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T0:")), 0);
   topButtonsLayout->addWidget(mStartTimeInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T1:")), 0);
@@ -411,7 +412,8 @@ RenderDialog::render()
     }
 
     // now get our rendering resources into this Renderer object
-    m_renderThread->configure(m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_fileCurrentScene, m_glContext);
+    m_renderThread->configure(
+      m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_fileCurrentScene, m_glContext);
 
     onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request
@@ -595,10 +597,16 @@ RenderDialog::done(int r)
 void
 RenderDialog::onResolutionPreset(int index)
 {
-  // find preset res and set w/h
-  const ResolutionPreset& preset = resolutionPresets[index - 1];
-  mWidthInput->setValue((preset.w));
-  mHeightInput->setValue((preset.h));
+  if (index > 1) {
+    // find preset res and set w/h
+    const ResolutionPreset& preset = resolutionPresets[index - 2];
+    mWidthInput->setValue((preset.w));
+    mHeightInput->setValue((preset.h));
+  } else if (index == 1) {
+    // get xy from the main window size.
+  }
+  // restore index 0
+  mResolutionPresets->setCurrentIndex(0);
 }
 
 void

@@ -122,12 +122,12 @@ agaveGui::createActions()
   m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
 
-  m_saveImageAction = new QAction(tr("&Save image..."), this);
+  m_saveImageAction = new QAction(tr("&Quick render..."), this);
   m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
   connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
 
-  m_quickRenderAction = new QAction(tr("&Quick Render..."), this);
-  m_quickRenderAction->setStatusTip(tr("Do a quick render"));
+  m_quickRenderAction = new QAction(tr("&Render..."), this);
+  m_quickRenderAction->setStatusTip(tr("Open the render dialog"));
   connect(m_quickRenderAction, SIGNAL(triggered()), this, SLOT(onQuickRender()));
 }
 
@@ -167,9 +167,9 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_openAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
+  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_quickRenderAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
