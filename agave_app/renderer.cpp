@@ -211,7 +211,7 @@ Renderer::run()
 
   m_rglContext.makeCurrent();
 
-  while (!QThread::currentThread()->isInterruptionRequested()) {
+  while (!this->isInterruptionRequested()) {
     this->processRequest();
 
     // should be harmless... and maybe handle some signal/slot stuff
@@ -263,8 +263,11 @@ Renderer::processRequest()
 
     // eat requests until done, and then render
     // note that any one request could change the streaming mode.
-    while (!this->m_requests.isEmpty() && m_streamMode) {
-
+    while (
+        !this->m_requests.isEmpty() && 
+        m_streamMode && 
+        !this->isInterruptionRequested()
+    ) {
       RenderRequest* r = this->m_requests.takeFirst();
       this->m_totalQueueDuration -= r->getDuration();
 
@@ -336,7 +339,9 @@ Renderer::processRequest()
   // TODO : have a mode where we don't need a QImage
   // and can just return rgba byte array as a thread safe shared ptr
   // writable by render thread and readable by anyone else
-  emit requestProcessed(lastReq, img);
+  if (!this->isInterruptionRequested()) {
+    emit requestProcessed(lastReq, img);
+  }
   return true;
 }
 

@@ -553,6 +553,7 @@ RenderDialog::endRenderThread()
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
+    m_renderThread->wait();
   }
 }
 
@@ -590,6 +591,7 @@ RenderDialog::done(int r)
   endRenderThread();
   if (m_renderThread) {
     m_renderThread->deleteLater();
+    m_renderThread = nullptr;
   }
   QDialog::done(r);
 }
