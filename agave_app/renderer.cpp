@@ -263,11 +263,7 @@ Renderer::processRequest()
 
     // eat requests until done, and then render
     // note that any one request could change the streaming mode.
-    while (
-        !this->m_requests.isEmpty() && 
-        m_streamMode && 
-        !this->isInterruptionRequested()
-    ) {
+    while (!this->m_requests.isEmpty() && m_streamMode && !this->isInterruptionRequested()) {
       RenderRequest* r = this->m_requests.takeFirst();
       this->m_totalQueueDuration -= r->getDuration();
 
@@ -312,24 +308,26 @@ Renderer::processRequest()
 
   } else {
     // if not in stream mode, then process one request, then re-render.
+    if (!this->m_requests.isEmpty() && !this->isInterruptionRequested()) {
 
-    // remove request from the queue
-    RenderRequest* r = this->m_requests.takeFirst();
-    this->m_totalQueueDuration -= r->getDuration();
+      // remove request from the queue
+      RenderRequest* r = this->m_requests.takeFirst();
+      this->m_totalQueueDuration -= r->getDuration();
 
-    // process it
-    QElapsedTimer timer;
-    timer.start();
+      // process it
+      QElapsedTimer timer;
+      timer.start();
 
-    std::vector<Command*> cmds = r->getParameters();
-    if (cmds.size() > 0) {
-      this->processCommandBuffer(r);
+      std::vector<Command*> cmds = r->getParameters();
+      if (cmds.size() > 0) {
+        this->processCommandBuffer(r);
+      }
+
+      img = this->render();
+
+      r->setActualDuration(timer.nsecsElapsed());
+      lastReq = r;
     }
-
-    img = this->render();
-
-    r->setActualDuration(timer.nsecsElapsed());
-    lastReq = r;
   }
 
   // unlock mutex BEFORE emit, in case the signal handler wants to add a request

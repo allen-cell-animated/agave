@@ -108,9 +108,11 @@ public:
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
-  void done(int r);
+  void done(int r) override;
   int getXResolution();
   int getYResolution();
+
+  virtual void closeEvent(QCloseEvent* event) override;
 
 private slots:
   void render();
@@ -179,6 +181,8 @@ private:
   eRenderDurationType mRenderDurationType;
   void resetProgress();
 
+  void onStopButtonClick();
+
   void onRenderRequestProcessed(RenderRequest* req, QImage image);
   void onZoomInClicked();
   void onZoomOutClicked();
@@ -193,4 +197,7 @@ private:
   void onSelectSaveDirectoryClicked();
   void onSaveFilePrefixChanged(const QString& value);
   void onRenderThreadFinished();
+
+  bool isRenderInProgress();
+  bool getUserCancelConfirmation();
 };

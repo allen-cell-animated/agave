@@ -13,6 +13,7 @@
 #include <QImageWriter>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QProgressBar>
@@ -250,7 +251,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
 
-
   mStartTimeInput = new QSpinBox(this);
   mStartTimeInput->setMinimum(0);
   mStartTimeInput->setMaximum(scene.m_timeLine.maxTime());
@@ -277,7 +277,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
   connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
-  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::stopRendering);
+  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
   connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
   connect(mCloseButton, &QPushButton::clicked, this, &RenderDialog::close);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
@@ -400,15 +400,8 @@ RenderDialog::render()
 
       m_renderThread = new Renderer("Render dialog render thread ", this, m_mutex);
 
-      // queued across thread boundary.  typically requestProcessed is called from another thread.
-      // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
-      // fully async.
-      connect(m_renderThread,
-              &Renderer::requestProcessed,
-              this,
-              &RenderDialog::onRenderRequestProcessed,
-              // TODO test wthout this
-              Qt::BlockingQueuedConnection);
+      // queued across thread boundary.  requestProcessed is called from another thread, asynchronously.
+      connect(m_renderThread, &Renderer::requestProcessed, this, &RenderDialog::onRenderRequestProcessed);
       connect(m_renderThread, &Renderer::finished, this, &RenderDialog::onRenderThreadFinished);
     }
 
@@ -439,6 +432,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
+  if (req == nullptr) {
+    LOG_DEBUG << "render callback after no request processed";
+    return;
+  }
   if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
     LOG_DEBUG << "received sample after render terminated";
   }
@@ -472,8 +469,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     this->setImage(&image);
 
     // save image
-    if (true) {
-      // TODO set up autosave path when we start rendering
+    // TODO set up autosave path when we start rendering
+    if (mAutosaveCheckbox->isChecked()) {
       QString autosavePath = mSaveDirectoryLabel->text();
       QDir d(autosavePath);
       bool pathOk = d.mkpath(autosavePath);
@@ -554,7 +551,8 @@ RenderDialog::endRenderThread()
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
-	// we need to ensure that the render thread is not trying to make calls back into this thread
+    m_renderThread->wakeUp();
+    // we need to ensure that the render thread is not trying to make calls back into this thread
     m_renderThread->wait();
   }
 }
@@ -647,7 +645,6 @@ RenderDialog::updateHeight(int h)
     m_camera.m_Film.m_Resolution.SetResX(mWidth);
     mCaptureSettings->width = mWidth;
   }
-
 
   resetProgress();
 }
@@ -793,4 +790,63 @@ RenderDialog::onRenderThreadFinished()
 {
   m_renderThread->deleteLater();
   m_renderThread = nullptr;
+}
+
+bool
+RenderDialog::getUserCancelConfirmation()
+{
+  QMessageBox::StandardButton btn =
+    QMessageBox::question(this, "Cancel Render?", "Are you sure you want to cancel the render currently in progress?");
+  if (btn == QMessageBox::Yes) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool
+RenderDialog::isRenderInProgress()
+{
+  if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
+    return false;
+  }
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+    return false;
+  }
+  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+    return false;
+  }
+  return true;
+}
+
+void
+RenderDialog::closeEvent(QCloseEvent* event)
+{
+  LOG_DEBUG << "closeEvent()";
+
+  if (isRenderInProgress()) {
+    if (getUserCancelConfirmation()) {
+      event->accept();
+      QDialog::closeEvent(event);
+    } else {
+      event->ignore();
+      // do not close the dialog!
+    }
+  } else {
+    event->accept();
+    QDialog::closeEvent(event);
+  }
+}
+
+void
+RenderDialog::onStopButtonClick()
+{
+  // note this does not pause/resume while waiting for confirmation
+  if (isRenderInProgress()) {
+    if (getUserCancelConfirmation()) {
+      stopRendering();
+    }
+  } else {
+    stopRendering();
+  }
 }
