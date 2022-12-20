@@ -6,6 +6,7 @@
 #include "renderlib/command.h"
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -239,17 +240,16 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mHeightInput->setMaximum(4096);
   mHeightInput->setMinimum(2);
   mHeightInput->setValue(mHeight);
+  mLockAspectRatio = new QPushButton("Lock Aspect", this);
+  mLockAspectRatio->setCheckable(true);
+  mLockAspectRatio->setChecked(true);
   mResolutionPresets = new QComboBox(this);
-  // TODO should we have a button to capture window dims?
   mResolutionPresets->addItem("Choose Preset...");
   mResolutionPresets->addItem("Main window");
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
 
-  // mZoomInButton = new QPushButton("+", this);
-  // mZoomOutButton = new QPushButton("-", this);
-  // mZoomFitButton = new QPushButton("[ ]", this);
 
   mStartTimeInput = new QSpinBox(this);
   mStartTimeInput->setMinimum(0);
@@ -265,13 +265,12 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mSelectSaveDirectoryButton = new QPushButton("Dir...", this);
 
+  mAutosaveCheckbox = new QCheckBox("Autosave", this);
+  mAutosaveCheckbox->setChecked(true);
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
 
   mToolbar = new QToolBar(this);
-  // mToolbar->addWidget(mZoomInButton);
-  // mToolbar->addWidget(mZoomOutButton);
-  // mToolbar->addWidget(mZoomFitButton);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
   mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
@@ -301,14 +300,16 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(mWidthInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
+  topButtonsLayout->addWidget(mLockAspectRatio, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T0:")), 0);
   topButtonsLayout->addWidget(mStartTimeInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T1:")), 0);
   topButtonsLayout->addWidget(mEndTimeInput, 1);
 
   QHBoxLayout* saveButtonsLayout = new QHBoxLayout();
+  saveButtonsLayout->addWidget(mAutosaveCheckbox, 1);
   saveButtonsLayout->addWidget(mSaveFilePrefix, 1);
-  saveButtonsLayout->addWidget(mSaveDirectoryLabel, 1);
+  saveButtonsLayout->addWidget(mSaveDirectoryLabel, 2);
   saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
   // QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
@@ -553,6 +554,7 @@ RenderDialog::endRenderThread()
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
+	// we need to ensure that the render thread is not trying to make calls back into this thread
     m_renderThread->wait();
   }
 }
@@ -614,18 +616,39 @@ RenderDialog::onResolutionPreset(int index)
 void
 RenderDialog::updateWidth(int w)
 {
+  float aspect = (float)mWidth / (float)mHeight;
+
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
   mCaptureSettings->width = w;
+
+  if (mLockAspectRatio->isChecked()) {
+    mHeight = (int)(mWidth / aspect);
+    mHeightInput->setValue(mHeight);
+    m_camera.m_Film.m_Resolution.SetResY(mHeight);
+    mCaptureSettings->height = mHeight;
+  }
+
   resetProgress();
 }
 
 void
 RenderDialog::updateHeight(int h)
 {
+  float aspect = (float)mWidth / (float)mHeight;
+
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
   mCaptureSettings->height = h;
+
+  if (mLockAspectRatio->isChecked()) {
+    mWidth = (int)(mHeight * aspect);
+    mWidthInput->setValue(mWidth);
+    m_camera.m_Film.m_Resolution.SetResX(mWidth);
+    mCaptureSettings->width = mWidth;
+  }
+
+
   resetProgress();
 }
 

@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QStandardPaths>
 
+class QCheckBox;
 class QComboBox;
 class QImage;
 class QOpenGLContext;
@@ -145,10 +146,12 @@ private:
   QPushButton* mCloseButton;
   QSpinBox* mWidthInput;
   QSpinBox* mHeightInput;
+  QPushButton* mLockAspectRatio;
   QComboBox* mResolutionPresets;
   QSpinBox* mStartTimeInput;
   QSpinBox* mEndTimeInput;
 
+  QCheckBox* mAutosaveCheckbox;
   QPushButton* mSelectSaveDirectoryButton;
   QLabel* mSaveDirectoryLabel;
   QLineEdit* mSaveFilePrefix;
