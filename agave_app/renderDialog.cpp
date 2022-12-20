@@ -281,14 +281,11 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
   connect(mCloseButton, &QPushButton::clicked, this, &RenderDialog::close);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
-  connect(mWidthInput, SIGNAL(valueChanged(int)), this, SLOT(updateWidth(int)));
-  connect(mHeightInput, SIGNAL(valueChanged(int)), this, SLOT(updateHeight(int)));
+  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
+  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
   connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  // connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
-  // connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
-  // connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
   connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
   connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
   connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
