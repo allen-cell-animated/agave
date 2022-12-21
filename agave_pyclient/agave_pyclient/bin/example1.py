@@ -2,7 +2,6 @@ from agave import AgaveRenderer
 
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))
 if __name__ == "__main__":
-
     filename = "C:\\Users\\dmt\\Downloads\\AICS-10_5.ome.tif"
     r = AgaveRenderer()
     r.load_ome_tif(filename)
