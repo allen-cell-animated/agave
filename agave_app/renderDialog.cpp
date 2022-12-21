@@ -57,7 +57,7 @@ ImageDisplay::setImage(QImage* image)
     m_rect = m_pixmap->rect();
     m_rect.translate(-m_rect.center());
   }
-  repaint(); // update() ?
+  update();
 }
 
 void
