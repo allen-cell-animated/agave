@@ -74,7 +74,7 @@ add_subdirectory(pugixml)
 add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
-# set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_DYNLIB OFF)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
 # end libczi dependency
