@@ -33,6 +33,7 @@ public:
   ImageDisplay(QWidget* parent = 0);
   ~ImageDisplay();
   void setImage(QImage* image);
+
   void save(QString filename);
 
   void scale(qreal s);
@@ -82,8 +83,8 @@ struct CaptureSettings
     outputDir = docs.toStdString();
 
     filenamePrefix = "frame";
-    width = 640;
-    height = 480;
+    width = 0;
+    height = 0;
     samples = 32;
     duration = 10;
     durationType = SAMPLES;
@@ -108,6 +109,8 @@ public:
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
+  void onZoomFitClicked();
+
   void done(int r) override;
   int getXResolution();
   int getYResolution();
@@ -187,7 +190,6 @@ private:
   void onRenderRequestProcessed(RenderRequest* req, QImage image);
   void onZoomInClicked();
   void onZoomOutClicked();
-  void onZoomFitClicked();
 
   int mFrameNumber;
   int mTotalFrames;

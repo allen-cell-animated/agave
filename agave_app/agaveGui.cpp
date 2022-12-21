@@ -332,12 +332,17 @@ agaveGui::onQuickRender()
 
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->pauseRenderLoop();
+  QImage im = m_glView->captureQimage();
+  QImage* imcopy = new QImage(im);
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
-
+  if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
+    m_captureSettings.width = imcopy->width();
+    m_captureSettings.height = imcopy->height();
+  }
   // copy of camera
   // const appscene ref?
   // const rendersettings ref?
@@ -360,13 +365,14 @@ agaveGui::onQuickRender()
     m_glView->setUpdatesEnabled(true);
     m_glView->restartRenderLoop();
   });
-  QImage im = m_glView->captureQimage();
-  QImage* imcopy = new QImage(im);
+  
   rdialog->setImage(imcopy);
+  delete imcopy;
 
   rdialog->show();
   rdialog->raise();
   rdialog->activateWindow();
+  rdialog->onZoomFitClicked();
 }
 
 void
