@@ -6,6 +6,7 @@
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
+#include "renderDialog.h"
 
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
@@ -111,8 +112,8 @@ private:
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
   RenderSettings m_renderSettings;
 
-  int m_lastRenderResolutionX = 0;
-  int m_lastRenderResolutionY = 0;
+  // the render dialog will modify the contents of this object
+  CaptureSettings m_captureSettings;
 
   // the app owns a scene.
   // scene gets sent down to the renderer.

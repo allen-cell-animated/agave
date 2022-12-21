@@ -4,17 +4,21 @@
 
 #include <QDialog>
 #include <QMutex>
+#include <QStandardPaths>
 
+class QCheckBox;
 class QComboBox;
 class QImage;
 class QOpenGLContext;
 class QWidget;
+class QLabel;
 class QLineEdit;
 class QPixmap;
 class QProgressBar;
 class QPushButton;
 class QSpinBox;
 class QTimeEdit;
+class QToolBar;
 
 class IRenderWindow;
 class Renderer;
@@ -29,6 +33,7 @@ public:
   ImageDisplay(QWidget* parent = 0);
   ~ImageDisplay();
   void setImage(QImage* image);
+
   void save(QString filename);
 
   void scale(qreal s);
@@ -52,10 +57,40 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
+// serialized so permanent?
 enum eRenderDurationType
 {
   TIME = 0,
   SAMPLES = 1
+};
+
+struct CaptureSettings
+{
+  std::string outputDir;
+  std::string filenamePrefix;
+  int width;
+  int height;
+  int samples;
+  int duration; // in seconds
+  eRenderDurationType durationType;
+  int startTime;
+  int endTime;
+
+  CaptureSettings()
+  {
+    // defaults!
+    QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    outputDir = docs.toStdString();
+
+    filenamePrefix = "frame";
+    width = 0;
+    height = 0;
+    samples = 32;
+    duration = 10;
+    durationType = SAMPLES;
+    startTime = 0;
+    endTime = 0;
+  }
 };
 
 class RenderDialog : public QDialog
@@ -69,12 +104,18 @@ public:
                CCamera camera,
                QOpenGLContext* glContext,
                std::string volumeFilePath,
+               int fileCurrentScene,
+               CaptureSettings* captureSettings,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
-  void done(int r);
+  void onZoomFitClicked();
+
+  void done(int r) override;
   int getXResolution();
   int getYResolution();
+
+  virtual void closeEvent(QCloseEvent* event) override;
 
 private slots:
   void render();
@@ -86,11 +127,8 @@ private slots:
   void updateWidth(int w);
   void updateHeight(int h);
   void updateRenderSamples(int s);
-  void updateRenderTime(QTime t);
+  void updateRenderTime(const QTime& t);
   void onRenderDurationTypeChanged(int index);
-
-signals:
-  void setRenderResolution(int x, int y);
 
 private:
   QMutex m_mutex;
@@ -100,6 +138,9 @@ private:
   const RenderSettings& m_renderSettings;
   const Scene& m_scene;
   std::string mVolumeFilePath;
+  int m_fileCurrentScene;
+  // reference that I don't own
+  CaptureSettings* mCaptureSettings;
   CCamera m_camera;
 
   ImageDisplay* mImageView; // ? or a GLView3D?
@@ -110,9 +151,15 @@ private:
   QPushButton* mCloseButton;
   QSpinBox* mWidthInput;
   QSpinBox* mHeightInput;
+  QPushButton* mLockAspectRatio;
   QComboBox* mResolutionPresets;
   QSpinBox* mStartTimeInput;
   QSpinBox* mEndTimeInput;
+
+  QCheckBox* mAutosaveCheckbox;
+  QPushButton* mSelectSaveDirectoryButton;
+  QLabel* mSaveDirectoryLabel;
+  QLineEdit* mSaveFilePrefix;
 
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
@@ -123,8 +170,11 @@ private:
   QPushButton* mZoomOutButton;
   QPushButton* mZoomFitButton;
 
+  QToolBar* mToolbar;
+
   int mWidth;
   int mHeight;
+  float mAspectRatio;
   qint64 m_frameRenderTime;
   // TODO controls to put in a render dialog:
   // save button
@@ -135,14 +185,22 @@ private:
   eRenderDurationType mRenderDurationType;
   void resetProgress();
 
+  void onStopButtonClick();
+
   void onRenderRequestProcessed(RenderRequest* req, QImage image);
   void onZoomInClicked();
   void onZoomOutClicked();
-  void onZoomFitClicked();
 
   int mFrameNumber;
   int mTotalFrames;
 
   void onStartTimeChanged(int);
   void onEndTimeChanged(int);
+
+  void onSelectSaveDirectoryClicked();
+  void onSaveFilePrefixChanged(const QString& value);
+  void onRenderThreadFinished();
+
+  bool isRenderInProgress();
+  bool getUserCancelConfirmation();
 };

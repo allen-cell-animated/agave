@@ -70,7 +70,10 @@ public:
   // DANGER this must NOT outlive the GLView3D
   IRenderWindow* borrowRenderer() { return m_renderer.get(); }
 
-signals:
+  void pauseRenderLoop();
+  void restartRenderLoop();
+
+    signals:
   void ChangedRenderer();
 
 public slots:

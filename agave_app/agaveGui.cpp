@@ -33,8 +33,6 @@
 
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
-  , m_lastRenderResolutionX(640)
-  , m_lastRenderResolutionY(480)
 {
   m_ui.setupUi(this);
 
@@ -124,12 +122,12 @@ agaveGui::createActions()
   m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
 
-  m_saveImageAction = new QAction(tr("&Save image..."), this);
+  m_saveImageAction = new QAction(tr("&Quick render..."), this);
   m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
   connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
 
-  m_quickRenderAction = new QAction(tr("&Quick Render..."), this);
-  m_quickRenderAction->setStatusTip(tr("Do a quick render"));
+  m_quickRenderAction = new QAction(tr("&Render..."), this);
+  m_quickRenderAction->setStatusTip(tr("Open the render dialog"));
   connect(m_quickRenderAction, SIGNAL(triggered()), this, SLOT(onQuickRender()));
 }
 
@@ -169,9 +167,9 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_openAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
+  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_quickRenderAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
@@ -326,47 +324,55 @@ agaveGui::onQuickRender()
   // const rendersettings ref?
   // hand over Camera, AppScene and RenderSettings to RenderDialog?
   // or a ViewerState?
-  ViewerState st = appToViewerState();
+  // ViewerState st = appToViewerState();
   // tell the renderdialog what the viewerstate currently is.
   // renderdialog can turn it into a list of render commands
   // share already loaded volume data with the RenderDialog's rendering resources
   // (GL context sharing?)
 
   // if we are disabling the 3d view then might consider just making this modal
+  m_glView->pauseRenderLoop();
+  QImage im = m_glView->captureQimage();
+  QImage* imcopy = new QImage(im);
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
-
+  if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
+    m_captureSettings.width = imcopy->width();
+    m_captureSettings.height = imcopy->height();
+  }
   // copy of camera
   // const appscene ref?
   // const rendersettings ref?
   CCamera camera = m_glView->getCamera();
-  camera.m_Film.m_Resolution.SetResX(m_lastRenderResolutionX);
-  camera.m_Film.m_Resolution.SetResY(m_lastRenderResolutionY);
-  RenderDialog* rdialog =
-    new RenderDialog(renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_currentFilePath.toStdString(), this);
+  RenderDialog* rdialog = new RenderDialog(renderer,
+                                           m_renderSettings,
+                                           m_appScene,
+                                           camera,
+                                           m_glView->context(),
+                                           m_currentFilePath.toStdString(),
+                                           m_currentScene,
+                                           &m_captureSettings,
+                                           this);
   rdialog->resize(800, 600);
-  connect(rdialog, &RenderDialog::setRenderResolution, this, [this](int x, int y) {
-    // remember last render resolution:
-    m_lastRenderResolutionX = x;
-    m_lastRenderResolutionY = y;
-  });
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
+    m_glView->restartRenderLoop();
   });
-  QImage im = m_glView->captureQimage();
-  QImage* imcopy = new QImage(im);
+  
   rdialog->setImage(imcopy);
+  delete imcopy;
 
   rdialog->show();
   rdialog->raise();
   rdialog->activateWindow();
+  rdialog->onZoomFitClicked();
 }
 
 void
@@ -802,6 +808,17 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   lt1.m_Width = v.m_light1.m_width;
   lt1.m_Height = v.m_light1.m_height;
 
+  // capture settings
+  m_captureSettings.width = v.m_captureState.mWidth;
+  m_captureSettings.height = v.m_captureState.mHeight;
+  m_captureSettings.samples = v.m_captureState.mSamples;
+  m_captureSettings.duration = v.m_captureState.mDuration;
+  m_captureSettings.durationType = (eRenderDurationType)v.m_captureState.mDurationType;
+  m_captureSettings.startTime = v.m_captureState.mStartTime;
+  m_captureSettings.endTime = v.m_captureState.mEndTime;
+  m_captureSettings.outputDir = v.m_captureState.mOutputDir.toStdString();
+  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix.toStdString();
+
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
@@ -933,6 +950,17 @@ agaveGui::appToViewerState()
   v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
   v.m_light1.m_width = lt1.m_Width;
   v.m_light1.m_height = lt1.m_Height;
+
+  // capture settings
+  v.m_captureState.mWidth = m_captureSettings.width;
+  v.m_captureState.mHeight = m_captureSettings.height;
+  v.m_captureState.mSamples = m_captureSettings.samples;
+  v.m_captureState.mDuration = m_captureSettings.duration;
+  v.m_captureState.mDurationType = m_captureSettings.durationType;
+  v.m_captureState.mStartTime = m_captureSettings.startTime;
+  v.m_captureState.mEndTime = m_captureSettings.endTime;
+  v.m_captureState.mOutputDir = QString::fromStdString(m_captureSettings.outputDir);
+  v.m_captureState.mFilenamePrefix = QString::fromStdString(m_captureSettings.filenamePrefix);
 
   return v;
 }

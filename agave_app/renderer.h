@@ -27,6 +27,28 @@ class IRenderWindow;
 class RenderSettings;
 class Scene;
 
+class RendererGLContext
+{
+public:
+  RendererGLContext();
+  ~RendererGLContext();
+  void configure(QOpenGLContext* glContext = nullptr);
+  void init();
+  void destroy();
+
+  void makeCurrent();
+  void doneCurrent();
+
+private:
+  bool m_ownGLContext;
+#if HAS_EGL
+  HeadlessGLContext* m_glContext;
+#else
+  QOpenGLContext* m_glContext;
+  QOffscreenSurface* m_surface;
+#endif
+};
+
 class Renderer
   : public QThread
   , public RendererCommandInterface
@@ -42,6 +64,7 @@ public:
                  const Scene& scene,
                  const CCamera& camera,
                  std::string volumeFilePath = "",
+                 int fileCurrentScene = 0,
                  QOpenGLContext* glContext = nullptr);
 
   void run();
@@ -83,13 +106,7 @@ protected:
 private:
   QMutex* m_openGLMutex;
 
-  bool m_ownGLContext;
-#if HAS_EGL
-  HeadlessGLContext* m_glContext;
-#else
-  QOpenGLContext* m_glContext;
-  QOffscreenSurface* m_surface;
-#endif
+  RendererGLContext m_rglContext;
 
   GLFramebufferObject* m_fbo;
 

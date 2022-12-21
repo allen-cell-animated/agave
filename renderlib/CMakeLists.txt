@@ -1,13 +1,13 @@
-set (GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
+set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
 
-configure_file (
-    "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/version.h"
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+	"${CMAKE_CURRENT_SOURCE_DIR}/version.h"
 )
 
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 set_property(TARGET renderlib PROPERTY AUTOMOC ON)
-# set_target_properties(renderlib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${GLM_INCLUDE_DIRS}
@@ -70,9 +70,10 @@ add_subdirectory(glsl)
 add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib
-# add_compile_definitions(_LIBCZISTATICLIB)
+add_compile_definitions(_LIBCZISTATICLIB)
+set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
-# set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_DYNLIB OFF)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
 # end libczi dependency
@@ -82,11 +83,12 @@ target_link_libraries(renderlib
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
 	libCZI
+
 	# JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
 	spdlog::spdlog_header_only
 )
+
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)
 ENDIF(WIN32)
-

@@ -358,10 +358,10 @@ diffuse. Higher values will appear shinier or glossier.
 Output: Saving Results
 ----------------------
 
-Save Image
+Quick Render
 ~~~~~~~~~~
 
-File-->Save image or the \[Save image\] toolbar button
+File-->Quick render or the \[Quick render\] toolbar button
 
 Save the current viewport window as a PNG, or JPG file.
 
