@@ -82,7 +82,7 @@ target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
-	libCZIstatic
+	libCZIStatic
 
 	# JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
