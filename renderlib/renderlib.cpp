@@ -196,37 +196,39 @@ renderlib::initialize(bool headless, bool listDevices, int selectedGpu)
 
   HeadlessGLContext* dummyHeadlessContext = nullptr;
 
-  if (headless) {
 #if HAS_EGL
 
-    // one-time EGL init
+  // one-time EGL init
 
-    EGLint lastError = EGL_SUCCESS;
+  EGLint lastError = EGL_SUCCESS;
 
-    // 1. Initialize EGL
-    eglDpy = initEGLDisplay(selectedGpu);
+  // 1. Initialize EGL
+  eglDpy = initEGLDisplay(selectedGpu);
 
-    if (listDevices) {
-      return 0;
-    }
+  if (listDevices) {
+    return 0;
+  }
 
-    EGLint major, minor;
+  EGLint major, minor;
 
-    EGLBoolean init_ok = eglInitialize(eglDpy, &major, &minor);
-    if (init_ok == EGL_FALSE) {
-      LOG_ERROR << "renderlib::initialize, eglInitialize failed";
-    }
-    if ((lastError = eglGetError()) != EGL_SUCCESS) {
-      LOG_ERROR << "eglGetError " << lastError;
-    }
-    // 2. Bind the API
-    EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
-    if (bindapi_ok == EGL_FALSE) {
-      LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
-    }
-    if ((lastError = eglGetError()) != EGL_SUCCESS) {
-      LOG_ERROR << "eglGetError " << lastError;
-    }
+  EGLBoolean init_ok = eglInitialize(eglDpy, &major, &minor);
+  if (init_ok == EGL_FALSE) {
+    LOG_ERROR << "renderlib::initialize, eglInitialize failed";
+  }
+  if ((lastError = eglGetError()) != EGL_SUCCESS) {
+    LOG_ERROR << "eglGetError " << lastError;
+  }
+  // 2. Bind the API
+  EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
+  if (bindapi_ok == EGL_FALSE) {
+    LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
+  }
+  if ((lastError = eglGetError()) != EGL_SUCCESS) {
+    LOG_ERROR << "eglGetError " << lastError;
+  }
+#endif
+  if (headless) {
+#if HAS_EGL
     dummyHeadlessContext = new HeadlessGLContext();
     dummyHeadlessContext->makeCurrent();
 #else
