@@ -76,13 +76,13 @@ set(LIBCZI_BUILD_UNITTESTS OFF)
 set(LIBCZI_BUILD_DYNLIB OFF)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
-# end libczi dependency
 
+# end libczi dependency
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
-	libCZI
+	libCZIstatic
 
 	# JxrDecodeStatic # libCZI depends on it
 	${OPENGL_egl_LIBRARY}
