@@ -8,7 +8,6 @@ configure_file(
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 
-# set_target_properties(renderlib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${GLM_INCLUDE_DIRS}
