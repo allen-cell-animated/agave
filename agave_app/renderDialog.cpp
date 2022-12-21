@@ -229,6 +229,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mWidth = mCaptureSettings->width;
   mHeight = mCaptureSettings->height;
+  mAspectRatio = (float)mWidth / (float)mHeight;
 
   m_camera.m_Film.m_Resolution.SetResX(mWidth);
   m_camera.m_Film.m_Resolution.SetResY(mHeight);
@@ -599,6 +600,7 @@ RenderDialog::onResolutionPreset(int index)
   if (index > 1) {
     // find preset res and set w/h
     const ResolutionPreset& preset = resolutionPresets[index - 2];
+    mAspectRatio = (float)preset.w / (float)preset.h;
     mWidthInput->setValue((preset.w));
     mHeightInput->setValue((preset.h));
   } else if (index == 1) {
@@ -611,17 +613,19 @@ RenderDialog::onResolutionPreset(int index)
 void
 RenderDialog::updateWidth(int w)
 {
-  float aspect = (float)mWidth / (float)mHeight;
-
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
   mCaptureSettings->width = w;
 
   if (mLockAspectRatio->isChecked()) {
-    mHeight = (int)(mWidth / aspect);
+    mHeight = (int)(mWidth / mAspectRatio);
+    mHeightInput->blockSignals(true);
     mHeightInput->setValue(mHeight);
+    mHeightInput->blockSignals(false);
     m_camera.m_Film.m_Resolution.SetResY(mHeight);
     mCaptureSettings->height = mHeight;
+  } else {
+    mAspectRatio = (float)mWidth / (float)mHeight;
   }
 
   resetProgress();
@@ -630,17 +634,19 @@ RenderDialog::updateWidth(int w)
 void
 RenderDialog::updateHeight(int h)
 {
-  float aspect = (float)mWidth / (float)mHeight;
-
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
   mCaptureSettings->height = h;
 
   if (mLockAspectRatio->isChecked()) {
-    mWidth = (int)(mHeight * aspect);
+    mWidth = (int)(mHeight * mAspectRatio);
+    mWidthInput->blockSignals(true);
     mWidthInput->setValue(mWidth);
+    mWidthInput->blockSignals(false);
     m_camera.m_Film.m_Resolution.SetResX(mWidth);
     mCaptureSettings->width = mWidth;
+  } else {
+    mAspectRatio = (float)mWidth / (float)mHeight;
   }
 
   resetProgress();

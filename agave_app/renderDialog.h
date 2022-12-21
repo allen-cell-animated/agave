@@ -171,6 +171,7 @@ private:
 
   int mWidth;
   int mHeight;
+  float mAspectRatio;
   qint64 m_frameRenderTime;
   // TODO controls to put in a render dialog:
   // save button
