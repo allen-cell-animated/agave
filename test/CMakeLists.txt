@@ -1,7 +1,7 @@
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        ab6c7375be9a8e71ee84c6f8537113f9f47daf99 # v3.2.1
+  GIT_TAG ab6c7375be9a8e71ee84c6f8537113f9f47daf99 # v3.2.1
 )
 FetchContent_MakeAvailable(Catch2)
 
@@ -23,14 +23,14 @@ target_sources(agave_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../agave_app/commandBuffer.h"
 )
 
-target_link_libraries(agave_test 
-  renderlib 
+target_link_libraries(agave_test PRIVATE
+  renderlib
   Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
   Catch2WithMain
 )
 
 add_custom_command(TARGET agave_test POST_BUILD
-        COMMAND agave_test
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
-        COMMENT "Running tests..."
-        )
+  COMMAND agave_test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
+  COMMENT "Running tests..."
+)
