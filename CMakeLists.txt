@@ -50,9 +50,7 @@ set(AGAVE_QT_VERSION 5.15.2)
 
 if(WIN32)
   set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
-
-# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-elseif(APPLE)
+elseif (APPLE)
   set(GUESS_Qt5_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
 else()
   set(GUESS_Qt5_DIR /qt/${AGAVE_QT_VERSION}/gcc_64)

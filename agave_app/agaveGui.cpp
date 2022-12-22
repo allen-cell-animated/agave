@@ -128,12 +128,12 @@ agaveGui::createActions()
   m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
 
-  m_saveImageAction = new QAction(tr("&Save image..."), this);
+  m_saveImageAction = new QAction(tr("&Quick render..."), this);
   m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
   connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
 
-  m_quickRenderAction = new QAction(tr("&Quick Render..."), this);
-  m_quickRenderAction->setStatusTip(tr("Do a quick render"));
+  m_quickRenderAction = new QAction(tr("&Render..."), this);
+  m_quickRenderAction->setStatusTip(tr("Open the render dialog"));
   connect(m_quickRenderAction, SIGNAL(triggered()), this, SLOT(onQuickRender()));
 }
 
@@ -175,9 +175,9 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_openUrlAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
+  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_quickRenderAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
@@ -374,12 +374,17 @@ agaveGui::onQuickRender()
 
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->pauseRenderLoop();
+  QImage im = m_glView->captureQimage();
+  QImage* imcopy = new QImage(im);
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
-
+  if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
+    m_captureSettings.width = imcopy->width();
+    m_captureSettings.height = imcopy->height();
+  }
   // copy of camera
   // const appscene ref?
   // const rendersettings ref?
@@ -402,13 +407,14 @@ agaveGui::onQuickRender()
     m_glView->setUpdatesEnabled(true);
     m_glView->restartRenderLoop();
   });
-  QImage im = m_glView->captureQimage();
-  QImage* imcopy = new QImage(im);
+  
   rdialog->setImage(imcopy);
+  delete imcopy;
 
   rdialog->show();
   rdialog->raise();
   rdialog->activateWindow();
+  rdialog->onZoomFitClicked();
 }
 
 void

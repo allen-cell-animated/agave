@@ -6,12 +6,14 @@
 #include "renderlib/command.h"
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QImageWriter>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QProgressBar>
@@ -55,7 +57,7 @@ ImageDisplay::setImage(QImage* image)
     m_rect = m_pixmap->rect();
     m_rect.translate(-m_rect.center());
   }
-  repaint(); // update() ?
+  update();
 }
 
 void
@@ -167,7 +169,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            CCamera camera,
                            QOpenGLContext* glContext,
                            std::string volumeFilePath,
-	                       int fileCurrentScene,
+                           int fileCurrentScene,
                            CaptureSettings* captureSettings,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
@@ -176,7 +178,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_camera(camera)
   , m_glContext(glContext)
   , mVolumeFilePath(volumeFilePath)
-	, m_fileCurrentScene(fileCurrentScene)
+  , m_fileCurrentScene(fileCurrentScene)
   , m_renderThread(nullptr)
   , m_frameRenderTime(0)
   , mWidth(0)
@@ -193,7 +195,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mPauseRenderButton = new QPushButton("&Pause", this);
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
-  mCloseButton = new QPushButton("&Close", this);
 
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
@@ -227,6 +228,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mWidth = mCaptureSettings->width;
   mHeight = mCaptureSettings->height;
+  mAspectRatio = (float)mWidth / (float)mHeight;
 
   m_camera.m_Film.m_Resolution.SetResX(mWidth);
   m_camera.m_Film.m_Resolution.SetResY(mHeight);
@@ -239,16 +241,15 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mHeightInput->setMaximum(4096);
   mHeightInput->setMinimum(2);
   mHeightInput->setValue(mHeight);
+  mLockAspectRatio = new QPushButton("Lock Aspect", this);
+  mLockAspectRatio->setCheckable(true);
+  mLockAspectRatio->setChecked(true);
   mResolutionPresets = new QComboBox(this);
-  // TODO should we have a button to capture window dims?
-  mResolutionPresets->addItem("Choose a preset...");
+  mResolutionPresets->addItem("Choose Preset...");
+  mResolutionPresets->addItem("Main window");
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
-
-  // mZoomInButton = new QPushButton("+", this);
-  // mZoomOutButton = new QPushButton("-", this);
-  // mZoomFitButton = new QPushButton("[ ]", this);
 
   mStartTimeInput = new QSpinBox(this);
   mStartTimeInput->setMinimum(0);
@@ -264,50 +265,47 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 
   mSelectSaveDirectoryButton = new QPushButton("Dir...", this);
 
+  mAutosaveCheckbox = new QCheckBox("Autosave", this);
+  mAutosaveCheckbox->setChecked(true);
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
 
   mToolbar = new QToolBar(this);
-  // mToolbar->addWidget(mZoomInButton);
-  // mToolbar->addWidget(mZoomOutButton);
-  // mToolbar->addWidget(mZoomFitButton);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
   mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
   connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
-  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::stopRendering);
+  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
   connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
-  connect(mCloseButton, &QPushButton::clicked, this, &RenderDialog::close);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
-  connect(mWidthInput, SIGNAL(valueChanged(int)), this, SLOT(updateWidth(int)));
-  connect(mHeightInput, SIGNAL(valueChanged(int)), this, SLOT(updateHeight(int)));
+  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
+  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
   connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  // connect(mZoomInButton, &QPushButton::clicked, this, &RenderDialog::onZoomInClicked);
-  // connect(mZoomOutButton, &QPushButton::clicked, this, &RenderDialog::onZoomOutClicked);
-  // connect(mZoomFitButton, &QPushButton::clicked, this, &RenderDialog::onZoomFitClicked);
   connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
   connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
   connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
   connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
 
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
+  topButtonsLayout->addWidget(mResolutionPresets, 1);
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
   topButtonsLayout->addWidget(mWidthInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
-  topButtonsLayout->addWidget(mResolutionPresets, 1);
+  topButtonsLayout->addWidget(mLockAspectRatio, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T0:")), 0);
   topButtonsLayout->addWidget(mStartTimeInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("T1:")), 0);
   topButtonsLayout->addWidget(mEndTimeInput, 1);
 
   QHBoxLayout* saveButtonsLayout = new QHBoxLayout();
+  saveButtonsLayout->addWidget(mAutosaveCheckbox, 1);
   saveButtonsLayout->addWidget(mSaveFilePrefix, 1);
-  saveButtonsLayout->addWidget(mSaveDirectoryLabel, 1);
+  saveButtonsLayout->addWidget(mSaveDirectoryLabel, 2);
   saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
   // QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
@@ -327,7 +325,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   bottomButtonslayout->addWidget(mPauseRenderButton);
   bottomButtonslayout->addWidget(mStopRenderButton);
   bottomButtonslayout->addWidget(mSaveButton);
-  bottomButtonslayout->addWidget(mCloseButton);
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 
@@ -398,20 +395,14 @@ RenderDialog::render()
 
       m_renderThread = new Renderer("Render dialog render thread ", this, m_mutex);
 
-      // queued across thread boundary.  typically requestProcessed is called from another thread.
-      // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be
-      // fully async.
-      connect(m_renderThread,
-              &Renderer::requestProcessed,
-              this,
-              &RenderDialog::onRenderRequestProcessed,
-              // TODO test wthout this
-              Qt::BlockingQueuedConnection);
+      // queued across thread boundary.  requestProcessed is called from another thread, asynchronously.
+      connect(m_renderThread, &Renderer::requestProcessed, this, &RenderDialog::onRenderRequestProcessed);
       connect(m_renderThread, &Renderer::finished, this, &RenderDialog::onRenderThreadFinished);
     }
 
     // now get our rendering resources into this Renderer object
-    m_renderThread->configure(m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_fileCurrentScene, m_glContext);
+    m_renderThread->configure(
+      m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_fileCurrentScene, m_glContext);
 
     onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request
@@ -436,6 +427,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   // the QImage is sent here from the thread.
   // this is an incremental update of a render and our chance to update the GUI and state of our processing
 
+  if (req == nullptr) {
+    LOG_DEBUG << "render callback after no request processed";
+    return;
+  }
   if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
     LOG_DEBUG << "received sample after render terminated";
   }
@@ -469,8 +464,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     this->setImage(&image);
 
     // save image
-    if (true) {
-      // TODO set up autosave path when we start rendering
+    // TODO set up autosave path when we start rendering
+    if (mAutosaveCheckbox->isChecked()) {
       QString autosavePath = mSaveDirectoryLabel->text();
       QDir d(autosavePath);
       bool pathOk = d.mkpath(autosavePath);
@@ -551,6 +546,9 @@ RenderDialog::endRenderThread()
   pauseRendering();
   if (m_renderThread && m_renderThread->isRunning()) {
     m_renderThread->requestInterruption();
+    m_renderThread->wakeUp();
+    // we need to ensure that the render thread is not trying to make calls back into this thread
+    m_renderThread->wait();
   }
 }
 
@@ -588,6 +586,7 @@ RenderDialog::done(int r)
   endRenderThread();
   if (m_renderThread) {
     m_renderThread->deleteLater();
+    m_renderThread = nullptr;
   }
   QDialog::done(r);
 }
@@ -595,10 +594,17 @@ RenderDialog::done(int r)
 void
 RenderDialog::onResolutionPreset(int index)
 {
-  // find preset res and set w/h
-  const ResolutionPreset& preset = resolutionPresets[index - 1];
-  mWidthInput->setValue((preset.w));
-  mHeightInput->setValue((preset.h));
+  if (index > 1) {
+    // find preset res and set w/h
+    const ResolutionPreset& preset = resolutionPresets[index - 2];
+    mAspectRatio = (float)preset.w / (float)preset.h;
+    mWidthInput->setValue((preset.w));
+    mHeightInput->setValue((preset.h));
+  } else if (index == 1) {
+    // get xy from the main window size.
+  }
+  // restore index 0
+  mResolutionPresets->setCurrentIndex(0);
 }
 
 void
@@ -607,6 +613,18 @@ RenderDialog::updateWidth(int w)
   mWidth = w;
   m_camera.m_Film.m_Resolution.SetResX(w);
   mCaptureSettings->width = w;
+
+  if (mLockAspectRatio->isChecked()) {
+    mHeight = (int)(mWidth / mAspectRatio);
+    mHeightInput->blockSignals(true);
+    mHeightInput->setValue(mHeight);
+    mHeightInput->blockSignals(false);
+    m_camera.m_Film.m_Resolution.SetResY(mHeight);
+    mCaptureSettings->height = mHeight;
+  } else {
+    mAspectRatio = (float)mWidth / (float)mHeight;
+  }
+
   resetProgress();
 }
 
@@ -616,6 +634,18 @@ RenderDialog::updateHeight(int h)
   mHeight = h;
   m_camera.m_Film.m_Resolution.SetResY(h);
   mCaptureSettings->height = h;
+
+  if (mLockAspectRatio->isChecked()) {
+    mWidth = (int)(mHeight * mAspectRatio);
+    mWidthInput->blockSignals(true);
+    mWidthInput->setValue(mWidth);
+    mWidthInput->blockSignals(false);
+    m_camera.m_Film.m_Resolution.SetResX(mWidth);
+    mCaptureSettings->width = mWidth;
+  } else {
+    mAspectRatio = (float)mWidth / (float)mHeight;
+  }
+
   resetProgress();
 }
 
@@ -760,4 +790,63 @@ RenderDialog::onRenderThreadFinished()
 {
   m_renderThread->deleteLater();
   m_renderThread = nullptr;
+}
+
+bool
+RenderDialog::getUserCancelConfirmation()
+{
+  QMessageBox::StandardButton btn =
+    QMessageBox::question(this, "Cancel Render?", "Are you sure you want to cancel the render currently in progress?");
+  if (btn == QMessageBox::Yes) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool
+RenderDialog::isRenderInProgress()
+{
+  if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
+    return false;
+  }
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+    return false;
+  }
+  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+    return false;
+  }
+  return true;
+}
+
+void
+RenderDialog::closeEvent(QCloseEvent* event)
+{
+  LOG_DEBUG << "closeEvent()";
+
+  if (isRenderInProgress()) {
+    if (getUserCancelConfirmation()) {
+      event->accept();
+      QDialog::closeEvent(event);
+    } else {
+      event->ignore();
+      // do not close the dialog!
+    }
+  } else {
+    event->accept();
+    QDialog::closeEvent(event);
+  }
+}
+
+void
+RenderDialog::onStopButtonClick()
+{
+  // note this does not pause/resume while waiting for confirmation
+  if (isRenderInProgress()) {
+    if (getUserCancelConfirmation()) {
+      stopRendering();
+    }
+  } else {
+    stopRendering();
+  }
 }

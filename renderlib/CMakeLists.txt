@@ -8,7 +8,6 @@ configure_file(
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 
-# set_target_properties(renderlib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${GLM_INCLUDE_DIRS}
@@ -76,8 +75,7 @@ add_subdirectory(pugixml)
 add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
-
-# set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_DYNLIB OFF)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
 
@@ -99,7 +97,7 @@ target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
-	libCZI
+	libCZIStatic
 
 	tensorstore::tensorstore tensorstore::all_drivers
 

@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QStandardPaths>
 
+class QCheckBox;
 class QComboBox;
 class QImage;
 class QOpenGLContext;
@@ -32,6 +33,7 @@ public:
   ImageDisplay(QWidget* parent = 0);
   ~ImageDisplay();
   void setImage(QImage* image);
+
   void save(QString filename);
 
   void scale(qreal s);
@@ -81,8 +83,8 @@ struct CaptureSettings
     outputDir = docs.toStdString();
 
     filenamePrefix = "frame";
-    width = 640;
-    height = 480;
+    width = 0;
+    height = 0;
     samples = 32;
     duration = 10;
     durationType = SAMPLES;
@@ -107,9 +109,13 @@ public:
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
-  void done(int r);
+  void onZoomFitClicked();
+
+  void done(int r) override;
   int getXResolution();
   int getYResolution();
+
+  virtual void closeEvent(QCloseEvent* event) override;
 
 private slots:
   void render();
@@ -142,13 +148,14 @@ private:
   QPushButton* mPauseRenderButton;
   QPushButton* mStopRenderButton;
   QPushButton* mSaveButton;
-  QPushButton* mCloseButton;
   QSpinBox* mWidthInput;
   QSpinBox* mHeightInput;
+  QPushButton* mLockAspectRatio;
   QComboBox* mResolutionPresets;
   QSpinBox* mStartTimeInput;
   QSpinBox* mEndTimeInput;
 
+  QCheckBox* mAutosaveCheckbox;
   QPushButton* mSelectSaveDirectoryButton;
   QLabel* mSaveDirectoryLabel;
   QLineEdit* mSaveFilePrefix;
@@ -166,6 +173,7 @@ private:
 
   int mWidth;
   int mHeight;
+  float mAspectRatio;
   qint64 m_frameRenderTime;
   // TODO controls to put in a render dialog:
   // save button
@@ -176,10 +184,11 @@ private:
   eRenderDurationType mRenderDurationType;
   void resetProgress();
 
+  void onStopButtonClick();
+
   void onRenderRequestProcessed(RenderRequest* req, QImage image);
   void onZoomInClicked();
   void onZoomOutClicked();
-  void onZoomFitClicked();
 
   int mFrameNumber;
   int mTotalFrames;
@@ -190,4 +199,7 @@ private:
   void onSelectSaveDirectoryClicked();
   void onSaveFilePrefixChanged(const QString& value);
   void onRenderThreadFinished();
+
+  bool isRenderInProgress();
+  bool getUserCancelConfirmation();
 };
