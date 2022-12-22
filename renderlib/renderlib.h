@@ -29,7 +29,6 @@ public:
   static int initialize(bool headless = false, bool listDevices = false, int selectedGpu = 0);
   static void clearGpuVolumeCache();
   static void cleanup();
-  static bool isHeadless();
 
   // usage of this cache:
   // websocketserver:
