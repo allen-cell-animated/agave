@@ -172,6 +172,12 @@ initEGLDisplay(int selectedGpu)
 }
 #endif
 
+bool
+renderlib::isHeadless()
+{
+  return renderLibHeadless;
+}
+
 int
 renderlib::initialize(bool headless, bool listDevices, int selectedGpu)
 {

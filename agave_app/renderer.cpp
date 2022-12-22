@@ -23,8 +23,7 @@ RendererGLContext::RendererGLContext()
 #else
   , m_surface(nullptr)
 #endif
-{
-}
+{}
 
 RendererGLContext::~RendererGLContext() {}
 
@@ -34,17 +33,14 @@ RendererGLContext::destroy()
   if (m_ownGLContext) {
     delete m_glContext;
   } else {
-#if HAS_EGL
-#else
-    m_glContext->moveToThread(QGuiApplication::instance()->thread());
-#endif
+    if (!renderlib::isHeadless()) {
+      m_glContext->moveToThread(QGuiApplication::instance()->thread());
+    }
   }
-
-#if HAS_EGL
-#else
-  // schedule this to be deleted only after we're done cleaning up
-  m_surface->deleteLater();
-#endif
+  if (!renderlib::isHeadless()) {
+    // schedule this to be deleted only after we're done cleaning up
+    m_surface->deleteLater();
+  }
 }
 
 // to be run from main thread prior to starting render thread
@@ -54,13 +50,12 @@ RendererGLContext::configure(QOpenGLContext* glContext)
   // TODO what do we do when running on Linux desktop??
   // need a "don't bother with EGL switch"?
 
-#if HAS_EGL
-#else
-  if (glContext) {
-    m_glContext = glContext;
-    m_ownGLContext = false;
+  if (!renderlib::isHeadless()) {
+    if (glContext) {
+      m_glContext = glContext;
+      m_ownGLContext = false;
+    }
   }
-#endif
 }
 
 // to be run from render thread
@@ -68,10 +63,20 @@ RendererGLContext::configure(QOpenGLContext* glContext)
 void
 RendererGLContext::init()
 {
+  // if we are running renderlib in headless mode, then use headless context.
+  if (renderlib::isHeadless()) {
 #if HAS_EGL
-  this->m_glContext = new HeadlessGLContext();
-  this->m_glContext->makeCurrent();
+    this->m_glContext = new HeadlessGLContext();
+    this->m_glContext->makeCurrent();
+    if (!m_ownGLContext) {
+      LOG_ERROR << "Headless mode must own its own GL context";
+    }
 #else
+    LOG_ERROR << "Headless mode not supported on this platform";
+#endif
+    return;
+  }
+
   if (m_ownGLContext) {
     this->m_glContext = renderlib::createOpenGLContext();
   }
@@ -81,18 +86,22 @@ RendererGLContext::init()
   this->m_surface->create();
 
   this->m_glContext->makeCurrent(m_surface);
-#endif
 }
 
 void
 RendererGLContext::makeCurrent()
 {
+  if (renderlib::isHeadless()) {
 #if HAS_EGL
-  this->m_glContext->makeCurrent();
+    this->m_glContext->makeCurrent();
 #else
-  this->m_glContext->makeCurrent(this->m_surface);
+    LOG_ERROR << "Headless mode not supported on this platform";
 #endif
+  } else {
+    this->m_glContext->makeCurrent(this->m_surface);
+  }
 }
+
 void
 RendererGLContext::doneCurrent()
 {
