@@ -195,7 +195,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mPauseRenderButton = new QPushButton("&Pause", this);
   mStopRenderButton = new QPushButton("&Stop", this);
   mSaveButton = new QPushButton("&Save", this);
-  mCloseButton = new QPushButton("&Close", this);
 
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
@@ -280,7 +279,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
   connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
   connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
-  connect(mCloseButton, &QPushButton::clicked, this, &RenderDialog::close);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
   connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
   connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
@@ -327,7 +325,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   bottomButtonslayout->addWidget(mPauseRenderButton);
   bottomButtonslayout->addWidget(mStopRenderButton);
   bottomButtonslayout->addWidget(mSaveButton);
-  bottomButtonslayout->addWidget(mCloseButton);
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 

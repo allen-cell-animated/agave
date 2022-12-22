@@ -148,7 +148,6 @@ private:
   QPushButton* mPauseRenderButton;
   QPushButton* mStopRenderButton;
   QPushButton* mSaveButton;
-  QPushButton* mCloseButton;
   QSpinBox* mWidthInput;
   QSpinBox* mHeightInput;
   QPushButton* mLockAspectRatio;
