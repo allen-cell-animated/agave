@@ -7,13 +7,14 @@ class QSpinBox;
 class QTreeWidget;
 
 class RangeWidget;
+struct MultiscaleDims;
 
 class LoadDialog : public QDialog
 {
   Q_OBJECT
 
 public:
-  LoadDialog(std::string path, QWidget* parent = Q_NULLPTR);
+  LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent = Q_NULLPTR);
 
 private slots:
   void updateScene(int value);

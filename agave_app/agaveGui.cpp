@@ -271,9 +271,17 @@ agaveGui::openUrl()
     return false;
   }
 
+  std::vector<MultiscaleDims> dims;
+  bool haveDims = FileReader::loadMultiscaleDims(urlToLoad, 0, dims);
+  if (!haveDims) {
+    LOG_DEBUG << "Failed to load dims from url.";
+    showOpenFailedMessageBox(text);
+    return false;
+  }
+
   // read some metadata from the cloud and present the next dialog
   // if successful
-  LoadDialog* loadDialog = new LoadDialog(urlToLoad, this);
+  LoadDialog* loadDialog = new LoadDialog(urlToLoad, dims, this);
   if (loadDialog->exec() == QDialog::Accepted) {
     LOG_DEBUG << "OK load from url.";
     // load the volume
@@ -407,7 +415,7 @@ agaveGui::onQuickRender()
     m_glView->setUpdatesEnabled(true);
     m_glView->restartRenderLoop();
   });
-  
+
   rdialog->setImage(imcopy);
   delete imcopy;
 

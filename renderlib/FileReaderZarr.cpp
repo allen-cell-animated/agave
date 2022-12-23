@@ -127,20 +127,10 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   return 0;
 }
 
-VolumeDimensions
-FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
+std::vector<MultiscaleDims>
+FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
-  VolumeDimensions dims;
-
-  // pre-fetch dims for the different multiscales
-  struct ZarrMultiscaleDims
-  {
-    std::vector<float> scale;
-    std::vector<int64_t> shape;
-    tensorstore::DataType dtype;
-    std::string path;
-  };
-  std::vector<ZarrMultiscaleDims> multiscaleDims;
+  std::vector<MultiscaleDims> multiscaleDims;
 
   nlohmann::json attrs = jsonRead();
   auto multiscales = attrs["multiscales"];
@@ -171,10 +161,11 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
             for (auto& s : scale) {
               scalevec.push_back(s);
             }
-            ZarrMultiscaleDims zmd;
+            MultiscaleDims zmd;
             zmd.scale = scalevec;
             zmd.shape = shape;
-            zmd.dtype = dtype;
+            // TODO reconcile these strings against my other ways of specifying dtype
+            zmd.dtype = dtype.name();
             zmd.path = pathstr;
             multiscaleDims.push_back(zmd);
           }
@@ -182,9 +173,21 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
       }
     }
   }
+  return multiscaleDims;
+}
+
+VolumeDimensions
+FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
+{
+  VolumeDimensions dims;
+
+  // pre-fetch dims for the different multiscales
+  std::vector<MultiscaleDims> multiscaleDims;
+  multiscaleDims = loadMultiscaleDims(filepath, scene);
+
   // select a mltiscale level here!
   int level = multiscaleDims.size() - 1;
-  ZarrMultiscaleDims levelDims = multiscaleDims[level];
+  MultiscaleDims levelDims = multiscaleDims[level];
   dims.zarrSubpath = levelDims.path;
 
   dims.sizeX = levelDims.shape[4];
@@ -196,10 +199,10 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
   dims.physicalSizeX = levelDims.scale[4];
   dims.physicalSizeY = levelDims.scale[3];
   dims.physicalSizeZ = levelDims.scale[2];
-  if (levelDims.dtype == tensorstore::dtype_v<int32_t>) {
+  if (levelDims.dtype == "int32") { // tensorstore::dtype_v<int32_t>) {
     dims.bitsPerPixel = 32;
     dims.sampleFormat = 2;
-  } else if (levelDims.dtype == tensorstore::dtype_v<uint16_t>) {
+  } else if (levelDims.dtype == "uint16") { // tensorstore::dtype_v<uint16_t>) {
     dims.bitsPerPixel = 16;
     dims.sampleFormat = 1;
   } else {

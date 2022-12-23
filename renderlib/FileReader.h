@@ -7,6 +7,7 @@
 
 class ImageXYZC;
 struct VolumeDimensions;
+struct MultiscaleDims;
 
 class FileReader
 {
@@ -18,6 +19,7 @@ public:
 
   // return dimensions from scene in file
   static VolumeDimensions loadFileDimensions(const std::string& filepath, uint32_t scene = 0);
+  static bool loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims);
 
   static std::shared_ptr<ImageXYZC> loadFromFile(const std::string& filepath,
                                                  VolumeDimensions* dims = nullptr,

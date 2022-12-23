@@ -69,6 +69,17 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
   return VolumeDimensions();
 }
 
+bool
+FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims)
+{
+  std::vector<MultiscaleDims> zarrDims = FileReaderZarr::loadMultiscaleDims(filepath, scene);
+  if (zarrDims.size() > 0) {
+    dims = zarrDims;
+    return true;
+  }
+  return false;
+}
+
 std::shared_ptr<ImageXYZC>
 FileReader::loadFromFile(const std::string& filepath,
                          VolumeDimensions* dims,

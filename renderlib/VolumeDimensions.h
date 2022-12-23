@@ -3,6 +3,14 @@
 #include <string>
 #include <vector>
 
+struct MultiscaleDims
+{
+  std::vector<float> scale;
+  std::vector<int64_t> shape;
+  std::string dtype;
+  std::string path;
+};
+
 struct VolumeDimensions
 {
   uint32_t sizeX = 1;

@@ -2,13 +2,15 @@
 
 #include "RangeWidget.h"
 
+#include "renderlib/VolumeDimensions.h"
+
 #include <QLabel>
 #include <QSpinBox>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QWidget>
 
-LoadDialog::LoadDialog(std::string path, QWidget* parent)
+LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent)
   : QDialog(parent)
 {
   setWindowTitle(tr("Load Settings"));
@@ -18,23 +20,24 @@ LoadDialog::LoadDialog(std::string path, QWidget* parent)
   mSceneInput->setMaximum(65536);
   mSceneInput->setValue(0);
 
-  struct ZarrMultiscaleDims
-  {
-    std::vector<float> scale;
-    std::vector<int64_t> shape;
-    std::string dtype;
-    std::string path;
-  };
-  ZarrMultiscaleDims dims[] = { { { 1, 1, 1 }, { 100, 100, 100 }, "tensorstore::DataType::uint8", "0" },
-                                { { 2, 2, 2 }, { 50, 50, 50 }, "tensorstore::DataType::uint8", "1" },
-                                { { 4, 4, 4 }, { 25, 25, 25 }, "tensorstore::DataType::uint8", "2" } };
+  // struct MultiscaleDims
+  // {
+  //   std::vector<float> scale;
+  //   std::vector<int64_t> shape;
+  //   std::string dtype;
+  //   std::string path;
+  // };
+  // MultiscaleDims dims[] = { { { 1, 1, 1 }, { 100, 100, 100 }, "tensorstore::DataType::uint8", "0" },
+  //                           { { 2, 2, 2 }, { 50, 50, 50 }, "tensorstore::DataType::uint8", "1" },
+  //                           { { 4, 4, 4 }, { 25, 25, 25 }, "tensorstore::DataType::uint8", "2" } };
+
   mMetadataTree = new QTreeWidget(this);
   mMetadataTree->setColumnCount(2);
   mMetadataTree->setHeaderLabels(QStringList() << "Key"
                                                << "Value");
-  std::string dimstring = "ZYX";
+  std::string dimstring = "TCZYX";
   for (auto d : dims) {
-    QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << "Scale" << QString::fromStdString(d.path));
+    QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << "Level" << QString::fromStdString(d.path));
     for (size_t i = 0; i < d.shape.size(); ++i) {
       item->addChild(new QTreeWidgetItem(QStringList()
                                          << QString::fromStdString(dimstring.substr(i, 1))
