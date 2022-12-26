@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderlib/VolumeDimensions.h"
+
 #include <QDialog>
 
 class QLabel;
@@ -7,7 +9,6 @@ class QSpinBox;
 class QTreeWidget;
 
 class RangeWidget;
-struct MultiscaleDims;
 
 class LoadDialog : public QDialog
 {
@@ -18,10 +19,12 @@ public:
 
 private slots:
   void updateScene(int value);
+  void onItemSelectionChanged();
 
 private:
   std::string mPath;
   int mScene;
+  std::vector<MultiscaleDims> mDims;
 
   QSpinBox* mSceneInput;
   QTreeWidget* mMetadataTree;
@@ -34,4 +37,6 @@ private:
   // select region of interest in zyx
   // select any set of channels
   // start with a single timepoint
+
+  void updateMemoryEstimate();
 };
