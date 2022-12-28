@@ -650,3 +650,20 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   }
   return sharedImage;
 }
+
+std::vector<MultiscaleDims>
+FileReaderTIFF::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
+{
+  std::vector<MultiscaleDims> dims;
+  VolumeDimensions vdims = loadDimensionsTiff(filepath, scene);
+  if (!vdims.validate()) {
+    return dims;
+  }
+  MultiscaleDims mdims;
+  mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
+  mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.dtype = "uint16";
+  mdims.path = "";
+  dims.push_back(mdims);
+  return dims;
+}

@@ -72,9 +72,22 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
 bool
 FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims)
 {
-  std::vector<MultiscaleDims> zarrDims = FileReaderZarr::loadMultiscaleDims(filepath, scene);
-  if (zarrDims.size() > 0) {
-    dims = zarrDims;
+  std::vector<MultiscaleDims> loadedDims;
+
+  std::string extstr = getExtension(filepath);
+
+  if (extstr == ".tif" || extstr == ".tiff") {
+    loadedDims = FileReaderTIFF::loadMultiscaleDims(filepath, scene);
+  } else if (extstr == ".czi") {
+    loadedDims = FileReaderCzi::loadMultiscaleDims(filepath, scene);
+  } else if (extstr == ".map" || extstr == ".mrc") {
+    loadedDims = FileReaderCCP4::loadMultiscaleDims(filepath, scene);
+  } else if (extstr == ".zarr") {
+    loadedDims = FileReaderZarr::loadMultiscaleDims(filepath, scene);
+  }
+
+  if (loadedDims.size() > 0) {
+    dims = loadedDims;
     return true;
   }
   return false;

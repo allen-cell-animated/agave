@@ -196,7 +196,7 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
              uint8_t* dataPtr)
 {
   auto accessor = reader->CreateSingleChannelPyramidLayerTileAccessor();
-  
+
   libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyrLyrInfo;
   pyrLyrInfo.minificationFactor = 1;
   pyrLyrInfo.pyramidLayerNo = 0;
@@ -351,7 +351,6 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
       o.sceneFilter = libCZI::Utils::IndexSetFromString(wss.str());
     }
 
-
     for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
         destptr = data + planesize * (channel * dims.sizeZ + slice);
@@ -414,4 +413,21 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
     LOG_ERROR << "Failed to read " << filepath;
     return emptyimage;
   }
+}
+
+std::vector<MultiscaleDims>
+FileReaderCzi::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
+{
+  std::vector<MultiscaleDims> dims;
+  VolumeDimensions vdims = loadDimensionsCzi(filepath, scene);
+  if (!vdims.validate()) {
+    return dims;
+  }
+  MultiscaleDims mdims;
+  mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
+  mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.dtype = "uint16";
+  mdims.path = "";
+  dims.push_back(mdims);
+  return dims;
 }

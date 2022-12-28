@@ -359,3 +359,21 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
   }
   return sharedImage;
 }
+
+std::vector<MultiscaleDims>
+FileReaderCCP4::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
+{
+  std::vector<MultiscaleDims> dims;
+  VolumeDimensions vdims;
+  bool dims_ok = readCCP4Dimensions(filepath, vdims, scene);
+  if (!dims_ok) {
+    return dims;
+  }
+  MultiscaleDims mdims;
+  mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
+  mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.dtype = "uint16";
+  mdims.path = "";
+  dims.push_back(mdims);
+  return dims;
+}
