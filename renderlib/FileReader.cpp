@@ -76,7 +76,9 @@ FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std:
 
   std::string extstr = getExtension(filepath);
 
-  if (extstr == ".tif" || extstr == ".tiff") {
+  if (filepath.find("http") == 0) {
+    loadedDims = FileReaderZarr::loadMultiscaleDims(filepath, scene);
+  } else if (extstr == ".tif" || extstr == ".tiff") {
     loadedDims = FileReaderTIFF::loadMultiscaleDims(filepath, scene);
   } else if (extstr == ".czi") {
     loadedDims = FileReaderCzi::loadMultiscaleDims(filepath, scene);

@@ -16,34 +16,17 @@
 
 static const uint32_t IN_MEMORY_BPP = 16;
 
-// test urls:
-struct ZarrTestDataSpec
-{
-  std::string base_url;
-  std::string path;
-};
-static ZarrTestDataSpec TESTDATASET[3] = {
-  { "https://s3.us-west-2.amazonaws.com/aind-open-data/",
-    "exaSPIM_609281_2022-11-03_13-49-18/exaSPIM/exaSPIM/tile_x_0014_y_0000_z_0000_ch_488/" },
-  { "https://aind-open-data.s3-us-west-2.amazonaws.com/",
-    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/processed/OMEZarr/Ex_445_Em_469.zarr/" },
-  { "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/", "Image_0/" }
-};
-static ZarrTestDataSpec TESTDATA = TESTDATASET[1];
-
 FileReaderZarr::FileReaderZarr() {}
 
 FileReaderZarr::~FileReaderZarr() {}
 
 static ::nlohmann::json
-jsonRead()
+jsonRead(std::string zarrurl)
 {
   // JSON uses a separate driver
   auto attrs_store =
     tensorstore::Open<::nlohmann::json, 0>(
-      { { "driver", "json" },
-        { "kvstore",
-          { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + ".zattrs" } } } })
+      { { "driver", "json" }, { "kvstore", { { "driver", "http" }, { "base_url", zarrurl }, { "path", ".zattrs" } } } })
       .result()
       .value();
 
@@ -132,7 +115,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
   std::vector<MultiscaleDims> multiscaleDims;
 
-  nlohmann::json attrs = jsonRead();
+  nlohmann::json attrs = jsonRead(filepath);
   auto multiscales = attrs["multiscales"];
   if (multiscales.is_array()) {
     // take the first one for now.
@@ -143,13 +126,11 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
         auto path = dataset["path"];
         if (path.is_string()) {
           std::string pathstr = path;
-          auto store =
-            tensorstore::Open(
-              { { "driver", "zarr" },
-                { "kvstore",
-                  { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + pathstr } } } })
-              .result()
-              .value();
+          auto store = tensorstore::Open(
+                         { { "driver", "zarr" },
+                           { "kvstore", { { "driver", "http" }, { "base_url", filepath }, { "path", pathstr } } } })
+                         .result()
+                         .value();
           tensorstore::DataType dtype = store.dtype();
           auto shape_span = store.domain().shape();
           std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
@@ -232,7 +213,7 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   // load channels
   std::shared_ptr<ImageXYZC> emptyimage;
 
-  VolumeDimensions dims = FileReaderZarr::loadDimensionsZarr("");
+  VolumeDimensions dims = FileReaderZarr::loadDimensionsZarr(filepath, scene);
   if (!dims.validate()) {
     return emptyimage;
   }
@@ -242,8 +223,7 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore",
-        { { "driver", "http" }, { "base_url", TESTDATA.base_url }, { "path", TESTDATA.path + dims.zarrSubpath } } },
+      { "kvstore", { { "driver", "http" }, { "base_url", filepath }, { "path", dims.zarrSubpath } } },
     },
     context,
     tensorstore::OpenMode::open,
