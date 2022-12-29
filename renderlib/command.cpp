@@ -46,7 +46,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(m_data.m_name.c_str(), &buf) == 0) {
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile_4D(m_data.m_name);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_name, nullptr, 0, 0, false);
     if (!image) {
       return;
     }

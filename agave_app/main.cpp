@@ -78,7 +78,7 @@ preloadFiles(QStringList preloadlist)
   for (QString s : preloadlist) {
     QFileInfo info(s);
     if (info.exists()) {
-      auto img = FileReader::loadFromFile_4D(info.absoluteFilePath().toStdString(), nullptr, true);
+      auto img = FileReader::loadFromFile(info.absoluteFilePath().toStdString(), nullptr, 0, 0, true);
       renderlib::imageAllocGPU(img);
     } else {
       LOG_INFO << "Could not load " << s.toStdString();

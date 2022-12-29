@@ -35,11 +35,12 @@ FileReader::~FileReader() {}
 uint32_t
 FileReader::loadNumScenes(const std::string& filepath)
 {
-  return FileReaderZarr::loadNumScenesZarr(filepath);
-
   std::string extstr = getExtension(filepath);
 
-  if (extstr == ".tif" || extstr == ".tiff") {
+  if (filepath.find("http") == 0) {
+    return FileReaderZarr::loadNumScenesZarr(filepath);
+  }
+  else if (extstr == ".tif" || extstr == ".tiff") {
     return FileReaderTIFF::loadNumScenesTiff(filepath);
   } else if (extstr == ".czi") {
     return FileReaderCzi::loadNumScenesCzi(filepath);
@@ -54,10 +55,12 @@ FileReader::loadNumScenes(const std::string& filepath)
 VolumeDimensions
 FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
 {
-  return FileReaderZarr::loadDimensionsZarr(filepath, scene);
   std::string extstr = getExtension(filepath);
 
-  if (extstr == ".tif" || extstr == ".tiff") {
+  if (filepath.find("http") == 0) {
+    return FileReaderZarr::loadDimensionsZarr(filepath, scene);  
+  }
+  else if (extstr == ".tif" || extstr == ".tiff") {
     return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
   } else if (extstr == ".czi") {
     return FileReaderCzi::loadDimensionsCzi(filepath, scene);
@@ -96,6 +99,32 @@ FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std:
 }
 
 std::shared_ptr<ImageXYZC>
+FileReader::loadFromFile(const LoadSpec& loadSpec)
+{
+  std::string filepath = loadSpec.filepath;
+  VolumeDimensions dims;
+  uint32_t time = loadSpec.time;
+  uint32_t scene = loadSpec.scene;
+  
+  std::shared_ptr<ImageXYZC> image;
+
+  std::string extstr = getExtension(filepath);
+
+  if (filepath.find("http") == 0) {
+    image = FileReaderZarr::loadOMEZarr(filepath, &dims, time, scene);
+  } else if (extstr == ".tif" || extstr == ".tiff") {
+    image = FileReaderTIFF::loadOMETiff(filepath, &dims, time, scene);
+  } else if (extstr == ".czi") {
+    image = FileReaderCzi::loadCzi(filepath, &dims, time, scene);
+  } else if (extstr == ".map" || extstr == ".mrc") {
+    image = FileReaderCCP4::loadCCP4(filepath, &dims, time, scene);
+  } else if (extstr == ".zarr") {
+    image = FileReaderZarr::loadOMEZarr(filepath, &dims, time, scene);
+  }
+  return image;
+}
+  
+std::shared_ptr<ImageXYZC>
 FileReader::loadFromFile(const std::string& filepath,
                          VolumeDimensions* dims,
                          uint32_t time,
@@ -109,12 +138,13 @@ FileReader::loadFromFile(const std::string& filepath,
   }
 
   std::shared_ptr<ImageXYZC> image;
-  image = FileReaderZarr::loadOMEZarr(filepath, dims, time, scene);
-  return image;
 
   std::string extstr = getExtension(filepath);
 
-  if (extstr == ".tif" || extstr == ".tiff") {
+  if (filepath.find("http") == 0) {
+    image = FileReaderZarr::loadOMEZarr(filepath, dims, time, scene);
+  }
+  else if (extstr == ".tif" || extstr == ".tiff") {
     image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);
   } else if (extstr == ".czi") {
     image = FileReaderCzi::loadCzi(filepath, dims, time, scene);
@@ -128,12 +158,6 @@ FileReader::loadFromFile(const std::string& filepath,
     sPreloadedImageCache[filepath] = image;
   }
   return image;
-}
-
-std::shared_ptr<ImageXYZC>
-FileReader::loadFromFile_4D(const std::string& filepath, VolumeDimensions* dims, bool addToCache)
-{
-  return FileReader::loadFromFile(filepath, dims, 0, 0, addToCache);
 }
 
 std::shared_ptr<ImageXYZC>
