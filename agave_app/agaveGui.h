@@ -19,6 +19,9 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
+struct VolumeDimensions;
+struct LoadSpec;
+
 class agaveGui : public QMainWindow
 {
   Q_OBJECT
@@ -29,7 +32,11 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const std::string& file, const ViewerState* v = nullptr);
+  bool open(const std::string& file, const ViewerState* vs = nullptr);
+  void onImageLoaded(std::shared_ptr<ImageXYZC> image,
+                     const LoadSpec& loadSpec,
+                     const VolumeDimensions& dims,
+                     const ViewerState* vs);
 
 private slots:
   void open();

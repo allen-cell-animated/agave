@@ -309,57 +309,11 @@ agaveGui::openUrl()
       return false;
     }
     ViewerState* vs = nullptr;
-    if (vs) {
-      // make sure that ViewerState is consistent with loaded file
-      if (dims.sizeT - 1 != vs->m_maxTime) {
-        LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
-                  << " in the loaded file.";
-      }
-      if (0 != vs->m_minTime) {
-        LOG_ERROR << "Min timline time is not zero.";
-      }
-    }
-    
-    m_currentScene = loadSpec.scene;
-    m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
 
-    // install the new volume image into the scene.
-    // this is deref'ing the previous _volume shared_ptr.
-    m_appScene.m_volume = image;
-
-    m_appScene.initSceneFromImg(image);
-    m_glView->initCameraFromImage(&m_appScene);
-
-    // initialize _appScene from ViewerState
-    if (vs) {
-      viewerStateToApp(*vs);
-    }
-
-    // tell the 3d view to update.
-    // it causes a new renderer which owns the CStatus used below
-    m_glView->onNewImage(&m_appScene);
-    // everything after the last / (or \ ???) is the filename.
-    std::string filename = urlToLoad.substr(urlToLoad.find_last_of("/") + 1);
-    m_tabs->setTabText(0, QString::fromStdString(filename));
-
-    m_appearanceDockWidget->onNewImage(&m_appScene);
-    m_timelinedock->onNewImage(&m_appScene, urlToLoad, m_currentScene);
-
-    // set up status view with some stats.
-    std::shared_ptr<CStatus> s = m_glView->getStatus();
-    // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
-    m_statisticsDockWidget->setStatus(s);
-    s->onNewImage(filename, &m_appScene);
-
-    m_currentFilePath = urlToLoad;
-    agaveGui::prependToRecentFiles(QString::fromStdString(urlToLoad));
-    writeRecentDirectory(QString::fromStdString(urlToLoad));
+    onImageLoaded(image, loadSpec, dims, vs);
 
     return true;
 
-
-
-    
   }
 
   else {
@@ -517,6 +471,58 @@ agaveGui::saveJson()
   }
 }
 
+void
+agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
+                        const LoadSpec& loadSpec,
+                        const VolumeDimensions& dims,
+                        const ViewerState* vs)
+{
+  if (vs) {
+    // make sure that ViewerState is consistent with loaded file
+    if (dims.sizeT - 1 != vs->m_maxTime) {
+      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
+                << " in the loaded file.";
+    }
+    if (0 != vs->m_minTime) {
+      LOG_ERROR << "Min timline time is not zero.";
+    }
+  }
+  m_currentScene = loadSpec.scene;
+  m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
+
+  // install the new volume image into the scene.
+  // this is deref'ing the previous _volume shared_ptr.
+  m_appScene.m_volume = image;
+
+  m_appScene.initSceneFromImg(image);
+  m_glView->initCameraFromImage(&m_appScene);
+
+  // initialize _appScene from ViewerState
+  if (vs) {
+    viewerStateToApp(*vs);
+  }
+
+  // tell the 3d view to update.
+  // it causes a new renderer which owns the CStatus used below
+  m_glView->onNewImage(&m_appScene);
+  // everything after the last / (or \ ???) is the filename.
+  std::string filename = loadSpec.filepath.substr(loadSpec.filepath.find_last_of("/") + 1);
+  m_tabs->setTabText(0, QString::fromStdString(filename));
+
+  m_appearanceDockWidget->onNewImage(&m_appScene);
+  m_timelinedock->onNewImage(&m_appScene, loadSpec.filepath, m_currentScene);
+
+  // set up status view with some stats.
+  std::shared_ptr<CStatus> s = m_glView->getStatus();
+  // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
+  m_statisticsDockWidget->setStatus(s);
+  s->onNewImage(filename, &m_appScene);
+
+  m_currentFilePath = loadSpec.filepath;
+  agaveGui::prependToRecentFiles(QString::fromStdString(loadSpec.filepath));
+  writeRecentDirectory(QString::fromStdString(loadSpec.filepath));
+}
+
 bool
 agaveGui::open(const std::string& file, const ViewerState* vs)
 {
@@ -545,9 +551,7 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
         return false;
       }
     }
-
     VolumeDimensions dims;
-
     int timeToLoad = vs ? vs->m_currentTime : 0;
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file, &dims, timeToLoad, sceneToLoad);
@@ -557,48 +561,11 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
       return false;
     }
 
-    if (vs) {
-      // make sure that ViewerState is consistent with loaded file
-      if (dims.sizeT - 1 != vs->m_maxTime) {
-        LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
-                  << " in the loaded file.";
-      }
-      if (0 != vs->m_minTime) {
-        LOG_ERROR << "Min timline time is not zero.";
-      }
-    }
-    m_currentScene = sceneToLoad;
-    m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
-
-    // install the new volume image into the scene.
-    // this is deref'ing the previous _volume shared_ptr.
-    m_appScene.m_volume = image;
-
-    m_appScene.initSceneFromImg(image);
-    m_glView->initCameraFromImage(&m_appScene);
-
-    // initialize _appScene from ViewerState
-    if (vs) {
-      viewerStateToApp(*vs);
-    }
-
-    // tell the 3d view to update.
-    // it causes a new renderer which owns the CStatus used below
-    m_glView->onNewImage(&m_appScene);
-    m_tabs->setTabText(0, info.fileName());
-
-    m_appearanceDockWidget->onNewImage(&m_appScene);
-    m_timelinedock->onNewImage(&m_appScene, file, m_currentScene);
-
-    // set up status view with some stats.
-    std::shared_ptr<CStatus> s = m_glView->getStatus();
-    // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
-    m_statisticsDockWidget->setStatus(s);
-    s->onNewImage(info.fileName().toStdString(), &m_appScene);
-
-    m_currentFilePath = file;
-    agaveGui::prependToRecentFiles(QString::fromStdString(file));
-    writeRecentDirectory(info.absolutePath());
+    LoadSpec loadSpec;
+    loadSpec.filepath = file;
+    loadSpec.scene = sceneToLoad;
+    loadSpec.time = timeToLoad;
+    onImageLoaded(image, loadSpec, dims, vs);
 
     return true;
   } else {
