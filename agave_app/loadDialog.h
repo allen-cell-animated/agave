@@ -1,6 +1,7 @@
 #pragma once
 
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/FileReader.h"
 
 #include <QDialog>
 
@@ -17,7 +18,10 @@ class LoadDialog : public QDialog
 public:
   LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent = Q_NULLPTR);
 
-private slots:
+  LoadSpec getLoadSpec() const;
+  int getMultiscaleLevelIndex() const { return mSelectedLevel; }
+  
+  private slots:
   void updateScene(int value);
   void onItemSelectionChanged();
 
@@ -25,6 +29,7 @@ private:
   std::string mPath;
   int mScene;
   std::vector<MultiscaleDims> mDims;
+  int mSelectedLevel;
 
   QSpinBox* mSceneInput;
   QTreeWidget* mMetadataTree;

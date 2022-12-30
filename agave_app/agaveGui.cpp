@@ -251,7 +251,7 @@ agaveGui::open()
   QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
 
   if (!file.isEmpty()) {
-    if (!open(file)) {
+    if (!open(file.toStdString())) {
       showOpenFailedMessageBox(file);
     }
   }
@@ -272,32 +272,94 @@ agaveGui::openUrl()
   }
 
   // test urls:
-  static std::string TESTDATASET[3] = {
+  static std::string TESTDATASET[4] = {
     "https://s3.us-west-2.amazonaws.com/aind-open-data/exaSPIM_609281_2022-11-03_13-49-18/exaSPIM/exaSPIM/"
     "tile_x_0014_y_0000_z_0000_ch_488/",
     "https://aind-open-data.s3-us-west-2.amazonaws.com/"
     "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/processed/OMEZarr/Ex_445_Em_469.zarr/",
-    "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0/"
+    "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0/",
+    "https://aind-open-data.s3-us-west-2.amazonaws.com/"
+    "exaSPIM_609281_2022-11-03_13-49-18_stitched_2022-11-22_12-07-00/fused.zarr/",
   };
-  urlToLoad = TESTDATASET[1];
+  urlToLoad = TESTDATASET[2];
 
-  std::vector<MultiscaleDims> dims;
-  bool haveDims = FileReader::loadMultiscaleDims(urlToLoad, 0, dims);
+  // read some metadata from the cloud and present the next dialog
+  // if successful
+
+  std::vector<MultiscaleDims> multiscaledims;
+  bool haveDims = FileReader::loadMultiscaleDims(urlToLoad, 0, multiscaledims);
   if (!haveDims) {
     LOG_DEBUG << "Failed to load dims from url.";
     showOpenFailedMessageBox(text);
     return false;
   }
 
-  // read some metadata from the cloud and present the next dialog
-  // if successful
-  LoadDialog* loadDialog = new LoadDialog(urlToLoad, dims, this);
+  LoadDialog* loadDialog = new LoadDialog(urlToLoad, multiscaledims, this);
   if (loadDialog->exec() == QDialog::Accepted) {
-    LOG_DEBUG << "OK load from url.";
+    LOG_DEBUG << "OK to load from url.";
     // load the volume
-    //    if (!open(urlToLoad)) {
-    //    showOpenFailedMessageBox(text);
-    //  return false;
+    LoadSpec loadSpec = loadDialog->getLoadSpec();
+    VolumeDimensions dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
+    QApplication::restoreOverrideCursor();
+    if (!image) {
+      LOG_DEBUG << "Failed to open " << urlToLoad;
+      showOpenFailedMessageBox(text);
+      return false;
+    }
+    ViewerState* vs = nullptr;
+    if (vs) {
+      // make sure that ViewerState is consistent with loaded file
+      if (dims.sizeT - 1 != vs->m_maxTime) {
+        LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
+                  << " in the loaded file.";
+      }
+      if (0 != vs->m_minTime) {
+        LOG_ERROR << "Min timline time is not zero.";
+      }
+    }
+    
+    m_currentScene = loadSpec.scene;
+    m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
+
+    // install the new volume image into the scene.
+    // this is deref'ing the previous _volume shared_ptr.
+    m_appScene.m_volume = image;
+
+    m_appScene.initSceneFromImg(image);
+    m_glView->initCameraFromImage(&m_appScene);
+
+    // initialize _appScene from ViewerState
+    if (vs) {
+      viewerStateToApp(*vs);
+    }
+
+    // tell the 3d view to update.
+    // it causes a new renderer which owns the CStatus used below
+    m_glView->onNewImage(&m_appScene);
+    // everything after the last / (or \ ???) is the filename.
+    std::string filename = urlToLoad.substr(urlToLoad.find_last_of("/") + 1);
+    m_tabs->setTabText(0, QString::fromStdString(filename));
+
+    m_appearanceDockWidget->onNewImage(&m_appScene);
+    m_timelinedock->onNewImage(&m_appScene, urlToLoad, m_currentScene);
+
+    // set up status view with some stats.
+    std::shared_ptr<CStatus> s = m_glView->getStatus();
+    // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
+    m_statisticsDockWidget->setStatus(s);
+    s->onNewImage(filename, &m_appScene);
+
+    m_currentFilePath = urlToLoad;
+    agaveGui::prependToRecentFiles(QString::fromStdString(urlToLoad));
+    writeRecentDirectory(QString::fromStdString(urlToLoad));
+
+    return true;
+
+
+
+    
   }
 
   else {
@@ -335,7 +397,7 @@ agaveGui::openJson()
 
     ViewerState s;
     s.stateFromJson(loadDoc);
-    if (!s.m_volumeImageFile.isEmpty()) {
+    if (!s.m_volumeImageFile.empty()) {
       if (!open(s.m_volumeImageFile, &s)) {
         showOpenFailedMessageBox(file);
       }
@@ -412,7 +474,7 @@ agaveGui::onQuickRender()
                                            m_appScene,
                                            camera,
                                            m_glView->context(),
-                                           m_currentFilePath.toStdString(),
+                                           m_currentFilePath,
                                            m_currentScene,
                                            &m_captureSettings,
                                            this);
@@ -456,16 +518,16 @@ agaveGui::saveJson()
 }
 
 bool
-agaveGui::open(const QString& file, const ViewerState* vs)
+agaveGui::open(const std::string& file, const ViewerState* vs)
 {
-  QFileInfo info(file);
+  QFileInfo info(QString::fromStdString(file));
   if (info.exists()) {
-    LOG_DEBUG << "Attempting to open " << file.toStdString();
+    LOG_DEBUG << "Attempting to open " << file;
 
     int sceneToLoad = vs ? vs->m_currentScene : 0;
 
     // check number of scenes in file.
-    int numScenes = FileReader::loadNumScenes(file.toStdString());
+    int numScenes = FileReader::loadNumScenes(file);
     LOG_INFO << "Found " << numScenes << " scene(s)";
     // if current scene is out of range or if there is not currently a scene selected
     bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
@@ -488,10 +550,10 @@ agaveGui::open(const QString& file, const ViewerState* vs)
 
     int timeToLoad = vs ? vs->m_currentTime : 0;
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file.toStdString(), &dims, timeToLoad, sceneToLoad);
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file, &dims, timeToLoad, sceneToLoad);
     QApplication::restoreOverrideCursor();
     if (!image) {
-      LOG_DEBUG << "Failed to open " << file.toStdString();
+      LOG_DEBUG << "Failed to open " << file;
       return false;
     }
 
@@ -526,7 +588,7 @@ agaveGui::open(const QString& file, const ViewerState* vs)
     m_tabs->setTabText(0, info.fileName());
 
     m_appearanceDockWidget->onNewImage(&m_appScene);
-    m_timelinedock->onNewImage(&m_appScene, file.toStdString(), m_currentScene);
+    m_timelinedock->onNewImage(&m_appScene, file, m_currentScene);
 
     // set up status view with some stats.
     std::shared_ptr<CStatus> s = m_glView->getStatus();
@@ -535,12 +597,12 @@ agaveGui::open(const QString& file, const ViewerState* vs)
     s->onNewImage(info.fileName().toStdString(), &m_appScene);
 
     m_currentFilePath = file;
-    agaveGui::prependToRecentFiles(file);
+    agaveGui::prependToRecentFiles(QString::fromStdString(file));
     writeRecentDirectory(info.absolutePath());
 
     return true;
   } else {
-    LOG_DEBUG << "Failed to open " << file.toStdString();
+    LOG_DEBUG << "Failed to open " << file;
     return false;
   }
   return true;
@@ -739,7 +801,7 @@ agaveGui::openRecentFile()
       openMesh(path);
     } else {
       // assumption of ome.tif
-      if (!open(path)) {
+      if (!open(path.toStdString())) {
         showOpenFailedMessageBox(path);
       }
     }
@@ -876,8 +938,8 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_captureSettings.durationType = (eRenderDurationType)v.m_captureState.mDurationType;
   m_captureSettings.startTime = v.m_captureState.mStartTime;
   m_captureSettings.endTime = v.m_captureState.mEndTime;
-  m_captureSettings.outputDir = v.m_captureState.mOutputDir.toStdString();
-  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix.toStdString();
+  m_captureSettings.outputDir = v.m_captureState.mOutputDir;
+  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix;
 
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
@@ -1019,8 +1081,8 @@ agaveGui::appToViewerState()
   v.m_captureState.mDurationType = m_captureSettings.durationType;
   v.m_captureState.mStartTime = m_captureSettings.startTime;
   v.m_captureState.mEndTime = m_captureSettings.endTime;
-  v.m_captureState.mOutputDir = QString::fromStdString(m_captureSettings.outputDir);
-  v.m_captureState.mFilenamePrefix = QString::fromStdString(m_captureSettings.filenamePrefix);
+  v.m_captureState.mOutputDir = m_captureSettings.outputDir;
+  v.m_captureState.mFilenamePrefix = m_captureSettings.filenamePrefix;
 
   return v;
 }

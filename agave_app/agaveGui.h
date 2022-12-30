@@ -29,7 +29,7 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const QString& file, const ViewerState* v = nullptr);
+  bool open(const std::string& file, const ViewerState* v = nullptr);
 
 private slots:
   void open();
@@ -126,5 +126,5 @@ private:
   QAction* m_recentFileSeparator;
   QAction* m_recentFileSubMenuAct;
 
-  QString m_currentFilePath;
+  std::string m_currentFilePath;
 };

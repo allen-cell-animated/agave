@@ -71,10 +71,12 @@ getInt(QJsonObject obj, QString prop, int& value)
   }
 }
 void
-getString(QJsonObject obj, QString prop, QString& value)
+getString(QJsonObject obj, QString prop, std::string& value)
 {
   if (obj.contains(prop)) {
-    value = obj[prop].toString(value);
+    QString defaultValue = QString::fromStdString(value);
+    QString v = obj[prop].toString(defaultValue);
+    value = v.toStdString();
   }
 }
 void
@@ -324,7 +326,7 @@ ViewerState::stateToJson() const
 
   // fire back some json...
   QJsonObject j;
-  j["name"] = m_volumeImageFile;
+  j["name"] = QString::fromStdString(m_volumeImageFile);
 
   // the version of this schema
   // use app version
@@ -464,8 +466,8 @@ ViewerState::stateToJson() const
   QJsonObject capture;
   capture["width"] = m_captureState.mWidth;
   capture["height"] = m_captureState.mHeight;
-  capture["filenamePrefix"] = m_captureState.mFilenamePrefix;
-  capture["outputDirectory"] = m_captureState.mOutputDir;
+  capture["filenamePrefix"] = QString::fromStdString(m_captureState.mFilenamePrefix);
+  capture["outputDirectory"] = QString::fromStdString(m_captureState.mOutputDir);
   capture["samples"] = m_captureState.mSamples;
   capture["seconds"] = m_captureState.mDuration;
   capture["durationType"] = m_captureState.mDurationType;
@@ -479,7 +481,7 @@ ViewerState::stateToJson() const
 QString
 ViewerState::stateToPythonScript() const
 {
-  QFileInfo fi(m_volumeImageFile);
+  QFileInfo fi(QString::fromStdString(m_volumeImageFile));
   QString outFileName = fi.baseName();
 
   std::ostringstream ss;
@@ -490,7 +492,7 @@ ViewerState::stateToPythonScript() const
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
   ss << obj
-     << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), m_currentScene, m_currentTime }).toPythonString()
+     << LoadVolumeFromFileCommand({ m_volumeImageFile, m_currentScene, m_currentTime }).toPythonString()
      << std::endl;
   // TODO use window size or render window capture dims?
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;

@@ -166,3 +166,37 @@ VolumeDimensions::log() const
   LOG_INFO << "sampleFormat: " << sampleFormat;
   LOG_INFO << "End VolumeDimensions";
 }
+
+VolumeDimensions
+MultiscaleDims::getVolumeDimensions() const
+{
+  VolumeDimensions dims;
+  dims.zarrSubpath = this->path;
+
+  dims.sizeX = this->shape[4];
+  dims.sizeY = this->shape[3];
+  dims.sizeZ = this->shape[2];
+  dims.sizeC = this->shape[1];
+  dims.sizeT = this->shape[0];
+  dims.dimensionOrder = "XYZCT";
+  dims.physicalSizeX = this->scale[4];
+  dims.physicalSizeY = this->scale[3];
+  dims.physicalSizeZ = this->scale[2];
+  if (this->dtype == "int32") { // tensorstore::dtype_v<int32_t>) {
+    dims.bitsPerPixel = 32;
+    dims.sampleFormat = 2;
+  } else if (this->dtype == "uint16") { // tensorstore::dtype_v<uint16_t>) {
+    dims.bitsPerPixel = 16;
+    dims.sampleFormat = 1;
+  } else {
+
+    LOG_ERROR << "Unrecognized format " << this->dtype;
+  }
+
+  std::vector<std::string> channelNames;
+  for (uint32_t i = 0; i < dims.sizeC; ++i) {
+    channelNames.push_back(std::to_string(i));
+  }
+  dims.channelNames = channelNames;
+  return dims;
+}

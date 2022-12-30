@@ -4,6 +4,7 @@
 
 #include "renderlib/Logging.h"
 
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <QSpinBox>
 #include <QTreeWidget>
@@ -13,9 +14,18 @@
 LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent)
   : QDialog(parent)
 {
+  mPath = path;
   mDims = dims;
+  mSelectedLevel = 0;
+  mScene = 0;
+
   setWindowTitle(tr("Load Settings"));
 
+  QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  
   mSceneInput = new QSpinBox(this);
   mSceneInput->setMinimum(0);
   mSceneInput->setMaximum(65536);
@@ -41,6 +51,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   for (auto d : dims) {
     QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << "Level" << QString::fromStdString(d.path));
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    item->setData(0, Qt::UserRole, QVariant::fromValue(QString::fromStdString(d.path)));
     for (size_t i = 0; i < d.shape.size(); ++i) {
       QTreeWidgetItem* child =
         new QTreeWidgetItem(QStringList() << QString::fromStdString(dimstring.substr(i, 1))
@@ -98,6 +109,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addWidget(m_roiY);
   layout->addWidget(m_roiZ);
   layout->addWidget(mMemoryEstimateLabel);
+  layout->addWidget(buttonBox);
   setLayout(layout);
 }
 
@@ -156,4 +168,30 @@ LoadDialog::onItemSelectionChanged()
   } else {
     LOG_ERROR << "Unexpected number of selected items: " << items.size();
   }
+}
+
+LoadSpec
+LoadDialog::getLoadSpec() const
+{
+  LoadSpec spec;
+  spec.filepath = mPath;
+  spec.scene = mScene;
+  spec.time = 0;
+  spec.maxx = m_roiX->secondValue();
+  spec.minx = m_roiX->firstValue();
+  spec.maxy = m_roiY->secondValue();
+  spec.miny = m_roiY->firstValue();
+  spec.maxz = m_roiZ->secondValue();
+  spec.minz = m_roiZ->firstValue();
+
+  auto items = mMetadataTree->selectedItems();
+  if (items.size() == 1) {
+    auto item = items[0];
+    if (item->parent() == nullptr) {
+      // top level item
+      auto level = item->text(1).toInt();
+      spec.subpath = item->data(0, Qt::UserRole).toString().toStdString();
+    }
+  }
+  return spec;
 }

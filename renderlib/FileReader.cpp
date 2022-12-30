@@ -111,7 +111,7 @@ FileReader::loadFromFile(const LoadSpec& loadSpec)
   std::string extstr = getExtension(filepath);
 
   if (filepath.find("http") == 0) {
-    image = FileReaderZarr::loadOMEZarr(filepath, &dims, time, scene);
+    image = FileReaderZarr::loadOMEZarr(loadSpec);
   } else if (extstr == ".tif" || extstr == ".tiff") {
     image = FileReaderTIFF::loadOMETiff(filepath, &dims, time, scene);
   } else if (extstr == ".czi") {
