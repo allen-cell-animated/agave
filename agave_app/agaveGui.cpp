@@ -271,21 +271,6 @@ agaveGui::openUrl()
     return false;
   }
 
-  // test urls:
-  static std::string TESTDATASET[4] = {
-    "https://s3.us-west-2.amazonaws.com/aind-open-data/exaSPIM_609281_2022-11-03_13-49-18/exaSPIM/exaSPIM/"
-    "tile_x_0014_y_0000_z_0000_ch_488/",
-    "https://aind-open-data.s3-us-west-2.amazonaws.com/"
-    "SmartSPIM_640393_2022-10-21_13-56-17_stitched_2022-10-25_22-10-22/processed/OMEZarr/Ex_445_Em_469.zarr/",
-    "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/AICS-12_881.zarr/Image_0/",
-    "https://aind-open-data.s3-us-west-2.amazonaws.com/"
-    "exaSPIM_609281_2022-11-03_13-49-18_stitched_2022-11-22_12-07-00/fused.zarr/",
-  };
-  urlToLoad = TESTDATASET[1];
-
-  // read some metadata from the cloud and present the next dialog
-  // if successful
-
   return open(urlToLoad);
 }
 
@@ -470,7 +455,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   // it causes a new renderer which owns the CStatus used below
   m_glView->onNewImage(&m_appScene);
   // everything after the last / (or \ ???) is the filename.
-  
+
   std::string filename = loadSpec.filepath.substr(loadSpec.filepath.find_last_of("/") + 1);
   if (filename.empty()) {
     // try the next slash
@@ -504,6 +489,9 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
   int timeToLoad = vs ? vs->m_currentTime : 0;
 
   if (file.find_first_of("http") == 0) {
+    // read some metadata from the cloud and present the next dialog
+    // if successful
+
     std::vector<MultiscaleDims> multiscaledims;
     bool haveDims = FileReader::loadMultiscaleDims(file, sceneToLoad, multiscaledims);
     if (!haveDims) {
