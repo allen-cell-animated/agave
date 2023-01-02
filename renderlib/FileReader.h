@@ -9,7 +9,7 @@ class ImageXYZC;
 struct VolumeDimensions;
 struct MultiscaleDims;
 
-// TODO this is sort of zarr specific 
+// TODO this is sort of zarr specific
 // and if we ever want to load multiscale CZI or TIFF
 // then we probably need to generalize this differently
 struct LoadSpec
@@ -17,12 +17,12 @@ struct LoadSpec
   std::string filepath;
   // important for zarr multiscale
   std::string subpath;
-  
+
   uint32_t scene;
   uint32_t time;
   // set all to 0 to load all x,y,z
   uint32_t minx, maxx, miny, maxy, minz, maxz;
-  
+
   LoadSpec()
     : scene(0)
     , time(0)
@@ -48,12 +48,7 @@ public:
   static VolumeDimensions loadFileDimensions(const std::string& filepath, uint32_t scene = 0);
   static bool loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims);
 
-  static std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec);
-  static std::shared_ptr<ImageXYZC> loadFromFile(const std::string& filepath,
-                                                 VolumeDimensions* dims = nullptr,
-                                                 uint32_t time = 0,
-                                                 uint32_t scene = 0,
-                                                 bool addToCache = false);
+  static std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec, bool addToCache = false);
 
   static std::shared_ptr<ImageXYZC> loadFromArray_4D(uint8_t* dataArray,
                                                      std::vector<uint32_t> shape,

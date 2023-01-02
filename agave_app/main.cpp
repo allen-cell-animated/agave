@@ -78,7 +78,11 @@ preloadFiles(QStringList preloadlist)
   for (QString s : preloadlist) {
     QFileInfo info(s);
     if (info.exists()) {
-      auto img = FileReader::loadFromFile(info.absoluteFilePath().toStdString(), nullptr, 0, 0, true);
+      LoadSpec loadSpec;
+      loadSpec.filepath = info.absoluteFilePath().toStdString();
+      loadSpec.scene = 0;
+      loadSpec.time = 0;
+      auto img = FileReader::loadFromFile(loadSpec, true);
       renderlib::imageAllocGPU(img);
     } else {
       LOG_INFO << "Could not load " << s.toStdString();

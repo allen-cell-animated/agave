@@ -39,8 +39,7 @@ FileReader::loadNumScenes(const std::string& filepath)
 
   if (filepath.find("http") == 0) {
     return FileReaderZarr::loadNumScenesZarr(filepath);
-  }
-  else if (extstr == ".tif" || extstr == ".tiff") {
+  } else if (extstr == ".tif" || extstr == ".tiff") {
     return FileReaderTIFF::loadNumScenesTiff(filepath);
   } else if (extstr == ".czi") {
     return FileReaderCzi::loadNumScenesCzi(filepath);
@@ -58,9 +57,8 @@ FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
   std::string extstr = getExtension(filepath);
 
   if (filepath.find("http") == 0) {
-    return FileReaderZarr::loadDimensionsZarr(filepath, scene);  
-  }
-  else if (extstr == ".tif" || extstr == ".tiff") {
+    return FileReaderZarr::loadDimensionsZarr(filepath, scene);
+  } else if (extstr == ".tif" || extstr == ".tiff") {
     return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
   } else if (extstr == ".czi") {
     return FileReaderCzi::loadDimensionsCzi(filepath, scene);
@@ -99,13 +97,19 @@ FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std:
 }
 
 std::shared_ptr<ImageXYZC>
-FileReader::loadFromFile(const LoadSpec& loadSpec)
+FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
 {
+  // check cache first of all.
+  auto cached = sPreloadedImageCache.find(loadSpec.filepath);
+  if (cached != sPreloadedImageCache.end()) {
+    return cached->second;
+  }
+
   std::string filepath = loadSpec.filepath;
   VolumeDimensions dims;
   uint32_t time = loadSpec.time;
   uint32_t scene = loadSpec.scene;
-  
+
   std::shared_ptr<ImageXYZC> image;
 
   std::string extstr = getExtension(filepath);
@@ -113,50 +117,19 @@ FileReader::loadFromFile(const LoadSpec& loadSpec)
   if (filepath.find("http") == 0) {
     image = FileReaderZarr::loadOMEZarr(loadSpec);
   } else if (extstr == ".tif" || extstr == ".tiff") {
-    image = FileReaderTIFF::loadOMETiff(filepath, &dims, time, scene);
+    image = FileReaderTIFF::loadOMETiff(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
   } else if (extstr == ".czi") {
-    image = FileReaderCzi::loadCzi(filepath, &dims, time, scene);
+    image = FileReaderCzi::loadCzi(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
   } else if (extstr == ".map" || extstr == ".mrc") {
-    image = FileReaderCCP4::loadCCP4(filepath, &dims, time, scene);
+    image = FileReaderCCP4::loadCCP4(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
   } else if (extstr == ".zarr") {
-    image = FileReaderZarr::loadOMEZarr(filepath, &dims, time, scene);
-  }
-  return image;
-}
-  
-std::shared_ptr<ImageXYZC>
-FileReader::loadFromFile(const std::string& filepath,
-                         VolumeDimensions* dims,
-                         uint32_t time,
-                         uint32_t scene,
-                         bool addToCache)
-{
-  // check cache first of all.
-  auto cached = sPreloadedImageCache.find(filepath);
-  if (cached != sPreloadedImageCache.end()) {
-    return cached->second;
-  }
-
-  std::shared_ptr<ImageXYZC> image;
-
-  std::string extstr = getExtension(filepath);
-
-  if (filepath.find("http") == 0) {
-    image = FileReaderZarr::loadOMEZarr(filepath, dims, time, scene);
-  }
-  else if (extstr == ".tif" || extstr == ".tiff") {
-    image = FileReaderTIFF::loadOMETiff(filepath, dims, time, scene);
-  } else if (extstr == ".czi") {
-    image = FileReaderCzi::loadCzi(filepath, dims, time, scene);
-  } else if (extstr == ".map" || extstr == ".mrc") {
-    image = FileReaderCCP4::loadCCP4(filepath, dims, time, scene);
-  } else if (extstr == ".zarr") {
-    image = FileReaderZarr::loadOMEZarr(filepath, dims, time, scene);
+    image = FileReaderZarr::loadOMEZarr(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
   }
 
   if (addToCache && image) {
     sPreloadedImageCache[filepath] = image;
   }
+
   return image;
 }
 

@@ -46,7 +46,11 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(m_data.m_name.c_str(), &buf) == 0) {
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_name, nullptr, 0, 0, false);
+    LoadSpec loadSpec;
+    loadSpec.filepath = m_data.m_name;
+    loadSpec.scene = 0;
+    loadSpec.time = 0;
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
     if (!image) {
       return;
     }
@@ -462,9 +466,15 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(m_data.m_path.c_str(), &buf) == 0) {
-    VolumeDimensions dims;
-    // note T and S args are swapped in order here. this is intentional.
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_data.m_path, &dims, m_data.m_time, m_data.m_scene);
+    // TODO load metadata dims first
+
+    VolumeDimensions dims = FileReader::loadFileDimensions(m_data.m_path, m_data.m_scene);
+
+    LoadSpec loadSpec;
+    loadSpec.filepath = m_data.m_path;
+    loadSpec.time = m_data.m_time;
+    loadSpec.scene = m_data.m_scene;
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
     if (!image) {
       return;
     }
@@ -537,10 +547,12 @@ SetTimeCommand::execute(ExecutionContext* c)
 
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(c->m_currentFilePath.c_str(), &buf) == 0) {
-    VolumeDimensions dims;
-    // note T and S args are swapped in order here. this is intentional.
-    std::shared_ptr<ImageXYZC> image =
-      FileReader::loadFromFile(c->m_currentFilePath, &dims, m_data.m_time, c->m_currentScene);
+    // VolumeDimensions dims;
+    LoadSpec loadSpec;
+    loadSpec.filepath = c->m_currentFilePath;
+    loadSpec.scene = c->m_currentScene;
+    loadSpec.time = m_data.m_time;
+    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
     if (!image) {
       return;
     }

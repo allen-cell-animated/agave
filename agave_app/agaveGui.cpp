@@ -286,43 +286,7 @@ agaveGui::openUrl()
   // read some metadata from the cloud and present the next dialog
   // if successful
 
-  std::vector<MultiscaleDims> multiscaledims;
-  bool haveDims = FileReader::loadMultiscaleDims(urlToLoad, 0, multiscaledims);
-  if (!haveDims) {
-    LOG_DEBUG << "Failed to load dims from url.";
-    showOpenFailedMessageBox(text);
-    return false;
-  }
-
-  LoadDialog* loadDialog = new LoadDialog(urlToLoad, multiscaledims, this);
-  if (loadDialog->exec() == QDialog::Accepted) {
-    LOG_DEBUG << "OK to load from url.";
-    // load the volume
-    LoadSpec loadSpec = loadDialog->getLoadSpec();
-    VolumeDimensions dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
-    QApplication::restoreOverrideCursor();
-    if (!image) {
-      LOG_DEBUG << "Failed to open " << urlToLoad;
-      showOpenFailedMessageBox(text);
-      return false;
-    }
-    ViewerState* vs = nullptr;
-
-    onImageLoaded(image, loadSpec, dims, vs);
-
-    return true;
-
-  }
-
-  else {
-    LOG_DEBUG << "Canceled load from url.";
-    showOpenFailedMessageBox(text);
-    return false;
-  }
-
-  return true;
+  return open(urlToLoad);
 }
 
 void
@@ -526,52 +490,75 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 bool
 agaveGui::open(const std::string& file, const ViewerState* vs)
 {
-  QFileInfo info(QString::fromStdString(file));
-  if (info.exists()) {
-    LOG_DEBUG << "Attempting to open " << file;
+  LoadSpec loadSpec;
+  VolumeDimensions dims;
 
-    int sceneToLoad = vs ? vs->m_currentScene : 0;
+  int sceneToLoad = vs ? vs->m_currentScene : 0;
+  int timeToLoad = vs ? vs->m_currentTime : 0;
 
-    // check number of scenes in file.
-    int numScenes = FileReader::loadNumScenes(file);
-    LOG_INFO << "Found " << numScenes << " scene(s)";
-    // if current scene is out of range or if there is not currently a scene selected
-    bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
-    if (needSelectScene) {
-      QStringList items;
-      for (int i = 0; i < numScenes; ++i) {
-        items.append(QString::number(i));
-      }
-      bool ok = false;
-      QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
-      if (ok && !text.isEmpty()) {
-        sceneToLoad = text.toInt();
-      } else {
-        LOG_DEBUG << "Canceled scene selection.";
-        return false;
-      }
-    }
-    VolumeDimensions dims;
-    int timeToLoad = vs ? vs->m_currentTime : 0;
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(file, &dims, timeToLoad, sceneToLoad);
-    QApplication::restoreOverrideCursor();
-    if (!image) {
-      LOG_DEBUG << "Failed to open " << file;
+  if (file.find_first_of("http") == 0) {
+    std::vector<MultiscaleDims> multiscaledims;
+    bool haveDims = FileReader::loadMultiscaleDims(file, sceneToLoad, multiscaledims);
+    if (!haveDims) {
+      LOG_DEBUG << "Failed to load dims from url.";
+      showOpenFailedMessageBox(QString::fromStdString(file));
       return false;
     }
 
-    LoadSpec loadSpec;
-    loadSpec.filepath = file;
-    loadSpec.scene = sceneToLoad;
-    loadSpec.time = timeToLoad;
-    onImageLoaded(image, loadSpec, dims, vs);
+    // TODO update with sceneToLoad and timeToLoad?
+    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, this);
+    if (loadDialog->exec() == QDialog::Accepted) {
+      LOG_DEBUG << "OK to load from url.";
+      loadSpec = loadDialog->getLoadSpec();
+      dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+    } else {
+      return false;
+    }
+  }
 
-    return true;
-  } else {
+  else {
+    QFileInfo info(QString::fromStdString(file));
+    if (info.exists()) {
+      LOG_DEBUG << "Attempting to open " << file;
+
+      // check number of scenes in file.
+      int numScenes = FileReader::loadNumScenes(file);
+      LOG_INFO << "Found " << numScenes << " scene(s)";
+      // if current scene is out of range or if there is not currently a scene selected
+      bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
+      if (needSelectScene) {
+        QStringList items;
+        for (int i = 0; i < numScenes; ++i) {
+          items.append(QString::number(i));
+        }
+        bool ok = false;
+        QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
+        if (ok && !text.isEmpty()) {
+          sceneToLoad = text.toInt();
+        } else {
+          LOG_DEBUG << "Canceled scene selection.";
+          return false;
+        }
+      }
+
+      loadSpec.filepath = file;
+      loadSpec.scene = sceneToLoad;
+      loadSpec.time = timeToLoad;
+
+      dims = FileReader::loadFileDimensions(file, sceneToLoad);
+    } else {
+    }
+  }
+
+  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+  std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
+  QApplication::restoreOverrideCursor();
+  if (!image) {
     LOG_DEBUG << "Failed to open " << file;
+    showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
+  onImageLoaded(image, loadSpec, dims, vs);
   return true;
 }
 
@@ -778,7 +765,12 @@ agaveGui::openRecentFile()
 QString
 agaveGui::strippedName(const QString& fullFileName)
 {
-  return QFileInfo(fullFileName).fileName();
+  if (fullFileName.startsWith("http")) {
+    int pos = fullFileName.lastIndexOf(QChar('/'));
+    return fullFileName.right(pos);
+  } else {
+    return QFileInfo(fullFileName).fileName();
+  }
 }
 
 void
