@@ -281,7 +281,7 @@ agaveGui::openUrl()
     "https://aind-open-data.s3-us-west-2.amazonaws.com/"
     "exaSPIM_609281_2022-11-03_13-49-18_stitched_2022-11-22_12-07-00/fused.zarr/",
   };
-  urlToLoad = TESTDATASET[2];
+  urlToLoad = TESTDATASET[1];
 
   // read some metadata from the cloud and present the next dialog
   // if successful
@@ -470,7 +470,14 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   // it causes a new renderer which owns the CStatus used below
   m_glView->onNewImage(&m_appScene);
   // everything after the last / (or \ ???) is the filename.
+  
   std::string filename = loadSpec.filepath.substr(loadSpec.filepath.find_last_of("/") + 1);
+  if (filename.empty()) {
+    // try the next slash
+    filename = loadSpec.filepath;
+    filename.pop_back();
+    filename = filename.substr(filename.find_last_of("/") + 1);
+  }
   m_tabs->setTabText(0, QString::fromStdString(filename));
 
   m_appearanceDockWidget->onNewImage(&m_appScene);
@@ -766,8 +773,7 @@ QString
 agaveGui::strippedName(const QString& fullFileName)
 {
   if (fullFileName.startsWith("http")) {
-    int pos = fullFileName.lastIndexOf(QChar('/'));
-    return fullFileName.right(pos);
+    return fullFileName;
   } else {
     return QFileInfo(fullFileName).fileName();
   }

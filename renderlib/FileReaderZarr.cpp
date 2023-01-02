@@ -157,7 +157,6 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   return multiscaleDims;
 }
 
-
 VolumeDimensions
 FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
 {
@@ -192,26 +191,25 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   std::vector<MultiscaleDims> multiscaleDims;
   multiscaleDims = loadMultiscaleDims(loadSpec.filepath, loadSpec.scene);
   if (multiscaleDims.size() < 1) {
-     return emptyimage;
+    return emptyimage;
   }
   // find loadspec subpath in multiscaledims:
   auto it = std::find_if(multiscaleDims.begin(), multiscaleDims.end(), [&](const MultiscaleDims& md) {
     return md.path == loadSpec.subpath;
   });
   if (it == multiscaleDims.end()) {
-     LOG_ERROR << "Could not find subpath " << loadSpec.subpath << " in multiscaleDims";
-     return emptyimage;
+    LOG_ERROR << "Could not find subpath " << loadSpec.subpath << " in multiscaleDims";
+    return emptyimage;
   }
   MultiscaleDims levelDims = *it;
 
   VolumeDimensions dims = levelDims.getVolumeDimensions();
   if (loadSpec.maxx > loadSpec.minx)
-     dims.sizeX = loadSpec.maxx - loadSpec.minx;
+    dims.sizeX = loadSpec.maxx - loadSpec.minx;
   if (loadSpec.maxy > loadSpec.miny)
-     dims.sizeY = loadSpec.maxy - loadSpec.miny;
+    dims.sizeY = loadSpec.maxy - loadSpec.miny;
   if (loadSpec.maxz > loadSpec.minz)
-     dims.sizeZ = loadSpec.maxz - loadSpec.minz;
-  
+    dims.sizeZ = loadSpec.maxz - loadSpec.minz;
 
   tensorstore::Context context = tensorstore::Context::Default();
 
@@ -221,7 +219,7 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
       { "kvstore",
         { { "driver", "http" },
           { "base_url", loadSpec.filepath },
-          { "path", loadSpec.subpath /* dims.zarrSubpath */} } },
+          { "path", loadSpec.subpath /* dims.zarrSubpath */ } } },
     },
     context,
     tensorstore::OpenMode::open,
@@ -265,6 +263,16 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   maxx = (loadSpec.maxx > loadSpec.minx) ? loadSpec.maxx : dims.sizeX;
   maxy = (loadSpec.maxy > loadSpec.miny) ? loadSpec.maxy : dims.sizeY;
   maxz = (loadSpec.maxz > loadSpec.minz) ? loadSpec.maxz : dims.sizeZ;
+  if (dims.sizeZ != maxz - minz) {
+    LOG_ERROR << "Zarr: sizeZ mismatch: " << dims.sizeZ << " vs " << maxz - minz;
+  }
+  if (dims.sizeY != maxy - miny) {
+    LOG_ERROR << "Zarr: sizeY mismatch: " << dims.sizeY << " vs " << maxy - miny;
+  }
+  if (dims.sizeX != maxx - minx) {
+    LOG_ERROR << "Zarr: sizeX mismatch: " << dims.sizeX << " vs " << maxx - minx;
+  }
+
   // now ready to read channels one by one.
   for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
     // read entire channel into its native size
@@ -283,7 +291,8 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
     // auto x = tensorstore::Read<tensorstore::zero_origin>(store | transform).value();
     // auto* p = reinterpret_cast<uint16_t*>(x.data());
 
-    transform = (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
+    transform =
+      (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
     transform = (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channel, channel + 1)).value();
     transform = (std::move(transform) | tensorstore::Dims(2).HalfOpenInterval(minz, maxz)).value();
     transform = (std::move(transform) | tensorstore::Dims(3).HalfOpenInterval(miny, maxy)).value();
