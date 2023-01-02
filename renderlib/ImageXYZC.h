@@ -67,6 +67,7 @@ struct Channelu16
 class ImageXYZC
 {
 public:
+  static const uint32_t IN_MEMORY_BPP = 16;
   ImageXYZC(uint32_t x,
             uint32_t y,
             uint32_t z,

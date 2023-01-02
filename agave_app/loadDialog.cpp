@@ -25,7 +25,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  
+
   mSceneInput = new QSpinBox(this);
   mSceneInput->setMinimum(0);
   mSceneInput->setMaximum(65536);
@@ -104,21 +104,17 @@ LoadDialog::updateScene(int value)
 void
 LoadDialog::updateMemoryEstimate()
 {
-  size_t npix = 1;
-  npix *= (m_roiX->interval());
-  npix *= (m_roiY->interval());
-  npix *= (m_roiZ->interval());
-  size_t bytesperpixel = 4 * 2;      // 4 channels * 2 bytes per channel
-  size_t mem = npix * bytesperpixel; // overflow?
-  const std::vector<std::string> levels = { "B", "KB", "MB", "GB", "TB", "PB" };
-  double memvalue = mem;
-  int level = 0;
-  while (memvalue > 1024.0 && level < levels.size() - 1) {
-    memvalue = memvalue / 1024.0;
-    level++;
-  }
-  mMemoryEstimateLabel->setText("Memory Estimate: " + QString::number(memvalue, 'f', 4) + " " +
-                                QString::fromStdString(levels[level]));
+  LoadSpec spec;
+  spec.minx = m_roiX->firstValue();
+  spec.maxx = m_roiX->secondValue();
+  spec.miny = m_roiY->firstValue();
+  spec.maxy = m_roiY->secondValue();
+  spec.minz = m_roiZ->firstValue();
+  spec.maxz = m_roiZ->secondValue();
+  size_t mem = spec.getMemoryEstimate();
+  std::string label = LoadSpec::bytesToStringLabel(mem);
+
+  mMemoryEstimateLabel->setText("Memory Estimate: " + QString::fromStdString(label));
 }
 
 void

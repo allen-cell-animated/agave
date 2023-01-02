@@ -14,8 +14,6 @@
 #include <map>
 #include <set>
 
-static const uint32_t IN_MEMORY_BPP = 16;
-
 FileReaderZarr::FileReaderZarr() {}
 
 FileReaderZarr::~FileReaderZarr() {}
@@ -71,7 +69,7 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   int srcBitsPerPixel = dims.bitsPerPixel;
 
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
     memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
     return 1;
   } else if (srcBitsPerPixel == 8) {
@@ -239,7 +237,7 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
 
   std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
   memset(data, 0, channelsize_bytes * dims.sizeC);
@@ -325,7 +323,7 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
                                 dims.sizeY,
                                 dims.sizeZ,
                                 dims.sizeC,
-                                IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
@@ -381,7 +379,7 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
 
   std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
   memset(data, 0, channelsize_bytes * dims.sizeC);
@@ -450,7 +448,7 @@ FileReaderZarr::loadOMEZarr(const std::string& filepath, VolumeDimensions* outDi
                                 dims.sizeY,
                                 dims.sizeZ,
                                 dims.sizeC,
-                                IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,

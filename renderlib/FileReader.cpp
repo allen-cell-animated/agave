@@ -186,3 +186,35 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
   }
   return sharedImage;
 }
+
+size_t
+LoadSpec::getMemoryEstimate() const
+{
+  size_t npix = 1;
+  npix *= (maxx - minx);
+  npix *= (maxy - miny);
+  npix *= (maxz - minz);
+  // on gpu we upload only 4 channels max
+  size_t bytesperpixel = 4 * ImageXYZC::IN_MEMORY_BPP / 8; // 4 channels * 2 bytes per channel
+  size_t mem = npix * bytesperpixel;                       // overflow?
+  return mem;
+}
+
+std::string
+LoadSpec::bytesToStringLabel(size_t mem)
+{
+  static const std::vector<std::string> levels = { "B", "KB", "MB", "GB", "TB", "PB" };
+  double memvalue = mem;
+  int level = 0;
+  while (memvalue > 1024.0 && level < levels.size() - 1) {
+    memvalue = memvalue / 1024.0;
+    level++;
+  }
+
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(4) << memvalue;
+  stream << " " << levels[level];
+  std::string s = stream.str();
+
+  return s;
+}

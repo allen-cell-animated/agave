@@ -15,8 +15,6 @@
 #include <map>
 #include <set>
 
-static const int IN_MEMORY_BPP = 16;
-
 FileReaderCzi::FileReaderCzi() {}
 
 FileReaderCzi::~FileReaderCzi() {}
@@ -384,7 +382,7 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
                                   dims.sizeY,
                                   dims.sizeZ,
                                   dims.sizeC,
-                                  IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                  ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                   smartPtr.release(),
                                   dims.physicalSizeX,
                                   dims.physicalSizeY,

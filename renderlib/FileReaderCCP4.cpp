@@ -72,7 +72,6 @@
 // 56      NLABL           Number of labels being used
 // 57-256  LABEL(20,10)    10  80 character text labels (ie. A4 format)
 
-static const uint32_t IN_MEMORY_BPP = 16;
 static const size_t CCP4_HEADER_SIZE = 256 * 4;
 static const size_t CCP4_NSYMBT_OFFSET = 23 * 4;
 
@@ -204,7 +203,7 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   int srcBitsPerPixel = dims.bitsPerPixel;
 
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
     memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
     return 1;
   } else if (srcBitsPerPixel == 8) {
@@ -290,7 +289,7 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
     return emptyimage;
   }
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
   memset(data, 0, channelsize_bytes * dims.sizeC);
@@ -338,7 +337,7 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
                                 dims.sizeY,
                                 dims.sizeZ,
                                 dims.sizeC,
-                                IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,

@@ -34,6 +34,9 @@ struct LoadSpec
     , maxz(0)
   {
   }
+
+  size_t getMemoryEstimate() const;
+  static std::string bytesToStringLabel(size_t mem);
 };
 
 class FileReader
