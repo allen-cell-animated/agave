@@ -72,10 +72,10 @@ add_subdirectory(glsl)
 add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib
-add_compile_definitions(_LIBCZISTATICLIB)
+# add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
-set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_DYNLIB ON)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
 
@@ -97,7 +97,7 @@ target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
-	libCZIStatic
+	libCZI
 
 	tensorstore::tensorstore tensorstore::all_drivers
 
