@@ -80,6 +80,14 @@ getString(QJsonObject obj, QString prop, std::string& value)
   }
 }
 void
+getString(QJsonObject obj, QString prop, std::string& value)
+{
+  if (obj.contains(prop)) {
+    QString defaultValue = QString::fromStdString(value);
+    value = obj[prop].toString(defaultValue).toStdString();
+  }
+}
+void
 getBool(QJsonObject obj, QString prop, bool& value)
 {
   if (obj.contains(prop)) {

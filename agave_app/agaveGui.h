@@ -54,7 +54,7 @@ private slots:
   void saveImage();
   void saveJson();
   void savePython();
-  void onQuickRender();
+  void onRenderAction();
   void OnUpdateRenderer();
 
 private:
@@ -95,7 +95,7 @@ private:
   QAction* m_viewResetAction = nullptr;
   QAction* m_toggleCameraProjectionAction = nullptr;
   QAction* m_saveImageAction = nullptr;
-  QAction* m_quickRenderAction = nullptr;
+  QAction* m_renderAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

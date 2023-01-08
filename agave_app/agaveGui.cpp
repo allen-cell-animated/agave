@@ -132,9 +132,9 @@ agaveGui::createActions()
   m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
   connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
 
-  m_quickRenderAction = new QAction(tr("&Render..."), this);
-  m_quickRenderAction->setStatusTip(tr("Open the render dialog"));
-  connect(m_quickRenderAction, SIGNAL(triggered()), this, SLOT(onQuickRender()));
+  m_renderAction = new QAction(tr("&Render..."), this);
+  m_renderAction->setStatusTip(tr("Open the render dialog"));
+  connect(m_renderAction, SIGNAL(triggered()), this, SLOT(onRenderAction()));
 }
 
 void
@@ -147,7 +147,7 @@ agaveGui::createMenus()
   m_fileMenu->addSeparator();
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_saveImageAction);
-  m_fileMenu->addAction(m_quickRenderAction);
+  m_fileMenu->addAction(m_renderAction);
   m_fileMenu->addAction(m_dumpJsonAction);
   m_fileMenu->addAction(m_dumpPythonAction);
   m_fileMenu->addSeparator();
@@ -178,7 +178,7 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
   m_ui.mainToolBar->addAction(m_saveImageAction);
-  m_ui.mainToolBar->addAction(m_quickRenderAction);
+  m_ui.mainToolBar->addAction(m_renderAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
@@ -342,19 +342,8 @@ agaveGui::saveImage()
 }
 
 void
-agaveGui::onQuickRender()
+agaveGui::onRenderAction()
 {
-  // copy of camera
-  // const appscene ref?
-  // const rendersettings ref?
-  // hand over Camera, AppScene and RenderSettings to RenderDialog?
-  // or a ViewerState?
-  // ViewerState st = appToViewerState();
-  // tell the renderdialog what the viewerstate currently is.
-  // renderdialog can turn it into a list of render commands
-  // share already loaded volume data with the RenderDialog's rendering resources
-  // (GL context sharing?)
-
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->pauseRenderLoop();
   QImage im = m_glView->captureQimage();
@@ -369,8 +358,6 @@ agaveGui::onQuickRender()
     m_captureSettings.height = imcopy->height();
   }
   // copy of camera
-  // const appscene ref?
-  // const rendersettings ref?
   CCamera camera = m_glView->getCamera();
   RenderDialog* rdialog = new RenderDialog(renderer,
                                            m_renderSettings,
