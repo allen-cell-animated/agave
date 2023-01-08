@@ -948,8 +948,8 @@ agaveGui::appToViewerState()
   v.m_captureState.mDurationType = m_captureSettings.durationType;
   v.m_captureState.mStartTime = m_captureSettings.startTime;
   v.m_captureState.mEndTime = m_captureSettings.endTime;
-  v.m_captureState.mOutputDir = QString::fromStdString(m_captureSettings.outputDir);
-  v.m_captureState.mFilenamePrefix = QString::fromStdString(m_captureSettings.filenamePrefix);
+  v.m_captureState.mOutputDir = m_captureSettings.outputDir;
+  v.m_captureState.mFilenamePrefix = m_captureSettings.filenamePrefix;
 
   return v;
 }
