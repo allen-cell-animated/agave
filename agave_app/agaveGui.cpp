@@ -333,8 +333,6 @@ agaveGui::onRenderAction()
     m_captureSettings.height = imcopy->height();
   }
   // copy of camera
-  // const appscene ref?
-  // const rendersettings ref?
   CCamera camera = m_glView->getCamera();
   RenderDialog* rdialog = new RenderDialog(renderer,
                                            m_renderSettings,
