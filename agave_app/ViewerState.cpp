@@ -78,6 +78,14 @@ getString(QJsonObject obj, QString prop, QString& value)
   }
 }
 void
+getString(QJsonObject obj, QString prop, std::string& value)
+{
+  if (obj.contains(prop)) {
+    QString defaultValue = QString::fromStdString(value);
+    value = obj[prop].toString(defaultValue).toStdString();
+  }
+}
+void
 getBool(QJsonObject obj, QString prop, bool& value)
 {
   if (obj.contains(prop)) {
@@ -464,8 +472,8 @@ ViewerState::stateToJson() const
   QJsonObject capture;
   capture["width"] = m_captureState.mWidth;
   capture["height"] = m_captureState.mHeight;
-  capture["filenamePrefix"] = m_captureState.mFilenamePrefix;
-  capture["outputDirectory"] = m_captureState.mOutputDir;
+  capture["filenamePrefix"] = QString::fromStdString(m_captureState.mFilenamePrefix);
+  capture["outputDirectory"] = QString::fromStdString(m_captureState.mOutputDir);
   capture["samples"] = m_captureState.mSamples;
   capture["seconds"] = m_captureState.mDuration;
   capture["durationType"] = m_captureState.mDurationType;

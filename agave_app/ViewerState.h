@@ -49,8 +49,8 @@ struct LightViewerState
 
 struct CaptureState
 {
-  QString mOutputDir;
-  QString mFilenamePrefix;
+  std::string mOutputDir;
+  std::string mFilenamePrefix;
   int mWidth;
   int mHeight;
   int mSamples;
