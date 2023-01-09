@@ -359,15 +359,8 @@ agaveGui::onRenderAction()
   }
   // copy of camera
   CCamera camera = m_glView->getCamera();
-  RenderDialog* rdialog = new RenderDialog(renderer,
-                                           m_renderSettings,
-                                           m_appScene,
-                                           camera,
-                                           m_glView->context(),
-                                           m_currentFilePath,
-                                           m_currentScene,
-                                           &m_captureSettings,
-                                           this);
+  RenderDialog* rdialog = new RenderDialog(
+    renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_loadSpec, &m_captureSettings, this);
   rdialog->resize(800, 600);
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
@@ -413,6 +406,8 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const VolumeDimensions& dims,
                         const ViewerState* vs)
 {
+  m_loadSpec = loadSpec;
+
   if (vs) {
     // make sure that ViewerState is consistent with loaded file
     if (dims.sizeT - 1 != vs->m_maxTime) {

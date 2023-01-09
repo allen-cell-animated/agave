@@ -134,4 +134,6 @@ private:
   QAction* m_recentFileSubMenuAct;
 
   std::string m_currentFilePath;
+  // TODO remove the above m_currentFilePath and use this instead
+  LoadSpec m_loadSpec;
 };

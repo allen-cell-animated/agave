@@ -35,6 +35,7 @@ struct LoadSpec
   {
   }
 
+  std::string toString() const;
   size_t getMemoryEstimate() const;
   static std::string bytesToStringLabel(size_t mem);
 };

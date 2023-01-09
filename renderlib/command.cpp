@@ -2,7 +2,6 @@
 
 #include "AppScene.h"
 #include "CCamera.h"
-#include "FileReader.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "RenderSettings.h"
@@ -55,8 +54,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
       return;
     }
 
-    c->m_currentFilePath = m_data.m_name;
-    c->m_currentScene = 0;
+    c->m_loadSpec = loadSpec;
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -479,8 +477,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
       return;
     }
 
-    c->m_currentFilePath = m_data.m_path;
-    c->m_currentScene = m_data.m_scene;
+    c->m_loadSpec = loadSpec;
 
     c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
@@ -545,59 +542,59 @@ SetTimeCommand::execute(ExecutionContext* c)
     return;
   }
 
-  struct STAT64_STRUCT buf;
-  if (STAT64_FUNCTION(c->m_currentFilePath.c_str(), &buf) == 0) {
-    // VolumeDimensions dims;
-    LoadSpec loadSpec;
-    loadSpec.filepath = c->m_currentFilePath;
-    loadSpec.scene = c->m_currentScene;
-    loadSpec.time = m_data.m_time;
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
-    if (!image) {
-      return;
-    }
-
-    c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
-
-    // we expect the scene volume dimensions to be the same; we want to preserve all view settings here.
-    // BUT we want to convert the old lookup tables to new lookup tables
-    // if we are preserving absolute transfer function settings
-
-    // assume sizeC is same for both previous image and new image!
-    if (image->sizeC() != c->m_appScene->m_volume->sizeC()) {
-      LOG_ERROR << "Channel count mismatch for different times in same file";
-    }
-
-    // remap LUTs to preserve absolute thresholding
-    for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
-      lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
-
-      image->channel(i)->generateFromGradientData(lutInfo);
-    }
-
-    // now we're ready to lose the old channel histograms
-    c->m_appScene->m_volume = image;
-
-    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
-    c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
-    c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-
-    // fire back some json immediately...
-    nlohmann::json j;
-    j["commandId"] = (int)SetTimeCommand::m_ID;
-    std::vector<uint16_t> channelMaxIntensity;
-    for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelMaxIntensity.push_back(image->channel(i)->m_max);
-    }
-    j["channel_max_intensity"] = channelMaxIntensity;
-
-    c->m_message = j.dump();
-
-  } else {
-    LOG_WARNING << "stat failed on image with errno " << errno;
-    LOG_WARNING << "SetTime command called without a file loaded";
+  LoadSpec loadSpec = c->m_loadSpec;
+  loadSpec.time = m_data.m_time;
+  std::shared_ptr<ImageXYZC> image;
+  try {
+    image = FileReader::loadFromFile(loadSpec);
+  } catch (...) {
+    LOG_ERROR << "Failed to load time " << m_data.m_time << " from file " << c->m_loadSpec.toString();
+    image = nullptr;
   }
+  if (!image) {
+    LOG_WARNING << "SetTime command called without a file loaded";
+    return;
+  }
+
+  // successfully loaded; update loadspec in context
+  c->m_loadSpec = loadSpec;
+
+  c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+
+  // we expect the scene volume dimensions to be the same; we want to preserve all view settings here.
+  // BUT we want to convert the old lookup tables to new lookup tables
+  // if we are preserving absolute transfer function settings
+
+  // assume sizeC is same for both previous image and new image!
+  if (image->sizeC() != c->m_appScene->m_volume->sizeC()) {
+    LOG_ERROR << "Channel count mismatch for different times in same file";
+  }
+
+  // remap LUTs to preserve absolute thresholding
+  for (uint32_t i = 0; i < image->sizeC(); ++i) {
+    GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
+    lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
+
+    image->channel(i)->generateFromGradientData(lutInfo);
+  }
+
+  // now we're ready to lose the old channel histograms
+  c->m_appScene->m_volume = image;
+
+  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+
+  // fire back some json immediately...
+  nlohmann::json j;
+  j["commandId"] = (int)SetTimeCommand::m_ID;
+  std::vector<uint16_t> channelMaxIntensity;
+  for (uint32_t i = 0; i < image->sizeC(); ++i) {
+    channelMaxIntensity.push_back(image->channel(i)->m_max);
+  }
+  j["channel_max_intensity"] = channelMaxIntensity;
+
+  c->m_message = j.dump();
 }
 
 void

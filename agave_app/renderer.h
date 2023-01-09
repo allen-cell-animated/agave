@@ -3,6 +3,7 @@
 
 #include "glad/glad.h"
 
+#include "renderlib/FileReader.h"
 #include "renderlib/command.h"
 #include "renderlib/gl/Util.h"
 #include "renderlib/renderlib.h"
@@ -63,8 +64,7 @@ public:
                  const RenderSettings& renderSettings,
                  const Scene& scene,
                  const CCamera& camera,
-                 std::string volumeFilePath = "",
-                 int fileCurrentScene = 0,
+                 const LoadSpec& loadSpec,
                  QOpenGLContext* glContext = nullptr);
 
   void run();
@@ -141,7 +141,7 @@ private:
     IRenderWindow* m_renderer;
     Scene* m_scene;
     CCamera* m_camera;
-    std::string mVolumeFilePath;
+    LoadSpec m_loadSpec;
 
     myVolumeData()
       : m_camera(nullptr)
@@ -149,7 +149,6 @@ private:
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
       , ownRenderer(false)
-      , mVolumeFilePath("")
     {
     }
   } m_myVolumeData;

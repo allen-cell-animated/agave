@@ -218,3 +218,17 @@ LoadSpec::bytesToStringLabel(size_t mem)
 
   return s;
 }
+
+std::string
+LoadSpec::toString() const
+{
+  std::stringstream stream;
+  stream << filepath;
+  if (!subpath.empty()) {
+    stream << " " << subpath;
+  }
+  stream << " : scene " << scene << " time " << time;
+  stream << " X:[" << minx << "," << maxx << "] Y[" << miny << "," << maxy << "] Z[" << minz << "," << maxz << "]";
+  std::string s = stream.str();
+  return s;
+}

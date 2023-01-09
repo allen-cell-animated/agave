@@ -168,8 +168,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            const Scene& scene,
                            CCamera camera,
                            QOpenGLContext* glContext,
-                           std::string volumeFilePath,
-                           int fileCurrentScene,
+                           const LoadSpec& loadSpec,
                            CaptureSettings* captureSettings,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
@@ -177,8 +176,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , m_scene(scene)
   , m_camera(camera)
   , m_glContext(glContext)
-  , mVolumeFilePath(volumeFilePath)
-  , m_fileCurrentScene(fileCurrentScene)
+  , m_loadSpec(loadSpec)
   , m_renderThread(nullptr)
   , m_frameRenderTime(0)
   , mWidth(0)
@@ -401,8 +399,7 @@ RenderDialog::render()
     }
 
     // now get our rendering resources into this Renderer object
-    m_renderThread->configure(
-      m_renderer, m_renderSettings, m_scene, m_camera, mVolumeFilePath, m_fileCurrentScene, m_glContext);
+    m_renderThread->configure(m_renderer, m_renderSettings, m_scene, m_camera, m_loadSpec, m_glContext);
 
     onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request
