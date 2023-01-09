@@ -69,6 +69,8 @@ private:
 #endif
 };
 
+// wrap a gl context intended to run on a separate thread
+// or be moved from main thread and back
 class RendererGLContext
 {
 public:
@@ -89,4 +91,6 @@ private:
   QOpenGLContext* m_glContext;
   QOffscreenSurface* m_surface;
 #endif
+
+  void initQOpenGLContext();
 };

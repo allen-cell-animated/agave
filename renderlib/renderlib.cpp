@@ -479,25 +479,18 @@ RendererGLContext::configure(QOpenGLContext* glContext)
 {
   // TODO what do we do when running on Linux desktop??
   // need a "don't bother with EGL switch"?
-
-#if HAS_EGL
-#else
-  if (glContext) {
-    m_glContext = glContext;
-    m_ownGLContext = false;
+  if (renderLibHeadless && HAS_EGL) {
+  } else {
+    if (glContext) {
+      m_glContext = glContext;
+      m_ownGLContext = false;
+    }
   }
-#endif
 }
 
-// to be run from render thread
-// context is current when returning from this function
 void
-RendererGLContext::init()
+RendererGLContext::initQOpenGLContext()
 {
-#if HAS_EGL
-  this->m_glContext = new HeadlessGLContext();
-  this->m_glContext->makeCurrent();
-#else
   if (m_ownGLContext) {
     this->m_glContext = renderlib::createOpenGLContext();
   }
@@ -507,17 +500,37 @@ RendererGLContext::init()
   this->m_surface->create();
 
   this->m_glContext->makeCurrent(m_surface);
+}
+
+// to be run from render thread
+// context is current when returning from this function.
+// scenarios:
+// headless linux (server mode): always use EGL
+// gui linux: always use QOpenGLContext
+// else: use QOpenGLContext
+void
+RendererGLContext::init()
+{
+  if (renderLibHeadless && HAS_EGL) {
+#if HAS_EGL
+    this->m_glContext = new HeadlessGLContext();
+    this->m_glContext->makeCurrent();
 #endif
+  } else {
+    initQOpenGLContext();
+  }
 }
 
 void
 RendererGLContext::makeCurrent()
 {
+  if (renderLibHeadless && HAS_EGL) {
 #if HAS_EGL
-  this->m_glContext->makeCurrent();
-#else
-  this->m_glContext->makeCurrent(this->m_surface);
+    this->m_glContext->makeCurrent();
 #endif
+  } else {
+    this->m_glContext->makeCurrent(this->m_surface);
+  }
 }
 void
 RendererGLContext::doneCurrent()
