@@ -306,11 +306,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   saveButtonsLayout->addWidget(mSaveDirectoryLabel, 2);
   saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
-  // QHBoxLayout* zoomButtonsLayout = new QHBoxLayout();
-  // zoomButtonsLayout->addWidget(mZoomInButton, 1);
-  // zoomButtonsLayout->addWidget(mZoomOutButton, 1);
-  // zoomButtonsLayout->addWidget(mZoomFitButton, 1);
-
   QHBoxLayout* durationsLayout = new QHBoxLayout();
   durationsLayout->addWidget(mRenderDurationEdit, 0);
   durationsLayout->addWidget(new QLabel(tr("Time:")), 0);
@@ -334,7 +329,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   layout->addLayout(topButtonsLayout);
   layout->addLayout(durationsLayout);
   layout->addLayout(saveButtonsLayout);
-  // layout->addLayout(zoomButtonsLayout);
 
   setLayout(layout);
 }
@@ -388,7 +382,6 @@ RenderDialog::render()
 
     resetProgress();
 
-    // when render is done, draw QImage to widget and save to file if autosave?
     if (!m_renderThread) {
 
       m_renderThread = new Renderer("Render dialog render thread ", this, m_mutex);
@@ -461,10 +454,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     this->setImage(&image);
 
     // save image
-    // TODO set up autosave path when we start rendering
     if (mAutosaveCheckbox->isChecked()) {
       QString autosavePath = mSaveDirectoryLabel->text();
       QDir d(autosavePath);
+      // TODO set up autosave path when we start rendering
       bool pathOk = d.mkpath(autosavePath);
       if (!pathOk) {
         LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
@@ -499,10 +492,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       mFrameProgressBar->setValue(0);
       m_frameRenderTime = 0;
 
-      // m_scene.m_timeLine.increment(1);
-
       // set up for next frame!
-      //
+      // this typecast should be eliminated,
+      // possibly a GetRenderSettings abstract command or something
       RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
       r->getRenderSettings().SetNoIterations(0);
 
@@ -703,7 +695,6 @@ RenderDialog::resetProgress()
 
   m_frameRenderTime = 0; // FIX per frame render time vs total render time elapsed
 
-  // TODO reset time series too?
   mTimeSeriesProgressBar->reset();
   mTimeSeriesProgressBar->setValue(0);
   mFrameNumber = mStartTimeInput->value();

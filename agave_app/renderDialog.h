@@ -27,6 +27,7 @@ class RenderRequest;
 class RenderSettings;
 class Scene;
 
+// very simple scroll, zoom, pan and fit image to widget
 class ImageDisplay : public QWidget
 {
   Q_OBJECT
@@ -43,7 +44,6 @@ public:
 
 private:
   QPixmap* m_pixmap;
-  QImage* m_image;
 
   QRectF m_rect;
   QPointF m_reference;
@@ -142,7 +142,7 @@ private:
   CaptureSettings* mCaptureSettings;
   CCamera m_camera;
 
-  ImageDisplay* mImageView; // ? or a GLView3D?
+  ImageDisplay* mImageView;
   QPushButton* mRenderButton;
   QPushButton* mPauseRenderButton;
   QPushButton* mStopRenderButton;
@@ -174,9 +174,6 @@ private:
   int mHeight;
   float mAspectRatio;
   qint64 m_frameRenderTime;
-  // TODO controls to put in a render dialog:
-  // save button
-  // play controls for time series / anim sequence
 
   void endRenderThread();
   void setRenderDurationType(eRenderDurationType type);
