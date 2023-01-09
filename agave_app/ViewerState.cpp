@@ -75,15 +75,6 @@ getString(QJsonObject obj, QString prop, std::string& value)
 {
   if (obj.contains(prop)) {
     QString defaultValue = QString::fromStdString(value);
-    QString v = obj[prop].toString(defaultValue);
-    value = v.toStdString();
-  }
-}
-void
-getString(QJsonObject obj, QString prop, std::string& value)
-{
-  if (obj.contains(prop)) {
-    QString defaultValue = QString::fromStdString(value);
     value = obj[prop].toString(defaultValue).toStdString();
   }
 }
@@ -499,8 +490,7 @@ ViewerState::stateToPythonScript() const
   ss << "import agave_pyclient as agave" << std::endl << std::endl;
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
-  ss << obj
-     << LoadVolumeFromFileCommand({ m_volumeImageFile, m_currentScene, m_currentTime }).toPythonString()
+  ss << obj << LoadVolumeFromFileCommand({ m_volumeImageFile, m_currentScene, m_currentTime }).toPythonString()
      << std::endl;
   // TODO use window size or render window capture dims?
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
