@@ -6,6 +6,8 @@
 
 class Command;
 
+// to be used in stream mode to send commands in-process to the server.
+// commands will be binary encoded and decoded on the server side.
 class StreamTestClient : public QObject
 {
   Q_OBJECT
