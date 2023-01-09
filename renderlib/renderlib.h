@@ -68,3 +68,25 @@ private:
   EGLContext m_eglCtx;
 #endif
 };
+
+class RendererGLContext
+{
+public:
+  RendererGLContext();
+  ~RendererGLContext();
+  void configure(QOpenGLContext* glContext = nullptr);
+  void init();
+  void destroy();
+
+  void makeCurrent();
+  void doneCurrent();
+
+private:
+  bool m_ownGLContext;
+#if HAS_EGL
+  HeadlessGLContext* m_glContext;
+#else
+  QOpenGLContext* m_glContext;
+  QOffscreenSurface* m_surface;
+#endif
+};

@@ -4,6 +4,8 @@
 #include "ImageXyzcGpu.h"
 #include "Logging.h"
 
+#include <QGuiApplication>
+
 #include <string>
 
 #if HAS_EGL
@@ -438,4 +440,87 @@ HeadlessGLContext::doneCurrent()
 #if HAS_EGL
   eglMakeCurrent(eglDpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 #endif
+}
+
+RendererGLContext::RendererGLContext()
+  : m_ownGLContext(true)
+  , m_glContext(nullptr)
+#if HAS_EGL
+#else
+  , m_surface(nullptr)
+#endif
+{
+}
+
+RendererGLContext::~RendererGLContext() {}
+
+void
+RendererGLContext::destroy()
+{
+  if (m_ownGLContext) {
+    delete m_glContext;
+  } else {
+#if HAS_EGL
+#else
+    m_glContext->moveToThread(QGuiApplication::instance()->thread());
+#endif
+  }
+
+#if HAS_EGL
+#else
+  // schedule this to be deleted only after we're done cleaning up
+  m_surface->deleteLater();
+#endif
+}
+
+// to be run from main thread prior to starting render thread
+void
+RendererGLContext::configure(QOpenGLContext* glContext)
+{
+  // TODO what do we do when running on Linux desktop??
+  // need a "don't bother with EGL switch"?
+
+#if HAS_EGL
+#else
+  if (glContext) {
+    m_glContext = glContext;
+    m_ownGLContext = false;
+  }
+#endif
+}
+
+// to be run from render thread
+// context is current when returning from this function
+void
+RendererGLContext::init()
+{
+#if HAS_EGL
+  this->m_glContext = new HeadlessGLContext();
+  this->m_glContext->makeCurrent();
+#else
+  if (m_ownGLContext) {
+    this->m_glContext = renderlib::createOpenGLContext();
+  }
+
+  this->m_surface = new QOffscreenSurface();
+  this->m_surface->setFormat(this->m_glContext->format());
+  this->m_surface->create();
+
+  this->m_glContext->makeCurrent(m_surface);
+#endif
+}
+
+void
+RendererGLContext::makeCurrent()
+{
+#if HAS_EGL
+  this->m_glContext->makeCurrent();
+#else
+  this->m_glContext->makeCurrent(this->m_surface);
+#endif
+}
+void
+RendererGLContext::doneCurrent()
+{
+  this->m_glContext->doneCurrent();
 }
