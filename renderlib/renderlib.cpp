@@ -482,8 +482,11 @@ RendererGLContext::configure(QOpenGLContext* glContext)
   if (renderLibHeadless && HAS_EGL) {
   } else {
     if (glContext) {
+#if HAS_EGL
+#else
       m_glContext = glContext;
       m_ownGLContext = false;
+#endif
     }
   }
 }
@@ -491,6 +494,8 @@ RendererGLContext::configure(QOpenGLContext* glContext)
 void
 RendererGLContext::initQOpenGLContext()
 {
+#if HAS_EGL
+#else
   if (m_ownGLContext) {
     this->m_glContext = renderlib::createOpenGLContext();
   }
@@ -500,6 +505,7 @@ RendererGLContext::initQOpenGLContext()
   this->m_surface->create();
 
   this->m_glContext->makeCurrent(m_surface);
+#endif
 }
 
 // to be run from render thread
@@ -529,7 +535,10 @@ RendererGLContext::makeCurrent()
     this->m_glContext->makeCurrent();
 #endif
   } else {
+#if HAS_EGL
+#else
     this->m_glContext->makeCurrent(this->m_surface);
+#endif
   }
 }
 void
