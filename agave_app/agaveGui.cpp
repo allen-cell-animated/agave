@@ -17,6 +17,7 @@
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
+#include "renderDialog.h"
 
 #include <QtCore/QElapsedTimer>
 #include <QtCore/QSettings>
@@ -121,9 +122,13 @@ agaveGui::createActions()
   m_toggleCameraProjectionAction->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   connect(m_toggleCameraProjectionAction, SIGNAL(triggered()), this, SLOT(view_toggleProjection()));
 
-  m_saveImageAction = new QAction(tr("&Save image..."), this);
+  m_saveImageAction = new QAction(tr("&Quick render..."), this);
   m_saveImageAction->setStatusTip(tr("Save the current render to an image file"));
   connect(m_saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
+
+  m_renderAction = new QAction(tr("&Render..."), this);
+  m_renderAction->setStatusTip(tr("Open the render dialog"));
+  connect(m_renderAction, SIGNAL(triggered()), this, SLOT(onRenderAction()));
 }
 
 void
@@ -135,6 +140,7 @@ agaveGui::createMenus()
   m_fileMenu->addSeparator();
   m_fileMenu->addSeparator();
   m_fileMenu->addAction(m_saveImageAction);
+  m_fileMenu->addAction(m_renderAction);
   m_fileMenu->addAction(m_dumpJsonAction);
   m_fileMenu->addAction(m_dumpPythonAction);
   m_fileMenu->addSeparator();
@@ -161,9 +167,10 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_openAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_dumpJsonAction);
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
+  m_ui.mainToolBar->addAction(m_saveImageAction);
+  m_ui.mainToolBar->addAction(m_renderAction);
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
@@ -307,6 +314,52 @@ agaveGui::saveImage()
     QImage im = m_glView->captureQimage();
     im.save(file);
   }
+}
+
+void
+agaveGui::onRenderAction()
+{
+  // if we are disabling the 3d view then might consider just making this modal
+  m_glView->pauseRenderLoop();
+  QImage im = m_glView->captureQimage();
+  QImage* imcopy = new QImage(im);
+  m_glView->doneCurrent();
+  m_glView->setEnabled(false);
+  m_glView->setUpdatesEnabled(false);
+  // extract Renderer from GLView3D to hand to RenderDialog
+  IRenderWindow* renderer = m_glView->borrowRenderer();
+  if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
+    m_captureSettings.width = imcopy->width();
+    m_captureSettings.height = imcopy->height();
+  }
+  // copy of camera
+  CCamera camera = m_glView->getCamera();
+  RenderDialog* rdialog = new RenderDialog(renderer,
+                                           m_renderSettings,
+                                           m_appScene,
+                                           camera,
+                                           m_glView->context(),
+                                           m_currentFilePath.toStdString(),
+                                           m_currentScene,
+                                           &m_captureSettings,
+                                           this);
+  rdialog->resize(800, 600);
+  connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
+    // get renderer from RenderDialog and hand it back to GLView3D
+    LOG_DEBUG << "RenderDialog finished with result " << result;
+    m_glView->setEnabled(true);
+    m_glView->resizeGL(m_glView->width(), m_glView->height());
+    m_glView->setUpdatesEnabled(true);
+    m_glView->restartRenderLoop();
+  });
+
+  rdialog->setImage(imcopy);
+  delete imcopy;
+
+  rdialog->show();
+  rdialog->raise();
+  rdialog->activateWindow();
+  rdialog->onZoomFitClicked();
 }
 
 void
@@ -742,6 +795,17 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   lt1.m_Width = v.m_light1.m_width;
   lt1.m_Height = v.m_light1.m_height;
 
+  // capture settings
+  m_captureSettings.width = v.m_captureState.mWidth;
+  m_captureSettings.height = v.m_captureState.mHeight;
+  m_captureSettings.samples = v.m_captureState.mSamples;
+  m_captureSettings.duration = v.m_captureState.mDuration;
+  m_captureSettings.durationType = (eRenderDurationType)v.m_captureState.mDurationType;
+  m_captureSettings.startTime = v.m_captureState.mStartTime;
+  m_captureSettings.endTime = v.m_captureState.mEndTime;
+  m_captureSettings.outputDir = v.m_captureState.mOutputDir;
+  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix;
+
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
@@ -754,9 +818,11 @@ agaveGui::appToViewerState()
   ViewerState v;
   v.m_volumeImageFile = m_currentFilePath;
 
-  v.m_scaleX = m_appScene.m_volume->physicalSizeX();
-  v.m_scaleY = m_appScene.m_volume->physicalSizeY();
-  v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+  if (m_appScene.m_volume) {
+    v.m_scaleX = m_appScene.m_volume->physicalSizeX();
+    v.m_scaleY = m_appScene.m_volume->physicalSizeY();
+    v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+  }
 
   v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
                                   m_appScene.m_material.m_backgroundColor[1],
@@ -810,31 +876,33 @@ agaveGui::appToViewerState()
   v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
-  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-    ChannelViewerState ch;
-    ch.m_enabled = m_appScene.m_material.m_enabled[i];
-    ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
-                             m_appScene.m_material.m_diffuse[i * 3 + 1],
-                             m_appScene.m_material.m_diffuse[i * 3 + 2]);
-    ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
-                              m_appScene.m_material.m_specular[i * 3 + 1],
-                              m_appScene.m_material.m_specular[i * 3 + 2]);
-    ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
-                              m_appScene.m_material.m_emissive[i * 3 + 1],
-                              m_appScene.m_material.m_emissive[i * 3 + 2]);
-    ch.m_glossiness = m_appScene.m_material.m_roughness[i];
-    ch.m_opacity = m_appScene.m_material.m_opacity[i];
+  if (m_appScene.m_volume) {
+    for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+      ChannelViewerState ch;
+      ch.m_enabled = m_appScene.m_material.m_enabled[i];
+      ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
+                               m_appScene.m_material.m_diffuse[i * 3 + 1],
+                               m_appScene.m_material.m_diffuse[i * 3 + 2]);
+      ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
+                                m_appScene.m_material.m_specular[i * 3 + 1],
+                                m_appScene.m_material.m_specular[i * 3 + 2]);
+      ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
+                                m_appScene.m_material.m_emissive[i * 3 + 1],
+                                m_appScene.m_material.m_emissive[i * 3 + 2]);
+      ch.m_glossiness = m_appScene.m_material.m_roughness[i];
+      ch.m_opacity = m_appScene.m_material.m_opacity[i];
 
-    ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
-    ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
-    ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
-    ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
-    ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
-    ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
-    ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
-    ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
+      ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
+      ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
+      ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
+      ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
+      ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
+      ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
+      ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
+      ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
 
-    v.m_channels.push_back(ch);
+      v.m_channels.push_back(ch);
+    }
   }
 
   // lighting
@@ -869,6 +937,17 @@ agaveGui::appToViewerState()
   v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
   v.m_light1.m_width = lt1.m_Width;
   v.m_light1.m_height = lt1.m_Height;
+
+  // capture settings
+  v.m_captureState.mWidth = m_captureSettings.width;
+  v.m_captureState.mHeight = m_captureSettings.height;
+  v.m_captureState.mSamples = m_captureSettings.samples;
+  v.m_captureState.mDuration = m_captureSettings.duration;
+  v.m_captureState.mDurationType = m_captureSettings.durationType;
+  v.m_captureState.mStartTime = m_captureSettings.startTime;
+  v.m_captureState.mEndTime = m_captureSettings.endTime;
+  v.m_captureState.mOutputDir = m_captureSettings.outputDir;
+  v.m_captureState.mFilenamePrefix = m_captureSettings.filenamePrefix;
 
   return v;
 }

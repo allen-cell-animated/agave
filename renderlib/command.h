@@ -24,6 +24,15 @@ public:
   virtual std::string parseString() = 0;
 };
 
+class WriteableStream
+{
+public:
+  virtual size_t writeInt32(int32_t) = 0;
+  virtual size_t writeFloat32(float) = 0;
+  virtual size_t writeFloat32Array(const std::vector<float>&) = 0;
+  virtual size_t writeString(const std::string&) = 0;
+};
+
 enum class CommandArgType
 {
   I32,
@@ -50,6 +59,7 @@ class Command
 public:
   virtual void execute(ExecutionContext* context) = 0;
   virtual std::string toPythonString() const = 0;
+  virtual size_t write(WriteableStream* buffer) const = 0;
 
   virtual ~Command() {}
 };
@@ -62,9 +72,11 @@ public:
   public:                                                                                                              \
     NAME(NAME##D d)                                                                                                    \
       : m_data(d)                                                                                                      \
-    {}                                                                                                                 \
+    {                                                                                                                  \
+    }                                                                                                                  \
     virtual void execute(ExecutionContext* context);                                                                   \
     virtual std::string toPythonString() const;                                                                        \
+    virtual size_t write(WriteableStream* buffer) const;                                                               \
     static NAME* parse(ParseableStream* buffer);                                                                       \
     static const uint32_t m_ID = CMDID;                                                                                \
     static const std::string PythonName()                                                                              \

@@ -15,6 +15,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLTexture>
 #include <QThread>
+#include <QWaitCondition>
 #include <QtCore/QElapsedTimer>
 
 #include <memory>
@@ -22,9 +23,31 @@
 class commandBuffer;
 class CCamera;
 class ImageXYZC;
-class RenderGLPT;
+class IRenderWindow;
 class RenderSettings;
 class Scene;
+
+class RendererGLContext
+{
+public:
+  RendererGLContext();
+  ~RendererGLContext();
+  void configure(QOpenGLContext* glContext = nullptr);
+  void init();
+  void destroy();
+
+  void makeCurrent();
+  void doneCurrent();
+
+private:
+  bool m_ownGLContext;
+#if HAS_EGL
+  HeadlessGLContext* m_glContext;
+#else
+  QOpenGLContext* m_glContext;
+  QOffscreenSurface* m_surface;
+#endif
+};
 
 class Renderer
   : public QThread
@@ -36,8 +59,17 @@ public:
   Renderer(QString id, QObject* parent, QMutex& mutex);
   virtual ~Renderer();
 
-  void init();
+  void configure(IRenderWindow* renderer,
+                 const RenderSettings& renderSettings,
+                 const Scene& scene,
+                 const CCamera& camera,
+                 std::string volumeFilePath = "",
+                 int fileCurrentScene = 0,
+                 QOpenGLContext* glContext = nullptr);
+
   void run();
+
+  void wakeUp();
 
   void addRequest(RenderRequest* request);
   bool processRequest();
@@ -47,7 +79,7 @@ public:
   inline int getRequestCount() { return this->m_requests.count(); }
 
   // 1 = continuous re-render, 0 = only wait for redraw commands
-  virtual void setStreamMode(int32_t mode) { m_streamMode = mode; }
+  virtual void setStreamMode(int32_t mode) { m_streamMode = mode > 0 ? true : false; }
 
   virtual void resizeGL(int internalWidth, int internalHeight);
 
@@ -61,24 +93,24 @@ protected:
 
   int getTime();
 
+  // this is a task queue
   QList<RenderRequest*> m_requests;
+  QMutex m_requestMutex;
+  QWaitCondition m_wait;
+
   int m_totalQueueDuration;
 
+  void init();
   void shutDown();
 
 private:
   QMutex* m_openGLMutex;
 
-#if HAS_EGL
-  HeadlessGLContext* m_glContext;
-#else
-  QOpenGLContext* m_glContext;
-  QOffscreenSurface* m_surface;
-#endif
+  RendererGLContext m_rglContext;
 
   GLFramebufferObject* m_fbo;
 
-  int32_t m_streamMode;
+  std::atomic<bool> m_streamMode;
   int32_t m_width, m_height;
 
   QElapsedTimer m_time;
@@ -90,7 +122,8 @@ private:
       : m_name(name)
       , m_start(start)
       , m_end(end)
-    {}
+    {
+    }
 
     QString m_name;
     int m_start;
@@ -103,17 +136,22 @@ private:
   void myVolumeInit();
   struct myVolumeData
   {
+    bool ownRenderer;
     RenderSettings* m_renderSettings;
-    RenderGLPT* m_renderer;
+    IRenderWindow* m_renderer;
     Scene* m_scene;
     CCamera* m_camera;
+    std::string mVolumeFilePath;
 
     myVolumeData()
       : m_camera(nullptr)
       , m_scene(nullptr)
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
-    {}
+      , ownRenderer(false)
+      , mVolumeFilePath("")
+    {
+    }
   } m_myVolumeData;
 
   ExecutionContext m_ec;

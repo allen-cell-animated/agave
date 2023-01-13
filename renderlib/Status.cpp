@@ -38,6 +38,9 @@ FormatSize(const glm::ivec3& Size)
 void
 CStatus::SetRenderBegin(void)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->RenderBegin();
   }
@@ -46,6 +49,9 @@ CStatus::SetRenderBegin(void)
 void
 CStatus::SetRenderEnd(void)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->RenderEnd();
   }
@@ -54,6 +60,9 @@ CStatus::SetRenderEnd(void)
 void
 CStatus::SetPreRenderFrame(void)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->PreRenderFrame();
   }
@@ -62,6 +71,9 @@ CStatus::SetPreRenderFrame(void)
 void
 CStatus::SetPostRenderFrame(void)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->PostRenderFrame();
   }
@@ -70,6 +82,9 @@ CStatus::SetPostRenderFrame(void)
 void
 CStatus::SetRenderPause(const bool& Pause)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->RenderPause(Pause);
   }
@@ -78,6 +93,9 @@ CStatus::SetRenderPause(const bool& Pause)
 void
 CStatus::SetResize(void)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->Resize();
   }
@@ -86,6 +104,9 @@ CStatus::SetResize(void)
 void
 CStatus::SetLoadPreset(const std::string& PresetName)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->LoadPreset(PresetName);
   }
@@ -98,6 +119,9 @@ CStatus::SetStatisticChanged(const std::string& Group,
                              const std::string& Unit /*= ""*/,
                              const std::string& Icon /*= ""*/)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
   for (IStatusObserver* ob : mObservers) {
     ob->StatisticChanged(Group, Name, Value, Unit, Icon);
   }
@@ -106,6 +130,10 @@ CStatus::SetStatisticChanged(const std::string& Group,
 void
 CStatus::onNewImage(const std::string& name, Scene* scene)
 {
+  if (!mUpdatesEnabled) {
+    return;
+  }
+
   glm::vec3 resolution(scene->m_volume->sizeX(), scene->m_volume->sizeY(), scene->m_volume->sizeZ());
   glm::vec3 spacing(
     scene->m_volume->physicalSizeX(), scene->m_volume->physicalSizeY(), scene->m_volume->physicalSizeZ());

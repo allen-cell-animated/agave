@@ -6,6 +6,7 @@
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
+#include "renderDialog.h"
 
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
@@ -45,6 +46,7 @@ private slots:
   void saveImage();
   void saveJson();
   void savePython();
+  void onRenderAction();
   void OnUpdateRenderer();
 
 private:
@@ -84,6 +86,7 @@ private:
   QAction* m_viewResetAction = nullptr;
   QAction* m_toggleCameraProjectionAction = nullptr;
   QAction* m_saveImageAction = nullptr;
+  QAction* m_renderAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
@@ -108,6 +111,9 @@ private:
   // if renderer is on a separate thread, then this will need a mutex guard
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
   RenderSettings m_renderSettings;
+
+  // the render dialog will modify the contents of this object
+  CaptureSettings m_captureSettings;
 
   // the app owns a scene.
   // scene gets sent down to the renderer.

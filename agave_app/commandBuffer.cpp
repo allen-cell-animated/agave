@@ -22,14 +22,16 @@
 commandBuffer::commandBuffer(size_t len, const uint8_t* buf)
   : _length(len)
   , _headPos(buf)
-{}
+{
+}
 
 commandBuffer::~commandBuffer() {}
 
 CommandBufferIterator::CommandBufferIterator(commandBuffer* buf)
   : _commandBuffer(buf)
   , _currentPos(const_cast<uint8_t*>(buf->head()))
-{}
+{
+}
 
 //////////////////
 // forward declare.
@@ -38,6 +40,29 @@ CommandBufferIterator::CommandBufferIterator(commandBuffer* buf)
   case (CMDCLASS::m_ID):                                                                                               \
     return CMDCLASS::parse(&iterator);                                                                                 \
     break;
+
+commandBuffer*
+commandBuffer::createBuffer(const std::vector<Command*>& commands)
+{
+  // compute space for allocation
+  size_t len = 0;
+  CommandBufferSizer sizer;
+  for (auto command : commands) {
+    len += command->write(&sizer);
+  }
+
+  uint8_t* buf = new uint8_t[len];
+  commandBuffer* cb = new commandBuffer(len, buf);
+  CommandBufferWriter cbw(cb);
+  // write into buf
+  size_t bytesWritten = 0;
+  for (auto command : commands) {
+    bytesWritten += command->write(&cbw);
+  }
+  // TODO throw on failure???
+  assert(bytesWritten == len);
+  return cb;
+}
 
 void
 commandBuffer::processBuffer()
@@ -176,4 +201,72 @@ CommandBufferIterator::parseFloat32Array()
   std::vector<float> v(p, p + len);
   _currentPos += len * sizeof(float);
   return v;
+}
+
+CommandBufferWriter::CommandBufferWriter(commandBuffer* cb)
+  : _commandBuffer(cb)
+  , _currentPos(const_cast<uint8_t*>(cb->head()))
+{
+}
+
+size_t
+CommandBufferWriter::writeInt32(int32_t i)
+{
+  int32_t* p = (int32_t*)(_currentPos);
+  *p = bswap_32(i);
+  assert(sizeof(int32_t) == 4);
+  _currentPos += 4; // sizeof(int32_t);
+  return 4;
+}
+
+size_t
+CommandBufferWriter::writeFloat32(float f)
+{
+  float* p = (float*)(_currentPos);
+  *p = f;
+  assert(sizeof(float) == 4);
+  _currentPos += 4; // sizeof(float);
+  return 4;
+}
+
+size_t
+CommandBufferWriter::writeFloat32Array(const std::vector<float>& v)
+{
+  writeInt32((int32_t)v.size());
+  memcpy(_currentPos, v.data(), v.size() * sizeof(float));
+  _currentPos += v.size() * sizeof(float);
+  return 4 + v.size() * sizeof(float);
+}
+
+size_t
+CommandBufferWriter::writeString(const std::string& s)
+{
+  writeInt32((int32_t)s.size());
+  memcpy(_currentPos, s.data(), s.size() * sizeof(uint8_t));
+  _currentPos += s.size() * sizeof(uint8_t);
+  return 4 + s.size() * sizeof(uint8_t);
+}
+
+size_t
+CommandBufferSizer::writeInt32(int32_t i)
+{
+  return 4; // sizeof(int32_t);
+}
+
+size_t
+CommandBufferSizer::writeFloat32(float f)
+{
+  return 4; // sizeof(float);
+}
+
+size_t
+CommandBufferSizer::writeFloat32Array(const std::vector<float>& v)
+{
+  return 4 + v.size() * sizeof(float);
+}
+
+size_t
+CommandBufferSizer::writeString(const std::string& s)
+{
+  return 4 + s.size() * sizeof(uint8_t);
 }

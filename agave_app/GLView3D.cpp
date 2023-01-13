@@ -107,6 +107,7 @@ GLView3D::sizeHint() const
 void
 GLView3D::initializeGL()
 {
+
   makeCurrent();
 
   QSize newsize = size();
@@ -123,26 +124,39 @@ GLView3D::initializeGL()
 void
 GLView3D::paintGL()
 {
+  if (!isEnabled()) {
+    return;
+  }
   makeCurrent();
 
   m_CCamera.Update();
 
   m_renderer->render(m_CCamera);
+
+  doneCurrent();
 }
 
 void
 GLView3D::resizeGL(int w, int h)
 {
+  if (!isEnabled()) {
+    return;
+  }
   makeCurrent();
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
   m_renderer->resize(w, h, devicePixelRatioF());
+
+  doneCurrent();
 }
 
 void
 GLView3D::mousePressEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
@@ -151,6 +165,9 @@ GLView3D::mousePressEvent(QMouseEvent* event)
 void
 GLView3D::mouseReleaseEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
@@ -181,6 +198,9 @@ get_arcball_vector(float xndc, float yndc)
 void
 GLView3D::mouseMoveEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_cameraController.OnMouseMove(event);
   m_lastPos = event->pos();
 }
@@ -192,6 +212,10 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
 void
 GLView3D::timerEvent(QTimerEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
+
   makeCurrent();
 
   QOpenGLWidget::timerEvent(event);
@@ -259,6 +283,11 @@ GLView3D::getStatus()
 void
 GLView3D::OnUpdateRenderer(int rendererType)
 {
+  if (!isEnabled()) {
+    LOG_ERROR << "attempted to update GLView3D renderer when view is disabled";
+    return;
+  }
+
   makeCurrent();
 
   // clean up old renderer.
@@ -335,6 +364,10 @@ GLView3D::capture()
 QImage
 GLView3D::captureQimage()
 {
+  if (!isEnabled()) {
+    return QImage();
+  }
+
   makeCurrent();
 
   // Create a one-time FBO to receive the image
@@ -365,4 +398,25 @@ GLView3D::captureQimage()
   delete fbo;
 
   return img;
+}
+
+void
+GLView3D::pauseRenderLoop()
+{
+  std::shared_ptr<CStatus> s = getStatus();
+  // the CStatus updates can cause Qt GUI work to happen,
+  // which can not be called from a separate thread.
+  // so when we start rendering from another thread,
+  // we need to either make status updates thread safe,
+  // or just disable them here.
+  s->EnableUpdates(false);
+  m_etimer.invalidate();
+}
+
+void
+GLView3D::restartRenderLoop()
+{
+  m_etimer.restart();
+  std::shared_ptr<CStatus> s = getStatus();
+  s->EnableUpdates(true);
 }

@@ -67,7 +67,13 @@ public:
   QPixmap capture();
   QImage captureQimage();
 
-signals:
+  // DANGER this must NOT outlive the GLView3D
+  IRenderWindow* borrowRenderer() { return m_renderer.get(); }
+
+  void pauseRenderLoop();
+  void restartRenderLoop();
+
+    signals:
   void ChangedRenderer();
 
 public slots:
@@ -79,15 +85,15 @@ public slots:
 public:
   std::shared_ptr<CStatus> getStatus();
 
+  /// Resize the view.
+  void resizeGL(int w, int h);
+
 protected:
   /// Set up GL context and subsidiary objects.
   void initializeGL();
 
   /// Render the scene with the current view settings.
   void paintGL();
-
-  /// Resize the view.
-  void resizeGL(int w, int h);
 
   /**
    * Handle mouse button press events.

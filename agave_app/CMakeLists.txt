@@ -1,6 +1,5 @@
 add_executable(agaveapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(agaveapp PROPERTIES OUTPUT_NAME "agave")
-set_target_properties(agaveapp PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set_property(TARGET agaveapp PROPERTY AUTOMOC ON)
 set_property(TARGET agaveapp PROPERTY AUTOUIC ON)
 target_include_directories(agaveapp PUBLIC
@@ -57,6 +56,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
@@ -67,6 +68,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/streamserver.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/streamtestclient.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/streamtestclient.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"

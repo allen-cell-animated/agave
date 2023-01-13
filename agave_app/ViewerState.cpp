@@ -78,6 +78,14 @@ getString(QJsonObject obj, QString prop, QString& value)
   }
 }
 void
+getString(QJsonObject obj, QString prop, std::string& value)
+{
+  if (obj.contains(prop)) {
+    QString defaultValue = QString::fromStdString(value);
+    value = obj[prop].toString(defaultValue).toStdString();
+  }
+}
+void
 getBool(QJsonObject obj, QString prop, bool& value)
 {
   if (obj.contains(prop)) {
@@ -301,6 +309,19 @@ ViewerState::stateFromJson(QJsonDocument& jsonDoc)
       getFloat(lighti, "height", ls.m_height);
     }
   }
+
+  if (json.contains("capture") && json["capture"].isObject()) {
+    QJsonObject capture = json["capture"].toObject();
+    getInt(capture, "width", m_captureState.mWidth);
+    getInt(capture, "height", m_captureState.mHeight);
+    getString(capture, "filenamePrefix", m_captureState.mFilenamePrefix);
+    getString(capture, "outputDirectory", m_captureState.mOutputDir);
+    getInt(capture, "samples", m_captureState.mSamples);
+    getInt(capture, "seconds", m_captureState.mDuration);
+    getInt(capture, "durationType", m_captureState.mDurationType);
+    getInt(capture, "startTime", m_captureState.mStartTime);
+    getInt(capture, "endTime", m_captureState.mEndTime);
+  }
 }
 
 QJsonDocument
@@ -448,6 +469,18 @@ ViewerState::stateToJson() const
   lights.append(light1);
   j["lights"] = lights;
 
+  QJsonObject capture;
+  capture["width"] = m_captureState.mWidth;
+  capture["height"] = m_captureState.mHeight;
+  capture["filenamePrefix"] = QString::fromStdString(m_captureState.mFilenamePrefix);
+  capture["outputDirectory"] = QString::fromStdString(m_captureState.mOutputDir);
+  capture["samples"] = m_captureState.mSamples;
+  capture["seconds"] = m_captureState.mDuration;
+  capture["durationType"] = m_captureState.mDurationType;
+  capture["startTime"] = m_captureState.mStartTime;
+  capture["endTime"] = m_captureState.mEndTime;
+  j["capture"] = capture;
+
   return QJsonDocument(j);
 }
 
@@ -467,6 +500,7 @@ ViewerState::stateToPythonScript() const
   ss << obj
      << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), m_currentScene, m_currentTime }).toPythonString()
      << std::endl;
+  // TODO use window size or render window capture dims?
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
   ss << obj
      << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()
@@ -476,6 +510,7 @@ ViewerState::stateToPythonScript() const
     << obj
     << SetBoundingBoxColorCommand({ m_boundingBoxColor.x, m_boundingBoxColor.y, m_boundingBoxColor.z }).toPythonString()
     << std::endl;
+  // TODO use value from viewport or render window capture settings?
   ss << obj << SetRenderIterationsCommand({ m_renderIterations }).toPythonString() << std::endl;
   ss << obj << SetPrimaryRayStepSizeCommand({ m_primaryStepSize }).toPythonString() << std::endl;
   ss << obj << SetSecondaryRayStepSizeCommand({ m_secondaryStepSize }).toPythonString() << std::endl;
