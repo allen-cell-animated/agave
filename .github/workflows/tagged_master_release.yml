@@ -27,7 +27,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff
+          brew install spdlog glm libtiff nasm
       - name: macos build and test
         if: matrix.os == 'macos-latest'
         env:
@@ -54,7 +54,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev
+          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -73,7 +73,9 @@ jobs:
         env:
           vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
+      - name: windows get nasm
+        uses: ilammy/setup-nasm@v1
       - name: windows build and test
         if: matrix.os == 'windows-2019'
         env:
