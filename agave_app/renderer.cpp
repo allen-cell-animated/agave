@@ -299,8 +299,6 @@ Renderer::processRequest()
       cmd.push_back(new RequestRedrawCommand(data));
       RenderRequest* rr = new RenderRequest(lastReq->getClient(), cmd, false);
 
-      // this->addRequest(rr);
-
       this->m_requests << rr;
       this->m_totalQueueDuration += rr->getDuration();
     }
@@ -355,9 +353,9 @@ Renderer::processCommandBuffer(RenderRequest* rr)
       LOG_ERROR << "Unsupported renderer: Renderer is not of type RenderGLPT";
     }
 
-    m_ec.m_renderSettings = &r->getRenderSettings(); // m_myVolumeData.m_renderSettings;
+    m_ec.m_renderSettings = &r->getRenderSettings();
     m_ec.m_renderer = this;
-    m_ec.m_appScene = r->scene(); // m_myVolumeData.m_scene;
+    m_ec.m_appScene = r->scene();
     m_ec.m_camera = m_myVolumeData.m_camera;
     m_ec.m_message = "";
 
