@@ -292,8 +292,7 @@ Renderer::processRequest()
 
     // in stream mode:
     // if queue is empty, then keep firing redraws back to client, to build up iterations.
-    static const int MAX_ITERATIONS = 1024;
-    if (m_streamMode && m_myVolumeData.m_renderSettings->GetNoIterations() < MAX_ITERATIONS) {
+    if (m_streamMode) {
       // push another redraw request.
       std::vector<Command*> cmd;
       RequestRedrawCommandD data;
