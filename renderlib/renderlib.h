@@ -85,12 +85,10 @@ public:
 
 private:
   bool m_ownGLContext;
-#if HAS_EGL
-  HeadlessGLContext* m_glContext;
-#else
+  // only one of the following two can be non-null
+  HeadlessGLContext* m_eglContext;
   QOpenGLContext* m_glContext;
   QOffscreenSurface* m_surface;
-#endif
 
   void initQOpenGLContext();
 };

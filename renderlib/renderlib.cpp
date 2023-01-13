@@ -445,10 +445,8 @@ HeadlessGLContext::doneCurrent()
 RendererGLContext::RendererGLContext()
   : m_ownGLContext(true)
   , m_glContext(nullptr)
-#if HAS_EGL
-#else
+  , m_eglContext(nullptr)
   , m_surface(nullptr)
-#endif
 {
 }
 
@@ -459,18 +457,14 @@ RendererGLContext::destroy()
 {
   if (m_ownGLContext) {
     delete m_glContext;
+    delete m_eglContext;
   } else {
-#if HAS_EGL
-#else
-    m_glContext->moveToThread(QGuiApplication::instance()->thread());
-#endif
+    if (m_glContext)
+      m_glContext->moveToThread(QGuiApplication::instance()->thread());
   }
 
-#if HAS_EGL
-#else
   // schedule this to be deleted only after we're done cleaning up
-  m_surface->deleteLater();
-#endif
+  if (m_surface) m_surface->deleteLater();
 }
 
 // to be run from main thread prior to starting render thread
@@ -482,11 +476,8 @@ RendererGLContext::configure(QOpenGLContext* glContext)
   if (renderLibHeadless && HAS_EGL) {
   } else {
     if (glContext) {
-#if HAS_EGL
-#else
       m_glContext = glContext;
       m_ownGLContext = false;
-#endif
     }
   }
 }
@@ -494,8 +485,6 @@ RendererGLContext::configure(QOpenGLContext* glContext)
 void
 RendererGLContext::initQOpenGLContext()
 {
-#if HAS_EGL
-#else
   if (m_ownGLContext) {
     this->m_glContext = renderlib::createOpenGLContext();
   }
@@ -505,7 +494,6 @@ RendererGLContext::initQOpenGLContext()
   this->m_surface->create();
 
   this->m_glContext->makeCurrent(m_surface);
-#endif
 }
 
 // to be run from render thread
@@ -518,10 +506,8 @@ void
 RendererGLContext::init()
 {
   if (renderLibHeadless && HAS_EGL) {
-#if HAS_EGL
-    this->m_glContext = new HeadlessGLContext();
-    this->m_glContext->makeCurrent();
-#endif
+    this->m_eglContext = new HeadlessGLContext();
+    this->m_eglContext->makeCurrent();
   } else {
     initQOpenGLContext();
   }
@@ -531,18 +517,17 @@ void
 RendererGLContext::makeCurrent()
 {
   if (renderLibHeadless && HAS_EGL) {
-#if HAS_EGL
-    this->m_glContext->makeCurrent();
-#endif
+    this->m_eglContext->makeCurrent();
   } else {
-#if HAS_EGL
-#else
     this->m_glContext->makeCurrent(this->m_surface);
-#endif
   }
 }
+
 void
 RendererGLContext::doneCurrent()
 {
-  this->m_glContext->doneCurrent();
+  if (m_glContext)
+    m_glContext->doneCurrent();
+  if (m_eglContext)
+    this->m_eglContext->doneCurrent();
 }
