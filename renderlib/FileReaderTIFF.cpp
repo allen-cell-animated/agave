@@ -231,8 +231,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
   } else if (startsWith(simagedescription, "{\"shape\":")) {
     // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
-    size_t firstBracket = simagedescription.find_first_of('[');
-    size_t lastBracket = simagedescription.find_last_of(']');
+    size_t firstBracket = simagedescription.find('[');
+    size_t lastBracket = simagedescription.rfind(']');
     std::string shape = simagedescription.substr(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape;
     std::vector<std::string> shapelist;
