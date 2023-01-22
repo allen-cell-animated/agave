@@ -428,9 +428,7 @@ void
 HeadlessGLContext::makeCurrent()
 {
 #if HAS_EGL
-  LOG_INFO << "pre-eglMakeCurrent";
   eglMakeCurrent(eglDpy, EGL_NO_SURFACE, EGL_NO_SURFACE, m_eglCtx);
-  LOG_INFO << "post-eglMakeCurrent";
 #endif
 }
 
