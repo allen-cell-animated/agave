@@ -105,13 +105,11 @@ FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
     return cached->second;
   }
 
-  std::string filepath = loadSpec.filepath;
   VolumeDimensions dims;
-  uint32_t time = loadSpec.time;
-  uint32_t scene = loadSpec.scene;
 
   std::shared_ptr<ImageXYZC> image;
 
+  std::string filepath = loadSpec.filepath;
   std::string extstr = getExtension(filepath);
 
   if (filepath.find("http") == 0) {
@@ -123,7 +121,7 @@ FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
   } else if (extstr == ".map" || extstr == ".mrc") {
     image = FileReaderCCP4::loadCCP4(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
   } else if (extstr == ".zarr") {
-    image = FileReaderZarr::loadOMEZarr(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
+    image = FileReaderZarr::loadOMEZarr(loadSpec);
   }
 
   if (addToCache && image) {

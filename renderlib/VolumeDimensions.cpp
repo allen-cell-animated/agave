@@ -171,7 +171,6 @@ VolumeDimensions
 MultiscaleDims::getVolumeDimensions() const
 {
   VolumeDimensions dims;
-  dims.zarrSubpath = this->path;
 
   dims.sizeX = this->shape[4];
   dims.sizeY = this->shape[3];

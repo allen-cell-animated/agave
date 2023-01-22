@@ -33,9 +33,6 @@ StreamServer::createNewRenderer(QWebSocket* client)
   camera->m_Film.m_Resolution.SetResY(1024);
   Scene* scene = new Scene();
   scene->initLights();
-  // RenderGLPT* renderer = new RenderGLPT(rs);
-  // renderer->initialize(1024, 1024);
-  // renderer->setScene(scene);
 
   r->configure(nullptr, *rs, *scene, *camera, LoadSpec());
 

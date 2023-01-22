@@ -20,7 +20,6 @@ struct VolumeDimensions
   uint16_t sampleFormat = 1;
   std::string dimensionOrder = "XYZCT";
   std::vector<std::string> channelNames;
-  std::string zarrSubpath;
 
   uint32_t getPlaneIndex(uint32_t z, uint32_t c, uint32_t t) const;
   std::vector<uint32_t> getPlaneZCT(uint32_t planeIndex) const;
