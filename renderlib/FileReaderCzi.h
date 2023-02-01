@@ -22,4 +22,5 @@ public:
                                             uint32_t scene = 0);
   static VolumeDimensions loadDimensionsCzi(const std::string& filepath, uint32_t scene = 0);
   static uint32_t loadNumScenesCzi(const std::string& filepath);
+  static std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
 };

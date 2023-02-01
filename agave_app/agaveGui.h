@@ -19,6 +19,9 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
+struct VolumeDimensions;
+struct LoadSpec;
+
 class agaveGui : public QMainWindow
 {
   Q_OBJECT
@@ -29,10 +32,15 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const QString& file, const ViewerState* v = nullptr);
+  bool open(const std::string& file, const ViewerState* vs = nullptr);
+  void onImageLoaded(std::shared_ptr<ImageXYZC> image,
+                     const LoadSpec& loadSpec,
+                     const VolumeDimensions& dims,
+                     const ViewerState* vs);
 
 private slots:
   void open();
+  bool openUrl();
   void openJson();
   void openRecentFile();
   void updateRecentFileActions();
@@ -79,6 +87,7 @@ private:
 
   QAction* m_openAction = nullptr;
   QAction* m_openJsonAction = nullptr;
+  QAction* m_openUrlAction = nullptr;
   QAction* m_quitAction = nullptr;
   QAction* m_dumpJsonAction = nullptr;
   QAction* m_dumpPythonAction = nullptr;
@@ -124,5 +133,7 @@ private:
   QAction* m_recentFileSeparator;
   QAction* m_recentFileSubMenuAct;
 
-  QString m_currentFilePath;
+  std::string m_currentFilePath;
+  // TODO remove the above m_currentFilePath and use this instead
+  LoadSpec m_loadSpec;
 };

@@ -27,3 +27,13 @@ struct VolumeDimensions
   bool validate() const;
   void log() const;
 };
+
+struct MultiscaleDims
+{
+  std::vector<float> scale;
+  std::vector<int64_t> shape;
+  std::string dtype;
+  std::string path;
+
+  VolumeDimensions getVolumeDimensions() const;
+};

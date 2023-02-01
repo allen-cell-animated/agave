@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderlib/FileReader.h"
+
 #include <QGridLayout>
 #include <QtWidgets/QDockWidget>
 
@@ -15,7 +17,7 @@ class QTimelineWidget : public QWidget
 public:
   QTimelineWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr);
 
-  void onNewImage(Scene* s, std::string filepath, int sceneIndex);
+  void onNewImage(Scene* s, const LoadSpec& loadSpec);
 
   void OnTimeChanged(int newTime);
 
@@ -25,8 +27,7 @@ protected:
 
   QRenderSettings* m_qrendersettings;
   Scene* m_scene;
-  std::string m_filepath;
-  int m_currentScene;
+  LoadSpec m_loadSpec;
 };
 
 class QTimelineDockWidget : public QDockWidget
@@ -36,7 +37,7 @@ class QTimelineDockWidget : public QDockWidget
 public:
   QTimelineDockWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr);
 
-  void onNewImage(Scene* s, std::string filepath, int sceneIndex) { m_TimelineWidget.onNewImage(s, filepath, sceneIndex); }
+  void onNewImage(Scene* s, const LoadSpec& loadSpec) { m_TimelineWidget.onNewImage(s, loadSpec); }
 
 protected:
   QTimelineWidget m_TimelineWidget;

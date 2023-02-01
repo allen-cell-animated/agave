@@ -15,8 +15,6 @@
 #include <map>
 #include <set>
 
-static const uint32_t IN_MEMORY_BPP = 16;
-
 FileReaderTIFF::FileReaderTIFF() {}
 
 FileReaderTIFF::~FileReaderTIFF() {}
@@ -233,8 +231,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
   } else if (startsWith(simagedescription, "{\"shape\":")) {
     // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
-    size_t firstBracket = simagedescription.find_first_of('[');
-    size_t lastBracket = simagedescription.find_last_of(']');
+    size_t firstBracket = simagedescription.find('[');
+    size_t lastBracket = simagedescription.rfind(']');
     std::string shape = simagedescription.substr(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape;
     std::vector<std::string> shapelist;
@@ -394,7 +392,7 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   int srcBitsPerPixel = dims.bitsPerPixel;
 
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
     memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
     return 1;
   } else if (srcBitsPerPixel == 8) {
@@ -582,7 +580,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
   }
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
   memset(data, 0, channelsize_bytes * dims.sizeC);
@@ -629,7 +627,7 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
                                 dims.sizeY,
                                 dims.sizeZ,
                                 dims.sizeC,
-                                IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
@@ -649,4 +647,21 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     *outDims = dims;
   }
   return sharedImage;
+}
+
+std::vector<MultiscaleDims>
+FileReaderTIFF::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
+{
+  std::vector<MultiscaleDims> dims;
+  VolumeDimensions vdims = loadDimensionsTiff(filepath, scene);
+  if (!vdims.validate()) {
+    return dims;
+  }
+  MultiscaleDims mdims;
+  mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
+  mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.dtype = "uint16";
+  mdims.path = "";
+  dims.push_back(mdims);
+  return dims;
 }

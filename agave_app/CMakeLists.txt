@@ -44,6 +44,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/FocusWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLView3D.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLView3D.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/loadDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/loadDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.cpp"

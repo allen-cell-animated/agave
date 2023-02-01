@@ -1,6 +1,7 @@
 #pragma once
 
 #include "renderlib/CCamera.h"
+#include "renderlib/FileReader.h"
 
 #include <QDialog>
 #include <QMutex>
@@ -103,8 +104,7 @@ public:
                const Scene& scene,
                CCamera camera,
                QOpenGLContext* glContext,
-               std::string volumeFilePath,
-               int fileCurrentScene,
+               const LoadSpec& loadSpec,
                CaptureSettings* captureSettings,
                QWidget* parent = Q_NULLPTR);
 
@@ -137,8 +137,7 @@ private:
   IRenderWindow* m_renderer;
   const RenderSettings& m_renderSettings;
   const Scene& m_scene;
-  std::string mVolumeFilePath;
-  int m_fileCurrentScene;
+  LoadSpec m_loadSpec;
   // reference that I don't own
   CaptureSettings* mCaptureSettings;
   CCamera m_camera;

@@ -19,6 +19,14 @@ git submodule update --init
 For WINDOWS:
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
 
+tensorstore requires:
+
+- Python 3.7 or later
+- CMake 3.24 or later
+- Perl, for building libaom from source (default). Must be in PATH. Not required if -DTENSORSTORE_USE_SYSTEM_LIBAOM=ON is specified.
+- NASM, for building libjpeg-turbo, libaom, and dav1d from source (default). Must be in PATH.Not required if -DTENSORSTORE*USE_SYSTEM*{JPEG,LIBAOM,DAV1D}=ON is specified.
+- GNU Patch or equivalent. Must be in PATH.
+
 Install Qt LTS 5.15.2.
 In your favorite Python virtual environment:
 
@@ -30,7 +38,7 @@ aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
 Use vcpkg (must use target triplet x64-windows) to install the following:
 
 ```
-vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff --triplet x64-windows
+vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
 ```
 
 ```

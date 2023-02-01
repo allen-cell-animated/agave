@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FileReader.h"
+
 #include <string>
 #include <vector>
 
@@ -44,8 +46,7 @@ enum class CommandArgType
 struct ExecutionContext
 {
   // we may need to reload data from the file again
-  std::string m_currentFilePath;
-  int m_currentScene = 0;
+  LoadSpec m_loadSpec;
 
   RendererCommandInterface* m_renderer;
   RenderSettings* m_renderSettings;

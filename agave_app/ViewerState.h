@@ -63,7 +63,7 @@ struct CaptureState
 
 struct ViewerState
 {
-  QString m_volumeImageFile;
+  std::string m_volumeImageFile;
   std::vector<ChannelViewerState> m_channels;
   glm::vec3 m_backgroundColor;
   bool m_showBoundingBox;

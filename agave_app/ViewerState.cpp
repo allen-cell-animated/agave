@@ -71,13 +71,6 @@ getInt(QJsonObject obj, QString prop, int& value)
   }
 }
 void
-getString(QJsonObject obj, QString prop, QString& value)
-{
-  if (obj.contains(prop)) {
-    value = obj[prop].toString(value);
-  }
-}
-void
 getString(QJsonObject obj, QString prop, std::string& value)
 {
   if (obj.contains(prop)) {
@@ -332,7 +325,7 @@ ViewerState::stateToJson() const
 
   // fire back some json...
   QJsonObject j;
-  j["name"] = m_volumeImageFile;
+  j["name"] = QString::fromStdString(m_volumeImageFile);
 
   // the version of this schema
   // use app version
@@ -487,7 +480,7 @@ ViewerState::stateToJson() const
 QString
 ViewerState::stateToPythonScript() const
 {
-  QFileInfo fi(m_volumeImageFile);
+  QFileInfo fi(QString::fromStdString(m_volumeImageFile));
   QString outFileName = fi.baseName();
 
   std::ostringstream ss;
@@ -497,8 +490,7 @@ ViewerState::stateToPythonScript() const
   ss << "import agave_pyclient as agave" << std::endl << std::endl;
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
-  ss << obj
-     << LoadVolumeFromFileCommand({ m_volumeImageFile.toStdString(), m_currentScene, m_currentTime }).toPythonString()
+  ss << obj << LoadVolumeFromFileCommand({ m_volumeImageFile, m_currentScene, m_currentTime }).toPythonString()
      << std::endl;
   // TODO use window size or render window capture dims?
   ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;

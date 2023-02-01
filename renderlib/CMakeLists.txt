@@ -27,6 +27,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Framebuffer.cpp"
@@ -70,21 +72,35 @@ add_subdirectory(glsl)
 add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib
-add_compile_definitions(_LIBCZISTATICLIB)
+# add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
-set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_DYNLIB ON)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
 
 # end libczi dependency
+
+# tensorstore dependency for renderlib
+set(TENSORSTORE_USE_SYSTEM_TIFF ON)
+FetchContent_Declare(
+	tensorstore
+	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.28.tar.gz"
+	URL_HASH SHA256=c09b66a4d81f0b0f7c83e6c6ca7c16981dd620a90fcc1d0fdc9d4010dd38c896
+)
+
+# Additional FetchContent_Declare calls as needed...
+FetchContent_MakeAvailable(tensorstore)
+
+# end tensorstore dependency
 target_link_libraries(renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
-	libCZIStatic
+	libCZI
 
-	# JxrDecodeStatic # libCZI depends on it
+	tensorstore::tensorstore tensorstore::all_drivers
+
 	${OPENGL_egl_LIBRARY}
 	spdlog::spdlog_header_only
 )
