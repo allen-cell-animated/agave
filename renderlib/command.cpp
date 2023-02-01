@@ -565,7 +565,7 @@ SetTimeCommand::execute(ExecutionContext* c)
   // BUT we want to convert the old lookup tables to new lookup tables
   // if we are preserving absolute transfer function settings
 
-  // assume sizeC is same for both previous image and new image!
+  // require sizeC to be the same for both previous image and new image
   if (image->sizeC() != c->m_appScene->m_volume->sizeC()) {
     LOG_ERROR << "Channel count mismatch for different times in same file";
   }

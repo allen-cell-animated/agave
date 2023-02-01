@@ -21,6 +21,23 @@
 void
 parallel_for(size_t nb_elements, std::function<void(size_t start, size_t end)> functor, bool use_threads = true);
 
+// Thread pool for running concurrent async jobs
+// Usage example:
+//
+// unsigned int min_cores = 1; // for the case when hardware_concurency fails and returns 0
+// unsigned int number_of_cores = std::max(min_cores, std::min(cores_, std::thread::hardware_concurrency() - 1));
+// {
+//   std::vector<std::future<bool>> jobs;
+//   Tasks tasks;
+//   for_each(matches.begin(), matches.end(), [&]() {
+//     jobs.push_back(tasks.queue([]() -> bool {
+//       // do something
+//       return true;
+//     }));
+//   });
+//   tasks.start(number_of_cores);
+//   for_each(jobs.begin(), jobs.end(), [](auto& x) { x.get(); });
+// }
 struct Tasks
 {
   // the mutex, condition variable and deque form a single

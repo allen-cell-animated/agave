@@ -523,7 +523,6 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
       loadSpec.time = timeToLoad;
 
       dims = FileReader::loadFileDimensions(file, sceneToLoad);
-    } else {
     }
   }
 
