@@ -138,21 +138,3 @@ Tasks::thread_task()
     f();
   }
 }
-
-#if 0
-// usage example:
-unsigned int min_cores = 1; // for the case when hardware_concurency fails and returns 0
-unsigned int number_of_cores = std::max(min_cores, std::min(cores_, std::thread::hardware_concurrency() - 1));
-{
-  std::vector<std::future<bool>> jobs;
-  Tasks tasks;
-  for_each(matches.begin(), matches.end(), [&](const SubblockIndexVec::value_type& match_) {
-    jobs.push_back(tasks.queue([]() -> bool {
-      return true;
-    }));
-
-  });
-  tasks.start(number_of_cores);
-  for_each(jobs.begin(), jobs.end(), [](auto& x) { x.get(); });
-}
-#endif
