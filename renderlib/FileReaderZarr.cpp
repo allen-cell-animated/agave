@@ -243,7 +243,9 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore", { { "driver", "http" }, { "base_url", loadSpec.filepath }, { "path", loadSpec.subpath } } },
+      { "kvstore",
+        getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath)
+          },
     },
     context,
     tensorstore::OpenMode::open,
