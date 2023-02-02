@@ -51,6 +51,8 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
     mMetadataTree->addTopLevelItem(item);
   }
+  mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
+  
   connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
   connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
