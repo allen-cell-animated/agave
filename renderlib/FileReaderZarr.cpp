@@ -28,18 +28,18 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
     return { { "driver", "http" }, { "base_url", filepath }, { "path", subpath } };
   } else {
     // if file path does not end with slash then add one
-    // use std::filesystem::path to do this?
-    if (!subpath.empty()) {
-      return {
-        { "driver", "file" },
-        { "path", filepath + "/" + subpath },
-      };
-    } else {
-      return {
-        { "driver", "file" },
-        { "path", filepath },
-      };
+    // TODO maybe use std::filesystem::path for cross-platform?
+    std::string path = filepath;
+    if (path.back() != '/') {
+      path += "/";
     }
+    if (!subpath.empty()) {
+      path += subpath;
+    }
+    return {
+      { "driver", "file" },
+      { "path", path },
+    };
   }
 }
 
@@ -243,9 +243,7 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore",
-        getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath)
-          },
+      { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) },
     },
     context,
     tensorstore::OpenMode::open,
