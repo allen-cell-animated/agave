@@ -470,7 +470,7 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
   int sceneToLoad = vs ? vs->m_currentScene : 0;
   int timeToLoad = vs ? vs->m_currentTime : 0;
 
-  if (file.find("http") == 0) {
+  if (file.find("http") == 0 || file.find("zarr") != std::string::npos) {
     // read some metadata from the cloud and present the next dialog
     // if successful
 
