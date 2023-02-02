@@ -91,9 +91,9 @@ agaveGui::createActions()
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  m_openUrlAction = new QAction(tr("&Open volume from url..."), this);
+  m_openUrlAction = new QAction(tr("&Open Zarr volume..."), this);
   m_openUrlAction->setShortcuts(QKeySequence::Open);
-  m_openUrlAction->setStatusTip(tr("Open an existing volume file in the cloud"));
+  m_openUrlAction->setStatusTip(tr("Open an existing volume file in the cloud or from local directory"));
   connect(m_openUrlAction, SIGNAL(triggered()), this, SLOT(openUrl()));
 
   m_openJsonAction = new QAction(tr("Open JSON..."), this);
@@ -262,12 +262,11 @@ agaveGui::openUrl()
 {
   std::string urlToLoad = "";
   bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Enter url"), tr("URL"), QLineEdit::Normal, "", &ok);
+  QString text = QInputDialog::getText(this, tr("Enter url or directory"), tr("Location"), QLineEdit::Normal, "", &ok);
   if (ok && !text.isEmpty()) {
     urlToLoad = text.toStdString();
   } else {
-    LOG_DEBUG << "Canceled load from url.";
-    showOpenFailedMessageBox(text);
+    LOG_DEBUG << "Canceled load Zarr from url or directory.";
     return false;
   }
 
