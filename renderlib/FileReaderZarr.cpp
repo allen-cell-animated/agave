@@ -30,7 +30,7 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
     // if file path does not end with slash then add one
     // TODO maybe use std::filesystem::path for cross-platform?
     std::string path = filepath;
-    if (path.back() != '/') {
+    if (path.back() != '/' || path.back() != '\\') {
       path += "/";
     }
     if (!subpath.empty()) {

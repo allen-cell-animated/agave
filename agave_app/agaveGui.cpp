@@ -262,7 +262,7 @@ agaveGui::openUrl()
 {
   std::string urlToLoad = "";
   bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Enter url or directory"), tr("Location"), QLineEdit::Normal, "", &ok);
+  QString text = QInputDialog::getText(this, tr("Zarr Location"), tr("Enter URL or directory"), QLineEdit::Normal, "", &ok);
   if (ok && !text.isEmpty()) {
     urlToLoad = text.toStdString();
   } else {
