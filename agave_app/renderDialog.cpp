@@ -9,6 +9,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QImageWriter>
 #include <QLabel>
@@ -239,7 +240,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mHeightInput->setMaximum(4096);
   mHeightInput->setMinimum(2);
   mHeightInput->setValue(mHeight);
-  mLockAspectRatio = new QPushButton("Lock Aspect", this);
+  mLockAspectRatio = new QPushButton(QIcon(":/icons/lock.png"), "Lock", this);
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
   mResolutionPresets = new QComboBox(this);
@@ -295,10 +296,12 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mLockAspectRatio, 1);
-  topButtonsLayout->addWidget(new QLabel(tr("T0:")), 0);
-  topButtonsLayout->addWidget(mStartTimeInput, 1);
-  topButtonsLayout->addWidget(new QLabel(tr("T1:")), 0);
-  topButtonsLayout->addWidget(mEndTimeInput, 1);
+
+  QHBoxLayout* timeLayout = new QHBoxLayout();
+  timeLayout->addWidget(new QLabel(tr("Start:")), 0);
+  timeLayout->addWidget(mStartTimeInput, 1);
+  timeLayout->addWidget(new QLabel(tr("End:")), 0);
+  timeLayout->addWidget(mEndTimeInput, 1);
 
   QHBoxLayout* saveButtonsLayout = new QHBoxLayout();
   saveButtonsLayout->addWidget(mAutosaveCheckbox, 1);
@@ -319,16 +322,42 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   bottomButtonslayout->addWidget(mStopRenderButton);
   bottomButtonslayout->addWidget(mSaveButton);
 
-  QVBoxLayout* layout = new QVBoxLayout(this);
+  static const int MAX_CONTROLS_WIDTH = 400;
+  QGroupBox* groupBox0 = new QGroupBox(tr("Output Resolution"));
+  groupBox0->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox0->setLayout(topButtonsLayout);
+  QGroupBox* groupBox1 = new QGroupBox(tr("Time Series"));
+  groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox1->setLayout(timeLayout);
+  QGroupBox* groupBox2 = new QGroupBox(tr("Image Quality"));
+  groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox2->setLayout(durationsLayout);
+  QGroupBox* groupBox3 = new QGroupBox(tr("Output File"));
+  groupBox3->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox3->setLayout(saveButtonsLayout);
 
-  layout->setMenuBar(mToolbar);
-  layout->addWidget(mImageView);
-  layout->addWidget(mFrameProgressBar);
-  layout->addWidget(mTimeSeriesProgressBar);
-  layout->addLayout(bottomButtonslayout);
-  layout->addLayout(topButtonsLayout);
-  layout->addLayout(durationsLayout);
-  layout->addLayout(saveButtonsLayout);
+  QVBoxLayout* controlsLayout = new QVBoxLayout();
+  controlsLayout->addWidget(groupBox0);
+  controlsLayout->addWidget(groupBox1);
+  controlsLayout->addWidget(groupBox2);
+  controlsLayout->addWidget(groupBox3);
+  controlsLayout->addLayout(bottomButtonslayout);
+  controlsLayout->addWidget(new QLabel(tr("Frame Progress")));
+  controlsLayout->addWidget(mFrameProgressBar);
+  controlsLayout->addWidget(new QLabel(tr("Total Progress")));
+  controlsLayout->addWidget(mTimeSeriesProgressBar);
+
+  QVBoxLayout* viewLayout = new QVBoxLayout();
+  viewLayout->addWidget(mImageView);
+  viewLayout->setMenuBar(mToolbar);
+
+  QHBoxLayout* mainDialogLayout = new QHBoxLayout();
+  mainDialogLayout->addLayout(controlsLayout, 1);
+  mainDialogLayout->addLayout(viewLayout, 3);
+
+  QVBoxLayout* layout = new QVBoxLayout(this);
+  // layout->addLayout(topButtonsLayout);
+  layout->addLayout(mainDialogLayout);
 
   setLayout(layout);
 }
