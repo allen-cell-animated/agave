@@ -21,6 +21,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QStackedWidget>
 #include <QStandardPaths>
 #include <QTimeEdit>
 #include <QToolBar>
@@ -234,8 +235,6 @@ QGroupBox
   int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
   mRenderTimeEdit->setTime(QTime(h, m, s));
 
-  setRenderDurationType(mCaptureSettings->durationType);
-
   mWidth = mCaptureSettings->width;
   mHeight = mCaptureSettings->height;
   mAspectRatio = (float)mWidth / (float)mHeight;
@@ -285,29 +284,15 @@ QGroupBox
   mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
 
-  connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
-  connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
-  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
-  connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
-  connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
-  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
-  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
-  connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
-  connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
-  connect(mRenderDurationEdit, SIGNAL(idClicked(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  //  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
-  connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
-  connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
-  connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
-
+  QVBoxLayout* outputResolutionLayout = new QVBoxLayout();
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
-  topButtonsLayout->addWidget(mResolutionPresets, 1);
   topButtonsLayout->addWidget(new QLabel(tr("X:")), 0);
   topButtonsLayout->addWidget(mWidthInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mLockAspectRatio, 1);
+  outputResolutionLayout->addWidget(mResolutionPresets, 1);
+  outputResolutionLayout->addLayout(topButtonsLayout);
 
   QHBoxLayout* timeLayout = new QHBoxLayout();
   timeLayout->addWidget(new QLabel(tr("Start:")), 0);
@@ -326,15 +311,28 @@ QGroupBox
   QHBoxLayout* durationsHLayout = new QHBoxLayout();
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
-  QHBoxLayout* durationsHLayout2 = new QHBoxLayout();
-  durationsHLayout2->addWidget(new QLabel(tr("Time:")), 0);
-  durationsHLayout2->addWidget(mRenderTimeEdit, 1);
-  durationsHLayout2->addWidget(new QLabel(tr("Samples:")), 0);
-  durationsHLayout2->addWidget(mRenderSamplesEdit, 1);
+
+  mRenderDurationSettings = new QStackedWidget(this);
+  QHBoxLayout* durationsHLayoutTime = new QHBoxLayout();
+  durationsHLayoutTime->addWidget(new QLabel(tr("Time:")), 0);
+  durationsHLayoutTime->addWidget(mRenderTimeEdit, 1);
+  QWidget* durationSettingsTime = new QWidget();
+  durationSettingsTime->setLayout(durationsHLayoutTime);
+
+  QHBoxLayout* durationsHLayoutSamples = new QHBoxLayout();
+  durationsHLayoutSamples->addWidget(new QLabel(tr("Samples:")), 0);
+  durationsHLayoutSamples->addWidget(mRenderSamplesEdit, 1);
+  QWidget* durationSettingsSamples = new QWidget();
+  durationSettingsSamples->setLayout(durationsHLayoutSamples);
+
+  mRenderDurationSettings->addWidget(durationSettingsTime);
+  mRenderDurationSettings->addWidget(durationSettingsSamples);
+  // initialize
+  setRenderDurationType(mCaptureSettings->durationType);
 
   QVBoxLayout* durationsLayout = new QVBoxLayout();
   durationsLayout->addLayout(durationsHLayout);
-  durationsLayout->addLayout(durationsHLayout2);
+  durationsLayout->addWidget(mRenderDurationSettings);
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
@@ -345,7 +343,7 @@ QGroupBox
   static const int MAX_CONTROLS_WIDTH = 400;
   QGroupBox* groupBox0 = new QGroupBox(tr("Output Resolution"));
   groupBox0->setMaximumWidth(MAX_CONTROLS_WIDTH);
-  groupBox0->setLayout(topButtonsLayout);
+  groupBox0->setLayout(outputResolutionLayout);
   QGroupBox* groupBox1 = new QGroupBox(tr("Time Series"));
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
@@ -379,6 +377,22 @@ QGroupBox
   QVBoxLayout* layout = new QVBoxLayout(this);
   // layout->addLayout(topButtonsLayout);
   layout->addLayout(mainDialogLayout);
+
+  connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
+  connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
+  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
+  connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
+  connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
+  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
+  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
+  connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
+  connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
+  connect(mRenderDurationEdit, SIGNAL(idClicked(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  //  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
+  connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
+  connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
+  connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
 
   setLayout(layout);
 }
@@ -705,7 +719,9 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
 {
   mCaptureSettings->durationType = type;
 
+
   mRenderDurationType = type;
+  
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mRenderTimeEdit->setEnabled(false);
     mRenderSamplesEdit->setEnabled(true);
@@ -713,6 +729,7 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
     mRenderTimeEdit->setEnabled(true);
     mRenderSamplesEdit->setEnabled(false);
   }
+  mRenderDurationSettings->setCurrentIndex(type);
 }
 
 void

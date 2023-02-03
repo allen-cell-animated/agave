@@ -11,16 +11,17 @@ class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QImage;
-class QOpenGLContext;
-class QWidget;
 class QLabel;
 class QLineEdit;
+class QOpenGLContext;
 class QPixmap;
 class QProgressBar;
 class QPushButton;
+class QStackedWidget;
 class QSpinBox;
 class QTimeEdit;
 class QToolBar;
+class QWidget;
 
 class IRenderWindow;
 class Renderer;
@@ -163,6 +164,7 @@ private:
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
   QButtonGroup* mRenderDurationEdit;
+  QStackedWidget* mRenderDurationSettings;
   QSpinBox* mRenderSamplesEdit;
   QTimeEdit* mRenderTimeEdit;
   QPushButton* mZoomInButton;
