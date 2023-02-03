@@ -7,6 +7,7 @@
 #include <QMutex>
 #include <QStandardPaths>
 
+class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QImage;
@@ -161,7 +162,7 @@ private:
 
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
-  QComboBox* mRenderDurationEdit;
+  QButtonGroup* mRenderDurationEdit;
   QSpinBox* mRenderSamplesEdit;
   QTimeEdit* mRenderTimeEdit;
   QPushButton* mZoomInButton;

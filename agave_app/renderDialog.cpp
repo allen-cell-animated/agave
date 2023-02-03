@@ -6,6 +6,7 @@
 #include "renderlib/command.h"
 
 #include <QApplication>
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
@@ -188,7 +189,13 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , QDialog(parent)
 {
   setWindowTitle(tr("AGAVE Render"));
-
+  setStyleSheet(R"(
+QGroupBox
+{
+    font-size: 14px;
+    font-weight: bold;
+}
+)");
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("&Render", this);
   mPauseRenderButton = new QPushButton("&Pause", this);
@@ -202,14 +209,18 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
     mFrameProgressBar->setRange(0, mCaptureSettings->duration);
   }
 
-  mRenderDurationEdit = new QComboBox(this);
-  mRenderDurationEdit->addItem("Samples", eRenderDurationType::SAMPLES);
-  mRenderDurationEdit->addItem("Time", eRenderDurationType::TIME);
+  mRenderDurationEdit = new QButtonGroup(this);
+  mRenderDurationEdit->addButton(new QPushButton(tr("Samples"), this), eRenderDurationType::SAMPLES);
+  mRenderDurationEdit->addButton(new QPushButton(tr("Time"), this), eRenderDurationType::TIME);
+  // mRenderDurationEdit = new QComboBox(this);
+  // mRenderDurationEdit->addItem("Samples", eRenderDurationType::SAMPLES);
+  // mRenderDurationEdit->addItem("Time", eRenderDurationType::TIME);
   auto mapDurationTypeToUIIndex = std::map<eRenderDurationType, int>{
     { eRenderDurationType::SAMPLES, 0 },
     { eRenderDurationType::TIME, 1 },
   };
-  mRenderDurationEdit->setCurrentIndex(mapDurationTypeToUIIndex[mCaptureSettings->durationType]);
+  mRenderDurationEdit->button(mCaptureSettings->durationType)->setChecked(true);
+  // mRenderDurationEdit->setCurrentIndex(mapDurationTypeToUIIndex[mCaptureSettings->durationType]);
 
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
@@ -283,7 +294,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
-  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  connect(mRenderDurationEdit, SIGNAL(idClicked(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  //  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
   connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
   connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
   connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
@@ -311,12 +323,18 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   saveButtonsLayout->addWidget(mSaveDirectoryLabel, 2);
   saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
-  QHBoxLayout* durationsLayout = new QHBoxLayout();
-  durationsLayout->addWidget(mRenderDurationEdit, 0);
-  durationsLayout->addWidget(new QLabel(tr("Time:")), 0);
-  durationsLayout->addWidget(mRenderTimeEdit, 1);
-  durationsLayout->addWidget(new QLabel(tr("Samples:")), 0);
-  durationsLayout->addWidget(mRenderSamplesEdit, 1);
+  QHBoxLayout* durationsHLayout = new QHBoxLayout();
+  durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
+  durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
+  QHBoxLayout* durationsHLayout2 = new QHBoxLayout();
+  durationsHLayout2->addWidget(new QLabel(tr("Time:")), 0);
+  durationsHLayout2->addWidget(mRenderTimeEdit, 1);
+  durationsHLayout2->addWidget(new QLabel(tr("Samples:")), 0);
+  durationsHLayout2->addWidget(mRenderSamplesEdit, 1);
+
+  QVBoxLayout* durationsLayout = new QVBoxLayout();
+  durationsLayout->addLayout(durationsHLayout);
+  durationsLayout->addLayout(durationsHLayout2);
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
@@ -331,6 +349,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   QGroupBox* groupBox1 = new QGroupBox(tr("Time Series"));
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
+  groupBox1->setEnabled(scene.m_timeLine.maxTime() > 0);
   QGroupBox* groupBox2 = new QGroupBox(tr("Image Quality"));
   groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox2->setLayout(durationsLayout);
@@ -735,7 +754,7 @@ void
 RenderDialog::onRenderDurationTypeChanged(int index)
 {
   // get userdata from value
-  eRenderDurationType type = (eRenderDurationType)mRenderDurationEdit->itemData(index).toInt();
+  eRenderDurationType type = (eRenderDurationType)index;
   setRenderDurationType(type);
   if (type == eRenderDurationType::SAMPLES) {
     updateRenderSamples(mRenderSamplesEdit->value());
