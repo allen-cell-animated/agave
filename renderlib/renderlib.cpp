@@ -4,6 +4,8 @@
 #include "ImageXyzcGpu.h"
 #include "Logging.h"
 
+#include <QGuiApplication>
+
 #include <string>
 
 #if HAS_EGL
@@ -426,9 +428,7 @@ void
 HeadlessGLContext::makeCurrent()
 {
 #if HAS_EGL
-  LOG_INFO << "pre-eglMakeCurrent";
   eglMakeCurrent(eglDpy, EGL_NO_SURFACE, EGL_NO_SURFACE, m_eglCtx);
-  LOG_INFO << "post-eglMakeCurrent";
 #endif
 }
 
@@ -438,4 +438,94 @@ HeadlessGLContext::doneCurrent()
 #if HAS_EGL
   eglMakeCurrent(eglDpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 #endif
+}
+
+RendererGLContext::RendererGLContext()
+  : m_ownGLContext(true)
+  , m_glContext(nullptr)
+  , m_eglContext(nullptr)
+  , m_surface(nullptr)
+{
+}
+
+RendererGLContext::~RendererGLContext() {}
+
+void
+RendererGLContext::destroy()
+{
+  if (m_ownGLContext) {
+    delete m_glContext;
+    delete m_eglContext;
+  } else {
+    if (m_glContext)
+      m_glContext->moveToThread(QGuiApplication::instance()->thread());
+  }
+
+  // schedule this to be deleted only after we're done cleaning up
+  if (m_surface) m_surface->deleteLater();
+}
+
+// to be run from main thread prior to starting render thread
+void
+RendererGLContext::configure(QOpenGLContext* glContext)
+{
+  // TODO what do we do when running on Linux desktop??
+  // need a "don't bother with EGL switch"?
+  if (renderLibHeadless && HAS_EGL) {
+  } else {
+    if (glContext) {
+      m_glContext = glContext;
+      m_ownGLContext = false;
+    }
+  }
+}
+
+void
+RendererGLContext::initQOpenGLContext()
+{
+  if (m_ownGLContext) {
+    this->m_glContext = renderlib::createOpenGLContext();
+  }
+
+  this->m_surface = new QOffscreenSurface();
+  this->m_surface->setFormat(this->m_glContext->format());
+  this->m_surface->create();
+
+  this->m_glContext->makeCurrent(m_surface);
+}
+
+// to be run from render thread
+// context is current when returning from this function.
+// scenarios:
+// headless linux (server mode): always use EGL
+// gui linux: always use QOpenGLContext
+// else: use QOpenGLContext
+void
+RendererGLContext::init()
+{
+  if (renderLibHeadless && HAS_EGL) {
+    this->m_eglContext = new HeadlessGLContext();
+    this->m_eglContext->makeCurrent();
+  } else {
+    initQOpenGLContext();
+  }
+}
+
+void
+RendererGLContext::makeCurrent()
+{
+  if (renderLibHeadless && HAS_EGL) {
+    this->m_eglContext->makeCurrent();
+  } else {
+    this->m_glContext->makeCurrent(this->m_surface);
+  }
+}
+
+void
+RendererGLContext::doneCurrent()
+{
+  if (m_glContext)
+    m_glContext->doneCurrent();
+  if (m_eglContext)
+    this->m_eglContext->doneCurrent();
 }
