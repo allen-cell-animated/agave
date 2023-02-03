@@ -240,7 +240,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mHeightInput->setMaximum(4096);
   mHeightInput->setMinimum(2);
   mHeightInput->setValue(mHeight);
-  mLockAspectRatio = new QPushButton(QIcon(":/icons/lock.png"), "Lock", this);
+  mLockAspectRatio = new QPushButton(QIcon(":/icons/lock.png"), "", this);
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
   mResolutionPresets = new QComboBox(this);
@@ -262,7 +262,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   mTimeSeriesProgressBar = new QProgressBar(this);
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
-  mSelectSaveDirectoryButton = new QPushButton("Dir...", this);
+  mSelectSaveDirectoryButton = new QPushButton("...", this);
 
   mAutosaveCheckbox = new QCheckBox("Autosave", this);
   mAutosaveCheckbox->setChecked(true);
@@ -304,8 +304,10 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   timeLayout->addWidget(mEndTimeInput, 1);
 
   QHBoxLayout* saveButtonsLayout = new QHBoxLayout();
-  saveButtonsLayout->addWidget(mAutosaveCheckbox, 1);
+  // saveButtonsLayout->addWidget(mAutosaveCheckbox, 1);
+  saveButtonsLayout->addWidget(new QLabel(tr("File Name:")));
   saveButtonsLayout->addWidget(mSaveFilePrefix, 1);
+  saveButtonsLayout->addWidget(new QLabel(tr("Location:")));
   saveButtonsLayout->addWidget(mSaveDirectoryLabel, 2);
   saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
 
