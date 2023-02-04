@@ -7,12 +7,41 @@
 
 #include "tensorstore/context.h"
 #include "tensorstore/index_space/dim_expression.h"
+#include "tensorstore/kvstore/generation.h"
 #include "tensorstore/open.h"
 
 #include <algorithm>
 #include <chrono>
 #include <map>
 #include <set>
+
+static bool
+isCloud(const std::string& filepath)
+{
+  return filepath.find("http") == 0;
+}
+
+static nlohmann::json
+getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
+{
+  if (isCloud(filepath)) {
+    return { { "driver", "http" }, { "base_url", filepath }, { "path", subpath } };
+  } else {
+    // if file path does not end with slash then add one
+    // TODO maybe use std::filesystem::path for cross-platform?
+    std::string path = filepath;
+    if (path.back() != '/' && path.back() != '\\') {
+      path += "/";
+    }
+    if (!subpath.empty()) {
+      path += subpath;
+    }
+    return {
+      { "driver", "file" },
+      { "path", path },
+    };
+  }
+}
 
 FileReaderZarr::FileReaderZarr() {}
 
@@ -22,11 +51,10 @@ static ::nlohmann::json
 jsonRead(std::string zarrurl)
 {
   // JSON uses a separate driver
-  auto attrs_store =
-    tensorstore::Open<::nlohmann::json, 0>(
-      { { "driver", "json" }, { "kvstore", { { "driver", "http" }, { "base_url", zarrurl }, { "path", ".zattrs" } } } })
-      .result()
-      .value();
+  auto attrs_store = tensorstore::Open<::nlohmann::json, 0>(
+                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
+                       .result()
+                       .value();
 
   // Sets attrs_array to a rank-0 array of ::nlohmann::json
   auto attrs_array_result = tensorstore::Read(attrs_store).result();
@@ -124,9 +152,10 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
         auto path = dataset["path"];
         if (path.is_string()) {
           std::string pathstr = path;
-          auto store = tensorstore::Open(
-                         { { "driver", "zarr" },
-                           { "kvstore", { { "driver", "http" }, { "base_url", filepath }, { "path", pathstr } } } })
+          auto store = tensorstore::Open({ { "driver", "zarr" },
+                                           { "kvstore",
+
+                                             getKvStoreDriverParams(filepath, pathstr) } })
                          .result()
                          .value();
           tensorstore::DataType dtype = store.dtype();
@@ -214,7 +243,7 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   auto openFuture = tensorstore::Open(
     {
       { "driver", "zarr" },
-      { "kvstore", { { "driver", "http" }, { "base_url", loadSpec.filepath }, { "path", loadSpec.subpath } } },
+      { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) },
     },
     context,
     tensorstore::OpenMode::open,
