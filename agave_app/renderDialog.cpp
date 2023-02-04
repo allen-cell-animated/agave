@@ -10,6 +10,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QImageWriter>
@@ -276,13 +277,32 @@ QGroupBox
 
   mAutosaveCheckbox = new QCheckBox("Autosave", this);
   mAutosaveCheckbox->setChecked(true);
+  mAutosaveCheckbox->setVisible(false);
+  mAutosaveCheckbox->setEnabled(false);
+
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
 
-  mToolbar = new QToolBar(this);
+  mToolbar = new QToolBar(mImageView);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
   mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
+
+  connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
+  connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
+  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
+  connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
+  connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
+  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
+  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
+  connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
+  connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
+  connect(mRenderDurationEdit, SIGNAL(idClicked(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  //  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
+  connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
+  connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
+  connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
+  connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
 
   QVBoxLayout* outputResolutionLayout = new QVBoxLayout();
   QHBoxLayout* topButtonsLayout = new QHBoxLayout();
@@ -290,8 +310,8 @@ QGroupBox
   topButtonsLayout->addWidget(mWidthInput, 1);
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
-  topButtonsLayout->addWidget(mLockAspectRatio, 1);
-  outputResolutionLayout->addWidget(mResolutionPresets, 1);
+  topButtonsLayout->addWidget(mLockAspectRatio, 0);
+  outputResolutionLayout->addWidget(mResolutionPresets);
   outputResolutionLayout->addLayout(topButtonsLayout);
 
   QHBoxLayout* timeLayout = new QHBoxLayout();
@@ -300,28 +320,28 @@ QGroupBox
   timeLayout->addWidget(new QLabel(tr("End:")), 0);
   timeLayout->addWidget(mEndTimeInput, 1);
 
-  QHBoxLayout* saveButtonsLayout = new QHBoxLayout();
-  // saveButtonsLayout->addWidget(mAutosaveCheckbox, 1);
-  saveButtonsLayout->addWidget(new QLabel(tr("File Name:")));
-  saveButtonsLayout->addWidget(mSaveFilePrefix, 1);
-  saveButtonsLayout->addWidget(new QLabel(tr("Location:")));
-  saveButtonsLayout->addWidget(mSaveDirectoryLabel, 2);
-  saveButtonsLayout->addWidget(mSelectSaveDirectoryButton, 1);
+  //  QHBoxLayout* saveFileLayout = new QHBoxLayout();
+  // saveFileLayout->addWidget(mSaveFilePrefix, 1);
+  QHBoxLayout* saveDirLayout = new QHBoxLayout();
+  saveDirLayout->addWidget(mSaveDirectoryLabel, 2);
+  saveDirLayout->addWidget(mSelectSaveDirectoryButton, 1);
+  QFormLayout* saveSettingsLayout = new QFormLayout();
+  saveSettingsLayout->addRow(tr("File Name:"), mSaveFilePrefix);
+  saveSettingsLayout->addRow(tr("Location:"), saveDirLayout);
 
   QHBoxLayout* durationsHLayout = new QHBoxLayout();
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
 
   mRenderDurationSettings = new QStackedWidget(this);
-  QHBoxLayout* durationsHLayoutTime = new QHBoxLayout();
-  durationsHLayoutTime->addWidget(new QLabel(tr("Time:")), 0);
-  durationsHLayoutTime->addWidget(mRenderTimeEdit, 1);
+
+  QFormLayout* durationsHLayoutTime = new QFormLayout();
+  durationsHLayoutTime->addRow(tr("Time:"), mRenderTimeEdit);
   QWidget* durationSettingsTime = new QWidget();
   durationSettingsTime->setLayout(durationsHLayoutTime);
 
-  QHBoxLayout* durationsHLayoutSamples = new QHBoxLayout();
-  durationsHLayoutSamples->addWidget(new QLabel(tr("Samples:")), 0);
-  durationsHLayoutSamples->addWidget(mRenderSamplesEdit, 1);
+  QFormLayout* durationsHLayoutSamples = new QFormLayout();
+  durationsHLayoutSamples->addRow(tr("Samples:"), mRenderSamplesEdit);
   QWidget* durationSettingsSamples = new QWidget();
   durationSettingsSamples->setLayout(durationsHLayoutSamples);
 
@@ -341,19 +361,23 @@ QGroupBox
   bottomButtonslayout->addWidget(mSaveButton);
 
   static const int MAX_CONTROLS_WIDTH = 400;
+
   QGroupBox* groupBox0 = new QGroupBox(tr("Output Resolution"));
   groupBox0->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox0->setLayout(outputResolutionLayout);
+
   QGroupBox* groupBox1 = new QGroupBox(tr("Time Series"));
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
   groupBox1->setEnabled(scene.m_timeLine.maxTime() > 0);
+
   QGroupBox* groupBox2 = new QGroupBox(tr("Image Quality"));
   groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox2->setLayout(durationsLayout);
+
   QGroupBox* groupBox3 = new QGroupBox(tr("Output File"));
   groupBox3->setMaximumWidth(MAX_CONTROLS_WIDTH);
-  groupBox3->setLayout(saveButtonsLayout);
+  groupBox3->setLayout(saveSettingsLayout);
 
   QVBoxLayout* controlsLayout = new QVBoxLayout();
   controlsLayout->addWidget(groupBox0);
@@ -368,33 +392,13 @@ QGroupBox
 
   QVBoxLayout* viewLayout = new QVBoxLayout();
   viewLayout->addWidget(mImageView);
-  viewLayout->setMenuBar(mToolbar);
+  viewLayout->addWidget(mToolbar);
 
   QHBoxLayout* mainDialogLayout = new QHBoxLayout();
   mainDialogLayout->addLayout(controlsLayout, 1);
   mainDialogLayout->addLayout(viewLayout, 3);
 
-  QVBoxLayout* layout = new QVBoxLayout(this);
-  // layout->addLayout(topButtonsLayout);
-  layout->addLayout(mainDialogLayout);
-
-  connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
-  connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
-  connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
-  connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
-  connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
-  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
-  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
-  connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
-  connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
-  connect(mRenderDurationEdit, SIGNAL(idClicked(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  //  connect(mRenderDurationEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(onRenderDurationTypeChanged(int)));
-  connect(mStartTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onStartTimeChanged);
-  connect(mEndTimeInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::onEndTimeChanged);
-  connect(mSelectSaveDirectoryButton, &QPushButton::clicked, this, &RenderDialog::onSelectSaveDirectoryClicked);
-  connect(mSaveFilePrefix, &QLineEdit::textChanged, this, &RenderDialog::onSaveFilePrefixChanged);
-
-  setLayout(layout);
+  setLayout(mainDialogLayout);
 }
 
 void
@@ -719,9 +723,8 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
 {
   mCaptureSettings->durationType = type;
 
-
   mRenderDurationType = type;
-  
+
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mRenderTimeEdit->setEnabled(false);
     mRenderSamplesEdit->setEnabled(true);
