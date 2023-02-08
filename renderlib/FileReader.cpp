@@ -199,6 +199,19 @@ LoadSpec::getMemoryEstimate() const
 }
 
 std::string
+LoadSpec::getFilename() const
+{
+  std::string filename = filepath.substr(filepath.rfind("/") + 1);
+  if (filename.empty()) {
+    // try the next slash
+    filename = filepath;
+    filename.pop_back();
+    filename = filename.substr(filename.rfind("/") + 1);
+  }
+  return filename;
+}
+
+std::string
 LoadSpec::bytesToStringLabel(size_t mem)
 {
   static const std::vector<std::string> levels = { "B", "KB", "MB", "GB", "TB", "PB" };

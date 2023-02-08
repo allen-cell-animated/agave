@@ -437,13 +437,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   m_glView->onNewImage(&m_appScene);
   // everything after the last / (or \ ???) is the filename.
 
-  std::string filename = loadSpec.filepath.substr(loadSpec.filepath.find_last_of("/") + 1);
-  if (filename.empty()) {
-    // try the next slash
-    filename = loadSpec.filepath;
-    filename.pop_back();
-    filename = filename.substr(filename.find_last_of("/") + 1);
-  }
+  std::string filename = loadSpec.getFilename();
   m_tabs->setTabText(0, QString::fromStdString(filename));
 
   m_appearanceDockWidget->onNewImage(&m_appScene);
