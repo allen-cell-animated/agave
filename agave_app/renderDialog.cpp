@@ -194,8 +194,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   setStyleSheet(R"(
 QGroupBox
 {
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 12px;
+    /*font-weight: bold;*/
 }
 )");
   mImageView = new ImageDisplay(this);
@@ -212,11 +212,12 @@ QGroupBox
   }
 
   mRenderDurationEdit = new QButtonGroup(this);
-  mRenderDurationEdit->addButton(new QPushButton(tr("Samples"), this), eRenderDurationType::SAMPLES);
-  mRenderDurationEdit->addButton(new QPushButton(tr("Time"), this), eRenderDurationType::TIME);
-  // mRenderDurationEdit = new QComboBox(this);
-  // mRenderDurationEdit->addItem("Samples", eRenderDurationType::SAMPLES);
-  // mRenderDurationEdit->addItem("Time", eRenderDurationType::TIME);
+  QPushButton* samplesButton = new QPushButton(tr("Samples"), this);
+  samplesButton->setCheckable(true);
+  QPushButton* timeButton = new QPushButton(tr("Time"), this);
+  timeButton->setCheckable(true);
+  mRenderDurationEdit->addButton(samplesButton, eRenderDurationType::SAMPLES);
+  mRenderDurationEdit->addButton(timeButton, eRenderDurationType::TIME);
   auto mapDurationTypeToUIIndex = std::map<eRenderDurationType, int>{
     { eRenderDurationType::SAMPLES, 0 },
     { eRenderDurationType::TIME, 1 },
@@ -385,10 +386,7 @@ QGroupBox
   controlsLayout->addWidget(groupBox2);
   controlsLayout->addWidget(groupBox3);
   controlsLayout->addLayout(bottomButtonslayout);
-  controlsLayout->addWidget(new QLabel(tr("Frame Progress")));
-  controlsLayout->addWidget(mFrameProgressBar);
-  controlsLayout->addWidget(new QLabel(tr("Total Progress")));
-  controlsLayout->addWidget(mTimeSeriesProgressBar);
+  controlsLayout->addStretch();
 
   QVBoxLayout* viewLayout = new QVBoxLayout();
   viewLayout->addWidget(mImageView);
@@ -398,7 +396,19 @@ QGroupBox
   mainDialogLayout->addLayout(controlsLayout, 1);
   mainDialogLayout->addLayout(viewLayout, 3);
 
-  setLayout(mainDialogLayout);
+  QGroupBox* progressGroup = new QGroupBox("Rendering");
+  QVBoxLayout* progressLayout = new QVBoxLayout();
+  progressLayout->addWidget(new QLabel(tr("Frame Progress")));
+  progressLayout->addWidget(mFrameProgressBar);
+  progressLayout->addWidget(new QLabel(tr("Total Progress")));
+  progressLayout->addWidget(mTimeSeriesProgressBar);
+  progressGroup->setLayout(progressLayout);
+
+  QVBoxLayout* reallyMainDialogLayout = new QVBoxLayout();
+  reallyMainDialogLayout->addLayout(mainDialogLayout);
+  reallyMainDialogLayout->addWidget(progressGroup);
+
+  setLayout(reallyMainDialogLayout);
 }
 
 void
