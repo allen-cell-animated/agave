@@ -262,7 +262,8 @@ agaveGui::openUrl()
 {
   std::string urlToLoad = "";
   bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Zarr Location"), tr("Enter URL or directory"), QLineEdit::Normal, "", &ok);
+  QString text =
+    QInputDialog::getText(this, tr("Zarr Location"), tr("Enter URL or directory"), QLineEdit::Normal, "", &ok);
   if (ok && !text.isEmpty()) {
     urlToLoad = text.toStdString();
   } else {
@@ -360,7 +361,7 @@ agaveGui::onRenderAction()
   CCamera camera = m_glView->getCamera();
   RenderDialog* rdialog = new RenderDialog(
     renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_loadSpec, &m_captureSettings, this);
-  rdialog->resize(800, 600);
+  rdialog->resize(geometry().width(), m_tabs->height());
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
