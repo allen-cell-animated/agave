@@ -200,9 +200,9 @@ QGroupBox
 )");
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("&Render", this);
-  //mPauseRenderButton = new QPushButton("&Pause", this);
+  // mPauseRenderButton = new QPushButton("&Pause", this);
   mStopRenderButton = new QPushButton("&Stop", this);
-  //mSaveButton = new QPushButton("&Save", this);
+  // mSaveButton = new QPushButton("&Save", this);
 
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
@@ -290,9 +290,9 @@ QGroupBox
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
-  //connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
+  // connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
   connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
-  //connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
+  // connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
   connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
   connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
@@ -357,9 +357,10 @@ QGroupBox
 
   QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
   bottomButtonslayout->addWidget(mRenderButton);
-  //bottomButtonslayout->addWidget(mPauseRenderButton);
+  // bottomButtonslayout->addWidget(mPauseRenderButton);
   bottomButtonslayout->addWidget(mStopRenderButton);
-  //bottomButtonslayout->addWidget(mSaveButton);
+  mStopRenderButton->setVisible(false);
+  // bottomButtonslayout->addWidget(mSaveButton);
 
   static const int MAX_CONTROLS_WIDTH = 400;
 
@@ -455,6 +456,8 @@ RenderDialog::setImage(QImage* image)
 void
 RenderDialog::render()
 {
+  mRenderButton->setVisible(false);
+  mStopRenderButton->setVisible(true);
   LOG_INFO << "Render button clicked";
   if (!this->m_renderThread || m_renderThread->isFinished()) {
 
@@ -913,8 +916,12 @@ RenderDialog::onStopButtonClick()
   if (isRenderInProgress()) {
     if (getUserCancelConfirmation()) {
       stopRendering();
+      mRenderButton->setVisible(true);
+      mStopRenderButton->setVisible(false);
     }
   } else {
     stopRendering();
+    mRenderButton->setVisible(true);
+    mStopRenderButton->setVisible(false);
   }
 }
