@@ -201,6 +201,9 @@ LoadSpec::getMemoryEstimate() const
 std::string
 LoadSpec::getFilename() const
 {
+  if (filepath.empty()) {
+    return filepath;
+  }
   std::string filename = filepath.substr(filepath.rfind("/") + 1);
   if (filename.empty()) {
     // try the next slash
