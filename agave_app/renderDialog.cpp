@@ -422,8 +422,16 @@ QGroupBox
   QGroupBox* progressGroup = new QGroupBox();
   QFormLayout* progressLayout = new QFormLayout();
   progressLayout->addRow(makeGroupLabel("Rendering " + loadSpec.getFilename()));
-  progressLayout->addRow(tr("Frame Progress"), mFrameProgressBar);
-  progressLayout->addRow(tr("Total Progress"), mTimeSeriesProgressBar);
+
+  // do we have a potential time series?
+  if (scene.m_timeLine.maxTime() > 0) {
+    progressLayout->addRow(tr("Frame Progress"), mFrameProgressBar);
+    progressLayout->addRow(tr("Total Progress"), mTimeSeriesProgressBar);
+  } else {
+    progressLayout->addRow(tr("Total Progress"), mFrameProgressBar);
+    mTimeSeriesProgressBar->setVisible(false);
+  }
+
   // progressLayout->setContentsMargins(0, 0, 0, 0);
   progressLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
   progressGroup->setLayout(progressLayout);
