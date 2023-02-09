@@ -167,6 +167,14 @@ ResolutionPreset resolutionPresets[] = {
   { "16:10 1920x1200", 1920, 1200 }, { "16:10 2560x1440", 2560, 1440 }, { "16:10 3840x2160", 3840, 2160 },
 };
 
+static QLabel*
+makeGroupLabel(const std::string& text)
+{
+  QLabel* label = new QLabel(QString::fromStdString(text));
+  label->setStyleSheet("font-weight: bold; font-size: 12px;");
+  return label;
+}
+
 RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            const RenderSettings& renderSettings,
                            const Scene& scene,
@@ -312,14 +320,18 @@ QGroupBox
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mLockAspectRatio, 0);
+  outputResolutionLayout->addWidget(makeGroupLabel("Output Resolution"));
   outputResolutionLayout->addWidget(mResolutionPresets);
   outputResolutionLayout->addLayout(topButtonsLayout);
 
-  QHBoxLayout* timeLayout = new QHBoxLayout();
-  timeLayout->addWidget(new QLabel(tr("Start:")), 0);
-  timeLayout->addWidget(mStartTimeInput, 1);
-  timeLayout->addWidget(new QLabel(tr("End:")), 0);
-  timeLayout->addWidget(mEndTimeInput, 1);
+  QHBoxLayout* timeHLayout = new QHBoxLayout();
+  timeHLayout->addWidget(new QLabel(tr("Start:")), 0);
+  timeHLayout->addWidget(mStartTimeInput, 1);
+  timeHLayout->addWidget(new QLabel(tr("End:")), 0);
+  timeHLayout->addWidget(mEndTimeInput, 1);
+  QVBoxLayout* timeLayout = new QVBoxLayout();
+  timeLayout->addWidget(makeGroupLabel("Time Series"));
+  timeLayout->addLayout(timeHLayout);
 
   //  QHBoxLayout* saveFileLayout = new QHBoxLayout();
   // saveFileLayout->addWidget(mSaveFilePrefix, 1);
@@ -327,6 +339,7 @@ QGroupBox
   saveDirLayout->addWidget(mSaveDirectoryLabel, 2);
   saveDirLayout->addWidget(mSelectSaveDirectoryButton, 1);
   QFormLayout* saveSettingsLayout = new QFormLayout();
+  saveSettingsLayout->addRow(makeGroupLabel("Output File"));
   saveSettingsLayout->addRow(tr("File Name:"), mSaveFilePrefix);
   saveSettingsLayout->addRow(tr("Location:"), saveDirLayout);
 
@@ -352,57 +365,67 @@ QGroupBox
   setRenderDurationType(mCaptureSettings->durationType);
 
   QVBoxLayout* durationsLayout = new QVBoxLayout();
+  durationsLayout->addWidget(makeGroupLabel("Image Quality"));
   durationsLayout->addLayout(durationsHLayout);
   durationsLayout->addWidget(mRenderDurationSettings);
 
-  QHBoxLayout* bottomButtonslayout = new QHBoxLayout();
-  bottomButtonslayout->addWidget(mRenderButton);
+  QHBoxLayout* bottomButtonsLayout = new QHBoxLayout();
+  bottomButtonsLayout->addWidget(mRenderButton);
   // bottomButtonslayout->addWidget(mPauseRenderButton);
-  bottomButtonslayout->addWidget(mStopRenderButton);
+  bottomButtonsLayout->addWidget(mStopRenderButton);
   mStopRenderButton->setVisible(false);
   // bottomButtonslayout->addWidget(mSaveButton);
 
   static const int MAX_CONTROLS_WIDTH = 400;
 
-  QGroupBox* groupBox0 = new QGroupBox(tr("Output Resolution"));
+  QGroupBox* groupBox0 = new QGroupBox();
   groupBox0->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox0->setLayout(outputResolutionLayout);
 
-  QGroupBox* groupBox1 = new QGroupBox(tr("Time Series"));
+  QGroupBox* groupBox1 = new QGroupBox();
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
   groupBox1->setEnabled(scene.m_timeLine.maxTime() > 0);
 
-  QGroupBox* groupBox2 = new QGroupBox(tr("Image Quality"));
+  QGroupBox* groupBox2 = new QGroupBox();
   groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox2->setLayout(durationsLayout);
 
-  QGroupBox* groupBox3 = new QGroupBox(tr("Output File"));
+  QGroupBox* groupBox3 = new QGroupBox();
   groupBox3->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox3->setLayout(saveSettingsLayout);
+
+  QGroupBox* groupBox4 = new QGroupBox();
+  groupBox4->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox4->setLayout(bottomButtonsLayout);
 
   QVBoxLayout* controlsLayout = new QVBoxLayout();
   controlsLayout->addWidget(groupBox0);
   controlsLayout->addWidget(groupBox1);
   controlsLayout->addWidget(groupBox2);
   controlsLayout->addWidget(groupBox3);
-  controlsLayout->addLayout(bottomButtonslayout);
-  controlsLayout->addStretch();
+  controlsLayout->addWidget(groupBox4);
+  controlsLayout->setSpacing(0);
+  controlsLayout->setContentsMargins(0, 0, 0, 0);
+
+  QGroupBox* controlsGroupBox = new QGroupBox();
+  controlsGroupBox->setLayout(controlsLayout);
 
   QVBoxLayout* viewLayout = new QVBoxLayout();
   viewLayout->addWidget(mImageView);
   viewLayout->addWidget(mToolbar);
 
   QHBoxLayout* mainDialogLayout = new QHBoxLayout();
-  mainDialogLayout->addLayout(controlsLayout, 1);
+  mainDialogLayout->addWidget(controlsGroupBox, 1);
   mainDialogLayout->addLayout(viewLayout, 3);
 
-  QGroupBox* progressGroup = new QGroupBox(QString::fromStdString("Rendering " + loadSpec.getFilename()));
-  QVBoxLayout* progressLayout = new QVBoxLayout();
-  progressLayout->addWidget(new QLabel(tr("Frame Progress")));
-  progressLayout->addWidget(mFrameProgressBar);
-  progressLayout->addWidget(new QLabel(tr("Total Progress")));
-  progressLayout->addWidget(mTimeSeriesProgressBar);
+  QGroupBox* progressGroup = new QGroupBox();
+  QFormLayout* progressLayout = new QFormLayout();
+  progressLayout->addRow(makeGroupLabel("Rendering " + loadSpec.getFilename()));
+  progressLayout->addRow(tr("Frame Progress"), mFrameProgressBar);
+  progressLayout->addRow(tr("Total Progress"), mTimeSeriesProgressBar);
+  // progressLayout->setContentsMargins(0, 0, 0, 0);
+  progressLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
   progressGroup->setLayout(progressLayout);
 
   QVBoxLayout* reallyMainDialogLayout = new QVBoxLayout();
