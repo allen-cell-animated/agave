@@ -362,6 +362,7 @@ agaveGui::onRenderAction()
   RenderDialog* rdialog = new RenderDialog(
     renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_loadSpec, &m_captureSettings, this);
   rdialog->resize(geometry().width(), m_tabs->height());
+  rdialog->move(geometry().x(), geometry().y());
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
