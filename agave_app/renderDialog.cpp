@@ -200,7 +200,7 @@ QGroupBox
 )");
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("&Render", this);
-  mPauseRenderButton = new QPushButton("&Pause", this);
+  //mPauseRenderButton = new QPushButton("&Pause", this);
   mStopRenderButton = new QPushButton("&Stop", this);
   //mSaveButton = new QPushButton("&Save", this);
 
@@ -290,7 +290,7 @@ QGroupBox
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
-  connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
+  //connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
   connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
   //connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
