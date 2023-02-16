@@ -171,7 +171,8 @@ static QLabel*
 makeGroupLabel(const std::string& text)
 {
   QLabel* label = new QLabel(QString::fromStdString(text));
-  label->setStyleSheet("font-weight: bold; font-size: 12px;");
+  label->setStyleSheet("font-size: 12px;");
+  label->setTextFormat(Qt::RichText);
   return label;
 }
 
@@ -320,7 +321,7 @@ QGroupBox
   topButtonsLayout->addWidget(new QLabel(tr("Y:")), 0);
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mLockAspectRatio, 0);
-  outputResolutionLayout->addWidget(makeGroupLabel("Output Resolution"));
+  outputResolutionLayout->addWidget(makeGroupLabel("<b>Output Resolution</b>"));
   outputResolutionLayout->addWidget(mResolutionPresets);
   outputResolutionLayout->addLayout(topButtonsLayout);
 
@@ -330,7 +331,7 @@ QGroupBox
   timeHLayout->addWidget(new QLabel(tr("End:")), 0);
   timeHLayout->addWidget(mEndTimeInput, 1);
   QVBoxLayout* timeLayout = new QVBoxLayout();
-  timeLayout->addWidget(makeGroupLabel("Time Series"));
+  timeLayout->addWidget(makeGroupLabel("<b>Time Series</b>"));
   timeLayout->addLayout(timeHLayout);
 
   //  QHBoxLayout* saveFileLayout = new QHBoxLayout();
@@ -339,7 +340,7 @@ QGroupBox
   saveDirLayout->addWidget(mSaveDirectoryLabel, 2);
   saveDirLayout->addWidget(mSelectSaveDirectoryButton, 1);
   QFormLayout* saveSettingsLayout = new QFormLayout();
-  saveSettingsLayout->addRow(makeGroupLabel("Output File"));
+  saveSettingsLayout->addRow(makeGroupLabel("<b>Output File</b>"));
   saveSettingsLayout->addRow(tr("File Name:"), mSaveFilePrefix);
   saveSettingsLayout->addRow(tr("Location:"), saveDirLayout);
 
@@ -365,7 +366,7 @@ QGroupBox
   setRenderDurationType(mCaptureSettings->durationType);
 
   QVBoxLayout* durationsLayout = new QVBoxLayout();
-  durationsLayout->addWidget(makeGroupLabel("Image Quality"));
+  durationsLayout->addWidget(makeGroupLabel("<b>Image Quality</b>"));
   durationsLayout->addLayout(durationsHLayout);
   durationsLayout->addWidget(mRenderDurationSettings);
 
@@ -421,7 +422,8 @@ QGroupBox
 
   QGroupBox* progressGroup = new QGroupBox();
   QFormLayout* progressLayout = new QFormLayout();
-  progressLayout->addRow(makeGroupLabel("Rendering " + loadSpec.getFilename()));
+  mRenderProgressLabel = makeGroupLabel("<b>Rendering</b> " + loadSpec.getFilename());
+  progressLayout->addRow(mRenderProgressLabel);
 
   // do we have a potential time series?
   if (scene.m_timeLine.maxTime() > 0) {

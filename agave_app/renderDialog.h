@@ -161,6 +161,7 @@ private:
   QLabel* mSaveDirectoryLabel;
   QLineEdit* mSaveFilePrefix;
 
+  QLabel* mRenderProgressLabel;
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
   QButtonGroup* mRenderDurationEdit;
