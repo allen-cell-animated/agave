@@ -126,8 +126,8 @@ private slots:
   void stopRendering();
   void resumeRendering();
   void onResolutionPreset(int index);
-  void updateWidth(int w);
-  void updateHeight(int h);
+  void updateWidth(const QString& w);
+  void updateHeight(const QString& h);
   void updateRenderSamples(int s);
   void updateRenderTime(const QTime& t);
   void onRenderDurationTypeChanged(int index);
@@ -149,8 +149,8 @@ private:
   QPushButton* mPauseRenderButton;
   QPushButton* mStopRenderButton;
   QPushButton* mSaveButton;
-  QSpinBox* mWidthInput;
-  QSpinBox* mHeightInput;
+  QLineEdit* mWidthInput;
+  QLineEdit* mHeightInput;
   QPushButton* mLockAspectRatio;
   QComboBox* mResolutionPresets;
   QSpinBox* mStartTimeInput;
@@ -202,4 +202,6 @@ private:
 
   bool isRenderInProgress();
   bool getUserCancelConfirmation();
+  void updateUIStartRendering();
+  void updateUIStopRendering(bool completed);
 };

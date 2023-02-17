@@ -208,9 +208,9 @@ QGroupBox
 }
 )");
   mImageView = new ImageDisplay(this);
-  mRenderButton = new QPushButton("&Render", this);
+  mRenderButton = new QPushButton("Start Rendering", this);
   // mPauseRenderButton = new QPushButton("&Pause", this);
-  mStopRenderButton = new QPushButton("&Stop", this);
+  mStopRenderButton = new QPushButton("Stop Rendering", this);
   // mSaveButton = new QPushButton("&Save", this);
 
   mFrameProgressBar = new QProgressBar(this);
@@ -253,14 +253,19 @@ QGroupBox
   m_camera.m_Film.m_Resolution.SetResX(mWidth);
   m_camera.m_Film.m_Resolution.SetResY(mHeight);
 
-  mWidthInput = new QSpinBox(this);
-  mWidthInput->setMaximum(4096);
-  mWidthInput->setMinimum(2);
-  mWidthInput->setValue(mWidth);
-  mHeightInput = new QSpinBox(this);
-  mHeightInput->setMaximum(4096);
-  mHeightInput->setMinimum(2);
-  mHeightInput->setValue(mHeight);
+  mWidthInput = new QLineEdit(QString::number(mWidth), this);
+  mWidthInput->setValidator(new QIntValidator(2, 4096, this));
+  mHeightInput = new QLineEdit(QString::number(mHeight), this);
+  mHeightInput->setValidator(new QIntValidator(2, 4096, this));
+
+  // mWidthInput = new QSpinBox(this);
+  // mWidthInput->setMaximum(4096);
+  // mWidthInput->setMinimum(2);
+  // mWidthInput->setValue(mWidth);
+  // mHeightInput = new QSpinBox(this);
+  // mHeightInput->setMaximum(4096);
+  // mHeightInput->setMinimum(2);
+  // mHeightInput->setValue(mHeight);
   mLockAspectRatio = new QPushButton(QIcon(":/icons/lock.png"), "", this);
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
@@ -303,8 +308,8 @@ QGroupBox
   connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
   // connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
-  connect(mWidthInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateWidth);
-  connect(mHeightInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &RenderDialog::updateHeight);
+  connect(mWidthInput, &QLineEdit::textChanged, this, &RenderDialog::updateWidth);
+  connect(mHeightInput, &QLineEdit::textChanged, this, &RenderDialog::updateHeight);
   connect(mRenderSamplesEdit, SIGNAL(valueChanged(int)), this, SLOT(updateRenderSamples(int)));
   connect(mRenderTimeEdit, SIGNAL(timeChanged(const QTime&)), this, SLOT(updateRenderTime(const QTime&)));
   connect(mRenderDurationEdit, SIGNAL(idClicked(int)), this, SLOT(onRenderDurationTypeChanged(int)));
@@ -422,7 +427,7 @@ QGroupBox
 
   QGroupBox* progressGroup = new QGroupBox();
   QFormLayout* progressLayout = new QFormLayout();
-  mRenderProgressLabel = makeGroupLabel("<b>Rendering</b> " + loadSpec.getFilename());
+  mRenderProgressLabel = makeGroupLabel("<b>Render</b> " + loadSpec.getFilename());
   progressLayout->addRow(mRenderProgressLabel);
 
   // do we have a potential time series?
@@ -487,11 +492,18 @@ RenderDialog::setImage(QImage* image)
 }
 
 void
-RenderDialog::render()
+RenderDialog::updateUIStartRendering()
 {
   mRenderButton->setVisible(false);
   mStopRenderButton->setVisible(true);
-  LOG_INFO << "Render button clicked";
+  mRenderProgressLabel->setText(QString::fromStdString("<b>Rendering</b> " + m_loadSpec.getFilename()));
+}
+
+void
+RenderDialog::render()
+{
+  updateUIStartRendering();
+
   if (!this->m_renderThread || m_renderThread->isFinished()) {
 
     resetProgress();
@@ -600,6 +612,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
       LOG_DEBUG << "all frames completed.  ending render";
       stopRendering();
+      updateUIStopRendering(true);
     } else {
       LOG_DEBUG << "reset frame progress for next frame";
       // reset frame progress and render time
@@ -701,8 +714,8 @@ RenderDialog::onResolutionPreset(int index)
     // find preset res and set w/h
     const ResolutionPreset& preset = resolutionPresets[index - 2];
     mAspectRatio = (float)preset.w / (float)preset.h;
-    mWidthInput->setValue((preset.w));
-    mHeightInput->setValue((preset.h));
+    mWidthInput->setText(QString::number(preset.w));
+    mHeightInput->setText(QString::number(preset.h));
   } else if (index == 1) {
     // get xy from the main window size.
   }
@@ -711,16 +724,16 @@ RenderDialog::onResolutionPreset(int index)
 }
 
 void
-RenderDialog::updateWidth(int w)
+RenderDialog::updateWidth(const QString& w)
 {
-  mWidth = w;
-  m_camera.m_Film.m_Resolution.SetResX(w);
-  mCaptureSettings->width = w;
+  mWidth = w.toInt();
+  m_camera.m_Film.m_Resolution.SetResX(mWidth);
+  mCaptureSettings->width = mWidth;
 
   if (mLockAspectRatio->isChecked()) {
     mHeight = (int)(mWidth / mAspectRatio);
     mHeightInput->blockSignals(true);
-    mHeightInput->setValue(mHeight);
+    mHeightInput->setText(QString::number(mHeight));
     mHeightInput->blockSignals(false);
     m_camera.m_Film.m_Resolution.SetResY(mHeight);
     mCaptureSettings->height = mHeight;
@@ -732,16 +745,16 @@ RenderDialog::updateWidth(int w)
 }
 
 void
-RenderDialog::updateHeight(int h)
+RenderDialog::updateHeight(const QString& h)
 {
-  mHeight = h;
-  m_camera.m_Film.m_Resolution.SetResY(h);
-  mCaptureSettings->height = h;
+  mHeight = h.toInt();
+  m_camera.m_Film.m_Resolution.SetResY(mHeight);
+  mCaptureSettings->height = mHeight;
 
   if (mLockAspectRatio->isChecked()) {
     mWidth = (int)(mHeight * mAspectRatio);
     mWidthInput->blockSignals(true);
-    mWidthInput->setValue(mWidth);
+    mWidthInput->setText(QString::number(mWidth));
     mWidthInput->blockSignals(false);
     m_camera.m_Film.m_Resolution.SetResX(mWidth);
     mCaptureSettings->width = mWidth;
@@ -943,18 +956,24 @@ RenderDialog::closeEvent(QCloseEvent* event)
 }
 
 void
+RenderDialog::updateUIStopRendering(bool completed)
+{
+  mRenderButton->setVisible(true);
+  mStopRenderButton->setVisible(false);
+  mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
+}
+
+void
 RenderDialog::onStopButtonClick()
 {
   // note this does not pause/resume while waiting for confirmation
   if (isRenderInProgress()) {
     if (getUserCancelConfirmation()) {
       stopRendering();
-      mRenderButton->setVisible(true);
-      mStopRenderButton->setVisible(false);
+      updateUIStopRendering(false);
     }
   } else {
     stopRendering();
-    mRenderButton->setVisible(true);
-    mStopRenderButton->setVisible(false);
+    updateUIStopRendering(false);
   }
 }
