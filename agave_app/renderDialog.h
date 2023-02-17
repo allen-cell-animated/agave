@@ -17,8 +17,8 @@ class QOpenGLContext;
 class QPixmap;
 class QProgressBar;
 class QPushButton;
-class QStackedWidget;
 class QSpinBox;
+class QStackedWidget;
 class QTimeEdit;
 class QToolBar;
 class QWidget;
@@ -148,6 +148,7 @@ private:
   QPushButton* mRenderButton;
   QPushButton* mPauseRenderButton;
   QPushButton* mStopRenderButton;
+  QPushButton* mCloseButton;
   QPushButton* mSaveButton;
   QLineEdit* mWidthInput;
   QLineEdit* mHeightInput;
@@ -174,6 +175,8 @@ private:
 
   QToolBar* mToolbar;
 
+  int mMainViewWidth;
+  int mMainViewHeight;
   int mWidth;
   int mHeight;
   float mAspectRatio;

@@ -171,7 +171,7 @@ static QLabel*
 makeGroupLabel(const std::string& text)
 {
   QLabel* label = new QLabel(QString::fromStdString(text));
-  label->setStyleSheet("font-size: 12px;");
+  label->setStyleSheet("font-size: 14px;");
   label->setTextFormat(Qt::RichText);
   return label;
 }
@@ -204,14 +204,17 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
 QGroupBox
 {
     font-size: 12px;
-    /*font-weight: bold;*/
 }
 )");
   mImageView = new ImageDisplay(this);
   mRenderButton = new QPushButton("Start Rendering", this);
+  mRenderButton->setStyleSheet("font-size: 16px;");
   // mPauseRenderButton = new QPushButton("&Pause", this);
   mStopRenderButton = new QPushButton("Stop Rendering", this);
+  mStopRenderButton->setStyleSheet("font-size: 16px;");
   // mSaveButton = new QPushButton("&Save", this);
+  mCloseButton = new QPushButton("Close Render Window", this);
+  mCloseButton->setStyleSheet("font-size: 16px;");
 
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
@@ -222,8 +225,10 @@ QGroupBox
 
   mRenderDurationEdit = new QButtonGroup(this);
   QPushButton* samplesButton = new QPushButton(tr("Samples"), this);
+  samplesButton->setToolTip(tr("Render for a fixed number of samples per pixel"));
   samplesButton->setCheckable(true);
   QPushButton* timeButton = new QPushButton(tr("Time"), this);
+  timeButton->setToolTip(tr("Render for a fixed amount of time"));
   timeButton->setCheckable(true);
   mRenderDurationEdit->addButton(samplesButton, eRenderDurationType::SAMPLES);
   mRenderDurationEdit->addButton(timeButton, eRenderDurationType::TIME);
@@ -232,7 +237,6 @@ QGroupBox
     { eRenderDurationType::TIME, 1 },
   };
   mRenderDurationEdit->button(mCaptureSettings->durationType)->setChecked(true);
-  // mRenderDurationEdit->setCurrentIndex(mapDurationTypeToUIIndex[mCaptureSettings->durationType]);
 
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
@@ -246,6 +250,8 @@ QGroupBox
   int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
   mRenderTimeEdit->setTime(QTime(h, m, s));
 
+  mMainViewWidth = mCaptureSettings->width;
+  mMainViewHeight = mCaptureSettings->height;
   mWidth = mCaptureSettings->width;
   mHeight = mCaptureSettings->height;
   mAspectRatio = (float)mWidth / (float)mHeight;
@@ -271,7 +277,8 @@ QGroupBox
   mLockAspectRatio->setChecked(true);
   mResolutionPresets = new QComboBox(this);
   mResolutionPresets->addItem("Choose Preset...");
-  mResolutionPresets->addItem("Main window");
+  mResolutionPresets->addItem(QString::fromStdString("Main window (" + std::to_string(mMainViewWidth) + "x" +
+                                                     std::to_string(mMainViewHeight) + ")"));
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
     mResolutionPresets->addItem(resolutionPresets[i].label);
   }
@@ -306,6 +313,7 @@ QGroupBox
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
   // connect(mPauseRenderButton, &QPushButton::clicked, this, &RenderDialog::pauseRendering);
   connect(mStopRenderButton, &QPushButton::clicked, this, &RenderDialog::onStopButtonClick);
+  connect(mCloseButton, &QPushButton::clicked, this, &RenderDialog::close);
   // connect(mSaveButton, &QPushButton::clicked, this, &RenderDialog::save);
   connect(mResolutionPresets, SIGNAL(currentIndexChanged(int)), this, SLOT(onResolutionPreset(int)));
   connect(mWidthInput, &QLineEdit::textChanged, this, &RenderDialog::updateWidth);
@@ -353,8 +361,6 @@ QGroupBox
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
 
-  mRenderDurationSettings = new QStackedWidget(this);
-
   QFormLayout* durationsHLayoutTime = new QFormLayout();
   durationsHLayoutTime->addRow(tr("Time:"), mRenderTimeEdit);
   QWidget* durationSettingsTime = new QWidget();
@@ -365,21 +371,27 @@ QGroupBox
   QWidget* durationSettingsSamples = new QWidget();
   durationSettingsSamples->setLayout(durationsHLayoutSamples);
 
+  mRenderDurationSettings = new QStackedWidget(this);
   mRenderDurationSettings->addWidget(durationSettingsTime);
   mRenderDurationSettings->addWidget(durationSettingsSamples);
   // initialize
   setRenderDurationType(mCaptureSettings->durationType);
 
+  QWidget* durationsWidget = new QWidget();
+  durationsWidget->setLayout(durationsHLayout);
+
   QVBoxLayout* durationsLayout = new QVBoxLayout();
   durationsLayout->addWidget(makeGroupLabel("<b>Image Quality</b>"));
-  durationsLayout->addLayout(durationsHLayout);
+  durationsLayout->addWidget(durationsWidget);
   durationsLayout->addWidget(mRenderDurationSettings);
 
   QHBoxLayout* bottomButtonsLayout = new QHBoxLayout();
   bottomButtonsLayout->addWidget(mRenderButton);
   // bottomButtonslayout->addWidget(mPauseRenderButton);
   bottomButtonsLayout->addWidget(mStopRenderButton);
+  bottomButtonsLayout->addWidget(mCloseButton);
   mStopRenderButton->setVisible(false);
+  mCloseButton->setVisible(false);
   // bottomButtonslayout->addWidget(mSaveButton);
 
   static const int MAX_CONTROLS_WIDTH = 400;
@@ -411,6 +423,7 @@ QGroupBox
   controlsLayout->addWidget(groupBox2);
   controlsLayout->addWidget(groupBox3);
   controlsLayout->addWidget(groupBox4);
+  controlsLayout->addStretch(1);
   controlsLayout->setSpacing(0);
   controlsLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -419,7 +432,8 @@ QGroupBox
 
   QVBoxLayout* viewLayout = new QVBoxLayout();
   viewLayout->addWidget(mImageView);
-  viewLayout->addWidget(mToolbar);
+  // viewLayout->addWidget(mToolbar);
+  mToolbar->setParent(mImageView);
 
   QHBoxLayout* mainDialogLayout = new QHBoxLayout();
   mainDialogLayout->addWidget(controlsGroupBox, 1);
@@ -448,6 +462,7 @@ QGroupBox
   reallyMainDialogLayout->addWidget(progressGroup);
 
   setLayout(reallyMainDialogLayout);
+  mRenderButton->setFocus();
 }
 
 void
@@ -496,6 +511,7 @@ RenderDialog::updateUIStartRendering()
 {
   mRenderButton->setVisible(false);
   mStopRenderButton->setVisible(true);
+  mCloseButton->setVisible(false);
   mRenderProgressLabel->setText(QString::fromStdString("<b>Rendering</b> " + m_loadSpec.getFilename()));
 }
 
@@ -718,6 +734,9 @@ RenderDialog::onResolutionPreset(int index)
     mHeightInput->setText(QString::number(preset.h));
   } else if (index == 1) {
     // get xy from the main window size.
+    mAspectRatio = (float)mMainViewWidth / (float)mMainViewHeight;
+    mWidthInput->setText(QString::number(mMainViewWidth));
+    mHeightInput->setText(QString::number(mMainViewHeight));
   }
   // restore index 0
   mResolutionPresets->setCurrentIndex(0);
@@ -960,6 +979,8 @@ RenderDialog::updateUIStopRendering(bool completed)
 {
   mRenderButton->setVisible(true);
   mStopRenderButton->setVisible(false);
+  // mCloseButton->setVisible(completed);
+
   mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
 }
 
