@@ -199,6 +199,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , mFrameNumber(0)
   , mTotalFrames(1)
   , mCaptureSettings(captureSettings)
+  , mTimeSeriesProgressLabel(nullptr)
   , QDialog(parent)
 {
   setWindowTitle(tr("AGAVE Render"));
@@ -296,6 +297,7 @@ QGroupBox
 
   mTimeSeriesProgressBar = new QProgressBar(this);
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
+  mTimeSeriesProgressBar->setValue(0);
 
   mSelectSaveDirectoryButton = new QPushButton("...", this);
 
@@ -449,7 +451,10 @@ QGroupBox
   // do we have a potential time series?
   if (scene.m_timeLine.maxTime() > 0) {
     progressLayout->addRow(tr("Frame Progress"), mFrameProgressBar);
-    progressLayout->addRow(tr("Total Progress"), mTimeSeriesProgressBar);
+    mTimeSeriesProgressLabel = new QLabel("Total Progress");
+    mTimeSeriesProgressLabel->setText("Total Progress (" + QString::number(mTimeSeriesProgressBar->value()) + "/" +
+                                      QString::number(mTimeSeriesProgressBar->maximum()) + ")");
+    progressLayout->addRow(mTimeSeriesProgressLabel, mTimeSeriesProgressBar);
   } else {
     progressLayout->addRow(tr("Total Progress"), mFrameProgressBar);
     mTimeSeriesProgressBar->setVisible(false);
@@ -624,6 +629,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // increment frame
     mFrameNumber += 1;
     mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
+    if (mTimeSeriesProgressLabel) {
+      mTimeSeriesProgressLabel->setText("Total Progress (" + QString::number(mTimeSeriesProgressBar->value()) + "/" +
+                                        QString::number(mTimeSeriesProgressBar->maximum()) + ")");
+    }
     LOG_DEBUG << "Total Progress " << mTimeSeriesProgressBar->value() << " / " << mTimeSeriesProgressBar->maximum();
 
     // done with LAST frame? halt everything.

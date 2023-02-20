@@ -167,6 +167,7 @@ private:
   QLabel* mRenderProgressLabel;
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
+  QLabel* mTimeSeriesProgressLabel;
   QButtonGroup* mRenderDurationEdit;
   QStackedWidget* mRenderDurationSettings;
   QSpinBox* mRenderSamplesEdit;
