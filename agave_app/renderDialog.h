@@ -178,6 +178,8 @@ private:
 
   QToolBar* mToolbar;
 
+  std::vector<QWidget*> mWidgetsToDisableWhileRendering;
+
   int mMainViewWidth;
   int mMainViewHeight;
   int mWidth;

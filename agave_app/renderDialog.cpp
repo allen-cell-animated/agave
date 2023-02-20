@@ -407,7 +407,7 @@ QGroupBox
   QGroupBox* groupBox1 = new QGroupBox();
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
-  groupBox1->setEnabled(scene.m_timeLine.maxTime() > 0);
+  groupBox1->setVisible(scene.m_timeLine.maxTime() > 0);
 
   QGroupBox* groupBox2 = new QGroupBox();
   groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
@@ -430,6 +430,11 @@ QGroupBox
   controlsLayout->addStretch(1);
   controlsLayout->setSpacing(0);
   controlsLayout->setContentsMargins(0, 0, 0, 0);
+
+  mWidgetsToDisableWhileRendering.push_back(groupBox0);
+  mWidgetsToDisableWhileRendering.push_back(groupBox1);
+  mWidgetsToDisableWhileRendering.push_back(groupBox2);
+  mWidgetsToDisableWhileRendering.push_back(groupBox3);
 
   QGroupBox* controlsGroupBox = new QGroupBox();
   controlsGroupBox->setLayout(controlsLayout);
@@ -520,6 +525,9 @@ RenderDialog::updateUIStartRendering()
   mStopRenderButton->setVisible(true);
   mCloseButton->setVisible(false);
   mRenderProgressLabel->setText(QString::fromStdString("<b>Rendering</b> " + m_loadSpec.getFilename()));
+  for (auto w : mWidgetsToDisableWhileRendering) {
+    w->setEnabled(false);
+  }
 }
 
 void
@@ -993,6 +1001,10 @@ RenderDialog::updateUIStopRendering(bool completed)
   // mCloseButton->setVisible(completed);
 
   mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
+
+  for (auto w : mWidgetsToDisableWhileRendering) {
+    w->setEnabled(true);
+  }
 }
 
 void
