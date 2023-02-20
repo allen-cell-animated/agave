@@ -74,6 +74,11 @@ jsonRead(std::string zarrurl)
 uint32_t
 FileReaderZarr::loadNumScenesZarr(const std::string& filepath)
 {
+  nlohmann::json attrs = jsonRead(filepath);
+  auto multiscales = attrs["multiscales"];
+  if (multiscales.is_array()) {
+    return multiscales.size();
+  }
   return 1;
 }
 
@@ -144,8 +149,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   nlohmann::json attrs = jsonRead(filepath);
   auto multiscales = attrs["multiscales"];
   if (multiscales.is_array()) {
-    // take the first one for now.
-    auto multiscale = multiscales[0];
+    auto multiscale = multiscales[scene];
     auto datasets = multiscale["datasets"];
     if (datasets.is_array()) {
       for (auto& dataset : datasets) {
@@ -180,6 +184,8 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
         }
       }
     }
+  } else {
+    LOG_ERROR << "No multiscales array found in " << filepath;
   }
   return multiscaleDims;
 }

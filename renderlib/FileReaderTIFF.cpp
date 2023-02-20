@@ -100,10 +100,62 @@ requireFloatAttr(pugi_agave::xml_node& el, const std::string& attr, float defaul
   return el.attribute(attr.c_str()).as_float(defaultVal);
 }
 
+static int
+readTiffNumScenes(TIFF* tiff, const std::string& filepath)
+{
+  int numscenes = 1;
+
+  char* imagedescription = nullptr;
+  // metadata is in ImageDescription of first IFD in the file.
+  if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &imagedescription) != 1) {
+    imagedescription = nullptr;
+    LOG_WARNING << "Failed to read imagedescription of TIFF: '" << filepath << "';  interpreting as single channel.";
+  }
+
+  std::string simagedescription = trim(imagedescription);
+
+  // check for plain tiff with ImageJ imagedescription:
+  if (startsWith(simagedescription, "ImageJ=")) {
+    numscenes = 1;
+  } else if (startsWith(simagedescription, "{\"shape\":")) {
+    numscenes = 1;
+  } else if ((startsWith(simagedescription, "<?xml version") || startsWith(simagedescription, "<OME xmlns")) &&
+             endsWith(simagedescription, "OME>")) {
+    // convert c to xml doc.  if this fails then we don't have an ome tif.
+    pugi_agave::xml_document omexml;
+    pugi_agave::xml_parse_result parseOk = omexml.load_string(simagedescription.c_str());
+    if (!parseOk) {
+      LOG_ERROR << "Bad OME xml metadata content";
+      return false;
+    }
+
+    pugi_agave::xml_node omenode = omexml.child("OME");
+
+    // count how many <Image> tags and that is our number of scenes.
+    numscenes = 0;
+    pugi_agave::xml_node imageEl;
+    pugi_agave::xml_node pixelsEl;
+    for (pugi_agave::xml_node imagenode : omenode.children("Image")) {
+      numscenes++;
+    }
+  } else {
+    numscenes = 1;
+  }
+
+  return numscenes;
+}
+
 uint32_t
 FileReaderTIFF::loadNumScenesTiff(const std::string& filepath)
 {
-  return 1;
+  // Loads tiff file
+  ScopedTiffReader tiffreader(filepath);
+  TIFF* tiff = tiffreader.reader();
+  if (!tiff) {
+    return 0;
+  }
+
+  return readTiffNumScenes(tiff, filepath);
 }
 
 bool
