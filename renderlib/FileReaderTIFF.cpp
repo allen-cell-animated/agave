@@ -15,7 +15,7 @@
 #include <map>
 #include <set>
 
-FileReaderTIFF::FileReaderTIFF() {}
+FileReaderTIFF::FileReaderTIFF(const std::string& filepath) {}
 
 FileReaderTIFF::~FileReaderTIFF() {}
 
@@ -146,7 +146,7 @@ readTiffNumScenes(TIFF* tiff, const std::string& filepath)
 }
 
 uint32_t
-FileReaderTIFF::loadNumScenesTiff(const std::string& filepath)
+FileReaderTIFF::loadNumScenes(const std::string& filepath)
 {
   // Loads tiff file
   ScopedTiffReader tiffreader(filepath);
@@ -563,7 +563,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
 }
 
 VolumeDimensions
-FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, uint32_t scene)
+FileReaderTIFF::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   ScopedTiffReader tiffreader(filepath);
   TIFF* tiff = tiffreader.reader();
@@ -582,8 +582,13 @@ FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
+FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
 {
+  std::string filepath = loadSpec.filepath;
+  uint32_t time = loadSpec.time;
+  uint32_t scene = loadSpec.scene;
+  VolumeDimensions outDims;
+
   std::shared_ptr<ImageXYZC> emptyimage;
 
   auto tStart = std::chrono::high_resolution_clock::now();
@@ -695,9 +700,8 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
-  if (outDims != nullptr) {
-    *outDims = dims;
-  }
+  outDims = dims;
+
   return sharedImage;
 }
 
@@ -705,7 +709,7 @@ std::vector<MultiscaleDims>
 FileReaderTIFF::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
   std::vector<MultiscaleDims> dims;
-  VolumeDimensions vdims = loadDimensionsTiff(filepath, scene);
+  VolumeDimensions vdims = loadDimensions(filepath, scene);
   if (!vdims.validate()) {
     return dims;
   }

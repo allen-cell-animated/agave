@@ -75,12 +75,12 @@
 static const size_t CCP4_HEADER_SIZE = 256 * 4;
 static const size_t CCP4_NSYMBT_OFFSET = 23 * 4;
 
-FileReaderCCP4::FileReaderCCP4() {}
+FileReaderCCP4::FileReaderCCP4(const std::string& filepath) {}
 
 FileReaderCCP4::~FileReaderCCP4() {}
 
 uint32_t
-FileReaderCCP4::loadNumScenesCCP4(const std::string& filepath)
+FileReaderCCP4::loadNumScenes(const std::string& filepath)
 {
   return 1;
 }
@@ -256,7 +256,7 @@ readCCP4Plane(std::ifstream& myFile, size_t offset, size_t numBytes, const Volum
 }
 
 VolumeDimensions
-FileReaderCCP4::loadDimensionsCCP4(const std::string& filepath, uint32_t scene)
+FileReaderCCP4::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
   bool dims_ok = readCCP4Dimensions(filepath, dims, scene);
@@ -267,8 +267,13 @@ FileReaderCCP4::loadDimensionsCCP4(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
+FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
 {
+  std::string filepath = loadSpec.filepath;
+  uint32_t scene = loadSpec.scene;
+  uint32_t time = loadSpec.time;
+  VolumeDimensions outDims;
+
   std::shared_ptr<ImageXYZC> emptyimage;
 
   auto tStart = std::chrono::high_resolution_clock::now();
@@ -353,9 +358,8 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
   LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
-  if (outDims != nullptr) {
-    *outDims = dims;
-  }
+  outDims = dims;
+
   return sharedImage;
 }
 

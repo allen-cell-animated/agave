@@ -15,7 +15,7 @@
 #include <map>
 #include <set>
 
-FileReaderCzi::FileReaderCzi() {}
+FileReaderCzi::FileReaderCzi(const std::string& filepath) {}
 
 FileReaderCzi::~FileReaderCzi() {}
 
@@ -234,7 +234,7 @@ readCziPlane(const std::shared_ptr<libCZI::ICZIReader>& reader,
 }
 
 uint32_t
-FileReaderCzi::loadNumScenesCzi(const std::string& filepath)
+FileReaderCzi::loadNumScenes(const std::string& filepath)
 {
   try {
     ScopedCziReader scopedReader(filepath);
@@ -262,7 +262,7 @@ FileReaderCzi::loadNumScenesCzi(const std::string& filepath)
 }
 
 VolumeDimensions
-FileReaderCzi::loadDimensionsCzi(const std::string& filepath, uint32_t scene)
+FileReaderCzi::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
   try {
@@ -289,8 +289,13 @@ FileReaderCzi::loadDimensionsCzi(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
+FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
 {
+  std::string filepath = loadSpec.filepath;
+  uint32_t scene = loadSpec.scene;
+  uint32_t time = loadSpec.time;
+  VolumeDimensions outDims;
+
   std::shared_ptr<ImageXYZC> emptyimage;
 
   auto tStart = std::chrono::high_resolution_clock::now();
@@ -398,9 +403,8 @@ FileReaderCzi::loadCzi(const std::string& filepath, VolumeDimensions* outDims, u
     LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
     std::shared_ptr<ImageXYZC> sharedImage(im);
-    if (outDims != nullptr) {
-      *outDims = dims;
-    }
+    outDims = dims;
+
     return sharedImage;
 
   } catch (std::exception& e) {
@@ -417,7 +421,7 @@ std::vector<MultiscaleDims>
 FileReaderCzi::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
   std::vector<MultiscaleDims> dims;
-  VolumeDimensions vdims = loadDimensionsCzi(filepath, scene);
+  VolumeDimensions vdims = loadDimensions(filepath, scene);
   if (!vdims.validate()) {
     return dims;
   }

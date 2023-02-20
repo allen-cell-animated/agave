@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IFileReader.h"
 #include "VolumeDimensions.h"
 
 #include <memory>
@@ -7,17 +8,14 @@
 
 class ImageXYZC;
 
-class FileReaderTIFF
+class FileReaderTIFF : public IFileReader
 {
 public:
-  FileReaderTIFF();
+  FileReaderTIFF(const std::string& filepath);
   virtual ~FileReaderTIFF();
 
-  static std::shared_ptr<ImageXYZC> loadOMETiff(const std::string& filepath,
-                                                VolumeDimensions* dims = nullptr,
-                                                uint32_t time = 0,
-                                                uint32_t scene = 0);
-  static VolumeDimensions loadDimensionsTiff(const std::string& filepath, uint32_t scene = 0);
-  static uint32_t loadNumScenesTiff(const std::string& filepath);
-  static std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
+  std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec);
+  VolumeDimensions loadDimensions(const std::string& filepath, uint32_t scene = 0);
+  uint32_t loadNumScenes(const std::string& filepath);
+  std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
 };

@@ -43,7 +43,7 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr() {}
+FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
 
 FileReaderZarr::~FileReaderZarr() {}
 
@@ -72,7 +72,7 @@ jsonRead(std::string zarrurl)
 }
 
 uint32_t
-FileReaderZarr::loadNumScenesZarr(const std::string& filepath)
+FileReaderZarr::loadNumScenes(const std::string& filepath)
 {
   nlohmann::json attrs = jsonRead(filepath);
   auto multiscales = attrs["multiscales"];
@@ -191,7 +191,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 }
 
 VolumeDimensions
-FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
+FileReaderZarr::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
 
@@ -214,7 +214,7 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
+FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 {
   auto tStart = std::chrono::high_resolution_clock::now();
   // load channels
