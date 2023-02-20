@@ -183,6 +183,8 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            QOpenGLContext* glContext,
                            const LoadSpec& loadSpec,
                            CaptureSettings* captureSettings,
+                           int viewportWidth,
+                           int viewportHeight,
                            QWidget* parent)
   : m_renderer(borrowedRenderer)
   , m_renderSettings(renderSettings)
@@ -250,8 +252,8 @@ QGroupBox
   int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
   mRenderTimeEdit->setTime(QTime(h, m, s));
 
-  mMainViewWidth = mCaptureSettings->width;
-  mMainViewHeight = mCaptureSettings->height;
+  mMainViewWidth = viewportWidth;
+  mMainViewHeight = viewportHeight;
   mWidth = mCaptureSettings->width;
   mHeight = mCaptureSettings->height;
   mAspectRatio = (float)mWidth / (float)mHeight;

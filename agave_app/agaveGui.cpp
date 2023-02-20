@@ -359,8 +359,16 @@ agaveGui::onRenderAction()
   }
   // copy of camera
   CCamera camera = m_glView->getCamera();
-  RenderDialog* rdialog = new RenderDialog(
-    renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_loadSpec, &m_captureSettings, this);
+  RenderDialog* rdialog = new RenderDialog(renderer,
+                                           m_renderSettings,
+                                           m_appScene,
+                                           camera,
+                                           m_glView->context(),
+                                           m_loadSpec,
+                                           &m_captureSettings,
+                                           imcopy->width(),
+                                           imcopy->height(),
+                                           this);
   rdialog->resize(geometry().width(), m_tabs->height());
   rdialog->move(geometry().x(), geometry().y());
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {

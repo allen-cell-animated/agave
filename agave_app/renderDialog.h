@@ -108,6 +108,8 @@ public:
                QOpenGLContext* glContext,
                const LoadSpec& loadSpec,
                CaptureSettings* captureSettings,
+               int viewportWidth,
+               int viewportHeight,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
