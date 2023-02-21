@@ -476,6 +476,7 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
   if (file.find("http") == 0 || file.find("zarr") != std::string::npos) {
     // read some metadata from the cloud and present the next dialog
     // if successful
+    int numScenes = FileReader::loadNumScenes(file);
 
     std::vector<MultiscaleDims> multiscaledims;
     bool haveDims = FileReader::loadMultiscaleDims(file, sceneToLoad, multiscaledims);

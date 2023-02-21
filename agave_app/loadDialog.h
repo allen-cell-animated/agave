@@ -1,14 +1,17 @@
 #pragma once
 
-#include "renderlib/VolumeDimensions.h"
 #include "renderlib/FileReader.h"
+#include "renderlib/VolumeDimensions.h"
 
 #include <QDialog>
 
+class QComboBox;
+class QIntSlider;
 class QLabel;
 class QSpinBox;
 class QTreeWidget;
 
+class IFileReader;
 class RangeWidget;
 
 class LoadDialog : public QDialog
@@ -17,21 +20,26 @@ class LoadDialog : public QDialog
 
 public:
   LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent = Q_NULLPTR);
+  ~LoadDialog();
 
   LoadSpec getLoadSpec() const;
   int getMultiscaleLevelIndex() const { return mSelectedLevel; }
-  
-  private slots:
+
+private slots:
   void updateScene(int value);
   void onItemSelectionChanged();
+  void updateMultiresolutionLevel(int level);
 
 private:
   std::string mPath;
   int mScene;
+  int mTime;
   std::vector<MultiscaleDims> mDims;
   int mSelectedLevel;
 
   QSpinBox* mSceneInput;
+  QComboBox* mMultiresolutionInput;
+  QIntSlider* m_TimeSlider;
   QTreeWidget* mMetadataTree;
   QLabel* mMemoryEstimateLabel;
   RangeWidget* m_roiX;
@@ -44,4 +52,7 @@ private:
   // start with a single timepoint
 
   void updateMemoryEstimate();
+  void updateMultiresolutionInput();
+
+  IFileReader* m_reader;
 };

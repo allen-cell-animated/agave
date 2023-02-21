@@ -138,6 +138,7 @@ public:
   QIntSlider(QWidget* pParent = NULL);
 
   int value(void) const;
+  int maximum(void) const;
   void setValue(int value, bool BlockSignals = false);
   void setRange(int rmin, int rmax);
   void setSingleStep(int val);

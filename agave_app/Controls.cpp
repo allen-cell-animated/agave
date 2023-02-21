@@ -414,6 +414,12 @@ QIntSlider::value(void) const
   return m_spinner.value();
 }
 
+int
+QIntSlider::maximum() const
+{
+  return m_spinner.maximum();
+}
+
 void
 QIntSlider::setValue(int value, bool blockSignals)
 {

@@ -1,9 +1,12 @@
 #include "loadDialog.h"
 
+#include "Controls.h"
 #include "RangeWidget.h"
 
+#include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
 
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QSpinBox>
@@ -14,6 +17,7 @@
 LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent)
   : QDialog(parent)
 {
+  m_reader = FileReader::getReader(path);
   mPath = path;
   mDims = dims;
   mSelectedLevel = 0;
@@ -30,6 +34,13 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mSceneInput->setMinimum(0);
   mSceneInput->setMaximum(65536);
   mSceneInput->setValue(0);
+
+  mMultiresolutionInput = new QComboBox(this);
+  updateMultiresolutionInput();
+
+  m_TimeSlider = new QIntSlider(this);
+  m_TimeSlider->setRange(0, 0);
+  m_TimeSlider->setValue(0);
 
   mMetadataTree = new QTreeWidget(this);
   mMetadataTree->setColumnCount(2);
@@ -52,10 +63,10 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
     mMetadataTree->addTopLevelItem(item);
   }
   mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
-  
-  connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
+  connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
   connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
+  connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
 
   m_roiX = new RangeWidget(Qt::Horizontal);
   m_roiX->setStatusTip(tr("Region to load: X axis"));
@@ -83,12 +94,16 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   QObject::connect(m_roiZ, &RangeWidget::secondValueChanged, this, &LoadDialog::updateMemoryEstimate);
 
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
-  updateMemoryEstimate();
+
+  updateMultiresolutionLevel(mSelectedLevel);
 
   QVBoxLayout* layout = new QVBoxLayout(this);
 
   layout->addWidget(mSceneInput);
-  layout->addWidget(mMetadataTree);
+  layout->addWidget(mMultiresolutionInput);
+  layout->addWidget(m_TimeSlider);
+  // layout->addWidget(mMetadataTree);
+  mMetadataTree->hide();
   layout->addWidget(m_roiX);
   layout->addWidget(m_roiY);
   layout->addWidget(m_roiZ);
@@ -97,10 +112,17 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   setLayout(layout);
 }
 
+LoadDialog::~LoadDialog()
+{
+  delete m_reader;
+}
+
 void
 LoadDialog::updateScene(int value)
 {
-  // mSettings.mSceneIndex = value;
+  mScene = value;
+  mDims = m_reader->loadMultiscaleDims(mPath, mScene);
+  updateMultiresolutionInput();
 }
 
 void
@@ -128,26 +150,47 @@ LoadDialog::onItemSelectionChanged()
     if (item->parent() == nullptr) {
       // top level item
       auto level = item->text(1).toInt();
-      float pct0x = m_roiX->firstPercent();
-      float pct1x = m_roiX->secondPercent();
-      float pct0y = m_roiY->firstPercent();
-      float pct1y = m_roiY->secondPercent();
-      float pct0z = m_roiZ->firstPercent();
-      float pct1z = m_roiZ->secondPercent();
-      m_roiX->setRange(0, mDims[level].shape[4]);
-      m_roiX->setFirstValue(0 + pct0x * m_roiX->range());
-      m_roiX->setSecondValue(0 + pct1x * m_roiX->range());
-      m_roiY->setRange(0, mDims[level].shape[3]);
-      m_roiY->setFirstValue(0 + pct0y * m_roiY->range());
-      m_roiY->setSecondValue(0 + pct1y * m_roiY->range());
-      m_roiZ->setRange(0, mDims[level].shape[2]);
-      m_roiZ->setFirstValue(0 + pct0z * m_roiZ->range());
-      m_roiZ->setSecondValue(0 + pct1z * m_roiZ->range());
-      updateMemoryEstimate();
+      updateMultiresolutionLevel(level);
     }
   } else {
     LOG_ERROR << "Unexpected number of selected items: " << items.size();
   }
+}
+
+void
+LoadDialog::updateMultiresolutionLevel(int level)
+{
+  mSelectedLevel = level;
+  MultiscaleDims d = mDims[level];
+
+  // update the time slider
+
+  int t = m_TimeSlider->value();
+  // maintain a t value at same percentage of total.
+  float pct = (float)t / (float)m_TimeSlider->maximum();
+  int maxt = d.shape[0];
+  m_TimeSlider->setRange(0, maxt);
+  m_TimeSlider->setValue(pct * maxt);
+
+  // update the xyz sliders
+
+  float pct0x = m_roiX->firstPercent();
+  float pct1x = m_roiX->secondPercent();
+  float pct0y = m_roiY->firstPercent();
+  float pct1y = m_roiY->secondPercent();
+  float pct0z = m_roiZ->firstPercent();
+  float pct1z = m_roiZ->secondPercent();
+  m_roiX->setRange(0, d.shape[4]);
+  m_roiX->setFirstValue(0 + pct0x * m_roiX->range());
+  m_roiX->setSecondValue(0 + pct1x * m_roiX->range());
+  m_roiY->setRange(0, d.shape[3]);
+  m_roiY->setFirstValue(0 + pct0y * m_roiY->range());
+  m_roiY->setSecondValue(0 + pct1y * m_roiY->range());
+  m_roiZ->setRange(0, d.shape[2]);
+  m_roiZ->setFirstValue(0 + pct0z * m_roiZ->range());
+  m_roiZ->setSecondValue(0 + pct1z * m_roiZ->range());
+
+  updateMemoryEstimate();
 }
 
 LoadSpec
@@ -174,4 +217,20 @@ LoadDialog::getLoadSpec() const
     }
   }
   return spec;
+}
+
+void
+LoadDialog::updateMultiresolutionInput()
+{
+  mMultiresolutionInput->clear();
+  for (auto d : mDims) {
+    LoadSpec spec;
+    spec.maxx = d.shape[4];
+    spec.maxy = d.shape[3];
+    spec.maxz = d.shape[2];
+    size_t mem = spec.getMemoryEstimate();
+    std::string label = LoadSpec::bytesToStringLabel(mem);
+
+    mMultiresolutionInput->addItem(QString::fromStdString("Resolution Level " + d.path + " (" + label + " max.)"));
+  }
 }
