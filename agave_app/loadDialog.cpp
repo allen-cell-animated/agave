@@ -9,7 +9,10 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QListView>
 #include <QSpinBox>
+#include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -64,6 +67,13 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   }
   mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
 
+  QCheckList* clist = new QCheckList("Channels", this);
+  clist->setTitleText("Channels");
+  clist->addCheckItem("Ch 0", 0, Qt::Checked);
+  clist->addCheckItem("Ch 1", 1, Qt::Checked);
+  clist->addCheckItem("Ch 2", 2, Qt::Checked);
+  clist->addCheckItem("Ch 3", 3, Qt::Checked);
+
   connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
   connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
   connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
@@ -104,6 +114,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addWidget(m_TimeSlider);
   // layout->addWidget(mMetadataTree);
   mMetadataTree->hide();
+  layout->addWidget(clist);
   layout->addWidget(m_roiX);
   layout->addWidget(m_roiY);
   layout->addWidget(m_roiZ);

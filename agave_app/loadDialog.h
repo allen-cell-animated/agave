@@ -1,11 +1,19 @@
 #pragma once
 
+#include "Controls.h"
+#include "Section.h"
+
 #include "renderlib/FileReader.h"
 #include "renderlib/VolumeDimensions.h"
 
+#include <QComboBox>
 #include <QDialog>
+#include <QEvent>
+#include <QLineEdit>
+#include <QListView>
+#include <QStandardItemModel>
+#include <QStyledItemDelegate>
 
-class QComboBox;
 class QIntSlider;
 class QLabel;
 class QSpinBox;
@@ -40,6 +48,7 @@ private:
   QSpinBox* mSceneInput;
   QComboBox* mMultiresolutionInput;
   QIntSlider* m_TimeSlider;
+  QComboBox* mChannels;
   QTreeWidget* mMetadataTree;
   QLabel* mMemoryEstimateLabel;
   RangeWidget* m_roiX;
