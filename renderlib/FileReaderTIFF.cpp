@@ -325,18 +325,25 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     uint32_t numScenes = 0;
     pugi_agave::xml_node imageEl;
     pugi_agave::xml_node pixelsEl;
-    for (pugi_agave::xml_node imagenode : omenode.children("Image")) {
-      // get the Image and Pixels element of scene
-      if (numScenes == scene) {
-        imageEl = imagenode;
-        pixelsEl = imagenode.child("Pixels");
-      }
-      numScenes++;
-    }
+    auto imagenodes = omenode.children("Image");
+    numScenes = std::distance(imagenodes.begin(), imagenodes.end());
     if (scene >= numScenes) {
       LOG_ERROR << "Requested invalid scene index " << scene << " in OME TIFF; returning scene 0";
       scene = 0;
     }
+    auto imageElIterator = imagenodes.begin();
+    for (uint32_t i = 0; i < scene; ++i) {
+      ++imageElIterator;
+    }
+    imageEl = *imageElIterator;
+    pixelsEl = imageEl.child("Pixels");
+    // for (pugi_agave::xml_node imagenode : imagenodes) {
+    //   // get the Image and Pixels element of scene
+    //   if (numScenes == scene) {
+    //     imageEl = imagenode;
+    //     pixelsEl = imagenode.child("Pixels");
+    //   }
+    // }
 
     if (!imageEl || !pixelsEl) {
       LOG_ERROR << "No <Pixels> element in ome xml for scene " << scene;
@@ -606,10 +613,6 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
     return emptyimage;
   }
 
-  if (scene > 0) {
-    LOG_WARNING << "Multiscene tiff not supported yet. Using scene 0";
-    scene = 0;
-  }
   if (time > (int32_t)(dims.sizeT - 1)) {
     LOG_ERROR << "Time " << time << " exceeds time samples in file: " << dims.sizeT;
     return emptyimage;

@@ -35,7 +35,10 @@ struct LoadSpec
   }
 
   std::string toString() const;
+
+  // GPU estimate for 4 channels and one time at 16bpp
   size_t getMemoryEstimate() const;
+
   static std::string bytesToStringLabel(size_t mem);
 
   std::string getFilename() const;
