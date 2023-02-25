@@ -357,20 +357,35 @@ QGroupBox
   saveDirLayout->addWidget(mSaveDirectoryLabel, 2);
   saveDirLayout->addWidget(mSelectSaveDirectoryButton, 1);
   QFormLayout* saveSettingsLayout = new QFormLayout();
+  saveSettingsLayout->setLabelAlignment(Qt::AlignLeft);
+  saveSettingsLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   saveSettingsLayout->addRow(makeGroupLabel("<b>Output File</b>"));
   saveSettingsLayout->addRow(tr("File Name:"), mSaveFilePrefix);
   saveSettingsLayout->addRow(tr("Location:"), saveDirLayout);
 
+  int ml, mt, mr, mb;
+
   QHBoxLayout* durationsHLayout = new QHBoxLayout();
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
+  durationsHLayout->getContentsMargins(&ml, &mt, &mr, &mb);
+  durationsHLayout->setContentsMargins(0, mt, 0, mb);
+  durationsHLayout->setSpacing(0);
 
   QFormLayout* durationsHLayoutTime = new QFormLayout();
+  durationsHLayoutTime->getContentsMargins(&ml, &mt, &mr, &mb);
+  durationsHLayoutTime->setContentsMargins(0, mt, 0, mb);
+  durationsHLayoutTime->setLabelAlignment(Qt::AlignLeft);
+  durationsHLayoutTime->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   durationsHLayoutTime->addRow(tr("Time:"), mRenderTimeEdit);
   QWidget* durationSettingsTime = new QWidget();
   durationSettingsTime->setLayout(durationsHLayoutTime);
 
   QFormLayout* durationsHLayoutSamples = new QFormLayout();
+  durationsHLayoutSamples->getContentsMargins(&ml, &mt, &mr, &mb);
+  durationsHLayoutSamples->setContentsMargins(0, mt, 0, mb);
+  durationsHLayoutSamples->setLabelAlignment(Qt::AlignLeft);
+  durationsHLayoutSamples->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   durationsHLayoutSamples->addRow(tr("Samples:"), mRenderSamplesEdit);
   QWidget* durationSettingsSamples = new QWidget();
   durationSettingsSamples->setLayout(durationsHLayoutSamples);
@@ -450,6 +465,9 @@ QGroupBox
 
   QGroupBox* progressGroup = new QGroupBox();
   QFormLayout* progressLayout = new QFormLayout();
+  progressLayout->setLabelAlignment(Qt::AlignLeft);
+  progressLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
   mRenderProgressLabel = makeGroupLabel("<b>Render</b> " + loadSpec.getFilename());
   progressLayout->addRow(mRenderProgressLabel);
 
