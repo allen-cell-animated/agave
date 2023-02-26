@@ -1016,7 +1016,7 @@ RenderDialog::updateUIStopRendering(bool completed)
 {
   mRenderButton->setVisible(true);
   mStopRenderButton->setVisible(false);
-  // mCloseButton->setVisible(completed);
+  mCloseButton->setVisible(completed);
 
   mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
 
