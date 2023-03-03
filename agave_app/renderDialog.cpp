@@ -551,15 +551,11 @@ QString
 RenderDialog::getUniqueNextFilename(QString path)
 {
   QFileInfo fileInfo(path);
-  if (!fileInfo.exists()) {
-    return path;
-  }
 
   while (fileInfo.exists()) {
     QString baseName = fileInfo.baseName();
     QString suffix = fileInfo.completeSuffix();
     QString dirPath = fileInfo.dir().path();
-    LOG_INFO << "found baseName: " << baseName.toStdString();
     QRegularExpression re("^(?<baseName>.*)\\((?<number>\\d+)\\)$");
     QRegularExpressionMatch match = re.match(baseName);
     if (match.hasMatch()) {
@@ -645,8 +641,13 @@ RenderDialog::getFullSavePath()
   if (!pathOk) {
     LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
   }
-  // save!
-  QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+
+  // if not time series, then don't add the frame number to the filename
+  QString frameSuffix;
+  if (mTimeSeriesProgressLabel) {
+    frameSuffix = QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+  }
+  QString filename = mSaveFilePrefix->text() + frameSuffix;
   QFileInfo fileInfo(d, filename);
   QString saveFilePath = fileInfo.absoluteFilePath();
   return saveFilePath;
