@@ -30,6 +30,60 @@
 #include <QWidget>
 
 static const float ZOOM_STEP = 1.1f;
+static const int TOOLBAR_INSET = 6;
+
+// find a subrectangle of fullTargetRect that fits the aspect ratio of srcRect
+QRect
+getFitTargetRect(QRect fullTargetRect, QRect srcRect)
+{
+  QRect targetRect = fullTargetRect;
+  float srcaspect = (float)srcRect.width() / (float)srcRect.height();
+  float targetaspect = (float)targetRect.width() / (float)targetRect.height();
+  if (srcaspect > targetaspect) {
+    targetRect.setHeight(targetRect.width() / srcaspect);
+    targetRect.moveTop((fullTargetRect.height() - targetRect.height()) / 2);
+  } else {
+    targetRect.setWidth(targetRect.height() * srcaspect);
+    targetRect.moveLeft((fullTargetRect.width() - targetRect.width()) / 2);
+  }
+  return targetRect;
+}
+
+QImage
+makeCheckerboard(int w, int h)
+{
+  QImage destImage = QImage(w, h, QImage::Format_ARGB32);
+
+  QPainter painter(&destImage);
+
+  QPixmap pm(20, 20);
+  QPainter pmp(&pm);
+  pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
+  pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
+  pmp.fillRect(0, 10, 10, 10, Qt::darkGray);
+  pmp.fillRect(10, 0, 10, 10, Qt::darkGray);
+  pmp.end();
+
+  QBrush brush(pm);
+  painter.fillRect(0, 0, w, h, brush);
+  painter.end();
+
+  return destImage;
+}
+
+QImage
+rescaleAndFitImage(QImage* image, int w, int h)
+{
+  QImage destImage = makeCheckerboard(w, h);
+
+  QPainter painter(&destImage);
+  // find the rectangle in destimage that will hold src image
+  QRect destRect = getFitTargetRect(QRect(0, 0, w, h), QRect(0, 0, image->width(), image->height()));
+  painter.drawImage(destRect, *image);
+  painter.end();
+
+  return destImage;
+}
 
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
@@ -130,18 +184,15 @@ void
 ImageDisplay::fit(int w, int h)
 {
   // fit image aspect ratio within the given widget rectangle.
+  QRect targetRect = getFitTargetRect(rect(), QRect(0, 0, w, h));
+
   float imageaspect = (float)w / (float)h;
   float widgetaspect = (float)width() / (float)height();
   // targetRect will describe a sub-rectangle of the ImageDisplay's client rect
-  QRect targetRect = rect();
   if (imageaspect > widgetaspect) {
-    targetRect.setHeight(targetRect.width() / imageaspect);
-    targetRect.moveTop((height() - targetRect.height()) / 2);
     // scale value from width!
     m_scale = ((float)targetRect.width() / (float)w);
   } else {
-    targetRect.setWidth(targetRect.height() * imageaspect);
-    targetRect.moveLeft((width() - targetRect.width()) / 2);
     // scale value from height!
     m_scale = ((float)targetRect.height() / (float)h);
   }
@@ -216,8 +267,10 @@ QGroupBox
   mStopRenderButton = new QPushButton("Stop Rendering", this);
   mStopRenderButton->setStyleSheet("font-size: 16px;");
   // mSaveButton = new QPushButton("&Save", this);
-  mCloseButton = new QPushButton("Close Render Window", this);
+  mCloseButton = new QPushButton("Close Render", this);
   mCloseButton->setStyleSheet("font-size: 16px;");
+
+  bool isTimeSeries = scene.m_timeLine.maxTime() > 0;
 
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
@@ -290,16 +343,19 @@ QGroupBox
   mStartTimeInput->setMinimum(0);
   mStartTimeInput->setMaximum(scene.m_timeLine.maxTime());
   mStartTimeInput->setValue(mCaptureSettings->startTime);
+  mStartTimeInput->setToolTip(QString("<FONT>First time index of time series to render.</FONT>"));
   mEndTimeInput = new QSpinBox(this);
   mEndTimeInput->setMinimum(0);
   mEndTimeInput->setMaximum(scene.m_timeLine.maxTime());
   mEndTimeInput->setValue(mCaptureSettings->endTime);
+  mEndTimeInput->setToolTip(QString("<FONT>Last time index of time series to render.</FONT>"));
 
   mTimeSeriesProgressBar = new QProgressBar(this);
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
   mTimeSeriesProgressBar->setValue(0);
 
   mSelectSaveDirectoryButton = new QPushButton("...", this);
+  mSelectSaveDirectoryButton->setToolTip(QString("<FONT>Select directory where rendered images will be saved.</FONT>"));
 
   mAutosaveCheckbox = new QCheckBox("Autosave", this);
   mAutosaveCheckbox->setChecked(true);
@@ -308,10 +364,15 @@ QGroupBox
 
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
+  mSaveFilePrefix->setToolTip(
+    QString("<FONT>Output file name.  If you are rendering a time series, the frame number will be appended "
+            "to this as _0000, _0001, etc.  All images saved as PNG files.</FONT>"));
 
   mToolbar = new QToolBar(mImageView);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
+  mToolbar->addSeparator();
   mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
+  mToolbar->addSeparator();
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
@@ -357,20 +418,35 @@ QGroupBox
   saveDirLayout->addWidget(mSaveDirectoryLabel, 2);
   saveDirLayout->addWidget(mSelectSaveDirectoryButton, 1);
   QFormLayout* saveSettingsLayout = new QFormLayout();
+  saveSettingsLayout->setLabelAlignment(Qt::AlignLeft);
+  saveSettingsLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   saveSettingsLayout->addRow(makeGroupLabel("<b>Output File</b>"));
   saveSettingsLayout->addRow(tr("File Name:"), mSaveFilePrefix);
   saveSettingsLayout->addRow(tr("Location:"), saveDirLayout);
 
+  int ml, mt, mr, mb;
+
   QHBoxLayout* durationsHLayout = new QHBoxLayout();
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
   durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
+  durationsHLayout->getContentsMargins(&ml, &mt, &mr, &mb);
+  durationsHLayout->setContentsMargins(0, mt, 0, mb);
+  durationsHLayout->setSpacing(0);
 
   QFormLayout* durationsHLayoutTime = new QFormLayout();
+  durationsHLayoutTime->getContentsMargins(&ml, &mt, &mr, &mb);
+  durationsHLayoutTime->setContentsMargins(0, mt, 0, mb);
+  durationsHLayoutTime->setLabelAlignment(Qt::AlignLeft);
+  durationsHLayoutTime->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   durationsHLayoutTime->addRow(tr("Time:"), mRenderTimeEdit);
   QWidget* durationSettingsTime = new QWidget();
   durationSettingsTime->setLayout(durationsHLayoutTime);
 
   QFormLayout* durationsHLayoutSamples = new QFormLayout();
+  durationsHLayoutSamples->getContentsMargins(&ml, &mt, &mr, &mb);
+  durationsHLayoutSamples->setContentsMargins(0, mt, 0, mb);
+  durationsHLayoutSamples->setLabelAlignment(Qt::AlignLeft);
+  durationsHLayoutSamples->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   durationsHLayoutSamples->addRow(tr("Samples:"), mRenderSamplesEdit);
   QWidget* durationSettingsSamples = new QWidget();
   durationSettingsSamples->setLayout(durationsHLayoutSamples);
@@ -407,7 +483,7 @@ QGroupBox
   QGroupBox* groupBox1 = new QGroupBox();
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
-  groupBox1->setVisible(scene.m_timeLine.maxTime() > 0);
+  groupBox1->setVisible(isTimeSeries);
 
   QGroupBox* groupBox2 = new QGroupBox();
   groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
@@ -419,6 +495,7 @@ QGroupBox
 
   QGroupBox* groupBox4 = new QGroupBox();
   groupBox4->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox4->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
   groupBox4->setLayout(bottomButtonsLayout);
 
   QVBoxLayout* controlsLayout = new QVBoxLayout();
@@ -438,6 +515,8 @@ QGroupBox
 
   QGroupBox* controlsGroupBox = new QGroupBox();
   controlsGroupBox->setLayout(controlsLayout);
+  controlsGroupBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
+  controlsGroupBox->setMaximumWidth(MAX_CONTROLS_WIDTH);
 
   QVBoxLayout* viewLayout = new QVBoxLayout();
   viewLayout->addWidget(mImageView);
@@ -450,6 +529,9 @@ QGroupBox
 
   QGroupBox* progressGroup = new QGroupBox();
   QFormLayout* progressLayout = new QFormLayout();
+  progressLayout->setLabelAlignment(Qt::AlignLeft);
+  progressLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
   mRenderProgressLabel = makeGroupLabel("<b>Render</b> " + loadSpec.getFilename());
   progressLayout->addRow(mRenderProgressLabel);
 
@@ -474,7 +556,7 @@ QGroupBox
   reallyMainDialogLayout->addWidget(progressGroup);
 
   setLayout(reallyMainDialogLayout);
-  mRenderButton->setFocus();
+  positionToolbar();
 }
 
 void
@@ -515,7 +597,14 @@ RenderDialog::save()
 void
 RenderDialog::setImage(QImage* image)
 {
-  mImageView->setImage(image);
+  if (mWidth == image->width() && mHeight == image->height()) {
+    mImageView->setImage(image);
+    return;
+  }
+
+  // resize and letterbox the image to match our current render resolution.
+  QImage destImage = rescaleAndFitImage(image, mWidth, mHeight);
+  mImageView->setImage(&destImage);
 }
 
 void
@@ -530,9 +619,60 @@ RenderDialog::updateUIStartRendering()
   }
 }
 
+QString
+RenderDialog::getUniqueNextFilename(QString path)
+{
+  QFileInfo fileInfo(path);
+
+  while (fileInfo.exists()) {
+    QString baseName = fileInfo.baseName();
+    QString suffix = fileInfo.completeSuffix();
+    QString dirPath = fileInfo.dir().path();
+    QRegularExpression re("^(?<baseName>.*)\\((?<number>\\d+)\\)$");
+    QRegularExpressionMatch match = re.match(baseName);
+    if (match.hasMatch()) {
+      baseName = match.captured("baseName");
+      int number = match.captured("number").toInt();
+      number++;
+      baseName = baseName + "(" + QString::number(number) + ")";
+    } else {
+      baseName = baseName + "(1)";
+    }
+
+    path = dirPath + "/" + baseName + "." + suffix;
+    fileInfo = QFileInfo(path);
+  }
+
+  return path;
+}
+
+bool
+RenderDialog::getOverwriteConfirmation()
+{
+  QString path = getFullSavePath();
+
+  QFileInfo fileInfo(path);
+  if (!fileInfo.exists()) {
+    return true;
+  }
+
+  QMessageBox msgBox;
+  msgBox.setText("File already exists.");
+  msgBox.setInformativeText("Do you want to overwrite it?");
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  msgBox.setDefaultButton(QMessageBox::No);
+  int ret = msgBox.exec();
+
+  return ret == QMessageBox::Yes;
+}
+
 void
 RenderDialog::render()
 {
+  // if (!getOverwriteConfirmation()) {
+  //   return;
+  // }
+
   updateUIStartRendering();
 
   if (!this->m_renderThread || m_renderThread->isFinished()) {
@@ -561,6 +701,28 @@ RenderDialog::render()
   } else {
     resumeRendering();
   }
+}
+
+QString
+RenderDialog::getFullSavePath()
+{
+  QString autosavePath = mSaveDirectoryLabel->text();
+  QDir d(autosavePath);
+  // TODO set up autosave path when we start rendering
+  bool pathOk = d.mkpath(autosavePath);
+  if (!pathOk) {
+    LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
+  }
+
+  // if not time series, then don't add the frame number to the filename
+  QString frameSuffix;
+  if (mTimeSeriesProgressLabel) {
+    frameSuffix = QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+  }
+  QString filename = mSaveFilePrefix->text() + frameSuffix;
+  QFileInfo fileInfo(d, filename);
+  QString saveFilePath = fileInfo.absoluteFilePath();
+  return saveFilePath;
 }
 
 void
@@ -612,17 +774,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
     // save image
     if (mAutosaveCheckbox->isChecked()) {
-      QString autosavePath = mSaveDirectoryLabel->text();
-      QDir d(autosavePath);
-      // TODO set up autosave path when we start rendering
-      bool pathOk = d.mkpath(autosavePath);
-      if (!pathOk) {
-        LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
-      }
-      // save!
-      QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
-      QFileInfo fileInfo(d, filename);
-      QString saveFilePath = fileInfo.absoluteFilePath();
+      QString saveFilePath = getFullSavePath();
+      saveFilePath = getUniqueNextFilename(saveFilePath);
 
       // TODO don't throw away alpha - rethink how image is composited with background color
       QImage im = image.convertToFormat(QImage::Format_RGB32);
@@ -779,6 +932,7 @@ RenderDialog::updateWidth(const QString& w)
     mAspectRatio = (float)mWidth / (float)mHeight;
   }
 
+  updatePreviewImage();
   resetProgress();
 }
 
@@ -800,6 +954,7 @@ RenderDialog::updateHeight(const QString& h)
     mAspectRatio = (float)mWidth / (float)mHeight;
   }
 
+  updatePreviewImage();
   resetProgress();
 }
 
@@ -998,7 +1153,7 @@ RenderDialog::updateUIStopRendering(bool completed)
 {
   mRenderButton->setVisible(true);
   mStopRenderButton->setVisible(false);
-  // mCloseButton->setVisible(completed);
+  mCloseButton->setVisible(completed);
 
   mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
 
@@ -1020,4 +1175,30 @@ RenderDialog::onStopButtonClick()
     stopRendering();
     updateUIStopRendering(false);
   }
+}
+
+void
+RenderDialog::positionToolbar()
+{
+  auto s = mImageView->size();
+  mToolbar->move(s.width() - mToolbar->width() - TOOLBAR_INSET, s.height() - mToolbar->height() - TOOLBAR_INSET);
+}
+
+void
+RenderDialog::resizeEvent(QResizeEvent* event)
+{
+  positionToolbar();
+}
+void
+RenderDialog::showEvent(QShowEvent* event)
+{
+  positionToolbar();
+}
+
+void
+RenderDialog::updatePreviewImage()
+{
+  QImage img = makeCheckerboard(mWidth, mHeight);
+  mImageView->setImage(&img);
+  mImageView->fit(mWidth, mHeight);
 }

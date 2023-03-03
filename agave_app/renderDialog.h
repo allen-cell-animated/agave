@@ -120,6 +120,8 @@ public:
   int getYResolution();
 
   virtual void closeEvent(QCloseEvent* event) override;
+  virtual void resizeEvent(QResizeEvent* event) override;
+  virtual void showEvent(QShowEvent* event) override;
 
 private slots:
   void render();
@@ -208,8 +210,15 @@ private:
   void onSaveFilePrefixChanged(const QString& value);
   void onRenderThreadFinished();
 
+  QString getFullSavePath();
+  QString getUniqueNextFilename(QString path);
+
+  bool getOverwriteConfirmation();
   bool isRenderInProgress();
   bool getUserCancelConfirmation();
   void updateUIStartRendering();
   void updateUIStopRendering(bool completed);
+
+  void positionToolbar();
+  void updatePreviewImage();
 };
