@@ -231,7 +231,7 @@ QGroupBox
   mStopRenderButton = new QPushButton("Stop Rendering", this);
   mStopRenderButton->setStyleSheet("font-size: 16px;");
   // mSaveButton = new QPushButton("&Save", this);
-  mCloseButton = new QPushButton("Close Render Window", this);
+  mCloseButton = new QPushButton("Close Render", this);
   mCloseButton->setStyleSheet("font-size: 16px;");
 
   bool isTimeSeries = scene.m_timeLine.maxTime() > 0;
@@ -459,6 +459,7 @@ QGroupBox
 
   QGroupBox* groupBox4 = new QGroupBox();
   groupBox4->setMaximumWidth(MAX_CONTROLS_WIDTH);
+  groupBox4->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
   groupBox4->setLayout(bottomButtonsLayout);
 
   QVBoxLayout* controlsLayout = new QVBoxLayout();
@@ -478,6 +479,8 @@ QGroupBox
 
   QGroupBox* controlsGroupBox = new QGroupBox();
   controlsGroupBox->setLayout(controlsLayout);
+  controlsGroupBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
+  controlsGroupBox->setMaximumWidth(MAX_CONTROLS_WIDTH);
 
   QVBoxLayout* viewLayout = new QVBoxLayout();
   viewLayout->addWidget(mImageView);
