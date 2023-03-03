@@ -208,6 +208,10 @@ private:
   void onSaveFilePrefixChanged(const QString& value);
   void onRenderThreadFinished();
 
+  QString getFullSavePath();
+  QString getUniqueNextFilename(QString path);
+
+  bool getOverwriteConfirmation();
   bool isRenderInProgress();
   bool getUserCancelConfirmation();
   void updateUIStartRendering();

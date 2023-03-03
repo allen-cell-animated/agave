@@ -492,7 +492,6 @@ QGroupBox
   reallyMainDialogLayout->addWidget(progressGroup);
 
   setLayout(reallyMainDialogLayout);
-  mRenderButton->setFocus();
 }
 
 void
@@ -548,9 +547,64 @@ RenderDialog::updateUIStartRendering()
   }
 }
 
+QString
+RenderDialog::getUniqueNextFilename(QString path)
+{
+  QFileInfo fileInfo(path);
+  if (!fileInfo.exists()) {
+    return path;
+  }
+
+  while (fileInfo.exists()) {
+    QString baseName = fileInfo.baseName();
+    QString suffix = fileInfo.completeSuffix();
+    QString dirPath = fileInfo.dir().path();
+    LOG_INFO << "found baseName: " << baseName.toStdString();
+    QRegularExpression re("^(?<baseName>.*)\\((?<number>\\d+)\\)$");
+    QRegularExpressionMatch match = re.match(baseName);
+    if (match.hasMatch()) {
+      baseName = match.captured("baseName");
+      int number = match.captured("number").toInt();
+      number++;
+      baseName = baseName + "(" + QString::number(number) + ")";
+    } else {
+      baseName = baseName + "(1)";
+    }
+
+    path = dirPath + "/" + baseName + "." + suffix;
+    fileInfo = QFileInfo(path);
+  }
+
+  return path;
+}
+
+bool
+RenderDialog::getOverwriteConfirmation()
+{
+  QString path = getFullSavePath();
+
+  QFileInfo fileInfo(path);
+  if (!fileInfo.exists()) {
+    return true;
+  }
+
+  QMessageBox msgBox;
+  msgBox.setText("File already exists.");
+  msgBox.setInformativeText("Do you want to overwrite it?");
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  msgBox.setDefaultButton(QMessageBox::No);
+  int ret = msgBox.exec();
+
+  return ret == QMessageBox::Yes;
+}
+
 void
 RenderDialog::render()
 {
+  // if (!getOverwriteConfirmation()) {
+  //   return;
+  // }
+
   updateUIStartRendering();
 
   if (!this->m_renderThread || m_renderThread->isFinished()) {
@@ -579,6 +633,23 @@ RenderDialog::render()
   } else {
     resumeRendering();
   }
+}
+
+QString
+RenderDialog::getFullSavePath()
+{
+  QString autosavePath = mSaveDirectoryLabel->text();
+  QDir d(autosavePath);
+  // TODO set up autosave path when we start rendering
+  bool pathOk = d.mkpath(autosavePath);
+  if (!pathOk) {
+    LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
+  }
+  // save!
+  QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+  QFileInfo fileInfo(d, filename);
+  QString saveFilePath = fileInfo.absoluteFilePath();
+  return saveFilePath;
 }
 
 void
@@ -630,17 +701,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
     // save image
     if (mAutosaveCheckbox->isChecked()) {
-      QString autosavePath = mSaveDirectoryLabel->text();
-      QDir d(autosavePath);
-      // TODO set up autosave path when we start rendering
-      bool pathOk = d.mkpath(autosavePath);
-      if (!pathOk) {
-        LOG_ERROR << "Failed to make path " << autosavePath.toStdString();
-      }
-      // save!
-      QString filename = mSaveFilePrefix->text() + QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
-      QFileInfo fileInfo(d, filename);
-      QString saveFilePath = fileInfo.absoluteFilePath();
+      QString saveFilePath = getFullSavePath();
+      saveFilePath = getUniqueNextFilename(saveFilePath);
 
       // TODO don't throw away alpha - rethink how image is composited with background color
       QImage im = image.convertToFormat(QImage::Format_RGB32);
