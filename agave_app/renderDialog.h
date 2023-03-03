@@ -220,4 +220,5 @@ private:
   void updateUIStopRendering(bool completed);
 
   void positionToolbar();
+  void updatePreviewImage();
 };

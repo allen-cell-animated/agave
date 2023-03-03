@@ -49,6 +49,42 @@ getFitTargetRect(QRect fullTargetRect, QRect srcRect)
   return targetRect;
 }
 
+QImage
+makeCheckerboard(int w, int h)
+{
+  QImage destImage = QImage(w, h, QImage::Format_ARGB32);
+
+  QPainter painter(&destImage);
+
+  QPixmap pm(20, 20);
+  QPainter pmp(&pm);
+  pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
+  pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
+  pmp.fillRect(0, 10, 10, 10, Qt::darkGray);
+  pmp.fillRect(10, 0, 10, 10, Qt::darkGray);
+  pmp.end();
+
+  QBrush brush(pm);
+  painter.fillRect(0, 0, w, h, brush);
+  painter.end();
+
+  return destImage;
+}
+
+QImage
+rescaleAndFitImage(QImage* image, int w, int h)
+{
+  QImage destImage = makeCheckerboard(w, h);
+
+  QPainter painter(&destImage);
+  // find the rectangle in destimage that will hold src image
+  QRect destRect = getFitTargetRect(QRect(0, 0, w, h), QRect(0, 0, image->width(), image->height()));
+  painter.drawImage(destRect, *image);
+  painter.end();
+
+  return destImage;
+}
+
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
   , m_scale(1.0)
@@ -567,30 +603,7 @@ RenderDialog::setImage(QImage* image)
   }
 
   // resize and letterbox the image to match our current render resolution.
-
-  float destaspect = (float)mWidth / (float)mHeight;
-  float srcaspect = (float)image->width() / (float)image->height();
-
-  QImage destImage = QImage(mWidth, mHeight, QImage::Format_ARGB32);
-
-  // find the rectangle in destimage that will hold src image
-  QRect destRect = getFitTargetRect(QRect(0, 0, mWidth, mHeight), QRect(0, 0, image->width(), image->height()));
-
-  QPainter painter(&destImage);
-
-  QPixmap pm(20, 20);
-  QPainter pmp(&pm);
-  pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
-  pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
-  pmp.fillRect(0, 10, 10, 10, Qt::darkGray);
-  pmp.fillRect(10, 0, 10, 10, Qt::darkGray);
-  pmp.end();
-
-  QBrush brush(pm);
-  painter.fillRect(0, 0, mWidth, mHeight, brush);
-  painter.drawImage(destRect, *image);
-  painter.end();
-
+  QImage destImage = rescaleAndFitImage(image, mWidth, mHeight);
   mImageView->setImage(&destImage);
 }
 
@@ -919,6 +932,7 @@ RenderDialog::updateWidth(const QString& w)
     mAspectRatio = (float)mWidth / (float)mHeight;
   }
 
+  updatePreviewImage();
   resetProgress();
 }
 
@@ -940,6 +954,7 @@ RenderDialog::updateHeight(const QString& h)
     mAspectRatio = (float)mWidth / (float)mHeight;
   }
 
+  updatePreviewImage();
   resetProgress();
 }
 
@@ -1178,4 +1193,12 @@ void
 RenderDialog::showEvent(QShowEvent* event)
 {
   positionToolbar();
+}
+
+void
+RenderDialog::updatePreviewImage()
+{
+  QImage img = makeCheckerboard(mWidth, mHeight);
+  mImageView->setImage(&img);
+  mImageView->fit(mWidth, mHeight);
 }
