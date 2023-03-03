@@ -30,6 +30,7 @@
 #include <QWidget>
 
 static const float ZOOM_STEP = 1.1f;
+static const int TOOLBAR_INSET = 6;
 
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
@@ -311,7 +312,9 @@ QGroupBox
 
   mToolbar = new QToolBar(mImageView);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
+  mToolbar->addSeparator();
   mToolbar->addAction("-", this, &RenderDialog::onZoomOutClicked);
+  mToolbar->addSeparator();
   mToolbar->addAction("[ ]", this, &RenderDialog::onZoomFitClicked);
 
   connect(mRenderButton, &QPushButton::clicked, this, &RenderDialog::render);
@@ -492,6 +495,7 @@ QGroupBox
   reallyMainDialogLayout->addWidget(progressGroup);
 
   setLayout(reallyMainDialogLayout);
+  positionToolbar();
 }
 
 void
@@ -1101,4 +1105,17 @@ RenderDialog::onStopButtonClick()
     stopRendering();
     updateUIStopRendering(false);
   }
+}
+
+void
+RenderDialog::positionToolbar()
+{
+  auto s = mImageView->size();
+  mToolbar->move(s.width() - mToolbar->width() - TOOLBAR_INSET, s.height() - mToolbar->height() - TOOLBAR_INSET);
+}
+
+void
+RenderDialog::resizeEvent(QResizeEvent* event)
+{
+  positionToolbar();
 }
