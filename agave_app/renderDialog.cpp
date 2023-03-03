@@ -220,6 +220,8 @@ QGroupBox
   mCloseButton = new QPushButton("Close Render Window", this);
   mCloseButton->setStyleSheet("font-size: 16px;");
 
+  bool isTimeSeries = scene.m_timeLine.maxTime() > 0;
+
   mFrameProgressBar = new QProgressBar(this);
   if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setRange(0, mCaptureSettings->samples);
@@ -291,16 +293,19 @@ QGroupBox
   mStartTimeInput->setMinimum(0);
   mStartTimeInput->setMaximum(scene.m_timeLine.maxTime());
   mStartTimeInput->setValue(mCaptureSettings->startTime);
+  mStartTimeInput->setToolTip(QString("<FONT>First time index of time series to render.</FONT>"));
   mEndTimeInput = new QSpinBox(this);
   mEndTimeInput->setMinimum(0);
   mEndTimeInput->setMaximum(scene.m_timeLine.maxTime());
   mEndTimeInput->setValue(mCaptureSettings->endTime);
+  mEndTimeInput->setToolTip(QString("<FONT>Last time index of time series to render.</FONT>"));
 
   mTimeSeriesProgressBar = new QProgressBar(this);
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
   mTimeSeriesProgressBar->setValue(0);
 
   mSelectSaveDirectoryButton = new QPushButton("...", this);
+  mSelectSaveDirectoryButton->setToolTip(QString("<FONT>Select directory where rendered images will be saved.</FONT>"));
 
   mAutosaveCheckbox = new QCheckBox("Autosave", this);
   mAutosaveCheckbox->setChecked(true);
@@ -309,6 +314,9 @@ QGroupBox
 
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
+  mSaveFilePrefix->setToolTip(
+    QString("<FONT>Output file name.  If you are rendering a time series, the frame number will be appended "
+            "to this as _0000, _0001, etc.  All images saved as PNG files.</FONT>"));
 
   mToolbar = new QToolBar(mImageView);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
@@ -425,7 +433,7 @@ QGroupBox
   QGroupBox* groupBox1 = new QGroupBox();
   groupBox1->setMaximumWidth(MAX_CONTROLS_WIDTH);
   groupBox1->setLayout(timeLayout);
-  groupBox1->setVisible(scene.m_timeLine.maxTime() > 0);
+  groupBox1->setVisible(isTimeSeries);
 
   QGroupBox* groupBox2 = new QGroupBox();
   groupBox2->setMaximumWidth(MAX_CONTROLS_WIDTH);
