@@ -120,6 +120,7 @@ public:
   int getYResolution();
 
   virtual void closeEvent(QCloseEvent* event) override;
+  virtual void resizeEvent(QResizeEvent* event) override;
 
 private slots:
   void render();
@@ -216,4 +217,6 @@ private:
   bool getUserCancelConfirmation();
   void updateUIStartRendering();
   void updateUIStopRendering(bool completed);
+
+  void positionToolbar();
 };
