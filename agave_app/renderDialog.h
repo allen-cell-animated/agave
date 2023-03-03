@@ -121,6 +121,7 @@ public:
 
   virtual void closeEvent(QCloseEvent* event) override;
   virtual void resizeEvent(QResizeEvent* event) override;
+  virtual void showEvent(QShowEvent* event) override;
 
 private slots:
   void render();

@@ -1119,3 +1119,8 @@ RenderDialog::resizeEvent(QResizeEvent* event)
 {
   positionToolbar();
 }
+void
+RenderDialog::showEvent(QShowEvent* event)
+{
+  positionToolbar();
+}
