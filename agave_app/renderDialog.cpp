@@ -32,6 +32,23 @@
 static const float ZOOM_STEP = 1.1f;
 static const int TOOLBAR_INSET = 6;
 
+// find a subrectangle of fullTargetRect that fits the aspect ratio of srcRect
+QRect
+getFitTargetRect(QRect fullTargetRect, QRect srcRect)
+{
+  QRect targetRect = fullTargetRect;
+  float srcaspect = (float)srcRect.width() / (float)srcRect.height();
+  float targetaspect = (float)targetRect.width() / (float)targetRect.height();
+  if (srcaspect > targetaspect) {
+    targetRect.setHeight(targetRect.width() / srcaspect);
+    targetRect.moveTop((fullTargetRect.height() - targetRect.height()) / 2);
+  } else {
+    targetRect.setWidth(targetRect.height() * srcaspect);
+    targetRect.moveLeft((fullTargetRect.width() - targetRect.width()) / 2);
+  }
+  return targetRect;
+}
+
 ImageDisplay::ImageDisplay(QWidget* parent)
   : QWidget(parent)
   , m_scale(1.0)
@@ -131,18 +148,15 @@ void
 ImageDisplay::fit(int w, int h)
 {
   // fit image aspect ratio within the given widget rectangle.
+  QRect targetRect = getFitTargetRect(rect(), QRect(0, 0, w, h));
+
   float imageaspect = (float)w / (float)h;
   float widgetaspect = (float)width() / (float)height();
   // targetRect will describe a sub-rectangle of the ImageDisplay's client rect
-  QRect targetRect = rect();
   if (imageaspect > widgetaspect) {
-    targetRect.setHeight(targetRect.width() / imageaspect);
-    targetRect.moveTop((height() - targetRect.height()) / 2);
     // scale value from width!
     m_scale = ((float)targetRect.width() / (float)w);
   } else {
-    targetRect.setWidth(targetRect.height() * imageaspect);
-    targetRect.moveLeft((width() - targetRect.width()) / 2);
     // scale value from height!
     m_scale = ((float)targetRect.height() / (float)h);
   }
@@ -544,7 +558,27 @@ RenderDialog::save()
 void
 RenderDialog::setImage(QImage* image)
 {
-  mImageView->setImage(image);
+  if (mWidth == image->width() && mHeight == image->height()) {
+    mImageView->setImage(image);
+    return;
+  }
+
+  // resize and letterbox the image to match our current render resolution.
+
+  float destaspect = (float)mWidth / (float)mHeight;
+  float srcaspect = (float)image->width() / (float)image->height();
+
+  QImage destImage = QImage(mWidth, mHeight, QImage::Format_ARGB32);
+  destImage.fill(Qt::white);
+
+  // find the rectangle in destimage that will hold src image
+  QRect destRect = getFitTargetRect(QRect(0, 0, mWidth, mHeight), QRect(0, 0, image->width(), image->height()));
+
+  QPainter painter(&destImage);
+  painter.drawImage(destRect, *image);
+  painter.end();
+
+  mImageView->setImage(&destImage);
 }
 
 void
