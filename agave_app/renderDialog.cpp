@@ -572,12 +572,22 @@ RenderDialog::setImage(QImage* image)
   float srcaspect = (float)image->width() / (float)image->height();
 
   QImage destImage = QImage(mWidth, mHeight, QImage::Format_ARGB32);
-  destImage.fill(Qt::white);
 
   // find the rectangle in destimage that will hold src image
   QRect destRect = getFitTargetRect(QRect(0, 0, mWidth, mHeight), QRect(0, 0, image->width(), image->height()));
 
   QPainter painter(&destImage);
+
+  QPixmap pm(20, 20);
+  QPainter pmp(&pm);
+  pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
+  pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
+  pmp.fillRect(0, 10, 10, 10, Qt::darkGray);
+  pmp.fillRect(10, 0, 10, 10, Qt::darkGray);
+  pmp.end();
+
+  QBrush brush(pm);
+  painter.fillRect(0, 0, mWidth, mHeight, brush);
   painter.drawImage(destRect, *image);
   painter.end();
 
