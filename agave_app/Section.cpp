@@ -2,6 +2,8 @@
 
 #include "Section.h"
 
+#include <QLabel>
+
 Section::Section(const QString& title, const int animationDuration, bool use_checkbox, bool is_checked, QWidget* parent)
   : QWidget(parent)
   , m_animationDuration(animationDuration)
@@ -13,7 +15,12 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   m_contentArea = new QScrollArea(this);
   m_mainLayout = new QGridLayout(this);
 
-  m_toggleButton->setStyleSheet("QToolButton {border: none; font-size: 14px;}");
+  // get standard QLabel font size
+  QFont f = QLabel("A").font();
+  int px = f.pointSize();
+
+  m_toggleButton->setStyleSheet(QString("QToolButton {border: none; font-size: ") + QString::number(px) +
+                                QString("px;}"));
   m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   m_toggleButton->setArrowType(Qt::ArrowType::RightArrow);
   m_toggleButton->setText(title);
