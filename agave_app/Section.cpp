@@ -20,7 +20,7 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   int px = f.pointSize();
 
   m_toggleButton->setStyleSheet(QString("QToolButton {border: none; font-size: ") + QString::number(px) +
-                                QString("px;}"));
+                                QString("pt;}"));
   m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   m_toggleButton->setArrowType(Qt::ArrowType::RightArrow);
   m_toggleButton->setText(title);
