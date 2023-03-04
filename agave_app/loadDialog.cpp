@@ -2,6 +2,7 @@
 
 #include "Controls.h"
 #include "RangeWidget.h"
+#include "Section.h"
 
 #include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
@@ -28,10 +29,19 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   setWindowTitle(tr("Load Settings"));
 
-  QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  // QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  // buttonBox->setCenterButtons(true);
+  // buttonBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  // connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+  // connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  QPushButton* cancelButton = new QPushButton(tr("Cancel"));
+  QPushButton* openButton = new QPushButton(tr("Open"));
+  QHBoxLayout* buttonBox = new QHBoxLayout();
+  buttonBox->addWidget(cancelButton);
+  buttonBox->addWidget(openButton);
+  connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+  connect(openButton, &QPushButton::clicked, this, &QDialog::accept);
 
   mSceneInput = new QSpinBox(this);
   mSceneInput->setMinimum(0);
@@ -67,16 +77,16 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   }
   mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
 
-  QCheckList* clist = new QCheckList("Channels", this);
-  clist->setTitleText("Channels");
-  clist->addCheckItem("Ch 0", 0, Qt::Checked);
-  clist->addCheckItem("Ch 1", 1, Qt::Checked);
-  clist->addCheckItem("Ch 2", 2, Qt::Checked);
-  clist->addCheckItem("Ch 3", 3, Qt::Checked);
+  mChannels = new QCheckList("Channels", this);
+  mChannels->setTitleText("Channels");
+  for (int i = 0; i < dims[0].shape[1]; ++i) {
+    mChannels->addCheckItem("Ch " + QString::number(i), i, Qt::Checked);
+  }
 
   connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
   connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
   connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
+  connect(mChannels, SIGNAL(globalCheckStateChanged(int)), this, SLOT(updateChannels(int)));
 
   m_roiX = new RangeWidget(Qt::Horizontal);
   m_roiX->setStatusTip(tr("Region to load: X axis"));
@@ -103,23 +113,37 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   QObject::connect(m_roiZ, &RangeWidget::firstValueChanged, this, &LoadDialog::updateMemoryEstimate);
   QObject::connect(m_roiZ, &RangeWidget::secondValueChanged, this, &LoadDialog::updateMemoryEstimate);
 
+  QVBoxLayout* roiLayout = new QVBoxLayout();
+  roiLayout->addWidget(new QLabel("X"));
+  roiLayout->addWidget(m_roiX);
+  roiLayout->addWidget(new QLabel("Y"));
+  roiLayout->addWidget(m_roiY);
+  roiLayout->addWidget(new QLabel("Z"));
+  roiLayout->addWidget(m_roiZ);
+
+  m_roiSection = new Section("Region of Interest", 0);
+  m_roiSection->setContentLayout(*roiLayout);
+
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
+  QFont font = mMemoryEstimateLabel->font();
+  font.setPointSize(18);
+  mMemoryEstimateLabel->setFont(font);
 
   updateMultiresolutionLevel(mSelectedLevel);
 
-  QVBoxLayout* layout = new QVBoxLayout(this);
+  QFormLayout* layout = new QFormLayout(this);
+  layout->setLabelAlignment(Qt::AlignLeft);
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  layout->addWidget(mSceneInput);
-  layout->addWidget(mMultiresolutionInput);
-  layout->addWidget(m_TimeSlider);
+  layout->addRow("Scene", mSceneInput);
+  layout->addRow(mMultiresolutionInput);
+  layout->addRow("Time", m_TimeSlider);
   // layout->addWidget(mMetadataTree);
   mMetadataTree->hide();
-  layout->addWidget(clist);
-  layout->addWidget(m_roiX);
-  layout->addWidget(m_roiY);
-  layout->addWidget(m_roiZ);
-  layout->addWidget(mMemoryEstimateLabel);
-  layout->addWidget(buttonBox);
+  layout->addRow(mChannels);
+  layout->addRow(m_roiSection);
+  layout->addRow(mMemoryEstimateLabel);
+  layout->addRow(buttonBox);
   setLayout(layout);
 }
 
@@ -134,6 +158,13 @@ LoadDialog::updateScene(int value)
   mScene = value;
   mDims = m_reader->loadMultiscaleDims(mPath, mScene);
   updateMultiresolutionInput();
+}
+
+void
+LoadDialog::updateChannels(int state)
+{
+  std::vector<int> channels = mChannels->getCheckedIndices();
+  updateMemoryEstimate();
 }
 
 void

@@ -222,8 +222,8 @@ public:
     connect(m_model, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this, SLOT(on_modelDataChanged()));
   }
 
-  QCheckList(const QString& title, QWidget* _parent = 0) 
-      : QCheckList(_parent)
+  QCheckList(const QString& title, QWidget* _parent = 0)
+    : QCheckList(_parent)
   {
     m_titleText = title;
   }
@@ -232,8 +232,19 @@ public:
 
   void setTitleText(const QString& text)
   {
-	m_titleText = text;
-	updateText();
+    m_titleText = text;
+    updateText();
+  }
+
+  std::vector<int> getCheckedIndices() const
+  {
+    std::vector<int> indices;
+    for (int i = 0; i < m_model->rowCount(); ++i) {
+      if (m_model->item(i)->checkState() == Qt::Checked) {
+        indices.push_back(i);
+      }
+    }
+    return indices;
   }
 
   /**
@@ -301,12 +312,12 @@ private:
     int numChecked = 0;
     switch (globalCheckState()) {
       case Qt::Checked:
-        //text = m_allCheckedText;
+        // text = m_allCheckedText;
         text += QString(" (%1/%2 selected)").arg(m_model->rowCount()).arg(m_model->rowCount());
         break;
 
       case Qt::Unchecked:
-        //text = m_noneCheckedText;
+        // text = m_noneCheckedText;
         text += QString(" (0/%1 selected)").arg(m_model->rowCount());
         break;
 
@@ -315,10 +326,10 @@ private:
         for (int i = 0; i < m_model->rowCount(); i++) {
           if (m_model->item(i)->checkState() == Qt::Checked) {
             numChecked++;
-            //if (!text.isEmpty()) {
-            //  text += ", ";
-            //}
-            //text += m_model->item(i)->text();
+            // if (!text.isEmpty()) {
+            //   text += ", ";
+            // }
+            // text += m_model->item(i)->text();
           }
         }
         text += QString(" (%1/%2 selected)").arg(numChecked).arg(m_model->rowCount());

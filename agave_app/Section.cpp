@@ -13,7 +13,7 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   m_contentArea = new QScrollArea(this);
   m_mainLayout = new QGridLayout(this);
 
-  m_toggleButton->setStyleSheet("QToolButton {border: none;}");
+  m_toggleButton->setStyleSheet("QToolButton {border: none; font-size: 14px;}");
   m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   m_toggleButton->setArrowType(Qt::ArrowType::RightArrow);
   m_toggleButton->setText(title);

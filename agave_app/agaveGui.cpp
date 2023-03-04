@@ -86,15 +86,20 @@ void
 agaveGui::createActions()
 {
   // TODO ensure a proper title, shortcut, icon, and statustip for every action
-  m_openAction = new QAction(tr("&Open volume..."), this);
+  m_openAction = new QAction(tr("&Open file (.tiff, ...)"), this);
   m_openAction->setShortcuts(QKeySequence::Open);
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  m_openUrlAction = new QAction(tr("&Open Zarr volume..."), this);
+  m_openUrlAction = new QAction(tr("&Open from URL"), this);
   m_openUrlAction->setShortcuts(QKeySequence::Open);
-  m_openUrlAction->setStatusTip(tr("Open an existing volume file in the cloud or from local directory"));
+  m_openUrlAction->setStatusTip(tr("Open an existing volume in the cloud"));
   connect(m_openUrlAction, SIGNAL(triggered()), this, SLOT(openUrl()));
+
+  m_openDirectoryAction = new QAction(tr("&Open directory (.zarr)"), this);
+  m_openDirectoryAction->setShortcuts(QKeySequence::Open);
+  m_openDirectoryAction->setStatusTip(tr("Open an existing volume from local directory"));
+  connect(m_openDirectoryAction, SIGNAL(triggered()), this, SLOT(openDirectory()));
 
   m_openJsonAction = new QAction(tr("Open JSON..."), this);
   m_openJsonAction->setStatusTip(tr("Open an existing JSON settings file"));
@@ -142,6 +147,7 @@ agaveGui::createMenus()
 {
   m_fileMenu = menuBar()->addMenu(tr("&File"));
   m_fileMenu->addAction(m_openAction);
+  m_fileMenu->addAction(m_openDirectoryAction);
   m_fileMenu->addAction(m_openUrlAction);
   m_fileMenu->addAction(m_openJsonAction);
   m_fileMenu->addSeparator();
@@ -172,6 +178,7 @@ void
 agaveGui::createToolbars()
 {
   m_ui.mainToolBar->addAction(m_openAction);
+  m_ui.mainToolBar->addAction(m_openDirectoryAction);
   m_ui.mainToolBar->addAction(m_openUrlAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
@@ -249,6 +256,23 @@ agaveGui::open()
   options |= QFileDialog::DontUseNativeDialog;
 #endif
   QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
+
+  if (!file.isEmpty()) {
+    if (!open(file.toStdString())) {
+      showOpenFailedMessageBox(file);
+    }
+  }
+}
+void
+agaveGui::openDirectory()
+{
+  QString dir = readRecentDirectory();
+
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getExistingDirectory(this, tr("Open Volume"), dir, options);
 
   if (!file.isEmpty()) {
     if (!open(file.toStdString())) {

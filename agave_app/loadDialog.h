@@ -21,6 +21,7 @@ class QTreeWidget;
 
 class IFileReader;
 class RangeWidget;
+class Section;
 
 class LoadDialog : public QDialog
 {
@@ -37,6 +38,7 @@ private slots:
   void updateScene(int value);
   void onItemSelectionChanged();
   void updateMultiresolutionLevel(int level);
+  void updateChannels(int state);
 
 private:
   std::string mPath;
@@ -48,12 +50,13 @@ private:
   QSpinBox* mSceneInput;
   QComboBox* mMultiresolutionInput;
   QIntSlider* m_TimeSlider;
-  QComboBox* mChannels;
+  QCheckList* mChannels;
   QTreeWidget* mMetadataTree;
   QLabel* mMemoryEstimateLabel;
   RangeWidget* m_roiX;
   RangeWidget* m_roiY;
   RangeWidget* m_roiZ;
+  Section* m_roiSection;
   // show multiresolutions
 
   // select region of interest in zyx

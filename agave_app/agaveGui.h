@@ -40,6 +40,7 @@ private:
 
 private slots:
   void open();
+  void openDirectory();
   bool openUrl();
   void openJson();
   void openRecentFile();
@@ -88,6 +89,7 @@ private:
   QAction* m_openAction = nullptr;
   QAction* m_openJsonAction = nullptr;
   QAction* m_openUrlAction = nullptr;
+  QAction* m_openDirectoryAction = nullptr;
   QAction* m_quitAction = nullptr;
   QAction* m_dumpJsonAction = nullptr;
   QAction* m_dumpPythonAction = nullptr;
