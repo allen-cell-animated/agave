@@ -32,4 +32,6 @@ public:
 
 signals:
   void checked(bool checked);
+  void collapsed();
+  void expanded();
 };

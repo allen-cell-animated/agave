@@ -63,6 +63,15 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
     m_toggleAnimation->setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
     m_toggleAnimation->start();
   });
+  QObject::connect(m_toggleAnimation, &QParallelAnimationGroup::finished, [this]() {
+    if (m_toggleAnimation->direction() == QAbstractAnimation::Backward) {
+      m_contentArea->setVisible(false);
+      emit collapsed();
+    } else {
+      m_contentArea->setVisible(true);
+      emit expanded();
+    }
+  });
 }
 
 void

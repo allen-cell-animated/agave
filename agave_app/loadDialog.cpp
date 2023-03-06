@@ -130,6 +130,8 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiSection = new Section("Region of Interest", 0);
   m_roiSection->setContentLayout(*roiLayout);
 
+  QObject::connect(m_roiSection, &Section::collapsed, [this]() { this->adjustSize(); });
+
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
   QFont font = mMemoryEstimateLabel->font();
   font.setPointSize(18);
@@ -141,15 +143,22 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->setLabelAlignment(Qt::AlignLeft);
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
+  static const int spacing = 6;
   // layout->addRow("Scene", mSceneInput);
   layout->addRow(mMultiresolutionInput);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow("Time", m_TimeSlider);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   // layout->addWidget(mMetadataTree);
   mMetadataTree->hide();
   layout->addRow(mChannels);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(m_roiSection);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(mMemoryEstimateLabel);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(buttonBox);
+
   setLayout(layout);
 }
 
