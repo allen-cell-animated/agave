@@ -84,7 +84,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
 
   mChannels = new QCheckList("Channels", this);
-  mChannels->setTitleText("Channels");
+  mChannels->setTitleText("");
   for (int i = 0; i < dims[0].shape[1]; ++i) {
     mChannels->addCheckItem("Ch " + QString::number(i), i, Qt::Checked);
   }
@@ -146,13 +146,13 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   static const int spacing = 6;
   // layout->addRow("Scene", mSceneInput);
-  layout->addRow(mMultiresolutionInput);
+  layout->addRow("Resolution Level", mMultiresolutionInput);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow("Time", m_TimeSlider);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   // layout->addWidget(mMetadataTree);
   mMetadataTree->hide();
-  layout->addRow(mChannels);
+  layout->addRow("Channels", mChannels);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(m_roiSection);
   QFrame* hline = new QFrame();
@@ -295,7 +295,7 @@ LoadDialog::updateMultiresolutionInput()
     size_t mem = spec.getMemoryEstimate();
     std::string label = LoadSpec::bytesToStringLabel(mem);
 
-    mMultiresolutionInput->addItem(QString::fromStdString("Resolution Level " + d.path + " (" + label + " max.)"));
+    mMultiresolutionInput->addItem(QString::fromStdString(d.path + " (" + label + " max.)"));
   }
   mMultiresolutionInput->setEnabled(mDims.size() > 1);
 }
