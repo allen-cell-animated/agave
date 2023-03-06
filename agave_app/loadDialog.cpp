@@ -129,6 +129,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   m_roiSection = new Section("Region of Interest", 0);
   m_roiSection->setContentLayout(*roiLayout);
+  m_roiSection->setEnabled(m_reader->supportChunkedLoading());
 
   QObject::connect(m_roiSection, &Section::collapsed, [this]() { this->adjustSize(); });
 
@@ -154,6 +155,9 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addRow(mChannels);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(m_roiSection);
+  QFrame* hline = new QFrame();
+  hline->setFrameShape(QFrame::HLine);
+  layout->addRow(hline);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(mMemoryEstimateLabel);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));

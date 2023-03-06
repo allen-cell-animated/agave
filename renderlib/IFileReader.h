@@ -49,6 +49,9 @@ class IFileReader
 public:
   virtual ~IFileReader() = default;
 
+  // return true if this reader can load sub-chunks in XYZ
+  virtual bool supportChunkedLoading() const = 0;
+
   // find number of scenes
   virtual uint32_t loadNumScenes(const std::string& filepath) = 0;
 
