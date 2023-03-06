@@ -81,7 +81,8 @@ preloadFiles(QStringList preloadlist)
       loadSpec.filepath = info.absoluteFilePath().toStdString();
       loadSpec.scene = 0;
       loadSpec.time = 0;
-      auto img = FileReader::loadFromFile(loadSpec, true);
+
+      auto img = FileReader::loadAndCache(loadSpec);
       renderlib::imageAllocGPU(img);
     } else {
       LOG_INFO << "Could not load " << s.toStdString();

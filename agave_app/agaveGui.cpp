@@ -497,65 +497,55 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
   int sceneToLoad = vs ? vs->m_currentScene : 0;
   int timeToLoad = vs ? vs->m_currentTime : 0;
 
-  if (file.find("http") == 0 || file.find("zarr") != std::string::npos) {
-    // read some metadata from the cloud and present the next dialog
-    // if successful
-    int numScenes = FileReader::loadNumScenes(file);
+  std::unique_ptr<IFileReader> reader(FileReader::getReader(file));
+  if (!reader) {
+    LOG_ERROR << "Could not find a reader for file " << file;
+    return false;
+  }
 
-    std::vector<MultiscaleDims> multiscaledims;
-    bool haveDims = FileReader::loadMultiscaleDims(file, sceneToLoad, multiscaledims);
-    if (!haveDims) {
-      LOG_DEBUG << "Failed to load dims from url.";
-      showOpenFailedMessageBox(QString::fromStdString(file));
-      return false;
+  // read some metadata from the cloud and present the next dialog
+  // if successful
+  int numScenes = reader->loadNumScenes(file);
+  LOG_INFO << "Found " << numScenes << " scene(s)";
+  // if current scene is out of range or if there is not currently a scene selected
+  bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
+  if (needSelectScene) {
+    QStringList items;
+    for (int i = 0; i < numScenes; ++i) {
+      items.append(QString::number(i));
     }
-
-    // TODO update with sceneToLoad and timeToLoad?
-    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, this);
-    if (loadDialog->exec() == QDialog::Accepted) {
-      LOG_DEBUG << "OK to load from url.";
-      loadSpec = loadDialog->getLoadSpec();
-      dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+    bool ok = false;
+    QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
+    if (ok && !text.isEmpty()) {
+      sceneToLoad = text.toInt();
     } else {
+      LOG_DEBUG << "Canceled scene selection.";
       return false;
     }
   }
 
-  else {
-    QFileInfo info(QString::fromStdString(file));
-    if (info.exists()) {
-      LOG_DEBUG << "Attempting to open " << file;
-
-      // check number of scenes in file.
-      int numScenes = FileReader::loadNumScenes(file);
-      LOG_INFO << "Found " << numScenes << " scene(s)";
-      // if current scene is out of range or if there is not currently a scene selected
-      bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
-      if (needSelectScene) {
-        QStringList items;
-        for (int i = 0; i < numScenes; ++i) {
-          items.append(QString::number(i));
-        }
-        bool ok = false;
-        QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
-        if (ok && !text.isEmpty()) {
-          sceneToLoad = text.toInt();
-        } else {
-          LOG_DEBUG << "Canceled scene selection.";
-          return false;
-        }
-      }
-
-      loadSpec.filepath = file;
-      loadSpec.scene = sceneToLoad;
-      loadSpec.time = timeToLoad;
-
-      dims = FileReader::loadFileDimensions(file, sceneToLoad);
-    }
+  std::vector<MultiscaleDims> multiscaledims;
+  multiscaledims = reader->loadMultiscaleDims(file, sceneToLoad);
+  if (multiscaledims.empty()) {
+    LOG_DEBUG << "Failed to load dims from url.";
+    showOpenFailedMessageBox(QString::fromStdString(file));
+    return false;
   }
 
+  LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, this);
+  if (loadDialog->exec() == QDialog::Accepted) {
+    loadSpec = loadDialog->getLoadSpec();
+    dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+  } else {
+    return false;
+  }
+
+  // TODO make this part async and chunked so that it can be interrupted
+  // and won't block during long loading times.
+  // We can update the render and gui progressively as chunks are loaded.
+  // Also, this would allow renders to be cancelled during loading.
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
+  std::shared_ptr<ImageXYZC> image = reader->loadFromFile(loadSpec);
   QApplication::restoreOverrideCursor();
   if (!image) {
     LOG_DEBUG << "Failed to open " << file;

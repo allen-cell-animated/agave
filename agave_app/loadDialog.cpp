@@ -47,6 +47,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mSceneInput->setMinimum(0);
   mSceneInput->setMaximum(65536);
   mSceneInput->setValue(0);
+  mSceneInput->setVisible(false);
 
   mMultiresolutionInput = new QComboBox(this);
   updateMultiresolutionInput();
@@ -54,6 +55,11 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_TimeSlider = new QIntSlider(this);
   m_TimeSlider->setRange(0, 0);
   m_TimeSlider->setValue(0);
+  int maxt = dims[0].shape[0];
+  if (maxt > 1) {
+    m_TimeSlider->setRange(0, maxt - 1);
+  }
+  m_TimeSlider->setEnabled(maxt > 1);
 
   mMetadataTree = new QTreeWidget(this);
   mMetadataTree->setColumnCount(2);
@@ -84,7 +90,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   }
 
   connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
-  connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
+  // connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
   connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
   connect(mChannels, SIGNAL(globalCheckStateChanged(int)), this, SLOT(updateChannels(int)));
 
@@ -135,7 +141,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->setLabelAlignment(Qt::AlignLeft);
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  layout->addRow("Scene", mSceneInput);
+  // layout->addRow("Scene", mSceneInput);
   layout->addRow(mMultiresolutionInput);
   layout->addRow("Time", m_TimeSlider);
   // layout->addWidget(mMetadataTree);
@@ -211,8 +217,11 @@ LoadDialog::updateMultiresolutionLevel(int level)
   // maintain a t value at same percentage of total.
   float pct = (float)t / (float)m_TimeSlider->maximum();
   int maxt = d.shape[0];
-  m_TimeSlider->setRange(0, maxt);
-  m_TimeSlider->setValue(pct * maxt);
+  //  if (d.shape[0] > 1) {
+  m_TimeSlider->setRange(0, maxt - 1);
+  m_TimeSlider->setValue(pct * (maxt - 1));
+  //  }
+  m_TimeSlider->setEnabled(maxt > 1);
 
   // update the xyz sliders
 
@@ -275,4 +284,5 @@ LoadDialog::updateMultiresolutionInput()
 
     mMultiresolutionInput->addItem(QString::fromStdString("Resolution Level " + d.path + " (" + label + " max.)"));
   }
+  mMultiresolutionInput->setEnabled(mDims.size() > 1);
 }

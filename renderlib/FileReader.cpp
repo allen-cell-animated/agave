@@ -51,47 +51,8 @@ FileReader::getReader(const std::string& filepath)
   return nullptr;
 }
 
-uint32_t
-FileReader::loadNumScenes(const std::string& filepath)
-{
-  IFileReader* reader = getReader(filepath);
-  if (reader) {
-    return reader->loadNumScenes(filepath);
-  } else {
-    return 0;
-  }
-}
-
-VolumeDimensions
-FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
-{
-  IFileReader* reader = getReader(filepath);
-  if (reader) {
-    return reader->loadDimensions(filepath, scene);
-  } else {
-    return VolumeDimensions();
-  }
-}
-
-bool
-FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims)
-{
-  std::vector<MultiscaleDims> loadedDims;
-
-  IFileReader* reader = getReader(filepath);
-  if (reader) {
-    loadedDims = reader->loadMultiscaleDims(filepath, scene);
-  }
-
-  if (loadedDims.size() > 0) {
-    dims = loadedDims;
-    return true;
-  }
-  return false;
-}
-
 std::shared_ptr<ImageXYZC>
-FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
+FileReader::loadAndCache(const LoadSpec& loadSpec)
 {
   // check cache first of all.
   auto cached = sPreloadedImageCache.find(loadSpec.filepath);
@@ -105,12 +66,15 @@ FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
 
   std::string filepath = loadSpec.filepath;
 
-  IFileReader* reader = getReader(filepath);
-  if (reader) {
-    image = reader->loadFromFile(loadSpec);
+  std::unique_ptr<IFileReader> reader(FileReader::getReader(filepath));
+  if (!reader) {
+    LOG_ERROR << "Could not find a reader for file " << filepath;
+    return nullptr;
   }
 
-  if (addToCache && image) {
+  image = reader->loadFromFile(loadSpec);
+
+  if (image) {
     sPreloadedImageCache[filepath] = image;
   }
 

@@ -19,13 +19,7 @@ public:
 
   static IFileReader* getReader(const std::string& filepath);
 
-  static uint32_t loadNumScenes(const std::string& filepath);
-
-  // return dimensions from scene in file
-  static VolumeDimensions loadFileDimensions(const std::string& filepath, uint32_t scene = 0);
-  static bool loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims);
-
-  static std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec, bool addToCache = false);
+  static std::shared_ptr<ImageXYZC> loadAndCache(const LoadSpec& loadSpec);
 
   static std::shared_ptr<ImageXYZC> loadFromArray_4D(uint8_t* dataArray,
                                                      std::vector<uint32_t> shape,

@@ -49,7 +49,13 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     loadSpec.filepath = m_data.m_name;
     loadSpec.scene = 0;
     loadSpec.time = 0;
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
+    std::unique_ptr<IFileReader> reader(FileReader::getReader(loadSpec.filepath));
+    if (!reader) {
+      LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
+      return;
+    }
+
+    std::shared_ptr<ImageXYZC> image = reader->loadFromFile(loadSpec);
     if (!image) {
       return;
     }
@@ -466,13 +472,19 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
   if (STAT64_FUNCTION(m_data.m_path.c_str(), &buf) == 0) {
     // TODO load metadata dims first
 
-    VolumeDimensions dims = FileReader::loadFileDimensions(m_data.m_path, m_data.m_scene);
+    std::unique_ptr<IFileReader> reader(FileReader::getReader(m_data.m_path));
+    if (!reader) {
+      LOG_ERROR << "Could not find a reader for file " << m_data.m_path;
+      return;
+    }
+
+    VolumeDimensions dims = reader->loadDimensions(m_data.m_path, m_data.m_scene);
 
     LoadSpec loadSpec;
     loadSpec.filepath = m_data.m_path;
     loadSpec.time = m_data.m_time;
     loadSpec.scene = m_data.m_scene;
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
+    std::shared_ptr<ImageXYZC> image = reader->loadFromFile(loadSpec);
     if (!image) {
       return;
     }
@@ -546,7 +558,15 @@ SetTimeCommand::execute(ExecutionContext* c)
   loadSpec.time = m_data.m_time;
   std::shared_ptr<ImageXYZC> image;
   try {
-    image = FileReader::loadFromFile(loadSpec);
+
+    std::unique_ptr<IFileReader> reader(FileReader::getReader(loadSpec.filepath));
+    if (!reader) {
+      LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
+      image = nullptr;
+      return;
+    }
+
+    image = reader->loadFromFile(loadSpec);
   } catch (...) {
     LOG_ERROR << "Failed to load time " << m_data.m_time << " from file " << c->m_loadSpec.toString();
     image = nullptr;
