@@ -537,7 +537,8 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
     loadSpec = loadDialog->getLoadSpec();
     dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
   } else {
-    return false;
+    LOG_INFO << "Canceled load dialog.";
+    return true;
   }
 
   // TODO make this part async and chunked so that it can be interrupted
