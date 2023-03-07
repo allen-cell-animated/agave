@@ -133,6 +133,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   QObject::connect(m_roiSection, &Section::collapsed, [this]() { this->adjustSize(); });
 
+  mVolumeLabel = new QLabel("XxYxZ pixels");
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
   QFont font = mMemoryEstimateLabel->font();
   font.setPointSize(18);
@@ -159,6 +160,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   hline->setFrameShape(QFrame::HLine);
   layout->addRow(hline);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  layout->addRow(mVolumeLabel);
   layout->addRow(mMemoryEstimateLabel);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(buttonBox);
@@ -198,6 +200,9 @@ LoadDialog::updateMemoryEstimate()
   spec.maxz = m_roiZ->secondValue();
   size_t mem = spec.getMemoryEstimate();
   std::string label = LoadSpec::bytesToStringLabel(mem);
+
+  mVolumeLabel->setText(QString::number(spec.maxx - spec.minx) + " x " + QString::number(spec.maxy - spec.miny) +
+                        " x " + QString::number(spec.maxz - spec.minz) + " pixels");
 
   mMemoryEstimateLabel->setText("Memory Estimate: " + QString::fromStdString(label));
 }

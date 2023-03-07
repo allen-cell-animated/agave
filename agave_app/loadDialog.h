@@ -52,6 +52,7 @@ private:
   QIntSlider* m_TimeSlider;
   QCheckList* mChannels;
   QTreeWidget* mMetadataTree;
+  QLabel* mVolumeLabel;
   QLabel* mMemoryEstimateLabel;
   RangeWidget* m_roiX;
   RangeWidget* m_roiY;
