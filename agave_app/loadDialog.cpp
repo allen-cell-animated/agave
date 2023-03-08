@@ -280,7 +280,7 @@ LoadDialog::getLoadSpec() const
   LoadSpec spec;
   spec.filepath = mPath;
   spec.scene = mScene;
-  spec.time = 0;
+  spec.time = m_TimeSlider->value();
   spec.channels = mChannels->getCheckedIndices();
 
   spec.maxx = m_roiX->secondValue();
