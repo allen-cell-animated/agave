@@ -453,6 +453,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   }
   m_currentScene = loadSpec.scene;
   m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
+  m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
 
   // install the new volume image into the scene.
   // this is deref'ing the previous _volume shared_ptr.
@@ -532,7 +533,7 @@ agaveGui::open(const std::string& file, const ViewerState* vs)
     return false;
   }
 
-  LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, this);
+  LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
   if (loadDialog->exec() == QDialog::Accepted) {
     loadSpec = loadDialog->getLoadSpec();
     dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();

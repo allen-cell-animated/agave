@@ -18,14 +18,14 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent)
+LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, uint32_t scene, QWidget* parent)
   : QDialog(parent)
 {
   m_reader = FileReader::getReader(path);
   mPath = path;
   mDims = dims;
   mSelectedLevel = 0;
-  mScene = 0;
+  mScene = scene;
 
   setWindowTitle(tr("Load Settings"));
 
@@ -46,7 +46,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mSceneInput = new QSpinBox(this);
   mSceneInput->setMinimum(0);
   mSceneInput->setMaximum(65536);
-  mSceneInput->setValue(0);
+  mSceneInput->setValue(scene);
   mSceneInput->setVisible(false);
 
   mMultiresolutionInput = new QComboBox(this);

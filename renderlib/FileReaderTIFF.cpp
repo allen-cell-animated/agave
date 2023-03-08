@@ -726,7 +726,7 @@ FileReaderTIFF::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   }
   MultiscaleDims mdims;
   mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
-  mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.scale = { 1.0, 1.0, vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
   mdims.dtype = "uint16";
   mdims.path = "";
   mdims.channelNames = vdims.channelNames;

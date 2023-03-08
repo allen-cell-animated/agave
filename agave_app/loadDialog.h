@@ -28,7 +28,7 @@ class LoadDialog : public QDialog
   Q_OBJECT
 
 public:
-  LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, QWidget* parent = Q_NULLPTR);
+  LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, uint32_t scene, QWidget* parent = Q_NULLPTR);
   ~LoadDialog();
 
   LoadSpec getLoadSpec() const;
