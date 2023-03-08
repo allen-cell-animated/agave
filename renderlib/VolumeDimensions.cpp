@@ -167,6 +167,26 @@ VolumeDimensions::log() const
   LOG_INFO << "End VolumeDimensions";
 }
 
+std::vector<std::string>
+VolumeDimensions::getChannelNames(const std::vector<uint32_t>& channels) const
+{
+  // if channels list is empty, do nothing
+  // if channels list is not empty, filter down the list of channel names
+  if (!channels.empty() && channels.size() < sizeC) {
+    // filter down the list of channel names
+    std::vector<std::string> newChannelNames(channels.size(), "");
+    size_t nc = 0;
+    for (auto c : channels) {
+      if (c < channelNames.size()) {
+        newChannelNames[nc] = channelNames[c];
+      }
+      nc++;
+    }
+    return newChannelNames;
+  }
+  return channelNames;
+}
+
 VolumeDimensions
 MultiscaleDims::getVolumeDimensions() const
 {
@@ -192,10 +212,12 @@ MultiscaleDims::getVolumeDimensions() const
     LOG_ERROR << "Unrecognized format " << this->dtype;
   }
 
-  std::vector<std::string> channelNames;
-  for (uint32_t i = 0; i < dims.sizeC; ++i) {
-    channelNames.push_back(std::to_string(i));
+  if (channelNames.empty()) {
+    for (uint32_t i = 0; i < dims.sizeC; ++i) {
+      dims.channelNames.push_back(std::to_string(i));
+    }
+  } else {
+    dims.channelNames = channelNames;
   }
-  dims.channelNames = channelNames;
   return dims;
 }

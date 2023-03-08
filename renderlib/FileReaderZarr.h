@@ -3,6 +3,8 @@
 #include "IFileReader.h"
 #include "VolumeDimensions.h"
 
+#include "json/json.hpp"
+
 #include <memory>
 #include <string>
 
@@ -20,4 +22,10 @@ public:
   VolumeDimensions loadDimensions(const std::string& filepath, uint32_t scene = 0);
   uint32_t loadNumScenes(const std::string& filepath);
   std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
+
+private:
+  nlohmann::json jsonRead(const std::string& filepath);
+  std::vector<std::string> getChannelNames(const std::string& filepath);
+
+  nlohmann::json m_zattrs;
 };

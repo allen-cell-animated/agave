@@ -283,6 +283,9 @@ FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
   if (!dims_ok) {
     return emptyimage;
   }
+
+  uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+
   size_t dataOffset = getDataOffset(filepath);
 
   if (scene > 0) {
@@ -296,8 +299,8 @@ FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
 
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
+  uint8_t* data = new uint8_t[channelsize_bytes * nch];
+  memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -314,10 +317,15 @@ FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
 
   // now ready to read channels one by one.
   std::ifstream myFile(filepath, std::ios::in | std::ios::binary);
-  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+  for (uint32_t channel = 0; channel < nch; ++channel) {
+    uint32_t channelToLoad = channel;
+    if (!loadSpec.channels.empty()) {
+      channelToLoad = loadSpec.channels[channel];
+    }
+
     // read entire channel into its native size
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
+      uint32_t planeIndex = dims.getPlaneIndex(slice, channelToLoad, time);
       destptr = channelRawMem + slice * rawPlanesize;
       if (!readCCP4Plane(myFile, dataOffset + rawPlanesize * planeIndex, rawPlanesize, dims, destptr)) {
         return emptyimage;
@@ -341,14 +349,15 @@ FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
                                 dims.sizeZ,
-                                dims.sizeC,
+                                nch,
                                 ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
 
-  im->setChannelNames(dims.channelNames);
+  std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+  im->setChannelNames(channelNames);
 
   tEnd = std::chrono::high_resolution_clock::now();
   elapsed = tEnd - tStartImage;
@@ -377,6 +386,7 @@ FileReaderCCP4::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
   mdims.dtype = "uint16";
   mdims.path = "";
+  mdims.channelNames = vdims.channelNames;
   dims.push_back(mdims);
   return dims;
 }

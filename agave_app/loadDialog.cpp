@@ -86,7 +86,11 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mChannels = new QCheckList("Channels", this);
   mChannels->setTitleText("");
   for (int i = 0; i < dims[0].shape[1]; ++i) {
-    mChannels->addCheckItem("Ch " + QString::number(i), i, Qt::Checked);
+    std::string channelName = "Ch " + std::to_string(i);
+    if (dims[0].channelNames.size() > i) {
+      channelName = dims[0].channelNames[i];
+    }
+    mChannels->addCheckItem(QString::fromStdString(channelName), i, Qt::Checked);
   }
 
   connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
@@ -184,7 +188,7 @@ LoadDialog::updateScene(int value)
 void
 LoadDialog::updateChannels(int state)
 {
-  std::vector<int> channels = mChannels->getCheckedIndices();
+  std::vector<uint32_t> channels = mChannels->getCheckedIndices();
   updateMemoryEstimate();
 }
 
@@ -235,11 +239,19 @@ LoadDialog::updateMultiresolutionLevel(int level)
   // maintain a t value at same percentage of total.
   float pct = (float)t / (float)m_TimeSlider->maximum();
   int maxt = d.shape[0];
-  //  if (d.shape[0] > 1) {
   m_TimeSlider->setRange(0, maxt - 1);
   m_TimeSlider->setValue(pct * (maxt - 1));
-  //  }
   m_TimeSlider->setEnabled(maxt > 1);
+
+  // update the channels
+  mChannels->clear();
+  for (int i = 0; i < d.shape[1]; ++i) {
+    std::string channelName = "Ch " + std::to_string(i);
+    if (d.channelNames.size() > i) {
+      channelName = d.channelNames[i];
+    }
+    mChannels->addCheckItem(QString::fromStdString(channelName), i, Qt::Checked);
+  }
 
   // update the xyz sliders
 
@@ -269,6 +281,8 @@ LoadDialog::getLoadSpec() const
   spec.filepath = mPath;
   spec.scene = mScene;
   spec.time = 0;
+  spec.channels = mChannels->getCheckedIndices();
+
   spec.maxx = m_roiX->secondValue();
   spec.minx = m_roiX->firstValue();
   spec.maxy = m_roiY->secondValue();

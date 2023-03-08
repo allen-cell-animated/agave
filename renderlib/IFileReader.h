@@ -15,10 +15,13 @@ struct LoadSpec
 {
   std::string filepath;
   // important for zarr multiscale
+  // (TODO should store multiscale index instead?  ...and then find subpath from metadata)
   std::string subpath;
 
   uint32_t scene;
   uint32_t time;
+  // if empty, load all channels
+  std::vector<uint32_t> channels;
   // set all to 0 to load all x,y,z
   uint32_t minx, maxx, miny, maxy, minz, maxz;
 

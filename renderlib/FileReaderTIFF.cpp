@@ -640,10 +640,12 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
     LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
   }
 
+  uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
+  uint8_t* data = new uint8_t[channelsize_bytes * nch];
+  memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -659,10 +661,15 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
   std::unique_ptr<uint8_t[]> smartPtrTemp(channelRawMem);
 
   // now ready to read channels one by one.
-  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+  for (uint32_t channel = 0; channel < nch; ++channel) {
+    uint32_t channelToLoad = channel;
+    if (!loadSpec.channels.empty()) {
+      channelToLoad = loadSpec.channels[channel];
+    }
+
     // read entire channel into its native size
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
+      uint32_t planeIndex = dims.getPlaneIndex(slice, channelToLoad, time);
       destptr = channelRawMem + slice * rawPlanesize;
       if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
         return emptyimage;
@@ -686,14 +693,15 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
                                 dims.sizeZ,
-                                dims.sizeC,
+                                nch,
                                 ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
 
-  im->setChannelNames(dims.channelNames);
+  std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+  im->setChannelNames(channelNames);
 
   tEnd = std::chrono::high_resolution_clock::now();
   elapsed = tEnd - tStartImage;
@@ -721,6 +729,7 @@ FileReaderTIFF::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
   mdims.dtype = "uint16";
   mdims.path = "";
+  mdims.channelNames = vdims.channelNames;
   dims.push_back(mdims);
   return dims;
 }

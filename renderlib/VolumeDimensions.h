@@ -26,6 +26,8 @@ struct VolumeDimensions
 
   bool validate() const;
   void log() const;
+
+  std::vector<std::string> getChannelNames(const std::vector<uint32_t>& channels) const;
 };
 
 struct MultiscaleDims
@@ -34,6 +36,7 @@ struct MultiscaleDims
   std::vector<int64_t> shape;
   std::string dtype;
   std::string path;
+  std::vector<std::string> channelNames;
 
   VolumeDimensions getVolumeDimensions() const;
 };

@@ -47,9 +47,13 @@ FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
 
 FileReaderZarr::~FileReaderZarr() {}
 
-static ::nlohmann::json
-jsonRead(std::string zarrurl)
+::nlohmann::json
+FileReaderZarr::jsonRead(const std::string& zarrurl)
 {
+  if (m_zattrs.is_object()) {
+    return m_zattrs;
+  }
+
   // JSON uses a separate driver
   auto attrs_store = tensorstore::Open<::nlohmann::json, 0>(
                        { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
@@ -68,9 +72,26 @@ jsonRead(std::string zarrurl)
   } else {
     std::cout << "Error: " << attrs_array_result.status();
   }
+  m_zattrs = attrs;
   return attrs;
 }
 
+std::vector<std::string>
+FileReaderZarr::getChannelNames(const std::string& filepath)
+{
+  std::vector<std::string> channelNames;
+  nlohmann::json attrs = jsonRead(filepath);
+  auto omero = m_zattrs["omero"];
+  if (omero.is_object()) {
+    auto channels = omero["channels"];
+    if (channels.is_array()) {
+      for (auto& channel : channels) {
+        channelNames.push_back(channel["label"]);
+      }
+    }
+  }
+  return channelNames;
+}
 uint32_t
 FileReaderZarr::loadNumScenes(const std::string& filepath)
 {
@@ -147,6 +168,9 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   std::vector<MultiscaleDims> multiscaleDims;
 
   nlohmann::json attrs = jsonRead(filepath);
+
+  std::vector<std::string> channelNames = getChannelNames(filepath);
+
   auto multiscales = attrs["multiscales"];
   if (multiscales.is_array()) {
     auto multiscale = multiscales[scene];
@@ -179,6 +203,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
             // TODO reconcile these strings against my other ways of specifying dtype
             zmd.dtype = dtype.name();
             zmd.path = pathstr;
+            zmd.channelNames = channelNames;
             multiscaleDims.push_back(zmd);
           }
         }
@@ -244,6 +269,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   if (loadSpec.maxz > loadSpec.minz)
     dims.sizeZ = loadSpec.maxz - loadSpec.minz;
 
+  uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+
   tensorstore::Context context = tensorstore::Context::Default();
 
   auto openFuture = tensorstore::Open(
@@ -271,8 +298,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
+  uint8_t* data = new uint8_t[channelsize_bytes * nch];
+  memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -304,10 +331,12 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   }
 
   // now ready to read channels one by one.
-  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+  for (uint32_t channel = 0; channel < nch; ++channel) {
+    uint32_t channelToLoad = channel;
+    if (!loadSpec.channels.empty()) {
+      channelToLoad = loadSpec.channels[channel];
+    }
     // read entire channel into its native size
-    //    for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-    //    uint32_t planeIndex = dims.getPlaneIndex(0, channel, time);
     destptr = channelRawMem;
 
     tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(store.domain());
@@ -323,7 +352,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
     transform =
       (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
-    transform = (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channel, channel + 1)).value();
+    transform =
+      (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channelToLoad, channelToLoad + 1)).value();
     transform = (std::move(transform) | tensorstore::Dims(2).HalfOpenInterval(minz, maxz)).value();
     transform = (std::move(transform) | tensorstore::Dims(3).HalfOpenInterval(miny, maxy)).value();
     transform = (std::move(transform) | tensorstore::Dims(4).HalfOpenInterval(minx, maxx)).value();
@@ -331,11 +361,6 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     auto arr = tensorstore::Array(
       reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
     tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
-
-    //      if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
-    //      return emptyimage;
-    //  }
-    //}
 
     // convert to our internal format (IN_MEMORY_BPP)
     if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
@@ -354,14 +379,15 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
                                 dims.sizeZ,
-                                dims.sizeC,
+                                nch,
                                 ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
 
-  im->setChannelNames(dims.channelNames);
+  std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+  im->setChannelNames(channelNames);
 
   tEnd = std::chrono::high_resolution_clock::now();
   elapsed = tEnd - tStartImage;

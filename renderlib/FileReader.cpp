@@ -192,6 +192,11 @@ LoadSpec::toString() const
     stream << " " << subpath;
   }
   stream << " : scene " << scene << " time " << time;
+  stream << " : channels [";
+  for (auto i : channels) {
+    stream << i << ",";
+  }
+  stream << "]";
   stream << " X:[" << minx << "," << maxx << "] Y[" << miny << "," << maxy << "] Z[" << minz << "," << maxz << "]";
   std::string s = stream.str();
   return s;

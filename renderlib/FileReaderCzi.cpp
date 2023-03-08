@@ -329,9 +329,11 @@ FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
       return emptyimage;
     }
 
+    uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+
     size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
-    uint8_t* data = new uint8_t[planesize * dims.sizeZ * dims.sizeC];
-    memset(data, 0, planesize * dims.sizeZ * dims.sizeC);
+    uint8_t* data = new uint8_t[planesize * dims.sizeZ * nch];
+    memset(data, 0, planesize * dims.sizeZ * nch);
 
     // stash it here in case of early exit, it will be deleted
     std::unique_ptr<uint8_t[]> smartPtr(data);
@@ -354,14 +356,19 @@ FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
       o.sceneFilter = libCZI::Utils::IndexSetFromString(wss.str());
     }
 
-    for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+    for (uint32_t channel = 0; channel < nch; ++channel) {
+      uint32_t channelToLoad = channel;
+      if (!loadSpec.channels.empty()) {
+        channelToLoad = loadSpec.channels[channel];
+      }
+
       for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
         destptr = data + planesize * (channel * dims.sizeZ + slice);
 
         // adjust coordinates by offsets from dims
         libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::Z, (int)slice + startZ } };
         if (hasC) {
-          planeCoord.Set(libCZI::DimensionIndex::C, (int)channel + startC);
+          planeCoord.Set(libCZI::DimensionIndex::C, (int)channelToLoad + startC);
         }
         if (hasT) {
           planeCoord.Set(libCZI::DimensionIndex::T, time + startT);
@@ -386,14 +393,15 @@ FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
     ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                   dims.sizeY,
                                   dims.sizeZ,
-                                  dims.sizeC,
+                                  nch,
                                   ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                   smartPtr.release(),
                                   dims.physicalSizeX,
                                   dims.physicalSizeY,
                                   dims.physicalSizeZ);
 
-    im->setChannelNames(dims.channelNames);
+    std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+    im->setChannelNames(channelNames);
 
     tEnd = std::chrono::high_resolution_clock::now();
     elapsed = tEnd - tStartImage;
@@ -430,6 +438,7 @@ FileReaderCzi::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   mdims.scale = { vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
   mdims.dtype = "uint16";
   mdims.path = "";
+  mdims.channelNames = vdims.channelNames;
   dims.push_back(mdims);
   return dims;
 }

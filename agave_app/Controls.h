@@ -236,10 +236,10 @@ public:
     updateText();
   }
 
-  std::vector<int> getCheckedIndices() const
+  std::vector<uint32_t> getCheckedIndices() const
   {
-    std::vector<int> indices;
-    for (int i = 0; i < m_model->rowCount(); ++i) {
+    std::vector<uint32_t> indices;
+    for (uint32_t i = 0; i < m_model->rowCount(); ++i) {
       if (m_model->item(i)->checkState() == Qt::Checked) {
         indices.push_back(i);
       }
