@@ -100,6 +100,9 @@ QTimelineWidget::OnTimeChanged(int newTime)
     m_scene->m_timeLine.setCurrentTime(newTime);
     m_scene->m_volume = image;
 
+    // keep the local loadSpec up to date if successful load
+    m_loadSpec = loadSpec;
+
     // TODO update the AppearanceSettings channel gui with new Histograms
 
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
