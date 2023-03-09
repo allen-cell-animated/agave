@@ -164,11 +164,13 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addRow("Channels", mChannels);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(m_roiSection);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   QFrame* hline = new QFrame();
   hline->setFrameShape(QFrame::HLine);
   layout->addRow(hline);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(mVolumeLabel);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(mMemoryEstimateLabel);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(buttonBox);
