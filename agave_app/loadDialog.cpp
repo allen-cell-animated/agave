@@ -29,6 +29,10 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   setWindowTitle(tr("Load Settings"));
 
+  // get standard QLabel font size
+  QFont f = QLabel("A").font();
+  int standardPointSize = f.pointSize();
+
   // QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   // buttonBox->setCenterButtons(true);
   // buttonBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -140,7 +144,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mVolumeLabel = new QLabel("XxYxZ pixels");
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
   QFont font = mMemoryEstimateLabel->font();
-  font.setPointSize(18);
+  font.setPointSize(font.pointSize() * 1.5);
   mMemoryEstimateLabel->setFont(font);
 
   updateMultiresolutionLevel(mSelectedLevel);
