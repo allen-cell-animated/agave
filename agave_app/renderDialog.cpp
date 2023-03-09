@@ -669,9 +669,11 @@ RenderDialog::getOverwriteConfirmation()
 void
 RenderDialog::render()
 {
-  // if (!getOverwriteConfirmation()) {
-  //   return;
-  // }
+  // for time series, we will try to get overwrite confirmation.
+  // for single frames, we will rely on generated unique filenames.
+  if (mTimeSeriesProgressLabel && !getOverwriteConfirmation()) {
+    return;
+  }
 
   updateUIStartRendering();
 
@@ -775,7 +777,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // save image
     if (mAutosaveCheckbox->isChecked()) {
       QString saveFilePath = getFullSavePath();
-      saveFilePath = getUniqueNextFilename(saveFilePath);
+      // if not in time series, then unique-ify the filename
+      if (!mTimeSeriesProgressLabel) {
+        saveFilePath = getUniqueNextFilename(saveFilePath);
+      }
 
       // TODO don't throw away alpha - rethink how image is composited with background color
       QImage im = image.convertToFormat(QImage::Format_RGB32);
