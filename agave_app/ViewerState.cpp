@@ -3,6 +3,7 @@
 #include "command.h"
 #include "renderlib/Logging.h"
 #include "renderlib/version.h"
+#include "renderlib/version.hpp"
 
 #include <QFile>
 #include <QFileInfo>
@@ -124,6 +125,16 @@ getVec2i(QJsonObject obj, QString prop, glm::ivec2& value)
     value.y = ja.at(1).toInt(value.y);
   }
 }
+void
+getVec3i(QJsonObject obj, QString prop, glm::ivec3& value)
+{
+  if (obj.contains(prop)) {
+    QJsonArray ja = obj[prop].toArray();
+    value.x = ja.at(0).toInt(value.x);
+    value.y = ja.at(1).toInt(value.y);
+    value.z = ja.at(2).toInt(value.z);
+  }
+}
 
 std::map<GradientEditMode, int> LutParams::g_GradientModeToPermId = { { GradientEditMode::WINDOW_LEVEL, 0 },
                                                                       { GradientEditMode::ISOVALUE, 1 },
@@ -161,14 +172,23 @@ ViewerState::lutParamsFromJson(QJsonObject& jsonObj)
   return lutParams;
 }
 
+
 void
 ViewerState::stateFromJson(QJsonDocument& jsonDoc)
 {
   QJsonObject json(jsonDoc.object());
 
-  glm::vec3 version(0, 0, 1);
-  getVec3(json, "version", version);
+  glm::ivec3 version(0, 0, 1);
+  getVec3i(json, "version", version);
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
+  
+  Version currentVersion(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
+  Version ver(version);
+
+  // version checks.  Parse old data structures here.
+  if (ver <= Version(1,4,1)) {
+  
+  }
 
   getString(json, "name", m_volumeImageFile);
   // this value should not be used when read back in to the gui since the gui has to progressively render anyway.
