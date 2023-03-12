@@ -65,6 +65,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsDockWidget.cpp"
