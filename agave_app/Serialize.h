@@ -241,8 +241,6 @@ struct ViewerState_V1
   // lighting
   std::vector<LightSettings_V1> lights; // m_lights
 
-  CaptureSettings_V1 capture;
-
   bool operator==(const ViewerState_V1& other) const
   {
     return name == other.name && version == other.version && resolution == other.resolution &&
@@ -250,7 +248,7 @@ struct ViewerState_V1
            scene == other.scene && clipRegion == other.clipRegion && scale == other.scale && camera == other.camera &&
            backgroundColor == other.backgroundColor && boundingBoxColor == other.boundingBoxColor &&
            showBoundingBox == other.showBoundingBox && channels == other.channels && density == other.density &&
-           lights == other.lights && capture == other.capture;
+           lights == other.lights;
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ViewerState_V1,
                                  name,
@@ -268,6 +266,5 @@ struct ViewerState_V1
                                  showBoundingBox,
                                  channels,
                                  density,
-                                 lights,
-                                 capture)
+                                 lights)
 };

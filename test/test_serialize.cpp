@@ -163,11 +163,1240 @@ TEST_CASE("Json Serialization", "[serialize]")
     settings.channels = { ChannelSettings_V1{}, ChannelSettings_V1{} };
     settings.density = 100.0;
     settings.lights = { LightSettings_V1{}, LightSettings_V1{} };
-    settings.capture = CaptureSettings_V1{};
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
     auto settings2 = json.get<ViewerState_V1>();
     REQUIRE(settings == settings2);
+  }
+
+  SECTION("Error out on bad json")
+  {
+    // valid json to struct fails
+    auto jstr = "{}";
+    auto json = nlohmann::json::parse(jstr);
+    REQUIRE_THROWS_AS(json.get<PathTraceSettings_V1>(), std::exception);
+
+    // all good
+    jstr = R"(
+      {
+        "primaryStepSize": 0.1,
+        "secondaryStepSize": 0.2
+      }
+    )";
+    json = nlohmann::json::parse(jstr);
+    REQUIRE(json.get<PathTraceSettings_V1>() == PathTraceSettings_V1{ 0.1, 0.2 });
+
+    // json parse fails
+    jstr = R"(
+      {
+        "primaryStepSize": 0.1,
+        "secondaryStepSize": 0.2,
+      }
+    )";
+    REQUIRE_THROWS_AS(nlohmann::json::parse(jstr), std::exception);
+  }
+
+  SECTION("Read v1 json with extra fields")
+  {
+    // "capture" is an extra field here and will be dropped
+    auto jstr = R"(
+{
+    "backgroundColor": [
+        0,
+        0,
+        0
+    ],
+    "boundingBoxColor": [
+        1,
+        1,
+        1
+    ],
+    "camera": {
+        "aperture": 0,
+        "exposure": 0.75,
+        "eye": [
+            0.7656243443489075,
+            -0.4507044553756714,
+            1.197649359703064
+        ],
+        "focalDistance": 0.75,
+        "fovY": 55,
+        "orthoScale": 0.5,
+        "projection": 0,
+        "target": [
+            0.5,
+            0.4440000057220459,
+            0.21950767934322357
+        ],
+        "up": [
+            0.11175604164600372,
+            0.7481830716133118,
+            0.6540123820304871
+        ]
+    },
+    "capture": {
+        "durationType": 1,
+        "endTime": 0,
+        "filenamePrefix": "frame",
+        "height": 0,
+        "outputDirectory": "/Users/danielt/Documents",
+        "samples": 32,
+        "seconds": 10,
+        "startTime": 0,
+        "width": 0
+    },
+    "channels": [
+        {
+            "diffuseColor": [
+                1,
+                0,
+                1
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": true,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                1,
+                1,
+                1
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": true,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0,
+                1,
+                1
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": true,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.5000076293945312,
+                0,
+                0
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0,
+                0.14589150249958038,
+                0.5000076293945312
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.29179826378822327,
+                0.5000076293945312,
+                0
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.5000076293945312,
+                0,
+                0.43768978118896484
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0,
+                0.5000076293945312,
+                0.4164034426212311
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.5000076293945312,
+                0.2705119550228119,
+                0
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        }
+    ],
+    "clipRegion": [
+        [
+            0,
+            1
+        ],
+        [
+            0,
+            1
+        ],
+        [
+            0,
+            1
+        ]
+    ],
+    "density": 8.5,
+    "lights": [
+        {
+            "bottomColor": [
+                1,
+                1,
+                1
+            ],
+            "bottomColorIntensity": 1,
+            "color": [
+                10,
+                10,
+                10
+            ],
+            "colorIntensity": 1,
+            "distance": 1,
+            "height": 1,
+            "middleColor": [
+                1,
+                1,
+                1
+            ],
+            "middleColorIntensity": 1,
+            "phi": 1.5707963705062866,
+            "theta": 0,
+            "topColor": [
+                1,
+                1,
+                1
+            ],
+            "topColorIntensity": 1,
+            "type": 1,
+            "width": 1
+        },
+        {
+            "bottomColor": [
+                10,
+                10,
+                10
+            ],
+            "bottomColorIntensity": 1,
+            "color": [
+                1,
+                1,
+                1
+            ],
+            "colorIntensity": 100,
+            "distance": 10,
+            "height": 1,
+            "middleColor": [
+                10,
+                10,
+                10
+            ],
+            "middleColorIntensity": 1,
+            "phi": 1.5707963705062866,
+            "theta": 0,
+            "topColor": [
+                10,
+                10,
+                10
+            ],
+            "topColorIntensity": 1,
+            "type": 0,
+            "width": 1
+        }
+    ],
+    "name": "/Users/danielt/Downloads/files-d99bba176cdc737434ef1774bfdc3255/AICS-12_1070_71092.ome.tif",
+    "pathTracer": {
+        "primaryStepSize": 4,
+        "secondaryStepSize": 4
+    },
+    "renderIterations": 2086,
+    "resolution": [
+        619,
+        622
+    ],
+    "scale": [
+        0.10833299905061722,
+        0.10833299905061722,
+        0.28999999165534973
+    ],
+    "scene": 0,
+    "showBoundingBox": true,
+    "timeline": {
+        "currentTime": 0,
+        "maxTime": 0,
+        "minTime": 0
+    },
+    "version": [
+        1,
+        4,
+        1
+    ]
+}
+
+    )";
+
+    auto json = nlohmann::json::parse(jstr);
+    auto settings = json.get<ViewerState_V1>();
+  }
+
+  SECTION("Read valid 1.4.1 json")
+  {
+    std::string jstr = R"(
+{
+    "backgroundColor": [
+        0,
+        0,
+        0
+    ],
+    "boundingBoxColor": [
+        1,
+        1,
+        1
+    ],
+    "camera": {
+        "aperture": 0,
+        "exposure": 0.75,
+        "eye": [
+            0.06596243381500244,
+            -0.508243203163147,
+            1.0754612684249878
+        ],
+        "focalDistance": 0.75,
+        "fovY": 55,
+        "orthoScale": 0.5,
+        "projection": 0,
+        "target": [
+            0.5,
+            0.4440000057220459,
+            0.21950767934322357
+        ],
+        "up": [
+            0.2748546004295349,
+            0.5704407095909119,
+            0.7739846706390381
+        ]
+    },
+    "channels": [
+        {
+            "diffuseColor": [
+                1,
+                0,
+                1
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": true,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                1,
+                1,
+                1
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": true,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0,
+                1,
+                1
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": true,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.5000076293945312,
+                0,
+                0
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0,
+                0.14589150249958038,
+                0.5000076293945312
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.29179826378822327,
+                0.5000076293945312,
+                0
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.5000076293945312,
+                0,
+                0.43768978118896484
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0,
+                0.5000076293945312,
+                0.4164034426212311
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "diffuseColor": [
+                0.5000076293945312,
+                0.2705119550228119,
+                0
+            ],
+            "emissiveColor": [
+                0,
+                0,
+                0
+            ],
+            "enabled": false,
+            "glossiness": 1,
+            "lutParams": {
+                "controlPoints": [
+                    {
+                        "value": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "x": 0
+                    },
+                    {
+                        "value": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "x": 1
+                    }
+                ],
+                "isorange": 0.10000000149011612,
+                "isovalue": 0.5,
+                "level": 0.5,
+                "mode": 2,
+                "pctHigh": 0.9800000190734863,
+                "pctLow": 0.5,
+                "window": 0.25
+            },
+            "opacity": 1,
+            "specularColor": [
+                0,
+                0,
+                0
+            ]
+        }
+    ],
+    "clipRegion": [
+        [
+            0,
+            1
+        ],
+        [
+            0,
+            1
+        ],
+        [
+            0,
+            1
+        ]
+    ],
+    "density": 8.5,
+    "lights": [
+        {
+            "bottomColor": [
+                1,
+                1,
+                1
+            ],
+            "bottomColorIntensity": 1,
+            "color": [
+                10,
+                10,
+                10
+            ],
+            "colorIntensity": 1,
+            "distance": 1,
+            "height": 1,
+            "middleColor": [
+                1,
+                1,
+                1
+            ],
+            "middleColorIntensity": 1,
+            "phi": 1.5707963705062866,
+            "theta": 0,
+            "topColor": [
+                1,
+                1,
+                1
+            ],
+            "topColorIntensity": 1,
+            "type": 1,
+            "width": 1
+        },
+        {
+            "bottomColor": [
+                10,
+                10,
+                10
+            ],
+            "bottomColorIntensity": 1,
+            "color": [
+                1,
+                1,
+                1
+            ],
+            "colorIntensity": 100,
+            "distance": 10,
+            "height": 1,
+            "middleColor": [
+                10,
+                10,
+                10
+            ],
+            "middleColorIntensity": 1,
+            "phi": 1.5707963705062866,
+            "theta": 0,
+            "topColor": [
+                10,
+                10,
+                10
+            ],
+            "topColorIntensity": 1,
+            "type": 0,
+            "width": 1
+        }
+    ],
+    "name": "/Users/danielt/Downloads/files-d99bba176cdc737434ef1774bfdc3255/AICS-12_1070_71092.ome.tif",
+    "pathTracer": {
+        "primaryStepSize": 4,
+        "secondaryStepSize": 4
+    },
+    "renderIterations": 1031,
+    "resolution": [
+        619,
+        622
+    ],
+    "scale": [
+        0.10833299905061722,
+        0.10833299905061722,
+        0.28999999165534973
+    ],
+    "scene": 0,
+    "showBoundingBox": true,
+    "timeline": {
+        "currentTime": 0,
+        "maxTime": 0,
+        "minTime": 0
+    },
+    "version": [
+        1,
+        4,
+        1
+    ]
+}
+
+      )";
+    auto json = nlohmann::json::parse(jstr);
+    auto settings = json.get<ViewerState_V1>();
   }
 }
