@@ -327,10 +327,10 @@ GLView3D::OnUpdateRenderer(int rendererType)
 void
 GLView3D::fromViewerState(const ViewerState& s)
 {
-  m_CCamera.m_From = glm::vec3(s.m_eyeX, s.m_eyeY, s.m_eyeZ);
-  m_CCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
-  m_CCamera.m_Up = glm::vec3(s.m_upX, s.m_upY, s.m_upZ);
-  m_CCamera.m_FovV = s.m_fov;
+  m_CCamera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
+  m_CCamera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+  m_CCamera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
+  m_CCamera.m_FovV = s.camera.fov;
   m_CCamera.SetProjectionMode(s.m_projection == ViewerState::Projection::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
   m_CCamera.m_OrthoScale = s.m_orthoScale;
 

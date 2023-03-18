@@ -72,7 +72,7 @@ TEST_CASE("Json Serialization", "[serialize]")
     settings.pctLow = 0.5f;
     settings.pctHigh = 0.6f;
     settings.controlPoints = { { 0.1f, { 0.2f, 0.3f, 0.4f, 0.5f } }, { 0.2f, { 0.3f, 0.4f, 0.5f, 0.6f } } };
-    settings.mode = GradientEditMode::CUSTOM;
+    settings.mode = GradientEditMode_PID::CUSTOM;
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
@@ -91,7 +91,7 @@ TEST_CASE("Json Serialization", "[serialize]")
                            0.5f,
                            0.6f,
                            { { 0.1f, { 0.2f, 0.3f, 0.4f, 0.5f } }, { 0.2f, { 0.3f, 0.4f, 0.5f, 0.6f } } },
-                           GradientEditMode::CUSTOM };
+                           GradientEditMode_PID::CUSTOM };
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
@@ -123,9 +123,9 @@ TEST_CASE("Json Serialization", "[serialize]")
     REQUIRE(settings == settings2);
   }
 
-  SECTION("Read and write CaptureSettings_V1")
+  SECTION("Read and write CaptureSettings")
   {
-    auto settings = CaptureSettings_V1{};
+    auto settings = CaptureSettings{};
     settings.width = 1;
     settings.height = 2;
     settings.filenamePrefix = "test";
@@ -138,7 +138,7 @@ TEST_CASE("Json Serialization", "[serialize]")
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<CaptureSettings_V1>();
+    auto settings2 = json.get<CaptureSettings>();
     REQUIRE(settings == settings2);
   }
 
@@ -1291,12 +1291,12 @@ TEST_CASE("Json Serialization", "[serialize]")
             1
         ],
         [
-            0,
-            1
+            0.5,
+            0.6
         ],
         [
-            0,
-            1
+            0.75,
+            0.85
         ]
     ],
     "density": 8.5,
@@ -1398,5 +1398,8 @@ TEST_CASE("Json Serialization", "[serialize]")
       )";
     auto json = nlohmann::json::parse(jstr);
     auto settings = json.get<ViewerState_V1>();
+    REQUIRE(settings.clipRegion[0] == std::array<float, 2>{ 0, 1 });
+    REQUIRE(settings.clipRegion[1] == std::array<float, 2>{ 0.5, 0.6 });
+    REQUIRE(settings.clipRegion[2] == std::array<float, 2>{ 0.75, 0.85 });
   }
 }

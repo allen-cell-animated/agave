@@ -14,6 +14,7 @@
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
+#include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
@@ -286,12 +287,11 @@ agaveGui::openUrl()
 {
   std::string urlToLoad = "";
   bool ok = false;
-  QString text =
-    QInputDialog::getText(this, tr("Zarr Location"), tr("Enter URL or directory"), QLineEdit::Normal, "", &ok);
+  QString text = QInputDialog::getText(this, tr("Open from URL"), tr("Enter URL here:"), QLineEdit::Normal, "", &ok);
   if (ok && !text.isEmpty()) {
     urlToLoad = text.toStdString();
   } else {
-    LOG_DEBUG << "Canceled load Zarr from url or directory.";
+    LOG_DEBUG << "Canceled load Zarr from url.";
     return false;
   }
 
@@ -315,19 +315,24 @@ agaveGui::openJson()
       qWarning("Couldn't open JSON file.");
       return;
     }
-    QByteArray saveData = loadFile.readAll();
-    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
-    if (loadDoc.isNull()) {
-      LOG_DEBUG << "Invalid config file format. Make sure it is JSON.";
-      return;
-    }
 
-    ViewerState s;
-    s.stateFromJson(loadDoc);
-    if (!s.m_volumeImageFile.empty()) {
-      if (!open(s.m_volumeImageFile, &s)) {
-        showOpenFailedMessageBox(file);
+    QByteArray saveData = loadFile.readAll();
+
+    // get the bytes into a ViewerState object.
+    try {
+      std::string saveDataString = saveData.toStdString();
+      nlohmann::json j = nlohmann::json::parse(saveDataString);
+      ViewerState s;
+      s = stateFromJson(j);
+      if (!s.m_volumeImageFile.empty()) {
+        if (!open(s.m_volumeImageFile, &s)) {
+          showOpenFailedMessageBox(file);
+        }
       }
+    } catch (std::exception& e) {
+      LOG_ERROR << "Invalid JSON file.";
+      LOG_ERROR << e.what();
+      return;
     }
   }
 }
@@ -422,14 +427,16 @@ agaveGui::saveJson()
 #endif
   QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
-    ViewerState st = appToViewerState();
-    QJsonDocument doc = st.stateToJson();
+
     QFile saveFile(file);
     if (!saveFile.open(QIODevice::WriteOnly)) {
       qWarning("Couldn't open save file.");
       return;
     }
-    saveFile.write(doc.toJson());
+    ViewerState st = appToViewerState();
+    nlohmann::json doc = st;
+    std::string str = json.dump();
+    saveFile.write(QString::fromStdString(str));
   }
 }
 
@@ -783,7 +790,7 @@ agaveGui::savePython()
       return;
     }
     ViewerState st = appToViewerState();
-    QString doc = st.stateToPythonScript();
+    QString doc = stateToPythonScript(st);
     saveFile.write(doc.toUtf8());
   }
 }

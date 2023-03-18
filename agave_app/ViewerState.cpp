@@ -1,6 +1,7 @@
 #include "ViewerState.h"
 
 #include "command.h"
+#include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
 #include "renderlib/version.h"
 #include "renderlib/version.hpp"
@@ -58,449 +59,122 @@ jsonVec2(const glm::vec2& v)
 }
 
 void
-getFloat(QJsonObject obj, QString prop, float& value)
+getFloat(const nlohmann::json& obj, std::string prop, float& value)
 {
   if (obj.contains(prop)) {
-    value = (float)obj[prop].toDouble(value);
+    value = (float)obj[prop].get<double>();
   }
 }
 void
-getInt(QJsonObject obj, QString prop, int& value)
+getInt(const nlohmann::json& obj, std::string prop, int& value)
 {
   if (obj.contains(prop)) {
-    value = obj[prop].toInt(value);
+    value = obj[prop].get<int>();
   }
 }
 void
-getString(QJsonObject obj, QString prop, std::string& value)
+getString(const nlohmann::json& obj, std::string prop, std::string& value)
 {
   if (obj.contains(prop)) {
-    QString defaultValue = QString::fromStdString(value);
-    value = obj[prop].toString(defaultValue).toStdString();
+    value = obj[prop].get<std::string>();
   }
 }
 void
-getBool(QJsonObject obj, QString prop, bool& value)
+getBool(const nlohmann::json& obj, std::string prop, bool& value)
 {
   if (obj.contains(prop)) {
-    value = obj[prop].toBool(value);
+    value = obj[prop].get<bool>();
   }
 }
 void
-getVec4(QJsonObject obj, QString prop, glm::vec4& value)
+getVec4(const nlohmann::json& obj, std::string prop, glm::vec4& value)
 {
   if (obj.contains(prop)) {
-    QJsonArray ja = obj[prop].toArray();
-    value.x = ja.at(0).toDouble(value.x);
-    value.y = ja.at(1).toDouble(value.y);
-    value.z = ja.at(2).toDouble(value.z);
-    value.w = ja.at(3).toDouble(value.w);
+    auto ja = obj[prop];
+    value.x = ja.at(0).get<double>();
+    value.y = ja.at(1).get<double>();
+    value.z = ja.at(2).get<double>();
+    value.w = ja.at(3).get<double>();
   }
 }
 void
-getVec3(QJsonObject obj, QString prop, glm::vec3& value)
+getVec3(const nlohmann::json& obj, std::string prop, glm::vec3& value)
 {
   if (obj.contains(prop)) {
-    QJsonArray ja = obj[prop].toArray();
-    value.x = ja.at(0).toDouble(value.x);
-    value.y = ja.at(1).toDouble(value.y);
-    value.z = ja.at(2).toDouble(value.z);
+    auto ja = obj[prop];
+    value.x = ja.at(0).get<double>();
+    value.y = ja.at(1).get<double>();
+    value.z = ja.at(2).get<double>();
   }
 }
 void
-getVec2(QJsonObject obj, QString prop, glm::vec2& value)
+getVec2(const nlohmann::json& obj, std::string prop, glm::vec2& value)
 {
   if (obj.contains(prop)) {
-    QJsonArray ja = obj[prop].toArray();
-    value.x = ja.at(0).toDouble(value.x);
-    value.y = ja.at(1).toDouble(value.y);
+    auto ja = obj[prop];
+    value.x = ja.at(0).get<double>();
+    value.y = ja.at(1).get<double>();
   }
 }
 void
-getVec2i(QJsonObject obj, QString prop, glm::ivec2& value)
+getVec2i(const nlohmann::json& obj, std::string prop, glm::ivec2& value)
 {
   if (obj.contains(prop)) {
-    QJsonArray ja = obj[prop].toArray();
-    value.x = ja.at(0).toInt(value.x);
-    value.y = ja.at(1).toInt(value.y);
+    auto ja = obj[prop];
+    value.x = ja.at(0).get<int32_t>();
+    value.y = ja.at(1).get<int32_t>();
   }
 }
 void
-getVec3i(QJsonObject obj, QString prop, glm::ivec3& value)
+getVec3i(const nlohmann::json& obj, std::string prop, glm::ivec3& value)
 {
   if (obj.contains(prop)) {
-    QJsonArray ja = obj[prop].toArray();
-    value.x = ja.at(0).toInt(value.x);
-    value.y = ja.at(1).toInt(value.y);
-    value.z = ja.at(2).toInt(value.z);
+    auto ja = obj[prop];
+    value.x = ja.at(0).get<int32_t>();
+    value.y = ja.at(1).get<int32_t>();
+    value.z = ja.at(2).get<int32_t>();
   }
 }
 
-std::map<GradientEditMode, int> LutParams::g_GradientModeToPermId = { { GradientEditMode::WINDOW_LEVEL, 0 },
-                                                                      { GradientEditMode::ISOVALUE, 1 },
-                                                                      { GradientEditMode::PERCENTILE, 2 },
-                                                                      { GradientEditMode::CUSTOM, 3 } };
-std::map<int, GradientEditMode> LutParams::g_PermIdToGradientMode = { { 0, GradientEditMode::WINDOW_LEVEL },
-                                                                      { 1, GradientEditMode::ISOVALUE },
-                                                                      { 2, GradientEditMode::PERCENTILE },
-                                                                      { 3, GradientEditMode::CUSTOM } };
+std::map<GradientEditMode, GradientEditMode_PID> g_GradientModeToPermId = {
+  { GradientEditMode::WINDOW_LEVEL, GradientEditMode_PID::WINDOW_LEVEL },
+  { GradientEditMode::ISOVALUE, GradientEditMode_PID::ISOVALUE },
+  { GradientEditMode::PERCENTILE, GradientEditMode_PID::PERCENTILE },
+  { GradientEditMode::CUSTOM, GradientEditMode_PID::CUSTOM }
+};
+std::map<GradientEditMode_PID, GradientEditMode> g_PermIdToGradientMode = {
+  { GradientEditMode_PID::WINDOW_LEVEL, GradientEditMode::WINDOW_LEVEL },
+  { GradientEditMode_PID::ISOVALUE, GradientEditMode::ISOVALUE },
+  { GradientEditMode_PID::PERCENTILE, GradientEditMode::PERCENTILE },
+  { GradientEditMode_PID::CUSTOM, GradientEditMode::CUSTOM }
+};
 
-LutParams
-ViewerState::lutParamsFromJson(QJsonObject& jsonObj)
+ViewerState
+stateFromJson(const nlohmann::json& jsonDoc)
 {
-  LutParams lutParams;
-  getFloat(jsonObj, "window", lutParams.m_window);
-  getFloat(jsonObj, "level", lutParams.m_level);
-  getFloat(jsonObj, "isovalue", lutParams.m_isovalue);
-  getFloat(jsonObj, "isorange", lutParams.m_isorange);
-  getFloat(jsonObj, "pctLow", lutParams.m_pctLow);
-  getFloat(jsonObj, "pctHigh", lutParams.m_pctHigh);
-  getInt(jsonObj, "mode", lutParams.m_mode);
-  if (jsonObj.contains("controlPoints") && jsonObj["controlPoints"].isArray()) {
-    QJsonArray controlPointsArray = jsonObj["controlPoints"].toArray();
-    for (int i = 0; i < controlPointsArray.size(); ++i) {
-      // {x: 1.0, value: [1,1,1,1]}
-      QJsonObject controlPointObj = controlPointsArray[i].toObject();
-      float x;
-      getFloat(controlPointObj, "x", x);
-      glm::vec4 v4;
-      getVec4(controlPointObj, "value", v4);
-      // note: only the last value of the vector is used currently.
-      lutParams.m_customControlPoints.push_back({ x, v4.w });
-    }
-  }
-  return lutParams;
-}
-
-
-void
-ViewerState::stateFromJson(QJsonDocument& jsonDoc)
-{
-  QJsonObject json(jsonDoc.object());
-
-  glm::ivec3 version(0, 0, 1);
-  getVec3i(json, "version", version);
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
-  
-  Version currentVersion(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
-  Version ver(version);
+  glm::ivec3 v(0, 0, 0);
+  getVec3i(jsonDoc, "version", v);
+  Version version(v);
+
+  // we will fill this in from the jsonDoc.
+  ViewerState stateV2;
 
   // version checks.  Parse old data structures here.
-  if (ver <= Version(1,4,1)) {
-  
+  if (version <= Version(1, 4, 1)) {
+    ViewerState_V1 stateV1 = jsonDoc.get<ViewerState_V1>();
+    // fill in this from the old data structure.
+    stateV2.fromV1(stateV1);
+  } else {
+    stateV2 = jsonDoc.get<ViewerState>();
   }
-
-  getString(json, "name", m_volumeImageFile);
-  // this value should not be used when read back in to the gui since the gui has to progressively render anyway.
-  getInt(json, "renderIterations", m_renderIterations);
-  getFloat(json, "density", m_densityScale);
-
-  glm::ivec2 res(m_resolutionX, m_resolutionY);
-  getVec2i(json, "resolution", res);
-  m_resolutionX = res.x;
-  m_resolutionY = res.y;
-
-  glm::vec3 scale(m_scaleX, m_scaleY, m_scaleZ);
-  getVec3(json, "scale", scale);
-  m_scaleX = scale.x;
-  m_scaleY = scale.y;
-  m_scaleZ = scale.z;
-
-  getBool(json, "showBoundingBox", m_showBoundingBox);
-
-  glm::vec3 bboxColor = m_boundingBoxColor;
-  getVec3(json, "boundingBoxColor", bboxColor);
-  m_boundingBoxColor = bboxColor;
-
-  glm::vec3 bgcolor = m_backgroundColor;
-  getVec3(json, "backgroundColor", bgcolor);
-  m_backgroundColor = bgcolor;
-
-  if (json.contains("clipRegion") && json["clipRegion"].isArray()) {
-    QJsonArray ja = json["clipRegion"].toArray();
-    QJsonArray crx = ja.at(0).toArray();
-    m_roiXmin = crx.at(0).toDouble(m_roiXmin);
-    m_roiXmax = crx.at(1).toDouble(m_roiXmax);
-    QJsonArray cry = ja.at(1).toArray();
-    m_roiYmin = cry.at(0).toDouble(m_roiYmin);
-    m_roiYmax = cry.at(1).toDouble(m_roiYmax);
-    QJsonArray crz = ja.at(2).toArray();
-    m_roiZmin = crz.at(0).toDouble(m_roiZmin);
-    m_roiZmax = crz.at(1).toDouble(m_roiZmax);
-  }
-
-  if (json.contains("pathTracer") && json["pathTracer"].isObject()) {
-    QJsonObject pathTracer = json["pathTracer"].toObject();
-    getFloat(pathTracer, "primaryStepSize", m_primaryStepSize);
-    getFloat(pathTracer, "secondaryStepSize", m_secondaryStepSize);
-  }
-
-  if (json.contains("timeline") && json["timeline"].isObject()) {
-    QJsonObject timeline = json["timeline"].toObject();
-    getInt(timeline, "minTime", m_minTime);
-    getInt(timeline, "maxTime", m_maxTime);
-    getInt(timeline, "currentTime", m_currentTime);
-  }
-
-  getInt(json, "scene", m_currentScene);
-
-  if (json.contains("camera") && json["camera"].isObject()) {
-    QJsonObject cam = json["camera"].toObject();
-    glm::vec3 tmp;
-    getVec3(cam, "eye", tmp);
-    m_eyeX = tmp.x;
-    m_eyeY = tmp.y;
-    m_eyeZ = tmp.z;
-    getVec3(cam, "target", tmp);
-    m_targetX = tmp.x;
-    m_targetY = tmp.y;
-    m_targetZ = tmp.z;
-    getVec3(cam, "up", tmp);
-    m_upX = tmp.x;
-    m_upY = tmp.y;
-    m_upZ = tmp.z;
-    getFloat(cam, "orthoScale", m_orthoScale);
-    getFloat(cam, "fovY", m_fov);
-    getFloat(cam, "exposure", m_exposure);
-    getFloat(cam, "aperture", m_apertureSize);
-    getFloat(cam, "focalDistance", m_focalDistance);
-    getInt(cam, "projection", m_projection);
-  }
-
-  if (json.contains("channels") && json["channels"].isArray()) {
-    QJsonArray channelsArray = json["channels"].toArray();
-    m_channels.clear();
-    m_channels.reserve(channelsArray.size());
-    for (int i = 0; i < channelsArray.size(); ++i) {
-      ChannelViewerState ch;
-      QJsonObject channeli = channelsArray[i].toObject();
-
-      getBool(channeli, "enabled", ch.m_enabled);
-      getVec3(channeli, "diffuseColor", ch.m_diffuse);
-      getVec3(channeli, "specularColor", ch.m_specular);
-      getVec3(channeli, "emissiveColor", ch.m_emissive);
-      getFloat(channeli, "glossiness", ch.m_glossiness);
-      getFloat(channeli, "opacity", ch.m_opacity);
-
-      if (channeli.contains("lutParams") && channeli["lutParams"].isObject()) {
-        QJsonObject lutParamsObj = channeli["lutParams"].toObject();
-        ch.m_lutParams = lutParamsFromJson(lutParamsObj);
-      } else {
-        // TODO use versioning.  Serialization could use an overhaul with a library like cereal.
-        // deprecated, old io format
-        getFloat(channeli, "window", ch.m_lutParams.m_window);
-        getFloat(channeli, "level", ch.m_lutParams.m_level);
-        // set window/level as active mode since that's what we found in the file
-        ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[GradientEditMode::WINDOW_LEVEL];
-      }
-
-      QString channelsString = channelsArray[i].toString();
-      m_channels.push_back(ch);
-    }
-  }
-
-  // lights
-  if (json.contains("lights") && json["lights"].isArray()) {
-    QJsonArray lightsArray = json["lights"].toArray();
-    // expect two.
-    for (int i = 0; i < std::min(lightsArray.size(), 2); ++i) {
-      LightViewerState& ls = (i == 0) ? m_light0 : m_light1;
-      QJsonObject lighti = lightsArray[i].toObject();
-      getInt(lighti, "type", ls.m_type);
-      getVec3(lighti, "topColor", ls.m_topColor);
-      getVec3(lighti, "middleColor", ls.m_middleColor);
-      getVec3(lighti, "color", ls.m_color);
-      getVec3(lighti, "bottomColor", ls.m_bottomColor);
-      getFloat(lighti, "topColorIntensity", ls.m_topColorIntensity);
-      getFloat(lighti, "middleColorIntensity", ls.m_middleColorIntensity);
-      getFloat(lighti, "colorIntensity", ls.m_colorIntensity);
-      getFloat(lighti, "bottomColorIntensity", ls.m_bottomColorIntensity);
-      getFloat(lighti, "distance", ls.m_distance);
-      getFloat(lighti, "theta", ls.m_theta);
-      getFloat(lighti, "phi", ls.m_phi);
-      getFloat(lighti, "width", ls.m_width);
-      getFloat(lighti, "height", ls.m_height);
-    }
-  }
-
-  if (json.contains("capture") && json["capture"].isObject()) {
-    QJsonObject capture = json["capture"].toObject();
-    getInt(capture, "width", m_captureState.mWidth);
-    getInt(capture, "height", m_captureState.mHeight);
-    getString(capture, "filenamePrefix", m_captureState.mFilenamePrefix);
-    getString(capture, "outputDirectory", m_captureState.mOutputDir);
-    getInt(capture, "samples", m_captureState.mSamples);
-    getInt(capture, "seconds", m_captureState.mDuration);
-    getInt(capture, "durationType", m_captureState.mDurationType);
-    getInt(capture, "startTime", m_captureState.mStartTime);
-    getInt(capture, "endTime", m_captureState.mEndTime);
-  }
-}
-
-QJsonDocument
-ViewerState::stateToJson() const
-{
-  // TODO Store all these names in symbolic constants so they can be spelled out only in one place,
-  // and referenced in both the read and write functions
-
-  // fire back some json...
-  QJsonObject j;
-  j["name"] = QString::fromStdString(m_volumeImageFile);
-
-  // the version of this schema
-  // use app version
-  // TODO consider whether it makes sense for the I/O serialization version to just be the same as the app version.
-  //   for io versioning fixups at read time, we have to do comparisons like if read_version < 1.2.1 then change data
-  //   or expect different names
-  j["version"] = jsonVec3(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
-
-  QJsonArray resolution;
-  resolution.append(m_resolutionX);
-  resolution.append(m_resolutionY);
-  j["resolution"] = resolution;
-
-  j["renderIterations"] = m_renderIterations;
-
-  QJsonObject pathTracer;
-  pathTracer["primaryStepSize"] = m_primaryStepSize;
-  pathTracer["secondaryStepSize"] = m_secondaryStepSize;
-  j["pathTracer"] = pathTracer;
-
-  QJsonObject timeline;
-  timeline["minTime"] = m_minTime;
-  timeline["maxTime"] = m_maxTime;
-  timeline["currentTime"] = m_currentTime;
-  j["timeline"] = timeline;
-  j["scene"] = m_currentScene;
-
-  QJsonArray clipRegion;
-  QJsonArray clipRegionX;
-  clipRegionX.append(m_roiXmin);
-  clipRegionX.append(m_roiXmax);
-  QJsonArray clipRegionY;
-  clipRegionY.append(m_roiYmin);
-  clipRegionY.append(m_roiYmax);
-  QJsonArray clipRegionZ;
-  clipRegionZ.append(m_roiZmin);
-  clipRegionZ.append(m_roiZmax);
-  clipRegion.append(clipRegionX);
-  clipRegion.append(clipRegionY);
-  clipRegion.append(clipRegionZ);
-
-  j["clipRegion"] = clipRegion;
-
-  j["scale"] = jsonVec3(m_scaleX, m_scaleY, m_scaleZ);
-
-  QJsonObject camera;
-  camera["eye"] = jsonVec3(m_eyeX, m_eyeY, m_eyeZ);
-  camera["target"] = jsonVec3(m_targetX, m_targetY, m_targetZ);
-  camera["up"] = jsonVec3(m_upX, m_upY, m_upZ);
-
-  camera["projection"] = m_projection;
-  camera["fovY"] = m_fov;
-  camera["orthoScale"] = m_orthoScale;
-
-  camera["exposure"] = m_exposure;
-  camera["aperture"] = m_apertureSize;
-  camera["focalDistance"] = m_focalDistance;
-  j["camera"] = camera;
-
-  j["backgroundColor"] = jsonVec3(m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z);
-
-  j["boundingBoxColor"] = jsonVec3(m_boundingBoxColor.x, m_boundingBoxColor.y, m_boundingBoxColor.z);
-  j["showBoundingBox"] = m_showBoundingBox;
-
-  QJsonArray channels;
-  for (auto ch : m_channels) {
-    QJsonObject channel;
-    channel["enabled"] = ch.m_enabled;
-    channel["diffuseColor"] = jsonVec3(ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z);
-    channel["specularColor"] = jsonVec3(ch.m_specular.x, ch.m_specular.y, ch.m_specular.z);
-    channel["emissiveColor"] = jsonVec3(ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z);
-    channel["glossiness"] = ch.m_glossiness;
-    channel["opacity"] = ch.m_opacity;
-
-    QJsonObject lutParams;
-    lutParams["window"] = ch.m_lutParams.m_window;
-    lutParams["level"] = ch.m_lutParams.m_level;
-    lutParams["isovalue"] = ch.m_lutParams.m_isovalue;
-    lutParams["isorange"] = ch.m_lutParams.m_isorange;
-    lutParams["pctLow"] = ch.m_lutParams.m_pctLow;
-    lutParams["pctHigh"] = ch.m_lutParams.m_pctHigh;
-    QJsonArray controlPoints;
-    for (auto controlPoint : ch.m_lutParams.m_customControlPoints) {
-      QJsonObject controlPointObj;
-      controlPointObj["x"] = controlPoint.first;
-      controlPointObj["value"] =
-        jsonVec4(controlPoint.second, controlPoint.second, controlPoint.second, controlPoint.second);
-      controlPoints.append(controlPointObj);
-    }
-    lutParams["controlPoints"] = controlPoints;
-    lutParams["mode"] = ch.m_lutParams.m_mode;
-    channel["lutParams"] = lutParams;
-
-    channels.append(channel);
-  }
-  j["channels"] = channels;
-
-  j["density"] = m_densityScale;
-
-  // lighting
-  QJsonArray lights;
-  QJsonObject light0;
-  light0["type"] = m_light0.m_type;
-  light0["distance"] = m_light0.m_distance;
-  light0["theta"] = m_light0.m_theta;
-  light0["phi"] = m_light0.m_phi;
-  light0["color"] = jsonVec3(m_light0.m_color.r, m_light0.m_color.g, m_light0.m_color.b);
-  light0["colorIntensity"] = m_light0.m_colorIntensity;
-  light0["topColor"] = jsonVec3(m_light0.m_topColor.r, m_light0.m_topColor.g, m_light0.m_topColor.b);
-  light0["topColorIntensity"] = m_light0.m_topColorIntensity;
-  light0["middleColor"] = jsonVec3(m_light0.m_middleColor.r, m_light0.m_middleColor.g, m_light0.m_middleColor.b);
-  light0["middleColorIntensity"] = m_light0.m_middleColorIntensity;
-  light0["bottomColor"] = jsonVec3(m_light0.m_bottomColor.r, m_light0.m_bottomColor.g, m_light0.m_bottomColor.b);
-  light0["bottomColorIntensity"] = m_light0.m_bottomColorIntensity;
-  light0["width"] = m_light0.m_width;
-  light0["height"] = m_light0.m_height;
-  lights.append(light0);
-
-  QJsonObject light1;
-  light1["type"] = m_light1.m_type;
-  light1["distance"] = m_light1.m_distance;
-  light1["theta"] = m_light1.m_theta;
-  light1["phi"] = m_light1.m_phi;
-  light1["color"] = jsonVec3(m_light1.m_color.r, m_light1.m_color.g, m_light1.m_color.b);
-  light1["colorIntensity"] = m_light1.m_colorIntensity;
-  light1["topColor"] = jsonVec3(m_light1.m_topColor.r, m_light1.m_topColor.g, m_light1.m_topColor.b);
-  light1["topColorIntensity"] = m_light1.m_topColorIntensity;
-  light1["middleColor"] = jsonVec3(m_light1.m_middleColor.r, m_light1.m_middleColor.g, m_light1.m_middleColor.b);
-  light1["middleColorIntensity"] = m_light1.m_middleColorIntensity;
-  light1["bottomColor"] = jsonVec3(m_light1.m_bottomColor.r, m_light1.m_bottomColor.g, m_light1.m_bottomColor.b);
-  light1["bottomColorIntensity"] = m_light1.m_bottomColorIntensity;
-  light1["width"] = m_light1.m_width;
-  light1["height"] = m_light1.m_height;
-  lights.append(light1);
-  j["lights"] = lights;
-
-  QJsonObject capture;
-  capture["width"] = m_captureState.mWidth;
-  capture["height"] = m_captureState.mHeight;
-  capture["filenamePrefix"] = QString::fromStdString(m_captureState.mFilenamePrefix);
-  capture["outputDirectory"] = QString::fromStdString(m_captureState.mOutputDir);
-  capture["samples"] = m_captureState.mSamples;
-  capture["seconds"] = m_captureState.mDuration;
-  capture["durationType"] = m_captureState.mDurationType;
-  capture["startTime"] = m_captureState.mStartTime;
-  capture["endTime"] = m_captureState.mEndTime;
-  j["capture"] = capture;
-
-  return QJsonDocument(j);
+  return stateV2;
 }
 
 QString
-ViewerState::stateToPythonScript() const
+stateToPythonScript(const ViewerState& s)
 {
-  QFileInfo fi(QString::fromStdString(m_volumeImageFile));
+  QFileInfo fi(QString::fromStdString(s.datasets[0].url));
   QString outFileName = fi.baseName();
 
   std::ostringstream ss;
@@ -510,42 +184,53 @@ ViewerState::stateToPythonScript() const
   ss << "import agave_pyclient as agave" << std::endl << std::endl;
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
-  ss << obj << LoadVolumeFromFileCommand({ m_volumeImageFile, m_currentScene, m_currentTime }).toPythonString()
+  ss << obj
+     << LoadVolumeFromFileCommand({ s.datasets[0].url, (int32_t)s.datasets[0].scene, (int32_t)s.datasets[0].time })
+          .toPythonString()
      << std::endl;
   // TODO use window size or render window capture dims?
-  ss << obj << SetResolutionCommand({ m_resolutionX, m_resolutionY }).toPythonString() << std::endl;
+  ss << obj << SetResolutionCommand({ s.capture.width, s.capture.height }).toPythonString() << std::endl;
   ss << obj
-     << SetBackgroundColorCommand({ m_backgroundColor.x, m_backgroundColor.y, m_backgroundColor.z }).toPythonString()
+     << SetBackgroundColorCommand({ s.backgroundColor[0], s.backgroundColor[1], s.backgroundColor[2] }).toPythonString()
      << std::endl;
-  ss << obj << ShowBoundingBoxCommand({ m_showBoundingBox }).toPythonString() << std::endl;
-  ss
-    << obj
-    << SetBoundingBoxColorCommand({ m_boundingBoxColor.x, m_boundingBoxColor.y, m_boundingBoxColor.z }).toPythonString()
-    << std::endl;
+  ss << obj << ShowBoundingBoxCommand({ s.showBoundingBox }).toPythonString() << std::endl;
+  ss << obj
+     << SetBoundingBoxColorCommand({ s.boundingBoxColor[0], s.boundingBoxColor[1], s.boundingBoxColor[2] })
+          .toPythonString()
+     << std::endl;
   // TODO use value from viewport or render window capture settings?
-  ss << obj << SetRenderIterationsCommand({ m_renderIterations }).toPythonString() << std::endl;
-  ss << obj << SetPrimaryRayStepSizeCommand({ m_primaryStepSize }).toPythonString() << std::endl;
-  ss << obj << SetSecondaryRayStepSizeCommand({ m_secondaryStepSize }).toPythonString() << std::endl;
-  ss << obj << SetVoxelScaleCommand({ m_scaleX, m_scaleY, m_scaleZ }).toPythonString() << std::endl;
+  ss << obj << SetRenderIterationsCommand({ s.capture.samples }).toPythonString() << std::endl;
+  ss << obj << SetPrimaryRayStepSizeCommand({ s.pathTracer.primaryStepSize }).toPythonString() << std::endl;
+  ss << obj << SetSecondaryRayStepSizeCommand({ s.pathTracer.secondaryStepSize }).toPythonString() << std::endl;
+  ss << obj << SetVoxelScaleCommand({ s.scale[0], s.scale[1], s.scale[2] }).toPythonString() << std::endl;
   ss << obj
-     << SetClipRegionCommand({ m_roiXmin, m_roiXmax, m_roiYmin, m_roiYmax, m_roiZmin, m_roiZmax }).toPythonString()
+     << SetClipRegionCommand({ s.clipRegion[0][0],
+                               s.clipRegion[0][1],
+                               s.clipRegion[1][0],
+                               s.clipRegion[1][1],
+                               s.clipRegion[2][0],
+                               s.clipRegion[2][1] })
+          .toPythonString()
      << std::endl;
-  ss << obj << SetCameraPosCommand({ m_eyeX, m_eyeY, m_eyeZ }).toPythonString() << std::endl;
-  ss << obj << SetCameraTargetCommand({ m_targetX, m_targetY, m_targetZ }).toPythonString() << std::endl;
-  ss << obj << SetCameraUpCommand({ m_upX, m_upY, m_upZ }).toPythonString() << std::endl;
+  ss << obj << SetCameraPosCommand({ s.camera.eye[0], s.camera.eye[1], s.camera.eye[2] }).toPythonString() << std::endl;
+  ss << obj << SetCameraTargetCommand({ s.camera.target[0], s.camera.target[1], s.camera.target[2] }).toPythonString()
+     << std::endl;
+  ss << obj << SetCameraUpCommand({ s.camera.up[0], s.camera.up[1], s.camera.up[2] }).toPythonString() << std::endl;
   ss << obj
-     << SetCameraProjectionCommand({ m_projection, m_projection == Projection::PERSPECTIVE ? m_fov : m_orthoScale })
+     << SetCameraProjectionCommand(
+          { s.camera.projection,
+            s.camera.projection == Projection_PID::PERSPECTIVE ? s.camera.fovY : s.camera.orthoScale })
           .toPythonString()
      << std::endl;
 
-  ss << obj << SetCameraExposureCommand({ m_exposure }).toPythonString() << std::endl;
-  ss << obj << SetDensityCommand({ m_densityScale }).toPythonString() << std::endl;
-  ss << obj << SetCameraApertureCommand({ m_apertureSize }).toPythonString() << std::endl;
-  ss << obj << SetCameraFocalDistanceCommand({ m_focalDistance }).toPythonString() << std::endl;
+  ss << obj << SetCameraExposureCommand({ s.camera.exposure }).toPythonString() << std::endl;
+  ss << obj << SetDensityCommand({ s.density }).toPythonString() << std::endl;
+  ss << obj << SetCameraApertureCommand({ s.camera.aperture }).toPythonString() << std::endl;
+  ss << obj << SetCameraFocalDistanceCommand({ s.camera.focalDistance }).toPythonString() << std::endl;
 
   // per-channel
-  for (std::int32_t i = 0; i < m_channels.size(); ++i) {
-    const ChannelViewerState& ch = m_channels[i];
+  for (std::int32_t i = 0; i < s.channels.size(); ++i) {
+    const ChannelSettings_V1& ch = s.channels[i];
     ss << obj << EnableChannelCommand({ i, ch.m_enabled ? 1 : 0 }).toPythonString() << std::endl;
     ss << obj << SetDiffuseColorCommand({ i, ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z, 1.0f }).toPythonString()
        << std::endl;
