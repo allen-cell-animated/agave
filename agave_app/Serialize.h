@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+namespace Serialize {
+
 struct LoadSettings
 {
   std::string url;
@@ -121,3 +123,5 @@ struct ViewerState
                                  lights,
                                  capture)
 };
+
+} // namespace Serialize

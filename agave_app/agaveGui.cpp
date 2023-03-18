@@ -322,10 +322,10 @@ agaveGui::openJson()
     try {
       std::string saveDataString = saveData.toStdString();
       nlohmann::json j = nlohmann::json::parse(saveDataString);
-      ViewerState s;
+      Serialize::ViewerState s;
       s = stateFromJson(j);
-      if (!s.m_volumeImageFile.empty()) {
-        if (!open(s.m_volumeImageFile, &s)) {
+      if (!s.datasets.empty()) {
+        if (!open(s.datasets[0].url, &s)) {
           showOpenFailedMessageBox(file);
         }
       }
@@ -433,9 +433,9 @@ agaveGui::saveJson()
       qWarning("Couldn't open save file.");
       return;
     }
-    ViewerState st = appToViewerState();
+    Serialize::ViewerState st = appToViewerState();
     nlohmann::json doc = st;
-    std::string str = json.dump();
+    std::string str = doc.dump();
     saveFile.write(QString::fromStdString(str));
   }
 }
@@ -444,17 +444,17 @@ void
 agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
                         const VolumeDimensions& dims,
-                        const ViewerState* vs)
+                        const Serialize::ViewerState* vs)
 {
   m_loadSpec = loadSpec;
 
   if (vs) {
     // make sure that ViewerState is consistent with loaded file
-    if (dims.sizeT - 1 != vs->m_maxTime) {
-      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
-                << " in the loaded file.";
+    if (dims.sizeT - 1 != vs->timeline.maxTime) {
+      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found "
+                << (dims.sizeT) << " in the loaded file.";
     }
-    if (0 != vs->m_minTime) {
+    if (0 != vs->timeline.minTime) {
       LOG_ERROR << "Min timline time is not zero.";
     }
   }
@@ -497,13 +497,18 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const ViewerState* vs)
+agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
 
-  int sceneToLoad = vs ? vs->m_currentScene : 0;
-  int timeToLoad = vs ? vs->m_currentTime : 0;
+  int sceneToLoad = 0;
+  int timeToLoad = 0;
+  if (vs) {
+    loadSpec = stateToLoadSpec(*vs);
+    sceneToLoad = loadSpec.scene;
+    timeToLoad = loadSpec.time;
+  }
 
   std::unique_ptr<IFileReader> reader(FileReader::getReader(file));
   if (!reader) {
@@ -789,43 +794,43 @@ agaveGui::savePython()
       qWarning("Couldn't open save file.");
       return;
     }
-    ViewerState st = appToViewerState();
+    Serialize::ViewerState st = appToViewerState();
     QString doc = stateToPythonScript(st);
     saveFile.write(doc.toUtf8());
   }
 }
 
 void
-agaveGui::viewerStateToApp(const ViewerState& v)
+agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
 
   // position camera
   m_glView->fromViewerState(v);
 
-  m_appScene.m_roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
-  m_appScene.m_roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
+  m_appScene.m_roi.SetMinP(glm::vec3(v.clipRegion[0][0], v.clipRegion[1][0], v.clipRegion[2][0]));
+  m_appScene.m_roi.SetMaxP(glm::vec3(v.clipRegion[0][1], v.clipRegion[1][1], v.clipRegion[2][1]));
 
-  m_appScene.m_timeLine.setRange(v.m_minTime, v.m_maxTime);
-  m_appScene.m_timeLine.setCurrentTime(v.m_currentTime);
+  m_appScene.m_timeLine.setRange(v.timeline.minTime, v.timeline.maxTime);
+  m_appScene.m_timeLine.setCurrentTime(v.timeline.currentTime);
 
-  m_currentScene = v.m_currentScene;
+  m_currentScene = v.datasets[0].scene;
 
-  m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
+  m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
 
-  m_appScene.m_material.m_backgroundColor[0] = v.m_backgroundColor.x;
-  m_appScene.m_material.m_backgroundColor[1] = v.m_backgroundColor.y;
-  m_appScene.m_material.m_backgroundColor[2] = v.m_backgroundColor.z;
+  m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
+  m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
+  m_appScene.m_material.m_backgroundColor[2] = v.backgroundColor[2];
 
-  m_appScene.m_material.m_boundingBoxColor[0] = v.m_boundingBoxColor.x;
-  m_appScene.m_material.m_boundingBoxColor[1] = v.m_boundingBoxColor.y;
-  m_appScene.m_material.m_boundingBoxColor[2] = v.m_boundingBoxColor.z;
+  m_appScene.m_material.m_boundingBoxColor[0] = v.boundingBoxColor[0];
+  m_appScene.m_material.m_boundingBoxColor[1] = v.boundingBoxColor[1];
+  m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
 
-  m_appScene.m_material.m_showBoundingBox = v.m_showBoundingBox;
+  m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
 
-  m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
+  m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
+  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
+  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
   m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
 
   // channels
@@ -908,69 +913,69 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
-ViewerState
+Serialize::ViewerState
 agaveGui::appToViewerState()
 {
-  ViewerState v;
+  Serialize::ViewerState v;
   v.m_volumeImageFile = m_currentFilePath;
 
   if (m_appScene.m_volume) {
-    v.m_scaleX = m_appScene.m_volume->physicalSizeX();
-    v.m_scaleY = m_appScene.m_volume->physicalSizeY();
-    v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+    v.scale[0] = m_appScene.m_volume->physicalSizeX();
+    v.scale[1] = m_appScene.m_volume->physicalSizeY();
+    v.scale[2] = m_appScene.m_volume->physicalSizeZ();
   }
 
-  v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
-                                  m_appScene.m_material.m_backgroundColor[1],
-                                  m_appScene.m_material.m_backgroundColor[2]);
+  v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],
+                        m_appScene.m_material.m_backgroundColor[1],
+                        m_appScene.m_material.m_backgroundColor[2] };
 
-  v.m_boundingBoxColor = glm::vec3(m_appScene.m_material.m_boundingBoxColor[0],
-                                   m_appScene.m_material.m_boundingBoxColor[1],
-                                   m_appScene.m_material.m_boundingBoxColor[2]);
-  v.m_showBoundingBox = m_appScene.m_material.m_showBoundingBox;
+  v.boundingBoxColor = { m_appScene.m_material.m_boundingBoxColor[0],
+                         m_appScene.m_material.m_boundingBoxColor[1],
+                         m_appScene.m_material.m_boundingBoxColor[2] };
+  v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
 
   v.m_resolutionX = m_glView->size().width();
   v.m_resolutionY = m_glView->size().height();
-  v.m_renderIterations = m_renderSettings.GetNoIterations();
+  v.capture.samples = m_renderSettings.GetNoIterations();
 
-  v.m_minTime = m_appScene.m_timeLine.minTime();
-  v.m_maxTime = m_appScene.m_timeLine.maxTime();
-  v.m_currentTime = m_appScene.m_timeLine.currentTime();
+  v.timeline.minTime = m_appScene.m_timeLine.minTime();
+  v.timeline.maxTime = m_appScene.m_timeLine.maxTime();
+  v.timeline.currentTime = m_appScene.m_timeLine.currentTime();
 
   v.m_currentScene = m_currentScene;
 
-  v.m_roiXmax = m_appScene.m_roi.GetMaxP().x;
-  v.m_roiYmax = m_appScene.m_roi.GetMaxP().y;
-  v.m_roiZmax = m_appScene.m_roi.GetMaxP().z;
-  v.m_roiXmin = m_appScene.m_roi.GetMinP().x;
-  v.m_roiYmin = m_appScene.m_roi.GetMinP().y;
-  v.m_roiZmin = m_appScene.m_roi.GetMinP().z;
+  v.clipRegion[0][1] = m_appScene.m_roi.GetMaxP().x;
+  v.clipRegion[1][1] = m_appScene.m_roi.GetMaxP().y;
+  v.clipRegion[2][1] = m_appScene.m_roi.GetMaxP().z;
+  v.clipRegion[0][0] = m_appScene.m_roi.GetMinP().x;
+  v.clipRegion[1][0] = m_appScene.m_roi.GetMinP().y;
+  v.clipRegion[2][0] = m_appScene.m_roi.GetMinP().z;
 
-  v.m_eyeX = m_glView->getCamera().m_From.x;
-  v.m_eyeY = m_glView->getCamera().m_From.y;
-  v.m_eyeZ = m_glView->getCamera().m_From.z;
+  v.camera.eye[0] = m_glView->getCamera().m_From.x;
+  v.camera.eye[1] = m_glView->getCamera().m_From.y;
+  v.camera.eye[2] = m_glView->getCamera().m_From.z;
 
-  v.m_targetX = m_glView->getCamera().m_Target.x;
-  v.m_targetY = m_glView->getCamera().m_Target.y;
-  v.m_targetZ = m_glView->getCamera().m_Target.z;
+  v.camera.target[0] = m_glView->getCamera().m_Target.x;
+  v.camera.target[1] = m_glView->getCamera().m_Target.y;
+  v.camera.target[2] = m_glView->getCamera().m_Target.z;
 
-  v.m_upX = m_glView->getCamera().m_Up.x;
-  v.m_upY = m_glView->getCamera().m_Up.y;
-  v.m_upZ = m_glView->getCamera().m_Up.z;
+  v.camera.up[0] = m_glView->getCamera().m_Up.x;
+  v.camera.up[1] = m_glView->getCamera().m_Up.y;
+  v.camera.up[2] = m_glView->getCamera().m_Up.z;
 
-  v.m_projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? ViewerState::Projection::PERSPECTIVE
-                                                                     : ViewerState::Projection::ORTHOGRAPHIC;
-  v.m_orthoScale = m_glView->getCamera().m_OrthoScale;
-  v.m_fov = m_qcamera.GetProjection().GetFieldOfView();
+  v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
+                                                                          : Serialize::Projection_PID::ORTHOGRAPHIC;
+  v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
+  v.camera.fovY = m_qcamera.GetProjection().GetFieldOfView();
 
-  v.m_exposure = m_qcamera.GetFilm().GetExposure();
-  v.m_apertureSize = m_qcamera.GetAperture().GetSize();
-  v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
+  v.camera.exposure = m_qcamera.GetFilm().GetExposure();
+  v.camera.aperture = m_qcamera.GetAperture().GetSize();
+  v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
   v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
-  v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
-  v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
+  v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
+  v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {

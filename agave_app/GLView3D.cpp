@@ -325,7 +325,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
 }
 
 void
-GLView3D::fromViewerState(const ViewerState& s)
+GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
   m_CCamera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
   m_CCamera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);

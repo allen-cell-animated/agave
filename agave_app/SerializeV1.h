@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+namespace Serialize {
 struct PathTraceSettings_V1
 {
   float primaryStepSize = 4.0f;
@@ -232,3 +233,4 @@ struct ViewerState_V1
                                  density,
                                  lights)
 };
+} // namespace Serialize

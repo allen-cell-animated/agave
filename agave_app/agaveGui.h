@@ -32,11 +32,11 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const std::string& file, const ViewerState* vs = nullptr);
+  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
                      const VolumeDimensions& dims,
-                     const ViewerState* vs);
+                     const Serialize::ViewerState* vs);
 
 private slots:
   void open();
@@ -64,8 +64,8 @@ private:
     MaxRecentFiles = 8
   };
 
-  ViewerState appToViewerState();
-  void viewerStateToApp(const ViewerState& s);
+  Serialize::ViewerState appToViewerState();
+  void viewerStateToApp(const Serialize::ViewerState& s);
 
   void createActions();
   void createMenus();

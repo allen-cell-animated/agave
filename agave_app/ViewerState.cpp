@@ -149,7 +149,7 @@ std::map<GradientEditMode_PID, GradientEditMode> g_PermIdToGradientMode = {
   { GradientEditMode_PID::CUSTOM, GradientEditMode::CUSTOM }
 };
 
-ViewerState
+Serialize::ViewerState
 stateFromJson(const nlohmann::json& jsonDoc)
 {
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
@@ -158,21 +158,21 @@ stateFromJson(const nlohmann::json& jsonDoc)
   Version version(v);
 
   // we will fill this in from the jsonDoc.
-  ViewerState stateV2;
+  Serialize::ViewerState stateV2;
 
   // version checks.  Parse old data structures here.
   if (version <= Version(1, 4, 1)) {
-    ViewerState_V1 stateV1 = jsonDoc.get<ViewerState_V1>();
+    Serialize::ViewerState_V1 stateV1 = jsonDoc.get<Serialize::ViewerState_V1>();
     // fill in this from the old data structure.
     stateV2.fromV1(stateV1);
   } else {
-    stateV2 = jsonDoc.get<ViewerState>();
+    stateV2 = jsonDoc.get<Serialize::ViewerState>();
   }
   return stateV2;
 }
 
 QString
-stateToPythonScript(const ViewerState& s)
+stateToPythonScript(const Serialize::ViewerState& s)
 {
   QFileInfo fi(QString::fromStdString(s.datasets[0].url));
   QString outFileName = fi.baseName();
@@ -307,4 +307,23 @@ stateToPythonScript(const ViewerState& s)
   std::string s(ss.str());
   // LOG_DEBUG << s;
   return QString::fromStdString(s);
+}
+
+LoadSpec
+stateToLoadSpec(const Serialize::ViewerState& state)
+{
+  const Serialize::LoadSettings& s = state.datasets[0];
+  LoadSpec spec;
+  spec.filepath = s.url;
+  spec.subpath = s.subpath;
+  spec.scene = s.scene;
+  spec.time = s.time;
+  spec.channels = s.channels;
+  spec.minx = s.clipRegion[0][0];
+  spec.maxx = s.clipRegion[0][1];
+  spec.miny = s.clipRegion[1][0];
+  spec.maxy = s.clipRegion[1][1];
+  spec.minz = s.clipRegion[2][0];
+  spec.maxz = s.clipRegion[2][1];
+  return spec;
 }

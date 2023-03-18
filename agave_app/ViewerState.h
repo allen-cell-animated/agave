@@ -2,14 +2,19 @@
 
 #include "Serialize.h"
 
+#include "renderlib/IFileReader.h"
 #include "renderlib/json/json.hpp"
+
 
 #include <glm.h>
 
 #include <QString>
 
 QString
-stateToPythonScript(const ViewerState&);
+stateToPythonScript(const Serialize::ViewerState& state);
 
-ViewerState
+Serialize::ViewerState
 stateFromJson(const nlohmann::json& jsonDoc);
+
+LoadSpec
+stateToLoadSpec(const Serialize::ViewerState& state);
