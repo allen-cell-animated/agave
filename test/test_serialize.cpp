@@ -10,34 +10,34 @@ TEST_CASE("Json Serialization", "[serialize]")
 {
   SECTION("Read and write PathTraceSettings_V1")
   {
-    auto settings = PathTraceSettings_V1{};
+    auto settings = Serialize::PathTraceSettings_V1{};
     settings.primaryStepSize = 0.1f;
     settings.secondaryStepSize = 0.2f;
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<PathTraceSettings_V1>();
+    auto settings2 = json.get<Serialize::PathTraceSettings_V1>();
     REQUIRE(settings == settings2);
   }
   SECTION("Read and write TimelineSettings_V1")
   {
-    auto settings = TimelineSettings_V1{};
+    auto settings = Serialize::TimelineSettings_V1{};
     settings.minTime = 0.1f;
     settings.maxTime = 0.2f;
     settings.currentTime = 0.3f;
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<TimelineSettings_V1>();
+    auto settings2 = json.get<Serialize::TimelineSettings_V1>();
     REQUIRE(settings == settings2);
   }
   SECTION("Read and write CameraSettings_V1")
   {
-    auto settings = CameraSettings_V1{};
+    auto settings = Serialize::CameraSettings_V1{};
     settings.eye = { 0.1f, 0.2f, 0.3f };
     settings.target = { 0.4f, 0.5f, 0.6f };
     settings.up = { 0.7f, 0.8f, 0.9f };
-    settings.projection = Projection::PERSPECTIVE;
+    settings.projection = Serialize::Projection_PID::PERSPECTIVE;
     settings.fovY = 0.1f;
     settings.orthoScale = 0.2f;
     settings.exposure = 0.3f;
@@ -46,25 +46,25 @@ TEST_CASE("Json Serialization", "[serialize]")
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<CameraSettings_V1>();
+    auto settings2 = json.get<Serialize::CameraSettings_V1>();
     REQUIRE(settings == settings2);
   }
 
   SECTION("Read and write ControlPointSettings_V1")
   {
-    auto settings = ControlPointSettings_V1{};
+    auto settings = Serialize::ControlPointSettings_V1{};
     settings.x = 0.1f;
     settings.value = { 0.2f, 0.3f, 0.4f, 0.5f };
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<ControlPointSettings_V1>();
+    auto settings2 = json.get<Serialize::ControlPointSettings_V1>();
     REQUIRE(settings == settings2);
   }
 
   SECTION("Read and write LutParams_V1")
   {
-    auto settings = LutParams_V1{};
+    auto settings = Serialize::LutParams_V1{};
     settings.window = 0.1f;
     settings.level = 0.2f;
     settings.isovalue = 0.3f;
@@ -72,17 +72,17 @@ TEST_CASE("Json Serialization", "[serialize]")
     settings.pctLow = 0.5f;
     settings.pctHigh = 0.6f;
     settings.controlPoints = { { 0.1f, { 0.2f, 0.3f, 0.4f, 0.5f } }, { 0.2f, { 0.3f, 0.4f, 0.5f, 0.6f } } };
-    settings.mode = GradientEditMode_PID::CUSTOM;
+    settings.mode = Serialize::GradientEditMode_PID::CUSTOM;
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<LutParams_V1>();
+    auto settings2 = json.get<Serialize::LutParams_V1>();
     REQUIRE(settings == settings2);
   }
 
   SECTION("Read and write ChannelSettings_V1")
   {
-    auto settings = ChannelSettings_V1{};
+    auto settings = Serialize::ChannelSettings_V1{};
     settings.enabled = true;
     settings.lutParams = { 0.1f,
                            0.2f,
@@ -91,18 +91,18 @@ TEST_CASE("Json Serialization", "[serialize]")
                            0.5f,
                            0.6f,
                            { { 0.1f, { 0.2f, 0.3f, 0.4f, 0.5f } }, { 0.2f, { 0.3f, 0.4f, 0.5f, 0.6f } } },
-                           GradientEditMode_PID::CUSTOM };
+                           Serialize::GradientEditMode_PID::CUSTOM };
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<ChannelSettings_V1>();
+    auto settings2 = json.get<Serialize::ChannelSettings_V1>();
     REQUIRE(settings == settings2);
   }
 
   SECTION("Read and write LightSettings_V1")
   {
-    auto settings = LightSettings_V1{};
-    settings.type = LightType::AREA;
+    auto settings = Serialize::LightSettings_V1{};
+    settings.type = Serialize::LightType::AREA;
     settings.distance = 0.1;
     settings.theta = 0.2;
     settings.phi = 0.3;
@@ -119,54 +119,54 @@ TEST_CASE("Json Serialization", "[serialize]")
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<LightSettings_V1>();
+    auto settings2 = json.get<Serialize::LightSettings_V1>();
     REQUIRE(settings == settings2);
   }
 
   SECTION("Read and write CaptureSettings")
   {
-    auto settings = CaptureSettings{};
+    auto settings = Serialize::CaptureSettings{};
     settings.width = 1;
     settings.height = 2;
     settings.filenamePrefix = "test";
     settings.outputDirectory = "test2";
     settings.samples = 3;
     settings.seconds = 4.0;
-    settings.durationType = DurationType::TIME;
+    settings.durationType = Serialize::DurationType::TIME;
     settings.startTime = 6;
     settings.endTime = 7;
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<CaptureSettings>();
+    auto settings2 = json.get<Serialize::CaptureSettings>();
     REQUIRE(settings == settings2);
   }
 
   SECTION("Read and write ViewerState_V1")
   {
-    auto settings = ViewerState_V1{};
+    auto settings = Serialize::ViewerState_V1{};
     settings.name = "test";
     settings.version = { 1, 2, 3 };
     settings.resolution = { 1, 2 };
     settings.renderIterations = 3;
-    settings.pathTracer = PathTraceSettings_V1{
+    settings.pathTracer = Serialize::PathTraceSettings_V1{
       0.1f,
       0.2f,
     };
-    settings.timeline = TimelineSettings_V1{ 0.1, 0.2, 0.3 };
+    settings.timeline = Serialize::TimelineSettings_V1{ 0.1, 0.2, 0.3 };
     settings.scene = 1;
     settings.clipRegion = { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
     settings.scale = { 0.1f, 0.2f, 0.3f };
-    settings.camera = CameraSettings_V1{};
+    settings.camera = Serialize::CameraSettings_V1{};
     settings.backgroundColor = { 0.1f, 0.2f, 0.3f };
     settings.showBoundingBox = true;
-    settings.channels = { ChannelSettings_V1{}, ChannelSettings_V1{} };
+    settings.channels = { Serialize::ChannelSettings_V1{}, Serialize::ChannelSettings_V1{} };
     settings.density = 100.0;
-    settings.lights = { LightSettings_V1{}, LightSettings_V1{} };
+    settings.lights = { Serialize::LightSettings_V1{}, Serialize::LightSettings_V1{} };
     nlohmann::json json = settings;
     std::string str = json.dump();
     json = nlohmann::json::parse(str);
-    auto settings2 = json.get<ViewerState_V1>();
+    auto settings2 = json.get<Serialize::ViewerState_V1>();
     REQUIRE(settings == settings2);
   }
 
@@ -175,7 +175,7 @@ TEST_CASE("Json Serialization", "[serialize]")
     // valid json to struct fails
     auto jstr = "{}";
     auto json = nlohmann::json::parse(jstr);
-    REQUIRE_THROWS_AS(json.get<PathTraceSettings_V1>(), std::exception);
+    REQUIRE_THROWS_AS(json.get<Serialize::PathTraceSettings_V1>(), std::exception);
 
     // all good
     jstr = R"(
@@ -185,7 +185,7 @@ TEST_CASE("Json Serialization", "[serialize]")
       }
     )";
     json = nlohmann::json::parse(jstr);
-    REQUIRE(json.get<PathTraceSettings_V1>() == PathTraceSettings_V1{ 0.1, 0.2 });
+    REQUIRE(json.get<Serialize::PathTraceSettings_V1>() == Serialize::PathTraceSettings_V1{ 0.1, 0.2 });
 
     // json parse fails
     jstr = R"(
@@ -802,7 +802,7 @@ TEST_CASE("Json Serialization", "[serialize]")
     )";
 
     auto json = nlohmann::json::parse(jstr);
-    auto settings = json.get<ViewerState_V1>();
+    auto settings = json.get<Serialize::ViewerState_V1>();
   }
 
   SECTION("Read valid 1.4.1 json")
@@ -1397,7 +1397,7 @@ TEST_CASE("Json Serialization", "[serialize]")
 
       )";
     auto json = nlohmann::json::parse(jstr);
-    auto settings = json.get<ViewerState_V1>();
+    auto settings = json.get<Serialize::ViewerState_V1>();
     REQUIRE(settings.clipRegion[0] == std::array<float, 2>{ 0, 1 });
     REQUIRE(settings.clipRegion[1] == std::array<float, 2>{ 0.5, 0.6 });
     REQUIRE(settings.clipRegion[2] == std::array<float, 2>{ 0.75, 0.85 });

@@ -436,7 +436,7 @@ agaveGui::saveJson()
     Serialize::ViewerState st = appToViewerState();
     nlohmann::json doc = st;
     std::string str = doc.dump();
-    saveFile.write(QString::fromStdString(str));
+    saveFile.write(str.c_str()); // QString::fromStdString(str));
   }
 }
 
@@ -831,81 +831,83 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
-  m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
+  // m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-    ChannelViewerState ch = v.m_channels[i];
-    m_appScene.m_material.m_enabled[i] = ch.m_enabled;
+    Serialize::ChannelSettings_V1 ch = v.channels[i];
+    m_appScene.m_material.m_enabled[i] = ch.enabled;
 
-    m_appScene.m_material.m_diffuse[i * 3] = ch.m_diffuse.x;
-    m_appScene.m_material.m_diffuse[i * 3 + 1] = ch.m_diffuse.y;
-    m_appScene.m_material.m_diffuse[i * 3 + 2] = ch.m_diffuse.z;
+    m_appScene.m_material.m_diffuse[i * 3] = ch.diffuseColor[0];
+    m_appScene.m_material.m_diffuse[i * 3 + 1] = ch.diffuseColor[1];
+    m_appScene.m_material.m_diffuse[i * 3 + 2] = ch.diffuseColor[2];
 
-    m_appScene.m_material.m_specular[i * 3] = ch.m_specular.x;
-    m_appScene.m_material.m_specular[i * 3 + 1] = ch.m_specular.y;
-    m_appScene.m_material.m_specular[i * 3 + 2] = ch.m_specular.z;
+    m_appScene.m_material.m_specular[i * 3] = ch.specularColor[0];
+    m_appScene.m_material.m_specular[i * 3 + 1] = ch.specularColor[1];
+    m_appScene.m_material.m_specular[i * 3 + 2] = ch.specularColor[2];
 
-    m_appScene.m_material.m_emissive[i * 3] = ch.m_emissive.x;
-    m_appScene.m_material.m_emissive[i * 3 + 1] = ch.m_emissive.y;
-    m_appScene.m_material.m_emissive[i * 3 + 2] = ch.m_emissive.z;
+    m_appScene.m_material.m_emissive[i * 3] = ch.emissiveColor[0];
+    m_appScene.m_material.m_emissive[i * 3 + 1] = ch.emissiveColor[1];
+    m_appScene.m_material.m_emissive[i * 3 + 2] = ch.emissiveColor[2];
 
-    m_appScene.m_material.m_roughness[i] = ch.m_glossiness;
-    m_appScene.m_material.m_opacity[i] = ch.m_opacity;
+    m_appScene.m_material.m_roughness[i] = ch.glossiness;
+    m_appScene.m_material.m_opacity[i] = ch.opacity;
 
-    m_appScene.m_material.m_gradientData[i].m_activeMode = LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode];
-    m_appScene.m_material.m_gradientData[i].m_window = ch.m_lutParams.m_window;
-    m_appScene.m_material.m_gradientData[i].m_level = ch.m_lutParams.m_level;
-    m_appScene.m_material.m_gradientData[i].m_pctLow = ch.m_lutParams.m_pctLow;
-    m_appScene.m_material.m_gradientData[i].m_pctHigh = ch.m_lutParams.m_pctHigh;
-    m_appScene.m_material.m_gradientData[i].m_isovalue = ch.m_lutParams.m_isovalue;
-    m_appScene.m_material.m_gradientData[i].m_isorange = ch.m_lutParams.m_isorange;
-    m_appScene.m_material.m_gradientData[i].m_customControlPoints = ch.m_lutParams.m_customControlPoints;
+    m_appScene.m_material.m_gradientData[i].m_activeMode = LutParams::g_PermIdToGradientMode[ch.lutParams.mode];
+    m_appScene.m_material.m_gradientData[i].m_window = ch.lutParams.window;
+    m_appScene.m_material.m_gradientData[i].m_level = ch.lutParams.level;
+    m_appScene.m_material.m_gradientData[i].m_pctLow = ch.lutParams.pctLow;
+    m_appScene.m_material.m_gradientData[i].m_pctHigh = ch.lutParams.pctHigh;
+    m_appScene.m_material.m_gradientData[i].m_isovalue = ch.lutParams.isovalue;
+    m_appScene.m_material.m_gradientData[i].m_isorange = ch.lutParams.isorange;
+    m_appScene.m_material.m_gradientData[i].m_customControlPoints = ch.lutParams.controlPoints;
   }
 
   // lights
   Light& lt = m_appScene.m_lighting.m_Lights[0];
-  lt.m_T = v.m_light0.m_type;
-  lt.m_Distance = v.m_light0.m_distance;
-  lt.m_Theta = v.m_light0.m_theta;
-  lt.m_Phi = v.m_light0.m_phi;
-  lt.m_ColorTop = v.m_light0.m_topColor;
-  lt.m_ColorMiddle = v.m_light0.m_middleColor;
-  lt.m_ColorBottom = v.m_light0.m_bottomColor;
-  lt.m_Color = v.m_light0.m_color;
-  lt.m_ColorTopIntensity = v.m_light0.m_topColorIntensity;
-  lt.m_ColorMiddleIntensity = v.m_light0.m_middleColorIntensity;
-  lt.m_ColorBottomIntensity = v.m_light0.m_bottomColorIntensity;
-  lt.m_ColorIntensity = v.m_light0.m_colorIntensity;
-  lt.m_Width = v.m_light0.m_width;
-  lt.m_Height = v.m_light0.m_height;
+  const Serialize::LightSettings_V1& l = v.lights[0];
+  lt.m_T = l.type;
+  lt.m_Distance = l.distance;
+  lt.m_Theta = l.theta;
+  lt.m_Phi = l.phi;
+  lt.m_ColorTop = l.topColor;
+  lt.m_ColorMiddle = l.middleColor;
+  lt.m_ColorBottom = l.bottomColor;
+  lt.m_Color = l.color;
+  lt.m_ColorTopIntensity = l.topColorIntensity;
+  lt.m_ColorMiddleIntensity = l.middleColorIntensity;
+  lt.m_ColorBottomIntensity = l.bottomColorIntensity;
+  lt.m_ColorIntensity = l.colorIntensity;
+  lt.m_Width = l.width;
+  lt.m_Height = l.height;
 
   Light& lt1 = m_appScene.m_lighting.m_Lights[1];
-  lt1.m_T = v.m_light1.m_type;
-  lt1.m_Distance = v.m_light1.m_distance;
-  lt1.m_Theta = v.m_light1.m_theta;
-  lt1.m_Phi = v.m_light1.m_phi;
-  lt1.m_ColorTop = v.m_light1.m_topColor;
-  lt1.m_ColorMiddle = v.m_light1.m_middleColor;
-  lt1.m_ColorBottom = v.m_light1.m_bottomColor;
-  lt1.m_Color = v.m_light1.m_color;
-  lt1.m_ColorTopIntensity = v.m_light1.m_topColorIntensity;
-  lt1.m_ColorMiddleIntensity = v.m_light1.m_middleColorIntensity;
-  lt1.m_ColorBottomIntensity = v.m_light1.m_bottomColorIntensity;
-  lt1.m_ColorIntensity = v.m_light1.m_colorIntensity;
-  lt1.m_Width = v.m_light1.m_width;
-  lt1.m_Height = v.m_light1.m_height;
+  const Serialize::LightSettings_V1& l1 = v.lights[1];
+  lt1.m_T = l1.type;
+  lt1.m_Distance = l1.distance;
+  lt1.m_Theta = l1.theta;
+  lt1.m_Phi = l1.phi;
+  lt1.m_ColorTop = l1.topColor;
+  lt1.m_ColorMiddle = l1.middleColor;
+  lt1.m_ColorBottom = l1.bottomColor;
+  lt1.m_Color = l1.color;
+  lt1.m_ColorTopIntensity = l1.topColorIntensity;
+  lt1.m_ColorMiddleIntensity = l1.middleColorIntensity;
+  lt1.m_ColorBottomIntensity = l1.bottomColorIntensity;
+  lt1.m_ColorIntensity = l1.colorIntensity;
+  lt1.m_Width = l1.width;
+  lt1.m_Height = l1.height;
 
   // capture settings
-  m_captureSettings.width = v.m_captureState.mWidth;
-  m_captureSettings.height = v.m_captureState.mHeight;
-  m_captureSettings.samples = v.m_captureState.mSamples;
-  m_captureSettings.duration = v.m_captureState.mDuration;
-  m_captureSettings.durationType = (eRenderDurationType)v.m_captureState.mDurationType;
-  m_captureSettings.startTime = v.m_captureState.mStartTime;
-  m_captureSettings.endTime = v.m_captureState.mEndTime;
-  m_captureSettings.outputDir = v.m_captureState.mOutputDir;
-  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix;
+  m_captureSettings.width = v.capture.width;
+  m_captureSettings.height = v.capture.height;
+  m_captureSettings.samples = v.capture.samples;
+  m_captureSettings.duration = v.capture.seconds;
+  m_captureSettings.durationType = (eRenderDurationType)v.capture.durationType;
+  m_captureSettings.startTime = v.capture.startTime;
+  m_captureSettings.endTime = v.capture.endTime;
+  m_captureSettings.outputDir = v.capture.outputDirectory;
+  m_captureSettings.filenamePrefix = v.capture.filenamePrefix;
 
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
@@ -917,7 +919,7 @@ Serialize::ViewerState
 agaveGui::appToViewerState()
 {
   Serialize::ViewerState v;
-  v.m_volumeImageFile = m_currentFilePath;
+  v.datasets.push_back(fromLoadSpec(m_loadSpec));
 
   if (m_appScene.m_volume) {
     v.scale[0] = m_appScene.m_volume->physicalSizeX();
@@ -934,15 +936,11 @@ agaveGui::appToViewerState()
                          m_appScene.m_material.m_boundingBoxColor[2] };
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
 
-  v.m_resolutionX = m_glView->size().width();
-  v.m_resolutionY = m_glView->size().height();
   v.capture.samples = m_renderSettings.GetNoIterations();
 
   v.timeline.minTime = m_appScene.m_timeLine.minTime();
   v.timeline.maxTime = m_appScene.m_timeLine.maxTime();
   v.timeline.currentTime = m_appScene.m_timeLine.currentTime();
-
-  v.m_currentScene = m_currentScene;
 
   v.clipRegion[0][1] = m_appScene.m_roi.GetMaxP().x;
   v.clipRegion[1][1] = m_appScene.m_roi.GetMaxP().y;
@@ -971,84 +969,62 @@ agaveGui::appToViewerState()
   v.camera.exposure = m_qcamera.GetFilm().GetExposure();
   v.camera.aperture = m_qcamera.GetAperture().GetSize();
   v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
-  v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
-  v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
+  v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
+  // v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
   v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-      ChannelViewerState ch;
-      ch.m_enabled = m_appScene.m_material.m_enabled[i];
-      ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
-                               m_appScene.m_material.m_diffuse[i * 3 + 1],
-                               m_appScene.m_material.m_diffuse[i * 3 + 2]);
-      ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
-                                m_appScene.m_material.m_specular[i * 3 + 1],
-                                m_appScene.m_material.m_specular[i * 3 + 2]);
-      ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
-                                m_appScene.m_material.m_emissive[i * 3 + 1],
-                                m_appScene.m_material.m_emissive[i * 3 + 2]);
-      ch.m_glossiness = m_appScene.m_material.m_roughness[i];
-      ch.m_opacity = m_appScene.m_material.m_opacity[i];
+      Serialize::ChannelSettings_V1 ch;
+      ch.enabled = m_appScene.m_material.m_enabled[i];
+      ch.diffuseColor = { m_appScene.m_material.m_diffuse[i * 3],
+                          m_appScene.m_material.m_diffuse[i * 3 + 1],
+                          m_appScene.m_material.m_diffuse[i * 3 + 2] };
+      ch.specularColor = { m_appScene.m_material.m_specular[i * 3],
+                           m_appScene.m_material.m_specular[i * 3 + 1],
+                           m_appScene.m_material.m_specular[i * 3 + 2] };
+      ch.emissiveColor = { m_appScene.m_material.m_emissive[i * 3],
+                           m_appScene.m_material.m_emissive[i * 3 + 1],
+                           m_appScene.m_material.m_emissive[i * 3 + 2] };
+      ch.glossiness = m_appScene.m_material.m_roughness[i];
+      ch.opacity = m_appScene.m_material.m_opacity[i];
 
-      ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
-      ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
-      ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
-      ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
-      ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
-      ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
-      ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
-      ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
+      ch.lutParams.mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
+      ch.lutParams.window = m_appScene.m_material.m_gradientData[i].m_window;
+      ch.lutParams.level = m_appScene.m_material.m_gradientData[i].m_level;
+      ch.lutParams.pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
+      ch.lutParams.pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
+      ch.lutParams.isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
+      ch.lutParams.isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
+      ch.lutParams.controlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
 
-      v.m_channels.push_back(ch);
+      v.channels.push_back(ch);
     }
   }
 
   // lighting
   Light& lt = m_appScene.m_lighting.m_Lights[0];
-  v.m_light0.m_type = lt.m_T;
-  v.m_light0.m_distance = lt.m_Distance;
-  v.m_light0.m_theta = lt.m_Theta;
-  v.m_light0.m_phi = lt.m_Phi;
-  v.m_light0.m_topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
-  v.m_light0.m_middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
-  v.m_light0.m_color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-  v.m_light0.m_bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
-  v.m_light0.m_topColorIntensity = lt.m_ColorTopIntensity;
-  v.m_light0.m_middleColorIntensity = lt.m_ColorMiddleIntensity;
-  v.m_light0.m_colorIntensity = lt.m_ColorIntensity;
-  v.m_light0.m_bottomColorIntensity = lt.m_ColorBottomIntensity;
-  v.m_light0.m_width = lt.m_Width;
-  v.m_light0.m_height = lt.m_Height;
+  Serialize::LightSettings_V1 l = fromLight(lt);
+  v.lights.push_back(l);
 
   Light& lt1 = m_appScene.m_lighting.m_Lights[1];
-  v.m_light1.m_type = lt1.m_T;
-  v.m_light1.m_distance = lt1.m_Distance;
-  v.m_light1.m_theta = lt1.m_Theta;
-  v.m_light1.m_phi = lt1.m_Phi;
-  v.m_light1.m_topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
-  v.m_light1.m_middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
-  v.m_light1.m_color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
-  v.m_light1.m_bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
-  v.m_light1.m_topColorIntensity = lt1.m_ColorTopIntensity;
-  v.m_light1.m_middleColorIntensity = lt1.m_ColorMiddleIntensity;
-  v.m_light1.m_colorIntensity = lt1.m_ColorIntensity;
-  v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
-  v.m_light1.m_width = lt1.m_Width;
-  v.m_light1.m_height = lt1.m_Height;
+  Serialize::LightSettings_V1 l1 = fromLight(lt1);
+  v.lights.push_back(l1);
 
   // capture settings
-  v.m_captureState.mWidth = m_captureSettings.width;
-  v.m_captureState.mHeight = m_captureSettings.height;
-  v.m_captureState.mSamples = m_captureSettings.samples;
-  v.m_captureState.mDuration = m_captureSettings.duration;
-  v.m_captureState.mDurationType = m_captureSettings.durationType;
-  v.m_captureState.mStartTime = m_captureSettings.startTime;
-  v.m_captureState.mEndTime = m_captureSettings.endTime;
-  v.m_captureState.mOutputDir = m_captureSettings.outputDir;
-  v.m_captureState.mFilenamePrefix = m_captureSettings.filenamePrefix;
+  // v.m_resolutionX = m_glView->size().width();
+  // v.m_resolutionY = m_glView->size().height();
+  v.capture.width = m_captureSettings.width;
+  v.capture.height = m_captureSettings.height;
+  v.capture.samples = m_captureSettings.samples;
+  v.capture.seconds = m_captureSettings.duration;
+  v.capture.durationType = m_captureSettings.durationType;
+  v.capture.startTime = m_captureSettings.startTime;
+  v.capture.endTime = m_captureSettings.endTime;
+  v.capture.outputDirectory = m_captureSettings.outputDir;
+  v.capture.filenamePrefix = m_captureSettings.filenamePrefix;
 
   return v;
 }

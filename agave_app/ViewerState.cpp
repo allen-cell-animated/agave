@@ -1,6 +1,8 @@
 #include "ViewerState.h"
 
 #include "command.h"
+
+#include "renderlib/AppScene.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
 #include "renderlib/version.h"
@@ -136,17 +138,17 @@ getVec3i(const nlohmann::json& obj, std::string prop, glm::ivec3& value)
   }
 }
 
-std::map<GradientEditMode, GradientEditMode_PID> g_GradientModeToPermId = {
-  { GradientEditMode::WINDOW_LEVEL, GradientEditMode_PID::WINDOW_LEVEL },
-  { GradientEditMode::ISOVALUE, GradientEditMode_PID::ISOVALUE },
-  { GradientEditMode::PERCENTILE, GradientEditMode_PID::PERCENTILE },
-  { GradientEditMode::CUSTOM, GradientEditMode_PID::CUSTOM }
+std::map<GradientEditMode, Serialize::GradientEditMode_PID> g_GradientModeToPermId = {
+  { GradientEditMode::WINDOW_LEVEL, Serialize::GradientEditMode_PID::WINDOW_LEVEL },
+  { GradientEditMode::ISOVALUE, Serialize::GradientEditMode_PID::ISOVALUE },
+  { GradientEditMode::PERCENTILE, Serialize::GradientEditMode_PID::PERCENTILE },
+  { GradientEditMode::CUSTOM, Serialize::GradientEditMode_PID::CUSTOM }
 };
-std::map<GradientEditMode_PID, GradientEditMode> g_PermIdToGradientMode = {
-  { GradientEditMode_PID::WINDOW_LEVEL, GradientEditMode::WINDOW_LEVEL },
-  { GradientEditMode_PID::ISOVALUE, GradientEditMode::ISOVALUE },
-  { GradientEditMode_PID::PERCENTILE, GradientEditMode::PERCENTILE },
-  { GradientEditMode_PID::CUSTOM, GradientEditMode::CUSTOM }
+std::map<Serialize::GradientEditMode_PID, GradientEditMode> g_PermIdToGradientMode = {
+  { Serialize::GradientEditMode_PID::WINDOW_LEVEL, GradientEditMode::WINDOW_LEVEL },
+  { Serialize::GradientEditMode_PID::ISOVALUE, GradientEditMode::ISOVALUE },
+  { Serialize::GradientEditMode_PID::PERCENTILE, GradientEditMode::PERCENTILE },
+  { Serialize::GradientEditMode_PID::CUSTOM, GradientEditMode::CUSTOM }
 };
 
 Serialize::ViewerState
@@ -219,7 +221,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << obj
      << SetCameraProjectionCommand(
           { s.camera.projection,
-            s.camera.projection == Projection_PID::PERSPECTIVE ? s.camera.fovY : s.camera.orthoScale })
+            s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? s.camera.fovY : s.camera.orthoScale })
           .toPythonString()
      << std::endl;
 
@@ -230,42 +232,44 @@ stateToPythonScript(const Serialize::ViewerState& s)
 
   // per-channel
   for (std::int32_t i = 0; i < s.channels.size(); ++i) {
-    const ChannelSettings_V1& ch = s.channels[i];
-    ss << obj << EnableChannelCommand({ i, ch.m_enabled ? 1 : 0 }).toPythonString() << std::endl;
-    ss << obj << SetDiffuseColorCommand({ i, ch.m_diffuse.x, ch.m_diffuse.y, ch.m_diffuse.z, 1.0f }).toPythonString()
+    const Serialize::ChannelSettings_V1& ch = s.channels[i];
+    ss << obj << EnableChannelCommand({ i, ch.enabled ? 1 : 0 }).toPythonString() << std::endl;
+    ss << obj
+       << SetDiffuseColorCommand({ i, ch.diffuseColor[0], ch.diffuseColor[1], ch.diffuseColor[2], 1.0f })
+            .toPythonString()
        << std::endl;
     ss << obj
-       << SetSpecularColorCommand({ i, ch.m_specular.x, ch.m_specular.y, ch.m_specular.z, 0.0f }).toPythonString()
+       << SetSpecularColorCommand({ i, ch.specularColor[0], ch.specularColor[1], ch.specularColor[2], 0.0f })
+            .toPythonString()
        << std::endl;
     ss << obj
-       << SetEmissiveColorCommand({ i, ch.m_emissive.x, ch.m_emissive.y, ch.m_emissive.z, 0.0f }).toPythonString()
+       << SetEmissiveColorCommand({ i, ch.emissiveColor[0], ch.emissiveColor[1], ch.emissiveColor[2], 0.0f })
+            .toPythonString()
        << std::endl;
-    ss << obj << SetGlossinessCommand({ i, ch.m_glossiness }).toPythonString() << std::endl;
-    ss << obj << SetOpacityCommand({ i, ch.m_opacity }).toPythonString() << std::endl;
+    ss << obj << SetGlossinessCommand({ i, ch.glossiness }).toPythonString() << std::endl;
+    ss << obj << SetOpacityCommand({ i, ch.opacity }).toPythonString() << std::endl;
     // depending on current mode:
-    switch (LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode]) {
+    switch (g_PermIdToGradientMode[ch.lutParams.mode]) {
       case GradientEditMode::WINDOW_LEVEL:
-        ss << obj << SetWindowLevelCommand({ i, ch.m_lutParams.m_window, ch.m_lutParams.m_level }).toPythonString()
+        ss << obj << SetWindowLevelCommand({ i, ch.lutParams.window, ch.lutParams.level }).toPythonString()
            << std::endl;
         break;
       case GradientEditMode::ISOVALUE:
-        ss << obj
-           << SetIsovalueThresholdCommand({ i, ch.m_lutParams.m_isovalue, ch.m_lutParams.m_isorange }).toPythonString()
+        ss << obj << SetIsovalueThresholdCommand({ i, ch.lutParams.isovalue, ch.lutParams.isorange }).toPythonString()
            << std::endl;
         break;
       case GradientEditMode::PERCENTILE:
-        ss << obj
-           << SetPercentileThresholdCommand({ i, ch.m_lutParams.m_pctLow, ch.m_lutParams.m_pctHigh }).toPythonString()
+        ss << obj << SetPercentileThresholdCommand({ i, ch.lutParams.pctLow, ch.lutParams.pctHigh }).toPythonString()
            << std::endl;
         break;
       case GradientEditMode::CUSTOM:
         std::vector<float> v;
-        for (auto p : ch.m_lutParams.m_customControlPoints) {
-          v.push_back(p.first);
-          v.push_back(p.second);
-          v.push_back(p.second);
-          v.push_back(p.second);
-          v.push_back(p.second);
+        for (auto p : ch.lutParams.controlPoints) {
+          v.push_back(p.x);
+          v.push_back(p.value[0]);
+          v.push_back(p.value[1]);
+          v.push_back(p.value[2]);
+          v.push_back(p.value[3]);
         }
         ss << obj << SetControlPointsCommand({ i, v }).toPythonString() << std::endl;
         break;
@@ -273,40 +277,44 @@ stateToPythonScript(const Serialize::ViewerState& s)
   }
 
   // lighting
+
+  // TODO get sky light.
+  // assuming this is light 0 for now.
+  const Serialize::LightSettings_V1& light0 = s.lights[0];
+  const Serialize::LightSettings_V1& light1 = s.lights[1];
   ss << obj
-     << SetSkylightTopColorCommand({ m_light0.m_topColor.r * m_light0.m_topColorIntensity,
-                                     m_light0.m_topColor.g * m_light0.m_topColorIntensity,
-                                     m_light0.m_topColor.b * m_light0.m_topColorIntensity })
+     << SetSkylightTopColorCommand({ light0.topColor[0] * light0.topColorIntensity,
+                                     light0.topColor[1] * light0.topColorIntensity,
+                                     light0.topColor[2] * light0.topColorIntensity })
           .toPythonString()
      << std::endl;
   ss << obj
-     << SetSkylightMiddleColorCommand({ m_light0.m_middleColor.r * m_light0.m_middleColorIntensity,
-                                        m_light0.m_middleColor.g * m_light0.m_middleColorIntensity,
-                                        m_light0.m_middleColor.b * m_light0.m_middleColorIntensity })
+     << SetSkylightMiddleColorCommand({ light0.middleColor[0] * light0.middleColorIntensity,
+                                        light0.middleColor[1] * light0.middleColorIntensity,
+                                        light0.middleColor[2] * light0.middleColorIntensity })
           .toPythonString()
      << std::endl;
   ss << obj
-     << SetSkylightBottomColorCommand({ m_light0.m_bottomColor.r * m_light0.m_bottomColorIntensity,
-                                        m_light0.m_bottomColor.g * m_light0.m_bottomColorIntensity,
-                                        m_light0.m_bottomColor.b * m_light0.m_bottomColorIntensity })
+     << SetSkylightBottomColorCommand({ light0.bottomColor[0] * light0.bottomColorIntensity,
+                                        light0.bottomColor[1] * light0.bottomColorIntensity,
+                                        light0.bottomColor[2] * light0.bottomColorIntensity })
           .toPythonString()
      << std::endl;
-  ss << obj << SetLightPosCommand({ 0, m_light1.m_distance, m_light1.m_theta, m_light1.m_phi }).toPythonString()
-     << std::endl;
+  ss << obj << SetLightPosCommand({ 0, light1.distance, light1.theta, light1.phi }).toPythonString() << std::endl;
   ss << obj
      << SetLightColorCommand({ 0,
-                               m_light1.m_color.r * m_light1.m_colorIntensity,
-                               m_light1.m_color.g * m_light1.m_colorIntensity,
-                               m_light1.m_color.b * m_light1.m_colorIntensity })
+                               light1.color[0] * light1.colorIntensity,
+                               light1.color[1] * light1.colorIntensity,
+                               light1.color[2] * light1.colorIntensity })
           .toPythonString()
      << std::endl;
-  ss << obj << SetLightSizeCommand({ 0, m_light1.m_width, m_light1.m_height }).toPythonString() << std::endl;
+  ss << obj << SetLightSizeCommand({ 0, light1.width, light1.height }).toPythonString() << std::endl;
 
   ss << obj << SessionCommand({ outFileName.toStdString() + ".png" }).toPythonString() << std::endl;
   ss << obj << RequestRedrawCommand({}).toPythonString() << std::endl;
-  std::string s(ss.str());
+  std::string sout(ss.str());
   // LOG_DEBUG << s;
-  return QString::fromStdString(s);
+  return QString::fromStdString(sout);
 }
 
 LoadSpec
@@ -326,4 +334,43 @@ stateToLoadSpec(const Serialize::ViewerState& state)
   spec.minz = s.clipRegion[2][0];
   spec.maxz = s.clipRegion[2][1];
   return spec;
+}
+
+Serialize::LoadSettings
+fromLoadSpec(const LoadSpec& loadSpec)
+{
+  Serialize::LoadSettings s;
+  s.url = loadSpec.filepath;
+  s.subpath = loadSpec.subpath;
+  s.scene = loadSpec.scene;
+  s.time = loadSpec.time;
+  s.channels = loadSpec.channels;
+  s.clipRegion[0][0] = loadSpec.minx;
+  s.clipRegion[0][1] = loadSpec.maxx;
+  s.clipRegion[1][0] = loadSpec.miny;
+  s.clipRegion[1][1] = loadSpec.maxy;
+  s.clipRegion[2][0] = loadSpec.minz;
+  s.clipRegion[2][1] = loadSpec.maxz;
+  return s;
+}
+
+Serialize::LightSettings_V1
+fromLight(const Light& lt)
+{
+  Serialize::LightSettings_V1 s;
+  s.type = lt.m_T;
+  s.distance = lt.m_Distance;
+  s.theta = lt.m_Theta;
+  s.phi = lt.m_Phi;
+  s.topColor = { lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b };
+  s.middleColor = { lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b };
+  s.color = { lt.m_Color.r, lt.m_Color.g, lt.m_Color.b };
+  s.bottomColor = { lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b };
+  s.topColorIntensity = lt.m_ColorTopIntensity;
+  s.middleColorIntensity = lt.m_ColorMiddleIntensity;
+  s.colorIntensity = lt.m_ColorIntensity;
+  s.bottomColorIntensity = lt.m_ColorBottomIntensity;
+  s.width = lt.m_Width;
+  s.height = lt.m_Height;
+  return s;
 }

@@ -330,19 +330,20 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   m_CCamera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
   m_CCamera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
   m_CCamera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
-  m_CCamera.m_FovV = s.camera.fov;
-  m_CCamera.SetProjectionMode(s.m_projection == ViewerState::Projection::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
-  m_CCamera.m_OrthoScale = s.m_orthoScale;
+  m_CCamera.m_FovV = s.camera.fovY;
+  m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
+                                                                                            : ORTHOGRAPHIC);
+  m_CCamera.m_OrthoScale = s.camera.orthoScale;
 
-  m_CCamera.m_Film.m_Exposure = s.m_exposure;
-  m_CCamera.m_Aperture.m_Size = s.m_apertureSize;
-  m_CCamera.m_Focus.m_FocalDistance = s.m_focalDistance;
+  m_CCamera.m_Film.m_Exposure = s.camera.exposure;
+  m_CCamera.m_Aperture.m_Size = s.camera.aperture;
+  m_CCamera.m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
-  m_qcamera->GetProjection().SetFieldOfView(s.m_fov);
-  m_qcamera->GetFilm().SetExposure(s.m_exposure);
-  m_qcamera->GetAperture().SetSize(s.m_apertureSize);
-  m_qcamera->GetFocus().SetFocalDistance(s.m_focalDistance);
+  m_qcamera->GetProjection().SetFieldOfView(s.camera.fovY);
+  m_qcamera->GetFilm().SetExposure(s.camera.exposure);
+  m_qcamera->GetAperture().SetSize(s.camera.aperture);
+  m_qcamera->GetFocus().SetFocalDistance(s.camera.focalDistance);
 }
 
 QPixmap
