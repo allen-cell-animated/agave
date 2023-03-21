@@ -26,7 +26,7 @@ struct LoadSettings
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(LoadSettings, url, subpath, scene, time, channels, clipRegion)
 };
 
-enum class DurationType : int
+enum class DurationType_PID : int
 {
   SAMPLES = 0,
   TIME = 1
@@ -40,7 +40,7 @@ struct CaptureSettings
   std::string outputDirectory = ".";
   int samples = 32;
   float seconds = 10.0f;
-  DurationType durationType = DurationType::SAMPLES;
+  DurationType_PID durationType = DurationType_PID::SAMPLES;
   int startTime = 0;
   int endTime = 0;
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Serialize.h"
+#include "renderDialog.h"
 
+#include "renderlib/GradientData.h"
 #include "renderlib/IFileReader.h"
 #include "renderlib/json/json.hpp"
 
@@ -20,8 +22,14 @@ stateFromJson(const nlohmann::json& jsonDoc);
 LoadSpec
 stateToLoadSpec(const Serialize::ViewerState& state);
 
+GradientData
+stateToGradientData(const Serialize::ViewerState& state, int channelIndex);
+
 Serialize::LoadSettings
 fromLoadSpec(const LoadSpec& loadSpec);
 
 Serialize::LightSettings_V1
 fromLight(const Light& light);
+
+Serialize::CaptureSettings
+fromCaptureSettings(const CaptureSettings& captureSettings);

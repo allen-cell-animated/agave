@@ -853,14 +853,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
     m_appScene.m_material.m_roughness[i] = ch.glossiness;
     m_appScene.m_material.m_opacity[i] = ch.opacity;
 
-    m_appScene.m_material.m_gradientData[i].m_activeMode = LutParams::g_PermIdToGradientMode[ch.lutParams.mode];
-    m_appScene.m_material.m_gradientData[i].m_window = ch.lutParams.window;
-    m_appScene.m_material.m_gradientData[i].m_level = ch.lutParams.level;
-    m_appScene.m_material.m_gradientData[i].m_pctLow = ch.lutParams.pctLow;
-    m_appScene.m_material.m_gradientData[i].m_pctHigh = ch.lutParams.pctHigh;
-    m_appScene.m_material.m_gradientData[i].m_isovalue = ch.lutParams.isovalue;
-    m_appScene.m_material.m_gradientData[i].m_isorange = ch.lutParams.isorange;
-    m_appScene.m_material.m_gradientData[i].m_customControlPoints = ch.lutParams.controlPoints;
+    m_appScene.m_material.m_gradientData[i] = stateToGradientData(v, i);
   }
 
   // lights
@@ -903,6 +896,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_captureSettings.height = v.capture.height;
   m_captureSettings.samples = v.capture.samples;
   m_captureSettings.duration = v.capture.seconds;
+  // TODO proper lookup for permid
   m_captureSettings.durationType = (eRenderDurationType)v.capture.durationType;
   m_captureSettings.startTime = v.capture.startTime;
   m_captureSettings.endTime = v.capture.endTime;
@@ -1014,17 +1008,8 @@ agaveGui::appToViewerState()
   v.lights.push_back(l1);
 
   // capture settings
-  // v.m_resolutionX = m_glView->size().width();
-  // v.m_resolutionY = m_glView->size().height();
-  v.capture.width = m_captureSettings.width;
-  v.capture.height = m_captureSettings.height;
-  v.capture.samples = m_captureSettings.samples;
-  v.capture.seconds = m_captureSettings.duration;
-  v.capture.durationType = m_captureSettings.durationType;
-  v.capture.startTime = m_captureSettings.startTime;
-  v.capture.endTime = m_captureSettings.endTime;
-  v.capture.outputDirectory = m_captureSettings.outputDir;
-  v.capture.filenamePrefix = m_captureSettings.filenamePrefix;
+
+  v.capture = fromCaptureSettings(m_captureSettings);
 
   return v;
 }

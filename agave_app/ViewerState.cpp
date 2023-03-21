@@ -3,6 +3,7 @@
 #include "command.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/CCamera.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
 #include "renderlib/version.h"
@@ -138,18 +139,41 @@ getVec3i(const nlohmann::json& obj, std::string prop, glm::ivec3& value)
   }
 }
 
-std::map<GradientEditMode, Serialize::GradientEditMode_PID> g_GradientModeToPermId = {
+template<typename K, typename V>
+std::unordered_map<V, K>
+inverse_map(std::unordered_map<K, V>& map)
+{
+  std::unordered_map<V, K> inv;
+  std::for_each(
+    map.begin(), map.end(), [&inv](const std::pair<K, V>& p) { inv.insert(std::make_pair(p.second, p.first)); });
+  return inv;
+}
+
+std::unordered_map<GradientEditMode, Serialize::GradientEditMode_PID> g_GradientModeToPermId = {
   { GradientEditMode::WINDOW_LEVEL, Serialize::GradientEditMode_PID::WINDOW_LEVEL },
   { GradientEditMode::ISOVALUE, Serialize::GradientEditMode_PID::ISOVALUE },
   { GradientEditMode::PERCENTILE, Serialize::GradientEditMode_PID::PERCENTILE },
   { GradientEditMode::CUSTOM, Serialize::GradientEditMode_PID::CUSTOM }
 };
-std::map<Serialize::GradientEditMode_PID, GradientEditMode> g_PermIdToGradientMode = {
-  { Serialize::GradientEditMode_PID::WINDOW_LEVEL, GradientEditMode::WINDOW_LEVEL },
-  { Serialize::GradientEditMode_PID::ISOVALUE, GradientEditMode::ISOVALUE },
-  { Serialize::GradientEditMode_PID::PERCENTILE, GradientEditMode::PERCENTILE },
-  { Serialize::GradientEditMode_PID::CUSTOM, GradientEditMode::CUSTOM }
+auto g_PermIdToGradientMode = inverse_map(g_GradientModeToPermId);
+
+std::unordered_map<eRenderDurationType, Serialize::DurationType_PID> g_RenderDurationTypeToPermId = {
+  { eRenderDurationType::SAMPLES, Serialize::DurationType_PID::SAMPLES },
+  { eRenderDurationType::TIME, Serialize::DurationType_PID::TIME },
 };
+auto g_PermIdToRenderDurationType = inverse_map(g_RenderDurationTypeToPermId);
+
+std::unordered_map<ProjectionMode, Serialize::Projection_PID> g_ProjectionToPermId = {
+  { ProjectionMode::PERSPECTIVE, Serialize::Projection_PID::PERSPECTIVE },
+  { ProjectionMode::ORTHOGRAPHIC, Serialize::Projection_PID::ORTHOGRAPHIC },
+};
+auto g_PermIdToProjection = inverse_map(g_ProjectionToPermId);
+
+std::unordered_map<int, Serialize::LightType> g_LightTypeToPermId = {
+  { 1, Serialize::LightType::SKY },
+  { 0, Serialize::LightType::AREA },
+};
+auto g_PermIdToLightType = inverse_map(g_LightTypeToPermId);
 
 Serialize::ViewerState
 stateFromJson(const nlohmann::json& jsonDoc)
@@ -220,7 +244,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << obj << SetCameraUpCommand({ s.camera.up[0], s.camera.up[1], s.camera.up[2] }).toPythonString() << std::endl;
   ss << obj
      << SetCameraProjectionCommand(
-          { s.camera.projection,
+          { g_PermIdToProjection[s.camera.projection],
             s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? s.camera.fovY : s.camera.orthoScale })
           .toPythonString()
      << std::endl;
@@ -336,6 +360,29 @@ stateToLoadSpec(const Serialize::ViewerState& state)
   return spec;
 }
 
+GradientData
+stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
+{
+  GradientData gd;
+  const auto& ch = state.channels[channelIndex];
+  const auto& lut = ch.lutParams;
+  gd.m_activeMode = g_PermIdToGradientMode[lut.mode];
+  gd.m_window = lut.window;
+  gd.m_level = lut.level;
+  gd.m_isovalue = lut.isovalue;
+  gd.m_isorange = lut.isorange;
+  gd.m_pctLow = lut.pctLow;
+  gd.m_pctHigh = lut.pctHigh;
+  for (size_t i = 0; i < lut.controlPoints.size(); i += 5) {
+    LutControlPoint cp;
+    cp.first = lut.controlPoints[i].x;
+    // use first value?  or "alpha" (4th) value?
+    cp.second = lut.controlPoints[i].value[0];
+    gd.m_customControlPoints.push_back(cp);
+  }
+  return gd;
+}
+
 Serialize::LoadSettings
 fromLoadSpec(const LoadSpec& loadSpec)
 {
@@ -358,7 +405,7 @@ Serialize::LightSettings_V1
 fromLight(const Light& lt)
 {
   Serialize::LightSettings_V1 s;
-  s.type = lt.m_T;
+  s.type = g_LightTypeToPermId[lt.m_T];
   s.distance = lt.m_Distance;
   s.theta = lt.m_Theta;
   s.phi = lt.m_Phi;
@@ -373,4 +420,23 @@ fromLight(const Light& lt)
   s.width = lt.m_Width;
   s.height = lt.m_Height;
   return s;
+}
+
+Serialize::CaptureSettings
+fromCaptureSettings(const CaptureSettings& cs)
+{
+  Serialize::CaptureSettings s;
+  // TODO make sure capture settings are initialized to window size until
+  // render dialog has been opened.
+  // v.m_resolutionX = m_glView->size().width();
+  // v.m_resolutionY = m_glView->size().height();
+  s.width = cs.width;
+  s.height = cs.height;
+  s.samples = cs.samples;
+  s.seconds = cs.duration;
+  s.durationType = g_RenderDurationTypeToPermId[cs.durationType];
+  s.startTime = cs.startTime;
+  s.endTime = cs.endTime;
+  s.outputDirectory = cs.outputDir;
+  s.filenamePrefix = cs.filenamePrefix;
 }
