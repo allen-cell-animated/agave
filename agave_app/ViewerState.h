@@ -25,6 +25,9 @@ stateToLoadSpec(const Serialize::ViewerState& state);
 GradientData
 stateToGradientData(const Serialize::ViewerState& state, int channelIndex);
 
+Light
+stateToLight(const Serialize::ViewerState& state, int lightIndex);
+
 Serialize::LoadSettings
 fromLoadSpec(const LoadSpec& loadSpec);
 
@@ -33,3 +36,6 @@ fromLight(const Light& light);
 
 Serialize::CaptureSettings
 fromCaptureSettings(const CaptureSettings& captureSettings);
+
+Serialize::LutParams_V1
+fromGradientData(const GradientData& lutParams);

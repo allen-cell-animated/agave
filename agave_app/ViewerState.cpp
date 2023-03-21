@@ -383,6 +383,28 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
   return gd;
 }
 
+Light
+stateToLight(const Serialize::ViewerState& state, int lightIndex)
+{
+  Light lt;
+  const Serialize::LightSettings_V1& l = state.lights[lightIndex];
+  lt.m_T = g_PermIdToLightType[l.type];
+  lt.m_Distance = l.distance;
+  lt.m_Theta = l.theta;
+  lt.m_Phi = l.phi;
+  lt.m_ColorTop = glm::vec3(l.topColor[0], l.topColor[1], l.topColor[2]);
+  lt.m_ColorMiddle = glm::vec3(l.middleColor[0], l.middleColor[1], l.middleColor[2]);
+  lt.m_ColorBottom = glm::vec3(l.bottomColor[0], l.bottomColor[1], l.bottomColor[2]);
+  lt.m_Color = glm::vec3(l.color[0], l.color[1], l.color[2]);
+  lt.m_ColorTopIntensity = l.topColorIntensity;
+  lt.m_ColorMiddleIntensity = l.middleColorIntensity;
+  lt.m_ColorBottomIntensity = l.bottomColorIntensity;
+  lt.m_ColorIntensity = l.colorIntensity;
+  lt.m_Width = l.width;
+  lt.m_Height = l.height;
+
+  return lt;
+}
 Serialize::LoadSettings
 fromLoadSpec(const LoadSpec& loadSpec)
 {
@@ -439,4 +461,24 @@ fromCaptureSettings(const CaptureSettings& cs)
   s.endTime = cs.endTime;
   s.outputDirectory = cs.outputDir;
   s.filenamePrefix = cs.filenamePrefix;
+}
+
+Serialize::LutParams_V1
+fromGradientData(const GradientData& gd)
+{
+  Serialize::LutParams_V1 s;
+  s.mode = g_GradientModeToPermId[gd.m_activeMode];
+  s.window = gd.m_window;
+  s.level = gd.m_level;
+  s.isovalue = gd.m_isovalue;
+  s.isorange = gd.m_isorange;
+  s.pctLow = gd.m_pctLow;
+  s.pctHigh = gd.m_pctHigh;
+  for (const auto& cp : gd.m_customControlPoints) {
+    Serialize::ControlPointSettings_V1 c;
+    c.x = cp.first;
+    c.value = { cp.second, cp.second, cp.second, 1.0 };
+    s.controlPoints.push_back(c);
+  }
+  return s;
 }

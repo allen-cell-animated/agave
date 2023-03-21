@@ -857,39 +857,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
-  Light& lt = m_appScene.m_lighting.m_Lights[0];
-  const Serialize::LightSettings_V1& l = v.lights[0];
-  lt.m_T = l.type;
-  lt.m_Distance = l.distance;
-  lt.m_Theta = l.theta;
-  lt.m_Phi = l.phi;
-  lt.m_ColorTop = l.topColor;
-  lt.m_ColorMiddle = l.middleColor;
-  lt.m_ColorBottom = l.bottomColor;
-  lt.m_Color = l.color;
-  lt.m_ColorTopIntensity = l.topColorIntensity;
-  lt.m_ColorMiddleIntensity = l.middleColorIntensity;
-  lt.m_ColorBottomIntensity = l.bottomColorIntensity;
-  lt.m_ColorIntensity = l.colorIntensity;
-  lt.m_Width = l.width;
-  lt.m_Height = l.height;
-
-  Light& lt1 = m_appScene.m_lighting.m_Lights[1];
-  const Serialize::LightSettings_V1& l1 = v.lights[1];
-  lt1.m_T = l1.type;
-  lt1.m_Distance = l1.distance;
-  lt1.m_Theta = l1.theta;
-  lt1.m_Phi = l1.phi;
-  lt1.m_ColorTop = l1.topColor;
-  lt1.m_ColorMiddle = l1.middleColor;
-  lt1.m_ColorBottom = l1.bottomColor;
-  lt1.m_Color = l1.color;
-  lt1.m_ColorTopIntensity = l1.topColorIntensity;
-  lt1.m_ColorMiddleIntensity = l1.middleColorIntensity;
-  lt1.m_ColorBottomIntensity = l1.bottomColorIntensity;
-  lt1.m_ColorIntensity = l1.colorIntensity;
-  lt1.m_Width = l1.width;
-  lt1.m_Height = l1.height;
+  m_appScene.m_lighting.m_Lights[0] = stateToLight(v, 0);
+  m_appScene.m_lighting.m_Lights[1] = stateToLight(v, 1);
 
   // capture settings
   m_captureSettings.width = v.capture.width;
@@ -985,14 +954,7 @@ agaveGui::appToViewerState()
       ch.glossiness = m_appScene.m_material.m_roughness[i];
       ch.opacity = m_appScene.m_material.m_opacity[i];
 
-      ch.lutParams.mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
-      ch.lutParams.window = m_appScene.m_material.m_gradientData[i].m_window;
-      ch.lutParams.level = m_appScene.m_material.m_gradientData[i].m_level;
-      ch.lutParams.pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
-      ch.lutParams.pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
-      ch.lutParams.isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
-      ch.lutParams.isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
-      ch.lutParams.controlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
+      ch.lutParams = fromGradientData(m_appScene.m_material.m_gradientData[i]);
 
       v.channels.push_back(ch);
     }
