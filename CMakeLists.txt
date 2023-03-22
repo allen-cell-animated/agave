@@ -298,4 +298,13 @@ else() # Linux
     $<TARGET_FILE:Qt5::QTiffPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
+  # include(InstallRequiredSystemLibraries)
+
+  # list(APPEND DIRS ${CMAKE_INSTALL_PREFIX}/lib)
+
+  # install(CODE "include(BundleUtilities)
+  #   fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave-install \"${DIRS}\" \"${DIRS}\" )" COMPONENT Runtime)
+  SET(CPACK_GENERATOR "DEB")
+  SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "KK") #required
+  INCLUDE(CPack)
 endif(WIN32)

@@ -76,6 +76,8 @@ In your favorite Python virtual environment:
 ```
 pip install aqtinstall
 aqt install --outputdir ~/Qt 5.15.2 linux desktop
+aqt install-qt linux desktop 5.15.2 --archives icu
+
 # the next line is needed for CMake
 export Qt5_DIR=~/Qt/5.15.2/gcc_64
 ```
