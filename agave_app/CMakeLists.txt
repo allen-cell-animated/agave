@@ -81,12 +81,12 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
-	)
+)
 add_subdirectory(python)
 
 add_subdirectory(tfeditor)
 
-if (MSVC)
+if(MSVC)
 	target_sources(agaveapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
 	set_property(
 		TARGET agaveapp
@@ -98,17 +98,18 @@ if (MSVC)
 		PROPERTY VS_DEBUGGER_COMMAND
 		"${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}/$(TargetFileName)"
 	)
-endif (MSVC)
+endif(MSVC)
 
 target_link_libraries(agaveapp PRIVATE
 	renderlib
 	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
 )
 
-install(TARGETS agaveapp RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt5_DIR}/lib
+install(TARGETS agaveapp
+
+	# RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt5_DIR}/lib
 	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR}
 	LIBRARY DESTINATION ${INSTALLDIR}
 	DESTINATION ${INSTALLDIR}
 )
-
