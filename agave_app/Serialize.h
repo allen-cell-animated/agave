@@ -68,8 +68,6 @@ struct ViewerState
 
   // the app version that wrote this data
   std::array<uint32_t, 3> version{ 0, 0, 0 };
-  std::array<int, 2> resolution = { 0, 0 }; // m_resolutionX, m_resolutionY
-  int renderIterations = 1;                 // m_renderIterations
 
   PathTraceSettings_V1 pathTracer; // m_primaryStepSize, m_secondaryStepSize
   TimelineSettings_V1 timeline;    // m_minTime, m_maxTime, m_currentTime
@@ -98,18 +96,15 @@ struct ViewerState
 
   bool operator==(const ViewerState& other) const
   {
-    return datasets == other.datasets && version == other.version && resolution == other.resolution &&
-           renderIterations == other.renderIterations && pathTracer == other.pathTracer && timeline == other.timeline &&
-           clipRegion == other.clipRegion && scale == other.scale && camera == other.camera &&
-           backgroundColor == other.backgroundColor && boundingBoxColor == other.boundingBoxColor &&
-           showBoundingBox == other.showBoundingBox && channels == other.channels && density == other.density &&
-           lights == other.lights && capture == other.capture;
+    return datasets == other.datasets && version == other.version && pathTracer == other.pathTracer &&
+           timeline == other.timeline && clipRegion == other.clipRegion && scale == other.scale &&
+           camera == other.camera && backgroundColor == other.backgroundColor &&
+           boundingBoxColor == other.boundingBoxColor && showBoundingBox == other.showBoundingBox &&
+           channels == other.channels && density == other.density && lights == other.lights && capture == other.capture;
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ViewerState,
                                  datasets,
                                  version,
-                                 resolution,
-                                 renderIterations,
                                  pathTracer,
                                  timeline,
                                  clipRegion,
@@ -123,5 +118,8 @@ struct ViewerState
                                  lights,
                                  capture)
 };
+
+ViewerState
+fromV1(const ViewerState_V1& v1);
 
 } // namespace Serialize

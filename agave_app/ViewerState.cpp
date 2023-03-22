@@ -179,8 +179,16 @@ Serialize::ViewerState
 stateFromJson(const nlohmann::json& jsonDoc)
 {
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
-  glm::ivec3 v(0, 0, 0);
-  getVec3i(jsonDoc, "version", v);
+  std::array<int, 3> v = { 0, 0, 0 };
+  if (jsonDoc.contains("version")) {
+    auto ja = jsonDoc["version"];
+    v[0] = ja.at(0).get<int32_t>();
+    v[1] = ja.at(1).get<int32_t>();
+    v[2] = ja.at(2).get<int32_t>();
+  } else {
+    // ERROR
+  }
+
   Version version(v);
 
   // we will fill this in from the jsonDoc.
@@ -190,7 +198,7 @@ stateFromJson(const nlohmann::json& jsonDoc)
   if (version <= Version(1, 4, 1)) {
     Serialize::ViewerState_V1 stateV1 = jsonDoc.get<Serialize::ViewerState_V1>();
     // fill in this from the old data structure.
-    stateV2.fromV1(stateV1);
+    stateV2 = fromV1(stateV1);
   } else {
     stateV2 = jsonDoc.get<Serialize::ViewerState>();
   }
