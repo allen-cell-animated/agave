@@ -132,7 +132,7 @@ TEST_CASE("Json Serialization", "[serialize]")
     settings.outputDirectory = "test2";
     settings.samples = 3;
     settings.seconds = 4.0;
-    settings.durationType = Serialize::DurationType::TIME;
+    settings.durationType = Serialize::DurationType_PID::TIME;
     settings.startTime = 6;
     settings.endTime = 7;
     nlohmann::json json = settings;

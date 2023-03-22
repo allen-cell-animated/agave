@@ -14,10 +14,16 @@ public:
 
   Version(const glm::ivec3& version)
     : mVersion(version)
-  {}
+  {
+  }
+  Version(const std::array<int, 3>& version)
+    : mVersion(version[0], version[1], version[2])
+  {
+  }
   Version(int major, int minor, int patch)
     : mVersion(major, minor, patch)
-  {}
+  {
+  }
 
   bool operator==(const Version& v) const { return compare(v) == 0; };
   bool operator!=(const Version& v) const { return !(operator==(v)); };
