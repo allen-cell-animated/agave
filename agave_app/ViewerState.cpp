@@ -11,133 +11,8 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonObject>
 
 #include <sstream>
-
-QJsonArray
-jsonVec4(float x, float y, float z, float w)
-{
-  QJsonArray tgt;
-  tgt.append(x);
-  tgt.append(y);
-  tgt.append(z);
-  tgt.append(w);
-  return tgt;
-}
-QJsonArray
-jsonVec3(float x, float y, float z)
-{
-  QJsonArray tgt;
-  tgt.append(x);
-  tgt.append(y);
-  tgt.append(z);
-  return tgt;
-}
-QJsonArray
-jsonVec2(float x, float y)
-{
-  QJsonArray tgt;
-  tgt.append(x);
-  tgt.append(y);
-  return tgt;
-}
-QJsonArray
-jsonVec3(const glm::vec3& v)
-{
-  QJsonArray tgt;
-  tgt.append(v.x);
-  tgt.append(v.y);
-  tgt.append(v.z);
-  return tgt;
-}
-QJsonArray
-jsonVec2(const glm::vec2& v)
-{
-  QJsonArray tgt;
-  tgt.append(v.x);
-  tgt.append(v.y);
-  return tgt;
-}
-
-void
-getFloat(const nlohmann::json& obj, std::string prop, float& value)
-{
-  if (obj.contains(prop)) {
-    value = (float)obj[prop].get<double>();
-  }
-}
-void
-getInt(const nlohmann::json& obj, std::string prop, int& value)
-{
-  if (obj.contains(prop)) {
-    value = obj[prop].get<int>();
-  }
-}
-void
-getString(const nlohmann::json& obj, std::string prop, std::string& value)
-{
-  if (obj.contains(prop)) {
-    value = obj[prop].get<std::string>();
-  }
-}
-void
-getBool(const nlohmann::json& obj, std::string prop, bool& value)
-{
-  if (obj.contains(prop)) {
-    value = obj[prop].get<bool>();
-  }
-}
-void
-getVec4(const nlohmann::json& obj, std::string prop, glm::vec4& value)
-{
-  if (obj.contains(prop)) {
-    auto ja = obj[prop];
-    value.x = ja.at(0).get<double>();
-    value.y = ja.at(1).get<double>();
-    value.z = ja.at(2).get<double>();
-    value.w = ja.at(3).get<double>();
-  }
-}
-void
-getVec3(const nlohmann::json& obj, std::string prop, glm::vec3& value)
-{
-  if (obj.contains(prop)) {
-    auto ja = obj[prop];
-    value.x = ja.at(0).get<double>();
-    value.y = ja.at(1).get<double>();
-    value.z = ja.at(2).get<double>();
-  }
-}
-void
-getVec2(const nlohmann::json& obj, std::string prop, glm::vec2& value)
-{
-  if (obj.contains(prop)) {
-    auto ja = obj[prop];
-    value.x = ja.at(0).get<double>();
-    value.y = ja.at(1).get<double>();
-  }
-}
-void
-getVec2i(const nlohmann::json& obj, std::string prop, glm::ivec2& value)
-{
-  if (obj.contains(prop)) {
-    auto ja = obj[prop];
-    value.x = ja.at(0).get<int32_t>();
-    value.y = ja.at(1).get<int32_t>();
-  }
-}
-void
-getVec3i(const nlohmann::json& obj, std::string prop, glm::ivec3& value)
-{
-  if (obj.contains(prop)) {
-    auto ja = obj[prop];
-    value.x = ja.at(0).get<int32_t>();
-    value.y = ja.at(1).get<int32_t>();
-    value.z = ja.at(2).get<int32_t>();
-  }
-}
 
 template<typename K, typename V>
 std::unordered_map<V, K>
@@ -469,6 +344,7 @@ fromCaptureSettings(const CaptureSettings& cs)
   s.endTime = cs.endTime;
   s.outputDirectory = cs.outputDir;
   s.filenamePrefix = cs.filenamePrefix;
+  return s;
 }
 
 Serialize::LutParams_V1
