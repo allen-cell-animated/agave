@@ -16,7 +16,7 @@ struct LoadSettings
   uint32_t scene = 0;
   uint32_t time = 0;
   std::vector<uint32_t> channels;
-  std::array<std::array<uint32_t, 2>, 3> clipRegion;
+  std::array<std::array<uint32_t, 2>, 3> clipRegion = { 0, 0, 0, 0, 0, 0 };
 
   bool operator==(const LoadSettings& other) const
   {

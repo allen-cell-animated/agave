@@ -259,8 +259,8 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
   for (size_t i = 0; i < lut.controlPoints.size(); i += 5) {
     LutControlPoint cp;
     cp.first = lut.controlPoints[i].x;
-    // use first value?  or "alpha" (4th) value?
-    cp.second = lut.controlPoints[i].value[0];
+    // note: only the last value of the vector is used currently
+    cp.second = lut.controlPoints[i].value[3];
     gd.m_customControlPoints.push_back(cp);
   }
   return gd;
@@ -361,7 +361,7 @@ fromGradientData(const GradientData& gd)
   for (const auto& cp : gd.m_customControlPoints) {
     Serialize::ControlPointSettings_V1 c;
     c.x = cp.first;
-    c.value = { cp.second, cp.second, cp.second, 1.0 };
+    c.value = { cp.second, cp.second, cp.second, cp.second };
     s.controlPoints.push_back(c);
   }
   return s;

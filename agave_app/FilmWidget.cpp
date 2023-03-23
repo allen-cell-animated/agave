@@ -28,9 +28,6 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   Controls::initFormLayout(m_Layout);
   setLayout(&m_Layout);
 
-  const int ResMin = powf(2.0f, 5);
-  const int ResMax = powf(2.0f, 11);
-
   // Exposure, controls how bright or dim overall scene is
   m_ExposureSlider.setStatusTip(tr("Set Exposure"));
   m_ExposureSlider.setToolTip(tr("Set camera exposure"));
@@ -153,7 +150,8 @@ QFilmWidget::OnRenderBegin(void)
 
 void
 QFilmWidget::OnRenderEnd(void)
-{}
+{
+}
 
 void
 QFilmWidget::OnFilmChanged(const QFilm& Film)

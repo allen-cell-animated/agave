@@ -20,11 +20,21 @@ fromV1(const ViewerState_V1& v1)
   v2.timeline = v1.timeline;
   v2.clipRegion = v1.clipRegion;
   v2.scale = v1.scale;
+
   v2.camera = v1.camera;
+
   v2.backgroundColor = v1.backgroundColor;
   v2.boundingBoxColor = v1.boundingBoxColor;
   v2.showBoundingBox = v1.showBoundingBox;
+
   v2.channels = v1.channels;
+  // deprecated, old io format
+  // each channel used to have only "window" and "level" parameters
+  // getFloat(channeli, "window", ch.m_lutParams.m_window);
+  // getFloat(channeli, "level", ch.m_lutParams.m_level);
+  // // set window/level as active mode since that's what we found in the file
+  // ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[GradientEditMode::WINDOW_LEVEL];
+
   v2.density = v1.density;
   v2.lights = v1.lights;
 
