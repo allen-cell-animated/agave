@@ -443,23 +443,23 @@ agaveGui::saveJson()
 void
 agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
-                        const VolumeDimensions& dims,
+                        uint32_t sizeT,
                         const Serialize::ViewerState* vs)
 {
   m_loadSpec = loadSpec;
 
   if (vs) {
     // make sure that ViewerState is consistent with loaded file
-    if (dims.sizeT - 1 != vs->timeline.maxTime) {
-      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found "
-                << (dims.sizeT) << " in the loaded file.";
+    if (sizeT - 1 != vs->timeline.maxTime) {
+      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found " << (sizeT)
+                << " in the loaded file.";
     }
     if (0 != vs->timeline.minTime) {
       LOG_ERROR << "Min timline time is not zero.";
     }
   }
   m_currentScene = loadSpec.scene;
-  m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
+  m_appScene.m_timeLine.setRange(0, sizeT - 1);
   m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
 
   // install the new volume image into the scene.
@@ -540,18 +540,27 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
   std::vector<MultiscaleDims> multiscaledims;
   multiscaledims = reader->loadMultiscaleDims(file, sceneToLoad);
   if (multiscaledims.empty()) {
-    LOG_DEBUG << "Failed to load dims from url.";
+    LOG_DEBUG << "Failed to load dims for image.";
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
 
-  LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
-  if (loadDialog->exec() == QDialog::Accepted) {
-    loadSpec = loadDialog->getLoadSpec();
-    dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+  if (!vs) {
+
+    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
+    if (loadDialog->exec() == QDialog::Accepted) {
+      loadSpec = loadDialog->getLoadSpec();
+      dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+    } else {
+      LOG_INFO << "Canceled load dialog.";
+      return true;
+    }
+
   } else {
-    LOG_INFO << "Canceled load dialog.";
-    return true;
+    // we called stateToLoadSpec above
+    // now it is only necessary to get the dims for onImageLoaded...
+    // huge assumption that level 0 has sizeT at least as large as the others?
+    dims = multiscaledims[0].getVolumeDimensions();
   }
 
   // TODO make this part async and chunked so that it can be interrupted
@@ -566,7 +575,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims, vs);
+  onImageLoaded(image, loadSpec, dims.sizeT, vs);
   return true;
 }
 

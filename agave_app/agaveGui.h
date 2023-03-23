@@ -35,7 +35,7 @@ private:
   bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
-                     const VolumeDimensions& dims,
+                     uint32_t sizeT,
                      const Serialize::ViewerState* vs);
 
 private slots:

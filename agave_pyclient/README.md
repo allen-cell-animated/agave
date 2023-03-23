@@ -16,6 +16,12 @@ You must have Agave installed. On command line, run:
 agave --server &
 ```
 
+For Linux headless operation, you need to tell the Qt library to use the offscreen platform plugin:
+
+```
+agave -platform offscreen --server &
+```
+
 ```python
 from agave_pyclient import AgaveRenderer
 
