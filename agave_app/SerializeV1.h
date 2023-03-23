@@ -127,8 +127,8 @@ struct ChannelSettings_V1
 
 enum class LightType : int
 {
-  SKY = 0,
-  AREA = 1
+  SKY = 1,
+  AREA = 0
 };
 
 struct LightSettings_V1
