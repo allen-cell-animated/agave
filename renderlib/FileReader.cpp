@@ -165,7 +165,7 @@ LoadSpec::getFilename() const
 }
 
 std::string
-LoadSpec::bytesToStringLabel(size_t mem)
+LoadSpec::bytesToStringLabel(size_t mem, int decimals)
 {
   static const std::vector<std::string> levels = { "B", "KB", "MB", "GB", "TB", "PB" };
   double memvalue = mem;
@@ -176,7 +176,7 @@ LoadSpec::bytesToStringLabel(size_t mem)
   }
 
   std::stringstream stream;
-  stream << std::fixed << std::setprecision(4) << memvalue;
+  stream << std::fixed << std::setprecision(decimals) << memvalue;
   stream << " " << levels[level];
   std::string s = stream.str();
 
