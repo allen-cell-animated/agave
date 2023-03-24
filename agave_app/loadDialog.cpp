@@ -127,13 +127,18 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   QObject::connect(m_roiZ, &RangeWidget::firstValueChanged, this, &LoadDialog::updateMemoryEstimate);
   QObject::connect(m_roiZ, &RangeWidget::secondValueChanged, this, &LoadDialog::updateMemoryEstimate);
 
-  QVBoxLayout* roiLayout = new QVBoxLayout();
-  roiLayout->addWidget(new QLabel("X"));
-  roiLayout->addWidget(m_roiX);
-  roiLayout->addWidget(new QLabel("Y"));
-  roiLayout->addWidget(m_roiY);
-  roiLayout->addWidget(new QLabel("Z"));
-  roiLayout->addWidget(m_roiZ);
+  QFormLayout* roiLayout = new QFormLayout();
+  auto xlabel = new QLabel("X");
+  xlabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  auto ylabel = new QLabel("Y");
+  ylabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  auto zlabel = new QLabel("Z");
+  zlabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  roiLayout->setLabelAlignment(Qt::AlignLeft);
+  roiLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  roiLayout->addRow(xlabel, m_roiX);
+  roiLayout->addRow(ylabel, m_roiY);
+  roiLayout->addRow(zlabel, m_roiZ);
 
   m_roiSection = new Section("Region of Interest", 0);
   m_roiSection->setContentLayout(*roiLayout);
