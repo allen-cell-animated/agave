@@ -18,6 +18,7 @@ public:
   QTimelineWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr);
 
   void onNewImage(Scene* s, const LoadSpec& loadSpec);
+  void setTime(int t);
 
   void OnTimeChanged(int newTime);
 
@@ -38,6 +39,7 @@ public:
   QTimelineDockWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr);
 
   void onNewImage(Scene* s, const LoadSpec& loadSpec) { m_TimelineWidget.onNewImage(s, loadSpec); }
+  void setTime(int t) { m_TimelineWidget.setTime(t); }
 
 protected:
   QTimelineWidget m_TimelineWidget;

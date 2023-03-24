@@ -62,6 +62,12 @@ QTimelineWidget::onNewImage(Scene* s, const LoadSpec& loadSpec)
 }
 
 void
+QTimelineWidget::setTime(int t)
+{
+  m_TimeSlider->setValue(t);
+}
+
+void
 QTimelineWidget::OnTimeChanged(int newTime)
 {
   if (!m_scene) {

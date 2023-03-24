@@ -373,6 +373,9 @@ agaveGui::saveImage()
 void
 agaveGui::onRenderAction()
 {
+  // TODO keep this loadspec time in sync with the timeline and the render dialog's time
+  m_loadSpec.time = m_appScene.m_timeLine.currentTime();
+
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->pauseRenderLoop();
   QImage im = m_glView->captureQimage();
@@ -386,6 +389,12 @@ agaveGui::onRenderAction()
     m_captureSettings.width = imcopy->width();
     m_captureSettings.height = imcopy->height();
   }
+
+  // TODO should we reuse the last settings for capture start and end time?
+  // currently every time you enter the render window we are putting things to the current time.
+  m_captureSettings.startTime = m_appScene.m_timeLine.currentTime();
+  m_captureSettings.endTime = m_appScene.m_timeLine.currentTime();
+
   // copy of camera
   CCamera camera = m_glView->getCamera();
   RenderDialog* rdialog = new RenderDialog(renderer,
@@ -407,6 +416,8 @@ agaveGui::onRenderAction()
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
     m_glView->restartRenderLoop();
+    // refresh timeline to current time
+    m_timelinedock->setTime(m_appScene.m_timeLine.currentTime());
   });
 
   rdialog->setImage(imcopy);
