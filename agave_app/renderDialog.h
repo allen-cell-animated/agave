@@ -221,4 +221,5 @@ private:
 
   void positionToolbar();
   void updatePreviewImage();
+  void updateTimeSeriesProgressLabel();
 };

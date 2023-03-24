@@ -281,9 +281,13 @@ QGroupBox
 
   mRenderDurationEdit = new QButtonGroup(this);
   QPushButton* samplesButton = new QPushButton(tr("Samples"), this);
+  // samplesButton->setStyleSheet(
+  //   "border-top-right-radius: 1px; border-bottom-right-radius: 1px; margin-right:0px; padding-right:0px;");
   samplesButton->setToolTip(tr("Render for a fixed number of samples per pixel"));
   samplesButton->setCheckable(true);
   QPushButton* timeButton = new QPushButton(tr("Time"), this);
+  // timeButton->setStyleSheet(
+  //   "border-top-left-radius: 1px; border-bottom-left-radius: 1px; margin-left:0px; padding-left:0px;");
   timeButton->setToolTip(tr("Render for a fixed amount of time"));
   timeButton->setCheckable(true);
   mRenderDurationEdit->addButton(samplesButton, eRenderDurationType::SAMPLES);
@@ -427,8 +431,10 @@ QGroupBox
   int ml, mt, mr, mb;
 
   QHBoxLayout* durationsHLayout = new QHBoxLayout();
-  durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES), 0);
-  durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME), 0);
+  // durationsHLayout->addStretch();
+  durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::SAMPLES));
+  durationsHLayout->addWidget(mRenderDurationEdit->button(eRenderDurationType::TIME));
+  // durationsHLayout->addStretch();
   durationsHLayout->getContentsMargins(&ml, &mt, &mr, &mb);
   durationsHLayout->setContentsMargins(0, mt, 0, mb);
   durationsHLayout->setSpacing(0);
@@ -539,8 +545,7 @@ QGroupBox
   if (scene.m_timeLine.maxTime() > 0) {
     progressLayout->addRow(tr("Frame Progress"), mFrameProgressBar);
     mTimeSeriesProgressLabel = new QLabel("Total Progress");
-    mTimeSeriesProgressLabel->setText("Total Progress (" + QString::number(mTimeSeriesProgressBar->value()) + "/" +
-                                      QString::number(mTimeSeriesProgressBar->maximum()) + ")");
+    updateTimeSeriesProgressLabel();
     progressLayout->addRow(mTimeSeriesProgressLabel, mTimeSeriesProgressBar);
   } else {
     progressLayout->addRow(tr("Total Progress"), mFrameProgressBar);
@@ -657,8 +662,9 @@ RenderDialog::getOverwriteConfirmation()
   }
 
   QMessageBox msgBox;
-  msgBox.setText("File already exists.");
-  msgBox.setInformativeText("Do you want to overwrite it?");
+  msgBox.setWindowTitle("Overwrite Existing File?");
+  msgBox.setText(fileInfo.fileName());
+  msgBox.setInformativeText("A file with this name exists at this location already. Do you want to overwrite it?");
   msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   msgBox.setDefaultButton(QMessageBox::No);
   int ret = msgBox.exec();
@@ -795,10 +801,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
     // increment frame
     mFrameNumber += 1;
     mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
-    if (mTimeSeriesProgressLabel) {
-      mTimeSeriesProgressLabel->setText("Total Progress (" + QString::number(mTimeSeriesProgressBar->value()) + "/" +
-                                        QString::number(mTimeSeriesProgressBar->maximum()) + ")");
-    }
+    updateTimeSeriesProgressLabel();
     LOG_DEBUG << "Total Progress " << mTimeSeriesProgressBar->value() << " / " << mTimeSeriesProgressBar->maximum();
 
     // done with LAST frame? halt everything.
@@ -1064,21 +1067,35 @@ RenderDialog::onZoomFitClicked()
 void
 RenderDialog::onStartTimeChanged(int t)
 {
+  // automatically update endtime if starttime was set larger than endtime
+  if (mEndTimeInput->value() < t) {
+    mEndTimeInput->setValue(t);
+  }
+
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
   mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
 
   mCaptureSettings->startTime = t;
+
+  updateTimeSeriesProgressLabel();
 }
 
 void
 RenderDialog::onEndTimeChanged(int t)
 {
+  // automatically update starttime if endtime was set smaller than starttime
+  if (mStartTimeInput->value() > t) {
+    mStartTimeInput->setValue(t);
+  }
+
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
   mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
 
   mCaptureSettings->endTime = t;
+
+  updateTimeSeriesProgressLabel();
 }
 
 void
@@ -1207,3 +1224,22 @@ RenderDialog::updatePreviewImage()
   mImageView->setImage(&img);
   mImageView->fit(mWidth, mHeight);
 }
+
+void
+RenderDialog::updateTimeSeriesProgressLabel()
+{
+  if (mTimeSeriesProgressLabel) {
+    mTimeSeriesProgressLabel->setText("Total Progress (" + QString::number(mTimeSeriesProgressBar->value()) + "/" +
+                                      QString::number(mTimeSeriesProgressBar->maximum()) + ")");
+  }
+}
+
+// void addToggleButtonsSideBySide() {
+//   auto* layout = new QHBoxLayout();
+//   layout->setContentsMargins(0, 0, 0, 0);
+//   layout->setSpacing(0);
+//   layout->addWidget(mRenderButton);
+//   layout->addWidget(mStopRenderButton);
+//   layout->addWidget(mCloseButton);
+//   mButtonLayout->addLayout(layout);
+// }
