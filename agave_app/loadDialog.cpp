@@ -11,6 +11,7 @@
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QListView>
+#include <QMessageBox>
 #include <QSpinBox>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -33,19 +34,13 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   QFont f = QLabel("A").font();
   int standardPointSize = f.pointSize();
 
-  // QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  // buttonBox->setCenterButtons(true);
-  // buttonBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  // connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-  // connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
   QPushButton* cancelButton = new QPushButton(tr("Cancel"));
   QPushButton* openButton = new QPushButton(tr("Open"));
   QHBoxLayout* buttonBox = new QHBoxLayout();
   buttonBox->addWidget(cancelButton);
   buttonBox->addWidget(openButton);
   connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
-  connect(openButton, &QPushButton::clicked, this, &QDialog::accept);
+  connect(openButton, &QPushButton::clicked, this, &LoadDialog::accept);
 
   mSceneInput = new QSpinBox(this);
   mSceneInput->setMinimum(0);
@@ -321,4 +316,17 @@ LoadDialog::updateMultiresolutionInput()
     mMultiresolutionInput->addItem(QString::fromStdString(d.path + " (" + label + " max.)"));
   }
   mMultiresolutionInput->setEnabled(mDims.size() > 1);
+}
+
+void
+LoadDialog::accept()
+{
+  // validate inputs.
+  std::vector<uint32_t> channels = mChannels->getCheckedIndices();
+  if (channels.size() == 0) {
+    QMessageBox::warning(this, "No Channels Selected", "Please select at least one channel.");
+    return;
+  }
+
+  QDialog::accept();
 }

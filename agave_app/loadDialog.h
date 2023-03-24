@@ -40,6 +40,8 @@ private slots:
   void updateMultiresolutionLevel(int level);
   void updateChannels(int state);
 
+  void accept() override;
+
 private:
   std::string mPath;
   int mScene;
