@@ -296,15 +296,8 @@ LoadDialog::getLoadSpec() const
   spec.maxz = m_roiZ->secondValue();
   spec.minz = m_roiZ->firstValue();
 
-  auto items = mMetadataTree->selectedItems();
-  if (items.size() == 1) {
-    auto item = items[0];
-    if (item->parent() == nullptr) {
-      // top level item
-      auto level = item->text(1).toInt();
-      spec.subpath = item->data(0, Qt::UserRole).toString().toStdString();
-    }
-  }
+  spec.subpath = mDims[mSelectedLevel].path;
+
   return spec;
 }
 
