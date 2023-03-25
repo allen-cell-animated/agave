@@ -11,6 +11,7 @@
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/version.hpp"
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
@@ -902,6 +903,8 @@ Serialize::ViewerState
 agaveGui::appToViewerState()
 {
   Serialize::ViewerState v;
+  v.version = { AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH };
+
   v.datasets.push_back(fromLoadSpec(m_loadSpec));
 
   if (m_appScene.m_volume) {

@@ -54,12 +54,12 @@ Serialize::ViewerState
 stateFromJson(const nlohmann::json& jsonDoc)
 {
   // VERSION MUST EXIST.  THROW OR PANIC IF NOT.
-  std::array<int, 3> v = { 0, 0, 0 };
+  std::array<uint32_t, 3> v = { 0, 0, 0 };
   if (jsonDoc.contains("version")) {
     auto ja = jsonDoc["version"];
-    v[0] = ja.at(0).get<int32_t>();
-    v[1] = ja.at(1).get<int32_t>();
-    v[2] = ja.at(2).get<int32_t>();
+    v[0] = ja.at(0).get<uint32_t>();
+    v[1] = ja.at(1).get<uint32_t>();
+    v[2] = ja.at(2).get<uint32_t>();
   } else {
     // ERROR
   }

@@ -2,27 +2,21 @@
 
 #include "version.h"
 
-#include <glm/glm.hpp>
-
 #include <array>
 class Version
 {
 public:
-  int major() const { return mVersion[0]; }
-  int minor() const { return mVersion[1]; }
-  int patch() const { return mVersion[2]; }
-  glm::ivec3 mVersion;
+  uint32_t major() const { return mVersion[0]; }
+  uint32_t minor() const { return mVersion[1]; }
+  uint32_t patch() const { return mVersion[2]; }
+  std::array<uint32_t, 3> mVersion;
 
-  Version(const glm::ivec3& version)
+  Version(const std::array<uint32_t, 3>& version)
     : mVersion(version)
   {
   }
-  Version(const std::array<int, 3>& version)
-    : mVersion(version[0], version[1], version[2])
-  {
-  }
-  Version(int major, int minor, int patch)
-    : mVersion(major, minor, patch)
+  Version(uint32_t major, uint32_t minor, uint32_t patch)
+    : mVersion{ major, minor, patch }
   {
   }
 
@@ -59,5 +53,3 @@ private:
     }
   }
 };
-
-extern const Version CURRENT_VERSION(AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH);
