@@ -201,7 +201,6 @@ private:
   void onZoomOutClicked();
 
   int mFrameNumber;
-  int mTotalFrames;
 
   void onStartTimeChanged(int);
   void onEndTimeChanged(int);

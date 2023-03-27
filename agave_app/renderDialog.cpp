@@ -248,7 +248,6 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , mWidth(0)
   , mHeight(0)
   , mFrameNumber(0)
-  , mTotalFrames(1)
   , mCaptureSettings(captureSettings)
   , mTimeSeriesProgressLabel(nullptr)
   , QDialog(parent)
@@ -324,17 +323,16 @@ QGroupBox
   mHeightInput = new QLineEdit(QString::number(mHeight), this);
   mHeightInput->setValidator(new QIntValidator(2, 4096, this));
 
-  // mWidthInput = new QSpinBox(this);
-  // mWidthInput->setMaximum(4096);
-  // mWidthInput->setMinimum(2);
-  // mWidthInput->setValue(mWidth);
-  // mHeightInput = new QSpinBox(this);
-  // mHeightInput->setMaximum(4096);
-  // mHeightInput->setMinimum(2);
-  // mHeightInput->setValue(mHeight);
-  mLockAspectRatio = new QPushButton(QIcon(":/icons/lock.png"), "", this);
+  mLockAspectRatio = new QPushButton(QIcon(":/icons/linked.png"), "", this);
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
+  mLockAspectRatio->setToolTip("Lock/unlock aspect ratio when editing X and Y values");
+  connect(mLockAspectRatio, &QPushButton::toggled, [this]() {
+    mLockAspectRatio->setIcon(QIcon(mLockAspectRatio->isChecked() ? ":/icons/linked.png" : ":/icons/unlinked.png"));
+  });
+
+  // mLockAspectRatio->setStyleSheet(
+  //   "QPushButton:checked {image:url(:/icons/linked.png);} QPushButton:unchecked {image:url(:/icons/unlinked.png);}");
   mResolutionPresets = new QComboBox(this);
   mResolutionPresets->addItem("Choose Preset...");
   mResolutionPresets->addItem(QString::fromStdString("Main window (" + std::to_string(mMainViewWidth) + "x" +
@@ -1074,8 +1072,6 @@ RenderDialog::onStartTimeChanged(int t)
 
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
 
-  mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
-
   mCaptureSettings->startTime = t;
 
   updateTimeSeriesProgressLabel();
@@ -1090,8 +1086,6 @@ RenderDialog::onEndTimeChanged(int t)
   }
 
   mTimeSeriesProgressBar->setRange(0, abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1);
-
-  mTotalFrames = abs(mEndTimeInput->value() - mStartTimeInput->value()) + 1;
 
   mCaptureSettings->endTime = t;
 
@@ -1233,13 +1227,3 @@ RenderDialog::updateTimeSeriesProgressLabel()
                                       QString::number(mTimeSeriesProgressBar->maximum()) + ")");
   }
 }
-
-// void addToggleButtonsSideBySide() {
-//   auto* layout = new QHBoxLayout();
-//   layout->setContentsMargins(0, 0, 0, 0);
-//   layout->setSpacing(0);
-//   layout->addWidget(mRenderButton);
-//   layout->addWidget(mStopRenderButton);
-//   layout->addWidget(mCloseButton);
-//   mButtonLayout->addLayout(layout);
-// }
