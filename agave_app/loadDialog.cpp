@@ -345,16 +345,31 @@ LoadDialog::accept()
 void
 LoadDialog::populateChannels(int level)
 {
+  int nch = mDims[level].shape[1];
+  int oldnch = mChannels->count();
+
   std::vector<uint32_t> channels = getCheckedChannels();
+
   mChannels->clear();
-  for (int i = 0; i < mDims[level].shape[1]; ++i) {
+  for (int i = 0; i < nch; ++i) {
     std::string channelName = "Ch " + std::to_string(i);
     if (mDims[level].channelNames.size() > i) {
       channelName = mDims[level].channelNames[i];
     }
     QListWidgetItem* listItem = new QListWidgetItem(QString::fromStdString(channelName), mChannels);
 
-    listItem->setCheckState(Qt::Checked);
+    // if we are within the previous number of channels, then we can use the previous selection.
+    if (i < oldnch) {
+      if (std::find(channels.begin(), channels.end(), i) != channels.end()) {
+        listItem->setCheckState(Qt::Checked);
+      } else {
+        listItem->setCheckState(Qt::Unchecked);
+      }
+    } else {
+      // if we are at a greater value then include channel by default.
+      listItem->setCheckState(Qt::Checked);
+    }
+
     listItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
     listItem->setData(Qt::UserRole, QVariant::fromValue(i));
     mChannels->addItem(listItem);
