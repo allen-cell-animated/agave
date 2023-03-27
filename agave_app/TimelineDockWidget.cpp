@@ -51,6 +51,7 @@ QTimelineWidget::onNewImage(Scene* s, const LoadSpec& loadSpec)
   int32_t minT = m_scene ? m_scene->m_timeLine.minTime() : 0;
   int32_t maxT = m_scene ? m_scene->m_timeLine.maxTime() : 0;
 
+  m_TimeSlider->setTracking(false);
   m_TimeSlider->setRange(minT, maxT);
   m_TimeSlider->setValue(m_scene->m_timeLine.currentTime(), true);
   m_TimeSlider->setTickInterval((maxT - minT) / 10);

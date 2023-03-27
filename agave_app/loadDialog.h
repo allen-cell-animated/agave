@@ -16,6 +16,7 @@
 
 class QIntSlider;
 class QLabel;
+class QListWidget;
 class QSpinBox;
 class QTreeWidget;
 
@@ -38,7 +39,7 @@ private slots:
   void updateScene(int value);
   void onItemSelectionChanged();
   void updateMultiresolutionLevel(int level);
-  void updateChannels(int state);
+  void updateChannels();
 
   void accept() override;
 
@@ -52,7 +53,8 @@ private:
   QSpinBox* mSceneInput;
   QComboBox* mMultiresolutionInput;
   QIntSlider* m_TimeSlider;
-  QCheckList* mChannels;
+  QListWidget* mChannels;
+  Section* mChannelsSection;
   QTreeWidget* mMetadataTree;
   QLabel* mVolumeLabel;
   QLabel* mMemoryEstimateLabel;
@@ -68,6 +70,8 @@ private:
 
   void updateMemoryEstimate();
   void updateMultiresolutionInput();
+  std::vector<uint32_t> getCheckedChannels() const;
+  void populateChannels(int level);
 
   IFileReader* m_reader;
 };

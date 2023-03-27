@@ -11,6 +11,7 @@
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QListView>
+#include <QListWidget>
 #include <QMessageBox>
 #include <QSpinBox>
 #include <QStandardItemModel>
@@ -82,20 +83,21 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   }
   mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
 
-  mChannels = new QCheckList("Channels", this);
-  mChannels->setTitleText("");
-  for (int i = 0; i < dims[0].shape[1]; ++i) {
-    std::string channelName = "Ch " + std::to_string(i);
-    if (dims[0].channelNames.size() > i) {
-      channelName = dims[0].channelNames[i];
-    }
-    mChannels->addCheckItem(QString::fromStdString(channelName), i, Qt::Checked);
-  }
+  mChannelsSection = new Section("Channels", 0);
+  mChannels = new QListWidget(this);
+  populateChannels(0);
+  auto chseclo = new QVBoxLayout();
+  chseclo->setContentsMargins(0, 0, 0, 0);
+  chseclo->setSpacing(0);
+  chseclo->addWidget(mChannels);
+  mChannelsSection->setContentLayout(*chseclo);
+  QObject::connect(mChannelsSection, &Section::collapsed, [this]() { this->adjustSize(); });
 
   connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
   // connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
   connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
-  connect(mChannels, SIGNAL(globalCheckStateChanged(int)), this, SLOT(updateChannels(int)));
+
+  connect(mChannels, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(updateChannels()));
 
   m_roiX = new RangeWidget(Qt::Horizontal);
   m_roiX->setStatusTip(tr("Region to load: X axis"));
@@ -161,7 +163,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   // layout->addWidget(mMetadataTree);
   mMetadataTree->hide();
-  layout->addRow("Channels", mChannels);
+  layout->addRow(mChannelsSection);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(m_roiSection);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
@@ -192,10 +194,25 @@ LoadDialog::updateScene(int value)
 }
 
 void
-LoadDialog::updateChannels(int state)
+LoadDialog::updateChannels()
 {
-  std::vector<uint32_t> channels = mChannels->getCheckedIndices();
+  std::vector<uint32_t> channels = getCheckedChannels();
+  mChannelsSection->setTitle("Channels (" + QString::number(channels.size()) + "/" +
+                             QString::number(mChannels->count()) + " selected)");
   updateMemoryEstimate();
+}
+
+std::vector<uint32_t>
+LoadDialog::getCheckedChannels() const
+{
+  std::vector<uint32_t> channels;
+  for (int i = 0; i < mChannels->count(); i++) {
+    if (mChannels->item(i)->checkState() == Qt::Checked) {
+      channels.push_back(i);
+      // channels.push_back(mChannels->item(i)->data(Qt::UserRole).toUInt());
+    }
+  }
+  return channels;
 }
 
 void
@@ -250,14 +267,8 @@ LoadDialog::updateMultiresolutionLevel(int level)
   m_TimeSlider->setEnabled(maxt > 1);
 
   // update the channels
-  mChannels->clear();
-  for (int i = 0; i < d.shape[1]; ++i) {
-    std::string channelName = "Ch " + std::to_string(i);
-    if (d.channelNames.size() > i) {
-      channelName = d.channelNames[i];
-    }
-    mChannels->addCheckItem(QString::fromStdString(channelName), i, Qt::Checked);
-  }
+  populateChannels(level);
+  updateChannels();
 
   // update the xyz sliders
 
@@ -287,7 +298,7 @@ LoadDialog::getLoadSpec() const
   spec.filepath = mPath;
   spec.scene = mScene;
   spec.time = m_TimeSlider->value();
-  spec.channels = mChannels->getCheckedIndices();
+  spec.channels = getCheckedChannels();
 
   spec.maxx = m_roiX->secondValue();
   spec.minx = m_roiX->firstValue();
@@ -322,11 +333,30 @@ void
 LoadDialog::accept()
 {
   // validate inputs.
-  std::vector<uint32_t> channels = mChannels->getCheckedIndices();
+  std::vector<uint32_t> channels = getCheckedChannels();
   if (channels.size() == 0) {
     QMessageBox::warning(this, "No Channels Selected", "Please select at least one channel.");
     return;
   }
 
   QDialog::accept();
+}
+
+void
+LoadDialog::populateChannels(int level)
+{
+  std::vector<uint32_t> channels = getCheckedChannels();
+  mChannels->clear();
+  for (int i = 0; i < mDims[level].shape[1]; ++i) {
+    std::string channelName = "Ch " + std::to_string(i);
+    if (mDims[level].channelNames.size() > i) {
+      channelName = mDims[level].channelNames[i];
+    }
+    QListWidgetItem* listItem = new QListWidgetItem(QString::fromStdString(channelName), mChannels);
+
+    listItem->setCheckState(Qt::Checked);
+    listItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+    listItem->setData(Qt::UserRole, QVariant::fromValue(i));
+    mChannels->addItem(listItem);
+  }
 }

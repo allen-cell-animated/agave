@@ -75,6 +75,12 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
 }
 
 void
+Section::setTitle(const QString& title)
+{
+  m_toggleButton->setText(title);
+}
+
+void
 Section::setContentLayout(QLayout& contentLayout)
 {
   delete m_contentArea->layout();

@@ -29,6 +29,7 @@ public:
                    QWidget* parent = 0);
 
   void setContentLayout(QLayout& contentLayout);
+  void setTitle(const QString& title);
 
 signals:
   void checked(bool checked);
