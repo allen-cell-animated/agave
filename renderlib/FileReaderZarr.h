@@ -5,6 +5,8 @@
 
 #include "json/json.hpp"
 
+#include "tensorstore/context.h"
+
 #include <memory>
 #include <string>
 
@@ -28,4 +30,5 @@ private:
   std::vector<std::string> getChannelNames(const std::string& filepath);
 
   nlohmann::json m_zattrs;
+  tensorstore::Context m_context;
 };

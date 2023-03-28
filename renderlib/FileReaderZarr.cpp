@@ -43,7 +43,11 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
+FileReaderZarr::FileReaderZarr(const std::string& filepath)
+{
+  // m_context = tensorstore::Context::Default();
+  m_context = tensorstore::Context::FromJson({ { "cache_pool", { { "total_bytes_limit", 100000000 } } } }).value();
+}
 
 FileReaderZarr::~FileReaderZarr() {}
 
@@ -340,16 +344,12 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
   uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
 
-  tensorstore::Context context = tensorstore::Context::Default();
-
   auto openFuture = tensorstore::Open(
-    {
-      { "driver", "zarr" },
-      { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) },
-    },
-    context,
+    { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
+    m_context,
     tensorstore::OpenMode::open,
     tensorstore::RecheckCached{ false },
+    tensorstore::RecheckCachedData{ false },
     tensorstore::ReadWriteMode::read);
 
   auto result = openFuture.result();
