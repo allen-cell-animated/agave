@@ -440,9 +440,23 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minx, maxx)).value();
     tsdim++;
 
-    auto arr = tensorstore::Array(
-      reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-    tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+    if (levelDims.dtype == "uint8") {
+      auto arr = tensorstore::Array(
+        reinterpret_cast<uint8_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
+      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else if (levelDims.dtype == "int32") {
+      auto arr = tensorstore::Array(
+        reinterpret_cast<int32_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
+      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else if (levelDims.dtype == "uint16") {
+      auto arr = tensorstore::Array(
+        reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
+      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else {
+      auto arr = tensorstore::Array(
+        reinterpret_cast<uint8_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
+      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+    }
 
     // convert to our internal format (IN_MEMORY_BPP)
     if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {

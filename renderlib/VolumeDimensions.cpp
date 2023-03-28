@@ -207,6 +207,9 @@ MultiscaleDims::getVolumeDimensions() const
   } else if (this->dtype == "uint16") { // tensorstore::dtype_v<uint16_t>) {
     dims.bitsPerPixel = 16;
     dims.sampleFormat = 1;
+  } else if (this->dtype == "uint8") { // tensorstore::dtype_v<uint16_t>) {
+    dims.bitsPerPixel = 8;
+    dims.sampleFormat = 1;
   } else {
 
     LOG_ERROR << "Unrecognized format " << this->dtype;
