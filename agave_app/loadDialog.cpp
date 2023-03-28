@@ -55,33 +55,11 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_TimeSlider = new QIntSlider(this);
   m_TimeSlider->setRange(0, 0);
   m_TimeSlider->setValue(0);
-  int maxt = dims[0].shape[0];
+  int maxt = dims[0].sizeT();
   if (maxt > 1) {
     m_TimeSlider->setRange(0, maxt - 1);
   }
   m_TimeSlider->setEnabled(maxt > 1);
-
-  mMetadataTree = new QTreeWidget(this);
-  mMetadataTree->setColumnCount(2);
-  mMetadataTree->setHeaderLabels(QStringList() << "Key"
-                                               << "Value");
-  mMetadataTree->setSelectionMode(QAbstractItemView::SingleSelection);
-  std::string dimstring = "TCZYX";
-  for (auto d : dims) {
-    QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << "Level" << QString::fromStdString(d.path));
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    item->setData(0, Qt::UserRole, QVariant::fromValue(QString::fromStdString(d.path)));
-    for (size_t i = 0; i < d.shape.size(); ++i) {
-      QTreeWidgetItem* child =
-        new QTreeWidgetItem(QStringList() << QString::fromStdString(dimstring.substr(i, 1))
-                                          << QString::number(d.shape[i]) + " (" + QString::number(d.scale[i]) + ")");
-      child->setFlags(Qt::ItemIsEnabled);
-      item->addChild(child);
-    }
-
-    mMetadataTree->addTopLevelItem(item);
-  }
-  mMetadataTree->setItemSelected(mMetadataTree->topLevelItem(0), true);
 
   mChannelsSection = new Section("Channels", 0);
   mChannels = new QListWidget(this);
@@ -93,8 +71,6 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mChannelsSection->setContentLayout(*chseclo);
   QObject::connect(mChannelsSection, &Section::collapsed, [this]() { this->adjustSize(); });
 
-  connect(mMetadataTree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
-  // connect(mSceneInput, SIGNAL(valueChanged(int)), this, SLOT(updateScene(int)));
   connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
 
   connect(mChannels, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(updateChannels()));
@@ -102,7 +78,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiX = new RangeWidget(Qt::Horizontal);
   m_roiX->setStatusTip(tr("Region to load: X axis"));
   m_roiX->setToolTip(tr("Region to load: X axis"));
-  m_roiX->setRange(0, dims[mSelectedLevel].shape[4]);
+  m_roiX->setRange(0, dims[mSelectedLevel].sizeX());
   m_roiX->setFirstValue(0);
   m_roiX->setSecondValue(m_roiX->maximum());
   QObject::connect(m_roiX, &RangeWidget::firstValueChanged, this, &LoadDialog::updateMemoryEstimate);
@@ -110,7 +86,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiY = new RangeWidget(Qt::Horizontal);
   m_roiY->setStatusTip(tr("Region to load: Y axis"));
   m_roiY->setToolTip(tr("Region to load: Y axis"));
-  m_roiY->setRange(0, dims[mSelectedLevel].shape[3]);
+  m_roiY->setRange(0, dims[mSelectedLevel].sizeY());
   m_roiY->setFirstValue(0);
   m_roiY->setSecondValue(m_roiY->maximum());
   QObject::connect(m_roiY, &RangeWidget::firstValueChanged, this, &LoadDialog::updateMemoryEstimate);
@@ -118,7 +94,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiZ = new RangeWidget(Qt::Horizontal);
   m_roiZ->setStatusTip(tr("Region to load: Z axis"));
   m_roiZ->setToolTip(tr("Region to load: Z axis"));
-  m_roiZ->setRange(0, dims[mSelectedLevel].shape[2]);
+  m_roiZ->setRange(0, dims[mSelectedLevel].sizeZ());
   m_roiZ->setFirstValue(0);
   m_roiZ->setSecondValue(m_roiZ->maximum());
   QObject::connect(m_roiZ, &RangeWidget::firstValueChanged, this, &LoadDialog::updateMemoryEstimate);
@@ -161,8 +137,6 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow("Time", m_TimeSlider);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
-  // layout->addWidget(mMetadataTree);
-  mMetadataTree->hide();
   layout->addRow(mChannelsSection);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(m_roiSection);
@@ -235,22 +209,6 @@ LoadDialog::updateMemoryEstimate()
 }
 
 void
-LoadDialog::onItemSelectionChanged()
-{
-  auto items = mMetadataTree->selectedItems();
-  if (items.size() == 1) {
-    auto item = items[0];
-    if (item->parent() == nullptr) {
-      // top level item
-      auto level = item->text(1).toInt();
-      updateMultiresolutionLevel(level);
-    }
-  } else {
-    LOG_ERROR << "Unexpected number of selected items: " << items.size();
-  }
-}
-
-void
 LoadDialog::updateMultiresolutionLevel(int level)
 {
   mSelectedLevel = level;
@@ -261,7 +219,7 @@ LoadDialog::updateMultiresolutionLevel(int level)
   int t = m_TimeSlider->value();
   // maintain a t value at same percentage of total.
   float pct = (float)t / (float)m_TimeSlider->maximum();
-  int maxt = d.shape[0];
+  int maxt = d.sizeT();
   m_TimeSlider->setRange(0, maxt - 1);
   m_TimeSlider->setValue(pct * (maxt - 1));
   m_TimeSlider->setEnabled(maxt > 1);
@@ -278,13 +236,13 @@ LoadDialog::updateMultiresolutionLevel(int level)
   float pct1y = m_roiY->secondPercent();
   float pct0z = m_roiZ->firstPercent();
   float pct1z = m_roiZ->secondPercent();
-  m_roiX->setRange(0, d.shape[4]);
+  m_roiX->setRange(0, d.sizeX());
   m_roiX->setFirstValue(0 + pct0x * m_roiX->range());
   m_roiX->setSecondValue(0 + pct1x * m_roiX->range());
-  m_roiY->setRange(0, d.shape[3]);
+  m_roiY->setRange(0, d.sizeY());
   m_roiY->setFirstValue(0 + pct0y * m_roiY->range());
   m_roiY->setSecondValue(0 + pct1y * m_roiY->range());
-  m_roiZ->setRange(0, d.shape[2]);
+  m_roiZ->setRange(0, d.sizeZ());
   m_roiZ->setFirstValue(0 + pct0z * m_roiZ->range());
   m_roiZ->setSecondValue(0 + pct1z * m_roiZ->range());
 
@@ -318,9 +276,9 @@ LoadDialog::updateMultiresolutionInput()
   mMultiresolutionInput->clear();
   for (auto d : mDims) {
     LoadSpec spec;
-    spec.maxx = d.shape[4];
-    spec.maxy = d.shape[3];
-    spec.maxz = d.shape[2];
+    spec.maxx = d.sizeX();
+    spec.maxy = d.sizeY();
+    spec.maxz = d.sizeZ();
     size_t mem = spec.getMemoryEstimate();
     std::string label = LoadSpec::bytesToStringLabel(mem);
 
@@ -345,7 +303,7 @@ LoadDialog::accept()
 void
 LoadDialog::populateChannels(int level)
 {
-  int nch = mDims[level].shape[1];
+  int nch = mDims[level].sizeC();
   int oldnch = mChannels->count();
 
   std::vector<uint32_t> channels = getCheckedChannels();

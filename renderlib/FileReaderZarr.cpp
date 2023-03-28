@@ -162,6 +162,72 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   return 0;
 }
 
+std::vector<std::string>
+getAxes(nlohmann::json axes)
+{
+  //"axes": [
+  //    {
+  //        "name": "t",
+  //        "type": "time",
+  //        "unit": "millisecond"
+  //    },
+  //    {
+  //        "name": "c",
+  //        "type": "channel"
+  //    },
+  //    {
+  //        "name": "z",
+  //        "type": "space",
+  //        "unit": "micrometer"
+  //    },
+  //    {
+  //        "name": "y",
+  //        "type": "space",
+  //        "unit": "micrometer"
+  //    },
+  //    {
+  //        "name": "x",
+  //        "type": "space",
+  //        "unit": "micrometer"
+  //    }
+  //],
+
+  // is array!
+  // we will recognize only t,c,z,y,x...
+  // according to spec (https://ngff.openmicroscopy.org/latest/#multiscale-md)
+  // this must be of length 2-5
+  // and contain only 2 or 3 spatial axes
+  // type time must come before type channel, and spatial axes (type=space) must follow
+  // therefore:
+  // // if we assume zyx preference, then:
+  // the last 2 axes must be spatial
+  // if there are 2 axes, the order must be yx
+  // if there are 5 axes, the order must be tczyx
+  // 2 spatial axes:
+  // YX    = 111YX -> [0,1,2]
+  // TYX   = T11YX -> [1,2]
+  // CYX   = 1C1YX -> [0,2]
+  // TCYX  = TC1YX -> [2]
+  // 3 spatial axes:
+  // ZYX   = 11ZYX -> [0,1]
+  // TZYX  = T1ZYX -> [1]
+  // CZYX  = 1CZYX -> [0]
+  // TCZYX = TCZYX -> []
+  // are allowed
+
+  // count spatial axes
+
+  std::vector<std::string> dims;
+  for (auto axis : axes) {
+    std::string name = axis["name"];
+    // LOG_INFO << name;
+    // convert to uppercase
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
+    dims.push_back(name);
+  }
+  return dims;
+}
+
 std::vector<MultiscaleDims>
 FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
@@ -174,6 +240,8 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   auto multiscales = attrs["multiscales"];
   if (multiscales.is_array()) {
     auto multiscale = multiscales[scene];
+    auto axes = multiscale["axes"];
+    std::vector<std::string> dimorder = getAxes(axes);
     auto datasets = multiscale["datasets"];
     if (datasets.is_array()) {
       for (auto& dataset : datasets) {
@@ -198,6 +266,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
               scalevec.push_back(s);
             }
             MultiscaleDims zmd;
+            zmd.dimensionOrder = dimorder;
             zmd.scale = scalevec;
             zmd.shape = shape;
             // TODO reconcile these strings against my other ways of specifying dtype
@@ -290,11 +359,11 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
   auto store = result.value();
   auto domain = store.domain();
-  std::cout << "domain.shape(): " << domain.shape() << std::endl;
-  std::cout << "domain.origin(): " << domain.origin() << std::endl;
-  auto shape_span = store.domain().shape();
+  // std::cout << "domain.shape(): " << domain.shape() << std::endl;
+  // std::cout << "domain.origin(): " << domain.origin() << std::endl;
+  // auto shape_span = store.domain().shape();
 
-  std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+  // std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
@@ -350,13 +419,26 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     // auto x = tensorstore::Read<tensorstore::zero_origin>(store | transform).value();
     // auto* p = reinterpret_cast<uint16_t*>(x.data());
 
-    transform =
-      (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
-    transform =
-      (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channelToLoad, channelToLoad + 1)).value();
-    transform = (std::move(transform) | tensorstore::Dims(2).HalfOpenInterval(minz, maxz)).value();
-    transform = (std::move(transform) | tensorstore::Dims(3).HalfOpenInterval(miny, maxy)).value();
-    transform = (std::move(transform) | tensorstore::Dims(4).HalfOpenInterval(minx, maxx)).value();
+    // make sure this works with 2d, 3d, or 4d data
+    int tsdim = 0;
+    if (levelDims.hasDim("T")) {
+      transform =
+        (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
+      tsdim++;
+    }
+    if (levelDims.hasDim("C")) {
+      transform =
+        (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(channelToLoad, channelToLoad + 1)).value();
+      tsdim++;
+    }
+    if (levelDims.hasDim("Z")) {
+      transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minz, maxz)).value();
+      tsdim++;
+    }
+    transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(miny, maxy)).value();
+    tsdim++;
+    transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minx, maxx)).value();
+    tsdim++;
 
     auto arr = tensorstore::Array(
       reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);

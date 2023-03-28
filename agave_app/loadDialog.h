@@ -37,7 +37,6 @@ public:
 
 private slots:
   void updateScene(int value);
-  void onItemSelectionChanged();
   void updateMultiresolutionLevel(int level);
   void updateChannels();
 
