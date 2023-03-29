@@ -456,7 +456,8 @@ void
 agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
                         uint32_t sizeT,
-                        const Serialize::ViewerState* vs)
+                        const Serialize::ViewerState* vs,
+                        std::shared_ptr<IFileReader> reader)
 {
   m_loadSpec = loadSpec;
 
@@ -495,7 +496,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   m_tabs->setTabText(0, QString::fromStdString(filename));
 
   m_appearanceDockWidget->onNewImage(&m_appScene);
-  m_timelinedock->onNewImage(&m_appScene, loadSpec);
+  m_timelinedock->onNewImage(&m_appScene, loadSpec, reader);
 
   // set up status view with some stats.
   std::shared_ptr<CStatus> s = m_glView->getStatus();
@@ -522,7 +523,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     timeToLoad = loadSpec.time;
   }
 
-  std::unique_ptr<IFileReader> reader(FileReader::getReader(file));
+  std::shared_ptr<IFileReader> reader(FileReader::getReader(file));
   if (!reader) {
     LOG_ERROR << "Could not find a reader for file " << file;
     return false;
@@ -587,7 +588,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims.sizeT, vs);
+  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader);
   return true;
 }
 

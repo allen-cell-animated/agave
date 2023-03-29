@@ -60,7 +60,7 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
 
   // JSON uses a separate driver
   auto attrs_store = tensorstore::Open<::nlohmann::json, 0>(
-                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
+                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } }, m_context)
                        .result()
                        .value();
 
@@ -255,7 +255,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
           auto store = tensorstore::Open({ { "driver", "zarr" },
                                            { "kvstore",
 
-                                             getKvStoreDriverParams(filepath, pathstr) } })
+                                             getKvStoreDriverParams(filepath, pathstr) } }, m_context)
                          .result()
                          .value();
           tensorstore::DataType dtype = store.dtype();
@@ -344,21 +344,23 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
   uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
 
-  auto openFuture = tensorstore::Open(
-    { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
-    m_context,
-    tensorstore::OpenMode::open,
-    tensorstore::RecheckCached{ false },
-    tensorstore::RecheckCachedData{ false },
-    tensorstore::ReadWriteMode::read);
+  if (!m_store.valid()) {
+    auto openFuture = tensorstore::Open(
+      { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
+      m_context,
+      tensorstore::OpenMode::open,
+      tensorstore::RecheckCached{ false },
+      tensorstore::RecheckCachedData{ false },
+      tensorstore::ReadWriteMode::read);
 
-  auto result = openFuture.result();
-  if (!result.ok()) {
-    return emptyimage;
+    auto result = openFuture.result();
+    if (!result.ok()) {
+      return emptyimage;
+    }
+
+    m_store = result.value();
   }
-
-  auto store = result.value();
-  auto domain = store.domain();
+  auto domain = m_store.domain();
   // std::cout << "domain.shape(): " << domain.shape() << std::endl;
   // std::cout << "domain.origin(): " << domain.origin() << std::endl;
   // auto shape_span = store.domain().shape();
@@ -408,7 +410,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     // read entire channel into its native size
     destptr = channelRawMem;
 
-    tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(store.domain());
+    tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(m_store.domain());
     // T value:
     // transform = (std::move(transform) | tensorstore::Dims(0).IndexSlice(time)).value();
     // C value:
@@ -443,19 +445,19 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     if (levelDims.dtype == "uint8") {
       auto arr = tensorstore::Array(
         reinterpret_cast<uint8_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "int32") {
       auto arr = tensorstore::Array(
         reinterpret_cast<int32_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
       auto arr = tensorstore::Array(
         reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
       auto arr = tensorstore::Array(
         reinterpret_cast<uint8_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-      tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     }
 
     // convert to our internal format (IN_MEMORY_BPP)

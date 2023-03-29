@@ -43,8 +43,9 @@ QTimelineWidget::QTimelineWidget(QWidget* pParent, QRenderSettings* qrs)
 }
 
 void
-QTimelineWidget::onNewImage(Scene* s, const LoadSpec& loadSpec)
+QTimelineWidget::onNewImage(Scene* s, const LoadSpec& loadSpec, std::shared_ptr<IFileReader> reader)
 {
+  m_reader = reader;
   m_loadSpec = loadSpec;
   m_scene = s;
 
@@ -81,14 +82,16 @@ QTimelineWidget::OnTimeChanged(int newTime)
     LoadSpec loadSpec = m_loadSpec;
     loadSpec.time = newTime;
 
-    std::unique_ptr<IFileReader> reader(FileReader::getReader(loadSpec.filepath));
-    if (!reader) {
-      LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
-      return;
+    if (!m_reader) {
+      m_reader = std::shared_ptr<IFileReader>(FileReader::getReader(loadSpec.filepath));
+      if (!m_reader) {
+        LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
+        return;
+      }
     }
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = reader->loadFromFile(loadSpec);
+    std::shared_ptr<ImageXYZC> image = m_reader->loadFromFile(loadSpec);
     QApplication::restoreOverrideCursor();
     if (!image) {
       // TODO FIXME if we fail to set the new time, then reset the GUI to previous time

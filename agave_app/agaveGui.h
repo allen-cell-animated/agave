@@ -19,6 +19,7 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
+class IFileReader;
 struct VolumeDimensions;
 struct LoadSpec;
 
@@ -36,7 +37,8 @@ private:
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
                      uint32_t sizeT,
-                     const Serialize::ViewerState* vs);
+                     const Serialize::ViewerState* vs,
+                     std::shared_ptr<IFileReader> reader);
 
 private slots:
   void open();
