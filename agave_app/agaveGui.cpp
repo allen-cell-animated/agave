@@ -37,6 +37,7 @@
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
+  setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
 
   createActions();
