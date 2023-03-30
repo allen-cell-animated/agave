@@ -367,8 +367,8 @@ QGroupBox
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
   mSaveFilePrefix->setToolTip(
-    QString("<FONT>Output file name.  If you are rendering a time series, the frame number will be appended "
-            "to this as _0000, _0001, etc.  All images saved as PNG files.</FONT>"));
+    QString("<FONT>Output file name.  If you are rendering a time series, each image from the series will be saved "
+            "individually with suffix _0000, _0001, etc.  All images saved as PNG files.</FONT>"));
 
   mToolbar = new QToolBar(mImageView);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
@@ -411,7 +411,10 @@ QGroupBox
   timeHLayout->addWidget(new QLabel(tr("End:")), 0);
   timeHLayout->addWidget(mEndTimeInput, 1);
   QVBoxLayout* timeLayout = new QVBoxLayout();
-  timeLayout->addWidget(makeGroupLabel("<b>Time Series</b>"));
+  QLabel* timeLabel = makeGroupLabel("<b>Time Series</b>");
+  timeLabel->setToolTip(
+    "<FONT>Each image from the series will be saved individually with suffix _0000, _0001, etc.<FONT>");
+  timeLayout->addWidget(timeLabel);
   timeLayout->addLayout(timeHLayout);
 
   //  QHBoxLayout* saveFileLayout = new QHBoxLayout();
