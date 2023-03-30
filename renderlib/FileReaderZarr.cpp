@@ -43,11 +43,7 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr(const std::string& filepath)
-{
-  // m_context = tensorstore::Context::Default();
-  m_context = tensorstore::Context::FromJson({ { "cache_pool", { { "total_bytes_limit", 100000000 } } } }).value();
-}
+FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
 
 FileReaderZarr::~FileReaderZarr() {}
 
@@ -60,7 +56,7 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
 
   // JSON uses a separate driver
   auto attrs_store = tensorstore::Open<::nlohmann::json, 0>(
-                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } }, m_context)
+                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
                        .result()
                        .value();
 
@@ -255,7 +251,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
           auto store = tensorstore::Open({ { "driver", "zarr" },
                                            { "kvstore",
 
-                                             getKvStoreDriverParams(filepath, pathstr) } }, m_context)
+                                             getKvStoreDriverParams(filepath, pathstr) } })
                          .result()
                          .value();
           tensorstore::DataType dtype = store.dtype();
@@ -345,9 +341,11 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
 
   if (!m_store.valid()) {
+    auto context = tensorstore::Context::FromJson({ { "cache_pool", { { "total_bytes_limit", 100000000 } } } }).value();
+
     auto openFuture = tensorstore::Open(
       { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
-      m_context,
+      context,
       tensorstore::OpenMode::open,
       tensorstore::RecheckCached{ false },
       tensorstore::RecheckCachedData{ false },

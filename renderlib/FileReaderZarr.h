@@ -31,6 +31,5 @@ private:
   std::vector<std::string> getChannelNames(const std::string& filepath);
 
   nlohmann::json m_zattrs;
-  tensorstore::Context m_context;
   tensorstore::TensorStore<> m_store;
 };
