@@ -726,9 +726,9 @@ RenderDialog::getFullSavePath()
   // if not time series, then don't add the frame number to the filename
   QString frameSuffix;
   if (mTimeSeriesProgressLabel) {
-    frameSuffix = QString("_%1.png").arg(mFrameNumber, 4, 10, QChar('0'));
+    frameSuffix = QString("_%1").arg(mFrameNumber, 4, 10, QChar('0'));
   }
-  QString filename = mSaveFilePrefix->text() + frameSuffix;
+  QString filename = mSaveFilePrefix->text() + frameSuffix + QString(".png");
   QFileInfo fileInfo(d, filename);
   QString saveFilePath = fileInfo.absoluteFilePath();
   return saveFilePath;
