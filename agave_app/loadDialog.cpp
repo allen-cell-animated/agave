@@ -53,12 +53,13 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   updateMultiresolutionInput();
 
   m_TimeSlider = new QIntSlider(this);
-  m_TimeSlider->setRange(0, 0);
-  m_TimeSlider->setValue(0);
   int maxt = dims[0].sizeT();
   if (maxt > 1) {
     m_TimeSlider->setRange(0, maxt - 1);
+  } else {
+    m_TimeSlider->setRange(0, 0);
   }
+  m_TimeSlider->setValue(0);
   m_TimeSlider->setEnabled(maxt > 1);
 
   mChannelsSection = new Section("Channels", 0);
@@ -131,7 +132,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->setLabelAlignment(Qt::AlignLeft);
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  static const int spacing = 6;
+  static const int spacing = 4;
   // layout->addRow("Scene", mSceneInput);
   layout->addRow("Resolution Level", mMultiresolutionInput);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));

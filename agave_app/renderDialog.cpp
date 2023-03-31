@@ -282,12 +282,12 @@ QGroupBox
   QPushButton* samplesButton = new QPushButton(tr("Samples"), this);
   // samplesButton->setStyleSheet(
   //   "border-top-right-radius: 1px; border-bottom-right-radius: 1px; margin-right:0px; padding-right:0px;");
-  samplesButton->setToolTip(tr("Render for a fixed number of samples per pixel"));
+  samplesButton->setToolTip(QString("<FONT>Render for a fixed number of samples per pixel</FONT>"));
   samplesButton->setCheckable(true);
   QPushButton* timeButton = new QPushButton(tr("Time"), this);
   // timeButton->setStyleSheet(
   //   "border-top-left-radius: 1px; border-bottom-left-radius: 1px; margin-left:0px; padding-left:0px;");
-  timeButton->setToolTip(tr("Render for a fixed amount of time"));
+  timeButton->setToolTip(QString("<FONT>Render for a fixed amount of time</FONT>"));
   timeButton->setCheckable(true);
   mRenderDurationEdit->addButton(samplesButton, eRenderDurationType::SAMPLES);
   mRenderDurationEdit->addButton(timeButton, eRenderDurationType::TIME);
@@ -326,7 +326,7 @@ QGroupBox
   mLockAspectRatio = new QPushButton(QIcon(":/icons/linked.png"), "", this);
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
-  mLockAspectRatio->setToolTip("Lock/unlock aspect ratio when editing X and Y values");
+  mLockAspectRatio->setToolTip(QString("<FONT>Lock/unlock aspect ratio when editing X and Y values</FONT>"));
   connect(mLockAspectRatio, &QPushButton::toggled, [this]() {
     mLockAspectRatio->setIcon(QIcon(mLockAspectRatio->isChecked() ? ":/icons/linked.png" : ":/icons/unlinked.png"));
   });
@@ -334,7 +334,7 @@ QGroupBox
   // mLockAspectRatio->setStyleSheet(
   //   "QPushButton:checked {image:url(:/icons/linked.png);} QPushButton:unchecked {image:url(:/icons/unlinked.png);}");
   mResolutionPresets = new QComboBox(this);
-  mResolutionPresets->addItem("Choose Preset...");
+  mResolutionPresets->addItem("Resolution Presets...");
   mResolutionPresets->addItem(QString::fromStdString("Main window (" + std::to_string(mMainViewWidth) + "x" +
                                                      std::to_string(mMainViewHeight) + ")"));
   for (int i = 0; i < sizeof(resolutionPresets) / sizeof(ResolutionPreset); i++) {
@@ -366,9 +366,9 @@ QGroupBox
 
   mSaveDirectoryLabel = new QLabel(QString::fromStdString(mCaptureSettings->outputDir), this);
   mSaveFilePrefix = new QLineEdit(QString::fromStdString(mCaptureSettings->filenamePrefix), this);
-  mSaveFilePrefix->setToolTip(
-    QString("<FONT>Output file name.  If you are rendering a time series, each image from the series will be saved "
-            "individually with suffix _0000, _0001, etc.  All images saved as PNG files.</FONT>"));
+  mSaveFilePrefix->setToolTip(QString("<FONT>All images saved as PNG files.  If you are rendering a time series, each "
+                                      "image from the series will be saved "
+                                      "individually with suffix _0000, _0001, etc.</FONT>"));
 
   mToolbar = new QToolBar(mImageView);
   mToolbar->addAction("+", this, &RenderDialog::onZoomInClicked);
@@ -402,8 +402,8 @@ QGroupBox
   topButtonsLayout->addWidget(mHeightInput, 1);
   topButtonsLayout->addWidget(mLockAspectRatio, 0);
   outputResolutionLayout->addWidget(makeGroupLabel("<b>Output Resolution</b>"));
-  outputResolutionLayout->addWidget(mResolutionPresets);
   outputResolutionLayout->addLayout(topButtonsLayout);
+  outputResolutionLayout->addWidget(mResolutionPresets);
 
   QHBoxLayout* timeHLayout = new QHBoxLayout();
   timeHLayout->addWidget(new QLabel(tr("Start:")), 0);

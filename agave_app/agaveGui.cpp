@@ -569,6 +569,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
       LOG_INFO << "Canceled load dialog.";
       return true;
     }
+    delete loadDialog;
 
   } else {
     // we called stateToLoadSpec above
