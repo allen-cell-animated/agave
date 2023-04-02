@@ -563,6 +563,7 @@ QGroupBox
 
   setLayout(reallyMainDialogLayout);
   positionToolbar();
+  updatePreviewImage();
 }
 
 void

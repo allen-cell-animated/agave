@@ -380,16 +380,16 @@ agaveGui::onRenderAction()
 
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->pauseRenderLoop();
-  QImage im = m_glView->captureQimage();
-  QImage* imcopy = new QImage(im);
+  // QImage im = m_glView->captureQimage();
+  // QImage* imcopy = new QImage(im);
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
-    m_captureSettings.width = imcopy->width();
-    m_captureSettings.height = imcopy->height();
+    m_captureSettings.width = m_glView->width();
+    m_captureSettings.height = m_glView->height();
   }
 
   // TODO should we reuse the last settings for capture start and end time?
@@ -406,8 +406,8 @@ agaveGui::onRenderAction()
                                            m_glView->context(),
                                            m_loadSpec,
                                            &m_captureSettings,
-                                           imcopy->width(),
-                                           imcopy->height(),
+                                           m_glView->width(),
+                                           m_glView->height(),
                                            this);
   rdialog->resize(geometry().width(), m_tabs->height());
   rdialog->move(geometry().x(), geometry().y());
@@ -422,8 +422,8 @@ agaveGui::onRenderAction()
     m_timelinedock->setTime(m_appScene.m_timeLine.currentTime());
   });
 
-  rdialog->setImage(imcopy);
-  delete imcopy;
+  // rdialog->setImage(imcopy);
+  // delete imcopy;
 
   rdialog->show();
   rdialog->raise();
