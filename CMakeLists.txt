@@ -204,7 +204,7 @@ if(WIN32)
 # ###############
 elseif(APPLE)
   find_package(Qt6QCocoaIntegrationPlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
-  find_package(Qt6QMacStylePlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QMacStylePlugin 6.2.4 REQUIRED PATHS ${Qt6Widgets_DIR})
   # ###############
   set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
   add_definitions(-DPACKAGE_OSX_TARGET)
