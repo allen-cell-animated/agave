@@ -137,8 +137,13 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # CPack
 # #####################
 
+find_package(Qt6QTiffPlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
+
 # copy all dlls into place.
 if(WIN32)
+  # find_package(Qt6QWindowsIntegrationPlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
+  # find_package(Qt6QWindowsVistaStylePlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
+
   # assuming vcpkg has done some work already to get dlls in here
   install(
     DIRECTORY ${CMAKE_BINARY_DIR}/Release/
@@ -184,20 +189,22 @@ if(WIN32)
     CONFIGURATIONS Debug
   )
   install(FILES
-    $<TARGET_FILE:Qt::QWindowsIntegrationPlugin>
+    $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
   )
   install(FILES
-    $<TARGET_FILE:Qt::QTiffPlugin>
+    $<TARGET_FILE:Qt6::QTiffPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
   install(FILES
-    $<TARGET_FILE:Qt::QWindowsVistaStylePlugin>
+    $<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>
     DESTINATION ${INSTALLDIR}/styles/
   )
 
 # ###############
 elseif(APPLE)
+  find_package(Qt6QCocoaIntegrationPlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QMacStylePlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
   # ###############
   set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
   add_definitions(-DPACKAGE_OSX_TARGET)
@@ -234,9 +241,9 @@ elseif(APPLE)
   )
 
   # calls cmake install command and also adds to the QT_PLUGINS list for use below
-  install_qt6_plugin("Qt::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt6_plugin("Qt::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt6_plugin("Qt::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
     "[Paths]\nPlugins = PlugIns\n")
@@ -281,6 +288,8 @@ elseif(APPLE)
   include(CPack)
 
 else() # Linux
+  find_package(Qt6QXcbIntegrationPlugin 6.2.4 REQUIRED PATHS ${Qt6Gui_DIR})
+
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
@@ -295,14 +304,14 @@ else() # Linux
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
   )
-  # install(FILES
-  #   $<TARGET_FILE:Qt::QXcbIntegrationPlugin>
-  #   DESTINATION ${INSTALLDIR}/platforms/
-  # )
-  # install(FILES
-  #   $<TARGET_FILE:Qt::QTiffPlugin>
-  #   DESTINATION ${INSTALLDIR}/imageformats/
-  # )
+  install(FILES
+    $<TARGET_FILE:Qt6::QXcbIntegrationPlugin>
+    DESTINATION ${INSTALLDIR}/platforms/
+  )
+  install(FILES
+    $<TARGET_FILE:Qt6::QTiffPlugin>
+    DESTINATION ${INSTALLDIR}/imageformats/
+  )
   # include(InstallRequiredSystemLibraries)
 
   # list(APPEND DIRS ${CMAKE_INSTALL_PREFIX}/lib)
