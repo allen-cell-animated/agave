@@ -228,14 +228,14 @@ elseif(APPLE)
   endmacro()
 
   install(FILES
-    $<TARGET_FILE:Qt::Widgets>
-    $<TARGET_FILE:Qt::Core>
-    $<TARGET_FILE:Qt::Gui>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
-    $<TARGET_FILE:Qt::Xml>
-    $<TARGET_FILE:Qt::Network>
-    $<TARGET_FILE:Qt::WebSockets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
   )
