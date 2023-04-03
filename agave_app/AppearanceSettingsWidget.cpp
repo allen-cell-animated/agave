@@ -459,7 +459,7 @@ QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& c
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[1].m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -472,7 +472,7 @@ QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor&
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[0].m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -484,7 +484,7 @@ QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor&
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -496,7 +496,7 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[0].m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -568,7 +568,7 @@ QAppearanceSettingsWidget::OnBackgroundColorChanged(const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_backgroundColor[0] = rgba[0];
   m_scene->m_material.m_backgroundColor[1] = rgba[1];
@@ -580,7 +580,7 @@ QAppearanceSettingsWidget::OnBoundingBoxColorChanged(const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_boundingBoxColor[0] = rgba[0];
   m_scene->m_material.m_boundingBoxColor[1] = rgba[1];
@@ -599,7 +599,7 @@ QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_diffuse[i * 3 + 0] = rgba[0];
   m_scene->m_material.m_diffuse[i * 3 + 1] = rgba[1];
@@ -612,7 +612,7 @@ QAppearanceSettingsWidget::OnSpecularColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_specular[i * 3 + 0] = rgba[0];
   m_scene->m_material.m_specular[i * 3 + 1] = rgba[1];
@@ -625,7 +625,7 @@ QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_emissive[i * 3 + 0] = rgba[0];
   m_scene->m_material.m_emissive[i * 3 + 1] = rgba[1];

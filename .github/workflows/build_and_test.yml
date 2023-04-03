@@ -72,7 +72,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: 5.15.2
+          version: 6.2.4
       - name: macos install deps
         if: matrix.os == 'macos-latest'
         env:

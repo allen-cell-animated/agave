@@ -77,7 +77,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
   sslConfiguration.setPeerVerifyMode(QSslSocket::VerifyNone);
   sslConfiguration.setLocalCertificate(certificate);
   sslConfiguration.setPrivateKey(sslKey);
-  sslConfiguration.setProtocol(QSsl::TlsV1SslV3);
+  sslConfiguration.setProtocol(QSsl::TlsV1_0OrLater);
   _webSocketServer->setSslConfiguration(sslConfiguration);
 
   LOG_DEBUG << "QSslSocket::supportsSsl() = " << QSslSocket::supportsSsl();

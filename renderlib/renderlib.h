@@ -3,10 +3,11 @@
 #include "glad/glad.h"
 
 #include <QOffscreenSurface>
+#include <QOpenGLDebugLogger>
 #include <QSurfaceFormat>
 #include <QtGui/QOpenGLContext>
-#include <QtGui/QOpenGLDebugLogger>
 #include <QtGui/QWindow>
+
 
 #include <map>
 #include <memory>

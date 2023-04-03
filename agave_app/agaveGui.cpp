@@ -22,9 +22,9 @@
 #include "loadDialog.h"
 #include "renderDialog.h"
 
+#include <QAction>
 #include <QtCore/QElapsedTimer>
 #include <QtCore/QSettings>
-#include <QtWidgets/QAction>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMenu>
@@ -114,7 +114,7 @@ agaveGui::createActions()
   connect(m_quitAction, SIGNAL(triggered()), this, SLOT(quit()));
 
   m_viewResetAction = new QAction(tr("&Reset"), this);
-  m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
+  m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_R));
   m_viewResetAction->setToolTip(tr("Reset the current view"));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));

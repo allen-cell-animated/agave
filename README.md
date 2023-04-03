@@ -77,9 +77,10 @@ In your favorite Python virtual environment:
 pip install aqtinstall
 aqt install --outputdir ~/Qt 5.15.2 linux desktop
 aqt install-qt linux desktop 5.15.2 --archives icu
+aqt install-qt linux desktop 6.2.4 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
-export Qt5_DIR=~/Qt/5.15.2/gcc_64
+export Qt6_DIR=~/Qt/6.2.4/gcc_64
 ```
 
 - sudo apt install libtiff-dev

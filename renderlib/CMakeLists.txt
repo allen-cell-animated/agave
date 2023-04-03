@@ -96,7 +96,7 @@ FetchContent_MakeAvailable(tensorstore)
 
 # end tensorstore dependency
 target_link_libraries(renderlib
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
 	libCZI

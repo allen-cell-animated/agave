@@ -7,9 +7,10 @@
 #include "renderlib/Logging.h"
 
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QWindow>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMouseEvent>
+
 
 float CameraController::m_OrbitSpeed = 1.0f;
 float CameraController::m_PanSpeed = 1.0f;
@@ -22,7 +23,8 @@ CameraController::CameraController(QCamera* cam, CCamera* theCamera)
   : m_renderSettings(nullptr)
   , m_qcamera(cam)
   , m_CCamera(theCamera)
-{}
+{
+}
 
 void
 CameraController::OnMouseWheelForward(void)
@@ -61,7 +63,8 @@ GetAltKey()
 void
 CameraController::OnMouseMove(QMouseEvent* event)
 {
-  float devicePixelRatio = QApplication::desktop()->devicePixelRatioF();
+
+  float devicePixelRatio = QGuiApplication::focusWindow()->devicePixelRatio();
   if (event->buttons() & Qt::LeftButton) {
     if (GetCtrlKey()) {
       // Zooming (Dolly): ctrl + left drag

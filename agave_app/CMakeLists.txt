@@ -102,12 +102,12 @@ endif(MSVC)
 
 target_link_libraries(agaveapp PRIVATE
 	renderlib
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 )
 
 install(TARGETS agaveapp
 
-	# RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt5_DIR}/lib
+	# RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt6_DIR}/lib
 	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR}
 	LIBRARY DESTINATION ${INSTALLDIR}

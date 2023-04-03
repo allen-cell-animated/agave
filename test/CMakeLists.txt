@@ -27,7 +27,7 @@ target_sources(agave_test PRIVATE
 
 target_link_libraries(agave_test PRIVATE
   renderlib
-  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+  Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
   Catch2WithMain
 )
 
