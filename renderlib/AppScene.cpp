@@ -136,7 +136,7 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 
   for (uint32_t i = 0; i < img->sizeC(); ++i) {
     // enable first 3 channels!
-    m_material.m_enabled[i] = (i < 3);
+    m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
 
     m_material.m_diffuse[i * 3] = colors[i * 3];
     m_material.m_diffuse[i * 3 + 1] = colors[i * 3 + 1];

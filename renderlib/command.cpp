@@ -73,7 +73,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     // enable up to first three channels!
     // TODO Why should it be three?
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      c->m_appScene->m_material.m_enabled[i] = (i < 3);
+      c->m_appScene->m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
       c->m_appScene->m_material.m_opacity[i] = 1.0f;
     }
     c->m_renderSettings->SetNoIterations(0);
@@ -505,7 +505,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     // enable up to first three channels!
     // TODO Why should it be three?
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      c->m_appScene->m_material.m_enabled[i] = (i < 3);
+      c->m_appScene->m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
       c->m_appScene->m_material.m_opacity[i] = 1.0f;
     }
     c->m_renderSettings->SetNoIterations(0);

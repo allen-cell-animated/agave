@@ -665,13 +665,13 @@ RenderDialog::getOverwriteConfirmation()
 
   QMessageBox msgBox;
   msgBox.setWindowTitle("Overwrite Existing File?");
-  msgBox.setText(fileInfo.fileName());
-  msgBox.setInformativeText("A file with this name exists at this location already. Do you want to overwrite it?");
-  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  msgBox.setDefaultButton(QMessageBox::No);
+  msgBox.setText(fileInfo.fileName() + " : A file with this name exists at this location already.");
+  msgBox.setInformativeText("Do you want to overwrite it?");
+  msgBox.setDefaultButton(msgBox.addButton(tr("Cancel"), QMessageBox::NoRole));
+  auto overwriteButton = msgBox.addButton(tr("Overwrite"), QMessageBox::YesRole);
   int ret = msgBox.exec();
 
-  return ret == QMessageBox::Yes;
+  return msgBox.clickedButton() == overwriteButton;
 }
 
 void
