@@ -172,12 +172,14 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
       case QEvent::TouchBegin:
       case QEvent::TouchUpdate: {
         const QTouchEvent* const touchEvent = static_cast<const QTouchEvent*>(event);
-        const QList<QTouchEvent::TouchPoint> points = touchEvent->touchPoints();
+        const QList<QEventPoint> points = touchEvent->points();
         const qreal pointSize = qMax(m_pointSize.width(), m_pointSize.height());
-        foreach (const QTouchEvent::TouchPoint& touchPoint, points) {
+        foreach (const QEventPoint& touchPoint, points) {
           const int id = touchPoint.id();
-          switch (touchPoint.state()) {
-            case Qt::TouchPointPressed: {
+          QEventPoint::States state = touchPoint.state();
+          // TODO Since these are flags, try using | instead of equality check?
+          switch (state) {
+            case QEventPoint::State::Pressed: {
               // find the point, move it
               QList<int> values = m_fingerPointMapping.values();
               QSet<int> activePoints = QSet<int>(values.begin(), values.end());
@@ -204,13 +206,13 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
                 movePoint(activePoint, touchPoint.pos());
               }
             } break;
-            case Qt::TouchPointReleased: {
+            case QEventPoint::State::Released: {
               // move the point and release
               QHash<int, int>::iterator it = m_fingerPointMapping.find(id);
               movePoint(it.value(), touchPoint.pos());
               m_fingerPointMapping.erase(it);
             } break;
-            case Qt::TouchPointMoved: {
+            case QEventPoint::State::Updated: {
               // move the point
               const int pointIdx = m_fingerPointMapping.value(id, -1);
               if (pointIdx >= 0) // do we track this point?
