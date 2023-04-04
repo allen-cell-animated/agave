@@ -33,7 +33,7 @@ RUN apt-get install -y python3.9-dev python3-pip
 RUN pip3 install --upgrade pip
 
 # get Qt installed
-ENV QT_VERSION=6.2.4
+ENV QT_VERSION=6.5.0
 RUN pip3 install aqtinstall
 RUN aqt install --outputdir /qt ${QT_VERSION} linux desktop gcc_64
 
