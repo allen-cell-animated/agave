@@ -29,37 +29,57 @@ channels are detected.
 
 Metadata embedded in the file is important for AGAVE to display the
 volume properly. AGAVE can decode OME metadata (OME-TIFF files), ImageJ
-metadata (TIFF files exported from ImageJ/FIJI), and Zeiss CZI metadata.
+metadata (TIFF files exported from ImageJ/FIJI), Zeiss CZI metadata, and OME-Zarr metadata.
 
-We recommend preparing or converting your volumetric files to OME-TIFF
+We recommend preparing or converting your volumetric files to OME-TIFF or OME-Zarr
 (see `Preparing an AGAVE Compatible ome-tiff file with
 Fiji <#preparing-an-agave-compatible-ome-tiff-file-with-fiji>`__ to
 ensure the expected data structure, channel order, etc.)
 
-AGAVE currently supports ome.tiff, tiff, .czi, and .map/.mrc image file formats
-containing either 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  CZI is the
-native file format produced by Zeiss microscopes. See
-https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html
-for more information. TIFF (Tagged Image File Format) is an open image
-file format commonly used to store microscopy data. See
-https://docs.openmicroscopy.org/ome-model/latest/ for more information.  The
-MRC/CCP4 file format is typically used in electron cryo-microscopy. See
-https://www.ccpem.ac.uk/mrc_format/mrc_format.php for more information.
+AGAVE currently supports the following file formats:
+* .zarr (OME-Zarr only - https://ngff.openmicroscopy.org/latest/)
+* .ome.tiff (see https://docs.openmicroscopy.org/ome-model/latest/)
+* .tiff
+* .czi (Produced by Zeiss microscopes. See https://www.zeiss.com/microscopy/en/products/software/zeiss-zen/czi-image-file-format.html)
+* .map/.mrc (Typically used in electron cryo-microscopy. See https://www.ccpem.ac.uk/mrc_format/mrc_format.php)
+AGAVE can read 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  
 
-Open Volume
-~~~~~~~~~~~
+OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL.
 
-File-->Open Volume or \[Open Volume\] toolbar button
+Open file, directory or URL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\[Open Volume\] will pop open a file browser dialog in which you can navigate to the
+File-->Open file or \[Open file\] toolbar button
+File-->Open directory or \[Open directory\] toolbar button
+File-->Open from URL or \[Open from URL\] toolbar button
+
+\[Open file\] will pop open a file browser dialog in which you can navigate to the
 volume file of choice.
+\[Open directory\] will pop open a directory browser dialog in which you can navigate to the
+OME-Zarr store of choice.
+\[Open from URL\] will pop open an input dialog in which you can enter the URL to the
+OME-Zarr store of choice.  Currently only publicly accessible URLs are supported.
 
-If the file you select cannot be loaded, an error dialog will pop open
+Once the data source location (file, directory or URL) is selected, if the data is multi-scene, a dialog will
+pop up to let you select the scene you wish to view. To view a different
+scene, just re-open the same data location.
+
+If the data you select cannot be opened or loaded for any reason, an error dialog will pop open
 to notify you. There are several possible reasons why this operation may
 fail and if AGAVE can determine the reason, it will be displayed in the
-`AGAVE log <#agave-log>`__. If the file is multi-scene, a dialog will
-pop up to let you select the scene you wish to view. To view a different
-scene, just re-open the same file using \[Open Volume\]. For files with many time samples, there is a Time panel in the user
+`AGAVE log <#agave-log>`__.
+
+One the data source has been selected, a \[Load Settings\] dialog will then appear to let you finalize choices for the data to be loaded:
+
+Load Settings
+~~~~~~~~~~~~~
+
+AGAVE can load subsets of data based on precomputed multiresolution levels stored in the data, time series, channels, and in some cases sub-regions within the spatial volume data. 
+OME-Zarr supports all of the above selections when present in the data.  Other formats are more restrictive and may only support a subset of the options.
+The Load Settings dialog presents you with a memory estimate of how much data will be loaded with current settings.  Coupled with knowledge of your own system's configuration, this allows you to make informed choices about how much data to load.
+The memory estimate is an expected estimate of how much GPU memory AGAVE will use for rendering.  Main memory usage may be higher, but is not indicated as usually GPU memory is the limiting factor.
+
+For files with many time samples, there is a Time panel in the user
 interface with a slider. Nothing will be loaded while dragging the
 slider; AGAVE will load the new time sample when the slider is released
 or the numeric input is incremented.
