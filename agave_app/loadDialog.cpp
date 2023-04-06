@@ -60,6 +60,9 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
     m_TimeSlider->setRange(0, 0);
   }
   m_TimeSlider->setValue(0);
+  m_TimeSlider->setSingleStep(1);
+  m_TimeSlider->setTickPosition(QSlider::TickPosition::TicksBelow);
+  m_TimeSlider->setTickInterval((maxt - 1) / 10);
   m_TimeSlider->setEnabled(maxt > 1);
 
   mChannelsSection = new Section("Channels", 0);

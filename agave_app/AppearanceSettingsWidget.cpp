@@ -84,7 +84,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
 
   m_backgroundColorButton.setStatusTip(tr("Set background color"));
   m_backgroundColorButton.setToolTip(tr("Set background color"));
-  m_backgroundColorButton.SetColor(QColor(0, 0, 0, 0), true);
+  m_backgroundColorButton.SetColor(QColor(0, 0, 0), true);
   m_MainLayout.addRow("Background Color", &m_backgroundColorButton);
 
   QObject::connect(&m_backgroundColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -99,7 +99,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
 
   m_boundingBoxColorButton.setStatusTip(tr("Set bounding box color"));
   m_boundingBoxColorButton.setToolTip(tr("Set bounding box color"));
-  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255, 255), true);
+  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255), true);
   bboxLayout->addWidget(&m_boundingBoxColorButton, 1);
 
   m_MainLayout.addRow("Bounding Box", bboxLayout);
