@@ -51,7 +51,7 @@ set(AGAVE_QT_VERSION 6.5.0)
 
 if(WIN32)
   set(GUESS_Qt6_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt6 directory")
-elseif (APPLE)
+elseif(APPLE)
   set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
 else()
   set(GUESS_Qt6_DIR /qt/${AGAVE_QT_VERSION}/gcc_64)
@@ -136,7 +136,6 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 # CPack
 # #####################
-
 find_package(Qt6QTiffPlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
 
 # copy all dlls into place.
@@ -161,14 +160,14 @@ if(WIN32)
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt::Widgets>
-    $<TARGET_FILE:Qt::Core>
-    $<TARGET_FILE:Qt::Gui>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
-    $<TARGET_FILE:Qt::Xml>
-    $<TARGET_FILE:Qt::Network>
-    $<TARGET_FILE:Qt::WebSockets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Release
@@ -176,14 +175,14 @@ if(WIN32)
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt::Widgets>
-    $<TARGET_FILE:Qt::Core>
-    $<TARGET_FILE:Qt::Gui>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
-    $<TARGET_FILE:Qt::Xml>
-    $<TARGET_FILE:Qt::Network>
-    $<TARGET_FILE:Qt::WebSockets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Debug
@@ -205,6 +204,7 @@ if(WIN32)
 elseif(APPLE)
   find_package(Qt6QCocoaIntegrationPlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
   find_package(Qt6QMacStylePlugin 6.5.0 REQUIRED PATHS ${Qt6Widgets_DIR})
+
   # ###############
   set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
   add_definitions(-DPACKAGE_OSX_TARGET)
@@ -312,13 +312,14 @@ else() # Linux
     $<TARGET_FILE:Qt6::QTiffPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
+
   # include(InstallRequiredSystemLibraries)
 
   # list(APPEND DIRS ${CMAKE_INSTALL_PREFIX}/lib)
 
   # install(CODE "include(BundleUtilities)
-  #   fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave-install \"${DIRS}\" \"${DIRS}\" )" COMPONENT Runtime)
+  # fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave-install \"${DIRS}\" \"${DIRS}\" )" COMPONENT Runtime)
   SET(CPACK_GENERATOR "DEB")
-  SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "KK") #required
+  SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "KK") # required
   INCLUDE(CPack)
 endif(WIN32)

@@ -32,7 +32,8 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
+aqt install-qt --outputdir C:\Qt windows desktop 6.5.0 win64_msvc2019_64 -m qtwebsockets qtimageformats
+
 ```
 
 Use vcpkg (must use target triplet x64-windows) to install the following:
@@ -55,7 +56,6 @@ For MAC OS: (using homebrew)
 # Install Qt. In your favorite Python virtual environment:
 pip install aqtinstall
 aqt install-qt --outputdir ~/Qt mac desktop 6.5.0 -m qtwebsockets qtimageformats
-# aqt install --outputdir ~/Qt 5.15.2 mac desktop
 export Qt6_DIR=~/Qt/6.5.0/macos
 # and then:
 brew install spdlog glm libtiff
@@ -76,9 +76,7 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install --outputdir ~/Qt 5.15.2 linux desktop
-aqt install-qt linux desktop 5.15.2 --archives icu
-aqt install-qt linux desktop 6.5.0 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir ~/Qt linux desktop 6.5.0 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
 export Qt6_DIR=~/Qt/6.5.0/gcc_64
