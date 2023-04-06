@@ -1,5 +1,6 @@
 #include "Controls.h"
 
+#include <QPainterPath>
 #include <QtGlobal>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
@@ -19,46 +20,46 @@ QColorPushButton::paintEvent(QPaintEvent* pPaintEvent)
 {
   setText("");
 
-  QPushButton::paintEvent(pPaintEvent);
+  // QPushButton::paintEvent(pPaintEvent);
 
-  QPainter Painter(this);
+  QPainter painter(this);
 
   // Get button rectangle
-  QRect ColorRectangle = pPaintEvent->rect();
+  QRect colorRectangle = pPaintEvent->rect();
 
   // Deflate it
-  ColorRectangle.adjust(m_Margin, m_Margin, -m_Margin, -m_Margin);
+  colorRectangle.adjust(m_Margin, m_Margin, -m_Margin, -m_Margin);
 
   // Use anti aliasing
-  Painter.setRenderHint(QPainter::Antialiasing);
+  painter.setRenderHint(QPainter::Antialiasing);
 
-  // Rectangle styling
-  Painter.setBrush(QBrush(isEnabled() ? m_Color : Qt::lightGray));
-  Painter.setPen(QPen(isEnabled() ? QColor(25, 25, 25) : Qt::darkGray, 0.5));
-
-  // Draw
-  Painter.drawRoundedRect(ColorRectangle, m_Radius, Qt::AbsoluteSize);
+  QPainterPath path;
+  path.addRoundedRect(colorRectangle, m_Radius, m_Radius, Qt::AbsoluteSize);
+  QPen pen(isEnabled() ? QColor(25, 25, 25) : Qt::darkGray, 0.5);
+  painter.setPen(pen);
+  painter.fillPath(path, isEnabled() ? m_Color : Qt::lightGray);
+  painter.drawPath(path);
 }
 
 void
 QColorPushButton::mousePressEvent(QMouseEvent* pEvent)
 {
   QColor lastColor = m_Color;
-  QColorDialog ColorDialog;
+  QColorDialog colorDialog;
 
-  connect(&ColorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
+  connect(&colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
 
 #ifdef __linux__
-  ColorDialog.setOption(QColorDialog::DontUseNativeDialog, true);
+  colorDialog.setOption(QColorDialog::DontUseNativeDialog, true);
 #endif
-  ColorDialog.setCurrentColor(m_Color);
-  int result = ColorDialog.exec();
+  colorDialog.setCurrentColor(m_Color);
+  int result = colorDialog.exec();
   if (result == QDialog::Rejected) {
     OnCurrentColorChanged(lastColor);
   }
 
   disconnect(
-    &ColorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
+    &colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
 }
 
 int
@@ -97,6 +98,10 @@ void
 QColorPushButton::SetColor(const QColor& color, bool blockSignals)
 {
   this->blockSignals(blockSignals);
+
+  QPalette pal = palette();
+  pal.setColor(QPalette::Button, color);
+  setPalette(pal);
 
   m_Color = color;
   update();
