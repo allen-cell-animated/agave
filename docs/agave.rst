@@ -403,11 +403,18 @@ Output: Saving Results
 ----------------------
 
 Quick Render
-~~~~~~~~~~
+~~~~~~~~~~~~
 
 File-->Quick render or the \[Quick render\] toolbar button
 
 Save the current viewport window as a PNG, or JPG file.
+
+Render
+~~~~~~
+
+File-->Render or the \[Render\] toolbar button
+
+Opens the `Render Dialog <#render-dialog>`__
 
 Save JSON
 ~~~~~~~~~
@@ -430,6 +437,51 @@ File-->Save to Python script or \[Save to Python script\] toolbar button
 Save to Python script will save the current AGAVE session into a small Python file.
 See [Python Interface] for how to use the Python programming language to automate
 AGAVE to create animation sequences or batch rendering of many images.
+
+Render Dialog
+-------------
+
+The Render dialog lets you control various quality settings for output of your final image.  
+It also allows you to orchestrate time series batches.
+Hint: Quick Render is the best way to just get a snapshot of your 3D viewport.  Render is for when you want to more carefully control output resolution and quality.
+Progress bars for single image and time series rendering are displayed at the bottom of the dialog.
+
+Image preview
+~~~~~~~~~~~~~
+
+The preview window will update during rendering with the current image as it is being computed. 
+Left-button drag in the view to pan the image.  There are three tool buttons to let you zoom in ("+"), zoom out ("-"), and frame the image to the preview window ("[]").
+When you stop rendering and start changing any output resolution parameters, the image will reset to a checkerboard.
+
+Output Resolution
+~~~~~~~~~~~~~~~~~
+
+Choose the number of pixels for the final rendered image.  
+By default, the X and Y values are linked to maintain the same aspect ratio. 
+Changing one will cause the other to change automatically. Toggle the link icon 
+to allow them to change independently.
+
+Several Resolution Presets are offered as a convenience to quickly select commonly used output resolutions.
+
+Image Quality
+~~~~~~~~~~~~~
+
+You can choose to control the final image quality by specifying either number of 
+Samples per pixel, or how much Time to spend rendering.
+Higher values will result in higher quality.  AGAVE computes its final image by gathering samples iteratively. 
+For a quick preview render, you can set the number of samples to a low value such as 32.  For a final image, you can set the number of samples to a high value such as 1024.
+The contribution of each sample will be less than the previous sample. Therefore you may get subtle but important improvements in quality well beyond 1024 samples.
+The rate at which each sample is gathered is completely dependent on the performance characteristics of your computer. 
+If you prefer to simply have a time budget, you may also choose to select Time and specify how long to render.  The renderer will gather as many samples as possible within the specified time.
+
+Output File
+~~~~~~~~~~~
+
+Here you can select the output directory and a name for the output file.  
+AGAVE currently only renders to PNG file format.  If you are rendering a time series, 
+AGAVE will append "_0000", "_0001", etc. to the file name for each frame.
+For time series, if the file you are rendering already exists, AGAVE will prompt you to overwrite it.
+If you are rendering only a single frame, AGAVE will append a number to the file name if the file already exists.
 
 Camera Panel
 ------------
