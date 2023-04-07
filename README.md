@@ -27,7 +27,7 @@ tensorstore requires:
 - NASM, for building libjpeg-turbo, libaom, and dav1d from source (default). Must be in PATH.Not required if -DTENSORSTORE*USE_SYSTEM*{JPEG,LIBAOM,DAV1D}=ON is specified.
 - GNU Patch or equivalent. Must be in PATH.
 
-Install Qt LTS 5.15.2.
+Install Qt LTS 6.5.0.
 In your favorite Python virtual environment:
 
 ```

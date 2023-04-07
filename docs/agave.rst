@@ -69,20 +69,7 @@ to notify you. There are several possible reasons why this operation may
 fail and if AGAVE can determine the reason, it will be displayed in the
 `AGAVE log <#agave-log>`__.
 
-One the data source has been selected, a \[Load Settings\] dialog will then appear to let you finalize choices for the data to be loaded:
-
-Load Settings
-~~~~~~~~~~~~~
-
-AGAVE can load subsets of data based on precomputed multiresolution levels stored in the data, time series, channels, and in some cases sub-regions within the spatial volume data. 
-OME-Zarr supports all of the above selections when present in the data.  Other formats are more restrictive and may only support a subset of the options.
-The Load Settings dialog presents you with a memory estimate of how much data will be loaded with current settings.  Coupled with knowledge of your own system's configuration, this allows you to make informed choices about how much data to load.
-The memory estimate is an expected estimate of how much GPU memory AGAVE will use for rendering.  Main memory usage may be higher, but is not indicated as usually GPU memory is the limiting factor.
-
-For files with many time samples, there is a Time panel in the user
-interface with a slider. Nothing will be loaded while dragging the
-slider; AGAVE will load the new time sample when the slider is released
-or the numeric input is incremented.
+One the data source has been selected, the `Load Settings <#load-settings>`__ dialog will then appear to let you finalize choices for the data to be loaded.
 
 Open JSON
 ~~~~~~~~~
@@ -102,6 +89,43 @@ File-->Recent...
 
 This menu will present a list of the most recently opened volume files
 for quick selection if AGAVE was previously used on your computer.
+This choice will then open the `Load Settings <#load-settings>`__ dialog.
+
+Load Settings
+-------------
+
+In order to support loading from very large datasets, AGAVE can load subsets of data 
+based on precomputed multiresolution levels stored in the data, time series, channels, 
+and in some cases sub-regions within the spatial volume data. 
+
+OME-Zarr supports all of the above selections when present in the data.  Other formats are more restrictive and may only support a few of the options.
+The Load Settings dialog presents you with a memory estimate of how much data will be loaded with current settings.  Coupled with knowledge of your own system's configuration, this allows you to make informed choices about how much data to load.
+The memory estimate is an expected estimate of how much GPU memory AGAVE will use for rendering.  Main memory usage may be higher, but is not indicated as usually GPU memory is the limiting factor.
+
+Resolution Level
+~~~~~~~~~~~~~~~~
+
+The OME-Zarr format supports precomputed multiresolution data and will let you select the resolution level.
+The highest resolution is the default, so beware if you have a large dataset, you risk running out of memory. 
+
+Time
+~~~~
+
+If you are loading time-series data, you may select the initial time to load.
+You will be able to change the current time point after the data is loaded. 
+(See `Time Panel <#time-panel>`__)
+
+Channels
+~~~~~~~~
+
+You may choose to exclude certain channels from being loaded.  
+All channels will be selected by default. If you leave channels out, be aware you will have to reload the file to get them back.
+
+Subregion
+~~~~~~~~~
+
+For OME-Zarr data, you may select a sub-region in X, Y, and Z. This is useful for loading a subset of a large dataset.
+A typical usage might be to first load a very low resolution level and then select a sub-region of interest to then load at a higher resolution.
 
 Adjusting the camera view
 -------------------------
@@ -464,10 +488,14 @@ range).
 Time Panel
 ----------
 
-If your volume contains multiple time steps in the file, move the time
+For time series data, move the time
 slider or change the numeric input to load a new time sample. Beware
 that this is loading a whole new volume and can take some time. If your
-volume only has a single time, then the slider will have no effect.
+dataset only has a single time, then the slider will have no effect.
+Nothing will be loaded while dragging the
+slider; AGAVE will load the new time sample when the slider is released
+or the numeric input is incremented.
+
 
 Python Interface
 ----------------

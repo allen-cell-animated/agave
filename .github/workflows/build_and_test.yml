@@ -128,6 +128,7 @@ jobs:
         run: |
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
       - name: windows get nasm
+        if: matrix.os == 'windows-2019'
         uses: ilammy/setup-nasm@v1
       - name: windows build and test
         if: matrix.os == 'windows-2019'
