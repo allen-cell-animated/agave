@@ -18,15 +18,15 @@ jobs:
           docs-folder: "docs/"
           pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: agave-macos
           path: docs/_build/latex/agave.pdf
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: agave-win
           path: docs/_build/latex/agave.pdf
@@ -45,15 +45,15 @@ jobs:
           docs-folder: "agave_pyclient/docs/"
           pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: agave-macos
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: agave-win
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
@@ -98,7 +98,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agave-macos
           path: ./build/agave-macos.zip
@@ -146,7 +146,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-2019'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agave-win
           path: ./build/agave-win.zip
@@ -155,7 +155,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
       - name: Install Dependencies
