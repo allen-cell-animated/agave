@@ -45,7 +45,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: agave-macos
           path: ./build/agave-macos.zip
@@ -93,7 +93,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-2019'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: agave-win
           path: ./build/agave-win.zip
@@ -142,11 +142,11 @@ jobs:
           docs-folder: "agave_pyclient/docs/"
           pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
@@ -176,7 +176,7 @@ jobs:
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
@@ -200,15 +200,15 @@ jobs:
           echo ${GITHUB_REF/refs\/tags\/v/}
           echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
       - name: Get mac build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: agave-macos
       - name: Get windows build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: agave-win
       - name: Get PDF documentation build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: DocumentationPDF
       - name: Version the artifacts
