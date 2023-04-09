@@ -134,7 +134,6 @@ private:
   ExecutionContext m_ec;
 
 signals:
-  void kill();
   void requestProcessed(RenderRequest* request, QImage img);
   void sendString(RenderRequest* request, QString s);
 };
