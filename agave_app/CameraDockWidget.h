@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtWidgets/QDockWidget>
+#include <QDockWidget>
 
 #include "CameraWidget.h"
 

@@ -2,8 +2,8 @@
 
 #include "renderlib/FileReader.h"
 
+#include <QDockWidget>
 #include <QGridLayout>
-#include <QtWidgets/QDockWidget>
 
 class IFileReader;
 class QIntSlider;

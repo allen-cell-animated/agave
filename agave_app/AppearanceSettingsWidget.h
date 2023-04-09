@@ -3,11 +3,12 @@
 #include "Controls.h"
 #include "renderlib/GradientData.h"
 
+#include <QCheckBox>
+#include <QComboBox>
 #include <QFormLayout>
-#include <QtWidgets/QCheckBox>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QGroupBox>
-#include <QtWidgets/QLabel>
+#include <QGroupBox>
+#include <QLabel>
+
 
 #include <memory>
 

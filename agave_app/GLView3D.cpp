@@ -13,11 +13,12 @@
 #include <glm.h>
 
 #include <QGuiApplication>
+#include <QMouseEvent>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObjectFormat>
 #include <QScreen>
 #include <QWindow>
-#include <QtGui/QMouseEvent>
+
 
 #include <cmath>
 #include <iostream>

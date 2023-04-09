@@ -23,14 +23,15 @@
 #include "renderDialog.h"
 
 #include <QAction>
-#include <QtCore/QElapsedTimer>
-#include <QtCore/QSettings>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QMenu>
-#include <QtWidgets/QMenuBar>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QToolBar>
+#include <QElapsedTimer>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QSettings>
+#include <QToolBar>
+
 
 #include <filesystem>
 

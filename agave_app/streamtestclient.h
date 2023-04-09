@@ -2,7 +2,7 @@
 
 #include <QObject>
 #include <QUrl>
-#include <QtWebSockets/QWebSocket>
+#include <QWebSocket>
 
 class Command;
 
