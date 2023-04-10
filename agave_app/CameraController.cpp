@@ -7,10 +7,9 @@
 #include "renderlib/Logging.h"
 
 #include <QApplication>
+#include <QGuiApplication>
+#include <QMouseEvent>
 #include <QWindow>
-#include <QtGui/QGuiApplication>
-#include <QtGui/QMouseEvent>
-
 
 float CameraController::m_OrbitSpeed = 1.0f;
 float CameraController::m_PanSpeed = 1.0f;

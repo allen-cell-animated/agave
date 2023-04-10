@@ -93,6 +93,8 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << "import agave_pyclient as agave" << std::endl << std::endl;
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
+
+  // TODO use whole loadspec to get multiresolution level, selected channels and sub-ROI
   ss << obj
      << LoadVolumeFromFileCommand({ s.datasets[0].url, (int32_t)s.datasets[0].scene, (int32_t)s.datasets[0].time })
           .toPythonString()

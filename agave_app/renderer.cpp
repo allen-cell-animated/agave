@@ -250,6 +250,9 @@ Renderer::processRequest()
   // and can just return rgba byte array as a thread safe shared ptr
   // writable by render thread and readable by anyone else
   if (!this->isInterruptionRequested()) {
+    // TODO look into this way of having the main thread handle this.
+    // QMetaObject::invokeMethod(
+    //  renderDialog, [=]() { /* ... onRenderRequestProcessed(lastReq, img); ... */ }, Qt::QueuedConnection);
     emit requestProcessed(lastReq, img);
   }
   return true;

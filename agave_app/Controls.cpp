@@ -1,10 +1,11 @@
 #include "Controls.h"
 
+#include <QColorDialog>
+#include <QPaintEvent>
+#include <QPainter>
 #include <QPainterPath>
 #include <QtGlobal>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QPainter>
-#include <QtWidgets/QColorDialog>
+
 
 QColorPushButton::QColorPushButton(QWidget* pParent)
   : QPushButton(pParent)

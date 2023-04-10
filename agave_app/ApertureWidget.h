@@ -3,7 +3,7 @@
 #include "Aperture.h"
 #include "Controls.h"
 
-#include <QtWidgets/QGroupBox>
+#include <QGroupBox>
 
 class QCamera;
 

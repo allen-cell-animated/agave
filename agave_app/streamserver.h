@@ -1,15 +1,13 @@
 #ifndef STREAMSERVER_H
 #define STREAMSERVER_H
 
-#include <QtCore/QByteArray>
-#include <QtCore/QList>
-#include <QtCore/QObject>
-
 #include <QApplication>
 #include <QBuffer>
 #include <QByteArray>
 #include <QImage>
+#include <QList>
 #include <QMouseEvent>
+#include <QObject>
 #include <QPixmap>
 #include <QWheelEvent>
 #include <QWidget>
