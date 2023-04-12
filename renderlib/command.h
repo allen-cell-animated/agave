@@ -23,6 +23,7 @@ public:
   virtual int32_t parseInt32() = 0;
   virtual float parseFloat32() = 0;
   virtual std::vector<float> parseFloat32Array() = 0;
+  virtual std::vector<int32_t> parseInt32Array() = 0;
   virtual std::string parseString() = 0;
 };
 
@@ -32,6 +33,7 @@ public:
   virtual size_t writeInt32(int32_t) = 0;
   virtual size_t writeFloat32(float) = 0;
   virtual size_t writeFloat32Array(const std::vector<float>&) = 0;
+  virtual size_t writeInt32Array(const std::vector<int32_t>&) = 0;
   virtual size_t writeString(const std::string&) = 0;
 };
 
@@ -40,7 +42,8 @@ enum class CommandArgType
   I32,
   F32,
   STR,
-  F32A
+  F32A,
+  I32A
 };
 
 struct ExecutionContext
@@ -442,3 +445,36 @@ struct TrackballCameraCommandD
   float m_phi;
 };
 CMDDECL(TrackballCameraCommand, 43, "trackball_camera", CMD_ARGS({ CommandArgType::F32, CommandArgType::F32 }));
+
+struct LoadSetSourceCommandD
+{
+  std::string m_path;
+  int32_t m_scene;
+  int32_t m_level;
+};
+CMDDECL(LoadSetSourceCommand,
+        44,
+        "load_set_source",
+        CMD_ARGS({ CommandArgType::STR, CommandArgType::I32, CommandArgType::I32 }));
+
+struct LoadSetChannelsCommandD
+{
+  std::vector<int32_t> m_channels;
+};
+CMDDECL(LoadSetChannelsCommand, 45, "load_set_channels", CMD_ARGS({ CommandArgType::I32A }));
+
+struct LoadSetRegionCommandD
+{
+  int32_t m_xmin, m_xmax;
+  int32_t m_ymin, m_ymax;
+  int32_t m_zmin, m_zmax;
+};
+CMDDECL(LoadSetRegionCommand,
+        46,
+        "load_set_region",
+        CMD_ARGS({ CommandArgType::I32,
+                   CommandArgType::I32,
+                   CommandArgType::I32,
+                   CommandArgType::I32,
+                   CommandArgType::I32,
+                   CommandArgType::I32 }));

@@ -632,12 +632,43 @@ ShowBoundingBoxCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "ShowBoundingBox " << m_data.m_on;
   c->m_appScene->m_material.m_showBoundingBox = m_data.m_on ? true : false;
 }
+
 void
 TrackballCameraCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "TrackballCamera " << m_data.m_theta << " " << m_data.m_phi;
   c->m_camera->Trackball(m_data.m_theta, m_data.m_phi);
   c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+LoadSetSourceCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "LoadSetSource " << m_data.m_path << " " << m_data.m_scene << " " << m_data.m_level;
+  c->m_loadSpec.filepath = m_data.m_path;
+  c->m_loadSpec.scene = m_data.m_scene;
+  c->m_loadSpec.subpath = std::to_string(m_data.m_level);
+}
+
+void
+LoadSetChannelsCommand::execute(ExecutionContext* c)
+{
+  // TODO stream vector of channels
+  LOG_DEBUG << "LoadSetChannels "; //<< m_data.m_channels;
+  c->m_loadSpec.channels = std::vector<uint32_t>(m_data.m_channels.begin(), m_data.m_channels.end());
+}
+
+void
+LoadSetRegionCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "LoadSetRegion " << m_data.m_xmin << " " << m_data.m_xmax << " " << m_data.m_ymin << " " << m_data.m_ymax
+            << " " << m_data.m_zmin << " " << m_data.m_zmax;
+  c->m_loadSpec.minx = m_data.m_xmin;
+  c->m_loadSpec.maxx = m_data.m_xmax;
+  c->m_loadSpec.miny = m_data.m_ymin;
+  c->m_loadSpec.maxy = m_data.m_ymax;
+  c->m_loadSpec.minz = m_data.m_zmin;
+  c->m_loadSpec.maxz = m_data.m_zmax;
 }
 
 SessionCommand*
@@ -1473,6 +1504,68 @@ TrackballCameraCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+LoadSetSourceCommand*
+LoadSetSourceCommand::parse(ParseableStream* c)
+{
+  LoadSetSourceCommandD data;
+  data.m_path = c->parseString();
+  data.m_scene = c->parseInt32();
+  data.m_level = c->parseInt32();
+  return new LoadSetSourceCommand(data);
+}
+size_t
+LoadSetSourceCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeString(m_data.m_path);
+  bytesWritten += o->writeInt32(m_data.m_scene);
+  bytesWritten += o->writeInt32(m_data.m_level);
+  return bytesWritten;
+}
+
+LoadSetChannelsCommand*
+LoadSetChannelsCommand::parse(ParseableStream* c)
+{
+  LoadSetChannelsCommandD data;
+  data.m_channels = c->parseInt32Array();
+  return new LoadSetChannelsCommand(data);
+}
+size_t
+LoadSetChannelsCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32Array(m_data.m_channels);
+  return bytesWritten;
+}
+
+LoadSetRegionCommand*
+LoadSetRegionCommand::parse(ParseableStream* c)
+{
+  LoadSetRegionCommandD data;
+  data.m_xmin = c->parseInt32();
+  data.m_xmax = c->parseInt32();
+  data.m_ymin = c->parseInt32();
+  data.m_ymax = c->parseInt32();
+  data.m_zmin = c->parseInt32();
+  data.m_zmax = c->parseInt32();
+  return new LoadSetRegionCommand(data);
+}
+size_t
+LoadSetRegionCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_xmin);
+  bytesWritten += o->writeInt32(m_data.m_xmax);
+  bytesWritten += o->writeInt32(m_data.m_ymin);
+  bytesWritten += o->writeInt32(m_data.m_ymax);
+  bytesWritten += o->writeInt32(m_data.m_zmin);
+  bytesWritten += o->writeInt32(m_data.m_zmax);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -1888,6 +1981,47 @@ TrackballCameraCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_theta << ", " << m_data.m_phi;
+  ss << ")";
+  return ss.str();
+}
+std::string
+LoadSetSourceCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << "\"" << m_data.m_path << "\", ";
+  ss << m_data.m_scene << ", " << m_data.m_level;
+
+  ss << ")";
+  return ss.str();
+}
+std::string
+LoadSetChannelsCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << "[";
+  // insert comma delimited but no comma after the last entry
+  if (!m_data.m_channels.empty()) {
+    std::copy(m_data.m_channels.begin(), std::prev(m_data.m_channels.end()), std::ostream_iterator<int32_t>(ss, ", "));
+    ss << m_data.m_channels.back();
+  }
+  ss << "]";
+
+  ss << ")";
+  return ss.str();
+}
+std::string
+LoadSetRegionCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_xmin << ", " << m_data.m_xmax << ", " << m_data.m_ymin << ", " << m_data.m_ymax << ", "
+     << m_data.m_zmin << ", " << m_data.m_zmax;
+
   ss << ")";
   return ss.str();
 }
