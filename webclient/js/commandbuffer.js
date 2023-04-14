@@ -78,12 +78,8 @@ var COMMANDS = {
   SET_BOUNDING_BOX_COLOR: [41, "F32", "F32", "F32"],
   SHOW_BOUNDING_BOX: [42, "I32"],
   TRACKBALL_CAMERA: [43, "F32", "F32"],
-  // path, scene, multiresolution level
-  LOAD_SET_SOURCE: [44, "S", "I32", "I32"],
-  // channel indices
-  LOAD_SET_CHANNELS: [45, "I32A"],
-  // xmin, xmax, ymin, ymax, zmin, zmax
-  LOAD_SET_REGION: [46, "I32", "I32", "I32", "I32", "I32", "I32"],
+  // path, scene, multiresolution level, t, channel indices, region
+  LOAD_DATA: [44, "S", "I32", "I32", "I32", "I32A", "I32A"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert

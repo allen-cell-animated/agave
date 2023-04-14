@@ -94,11 +94,21 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << "r = agave.AgaveRenderer()" << std::endl;
   std::string obj = "r.";
 
-  // TODO use whole loadspec to get multiresolution level, selected channels and sub-ROI
-  ss << obj
-     << LoadVolumeFromFileCommand({ s.datasets[0].url, (int32_t)s.datasets[0].scene, (int32_t)s.datasets[0].time })
-          .toPythonString()
-     << std::endl;
+  // use whole loadspec to get multiresolution level, selected channels and sub-ROI
+  // TODO reconcile subpath with index of multiresolution level.
+  LoadDataCommandD loaddata;
+  loaddata.m_path = s.datasets[0].url;
+  loaddata.m_scene = s.datasets[0].scene;
+  loaddata.m_level = std::stoi(s.datasets[0].subpath);
+  loaddata.m_time = s.datasets[0].time;
+  loaddata.m_channels = std::vector<int32_t>(s.datasets[0].channels.begin(), s.datasets[0].channels.end());
+  loaddata.m_xmin = s.datasets[0].clipRegion[0][0];
+  loaddata.m_xmax = s.datasets[0].clipRegion[0][1];
+  loaddata.m_ymin = s.datasets[0].clipRegion[1][0];
+  loaddata.m_ymax = s.datasets[0].clipRegion[1][1];
+  loaddata.m_zmin = s.datasets[0].clipRegion[2][0];
+  loaddata.m_zmax = s.datasets[0].clipRegion[2][1];
+  ss << obj << LoadDataCommand(loaddata).toPythonString() << std::endl;
   // TODO use window size or render window capture dims?
   ss << obj << SetResolutionCommand({ s.capture.width, s.capture.height }).toPythonString() << std::endl;
   ss << obj

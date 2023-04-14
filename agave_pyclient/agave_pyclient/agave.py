@@ -871,11 +871,17 @@ class AgaveRenderer:
         # 42
         self.cb.add_command("SHOW_BOUNDING_BOX", on)
 
-    def load_set_source(
-        self, path: str, scene: int = 0, multiresolution_level: int = 0
+    def load_data(
+        self,
+        path: str,
+        scene: int = 0,
+        multiresolution_level: int = 0,
+        time: int = 0,
+        channels: List[int] = [],
+        region: List[int] = [],
     ):
         """
-        Specify the source of the volume data to load
+        Completely specify volume data to load
 
         Parameters
         ----------
@@ -887,33 +893,21 @@ class AgaveRenderer:
 
         multiresolution_level: int
             zero-based index to select the multiresolution level.  Defaults to 0
-        """
-        # 44
-        self.cb.add_command("LOAD_SET_SOURCE", path, scene, multiresolution_level)
 
-    def load_set_channels(self, channels: List[int] = []):
-        """
-        Specify the channels to load
+        time: int
+            zero-based index to select the time sample.  Defaults to 0
 
-        Parameters
-        ----------
         channels: List[int]
             zero-based indices to select the channels.  Defaults to all channels
-        """
-        # 45
-        self.cb.add_command("LOAD_SET_CHANNELS", channels)
 
-    def load_set_region(self, region: List[int] = [0, 0, 0, 0, 0, 0]):
-        """
-        Specify the region to load
-
-        Parameters
-        ----------
         region: List[int]
             6 integers specifying the region to load.  Defaults to the entire volume.
+            Any list length other than 0 or 6 is an error.
         """
-        # 46
-        self.cb.add_command("LOAD_SET_REGION", region)
+        # 44
+        self.cb.add_command(
+            "LOAD_DATA", path, scene, multiresolution_level, time, channels, region
+        )
 
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
@@ -986,39 +980,3 @@ class AgaveRenderer:
             self.redraw()
             # first frame gets zero orbit, then onward:
             self.trackball_camera(0.0, angledelta * direction * quadrantdirection)
-
-    def load_data(
-        self,
-        path: str,
-        scene: int = 0,
-        multiresolution_level: int = 0,
-        time: int = 0,
-        channels: List[int] = [],
-        region: List[int] = [0, 0, 0, 0, 0, 0],
-    ):
-        """
-        Completely specify volume data to load
-
-        Parameters
-        ----------
-        path: str
-            URL or directory or file path to the data
-
-        scene: int
-            zero-based index to select the scene, for multi-scene files. Defaults to 0
-
-        multiresolution_level: int
-            zero-based index to select the multiresolution level.  Defaults to 0
-
-        time: int
-            zero-based index to select the time sample.  Defaults to 0
-
-        channels: List[int]
-            zero-based indices to select the channels.  Defaults to all channels
-
-        region: List[int]
-            6 integers specifying the region to load.  Defaults to the entire volume.
-        """
-        self.load_set_source(path, scene, multiresolution_level)
-        self.load_set_channels(channels)
-        self.load_set_region(region)

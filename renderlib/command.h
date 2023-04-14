@@ -446,35 +446,24 @@ struct TrackballCameraCommandD
 };
 CMDDECL(TrackballCameraCommand, 43, "trackball_camera", CMD_ARGS({ CommandArgType::F32, CommandArgType::F32 }));
 
-struct LoadSetSourceCommandD
+struct LoadDataCommandD
 {
   std::string m_path;
   int32_t m_scene;
   int32_t m_level;
-};
-CMDDECL(LoadSetSourceCommand,
-        44,
-        "load_set_source",
-        CMD_ARGS({ CommandArgType::STR, CommandArgType::I32, CommandArgType::I32 }));
-
-struct LoadSetChannelsCommandD
-{
+  int32_t m_time;
   std::vector<int32_t> m_channels;
-};
-CMDDECL(LoadSetChannelsCommand, 45, "load_set_channels", CMD_ARGS({ CommandArgType::I32A }));
-
-struct LoadSetRegionCommandD
-{
   int32_t m_xmin, m_xmax;
   int32_t m_ymin, m_ymax;
   int32_t m_zmin, m_zmax;
 };
-CMDDECL(LoadSetRegionCommand,
-        46,
-        "load_set_region",
-        CMD_ARGS({ CommandArgType::I32,
+
+CMDDECL(LoadDataCommand,
+        44,
+        "load_data",
+        CMD_ARGS({ CommandArgType::STR,
                    CommandArgType::I32,
                    CommandArgType::I32,
                    CommandArgType::I32,
-                   CommandArgType::I32,
-                   CommandArgType::I32 }));
+                   CommandArgType::I32A,
+                   CommandArgType::I32A }));

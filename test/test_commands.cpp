@@ -399,27 +399,18 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_theta == data.m_theta);
     REQUIRE(cmd->m_data.m_phi == data.m_phi);
   }
-  SECTION("LoadSetSourceCommand")
+  SECTION("LoadDataCommand")
   {
-    LoadSetSourceCommandD data = { "testfile", 3, 4 };
-    auto cmd = testcodec<LoadSetSourceCommand, LoadSetSourceCommandD>(data);
-    REQUIRE(cmd->toPythonString() == "load_set_source(\"testfile\", 3, 4)");
+    LoadDataCommandD data = { "testfile", 3, 4, 5, { 0, 1, 2 }, 7, 8, 9, 10, 11, 12 };
+    auto cmd = testcodec<LoadDataCommand, LoadDataCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "load_data(\"testfile\", 3, 4, 5, [0, 1, 2], [7, 8, 9, 10, 11, 12])");
     REQUIRE(cmd->m_data.m_path == data.m_path);
     REQUIRE(cmd->m_data.m_scene == data.m_scene);
     REQUIRE(cmd->m_data.m_level == data.m_level);
-  }
-  SECTION("LoadSetChannelsCommand")
-  {
-    LoadSetChannelsCommandD data = { { 0, 1, 2, 3, 4 } };
-    auto cmd = testcodec<LoadSetChannelsCommand, LoadSetChannelsCommandD>(data);
-    REQUIRE(cmd->toPythonString() == "load_set_channels([0, 1, 2, 3, 4])");
-    REQUIRE(cmd->m_data.m_channels == data.m_channels);
-  }
-  SECTION("LoadSetRegionCommand")
-  {
-    LoadSetRegionCommandD data = { 0, 1, 2, 3, 4, 5 };
-    auto cmd = testcodec<LoadSetRegionCommand, LoadSetRegionCommandD>(data);
-    REQUIRE(cmd->toPythonString() == "load_set_region(0, 1, 2, 3, 4, 5)");
+    REQUIRE(cmd->m_data.m_time == data.m_time);
+    for (int i = 0; i < data.m_channels.size(); i++) {
+      REQUIRE(cmd->m_data.m_channels[i] == data.m_channels[i]);
+    }
     REQUIRE(cmd->m_data.m_xmin == data.m_xmin);
     REQUIRE(cmd->m_data.m_xmax == data.m_xmax);
     REQUIRE(cmd->m_data.m_ymin == data.m_ymin);

@@ -70,8 +70,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     c->m_camera->m_SceneBoundingBox.m_MaxP = c->m_appScene->m_boundingBox.GetMaxP();
     c->m_camera->SetViewMode(ViewModeFront);
 
-    // enable up to first three channels!
-    // TODO Why should it be three?
+    // enable initial channels
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
       c->m_appScene->m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
       c->m_appScene->m_material.m_opacity[i] = 1.0f;
@@ -502,8 +501,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     c->m_camera->m_SceneBoundingBox.m_MaxP = c->m_appScene->m_boundingBox.GetMaxP();
     c->m_camera->SetViewMode(ViewModeFront);
 
-    // enable up to first three channels!
-    // TODO Why should it be three?
+    // enable initial channels
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
       c->m_appScene->m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
       c->m_appScene->m_material.m_opacity[i] = 1.0f;
@@ -642,33 +640,84 @@ TrackballCameraCommand::execute(ExecutionContext* c)
 }
 
 void
-LoadSetSourceCommand::execute(ExecutionContext* c)
+LoadDataCommand::execute(ExecutionContext* c)
 {
-  LOG_DEBUG << "LoadSetSource " << m_data.m_path << " " << m_data.m_scene << " " << m_data.m_level;
+  // TODO handle errors in a client/server remote situation
+
+  LOG_DEBUG << "LoadData " << m_data.m_path << " " << m_data.m_scene << " " << m_data.m_level << " " << m_data.m_time;
   c->m_loadSpec.filepath = m_data.m_path;
   c->m_loadSpec.scene = m_data.m_scene;
   c->m_loadSpec.subpath = std::to_string(m_data.m_level);
-}
-
-void
-LoadSetChannelsCommand::execute(ExecutionContext* c)
-{
-  // TODO stream vector of channels
-  LOG_DEBUG << "LoadSetChannels "; //<< m_data.m_channels;
+  c->m_loadSpec.time = m_data.m_time;
   c->m_loadSpec.channels = std::vector<uint32_t>(m_data.m_channels.begin(), m_data.m_channels.end());
-}
-
-void
-LoadSetRegionCommand::execute(ExecutionContext* c)
-{
-  LOG_DEBUG << "LoadSetRegion " << m_data.m_xmin << " " << m_data.m_xmax << " " << m_data.m_ymin << " " << m_data.m_ymax
-            << " " << m_data.m_zmin << " " << m_data.m_zmax;
   c->m_loadSpec.minx = m_data.m_xmin;
   c->m_loadSpec.maxx = m_data.m_xmax;
   c->m_loadSpec.miny = m_data.m_ymin;
   c->m_loadSpec.maxy = m_data.m_ymax;
   c->m_loadSpec.minz = m_data.m_zmin;
   c->m_loadSpec.maxz = m_data.m_zmax;
+
+  std::unique_ptr<IFileReader> reader(FileReader::getReader(m_data.m_path));
+  if (!reader) {
+    LOG_ERROR << "Could not find a reader for file " << m_data.m_path;
+    return;
+  }
+
+  VolumeDimensions dims = reader->loadDimensions(m_data.m_path, m_data.m_scene);
+
+  std::shared_ptr<ImageXYZC> image = reader->loadFromFile(c->m_loadSpec);
+  if (!image) {
+    return;
+  }
+
+  c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
+  c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+
+  c->m_appScene->m_volume = image;
+  c->m_appScene->initSceneFromImg(image);
+
+  // Tell the camera about the volume's bounding box
+  c->m_camera->m_SceneBoundingBox.m_MinP = c->m_appScene->m_boundingBox.GetMinP();
+  c->m_camera->m_SceneBoundingBox.m_MaxP = c->m_appScene->m_boundingBox.GetMaxP();
+  c->m_camera->SetViewMode(ViewModeFront);
+
+  // TODO should we be modifying any of this state???
+  // why not retain previous channel enabled state
+
+  // enable initial channels
+  for (uint32_t i = 0; i < image->sizeC(); ++i) {
+    c->m_appScene->m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
+    c->m_appScene->m_material.m_opacity[i] = 1.0f;
+  }
+  c->m_renderSettings->SetNoIterations(0);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+
+  // fire back some json immediately...
+  nlohmann::json j;
+  j["commandId"] = (int)LoadDataCommand::m_ID;
+  j["x"] = (int)image->sizeX();
+  j["y"] = (int)image->sizeY();
+  j["z"] = (int)image->sizeZ();
+  j["c"] = (int)image->sizeC();
+  j["t"] = 1;
+  j["pixel_size_x"] = image->physicalSizeX();
+  j["pixel_size_y"] = image->physicalSizeY();
+  j["pixel_size_z"] = image->physicalSizeZ();
+  std::vector<std::string> channelNames;
+  for (uint32_t i = 0; i < image->sizeC(); ++i) {
+    channelNames.push_back((image->channel(i)->m_name));
+  }
+  j["channel_names"] = channelNames;
+  std::vector<uint16_t> channelMaxIntensity;
+  for (uint32_t i = 0; i < image->sizeC(); ++i) {
+    channelMaxIntensity.push_back(image->channel(i)->m_max);
+  }
+  j["channel_max_intensity"] = channelMaxIntensity;
+
+  c->m_message = j.dump();
 }
 
 SessionCommand*
@@ -1504,65 +1553,46 @@ TrackballCameraCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
-LoadSetSourceCommand*
-LoadSetSourceCommand::parse(ParseableStream* c)
+LoadDataCommand*
+LoadDataCommand::parse(ParseableStream* c)
 {
-  LoadSetSourceCommandD data;
+  LoadDataCommandD data;
   data.m_path = c->parseString();
   data.m_scene = c->parseInt32();
   data.m_level = c->parseInt32();
-  return new LoadSetSourceCommand(data);
+  data.m_time = c->parseInt32();
+  data.m_channels = c->parseInt32Array();
+  data.m_xmax = 0;
+  data.m_xmin = 0;
+  data.m_ymax = 0;
+  data.m_ymin = 0;
+  data.m_zmax = 0;
+  data.m_zmin = 0;
+  std::vector<int32_t> region = c->parseInt32Array();
+  if (region.size() == 6) {
+    data.m_xmin = region[0];
+    data.m_xmax = region[1];
+    data.m_ymin = region[2];
+    data.m_ymax = region[3];
+    data.m_zmin = region[4];
+    data.m_zmax = region[5];
+  } else if (region.size() != 0) {
+    LOG_ERROR << "Bad region data for LoadDataCommand";
+  }
+  return new LoadDataCommand(data);
 }
 size_t
-LoadSetSourceCommand::write(WriteableStream* o) const
+LoadDataCommand::write(WriteableStream* o) const
 {
   size_t bytesWritten = 0;
   bytesWritten += o->writeInt32(m_ID);
   bytesWritten += o->writeString(m_data.m_path);
   bytesWritten += o->writeInt32(m_data.m_scene);
   bytesWritten += o->writeInt32(m_data.m_level);
-  return bytesWritten;
-}
-
-LoadSetChannelsCommand*
-LoadSetChannelsCommand::parse(ParseableStream* c)
-{
-  LoadSetChannelsCommandD data;
-  data.m_channels = c->parseInt32Array();
-  return new LoadSetChannelsCommand(data);
-}
-size_t
-LoadSetChannelsCommand::write(WriteableStream* o) const
-{
-  size_t bytesWritten = 0;
-  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_time);
   bytesWritten += o->writeInt32Array(m_data.m_channels);
-  return bytesWritten;
-}
-
-LoadSetRegionCommand*
-LoadSetRegionCommand::parse(ParseableStream* c)
-{
-  LoadSetRegionCommandD data;
-  data.m_xmin = c->parseInt32();
-  data.m_xmax = c->parseInt32();
-  data.m_ymin = c->parseInt32();
-  data.m_ymax = c->parseInt32();
-  data.m_zmin = c->parseInt32();
-  data.m_zmax = c->parseInt32();
-  return new LoadSetRegionCommand(data);
-}
-size_t
-LoadSetRegionCommand::write(WriteableStream* o) const
-{
-  size_t bytesWritten = 0;
-  bytesWritten += o->writeInt32(m_ID);
-  bytesWritten += o->writeInt32(m_data.m_xmin);
-  bytesWritten += o->writeInt32(m_data.m_xmax);
-  bytesWritten += o->writeInt32(m_data.m_ymin);
-  bytesWritten += o->writeInt32(m_data.m_ymax);
-  bytesWritten += o->writeInt32(m_data.m_zmin);
-  bytesWritten += o->writeInt32(m_data.m_zmax);
+  bytesWritten +=
+    o->writeInt32Array({ m_data.m_xmin, m_data.m_xmax, m_data.m_ymin, m_data.m_ymax, m_data.m_zmin, m_data.m_zmax });
   return bytesWritten;
 }
 
@@ -1985,42 +2015,23 @@ TrackballCameraCommand::toPythonString() const
   return ss.str();
 }
 std::string
-LoadSetSourceCommand::toPythonString() const
+LoadDataCommand::toPythonString() const
 {
   std::ostringstream ss;
   ss << PythonName() << "(";
 
   ss << "\"" << m_data.m_path << "\", ";
-  ss << m_data.m_scene << ", " << m_data.m_level;
-
-  ss << ")";
-  return ss.str();
-}
-std::string
-LoadSetChannelsCommand::toPythonString() const
-{
-  std::ostringstream ss;
-  ss << PythonName() << "(";
-
-  ss << "[";
+  ss << m_data.m_scene << ", " << m_data.m_level << ", " << m_data.m_time;
+  ss << ", [";
   // insert comma delimited but no comma after the last entry
   if (!m_data.m_channels.empty()) {
     std::copy(m_data.m_channels.begin(), std::prev(m_data.m_channels.end()), std::ostream_iterator<int32_t>(ss, ", "));
     ss << m_data.m_channels.back();
   }
-  ss << "]";
-
-  ss << ")";
-  return ss.str();
-}
-std::string
-LoadSetRegionCommand::toPythonString() const
-{
-  std::ostringstream ss;
-  ss << PythonName() << "(";
-
+  ss << "], [";
   ss << m_data.m_xmin << ", " << m_data.m_xmax << ", " << m_data.m_ymin << ", " << m_data.m_ymax << ", "
      << m_data.m_zmin << ", " << m_data.m_zmax;
+  ss << "]";
 
   ss << ")";
   return ss.str();
