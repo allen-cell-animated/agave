@@ -55,22 +55,26 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
   }
 
   // JSON uses a separate driver
-  auto attrs_store = tensorstore::Open<::nlohmann::json, 0>(
-                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
-                       .result()
-                       .value();
-
+  auto attrs_store_open_result = tensorstore::Open<::nlohmann::json, 0>(
+                                   { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
+                                   .result();
+  if (!attrs_store_open_result.ok()) {
+    LOG_ERROR << "Error: " << attrs_store_open_result.status();
+    return ::nlohmann::json::object_t();
+  }
+  auto attrs_store = attrs_store_open_result.value();
   // Sets attrs_array to a rank-0 array of ::nlohmann::json
   auto attrs_array_result = tensorstore::Read(attrs_store).result();
 
   ::nlohmann::json attrs;
   if (attrs_array_result.ok()) {
     attrs = attrs_array_result.value()();
-    std::cout << "attrs: " << attrs << std::endl;
-  } else if (absl::IsNotFound(attrs_array_result.status())) {
-    attrs = ::nlohmann::json::object_t();
+    // std::cout << "attrs: " << attrs << std::endl;
   } else {
-    std::cout << "Error: " << attrs_array_result.status();
+    LOG_ERROR << "Error: " << attrs_array_result.status();
+    if (absl::IsNotFound(attrs_array_result.status())) {
+      attrs = ::nlohmann::json::object_t();
+    }
   }
   m_zattrs = attrs;
   return attrs;
@@ -240,40 +244,49 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
   auto multiscales = attrs["multiscales"];
   if (multiscales.is_array()) {
     auto multiscale = multiscales[scene];
+    std::vector<std::string> dimorder = { "T", "C", "Z", "Y", "X" };
     auto axes = multiscale["axes"];
-    std::vector<std::string> dimorder = getAxes(axes);
+    if (!axes.is_null()) {
+      dimorder = getAxes(axes);
+    }
     auto datasets = multiscale["datasets"];
     if (datasets.is_array()) {
       for (auto& dataset : datasets) {
         auto path = dataset["path"];
         if (path.is_string()) {
           std::string pathstr = path;
-          auto store = tensorstore::Open({ { "driver", "zarr" },
-                                           { "kvstore",
+          auto result = tensorstore::Open({ { "driver", "zarr" },
+                                            { "kvstore",
 
-                                             getKvStoreDriverParams(filepath, pathstr) } })
-                         .result()
-                         .value();
-          tensorstore::DataType dtype = store.dtype();
-          auto shape_span = store.domain().shape();
-          std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
-          std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+                                              getKvStoreDriverParams(filepath, pathstr) } })
+                          .result();
+          if (!result.ok()) {
+            LOG_ERROR << "Error: " << result.status();
+            LOG_ERROR << "Failed to open store for " << filepath << " :: " << pathstr;
+          } else {
+            auto store = result.value();
 
-          auto scale = dataset["coordinateTransformations"][0]["scale"];
-          if (scale.is_array()) {
-            std::vector<float> scalevec;
-            for (auto& s : scale) {
-              scalevec.push_back(s);
+            tensorstore::DataType dtype = store.dtype();
+            auto shape_span = store.domain().shape();
+            std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
+            std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+
+            auto scale = dataset["coordinateTransformations"][0]["scale"];
+            if (scale.is_array()) {
+              std::vector<float> scalevec;
+              for (auto& s : scale) {
+                scalevec.push_back(s);
+              }
+              MultiscaleDims zmd;
+              zmd.dimensionOrder = dimorder;
+              zmd.scale = scalevec;
+              zmd.shape = shape;
+              // TODO reconcile these strings against my other ways of specifying dtype
+              zmd.dtype = dtype.name();
+              zmd.path = pathstr;
+              zmd.channelNames = channelNames;
+              multiscaleDims.push_back(zmd);
             }
-            MultiscaleDims zmd;
-            zmd.dimensionOrder = dimorder;
-            zmd.scale = scalevec;
-            zmd.shape = shape;
-            // TODO reconcile these strings against my other ways of specifying dtype
-            zmd.dtype = dtype.name();
-            zmd.path = pathstr;
-            zmd.channelNames = channelNames;
-            multiscaleDims.push_back(zmd);
           }
         }
       }
@@ -353,6 +366,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
     auto result = openFuture.result();
     if (!result.ok()) {
+      LOG_ERROR << "Error: " << result.status();
       return emptyimage;
     }
 
@@ -449,6 +463,9 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
       auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else if (levelDims.dtype == "float32") {
+      auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
       auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
