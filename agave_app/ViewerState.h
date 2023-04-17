@@ -35,7 +35,7 @@ Serialize::LightSettings_V1
 fromLight(const Light& light);
 
 Serialize::CaptureSettings
-fromCaptureSettings(const CaptureSettings& captureSettings);
+fromCaptureSettings(const CaptureSettings& captureSettings, int viewWidth, int viewHeight);
 
 Serialize::LutParams_V1
 fromGradientData(const GradientData& lutParams);

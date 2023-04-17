@@ -32,7 +32,6 @@
 #include <QSettings>
 #include <QToolBar>
 
-
 #include <filesystem>
 
 agaveGui::agaveGui(QWidget* parent)
@@ -998,7 +997,7 @@ agaveGui::appToViewerState()
 
   // capture settings
 
-  v.capture = fromCaptureSettings(m_captureSettings);
+  v.capture = fromCaptureSettings(m_captureSettings, m_glView->width(), m_glView->height());
 
   return v;
 }

@@ -229,10 +229,15 @@ void
 SetResolutionCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetResolution " << m_data.m_x << " " << m_data.m_y;
-  c->m_camera->m_Film.m_Resolution.SetResX(m_data.m_x);
-  c->m_camera->m_Film.m_Resolution.SetResY(m_data.m_y);
+  if (m_data.m_x == 0 || m_data.m_y == 0) {
+    LOG_ERROR << "Invalid resolution: " << m_data.m_x << ", " << m_data.m_y;
+  }
+  int32_t x = std::max(m_data.m_x, 2);
+  int32_t y = std::max(m_data.m_y, 2);
+  c->m_camera->m_Film.m_Resolution.SetResX(x);
+  c->m_camera->m_Film.m_Resolution.SetResY(y);
   if (c->m_renderer) {
-    c->m_renderer->resizeGL(m_data.m_x, m_data.m_y);
+    c->m_renderer->resizeGL(x, y);
   }
   c->m_renderSettings->SetNoIterations(0);
 }

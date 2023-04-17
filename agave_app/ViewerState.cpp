@@ -348,15 +348,13 @@ fromLight(const Light& lt)
 }
 
 Serialize::CaptureSettings
-fromCaptureSettings(const CaptureSettings& cs)
+fromCaptureSettings(const CaptureSettings& cs, int viewWidth, int viewHeight)
 {
   Serialize::CaptureSettings s;
-  // TODO make sure capture settings are initialized to window size until
+  // make sure capture settings are initialized to window size until
   // render dialog has been opened.
-  // v.m_resolutionX = m_glView->size().width();
-  // v.m_resolutionY = m_glView->size().height();
-  s.width = cs.width;
-  s.height = cs.height;
+  s.width = cs.width == 0 ? viewWidth : cs.width;
+  s.height = cs.height == 0 ? viewHeight : cs.height;
   s.samples = cs.samples;
   s.seconds = cs.duration;
   s.durationType = g_RenderDurationTypeToPermId[cs.durationType];
