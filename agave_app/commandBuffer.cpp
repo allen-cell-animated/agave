@@ -208,9 +208,11 @@ std::vector<int32_t>
 CommandBufferIterator::parseInt32Array()
 {
   int32_t len = parseInt32();
-  int32_t* p = (int32_t*)(_currentPos);
-  std::vector<int32_t> v(p, p + len);
-  _currentPos += len * sizeof(int32_t);
+  std::vector<int32_t> v(len);
+  for (int i = 0; i < len; ++i) {
+    int32_t value = parseInt32();
+    v[i] = value;
+  }
   return v;
 }
 
@@ -253,9 +255,10 @@ size_t
 CommandBufferWriter::writeInt32Array(const std::vector<int32_t>& v)
 {
   writeInt32((int32_t)v.size());
-  memcpy(_currentPos, v.data(), v.size() * sizeof(int32_t));
-  _currentPos += v.size() * sizeof(float);
-  return 4 + v.size() * sizeof(float);
+  for (auto i = v.begin(); i != v.end(); ++i) {
+    writeInt32(*i);
+  }
+  return 4 + v.size() * sizeof(int32_t);
 }
 
 size_t
