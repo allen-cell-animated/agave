@@ -45,6 +45,8 @@ struct LoadSpec
   static std::string bytesToStringLabel(size_t mem, int decimals = 1);
 
   std::string getFilename() const;
+
+  static std::string getFilename(const std::string& filepath);
 };
 
 class IFileReader

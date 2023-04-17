@@ -149,7 +149,7 @@ LoadSpec::getMemoryEstimate() const
 }
 
 std::string
-LoadSpec::getFilename() const
+LoadSpec::getFilename(const std::string& filepath)
 {
   if (filepath.empty()) {
     return filepath;
@@ -162,6 +162,12 @@ LoadSpec::getFilename() const
     filename = filename.substr(filename.rfind("/") + 1);
   }
   return filename;
+}
+
+std::string
+LoadSpec::getFilename() const
+{
+  return LoadSpec::getFilename(filepath);
 }
 
 std::string

@@ -83,8 +83,7 @@ stateFromJson(const nlohmann::json& jsonDoc)
 QString
 stateToPythonScript(const Serialize::ViewerState& s)
 {
-  QFileInfo fi(QString::fromStdString(s.datasets[0].url));
-  QString outFileName = fi.baseName();
+  std::string outFileName = LoadSpec::getFilename(s.datasets[0].url);
 
   std::ostringstream ss;
   ss << "# pip install agave_pyclient" << std::endl;
@@ -99,7 +98,16 @@ stateToPythonScript(const Serialize::ViewerState& s)
   LoadDataCommandD loaddata;
   loaddata.m_path = s.datasets[0].url;
   loaddata.m_scene = s.datasets[0].scene;
-  loaddata.m_level = std::stoi(s.datasets[0].subpath);
+  try {
+    // TODO this is not necessarily a valid conversion!
+    // dataset spec should probably store both level index and string subpath?
+    // or only convert level index to string for zarr and store integer everywhere?
+    loaddata.m_level = std::stoi(s.datasets[0].subpath);
+  } catch (...) {
+    // anything bad that happened in stoi should be ok to catch here
+    // unless the subpath string is something REALLY crazy.
+    loaddata.m_level = 0;
+  }
   loaddata.m_time = s.datasets[0].time;
   loaddata.m_channels = std::vector<int32_t>(s.datasets[0].channels.begin(), s.datasets[0].channels.end());
   loaddata.m_xmin = s.datasets[0].clipRegion[0][0];
@@ -229,7 +237,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
      << std::endl;
   ss << obj << SetLightSizeCommand({ 0, light1.width, light1.height }).toPythonString() << std::endl;
 
-  ss << obj << SessionCommand({ outFileName.toStdString() + ".png" }).toPythonString() << std::endl;
+  ss << obj << SessionCommand({ outFileName + ".png" }).toPythonString() << std::endl;
   ss << obj << RequestRedrawCommand({}).toPythonString() << std::endl;
   std::string sout(ss.str());
   // LOG_DEBUG << s;
