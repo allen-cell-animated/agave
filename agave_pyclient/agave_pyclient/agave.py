@@ -876,7 +876,8 @@ class AgaveRenderer:
         Parameters
         ----------
         path: str
-            URL or directory or file path to the data. The path must be locally accessible from the AGAVE server.
+            URL or directory or file path to the data. The path must be locally
+            accessible from the AGAVE server.
 
         scene: int
             zero-based index to select the scene, for multi-scene files. Defaults to 0
