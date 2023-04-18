@@ -401,21 +401,30 @@ TEST_CASE("Commands can write and read from binary", "[command]")
   }
   SECTION("LoadDataCommand")
   {
-    LoadDataCommandD data = { "testfile", 3, 4, 5, { 0, 1, 2 }, 7, 8, 9, 10, 11, 12 };
-    auto cmd = testcodec<LoadDataCommand, LoadDataCommandD>(data);
-    REQUIRE(cmd->toPythonString() == "load_data(\"testfile\", 3, 4, 5, [0, 1, 2], [7, 8, 9, 10, 11, 12])");
-    REQUIRE(cmd->m_data.m_path == data.m_path);
-    REQUIRE(cmd->m_data.m_scene == data.m_scene);
-    REQUIRE(cmd->m_data.m_level == data.m_level);
-    REQUIRE(cmd->m_data.m_time == data.m_time);
-    for (int i = 0; i < data.m_channels.size(); i++) {
-      REQUIRE(cmd->m_data.m_channels[i] == data.m_channels[i]);
+    std::vector<LoadDataCommandD> datasets = {
+      { "testfile", 3, 4, 5, { 0, 1, 2 }, 7, 8, 9, 10, 11, 12 },
+      { "testfile", 3, 4, 5, {}, 0, 0, 0, 0, 0, 0 },
+    };
+    std::vector<std::string> pystrings = { "load_data(\"testfile\", 3, 4, 5, [0, 1, 2], [7, 8, 9, 10, 11, 12])",
+                                           "load_data(\"testfile\", 3, 4, 5, [], [0, 0, 0, 0, 0, 0])" };
+
+    for (size_t i = 0; i < datasets.size(); ++i) {
+      auto data = datasets[i];
+      auto cmd = testcodec<LoadDataCommand, LoadDataCommandD>(data);
+      REQUIRE(cmd->toPythonString() == pystrings[i]);
+      REQUIRE(cmd->m_data.m_path == data.m_path);
+      REQUIRE(cmd->m_data.m_scene == data.m_scene);
+      REQUIRE(cmd->m_data.m_level == data.m_level);
+      REQUIRE(cmd->m_data.m_time == data.m_time);
+      for (int i = 0; i < data.m_channels.size(); i++) {
+        REQUIRE(cmd->m_data.m_channels[i] == data.m_channels[i]);
+      }
+      REQUIRE(cmd->m_data.m_xmin == data.m_xmin);
+      REQUIRE(cmd->m_data.m_xmax == data.m_xmax);
+      REQUIRE(cmd->m_data.m_ymin == data.m_ymin);
+      REQUIRE(cmd->m_data.m_ymax == data.m_ymax);
+      REQUIRE(cmd->m_data.m_zmin == data.m_zmin);
+      REQUIRE(cmd->m_data.m_zmax == data.m_zmax);
     }
-    REQUIRE(cmd->m_data.m_xmin == data.m_xmin);
-    REQUIRE(cmd->m_data.m_xmax == data.m_xmax);
-    REQUIRE(cmd->m_data.m_ymin == data.m_ymin);
-    REQUIRE(cmd->m_data.m_ymax == data.m_ymax);
-    REQUIRE(cmd->m_data.m_zmin == data.m_zmin);
-    REQUIRE(cmd->m_data.m_zmax == data.m_zmax);
   }
 }

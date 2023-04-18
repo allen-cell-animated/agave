@@ -1567,13 +1567,8 @@ LoadDataCommand::parse(ParseableStream* c)
   data.m_level = c->parseInt32();
   data.m_time = c->parseInt32();
   data.m_channels = c->parseInt32Array();
-  data.m_xmax = 0;
-  data.m_xmin = 0;
-  data.m_ymax = 0;
-  data.m_ymin = 0;
-  data.m_zmax = 0;
-  data.m_zmin = 0;
   std::vector<int32_t> region = c->parseInt32Array();
+  // load from array only if complete.
   if (region.size() == 6) {
     data.m_xmin = region[0];
     data.m_xmax = region[1];
@@ -1581,8 +1576,17 @@ LoadDataCommand::parse(ParseableStream* c)
     data.m_ymax = region[3];
     data.m_zmin = region[4];
     data.m_zmax = region[5];
-  } else if (region.size() != 0) {
-    LOG_ERROR << "Bad region data for LoadDataCommand";
+  } else {
+    data.m_xmax = 0;
+    data.m_xmin = 0;
+    data.m_ymax = 0;
+    data.m_ymin = 0;
+    data.m_zmax = 0;
+    data.m_zmin = 0;
+
+    if (region.size() != 0) {
+      LOG_ERROR << "Bad region data for LoadDataCommand";
+    }
   }
   return new LoadDataCommand(data);
 }
