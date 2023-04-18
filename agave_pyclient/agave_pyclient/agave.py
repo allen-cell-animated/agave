@@ -203,7 +203,7 @@ class AgaveRenderer:
 
     def load_ome_tif(self, name: str):
         """
-        DEPRECATED. Use load_volume_from_file
+        DEPRECATED. Use load_data
         """
         # 2
         self.cb.add_command("LOAD_OME_TIF", name)
@@ -816,17 +816,7 @@ class AgaveRenderer:
 
     def load_volume_from_file(self, path: str, scene: int, time: int):
         """
-        Load a volume
-
-        Parameters
-        ----------
-        path: str
-            The file path must be locally accessible from where the AGAVE server is
-            running.
-        scene: int
-            zero-based index to select the scene, for multi-scene files. Defaults to 0
-        time: int
-            zero-based index to select the time sample.  Defaults to 0
+        DEPRECATED. Use load_data
         """
         # 39
         self.cb.add_command("LOAD_VOLUME_FROM_FILE", path, scene, time)
@@ -886,7 +876,7 @@ class AgaveRenderer:
         Parameters
         ----------
         path: str
-            URL or directory or file path to the data
+            URL or directory or file path to the data. The path must be locally accessible from the AGAVE server.
 
         scene: int
             zero-based index to select the scene, for multi-scene files. Defaults to 0
