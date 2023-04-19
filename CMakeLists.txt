@@ -54,7 +54,7 @@ if(WIN32)
 elseif(APPLE)
   set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
 else()
-  set(GUESS_Qt6_DIR /qt/${AGAVE_QT_VERSION}/gcc_64)
+  set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif(WIN32)
 
