@@ -178,8 +178,7 @@ private:
   QPushButton* mZoomOutButton;
   QPushButton* mZoomFitButton;
 
-  QToolBar* mToolbar;
-
+  QWidget* mToolbar;
   std::vector<QWidget*> mWidgetsToDisableWhileRendering;
 
   int mMainViewWidth;
