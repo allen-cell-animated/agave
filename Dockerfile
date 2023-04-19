@@ -35,8 +35,7 @@ RUN pip3 install --upgrade pip
 # get Qt installed
 ENV QT_VERSION=6.5.0
 RUN pip3 install aqtinstall
-RUN aqt install --outputdir /qt ${QT_VERSION} linux desktop gcc_64
-
+RUN aqt install-qt --outputdir /qt linux desktop ${QT_VERSION} -m qtwebsockets qtimageformats
 # required for qt offscreen platform plugin
 RUN apt-get install -y libfontconfig
 
@@ -50,6 +49,7 @@ RUN git submodule update --init --recursive
 
 # build agave project
 ENV QTDIR=/qt/${QT_VERSION}/gcc_64
+ENV Qt6_DIR=/qt/${QT_VERSION}/gcc_64
 RUN cd ./build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make
