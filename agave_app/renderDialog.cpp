@@ -1178,7 +1178,7 @@ bool
 RenderDialog::getUserCancelConfirmation()
 {
   QMessageBox::StandardButton btn =
-    QMessageBox::question(this, "Cancel Render?", "Are you sure you want to cancel the render currently in progress?");
+    QMessageBox::question(this, "Stop Render?", "Are you sure you want to stop the render currently in progress?");
   if (btn == QMessageBox::Yes) {
     return true;
   } else {
