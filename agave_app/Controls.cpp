@@ -6,7 +6,6 @@
 #include <QPainterPath>
 #include <QtGlobal>
 
-
 QColorPushButton::QColorPushButton(QWidget* pParent)
   : QPushButton(pParent)
   , m_Margin(5)
@@ -383,6 +382,12 @@ QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
   QObject::connect(&m_slider, QOverload<int>::of(&QSlider::sliderMoved), [this](int v) {
     this->m_spinner.blockSignals(true);
     this->m_spinner.setValue(v);
+    this->m_spinner.blockSignals(false);
+  });
+  // keep slider and spinner in sync
+  QObject::connect(&m_slider, &QSlider::sliderReleased, [this]() {
+    this->m_spinner.blockSignals(true);
+    this->m_spinner.setValue(this->m_slider.value());
     this->m_spinner.blockSignals(false);
   });
 
