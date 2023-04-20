@@ -41,7 +41,7 @@ AssetPathCommand::execute(ExecutionContext* c)
 void
 LoadOmeTifCommand::execute(ExecutionContext* c)
 {
-  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
+  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadData command.";
   LOG_DEBUG << "LoadOmeTif command: " << m_data.m_name;
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(m_data.m_name.c_str(), &buf) == 0) {
@@ -471,6 +471,7 @@ SetControlPointsCommand::execute(ExecutionContext* c)
 void
 LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 {
+  LOG_WARNING << "LoadVolumeFromFile command is deprecated. Prefer LoadData command.";
   LOG_DEBUG << "LoadVolumeFromFile command: " << m_data.m_path << " S=" << m_data.m_scene << " T=" << m_data.m_time;
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(m_data.m_path.c_str(), &buf) == 0) {
@@ -760,7 +761,7 @@ AssetPathCommand::write(WriteableStream* o) const
 LoadOmeTifCommand*
 LoadOmeTifCommand::parse(ParseableStream* c)
 {
-  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
+  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadData command.";
   LoadOmeTifCommandD data;
   data.m_name = c->parseString();
   return new LoadOmeTifCommand(data);
@@ -1471,6 +1472,7 @@ SetControlPointsCommand::write(WriteableStream* o) const
 LoadVolumeFromFileCommand*
 LoadVolumeFromFileCommand::parse(ParseableStream* c)
 {
+  LOG_WARNING << "LoadVolumeFromFile command is deprecated. Prefer LoadData command.";
   LoadVolumeFromFileCommandD data;
   data.m_path = c->parseString();
   data.m_scene = c->parseInt32();
@@ -1626,7 +1628,7 @@ AssetPathCommand::toPythonString() const
 std::string
 LoadOmeTifCommand::toPythonString() const
 {
-  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadVolumeFromFile command.";
+  LOG_WARNING << "LoadOmeTif command is deprecated. Prefer LoadData command.";
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << "\"" << m_data.m_name << "\"";
@@ -1971,6 +1973,7 @@ SetControlPointsCommand::toPythonString() const
 std::string
 LoadVolumeFromFileCommand::toPythonString() const
 {
+  LOG_WARNING << "LoadVolumeFromFile command is deprecated. Prefer LoadData command.";
   std::ostringstream ss;
   ss << PythonName() << "(";
 
