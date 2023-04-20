@@ -304,6 +304,7 @@ QGroupBox
   mRenderSamplesEdit->setValue(mCaptureSettings->samples);
   mRenderTimeEdit = new QTimeEdit(this);
   mRenderTimeEdit->setDisplayFormat("hh:mm:ss");
+  mRenderTimeEdit->setMinimumTime(QTime(0, 0, 1));
   int h = mCaptureSettings->duration / (60 * 60);
   int m = (mCaptureSettings->duration - h * 60 * 60) / 60;
   int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
