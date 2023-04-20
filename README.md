@@ -87,6 +87,7 @@ export Qt6_DIR=~/Qt/6.5.0/gcc_64
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
 - sudo apt install libspdlog-dev
+- sudo apt install nasm
 
 ```
 mkdir build

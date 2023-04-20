@@ -17,6 +17,7 @@ RUN mkdir /agave && \
     libegl1-mesa-dev \
     libgles2-mesa-dev \
     libegl1 \
+    nasm \
     xvfb \
     xauth
 
