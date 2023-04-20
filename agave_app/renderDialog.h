@@ -214,6 +214,7 @@ private:
   bool getOverwriteConfirmation();
   bool isRenderInProgress();
   bool getUserCancelConfirmation();
+  void updateUIReadyToRender();
   void updateUIStartRendering();
   void updateUIStopRendering(bool completed);
 

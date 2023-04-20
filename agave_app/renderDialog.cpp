@@ -646,6 +646,14 @@ RenderDialog::setImage(QImage* image)
 }
 
 void
+RenderDialog::updateUIReadyToRender()
+{
+  if (mRenderProgressLabel) {
+    mRenderProgressLabel->setText(QString::fromStdString("<b>Render</b> " + m_loadSpec.getFilename()));
+  }
+}
+
+void
 RenderDialog::updateUIStartRendering()
 {
   mRenderButton->setVisible(false);
@@ -708,17 +716,18 @@ RenderDialog::getOverwriteConfirmation()
 void
 RenderDialog::render()
 {
-  // for time series, we will try to get overwrite confirmation.
-  // for single frames, we will rely on generated unique filenames.
-  if (mTimeSeriesProgressLabel && !getOverwriteConfirmation()) {
-    return;
-  }
-
-  updateUIStartRendering();
 
   if (!this->m_renderThread || m_renderThread->isFinished()) {
 
     resetProgress();
+
+    // for time series, we will try to get overwrite confirmation.
+    // for single frames, we will rely on generated unique filenames.
+    if (mTimeSeriesProgressLabel && !getOverwriteConfirmation()) {
+      return;
+    }
+
+    updateUIStartRendering();
 
     if (!m_renderThread) {
 
@@ -975,6 +984,7 @@ RenderDialog::updateWidth(const QString& w)
 
   updatePreviewImage();
   resetProgress();
+  updateUIReadyToRender();
 }
 
 void
@@ -997,6 +1007,7 @@ RenderDialog::updateHeight(const QString& h)
 
   updatePreviewImage();
   resetProgress();
+  updateUIReadyToRender();
 }
 
 int
@@ -1026,6 +1037,8 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
     mRenderSamplesEdit->setEnabled(false);
   }
   mRenderDurationSettings->setCurrentIndex(type);
+  resetProgress();
+  updateUIReadyToRender();
 }
 
 void
@@ -1035,6 +1048,8 @@ RenderDialog::updateRenderSamples(int s)
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setMaximum(s);
   }
+  resetProgress();
+  updateUIReadyToRender();
 }
 
 void
@@ -1045,6 +1060,8 @@ RenderDialog::updateRenderTime(const QTime& t)
   if (mRenderDurationType == eRenderDurationType::TIME) {
     mFrameProgressBar->setMaximum(mCaptureSettings->duration);
   }
+  resetProgress();
+  updateUIReadyToRender();
 }
 
 void
@@ -1110,6 +1127,8 @@ RenderDialog::onStartTimeChanged(int t)
   mCaptureSettings->startTime = t;
 
   updateTimeSeriesProgressLabel();
+  resetProgress();
+  updateUIReadyToRender();
 }
 
 void
@@ -1125,6 +1144,8 @@ RenderDialog::onEndTimeChanged(int t)
   mCaptureSettings->endTime = t;
 
   updateTimeSeriesProgressLabel();
+  resetProgress();
+  updateUIReadyToRender();
 }
 
 void
