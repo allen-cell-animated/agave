@@ -533,6 +533,14 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
 
   std::shared_ptr<IFileReader> reader(FileReader::getReader(file));
   if (!reader) {
+    QMessageBox(
+      QMessageBox::Warning,
+      "Error",
+      "Could not determine filetype.  Make sure you supply a valid URL or filepath to a file supported by AGAVE " +
+        QString::fromStdString(file),
+      QMessageBox::Ok,
+      this)
+      .exec();
     LOG_ERROR << "Could not find a reader for file " << file;
     return false;
   }
