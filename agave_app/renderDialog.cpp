@@ -374,7 +374,7 @@ QGroupBox
   mImagePreviewLabel = new QLabel("Image will populate once you start rendering.", mImageView);
   mImagePreviewLabel->setAlignment(Qt::AlignCenter);
   mImagePreviewLabel->setStyleSheet("QLabel { background-color : silver; color : black; }");
-  mImagePreviewLabel->setMargin(8);
+  mImagePreviewLabel->setMargin(12);
 
   mToolbar = new QWidget(mImageView);
   QHBoxLayout* toolbarLayout = new QHBoxLayout(mToolbar);
