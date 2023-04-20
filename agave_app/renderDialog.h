@@ -177,6 +177,7 @@ private:
   QPushButton* mZoomInButton;
   QPushButton* mZoomOutButton;
   QPushButton* mZoomFitButton;
+  QLabel* mImagePreviewLabel;
 
   QWidget* mToolbar;
   std::vector<QWidget*> mWidgetsToDisableWhileRendering;

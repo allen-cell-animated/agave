@@ -370,6 +370,11 @@ QGroupBox
                                       "image from the series will be saved "
                                       "individually with suffix _0000, _0001, etc.</FONT>"));
 
+  mImagePreviewLabel = new QLabel("Image will populate once you start rendering.", mImageView);
+  mImagePreviewLabel->setAlignment(Qt::AlignCenter);
+  mImagePreviewLabel->setStyleSheet("QLabel { background-color : silver; color : black; }");
+  mImagePreviewLabel->setMargin(8);
+
   mToolbar = new QWidget(mImageView);
   QHBoxLayout* toolbarLayout = new QHBoxLayout(mToolbar);
   toolbarLayout->setSpacing(0);
@@ -560,6 +565,7 @@ QGroupBox
   viewLayout->addWidget(mImageView);
   // viewLayout->addWidget(mToolbar);
   mToolbar->setParent(mImageView);
+  mImagePreviewLabel->setParent(mImageView);
 
   QHBoxLayout* mainDialogLayout = new QHBoxLayout();
   mainDialogLayout->addWidget(controlsGroupBox, 1);
@@ -656,6 +662,8 @@ RenderDialog::updateUIReadyToRender()
 void
 RenderDialog::updateUIStartRendering()
 {
+  mImagePreviewLabel->hide();
+
   mRenderButton->setVisible(false);
   mStopRenderButton->setVisible(true);
   mCloseButton->setVisible(false);
@@ -1254,6 +1262,8 @@ RenderDialog::positionToolbar()
 {
   auto s = mImageView->size();
   mToolbar->move(s.width() - mToolbar->width() - TOOLBAR_INSET, s.height() - mToolbar->height() - TOOLBAR_INSET);
+  mImagePreviewLabel->move(s.width() / 2 - mImagePreviewLabel->width() / 2,
+                           s.height() / 2 - mImagePreviewLabel->height() / 2);
 }
 
 void
@@ -1270,6 +1280,8 @@ RenderDialog::showEvent(QShowEvent* event)
 void
 RenderDialog::updatePreviewImage()
 {
+  mImagePreviewLabel->show();
+
   QImage img = makeCheckerboard(mWidth, mHeight);
   mImageView->setImage(&img);
   mImageView->fit(mWidth, mHeight);
