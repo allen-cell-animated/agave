@@ -49,10 +49,10 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mSceneInput->setValue(scene);
   mSceneInput->setVisible(false);
 
-  mMultiresolutionInput = new QComboBox(this);
+  mMultiresolutionInput = new QComboBox();
   updateMultiresolutionInput();
 
-  m_TimeSlider = new QIntSlider(this);
+  m_TimeSlider = new QIntSlider();
   int maxt = dims[0].sizeT();
   if (maxt > 1) {
     m_TimeSlider->setRange(0, maxt - 1);
@@ -137,14 +137,20 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   static const int spacing = 4;
   // layout->addRow("Scene", mSceneInput);
-  layout->addRow("Resolution Level", mMultiresolutionInput);
-  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
-  layout->addRow("Time", m_TimeSlider);
-  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  if (mMultiresolutionInput->count() > 1) {
+    layout->addRow("Resolution Level", mMultiresolutionInput);
+    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  }
+  if (m_TimeSlider->isEnabled()) {
+    layout->addRow("Time", m_TimeSlider);
+    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  }
   layout->addRow(mChannelsSection);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
-  layout->addRow(m_roiSection);
-  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  if (m_roiSection->isEnabled()) {
+    layout->addRow(m_roiSection);
+    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  }
   QFrame* hline = new QFrame();
   hline->setFrameShape(QFrame::HLine);
   layout->addRow(hline);

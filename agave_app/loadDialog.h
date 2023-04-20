@@ -35,7 +35,7 @@ public:
   LoadSpec getLoadSpec() const;
   int getMultiscaleLevelIndex() const { return mSelectedLevel; }
 
-  QSize sizeHint() const override { return QSize(400, 400); }
+  QSize sizeHint() const override { return QSize(400, 100); }
 private slots:
   void updateScene(int value);
   void updateMultiresolutionLevel(int level);
