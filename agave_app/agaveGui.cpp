@@ -288,8 +288,15 @@ bool
 agaveGui::openUrl()
 {
   std::string urlToLoad = "";
-  bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Open from URL"), tr("Enter URL here:"), QLineEdit::Normal, "", &ok);
+  QInputDialog dlg(this);
+  dlg.setInputMode(QInputDialog::TextInput);
+  dlg.setLabelText(tr("Enter URL here:"));
+  dlg.setWindowTitle(tr("Open from URL"));
+  dlg.setTextValue("");
+  dlg.setInputMethodHints(Qt::ImhUrlCharactersOnly | Qt::ImhMultiLine);
+  dlg.resize(400, dlg.sizeHint().height());
+  bool ok = dlg.exec();
+  QString text = dlg.textValue();
   if (ok && !text.isEmpty()) {
     urlToLoad = text.toStdString();
   } else {
