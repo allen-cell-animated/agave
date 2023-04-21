@@ -667,8 +667,25 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 void
 QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
+  static const int MAX_CHANNELS_CHECKED = 4;
   if (!m_scene)
     return;
+  // if we are switching one on, count how many sections are checked.
+  // if more than 4, then switch this one back off
+  if (is_checked) {
+    int count = 0;
+    for (int j = 0; j < m_channelSections.size(); j++) {
+      if (m_channelSections[j]->isChecked())
+        count++;
+    }
+    if (count > MAX_CHANNELS_CHECKED) {
+      // uncheck the one that was just checked
+      m_channelSections[i]->setChecked(false);
+      return;
+    }
+  }
+
+  // now we can actually update the state
   bool old_value = m_scene->m_material.m_enabled[i];
   if (old_value != is_checked) {
     m_scene->m_material.m_enabled[i] = is_checked;

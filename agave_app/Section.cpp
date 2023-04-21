@@ -101,3 +101,20 @@ Section::setContentLayout(QLayout& contentLayout)
   contentAnimation->setStartValue(0);
   contentAnimation->setEndValue(contentHeight);
 }
+
+bool
+Section::isChecked() const
+{
+  if (m_checkBox) {
+    return m_checkBox->isChecked();
+  }
+  return false;
+}
+
+void
+Section::setChecked(bool checked)
+{
+  if (m_checkBox) {
+    m_checkBox->setChecked(checked);
+  }
+}
