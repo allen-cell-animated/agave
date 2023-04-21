@@ -251,6 +251,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
   , mFrameNumber(0)
   , mCaptureSettings(captureSettings)
   , mTimeSeriesProgressLabel(nullptr)
+  , mRenderProgressLabel(nullptr)
   , QDialog(parent)
 {
   setWindowTitle(tr("AGAVE Render"));
