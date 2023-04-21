@@ -12,6 +12,8 @@
 #include <QFormLayout>
 #include <QLinearGradient>
 
+static const int MAX_CHANNELS_CHECKED = 4;
+
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSettings* qrs, RenderSettings* rs)
   : QGroupBox(pParent)
   , m_MainLayout()
@@ -667,7 +669,6 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 void
 QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
-  static const int MAX_CHANNELS_CHECKED = 4;
   if (!m_scene)
     return;
   // if we are switching one on, count how many sections are checked.
@@ -787,8 +788,18 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
   initLightingControls(scene);
 
+  int numEnabled = 0;
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
+    // only really allow the first 4 enabled
+    if (channelenabled) {
+      numEnabled++;
+      if (numEnabled > MAX_CHANNELS_CHECKED) {
+        channelenabled = false;
+        // disable for real!
+        m_scene->m_material.m_enabled[i] = false;
+      }
+    }
 
     Section* section =
       new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
