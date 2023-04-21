@@ -293,7 +293,7 @@ agaveGui::openUrl()
   dlg.setLabelText(tr("Enter URL here:"));
   dlg.setWindowTitle(tr("Open from URL"));
   dlg.setTextValue("");
-  dlg.setInputMethodHints(Qt::ImhUrlCharactersOnly | Qt::ImhMultiLine);
+  dlg.setInputMethodHints(Qt::ImhUrlCharactersOnly);
   dlg.resize(400, dlg.sizeHint().height());
   bool ok = dlg.exec();
   QString text = dlg.textValue();
