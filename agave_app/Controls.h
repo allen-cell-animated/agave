@@ -8,6 +8,7 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QInputDialog>
+#include <QKeyEvent>
 #include <QLineEdit>
 #include <QListView>
 #include <QPushButton>
@@ -137,6 +138,22 @@ private:
   QDoubleSlider m_slider;
 };
 
+class MySpinBoxWithEnter : public QSpinBox
+{
+  Q_OBJECT
+public:
+  virtual void keyPressEvent(QKeyEvent* event) override
+  {
+    if (event->key() == Qt::Key_Return) {
+      // remove focus
+      clearFocus();
+      // editingFinished();
+    } else {
+      QSpinBox::keyPressEvent(event);
+    }
+  }
+};
+
 class QIntSlider : public QWidget
 {
   Q_OBJECT
@@ -154,6 +171,8 @@ public:
   void setTickInterval(int ti);
 
   void setTracking(bool enable);
+  void setSpinnerKeyboardTracking(bool tracking);
+
 private slots:
   void OnValueChanged(int value);
 
@@ -162,7 +181,7 @@ signals:
 
 private:
   QGridLayout m_layout;
-  QSpinBox m_spinner;
+  MySpinBoxWithEnter m_spinner;
   QSlider m_slider;
 };
 

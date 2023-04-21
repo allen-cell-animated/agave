@@ -419,6 +419,12 @@ QIntSlider::OnValueChanged(int value)
   emit valueChanged(value);
 }
 
+void
+QIntSlider::setSpinnerKeyboardTracking(bool tracking)
+{
+  m_spinner.setKeyboardTracking(tracking);
+}
+
 int
 QIntSlider::value(void) const
 {

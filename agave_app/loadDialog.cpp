@@ -30,6 +30,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mScene = scene;
 
   setWindowTitle(tr("Load Settings"));
+  setFocusPolicy(Qt::StrongFocus);
 
   // get standard QLabel font size
   QFont f = QLabel("A").font();
@@ -53,6 +54,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   updateMultiresolutionInput();
 
   m_TimeSlider = new QIntSlider();
+  m_TimeSlider->setSpinnerKeyboardTracking(true);
   int maxt = dims[0].sizeT();
   if (maxt > 1) {
     m_TimeSlider->setRange(0, maxt - 1);
