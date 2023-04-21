@@ -31,6 +31,7 @@
 
 static const float ZOOM_STEP = 1.1f;
 static const int TOOLBAR_INSET = 6;
+static const QString kStopRenderText = "Are you sure you want to stop the render currently in progress?";
 
 // find a subrectangle of fullTargetRect that fits the aspect ratio of srcRect
 QRect
@@ -1186,8 +1187,7 @@ RenderDialog::onRenderThreadFinished()
 bool
 RenderDialog::getUserCancelConfirmation()
 {
-  QMessageBox::StandardButton btn =
-    QMessageBox::question(this, "Stop Render?", "Are you sure you want to stop the render currently in progress?");
+  QMessageBox::StandardButton btn = QMessageBox::question(this, "Stop Render?", kStopRenderText);
   if (btn == QMessageBox::Yes) {
     return true;
   } else {
@@ -1237,6 +1237,18 @@ RenderDialog::updateUIStopRendering(bool completed)
   mCloseButton->setVisible(completed);
 
   mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
+
+  if (completed) {
+    // close all messageboxes?
+    QWidgetList topWidgets = QApplication::topLevelWidgets();
+    foreach (QWidget* w, topWidgets) {
+      if (QMessageBox* mb = qobject_cast<QMessageBox*>(w)) {
+        if (mb->text() == kStopRenderText) {
+          mb->close();
+        }
+      }
+    }
+  }
 
   for (auto w : mWidgetsToDisableWhileRendering) {
     w->setEnabled(true);
