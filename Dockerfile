@@ -8,6 +8,7 @@ RUN mkdir /agave && \
     apt-get update && apt-get install -y \
     apt-utils \
     build-essential \
+    software-properties-common \
     git \
     wget \
     libspdlog-dev \
@@ -22,8 +23,12 @@ RUN mkdir /agave && \
     libzstd-dev \
     nasm
 
+RUN apt-get install -y apt-transport-https ca-certificates gnupg
+# get gcc-11 (not default on ubuntu 20.04)
+RUN apt-get install -y gcc-11 g++-11
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
 # get a current cmake
-RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg software-properties-common
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
 RUN apt-get install kitware-archive-keyring
