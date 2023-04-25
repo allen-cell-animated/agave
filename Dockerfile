@@ -25,6 +25,7 @@ RUN mkdir /agave && \
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
 # get gcc-11 (not default on ubuntu 20.04)
+RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get install -y gcc-11 g++-11
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
 RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
