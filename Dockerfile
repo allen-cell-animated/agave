@@ -46,6 +46,8 @@ RUN pip3 install aqtinstall
 RUN aqt install-qt --outputdir /qt linux desktop ${QT_VERSION} -m qtwebsockets qtimageformats
 # required for qt offscreen platform plugin
 RUN apt-get install -y libfontconfig
+ENV QTDIR=/qt/${QT_VERSION}/gcc_64
+ENV Qt6_DIR=/qt/${QT_VERSION}/gcc_64
 
 # copy agave project
 COPY . /agave
@@ -56,11 +58,9 @@ WORKDIR /agave
 RUN git submodule update --init --recursive
 
 # build agave project
-ENV QTDIR=/qt/${QT_VERSION}/gcc_64
-ENV Qt6_DIR=/qt/${QT_VERSION}/gcc_64
 RUN cd ./build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    make
+    cmake --build . --config Release -j 8
 
 # leaving this here to show how to load example data into docker image
 # RUN mkdir /agavedata
