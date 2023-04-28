@@ -295,10 +295,10 @@ stateToLight(const Serialize::ViewerState& state, int lightIndex)
   lt.m_Distance = l.distance;
   lt.m_Theta = l.theta;
   lt.m_Phi = l.phi;
-  lt.m_ColorTop = glm::vec3(l.topColor[0], l.topColor[1], l.topColor[2]);
-  lt.m_ColorMiddle = glm::vec3(l.middleColor[0], l.middleColor[1], l.middleColor[2]);
-  lt.m_ColorBottom = glm::vec3(l.bottomColor[0], l.bottomColor[1], l.bottomColor[2]);
-  lt.m_Color = glm::vec3(l.color[0], l.color[1], l.color[2]);
+  lt.m_ColorTop = glm::make_vec3(l.topColor.data());
+  lt.m_ColorMiddle = glm::make_vec3(l.middleColor.data());
+  lt.m_ColorBottom = glm::make_vec3(l.bottomColor.data());
+  lt.m_Color = glm::make_vec3(l.color.data());
   lt.m_ColorTopIntensity = l.topColorIntensity;
   lt.m_ColorMiddleIntensity = l.middleColorIntensity;
   lt.m_ColorBottomIntensity = l.bottomColorIntensity;
