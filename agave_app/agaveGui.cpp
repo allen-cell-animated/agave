@@ -431,7 +431,7 @@ agaveGui::onRenderAction()
 
   // rdialog->setImage(imcopy);
   // delete imcopy;
-
+  rdialog->setModal(true);
   rdialog->show();
   rdialog->raise();
   rdialog->activateWindow();
