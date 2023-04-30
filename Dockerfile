@@ -19,6 +19,7 @@ RUN mkdir /agave && \
     libegl1 \
     xvfb \
     xauth \
+    libzstd-dev \
     nasm
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
