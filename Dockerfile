@@ -3,31 +3,30 @@ FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04 as build
 
 # install dependencies
 ARG DEBIAN_FRONTEND=noninteractive
-RUN mkdir /agave && \
-    apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     apt-utils \
     build-essential \
     software-properties-common \
     git \
     wget \
-    libspdlog-dev \
-    libtiff-dev \
-    libglm-dev \
-    libgl1-mesa-dev \
-    libegl1-mesa-dev \
     libgles2-mesa-dev \
     libegl1 \
     xvfb \
     xauth \
+    libspdlog-dev \
+    libglm-dev \
+    libgl1-mesa-dev \
+    libegl1-mesa-dev \
+    libtiff-dev \
     libzstd-dev \
     nasm
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
 # get gcc-11 (not default on ubuntu 20.04)
-RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
-RUN apt-get install -y gcc-11 g++-11
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
+#RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
+#RUN apt-get install -y gcc-11 g++-11
+#RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
+#RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
 # get a current cmake
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
@@ -49,6 +48,7 @@ ENV QTDIR=/qt/${QT_VERSION}/gcc_64
 ENV Qt6_DIR=/qt/${QT_VERSION}/gcc_64
 
 # copy agave project
+RUN mkdir /agave
 COPY . /agave
 RUN rm -rf /agave/build
 RUN mkdir /agave/build
@@ -58,8 +58,10 @@ WORKDIR /agave
 RUN git submodule update --init --recursive
 
 # build agave project
+ENV CC=gcc-10
+ENV CXX=g++-10
 RUN cd ./build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    cmake .. && \
     cmake --build . --config Release -j 8
 
 # leaving this here to show how to load example data into docker image
