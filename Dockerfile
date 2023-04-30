@@ -4,7 +4,6 @@ FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04 as build
 # install dependencies
 ARG DEBIAN_FRONTEND=noninteractive
 RUN mkdir /agave && \
-    mkdir /agave/build && \
     apt-get update && apt-get install -y \
     apt-utils \
     build-essential \
@@ -20,7 +19,6 @@ RUN mkdir /agave && \
     libegl1 \
     xvfb \
     xauth \
-    libzstd-dev \
     nasm
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
