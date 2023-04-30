@@ -52,6 +52,7 @@ ENV Qt6_DIR=/qt/${QT_VERSION}/gcc_64
 # copy agave project
 COPY . /agave
 RUN rm -rf /agave/build/*
+RUN rm -rf /agave/build/.*
 WORKDIR /agave
 
 # install submodules
