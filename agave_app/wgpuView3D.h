@@ -11,6 +11,8 @@
 #include <QElapsedTimer>
 #include <QWidget>
 
+class QOpenGLContext;
+
 class CStatus;
 class ImageXYZC;
 class QCamera;
