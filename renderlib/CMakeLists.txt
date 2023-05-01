@@ -83,6 +83,16 @@ add_subdirectory(libCZI)
 
 # end libczi dependency
 
+# zstd dependency for tensorstore / riegeli
+FetchContent_Declare(
+	zstd
+	URL "https://github.com/facebook/zstd/archive/v1.4.5.zip"
+	URL_HASH SHA256=b6c537b53356a3af3ca3e621457751fa9a6ba96daf3aebb3526ae0f610863532
+)
+
+# Additional FetchContent_Declare calls as needed...
+FetchContent_MakeAvailable(zstd)
+
 # tensorstore dependency for renderlib
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 FetchContent_Declare(
