@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>agave_pyclient.agave &mdash; agave_pyclient 1.4.1 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>agave_pyclient.agave &mdash; agave_pyclient 1.5.0-rc.1 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
@@ -23,17 +23,21 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> agave_pyclient
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            agave_pyclient
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../agave_renderer.html">AgaveRenderer</a></li>
@@ -52,9 +56,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>agave_pyclient.agave</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">agave_pyclient.agave</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -269,7 +273,7 @@
 
 <div class="viewcode-block" id="AgaveRenderer.load_ome_tif"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_ome_tif">[docs]</a>    <span class="k">def</span> <span class="nf">load_ome_tif</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        DEPRECATED. Use load_volume_from_file</span>
+<span class="sd">        DEPRECATED. Use load_data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># 2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;LOAD_OME_TIF&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
@@ -882,17 +886,7 @@
 
 <div class="viewcode-block" id="AgaveRenderer.load_volume_from_file"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_volume_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_volume_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Load a volume</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        path: str</span>
-<span class="sd">            The file path must be locally accessible from where the AGAVE server is</span>
-<span class="sd">            running.</span>
-<span class="sd">        scene: int</span>
-<span class="sd">            zero-based index to select the scene, for multi-scene files. Defaults to 0</span>
-<span class="sd">        time: int</span>
-<span class="sd">            zero-based index to select the time sample.  Defaults to 0</span>
+<span class="sd">        DEPRECATED. Use load_data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># 39</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;LOAD_VOLUME_FROM_FILE&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span></div>
@@ -936,6 +930,45 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># 42</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SHOW_BOUNDING_BOX&quot;</span><span class="p">,</span> <span class="n">on</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgaveRenderer.load_data"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">scene</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">multiresolution_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">region</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Completely specify volume data to load</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path: str</span>
+<span class="sd">            URL or directory or file path to the data. The path must be locally</span>
+<span class="sd">            accessible from the AGAVE server.</span>
+
+<span class="sd">        scene: int</span>
+<span class="sd">            zero-based index to select the scene, for multi-scene files. Defaults to 0</span>
+
+<span class="sd">        multiresolution_level: int</span>
+<span class="sd">            zero-based index to select the multiresolution level.  Defaults to 0</span>
+
+<span class="sd">        time: int</span>
+<span class="sd">            zero-based index to select the time sample.  Defaults to 0</span>
+
+<span class="sd">        channels: List[int]</span>
+<span class="sd">            zero-based indices to select the channels.  Defaults to all channels</span>
+
+<span class="sd">        region: List[int]</span>
+<span class="sd">            6 integers specifying the region to load.  Defaults to the entire volume.</span>
+<span class="sd">            Any list length other than 0 or 6 is an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 44</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span>
+            <span class="s2">&quot;LOAD_DATA&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">multiresolution_level</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">region</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="AgaveRenderer.batch_render_turntable"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.batch_render_turntable">[docs]</a>    <span class="k">def</span> <span class="nf">batch_render_turntable</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">number_of_frames</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="n">first_frame</span><span class="o">=</span><span class="mi">0</span>

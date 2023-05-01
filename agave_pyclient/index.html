@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to agave_pyclient’s documentation! &mdash; agave_pyclient 1.4.1 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Welcome to agave_pyclient’s documentation! &mdash; agave_pyclient 1.5.0-rc.1 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -24,17 +25,21 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="#" class="icon icon-home"> agave_pyclient
+
+          
+          
+          <a href="#" class="icon icon-home">
+            agave_pyclient
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave_renderer.html">AgaveRenderer</a></li>
@@ -53,8 +58,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-      <li>Welcome to agave_pyclient’s documentation!</li>
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to agave_pyclient’s documentation!</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -66,10 +71,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="welcome-to-agave-pyclient-s-documentation">
+  <section id="welcome-to-agave-pyclient-s-documentation">
 <h1>Welcome to agave_pyclient’s documentation!<a class="headerlink" href="#welcome-to-agave-pyclient-s-documentation" title="Permalink to this headline">¶</a></h1>
-</div>
-<div class="section" id="quick-start">
+</section>
+<section id="quick-start">
 <h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install agave_pyclient</span>
 </pre></div>
@@ -84,7 +89,7 @@
 <span class="c1"># 1. connect to the agave server</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">agave_pyclient</span><span class="o">.</span><span class="n">AgaveRenderer</span><span class="p">()</span>
 <span class="c1"># 2. tell it what data to load</span>
-<span class="n">r</span><span class="o">.</span><span class="n">load_volume_from_file</span><span class="p">(</span><span class="s2">&quot;my_favorite.ome.tiff&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">r</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;my_favorite.ome.tiff&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[])</span>
 <span class="c1"># 3. set some render settings (abbreviated list here)</span>
 <span class="n">r</span><span class="o">.</span><span class="n">set_resolution</span><span class="p">(</span><span class="mi">681</span><span class="p">,</span> <span class="mi">612</span><span class="p">)</span>
 <span class="n">r</span><span class="o">.</span><span class="n">background_color</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -102,7 +107,7 @@
 </div>
 <div class="toctree-wrapper compound">
 </div>
-</div>
+</section>
 
 
            </div>
