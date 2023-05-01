@@ -13,7 +13,7 @@ include(ExternalProject)
 ExternalProject_Add(
 	wgpu_native
 	GIT_REPOSITORY "https://github.com/gfx-rs/wgpu-native.git"
-	GIT_TAG "origin/master" # "v0.12.0.1"
+	GIT_TAG "origin/trunk" # "v0.16.0.1"
 	CONFIGURE_COMMAND ""
 	BUILD_COMMAND cargo build
 	COMMAND cargo build --release
@@ -23,6 +23,11 @@ ExternalProject_Add(
 	LOG_DOWNLOAD OFF   # redirect output to log-file (so that we have less clutter)
 	LOG_CONFIGURE OFF  # redirect output to log-file (so that we have less clutter)
 )
+# find_library(
+#     WGPU_LIBRARY NAMES libwgpu_native.a wgpu_native.lib wgpu_native
+#     HINTS ${WGPU_NATIVE_LIB_DIR}
+#     REQUIRED
+# )
 
 if(MSVC)
     add_definitions(-DWGPU_TARGET=WGPU_TARGET_WINDOWS)
@@ -42,10 +47,6 @@ else(USE_WAYLAND)
 endif(USE_WAYLAND)
     target_compile_options(renderlib_wgpu PRIVATE -Wall -Wextra -pedantic)
 endif(MSVC)
-
-# find_library(WGPU_LIBRARY wgpu_native
-#     HINTS "${BINARY_DIR}/target/debug"
-# )
 
 add_dependencies(renderlib_wgpu wgpu_native)
 
