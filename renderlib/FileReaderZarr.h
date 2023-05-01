@@ -1,21 +1,35 @@
 #pragma once
 
-#include "FileReader.h"
+#include "IFileReader.h"
 #include "VolumeDimensions.h"
+
+#include "json/json.hpp"
+
+#include "tensorstore/context.h"
+#include "tensorstore/tensorstore.h"
 
 #include <memory>
 #include <string>
 
 class ImageXYZC;
 
-class FileReaderZarr
+class FileReaderZarr : public IFileReader
 {
 public:
-  FileReaderZarr();
+  FileReaderZarr(const std::string& filepath);
   virtual ~FileReaderZarr();
 
-  static std::shared_ptr<ImageXYZC> loadOMEZarr(const LoadSpec& loadSpec);
-  static VolumeDimensions loadDimensionsZarr(const std::string& filepath, uint32_t scene = 0);
-  static uint32_t loadNumScenesZarr(const std::string& filepath);
-  static std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
+  bool supportChunkedLoading() const { return true; }
+
+  std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec);
+  VolumeDimensions loadDimensions(const std::string& filepath, uint32_t scene = 0);
+  uint32_t loadNumScenes(const std::string& filepath);
+  std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
+
+private:
+  nlohmann::json jsonRead(const std::string& filepath);
+  std::vector<std::string> getChannelNames(const std::string& filepath);
+
+  nlohmann::json m_zattrs;
+  tensorstore::TensorStore<> m_store;
 };

@@ -32,72 +32,27 @@ FileReader::FileReader() {}
 
 FileReader::~FileReader() {}
 
-uint32_t
-FileReader::loadNumScenes(const std::string& filepath)
+IFileReader*
+FileReader::getReader(const std::string& filepath)
 {
   std::string extstr = getExtension(filepath);
 
   if (filepath.find("http") == 0) {
-    return FileReaderZarr::loadNumScenesZarr(filepath);
+    return new FileReaderZarr(filepath);
   } else if (extstr == ".tif" || extstr == ".tiff") {
-    return FileReaderTIFF::loadNumScenesTiff(filepath);
+    return new FileReaderTIFF(filepath);
   } else if (extstr == ".czi") {
-    return FileReaderCzi::loadNumScenesCzi(filepath);
+    return new FileReaderCzi(filepath);
   } else if (extstr == ".map" || extstr == ".mrc") {
-    return FileReaderCCP4::loadNumScenesCCP4(filepath);
+    return new FileReaderCCP4(filepath);
   } else if (extstr == ".zarr") {
-    return FileReaderZarr::loadNumScenesZarr(filepath);
+    return new FileReaderZarr(filepath);
   }
-  return 0;
-}
-
-VolumeDimensions
-FileReader::loadFileDimensions(const std::string& filepath, uint32_t scene)
-{
-  std::string extstr = getExtension(filepath);
-
-  if (filepath.find("http") == 0) {
-    return FileReaderZarr::loadDimensionsZarr(filepath, scene);
-  } else if (extstr == ".tif" || extstr == ".tiff") {
-    return FileReaderTIFF::loadDimensionsTiff(filepath, scene);
-  } else if (extstr == ".czi") {
-    return FileReaderCzi::loadDimensionsCzi(filepath, scene);
-  } else if (extstr == ".map" || extstr == ".mrc") {
-    return FileReaderCCP4::loadDimensionsCCP4(filepath, scene);
-  } else if (extstr == ".zarr") {
-    return FileReaderZarr::loadDimensionsZarr(filepath, scene);
-  }
-  return VolumeDimensions();
-}
-
-bool
-FileReader::loadMultiscaleDims(const std::string& filepath, uint32_t scene, std::vector<MultiscaleDims>& dims)
-{
-  std::vector<MultiscaleDims> loadedDims;
-
-  std::string extstr = getExtension(filepath);
-
-  if (filepath.find("http") == 0) {
-    loadedDims = FileReaderZarr::loadMultiscaleDims(filepath, scene);
-  } else if (extstr == ".tif" || extstr == ".tiff") {
-    loadedDims = FileReaderTIFF::loadMultiscaleDims(filepath, scene);
-  } else if (extstr == ".czi") {
-    loadedDims = FileReaderCzi::loadMultiscaleDims(filepath, scene);
-  } else if (extstr == ".map" || extstr == ".mrc") {
-    loadedDims = FileReaderCCP4::loadMultiscaleDims(filepath, scene);
-  } else if (extstr == ".zarr") {
-    loadedDims = FileReaderZarr::loadMultiscaleDims(filepath, scene);
-  }
-
-  if (loadedDims.size() > 0) {
-    dims = loadedDims;
-    return true;
-  }
-  return false;
+  return nullptr;
 }
 
 std::shared_ptr<ImageXYZC>
-FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
+FileReader::loadAndCache(const LoadSpec& loadSpec)
 {
   // check cache first of all.
   auto cached = sPreloadedImageCache.find(loadSpec.filepath);
@@ -110,21 +65,16 @@ FileReader::loadFromFile(const LoadSpec& loadSpec, bool addToCache)
   std::shared_ptr<ImageXYZC> image;
 
   std::string filepath = loadSpec.filepath;
-  std::string extstr = getExtension(filepath);
 
-  if (filepath.find("http") == 0) {
-    image = FileReaderZarr::loadOMEZarr(loadSpec);
-  } else if (extstr == ".tif" || extstr == ".tiff") {
-    image = FileReaderTIFF::loadOMETiff(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
-  } else if (extstr == ".czi") {
-    image = FileReaderCzi::loadCzi(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
-  } else if (extstr == ".map" || extstr == ".mrc") {
-    image = FileReaderCCP4::loadCCP4(loadSpec.filepath, &dims, loadSpec.time, loadSpec.scene);
-  } else if (extstr == ".zarr") {
-    image = FileReaderZarr::loadOMEZarr(loadSpec);
+  std::unique_ptr<IFileReader> reader(FileReader::getReader(filepath));
+  if (!reader) {
+    LOG_ERROR << "Could not find a reader for file " << filepath;
+    return nullptr;
   }
 
-  if (addToCache && image) {
+  image = reader->loadFromFile(loadSpec);
+
+  if (image) {
     sPreloadedImageCache[filepath] = image;
   }
 
@@ -199,7 +149,29 @@ LoadSpec::getMemoryEstimate() const
 }
 
 std::string
-LoadSpec::bytesToStringLabel(size_t mem)
+LoadSpec::getFilename(const std::string& filepath)
+{
+  if (filepath.empty()) {
+    return filepath;
+  }
+  std::string filename = filepath.substr(filepath.rfind("/") + 1);
+  if (filename.empty()) {
+    // try the next slash
+    filename = filepath;
+    filename.pop_back();
+    filename = filename.substr(filename.rfind("/") + 1);
+  }
+  return filename;
+}
+
+std::string
+LoadSpec::getFilename() const
+{
+  return LoadSpec::getFilename(filepath);
+}
+
+std::string
+LoadSpec::bytesToStringLabel(size_t mem, int decimals)
 {
   static const std::vector<std::string> levels = { "B", "KB", "MB", "GB", "TB", "PB" };
   double memvalue = mem;
@@ -210,7 +182,7 @@ LoadSpec::bytesToStringLabel(size_t mem)
   }
 
   std::stringstream stream;
-  stream << std::fixed << std::setprecision(4) << memvalue;
+  stream << std::fixed << std::setprecision(decimals) << memvalue;
   stream << " " << levels[level];
   std::string s = stream.str();
 
@@ -226,6 +198,11 @@ LoadSpec::toString() const
     stream << " " << subpath;
   }
   stream << " : scene " << scene << " time " << time;
+  stream << " : channels [";
+  for (auto i : channels) {
+    stream << i << ",";
+  }
+  stream << "]";
   stream << " X:[" << minx << "," << maxx << "] Y[" << miny << "," << maxy << "] Z[" << minz << "," << maxz << "]";
   std::string s = stream.str();
   return s;

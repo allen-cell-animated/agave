@@ -430,7 +430,7 @@ function executePreset(index) {
   // load image and wait and then execute the rest of the command buffer...
   const fpath = pathprefix + presets[index].name;
   var cb = new commandBuffer();
-  cb.addCommand("LOAD_VOLUME_FROM_FILE", fpath, 0, 0);
+  cb.addCommand("LOAD_DATA", fpath, 0, 0, 0, [], []);
   flushCommandBuffer(cb);
   _stream_mode_suspended = true;
 

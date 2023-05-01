@@ -17,7 +17,7 @@ git submodule update --init
 ```
 
 For WINDOWS:
-Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2019 x64 Native Tools Command Prompt"
+Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2022 x64 Native Tools Command Prompt"
 
 tensorstore requires:
 
@@ -27,12 +27,13 @@ tensorstore requires:
 - NASM, for building libjpeg-turbo, libaom, and dav1d from source (default). Must be in PATH.Not required if -DTENSORSTORE*USE_SYSTEM*{JPEG,LIBAOM,DAV1D}=ON is specified.
 - GNU Patch or equivalent. Must be in PATH.
 
-Install Qt LTS 5.15.2.
+Install Qt LTS 6.5.0.
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install --outputdir C:\Qt 5.15.2 windows desktop win64_msvc2019_64
+aqt install-qt --outputdir C:\Qt windows desktop 6.5.0 win64_msvc2019_64 -m qtwebsockets qtimageformats
+
 ```
 
 Use vcpkg (must use target triplet x64-windows) to install the following:
@@ -44,8 +45,8 @@ vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd --triplet x64-wind
 ```
 mkdir build
 cd build
-# (vs 2019)
-cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
+# (vs 2022)
+cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
 ```
 
@@ -54,8 +55,8 @@ For MAC OS: (using homebrew)
 ```
 # Install Qt. In your favorite Python virtual environment:
 pip install aqtinstall
-aqt install --outputdir ~/Qt 5.15.2 mac desktop
-export Qt_DIR=~/Qt/5.15.2/clang_64
+aqt install-qt --outputdir ~/Qt mac desktop 6.5.0 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.5.0/macos
 # and then:
 brew install spdlog glm libtiff
 
@@ -75,9 +76,10 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install --outputdir ~/Qt 5.15.2 linux desktop
+aqt install-qt --outputdir ~/Qt linux desktop 6.5.0 -m qtwebsockets qtimageformats
+
 # the next line is needed for CMake
-export Qt5_DIR=~/Qt/5.15.2/gcc_64
+export Qt6_DIR=~/Qt/6.5.0/gcc_64
 ```
 
 - sudo apt install libtiff-dev
@@ -85,6 +87,7 @@ export Qt5_DIR=~/Qt/5.15.2/gcc_64
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
 - sudo apt install libspdlog-dev
+- sudo apt install nasm
 
 ```
 mkdir build

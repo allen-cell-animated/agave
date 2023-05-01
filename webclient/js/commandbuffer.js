@@ -1,5 +1,10 @@
-// types: FLOAT32(f), INT32(i), STRING(s)=int32 and array of bytes, FLOAT32ARRAY=int32 and array of floats
-var types = { I32: 4, F32: 4, S: -1, F32A: -1 };
+// types:
+//   FLOAT32(f)
+//   INT32(i)
+//   STRING(s)=int32 and array of bytes
+//   FLOAT32ARRAY=int32 and array of floats
+//   INT32ARRAY=int32 and array of int32s
+var types = { I32: 4, F32: 4, S: -1, F32A: -1, I32A: -1 };
 
 // command id will be int32 to future-proof it.
 // note that the server needs to know these signatures too.
@@ -8,7 +13,7 @@ var COMMANDS = {
   SESSION: [0, "S"],
   // tell server where files might be (appends to existing)
   ASSET_PATH: [1, "S"],
-  // load a volume
+  // load a volume (DEPRECATED)
   LOAD_OME_TIF: [2, "S"],
   // set camera pos
   EYE: [3, "F32", "F32", "F32"],
@@ -66,12 +71,15 @@ var COMMANDS = {
   SET_ISOVALUE_THRESHOLD: [37, "I32", "F32", "F32"],
   // channel index, array of [stop, r, g, b, a]
   SET_CONTROL_POINTS: [38, "I32", "F32A"],
-  // path, scene, time
+  // path, scene, time (DEPRECATED)
   LOAD_VOLUME_FROM_FILE: [39, "S", "I32", "I32"],
+  // actually loads data
   SET_TIME: [40, "I32"],
   SET_BOUNDING_BOX_COLOR: [41, "F32", "F32", "F32"],
   SHOW_BOUNDING_BOX: [42, "I32"],
   TRACKBALL_CAMERA: [43, "F32", "F32"],
+  // path, scene, multiresolution level, t, channel indices, region
+  LOAD_DATA: [44, "S", "I32", "I32", "I32", "I32A", "I32A"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
@@ -123,6 +131,11 @@ commandBuffer.prototype = {
           bytesize += 4;
           // followed by 4 bytes per float in the array
           bytesize += 4 * command[j + 1].length;
+        } else if (argtype === "I32A") {
+          // one int32 for array length
+          bytesize += 4;
+          // followed by 4 bytes per int32 in the array
+          bytesize += 4 * command[j + 1].length;
         } else {
           bytesize += types[argtype];
         }
@@ -169,6 +182,15 @@ commandBuffer.prototype = {
             offset += 4;
             for (var k = 0; k < flist.length; ++k) {
               dataview.setFloat32(offset, flist[k], LITTLE_ENDIAN);
+              offset += 4;
+            }
+            break;
+          case "I32A":
+            var ilist = cmd[j + 1];
+            dataview.setInt32(offset, ilist.length);
+            offset += 4;
+            for (var k = 0; k < ilist.length; ++k) {
+              dataview.setInt32(offset, ilist[k], LITTLE_ENDIAN);
               offset += 4;
             }
             break;

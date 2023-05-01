@@ -12,6 +12,8 @@
 #include <QFormLayout>
 #include <QLinearGradient>
 
+static const int MAX_CHANNELS_CHECKED = 4;
+
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSettings* qrs, RenderSettings* rs)
   : QGroupBox(pParent)
   , m_MainLayout()
@@ -84,7 +86,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
 
   m_backgroundColorButton.setStatusTip(tr("Set background color"));
   m_backgroundColorButton.setToolTip(tr("Set background color"));
-  m_backgroundColorButton.SetColor(QColor(0, 0, 0, 0), true);
+  m_backgroundColorButton.SetColor(QColor(0, 0, 0), true);
   m_MainLayout.addRow("Background Color", &m_backgroundColorButton);
 
   QObject::connect(&m_backgroundColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -99,7 +101,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
 
   m_boundingBoxColorButton.setStatusTip(tr("Set bounding box color"));
   m_boundingBoxColorButton.setToolTip(tr("Set bounding box color"));
-  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255, 255), true);
+  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255), true);
   bboxLayout->addWidget(&m_boundingBoxColorButton, 1);
 
   m_MainLayout.addRow("Bounding Box", bboxLayout);
@@ -459,7 +461,7 @@ QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& c
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[1].m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -472,7 +474,7 @@ QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor&
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[0].m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -484,7 +486,7 @@ QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor&
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -496,7 +498,7 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->m_lighting.m_Lights[0].m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
@@ -568,7 +570,7 @@ QAppearanceSettingsWidget::OnBackgroundColorChanged(const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_backgroundColor[0] = rgba[0];
   m_scene->m_material.m_backgroundColor[1] = rgba[1];
@@ -580,7 +582,7 @@ QAppearanceSettingsWidget::OnBoundingBoxColorChanged(const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_boundingBoxColor[0] = rgba[0];
   m_scene->m_material.m_boundingBoxColor[1] = rgba[1];
@@ -599,7 +601,7 @@ QAppearanceSettingsWidget::OnDiffuseColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_diffuse[i * 3 + 0] = rgba[0];
   m_scene->m_material.m_diffuse[i * 3 + 1] = rgba[1];
@@ -612,7 +614,7 @@ QAppearanceSettingsWidget::OnSpecularColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_specular[i * 3 + 0] = rgba[0];
   m_scene->m_material.m_specular[i * 3 + 1] = rgba[1];
@@ -625,7 +627,7 @@ QAppearanceSettingsWidget::OnEmissiveColorChanged(int i, const QColor& color)
 {
   if (!m_scene)
     return;
-  qreal rgba[4];
+  float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
   m_scene->m_material.m_emissive[i * 3 + 0] = rgba[0];
   m_scene->m_material.m_emissive[i * 3 + 1] = rgba[1];
@@ -669,6 +671,22 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
   if (!m_scene)
     return;
+  // if we are switching one on, count how many sections are checked.
+  // if more than 4, then switch this one back off
+  if (is_checked) {
+    int count = 0;
+    for (int j = 0; j < m_channelSections.size(); j++) {
+      if (m_channelSections[j]->isChecked())
+        count++;
+    }
+    if (count > MAX_CHANNELS_CHECKED) {
+      // uncheck the one that was just checked
+      m_channelSections[i]->setChecked(false);
+      return;
+    }
+  }
+
+  // now we can actually update the state
   bool old_value = m_scene->m_material.m_enabled[i];
   if (old_value != is_checked) {
     m_scene->m_material.m_enabled[i] = is_checked;
@@ -770,8 +788,18 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
   initLightingControls(scene);
 
+  int numEnabled = 0;
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
+    // only really allow the first 4 enabled
+    if (channelenabled) {
+      numEnabled++;
+      if (numEnabled > MAX_CHANNELS_CHECKED) {
+        channelenabled = false;
+        // disable for real!
+        m_scene->m_material.m_enabled[i] = false;
+      }
+    }
 
     Section* section =
       new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);

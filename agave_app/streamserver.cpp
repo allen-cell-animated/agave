@@ -41,12 +41,8 @@ StreamServer::createNewRenderer(QWebSocket* client)
   // queued across thread boundary.  typically requestProcessed is called from another thread.
   // BlockingQueuedConnection forces send to happen immediately after render.  Default (QueuedConnection) will be fully
   // async.
-  connect(r,
-          SIGNAL(requestProcessed(RenderRequest*, QImage)),
-          this,
-          SLOT(sendImage(RenderRequest*, QImage)),
-          Qt::BlockingQueuedConnection);
-  connect(r, SIGNAL(sendString(RenderRequest*, QString)), this, SLOT(sendString(RenderRequest*, QString)));
+  connect(r, &Renderer::requestProcessed, this, &StreamServer::sendImage, Qt::BlockingQueuedConnection);
+  connect(r, &Renderer::sendString, this, &StreamServer::sendString);
 
   LOG_INFO << "Starting thread" << i << "...";
   r->start();
@@ -77,7 +73,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
   sslConfiguration.setPeerVerifyMode(QSslSocket::VerifyNone);
   sslConfiguration.setLocalCertificate(certificate);
   sslConfiguration.setPrivateKey(sslKey);
-  sslConfiguration.setProtocol(QSsl::TlsV1SslV3);
+  sslConfiguration.setProtocol(QSsl::TlsV1_0OrLater);
   _webSocketServer->setSslConfiguration(sslConfiguration);
 
   LOG_DEBUG << "QSslSocket::supportsSsl() = " << QSslSocket::supportsSsl();

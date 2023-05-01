@@ -29,40 +29,47 @@ channels are detected.
 
 Metadata embedded in the file is important for AGAVE to display the
 volume properly. AGAVE can decode OME metadata (OME-TIFF files), ImageJ
-metadata (TIFF files exported from ImageJ/FIJI), and Zeiss CZI metadata.
+metadata (TIFF files exported from ImageJ/FIJI), Zeiss CZI metadata, and OME-Zarr metadata.
 
-We recommend preparing or converting your volumetric files to OME-TIFF
+We recommend preparing or converting your volumetric files to OME-TIFF or OME-Zarr
 (see `Preparing an AGAVE Compatible ome-tiff file with
 Fiji <#preparing-an-agave-compatible-ome-tiff-file-with-fiji>`__ to
 ensure the expected data structure, channel order, etc.)
 
-AGAVE currently supports ome.tiff, tiff, .czi, and .map/.mrc image file formats
-containing either 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  CZI is the
-native file format produced by Zeiss microscopes. See
-https://www.zeiss.com/microscopy/us/products/microscope-software/zen/czi.html
-for more information. TIFF (Tagged Image File Format) is an open image
-file format commonly used to store microscopy data. See
-https://docs.openmicroscopy.org/ome-model/latest/ for more information.  The
-MRC/CCP4 file format is typically used in electron cryo-microscopy. See
-https://www.ccpem.ac.uk/mrc_format/mrc_format.php for more information.
+AGAVE currently supports the following file formats:
+* .zarr (OME-Zarr only - https://ngff.openmicroscopy.org/latest/)
+* .ome.tiff (see https://docs.openmicroscopy.org/ome-model/latest/)
+* .tiff
+* .czi (Produced by Zeiss microscopes. See https://www.zeiss.com/microscopy/en/products/software/zeiss-zen/czi-image-file-format.html)
+* .map/.mrc (Typically used in electron cryo-microscopy. See https://www.ccpem.ac.uk/mrc_format/mrc_format.php)
+AGAVE can read 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  
 
-Open Volume
-~~~~~~~~~~~
+OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL.
 
-File-->Open Volume or \[Open Volume\] toolbar button
+Open file, directory or URL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\[Open Volume\] will pop open a file browser dialog in which you can navigate to the
+File-->Open file or \[Open file\] toolbar button
+File-->Open directory or \[Open directory\] toolbar button
+File-->Open from URL or \[Open from URL\] toolbar button
+
+\[Open file\] will pop open a file browser dialog in which you can navigate to the
 volume file of choice.
+\[Open directory\] will pop open a directory browser dialog in which you can navigate to the
+OME-Zarr store of choice.
+\[Open from URL\] will pop open an input dialog in which you can enter the URL to the
+OME-Zarr store of choice.  Currently only publicly accessible URLs are supported.
 
-If the file you select cannot be loaded, an error dialog will pop open
+Once the data source location (file, directory or URL) is selected, if the data is multi-scene, a dialog will
+pop up to let you select the scene you wish to view. To view a different
+scene, just re-open the same data location.
+
+If the data you select cannot be opened or loaded for any reason, an error dialog will pop open
 to notify you. There are several possible reasons why this operation may
 fail and if AGAVE can determine the reason, it will be displayed in the
-`AGAVE log <#agave-log>`__. If the file is multi-scene, a dialog will
-pop up to let you select the scene you wish to view. To view a different
-scene, just re-open the same file using \[Open Volume\]. For files with many time samples, there is a Time panel in the user
-interface with a slider. Nothing will be loaded while dragging the
-slider; AGAVE will load the new time sample when the slider is released
-or the numeric input is incremented.
+`AGAVE log <#agave-log>`__.
+
+One the data source has been selected, the `Load Settings <#load-settings>`__ dialog will then appear to let you finalize choices for the data to be loaded.
 
 Open JSON
 ~~~~~~~~~
@@ -82,6 +89,43 @@ File-->Recent...
 
 This menu will present a list of the most recently opened volume files
 for quick selection if AGAVE was previously used on your computer.
+This choice will then open the `Load Settings <#load-settings>`__ dialog.
+
+Load Settings
+-------------
+
+In order to support loading from very large datasets, AGAVE can load subsets of data 
+based on precomputed multiresolution levels stored in the data, time series, channels, 
+and in some cases sub-regions within the spatial volume data. 
+
+OME-Zarr supports all of the above selections when present in the data.  Other formats are more restrictive and may only support a few of the options.
+The Load Settings dialog presents you with a memory estimate of how much data will be loaded with current settings.  Coupled with knowledge of your own system's configuration, this allows you to make informed choices about how much data to load.
+The memory estimate is an expected estimate of how much GPU memory AGAVE will use for rendering.  Main memory usage may be higher, but is not indicated as usually GPU memory is the limiting factor.
+
+Resolution Level
+~~~~~~~~~~~~~~~~
+
+The OME-Zarr format supports precomputed multiresolution data and will let you select the resolution level.
+The highest resolution is the default, so beware if you have a large dataset, you risk running out of memory. 
+
+Time
+~~~~
+
+If you are loading time-series data, you may select the initial time to load.
+You will be able to change the current time point after the data is loaded. 
+(See `Time Panel <#time-panel>`__)
+
+Channels
+~~~~~~~~
+
+You may choose to exclude certain channels from being loaded.  
+All channels will be selected by default. If you leave channels out, be aware you will have to reload the file to get them back.
+
+Subregion
+~~~~~~~~~
+
+For OME-Zarr data, you may select a sub-region in X, Y, and Z. This is useful for loading a subset of a large dataset.
+A typical usage might be to first load a very low resolution level and then select a sub-region of interest to then load at a higher resolution.
 
 Adjusting the camera view
 -------------------------
@@ -359,11 +403,18 @@ Output: Saving Results
 ----------------------
 
 Quick Render
-~~~~~~~~~~
+~~~~~~~~~~~~
 
 File-->Quick render or the \[Quick render\] toolbar button
 
 Save the current viewport window as a PNG, or JPG file.
+
+Render
+~~~~~~
+
+File-->Render or the \[Render\] toolbar button
+
+Opens the `Render Dialog <#render-dialog>`__
 
 Save JSON
 ~~~~~~~~~
@@ -386,6 +437,51 @@ File-->Save to Python script or \[Save to Python script\] toolbar button
 Save to Python script will save the current AGAVE session into a small Python file.
 See [Python Interface] for how to use the Python programming language to automate
 AGAVE to create animation sequences or batch rendering of many images.
+
+Render Dialog
+-------------
+
+The Render dialog lets you control various quality settings for output of your final image.  
+It also allows you to orchestrate time series batches.
+Hint: Quick Render is the best way to just get a snapshot of your 3D viewport.  Render is for when you want to more carefully control output resolution and quality.
+Progress bars for single image and time series rendering are displayed at the bottom of the dialog.
+
+Image preview
+~~~~~~~~~~~~~
+
+The preview window will update during rendering with the current image as it is being computed. 
+Left-button drag in the view to pan the image.  There are three tool buttons to let you zoom in ("+"), zoom out ("-"), and frame the image to the preview window ("[]").
+When you stop rendering and start changing any output resolution parameters, the image will reset to a checkerboard.
+
+Output Resolution
+~~~~~~~~~~~~~~~~~
+
+Choose the number of pixels for the final rendered image.  
+By default, the X and Y values are linked to maintain the same aspect ratio. 
+Changing one will cause the other to change automatically. Toggle the link icon 
+to allow them to change independently.
+
+Several Resolution Presets are offered as a convenience to quickly select commonly used output resolutions.
+
+Image Quality
+~~~~~~~~~~~~~
+
+You can choose to control the final image quality by specifying either number of 
+Samples per pixel, or how much Time to spend rendering.
+Higher values will result in higher quality.  AGAVE computes its final image by gathering samples iteratively. 
+For a quick preview render, you can set the number of samples to a low value such as 32.  For a final image, you can set the number of samples to a high value such as 1024.
+The contribution of each sample will be less than the previous sample. Therefore you may get subtle but important improvements in quality well beyond 1024 samples.
+The rate at which each sample is gathered is completely dependent on the performance characteristics of your computer. 
+If you prefer to simply have a time budget, you may also choose to select Time and specify how long to render.  The renderer will gather as many samples as possible within the specified time.
+
+Output File
+~~~~~~~~~~~
+
+Here you can select the output directory and a name for the output file.  
+AGAVE currently only renders to PNG file format.  If you are rendering a time series, 
+AGAVE will append "_0000", "_0001", etc. to the file name for each frame.
+For time series, if the file you are rendering already exists, AGAVE will prompt you to overwrite it.
+If you are rendering only a single frame, AGAVE will append a number to the file name if the file already exists.
 
 Camera Panel
 ------------
@@ -444,10 +540,14 @@ range).
 Time Panel
 ----------
 
-If your volume contains multiple time steps in the file, move the time
+For time series data, move the time
 slider or change the numeric input to load a new time sample. Beware
 that this is loading a whole new volume and can take some time. If your
-volume only has a single time, then the slider will have no effect.
+dataset only has a single time, then the slider will have no effect.
+Nothing will be loaded while dragging the
+slider; AGAVE will load the new time sample when the slider is released
+or the numeric input is incremented.
+
 
 Python Interface
 ----------------

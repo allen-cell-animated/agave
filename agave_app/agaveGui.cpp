@@ -11,30 +11,33 @@
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/version.hpp"
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
+#include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
 #include "loadDialog.h"
 #include "renderDialog.h"
 
-#include <QtCore/QElapsedTimer>
-#include <QtCore/QSettings>
-#include <QtWidgets/QAction>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QMenu>
-#include <QtWidgets/QMenuBar>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QToolBar>
+#include <QAction>
+#include <QElapsedTimer>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QSettings>
+#include <QToolBar>
 
 #include <filesystem>
 
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
+  setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
 
   createActions();
@@ -86,15 +89,20 @@ void
 agaveGui::createActions()
 {
   // TODO ensure a proper title, shortcut, icon, and statustip for every action
-  m_openAction = new QAction(tr("&Open volume..."), this);
+  m_openAction = new QAction(tr("&Open file (.tiff, ...)"), this);
   m_openAction->setShortcuts(QKeySequence::Open);
   m_openAction->setStatusTip(tr("Open an existing volume file"));
   connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-  m_openUrlAction = new QAction(tr("&Open Zarr volume..."), this);
+  m_openUrlAction = new QAction(tr("&Open from URL"), this);
   m_openUrlAction->setShortcuts(QKeySequence::Open);
-  m_openUrlAction->setStatusTip(tr("Open an existing volume file in the cloud or from local directory"));
+  m_openUrlAction->setStatusTip(tr("Open an existing volume in the cloud"));
   connect(m_openUrlAction, SIGNAL(triggered()), this, SLOT(openUrl()));
+
+  m_openDirectoryAction = new QAction(tr("&Open directory (.zarr)"), this);
+  m_openDirectoryAction->setShortcuts(QKeySequence::Open);
+  m_openDirectoryAction->setStatusTip(tr("Open an existing volume from local directory"));
+  connect(m_openDirectoryAction, SIGNAL(triggered()), this, SLOT(openDirectory()));
 
   m_openJsonAction = new QAction(tr("Open JSON..."), this);
   m_openJsonAction->setStatusTip(tr("Open an existing JSON settings file"));
@@ -106,7 +114,7 @@ agaveGui::createActions()
   connect(m_quitAction, SIGNAL(triggered()), this, SLOT(quit()));
 
   m_viewResetAction = new QAction(tr("&Reset"), this);
-  m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
+  m_viewResetAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_R));
   m_viewResetAction->setToolTip(tr("Reset the current view"));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
@@ -142,6 +150,7 @@ agaveGui::createMenus()
 {
   m_fileMenu = menuBar()->addMenu(tr("&File"));
   m_fileMenu->addAction(m_openAction);
+  m_fileMenu->addAction(m_openDirectoryAction);
   m_fileMenu->addAction(m_openUrlAction);
   m_fileMenu->addAction(m_openJsonAction);
   m_fileMenu->addSeparator();
@@ -172,6 +181,7 @@ void
 agaveGui::createToolbars()
 {
   m_ui.mainToolBar->addAction(m_openAction);
+  m_ui.mainToolBar->addAction(m_openDirectoryAction);
   m_ui.mainToolBar->addAction(m_openUrlAction);
   m_ui.mainToolBar->addAction(m_openJsonAction);
   m_ui.mainToolBar->addSeparator();
@@ -256,17 +266,41 @@ agaveGui::open()
     }
   }
 }
+void
+agaveGui::openDirectory()
+{
+  QString dir = readRecentDirectory();
+
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getExistingDirectory(this, tr("Open Volume"), dir, options);
+
+  if (!file.isEmpty()) {
+    if (!open(file.toStdString())) {
+      showOpenFailedMessageBox(file);
+    }
+  }
+}
 
 bool
 agaveGui::openUrl()
 {
   std::string urlToLoad = "";
-  bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Zarr Location"), tr("Enter URL or directory"), QLineEdit::Normal, "", &ok);
+  QInputDialog dlg(this);
+  dlg.setInputMode(QInputDialog::TextInput);
+  dlg.setLabelText(tr("Enter URL here:"));
+  dlg.setWindowTitle(tr("Open from URL"));
+  dlg.setTextValue("");
+  dlg.setInputMethodHints(Qt::ImhUrlCharactersOnly);
+  dlg.resize(400, dlg.sizeHint().height());
+  bool ok = dlg.exec();
+  QString text = dlg.textValue();
   if (ok && !text.isEmpty()) {
     urlToLoad = text.toStdString();
   } else {
-    LOG_DEBUG << "Canceled load Zarr from url or directory.";
+    LOG_DEBUG << "Canceled load Zarr from url.";
     return false;
   }
 
@@ -290,19 +324,24 @@ agaveGui::openJson()
       qWarning("Couldn't open JSON file.");
       return;
     }
-    QByteArray saveData = loadFile.readAll();
-    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
-    if (loadDoc.isNull()) {
-      LOG_DEBUG << "Invalid config file format. Make sure it is JSON.";
-      return;
-    }
 
-    ViewerState s;
-    s.stateFromJson(loadDoc);
-    if (!s.m_volumeImageFile.empty()) {
-      if (!open(s.m_volumeImageFile, &s)) {
-        showOpenFailedMessageBox(file);
+    QByteArray saveData = loadFile.readAll();
+
+    // get the bytes into a ViewerState object.
+    try {
+      std::string saveDataString = saveData.toStdString();
+      nlohmann::json j = nlohmann::json::parse(saveDataString);
+      Serialize::ViewerState s;
+      s = stateFromJson(j);
+      if (!s.datasets.empty()) {
+        if (!open(s.datasets[0].url, &s)) {
+          showOpenFailedMessageBox(file);
+        }
       }
+    } catch (std::exception& e) {
+      LOG_ERROR << "Failed to load from JSON: " << file.toStdString();
+      LOG_ERROR << e.what();
+      return;
     }
   }
 }
@@ -343,24 +382,42 @@ agaveGui::saveImage()
 void
 agaveGui::onRenderAction()
 {
+  // TODO keep this loadspec time in sync with the timeline and the render dialog's time
+  m_loadSpec.time = m_appScene.m_timeLine.currentTime();
+
   // if we are disabling the 3d view then might consider just making this modal
   m_glView->pauseRenderLoop();
-  QImage im = m_glView->captureQimage();
-  QImage* imcopy = new QImage(im);
+  // QImage im = m_glView->captureQimage();
+  // QImage* imcopy = new QImage(im);
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
   // extract Renderer from GLView3D to hand to RenderDialog
   IRenderWindow* renderer = m_glView->borrowRenderer();
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
-    m_captureSettings.width = imcopy->width();
-    m_captureSettings.height = imcopy->height();
+    m_captureSettings.width = m_glView->width();
+    m_captureSettings.height = m_glView->height();
   }
+
+  // TODO should we reuse the last settings for capture start and end time?
+  // currently every time you enter the render window we are putting things to the current time.
+  m_captureSettings.startTime = m_appScene.m_timeLine.currentTime();
+  m_captureSettings.endTime = m_appScene.m_timeLine.currentTime();
+
   // copy of camera
   CCamera camera = m_glView->getCamera();
-  RenderDialog* rdialog = new RenderDialog(
-    renderer, m_renderSettings, m_appScene, camera, m_glView->context(), m_loadSpec, &m_captureSettings, this);
-  rdialog->resize(800, 600);
+  RenderDialog* rdialog = new RenderDialog(renderer,
+                                           m_renderSettings,
+                                           m_appScene,
+                                           camera,
+                                           m_glView->context(),
+                                           m_loadSpec,
+                                           &m_captureSettings,
+                                           m_glView->width(),
+                                           m_glView->height(),
+                                           this);
+  rdialog->resize(geometry().width(), m_tabs->height());
+  rdialog->move(geometry().x(), geometry().y());
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
@@ -368,11 +425,13 @@ agaveGui::onRenderAction()
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
     m_glView->restartRenderLoop();
+    // refresh timeline to current time
+    m_timelinedock->setTime(m_appScene.m_timeLine.currentTime());
   });
 
-  rdialog->setImage(imcopy);
-  delete imcopy;
-
+  // rdialog->setImage(imcopy);
+  // delete imcopy;
+  rdialog->setModal(true);
   rdialog->show();
   rdialog->raise();
   rdialog->activateWindow();
@@ -388,37 +447,41 @@ agaveGui::saveJson()
 #endif
   QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
   if (!file.isEmpty()) {
-    ViewerState st = appToViewerState();
-    QJsonDocument doc = st.stateToJson();
+
     QFile saveFile(file);
     if (!saveFile.open(QIODevice::WriteOnly)) {
       qWarning("Couldn't open save file.");
       return;
     }
-    saveFile.write(doc.toJson());
+    Serialize::ViewerState st = appToViewerState();
+    nlohmann::json doc = st;
+    std::string str = doc.dump();
+    saveFile.write(str.c_str()); // QString::fromStdString(str));
   }
 }
 
 void
 agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
-                        const VolumeDimensions& dims,
-                        const ViewerState* vs)
+                        uint32_t sizeT,
+                        const Serialize::ViewerState* vs,
+                        std::shared_ptr<IFileReader> reader)
 {
   m_loadSpec = loadSpec;
 
   if (vs) {
     // make sure that ViewerState is consistent with loaded file
-    if (dims.sizeT - 1 != vs->m_maxTime) {
-      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->m_maxTime + 1) << " and found " << (dims.sizeT)
+    if (sizeT - 1 != vs->timeline.maxTime) {
+      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found " << (sizeT)
                 << " in the loaded file.";
     }
-    if (0 != vs->m_minTime) {
+    if (0 != vs->timeline.minTime) {
       LOG_ERROR << "Min timline time is not zero.";
     }
   }
   m_currentScene = loadSpec.scene;
-  m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
+  m_appScene.m_timeLine.setRange(0, sizeT - 1);
+  m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
 
   // install the new volume image into the scene.
   // this is deref'ing the previous _volume shared_ptr.
@@ -437,17 +500,11 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   m_glView->onNewImage(&m_appScene);
   // everything after the last / (or \ ???) is the filename.
 
-  std::string filename = loadSpec.filepath.substr(loadSpec.filepath.find_last_of("/") + 1);
-  if (filename.empty()) {
-    // try the next slash
-    filename = loadSpec.filepath;
-    filename.pop_back();
-    filename = filename.substr(filename.find_last_of("/") + 1);
-  }
+  std::string filename = loadSpec.getFilename();
   m_tabs->setTabText(0, QString::fromStdString(filename));
 
   m_appearanceDockWidget->onNewImage(&m_appScene);
-  m_timelinedock->onNewImage(&m_appScene, loadSpec);
+  m_timelinedock->onNewImage(&m_appScene, loadSpec, reader);
 
   // set up status view with some stats.
   std::shared_ptr<CStatus> s = m_glView->getStatus();
@@ -461,79 +518,94 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const ViewerState* vs)
+agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
 
-  int sceneToLoad = vs ? vs->m_currentScene : 0;
-  int timeToLoad = vs ? vs->m_currentTime : 0;
+  int sceneToLoad = 0;
+  int timeToLoad = 0;
+  if (vs) {
+    loadSpec = stateToLoadSpec(*vs);
+    sceneToLoad = loadSpec.scene;
+    timeToLoad = loadSpec.time;
+  }
 
-  if (file.find("http") == 0 || file.find("zarr") != std::string::npos) {
-    // read some metadata from the cloud and present the next dialog
-    // if successful
+  std::shared_ptr<IFileReader> reader(FileReader::getReader(file));
+  if (!reader) {
+    QMessageBox(
+      QMessageBox::Warning,
+      "Error",
+      "Could not determine filetype.  Make sure you supply a valid URL or filepath to a file supported by AGAVE " +
+        QString::fromStdString(file),
+      QMessageBox::Ok,
+      this)
+      .exec();
+    LOG_ERROR << "Could not find a reader for file " << file;
+    return false;
+  }
 
-    std::vector<MultiscaleDims> multiscaledims;
-    bool haveDims = FileReader::loadMultiscaleDims(file, sceneToLoad, multiscaledims);
-    if (!haveDims) {
-      LOG_DEBUG << "Failed to load dims from url.";
-      showOpenFailedMessageBox(QString::fromStdString(file));
+  // read some metadata from the cloud and present the next dialog
+  // if successful
+  int numScenes = reader->loadNumScenes(file);
+  LOG_INFO << "Found " << numScenes << " scene(s)";
+  // if current scene is out of range or if there is not currently a scene selected
+  bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
+  if (needSelectScene) {
+    QStringList items;
+    for (int i = 0; i < numScenes; ++i) {
+      items.append(QString::number(i));
+    }
+    bool ok = false;
+    QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
+    if (ok && !text.isEmpty()) {
+      sceneToLoad = text.toInt();
+    } else {
+      LOG_DEBUG << "Canceled scene selection.";
       return false;
     }
+  }
 
-    // TODO update with sceneToLoad and timeToLoad?
-    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, this);
+  std::vector<MultiscaleDims> multiscaledims;
+  multiscaledims = reader->loadMultiscaleDims(file, sceneToLoad);
+  if (multiscaledims.empty()) {
+    LOG_DEBUG << "Failed to load dims for image.";
+    showOpenFailedMessageBox(QString::fromStdString(file));
+    return false;
+  }
+
+  if (!vs) {
+
+    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
-      LOG_DEBUG << "OK to load from url.";
       loadSpec = loadDialog->getLoadSpec();
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
     } else {
-      return false;
+      LOG_INFO << "Canceled load dialog.";
+      return true;
     }
+    delete loadDialog;
+
+  } else {
+    // we called stateToLoadSpec above
+    // now it is only necessary to get the dims for onImageLoaded...
+    // huge assumption that level 0 has sizeT at least as large as the others?
+    dims = multiscaledims[0].getVolumeDimensions();
   }
 
-  else {
-    QFileInfo info(QString::fromStdString(file));
-    if (info.exists()) {
-      LOG_DEBUG << "Attempting to open " << file;
-
-      // check number of scenes in file.
-      int numScenes = FileReader::loadNumScenes(file);
-      LOG_INFO << "Found " << numScenes << " scene(s)";
-      // if current scene is out of range or if there is not currently a scene selected
-      bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
-      if (needSelectScene) {
-        QStringList items;
-        for (int i = 0; i < numScenes; ++i) {
-          items.append(QString::number(i));
-        }
-        bool ok = false;
-        QString text = QInputDialog::getItem(this, tr("Select scene"), tr("Scene"), items, m_currentScene, false, &ok);
-        if (ok && !text.isEmpty()) {
-          sceneToLoad = text.toInt();
-        } else {
-          LOG_DEBUG << "Canceled scene selection.";
-          return false;
-        }
-      }
-
-      loadSpec.filepath = file;
-      loadSpec.scene = sceneToLoad;
-      loadSpec.time = timeToLoad;
-
-      dims = FileReader::loadFileDimensions(file, sceneToLoad);
-    }
-  }
-
+  // TODO make this part async and chunked so that it can be interrupted
+  // and won't block during long loading times.
+  // We can update the render and gui progressively as chunks are loaded.
+  // Also, this would allow renders to be cancelled during loading.
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(loadSpec);
+  std::shared_ptr<ImageXYZC> image = reader->loadFromFile(loadSpec);
   QApplication::restoreOverrideCursor();
   if (!image) {
     LOG_DEBUG << "Failed to open " << file;
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims, vs);
+  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader);
   return true;
 }
 
@@ -761,118 +833,83 @@ agaveGui::savePython()
       qWarning("Couldn't open save file.");
       return;
     }
-    ViewerState st = appToViewerState();
-    QString doc = st.stateToPythonScript();
+    Serialize::ViewerState st = appToViewerState();
+    QString doc = stateToPythonScript(st);
     saveFile.write(doc.toUtf8());
   }
 }
 
 void
-agaveGui::viewerStateToApp(const ViewerState& v)
+agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
 
   // position camera
   m_glView->fromViewerState(v);
 
-  m_appScene.m_roi.SetMinP(glm::vec3(v.m_roiXmin, v.m_roiYmin, v.m_roiZmin));
-  m_appScene.m_roi.SetMaxP(glm::vec3(v.m_roiXmax, v.m_roiYmax, v.m_roiZmax));
+  m_appScene.m_roi.SetMinP(glm::vec3(v.clipRegion[0][0], v.clipRegion[1][0], v.clipRegion[2][0]));
+  m_appScene.m_roi.SetMaxP(glm::vec3(v.clipRegion[0][1], v.clipRegion[1][1], v.clipRegion[2][1]));
 
-  m_appScene.m_timeLine.setRange(v.m_minTime, v.m_maxTime);
-  m_appScene.m_timeLine.setCurrentTime(v.m_currentTime);
+  m_appScene.m_timeLine.setRange(v.timeline.minTime, v.timeline.maxTime);
+  m_appScene.m_timeLine.setCurrentTime(v.timeline.currentTime);
 
-  m_currentScene = v.m_currentScene;
+  m_currentScene = v.datasets[0].scene;
 
-  m_appScene.m_volume->setPhysicalSize(v.m_scaleX, v.m_scaleY, v.m_scaleZ);
+  m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
 
-  m_appScene.m_material.m_backgroundColor[0] = v.m_backgroundColor.x;
-  m_appScene.m_material.m_backgroundColor[1] = v.m_backgroundColor.y;
-  m_appScene.m_material.m_backgroundColor[2] = v.m_backgroundColor.z;
+  m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
+  m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
+  m_appScene.m_material.m_backgroundColor[2] = v.backgroundColor[2];
 
-  m_appScene.m_material.m_boundingBoxColor[0] = v.m_boundingBoxColor.x;
-  m_appScene.m_material.m_boundingBoxColor[1] = v.m_boundingBoxColor.y;
-  m_appScene.m_material.m_boundingBoxColor[2] = v.m_boundingBoxColor.z;
+  m_appScene.m_material.m_boundingBoxColor[0] = v.boundingBoxColor[0];
+  m_appScene.m_material.m_boundingBoxColor[1] = v.boundingBoxColor[1];
+  m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
 
-  m_appScene.m_material.m_showBoundingBox = v.m_showBoundingBox;
+  m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
 
-  m_renderSettings.m_RenderSettings.m_DensityScale = v.m_densityScale;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.m_primaryStepSize;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.m_secondaryStepSize;
-  m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
+  m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
+  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
+  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
+  // m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-    ChannelViewerState ch = v.m_channels[i];
-    m_appScene.m_material.m_enabled[i] = ch.m_enabled;
+    Serialize::ChannelSettings_V1 ch = v.channels[i];
+    m_appScene.m_material.m_enabled[i] = ch.enabled;
 
-    m_appScene.m_material.m_diffuse[i * 3] = ch.m_diffuse.x;
-    m_appScene.m_material.m_diffuse[i * 3 + 1] = ch.m_diffuse.y;
-    m_appScene.m_material.m_diffuse[i * 3 + 2] = ch.m_diffuse.z;
+    m_appScene.m_material.m_diffuse[i * 3] = ch.diffuseColor[0];
+    m_appScene.m_material.m_diffuse[i * 3 + 1] = ch.diffuseColor[1];
+    m_appScene.m_material.m_diffuse[i * 3 + 2] = ch.diffuseColor[2];
 
-    m_appScene.m_material.m_specular[i * 3] = ch.m_specular.x;
-    m_appScene.m_material.m_specular[i * 3 + 1] = ch.m_specular.y;
-    m_appScene.m_material.m_specular[i * 3 + 2] = ch.m_specular.z;
+    m_appScene.m_material.m_specular[i * 3] = ch.specularColor[0];
+    m_appScene.m_material.m_specular[i * 3 + 1] = ch.specularColor[1];
+    m_appScene.m_material.m_specular[i * 3 + 2] = ch.specularColor[2];
 
-    m_appScene.m_material.m_emissive[i * 3] = ch.m_emissive.x;
-    m_appScene.m_material.m_emissive[i * 3 + 1] = ch.m_emissive.y;
-    m_appScene.m_material.m_emissive[i * 3 + 2] = ch.m_emissive.z;
+    m_appScene.m_material.m_emissive[i * 3] = ch.emissiveColor[0];
+    m_appScene.m_material.m_emissive[i * 3 + 1] = ch.emissiveColor[1];
+    m_appScene.m_material.m_emissive[i * 3 + 2] = ch.emissiveColor[2];
 
-    m_appScene.m_material.m_roughness[i] = ch.m_glossiness;
-    m_appScene.m_material.m_opacity[i] = ch.m_opacity;
+    m_appScene.m_material.m_roughness[i] = ch.glossiness;
+    m_appScene.m_material.m_opacity[i] = ch.opacity;
 
-    m_appScene.m_material.m_gradientData[i].m_activeMode = LutParams::g_PermIdToGradientMode[ch.m_lutParams.m_mode];
-    m_appScene.m_material.m_gradientData[i].m_window = ch.m_lutParams.m_window;
-    m_appScene.m_material.m_gradientData[i].m_level = ch.m_lutParams.m_level;
-    m_appScene.m_material.m_gradientData[i].m_pctLow = ch.m_lutParams.m_pctLow;
-    m_appScene.m_material.m_gradientData[i].m_pctHigh = ch.m_lutParams.m_pctHigh;
-    m_appScene.m_material.m_gradientData[i].m_isovalue = ch.m_lutParams.m_isovalue;
-    m_appScene.m_material.m_gradientData[i].m_isorange = ch.m_lutParams.m_isorange;
-    m_appScene.m_material.m_gradientData[i].m_customControlPoints = ch.m_lutParams.m_customControlPoints;
+    m_appScene.m_material.m_gradientData[i] = stateToGradientData(v, i);
   }
 
   // lights
-  Light& lt = m_appScene.m_lighting.m_Lights[0];
-  lt.m_T = v.m_light0.m_type;
-  lt.m_Distance = v.m_light0.m_distance;
-  lt.m_Theta = v.m_light0.m_theta;
-  lt.m_Phi = v.m_light0.m_phi;
-  lt.m_ColorTop = v.m_light0.m_topColor;
-  lt.m_ColorMiddle = v.m_light0.m_middleColor;
-  lt.m_ColorBottom = v.m_light0.m_bottomColor;
-  lt.m_Color = v.m_light0.m_color;
-  lt.m_ColorTopIntensity = v.m_light0.m_topColorIntensity;
-  lt.m_ColorMiddleIntensity = v.m_light0.m_middleColorIntensity;
-  lt.m_ColorBottomIntensity = v.m_light0.m_bottomColorIntensity;
-  lt.m_ColorIntensity = v.m_light0.m_colorIntensity;
-  lt.m_Width = v.m_light0.m_width;
-  lt.m_Height = v.m_light0.m_height;
-
-  Light& lt1 = m_appScene.m_lighting.m_Lights[1];
-  lt1.m_T = v.m_light1.m_type;
-  lt1.m_Distance = v.m_light1.m_distance;
-  lt1.m_Theta = v.m_light1.m_theta;
-  lt1.m_Phi = v.m_light1.m_phi;
-  lt1.m_ColorTop = v.m_light1.m_topColor;
-  lt1.m_ColorMiddle = v.m_light1.m_middleColor;
-  lt1.m_ColorBottom = v.m_light1.m_bottomColor;
-  lt1.m_Color = v.m_light1.m_color;
-  lt1.m_ColorTopIntensity = v.m_light1.m_topColorIntensity;
-  lt1.m_ColorMiddleIntensity = v.m_light1.m_middleColorIntensity;
-  lt1.m_ColorBottomIntensity = v.m_light1.m_bottomColorIntensity;
-  lt1.m_ColorIntensity = v.m_light1.m_colorIntensity;
-  lt1.m_Width = v.m_light1.m_width;
-  lt1.m_Height = v.m_light1.m_height;
+  m_appScene.m_lighting.m_Lights[0] = stateToLight(v, 0);
+  m_appScene.m_lighting.m_Lights[1] = stateToLight(v, 1);
 
   // capture settings
-  m_captureSettings.width = v.m_captureState.mWidth;
-  m_captureSettings.height = v.m_captureState.mHeight;
-  m_captureSettings.samples = v.m_captureState.mSamples;
-  m_captureSettings.duration = v.m_captureState.mDuration;
-  m_captureSettings.durationType = (eRenderDurationType)v.m_captureState.mDurationType;
-  m_captureSettings.startTime = v.m_captureState.mStartTime;
-  m_captureSettings.endTime = v.m_captureState.mEndTime;
-  m_captureSettings.outputDir = v.m_captureState.mOutputDir;
-  m_captureSettings.filenamePrefix = v.m_captureState.mFilenamePrefix;
+  m_captureSettings.width = v.capture.width;
+  m_captureSettings.height = v.capture.height;
+  m_captureSettings.samples = v.capture.samples;
+  m_captureSettings.duration = v.capture.seconds;
+  // TODO proper lookup for permid
+  m_captureSettings.durationType = (eRenderDurationType)v.capture.durationType;
+  m_captureSettings.startTime = v.capture.startTime;
+  m_captureSettings.endTime = v.capture.endTime;
+  m_captureSettings.outputDir = v.capture.outputDirectory;
+  m_captureSettings.filenamePrefix = v.capture.filenamePrefix;
 
   m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
   m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
@@ -880,142 +917,102 @@ agaveGui::viewerStateToApp(const ViewerState& v)
   m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
-ViewerState
+Serialize::ViewerState
 agaveGui::appToViewerState()
 {
-  ViewerState v;
-  v.m_volumeImageFile = m_currentFilePath;
+  Serialize::ViewerState v;
+  v.version = { AICS_VERSION_MAJOR, AICS_VERSION_MINOR, AICS_VERSION_PATCH };
+
+  v.datasets.push_back(fromLoadSpec(m_loadSpec));
 
   if (m_appScene.m_volume) {
-    v.m_scaleX = m_appScene.m_volume->physicalSizeX();
-    v.m_scaleY = m_appScene.m_volume->physicalSizeY();
-    v.m_scaleZ = m_appScene.m_volume->physicalSizeZ();
+    v.scale[0] = m_appScene.m_volume->physicalSizeX();
+    v.scale[1] = m_appScene.m_volume->physicalSizeY();
+    v.scale[2] = m_appScene.m_volume->physicalSizeZ();
   }
 
-  v.m_backgroundColor = glm::vec3(m_appScene.m_material.m_backgroundColor[0],
-                                  m_appScene.m_material.m_backgroundColor[1],
-                                  m_appScene.m_material.m_backgroundColor[2]);
+  v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],
+                        m_appScene.m_material.m_backgroundColor[1],
+                        m_appScene.m_material.m_backgroundColor[2] };
 
-  v.m_boundingBoxColor = glm::vec3(m_appScene.m_material.m_boundingBoxColor[0],
-                                   m_appScene.m_material.m_boundingBoxColor[1],
-                                   m_appScene.m_material.m_boundingBoxColor[2]);
-  v.m_showBoundingBox = m_appScene.m_material.m_showBoundingBox;
+  v.boundingBoxColor = { m_appScene.m_material.m_boundingBoxColor[0],
+                         m_appScene.m_material.m_boundingBoxColor[1],
+                         m_appScene.m_material.m_boundingBoxColor[2] };
+  v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
 
-  v.m_resolutionX = m_glView->size().width();
-  v.m_resolutionY = m_glView->size().height();
-  v.m_renderIterations = m_renderSettings.GetNoIterations();
+  v.capture.samples = m_renderSettings.GetNoIterations();
 
-  v.m_minTime = m_appScene.m_timeLine.minTime();
-  v.m_maxTime = m_appScene.m_timeLine.maxTime();
-  v.m_currentTime = m_appScene.m_timeLine.currentTime();
+  v.timeline.minTime = m_appScene.m_timeLine.minTime();
+  v.timeline.maxTime = m_appScene.m_timeLine.maxTime();
+  v.timeline.currentTime = m_appScene.m_timeLine.currentTime();
 
-  v.m_currentScene = m_currentScene;
+  v.clipRegion[0][1] = m_appScene.m_roi.GetMaxP().x;
+  v.clipRegion[1][1] = m_appScene.m_roi.GetMaxP().y;
+  v.clipRegion[2][1] = m_appScene.m_roi.GetMaxP().z;
+  v.clipRegion[0][0] = m_appScene.m_roi.GetMinP().x;
+  v.clipRegion[1][0] = m_appScene.m_roi.GetMinP().y;
+  v.clipRegion[2][0] = m_appScene.m_roi.GetMinP().z;
 
-  v.m_roiXmax = m_appScene.m_roi.GetMaxP().x;
-  v.m_roiYmax = m_appScene.m_roi.GetMaxP().y;
-  v.m_roiZmax = m_appScene.m_roi.GetMaxP().z;
-  v.m_roiXmin = m_appScene.m_roi.GetMinP().x;
-  v.m_roiYmin = m_appScene.m_roi.GetMinP().y;
-  v.m_roiZmin = m_appScene.m_roi.GetMinP().z;
+  v.camera.eye[0] = m_glView->getCamera().m_From.x;
+  v.camera.eye[1] = m_glView->getCamera().m_From.y;
+  v.camera.eye[2] = m_glView->getCamera().m_From.z;
 
-  v.m_eyeX = m_glView->getCamera().m_From.x;
-  v.m_eyeY = m_glView->getCamera().m_From.y;
-  v.m_eyeZ = m_glView->getCamera().m_From.z;
+  v.camera.target[0] = m_glView->getCamera().m_Target.x;
+  v.camera.target[1] = m_glView->getCamera().m_Target.y;
+  v.camera.target[2] = m_glView->getCamera().m_Target.z;
 
-  v.m_targetX = m_glView->getCamera().m_Target.x;
-  v.m_targetY = m_glView->getCamera().m_Target.y;
-  v.m_targetZ = m_glView->getCamera().m_Target.z;
+  v.camera.up[0] = m_glView->getCamera().m_Up.x;
+  v.camera.up[1] = m_glView->getCamera().m_Up.y;
+  v.camera.up[2] = m_glView->getCamera().m_Up.z;
 
-  v.m_upX = m_glView->getCamera().m_Up.x;
-  v.m_upY = m_glView->getCamera().m_Up.y;
-  v.m_upZ = m_glView->getCamera().m_Up.z;
+  v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
+                                                                          : Serialize::Projection_PID::ORTHOGRAPHIC;
+  v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
+  v.camera.fovY = m_qcamera.GetProjection().GetFieldOfView();
 
-  v.m_projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? ViewerState::Projection::PERSPECTIVE
-                                                                     : ViewerState::Projection::ORTHOGRAPHIC;
-  v.m_orthoScale = m_glView->getCamera().m_OrthoScale;
-  v.m_fov = m_qcamera.GetProjection().GetFieldOfView();
+  v.camera.exposure = m_qcamera.GetFilm().GetExposure();
+  v.camera.aperture = m_qcamera.GetAperture().GetSize();
+  v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
+  v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
+  // v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
-  v.m_exposure = m_qcamera.GetFilm().GetExposure();
-  v.m_apertureSize = m_qcamera.GetAperture().GetSize();
-  v.m_focalDistance = m_qcamera.GetFocus().GetFocalDistance();
-  v.m_densityScale = m_renderSettings.m_RenderSettings.m_DensityScale;
-  v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
-
-  v.m_primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
-  v.m_secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
+  v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
+  v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
-      ChannelViewerState ch;
-      ch.m_enabled = m_appScene.m_material.m_enabled[i];
-      ch.m_diffuse = glm::vec3(m_appScene.m_material.m_diffuse[i * 3],
-                               m_appScene.m_material.m_diffuse[i * 3 + 1],
-                               m_appScene.m_material.m_diffuse[i * 3 + 2]);
-      ch.m_specular = glm::vec3(m_appScene.m_material.m_specular[i * 3],
-                                m_appScene.m_material.m_specular[i * 3 + 1],
-                                m_appScene.m_material.m_specular[i * 3 + 2]);
-      ch.m_emissive = glm::vec3(m_appScene.m_material.m_emissive[i * 3],
-                                m_appScene.m_material.m_emissive[i * 3 + 1],
-                                m_appScene.m_material.m_emissive[i * 3 + 2]);
-      ch.m_glossiness = m_appScene.m_material.m_roughness[i];
-      ch.m_opacity = m_appScene.m_material.m_opacity[i];
+      Serialize::ChannelSettings_V1 ch;
+      ch.enabled = m_appScene.m_material.m_enabled[i];
+      ch.diffuseColor = { m_appScene.m_material.m_diffuse[i * 3],
+                          m_appScene.m_material.m_diffuse[i * 3 + 1],
+                          m_appScene.m_material.m_diffuse[i * 3 + 2] };
+      ch.specularColor = { m_appScene.m_material.m_specular[i * 3],
+                           m_appScene.m_material.m_specular[i * 3 + 1],
+                           m_appScene.m_material.m_specular[i * 3 + 2] };
+      ch.emissiveColor = { m_appScene.m_material.m_emissive[i * 3],
+                           m_appScene.m_material.m_emissive[i * 3 + 1],
+                           m_appScene.m_material.m_emissive[i * 3 + 2] };
+      ch.glossiness = m_appScene.m_material.m_roughness[i];
+      ch.opacity = m_appScene.m_material.m_opacity[i];
 
-      ch.m_lutParams.m_mode = LutParams::g_GradientModeToPermId[m_appScene.m_material.m_gradientData[i].m_activeMode];
-      ch.m_lutParams.m_window = m_appScene.m_material.m_gradientData[i].m_window;
-      ch.m_lutParams.m_level = m_appScene.m_material.m_gradientData[i].m_level;
-      ch.m_lutParams.m_pctLow = m_appScene.m_material.m_gradientData[i].m_pctLow;
-      ch.m_lutParams.m_pctHigh = m_appScene.m_material.m_gradientData[i].m_pctHigh;
-      ch.m_lutParams.m_isovalue = m_appScene.m_material.m_gradientData[i].m_isovalue;
-      ch.m_lutParams.m_isorange = m_appScene.m_material.m_gradientData[i].m_isorange;
-      ch.m_lutParams.m_customControlPoints = m_appScene.m_material.m_gradientData[i].m_customControlPoints;
+      ch.lutParams = fromGradientData(m_appScene.m_material.m_gradientData[i]);
 
-      v.m_channels.push_back(ch);
+      v.channels.push_back(ch);
     }
   }
 
   // lighting
   Light& lt = m_appScene.m_lighting.m_Lights[0];
-  v.m_light0.m_type = lt.m_T;
-  v.m_light0.m_distance = lt.m_Distance;
-  v.m_light0.m_theta = lt.m_Theta;
-  v.m_light0.m_phi = lt.m_Phi;
-  v.m_light0.m_topColor = glm::vec3(lt.m_ColorTop.r, lt.m_ColorTop.g, lt.m_ColorTop.b);
-  v.m_light0.m_middleColor = glm::vec3(lt.m_ColorMiddle.r, lt.m_ColorMiddle.g, lt.m_ColorMiddle.b);
-  v.m_light0.m_color = glm::vec3(lt.m_Color.r, lt.m_Color.g, lt.m_Color.b);
-  v.m_light0.m_bottomColor = glm::vec3(lt.m_ColorBottom.r, lt.m_ColorBottom.g, lt.m_ColorBottom.b);
-  v.m_light0.m_topColorIntensity = lt.m_ColorTopIntensity;
-  v.m_light0.m_middleColorIntensity = lt.m_ColorMiddleIntensity;
-  v.m_light0.m_colorIntensity = lt.m_ColorIntensity;
-  v.m_light0.m_bottomColorIntensity = lt.m_ColorBottomIntensity;
-  v.m_light0.m_width = lt.m_Width;
-  v.m_light0.m_height = lt.m_Height;
+  Serialize::LightSettings_V1 l = fromLight(lt);
+  v.lights.push_back(l);
 
   Light& lt1 = m_appScene.m_lighting.m_Lights[1];
-  v.m_light1.m_type = lt1.m_T;
-  v.m_light1.m_distance = lt1.m_Distance;
-  v.m_light1.m_theta = lt1.m_Theta;
-  v.m_light1.m_phi = lt1.m_Phi;
-  v.m_light1.m_topColor = glm::vec3(lt1.m_ColorTop.r, lt1.m_ColorTop.g, lt1.m_ColorTop.b);
-  v.m_light1.m_middleColor = glm::vec3(lt1.m_ColorMiddle.r, lt1.m_ColorMiddle.g, lt1.m_ColorMiddle.b);
-  v.m_light1.m_color = glm::vec3(lt1.m_Color.r, lt1.m_Color.g, lt1.m_Color.b);
-  v.m_light1.m_bottomColor = glm::vec3(lt1.m_ColorBottom.r, lt1.m_ColorBottom.g, lt1.m_ColorBottom.b);
-  v.m_light1.m_topColorIntensity = lt1.m_ColorTopIntensity;
-  v.m_light1.m_middleColorIntensity = lt1.m_ColorMiddleIntensity;
-  v.m_light1.m_colorIntensity = lt1.m_ColorIntensity;
-  v.m_light1.m_bottomColorIntensity = lt1.m_ColorBottomIntensity;
-  v.m_light1.m_width = lt1.m_Width;
-  v.m_light1.m_height = lt1.m_Height;
+  Serialize::LightSettings_V1 l1 = fromLight(lt1);
+  v.lights.push_back(l1);
 
   // capture settings
-  v.m_captureState.mWidth = m_captureSettings.width;
-  v.m_captureState.mHeight = m_captureSettings.height;
-  v.m_captureState.mSamples = m_captureSettings.samples;
-  v.m_captureState.mDuration = m_captureSettings.duration;
-  v.m_captureState.mDurationType = m_captureSettings.durationType;
-  v.m_captureState.mStartTime = m_captureSettings.startTime;
-  v.m_captureState.mEndTime = m_captureSettings.endTime;
-  v.m_captureState.mOutputDir = m_captureSettings.outputDir;
-  v.m_captureState.mFilenamePrefix = m_captureSettings.filenamePrefix;
+
+  v.capture = fromCaptureSettings(m_captureSettings, m_glView->width(), m_glView->height());
 
   return v;
 }

@@ -2,6 +2,7 @@ add_executable(agaveapp MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(agaveapp PROPERTIES OUTPUT_NAME "agave")
 set_property(TARGET agaveapp PROPERTY AUTOMOC ON)
 set_property(TARGET agaveapp PROPERTY AUTOUIC ON)
+set_property(TARGET agaveapp PROPERTY AUTORCC ON)
 target_include_directories(agaveapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
@@ -64,6 +65,10 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SerializeV1.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SerializeV1.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StatisticsDockWidget.cpp"
@@ -76,12 +81,12 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
-	)
+)
 add_subdirectory(python)
 
 add_subdirectory(tfeditor)
 
-if (MSVC)
+if(MSVC)
 	target_sources(agaveapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
 	set_property(
 		TARGET agaveapp
@@ -93,15 +98,18 @@ if (MSVC)
 		PROPERTY VS_DEBUGGER_COMMAND
 		"${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}/$(TargetFileName)"
 	)
-endif (MSVC)
+endif(MSVC)
 
 target_link_libraries(agaveapp PRIVATE
 	renderlib
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 )
 
 install(TARGETS agaveapp
+
+	# RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt6_DIR}/lib
 	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR}
+	LIBRARY DESTINATION ${INSTALLDIR}
+	DESTINATION ${INSTALLDIR}
 )
-

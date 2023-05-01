@@ -34,6 +34,7 @@ private:
 
   QColor m_firstHandleColor;
   QColor m_secondHandleColor;
+  QColor m_trackColor;
 
   QRectF m_trackRect;
   QPoint m_trackPos;

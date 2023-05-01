@@ -9,6 +9,7 @@
 #include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
+#include <QElapsedTimer>
 #include <QList>
 #include <QMutex>
 #include <QObject>
@@ -17,7 +18,6 @@
 #include <QOpenGLTexture>
 #include <QThread>
 #include <QWaitCondition>
-#include <QtCore/QElapsedTimer>
 
 #include <memory>
 
@@ -134,7 +134,6 @@ private:
   ExecutionContext m_ec;
 
 signals:
-  void kill();
   void requestProcessed(RenderRequest* request, QImage img);
   void sendString(RenderRequest* request, QString s);
 };

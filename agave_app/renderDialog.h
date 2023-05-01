@@ -7,19 +7,21 @@
 #include <QMutex>
 #include <QStandardPaths>
 
+class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QImage;
-class QOpenGLContext;
-class QWidget;
 class QLabel;
 class QLineEdit;
+class QOpenGLContext;
 class QPixmap;
 class QProgressBar;
 class QPushButton;
 class QSpinBox;
+class QStackedWidget;
 class QTimeEdit;
 class QToolBar;
+class QWidget;
 
 class IRenderWindow;
 class Renderer;
@@ -106,6 +108,8 @@ public:
                QOpenGLContext* glContext,
                const LoadSpec& loadSpec,
                CaptureSettings* captureSettings,
+               int viewportWidth,
+               int viewportHeight,
                QWidget* parent = Q_NULLPTR);
 
   void setImage(QImage* image);
@@ -116,6 +120,8 @@ public:
   int getYResolution();
 
   virtual void closeEvent(QCloseEvent* event) override;
+  virtual void resizeEvent(QResizeEvent* event) override;
+  virtual void showEvent(QShowEvent* event) override;
 
 private slots:
   void render();
@@ -124,8 +130,8 @@ private slots:
   void stopRendering();
   void resumeRendering();
   void onResolutionPreset(int index);
-  void updateWidth(int w);
-  void updateHeight(int h);
+  void updateWidth(const QString& w);
+  void updateHeight(const QString& h);
   void updateRenderSamples(int s);
   void updateRenderTime(const QTime& t);
   void onRenderDurationTypeChanged(int index);
@@ -146,9 +152,10 @@ private:
   QPushButton* mRenderButton;
   QPushButton* mPauseRenderButton;
   QPushButton* mStopRenderButton;
+  QPushButton* mCloseButton;
   QPushButton* mSaveButton;
-  QSpinBox* mWidthInput;
-  QSpinBox* mHeightInput;
+  QLineEdit* mWidthInput;
+  QLineEdit* mHeightInput;
   QPushButton* mLockAspectRatio;
   QComboBox* mResolutionPresets;
   QSpinBox* mStartTimeInput;
@@ -159,17 +166,24 @@ private:
   QLabel* mSaveDirectoryLabel;
   QLineEdit* mSaveFilePrefix;
 
+  QLabel* mRenderProgressLabel;
   QProgressBar* mFrameProgressBar;
   QProgressBar* mTimeSeriesProgressBar;
-  QComboBox* mRenderDurationEdit;
+  QLabel* mTimeSeriesProgressLabel;
+  QButtonGroup* mRenderDurationEdit;
+  QStackedWidget* mRenderDurationSettings;
   QSpinBox* mRenderSamplesEdit;
   QTimeEdit* mRenderTimeEdit;
   QPushButton* mZoomInButton;
   QPushButton* mZoomOutButton;
   QPushButton* mZoomFitButton;
+  QLabel* mImagePreviewLabel;
 
-  QToolBar* mToolbar;
+  QWidget* mToolbar;
+  std::vector<QWidget*> mWidgetsToDisableWhileRendering;
 
+  int mMainViewWidth;
+  int mMainViewHeight;
   int mWidth;
   int mHeight;
   float mAspectRatio;
@@ -187,7 +201,6 @@ private:
   void onZoomOutClicked();
 
   int mFrameNumber;
-  int mTotalFrames;
 
   void onStartTimeChanged(int);
   void onEndTimeChanged(int);
@@ -196,6 +209,17 @@ private:
   void onSaveFilePrefixChanged(const QString& value);
   void onRenderThreadFinished();
 
+  QString getFullSavePath();
+  QString getUniqueNextFilename(QString path);
+
+  bool getOverwriteConfirmation();
   bool isRenderInProgress();
   bool getUserCancelConfirmation();
+  void updateUIReadyToRender();
+  void updateUIStartRendering();
+  void updateUIStopRendering(bool completed);
+
+  void positionToolbar();
+  void updatePreviewImage();
+  void updateTimeSeriesProgressLabel();
 };

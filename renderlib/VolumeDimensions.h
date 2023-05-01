@@ -26,14 +26,28 @@ struct VolumeDimensions
 
   bool validate() const;
   void log() const;
+
+  std::vector<std::string> getChannelNames(const std::vector<uint32_t>& channels) const;
 };
 
 struct MultiscaleDims
 {
   std::vector<float> scale;
   std::vector<int64_t> shape;
+  std::vector<std::string> dimensionOrder;
   std::string dtype;
   std::string path;
+  std::vector<std::string> channelNames;
+
+  bool hasDim(const std::string& dim) const;
+  int64_t sizeT() const;
+  int64_t sizeC() const;
+  int64_t sizeZ() const;
+  int64_t sizeY() const;
+  int64_t sizeX() const;
+  float scaleX() const;
+  float scaleY() const;
+  float scaleZ() const;
 
   VolumeDimensions getVolumeDimensions() const;
 };

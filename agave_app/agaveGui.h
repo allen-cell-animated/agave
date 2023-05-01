@@ -19,6 +19,7 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
+class IFileReader;
 struct VolumeDimensions;
 struct LoadSpec;
 
@@ -32,14 +33,16 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const std::string& file, const ViewerState* vs = nullptr);
+  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
-                     const VolumeDimensions& dims,
-                     const ViewerState* vs);
+                     uint32_t sizeT,
+                     const Serialize::ViewerState* vs,
+                     std::shared_ptr<IFileReader> reader);
 
 private slots:
   void open();
+  void openDirectory();
   bool openUrl();
   void openJson();
   void openRecentFile();
@@ -63,8 +66,8 @@ private:
     MaxRecentFiles = 8
   };
 
-  ViewerState appToViewerState();
-  void viewerStateToApp(const ViewerState& s);
+  Serialize::ViewerState appToViewerState();
+  void viewerStateToApp(const Serialize::ViewerState& s);
 
   void createActions();
   void createMenus();
@@ -88,6 +91,7 @@ private:
   QAction* m_openAction = nullptr;
   QAction* m_openJsonAction = nullptr;
   QAction* m_openUrlAction = nullptr;
+  QAction* m_openDirectoryAction = nullptr;
   QAction* m_quitAction = nullptr;
   QAction* m_dumpJsonAction = nullptr;
   QAction* m_dumpPythonAction = nullptr;

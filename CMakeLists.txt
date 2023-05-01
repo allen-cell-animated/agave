@@ -10,10 +10,11 @@ if(POLICY CMP0048)
 endif(POLICY CMP0048)
 
 cmake_policy(SET CMP0091 NEW) # enable new "MSVC runtime library selection" (https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html)
+cmake_policy(SET CMP0135 NEW) # set timestamps to time of extraction for ExternalProject_Add
 
 project(
   agave
-  VERSION 1.4.1
+  VERSION 1.5.0
   LANGUAGES C CXX
 )
 
@@ -39,25 +40,25 @@ set(CMAKE_MODULE_PATH
 
 # Find the Qt libraries
 # In order for find_package to be successful, Qt 5 must be found below the CMAKE_PREFIX_PATH,
-# or the Qt5<Module>_DIR must be set in the CMake cache to the location of the Qt5WidgetsConfig.cmake
+# or the Qt6<Module>_DIR must be set in the CMake cache to the location of the Qt6WidgetsConfig.cmake
 # file. The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to
-# the install prefix of Qt 5.
-if(DEFINED ENV{Qt5_DIR})
-  list(INSERT CMAKE_PREFIX_PATH 0 $ENV{Qt5_DIR})
+# the install prefix of Qt 6.
+if(DEFINED ENV{Qt6_DIR})
+  list(INSERT CMAKE_PREFIX_PATH 0 $ENV{Qt6_DIR})
 endif()
 
-set(AGAVE_QT_VERSION 5.15.2)
+set(AGAVE_QT_VERSION 6.5.0)
 
 if(WIN32)
-  set(GUESS_Qt5_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt5 directory")
-elseif (APPLE)
-  set(GUESS_Qt5_DIR ~/Qt/${AGAVE_QT_VERSION}/clang_64)
+  set(GUESS_Qt6_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2019_64 CACHE STRING "Qt6 directory")
+elseif(APPLE)
+  set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/macos)
 else()
-  set(GUESS_Qt5_DIR /qt/${AGAVE_QT_VERSION}/gcc_64)
+  set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif(WIN32)
 
-list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt5_DIR})
+list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt6_DIR})
 
 if(APPLE)
   # homebrew
@@ -69,7 +70,7 @@ if(APPLE)
   add_link_options("-L/usr/local/opt/icu4c/lib")
 endif(APPLE)
 
-find_package(Qt5 COMPONENTS Widgets Core Gui Network WebSockets Xml REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml REQUIRED)
 
 find_package(spdlog REQUIRED)
 
@@ -135,9 +136,13 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 # CPack
 # #####################
+find_package(Qt6QTiffPlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
 
 # copy all dlls into place.
 if(WIN32)
+  # find_package(Qt6QWindowsIntegrationPlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
+  # find_package(Qt6QWindowsVistaStylePlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
+
   # assuming vcpkg has done some work already to get dlls in here
   install(
     DIRECTORY ${CMAKE_BINARY_DIR}/Release/
@@ -155,12 +160,14 @@ if(WIN32)
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt5::Widgets>
-    $<TARGET_FILE:Qt5::Core>
-    $<TARGET_FILE:Qt5::Gui>
-    $<TARGET_FILE:Qt5::Xml>
-    $<TARGET_FILE:Qt5::Network>
-    $<TARGET_FILE:Qt5::WebSockets>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
+    $<TARGET_FILE:Qt6::OpenGL>
+    $<TARGET_FILE:Qt6::OpenGLWidgets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Release
@@ -168,38 +175,42 @@ if(WIN32)
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt5::Widgets>
-    $<TARGET_FILE:Qt5::Core>
-    $<TARGET_FILE:Qt5::Gui>
-    $<TARGET_FILE:Qt5::Xml>
-    $<TARGET_FILE:Qt5::Network>
-    $<TARGET_FILE:Qt5::WebSockets>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
+    $<TARGET_FILE:Qt6::OpenGL>
+    $<TARGET_FILE:Qt6::OpenGLWidgets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Debug
   )
   install(FILES
-    $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
+    $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
   )
   install(FILES
-    $<TARGET_FILE:Qt5::QJpegPlugin>
-    $<TARGET_FILE:Qt5::QTiffPlugin>
+    $<TARGET_FILE:Qt6::QTiffPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
   install(FILES
-    $<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>
+    $<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>
     DESTINATION ${INSTALLDIR}/styles/
   )
 
 # ###############
 elseif(APPLE)
+  find_package(Qt6QCocoaIntegrationPlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QMacStylePlugin 6.5.0 REQUIRED PATHS ${Qt6Widgets_DIR})
+
   # ###############
   set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
   add_definitions(-DPACKAGE_OSX_TARGET)
 
   # based on code from CMake's QtDialog/CMakeLists.txt
-  macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _prefix)
+  macro(install_qt6_plugin _qt_plugin_name _qt_plugins_var _prefix)
     get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
 
     if(EXISTS "${_qt_plugin_path}")
@@ -217,21 +228,22 @@ elseif(APPLE)
   endmacro()
 
   install(FILES
-    $<TARGET_FILE:Qt5::Widgets>
-    $<TARGET_FILE:Qt5::Core>
-    $<TARGET_FILE:Qt5::Gui>
-    $<TARGET_FILE:Qt5::Xml>
-    $<TARGET_FILE:Qt5::Network>
-    $<TARGET_FILE:Qt5::WebSockets>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
+    $<TARGET_FILE:Qt6::OpenGL>
+    $<TARGET_FILE:Qt6::OpenGLWidgets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
   )
 
   # calls cmake install command and also adds to the QT_PLUGINS list for use below
-  install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt5_plugin("Qt5::QJpegPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt5_plugin("Qt5::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt5_plugin("Qt5::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
     "[Paths]\nPlugins = PlugIns\n")
@@ -260,7 +272,7 @@ elseif(APPLE)
 
   # Append Qt's lib folder
   # list(APPEND DIRS "${QTDIR}/lib")
-  # list(APPEND DIRS "${Qt5Widgets_DIR}/../..")
+  # list(APPEND DIRS "${Qt6Widgets_DIR}/../..")
   set(PLUGINS "${QT_PLUGINS}")
 
   include(InstallRequiredSystemLibraries)
@@ -276,25 +288,29 @@ elseif(APPLE)
   include(CPack)
 
 else() # Linux
+  find_package(Qt6QXcbIntegrationPlugin 6.5.0 REQUIRED PATHS ${Qt6Gui_DIR})
+
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt5::Widgets>
-    $<TARGET_FILE:Qt5::Core>
-    $<TARGET_FILE:Qt5::Gui>
-    $<TARGET_FILE:Qt5::Xml>
-    $<TARGET_FILE:Qt5::Network>
-    $<TARGET_FILE:Qt5::WebSockets>
+    $<TARGET_FILE:Qt6::Widgets>
+    $<TARGET_FILE:Qt6::Core>
+    $<TARGET_FILE:Qt6::Gui>
+    $<TARGET_FILE:Qt6::OpenGL>
+    $<TARGET_FILE:Qt6::OpenGLWidgets>
+    $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Network>
+    $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
   )
   install(FILES
-    $<TARGET_FILE:Qt5::QXcbIntegrationPlugin>
+    $<TARGET_FILE:Qt6::QXcbIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
   )
   install(FILES
-    $<TARGET_FILE:Qt5::QJpegPlugin>
-    $<TARGET_FILE:Qt5::QTiffPlugin>
+    $<TARGET_FILE:Qt6::QTiffPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
+
 endif(WIN32)

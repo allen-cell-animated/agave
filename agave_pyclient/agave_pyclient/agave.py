@@ -203,7 +203,7 @@ class AgaveRenderer:
 
     def load_ome_tif(self, name: str):
         """
-        DEPRECATED. Use load_volume_from_file
+        DEPRECATED. Use load_data
         """
         # 2
         self.cb.add_command("LOAD_OME_TIF", name)
@@ -816,17 +816,7 @@ class AgaveRenderer:
 
     def load_volume_from_file(self, path: str, scene: int, time: int):
         """
-        Load a volume
-
-        Parameters
-        ----------
-        path: str
-            The file path must be locally accessible from where the AGAVE server is
-            running.
-        scene: int
-            zero-based index to select the scene, for multi-scene files. Defaults to 0
-        time: int
-            zero-based index to select the time sample.  Defaults to 0
+        DEPRECATED. Use load_data
         """
         # 39
         self.cb.add_command("LOAD_VOLUME_FROM_FILE", path, scene, time)
@@ -870,6 +860,45 @@ class AgaveRenderer:
         """
         # 42
         self.cb.add_command("SHOW_BOUNDING_BOX", on)
+
+    def load_data(
+        self,
+        path: str,
+        scene: int = 0,
+        multiresolution_level: int = 0,
+        time: int = 0,
+        channels: List[int] = [],
+        region: List[int] = [],
+    ):
+        """
+        Completely specify volume data to load
+
+        Parameters
+        ----------
+        path: str
+            URL or directory or file path to the data. The path must be locally
+            accessible from the AGAVE server.
+
+        scene: int
+            zero-based index to select the scene, for multi-scene files. Defaults to 0
+
+        multiresolution_level: int
+            zero-based index to select the multiresolution level.  Defaults to 0
+
+        time: int
+            zero-based index to select the time sample.  Defaults to 0
+
+        channels: List[int]
+            zero-based indices to select the channels.  Defaults to all channels
+
+        region: List[int]
+            6 integers specifying the region to load.  Defaults to the entire volume.
+            Any list length other than 0 or 6 is an error.
+        """
+        # 44
+        self.cb.add_command(
+            "LOAD_DATA", path, scene, multiresolution_level, time, channels, region
+        )
 
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0

@@ -43,37 +43,67 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr() {}
+FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
 
 FileReaderZarr::~FileReaderZarr() {}
 
-static ::nlohmann::json
-jsonRead(std::string zarrurl)
+::nlohmann::json
+FileReaderZarr::jsonRead(const std::string& zarrurl)
 {
-  // JSON uses a separate driver
-  auto attrs_store = tensorstore::Open<::nlohmann::json, 0>(
-                       { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
-                       .result()
-                       .value();
+  if (m_zattrs.is_object()) {
+    return m_zattrs;
+  }
 
+  // JSON uses a separate driver
+  auto attrs_store_open_result = tensorstore::Open<::nlohmann::json, 0>(
+                                   { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
+                                   .result();
+  if (!attrs_store_open_result.ok()) {
+    LOG_ERROR << "Error: " << attrs_store_open_result.status();
+    return ::nlohmann::json::object_t();
+  }
+  auto attrs_store = attrs_store_open_result.value();
   // Sets attrs_array to a rank-0 array of ::nlohmann::json
   auto attrs_array_result = tensorstore::Read(attrs_store).result();
 
   ::nlohmann::json attrs;
   if (attrs_array_result.ok()) {
     attrs = attrs_array_result.value()();
-    std::cout << "attrs: " << attrs << std::endl;
-  } else if (absl::IsNotFound(attrs_array_result.status())) {
-    attrs = ::nlohmann::json::object_t();
+    // std::cout << "attrs: " << attrs << std::endl;
   } else {
-    std::cout << "Error: " << attrs_array_result.status();
+    LOG_ERROR << "Error: " << attrs_array_result.status();
+    if (absl::IsNotFound(attrs_array_result.status())) {
+      attrs = ::nlohmann::json::object_t();
+    }
   }
+  m_zattrs = attrs;
   return attrs;
 }
 
-uint32_t
-FileReaderZarr::loadNumScenesZarr(const std::string& filepath)
+std::vector<std::string>
+FileReaderZarr::getChannelNames(const std::string& filepath)
 {
+  std::vector<std::string> channelNames;
+  nlohmann::json attrs = jsonRead(filepath);
+  auto omero = m_zattrs["omero"];
+  if (omero.is_object()) {
+    auto channels = omero["channels"];
+    if (channels.is_array()) {
+      for (auto& channel : channels) {
+        channelNames.push_back(channel["label"]);
+      }
+    }
+  }
+  return channelNames;
+}
+uint32_t
+FileReaderZarr::loadNumScenes(const std::string& filepath)
+{
+  nlohmann::json attrs = jsonRead(filepath);
+  auto multiscales = attrs["multiscales"];
+  if (multiscales.is_array()) {
+    return multiscales.size();
+  }
   return 1;
 }
 
@@ -136,56 +166,139 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   return 0;
 }
 
+std::vector<std::string>
+getAxes(nlohmann::json axes)
+{
+  //"axes": [
+  //    {
+  //        "name": "t",
+  //        "type": "time",
+  //        "unit": "millisecond"
+  //    },
+  //    {
+  //        "name": "c",
+  //        "type": "channel"
+  //    },
+  //    {
+  //        "name": "z",
+  //        "type": "space",
+  //        "unit": "micrometer"
+  //    },
+  //    {
+  //        "name": "y",
+  //        "type": "space",
+  //        "unit": "micrometer"
+  //    },
+  //    {
+  //        "name": "x",
+  //        "type": "space",
+  //        "unit": "micrometer"
+  //    }
+  //],
+
+  // is array!
+  // we will recognize only t,c,z,y,x...
+  // according to spec (https://ngff.openmicroscopy.org/latest/#multiscale-md)
+  // this must be of length 2-5
+  // and contain only 2 or 3 spatial axes
+  // type time must come before type channel, and spatial axes (type=space) must follow
+  // therefore:
+  // // if we assume zyx preference, then:
+  // the last 2 axes must be spatial
+  // if there are 2 axes, the order must be yx
+  // if there are 5 axes, the order must be tczyx
+  // 2 spatial axes:
+  // YX    = 111YX -> [0,1,2]
+  // TYX   = T11YX -> [1,2]
+  // CYX   = 1C1YX -> [0,2]
+  // TCYX  = TC1YX -> [2]
+  // 3 spatial axes:
+  // ZYX   = 11ZYX -> [0,1]
+  // TZYX  = T1ZYX -> [1]
+  // CZYX  = 1CZYX -> [0]
+  // TCZYX = TCZYX -> []
+  // are allowed
+
+  // count spatial axes
+
+  std::vector<std::string> dims;
+  for (auto axis : axes) {
+    std::string name = axis["name"];
+    // LOG_INFO << name;
+    // convert to uppercase
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
+    dims.push_back(name);
+  }
+  return dims;
+}
+
 std::vector<MultiscaleDims>
 FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
   std::vector<MultiscaleDims> multiscaleDims;
 
   nlohmann::json attrs = jsonRead(filepath);
+
+  std::vector<std::string> channelNames = getChannelNames(filepath);
+
   auto multiscales = attrs["multiscales"];
   if (multiscales.is_array()) {
-    // take the first one for now.
-    auto multiscale = multiscales[0];
+    auto multiscale = multiscales[scene];
+    std::vector<std::string> dimorder = { "T", "C", "Z", "Y", "X" };
+    auto axes = multiscale["axes"];
+    if (!axes.is_null()) {
+      dimorder = getAxes(axes);
+    }
     auto datasets = multiscale["datasets"];
     if (datasets.is_array()) {
       for (auto& dataset : datasets) {
         auto path = dataset["path"];
         if (path.is_string()) {
           std::string pathstr = path;
-          auto store = tensorstore::Open({ { "driver", "zarr" },
-                                           { "kvstore",
+          auto result = tensorstore::Open({ { "driver", "zarr" },
+                                            { "kvstore",
 
-                                             getKvStoreDriverParams(filepath, pathstr) } })
-                         .result()
-                         .value();
-          tensorstore::DataType dtype = store.dtype();
-          auto shape_span = store.domain().shape();
-          std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
-          std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+                                              getKvStoreDriverParams(filepath, pathstr) } })
+                          .result();
+          if (!result.ok()) {
+            LOG_ERROR << "Error: " << result.status();
+            LOG_ERROR << "Failed to open store for " << filepath << " :: " << pathstr;
+          } else {
+            auto store = result.value();
 
-          auto scale = dataset["coordinateTransformations"][0]["scale"];
-          if (scale.is_array()) {
-            std::vector<float> scalevec;
-            for (auto& s : scale) {
-              scalevec.push_back(s);
+            tensorstore::DataType dtype = store.dtype();
+            auto shape_span = store.domain().shape();
+            std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
+            std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+
+            auto scale = dataset["coordinateTransformations"][0]["scale"];
+            if (scale.is_array()) {
+              std::vector<float> scalevec;
+              for (auto& s : scale) {
+                scalevec.push_back(s);
+              }
+              MultiscaleDims zmd;
+              zmd.dimensionOrder = dimorder;
+              zmd.scale = scalevec;
+              zmd.shape = shape;
+              // TODO reconcile these strings against my other ways of specifying dtype
+              zmd.dtype = dtype.name();
+              zmd.path = pathstr;
+              zmd.channelNames = channelNames;
+              multiscaleDims.push_back(zmd);
             }
-            MultiscaleDims zmd;
-            zmd.scale = scalevec;
-            zmd.shape = shape;
-            // TODO reconcile these strings against my other ways of specifying dtype
-            zmd.dtype = dtype.name();
-            zmd.path = pathstr;
-            multiscaleDims.push_back(zmd);
           }
         }
       }
     }
+  } else {
+    LOG_ERROR << "No multiscales array found in " << filepath;
   }
   return multiscaleDims;
 }
 
 VolumeDimensions
-FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
+FileReaderZarr::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
 
@@ -208,7 +321,7 @@ FileReaderZarr::loadDimensionsZarr(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
+FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 {
   auto tStart = std::chrono::high_resolution_clock::now();
   // load channels
@@ -238,35 +351,38 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   if (loadSpec.maxz > loadSpec.minz)
     dims.sizeZ = loadSpec.maxz - loadSpec.minz;
 
-  tensorstore::Context context = tensorstore::Context::Default();
+  uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
 
-  auto openFuture = tensorstore::Open(
-    {
-      { "driver", "zarr" },
-      { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) },
-    },
-    context,
-    tensorstore::OpenMode::open,
-    tensorstore::RecheckCached{ false },
-    tensorstore::ReadWriteMode::read);
+  if (!m_store.valid()) {
+    auto context = tensorstore::Context::FromJson({ { "cache_pool", { { "total_bytes_limit", 100000000 } } } }).value();
 
-  auto result = openFuture.result();
-  if (!result.ok()) {
-    return emptyimage;
+    auto openFuture = tensorstore::Open(
+      { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
+      context,
+      tensorstore::OpenMode::open,
+      tensorstore::RecheckCached{ false },
+      tensorstore::RecheckCachedData{ false },
+      tensorstore::ReadWriteMode::read);
+
+    auto result = openFuture.result();
+    if (!result.ok()) {
+      LOG_ERROR << "Error: " << result.status();
+      return emptyimage;
+    }
+
+    m_store = result.value();
   }
+  auto domain = m_store.domain();
+  // std::cout << "domain.shape(): " << domain.shape() << std::endl;
+  // std::cout << "domain.origin(): " << domain.origin() << std::endl;
+  // auto shape_span = store.domain().shape();
 
-  auto store = result.value();
-  auto domain = store.domain();
-  std::cout << "domain.shape(): " << domain.shape() << std::endl;
-  std::cout << "domain.origin(): " << domain.origin() << std::endl;
-  auto shape_span = store.domain().shape();
-
-  std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
+  // std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
   size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
+  uint8_t* data = new uint8_t[channelsize_bytes * nch];
+  memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -298,13 +414,15 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   }
 
   // now ready to read channels one by one.
-  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+  for (uint32_t channel = 0; channel < nch; ++channel) {
+    uint32_t channelToLoad = channel;
+    if (!loadSpec.channels.empty()) {
+      channelToLoad = loadSpec.channels[channel];
+    }
     // read entire channel into its native size
-    //    for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-    //    uint32_t planeIndex = dims.getPlaneIndex(0, channel, time);
     destptr = channelRawMem;
 
-    tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(store.domain());
+    tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(m_store.domain());
     // T value:
     // transform = (std::move(transform) | tensorstore::Dims(0).IndexSlice(time)).value();
     // C value:
@@ -315,21 +433,44 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
     // auto x = tensorstore::Read<tensorstore::zero_origin>(store | transform).value();
     // auto* p = reinterpret_cast<uint16_t*>(x.data());
 
-    transform =
-      (std::move(transform) | tensorstore::Dims(0).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
-    transform = (std::move(transform) | tensorstore::Dims(1).HalfOpenInterval(channel, channel + 1)).value();
-    transform = (std::move(transform) | tensorstore::Dims(2).HalfOpenInterval(minz, maxz)).value();
-    transform = (std::move(transform) | tensorstore::Dims(3).HalfOpenInterval(miny, maxy)).value();
-    transform = (std::move(transform) | tensorstore::Dims(4).HalfOpenInterval(minx, maxx)).value();
+    // make sure this works with 2d, 3d, or 4d data
+    int tsdim = 0;
+    if (levelDims.hasDim("T")) {
+      transform =
+        (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(loadSpec.time, loadSpec.time + 1)).value();
+      tsdim++;
+    }
+    if (levelDims.hasDim("C")) {
+      transform =
+        (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(channelToLoad, channelToLoad + 1)).value();
+      tsdim++;
+    }
+    if (levelDims.hasDim("Z")) {
+      transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minz, maxz)).value();
+      tsdim++;
+    }
+    transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(miny, maxy)).value();
+    tsdim++;
+    transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minx, maxx)).value();
+    tsdim++;
 
-    auto arr = tensorstore::Array(
-      reinterpret_cast<uint16_t*>(destptr), { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX }, tensorstore::c_order);
-    tensorstore::Read(store | transform, tensorstore::UnownedToShared(arr)).value();
-
-    //      if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
-    //      return emptyimage;
-    //  }
-    //}
+    tensorstore::Index shapeToLoad[5] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
+    if (levelDims.dtype == "uint8") {
+      auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else if (levelDims.dtype == "int32") {
+      auto arr = tensorstore::Array(reinterpret_cast<int32_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else if (levelDims.dtype == "uint16") {
+      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else if (levelDims.dtype == "float32") {
+      auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+    } else {
+      auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+    }
 
     // convert to our internal format (IN_MEMORY_BPP)
     if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
@@ -348,14 +489,15 @@ FileReaderZarr::loadOMEZarr(const LoadSpec& loadSpec)
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
                                 dims.sizeZ,
-                                dims.sizeC,
+                                nch,
                                 ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
 
-  im->setChannelNames(dims.channelNames);
+  std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+  im->setChannelNames(channelNames);
 
   tEnd = std::chrono::high_resolution_clock::now();
   elapsed = tEnd - tStartImage;

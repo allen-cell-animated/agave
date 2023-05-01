@@ -167,35 +167,137 @@ VolumeDimensions::log() const
   LOG_INFO << "End VolumeDimensions";
 }
 
+std::vector<std::string>
+VolumeDimensions::getChannelNames(const std::vector<uint32_t>& channels) const
+{
+  // if channels list is empty, do nothing
+  // if channels list is not empty, filter down the list of channel names
+  if (!channels.empty() && channels.size() < sizeC) {
+    // filter down the list of channel names
+    std::vector<std::string> newChannelNames(channels.size(), "");
+    size_t nc = 0;
+    for (auto c : channels) {
+      if (c < channelNames.size()) {
+        newChannelNames[nc] = channelNames[c];
+      }
+      nc++;
+    }
+    return newChannelNames;
+  }
+  return channelNames;
+}
+
 VolumeDimensions
 MultiscaleDims::getVolumeDimensions() const
 {
   VolumeDimensions dims;
 
-  dims.sizeX = this->shape[4];
-  dims.sizeY = this->shape[3];
-  dims.sizeZ = this->shape[2];
-  dims.sizeC = this->shape[1];
-  dims.sizeT = this->shape[0];
+  dims.sizeX = sizeX();
+  dims.sizeY = sizeY();
+  dims.sizeZ = sizeZ();
+  dims.sizeC = sizeC();
+  dims.sizeT = sizeT();
   dims.dimensionOrder = "XYZCT";
-  dims.physicalSizeX = this->scale[4];
-  dims.physicalSizeY = this->scale[3];
-  dims.physicalSizeZ = this->scale[2];
+  dims.physicalSizeX = scaleX();
+  dims.physicalSizeY = scaleY();
+  dims.physicalSizeZ = scaleZ();
   if (this->dtype == "int32") { // tensorstore::dtype_v<int32_t>) {
     dims.bitsPerPixel = 32;
     dims.sampleFormat = 2;
   } else if (this->dtype == "uint16") { // tensorstore::dtype_v<uint16_t>) {
     dims.bitsPerPixel = 16;
     dims.sampleFormat = 1;
+  } else if (this->dtype == "uint8") { // tensorstore::dtype_v<uint8_t>) {
+    dims.bitsPerPixel = 8;
+    dims.sampleFormat = 1;
+  } else if (this->dtype == "float32") { // tensorstore::dtype_v<float32_t>) {
+    dims.bitsPerPixel = 32;
+    dims.sampleFormat = 3;
   } else {
 
     LOG_ERROR << "Unrecognized format " << this->dtype;
   }
 
-  std::vector<std::string> channelNames;
-  for (uint32_t i = 0; i < dims.sizeC; ++i) {
-    channelNames.push_back(std::to_string(i));
+  if (channelNames.empty()) {
+    for (uint32_t i = 0; i < dims.sizeC; ++i) {
+      dims.channelNames.push_back(std::to_string(i));
+    }
+  } else {
+    dims.channelNames = channelNames;
   }
-  dims.channelNames = channelNames;
   return dims;
+}
+
+int64_t
+getIndex(std::vector<std::string> v, std::string K)
+{
+  auto it = find(v.begin(), v.end(), K);
+
+  // If element was found
+  if (it != v.end()) {
+
+    // calculating the index
+    // of K
+    int index = it - v.begin();
+    return index;
+  } else {
+    // If the element is not
+    // present in the vector
+    return -1;
+  }
+}
+
+bool
+MultiscaleDims::hasDim(const std::string& dim) const
+{
+  return getIndex(this->dimensionOrder, dim) > -1;
+}
+
+int64_t
+MultiscaleDims::sizeT() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "T");
+  return i > -1 ? shape[i] : 1;
+}
+int64_t
+MultiscaleDims::sizeC() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "C");
+  return i > -1 ? shape[i] : 1;
+}
+int64_t
+MultiscaleDims::sizeZ() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "Z");
+  return i > -1 ? shape[i] : 1;
+}
+int64_t
+MultiscaleDims::sizeY() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "Y");
+  return i > -1 ? shape[i] : 1;
+}
+int64_t
+MultiscaleDims::sizeX() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "X");
+  return i > -1 ? shape[i] : 1;
+}
+float
+MultiscaleDims::scaleZ() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "Z");
+  return i > -1 ? scale[i] : 1.0f;
+}
+float
+MultiscaleDims::scaleY() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "Y");
+  return i > -1 ? scale[i] : 1.0f;
+}
+float
+MultiscaleDims::scaleX() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "X");
+  return i > -1 ? scale[i] : 1.0f;
 }

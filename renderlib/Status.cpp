@@ -149,4 +149,6 @@ CStatus::onNewImage(const std::string& name, Scene* scene)
   SetStatisticChanged("Volume", "Physical Size", FormatSize(PhysicalSize, 2), "");
   SetStatisticChanged("Volume", "Resolution", FormatSize(resolution), "");
   SetStatisticChanged("Volume", "Spacing", FormatSize(spacing, 2), "");
+  SetStatisticChanged(
+    "Volume", "Time Points", std::to_string(scene->m_timeLine.maxTime() - scene->m_timeLine.minTime() + 1), "");
 }

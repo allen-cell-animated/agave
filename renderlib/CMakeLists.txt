@@ -39,6 +39,7 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GradientData.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Histogram.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Histogram.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/IFileReader.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcGpu.cpp"
@@ -63,6 +64,7 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/version.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"
 )
@@ -85,8 +87,8 @@ add_subdirectory(libCZI)
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 FetchContent_Declare(
 	tensorstore
-	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.28.tar.gz"
-	URL_HASH SHA256=c09b66a4d81f0b0f7c83e6c6ca7c16981dd620a90fcc1d0fdc9d4010dd38c896
+	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.35.tar.gz"
+	URL_HASH SHA256=a8cbcea10425bc34388b0c7cd0ee0f2e572baf709c71274ae5538eb2644e234b
 )
 
 # Additional FetchContent_Declare calls as needed...
@@ -94,7 +96,7 @@ FetchContent_MakeAvailable(tensorstore)
 
 # end tensorstore dependency
 target_link_libraries(renderlib
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
 	libCZI

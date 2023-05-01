@@ -17,7 +17,9 @@ class QCamera;
 class IRenderWindow;
 class QRenderSettings;
 class Scene;
+namespace Serialize {
 struct ViewerState;
+}
 
 /**
  * 3D GL view of an image with axes and gridlines.
@@ -62,7 +64,7 @@ public:
 
   const CCamera& getCamera() { return m_CCamera; }
 
-  void fromViewerState(const ViewerState& s);
+  void fromViewerState(const Serialize::ViewerState& s);
 
   QPixmap capture();
   QImage captureQimage();
@@ -73,7 +75,7 @@ public:
   void pauseRenderLoop();
   void restartRenderLoop();
 
-    signals:
+signals:
   void ChangedRenderer();
 
 public slots:

@@ -2,6 +2,8 @@
 
 #include "Section.h"
 
+#include <QLabel>
+
 Section::Section(const QString& title, const int animationDuration, bool use_checkbox, bool is_checked, QWidget* parent)
   : QWidget(parent)
   , m_animationDuration(animationDuration)
@@ -13,7 +15,12 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   m_contentArea = new QScrollArea(this);
   m_mainLayout = new QGridLayout(this);
 
-  m_toggleButton->setStyleSheet("QToolButton {border: none;}");
+  // get standard QLabel font size
+  QFont f = QLabel("A").font();
+  int px = f.pointSize();
+
+  m_toggleButton->setStyleSheet(QString("QToolButton {border: none; font-size: ") + QString::number(px) +
+                                QString("pt;}"));
   m_toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   m_toggleButton->setArrowType(Qt::ArrowType::RightArrow);
   m_toggleButton->setText(title);
@@ -56,6 +63,21 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
     m_toggleAnimation->setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
     m_toggleAnimation->start();
   });
+  QObject::connect(m_toggleAnimation, &QParallelAnimationGroup::finished, [this]() {
+    if (m_toggleAnimation->direction() == QAbstractAnimation::Backward) {
+      m_contentArea->setVisible(false);
+      emit collapsed();
+    } else {
+      m_contentArea->setVisible(true);
+      emit expanded();
+    }
+  });
+}
+
+void
+Section::setTitle(const QString& title)
+{
+  m_toggleButton->setText(title);
 }
 
 void
@@ -78,4 +100,21 @@ Section::setContentLayout(QLayout& contentLayout)
   contentAnimation->setDuration(m_animationDuration);
   contentAnimation->setStartValue(0);
   contentAnimation->setEndValue(contentHeight);
+}
+
+bool
+Section::isChecked() const
+{
+  if (m_checkBox) {
+    return m_checkBox->isChecked();
+  }
+  return false;
+}
+
+void
+Section::setChecked(bool checked)
+{
+  if (m_checkBox) {
+    m_checkBox->setChecked(checked);
+  }
 }

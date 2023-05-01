@@ -13,11 +13,11 @@
 #include <glm.h>
 
 #include <QGuiApplication>
+#include <QMouseEvent>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObjectFormat>
 #include <QScreen>
 #include <QWindow>
-#include <QtGui/QMouseEvent>
 
 #include <cmath>
 #include <iostream>
@@ -325,24 +325,25 @@ GLView3D::OnUpdateRenderer(int rendererType)
 }
 
 void
-GLView3D::fromViewerState(const ViewerState& s)
+GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
-  m_CCamera.m_From = glm::vec3(s.m_eyeX, s.m_eyeY, s.m_eyeZ);
-  m_CCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
-  m_CCamera.m_Up = glm::vec3(s.m_upX, s.m_upY, s.m_upZ);
-  m_CCamera.m_FovV = s.m_fov;
-  m_CCamera.SetProjectionMode(s.m_projection == ViewerState::Projection::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
-  m_CCamera.m_OrthoScale = s.m_orthoScale;
+  m_CCamera.m_From = glm::make_vec3(s.camera.eye.data());
+  m_CCamera.m_Target = glm::make_vec3(s.camera.target.data());
+  m_CCamera.m_Up = glm::make_vec3(s.camera.up.data());
+  m_CCamera.m_FovV = s.camera.fovY;
+  m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
+                                                                                            : ORTHOGRAPHIC);
+  m_CCamera.m_OrthoScale = s.camera.orthoScale;
 
-  m_CCamera.m_Film.m_Exposure = s.m_exposure;
-  m_CCamera.m_Aperture.m_Size = s.m_apertureSize;
-  m_CCamera.m_Focus.m_FocalDistance = s.m_focalDistance;
+  m_CCamera.m_Film.m_Exposure = s.camera.exposure;
+  m_CCamera.m_Aperture.m_Size = s.camera.aperture;
+  m_CCamera.m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
-  m_qcamera->GetProjection().SetFieldOfView(s.m_fov);
-  m_qcamera->GetFilm().SetExposure(s.m_exposure);
-  m_qcamera->GetAperture().SetSize(s.m_apertureSize);
-  m_qcamera->GetFocus().SetFocalDistance(s.m_focalDistance);
+  m_qcamera->GetProjection().SetFieldOfView(s.camera.fovY);
+  m_qcamera->GetFilm().SetExposure(s.camera.exposure);
+  m_qcamera->GetAperture().SetSize(s.camera.aperture);
+  m_qcamera->GetFocus().SetFocalDistance(s.camera.focalDistance);
 }
 
 QPixmap

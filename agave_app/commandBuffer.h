@@ -44,6 +44,7 @@ public:
   virtual int32_t parseInt32();
   virtual float parseFloat32();
   virtual std::vector<float> parseFloat32Array();
+  virtual std::vector<int32_t> parseInt32Array();
   virtual std::string parseString();
 
   commandBuffer* _commandBuffer;
@@ -60,6 +61,7 @@ public:
   virtual size_t writeInt32(int32_t);
   virtual size_t writeFloat32(float);
   virtual size_t writeFloat32Array(const std::vector<float>&);
+  virtual size_t writeInt32Array(const std::vector<int32_t>&);
   virtual size_t writeString(const std::string&);
 
   commandBuffer* _commandBuffer;
@@ -74,5 +76,6 @@ public:
   virtual size_t writeInt32(int32_t);
   virtual size_t writeFloat32(float);
   virtual size_t writeFloat32Array(const std::vector<float>&);
+  virtual size_t writeInt32Array(const std::vector<int32_t>&);
   virtual size_t writeString(const std::string&);
 };

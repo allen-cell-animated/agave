@@ -122,6 +122,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetBoundingBoxColorCommand);
           CMD_CASE(ShowBoundingBoxCommand);
           CMD_CASE(TrackballCameraCommand);
+          CMD_CASE(LoadDataCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!
@@ -203,6 +204,18 @@ CommandBufferIterator::parseFloat32Array()
   return v;
 }
 
+std::vector<int32_t>
+CommandBufferIterator::parseInt32Array()
+{
+  int32_t len = parseInt32();
+  std::vector<int32_t> v(len);
+  for (int i = 0; i < len; ++i) {
+    int32_t value = parseInt32();
+    v[i] = value;
+  }
+  return v;
+}
+
 CommandBufferWriter::CommandBufferWriter(commandBuffer* cb)
   : _commandBuffer(cb)
   , _currentPos(const_cast<uint8_t*>(cb->head()))
@@ -239,6 +252,16 @@ CommandBufferWriter::writeFloat32Array(const std::vector<float>& v)
 }
 
 size_t
+CommandBufferWriter::writeInt32Array(const std::vector<int32_t>& v)
+{
+  writeInt32((int32_t)v.size());
+  for (auto i = v.begin(); i != v.end(); ++i) {
+    writeInt32(*i);
+  }
+  return 4 + v.size() * sizeof(int32_t);
+}
+
+size_t
 CommandBufferWriter::writeString(const std::string& s)
 {
   writeInt32((int32_t)s.size());
@@ -263,6 +286,12 @@ size_t
 CommandBufferSizer::writeFloat32Array(const std::vector<float>& v)
 {
   return 4 + v.size() * sizeof(float);
+}
+
+size_t
+CommandBufferSizer::writeInt32Array(const std::vector<int32_t>& v)
+{
+  return 4 + v.size() * sizeof(int32_t);
 }
 
 size_t
