@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AGAVE &mdash; AGAVE 1.4.1 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>AGAVE &mdash; AGAVE 1.5.0-rc.1 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -24,24 +25,30 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="#" class="icon icon-home"> AGAVE
+
+          
+          
+          <a href="#" class="icon icon-home">
+            AGAVE
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents</span></p>
+              <p><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="agave.html">User Interface Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#loading-volume-data">Loading volume data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#load-settings">Load Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#adjusting-the-camera-view">Adjusting the camera view</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#appearance-panel">Appearance Panel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#volume-channel-settings">Volume Channel Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#output-saving-results">Output: Saving Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#render-dialog">Render Dialog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#camera-panel">Camera Panel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#time-panel">Time Panel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#python-interface">Python Interface</a></li>
@@ -63,8 +70,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-      <li>AGAVE</li>
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">AGAVE</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -74,20 +81,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="agave">
+  <section id="agave">
 <h1>AGAVE<a class="headerlink" href="#agave" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="advanced-gpu-accelerated-volume-explorer">
+<section id="advanced-gpu-accelerated-volume-explorer">
 <h2>Advanced GPU Accelerated Volume Explorer<a class="headerlink" href="#advanced-gpu-accelerated-volume-explorer" title="Permalink to this headline">¶</a></h2>
 <p>AGAVE is a desktop application for viewing multichannel volume data.</p>
 <p>AGAVE’s core viewing engine uses a “progressive path tracer”. During interactive use, your image will appear grainy at first, but will refine over time as the rendering system builds up more and more render passes. The speed of refinement depends on your hardware, the size and complexity of the image, and the AGAVE parameters you set, i.e., the faster your GPU, the quicker a rendering will resolve. GPU memory dictates the maximum size of the files AGAVE can load. As soon as you change any viewing parameter, including your camera angle, the rendering will start over.</p>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents</span></p>
+<p><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="agave.html">User Interface Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#loading-volume-data">Loading volume data</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="agave.html#open-volume">Open Volume</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#open-file-directory-or-url">Open file, directory or URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="agave.html#open-json">Open JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="agave.html#recent">Recent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#load-settings">Load Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#resolution-level">Resolution Level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#time">Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#channels">Channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#subregion">Subregion</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#adjusting-the-camera-view">Adjusting the camera view</a><ul>
@@ -111,9 +125,17 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#output-saving-results">Output: Saving Results</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="agave.html#save-image">Save Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#quick-render">Quick Render</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#render">Render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="agave.html#save-json">Save JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="agave.html#save-to-python-script">Save To Python Script</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agave.html#render-dialog">Render Dialog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#image-preview">Image preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#output-resolution">Output Resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#image-quality">Image Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agave.html#output-file">Output File</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="agave.html#camera-panel">Camera Panel</a><ul>
@@ -135,8 +157,8 @@
 <li class="toctree-l1"><a class="reference internal" href="agave.html#preparing-an-agave-compatible-ome-tiff-file-with-fiji">Preparing an AGAVE Compatible ome-tiff file with Fiji</a></li>
 </ul>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
