@@ -603,7 +603,7 @@ WgpuView3D::OnUpdateRenderer(int rendererType)
 }
 
 void
-WgpuView3D::fromViewerState(const ViewerState& s)
+WgpuView3D::fromViewerState(const Serialize::ViewerState& s)
 {
   m_CCamera.m_From = glm::vec3(s.m_eyeX, s.m_eyeY, s.m_eyeZ);
   m_CCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
@@ -675,4 +675,25 @@ WgpuView3D::captureQimage()
   return img;
 #endif
   return QImage();
+}
+
+void
+WgpuView3D::pauseRenderLoop()
+{
+  std::shared_ptr<CStatus> s = getStatus();
+  // the CStatus updates can cause Qt GUI work to happen,
+  // which can not be called from a separate thread.
+  // so when we start rendering from another thread,
+  // we need to either make status updates thread safe,
+  // or just disable them here.
+  s->EnableUpdates(false);
+  m_etimer.invalidate();
+}
+
+void
+WgpuView3D::restartRenderLoop()
+{
+  m_etimer.restart();
+  std::shared_ptr<CStatus> s = getStatus();
+  s->EnableUpdates(true);
 }
