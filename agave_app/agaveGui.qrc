@@ -1,4 +1,9 @@
 <RCC>
     <qresource prefix="agaveGui">
     </qresource>
+    <qresource>
+        <file>icons/lock.png</file>
+        <file>icons/linked.png</file>
+        <file>icons/unlinked.png</file>
+    </qresource>
 </RCC>

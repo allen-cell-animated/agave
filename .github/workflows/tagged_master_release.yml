@@ -8,18 +8,19 @@ jobs:
   cmake-build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2019, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v3
         with:
-          version: 5.15.2
+          version: 6.5.0
+          modules: qtwebsockets qtimageformats
       - name: macos install deps
         if: matrix.os == 'macos-latest'
         env:
@@ -27,7 +28,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff
+          brew install spdlog glm libtiff nasm zstd
       - name: macos build and test
         if: matrix.os == 'macos-latest'
         env:
@@ -44,7 +45,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: agave-macos
           path: ./build/agave-macos.zip
@@ -54,12 +55,12 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev
+          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
-          CC: gcc
-          CXX: g++
+          CC: gcc-10
+          CXX: g++-10
         run: |
           pwd
           mkdir ./build
@@ -69,13 +70,16 @@ jobs:
           cmake --build . --target install --config Release
         shell: bash
       - name: windows install deps
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
+      - name: windows get nasm
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/setup-nasm@v1
       - name: windows build and test
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
         run: |
@@ -88,8 +92,8 @@ jobs:
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
       - name: Upload windows artifact
-        if: matrix.os == 'windows-2019'
-        uses: actions/upload-artifact@v1
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
         with:
           name: agave-win
           path: ./build/agave-win.zip
@@ -97,11 +101,11 @@ jobs:
   publish_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - name: Install Python 3.9 version
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: "3.9"
           architecture: "x64"
@@ -123,7 +127,7 @@ jobs:
   docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - run: |
@@ -138,11 +142,11 @@ jobs:
           docs-folder: "agave_pyclient/docs/"
           pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
@@ -157,7 +161,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
@@ -168,11 +172,11 @@ jobs:
           docs-folder: "docs/"
           pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
@@ -196,15 +200,15 @@ jobs:
           echo ${GITHUB_REF/refs\/tags\/v/}
           echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
       - name: Get mac build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: agave-macos
       - name: Get windows build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: agave-win
       - name: Get PDF documentation build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: DocumentationPDF
       - name: Version the artifacts

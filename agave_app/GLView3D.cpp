@@ -13,11 +13,11 @@
 #include <glm.h>
 
 #include <QGuiApplication>
+#include <QMouseEvent>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObjectFormat>
 #include <QScreen>
 #include <QWindow>
-#include <QtGui/QMouseEvent>
 
 #include <cmath>
 #include <iostream>
@@ -107,6 +107,7 @@ GLView3D::sizeHint() const
 void
 GLView3D::initializeGL()
 {
+
   makeCurrent();
 
   QSize newsize = size();
@@ -123,26 +124,39 @@ GLView3D::initializeGL()
 void
 GLView3D::paintGL()
 {
+  if (!isEnabled()) {
+    return;
+  }
   makeCurrent();
 
   m_CCamera.Update();
 
   m_renderer->render(m_CCamera);
+
+  doneCurrent();
 }
 
 void
 GLView3D::resizeGL(int w, int h)
 {
+  if (!isEnabled()) {
+    return;
+  }
   makeCurrent();
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
   m_CCamera.m_Film.m_Resolution.SetResY(h);
   m_renderer->resize(w, h, devicePixelRatioF());
+
+  doneCurrent();
 }
 
 void
 GLView3D::mousePressEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
@@ -151,6 +165,9 @@ GLView3D::mousePressEvent(QMouseEvent* event)
 void
 GLView3D::mouseReleaseEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
@@ -181,6 +198,9 @@ get_arcball_vector(float xndc, float yndc)
 void
 GLView3D::mouseMoveEvent(QMouseEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
   m_cameraController.OnMouseMove(event);
   m_lastPos = event->pos();
 }
@@ -192,6 +212,10 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
 void
 GLView3D::timerEvent(QTimerEvent* event)
 {
+  if (!isEnabled()) {
+    return;
+  }
+
   makeCurrent();
 
   QOpenGLWidget::timerEvent(event);
@@ -259,6 +283,11 @@ GLView3D::getStatus()
 void
 GLView3D::OnUpdateRenderer(int rendererType)
 {
+  if (!isEnabled()) {
+    LOG_ERROR << "attempted to update GLView3D renderer when view is disabled";
+    return;
+  }
+
   makeCurrent();
 
   // clean up old renderer.
@@ -296,24 +325,25 @@ GLView3D::OnUpdateRenderer(int rendererType)
 }
 
 void
-GLView3D::fromViewerState(const ViewerState& s)
+GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
-  m_CCamera.m_From = glm::vec3(s.m_eyeX, s.m_eyeY, s.m_eyeZ);
-  m_CCamera.m_Target = glm::vec3(s.m_targetX, s.m_targetY, s.m_targetZ);
-  m_CCamera.m_Up = glm::vec3(s.m_upX, s.m_upY, s.m_upZ);
-  m_CCamera.m_FovV = s.m_fov;
-  m_CCamera.SetProjectionMode(s.m_projection == ViewerState::Projection::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
-  m_CCamera.m_OrthoScale = s.m_orthoScale;
+  m_CCamera.m_From = glm::make_vec3(s.camera.eye.data());
+  m_CCamera.m_Target = glm::make_vec3(s.camera.target.data());
+  m_CCamera.m_Up = glm::make_vec3(s.camera.up.data());
+  m_CCamera.m_FovV = s.camera.fovY;
+  m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
+                                                                                            : ORTHOGRAPHIC);
+  m_CCamera.m_OrthoScale = s.camera.orthoScale;
 
-  m_CCamera.m_Film.m_Exposure = s.m_exposure;
-  m_CCamera.m_Aperture.m_Size = s.m_apertureSize;
-  m_CCamera.m_Focus.m_FocalDistance = s.m_focalDistance;
+  m_CCamera.m_Film.m_Exposure = s.camera.exposure;
+  m_CCamera.m_Aperture.m_Size = s.camera.aperture;
+  m_CCamera.m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
-  m_qcamera->GetProjection().SetFieldOfView(s.m_fov);
-  m_qcamera->GetFilm().SetExposure(s.m_exposure);
-  m_qcamera->GetAperture().SetSize(s.m_apertureSize);
-  m_qcamera->GetFocus().SetFocalDistance(s.m_focalDistance);
+  m_qcamera->GetProjection().SetFieldOfView(s.camera.fovY);
+  m_qcamera->GetFilm().SetExposure(s.camera.exposure);
+  m_qcamera->GetAperture().SetSize(s.camera.aperture);
+  m_qcamera->GetFocus().SetFocalDistance(s.camera.focalDistance);
 }
 
 QPixmap
@@ -335,6 +365,10 @@ GLView3D::capture()
 QImage
 GLView3D::captureQimage()
 {
+  if (!isEnabled()) {
+    return QImage();
+  }
+
   makeCurrent();
 
   // Create a one-time FBO to receive the image
@@ -365,4 +399,25 @@ GLView3D::captureQimage()
   delete fbo;
 
   return img;
+}
+
+void
+GLView3D::pauseRenderLoop()
+{
+  std::shared_ptr<CStatus> s = getStatus();
+  // the CStatus updates can cause Qt GUI work to happen,
+  // which can not be called from a separate thread.
+  // so when we start rendering from another thread,
+  // we need to either make status updates thread safe,
+  // or just disable them here.
+  s->EnableUpdates(false);
+  m_etimer.invalidate();
+}
+
+void
+GLView3D::restartRenderLoop()
+{
+  m_etimer.restart();
+  std::shared_ptr<CStatus> s = getStatus();
+  s->EnableUpdates(true);
 }

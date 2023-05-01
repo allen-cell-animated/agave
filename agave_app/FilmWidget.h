@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QtWidgets/QCheckBox>
-#include <QtWidgets/QGroupBox>
-#include <QtWidgets/QSpinBox>
+#include <QCheckBox>
+#include <QGroupBox>
+#include <QSpinBox>
 
 #include "Controls.h"
 #include "Film.h"
@@ -16,12 +16,14 @@ public:
   QFilmResolutionPreset(void)
     : m_Width(0)
     , m_Height(0)
-  {}
+  {
+  }
 
   QFilmResolutionPreset(const int& Width, const int& Height)
     : m_Width(Width)
     , m_Height(Height)
-  {}
+  {
+  }
 
   int GetWidth(void) const { return m_Width; }
   void SetWidth(const int& Width) { m_Width = Width; }
@@ -42,7 +44,8 @@ public:
 
   QFilmResolutionButton(const int& Width, const int& Height)
     : m_Preset(Width, Height)
-  {}
+  {
+  }
 
   void SetPreset(const int& Width, const int& Height)
   {

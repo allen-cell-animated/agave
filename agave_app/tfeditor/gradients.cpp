@@ -258,7 +258,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 {
   QVBoxLayout* vbox = new QVBoxLayout(this);
   vbox->setSpacing(1);
-  vbox->setMargin(1);
+  // vbox->setMargin(1);
 
   m_alpha_shade = new ShadeWidget(histogram, ShadeWidget::ARGBShade, this);
 
@@ -444,22 +444,24 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   // if this is not custom mode, then disable the gradient editor
   m_editor->setEditable(m == GradientEditMode::CUSTOM);
 
-  connect(btnGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), [this, btnGroup, stackedLayout](QAbstractButton* button) {
-    int id = btnGroup->id(button);
-    GradientEditMode modeToSet = btnIdToGradientMode[id];
-    // if mode is not changing, we are done.
-    if (modeToSet == this->m_gradientData->m_activeMode) {
-      return;
-    }
-    this->m_gradientData->m_activeMode = modeToSet;
+  connect(btnGroup,
+          QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
+          [this, btnGroup, stackedLayout](QAbstractButton* button) {
+            int id = btnGroup->id(button);
+            GradientEditMode modeToSet = btnIdToGradientMode[id];
+            // if mode is not changing, we are done.
+            if (modeToSet == this->m_gradientData->m_activeMode) {
+              return;
+            }
+            this->m_gradientData->m_activeMode = modeToSet;
 
-    stackedLayout->setCurrentIndex(btnIdToStackedPage[id]);
+            stackedLayout->setCurrentIndex(btnIdToStackedPage[id]);
 
-    // if this is not custom mode, then disable the gradient editor
-    m_editor->setEditable(modeToSet == GradientEditMode::CUSTOM);
+            // if this is not custom mode, then disable the gradient editor
+            m_editor->setEditable(modeToSet == GradientEditMode::CUSTOM);
 
-    this->forceDataUpdate();
-  });
+            this->forceDataUpdate();
+          });
 
   QNumericSlider* windowSlider = new QNumericSlider();
   windowSlider->setStatusTip(tr("Window"));

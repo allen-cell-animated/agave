@@ -3,7 +3,7 @@
 #include "renderlib/Status.h"
 
 #include <QGridLayout>
-#include <QtWidgets/QTreeWidget>
+#include <QTreeWidget>
 
 class CStatus;
 

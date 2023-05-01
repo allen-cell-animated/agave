@@ -34,6 +34,7 @@ private:
 
   QColor m_firstHandleColor;
   QColor m_secondHandleColor;
+  QColor m_trackColor;
 
   QRectF m_trackRect;
   QPoint m_trackPos;
@@ -58,9 +59,12 @@ public:
   QSize minimumSizeHint() const;
 
   inline int firstValue() const { return m_firstValue; }
+  inline float firstPercent() const { return (float)(firstValue() - minimum()) / (float)range(); }
   inline int secondValue() const { return m_secondValue; }
+  inline float secondPercent() const { return (float)(secondValue() - minimum()) / (float)range(); }
   inline int minimum() const { return m_minimum; }
   inline int maximum() const { return m_maximum; }
+  inline int range() const { return maximum() - minimum(); }
   inline Qt::Orientation orientation() const { return m_orientation; }
   inline int interval() const { return secondValue() - firstValue(); }
   inline unsigned int absInterval() const { return qAbs(interval()); }

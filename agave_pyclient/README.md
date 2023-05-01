@@ -16,13 +16,19 @@ You must have Agave installed. On command line, run:
 agave --server &
 ```
 
+For Linux headless operation, you need to tell the Qt library to use the offscreen platform plugin:
+
+```
+agave -platform offscreen --server &
+```
+
 ```python
 from agave_pyclient import AgaveRenderer
 
 # 1. connect to the agave server
 r = agave_pyclient.AgaveRenderer()
 # 2. tell it what data to load
-r.load_volume_from_file("my_favorite.ome.tiff", 0, 0)
+r.load_data("my_favorite.ome.tiff")
 # 3. set some render settings (abbreviated list here)
 r.set_resolution(681, 612)
 r.background_color(0, 0, 0)

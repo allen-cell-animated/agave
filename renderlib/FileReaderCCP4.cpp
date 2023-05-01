@@ -72,16 +72,15 @@
 // 56      NLABL           Number of labels being used
 // 57-256  LABEL(20,10)    10  80 character text labels (ie. A4 format)
 
-static const uint32_t IN_MEMORY_BPP = 16;
 static const size_t CCP4_HEADER_SIZE = 256 * 4;
 static const size_t CCP4_NSYMBT_OFFSET = 23 * 4;
 
-FileReaderCCP4::FileReaderCCP4() {}
+FileReaderCCP4::FileReaderCCP4(const std::string& filepath) {}
 
 FileReaderCCP4::~FileReaderCCP4() {}
 
 uint32_t
-FileReaderCCP4::loadNumScenesCCP4(const std::string& filepath)
+FileReaderCCP4::loadNumScenes(const std::string& filepath)
 {
   return 1;
 }
@@ -204,7 +203,7 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   int srcBitsPerPixel = dims.bitsPerPixel;
 
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
     memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
     return 1;
   } else if (srcBitsPerPixel == 8) {
@@ -257,7 +256,7 @@ readCCP4Plane(std::ifstream& myFile, size_t offset, size_t numBytes, const Volum
 }
 
 VolumeDimensions
-FileReaderCCP4::loadDimensionsCCP4(const std::string& filepath, uint32_t scene)
+FileReaderCCP4::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   VolumeDimensions dims;
   bool dims_ok = readCCP4Dimensions(filepath, dims, scene);
@@ -268,8 +267,13 @@ FileReaderCCP4::loadDimensionsCCP4(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
+FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
 {
+  std::string filepath = loadSpec.filepath;
+  uint32_t scene = loadSpec.scene;
+  uint32_t time = loadSpec.time;
+  VolumeDimensions outDims;
+
   std::shared_ptr<ImageXYZC> emptyimage;
 
   auto tStart = std::chrono::high_resolution_clock::now();
@@ -279,6 +283,9 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
   if (!dims_ok) {
     return emptyimage;
   }
+
+  uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+
   size_t dataOffset = getDataOffset(filepath);
 
   if (scene > 0) {
@@ -290,10 +297,10 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
     return emptyimage;
   }
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
+  uint8_t* data = new uint8_t[channelsize_bytes * nch];
+  memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -310,10 +317,15 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
 
   // now ready to read channels one by one.
   std::ifstream myFile(filepath, std::ios::in | std::ios::binary);
-  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+  for (uint32_t channel = 0; channel < nch; ++channel) {
+    uint32_t channelToLoad = channel;
+    if (!loadSpec.channels.empty()) {
+      channelToLoad = loadSpec.channels[channel];
+    }
+
     // read entire channel into its native size
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
+      uint32_t planeIndex = dims.getPlaneIndex(slice, channelToLoad, time);
       destptr = channelRawMem + slice * rawPlanesize;
       if (!readCCP4Plane(myFile, dataOffset + rawPlanesize * planeIndex, rawPlanesize, dims, destptr)) {
         return emptyimage;
@@ -337,14 +349,15 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
                                 dims.sizeZ,
-                                dims.sizeC,
-                                IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                nch,
+                                ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
 
-  im->setChannelNames(dims.channelNames);
+  std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+  im->setChannelNames(channelNames);
 
   tEnd = std::chrono::high_resolution_clock::now();
   elapsed = tEnd - tStartImage;
@@ -354,8 +367,27 @@ FileReaderCCP4::loadCCP4(const std::string& filepath, VolumeDimensions* outDims,
   LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
-  if (outDims != nullptr) {
-    *outDims = dims;
-  }
+  outDims = dims;
+
   return sharedImage;
+}
+
+std::vector<MultiscaleDims>
+FileReaderCCP4::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
+{
+  std::vector<MultiscaleDims> dims;
+  VolumeDimensions vdims;
+  bool dims_ok = readCCP4Dimensions(filepath, vdims, scene);
+  if (!dims_ok) {
+    return dims;
+  }
+  MultiscaleDims mdims;
+  mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
+  mdims.scale = { 1.0, 1.0, vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.dimensionOrder = { "T", "C", "Z", "Y", "X" };
+  mdims.dtype = "uint16";
+  mdims.path = "";
+  mdims.channelNames = vdims.channelNames;
+  dims.push_back(mdims);
+  return dims;
 }

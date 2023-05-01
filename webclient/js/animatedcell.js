@@ -981,7 +981,7 @@ function binarysocket(channelnumber = 0) {
   this.message0 = function (evt) {
     if (typeof evt.data === "string") {
       var returnedObj = JSON.parse(evt.data);
-      if (returnedObj.commandId === COMMANDS.LOAD_OME_TIF[0]) {
+      if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
         console.log(returnedObj);
         // set up gui!
         onNewImage(returnedObj);

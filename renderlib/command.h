@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FileReader.h"
+
 #include <string>
 #include <vector>
 
@@ -21,7 +23,18 @@ public:
   virtual int32_t parseInt32() = 0;
   virtual float parseFloat32() = 0;
   virtual std::vector<float> parseFloat32Array() = 0;
+  virtual std::vector<int32_t> parseInt32Array() = 0;
   virtual std::string parseString() = 0;
+};
+
+class WriteableStream
+{
+public:
+  virtual size_t writeInt32(int32_t) = 0;
+  virtual size_t writeFloat32(float) = 0;
+  virtual size_t writeFloat32Array(const std::vector<float>&) = 0;
+  virtual size_t writeInt32Array(const std::vector<int32_t>&) = 0;
+  virtual size_t writeString(const std::string&) = 0;
 };
 
 enum class CommandArgType
@@ -29,14 +42,14 @@ enum class CommandArgType
   I32,
   F32,
   STR,
-  F32A
+  F32A,
+  I32A
 };
 
 struct ExecutionContext
 {
   // we may need to reload data from the file again
-  std::string m_currentFilePath;
-  int m_currentScene = 0;
+  LoadSpec m_loadSpec;
 
   RendererCommandInterface* m_renderer;
   RenderSettings* m_renderSettings;
@@ -50,6 +63,7 @@ class Command
 public:
   virtual void execute(ExecutionContext* context) = 0;
   virtual std::string toPythonString() const = 0;
+  virtual size_t write(WriteableStream* buffer) const = 0;
 
   virtual ~Command() {}
 };
@@ -62,9 +76,11 @@ public:
   public:                                                                                                              \
     NAME(NAME##D d)                                                                                                    \
       : m_data(d)                                                                                                      \
-    {}                                                                                                                 \
+    {                                                                                                                  \
+    }                                                                                                                  \
     virtual void execute(ExecutionContext* context);                                                                   \
     virtual std::string toPythonString() const;                                                                        \
+    virtual size_t write(WriteableStream* buffer) const;                                                               \
     static NAME* parse(ParseableStream* buffer);                                                                       \
     static const uint32_t m_ID = CMDID;                                                                                \
     static const std::string PythonName()                                                                              \
@@ -429,3 +445,25 @@ struct TrackballCameraCommandD
   float m_phi;
 };
 CMDDECL(TrackballCameraCommand, 43, "trackball_camera", CMD_ARGS({ CommandArgType::F32, CommandArgType::F32 }));
+
+struct LoadDataCommandD
+{
+  std::string m_path;
+  int32_t m_scene;
+  int32_t m_level;
+  int32_t m_time;
+  std::vector<int32_t> m_channels;
+  int32_t m_xmin, m_xmax;
+  int32_t m_ymin, m_ymax;
+  int32_t m_zmin, m_zmax;
+};
+
+CMDDECL(LoadDataCommand,
+        44,
+        "load_data",
+        CMD_ARGS({ CommandArgType::STR,
+                   CommandArgType::I32,
+                   CommandArgType::I32,
+                   CommandArgType::I32,
+                   CommandArgType::I32A,
+                   CommandArgType::I32A }));

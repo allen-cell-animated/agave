@@ -27,6 +27,8 @@ class CStatus
 {
 
 public:
+  void EnableUpdates(bool enabled) { mUpdatesEnabled = enabled; }
+
   void SetRenderBegin(void);
   void SetRenderEnd(void);
   void SetPreRenderFrame(void);
@@ -52,4 +54,5 @@ public:
   }
 
   std::vector<IStatusObserver*> mObservers;
+  bool mUpdatesEnabled = true;
 };

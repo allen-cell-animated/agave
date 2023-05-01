@@ -14,7 +14,6 @@ setup_requirements = [
 
 test_requirements = [
     "black>=19.10b0",
-    "codecov>=2.1.4",
     "flake8>=3.8.3",
     "flake8-debugger>=3.2.1",
     "pytest>=5.4.3",
@@ -37,7 +36,7 @@ dev_requirements = [
     "wheel>=0.34.2",
 ]
 
-requirements = ["numpy", "ws4py==0.5.1", "Pillow==9.0.1"]
+requirements = ["numpy", "ws4py==0.5.1", "Pillow==9.3.0"]
 
 extra_requirements = {
     "setup": setup_requirements,

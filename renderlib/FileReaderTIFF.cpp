@@ -15,9 +15,7 @@
 #include <map>
 #include <set>
 
-static const uint32_t IN_MEMORY_BPP = 16;
-
-FileReaderTIFF::FileReaderTIFF() {}
+FileReaderTIFF::FileReaderTIFF(const std::string& filepath) {}
 
 FileReaderTIFF::~FileReaderTIFF() {}
 
@@ -102,10 +100,62 @@ requireFloatAttr(pugi_agave::xml_node& el, const std::string& attr, float defaul
   return el.attribute(attr.c_str()).as_float(defaultVal);
 }
 
-uint32_t
-FileReaderTIFF::loadNumScenesTiff(const std::string& filepath)
+static int
+readTiffNumScenes(TIFF* tiff, const std::string& filepath)
 {
-  return 1;
+  int numscenes = 1;
+
+  char* imagedescription = nullptr;
+  // metadata is in ImageDescription of first IFD in the file.
+  if (TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &imagedescription) != 1) {
+    imagedescription = nullptr;
+    LOG_WARNING << "Failed to read imagedescription of TIFF: '" << filepath << "';  interpreting as single channel.";
+  }
+
+  std::string simagedescription = trim(imagedescription);
+
+  // check for plain tiff with ImageJ imagedescription:
+  if (startsWith(simagedescription, "ImageJ=")) {
+    numscenes = 1;
+  } else if (startsWith(simagedescription, "{\"shape\":")) {
+    numscenes = 1;
+  } else if ((startsWith(simagedescription, "<?xml version") || startsWith(simagedescription, "<OME xmlns")) &&
+             endsWith(simagedescription, "OME>")) {
+    // convert c to xml doc.  if this fails then we don't have an ome tif.
+    pugi_agave::xml_document omexml;
+    pugi_agave::xml_parse_result parseOk = omexml.load_string(simagedescription.c_str());
+    if (!parseOk) {
+      LOG_ERROR << "Bad OME xml metadata content";
+      return false;
+    }
+
+    pugi_agave::xml_node omenode = omexml.child("OME");
+
+    // count how many <Image> tags and that is our number of scenes.
+    numscenes = 0;
+    pugi_agave::xml_node imageEl;
+    pugi_agave::xml_node pixelsEl;
+    for (pugi_agave::xml_node imagenode : omenode.children("Image")) {
+      numscenes++;
+    }
+  } else {
+    numscenes = 1;
+  }
+
+  return numscenes;
+}
+
+uint32_t
+FileReaderTIFF::loadNumScenes(const std::string& filepath)
+{
+  // Loads tiff file
+  ScopedTiffReader tiffreader(filepath);
+  TIFF* tiff = tiffreader.reader();
+  if (!tiff) {
+    return 0;
+  }
+
+  return readTiffNumScenes(tiff, filepath);
 }
 
 bool
@@ -233,8 +283,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
   } else if (startsWith(simagedescription, "{\"shape\":")) {
     // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
-    size_t firstBracket = simagedescription.find_first_of('[');
-    size_t lastBracket = simagedescription.find_last_of(']');
+    size_t firstBracket = simagedescription.find('[');
+    size_t lastBracket = simagedescription.rfind(']');
     std::string shape = simagedescription.substr(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape;
     std::vector<std::string> shapelist;
@@ -275,18 +325,25 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     uint32_t numScenes = 0;
     pugi_agave::xml_node imageEl;
     pugi_agave::xml_node pixelsEl;
-    for (pugi_agave::xml_node imagenode : omenode.children("Image")) {
-      // get the Image and Pixels element of scene
-      if (numScenes == scene) {
-        imageEl = imagenode;
-        pixelsEl = imagenode.child("Pixels");
-      }
-      numScenes++;
-    }
+    auto imagenodes = omenode.children("Image");
+    numScenes = std::distance(imagenodes.begin(), imagenodes.end());
     if (scene >= numScenes) {
       LOG_ERROR << "Requested invalid scene index " << scene << " in OME TIFF; returning scene 0";
       scene = 0;
     }
+    auto imageElIterator = imagenodes.begin();
+    for (uint32_t i = 0; i < scene; ++i) {
+      ++imageElIterator;
+    }
+    imageEl = *imageElIterator;
+    pixelsEl = imageEl.child("Pixels");
+    // for (pugi_agave::xml_node imagenode : imagenodes) {
+    //   // get the Image and Pixels element of scene
+    //   if (numScenes == scene) {
+    //     imageEl = imagenode;
+    //     pixelsEl = imagenode.child("Pixels");
+    //   }
+    // }
 
     if (!imageEl || !pixelsEl) {
       LOG_ERROR << "No <Pixels> element in ome xml for scene " << scene;
@@ -394,7 +451,7 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   int srcBitsPerPixel = dims.bitsPerPixel;
 
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (IN_MEMORY_BPP == srcBitsPerPixel) {
+  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
     memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
     return 1;
   } else if (srcBitsPerPixel == 8) {
@@ -513,7 +570,7 @@ readTiffPlane(TIFF* tiff, int planeIndex, const VolumeDimensions& dims, uint8_t*
 }
 
 VolumeDimensions
-FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, uint32_t scene)
+FileReaderTIFF::loadDimensions(const std::string& filepath, uint32_t scene)
 {
   ScopedTiffReader tiffreader(filepath);
   TIFF* tiff = tiffreader.reader();
@@ -532,8 +589,13 @@ FileReaderTIFF::loadDimensionsTiff(const std::string& filepath, uint32_t scene)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDims, uint32_t time, uint32_t scene)
+FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
 {
+  std::string filepath = loadSpec.filepath;
+  uint32_t time = loadSpec.time;
+  uint32_t scene = loadSpec.scene;
+  VolumeDimensions outDims;
+
   std::shared_ptr<ImageXYZC> emptyimage;
 
   auto tStart = std::chrono::high_resolution_clock::now();
@@ -551,10 +613,6 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     return emptyimage;
   }
 
-  if (scene > 0) {
-    LOG_WARNING << "Multiscene tiff not supported yet. Using scene 0";
-    scene = 0;
-  }
   if (time > (int32_t)(dims.sizeT - 1)) {
     LOG_ERROR << "Time " << time << " exceeds time samples in file: " << dims.sizeT;
     return emptyimage;
@@ -582,10 +640,12 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
     LOG_DEBUG << "PlanarConfig: " << (planarConfig == 1 ? "PLANARCONFIG_CONTIG" : "PLANARCONFIG_SEPARATE");
   }
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (IN_MEMORY_BPP / 8);
+  uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+
+  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
-  uint8_t* data = new uint8_t[channelsize_bytes * dims.sizeC];
-  memset(data, 0, channelsize_bytes * dims.sizeC);
+  uint8_t* data = new uint8_t[channelsize_bytes * nch];
+  memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
 
@@ -601,10 +661,15 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   std::unique_ptr<uint8_t[]> smartPtrTemp(channelRawMem);
 
   // now ready to read channels one by one.
-  for (uint32_t channel = 0; channel < dims.sizeC; ++channel) {
+  for (uint32_t channel = 0; channel < nch; ++channel) {
+    uint32_t channelToLoad = channel;
+    if (!loadSpec.channels.empty()) {
+      channelToLoad = loadSpec.channels[channel];
+    }
+
     // read entire channel into its native size
     for (uint32_t slice = 0; slice < dims.sizeZ; ++slice) {
-      uint32_t planeIndex = dims.getPlaneIndex(slice, channel, time);
+      uint32_t planeIndex = dims.getPlaneIndex(slice, channelToLoad, time);
       destptr = channelRawMem + slice * rawPlanesize;
       if (!readTiffPlane(tiff, planeIndex, dims, destptr)) {
         return emptyimage;
@@ -628,14 +693,15 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   ImageXYZC* im = new ImageXYZC(dims.sizeX,
                                 dims.sizeY,
                                 dims.sizeZ,
-                                dims.sizeC,
-                                IN_MEMORY_BPP, // dims.bitsPerPixel,
+                                nch,
+                                ImageXYZC::IN_MEMORY_BPP, // dims.bitsPerPixel,
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
                                 dims.physicalSizeZ);
 
-  im->setChannelNames(dims.channelNames);
+  std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
+  im->setChannelNames(channelNames);
 
   tEnd = std::chrono::high_resolution_clock::now();
   elapsed = tEnd - tStartImage;
@@ -645,8 +711,26 @@ FileReaderTIFF::loadOMETiff(const std::string& filepath, VolumeDimensions* outDi
   LOG_DEBUG << "Loaded " << filepath << " in " << (elapsed.count() * 1000.0) << "ms";
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
-  if (outDims != nullptr) {
-    *outDims = dims;
-  }
+  outDims = dims;
+
   return sharedImage;
+}
+
+std::vector<MultiscaleDims>
+FileReaderTIFF::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
+{
+  std::vector<MultiscaleDims> dims;
+  VolumeDimensions vdims = loadDimensions(filepath, scene);
+  if (!vdims.validate()) {
+    return dims;
+  }
+  MultiscaleDims mdims;
+  mdims.shape = { vdims.sizeT, vdims.sizeC, vdims.sizeZ, vdims.sizeY, vdims.sizeX };
+  mdims.scale = { 1.0, 1.0, vdims.physicalSizeZ, vdims.physicalSizeY, vdims.physicalSizeX };
+  mdims.dimensionOrder = { "T", "C", "Z", "Y", "X" };
+  mdims.dtype = "uint16";
+  mdims.path = "";
+  mdims.channelNames = vdims.channelNames;
+  dims.push_back(mdims);
+  return dims;
 }

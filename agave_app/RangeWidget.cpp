@@ -19,8 +19,9 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_secondHandlePressed(false)
   , m_trackHovered(false)
   , m_trackPressed(false)
-  , m_firstHandleColor(style()->standardPalette().highlight().color())
-  , m_secondHandleColor(style()->standardPalette().highlight().color())
+  , m_firstHandleColor(style()->standardPalette().light().color())
+  , m_secondHandleColor(style()->standardPalette().light().color())
+  , m_trackColor(style()->standardPalette().highlight().color())
 {
   setMouseTracking(true);
 }
@@ -63,10 +64,12 @@ RangeWidget::paintEvent(QPaintEvent* event)
     rf.setBottom(rv2.top());
     rf.setRight(rf.right() + 1);
   }
-  p.fillRect(rf, QColor(Qt::green).darker(150));
+  p.fillRect(rf, m_trackColor);
   m_trackRect = rf;
   p.fillRect(rv1, c1);
+  p.drawRect(rv1);
   p.fillRect(rv2, c2);
+  p.drawRect(rv2);
   p.drawText(rt1, Qt::AlignmentFlag::AlignCenter, QString::number(m_firstValue));
   p.drawText(rt2, Qt::AlignmentFlag::AlignCenter, QString::number(m_secondValue));
 }

@@ -9,9 +9,7 @@
 #include <sstream>
 #include <string>
 
-
 #define MAX_NO_DURATIONS 30
-#define MAX_CHAR_SIZE (128)
 
 class Timing
 {
@@ -25,11 +23,9 @@ public:
     }
   };
 
-  Timing(const char* pName)
+  Timing(std::string name)
   {
-#ifndef __CUDACC__
-    sprintf(m_Name, "%s", pName);
-#endif
+    m_Name = name;
     memset(m_Durations, 0, MAX_NO_DURATIONS * sizeof(float));
 
     m_NoDurations = 0;
@@ -40,7 +36,7 @@ public:
 
   Timing& operator=(const Timing& Other)
   {
-    strcpy(m_Name, Other.m_Name);
+    m_Name = Other.m_Name;
 
     for (int i = 0; i < MAX_NO_DURATIONS; i++) {
       m_Durations[i] = Other.m_Durations[i];
@@ -83,7 +79,7 @@ public:
     return ss.str();
   }
 
-  char m_Name[MAX_CHAR_SIZE];
+  std::string m_Name;
   float m_Durations[MAX_NO_DURATIONS];
   int m_NoDurations;
   float m_FilteredDuration;

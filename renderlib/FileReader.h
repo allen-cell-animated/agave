@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IFileReader.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -7,6 +9,7 @@
 
 class ImageXYZC;
 struct VolumeDimensions;
+struct MultiscaleDims;
 
 class FileReader
 {
@@ -14,20 +17,9 @@ public:
   FileReader();
   virtual ~FileReader();
 
-  static uint32_t loadNumScenes(const std::string& filepath);
+  static IFileReader* getReader(const std::string& filepath);
 
-  // return dimensions from scene in file
-  static VolumeDimensions loadFileDimensions(const std::string& filepath, uint32_t scene = 0);
-
-  static std::shared_ptr<ImageXYZC> loadFromFile(const std::string& filepath,
-                                                 VolumeDimensions* dims = nullptr,
-                                                 uint32_t time = 0,
-                                                 uint32_t scene = 0,
-                                                 bool addToCache = false);
-
-  static std::shared_ptr<ImageXYZC> loadFromFile_4D(const std::string& filepath,
-                                                    VolumeDimensions* dims = nullptr,
-                                                    bool addToCache = false);
+  static std::shared_ptr<ImageXYZC> loadAndCache(const LoadSpec& loadSpec);
 
   static std::shared_ptr<ImageXYZC> loadFromArray_4D(uint8_t* dataArray,
                                                      std::vector<uint32_t> shape,

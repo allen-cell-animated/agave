@@ -29,7 +29,13 @@ public:
                    QWidget* parent = 0);
 
   void setContentLayout(QLayout& contentLayout);
+  void setTitle(const QString& title);
+
+  bool isChecked() const;
+  void setChecked(bool checked);
 
 signals:
   void checked(bool checked);
+  void collapsed();
+  void expanded();
 };

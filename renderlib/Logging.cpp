@@ -1,6 +1,6 @@
 #include "Logging.h"
 
-#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <filesystem>
@@ -61,7 +61,9 @@ Logging::Init()
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
   // 2. log to file
-  auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.string(), true);
+  static const size_t MAX_LOG_FILE_SIZE_BYTES = 1024 * 1024 * 4; // 5 MB
+  auto file_sink =
+    std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath.string(), MAX_LOG_FILE_SIZE_BYTES, 3);
 
   // unify the two loggers as the default single logger
   sLogger = new spdlog::logger("agave", { console_sink, file_sink });

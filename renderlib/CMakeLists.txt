@@ -1,13 +1,13 @@
-set (GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
+set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glad/include")
 
-configure_file (
-    "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/version.h"
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+	"${CMAKE_CURRENT_SOURCE_DIR}/version.h"
 )
 
 add_library(renderlib "${CMAKE_CURRENT_SOURCE_DIR}/renderlib.cpp")
 set_property(TARGET renderlib PROPERTY AUTOMOC ON)
-set_target_properties(renderlib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${GLM_INCLUDE_DIRS}
@@ -27,6 +27,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Framebuffer.cpp"
@@ -37,6 +39,7 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GradientData.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Histogram.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Histogram.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/IFileReader.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcGpu.cpp"
@@ -61,6 +64,7 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/version.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"
 )
@@ -70,24 +74,39 @@ add_subdirectory(glsl)
 add_subdirectory(pugixml)
 
 # libCZI dependency for renderlib
-add_compile_definitions(_LIBCZISTATICLIB)
+# add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
-set(LIBCZI_BUILD_DYNLIB OFF)
+set(LIBCZI_BUILD_DYNLIB ON)
 set(LIBCZI_BUILD_CZICMD OFF)
 add_subdirectory(libCZI)
+
 # end libczi dependency
 
+# tensorstore dependency for renderlib
+set(TENSORSTORE_USE_SYSTEM_TIFF ON)
+FetchContent_Declare(
+	tensorstore
+	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.35.tar.gz"
+	URL_HASH SHA256=a8cbcea10425bc34388b0c7cd0ee0f2e572baf709c71274ae5538eb2644e234b
+)
+
+# Additional FetchContent_Declare calls as needed...
+FetchContent_MakeAvailable(tensorstore)
+
+# end tensorstore dependency
 target_link_libraries(renderlib
-	Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Xml
+	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
-	libCZIStatic
-	JxrDecodeStatic # libCZI depends on it
+	libCZI
+
+	tensorstore::tensorstore tensorstore::all_drivers
+
 	${OPENGL_egl_LIBRARY}
 	spdlog::spdlog_header_only
 )
+
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)
 ENDIF(WIN32)
-

@@ -4,7 +4,6 @@
 #include "QRenderSettings.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/FileReader.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
@@ -44,15 +43,16 @@ QTimelineWidget::QTimelineWidget(QWidget* pParent, QRenderSettings* qrs)
 }
 
 void
-QTimelineWidget::onNewImage(Scene* s, std::string filepath, int sceneIndex)
+QTimelineWidget::onNewImage(Scene* s, const LoadSpec& loadSpec, std::shared_ptr<IFileReader> reader)
 {
-  m_currentScene = sceneIndex;
+  m_reader = reader;
+  m_loadSpec = loadSpec;
   m_scene = s;
-  m_filepath = filepath;
 
   int32_t minT = m_scene ? m_scene->m_timeLine.minTime() : 0;
   int32_t maxT = m_scene ? m_scene->m_timeLine.maxTime() : 0;
 
+  m_TimeSlider->setTracking(false);
   m_TimeSlider->setRange(minT, maxT);
   m_TimeSlider->setValue(m_scene->m_timeLine.currentTime(), true);
   m_TimeSlider->setTickInterval((maxT - minT) / 10);
@@ -64,20 +64,38 @@ QTimelineWidget::onNewImage(Scene* s, std::string filepath, int sceneIndex)
 }
 
 void
+QTimelineWidget::setTime(int t)
+{
+  m_TimeSlider->setValue(t);
+}
+
+void
 QTimelineWidget::OnTimeChanged(int newTime)
 {
   if (!m_scene) {
     return;
   }
   if (m_scene->m_timeLine.currentTime() != newTime) {
-    // assume a new time sample will have same exact channel configuration and dimensions as previous time.
+    // assume (require!) that a new time sample will have same exact
+    // channel configuration and dimensions as previous time.
     // we are just updating volume data.
+    LoadSpec loadSpec = m_loadSpec;
+    loadSpec.time = newTime;
+
+    if (!m_reader) {
+      m_reader = std::shared_ptr<IFileReader>(FileReader::getReader(loadSpec.filepath));
+      if (!m_reader) {
+        LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
+        return;
+      }
+    }
+
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadFromFile(m_filepath, nullptr, newTime, m_currentScene);
+    std::shared_ptr<ImageXYZC> image = m_reader->loadFromFile(loadSpec);
     QApplication::restoreOverrideCursor();
     if (!image) {
       // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
-      LOG_DEBUG << "Failed to open " << m_filepath << " at scene " << m_currentScene << " at time " << newTime;
+      LOG_DEBUG << "Failed to open " << loadSpec.filepath << " at scene " << loadSpec.scene << " at time " << newTime;
       return;
     }
 
@@ -91,6 +109,9 @@ QTimelineWidget::OnTimeChanged(int newTime)
 
     m_scene->m_timeLine.setCurrentTime(newTime);
     m_scene->m_volume = image;
+
+    // keep the local loadSpec up to date if successful load
+    m_loadSpec = loadSpec;
 
     // TODO update the AppearanceSettings channel gui with new Histograms
 

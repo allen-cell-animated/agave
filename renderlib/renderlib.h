@@ -3,10 +3,10 @@
 #include "glad/glad.h"
 
 #include <QOffscreenSurface>
+#include <QOpenGLContext>
+#include <QOpenGLDebugLogger>
 #include <QSurfaceFormat>
-#include <QtGui/QOpenGLContext>
-#include <QtGui/QOpenGLDebugLogger>
-#include <QtGui/QWindow>
+#include <QWindow>
 
 #include <map>
 #include <memory>
@@ -67,4 +67,28 @@ private:
 #if HAS_EGL
   EGLContext m_eglCtx;
 #endif
+};
+
+// wrap a gl context intended to run on a separate thread
+// or be moved from main thread and back
+class RendererGLContext
+{
+public:
+  RendererGLContext();
+  ~RendererGLContext();
+  void configure(QOpenGLContext* glContext = nullptr);
+  void init();
+  void destroy();
+
+  void makeCurrent();
+  void doneCurrent();
+
+private:
+  bool m_ownGLContext;
+  // only one of the following two can be non-null
+  HeadlessGLContext* m_eglContext;
+  QOpenGLContext* m_glContext;
+  QOffscreenSurface* m_surface;
+
+  void initQOpenGLContext();
 };

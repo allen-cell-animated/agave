@@ -77,7 +77,12 @@ preloadFiles(QStringList preloadlist)
   for (QString s : preloadlist) {
     QFileInfo info(s);
     if (info.exists()) {
-      auto img = FileReader::loadFromFile_4D(info.absoluteFilePath().toStdString(), nullptr, true);
+      LoadSpec loadSpec;
+      loadSpec.filepath = info.absoluteFilePath().toStdString();
+      loadSpec.scene = 0;
+      loadSpec.time = 0;
+
+      auto img = FileReader::loadAndCache(loadSpec);
       renderlib::imageAllocGPU(img);
     } else {
       LOG_INFO << "Could not load " << s.toStdString();
@@ -139,37 +144,38 @@ main(int argc, char* argv[])
 
   int result = 0;
 
-  if (isServer) {
-    QString configPath = parser.value(serverConfigOption);
-    ServerParams p = readConfig(configPath);
+  try {
+    if (isServer) {
+      QString configPath = parser.value(serverConfigOption);
+      ServerParams p = readConfig(configPath);
 
-    StreamServer* server = new StreamServer(p._port, false, 0);
+      StreamServer* server = new StreamServer(p._port, false, 0);
 
-    // set to true to show windows, or false to run as a console application
-    static const bool gui = false;
-    if (gui) {
-      MainWindow* _ = new MainWindow(server);
-      _->resize(512, 512);
-      _->show();
-    }
+      // set to true to show windows, or false to run as a console application
+      static const bool gui = false;
+      if (gui) {
+        MainWindow* _ = new MainWindow(server);
+        _->resize(512, 512);
+        _->show();
+      }
 
-    LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
+      LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
 
-    // delete logFile;
+      // delete logFile;
 
-    // must happen after renderlib init
-    preloadFiles(p._preloadList);
+      // must happen after renderlib init
+      preloadFiles(p._preloadList);
 
-    result = a.exec();
-  } else {
-    try {
+      result = a.exec();
+    } else {
       agaveGui* w = new agaveGui();
       w->show();
       result = a.exec();
-
-    } catch (...) {
-      LOG_ERROR << "Exception caught in main";
     }
+  } catch (const std::exception& exc) {
+    LOG_ERROR << "Exception caught in main: " << exc.what();
+  } catch (...) {
+    LOG_ERROR << "Exception caught in main";
   }
 
   renderlib::cleanup();

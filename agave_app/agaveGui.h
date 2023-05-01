@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
+#include "renderDialog.h"
 #include "wgpuView3D.h"
 
 #include "renderlib/AppScene.h"
@@ -18,6 +19,10 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
+class IFileReader;
+struct VolumeDimensions;
+struct LoadSpec;
+
 class agaveGui : public QMainWindow
 {
   Q_OBJECT
@@ -28,10 +33,17 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const QString& file, const ViewerState* v = nullptr);
+  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
+  void onImageLoaded(std::shared_ptr<ImageXYZC> image,
+                     const LoadSpec& loadSpec,
+                     uint32_t sizeT,
+                     const Serialize::ViewerState* vs,
+                     std::shared_ptr<IFileReader> reader);
 
 private slots:
   void open();
+  void openDirectory();
+  bool openUrl();
   void openJson();
   void openRecentFile();
   void updateRecentFileActions();
@@ -45,6 +57,7 @@ private slots:
   void saveImage();
   void saveJson();
   void savePython();
+  void onRenderAction();
   void OnUpdateRenderer();
 
 private:
@@ -53,8 +66,8 @@ private:
     MaxRecentFiles = 8
   };
 
-  ViewerState appToViewerState();
-  void viewerStateToApp(const ViewerState& s);
+  Serialize::ViewerState appToViewerState();
+  void viewerStateToApp(const Serialize::ViewerState& s);
 
   void createActions();
   void createMenus();
@@ -77,6 +90,8 @@ private:
 
   QAction* m_openAction = nullptr;
   QAction* m_openJsonAction = nullptr;
+  QAction* m_openUrlAction = nullptr;
+  QAction* m_openDirectoryAction = nullptr;
   QAction* m_quitAction = nullptr;
   QAction* m_dumpJsonAction = nullptr;
   QAction* m_dumpPythonAction = nullptr;
@@ -84,6 +99,7 @@ private:
   QAction* m_viewResetAction = nullptr;
   QAction* m_toggleCameraProjectionAction = nullptr;
   QAction* m_saveImageAction = nullptr;
+  QAction* m_renderAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
@@ -109,6 +125,9 @@ private:
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
   RenderSettings m_renderSettings;
 
+  // the render dialog will modify the contents of this object
+  CaptureSettings m_captureSettings;
+
   // the app owns a scene.
   // scene gets sent down to the renderer.
   Scene m_appScene;
@@ -118,5 +137,7 @@ private:
   QAction* m_recentFileSeparator;
   QAction* m_recentFileSubMenuAct;
 
-  QString m_currentFilePath;
+  std::string m_currentFilePath;
+  // TODO remove the above m_currentFilePath and use this instead
+  LoadSpec m_loadSpec;
 };

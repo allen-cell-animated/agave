@@ -7,7 +7,7 @@ COMMANDS = {
     "SESSION": [0, "S"],
     # tell server where files might be (appends to existing)
     "ASSET_PATH": [1, "S"],
-    # load a volume
+    # load a volume (DEPRECATED)
     "LOAD_OME_TIF": [2, "S"],
     # set camera pos
     "EYE": [3, "F32", "F32", "F32"],
@@ -65,12 +65,15 @@ COMMANDS = {
     "SET_ISOVALUE_THRESHOLD": [37, "I32", "F32", "F32"],
     # channel index, array of [stop, r, g, b, a]
     "SET_CONTROL_POINTS": [38, "I32", "F32A"],
-    # path, scene, time
+    # path, scene, time (DEPRECATED)
     "LOAD_VOLUME_FROM_FILE": [39, "S", "I32", "I32"],
+    # causes data to be loaded
     "SET_TIME": [40, "I32"],
     "SET_BOUNDING_BOX_COLOR": [41, "F32", "F32", "F32"],
     "SHOW_BOUNDING_BOX": [42, "I32"],
     "TRACKBALL_CAMERA": [43, "F32", "F32"],
+    # path, scene, multiresolution level, t, channel indices, region
+    "LOAD_DATA": [44, "S", "I32", "I32", "I32", "I32A", "I32A"],
 }
 
 
@@ -124,6 +127,11 @@ class CommandBuffer:
                     bytesize += 4
                     # followed by one float for each element in the array
                     bytesize += 4 * len(command[j + 1])
+                elif argtype == "I32A":
+                    # one int32 for array length
+                    bytesize += 4
+                    # followed by one int32 for each element in the array
+                    bytesize += 4 * len(command[j + 1])
         return bytesize
 
     def make_buffer(self):
@@ -166,6 +174,13 @@ class CommandBuffer:
                     offset += 4
                     for k in flist:
                         struct.pack_into("f", self.buffer, offset, k)
+                        offset += 4
+                elif argtype == "I32A":
+                    ilist = cmd[j + 1]
+                    struct.pack_into(">i", self.buffer, offset, len(ilist))
+                    offset += 4
+                    for k in ilist:
+                        struct.pack_into(">i", self.buffer, offset, k)
                         offset += 4
 
         # result is in this.buffer
