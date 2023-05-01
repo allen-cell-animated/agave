@@ -12,9 +12,11 @@
 #include <glm.h>
 
 #include <QGuiApplication>
+#include <QMouseEvent>
+#include <QResizeEvent>
 #include <QScreen>
 #include <QWindow>
-#include <QtGui/QMouseEvent>
+
 
 #include <cmath>
 #include <iostream>
@@ -696,4 +698,11 @@ WgpuView3D::restartRenderLoop()
   m_etimer.restart();
   std::shared_ptr<CStatus> s = getStatus();
   s->EnableUpdates(true);
+}
+
+void
+WgpuView3D::resizeGL(int w, int h)
+{
+  QResizeEvent e(QSize(w, h), QSize(w, h));
+  resizeEvent(&e);
 }

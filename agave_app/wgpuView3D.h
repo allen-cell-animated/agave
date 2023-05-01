@@ -75,6 +75,11 @@ public:
   void pauseRenderLoop();
   void restartRenderLoop();
 
+  // dummy to make agaveGui happy
+  void doneCurrent() {}
+  QOpenGLContext* context() { return nullptr; }
+  void resizeGL(int w, int h);
+
 signals:
   void ChangedRenderer();
 
