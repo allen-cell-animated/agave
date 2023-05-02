@@ -201,17 +201,20 @@ jobs:
           echo ${GITHUB_REF/refs\/tags\/v/}
           echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
       - name: Get mac build artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: agave-macos
+          path: agave-macos
       - name: Get windows build artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: agave-win
+          path: agave-win
       - name: Get PDF documentation build artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: DocumentationPDF
+          path: DocumentationPDF
       - name: Version the artifacts
         run: |
           mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
