@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     libglx0 \
     libegl1 \
-    libgles2 
+    libgles2 \
+    libxkbcommon
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
 # get gcc-10 (not default on ubuntu 20.04)
