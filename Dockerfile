@@ -40,7 +40,7 @@ RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
 RUN apt-get update && apt-get install -y cmake
 
 # get python
-RUN apt-get install -y python3.9-dev python3-pip
+# RUN apt-get install -y python3.9-dev python3-pip
 RUN pip3 install --upgrade pip
 
 # get Qt installed
