@@ -1,5 +1,5 @@
 ### Build image ###
-FROM nvidia/cudagl:11.4.2-devel-ubuntu20.04 as build
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as build
 
 # install dependencies
 ARG DEBIAN_FRONTEND=noninteractive
@@ -19,7 +19,15 @@ RUN apt-get update && apt-get install -y \
     libegl1-mesa-dev \
     libtiff-dev \
     libzstd-dev \
-    nasm
+    nasm \
+    libglvnd0 \
+    libgl1 \
+    libglx0 \
+    libegl1 \
+    libgles2 
+
+
+
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
 # get gcc-10 (not default on ubuntu 20.04)
