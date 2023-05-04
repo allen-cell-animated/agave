@@ -26,9 +26,6 @@ RUN apt-get update && apt-get install -y \
     libegl1 \
     libgles2 
 
-
-
-
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
 # get gcc-10 (not default on ubuntu 20.04)
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -37,7 +34,7 @@ RUN apt-get install -y gcc-10 g++-10
 #RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
 # get a current cmake
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
+RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ jammy main'
 RUN apt-get install kitware-archive-keyring
 RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
 RUN apt-get update && apt-get install -y cmake
