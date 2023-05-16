@@ -1,6 +1,6 @@
 ---
 name: Usability Issue/Improvement
-about: '"Assign to UX Backlog and Tracking if committed to its development. Assign to Feedback and Insights Research Repository if low priority or suggestion that warrants investigation before commitment."'
+about: '"UX work to be done"'
 title: ''
 labels: ux
 assignees: ''
@@ -36,4 +36,4 @@ _Who is directly involved? (developers, main points of contact, final approver)_
 _Add completion date to ticket and any time specific notes here_
 
 ### Notes
-_Add completion date to ticket and any time specific notes here_
+_Additional notes here_

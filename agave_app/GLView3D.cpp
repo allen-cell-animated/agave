@@ -19,7 +19,6 @@
 #include <QScreen>
 #include <QWindow>
 
-
 #include <cmath>
 #include <iostream>
 
@@ -328,9 +327,9 @@ GLView3D::OnUpdateRenderer(int rendererType)
 void
 GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
-  m_CCamera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
-  m_CCamera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
-  m_CCamera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
+  m_CCamera.m_From = glm::make_vec3(s.camera.eye.data());
+  m_CCamera.m_Target = glm::make_vec3(s.camera.target.data());
+  m_CCamera.m_Up = glm::make_vec3(s.camera.up.data());
   m_CCamera.m_FovV = s.camera.fovY;
   m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
                                                                                             : ORTHOGRAPHIC);

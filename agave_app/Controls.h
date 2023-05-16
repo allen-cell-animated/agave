@@ -310,7 +310,13 @@ public:
       }
     }
 
-    return nbChecked == nbRows ? Qt::Checked : nbUnchecked == nbRows ? Qt::Unchecked : Qt::PartiallyChecked;
+    if (nbChecked == nbRows) {
+      return Qt::Checked;
+    } else if (nbUnchecked == nbRows) {
+      return Qt::Unchecked;
+    } else {
+      return Qt::PartiallyChecked;
+    }
   }
 
 protected:
