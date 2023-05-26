@@ -81,3 +81,6 @@ EXPOSE 1235
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ["chmod", "+x", "/usr/local/bin/docker-entrypoint.sh"]
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+#  docker build -t agave_latest .
+#  docker run --name docker-agave -p 1235:1235 -d agave_latest
