@@ -2,7 +2,7 @@
 # github_url = "https://github.com/<user or organization>/<project>/"
 
 [version]
-current = "1.4.1"
+current = "1.5.0"
 
 # Example of a semver regexp.
 # Make sure this matches current_version before
@@ -13,6 +13,9 @@ regex = '''
   (?P<minor>\d+)
   \.
   (?P<patch>\d+)
+  (\-
+    (?P<extra>.+)
+  )?
   '''
 
 [git]
@@ -24,6 +27,7 @@ tag_template = "v{new_version}"
 # tbump.toml location.
 [[file]]
 src = "CMakeLists.txt"
+version_template = "{major}.{minor}.{patch}"
 [[file]]
 src = "agave_pyclient/setup.py"
 search = 'version="{current_version}"'

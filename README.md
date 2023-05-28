@@ -103,7 +103,7 @@ make
 
 Versioned Releases
 
-Use tbump (https://github.com/dmerejkowsky/tbump). See the tbump.toml file which shows all the files that contain necessary version info.
+Use tbump (https://github.com/your-tools/tbump). See the tbump.toml file which shows all the files that contain necessary version info.
 
 Just run
 
