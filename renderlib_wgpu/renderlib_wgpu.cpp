@@ -56,13 +56,17 @@ getMetalLayerFromWindow(void* win_id)
 int
 renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
 {
-  if (renderLibInitialized) {
+  if (renderLibInitialized && sInstance) {
     return 1;
   }
 
   WGPUInstanceDescriptor desc;
   desc.nextInChain = nullptr;
   sInstance = wgpuCreateInstance(&desc);
+  if (!sInstance) {
+    LOG_ERROR << "Could not initialize WebGPU, wgpuCreateInstance failed!";
+    return 0;
+  }
 
   renderLibInitialized = true;
 
@@ -95,6 +99,8 @@ renderlib_wgpu::cleanup()
     return;
   }
   LOG_INFO << "Renderlib_wgpu shutdown";
+
+  wgpuInstanceDrop(sInstance);
 
   if (renderLibHeadless) {
   }
@@ -139,14 +145,14 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   WGPUSurfaceDescriptorFromXcbWindow wgpustruct2;
   WGPUSurfaceDescriptorFromXlibWindow wgpustruct3;
   if (is_wayland) {
-    //# todo: wayland seems to be broken right now
+    // # todo: wayland seems to be broken right now
     wgpustruct1.display = display_id;
     wgpustruct1.surface = win_id;
     wgpustruct1.chain.next = nullptr;
     wgpustruct1.chain.sType = WGPUSType_SurfaceDescriptorFromWaylandSurface;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct1);
   } else if (is_xcb) {
-    //# todo: xcb untested
+    // # todo: xcb untested
     wgpustruct2.connection = nullptr; // ?? ffi.cast("void *", display_id);
     wgpustruct2.window = *((uint32_t*)(&win_id));
     wgpustruct2.chain.next = nullptr;
@@ -164,5 +170,6 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   throw("Cannot get surface id: unsupported platform.");
 #endif
 
-  return wgpuInstanceCreateSurface(sInstance, &surface_descriptor);
+  WGPUSurface surface = wgpuInstanceCreateSurface(sInstance, &surface_descriptor);
+  return surface;
 }
