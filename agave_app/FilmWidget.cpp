@@ -51,7 +51,7 @@ QFilmWidget::QFilmWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
     m_ExposureIterationsSpinner.findData(cam->GetFilm().GetExposureIterations()));
   m_Layout.addRow("Exposure Time", &m_ExposureIterationsSpinner);
   QObject::connect(&m_ExposureIterationsSpinner,
-                   SIGNAL(currentIndexChanged(const QString&)),
+                   SIGNAL(currentTextChanged(const QString&)),
                    this,
                    SLOT(SetExposureIterations(const QString&)));
 
