@@ -69,67 +69,80 @@ handle_uncaptured_error(WGPUErrorType type, char const* message, void* userdata)
 static void
 printAdapterFeatures(WGPUAdapter adapter)
 {
-  size_t count = wgpuAdapterEnumerateFeatures(adapter, NULL);
-  WGPUFeatureName* features = (WGPUFeatureName*)malloc(count * sizeof(WGPUFeatureName));
-  wgpuAdapterEnumerateFeatures(adapter, features);
+  std::vector<WGPUFeatureName> features;
 
-  printf("[]WGPUFeatureName {\n");
+  // Call the function a first time with a null return address, just to get
+  // the entry count.
+  size_t count = wgpuAdapterEnumerateFeatures(adapter, nullptr);
 
-  for (size_t i = 0; i < count; i++) {
-    WGPUFeatureName feature = features[i];
-    switch ((uint32_t)feature) {
+  // Allocate memory (could be a new, or a malloc() if this were a C program)
+  features.resize(count);
+
+  // Call the function a second time, with a non-null return address
+  wgpuAdapterEnumerateFeatures(adapter, features.data());
+
+  LOG_INFO << "Adapter features:";
+  for (auto f : features) {
+    std::string s;
+    switch (f) {
+      case WGPUFeatureName_Undefined:
+        s = "Undefined";
+        break;
       case WGPUFeatureName_DepthClipControl:
-        printf("\tDepthClipControl\n");
+        s = "DepthClipControl";
         break;
-
       case WGPUFeatureName_Depth32FloatStencil8:
-        printf("\tDepth32FloatStencil8\n");
+        s = "Depth32FloatStencil8";
         break;
-
       case WGPUFeatureName_TimestampQuery:
-        printf("\tTimestampQuery\n");
+        s = "TimestampQuery";
         break;
-
       case WGPUFeatureName_PipelineStatisticsQuery:
-        printf("\tPipelineStatisticsQuery\n");
+        s = "PipelineStatisticsQuery";
         break;
-
       case WGPUFeatureName_TextureCompressionBC:
-        printf("\tTextureCompressionBC\n");
+        s = "TextureCompressionBC";
         break;
-
       case WGPUFeatureName_TextureCompressionETC2:
-        printf("\tTextureCompressionETC2\n");
+        s = "TextureCompressionETC2";
         break;
-
       case WGPUFeatureName_TextureCompressionASTC:
-        printf("\tTextureCompressionASTC\n");
+        s = "TextureCompressionASTC";
         break;
-
       case WGPUFeatureName_IndirectFirstInstance:
-        printf("\tIndirectFirstInstance\n");
+        s = "IndirectFirstInstance";
         break;
-
       case WGPUFeatureName_ShaderF16:
-        printf("\tShaderF16");
+        s = "ShaderF16";
         break;
-
       case WGPUFeatureName_RG11B10UfloatRenderable:
-        printf("\tRG11B10UfloatRenderable");
+        s = "RG11B10UfloatRenderable";
         break;
-
       case WGPUFeatureName_BGRA8UnormStorage:
-        printf("\tBGRA8UnormStorage");
+        s = "BGRA8UnormStorage";
+        break;
+      case WGPUNativeFeature_PushConstants:
+        s = "PushConstants";
+        break;
+      case WGPUNativeFeature_TextureAdapterSpecificFormatFeatures:
+        s = "TextureAdapterSpecificFormatFeatures";
+        break;
+      case WGPUNativeFeature_MultiDrawIndirect:
+        s = "MultiDrawIndirect";
+        break;
+      case WGPUNativeFeature_MultiDrawIndirectCount:
+        s = "MultiDrawIndirectCount";
+        break;
+      case WGPUNativeFeature_VertexWritableStorage:
+        s = "VertexWritableStorage";
         break;
 
       default:
-        printf("\tUnknown=%d\n", feature);
+        s = "Unknown";
+        break;
     }
+    LOG_INFO << " + " << s << " (" << f << ")";
   }
-
-  printf("}\n");
-
-  free(features);
 }
 
 WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
@@ -192,7 +205,10 @@ WgpuView3D::onNewImage(Scene* scene)
   // how tightly coupled is renderer and scene????
 }
 
-WgpuView3D::~WgpuView3D() {}
+WgpuView3D::~WgpuView3D()
+{
+  wgpuSurfaceDrop(m_surface);
+}
 
 QSize
 WgpuView3D::minimumSizeHint() const
@@ -219,7 +235,7 @@ WgpuView3D::initializeGL()
     .nextInChain = NULL,
     .compatibleSurface = m_surface,
   };
-  wgpuInstanceRequestAdapter(NULL, &options, request_adapter_callback, (void*)&adapter);
+  wgpuInstanceRequestAdapter(renderlib_wgpu::getInstance(), &options, request_adapter_callback, (void*)&adapter);
   printAdapterFeatures(adapter);
 
   WGPURequiredLimits requiredLimits = {
@@ -239,11 +255,13 @@ WgpuView3D::initializeGL()
   };
   WGPUDeviceDescriptor deviceDescriptor = {
     .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
-    .requiredLimits = &requiredLimits,
+    .label = "AGAVE wgpu device",
+    .requiredFeaturesCount = 0,
+    .requiredLimits = nullptr,// & requiredLimits,
     .defaultQueue =
       WGPUQueueDescriptor{
         .nextInChain = NULL,
-        .label = NULL,
+        .label = "AGAVE default wgpu queue",
       },
   };
 

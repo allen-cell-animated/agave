@@ -92,6 +92,11 @@ renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
   return 1;
 }
 
+WGPUInstance renderlib_wgpu::getInstance()
+{
+  return sInstance;
+}
+
 void
 renderlib_wgpu::cleanup()
 {
