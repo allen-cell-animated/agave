@@ -36,7 +36,8 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_RandSeed(0)
   , m_devicePixelRatio(1.0f)
   , m_status(new CStatus)
-{}
+{
+}
 
 RenderGLPT::~RenderGLPT() {}
 
@@ -429,6 +430,20 @@ RenderGLPT::render(const CCamera& camera)
 
   // put m_fbtex to main render target
   drawImage();
+}
+
+void
+RenderGLPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+{
+  doRender(camera);
+
+  // COPY TO MY FBO
+  fbo->bind();
+  int vw = fbo->width();
+  int vh = fbo->height();
+  glViewport(0, 0, vw, vh);
+  drawImage();
+  fbo->release();
 }
 
 void

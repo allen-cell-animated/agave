@@ -4,6 +4,7 @@
 
 class CCamera;
 class CStatus;
+class GLFramebufferObject;
 class RenderParams;
 class Scene;
 
@@ -17,6 +18,7 @@ public:
 
   virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f) = 0;
   virtual void render(const CCamera& camera) = 0;
+  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo) = 0;
   virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f) = 0;
   virtual void cleanUpResources() {}
 

@@ -19,6 +19,7 @@ public:
 
   virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void render(const CCamera& camera);
+  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
   virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
 
@@ -44,4 +45,6 @@ private:
   float m_devicePixelRatio;
 
   void initFromScene();
+  bool prepareToRender();
+  void doClear();
 };

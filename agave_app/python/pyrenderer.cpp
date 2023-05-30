@@ -102,15 +102,10 @@ OffscreenRenderer::render()
 
   // DRAW
   m_myVolumeData.m_camera->Update();
-  m_myVolumeData.m_renderer->doRender(*(m_myVolumeData.m_camera));
+  m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
 
-  // COPY TO MY FBO
-  this->m_fbo->bind();
   int vw = m_fbo->width();
   int vh = m_fbo->height();
-  glViewport(0, 0, vw, vh);
-  m_myVolumeData.m_renderer->drawImage();
-  this->m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[vw * vh * 4]);
   m_fbo->toImage(bytes.get());
