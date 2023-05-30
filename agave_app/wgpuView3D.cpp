@@ -190,9 +190,8 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
 {
   // setAttribute(Qt::WA_PaintOnScreen);
   setAttribute(Qt::WA_NativeWindow);
-  setAttribute(Qt::WA_OpaquePaintEvent);
-  // setAttribute(Qt::WA_NoSystemBackground);
-  WId v = winId();
+  // setAttribute(Qt::WA_OpaquePaintEvent);
+  setAttribute(Qt::WA_NoSystemBackground);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the
   // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
@@ -237,6 +236,7 @@ WgpuView3D::onNewImage(Scene* scene)
 
 WgpuView3D::~WgpuView3D()
 {
+  wgpuSwapChainDrop(m_swapChain);
   wgpuSurfaceDrop(m_surface);
 }
 
@@ -303,6 +303,7 @@ WgpuView3D::initializeGL()
   wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
   wgpuDeviceSetDeviceLostCallback(m_device, handle_device_lost, NULL);
 
+  // set up swap chain
   m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
   WGPUSwapChainDescriptor swapChainDescriptor = {
     .usage = WGPUTextureUsage_RenderAttachment,
@@ -468,9 +469,14 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
       },
   };
   WGPURenderPassDescriptor renderPassDescriptor = {
+    .nextInChain = NULL,
+    .label = "Render Pass",
     .colorAttachmentCount = 1,
     .colorAttachments = &renderPassColorAttachment,
     .depthStencilAttachment = NULL,
+    .occlusionQuerySet = 0,
+    .timestampWriteCount = 0,
+    .timestampWrites = NULL,
   };
   WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
 
@@ -483,6 +489,8 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
   WGPUCommandBufferDescriptor commandBufferDescriptor = { .label = NULL };
   WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &commandBufferDescriptor);
   wgpuQueueSubmit(queue, 1, &cmdBuffer);
+
+  //wgpuCommandEncoderDrop(encoder);
 
   if (!m_renderer) {
     return;
