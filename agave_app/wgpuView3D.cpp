@@ -32,25 +32,25 @@
 static void
 request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char* message, void* userdata)
 {
-  if (message) {
-    LOG_INFO << "request adapter callback: " << message;
+  if (status == WGPURequestAdapterStatus_Success) {
+    LOG_INFO << "Got WebGPU adapter: " << message;
+  } else {
+    LOG_INFO << "Could not get WebGPU adapter: " << message;
   }
-  //  UNUSED(status);
-  //  UNUSED(message);
-
   *(WGPUAdapter*)userdata = received;
 }
+
 static void
 request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, const char* message, void* userdata)
 {
-  if (message) {
-    LOG_INFO << "request device callback: " << message;
+  if (status == WGPURequestDeviceStatus_Success) {
+    LOG_INFO << "Got WebGPU device: " << message;
+  } else {
+    LOG_INFO << "Could not get WebGPU adapter: " << message;
   }
-  // UNUSED(status);
-  // UNUSED(message);
-
   *(WGPUDevice*)userdata = received;
 }
+
 static void
 handle_device_lost(WGPUDeviceLostReason reason, char const* message, void* userdata)
 {
@@ -61,9 +61,33 @@ handle_device_lost(WGPUDeviceLostReason reason, char const* message, void* userd
 static void
 handle_uncaptured_error(WGPUErrorType type, char const* message, void* userdata)
 {
+  std::string s;
+  switch (type) {
+    case WGPUErrorType_NoError:
+      s = "NoError";
+      break;
+    case WGPUErrorType_Validation:
+      s = "Validation";
+      break;
+    case WGPUErrorType_OutOfMemory:
+      s = "OutOfMemory";
+      break;
+    case WGPUErrorType_Internal:
+      s = "Internal";
+      break;
+    case WGPUErrorType_Unknown:
+      s = "Unknown";
+      break;
+    case WGPUErrorType_DeviceLost:
+      s = "DeviceLost";
+      break;
+    default:
+      s = "Unknown";
+      break;
+  }
   // UNUSED(userdata);
 
-  LOG_INFO << "UNCAPTURED ERROR (" << type << "): " << message;
+  LOG_INFO << "UNCAPTURED ERROR " << s << " (" << type << "): " << message;
 }
 
 static void
@@ -235,7 +259,9 @@ WgpuView3D::initializeGL()
     .nextInChain = NULL,
     .compatibleSurface = m_surface,
   };
+
   wgpuInstanceRequestAdapter(renderlib_wgpu::getInstance(), &options, request_adapter_callback, (void*)&adapter);
+
   printAdapterFeatures(adapter);
 
   WGPURequiredLimits requiredLimits = {
@@ -257,7 +283,7 @@ WgpuView3D::initializeGL()
     .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
     .label = "AGAVE wgpu device",
     .requiredFeaturesCount = 0,
-    .requiredLimits = nullptr,// & requiredLimits,
+    .requiredLimits = nullptr, // & requiredLimits,
     .defaultQueue =
       WGPUQueueDescriptor{
         .nextInChain = NULL,
