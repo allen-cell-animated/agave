@@ -188,10 +188,10 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_initialized(false)
   , m_fakeHidden(false)
 {
-  setAttribute(Qt::WA_PaintOnScreen);
+  // setAttribute(Qt::WA_PaintOnScreen);
   setAttribute(Qt::WA_NativeWindow);
-  setAttribute(Qt::WA_NoSystemBackground);
-  setAutoFillBackground(false);
+  setAttribute(Qt::WA_OpaquePaintEvent);
+  // setAttribute(Qt::WA_NoSystemBackground);
   WId v = winId();
 
   // IMPORTANT this is where the QT gui container classes send their values down into the
@@ -386,11 +386,13 @@ WgpuView3D::initializeGL()
 void
 WgpuView3D::paintEvent(QPaintEvent* e)
 {
-  Q_UNUSED(e);
-  if (!m_initialized)
+  if (!m_initialized) {
     return;
-  if (updatesEnabled())
+  }
+  if (updatesEnabled()) {
     render();
+    // e->accept();
+  }
 }
 
 void
