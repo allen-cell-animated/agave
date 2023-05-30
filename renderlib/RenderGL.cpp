@@ -89,7 +89,7 @@ RenderGL::doClear()
 void
 RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 {
-  prepareToRender();
+  bool haveScene = prepareToRender();
 
   // COPY TO MY FBO
   fbo->bind();
@@ -98,7 +98,9 @@ RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
   glViewport(0, 0, vw, vh);
 
   doClear();
-  m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
+  if (haveScene) {
+    m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
+  }
   fbo->release();
 }
 
@@ -130,10 +132,10 @@ RenderGL::resize(uint32_t w, uint32_t h, float devicePixelRatio)
   glViewport(0, 0, w, h);
 }
 
-RenderParams&
-RenderGL::renderParams()
+RenderSettings&
+RenderGL::renderSettings()
 {
-  return m_renderParams;
+  return *m_renderSettings;
 }
 Scene*
 RenderGL::scene()

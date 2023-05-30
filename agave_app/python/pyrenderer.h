@@ -25,7 +25,6 @@
 class commandBuffer;
 class CCamera;
 class ImageXYZC;
-class RenderGLPT;
 class RenderSettings;
 class Scene;
 

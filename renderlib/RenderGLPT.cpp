@@ -497,10 +497,10 @@ RenderGLPT::cleanUpResources()
   cleanUpFB();
 }
 
-RenderParams&
-RenderGLPT::renderParams()
+RenderSettings&
+RenderGLPT::renderSettings()
 {
-  return m_renderParams;
+  return *m_renderSettings;
 }
 
 Scene*

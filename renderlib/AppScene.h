@@ -12,13 +12,6 @@
 
 class ImageXYZC;
 
-class RenderParams
-{
-  DenoiseParams m_DenoiseParams;
-  float m_StepSizeFactor;
-  float m_StepSizeFactorShadow;
-};
-
 #define MAX_CPU_CHANNELS 32
 struct VolumeDisplay
 {
@@ -104,7 +97,8 @@ public:
     , m_ColorMiddleIntensity(1.0f)
     , m_ColorBottomIntensity(1.0f)
     , m_T(0)
-  {}
+  {
+  }
 
   Light& operator=(const Light& Other)
   {
@@ -149,7 +143,8 @@ class Lighting
 public:
   Lighting(void)
     : m_NoLights(0)
-  {}
+  {
+  }
 
   Lighting& operator=(const Lighting& Other)
   {

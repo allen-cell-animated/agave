@@ -1,8 +1,10 @@
 #include "renderDialog.h"
 #include "renderer.h"
 
+#include "renderlib/AppScene.h"
+#include "renderlib/IRenderWindow.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGLPT.h"
+#include "renderlib/RenderSettings.h"
 #include "renderlib/command.h"
 
 #include <QApplication>
@@ -869,10 +871,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       m_frameRenderTime = 0;
 
       // set up for next frame!
-      // this typecast should be eliminated,
-      // possibly a GetRenderSettings abstract command or something
-      RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
-      r->getRenderSettings().SetNoIterations(0);
+      m_renderer->renderSettings().SetNoIterations(0);
 
       LOG_DEBUG << "queueing setTime " << mFrameNumber << " command ";
       std::vector<Command*> cmd;
@@ -1078,8 +1077,7 @@ RenderDialog::updateRenderTime(const QTime& t)
 void
 RenderDialog::resetProgress()
 {
-  RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_renderer);
-  r->getRenderSettings().SetNoIterations(0);
+  m_renderer->renderSettings().SetNoIterations(0);
 
   mFrameProgressBar->reset();
   mFrameProgressBar->setValue(0);

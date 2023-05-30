@@ -13,7 +13,6 @@
 #include "renderlib/AppScene.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 
 QT_USE_NAMESPACE

@@ -265,15 +265,9 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 
   std::vector<Command*> cmds = rr->getParameters();
   if (cmds.size() > 0) {
-    // get the renderer we need
-    RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_myVolumeData.m_renderer);
-    if (!r) {
-      LOG_ERROR << "Unsupported renderer: Renderer is not of type RenderGLPT";
-    }
-
-    m_ec.m_renderSettings = &r->getRenderSettings();
+    m_ec.m_renderSettings = &m_myVolumeData.m_renderer->renderSettings();
     m_ec.m_renderer = this;
-    m_ec.m_appScene = r->scene();
+    m_ec.m_appScene = m_myVolumeData.m_renderer->scene();
     m_ec.m_camera = m_myVolumeData.m_camera;
     m_ec.m_message = "";
 
@@ -294,22 +288,9 @@ Renderer::render()
 
   m_rglContext.makeCurrent();
 
-  // get the renderer we need
-  RenderGLPT* r = dynamic_cast<RenderGLPT*>(m_myVolumeData.m_renderer);
-  if (!r) {
-    LOG_ERROR << "Unsupported renderer: Renderer is not of type RenderGLPT";
-    return QImage();
-  }
-
   // DRAW
   m_myVolumeData.m_camera->Update();
-  r->doRender(*(m_myVolumeData.m_camera));
-
-  // COPY TO MY FBO
-  this->m_fbo->bind();
-  glViewport(0, 0, m_fbo->width(), m_fbo->height());
-  r->drawImage();
-  this->m_fbo->release();
+  m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
   m_fbo->toImage(bytes.get());

@@ -24,7 +24,7 @@ public:
   virtual void cleanUpResources();
 
   virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
-  virtual RenderParams& renderParams();
+  virtual RenderSettings& renderSettings();
   virtual Scene* scene();
   virtual void setScene(Scene* s);
 
@@ -35,7 +35,6 @@ private:
   RenderSettings* m_renderSettings;
 
   Scene* m_scene;
-  RenderParams m_renderParams;
 
   std::shared_ptr<CStatus> m_status;
   Timing m_timingRender;

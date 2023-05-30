@@ -5,7 +5,7 @@
 class CCamera;
 class CStatus;
 class GLFramebufferObject;
-class RenderParams;
+class RenderSettings;
 class Scene;
 
 #include <memory>
@@ -28,7 +28,7 @@ public:
   virtual std::shared_ptr<CStatus> getStatusInterface() { return nullptr; }
 
   // I own these.
-  virtual RenderParams& renderParams() = 0;
+  virtual RenderSettings& renderSettings() = 0;
 
   virtual Scene* scene() = 0;
   virtual void setScene(Scene* s) = 0;
