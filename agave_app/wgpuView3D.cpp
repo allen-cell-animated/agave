@@ -33,9 +33,12 @@ static void
 request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char* message, void* userdata)
 {
   if (status == WGPURequestAdapterStatus_Success) {
-    LOG_INFO << "Got WebGPU adapter: " << message;
+    LOG_INFO << "Got WebGPU adapter";
   } else {
-    LOG_INFO << "Could not get WebGPU adapter: " << message;
+    LOG_INFO << "Could not get WebGPU adapter";
+  }
+  if (message) {
+    LOG_INFO << message;
   }
   *(WGPUAdapter*)userdata = received;
 }
@@ -44,9 +47,12 @@ static void
 request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, const char* message, void* userdata)
 {
   if (status == WGPURequestDeviceStatus_Success) {
-    LOG_INFO << "Got WebGPU device: " << message;
+    LOG_INFO << "Got WebGPU device";
   } else {
-    LOG_INFO << "Could not get WebGPU adapter: " << message;
+    LOG_INFO << "Could not get WebGPU adapter";
+  }
+  if (message) {
+    LOG_INFO << message;
   }
   *(WGPUDevice*)userdata = received;
 }
