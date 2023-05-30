@@ -1,5 +1,4 @@
 add_library(renderlib_wgpu "${CMAKE_CURRENT_SOURCE_DIR}/renderlib_wgpu.cpp")
-set_target_properties(renderlib_wgpu PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(renderlib_wgpu PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 	${GLM_INCLUDE_DIRS}
