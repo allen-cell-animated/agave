@@ -6,6 +6,7 @@
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "streamserver.h"
+#include "renderlib_wgpu/renderlib_wgpu.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -139,6 +140,10 @@ main(int argc, char* argv[])
 
   if (!renderlib::initialize(isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
+    return 0;
+  }
+  if (!renderlib_wgpu::initialize(isServer, listDevices, selectedGpu)) {
+    renderlib_wgpu::cleanup();
     return 0;
   }
 

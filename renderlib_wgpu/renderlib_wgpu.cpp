@@ -23,6 +23,8 @@ static const uint32_t AICS_DEFAULT_STENCIL_BUFFER_BITS = 8;
 
 static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
 
+static WGPUInstance sInstance = nullptr;
+
 #ifdef __APPLE__
 static void*
 getMetalLayerFromWindow(void* win_id)
@@ -57,6 +59,11 @@ renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
   if (renderLibInitialized) {
     return 1;
   }
+
+  WGPUInstanceDescriptor desc;
+  desc.nextInChain = nullptr;
+  sInstance = wgpuCreateInstance(&desc);
+
   renderLibInitialized = true;
 
   renderLibHeadless = headless;
@@ -78,7 +85,7 @@ renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
   // LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
   // LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
 
-  return 0;
+  return 1;
 }
 
 void
@@ -102,7 +109,7 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   //   obtain this id differs per platform and GUI toolkit.""
   //                                                       "
   WGPUSurfaceDescriptor surface_descriptor;
-  surface_descriptor.label = nullptr;
+  surface_descriptor.label = "AGAVE wgpu surface";
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
   HINSTANCE hinstance = GetModuleHandle(NULL);
@@ -157,6 +164,5 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   throw("Cannot get surface id: unsupported platform.");
 #endif
 
-  WGPUInstance instance_id = nullptr;
-  return wgpuInstanceCreateSurface(instance_id, &surface_descriptor);
+  return wgpuInstanceCreateSurface(sInstance, &surface_descriptor);
 }
