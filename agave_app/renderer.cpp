@@ -253,6 +253,7 @@ Renderer::processCommandBuffer(RenderRequest* rr)
 
     for (auto i = cmds.begin(); i != cmds.end(); ++i) {
       (*i)->execute(&m_ec);
+      // commands can fill in the message field of the ec, and we will send it back to the client
       if (!m_ec.m_message.empty()) {
         emit sendString(rr, QString::fromStdString(m_ec.m_message));
         m_ec.m_message = "";
@@ -270,6 +271,7 @@ Renderer::render()
 
   // DRAW
   m_myVolumeData.m_camera->Update();
+
   m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);

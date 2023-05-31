@@ -196,6 +196,10 @@ if(WIN32)
     DESTINATION ${INSTALLDIR}/imageformats/
   )
   install(FILES
+    $<TARGET_FILE:Qt6::QJpegPlugin>
+    DESTINATION ${INSTALLDIR}/imageformats/
+  )
+  install(FILES
     $<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>
     DESTINATION ${INSTALLDIR}/styles/
   )
@@ -243,6 +247,7 @@ elseif(APPLE)
   # calls cmake install command and also adds to the QT_PLUGINS list for use below
   install_qt6_plugin("Qt6::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
   install_qt6_plugin("Qt6::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QJpegPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
   install_qt6_plugin("Qt6::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
@@ -312,5 +317,8 @@ else() # Linux
     $<TARGET_FILE:Qt6::QTiffPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
-
+  install(FILES
+    $<TARGET_FILE:Qt6::QJpegPlugin>
+    DESTINATION ${INSTALLDIR}/imageformats/
+  )
 endif(WIN32)
