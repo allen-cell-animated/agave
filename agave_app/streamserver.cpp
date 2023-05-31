@@ -1,6 +1,5 @@
 #include "streamserver.h"
-#include "QtWebSockets/qwebsocket.h"
-#include "QtWebSockets/qwebsocketserver.h"
+
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -8,6 +7,9 @@
 #include <QSslCertificate>
 #include <QSslConfiguration>
 #include <QSslKey>
+#include <QUrlQuery>
+#include <QWebSocket>
+#include <QWebSocketServer>
 
 #include "commandBuffer.h"
 #include "renderlib/AppScene.h"
@@ -24,6 +26,23 @@ const char* DEFAULT_IMAGE_FORMAT = "JPG";
 void
 StreamServer::createNewRenderer(QWebSocket* client)
 {
+  const std::string validModes[] = { "default", "raymarch" };
+  std::string mode = "default";
+  QUrl url = client->requestUrl();
+  if (url.hasQuery()) {
+    QUrlQuery query(url);
+    QString modeq = query.queryItemValue("mode");
+    // if one of the valid modes was specified, set it here.
+    if (!modeq.isEmpty()) {
+      for (const std::string& validMode : validModes) {
+        if (modeq.toStdString() == validMode) {
+          mode = validMode;
+          break;
+        }
+      }
+    }
+  }
+
   int i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 
@@ -35,7 +54,7 @@ StreamServer::createNewRenderer(QWebSocket* client)
   Scene* scene = new Scene();
   scene->initLights();
 
-  r->configure(nullptr, *rs, *scene, *camera, LoadSpec());
+  r->configure(nullptr, *rs, *scene, *camera, LoadSpec(), mode);
 
   this->_renderers << r;
 

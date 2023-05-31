@@ -43,6 +43,8 @@ public:
                  const Scene& scene,
                  const CCamera& camera,
                  const LoadSpec& loadSpec,
+                 // rendererMode ignored if renderer is non-null
+                 const std::string rendererMode = "",
                  QOpenGLContext* glContext = nullptr);
 
   void run();
@@ -100,8 +102,7 @@ private:
       : m_name(name)
       , m_start(start)
       , m_end(end)
-    {
-    }
+    {}
 
     QString m_name;
     int m_start;
@@ -124,8 +125,7 @@ private:
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
       , ownRenderer(false)
-    {
-    }
+    {}
   } m_myVolumeData;
 
   ExecutionContext m_ec;

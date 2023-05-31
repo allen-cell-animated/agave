@@ -4,6 +4,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
+#include "renderlib/RenderGL.h"
 #include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 
@@ -45,6 +46,8 @@ Renderer::configure(IRenderWindow* renderer,
                     const Scene& scene,
                     const CCamera& camera,
                     const LoadSpec& loadSpec,
+                    // rendererMode ignored if renderer is non-null
+                    const std::string rendererMode,
                     QOpenGLContext* glContext)
 {
   // assumes scene is already set in renderer and everything is initialized
@@ -58,7 +61,15 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(1024);
 
     m_myVolumeData.ownRenderer = true;
-    m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
+    if (rendererMode == "raymarch") {
+      m_myVolumeData.m_renderer = new RenderGL(m_myVolumeData.m_renderSettings);
+
+    } else if (rendererMode == "default") {
+      m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
+
+    } else {
+      m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
+    }
     m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
   } else {
     m_myVolumeData.ownRenderer = false;
