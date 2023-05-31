@@ -47,7 +47,7 @@ Renderer::configure(IRenderWindow* renderer,
                     const CCamera& camera,
                     const LoadSpec& loadSpec,
                     // rendererMode ignored if renderer is non-null
-                    const std::string rendererMode,
+                    RENDERER_TYPE rendererMode,
                     QOpenGLContext* glContext)
 {
   // assumes scene is already set in renderer and everything is initialized
@@ -61,12 +61,12 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(1024);
 
     m_myVolumeData.ownRenderer = true;
-    if (rendererMode == "raymarch") {
+    if (rendererMode == RENDERER_TYPE_RAYMARCH) {
       m_myVolumeData.m_renderer = new RenderGL(m_myVolumeData.m_renderSettings);
-
-    } else if (rendererMode == "default") {
+    } else if (rendererMode == RENDERER_TYPE_PATHTRACE) {
       m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
-
+    } else if (rendererMode == RENDERER_TYPE_DEFAULT) {
+      m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
     } else {
       m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
     }

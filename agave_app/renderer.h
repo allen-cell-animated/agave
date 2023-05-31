@@ -38,13 +38,15 @@ public:
   Renderer(QString id, QObject* parent, QMutex& mutex);
   virtual ~Renderer();
 
+  enum RENDERER_TYPE { RENDERER_TYPE_DEFAULT, RENDERER_TYPE_PATHTRACE, RENDERER_TYPE_RAYMARCH };
+
   void configure(IRenderWindow* renderer,
                  const RenderSettings& renderSettings,
                  const Scene& scene,
                  const CCamera& camera,
                  const LoadSpec& loadSpec,
                  // rendererMode ignored if renderer is non-null
-                 const std::string rendererMode = "",
+                 RENDERER_TYPE rendererMode = RENDERER_TYPE_DEFAULT,
                  QOpenGLContext* glContext = nullptr);
 
   void run();

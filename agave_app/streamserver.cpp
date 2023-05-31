@@ -42,6 +42,10 @@ StreamServer::createNewRenderer(QWebSocket* client)
       }
     }
   }
+  Renderer::RENDERER_TYPE rendererMode = Renderer::RENDERER_TYPE_DEFAULT;
+  if (mode == "raymarch") {
+    rendererMode = Renderer::RENDERER_TYPE_RAYMARCH;
+  }
 
   int i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
@@ -54,7 +58,7 @@ StreamServer::createNewRenderer(QWebSocket* client)
   Scene* scene = new Scene();
   scene->initLights();
 
-  r->configure(nullptr, *rs, *scene, *camera, LoadSpec(), mode);
+  r->configure(nullptr, *rs, *scene, *camera, LoadSpec(), rendererMode);
 
   this->_renderers << r;
 

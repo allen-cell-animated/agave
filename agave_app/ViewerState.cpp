@@ -90,7 +90,12 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << "# agave --server &" << std::endl;
   ss << "# python myscript.py" << std::endl << std::endl;
   ss << "import agave_pyclient as agave" << std::endl << std::endl;
-  ss << "r = agave.AgaveRenderer()" << std::endl;
+  std::string mode = "default";
+  if (s.rendererType == Serialize::RendererType_PID::RAYMARCH) {
+    mode = "raymarch";
+  }
+  ss << "r = agave.AgaveRenderer(mode=\"" << mode << "\")" << std::endl;
+
   std::string obj = "r.";
 
   // use whole loadspec to get multiresolution level, selected channels and sub-ROI
