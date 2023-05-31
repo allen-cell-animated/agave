@@ -163,10 +163,10 @@ class AgaveRenderer:
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self, url="ws://localhost:1235/") -> None:
         self.cb = CommandBuffer()
         self.session_name = ""
-        self.ws = AgaveClient("ws://localhost:1235/", protocols=["http-only", "chat"])
+        self.ws = AgaveClient(url, protocols=["http-only", "chat"])
         # self.ws.onOpened = self.onOpen
         self.ws.connect()
         # self.ws.run_forever()
