@@ -40,26 +40,6 @@ Renderer::~Renderer()
 }
 
 void
-Renderer::myVolumeInit()
-{
-  static const int initWidth = 1024, initHeight = 1024;
-
-  m_myVolumeData.m_renderSettings = new RenderSettings();
-  m_myVolumeData.m_camera = new CCamera();
-  m_myVolumeData.m_camera->m_Film.m_ExposureIterations = 1;
-  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(initWidth);
-  m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(initHeight);
-
-  m_myVolumeData.m_scene = new Scene();
-  m_myVolumeData.m_scene->initLights();
-
-  m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
-  m_myVolumeData.m_renderer->initialize(initWidth, initHeight);
-  m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
-  m_myVolumeData.ownRenderer = true;
-}
-
-void
 Renderer::configure(IRenderWindow* renderer,
                     const RenderSettings& renderSettings,
                     const Scene& scene,

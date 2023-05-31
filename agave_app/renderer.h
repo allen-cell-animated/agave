@@ -109,9 +109,6 @@ private:
   };
 
   QList<SceneDescription> m_scenes;
-
-  // TODO move this info.  This class only knows about some abstract renderer and a scene object.
-  void myVolumeInit();
   struct myVolumeData
   {
     bool ownRenderer;
