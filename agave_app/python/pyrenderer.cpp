@@ -45,6 +45,7 @@ OffscreenRenderer::myVolumeInit()
   m_myVolumeData.m_scene = new Scene();
   m_myVolumeData.m_scene->initLights();
 
+  // TODO allow for all renderer types (e.g. RendererGL also)
   m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
   m_myVolumeData.m_renderer->initialize(m_width, m_height);
   m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
