@@ -16,6 +16,8 @@
 
 #include <array>
 
+const std::string RenderGLPT::TYPE_NAME = "pathtrace";
+
 RenderGLPT::RenderGLPT(RenderSettings* rs)
   : m_fbF32(nullptr)
   , m_fbF32Accum(nullptr)

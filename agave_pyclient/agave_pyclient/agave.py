@@ -160,7 +160,7 @@ class AgaveRenderer:
     url: str
         Full url to websocket server including port
     mode: str
-        "default" or "raymarch" (none for default)
+        "pathtrace" or "raymarch" (pathtrace is default)
 
     Examples
     --------
@@ -170,7 +170,7 @@ class AgaveRenderer:
 
     """
 
-    def __init__(self, url="ws://localhost:1235/", mode="default") -> None:
+    def __init__(self, url="ws://localhost:1235/", mode="pathtrace") -> None:
         self.cb = CommandBuffer()
         self.session_name = ""
         self.ws = AgaveClient(f"{url}?mode={mode}", protocols=["http-only", "chat"])

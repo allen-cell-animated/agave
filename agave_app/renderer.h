@@ -38,15 +38,13 @@ public:
   Renderer(QString id, QObject* parent, QMutex& mutex);
   virtual ~Renderer();
 
-  enum RENDERER_TYPE { RENDERER_TYPE_DEFAULT, RENDERER_TYPE_PATHTRACE, RENDERER_TYPE_RAYMARCH };
-
   void configure(IRenderWindow* renderer,
                  const RenderSettings& renderSettings,
                  const Scene& scene,
                  const CCamera& camera,
                  const LoadSpec& loadSpec,
                  // rendererMode ignored if renderer is non-null
-                 RENDERER_TYPE rendererMode = RENDERER_TYPE_DEFAULT,
+                 renderlib::RendererType rendererMode = renderlib::RendererType_Pathtrace,
                  QOpenGLContext* glContext = nullptr);
 
   void run();
@@ -104,7 +102,8 @@ private:
       : m_name(name)
       , m_start(start)
       , m_end(end)
-    {}
+    {
+    }
 
     QString m_name;
     int m_start;
@@ -127,7 +126,8 @@ private:
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
       , ownRenderer(false)
-    {}
+    {
+    }
   } m_myVolumeData;
 
   ExecutionContext m_ec;

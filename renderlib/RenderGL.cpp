@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+const std::string RenderGL::TYPE_NAME = "raymarch";
+
 RenderGL::RenderGL(RenderSettings* rs)
   : m_image3d(nullptr)
   , m_w(0)

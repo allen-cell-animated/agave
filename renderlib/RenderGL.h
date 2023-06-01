@@ -14,6 +14,7 @@ class RenderSettings;
 class RenderGL : public IRenderWindow
 {
 public:
+  static const std::string TYPE_NAME;
   RenderGL(RenderSettings* rs);
   virtual ~RenderGL();
 

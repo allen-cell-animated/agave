@@ -25,6 +25,8 @@ class GLToneMapShader;
 class RenderGLPT : public IRenderWindow
 {
 public:
+  static const std::string TYPE_NAME;
+
   RenderGLPT(RenderSettings* rs);
   virtual ~RenderGLPT();
 

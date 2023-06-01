@@ -753,7 +753,7 @@ RenderDialog::render()
 
     // now get our rendering resources into this Renderer object
     m_renderThread->configure(
-      m_renderer, m_renderSettings, m_scene, m_camera, m_loadSpec, Renderer::RENDERER_TYPE_DEFAULT, m_glContext);
+      m_renderer, m_renderSettings, m_scene, m_camera, m_loadSpec, renderlib::RendererType_Pathtrace, m_glContext);
 
     onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request

@@ -6,6 +6,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
+#include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "renderlib/version.hpp"
 
@@ -90,10 +91,11 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << "# agave --server &" << std::endl;
   ss << "# python myscript.py" << std::endl << std::endl;
   ss << "import agave_pyclient as agave" << std::endl << std::endl;
-  std::string mode = "default";
+  renderlib::RendererType rendererType = renderlib::RendererType_Pathtrace;
   if (s.rendererType == Serialize::RendererType_PID::RAYMARCH) {
-    mode = "raymarch";
+    rendererType = renderlib::RendererType_Raymarch;
   }
+  std::string mode = renderlib::rendererTypeToString(rendererType);
   ss << "r = agave.AgaveRenderer(mode=\"" << mode << "\")" << std::endl;
 
   std::string obj = "r.";
