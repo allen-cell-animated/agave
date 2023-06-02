@@ -188,10 +188,17 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_initialized(false)
   , m_fakeHidden(false)
 {
+  // setAutoFillBackground(false);
   // setAttribute(Qt::WA_PaintOnScreen);
   setAttribute(Qt::WA_NativeWindow);
+  setAttribute(Qt::WA_DontCreateNativeAncestors);
   // setAttribute(Qt::WA_OpaquePaintEvent);
-  setAttribute(Qt::WA_NoSystemBackground);
+  //  setAttribute(Qt::WA_NoSystemBackground);
+  //  setWindowOpacity(0.0);
+  winId(); // create window handle
+
+  // this->setStyleSheet("background:transparent;");
+  // this->setWindowFlags(Qt::FramelessWindowHint);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the
   // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
@@ -306,6 +313,8 @@ WgpuView3D::initializeGL()
   // set up swap chain
   m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
   WGPUSwapChainDescriptor swapChainDescriptor = {
+    .nextInChain = NULL,
+    .label = "Swap Chain",
     .usage = WGPUTextureUsage_RenderAttachment,
     .format = m_swapChainFormat,
     .width = (uint32_t)width(),
@@ -370,11 +379,10 @@ WgpuView3D::initializeGL()
 
   // m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
   m_initialized = true;
-  if (!m_renderer) {
-    return;
+  if (m_renderer) {
+    QSize newsize = size();
+    m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
   }
-  QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
   // Start timers
   startTimer(0);
@@ -413,12 +421,18 @@ WgpuView3D::render()
     if (prevWidth == 0) {
       // try one time to re-create swap chain
       WGPUSwapChainDescriptor swapChainDescriptor = {
+        .nextInChain = NULL,
+        .label = "Swap Chain",
         .usage = WGPUTextureUsage_RenderAttachment,
         .format = m_swapChainFormat,
         .width = (uint32_t)width(),
         .height = (uint32_t)height(),
         .presentMode = WGPUPresentMode_Fifo,
       };
+      if (m_swapChain) {
+        wgpuSwapChainDrop(m_swapChain);
+        m_swapChain = 0;
+      }
       m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
     }
 
@@ -490,14 +504,13 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
   WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &commandBufferDescriptor);
   wgpuQueueSubmit(queue, 1, &cmdBuffer);
 
-  //wgpuCommandEncoderDrop(encoder);
+  // wgpuCommandEncoderDrop(encoder);
 
-  if (!m_renderer) {
-    return;
+  if (m_renderer) {
+    m_CCamera.Update();
+
+    m_renderer->render(m_CCamera);
   }
-  m_CCamera.Update();
-
-  m_renderer->render(m_CCamera);
 }
 
 void
@@ -521,20 +534,26 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
 
   // (if w or h actually changed...)
   WGPUSwapChainDescriptor swapChainDescriptor = {
+      .nextInChain = NULL,
+      .label = "Swap Chain",
     .usage = WGPUTextureUsage_RenderAttachment,
     .format = m_swapChainFormat,
     .width = (uint32_t)w,
     .height = (uint32_t)h,
     .presentMode = WGPUPresentMode_Fifo,
   };
+  if (m_swapChain) {
+    wgpuSwapChainDrop(m_swapChain); // (drop old swap chain)
+    m_swapChain = 0;
+  }
   m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
 
   if (m_renderer) {
     m_renderer->resize(w, h, devicePixelRatioF());
   }
 
-  update();
-  //  invokeUserPaint();
+  // update();
+  //   invokeUserPaint();
 }
 
 void
@@ -589,7 +608,9 @@ WgpuView3D::mouseMoveEvent(QMouseEvent* event)
 void
 WgpuView3D::timerEvent(QTimerEvent* event)
 {
-
+  if (!isEnabled()) {
+    return;
+  }
   QWidget::timerEvent(event);
 
   update();
