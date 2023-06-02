@@ -301,7 +301,7 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   // keep slider and spinner in sync
   QObject::connect(&m_slider, &QDoubleSlider::valueChanged, [this](double v) {
     this->m_spinner.blockSignals(true);
-    this->m_spinner.setValue(v, true); // this->m_slider.sliderPositionToValue(v), true);
+    this->m_spinner.setValue(v, true);
     this->m_spinner.blockSignals(false);
   });
 
