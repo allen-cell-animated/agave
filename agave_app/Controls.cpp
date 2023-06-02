@@ -165,7 +165,7 @@ QDoubleSlider::QDoubleSlider(QWidget* pParent /*= NULL*/)
   setSingleStep(1);
 
   setOrientation(Qt::Horizontal);
-  setFocusPolicy(Qt::NoFocus);
+  setFocusPolicy(Qt::StrongFocus);
 }
 
 void
@@ -236,6 +236,16 @@ QDoubleSlider::sliderPositionToValue(int pos) const
   return (double)pos / m_Multiplier;
 }
 
+void
+QDoubleSlider::wheelEvent(QWheelEvent* event)
+{
+  if (!hasFocus()) {
+    event->ignore();
+    return;
+  }
+  QSlider::wheelEvent(event);
+}
+
 QSize
 QDoubleSpinner::sizeHint() const
 {
@@ -258,6 +268,16 @@ QDoubleSpinner::setValue(double value, bool blockSignals)
   this->blockSignals(false);
 }
 
+void
+QDoubleSpinner::wheelEvent(QWheelEvent* event)
+{
+  if (!hasFocus()) {
+    event->ignore();
+    return;
+  }
+  QDoubleSpinBox::wheelEvent(event);
+}
+
 QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   : QWidget(pParent)
   , m_slider()
@@ -266,8 +286,9 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   setLayout(&m_layout);
 
   m_slider.setOrientation(Qt::Horizontal);
-
+  m_slider.setFocusPolicy(Qt::StrongFocus);
   m_spinner.setDecimals(4);
+  m_spinner.setFocusPolicy(Qt::StrongFocus);
 
   // entire control is one single row.
   // slider is 3/4, spinner is 1/4 of the width
@@ -278,9 +299,9 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   m_layout.setContentsMargins(0, 0, 0, 0);
 
   // keep slider and spinner in sync
-  QObject::connect(&m_slider, QOverload<int>::of(&QDoubleSlider::sliderMoved), [this](int v) {
+  QObject::connect(&m_slider, &QDoubleSlider::valueChanged, [this](double v) {
     this->m_spinner.blockSignals(true);
-    this->m_spinner.setValue(this->m_slider.sliderPositionToValue(v), true);
+    this->m_spinner.setValue(v, true); // this->m_slider.sliderPositionToValue(v), true);
     this->m_spinner.blockSignals(false);
   });
 

@@ -209,14 +209,17 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
             case QEventPoint::State::Released: {
               // move the point and release
               QHash<int, int>::iterator it = m_fingerPointMapping.find(id);
-              movePoint(it.value(), touchPoint.pos());
-              m_fingerPointMapping.erase(it);
+              if (it != m_fingerPointMapping.end()) {
+                movePoint(it.value(), touchPoint.pos());
+                m_fingerPointMapping.erase(it);
+              }
             } break;
             case QEventPoint::State::Updated: {
               // move the point
               const int pointIdx = m_fingerPointMapping.value(id, -1);
-              if (pointIdx >= 0) // do we track this point?
+              if (pointIdx >= 0) { // do we track this point?
                 movePoint(pointIdx, touchPoint.pos());
+              }
             } break;
             default:
               break;

@@ -98,6 +98,9 @@ signals:
 
 private:
   double m_Multiplier;
+
+protected:
+  virtual void wheelEvent(QWheelEvent* pEvent);
 };
 
 class QDoubleSpinner : public QDoubleSpinBox
@@ -109,6 +112,9 @@ public:
 
   virtual QSize sizeHint() const;
   void setValue(double Value, bool BlockSignals = false);
+
+protected:
+  virtual void wheelEvent(QWheelEvent* pEvent);
 };
 
 class QNumericSlider : public QWidget

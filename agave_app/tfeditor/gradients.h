@@ -75,8 +75,8 @@ public:
 
   void setGradientStops(const QGradientStops& stops);
 
-  void setEditable(bool editable); 
-  
+  void setEditable(bool editable);
+
   void paintEvent(QPaintEvent* e) override;
 
   QSize sizeHint() const override { return QSize(150, 40); }
@@ -118,6 +118,9 @@ signals:
 
 private:
   ShadeWidget* m_alpha_shade;
+
+protected:
+  virtual void wheelEvent(QWheelEvent* event) override;
 };
 
 class GradientWidget : public QWidget
