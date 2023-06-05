@@ -31,7 +31,7 @@ ExternalProject_Add(
 if(MSVC)
 	add_definitions(-DWGPU_TARGET=WGPU_TARGET_WINDOWS)
 	target_compile_options(renderlib_wgpu PRIVATE /W4)
-	set(OS_LIBRARIES "userenv" "ws2_32" "Dwmapi" "dbghelp" "d3dcompiler" "D3D12" "D3D11" "DXGI" "setupapi" "Bcrypt")
+	set(OS_LIBRARIES "userenv" "ws2_32" "Dwmapi" "dbghelp" "d3dcompiler" "D3D12" "D3D11" "DXGI" "setupapi" "Bcrypt" "ntdll")
 elseif(APPLE)
 	add_definitions(-DWGPU_TARGET=WGPU_TARGET_MACOS)
 	set(OS_LIBRARIES "-framework Cocoa" "-framework CoreVideo" "-framework IOKit" "-framework QuartzCore" "-framework Metal")
