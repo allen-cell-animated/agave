@@ -6,8 +6,8 @@
 
 #include "RenderInterface.h"
 #include "command.h"
-#include "renderlib/IRenderWindow.h"
-#include "renderlib/gl/Util.h"
+#include "renderlib/graphics/IRenderWindow.h"
+#include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
 
 #include <QList>

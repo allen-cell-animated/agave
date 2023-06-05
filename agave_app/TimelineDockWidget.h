@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 
 #include <QDockWidget>
 #include <QGridLayout>

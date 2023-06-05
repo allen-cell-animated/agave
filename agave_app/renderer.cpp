@@ -2,10 +2,10 @@
 
 #include "renderlib/AppScene.h"
 #include "renderlib/CCamera.h"
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGL.h"
-#include "renderlib/RenderGLPT.h"
+#include "renderlib/graphics/RenderGL.h"
+#include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 
 #include "command.h"
