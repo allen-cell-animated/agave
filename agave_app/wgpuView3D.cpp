@@ -16,6 +16,7 @@
 #include <glm.h>
 
 #include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QResizeEvent>
 #include <QScreen>
@@ -188,14 +189,18 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_initialized(false)
   , m_fakeHidden(false)
 {
-  // setAutoFillBackground(false);
-  // setAttribute(Qt::WA_PaintOnScreen);
-  setAttribute(Qt::WA_NativeWindow);
-  setAttribute(Qt::WA_DontCreateNativeAncestors);
-  // setAttribute(Qt::WA_OpaquePaintEvent);
-  //  setAttribute(Qt::WA_NoSystemBackground);
-  //  setWindowOpacity(0.0);
-  winId(); // create window handle
+  m_canvas = new QWidget(this);
+
+  m_canvas->setAutoFillBackground(false);
+  m_canvas->setAttribute(Qt::WA_PaintOnScreen);
+  m_canvas->setMouseTracking(true);
+  m_canvas->setFocusPolicy(Qt::StrongFocus);
+  m_canvas->winId(); // create window handle
+
+  QHBoxLayout* layout = new QHBoxLayout(this);
+  layout->setContentsMargins(0, 0, 0, 0);
+  setLayout(layout);
+  layout->addWidget(m_canvas);
 
   // this->setStyleSheet("background:transparent;");
   // this->setWindowFlags(Qt::FramelessWindowHint);
@@ -266,7 +271,7 @@ WgpuView3D::initializeGL()
     return;
   }
   LOG_INFO << "calling get_surface_id_from_canvas";
-  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
+  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)m_canvas->winId());
   WGPUAdapter adapter;
   WGPURequestAdapterOptions options = {
     .nextInChain = NULL,
@@ -534,8 +539,8 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
 
   // (if w or h actually changed...)
   WGPUSwapChainDescriptor swapChainDescriptor = {
-      .nextInChain = NULL,
-      .label = "Swap Chain",
+    .nextInChain = NULL,
+    .label = "Swap Chain",
     .usage = WGPUTextureUsage_RenderAttachment,
     .format = m_swapChainFormat,
     .width = (uint32_t)w,

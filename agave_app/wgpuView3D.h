@@ -104,6 +104,8 @@ protected:
   void resizeEvent(QResizeEvent* event);
   void paintEvent(QPaintEvent* event);
 
+  virtual QPaintEngine* paintEngine() const override { return nullptr; }
+
   /**
    * Handle mouse button press events.
    *
@@ -159,4 +161,5 @@ private:
   WGPUDevice m_device;
 
   WGPURenderPipeline m_pipeline;
+  QWidget* m_canvas;
 };
