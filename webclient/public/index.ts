@@ -1,9 +1,16 @@
+import { PerspectiveCamera } from "three";
+
+import AICSTrackballControls from "./AICStrackballControls.js";
+import * as dat from "./dat.gui.min.js";
 import { AgaveClient } from "../src";
 
 //var wsUri = "ws://localhost:1235";
 //var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
 const wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
-let agave; // = new AgaveClient(wsUri);
+let agave: AgaveClient; // = new AgaveClient(wsUri);
+let gCamera = new PerspectiveCamera(55.0, 1.0, 0.001, 20);
+const streamimg1 = document.getElementById("imageA");
+let gControls = new AICSTrackballControls(gCamera, streamimg1);
 
 var _stream_mode = false;
 var _stream_mode_suspended = false;
@@ -20,47 +27,67 @@ function toggleDivVisibility(element, visible) {
 }
 
 var gui;
+interface ChannelGui {
+  colorD: [number, number, number];
+  colorS: [number, number, number];
+  colorE: [number, number, number];
+  window: number;
+  level: number;
+  roughness: number;
+  enabled: boolean;
+}
+const effectController = {
+  resolution: "512x512",
+  file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
+  density: 50.0,
+  exposure: 0.75,
+  aperture: 0.0,
+  fov: 55,
+  focal_distance: 4.0,
+  stream: true,
+  skyTopIntensity: 1.0,
+  skyMidIntensity: 1.0,
+  skyBotIntensity: 1.0,
+  skyTopColor: [255, 255, 255],
+  skyMidColor: [255, 255, 255],
+  skyBotColor: [255, 255, 255],
+  lightColor: [255, 255, 255],
+  lightIntensity: 100.0,
+  lightDistance: 10.0,
+  lightTheta: 0.0,
+  lightPhi: 0.0,
+  lightSize: 1.0,
+  xmin: 0.0,
+  ymin: 0.0,
+  zmin: 0.0,
+  xmax: 1.0,
+  ymax: 1.0,
+  zmax: 1.0,
+  infoObj: {
+    pixel_size_x: 1,
+    pixel_size_y: 1,
+    pixel_size_z: 1,
+    z: 1,
+    y: 1,
+    x: 1,
+    c: 1,
+    channelGui: [] as ChannelGui[],
+    channel_names: [] as string[],
+  },
+  channelFolderNames: [] as string[],
+  resetCamera: resetCamera,
+  preset0: function () {
+    executePreset(0);
+  },
+  preset1: function () {
+    executePreset(1);
+  },
+  preset2: function () {
+    executePreset(2);
+  },
+};
 
 function setupGui() {
-  effectController = {
-    resolution: "512x512",
-    file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
-    density: 50.0,
-    exposure: 0.75,
-    aperture: 0.0,
-    fov: 55,
-    focal_distance: 4.0,
-    stream: true,
-    skyTopIntensity: 1.0,
-    skyMidIntensity: 1.0,
-    skyBotIntensity: 1.0,
-    skyTopColor: [255, 255, 255],
-    skyMidColor: [255, 255, 255],
-    skyBotColor: [255, 255, 255],
-    lightColor: [255, 255, 255],
-    lightIntensity: 100.0,
-    lightDistance: 10.0,
-    lightTheta: 0.0,
-    lightPhi: 0.0,
-    lightSize: 1.0,
-    xmin: 0.0,
-    ymin: 0.0,
-    zmin: 0.0,
-    xmax: 1.0,
-    ymax: 1.0,
-    zmax: 1.0,
-    resetCamera: resetCamera,
-    preset0: function () {
-      executePreset(0);
-    },
-    preset1: function () {
-      executePreset(1);
-    },
-    preset2: function () {
-      executePreset(2);
-    },
-  };
-
   gui = new dat.GUI();
   //gui = new dat.GUI({autoPlace:false, width:200});
 
@@ -87,13 +114,13 @@ function setupGui() {
       if (res.length === 3) {
         res[0] = parseInt(res[1]);
         res[1] = parseInt(res[2]);
-        var imgholder = document.getElementById("imageA");
-        imgholder.width = res[0];
-        imgholder.height = res[1];
-        imgholder.style.width = res[0];
-        imgholder.style.height = res[1];
+        var imgholder = document.getElementById("imageA") as HTMLImageElement;
+        imgholder!.width = res[0];
+        imgholder!.height = res[1];
+        imgholder!.style.width = res[0];
+        imgholder!.style.height = res[1];
 
-        agave.setResolution(res[0], res[1]);
+        agave.set_resolution(res[0], res[1]);
         agave.flushCommandBuffer();
       }
     });
@@ -101,7 +128,7 @@ function setupGui() {
   gui.add(effectController, "resetCamera");
   //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
   gui.add(effectController, "stream").onChange(function (value) {
-    agave.streamMode(value);
+    agave.stream_mode(value);
     agave.flushCommandBuffer();
     // BUG THIS SHOULD NOT BE NEEDED.
     agave.redraw();
@@ -155,7 +182,7 @@ function setupGui() {
     .min(0.1)
     .step(0.001)
     .onChange(function (value) {
-      agave.focal_distance(value);
+      agave.focaldist(value);
       agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
@@ -183,7 +210,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      agave.set_axis_clip(
+      agave.set_clip_region(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -203,7 +230,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      agave.set_axis_clip(
+      agave.set_clip_region(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -223,7 +250,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      agave.set_axis_clip(
+      agave.set_clip_region(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -243,7 +270,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      agave.set_axis_clip(
+      agave.set_clip_region(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -263,7 +290,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      agave.set_axis_clip(
+      agave.set_clip_region(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -283,7 +310,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      agave.set_axis_clip(
+      agave.set_clip_region(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -303,7 +330,7 @@ function setupGui() {
     .addColor(effectController, "skyTopColor")
     .name("Sky Top")
     .onChange(function (value) {
-      agave.sky_top_color(
+      agave.skylight_top_color(
         (effectController["skyTopIntensity"] * value[0]) / 255.0,
         (effectController["skyTopIntensity"] * value[1]) / 255.0,
         (effectController["skyTopIntensity"] * value[2]) / 255.0
@@ -320,7 +347,7 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      agave.sky_top_color(
+      agave.skylight_top_color(
         (effectController["skyTopColor"][0] / 255.0) * value,
         (effectController["skyTopColor"][1] / 255.0) * value,
         (effectController["skyTopColor"][2] / 255.0) * value
@@ -336,7 +363,7 @@ function setupGui() {
     .addColor(effectController, "skyMidColor")
     .name("Sky Mid")
     .onChange(function (value) {
-      agave.sky_mid_color(
+      agave.skylight_middle_color(
         (effectController["skyMidIntensity"] * value[0]) / 255.0,
         (effectController["skyMidIntensity"] * value[1]) / 255.0,
         (effectController["skyMidIntensity"] * value[2]) / 255.0
@@ -353,7 +380,7 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      agave.sky_mid_color(
+      agave.skylight_middle_color(
         (effectController["skyMidColor"][0] / 255.0) * value,
         (effectController["skyMidColor"][1] / 255.0) * value,
         (effectController["skyMidColor"][2] / 255.0) * value
@@ -368,7 +395,7 @@ function setupGui() {
     .addColor(effectController, "skyBotColor")
     .name("Sky Bottom")
     .onChange(function (value) {
-      agave.sky_bot_color(
+      agave.skylight_bottom_color(
         (effectController["skyBotIntensity"] * value[0]) / 255.0,
         (effectController["skyBotIntensity"] * value[1]) / 255.0,
         (effectController["skyBotIntensity"] * value[2]) / 255.0
@@ -385,7 +412,7 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      agave.sky_bot_color(
+      agave.skylight_bottom_color(
         (effectController["skyBotColor"][0] / 255.0) * value,
         (effectController["skyBotColor"][1] / 255.0) * value,
         (effectController["skyBotColor"][2] / 255.0) * value
@@ -551,9 +578,6 @@ const screenImage = {
     if (tabs.length > 0) {
       for (var i = 0; i < tabs.length; i++) {
         tabs[i].src = binary;
-
-        img_width = tabs[i].width;
-        img_height = tabs[i].height;
       }
     } else {
       console.warn("div 'streamed_img' not found :(");
@@ -577,7 +601,7 @@ function setupChannelsGui() {
 
   //var infoObj = effectController.infoObj;
   effectController.infoObj.channelGui = [];
-  initcolors = [
+  const initcolors: [number, number, number][] = [
     [255, 0, 255],
     [255, 255, 255],
     [0, 255, 255],
@@ -732,7 +756,6 @@ function setupChannelsGui() {
       });
   }
 
-  var cb = new commandBuffer();
   for (var i = 0; i < effectController.infoObj.c; ++i) {
     var ch = effectController.infoObj.channelGui[i];
     agave.enable_channel(i, ch.enabled ? 1 : 0);
@@ -792,9 +815,6 @@ function init() {
     onJsonReceived,
     onConnectionClosed
   );
-
-  //set up first tab
-  var streamimg1 = document.getElementById("imageA");
 
   toggleDivVisibility(streamimg1, true);
 
@@ -866,14 +886,14 @@ function binarysocket() {
 
     // init camera
     var streamimg1 = document.getElementById("imageA");
-    gCamera = new THREE.PerspectiveCamera(55.0, 1.0, 0.001, 20);
+    gCamera = new PerspectiveCamera(55.0, 1.0, 0.001, 20);
     gCamera.position.x = 0.5;
     gCamera.position.y = 0.5 * 0.675;
     gCamera.position.z = 1.5 + 0.5 * 0.133;
     gCamera.up.x = 0.0;
     gCamera.up.y = 1.0;
     gCamera.up.z = 0.0;
-    gControls = new AICStrackballControls(gCamera, streamimg1);
+    gControls = new AICSTrackballControls(gCamera, streamimg1);
     gControls.target.x = 0.5;
     gControls.target.y = 0.5 * 0.675;
     gControls.target.z = 0.5 * 0.133;
