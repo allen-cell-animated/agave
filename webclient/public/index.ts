@@ -14,7 +14,7 @@ let gControls = new AICSTrackballControls(gCamera, streamimg1);
 
 var _stream_mode = false;
 var _stream_mode_suspended = false;
-var enqueued_image_data = null;
+var enqueued_image_data: string | null = null;
 var waiting_for_image = false;
 
 /**
@@ -785,22 +785,88 @@ function setupChannelsGui() {
   agave.flushCommandBuffer();
 }
 
-binarysock = new binarysocket();
-
 // should this be a promise that runs after async init of agave client?
 function onConnectionOpened() {
-  binarysock.open();
-}
+  agave.stream_mode(1);
+  agave.set_resolution(512, 512);
+  agave.aperture(effectController.aperture);
+  agave.exposure(effectController.exposure);
+  agave.skylight_top_color(
+    (effectController.skyTopIntensity * effectController.skyTopColor[0]) /
+      255.0,
+    (effectController.skyTopIntensity * effectController.skyTopColor[1]) /
+      255.0,
+    (effectController.skyTopIntensity * effectController.skyTopColor[2]) / 255.0
+  );
+  agave.skylight_middle_color(
+    (effectController.skyMidIntensity * effectController.skyMidColor[0]) /
+      255.0,
+    (effectController.skyMidIntensity * effectController.skyMidColor[1]) /
+      255.0,
+    (effectController.skyMidIntensity * effectController.skyMidColor[2]) / 255.0
+  );
+  agave.skylight_bottom_color(
+    (effectController.skyBotIntensity * effectController.skyBotColor[0]) /
+      255.0,
+    (effectController.skyBotIntensity * effectController.skyBotColor[1]) /
+      255.0,
+    (effectController.skyBotIntensity * effectController.skyBotColor[2]) / 255.0
+  );
+  agave.light_pos(
+    0,
+    effectController.lightDistance,
+    effectController.lightTheta,
+    effectController.lightPhi
+  );
+  agave.light_color(
+    0,
+    (effectController.lightColor[0] / 255.0) * effectController.lightIntensity,
+    (effectController.lightColor[1] / 255.0) * effectController.lightIntensity,
+    (effectController.lightColor[2] / 255.0) * effectController.lightIntensity
+  );
+  agave.light_size(0, effectController.lightSize, effectController.lightSize);
+  agave.stream_mode(1);
+  agave.flushCommandBuffer();
 
-function onConnectionClosed() {
-  console.log("connection closed");
-  binarysock.close();
+  // init camera
+  var streamimg1 = document.getElementById("imageA");
+  gCamera = new PerspectiveCamera(55.0, 1.0, 0.001, 20);
+  gCamera.position.x = 0.5;
+  gCamera.position.y = 0.5 * 0.675;
+  gCamera.position.z = 1.5 + 0.5 * 0.133;
+  gCamera.up.x = 0.0;
+  gCamera.up.y = 1.0;
+  gCamera.up.z = 0.0;
+  gControls = new AICSTrackballControls(gCamera, streamimg1);
+  gControls.target.x = 0.5;
+  gControls.target.y = 0.5 * 0.675;
+  gControls.target.z = 0.5 * 0.133;
+  gControls.target0 = gControls.target.clone();
+  gControls.rotateSpeed = 4.0 / window.devicePixelRatio;
+  gControls.autoRotate = false;
+  gControls.staticMoving = true;
+  gControls.enabled = true; //turn off mouse moments by setting to false
+
+  (gControls as unknown as EventTarget).addEventListener(
+    "change",
+    sendCameraUpdate
+  );
+  (gControls as unknown as EventTarget).addEventListener("start", function () {
+    agave.stream_mode(0);
+    agave.flushCommandBuffer();
+  });
+  (gControls as unknown as EventTarget).addEventListener("end", function () {
+    agave.stream_mode(1);
+    agave.flushCommandBuffer();
+    agave.redraw();
+    agave.flushCommandBuffer();
+  });
 }
 
 function onImageReceived(imgdata) {
   // enqueue until redraw loop can pick it up?
-  agave.enqueued_image_data = imgdata;
-  agave.waiting_for_image = false;
+  enqueued_image_data = imgdata;
+  waiting_for_image = false;
 }
 
 function onJsonReceived(obj) {
@@ -810,10 +876,10 @@ function onJsonReceived(obj) {
 function init() {
   agave = new AgaveClient(
     wsUri,
+    "pathtrace",
     onConnectionOpened,
-    onImageReceived,
     onJsonReceived,
-    onConnectionClosed
+    onImageReceived
   );
 
   toggleDivVisibility(streamimg1, true);
@@ -826,160 +892,12 @@ function init() {
 function animate() {
   requestAnimationFrame(animate);
   // look for new image to show
-  if (agave.enqueued_image_data) {
-    screenImage.set("data:image/png;base64," + agave.enqueued_image_data, 0);
+  if (enqueued_image_data) {
+    screenImage.set("data:image/png;base64," + enqueued_image_data);
     // nothing else to draw for now.
-    agave.enqueued_image_data = "";
-    agave.waiting_for_image = false;
-  }
-}
-/**
- * socket that exclusively receives binary data for streaming jpg images
- */
-function binarysocket() {
-  this.open = function (evt) {
-    agave.stream_mode(1);
-    agave.set_resolution(512, 512);
-    agave.aperture(effectController.aperture);
-    agave.exposure(effectController.exposure);
-    agave.sky_top_color(
-      (effectController.skyTopIntensity * effectController.skyTopColor[0]) /
-        255.0,
-      (effectController.skyTopIntensity * effectController.skyTopColor[1]) /
-        255.0,
-      (effectController.skyTopIntensity * effectController.skyTopColor[2]) /
-        255.0
-    );
-    agave.sky_middle_color(
-      (effectController.skyMidIntensity * effectController.skyMidColor[0]) /
-        255.0,
-      (effectController.skyMidIntensity * effectController.skyMidColor[1]) /
-        255.0,
-      (effectController.skyMidIntensity * effectController.skyMidColor[2]) /
-        255.0
-    );
-    agave.sky_bot_color(
-      (effectController.skyBotIntensity * effectController.skyBotColor[0]) /
-        255.0,
-      (effectController.skyBotIntensity * effectController.skyBotColor[1]) /
-        255.0,
-      (effectController.skyBotIntensity * effectController.skyBotColor[2]) /
-        255.0
-    );
-    agave.light_pos(
-      0,
-      effectController.lightDistance,
-      effectController.lightTheta,
-      effectController.lightPhi
-    );
-    agave.light_color(
-      0,
-      (effectController.lightColor[0] / 255.0) *
-        effectController.lightIntensity,
-      (effectController.lightColor[1] / 255.0) *
-        effectController.lightIntensity,
-      (effectController.lightColor[2] / 255.0) * effectController.lightIntensity
-    );
-    agave.light_size(0, effectController.lightSize, effectController.lightSize);
-    agave.stream_mode(1);
-    agave.flushCommandBuffer();
-
-    // init camera
-    var streamimg1 = document.getElementById("imageA");
-    gCamera = new PerspectiveCamera(55.0, 1.0, 0.001, 20);
-    gCamera.position.x = 0.5;
-    gCamera.position.y = 0.5 * 0.675;
-    gCamera.position.z = 1.5 + 0.5 * 0.133;
-    gCamera.up.x = 0.0;
-    gCamera.up.y = 1.0;
-    gCamera.up.z = 0.0;
-    gControls = new AICSTrackballControls(gCamera, streamimg1);
-    gControls.target.x = 0.5;
-    gControls.target.y = 0.5 * 0.675;
-    gControls.target.z = 0.5 * 0.133;
-    gControls.target0 = gControls.target.clone();
-    gControls.rotateSpeed = 4.0 / window.devicePixelRatio;
-    gControls.autoRotate = false;
-    gControls.staticMoving = true;
-    gControls.length = 10;
-    gControls.enabled = true; //turn off mouse moments by setting to false
-
-    gControls.addEventListener("change", sendCameraUpdate);
-    gControls.addEventListener("start", function () {
-      agave.stream_mode(0);
-      agave.flushCommandBuffer();
-    });
-    gControls.addEventListener("end", function () {
-      agave.stream_mode(1);
-      agave.flushCommandBuffer();
-      agave.redraw();
-      agave.flushCommandBuffer();
-    });
-  };
-  this.close = function (evt) {
-    setTimeout(function () {
-      //window.location.href = 'index.html';
-      console.warn("connection failed. refresh to retry.");
-    }, 3000);
-    //document.write('Socket disconnected. Restarting..');
-  };
-  this.message0 = function (evt) {
-    if (typeof evt.data === "string") {
-      var returnedObj = JSON.parse(evt.data);
-      if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
-        console.log(returnedObj);
-        // set up gui!
-        onNewImage(returnedObj);
-      }
-      return;
-    }
-
-    // new data will be used to obliterate the previous data if it exists.
-    // in this way, two consecutive images between redraws, will not both be drawn.
-    // TODO:enqueue this...?
-    enqueued_image_data = evt.data;
-
-    var bytes = new Uint8Array(enqueued_image_data),
-      binary = "",
-      len = bytes.byteLength,
-      i;
-    for (i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    enqueued_image_data = window.btoa(binary);
-
-    // the this ptr is not what I want here.
-    //binarysock.draw();
-
-    if (!_stream_mode_suspended && _stream_mode) {
-      // agave.redraw();
-      // agave.flushCommandBuffer();
-    }
-
-    // why should this code be slower?
-    // var reader = new FileReader();
-    // reader.onload = function(e) {
-    //   screenImage.set(e.target.result, 0);
-    //   console.timeEnd('recv');
-    // };
-    // reader.readAsDataURL(new Blob([new Uint8Array(evt.data)]));
-  };
-
-  this.draw = function () {
-    //console.time('decode_img');
-    //console.timeEnd('decode_img');
-
-    //console.time('set_img');
-    screenImage.set("data:image/png;base64," + enqueued_image_data, 0);
-    //console.timeEnd('set_img');
-
-    // nothing else to draw for now.
-    enqueued_image_data = null;
+    enqueued_image_data = "";
     waiting_for_image = false;
-  };
-  this.error = function (evt) {
-    console.log("error", evt);
-  };
+  }
 }
 
 /**
