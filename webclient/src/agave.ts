@@ -105,13 +105,13 @@ export class AgaveClient {
     // 1
     this.cb.addCommand("ASSET_PATH", name);
   }
-  load_ome_tif(name: string) {
-    /*
-  DEPRECATED. Use load_data
-  */
-    // 2
-    this.cb.addCommand("LOAD_OME_TIF", name);
-  }
+  // load_ome_tif(name: string) {
+  //   /*
+  // DEPRECATED. Use load_data
+  // */
+  //   // 2
+  //   this.cb.addCommand("LOAD_OME_TIF", name);
+  // }
   eye(x: number, y: number, z: number) {
     /*
   Set the viewer camera position.
@@ -718,13 +718,13 @@ export class AgaveClient {
     // 38
     this.cb.addCommand("SET_CONTROL_POINTS", channel, data);
   }
-  load_volume_from_file(path: string, scene: number, time: number) {
-    /*
-  DEPRECATED. Use load_data
-  */
-    // 39
-    this.cb.addCommand("LOAD_VOLUME_FROM_FILE", path, scene, time);
-  }
+  // load_volume_from_file(path: string, scene: number, time: number) {
+  //   /*
+  // DEPRECATED. Use load_data
+  // */
+  //   // 39
+  //   this.cb.addCommand("LOAD_VOLUME_FROM_FILE", path, scene, time);
+  // }
   set_time(time: number) {
     /*
   Load a time from the current volume file
