@@ -173,6 +173,8 @@ class AgaveRenderer:
     def __init__(self, url="ws://localhost:1235/", mode="pathtrace") -> None:
         self.cb = CommandBuffer()
         self.session_name = ""
+        if mode != "pathtrace" and mode != "raymarch":
+            mode = "pathtrace"
         self.ws = AgaveClient(f"{url}?mode={mode}", protocols=["http-only", "chat"])
         # self.ws.onOpened = self.onOpen
         self.ws.connect()
