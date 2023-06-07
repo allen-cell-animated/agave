@@ -586,7 +586,7 @@ function onNewImage(infoObj) {
   effectController.infoObj = infoObj;
   resetCamera();
   setupChannelsGui();
-  applyPresets();
+  //applyPresets();
 }
 
 function setupChannelsGui() {
@@ -784,6 +784,14 @@ function setupChannelsGui() {
 
 // should this be a promise that runs after async init of agave client?
 function onConnectionOpened() {
+  agave.load_data(
+    "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/1.zarr",
+    0,
+    2,
+    0,
+    [],
+    []
+  );
   agave.stream_mode(1);
   agave.set_resolution(512, 512);
   agave.aperture(effectController.aperture);
