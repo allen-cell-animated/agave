@@ -207,6 +207,6 @@ export class CommandBuffer {
   addCommand(...args: unknown[]) {
     //const args = [].slice.call(arguments);
     // TODO: check against signature!!!
-    this.prebuffer.push(...args);
+    this.prebuffer.push([...args]);
   }
 }

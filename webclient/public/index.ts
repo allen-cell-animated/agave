@@ -4,9 +4,6 @@ import AICSTrackballControls from "./AICStrackballControls.js";
 import * as dat from "dat.gui";
 import { AgaveClient } from "../src";
 
-//var wsUri = "ws://localhost:1235";
-//var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
-const wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
 let agave: AgaveClient; // = new AgaveClient(wsUri);
 let gCamera = new PerspectiveCamera(55.0, 1.0, 0.001, 20);
 const streamimg1 = document.getElementById("imageA");
@@ -573,7 +570,7 @@ const screenImage = {
   set: function (binary) {
     //get all the divs with the streamed_img tag and set the received binary data to the image's source
     var tabs;
-    tabs = document.getElementsByClassName("streamed_img img0");
+    tabs = document.getElementsByClassName("streamed_img");
 
     if (tabs.length > 0) {
       for (var i = 0; i < tabs.length; i++) {
@@ -874,6 +871,10 @@ function onJsonReceived(obj) {
 }
 
 function init() {
+  const wsUri = "ws://localhost:1235";
+  //const wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
+  //const wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
+
   agave = new AgaveClient(
     wsUri,
     "pathtrace",
