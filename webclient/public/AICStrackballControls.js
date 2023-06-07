@@ -5,6 +5,8 @@
  * @author Luca Antiga 	/ http://lantiga.github.io
  */
 
+import * as THREE from "three";
+
 var AICStrackballControls = function (object, domElement) {
   var _this = this;
   var STATE = {

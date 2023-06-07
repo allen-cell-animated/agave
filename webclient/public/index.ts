@@ -1,7 +1,7 @@
 import { PerspectiveCamera } from "three";
 
 import AICSTrackballControls from "./AICStrackballControls.js";
-import * as dat from "./dat.gui.min.js";
+import * as dat from "dat.gui";
 import { AgaveClient } from "../src";
 
 //var wsUri = "ws://localhost:1235";
