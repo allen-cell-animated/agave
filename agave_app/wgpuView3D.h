@@ -163,3 +163,15 @@ private:
   WGPURenderPipeline m_pipeline;
   QWidget* m_canvas;
 };
+
+class wgpuCanvas : public QWidget
+{
+  Q_OBJECT;
+
+public:
+  wgpuCanvas(QWidget* parent = nullptr);
+  ~wgpuCanvas();
+
+private:
+  WgpuView3D* m_view;
+};

@@ -189,18 +189,11 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_initialized(false)
   , m_fakeHidden(false)
 {
-  m_canvas = new QWidget(this);
-
-  m_canvas->setAutoFillBackground(false);
-  m_canvas->setAttribute(Qt::WA_PaintOnScreen);
-  m_canvas->setMouseTracking(true);
-  m_canvas->setFocusPolicy(Qt::StrongFocus);
-  m_canvas->winId(); // create window handle
-
-  QHBoxLayout* layout = new QHBoxLayout(this);
-  layout->setContentsMargins(0, 0, 0, 0);
-  setLayout(layout);
-  layout->addWidget(m_canvas);
+  setAutoFillBackground(false);
+  setAttribute(Qt::WA_PaintOnScreen);
+  setMouseTracking(true);
+  setFocusPolicy(Qt::StrongFocus);
+  winId(); // create window handle
 
   // this->setStyleSheet("background:transparent;");
   // this->setWindowFlags(Qt::FramelessWindowHint);
@@ -821,3 +814,14 @@ WgpuView3D::resizeGL(int w, int h)
   QResizeEvent e(QSize(w, h), QSize(w, h));
   resizeEvent(&e);
 }
+
+wgpuCanvas::wgpuCanvas(QWidget* parent = nullptr)
+{
+  m_view = new WgpuView3D(this);
+
+  QHBoxLayout* layout = new QHBoxLayout(this);
+  layout->setContentsMargins(0, 0, 0, 0);
+  setLayout(layout);
+  layout->addWidget(m_view);
+}
+wgpuCanvas::~wgpuCanvas() {}
