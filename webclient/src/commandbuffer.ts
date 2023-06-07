@@ -4,11 +4,11 @@
 //   STRING(s)=int32 and array of bytes
 //   FLOAT32ARRAY=int32 and array of floats
 //   INT32ARRAY=int32 and array of int32s
-var types = { I32: 4, F32: 4, S: -1, F32A: -1, I32A: -1 };
+const types = { I32: 4, F32: 4, S: -1, F32A: -1, I32A: -1 };
 
 // command id will be int32 to future-proof it.
 // note that the server needs to know these signatures too.
-var COMMANDS = {
+export const COMMANDS = {
   // tell server to identify this session?
   SESSION: [0, "S"],
   // tell server where files might be (appends to existing)
@@ -84,14 +84,16 @@ var COMMANDS = {
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
 // to binary before sending?
-function commandBuffer() {
+export class CommandBuffer {
   // [command, args],...
-  this.prebuffer = [];
-  this.buffer = null;
-}
+  private prebuffer: any[];
+  private buffer: ArrayBuffer | null;
+  constructor() {
+    this.prebuffer = [];
+    this.buffer = null;
+  }
 
-commandBuffer.prototype = {
-  prebufferToBuffer: function () {
+  public prebufferToBuffer(): ArrayBuffer {
     // iterate length of prebuffer to compute size.
     var bytesize = 0;
     for (var i = 0; i < this.prebuffer.length; ++i) {
@@ -113,8 +115,7 @@ commandBuffer.prototype = {
           "BAD COMMAND: EXPECTED " +
             nArgsExpected +
             " args and got " +
-            command.length -
-            1
+            (command.length - 1)
         );
       }
 
@@ -199,12 +200,13 @@ commandBuffer.prototype = {
     }
     // result is in this.buffer
     return this.buffer;
-  },
+  }
+
   // commands are added by command code string name followed by appropriate
   // signature args.
-  addCommand: function () {
-    var args = [].slice.call(arguments);
+  addCommand(...args: unknown[]) {
+    //const args = [].slice.call(arguments);
     // TODO: check against signature!!!
-    this.prebuffer.push(args);
-  },
-};
+    this.prebuffer.push(...args);
+  }
+}
