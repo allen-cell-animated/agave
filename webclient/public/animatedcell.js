@@ -3,9 +3,7 @@ import { AgaveClient } from "../src";
 //var wsUri = "ws://localhost:1235";
 //var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
 const wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
-let agave;// = new AgaveClient(wsUri);
-
-var dragFlag = 0; //for dragging in the render view
+let agave; // = new AgaveClient(wsUri);
 
 var _stream_mode = false;
 var _stream_mode_suspended = false;
@@ -404,15 +402,13 @@ function setupGui() {
     .min(0.0)
     .step(0.1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "LIGHT_POS",
+      agave.light_pos(
         0,
         value,
         (effectController["lightTheta"] * 180.0) / 3.14159265,
         (effectController["lightPhi"] * 180.0) / 3.14159265
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -424,15 +420,13 @@ function setupGui() {
     .min(-180.0)
     .step(1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "LIGHT_POS",
+      agave.light_pos(
         0,
         effectController["lightDistance"],
         (value * 180.0) / 3.14159265,
         (effectController["lightPhi"] * 180.0) / 3.14159265
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -444,15 +438,13 @@ function setupGui() {
     .min(0.0)
     .step(1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "LIGHT_POS",
+      agave.light_pos(
         0,
         effectController["lightDistance"],
         (effectController["lightTheta"] * 180.0) / 3.14159265,
         (value * 180.0) / 3.14159265
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -464,9 +456,8 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand("LIGHT_SIZE", 0, value, value);
-      flushCommandBuffer(cb);
+      agave.light_size(0, value, value);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -478,15 +469,13 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "LIGHT_COLOR",
+      agave.light_color(
         0,
         (effectController["lightColor"][0] / 255.0) * value,
         (effectController["lightColor"][1] / 255.0) * value,
         (effectController["lightColor"][2] / 255.0) * value
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -496,15 +485,13 @@ function setupGui() {
     .addColor(effectController, "lightColor")
     .name("lightcolor")
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "LIGHT_COLOR",
+      agave.light_color(
         0,
         (value[0] / 255.0) * effectController["lightIntensity"],
         (value[1] / 255.0) * effectController["lightIntensity"],
         (value[2] / 255.0) * effectController["lightIntensity"]
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -547,6 +534,33 @@ function resetCamera() {
   sendCameraUpdate();
 }
 
+/**
+ * this object holds the image that is received from the server
+ * @type {{set: screenImage.set}}
+ */
+const screenImage = {
+  /**
+   * sets the image and the events. called from the websocket "message" signal
+   * @param binary
+   */
+  set: function (binary) {
+    //get all the divs with the streamed_img tag and set the received binary data to the image's source
+    var tabs;
+    tabs = document.getElementsByClassName("streamed_img img0");
+
+    if (tabs.length > 0) {
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].src = binary;
+
+        img_width = tabs[i].width;
+        img_height = tabs[i].height;
+      }
+    } else {
+      console.warn("div 'streamed_img' not found :(");
+    }
+  },
+};
+
 function onNewImage(infoObj) {
   effectController.infoObj = infoObj;
   resetCamera();
@@ -588,9 +602,8 @@ function setupChannelsGui() {
     f.add(effectController.infoObj.channelGui[i], "enabled").onChange(
       (function (j) {
         return function (value) {
-          var cb = new commandBuffer();
-          cb.addCommand("ENABLE_CHANNEL", j, value ? 1 : 0);
-          flushCommandBuffer(cb);
+          agave.enable_channel(j, value ? 1 : 0);
+          agave.flushCommandBuffer();
         };
       })(i)
     );
@@ -599,16 +612,14 @@ function setupChannelsGui() {
       .onChange(
         (function (j) {
           return function (value) {
-            var cb = new commandBuffer();
-            cb.addCommand(
-              "MAT_DIFFUSE",
+            agave.mat_diffuse(
               j,
               value[0] / 255.0,
               value[1] / 255.0,
               value[2] / 255.0,
               1.0
             );
-            flushCommandBuffer(cb);
+            agave.flushCommandBuffer();
           };
         })(i)
       );
@@ -617,16 +628,14 @@ function setupChannelsGui() {
       .onChange(
         (function (j) {
           return function (value) {
-            var cb = new commandBuffer();
-            cb.addCommand(
-              "MAT_SPECULAR",
+            agave.mat_specular(
               j,
               value[0] / 255.0,
               value[1] / 255.0,
               value[2] / 255.0,
               1.0
             );
-            flushCommandBuffer(cb);
+            agave.flushCommandBuffer();
           };
         })(i)
       );
@@ -635,16 +644,14 @@ function setupChannelsGui() {
       .onChange(
         (function (j) {
           return function (value) {
-            var cb = new commandBuffer();
-            cb.addCommand(
-              "MAT_EMISSIVE",
+            agave.mat_emissive(
               j,
               value[0] / 255.0,
               value[1] / 255.0,
               value[2] / 255.0,
               1.0
             );
-            flushCommandBuffer(cb);
+            agave.flushCommandBuffer();
           };
         })(i)
       );
@@ -656,15 +663,13 @@ function setupChannelsGui() {
         (function (j) {
           return function (value) {
             if (!waiting_for_image) {
-              var cb = new commandBuffer();
-              cb.addCommand("STREAM_MODE", 0);
-              cb.addCommand(
-                "SET_WINDOW_LEVEL",
+              agave.stream_mode(0);
+              agave.set_window_level(
                 j,
                 value,
                 effectController.infoObj.channelGui[j].level
               );
-              flushCommandBuffer(cb);
+              agave.flushCommandBuffer();
               waiting_for_image = true;
             }
             _stream_mode_suspended = true;
@@ -672,12 +677,10 @@ function setupChannelsGui() {
         })(i)
       )
       .onFinishChange(function (value) {
-        var cb = new commandBuffer();
-        cb.addCommand("STREAM_MODE", 1);
-        flushCommandBuffer(cb);
-        var cb2 = new commandBuffer();
-        cb2.addCommand("REDRAW");
-        flushCommandBuffer(cb2);
+        agave.stream_mode(1);
+        agave.flushCommandBuffer();
+        agave.redraw();
+        agave.flushCommandBuffer();
         _stream_mode_suspended = false;
       });
 
@@ -689,15 +692,13 @@ function setupChannelsGui() {
         (function (j) {
           return function (value) {
             if (!waiting_for_image) {
-              var cb = new commandBuffer();
-              cb.addCommand("STREAM_MODE", 0);
-              cb.addCommand(
-                "SET_WINDOW_LEVEL",
+              agave.stream_mode(0);
+              agave.set_window_level(
                 j,
                 effectController.infoObj.channelGui[j].window,
                 value
               );
-              flushCommandBuffer(cb);
+              agave.flushCommandBuffer();
               waiting_for_image = true;
             }
             _stream_mode_suspended = true;
@@ -705,12 +706,10 @@ function setupChannelsGui() {
         })(i)
       )
       .onFinishChange(function (value) {
-        var cb = new commandBuffer();
-        cb.addCommand("STREAM_MODE", 1);
-        flushCommandBuffer(cb);
-        var cb2 = new commandBuffer();
-        cb2.addCommand("REDRAW");
-        flushCommandBuffer(cb2);
+        agave.stream_mode(1);
+        agave.flushCommandBuffer();
+        agave.redraw();
+        agave.flushCommandBuffer();
         _stream_mode_suspended = false;
       });
     f.add(effectController.infoObj.channelGui[i], "roughness")
@@ -720,9 +719,8 @@ function setupChannelsGui() {
         (function (j) {
           return function (value) {
             if (!waiting_for_image) {
-              var cb = new commandBuffer();
-              cb.addCommand("MAT_GLOSSINESS", j, value);
-              flushCommandBuffer(cb);
+              agave.mat_glossiness(j, value);
+              agave.flushCommandBuffer();
               waiting_for_image = true;
             }
             _stream_mode_suspended = true;
@@ -737,25 +735,22 @@ function setupChannelsGui() {
   var cb = new commandBuffer();
   for (var i = 0; i < effectController.infoObj.c; ++i) {
     var ch = effectController.infoObj.channelGui[i];
-    cb.addCommand("ENABLE_CHANNEL", i, ch.enabled ? 1 : 0);
-    cb.addCommand(
-      "MAT_DIFFUSE",
+    agave.enable_channel(i, ch.enabled ? 1 : 0);
+    agave.mat_diffuse(
       i,
       ch.colorD[0] / 255.0,
       ch.colorD[1] / 255.0,
       ch.colorD[2] / 255.0,
       1.0
     );
-    cb.addCommand(
-      "MAT_SPECULAR",
+    agave.mat_specular(
       i,
       ch.colorS[0] / 255.0,
       ch.colorS[1] / 255.0,
       ch.colorS[2] / 255.0,
       1.0
     );
-    cb.addCommand(
-      "MAT_EMISSIVE",
+    agave.mat_emissive(
       i,
       ch.colorE[0] / 255.0,
       ch.colorE[1] / 255.0,
@@ -764,13 +759,39 @@ function setupChannelsGui() {
     );
     //cb.addCommand("SET_WINDOW_LEVEL", i, ch.window, ch.level);
   }
-  flushCommandBuffer(cb);
+  agave.flushCommandBuffer();
 }
-/**
- *
- */
+
+binarysock = new binarysocket();
+
+// should this be a promise that runs after async init of agave client?
+function onConnectionOpened() {
+  binarysock.open();
+}
+
+function onConnectionClosed() {
+  console.log("connection closed");
+  binarysock.close();
+}
+
+function onImageReceived(imgdata) {
+  // enqueue until redraw loop can pick it up?
+  agave.enqueued_image_data = imgdata;
+  agave.waiting_for_image = false;
+}
+
+function onJsonReceived(obj) {
+  onNewImage(obj);
+}
+
 function init() {
-  agave = new AgaveClient(wsUri);
+  agave = new AgaveClient(
+    wsUri,
+    onConnectionOpened,
+    onImageReceived,
+    onJsonReceived,
+    onConnectionClosed
+  );
 
   //set up first tab
   var streamimg1 = document.getElementById("imageA");
@@ -794,19 +815,14 @@ function animate() {
 }
 /**
  * socket that exclusively receives binary data for streaming jpg images
- * @param channelnumber = 0 or 1 for left or right image => currently message0 or message1 are used since channelnumber cannot always be set via the constructor for some reason
  */
-function binarysocket(channelnumber = 0) {
-  this.channelnum = channelnumber;
+function binarysocket() {
   this.open = function (evt) {
-    var cb = new commandBuffer();
-    //cb.addCommand("LOAD_OME_TIF", effectController.file);
-    cb.addCommand("SET_RESOLUTION", 512, 512);
-    //cb.addCommand("FRAME_SCENE");
-    cb.addCommand("APERTURE", effectController.aperture);
-    cb.addCommand("EXPOSURE", effectController.exposure);
-    cb.addCommand(
-      "SKYLIGHT_TOP_COLOR",
+    agave.stream_mode(1);
+    agave.set_resolution(512, 512);
+    agave.aperture(effectController.aperture);
+    agave.exposure(effectController.exposure);
+    agave.sky_top_color(
       (effectController.skyTopIntensity * effectController.skyTopColor[0]) /
         255.0,
       (effectController.skyTopIntensity * effectController.skyTopColor[1]) /
@@ -814,8 +830,7 @@ function binarysocket(channelnumber = 0) {
       (effectController.skyTopIntensity * effectController.skyTopColor[2]) /
         255.0
     );
-    cb.addCommand(
-      "SKYLIGHT_MIDDLE_COLOR",
+    agave.sky_middle_color(
       (effectController.skyMidIntensity * effectController.skyMidColor[0]) /
         255.0,
       (effectController.skyMidIntensity * effectController.skyMidColor[1]) /
@@ -823,8 +838,7 @@ function binarysocket(channelnumber = 0) {
       (effectController.skyMidIntensity * effectController.skyMidColor[2]) /
         255.0
     );
-    cb.addCommand(
-      "SKYLIGHT_BOTTOM_COLOR",
+    agave.sky_bot_color(
       (effectController.skyBotIntensity * effectController.skyBotColor[0]) /
         255.0,
       (effectController.skyBotIntensity * effectController.skyBotColor[1]) /
@@ -832,15 +846,13 @@ function binarysocket(channelnumber = 0) {
       (effectController.skyBotIntensity * effectController.skyBotColor[2]) /
         255.0
     );
-    cb.addCommand(
-      "LIGHT_POS",
+    agave.light_pos(
       0,
       effectController.lightDistance,
       effectController.lightTheta,
       effectController.lightPhi
     );
-    cb.addCommand(
-      "LIGHT_COLOR",
+    agave.light_color(
       0,
       (effectController.lightColor[0] / 255.0) *
         effectController.lightIntensity,
@@ -848,17 +860,9 @@ function binarysocket(channelnumber = 0) {
         effectController.lightIntensity,
       (effectController.lightColor[2] / 255.0) * effectController.lightIntensity
     );
-    cb.addCommand(
-      "LIGHT_SIZE",
-      0,
-      effectController.lightSize,
-      effectController.lightSize
-    );
-    cb.addCommand("STREAM_MODE", 1);
-    flushCommandBuffer(cb);
-    // var cb2 = new commandBuffer();
-    // cb2.addCommand("REDRAW");
-    // flushCommandBuffer(cb2);
+    agave.light_size(0, effectController.lightSize, effectController.lightSize);
+    agave.stream_mode(1);
+    agave.flushCommandBuffer();
 
     // init camera
     var streamimg1 = document.getElementById("imageA");
@@ -882,17 +886,14 @@ function binarysocket(channelnumber = 0) {
 
     gControls.addEventListener("change", sendCameraUpdate);
     gControls.addEventListener("start", function () {
-      let cb = new commandBuffer();
-      cb.addCommand("STREAM_MODE", 0);
-      flushCommandBuffer(cb);
+      agave.stream_mode(0);
+      agave.flushCommandBuffer();
     });
     gControls.addEventListener("end", function () {
-      let cb = new commandBuffer();
-      cb.addCommand("STREAM_MODE", 1);
-      flushCommandBuffer(cb);
-      let cb1 = new commandBuffer();
-      cb1.addCommand("REDRAW");
-      flushCommandBuffer(cb1);
+      agave.stream_mode(1);
+      agave.flushCommandBuffer();
+      agave.redraw();
+      agave.flushCommandBuffer();
     });
   };
   this.close = function (evt) {
@@ -902,18 +903,6 @@ function binarysocket(channelnumber = 0) {
     }, 3000);
     //document.write('Socket disconnected. Restarting..');
   };
-  this.message = function (evt) {
-    var bytes = new Uint8Array(evt.data),
-      binary = "",
-      len = bytes.byteLength,
-      i;
-
-    for (i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
-
-    //console.log("msg received");
-    screenImage.set(binary, this.channelnum);
-  };
-
   this.message0 = function (evt) {
     if (typeof evt.data === "string") {
       var returnedObj = JSON.parse(evt.data);
@@ -942,10 +931,9 @@ function binarysocket(channelnumber = 0) {
     // the this ptr is not what I want here.
     //binarysock.draw();
 
-    if (!_stream_mode_suspended && _stream_mode && !dragFlag) {
-      // let cb = new commandBuffer();
-      // cb.addCommand("REDRAW");
-      // flushCommandBuffer(cb);
+    if (!_stream_mode_suspended && _stream_mode) {
+      // agave.redraw();
+      // agave.flushCommandBuffer();
     }
 
     // why should this code be slower?
@@ -973,45 +961,6 @@ function binarysocket(channelnumber = 0) {
     console.log("error", evt);
   };
 }
-var lastevent;
-var filestructure = {};
-
-/**
- * socket that receives & handles json messages - used for setting up the client interface
- */
-function jsonsocket() {
-  this.open = function (evt) {
-    //console.log("opening json socket");
-  };
-
-  this.close = function (evt) {
-    //setTimeout(function () { window.location.href = 'index.html'; }, 3000);
-    //document.write('Socket disconnected. Restarting..');
-    console.log("json socket closed", evt);
-  };
-
-  this.message = function (evt) {
-    lastevent = evt;
-
-    //parse incoming json
-    filestructure = JSON.parse(evt.data);
-    jsonfilestruct = filestructure;
-  };
-
-  this.error = function (evt) {
-    console.log("error", evt);
-  };
-}
-//todo: test if function is deprecated
-
-function send(msg) {}
-
-var lastmsg;
-
-function flushCommandBuffer(cmdbuf) {
-  var buf = cmdbuf.prebufferToBuffer();
-  binarysocket0.send(buf);
-}
 
 /**
  * calls the "init" method upon page load
@@ -1020,52 +969,11 @@ window.addEventListener("load", init, false);
 
 function sendCameraUpdate() {
   if (!waiting_for_image) {
-    cb = new commandBuffer();
-    cb.addCommand(
-      "EYE",
-      gCamera.position.x,
-      gCamera.position.y,
-      gCamera.position.z
-    );
-    cb.addCommand(
-      "TARGET",
-      gControls.target.x,
-      gControls.target.y,
-      gControls.target.z
-    );
-    cb.addCommand("UP", gCamera.up.x, gCamera.up.y, gCamera.up.z);
-    cb.addCommand("REDRAW");
-    flushCommandBuffer(cb);
+    agave.eye(gCamera.position.x, gCamera.position.y, gCamera.position.z);
+    agave.target(gControls.target.x, gControls.target.y, gControls.target.z);
+    agave.up(gCamera.up.x, gCamera.up.y, gCamera.up.z);
+    agave.redraw();
+    agave.flushCommandBuffer();
     waiting_for_image = true;
   }
 }
-
-/**
- * this object holds the image that is received from the server
- * @type {{set: screenImage.set}}
- */
-var screenImage = {
-  /**
-   * sets the image and the events. called from the websocket "message" signal
-   * @param binary
-   * @param channelnumber
-   */
-  set: function (binary, channelnumber) {
-    //get all the divs with the streamed_img tag and set the received binary data to the image's source
-    var tabs;
-    tabs = document.getElementsByClassName(
-      "streamed_img" + " img" + channelnumber
-    );
-
-    if (tabs.length > 0) {
-      for (var i = 0; i < tabs.length; i++) {
-        tabs[i].src = binary;
-
-        img_width = tabs[i].width;
-        img_height = tabs[i].height;
-      }
-    } else {
-      console.warn("div 'streamed_img' not found :(");
-    }
-  },
-};

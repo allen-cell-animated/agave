@@ -1,2 +1,2 @@
-import { AgaveClient } from "./animatedcell";
+import { AgaveClient } from "./agave";
 export { AgaveClient };

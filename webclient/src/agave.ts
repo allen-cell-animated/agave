@@ -1,110 +1,78 @@
 import { CommandBuffer, COMMANDS } from "./commandbuffer";
 
-//var wsUri = "ws://localhost:1235";
-//var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
-var wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
-
-/**
- * socket that exclusively receives binary data for streaming jpg images
- * @param channelnumber = 0 or 1 for left or right image => currently message0 or message1 are used since channelnumber cannot always be set via the constructor for some reason
- */
-class binarysocket {
-  private enqueued_image_data: string = "";
-  private waiting_for_image: boolean = false;
-  open(evt: Event) {
-    const cb = new CommandBuffer();
-    //cb.addCommand("LOAD_OME_TIF", effectController.file);
-    cb.addCommand("SET_RESOLUTION", 512, 512);
-    cb.addCommand("STREAM_MODE", 1);
-    flushCommandBuffer(cb);
-    // var cb2 = new commandBuffer();
-    // cb2.addCommand("REDRAW");
-    // flushCommandBuffer(cb2);
-  }
-  close(evt: CloseEvent) {
-    setTimeout(function () {
-      //window.location.href = 'index.html';
-      console.warn("connection failed. refresh to retry.");
-    }, 3000);
-    //document.write('Socket disconnected. Restarting..');
-  }
-  message0(evt: MessageEvent<any>) {
-    if (typeof evt.data === "string") {
-      var returnedObj = JSON.parse(evt.data);
-      if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
-        console.log(returnedObj);
-        // set up gui!
-        onNewImage(returnedObj);
-      }
-      return;
-    }
-
-    // new data will be used to obliterate the previous data if it exists.
-    // in this way, two consecutive images between redraws, will not both be drawn.
-    // TODO:enqueue this...?
-    const arraybuf = evt.data;
-
-    var bytes = new Uint8Array(arraybuf),
-      binary = "",
-      len = bytes.byteLength,
-      i;
-    for (i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    this.enqueued_image_data = window.btoa(binary);
-
-    // the this ptr is not what I want here.
-    //binarysock.draw();
-
-    if (!_stream_mode_suspended && _stream_mode) {
-      // let cb = new commandBuffer();
-      // cb.addCommand("REDRAW");
-      // flushCommandBuffer(cb);
-    }
-
-    // why should this code be slower?
-    // var reader = new FileReader();
-    // reader.onload = function(e) {
-    //   screenImage.set(e.target.result, 0);
-    //   console.timeEnd('recv');
-    // };
-    // reader.readAsDataURL(new Blob([new Uint8Array(evt.data)]));
-  }
-
-  public draw() {
-    //console.time('decode_img');
-    //console.timeEnd('decode_img');
-
-    //console.time('set_img');
-    screenImage.set("data:image/png;base64," + this.enqueued_image_data, 0);
-    //console.timeEnd('set_img');
-
-    // nothing else to draw for now.
-    this.enqueued_image_data = "";
-    this.waiting_for_image = false;
-  }
-  public error(evt) {
-    console.log("error", evt);
-  }
-}
-
 export class AgaveClient {
   private binarysocket0: WebSocket;
-  private binarysock: binarysocket;
   private cb: CommandBuffer;
   private session_name: string;
-  constructor(url = "ws://localhost:1235/", rendermode = "pathtrace") {
+  private onOpen: () => void;
+  private onJson: (json: any) => void;
+  private enqueued_image_data: string = "";
+  private onImage: (data: string) => void;
+
+  constructor(
+    url = "ws://localhost:1235/",
+    rendermode = "pathtrace",
+    onOpen = () => {},
+    onJson = (json: any) => {},
+    onImage = (data: string) => {}
+  ) {
     if (rendermode !== "pathtrace" && rendermode !== "raymarch") {
       rendermode = "pathtrace";
     }
+    this.onOpen = onOpen;
+    this.onJson = onJson;
+    this.onImage = onImage;
     this.binarysocket0 = new WebSocket(url + "?mode=" + rendermode);
-    this.binarysock = new binarysocket();
     this.binarysocket0.binaryType = "arraybuffer";
-    //socket connection for image stream #1
-    this.binarysocket0.onopen = this.binarysock.open;
-    this.binarysocket0.onclose = this.binarysock.close;
-    this.binarysocket0.onmessage = this.binarysock.message0; //linked to message0
-    this.binarysocket0.onerror = this.binarysock.error;
+    this.binarysocket0.onopen = (_ev: Event) => {
+      this.set_resolution(256, 256);
+      // put agave in streaming mode from the get-go
+      this.stream_mode(1);
+      this.flushCommandBuffer();
+
+      // user provided callback
+      if (this.onOpen) {
+        this.onOpen();
+      }
+    };
+    this.binarysocket0.onclose = (_ev: CloseEvent) => {
+      setTimeout(function () {
+        console.warn("connection failed. refresh to retry.");
+      }, 3000);
+    };
+    this.binarysocket0.onmessage = (evt: MessageEvent<any>) => {
+      if (typeof evt.data === "string") {
+        var returnedObj = JSON.parse(evt.data);
+        if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
+          console.log(returnedObj);
+          // set up gui!
+          if (this.onJson) {
+            this.onJson(returnedObj);
+          }
+        }
+        return;
+      }
+
+      // new data will be used to obliterate the previous data if it exists.
+      // in this way, two consecutive images between redraws, will not both be drawn.
+      // TODO:enqueue this...?
+      const arraybuf = evt.data;
+      var bytes = new Uint8Array(arraybuf),
+        binary = "",
+        len = bytes.byteLength,
+        i;
+      for (i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      // call btoa here or on the other side of this interface????
+      this.enqueued_image_data = window.btoa(binary);
+      if (this.onImage) {
+        this.onImage(this.enqueued_image_data);
+      }
+    };
+    this.binarysocket0.onerror = (evt: Event) => {
+      console.log("error", evt);
+    };
 
     this.cb = new CommandBuffer();
     this.session_name = "";
@@ -344,24 +312,24 @@ export class AgaveClient {
   }
   redraw() {
     /*
-  Tell the server to process all commands and return an image, and then save the
-  image.  This function will block and wait for the image to be returned.
-  The image returned will be saved automatically using the session_name.
+  Tell the server to process all commands and return an image
+  TODO , and then save the image.
+  TODO This function will block and wait for the image to be returned.
+  TODO The image returned will be saved automatically using the session_name.
   TODO: a timeout is not yet implemented.
   */
     // 15
     // issue command buffer
     this.cb.addCommand("REDRAW");
-    this.flushCommandBuffer(this.cb);
-    //  and then WAIT for render to be completed
-    binarydata = this.ws.wait_for_image();
-    // and save image
-    im = Image.open(binarydata);
-    print(this.session_name);
-    im.save(this.session_name);
-    // ready for next frame
-    this.session_name = "";
-    this.cb = new CommandBuffer();
+    this.flushCommandBuffer();
+    // //  and then WAIT for render to be completed
+    // binarydata = this.ws.wait_for_image();
+    // // and save image
+    // im = Image.open(binarydata);
+    // print(this.session_name);
+    // im.save(this.session_name);
+    // // ready for next frame
+    // this.session_name = "";
   }
   set_resolution(x: number, y: number) {
     /*
@@ -841,15 +809,10 @@ export class AgaveClient {
       region
     );
   }
-  private flushCommandBuffer(cmdbuf) {
-    const buf = cmdbuf.prebufferToBuffer();
-    binarysocket0.send(buf);
+  flushCommandBuffer() {
+    const buf = this.cb.prebufferToBuffer();
+    this.binarysocket0.send(buf);
+    // assuming the buffer is sent, prepare a new one
+    this.cb = new CommandBuffer();
   }
 }
-
-//quaternions
-
-var _stream_mode = false;
-var _stream_mode_suspended = false;
-var enqueued_image_data = null;
-var waiting_for_image = false;
