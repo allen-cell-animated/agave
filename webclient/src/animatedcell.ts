@@ -9,7 +9,7 @@ var wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
  * @param channelnumber = 0 or 1 for left or right image => currently message0 or message1 are used since channelnumber cannot always be set via the constructor for some reason
  */
 class binarysocket {
-  public open(evt) {
+  open(evt: Event) {
     const cb = new CommandBuffer();
     //cb.addCommand("LOAD_OME_TIF", effectController.file);
     cb.addCommand("SET_RESOLUTION", 512, 512);
@@ -19,14 +19,14 @@ class binarysocket {
     // cb2.addCommand("REDRAW");
     // flushCommandBuffer(cb2);
   }
-  public close(evt) {
+  close(evt: CloseEvent) {
     setTimeout(function () {
       //window.location.href = 'index.html';
       console.warn("connection failed. refresh to retry.");
     }, 3000);
     //document.write('Socket disconnected. Restarting..');
   }
-  public message(evt) {
+  message(evt: MessageEvent<any>) {
     var bytes = new Uint8Array(evt.data),
       binary = "",
       len = bytes.byteLength,
@@ -38,7 +38,7 @@ class binarysocket {
     screenImage.set(binary, 0);
   }
 
-  public message0(evt) {
+  message0(evt: MessageEvent<any>) {
     if (typeof evt.data === "string") {
       var returnedObj = JSON.parse(evt.data);
       if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
@@ -363,9 +363,7 @@ export class AgaveClient {
     // 15
     // issue command buffer
     this.cb.addCommand("REDRAW");
-    const buf = this.cb.make_buffer();
-    // TODO ENSURE CONNECTED
-    this.ws.send(buf, True);
+    this.flushCommandBuffer(this.cb);
     //  and then WAIT for render to be completed
     binarydata = this.ws.wait_for_image();
     // and save image
