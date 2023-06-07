@@ -92,7 +92,8 @@ renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
   return 1;
 }
 
-WGPUInstance renderlib_wgpu::getInstance()
+WGPUInstance
+renderlib_wgpu::getInstance()
 {
   return sInstance;
 }
@@ -144,8 +145,23 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
   Display* display_id = XOpenDisplay(nullptr);
   const char* xdgsessiontype = getenv("XDG_SESSION_TYPE");
   std::string xdgsessiontype_str = xdgsessiontype ? xdgsessiontype : "";
-  bool is_wayland = (xdgsessiontype_str.find("wayland") != std::string::npos);
+  bool is_wayland = false;
+  bool is_x11 = false;
   bool is_xcb = false;
+  if (xdgsessiontype_str.empty()) {
+    const char* waylanddisplayenv = getenv("WAYLAND_DISPLAY");
+    std::string waylanddisplay_str = waylanddisplayenv ? waylanddisplayenv : "";
+    if (waylanddisplay_str.empty()) {
+      // check DISPLAY ?
+      // const char* displayenv = getenv("DISPLAY");
+      is_x11 = true;
+    } else {
+      is_wayland = true;
+    }
+  } else {
+    is_wayland = (xdgsessiontype_str.find("wayland") != std::string::npos);
+    is_x11 = (xdgsessiontype_str.find("x11") != std::string::npos);
+  }
   WGPUSurfaceDescriptorFromWaylandSurface wgpustruct1;
   WGPUSurfaceDescriptorFromXcbWindow wgpustruct2;
   WGPUSurfaceDescriptorFromXlibWindow wgpustruct3;
@@ -156,19 +172,23 @@ renderlib_wgpu::get_surface_id_from_canvas(void* win_id)
     wgpustruct1.chain.next = nullptr;
     wgpustruct1.chain.sType = WGPUSType_SurfaceDescriptorFromWaylandSurface;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct1);
+    LOG_INFO << "Wayland surface descriptor";
   } else if (is_xcb) {
-    // # todo: xcb untested
-    wgpustruct2.connection = nullptr; // ?? ffi.cast("void *", display_id);
+    //# todo: xcb untested
+    wgpustruct2.connection = display_id;
     wgpustruct2.window = *((uint32_t*)(&win_id));
     wgpustruct2.chain.next = nullptr;
-    wgpustruct2.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
+    wgpustruct2.chain.sType = WGPUSType_SurfaceDescriptorFromXcbWindow;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct2);
+    LOG_INFO << "XCB surface descriptor";
   } else {
     wgpustruct3.display = display_id;
     wgpustruct3.window = *((uint32_t*)(&win_id));
+    //    wgpustruct3.window = static_cast<uint32_t>(win_id); //*((uint32_t*)(&win_id));
     wgpustruct3.chain.next = nullptr;
     wgpustruct3.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
     surface_descriptor.nextInChain = (const WGPUChainedStruct*)(&wgpustruct3);
+    LOG_INFO << "Xlib surface descriptor";
   }
 
 #else
