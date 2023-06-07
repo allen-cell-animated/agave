@@ -9,6 +9,8 @@ var wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
  * @param channelnumber = 0 or 1 for left or right image => currently message0 or message1 are used since channelnumber cannot always be set via the constructor for some reason
  */
 class binarysocket {
+  private enqueued_image_data: string = "";
+  private waiting_for_image: boolean = false;
   open(evt: Event) {
     const cb = new CommandBuffer();
     //cb.addCommand("LOAD_OME_TIF", effectController.file);
@@ -26,18 +28,6 @@ class binarysocket {
     }, 3000);
     //document.write('Socket disconnected. Restarting..');
   }
-  message(evt: MessageEvent<any>) {
-    var bytes = new Uint8Array(evt.data),
-      binary = "",
-      len = bytes.byteLength,
-      i;
-
-    for (i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
-
-    //console.log("msg received");
-    screenImage.set(binary, 0);
-  }
-
   message0(evt: MessageEvent<any>) {
     if (typeof evt.data === "string") {
       var returnedObj = JSON.parse(evt.data);
@@ -52,16 +42,16 @@ class binarysocket {
     // new data will be used to obliterate the previous data if it exists.
     // in this way, two consecutive images between redraws, will not both be drawn.
     // TODO:enqueue this...?
-    enqueued_image_data = evt.data;
+    const arraybuf = evt.data;
 
-    var bytes = new Uint8Array(enqueued_image_data),
+    var bytes = new Uint8Array(arraybuf),
       binary = "",
       len = bytes.byteLength,
       i;
     for (i = 0; i < len; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
-    enqueued_image_data = window.btoa(binary);
+    this.enqueued_image_data = window.btoa(binary);
 
     // the this ptr is not what I want here.
     //binarysock.draw();
@@ -86,12 +76,12 @@ class binarysocket {
     //console.timeEnd('decode_img');
 
     //console.time('set_img');
-    screenImage.set("data:image/png;base64," + enqueued_image_data, 0);
+    screenImage.set("data:image/png;base64," + this.enqueued_image_data, 0);
     //console.timeEnd('set_img');
 
     // nothing else to draw for now.
-    enqueued_image_data = null;
-    waiting_for_image = false;
+    this.enqueued_image_data = "";
+    this.waiting_for_image = false;
   }
   public error(evt) {
     console.log("error", evt);
@@ -108,7 +98,6 @@ export class AgaveClient {
       rendermode = "pathtrace";
     }
     this.binarysocket0 = new WebSocket(url + "?mode=" + rendermode);
-    this.binarysocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
     this.binarysock = new binarysocket();
     this.binarysocket0.binaryType = "arraybuffer";
     //socket connection for image stream #1

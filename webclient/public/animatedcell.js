@@ -1,24 +1,11 @@
+import { AgaveClient } from "../src";
+
 //var wsUri = "ws://localhost:1235";
 //var wsUri = "ws://dev-aics-dtp-001.corp.alleninstitute.org:1235";
-var wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
-var binarysocket0 = null; //handles requests for image streaming target #1
-//var binarysocket1 = null; //handles requests for image streaming target #2
-var jsonsocket0 = null; //handles requests for dynamically populating the menu entries based on server feedback
+const wsUri = "ws://ec2-54-245-184-76.us-west-2.compute.amazonaws.com:1235";
+let agave;// = new AgaveClient(wsUri);
 
 var dragFlag = 0; //for dragging in the render view
-var selectDragFlag = 0; //for dragging in the cell structure visibility widget
-var initialMouseX = 0;
-var initialMouseY = 0;
-var mouseSensi = 0.2;
-var img_width = 0;
-var img_height = 0;
-
-//quaternions
-var rotation;
-var oldRotation;
-var rotationDelta;
-var tempold;
-var slider_drag = false;
 
 var _stream_mode = false;
 var _stream_mode_suspended = false;
@@ -34,7 +21,6 @@ function toggleDivVisibility(element, visible) {
   element.style.visibility = visible ? "visible" : "hidden";
 }
 
-var binarysock, jsonsock;
 var gui;
 
 function setupGui() {
@@ -109,22 +95,19 @@ function setupGui() {
         imgholder.style.width = res[0];
         imgholder.style.height = res[1];
 
-        var cb = new commandBuffer();
-        cb.addCommand("SET_RESOLUTION", res[0], res[1]);
-        flushCommandBuffer(cb);
+        agave.setResolution(res[0], res[1]);
+        agave.flushCommandBuffer();
       }
     });
 
   gui.add(effectController, "resetCamera");
   //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
   gui.add(effectController, "stream").onChange(function (value) {
-    var cb = new commandBuffer();
-    cb.addCommand("STREAM_MODE", value ? 1 : 0);
-    flushCommandBuffer(cb);
+    agave.streamMode(value);
+    agave.flushCommandBuffer();
     // BUG THIS SHOULD NOT BE NEEDED.
-    var cb2 = new commandBuffer();
-    cb2.addCommand("REDRAW");
-    flushCommandBuffer(cb2);
+    agave.redraw();
+    agave.flushCommandBuffer();
     _stream_mode = value;
   });
   gui
@@ -133,9 +116,8 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand("DENSITY", value);
-      flushCommandBuffer(cb);
+      agave.density(value);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -149,9 +131,8 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand("EXPOSURE", value);
-      flushCommandBuffer(cb);
+      agave.exposure(value);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -163,9 +144,8 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand("APERTURE", value);
-      flushCommandBuffer(cb);
+      agave.aperture(value);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -177,9 +157,8 @@ function setupGui() {
     .min(0.1)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand("FOCALDIST", value);
-      flushCommandBuffer(cb);
+      agave.focal_distance(value);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -191,9 +170,8 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand("CAMERA_PROJECTION", 0, value || 0.01);
-      flushCommandBuffer(cb);
+      agave.camera_projection(0, value || 0.01);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -207,9 +185,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SET_CLIP_REGION",
+      agave.set_axis_clip(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -217,7 +193,7 @@ function setupGui() {
         effectController.zmin,
         effectController.zmax
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -229,9 +205,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SET_CLIP_REGION",
+      agave.set_axis_clip(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -239,7 +213,7 @@ function setupGui() {
         effectController.zmin,
         effectController.zmax
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -251,9 +225,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SET_CLIP_REGION",
+      agave.set_axis_clip(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -261,7 +233,7 @@ function setupGui() {
         effectController.zmin,
         effectController.zmax
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -273,9 +245,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SET_CLIP_REGION",
+      agave.set_axis_clip(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -283,7 +253,7 @@ function setupGui() {
         effectController.zmin,
         effectController.zmax
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -295,9 +265,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SET_CLIP_REGION",
+      agave.set_axis_clip(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -305,7 +273,7 @@ function setupGui() {
         effectController.zmin,
         effectController.zmax
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -317,9 +285,7 @@ function setupGui() {
     .min(0.0)
     .step(0.001)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SET_CLIP_REGION",
+      agave.set_axis_clip(
         effectController.xmin,
         effectController.xmax,
         effectController.ymin,
@@ -327,7 +293,7 @@ function setupGui() {
         effectController.zmin,
         effectController.zmax
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -339,14 +305,12 @@ function setupGui() {
     .addColor(effectController, "skyTopColor")
     .name("Sky Top")
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SKYLIGHT_TOP_COLOR",
+      agave.sky_top_color(
         (effectController["skyTopIntensity"] * value[0]) / 255.0,
         (effectController["skyTopIntensity"] * value[1]) / 255.0,
         (effectController["skyTopIntensity"] * value[2]) / 255.0
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -358,14 +322,12 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SKYLIGHT_TOP_COLOR",
+      agave.sky_top_color(
         (effectController["skyTopColor"][0] / 255.0) * value,
         (effectController["skyTopColor"][1] / 255.0) * value,
         (effectController["skyTopColor"][2] / 255.0) * value
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -376,14 +338,12 @@ function setupGui() {
     .addColor(effectController, "skyMidColor")
     .name("Sky Mid")
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SKYLIGHT_MIDDLE_COLOR",
+      agave.sky_mid_color(
         (effectController["skyMidIntensity"] * value[0]) / 255.0,
         (effectController["skyMidIntensity"] * value[1]) / 255.0,
         (effectController["skyMidIntensity"] * value[2]) / 255.0
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -395,14 +355,12 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SKYLIGHT_MIDDLE_COLOR",
+      agave.sky_mid_color(
         (effectController["skyMidColor"][0] / 255.0) * value,
         (effectController["skyMidColor"][1] / 255.0) * value,
         (effectController["skyMidColor"][2] / 255.0) * value
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -412,14 +370,12 @@ function setupGui() {
     .addColor(effectController, "skyBotColor")
     .name("Sky Bottom")
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SKYLIGHT_BOTTOM_COLOR",
+      agave.sky_bot_color(
         (effectController["skyBotIntensity"] * value[0]) / 255.0,
         (effectController["skyBotIntensity"] * value[1]) / 255.0,
         (effectController["skyBotIntensity"] * value[2]) / 255.0
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -431,14 +387,12 @@ function setupGui() {
     .min(0.01)
     .step(0.1)
     .onChange(function (value) {
-      var cb = new commandBuffer();
-      cb.addCommand(
-        "SKYLIGHT_BOTTOM_COLOR",
+      agave.sky_bot_color(
         (effectController["skyBotColor"][0] / 255.0) * value,
         (effectController["skyBotColor"][1] / 255.0) * value,
         (effectController["skyBotColor"][2] / 255.0) * value
       );
-      flushCommandBuffer(cb);
+      agave.flushCommandBuffer();
       _stream_mode_suspended = true;
     })
     .onFinishChange(function (value) {
@@ -816,28 +770,7 @@ function setupChannelsGui() {
  *
  */
 function init() {
-  binarysocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
-  binarysock = new binarysocket(0);
-  binarysocket0.binaryType = "arraybuffer";
-  //socket connection for image stream #1
-  binarysocket0.onopen = binarysock.open;
-  binarysocket0.onclose = binarysock.close;
-  binarysocket0.onmessage = binarysock.message0; //linked to message0
-  binarysocket0.onerror = binarysock.error;
-
-  //    jsonsocket0 = new WebSocket(wsUri); //handles requests for image streaming target #1
-  //    jsonsock = new jsonsocket();
-  //    jsonsocket0.binaryType = "arraybuffer";
-  //socket connection for json message requests
-  //    jsonsocket0.onopen = jsonsock.open;
-  //    jsonsocket0.onclose = jsonsock.close;
-  //    jsonsocket0.onmessage = jsonsock.message;
-  //    jsonsocket0.onerror = jsonsock.error;
-
-  //setup tooltips
-  //readTextFile("data/tooltip.csv");
-
-  var streamedImg = document.getElementsByClassName("streamed_img");
+  agave = new AgaveClient(wsUri);
 
   //set up first tab
   var streamimg1 = document.getElementById("imageA");
@@ -852,8 +785,11 @@ function init() {
 function animate() {
   requestAnimationFrame(animate);
   // look for new image to show
-  if (enqueued_image_data) {
-    binarysock.draw();
+  if (agave.enqueued_image_data) {
+    screenImage.set("data:image/png;base64," + agave.enqueued_image_data, 0);
+    // nothing else to draw for now.
+    agave.enqueued_image_data = "";
+    agave.waiting_for_image = false;
   }
 }
 /**
