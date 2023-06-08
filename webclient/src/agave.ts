@@ -6,7 +6,6 @@ export class AgaveClient {
   private session_name: string;
   private onOpen: () => void;
   private onJson: (json: any) => void;
-  private enqueued_image_data: string = "";
   private onImage: (data: string) => void;
 
   constructor(
@@ -23,7 +22,7 @@ export class AgaveClient {
     this.onJson = onJson;
     this.onImage = onImage;
     this.binarysocket0 = new WebSocket(url + "?mode=" + rendermode);
-    this.binarysocket0.binaryType = "arraybuffer";
+    this.binarysocket0.binaryType = "blob"; //"arraybuffer";
     this.binarysocket0.onopen = (_ev: Event) => {
       this.set_resolution(256, 256);
       // put agave in streaming mode from the get-go
@@ -53,21 +52,9 @@ export class AgaveClient {
         return;
       }
 
-      // new data will be used to obliterate the previous data if it exists.
-      // in this way, two consecutive images between redraws, will not both be drawn.
-      // TODO:enqueue this...?
       const arraybuf = evt.data;
-      var bytes = new Uint8Array(arraybuf),
-        binary = "",
-        len = bytes.byteLength,
-        i;
-      for (i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      // call btoa here or on the other side of this interface????
-      this.enqueued_image_data = window.btoa(binary);
       if (this.onImage) {
-        this.onImage(this.enqueued_image_data);
+        this.onImage(arraybuf);
       }
     };
     this.binarysocket0.onerror = (evt: Event) => {

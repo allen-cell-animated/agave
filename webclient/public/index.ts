@@ -4,6 +4,16 @@ import { TrackballControls } from "three/examples/jsm/controls/TrackballControls
 import * as dat from "dat.gui";
 import { AgaveClient } from "../src";
 
+function arrayBufferToImage(arraybuf) {
+  const bytes = new Uint8Array(arraybuf);
+  let binary = "";
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
 interface ChannelGui {
   colorD: [number, number, number];
   colorS: [number, number, number];
@@ -60,12 +70,16 @@ class AgaveApp {
   private camera: PerspectiveCamera;
   private controls: TrackballControls;
   private streamimg1: HTMLImageElement;
-  public enqueued_image_data: string | null;
+  public enqueued_image_data: Blob | string | null;
   public waiting_for_image: boolean;
   private effectController: typeof effectController;
   private _stream_mode: boolean;
   private _stream_mode_suspended: boolean;
   private gui: dat.GUI;
+  private nredraws: number = 0;
+  private nwsmsgs: number = 0;
+  private lastRedrawTime: number = 0;
+  private lastWsMsgTime: number = 0;
 
   constructor() {
     this.gui = new dat.GUI();
@@ -93,9 +107,18 @@ class AgaveApp {
   }
 
   private _onImageReceived(imgdata) {
+    // new data will be used to obliterate the previous data if it exists.
+    // in this way, two consecutive images between redraws, will not both be drawn.
     // enqueue until redraw loop can pick it up?
+
     this.enqueued_image_data = imgdata;
     this.waiting_for_image = false;
+    this.nwsmsgs++;
+
+    const t = performance.now();
+    const dt = t - this.lastWsMsgTime;
+    this.lastWsMsgTime = t;
+    console.log("MESSAGE TIME " + dt.toFixed(2) + " ms");
   }
 
   private _onJsonReceived(jsondata) {
@@ -197,10 +220,24 @@ class AgaveApp {
     this.controls.update();
     // look for new image to show
     if (this.enqueued_image_data) {
-      this.streamimg1.src = "data:image/png;base64," + this.enqueued_image_data;
+      // blob mode
+      const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
+      // arraybuffer mode
+      //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
+      this.streamimg1.src = dataurl;
       // nothing else to draw for now.
-      this.enqueued_image_data = "";
+      this.enqueued_image_data = null;
       this.waiting_for_image = false;
+
+      const t = performance.now();
+      const dt = t - this.lastRedrawTime;
+      this.lastRedrawTime = t;
+      console.log("REDRAW TIME " + dt.toFixed(2) + " ms");
+      this.nredraws++;
+      // console.log("REDRAWS " + this.nredraws);
+      // console.log("WS MESSAGES " + this.nwsmsgs);
+      // this.nredraws = 0;
+      // this.nwsmsgs = 0;
     }
   }
 
