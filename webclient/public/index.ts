@@ -119,6 +119,11 @@ class AgaveApp {
     const dt = t - this.lastWsMsgTime;
     this.lastWsMsgTime = t;
     console.log("MESSAGE TIME " + dt.toFixed(2) + " ms");
+
+    const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
+    // arraybuffer mode
+    //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
+    this.streamimg1.src = dataurl;
   }
 
   private _onJsonReceived(jsondata) {
@@ -220,24 +225,23 @@ class AgaveApp {
     this.controls.update();
     // look for new image to show
     if (this.enqueued_image_data) {
-      // blob mode
-      const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
-      // arraybuffer mode
-      //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
-      this.streamimg1.src = dataurl;
-      // nothing else to draw for now.
-      this.enqueued_image_data = null;
-      this.waiting_for_image = false;
-
-      const t = performance.now();
-      const dt = t - this.lastRedrawTime;
-      this.lastRedrawTime = t;
-      console.log("REDRAW TIME " + dt.toFixed(2) + " ms");
-      this.nredraws++;
-      // console.log("REDRAWS " + this.nredraws);
-      // console.log("WS MESSAGES " + this.nwsmsgs);
-      // this.nredraws = 0;
-      // this.nwsmsgs = 0;
+      // // blob mode
+      // const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
+      // // arraybuffer mode
+      // //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
+      // this.streamimg1.src = dataurl;
+      // // nothing else to draw for now.
+      // this.enqueued_image_data = null;
+      // this.waiting_for_image = false;
+      // const t = performance.now();
+      // const dt = t - this.lastRedrawTime;
+      // this.lastRedrawTime = t;
+      // console.log("REDRAW TIME " + dt.toFixed(2) + " ms");
+      // this.nredraws++;
+      // // console.log("REDRAWS " + this.nredraws);
+      // // console.log("WS MESSAGES " + this.nwsmsgs);
+      // // this.nredraws = 0;
+      // // this.nwsmsgs = 0;
     }
   }
 
