@@ -123,7 +123,7 @@ class AgaveApp {
     const t = performance.now();
     const dt = t - this.lastWsMsgTime;
     this.lastWsMsgTime = t;
-    console.log("MESSAGE TIME " + dt.toFixed(2) + " ms");
+    //console.log("MESSAGE TIME " + dt.toFixed(2) + " ms");
 
     const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
     // arraybuffer mode
