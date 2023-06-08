@@ -107,6 +107,10 @@ class AgaveApp {
   }
 
   private _onImageReceived(imgdata) {
+    // TODO figure out queuing:
+    // the websocket message receiver is fighting with the requestAnimationFrame loop
+    // and it's easy for lag to occur, meaning we are not truly dropping enough data?
+
     // new data will be used to obliterate the previous data if it exists.
     // in this way, two consecutive images between redraws, will not both be drawn.
     // enqueue until redraw loop can pick it up?
@@ -123,6 +127,9 @@ class AgaveApp {
     const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
     // arraybuffer mode
     //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
+
+    // this is directly rendering the image; see redraw()
+    // ideally we render to canvas, combine with other elements or threejs etc
     this.streamimg1.src = dataurl;
   }
 
@@ -225,6 +232,7 @@ class AgaveApp {
     this.controls.update();
     // look for new image to show
     if (this.enqueued_image_data) {
+      // see _onImageReceived() for mdetails
       // // blob mode
       // const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
       // // arraybuffer mode
