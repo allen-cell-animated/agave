@@ -4,7 +4,7 @@ import { TrackballControls } from "three/examples/jsm/controls/TrackballControls
 import * as dat from "dat.gui";
 import { AgaveClient } from "../src";
 
-function arrayBufferToImage(arraybuf) {
+function arrayBufferToBase64String(arraybuf) {
   const bytes = new Uint8Array(arraybuf);
   let binary = "";
   const len = bytes.byteLength;
@@ -23,6 +23,7 @@ interface ChannelGui {
   roughness: number;
   enabled: boolean;
 }
+// basically all of our gui state in here
 const effectController = {
   resolution: "512x512",
   file: "//allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_881.ome.tif",
@@ -126,7 +127,7 @@ class AgaveApp {
 
     const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
     // arraybuffer mode
-    //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
+    //const dataurl = "data:image/png;base64," + arrayBufferToBase64String(this.enqueued_image_data);
 
     // this is directly rendering the image; see redraw()
     // ideally we render to canvas, combine with other elements or threejs etc
@@ -134,6 +135,8 @@ class AgaveApp {
   }
 
   private _onJsonReceived(jsondata) {
+    // this is some image metadata returned from agave
+    // we can use this to initialize some more UI...
     this.effectController.infoObj = jsondata;
     this._resetCamera();
     this._setupChannelsGui();
@@ -236,7 +239,7 @@ class AgaveApp {
       // // blob mode
       // const dataurl = URL.createObjectURL(this.enqueued_image_data as Blob);
       // // arraybuffer mode
-      // //const dataurl = "data:image/png;base64," + arrayBufferToImage(this.enqueued_image_data);
+      // //const dataurl = "data:image/png;base64," + arrayBufferToBase64String(this.enqueued_image_data);
       // this.streamimg1.src = dataurl;
       // // nothing else to draw for now.
       // this.enqueued_image_data = null;
