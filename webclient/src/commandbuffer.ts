@@ -95,20 +95,20 @@ export class CommandBuffer {
 
   public prebufferToBuffer(): ArrayBuffer {
     // iterate length of prebuffer to compute size.
-    var bytesize = 0;
-    for (var i = 0; i < this.prebuffer.length; ++i) {
+    let bytesize = 0;
+    for (let i = 0; i < this.prebuffer.length; ++i) {
       // for each command.
 
       // one i32 for the command id.
       bytesize += types.I32;
 
-      var command = this.prebuffer[i];
-      var commandCode = command[0];
-      var signature = COMMANDS[commandCode];
+      const command = this.prebuffer[i];
+      const commandCode = command[0];
+      const signature = COMMANDS[commandCode];
       if (!signature) {
         console.error("CommandBuffer: Unrecognized command " + commandCode);
       }
-      var nArgsExpected = signature.length - 1;
+      const nArgsExpected = signature.length - 1;
       // for each arg:
       if (command.length - 1 !== nArgsExpected) {
         console.error(
@@ -119,9 +119,9 @@ export class CommandBuffer {
         );
       }
 
-      for (var j = 0; j < nArgsExpected; ++j) {
+      for (let j = 0; j < nArgsExpected; ++j) {
         // get arg type
-        var argtype = signature[j + 1];
+        const argtype = signature[j + 1];
         if (argtype === "S") {
           // one int32 for string length
           bytesize += 4;
@@ -144,27 +144,27 @@ export class CommandBuffer {
     }
     // allocate arraybuffer and then fill it.
     this.buffer = new ArrayBuffer(bytesize);
-    var dataview = new DataView(this.buffer);
-    var offset = 0;
-    var LITTLE_ENDIAN = true;
-    for (var i = 0; i < this.prebuffer.length; ++i) {
-      var cmd = this.prebuffer[i];
-      var commandCode = cmd[0];
-      var signature = COMMANDS[commandCode];
-      var nArgsExpected = signature.length - 1;
+    const dataview = new DataView(this.buffer);
+    let offset = 0;
+    const LITTLE_ENDIAN = true;
+    for (let i = 0; i < this.prebuffer.length; ++i) {
+      const cmd = this.prebuffer[i];
+      const commandCode = cmd[0];
+      const signature = COMMANDS[commandCode];
+      const nArgsExpected = signature.length - 1;
 
       // the numeric code for the command
       dataview.setInt32(offset, signature[0]);
       offset += 4;
-      for (var j = 0; j < nArgsExpected; ++j) {
+      for (let j = 0; j < nArgsExpected; ++j) {
         // get arg type
-        var argtype = signature[j + 1];
+        const argtype = signature[j + 1];
         switch (argtype) {
           case "S":
-            var str = cmd[j + 1];
+            const str = cmd[j + 1];
             dataview.setInt32(offset, str.length);
             offset += 4;
-            for (var k = 0; k < str.length; ++k) {
+            for (let k = 0; k < str.length; ++k) {
               dataview.setUint8(offset, str.charCodeAt(k));
               offset += 1;
             }
@@ -178,19 +178,19 @@ export class CommandBuffer {
             offset += 4;
             break;
           case "F32A":
-            var flist = cmd[j + 1];
+            const flist = cmd[j + 1];
             dataview.setInt32(offset, flist.length);
             offset += 4;
-            for (var k = 0; k < flist.length; ++k) {
+            for (let k = 0; k < flist.length; ++k) {
               dataview.setFloat32(offset, flist[k], LITTLE_ENDIAN);
               offset += 4;
             }
             break;
           case "I32A":
-            var ilist = cmd[j + 1];
+            const ilist = cmd[j + 1];
             dataview.setInt32(offset, ilist.length);
             offset += 4;
-            for (var k = 0; k < ilist.length; ++k) {
+            for (let k = 0; k < ilist.length; ++k) {
               dataview.setInt32(offset, ilist[k], LITTLE_ENDIAN);
               offset += 4;
             }
