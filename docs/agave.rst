@@ -130,7 +130,7 @@ A typical usage might be to first load a very low resolution level and then sele
 Adjusting the camera view
 -------------------------
 
-The 3D viewport in Agave supports direct manipulation by *zoom*, *pan*,
+The 3D viewport in AGAVE supports direct manipulation by *zoom*, *pan*,
 and *rotate*.
 
 Rotate

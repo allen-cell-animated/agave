@@ -321,7 +321,7 @@ FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
     bool hasS = statistics.dimBounds.TryGetInterval(libCZI::DimensionIndex::S, &startS, &sizeS);
 
     if (!hasZ) {
-      LOG_ERROR << "Agave can only read zstack volume data";
+      LOG_ERROR << "AGAVE can only read zstack volume data";
       return emptyimage;
     }
     if (dims.sizeC != sizeC || !hasC) {
