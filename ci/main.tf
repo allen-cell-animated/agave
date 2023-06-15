@@ -112,16 +112,31 @@ resource "aws_iam_instance_profile" "agave_instance_profile" {
 
 # (2) this is the AMI that has gpu+ECS compatibility:
 
-# aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended
+# aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended --region us-west-2
 # https://us-west-2.console.aws.amazon.com/systems-manager/parameters/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id/description?region=us-west-2#
 # Name
 # /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id
 # Value
-# ami-0a8c654409fed3d9a
+# ami-01b66d92709ccc106
+
+# {
+#     "Parameters": [
+#         {
+#             "Name": "/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended",
+#             "Type": "String",
+#             "Value": "{\"ecs_agent_version\":\"1.72.0\",\"ecs_runtime_version\":\"Docker version 20.10.23\",\"image_id\":\"ami-01b66d92709ccc106\",\"image_name\":\"amzn2-ami-ecs-gpu-hvm-2.0.20230606-x86_64-ebs\",\"image_version\":\"2.0.20230606\",\"os\":\"Amazon Linux 2\",\"schema_version\":1,\"source_image_name\":\"amzn2-ami-minimal-hvm-2.0.20230530.0-x86_64-ebs\"}",
+#             "Version": 111,
+#             "LastModifiedDate": 1686668971.933,
+#             "ARN": "arn:aws:ssm:us-west-2::parameter/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended",
+#             "DataType": "text"
+#         }
+#     ],
+#     "InvalidParameters": []
+# }
 
 # I manually created the Key Pair "agave-ecs"
 resource "aws_launch_configuration" "ecs_launch_config" {
-  image_id             = "ami-0a8c654409fed3d9a"
+  image_id             = "ami-01b66d92709ccc106"
   iam_instance_profile = aws_iam_instance_profile.agave_instance_profile.name
   security_groups      = [aws_security_group.agave_security_group.id]
   user_data            = "#!/bin/bash\necho ECS_CLUSTER=agave-cluster >> /etc/ecs/ecs.config"
