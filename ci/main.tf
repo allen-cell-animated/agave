@@ -6,7 +6,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.42"
+      version = "~> 5.3"
     }
   }
 }
@@ -145,25 +145,22 @@ resource "aws_autoscaling_group" "failure_analysis_ecs_asg" {
   }
   tag {
     key                 = "AmazonECSManaged"
-    value               = ""
+    value               = true
     propagate_at_launch = true
   }
 }
 resource "aws_ecs_capacity_provider" "agave_capacity_provider" {
-  name = "test"
+  name = aws_autoscaling_group.failure_analysis_ecs_asg.name
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.failure_analysis_ecs_asg.arn
   }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 resource "aws_ecs_cluster" "agave_cluster" {
   name               = "agave-cluster" # Naming the cluster
-  capacity_providers = [aws_ecs_capacity_provider.agave_capacity_provider.name]
-  default_capacity_provider_strategy {
-    capacity_provider = aws_ecs_capacity_provider.agave_capacity_provider.name
-    base              = 1
-    weight            = 100
-  }
   setting {
     name  = "containerInsights"
     value = "enabled"
@@ -173,6 +170,15 @@ resource "aws_ecs_cluster" "agave_cluster" {
   }
 }
 
+resource "aws_ecs_cluster_capacity_providers" "agave_capacity_providers" {
+  cluster_name = aws_ecs_cluster.agave_cluster.name
+  capacity_providers = [aws_ecs_capacity_provider.agave_capacity_provider.name]
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.agave_capacity_provider.name
+    base              = 1
+    weight            = 100
+  }
+}
 
 resource "aws_ecr_repository" "agave_ecr_repo" {
   name = "agave-ecr-repo"
@@ -218,7 +224,7 @@ resource "aws_ecs_service" "agave_service" {
 
 # to force an image update:
 
-# aws ecs update-service --cluster agave-cluster --service agave-service --force-new-deployment
+# aws ecs update-service --cluster agave-cluster --service agave-service --force-new-deployment --region us-west-2 --profile animatedcell
 
 # 1. Retrieve an authentication token and authenticate your Docker client to your registry.
 # Use the AWS CLI: (DMT: use --profile animatedcell in the aws command, specific to how my credentials are stored)
