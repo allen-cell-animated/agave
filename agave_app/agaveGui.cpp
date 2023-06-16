@@ -976,6 +976,9 @@ agaveGui::appToViewerState()
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
   // v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
 
+  v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
+                                                         : Serialize::RendererType_PID::PATHTRACE;
+
   v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 

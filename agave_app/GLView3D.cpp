@@ -327,6 +327,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
 void
 GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
+  m_qrendersettings->SetRendererType(s.rendererType == Serialize::RendererType_PID::PATHTRACE ? 1 : 0);
+
   m_CCamera.m_From = glm::make_vec3(s.camera.eye.data());
   m_CCamera.m_Target = glm::make_vec3(s.camera.target.data());
   m_CCamera.m_Up = glm::make_vec3(s.camera.up.data());

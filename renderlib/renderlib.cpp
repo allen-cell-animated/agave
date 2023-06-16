@@ -3,6 +3,8 @@
 #include "ImageXYZC.h"
 #include "ImageXyzcGpu.h"
 #include "Logging.h"
+#include "RenderGL.h"
+#include "RenderGLPT.h"
 
 #include <QGuiApplication>
 
@@ -462,7 +464,8 @@ RendererGLContext::destroy()
   }
 
   // schedule this to be deleted only after we're done cleaning up
-  if (m_surface) m_surface->deleteLater();
+  if (m_surface)
+    m_surface->deleteLater();
 }
 
 // to be run from main thread prior to starting render thread
@@ -528,4 +531,39 @@ RendererGLContext::doneCurrent()
     m_glContext->doneCurrent();
   if (m_eglContext)
     this->m_eglContext->doneCurrent();
+}
+
+IRenderWindow*
+renderlib::createRenderer(renderlib::RendererType rendererType, RenderSettings* rs)
+{
+  switch (rendererType) {
+    case renderlib::RendererType::RendererType_Raymarch:
+      return new RenderGL(rs);
+    case renderlib::RendererType::RendererType_Pathtrace:
+    default:
+      return new RenderGLPT(rs);
+  }
+}
+
+renderlib::RendererType
+renderlib::stringToRendererType(std::string rendererTypeString)
+{
+  if (rendererTypeString == RenderGL::TYPE_NAME) {
+    return RendererType::RendererType_Raymarch;
+  } else if (rendererTypeString == RenderGLPT::TYPE_NAME) {
+    return RendererType::RendererType_Pathtrace;
+  } else {
+    return RendererType::RendererType_Pathtrace;
+  }
+}
+std::string
+renderlib::rendererTypeToString(renderlib::RendererType rendererType)
+{
+  switch (rendererType) {
+    case renderlib::RendererType_Raymarch:
+      return RenderGL::TYPE_NAME;
+    case renderlib::RendererType_Pathtrace:
+    default:
+      return RenderGLPT::TYPE_NAME;
+  }
 }

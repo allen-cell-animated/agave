@@ -4,7 +4,8 @@
 
 class CCamera;
 class CStatus;
-class RenderParams;
+class GLFramebufferObject;
+class RenderSettings;
 class Scene;
 
 #include <memory>
@@ -17,6 +18,7 @@ public:
 
   virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f) = 0;
   virtual void render(const CCamera& camera) = 0;
+  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo) = 0;
   virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f) = 0;
   virtual void cleanUpResources() {}
 
@@ -26,7 +28,7 @@ public:
   virtual std::shared_ptr<CStatus> getStatusInterface() { return nullptr; }
 
   // I own these.
-  virtual RenderParams& renderParams() = 0;
+  virtual RenderSettings& renderSettings() = 0;
 
   virtual Scene* scene() = 0;
   virtual void setScene(Scene* s) = 0;

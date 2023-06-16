@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+const std::string RenderGL::TYPE_NAME = "raymarch";
+
 RenderGL::RenderGL(RenderSettings* rs)
   : m_image3d(nullptr)
   , m_w(0)
@@ -47,28 +49,19 @@ RenderGL::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
   resize(w, h, devicePixelRatio);
 }
 
-void
-RenderGL::render(const CCamera& camera)
+// return true if have something to draw
+bool
+RenderGL::prepareToRender()
 {
   if (!m_scene || !m_scene->m_volume) {
-    return;
+    return false;
   }
   if (!m_image3d) {
     initFromScene();
   }
 
-  if (m_scene) {
-    glClearColor(m_scene->m_material.m_backgroundColor[0],
-                 m_scene->m_material.m_backgroundColor[1],
-                 m_scene->m_material.m_backgroundColor[2],
-                 1.0);
-  } else {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   if (!m_image3d) {
-    return;
+    return false;
   }
 
   if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty)) {
@@ -78,9 +71,51 @@ RenderGL::render(const CCamera& camera)
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now
   // cleared
   m_renderSettings->m_DirtyFlags.ClearAllFlags();
+  return true;
+}
+
+void
+RenderGL::doClear()
+{
+  if (m_scene) {
+    glClearColor(m_scene->m_material.m_backgroundColor[0],
+                 m_scene->m_material.m_backgroundColor[1],
+                 m_scene->m_material.m_backgroundColor[2],
+                 1.0);
+  } else {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+  }
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void
+RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+{
+  bool haveScene = prepareToRender();
+
+  // COPY TO MY FBO
+  fbo->bind();
+  int vw = fbo->width();
+  int vh = fbo->height();
+  glViewport(0, 0, vw, vh);
+
+  doClear();
+  if (haveScene) {
+    m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
+  }
+  fbo->release();
+}
+
+void
+RenderGL::render(const CCamera& camera)
+{
+  if (!prepareToRender()) {
+    return;
+  }
 
   glViewport(0, 0, (GLsizei)(m_w * m_devicePixelRatio), (GLsizei)(m_h * m_devicePixelRatio));
   // Render image
+  doClear();
   m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
 
   auto endTime = std::chrono::high_resolution_clock::now();
@@ -99,10 +134,10 @@ RenderGL::resize(uint32_t w, uint32_t h, float devicePixelRatio)
   glViewport(0, 0, w, h);
 }
 
-RenderParams&
-RenderGL::renderParams()
+RenderSettings&
+RenderGL::renderSettings()
 {
-  return m_renderParams;
+  return *m_renderSettings;
 }
 Scene*
 RenderGL::scene()

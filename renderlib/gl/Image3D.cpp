@@ -21,7 +21,8 @@ Image3D::Image3D(std::shared_ptr<ImageXYZC> img)
   , m_img(img)
   , m_image3d_shader(new GLBasicVolumeShader())
   , m_fusedrgbvolume(nullptr)
-{}
+{
+}
 
 Image3D::~Image3D()
 {

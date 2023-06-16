@@ -25,21 +25,23 @@ class GLToneMapShader;
 class RenderGLPT : public IRenderWindow
 {
 public:
+  static const std::string TYPE_NAME;
+
   RenderGLPT(RenderSettings* rs);
   virtual ~RenderGLPT();
 
   virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void render(const CCamera& camera);
+  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
   virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
   virtual void cleanUpResources();
-  virtual RenderParams& renderParams();
+  virtual RenderSettings& renderSettings();
   virtual Scene* scene();
   virtual void setScene(Scene* s);
 
   virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
 
   Image3D* getImage() const { return nullptr; };
-  RenderSettings& getRenderSettings() { return *m_renderSettings; }
 
   // just draw into my own fbo.
   void doRender(const CCamera& camera);
@@ -50,7 +52,6 @@ public:
 
 private:
   RenderSettings* m_renderSettings;
-  RenderParams m_renderParams;
   Scene* m_scene;
 
   void initFB(uint32_t w, uint32_t h);

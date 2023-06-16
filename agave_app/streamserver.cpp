@@ -1,6 +1,5 @@
 #include "streamserver.h"
-#include "QtWebSockets/qwebsocket.h"
-#include "QtWebSockets/qwebsocketserver.h"
+
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -8,21 +7,37 @@
 #include <QSslCertificate>
 #include <QSslConfiguration>
 #include <QSslKey>
+#include <QUrlQuery>
+#include <QWebSocket>
+#include <QWebSocketServer>
 
 #include "commandBuffer.h"
 #include "renderlib/AppScene.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 
 QT_USE_NAMESPACE
 
+// JPG selected for potentially greater compression
+// (less bytes to push across network) than PNG
 const char* DEFAULT_IMAGE_FORMAT = "JPG";
 
 void
 StreamServer::createNewRenderer(QWebSocket* client)
 {
+  // will default to path tracing
+  std::string mode;
+  QUrl url = client->requestUrl();
+  if (url.hasQuery()) {
+    QUrlQuery query(url);
+    QString modeq = query.queryItemValue("mode");
+    if (!modeq.isEmpty()) {
+      mode = modeq.toStdString();
+    }
+  }
+  renderlib::RendererType renderMode = renderlib::stringToRendererType(mode);
+
   int i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 
@@ -34,7 +49,7 @@ StreamServer::createNewRenderer(QWebSocket* client)
   Scene* scene = new Scene();
   scene->initLights();
 
-  r->configure(nullptr, *rs, *scene, *camera, LoadSpec());
+  r->configure(nullptr, *rs, *scene, *camera, LoadSpec(), renderMode);
 
   this->_renderers << r;
 
@@ -52,7 +67,7 @@ StreamServer::createNewRenderer(QWebSocket* client)
 
 StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
   : QObject(parent)
-  , _webSocketServer(new QWebSocketServer(QStringLiteral("AICS RENDERSERVER"), QWebSocketServer::NonSecureMode, this))
+  , _webSocketServer(new QWebSocketServer(QStringLiteral("AGAVE RENDERSERVER"), QWebSocketServer::NonSecureMode, this))
   , _clients()
   , _renderers()
   , debug(debug)
@@ -131,9 +146,9 @@ StreamServer::onNewConnection()
   createNewRenderer(pSocket);
 
   // if (m_debug)
-  LOG_DEBUG << "new client! " << pSocket->resourceName().toStdString() << "; "
-            << pSocket->peerAddress().toString().toStdString() << ":" << pSocket->peerPort() << "; "
-            << pSocket->peerName().toStdString();
+  LOG_DEBUG << "new client connection: " << pSocket->requestUrl().toString().toStdString() << "; "
+            << pSocket->resourceName().toStdString() << "; " << pSocket->peerAddress().toString().toStdString() << ":"
+            << pSocket->peerPort() << "; " << pSocket->peerName().toStdString();
 }
 
 Renderer*
@@ -240,9 +255,12 @@ StreamServer::sendImage(RenderRequest* request, QImage image)
     QByteArray ba;
     QBuffer buffer(&ba);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
-    LOG_DEBUG << "Send Image " << buffer.size() << " bytes to " << client->peerName().toStdString() << "("
-              << client->peerAddress().toString().toStdString() << ":"
+    bool ok = image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
+    if (!ok) {
+      LOG_ERROR << "Failed to save image to buffer.";
+    }
+    LOG_DEBUG << "Send Image (" << image.width() << "x" << image.height() << ") " << buffer.size() << " bytes to "
+              << client->peerName().toStdString() << "(" << client->peerAddress().toString().toStdString() << ":"
               << QString::number(client->peerPort()).toStdString() << ")";
     client->sendBinaryMessage(ba);
   }

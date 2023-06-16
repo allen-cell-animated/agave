@@ -20,6 +20,8 @@
 
 struct ImageGpu;
 class ImageXYZC;
+class IRenderWindow;
+class RenderSettings;
 
 typedef void* EGLContext; // Forward declaration from EGL.h.
 
@@ -50,6 +52,16 @@ public:
 
   static QSurfaceFormat getQSurfaceFormat(bool enableDebug = false);
   static QOpenGLContext* createOpenGLContext();
+
+  enum RendererType
+  {
+    RendererType_Pathtrace,
+    RendererType_Raymarch
+  };
+  // factory method for creating renderers
+  static IRenderWindow* createRenderer(RendererType rendererType, RenderSettings* rs = nullptr);
+  static RendererType stringToRendererType(std::string rendererTypeString);
+  static std::string rendererTypeToString(RendererType rendererType);
 
 private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpu>> sGpuImageCache;

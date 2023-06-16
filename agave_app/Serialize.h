@@ -9,6 +9,12 @@
 
 namespace Serialize {
 
+enum class RendererType_PID : int
+{
+  PATHTRACE = 0,
+  RAYMARCH = 1
+};
+
 struct LoadSettings
 {
   std::string url;
@@ -69,6 +75,7 @@ struct ViewerState
   // the app version that wrote this data
   std::array<uint32_t, 3> version{ 0, 0, 0 };
 
+  RendererType_PID rendererType = RendererType_PID::PATHTRACE;
   PathTraceSettings_V1 pathTracer; // m_primaryStepSize, m_secondaryStepSize
   TimelineSettings_V1 timeline;    // m_minTime, m_maxTime, m_currentTime
 
@@ -105,6 +112,7 @@ struct ViewerState
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ViewerState,
                                  datasets,
                                  version,
+                                 rendererType,
                                  pathTracer,
                                  timeline,
                                  clipRegion,

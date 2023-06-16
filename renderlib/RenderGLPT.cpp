@@ -16,6 +16,8 @@
 
 #include <array>
 
+const std::string RenderGLPT::TYPE_NAME = "pathtrace";
+
 RenderGLPT::RenderGLPT(RenderSettings* rs)
   : m_fbF32(nullptr)
   , m_fbF32Accum(nullptr)
@@ -36,7 +38,8 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_RandSeed(0)
   , m_devicePixelRatio(1.0f)
   , m_status(new CStatus)
-{}
+{
+}
 
 RenderGLPT::~RenderGLPT() {}
 
@@ -432,6 +435,20 @@ RenderGLPT::render(const CCamera& camera)
 }
 
 void
+RenderGLPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+{
+  doRender(camera);
+
+  // COPY TO MY FBO
+  fbo->bind();
+  int vw = fbo->width();
+  int vh = fbo->height();
+  glViewport(0, 0, vw, vh);
+  drawImage();
+  fbo->release();
+}
+
+void
 RenderGLPT::drawImage()
 {
   if (m_scene) {
@@ -482,10 +499,10 @@ RenderGLPT::cleanUpResources()
   cleanUpFB();
 }
 
-RenderParams&
-RenderGLPT::renderParams()
+RenderSettings&
+RenderGLPT::renderSettings()
 {
-  return m_renderParams;
+  return *m_renderSettings;
 }
 
 Scene*

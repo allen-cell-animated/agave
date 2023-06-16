@@ -5,7 +5,7 @@ if __name__ == "__main__":
     filename = (
         "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/1.zarr"
     )
-    r = AgaveRenderer()
+    r = AgaveRenderer(url="ws://localhost:1235/", mode="raymarch")
     r.load_data(filename, 0, 0, 0)
     r.set_resolution(512, 512)
     r.set_voxel_scale(1.0, -1.0, 2.9)
