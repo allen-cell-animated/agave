@@ -1,16 +1,16 @@
 # agave_pyclient
 
-A Python client for the Agave 3d volume renderer
+A Python client for the AGAVE 3d volume renderer
 
 ---
 
 ## Features
 
-- Connects to Agave server and sends draw commands. Receives and saves rendered images.
+- Connects to AGAVE server and sends draw commands. Receives and saves rendered images.
 
 ## Quick Start
 
-You must have Agave installed. On command line, run:
+You must have AGAVE installed. On command line, run:
 
 ```
 agave --server &
@@ -25,7 +25,7 @@ agave -platform offscreen --server &
 ```python
 from agave_pyclient import AgaveRenderer
 
-# 1. connect to the agave server
+# 1. connect to the AGAVE server
 r = agave_pyclient.AgaveRenderer()
 # 2. tell it what data to load
 r.load_data("my_favorite.ome.tiff")

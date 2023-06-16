@@ -67,9 +67,8 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setMinimumSize(256, 512);
   m_tabs->addTab(m_glView, "None");
 
-  QString windowTitle = QApplication::instance()->organizationName() + " " +
-                        QApplication::instance()->applicationName() + " " +
-                        QApplication::instance()->applicationVersion();
+  QString windowTitle =
+    QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
   setWindowTitle(windowTitle);
 
   m_appScene.initLights();
