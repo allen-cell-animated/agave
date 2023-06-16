@@ -350,6 +350,13 @@ GradientEditor::setControlPoints(const std::vector<LutControlPoint>& points)
   set_shade_points(pts_alpha, m_alpha_shade);
 }
 
+void
+GradientEditor::wheelEvent(QWheelEvent* event)
+{
+  // wheel does nothing here!
+  event->ignore();
+}
+
 GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObject, QWidget* parent)
   : QWidget(parent)
   , m_histogram(histogram)
