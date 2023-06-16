@@ -5,10 +5,10 @@
 
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGL.h"
-#include "renderlib/RenderGLPT.h"
-#include "renderlib/gl/Image3D.h"
-#include "renderlib/gl/Util.h"
+#include "renderlib/graphics/RenderGL.h"
+#include "renderlib/graphics/RenderGLPT.h"
+#include "renderlib/graphics/gl/Image3D.h"
+#include "renderlib/graphics/gl/Util.h"
 
 #include <glm.h>
 

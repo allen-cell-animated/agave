@@ -3,7 +3,7 @@
 #include "Controls.h"
 #include "Section.h"
 
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/VolumeDimensions.h"
 
 #include <QComboBox>

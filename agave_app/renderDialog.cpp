@@ -2,7 +2,7 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/IRenderWindow.h"
+#include "renderlib/graphics/IRenderWindow.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/command.h"

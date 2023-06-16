@@ -1,9 +1,9 @@
 #include "pyrenderer.h"
 
 #include "renderlib/CCamera.h"
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGLPT.h"
+#include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/renderlib.h"
 

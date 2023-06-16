@@ -1,7 +1,7 @@
 #pragma once
 
 #include "renderlib/CCamera.h"
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 
 #include <QDialog>
 #include <QMutex>

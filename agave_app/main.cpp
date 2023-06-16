@@ -1,7 +1,7 @@
 #include "agaveGui.h"
 
 #include "mainwindow.h"
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"

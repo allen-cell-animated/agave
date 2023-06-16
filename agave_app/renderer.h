@@ -3,9 +3,9 @@
 
 #include "glad/glad.h"
 
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/command.h"
-#include "renderlib/gl/Util.h"
+#include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
