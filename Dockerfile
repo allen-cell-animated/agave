@@ -45,7 +45,7 @@ RUN apt-get install -y python3-pip
 RUN pip3 install --upgrade pip
 
 # get Qt installed
-ENV QT_VERSION=6.5.0
+ENV QT_VERSION=6.5.1
 RUN pip3 install aqtinstall
 RUN aqt install-qt --outputdir /qt linux desktop ${QT_VERSION} -m qtwebsockets qtimageformats
 # required for qt offscreen platform plugin
