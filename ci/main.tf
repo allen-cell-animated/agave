@@ -6,7 +6,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.42"
+      version = "~> 5.3"
     }
   }
 }
@@ -112,16 +112,31 @@ resource "aws_iam_instance_profile" "agave_instance_profile" {
 
 # (2) this is the AMI that has gpu+ECS compatibility:
 
-# aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended
+# aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended --region us-west-2
 # https://us-west-2.console.aws.amazon.com/systems-manager/parameters/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id/description?region=us-west-2#
 # Name
 # /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id
 # Value
-# ami-0a8c654409fed3d9a
+# ami-01b66d92709ccc106
+
+# {
+#     "Parameters": [
+#         {
+#             "Name": "/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended",
+#             "Type": "String",
+#             "Value": "{\"ecs_agent_version\":\"1.72.0\",\"ecs_runtime_version\":\"Docker version 20.10.23\",\"image_id\":\"ami-01b66d92709ccc106\",\"image_name\":\"amzn2-ami-ecs-gpu-hvm-2.0.20230606-x86_64-ebs\",\"image_version\":\"2.0.20230606\",\"os\":\"Amazon Linux 2\",\"schema_version\":1,\"source_image_name\":\"amzn2-ami-minimal-hvm-2.0.20230530.0-x86_64-ebs\"}",
+#             "Version": 111,
+#             "LastModifiedDate": 1686668971.933,
+#             "ARN": "arn:aws:ssm:us-west-2::parameter/aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended",
+#             "DataType": "text"
+#         }
+#     ],
+#     "InvalidParameters": []
+# }
 
 # I manually created the Key Pair "agave-ecs"
 resource "aws_launch_configuration" "ecs_launch_config" {
-  image_id             = "ami-0a8c654409fed3d9a"
+  image_id             = "ami-01b66d92709ccc106"
   iam_instance_profile = aws_iam_instance_profile.agave_instance_profile.name
   security_groups      = [aws_security_group.agave_security_group.id]
   user_data            = "#!/bin/bash\necho ECS_CLUSTER=agave-cluster >> /etc/ecs/ecs.config"
@@ -145,25 +160,22 @@ resource "aws_autoscaling_group" "failure_analysis_ecs_asg" {
   }
   tag {
     key                 = "AmazonECSManaged"
-    value               = ""
+    value               = true
     propagate_at_launch = true
   }
 }
 resource "aws_ecs_capacity_provider" "agave_capacity_provider" {
-  name = "test"
+  name = aws_autoscaling_group.failure_analysis_ecs_asg.name
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.failure_analysis_ecs_asg.arn
   }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 resource "aws_ecs_cluster" "agave_cluster" {
   name               = "agave-cluster" # Naming the cluster
-  capacity_providers = [aws_ecs_capacity_provider.agave_capacity_provider.name]
-  default_capacity_provider_strategy {
-    capacity_provider = aws_ecs_capacity_provider.agave_capacity_provider.name
-    base              = 1
-    weight            = 100
-  }
   setting {
     name  = "containerInsights"
     value = "enabled"
@@ -173,6 +185,15 @@ resource "aws_ecs_cluster" "agave_cluster" {
   }
 }
 
+resource "aws_ecs_cluster_capacity_providers" "agave_capacity_providers" {
+  cluster_name = aws_ecs_cluster.agave_cluster.name
+  capacity_providers = [aws_ecs_capacity_provider.agave_capacity_provider.name]
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.agave_capacity_provider.name
+    base              = 1
+    weight            = 100
+  }
+}
 
 resource "aws_ecr_repository" "agave_ecr_repo" {
   name = "agave-ecr-repo"
@@ -218,7 +239,7 @@ resource "aws_ecs_service" "agave_service" {
 
 # to force an image update:
 
-# aws ecs update-service --cluster agave-cluster --service agave-service --force-new-deployment
+# aws ecs update-service --cluster agave-cluster --service agave-service --force-new-deployment --region us-west-2 --profile animatedcell
 
 # 1. Retrieve an authentication token and authenticate your Docker client to your registry.
 # Use the AWS CLI: (DMT: use --profile animatedcell in the aws command, specific to how my credentials are stored)
