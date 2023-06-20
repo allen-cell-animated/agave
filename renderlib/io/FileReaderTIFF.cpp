@@ -65,6 +65,33 @@ split(const std::string& s, char delim, std::vector<std::string>& elems)
   }
 }
 
+// multi lines split by newline
+// each line split by =
+std::map<std::string, std::string>
+splitToNameValuePairs(const std::string& s)
+{
+  std::vector<std::string> sl;
+  split(s, '\n', sl);
+
+  // split each string into name/value pairs,
+  // then look up as a map.
+  std::map<std::string, std::string> pairs;
+  for (int i = 0; i < sl.size(); ++i) {
+    std::vector<std::string> namevalue;
+    split(sl[i], '=', namevalue);
+    if (namevalue.size() == 2) {
+      pairs[namevalue[0]] = namevalue[1];
+    } else if (namevalue.size() == 1) {
+      pairs[namevalue[0]] = "";
+    } else {
+      // on error return empty map.
+      LOG_ERROR << "Unexpected name/value pair: " << sl[i];
+      return std::map<std::string, std::string>();
+    }
+  }
+  return pairs;
+}
+
 class ScopedTiffReader
 {
 public:
@@ -192,7 +219,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   if (TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat) != 1) {
     LOG_WARNING << "Failed to read sampleformat of TIFF: '" << filepath << "'";
   }
-  if (sampleFormat != SAMPLEFORMAT_UINT && sampleFormat != SAMPLEFORMAT_IEEEFP) {
+  if (sampleFormat != SAMPLEFORMAT_UINT && sampleFormat != SAMPLEFORMAT_IEEEFP && sampleFormat != SAMPLEFORMAT_INT) {
     LOG_ERROR << "Unsupported tiff SAMPLEFORMAT " << sampleFormat << " for '" << filepath << "'";
     return false;
   }
@@ -226,22 +253,10 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     // "ImageJ=1.52i\nimages=126\nchannels=2\nslices=63\nhyperstack=true\nmode=composite\nunit=
     //      micron\nfinterval=299.2315368652344\nspacing=0.2245383462882669\nloop=false\nmin=9768.0\nmax=
     //        14591.0\n"
-    std::vector<std::string> sl;
-    split(simagedescription, '\n', sl);
-    // split each string into name/value pairs,
-    // then look up as a map.
-    std::map<std::string, std::string> imagejmetadata;
-    for (int i = 0; i < sl.size(); ++i) {
-      std::vector<std::string> namevalue;
-      split(sl[i], '=', namevalue);
-      if (namevalue.size() == 2) {
-        imagejmetadata[namevalue[0]] = namevalue[1];
-      } else if (namevalue.size() == 1) {
-        imagejmetadata[namevalue[0]] = "";
-      } else {
-        LOG_ERROR << "Unexpected name/value pair in TIFF ImageJ metadata: " << sl[i];
-        return false;
-      }
+    std::map<std::string, std::string> imagejmetadata = splitToNameValuePairs(simagedescription);
+    if (imagejmetadata.empty()) {
+      LOG_ERROR << "Unexpected bad or empty TIFF ImageJ metadata";
+      return false;
     }
 
     auto iter = imagejmetadata.find("channels");
@@ -281,6 +296,103 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     for (uint32_t i = 0; i < sizeC; ++i) {
       channelNames.push_back(std::to_string(i));
     }
+  } else if (startsWith(simagedescription, "SCIFIO=")) {
+    // SCIFIO=0.41.0
+    // axes=X,Y,Unknown
+    // lengths=725,694,906
+    // scales=1.0,1.0,1.0
+    // units=null,null,null
+    // bitsPerPixel=8
+    // images=906
+    // channels=1
+    // slices=1
+    // frames=1
+    // hyperstack=true
+    // mode=composite
+    // unit=null
+
+    std::map<std::string, std::string> scifiometadata = splitToNameValuePairs(simagedescription);
+    if (scifiometadata.empty()) {
+      LOG_ERROR << "Unexpected bad or empty TIFF SCIFIO metadata";
+      return false;
+    }
+
+    std::vector<std::string> axes;
+    auto iter = scifiometadata.find("axes");
+    if (iter != scifiometadata.end()) {
+      split((*iter).second, ',', axes);
+    } else {
+      LOG_WARNING << "Failed to read axes of SCIFIO TIFF: '" << filepath << "'";
+    }
+    std::vector<std::string> scales;
+    iter = scifiometadata.find("scales");
+    if (iter != scifiometadata.end()) {
+      split((*iter).second, ',', scales);
+    } else {
+      LOG_WARNING << "Failed to read scales of SCIFIO TIFF: '" << filepath << "'";
+    }
+    std::vector<std::string> lengths;
+    iter = scifiometadata.find("lengths");
+    if (iter != scifiometadata.end()) {
+      split((*iter).second, ',', lengths);
+    } else {
+      LOG_WARNING << "Failed to read lengths of SCIFIO TIFF: '" << filepath << "'";
+    }
+    std::vector<std::string> units;
+    iter = scifiometadata.find("units");
+    if (iter != scifiometadata.end()) {
+      split((*iter).second, ',', units);
+    } else {
+      LOG_WARNING << "Failed to read units of SCIFIO TIFF: '" << filepath << "'";
+    }
+
+    if (lengths.size() != units.size() || scales.size() != axes.size() || scales.size() != units.size()) {
+      LOG_ERROR << "SCIFIO TIFF metadata has inconsistent counts of lengths,units,axes,scales";
+    }
+
+    for (size_t i = 0; i < axes.size(); ++i) {
+      std::string axis = axes[i];
+      double scale = std::stod(scales[i]);
+      std::string unit = units[i];
+      int length = std::stoi(lengths[i]);
+      if (axis == "X") {
+        // check consistency.
+        if (sizeX != length) {
+          LOG_WARNING << "Inconsistent X size " << length << " in SCIFIO TIFF: '" << filepath << "'";
+        }
+        physicalSizeX = scale;
+      } else if (axis == "Y") {
+        if (sizeY != length) {
+          LOG_WARNING << "Inconsistent Y size " << length << " in SCIFIO TIFF: '" << filepath << "'";
+        }
+        physicalSizeY = scale;
+      } else if (axis == "Z") {
+        sizeZ = length;
+        physicalSizeZ = scale;
+      } else if (axis == "Channel") {
+        sizeC = length;
+      } else if (axis == "Time") {
+        sizeT = length;
+      } else if (axis == "Unknown" && axes.size() == 3) {
+        // make a guess and use the last axis as Z
+        sizeZ = length;
+        physicalSizeZ = scale;
+      }
+    }
+    iter = scifiometadata.find("channels");
+    if (iter != scifiometadata.end()) {
+      int nch = std::stoi((*iter).second);
+      if (sizeC != nch) {
+        LOG_WARNING << "Inconsistent number of channels " << nch << " in SCIFIO TIFF: '" << filepath << "'";
+      }
+    } else {
+      LOG_WARNING << "Failed to read number of channels of SCIFIO TIFF: '" << filepath << "'";
+    }
+
+    for (uint32_t i = 0; i < sizeC; ++i) {
+      channelNames.push_back(std::to_string(i));
+    }
+
   } else if (startsWith(simagedescription, "{\"shape\":")) {
     // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
     size_t firstBracket = simagedescription.find('[');
