@@ -4,14 +4,14 @@
 #include "ViewerState.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/IRenderWindow.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGL.h"
-#include "renderlib/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
-#include "renderlib/gl/Image3D.h"
-#include "renderlib/gl/Util.h"
+#include "renderlib/graphics/IRenderWindow.h"
+#include "renderlib/graphics/RenderGL.h"
+#include "renderlib/graphics/RenderGLPT.h"
+#include "renderlib/graphics/gl/Image3D.h"
+#include "renderlib/graphics/gl/Util.h"
 
 #include <glm.h>
 
@@ -176,16 +176,10 @@ printAdapterFeatures(WGPUAdapter adapter)
   }
 }
 
-WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
+wgpuCanvas::wgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
   : QWidget(parent)
   , m_etimer()
   , m_lastPos(0, 0)
-  , m_renderSettings(rs)
-  , m_renderer()
-  , m_qcamera(cam)
-  , m_cameraController(cam, &m_CCamera)
-  , m_qrendersettings(qrs)
-  , m_rendererType(1)
   , m_initialized(false)
   , m_fakeHidden(false)
 {
@@ -197,13 +191,6 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
 
   // this->setStyleSheet("background:transparent;");
   // this->setWindowFlags(Qt::FramelessWindowHint);
-
-  // IMPORTANT this is where the QT gui container classes send their values down into the
-  // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
-  // WgpuView3D->OnUpdateCamera
-  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
-  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
-  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 }
 
 void
@@ -239,32 +226,20 @@ WgpuView3D::onNewImage(Scene* scene)
   // how tightly coupled is renderer and scene????
 }
 
-WgpuView3D::~WgpuView3D()
+wgpuCanvas::~wgpuCanvas()
 {
   wgpuSwapChainDrop(m_swapChain);
   wgpuSurfaceDrop(m_surface);
 }
 
-QSize
-WgpuView3D::minimumSizeHint() const
-{
-  return QSize(800, 600);
-}
-
-QSize
-WgpuView3D::sizeHint() const
-{
-  return QSize(800, 600);
-}
-
 void
-WgpuView3D::initializeGL()
+wgpuCanvas::initializeGL()
 {
   if (m_initialized) {
     return;
   }
   LOG_INFO << "calling get_surface_id_from_canvas";
-  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)m_canvas->winId());
+  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
   WGPUAdapter adapter;
   WGPURequestAdapterOptions options = {
     .nextInChain = NULL,
@@ -391,7 +366,7 @@ WgpuView3D::initializeGL()
 }
 
 void
-WgpuView3D::paintEvent(QPaintEvent* e)
+wgpuCanvas::paintEvent(QPaintEvent* e)
 {
   if (!m_initialized) {
     return;
@@ -403,7 +378,7 @@ WgpuView3D::paintEvent(QPaintEvent* e)
 }
 
 void
-WgpuView3D::render()
+wgpuCanvas::render()
 {
   if (m_fakeHidden || !m_initialized) {
     return;
@@ -456,14 +431,14 @@ WgpuView3D::render()
 }
 
 void
-WgpuView3D::invokeUserPaint(WGPUTextureView nextTexture)
+wgpuCanvas::invokeUserPaint(WGPUTextureView nextTexture)
 {
   paintGL(nextTexture);
   // flush? (queue submit?)
 }
 
 void
-WgpuView3D::paintGL(WGPUTextureView nextTexture)
+wgpuCanvas::paintGL(WGPUTextureView nextTexture)
 {
   WGPUCommandEncoderDescriptor commandEncoderDescriptor = { .label = "Command Encoder" };
   WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(m_device, &commandEncoderDescriptor);
@@ -512,7 +487,7 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
 }
 
 void
-WgpuView3D::resizeEvent(QResizeEvent* event)
+wgpuCanvas::resizeEvent(QResizeEvent* event)
 {
   if (event->size().isEmpty()) {
     m_fakeHidden = true;
@@ -555,7 +530,7 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
 }
 
 void
-WgpuView3D::mousePressEvent(QMouseEvent* event)
+wgpuCanvas::mousePressEvent(QMouseEvent* event)
 {
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
@@ -563,7 +538,7 @@ WgpuView3D::mousePressEvent(QMouseEvent* event)
 }
 
 void
-WgpuView3D::mouseReleaseEvent(QMouseEvent* event)
+wgpuCanvas::mouseReleaseEvent(QMouseEvent* event)
 {
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
@@ -593,7 +568,7 @@ get_arcball_vector(float xndc, float yndc)
 }
 
 void
-WgpuView3D::mouseMoveEvent(QMouseEvent* event)
+wgpuCanvas::mouseMoveEvent(QMouseEvent* event)
 {
   m_cameraController.OnMouseMove(event);
   m_lastPos = event->pos();
@@ -604,7 +579,7 @@ WgpuView3D::mouseMoveEvent(QMouseEvent* event)
 #endif
 
 void
-WgpuView3D::timerEvent(QTimerEvent* event)
+wgpuCanvas::timerEvent(QTimerEvent* event)
 {
   if (!isEnabled()) {
     return;
@@ -666,7 +641,7 @@ WgpuView3D::OnUpdateQRenderSettings(void)
 }
 
 std::shared_ptr<CStatus>
-WgpuView3D::getStatus()
+wgpuCanvas::getStatus()
 {
   return m_renderer->getStatusInterface();
 }
@@ -734,7 +709,7 @@ WgpuView3D::fromViewerState(const Serialize::ViewerState& s)
 }
 
 QPixmap
-WgpuView3D::capture()
+wgpuCanvas::capture()
 {
   // get the current QScreen
   QScreen* screen = QGuiApplication::primaryScreen();
@@ -750,7 +725,7 @@ WgpuView3D::capture()
 }
 
 QImage
-WgpuView3D::captureQimage()
+wgpuCanvas::captureQimage()
 {
 #if 0
   makeCurrent();
@@ -788,7 +763,7 @@ WgpuView3D::captureQimage()
 }
 
 void
-WgpuView3D::pauseRenderLoop()
+wgpuCanvas::pauseRenderLoop()
 {
   std::shared_ptr<CStatus> s = getStatus();
   // the CStatus updates can cause Qt GUI work to happen,
@@ -801,7 +776,7 @@ WgpuView3D::pauseRenderLoop()
 }
 
 void
-WgpuView3D::restartRenderLoop()
+wgpuCanvas::restartRenderLoop()
 {
   m_etimer.restart();
   std::shared_ptr<CStatus> s = getStatus();
@@ -809,19 +784,39 @@ WgpuView3D::restartRenderLoop()
 }
 
 void
-WgpuView3D::resizeGL(int w, int h)
+wgpuCanvas::resizeGL(int w, int h)
 {
   QResizeEvent e(QSize(w, h), QSize(w, h));
   resizeEvent(&e);
 }
 
-wgpuCanvas::wgpuCanvas(QWidget* parent = nullptr)
+WgpuView3D::WgpuView3D(QWidget* parent = nullptr)
 {
-  m_view = new WgpuView3D(this);
+  m_canvas = new wgpuCanvas(this);
 
   QHBoxLayout* layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
-  layout->addWidget(m_view);
+  layout->addWidget(m_canvas);
+
+  // IMPORTANT this is where the QT gui container classes send their values down into the
+  // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
+  // WgpuView3D->OnUpdateCamera
+  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
+  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
+  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 }
-wgpuCanvas::~wgpuCanvas() {}
+
+WgpuView3D::~WgpuView3D() {}
+
+QSize
+WgpuView3D::minimumSizeHint() const
+{
+  return QSize(800, 600);
+}
+
+QSize
+WgpuView3D::sizeHint() const
+{
+  return QSize(800, 600);
+}

@@ -23,10 +23,9 @@ namespace Serialize {
 struct ViewerState;
 };
 
-/**
- * 3D GL view of an image with axes and gridlines.
- */
-class WgpuView3D : public QWidget
+// does the actual wgpu stuff
+// for some reason we need this to be a child of the main view
+class wgpuCanvas : public QWidget
 {
   Q_OBJECT
 
@@ -40,11 +39,60 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  wgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
 
   /// Destructor.
-  ~WgpuView3D();
+  ~wgpuCanvas();
 
+  // dummy to make agaveGui happy
+  void doneCurrent() {}
+  QOpenGLContext* context() { return nullptr; }
+  void resizeGL(int w, int h);
+
+signals:
+  void ChangedRenderer();
+
+public:
+  std::shared_ptr<CStatus> getStatus();
+
+protected:
+  /// Set up GL context and subsidiary objects.
+  void initializeGL();
+
+  /// Render the scene with the current view settings.
+  void paintGL(WGPUTextureView nextTexture);
+
+  void resizeEvent(QResizeEvent* event);
+  void paintEvent(QPaintEvent* event);
+
+  virtual QPaintEngine* paintEngine() const override { return nullptr; }
+
+private:
+  /// Rendering timer.
+  QElapsedTimer m_etimer;
+
+  /// Last mouse position.
+  QPoint m_lastPos;
+
+  bool m_initialized;
+  bool m_fakeHidden;
+  void render();
+  void invokeUserPaint(WGPUTextureView nextTexture);
+  WGPUSwapChain m_swapChain;
+  WGPUTextureFormat m_swapChainFormat;
+  WGPUSurface m_surface;
+  WGPUDevice m_device;
+
+  WGPURenderPipeline m_pipeline;
+};
+
+class WgpuView3D : public QWidget
+{
+  Q_OBJECT;
+
+public:
+  WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  ~WgpuView3D();
   /**
    * Get window minimum size hint.
    *
@@ -95,17 +143,6 @@ public:
   std::shared_ptr<CStatus> getStatus();
 
 protected:
-  /// Set up GL context and subsidiary objects.
-  void initializeGL();
-
-  /// Render the scene with the current view settings.
-  void paintGL(WGPUTextureView nextTexture);
-
-  void resizeEvent(QResizeEvent* event);
-  void paintEvent(QPaintEvent* event);
-
-  virtual QPaintEngine* paintEngine() const override { return nullptr; }
-
   /**
    * Handle mouse button press events.
    *
@@ -135,43 +172,14 @@ protected:
   void timerEvent(QTimerEvent* event);
 
 private:
+  wgpuCanvas* m_canvas;
+
   CCamera m_CCamera;
   CameraController m_cameraController;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
-
-  /// Rendering timer.
-  QElapsedTimer m_etimer;
-
-  /// Last mouse position.
-  QPoint m_lastPos;
-
   RenderSettings* m_renderSettings;
 
   std::unique_ptr<IRenderWindow> m_renderer;
   int m_rendererType;
-
-  bool m_initialized;
-  bool m_fakeHidden;
-  void render();
-  void invokeUserPaint(WGPUTextureView nextTexture);
-  WGPUSwapChain m_swapChain;
-  WGPUTextureFormat m_swapChainFormat;
-  WGPUSurface m_surface;
-  WGPUDevice m_device;
-
-  WGPURenderPipeline m_pipeline;
-  QWidget* m_canvas;
-};
-
-class wgpuCanvas : public QWidget
-{
-  Q_OBJECT;
-
-public:
-  wgpuCanvas(QWidget* parent = nullptr);
-  ~wgpuCanvas();
-
-private:
-  WgpuView3D* m_view;
 };
