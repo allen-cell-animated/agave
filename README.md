@@ -84,12 +84,12 @@ aqt install-qt --outputdir ~/Qt linux desktop 6.5.1 -m qtwebsockets qtimageforma
 export Qt6_DIR=~/Qt/6.5.1/gcc_64
 ```
 
-
 - sudo apt install libclang-dev # for rust / wgpu-native
 - sudo apt install libtiff-dev
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
+- sudo apt install libxkbcommon-dev
 - sudo apt install mesa-vulkan-drivers
 - sudo apt install libspdlog-dev
 - sudo apt install nasm
