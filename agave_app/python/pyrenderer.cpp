@@ -1,9 +1,9 @@
 #include "pyrenderer.h"
 
 #include "renderlib/CCamera.h"
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
-#include "renderlib/RenderGLPT.h"
+#include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/renderlib.h"
 
@@ -45,6 +45,7 @@ OffscreenRenderer::myVolumeInit()
   m_myVolumeData.m_scene = new Scene();
   m_myVolumeData.m_scene->initLights();
 
+  // TODO allow for all renderer types (e.g. RendererGL also)
   m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
   m_myVolumeData.m_renderer->initialize(m_width, m_height);
   m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
@@ -102,15 +103,10 @@ OffscreenRenderer::render()
 
   // DRAW
   m_myVolumeData.m_camera->Update();
-  m_myVolumeData.m_renderer->doRender(*(m_myVolumeData.m_camera));
+  m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
 
-  // COPY TO MY FBO
-  this->m_fbo->bind();
   int vw = m_fbo->width();
   int vh = m_fbo->height();
-  glViewport(0, 0, vw, vh);
-  m_myVolumeData.m_renderer->drawImage();
-  this->m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[vw * vh * 4]);
   m_fbo->toImage(bytes.get());

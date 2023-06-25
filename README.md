@@ -1,12 +1,12 @@
 AGAVE : Advanced GPU Accelerated Volume Explorer
 
-Agave is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-TIFF and Zeiss .czi files.
+AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-TIFF and Zeiss .czi files.
 
 The code is currently organized into a few main sections:
 
 1. agave_app is the Qt front end of the application
 2. renderlib is the code responsible for dealing with volume images and rendering them
-3. agave_pyclient provides a Python package for sending commands to agave when run in server mode
+3. agave_pyclient provides a Python package for sending commands to AGAVE when run in server mode
 
 How to build from source:
 
@@ -27,12 +27,12 @@ tensorstore requires:
 - NASM, for building libjpeg-turbo, libaom, and dav1d from source (default). Must be in PATH.Not required if -DTENSORSTORE*USE_SYSTEM*{JPEG,LIBAOM,DAV1D}=ON is specified.
 - GNU Patch or equivalent. Must be in PATH.
 
-Install Qt LTS 6.5.0.
+Install Qt LTS 6.5.1.
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.5.0 win64_msvc2019_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.5.1 win64_msvc2019_64 -m qtwebsockets qtimageformats
 
 ```
 
@@ -55,8 +55,8 @@ For MAC OS: (using homebrew)
 ```
 # Install Qt. In your favorite Python virtual environment:
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt mac desktop 6.5.0 -m qtwebsockets qtimageformats
-export Qt6_DIR=~/Qt/6.5.0/macos
+aqt install-qt --outputdir ~/Qt mac desktop 6.5.1 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.5.1/macos
 # and then:
 brew install spdlog glm libtiff
 
@@ -78,10 +78,10 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt linux desktop 6.5.0 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir ~/Qt linux desktop 6.5.1 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
-export Qt6_DIR=~/Qt/6.5.0/gcc_64
+export Qt6_DIR=~/Qt/6.5.1/gcc_64
 ```
 
 

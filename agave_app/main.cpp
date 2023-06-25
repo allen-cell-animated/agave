@@ -1,8 +1,8 @@
 #include "agaveGui.h"
 
 #include "mainwindow.h"
-#include "renderlib/FileReader.h"
 #include "renderlib/Logging.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "streamserver.h"
@@ -99,9 +99,9 @@ main(int argc, char* argv[])
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication a(argc, argv);
-  a.setOrganizationName("AICS");
+  a.setOrganizationName("Allen Institute for Cell Science");
   a.setOrganizationDomain("allencell.org");
-  a.setApplicationName("GPU Volume Explorer");
+  a.setApplicationName("AGAVE");
   a.setApplicationVersion(AICS_VERSION_STRING);
 
   std::string orgname = a.organizationName().toStdString();

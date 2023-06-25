@@ -3,9 +3,9 @@
 
 #include "glad/glad.h"
 
-#include "renderlib/FileReader.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/command.h"
-#include "renderlib/gl/Util.h"
+#include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
@@ -43,6 +43,8 @@ public:
                  const Scene& scene,
                  const CCamera& camera,
                  const LoadSpec& loadSpec,
+                 // rendererMode ignored if renderer is non-null
+                 renderlib::RendererType rendererMode = renderlib::RendererType_Pathtrace,
                  QOpenGLContext* glContext = nullptr);
 
   void run();
@@ -109,9 +111,6 @@ private:
   };
 
   QList<SceneDescription> m_scenes;
-
-  // TODO move this info.  This class only knows about some abstract renderer and a scene object.
-  void myVolumeInit();
   struct myVolumeData
   {
     bool ownRenderer;

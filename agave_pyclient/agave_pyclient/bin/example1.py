@@ -2,9 +2,11 @@ from agave_pyclient import AgaveRenderer
 
 # imgplot = plt.imshow(numpy.zeros((1024, 768)))
 if __name__ == "__main__":
-    filename = "C:\\Users\\dmt\\Downloads\\AICS-10_5.ome.tif"
-    r = AgaveRenderer()
-    r.load_ome_tif(filename)
+    filename = (
+        "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/1.zarr"
+    )
+    r = AgaveRenderer(url="ws://localhost:1235/", mode="raymarch")
+    r.load_data(filename, 0, 0, 0)
     r.set_resolution(512, 512)
     r.set_voxel_scale(1.0, -1.0, 2.9)
     r.render_iterations(128)
@@ -39,6 +41,7 @@ if __name__ == "__main__":
     r.light_pos(0, 10.1663, 1.1607, 0.5324)
     r.light_color(0, 122.926, 122.926, 125.999)
     r.light_size(0, 1, 1)
-
-    r.batch_render_rocker(number_of_frames=40, angle=30, output_name="rocker")
-    r.batch_render_turntable(number_of_frames=90, output_name="turntable")
+    r.session("out.png")
+    r.redraw()
+    # r.batch_render_rocker(number_of_frames=40, angle=30, output_name="rocker")
+    # r.batch_render_turntable(number_of_frames=90, output_name="turntable")

@@ -1,5 +1,6 @@
 thirdparty/
-
+webclient/node_modules/
+webclient/es/
 build/
 renderlib/version.h
 docs/_build/

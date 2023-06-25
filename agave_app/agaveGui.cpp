@@ -6,11 +6,11 @@
 #include "agaveGui.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/FileReader.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
 
 #include "AppearanceDockWidget.h"
@@ -67,9 +67,8 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setMinimumSize(256, 512);
   m_tabs->addTab(m_glView, "None");
 
-  QString windowTitle = QApplication::instance()->organizationName() + " " +
-                        QApplication::instance()->applicationName() + " " +
-                        QApplication::instance()->applicationVersion();
+  QString windowTitle =
+    QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
   setWindowTitle(windowTitle);
 
   m_appScene.initLights();
@@ -533,14 +532,13 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
 
   std::shared_ptr<IFileReader> reader(FileReader::getReader(file));
   if (!reader) {
-    QMessageBox(
-      QMessageBox::Warning,
-      "Error",
-      "Could not determine filetype.  Make sure you supply a valid URL or filepath to a file supported by AGAVE " +
-        QString::fromStdString(file),
-      QMessageBox::Ok,
-      this)
-      .exec();
+    QMessageBox b(QMessageBox::Warning,
+                  "Error",
+                  "Could not determine filetype of \"" + QString::fromStdString(file) +
+                    "\".  Make sure you supply a valid URL or filepath to a file supported by AGAVE.",
+                  QMessageBox::Ok,
+                  this);
+    b.exec();
     LOG_ERROR << "Could not find a reader for file " << file;
     return false;
   }
@@ -975,6 +973,9 @@ agaveGui::appToViewerState()
   v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
   // v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
+
+  v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
+                                                            : Serialize::RendererType_PID::PATHTRACE;
 
   v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
   v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;

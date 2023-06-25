@@ -6,7 +6,8 @@
 
 #include "RenderInterface.h"
 #include "command.h"
-#include "renderlib/gl/Util.h"
+#include "renderlib/graphics/IRenderWindow.h"
+#include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
 
 #include <QList>
@@ -24,7 +25,6 @@
 class commandBuffer;
 class CCamera;
 class ImageXYZC;
-class RenderGLPT;
 class RenderSettings;
 class Scene;
 
@@ -131,7 +131,7 @@ private:
   struct myVolumeData
   {
     RenderSettings* m_renderSettings;
-    RenderGLPT* m_renderer;
+    IRenderWindow* m_renderer;
     Scene* m_scene;
     CCamera* m_camera;
 
@@ -140,7 +140,8 @@ private:
       , m_scene(nullptr)
       , m_renderSettings(nullptr)
       , m_renderer(nullptr)
-    {}
+    {
+    }
   } m_myVolumeData;
 
   ExecutionContext m_ec;
