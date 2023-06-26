@@ -145,7 +145,7 @@ class AgaveApp {
   private _onConnectionOpened() {
     const agave = this.agave;
     const effectController = this.effectController;
-    agave.load_data(
+    agave.loadData(
       "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/1.zarr",
       0,
       2,
@@ -153,11 +153,11 @@ class AgaveApp {
       [],
       []
     );
-    agave.stream_mode(1);
-    agave.set_resolution(512, 512);
+    agave.streamMode(1);
+    agave.setResolution(512, 512);
     agave.aperture(effectController.aperture);
     agave.exposure(effectController.exposure);
-    agave.skylight_top_color(
+    agave.skylightTopColor(
       (effectController.skyTopIntensity * effectController.skyTopColor[0]) /
         255.0,
       (effectController.skyTopIntensity * effectController.skyTopColor[1]) /
@@ -165,7 +165,7 @@ class AgaveApp {
       (effectController.skyTopIntensity * effectController.skyTopColor[2]) /
         255.0
     );
-    agave.skylight_middle_color(
+    agave.skylightMiddleColor(
       (effectController.skyMidIntensity * effectController.skyMidColor[0]) /
         255.0,
       (effectController.skyMidIntensity * effectController.skyMidColor[1]) /
@@ -173,7 +173,7 @@ class AgaveApp {
       (effectController.skyMidIntensity * effectController.skyMidColor[2]) /
         255.0
     );
-    agave.skylight_bottom_color(
+    agave.skylightBottomColor(
       (effectController.skyBotIntensity * effectController.skyBotColor[0]) /
         255.0,
       (effectController.skyBotIntensity * effectController.skyBotColor[1]) /
@@ -181,13 +181,13 @@ class AgaveApp {
       (effectController.skyBotIntensity * effectController.skyBotColor[2]) /
         255.0
     );
-    agave.light_pos(
+    agave.lightPos(
       0,
       effectController.lightDistance,
       effectController.lightTheta,
       effectController.lightPhi
     );
-    agave.light_color(
+    agave.lightColor(
       0,
       (effectController.lightColor[0] / 255.0) *
         effectController.lightIntensity,
@@ -195,8 +195,8 @@ class AgaveApp {
         effectController.lightIntensity,
       (effectController.lightColor[2] / 255.0) * effectController.lightIntensity
     );
-    agave.light_size(0, effectController.lightSize, effectController.lightSize);
-    agave.stream_mode(1);
+    agave.lightSize(0, effectController.lightSize, effectController.lightSize);
+    agave.streamMode(1);
     agave.flushCommandBuffer();
 
     // init camera
@@ -220,11 +220,11 @@ class AgaveApp {
       this._sendCameraUpdate();
     });
     this.controls.addEventListener("start", function () {
-      agave.stream_mode(0);
+      agave.streamMode(0);
       agave.flushCommandBuffer();
     });
     this.controls.addEventListener("end", function () {
-      agave.stream_mode(1);
+      agave.streamMode(1);
       agave.flushCommandBuffer();
       agave.redraw();
       agave.flushCommandBuffer();
@@ -320,7 +320,7 @@ class AgaveApp {
           imgholder!.style.width = res[0];
           imgholder!.style.height = res[1];
 
-          agave.set_resolution(res[0], res[1]);
+          agave.setResolution(res[0], res[1]);
           agave.flushCommandBuffer();
         }
       });
@@ -331,7 +331,7 @@ class AgaveApp {
     gui.add(effectController, "resetCamera");
     //allen/aics/animated-cell/Allen-Cell-Explorer/Allen-Cell-Explorer_1.2.0/Cell-Viewer_Data/2017_05_15_tubulin/AICS-12/AICS-12_790.ome.tif
     gui.add(effectController, "stream").onChange((value) => {
-      agave.stream_mode(value);
+      agave.streamMode(value);
       agave.flushCommandBuffer();
       // BUG THIS SHOULD NOT BE NEEDED.
       agave.redraw();
@@ -398,7 +398,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.camera_projection(0, value || 0.01);
+        agave.cameraProjection(0, value || 0.01);
         agave.flushCommandBuffer();
         this._stream_mode_suspended = true;
       })
@@ -413,7 +413,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.set_clip_region(
+        agave.setClipRegion(
           effectController.xmin,
           effectController.xmax,
           effectController.ymin,
@@ -433,7 +433,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.set_clip_region(
+        agave.setClipRegion(
           effectController.xmin,
           effectController.xmax,
           effectController.ymin,
@@ -453,7 +453,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.set_clip_region(
+        agave.setClipRegion(
           effectController.xmin,
           effectController.xmax,
           effectController.ymin,
@@ -473,7 +473,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.set_clip_region(
+        agave.setClipRegion(
           effectController.xmin,
           effectController.xmax,
           effectController.ymin,
@@ -493,7 +493,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.set_clip_region(
+        agave.setClipRegion(
           effectController.xmin,
           effectController.xmax,
           effectController.ymin,
@@ -513,7 +513,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.001)
       .onChange((value) => {
-        agave.set_clip_region(
+        agave.setClipRegion(
           effectController.xmin,
           effectController.xmax,
           effectController.ymin,
@@ -533,7 +533,7 @@ class AgaveApp {
       .addColor(effectController, "skyTopColor")
       .name("Sky Top")
       .onChange((value) => {
-        agave.skylight_top_color(
+        agave.skylightTopColor(
           (effectController["skyTopIntensity"] * value[0]) / 255.0,
           (effectController["skyTopIntensity"] * value[1]) / 255.0,
           (effectController["skyTopIntensity"] * value[2]) / 255.0
@@ -550,7 +550,7 @@ class AgaveApp {
       .min(0.01)
       .step(0.1)
       .onChange((value) => {
-        agave.skylight_top_color(
+        agave.skylightTopColor(
           (effectController["skyTopColor"][0] / 255.0) * value,
           (effectController["skyTopColor"][1] / 255.0) * value,
           (effectController["skyTopColor"][2] / 255.0) * value
@@ -566,7 +566,7 @@ class AgaveApp {
       .addColor(effectController, "skyMidColor")
       .name("Sky Mid")
       .onChange((value) => {
-        agave.skylight_middle_color(
+        agave.skylightMiddleColor(
           (effectController["skyMidIntensity"] * value[0]) / 255.0,
           (effectController["skyMidIntensity"] * value[1]) / 255.0,
           (effectController["skyMidIntensity"] * value[2]) / 255.0
@@ -583,7 +583,7 @@ class AgaveApp {
       .min(0.01)
       .step(0.1)
       .onChange((value) => {
-        agave.skylight_middle_color(
+        agave.skylightMiddleColor(
           (effectController["skyMidColor"][0] / 255.0) * value,
           (effectController["skyMidColor"][1] / 255.0) * value,
           (effectController["skyMidColor"][2] / 255.0) * value
@@ -598,7 +598,7 @@ class AgaveApp {
       .addColor(effectController, "skyBotColor")
       .name("Sky Bottom")
       .onChange((value) => {
-        agave.skylight_bottom_color(
+        agave.skylightBottomColor(
           (effectController["skyBotIntensity"] * value[0]) / 255.0,
           (effectController["skyBotIntensity"] * value[1]) / 255.0,
           (effectController["skyBotIntensity"] * value[2]) / 255.0
@@ -615,7 +615,7 @@ class AgaveApp {
       .min(0.01)
       .step(0.1)
       .onChange((value) => {
-        agave.skylight_bottom_color(
+        agave.skylightBottomColor(
           (effectController["skyBotColor"][0] / 255.0) * value,
           (effectController["skyBotColor"][1] / 255.0) * value,
           (effectController["skyBotColor"][2] / 255.0) * value
@@ -632,7 +632,7 @@ class AgaveApp {
       .min(0.0)
       .step(0.1)
       .onChange((value) => {
-        agave.light_pos(
+        agave.lightPos(
           0,
           value,
           (effectController["lightTheta"] * 180.0) / 3.14159265,
@@ -650,7 +650,7 @@ class AgaveApp {
       .min(-180.0)
       .step(1)
       .onChange((value) => {
-        agave.light_pos(
+        agave.lightPos(
           0,
           effectController["lightDistance"],
           (value * 180.0) / 3.14159265,
@@ -668,7 +668,7 @@ class AgaveApp {
       .min(0.0)
       .step(1)
       .onChange((value) => {
-        agave.light_pos(
+        agave.lightPos(
           0,
           effectController["lightDistance"],
           (effectController["lightTheta"] * 180.0) / 3.14159265,
@@ -686,7 +686,7 @@ class AgaveApp {
       .min(0.01)
       .step(0.1)
       .onChange((value) => {
-        agave.light_size(0, value, value);
+        agave.lightSize(0, value, value);
         agave.flushCommandBuffer();
         this._stream_mode_suspended = true;
       })
@@ -699,7 +699,7 @@ class AgaveApp {
       .min(0.01)
       .step(0.1)
       .onChange((value) => {
-        agave.light_color(
+        agave.lightColor(
           0,
           (effectController["lightColor"][0] / 255.0) * value,
           (effectController["lightColor"][1] / 255.0) * value,
@@ -715,7 +715,7 @@ class AgaveApp {
       .addColor(effectController, "lightColor")
       .name("lightcolor")
       .onChange((value) => {
-        agave.light_color(
+        agave.lightColor(
           0,
           (value[0] / 255.0) * effectController["lightIntensity"],
           (value[1] / 255.0) * effectController["lightIntensity"],
@@ -766,7 +766,7 @@ class AgaveApp {
       f.add(effectController.infoObj.channelGui[i], "enabled").onChange(
         (function (j) {
           return (value) => {
-            agave.enable_channel(j, value ? 1 : 0);
+            agave.enableChannel(j, value ? 1 : 0);
             agave.flushCommandBuffer();
           };
         })(i)
@@ -776,7 +776,7 @@ class AgaveApp {
         .onChange(
           (function (j) {
             return (value) => {
-              agave.mat_diffuse(
+              agave.matDiffuse(
                 j,
                 value[0] / 255.0,
                 value[1] / 255.0,
@@ -792,7 +792,7 @@ class AgaveApp {
         .onChange(
           (function (j) {
             return (value) => {
-              agave.mat_specular(
+              agave.matSpecular(
                 j,
                 value[0] / 255.0,
                 value[1] / 255.0,
@@ -808,7 +808,7 @@ class AgaveApp {
         .onChange(
           (function (j) {
             return (value) => {
-              agave.mat_emissive(
+              agave.matEmissive(
                 j,
                 value[0] / 255.0,
                 value[1] / 255.0,
@@ -827,8 +827,8 @@ class AgaveApp {
           ((j) => {
             return (value) => {
               if (!this.waiting_for_image) {
-                agave.stream_mode(0);
-                agave.set_window_level(
+                agave.streamMode(0);
+                agave.setWindowLevel(
                   j,
                   value,
                   effectController.infoObj.channelGui[j].level
@@ -841,7 +841,7 @@ class AgaveApp {
           })(i)
         )
         .onFinishChange((value) => {
-          agave.stream_mode(1);
+          agave.streamMode(1);
           agave.flushCommandBuffer();
           agave.redraw();
           agave.flushCommandBuffer();
@@ -856,8 +856,8 @@ class AgaveApp {
           ((j) => {
             return (value) => {
               if (!this.waiting_for_image) {
-                agave.stream_mode(0);
-                agave.set_window_level(
+                agave.streamMode(0);
+                agave.setWindowLevel(
                   j,
                   effectController.infoObj.channelGui[j].window,
                   value
@@ -870,7 +870,7 @@ class AgaveApp {
           })(i)
         )
         .onFinishChange((value) => {
-          agave.stream_mode(1);
+          agave.streamMode(1);
           agave.flushCommandBuffer();
           agave.redraw();
           agave.flushCommandBuffer();
@@ -883,7 +883,7 @@ class AgaveApp {
           ((j) => {
             return (value) => {
               if (!this.waiting_for_image) {
-                agave.mat_glossiness(j, value);
+                agave.matGlossiness(j, value);
                 agave.flushCommandBuffer();
                 this.waiting_for_image = true;
               }
@@ -898,22 +898,22 @@ class AgaveApp {
 
     for (var i = 0; i < effectController.infoObj.c; ++i) {
       var ch = effectController.infoObj.channelGui[i];
-      agave.enable_channel(i, ch.enabled ? 1 : 0);
-      agave.mat_diffuse(
+      agave.enableChannel(i, ch.enabled ? 1 : 0);
+      agave.matDiffuse(
         i,
         ch.colorD[0] / 255.0,
         ch.colorD[1] / 255.0,
         ch.colorD[2] / 255.0,
         1.0
       );
-      agave.mat_specular(
+      agave.matSpecular(
         i,
         ch.colorS[0] / 255.0,
         ch.colorS[1] / 255.0,
         ch.colorS[2] / 255.0,
         1.0
       );
-      agave.mat_emissive(
+      agave.matEmissive(
         i,
         ch.colorE[0] / 255.0,
         ch.colorE[1] / 255.0,
