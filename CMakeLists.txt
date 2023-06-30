@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 
 if(APPLE)
   set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.15")
