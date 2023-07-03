@@ -1,6 +1,11 @@
 import { CommandBuffer, COMMANDS } from "./commandbuffer";
 
-export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | { [x: string]: JSONValue }
+  | Array<JSONValue>;
 
 export class AgaveClient {
   private binarysocket0: WebSocket;
@@ -14,13 +19,13 @@ export class AgaveClient {
     url = "ws://localhost:1235/",
     rendermode = "pathtrace",
     onOpen = () => {
-      0;
+      return;
     },
     onJson = (_json: JSONValue) => {
-      0;
+      return;
     },
     onImage = (_data: Blob) => {
-      0;
+      return;
     }
   ) {
     if (rendermode !== "pathtrace" && rendermode !== "raymarch") {
@@ -88,6 +93,10 @@ export class AgaveClient {
 
   isReady(): boolean {
     return this.binarysocket0.readyState === 1;
+  }
+
+  disconnect() {
+    this.binarysocket0.close();
   }
 
   /**
@@ -464,7 +473,14 @@ export class AgaveClient {
    * @param minz The lower z extent between 0 and 1
    * @param maxz The higher z extent between 0 and 1
    */
-  setClipRegion(minx: number, maxx: number, miny: number, maxy: number, minz: number, maxz: number) {
+  setClipRegion(
+    minx: number,
+    maxx: number,
+    miny: number,
+    maxy: number,
+    minz: number,
+    maxz: number
+  ) {
     // 29
     this.cb.addCommand("SET_CLIP_REGION", minx, maxx, miny, maxy, minz, maxz);
   }
@@ -648,7 +664,15 @@ export class AgaveClient {
     region: number[] = []
   ) {
     // 44
-    this.cb.addCommand("LOAD_DATA", path, scene, multiresolutionLevel, time, channels, region);
+    this.cb.addCommand(
+      "LOAD_DATA",
+      path,
+      scene,
+      multiresolutionLevel,
+      time,
+      channels,
+      region
+    );
   }
 
   // send all data in our current command buffer to the server
