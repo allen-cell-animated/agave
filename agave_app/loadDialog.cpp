@@ -129,7 +129,6 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
   QFont font = mMemoryEstimateLabel->font();
   font.setPointSize(font.pointSize() * 1.5);
-  font.setBold(false);
   mMemoryEstimateLabel->setTextFormat(Qt::RichText);
   mMemoryEstimateLabel->setFont(font);
 
