@@ -129,6 +129,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mMemoryEstimateLabel = new QLabel("Memory Estimate: 0 MB");
   QFont font = mMemoryEstimateLabel->font();
   font.setPointSize(font.pointSize() * 1.5);
+  mMemoryEstimateLabel->setTextFormat(Qt::RichText);
   mMemoryEstimateLabel->setFont(font);
 
   updateMultiresolutionLevel(mSelectedLevel);
@@ -217,7 +218,7 @@ LoadDialog::updateMemoryEstimate()
   mVolumeLabel->setText(QString::number(spec.maxx - spec.minx) + " x " + QString::number(spec.maxy - spec.miny) +
                         " x " + QString::number(spec.maxz - spec.minz) + " pixels");
 
-  mMemoryEstimateLabel->setText("Memory Estimate: " + QString::fromStdString(label));
+  mMemoryEstimateLabel->setText("Memory Estimate: <b>" + QString::fromStdString(label) + "</b>");
 }
 
 void
