@@ -79,7 +79,7 @@ sudo make install
 
 ### For LINUX:
 
-Install Qt 5.15.2 in your directory of choice and tell the build where to find it.
+Install Qt 6.5.1 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
 ```
@@ -103,6 +103,8 @@ cd build
 cmake ..
 make
 ```
+
+If cmake fails please refer to the Dockerfile for a more complete list of Linux dependencies.
 
 ## Versioned Releases
 
