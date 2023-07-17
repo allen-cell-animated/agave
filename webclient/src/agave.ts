@@ -8,7 +8,8 @@ export type JSONValue =
   | Array<JSONValue>;
 
 export class AgaveClient {
-  private socket: WebSocket;
+  private url: string;
+  private socket?: WebSocket;
   private cb: CommandBuffer;
   private sessionName: string;
   private onOpen: () => void;
@@ -34,69 +35,77 @@ export class AgaveClient {
     this.onOpen = onOpen;
     this.onJson = onJson;
     this.onImage = onImage;
-
-    // First order of business: connect!
-    this.socket = new WebSocket(url + "?mode=" + rendermode);
-
-    // set binarytype according to how we expect clients to deal with received image data
-    this.socket.binaryType = "blob"; //"arraybuffer";
-
-    // do some stuff on initial connection
-    this.socket.onopen = (_ev: Event) => {
-      this.setResolution(256, 256);
-      // put agave in streaming mode from the get-go
-      this.streamMode(1);
-      this.flushCommandBuffer();
-
-      // user provided callback
-      if (this.onOpen) {
-        this.onOpen();
-      }
-    };
-
-    // TODO - handle this better
-    this.socket.onclose = (_ev: CloseEvent) => {
-      setTimeout(function () {
-        console.warn("connection failed. refresh to retry.");
-      }, 3000);
-    };
-
-    // handle incoming messages
-    this.socket.onmessage = (evt: MessageEvent<unknown>) => {
-      if (typeof evt.data === "string") {
-        const returnedObj = JSON.parse(evt.data);
-        if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
-          console.log(returnedObj);
-          // let users do something with this data
-          if (this.onJson) {
-            this.onJson(returnedObj);
-          }
-        }
-        return;
-      }
-
-      const arraybuf = evt.data;
-      // let users do something with this data
-      if (this.onImage) {
-        this.onImage(arraybuf as Blob);
-      }
-    };
-
-    // TODO handle this better
-    this.socket.onerror = (evt: Event) => {
-      console.log("error", evt);
-    };
-
     this.cb = new CommandBuffer();
     this.sessionName = "";
+    this.url = url + "?mode=" + rendermode;
+    this.socket = undefined;
+  }
+
+  async connect() {
+    return new Promise((resolve, reject) => {
+      // First order of business: connect!
+      this.socket = new WebSocket(this.url);
+
+      // set binarytype according to how we expect clients to deal with received image data
+      this.socket.binaryType = "blob"; //"arraybuffer";
+
+      // do some stuff on initial connection
+      this.socket.onopen = (_ev: Event) => {
+        this.setResolution(256, 256);
+        // put agave in streaming mode from the get-go
+        this.streamMode(1);
+        this.flushCommandBuffer();
+
+        // user provided callback
+        if (this.onOpen) {
+          this.onOpen();
+        }
+
+        resolve(this);
+      };
+
+      // TODO - handle this better
+      this.socket.onclose = (_ev: CloseEvent) => {
+        setTimeout(function () {
+          console.warn("connection failed. refresh to retry.");
+        }, 3000);
+      };
+
+      // handle incoming messages
+      this.socket.onmessage = (evt: MessageEvent<unknown>) => {
+        if (typeof evt.data === "string") {
+          const returnedObj = JSON.parse(evt.data);
+          if (returnedObj.commandId === COMMANDS.LOAD_DATA[0]) {
+            console.log(returnedObj);
+            // let users do something with this data
+            if (this.onJson) {
+              this.onJson(returnedObj);
+            }
+          }
+          return;
+        }
+
+        const arraybuf = evt.data;
+        // let users do something with this data
+        if (this.onImage) {
+          this.onImage(arraybuf as Blob);
+        }
+      };
+
+      // TODO handle this better
+      this.socket.onerror = (evt: Event) => {
+        console.log("error", evt);
+        reject(evt);
+      };
+    });
   }
 
   isReady(): boolean {
-    return this.socket.readyState === 1;
+    return this.socket!.readyState === 1;
   }
 
   disconnect() {
-    this.socket.close();
+    this.socket!.close();
   }
 
   /**
@@ -679,7 +688,7 @@ export class AgaveClient {
   flushCommandBuffer() {
     if (this.cb.length() > 0) {
       const buf = this.cb.prebufferToBuffer();
-      this.socket.send(buf);
+      this.socket!.send(buf);
       // assuming the buffer is sent, prepare a new one
       this.cb = new CommandBuffer();
     }
