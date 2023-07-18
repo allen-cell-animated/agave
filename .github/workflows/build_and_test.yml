@@ -166,7 +166,7 @@ jobs:
           npm ci
           npm run lint
           npm run typeCheck
-          npm run test
+          npm run test --if-present
 
   lint-and-test-pyclient:
     runs-on: ubuntu-latest
