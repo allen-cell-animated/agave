@@ -7,9 +7,10 @@
 #include "CameraController.h"
 #include "glm.h"
 #include "renderlib/CCamera.h"
+#include "renderlib/gesture/gesture.h"
 
-#include <QElapsedTimer>
 #include <QOpenGLWidget>
+#include <QTimer>
 
 class CStatus;
 class ImageXYZC;
@@ -97,6 +98,8 @@ protected:
   /// Render the scene with the current view settings.
   void paintGL();
 
+  void keyPressEvent(QKeyEvent* event);
+
   /**
    * Handle mouse button press events.
    *
@@ -126,13 +129,20 @@ protected:
   void timerEvent(QTimerEvent* event);
 
 private:
+  void FitToScene();
+
   CCamera m_CCamera;
   CameraController m_cameraController;
+  std::vector<CameraAnimation> m_cameraAnim;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
+  double m_lastTimeCheck;
+  double m_frameRate;
+  int m_increments;
+
   /// Rendering timer.
-  QElapsedTimer m_etimer;
+  QTimer* m_etimer;
 
   /// Last mouse position.
   QPoint m_lastPos;
@@ -141,4 +151,7 @@ private:
 
   std::unique_ptr<IRenderWindow> m_renderer;
   int m_rendererType;
+
+  Gesture m_gesture;
+  Clock m_clock;
 };

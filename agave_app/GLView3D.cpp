@@ -17,7 +17,9 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFramebufferObjectFormat>
 #include <QScreen>
+#include <QTimer>
 #include <QWindow>
+
 
 #include <cmath>
 #include <iostream>
@@ -33,13 +35,16 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   , m_lastPos(0, 0)
   , m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
-  ,
-  //    _renderer(new RenderGL(img))
-  m_qcamera(cam)
+  , m_qcamera(cam)
   , m_cameraController(cam, &m_CCamera)
   , m_qrendersettings(qrs)
   , m_rendererType(1)
+  , m_frameRate(0)
+  , m_increments(0)
+  , m_lastTimeCheck(0)
 {
+  setFocusPolicy(Qt::StrongFocus);
+  m_gesture.input.reset();
   // The GLView3D owns one CScene
 
   m_cameraController.setRenderSettings(*m_renderSettings);
@@ -50,6 +55,21 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
   QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
   QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
+
+  // run a timer to update the clock
+  // TODO is this different than using this->startTimer and QTimerEvent?
+  m_etimer = new QTimer(parent);
+  m_etimer->setTimerType(Qt::PreciseTimer);
+  connect(m_etimer, &QTimer::timeout, this, [this] {
+    QCoreApplication::processEvents();
+    if (isEnabled()) {
+      // update or run immediate render?
+      // update();
+      repaint();
+    }
+    // m_gesture.input.consume();
+  });
+  m_etimer->start();
 }
 
 void
@@ -115,7 +135,7 @@ GLView3D::initializeGL()
 
   // Start timers
   startTimer(0);
-  m_etimer.start();
+  m_etimer->start();
 
   // Size viewport
   resizeGL(newsize.width(), newsize.height());
@@ -128,10 +148,77 @@ GLView3D::paintGL()
     return;
   }
   makeCurrent();
+  m_clock.tick();
+  // m_gesture.setTimeIncrement(m_clock.timeIncrement);
+  // Display frame rate in window title
+  double interval = m_clock.time - m_lastTimeCheck; //< Interval in seconds
+  m_increments += 1;
+  // update once per second
+  if (interval >= 1.0) {
+    // Compute average frame rate over the last second, if different than what we
+    // display previously, update the window title.
+    double newFrameRate = round(m_increments / interval);
+    if (m_frameRate != newFrameRate) {
+      m_frameRate = newFrameRate;
 
+      // TODO update frame rate stats from here.
+      // char title[256];
+      // snprintf(title, 256, "%s | %d fps", windowTitle, frameRate);
+      // glfwSetWindowTitle(mainWindow.handle, title);
+    }
+    m_lastTimeCheck = m_clock.time;
+    m_increments = 0;
+  }
+
+  // QPoint p = mapFromGlobal(QCursor::pos());
+  // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
+
+  // Use gesture strokes (if any) to move the camera. If camera edit is still in progress, we are not
+  // going to change the camera directly, instead we fill a CameraModifier object with the delta.
+  CameraModifier cameraMod;
+  bool cameraEdit = cameraManipulation(glm::vec2(width() * devicePixelRatioF(), height() * devicePixelRatioF()),
+                                       // m_clock,
+                                       m_gesture,
+                                       m_CCamera,
+                                       cameraMod);
+  if (cameraEdit) {
+    // let renderer know camera is dirty
+    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  }
+  // Apply camera animation transitions if we have any
+  if (!m_cameraAnim.empty()) {
+    for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
+      CameraAnimation& anim = *it;
+      anim.time += m_clock.timeIncrement;
+
+      if (anim.time < anim.duration) { // alpha < 1.0) {
+        float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
+        // Animation in-betweens are accumulated to the camera modifier
+        cameraMod = cameraMod + anim.mod * alpha;
+        ++it;
+      } else {
+        // Completed animation is applied to the camera instead
+        m_CCamera = m_CCamera + anim.mod;
+        it = m_cameraAnim.erase(it);
+      }
+
+      // let renderer know camera is dirty
+      m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+    }
+  }
+
+  // Produce the render camera for current frame
   m_CCamera.Update();
+  CCamera renderCamera = m_CCamera;
+  if (cameraEdit) {
+    renderCamera = m_CCamera + cameraMod;
+    renderCamera.Update();
+  }
 
-  m_renderer->render(m_CCamera);
+  m_renderer->render(renderCamera);
+
+  // Make sure we consumed any unused input event before we poll new events.
+  m_gesture.input.consume();
 
   doneCurrent();
 }
@@ -142,6 +229,8 @@ GLView3D::resizeGL(int w, int h)
   if (!isEnabled()) {
     return;
   }
+  // clock tick?
+  m_clock.tick();
   makeCurrent();
 
   m_CCamera.m_Film.m_Resolution.SetResX(w);
@@ -149,6 +238,45 @@ GLView3D::resizeGL(int w, int h)
   m_renderer->resize(w, h, devicePixelRatioF());
 
   doneCurrent();
+}
+
+static Gesture::Input::ButtonId
+getButton(QMouseEvent* event)
+{
+  Gesture::Input::ButtonId btn;
+  switch (event->button()) {
+    case Qt::LeftButton:
+      btn = Gesture::Input::ButtonId::kButtonLeft;
+      break;
+    case Qt::RightButton:
+      btn = Gesture::Input::ButtonId::kButtonRight;
+      break;
+    case Qt::MiddleButton:
+      btn = Gesture::Input::ButtonId::kButtonMiddle;
+      break;
+    default:
+      // btn = Gesture::Input::ButtonId::kButtonNone;
+      break;
+  };
+  return btn;
+}
+static int
+getGestureMods(QMouseEvent* event)
+{
+  int mods = 0;
+  if (event->modifiers() & Qt::ShiftModifier) {
+    mods |= Gesture::Input::Mods::kShift;
+  }
+  if (event->modifiers() & Qt::ControlModifier) {
+    mods |= Gesture::Input::Mods::kCtrl;
+  }
+  if (event->modifiers() & Qt::AltModifier) {
+    mods |= Gesture::Input::Mods::kAlt;
+  }
+  if (event->modifiers() & Qt::MetaModifier) {
+    mods |= Gesture::Input::Mods::kSuper;
+  }
+  return mods;
 }
 
 void
@@ -160,6 +288,10 @@ GLView3D::mousePressEvent(QMouseEvent* event)
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
+
+  double time = Clock::now();
+  m_gesture.input.setButtonEvent(
+    getButton(event), Gesture::Input::Action::kPress, getGestureMods(event), glm::vec2(event->x(), event->y()), time);
 }
 
 void
@@ -171,6 +303,10 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
   m_lastPos = event->pos();
   m_cameraController.m_OldPos[0] = m_lastPos.x();
   m_cameraController.m_OldPos[1] = m_lastPos.y();
+
+  double time = Clock::now();
+  m_gesture.input.setButtonEvent(
+    getButton(event), Gesture::Input::Action::kRelease, getGestureMods(event), glm::vec2(event->x(), event->y()), time);
 }
 
 // No switch default to avoid -Wunreachable-code errors.
@@ -201,7 +337,9 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
   if (!isEnabled()) {
     return;
   }
-  m_cameraController.OnMouseMove(event);
+  m_gesture.input.setPointerPosition(glm::vec2(event->x(), event->y()));
+
+  // m_cameraController.OnMouseMove(event);
   m_lastPos = event->pos();
 }
 
@@ -216,11 +354,35 @@ GLView3D::timerEvent(QTimerEvent* event)
     return;
   }
 
-  makeCurrent();
+  //  makeCurrent();
 
-  QOpenGLWidget::timerEvent(event);
+  //  QOpenGLWidget::timerEvent(event);
 
-  update();
+  //  update();
+}
+
+void
+GLView3D::FitToScene()
+{
+  Scene* sc = m_renderer->scene();
+
+  glm::vec3 newPosition, newTarget;
+  m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
+  CameraAnimation anim = {};
+  anim.duration = 0.5f; //< duration is seconds.
+  anim.mod.position = newPosition - m_CCamera.m_From;
+  anim.mod.target = newTarget - m_CCamera.m_Target;
+  m_cameraAnim.push_back(anim);
+}
+
+void
+GLView3D::keyPressEvent(QKeyEvent* event)
+{
+  if (event->key() == Qt::Key_A) {
+    FitToScene();
+  } else {
+    QOpenGLWidget::keyPressEvent(event);
+  }
 }
 
 void
@@ -327,11 +489,9 @@ GLView3D::OnUpdateRenderer(int rendererType)
 void
 GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
-  m_qrendersettings->SetRendererType(s.rendererType == Serialize::RendererType_PID::PATHTRACE ? 1 : 0);
-
-  m_CCamera.m_From = glm::make_vec3(s.camera.eye.data());
-  m_CCamera.m_Target = glm::make_vec3(s.camera.target.data());
-  m_CCamera.m_Up = glm::make_vec3(s.camera.up.data());
+  m_CCamera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
+  m_CCamera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+  m_CCamera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
   m_CCamera.m_FovV = s.camera.fovY;
   m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
                                                                                             : ORTHOGRAPHIC);
@@ -413,13 +573,13 @@ GLView3D::pauseRenderLoop()
   // we need to either make status updates thread safe,
   // or just disable them here.
   s->EnableUpdates(false);
-  m_etimer.invalidate();
+  m_etimer->stop();
 }
 
 void
 GLView3D::restartRenderLoop()
 {
-  m_etimer.restart();
+  m_etimer->start();
   std::shared_ptr<CStatus> s = getStatus();
   s->EnableUpdates(true);
 }
