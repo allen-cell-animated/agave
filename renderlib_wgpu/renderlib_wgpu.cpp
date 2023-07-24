@@ -106,7 +106,7 @@ renderlib_wgpu::cleanup()
   }
   LOG_INFO << "Renderlib_wgpu shutdown";
 
-  wgpuInstanceDrop(sInstance);
+  wgpuInstanceRelease(sInstance);
 
   if (renderLibHeadless) {
   }

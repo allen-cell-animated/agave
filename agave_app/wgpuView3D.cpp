@@ -228,8 +228,8 @@ WgpuView3D::onNewImage(Scene* scene)
 
 wgpuCanvas::~wgpuCanvas()
 {
-  wgpuSwapChainDrop(m_swapChain);
-  wgpuSurfaceDrop(m_surface);
+  wgpuSwapChainRelease(m_swapChain);
+  wgpuSurfaceRelease(m_surface);
 }
 
 void
@@ -281,7 +281,7 @@ wgpuCanvas::initializeGL()
   wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&m_device);
 
   wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
-  wgpuDeviceSetDeviceLostCallback(m_device, handle_device_lost, NULL);
+  wgpuSetDeviceLostCallback(m_device, handle_device_lost, NULL);
 
   // set up swap chain
   m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
@@ -298,9 +298,6 @@ wgpuCanvas::initializeGL()
   m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
 
   // The WgpuView3D owns one CScene
-
-  m_cameraController.setRenderSettings(*m_renderSettings);
-  m_qrendersettings->setRenderSettings(*m_renderSettings);
 
   WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = { .bindGroupLayoutCount = 0, .bindGroupLayouts = NULL };
   WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(m_device, &pipelineLayoutDescriptor);
@@ -352,10 +349,12 @@ wgpuCanvas::initializeGL()
 
   // m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
   m_initialized = true;
-  if (m_renderer) {
-    QSize newsize = size();
-    m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
-  }
+
+  // TODO
+  // if (m_renderer) {
+  //   QSize newsize = size();
+  //   m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+  // }
 
   // Start timers
   startTimer(0);
@@ -403,7 +402,7 @@ wgpuCanvas::render()
         .presentMode = WGPUPresentMode_Fifo,
       };
       if (m_swapChain) {
-        wgpuSwapChainDrop(m_swapChain);
+        wgpuSwapChainRelease(m_swapChain);
         m_swapChain = 0;
       }
       m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
@@ -470,14 +469,14 @@ wgpuCanvas::paintGL(WGPUTextureView nextTexture)
   // wgpuRenderPassEncoderSetPipeline(renderPass, pipeline);
   // wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
   wgpuRenderPassEncoderEnd(renderPass);
-  wgpuTextureViewDrop(nextTexture);
+  wgpuTextureViewRelease(nextTexture);
 
   WGPUQueue queue = wgpuDeviceGetQueue(m_device);
   WGPUCommandBufferDescriptor commandBufferDescriptor = { .label = NULL };
   WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &commandBufferDescriptor);
   wgpuQueueSubmit(queue, 1, &cmdBuffer);
 
-  // wgpuCommandEncoderDrop(encoder);
+  // wgpuCommandEncoderRelease(encoder);
 
   if (m_renderer) {
     m_CCamera.Update();
@@ -516,7 +515,7 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
     .presentMode = WGPUPresentMode_Fifo,
   };
   if (m_swapChain) {
-    wgpuSwapChainDrop(m_swapChain); // (drop old swap chain)
+    wgpuSwapChainRelease(m_swapChain); // (drop old swap chain)
     m_swapChain = 0;
   }
   m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
@@ -805,6 +804,9 @@ WgpuView3D::WgpuView3D(QWidget* parent = nullptr)
   QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
   QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
   QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
+
+  m_cameraController.setRenderSettings(*m_renderSettings);
+  m_qrendersettings->setRenderSettings(*m_renderSettings);
 }
 
 WgpuView3D::~WgpuView3D() {}
