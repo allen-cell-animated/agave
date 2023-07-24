@@ -202,7 +202,7 @@ cameraManipulation(const glm::vec2 viewportSize,
 // Project the drag movement in pixels to the image plane set at the distance of the
 // camera target.
 #define deg2rad(x) ((x)*0.01745329251f)
-    float halfHorizontalAperture = tanf(deg2rad(camera.GetHorizontalFOV()) * 0.5f);
+    float halfHorizontalAperture = tanf(camera.GetHorizontalFOV_radians() * 0.5f);
     float dragScale = distance * halfHorizontalAperture / (width * 0.5f);
     drag *= dragScale;
     glm::vec3 x = glm::normalize(glm::cross(v, camera.m_Up));

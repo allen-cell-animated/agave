@@ -150,7 +150,7 @@ const char* fragment_shader_text =
         outputF = result;
     }
     )";
-
+#if 0
 namespace Pipeline {
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
@@ -475,3 +475,4 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 
   return entry;
 }
+#endif

@@ -44,18 +44,7 @@ public:
   /// Destructor.
   ~GLView3D();
 
-  /**
-   * Get window minimum size hint.
-   *
-   * @returns the size hint.
-   */
   QSize minimumSizeHint() const;
-
-  /**
-   * Get window size hint.
-   *
-   * @returns the size hint.
-   */
   QSize sizeHint() const;
 
   void initCameraFromImage(Scene* scene);
@@ -99,24 +88,8 @@ protected:
   void paintGL();
 
   void keyPressEvent(QKeyEvent* event);
-
-  /**
-   * Handle mouse button press events.
-   *
-   * Action depends upon the mouse behaviour mode.
-   *
-   * @param event the event to handle.
-   */
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
-
-  /**
-   * Handle mouse button movement events.
-   *
-   * Action depends upon the mouse behaviour mode.
-   *
-   * @param event the event to handle.
-   */
   void mouseMoveEvent(QMouseEvent* event);
 
   /**
