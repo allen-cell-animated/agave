@@ -32,7 +32,7 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   m_headerLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
   m_contentArea->setWidgetResizable(true);
-  m_contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+  m_contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   // start out collapsed
   m_contentArea->setMaximumHeight(0);

@@ -58,7 +58,8 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   int maxt = dims[0].sizeT();
   if (maxt > 1) {
     m_TimeSlider->setRange(0, maxt - 1);
-  } else {
+  }
+  else {
     m_TimeSlider->setRange(0, 0);
   }
   m_TimeSlider->setValue(0);
@@ -75,9 +76,22 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   chseclo->setSpacing(0);
   chseclo->addWidget(mChannels);
 
+  mChannels->setStyleSheet("QListWidget {"
+    "   padding-top: 8px;"
+    "   padding-bottom: 8px;"
+    "   background-color: white;"
+    "}"
+  );
+
   // Make channels list resize at will
-  mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-  mChannels->setMaximumHeight(mChannels->sizeHintForColumn(0)); // TODO: Add some margin
+  mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  int totalHeight = 0;
+  for (int i = 0; i < mChannels->count(); i++) {
+    totalHeight += mChannels->sizeHintForRow(i);
+  }
+  mChannels->setMaximumHeight(totalHeight); // TODO: Add some margin
+  LOG_INFO << (totalHeight);
 
   chseclo->setSizeConstraint(QLayout::SetMinAndMaxSize);
   mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -195,7 +209,7 @@ LoadDialog::updateChannels()
 {
   std::vector<uint32_t> channels = getCheckedChannels();
   mChannelsSection->setTitle("Channels (" + QString::number(channels.size()) + "/" +
-                             QString::number(mChannels->count()) + " selected)");
+    QString::number(mChannels->count()) + " selected)");
   updateMemoryEstimate();
 }
 
@@ -226,7 +240,7 @@ LoadDialog::updateMemoryEstimate()
   std::string label = LoadSpec::bytesToStringLabel(mem);
 
   mVolumeLabel->setText(QString::number(spec.maxx - spec.minx) + " x " + QString::number(spec.maxy - spec.miny) +
-                        " x " + QString::number(spec.maxz - spec.minz) + " pixels");
+    " x " + QString::number(spec.maxz - spec.minz) + " pixels");
 
   mMemoryEstimateLabel->setText("Memory Estimate: <b>" + QString::fromStdString(label) + "</b>");
 }
@@ -343,10 +357,12 @@ LoadDialog::populateChannels(int level)
     if (i < oldnch) {
       if (std::find(channels.begin(), channels.end(), i) != channels.end()) {
         listItem->setCheckState(Qt::Checked);
-      } else {
+      }
+      else {
         listItem->setCheckState(Qt::Unchecked);
       }
-    } else {
+    }
+    else {
       // if we are at a greater value then include channel by default.
       listItem->setCheckState(Qt::Checked);
     }
