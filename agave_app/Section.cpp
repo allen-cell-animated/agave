@@ -25,13 +25,14 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   m_toggleButton->setArrowType(Qt::ArrowType::RightArrow);
   m_toggleButton->setText(title);
   m_toggleButton->setCheckable(true);
-  m_toggleButton->setChecked(false);
+  m_toggleButton->setChecked(is_checked);
 
   m_headerLine->setFrameShape(QFrame::HLine);
   m_headerLine->setFrameShadow(QFrame::Sunken);
   m_headerLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-  m_contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  m_contentArea->setWidgetResizable(true);
+  m_contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
   // start out collapsed
   m_contentArea->setMaximumHeight(0);
@@ -72,6 +73,12 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
       emit expanded();
     }
   });
+
+  // Apply animation to set starting state
+  m_toggleButton->setArrowType(is_checked ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
+  m_toggleAnimation->setDirection(is_checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
+  m_contentArea->setVisible(!is_checked);
+  m_toggleAnimation->start();
 }
 
 void
