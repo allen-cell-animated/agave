@@ -15,7 +15,7 @@
 
 // platform-specific
 static double
-GetDoubleClickTime()
+gestureGetDoubleClickTime()
 {
   auto millisec = QApplication::doubleClickInterval();
 
@@ -25,7 +25,7 @@ GetDoubleClickTime()
 // During app initialization query the OS accessibility settings how the user configured the
 // double-click duration. Developer: never hardcode this time to something that feels
 // right to you.
-double Gesture::Input::s_doubleClickTime = GetDoubleClickTime();
+double Gesture::Input::s_doubleClickTime = gestureGetDoubleClickTime();
 
 // Update the current action for one of the button of the pointer device
 void
@@ -106,7 +106,7 @@ const char* vertex_shader_text =
     in vec4 vCol;
     out vec4 Frag_color;
     out vec2 Frag_UV;
- 
+
     void main()
     {
         Frag_UV = vUV;
@@ -124,20 +124,20 @@ const char* fragment_shader_text =
     uniform int picking;  //< draw for display or for picking? Picking has no texture.
     uniform sampler2D Texture;
     out vec4 outputF;
- 
+
     void main()
     {
         vec4 result = Frag_color;
- 
+
         // When drawing selection codes, everything is opaque.
         if (picking == 1)
             result.w = 1.0;
- 
+
         // Gesture geometry handshake: any uv value below -64 means
         // no texture lookup. Check VertsCode::k_noTexture
         if (picking == 0 && Frag_UV.s > -64)
             result *= texture2D(Texture, Frag_UV.st);
- 
+
         // Gesture geometry handshake: any uv equal to -128 means
         // overlay a checkerboard pattern. Check VertsCode::k_marqueePattern
         if (Frag_UV.s == -128)
@@ -150,8 +150,17 @@ const char* fragment_shader_text =
         outputF = result;
     }
     )";
+
 #if 0
+
 namespace Pipeline {
+
+
+// First I may draw any GUI geometry that I want to be depth-composited with the
+// rest of the scene in viewport. This may be any supporting guide that needs to
+// appear for the duration of some action and reveal intersections against the
+// scene geometry.
+
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
 static void
@@ -165,6 +174,11 @@ configure_3dDepthTested(SceneView& sceneView)
   glEnable(GL_DEPTH_TEST);
   check_gl("enable depth test");
 }
+
+// The second pass is still about 3d geometry, only this time I want it to be
+// drawn on top, without depth test. These two passes shares in common the same
+// projection matrix as the rest of the scene. 3d manipulators shown earlier are examples.
+
 // Overlay something "in the scene". This has a limitation that we assume there
 // is a single viewport.
 static void
@@ -178,6 +192,11 @@ configure_3dStacked(SceneView& sceneView)
   glDisable(GL_DEPTH_TEST);
   check_gl("disable depth test");
 }
+
+// The third pass is a 2d orthographic projection of screen space, where the
+// coordinates are measured in pixels starting at the lower left corner of the
+// screen. Here is where I draw buttons or other traditional GUI elements if you wish.
+
 // Draw something in screen space without zbuffer.
 static void
 configure_2dScreen(SceneView& sceneView)
