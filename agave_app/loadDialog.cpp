@@ -68,22 +68,19 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_TimeSlider->setEnabled(maxt > 1);
 
   mChannels = new QListWidget(this);
-  mChannelScrollArea = new QScrollArea(this);
   mChannelsSection = new Section("Channels", 0);
   populateChannels(0);
   auto chseclo = new QVBoxLayout();
   chseclo->setContentsMargins(0, 0, 0, 0);
   chseclo->setSpacing(0);
-  chseclo->addWidget(mChannelScrollArea);
+  chseclo->addWidget(mChannels);
 
   // Make channels list resize at will
   mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
   mChannels->setMaximumHeight(mChannels->sizeHintForColumn(0)); // TODO: Add some margin
 
-  mChannelScrollArea->setWidget(mChannels);
-  // mChannelScrollArea->setMaximumHeight(300);
+  chseclo->setSizeConstraint(QLayout::SetMinAndMaxSize);
   mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  mChannelScrollArea->setWidgetResizable(true);
 
   mChannelsSection->setContentLayout(*chseclo);
   mChannelsSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

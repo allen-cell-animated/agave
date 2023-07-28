@@ -54,7 +54,6 @@ private:
   QComboBox* mMultiresolutionInput;
   QIntSlider* m_TimeSlider;
   QListWidget* mChannels;
-  QScrollArea* mChannelScrollArea;
   Section* mChannelsSection;
   QTreeWidget* mMetadataTree;
   QLabel* mVolumeLabel;
