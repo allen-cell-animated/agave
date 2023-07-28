@@ -3,8 +3,8 @@
 #include "Controls.h"
 #include "Section.h"
 
-#include "renderlib/io/FileReader.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/io/FileReader.h"
 
 #include <QComboBox>
 #include <QDialog>
@@ -54,6 +54,7 @@ private:
   QComboBox* mMultiresolutionInput;
   QIntSlider* m_TimeSlider;
   QListWidget* mChannels;
+  QScrollArea* mChannelScrollArea;
   Section* mChannelsSection;
   QTreeWidget* mMetadataTree;
   QLabel* mVolumeLabel;

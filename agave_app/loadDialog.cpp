@@ -4,8 +4,8 @@
 #include "RangeWidget.h"
 #include "Section.h"
 
-#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
+#include "renderlib/io/FileReader.h"
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -67,14 +67,26 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_TimeSlider->setTickInterval((maxt - 1) / 10);
   m_TimeSlider->setEnabled(maxt > 1);
 
-  mChannelsSection = new Section("Channels", 0);
   mChannels = new QListWidget(this);
+  mChannelScrollArea = new QScrollArea(this);
+  mChannelsSection = new Section("Channels", 0);
   populateChannels(0);
   auto chseclo = new QVBoxLayout();
   chseclo->setContentsMargins(0, 0, 0, 0);
   chseclo->setSpacing(0);
-  chseclo->addWidget(mChannels);
+  chseclo->addWidget(mChannelScrollArea);
+
+  // Make channels list resize at will
+  mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+  mChannels->setMaximumHeight(mChannels->sizeHintForColumn(0)); // TODO: Add some margin
+
+  mChannelScrollArea->setWidget(mChannels);
+  // mChannelScrollArea->setMaximumHeight(300);
+  mChannels->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  mChannelScrollArea->setWidgetResizable(true);
+
   mChannelsSection->setContentLayout(*chseclo);
+  mChannelsSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   QObject::connect(mChannelsSection, &Section::collapsed, [this]() { this->adjustSize(); });
 
   connect(mMultiresolutionInput, SIGNAL(currentIndexChanged(int)), this, SLOT(updateMultiresolutionLevel(int)));
@@ -115,6 +127,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   zlabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   roiLayout->setLabelAlignment(Qt::AlignLeft);
   roiLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  roiLayout->setSizeConstraint(QLayout::SetMinimumSize);
   roiLayout->addRow(xlabel, m_roiX);
   roiLayout->addRow(ylabel, m_roiY);
   roiLayout->addRow(zlabel, m_roiZ);
@@ -142,11 +155,11 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   // layout->addRow("Scene", mSceneInput);
   if (mMultiresolutionInput->count() > 1) {
     layout->addRow("Resolution Level", mMultiresolutionInput);
-    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Minimum));
   }
   if (m_TimeSlider->isEnabled()) {
     layout->addRow("Time", m_TimeSlider);
-    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+    layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Minimum));
   }
   layout->addRow(mChannelsSection);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
@@ -157,11 +170,11 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   QFrame* hline = new QFrame();
   hline->setFrameShape(QFrame::HLine);
   layout->addRow(hline);
-  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Minimum, QSizePolicy::Minimum));
   layout->addRow(mVolumeLabel);
-  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Minimum));
   layout->addRow(mMemoryEstimateLabel);
-  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Minimum));
   layout->addRow(buttonBox);
 
   setLayout(layout);
