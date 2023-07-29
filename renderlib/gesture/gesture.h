@@ -10,7 +10,7 @@
 #include <chrono>
 #include <vector>
 
-const char* vertex_shader_text =
+static const char* vertex_shader_text =
   R"(
     #version 150
     uniform mat4 projection;
@@ -28,7 +28,7 @@ const char* vertex_shader_text =
     }
     )";
 
-const char* fragment_shader_text =
+static const char* fragment_shader_text =
   R"(
     #version 150
     in vec4 Frag_color;
