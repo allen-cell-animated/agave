@@ -72,11 +72,34 @@ public:
     utilMakeSimpleProgram(vertex_shader_text, fragment_shader_text);
 
     m_loc_proj = uniformLocation("projection");
+    m_loc_vpos = attributeLocation("vPos");
   }
 
   ~GLGuiShader() {}
 
+  void configure(bool display, GLuint textureId)
+  {
+    bind();
+    glEnableVertexAttribArray(m_loc_vpos);
+
+    glUniform1i(uniformLocation("picking"), display ? 0 : 1);
+    if (display)
+      glUniform1i(uniformLocation("Texture"), 0);
+    else
+      glUniform1i(uniformLocation("Texture"), 1);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+  }
+  void cleanup()
+  {
+    release();
+    glDisableVertexAttribArray(m_loc_vpos);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
+
   int m_loc_proj;
+  int m_loc_vpos;
 };
 
 struct Shaders

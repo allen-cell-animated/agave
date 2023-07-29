@@ -215,6 +215,23 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   check_gl("restore blend enabled state");
 }
 
+// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+class ScopedGlVertexBuffer
+{
+public:
+  ScopedGlVertexBuffer(const void* data, size_t size)
+  {
+    glGenBuffers(1, &m_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+  }
+  ~ScopedGlVertexBuffer() { glDeleteBuffers(1, &m_buffer); }
+  GLuint buffer() const { return m_buffer; }
+
+private:
+  GLuint m_buffer;
+};
+
 void
 Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 {
@@ -251,6 +268,7 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 
   // Draw UI and viewport manipulators
   {
+    // TODO are we really creating, uploading, and destroying the vertex buffer every frame?
     ScopedGlVertexBuffer vertex_buffer(this->verts.data(), this->verts.size() * sizeof(VertsCode));
 
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
@@ -290,7 +308,7 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
       }
 
       shaders.gui.cleanup();
-      glDisableVertexAttribArray(shaders.gui.loc_vpos);
+      glDisableVertexAttribArray(shaders.gui.m_loc_vpos);
       check_gl("disablevertexattribarray");
     };
     drawGesture(/*display*/ true);
