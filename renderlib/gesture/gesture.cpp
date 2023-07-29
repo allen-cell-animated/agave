@@ -413,6 +413,13 @@ SceneView::Viewport::Region::intersect(const SceneView::Viewport::Region& a, con
 }
 
 uint32_t
+selectionRGB8ToCode(const uint8_t* rgba)
+{
+  // ignores 4th component (== 0)
+  return (uint32_t(rgba[0]) << 16) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]));
+}
+
+uint32_t
 Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input, const SceneView::Viewport& viewport)
 {
   // Todo: the choice of pointer button should not be hardcoded here
@@ -448,6 +455,16 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
     return SelectionBuffer::k_noSelectionCode;
 
   uint32_t entry = SelectionBuffer::k_noSelectionCode;
+
+  // Each selection code has a priority, lower values means higher priority.
+  // I pick region around the cursor, the size of which is a arbitrary.
+  // Depending on the purpose of an app, the size of the region should be
+  // dictated by accessibility guidelines. The purpose of the region is to
+  // allow to select thin elements, without having to be precise. I wouldn’t
+  // want to draw thick “Lego Duplo” like lines just to be able to select
+  // them. I do like the visual elegance of thin lines. At the same time,
+  // selection codes do need a priority, I cannot just pick the code in the
+  // nearest non-empty pixel.
 
   // Render to texture
   GLint last_framebuffer;
