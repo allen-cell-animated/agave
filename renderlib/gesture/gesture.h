@@ -3,8 +3,96 @@
 
 #include <glm/glm.hpp>
 
+#include "BoundingBox.h"
+#include "CCamera.h"
+#include "graphics/gl/Util.h"
+
 #include <chrono>
 #include <vector>
+
+const char* vertex_shader_text =
+  R"(
+    #version 150
+    uniform mat4 projection;
+    in vec3 vPos;
+    in vec2 vUV;
+    in vec4 vCol;
+    out vec4 Frag_color;
+    out vec2 Frag_UV;
+
+    void main()
+    {
+        Frag_UV = vUV;
+        Frag_color = vCol;
+        gl_Position = projection * vec4(vPos, 1.0);
+    }
+    )";
+
+const char* fragment_shader_text =
+  R"(
+    #version 150
+    in vec4 Frag_color;
+    in vec2 Frag_UV;
+    in vec4 gl_FragCoord;
+    uniform int picking;  //< draw for display or for picking? Picking has no texture.
+    uniform sampler2D Texture;
+    out vec4 outputF;
+
+    void main()
+    {
+        vec4 result = Frag_color;
+
+        // When drawing selection codes, everything is opaque.
+        if (picking == 1)
+            result.w = 1.0;
+
+        // Gesture geometry handshake: any uv value below -64 means
+        // no texture lookup. Check VertsCode::k_noTexture
+        if (picking == 0 && Frag_UV.s > -64)
+            result *= texture2D(Texture, Frag_UV.st);
+
+        // Gesture geometry handshake: any uv equal to -128 means
+        // overlay a checkerboard pattern. Check VertsCode::k_marqueePattern
+        if (Frag_UV.s == -128)
+        {
+            // Create a pixel checkerboard pattern used for marquee
+            // selection
+            int x = int(gl_FragCoord.x); int y = int(gl_FragCoord.y);
+            if (((x+y) & 1) == 0) result = vec4(0,0,0,1);
+        }
+        outputF = result;
+    }
+    )";
+class GLGuiShader : public GLShaderProgram
+{
+public:
+  GLGuiShader()
+    : GLShaderProgram()
+  {
+    utilMakeSimpleProgram(vertex_shader_text, fragment_shader_text);
+
+    m_loc_proj = uniformLocation("projection");
+  }
+
+  ~GLGuiShader() {}
+
+  int m_loc_proj;
+};
+
+struct Shaders
+{
+  GLGuiShader gui;
+};
+
+struct SceneView
+{
+  struct Viewport
+  {
+    CBoundingBox region;
+  } viewport;
+  const CCamera& camera;
+  Shaders shaders;
+};
 
 // integration:
 // https://maxliani.wordpress.com/2021/06/06/offline-to-realtime-gesture/
@@ -159,7 +247,7 @@ struct Gesture
     };
     struct CommandRange
     {
-      Command cmd;
+      Command command;
       int begin, end;
     };
 
@@ -322,7 +410,7 @@ struct Gesture
     inline void addLine(const VertsCode& v0, const VertsCode& v1)
     {
       assert(currentCommand != nullptr);
-      assert(currentCommand->command == GL_LINES);
+      assert(currentCommand->command.command == GL_LINES);
 
       // Mark the spot for the first line vertex so that we can close a line
       // loop if we want to.
@@ -341,7 +429,7 @@ struct Gesture
     inline void extLine(const VertsCode& v, LoopEntry loop = LoopEntry::kContinue)
     {
       assert(currentCommand != nullptr);
-      assert(currentCommand->command == GL_LINES);
+      assert(currentCommand->command.command == GL_LINES);
 
       // Since we draw lines, each line has two points. Repeat last vertex as the
       // first of this new line. We could make this more efficient by not repeating

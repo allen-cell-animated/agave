@@ -675,7 +675,6 @@ GLShaderProgram::~GLShaderProgram()
     glDeleteProgram(m_program);
   }
 }
-  
 
 void
 GLShaderProgram::addShader(GLShader* shader)
@@ -786,4 +785,44 @@ void
 GLShaderProgram::release()
 {
   glUseProgram(0);
+}
+
+void
+GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
+                                       std::string const& fragmentShaderSource,
+                                       GLShader** outVShader,
+                                       GLShader** outFShader)
+{
+  auto vshader = new GLShader(GL_VERTEX_SHADER);
+  vshader->compileSourceCode(vertexShaderSource.c_str());
+
+  if (!vshader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile vertex shader\n" << vshader->log();
+  }
+
+  auto fshader = new GLShader(GL_FRAGMENT_SHADER);
+  fshader->compileSourceCode(fragmentShaderSource.c_str());
+
+  if (!fshader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile fragment shader\n" << fshader->log();
+  }
+
+  addShader(vshader);
+  addShader(fshader);
+  link();
+
+  if (!isLinked()) {
+    LOG_ERROR << "GLGuiShader: Failed to link shader program\n" << log();
+  }
+
+  if (outVShader != nullptr) {
+    *outVShader = vshader;
+  } else {
+    delete vshader;
+  }
+  if (outFShader != nullptr) {
+    *outFShader = fshader;
+  } else {
+    delete fshader;
+  }
 }

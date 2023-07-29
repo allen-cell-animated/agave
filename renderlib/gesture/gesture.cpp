@@ -97,64 +97,7 @@ Gesture::Input::setPointerPosition(glm::vec2 position)
   }
 }
 
-const char* vertex_shader_text =
-  R"(
-    #version 150
-    uniform mat4 projection;
-    in vec3 vPos;
-    in vec2 vUV;
-    in vec4 vCol;
-    out vec4 Frag_color;
-    out vec2 Frag_UV;
-
-    void main()
-    {
-        Frag_UV = vUV;
-        Frag_color = vCol;
-        gl_Position = projection * vec4(vPos, 1.0);
-    }
-    )";
-
-const char* fragment_shader_text =
-  R"(
-    #version 150
-    in vec4 Frag_color;
-    in vec2 Frag_UV;
-    in vec4 gl_FragCoord;
-    uniform int picking;  //< draw for display or for picking? Picking has no texture.
-    uniform sampler2D Texture;
-    out vec4 outputF;
-
-    void main()
-    {
-        vec4 result = Frag_color;
-
-        // When drawing selection codes, everything is opaque.
-        if (picking == 1)
-            result.w = 1.0;
-
-        // Gesture geometry handshake: any uv value below -64 means
-        // no texture lookup. Check VertsCode::k_noTexture
-        if (picking == 0 && Frag_UV.s > -64)
-            result *= texture2D(Texture, Frag_UV.st);
-
-        // Gesture geometry handshake: any uv equal to -128 means
-        // overlay a checkerboard pattern. Check VertsCode::k_marqueePattern
-        if (Frag_UV.s == -128)
-        {
-            // Create a pixel checkerboard pattern used for marquee
-            // selection
-            int x = int(gl_FragCoord.x); int y = int(gl_FragCoord.y);
-            if (((x+y) & 1) == 0) result = vec4(0,0,0,1);
-        }
-        outputF = result;
-    }
-    )";
-
-#if 0
-
 namespace Pipeline {
-
 
 // First I may draw any GUI geometry that I want to be depth-composited with the
 // rest of the scene in viewport. This may be any supporting guide that needs to
@@ -168,7 +111,7 @@ configure_3dDepthTested(SceneView& sceneView)
 {
   Shaders& shaders = sceneView.shaders;
 
-  glUniformMatrix4fv(shaders.gui.loc_proj, 1, GL_FALSE, (const GLfloat*)sceneView.camera.xform.m);
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, (const GLfloat*)sceneView.camera.xform.m);
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -186,7 +129,7 @@ configure_3dStacked(SceneView& sceneView)
 {
   Shaders& shaders = sceneView.shaders;
 
-  glUniformMatrix4fv(shaders.gui.loc_proj, 1, GL_FALSE, (const GLfloat*)sceneView.camera.xform.m);
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, (const GLfloat*)sceneView.camera.xform.m);
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -209,7 +152,7 @@ configure_2dScreen(SceneView& sceneView)
                                                    sceneView.viewport.region.upper.y,
                                                    1.0f,
                                                    -1.f);
-  glUniformMatrix4fv(shaders.gui.loc_proj, 1, GL_FALSE, (const float*)p.m);
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, (const float*)p.m);
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -269,7 +212,7 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
           //        if not changing... For now it seems we can draw at over 2000 Hz
           //        and no further optimization is required.
           for (Graphics::CommandRange cmdr : this->commands[sequence]) {
-            Graphics::Command& cmd = cmdr.cmd;
+            Graphics::Command& cmd = cmdr.command;
             if (cmdr.end == -1)
               cmdr.end = this->verts.size();
             if (cmdr.begin >= cmdr.end)
@@ -306,7 +249,11 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
   check_gl("linewidth");
   glPointSize(pointSize);
   check_gl("pointsize");
-  glToggle(GL_DEPTH_TEST, depthTest);
+  if (depthTest) {
+    glEnable(GL_DEPTH_TEST);
+  } else {
+    glDisable(GL_DEPTH_TEST);
+  }
   check_gl("toggle depth test");
 
   clearCommands();
@@ -314,7 +261,9 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 
 template<typename DrawBlock>
 void
-drawGestureCodes(const SelectionBuffer& selection, const glm::vec4& viewport, DrawBlock drawSceneGeometry)
+drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
+                 const glm::vec4& viewport,
+                 DrawBlock drawSceneGeometry)
 {
   // Backup
   GLenum last_framebuffer;
@@ -352,7 +301,7 @@ drawGestureCodes(const SelectionBuffer& selection, const glm::vec4& viewport, Dr
 }
 
 void
-Gesture::RenderBuffer::destroy()
+Gesture::Graphics::RenderBuffer::destroy()
 {
   if (frameBuffer == 0)
     return;
@@ -363,11 +312,11 @@ Gesture::RenderBuffer::destroy()
   frameBuffer = 0;
   depthRenderBuffer = 0;
   renderedTexture = 0;
-  resolution = Vec2i(0);
+  resolution = glm::ivec2(0, 0);
 }
 
 bool
-Gesture::RenderBuffer::create(Vec2i resolution, int samples)
+Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
 {
   this->resolution = resolution;
   this->samples = samples;
@@ -424,23 +373,23 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 {
   // Todo: the choice of pointer button should not be hardcoded here
   const Input::Button& button = input.mbs[Gesture::Input::kButtonLeft];
-  int clikEnded = (button.action == Input::Action::kRelease);
+  int clickEnded = (button.action == Input::Action::kRelease);
   int clickDrag = (button.action == Input::Action::kDrag);
   int32_t buttonModifier = button.modifier;
 
-  if (clikEnded || clickDrag)
+  if (clickEnded || clickDrag)
     return SelectionBuffer::k_noSelectionCode; //< not a selection event
 
   // Prepare a region in raster spacer
   BBox2i region(wb::empty);
   {
-    Vec2i pixel = viewport.toRaster(input.cursorPos);
+    glm::ivec2 pixel = viewport.toRaster(input.cursorPos);
 
     // Grow the click position by some pixels to improve usability. Ideally
     // this should be a configurable parameter to improve accessibility.
     constexpr int kClickRadius = 7; //< in pixels
-    region.extend(pixel - Vec2i(kClickRadius));
-    region.extend(pixel + Vec2i(kClickRadius));
+    region.extend(pixel - glm::ivec2(kClickRadius));
+    region.extend(pixel + glm::ivec2(kClickRadius));
   }
 
   // Render on the whole framebuffer, complete from the lower left corner tothe upper right
