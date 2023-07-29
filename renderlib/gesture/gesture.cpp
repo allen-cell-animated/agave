@@ -111,7 +111,14 @@ configure_3dDepthTested(SceneView& sceneView)
 {
   Shaders& shaders = sceneView.shaders;
 
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, (const GLfloat*)sceneView.camera.xform.m);
+  glm::mat4 v;
+  sceneView.camera.getViewMatrix(v);
+  glm::mat4 p;
+  sceneView.camera.getProjMatrix(p);
+
+  // TODO FIXME
+  // should be view*p ???
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -129,7 +136,14 @@ configure_3dStacked(SceneView& sceneView)
 {
   Shaders& shaders = sceneView.shaders;
 
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, (const GLfloat*)sceneView.camera.xform.m);
+  glm::mat4 v;
+  sceneView.camera.getViewMatrix(v);
+  glm::mat4 p;
+  sceneView.camera.getProjMatrix(p);
+
+  // TODO FIXME
+  // should be view*p ???
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -146,19 +160,60 @@ configure_2dScreen(SceneView& sceneView)
 {
   Shaders& shaders = sceneView.shaders;
 
-  HomogeneousSpace4f p = HomogeneousSpace4f::ortho(sceneView.viewport.region.lower.x,
-                                                   sceneView.viewport.region.upper.x,
-                                                   sceneView.viewport.region.lower.y,
-                                                   sceneView.viewport.region.upper.y,
-                                                   1.0f,
-                                                   -1.f);
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, (const float*)p.m);
+  auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
+                      (float)sceneView.viewport.region.upper.x,
+                      (float)sceneView.viewport.region.lower.y,
+                      (float)sceneView.viewport.region.upper.y,
+                      1.0f,
+                      -1.f);
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
   check_gl("disable depth test");
 }
 } // namespace Pipeline
+
+template<typename DrawBlock>
+void
+drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
+                 const SceneView::Viewport& viewport,
+                 DrawBlock drawSceneGeometry)
+{
+  // Backup
+  GLenum last_framebuffer;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint*)&last_framebuffer);
+  check_gl("get draw framebuffer");
+  GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
+  check_gl("is depth enabled");
+  GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
+  check_gl("is blend enabled");
+
+  // Render to texture
+  glBindFramebuffer(GL_FRAMEBUFFER, selection.frameBuffer);
+  check_gl("bind selection framebuffer");
+  {
+    glViewport(viewport.region.lower.x, viewport.region.lower.y, viewport.region.upper.x, viewport.region.upper.y);
+    glEnable(GL_BLEND);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    drawSceneGeometry();
+  }
+
+  // Restore
+  glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
+  check_gl("restore default framebuffer");
+  if (last_enable_depth_test)
+    glEnable(GL_DEPTH_TEST);
+  else
+    glDisable(GL_DEPTH_TEST);
+  check_gl("restore depth test state");
+  if (last_enable_blend)
+    glEnable(GL_BLEND);
+  else
+    glDisable(GL_BLEND);
+  check_gl("restore blend enabled state");
+}
 
 void
 Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
@@ -200,6 +255,7 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
     // draw the GUI and once to draw the selection buffer data.
+    // (display var is for draw vs pick)
     auto drawGesture = [&](bool display) {
       Shaders& shaders = sceneView.shaders;
       shaders.gui.configure(display, this->glTextureId);
@@ -257,47 +313,6 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
   check_gl("toggle depth test");
 
   clearCommands();
-}
-
-template<typename DrawBlock>
-void
-drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
-                 const glm::vec4& viewport,
-                 DrawBlock drawSceneGeometry)
-{
-  // Backup
-  GLenum last_framebuffer;
-  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint*)&last_framebuffer);
-  check_gl("get draw framebuffer");
-  GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
-  check_gl("is depth enabled");
-  GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
-  check_gl("is blend enabled");
-
-  // Render to texture
-  glBindFramebuffer(GL_FRAMEBUFFER, selection.frameBuffer);
-  check_gl("bind selection framebuffer");
-  {
-    glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-    glEnable(GL_BLEND);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    drawSceneGeometry();
-  }
-
-  // Restore
-  glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
-  check_gl("restore default framebuffer");
-  if (last_enable_depth_test)
-    glEnable(GL_DEPTH_TEST);
-  else
-    glDisable(GL_DEPTH_TEST);
-  check_gl("restore depth test state");
-  if (last_enable_blend)
-    glEnable(GL_BLEND);
-  else
-    glDisable(GL_BLEND);
-  check_gl("restore blend enabled state");
 }
 
 void
@@ -368,8 +383,19 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
   return status;
 }
 
+SceneView::Viewport::Region
+SceneView::Viewport::Region::intersect(const SceneView::Viewport::Region& a, const SceneView::Viewport::Region& b)
+{
+  Region r;
+  r.lower.x = std::max(a.lower.x, b.lower.x);
+  r.lower.y = std::max(a.lower.y, b.lower.y);
+  r.upper.x = std::min(a.upper.x, b.upper.x);
+  r.upper.y = std::min(a.upper.y, b.upper.y);
+  return r;
+}
+
 uint32_t
-Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input, const glm::vec4& viewport)
+Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input, const SceneView::Viewport& viewport)
 {
   // Todo: the choice of pointer button should not be hardcoded here
   const Input::Button& button = input.mbs[Gesture::Input::kButtonLeft];
@@ -380,8 +406,9 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   if (clickEnded || clickDrag)
     return SelectionBuffer::k_noSelectionCode; //< not a selection event
 
-  // Prepare a region in raster spacer
-  BBox2i region(wb::empty);
+  // Prepare a region in raster space
+
+  SceneView::Viewport::Region region;
   {
     glm::ivec2 pixel = viewport.toRaster(input.cursorPos);
 
@@ -392,14 +419,14 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
     region.extend(pixel + glm::ivec2(kClickRadius));
   }
 
-  // Render on the whole framebuffer, complete from the lower left corner tothe upper right
-  BBox2i viewRegion(viewport.region.lower, viewport.region.upper - 1);
+  // Render on the whole framebuffer, complete from the lower left corner to the upper right
+  SceneView::Viewport::Region viewRegion(viewport.region.lower, viewport.region.upper - glm::ivec2(1));
 
   // Crop selection with view in order to feed GL draw a valid region.
-  region = intersect(region, viewRegion);
+  region = SceneView::Viewport::Region::intersect(region, viewRegion);
 
   // Frame buffer resolution should be correct, check just in case.
-  if (selection.resolution != viewport.resolution)
+  if (selection.resolution != viewport.region.size())
     return SelectionBuffer::k_noSelectionCode;
 
   uint32_t entry = SelectionBuffer::k_noSelectionCode;
@@ -412,7 +439,7 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   {
     glViewport(viewRegion.lower.x, viewRegion.lower.y, viewRegion.upper.x + 1, viewRegion.upper.y + 1);
 
-    Vec2i regionSize = region.size() + Vec2i(1);
+    glm::ivec2 regionSize = region.size() + glm::ivec2(1);
     size_t size = size_t(regionSize.x) * size_t(regionSize.y);
     if (size) {
       // Read pixels over a region. What we read is an 32 bits unsigned partitioned into 8 bits
@@ -443,4 +470,3 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 
   return entry;
 }
-#endif

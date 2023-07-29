@@ -88,7 +88,36 @@ struct SceneView
 {
   struct Viewport
   {
-    CBoundingBox region;
+    struct Region
+    {
+      Region()
+        : lower(+INT_MAX)
+        , upper(-INT_MAX)
+      {
+      }
+      Region(const glm::ivec2& lower, const glm::ivec2& upper)
+        : lower(lower)
+        , upper(upper){};
+      // assignment operator
+      Region& operator=(const Region& other)
+      {
+        lower = other.lower;
+        upper = other.upper;
+        return *this;
+      }
+      void extend(const glm::ivec2& p)
+      {
+        lower = glm::min(lower, p);
+        upper = glm::max(upper, p);
+      }
+      glm::ivec2 size() const { return upper - lower; }
+      glm::ivec2 lower;
+      glm::ivec2 upper;
+      static Region intersect(const Region& a, const Region& b);
+    };
+    Region region;
+    // TODO clamp to region bounds
+    glm::ivec2 toRaster(const glm::vec2& p) const { return glm::ivec2((int)p.x, (int)p.y); }
   } viewport;
   const CCamera& camera;
   Shaders shaders;
@@ -454,7 +483,7 @@ struct Gesture
     // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
     // otherwise.
     // viewport: left, top, width, height
-    uint32_t pick(struct SelectionBuffer& selection, const Input& input, const glm::vec4& viewport);
+    uint32_t pick(struct SelectionBuffer& selection, const Input& input, const SceneView::Viewport& viewport);
   };
   Graphics graphics;
 };
