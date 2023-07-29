@@ -127,4 +127,5 @@ private:
 
   Gesture m_gesture;
   Clock m_clock;
+  Gesture::Graphics::SelectionBuffer* m_selectionBuffer;
 };

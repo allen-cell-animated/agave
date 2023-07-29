@@ -20,7 +20,6 @@
 #include <QTimer>
 #include <QWindow>
 
-
 #include <cmath>
 #include <iostream>
 
@@ -42,6 +41,7 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   , m_frameRate(0)
   , m_increments(0)
   , m_lastTimeCheck(0)
+  , m_selectionBuffer(new Gesture::Graphics::SelectionBuffer())
 {
   setFocusPolicy(Qt::StrongFocus);
   m_gesture.input.reset();
@@ -170,6 +170,11 @@ GLView3D::paintGL()
     m_increments = 0;
   }
 
+  bool ok = m_selectionBuffer->update(glm::ivec2(width(), height()));
+  if (!ok) {
+    LOG_ERROR << "Failed to update selection buffer";
+  }
+
   // QPoint p = mapFromGlobal(QCursor::pos());
   // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
 
@@ -216,6 +221,11 @@ GLView3D::paintGL()
   }
 
   m_renderer->render(renderCamera);
+
+  SceneView sv;
+  sv.camera = renderCamera;
+  sv.viewport.region = { { 0, 0 }, { width(), height() } };
+  m_gesture.graphics.draw(sv, *m_selectionBuffer);
 
   // Make sure we consumed any unused input event before we poll new events.
   m_gesture.input.consume();

@@ -142,7 +142,7 @@ struct SceneView
     // TODO clamp to region bounds
     glm::ivec2 toRaster(const glm::vec2& p) const { return glm::ivec2((int)p.x, (int)p.y); }
   } viewport;
-  const CCamera& camera;
+  CCamera camera;
   Shaders shaders;
 };
 
