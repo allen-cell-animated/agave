@@ -61,13 +61,11 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   m_etimer = new QTimer(parent);
   m_etimer->setTimerType(Qt::PreciseTimer);
   connect(m_etimer, &QTimer::timeout, this, [this] {
-    QCoreApplication::processEvents();
+    // assume that in between QTimer events, true processEvents is called by Qt itself
+    // QCoreApplication::processEvents();
     if (isEnabled()) {
-      // update or run immediate render?
-      // update();
-      repaint();
+      update();
     }
-    // m_gesture.input.consume();
   });
   m_etimer->start();
 }
