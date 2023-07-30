@@ -6,10 +6,13 @@
 
 #include <vector>
 
+class RenderSettings;
+class IRenderWindow;
+
 class ViewerWindow
 {
 public:
-  ViewerWindow();
+  ViewerWindow(RenderSettings* rs);
   ~ViewerWindow();
 
   void setSize(int width, int height);
@@ -57,4 +60,8 @@ public:
   ManipulationTool m_defaultTool; //< a null tool representing selection
   ManipulationTool* m_activeTool = &m_defaultTool;
   std::vector<ManipulationTool*> m_tools;
+
+  RenderSettings* m_renderSettings;
+  std::unique_ptr<IRenderWindow> m_renderer;
+  int m_rendererType;
 };

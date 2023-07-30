@@ -1,6 +1,12 @@
 #include "ViewerWindow.h"
 
-ViewerWindow::ViewerWindow()
+#include "RenderSettings.h"
+#include "IRenderWindow.h"
+
+ViewerWindow::ViewerWindow(RenderSettings* rs)
+  : m_renderSettings(rs)
+  , m_renderer()
+  , m_rendererType(0)
 {
   gesture.input.reset();
 }
