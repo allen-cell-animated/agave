@@ -290,7 +290,7 @@ public:
 
 #define FPS1 30.0f
 
-//#define DEF_CAMERA_TYPE						Perspective
+// #define DEF_CAMERA_TYPE						Perspective
 #define DEF_CAMERA_OPERATOR CameraOperatorUndefined
 #define DEF_CAMERA_VIEW_MODE ViewModeBack
 #define DEF_CAMERA_NEAR 0.01f
@@ -302,10 +302,10 @@ public:
 #define DEF_CAMERA_APERTURE_BLADES_ANGLE 0.0f
 #define DEF_CAMERA_ASPECT_RATIO 1.0f
 #define DEF_ORTHO_SCALE 0.5f
-//#define DEF_CAMERA_ZOOM_SPEED				1.0f
-//#define DEF_CAMERA_ORBIT_SPEED				5.0f
-//#define DEF_CAMERA_APERTURE_SPEED			0.25f
-//#define DEF_CAMERA_FOCAL_DISTANCE_SPEED		10.0f
+// #define DEF_CAMERA_ZOOM_SPEED				1.0f
+// #define DEF_CAMERA_ORBIT_SPEED				5.0f
+// #define DEF_CAMERA_APERTURE_SPEED			0.25f
+// #define DEF_CAMERA_FOCAL_DISTANCE_SPEED		10.0f
 
 class CCamera
 {
@@ -605,3 +605,67 @@ public:
     newPosition = newTarget + distance;
   }
 };
+
+struct CameraModifier
+{
+  glm::vec3 position = { 0, 0, 0 };
+  glm::vec3 target = { 0, 0, 0 };
+  glm::vec3 up = { 0, 0, 0 };
+  // float fov = 0;
+  float nearClip = 0, farClip = 0;
+};
+
+inline CameraModifier
+operator+(const CameraModifier& a, const CameraModifier& b)
+{
+  CameraModifier c;
+  c.position = a.position + b.position;
+  c.target = a.target + b.target;
+  c.up = a.up + b.up;
+  // c.fov = a.fov + b.fov;
+  c.nearClip = a.nearClip + b.nearClip;
+  c.farClip = a.farClip + b.farClip;
+  return c;
+}
+
+inline CameraModifier
+operator*(const CameraModifier& a, const float b)
+{
+  CameraModifier c;
+  c.position = a.position * b;
+  c.target = a.target * b;
+  c.up = a.up * b;
+  // c.fov = a.fov * b;
+  c.nearClip = a.nearClip * b;
+  c.farClip = a.farClip * b;
+  return c;
+}
+
+struct CameraAnimation
+{
+  float duration; //< animation total time
+  float time;     //< animation current time
+  CameraModifier mod;
+};
+
+struct Gesture;
+
+extern bool
+cameraManipulation(const glm::vec2 viewportSize,
+                   // const TimeSample& clock,
+                   Gesture& gesture,
+                   CCamera& camera,
+                   CameraModifier& cameraMod);
+
+inline CCamera&
+operator+(CCamera& camera, const CameraModifier& mod)
+{
+  camera.m_From += mod.position;
+  camera.m_Target += mod.target;
+  camera.m_Up += mod.up;
+  // camera.m_FovV += mod.fov;
+  camera.m_Near += mod.nearClip;
+  camera.m_Far += mod.farClip;
+  // camera.Update();
+  return camera;
+}
