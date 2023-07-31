@@ -62,16 +62,16 @@ public:
 
   QSize minimumSizeHint() const;
 
-  inline int firstValue() const { return m_firstValue; }
-  inline float firstPercent() const { return (float)(firstValue() - minimum()) / (float)range(); }
-  inline int secondValue() const { return m_secondValue; }
-  inline float secondPercent() const { return (float)(secondValue() - minimum()) / (float)range(); }
-  inline int minimum() const { return m_minimum; }
-  inline int maximum() const { return m_maximum; }
-  inline int range() const { return maximum() - minimum(); }
+  inline int valueMin() const { return std::min(m_firstValue, m_secondValue); }
+  inline float valueMinPercent() const { return (float)(valueMin() - boundsMin()) / (float)boundsRange(); }
+  inline int valueMax() const { return std::max(m_firstValue, m_secondValue); }
+  inline float valueMaxPercent() const { return (float)(valueMax() - boundsMin()) / (float)boundsRange(); }
+  inline int boundsMin() const { return m_minimum; }
+  inline int boundsMax() const { return m_maximum; }
+  inline int boundsRange() const { return boundsMax() - boundsMin(); }
   inline Qt::Orientation orientation() const { return m_orientation; }
-  inline int interval() const { return secondValue() - firstValue(); }
-  inline unsigned int absInterval() const { return qAbs(interval()); }
+  inline int valueRange() const { return valueMax() - valueMin(); }
+  inline unsigned int valueRangeAbs() const { return qAbs(valueRange()); }
 
 signals:
   void firstValueChanged(int firstValue);
@@ -83,9 +83,9 @@ signals:
 public slots:
   void setFirstValue(int firstValue, bool blockSignals = false);
   void setSecondValue(int secondValue, bool blockSignals = false);
-  void setMinimum(int min, bool blockSignals = false);
-  void setMaximum(int max, bool blockSignals = false);
-  void setRange(int min, int max, bool blockSignals = false);
+  void setBoundsMin(int min, bool blockSignals = false);
+  void setBoundsMax(int max, bool blockSignals = false);
+  void setBounds(int min, int max, bool blockSignals = false);
   void setOrientation(Qt::Orientation orientation);
 };
 

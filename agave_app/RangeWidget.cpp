@@ -269,57 +269,57 @@ RangeWidget::setFirstValue(int firstValue, bool blockSignals)
 }
 
 void
-RangeWidget::setMaximum(int max, bool blockSignals)
+RangeWidget::setBoundsMax(int max, bool blockSignals)
 {
-  if (max >= minimum())
+  if (max >= boundsMin())
     m_maximum = max;
   else {
-    int oldMin = minimum();
+    int oldMin = boundsMin();
     m_maximum = oldMin;
     m_minimum = max;
   }
 
   update();
 
-  if (firstValue() > maximum())
-    setFirstValue(maximum(), blockSignals);
+  if (valueMin() > boundsMax())
+    setFirstValue(boundsMax(), blockSignals);
 
-  if (secondValue() > maximum())
-    setSecondValue(maximum(), blockSignals);
+  if (valueMax() > boundsMax())
+    setSecondValue(boundsMax(), blockSignals);
 
   if (!blockSignals) {
-    emit rangeChanged(minimum(), maximum());
+    emit rangeChanged(boundsMin(), boundsMax());
   }
 }
 
 void
-RangeWidget::setRange(int min, int max, bool blockSignals)
+RangeWidget::setBounds(int min, int max, bool blockSignals)
 {
-  setMinimum(min, blockSignals);
-  setMaximum(max, blockSignals);
+  setBoundsMin(min, blockSignals);
+  setBoundsMax(max, blockSignals);
 }
 
 void
-RangeWidget::setMinimum(int min, bool blockSignals)
+RangeWidget::setBoundsMin(int min, bool blockSignals)
 {
-  if (min <= maximum())
+  if (min <= boundsMax())
     m_minimum = min;
   else {
-    int oldMax = maximum();
+    int oldMax = boundsMax();
     m_minimum = oldMax;
     m_maximum = min;
   }
 
   update();
 
-  if (firstValue() < minimum())
-    setFirstValue(minimum(), blockSignals);
+  if (valueMin() < boundsMin())
+    setFirstValue(boundsMin(), blockSignals);
 
-  if (secondValue() < minimum())
-    setSecondValue(minimum(), blockSignals);
+  if (valueMax() < boundsMin())
+    setSecondValue(boundsMin(), blockSignals);
 
   if (!blockSignals) {
-    emit rangeChanged(minimum(), maximum());
+    emit rangeChanged(boundsMin(), boundsMax());
   }
 }
 

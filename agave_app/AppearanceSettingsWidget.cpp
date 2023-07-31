@@ -158,7 +158,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_roiX = new RangeWidget(Qt::Horizontal);
   m_roiX->setStatusTip(tr("Set clip planes along X axis"));
   m_roiX->setToolTip(tr("Set clip planes along X axis"));
-  m_roiX->setRange(0, 100);
+  m_roiX->setBounds(0, 100);
   m_roiX->setFirstValue(0);
   m_roiX->setSecondValue(100);
   roiSectionLayout->addWidget(m_roiX, 0, 1);
@@ -168,7 +168,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_roiY = new RangeWidget(Qt::Horizontal);
   m_roiY->setStatusTip(tr("Set clip planes along Y axis"));
   m_roiY->setToolTip(tr("Set clip planes along Y axis"));
-  m_roiY->setRange(0, 100);
+  m_roiY->setBounds(0, 100);
   m_roiY->setFirstValue(0);
   m_roiY->setSecondValue(100);
   roiSectionLayout->addWidget(m_roiY, 1, 1);
@@ -178,7 +178,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_roiZ = new RangeWidget(Qt::Horizontal);
   m_roiZ->setStatusTip(tr("Set clip planes along Z axis"));
   m_roiZ->setToolTip(tr("Set clip planes along Z axis"));
-  m_roiZ->setRange(0, 100);
+  m_roiZ->setBounds(0, 100);
   m_roiZ->setFirstValue(0);
   m_roiZ->setSecondValue(100);
   roiSectionLayout->addWidget(m_roiZ, 2, 1);
@@ -765,9 +765,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   size_t ymax = m_scene->m_volume->sizeY() - 1;
   size_t zmax = m_scene->m_volume->sizeZ() - 1;
 
-  m_roiX->setRange(0, xmax, true);
-  m_roiY->setRange(0, ymax, true);
-  m_roiZ->setRange(0, zmax, true);
+  m_roiX->setBounds(0, xmax, true);
+  m_roiY->setBounds(0, ymax, true);
+  m_roiZ->setBounds(0, zmax, true);
 
   m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * xmax, true);
   m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * xmax, true);
