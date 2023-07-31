@@ -5,6 +5,7 @@
 #include <QtDebug>
 
 constexpr int LABEL_SPACING = 4;
+constexpr int OUTLINE_WIDTH = 1;
 
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
@@ -34,6 +35,7 @@ void
 RangeWidget::paintEvent(QPaintEvent* event)
 {
   QPainter p(this);
+  int totalOutline = OUTLINE_WIDTH * 2;
 
   // First value handle rect
   QRectF rt1 = firstTextRect(p);
@@ -52,7 +54,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
   // Track
   QRect r;
   if (m_orientation == Qt::Horizontal)
-    r = QRect(0, (height() - m_trackHeight - LABEL_SPACING) / 2, width() - 1, m_trackHeight);
+    r = QRect(0, (height() - m_trackHeight - LABEL_SPACING - totalOutline) / 2, width() - totalOutline, m_trackHeight);
   else
     r = QRect((width() - m_trackHeight - LABEL_SPACING) / 2, 0, m_trackHeight, height() - 1);
   p.fillRect(r, m_trackFillColor);
@@ -110,14 +112,17 @@ RangeWidget::secondHandleRect() const
 QRectF
 RangeWidget::handleRect(int value) const
 {
+  int totalOutline = OUTLINE_WIDTH * 2;
   qreal s = span();
 
   QRectF r;
   if (m_orientation == Qt::Horizontal) {
-    r = QRectF(0, (height() - m_handleHeight - LABEL_SPACING) / 2, m_handleWidth, m_handleHeight);
+    r = QRectF(
+      0, (height() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, m_handleWidth - totalOutline, m_handleHeight);
     r.moveLeft(s * (value - m_minimum));
   } else {
-    r = QRectF((width() - m_handleHeight - LABEL_SPACING) / 2, 0, m_handleHeight, m_handleWidth);
+    r = QRectF(
+      (width() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, 0, m_handleHeight - totalOutline, m_handleWidth);
     r.moveTop(s * (value - m_minimum));
   }
   return r;
