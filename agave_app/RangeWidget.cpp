@@ -9,7 +9,7 @@ constexpr int LABEL_SPACING = 4;
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
   , m_orientation(orientation)
-  , m_handleWidth(8)
+  , m_handleWidth(10)
   , m_trackHeight(5)
   , m_handleHeight(20)
   , m_minimum(0)
@@ -20,8 +20,8 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_secondHandlePressed(false)
   , m_trackHovered(false)
   , m_trackPressed(false)
-  , m_firstHandleColor(style()->standardPalette().mid().color())
-  , m_secondHandleColor(style()->standardPalette().mid().color())
+  , m_firstHandleColor(style()->standardPalette().light().color())
+  , m_secondHandleColor(style()->standardPalette().light().color())
   , m_trackFillColor(style()->standardPalette().midlight().color())
   , m_trackOutlineColor(style()->standardPalette().window().color())
   , m_trackRangeColor(style()->standardPalette().dark().color())
@@ -40,14 +40,14 @@ RangeWidget::paintEvent(QPaintEvent* event)
   QRectF rv1 = firstHandleRect();
   QColor c1(m_firstHandleColor);
   if (m_firstHandleHovered)
-    c1 = c1.darker();
+    c1 = c1.darker(125); // 25% darker
 
   // Second value handle rect
   QRectF rt2 = secondTextRect(p);
   QRectF rv2 = secondHandleRect();
   QColor c2(m_secondHandleColor);
   if (m_secondHandleHovered)
-    c2 = c2.darker();
+    c2 = c2.darker(125);
 
   // Track
   QRect r;
@@ -74,47 +74,14 @@ RangeWidget::paintEvent(QPaintEvent* event)
 
   // Handles
   m_trackRect = rf;
-  p.setPen(style()->standardPalette().text().color());
+  p.setPen(style()->standardPalette().mid().color());
   p.fillRect(rv1, c1);
   p.drawRect(rv1);
   p.fillRect(rv2, c2);
   p.drawRect(rv2);
+  p.setPen(style()->standardPalette().text().color());
   p.drawText(rt1, Qt::AlignmentFlag::AlignCenter, QString::number(m_firstValue));
   p.drawText(rt2, Qt::AlignmentFlag::AlignCenter, QString::number(m_secondValue));
-
-  const int arrLength = 20;
-  QColor colors[arrLength] = {
-    style()->standardPalette().color(QPalette::Window),
-    style()->standardPalette().color(QPalette::WindowText),
-    style()->standardPalette().color(QPalette::Base),
-    style()->standardPalette().color(QPalette::AlternateBase),
-    style()->standardPalette().color(QPalette::ToolTipBase),
-    style()->standardPalette().color(QPalette::ToolTipText),
-    style()->standardPalette().color(QPalette::PlaceholderText),
-    style()->standardPalette().color(QPalette::Text),
-    style()->standardPalette().color(QPalette::Button),
-    style()->standardPalette().color(QPalette::ButtonText),
-    style()->standardPalette().color(QPalette::BrightText),
-    style()->standardPalette().color(QPalette::Light),
-    style()->standardPalette().color(QPalette::Midlight),
-    style()->standardPalette().color(QPalette::Dark),
-    style()->standardPalette().color(QPalette::Mid),
-    style()->standardPalette().color(QPalette::Shadow),
-    style()->standardPalette().color(QPalette::Highlight),
-    style()->standardPalette().color(QPalette::HighlightedText),
-    style()->standardPalette().color(QPalette::Link),
-    style()->standardPalette().color(QPalette::LinkVisited),
-  };
-
-  QRectF colorRect(r);
-  QSize size = minimumSizeHint();
-  for (int i = 0; i < arrLength; i++) {
-    colorRect.setTop(rv1.bottom() + 2);
-    colorRect.setLeft(((0.0 + i) / arrLength) * (size.width() * 6));
-    colorRect.setRight(((0.0 + i + 1) / arrLength) * (size.width() * 6));
-    colorRect.setBottom(rv1.bottom() + 8);
-    p.fillRect(colorRect, colors[i]);
-  }
 }
 
 qreal
@@ -263,7 +230,7 @@ RangeWidget::mouseReleaseEvent(QMouseEvent* event)
 QSize
 RangeWidget::minimumSizeHint() const
 {
-  return QSize(m_handleHeight * 2 + LABEL_SPACING, m_handleHeight * 2 + LABEL_SPACING + 8);
+  return QSize(m_handleHeight * 2 + LABEL_SPACING, m_handleHeight * 2 + LABEL_SPACING);
 }
 
 void
