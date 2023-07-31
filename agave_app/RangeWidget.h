@@ -74,8 +74,8 @@ public:
   inline unsigned int valueRangeAbs() const { return qAbs(valueRange()); }
 
 signals:
-  void firstValueChanged(int firstValue);
-  void secondValueChanged(int secondValue);
+  void minValueChanged(int firstValue);
+  void maxValueChanged(int secondValue);
   void rangeChanged(int min, int max);
   void sliderPressed();
   void sliderReleased();

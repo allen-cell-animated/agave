@@ -42,7 +42,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
   QRectF rv1 = firstHandleRect();
   QColor c1(m_firstHandleColor);
   if (m_firstHandleHovered)
-    c1 = c1.darker(125); // 25% darker
+    c1 = c1.darker(125); // 80% of original brightness
 
   // Second value handle rect
   QRectF rt2 = secondTextRect(p);
@@ -247,9 +247,19 @@ RangeWidget::setSecondValue(int secondValue, bool blockSignals)
   if (secondValue < m_minimum)
     secondValue = m_minimum;
 
+  // Compare against last value and determine whether firstValue is the min or max
+  bool secondValueIsMin = m_secondValue < m_firstValue;
+  bool didMinMaxSwap = secondValueIsMin != (secondValue < m_firstValue);
   m_secondValue = secondValue;
+
   if (!blockSignals) {
-    emit secondValueChanged(m_secondValue);
+    // Broadcast new min and/or max.
+    if (didMinMaxSwap || secondValueIsMin) {
+      emit minValueChanged(valueMin());
+    }
+    if (didMinMaxSwap || !secondValueIsMin) {
+      emit maxValueChanged(valueMax());
+    }
   }
 
   update();
@@ -264,10 +274,19 @@ RangeWidget::setFirstValue(int firstValue, bool blockSignals)
   if (firstValue < m_minimum)
     firstValue = m_minimum;
 
+  // Compare against last value and determine whether firstValue is the min or max
+  bool firstValueIsMin = m_firstValue < m_secondValue;
+  bool didMinMaxSwap = firstValueIsMin != (firstValue < m_secondValue);
   m_firstValue = firstValue;
 
   if (!blockSignals) {
-    emit firstValueChanged(m_firstValue);
+    // Broadcast new min and/or max.
+    if (didMinMaxSwap || firstValueIsMin) {
+      emit minValueChanged(valueMin());
+    }
+    if (didMinMaxSwap || !firstValueIsMin) {
+      emit maxValueChanged(valueMax());
+    }
   }
 
   update();

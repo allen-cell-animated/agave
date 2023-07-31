@@ -162,8 +162,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_roiX->setFirstValue(0);
   m_roiX->setSecondValue(100);
   roiSectionLayout->addWidget(m_roiX, 0, 1);
-  QObject::connect(m_roiX, &RangeWidget::firstValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMin);
-  QObject::connect(m_roiX, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMax);
+  QObject::connect(m_roiX, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMin);
+  QObject::connect(m_roiX, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiXMax);
   roiSectionLayout->addWidget(new QLabel("Y"), 1, 0);
   m_roiY = new RangeWidget(Qt::Horizontal);
   m_roiY->setStatusTip(tr("Set clip planes along Y axis"));
@@ -172,8 +172,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_roiY->setFirstValue(0);
   m_roiY->setSecondValue(100);
   roiSectionLayout->addWidget(m_roiY, 1, 1);
-  QObject::connect(m_roiY, &RangeWidget::firstValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMin);
-  QObject::connect(m_roiY, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMax);
+  QObject::connect(m_roiY, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMin);
+  QObject::connect(m_roiY, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiYMax);
   roiSectionLayout->addWidget(new QLabel("Z"), 2, 0);
   m_roiZ = new RangeWidget(Qt::Horizontal);
   m_roiZ->setStatusTip(tr("Set clip planes along Z axis"));
@@ -182,8 +182,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_roiZ->setFirstValue(0);
   m_roiZ->setSecondValue(100);
   roiSectionLayout->addWidget(m_roiZ, 2, 1);
-  QObject::connect(m_roiZ, &RangeWidget::firstValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
-  QObject::connect(m_roiZ, &RangeWidget::secondValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
+  QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
+  QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
