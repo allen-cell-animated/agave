@@ -22,6 +22,7 @@ public:
   void redraw();
 
   void update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture);
+  void setRenderer(int rendererType);
 
   // Provide a new active tool
   void setTool(ManipulationTool* tool)

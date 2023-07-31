@@ -10,7 +10,6 @@
 #include "renderlib/ViewerWindow.h"
 #include "renderlib/gesture/gesture.h"
 
-
 #include <QOpenGLWidget>
 #include <QTimer>
 
@@ -54,7 +53,7 @@ public:
 
   void onNewImage(Scene* scene);
 
-  const CCamera& getCamera() { return m_CCamera; }
+  const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
 
   void fromViewerState(const Serialize::ViewerState& s);
 
@@ -62,7 +61,7 @@ public:
   QImage captureQimage();
 
   // DANGER this must NOT outlive the GLView3D
-  IRenderWindow* borrowRenderer() { return m_renderer.get(); }
+  IRenderWindow* borrowRenderer() { return m_viewerWindow->m_renderer.get(); }
 
   void pauseRenderLoop();
   void restartRenderLoop();
@@ -94,42 +93,18 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event);
   void mouseMoveEvent(QMouseEvent* event);
 
-  /**
-   * Handle timer events.
-   *
-   * Used to update scene properties and trigger a render pass.
-   *
-   * @param event the event to handle.
-   */
-  void timerEvent(QTimerEvent* event);
-
 private:
   void FitToScene();
 
-  CCamera m_CCamera;
   CameraController m_cameraController;
-  std::vector<CameraAnimation> m_cameraAnim;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
-
-  double m_lastTimeCheck;
-  double m_frameRate;
-  int m_increments;
 
   /// Rendering timer.
   QTimer* m_etimer;
 
   /// Last mouse position.
   QPoint m_lastPos;
-
-  RenderSettings* m_renderSettings;
-
-  std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
-
-  Gesture m_gesture;
-  Clock m_clock;
-  Gesture::Graphics::SelectionBuffer* m_selectionBuffer;
 
   ViewerWindow* m_viewerWindow;
 };

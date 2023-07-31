@@ -32,24 +32,17 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   : QOpenGLWidget(parent)
   , m_etimer()
   , m_lastPos(0, 0)
-  , m_renderSettings(rs)
-  , m_renderer(new RenderGLPT(rs))
   , m_qcamera(cam)
-  , m_cameraController(cam, &m_CCamera)
-  , m_qrendersettings(qrs)
-  , m_rendererType(1)
-  , m_frameRate(0)
-  , m_increments(0)
-  , m_lastTimeCheck(0)
-  , m_selectionBuffer(new Gesture::Graphics::SelectionBuffer())
   , m_viewerWindow(new ViewerWindow(rs))
+  , m_cameraController(cam, &m_viewerWindow->m_CCamera)
+  , m_qrendersettings(qrs)
 {
   setFocusPolicy(Qt::StrongFocus);
-  m_gesture.input.reset();
+
   // The GLView3D owns one CScene
 
-  m_cameraController.setRenderSettings(*m_renderSettings);
-  m_qrendersettings->setRenderSettings(*m_renderSettings);
+  m_cameraController.setRenderSettings(*rs);
+  m_qrendersettings->setRenderSettings(*rs);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
   // GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
@@ -75,31 +68,31 @@ void
 GLView3D::initCameraFromImage(Scene* scene)
 {
   // Tell the camera about the volume's bounding box
-  m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
-  m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
   // reposition to face image
-  m_CCamera.SetViewMode(ViewModeFront);
+  m_viewerWindow->m_CCamera.SetViewMode(ViewModeFront);
 
-  RenderSettings& rs = *m_renderSettings;
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 GLView3D::toggleCameraProjection()
 {
-  ProjectionMode p = m_CCamera.m_Projection;
-  m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
+  ProjectionMode p = m_viewerWindow->m_CCamera.m_Projection;
+  m_viewerWindow->m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
 
-  RenderSettings& rs = *m_renderSettings;
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 GLView3D::onNewImage(Scene* scene)
 {
-  m_renderer->setScene(scene);
+  m_viewerWindow->m_renderer->setScene(scene);
   // costly teardown and rebuild.
-  this->OnUpdateRenderer(m_rendererType);
+  this->OnUpdateRenderer(m_viewerWindow->m_rendererType);
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
 }
@@ -130,10 +123,9 @@ GLView3D::initializeGL()
   makeCurrent();
 
   QSize newsize = size();
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+  m_viewerWindow->m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
 
   // Start timers
-  startTimer(0);
   m_etimer->start();
 
   // Size viewport
@@ -146,89 +138,9 @@ GLView3D::paintGL()
   if (!isEnabled()) {
     return;
   }
+
   makeCurrent();
-  m_clock.tick();
-  // m_gesture.setTimeIncrement(m_clock.timeIncrement);
-  // Display frame rate in window title
-  double interval = m_clock.time - m_lastTimeCheck; //< Interval in seconds
-  m_increments += 1;
-  // update once per second
-  if (interval >= 1.0) {
-    // Compute average frame rate over the last second, if different than what we
-    // display previously, update the window title.
-    double newFrameRate = round(m_increments / interval);
-    if (m_frameRate != newFrameRate) {
-      m_frameRate = newFrameRate;
-
-      // TODO update frame rate stats from here.
-      // char title[256];
-      // snprintf(title, 256, "%s | %d fps", windowTitle, frameRate);
-      // glfwSetWindowTitle(mainWindow.handle, title);
-    }
-    m_lastTimeCheck = m_clock.time;
-    m_increments = 0;
-  }
-
-  bool ok = m_selectionBuffer->update(glm::ivec2(width(), height()));
-  if (!ok) {
-    LOG_ERROR << "Failed to update selection buffer";
-  }
-
-  // QPoint p = mapFromGlobal(QCursor::pos());
-  // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
-
-  // Use gesture strokes (if any) to move the camera. If camera edit is still in progress, we are not
-  // going to change the camera directly, instead we fill a CameraModifier object with the delta.
-  CameraModifier cameraMod;
-  bool cameraEdit = cameraManipulation(glm::vec2(width() * devicePixelRatioF(), height() * devicePixelRatioF()),
-                                       // m_clock,
-                                       m_gesture,
-                                       m_CCamera,
-                                       cameraMod);
-  if (cameraEdit) {
-    // let renderer know camera is dirty
-    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-  }
-  // Apply camera animation transitions if we have any
-  if (!m_cameraAnim.empty()) {
-    for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
-      CameraAnimation& anim = *it;
-      anim.time += m_clock.timeIncrement;
-
-      if (anim.time < anim.duration) { // alpha < 1.0) {
-        float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
-        // Animation in-betweens are accumulated to the camera modifier
-        cameraMod = cameraMod + anim.mod * alpha;
-        ++it;
-      } else {
-        // Completed animation is applied to the camera instead
-        m_CCamera = m_CCamera + anim.mod;
-        it = m_cameraAnim.erase(it);
-      }
-
-      // let renderer know camera is dirty
-      m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-    }
-  }
-
-  // Produce the render camera for current frame
-  m_CCamera.Update();
-  CCamera renderCamera = m_CCamera;
-  if (cameraEdit) {
-    renderCamera = m_CCamera + cameraMod;
-    renderCamera.Update();
-  }
-
-  m_renderer->render(renderCamera);
-
-  SceneView sv;
-  sv.camera = renderCamera;
-  sv.viewport.region = { { 0, 0 }, { width(), height() } };
-  m_gesture.graphics.draw(sv, *m_selectionBuffer);
-
-  // Make sure we consumed any unused input event before we poll new events.
-  m_gesture.input.consume();
-
+  m_viewerWindow->redraw();
   doneCurrent();
 }
 
@@ -239,12 +151,13 @@ GLView3D::resizeGL(int w, int h)
     return;
   }
   // clock tick?
-  m_clock.tick();
   makeCurrent();
+  m_viewerWindow->setSize(w, h);
 
-  m_CCamera.m_Film.m_Resolution.SetResX(w);
-  m_CCamera.m_Film.m_Resolution.SetResY(h);
-  m_renderer->resize(w, h, devicePixelRatioF());
+  // // TODO remove in favor of m_viewerWindow
+  // m_CCamera.m_Film.m_Resolution.SetResX(w);
+  // m_CCamera.m_Film.m_Resolution.SetResY(h);
+  // m_renderer->resize(w, h, devicePixelRatioF());
 
   doneCurrent();
 }
@@ -299,7 +212,7 @@ GLView3D::mousePressEvent(QMouseEvent* event)
   m_cameraController.m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
-  m_gesture.input.setButtonEvent(
+  m_viewerWindow->gesture.input.setButtonEvent(
     getButton(event), Gesture::Input::Action::kPress, getGestureMods(event), glm::vec2(event->x(), event->y()), time);
 }
 
@@ -314,7 +227,7 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
   m_cameraController.m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
-  m_gesture.input.setButtonEvent(
+  m_viewerWindow->gesture.input.setButtonEvent(
     getButton(event), Gesture::Input::Action::kRelease, getGestureMods(event), glm::vec2(event->x(), event->y()), time);
 }
 
@@ -326,27 +239,13 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #endif
 
-// x, y in 0..1 relative to screen
-glm::vec3
-get_arcball_vector(float xndc, float yndc)
-{
-  glm::vec3 P = glm::vec3(1.0 * xndc * 2 - 1.0, 1.0 * yndc * 2 - 1.0, 0);
-  P.y = -P.y;
-  float OP_squared = P.x * P.x + P.y * P.y;
-  if (OP_squared <= 1 * 1)
-    P.z = sqrt(1 * 1 - OP_squared); // Pythagore
-  else
-    P = glm::normalize(P); // nearest point
-  return P;
-}
-
 void
 GLView3D::mouseMoveEvent(QMouseEvent* event)
 {
   if (!isEnabled()) {
     return;
   }
-  m_gesture.input.setPointerPosition(glm::vec2(event->x(), event->y()));
+  m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x(), event->y()));
 
   // m_cameraController.OnMouseMove(event);
   m_lastPos = event->pos();
@@ -357,31 +256,17 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
 #endif
 
 void
-GLView3D::timerEvent(QTimerEvent* event)
-{
-  if (!isEnabled()) {
-    return;
-  }
-
-  //  makeCurrent();
-
-  //  QOpenGLWidget::timerEvent(event);
-
-  //  update();
-}
-
-void
 GLView3D::FitToScene()
 {
-  Scene* sc = m_renderer->scene();
+  Scene* sc = m_viewerWindow->m_renderer->scene();
 
   glm::vec3 newPosition, newTarget;
-  m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
+  m_viewerWindow->m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
   CameraAnimation anim = {};
   anim.duration = 0.5f; //< duration is seconds.
-  anim.mod.position = newPosition - m_CCamera.m_From;
-  anim.mod.target = newTarget - m_CCamera.m_Target;
-  m_cameraAnim.push_back(anim);
+  anim.mod.position = newPosition - m_viewerWindow->m_CCamera.m_From;
+  anim.mod.target = newTarget - m_viewerWindow->m_CCamera.m_Target;
+  m_viewerWindow->m_cameraAnim.push_back(anim);
 }
 
 void
@@ -398,57 +283,57 @@ void
 GLView3D::OnUpdateCamera()
 {
   //	QMutexLocker Locker(&gSceneMutex);
-  RenderSettings& rs = *m_renderSettings;
-  m_CCamera.m_Film.m_Exposure = 1.0f - m_qcamera->GetFilm().GetExposure();
-  m_CCamera.m_Film.m_ExposureIterations = m_qcamera->GetFilm().GetExposureIterations();
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  m_viewerWindow->m_CCamera.m_Film.m_Exposure = 1.0f - m_qcamera->GetFilm().GetExposure();
+  m_viewerWindow->m_CCamera.m_Film.m_ExposureIterations = m_qcamera->GetFilm().GetExposureIterations();
 
   if (m_qcamera->GetFilm().IsDirty()) {
     const int FilmWidth = m_qcamera->GetFilm().GetWidth();
     const int FilmHeight = m_qcamera->GetFilm().GetHeight();
 
-    m_CCamera.m_Film.m_Resolution.SetResX(FilmWidth);
-    m_CCamera.m_Film.m_Resolution.SetResY(FilmHeight);
-    m_CCamera.Update();
+    m_viewerWindow->m_CCamera.m_Film.m_Resolution.SetResX(FilmWidth);
+    m_viewerWindow->m_CCamera.m_Film.m_Resolution.SetResY(FilmHeight);
+    m_viewerWindow->m_CCamera.Update();
     m_qcamera->GetFilm().UnDirty();
 
-    rs.m_DirtyFlags.SetFlag(FilmResolutionDirty);
+    rs->m_DirtyFlags.SetFlag(FilmResolutionDirty);
   }
 
-  m_CCamera.Update();
+  m_viewerWindow->m_CCamera.Update();
 
   // Aperture
-  m_CCamera.m_Aperture.m_Size = m_qcamera->GetAperture().GetSize();
+  m_viewerWindow->m_CCamera.m_Aperture.m_Size = m_qcamera->GetAperture().GetSize();
 
   // Projection
-  m_CCamera.m_FovV = m_qcamera->GetProjection().GetFieldOfView();
+  m_viewerWindow->m_CCamera.m_FovV = m_qcamera->GetProjection().GetFieldOfView();
 
   // Focus
-  m_CCamera.m_Focus.m_Type = (Focus::EType)m_qcamera->GetFocus().GetType();
-  m_CCamera.m_Focus.m_FocalDistance = m_qcamera->GetFocus().GetFocalDistance();
+  m_viewerWindow->m_CCamera.m_Focus.m_Type = (Focus::EType)m_qcamera->GetFocus().GetType();
+  m_viewerWindow->m_CCamera.m_Focus.m_FocalDistance = m_qcamera->GetFocus().GetFocalDistance();
 
-  rs.m_DenoiseParams.m_Enabled = m_qcamera->GetFilm().GetNoiseReduction();
+  rs->m_DenoiseParams.m_Enabled = m_qcamera->GetFilm().GetNoiseReduction();
 
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
 GLView3D::OnUpdateQRenderSettings(void)
 {
   // QMutexLocker Locker(&gSceneMutex);
-  RenderSettings& rs = *m_renderSettings;
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
 
-  rs.m_RenderSettings.m_DensityScale = m_qrendersettings->GetDensityScale();
-  rs.m_RenderSettings.m_ShadingType = m_qrendersettings->GetShadingType();
-  rs.m_RenderSettings.m_GradientFactor = m_qrendersettings->GetGradientFactor();
+  rs->m_RenderSettings.m_DensityScale = m_qrendersettings->GetDensityScale();
+  rs->m_RenderSettings.m_ShadingType = m_qrendersettings->GetShadingType();
+  rs->m_RenderSettings.m_GradientFactor = m_qrendersettings->GetGradientFactor();
 
   // update window/levels / transfer function here!!!!
 
-  rs.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 std::shared_ptr<CStatus>
 GLView3D::getStatus()
 {
-  return m_renderer->getStatusInterface();
+  return m_viewerWindow->m_renderer->getStatusInterface();
 }
 
 void
@@ -461,36 +346,7 @@ GLView3D::OnUpdateRenderer(int rendererType)
 
   makeCurrent();
 
-  // clean up old renderer.
-  if (m_renderer) {
-    m_renderer->cleanUpResources();
-  }
-
-  Scene* sc = m_renderer->scene();
-
-  switch (rendererType) {
-    case 1:
-      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-      break;
-    case 2:
-      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-      break;
-    default:
-      LOG_DEBUG << "Set OpenGL single pass Renderer";
-      m_renderer.reset(new RenderGL(m_renderSettings));
-  };
-  m_rendererType = rendererType;
-
-  QSize newsize = size();
-  // need to update the scene in QAppearanceSettingsWidget.
-  m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
-
-  m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  m_viewerWindow->setRenderer(rendererType);
 
   emit ChangedRenderer();
 }
@@ -498,17 +354,19 @@ GLView3D::OnUpdateRenderer(int rendererType)
 void
 GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
-  m_CCamera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
-  m_CCamera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
-  m_CCamera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
-  m_CCamera.m_FovV = s.camera.fovY;
-  m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
-                                                                                            : ORTHOGRAPHIC);
-  m_CCamera.m_OrthoScale = s.camera.orthoScale;
+  // syntactic sugar
+  CCamera& camera = m_viewerWindow->m_CCamera;
 
-  m_CCamera.m_Film.m_Exposure = s.camera.exposure;
-  m_CCamera.m_Aperture.m_Size = s.camera.aperture;
-  m_CCamera.m_Focus.m_FocalDistance = s.camera.focalDistance;
+  camera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
+  camera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+  camera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
+  camera.m_FovV = s.camera.fovY;
+  camera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
+  camera.m_OrthoScale = s.camera.orthoScale;
+
+  camera.m_Film.m_Exposure = s.camera.exposure;
+  camera.m_Aperture.m_Size = s.camera.aperture;
+  camera.m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
   m_qcamera->GetProjection().SetFieldOfView(s.camera.fovY);
@@ -563,7 +421,7 @@ GLView3D::captureQimage()
 
   // do a render into the temp framebuffer
   glViewport(0, 0, fbo->width(), fbo->height());
-  m_renderer->render(m_CCamera);
+  m_viewerWindow->m_renderer->render(m_viewerWindow->m_CCamera);
   fbo->release();
 
   QImage img(fbo->toImage());

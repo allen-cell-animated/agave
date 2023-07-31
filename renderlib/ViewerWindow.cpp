@@ -1,19 +1,20 @@
 #include "ViewerWindow.h"
 
-#include "RenderSettings.h"
 #include "IRenderWindow.h"
+#include "RenderSettings.h"
+#include "graphics/RenderGL.h"
+#include "graphics/RenderGLPT.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
-  , m_renderer()
-  , m_rendererType(0)
+  , m_renderer(new RenderGLPT(rs))
+  , m_rendererType(1)
 {
   gesture.input.reset();
 }
 
 ViewerWindow::~ViewerWindow()
 {
-
   if (m_activeTool != &m_defaultTool)
     ManipulationTool::destroyTool(m_activeTool);
   for (ManipulationTool* tool : m_tools)
@@ -93,10 +94,20 @@ ViewerWindow::redraw()
     m_increments = 0;
   }
 
+  glm::ivec2 pickbuffersize = m_selection.resolution;
   bool ok = m_selection.update(glm::ivec2(width(), height()));
   if (!ok) {
     LOG_ERROR << "Failed to update selection buffer";
   }
+
+  if (width() != pickbuffersize.x || height() != pickbuffersize.y) {
+    // TODO devicePixelRatio?
+    m_renderer->resize(width(), height());
+    m_CCamera.m_Film.m_Resolution.SetResX(width());
+    m_CCamera.m_Film.m_Resolution.SetResY(height());
+  }
+
+  update(sceneView.viewport, m_clock, gesture);
 
   // QPoint p = mapFromGlobal(QCursor::pos());
   // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
@@ -152,4 +163,38 @@ ViewerWindow::redraw()
 
   // Make sure we consumed any unused input event before we poll new events.
   gesture.input.consume();
+}
+
+void
+ViewerWindow::setRenderer(int rendererType)
+{
+  // clean up old renderer.
+  if (m_renderer) {
+    m_renderer->cleanUpResources();
+  }
+
+  Scene* sc = m_renderer->scene();
+
+  switch (rendererType) {
+    case 1:
+      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
+      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+      break;
+    case 2:
+      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
+      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+      break;
+    default:
+      LOG_DEBUG << "Set OpenGL single pass Renderer";
+      m_renderer.reset(new RenderGL(m_renderSettings));
+  };
+  m_rendererType = rendererType;
+
+  // need to update the scene in QAppearanceSettingsWidget.
+  m_renderer->setScene(sc);
+  m_renderer->initialize(width(), height()); // TODO , devicePixelRatioF());
+
+  m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
