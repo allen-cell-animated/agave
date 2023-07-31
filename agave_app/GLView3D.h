@@ -7,7 +7,9 @@
 #include "CameraController.h"
 #include "glm.h"
 #include "renderlib/CCamera.h"
+#include "renderlib/ViewerWindow.h"
 #include "renderlib/gesture/gesture.h"
+
 
 #include <QOpenGLWidget>
 #include <QTimer>
@@ -128,4 +130,6 @@ private:
   Gesture m_gesture;
   Clock m_clock;
   Gesture::Graphics::SelectionBuffer* m_selectionBuffer;
+
+  ViewerWindow* m_viewerWindow;
 };

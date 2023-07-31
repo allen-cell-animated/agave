@@ -42,6 +42,7 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   , m_increments(0)
   , m_lastTimeCheck(0)
   , m_selectionBuffer(new Gesture::Graphics::SelectionBuffer())
+  , m_viewerWindow(new ViewerWindow(rs))
 {
   setFocusPolicy(Qt::StrongFocus);
   m_gesture.input.reset();
