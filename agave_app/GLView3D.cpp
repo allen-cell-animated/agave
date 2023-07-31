@@ -123,13 +123,14 @@ GLView3D::initializeGL()
   makeCurrent();
 
   QSize newsize = size();
-  m_viewerWindow->m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
+  float dpr = devicePixelRatioF();
+  m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr); // TODO , devicePixelRatioF());
 
   // Start timers
   m_etimer->start();
 
   // Size viewport
-  resizeGL(newsize.width(), newsize.height());
+  resizeGL(newsize.width() * dpr, newsize.height() * dpr);
 }
 
 void
@@ -152,7 +153,8 @@ GLView3D::resizeGL(int w, int h)
   }
   // clock tick?
   makeCurrent();
-  m_viewerWindow->setSize(w, h);
+  float dpr = devicePixelRatioF();
+  m_viewerWindow->setSize(w * dpr, h * dpr);
 
   // // TODO remove in favor of m_viewerWindow
   // m_CCamera.m_Film.m_Resolution.SetResX(w);
@@ -412,8 +414,8 @@ GLView3D::captureQimage()
   fboFormat.setInternalTextureFormat(GL_RGB8);
   check_gl("pre screen capture");
 
-  QOpenGLFramebufferObject* fbo =
-    new QOpenGLFramebufferObject(width() * devicePixelRatioF(), height() * devicePixelRatioF(), fboFormat);
+  const float dpr = devicePixelRatioF();
+  QOpenGLFramebufferObject* fbo = new QOpenGLFramebufferObject(width() * dpr, height() * dpr, fboFormat);
   check_gl("create fbo");
 
   fbo->bind();

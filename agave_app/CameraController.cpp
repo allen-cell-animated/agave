@@ -23,8 +23,7 @@ CameraController::CameraController(QCamera* cam, CCamera* theCamera)
   : m_renderSettings(nullptr)
   , m_qcamera(cam)
   , m_CCamera(theCamera)
-{
-}
+{}
 
 void
 CameraController::OnMouseWheelForward(void)
@@ -64,7 +63,7 @@ void
 CameraController::OnMouseMove(QMouseEvent* event)
 {
 
-  float devicePixelRatio = QGuiApplication::focusWindow()->devicePixelRatio();
+  float devicePixelRatio = 1.0f; // TODO QGuiApplication::focusWindow()->devicePixelRatio();
   if (event->buttons() & Qt::LeftButton) {
     if (GetCtrlKey()) {
       // Zooming (Dolly): ctrl + left drag
