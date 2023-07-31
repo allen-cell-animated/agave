@@ -17,6 +17,8 @@ private:
   int m_handleWidth;
   int m_handleHeight;
 
+  int m_trackHeight;
+
   int m_minimum;
   int m_maximum;
 
@@ -34,7 +36,9 @@ private:
 
   QColor m_firstHandleColor;
   QColor m_secondHandleColor;
-  QColor m_trackColor;
+  QColor m_trackRangeColor;
+  QColor m_trackOutlineColor;
+  QColor m_trackFillColor;
 
   QRectF m_trackRect;
   QPoint m_trackPos;

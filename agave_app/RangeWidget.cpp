@@ -10,6 +10,7 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
   , m_orientation(orientation)
   , m_handleWidth(8)
+  , m_trackHeight(5)
   , m_handleHeight(20)
   , m_minimum(0)
   , m_maximum(100)
@@ -19,10 +20,13 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_secondHandlePressed(false)
   , m_trackHovered(false)
   , m_trackPressed(false)
-  , m_firstHandleColor(style()->standardPalette().light().color())
-  , m_secondHandleColor(style()->standardPalette().light().color())
-  , m_trackColor(style()->standardPalette().highlight().color())
+  , m_firstHandleColor(style()->standardPalette().mid().color())
+  , m_secondHandleColor(style()->standardPalette().mid().color())
+  , m_trackFillColor(style()->standardPalette().midlight().color())
+  , m_trackOutlineColor(style()->standardPalette().window().color())
+  , m_trackRangeColor(style()->standardPalette().dark().color())
 {
+
   setMouseTracking(true);
 }
 
@@ -45,15 +49,17 @@ RangeWidget::paintEvent(QPaintEvent* event)
   if (m_secondHandleHovered)
     c2 = c2.darker();
 
-  // Background
+  // Track
   QRect r;
   if (m_orientation == Qt::Horizontal)
-    r = QRect(0, (height() - m_handleWidth - LABEL_SPACING) / 2, width() - 1, m_handleWidth);
+    r = QRect(0, (height() - m_trackHeight - LABEL_SPACING) / 2, width() - 1, m_trackHeight);
   else
-    r = QRect((width() - m_handleWidth - LABEL_SPACING) / 2, 0, m_handleWidth, height() - 1);
+    r = QRect((width() - m_trackHeight - LABEL_SPACING) / 2, 0, m_trackHeight, height() - 1);
+  p.fillRect(r, m_trackFillColor);
+  p.setPen(m_trackOutlineColor);
   p.drawRect(r);
 
-  // Handles
+  // Track range
   QRectF rf(r);
   if (m_orientation == Qt::Horizontal) {
     rf.setLeft(rv1.right());
@@ -64,14 +70,51 @@ RangeWidget::paintEvent(QPaintEvent* event)
     rf.setBottom(rv2.top());
     rf.setRight(rf.right() + 1);
   }
-  p.fillRect(rf, m_trackColor);
+  p.fillRect(rf, m_trackRangeColor);
+
+  // Handles
   m_trackRect = rf;
+  p.setPen(style()->standardPalette().text().color());
   p.fillRect(rv1, c1);
   p.drawRect(rv1);
   p.fillRect(rv2, c2);
   p.drawRect(rv2);
   p.drawText(rt1, Qt::AlignmentFlag::AlignCenter, QString::number(m_firstValue));
   p.drawText(rt2, Qt::AlignmentFlag::AlignCenter, QString::number(m_secondValue));
+
+  const int arrLength = 20;
+  QColor colors[arrLength] = {
+    style()->standardPalette().color(QPalette::Window),
+    style()->standardPalette().color(QPalette::WindowText),
+    style()->standardPalette().color(QPalette::Base),
+    style()->standardPalette().color(QPalette::AlternateBase),
+    style()->standardPalette().color(QPalette::ToolTipBase),
+    style()->standardPalette().color(QPalette::ToolTipText),
+    style()->standardPalette().color(QPalette::PlaceholderText),
+    style()->standardPalette().color(QPalette::Text),
+    style()->standardPalette().color(QPalette::Button),
+    style()->standardPalette().color(QPalette::ButtonText),
+    style()->standardPalette().color(QPalette::BrightText),
+    style()->standardPalette().color(QPalette::Light),
+    style()->standardPalette().color(QPalette::Midlight),
+    style()->standardPalette().color(QPalette::Dark),
+    style()->standardPalette().color(QPalette::Mid),
+    style()->standardPalette().color(QPalette::Shadow),
+    style()->standardPalette().color(QPalette::Highlight),
+    style()->standardPalette().color(QPalette::HighlightedText),
+    style()->standardPalette().color(QPalette::Link),
+    style()->standardPalette().color(QPalette::LinkVisited),
+  };
+
+  QRectF colorRect(r);
+  QSize size = minimumSizeHint();
+  for (int i = 0; i < arrLength; i++) {
+    colorRect.setTop(rv1.bottom() + 2);
+    colorRect.setLeft(((0.0 + i) / arrLength) * (size.width() * 6));
+    colorRect.setRight(((0.0 + i + 1) / arrLength) * (size.width() * 6));
+    colorRect.setBottom(rv1.bottom() + 8);
+    p.fillRect(colorRect, colors[i]);
+  }
 }
 
 qreal
@@ -220,7 +263,7 @@ RangeWidget::mouseReleaseEvent(QMouseEvent* event)
 QSize
 RangeWidget::minimumSizeHint() const
 {
-  return QSize(m_handleHeight * 2 + LABEL_SPACING, m_handleHeight * 2 + LABEL_SPACING);
+  return QSize(m_handleHeight * 2 + LABEL_SPACING, m_handleHeight * 2 + LABEL_SPACING + 8);
 }
 
 void
