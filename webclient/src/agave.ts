@@ -64,11 +64,9 @@ export class AgaveClient {
         resolve(this);
       };
 
-      // TODO - handle this better
+      // TODO - handle this better, understand when and why it happens.
       this.socket.onclose = (_ev: CloseEvent) => {
-        setTimeout(function () {
-          console.warn("connection failed. refresh to retry.");
-        }, 3000);
+        console.warn("AGAVE websocket connection closed.");
       };
 
       // handle incoming messages
