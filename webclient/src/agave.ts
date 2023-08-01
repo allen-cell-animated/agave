@@ -101,11 +101,16 @@ export class AgaveClient {
   }
 
   isReady(): boolean {
-    return this.socket!.readyState === 1;
+    if (this.socket) {
+      return this.socket.readyState === 1;
+    }
+    return false;
   }
 
   disconnect() {
-    this.socket!.close();
+    if (this.socket) {
+      this.socket.close();
+    }
   }
 
   /**
@@ -686,9 +691,9 @@ export class AgaveClient {
 
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
-    if (this.cb.length() > 0) {
+    if (this.cb.length() > 0 && this.socket) {
       const buf = this.cb.prebufferToBuffer();
-      this.socket!.send(buf);
+      this.socket.send(buf);
       // assuming the buffer is sent, prepare a new one
       this.cb = new CommandBuffer();
     }
