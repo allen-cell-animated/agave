@@ -11,7 +11,7 @@ constexpr int OUTLINE_WIDTH = 1;
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
   , m_orientation(orientation)
-  , m_handleWidth(10)
+  , m_handleWidth(12)
   , m_trackHeight(5)
   , m_handleHeight(20)
   , m_minimum(0)
@@ -20,6 +20,8 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_secondValue(90)
   , m_firstHandlePressed(false)
   , m_secondHandlePressed(false)
+  , m_firstHandleHovered(false)
+  , m_secondHandleHovered(false)
   , m_trackHovered(false)
   , m_trackPressed(false)
   , m_firstHandleColor(style()->standardPalette().light().color())
@@ -63,14 +65,12 @@ RangeWidget::paintEvent(QPaintEvent* event)
   int totalOutline = OUTLINE_WIDTH * 2;
 
   // First value handle rect
-  QRectF rt1 = firstTextRect(p);
   QRectF rv1 = firstHandleRect();
   QColor c1(m_firstHandleColor);
   if (m_firstHandleHovered)
     c1 = c1.darker(125); // 80% of original brightness
 
   // Second value handle rect
-  QRectF rt2 = secondTextRect(p);
   QRectF rv2 = secondHandleRect();
   QColor c2(m_secondHandleColor);
   if (m_secondHandleHovered)
@@ -146,39 +146,6 @@ RangeWidget::handleRect(int value) const
   } else {
     r = QRectF(
       (width() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, 0, m_handleHeight - totalOutline, m_handleWidth);
-    r.moveTop(s * (value - m_minimum));
-  }
-  return r;
-}
-
-QRectF
-RangeWidget::firstTextRect(QPainter& p) const
-{
-  return textRect(m_firstValue, p);
-}
-
-QRectF
-RangeWidget::secondTextRect(QPainter& p) const
-{
-  return textRect(m_secondValue, p);
-}
-
-QRectF
-RangeWidget::textRect(int value, QPainter& p) const
-{
-  QRect rt;
-  rt = p.boundingRect(rt, Qt::AlignCenter, QString::number(value));
-
-  qreal s = span(rt.width());
-
-  QRectF r;
-  if (m_orientation == Qt::Horizontal) {
-    r = rt;
-    r.moveLeft(s * (value - m_minimum));
-    r.moveTop(height() - rt.height() + LABEL_SPACING / 2);
-  } else {
-    r = rt;
-    r.moveLeft(width() - rt.width() + LABEL_SPACING / 2);
     r.moveTop(s * (value - m_minimum));
   }
   return r;
