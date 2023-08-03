@@ -38,13 +38,14 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   m_layout.setRowMinimumHeight(0, m_handleHeight * 2);
   m_layout.addWidget(&m_minSpinner, 1, 0);
   m_layout.addWidget(&m_maxSpinner, 1, 2);
-  m_layout.setContentsMargins(0, 0, 0, 0);
+  // Set up stretching for the min and max spinners
   m_layout.setColumnStretch(0, 1);
   m_layout.setColumnStretch(1, 3); // middle spacing column
   m_layout.setColumnStretch(2, 1);
 
   m_minSpinner.setAlignment(Qt::AlignCenter);
   m_maxSpinner.setAlignment(Qt::AlignCenter);
+  // Set max very high so that large numbers can be typed in and clamped
   m_minSpinner.setMinimum(0);
   m_minSpinner.setMaximum(INT_MAX);
   m_maxSpinner.setMinimum(0);
@@ -54,7 +55,6 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   QObject::connect(&m_minSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMinValue(v); });
   QObject::connect(&m_maxSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMaxValue(v); });
 
-  // Add a second row
   setMouseTracking(true);
 }
 
@@ -76,7 +76,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
   if (m_secondHandleHovered)
     c2 = c2.darker(125);
 
-  // Track
+  // Draw the track
   QRect r;
   if (m_orientation == Qt::Horizontal)
     r = QRect(0, (height() - m_trackHeight - LABEL_SPACING - totalOutline) / 2, width() - totalOutline, m_trackHeight);
@@ -86,7 +86,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
   p.setPen(m_trackOutlineColor);
   p.drawRect(r);
 
-  // Track range
+  // Color the selected range of the track
   QRectF rf(r);
   if (m_orientation == Qt::Horizontal) {
     rf.setLeft(rv1.right());
@@ -99,14 +99,13 @@ RangeWidget::paintEvent(QPaintEvent* event)
   }
   p.fillRect(rf, m_trackRangeColor);
 
-  // Handles
+  // Draw handles
   m_trackRect = rf;
   p.setPen(style()->standardPalette().mid().color());
   p.fillRect(rv1, c1);
   p.drawRect(rv1);
   p.fillRect(rv2, c2);
   p.drawRect(rv2);
-  p.setPen(style()->standardPalette().text().color());
 }
 
 qreal
@@ -254,8 +253,8 @@ RangeWidget::updateSpinners()
 {
   m_minSpinner.blockSignals(true);
   m_maxSpinner.blockSignals(true);
-  m_minSpinner.setValue(valueMin());
-  m_maxSpinner.setValue(valueMax());
+  m_minSpinner.setValue(minValue());
+  m_maxSpinner.setValue(maxValue());
   m_minSpinner.blockSignals(false);
   m_maxSpinner.blockSignals(false);
 }
@@ -277,10 +276,10 @@ RangeWidget::setSecondValue(int secondValue, bool blockSignals)
   if (!blockSignals) {
     // Broadcast new min and/or max.
     if (didMinMaxSwap || secondValueIsMin) {
-      emit minValueChanged(valueMin());
+      emit minValueChanged(minValue());
     }
     if (didMinMaxSwap || !secondValueIsMin) {
-      emit maxValueChanged(valueMax());
+      emit maxValueChanged(maxValue());
     }
   }
 
@@ -305,10 +304,10 @@ RangeWidget::setFirstValue(int firstValue, bool blockSignals)
   if (!blockSignals) {
     // Broadcast new min and/or max.
     if (didMinMaxSwap || firstValueIsMin) {
-      emit minValueChanged(valueMin());
+      emit minValueChanged(minValue());
     }
     if (didMinMaxSwap || !firstValueIsMin) {
-      emit maxValueChanged(valueMax());
+      emit maxValueChanged(maxValue());
     }
   }
 
@@ -317,59 +316,59 @@ RangeWidget::setFirstValue(int firstValue, bool blockSignals)
 }
 
 void
-RangeWidget::setBoundsMax(int max, bool blockSignals)
+RangeWidget::setMaxBound(int max, bool blockSignals)
 {
-  if (max >= boundsMin())
+  if (max >= minBound())
     m_maximum = max;
   else {
-    int oldMin = boundsMin();
+    int oldMin = minBound();
     m_maximum = oldMin;
     m_minimum = max;
   }
 
-  if (valueMin() > boundsMax())
-    setMinValue(boundsMax(), blockSignals);
+  if (minValue() > maxBound())
+    setMinValue(maxBound(), blockSignals);
 
-  if (valueMax() > boundsMax())
-    setMaxValue(boundsMax(), blockSignals);
+  if (maxValue() > maxBound())
+    setMaxValue(maxBound(), blockSignals);
 
   updateSpinners();
   update();
 
   if (!blockSignals) {
-    emit rangeChanged(boundsMin(), boundsMax());
+    emit rangeChanged(minBound(), maxBound());
   }
 }
 
 void
 RangeWidget::setBounds(int min, int max, bool blockSignals)
 {
-  setBoundsMin(min, blockSignals);
-  setBoundsMax(max, blockSignals);
+  setMinBound(min, blockSignals);
+  setMaxBound(max, blockSignals);
 }
 
 void
-RangeWidget::setBoundsMin(int min, bool blockSignals)
+RangeWidget::setMinBound(int min, bool blockSignals)
 {
-  if (min <= boundsMax())
+  if (min <= maxBound())
     m_minimum = min;
   else {
-    int oldMax = boundsMax();
+    int oldMax = maxBound();
     m_minimum = oldMax;
     m_maximum = min;
   }
 
-  if (valueMin() < boundsMin())
-    setMinValue(boundsMin(), blockSignals);
+  if (minValue() < minBound())
+    setMinValue(minBound(), blockSignals);
 
-  if (valueMax() < boundsMin())
-    setMaxValue(boundsMin(), blockSignals);
+  if (maxValue() < minBound())
+    setMaxValue(minBound(), blockSignals);
 
   updateSpinners();
   update();
 
   if (!blockSignals) {
-    emit rangeChanged(boundsMin(), boundsMax());
+    emit rangeChanged(minBound(), maxBound());
   }
 }
 

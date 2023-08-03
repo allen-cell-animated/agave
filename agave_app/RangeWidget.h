@@ -67,15 +67,15 @@ public:
 
   QSize minimumSizeHint() const;
 
-  inline int valueMin() const { return std::min(m_firstValue, m_secondValue); }
-  inline float valueMinPercent() const { return (float)(valueMin() - boundsMin()) / (float)boundsRange(); }
-  inline int valueMax() const { return std::max(m_firstValue, m_secondValue); }
-  inline float valueMaxPercent() const { return (float)(valueMax() - boundsMin()) / (float)boundsRange(); }
-  inline int boundsMin() const { return m_minimum; }
-  inline int boundsMax() const { return m_maximum; }
-  inline int boundsRange() const { return boundsMax() - boundsMin(); }
+  inline int minValue() const { return std::min(m_firstValue, m_secondValue); }
+  inline float minValuePercent() const { return (float)(minValue() - minBound()) / (float)boundsRange(); }
+  inline int maxValue() const { return std::max(m_firstValue, m_secondValue); }
+  inline float maxValuePercent() const { return (float)(maxValue() - minBound()) / (float)boundsRange(); }
+  inline int minBound() const { return m_minimum; }
+  inline int maxBound() const { return m_maximum; }
+  inline int boundsRange() const { return maxBound() - minBound(); }
   inline Qt::Orientation orientation() const { return m_orientation; }
-  inline int valueRange() const { return valueMax() - valueMin(); }
+  inline int valueRange() const { return maxValue() - minValue(); }
   inline unsigned int valueRangeAbs() const { return qAbs(valueRange()); }
 
 signals:
@@ -90,8 +90,8 @@ public slots:
   void setSecondValue(int secondValue, bool blockSignals = false);
   void setMinValue(int value, bool blockSignals = false);
   void setMaxValue(int value, bool blockSignals = false);
-  void setBoundsMin(int min, bool blockSignals = false);
-  void setBoundsMax(int max, bool blockSignals = false);
+  void setMinBound(int min, bool blockSignals = false);
+  void setMaxBound(int max, bool blockSignals = false);
   void setBounds(int min, int max, bool blockSignals = false);
   void setOrientation(Qt::Orientation orientation);
 };

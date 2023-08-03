@@ -86,7 +86,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiX->setToolTip(tr("Region to load: X axis"));
   m_roiX->setBounds(0, dims[mSelectedLevel].sizeX());
   m_roiX->setFirstValue(0);
-  m_roiX->setSecondValue(m_roiX->boundsMax());
+  m_roiX->setSecondValue(m_roiX->maxBound());
   QObject::connect(m_roiX, &RangeWidget::minValueChanged, this, &LoadDialog::updateMemoryEstimate);
   QObject::connect(m_roiX, &RangeWidget::maxValueChanged, this, &LoadDialog::updateMemoryEstimate);
   m_roiY = new RangeWidget(Qt::Horizontal);
@@ -94,7 +94,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiY->setToolTip(tr("Region to load: Y axis"));
   m_roiY->setBounds(0, dims[mSelectedLevel].sizeY());
   m_roiY->setFirstValue(0);
-  m_roiY->setSecondValue(m_roiY->boundsMax());
+  m_roiY->setSecondValue(m_roiY->maxBound());
   QObject::connect(m_roiY, &RangeWidget::minValueChanged, this, &LoadDialog::updateMemoryEstimate);
   QObject::connect(m_roiY, &RangeWidget::maxValueChanged, this, &LoadDialog::updateMemoryEstimate);
   m_roiZ = new RangeWidget(Qt::Horizontal);
@@ -102,7 +102,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   m_roiZ->setToolTip(tr("Region to load: Z axis"));
   m_roiZ->setBounds(0, dims[mSelectedLevel].sizeZ());
   m_roiZ->setFirstValue(0);
-  m_roiZ->setSecondValue(m_roiZ->boundsMax());
+  m_roiZ->setSecondValue(m_roiZ->maxBound());
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &LoadDialog::updateMemoryEstimate);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &LoadDialog::updateMemoryEstimate);
 
@@ -203,12 +203,12 @@ void
 LoadDialog::updateMemoryEstimate()
 {
   LoadSpec spec;
-  spec.minx = m_roiX->valueMin();
-  spec.maxx = m_roiX->valueMax();
-  spec.miny = m_roiY->valueMin();
-  spec.maxy = m_roiY->valueMax();
-  spec.minz = m_roiZ->valueMin();
-  spec.maxz = m_roiZ->valueMax();
+  spec.minx = m_roiX->minValue();
+  spec.maxx = m_roiX->maxValue();
+  spec.miny = m_roiY->minValue();
+  spec.maxy = m_roiY->maxValue();
+  spec.minz = m_roiZ->minValue();
+  spec.maxz = m_roiZ->maxValue();
   size_t mem = spec.getMemoryEstimate();
   std::string label = LoadSpec::bytesToStringLabel(mem);
 
@@ -240,12 +240,12 @@ LoadDialog::updateMultiresolutionLevel(int level)
 
   // update the xyz sliders
 
-  float pct0x = m_roiX->valueMinPercent();
-  float pct1x = m_roiX->valueMaxPercent();
-  float pct0y = m_roiY->valueMinPercent();
-  float pct1y = m_roiY->valueMaxPercent();
-  float pct0z = m_roiZ->valueMinPercent();
-  float pct1z = m_roiZ->valueMaxPercent();
+  float pct0x = m_roiX->minValuePercent();
+  float pct1x = m_roiX->maxValuePercent();
+  float pct0y = m_roiY->minValuePercent();
+  float pct1y = m_roiY->maxValuePercent();
+  float pct0z = m_roiZ->minValuePercent();
+  float pct1z = m_roiZ->maxValuePercent();
   m_roiX->setBounds(0, d.sizeX());
   m_roiX->setFirstValue(0 + pct0x * m_roiX->boundsRange());
   m_roiX->setSecondValue(0 + pct1x * m_roiX->boundsRange());
@@ -268,12 +268,12 @@ LoadDialog::getLoadSpec() const
   spec.time = m_TimeSlider->value();
   spec.channels = getCheckedChannels();
 
-  spec.maxx = m_roiX->valueMax();
-  spec.minx = m_roiX->valueMin();
-  spec.maxy = m_roiY->valueMax();
-  spec.miny = m_roiY->valueMin();
-  spec.maxz = m_roiZ->valueMax();
-  spec.minz = m_roiZ->valueMin();
+  spec.maxx = m_roiX->maxValue();
+  spec.minx = m_roiX->minValue();
+  spec.maxy = m_roiY->maxValue();
+  spec.miny = m_roiY->minValue();
+  spec.maxz = m_roiZ->maxValue();
+  spec.minz = m_roiZ->minValue();
 
   spec.subpath = mDims[mSelectedLevel].path;
 
