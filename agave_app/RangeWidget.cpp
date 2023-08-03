@@ -14,8 +14,8 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_handleWidth(12)
   , m_trackHeight(5)
   , m_handleHeight(20)
-  , m_minimum(0)
-  , m_maximum(100)
+  , m_minBound(0)
+  , m_maxBound(100)
   , m_firstValue(10)
   , m_secondValue(90)
   , m_firstHandlePressed(false)
@@ -112,7 +112,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
 qreal
 RangeWidget::span(int w /* = -1 */) const
 {
-  int interval = qAbs(m_maximum - m_minimum);
+  int interval = qAbs(m_maxBound - m_minBound);
 
   if (m_orientation == Qt::Horizontal)
     return qreal(width() - (w == -1 ? m_handleWidth : w)) / qreal(interval);
@@ -142,11 +142,11 @@ RangeWidget::handleRect(int value) const
   if (m_orientation == Qt::Horizontal) {
     r = QRectF(
       0, (height() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, m_handleWidth - totalOutline, m_handleHeight);
-    r.moveLeft(s * (value - m_minimum));
+    r.moveLeft(s * (value - m_minBound));
   } else {
     r = QRectF(
       (width() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, 0, m_handleHeight - totalOutline, m_handleWidth);
-    r.moveTop(s * (value - m_minimum));
+    r.moveTop(s * (value - m_minBound));
   }
   return r;
 }
@@ -169,7 +169,7 @@ void
 RangeWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (event->buttons() & Qt::LeftButton) {
-    int interval = qAbs(m_maximum - m_minimum);
+    int interval = qAbs(m_maxBound - m_minBound);
 
     if (m_secondHandlePressed) {
       if (m_orientation == Qt::Horizontal)
@@ -195,7 +195,7 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
         m_trackPos = event->pos();
       }
       // LOG_DEBUG << "track delta " << dvalue;
-      if (m_firstValue + (int)dvalue >= m_minimum && m_secondValue + (int)dvalue <= m_maximum) {
+      if (m_firstValue + (int)dvalue >= m_minBound && m_secondValue + (int)dvalue <= m_maxBound) {
         setFirstValue(m_firstValue + (int)dvalue);
         setSecondValue(m_secondValue + (int)dvalue);
       }
@@ -263,11 +263,11 @@ RangeWidget::updateSpinners()
 void
 RangeWidget::setSecondValue(int secondValue, bool blockSignals)
 {
-  if (secondValue > m_maximum)
-    secondValue = m_maximum;
+  if (secondValue > m_maxBound)
+    secondValue = m_maxBound;
 
-  if (secondValue < m_minimum)
-    secondValue = m_minimum;
+  if (secondValue < m_minBound)
+    secondValue = m_minBound;
 
   // Compare against last value and determine whether firstValue is the min or max
   bool secondValueIsMin = m_secondValue < m_firstValue;
@@ -291,11 +291,11 @@ RangeWidget::setSecondValue(int secondValue, bool blockSignals)
 void
 RangeWidget::setFirstValue(int firstValue, bool blockSignals)
 {
-  if (firstValue > m_maximum)
-    firstValue = m_maximum;
+  if (firstValue > m_maxBound)
+    firstValue = m_maxBound;
 
-  if (firstValue < m_minimum)
-    firstValue = m_minimum;
+  if (firstValue < m_minBound)
+    firstValue = m_minBound;
 
   // Compare against last value and determine whether firstValue is the min or max
   bool firstValueIsMin = m_firstValue < m_secondValue;
@@ -320,11 +320,11 @@ void
 RangeWidget::setMaxBound(int max, bool blockSignals)
 {
   if (max >= minBound())
-    m_maximum = max;
+    m_maxBound = max;
   else {
     int oldMin = minBound();
-    m_maximum = oldMin;
-    m_minimum = max;
+    m_maxBound = oldMin;
+    m_minBound = max;
   }
 
   if (minValue() > maxBound())
@@ -352,11 +352,11 @@ void
 RangeWidget::setMinBound(int min, bool blockSignals)
 {
   if (min <= maxBound())
-    m_minimum = min;
+    m_minBound = min;
   else {
     int oldMax = maxBound();
-    m_minimum = oldMax;
-    m_maximum = min;
+    m_minBound = oldMax;
+    m_maxBound = min;
   }
 
   if (minValue() < minBound())

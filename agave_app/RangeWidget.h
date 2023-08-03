@@ -20,8 +20,8 @@ private:
 
   int m_trackHeight;
 
-  int m_minimum;
-  int m_maximum;
+  int m_minBound;
+  int m_maxBound;
 
   int m_firstValue;
   int m_secondValue;
@@ -71,8 +71,8 @@ public:
   inline float minValuePercent() const { return (float)(minValue() - minBound()) / (float)boundsRange(); }
   inline int maxValue() const { return std::max(m_firstValue, m_secondValue); }
   inline float maxValuePercent() const { return (float)(maxValue() - minBound()) / (float)boundsRange(); }
-  inline int minBound() const { return m_minimum; }
-  inline int maxBound() const { return m_maximum; }
+  inline int minBound() const { return m_minBound; }
+  inline int maxBound() const { return m_maxBound; }
   inline int boundsRange() const { return maxBound() - minBound(); }
   inline Qt::Orientation orientation() const { return m_orientation; }
   inline int valueRange() const { return maxValue() - minValue(); }
