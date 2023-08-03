@@ -1,6 +1,7 @@
 #ifndef RANGEWIDGET_H
 #define RANGEWIDGET_H
 
+#include <Controls.h>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QStyle>
@@ -42,12 +43,16 @@ private:
 
   QRectF m_trackRect;
   QPoint m_trackPos;
+  MySpinBoxWithEnter m_minSpinner;
+  MySpinBoxWithEnter m_maxSpinner;
+  QGridLayout m_layout;
 
 protected:
   void paintEvent(QPaintEvent* event);
   void mousePressEvent(QMouseEvent* event);
   void mouseMoveEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
+  void updateSpinners();
 
   QRectF firstHandleRect() const;
   QRectF secondHandleRect() const;
@@ -83,6 +88,8 @@ signals:
 public slots:
   void setFirstValue(int firstValue, bool blockSignals = false);
   void setSecondValue(int secondValue, bool blockSignals = false);
+  void setMinValue(int value, bool blockSignals = false);
+  void setMaxValue(int value, bool blockSignals = false);
   void setBoundsMin(int min, bool blockSignals = false);
   void setBoundsMax(int max, bool blockSignals = false);
   void setBounds(int min, int max, bool blockSignals = false);

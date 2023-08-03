@@ -2,6 +2,7 @@
 
 #include "Logging.h"
 
+#include <QSizePolicy>
 #include <QtDebug>
 
 constexpr int LABEL_SPACING = 4;
@@ -26,8 +27,32 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_trackFillColor(style()->standardPalette().midlight().color())
   , m_trackOutlineColor(style()->standardPalette().window().color())
   , m_trackRangeColor(style()->standardPalette().dark().color())
+  , m_minSpinner()
+  , m_maxSpinner()
+  , m_layout()
 {
+  setLayout(&m_layout);
+  // Set up first row (margin for where sliders will be drawn)
+  m_layout.setRowMinimumHeight(0, m_handleHeight * 2);
+  m_layout.addWidget(&m_minSpinner, 1, 0);
+  m_layout.addWidget(&m_maxSpinner, 1, 2);
+  m_layout.setContentsMargins(0, 0, 0, 0);
+  m_layout.setColumnStretch(0, 1);
+  m_layout.setColumnStretch(1, 3); // middle spacing column
+  m_layout.setColumnStretch(2, 1);
 
+  m_minSpinner.setAlignment(Qt::AlignCenter);
+  m_maxSpinner.setAlignment(Qt::AlignCenter);
+  m_minSpinner.setMinimum(0);
+  m_minSpinner.setMaximum(INT_MAX);
+  m_maxSpinner.setMinimum(0);
+  m_maxSpinner.setMaximum(INT_MAX);
+
+  // Connect the spinners so they change the values + sliders
+  QObject::connect(&m_minSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMinValue(v); });
+  QObject::connect(&m_maxSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMaxValue(v); });
+
+  // Add a second row
   setMouseTracking(true);
 }
 
@@ -82,8 +107,6 @@ RangeWidget::paintEvent(QPaintEvent* event)
   p.fillRect(rv2, c2);
   p.drawRect(rv2);
   p.setPen(style()->standardPalette().text().color());
-  p.drawText(rt1, Qt::AlignmentFlag::AlignCenter, QString::number(m_firstValue));
-  p.drawText(rt2, Qt::AlignmentFlag::AlignCenter, QString::number(m_secondValue));
 }
 
 qreal
@@ -239,6 +262,38 @@ RangeWidget::minimumSizeHint() const
 }
 
 void
+RangeWidget::setMinValue(int value, bool blockSignals)
+{
+  LOG_INFO << value;
+  if (m_firstValue < m_secondValue) {
+    setFirstValue(value, blockSignals);
+  } else {
+    setSecondValue(value, blockSignals);
+  }
+}
+
+void
+RangeWidget::setMaxValue(int value, bool blockSignals)
+{
+  if (m_firstValue > m_secondValue) {
+    setFirstValue(value, blockSignals);
+  } else {
+    setSecondValue(value, blockSignals);
+  }
+}
+
+void
+RangeWidget::updateSpinners()
+{
+  m_minSpinner.blockSignals(true);
+  m_maxSpinner.blockSignals(true);
+  m_minSpinner.setValue(valueMin());
+  m_maxSpinner.setValue(valueMax());
+  m_minSpinner.blockSignals(false);
+  m_maxSpinner.blockSignals(false);
+}
+
+void
 RangeWidget::setSecondValue(int secondValue, bool blockSignals)
 {
   if (secondValue > m_maximum)
@@ -262,6 +317,7 @@ RangeWidget::setSecondValue(int secondValue, bool blockSignals)
     }
   }
 
+  updateSpinners();
   update();
 }
 
@@ -289,6 +345,7 @@ RangeWidget::setFirstValue(int firstValue, bool blockSignals)
     }
   }
 
+  updateSpinners();
   update();
 }
 
@@ -303,13 +360,14 @@ RangeWidget::setBoundsMax(int max, bool blockSignals)
     m_minimum = max;
   }
 
-  update();
-
   if (valueMin() > boundsMax())
-    setFirstValue(boundsMax(), blockSignals);
+    setMinValue(boundsMax(), blockSignals);
 
   if (valueMax() > boundsMax())
-    setSecondValue(boundsMax(), blockSignals);
+    setMaxValue(boundsMax(), blockSignals);
+
+  updateSpinners();
+  update();
 
   if (!blockSignals) {
     emit rangeChanged(boundsMin(), boundsMax());
@@ -334,13 +392,14 @@ RangeWidget::setBoundsMin(int min, bool blockSignals)
     m_maximum = min;
   }
 
-  update();
-
   if (valueMin() < boundsMin())
-    setFirstValue(boundsMin(), blockSignals);
+    setMinValue(boundsMin(), blockSignals);
 
   if (valueMax() < boundsMin())
-    setSecondValue(boundsMin(), blockSignals);
+    setMaxValue(boundsMin(), blockSignals);
+
+  updateSpinners();
+  update();
 
   if (!blockSignals) {
     emit rangeChanged(boundsMin(), boundsMax());
@@ -354,5 +413,6 @@ RangeWidget::setOrientation(Qt::Orientation orientation)
     return;
 
   m_orientation = orientation;
+  updateSpinners();
   update();
 }

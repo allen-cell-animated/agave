@@ -184,6 +184,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   roiSectionLayout->addWidget(m_roiZ, 2, 1);
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
+  roiSectionLayout->setColumnStretch(0, 1);
+  roiSectionLayout->setColumnStretch(1, 3);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
