@@ -39,6 +39,7 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   m_layout.addWidget(&m_minSpinner, 1, 0);
   m_layout.addWidget(&m_maxSpinner, 1, 2);
   // Set up stretching for the min and max spinners
+  m_layout.setContentsMargins(0, 0, 0, 0); // keeps slider + spinners consistent
   m_layout.setColumnStretch(0, 1);
   m_layout.setColumnStretch(1, 3); // middle spacing column
   m_layout.setColumnStretch(2, 1);
