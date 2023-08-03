@@ -156,21 +156,21 @@ initEGLDisplay(int selectedGpu)
       LOG_INFO << "Device " << i << ":";
 #ifdef EGL_VENDOR
       const char* vendorstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_VENDOR);
-      checkEGLError("Error retreiving EGL_VENDOR string for device");
+      checkEGLError("Error retrieving EGL_VENDOR string for device");
       if (vendorstring) {
         LOG_INFO << "  Vendor: " << vendorstring;
       }
 #endif
 #ifdef EGL_RENDERER_EXT
       const char* rendererstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_RENDERER_EXT);
-      checkEGLError("Error retreiving EGL_RENDERER_EXT string for device");
+      checkEGLError("Error retrieving EGL_RENDERER_EXT string for device");
       if (rendererstring) {
         LOG_INFO << "  Renderer: " << rendererstring;
       }
 #endif
 #ifdef EGL_EXTENSIONS
       const char* extensionsstring = eglQueryDeviceStringEXT(eglDevs[i], EGL_EXTENSIONS);
-      checkEGLError("Error retreiving EGL_EXTENSIONS string for device");
+      checkEGLError("Error retrieving EGL_EXTENSIONS string for device");
       if (extensionsstring) {
         LOG_INFO << "  Extensions: " << extensionsstring;
       }

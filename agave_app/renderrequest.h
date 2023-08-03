@@ -28,7 +28,7 @@ private:
   QWebSocket* client;
   std::vector<Command*> parameters;
 
-  // an estimation of how many miliseconds will this request take to process
+  // an estimation of how many milliseconds will this request take to process
   int estimatedDuration;
 
   // how many nanoseconds did it actually take
