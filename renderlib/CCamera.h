@@ -2,6 +2,7 @@
 
 #include "BoundingBox.h"
 #include "Defines.h"
+#include "MathUtil.h"
 #include "glm.h"
 
 #define DEF_FOCUS_TYPE CenterScreen
@@ -545,7 +546,14 @@ public:
     Update();
   }
 
-  float GetHorizontalFOV_radians()
+  float getHalfHorizontalAperture() const
+  {
+    // use half the aspect ratio
+    return (float)m_Film.GetWidth() / (float)m_Film.GetHeight() * 0.5f;
+    // return m_Film.GetWidth() * 0.5f * m_Film.GetAperture() / m_Film.GetFocalLength();
+  }
+
+  float GetHorizontalFOV_radians() const
   {
     // convert horz fov to vert fov
     // w/d = 2*tan(hfov/2)
@@ -564,6 +572,13 @@ public:
     glm::vec3 up(m_Up.x, m_Up.y, m_Up.z);
     viewMatrix = glm::lookAt(eye, center, up);
   }
+
+  LinearSpace3f getFrame() const
+  {
+    // TODO: Update() ?
+    return LinearSpace3f(m_U, m_V, m_N);
+  }
+  float getDistance(glm::vec3 p) const { return glm::distance(p, m_From); }
 
   void getProjMatrix(glm::mat4& projMatrix) const
   {

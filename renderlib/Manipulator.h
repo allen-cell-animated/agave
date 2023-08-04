@@ -1,9 +1,11 @@
 #pragma once
 
+#include "MathUtil.h"
 #include "gesture/gesture.h"
 
 #include <assert.h>
 #include <inttypes.h>
+#include <vector>
 
 struct ManipulationTool
 {
@@ -97,4 +99,46 @@ private:
   //       We may want to use the information to extract tooltips or feed
   //       some App info line.
   std::string m_identifier;
+};
+
+struct Origins
+{
+  enum OriginFlags
+  {
+    kDefault = 0,
+    kNormalize = 1
+  };
+
+  void clear() {}
+  bool empty() const { return true; }
+  void update(SceneView& scene) {}
+  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault) { return {}; }
+};
+struct MoveTool : ManipulationTool
+{
+  // Selection codes, are used to identify which manipulator is under the cursor.
+  // The values in this enum are important, lower values means higher picking priority.
+  enum MoveCodes
+  {
+    kMove = 0,
+    kMoveX = 1,
+    kMoveY = 2,
+    kMoveZ = 3,
+    kMoveYZ = 4,
+    kMoveXZ = 5,
+    kMoveXY = 6,
+    kLast = 7
+  };
+
+  MoveTool()
+    : ManipulationTool(kLast)
+  {
+  }
+
+  virtual void action(SceneView& scene, Gesture& gesture) final;
+  virtual void draw(SceneView& scene, Gesture& gesture) final;
+
+  // Some data structure to store the initial state of the objects
+  // to move.
+  Origins origins;
 };
