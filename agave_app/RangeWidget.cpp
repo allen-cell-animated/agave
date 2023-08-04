@@ -2,6 +2,7 @@
 
 #include "Logging.h"
 
+#include <QPainterPath>
 #include <QSizePolicy>
 #include <QtDebug>
 
@@ -11,7 +12,7 @@ constexpr int OUTLINE_WIDTH = 1;
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
   , m_orientation(orientation)
-  , m_handleWidth(12)
+  , m_handleWidth(16)
   , m_trackHeight(5)
   , m_handleHeight(20)
   , m_minBound(0)
@@ -99,14 +100,23 @@ RangeWidget::paintEvent(QPaintEvent* event)
     rf.setRight(rf.right() + 1);
   }
   p.fillRect(rf, m_trackRangeColor);
+  m_trackRect = rf;
 
   // Draw handles
-  m_trackRect = rf;
   p.setPen(style()->standardPalette().mid().color());
-  p.fillRect(rv1, c1);
-  p.drawRect(rv1);
-  p.fillRect(rv2, c2);
-  p.drawRect(rv2);
+  p.setRenderHint(QPainter::Antialiasing, true);
+
+  int radius = 2;
+  p.setBrush(c1);
+  QPainterPath rectPath1;
+  // Translate by 0.5 so that rectangle aligns with pixel grid
+  rectPath1.addRoundedRect(rv1.translated(0.5, 0.5), radius, radius);
+  p.drawPath(rectPath1);
+
+  QPainterPath rectPath2;
+  p.setBrush(c2);
+  rectPath2.addRoundedRect(rv2.translated(0.5, 0.5), radius, radius);
+  p.drawPath(rectPath2);
 }
 
 qreal
@@ -140,13 +150,17 @@ RangeWidget::handleRect(int value) const
 
   QRectF r;
   if (m_orientation == Qt::Horizontal) {
-    r = QRectF(
-      0, (height() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, m_handleWidth - totalOutline, m_handleHeight);
-    r.moveLeft(s * (value - m_minBound));
+    r = QRectF(0,
+               std::floor((height() - m_handleHeight - LABEL_SPACING - totalOutline) / 2),
+               m_handleWidth - totalOutline,
+               m_handleHeight);
+    r.moveLeft(std::floor(s * (value - m_minBound)));
   } else {
-    r = QRectF(
-      (width() - m_handleHeight - LABEL_SPACING - totalOutline) / 2, 0, m_handleHeight - totalOutline, m_handleWidth);
-    r.moveTop(s * (value - m_minBound));
+    r = QRectF(std::floor((width() - m_handleHeight - LABEL_SPACING - totalOutline) / 2),
+               0,
+               m_handleHeight - totalOutline,
+               m_handleWidth);
+    r.moveTop(std::floor(s * (value - m_minBound)));
   }
   return r;
 }
@@ -195,7 +209,18 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
         m_trackPos = event->pos();
       }
       // LOG_DEBUG << "track delta " << dvalue;
-      if (m_firstValue + (int)dvalue >= m_minBound && m_secondValue + (int)dvalue <= m_maxBound) {
+      // Snap to min/max while maintaining the selection range if the change
+      // would go past the bounds
+      int range = valueRange();
+      if (minValue() + (int)dvalue < m_minBound) {
+        // Snap to min
+        setMaxValue(m_minBound + range);
+        setMinValue(m_minBound);
+      } else if (maxValue() + (int)dvalue > m_maxBound) {
+        // Snap to max
+        setMinValue(m_maxBound - range);
+        setMaxValue(m_maxBound);
+      } else {
         setFirstValue(m_firstValue + (int)dvalue);
         setSecondValue(m_secondValue + (int)dvalue);
       }
@@ -231,7 +256,6 @@ RangeWidget::minimumSizeHint() const
 void
 RangeWidget::setMinValue(int value, bool blockSignals)
 {
-  LOG_INFO << value;
   if (m_firstValue < m_secondValue) {
     setFirstValue(value, blockSignals);
   } else {
