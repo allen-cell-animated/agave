@@ -1,5 +1,13 @@
 #include "Manipulator.h"
 
+struct ManipColors
+{
+  static glm::vec3 xAxis = { 1.0f, 0.0f, 0.0f };
+  static glm::vec3 yAxis = { 0.0f, 1.0f, 0.0f };
+  static glm::vec3 zAxis = { 0.0f, 0.0f, 1.0f };
+  static glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
+};
+
 void
 MoveTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -58,10 +66,10 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // crossing, the normal of such planes may be the axis of the manipulator
     glm::vec3 p = targetPosition;
 
-    // l is thee camera position, the same "l" in the line parametric eq.
+    // l is the camera position, the same "l" in the line parametric eq.
     glm::vec3 l = scene.camera.m_From;
 
-    // l0 is the same "l0" as in the line parametric eq. as the  direction of the
+    // l0 is the same "l0" as in the line parametric eq. as the direction of the
     // ray extending into the screen from the position of the initial click.
     // Let's call that "line 0"
     glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
@@ -173,7 +181,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 
     // Arrow line
-    gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * scale * 0.05, color, opacity, code),
+    gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
                              Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code));
 
     // Circle at the base of the arrow
@@ -182,15 +190,15 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     if (fullDraw) {
       // Arrow
       glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
-      glm::vec3 vd = normalize(cross(ve, dir)) * scale * 0.06;
+      glm::vec3 vd = normalize(cross(ve, dir)) * (scale * 0.06f);
       gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
-                               Gesture::Graphics::VertsCode(axis.p + dir * scale * 1.2, color, opacity, code));
+                               Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code));
       gesture.graphics.extLine(Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code));
     }
 
     // Extension to arrow line at the opposite end
-    gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * scale * 0.05, color, opacity, code),
-                             Gesture::Graphics::VertsCode(axis.p - dir * scale * 0.25f, color, opacity, code));
+    gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
+                             Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code));
 
     drawCircle(
       gesture, axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
@@ -223,7 +231,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
                axis.p + dir * scale,
                dirX * diskScale,
                dirY * diskScale,
-               glm::vec3(wb::zero),
+               glm::vec3(0, 0, 0),
                12,
                color,
                opacity,
@@ -303,7 +311,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   drawAxis(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 1);
 
   // Draw planar move controls, only if facing angle makes them usable
-  glm::vec3 vn = normalize(axis.p - scene.camera.position);
+  glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
   float facingScale = smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vx)));
 
   drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);

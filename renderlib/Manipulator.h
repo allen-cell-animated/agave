@@ -43,6 +43,8 @@ struct ManipulationTool
   // the internal codes range.
   void setActiveCode(int code) { m_activeCode = std::max(kInactive, code - m_codesOffset); }
 
+  uint32_t manipulatorCode(uint32_t selectionCode, int codesOffset) { return selectionCode + codesOffset; }
+
   // Once manipulators are executed (even if this results in no action), the
   // activeCode is reset to a neutral state. New codes will be broadcasted at the
   // beginning of each frame.
