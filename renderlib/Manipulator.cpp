@@ -1,11 +1,37 @@
 #include "Manipulator.h"
 
+void
+drawCircle(Gesture& gesture,
+           glm::vec3 center,
+           glm::vec3 xaxis,
+           glm::vec3 yaxis,
+           uint32_t numSegments,
+           glm::vec3 color,
+           float opacity,
+           uint32_t code)
+{
+}
+
+// does not draw a flat base
+void
+drawCone(Gesture& gesture,
+         glm::vec3 tip,
+         glm::vec3 xaxis,
+         glm::vec3 yaxis,
+         glm::vec3 zaxis,
+         uint32_t numSegments,
+         glm::vec3 color,
+         float opacity,
+         uint32_t code)
+{
+}
+
 struct ManipColors
 {
-  static glm::vec3 xAxis = { 1.0f, 0.0f, 0.0f };
-  static glm::vec3 yAxis = { 0.0f, 1.0f, 0.0f };
-  static glm::vec3 zAxis = { 0.0f, 0.0f, 1.0f };
-  static glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
+  static constexpr glm::vec3 xAxis = { 1.0f, 0.0f, 0.0f };
+  static constexpr glm::vec3 yAxis = { 0.0f, 1.0f, 0.0f };
+  static constexpr glm::vec3 zAxis = { 0.0f, 0.0f, 1.0f };
+  static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
 void
@@ -186,7 +212,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
     // Circle at the base of the arrow
     float diskScale = scale * (fullDraw ? 0.06f : 0.03f);
-    drawCircle(gesture, axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, code);
+    drawCircle(gesture, axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
     if (fullDraw) {
       // Arrow
       glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
@@ -223,8 +249,15 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
       float diskScale = scale * 0.06;
 
       // The cone
-      drawCone(
-        gesture, axis.p + dir * scale, dirX * diskScale, dirY * diskScale, dir * scale * 0.2, 12, color, opacity, code);
+      drawCone(gesture,
+               axis.p + dir * scale,
+               dirX * diskScale,
+               dirY * diskScale,
+               dir * (scale * 0.2f),
+               12,
+               color,
+               opacity,
+               code);
 
       // The base of the cone (as a flat cone)
       drawCone(gesture,
@@ -312,12 +345,12 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
   // Draw planar move controls, only if facing angle makes them usable
   glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
-  float facingScale = smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vx)));
+  float facingScale = glm::smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vx)));
 
   drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);
-  facingScale = smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vy)));
+  facingScale = glm::smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vy)));
   drawDiag(axis.l.vy, axis.l.vz, axis.l.vx, facingScale, MoveTool::kMoveXZ, ManipColors::yAxis, 1);
-  facingScale = smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vz)));
+  facingScale = glm::smoothstep(0.05f, 0.3f, abs(dot(vn, axis.l.vz)));
   drawDiag(axis.l.vz, axis.l.vx, axis.l.vy, facingScale, MoveTool::kMoveXY, ManipColors::zAxis, 1);
 
   // Draw the origin of the manipulator as a circle always facing the view

@@ -102,3 +102,9 @@ lineLineNearestPoint(const glm::vec3& lineA_P,
   // lineB_P -> N
   return linePlaneIsect(lineB_P, N, lineA_P, lineA_V);
 }
+
+inline float
+lerp(float a, float b, float alpha)
+{
+  return a + alpha * (b - a);
+}
