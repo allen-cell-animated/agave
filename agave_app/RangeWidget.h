@@ -37,7 +37,7 @@ private:
 
   QColor m_firstHandleColor;
   QColor m_secondHandleColor;
-  QColor m_trackRangeColor;
+  QColor m_trackSelectionColor;
   QColor m_trackOutlineColor;
   QColor m_trackFillColor;
 

@@ -13,8 +13,8 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
   , m_orientation(orientation)
   , m_handleWidth(16)
-  , m_trackHeight(5)
-  , m_handleHeight(20)
+  , m_trackHeight(10)
+  , m_handleHeight(24)
   , m_minBound(0)
   , m_maxBound(100)
   , m_firstValue(10)
@@ -27,9 +27,9 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_trackPressed(false)
   , m_firstHandleColor(style()->standardPalette().light().color())
   , m_secondHandleColor(style()->standardPalette().light().color())
-  , m_trackFillColor(style()->standardPalette().midlight().color())
-  , m_trackOutlineColor(style()->standardPalette().window().color())
-  , m_trackRangeColor(style()->standardPalette().dark().color())
+  , m_trackFillColor(style()->standardPalette().mid().color())
+  , m_trackOutlineColor(style()->standardPalette().midlight().color())
+  , m_trackSelectionColor(QColor(0, 118, 246))
   , m_minSpinner()
   , m_maxSpinner()
   , m_layout()
@@ -63,7 +63,9 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
 void
 RangeWidget::paintEvent(QPaintEvent* event)
 {
+  int radius = 2;
   QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing, true);
   int totalOutline = OUTLINE_WIDTH * 2;
 
   // First value handle rect
@@ -81,32 +83,38 @@ RangeWidget::paintEvent(QPaintEvent* event)
   // Draw the track
   QRect r;
   if (m_orientation == Qt::Horizontal)
-    r = QRect(0, (height() - m_trackHeight - LABEL_SPACING - totalOutline) / 2, width() - totalOutline, m_trackHeight);
+    r = QRect(0, std::floor((height() - m_trackHeight - totalOutline) / 2), width() - totalOutline, m_trackHeight);
   else
-    r = QRect((width() - m_trackHeight - LABEL_SPACING) / 2, 0, m_trackHeight, height() - 1);
-  p.fillRect(r, m_trackFillColor);
-  p.setPen(m_trackOutlineColor);
-  p.drawRect(r);
+    r = QRect(std::floor((width() - m_trackHeight - totalOutline) / 2), 0, m_trackHeight, height() - 1);
+  QPainterPath trackPath;
+  trackPath.addRoundedRect(r.translated(0.5, 0.0), radius, radius);
+  p.fillPath(trackPath, m_trackFillColor);
 
   // Color the selected range of the track
   QRectF rf(r);
+  QPainterPath trackSelectionPath;
   if (m_orientation == Qt::Horizontal) {
-    rf.setLeft(rv1.right());
-    rf.setRight(rv2.left());
-    rf.setBottom(rf.bottom() + 1);
+    rf.setLeft(std::floor(rv1.right()));
+    rf.setRight(std::floor(rv2.left()));
+    rf.setTop(std::floor(rf.top()));
+    rf.setBottom(std::floor(rf.bottom()));
   } else {
-    rf.setTop(rv1.bottom());
-    rf.setBottom(rv2.top());
-    rf.setRight(rf.right() + 1);
+    rf.setTop(std::floor(rv1.bottom()));
+    rf.setBottom(std::floor(rv2.top()));
+    rf.setLeft(std::floor(rf.left()));
+    rf.setRight(std::floor(rf.right()));
   }
-  p.fillRect(rf, m_trackRangeColor);
+  QColor trackSelectionColor(m_trackSelectionColor);
+  if (m_trackHovered) {
+    trackSelectionColor = trackSelectionColor.darker(125);
+  }
+  trackSelectionPath.addRect(rf);
+  p.fillPath(trackSelectionPath, trackSelectionColor);
   m_trackRect = rf;
 
   // Draw handles
   p.setPen(style()->standardPalette().mid().color());
-  p.setRenderHint(QPainter::Antialiasing, true);
 
-  int radius = 2;
   p.setBrush(c1);
   QPainterPath rectPath1;
   // Translate by 0.5 so that rectangle aligns with pixel grid
