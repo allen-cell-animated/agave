@@ -242,7 +242,7 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
   QRectF rv1 = firstHandleRect();
   m_secondHandleHovered = m_secondHandlePressed || (!m_firstHandlePressed && rv2.contains(event->pos()));
   m_firstHandleHovered = m_firstHandlePressed || (!m_secondHandleHovered && rv1.contains(event->pos()));
-  m_trackHovered = m_trackPressed || (m_trackRect.contains(event->pos()));
+  m_trackHovered = m_trackPressed || m_trackRect.contains(event->pos());
   update(rv2.toRect());
   update(rv1.toRect());
   update(m_trackRect.toRect());
@@ -251,11 +251,12 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
 void
 RangeWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-  if (m_firstHandlePressed || m_secondHandlePressed)
+  if (m_firstHandlePressed || m_secondHandlePressed || m_trackPressed)
     emit sliderReleased();
 
   m_firstHandlePressed = false;
   m_secondHandlePressed = false;
+  m_trackPressed = false;
 }
 
 QSize
