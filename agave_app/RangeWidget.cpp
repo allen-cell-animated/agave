@@ -35,9 +35,9 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_layout()
 {
   setLayout(&m_layout);
-  m_layout.setContentsMargins(0, 0, 0, 0); // keeps slider + spinners consistent
 
   if (m_orientation == Qt::Horizontal) {
+    m_layout.setContentsMargins(0, 0, 0, 0); // keeps slider + spinners consistent
     // Set up first row (margin for where sliders will be drawn)
     m_layout.setRowMinimumHeight(0, m_handleHeight * 2);
     m_layout.addWidget(&m_minSpinner, 1, 0);
@@ -134,33 +134,31 @@ RangeWidget::paintEvent(QPaintEvent* event)
 
   // Translate by 0.5 so that rectangle aligns with pixel grid
   rectPath1.addRoundedRect(rv1.translated(0.5, 0.5), radius, radius);
+  makeHandleGripLines(&rectPath1, rv1);
   p.drawPath(rectPath1);
 
   QPainterPath rectPath2;
   p.setBrush(c2);
+  makeHandleGripLines(&rectPath2, rv2);
   rectPath2.addRoundedRect(rv2.translated(0.5, 0.5), radius, radius);
   p.drawPath(rectPath2);
-
-  // Draw the knurling on the two handles
-  QPainterPath handleGripLines;
-  makeHandleGripLines(&handleGripLines, rv1);
-  makeHandleGripLines(&handleGripLines, rv2);
-  p.drawPath(handleGripLines);
 }
 
 /**
- * Adds three friction/knurling lines for the given handle to the path for drawing.
+ * Adds three grip lines for the given handle to the path for drawing.
+ * Lines are spaced a pixel apart, centered on the handle if possible.
+ * The sizeRatio controls the relative size of the grip lines compared
+ * to the width/height of the handle (m_handleHeight).
  */
 void
-RangeWidget::makeHandleGripLines(QPainterPath* path, QRectF handle, float widthRatio)
+RangeWidget::makeHandleGripLines(QPainterPath* path, QRectF handle, float sizeRatio)
 {
   float centerX = std::floor(handle.center().x()) + 0.5; // Center on pixel grid
   float centerY = std::floor(handle.center().y()) + 0.5;
   // Length of lines is 50% of handle height
   if (m_orientation == Qt::Horizontal) {
-    float width = handle.top() - handle.bottom();
-    float bottom = centerY + (width * widthRatio * 0.5); // Divide by two for centering
-    float top = centerY - (width * widthRatio * 0.5);
+    float bottom = centerY + (m_handleHeight * sizeRatio * 0.5); // Divide by two for centering
+    float top = centerY - (m_handleHeight * sizeRatio * 0.5);
     float offset = 2.0;
     path->moveTo(centerX, bottom);
     path->lineTo(centerX, top);
@@ -169,9 +167,8 @@ RangeWidget::makeHandleGripLines(QPainterPath* path, QRectF handle, float widthR
     path->moveTo(centerX - offset, bottom);
     path->lineTo(centerX - offset, top);
   } else {
-    float width = handle.right() - handle.left();
-    float left = centerX - (width * widthRatio * 0.5);
-    float right = centerX + (width * widthRatio * 0.5);
+    float left = centerX - (m_handleHeight * sizeRatio * 0.5);
+    float right = centerX + (m_handleHeight * sizeRatio * 0.5);
     float offset = 2.0;
     path->moveTo(left, centerY);
     path->lineTo(right, centerY);
