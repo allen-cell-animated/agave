@@ -29,6 +29,7 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_secondHandleColor(style()->standardPalette().light().color())
   , m_trackFillColor(style()->standardPalette().mid().color())
   , m_trackOutlineColor(style()->standardPalette().midlight().color())
+  // TODO: Replace with stylesheet
   , m_trackSelectionColor(QColor(0, 118, 246))
   , m_minSpinner()
   , m_maxSpinner()
