@@ -52,6 +52,9 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   m_minSpinner.setMaximum(INT_MAX);
   m_maxSpinner.setMinimum(0);
   m_maxSpinner.setMaximum(INT_MAX);
+  // Disable spinner handles
+  m_minSpinner.setButtonSymbols(QAbstractSpinBox::NoButtons);
+  m_maxSpinner.setButtonSymbols(QAbstractSpinBox::NoButtons);
 
   // Connect the spinners so they change the values + sliders
   QObject::connect(&m_minSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMinValue(v); });
