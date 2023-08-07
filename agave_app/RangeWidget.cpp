@@ -36,8 +36,8 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
 {
   setLayout(&m_layout);
 
+  m_layout.setContentsMargins(0, 0, 0, 0); // keeps slider + spinners consistent
   if (m_orientation == Qt::Horizontal) {
-    m_layout.setContentsMargins(0, 0, 0, 0); // keeps slider + spinners consistent
     // Set up first row (margin for where sliders will be drawn)
     m_layout.setRowMinimumHeight(0, m_handleHeight * 2);
     m_layout.addWidget(&m_minSpinner, 1, 0);
@@ -155,7 +155,7 @@ RangeWidget::makeHandleGripLines(QPainterPath* path, QRectF handle, float sizeRa
 {
   float centerX = std::floor(handle.center().x()) + 0.5; // Center on pixel grid
   float centerY = std::floor(handle.center().y()) + 0.5;
-  // Length of lines is 50% of handle height
+
   if (m_orientation == Qt::Horizontal) {
     float bottom = centerY + (m_handleHeight * sizeRatio * 0.5); // Divide by two for centering
     float top = centerY - (m_handleHeight * sizeRatio * 0.5);
