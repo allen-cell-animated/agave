@@ -361,12 +361,12 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
   // Draw planar move controls, only if facing angle makes them usable
   glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
-  float facingScale = glm::smoothstep(0.05f, 0.3f, fabs(dot(vn, axis.l.vx)));
+  float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
 
   drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);
-  facingScale = glm::smoothstep(0.05f, 0.3f, fabs(dot(vn, axis.l.vy)));
+  facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vy)));
   drawDiag(axis.l.vy, axis.l.vz, axis.l.vx, facingScale, MoveTool::kMoveXZ, ManipColors::yAxis, 1);
-  facingScale = glm::smoothstep(0.05f, 0.3f, fabs(dot(vn, axis.l.vz)));
+  facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vz)));
   drawDiag(axis.l.vz, axis.l.vx, axis.l.vy, facingScale, MoveTool::kMoveXY, ManipColors::zAxis, 1);
 
   // Draw the origin of the manipulator as a circle always facing the view
