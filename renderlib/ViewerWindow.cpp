@@ -159,6 +159,9 @@ ViewerWindow::redraw()
     renderCamera.Update();
   }
 
+  sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
+  //sceneView.camera = renderCamera;
+
   update(sceneView.viewport, m_clock, gesture);
 
   m_renderer->render(renderCamera);
@@ -167,6 +170,8 @@ ViewerWindow::redraw()
   sv.camera = renderCamera;
   sv.viewport.region = { { 0, 0 }, { width(), height() } };
   gesture.graphics.draw(sv, m_selection);
+
+  // gesture.graphics.draw(sceneView, m_selection);
 
   // Make sure we consumed any unused input event before we poll new events.
   gesture.input.consume();

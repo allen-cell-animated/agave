@@ -366,6 +366,7 @@ public:
     m_Aperture = Other.m_Aperture;
     m_Dirty = Other.m_Dirty;
     m_Projection = Other.m_Projection;
+    m_OrthoScale = Other.m_OrthoScale;
 
     return *this;
   }
