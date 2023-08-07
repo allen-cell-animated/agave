@@ -6,7 +6,6 @@
 #include <QSizePolicy>
 #include <QtDebug>
 
-constexpr int LABEL_SPACING = 4;
 constexpr int OUTLINE_WIDTH = 1;
 
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
@@ -36,18 +35,29 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   , m_layout()
 {
   setLayout(&m_layout);
-  // Set up first row (margin for where sliders will be drawn)
-  m_layout.setRowMinimumHeight(0, m_handleHeight * 2);
-  m_layout.addWidget(&m_minSpinner, 1, 0);
-  m_layout.addWidget(&m_maxSpinner, 1, 2);
-  // Set up stretching for the min and max spinners
   m_layout.setContentsMargins(0, 0, 0, 0); // keeps slider + spinners consistent
-  m_layout.setColumnStretch(0, 1);
-  m_layout.setColumnStretch(1, 3); // middle spacing column
-  m_layout.setColumnStretch(2, 1);
+
+  if (m_orientation == Qt::Horizontal) {
+    // Set up first row (margin for where sliders will be drawn)
+    m_layout.setRowMinimumHeight(0, m_handleHeight * 2);
+    m_layout.addWidget(&m_minSpinner, 1, 0);
+    m_layout.addWidget(&m_maxSpinner, 1, 2);
+    // Set up stretching for the min and max spinners
+    m_layout.setColumnStretch(0, 1);
+    m_layout.setColumnStretch(1, 3); // middle spacing column
+    m_layout.setColumnStretch(2, 1);
+  } else { // Vertical layout
+    m_layout.setColumnMinimumWidth(0, m_handleHeight * 2);
+    m_layout.addWidget(&m_minSpinner, 0, 1);
+    m_layout.addWidget(&m_maxSpinner, 2, 1);
+    m_layout.setRowStretch(0, 1);
+    m_layout.setRowStretch(1, 3); // middle spacing row
+    m_layout.setRowStretch(2, 1);
+  }
 
   m_minSpinner.setAlignment(Qt::AlignCenter);
   m_maxSpinner.setAlignment(Qt::AlignCenter);
+
   // Set max very high so that large numbers can be typed in and clamped
   m_minSpinner.setMinimum(0);
   m_minSpinner.setMaximum(INT_MAX);
@@ -56,7 +66,6 @@ RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   // Disable spinner handles
   m_minSpinner.setButtonSymbols(QAbstractSpinBox::NoButtons);
   m_maxSpinner.setButtonSymbols(QAbstractSpinBox::NoButtons);
-
   // Connect the spinners so they change the values + sliders
   QObject::connect(&m_minSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMinValue(v); });
   QObject::connect(&m_maxSpinner, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v) { this->setMaxValue(v); });
@@ -89,7 +98,8 @@ RangeWidget::paintEvent(QPaintEvent* event)
   if (m_orientation == Qt::Horizontal)
     r = QRect(0, std::floor((height() - m_trackHeight - totalOutline) / 2), width() - totalOutline, m_trackHeight);
   else
-    r = QRect(std::floor((width() - m_trackHeight - totalOutline) / 2), 0, m_trackHeight, height() - 1);
+    r = QRect(
+      std::floor((m_handleHeight - m_trackHeight + totalOutline) / 2.), 0, m_trackHeight, height() - totalOutline);
   QPainterPath trackPath;
   trackPath.addRoundedRect(r.translated(0.5, 0.0), radius, radius);
   p.fillPath(trackPath, m_trackFillColor);
@@ -132,17 +142,17 @@ RangeWidget::paintEvent(QPaintEvent* event)
   p.drawPath(rectPath2);
 
   // Draw the knurling on the two handles
-  QPainterPath handleKnurling;
-  drawHandleKnurling(&handleKnurling, rv1);
-  drawHandleKnurling(&handleKnurling, rv2);
-  p.drawPath(handleKnurling);
+  QPainterPath handleGripLines;
+  makeHandleGripLines(&handleGripLines, rv1);
+  makeHandleGripLines(&handleGripLines, rv2);
+  p.drawPath(handleGripLines);
 }
 
 /**
  * Adds three friction/knurling lines for the given handle to the path for drawing.
  */
 void
-RangeWidget::drawHandleKnurling(QPainterPath* path, QRectF handle, float widthRatio)
+RangeWidget::makeHandleGripLines(QPainterPath* path, QRectF handle, float widthRatio)
 {
   float centerX = std::floor(handle.center().x()) + 0.5; // Center on pixel grid
   float centerY = std::floor(handle.center().y()) + 0.5;
@@ -159,10 +169,16 @@ RangeWidget::drawHandleKnurling(QPainterPath* path, QRectF handle, float widthRa
     path->moveTo(centerX - offset, bottom);
     path->lineTo(centerX - offset, top);
   } else {
-    float left = handle.left() + m_handleHeight / 4.;
-    float right = handle.right() - m_handleHeight / 4.;
-    float centerY = std::floor(handle.center().y()) + 0.5;
+    float width = handle.right() - handle.left();
+    float left = centerX - (width * widthRatio * 0.5);
+    float right = centerX + (width * widthRatio * 0.5);
     float offset = 2.0;
+    path->moveTo(left, centerY);
+    path->lineTo(right, centerY);
+    path->moveTo(left, centerY + offset);
+    path->lineTo(right, centerY + offset);
+    path->moveTo(left, centerY - offset);
+    path->lineTo(right, centerY - offset);
   }
 }
 
@@ -197,16 +213,11 @@ RangeWidget::handleRect(int value) const
 
   QRectF r;
   if (m_orientation == Qt::Horizontal) {
-    r = QRectF(0,
-               std::floor((height() - m_handleHeight - LABEL_SPACING - totalOutline) / 2),
-               m_handleWidth - totalOutline,
-               m_handleHeight);
+    r = QRectF(
+      0, std::floor((height() - m_handleHeight - totalOutline) / 2), m_handleWidth - totalOutline, m_handleHeight);
     r.moveLeft(std::floor(s * (value - m_minBound)));
   } else {
-    r = QRectF(std::floor((width() - m_handleHeight - LABEL_SPACING - totalOutline) / 2),
-               0,
-               m_handleHeight - totalOutline,
-               m_handleWidth);
+    r = QRectF(0, 0, m_handleHeight, m_handleWidth - totalOutline);
     r.moveTop(std::floor(s * (value - m_minBound)));
   }
   return r;
@@ -306,7 +317,11 @@ RangeWidget::updateHoverFlags(QMouseEvent* event)
 QSize
 RangeWidget::minimumSizeHint() const
 {
-  return QSize(m_handleHeight * 2 + LABEL_SPACING, m_handleHeight * 2 + LABEL_SPACING);
+  if (m_orientation == Qt::Horizontal) {
+    return QSize(m_handleHeight * 2, m_handleHeight * 2);
+  } else {
+    return QSize(m_handleHeight * 2, m_handleHeight * 4);
+  }
 }
 
 void

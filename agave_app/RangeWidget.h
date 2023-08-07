@@ -62,7 +62,7 @@ protected:
   QRectF secondTextRect(QPainter& p) const;
   QRectF textRect(int value, QPainter& p) const;
   qreal span(int w = -1) const;
-  void drawHandleKnurling(QPainterPath* path, QRectF handle, float widthRatio = 0.4);
+  void makeHandleGripLines(QPainterPath* path, QRectF handle, float widthRatio = 0.4);
 
 public:
   RangeWidget(Qt::Orientation orientation = Qt::Vertical, QWidget* parent = nullptr);
