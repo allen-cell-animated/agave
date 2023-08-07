@@ -2,6 +2,14 @@
 
 #include "gesture/gesture.h"
 
+LinearSpace3f
+CCamera::getFrame() const
+{
+  return LinearSpace3f(m_U, m_V, m_N);
+  // return LinearSpace3f(
+  //   glm::vec3(m_U.x, -m_V.x, m_N.x), glm::vec3(m_U.y, -m_V.y, m_N.y), glm::vec3(m_U.z, -m_V.z, m_N.z));
+}
+
 // keep target constant and compute new eye and up vectors
 void
 trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye, glm::vec3& up)
@@ -42,9 +50,10 @@ cameraManipulation(const glm::vec2 viewportSize,
   bool cameraEdit = false;
 
   // Camera Track
-  if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kAlt)) {
+  if (gesture.input.hasButtonAction(Gesture::Input::kButtonMiddle, 0)) { // Gesture::Input::kCtrl)) {
+    // if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kAlt)) {
     cameraEdit = true;
-    Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
+    Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonMiddle];
 
     glm::vec2 drag = button.drag;
     if (button.dragConstraint == Gesture::Input::kHorizontal) {
@@ -61,9 +70,8 @@ cameraManipulation(const glm::vec2 viewportSize,
       cameraEdit = false;
     }
 
-// Project the drag movement in pixels to the image plane set at the distance of the
-// camera target.
-#define deg2rad(x) ((x)*0.01745329251f)
+    // Project the drag movement in pixels to the image plane set at the distance of the
+    // camera target.
     float halfHorizontalAperture = tanf(camera.GetHorizontalFOV_radians() * 0.5f);
     float dragScale = distance * halfHorizontalAperture / (width * 0.5f);
     drag *= dragScale;
@@ -114,9 +122,10 @@ cameraManipulation(const glm::vec2 viewportSize,
   }
 
   // Camera Dolly
-  else if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kCtrl)) {
+  //  else if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kCtrl)) {
+  else if (gesture.input.hasButtonAction(Gesture::Input::kButtonRight, 0)) { // Gesture::Input::kCtrl)) {
     cameraEdit = true;
-    Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
+    Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonRight];
 
     static const int DOLLY_PIXELS_PER_UNIT = 700;
     const float dragScale = 1.0f / DOLLY_PIXELS_PER_UNIT;

@@ -101,20 +101,18 @@ ViewerWindow::redraw()
     m_increments = 0;
   }
 
-  glm::ivec2 pickbuffersize = m_selection.resolution;
+  glm::ivec2 oldpickbuffersize = m_selection.resolution;
   bool ok = m_selection.update(glm::ivec2(width(), height()));
   if (!ok) {
     LOG_ERROR << "Failed to update selection buffer";
   }
 
-  if (width() != pickbuffersize.x || height() != pickbuffersize.y) {
+  if (width() != oldpickbuffersize.x || height() != oldpickbuffersize.y) {
     // TODO devicePixelRatio?
     m_renderer->resize(width(), height());
     m_CCamera.m_Film.m_Resolution.SetResX(width());
     m_CCamera.m_Film.m_Resolution.SetResY(height());
   }
-
-  update(sceneView.viewport, m_clock, gesture);
 
   // QPoint p = mapFromGlobal(QCursor::pos());
   // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
@@ -160,6 +158,8 @@ ViewerWindow::redraw()
     renderCamera = m_CCamera + cameraMod;
     renderCamera.Update();
   }
+
+  update(sceneView.viewport, m_clock, gesture);
 
   m_renderer->render(renderCamera);
 

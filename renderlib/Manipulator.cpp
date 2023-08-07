@@ -12,12 +12,25 @@ drawCircle(Gesture& gesture,
            float opacity,
            uint32_t code)
 {
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    gesture.graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                             Gesture::Graphics::VertsCode(p1, color, opacity, code));
+  }
 }
 
 // does not draw a flat base
 void
 drawCone(Gesture& gesture,
-         glm::vec3 tip,
+         glm::vec3 base,
          glm::vec3 xaxis,
          glm::vec3 yaxis,
          glm::vec3 zaxis,
@@ -33,12 +46,12 @@ drawCone(Gesture& gesture,
     float theta0 = t0 * 2.0f * glm::pi<float>();
     float theta1 = t1 * 2.0f * glm::pi<float>();
 
-    glm::vec3 p0 = tip + xaxis * cosf(theta0) + yaxis * sinf(theta0);
-    glm::vec3 p1 = tip + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+    glm::vec3 p0 = base + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = base + xaxis * cosf(theta1) + yaxis * sinf(theta1);
 
-    gesture.graphics.addVert(Gesture::Graphics::VertsCode(tip, color, opacity, code));
-    gesture.graphics.addVert(Gesture::Graphics::VertsCode(tip + zaxis + p0, color, opacity, code));
-    gesture.graphics.addVert(Gesture::Graphics::VertsCode(tip + zaxis + p1, color, opacity, code));
+    gesture.graphics.addVert(Gesture::Graphics::VertsCode(base + zaxis, color, opacity, code));
+    gesture.graphics.addVert(Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    gesture.graphics.addVert(Gesture::Graphics::VertsCode(p0, color, opacity, code));
   }
 }
 
@@ -190,8 +203,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 {
   const glm::vec2 resolution = scene.viewport.region.size();
   // Move tool is only active if something is selected
-  if (!scene.anythingActive())
+  if (!scene.anythingActive()) {
     return;
+  }
 
   // Re-read targetPosition because object may have moved by the manipulator action,
   // or animation. Target 3x3 linear space is a orthonormal frame. Target
@@ -217,8 +231,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
                       float opacity) {
     bool drawAsActive = (m_activeCode == selectionCode) || forceActive;
     bool fullDraw = (drawAsActive || !isCodeValid(m_activeCode));
-    if (drawAsActive)
+    if (drawAsActive) {
       color = glm::vec3(1, 1, 0);
+    }
 
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 
@@ -373,8 +388,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   {
     uint32_t code = manipulatorCode(MoveTool::kMove, m_codesOffset);
     glm::vec3 color = ManipColors::bright;
-    if (m_activeCode == MoveTool::kMove)
+    if (m_activeCode == MoveTool::kMove) {
       color = glm::vec3(1, 1, 0);
+    }
 
     float diskScale = scale * 0.09;
     drawCircle(gesture, axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);

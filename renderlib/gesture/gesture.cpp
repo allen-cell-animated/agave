@@ -118,7 +118,8 @@ configure_3dDepthTested(SceneView& sceneView)
 
   // TODO FIXME
   // should be view*p ???
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p*v));
+  glUniformMatrix4fv(
+    shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0)) * v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -143,7 +144,9 @@ configure_3dStacked(SceneView& sceneView)
 
   // TODO FIXME
   // should be view*p ???
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p*v));
+  glUniformMatrix4fv(
+    shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0)) * v));
+
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -292,6 +295,8 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
   check_gl("get point size");
   bool depthTest = glIsEnabled(GL_DEPTH_TEST);
   check_gl("is depth test enabled");
+
+  glEnable(GL_CULL_FACE);
 
   // Draw UI and viewport manipulators
   {

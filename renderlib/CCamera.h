@@ -573,11 +573,7 @@ public:
     viewMatrix = glm::lookAt(eye, center, up);
   }
 
-  LinearSpace3f getFrame() const
-  {
-    // TODO: Update() ?
-    return LinearSpace3f(m_U, m_V, m_N);
-  }
+  LinearSpace3f getFrame() const;
   float getDistance(glm::vec3 p) const { return glm::distance(p, m_From); }
 
   void getProjMatrix(glm::mat4& projMatrix) const
@@ -643,8 +639,7 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   return c;
 }
 
-inline CameraModifier
-operator*(const CameraModifier& a, const float b)
+inline CameraModifier operator*(const CameraModifier& a, const float b)
 {
   CameraModifier c;
   c.position = a.position * b;
