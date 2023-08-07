@@ -14,16 +14,27 @@ static const char* vertex_shader_text =
   R"(
     #version 150
     uniform mat4 projection;
+    uniform int picking;
     in vec3 vPos;
     in vec2 vUV;
     in vec4 vCol;
+    in uint vCode;
+
     out vec4 Frag_color;
     out vec2 Frag_UV;
 
     void main()
     {
         Frag_UV = vUV;
-        Frag_color = vCol;
+        if (picking == 1) {
+          Frag_color = vec4(float(vCode & 0xffu) / 255.0,
+                            float((vCode >> 8) & 0xffu) / 255.0,
+                            float((vCode >> 16) & 0xffu) / 255.0,
+                            1.0);
+        }
+        else {
+          Frag_color = vCol;
+        }
         gl_Position = projection * vec4(vPos, 1.0);
     }
     )";
@@ -73,6 +84,9 @@ public:
 
     m_loc_proj = uniformLocation("projection");
     m_loc_vpos = attributeLocation("vPos");
+    m_loc_vuv = attributeLocation("vUV");
+    m_loc_vcol = attributeLocation("vCol");
+    m_loc_vcode = attributeLocation("vCode");
   }
 
   ~GLGuiShader() {}
@@ -94,12 +108,16 @@ public:
   {
     release();
     glDisableVertexAttribArray(m_loc_vpos);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
   }
 
   int m_loc_proj;
   int m_loc_vpos;
+  int m_loc_vuv;
+  int m_loc_vcol;
+  int m_loc_vcode;
 };
 
 struct Shaders
@@ -149,7 +167,7 @@ struct SceneView
   CCamera camera;
   Shaders shaders;
 
-  bool anythingActive() const { return false; }
+  bool anythingActive() const { return true; }
 };
 
 // integration:

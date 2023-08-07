@@ -11,14 +11,21 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   , m_rendererType(1)
 {
   gesture.input.reset();
+
+  // TEST create a tool and activate it
+  m_activeTool = new MoveTool();
+  m_tools.push_back(m_activeTool);
 }
 
 ViewerWindow::~ViewerWindow()
 {
-  if (m_activeTool != &m_defaultTool)
+  if (m_activeTool != &m_defaultTool) {
     ManipulationTool::destroyTool(m_activeTool);
-  for (ManipulationTool* tool : m_tools)
+  }
+  for (ManipulationTool* tool : m_tools) {
     ManipulationTool::destroyTool(tool);
+  }
+  m_activeTool = nullptr;
 }
 
 void

@@ -1,5 +1,7 @@
 #include "Manipulator.h"
 
+float ManipulationTool::s_manipulatorSize = 1.0f;
+
 void
 drawCircle(Gesture& gesture,
            glm::vec3 center,
@@ -24,6 +26,20 @@ drawCone(Gesture& gesture,
          float opacity,
          uint32_t code)
 {
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = tip + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = tip + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    gesture.graphics.addVert(Gesture::Graphics::VertsCode(tip, color, opacity, code));
+    gesture.graphics.addVert(Gesture::Graphics::VertsCode(tip + zaxis + p0, color, opacity, code));
+    gesture.graphics.addVert(Gesture::Graphics::VertsCode(tip + zaxis + p1, color, opacity, code));
+  }
 }
 
 struct ManipColors

@@ -221,14 +221,41 @@ class ScopedGlVertexBuffer
 public:
   ScopedGlVertexBuffer(const void* data, size_t size)
   {
+    glGenVertexArrays(1, &m_vertexArray);
+    glBindVertexArray(m_vertexArray);
+
     glGenBuffers(1, &m_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+
+    const size_t vtxStride = 9 * sizeof(GLfloat) + 1 * sizeof(GLuint);
+
+    // specify position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)0);
+    glEnableVertexAttribArray(0); // m_loc_vpos
+
+    // specify uv attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1); // m_loc_vuv
+
+    // specify color rgba attribute
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)(5 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2); // m_loc_vcolor
+
+    // specify selection id attribute
+    glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, vtxStride, (GLvoid*)(9 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(3); // m_loc_vcode
   }
-  ~ScopedGlVertexBuffer() { glDeleteBuffers(1, &m_buffer); }
+  ~ScopedGlVertexBuffer()
+  {
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &m_vertexArray);
+    glDeleteBuffers(1, &m_buffer);
+  }
   GLuint buffer() const { return m_buffer; }
 
 private:
+  GLuint m_vertexArray;
   GLuint m_buffer;
 };
 
