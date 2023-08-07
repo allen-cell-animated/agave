@@ -95,6 +95,9 @@ public:
   {
     bind();
     glEnableVertexAttribArray(m_loc_vpos);
+    glEnableVertexAttribArray(m_loc_vuv);
+    glEnableVertexAttribArray(m_loc_vcol);
+    glEnableVertexAttribArray(m_loc_vcode);
 
     glUniform1i(uniformLocation("picking"), display ? 0 : 1);
     if (display)
@@ -108,6 +111,9 @@ public:
   {
     release();
     glDisableVertexAttribArray(m_loc_vpos);
+    glDisableVertexAttribArray(m_loc_vuv);
+    glDisableVertexAttribArray(m_loc_vcol);
+    glDisableVertexAttribArray(m_loc_vcode);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -134,8 +140,7 @@ struct SceneView
       Region()
         : lower(+INT_MAX)
         , upper(-INT_MAX)
-      {
-      }
+      {}
       Region(const glm::ivec2& lower, const glm::ivec2& upper)
         : lower(lower)
         , upper(upper){};
@@ -315,8 +320,7 @@ struct Gesture
       Command(GLenum command, float thickness = 1)
         : command(command)
         , thickness(thickness)
-      {
-      }
+      {}
 
       GLenum command;  //< Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
       float thickness; //< Line thickness or point radius.
@@ -348,8 +352,7 @@ struct Gesture
         , b(c.z)
         , a(opacity)
         , s(selectionCode)
-      {
-      }
+      {}
 
       // Comprehensive constructor
       VertsCode(const glm::vec3& v, glm::vec2 uv, glm::vec3 c, float opacity = 1.0f, uint32_t selectionCode = 0)
@@ -363,8 +366,7 @@ struct Gesture
         , b(c.z)
         , a(opacity)
         , s(selectionCode)
-      {
-      }
+      {}
 
       float x, y, z;    //< position
       float u, v;       //< texture coordinates

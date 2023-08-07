@@ -118,7 +118,7 @@ configure_3dDepthTested(SceneView& sceneView)
 
   // TODO FIXME
   // should be view*p ???
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p*v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -143,7 +143,7 @@ configure_3dStacked(SceneView& sceneView)
 
   // TODO FIXME
   // should be view*p ???
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p*v));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -335,7 +335,6 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
       }
 
       shaders.gui.cleanup();
-      glDisableVertexAttribArray(shaders.gui.m_loc_vpos);
       check_gl("disablevertexattribarray");
     };
     drawGesture(/*display*/ true);
