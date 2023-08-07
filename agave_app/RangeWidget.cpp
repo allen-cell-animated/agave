@@ -12,7 +12,7 @@ constexpr int OUTLINE_WIDTH = 1;
 RangeWidget::RangeWidget(Qt::Orientation orientation, QWidget* parent)
   : QWidget(parent)
   , m_orientation(orientation)
-  , m_handleWidth(16)
+  , m_handleWidth(18)
   , m_trackHeight(10)
   , m_handleHeight(24)
   , m_minBound(0)
@@ -120,6 +120,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
 
   p.setBrush(c1);
   QPainterPath rectPath1;
+
   // Translate by 0.5 so that rectangle aligns with pixel grid
   rectPath1.addRoundedRect(rv1.translated(0.5, 0.5), radius, radius);
   p.drawPath(rectPath1);
@@ -128,6 +129,40 @@ RangeWidget::paintEvent(QPaintEvent* event)
   p.setBrush(c2);
   rectPath2.addRoundedRect(rv2.translated(0.5, 0.5), radius, radius);
   p.drawPath(rectPath2);
+
+  // Draw the knurling on the two handles
+  QPainterPath handleKnurling;
+  drawHandleKnurling(&handleKnurling, rv1);
+  drawHandleKnurling(&handleKnurling, rv2);
+  p.drawPath(handleKnurling);
+}
+
+/**
+ * Adds three friction/knurling lines for the given handle to the path for drawing.
+ */
+void
+RangeWidget::drawHandleKnurling(QPainterPath* path, QRectF handle, float widthRatio)
+{
+  float centerX = std::floor(handle.center().x()) + 0.5; // Center on pixel grid
+  float centerY = std::floor(handle.center().y()) + 0.5;
+  // Length of lines is 50% of handle height
+  if (m_orientation == Qt::Horizontal) {
+    float width = handle.top() - handle.bottom();
+    float bottom = centerY + (width * widthRatio * 0.5); // Divide by two for centering
+    float top = centerY - (width * widthRatio * 0.5);
+    float offset = 2.0;
+    path->moveTo(centerX, bottom);
+    path->lineTo(centerX, top);
+    path->moveTo(centerX + offset, bottom);
+    path->lineTo(centerX + offset, top);
+    path->moveTo(centerX - offset, bottom);
+    path->lineTo(centerX - offset, top);
+  } else {
+    float left = handle.left() + m_handleHeight / 4.;
+    float right = handle.right() - m_handleHeight / 4.;
+    float centerY = std::floor(handle.center().y()) + 0.5;
+    float offset = 2.0;
+  }
 }
 
 qreal
@@ -238,14 +273,7 @@ RangeWidget::mouseMoveEvent(QMouseEvent* event)
     }
   }
 
-  QRectF rv2 = secondHandleRect();
-  QRectF rv1 = firstHandleRect();
-  m_secondHandleHovered = m_secondHandlePressed || (!m_firstHandlePressed && rv2.contains(event->pos()));
-  m_firstHandleHovered = m_firstHandlePressed || (!m_secondHandleHovered && rv1.contains(event->pos()));
-  m_trackHovered = m_trackPressed || m_trackRect.contains(event->pos());
-  update(rv2.toRect());
-  update(rv1.toRect());
-  update(m_trackRect.toRect());
+  updateHoverFlags(event);
 }
 
 void
@@ -257,6 +285,21 @@ RangeWidget::mouseReleaseEvent(QMouseEvent* event)
   m_firstHandlePressed = false;
   m_secondHandlePressed = false;
   m_trackPressed = false;
+  // Reset hovering
+  updateHoverFlags(event);
+}
+
+void
+RangeWidget::updateHoverFlags(QMouseEvent* event)
+{
+  QRectF rv2 = secondHandleRect();
+  QRectF rv1 = firstHandleRect();
+  m_secondHandleHovered = m_secondHandlePressed || (!m_firstHandlePressed && rv2.contains(event->pos()));
+  m_firstHandleHovered = m_firstHandlePressed || (!m_secondHandleHovered && rv1.contains(event->pos()));
+  m_trackHovered = m_trackPressed || m_trackRect.contains(event->pos());
+  update(rv2.toRect());
+  update(rv1.toRect());
+  update(m_trackRect.toRect());
 }
 
 QSize
