@@ -413,8 +413,10 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, resolution.x, resolution.y);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
   } else {
-    glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &renderedTexture);
-    glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &depthTexture);
+    glGenTextures(1, &renderedTexture);
+    glGenTextures(1, &depthTexture);
+    // glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &renderedTexture);
+    // glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &depthTexture);
 
     // "Bind" the newly created texture : all future texture functions will modify this texture
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, renderedTexture);
