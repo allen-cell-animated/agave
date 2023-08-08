@@ -1,6 +1,6 @@
 #include "Manipulator.h"
 
-float ManipulationTool::s_manipulatorSize = 1.0f;
+float ManipulationTool::s_manipulatorSize = 500.0f;
 
 void
 drawCircle(Gesture& gesture,
