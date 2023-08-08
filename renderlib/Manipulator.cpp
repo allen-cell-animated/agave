@@ -271,8 +271,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
                             float opacity) {
     bool drawAsActive = (m_activeCode == selectionCode) || forceActive;
     bool fullDraw = (drawAsActive || !isCodeValid(m_activeCode));
-    if (drawAsActive)
+    if (drawAsActive) {
       color = glm::vec3(1, 1, 0);
+    }
 
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 

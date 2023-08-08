@@ -164,17 +164,12 @@ ViewerWindow::redraw()
   }
 
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
-  sceneView.camera = CCamera();
+  // sceneView.camera = CCamera();
+  sceneView.camera = renderCamera;
 
   update(sceneView.viewport, m_clock, gesture);
 
   m_renderer->render(renderCamera);
-
-  // SceneView sv;
-  // sv.camera = renderCamera;
-  // sv.viewport.region = { { 0, 0 }, { width(), height() } };
-  // gesture.graphics.draw(sv, m_selection);
-  sceneView.camera = renderCamera;
 
   gesture.graphics.draw(sceneView, m_selection);
 

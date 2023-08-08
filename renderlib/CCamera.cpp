@@ -7,9 +7,10 @@ CCamera::getFrame() const
 {
   // LOG_DEBUG << "CCamera::getFrame()" << glm::to_string(m_U) << ", " << glm::to_string(m_V) << ", "
   //           << glm::to_string(m_N) << "\n";
+  // return LinearSpace3f();
   return LinearSpace3f(m_U, m_V, m_N);
-  // return LinearSpace3f(
-  //   glm::vec3(m_U.x, -m_V.x, m_N.x), glm::vec3(m_U.y, -m_V.y, m_N.y), glm::vec3(m_U.z, -m_V.z, m_N.z));
+  //  return LinearSpace3f(
+  //    glm::vec3(m_U.x, -m_V.x, m_N.x), glm::vec3(m_U.y, -m_V.y, m_N.y), glm::vec3(m_U.z, -m_V.z, m_N.z));
 }
 
 // keep target constant and compute new eye and up vectors
