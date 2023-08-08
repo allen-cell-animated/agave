@@ -109,7 +109,7 @@ namespace Pipeline {
 static void
 configure_3dDepthTested(SceneView& sceneView)
 {
-  Shaders& shaders = sceneView.shaders;
+  auto& shaders = sceneView.shaders;
 
   glm::mat4 v;
   sceneView.camera.getViewMatrix(v);
@@ -119,7 +119,7 @@ configure_3dDepthTested(SceneView& sceneView)
   // TODO FIXME
   // should be view*p ???
   glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * s * v));
+  glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * s * v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -135,7 +135,7 @@ configure_3dDepthTested(SceneView& sceneView)
 static void
 configure_3dStacked(SceneView& sceneView)
 {
-  Shaders& shaders = sceneView.shaders;
+  auto& shaders = sceneView.shaders;
 
   glm::mat4 v;
   sceneView.camera.getViewMatrix(v);
@@ -146,7 +146,7 @@ configure_3dStacked(SceneView& sceneView)
   // TODO FIXME
   // should be view*p ???
   glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * s * v));
+  glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * s * v));
 
   check_gl("set proj matrix");
 
@@ -162,7 +162,7 @@ configure_3dStacked(SceneView& sceneView)
 static void
 configure_2dScreen(SceneView& sceneView)
 {
-  Shaders& shaders = sceneView.shaders;
+  auto& shaders = sceneView.shaders;
 
   auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
                       (float)sceneView.viewport.region.upper.x,
@@ -170,7 +170,7 @@ configure_2dScreen(SceneView& sceneView)
                       (float)sceneView.viewport.region.upper.y,
                       1.0f,
                       -1.f);
-  glUniformMatrix4fv(shaders.gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -308,8 +308,8 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
     // draw the GUI and once to draw the selection buffer data.
     // (display var is for draw vs pick)
     auto drawGesture = [&](bool display) {
-      Shaders& shaders = sceneView.shaders;
-      shaders.gui.configure(display, this->glTextureId);
+      auto& shaders = sceneView.shaders;
+      shaders->gui.configure(display, this->glTextureId);
 
       for (int sequence = 0; sequence < Graphics::kNumCommandsLists; ++sequence) {
         if (!this->commands[sequence].empty()) {
@@ -340,7 +340,7 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
         }
       }
 
-      shaders.gui.cleanup();
+      shaders->gui.cleanup();
       check_gl("disablevertexattribarray");
     };
     drawGesture(/*display*/ true);

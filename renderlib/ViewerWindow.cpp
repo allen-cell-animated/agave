@@ -101,6 +101,10 @@ ViewerWindow::redraw()
     m_increments = 0;
   }
 
+  if (!sceneView.shaders.get()) {
+    sceneView.shaders.reset(new Shaders());
+  }
+
   glm::ivec2 oldpickbuffersize = m_selection.resolution;
   bool ok = m_selection.update(glm::ivec2(width(), height()));
   if (!ok) {
@@ -160,18 +164,19 @@ ViewerWindow::redraw()
   }
 
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
-  //sceneView.camera = renderCamera;
+  sceneView.camera = CCamera();
 
   update(sceneView.viewport, m_clock, gesture);
 
   m_renderer->render(renderCamera);
 
-  SceneView sv;
-  sv.camera = renderCamera;
-  sv.viewport.region = { { 0, 0 }, { width(), height() } };
-  gesture.graphics.draw(sv, m_selection);
+  // SceneView sv;
+  // sv.camera = renderCamera;
+  // sv.viewport.region = { { 0, 0 }, { width(), height() } };
+  // gesture.graphics.draw(sv, m_selection);
+  sceneView.camera = renderCamera;
 
-  // gesture.graphics.draw(sceneView, m_selection);
+  gesture.graphics.draw(sceneView, m_selection);
 
   // Make sure we consumed any unused input event before we poll new events.
   gesture.input.consume();

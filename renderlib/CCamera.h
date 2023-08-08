@@ -346,7 +346,27 @@ public:
     m_Projection = PERSPECTIVE;
     m_OrthoScale = DEF_ORTHO_SCALE;
   }
-
+  CCamera(const CCamera& other)
+  {
+    m_SceneBoundingBox = other.m_SceneBoundingBox;
+    m_Near = other.m_Near;
+    m_Far = other.m_Far;
+    m_EnableClippingPlanes = other.m_EnableClippingPlanes;
+    m_From = other.m_From;
+    m_Target = other.m_Target;
+    m_Up = other.m_Up;
+    m_FovV = other.m_FovV;
+    m_AreaPixel = other.m_AreaPixel;
+    m_N = other.m_N;
+    m_U = other.m_U;
+    m_V = other.m_V;
+    m_Film = other.m_Film;
+    m_Focus = other.m_Focus;
+    m_Aperture = other.m_Aperture;
+    m_Dirty = other.m_Dirty;
+    m_Projection = other.m_Projection;
+    m_OrthoScale = other.m_OrthoScale;
+  }
   CCamera& operator=(const CCamera& Other)
   {
     m_SceneBoundingBox = Other.m_SceneBoundingBox;
@@ -640,7 +660,8 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   return c;
 }
 
-inline CameraModifier operator*(const CameraModifier& a, const float b)
+inline CameraModifier
+operator*(const CameraModifier& a, const float b)
 {
   CameraModifier c;
   c.position = a.position * b;

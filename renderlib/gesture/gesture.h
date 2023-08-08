@@ -9,6 +9,7 @@
 #include "graphics/gl/Util.h"
 
 #include <chrono>
+#include <memory>
 #include <vector>
 
 static const char* vertex_shader_text =
@@ -95,18 +96,27 @@ public:
   void configure(bool display, GLuint textureId)
   {
     bind();
+    check_gl("bind gesture draw shader");
+
     glEnableVertexAttribArray(m_loc_vpos);
+    check_gl("enable vertex attrib array 0");
     glEnableVertexAttribArray(m_loc_vuv);
+    check_gl("enable vertex attrib array 1");
     glEnableVertexAttribArray(m_loc_vcol);
+    check_gl("enable vertex attrib array 2");
     glEnableVertexAttribArray(m_loc_vcode);
+    check_gl("enable vertex attrib array 3");
 
     glUniform1i(uniformLocation("picking"), display ? 0 : 1);
+    check_gl("set picking uniform");
     if (display)
       glUniform1i(uniformLocation("Texture"), 0);
     else
       glUniform1i(uniformLocation("Texture"), 1);
+    check_gl("set texture uniform");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
+    check_gl("bind texture");
   }
   void cleanup()
   {
@@ -141,7 +151,8 @@ struct SceneView
       Region()
         : lower(+INT_MAX)
         , upper(-INT_MAX)
-      {}
+      {
+      }
       Region(const glm::ivec2& lower, const glm::ivec2& upper)
         : lower(lower)
         , upper(upper){};
@@ -171,7 +182,7 @@ struct SceneView
     }
   } viewport;
   CCamera camera;
-  Shaders shaders;
+  std::unique_ptr<Shaders> shaders;
 
   bool anythingActive() const { return true; }
 };
@@ -321,7 +332,8 @@ struct Gesture
       Command(GLenum command, float thickness = 1)
         : command(command)
         , thickness(thickness)
-      {}
+      {
+      }
 
       GLenum command;  //< Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
       float thickness; //< Line thickness or point radius.
@@ -353,7 +365,8 @@ struct Gesture
         , b(c.z)
         , a(opacity)
         , s(selectionCode)
-      {}
+      {
+      }
 
       // Comprehensive constructor
       VertsCode(const glm::vec3& v, glm::vec2 uv, glm::vec3 c, float opacity = 1.0f, uint32_t selectionCode = 0)
@@ -367,7 +380,8 @@ struct Gesture
         , b(c.z)
         , a(opacity)
         , s(selectionCode)
-      {}
+      {
+      }
 
       float x, y, z;    //< position
       float u, v;       //< texture coordinates
