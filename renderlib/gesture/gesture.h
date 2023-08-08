@@ -62,7 +62,7 @@ static const char* fragment_shader_text =
         // Gesture geometry handshake: any uv value below -64 means
         // no texture lookup. Check VertsCode::k_noTexture
         if (picking == 0 && Frag_UV.s > -64)
-            result *= texture2D(Texture, Frag_UV.st);
+            result *= texture(Texture, Frag_UV.st);
 
         // Gesture geometry handshake: any uv equal to -128 means
         // overlay a checkerboard pattern. Check VertsCode::k_marqueePattern

@@ -368,8 +368,9 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 void
 Gesture::Graphics::RenderBuffer::destroy()
 {
-  if (frameBuffer == 0)
+  if (frameBuffer == 0) {
     return;
+  }
   glDeleteFramebuffers(1, &frameBuffer);
   glDeleteRenderbuffers(1, &depthRenderBuffer);
   glDeleteTextures(1, &renderedTexture);
@@ -390,7 +391,8 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
   glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
   if (samples == 0) {
-    glCreateTextures(GL_TEXTURE_2D, 1, &renderedTexture);
+    glGenTextures(1, &renderedTexture);
+    // glCreateTextures(GL_TEXTURE_2D, 1, texturePtr);
 
     // "Bind" the newly created texture: all future texture functions will modify this texture
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
@@ -428,6 +430,7 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
 
   // Always check that our framebuffer is ok
   bool status = (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+  check_glfb("renderbuffer for picking");
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   return status;

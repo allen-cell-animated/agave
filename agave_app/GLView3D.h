@@ -96,7 +96,7 @@ protected:
 private:
   void FitToScene();
 
-  CameraController m_cameraController;
+  CameraController* m_cameraController;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 

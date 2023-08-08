@@ -33,15 +33,17 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   , m_etimer()
   , m_lastPos(0, 0)
   , m_qcamera(cam)
-  , m_viewerWindow(new ViewerWindow(rs))
-  , m_cameraController(cam, &m_viewerWindow->m_CCamera)
+  , m_viewerWindow(nullptr)
+  , m_cameraController(nullptr)
   , m_qrendersettings(qrs)
 {
+  m_viewerWindow = new ViewerWindow(rs);
+  m_cameraController = new CameraController(cam, &m_viewerWindow->m_CCamera);
   setFocusPolicy(Qt::StrongFocus);
 
   // The GLView3D owns one CScene
 
-  m_cameraController.setRenderSettings(*rs);
+  m_cameraController->setRenderSettings(*rs);
   m_qrendersettings->setRenderSettings(*rs);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
@@ -210,8 +212,8 @@ GLView3D::mousePressEvent(QMouseEvent* event)
     return;
   }
   m_lastPos = event->pos();
-  m_cameraController.m_OldPos[0] = m_lastPos.x();
-  m_cameraController.m_OldPos[1] = m_lastPos.y();
+  m_cameraController->m_OldPos[0] = m_lastPos.x();
+  m_cameraController->m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
   m_viewerWindow->gesture.input.setButtonEvent(
@@ -225,8 +227,8 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
     return;
   }
   m_lastPos = event->pos();
-  m_cameraController.m_OldPos[0] = m_lastPos.x();
-  m_cameraController.m_OldPos[1] = m_lastPos.y();
+  m_cameraController->m_OldPos[0] = m_lastPos.x();
+  m_cameraController->m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
   m_viewerWindow->gesture.input.setButtonEvent(
@@ -249,7 +251,7 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
   }
   m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x(), event->y()));
 
-  // m_cameraController.OnMouseMove(event);
+  // m_cameraController->OnMouseMove(event);
   m_lastPos = event->pos();
 }
 
