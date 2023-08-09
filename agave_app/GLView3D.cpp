@@ -40,6 +40,7 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   m_viewerWindow = new ViewerWindow(rs);
   m_cameraController = new CameraController(cam, &m_viewerWindow->m_CCamera);
   setFocusPolicy(Qt::StrongFocus);
+  setMouseTracking(true);
 
   // The GLView3D owns one CScene
 
