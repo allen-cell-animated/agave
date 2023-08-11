@@ -50,6 +50,7 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
 
   // Query Gesture::Graphics for selection codes
   uint32_t selectionCode = gesture.graphics.pick(m_selection, gesture.input, viewport);
+
   if (selectionCode != Gesture::Graphics::SelectionBuffer::k_noSelectionCode) {
     forEachTool([&](ManipulationTool* tool) { tool->setActiveCode(selectionCode); });
   } else {

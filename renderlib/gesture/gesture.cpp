@@ -239,6 +239,8 @@ public:
 
     const size_t vtxStride = 9 * sizeof(GLfloat) + 1 * sizeof(GLuint);
 
+    // xyz uv rgba s
+
     // specify position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)0);
     glEnableVertexAttribArray(0); // m_loc_vpos
@@ -252,7 +254,7 @@ public:
     glEnableVertexAttribArray(2); // m_loc_vcolor
 
     // specify selection id attribute
-    glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, vtxStride, (GLvoid*)(9 * sizeof(GLfloat)));
+    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, vtxStride, (GLvoid*)(9 * sizeof(GLfloat)));
     glEnableVertexAttribArray(3); // m_loc_vcode
   }
   ~ScopedGlVertexBuffer()
@@ -464,7 +466,7 @@ selectionRGB8ToCode(const uint8_t* rgba)
   // return code;
   // return (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
   // ignores 4th component (== 0)
-  return (uint32_t(rgba[0]) << 16) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 0);
+  return (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
 }
 
 uint32_t
