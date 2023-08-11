@@ -192,13 +192,16 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   check_gl("is depth enabled");
   GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
   check_gl("is blend enabled");
+  GLfloat last_clear_color[4];
+  glGetFloatv(GL_COLOR_CLEAR_VALUE, last_clear_color);
 
   // Render to texture
   glBindFramebuffer(GL_FRAMEBUFFER, selection.frameBuffer);
   check_gl("bind selection framebuffer");
   {
     glViewport(viewport.region.lower.x, viewport.region.lower.y, viewport.region.upper.x, viewport.region.upper.y);
-    glEnable(GL_BLEND);
+    glDisable(GL_BLEND);
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     drawSceneGeometry();
@@ -217,6 +220,8 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   else
     glDisable(GL_BLEND);
   check_gl("restore blend enabled state");
+  glClearColor(last_clear_color[0], last_clear_color[1], last_clear_color[2], last_clear_color[3]);
+  check_gl("restore clear color");
 }
 
 // a vertex buffer that is automatically allocated and then deleted when it goes out of scope
@@ -398,7 +403,7 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
     // Define the texture quality and zeroes its memory
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resolution.x, resolution.y, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resolution.x, resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     // We don't need texture filtering, but we need to specify some.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -452,8 +457,14 @@ SceneView::Viewport::Region::intersect(const SceneView::Viewport::Region& a, con
 uint32_t
 selectionRGB8ToCode(const uint8_t* rgba)
 {
+  // uint32_t code = 0;
+  // if (rgba[0] > 0 || rgba[1] > 0 || rgba[2] > 0) {
+  //   code = 1;
+  // }
+  // return code;
+  // return (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
   // ignores 4th component (== 0)
-  return (uint32_t(rgba[0]) << 16) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]));
+  return (uint32_t(rgba[0]) << 16) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 0);
 }
 
 uint32_t
@@ -509,6 +520,11 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   check_gl("get last framebuffer");
   glBindFramebuffer(GL_FRAMEBUFFER, selection.frameBuffer);
   {
+    // LOG_DEBUG << "Picking viewRegion " << viewRegion.lower.x << " " << viewRegion.lower.y << " " <<
+    // viewRegion.upper.x
+    //           << " " << viewRegion.upper.y;
+    // LOG_DEBUG << "Picking region " << region.lower.x << " " << region.lower.y << " " << region.upper.x << " "
+    //           << region.upper.y;
     glViewport(viewRegion.lower.x, viewRegion.lower.y, viewRegion.upper.x + 1, viewRegion.upper.y + 1);
 
     glm::ivec2 regionSize = region.size() + glm::ivec2(1);
@@ -540,5 +556,8 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
   check_gl("resture framebuffer");
 
+  // if (entry < SelectionBuffer::k_noSelectionCode) {
+  //   LOG_DEBUG << "Selection: " << entry;
+  // }
   return entry;
 }

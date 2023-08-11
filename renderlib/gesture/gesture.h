@@ -175,7 +175,7 @@ struct SceneView
     };
     Region region;
     // TODO clamp to region bounds
-    glm::ivec2 toRaster(const glm::vec2& p) const { return glm::ivec2((int)p.x, (int)p.y); }
+    glm::ivec2 toRaster(const glm::vec2& p) const { return glm::ivec2((int)p.x, region.size().y - (int)p.y); }
     glm::vec2 toNDC(const glm::ivec2& p) const
     {
       return glm::vec2((2.0f * p.x) / region.size().x - 1.0f, (2.0f * p.y) / region.size().y - 1.0f);
@@ -433,7 +433,7 @@ struct Gesture
 
     struct SelectionBuffer : RenderBuffer
     {
-      // 1 bit is reserved for comonent flags.
+      // 1 bit is reserved for component flags.
       static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
 
       // There is most stuff here for scene content selection but it is not

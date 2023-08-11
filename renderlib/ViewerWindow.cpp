@@ -14,7 +14,8 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
 
   // TEST create a tool and activate it
   m_activeTool = new MoveTool();
-  m_tools.push_back(m_activeTool);
+  // m_activeTool should not be in m_tools
+  // m_tools.push_back(m_activeTool);
 }
 
 ViewerWindow::~ViewerWindow()

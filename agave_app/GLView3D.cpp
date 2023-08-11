@@ -217,8 +217,12 @@ GLView3D::mousePressEvent(QMouseEvent* event)
   m_cameraController->m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
-  m_viewerWindow->gesture.input.setButtonEvent(
-    getButton(event), Gesture::Input::Action::kPress, getGestureMods(event), glm::vec2(event->x(), event->y()), time);
+  const float dpr = devicePixelRatioF();
+  m_viewerWindow->gesture.input.setButtonEvent(getButton(event),
+                                               Gesture::Input::Action::kPress,
+                                               getGestureMods(event),
+                                               glm::vec2(event->x() * dpr, event->y() * dpr),
+                                               time);
 }
 
 void
@@ -232,8 +236,12 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
   m_cameraController->m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
-  m_viewerWindow->gesture.input.setButtonEvent(
-    getButton(event), Gesture::Input::Action::kRelease, getGestureMods(event), glm::vec2(event->x(), event->y()), time);
+  const float dpr = devicePixelRatioF();
+  m_viewerWindow->gesture.input.setButtonEvent(getButton(event),
+                                               Gesture::Input::Action::kRelease,
+                                               getGestureMods(event),
+                                               glm::vec2(event->x() * dpr, event->y() * dpr),
+                                               time);
 }
 
 // No switch default to avoid -Wunreachable-code errors.
@@ -250,7 +258,9 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
   if (!isEnabled()) {
     return;
   }
-  m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x(), event->y()));
+  const float dpr = devicePixelRatioF();
+
+  m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x() * dpr, event->y() * dpr));
 
   // m_cameraController->OnMouseMove(event);
   m_lastPos = event->pos();

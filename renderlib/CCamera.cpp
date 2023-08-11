@@ -130,7 +130,7 @@ cameraManipulation(const glm::vec2 viewportSize,
     cameraEdit = true;
     Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonRight];
 
-    static const int DOLLY_PIXELS_PER_UNIT = 700;
+    static const int DOLLY_PIXELS_PER_UNIT = 200;
     const float dragScale = 1.0f / DOLLY_PIXELS_PER_UNIT;
 
     glm::vec2 drag = button.drag;
@@ -173,7 +173,7 @@ cameraManipulation(const glm::vec2 viewportSize,
     cameraEdit = true;
     Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
 
-    static const int TUMBLE_PIXELS_PER_RADIAN = 400;
+    static const int TUMBLE_PIXELS_PER_RADIAN = 200;
     const float dragScale = -1.0f / TUMBLE_PIXELS_PER_RADIAN;
 
     glm::vec2 drag = button.drag * dragScale;

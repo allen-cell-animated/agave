@@ -5,7 +5,6 @@
 // renderlib
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
-#include "renderlib/gesture/gesture.h"
 
 #include <QApplication>
 #include <QGuiApplication>
@@ -23,7 +22,8 @@ CameraController::CameraController(QCamera* cam, CCamera* theCamera)
   : m_renderSettings(nullptr)
   , m_qcamera(cam)
   , m_CCamera(theCamera)
-{}
+{
+}
 
 void
 CameraController::OnMouseWheelForward(void)

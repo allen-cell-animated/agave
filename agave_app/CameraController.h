@@ -4,7 +4,6 @@
 #include "Flags.h"
 
 #include "renderlib/CCamera.h"
-#include "renderlib/gesture/gesture.h"
 
 #include <glm/glm.hpp>
 
