@@ -645,6 +645,12 @@ struct CameraModifier
   glm::vec3 up = { 0, 0, 0 };
   // float fov = 0;
   float nearClip = 0, farClip = 0;
+
+  CameraModifier()
+    : nearClip(0)
+    , farClip(0)
+  {
+  }
 };
 
 inline CameraModifier
@@ -690,7 +696,7 @@ cameraManipulation(const glm::vec2 viewportSize,
                    CameraModifier& cameraMod);
 
 inline CCamera&
-operator+(CCamera& camera, const CameraModifier& mod)
+operator+=(CCamera& camera, const CameraModifier& mod)
 {
   camera.m_From += mod.position;
   camera.m_Target += mod.target;
@@ -700,4 +706,13 @@ operator+(CCamera& camera, const CameraModifier& mod)
   camera.m_Far += mod.farClip;
   // camera.Update();
   return camera;
+}
+inline CCamera
+operator+(const CCamera& camera, const CameraModifier& mod)
+{
+  // a new copy
+  CCamera c = camera;
+  // apply the mod to the new copy
+  c += mod;
+  return c;
 }

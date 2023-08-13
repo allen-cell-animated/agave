@@ -263,9 +263,9 @@ struct Gesture
         if (mbs[mbIndex].action == kRelease) {
           reset(mbs[mbIndex]);
         }
-        if (mbs[mbIndex].action == kDrag) {
-          mbs[mbIndex].drag = glm::vec2(0.0);
-        }
+        // if (mbs[mbIndex].action == kDrag) {
+        //   mbs[mbIndex].drag = glm::vec2(0.0);
+        // }
       }
     }
 

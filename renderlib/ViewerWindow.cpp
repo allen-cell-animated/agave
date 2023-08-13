@@ -158,12 +158,12 @@ ViewerWindow::redraw()
   }
 
   // Produce the render camera for current frame
-  m_CCamera.Update();
+  // m_CCamera.Update();
   CCamera renderCamera = m_CCamera;
   if (cameraEdit) {
     renderCamera = m_CCamera + cameraMod;
-    renderCamera.Update();
   }
+  renderCamera.Update();
 
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
   // sceneView.camera = CCamera();
