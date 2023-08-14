@@ -503,6 +503,11 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   // Crop selection with view in order to feed GL draw a valid region.
   region = SceneView::Viewport::Region::intersect(region, viewRegion);
 
+  // if the intersection is empty, return no selection
+  if (region.empty()) {
+    return SelectionBuffer::k_noSelectionCode;
+  }
+
   // Frame buffer resolution should be correct, check just in case.
   if (selection.resolution != viewport.region.size())
     return SelectionBuffer::k_noSelectionCode;

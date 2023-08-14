@@ -155,9 +155,11 @@ struct SceneView
         , upper(-INT_MAX)
       {
       }
+
       Region(const glm::ivec2& lower, const glm::ivec2& upper)
         : lower(lower)
         , upper(upper){};
+
       // assignment operator
       Region& operator=(const Region& other)
       {
@@ -165,14 +167,20 @@ struct SceneView
         upper = other.upper;
         return *this;
       }
+
       void extend(const glm::ivec2& p)
       {
         lower = glm::min(lower, p);
         upper = glm::max(upper, p);
       }
+
       glm::ivec2 size() const { return upper - lower; }
+
+      bool empty() const { return size().x < 0 || size().y < 0; }
+
       glm::ivec2 lower;
       glm::ivec2 upper;
+
       static Region intersect(const Region& a, const Region& b);
     };
     Region region;
