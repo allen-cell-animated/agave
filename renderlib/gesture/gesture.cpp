@@ -394,6 +394,9 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
   this->resolution = resolution;
   this->samples = samples;
 
+  GLint last_framebuffer;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &last_framebuffer);
+
   glGenFramebuffers(1, &frameBuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
@@ -441,7 +444,7 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
   bool status = (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   check_glfb("renderbuffer for picking");
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
   return status;
 }
 
@@ -556,7 +559,7 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   }
   // Restore previous framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
-  check_gl("resture framebuffer");
+  check_gl("restore framebuffer");
 
   // if (entry < SelectionBuffer::k_noSelectionCode) {
   //   LOG_DEBUG << "Selection: " << entry;

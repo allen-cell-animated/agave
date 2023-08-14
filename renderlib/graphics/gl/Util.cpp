@@ -159,7 +159,7 @@ void
 RectImage2D::draw(GLuint texture2d)
 {
   _image_shader->bind();
-  check_gl("Bind shader");
+  check_gl("Bind shader for RectImage2D");
 
   _image_shader->setModelViewProjection(glm::mat4(1.0));
 
@@ -314,7 +314,7 @@ void
 BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& color)
 {
   _shader->bind();
-  check_gl("Bind shader");
+  check_gl("Bind shader for bounding box drawable lines");
 
   _shader->setModelViewProjection(transform);
   _shader->setColour(color);
@@ -341,7 +341,7 @@ void
 BoundingBoxDrawable::drawFaces(const glm::mat4& transform, const glm::vec4& color)
 {
   _shader->bind();
-  check_gl("Bind shader");
+  check_gl("Bind shader for bounding box drawable faces");
 
   _shader->setModelViewProjection(transform);
   _shader->setColour(color);

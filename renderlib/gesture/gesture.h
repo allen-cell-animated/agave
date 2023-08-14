@@ -14,13 +14,15 @@
 
 static const char* vertex_shader_text =
   R"(
-    #version 150
+    #version 400 core
+
+    layout (location = 0) in vec3 vPos;
+    layout (location = 1) in vec2 vUV;
+    layout (location = 2) in vec4 vCol;
+    layout (location = 3) in uint vCode;
+
     uniform mat4 projection;
     uniform int picking;
-    in vec3 vPos;
-    in vec2 vUV;
-    in vec4 vCol;
-    in uint vCode;
 
     out vec4 Frag_color;
     out vec2 Frag_UV;
@@ -43,7 +45,7 @@ static const char* vertex_shader_text =
 
 static const char* fragment_shader_text =
   R"(
-    #version 150
+    #version 400 core
     in vec4 Frag_color;
     in vec2 Frag_UV;
     in vec4 gl_FragCoord;
