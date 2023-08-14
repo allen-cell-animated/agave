@@ -27,7 +27,7 @@ struct ManipulationTool
   // their own use.
   // Codes are in a continuous range and regenerated per frame. Absolute codes
   // are turned into tool-specific action codes for a manipulator to use.
-  // Action codes begins at zero, kInactive (-1) is reserved for "no interaction".
+  // Action codes begin at zero. kInactive (-1) is reserved for "no interaction".
   void requestCodesRange(int* incrementalCode)
   {
     assert(incrementalCode);
@@ -36,7 +36,7 @@ struct ManipulationTool
   }
 
   // User pointer interaction may activate a selection code; for example if the user
-  // overs with the mouse on top of one of the manipulator features, the
+  // hovers with the mouse on top of one of the manipulator features, the
   // corresponding code is broadcasted to all active manipulators. Each manipulator
   // is free to decide if the activeCode is meaningful and act on it, or if to
   // ignore the event. Typically this is done by checking if the activeCode against
@@ -85,7 +85,7 @@ protected:
   int m_codesOffset;
 
   // Number of action codes reserved by an instance of a manipulator.
-  // This is set on construction, but the implementation if free to change
+  // This is set on construction, but the implementation is free to change
   // the value per frame (typically inside method action).
   uint32_t m_numReservedCodes;
 
@@ -111,11 +111,24 @@ struct Origins
     kNormalize = 1
   };
 
-  void clear() {}
-  bool empty() const { return true; }
-  void update(SceneView& scene) {}
-  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault) { return {}; }
+  void clear() { m_origins.clear(); }
+  bool empty() const { return m_origins.size() == 0; }
+  void update(SceneView& scene)
+  {
+    // e.g. find all selected objects in scene and collect up their centers/transforms here.
+    m_origins = { AffineSpace3f() };
+  }
+  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault)
+  {
+    if (empty())
+      return AffineSpace3f();
+    else
+      return m_origins[0];
+  }
+
+  std::vector<AffineSpace3f> m_origins;
 };
+
 struct MoveTool : ManipulationTool
 {
   // Selection codes, are used to identify which manipulator is under the cursor.
@@ -143,4 +156,16 @@ struct MoveTool : ManipulationTool
   // Some data structure to store the initial state of the objects
   // to move.
   Origins origins;
+};
+
+struct AreaLightTool : ManipulationTool
+{
+
+  AreaLightTool()
+    : ManipulationTool(0)
+  {
+  }
+
+  virtual void action(SceneView& scene, Gesture& gesture) final;
+  virtual void draw(SceneView& scene, Gesture& gesture) final;
 };

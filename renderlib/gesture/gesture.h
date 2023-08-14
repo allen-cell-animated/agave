@@ -12,6 +12,8 @@
 #include <memory>
 #include <vector>
 
+class Scene;
+
 static const char* vertex_shader_text =
   R"(
     #version 400 core
@@ -193,6 +195,7 @@ struct SceneView
   } viewport;
   CCamera camera;
   std::unique_ptr<Shaders> shaders;
+  Scene* scene;
 
   bool anythingActive() const { return true; }
 };

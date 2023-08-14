@@ -13,7 +13,8 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   gesture.input.reset();
 
   // TEST create a tool and activate it
-  m_activeTool = new MoveTool();
+  // m_activeTool = new MoveTool();
+  m_activeTool = new AreaLightTool();
   // m_activeTool should not be in m_tools
   // m_tools.push_back(m_activeTool);
 }
@@ -168,6 +169,7 @@ ViewerWindow::redraw()
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
   // sceneView.camera = CCamera();
   sceneView.camera = renderCamera;
+  sceneView.scene = m_renderer->scene();
 
   update(sceneView.viewport, m_clock, gesture);
 

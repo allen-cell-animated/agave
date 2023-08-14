@@ -1,5 +1,7 @@
 #include "Manipulator.h"
 
+#include "AppScene.h"
+
 float ManipulationTool::s_manipulatorSize = 500.0f;
 
 void
@@ -138,7 +140,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // Here we compute the effect of the cursor drag motion by projecting
     // the ray extending from the cursor position into the screen. We
     // project that along a line or onto a plane depending on what the user
-    // clicks. We do it twice without an without the drag vector. The
+    // clicks. We do it twice with and without the drag vector. The
     // difference is our motion in ref space.
     glm::vec3 motion(0);
     switch (m_activeCode) {
@@ -185,6 +187,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // manipulator. Here we execute the action of applying motion to
     // whatever is that we are moving...
     // [...]
+    origins.m_origins[0].p = motion;
   }
   if (button.action == Gesture::Input::Action::kRelease) {
     if (!origins.empty()) {
@@ -398,4 +401,44 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     diskScale = scale * 0.02;
     drawCircle(gesture, axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
   }
+}
+
+void
+AreaLightTool::action(SceneView& scene, Gesture& gesture)
+{
+}
+void
+AreaLightTool::draw(SceneView& scene, Gesture& gesture)
+{
+  if (!scene.scene) {
+    return;
+  }
+  const Light& l = scene.scene->m_lighting.m_Lights[1];
+  glm::vec3 p = l.m_P;
+  float scale = l.m_Width * 0.5;
+  // compute 4 vertices of square area light pointing at 0, 0, 0
+  glm::vec3 v0 = l.m_U * (-scale) + l.m_V * (-scale);
+  glm::vec3 v1 = l.m_U * scale + l.m_V * (-scale);
+  glm::vec3 v2 = l.m_U * scale + l.m_V * scale;
+  glm::vec3 v3 = l.m_U * (-scale) + l.m_V * scale;
+
+  glm::vec3 color = glm::vec3(1, 1, 1);
+  float opacity = 1.0f;
+  uint32_t code = -1;
+  gesture.graphics.addCommand(GL_LINES);
+  gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code),
+                           Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
+  gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
+  gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
+  gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
+
+  // add translucent quads too?
+  opacity = 0.3f;
+  gesture.graphics.addCommand(GL_TRIANGLES);
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
 }
