@@ -65,6 +65,15 @@ struct ManipColors
   static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
+static void
+transformAreaLight(SceneView& scene, glm::vec3 motion)
+{
+  // get light 1
+  Light& l = scene.scene->m_lighting.m_Lights[1];
+  l.m_P += motion;
+  l.Update(scene.scene->m_boundingBox);
+}
+
 void
 MoveTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -187,7 +196,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // manipulator. Here we execute the action of applying motion to
     // whatever is that we are moving...
     // [...]
-    origins.m_origins[0].p = motion;
+    transformAreaLight(scene, motion);
   }
   if (button.action == Gesture::Input::Action::kRelease) {
     if (!origins.empty()) {
@@ -213,6 +222,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   // Re-read targetPosition because object may have moved by the manipulator action,
   // or animation. Target 3x3 linear space is a orthonormal frame. Target
   // position is where the manipulator should be drawn in space
+  if (origins.empty()) {
+    origins.update(scene);
+  }
   const AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);

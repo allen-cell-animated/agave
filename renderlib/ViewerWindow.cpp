@@ -13,8 +13,8 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   gesture.input.reset();
 
   // TEST create a tool and activate it
-  // m_activeTool = new MoveTool();
-  m_activeTool = new AreaLightTool();
+  m_activeTool = new MoveTool();
+  m_tools.push_back(new AreaLightTool());
   // m_activeTool should not be in m_tools
   // m_tools.push_back(m_activeTool);
 }
@@ -42,6 +42,54 @@ ViewerWindow::setSize(int width, int height)
 }
 
 void
+ViewerWindow::updateCamera()
+{
+  // Use gesture strokes (if any) to move the camera. If camera edit is still in progress, we are not
+  // going to change the camera directly, instead we fill a CameraModifier object with the delta.
+  CameraModifier cameraMod;
+  bool cameraEdit = cameraManipulation(glm::vec2(width(), height()),
+                                       // m_clock,
+                                       gesture,
+                                       m_CCamera,
+                                       cameraMod);
+  // Apply camera animation transitions if we have any
+  if (!m_cameraAnim.empty()) {
+    for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
+      CameraAnimation& anim = *it;
+      anim.time += m_clock.timeIncrement;
+
+      if (anim.time < anim.duration) { // alpha < 1.0) {
+        float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
+        // Animation in-betweens are accumulated to the camera modifier
+        cameraMod = cameraMod + anim.mod * alpha;
+        ++it;
+      } else {
+        // Completed animation is applied to the camera instead
+        m_CCamera = m_CCamera + anim.mod;
+        it = m_cameraAnim.erase(it);
+      }
+
+      // let renderer know camera is dirty
+      m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+    }
+  }
+
+  // Produce the render camera for current frame
+  // m_CCamera.Update();
+  CCamera renderCamera = m_CCamera;
+  if (cameraEdit) {
+    renderCamera = m_CCamera + cameraMod;
+  }
+  // renderCamera.Update();
+  if (cameraEdit) {
+    // let renderer know camera is dirty
+    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  }
+
+  sceneView.camera = renderCamera;
+}
+
+void
 ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture)
 {
   // [...]
@@ -57,6 +105,8 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   } else {
     // User didn't click on a manipulator, run scene object selection
     // [...]
+    updateCamera();
+    // or run camera manip?
   }
 
   // Run all manipulators and tools
@@ -124,60 +174,57 @@ ViewerWindow::redraw()
   // QPoint p = mapFromGlobal(QCursor::pos());
   // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
 
-  // Use gesture strokes (if any) to move the camera. If camera edit is still in progress, we are not
-  // going to change the camera directly, instead we fill a CameraModifier object with the delta.
-  CameraModifier cameraMod;
-  bool cameraEdit = cameraManipulation(glm::vec2(width(), height()),
-                                       // m_clock,
-                                       gesture,
-                                       m_CCamera,
-                                       cameraMod);
-  if (cameraEdit) {
-    // let renderer know camera is dirty
-    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-  }
-  // Apply camera animation transitions if we have any
-  if (!m_cameraAnim.empty()) {
-    for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
-      CameraAnimation& anim = *it;
-      anim.time += m_clock.timeIncrement;
+  // // Use gesture strokes (if any) to move the camera. If camera edit is still in progress, we are not
+  // // going to change the camera directly, instead we fill a CameraModifier object with the delta.
+  // CameraModifier cameraMod;
+  // bool cameraEdit = cameraManipulation(glm::vec2(width(), height()),
+  //                                      // m_clock,
+  //                                      gesture,
+  //                                      m_CCamera,
+  //                                      cameraMod);
+  // // Apply camera animation transitions if we have any
+  // if (!m_cameraAnim.empty()) {
+  //   for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
+  //     CameraAnimation& anim = *it;
+  //     anim.time += m_clock.timeIncrement;
 
-      if (anim.time < anim.duration) { // alpha < 1.0) {
-        float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
-        // Animation in-betweens are accumulated to the camera modifier
-        cameraMod = cameraMod + anim.mod * alpha;
-        ++it;
-      } else {
-        // Completed animation is applied to the camera instead
-        m_CCamera = m_CCamera + anim.mod;
-        it = m_cameraAnim.erase(it);
-      }
+  //     if (anim.time < anim.duration) { // alpha < 1.0) {
+  //       float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
+  //       // Animation in-betweens are accumulated to the camera modifier
+  //       cameraMod = cameraMod + anim.mod * alpha;
+  //       ++it;
+  //     } else {
+  //       // Completed animation is applied to the camera instead
+  //       m_CCamera = m_CCamera + anim.mod;
+  //       it = m_cameraAnim.erase(it);
+  //     }
 
-      // let renderer know camera is dirty
-      m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-    }
-  }
+  //     // let renderer know camera is dirty
+  //     m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  //   }
+  // }
 
-  // Produce the render camera for current frame
-  // m_CCamera.Update();
-  CCamera renderCamera = m_CCamera;
-  if (cameraEdit) {
-    renderCamera = m_CCamera + cameraMod;
-  }
-  renderCamera.Update();
+  // // Produce the render camera for current frame
+  // // m_CCamera.Update();
+  // CCamera renderCamera = m_CCamera;
+  // if (cameraEdit) {
+  //   renderCamera = m_CCamera + cameraMod;
+  // }
+  // renderCamera.Update();
 
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
-  // sceneView.camera = CCamera();
-  sceneView.camera = renderCamera;
+  sceneView.camera = m_CCamera;
   sceneView.scene = m_renderer->scene();
 
   update(sceneView.viewport, m_clock, gesture);
+  sceneView.camera.Update();
 
-  m_renderer->render(renderCamera);
+  m_renderer->render(sceneView.camera);
 
   gesture.graphics.draw(sceneView, m_selection);
 
   // Make sure we consumed any unused input event before we poll new events.
+  // (in the case of Qt we are not explicitly polling but using signals/slots.)
   gesture.input.consume();
 }
 

@@ -462,14 +462,9 @@ SceneView::Viewport::Region::intersect(const SceneView::Viewport::Region& a, con
 uint32_t
 selectionRGB8ToCode(const uint8_t* rgba)
 {
-  // uint32_t code = 0;
-  // if (rgba[0] > 0 || rgba[1] > 0 || rgba[2] > 0) {
-  //   code = 1;
-  // }
-  // return code;
-  // return (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
   // ignores 4th component (== 0)
-  return (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
+  uint32_t code = (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
+  return code == 0xffffff ? Gesture::Graphics::SelectionBuffer::k_noSelectionCode : code;
 }
 
 uint32_t
@@ -477,6 +472,7 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 {
   // Todo: the choice of pointer button should not be hardcoded here
   const Input::Button& button = input.mbs[Gesture::Input::kButtonLeft];
+
   int clickEnded = (button.action == Input::Action::kRelease);
   int clickDrag = (button.action == Input::Action::kDrag);
   int32_t buttonModifier = button.modifier;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AppScene.h"
 #include "MathUtil.h"
 #include "gesture/gesture.h"
 
@@ -103,6 +104,8 @@ private:
   std::string m_identifier;
 };
 
+// currently jsut area light but should be tuned to find
+// selected objects in scene and use an average of their centers
 struct Origins
 {
   enum OriginFlags
@@ -115,15 +118,25 @@ struct Origins
   bool empty() const { return m_origins.size() == 0; }
   void update(SceneView& scene)
   {
-    // e.g. find all selected objects in scene and collect up their centers/transforms here.
-    m_origins = { AffineSpace3f() };
+    if (scene.scene) {
+      // e.g. find all selected objects in scene and collect up their centers/transforms here.
+      const Light& lt = scene.scene->m_lighting.m_Lights[1];
+
+      // TODO could use the linearspace of the light (m_N, m_U, m_V)
+      m_origins = { AffineSpace3f(LinearSpace3f(), lt.m_P) };
+    }
   }
   AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault)
   {
-    if (empty())
+    if (empty()) {
       return AffineSpace3f();
-    else
+    } else {
+      // e.g. find all selected objects in scene and collect up their centers/transforms here.
+      const Light& lt = scene.scene->m_lighting.m_Lights[1];
+      // TODO could use the linearspace of the light (m_N, m_U, m_V)
+      m_origins[0].p = lt.m_P;
       return m_origins[0];
+    }
   }
 
   std::vector<AffineSpace3f> m_origins;

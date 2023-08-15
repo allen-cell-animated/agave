@@ -197,7 +197,7 @@ struct SceneView
   std::unique_ptr<Shaders> shaders;
   Scene* scene;
 
-  bool anythingActive() const { return true; }
+  bool anythingActive() const { return scene != nullptr; }
 };
 
 // integration:

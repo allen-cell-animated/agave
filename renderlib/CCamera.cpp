@@ -82,6 +82,8 @@ cameraManipulation(const glm::vec2 viewportSize,
     glm::vec3 y = glm::normalize(glm::cross(x, v));
     glm::vec3 track = x * drag.x + y * drag.y;
 
+    LOG_DEBUG << "Track " << glm::to_string(track);
+
     if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
       cameraMod.position = track;
       cameraMod.target = track;
@@ -191,15 +193,14 @@ cameraManipulation(const glm::vec2 viewportSize,
       cameraEdit = false;
     }
 
-    glm::vec3 rotated_up = camera.m_Up;
-    glm::vec3 rotated_v = camera.m_From - camera.m_Target;
-    glm::vec3 v = camera.m_From - camera.m_Target;
-    glm::vec3 newEye, newUp;
-    trackball(drag.x, drag.y, camera, newEye, newUp);
-    rotated_v = newEye - camera.m_Target;
-    rotated_up = newUp;
+    // glm::vec3 rotated_up = camera.m_Up;
+    // glm::vec3 rotated_v = camera.m_From - camera.m_Target;
+    // glm::vec3 v = camera.m_From - camera.m_Target;
+    // glm::vec3 newEye, newUp;
+    // trackball(drag.x, drag.y, camera, newEye, newUp);
+    // rotated_v = newEye - camera.m_Target;
+    // rotated_up = newUp;
 
-#if 0
     // First rotation is horizontal, around the up vector.
     glm::vec3 v = camera.m_From - camera.m_Target;
     glm::vec3 rotated_v =
@@ -213,7 +214,6 @@ cameraManipulation(const glm::vec2 viewportSize,
     // When this happens we must flip the up vector to give the user a continuous rotation.
     bool flipped = glm::dot(x_axis, glm::cross(camera.m_Up, rotated_v)) < 0;
     glm::vec3 rotated_up = flipped ? -camera.m_Up : camera.m_Up;
-#endif
 
     if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
       cameraMod.position = rotated_v - v;

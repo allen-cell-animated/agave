@@ -22,6 +22,8 @@ public:
   void redraw();
 
   void update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture);
+  void updateCamera();
+
   void setRenderer(int rendererType);
 
   // Provide a new active tool
