@@ -81,21 +81,15 @@ RangeWidget::paintEvent(QPaintEvent* event)
   p.setRenderHint(QPainter::Antialiasing, true);
   int totalOutline = OUTLINE_WIDTH * 2;
 
-  // First value handle rect
+  // Define handle rectangle areas
   QRectF rv1 = firstHandleRect();
-  QColor c1(m_firstHandleColor);
-  if (m_firstHandleHovered)
-    c1 = c1.darker(125); // 80% of original brightness
-
-  // Second value handle rect
   QRectF rv2 = secondHandleRect();
-  QColor c2(m_secondHandleColor);
-  if (m_secondHandleHovered)
-    c2 = c2.darker(125);
 
   // Draw the track
   QRect r;
   if (m_orientation == Qt::Horizontal)
+    // Define the track area, centering it within the RangeWidget's vertical space and accounting for outline width.
+    // Params are in top, left, width, height order
     r = QRect(0, std::floor((height() - m_trackHeight - totalOutline) / 2), width() - totalOutline, m_trackHeight);
   else
     r = QRect(
@@ -129,26 +123,38 @@ RangeWidget::paintEvent(QPaintEvent* event)
   // Draw handles
   p.setPen(style()->standardPalette().mid().color());
 
-  p.setBrush(c1);
-  QPainterPath rectPath1;
+  // First value handle rect
+  QColor c1(m_firstHandleColor);
+  if (m_firstHandleHovered)
+    c1 = c1.darker(125); // 80% of original brightness
 
+  QPainterPath rectPath1;
+  p.setBrush(c1);
   // Translate by 0.5 so that rectangle aligns with pixel grid
   rectPath1.addRoundedRect(rv1.translated(0.5, 0.5), radius, radius);
   makeHandleGripLines(&rectPath1, rv1);
   p.drawPath(rectPath1);
 
+  // Second value handle rect
+  QColor c2(m_secondHandleColor);
+  if (m_secondHandleHovered)
+    c2 = c2.darker(125);
+
   QPainterPath rectPath2;
   p.setBrush(c2);
-  makeHandleGripLines(&rectPath2, rv2);
   rectPath2.addRoundedRect(rv2.translated(0.5, 0.5), radius, radius);
+  makeHandleGripLines(&rectPath2, rv2);
   p.drawPath(rectPath2);
 }
 
 /**
  * Adds three grip lines for the given handle to the path for drawing.
  * Lines are spaced a pixel apart, centered on the handle if possible.
- * The sizeRatio controls the relative size of the grip lines compared
- * to the width/height of the handle (m_handleHeight).
+ * @param path Path to add the grip lines to. The path must be drawn separately
+ * with a pen (line) set.
+ * @param handle Rectangular area of the handle.
+ * @param sizeRatio Height of the grip lines relative
+ * to the height of the handle (m_handleHeight), in a [0, 1] range.
  */
 void
 RangeWidget::makeHandleGripLines(QPainterPath* path, QRectF handle, float sizeRatio)
