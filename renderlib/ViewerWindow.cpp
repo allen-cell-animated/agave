@@ -214,6 +214,7 @@ ViewerWindow::redraw()
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
   sceneView.camera = m_CCamera;
   sceneView.scene = m_renderer->scene();
+  sceneView.renderSettings = m_renderSettings;
 
   update(sceneView.viewport, m_clock, gesture);
   sceneView.camera.Update();

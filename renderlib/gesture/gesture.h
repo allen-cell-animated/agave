@@ -13,6 +13,7 @@
 #include <vector>
 
 class Scene;
+class RenderSettings;
 
 static const char* vertex_shader_text =
   R"(
@@ -195,7 +196,8 @@ struct SceneView
   } viewport;
   CCamera camera;
   std::unique_ptr<Shaders> shaders;
-  Scene* scene;
+  Scene* scene = nullptr;
+  RenderSettings* renderSettings = nullptr;
 
   bool anythingActive() const { return scene != nullptr; }
 };
