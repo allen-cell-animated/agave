@@ -462,6 +462,9 @@ struct Gesture
     // Todo: switch to bindless textures
     uint32_t glTextureId = 0;
 
+    // remember selection code to reuse while dragging
+    uint32_t m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+
     // Empty the commands/verts buffers, typically done after drawing the GUI.
     void clearCommands()
     {
@@ -557,7 +560,9 @@ struct Gesture
     // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
     // otherwise.
     // viewport: left, top, width, height
-    uint32_t pick(struct SelectionBuffer& selection, const Input& input, const SceneView::Viewport& viewport);
+    bool pick(struct SelectionBuffer& selection, const Input& input, const SceneView::Viewport& viewport);
+
+    int getCurrentSelectionCode() { return m_retainedSelectionCode; }
   };
   Graphics graphics;
 };

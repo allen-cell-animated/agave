@@ -98,15 +98,14 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   forEachTool([&](ManipulationTool* tool) { tool->clear(); });
 
   // Query Gesture::Graphics for selection codes
-  uint32_t selectionCode = gesture.graphics.pick(m_selection, gesture.input, viewport);
-
-  if (selectionCode != Gesture::Graphics::SelectionBuffer::k_noSelectionCode) {
+  bool pickedAnything = gesture.graphics.pick(m_selection, gesture.input, viewport);
+  if (pickedAnything) {
+    int selectionCode = gesture.graphics.getCurrentSelectionCode();
     forEachTool([&](ManipulationTool* tool) { tool->setActiveCode(selectionCode); });
   } else {
     // User didn't click on a manipulator, run scene object selection
     // [...]
     updateCamera();
-    // or run camera manip?
   }
 
   // Run all manipulators and tools

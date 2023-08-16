@@ -467,7 +467,7 @@ selectionRGB8ToCode(const uint8_t* rgba)
   return code == 0xffffff ? Gesture::Graphics::SelectionBuffer::k_noSelectionCode : code;
 }
 
-uint32_t
+bool
 Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input, const SceneView::Viewport& viewport)
 {
   // Todo: the choice of pointer button should not be hardcoded here
@@ -477,8 +477,9 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   int clickDrag = (button.action == Input::Action::kDrag);
   int32_t buttonModifier = button.modifier;
 
-  if (clickEnded || clickDrag)
-    return SelectionBuffer::k_noSelectionCode; //< not a selection event
+  if (clickEnded || clickDrag) {
+    return m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
+  }
 
   // Prepare a region in raster space
 
@@ -501,12 +502,15 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 
   // if the intersection is empty, return no selection
   if (region.empty()) {
-    return SelectionBuffer::k_noSelectionCode;
+    m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    return false;
   }
 
   // Frame buffer resolution should be correct, check just in case.
-  if (selection.resolution != viewport.region.size())
-    return SelectionBuffer::k_noSelectionCode;
+  if (selection.resolution != viewport.region.size()) {
+    m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    return false;
+  }
 
   uint32_t entry = SelectionBuffer::k_noSelectionCode;
 
@@ -565,5 +569,6 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   // if (entry < SelectionBuffer::k_noSelectionCode) {
   //   LOG_DEBUG << "Selection: " << entry;
   // }
-  return entry;
+  m_retainedSelectionCode = entry;
+  return entry != SelectionBuffer::k_noSelectionCode;
 }
