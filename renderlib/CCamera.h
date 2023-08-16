@@ -569,9 +569,11 @@ public:
 
   float getHalfHorizontalAperture() const
   {
+    // fov = 2 atan(halfAperture / focalLength)
+    // halfAperture = tan(fov/2) * focalLength
+    return tan(this->GetHorizontalFOV_radians() * 0.5f); // * m_Film.GetFocalLength();
     // use half the aspect ratio
-    return (float)m_Film.GetWidth() / (float)m_Film.GetHeight() * 0.5f;
-    // return m_Film.GetWidth() * 0.5f * m_Film.GetAperture() / m_Film.GetFocalLength();
+    // return (float)m_Film.GetWidth() / (float)m_Film.GetHeight() * 0.5f;
   }
 
   float GetHorizontalFOV_radians() const

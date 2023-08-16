@@ -193,27 +193,28 @@ cameraManipulation(const glm::vec2 viewportSize,
       cameraEdit = false;
     }
 
-    // glm::vec3 rotated_up = camera.m_Up;
-    // glm::vec3 rotated_v = camera.m_From - camera.m_Target;
-    // glm::vec3 v = camera.m_From - camera.m_Target;
-    // glm::vec3 newEye, newUp;
-    // trackball(drag.x, drag.y, camera, newEye, newUp);
-    // rotated_v = newEye - camera.m_Target;
-    // rotated_up = newUp;
-
-    // First rotation is horizontal, around the up vector.
+    glm::vec3 rotated_up = camera.m_Up;
+    glm::vec3 rotated_v = camera.m_From - camera.m_Target;
     glm::vec3 v = camera.m_From - camera.m_Target;
-    glm::vec3 rotated_v =
-      glm::rotate(v, drag.x, camera.m_Up); // xfmVector(Quaternion3f::rotate(camera.m_Up, drag.x), v);
+    glm::vec3 newEye, newUp;
+    trackball(drag.x, drag.y, camera, newEye, newUp);
+    rotated_v = newEye - camera.m_Target;
+    rotated_up = newUp;
 
-    // Second rotation is vertical, around the camera x-axis.
-    glm::vec3 x_axis = glm::normalize(glm::cross(camera.m_Up, rotated_v));
-    rotated_v = glm::rotate(rotated_v, drag.y, x_axis); // xfmVector(Quaternion3f::rotate(x_axis, drag.y), rotated_v);
+    // // First rotation is horizontal, around the up vector.
+    // glm::vec3 v = camera.m_From - camera.m_Target;
+    // glm::vec3 rotated_v =
+    //   glm::rotate(v, drag.x, camera.m_Up); // xfmVector(Quaternion3f::rotate(camera.m_Up, drag.x), v);
 
-    // Check if after vertical rotation the camera swang to the other side of the up vector.
-    // When this happens we must flip the up vector to give the user a continuous rotation.
-    bool flipped = glm::dot(x_axis, glm::cross(camera.m_Up, rotated_v)) < 0;
-    glm::vec3 rotated_up = flipped ? -camera.m_Up : camera.m_Up;
+    // // Second rotation is vertical, around the camera x-axis.
+    // glm::vec3 x_axis = glm::normalize(glm::cross(camera.m_Up, rotated_v));
+    // rotated_v = glm::rotate(rotated_v, drag.y, x_axis); // xfmVector(Quaternion3f::rotate(x_axis, drag.y),
+    // rotated_v);
+
+    // // Check if after vertical rotation the camera swang to the other side of the up vector.
+    // // When this happens we must flip the up vector to give the user a continuous rotation.
+    // bool flipped = glm::dot(x_axis, glm::cross(camera.m_Up, rotated_v)) < 0;
+    // glm::vec3 rotated_up = flipped ? -camera.m_Up : camera.m_Up;
 
     if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
       cameraMod.position = rotated_v - v;
@@ -221,6 +222,7 @@ cameraManipulation(const glm::vec2 viewportSize,
     } else if (button.action == Gesture::Input::kRelease) {
       camera.m_From += rotated_v - v;
       camera.m_Up = rotated_up;
+      camera.Update();
 
       // Consume gesture on button release
       Gesture::Input::reset(button);

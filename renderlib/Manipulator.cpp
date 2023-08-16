@@ -1,6 +1,6 @@
 #include "Manipulator.h"
 
-#include "AppScene.h"
+// #include "AppScene.h"
 
 float ManipulationTool::s_manipulatorSize = 500.0f;
 
@@ -65,15 +65,6 @@ struct ManipColors
   static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
-static void
-transformAreaLight(SceneView& scene, glm::vec3 motion)
-{
-  // get light 1
-  Light& l = scene.scene->m_lighting.m_Lights[1];
-  l.m_P += motion;
-  l.Update(scene.scene->m_boundingBox);
-}
-
 void
 MoveTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -92,6 +83,10 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
 
   // Move responds only to left pointer button click-drag.
   Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
+  if (button.action == Gesture::Input::Action::kPress) {
+    origins.update(scene);
+    m_translation = glm::vec3(0, 0, 0);
+  }
   if (button.action == Gesture::Input::Action::kDrag) {
     // If we have not initialized objects position when the gesture began,
     // do so now. We need to know the initial object(s) position to
@@ -115,7 +110,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     float v_len = scene.camera.getDistance(targetPosition);
     float aperture = scene.camera.getHalfHorizontalAperture();
 
-    float dragScale = aperture * v_len / (resolution.x / 2);
+    float dragScale = 0.5 * aperture * v_len / (resolution.x / 2);
 
     // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
@@ -157,7 +152,8 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
         // Motion on the image plane is simpler than anything else here:
         // we simply scale the drag vector by the dragScale and transform
         // to the camera frame
-        motion = xfmVector(camFrame, glm::vec3(button.drag, 0)) * dragScale;
+        // TODO FIXME UGLY HACK Why are we negating drag.y here???
+        motion = xfmVector(camFrame, glm::vec3(button.drag.x, -button.drag.y, 0)) * dragScale;
         break;
 
       case MoveTool::kMoveX:
@@ -167,6 +163,8 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
         // The difference between those two points is the drag distance
         // along the axis. Neat right?
         motion = lineLineNearestPoint(p, ref.vx, l, l1) - lineLineNearestPoint(p, ref.vx, l, l0);
+        // TODO FIXME UGLY HACK Why are we negating here???
+        motion = -motion;
         break;
 
       case MoveTool::kMoveY:
@@ -196,7 +194,10 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // manipulator. Here we execute the action of applying motion to
     // whatever is that we are moving...
     // [...]
-    transformAreaLight(scene, motion);
+    // Note that the motion is the total motion from drag origin.
+    // but we will update this per-frame!
+    origins.translate(scene, motion);
+    m_translation = motion;
   }
   if (button.action == Gesture::Input::Action::kRelease) {
     if (!origins.empty()) {
@@ -207,6 +208,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // Consume the gesture.
     gesture.input.reset(Gesture::Input::kButtonLeft);
     origins.clear();
+    m_translation = glm::vec3(0, 0, 0);
   }
 }
 
@@ -225,7 +227,10 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   if (origins.empty()) {
     origins.update(scene);
   }
-  const AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+  // Append the current translation to the manipulator position.
+  // This assumes that origins.currentReference is NOT translated
+  target.p += m_translation;
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
   LinearSpace3f camFrame = scene.camera.getFrame();

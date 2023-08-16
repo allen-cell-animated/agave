@@ -126,17 +126,22 @@ struct Origins
       m_origins = { AffineSpace3f(LinearSpace3f(), lt.m_P) };
     }
   }
-  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault)
+  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault) { return m_origins[0]; }
+
+  void translate(SceneView& scene, glm::vec3 motion)
   {
-    if (empty()) {
-      return AffineSpace3f();
-    } else {
-      // e.g. find all selected objects in scene and collect up their centers/transforms here.
-      const Light& lt = scene.scene->m_lighting.m_Lights[1];
-      // TODO could use the linearspace of the light (m_N, m_U, m_V)
-      m_origins[0].p = lt.m_P;
-      return m_origins[0];
-    }
+    glm::vec3 p = m_origins[0].p + motion;
+
+    // get light 1
+    Light& l = scene.scene->m_lighting.m_Lights[1];
+    glm::vec3 dir = p - scene.scene->m_boundingBox.GetCenter();
+    // now set distance, theta, phi from m_P and current m_Target
+    l.m_Distance = glm::length(dir);
+    l.m_Phi = glm::acos(dir.y / l.m_Distance);
+    l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
+
+    l.Update(scene.scene->m_boundingBox);
+    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
   std::vector<AffineSpace3f> m_origins;
@@ -169,6 +174,10 @@ struct MoveTool : ManipulationTool
   // Some data structure to store the initial state of the objects
   // to move.
   Origins origins;
+
+  // The current translation of the objects to move.
+  // We need to access this across calls to action and draw
+  glm::vec3 m_translation;
 };
 
 struct AreaLightTool : ManipulationTool
