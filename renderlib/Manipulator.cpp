@@ -459,3 +459,117 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
 }
+
+void
+RotateTool::action(SceneView& scene, Gesture& gesture)
+{
+}
+void
+RotateTool::draw(SceneView& scene, Gesture& gesture)
+{
+  const glm::vec2 resolution = scene.viewport.region.size();
+  // Move tool is only active if something is selected
+  if (!scene.anythingActive()) {
+    return;
+  }
+
+  // Re-read targetPosition because object may have moved by the manipulator action,
+  // or animation. Target 3x3 linear space is a orthonormal frame. Target
+  // position is where the manipulator should be drawn in space
+  if (origins.empty()) {
+    origins.update(scene);
+  }
+  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+
+  glm::vec3 viewDir = (scene.camera.m_From - target.p);
+  LinearSpace3f camFrame = scene.camera.getFrame();
+
+  // Draw the manipulator to be at some constant size on screen
+  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (s_manipulatorSize / resolution.x);
+
+  AffineSpace3f axis;
+  axis.p = target.p;
+
+  // gesture.graphics.addCommand(GL_TRIANGLES);
+  // drawSolidArrow(axis.l.vx, axis.l.vy, axis.l.vz, MoveTool::kMoveX, forceActiveX, ManipColors::xAxis, 0.3f);
+  // drawSolidArrow(axis.l.vy, axis.l.vz, axis.l.vx, MoveTool::kMoveY, forceActiveY, ManipColors::yAxis, 0.3f);
+  // drawSolidArrow(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 0.3f);
+
+  // gesture.graphics.addCommand(GL_LINES);
+  //  drawAxis(axis.l.vx, axis.l.vy, axis.l.vz, MoveTool::kMoveX, forceActiveX, ManipColors::xAxis, 1);
+  //  drawAxis(axis.l.vy, axis.l.vz, axis.l.vx, MoveTool::kMoveY, forceActiveY, ManipColors::yAxis, 1);
+  //  drawAxis(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 1);
+
+  // // Draw planar move controls, only if facing angle makes them usable
+  // glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
+  // float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
+
+  // drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);
+  // facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vy)));
+  // drawDiag(axis.l.vy, axis.l.vz, axis.l.vx, facingScale, MoveTool::kMoveXZ, ManipColors::yAxis, 1);
+  // facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vz)));
+  // drawDiag(axis.l.vz, axis.l.vx, axis.l.vy, facingScale, MoveTool::kMoveXY, ManipColors::zAxis, 1);
+
+  gesture.graphics.addCommand(GL_TRIANGLES);
+  // draw a flat camera facing disk for freeform tumble rotation
+  float tumblescale = scale * 0.84f;
+  {
+    float opacity = 0.05f;
+    uint32_t code = manipulatorCode(RotateTool::kRotate, m_codesOffset);
+    glm::vec3 color = ManipColors::bright;
+    if (m_activeCode == RotateTool::kRotate) {
+      color = glm::vec3(1, 1, 0);
+      opacity = 0.1f;
+    }
+    drawCone(gesture,
+             axis.p,
+             camFrame.vy * tumblescale, // swapped x and y to invert the triangles to face user
+             camFrame.vx * tumblescale,
+             glm::vec3(0, 0, 0),
+             48,
+             color,
+             opacity,
+             code);
+  }
+
+  gesture.graphics.addCommand(GL_LINES);
+
+  float axisscale = scale * 0.85f;
+  // Draw the x ring in yz plane
+  {
+    uint32_t code = manipulatorCode(RotateTool::kRotateX, m_codesOffset);
+    glm::vec3 color = ManipColors::xAxis;
+    if (m_activeCode == RotateTool::kRotateX) {
+      color = glm::vec3(1, 1, 0);
+    }
+    drawCircle(gesture, axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code);
+  }
+  // Draw the y ring in xz plane
+  {
+    uint32_t code = manipulatorCode(RotateTool::kRotateY, m_codesOffset);
+    glm::vec3 color = ManipColors::yAxis;
+    if (m_activeCode == RotateTool::kRotateY) {
+      color = glm::vec3(1, 1, 0);
+    }
+    drawCircle(gesture, axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code);
+  }
+  // Draw the z ring in xy plane
+  {
+    uint32_t code = manipulatorCode(RotateTool::kRotateZ, m_codesOffset);
+    glm::vec3 color = ManipColors::zAxis;
+    if (m_activeCode == RotateTool::kRotateZ) {
+      color = glm::vec3(1, 1, 0);
+    }
+    drawCircle(gesture, axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
+  }
+
+  // Draw the origin of the manipulator as a circle always facing the view
+  {
+    uint32_t code = manipulatorCode(RotateTool::kRotateView, m_codesOffset);
+    glm::vec3 color = ManipColors::bright;
+    if (m_activeCode == RotateTool::kRotateView) {
+      color = glm::vec3(1, 1, 0);
+    }
+    drawCircle(gesture, axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
+  }
+}
