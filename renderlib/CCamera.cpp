@@ -42,58 +42,120 @@ trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye,
   eye = _eye + camera.m_Target;
 }
 
+glm::vec3
+cameraTrack(glm::vec2 drag, CCamera& camera, const glm::vec2 viewportSize)
+{
+  float width = viewportSize.x;
+  glm::vec3 v = camera.m_From - camera.m_Target;
+  float distance = length(v);
+
+  // Project the drag movement in pixels to the image plane set at the distance of the
+  // camera target.
+  float halfHorizontalAperture = camera.getHalfHorizontalAperture();
+  float dragScale = distance * halfHorizontalAperture / (width * 0.5f);
+  drag *= dragScale;
+  glm::vec3 x = glm::normalize(glm::cross(v, camera.m_Up));
+  glm::vec3 y = glm::normalize(glm::cross(x, v));
+  glm::vec3 track = x * drag.x + y * drag.y;
+
+  LOG_DEBUG << "Track " << glm::to_string(track);
+  return track;
+}
+
 bool
-cameraManipulation(const glm::vec2 viewportSize,
-                   // const TimeSample& clock,
-                   Gesture& gesture,
-                   CCamera& camera,
-                   CameraModifier& cameraMod)
+cameraManipulationTrack(const glm::vec2 viewportSize,
+                        Gesture::Input::Button& button,
+                        CCamera& camera,
+                        CameraModifier& cameraMod)
+{
+  bool cameraEdit = true;
+  glm::vec2 drag = button.drag;
+  if (button.dragConstraint == Gesture::Input::kHorizontal) {
+    drag.y = 0;
+  }
+  if (button.dragConstraint == Gesture::Input::kVertical) {
+    drag.x = 0;
+  }
+
+  if (drag.x == 0 && drag.y == 0) {
+    cameraEdit = false;
+  }
+
+  glm::vec3 track = cameraTrack(drag, camera, viewportSize);
+
+  if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
+    cameraMod.position = track;
+    cameraMod.target = track;
+  } else if (button.action == Gesture::Input::kRelease) {
+    camera.m_From += track;
+    camera.m_Target += track;
+
+    // Consume pointer button release event
+    Gesture::Input::reset(button);
+  }
+  return cameraEdit;
+}
+bool
+cameraManipulationDolly(const glm::vec2 viewportSize,
+                        Gesture::Input::Button& button,
+                        CCamera& camera,
+                        CameraModifier& cameraMod)
+{
+
+  bool cameraEdit = true;
+  static const int DOLLY_PIXELS_PER_UNIT = 700;
+  const float dragScale = 1.0f / DOLLY_PIXELS_PER_UNIT;
+
+  glm::vec2 drag = button.drag;
+  float dragDist = drag.x + drag.y; // reduce_add(drag);
+  glm::vec3 v = camera.m_From - camera.m_Target;
+  glm::vec3 motion, targetMotion;
+
+  if (drag.x == 0 && drag.y == 0)
+    cameraEdit = false;
+
+  if ((button.modifier & Gesture::Input::kShift) == 0) {
+    // Exponential motion, the closer to the target, the slower the motion,
+    // the further away the faster.
+    glm::vec3 v_scaled = v * expf(-dragDist * dragScale);
+    motion = v_scaled - v;
+    targetMotion = glm::vec3(0);
+  } else {
+    // Linear motion. We move position and target at once. This mode allows the user not
+    // to get stuck with a camera that doesn't move because the postion got to close to
+    // the target.
+    glm::vec3 v_scaled = v * (-dragDist * dragScale);
+    motion = v_scaled;
+    targetMotion = motion;
+  }
+
+  if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
+    cameraMod.position = motion;
+    cameraMod.target = targetMotion;
+  } else if (button.action == Gesture::Input::kRelease) {
+    camera.m_From += motion;
+    camera.m_Target += targetMotion;
+
+    // Consume gesture on button release
+    Gesture::Input::reset(button);
+  }
+  return cameraEdit;
+}
+
+bool
+cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& camera, CameraModifier& cameraMod)
 {
   float width = viewportSize.x;
   bool cameraEdit = false;
 
   // Camera Track
-  if (gesture.input.hasButtonAction(Gesture::Input::kButtonMiddle, 0)) { // Gesture::Input::kCtrl)) {
-    // if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kAlt)) {
-    cameraEdit = true;
-    Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonMiddle];
-
-    glm::vec2 drag = button.drag;
-    if (button.dragConstraint == Gesture::Input::kHorizontal) {
-      drag.y = 0;
-    }
-    if (button.dragConstraint == Gesture::Input::kVertical) {
-      drag.x = 0;
-    }
-
-    glm::vec3 v = camera.m_From - camera.m_Target;
-    float distance = length(v);
-
-    if (drag.x == 0 && drag.y == 0) {
-      cameraEdit = false;
-    }
-
-    // Project the drag movement in pixels to the image plane set at the distance of the
-    // camera target.
-    float halfHorizontalAperture = tanf(camera.GetHorizontalFOV_radians() * 0.5f);
-    float dragScale = distance * halfHorizontalAperture / (width * 0.5f);
-    drag *= dragScale;
-    glm::vec3 x = glm::normalize(glm::cross(v, camera.m_Up));
-    glm::vec3 y = glm::normalize(glm::cross(x, v));
-    glm::vec3 track = x * drag.x + y * drag.y;
-
-    LOG_DEBUG << "Track " << glm::to_string(track);
-
-    if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
-      cameraMod.position = track;
-      cameraMod.target = track;
-    } else if (button.action == Gesture::Input::kRelease) {
-      camera.m_From += track;
-      camera.m_Target += track;
-
-      // Consume pointer button release event
-      Gesture::Input::reset(button);
-    }
+  // middle-drag or alt-left-drag (option-left-drag on Mac)
+  if (gesture.input.hasButtonAction(Gesture::Input::kButtonMiddle, 0)) {
+    cameraEdit =
+      cameraManipulationTrack(viewportSize, gesture.input.mbs[Gesture::Input::kButtonMiddle], camera, cameraMod);
+  } else if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kAlt)) {
+    cameraEdit =
+      cameraManipulationTrack(viewportSize, gesture.input.mbs[Gesture::Input::kButtonLeft], camera, cameraMod);
   }
 
   // Camera Roll
@@ -127,47 +189,13 @@ cameraManipulation(const glm::vec2 viewportSize,
   }
 
   // Camera Dolly
-  //  else if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kCtrl)) {
-  else if (gesture.input.hasButtonAction(Gesture::Input::kButtonRight, 0)) { // Gesture::Input::kCtrl)) {
-    cameraEdit = true;
-    Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonRight];
-
-    static const int DOLLY_PIXELS_PER_UNIT = 700;
-    const float dragScale = 1.0f / DOLLY_PIXELS_PER_UNIT;
-
-    glm::vec2 drag = button.drag;
-    float dragDist = drag.x + drag.y; // reduce_add(drag);
-    glm::vec3 v = camera.m_From - camera.m_Target;
-    glm::vec3 motion, targetMotion;
-
-    if (drag.x == 0 && drag.y == 0)
-      cameraEdit = false;
-
-    if ((button.modifier & Gesture::Input::kShift) == 0) {
-      // Exponential motion, the closer to the target, the slower the motion,
-      // the further away the faster.
-      glm::vec3 v_scaled = v * expf(-dragDist * dragScale);
-      motion = v_scaled - v;
-      targetMotion = glm::vec3(0);
-    } else {
-      // Linear motion. We move position and target at once. This mode allows the user not
-      // to get stuck with a camera that doesn't move because the postion got to close to
-      // the target.
-      glm::vec3 v_scaled = v * (-dragDist * dragScale);
-      motion = v_scaled;
-      targetMotion = motion;
-    }
-
-    if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
-      cameraMod.position = motion;
-      cameraMod.target = targetMotion;
-    } else if (button.action == Gesture::Input::kRelease) {
-      camera.m_From += motion;
-      camera.m_Target += targetMotion;
-
-      // Consume gesture on button release
-      Gesture::Input::reset(button);
-    }
+  // right-drag or ctrl-left-drag (command-left-drag on Mac)
+  else if (gesture.input.hasButtonAction(Gesture::Input::kButtonRight, 0)) {
+    cameraEdit =
+      cameraManipulationDolly(viewportSize, gesture.input.mbs[Gesture::Input::kButtonRight], camera, cameraMod);
+  } else if (gesture.input.hasButtonAction(Gesture::Input::kButtonLeft, Gesture::Input::kCtrl)) {
+    cameraEdit =
+      cameraManipulationDolly(viewportSize, gesture.input.mbs[Gesture::Input::kButtonLeft], camera, cameraMod);
   }
   // Camera Tumble
   // hasButtonAction with zero actions must be last to check for, since it will match anything

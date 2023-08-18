@@ -567,14 +567,7 @@ public:
     Update();
   }
 
-  float getHalfHorizontalAperture() const
-  {
-    // fov = 2 atan(halfAperture / focalLength)
-    // halfAperture = tan(fov/2) * focalLength
-    return tan(this->GetHorizontalFOV_radians() * 0.5f); // * m_Film.GetFocalLength();
-    // use half the aspect ratio
-    // return (float)m_Film.GetWidth() / (float)m_Film.GetHeight() * 0.5f;
-  }
+  float getHalfHorizontalAperture() const { return tan(this->GetHorizontalFOV_radians() * 0.5f); }
 
   float GetHorizontalFOV_radians() const
   {
@@ -651,8 +644,7 @@ struct CameraModifier
   CameraModifier()
     : nearClip(0)
     , farClip(0)
-  {
-  }
+  {}
 };
 
 inline CameraModifier
@@ -668,8 +660,7 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   return c;
 }
 
-inline CameraModifier
-operator*(const CameraModifier& a, const float b)
+inline CameraModifier operator*(const CameraModifier& a, const float b)
 {
   CameraModifier c;
   c.position = a.position * b;

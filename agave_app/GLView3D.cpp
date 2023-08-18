@@ -31,20 +31,16 @@
 GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
   : QOpenGLWidget(parent)
   , m_etimer()
-  , m_lastPos(0, 0)
   , m_qcamera(cam)
   , m_viewerWindow(nullptr)
-  , m_cameraController(nullptr)
   , m_qrendersettings(qrs)
 {
   m_viewerWindow = new ViewerWindow(rs);
-  m_cameraController = new CameraController(cam, &m_viewerWindow->m_CCamera);
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
 
   // The GLView3D owns one CScene
 
-  m_cameraController->setRenderSettings(*rs);
   m_qrendersettings->setRenderSettings(*rs);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
@@ -212,9 +208,6 @@ GLView3D::mousePressEvent(QMouseEvent* event)
   if (!isEnabled()) {
     return;
   }
-  m_lastPos = event->pos();
-  m_cameraController->m_OldPos[0] = m_lastPos.x();
-  m_cameraController->m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
   const float dpr = devicePixelRatioF();
@@ -231,9 +224,6 @@ GLView3D::mouseReleaseEvent(QMouseEvent* event)
   if (!isEnabled()) {
     return;
   }
-  m_lastPos = event->pos();
-  m_cameraController->m_OldPos[0] = m_lastPos.x();
-  m_cameraController->m_OldPos[1] = m_lastPos.y();
 
   double time = Clock::now();
   const float dpr = devicePixelRatioF();
@@ -261,9 +251,18 @@ GLView3D::mouseMoveEvent(QMouseEvent* event)
   const float dpr = devicePixelRatioF();
 
   m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x() * dpr, event->y() * dpr));
+}
 
-  // m_cameraController->OnMouseMove(event);
-  m_lastPos = event->pos();
+void
+GLView3D::wheelEvent(QWheelEvent* event)
+{
+  if (!isEnabled()) {
+    return;
+  }
+  const float dpr = devicePixelRatioF();
+
+  // tell gesture there was a wheel event
+  // m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x() * dpr, event->y() * dpr));
 }
 
 #ifdef __GNUC__
@@ -330,6 +329,7 @@ GLView3D::OnUpdateCamera()
 
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 GLView3D::OnUpdateQRenderSettings(void)
 {

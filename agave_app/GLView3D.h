@@ -92,19 +92,16 @@ protected:
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
   void mouseMoveEvent(QMouseEvent* event);
+  void wheelEvent(QWheelEvent* event);
 
 private:
   void FitToScene();
 
-  CameraController* m_cameraController;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.
   QTimer* m_etimer;
-
-  /// Last mouse position.
-  QPoint m_lastPos;
 
   ViewerWindow* m_viewerWindow;
 };
