@@ -165,7 +165,7 @@ struct MoveTool : ManipulationTool
   };
 
   MoveTool()
-    : ManipulationTool(kLast)
+    : ManipulationTool(kLast), m_translation(0)
   {
   }
 

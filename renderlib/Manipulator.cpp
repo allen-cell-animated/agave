@@ -422,8 +422,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
 void
 AreaLightTool::action(SceneView& scene, Gesture& gesture)
-{
-}
+{}
 void
 AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 {
@@ -462,8 +461,7 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 
 void
 RotateTool::action(SceneView& scene, Gesture& gesture)
-{
-}
+{}
 void
 RotateTool::draw(SceneView& scene, Gesture& gesture)
 {

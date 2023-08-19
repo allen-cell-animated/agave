@@ -116,8 +116,6 @@ configure_3dDepthTested(SceneView& sceneView)
   glm::mat4 p;
   sceneView.camera.getProjMatrix(p);
 
-  // TODO FIXME
-  // should be view*p ???
   glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
   glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * s * v));
   check_gl("set proj matrix");
@@ -143,8 +141,6 @@ configure_3dStacked(SceneView& sceneView)
   sceneView.camera.getProjMatrix(p);
   check_gl("PRE set proj matrix");
 
-  // TODO FIXME
-  // should be view*p ???
   glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
   glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * s * v));
 
