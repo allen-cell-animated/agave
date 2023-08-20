@@ -116,6 +116,9 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
     glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
 
+    // drag is in viewport coordinates
+    // if drag is down then drag.y > 0
+
     // Most of the math to get the manipulator to move will be about:
     // * line-line nearest point
     // * line-plane intersection
@@ -153,7 +156,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
         // we simply scale the drag vector by the dragScale and transform
         // to the camera frame
         // TODO FIXME UGLY HACK Why are we negating drag.y here???
-        motion = xfmVector(camFrame, glm::vec3(button.drag.x, -button.drag.y, 0)) * dragScale;
+        motion = xfmVector(camFrame, glm::vec3(button.drag.x, button.drag.y, 0)) * dragScale;
         break;
 
       case MoveTool::kMoveX:
@@ -163,8 +166,6 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
         // The difference between those two points is the drag distance
         // along the axis. Neat right?
         motion = lineLineNearestPoint(p, ref.vx, l, l1) - lineLineNearestPoint(p, ref.vx, l, l0);
-        // TODO FIXME UGLY HACK Why are we negating here???
-        motion = -motion;
         break;
 
       case MoveTool::kMoveY:
@@ -422,7 +423,8 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
 void
 AreaLightTool::action(SceneView& scene, Gesture& gesture)
-{}
+{
+}
 void
 AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 {
@@ -461,7 +463,8 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 
 void
 RotateTool::action(SceneView& scene, Gesture& gesture)
-{}
+{
+}
 void
 RotateTool::draw(SceneView& scene, Gesture& gesture)
 {

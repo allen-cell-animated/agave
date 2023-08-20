@@ -39,6 +39,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/MathUtil.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/threading.cpp"

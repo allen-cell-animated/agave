@@ -6,6 +6,7 @@
 
 #include "BoundingBox.h"
 #include "CCamera.h"
+#include "SceneView.h"
 #include "graphics/gl/Util.h"
 
 #include <chrono>
@@ -145,61 +146,6 @@ public:
 struct Shaders
 {
   GLGuiShader gui;
-};
-
-struct SceneView
-{
-  struct Viewport
-  {
-    struct Region
-    {
-      Region()
-        : lower(+INT_MAX)
-        , upper(-INT_MAX)
-      {
-      }
-
-      Region(const glm::ivec2& lower, const glm::ivec2& upper)
-        : lower(lower)
-        , upper(upper){};
-
-      // assignment operator
-      Region& operator=(const Region& other)
-      {
-        lower = other.lower;
-        upper = other.upper;
-        return *this;
-      }
-
-      void extend(const glm::ivec2& p)
-      {
-        lower = glm::min(lower, p);
-        upper = glm::max(upper, p);
-      }
-
-      glm::ivec2 size() const { return upper - lower; }
-
-      bool empty() const { return size().x < 0 || size().y < 0; }
-
-      glm::ivec2 lower;
-      glm::ivec2 upper;
-
-      static Region intersect(const Region& a, const Region& b);
-    };
-    Region region;
-    // TODO clamp to region bounds
-    glm::ivec2 toRaster(const glm::vec2& p) const { return glm::ivec2((int)p.x, region.size().y - (int)p.y); }
-    glm::vec2 toNDC(const glm::ivec2& p) const
-    {
-      return glm::vec2((2.0f * p.x) / region.size().x - 1.0f, (2.0f * p.y) / region.size().y - 1.0f);
-    }
-  } viewport;
-  CCamera camera;
-  std::unique_ptr<Shaders> shaders;
-  Scene* scene = nullptr;
-  RenderSettings* renderSettings = nullptr;
-
-  bool anythingActive() const { return scene != nullptr; }
 };
 
 // integration:
