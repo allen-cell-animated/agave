@@ -2,6 +2,8 @@
 
 #include "CCamera.h"
 
+#include <memory>
+
 class Scene;
 class RenderSettings;
 class Shaders;
