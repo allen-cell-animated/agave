@@ -114,10 +114,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
 
     // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-    glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
-
-    // drag is in viewport coordinates
-    // if drag is down then drag.y > 0
+    glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + glm::vec2(button.drag.x, -button.drag.y)) * aperture;
 
     // Most of the math to get the manipulator to move will be about:
     // * line-line nearest point
@@ -155,8 +152,8 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
         // Motion on the image plane is simpler than anything else here:
         // we simply scale the drag vector by the dragScale and transform
         // to the camera frame
-        // TODO FIXME UGLY HACK Why are we negating drag.y here???
-        motion = xfmVector(camFrame, glm::vec3(button.drag.x, button.drag.y, 0)) * dragScale;
+        // TODO Why do we have to invert drag.y??
+        motion = xfmVector(camFrame, glm::vec3(button.drag.x, -button.drag.y, 0)) * dragScale;
         break;
 
       case MoveTool::kMoveX:

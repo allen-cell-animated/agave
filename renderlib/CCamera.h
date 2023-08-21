@@ -644,7 +644,8 @@ struct CameraModifier
   CameraModifier()
     : nearClip(0)
     , farClip(0)
-  {}
+  {
+  }
 };
 
 inline CameraModifier
@@ -660,7 +661,8 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   return c;
 }
 
-inline CameraModifier operator*(const CameraModifier& a, const float b)
+inline CameraModifier
+operator*(const CameraModifier& a, const float b)
 {
   CameraModifier c;
   c.position = a.position * b;
@@ -700,6 +702,7 @@ operator+=(CCamera& camera, const CameraModifier& mod)
   // camera.Update();
   return camera;
 }
+
 inline CCamera
 operator+(const CCamera& camera, const CameraModifier& mod)
 {

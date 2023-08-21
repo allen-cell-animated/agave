@@ -6,8 +6,10 @@ LinearSpace3f
 CCamera::getFrame() const
 {
   // LOG_DEBUG << "CCamera::getFrame()" << glm::to_string(m_U) << ", " << glm::to_string(m_V) << ", "
-  //           << glm::to_string(m_N) << "\n";
-  return LinearSpace3f(m_U, m_V, m_N);
+  //           << glm::to_string(-m_N) << "\n";
+
+  // see glm::lookat for similar negation of the z vector (opengl convention)
+  return LinearSpace3f(m_U, m_V, -m_N);
 }
 
 // keep target constant and compute new eye and up vectors
