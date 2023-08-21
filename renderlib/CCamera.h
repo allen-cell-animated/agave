@@ -225,7 +225,7 @@ class Film
 {
 public:
   Resolution2D m_Resolution;
-  float m_Screen[2][2];
+  float m_Screen[2][2]; // [left, right], [bottom, top]
   glm::vec2 m_InvScreen;
   float m_Iso;
   float m_Exposure;
@@ -271,11 +271,13 @@ public:
 
     Scale = (projection == ORTHOGRAPHIC) ? orthoScale : tanf(0.5f * (FovV * DEG_TO_RAD));
 
+    // left, right
     m_Screen[0][0] = -Scale * m_Resolution.GetAspectRatio();
     m_Screen[0][1] = Scale * m_Resolution.GetAspectRatio();
-    // the "0" Y pixel will be at +Scale.
-    m_Screen[1][0] = Scale;
-    m_Screen[1][1] = -Scale;
+    // the "0" Y pixel will be at -Scale. this is the BOTTOM of the screen
+    // bottom, top
+    m_Screen[1][0] = -Scale;
+    m_Screen[1][1] = Scale;
 
     // the amount to increment for each pixel
     m_InvScreen.x = (m_Screen[0][1] - m_Screen[0][0]) / m_Resolution.GetResX();
@@ -320,9 +322,14 @@ public:
   glm::vec3 m_Up;
   float m_FovV;
   float m_AreaPixel;
+
+  // vector corresponding to into the screen (means N, U, V is left handed!)
   glm::vec3 m_N;
+  // vector corresponding to screen left to right
   glm::vec3 m_U;
+  // vector corresponding to screen bottom to top
   glm::vec3 m_V;
+
   Film m_Film;
   Focus m_Focus;
   Aperture m_Aperture;
@@ -600,19 +607,12 @@ public:
     float h = (float)m_Film.GetHeight();
     float vfov = m_FovV * DEG_TO_RAD;
 
-    // apply a vertical flip in both ortho and perspective.
-    // We don't really want these negations here but
-    // they are specifically here to make bounding box drawing
-    // match up with regular pathtrace mode.
-    // In other words, there are flips in other places...
-    // a code audit (and some unit tests) could clean this all up,
-    // starting in part by keeping these unflipped.
     if (m_Projection == PERSPECTIVE) {
       projMatrix =
-        glm::perspectiveFov(vfov, w, h, m_Near, m_Far) * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
+        glm::perspectiveFov(vfov, w, h, m_Near, m_Far); // * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
     } else {
       projMatrix = glm::ortho(
-        -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, 1.0f * m_OrthoScale, -1.0f * m_OrthoScale, m_Near, m_Far);
+        -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, -1.0f * m_OrthoScale, 1.0f * m_OrthoScale, m_Near, m_Far);
     }
   }
 

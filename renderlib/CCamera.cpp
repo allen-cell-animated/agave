@@ -28,8 +28,9 @@ trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye,
   glm::vec3 objectUpDirection = camera.m_Up; // or m_V; ???
   glm::vec3 objectSidewaysDirection = camera.m_U;
 
+  // negating/inverting these has the effect of tumbling the target and not moving the camera.
   objectUpDirection *= yRadians;
-  objectSidewaysDirection *= -xRadians;
+  objectSidewaysDirection *= xRadians;
 
   glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
 
@@ -206,7 +207,7 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
     //           << glm::to_string(gesture.input.cursorPos) << ", drag " << glm::to_string(button.drag);
 
     static const int TUMBLE_PIXELS_PER_RADIAN = 800;
-    const float dragScale = -1.0f / TUMBLE_PIXELS_PER_RADIAN;
+    const float dragScale = 1.0f / TUMBLE_PIXELS_PER_RADIAN;
 
     glm::vec2 drag = button.drag * dragScale;
     if (button.dragConstraint == Gesture::Input::kHorizontal) {

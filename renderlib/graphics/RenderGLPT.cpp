@@ -89,6 +89,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glClear(GL_COLOR_BUFFER_BIT);
 
   m_fsq = new FSQ();
+  // bottom left is -1,-1, aligned with screen ndc?
   m_fsq->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
   m_fsq->create();
   m_renderBufferShader = new GLPTVolumeShader();
