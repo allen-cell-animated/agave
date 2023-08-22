@@ -90,6 +90,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
 
   m_fsq = new FSQ();
   // bottom left is -1,-1, aligned with screen ndc?
+  // and bottom left texcoord is therefore 0,0
   m_fsq->setSize(glm::vec2(-1, 1), glm::vec2(-1, 1));
   m_fsq->create();
   m_renderBufferShader = new GLPTVolumeShader();

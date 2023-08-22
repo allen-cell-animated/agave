@@ -50,9 +50,9 @@ struct SceneView
       static Region intersect(const Region& a, const Region& b);
     };
     Region region;
-    // flip Y to match window coordinates
+    // transform a window coordinate to match the viewport's (0,0) lower left convention
     glm::ivec2 toRaster(const glm::vec2& p) const;
-    // scale to the lower left (-1, -1) to upper right (1,1) range
+    // transform a window coordinate to the lower left (-1, -1) to upper right (1,1) range
     glm::vec2 toNDC(const glm::ivec2& p) const;
   } viewport;
   CCamera camera;

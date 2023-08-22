@@ -111,9 +111,9 @@ configure_3dDepthTested(SceneView& sceneView)
 {
   auto& shaders = sceneView.shaders;
 
-  glm::mat4 v;
+  glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
-  glm::mat4 p;
+  glm::mat4 p(1.0);
   sceneView.camera.getProjMatrix(p);
 
   // glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
@@ -135,9 +135,9 @@ configure_3dStacked(SceneView& sceneView)
 {
   auto& shaders = sceneView.shaders;
 
-  glm::mat4 v;
+  glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
-  glm::mat4 p;
+  glm::mat4 p(1.0);
   sceneView.camera.getProjMatrix(p);
   check_gl("PRE set proj matrix");
 

@@ -333,13 +333,14 @@ GLBasicVolumeShader::setShadingUniforms()
 void
 GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
-  glm::mat4 cv;
+  glm::mat4 cv(1.0);
   camera.getViewMatrix(cv);
-  glm::mat4 cp;
+  glm::mat4 cp(1.0);
   camera.getProjMatrix(cp);
 
-  // glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
+  glm::mat4 mv = cv * modelMatrix;
+
   glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
-  glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
-  glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
+  glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(mv));
+  glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(mv)));
 }

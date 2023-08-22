@@ -159,6 +159,8 @@ struct Shaders
 
 struct Gesture
 {
+  // all mouse positions are in window coordinates with
+  // 0,0 at TOP left.
   struct Input
   {
     // User Input
