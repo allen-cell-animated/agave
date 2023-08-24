@@ -165,7 +165,6 @@ ViewerWindow::redraw()
   }
 
   if (width() != oldpickbuffersize.x || height() != oldpickbuffersize.y) {
-    // TODO devicePixelRatio?
     m_renderer->resize(width(), height());
     m_CCamera.m_Film.m_Resolution.SetResX(width());
     m_CCamera.m_Film.m_Resolution.SetResY(height());

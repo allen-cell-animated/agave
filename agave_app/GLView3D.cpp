@@ -123,13 +123,13 @@ GLView3D::initializeGL()
 
   QSize newsize = size();
   float dpr = devicePixelRatioF();
-  m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr); // TODO , devicePixelRatioF());
+  m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr);
 
   // Start timers
   m_etimer->start();
 
   // Size viewport
-  resizeGL(newsize.width() * dpr, newsize.height() * dpr);
+  resizeGL(newsize.width(), newsize.height());
 }
 
 void
@@ -154,11 +154,6 @@ GLView3D::resizeGL(int w, int h)
   makeCurrent();
   float dpr = devicePixelRatioF();
   m_viewerWindow->setSize(w * dpr, h * dpr);
-
-  // // TODO remove in favor of m_viewerWindow
-  // m_CCamera.m_Film.m_Resolution.SetResX(w);
-  // m_CCamera.m_Film.m_Resolution.SetResY(h);
-  // m_renderer->resize(w, h, devicePixelRatioF());
 
   doneCurrent();
 }

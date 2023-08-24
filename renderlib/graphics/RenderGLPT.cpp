@@ -36,7 +36,6 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_imagequad(nullptr)
   , m_boundingBoxDrawable(nullptr)
   , m_RandSeed(0)
-  , m_devicePixelRatio(1.0f)
   , m_status(new CStatus)
 {
 }
@@ -132,7 +131,7 @@ RenderGLPT::initVolumeTextureGpu()
 }
 
 void
-RenderGLPT::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
+RenderGLPT::initialize(uint32_t w, uint32_t h)
 {
   m_imagequad = new RectImage2D();
   m_boundingBoxDrawable = new BoundingBoxDrawable();
@@ -147,7 +146,7 @@ RenderGLPT::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
   check_gl("init gl state");
 
   // Size viewport
-  resize(w, h, devicePixelRatio);
+  resize(w, h);
 }
 
 void
@@ -463,18 +462,18 @@ RenderGLPT::drawImage()
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glViewport(0, 0, (GLsizei)(m_w * m_devicePixelRatio), (GLsizei)(m_h * m_devicePixelRatio));
+  glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
 
   // draw quad using the tex that cudaTex was mapped to
   m_imagequad->draw(m_fb->colorTextureId());
 }
 
 void
-RenderGLPT::resize(uint32_t w, uint32_t h, float devicePixelRatio)
+RenderGLPT::resize(uint32_t w, uint32_t h)
 {
   // w = 8; h = 8;
   glViewport(0, 0, w, h);
-  if ((m_w == w) && (m_h == h) && (m_devicePixelRatio == devicePixelRatio)) {
+  if ((m_w == w) && (m_h == h)) {
     return;
   }
 
@@ -483,7 +482,6 @@ RenderGLPT::resize(uint32_t w, uint32_t h, float devicePixelRatio)
 
   m_w = w;
   m_h = h;
-  m_devicePixelRatio = devicePixelRatio;
 
   m_renderSettings->SetNoIterations(0);
 }

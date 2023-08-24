@@ -18,10 +18,10 @@ public:
   RenderGL(RenderSettings* rs);
   virtual ~RenderGL();
 
-  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
+  virtual void initialize(uint32_t w, uint32_t h);
   virtual void render(const CCamera& camera);
   virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
-  virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
+  virtual void resize(uint32_t w, uint32_t h);
   virtual void cleanUpResources();
 
   virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
@@ -42,7 +42,6 @@ private:
   std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
 
   int m_w, m_h;
-  float m_devicePixelRatio;
 
   void initFromScene();
   bool prepareToRender();

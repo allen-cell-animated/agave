@@ -30,10 +30,10 @@ public:
   RenderGLPT(RenderSettings* rs);
   virtual ~RenderGLPT();
 
-  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
+  virtual void initialize(uint32_t w, uint32_t h);
   virtual void render(const CCamera& camera);
   virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
-  virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f);
+  virtual void resize(uint32_t w, uint32_t h);
   virtual void cleanUpResources();
   virtual RenderSettings& renderSettings();
   virtual Scene* scene();
@@ -85,7 +85,6 @@ private:
   int m_RandSeed;
 
   int m_w, m_h;
-  float m_devicePixelRatio;
 
   Timing m_timingRender, m_timingBlur, m_timingPostProcess, m_timingDenoise;
   std::shared_ptr<CStatus> m_status;
