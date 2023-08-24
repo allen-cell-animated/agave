@@ -22,6 +22,11 @@ public:
   virtual void render(const CCamera& camera);
   virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
   virtual void resize(uint32_t w, uint32_t h);
+  virtual void getSize(uint32_t& w, uint32_t& h)
+  {
+    w = m_w;
+    h = m_h;
+  }
   virtual void cleanUpResources();
 
   virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }

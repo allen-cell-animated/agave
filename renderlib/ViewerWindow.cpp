@@ -164,7 +164,11 @@ ViewerWindow::redraw()
     LOG_ERROR << "Failed to update selection buffer";
   }
 
-  if (width() != oldpickbuffersize.x || height() != oldpickbuffersize.y) {
+  // renderer size may have been directly manipulated by e.g. the renderdialog
+  uint32_t oldrendererwidth, oldrendererheight;
+  m_renderer->getSize(oldrendererwidth, oldrendererheight);
+  if (width() != oldpickbuffersize.x || height() != oldpickbuffersize.y || width() != oldrendererwidth ||
+      height() != oldrendererheight) {
     m_renderer->resize(width(), height());
     m_CCamera.m_Film.m_Resolution.SetResX(width());
     m_CCamera.m_Film.m_Resolution.SetResY(height());
