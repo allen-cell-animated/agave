@@ -20,7 +20,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, uint32_t scene, QWidget* parent)
+LoadDialog::LoadDialog(std::string path,
+                       const std::vector<MultiscaleDims>& dims,
+                       uint32_t scene,
+                       std::string dialogTitle,
+                       QWidget* parent)
   : QDialog(parent)
 {
   m_reader = FileReader::getReader(path);
@@ -29,7 +33,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mSelectedLevel = 0;
   mScene = scene;
 
-  setWindowTitle(tr("Load Settings"));
+  setWindowTitle(tr(dialogTitle.c_str()));
   setFocusPolicy(Qt::StrongFocus);
 
   // get standard QLabel font size

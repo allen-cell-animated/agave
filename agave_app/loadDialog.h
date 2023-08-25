@@ -3,8 +3,8 @@
 #include "Controls.h"
 #include "Section.h"
 
-#include "renderlib/io/FileReader.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/io/FileReader.h"
 
 #include <QComboBox>
 #include <QDialog>
@@ -29,7 +29,11 @@ class LoadDialog : public QDialog
   Q_OBJECT
 
 public:
-  LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, uint32_t scene, QWidget* parent = Q_NULLPTR);
+  LoadDialog(std::string path,
+             const std::vector<MultiscaleDims>& dims,
+             uint32_t scene,
+             std::string dialogTitle = "Load Settings",
+             QWidget* parent = Q_NULLPTR);
   ~LoadDialog();
 
   LoadSpec getLoadSpec() const;

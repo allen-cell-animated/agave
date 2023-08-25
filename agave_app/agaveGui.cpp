@@ -261,7 +261,7 @@ agaveGui::open()
   QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
 
   if (!file.isEmpty()) {
-    if (!open(file.toStdString())) {
+    if (!open(file.toStdString(), "File Load Settings")) {
       showOpenFailedMessageBox(file);
     }
   }
@@ -278,7 +278,7 @@ agaveGui::openDirectory()
   QString file = QFileDialog::getExistingDirectory(this, tr("Open Volume"), dir, options);
 
   if (!file.isEmpty()) {
-    if (!open(file.toStdString())) {
+    if (!open(file.toStdString(), "Directory Load Settings")) {
       showOpenFailedMessageBox(file);
     }
   }
@@ -304,7 +304,7 @@ agaveGui::openUrl()
     return false;
   }
 
-  return open(urlToLoad);
+  return open(urlToLoad, "URL Load Settings");
 }
 
 void
@@ -334,7 +334,7 @@ agaveGui::openJson()
       Serialize::ViewerState s;
       s = stateFromJson(j);
       if (!s.datasets.empty()) {
-        if (!open(s.datasets[0].url, &s)) {
+        if (!open(s.datasets[0].url, "JSON Load Settings", &s)) {
           showOpenFailedMessageBox(file);
         }
       }
@@ -521,7 +521,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
+agaveGui::open(const std::string& file, const std::string dialogTitle, const Serialize::ViewerState* vs)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
@@ -578,7 +578,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
 
   if (!vs) {
 
-    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
+    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, dialogTitle, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
@@ -804,7 +804,8 @@ agaveGui::openRecentFile()
       openMesh(path);
     } else {
       // assumption of ome.tif
-      if (!open(path.toStdString())) {
+      // TODO: Sort between all the different path types to determine the name to show here?
+      if (!open(path.toStdString(), "Load Settings")) {
         showOpenFailedMessageBox(path);
       }
     }
