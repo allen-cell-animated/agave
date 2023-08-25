@@ -102,6 +102,7 @@ main(int argc, char* argv[])
   a.setOrganizationDomain("allencell.org");
   a.setApplicationName("AGAVE");
   a.setApplicationVersion(AICS_VERSION_STRING);
+  a.setStyle("Fusion");
 
   LOG_INFO << a.organizationName().toStdString() << " " << a.applicationName().toStdString() << " "
            << a.applicationVersion().toStdString();
