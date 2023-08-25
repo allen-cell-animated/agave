@@ -1,5 +1,6 @@
 #include "gesture.h"
 #include "gl/Util.h"
+#include "graphics/glsl/GLGuiShader.h"
 
 #include <QApplication> // for doubleClickInterval
 
@@ -107,9 +108,9 @@ namespace Pipeline {
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
 static void
-configure_3dDepthTested(SceneView& sceneView)
+configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics)
 {
-  auto& shaders = sceneView.shaders;
+  auto& shader = graphics.shader;
 
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
@@ -117,7 +118,7 @@ configure_3dDepthTested(SceneView& sceneView)
   sceneView.camera.getProjMatrix(p);
 
   // glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
-  glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  glUniformMatrix4fv(shader->m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -131,9 +132,9 @@ configure_3dDepthTested(SceneView& sceneView)
 // Overlay something "in the scene". This has a limitation that we assume there
 // is a single viewport.
 static void
-configure_3dStacked(SceneView& sceneView)
+configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics)
 {
-  auto& shaders = sceneView.shaders;
+  auto& shader = graphics.shader;
 
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
@@ -142,7 +143,7 @@ configure_3dStacked(SceneView& sceneView)
   check_gl("PRE set proj matrix");
 
   // glm::mat4 s = glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
-  glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  glUniformMatrix4fv(shader->m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
 
   check_gl("set proj matrix");
 
@@ -156,9 +157,9 @@ configure_3dStacked(SceneView& sceneView)
 
 // Draw something in screen space without zbuffer.
 static void
-configure_2dScreen(SceneView& sceneView)
+configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics)
 {
-  auto& shaders = sceneView.shaders;
+  auto& shader = graphics.shader;
 
   auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
                       (float)sceneView.viewport.region.upper.x,
@@ -166,7 +167,7 @@ configure_2dScreen(SceneView& sceneView)
                       (float)sceneView.viewport.region.upper.y,
                       1.0f,
                       -1.f);
-  glUniformMatrix4fv(shaders->gui.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  glUniformMatrix4fv(shader->m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -276,11 +277,16 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
     return;
   }
 
+  // lazy init
+  if (!shader.get()) {
+    shader.reset(new GLGuiShader());
+  }
+
   // YAGNI: With a small effort we could create dynamic passes that are
   //        fully user configurable...
   //
   // Configure command lists
-  void (*pipelineConfig[3])(SceneView&);
+  void (*pipelineConfig[3])(SceneView&, Graphics&);
   // Step 1: we draw any command that is depth-composited with the scene
   pipelineConfig[static_cast<int>(Graphics::CommandSequence::k3dDepthTested)] = Pipeline::configure_3dDepthTested;
   // Step 2: we draw any command that is not depth composited but is otherwise using
@@ -311,12 +317,11 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
     // draw the GUI and once to draw the selection buffer data.
     // (display var is for draw vs pick)
     auto drawGesture = [&](bool display) {
-      auto& shaders = sceneView.shaders;
-      shaders->gui.configure(display, this->glTextureId);
+      shader->configure(display, this->glTextureId);
 
       for (int sequence = 0; sequence < Graphics::kNumCommandsLists; ++sequence) {
         if (!this->commands[sequence].empty()) {
-          pipelineConfig[sequence](sceneView);
+          pipelineConfig[sequence](sceneView, *this);
 
           // YAGNI: Commands could be coalesced, setting state could be avoided
           //        if not changing... For now it seems we can draw at over 2000 Hz
@@ -343,7 +348,7 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
         }
       }
 
-      shaders->gui.cleanup();
+      shader->cleanup();
       check_gl("disablevertexattribarray");
     };
     drawGesture(/*display*/ true);

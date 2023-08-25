@@ -13,13 +13,9 @@
 #include <memory>
 #include <vector>
 
+class GLGuiShader;
 class Scene;
 class RenderSettings;
-
-struct Shaders
-{
-  GLGuiShader gui;
-};
 
 // integration:
 // https://maxliani.wordpress.com/2021/06/06/offline-to-realtime-gesture/
@@ -280,6 +276,7 @@ struct Gesture
     int lineLoopBegin = kInvalidVertexIndex;
     std::vector<VertsCode> verts;
     std::vector<CommandRange> commands[kNumCommandsLists];
+    std::unique_ptr<GLGuiShader> shader;
 
     // A texture atlas for GUI elements
     // Todo: switch to bindless textures

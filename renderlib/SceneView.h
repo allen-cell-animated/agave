@@ -6,7 +6,6 @@
 
 class Scene;
 class RenderSettings;
-class Shaders;
 
 // collect up a Scene, CCamera, and Viewport region for rendering
 struct SceneView
@@ -56,7 +55,6 @@ struct SceneView
     glm::vec2 toNDC(const glm::ivec2& p) const;
   } viewport;
   CCamera camera;
-  std::unique_ptr<Shaders> shaders;
   Scene* scene = nullptr;
   RenderSettings* renderSettings = nullptr;
 

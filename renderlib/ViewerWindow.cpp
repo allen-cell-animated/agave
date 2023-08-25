@@ -154,10 +154,6 @@ ViewerWindow::redraw()
     m_increments = 0;
   }
 
-  if (!sceneView.shaders.get()) {
-    sceneView.shaders.reset(new Shaders());
-  }
-
   glm::ivec2 oldpickbuffersize = m_selection.resolution;
   bool ok = m_selection.update(glm::ivec2(width(), height()));
   if (!ok) {
