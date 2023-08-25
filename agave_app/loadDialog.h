@@ -24,6 +24,15 @@ class IFileReader;
 class RangeWidget;
 class Section;
 
+enum class LoadingDialogType
+{
+  UNKNOWN,
+  FILE,
+  DIRECTORY,
+  JSON,
+  URL
+};
+
 class LoadDialog : public QDialog
 {
   Q_OBJECT
@@ -32,7 +41,7 @@ public:
   LoadDialog(std::string path,
              const std::vector<MultiscaleDims>& dims,
              uint32_t scene,
-             std::string dialogTitle = "Load Settings",
+             LoadingDialogType type = LoadingDialogType::UNKNOWN,
              QWidget* parent = Q_NULLPTR);
   ~LoadDialog();
 
@@ -40,6 +49,7 @@ public:
   int getMultiscaleLevelIndex() const { return mSelectedLevel; }
 
   QSize sizeHint() const override { return QSize(400, 100); }
+
 private slots:
   void updateScene(int value);
   void updateMultiresolutionLevel(int level);
@@ -76,6 +86,8 @@ private:
   void updateMultiresolutionInput();
   std::vector<uint32_t> getCheckedChannels() const;
   void populateChannels(int level);
+
+  std::string convertTypeToString(LoadingDialogType type);
 
   IFileReader* m_reader;
 };

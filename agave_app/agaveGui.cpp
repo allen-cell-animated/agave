@@ -19,7 +19,6 @@
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
-#include "loadDialog.h"
 #include "renderDialog.h"
 
 #include <QAction>
@@ -261,7 +260,7 @@ agaveGui::open()
   QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
 
   if (!file.isEmpty()) {
-    if (!open(file.toStdString(), "File Load Settings")) {
+    if (!open(file.toStdString(), LoadingDialogType::FILE)) {
       showOpenFailedMessageBox(file);
     }
   }
@@ -278,7 +277,7 @@ agaveGui::openDirectory()
   QString file = QFileDialog::getExistingDirectory(this, tr("Open Volume"), dir, options);
 
   if (!file.isEmpty()) {
-    if (!open(file.toStdString(), "Directory Load Settings")) {
+    if (!open(file.toStdString(), LoadingDialogType::DIRECTORY)) {
       showOpenFailedMessageBox(file);
     }
   }
@@ -304,7 +303,7 @@ agaveGui::openUrl()
     return false;
   }
 
-  return open(urlToLoad, "URL Load Settings");
+  return open(urlToLoad, LoadingDialogType::URL);
 }
 
 void
@@ -334,7 +333,7 @@ agaveGui::openJson()
       Serialize::ViewerState s;
       s = stateFromJson(j);
       if (!s.datasets.empty()) {
-        if (!open(s.datasets[0].url, "JSON Load Settings", &s)) {
+        if (!open(s.datasets[0].url, LoadingDialogType::JSON, &s)) {
           showOpenFailedMessageBox(file);
         }
       }
@@ -521,7 +520,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const std::string dialogTitle, const Serialize::ViewerState* vs)
+agaveGui::open(const std::string& file, const LoadingDialogType dialogType, const Serialize::ViewerState* vs)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
@@ -578,7 +577,7 @@ agaveGui::open(const std::string& file, const std::string dialogTitle, const Ser
 
   if (!vs) {
 
-    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, dialogTitle, this);
+    LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, dialogType, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
@@ -803,9 +802,19 @@ agaveGui::openRecentFile()
       // assume that .obj is mesh
       openMesh(path);
     } else {
-      // assumption of ome.tif
-      // TODO: Sort between all the different path types to determine the name to show here?
-      if (!open(path.toStdString(), "Load Settings")) {
+      LoadingDialogType type;
+      QString extension = path.sliced(path.lastIndexOf("."));
+      if (path.indexOf("http") == 0) {
+        type = LoadingDialogType::URL;
+      } else if (extension.indexOf(".zarr") == 0) {
+        type = LoadingDialogType::DIRECTORY;
+      } else if (extension.indexOf(".json") == 0) {
+        type = LoadingDialogType::JSON;
+      } else {
+        type = LoadingDialogType::FILE;
+      }
+
+      if (!open(path.toStdString(), type)) {
         showOpenFailedMessageBox(path);
       }
     }

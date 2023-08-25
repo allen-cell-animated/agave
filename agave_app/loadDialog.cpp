@@ -23,7 +23,7 @@
 LoadDialog::LoadDialog(std::string path,
                        const std::vector<MultiscaleDims>& dims,
                        uint32_t scene,
-                       std::string dialogTitle,
+                       LoadingDialogType type,
                        QWidget* parent)
   : QDialog(parent)
 {
@@ -33,7 +33,11 @@ LoadDialog::LoadDialog(std::string path,
   mSelectedLevel = 0;
   mScene = scene;
 
-  setWindowTitle(tr(dialogTitle.c_str()));
+  std::string titlePrefix = convertTypeToString(type);
+  if (titlePrefix != "") {
+    titlePrefix += " ";
+  }
+  setWindowTitle(tr((titlePrefix + "Load Settings").c_str()));
   setFocusPolicy(Qt::StrongFocus);
 
   // get standard QLabel font size
@@ -346,4 +350,21 @@ LoadDialog::populateChannels(int level)
     listItem->setData(Qt::UserRole, QVariant::fromValue(i));
     mChannels->addItem(listItem);
   }
+}
+
+std::string
+LoadDialog::convertTypeToString(LoadingDialogType type)
+{
+  switch (type) {
+    case LoadingDialogType::FILE:
+      return "File";
+    case LoadingDialogType::DIRECTORY:
+      return "Directory";
+    case LoadingDialogType::URL:
+      return "URL";
+    case LoadingDialogType::JSON:
+      return "JSON";
+    default:
+      return "";
+  };
 }
