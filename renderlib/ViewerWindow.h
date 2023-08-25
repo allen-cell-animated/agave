@@ -2,6 +2,7 @@
 
 #include "CCamera.h"
 #include "Manipulator.h"
+#include "Timing.h"
 #include "gesture/gesture.h"
 
 #include <vector>
