@@ -2,10 +2,10 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/graphics/IRenderWindow.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/command.h"
+#include "renderlib/graphics/IRenderWindow.h"
 
 #include <QApplication>
 #include <QButtonGroup>
@@ -33,7 +33,7 @@
 
 static const float ZOOM_STEP = 1.1f;
 static const int TOOLBAR_INSET = 6;
-static const QString kStopRenderText = "Are you sure you want to stop the render currently in progress?";
+static const QString kStopRenderText = "Are you sure you want to cancel the current render? No progress will be saved.";
 
 // find a subrectangle of fullTargetRect that fits the aspect ratio of srcRect
 QRect
@@ -264,13 +264,13 @@ QGroupBox
 }
 )");
   mImageView = new ImageDisplay(this);
-  mRenderButton = new QPushButton("Start Rendering", this);
+  mRenderButton = new QPushButton("Render & Export", this);
   mRenderButton->setStyleSheet("font-size: 16px;");
   // mPauseRenderButton = new QPushButton("&Pause", this);
-  mStopRenderButton = new QPushButton("Stop Rendering", this);
+  mStopRenderButton = new QPushButton("Cancel Render", this);
   mStopRenderButton->setStyleSheet("font-size: 16px;");
   // mSaveButton = new QPushButton("&Save", this);
-  mCloseButton = new QPushButton("Close Render", this);
+  mCloseButton = new QPushButton("Close Dialog", this);
   mCloseButton->setStyleSheet("font-size: 16px;");
 
   bool isTimeSeries = scene.m_timeLine.maxTime() > 0;
@@ -1187,7 +1187,7 @@ RenderDialog::onRenderThreadFinished()
 bool
 RenderDialog::getUserCancelConfirmation()
 {
-  QMessageBox::StandardButton btn = QMessageBox::question(this, "Stop Render?", kStopRenderText);
+  QMessageBox::StandardButton btn = QMessageBox::question(this, "Cancel Render", kStopRenderText);
   if (btn == QMessageBox::Yes) {
     return true;
   } else {
@@ -1236,7 +1236,7 @@ RenderDialog::updateUIStopRendering(bool completed)
   mStopRenderButton->setVisible(false);
   mCloseButton->setVisible(completed);
 
-  mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Stopped</b>");
+  mRenderProgressLabel->setText(completed ? "<b>Render Complete!</b>" : "<b>Render Cancelled</b>");
 
   if (completed) {
     // close all messageboxes?
