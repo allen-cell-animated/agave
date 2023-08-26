@@ -176,7 +176,7 @@ getButton(QMouseEvent* event)
       btn = Gesture::Input::ButtonId::kButtonMiddle;
       break;
     default:
-      // btn = Gesture::Input::ButtonId::kButtonNone;
+      btn = Gesture::Input::ButtonId::kButtonLeft;
       break;
   };
   return btn;
