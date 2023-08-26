@@ -115,7 +115,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
     glm::vec2 click1 =
-      scene.viewport.toNDC(button.pressedPosition + glm::vec2(button.drag.x, button.drag.y)) * aperture;
+      scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
 
     // Most of the math to get the manipulator to move will be about:
     // * line-line nearest point

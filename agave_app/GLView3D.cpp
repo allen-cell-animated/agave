@@ -12,6 +12,7 @@
 
 #include <glm.h>
 
+#include <QApplication>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QOpenGLFramebufferObject>
