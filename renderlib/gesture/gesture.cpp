@@ -174,7 +174,11 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   {
     glViewport(viewport.region.lower.x, viewport.region.lower.y, viewport.region.upper.x, viewport.region.upper.y);
     glDisable(GL_BLEND);
-    glClearColor(1, 1, 1, 1);
+    uint32_t clearcode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+    glClearColor(((clearcode >> 0) & 0xFF) / 255.0,
+                 ((clearcode >> 8) & 0xFF) / 255.0,
+                 ((clearcode >> 16) & 0xFF) / 255.0,
+                 ((clearcode >> 24) & 0xFF) / 255.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     drawSceneGeometry();
@@ -456,7 +460,9 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   int clickDrag = (button.action == Input::Action::kDrag);
   int32_t buttonModifier = button.modifier;
 
-  if (clickEnded || clickDrag) {
+  // If we are in mid-gesture, then we can continue to use the retained selection code.
+  // if we never had anything to draw into the pick buffer, then we didn't pick anything.
+  if (clickEnded || clickDrag || this->verts.empty()) {
     return m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
   }
 

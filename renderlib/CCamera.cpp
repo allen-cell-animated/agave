@@ -12,6 +12,23 @@ CCamera::getFrame() const
   return LinearSpace3f(m_U, m_V, -m_N);
 }
 
+void
+CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget)
+{
+  // Approximatively compute at what distance the camera need to be to frame
+  // the scene content
+  glm::vec3 size = sceneBBox.GetExtent();
+  glm::vec3 distance = m_From - m_Target;
+  float halfWidth = size.length() / 2;
+  float halfAperture = getHalfHorizontalAperture();
+  const float somePadding = 1.5f;
+
+  distance = glm::normalize(distance) * (somePadding * halfWidth / halfAperture);
+  // The new target position is the center of the scene bbox
+  newTarget = sceneBBox.GetCenter();
+  newPosition = newTarget + distance;
+}
+
 // keep target constant and compute new eye and up vectors
 void
 trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye, glm::vec3& up)

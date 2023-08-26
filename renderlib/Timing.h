@@ -101,7 +101,7 @@ struct Clock
   {
     auto currentDateTime = std::chrono::system_clock::now();
     const auto ms =
-      std::chrono::time_point_cast<std::chrono::milliseconds>(currentDateTime).time_since_epoch().count() % 1000;
+      std::chrono::time_point_cast<std::chrono::milliseconds>(currentDateTime).time_since_epoch().count();
     return ms / 1000.0;
   }
 

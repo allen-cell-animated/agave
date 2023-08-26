@@ -61,7 +61,8 @@ ViewerWindow::updateCamera()
       if (anim.time < anim.duration) { // alpha < 1.0) {
         float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
         // Animation in-betweens are accumulated to the camera modifier
-        cameraMod = cameraMod + anim.mod * alpha;
+        cameraMod = cameraMod + (anim.mod * alpha);
+        cameraEdit = true;
         ++it;
       } else {
         // Completed animation is applied to the camera instead
@@ -168,47 +169,6 @@ ViewerWindow::redraw()
     m_CCamera.m_Film.m_Resolution.SetResX(width());
     m_CCamera.m_Film.m_Resolution.SetResY(height());
   }
-
-  // QPoint p = mapFromGlobal(QCursor::pos());
-  // m_gesture.input.setPointerPosition(glm::vec2(p.x(), p.y()));
-
-  // // Use gesture strokes (if any) to move the camera. If camera edit is still in progress, we are not
-  // // going to change the camera directly, instead we fill a CameraModifier object with the delta.
-  // CameraModifier cameraMod;
-  // bool cameraEdit = cameraManipulation(glm::vec2(width(), height()),
-  //                                      // m_clock,
-  //                                      gesture,
-  //                                      m_CCamera,
-  //                                      cameraMod);
-  // // Apply camera animation transitions if we have any
-  // if (!m_cameraAnim.empty()) {
-  //   for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
-  //     CameraAnimation& anim = *it;
-  //     anim.time += m_clock.timeIncrement;
-
-  //     if (anim.time < anim.duration) { // alpha < 1.0) {
-  //       float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
-  //       // Animation in-betweens are accumulated to the camera modifier
-  //       cameraMod = cameraMod + anim.mod * alpha;
-  //       ++it;
-  //     } else {
-  //       // Completed animation is applied to the camera instead
-  //       m_CCamera = m_CCamera + anim.mod;
-  //       it = m_cameraAnim.erase(it);
-  //     }
-
-  //     // let renderer know camera is dirty
-  //     m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-  //   }
-  // }
-
-  // // Produce the render camera for current frame
-  // // m_CCamera.Update();
-  // CCamera renderCamera = m_CCamera;
-  // if (cameraEdit) {
-  //   renderCamera = m_CCamera + cameraMod;
-  // }
-  // renderCamera.Update();
 
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
   sceneView.camera = m_CCamera;
