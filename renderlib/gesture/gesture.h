@@ -17,14 +17,7 @@ class GLGuiShader;
 class Scene;
 class RenderSettings;
 
-// integration:
 // https://maxliani.wordpress.com/2021/06/06/offline-to-realtime-gesture/
-// window has one Gesture instance
-// at app init time, call mainWindow.gesture.input.reset();
-// for all 3 of left, right and middle mouse button:
-// on mouse move, call gesture.input.setPointerPosition
-// on mouse button, call gesture.input.setButtonEvent for both press and release, along with key modifiers
-// mouse scroll event should also be handled by gesture but isnt yet
 
 struct Gesture
 {

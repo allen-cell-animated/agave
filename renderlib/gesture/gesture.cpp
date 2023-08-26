@@ -4,16 +4,6 @@
 
 #include <QApplication> // for doubleClickInterval
 
-// Verify loose coupling between Gesture and GLFW
-// static_assert(Gesture::Input::kButtonLeft   == GLFW_MOUSE_BUTTON_LEFT  , "Verify pointer buttons mapping");
-// static_assert(Gesture::Input::kButtonRight  == GLFW_MOUSE_BUTTON_RIGHT , "Verify pointer buttons mapping");
-// static_assert(Gesture::Input::kButtonMiddle == GLFW_MOUSE_BUTTON_MIDDLE, "Verify pointer buttons mapping");
-
-// static_assert(Gesture::Input::kShift == GLFW_MOD_SHIFT  , "Verify pointer modifiers mapping");
-// static_assert(Gesture::Input::kCtrl  == GLFW_MOD_CONTROL, "Verify pointer modifiers mapping");
-// static_assert(Gesture::Input::kAlt   == GLFW_MOD_ALT    , "Verify pointer modifiers mapping");
-// static_assert(Gesture::Input::kSuper == GLFW_MOD_SUPER  , "Verify pointer modifiers mapping");
-
 // platform-specific
 static double
 gestureGetDoubleClickTime()
