@@ -2,28 +2,13 @@
 #include "gl/Util.h"
 #include "graphics/glsl/GLGuiShader.h"
 
-#include <QApplication> // for doubleClickInterval
-
-// platform-specific
-static double
-gestureGetDoubleClickTime()
-{
-  auto millisec = QApplication::doubleClickInterval();
-
-  return double(millisec) / 1000.0;
-}
-
-// During app initialization query the OS accessibility settings how the user configured the
-// double-click duration. Developer: never hardcode this time to something that feels
-// right to you.
-double Gesture::Input::s_doubleClickTime = gestureGetDoubleClickTime();
-
 // Update the current action for one of the button of the pointer device
 void
 Gesture::Input::setButtonEvent(uint32_t mbIndex, Action action, int mods, glm::vec2 position, double time)
 {
-  if (mbIndex >= kButtonsCount)
+  if (mbIndex >= kButtonsCount) {
     return;
+  }
 
   Button& button = mbs[mbIndex];
   if (action == Input::kPress) {
@@ -32,7 +17,7 @@ Gesture::Input::setButtonEvent(uint32_t mbIndex, Action action, int mods, glm::v
     if (button.action == Gesture::Input::kNone) {
       // A double-click event is recorded if the new click follows a previous click of the
       // same button within some time interval.
-      button.doubleClick = (time - button.triggerTime) < Input::s_doubleClickTime;
+      button.doubleClick = (time - button.triggerTime) < doubleClickTime;
       button.triggerTime = time;
 
       // Record position of the pointer during the press event, we are going to use it to
@@ -66,8 +51,9 @@ Gesture::Input::setPointerPosition(glm::vec2 position)
   // kDrag event.
   for (int mbIndex = 0; mbIndex < Input::kButtonsCount; ++mbIndex) {
     Button& button = mbs[mbIndex];
-    if (button.action == Input::kNone || button.action == Input::kRelease)
+    if (button.action == Input::kNone || button.action == Input::kRelease) {
       continue;
+    }
 
     glm::vec2 origin = button.pressedPosition;
     glm::vec2 drag = position - origin;
@@ -197,15 +183,17 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   // Restore
   glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
   check_gl("restore default framebuffer");
-  if (last_enable_depth_test)
+  if (last_enable_depth_test) {
     glEnable(GL_DEPTH_TEST);
-  else
+  } else {
     glDisable(GL_DEPTH_TEST);
+  }
   check_gl("restore depth test state");
-  if (last_enable_blend)
+  if (last_enable_blend) {
     glEnable(GL_BLEND);
-  else
+  } else {
     glDisable(GL_BLEND);
+  }
   check_gl("restore blend enabled state");
   glClearColor(last_clear_color[0], last_clear_color[1], last_clear_color[2], last_clear_color[3]);
   check_gl("restore clear color");
@@ -544,13 +532,15 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
       for (uint8_t* rgba = values; rgba < (values + size * 4); rgba += 4) {
         uint32_t code = selectionRGB8ToCode(rgba);
         if (code != SelectionBuffer::k_noSelectionCode) {
-          if (code < entry)
+          if (code < entry) {
             entry = code;
+          }
         }
       }
 
-      if (values != valuesLocalBuffer)
+      if (values != valuesLocalBuffer) {
         free(values);
+      }
     }
   }
   // Restore previous framebuffer

@@ -21,14 +21,19 @@ class RenderSettings;
 
 struct Gesture
 {
-  // all mouse positions are in window coordinates with
-  // 0,0 at TOP left.
+  // all mouse positions are in window coordinates
+  // premultiplied by devicepixelratio in the gui layer
+  // with 0,0 at TOP left.
   struct Input
   {
     // User Input
     static constexpr size_t kButtonsCount = 3;
 
-    static double s_doubleClickTime; //< Mouse double-click time in seconds.
+    // During app initialization query the OS accessibility settings how the user configured the
+    // double-click duration. Developer: never hardcode this time to something that feels
+    // right to you.  The initial value is just a nonzero default that is meant to be overriddent.
+    double doubleClickTime = 0.5; //< Mouse double-click time in seconds.
+    void setDoubleClickTime(double seconds) { doubleClickTime = seconds; }
 
     enum ButtonId
     {
@@ -67,16 +72,18 @@ struct Gesture
     void reset(int mbIndex)
     {
       assert(mbIndex < kButtonsCount);
-      if (mbIndex >= kButtonsCount)
+      if (mbIndex >= kButtonsCount) {
         return;
+      }
 
       reset(mbs[mbIndex]);
     }
 
     void reset()
     {
-      for (int mbIndex = 0; mbIndex < kButtonsCount; ++mbIndex)
+      for (int mbIndex = 0; mbIndex < kButtonsCount; ++mbIndex) {
         reset(mbs[mbIndex]);
+      }
     }
 
     // Call this function at the end of a frame before polling new events.
@@ -222,8 +229,8 @@ struct Gesture
     };
 
     // Some base RenderBuffer struct, in common between viewport rendering and
-    // other stuff... I am doubtful this is the best practice, for now I am dealing
-    // with gobbledygook one bit at a time.
+    // other stuff...
+    // TODO reconcile with Graphics/FrameBuffer.h
     struct RenderBuffer
     {
       glm::ivec2 resolution = glm::ivec2(0);
@@ -243,8 +250,9 @@ struct Gesture
 
         // To prevent some buffer allocation issue, ignore zero-size buffer resize, this happens when
         // the app is minimized.
-        if (resolution == glm::ivec2(0))
+        if (resolution == glm::ivec2(0)) {
           return true;
+        }
 
         destroy();
         return create(resolution, samples);
@@ -257,10 +265,6 @@ struct Gesture
     {
       // 1 bit is reserved for component flags.
       static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
-
-      // There is most stuff here for scene content selection but it is not
-      // relevant for now.
-      // [...]
     };
 
     // Gesture draw
@@ -272,7 +276,7 @@ struct Gesture
     std::unique_ptr<GLGuiShader> shader;
 
     // A texture atlas for GUI elements
-    // Todo: switch to bindless textures
+    // TODO: use bindless textures
     uint32_t glTextureId = 0;
 
     // remember selection code to reuse while dragging
@@ -285,8 +289,9 @@ struct Gesture
       currentCommand = nullptr;
 
       verts.clear();
-      for (int i = 0; i < kNumCommandsLists; ++i)
+      for (int i = 0; i < kNumCommandsLists; ++i) {
         commands[i].clear();
+      }
     }
 
     // Add a draw command. There are multiple command sequences you can add to so
@@ -298,8 +303,9 @@ struct Gesture
       // before starting a new command
       for (int i = 0; i < kNumCommandsLists; ++i) {
         if (!commands[i].empty()) {
-          if (commands[i].back().end == kInvalidVertexIndex)
+          if (commands[i].back().end == kInvalidVertexIndex) {
             commands[i].back().end = verts.size();
+          }
         }
       }
 
@@ -311,6 +317,7 @@ struct Gesture
     }
 
     // Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
+    // TODO: abstract the command type into an api-independent enum
     inline void addCommand(GLenum command, CommandSequence index = CommandSequence::k3dStacked)
     {
       addCommand(Command(command), index);

@@ -36,6 +36,8 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   , m_qrendersettings(qrs)
 {
   m_viewerWindow = new ViewerWindow(rs);
+  m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
+
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
 

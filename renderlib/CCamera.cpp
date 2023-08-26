@@ -225,7 +225,7 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
     glm::vec3 rotated_v = camera.m_From - camera.m_Target;
     glm::vec3 v = camera.m_From - camera.m_Target;
     glm::vec3 newEye, newUp;
-    trackball(drag.x, drag.y, camera, newEye, newUp);
+    trackball(drag.x, -drag.y, camera, newEye, newUp);
     rotated_v = newEye - camera.m_Target;
     rotated_up = newUp;
 
