@@ -368,6 +368,8 @@ GLView3D::OnUpdateRenderer(int rendererType)
 void
 GLView3D::fromViewerState(const Serialize::ViewerState& s)
 {
+  m_qrendersettings->SetRendererType(s.rendererType == Serialize::RendererType_PID::PATHTRACE ? 1 : 0);
+
   // syntactic sugar
   CCamera& camera = m_viewerWindow->m_CCamera;
 

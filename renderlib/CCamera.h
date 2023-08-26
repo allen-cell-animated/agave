@@ -608,8 +608,7 @@ public:
     float vfov = m_FovV * DEG_TO_RAD;
 
     if (m_Projection == PERSPECTIVE) {
-      projMatrix =
-        glm::perspectiveFov(vfov, w, h, m_Near, m_Far); // * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
+      projMatrix = glm::perspectiveFov(vfov, w, h, m_Near, m_Far);
     } else {
       projMatrix = glm::ortho(
         -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, -1.0f * m_OrthoScale, 1.0f * m_OrthoScale, m_Near, m_Far);
