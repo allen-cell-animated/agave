@@ -114,8 +114,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
 
     // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-    glm::vec2 click1 =
-      scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
+    glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
 
     // Most of the math to get the manipulator to move will be about:
     // * line-line nearest point
@@ -462,7 +461,123 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 void
 RotateTool::action(SceneView& scene, Gesture& gesture)
 {
+  // Most of the time the manipulator is called without an active code set
+  bool validCode = isCodeValid(m_activeCode);
+  if (!validCode)
+    return;
+
+  // The move tool is only active if some movable object is selected
+  if (!scene.anythingActive())
+    return;
+
+  // Viewport resolution is needed to compute perspective projection of
+  // the cursor position.
+  const glm::ivec2 resolution = scene.viewport.region.size();
+
+  // Move responds only to left pointer button click-drag.
+  Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
+  if (button.action == Gesture::Input::Action::kPress) {
+    origins.update(scene);
+    m_rotation = glm::vec3(0, 0, 0);
+  }
+  if (button.action == Gesture::Input::Action::kDrag) {
+    // If we have not initialized objects position when the gesture began,
+    // do so now. We need to know the initial object(s) position to
+    // register undo later.
+    // Note: because I didn't explain any part of the scene geometry data
+    // structure, consider this as some pseudocode to show the intent.
+    if (origins.empty()) {
+      origins.update(scene);
+    }
+
+    // Need some position where the manipulator is drawn in space.
+    // We assume this quantity did not change from the last time we
+    // drew the manipulator.
+    glm::vec3 targetPosition = origins.currentReference(scene).p;
+
+    // Create an orthonormal frame of reference that is oriented towards
+    // the camera position.
+    // Compute the manipulator projective distance from the camera
+    LinearSpace3f camFrame = scene.camera.getFrame();
+
+    float v_len = scene.camera.getDistance(targetPosition);
+    float aperture = scene.camera.getHalfHorizontalAperture();
+
+    float dragScale = 0.5 * aperture * v_len / (resolution.x / 2);
+
+    // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
+    glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
+    glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
+
+    // Most of the math to get the manipulator to move will be about:
+    // * line-line nearest point
+    // * line-plane intersection
+    // The equation of a line is expressed in parametric form as:
+    //     P = l + l0 * t
+    // The equation of a plane is expressed as a point and a normal.
+    // Here we prepare some useful quantities:
+    // p is the position of the manipulator where we may have a few planes
+    // crossing, the normal of such planes may be the axis of the manipulator
+    glm::vec3 p = targetPosition;
+
+    // l is the camera position, the same "l" in the line parametric eq.
+    glm::vec3 l = scene.camera.m_From;
+
+    // l0 is the same "l0" as in the line parametric eq. as the direction of the
+    // ray extending into the screen from the position of the initial click.
+    // Let's call that "line 0"
+    glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
+
+    // l1 is same concept as l1 but for the current position of the drag.
+    // Let's call that "line 1"
+    glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
+
+    LinearSpace3f ref; //< motion in reference space (world for now)
+
+    // ultimately there are two modes.
+    // One is distance from ring (linear mouse drag) - NOT IMPLEMENTED YET
+    // The second (default) is rotation around the ring
+
+    // Find the point closest to the active ring.
+    // if tumbling, then we don't need it.
+
+    glm::vec3 motion(0);
+    switch (m_activeCode) {
+      case RotateTool::kRotateX: // constrained to rotate about world x axis
+        break;
+      case RotateTool::kRotateY: // constrained to rotate about world y axis
+        break;
+      case RotateTool::kRotateZ: // constrained to rotate about world z axis
+        break;
+      case RotateTool::kRotateView: // constrained to rotate about view direction
+        break;
+      case RotateTool::kRotate: // general tumble rotation
+        // use camera trackball algorithm
+        break;
+    }
+
+    // The variable motion is a world space vector of how much we moved the
+    // manipulator. Here we execute the action of applying motion to
+    // whatever is that we are moving...
+    // [...]
+    // Note that the motion is the total motion from drag origin.
+    // but we will update this per-frame!
+    origins.rotate(scene, motion);
+    m_rotation = motion;
+  }
+  if (button.action == Gesture::Input::Action::kRelease) {
+    if (!origins.empty()) {
+      // Make the edit final, for example by creating an undo action...
+      // [...]
+    }
+
+    // Consume the gesture.
+    gesture.input.reset(Gesture::Input::kButtonLeft);
+    origins.clear();
+    m_rotation = glm::vec3(0, 0, 0);
+  }
 }
+
 void
 RotateTool::draw(SceneView& scene, Gesture& gesture)
 {
@@ -540,6 +655,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::xAxis;
     if (m_activeCode == RotateTool::kRotateX) {
       color = glm::vec3(1, 1, 0);
+      // if we are rotating, draw a tick mark where the rotation started, and where we are now
     }
     drawCircle(gesture, axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code);
   }
@@ -549,6 +665,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::yAxis;
     if (m_activeCode == RotateTool::kRotateY) {
       color = glm::vec3(1, 1, 0);
+      // if we are rotating, draw a tick mark where the rotation started, and where we are now
     }
     drawCircle(gesture, axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code);
   }
@@ -558,6 +675,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::zAxis;
     if (m_activeCode == RotateTool::kRotateZ) {
       color = glm::vec3(1, 1, 0);
+      // if we are rotating, draw a tick mark where the rotation started, and where we are now
     }
     drawCircle(gesture, axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
   }
@@ -568,6 +686,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::bright;
     if (m_activeCode == RotateTool::kRotateView) {
       color = glm::vec3(1, 1, 0);
+      // if we are rotating, draw a tick mark where the rotation started, and where we are now
     }
     drawCircle(gesture, axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
   }

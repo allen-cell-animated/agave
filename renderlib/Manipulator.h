@@ -145,6 +145,26 @@ struct Origins
     scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
+  void rotate(SceneView& scene, glm::vec3 rotation)
+  {
+    glm::vec3 p = m_origins[0].p;
+
+    // get light 1
+    Light& l = scene.scene->m_lighting.m_Lights[1];
+    glm::vec3 dir = p - scene.scene->m_boundingBox.GetCenter();
+
+    // now rotate dir by rotation
+    // TODO
+
+    // now set distance, theta, phi from m_P and current m_Target
+    l.m_Distance = glm::length(dir);
+    l.m_Phi = glm::acos(dir.y / l.m_Distance);
+    l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
+
+    l.Update(scene.scene->m_boundingBox);
+    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+  }
+
   std::vector<AffineSpace3f> m_origins;
 };
 
@@ -165,7 +185,8 @@ struct MoveTool : ManipulationTool
   };
 
   MoveTool()
-    : ManipulationTool(kLast), m_translation(0)
+    : ManipulationTool(kLast)
+    , m_translation(0)
   {
   }
 
