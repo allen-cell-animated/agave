@@ -117,6 +117,27 @@ lineLineNearestPoint(const glm::vec3& lineA_P,
 }
 
 inline float
+distanceToPlane(const glm::vec3& p, const glm::vec3& planeP, const glm::vec3& planeN)
+{
+  return glm::dot(p - planeP, planeN);
+}
+
+inline glm::vec3
+circleNearestPoint(const glm::vec3& p, const glm::vec3& center, const glm::vec3& normal, float r)
+{
+  float d = distanceToPlane(p, center, normal);
+  glm::vec3 p2 = p - d * normal;
+
+  // vector from center to point
+  glm::vec3 v = p2 - center;
+  float magV = glm::length(v);
+  // reduce distance to radius and compute pt on circle
+  // i.e. compute pt on circle toward direction of p
+  glm::vec3 a = center + v * (r / magV);
+  return a;
+}
+
+inline float
 lerp(float a, float b, float alpha)
 {
   return a + alpha * (b - a);
