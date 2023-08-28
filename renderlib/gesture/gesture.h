@@ -144,7 +144,7 @@ struct Gesture
     static constexpr int kInvalidVertexIndex = -1;
 
     // We support multiple command lists. Each list will draw with different
-    // settings. The number of independent list is currently hardcoded but
+    // settings. The number of independent lists is currently hardcoded but
     // it could be made configurable if we would store an array of function
     // pointers to setup each draw pass.
     enum class CommandSequence : int
@@ -155,6 +155,9 @@ struct Gesture
     };
     static constexpr int kNumCommandsLists = 3;
 
+    // a Command is just an instruction to the graphics
+    // api to draw a certain type of geometry.
+    // In the case of Lines, the command can also hold a thickness value.
     struct Command
     {
       Command() = default;
@@ -167,6 +170,7 @@ struct Gesture
       GLenum command;  //< Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
       float thickness; //< Line thickness or point radius.
     };
+    // A command range is a sequence of vertices to be drawn with a specific command.
     struct CommandRange
     {
       Command command;
