@@ -669,11 +669,7 @@ struct CameraAnimation
 struct Gesture;
 
 extern bool
-cameraManipulation(const glm::vec2 viewportSize,
-                   // const TimeSample& clock,
-                   Gesture& gesture,
-                   CCamera& camera,
-                   CameraModifier& cameraMod);
+cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& camera, CameraModifier& cameraMod);
 
 inline CCamera&
 operator+=(CCamera& camera, const CameraModifier& mod)

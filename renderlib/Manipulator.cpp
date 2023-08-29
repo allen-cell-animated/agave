@@ -114,8 +114,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
 
     // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-    glm::vec2 click1 =
-      scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
+    glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
 
     // Most of the math to get the manipulator to move will be about:
     // * line-line nearest point
@@ -176,7 +175,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
 
       case MoveTool::kMoveYZ:
         // To move on two axis we compute the distance between two line-plane
-        // interections. The plane is that formed by the two axis.
+        // intersections. The plane is that formed by the two axis.
         motion = linePlaneIsect(p, ref.vx, l, l1) - linePlaneIsect(p, ref.vx, l, l0);
         break;
 
@@ -488,26 +487,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
 
   AffineSpace3f axis;
   axis.p = target.p;
-
-  // gesture.graphics.addCommand(GL_TRIANGLES);
-  // drawSolidArrow(axis.l.vx, axis.l.vy, axis.l.vz, MoveTool::kMoveX, forceActiveX, ManipColors::xAxis, 0.3f);
-  // drawSolidArrow(axis.l.vy, axis.l.vz, axis.l.vx, MoveTool::kMoveY, forceActiveY, ManipColors::yAxis, 0.3f);
-  // drawSolidArrow(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 0.3f);
-
-  // gesture.graphics.addCommand(GL_LINES);
-  //  drawAxis(axis.l.vx, axis.l.vy, axis.l.vz, MoveTool::kMoveX, forceActiveX, ManipColors::xAxis, 1);
-  //  drawAxis(axis.l.vy, axis.l.vz, axis.l.vx, MoveTool::kMoveY, forceActiveY, ManipColors::yAxis, 1);
-  //  drawAxis(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 1);
-
-  // // Draw planar move controls, only if facing angle makes them usable
-  // glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
-  // float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
-
-  // drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);
-  // facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vy)));
-  // drawDiag(axis.l.vy, axis.l.vz, axis.l.vx, facingScale, MoveTool::kMoveXZ, ManipColors::yAxis, 1);
-  // facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vz)));
-  // drawDiag(axis.l.vz, axis.l.vx, axis.l.vy, facingScale, MoveTool::kMoveXY, ManipColors::zAxis, 1);
 
   gesture.graphics.addCommand(GL_TRIANGLES);
   // draw a flat camera facing disk for freeform tumble rotation

@@ -139,7 +139,7 @@ cameraManipulationDolly(const glm::vec2 viewportSize,
     targetMotion = glm::vec3(0);
   } else {
     // Linear motion. We move position and target at once. This mode allows the user not
-    // to get stuck with a camera that doesn't move because the postion got to close to
+    // to get stuck with a camera that doesn't move because the position got too close to
     // the target.
     glm::vec3 v_scaled = v * (-dragDist * dragScale);
     motion = v_scaled;
