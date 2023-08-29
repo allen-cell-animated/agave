@@ -220,9 +220,6 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
     cameraEdit = true;
     Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
 
-    // LOG_DEBUG << "Pressed pos " << glm::to_string(button.pressedPosition) << ", cursor "
-    //           << glm::to_string(gesture.input.cursorPos) << ", drag " << glm::to_string(button.drag);
-
     static const int TUMBLE_PIXELS_PER_RADIAN = 800;
     const float dragScale = 1.0f / TUMBLE_PIXELS_PER_RADIAN;
 

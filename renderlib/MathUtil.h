@@ -2,6 +2,10 @@
 
 #include "glm.h"
 
+// see https://github.com/embree/embree/blob/master/common/math/affinespace.h
+// Much of this could probably be replaced by just using glm::mat3 and glm::mat4
+// but this makes explicit the split between basis vectors and affine component,
+// and thereby makes some operations more readable.
 struct LinearSpace3f
 {
   glm::vec3 vx;
@@ -53,10 +57,19 @@ xfmVector(const struct LinearSpace3f& xfm, glm::vec3 p)
 {
   return xfm.vx * p.x + xfm.vy * p.y + xfm.vz * p.z;
 }
+
+// transforming as a point is different than as a vector
+inline glm::vec3
+xfmPoint(const struct AffineSpace3f& xfm, glm::vec3 p)
+{
+  return xfmVector(xfm.l, p) + xfm.p;
+}
+
+// transforming as a vector (spatial direction) can ignore the affine p component
 inline glm::vec3
 xfmVector(const struct AffineSpace3f& xfm, glm::vec3 p)
 {
-  return xfmVector(xfm.l, p) + xfm.p;
+  return xfmVector(xfm.l, p);
 }
 
 /// @brief Intersect a line with a plane and return the parametric distance along the
