@@ -2,6 +2,7 @@
 
 #include "IRenderWindow.h"
 #include "RenderSettings.h"
+#include "RotateTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
 

@@ -460,7 +460,7 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 
   // If we are in mid-gesture, then we can continue to use the retained selection code.
   // if we never had anything to draw into the pick buffer, then we didn't pick anything.
-  if (clickEnded || clickDrag || this->verts.empty()) {
+  if (clickEnded || clickDrag) {
     return m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
   }
 
@@ -556,4 +556,55 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   // }
   m_retainedSelectionCode = entry;
   return entry != SelectionBuffer::k_noSelectionCode;
+}
+
+void
+Gesture::drawCircle(glm::vec3 center,
+                    glm::vec3 xaxis,
+                    glm::vec3 yaxis,
+                    uint32_t numSegments,
+                    glm::vec3 color,
+                    float opacity,
+                    uint32_t code)
+{
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                     Gesture::Graphics::VertsCode(p1, color, opacity, code));
+  }
+}
+
+// does not draw a flat base
+void
+Gesture::drawCone(glm::vec3 base,
+                  glm::vec3 xaxis,
+                  glm::vec3 yaxis,
+                  glm::vec3 zaxis,
+                  uint32_t numSegments,
+                  glm::vec3 color,
+                  float opacity,
+                  uint32_t code)
+{
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = base + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = base + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    graphics.addVert(Gesture::Graphics::VertsCode(base + zaxis, color, opacity, code));
+    graphics.addVert(Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    graphics.addVert(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+  }
 }

@@ -389,4 +389,22 @@ struct Gesture
     int getCurrentSelectionCode() { return m_retainedSelectionCode; }
   };
   Graphics graphics;
+
+  void drawCircle(glm::vec3 center,
+                  glm::vec3 xaxis,
+                  glm::vec3 yaxis,
+                  uint32_t numSegments,
+                  glm::vec3 color,
+                  float opacity,
+                  uint32_t code);
+
+  // does not draw a flat base
+  void drawCone(glm::vec3 base,
+                glm::vec3 xaxis,
+                glm::vec3 yaxis,
+                glm::vec3 zaxis,
+                uint32_t numSegments,
+                glm::vec3 color,
+                float opacity,
+                uint32_t code);
 };
