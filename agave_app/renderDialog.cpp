@@ -2,10 +2,10 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
-#include "renderlib/graphics/IRenderWindow.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/command.h"
+#include "renderlib/graphics/IRenderWindow.h"
 
 #include <QApplication>
 #include <QButtonGroup>
@@ -324,9 +324,9 @@ QGroupBox
   m_camera.m_Film.m_Resolution.SetResY(mHeight);
 
   mWidthInput = new QLineEdit(QString::number(mWidth), this);
-  mWidthInput->setValidator(new QIntValidator(2, 4096, this));
+  mWidthInput->setValidator(new QIntValidator(2, 16384, this));
   mHeightInput = new QLineEdit(QString::number(mHeight), this);
-  mHeightInput->setValidator(new QIntValidator(2, 4096, this));
+  mHeightInput->setValidator(new QIntValidator(2, 16384, this));
 
   mLockAspectRatio = new QPushButton(QIcon(":/icons/linked.png"), "", this);
   mLockAspectRatio->setCheckable(true);
