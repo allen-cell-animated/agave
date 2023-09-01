@@ -80,10 +80,10 @@ Scene::initLights()
   AreaLight.m_T = 0;
   AreaLight.m_Theta = 0.0f;
   AreaLight.m_Phi = HALF_PI_F;
-  AreaLight.m_Width = 1.0f;
-  AreaLight.m_Height = 1.0f;
-  AreaLight.m_Distance = 10.0f;
-  AreaLight.m_Color = 100.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+  AreaLight.m_Width = 0.15f;
+  AreaLight.m_Height = 0.15f;
+  AreaLight.m_Distance = 1.5f;
+  AreaLight.m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
   m_lighting.AddLight(AreaLight);
 }
