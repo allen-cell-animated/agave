@@ -62,7 +62,8 @@ private:
     m_light1distance, m_light1skyRadius, m_light1P, m_light1target, m_light1N, m_light1U, m_light1V, m_light1area,
     m_light1areaPdf, m_light1color, m_light1colorTop, m_light1colorMiddle, m_light1colorBottom, m_light1T;
 
-  int m_lutTexture0, m_lutTexture1, m_lutTexture2, m_lutTexture3, m_intensityMax, m_intensityMin, m_opacity,
-    m_emissive0, m_emissive1, m_emissive2, m_emissive3, m_diffuse0, m_diffuse1, m_diffuse2, m_diffuse3, m_specular0,
-    m_specular1, m_specular2, m_specular3, m_roughness, m_uShowLights;
+  int m_lutTexture0, m_lutTexture1, m_lutTexture2, m_lutTexture3, m_colormapTexture0, m_colormapTexture1,
+    m_colormapTexture2, m_colormapTexture3, m_intensityMax, m_intensityMin, m_opacity, m_emissive0, m_emissive1,
+    m_emissive2, m_emissive3, m_diffuse0, m_diffuse1, m_diffuse2, m_diffuse3, m_specular0, m_specular1, m_specular2,
+    m_specular3, m_roughness, m_uShowLights;
 };
