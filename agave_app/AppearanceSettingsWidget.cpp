@@ -917,7 +917,7 @@ colormapToGradient(std::vector<ColorControlPoint>& v)
 QComboBox*
 makeGradientCombo()
 {
-  QComboBox* cb = new QComboBox(this);
+  QComboBox* cb = new QComboBox();
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
   foreach (const QString& colorName, colorNames) {
