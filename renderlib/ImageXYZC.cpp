@@ -1,5 +1,6 @@
 #include "ImageXYZC.h"
 
+#include "Colormap.h"
 #include "Logging.h"
 
 #include <algorithm>
@@ -158,51 +159,6 @@ ImageXYZC::getDimensions() const
 
 // 3d median filter?
 
-struct ColorControlPoint
-{
-  float first;
-  uint8_t r, g, b, a;
-  ColorControlPoint(float x, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-    : first(x)
-    , r(r)
-    , g(g)
-    , b(b)
-    , a(a)
-  {
-  }
-};
-
-uint8_t*
-colormap_from_controlPoints(std::vector<ColorControlPoint> pts, size_t length = 256)
-{
-  // pts is piecewise linear from first to last control point.
-  // pts is in order of increasing x value (the first element of the pair)
-  // pts[0].first === 0
-  // pts[pts.size()-1].first === 1
-
-  uint8_t* lut = new uint8_t[length * 4]{ 0 };
-
-  for (size_t x = 0; x < length; ++x) {
-    float fx = (float)x / (float)(length - 1);
-    // find the interval of control points that contains fx.
-    for (size_t i = 0; i < pts.size() - 1; ++i) {
-      // am i in between?
-      if ((fx >= pts[i].first) && (fx <= pts[i + 1].first)) {
-        // what fraction of this interval in x?
-        float fxi = (fx - pts[i].first) / (pts[i + 1].first - pts[i].first);
-        // use that fraction against y range
-        // TODO test rounding error
-        lut[x * 4 + 0] = pts[i].r + fxi * (pts[i + 1].r - pts[i].r);
-        lut[x * 4 + 1] = pts[i].g + fxi * (pts[i + 1].g - pts[i].g);
-        lut[x * 4 + 2] = pts[i].b + fxi * (pts[i + 1].b - pts[i].b);
-        lut[x * 4 + 3] = pts[i].a + fxi * (pts[i + 1].a - pts[i].a);
-        break;
-      }
-    }
-  }
-  return lut;
-}
-
 Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   : m_histogram(ptr, x * y * z)
 {
@@ -220,7 +176,7 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 
   // create a hardcoded colormap to test
   m_colormap =
-    colormap_from_controlPoints({ ColorControlPoint(0.0f, 0, 255, 0, 255), ColorControlPoint(1.0f, 255, 0, 0, 255) });
+    colormapFromControlPoints({ ColorControlPoint(0.0f, 0, 255, 0, 255), ColorControlPoint(1.0f, 255, 0, 0, 255) });
 }
 
 Channelu16::~Channelu16()
