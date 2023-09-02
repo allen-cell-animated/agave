@@ -23,6 +23,7 @@ struct Channelu16
 
   Histogram m_histogram;
   float* m_lut;
+  uint8_t* m_colormap;
 
   uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
