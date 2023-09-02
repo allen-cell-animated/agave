@@ -5,6 +5,7 @@
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/Colormap.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
@@ -1016,4 +1017,29 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }
+}
+
+QGradientStops
+colormapToGradient(std::vector<ColorControlPoint>& v)
+{
+  QGradientStops stops;
+  for (int i = 0; i < v.size(); ++i) {
+    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  }
+  return stops;
+}
+
+QComboBox*
+makeGradientCombo()
+{
+  QComboBox* cb = new QComboBox(this);
+  const QStringList colorNames = QColor::colorNames();
+  int index = 0;
+  foreach (const QString& colorName, colorNames) {
+    const QColor color(colorName);
+    cb->addItem(colorName, color);
+    const QModelIndex idx = cb->model()->index(index++, 0);
+    cb->model()->setData(idx, color, Qt::BackgroundRole);
+  }
+  return cb;
 }
