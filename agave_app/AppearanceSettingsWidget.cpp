@@ -24,16 +24,24 @@ colormapToGradient(const std::vector<ColorControlPoint>& v)
   return stops;
 }
 
+struct GradientSpec
+{
+  std::vector<ColorControlPoint> stops;
+};
+static std::map<std::string, GradientSpec> builtInGradients = {
+  { "greentored", { { ColorControlPoint(0.0f, 0u, 255u, 0u, 255u), ColorControlPoint(1.0f, 255u, 0u, 0u, 255u) } } },
+  { "redtogreen", { { ColorControlPoint(0.0f, 255u, 0u, 0u, 255u), ColorControlPoint(1.0f, 0u, 255u, 0u, 255u) } } }
+};
+
 QComboBox*
 makeGradientCombo()
 {
   QComboBox* cb = new QComboBox();
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
-  foreach (const QString& colorName, colorNames) {
+  for (auto& gspec : builtInGradients) {
     QLinearGradient gradient;
-    gradient.setStops(
-      colormapToGradient({ ColorControlPoint(0.0f, 0u, 255u, 0u, 255u), ColorControlPoint(1.0f, 255u, 0u, 0u, 255u) }));
+    gradient.setStops(colormapToGradient(gspec.second.stops));
 
     gradient.setStart(0., 0.);     // top left
     gradient.setFinalStop(1., 0.); // bottom right
@@ -41,7 +49,7 @@ makeGradientCombo()
 
     QBrush brush(gradient);
     brush.setStyle(Qt::LinearGradientPattern);
-    cb->addItem("", brush);
+    cb->addItem("", QVariant(gspec.first.c_str()));
     const QModelIndex idx = cb->model()->index(index++, 0);
     cb->model()->setData(idx, brush, Qt::BackgroundRole);
   }
@@ -774,6 +782,17 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
 }
 
 void
+QAppearanceSettingsWidget::OnUpdateColormap(int i, const std::vector<ColorControlPoint>& stops)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_volume->channel((uint32_t)i)->updateColormap(stops);
+
+  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void
 QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
 {
   if (!m_scene)
@@ -992,6 +1011,14 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     QComboBox* gradients = makeGradientCombo();
     sectionLayout->addRow("ColorMap", gradients);
+    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
+      LOG_DEBUG << "Selected gradient " << index << " for channel " << i;
+      // get string from userdata
+      std::string name = gradients->itemData(index).toString().toStdString();
+      auto colormap = builtInGradients[name];
+      // update channel colormap from stops
+      this->OnUpdateColormap(i, colormap.stops);
+    });
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));

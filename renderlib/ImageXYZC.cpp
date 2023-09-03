@@ -206,6 +206,13 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
     { ColorControlPoint(0.0f, 0u, 255u, 0u, 255u), ColorControlPoint(1.0f, 255u, 0u, 0u, 255u) });
 }
 
+void
+Channelu16::updateColormap(std::vector<ColorControlPoint> stops)
+{
+  delete[] m_colormap;
+  m_colormap = colormapFromControlPoints(stops);
+}
+
 Channelu16::~Channelu16()
 {
   delete[] m_lut;
