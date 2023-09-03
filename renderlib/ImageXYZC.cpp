@@ -202,8 +202,8 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_lut = m_histogram.generate_percentiles();
 
   // create a hardcoded colormap to test
-  m_colormap =
-    colormapFromControlPoints({ ColorControlPoint(0.0f, 0u, 255u, 0u, 255u), ColorControlPoint(1.0f, 255u, 0u, 0u, 255u) });
+  m_colormap = colormapFromControlPoints(
+    { ColorControlPoint(0.0f, 0u, 255u, 0u, 255u), ColorControlPoint(1.0f, 255u, 0u, 0u, 255u) });
 }
 
 Channelu16::~Channelu16()

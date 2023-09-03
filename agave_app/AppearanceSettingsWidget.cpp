@@ -14,6 +14,40 @@
 #include <QFrame>
 #include <QLinearGradient>
 
+QGradientStops
+colormapToGradient(const std::vector<ColorControlPoint>& v)
+{
+  QGradientStops stops;
+  for (int i = 0; i < v.size(); ++i) {
+    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  }
+  return stops;
+}
+
+QComboBox*
+makeGradientCombo()
+{
+  QComboBox* cb = new QComboBox();
+  const QStringList colorNames = QColor::colorNames();
+  int index = 0;
+  foreach (const QString& colorName, colorNames) {
+    QLinearGradient gradient;
+    gradient.setStops(
+      colormapToGradient({ ColorControlPoint(0.0f, 0u, 255u, 0u, 255u), ColorControlPoint(1.0f, 255u, 0u, 0u, 255u) }));
+
+    gradient.setStart(0., 0.);     // top left
+    gradient.setFinalStop(1., 0.); // bottom right
+    gradient.setCoordinateMode(QGradient::ObjectMode);
+
+    QBrush brush(gradient);
+    brush.setStyle(Qt::LinearGradientPattern);
+    cb->addItem("", brush);
+    const QModelIndex idx = cb->model()->index(index++, 0);
+    cb->model()->setData(idx, brush, Qt::BackgroundRole);
+  }
+  return cb;
+}
+
 static const int MAX_CHANNELS_CHECKED = 4;
 
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
@@ -956,6 +990,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    QComboBox* gradients = makeGradientCombo();
+    sectionLayout->addRow("ColorMap", gradients);
+
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
     diffuseColorButton->setToolTip(tr("Set color for channel"));
@@ -1017,29 +1054,4 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     m_MainLayout.addRow(section);
     m_channelSections.push_back(section);
   }
-}
-
-QGradientStops
-colormapToGradient(std::vector<ColorControlPoint>& v)
-{
-  QGradientStops stops;
-  for (int i = 0; i < v.size(); ++i) {
-    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
-  }
-  return stops;
-}
-
-QComboBox*
-makeGradientCombo()
-{
-  QComboBox* cb = new QComboBox();
-  const QStringList colorNames = QColor::colorNames();
-  int index = 0;
-  foreach (const QString& colorName, colorNames) {
-    const QColor color(colorName);
-    cb->addItem(colorName, color);
-    const QModelIndex idx = cb->model()->index(index++, 0);
-    cb->model()->setData(idx, color, Qt::BackgroundRole);
-  }
-  return cb;
 }
