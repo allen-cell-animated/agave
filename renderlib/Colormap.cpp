@@ -30,3 +30,14 @@ colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
   }
   return lut;
 }
+
+std::vector<ColorControlPoint>
+stringListToGradient(const std::vector<std::string>& colors)
+{
+  std::vector<ColorControlPoint> stops;
+  size_t n = colors.size();
+  for (int i = 0; i < n; ++i) {
+    stops.push_back(ColorControlPoint(i / (n - 1.0f), colors[i]));
+  }
+  return stops;
+}
