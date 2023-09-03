@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stddef.h>
 #include <vector>
 
 struct ColorControlPoint
@@ -8,6 +9,14 @@ struct ColorControlPoint
   float first;
   uint8_t r, g, b, a;
   ColorControlPoint(float x, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    : first(x)
+    , r(r)
+    , g(g)
+    , b(b)
+    , a(a)
+  {
+  }
+  ColorControlPoint(float x, unsigned int r, unsigned int g, unsigned int b, unsigned int a)
     : first(x)
     , r(r)
     , g(g)
