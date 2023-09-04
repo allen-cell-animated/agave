@@ -6,7 +6,6 @@
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
-#include "loadDialog.h"
 #include "renderDialog.h"
 
 #include "renderlib/AppScene.h"
@@ -34,7 +33,7 @@ public:
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const std::string& file, const LoadingDialogType dialogType, const Serialize::ViewerState* vs = nullptr);
+  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
                      uint32_t sizeT,

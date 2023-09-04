@@ -20,11 +20,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-LoadDialog::LoadDialog(std::string path,
-                       const std::vector<MultiscaleDims>& dims,
-                       uint32_t scene,
-                       LoadingDialogType type,
-                       QWidget* parent)
+LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, uint32_t scene, QWidget* parent)
   : QDialog(parent)
 {
   m_reader = FileReader::getReader(path);
@@ -33,11 +29,20 @@ LoadDialog::LoadDialog(std::string path,
   mSelectedLevel = 0;
   mScene = scene;
 
-  std::string titlePrefix = convertTypeToString(type);
-  if (titlePrefix != "") {
-    titlePrefix += " ";
+  std::string title;
+  QString pathString = QString::fromStdString(path);
+  QString extension = pathString.sliced(pathString.lastIndexOf("."));
+  if (pathString.indexOf("http") == 0) {
+    title = "URL Load Settings";
+  } else if (extension.indexOf(".zarr") == 0) {
+    title = "Directory Load Settings";
+  } else if (extension.indexOf(".json") == 0) {
+    title = "JSON Load Settings";
+  } else {
+    title = "File Load Settings";
   }
-  setWindowTitle(tr((titlePrefix + "Load Settings").c_str()));
+
+  setWindowTitle(tr((title).c_str()));
   setFocusPolicy(Qt::StrongFocus);
 
   // get standard QLabel font size
@@ -350,21 +355,4 @@ LoadDialog::populateChannels(int level)
     listItem->setData(Qt::UserRole, QVariant::fromValue(i));
     mChannels->addItem(listItem);
   }
-}
-
-std::string
-LoadDialog::convertTypeToString(LoadingDialogType type)
-{
-  switch (type) {
-    case LoadingDialogType::FILE:
-      return "File";
-    case LoadingDialogType::DIRECTORY:
-      return "Directory";
-    case LoadingDialogType::URL:
-      return "URL";
-    case LoadingDialogType::JSON:
-      return "JSON";
-    default:
-      return "";
-  };
 }
