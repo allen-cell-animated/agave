@@ -11,6 +11,7 @@
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
+#include <QItemDelegate>
 #include <QLinearGradient>
 
 QGradientStops
@@ -383,10 +384,26 @@ std::map<std::string, std::vector<ColorControlPoint>> builtInGradients = { { "no
                                                                                                     "#0a675f",
                                                                                                     "#0a675f" }) } };
 
+#if 0
+class ComboDelegate : public QItemDelegate
+{
+public:
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+  {
+    QStyleOptionViewItem newOption(option);
+    newOption.palette.setBrush(QPalette::Base, index.data(Qt::BackgroundRole).value<QBrush>());
+
+    painter->fillRect(option.rect, index.data(Qt::BackgroundRole).value<QBrush>());
+    // QItemDelegate::paint(painter, newOption, index);
+  }
+};
+#endif
+
 QComboBox*
 makeGradientCombo()
 {
   QComboBox* cb = new QComboBox();
+  // cb->setItemDelegate(new ComboDelegate());
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
   for (auto& gspec : builtInGradients) {
@@ -400,8 +417,9 @@ makeGradientCombo()
     QBrush brush(gradient);
     brush.setStyle(Qt::LinearGradientPattern);
     cb->addItem("", QVariant(gspec.first.c_str()));
-    const QModelIndex idx = cb->model()->index(index++, 0);
-    cb->model()->setData(idx, brush, Qt::BackgroundRole);
+    cb->setItemData(index, QVariant(gspec.first.c_str()), Qt::ToolTipRole);
+    cb->setItemData(index, brush, Qt::BackgroundRole);
+    index++;
   }
   return cb;
 }
@@ -1249,6 +1267,13 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       LOG_DEBUG << "Selected gradient " << index << " for channel " << i;
+      // QPalette p = gradients->palette();
+      // p.setBrush(QPalette::Button, gradients->itemData(index, Qt::BackgroundRole).value<QBrush>());
+      // gradients->setPalette(p);
+      // p = gradients->view()->palette();
+      // p.setBrush(QPalette::Button, gradients->itemData(index, Qt::BackgroundRole).value<QBrush>());
+      // gradients->view()->setPalette(p);
+
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
       auto colormap = builtInGradients[name];
