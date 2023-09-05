@@ -8,6 +8,45 @@ struct ManipColors
   static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
+static float
+getSignedAngle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& vN)
+{
+  // get signed angle between the two vectors using (1,0,0) as plane normal
+  // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
+
+  float dp = dot(v0, v1);
+  float angle = atan2(dot(cross(v0, v1), vN), dp);
+  return angle;
+}
+
+static float
+getDraggedAngle(const glm::vec3& vN, const glm::vec3& p, const glm::vec3& l, const glm::vec3& l0, const glm::vec3& l1)
+{
+  // axis is represented by vN, and a point in plane p (the center of our circle)
+  // line l-l0 is the ray of the initial mouse click
+  // line l-l1 is the ray of the current mouse position
+  // project our drag pts into plane of circle, then find the angle between
+  // the two vectors
+  glm::vec3 p0 = linePlaneIsect(p, vN, l, l0);
+  glm::vec3 p1 = linePlaneIsect(p, vN, l, l1);
+  // if we can't intersect the planes properly, then we must be on-axis (plane perpendicular to view plane)
+  // and we must calculate angle another way (TODO)
+  if (p0 == p1) {
+    // find angle between (p,l0) and (p,l1)
+    // using as N, the view direction
+    glm::vec3 v0 = normalize(p - l0);
+    glm::vec3 v1 = normalize(p - l1);
+    float angle = getSignedAngle(v0, v1, vN);
+    return angle;
+  }
+
+  // get angle between (p,p0) and (p,p1)
+  glm::vec3 v0 = normalize(p - p0);
+  glm::vec3 v1 = normalize(p - p1);
+  float angle = getSignedAngle(v0, v1, vN);
+  return angle;
+}
+
 void
 RotateTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -91,60 +130,30 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     // Find the point closest to the active ring.
     // if tumbling, then we don't need it.
 
-    glm::vec3 motion(0);
+    glm::quat motion = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
     switch (m_activeCode) {
       case RotateTool::kRotateX: // constrained to rotate about world x axis
       {
         glm::vec3 vN = camFrame.vx; // glm::vec3(1, 0, 0);
-        // find mouse point in plane of circle
-        // plane of circle is p, (1,0,0)
-        glm::vec3 p0 = linePlaneIsect(p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(p, vN, l, l1);
-        // get angle between (p,p0) and (p,p1)
-        glm::vec3 v0 = normalize(p - p0);
-        glm::vec3 v1 = normalize(p - p1);
-        float dp = dot(v0, v1);
-        // get signed angle between the two vectors using (1,0,0) as plane normal
-        // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
-        float angle = atan2(dot(cross(v0, v1), vN), dp);
+        float angle = getDraggedAngle(camFrame.vx, p, l, l0, l1);
         LOG_DEBUG << "angle: " << angle;
-        motion = angle * vN;
+        motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateY: // constrained to rotate about world y axis
       {
         glm::vec3 vN = camFrame.vy; // glm::vec3(0, 1, 0);
-        // find mouse point in plane of circle
-        // plane of circle is p, (1,0,0)
-        glm::vec3 p0 = linePlaneIsect(p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(p, vN, l, l1);
-        // get angle between (p,p0) and (p,p1)
-        glm::vec3 v0 = normalize(p - p0);
-        glm::vec3 v1 = normalize(p - p1);
-        float dp = dot(v0, v1);
-        // get signed angle between the two vectors using (1,0,0) as plane normal
-        // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
-        float angle = atan2(dot(cross(v0, v1), vN), dp);
+        float angle = getDraggedAngle(camFrame.vy, p, l, l0, l1);
         LOG_DEBUG << "angle: " << angle;
-        motion = angle * vN;
+        motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateZ: // constrained to rotate about world z axis
       {
         glm::vec3 vN = camFrame.vz; // glm::vec3(0, 0, 1);
-        // find mouse point in plane of circle
-        // plane of circle is p, (1,0,0)
-        glm::vec3 p0 = linePlaneIsect(p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(p, vN, l, l1);
-        // get angle between (p,p0) and (p,p1)
-        glm::vec3 v0 = normalize(p - p0);
-        glm::vec3 v1 = normalize(p - p1);
-        float dp = dot(v0, v1);
-        // get signed angle between the two vectors using (1,0,0) as plane normal
-        // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
-        float angle = atan2(dot(cross(v0, v1), vN), dp);
+        float angle = getDraggedAngle(camFrame.vz, p, l, l0, l1);
         LOG_DEBUG << "angle: " << angle;
-        motion = angle * vN;
+        motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateView: // constrained to rotate about view direction
@@ -154,15 +163,25 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         glm::vec3 vN = normalize(p - l);
         glm::vec3 v0 = normalize(p - l0);
         glm::vec3 v1 = normalize(p - l1);
-        float dp = dot(v0, v1);
-        // get signed angle between the two vectors using (1,0,0) as plane normal
-        // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
-        float angle = atan2(dot(cross(v0, v1), vN), dp);
+        float angle = getSignedAngle(v0, v1, vN);
         LOG_DEBUG << "angle: " << angle;
-        motion = angle * vN;
+        motion = glm::angleAxis(angle, vN);
       } break;
       case RotateTool::kRotate: // general tumble rotation
         // use camera trackball algorithm
+        // scale pixels to radians of rotation (TODO)
+        float xRadians = -button.drag.x * dragScale;
+        float yRadians = -button.drag.y * dragScale;
+        float angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
+        glm::vec3 objectUpDirection = camFrame.vy * yRadians;
+        glm::vec3 objectSidewaysDirection = camFrame.vx * xRadians;
+
+        glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
+        glm::vec3 eye = l - p;
+        glm::vec3 axis = glm::normalize(glm::cross(moveDirection, eye));
+
+        motion = glm::angleAxis(angle, axis);
+
         break;
     }
 

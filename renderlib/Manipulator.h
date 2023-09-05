@@ -145,7 +145,7 @@ struct Origins
     scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
-  void rotate(SceneView& scene, glm::vec3 rotation)
+  void rotate(SceneView& scene, glm::quat rotation)
   {
     glm::vec3 p = m_origins[0].p;
 
@@ -153,11 +153,8 @@ struct Origins
     Light& l = scene.scene->m_lighting.m_Lights[1];
     glm::vec3 dir = p - scene.scene->m_boundingBox.GetCenter();
 
-    // now rotate dir by rotation
-    // turn motion euler angles into quaternion
-    glm::quat q = glm::quat(rotation);
     // transform dir by quaternion
-    dir = q * dir;
+    dir = rotation * dir;
 
     // now set distance, theta, phi from m_P and current m_Target
     l.m_Distance = glm::length(dir);

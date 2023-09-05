@@ -30,5 +30,5 @@ struct RotateTool : ManipulationTool
 
   // The current rotation of the objects to move.
   // We need to potentially access this across calls to action and draw
-  glm::vec3 m_rotation;
+  glm::quat m_rotation;
 };
