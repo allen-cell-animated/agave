@@ -803,7 +803,6 @@ agaveGui::openRecentFile()
       // assume that .obj is mesh
       openMesh(path);
     } else {
-      // assumption of ome.tif
       if (!open(path.toStdString())) {
         showOpenFailedMessageBox(path);
       }

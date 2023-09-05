@@ -29,7 +29,20 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   mSelectedLevel = 0;
   mScene = scene;
 
-  setWindowTitle(tr("Load Settings"));
+  std::string title;
+  QString pathString = QString::fromStdString(path);
+  QString extension = pathString.sliced(pathString.lastIndexOf("."));
+  if (pathString.indexOf("http") == 0) {
+    title = "URL Load Settings";
+  } else if (extension.indexOf(".zarr") == 0) {
+    title = "Directory Load Settings";
+  } else if (extension.indexOf(".json") == 0) {
+    title = "JSON Load Settings";
+  } else {
+    title = "File Load Settings";
+  }
+
+  setWindowTitle(tr((title).c_str()));
   setFocusPolicy(Qt::StrongFocus);
 
   // get standard QLabel font size
