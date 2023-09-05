@@ -265,37 +265,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::xAxis;
     if (m_activeCode == RotateTool::kRotateX) {
       color = glm::vec3(1, 1, 0);
-      // if we are rotating, draw a tick mark where the rotation started, and where we are now
-      // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
-      if (button.action == Gesture::Input::Action::kDrag) {
-        glm::vec3 vN = axis.l.vx;
-        float aperture = scene.camera.getHalfHorizontalAperture();
-        glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-        glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
-        // l is the camera position, the same "l" in the line parametric eq.
-        glm::vec3 l = scene.camera.m_From;
-        // l0 is the same "l0" as in the line parametric eq. as the direction of the
-        // ray extending into the screen from the position of the initial click.
-        // Let's call that "line 0"
-        glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
-
-        // l1 is same concept as l1 but for the current position of the drag.
-        // Let's call that "line 1"
-        glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
-
-        // find nearest point from click position to circle
-        glm::vec3 p0 = linePlaneIsect(axis.p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(axis.p, vN, l, l1);
-        // take line back to axis.p
-        glm::vec3 v0 = normalize(axis.p - p0);
-        glm::vec3 v1 = normalize(axis.p - p1);
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v0 * axisscale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v0 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v1 * axisscale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v1 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
-      }
     }
     gesture.drawCircle(axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code);
   }
@@ -305,37 +274,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::yAxis;
     if (m_activeCode == RotateTool::kRotateY) {
       color = glm::vec3(1, 1, 0);
-      // if we are rotating, draw a tick mark where the rotation started, and where we are now
-      // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
-      if (button.action == Gesture::Input::Action::kDrag) {
-        glm::vec3 vN = axis.l.vy;
-        float aperture = scene.camera.getHalfHorizontalAperture();
-        glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-        glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
-        // l is the camera position, the same "l" in the line parametric eq.
-        glm::vec3 l = scene.camera.m_From;
-        // l0 is the same "l0" as in the line parametric eq. as the direction of the
-        // ray extending into the screen from the position of the initial click.
-        // Let's call that "line 0"
-        glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
-
-        // l1 is same concept as l1 but for the current position of the drag.
-        // Let's call that "line 1"
-        glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
-
-        // find nearest point from click position to circle
-        glm::vec3 p0 = linePlaneIsect(axis.p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(axis.p, vN, l, l1);
-        // take line back to axis.p
-        glm::vec3 v0 = normalize(axis.p - p0);
-        glm::vec3 v1 = normalize(axis.p - p1);
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v0 * axisscale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v0 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v1 * axisscale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v1 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
-      }
     }
     gesture.drawCircle(axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code);
   }
@@ -347,35 +285,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
       color = glm::vec3(1, 1, 0);
       // if we are rotating, draw a tick mark where the rotation started, and where we are now
       // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
-      if (button.action == Gesture::Input::Action::kDrag) {
-        glm::vec3 vN = axis.l.vz;
-        float aperture = scene.camera.getHalfHorizontalAperture();
-        glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-        glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
-        // l is the camera position, the same "l" in the line parametric eq.
-        glm::vec3 l = scene.camera.m_From;
-        // l0 is the same "l0" as in the line parametric eq. as the direction of the
-        // ray extending into the screen from the position of the initial click.
-        // Let's call that "line 0"
-        glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
-
-        // l1 is same concept as l1 but for the current position of the drag.
-        // Let's call that "line 1"
-        glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
-
-        // find nearest point from click position to circle
-        glm::vec3 p0 = linePlaneIsect(axis.p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(axis.p, vN, l, l1);
-        // take line back to axis.p
-        glm::vec3 v0 = normalize(axis.p - p0);
-        glm::vec3 v1 = normalize(axis.p - p1);
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v0 * axisscale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v0 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v1 * axisscale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v1 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
-      }
     }
     gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
   }
@@ -386,39 +295,51 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::bright;
     if (m_activeCode == RotateTool::kRotateView) {
       color = glm::vec3(1, 1, 0);
-      // if we are rotating, draw a tick mark where the rotation started, and where we are now
-      // if we are rotating, draw a tick mark where the rotation started, and where we are now
-      // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
-      if (button.action == Gesture::Input::Action::kDrag) {
-        glm::vec3 vN = camFrame.vz;
-        float aperture = scene.camera.getHalfHorizontalAperture();
-        glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
-        glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
-        // l is the camera position, the same "l" in the line parametric eq.
-        glm::vec3 l = scene.camera.m_From;
-        // l0 is the same "l0" as in the line parametric eq. as the direction of the
-        // ray extending into the screen from the position of the initial click.
-        // Let's call that "line 0"
-        glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
-
-        // l1 is same concept as l1 but for the current position of the drag.
-        // Let's call that "line 1"
-        glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
-
-        // find nearest point from click position to circle
-        glm::vec3 p0 = linePlaneIsect(axis.p, vN, l, l0);
-        glm::vec3 p1 = linePlaneIsect(axis.p, vN, l, l1);
-        // take line back to axis.p
-        glm::vec3 v0 = normalize(axis.p - p0);
-        glm::vec3 v1 = normalize(axis.p - p1);
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v0 * scale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v0 * (scale * 1.1f), ManipColors::bright, 1, noCode));
-        gesture.graphics.addLine(
-          Gesture::Graphics::VertsCode(axis.p - v1 * scale, ManipColors::bright, 1, noCode),
-          Gesture::Graphics::VertsCode(axis.p - v1 * (scale * 1.1f), ManipColors::bright, 1, noCode));
-      }
     }
     gesture.drawCircle(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
+  }
+
+  // if we are rotating, draw a tick mark where the rotation started, and where we are now
+  if (button.action == Gesture::Input::Action::kDrag && m_activeCode > -1) {
+    float aperture = scene.camera.getHalfHorizontalAperture();
+    glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
+    glm::vec2 click1 = scene.viewport.toNDC(button.pressedPosition + button.drag) * aperture;
+    // l is the camera position, the same "l" in the line parametric eq.
+    glm::vec3 l = scene.camera.m_From;
+    // l0 is the same "l0" as in the line parametric eq. as the direction of the
+    // ray extending into the screen from the position of the initial click.
+    // Let's call that "line 0"
+    glm::vec3 l0 = normalize(xfmVector(camFrame, glm::vec3(click0.x, click0.y, -1.0)));
+
+    // l1 is same concept as l1 but for the current position of the drag.
+    // Let's call that "line 1"
+    glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
+
+    glm::vec3 color = glm::vec3(1, 1, 0);
+    // axis.p is the center of a circle in our plane;
+    // find the normal of our plane based on active code
+    glm::vec3 vN = glm::vec3(0, 0, 1);
+    if (m_activeCode == RotateTool::kRotateX) {
+      vN = axis.l.vx;
+    } else if (m_activeCode == RotateTool::kRotateY) {
+      vN = axis.l.vy;
+    } else if (m_activeCode == RotateTool::kRotateZ) {
+      vN = axis.l.vz;
+    } else if (m_activeCode == RotateTool::kRotateView) {
+      vN = camFrame.vz; // normalize(axis.p - l);
+    }
+
+    // find nearest point from click position to circle
+    glm::vec3 p0 = linePlaneIsect(axis.p, vN, l, l0);
+    glm::vec3 p1 = linePlaneIsect(axis.p, vN, l, l1);
+    // take line back to axis.p
+    glm::vec3 v0 = normalize(axis.p - p0);
+    glm::vec3 v1 = normalize(axis.p - p1);
+    gesture.graphics.addLine(
+      Gesture::Graphics::VertsCode(axis.p - v0 * axisscale, ManipColors::bright, 1, noCode),
+      Gesture::Graphics::VertsCode(axis.p - v0 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
+    gesture.graphics.addLine(
+      Gesture::Graphics::VertsCode(axis.p - v1 * axisscale, ManipColors::bright, 1, noCode),
+      Gesture::Graphics::VertsCode(axis.p - v1 * (axisscale * 1.1f), ManipColors::bright, 1, noCode));
   }
 }
