@@ -451,16 +451,11 @@ selectionRGB8ToCode(const uint8_t* rgba)
 bool
 Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input, const SceneView::Viewport& viewport)
 {
-  // Todo: the choice of pointer button should not be hardcoded here
-  const Input::Button& button = input.mbs[Gesture::Input::kButtonLeft];
-
-  int clickEnded = (button.action == Input::Action::kRelease);
-  int clickDrag = (button.action == Input::Action::kDrag);
-  int32_t buttonModifier = button.modifier;
-
   // If we are in mid-gesture, then we can continue to use the retained selection code.
   // if we never had anything to draw into the pick buffer, then we didn't pick anything.
-  if (clickEnded || clickDrag) {
+  // This is a slight oversimplification because it checks for any single-button release
+  // or drag: two-button drag gestures are not handled well.
+  if (input.clickEnded() || input.isDragging()) {
     return m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
   }
 
