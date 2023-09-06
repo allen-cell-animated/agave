@@ -39,6 +39,13 @@ Light::Update(const CBoundingBox& BoundingBox)
     m_AreaPdf = 1.0f / m_Area;
   }
 
+  // after target and p are set...
+  updateBasisFrame();
+}
+
+void
+Light::updateBasisFrame()
+{
   // Compute orthogonal basis frame
   m_N = glm::normalize(m_Target - m_P);
   // if N and "up" are parallel, then just choose a different "up"

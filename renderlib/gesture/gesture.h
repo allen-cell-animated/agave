@@ -123,6 +123,11 @@ struct Gesture
     {
       return mbs[id].action != kNone && (mods == 0 || ((mbs[id].modifier & mods) > 0));
     }
+    bool isDragging()
+    {
+      return mbs[kButtonLeft].action == kDrag || mbs[kButtonRight].action == kDrag ||
+             mbs[kButtonMiddle].action == kDrag;
+    }
 
     // Reset is typically executed by the command or tool that consumes the button release action.
     static void reset(Button& button)

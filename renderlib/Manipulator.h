@@ -105,8 +105,16 @@ private:
   std::string m_identifier;
 };
 
-// currently jsut area light but should be tuned to find
-// selected objects in scene and use an average of their centers
+// currently this code is specific to area light but should be tuned to find
+// selected objects in scene and use an average of their centers.
+//
+// TODO create a generic SceneObject class that supports rotation/translation
+// and Origins holds a collection/group of them.  We need to consider whether we
+// are truly rotating the object or in the case of the light source doing some
+// custom version of a rotation (keeping the area light looking toward a fixed target).
+//
+// We still need to support the temporary rotation/translation and then
+// the idea of committing the transform when the user releases the mouse.
 struct Origins
 {
   enum OriginFlags
@@ -156,13 +164,18 @@ struct Origins
     // transform dir by quaternion
     dir = rotation * dir;
 
-    // now set distance, theta, phi from m_P and current m_Target
-    l.m_Distance = glm::length(dir);
-    l.m_Phi = glm::acos(dir.y / l.m_Distance);
-    l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
+    // // now set distance, theta, phi from m_P and current m_Target
+    // l.m_Distance = glm::length(dir);
+    // l.m_Phi = glm::acos(dir.y / l.m_Distance);
+    // l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
 
-    l.Update(scene.scene->m_boundingBox);
-    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+    // l.Update(scene.scene->m_boundingBox);
+
+    // change m_P and m_Target, then update basis U,V,N
+    l.m_Target = l.m_P + dir;
+    l.updateBasisFrame();
+
+    //    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
   std::vector<AffineSpace3f> m_origins;
