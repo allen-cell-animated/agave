@@ -181,8 +181,6 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         break;
     }
 
-    LOG_DEBUG << "angle: " << glm::angle(motion);
-
     // The variable motion is a world space vector of how much we moved the
     // manipulator. Here we execute the action of applying motion to
     // whatever is that we are moving...
