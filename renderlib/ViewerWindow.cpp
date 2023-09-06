@@ -16,8 +16,8 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // TEST create a tool and activate it
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
-  m_activeTool = new RotateTool();
-  m_tools.push_back(new AreaLightTool());
+  // m_activeTool = new RotateTool();
+  // m_tools.push_back(new AreaLightTool());
 }
 
 ViewerWindow::~ViewerWindow()

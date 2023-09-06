@@ -269,16 +269,23 @@ struct Gesture
         }
 
         destroy();
-        return create(resolution, samples);
+        bool ok = create(resolution, samples);
+        if (ok) {
+          clear();
+        }
+        return ok;
       }
       void destroy();
       bool create(glm::ivec2 resolution, int samples = 0);
+      virtual void clear(){};
     };
 
     struct SelectionBuffer : RenderBuffer
     {
       // 1 bit is reserved for component flags.
       static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
+
+      virtual void clear();
     };
 
     // Gesture draw

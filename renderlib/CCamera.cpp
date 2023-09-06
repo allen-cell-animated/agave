@@ -75,7 +75,6 @@ cameraTrack(glm::vec2 drag, CCamera& camera, const glm::vec2 viewportSize)
   glm::vec3 y = glm::normalize(glm::cross(x, v));
   glm::vec3 track = x * drag.x + y * drag.y;
 
-  LOG_DEBUG << "Track " << glm::to_string(track);
   return track;
 }
 

@@ -429,6 +429,32 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
   return status;
 }
 
+void
+Gesture::Graphics::SelectionBuffer::clear()
+{
+  // Backup
+  GLenum last_framebuffer;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint*)&last_framebuffer);
+  GLfloat last_clear_color[4];
+  glGetFloatv(GL_COLOR_CLEAR_VALUE, last_clear_color);
+
+  // Render to texture
+  glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+  {
+    glViewport(0, 0, resolution.x, resolution.y);
+    uint32_t clearcode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+    glClearColor(((clearcode >> 0) & 0xFF) / 255.0,
+                 ((clearcode >> 8) & 0xFF) / 255.0,
+                 ((clearcode >> 16) & 0xFF) / 255.0,
+                 ((clearcode >> 24) & 0xFF) / 255.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
+
+  // Restore
+  glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
+  glClearColor(last_clear_color[0], last_clear_color[1], last_clear_color[2], last_clear_color[3]);
+}
+
 SceneView::Viewport::Region
 SceneView::Viewport::Region::intersect(const SceneView::Viewport::Region& a, const SceneView::Viewport::Region& b)
 {
