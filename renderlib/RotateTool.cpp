@@ -346,8 +346,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
         // take line back to axis.p
         glm::vec3 v0 = normalize(axis.p - p0);
         glm::vec3 v1 = normalize(axis.p - p1);
-        // TODO could I just have used the current rotation angle to get one of the vectors?
-        // TODO if rotation is nearly sideways then the tickmarks would be mostly invisible
         gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - v0 * radius, color, 1, noCode),
                                  Gesture::Graphics::VertsCode(axis.p - v0 * (radius * 1.15f), color, 1, noCode));
         gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - v1 * radius, color, 1, noCode),
