@@ -164,6 +164,11 @@ struct Origins
     // transform dir by quaternion
     dir = rotation * dir;
 
+    // TODO
+    // The following code is hacked in and will be completely factored out.
+    // It's only here to give something for the manipulator to do.
+    // The final light manipulation behavior will come in a separate code change.
+
     // // now set distance, theta, phi from m_P and current m_Target
     // l.m_Distance = glm::length(dir);
     // l.m_Phi = glm::acos(dir.y / l.m_Distance);

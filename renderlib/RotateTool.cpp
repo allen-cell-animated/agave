@@ -8,6 +8,8 @@ struct ManipColors
   static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
+static const float s_orthogonalThreshold = cos(glm::radians(89.0f));
+
 static float
 getSignedAngle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& vN)
 {
@@ -23,8 +25,7 @@ static float
 getDraggedAngle(const glm::vec3& vN, const glm::vec3& p, const glm::vec3& l, const glm::vec3& l0, const glm::vec3& l1)
 {
   glm::vec3 globalAxis = normalize(p - l);
-  static const float orthogonalThreshold = cos(glm::radians(89.0f));
-  bool axisIsOrthogonal = abs(dot(globalAxis, vN)) < orthogonalThreshold;
+  bool axisIsOrthogonal = abs(dot(globalAxis, vN)) < s_orthogonalThreshold;
 
   // axis is represented by vN, and a point in plane p (the center of our circle)
   // line l-l0 is the ray of the initial mouse click
@@ -336,26 +337,33 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
       // find nearest point from click position to circle
       glm::vec3 p0 = linePlaneIsect(axis.p, vN, l, l0);
       glm::vec3 p1 = linePlaneIsect(axis.p, vN, l, l1);
-      // take line back to axis.p
-      glm::vec3 v0 = normalize(axis.p - p0);
-      glm::vec3 v1 = normalize(axis.p - p1);
-      // TODO could I just have used the current rotation angle to get one of the vectors?
-      // TODO if rotation is nearly sideways then the tickmarks would be mostly invisible
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - v0 * radius, color, 1, noCode),
-                               Gesture::Graphics::VertsCode(axis.p - v0 * (radius * 1.15f), color, 1, noCode));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - v1 * radius, color, 1, noCode),
-                               Gesture::Graphics::VertsCode(axis.p - v1 * (radius * 1.15f), color, 1, noCode));
-      // draw arc showing the rotation
-      // start pt, angle, normal
-      float a = getSignedAngle(v0, v1, vN);
-      gesture.drawArc(axis.p - v0 * (radius * 1.1f),
-                      a,
-                      axis.p,
-                      vN,
-                      (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
-                      color,
-                      0.5,
-                      noCode);
+
+      glm::vec3 globalAxis = normalize(axis.p - l);
+      bool axisIsOrthogonal = abs(dot(globalAxis, vN)) < s_orthogonalThreshold;
+      // need to come up with something different for orthogonal axis
+      if (p0 != p1 && !axisIsOrthogonal) {
+
+        // take line back to axis.p
+        glm::vec3 v0 = normalize(axis.p - p0);
+        glm::vec3 v1 = normalize(axis.p - p1);
+        // TODO could I just have used the current rotation angle to get one of the vectors?
+        // TODO if rotation is nearly sideways then the tickmarks would be mostly invisible
+        gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - v0 * radius, color, 1, noCode),
+                                 Gesture::Graphics::VertsCode(axis.p - v0 * (radius * 1.15f), color, 1, noCode));
+        gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - v1 * radius, color, 1, noCode),
+                                 Gesture::Graphics::VertsCode(axis.p - v1 * (radius * 1.15f), color, 1, noCode));
+        // draw arc showing the rotation
+        // start pt, angle, normal
+        float a = getSignedAngle(v0, v1, vN);
+        gesture.drawArc(axis.p - v0 * (radius * 1.1f),
+                        a,
+                        axis.p,
+                        vN,
+                        (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
+                        color,
+                        0.5,
+                        noCode);
+      }
     }
   }
 }
