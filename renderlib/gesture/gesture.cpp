@@ -580,6 +580,34 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
 }
 
 void
+Gesture::drawArc(const glm::vec3& pstart,
+                 float angle,
+                 const glm::vec3& center,
+                 const glm::vec3& normal,
+                 uint32_t numSegments,
+                 glm::vec3 color,
+                 float opacity,
+                 uint32_t code)
+{
+  // draw arc from pstart through angle with center of circle at center
+  glm::vec3 xaxis = pstart - center;
+  glm::vec3 yaxis = glm::cross(normal, xaxis);
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * angle; // 2.0f * glm::pi<float>();
+    float theta1 = t1 * angle; // 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                     Gesture::Graphics::VertsCode(p1, color, opacity, code));
+  }
+}
+
+void
 Gesture::drawCircle(glm::vec3 center,
                     glm::vec3 xaxis,
                     glm::vec3 yaxis,

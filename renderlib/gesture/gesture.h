@@ -407,6 +407,15 @@ struct Gesture
   };
   Graphics graphics;
 
+  void drawArc(const glm::vec3& pstart,
+               float angle,
+               const glm::vec3& center,
+               const glm::vec3& normal,
+               uint32_t numSegments,
+               glm::vec3 color,
+               float opacity,
+               uint32_t code);
+
   void drawCircle(glm::vec3 center,
                   glm::vec3 xaxis,
                   glm::vec3 yaxis,
