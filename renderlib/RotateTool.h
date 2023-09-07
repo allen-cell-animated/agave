@@ -18,7 +18,6 @@ struct RotateTool : ManipulationTool
 
   RotateTool()
     : ManipulationTool(kLast)
-    , m_angle(0.0f)
   {
   }
 
@@ -28,9 +27,6 @@ struct RotateTool : ManipulationTool
   // Some data structure to store the initial state of the objects
   // to move.
   Origins origins;
-
-  // the current signed angle of rotation during drag
-  float m_angle;
 
   // The current rotation of the objects to move.
   // We need to potentially access this across calls to action and draw

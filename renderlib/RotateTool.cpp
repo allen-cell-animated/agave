@@ -79,7 +79,6 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
   if (button.action == Gesture::Input::Action::kPress) {
     origins.update(scene);
     m_rotation = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
-    m_angle = 0;
   }
   if (button.action == Gesture::Input::Action::kDrag) {
     // If we have not initialized objects position when the gesture began,
@@ -142,27 +141,28 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     // Find the point closest to the active ring.
     // if tumbling, then we don't need it.
 
+    float angle = 0.0f;
     glm::quat motion = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
     switch (m_activeCode) {
       case RotateTool::kRotateX: // constrained to rotate about world x axis
       {
         glm::vec3 vN = camFrame.vx; // glm::vec3(1, 0, 0);
-        m_angle = getDraggedAngle(camFrame.vx, p, l, l0, l1);
-        motion = glm::angleAxis(m_angle, vN);
+        angle = getDraggedAngle(camFrame.vx, p, l, l0, l1);
+        motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateY: // constrained to rotate about world y axis
       {
         glm::vec3 vN = camFrame.vy; // glm::vec3(0, 1, 0);
-        m_angle = getDraggedAngle(camFrame.vy, p, l, l0, l1);
-        motion = glm::angleAxis(m_angle, vN);
+        angle = getDraggedAngle(camFrame.vy, p, l, l0, l1);
+        motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateZ: // constrained to rotate about world z axis
       {
         glm::vec3 vN = camFrame.vz; // glm::vec3(0, 0, 1);
-        m_angle = getDraggedAngle(camFrame.vz, p, l, l0, l1);
-        motion = glm::angleAxis(m_angle, vN);
+        angle = getDraggedAngle(camFrame.vz, p, l, l0, l1);
+        motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateView: // constrained to rotate about view direction
@@ -172,15 +172,15 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         glm::vec3 vN = normalize(p - l);
         glm::vec3 v0 = normalize(p - l0);
         glm::vec3 v1 = normalize(p - l1);
-        m_angle = getSignedAngle(v0, v1, vN);
-        motion = glm::angleAxis(m_angle, vN);
+        angle = getSignedAngle(v0, v1, vN);
+        motion = glm::angleAxis(angle, vN);
       } break;
       case RotateTool::kRotate: // general tumble rotation
         // use camera trackball algorithm
         // scale pixels to radians of rotation (TODO)
         float xRadians = -button.drag.x * dragScale * glm::two_pi<float>();
         float yRadians = -button.drag.y * dragScale * glm::two_pi<float>();
-        m_angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
+        angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
         glm::vec3 objectUpDirection = camFrame.vy * yRadians;
         glm::vec3 objectSidewaysDirection = camFrame.vx * xRadians;
 
@@ -188,7 +188,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         glm::vec3 eye = l - p;
         glm::vec3 axis = glm::normalize(glm::cross(moveDirection, eye));
 
-        motion = glm::angleAxis(m_angle, axis);
+        motion = glm::angleAxis(angle, axis);
 
         break;
     }
@@ -212,7 +212,6 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     gesture.input.reset(Gesture::Input::kButtonLeft);
     origins.clear();
     m_rotation = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
-    m_angle = 0;
   }
 }
 
@@ -361,7 +360,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                       a,
                       axis.p,
                       vN,
-                      (int)(96.0 * abs(m_angle) / (glm::two_pi<float>()) + 0.5),
+                      (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
                       color,
                       0.5,
                       noCode);
