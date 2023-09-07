@@ -36,19 +36,11 @@ getDraggedAngle(const glm::vec3& vN, const glm::vec3& p, const glm::vec3& l, con
   // if we can't intersect the planes properly, then we must be on-axis (plane perpendicular to view plane)
   // and we must calculate angle another way (TODO)
   if (p0 == p1 || axisIsOrthogonal) {
-    // find angle between (p,l0) and (p,l1)
-    // using as N, the view direction
-    // glm::vec3 v0 = normalize(p - l0);
-    // glm::vec3 v1 = normalize(p - l1);
-    // float angle = getSignedAngle(v0, v1, vN);
-    // return angle;
-
     // we want a linear measure of the amount of drag along the line of the ring
     glm::vec3 projectionAxis = cross(vN, globalAxis);
     glm::vec3 delta = l1 - l0;
     float projection = dot(delta, projectionAxis);
-    LOG_DEBUG << "on-axis rotation " << projection;
-    return projection;
+    return projection * glm::two_pi<float>();
   }
 
   // get angle between (p,p0) and (p,p1)
