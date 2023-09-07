@@ -178,8 +178,8 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
       case RotateTool::kRotate: // general tumble rotation
         // use camera trackball algorithm
         // scale pixels to radians of rotation (TODO)
-        float xRadians = -button.drag.x * dragScale;
-        float yRadians = -button.drag.y * dragScale;
+        float xRadians = -button.drag.x * dragScale * glm::two_pi<float>();
+        float yRadians = -button.drag.y * dragScale * glm::two_pi<float>();
         m_angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
         glm::vec3 objectUpDirection = camFrame.vy * yRadians;
         glm::vec3 objectSidewaysDirection = camFrame.vx * xRadians;
