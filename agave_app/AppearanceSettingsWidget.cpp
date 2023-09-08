@@ -384,28 +384,12 @@ std::map<std::string, std::vector<ColorControlPoint>> builtInGradients = { { "no
                                                                                                     "#0a675f",
                                                                                                     "#0a675f" }) } };
 
-#if 0
-class ComboDelegate : public QItemDelegate
-{
-public:
-  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
-  {
-    QStyleOptionViewItem newOption(option);
-    newOption.palette.setBrush(QPalette::Base, index.data(Qt::BackgroundRole).value<QBrush>());
-
-    painter->fillRect(option.rect, index.data(Qt::BackgroundRole).value<QBrush>());
-    // QItemDelegate::paint(painter, newOption, index);
-  }
-};
-#endif
-
 class GradientCombo : public QComboBox
 {
 public:
   GradientCombo(QWidget* parent = nullptr)
     : QComboBox(parent)
   {
-    // setItemDelegate(new ComboDelegate());
   }
 
   void paintEvent(QPaintEvent* e)
@@ -415,7 +399,11 @@ public:
     QPainter painter(this);
     painter.setPen(Qt::black);
     painter.setBrush(itemData(currentIndex(), Qt::BackgroundRole).value<QBrush>());
-    painter.drawRect(rect().adjusted(0, 0, -1, -1));
+    QStyleOptionComboBox option;
+    option.rect = rect();
+    QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
+
+    painter.drawRect(r.adjusted(0, 0, -1, -1));
   }
 };
 
@@ -423,13 +411,11 @@ QComboBox*
 makeGradientCombo()
 {
   QComboBox* cb = new GradientCombo();
-  // cb->setItemDelegate(new ComboDelegate());
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
   for (auto& gspec : builtInGradients) {
     QLinearGradient gradient;
     gradient.setStops(colormapToGradient(gspec.second));
-
     gradient.setStart(0., 0.);     // top left
     gradient.setFinalStop(1., 0.); // bottom right
     gradient.setCoordinateMode(QGradient::ObjectMode);
