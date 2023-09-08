@@ -33,3 +33,11 @@ AffineSpace3f::inverse() const
   glm::vec3 ip = -xfmVector(il, p);
   return AffineSpace3f(il, ip);
 }
+
+AffineSpace3f::AffineSpace3f(const glm::quat& orientation, const glm::vec3& p)
+  : p(p)
+{
+  // convert quat to linspace:
+  glm::mat3 m = glm::mat3_cast(orientation);
+  l = LinearSpace3f(m[0], m[1], m[2]);
+}

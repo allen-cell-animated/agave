@@ -44,30 +44,32 @@ public:
     , p()
   {
   }
-  AffineSpace3f(struct LinearSpace3f l, glm::vec3 p)
+  AffineSpace3f(struct LinearSpace3f l, const glm::vec3& p)
     : l(l)
     , p(p)
   {
   }
+  AffineSpace3f(const glm::quat& orientation, const glm::vec3& p);
+
   AffineSpace3f inverse() const;
 };
 
 inline glm::vec3
-xfmVector(const struct LinearSpace3f& xfm, glm::vec3 p)
+xfmVector(const struct LinearSpace3f& xfm, const glm::vec3& p)
 {
   return xfm.vx * p.x + xfm.vy * p.y + xfm.vz * p.z;
 }
 
 // transforming as a point is different than as a vector
 inline glm::vec3
-xfmPoint(const struct AffineSpace3f& xfm, glm::vec3 p)
+xfmPoint(const struct AffineSpace3f& xfm, const glm::vec3& p)
 {
   return xfmVector(xfm.l, p) + xfm.p;
 }
 
 // transforming as a vector (spatial direction) can ignore the affine p component
 inline glm::vec3
-xfmVector(const struct AffineSpace3f& xfm, glm::vec3 p)
+xfmVector(const struct AffineSpace3f& xfm, const glm::vec3& p)
 {
   return xfmVector(xfm.l, p);
 }
