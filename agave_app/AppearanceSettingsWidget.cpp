@@ -399,10 +399,30 @@ public:
 };
 #endif
 
+class GradientCombo : public QComboBox
+{
+public:
+  GradientCombo(QWidget* parent = nullptr)
+    : QComboBox(parent)
+  {
+    // setItemDelegate(new ComboDelegate());
+  }
+
+  void paintEvent(QPaintEvent* e)
+  {
+    QComboBox::paintEvent(e);
+
+    QPainter painter(this);
+    painter.setPen(Qt::black);
+    painter.setBrush(itemData(currentIndex(), Qt::BackgroundRole).value<QBrush>());
+    painter.drawRect(rect().adjusted(0, 0, -1, -1));
+  }
+};
+
 QComboBox*
 makeGradientCombo()
 {
-  QComboBox* cb = new QComboBox();
+  QComboBox* cb = new GradientCombo();
   // cb->setItemDelegate(new ComboDelegate());
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
@@ -1267,13 +1287,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       LOG_DEBUG << "Selected gradient " << index << " for channel " << i;
-      // QPalette p = gradients->palette();
-      // p.setBrush(QPalette::Button, gradients->itemData(index, Qt::BackgroundRole).value<QBrush>());
-      // gradients->setPalette(p);
-      // p = gradients->view()->palette();
-      // p.setBrush(QPalette::Button, gradients->itemData(index, Qt::BackgroundRole).value<QBrush>());
-      // gradients->view()->setPalette(p);
-
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
       auto colormap = builtInGradients[name];
