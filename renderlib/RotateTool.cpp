@@ -13,7 +13,7 @@ static const float s_orthogonalThreshold = cos(glm::radians(89.0f));
 static float
 getSignedAngle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& vN)
 {
-  // get signed angle between the two vectors using (1,0,0) as plane normal
+  // get signed angle between the two vectors using vN as plane normal
   // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
 
   float dp = dot(v0, v1);
