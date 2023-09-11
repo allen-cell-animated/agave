@@ -35,7 +35,7 @@ getDraggedAngle(const glm::vec3& vN, const glm::vec3& p, const glm::vec3& l, con
   glm::vec3 p0 = linePlaneIsect(p, vN, l, l0);
   glm::vec3 p1 = linePlaneIsect(p, vN, l, l1);
   // if we can't intersect the planes properly, then we must be on-axis (plane perpendicular to view plane)
-  // and we must calculate angle another way (TODO)
+  // and we must calculate angle another way
   if (p0 == p1 || axisIsOrthogonal) {
     // we want a linear measure of the amount of drag along the line of the ring
     glm::vec3 projectionAxis = cross(vN, globalAxis);
