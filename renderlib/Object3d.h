@@ -19,3 +19,14 @@ public:
   glm::quat m_rotation;
   // no scaling yet
 };
+
+class SceneObject
+{
+public:
+  virtual ~SceneObject() {}
+
+  // by default do nothing and assume object will read from m_transform...?
+  virtual void updateTransform() {}
+
+  Transform3d m_transform;
+};

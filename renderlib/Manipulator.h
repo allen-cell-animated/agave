@@ -128,62 +128,45 @@ struct Origins
   void update(SceneView& scene)
   {
     if (scene.scene) {
+
       // e.g. find all selected objects in scene and collect up their centers/transforms here.
-      const Light& lt = scene.scene->m_lighting.m_Lights[1];
+      SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
 
       // TODO could use the linearspace of the light (m_N, m_U, m_V)
-      m_origins = { AffineSpace3f(LinearSpace3f(), lt.m_P) };
+      // save the initial transform? we could use this to reset things if cancelled.
+      lt.m_transform.m_center = lt.m_light->m_Target;
+      m_origins = { lt.m_transform };
     }
   }
-  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault) { return m_origins[0]; }
+  AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault)
+  {
+    return m_origins[0].getAffineSpace();
+  }
 
   void translate(SceneView& scene, glm::vec3 motion)
   {
-    glm::vec3 p = m_origins[0].p + motion;
+    glm::vec3 p = m_origins[0].m_center + motion;
 
-    // get light 1
-    Light& l = scene.scene->m_lighting.m_Lights[1];
-    glm::vec3 dir = p - scene.scene->m_boundingBox.GetCenter();
-    // now set distance, theta, phi from m_P and current m_Target
-    l.m_Distance = glm::length(dir);
-    l.m_Phi = glm::acos(dir.y / l.m_Distance);
-    l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
+    SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
+    lt.m_transform.m_center = p;
 
-    l.Update(scene.scene->m_boundingBox);
+    lt.Update();
     scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
   void rotate(SceneView& scene, glm::quat rotation)
   {
-    glm::vec3 p = m_origins[0].p;
-
-    // get light 1
-    Light& l = scene.scene->m_lighting.m_Lights[1];
-    glm::vec3 dir = p - scene.scene->m_boundingBox.GetCenter();
-
     // transform dir by quaternion
-    dir = rotation * dir;
+    glm::quat q = rotation * m_origins[0].m_rotation;
 
-    // TODO
-    // The following code is hacked in and will be completely factored out.
-    // It's only here to give something for the manipulator to do.
-    // The final light manipulation behavior will come in a separate code change.
+    SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
+    lt.m_transform.m_rotation = q;
 
-    // // now set distance, theta, phi from m_P and current m_Target
-    // l.m_Distance = glm::length(dir);
-    // l.m_Phi = glm::acos(dir.y / l.m_Distance);
-    // l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
-
-    // l.Update(scene.scene->m_boundingBox);
-
-    // change m_P and m_Target, then update basis U,V,N
-    l.m_Target = l.m_P + dir;
-    l.updateBasisFrame();
-
-    //    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+    lt.Update();
+    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
-  std::vector<AffineSpace3f> m_origins;
+  std::vector<Transform3d> m_origins;
 };
 
 struct MoveTool : ManipulationTool

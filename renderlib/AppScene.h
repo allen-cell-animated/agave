@@ -5,6 +5,7 @@
 #include "DenoiseParams.h"
 #include "GradientData.h"
 #include "Light.h"
+#include "Object3d.h"
 #include "Timeline.h"
 #include "glm.h"
 
@@ -36,6 +37,14 @@ struct VolumeDisplay
   GradientData m_gradientData[MAX_CPU_CHANNELS];
 };
 
+// MUST NOT OUTLIVE ITS LIGHT
+class SceneLight : public SceneObject
+{
+public:
+  void Update();
+  Light* m_light;
+};
+
 #define MAX_NO_LIGHTS 4
 class Lighting
 {
@@ -49,6 +58,7 @@ public:
   {
     for (int i = 0; i < MAX_NO_LIGHTS; i++) {
       m_Lights[i] = Other.m_Lights[i];
+      m_sceneLights[i].m_light = &m_Lights[i];
     }
 
     m_NoLights = Other.m_NoLights;
@@ -62,6 +72,7 @@ public:
       return;
 
     m_Lights[m_NoLights] = Light;
+    m_sceneLights[m_NoLights].m_light = &m_Lights[m_NoLights];
 
     m_NoLights = m_NoLights + 1;
   }
@@ -74,6 +85,7 @@ public:
 
   Light m_Lights[MAX_NO_LIGHTS];
   int m_NoLights;
+  SceneLight m_sceneLights[MAX_NO_LIGHTS];
 };
 
 class Scene

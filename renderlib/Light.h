@@ -4,6 +4,8 @@
 #include "Defines.h"
 #include "MathUtil.h"
 
+// this should map to the bundle of gpu parameters
+// passed to the shader for our lights
 class Light
 {
 public:
@@ -36,6 +38,7 @@ public:
   float m_ColorTopIntensity;
   float m_ColorMiddleIntensity;
   float m_ColorBottomIntensity;
+  // 0 for area light, 1 for sky light
   int m_T;
 
   Light(void)

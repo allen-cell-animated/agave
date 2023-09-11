@@ -149,3 +149,17 @@ Scene::getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32
   c2 = ch[2];
   c3 = ch[3];
 }
+
+void
+SceneLight::Update()
+{
+  // update from transform position and rotation.
+
+  // let's treat the position as the TARGET of the light
+  // and rotation will be the DIRECTION of the light
+
+  glm::vec3 dir = m_light->m_Target - m_light->m_P;
+  dir = m_transform.m_rotation * dir;
+  m_light->m_P = m_light->m_Target - dir;
+  m_light->updateBasisFrame();
+}
