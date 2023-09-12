@@ -132,10 +132,12 @@ struct Origins
       // e.g. find all selected objects in scene and collect up their centers/transforms here.
       SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
 
-      // TODO could use the linearspace of the light (m_N, m_U, m_V)
       // save the initial transform? we could use this to reset things if cancelled.
-      lt.m_transform.m_center = lt.m_light->m_Target;
+
+      // this is a copy!!!
       m_origins = { lt.m_transform };
+      // we want the rotate manipulator to be centered at the target of the light
+      m_origins[0].m_center = lt.m_light->m_Target;
     }
   }
   AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault)
@@ -156,13 +158,15 @@ struct Origins
 
   void rotate(SceneView& scene, glm::quat rotation)
   {
-    // transform dir by quaternion
+    // apply the rotation to the scene's selection
+    // but do not bake it in yet?
     glm::quat q = rotation * m_origins[0].m_rotation;
 
     SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
-    lt.m_transform.m_rotation = q;
 
+    lt.m_transform.m_rotation = q;
     lt.Update();
+
     scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 

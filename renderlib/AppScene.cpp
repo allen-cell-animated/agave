@@ -159,7 +159,11 @@ SceneLight::Update()
   // and rotation will be the DIRECTION of the light
 
   glm::vec3 dir = m_light->m_Target - m_light->m_P;
-  dir = m_transform.m_rotation * dir;
-  m_light->m_P = m_light->m_Target - dir;
+  // rotate direction by the opposite rotation
+  glm::vec3 newdir = m_transform.m_rotation * dir;
+  m_light->m_P = m_light->m_Target - newdir;
   m_light->updateBasisFrame();
+
+  // // reset!
+  // m_transform.m_rotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
 }
