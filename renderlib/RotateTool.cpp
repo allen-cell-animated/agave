@@ -284,8 +284,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::zAxis;
     if (m_activeCode == RotateTool::kRotateZ) {
       color = glm::vec3(1, 1, 0);
-      // if we are rotating, draw a tick mark where the rotation started, and where we are now
-      // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     }
     gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
   }
