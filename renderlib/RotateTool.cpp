@@ -254,7 +254,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                      opacity,
                      code);
   }
-  static constexpr uint32_t noCode = -1;
+  static constexpr uint32_t noCode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
   Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
 
   gesture.graphics.addCommand(GL_LINES);
