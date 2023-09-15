@@ -19,12 +19,13 @@ Light::Update(const CBoundingBox& BoundingBox)
 
   m_P += m_Target;
 
-  // Determine area
+  // Determine area for area light
   if (m_T == 0) {
     m_Area = m_Width * m_Height;
     m_AreaPdf = 1.0f / m_Area;
   }
 
+  // Determine area for sky light
   if (m_T == 1) {
     m_P = bbctr;
     // shift by nonzero amount

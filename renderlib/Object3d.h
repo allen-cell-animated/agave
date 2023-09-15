@@ -6,7 +6,11 @@
 class Transform3d
 {
 public:
-  Transform3d() {}
+  Transform3d()
+  {
+    m_rotation = glm::angleAxis(0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    m_center = glm::vec3(0, 0, 0);
+  }
   virtual ~Transform3d() {}
 
   AffineSpace3f getAffineSpace() const { return AffineSpace3f(m_rotation, m_center); }
