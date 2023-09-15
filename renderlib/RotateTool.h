@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Manipulator.h"
+#include "Origins.h"
 
 struct RotateTool : ManipulationTool
 {
