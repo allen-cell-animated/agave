@@ -5,14 +5,6 @@
 // TODO apply devicePixelRatio to this
 float ManipulationTool::s_manipulatorSize = 500.0f;
 
-struct ManipColors
-{
-  static constexpr glm::vec3 xAxis = { 1.0f, 0.0f, 0.0f };
-  static constexpr glm::vec3 yAxis = { 0.0f, 1.0f, 0.0f };
-  static constexpr glm::vec3 zAxis = { 0.0f, 0.0f, 1.0f };
-  static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
-};
-
 void
 AreaLightTool::action(SceneView& scene, Gesture& gesture)
 {
