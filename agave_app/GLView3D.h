@@ -4,12 +4,13 @@
 
 #include "glad/glad.h"
 
-#include "CameraController.h"
 #include "glm.h"
 #include "renderlib/CCamera.h"
+#include "renderlib/ViewerWindow.h"
+#include "renderlib/gesture/gesture.h"
 
-#include <QElapsedTimer>
 #include <QOpenGLWidget>
+#include <QTimer>
 
 class CStatus;
 class ImageXYZC;
@@ -43,18 +44,7 @@ public:
   /// Destructor.
   ~GLView3D();
 
-  /**
-   * Get window minimum size hint.
-   *
-   * @returns the size hint.
-   */
   QSize minimumSizeHint() const;
-
-  /**
-   * Get window size hint.
-   *
-   * @returns the size hint.
-   */
   QSize sizeHint() const;
 
   void initCameraFromImage(Scene* scene);
@@ -62,7 +52,7 @@ public:
 
   void onNewImage(Scene* scene);
 
-  const CCamera& getCamera() { return m_CCamera; }
+  const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
 
   void fromViewerState(const Serialize::ViewerState& s);
 
@@ -70,7 +60,7 @@ public:
   QImage captureQimage();
 
   // DANGER this must NOT outlive the GLView3D
-  IRenderWindow* borrowRenderer() { return m_renderer.get(); }
+  IRenderWindow* borrowRenderer() { return m_viewerWindow->m_renderer.get(); }
 
   void pauseRenderLoop();
   void restartRenderLoop();
@@ -97,48 +87,20 @@ protected:
   /// Render the scene with the current view settings.
   void paintGL();
 
-  /**
-   * Handle mouse button press events.
-   *
-   * Action depends upon the mouse behaviour mode.
-   *
-   * @param event the event to handle.
-   */
+  void keyPressEvent(QKeyEvent* event);
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
-
-  /**
-   * Handle mouse button movement events.
-   *
-   * Action depends upon the mouse behaviour mode.
-   *
-   * @param event the event to handle.
-   */
   void mouseMoveEvent(QMouseEvent* event);
-
-  /**
-   * Handle timer events.
-   *
-   * Used to update scene properties and trigger a render pass.
-   *
-   * @param event the event to handle.
-   */
-  void timerEvent(QTimerEvent* event);
+  void wheelEvent(QWheelEvent* event);
 
 private:
-  CCamera m_CCamera;
-  CameraController m_cameraController;
+  void FitToScene();
+
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.
-  QElapsedTimer m_etimer;
+  QTimer* m_etimer;
 
-  /// Last mouse position.
-  QPoint m_lastPos;
-
-  RenderSettings* m_renderSettings;
-
-  std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
+  ViewerWindow* m_viewerWindow;
 };

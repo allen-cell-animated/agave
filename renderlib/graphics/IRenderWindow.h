@@ -16,10 +16,11 @@ public:
   IRenderWindow();
   virtual ~IRenderWindow();
 
-  virtual void initialize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f) = 0;
+  virtual void initialize(uint32_t w, uint32_t h) = 0;
   virtual void render(const CCamera& camera) = 0;
   virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo) = 0;
-  virtual void resize(uint32_t w, uint32_t h, float devicePixelRatio = 1.0f) = 0;
+  virtual void resize(uint32_t w, uint32_t h) = 0;
+  virtual void getSize(uint32_t& w, uint32_t& h) = 0;
   virtual void cleanUpResources() {}
 
   // An interface for reporting statistics and other data updates

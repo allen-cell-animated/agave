@@ -151,6 +151,12 @@ public:
 
   std::string log() { return m_log; }
 
+protected:
+  void utilMakeSimpleProgram(std::string const& vertexShaderSource,
+                             std::string const& fragmentShaderSource,
+                             GLShader** outVShader = nullptr,
+                             GLShader** outFShader = nullptr);
+
 private:
   // std::vector<GLShader> m_shaders;
   GLuint m_program;

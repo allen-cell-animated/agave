@@ -1,0 +1,123 @@
+#pragma once
+
+#include "glm.h"
+
+// see https://github.com/embree/embree/blob/master/common/math/affinespace.h
+// Much of this could probably be replaced by just using glm::mat3 and glm::mat4
+// but this makes explicit the split between basis vectors and affine component,
+// and thereby makes some operations more readable.
+struct LinearSpace3f
+{
+  glm::vec3 vx;
+  glm::vec3 vy;
+  glm::vec3 vz;
+
+  LinearSpace3f()
+    : vx(1.0f, 0.0f, 0.0f)
+    , vy(0.0f, 1.0f, 0.0f)
+    , vz(0.0f, 0.0f, 1.0f)
+  {
+  }
+  LinearSpace3f(glm::vec3 vx, glm::vec3 vy, glm::vec3 vz)
+    : vx(vx)
+    , vy(vy)
+    , vz(vz)
+  {
+  }
+
+  LinearSpace3f inverse() const;
+
+private:
+  float determinant() const;
+  LinearSpace3f transpose() const;
+  LinearSpace3f adjoint() const;
+};
+
+struct AffineSpace3f
+{
+public:
+  struct LinearSpace3f l;
+  glm::vec3 p;
+
+  AffineSpace3f()
+    : l()
+    , p()
+  {
+  }
+  AffineSpace3f(struct LinearSpace3f l, glm::vec3 p)
+    : l(l)
+    , p(p)
+  {
+  }
+  AffineSpace3f inverse() const;
+};
+
+inline glm::vec3
+xfmVector(const struct LinearSpace3f& xfm, glm::vec3 p)
+{
+  return xfm.vx * p.x + xfm.vy * p.y + xfm.vz * p.z;
+}
+
+// transforming as a point is different than as a vector
+inline glm::vec3
+xfmPoint(const struct AffineSpace3f& xfm, glm::vec3 p)
+{
+  return xfmVector(xfm.l, p) + xfm.p;
+}
+
+// transforming as a vector (spatial direction) can ignore the affine p component
+inline glm::vec3
+xfmVector(const struct AffineSpace3f& xfm, glm::vec3 p)
+{
+  return xfmVector(xfm.l, p);
+}
+
+/// @brief Intersect a line with a plane and return the parametric distance along the
+/// line. The plane is expressed in vector form such as for any point P on the plane
+/// this condition is true:
+///     dot((P - planeP), planeN) = 0
+/// The line is epressed in parametric form:
+///     P = lineP + lineV * lineT
+///
+/// This function solves for distance lineT.
+inline float
+linePlaneIsectT(const glm::vec3& planeP, const glm::vec3& planeN, const glm::vec3& lineP, const glm::vec3& lineV)
+{
+  float det = dot(lineV, planeN);
+  float lineT = (abs(det) < 1e-19f ? 0.0f : dot(planeP - lineP, planeN) / det);
+
+  return lineT;
+}
+
+/// @brief Compute the intersection point of a line and a plane
+inline glm::vec3
+linePlaneIsect(const glm::vec3& planeP, const glm::vec3& planeN, const glm::vec3& lineP, const glm::vec3& lineV)
+{
+  float lineT = linePlaneIsectT(planeP, planeN, lineP, lineV);
+  glm::vec3 isectP = lineP + lineV * lineT;
+  return isectP;
+}
+
+/// @brief Compute the nearest point to line B along line A.
+inline glm::vec3
+lineLineNearestPoint(const glm::vec3& lineA_P,
+                     const glm::vec3 lineA_V,
+                     const glm::vec3& lineB_P,
+                     const glm::vec3 lineB_V)
+{
+  // Compute direction of the line perpendicular to the two lines.
+  glm::vec3 perpV = cross(lineA_V, lineB_V);
+
+  // Compute the normal of the plane formed between lineB and the perpendicular.
+  glm::vec3 N = cross(perpV, lineB_V);
+
+  // The point on lineA is at the intersection between the line and plane
+  // lineB_P -> N
+  return linePlaneIsect(lineB_P, N, lineA_P, lineA_V);
+}
+
+inline float
+lerp(float a, float b, float alpha)
+{
+  return a + alpha * (b - a);
+}

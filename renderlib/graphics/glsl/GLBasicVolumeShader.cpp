@@ -176,10 +176,12 @@ vec4 integrateVolume(vec4 eye_o, vec4 eye_d,
 void main()
 {
 	outputColour = vec4(1.0, 0.0, 0.0, 1.0);
+	// gl_FragCoord defaults to 0,0 at lower left
 	vec2 vUv = gl_FragCoord.xy/iResolution.xy;
 
 	vec3 eyeRay_o, eyeRay_d;
 	if (isPerspective != 0.0) {
+		// camera position in camera space is 0,0,0!
 		eyeRay_o = (inverseModelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 		eyeRay_d = normalize(inData.pObj - eyeRay_o);
 	}
@@ -331,28 +333,14 @@ GLBasicVolumeShader::setShadingUniforms()
 void
 GLBasicVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
-  float w = (float)camera.m_Film.GetWidth();
-  float h = (float)camera.m_Film.GetHeight();
-  float vfov = camera.m_FovV * DEG_TO_RAD;
+  glm::mat4 cv(1.0);
+  camera.getViewMatrix(cv);
+  glm::mat4 cp(1.0);
+  camera.getProjMatrix(cp);
 
-  glm::vec3 eye(camera.m_From.x, camera.m_From.y, camera.m_From.z);
-  glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
-  glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
-  glm::mat4 cv = glm::lookAt(eye, center, up);
-  glm::mat4 cp;
-  if (camera.m_Projection == PERSPECTIVE) {
-    cp = glm::perspectiveFov(vfov, w, h, camera.m_Near, camera.m_Far);
-  } else {
-    cp = glm::ortho(-(w / h) * camera.m_OrthoScale,
-                    (w / h) * camera.m_OrthoScale,
-                    -1.0f * camera.m_OrthoScale,
-                    1.0f * camera.m_OrthoScale,
-                    camera.m_Near,
-                    camera.m_Far);
-  }
+  glm::mat4 mv = cv * modelMatrix;
 
-  // glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
   glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
-  glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
-  glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
+  glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(mv));
+  glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(mv)));
 }

@@ -17,6 +17,7 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Flags.cpp"
@@ -32,8 +33,14 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Manipulator.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Manipulator.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/MathUtil.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/MathUtil.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderSettings.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/threading.cpp"
@@ -45,9 +52,12 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/version.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerWindow.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerWindow.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"
 )
+add_subdirectory(gesture)
 add_subdirectory(graphics)
 add_subdirectory(io)
 add_subdirectory(pugixml)
