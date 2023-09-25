@@ -3,6 +3,8 @@
 #include "Object3d.h"
 #include "SceneView.h"
 
+#include <vector>
+
 // currently this code is specific to area light but should be tuned to find
 // selected objects in scene and use an average of their centers.
 //
