@@ -3,16 +3,18 @@ target_include_directories(renderlib PUBLIC
 )
 
 target_sources(renderlib PRIVATE
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderDICOM.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderDICOM.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.h"
 )
 
 # libCZI dependency for renderlib
@@ -48,9 +50,30 @@ FetchContent_MakeAvailable(tensorstore)
 
 # end tensorstore dependency
 
+# dicom dependency for renderlib
+find_package(DCMTK CONFIG REQUIRED)
+
+if("${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}" STREQUAL "/")
+	message(WARNING "No vcpkg install dir found, DCMTK definitions are not set")
+else()
+	target_compile_definitions(renderlib
+		PUBLIC
+		"DCMTK_PREFIX=${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}"
+		"DCM_DICT_DEFAULT_PATH=${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/dcmtk/dicom.dic:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/dcmtk/private.dic"
+		"DEFAULT_CONFIGURATION_DIR=${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/etc/dcmtk/"
+		"DEFAULT_SUPPORT_DATA_DIR=${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/dcmtk/"
+	)
+endif()
+
+# end dicom dependency
 target_link_libraries(renderlib
-libCZI
-
-tensorstore::tensorstore tensorstore::all_drivers
+	libCZI
+	tensorstore::tensorstore tensorstore::all_drivers
+	DCMTK::DCMTK DCMTK::cmr DCMTK::i2d DCMTK::ijg8 DCMTK::config DCMTK::ofstd
+	DCMTK::oflog DCMTK::dcmdata DCMTK::dcmimgle DCMTK::dcmimage
+	DCMTK::dcmjpeg DCMTK::ijg12 DCMTK::ijg16 DCMTK::dcmjpls
+	DCMTK::dcmtkcharls DCMTK::dcmtls DCMTK::dcmnet DCMTK::dcmsr
+	DCMTK::dcmdsig DCMTK::dcmwlm DCMTK::dcmqrdb DCMTK::dcmpstat
+	DCMTK::dcmrt DCMTK::dcmiod DCMTK::dcmfg DCMTK::dcmseg
+	DCMTK::dcmtract DCMTK::dcmpmap DCMTK::dcmect
 )
-
