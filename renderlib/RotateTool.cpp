@@ -134,27 +134,31 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     // Find the point closest to the active ring.
     // if tumbling, then we don't need it.
 
+    // world space x,y,z
+    LinearSpace3f rotationFrame;
+    // if local space, then rotationFrame should use object's current rotation!
+
     float angle = 0.0f;
     glm::quat motion = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
     switch (m_activeCode) {
       case RotateTool::kRotateX: // constrained to rotate about world x axis
       {
-        glm::vec3 vN = camFrame.vx; // glm::vec3(1, 0, 0);
-        angle = getDraggedAngle(camFrame.vx, p, l, l0, l1);
+        glm::vec3 vN = rotationFrame.vx; // glm::vec3(1, 0, 0);
+        angle = getDraggedAngle(rotationFrame.vx, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateY: // constrained to rotate about world y axis
       {
-        glm::vec3 vN = camFrame.vy; // glm::vec3(0, 1, 0);
-        angle = getDraggedAngle(camFrame.vy, p, l, l0, l1);
+        glm::vec3 vN = rotationFrame.vy; // glm::vec3(0, 1, 0);
+        angle = getDraggedAngle(rotationFrame.vy, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
 
       } break;
       case RotateTool::kRotateZ: // constrained to rotate about world z axis
       {
-        glm::vec3 vN = camFrame.vz; // glm::vec3(0, 0, 1);
-        angle = getDraggedAngle(camFrame.vz, p, l, l0, l1);
+        glm::vec3 vN = rotationFrame.vz; // glm::vec3(0, 0, 1);
+        angle = getDraggedAngle(rotationFrame.vz, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
 
       } break;
