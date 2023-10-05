@@ -19,6 +19,7 @@ struct RotateTool : ManipulationTool
 
   RotateTool()
     : ManipulationTool(kLast)
+    , m_rotation(glm::vec3(0, 0, 0))
   {
   }
 
