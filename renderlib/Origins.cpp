@@ -1,6 +1,7 @@
 #include "Origins.h"
 
 #include "AppScene.h"
+#include "Logging.h"
 #include "RenderSettings.h"
 
 void
@@ -37,10 +38,17 @@ Origins::rotate(SceneView& scene, glm::quat rotation)
 {
   // apply the rotation to the scene's selection
   // but do not bake it in yet?
+  LOG_DEBUG << "rotate " << glm::angle(rotation) << " about " << glm::to_string(glm::axis(rotation));
+
+  // while dragging: apply current dragged rotation to the original rotation.
+  // if "cancelled" we could always restore the original rotation.
   glm::quat q = rotation * m_origins[0].m_rotation;
 
   SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
+  // the above line could be more like:
+  // SceneObject& obj = scene.getSelection();
 
+  // actually set the light's transform here!!
   lt.m_transform.m_rotation = q;
   lt.Update();
 

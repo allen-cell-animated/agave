@@ -202,6 +202,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
   if (button.action == Gesture::Input::Action::kRelease) {
     if (!origins.empty()) {
       // Make the edit final, for example by creating an undo action...
+      // origins.rotate(scene, m_rotation);
       // [...]
     }
 
@@ -231,12 +232,27 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
   LinearSpace3f camFrame = scene.camera.getFrame();
+  // remember the camFrame vectors are the world-space vectors that correspond to camera x, y, z directions
 
   // Draw the manipulator to be at some constant size on screen
   float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (s_manipulatorSize / resolution.x);
 
   AffineSpace3f axis;
   axis.p = target.p;
+
+  Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
+  bool isRotating = (button.action == Gesture::Input::Action::kDrag && m_activeCode > -1);
+  // // if we are rotating, draw a tick mark where the rotation started, and where we are now
+  // if (isRotating) {
+  //   // axis.p is the center of a circle in our plane;
+  // }
+
+  // get m_rotation into a matrix:
+  glm::mat3 rotmat = glm::mat3_cast(m_rotation);
+  // now rotate each of the 3 vectors of the axis space:
+  // axis.l.vx = m_rotation * axis.l.vx;
+  // axis.l.vy = m_rotation * axis.l.vy;
+  // axis.l.vz = m_rotation * axis.l.vz;
 
   gesture.graphics.addCommand(GL_TRIANGLES);
   // draw a flat camera facing disk for freeform tumble rotation
@@ -259,7 +275,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                      code);
   }
   static constexpr uint32_t noCode = -1;
-  Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
 
   gesture.graphics.addCommand(GL_LINES);
 
@@ -305,11 +320,15 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   }
 
   // if we are rotating, draw a tick mark where the rotation started, and where we are now
-  if (button.action == Gesture::Input::Action::kDrag && m_activeCode > -1) {
+  if (isRotating) {
     // axis.p is the center of a circle in our plane;
     // find the normal of our plane based on active code
-    glm::vec3 vN = glm::vec3(0, 0, 0);
     float radius = axisscale;
+    if (m_activeCode == RotateTool::kRotateView) {
+      radius = scale;
+    }
+    // find the normal of our plane based on active code
+    glm::vec3 vN = glm::vec3(0, 0, 0);
     if (m_activeCode == RotateTool::kRotateX) {
       vN = axis.l.vx;
     } else if (m_activeCode == RotateTool::kRotateY) {
@@ -318,7 +337,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
       vN = axis.l.vz;
     } else if (m_activeCode == RotateTool::kRotateView) {
       vN = camFrame.vz;
-      radius = scale;
     }
 
     if (vN != glm::vec3(0, 0, 0)) {
