@@ -46,18 +46,19 @@ static const char* fragment_shader_text =
         vec4 result = Frag_color;
 
         // When drawing selection codes, everything is opaque.
-        if (picking == 1)
-            result.w = 1.0;
+        if (picking == 1) {
+          result.w = 1.0;
+        }
 
         // Gesture geometry handshake: any uv value below -64 means
         // no texture lookup. Check VertsCode::k_noTexture
-        if (picking == 0 && Frag_UV.s > -64)
-            result *= texture(Texture, Frag_UV.st);
+        if (picking == 0 && Frag_UV.x > -63.0) {
+          result *= texture(Texture, Frag_UV.xy);
+        }
 
         // Gesture geometry handshake: any uv equal to -128 means
         // overlay a checkerboard pattern. Check VertsCode::k_marqueePattern
-        if (Frag_UV.s == -128)
-        {
+        if (Frag_UV.s == -128.0) {
             // Create a pixel checkerboard pattern used for marquee
             // selection
             int x = int(gl_FragCoord.x); int y = int(gl_FragCoord.y);
