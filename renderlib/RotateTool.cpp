@@ -164,19 +164,15 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
       } break;
       case RotateTool::kRotateView: // constrained to rotate about view direction
       {
-        // find angle between (p,l0) and (p,l1)
-        // using as N, the view direction
-        glm::vec3 vN = normalize(p - l);
-        glm::vec3 v0 = normalize(p - l0);
-        glm::vec3 v1 = normalize(p - l1);
-        angle = getSignedAngle(v0, v1, vN);
+        glm::vec3 vN = camFrame.vz;
+        angle = getDraggedAngle(camFrame.vz, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
       } break;
       case RotateTool::kRotate: // general tumble rotation
         // use camera trackball algorithm
         // scale pixels to radians of rotation (TODO)
-        float xRadians = -button.drag.x * dragScale * glm::two_pi<float>();
-        float yRadians = -button.drag.y * dragScale * glm::two_pi<float>();
+        float xRadians = button.drag.x * dragScale * glm::two_pi<float>();
+        float yRadians = button.drag.y * dragScale * glm::two_pi<float>();
         angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
         glm::vec3 objectUpDirection = camFrame.vy * yRadians;
         glm::vec3 objectSidewaysDirection = camFrame.vx * xRadians;
@@ -240,19 +236,13 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   AffineSpace3f axis;
   axis.p = target.p;
 
+  // TODO allow switching between local and world coordinate space!
+  // axis.l.vx = m_rotation * target.l.vx; // glm::vec3(1, 0, 0);
+  // axis.l.vy = m_rotation * target.l.vy; // glm::vec3(0, 1, 0);
+  // axis.l.vz = m_rotation * target.l.vz; // glm::vec3(0, 0, 1);
+
   Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
   bool isRotating = (button.action == Gesture::Input::Action::kDrag && m_activeCode > -1);
-  // // if we are rotating, draw a tick mark where the rotation started, and where we are now
-  // if (isRotating) {
-  //   // axis.p is the center of a circle in our plane;
-  // }
-
-  // get m_rotation into a matrix:
-  glm::mat3 rotmat = glm::mat3_cast(m_rotation);
-  // now rotate each of the 3 vectors of the axis space:
-  // axis.l.vx = m_rotation * axis.l.vx;
-  // axis.l.vy = m_rotation * axis.l.vy;
-  // axis.l.vz = m_rotation * axis.l.vz;
 
   gesture.graphics.addCommand(GL_TRIANGLES);
   // draw a flat camera facing disk for freeform tumble rotation
