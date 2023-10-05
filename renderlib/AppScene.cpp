@@ -165,7 +165,7 @@ SceneLight::Update()
   // compute the phi and theta for the new direction
   // because they will be used in future light updates
   float phi = acosf(normdir.y);
-  float theta = atan2f(normdir.z, normdir.x);
+  float theta = atan2f(normdir.x, normdir.z);
   m_light->m_Phi = phi;
   m_light->m_Theta = theta;
 
