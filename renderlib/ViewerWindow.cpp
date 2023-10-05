@@ -89,6 +89,7 @@ ViewerWindow::updateCamera()
   }
 
   sceneView.camera = renderCamera;
+  sceneView.camera.Update();
 }
 
 void
@@ -109,6 +110,10 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
     // [...]
     updateCamera();
   }
+
+  // update sceneView.camera here?
+  // It is already being updated inside of updateCamera
+  // (only when camera is being manipulated!)
 
   // Run all manipulators and tools
   {
@@ -177,7 +182,6 @@ ViewerWindow::redraw()
   sceneView.renderSettings = m_renderSettings;
 
   update(sceneView.viewport, m_clock, gesture);
-  sceneView.camera.Update();
 
   m_renderer->render(sceneView.camera);
 

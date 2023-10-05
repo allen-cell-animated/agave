@@ -38,7 +38,7 @@ Origins::rotate(SceneView& scene, glm::quat rotation)
 {
   // apply the rotation to the scene's selection
   // but do not bake it in yet?
-  LOG_DEBUG << "rotate " << glm::angle(rotation) << " about " << glm::to_string(glm::axis(rotation));
+  // LOG_DEBUG << "rotate " << glm::angle(rotation) << " about " << glm::to_string(glm::axis(rotation));
 
   // while dragging: apply current dragged rotation to the original rotation.
   // if "cancelled" we could always restore the original rotation.

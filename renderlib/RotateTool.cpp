@@ -71,7 +71,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
   Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
   if (button.action == Gesture::Input::Action::kPress) {
     origins.update(scene);
-    m_rotation = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
+    m_rotation = glm::quat(glm::vec3(0, 0, 0));
   }
   if (button.action == Gesture::Input::Action::kDrag) {
     // If we have not initialized objects position when the gesture began,
@@ -139,7 +139,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     // if local space, then rotationFrame should use object's current rotation!
 
     float angle = 0.0f;
-    glm::quat motion = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
+    glm::quat motion = glm::quat(glm::vec3(0, 0, 0));
     switch (m_activeCode) {
       case RotateTool::kRotateX: // constrained to rotate about world x axis
       {
@@ -202,14 +202,14 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
   if (button.action == Gesture::Input::Action::kRelease) {
     if (!origins.empty()) {
       // Make the edit final, for example by creating an undo action...
-      // origins.rotate(scene, m_rotation);
+      origins.rotate(scene, m_rotation);
       // [...]
     }
 
     // Consume the gesture.
     gesture.input.reset(Gesture::Input::kButtonLeft);
     origins.clear();
-    m_rotation = glm::angleAxis(0.0f, glm::vec3(0, 0, 1));
+    m_rotation = glm::quat(glm::vec3(0, 0, 0));
   }
 }
 
