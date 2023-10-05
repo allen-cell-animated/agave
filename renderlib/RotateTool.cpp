@@ -202,7 +202,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
   if (button.action == Gesture::Input::Action::kRelease) {
     if (!origins.empty()) {
       // Make the edit final, for example by creating an undo action...
-      origins.rotate(scene, m_rotation);
+      // origins.rotate(scene, m_rotation);
       // [...]
     }
 

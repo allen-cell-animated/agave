@@ -160,31 +160,17 @@ SceneLight::Update()
   // and rotation will be the DIRECTION of the light
 
   // LOG_DEBUG << "angle " << glm::angle(m_transform.m_rotation);
-  //  glm::vec3 dir = m_light->m_Target - m_light->m_P;
-  //   rotate direction by the opposite rotation
-  glm::vec3 normdir = glm::inverse(m_transform.m_rotation) * glm::vec3(0, 0, 1);
+  glm::vec3 normdir = m_transform.m_rotation * glm::vec3(0, 0, 1);
 
   // compute the phi and theta for the new direction
   // because they will be used in future light updates
-  // glm::vec3 normdir = normalize(newdir);
   float phi = acosf(normdir.y);
-  // LOG_DEBUG << "nz: " << normdir.z << ", nx: " << normdir.x;
   float theta = atan2f(normdir.z, normdir.x);
   m_light->m_Phi = phi;
   m_light->m_Theta = theta;
-  // LOG_DEBUG << "phi: " << phi << ", theta: " << theta;
-
-  // m_light->Update();
 
   // get m_P in world space:
   m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
-  // m_light->m_P.x = m_light->m_Distance * sinf(phi) * sinf(theta);
-  // m_light->m_P.z = m_light->m_Distance * sinf(phi) * cosf(theta);
-  // m_light->m_P.y = m_light->m_Distance * cosf(phi);
-  // m_light->m_P += m_light->m_Target;
 
   m_light->updateBasisFrame();
-
-  // // reset!
-  // m_transform.m_rotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
 }
