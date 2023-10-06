@@ -41,7 +41,7 @@ struct VolumeDisplay
 class SceneLight : public SceneObject
 {
 public:
-  void Update();
+  void updateTransform();
   Light* m_light;
 };
 

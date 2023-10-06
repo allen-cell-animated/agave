@@ -13,7 +13,7 @@
 // are truly rotating the object or in the case of the light source doing some
 // custom version of a rotation (keeping the area light looking toward a fixed target).
 //
-// We still need to support the temporary rotation/translation and then
+// Allow temporary rotation/translation and then
 // the idea of committing the transform when the user releases the mouse.
 struct Origins
 {

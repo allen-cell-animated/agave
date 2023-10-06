@@ -1,5 +1,6 @@
 #include "ViewerWindow.h"
 
+#include "AreaLightTool.h"
 #include "IRenderWindow.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
@@ -13,6 +14,9 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
 {
   gesture.input.reset();
 
+  // TODO have a notion of a scene's selection set,
+  // and activate tools via the UI to operate
+  // on the selection set.
   // TEST create a tool and activate it
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();

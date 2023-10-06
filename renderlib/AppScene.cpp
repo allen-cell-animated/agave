@@ -152,7 +152,7 @@ Scene::getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32
 }
 
 void
-SceneLight::Update()
+SceneLight::updateTransform()
 {
   // update from transform position and rotation.
 

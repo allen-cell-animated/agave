@@ -24,23 +24,28 @@ Origins::update(SceneView& scene)
 void
 Origins::translate(SceneView& scene, glm::vec3 motion)
 {
+  // e.g. find all selected objects in scene and apply transforms here.
+
   glm::vec3 p = m_origins[0].m_center + motion;
 
   SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
+  // the above line could be more like:
+  // SceneObject& obj = scene.getSelection();
+
+  // actually set the light's transform here!!
   lt.m_transform.m_center = p;
 
-  lt.Update();
+  lt.updateTransform();
   scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
 void
 Origins::rotate(SceneView& scene, glm::quat rotation)
 {
+  // e.g. find all selected objects in scene and apply transforms here.
+
   // apply the rotation to the scene's selection
   // but do not bake it in yet?
-  // LOG_DEBUG << "rotate " << glm::angle(rotation) << " about " << glm::to_string(glm::axis(rotation));
-
-  // while dragging: apply current dragged rotation to the original rotation.
   // if "cancelled" we could always restore the original rotation.
   glm::quat q = rotation * m_origins[0].m_rotation;
 
@@ -50,7 +55,7 @@ Origins::rotate(SceneView& scene, glm::quat rotation)
 
   // actually set the light's transform here!!
   lt.m_transform.m_rotation = q;
-  lt.Update();
 
+  lt.updateTransform();
   scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
