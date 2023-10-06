@@ -203,6 +203,7 @@ agaveGui::createDockWindows()
   m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
   m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
+  m_timelinedock->setVisible(false); // hide by default
 
   m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -481,6 +482,9 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   m_currentScene = loadSpec.scene;
   m_appScene.m_timeLine.setRange(0, sizeT - 1);
   m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
+
+  // Show timeline widget if the loaded image has multiple frames.
+  m_timelinedock->setVisible(sizeT > 1);
 
   // install the new volume image into the scene.
   // this is deref'ing the previous _volume shared_ptr.
@@ -799,7 +803,6 @@ agaveGui::openRecentFile()
       // assume that .obj is mesh
       openMesh(path);
     } else {
-      // assumption of ome.tif
       if (!open(path.toStdString())) {
         showOpenFailedMessageBox(path);
       }

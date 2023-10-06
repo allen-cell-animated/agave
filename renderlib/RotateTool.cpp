@@ -13,7 +13,7 @@ static const float s_orthogonalThreshold = cos(glm::radians(89.0f));
 static float
 getSignedAngle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& vN)
 {
-  // get signed angle between the two vectors using (1,0,0) as plane normal
+  // get signed angle between the two vectors using vN as plane normal
   // atan2 ( (v0 X v1) dot (vN), v0 dot v1 )
 
   float dp = dot(v0, v1);
@@ -35,7 +35,7 @@ getDraggedAngle(const glm::vec3& vN, const glm::vec3& p, const glm::vec3& l, con
   glm::vec3 p0 = linePlaneIsect(p, vN, l, l0);
   glm::vec3 p1 = linePlaneIsect(p, vN, l, l1);
   // if we can't intersect the planes properly, then we must be on-axis (plane perpendicular to view plane)
-  // and we must calculate angle another way (TODO)
+  // and we must calculate angle another way
   if (p0 == p1 || axisIsOrthogonal) {
     // we want a linear measure of the amount of drag along the line of the ring
     glm::vec3 projectionAxis = cross(vN, globalAxis);
@@ -264,7 +264,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                      opacity,
                      code);
   }
-  static constexpr uint32_t noCode = -1;
+  static constexpr uint32_t noCode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
 
   gesture.graphics.addCommand(GL_LINES);
 
@@ -293,8 +293,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 color = ManipColors::zAxis;
     if (m_activeCode == RotateTool::kRotateZ) {
       color = glm::vec3(1, 1, 0);
-      // if we are rotating, draw a tick mark where the rotation started, and where we are now
-      // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     }
     gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
   }

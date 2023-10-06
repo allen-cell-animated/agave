@@ -166,8 +166,8 @@ Histogram::generate_auto2(size_t length) const
 	size_t hmax = i;
 #endif
 
-  //#if 0
-  // this will skip the "zero" bin which contains pixels of zero intensity.
+  // #if 0
+  //  this will skip the "zero" bin which contains pixels of zero intensity.
   size_t hmin = nbins - 1;
   size_t hmax = 0;
   for (size_t i = 0; i < nbins; ++i) {
@@ -183,7 +183,7 @@ Histogram::generate_auto2(size_t length) const
       break;
     }
   }
-  //#endif
+  // #endif
 
   if (hmax < hmin) {
     // just reset to whole range in this case.
@@ -202,7 +202,7 @@ float*
 Histogram::generate_auto(size_t length) const
 {
 
-  // simple linear mapping cutting elements with small appearence
+  // simple linear mapping cutting elements with small appearance
   // get 10% threshold
   float PERCENTAGE = 0.1f;
   float th = std::floor(_bins[_maxBin] * PERCENTAGE);

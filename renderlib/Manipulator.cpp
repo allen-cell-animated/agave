@@ -27,7 +27,7 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
-  uint32_t code = -1;
+  uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
   gesture.graphics.addCommand(GL_LINES);
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code),
                            Gesture::Graphics::VertsCode(p + v1, color, opacity, code));

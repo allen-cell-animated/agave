@@ -99,6 +99,24 @@ jobs:
           name: agave-win
           path: ./build/agave-win.zip
 
+  publish_webclient:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - run: |
+          cd webclient
+          npm ci
+          npm run build
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
   publish_pythonclient:
     runs-on: ubuntu-latest
     steps:
