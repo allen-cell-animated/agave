@@ -156,10 +156,7 @@ SceneLight::updateTransform()
 {
   // update from transform position and rotation.
 
-  // let's treat the position as the TARGET of the light
-  // and rotation will be the DIRECTION of the light
-
-  // LOG_DEBUG << "angle " << glm::angle(m_transform.m_rotation);
+  // calculate the new direction for the light to point in
   glm::vec3 normdir = m_transform.m_rotation * glm::vec3(0, 0, 1);
 
   // compute the phi and theta for the new direction
