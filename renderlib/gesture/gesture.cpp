@@ -429,6 +429,32 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
   return status;
 }
 
+void
+Gesture::Graphics::SelectionBuffer::clear()
+{
+  // Backup
+  GLenum last_framebuffer;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint*)&last_framebuffer);
+  GLfloat last_clear_color[4];
+  glGetFloatv(GL_COLOR_CLEAR_VALUE, last_clear_color);
+
+  // Render to texture
+  glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+  {
+    glViewport(0, 0, resolution.x, resolution.y);
+    uint32_t clearcode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+    glClearColor(((clearcode >> 0) & 0xFF) / 255.0,
+                 ((clearcode >> 8) & 0xFF) / 255.0,
+                 ((clearcode >> 16) & 0xFF) / 255.0,
+                 ((clearcode >> 24) & 0xFF) / 255.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
+
+  // Restore
+  glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
+  glClearColor(last_clear_color[0], last_clear_color[1], last_clear_color[2], last_clear_color[3]);
+}
+
 SceneView::Viewport::Region
 SceneView::Viewport::Region::intersect(const SceneView::Viewport::Region& a, const SceneView::Viewport::Region& b)
 {
@@ -451,16 +477,11 @@ selectionRGB8ToCode(const uint8_t* rgba)
 bool
 Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input, const SceneView::Viewport& viewport)
 {
-  // Todo: the choice of pointer button should not be hardcoded here
-  const Input::Button& button = input.mbs[Gesture::Input::kButtonLeft];
-
-  int clickEnded = (button.action == Input::Action::kRelease);
-  int clickDrag = (button.action == Input::Action::kDrag);
-  int32_t buttonModifier = button.modifier;
-
   // If we are in mid-gesture, then we can continue to use the retained selection code.
   // if we never had anything to draw into the pick buffer, then we didn't pick anything.
-  if (clickEnded || clickDrag || this->verts.empty()) {
+  // This is a slight oversimplification because it checks for any single-button release
+  // or drag: two-button drag gestures are not handled well.
+  if (input.clickEnded() || input.isDragging()) {
     return m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
   }
 
@@ -556,4 +577,83 @@ Gesture::Graphics::pick(SelectionBuffer& selection, const Gesture::Input& input,
   // }
   m_retainedSelectionCode = entry;
   return entry != SelectionBuffer::k_noSelectionCode;
+}
+
+void
+Gesture::drawArc(const glm::vec3& pstart,
+                 float angle,
+                 const glm::vec3& center,
+                 const glm::vec3& normal,
+                 uint32_t numSegments,
+                 glm::vec3 color,
+                 float opacity,
+                 uint32_t code)
+{
+  // draw arc from pstart through angle with center of circle at center
+  glm::vec3 xaxis = pstart - center;
+  glm::vec3 yaxis = glm::cross(normal, xaxis);
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * angle; // 2.0f * glm::pi<float>();
+    float theta1 = t1 * angle; // 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                     Gesture::Graphics::VertsCode(p1, color, opacity, code));
+  }
+}
+
+void
+Gesture::drawCircle(glm::vec3 center,
+                    glm::vec3 xaxis,
+                    glm::vec3 yaxis,
+                    uint32_t numSegments,
+                    glm::vec3 color,
+                    float opacity,
+                    uint32_t code)
+{
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                     Gesture::Graphics::VertsCode(p1, color, opacity, code));
+  }
+}
+
+// does not draw a flat base
+void
+Gesture::drawCone(glm::vec3 base,
+                  glm::vec3 xaxis,
+                  glm::vec3 yaxis,
+                  glm::vec3 zaxis,
+                  uint32_t numSegments,
+                  glm::vec3 color,
+                  float opacity,
+                  uint32_t code)
+{
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = base + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = base + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    graphics.addVert(Gesture::Graphics::VertsCode(base + zaxis, color, opacity, code));
+    graphics.addVert(Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    graphics.addVert(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+  }
 }

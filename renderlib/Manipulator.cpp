@@ -2,60 +2,8 @@
 
 // #include "AppScene.h"
 
+// TODO apply devicePixelRatio to this
 float ManipulationTool::s_manipulatorSize = 500.0f;
-
-void
-drawCircle(Gesture& gesture,
-           glm::vec3 center,
-           glm::vec3 xaxis,
-           glm::vec3 yaxis,
-           uint32_t numSegments,
-           glm::vec3 color,
-           float opacity,
-           uint32_t code)
-{
-  for (int i = 0; i < numSegments; ++i) {
-    float t0 = float(i) / float(numSegments);
-    float t1 = float(i + 1) / float(numSegments);
-
-    float theta0 = t0 * 2.0f * glm::pi<float>();
-    float theta1 = t1 * 2.0f * glm::pi<float>();
-
-    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
-    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
-
-    gesture.graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
-                             Gesture::Graphics::VertsCode(p1, color, opacity, code));
-  }
-}
-
-// does not draw a flat base
-void
-drawCone(Gesture& gesture,
-         glm::vec3 base,
-         glm::vec3 xaxis,
-         glm::vec3 yaxis,
-         glm::vec3 zaxis,
-         uint32_t numSegments,
-         glm::vec3 color,
-         float opacity,
-         uint32_t code)
-{
-  for (int i = 0; i < numSegments; ++i) {
-    float t0 = float(i) / float(numSegments);
-    float t1 = float(i + 1) / float(numSegments);
-
-    float theta0 = t0 * 2.0f * glm::pi<float>();
-    float theta1 = t1 * 2.0f * glm::pi<float>();
-
-    glm::vec3 p0 = base + xaxis * cosf(theta0) + yaxis * sinf(theta0);
-    glm::vec3 p1 = base + xaxis * cosf(theta1) + yaxis * sinf(theta1);
-
-    gesture.graphics.addVert(Gesture::Graphics::VertsCode(base + zaxis, color, opacity, code));
-    gesture.graphics.addVert(Gesture::Graphics::VertsCode(p1, color, opacity, code));
-    gesture.graphics.addVert(Gesture::Graphics::VertsCode(p0, color, opacity, code));
-  }
-}
 
 struct ManipColors
 {
@@ -261,7 +209,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
     // Circle at the base of the arrow
     float diskScale = scale * (fullDraw ? 0.06f : 0.03f);
-    drawCircle(gesture, axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
+    gesture.drawCircle(axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
     if (fullDraw) {
       // Arrow
       glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
@@ -275,8 +223,8 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
                              Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code));
 
-    drawCircle(
-      gesture, axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
+    gesture.drawCircle(
+      axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
   };
 
   // Complete the axis with a transparent surface for the tip of the arrow
@@ -299,26 +247,12 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
       float diskScale = scale * 0.06;
 
       // The cone
-      drawCone(gesture,
-               axis.p + dir * scale,
-               dirX * diskScale,
-               dirY * diskScale,
-               dir * (scale * 0.2f),
-               12,
-               color,
-               opacity,
-               code);
+      gesture.drawCone(
+        axis.p + dir * scale, dirX * diskScale, dirY * diskScale, dir * (scale * 0.2f), 12, color, opacity, code);
 
       // The base of the cone (as a flat cone)
-      drawCone(gesture,
-               axis.p + dir * scale,
-               dirX * diskScale,
-               dirY * diskScale,
-               glm::vec3(0, 0, 0),
-               12,
-               color,
-               opacity,
-               code);
+      gesture.drawCone(
+        axis.p + dir * scale, dirX * diskScale, dirY * diskScale, glm::vec3(0, 0, 0), 12, color, opacity, code);
     }
   };
 
@@ -373,7 +307,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     }
 
     float diskScale = scale * 0.04 * facingScale;
-    drawCircle(gesture, p, dirX * diskScale, dirY * diskScale, 8, color, opacity, code);
+    gesture.drawCircle(p, dirX * diskScale, dirY * diskScale, 8, color, opacity, code);
   };
 
   bool forceActiveX =
@@ -412,9 +346,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     }
 
     float diskScale = scale * 0.09;
-    drawCircle(gesture, axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
+    gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
     diskScale = scale * 0.02;
-    drawCircle(gesture, axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
+    gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
   }
 }
 
@@ -439,7 +373,7 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
-  uint32_t code = -1;
+  uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
   gesture.graphics.addCommand(GL_LINES);
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code),
                            Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
@@ -456,98 +390,4 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
-}
-
-void
-RotateTool::action(SceneView& scene, Gesture& gesture)
-{
-}
-void
-RotateTool::draw(SceneView& scene, Gesture& gesture)
-{
-  const glm::vec2 resolution = scene.viewport.region.size();
-  // Move tool is only active if something is selected
-  if (!scene.anythingActive()) {
-    return;
-  }
-
-  // Re-read targetPosition because object may have moved by the manipulator action,
-  // or animation. Target 3x3 linear space is a orthonormal frame. Target
-  // position is where the manipulator should be drawn in space
-  if (origins.empty()) {
-    origins.update(scene);
-  }
-  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
-
-  glm::vec3 viewDir = (scene.camera.m_From - target.p);
-  LinearSpace3f camFrame = scene.camera.getFrame();
-
-  // Draw the manipulator to be at some constant size on screen
-  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (s_manipulatorSize / resolution.x);
-
-  AffineSpace3f axis;
-  axis.p = target.p;
-
-  gesture.graphics.addCommand(GL_TRIANGLES);
-  // draw a flat camera facing disk for freeform tumble rotation
-  float tumblescale = scale * 0.84f;
-  {
-    float opacity = 0.05f;
-    uint32_t code = manipulatorCode(RotateTool::kRotate, m_codesOffset);
-    glm::vec3 color = ManipColors::bright;
-    if (m_activeCode == RotateTool::kRotate) {
-      color = glm::vec3(1, 1, 0);
-      opacity = 0.1f;
-    }
-    drawCone(gesture,
-             axis.p,
-             camFrame.vy * tumblescale, // swapped x and y to invert the triangles to face user
-             camFrame.vx * tumblescale,
-             glm::vec3(0, 0, 0),
-             48,
-             color,
-             opacity,
-             code);
-  }
-
-  gesture.graphics.addCommand(GL_LINES);
-
-  float axisscale = scale * 0.85f;
-  // Draw the x ring in yz plane
-  {
-    uint32_t code = manipulatorCode(RotateTool::kRotateX, m_codesOffset);
-    glm::vec3 color = ManipColors::xAxis;
-    if (m_activeCode == RotateTool::kRotateX) {
-      color = glm::vec3(1, 1, 0);
-    }
-    drawCircle(gesture, axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code);
-  }
-  // Draw the y ring in xz plane
-  {
-    uint32_t code = manipulatorCode(RotateTool::kRotateY, m_codesOffset);
-    glm::vec3 color = ManipColors::yAxis;
-    if (m_activeCode == RotateTool::kRotateY) {
-      color = glm::vec3(1, 1, 0);
-    }
-    drawCircle(gesture, axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code);
-  }
-  // Draw the z ring in xy plane
-  {
-    uint32_t code = manipulatorCode(RotateTool::kRotateZ, m_codesOffset);
-    glm::vec3 color = ManipColors::zAxis;
-    if (m_activeCode == RotateTool::kRotateZ) {
-      color = glm::vec3(1, 1, 0);
-    }
-    drawCircle(gesture, axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
-  }
-
-  // Draw the origin of the manipulator as a circle always facing the view
-  {
-    uint32_t code = manipulatorCode(RotateTool::kRotateView, m_codesOffset);
-    glm::vec3 color = ManipColors::bright;
-    if (m_activeCode == RotateTool::kRotateView) {
-      color = glm::vec3(1, 1, 0);
-    }
-    drawCircle(gesture, axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
-  }
 }

@@ -136,6 +136,7 @@ public:
   }
 
   void Update(const CBoundingBox& BoundingBox);
+  void updateBasisFrame();
 };
 
 #define MAX_NO_LIGHTS 4

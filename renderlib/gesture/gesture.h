@@ -123,6 +123,16 @@ struct Gesture
     {
       return mbs[id].action != kNone && (mods == 0 || ((mbs[id].modifier & mods) > 0));
     }
+    bool isDragging() const
+    {
+      return mbs[kButtonLeft].action == kDrag || mbs[kButtonRight].action == kDrag ||
+             mbs[kButtonMiddle].action == kDrag;
+    }
+    bool clickEnded() const
+    {
+      return mbs[kButtonLeft].action == kRelease || mbs[kButtonRight].action == kRelease ||
+             mbs[kButtonMiddle].action == kRelease;
+    }
 
     // Reset is typically executed by the command or tool that consumes the button release action.
     static void reset(Button& button)
@@ -259,16 +269,23 @@ struct Gesture
         }
 
         destroy();
-        return create(resolution, samples);
+        bool ok = create(resolution, samples);
+        if (ok) {
+          clear();
+        }
+        return ok;
       }
       void destroy();
       bool create(glm::ivec2 resolution, int samples = 0);
+      virtual void clear(){};
     };
 
     struct SelectionBuffer : RenderBuffer
     {
       // 1 bit is reserved for component flags.
       static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
+
+      virtual void clear();
     };
 
     // Gesture draw
@@ -389,4 +406,31 @@ struct Gesture
     int getCurrentSelectionCode() { return m_retainedSelectionCode; }
   };
   Graphics graphics;
+
+  void drawArc(const glm::vec3& pstart,
+               float angle,
+               const glm::vec3& center,
+               const glm::vec3& normal,
+               uint32_t numSegments,
+               glm::vec3 color,
+               float opacity,
+               uint32_t code);
+
+  void drawCircle(glm::vec3 center,
+                  glm::vec3 xaxis,
+                  glm::vec3 yaxis,
+                  uint32_t numSegments,
+                  glm::vec3 color,
+                  float opacity,
+                  uint32_t code);
+
+  // does not draw a flat base
+  void drawCone(glm::vec3 base,
+                glm::vec3 xaxis,
+                glm::vec3 yaxis,
+                glm::vec3 zaxis,
+                uint32_t numSegments,
+                glm::vec3 color,
+                float opacity,
+                uint32_t code);
 };

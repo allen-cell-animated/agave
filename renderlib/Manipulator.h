@@ -105,8 +105,16 @@ private:
   std::string m_identifier;
 };
 
-// currently jsut area light but should be tuned to find
-// selected objects in scene and use an average of their centers
+// currently this code is specific to area light but should be tuned to find
+// selected objects in scene and use an average of their centers.
+//
+// TODO create a generic SceneObject class that supports rotation/translation
+// and Origins holds a collection/group of them.  We need to consider whether we
+// are truly rotating the object or in the case of the light source doing some
+// custom version of a rotation (keeping the area light looking toward a fixed target).
+//
+// We still need to support the temporary rotation/translation and then
+// the idea of committing the transform when the user releases the mouse.
 struct Origins
 {
   enum OriginFlags
@@ -145,6 +153,36 @@ struct Origins
     scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
   }
 
+  void rotate(SceneView& scene, glm::quat rotation)
+  {
+    glm::vec3 p = m_origins[0].p;
+
+    // get light 1
+    Light& l = scene.scene->m_lighting.m_Lights[1];
+    glm::vec3 dir = p - scene.scene->m_boundingBox.GetCenter();
+
+    // transform dir by quaternion
+    dir = rotation * dir;
+
+    // TODO
+    // The following code is hacked in and will be completely factored out.
+    // It's only here to give something for the manipulator to do.
+    // The final light manipulation behavior will come in a separate code change.
+
+    // // now set distance, theta, phi from m_P and current m_Target
+    // l.m_Distance = glm::length(dir);
+    // l.m_Phi = glm::acos(dir.y / l.m_Distance);
+    // l.m_Theta = glm::atan(dir.x / l.m_Distance, dir.z / l.m_Distance);
+
+    // l.Update(scene.scene->m_boundingBox);
+
+    // change m_P and m_Target, then update basis U,V,N
+    l.m_Target = l.m_P + dir;
+    l.updateBasisFrame();
+
+    //    scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+  }
+
   std::vector<AffineSpace3f> m_origins;
 };
 
@@ -165,7 +203,8 @@ struct MoveTool : ManipulationTool
   };
 
   MoveTool()
-    : ManipulationTool(kLast), m_translation(0)
+    : ManipulationTool(kLast)
+    , m_translation(0)
   {
   }
 
@@ -191,35 +230,4 @@ struct AreaLightTool : ManipulationTool
 
   virtual void action(SceneView& scene, Gesture& gesture) final;
   virtual void draw(SceneView& scene, Gesture& gesture) final;
-};
-
-struct RotateTool : ManipulationTool
-{
-  // Selection codes, are used to identify which manipulator is under the cursor.
-  // The values in this enum are important, lower values means higher picking priority.
-  enum RotateCodes
-  {
-    kRotateX = 0,    // constrained to rotate about x axis
-    kRotateY = 1,    // constrained to rotate about y axis
-    kRotateZ = 2,    // constrained to rotate about z axis
-    kRotateView = 3, // constrained to rotate about view direction
-    kRotate = 4,     // general tumble rotation
-    kLast = 5
-  };
-
-  RotateTool()
-    : ManipulationTool(kLast)
-  {
-  }
-
-  virtual void action(SceneView& scene, Gesture& gesture) final;
-  virtual void draw(SceneView& scene, Gesture& gesture) final;
-
-  // Some data structure to store the initial state of the objects
-  // to move.
-  Origins origins;
-
-  // The current rotation of the objects to move.
-  // We need to potentially access this across calls to action and draw
-  glm::vec3 m_rotation;
 };
