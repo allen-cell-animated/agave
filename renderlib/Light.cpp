@@ -13,11 +13,9 @@ Light::Update(const CBoundingBox& BoundingBox)
   m_Target = bbctr;
 
   // Determine light position
-  m_P.x = m_Distance * sinf(m_Phi) * sinf(m_Theta);
-  m_P.z = m_Distance * sinf(m_Phi) * cosf(m_Theta);
-  m_P.y = m_Distance * cosf(m_Phi);
-
-  m_P += m_Target;
+  glm::vec3 dir;
+  sphericalToCartesian(m_Phi, m_Theta, dir);
+  m_P = m_Target + m_Distance * dir;
 
   // Determine area for area light
   if (m_T == 0) {
@@ -52,4 +50,19 @@ Light::updateBasisFrame()
     m_U = glm::normalize(glm::cross(m_N, glm::vec3(0.0f, 1.0f, 0.0f)));
   }
   m_V = glm::normalize(glm::cross(m_N, m_U));
+}
+
+void
+Light::sphericalToCartesian(float phi, float theta, glm::vec3& v)
+{
+  v.x = sinf(phi) * sinf(theta);
+  v.z = sinf(phi) * cosf(theta);
+  v.y = cosf(phi);
+}
+
+void
+Light::cartesianToSpherical(glm::vec3 v, float& phi, float& theta)
+{
+  phi = acosf(v.y);
+  theta = atan2f(v.x, v.z);
 }
