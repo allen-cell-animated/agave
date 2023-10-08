@@ -5,6 +5,7 @@
 //   FLOAT32ARRAY=int32 and array of floats
 //   INT32ARRAY=int32 and array of int32s
 const types = { I32: 4, F32: 4, S: -1, F32A: -1, I32A: -1 };
+type CmdArgs = string | number | number[];
 
 // command id will be int32 to future-proof it.
 // note that the server needs to know these signatures too.
@@ -86,7 +87,7 @@ export const COMMANDS = {
 // to binary before sending?
 export class CommandBuffer {
   // [command, args],...
-  private prebuffer: any[];
+  private prebuffer: CmdArgs[][];
   private buffer: ArrayBuffer | null;
   constructor() {
     this.prebuffer = [];
@@ -103,7 +104,7 @@ export class CommandBuffer {
       bytesize += types.I32;
 
       const command = this.prebuffer[i];
-      const commandCode = command[0];
+      const commandCode = command[0] as string;
       const signature = COMMANDS[commandCode];
       if (!signature) {
         console.error("CommandBuffer: Unrecognized command " + commandCode);
@@ -112,10 +113,9 @@ export class CommandBuffer {
       // for each arg:
       if (command.length - 1 !== nArgsExpected) {
         console.error(
-          "BAD COMMAND: EXPECTED " +
-            nArgsExpected +
-            " args and got " +
-            (command.length - 1)
+          `BAD COMMAND: EXPECTED ${nArgsExpected} args and got ${
+            command.length - 1
+          }`
         );
       }
 
@@ -126,17 +126,17 @@ export class CommandBuffer {
           // one int32 for string length
           bytesize += 4;
           // followed by one byte per char.
-          bytesize += command[j + 1].length;
+          bytesize += (command[j + 1] as string).length;
         } else if (argtype === "F32A") {
           // one int32 for array length
           bytesize += 4;
           // followed by 4 bytes per float in the array
-          bytesize += 4 * command[j + 1].length;
+          bytesize += 4 * (command[j + 1] as number[]).length;
         } else if (argtype === "I32A") {
           // one int32 for array length
           bytesize += 4;
           // followed by 4 bytes per int32 in the array
-          bytesize += 4 * command[j + 1].length;
+          bytesize += 4 * (command[j + 1] as number[]).length;
         } else {
           bytesize += types[argtype];
         }
@@ -149,7 +149,7 @@ export class CommandBuffer {
     const LITTLE_ENDIAN = true;
     for (let i = 0; i < this.prebuffer.length; ++i) {
       const cmd = this.prebuffer[i];
-      const commandCode = cmd[0];
+      const commandCode = cmd[0] as string;
       const signature = COMMANDS[commandCode];
       const nArgsExpected = signature.length - 1;
 
@@ -161,38 +161,44 @@ export class CommandBuffer {
         const argtype = signature[j + 1];
         switch (argtype) {
           case "S":
-            const str = cmd[j + 1];
-            dataview.setInt32(offset, str.length);
-            offset += 4;
-            for (let k = 0; k < str.length; ++k) {
-              dataview.setUint8(offset, str.charCodeAt(k));
-              offset += 1;
+            {
+              const str = cmd[j + 1] as string;
+              dataview.setInt32(offset, str.length);
+              offset += 4;
+              for (let k = 0; k < str.length; ++k) {
+                dataview.setUint8(offset, str.charCodeAt(k));
+                offset += 1;
+              }
             }
             break;
           case "F32":
-            dataview.setFloat32(offset, cmd[j + 1], LITTLE_ENDIAN);
+            dataview.setFloat32(offset, cmd[j + 1] as number, LITTLE_ENDIAN);
             offset += 4;
             break;
           case "I32":
-            dataview.setInt32(offset, cmd[j + 1]);
+            dataview.setInt32(offset, cmd[j + 1] as number);
             offset += 4;
             break;
           case "F32A":
-            const flist = cmd[j + 1];
-            dataview.setInt32(offset, flist.length);
-            offset += 4;
-            for (let k = 0; k < flist.length; ++k) {
-              dataview.setFloat32(offset, flist[k], LITTLE_ENDIAN);
+            {
+              const flist = cmd[j + 1] as number[];
+              dataview.setInt32(offset, flist.length);
               offset += 4;
+              for (let k = 0; k < flist.length; ++k) {
+                dataview.setFloat32(offset, flist[k], LITTLE_ENDIAN);
+                offset += 4;
+              }
             }
             break;
           case "I32A":
-            const ilist = cmd[j + 1];
-            dataview.setInt32(offset, ilist.length);
-            offset += 4;
-            for (let k = 0; k < ilist.length; ++k) {
-              dataview.setInt32(offset, ilist[k], LITTLE_ENDIAN);
+            {
+              const ilist = cmd[j + 1] as number[];
+              dataview.setInt32(offset, ilist.length);
               offset += 4;
+              for (let k = 0; k < ilist.length; ++k) {
+                dataview.setInt32(offset, ilist[k], LITTLE_ENDIAN);
+                offset += 4;
+              }
             }
             break;
         }
@@ -204,9 +210,13 @@ export class CommandBuffer {
 
   // commands are added by command code string name followed by appropriate
   // signature args.
-  addCommand(...args: unknown[]) {
+  addCommand(...args: CmdArgs[]) {
     //const args = [].slice.call(arguments);
     // TODO: check against signature!!!
     this.prebuffer.push([...args]);
+  }
+
+  length(): number {
+    return this.prebuffer.length;
   }
 }

@@ -6,6 +6,7 @@
 #include <string.h> //for memset etc
 
 #include <algorithm>
+#include <chrono>
 #include <sstream>
 #include <string>
 
@@ -83,4 +84,36 @@ public:
   float m_Durations[MAX_NO_DURATIONS];
   int m_NoDurations;
   float m_FilteredDuration;
+};
+
+// on main thread, have one clock instance that calls tick on every iteration of main event loop
+// then call mainwindow.gesture.setTimeIncrement(clock.timeIncrement);
+struct Clock
+{
+  Clock()
+    : time(0)
+    , timeIncrement(0)
+  {
+    time = Clock::now();
+  }
+
+  static double now()
+  {
+    auto currentDateTime = std::chrono::system_clock::now();
+    const auto ms =
+      std::chrono::time_point_cast<std::chrono::milliseconds>(currentDateTime).time_since_epoch().count();
+    return ms / 1000.0;
+  }
+
+  double tick()
+  {
+    double currentTime = Clock::now();
+
+    timeIncrement = currentTime - time;
+    time = currentTime;
+    return timeIncrement;
+  }
+
+  double time;
+  double timeIncrement;
 };

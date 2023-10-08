@@ -1,4 +1,4 @@
-AGAVE : Advanced GPU Accelerated Volume Explorer
+# AGAVE : Advanced GPU Accelerated Volume Explorer
 
 AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-TIFF and Zeiss .czi files.
 
@@ -8,7 +8,7 @@ The code is currently organized into a few main sections:
 2. renderlib is the code responsible for dealing with volume images and rendering them
 3. agave_pyclient provides a Python package for sending commands to AGAVE when run in server mode
 
-How to build from source:
+## How to build from source:
 
 After cloning this repo, initialize the submodules, which contain a couple of dependency libraries:
 
@@ -16,10 +16,11 @@ After cloning this repo, initialize the submodules, which contain a couple of de
 git submodule update --init
 ```
 
-For WINDOWS:
+### For WINDOWS:
+
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2022 x64 Native Tools Command Prompt"
 
-tensorstore requires:
+**tensorstore** requires:
 
 - Python 3.7 or later
 - CMake 3.24 or later
@@ -27,7 +28,13 @@ tensorstore requires:
 - NASM, for building libjpeg-turbo, libaom, and dav1d from source (default). Must be in PATH.Not required if -DTENSORSTORE*USE_SYSTEM*{JPEG,LIBAOM,DAV1D}=ON is specified.
 - GNU Patch or equivalent. Must be in PATH.
 
-Install Qt LTS 6.5.1.
+A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
+
+```
+choco install strawberryperl nasm patch
+```
+
+**Install Qt LTS 6.5.1.**
 In your favorite Python virtual environment:
 
 ```
@@ -42,6 +49,8 @@ Use vcpkg (must use target triplet x64-windows) to install the following:
 vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
 ```
 
+**Build AGAVE**
+
 ```
 mkdir build
 cd build
@@ -50,10 +59,15 @@ cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visua
 cmake --build .
 ```
 
-For MAC OS: (using homebrew)
+You may need to adjust the vcpkg path depending on your configuration.
+
+If you encounter issues during your build, check that all of your dependencies are installed and try again. You can also build to the INSTALL target with Visual Studio by opening the project solution (`agave.sln`).
+
+### For MAC OS: (using homebrew)
+
+In your favorite Python virtual environment:
 
 ```
-# Install Qt. In your favorite Python virtual environment:
 pip install aqtinstall
 aqt install-qt --outputdir ~/Qt mac desktop 6.5.1 -m qtwebsockets qtimageformats
 export Qt6_DIR=~/Qt/6.5.1/macos
@@ -69,11 +83,11 @@ make
 sudo make install
 ```
 
-For LINUX:
+### For LINUX:
 
 Make sure you have Rust 1.59 or greater installed for the wgpu-native dependency.
 
-Install Qt 5.15.2 in your directory of choice and tell the build where to find it.
+Install Qt 6.5.1 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
 ```
@@ -101,7 +115,9 @@ cmake ..
 make
 ```
 
-Versioned Releases
+If cmake fails please refer to the Dockerfile for a more complete list of Linux dependencies.
+
+## Versioned Releases
 
 Use tbump (https://github.com/your-tools/tbump). See the tbump.toml file which shows all the files that contain necessary version info.
 

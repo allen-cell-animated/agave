@@ -23,8 +23,6 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceSettingsWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Camera.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/CameraController.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/CameraController.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDockWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.cpp"

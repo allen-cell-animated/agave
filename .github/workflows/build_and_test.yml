@@ -150,6 +150,24 @@ jobs:
         with:
           name: agave-win
           path: ./build/agave-win.zip
+
+  lint-and-test-webclient:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - run: |
+          cd webclient
+          npm ci
+          npm run lint
+          npm run typeCheck
+          npm run test --if-present
+
   lint-and-test-pyclient:
     runs-on: ubuntu-latest
     steps:

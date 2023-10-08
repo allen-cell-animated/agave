@@ -3,8 +3,8 @@
 #include "Controls.h"
 #include "Section.h"
 
-#include "renderlib/io/FileReader.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/io/FileReader.h"
 
 #include <QComboBox>
 #include <QDialog>
@@ -36,6 +36,7 @@ public:
   int getMultiscaleLevelIndex() const { return mSelectedLevel; }
 
   QSize sizeHint() const override { return QSize(400, 100); }
+
 private slots:
   void updateScene(int value);
   void updateMultiresolutionLevel(int level);

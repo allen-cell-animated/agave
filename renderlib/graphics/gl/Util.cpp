@@ -159,7 +159,7 @@ void
 RectImage2D::draw(GLuint texture2d)
 {
   _image_shader->bind();
-  check_gl("Bind shader");
+  check_gl("Bind shader for RectImage2D");
 
   _image_shader->setModelViewProjection(glm::mat4(1.0));
 
@@ -314,7 +314,7 @@ void
 BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& color)
 {
   _shader->bind();
-  check_gl("Bind shader");
+  check_gl("Bind shader for bounding box drawable lines");
 
   _shader->setModelViewProjection(transform);
   _shader->setColour(color);
@@ -341,7 +341,7 @@ void
 BoundingBoxDrawable::drawFaces(const glm::mat4& transform, const glm::vec4& color)
 {
   _shader->bind();
-  check_gl("Bind shader");
+  check_gl("Bind shader for bounding box drawable faces");
 
   _shader->setModelViewProjection(transform);
   _shader->setColour(color);
@@ -675,7 +675,6 @@ GLShaderProgram::~GLShaderProgram()
     glDeleteProgram(m_program);
   }
 }
-  
 
 void
 GLShaderProgram::addShader(GLShader* shader)
@@ -786,4 +785,44 @@ void
 GLShaderProgram::release()
 {
   glUseProgram(0);
+}
+
+void
+GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
+                                       std::string const& fragmentShaderSource,
+                                       GLShader** outVShader,
+                                       GLShader** outFShader)
+{
+  auto vshader = new GLShader(GL_VERTEX_SHADER);
+  vshader->compileSourceCode(vertexShaderSource.c_str());
+
+  if (!vshader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile vertex shader\n" << vshader->log();
+  }
+
+  auto fshader = new GLShader(GL_FRAGMENT_SHADER);
+  fshader->compileSourceCode(fragmentShaderSource.c_str());
+
+  if (!fshader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile fragment shader\n" << fshader->log();
+  }
+
+  addShader(vshader);
+  addShader(fshader);
+  link();
+
+  if (!isLinked()) {
+    LOG_ERROR << "GLGuiShader: Failed to link shader program\n" << log();
+  }
+
+  if (outVShader != nullptr) {
+    *outVShader = vshader;
+  } else {
+    delete vshader;
+  }
+  if (outFShader != nullptr) {
+    *outFShader = fshader;
+  } else {
+    delete fshader;
+  }
 }

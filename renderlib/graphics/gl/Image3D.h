@@ -35,7 +35,7 @@ public:
 
   void create();
 
-  void render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings, float devicePixelRatio);
+  void render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings);
 
   void prepareTexture(Scene& s);
 
