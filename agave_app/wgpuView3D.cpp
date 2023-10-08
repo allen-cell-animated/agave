@@ -197,38 +197,37 @@ void
 WgpuView3D::initCameraFromImage(Scene* scene)
 {
   // Tell the camera about the volume's bounding box
-  m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
-  m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
   // reposition to face image
-  m_CCamera.SetViewMode(ViewModeFront);
+  m_viewerWindow->m_CCamera.SetViewMode(ViewModeFront);
 
-  RenderSettings& rs = *m_renderSettings;
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 WgpuView3D::toggleCameraProjection()
 {
-  ProjectionMode p = m_CCamera.m_Projection;
-  m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
+  ProjectionMode p = m_viewerWindow->m_CCamera.m_Projection;
+  m_viewerWindow->m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
 
-  RenderSettings& rs = *m_renderSettings;
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
 WgpuView3D::onNewImage(Scene* scene)
 {
-  m_renderer->setScene(scene);
+  m_viewerWindow->m_renderer->setScene(scene);
   // costly teardown and rebuild.
-  this->OnUpdateRenderer(m_rendererType);
+  this->OnUpdateRenderer(m_viewerWindow->m_rendererType);
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
 }
 
 wgpuCanvas::~wgpuCanvas()
 {
-  wgpuSwapChainRelease(m_swapChain);
   wgpuSurfaceRelease(m_surface);
 }
 
@@ -268,34 +267,37 @@ wgpuCanvas::initializeGL()
   WGPUDeviceDescriptor deviceDescriptor = {
     .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
     .label = "AGAVE wgpu device",
-    .requiredFeaturesCount = 0,
+    .requiredFeatureCount = 0,
     .requiredLimits = nullptr, // & requiredLimits,
     .defaultQueue =
       WGPUQueueDescriptor{
         .nextInChain = NULL,
         .label = "AGAVE default wgpu queue",
       },
+    .deviceLostCallback = handle_device_lost,
+    .deviceLostUserdata = NULL,
   };
 
   // creates/ fills in m_device!
   wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&m_device);
 
   wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
-  wgpuSetDeviceLostCallback(m_device, handle_device_lost, NULL);
 
   // set up swap chain
   m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
-  WGPUSwapChainDescriptor swapChainDescriptor = {
+  WGPUSurfaceConfiguration surfaceConfig = {
     .nextInChain = NULL,
-    .label = "Swap Chain",
-    .usage = WGPUTextureUsage_RenderAttachment,
+    .device = m_device,
     .format = m_swapChainFormat,
+    .usage = WGPUTextureUsage_RenderAttachment,
+    .viewFormatCount = 0,
+    .viewFormats = NULL,
+    .alphaMode = WGPUCompositeAlphaMode_Auto,
     .width = (uint32_t)width(),
     .height = (uint32_t)height(),
     .presentMode = WGPUPresentMode_Fifo,
   };
-  // need to do this on resize
-  m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+  wgpuSurfaceConfigure(m_surface, &surfaceConfig);
 
   // The WgpuView3D owns one CScene
 
@@ -387,30 +389,29 @@ wgpuCanvas::render()
   if (!win || !win->isExposed()) {
     return;
   }
-  WGPUTextureView nextTexture = 0;
+  WGPUSurfaceTexture nextTexture;
   int prevWidth = 1;
   for (int attempt = 0; attempt < 2; attempt++) {
     if (prevWidth == 0) {
       // try one time to re-create swap chain
-      WGPUSwapChainDescriptor swapChainDescriptor = {
+      WGPUSurfaceConfiguration surfaceConfig = {
         .nextInChain = NULL,
-        .label = "Swap Chain",
-        .usage = WGPUTextureUsage_RenderAttachment,
+        .device = m_device,
         .format = m_swapChainFormat,
+        .usage = WGPUTextureUsage_RenderAttachment,
+        .viewFormatCount = 0,
+        .viewFormats = NULL,
+        .alphaMode = WGPUCompositeAlphaMode_Auto,
         .width = (uint32_t)width(),
         .height = (uint32_t)height(),
         .presentMode = WGPUPresentMode_Fifo,
       };
-      if (m_swapChain) {
-        wgpuSwapChainRelease(m_swapChain);
-        m_swapChain = 0;
-      }
-      m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+      wgpuSurfaceConfigure(m_surface, &surfaceConfig);
     }
 
-    nextTexture = wgpuSwapChainGetCurrentTextureView(m_swapChain);
+    wgpuSurfaceGetCurrentTexture(m_surface, &nextTexture);
 
-    if (attempt == 0 && !nextTexture) {
+    if (attempt == 0 && nextTexture.status != WGPUSurfaceGetCurrentTextureStatus_Success) {
       LOG_WARNING << "wgpuSwapChainGetCurrentTextureView() failed; trying to create a new swap chain...";
       prevWidth = 0;
       continue;
@@ -419,26 +420,29 @@ wgpuCanvas::render()
     break;
   }
 
-  if (!nextTexture) {
+  if (!nextTexture.status != WGPUSurfaceGetCurrentTextureStatus_Success) {
     LOG_ERROR << "Cannot acquire next swap chain texture";
     return;
   }
 
-  invokeUserPaint(nextTexture);
+  invokeUserPaint();
 
-  wgpuSwapChainPresent(m_swapChain);
+  wgpuSurfacePresent(m_surface);
 }
 
 void
-wgpuCanvas::invokeUserPaint(WGPUTextureView nextTexture)
+wgpuCanvas::invokeUserPaint()
 {
-  paintGL(nextTexture);
+  paintGL();
   // flush? (queue submit?)
 }
 
 void
-wgpuCanvas::paintGL(WGPUTextureView nextTexture)
+wgpuCanvas::paintGL()
 {
+  if (!m_isEnabled) {
+    return;
+  }
   WGPUCommandEncoderDescriptor commandEncoderDescriptor = { .label = "Command Encoder" };
   WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(m_device, &commandEncoderDescriptor);
   WGPURenderPassColorAttachment renderPassColorAttachment = {
@@ -461,7 +465,6 @@ wgpuCanvas::paintGL(WGPUTextureView nextTexture)
     .colorAttachments = &renderPassColorAttachment,
     .depthStencilAttachment = NULL,
     .occlusionQuerySet = 0,
-    .timestampWriteCount = 0,
     .timestampWrites = NULL,
   };
   WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
@@ -477,12 +480,7 @@ wgpuCanvas::paintGL(WGPUTextureView nextTexture)
   wgpuQueueSubmit(queue, 1, &cmdBuffer);
 
   // wgpuCommandEncoderRelease(encoder);
-
-  if (m_renderer) {
-    m_CCamera.Update();
-
-    m_renderer->render(m_CCamera);
-  }
+  m_viewerWindow->redraw();
 }
 
 void
@@ -498,11 +496,9 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
     return;
   }
 
+  float dpr = devicePixelRatioF();
   int w = event->size().width();
   int h = event->size().height();
-
-  m_CCamera.m_Film.m_Resolution.SetResX(w);
-  m_CCamera.m_Film.m_Resolution.SetResY(h);
 
   // (if w or h actually changed...)
   WGPUSwapChainDescriptor swapChainDescriptor = {
@@ -510,8 +506,8 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
     .label = "Swap Chain",
     .usage = WGPUTextureUsage_RenderAttachment,
     .format = m_swapChainFormat,
-    .width = (uint32_t)w,
-    .height = (uint32_t)h,
+    .width = (uint32_t)(w * dpr),
+    .height = (uint32_t)(h * dpr),
     .presentMode = WGPUPresentMode_Fifo,
   };
   if (m_swapChain) {
@@ -520,9 +516,7 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
   }
   m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
 
-  if (m_renderer) {
-    m_renderer->resize(w, h, devicePixelRatioF());
-  }
+  m_viewerWindow->setSize(w * dpr, h * dpr);
 
   // update();
   //   invokeUserPaint();
@@ -531,17 +525,33 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
 void
 wgpuCanvas::mousePressEvent(QMouseEvent* event)
 {
-  m_lastPos = event->pos();
-  m_cameraController.m_OldPos[0] = m_lastPos.x();
-  m_cameraController.m_OldPos[1] = m_lastPos.y();
+  if (!isEnabled()) {
+    return;
+  }
+
+  double time = Clock::now();
+  const float dpr = devicePixelRatioF();
+  m_viewerWindow->gesture.input.setButtonEvent(getButton(event),
+                                               Gesture::Input::Action::kPress,
+                                               getGestureMods(event),
+                                               glm::vec2(event->x() * dpr, event->y() * dpr),
+                                               time);
 }
 
 void
 wgpuCanvas::mouseReleaseEvent(QMouseEvent* event)
 {
-  m_lastPos = event->pos();
-  m_cameraController.m_OldPos[0] = m_lastPos.x();
-  m_cameraController.m_OldPos[1] = m_lastPos.y();
+  if (!isEnabled()) {
+    return;
+  }
+
+  double time = Clock::now();
+  const float dpr = devicePixelRatioF();
+  m_viewerWindow->gesture.input.setButtonEvent(getButton(event),
+                                               Gesture::Input::Action::kRelease,
+                                               getGestureMods(event),
+                                               glm::vec2(event->x() * dpr, event->y() * dpr),
+                                               time);
 }
 
 // No switch default to avoid -Wunreachable-code errors.
@@ -552,25 +562,15 @@ wgpuCanvas::mouseReleaseEvent(QMouseEvent* event)
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #endif
 
-// x, y in 0..1 relative to screen
-static glm::vec3
-get_arcball_vector(float xndc, float yndc)
-{
-  glm::vec3 P = glm::vec3(1.0 * xndc * 2 - 1.0, 1.0 * yndc * 2 - 1.0, 0);
-  P.y = -P.y;
-  float OP_squared = P.x * P.x + P.y * P.y;
-  if (OP_squared <= 1 * 1)
-    P.z = sqrt(1 * 1 - OP_squared); // Pythagore
-  else
-    P = glm::normalize(P); // nearest point
-  return P;
-}
-
 void
 wgpuCanvas::mouseMoveEvent(QMouseEvent* event)
 {
-  m_cameraController.OnMouseMove(event);
-  m_lastPos = event->pos();
+  if (!isEnabled()) {
+    return;
+  }
+  const float dpr = devicePixelRatioF();
+
+  m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x() * dpr, event->y() * dpr));
 }
 
 #ifdef __GNUC__
@@ -592,37 +592,37 @@ void
 WgpuView3D::OnUpdateCamera()
 {
   //	QMutexLocker Locker(&gSceneMutex);
-  RenderSettings& rs = *m_renderSettings;
-  m_CCamera.m_Film.m_Exposure = 1.0f - m_qcamera->GetFilm().GetExposure();
-  m_CCamera.m_Film.m_ExposureIterations = m_qcamera->GetFilm().GetExposureIterations();
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  m_viewerWindow->m_CCamera.m_Film.m_Exposure = 1.0f - m_qcamera->GetFilm().GetExposure();
+  m_viewerWindow->m_CCamera.m_Film.m_ExposureIterations = m_qcamera->GetFilm().GetExposureIterations();
 
   if (m_qcamera->GetFilm().IsDirty()) {
     const int FilmWidth = m_qcamera->GetFilm().GetWidth();
     const int FilmHeight = m_qcamera->GetFilm().GetHeight();
 
-    m_CCamera.m_Film.m_Resolution.SetResX(FilmWidth);
-    m_CCamera.m_Film.m_Resolution.SetResY(FilmHeight);
-    m_CCamera.Update();
+    m_viewerWindow->m_CCamera.m_Film.m_Resolution.SetResX(FilmWidth);
+    m_viewerWindow->m_CCamera.m_Film.m_Resolution.SetResY(FilmHeight);
+    m_viewerWindow->m_CCamera.Update();
     m_qcamera->GetFilm().UnDirty();
 
-    rs.m_DirtyFlags.SetFlag(FilmResolutionDirty);
+    rs->m_DirtyFlags.SetFlag(FilmResolutionDirty);
   }
 
-  m_CCamera.Update();
+  m_viewerWindow->m_CCamera.Update();
 
   // Aperture
-  m_CCamera.m_Aperture.m_Size = m_qcamera->GetAperture().GetSize();
+  m_viewerWindow->m_CCamera.m_Aperture.m_Size = m_qcamera->GetAperture().GetSize();
 
   // Projection
-  m_CCamera.m_FovV = m_qcamera->GetProjection().GetFieldOfView();
+  m_viewerWindow->m_CCamera.m_FovV = m_qcamera->GetProjection().GetFieldOfView();
 
   // Focus
-  m_CCamera.m_Focus.m_Type = (Focus::EType)m_qcamera->GetFocus().GetType();
-  m_CCamera.m_Focus.m_FocalDistance = m_qcamera->GetFocus().GetFocalDistance();
+  m_viewerWindow->m_CCamera.m_Focus.m_Type = (Focus::EType)m_qcamera->GetFocus().GetType();
+  m_viewerWindow->m_CCamera.m_Focus.m_FocalDistance = m_qcamera->GetFocus().GetFocalDistance();
 
-  rs.m_DenoiseParams.m_Enabled = m_qcamera->GetFilm().GetNoiseReduction();
+  rs->m_DenoiseParams.m_Enabled = m_qcamera->GetFilm().GetNoiseReduction();
 
-  rs.m_DirtyFlags.SetFlag(CameraDirty);
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
 WgpuView3D::OnUpdateQRenderSettings(void)

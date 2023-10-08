@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include "CameraController.h"
 #include "glm.h"
-#include "renderlib/CCamera.h"
 
+#include "renderlib/ViewerWindow.h"
+#include "renderlib/gesture/gesture.h"
 #include "renderlib_wgpu/renderlib_wgpu.h"
 
 #include <QElapsedTimer>
@@ -60,7 +60,7 @@ protected:
   void initializeGL();
 
   /// Render the scene with the current view settings.
-  void paintGL(WGPUTextureView nextTexture);
+  void paintGL();
 
   void resizeEvent(QResizeEvent* event);
   void paintEvent(QPaintEvent* event);
@@ -77,8 +77,7 @@ private:
   bool m_initialized;
   bool m_fakeHidden;
   void render();
-  void invokeUserPaint(WGPUTextureView nextTexture);
-  WGPUSwapChain m_swapChain;
+  void invokeUserPaint();
   WGPUTextureFormat m_swapChainFormat;
   WGPUSurface m_surface;
   WGPUDevice m_device;
@@ -112,7 +111,7 @@ public:
 
   void onNewImage(Scene* scene);
 
-  const CCamera& getCamera() { return m_CCamera; }
+  const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
 
   void fromViewerState(const Serialize::ViewerState& s);
 
@@ -120,7 +119,7 @@ public:
   QImage captureQimage();
 
   // DANGER this must NOT outlive the GLView3D
-  IRenderWindow* borrowRenderer() { return m_renderer.get(); }
+  IRenderWindow* borrowRenderer() { return m_viewerWindow->m_renderer.get(); }
 
   void pauseRenderLoop();
   void restartRenderLoop();
@@ -174,12 +173,8 @@ protected:
 private:
   wgpuCanvas* m_canvas;
 
-  CCamera m_CCamera;
-  CameraController m_cameraController;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
-  RenderSettings* m_renderSettings;
 
-  std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
+  ViewerWindow* m_viewerWindow;
 };
