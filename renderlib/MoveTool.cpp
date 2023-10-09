@@ -83,6 +83,11 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
 
     LinearSpace3f ref; //< motion in reference space (world for now)
+    if (m_localSpace) {
+      ref.vx = xfmVector(origins.currentReference(scene), ref.vx); // glm::vec3(1, 0, 0);
+      ref.vy = xfmVector(origins.currentReference(scene), ref.vy); // glm::vec3(0, 1, 0);
+      ref.vz = xfmVector(origins.currentReference(scene), ref.vz); // glm::vec3(0, 0, 1);
+    }
 
     // Here we compute the effect of the cursor drag motion by projecting
     // the ray extending from the cursor position into the screen. We
@@ -181,6 +186,11 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
   AffineSpace3f axis;
   axis.p = target.p;
+  if (m_localSpace) {
+    axis.l.vx = xfmVector(origins.currentReference(scene), axis.l.vx); // glm::vec3(1, 0, 0);
+    axis.l.vy = xfmVector(origins.currentReference(scene), axis.l.vy); // glm::vec3(0, 1, 0);
+    axis.l.vz = xfmVector(origins.currentReference(scene), axis.l.vz); // glm::vec3(0, 0, 1);
+  }
 
   // Lambda to draw one axis of the manipulator, a wire-frame arrow.
   auto drawAxis = [&](const glm::vec3& dir,
