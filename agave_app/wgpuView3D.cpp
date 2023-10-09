@@ -390,59 +390,71 @@ wgpuCanvas::render()
     return;
   }
   WGPUSurfaceTexture nextTexture;
-  int prevWidth = 1;
-  for (int attempt = 0; attempt < 2; attempt++) {
-    if (prevWidth == 0) {
-      // try one time to re-create swap chain
-      WGPUSurfaceConfiguration surfaceConfig = {
-        .nextInChain = NULL,
-        .device = m_device,
-        .format = m_swapChainFormat,
-        .usage = WGPUTextureUsage_RenderAttachment,
-        .viewFormatCount = 0,
-        .viewFormats = NULL,
-        .alphaMode = WGPUCompositeAlphaMode_Auto,
-        .width = (uint32_t)width(),
-        .height = (uint32_t)height(),
-        .presentMode = WGPUPresentMode_Fifo,
-      };
-      wgpuSurfaceConfigure(m_surface, &surfaceConfig);
+
+  wgpuSurfaceGetCurrentTexture(m_surface, &nextTexture);
+  switch (nextTexture.status) {
+    case WGPUSurfaceGetCurrentTextureStatus_Success:
+      // All good, could check for `surface_texture.suboptimal` here.
+      break;
+    case WGPUSurfaceGetCurrentTextureStatus_Timeout:
+    case WGPUSurfaceGetCurrentTextureStatus_Outdated:
+    case WGPUSurfaceGetCurrentTextureStatus_Lost: {
+      // Skip this frame, and re-configure surface.
+      wgpuTextureRelease(nextTexture.texture);
+      if (width() != 0 && height() != 0) {
+        WGPUSurfaceConfiguration surfaceConfig = {
+          .nextInChain = NULL,
+          .device = m_device,
+          .format = m_swapChainFormat,
+          .usage = WGPUTextureUsage_RenderAttachment,
+          .viewFormatCount = 0,
+          .viewFormats = NULL,
+          .alphaMode = WGPUCompositeAlphaMode_Auto,
+          .width = (uint32_t)width(),
+          .height = (uint32_t)height(),
+          .presentMode = WGPUPresentMode_Fifo,
+        };
+        wgpuSurfaceConfigure(m_surface, &surfaceConfig);
+      }
+      return;
     }
-
-    wgpuSurfaceGetCurrentTexture(m_surface, &nextTexture);
-
-    if (attempt == 0 && nextTexture.status != WGPUSurfaceGetCurrentTextureStatus_Success) {
-      LOG_WARNING << "wgpuSwapChainGetCurrentTextureView() failed; trying to create a new swap chain...";
-      prevWidth = 0;
-      continue;
-    }
-
-    break;
+    case WGPUSurfaceGetCurrentTextureStatus_OutOfMemory:
+    case WGPUSurfaceGetCurrentTextureStatus_DeviceLost:
+    case WGPUSurfaceGetCurrentTextureStatus_Force32:
+      // Fatal error
+      LOG_ERROR << "get_current_texture status=" << nextTexture.status;
+      abort();
   }
+  assert(nextTexture.texture);
 
-  if (!nextTexture.status != WGPUSurfaceGetCurrentTextureStatus_Success) {
-    LOG_ERROR << "Cannot acquire next swap chain texture";
-    return;
-  }
+  WGPUTextureView frame = wgpuTextureCreateView(nextTexture.texture, NULL);
+  assert(frame);
 
-  invokeUserPaint();
+  invokeUserPaint(frame);
 
   wgpuSurfacePresent(m_surface);
+
+  //  wgpuCommandBufferRelease(command_buffer);
+  //  wgpuRenderPassEncoderRelease(render_pass_encoder);
+  //  wgpuCommandEncoderRelease(command_encoder);
+  wgpuTextureViewRelease(frame);
+  wgpuTextureRelease(nextTexture.texture);
 }
 
 void
-wgpuCanvas::invokeUserPaint()
+wgpuCanvas::invokeUserPaint(WGPUTextureView nextTexture)
 {
-  paintGL();
+  paintGL(nextTexture);
   // flush? (queue submit?)
 }
 
 void
-wgpuCanvas::paintGL()
+wgpuCanvas::paintGL(WGPUTextureView nextTexture)
 {
   if (!m_isEnabled) {
     return;
   }
+
   WGPUCommandEncoderDescriptor commandEncoderDescriptor = { .label = "Command Encoder" };
   WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(m_device, &commandEncoderDescriptor);
   WGPURenderPassColorAttachment renderPassColorAttachment = {
@@ -472,7 +484,6 @@ wgpuCanvas::paintGL()
   // wgpuRenderPassEncoderSetPipeline(renderPass, pipeline);
   // wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
   wgpuRenderPassEncoderEnd(renderPass);
-  wgpuTextureViewRelease(nextTexture);
 
   WGPUQueue queue = wgpuDeviceGetQueue(m_device);
   WGPUCommandBufferDescriptor commandBufferDescriptor = { .label = NULL };
@@ -501,20 +512,19 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
   int h = event->size().height();
 
   // (if w or h actually changed...)
-  WGPUSwapChainDescriptor swapChainDescriptor = {
+  WGPUSurfaceConfiguration surfaceConfig = {
     .nextInChain = NULL,
-    .label = "Swap Chain",
-    .usage = WGPUTextureUsage_RenderAttachment,
+    .device = m_device,
     .format = m_swapChainFormat,
-    .width = (uint32_t)(w * dpr),
-    .height = (uint32_t)(h * dpr),
+    .usage = WGPUTextureUsage_RenderAttachment,
+    .viewFormatCount = 0,
+    .viewFormats = NULL,
+    .alphaMode = WGPUCompositeAlphaMode_Auto,
+    .width = (uint32_t)width(),
+    .height = (uint32_t)height(),
     .presentMode = WGPUPresentMode_Fifo,
   };
-  if (m_swapChain) {
-    wgpuSwapChainRelease(m_swapChain); // (drop old swap chain)
-    m_swapChain = 0;
-  }
-  m_swapChain = wgpuDeviceCreateSwapChain(m_device, m_surface, &swapChainDescriptor);
+  wgpuSurfaceConfigure(m_surface, &surfaceConfig);
 
   m_viewerWindow->setSize(w * dpr, h * dpr);
 
@@ -649,36 +659,12 @@ void
 WgpuView3D::OnUpdateRenderer(int rendererType)
 {
 #if 0
-  // clean up old renderer.
-  if (m_renderer) {
-    m_renderer->cleanUpResources();
+  if (!isEnabled()) {
+    LOG_ERROR << "attempted to update GLView3D renderer when view is disabled";
+    return;
   }
 
-  Scene* sc = m_renderer->scene();
-
-  switch (rendererType) {
-    case 1:
-      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-      break;
-    case 2:
-      LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
-      m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-      break;
-    default:
-      LOG_DEBUG << "Set OpenGL single pass Renderer";
-      m_renderer.reset(new RenderGL(m_renderSettings));
-  };
-  m_rendererType = rendererType;
-
-  QSize newsize = size();
-  // need to update the scene in QAppearanceSettingsWidget.
-  m_renderer->setScene(sc);
-  m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
-
-  m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  m_viewerWindow->setRenderer(rendererType);
 
   emit ChangedRenderer();
 #endif
