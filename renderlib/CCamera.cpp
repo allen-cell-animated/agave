@@ -29,16 +29,6 @@ CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPositio
   newPosition = newTarget + distance;
 }
 
-// keep target constant and compute new eye and up vectors
-void
-trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye, glm::vec3& up)
-{
-  glm::quat q = trackball(xRadians, yRadians, camera.m_From - camera.m_Target, camera.m_Up, camera.m_U);
-  glm::vec3 _eye = q * eye;
-  up = q * camera.m_Up;
-  eye = _eye + camera.m_Target;
-}
-
 glm::vec3
 cameraTrack(glm::vec2 drag, CCamera& camera, const glm::vec2 viewportSize)
 {
