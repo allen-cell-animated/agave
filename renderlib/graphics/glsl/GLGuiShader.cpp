@@ -41,6 +41,8 @@ static const char* fragment_shader_text =
     uniform sampler2D Texture;
     out vec4 outputF;
 
+    const float EPSILON = 0.1;
+
     void main()
     {
         vec4 result = Frag_color;
@@ -52,7 +54,9 @@ static const char* fragment_shader_text =
 
         // Gesture geometry handshake: any uv value below -64 means
         // no texture lookup. Check VertsCode::k_noTexture
-        if (picking == 0 && Frag_UV.x > -63.0) {
+        // (add an epsilon to fix some fp errors. 
+        // TODO check to see if highp would have helped)
+        if (picking == 0 && Frag_UV.x > -64+EPSILON) {
           result *= texture(Texture, Frag_UV.xy);
         }
 
