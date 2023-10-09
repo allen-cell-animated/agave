@@ -204,17 +204,10 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
       cameraEdit = false;
     }
 
-    glm::vec3 rotated_up = camera.m_Up;
-    glm::vec3 rotated_v = camera.m_From - camera.m_Target;
     glm::vec3 v = camera.m_From - camera.m_Target;
-    glm::vec3 newEye, newUp;
-
-    glm::quat q = trackball(drag.x, -drag.y, camera.m_From - camera.m_Target, camera.m_Up, camera.m_U);
-    newUp = q * camera.m_Up;
-    newEye = q * rotated_v + camera.m_Target;
-
-    rotated_v = newEye - camera.m_Target;
-    rotated_up = newUp;
+    glm::quat q = trackball(drag.x, -drag.y, v, camera.m_Up, camera.m_U);
+    glm::vec3 rotated_up = q * camera.m_Up;
+    glm::vec3 rotated_v = q * v;
 
     if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
       cameraMod.position = rotated_v - v;
