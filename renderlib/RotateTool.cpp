@@ -175,16 +175,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         // scale pixels to radians of rotation (TODO)
         float xRadians = -button.drag.x * dragScale * glm::two_pi<float>();
         float yRadians = button.drag.y * dragScale * glm::two_pi<float>();
-        angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
-        glm::vec3 objectUpDirection = camFrame.vy * yRadians;
-        glm::vec3 objectSidewaysDirection = camFrame.vx * xRadians;
-
-        glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
-        glm::vec3 eye = l - p;
-        glm::vec3 axis = glm::normalize(glm::cross(moveDirection, eye));
-
-        motion = glm::angleAxis(angle, axis);
-
+        motion = trackball(xRadians, yRadians, l - p, camFrame.vy, camFrame.vx);
         break;
     }
 

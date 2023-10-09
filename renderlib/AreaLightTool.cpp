@@ -24,23 +24,16 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
   float opacity = 1.0f;
   uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
   gesture.graphics.addCommand(GL_LINES);
+
+  // draw a square around the area light
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code),
                            Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
   gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
   gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
   gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
 
-  // add translucent quads too?
+  // draw lines from the middle of the light to the target
   opacity = 0.3f;
-  gesture.graphics.addCommand(GL_TRIANGLES);
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
-
-  gesture.graphics.addCommand(GL_LINES);
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v0 * 0.1f, color, opacity, code),
                            Gesture::Graphics::VertsCode(t + v0 * 0.1f, color, opacity, code));
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v1 * 0.1f, color, opacity, code),
@@ -51,9 +44,17 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
                            Gesture::Graphics::VertsCode(t + v3 * 0.1f, color, opacity, code));
 
   gesture.graphics.addCommand(GL_TRIANGLES);
+  // fill in the rectangle of the light
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
+
+  // Add a small arrowhead pointing at the target point
   // The cone
   gesture.drawCone(t, l.m_U * scale * 0.2f, l.m_V * scale * 0.2f, l.m_N * (scale * 0.2f), 12, color, opacity, code);
-
   // The base of the cone (as a flat cone)
   gesture.drawCone(t, l.m_U * scale * 0.2f, l.m_V * scale * 0.2f, glm::vec3(0, 0, 0), 12, color, opacity, code);
 }
