@@ -138,9 +138,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     LinearSpace3f rotationFrame;
     // if local space, then rotationFrame should use object's current rotation!
     if (m_localSpace) {
-      rotationFrame.vx = m_rotation * rotationFrame.vx; // glm::vec3(1, 0, 0);
-      rotationFrame.vy = m_rotation * rotationFrame.vy; // glm::vec3(0, 1, 0);
-      rotationFrame.vz = m_rotation * rotationFrame.vz; // glm::vec3(0, 0, 1);
+      rotationFrame = origins.currentReference(scene).l;
     }
 
     float angle = 0.0f;
@@ -217,7 +215,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   if (origins.empty()) {
     origins.update(scene);
   }
-  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+  AffineSpace3f target = origins.currentReference(scene);
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
   LinearSpace3f camFrame = scene.camera.getFrame();

@@ -67,6 +67,9 @@ struct ManipulationTool
   // Draw command are accumulated in buffers and executed before end of frame.
   virtual void draw(SceneView& scene, Gesture& gesture) {}
 
+  // allow any tool to work in local/object space or world space
+  virtual void setUseLocalSpace(bool localSpace) {}
+
   // During action execution, an active manipulator can display some message to the
   // app info line.
   static void displayInfoLine(const char*);

@@ -84,9 +84,7 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
 
     LinearSpace3f ref; //< motion in reference space (world for now)
     if (m_localSpace) {
-      ref.vx = xfmVector(origins.currentReference(scene), ref.vx); // glm::vec3(1, 0, 0);
-      ref.vy = xfmVector(origins.currentReference(scene), ref.vy); // glm::vec3(0, 1, 0);
-      ref.vz = xfmVector(origins.currentReference(scene), ref.vz); // glm::vec3(0, 0, 1);
+      ref = origins.currentReference(scene).l;
     }
 
     // Here we compute the effect of the cursor drag motion by projecting
@@ -173,7 +171,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   if (origins.empty()) {
     origins.update(scene);
   }
-  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+  AffineSpace3f target = origins.currentReference(scene);
   // Append the current translation to the manipulator position.
   // This assumes that origins.currentReference is NOT translated
   target.p += m_translation;
@@ -187,9 +185,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   AffineSpace3f axis;
   axis.p = target.p;
   if (m_localSpace) {
-    axis.l.vx = xfmVector(origins.currentReference(scene), axis.l.vx); // glm::vec3(1, 0, 0);
-    axis.l.vy = xfmVector(origins.currentReference(scene), axis.l.vy); // glm::vec3(0, 1, 0);
-    axis.l.vz = xfmVector(origins.currentReference(scene), axis.l.vz); // glm::vec3(0, 0, 1);
+    axis.l = origins.currentReference(scene).l;
   }
 
   // Lambda to draw one axis of the manipulator, a wire-frame arrow.
@@ -334,8 +330,8 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
   // Draw planar move controls, only if facing angle makes them usable
   glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
-  float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
 
+  float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
   drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);
   facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vy)));
   drawDiag(axis.l.vy, axis.l.vz, axis.l.vx, facingScale, MoveTool::kMoveXZ, ManipColors::yAxis, 1);
