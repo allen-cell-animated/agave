@@ -33,29 +33,9 @@ CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPositio
 void
 trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye, glm::vec3& up)
 {
-  float angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
-  if (angle == 0.0f) {
-    // skip some extra math
-    eye = camera.m_From;
-    up = camera.m_Up;
-    return;
-  }
-  glm::vec3 _eye = camera.m_From - camera.m_Target;
-
-  glm::vec3 objectUpDirection = camera.m_Up; // or m_V; ???
-  glm::vec3 objectSidewaysDirection = camera.m_U;
-
-  // negating/inverting these has the effect of tumbling the target and not moving the camera.
-  objectUpDirection *= yRadians;
-  objectSidewaysDirection *= xRadians;
-
-  glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
-
-  glm::vec3 axis = glm::normalize(glm::cross(moveDirection, _eye));
-
-  _eye = glm::rotate(_eye, angle, axis);
-
-  up = glm::rotate(camera.m_Up, angle, axis);
+  glm::quat q = trackball(xRadians, yRadians, camera.m_From - camera.m_Target, camera.m_Up, camera.m_U);
+  glm::vec3 _eye = q * eye;
+  up = q * camera.m_Up;
   eye = _eye + camera.m_Target;
 }
 
@@ -238,7 +218,11 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
     glm::vec3 rotated_v = camera.m_From - camera.m_Target;
     glm::vec3 v = camera.m_From - camera.m_Target;
     glm::vec3 newEye, newUp;
-    trackball(drag.x, -drag.y, camera, newEye, newUp);
+
+    glm::quat q = trackball(drag.x, -drag.y, camera.m_From - camera.m_Target, camera.m_Up, camera.m_U);
+    newUp = q * camera.m_Up;
+    newEye = q * rotated_v + camera.m_Target;
+
     rotated_v = newEye - camera.m_Target;
     rotated_up = newUp;
 

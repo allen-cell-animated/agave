@@ -123,3 +123,26 @@ lerp(float a, float b, float alpha)
 {
   return a + alpha * (b - a);
 }
+
+inline glm::quat
+trackball(float xRadians, float yRadians, const glm::vec3& eye, const glm::vec3& up, const glm::vec3& right)
+{
+  float angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
+  if (angle == 0.0f) {
+    // skip some extra math
+    return glm::quat(glm::vec3(0, 0, 0));
+  }
+
+  glm::vec3 objectUpDirection = up; // or m_V; ???
+  glm::vec3 objectSidewaysDirection = right;
+
+  // negating/inverting these has the effect of tumbling the target and not moving the camera.
+  objectUpDirection *= yRadians;
+  objectSidewaysDirection *= xRadians;
+
+  glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
+
+  glm::vec3 axis = glm::normalize(glm::cross(moveDirection, eye));
+
+  return glm::angleAxis(angle, axis);
+}
