@@ -44,30 +44,32 @@ public:
     , p()
   {
   }
-  AffineSpace3f(struct LinearSpace3f l, glm::vec3 p)
+  AffineSpace3f(struct LinearSpace3f l, const glm::vec3& p)
     : l(l)
     , p(p)
   {
   }
+  AffineSpace3f(const glm::quat& orientation, const glm::vec3& p);
+
   AffineSpace3f inverse() const;
 };
 
 inline glm::vec3
-xfmVector(const struct LinearSpace3f& xfm, glm::vec3 p)
+xfmVector(const struct LinearSpace3f& xfm, const glm::vec3& p)
 {
   return xfm.vx * p.x + xfm.vy * p.y + xfm.vz * p.z;
 }
 
 // transforming as a point is different than as a vector
 inline glm::vec3
-xfmPoint(const struct AffineSpace3f& xfm, glm::vec3 p)
+xfmPoint(const struct AffineSpace3f& xfm, const glm::vec3& p)
 {
   return xfmVector(xfm.l, p) + xfm.p;
 }
 
 // transforming as a vector (spatial direction) can ignore the affine p component
 inline glm::vec3
-xfmVector(const struct AffineSpace3f& xfm, glm::vec3 p)
+xfmVector(const struct AffineSpace3f& xfm, const glm::vec3& p)
 {
   return xfmVector(xfm.l, p);
 }
@@ -120,4 +122,27 @@ inline float
 lerp(float a, float b, float alpha)
 {
   return a + alpha * (b - a);
+}
+
+inline glm::quat
+trackball(float xRadians, float yRadians, const glm::vec3& eye, const glm::vec3& up, const glm::vec3& right)
+{
+  float angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
+  if (angle == 0.0f) {
+    // skip some extra math
+    return glm::quat(glm::vec3(0, 0, 0));
+  }
+
+  glm::vec3 objectUpDirection = up; // or m_V; ???
+  glm::vec3 objectSidewaysDirection = right;
+
+  // negating/inverting these has the effect of tumbling the target and not moving the camera.
+  objectUpDirection *= yRadians;
+  objectSidewaysDirection *= xRadians;
+
+  glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
+
+  glm::vec3 axis = glm::normalize(glm::cross(moveDirection, eye));
+
+  return glm::angleAxis(angle, axis);
 }

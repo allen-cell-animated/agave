@@ -3,23 +3,25 @@
 #include "Manipulator.h"
 #include "Origins.h"
 
-struct RotateTool : ManipulationTool
+struct MoveTool : ManipulationTool
 {
   // Selection codes, are used to identify which manipulator is under the cursor.
   // The values in this enum are important, lower values means higher picking priority.
-  enum RotateCodes
+  enum MoveCodes
   {
-    kRotateX = 0,    // constrained to rotate about x axis
-    kRotateY = 1,    // constrained to rotate about y axis
-    kRotateZ = 2,    // constrained to rotate about z axis
-    kRotateView = 3, // constrained to rotate about view direction
-    kRotate = 4,     // general tumble rotation
-    kLast = 5
+    kMove = 0,
+    kMoveX = 1,
+    kMoveY = 2,
+    kMoveZ = 3,
+    kMoveYZ = 4,
+    kMoveXZ = 5,
+    kMoveXY = 6,
+    kLast = 7
   };
 
-  RotateTool()
+  MoveTool()
     : ManipulationTool(kLast)
-    , m_rotation(glm::vec3(0, 0, 0))
+    , m_translation(0)
     , m_localSpace(false)
   {
   }
@@ -33,9 +35,9 @@ struct RotateTool : ManipulationTool
   // to move.
   Origins origins;
 
-  // The current rotation of the objects to move.
-  // We need to potentially access this across calls to action and draw
-  glm::quat m_rotation;
+  // The current translation of the objects to move.
+  // We need to access this across calls to action and draw
+  glm::vec3 m_translation;
 
   bool m_localSpace;
 };
