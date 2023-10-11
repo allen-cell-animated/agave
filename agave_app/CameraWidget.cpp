@@ -74,10 +74,43 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 
   connect(&m_FocalDistanceSlider, &QNumericSlider::valueChanged, this, &QCameraWidget::SetFocalDistance);
 
-  QObject::connect(&cam->GetFilm(), SIGNAL(Changed(const QFilm&)), cam, SLOT(OnFilmChanged()));
-  QObject::connect(&cam->GetAperture(), SIGNAL(Changed(const QAperture&)), cam, SLOT(OnApertureChanged()));
-  QObject::connect(&cam->GetProjection(), SIGNAL(Changed(const QProjection&)), cam, SLOT(OnProjectionChanged()));
-  QObject::connect(&cam->GetFocus(), SIGNAL(Changed(const QFocus&)), cam, SLOT(OnFocusChanged()));
+  QObject::connect(&cam->GetFilm(), SIGNAL(Changed(const QFilm&)), this, SLOT(OnFilmChanged()));
+  QObject::connect(&cam->GetAperture(), SIGNAL(Changed(const QAperture&)), this, SLOT(OnApertureChanged()));
+  QObject::connect(&cam->GetProjection(), SIGNAL(Changed(const QProjection&)), this, SLOT(OnProjectionChanged()));
+  QObject::connect(&cam->GetFocus(), SIGNAL(Changed(const QFocus&)), this, SLOT(OnFocusChanged()));
+}
+
+void
+QCameraWidget::OnFilmChanged()
+{
+  m_ExposureSlider.setValue(m_qcamera->GetFilm().GetExposure(), true);
+  m_ExposureIterationsSpinner.blockSignals(true);
+  m_ExposureIterationsSpinner.setCurrentIndex(
+    m_ExposureIterationsSpinner.findData(m_qcamera->GetFilm().GetExposureIterations()));
+  m_ExposureIterationsSpinner.blockSignals(false);
+  m_NoiseReduction.blockSignals(true);
+  m_NoiseReduction.setCheckState(m_renderSettings->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked
+                                                                             : Qt::CheckState::Unchecked);
+  m_NoiseReduction.blockSignals(false);
+  emit m_qcamera->Changed();
+}
+void
+QCameraWidget::OnApertureChanged()
+{
+  m_ApertureSizeSlider.setValue(m_qcamera->GetAperture().GetSize(), true);
+  emit m_qcamera->Changed();
+}
+void
+QCameraWidget::OnProjectionChanged()
+{
+  m_FieldOfViewSlider.setValue(m_qcamera->GetProjection().GetFieldOfView(), true);
+  emit m_qcamera->Changed();
+}
+void
+QCameraWidget::OnFocusChanged()
+{
+  m_FocalDistanceSlider.setValue(m_qcamera->GetFocus().GetFocalDistance(), true);
+  emit m_qcamera->Changed();
 }
 
 QSize

@@ -8,7 +8,6 @@
 #include <QFormLayout>
 #include <QWidget>
 
-
 class RenderSettings;
 
 class QCameraWidget : public QWidget
@@ -39,4 +38,10 @@ private:
   void SetAperture(const double& Aperture);
   void SetFieldOfView(const double& FieldOfView);
   void SetFocalDistance(const double& FocalDistance);
+
+private slots:
+  void OnFilmChanged();
+  void OnApertureChanged();
+  void OnFocusChanged();
+  void OnProjectionChanged();
 };
