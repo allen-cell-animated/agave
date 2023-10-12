@@ -25,65 +25,6 @@ struct ViewerState;
 
 // does the actual wgpu stuff
 // for some reason we need this to be a child of the main view
-class wgpuCanvas : public QWidget
-{
-  Q_OBJECT
-
-public:
-  /**
-   * Create a 3D image view.
-   *
-   * The size and position will be taken from the specified image.
-   *
-   * @param reader the image reader.
-   * @param series the image series.
-   * @param parent the parent of this object.
-   */
-  wgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
-
-  /// Destructor.
-  ~wgpuCanvas();
-
-  // dummy to make agaveGui happy
-  void doneCurrent() {}
-  QOpenGLContext* context() { return nullptr; }
-  void resizeGL(int w, int h);
-
-signals:
-  void ChangedRenderer();
-
-public:
-  std::shared_ptr<CStatus> getStatus();
-
-protected:
-  /// Set up GL context and subsidiary objects.
-  void initializeGL(WGPUTextureView nextTexture);
-
-  /// Render the scene with the current view settings.
-  void paintGL(WGPUTextureView nextTexture);
-
-  void resizeEvent(QResizeEvent* event);
-  void paintEvent(QPaintEvent* event);
-
-  virtual QPaintEngine* paintEngine() const override { return nullptr; }
-
-private:
-  /// Rendering timer.
-  QElapsedTimer m_etimer;
-
-  /// Last mouse position.
-  QPoint m_lastPos;
-
-  bool m_initialized;
-  bool m_fakeHidden;
-  void render();
-  void invokeUserPaint(WGPUTextureView nextTexture);
-  WGPUTextureFormat m_swapChainFormat;
-  WGPUSurface m_surface;
-  WGPUDevice m_device;
-
-  WGPURenderPipeline m_pipeline;
-};
 
 class WgpuView3D : public QWidget
 {
@@ -171,10 +112,36 @@ protected:
   void timerEvent(QTimerEvent* event);
 
 private:
-  wgpuCanvas* m_canvas;
-
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
   ViewerWindow* m_viewerWindow;
+
+  /// Rendering timer.
+  QTimer* m_etimer;
+
+  /// Last mouse position.
+  QPoint m_lastPos;
+
+  bool m_initialized;
+  bool m_fakeHidden;
+  void render();
+  void invokeUserPaint(WGPUTextureView nextTexture);
+  WGPUTextureFormat m_swapChainFormat;
+  WGPUSurface m_surface;
+  WGPUDevice m_device;
+
+  WGPURenderPipeline m_pipeline;
+
+protected:
+  /// Set up GL context and subsidiary objects.
+  void initializeGL(WGPUTextureView nextTexture);
+
+  /// Render the scene with the current view settings.
+  void paintGL(WGPUTextureView nextTexture);
+
+  void resizeEvent(QResizeEvent* event);
+  void paintEvent(QPaintEvent* event);
+
+  virtual QPaintEngine* paintEngine() const override { return nullptr; }
 };

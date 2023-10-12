@@ -1,5 +1,6 @@
 #include "wgpuView3D.h"
 
+#include "Camera.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
@@ -20,6 +21,7 @@
 #include <QMouseEvent>
 #include <QResizeEvent>
 #include <QScreen>
+#include <QTimer>
 #include <QWindow>
 
 #include <cmath>
@@ -29,6 +31,45 @@
 #ifdef _MSVC_VER
 #pragma warning(disable : 4351)
 #endif
+
+static Gesture::Input::ButtonId
+getButton(QMouseEvent* event)
+{
+  Gesture::Input::ButtonId btn;
+  switch (event->button()) {
+    case Qt::LeftButton:
+      btn = Gesture::Input::ButtonId::kButtonLeft;
+      break;
+    case Qt::RightButton:
+      btn = Gesture::Input::ButtonId::kButtonRight;
+      break;
+    case Qt::MiddleButton:
+      btn = Gesture::Input::ButtonId::kButtonMiddle;
+      break;
+    default:
+      btn = Gesture::Input::ButtonId::kButtonLeft;
+      break;
+  };
+  return btn;
+}
+static int
+getGestureMods(QMouseEvent* event)
+{
+  int mods = 0;
+  if (event->modifiers() & Qt::ShiftModifier) {
+    mods |= Gesture::Input::Mods::kShift;
+  }
+  if (event->modifiers() & Qt::ControlModifier) {
+    mods |= Gesture::Input::Mods::kCtrl;
+  }
+  if (event->modifiers() & Qt::AltModifier) {
+    mods |= Gesture::Input::Mods::kAlt;
+  }
+  if (event->modifiers() & Qt::MetaModifier) {
+    mods |= Gesture::Input::Mods::kSuper;
+  }
+  return mods;
+}
 
 static void
 request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char* message, void* userdata)
@@ -176,23 +217,6 @@ printAdapterFeatures(WGPUAdapter adapter)
   }
 }
 
-wgpuCanvas::wgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
-  : QWidget(parent)
-  , m_etimer()
-  , m_lastPos(0, 0)
-  , m_initialized(false)
-  , m_fakeHidden(false)
-{
-  setAutoFillBackground(false);
-  setAttribute(Qt::WA_PaintOnScreen);
-  setMouseTracking(true);
-  setFocusPolicy(Qt::StrongFocus);
-  winId(); // create window handle
-
-  // this->setStyleSheet("background:transparent;");
-  // this->setWindowFlags(Qt::FramelessWindowHint);
-}
-
 void
 WgpuView3D::initCameraFromImage(Scene* scene)
 {
@@ -226,18 +250,14 @@ WgpuView3D::onNewImage(Scene* scene)
   // how tightly coupled is renderer and scene????
 }
 
-wgpuCanvas::~wgpuCanvas()
-{
-  wgpuSurfaceRelease(m_surface);
-}
-
 void
-wgpuCanvas::initializeGL()
+WgpuView3D::initializeGL(WGPUTextureView nextTexture)
 {
   if (m_initialized) {
     return;
   }
   LOG_INFO << "calling get_surface_id_from_canvas";
+  // TODO pass child window in here instead of this winid
   m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
   WGPUAdapter adapter;
   WGPURequestAdapterOptions options = {
@@ -360,14 +380,14 @@ wgpuCanvas::initializeGL()
 
   // Start timers
   startTimer(0);
-  m_etimer.start();
+  m_etimer->start();
 
   // // Size viewport
   // resizeGL(newsize.width(), newsize.height());
 }
 
 void
-wgpuCanvas::paintEvent(QPaintEvent* e)
+WgpuView3D::paintEvent(QPaintEvent* e)
 {
   if (!m_initialized) {
     return;
@@ -379,7 +399,7 @@ wgpuCanvas::paintEvent(QPaintEvent* e)
 }
 
 void
-wgpuCanvas::render()
+WgpuView3D::render()
 {
   if (m_fakeHidden || !m_initialized) {
     return;
@@ -442,16 +462,16 @@ wgpuCanvas::render()
 }
 
 void
-wgpuCanvas::invokeUserPaint(WGPUTextureView nextTexture)
+WgpuView3D::invokeUserPaint(WGPUTextureView nextTexture)
 {
   paintGL(nextTexture);
   // flush? (queue submit?)
 }
 
 void
-wgpuCanvas::paintGL(WGPUTextureView nextTexture)
+WgpuView3D::paintGL(WGPUTextureView nextTexture)
 {
-  if (!m_isEnabled) {
+  if (!isEnabled()) {
     return;
   }
 
@@ -495,14 +515,14 @@ wgpuCanvas::paintGL(WGPUTextureView nextTexture)
 }
 
 void
-wgpuCanvas::resizeEvent(QResizeEvent* event)
+WgpuView3D::resizeEvent(QResizeEvent* event)
 {
   if (event->size().isEmpty()) {
     m_fakeHidden = true;
     return;
   }
   m_fakeHidden = false;
-  initializeGL();
+  initializeGL(0);
   if (!m_initialized) {
     return;
   }
@@ -533,7 +553,7 @@ wgpuCanvas::resizeEvent(QResizeEvent* event)
 }
 
 void
-wgpuCanvas::mousePressEvent(QMouseEvent* event)
+WgpuView3D::mousePressEvent(QMouseEvent* event)
 {
   if (!isEnabled()) {
     return;
@@ -549,7 +569,7 @@ wgpuCanvas::mousePressEvent(QMouseEvent* event)
 }
 
 void
-wgpuCanvas::mouseReleaseEvent(QMouseEvent* event)
+WgpuView3D::mouseReleaseEvent(QMouseEvent* event)
 {
   if (!isEnabled()) {
     return;
@@ -573,7 +593,7 @@ wgpuCanvas::mouseReleaseEvent(QMouseEvent* event)
 #endif
 
 void
-wgpuCanvas::mouseMoveEvent(QMouseEvent* event)
+WgpuView3D::mouseMoveEvent(QMouseEvent* event)
 {
   if (!isEnabled()) {
     return;
@@ -588,7 +608,7 @@ wgpuCanvas::mouseMoveEvent(QMouseEvent* event)
 #endif
 
 void
-wgpuCanvas::timerEvent(QTimerEvent* event)
+WgpuView3D::timerEvent(QTimerEvent* event)
 {
   if (!isEnabled()) {
     return;
@@ -638,21 +658,21 @@ void
 WgpuView3D::OnUpdateQRenderSettings(void)
 {
   // QMutexLocker Locker(&gSceneMutex);
-  RenderSettings& rs = *m_renderSettings;
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
 
-  rs.m_RenderSettings.m_DensityScale = m_qrendersettings->GetDensityScale();
-  rs.m_RenderSettings.m_ShadingType = m_qrendersettings->GetShadingType();
-  rs.m_RenderSettings.m_GradientFactor = m_qrendersettings->GetGradientFactor();
+  rs->m_RenderSettings.m_DensityScale = m_qrendersettings->GetDensityScale();
+  rs->m_RenderSettings.m_ShadingType = m_qrendersettings->GetShadingType();
+  rs->m_RenderSettings.m_GradientFactor = m_qrendersettings->GetGradientFactor();
 
   // update window/levels / transfer function here!!!!
 
-  rs.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 std::shared_ptr<CStatus>
-wgpuCanvas::getStatus()
+WgpuView3D::getStatus()
 {
-  return m_renderer->getStatusInterface();
+  return m_viewerWindow->m_renderer->getStatusInterface();
 }
 
 void
@@ -673,18 +693,21 @@ WgpuView3D::OnUpdateRenderer(int rendererType)
 void
 WgpuView3D::fromViewerState(const Serialize::ViewerState& s)
 {
-  m_CCamera.m_From = glm::make_vec3(s.camera.eye.data());
-  m_CCamera.m_Target = glm::make_vec3(s.camera.target.data());
-  m_CCamera.m_Up = glm::make_vec3(s.camera.up.data());
-  m_CCamera.m_FovV = s.camera.fovY;
-  m_CCamera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE
-                                                                                            : ORTHOGRAPHIC);
+  m_qrendersettings->SetRendererType(s.rendererType == Serialize::RendererType_PID::PATHTRACE ? 1 : 0);
 
-  m_CCamera.m_OrthoScale = s.camera.orthoScale;
+  // syntactic sugar
+  CCamera& camera = m_viewerWindow->m_CCamera;
 
-  m_CCamera.m_Film.m_Exposure = s.camera.exposure;
-  m_CCamera.m_Aperture.m_Size = s.camera.aperture;
-  m_CCamera.m_Focus.m_FocalDistance = s.camera.focalDistance;
+  camera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
+  camera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+  camera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
+  camera.m_FovV = s.camera.fovY;
+  camera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
+  camera.m_OrthoScale = s.camera.orthoScale;
+
+  camera.m_Film.m_Exposure = s.camera.exposure;
+  camera.m_Aperture.m_Size = s.camera.aperture;
+  camera.m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
   m_qcamera->GetProjection().SetFieldOfView(s.camera.fovY);
@@ -694,7 +717,7 @@ WgpuView3D::fromViewerState(const Serialize::ViewerState& s)
 }
 
 QPixmap
-wgpuCanvas::capture()
+WgpuView3D::capture()
 {
   // get the current QScreen
   QScreen* screen = QGuiApplication::primaryScreen();
@@ -710,7 +733,7 @@ wgpuCanvas::capture()
 }
 
 QImage
-wgpuCanvas::captureQimage()
+WgpuView3D::captureQimage()
 {
 #if 0
   makeCurrent();
@@ -748,7 +771,7 @@ wgpuCanvas::captureQimage()
 }
 
 void
-wgpuCanvas::pauseRenderLoop()
+WgpuView3D::pauseRenderLoop()
 {
   std::shared_ptr<CStatus> s = getStatus();
   // the CStatus updates can cause Qt GUI work to happen,
@@ -757,32 +780,44 @@ wgpuCanvas::pauseRenderLoop()
   // we need to either make status updates thread safe,
   // or just disable them here.
   s->EnableUpdates(false);
-  m_etimer.invalidate();
+  m_etimer->stop();
 }
 
 void
-wgpuCanvas::restartRenderLoop()
+WgpuView3D::restartRenderLoop()
 {
-  m_etimer.restart();
+  m_etimer->start();
   std::shared_ptr<CStatus> s = getStatus();
   s->EnableUpdates(true);
 }
 
 void
-wgpuCanvas::resizeGL(int w, int h)
+WgpuView3D::resizeGL(int w, int h)
 {
   QResizeEvent e(QSize(w, h), QSize(w, h));
   resizeEvent(&e);
 }
 
-WgpuView3D::WgpuView3D(QWidget* parent = nullptr)
+WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
+  : QWidget(parent)
+  , m_lastPos(0, 0)
+  , m_initialized(false)
+  , m_fakeHidden(false)
 {
-  m_canvas = new wgpuCanvas(this);
+  QWidget* canvas = new QWidget(this);
+  canvas->setAutoFillBackground(false);
+  canvas->setAttribute(Qt::WA_PaintOnScreen);
+  canvas->setMouseTracking(true);
+  canvas->setFocusPolicy(Qt::StrongFocus);
+  canvas->winId(); // create window handle
 
   QHBoxLayout* layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
-  layout->addWidget(m_canvas);
+
+  layout->addWidget(canvas);
+
+  m_qrendersettings->setRenderSettings(*rs);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the
   // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
@@ -791,11 +826,24 @@ WgpuView3D::WgpuView3D(QWidget* parent = nullptr)
   QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
   QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 
-  m_cameraController.setRenderSettings(*m_renderSettings);
-  m_qrendersettings->setRenderSettings(*m_renderSettings);
+  // run a timer to update the clock
+  // TODO is this different than using this->startTimer and QTimerEvent?
+  m_etimer = new QTimer(parent);
+  m_etimer->setTimerType(Qt::PreciseTimer);
+  connect(m_etimer, &QTimer::timeout, this, [this] {
+    // assume that in between QTimer events, true processEvents is called by Qt itself
+    // QCoreApplication::processEvents();
+    if (isEnabled()) {
+      update();
+    }
+  });
+  m_etimer->start();
 }
 
-WgpuView3D::~WgpuView3D() {}
+WgpuView3D::~WgpuView3D()
+{
+  wgpuSurfaceRelease(m_surface);
+}
 
 QSize
 WgpuView3D::minimumSizeHint() const
