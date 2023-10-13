@@ -13,6 +13,7 @@
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/graphics/gl/Image3D.h"
 #include "renderlib/graphics/gl/Util.h"
+#include "renderlib_wgpu/getsurface_wgpu.h"
 
 #include <glm.h>
 
@@ -256,9 +257,9 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   if (m_initialized) {
     return;
   }
-  LOG_INFO << "calling get_surface_id_from_canvas";
+  LOG_INFO << "calling get_surface_from_canvas";
   // TODO pass child window in here instead of this winid
-  m_surface = renderlib_wgpu::get_surface_id_from_canvas((void*)winId());
+  m_surface = get_surface_from_canvas(renderlib_wgpu::getInstance(), (void*)winId());
   WGPUAdapter adapter;
   WGPURequestAdapterOptions options = {
     .nextInChain = NULL,

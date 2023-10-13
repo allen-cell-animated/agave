@@ -14,6 +14,4 @@ public:
   static void cleanup();
 
   static WGPUInstance getInstance();
-
-  static WGPUSurface get_surface_id_from_canvas(void* win_id);
 };

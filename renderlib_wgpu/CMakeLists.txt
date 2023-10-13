@@ -5,6 +5,11 @@ target_include_directories(renderlib_wgpu PUBLIC
 )
 target_sources(renderlib_wgpu PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderlib_wgpu.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderlib_wgpu.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/getsurface_wgpu.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/getsurface_wgpu.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/getsurface_wgpu_mac.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/getsurface_wgpu_mac.c"
 )
 
 # wgpu-native dep
@@ -29,20 +34,22 @@ ExternalProject_Add(
 # REQUIRED
 # )
 if(MSVC)
-	add_definitions(-DWGPU_TARGET=WGPU_TARGET_WINDOWS)
+	add_definitions(-DWGPU_TARGET_WINDOWS)
 	target_compile_options(renderlib_wgpu PRIVATE /W4)
-	set(OS_LIBRARIES "userenv" "ws2_32" "Dwmapi" "dbghelp" "d3dcompiler" "D3D12" "D3D11" "DXGI" "setupapi" "Bcrypt" "ntdll")
+	set(OS_LIBRARIES d3dcompiler ws2_32 userenv bcrypt ntdll)
 elseif(APPLE)
-	add_definitions(-DWGPU_TARGET=WGPU_TARGET_MACOS)
-	set(OS_LIBRARIES "-framework Cocoa" "-framework CoreVideo" "-framework IOKit" "-framework QuartzCore" "-framework Metal")
-	target_compile_options(renderlib_wgpu PRIVATE -x objective-c++)
+	add_definitions(-DWGPU_TARGET_MACOS)
+	set(OS_LIBRARIES "-framework Cocoa" "-framework CoreVideo" "-framework IOKit -framework CoreFoundation -framework QuartzCore -framework Metal")
+	target_compile_options(renderlib_wgpu PRIVATE -Wall -Wextra -pedantic)
+	# for getting at window surface stuff
+	set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/getsurface_wgpu_mac.c" PROPERTIES COMPILE_FLAGS "-x objective-c")
 else(MSVC)
 	if(USE_WAYLAND)
-		add_definitions(-DWGPU_TARGET=WGPU_TARGET_LINUX_WAYLAND)
+		add_definitions(-DWGPU_TARGET_LINUX_WAYLAND)
 	else(USE_WAYLAND)
-		add_definitions(-DWGPU_TARGET=WGPU_TARGET_LINUX_X11)
+		add_definitions(-DWGPU_TARGET_LINUX_X11)
 		find_package(X11 REQUIRED)
-		set(OS_LIBRARIES ${X11_LIBRARIES})
+		set(OS_LIBRARIES "-lm -ldl")
 	endif(USE_WAYLAND)
 
 	target_compile_options(renderlib_wgpu PRIVATE -Wall -Wextra -pedantic)
