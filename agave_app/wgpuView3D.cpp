@@ -17,7 +17,7 @@
 
 #include <glm.h>
 
-#include <QGuiApplication>
+#include <QApplication>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QResizeEvent>
@@ -804,7 +804,11 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_lastPos(0, 0)
   , m_initialized(false)
   , m_fakeHidden(false)
+  , m_qrendersettings(qrs)
 {
+  m_viewerWindow = new ViewerWindow(rs);
+  m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
+
   QWidget* canvas = new QWidget(this);
   canvas->setAutoFillBackground(false);
   canvas->setAttribute(Qt::WA_PaintOnScreen);
