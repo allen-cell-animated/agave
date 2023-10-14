@@ -1,5 +1,7 @@
 #include "getsurface_wgpu.h"
 
+#include "../renderlib/Logging.h"
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #include <wtypes.h>
 #elif defined(__APPLE__)
@@ -9,6 +11,8 @@
 #include <X11/Xos.h>
 #include <X11/Xutil.h>
 #endif
+
+#include <string>
 
 WGPUSurface
 get_surface_from_canvas(WGPUInstance instance, void* win_id)
