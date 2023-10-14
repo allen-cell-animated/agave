@@ -82,3 +82,6 @@ target_link_libraries(renderlib_wgpu
 IF(WIN32)
 	target_link_libraries(renderlib_wgpu glm::glm)
 ENDIF(WIN32)
+IF(LINUX)
+	target_link_libraries(renderlib_wgpu ${X11_LIBRARIES})
+ENDIF(LINUX)
