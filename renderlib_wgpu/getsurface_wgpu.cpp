@@ -1,6 +1,8 @@
 #include "getsurface_wgpu.h"
 
-#if defined(__APPLE__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#include <wtypes.h>
+#elif defined(__APPLE__)
 #include "getsurface_wgpu_mac.h"
 #elif defined(__linux__)
 #include <X11/Xlib.h>

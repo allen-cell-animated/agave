@@ -421,7 +421,9 @@ WgpuView3D::render()
     case WGPUSurfaceGetCurrentTextureStatus_Outdated:
     case WGPUSurfaceGetCurrentTextureStatus_Lost: {
       // Skip this frame, and re-configure surface.
-      wgpuTextureRelease(nextTexture.texture);
+      if (nextTexture.texture) {
+          wgpuTextureRelease(nextTexture.texture);
+      }
       if (width() != 0 && height() != 0) {
         WGPUSurfaceConfiguration surfaceConfig = {
           .nextInChain = NULL,
@@ -512,7 +514,10 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
   wgpuQueueSubmit(queue, 1, &cmdBuffer);
 
   // wgpuCommandEncoderRelease(encoder);
-  m_viewerWindow->redraw();
+
+
+  // TODO ENABLE THIS!!!
+  // m_viewerWindow->redraw();
 }
 
 void
