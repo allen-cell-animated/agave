@@ -155,7 +155,7 @@ printAdapterFeatures(WGPUAdapter adapter)
   wgpuAdapterEnumerateFeatures(adapter, features.data());
 
   LOG_INFO << "Adapter features:";
-  for (auto f : features) {
+  for (uint32_t f : features) {
     std::string s;
     switch (f) {
       case WGPUFeatureName_Undefined:
@@ -194,6 +194,9 @@ printAdapterFeatures(WGPUAdapter adapter)
       case WGPUFeatureName_BGRA8UnormStorage:
         s = "BGRA8UnormStorage";
         break;
+      case WGPUFeatureName_Float32Filterable:
+        s = "Float32Filterable";
+        break;
       case WGPUNativeFeature_PushConstants:
         s = "PushConstants";
         break;
@@ -208,6 +211,12 @@ printAdapterFeatures(WGPUAdapter adapter)
         break;
       case WGPUNativeFeature_VertexWritableStorage:
         s = "VertexWritableStorage";
+        break;
+      case WGPUNativeFeature_TextureBindingArray:
+        s = "TextureBindingArray";
+        break;
+      case WGPUNativeFeature_SampledTextureAndStorageBufferArrayNonUniformIndexing:
+        s = "SampledTextureAndStorageBufferArrayNonUniformIndexing";
         break;
 
       default:
@@ -422,7 +431,7 @@ WgpuView3D::render()
     case WGPUSurfaceGetCurrentTextureStatus_Lost: {
       // Skip this frame, and re-configure surface.
       if (nextTexture.texture) {
-          wgpuTextureRelease(nextTexture.texture);
+        wgpuTextureRelease(nextTexture.texture);
       }
       if (width() != 0 && height() != 0) {
         WGPUSurfaceConfiguration surfaceConfig = {
@@ -514,7 +523,6 @@ WgpuView3D::paintGL(WGPUTextureView nextTexture)
   wgpuQueueSubmit(queue, 1, &cmdBuffer);
 
   // wgpuCommandEncoderRelease(encoder);
-
 
   // TODO ENABLE THIS!!!
   // m_viewerWindow->redraw();
@@ -612,17 +620,6 @@ WgpuView3D::mouseMoveEvent(QMouseEvent* event)
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-
-void
-WgpuView3D::timerEvent(QTimerEvent* event)
-{
-  if (!isEnabled()) {
-    return;
-  }
-  QWidget::timerEvent(event);
-
-  update();
-}
 
 void
 WgpuView3D::OnUpdateCamera()

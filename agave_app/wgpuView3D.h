@@ -38,14 +38,14 @@ public:
    *
    * @returns the size hint.
    */
-  QSize minimumSizeHint() const;
+  QSize minimumSizeHint() const override;
 
   /**
    * Get window size hint.
    *
    * @returns the size hint.
    */
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
   void initCameraFromImage(Scene* scene);
   void toggleCameraProjection();
@@ -90,8 +90,8 @@ protected:
    *
    * @param event the event to handle.
    */
-  void mousePressEvent(QMouseEvent* event);
-  void mouseReleaseEvent(QMouseEvent* event);
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
   /**
    * Handle mouse button movement events.
@@ -100,16 +100,7 @@ protected:
    *
    * @param event the event to handle.
    */
-  void mouseMoveEvent(QMouseEvent* event);
-
-  /**
-   * Handle timer events.
-   *
-   * Used to update scene properties and trigger a render pass.
-   *
-   * @param event the event to handle.
-   */
-  void timerEvent(QTimerEvent* event);
+  void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
   QCamera* m_qcamera;
@@ -140,8 +131,8 @@ protected:
   /// Render the scene with the current view settings.
   void paintGL(WGPUTextureView nextTexture);
 
-  void resizeEvent(QResizeEvent* event);
-  void paintEvent(QPaintEvent* event);
+  void resizeEvent(QResizeEvent* event) override;
+  void paintEvent(QPaintEvent* event) override;
 
-  virtual QPaintEngine* paintEngine() const override { return nullptr; }
+  //  virtual QPaintEngine* paintEngine() const override { return nullptr; }
 };
