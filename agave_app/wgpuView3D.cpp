@@ -267,7 +267,7 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
     return;
   }
   LOG_INFO << "calling get_surface_from_canvas";
-  // TODO pass child window in here instead of this winid
+
   m_surface = get_surface_from_canvas(renderlib_wgpu::getInstance(), (void*)winId());
   WGPUAdapter adapter;
   WGPURequestAdapterOptions options = {
@@ -462,7 +462,7 @@ WgpuView3D::render()
   WGPUTextureView frame = wgpuTextureCreateView(nextTexture.texture, NULL);
   assert(frame);
 
-  invokeUserPaint(frame);
+  renderWindowContents(frame);
 
   wgpuSurfacePresent(m_surface);
 
@@ -474,14 +474,7 @@ WgpuView3D::render()
 }
 
 void
-WgpuView3D::invokeUserPaint(WGPUTextureView nextTexture)
-{
-  paintGL(nextTexture);
-  // flush? (queue submit?)
-}
-
-void
-WgpuView3D::paintGL(WGPUTextureView nextTexture)
+WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
 {
   if (!isEnabled()) {
     return;
@@ -811,18 +804,11 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
 
-  QWidget* canvas = new QWidget(this);
-  canvas->setAutoFillBackground(false);
-  canvas->setAttribute(Qt::WA_PaintOnScreen);
-  canvas->setMouseTracking(true);
-  canvas->setFocusPolicy(Qt::StrongFocus);
-  canvas->winId(); // create window handle
-
-  QHBoxLayout* layout = new QHBoxLayout(this);
-  layout->setContentsMargins(0, 0, 0, 0);
-  setLayout(layout);
-
-  layout->addWidget(canvas);
+  setAutoFillBackground(false);
+  setAttribute(Qt::WA_PaintOnScreen);
+  setMouseTracking(true);
+  setFocusPolicy(Qt::StrongFocus);
+  winId(); // create window handle
 
   m_qrendersettings->setRenderSettings(*rs);
 

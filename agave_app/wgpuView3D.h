@@ -9,6 +9,7 @@
 #include "renderlib_wgpu/renderlib_wgpu.h"
 
 #include <QElapsedTimer>
+#include <QHBoxLayout>
 #include <QWidget>
 
 class QOpenGLContext;
@@ -117,22 +118,63 @@ private:
   bool m_initialized;
   bool m_fakeHidden;
   void render();
-  void invokeUserPaint(WGPUTextureView nextTexture);
+  void renderWindowContents(WGPUTextureView nextTexture);
   WGPUTextureFormat m_swapChainFormat;
   WGPUSurface m_surface;
   WGPUDevice m_device;
 
   WGPURenderPipeline m_pipeline;
 
+  QWidget* m_canvas;
+
 protected:
   /// Set up GL context and subsidiary objects.
   void initializeGL(WGPUTextureView nextTexture);
-
-  /// Render the scene with the current view settings.
-  void paintGL(WGPUTextureView nextTexture);
 
   void resizeEvent(QResizeEvent* event) override;
   void paintEvent(QPaintEvent* event) override;
 
   //  virtual QPaintEngine* paintEngine() const override { return nullptr; }
+};
+
+class WgpuCanvas : public QWidget
+{
+  Q_OBJECT;
+
+public:
+  WgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0)
+  {
+    setMouseTracking(true);
+
+    m_view = new WgpuView3D(cam, qrs, rs, parent);
+    m_view->winId();
+    m_layout = new QHBoxLayout(this);
+    m_layout->setContentsMargins(0, 0, 0, 0);
+    setLayout(m_layout);
+    m_layout->addWidget(m_view);
+    show();
+  }
+  ~WgpuCanvas() { delete m_view; }
+
+  // make sure every time this updates, the child updates
+  // void update() override { m_view->update(); }
+
+  std::shared_ptr<CStatus> getStatus() { return m_view->getStatus(); }
+  QImage captureQimage() { return m_view->captureQimage(); }
+  void pauseRenderLoop() { m_view->pauseRenderLoop(); }
+  void restartRenderLoop() { m_view->restartRenderLoop(); }
+  void doneCurrent() {}
+  // DANGER this must NOT outlive the GLView3D
+  IRenderWindow* borrowRenderer() { return m_view->borrowRenderer(); }
+  const CCamera& getCamera() { return m_view->getCamera(); }
+  QOpenGLContext* context() { return nullptr; }
+  void resizeGL(int w, int h) { m_view->resizeGL(w, h); }
+  void initCameraFromImage(Scene* scene) { m_view->initCameraFromImage(scene); }
+  void onNewImage(Scene* scene) { m_view->onNewImage(scene); }
+  void toggleCameraProjection() { m_view->toggleCameraProjection(); }
+  void fromViewerState(const Serialize::ViewerState& s) { m_view->fromViewerState(s); }
+
+private:
+  WgpuView3D* m_view;
+  QHBoxLayout* m_layout;
 };

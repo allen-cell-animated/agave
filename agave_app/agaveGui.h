@@ -50,7 +50,7 @@ private slots:
   void quit();
   void view_reset();
   void view_toggleProjection();
-  void viewFocusChanged(WgpuView3D* glView);
+  void viewFocusChanged(WgpuCanvas* glView);
   void tabChanged(int index);
   void openMeshDialog();
   void openMesh(const QString& file);
@@ -117,7 +117,7 @@ private:
   QStatisticsDockWidget* m_statisticsDockWidget;
 
   QTabWidget* m_tabs;
-  WgpuView3D* m_glView;
+  WgpuCanvas* m_glView;
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
