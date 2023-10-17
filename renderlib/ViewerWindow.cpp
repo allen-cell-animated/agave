@@ -1,5 +1,6 @@
 #include "ViewerWindow.h"
 
+#include "AreaLightTool.h"
 #include "IRenderWindow.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
@@ -13,6 +14,9 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
 {
   gesture.input.reset();
 
+  // TODO have a notion of a scene's selection set,
+  // and activate tools via the UI to operate
+  // on the selection set.
   // TEST create a tool and activate it
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
@@ -89,6 +93,7 @@ ViewerWindow::updateCamera()
   }
 
   sceneView.camera = renderCamera;
+  sceneView.camera.Update();
 }
 
 void
@@ -109,6 +114,10 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
     // [...]
     updateCamera();
   }
+
+  // update sceneView.camera here?
+  // It is already being updated inside of updateCamera
+  // (only when camera is being manipulated!)
 
   // Run all manipulators and tools
   {
@@ -177,7 +186,6 @@ ViewerWindow::redraw()
   sceneView.renderSettings = m_renderSettings;
 
   update(sceneView.viewport, m_clock, gesture);
-  sceneView.camera.Update();
 
   m_renderer->render(sceneView.camera);
 

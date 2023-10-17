@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Manipulator.h"
+#include "Origins.h"
 
 struct RotateTool : ManipulationTool
 {
@@ -18,6 +19,7 @@ struct RotateTool : ManipulationTool
 
   RotateTool()
     : ManipulationTool(kLast)
+    , m_rotation(glm::vec3(0, 0, 0))
   {
   }
 

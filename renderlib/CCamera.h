@@ -596,7 +596,9 @@ public:
     viewMatrix = glm::lookAt(eye, center, up);
   }
 
+  // return the world-space vectors that correspond to camera x, y, z directions
   LinearSpace3f getFrame() const;
+
   float getDistance(glm::vec3 p) const { return glm::distance(p, m_From); }
 
   void getProjMatrix(glm::mat4& projMatrix) const

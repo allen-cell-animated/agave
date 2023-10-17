@@ -29,36 +29,6 @@ CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPositio
   newPosition = newTarget + distance;
 }
 
-// keep target constant and compute new eye and up vectors
-void
-trackball(float xRadians, float yRadians, const CCamera& camera, glm::vec3& eye, glm::vec3& up)
-{
-  float angle = sqrtf(yRadians * yRadians + xRadians * xRadians);
-  if (angle == 0.0f) {
-    // skip some extra math
-    eye = camera.m_From;
-    up = camera.m_Up;
-    return;
-  }
-  glm::vec3 _eye = camera.m_From - camera.m_Target;
-
-  glm::vec3 objectUpDirection = camera.m_Up; // or m_V; ???
-  glm::vec3 objectSidewaysDirection = camera.m_U;
-
-  // negating/inverting these has the effect of tumbling the target and not moving the camera.
-  objectUpDirection *= yRadians;
-  objectSidewaysDirection *= xRadians;
-
-  glm::vec3 moveDirection = objectUpDirection + objectSidewaysDirection;
-
-  glm::vec3 axis = glm::normalize(glm::cross(moveDirection, _eye));
-
-  _eye = glm::rotate(_eye, angle, axis);
-
-  up = glm::rotate(camera.m_Up, angle, axis);
-  eye = _eye + camera.m_Target;
-}
-
 glm::vec3
 cameraTrack(glm::vec2 drag, CCamera& camera, const glm::vec2 viewportSize)
 {
@@ -234,13 +204,10 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
       cameraEdit = false;
     }
 
-    glm::vec3 rotated_up = camera.m_Up;
-    glm::vec3 rotated_v = camera.m_From - camera.m_Target;
     glm::vec3 v = camera.m_From - camera.m_Target;
-    glm::vec3 newEye, newUp;
-    trackball(drag.x, -drag.y, camera, newEye, newUp);
-    rotated_v = newEye - camera.m_Target;
-    rotated_up = newUp;
+    glm::quat q = trackball(drag.x, -drag.y, v, camera.m_Up, camera.m_U);
+    glm::vec3 rotated_up = q * camera.m_Up;
+    glm::vec3 rotated_v = q * v;
 
     if (button.action == Gesture::Input::kPress || button.action == Gesture::Input::kDrag) {
       cameraMod.position = rotated_v - v;
