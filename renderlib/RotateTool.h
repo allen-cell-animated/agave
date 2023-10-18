@@ -20,11 +20,14 @@ struct RotateTool : ManipulationTool
   RotateTool()
     : ManipulationTool(kLast)
     , m_rotation(glm::vec3(0, 0, 0))
+    , m_localSpace(false)
   {
   }
 
   virtual void action(SceneView& scene, Gesture& gesture) final;
   virtual void draw(SceneView& scene, Gesture& gesture) final;
+
+  void setUseLocalSpace(bool localSpace) { m_localSpace = localSpace; }
 
   // Some data structure to store the initial state of the objects
   // to move.
@@ -33,4 +36,6 @@ struct RotateTool : ManipulationTool
   // The current rotation of the objects to move.
   // We need to potentially access this across calls to action and draw
   glm::quat m_rotation;
+
+  bool m_localSpace;
 };

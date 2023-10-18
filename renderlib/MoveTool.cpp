@@ -83,6 +83,9 @@ MoveTool::action(SceneView& scene, Gesture& gesture)
     glm::vec3 l1 = normalize(xfmVector(camFrame, glm::vec3(click1.x, click1.y, -1.0)));
 
     LinearSpace3f ref; //< motion in reference space (world for now)
+    if (m_localSpace) {
+      ref = origins.currentReference(scene).l;
+    }
 
     // Here we compute the effect of the cursor drag motion by projecting
     // the ray extending from the cursor position into the screen. We
@@ -168,7 +171,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   if (origins.empty()) {
     origins.update(scene);
   }
-  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+  AffineSpace3f target = origins.currentReference(scene);
   // Append the current translation to the manipulator position.
   // This assumes that origins.currentReference is NOT translated
   target.p += m_translation;
@@ -181,6 +184,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
   AffineSpace3f axis;
   axis.p = target.p;
+  if (m_localSpace) {
+    axis.l = origins.currentReference(scene).l;
+  }
 
   // Lambda to draw one axis of the manipulator, a wire-frame arrow.
   auto drawAxis = [&](const glm::vec3& dir,
@@ -324,8 +330,8 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
   // Draw planar move controls, only if facing angle makes them usable
   glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
-  float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
 
+  float facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vx)));
   drawDiag(axis.l.vx, axis.l.vy, axis.l.vz, facingScale, MoveTool::kMoveYZ, ManipColors::xAxis, 1);
   facingScale = glm::smoothstep(0.05f, 0.3f, (float)fabs(dot(vn, axis.l.vy)));
   drawDiag(axis.l.vy, axis.l.vz, axis.l.vx, facingScale, MoveTool::kMoveXZ, ManipColors::yAxis, 1);

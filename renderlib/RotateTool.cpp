@@ -137,6 +137,9 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     // world space x,y,z
     LinearSpace3f rotationFrame;
     // if local space, then rotationFrame should use object's current rotation!
+    if (m_localSpace) {
+      rotationFrame = origins.currentReference(scene).l;
+    }
 
     float angle = 0.0f;
     glm::quat motion = glm::quat(glm::vec3(0, 0, 0));
@@ -146,21 +149,18 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         glm::vec3 vN = rotationFrame.vx; // glm::vec3(1, 0, 0);
         angle = getDraggedAngle(rotationFrame.vx, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
-
       } break;
       case RotateTool::kRotateY: // constrained to rotate about world y axis
       {
         glm::vec3 vN = rotationFrame.vy; // glm::vec3(0, 1, 0);
         angle = getDraggedAngle(rotationFrame.vy, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
-
       } break;
       case RotateTool::kRotateZ: // constrained to rotate about world z axis
       {
         glm::vec3 vN = rotationFrame.vz; // glm::vec3(0, 0, 1);
         angle = getDraggedAngle(rotationFrame.vz, p, l, l0, l1);
         motion = glm::angleAxis(angle, vN);
-
       } break;
       case RotateTool::kRotateView: // constrained to rotate about view direction
       {
@@ -215,7 +215,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   if (origins.empty()) {
     origins.update(scene);
   }
-  AffineSpace3f target = origins.currentReference(scene, Origins::kNormalize);
+  AffineSpace3f target = origins.currentReference(scene);
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
   LinearSpace3f camFrame = scene.camera.getFrame();
@@ -228,9 +228,11 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   axis.p = target.p;
 
   // TODO allow switching between local and world coordinate space!
-  // axis.l.vx = m_rotation * target.l.vx; // glm::vec3(1, 0, 0);
-  // axis.l.vy = m_rotation * target.l.vy; // glm::vec3(0, 1, 0);
-  // axis.l.vz = m_rotation * target.l.vz; // glm::vec3(0, 0, 1);
+  if (m_localSpace) {
+    axis.l.vx = m_rotation * target.l.vx; // glm::vec3(1, 0, 0);
+    axis.l.vy = m_rotation * target.l.vy; // glm::vec3(0, 1, 0);
+    axis.l.vz = m_rotation * target.l.vz; // glm::vec3(0, 0, 1);
+  }
 
   Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
   bool isRotating = (button.action == Gesture::Input::Action::kDrag && m_activeCode > -1);

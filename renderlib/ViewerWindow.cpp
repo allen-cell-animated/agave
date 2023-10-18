@@ -2,6 +2,7 @@
 
 #include "AreaLightTool.h"
 #include "IRenderWindow.h"
+#include "MoveTool.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
 #include "graphics/RenderGL.h"
@@ -21,7 +22,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
-  // m_tools.push_back(new AreaLightTool());
+  m_tools.push_back(new AreaLightTool());
 }
 
 ViewerWindow::~ViewerWindow()

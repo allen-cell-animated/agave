@@ -64,6 +64,7 @@ public:
   ManipulationTool m_defaultTool; //< a null tool representing selection
   ManipulationTool* m_activeTool = &m_defaultTool;
   std::vector<ManipulationTool*> m_tools;
+  bool m_toolsUseLocalSpace = false;
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;

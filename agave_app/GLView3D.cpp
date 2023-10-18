@@ -6,6 +6,8 @@
 
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
+#include "renderlib/MoveTool.h"
+#include "renderlib/RotateTool.h"
 #include "renderlib/graphics/RenderGL.h"
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/graphics/gl/Image3D.h"
@@ -285,8 +287,37 @@ GLView3D::FitToScene()
 void
 GLView3D::keyPressEvent(QKeyEvent* event)
 {
+  static enum MODE { NONE, ROT, TRANS } mode = MODE::NONE;
+
   if (event->key() == Qt::Key_A) {
     FitToScene();
+  } else if (event->key() == Qt::Key_L) {
+    // toggle local/global coordinates for transforms
+    m_viewerWindow->m_toolsUseLocalSpace = !m_viewerWindow->m_toolsUseLocalSpace;
+    m_viewerWindow->forEachTool(
+      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+  } else if (event->key() == Qt::Key_R) {
+    // toggle rotate tool
+    if (mode == MODE::NONE || mode == MODE::TRANS) {
+      m_viewerWindow->setTool(new RotateTool());
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      mode = MODE::ROT;
+    } else {
+      m_viewerWindow->setTool(nullptr);
+      mode = MODE::NONE;
+    }
+  } else if (event->key() == Qt::Key_T) {
+    // toggle translate tool
+    if (mode == MODE::NONE || mode == MODE::ROT) {
+      m_viewerWindow->setTool(new MoveTool());
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      mode = MODE::TRANS;
+    } else {
+      m_viewerWindow->setTool(nullptr);
+      mode = MODE::NONE;
+    }
   } else {
     QOpenGLWidget::keyPressEvent(event);
   }
