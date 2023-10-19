@@ -27,6 +27,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CollapsibleDockWidget.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CollapsibleDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Controls.cpp"

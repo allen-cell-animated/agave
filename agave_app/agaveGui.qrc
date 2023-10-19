@@ -5,5 +5,7 @@
         <file>icons/lock.png</file>
         <file>icons/linked.png</file>
         <file>icons/unlinked.png</file>
+        <file>icons/branch-open.png</file>
+        <file>icons/branch-closed.png</file>
     </qresource>
 </RCC>

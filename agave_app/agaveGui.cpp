@@ -15,6 +15,8 @@
 
 #include "AppearanceDockWidget.h"
 #include "CameraDockWidget.h"
+#include "CameraWidget.h"
+#include "CollapsibleDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
@@ -196,6 +198,11 @@ agaveGui::createToolbars()
 void
 agaveGui::createDockWindows()
 {
+  m_cameraDockWidget2 = new CollapsibleDockWidget(tr("Camera"), this);
+  m_cameraDockWidget2->setCollapsibleWidget(new QCameraWidget(m_cameraDockWidget2, &m_qcamera, &m_renderSettings));
+  m_cameraDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::LeftDockWidgetArea, m_cameraDockWidget2);
+
   m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);

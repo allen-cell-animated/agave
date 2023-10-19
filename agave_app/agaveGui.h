@@ -19,6 +19,7 @@ class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
+class CollapsibleDockWidget;
 class IFileReader;
 struct VolumeDimensions;
 struct LoadSpec;
@@ -118,6 +119,8 @@ private:
 
   QTabWidget* m_tabs;
   GLView3D* m_glView;
+
+  CollapsibleDockWidget* m_cameraDockWidget2;
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
