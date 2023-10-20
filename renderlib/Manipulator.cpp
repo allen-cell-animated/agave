@@ -1,6 +1,3 @@
 #include "Manipulator.h"
 
-// #include "AppScene.h"
-
-// TODO apply devicePixelRatio to this
-float ManipulationTool::s_manipulatorSize = 500.0f;
+float ManipulationTool::s_manipulatorSize = 200.0f;

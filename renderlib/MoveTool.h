@@ -3,7 +3,7 @@
 #include "Manipulator.h"
 #include "Origins.h"
 
-struct MoveTool : ManipulationTool
+struct MoveTool : public ManipulationTool
 {
   // Selection codes, are used to identify which manipulator is under the cursor.
   // The values in this enum are important, lower values means higher picking priority.
@@ -19,11 +19,12 @@ struct MoveTool : ManipulationTool
     kLast = 7
   };
 
-  MoveTool()
+  MoveTool(bool localspace = false, float size = ManipulationTool::s_manipulatorSize)
     : ManipulationTool(kLast)
     , m_translation(0)
-    , m_localSpace(false)
+    , m_localSpace(localspace)
   {
+    setSize(size);
   }
 
   virtual void action(SceneView& scene, Gesture& gesture) final;

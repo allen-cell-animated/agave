@@ -160,6 +160,8 @@ GLView3D::resizeGL(int w, int h)
   makeCurrent();
   float dpr = devicePixelRatioF();
   m_viewerWindow->setSize(w * dpr, h * dpr);
+  m_viewerWindow->forEachTool(
+    [this](ManipulationTool* tool) { tool->setSize(ManipulationTool::s_manipulatorSize * devicePixelRatioF()); });
 
   doneCurrent();
 }
@@ -299,7 +301,8 @@ GLView3D::keyPressEvent(QKeyEvent* event)
   } else if (event->key() == Qt::Key_R) {
     // toggle rotate tool
     if (mode == MODE::NONE || mode == MODE::TRANS) {
-      m_viewerWindow->setTool(new RotateTool());
+      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
+                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
       m_viewerWindow->forEachTool(
         [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
       mode = MODE::ROT;
@@ -310,7 +313,8 @@ GLView3D::keyPressEvent(QKeyEvent* event)
   } else if (event->key() == Qt::Key_T) {
     // toggle translate tool
     if (mode == MODE::NONE || mode == MODE::ROT) {
-      m_viewerWindow->setTool(new MoveTool());
+      m_viewerWindow->setTool(
+        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
       m_viewerWindow->forEachTool(
         [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
       mode = MODE::TRANS;
