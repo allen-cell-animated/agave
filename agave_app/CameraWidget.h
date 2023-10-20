@@ -1,10 +1,12 @@
 #pragma once
 
-#include "ApertureWidget.h"
 #include "Camera.h"
-#include "FilmWidget.h"
-#include "FocusWidget.h"
-#include "ProjectionWidget.h"
+#include "Controls.h"
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QFormLayout>
+#include <QWidget>
 
 class RenderSettings;
 
@@ -18,9 +20,28 @@ public:
   virtual QSize sizeHint() const;
 
 private:
-  QGridLayout m_MainLayout;
-  QFilmWidget m_FilmWidget;
-  QApertureWidget m_ApertureWidget;
-  QProjectionWidget m_ProjectionWidget;
-  QFocusWidget m_FocusWidget;
+  QFormLayout m_MainLayout;
+
+  QCamera* m_qcamera;
+  RenderSettings* m_renderSettings;
+
+  QNumericSlider m_ExposureSlider;
+  QComboBox m_ExposureIterationsSpinner;
+  QCheckBox m_NoiseReduction;
+  QNumericSlider m_ApertureSizeSlider;
+  QNumericSlider m_FieldOfViewSlider;
+  QNumericSlider m_FocalDistanceSlider;
+
+  void SetExposure(const double& Exposure);
+  void SetExposureIterations(int index);
+  void OnNoiseReduction(const int& ReduceNoise);
+  void SetAperture(const double& Aperture);
+  void SetFieldOfView(const double& FieldOfView);
+  void SetFocalDistance(const double& FocalDistance);
+
+private slots:
+  void OnFilmChanged();
+  void OnApertureChanged();
+  void OnFocusChanged();
+  void OnProjectionChanged();
 };
