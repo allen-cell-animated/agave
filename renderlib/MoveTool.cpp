@@ -180,7 +180,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   LinearSpace3f camFrame = scene.camera.getFrame();
 
   // Draw the manipulator to be at some constant size on screen
-  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (s_manipulatorSize / resolution.x);
+  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
 
   AffineSpace3f axis;
   axis.p = target.p;

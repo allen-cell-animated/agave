@@ -18,6 +18,7 @@ struct ManipulationTool
     : m_activeCode(kInactive)
     , m_codesOffset(0)
     , m_numReservedCodes(numReservedCodes)
+    , m_size(s_manipulatorSize)
   {
   }
 
@@ -100,6 +101,9 @@ public:
   //       those manipulators that needs such a setting: 3d manipulators or
   //       toolbars are likely to have different user configurations.
   static float s_manipulatorSize;
+
+  float m_size;
+  void setSize(float size) { m_size = size; }
 
 private:
   // Todo: add some API to describe the tool purpose, context and controls.

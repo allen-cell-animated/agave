@@ -3,7 +3,7 @@
 #include "Manipulator.h"
 #include "Origins.h"
 
-struct RotateTool : ManipulationTool
+struct RotateTool : public ManipulationTool
 {
   // Selection codes, are used to identify which manipulator is under the cursor.
   // The values in this enum are important, lower values means higher picking priority.
@@ -17,11 +17,12 @@ struct RotateTool : ManipulationTool
     kLast = 5
   };
 
-  RotateTool()
+  RotateTool(bool localSpace = false, float size = ManipulationTool::s_manipulatorSize)
     : ManipulationTool(kLast)
     , m_rotation(glm::vec3(0, 0, 0))
-    , m_localSpace(false)
+    , m_localSpace(localSpace)
   {
+    setSize(size);
   }
 
   virtual void action(SceneView& scene, Gesture& gesture) final;

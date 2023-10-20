@@ -222,7 +222,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   // remember the camFrame vectors are the world-space vectors that correspond to camera x, y, z directions
 
   // Draw the manipulator to be at some constant size on screen
-  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (s_manipulatorSize / resolution.x);
+  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
 
   AffineSpace3f axis;
   axis.p = target.p;
