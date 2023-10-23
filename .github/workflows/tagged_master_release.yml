@@ -78,6 +78,10 @@ jobs:
       - name: windows get nasm
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1
+      - name: Remove bad Strawberry Perl patch binary in search path
+        # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
+        if: matrix.os == 'windows-latest'
+        run: del C:\Strawberry\c\bin\patch.EXE
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
