@@ -17,7 +17,6 @@ RenderGL::RenderGL(RenderSettings* rs)
   , m_h(0)
   , m_renderSettings(rs)
   , m_scene(nullptr)
-  , m_devicePixelRatio(1.0f)
   , m_status(new CStatus)
 {
   mStartTime = std::chrono::high_resolution_clock::now();
@@ -29,7 +28,7 @@ RenderGL::~RenderGL()
 }
 
 void
-RenderGL::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
+RenderGL::initialize(uint32_t w, uint32_t h)
 {
   GLint max_combined_texture_image_units;
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
@@ -46,7 +45,7 @@ RenderGL::initialize(uint32_t w, uint32_t h, float devicePixelRatio)
   }
 
   // Size viewport
-  resize(w, h, devicePixelRatio);
+  resize(w, h);
 }
 
 // return true if have something to draw
@@ -101,7 +100,7 @@ RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 
   doClear();
   if (haveScene) {
-    m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
+    m_image3d->render(camera, m_scene, m_renderSettings);
   }
   fbo->release();
 }
@@ -113,10 +112,10 @@ RenderGL::render(const CCamera& camera)
     return;
   }
 
-  glViewport(0, 0, (GLsizei)(m_w * m_devicePixelRatio), (GLsizei)(m_h * m_devicePixelRatio));
+  glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
   // Render image
   doClear();
-  m_image3d->render(camera, m_scene, m_renderSettings, m_devicePixelRatio);
+  m_image3d->render(camera, m_scene, m_renderSettings);
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - mStartTime;
@@ -126,11 +125,10 @@ RenderGL::render(const CCamera& camera)
 }
 
 void
-RenderGL::resize(uint32_t w, uint32_t h, float devicePixelRatio)
+RenderGL::resize(uint32_t w, uint32_t h)
 {
   m_w = w;
   m_h = h;
-  m_devicePixelRatio = devicePixelRatio;
   glViewport(0, 0, w, h);
 }
 

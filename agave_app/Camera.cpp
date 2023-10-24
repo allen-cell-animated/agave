@@ -91,27 +91,3 @@ QCamera::Default(void)
 
   return DefaultCamera;
 }
-
-void
-QCamera::OnFilmChanged(void)
-{
-  emit Changed();
-}
-
-void
-QCamera::OnApertureChanged(void)
-{
-  emit Changed();
-}
-
-void
-QCamera::OnProjectionChanged(void)
-{
-  emit Changed();
-}
-
-void
-QCamera::OnFocusChanged(void)
-{
-  emit Changed();
-}

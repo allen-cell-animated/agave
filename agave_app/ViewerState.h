@@ -11,7 +11,7 @@
 
 #include <QString>
 
-struct Light;
+class Light;
 
 QString
 stateToPythonScript(const Serialize::ViewerState& state);

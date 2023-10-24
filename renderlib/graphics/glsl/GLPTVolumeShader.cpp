@@ -262,6 +262,7 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
 {
   vec2 ScreenPoint;
 
+  // m_screen: x:left, y:right, z:bottom, w:top
   ScreenPoint.x = cam.m_screen.x + (cam.m_invScreen.x * Pixel.x);
   ScreenPoint.y = cam.m_screen.z + (cam.m_invScreen.y * Pixel.y);
 
@@ -269,8 +270,7 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   if (cam.m_isPerspective == 0.0) {
     RayO += (ScreenPoint.x * cam.m_U) + (ScreenPoint.y * cam.m_V);
   }
-  // negating ScreenPoint.y flips the up/down direction. depends on whether you want pixel 0 at top or bottom
-  // we could also have flipped m_screen and m_invScreen, or cam.m_V?
+
   vec3 RayD = normalize(cam.m_N + (ScreenPoint.x * cam.m_U) + (ScreenPoint.y * cam.m_V));
   if (cam.m_isPerspective == 0.0) {
     RayD = cam.m_N;
@@ -1540,18 +1540,4 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 void
 GLPTVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
 {
-  float w = (float)camera.m_Film.GetWidth();
-  float h = (float)camera.m_Film.GetHeight();
-  float vfov = camera.m_FovV * DEG_TO_RAD;
-
-  glm::vec3 eye(camera.m_From.x, camera.m_From.y, camera.m_From.z);
-  glm::vec3 center(camera.m_Target.x, camera.m_Target.y, camera.m_Target.z);
-  glm::vec3 up(camera.m_Up.x, camera.m_Up.y, camera.m_Up.z);
-  glm::mat4 cv = glm::lookAt(eye, center, up);
-  glm::mat4 cp = glm::perspectiveFov(vfov, w, h, camera.m_Near, camera.m_Far);
-
-  // glUniform3fv(uCameraPosition, 1, glm::value_ptr(camera.position));
-  // glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, glm::value_ptr(cp));
-  // glUniformMatrix4fv(uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(cv * modelMatrix));
-  // glUniformMatrix4fv(uInverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(glm::inverse(cv * modelMatrix)));
 }

@@ -2,6 +2,7 @@
 
 #include "BoundingBox.h"
 #include "Defines.h"
+#include "MathUtil.h"
 #include "glm.h"
 
 #define DEF_FOCUS_TYPE CenterScreen
@@ -224,7 +225,7 @@ class Film
 {
 public:
   Resolution2D m_Resolution;
-  float m_Screen[2][2];
+  float m_Screen[2][2]; // [left, right], [bottom, top]
   glm::vec2 m_InvScreen;
   float m_Iso;
   float m_Exposure;
@@ -270,11 +271,13 @@ public:
 
     Scale = (projection == ORTHOGRAPHIC) ? orthoScale : tanf(0.5f * (FovV * DEG_TO_RAD));
 
+    // left, right
     m_Screen[0][0] = -Scale * m_Resolution.GetAspectRatio();
     m_Screen[0][1] = Scale * m_Resolution.GetAspectRatio();
-    // the "0" Y pixel will be at +Scale.
-    m_Screen[1][0] = Scale;
-    m_Screen[1][1] = -Scale;
+    // the "0" Y pixel will be at -Scale. this is the BOTTOM of the screen
+    // bottom, top
+    m_Screen[1][0] = -Scale;
+    m_Screen[1][1] = Scale;
 
     // the amount to increment for each pixel
     m_InvScreen.x = (m_Screen[0][1] - m_Screen[0][0]) / m_Resolution.GetResX();
@@ -290,7 +293,7 @@ public:
 
 #define FPS1 30.0f
 
-//#define DEF_CAMERA_TYPE						Perspective
+// #define DEF_CAMERA_TYPE						Perspective
 #define DEF_CAMERA_OPERATOR CameraOperatorUndefined
 #define DEF_CAMERA_VIEW_MODE ViewModeBack
 #define DEF_CAMERA_NEAR 0.01f
@@ -302,10 +305,10 @@ public:
 #define DEF_CAMERA_APERTURE_BLADES_ANGLE 0.0f
 #define DEF_CAMERA_ASPECT_RATIO 1.0f
 #define DEF_ORTHO_SCALE 0.5f
-//#define DEF_CAMERA_ZOOM_SPEED				1.0f
-//#define DEF_CAMERA_ORBIT_SPEED				5.0f
-//#define DEF_CAMERA_APERTURE_SPEED			0.25f
-//#define DEF_CAMERA_FOCAL_DISTANCE_SPEED		10.0f
+// #define DEF_CAMERA_ZOOM_SPEED				1.0f
+// #define DEF_CAMERA_ORBIT_SPEED				5.0f
+// #define DEF_CAMERA_APERTURE_SPEED			0.25f
+// #define DEF_CAMERA_FOCAL_DISTANCE_SPEED		10.0f
 
 class CCamera
 {
@@ -319,9 +322,14 @@ public:
   glm::vec3 m_Up;
   float m_FovV;
   float m_AreaPixel;
+
+  // vector corresponding to into the screen (means N, U, V is left handed!)
   glm::vec3 m_N;
+  // vector corresponding to screen left to right
   glm::vec3 m_U;
+  // vector corresponding to screen bottom to top
   glm::vec3 m_V;
+
   Film m_Film;
   Focus m_Focus;
   Aperture m_Aperture;
@@ -345,7 +353,27 @@ public:
     m_Projection = PERSPECTIVE;
     m_OrthoScale = DEF_ORTHO_SCALE;
   }
-
+  CCamera(const CCamera& other)
+  {
+    m_SceneBoundingBox = other.m_SceneBoundingBox;
+    m_Near = other.m_Near;
+    m_Far = other.m_Far;
+    m_EnableClippingPlanes = other.m_EnableClippingPlanes;
+    m_From = other.m_From;
+    m_Target = other.m_Target;
+    m_Up = other.m_Up;
+    m_FovV = other.m_FovV;
+    m_AreaPixel = other.m_AreaPixel;
+    m_N = other.m_N;
+    m_U = other.m_U;
+    m_V = other.m_V;
+    m_Film = other.m_Film;
+    m_Focus = other.m_Focus;
+    m_Aperture = other.m_Aperture;
+    m_Dirty = other.m_Dirty;
+    m_Projection = other.m_Projection;
+    m_OrthoScale = other.m_OrthoScale;
+  }
   CCamera& operator=(const CCamera& Other)
   {
     m_SceneBoundingBox = Other.m_SceneBoundingBox;
@@ -365,6 +393,7 @@ public:
     m_Aperture = Other.m_Aperture;
     m_Dirty = Other.m_Dirty;
     m_Projection = Other.m_Projection;
+    m_OrthoScale = Other.m_OrthoScale;
 
     return *this;
   }
@@ -545,7 +574,9 @@ public:
     Update();
   }
 
-  float GetHorizontalFOV_radians()
+  float getHalfHorizontalAperture() const { return tan(this->GetHorizontalFOV_radians() * 0.5f); }
+
+  float GetHorizontalFOV_radians() const
   {
     // convert horz fov to vert fov
     // w/d = 2*tan(hfov/2)
@@ -565,6 +596,11 @@ public:
     viewMatrix = glm::lookAt(eye, center, up);
   }
 
+  // return the world-space vectors that correspond to camera x, y, z directions
+  LinearSpace3f getFrame() const;
+
+  float getDistance(glm::vec3 p) const { return glm::distance(p, m_From); }
+
   void getProjMatrix(glm::mat4& projMatrix) const
   {
     // TODO future just do this inside of Update()
@@ -573,19 +609,89 @@ public:
     float h = (float)m_Film.GetHeight();
     float vfov = m_FovV * DEG_TO_RAD;
 
-    // apply a vertical flip in both ortho and perspective.
-    // We don't really want these negations here but
-    // they are specifically here to make bounding box drawing
-    // match up with regular pathtrace mode.
-    // In other words, there are flips in other places...
-    // a code audit (and some unit tests) could clean this all up,
-    // starting in part by keeping these unflipped.
     if (m_Projection == PERSPECTIVE) {
-      projMatrix =
-        glm::perspectiveFov(vfov, w, h, m_Near, m_Far) * glm::scale(glm::mat4(1.0), glm::vec3(1.0, -1.0, 1.0));
+      projMatrix = glm::perspectiveFov(vfov, w, h, m_Near, m_Far);
     } else {
       projMatrix = glm::ortho(
-        -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, 1.0f * m_OrthoScale, -1.0f * m_OrthoScale, m_Near, m_Far);
+        -(w / h) * m_OrthoScale, (w / h) * m_OrthoScale, -1.0f * m_OrthoScale, 1.0f * m_OrthoScale, m_Near, m_Far);
     }
   }
+
+  void ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget);
 };
+
+struct CameraModifier
+{
+  glm::vec3 position = { 0, 0, 0 };
+  glm::vec3 target = { 0, 0, 0 };
+  glm::vec3 up = { 0, 0, 0 };
+  // float fov = 0;
+  float nearClip = 0, farClip = 0;
+
+  CameraModifier()
+    : nearClip(0)
+    , farClip(0)
+  {
+  }
+};
+
+inline CameraModifier
+operator+(const CameraModifier& a, const CameraModifier& b)
+{
+  CameraModifier c;
+  c.position = a.position + b.position;
+  c.target = a.target + b.target;
+  c.up = a.up + b.up;
+  // c.fov = a.fov + b.fov;
+  c.nearClip = a.nearClip + b.nearClip;
+  c.farClip = a.farClip + b.farClip;
+  return c;
+}
+
+inline CameraModifier
+operator*(const CameraModifier& a, const float b)
+{
+  CameraModifier c;
+  c.position = a.position * b;
+  c.target = a.target * b;
+  c.up = a.up * b;
+  // c.fov = a.fov * b;
+  c.nearClip = a.nearClip * b;
+  c.farClip = a.farClip * b;
+  return c;
+}
+
+struct CameraAnimation
+{
+  float duration; //< animation total time
+  float time;     //< animation current time
+  CameraModifier mod;
+};
+
+struct Gesture;
+
+extern bool
+cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& camera, CameraModifier& cameraMod);
+
+inline CCamera&
+operator+=(CCamera& camera, const CameraModifier& mod)
+{
+  camera.m_From += mod.position;
+  camera.m_Target += mod.target;
+  camera.m_Up += mod.up;
+  // camera.m_FovV += mod.fov;
+  camera.m_Near += mod.nearClip;
+  camera.m_Far += mod.farClip;
+  // camera.Update();
+  return camera;
+}
+
+inline CCamera
+operator+(const CCamera& camera, const CameraModifier& mod)
+{
+  // a new copy
+  CCamera c = camera;
+  // apply the mod to the new copy
+  c += mod;
+  return c;
+}
