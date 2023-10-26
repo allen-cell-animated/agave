@@ -174,6 +174,7 @@ CollapsibleDockWidget::TitleBar::TitleBar(QWidget* parent)
   this->hlayout->setContentsMargins(0, 0, 0, 0);
   this->setLayout(this->hlayout);
   this->hlayout->addWidget(collapse);
+
   collapse->setIcon(QIcon(":/images/branch-open.png"));
   collapse->setCheckable(false);
   collapse->setFixedSize(20, 20);
@@ -182,7 +183,8 @@ CollapsibleDockWidget::TitleBar::TitleBar(QWidget* parent)
   this->hlayout->addWidget(title);
   this->hlayout->addStretch();
   this->hlayout->addWidget(undock);
-  undock->setIcon(QIcon(":/icons/unlinked.png"));
+  QIcon iconMax = parent->style()->standardIcon(QStyle::SP_TitleBarMaxButton, 0, parent);
+  undock->setIcon(iconMax); // QIcon(":/icons/unlinked.png"));
   undock->setCheckable(false);
   undock->setFixedSize(20, 20);
   QObject::connect(undock, &QPushButton::released, [this]() {
@@ -190,7 +192,8 @@ CollapsibleDockWidget::TitleBar::TitleBar(QWidget* parent)
     parentDockWidget->setFloating(true);
   });
   this->hlayout->addWidget(close);
-  close->setIcon(QIcon(":/icons/lock.png"));
+  QIcon iconClose = parent->style()->standardIcon(QStyle::SP_DockWidgetCloseButton, 0, parent);
+  close->setIcon(iconClose);
   close->setCheckable(false);
   close->setFixedSize(20, 20);
   connect(close, SIGNAL(released()), parent, SLOT(close()));
