@@ -382,6 +382,7 @@ vec3 GetEmissionN(float NormalizedIntensity, int ch)
 
 vec3 GetDiffuseN(float NormalizedIntensity, int ch)
 {
+  //return texture(g_colormapTexture[ch], vec2(0.5, 0.5)).xyz;
   return texture(g_colormapTexture[ch], vec2(NormalizedIntensity, 0.5)).xyz * g_diffuse[ch];
   //return g_diffuse[ch];
 }
@@ -1342,12 +1343,8 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("before pathtrace shader uniform binding");
 
   glUniform1i(m_volumeTexture, 0);
-  check_gl("post vol textures");
-
-  glActiveTexture(GL_TEXTURE0);
-  check_gl("post vol textures");
+  glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, 0);
-  check_gl("post vol textures");
   glBindTexture(GL_TEXTURE_3D, imggpu.m_VolumeGLTexture);
   check_gl("post vol textures");
 
@@ -1477,43 +1474,43 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1i(m_g_nChannels, activeChannel);
   check_gl("pre lut textures");
 
-  glUniform1i(m_lutTexture0, 3);
-  glActiveTexture(GL_TEXTURE0 + 3);
+  glUniform1i(m_lutTexture0, 2);
+  glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_2D, luttex[0]);
   check_gl("lut 0");
 
-  glUniform1i(m_lutTexture1, 4);
-  glActiveTexture(GL_TEXTURE0 + 4);
+  glUniform1i(m_lutTexture1, 3);
+  glActiveTexture(GL_TEXTURE0 + 3);
   glBindTexture(GL_TEXTURE_2D, luttex[1]);
   check_gl("lut 1");
 
-  glUniform1i(m_lutTexture2, 5);
-  glActiveTexture(GL_TEXTURE0 + 5);
+  glUniform1i(m_lutTexture2, 4);
+  glActiveTexture(GL_TEXTURE0 + 4);
   glBindTexture(GL_TEXTURE_2D, luttex[2]);
   check_gl("lut 2");
 
-  glUniform1i(m_lutTexture3, 6);
-  glActiveTexture(GL_TEXTURE0 + 6);
+  glUniform1i(m_lutTexture3, 5);
+  glActiveTexture(GL_TEXTURE0 + 5);
   glBindTexture(GL_TEXTURE_2D, luttex[3]);
   check_gl("lut 3");
 
-  glUniform1i(m_colormapTexture0, 7);
-  glActiveTexture(GL_TEXTURE0 + 7);
+  glUniform1i(m_colormapTexture0, 6);
+  glActiveTexture(GL_TEXTURE0 + 6);
   glBindTexture(GL_TEXTURE_2D, colormaptex[0]);
   check_gl("colormap 0");
 
-  glUniform1i(m_colormapTexture1, 8);
-  glActiveTexture(GL_TEXTURE0 + 8);
+  glUniform1i(m_colormapTexture1, 7);
+  glActiveTexture(GL_TEXTURE0 + 7);
   glBindTexture(GL_TEXTURE_2D, colormaptex[1]);
   check_gl("colormap 1");
 
-  glUniform1i(m_colormapTexture2, 9);
-  glActiveTexture(GL_TEXTURE0 + 9);
+  glUniform1i(m_colormapTexture2, 8);
+  glActiveTexture(GL_TEXTURE0 + 8);
   glBindTexture(GL_TEXTURE_2D, colormaptex[2]);
   check_gl("colormap 2");
 
-  glUniform1i(m_colormapTexture3, 10);
-  glActiveTexture(GL_TEXTURE0 + 10);
+  glUniform1i(m_colormapTexture3, 9);
+  glActiveTexture(GL_TEXTURE0 + 9);
   glBindTexture(GL_TEXTURE_2D, colormaptex[3]);
   check_gl("colormap 3");
 
