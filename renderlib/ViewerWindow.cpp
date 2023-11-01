@@ -22,11 +22,17 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
-  m_tools.push_back(new AreaLightTool());
+  m_areaLightTool = new AreaLightTool();
+  m_tools.push_back(m_areaLightTool);
 }
 
 ViewerWindow::~ViewerWindow()
 {
+  // remove and destroy area light tool
+  m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
+  ManipulationTool::destroyTool(m_areaLightTool);
+
+  // clean up all other tools
   if (m_activeTool != &m_defaultTool) {
     ManipulationTool::destroyTool(m_activeTool);
   }
@@ -34,6 +40,19 @@ ViewerWindow::~ViewerWindow()
     ManipulationTool::destroyTool(tool);
   }
   m_activeTool = nullptr;
+}
+
+void
+ViewerWindow::toggleAreaLightSelect()
+{
+  // check if m_areaLightTool is in m_tools
+  // if it is, remove it
+  // if it is not, add it
+  if (std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) == m_tools.end()) {
+    m_tools.push_back(m_areaLightTool);
+  } else {
+    m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
+  }
 }
 
 void
