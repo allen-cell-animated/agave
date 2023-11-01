@@ -25,4 +25,8 @@ struct GradientData
   std::vector<LutControlPoint> m_customControlPoints = { { 0.0f, 0.0f }, { 1.0f, 1.0f } };
 
   void convert(const Histogram& oldHistogram, const Histogram& newHistogram);
+
+  // if the mode is such that a min/max exist (window/level or percentile), calculate them and return the histo
+  // intensities at min and max
+  bool getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* imax) const;
 };
