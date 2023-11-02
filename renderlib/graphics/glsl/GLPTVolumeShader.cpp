@@ -322,10 +322,10 @@ float GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
 
   // relative to min/max for each channel
   intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
-  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
-  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
-  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
-  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
+  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x * pow(g_opacity[0], 4.0);
+  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x * pow(g_opacity[1], 4.0);
+  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x * pow(g_opacity[2], 4.0);
+  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x * pow(g_opacity[3], 4.0);
 
   // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
@@ -382,7 +382,7 @@ vec3 Gradient4ch(vec3 P, int ch)
 float GetOpacity(float NormalizedIntensity, int ch)
 {
   // apply lut
-  float Intensity = NormalizedIntensity * g_opacity[ch];
+  float Intensity = NormalizedIntensity;// * exp(1.0-1.0/g_opacity[ch]);
   return Intensity;
 }
 
