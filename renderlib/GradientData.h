@@ -1,6 +1,8 @@
 #pragma once
 
+#include <inttypes.h>
 #include <vector>
+
 struct Histogram;
 
 using LutControlPoint = std::pair<float, float>;
