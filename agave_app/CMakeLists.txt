@@ -9,6 +9,8 @@ target_include_directories(agaveapp PUBLIC
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agaveapp PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/aboutDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/aboutDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.qrc"

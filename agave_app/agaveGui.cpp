@@ -19,6 +19,7 @@
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
+#include "aboutDialog.h"
 #include "loadDialog.h"
 #include "renderDialog.h"
 
@@ -142,6 +143,10 @@ agaveGui::createActions()
   m_renderAction = new QAction(tr("&Render..."), this);
   m_renderAction->setStatusTip(tr("Open the render dialog"));
   connect(m_renderAction, SIGNAL(triggered()), this, SLOT(onRenderAction()));
+
+  m_aboutDialogAction = new QAction(tr("&About"), this);
+  m_aboutDialogAction->setStatusTip(tr("Open the about dialog"));
+  connect(m_aboutDialogAction, SIGNAL(triggered()), this, SLOT(onAboutDialogAction()));
 }
 
 void
@@ -174,6 +179,9 @@ agaveGui::createMenus()
   m_viewMenu = menuBar()->addMenu(tr("&View"));
 
   m_fileMenu->addSeparator();
+
+  m_helpMenu = menuBar()->addMenu(tr("&Help"));
+  m_helpMenu->addAction(m_aboutDialogAction);
 }
 
 void
@@ -377,6 +385,14 @@ agaveGui::saveImage()
     QImage im = m_glView->captureQimage();
     im.save(file);
   }
+}
+
+void
+agaveGui::onAboutDialogAction()
+{
+  AboutDialog* dlg = new AboutDialog();
+  dlg->setModal(true);
+  dlg->show();
 }
 
 void

@@ -59,6 +59,7 @@ private slots:
   void savePython();
   void onRenderAction();
   void OnUpdateRenderer();
+  void onAboutDialogAction();
 
 private:
   enum
@@ -85,6 +86,7 @@ private:
 
   QMenu* m_fileMenu;
   QMenu* m_viewMenu;
+  QMenu* m_helpMenu;
 
   QToolBar* m_Cam2DTools;
 
@@ -100,6 +102,7 @@ private:
   QAction* m_toggleCameraProjectionAction = nullptr;
   QAction* m_saveImageAction = nullptr;
   QAction* m_renderAction = nullptr;
+  QAction* m_aboutDialogAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
