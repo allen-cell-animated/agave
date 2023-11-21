@@ -7,7 +7,7 @@
 AboutDialog::AboutDialog()
   : QDialog()
 {
-  setTitle("About AGAVE");
+  setWindowTitle("About AGAVE");
   auto layout = new QVBoxLayout(this);
   auto label = new QLabel(this);
 
