@@ -97,20 +97,24 @@ cameraManipulationDolly(const glm::vec2 viewportSize,
   glm::vec3 v = camera.m_From - camera.m_Target;
   glm::vec3 motion, targetMotion;
 
-  if (drag.x == 0 && drag.y == 0)
+  if (drag.x == 0 && drag.y == 0) {
     cameraEdit = false;
+  }
 
+  float factor = 1.0f;
   if ((button.modifier & Gesture::Input::kShift) == 0) {
     // Exponential motion, the closer to the target, the slower the motion,
     // the further away the faster.
-    glm::vec3 v_scaled = v * expf(-dragDist * dragScale);
+    factor = expf(-dragDist * dragScale);
+    glm::vec3 v_scaled = v * factor;
     motion = v_scaled - v;
     targetMotion = glm::vec3(0);
   } else {
     // Linear motion. We move position and target at once. This mode allows the user not
     // to get stuck with a camera that doesn't move because the position got too close to
     // the target.
-    glm::vec3 v_scaled = v * (-dragDist * dragScale);
+    factor = (-dragDist * dragScale);
+    glm::vec3 v_scaled = v * factor;
     motion = v_scaled;
     targetMotion = motion;
   }
@@ -121,6 +125,7 @@ cameraManipulationDolly(const glm::vec2 viewportSize,
   } else if (button.action == Gesture::Input::kRelease) {
     camera.m_From += motion;
     camera.m_Target += targetMotion;
+    camera.m_OrthoScale *= factor;
 
     // Consume gesture on button release
     Gesture::Input::reset(button);

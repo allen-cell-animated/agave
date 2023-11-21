@@ -418,6 +418,7 @@ public:
     m_Film.Update(m_FovV, m_Aperture.m_Size, m_Projection, m_OrthoScale);
   }
 
+  // use with fixed amount for scroll wheel zooming
   void Zoom(float amount)
   {
     glm::vec3 reverseLoS = m_From - m_Target;
@@ -631,8 +632,7 @@ struct CameraModifier
   CameraModifier()
     : nearClip(0)
     , farClip(0)
-  {
-  }
+  {}
 };
 
 inline CameraModifier
@@ -648,8 +648,7 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   return c;
 }
 
-inline CameraModifier
-operator*(const CameraModifier& a, const float b)
+inline CameraModifier operator*(const CameraModifier& a, const float b)
 {
   CameraModifier c;
   c.position = a.position * b;
@@ -676,8 +675,14 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
 inline CCamera&
 operator+=(CCamera& camera, const CameraModifier& mod)
 {
+  // update OrthoScale as well - remember percentage change in distance
+  // from target to eye is the same as percentage change in ortho scale
+  float dold = glm::distance(camera.m_From, camera.m_Target);
   camera.m_From += mod.position;
   camera.m_Target += mod.target;
+  float dnew = glm::distance(camera.m_From, camera.m_Target);
+  float scale = dnew / dold;
+  camera.m_OrthoScale *= scale;
   camera.m_Up += mod.up;
   // camera.m_FovV += mod.fov;
   camera.m_Near += mod.nearClip;
