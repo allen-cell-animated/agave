@@ -147,6 +147,22 @@ agaveGui::createActions()
   m_aboutDialogAction = new QAction(tr("&About"), this);
   m_aboutDialogAction->setStatusTip(tr("Open the about dialog"));
   connect(m_aboutDialogAction, SIGNAL(triggered()), this, SLOT(onAboutDialogAction()));
+
+  m_supportForumAction = new QAction(tr("&Support Forum"), this);
+  m_supportForumAction->setStatusTip(tr("Open the support forum in your browser"));
+  connect(m_supportForumAction, SIGNAL(triggered()), this, SLOT(onSupportForumAction()));
+
+  m_documentationAction = new QAction(tr("&Documentation"), this);
+  m_documentationAction->setStatusTip(tr("Open the documentation in your browser"));
+  connect(m_documentationAction, SIGNAL(triggered()), this, SLOT(onDocumentationAction()));
+
+  m_reportBugAction = new QAction(tr("&Report a bug"), this);
+  m_reportBugAction->setStatusTip(tr("Open the bug reporting page in your browser"));
+  connect(m_reportBugAction, SIGNAL(triggered()), this, SLOT(onReportBugAction()));
+
+  m_sourceCodeAction = new QAction(tr("&Source code"), this);
+  m_sourceCodeAction->setStatusTip(tr("Open the source code in your browser"));
+  connect(m_sourceCodeAction, SIGNAL(triggered()), this, SLOT(onSourceCodeAction()));
 }
 
 void
@@ -182,6 +198,10 @@ agaveGui::createMenus()
 
   m_helpMenu = menuBar()->addMenu(tr("&Help"));
   m_helpMenu->addAction(m_aboutDialogAction);
+  m_helpMenu->addAction(m_supportForumAction);
+  m_helpMenu->addAction(m_documentationAction);
+  m_helpMenu->addAction(m_reportBugAction);
+  m_helpMenu->addAction(m_sourceCodeAction);
 }
 
 void
@@ -392,7 +412,28 @@ agaveGui::onAboutDialogAction()
 {
   AboutDialog* dlg = new AboutDialog();
   dlg->setModal(true);
-  dlg->show();
+  dlg->exec();
+}
+
+void
+agaveGui::onSupportForumAction()
+{
+  QDesktopServices::openUrl(QUrl("https://forum.image.sc/tag/agave"));
+}
+void
+agaveGui::onDocumentationAction()
+{
+  QDesktopServices::openUrl(QUrl("https://allen-cell-animated.github.io/agave"));
+}
+void
+agaveGui::onReportBugAction()
+{
+  QDesktopServices::openUrl(QUrl("https://github.com/allen-cell-animated/agave/issues"));
+}
+void
+agaveGui::onSourceCodeAction()
+{
+  QDesktopServices::openUrl(QUrl("https://github.com/allen-cell-animated/agave"));
 }
 
 void

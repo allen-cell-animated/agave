@@ -60,6 +60,10 @@ private slots:
   void onRenderAction();
   void OnUpdateRenderer();
   void onAboutDialogAction();
+  void onSupportForumAction();
+  void onDocumentationAction();
+  void onReportBugAction();
+  void onSourceCodeAction();
 
 private:
   enum
@@ -103,6 +107,10 @@ private:
   QAction* m_saveImageAction = nullptr;
   QAction* m_renderAction = nullptr;
   QAction* m_aboutDialogAction = nullptr;
+  QAction* m_supportForumAction = nullptr;
+  QAction* m_documentationAction = nullptr;
+  QAction* m_reportBugAction = nullptr;
+  QAction* m_sourceCodeAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
