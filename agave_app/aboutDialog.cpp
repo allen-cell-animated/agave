@@ -14,7 +14,7 @@ AboutDialog::AboutDialog()
   auto label = new QLabel(this);
 
   label->setText("<h1><b>AGAVE</b></h1>"
-                 "<h4><i>Advanced GPU Accelerated Volume Explorer</i></h4>"
+                 "<i>Advanced GPU Accelerated Volume Explorer</i>"
                  "<h4><b>Version " +
                  qApp->applicationVersion() +
                  "</b></h4>"
