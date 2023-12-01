@@ -917,8 +917,8 @@ bool FreePathRM(inout Ray R, inout uvec2 seed)
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
-    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    //intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
 
     Sum += SigmaT * gStepSizeShadow;
@@ -1083,8 +1083,8 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps, out float inte
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
-    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    //intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
     //SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
@@ -1624,4 +1624,5 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
 void
 GLPTVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
-{}
+{
+}
