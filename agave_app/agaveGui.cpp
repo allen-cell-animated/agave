@@ -488,12 +488,14 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   // Show timeline widget if the loaded image has multiple frames.
   m_timelinedock->setVisible(sizeT > 1);
 
+  bool wasVolumeLoaded = m_appScene.m_volume != nullptr;
+
   // install the new volume image into the scene.
   // this is deref'ing the previous _volume shared_ptr.
   m_appScene.m_volume = image;
 
   m_appScene.initBoundsFromImg(image);
-  if (!keepCurrentUISettings) {
+  if (!keepCurrentUISettings || !wasVolumeLoaded) {
     m_appScene.initSceneFromImg(image);
     m_glView->initCameraFromImage(&m_appScene);
   }
