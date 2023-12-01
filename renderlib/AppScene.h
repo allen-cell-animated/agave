@@ -35,6 +35,8 @@ struct VolumeDisplay
   bool m_enabled[MAX_CPU_CHANNELS];
 
   GradientData m_gradientData[MAX_CPU_CHANNELS];
+
+  VolumeDisplay();
 };
 
 // MUST NOT OUTLIVE ITS LIGHT
