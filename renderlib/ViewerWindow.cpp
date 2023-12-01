@@ -23,7 +23,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
   m_areaLightTool = new AreaLightTool();
-  m_tools.push_back(m_areaLightTool);
+  // m_tools.push_back(m_areaLightTool);
 }
 
 ViewerWindow::~ViewerWindow()
