@@ -144,6 +144,9 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
 
   updateMultiresolutionLevel(mSelectedLevel);
 
+  m_keepSettingsCheckbox = new QCheckBox(this);
+  m_keepSettingsCheckbox->setChecked(true);
+
   QFormLayout* layout = new QFormLayout(this);
   layout->setLabelAlignment(Qt::AlignLeft);
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -171,6 +174,8 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   layout->addRow(mVolumeLabel);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(mMemoryEstimateLabel);
+  layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  layout->addRow("Keep current AGAVE settings", m_keepSettingsCheckbox);
   layout->addItem(new QSpacerItem(0, spacing, QSizePolicy::Expanding, QSizePolicy::Expanding));
   layout->addRow(buttonBox);
 
