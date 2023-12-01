@@ -26,7 +26,7 @@ class QAppearanceSettingsWidget : public QGroupBox
 public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
 
-  void onNewImage(Scene* scene, bool keepCurrentSettings);
+  void onNewImage(Scene* scene);
 
 public slots:
   void OnRenderBegin(void);

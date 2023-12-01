@@ -1164,7 +1164,7 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 }
 
 void
-QAppearanceSettingsWidget::onNewImage(Scene* scene, bool keepCurrentSettings)
+QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
   // Don't forget that most ui updating triggered in this function should
   // NOT signal changes to the scene.

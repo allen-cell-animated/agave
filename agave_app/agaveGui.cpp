@@ -513,7 +513,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   std::string filename = loadSpec.getFilename();
   m_tabs->setTabText(0, QString::fromStdString(filename));
 
-  m_appearanceDockWidget->onNewImage(&m_appScene, keepCurrentUISettings);
+  m_appearanceDockWidget->onNewImage(&m_appScene);
   m_timelinedock->onNewImage(&m_appScene, loadSpec, reader);
 
   // set up status view with some stats.
