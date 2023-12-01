@@ -14,7 +14,7 @@ class QAppearanceWidget : public QWidget
 public:
   QAppearanceWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
 
-  void onNewImage(Scene* s, bool keepCurrentSettings) { m_AppearanceSettingsWidget.onNewImage(s, keepCurrentSettings); }
+  void onNewImage(Scene* s) { m_AppearanceSettingsWidget.onNewImage(s); }
 
 protected:
   QGridLayout m_MainLayout;
@@ -28,7 +28,7 @@ class QAppearanceDockWidget : public QDockWidget
 public:
   QAppearanceDockWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
 
-  void onNewImage(Scene* s, bool keepCurrentSettings) { m_VolumeAppearanceWidget.onNewImage(s, keepCurrentSettings); }
+  void onNewImage(Scene* s) { m_VolumeAppearanceWidget.onNewImage(s); }
 
 protected:
   QAppearanceWidget m_VolumeAppearanceWidget;
