@@ -336,6 +336,7 @@ float GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
   }
   return maxIn; // *factor;
 }
+
 float GetNormalizedIntensityRnd4ch(in vec3 P, out int ch, inout uvec2 seed)
 {
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P));
