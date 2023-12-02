@@ -1123,7 +1123,7 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   bool old_value = m_scene->m_material.m_enabled[i];
   if (old_value != is_checked) {
     m_scene->m_material.m_enabled[i] = is_checked;
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty | TransferFunctionDirty);
   }
 }
 
