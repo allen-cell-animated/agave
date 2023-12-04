@@ -442,19 +442,30 @@ vec3 GetEmissionN(float NormalizedIntensity, int ch)
 
 vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 {
-  //return texture(g_colormapTexture[ch], vec2(0.5, 0.5)).xyz;
-
-//  float i = NormalizedIntensity * (g_intensityMax[ch] - g_intensityMin[ch]) + g_intensityMin[ch];//(intensity - g_intensityMin) / (g_intensityMax - g_intensityMin)
-//  i = (i-g_lutMin[ch])/(g_lutMax[ch]-g_lutMin[ch]) * g_opacity[ch];
-//  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
-
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
   float i = intensity[ch];
   i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
-  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
 
+  // ideally this is supposed to be
+  // colormap = texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz;
+  // but apparently macos + amd graphics can't do this dynamic lookup
+  // in a sampler2d array.
+  // so we have to do this instead:
+  vec3 colormap = vec3(0,0,0);
+  if (ch == 0) {
+    colormap = texture(g_colormapTexture[0], vec2(i, 0.5)).xyz;
+  }
+  else if (ch == 1) {
+    colormap = texture(g_colormapTexture[1], vec2(i, 0.5)).xyz;
+  }
+  else if (ch == 2) {
+    colormap = texture(g_colormapTexture[2], vec2(i, 0.5)).xyz;
+  }
+  else if (ch == 3) {
+    colormap = texture(g_colormapTexture[3], vec2(i, 0.5)).xyz;
+  }
 
-  //return g_diffuse[ch];
+  return colormap * g_diffuse[ch];
 }
 
 vec3 GetSpecularN(float NormalizedIntensity, int ch)
