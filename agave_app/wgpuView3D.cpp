@@ -7,13 +7,17 @@
 #include "renderlib/AppScene.h"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
+#include "renderlib/MoveTool.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/RotateTool.h"
 #include "renderlib/graphics/IRenderWindow.h"
 #include "renderlib/graphics/RenderGL.h"
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/graphics/gl/Image3D.h"
 #include "renderlib/graphics/gl/Util.h"
 #include "renderlib_wgpu/getsurface_wgpu.h"
+#include "renderlib_wgpu/wgpu_util.h"
+
 
 #include <glm.h>
 
@@ -33,195 +37,43 @@
 #pragma warning(disable : 4351)
 #endif
 
-static Gesture::Input::ButtonId
-getButton(QMouseEvent* event)
+WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
+  : QWidget(parent)
+  , m_lastPos(0, 0)
+  , m_initialized(false)
+  , m_fakeHidden(false)
+  , m_qrendersettings(qrs)
 {
-  Gesture::Input::ButtonId btn;
-  switch (event->button()) {
-    case Qt::LeftButton:
-      btn = Gesture::Input::ButtonId::kButtonLeft;
-      break;
-    case Qt::RightButton:
-      btn = Gesture::Input::ButtonId::kButtonRight;
-      break;
-    case Qt::MiddleButton:
-      btn = Gesture::Input::ButtonId::kButtonMiddle;
-      break;
-    default:
-      btn = Gesture::Input::ButtonId::kButtonLeft;
-      break;
-  };
-  return btn;
-}
-static int
-getGestureMods(QMouseEvent* event)
-{
-  int mods = 0;
-  if (event->modifiers() & Qt::ShiftModifier) {
-    mods |= Gesture::Input::Mods::kShift;
-  }
-  if (event->modifiers() & Qt::ControlModifier) {
-    mods |= Gesture::Input::Mods::kCtrl;
-  }
-  if (event->modifiers() & Qt::AltModifier) {
-    mods |= Gesture::Input::Mods::kAlt;
-  }
-  if (event->modifiers() & Qt::MetaModifier) {
-    mods |= Gesture::Input::Mods::kSuper;
-  }
-  return mods;
-}
+  m_viewerWindow = new ViewerWindow(rs);
+  m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
 
-static void
-request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char* message, void* userdata)
-{
-  if (status == WGPURequestAdapterStatus_Success) {
-    LOG_INFO << "Got WebGPU adapter";
-  } else {
-    LOG_INFO << "Could not get WebGPU adapter";
-  }
-  if (message) {
-    LOG_INFO << message;
-  }
-  *(WGPUAdapter*)userdata = received;
-}
+  setAutoFillBackground(false);
+  setAttribute(Qt::WA_PaintOnScreen);
+  setFocusPolicy(Qt::StrongFocus);
+  setMouseTracking(true);
+  winId(); // create window handle
 
-static void
-request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, const char* message, void* userdata)
-{
-  if (status == WGPURequestDeviceStatus_Success) {
-    LOG_INFO << "Got WebGPU device";
-  } else {
-    LOG_INFO << "Could not get WebGPU adapter";
-  }
-  if (message) {
-    LOG_INFO << message;
-  }
-  *(WGPUDevice*)userdata = received;
-}
+  m_qrendersettings->setRenderSettings(*rs);
 
-static void
-handle_device_lost(WGPUDeviceLostReason reason, char const* message, void* userdata)
-{
-  LOG_INFO << "DEVICE LOST (" << reason << "): " << message;
-  // UNUSED(userdata);
-}
+  // IMPORTANT this is where the QT gui container classes send their values down into the
+  // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
+  // WgpuView3D->OnUpdateCamera
+  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
+  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
+  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
 
-static void
-handle_uncaptured_error(WGPUErrorType type, char const* message, void* userdata)
-{
-  std::string s;
-  switch (type) {
-    case WGPUErrorType_NoError:
-      s = "NoError";
-      break;
-    case WGPUErrorType_Validation:
-      s = "Validation";
-      break;
-    case WGPUErrorType_OutOfMemory:
-      s = "OutOfMemory";
-      break;
-    case WGPUErrorType_Internal:
-      s = "Internal";
-      break;
-    case WGPUErrorType_Unknown:
-      s = "Unknown";
-      break;
-    case WGPUErrorType_DeviceLost:
-      s = "DeviceLost";
-      break;
-    default:
-      s = "Unknown";
-      break;
-  }
-  // UNUSED(userdata);
-
-  LOG_INFO << "UNCAPTURED ERROR " << s << " (" << type << "): " << message;
-}
-
-static void
-printAdapterFeatures(WGPUAdapter adapter)
-{
-  std::vector<WGPUFeatureName> features;
-
-  // Call the function a first time with a null return address, just to get
-  // the entry count.
-  size_t count = wgpuAdapterEnumerateFeatures(adapter, nullptr);
-
-  // Allocate memory (could be a new, or a malloc() if this were a C program)
-  features.resize(count);
-
-  // Call the function a second time, with a non-null return address
-  wgpuAdapterEnumerateFeatures(adapter, features.data());
-
-  LOG_INFO << "Adapter features:";
-  for (uint32_t f : features) {
-    std::string s;
-    switch (f) {
-      case WGPUFeatureName_Undefined:
-        s = "Undefined";
-        break;
-      case WGPUFeatureName_DepthClipControl:
-        s = "DepthClipControl";
-        break;
-      case WGPUFeatureName_Depth32FloatStencil8:
-        s = "Depth32FloatStencil8";
-        break;
-      case WGPUFeatureName_TimestampQuery:
-        s = "TimestampQuery";
-        break;
-      case WGPUFeatureName_TextureCompressionBC:
-        s = "TextureCompressionBC";
-        break;
-      case WGPUFeatureName_TextureCompressionETC2:
-        s = "TextureCompressionETC2";
-        break;
-      case WGPUFeatureName_TextureCompressionASTC:
-        s = "TextureCompressionASTC";
-        break;
-      case WGPUFeatureName_IndirectFirstInstance:
-        s = "IndirectFirstInstance";
-        break;
-      case WGPUFeatureName_ShaderF16:
-        s = "ShaderF16";
-        break;
-      case WGPUFeatureName_RG11B10UfloatRenderable:
-        s = "RG11B10UfloatRenderable";
-        break;
-      case WGPUFeatureName_BGRA8UnormStorage:
-        s = "BGRA8UnormStorage";
-        break;
-      case WGPUFeatureName_Float32Filterable:
-        s = "Float32Filterable";
-        break;
-      case WGPUNativeFeature_PushConstants:
-        s = "PushConstants";
-        break;
-      case WGPUNativeFeature_TextureAdapterSpecificFormatFeatures:
-        s = "TextureAdapterSpecificFormatFeatures";
-        break;
-      case WGPUNativeFeature_MultiDrawIndirect:
-        s = "MultiDrawIndirect";
-        break;
-      case WGPUNativeFeature_MultiDrawIndirectCount:
-        s = "MultiDrawIndirectCount";
-        break;
-      case WGPUNativeFeature_VertexWritableStorage:
-        s = "VertexWritableStorage";
-        break;
-      case WGPUNativeFeature_TextureBindingArray:
-        s = "TextureBindingArray";
-        break;
-      case WGPUNativeFeature_SampledTextureAndStorageBufferArrayNonUniformIndexing:
-        s = "SampledTextureAndStorageBufferArrayNonUniformIndexing";
-        break;
-
-      default:
-        s = "Unknown";
-        break;
+  // run a timer to update the clock
+  // TODO is this different than using this->startTimer and QTimerEvent?
+  m_etimer = new QTimer(parent);
+  m_etimer->setTimerType(Qt::PreciseTimer);
+  connect(m_etimer, &QTimer::timeout, this, [this] {
+    // assume that in between QTimer events, true processEvents is called by Qt itself
+    // QCoreApplication::processEvents();
+    if (isEnabled()) {
+      update();
     }
-    LOG_INFO << " + " << s << " (" << f << ")";
-  }
+  });
+  m_etimer->start();
 }
 
 void
@@ -255,6 +107,23 @@ WgpuView3D::onNewImage(Scene* scene)
   this->OnUpdateRenderer(m_viewerWindow->m_rendererType);
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
+}
+
+WgpuView3D::~WgpuView3D()
+{
+  wgpuSurfaceRelease(m_surface);
+}
+
+QSize
+WgpuView3D::minimumSizeHint() const
+{
+  return QSize(800, 600);
+}
+
+QSize
+WgpuView3D::sizeHint() const
+{
+  return QSize(800, 600);
 }
 
 void
@@ -379,14 +248,11 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   // m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
   m_initialized = true;
 
-  // TODO
-  // if (m_renderer) {
-  //   QSize newsize = size();
-  //   m_renderer->initialize(newsize.width(), newsize.height(), devicePixelRatioF());
-  // }
+  QSize newsize = size();
+  float dpr = devicePixelRatioF();
+  m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr);
 
   // Start timers
-  startTimer(0);
   m_etimer->start();
 
   // // Size viewport
@@ -400,9 +266,94 @@ WgpuView3D::paintEvent(QPaintEvent* e)
     return;
   }
   if (updatesEnabled()) {
-    render();
+    m_viewerWindow->redraw();
     // e->accept();
   }
+}
+
+void
+WgpuView3D::resizeGL(int w, int h)
+{
+  QResizeEvent e(QSize(w, h), QSize(w, h));
+  resizeEvent(&e);
+}
+void
+WgpuView3D::resizeEvent(QResizeEvent* event)
+{
+  if (event->size().isEmpty()) {
+    m_fakeHidden = true;
+    return;
+  }
+  m_fakeHidden = false;
+  initializeGL(0);
+  if (!m_initialized) {
+    return;
+  }
+
+  float dpr = devicePixelRatioF();
+  int w = event->size().width();
+  int h = event->size().height();
+
+  // (if w or h actually changed...)
+  WGPUSurfaceConfiguration surfaceConfig = {
+    .nextInChain = NULL,
+    .device = m_device,
+    .format = m_swapChainFormat,
+    .usage = WGPUTextureUsage_RenderAttachment,
+    .viewFormatCount = 0,
+    .viewFormats = NULL,
+    .alphaMode = WGPUCompositeAlphaMode_Auto,
+    .width = (uint32_t)width(),
+    .height = (uint32_t)height(),
+    .presentMode = WGPUPresentMode_Fifo,
+  };
+  wgpuSurfaceConfigure(m_surface, &surfaceConfig);
+
+  m_viewerWindow->setSize(w * dpr, h * dpr);
+  m_viewerWindow->forEachTool(
+    [this](ManipulationTool* tool) { tool->setSize(ManipulationTool::s_manipulatorSize * devicePixelRatioF()); });
+
+  // update();
+  //   invokeUserPaint();
+}
+
+static Gesture::Input::ButtonId
+getButton(QMouseEvent* event)
+{
+  Gesture::Input::ButtonId btn;
+  switch (event->button()) {
+    case Qt::LeftButton:
+      btn = Gesture::Input::ButtonId::kButtonLeft;
+      break;
+    case Qt::RightButton:
+      btn = Gesture::Input::ButtonId::kButtonRight;
+      break;
+    case Qt::MiddleButton:
+      btn = Gesture::Input::ButtonId::kButtonMiddle;
+      break;
+    default:
+      btn = Gesture::Input::ButtonId::kButtonLeft;
+      break;
+  };
+  return btn;
+}
+static int
+getGestureMods(QMouseEvent* event)
+{
+  int mods = 0;
+  if (event->modifiers() & Qt::ShiftModifier) {
+    mods |= Gesture::Input::Mods::kShift;
+  }
+  if (event->modifiers() & Qt::ControlModifier) {
+    mods |= Gesture::Input::Mods::kCtrl;
+  }
+  if (event->modifiers() & Qt::AltModifier) {
+    mods |= Gesture::Input::Mods::kAlt;
+  }
+  if (event->modifiers() & Qt::MetaModifier) {
+    mods |= Gesture::Input::Mods::kSuper;
+  }
+  return mods;
 }
 
 void
@@ -519,44 +470,6 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
 }
 
 void
-WgpuView3D::resizeEvent(QResizeEvent* event)
-{
-  if (event->size().isEmpty()) {
-    m_fakeHidden = true;
-    return;
-  }
-  m_fakeHidden = false;
-  initializeGL(0);
-  if (!m_initialized) {
-    return;
-  }
-
-  float dpr = devicePixelRatioF();
-  int w = event->size().width();
-  int h = event->size().height();
-
-  // (if w or h actually changed...)
-  WGPUSurfaceConfiguration surfaceConfig = {
-    .nextInChain = NULL,
-    .device = m_device,
-    .format = m_swapChainFormat,
-    .usage = WGPUTextureUsage_RenderAttachment,
-    .viewFormatCount = 0,
-    .viewFormats = NULL,
-    .alphaMode = WGPUCompositeAlphaMode_Auto,
-    .width = (uint32_t)width(),
-    .height = (uint32_t)height(),
-    .presentMode = WGPUPresentMode_Fifo,
-  };
-  wgpuSurfaceConfigure(m_surface, &surfaceConfig);
-
-  m_viewerWindow->setSize(w * dpr, h * dpr);
-
-  // update();
-  //   invokeUserPaint();
-}
-
-void
 WgpuView3D::mousePressEvent(QMouseEvent* event)
 {
   if (!isEnabled()) {
@@ -607,9 +520,79 @@ WgpuView3D::mouseMoveEvent(QMouseEvent* event)
   m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x() * dpr, event->y() * dpr));
 }
 
+void
+WgpuView3D::wheelEvent(QWheelEvent* event)
+{
+  if (!isEnabled()) {
+    return;
+  }
+  const float dpr = devicePixelRatioF();
+
+  // tell gesture there was a wheel event
+  // m_viewerWindow->gesture.input.setPointerPosition(glm::vec2(event->x() * dpr, event->y() * dpr));
+}
+
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
+
+void
+WgpuView3D::FitToScene()
+{
+  Scene* sc = m_viewerWindow->m_renderer->scene();
+
+  glm::vec3 newPosition, newTarget;
+  m_viewerWindow->m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
+  CameraAnimation anim = {};
+  anim.duration = 0.5f; //< duration is seconds.
+  anim.mod.position = newPosition - m_viewerWindow->m_CCamera.m_From;
+  anim.mod.target = newTarget - m_viewerWindow->m_CCamera.m_Target;
+  m_viewerWindow->m_cameraAnim.push_back(anim);
+}
+
+void
+WgpuView3D::keyPressEvent(QKeyEvent* event)
+{
+  static enum MODE { NONE, ROT, TRANS } mode = MODE::NONE;
+
+  if (event->key() == Qt::Key_A) {
+    FitToScene();
+  } else if (event->key() == Qt::Key_L) {
+    // toggle showing area light gizmo
+    m_viewerWindow->toggleAreaLightSelect();
+  } else if (event->key() == Qt::Key_S) {
+    // toggle local/global coordinates for transforms
+    m_viewerWindow->m_toolsUseLocalSpace = !m_viewerWindow->m_toolsUseLocalSpace;
+    m_viewerWindow->forEachTool(
+      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+  } else if (event->key() == Qt::Key_R) {
+    // toggle rotate tool
+    if (mode == MODE::NONE || mode == MODE::TRANS) {
+      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
+                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      mode = MODE::ROT;
+    } else {
+      m_viewerWindow->setTool(nullptr);
+      mode = MODE::NONE;
+    }
+  } else if (event->key() == Qt::Key_T) {
+    // toggle translate tool
+    if (mode == MODE::NONE || mode == MODE::ROT) {
+      m_viewerWindow->setTool(
+        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      mode = MODE::TRANS;
+    } else {
+      m_viewerWindow->setTool(nullptr);
+      mode = MODE::NONE;
+    }
+  } else {
+    QWidget::keyPressEvent(event);
+  }
+}
 
 void
 WgpuView3D::OnUpdateCamera()
@@ -647,6 +630,7 @@ WgpuView3D::OnUpdateCamera()
 
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 WgpuView3D::OnUpdateQRenderSettings(void)
 {
@@ -671,7 +655,6 @@ WgpuView3D::getStatus()
 void
 WgpuView3D::OnUpdateRenderer(int rendererType)
 {
-#if 0
   if (!isEnabled()) {
     LOG_ERROR << "attempted to update GLView3D renderer when view is disabled";
     return;
@@ -680,7 +663,6 @@ WgpuView3D::OnUpdateRenderer(int rendererType)
   m_viewerWindow->setRenderer(rendererType);
 
   emit ChangedRenderer();
-#endif
 }
 
 void
@@ -728,6 +710,10 @@ WgpuView3D::capture()
 QImage
 WgpuView3D::captureQimage()
 {
+  if (!isEnabled()) {
+    return QImage();
+  }
+
 #if 0
   makeCurrent();
 
@@ -743,8 +729,9 @@ WgpuView3D::captureQimage()
   fboFormat.setInternalTextureFormat(GL_RGB8);
   check_gl("pre screen capture");
 
+  const float dpr = devicePixelRatioF();
   QOpenGLFramebufferObject* fbo =
-    new QOpenGLFramebufferObject(width() * devicePixelRatioF(), height() * devicePixelRatioF(), fboFormat);
+    new QOpenGLFramebufferObject(width() * dpr, height() * dpr, fboFormat);
   check_gl("create fbo");
 
   fbo->bind();
@@ -752,7 +739,7 @@ WgpuView3D::captureQimage()
 
   // do a render into the temp framebuffer
   glViewport(0, 0, fbo->width(), fbo->height());
-  m_renderer->render(m_CCamera);
+  m_viewerWindow->m_renderer->render(m_viewerWindow->m_CCamera);
   fbo->release();
 
   QImage img(fbo->toImage());
@@ -782,67 +769,4 @@ WgpuView3D::restartRenderLoop()
   m_etimer->start();
   std::shared_ptr<CStatus> s = getStatus();
   s->EnableUpdates(true);
-}
-
-void
-WgpuView3D::resizeGL(int w, int h)
-{
-  QResizeEvent e(QSize(w, h), QSize(w, h));
-  resizeEvent(&e);
-}
-
-WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
-  : QWidget(parent)
-  , m_lastPos(0, 0)
-  , m_initialized(false)
-  , m_fakeHidden(false)
-  , m_qrendersettings(qrs)
-{
-  m_viewerWindow = new ViewerWindow(rs);
-  m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
-
-  setAutoFillBackground(false);
-  setAttribute(Qt::WA_PaintOnScreen);
-  setMouseTracking(true);
-  setFocusPolicy(Qt::StrongFocus);
-  winId(); // create window handle
-
-  m_qrendersettings->setRenderSettings(*rs);
-
-  // IMPORTANT this is where the QT gui container classes send their values down into the
-  // CScene object. GUI updates --> QT Object Changed() --> cam->Changed() -->
-  // WgpuView3D->OnUpdateCamera
-  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
-  QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
-  QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
-
-  // run a timer to update the clock
-  // TODO is this different than using this->startTimer and QTimerEvent?
-  m_etimer = new QTimer(parent);
-  m_etimer->setTimerType(Qt::PreciseTimer);
-  connect(m_etimer, &QTimer::timeout, this, [this] {
-    // assume that in between QTimer events, true processEvents is called by Qt itself
-    // QCoreApplication::processEvents();
-    if (isEnabled()) {
-      update();
-    }
-  });
-  m_etimer->start();
-}
-
-WgpuView3D::~WgpuView3D()
-{
-  wgpuSurfaceRelease(m_surface);
-}
-
-QSize
-WgpuView3D::minimumSizeHint() const
-{
-  return QSize(800, 600);
-}
-
-QSize
-WgpuView3D::sizeHint() const
-{
-  return QSize(800, 600);
 }

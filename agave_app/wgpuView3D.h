@@ -84,24 +84,11 @@ public:
   std::shared_ptr<CStatus> getStatus();
 
 protected:
-  /**
-   * Handle mouse button press events.
-   *
-   * Action depends upon the mouse behaviour mode.
-   *
-   * @param event the event to handle.
-   */
   void mousePressEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
-
-  /**
-   * Handle mouse button movement events.
-   *
-   * Action depends upon the mouse behaviour mode.
-   *
-   * @param event the event to handle.
-   */
   void mouseMoveEvent(QMouseEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 
 private:
   QCamera* m_qcamera;
@@ -126,6 +113,8 @@ private:
   WGPURenderPipeline m_pipeline;
 
   QWidget* m_canvas;
+
+  void FitToScene();
 
 protected:
   /// Set up GL context and subsidiary objects.
