@@ -170,9 +170,6 @@ printAdapterFeatures(WGPUAdapter adapter)
       case WGPUFeatureName_TimestampQuery:
         s = "TimestampQuery";
         break;
-      case WGPUFeatureName_PipelineStatisticsQuery:
-        s = "PipelineStatisticsQuery";
-        break;
       case WGPUFeatureName_TextureCompressionBC:
         s = "TextureCompressionBC";
         break;

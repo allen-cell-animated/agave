@@ -36,7 +36,7 @@ ExternalProject_Add(
 if(MSVC)
 	add_definitions(-DWGPU_TARGET_WINDOWS)
 	target_compile_options(renderlib_wgpu PRIVATE /W4)
-	set(OS_LIBRARIES d3dcompiler ws2_32 userenv bcrypt ntdll)
+	set(OS_LIBRARIES d3dcompiler ws2_32 userenv bcrypt ntdll opengl32)
 elseif(APPLE)
 	add_definitions(-DWGPU_TARGET_MACOS)
 	set(OS_LIBRARIES "-framework Cocoa" "-framework CoreVideo" "-framework IOKit -framework CoreFoundation -framework QuartzCore -framework Metal")
