@@ -304,8 +304,8 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
     .viewFormatCount = 0,
     .viewFormats = NULL,
     .alphaMode = WGPUCompositeAlphaMode_Auto,
-    .width = (uint32_t)width(),
-    .height = (uint32_t)height(),
+    .width = (uint32_t)w,
+    .height = (uint32_t)h,
     .presentMode = WGPUPresentMode_Fifo,
   };
   wgpuSurfaceConfigure(m_surface, &surfaceConfig);
@@ -413,11 +413,6 @@ WgpuView3D::render()
 
   renderWindowContents(frame);
 
-  wgpuSurfacePresent(m_surface);
-
-  //  wgpuCommandBufferRelease(command_buffer);
-  //  wgpuRenderPassEncoderRelease(render_pass_encoder);
-  //  wgpuCommandEncoderRelease(command_encoder);
   wgpuTextureViewRelease(frame);
   wgpuTextureRelease(nextTexture.texture);
 }
@@ -468,6 +463,12 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
 
   // TODO ENABLE THIS!!!
   // m_viewerWindow->redraw();
+
+  wgpuSurfacePresent(m_surface);
+
+  wgpuCommandBufferRelease(cmdBuffer);
+  wgpuRenderPassEncoderRelease(renderPass);
+  wgpuCommandEncoderRelease(encoder);
 }
 
 void
