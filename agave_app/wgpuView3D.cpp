@@ -132,6 +132,8 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   if (m_initialized) {
     return;
   }
+  float dpr = devicePixelRatioF();
+
   LOG_INFO << "calling get_surface_from_canvas";
 
   m_surface = get_surface_from_canvas(renderlib_wgpu::getInstance(), (void*)winId());
@@ -180,8 +182,8 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
 
   // set up swap chain
-  m_swapChainFormat = wgpuSurfaceGetPreferredFormat(m_surface, adapter);
-  WGPUSurfaceConfiguration surfaceConfig = {
+  m_swapChainFormat = WGPUTextureFormat_BGRA8Unorm; // wgpuSurfaceGetPreferredFormat(m_surface, adapter);
+  m_surfaceConfig = {
     .nextInChain = NULL,
     .device = m_device,
     .format = m_swapChainFormat,
@@ -189,11 +191,11 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
     .viewFormatCount = 0,
     .viewFormats = NULL,
     .alphaMode = WGPUCompositeAlphaMode_Auto,
-    .width = (uint32_t)width(),
-    .height = (uint32_t)height(),
+    .width = (uint32_t)(width() * dpr),
+    .height = (uint32_t)(height() * dpr),
     .presentMode = WGPUPresentMode_Fifo,
   };
-  wgpuSurfaceConfigure(m_surface, &surfaceConfig);
+  wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
 
   // The WgpuView3D owns one CScene
 
@@ -249,7 +251,6 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   m_initialized = true;
 
   QSize newsize = size();
-  float dpr = devicePixelRatioF();
   m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr);
 
   // Start timers
@@ -296,19 +297,9 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
   int h = event->size().height();
 
   // (if w or h actually changed...)
-  WGPUSurfaceConfiguration surfaceConfig = {
-    .nextInChain = NULL,
-    .device = m_device,
-    .format = m_swapChainFormat,
-    .usage = WGPUTextureUsage_RenderAttachment,
-    .viewFormatCount = 0,
-    .viewFormats = NULL,
-    .alphaMode = WGPUCompositeAlphaMode_Auto,
-    .width = (uint32_t)w,
-    .height = (uint32_t)h,
-    .presentMode = WGPUPresentMode_Fifo,
-  };
-  wgpuSurfaceConfigure(m_surface, &surfaceConfig);
+  m_surfaceConfig.width = (uint32_t)(w * dpr);
+  m_surfaceConfig.height = (uint32_t)(h * dpr);
+  wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
 
   m_viewerWindow->setSize(w * dpr, h * dpr);
   m_viewerWindow->forEachTool(
@@ -383,19 +374,9 @@ WgpuView3D::render()
         wgpuTextureRelease(nextTexture.texture);
       }
       if (width() != 0 && height() != 0) {
-        WGPUSurfaceConfiguration surfaceConfig = {
-          .nextInChain = NULL,
-          .device = m_device,
-          .format = m_swapChainFormat,
-          .usage = WGPUTextureUsage_RenderAttachment,
-          .viewFormatCount = 0,
-          .viewFormats = NULL,
-          .alphaMode = WGPUCompositeAlphaMode_Auto,
-          .width = (uint32_t)width(),
-          .height = (uint32_t)height(),
-          .presentMode = WGPUPresentMode_Fifo,
-        };
-        wgpuSurfaceConfigure(m_surface, &surfaceConfig);
+        m_surfaceConfig.width = (uint32_t)width();
+        m_surfaceConfig.height = (uint32_t)height();
+        wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
       }
       return;
     }
@@ -428,7 +409,7 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
   WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(m_device, &commandEncoderDescriptor);
   WGPURenderPassColorAttachment renderPassColorAttachment = {
     .view = nextTexture,
-    .resolveTarget = 0,
+    .resolveTarget = nullptr,
     .loadOp = WGPULoadOp_Clear,
     .storeOp = WGPUStoreOp_Store,
     .clearValue =
@@ -449,7 +430,7 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
     .timestampWrites = NULL,
   };
   WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
-
+  wgpuRenderPassEncoderSetViewport(renderPass, 0, 0, width(), height(), 0, 1);
   // wgpuRenderPassEncoderSetPipeline(renderPass, pipeline);
   // wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
   wgpuRenderPassEncoderEnd(renderPass);

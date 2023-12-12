@@ -109,6 +109,7 @@ private:
   WGPUTextureFormat m_swapChainFormat;
   WGPUSurface m_surface;
   WGPUDevice m_device;
+  WGPUSurfaceConfiguration m_surfaceConfig;
 
   WGPURenderPipeline m_pipeline;
 
