@@ -138,7 +138,9 @@ printAdapterFeatures(WGPUAdapter adapter)
       case WGPUNativeFeature_SampledTextureAndStorageBufferArrayNonUniformIndexing:
         s = "SampledTextureAndStorageBufferArrayNonUniformIndexing";
         break;
-
+      case WGPUNativeFeature_PipelineStatisticsQuery:
+        s = "PipelineStatisticsQuery";
+        break;
       default:
         s = "Unknown";
         break;
