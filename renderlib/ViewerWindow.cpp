@@ -1,5 +1,6 @@
 #include "ViewerWindow.h"
 
+#include "../renderlib_wgpu/RenderWgpuPT.h"
 #include "AreaLightTool.h"
 #include "IRenderWindow.h"
 #include "MoveTool.h"
@@ -10,7 +11,7 @@
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
-  , m_renderer(new RenderGLPT(rs))
+  , m_renderer(new RenderWgpuPT(rs)) // RenderGLPT(rs))
   , m_rendererType(1)
 {
   gesture.input.reset();

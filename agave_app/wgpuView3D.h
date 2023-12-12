@@ -133,14 +133,18 @@ class WgpuCanvas : public QWidget
 public:
   WgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0)
   {
+    setAttribute(Qt::WA_DeleteOnClose);
     setMouseTracking(true);
 
-    m_view = new WgpuView3D(cam, qrs, rs, parent);
+    m_view = new WgpuView3D(cam, qrs, rs, this);
+    connect(m_view, SIGNAL(ChangedRenderer()), this, SLOT(OnChangedRenderer()));
     m_view->winId();
+
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
     m_layout->addWidget(m_view);
+
     show();
   }
   ~WgpuCanvas() { delete m_view; }
@@ -153,7 +157,7 @@ public:
   void pauseRenderLoop() { m_view->pauseRenderLoop(); }
   void restartRenderLoop() { m_view->restartRenderLoop(); }
   void doneCurrent() {}
-  // DANGER this must NOT outlive the GLView3D
+  // DANGER this must NOT outlive the WgpuCanvas
   IRenderWindow* borrowRenderer() { return m_view->borrowRenderer(); }
   const CCamera& getCamera() { return m_view->getCamera(); }
   QOpenGLContext* context() { return nullptr; }
@@ -162,6 +166,12 @@ public:
   void onNewImage(Scene* scene) { m_view->onNewImage(scene); }
   void toggleCameraProjection() { m_view->toggleCameraProjection(); }
   void fromViewerState(const Serialize::ViewerState& s) { m_view->fromViewerState(s); }
+
+signals:
+  void ChangedRenderer();
+
+public slots:
+  void OnChangedRenderer() { emit ChangedRenderer(); }
 
 private:
   WgpuView3D* m_view;

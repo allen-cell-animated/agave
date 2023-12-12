@@ -12,6 +12,8 @@ target_sources(renderlib_wgpu PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/getsurface_wgpu_mac.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/wgpu_util.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/wgpu_util.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RenderWgpuPT.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/RenderWgpuPT.cpp"
 )
 
 # wgpu-native dep

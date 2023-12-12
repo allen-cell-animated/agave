@@ -18,7 +18,6 @@
 #include "renderlib_wgpu/getsurface_wgpu.h"
 #include "renderlib_wgpu/wgpu_util.h"
 
-
 #include <glm.h>
 
 #include <QApplication>
@@ -49,6 +48,7 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
 
   setAutoFillBackground(false);
   setAttribute(Qt::WA_PaintOnScreen);
+  setAttribute(Qt::WA_DeleteOnClose);
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
   winId(); // create window handle
@@ -266,8 +266,9 @@ WgpuView3D::paintEvent(QPaintEvent* e)
     return;
   }
   if (updatesEnabled()) {
-    m_viewerWindow->redraw();
-    // e->accept();
+    render();
+    // the above render call should include this viewerwindow redraw
+    //    m_viewerWindow->redraw();
   }
 }
 
