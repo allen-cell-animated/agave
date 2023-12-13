@@ -64,6 +64,7 @@ private slots:
   void onDocumentationAction();
   void onReportBugAction();
   void onSourceCodeAction();
+  void onCitationAction();
 
 private:
   enum
@@ -111,6 +112,7 @@ private:
   QAction* m_documentationAction = nullptr;
   QAction* m_reportBugAction = nullptr;
   QAction* m_sourceCodeAction = nullptr;
+  QAction* m_citationAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

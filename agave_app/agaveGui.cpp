@@ -20,6 +20,7 @@
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
 #include "aboutDialog.h"
+#include "citationDialog.h"
 #include "loadDialog.h"
 #include "renderDialog.h"
 
@@ -163,6 +164,10 @@ agaveGui::createActions()
   m_sourceCodeAction = new QAction(tr("&Source code"), this);
   m_sourceCodeAction->setStatusTip(tr("Open the source code in your browser"));
   connect(m_sourceCodeAction, SIGNAL(triggered()), this, SLOT(onSourceCodeAction()));
+
+  m_citationAction = new QAction(tr("&Cite AGAVE"), this);
+  m_citationAction->setStatusTip(tr("Cite AGAVE in your research"));
+  connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
 }
 
 void
@@ -202,6 +207,7 @@ agaveGui::createMenus()
   m_helpMenu->addAction(m_documentationAction);
   m_helpMenu->addAction(m_reportBugAction);
   m_helpMenu->addAction(m_sourceCodeAction);
+  m_helpMenu->addAction(m_citationAction);
 }
 
 void
@@ -219,6 +225,8 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
+  // m_ui.mainToolBar->addSeparator();
+  // m_ui.mainToolBar->addMenu(m_helpMenu);
 }
 
 void
@@ -434,6 +442,13 @@ void
 agaveGui::onSourceCodeAction()
 {
   QDesktopServices::openUrl(QUrl("https://github.com/allen-cell-animated/agave"));
+}
+void
+agaveGui::onCitationAction()
+{
+  CitationDialog* dlg = new CitationDialog();
+  dlg->setModal(true);
+  dlg->exec();
 }
 
 void
