@@ -9,6 +9,8 @@ target_include_directories(agaveapp PUBLIC
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agaveapp PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/aboutDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/aboutDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.qrc"
@@ -25,6 +27,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/citationDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/citationDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
