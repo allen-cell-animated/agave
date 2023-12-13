@@ -13,8 +13,8 @@ AboutDialog::AboutDialog()
   auto layout = new QVBoxLayout(this);
   auto label = new QLabel(this);
 
-  label->setText("<h1><b>AGAVE</b></h1>"
-                 "<i>Advanced GPU Accelerated Volume Explorer</i>"
+  label->setText("<h1 style=\"line-height:70%\"><b>AGAVE</b></h1>"
+                 "<i  style=\"line-height:70%\">Advanced GPU Accelerated Volume Explorer</i>"
                  "<h4><b>Version " +
                  qApp->applicationVersion() + "</b></h4>");
   label->setAlignment(Qt::AlignCenter);
