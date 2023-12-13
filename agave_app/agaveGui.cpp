@@ -225,8 +225,13 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
-  // m_ui.mainToolBar->addSeparator();
-  // m_ui.mainToolBar->addMenu(m_helpMenu);
+  m_ui.mainToolBar->addSeparator();
+
+  QToolButton* helpButton = new QToolButton(this);
+  helpButton->setText("Help");
+  helpButton->setPopupMode(QToolButton::InstantPopup);
+  helpButton->setMenu(m_helpMenu);
+  m_ui.mainToolBar->addWidget(helpButton);
 }
 
 void
