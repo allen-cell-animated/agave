@@ -8,5 +8,5 @@ public:
   AboutDialog();
   virtual ~AboutDialog();
 
-  QSize sizeHint() const override { return QSize(500, 300); }
+  QSize sizeHint() const override { return QSize(500, 100); }
 };
