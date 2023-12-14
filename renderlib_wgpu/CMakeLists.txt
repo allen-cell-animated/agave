@@ -30,6 +30,8 @@ ExternalProject_Add(
 	LOG_BUILD OFF
 	LOG_DOWNLOAD OFF # redirect output to log-file (so that we have less clutter)
 	LOG_CONFIGURE OFF # redirect output to log-file (so that we have less clutter)
+	# this is where the cargo build output lands
+	BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/wgpu_native-prefix/src/wgpu_native/target/release/${CMAKE_STATIC_LIBRARY_PREFIX}wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_CURRENT_BINARY_DIR}/wgpu_native-prefix/src/wgpu_native/target/debug/${CMAKE_STATIC_LIBRARY_PREFIX}wgpu_native${CMAKE_STATIC_LIBRARY_SUFFIX}
 )
 
 # find_library(
@@ -79,7 +81,6 @@ target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/)
 target_link_libraries(renderlib_wgpu
 	${CMAKE_DL_LIBS}
 	${OS_LIBRARIES}
-	${WGPU_LIBRARY}
 	spdlog::spdlog_header_only
 )
 
