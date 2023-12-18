@@ -2,6 +2,9 @@
 
 #include "../renderlib/Logging.h"
 
+#include "getsurface_wgpu.h"
+#include "wgpu_util.h"
+
 #include <string>
 
 static bool renderLibInitialized = false;
@@ -59,6 +62,70 @@ renderlib_wgpu::getInstance()
   return sInstance;
 }
 
+WGPUSurface
+renderlib_wgpu::getSurfaceFromCanvas(void* win_id)
+{
+  WGPUSurface surface = get_surface_from_canvas(getInstance(), win_id);
+  return surface;
+}
+
+WGPUAdapter
+renderlib_wgpu::getAdapter(WGPUSurface surface)
+{
+  WGPUAdapter adapter;
+  WGPURequestAdapterOptions options = {
+    .nextInChain = NULL,
+    .compatibleSurface = surface,
+  };
+
+  wgpuInstanceRequestAdapter(getInstance(), &options, request_adapter_callback, (void*)&adapter);
+
+  printAdapterFeatures(adapter);
+
+  return adapter;
+}
+
+WGPUDevice
+renderlib_wgpu::requestDevice(WGPUAdapter adapter)
+{
+  WGPUDevice device;
+  WGPURequiredLimits requiredLimits = {
+    .nextInChain = NULL,
+    .limits =
+      WGPULimits{
+        .maxBindGroups = 1,
+      },
+  };
+  WGPUDeviceExtras deviceExtras = {
+    .chain =
+      WGPUChainedStruct{
+        .next = NULL,
+        .sType = (WGPUSType)WGPUSType_DeviceExtras,
+      },
+    .tracePath = NULL,
+  };
+  WGPUDeviceDescriptor deviceDescriptor = {
+    .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
+    .label = "AGAVE wgpu device",
+    .requiredFeatureCount = 0,
+    .requiredLimits = nullptr, // & requiredLimits,
+    .defaultQueue =
+      WGPUQueueDescriptor{
+        .nextInChain = NULL,
+        .label = "AGAVE default wgpu queue",
+      },
+    .deviceLostCallback = handle_device_lost,
+    .deviceLostUserdata = NULL,
+  };
+
+  // creates/ fills in m_device!
+  wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&device);
+
+  wgpuDeviceSetUncapturedErrorCallback(device, handle_uncaptured_error, NULL);
+
+  return device;
+}
+
 void
 renderlib_wgpu::cleanup()
 {
@@ -73,4 +140,3 @@ renderlib_wgpu::cleanup()
   }
   renderLibInitialized = false;
 }
-

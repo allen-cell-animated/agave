@@ -136,50 +136,11 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
 
   LOG_INFO << "calling get_surface_from_canvas";
 
-  m_surface = get_surface_from_canvas(renderlib_wgpu::getInstance(), (void*)winId());
-  WGPUAdapter adapter;
-  WGPURequestAdapterOptions options = {
-    .nextInChain = NULL,
-    .compatibleSurface = m_surface,
-  };
+  m_surface = renderlib_wgpu::getSurfaceFromCanvas((void*)winId());
 
-  wgpuInstanceRequestAdapter(renderlib_wgpu::getInstance(), &options, request_adapter_callback, (void*)&adapter);
+  WGPUAdapter adapter = renderlib_wgpu::getAdapter(m_surface);
 
-  printAdapterFeatures(adapter);
-
-  WGPURequiredLimits requiredLimits = {
-    .nextInChain = NULL,
-    .limits =
-      WGPULimits{
-        .maxBindGroups = 1,
-      },
-  };
-  WGPUDeviceExtras deviceExtras = {
-    .chain =
-      WGPUChainedStruct{
-        .next = NULL,
-        .sType = (WGPUSType)WGPUSType_DeviceExtras,
-      },
-    .tracePath = NULL,
-  };
-  WGPUDeviceDescriptor deviceDescriptor = {
-    .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
-    .label = "AGAVE wgpu device",
-    .requiredFeatureCount = 0,
-    .requiredLimits = nullptr, // & requiredLimits,
-    .defaultQueue =
-      WGPUQueueDescriptor{
-        .nextInChain = NULL,
-        .label = "AGAVE default wgpu queue",
-      },
-    .deviceLostCallback = handle_device_lost,
-    .deviceLostUserdata = NULL,
-  };
-
-  // creates/ fills in m_device!
-  wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&m_device);
-
-  wgpuDeviceSetUncapturedErrorCallback(m_device, handle_uncaptured_error, NULL);
+  m_device = renderlib_wgpu::requestDevice(adapter);
 
   // set up swap chain
   m_swapChainFormat = WGPUTextureFormat_BGRA8Unorm; // wgpuSurfaceGetPreferredFormat(m_surface, adapter);
@@ -753,7 +714,6 @@ WgpuView3D::restartRenderLoop()
   std::shared_ptr<CStatus> s = getStatus();
   s->EnableUpdates(true);
 }
-
 
 WgpuCanvas::WgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
 {

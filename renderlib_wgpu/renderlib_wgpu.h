@@ -14,4 +14,7 @@ public:
   static void cleanup();
 
   static WGPUInstance getInstance();
+  static WGPUSurface getSurfaceFromCanvas(void* win_id);
+  static WGPUAdapter getAdapter(WGPUSurface surface);
+  static WGPUDevice requestDevice(WGPUAdapter adapter);
 };
