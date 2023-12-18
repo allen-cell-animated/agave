@@ -98,6 +98,7 @@ main(int argc, char* argv[])
 
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QApplication a(argc, argv);
   a.setOrganizationName("Allen Institute for Cell Science");
   a.setOrganizationDomain("allencell.org");

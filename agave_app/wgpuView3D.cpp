@@ -753,3 +753,21 @@ WgpuView3D::restartRenderLoop()
   std::shared_ptr<CStatus> s = getStatus();
   s->EnableUpdates(true);
 }
+
+
+WgpuCanvas::WgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
+{
+  setAttribute(Qt::WA_DeleteOnClose);
+  setMouseTracking(true);
+
+  m_view = new WgpuView3D(cam, qrs, rs, this);
+  connect(m_view, SIGNAL(ChangedRenderer()), this, SLOT(OnChangedRenderer()));
+  m_view->winId();
+
+  m_layout = new QHBoxLayout(this);
+  m_layout->setContentsMargins(0, 0, 0, 0);
+  setLayout(m_layout);
+  m_layout->addWidget(m_view);
+
+  show();
+}
