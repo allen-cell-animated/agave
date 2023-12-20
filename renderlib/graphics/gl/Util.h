@@ -4,6 +4,7 @@
 #include "glm.h"
 
 #include "Logging.h"
+#include "graphics/IRenderWindow.h"
 
 #include <string>
 
@@ -89,7 +90,7 @@ private:
 };
 
 // RAII; must have a current gl context at creation time.
-class GLFramebufferObject
+class GLFramebufferObject : public IRenderTarget
 {
 public:
   GLFramebufferObject(int width, int height, GLint colorInternalFormat);

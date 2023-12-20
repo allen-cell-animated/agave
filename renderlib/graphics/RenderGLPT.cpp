@@ -440,7 +440,7 @@ RenderGLPT::render(const CCamera& camera)
 }
 
 void
-RenderGLPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+RenderGLPT::renderTo(const CCamera& camera, IRenderTarget* fbo)
 {
   doRender(camera);
 

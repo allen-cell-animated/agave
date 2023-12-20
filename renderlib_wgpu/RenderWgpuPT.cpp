@@ -12,7 +12,7 @@ RenderWgpuPT::render(const CCamera& camera)
 {
 }
 void
-RenderWgpuPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+RenderWgpuPT::renderTo(const CCamera& camera, IRenderTarget* fbo)
 {
 }
 void
