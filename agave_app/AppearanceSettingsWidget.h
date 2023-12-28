@@ -9,7 +9,6 @@
 #include <QGroupBox>
 #include <QLabel>
 
-
 #include <memory>
 
 class QRenderSettings;
@@ -42,6 +41,7 @@ public:
   void OnBackgroundColorChanged(const QColor& color);
   void OnBoundingBoxColorChanged(const QColor& color);
   void OnShowBoundsChecked(bool isChecked);
+  void OnShowScaleBarChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
@@ -96,6 +96,7 @@ private:
   QDoubleSpinner* m_zscaleSpinner;
   QCheckBox m_showBoundingBoxCheckBox;
   QColorPushButton m_boundingBoxColorButton;
+  QCheckBox m_showScaleBarCheckBox;
 
   std::vector<Section*> m_channelSections;
 

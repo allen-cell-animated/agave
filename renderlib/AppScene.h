@@ -104,6 +104,7 @@ public:
   std::vector<Manipulator*> m_tools;
 
   CBoundingBox m_boundingBox;
+  bool m_showScaleBar = false;
 
   void initLights();
   void initSceneFromImg(std::shared_ptr<ImageXYZC> img);

@@ -5,6 +5,7 @@
 #include "MoveTool.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
+#include "ScaleBarTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
 
@@ -23,6 +24,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
   m_tools.push_back(new AreaLightTool());
+  m_tools.push_back(new ScaleBarTool());
 }
 
 ViewerWindow::~ViewerWindow()
