@@ -679,25 +679,25 @@ Gesture::drawText(const char* text, glm::vec3 p, glm::vec3 color, float opacity,
   stbtt_aligned_quad q;
   while (*text) {
     if (graphics.font->getBakedQuad(*text, &xpos, &ypos, &q)) {
-      // QUAD
+      // QUAD. we are each quad upside-down by swapping the t0 and t1 coordinates
       // 0
       graphics.addVert(
-        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t1), color, opacity, code));
       // 1 
       graphics.addVert(
-        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y0, 0.0), glm::vec2(q.s1, q.t0), color, opacity, code));
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y0, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
       // 2
       graphics.addVert(
-        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t0), color, opacity, code));
       // 2
       graphics.addVert(
-        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t0), color, opacity, code));
       // 3
       graphics.addVert(
-        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y1, 0.0), glm::vec2(q.s0, q.t1), color, opacity, code));
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y1, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
       // 0
       graphics.addVert(
-        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t1), color, opacity, code));
     }
     ++text;
   }
