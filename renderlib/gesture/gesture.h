@@ -7,6 +7,7 @@
 #include "BoundingBox.h"
 #include "CCamera.h"
 #include "SceneView.h"
+#include "graphics/gl/Font.h"
 #include "graphics/gl/Util.h"
 #include "graphics/glsl/GLGuiShader.h"
 
@@ -300,6 +301,8 @@ struct Gesture
     // TODO: use bindless textures
     uint32_t glTextureId = 0;
 
+    Font* font = nullptr;
+
     // remember selection code to reuse while dragging
     uint32_t m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
 
@@ -433,4 +436,7 @@ struct Gesture
                 glm::vec3 color,
                 float opacity,
                 uint32_t code);
+
+  // p expected in pixels
+  void drawText(const char* text, glm::vec3 p, glm::vec3 color, float opacity, uint32_t code);
 };

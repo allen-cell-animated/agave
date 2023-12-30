@@ -657,3 +657,48 @@ Gesture::drawCone(glm::vec3 base,
     graphics.addVert(Gesture::Graphics::VertsCode(p0, color, opacity, code));
   }
 }
+
+void
+Gesture::drawText(const char* text, glm::vec3 p, glm::vec3 color, float opacity, uint32_t code)
+{
+  float xpos = p.x;
+  float ypos = p.y;
+
+  if (!graphics.font) {
+    graphics.font = new Font();
+    graphics.font->load("D:\\agave\\build\\agave-install\\fonts\\Arial.ttf");
+  }
+  graphics.glTextureId = graphics.font->getTextureID();
+  // assume orthographic projection with units = screen pixels, origin at top left
+  // glEnable(GL_BLEND);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // glEnable(GL_TEXTURE_2D);
+  // glBindTexture(GL_TEXTURE_2D, ftex);
+  // glBegin(GL_QUADS);
+
+  stbtt_aligned_quad q;
+  while (*text) {
+    if (graphics.font->getBakedQuad(*text, &xpos, &ypos, &q)) {
+      // QUAD
+      // 0
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
+      // 1 
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y0, 0.0), glm::vec2(q.s1, q.t0), color, opacity, code));
+      // 2
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
+      // 2
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
+      // 3
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y1, 0.0), glm::vec2(q.s0, q.t1), color, opacity, code));
+      // 0
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
+    }
+    ++text;
+  }
+}

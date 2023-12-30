@@ -92,4 +92,8 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
                            Gesture::Graphics::VertsCode(p0 - v, color, opacity, code));
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p1 + v, color, opacity, code),
                            Gesture::Graphics::VertsCode(p1 - v, color, opacity, code));
+
+  // draw text
+  gesture.graphics.addCommand(GL_TRIANGLES, Gesture::Graphics::CommandSequence::k2dScreen);
+  gesture.drawText("012345", p1 + glm::vec3(0, 25, 0), color, opacity, code);
 }
