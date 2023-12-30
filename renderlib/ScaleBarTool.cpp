@@ -3,6 +3,9 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 
+#include <iomanip>
+#include <sstream>
+
 float
 getScaleBarWidth(int windowWidthPx, float windowPhysicalWidth)
 {
@@ -94,6 +97,13 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
                            Gesture::Graphics::VertsCode(p1 - v, color, opacity, code));
 
   // draw text
+  // TODO utilize m_size to scale the font quads
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(2)
+         << (scaleBarWidthPx * orthoWidth / (float)scene.viewport.region.size().x);
+  stream << " units";
+  std::string msg = stream.str();
+  float wid = gesture.graphics.font->getStringWidth(msg);
   gesture.graphics.addCommand(GL_TRIANGLES, Gesture::Graphics::CommandSequence::k2dScreen);
-  gesture.drawText("012345", p1 + glm::vec3(0, 25, 0), color, opacity, code);
+  gesture.drawText(msg, p1 + glm::vec3(scaleBarWidthPx * 0.5 - wid * 0.5, 20, 0), color, opacity, code);
 }

@@ -438,5 +438,5 @@ struct Gesture
                 uint32_t code);
 
   // p expected in pixels
-  void drawText(const char* text, glm::vec3 p, glm::vec3 color, float opacity, uint32_t code);
+  void drawText(std::string text, glm::vec3 p, glm::vec3 color, float opacity, uint32_t code);
 };

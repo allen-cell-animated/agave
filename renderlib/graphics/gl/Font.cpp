@@ -134,7 +134,39 @@ Font::getBakedQuad(char char_index, float* x, float* y, stbtt_aligned_quad* q)
   if (char_index >= m_firstChar && char_index < (m_firstChar + m_numChars)) {
     stbtt_GetBakedQuad(
       m_cdata, s_textureSize, s_textureSize, char_index - m_firstChar, x, y, q, 1); // 1=opengl & d3d10+,0=d3d9
+    // because our coordinate system has 0,0 at bottom left, we need to fixup these y coordinates
+    size_t offset = char_index - m_firstChar;
+    const stbtt_bakedchar* b = m_cdata + offset;
+
+    float height = q->y1 - q->y0;
+    float h0 = q->y0;
+    // this is our base line?
+    float h1 = q->y1;
+    q->y0 = h1 - 2.0 * b->yoff - height;
+    q->y1 = h0 - 2.0 * b->yoff - height;
     return true;
   }
   return false;
+}
+
+float
+Font::getStringWidth(std::string stext)
+{
+  const char* text = stext.c_str();
+  float xpos = 0;
+  float ypos = 0;
+  float width = 0;
+  while (*text) {
+    if (*text >= m_firstChar && *text < (m_firstChar + m_numChars)) {
+      // stbtt_aligned_quad q;
+      // stbtt_GetBakedQuad(m_cdata, s_textureSize, s_textureSize, *text - m_firstChar, &xpos, &ypos, &q, 1);
+      // width += q.x1 - q.x0;
+      // the above may be a bit more realistic but slightly more expensive to compute?
+      size_t offset = *text - m_firstChar;
+      const stbtt_bakedchar* b = m_cdata + offset;
+      width += b->xadvance;
+    }
+    ++text;
+  }
+  return width;
 }

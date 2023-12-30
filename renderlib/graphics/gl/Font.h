@@ -4,6 +4,8 @@
 
 #include "stb/stb_truetype.h"
 
+#include <string>
+
 class Font
 {
 public:
@@ -17,6 +19,8 @@ public:
 
   // x and y will be updated to the next position to draw the next character.
   bool getBakedQuad(char char_index, float* x, float* y, stbtt_aligned_quad* q);
+
+  float getStringWidth(std::string text);
 
   GLuint getTextureID() const { return m_texID; }
 
