@@ -166,6 +166,34 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   return 0;
 }
 
+std::string
+getSpatialUnit(nlohmann::json axes)
+{
+  std::string unit = "units";
+  for (auto axis : axes) {
+    // use first spatial axis.
+    // identify spatial axis by type=space or name=z,y,x
+    std::string type = axis["type"];
+    if (type == "space") {
+      auto unitobj = axis["unit"];
+      if (unitobj.is_string()) {
+        unit = unitobj;
+        return unit;
+      }
+    }
+    std::string name = axis["name"];
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
+    if (name == "Z" || name == "Y" || name == "X") {
+      auto unitobj = axis["unit"];
+      if (unitobj.is_string()) {
+        unit = unitobj;
+        return unit;
+      }
+    }
+  }
+  return unit;
+}
+
 std::vector<std::string>
 getAxes(nlohmann::json axes)
 {
@@ -285,6 +313,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
               zmd.dtype = dtype.name();
               zmd.path = pathstr;
               zmd.channelNames = channelNames;
+              zmd.spatialUnits = getSpatialUnit(axes);
               multiscaleDims.push_back(zmd);
             }
           }
@@ -494,7 +523,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
-                                dims.physicalSizeZ);
+                                dims.physicalSizeZ,
+                                dims.spatialUnits);
 
   std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
   im->setChannelNames(channelNames);

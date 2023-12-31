@@ -14,6 +14,8 @@ struct VolumeDimensions
   float physicalSizeX = 1.0f;
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
+  // currently assumes xyz same unit
+  std::string spatialUnits = "units";
   uint32_t bitsPerPixel = 16;
   // SAMPLEFORMAT_UINT = 1;
   // SAMPLEFORMAT_INT = 2;
@@ -39,6 +41,7 @@ struct MultiscaleDims
   std::string dtype;
   std::string path;
   std::vector<std::string> channelNames;
+  std::string spatialUnits = "units";
 
   bool hasDim(const std::string& dim) const;
   int64_t sizeT() const;

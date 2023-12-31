@@ -14,7 +14,8 @@ ImageXYZC::ImageXYZC(uint32_t x,
                      uint8_t* data,
                      float sx,
                      float sy,
-                     float sz)
+                     float sz,
+                     std::string spatialUnits)
   : m_x(x)
   , m_y(y)
   , m_z(z)
@@ -24,6 +25,7 @@ ImageXYZC::ImageXYZC(uint32_t x,
   , m_scaleX(sx)
   , m_scaleY(sy)
   , m_scaleZ(sz)
+  , m_spatialUnits(spatialUnits)
 {
   for (uint32_t i = 0; i < m_c; ++i) {
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
@@ -154,6 +156,12 @@ ImageXYZC::getDimensions() const
 
   // Compute the volume's max extent - scaled to max dimension.
   return PhysicalSize / m;
+}
+
+std::string
+ImageXYZC::spatialUnits() const
+{
+  return m_spatialUnits;
 }
 
 // 3d median filter?

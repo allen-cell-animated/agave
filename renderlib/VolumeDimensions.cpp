@@ -201,6 +201,7 @@ MultiscaleDims::getVolumeDimensions() const
   dims.physicalSizeX = scaleX();
   dims.physicalSizeY = scaleY();
   dims.physicalSizeZ = scaleZ();
+  dims.spatialUnits = spatialUnits;
   if (this->dtype == "int32") { // tensorstore::dtype_v<int32_t>) {
     dims.bitsPerPixel = 32;
     dims.sampleFormat = 2;

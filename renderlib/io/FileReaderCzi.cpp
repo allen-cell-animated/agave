@@ -12,6 +12,7 @@
 #include <filesystem>
 
 #include <chrono>
+#include <codecvt>
 #include <map>
 #include <set>
 
@@ -82,11 +83,15 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   std::shared_ptr<libCZI::ICziMetadata> md = mds->CreateMetaFromMetadataSegment();
   std::shared_ptr<libCZI::ICziMultiDimensionDocumentInfo> docinfo = md->GetDocumentInfo();
 
-  libCZI::ScalingInfo scalingInfo = docinfo->GetScalingInfo();
+  libCZI::ScalingInfoEx scalingInfo = docinfo->GetScalingInfoEx();
   // convert meters to microns?
   dims.physicalSizeX = (float)(scalingInfo.scaleX * 1000000.0);
   dims.physicalSizeY = (float)(scalingInfo.scaleY * 1000000.0);
   dims.physicalSizeZ = (float)(scalingInfo.scaleZ * 1000000.0);
+  // just select the x unit for our units.
+  using convert_typeX = std::codecvt_utf8<wchar_t>;
+  std::wstring_convert<convert_typeX, wchar_t> converterX;
+  dims.spatialUnits = converterX.to_bytes(scalingInfo.defaultUnitFormatX);
 
   // get all dimension bounds and enumerate.
   // I am making an assumption here that each scene has the same Z C and T dimensions.
@@ -398,7 +403,8 @@ FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
                                   smartPtr.release(),
                                   dims.physicalSizeX,
                                   dims.physicalSizeY,
-                                  dims.physicalSizeZ);
+                                  dims.physicalSizeZ,
+                                  dims.spatialUnits);
 
     std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
     im->setChannelNames(channelNames);

@@ -101,7 +101,7 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
   std::stringstream stream;
   stream << std::fixed << std::setprecision(2)
          << (scaleBarWidthPx * orthoWidth / (float)scene.viewport.region.size().x);
-  stream << " units";
+  stream << " " << scene.scene->m_volume->spatialUnits();
   std::string msg = stream.str();
   float wid = gesture.graphics.font->getStringWidth(msg);
   gesture.graphics.addCommand(GL_TRIANGLES, Gesture::Graphics::CommandSequence::k2dScreen);
