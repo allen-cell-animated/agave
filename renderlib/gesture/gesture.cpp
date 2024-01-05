@@ -1,6 +1,7 @@
 #include "gesture.h"
 #include "gl/Util.h"
 #include "graphics/glsl/GLGuiShader.h"
+#include "renderlib.h"
 
 // Update the current action for one of the button of the pointer device
 void
@@ -263,7 +264,8 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
   }
   if (!font) {
     font = new Font();
-    font->load("D:\\agave\\build\\agave-install\\fonts\\Arial.ttf");
+    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    font->load(fontPath.c_str());
   }
 
   // YAGNI: With a small effort we could create dynamic passes that are
