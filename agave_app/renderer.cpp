@@ -2,11 +2,11 @@
 
 #include "renderlib/AppScene.h"
 #include "renderlib/CCamera.h"
-#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
+#include "renderlib/RenderSettings.h"
 #include "renderlib/graphics/RenderGL.h"
 #include "renderlib/graphics/RenderGLPT.h"
-#include "renderlib/RenderSettings.h"
+#include "renderlib/io/FileReader.h"
 
 #include "command.h"
 #include "commandBuffer.h"
@@ -182,26 +182,26 @@ Renderer::processRequest()
     if (lastReq) {
       QWebSocket* ws = lastReq->getClient();
       if (ws /* && ws->isValid() && ws->state() == QAbstractSocket::ConnectedState */) {
-          LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" << ws->peerAddress().toString().toStdString()
-                    << ":" << QString::number(ws->peerPort()).toStdString() << ")";
-        }
+        LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" << ws->peerAddress().toString().toStdString()
+                  << ":" << QString::number(ws->peerPort()).toStdString() << ")";
+      }
 
-        img = this->render();
+      img = this->render();
 
-        lastReq->setActualDuration(timer.nsecsElapsed());
+      lastReq->setActualDuration(timer.nsecsElapsed());
 
-        // in stream mode:
-        // if queue is empty, then keep firing redraws back to client, to build up iterations.
-        if (m_streamMode) {
-          // push another redraw request.
-          std::vector<Command*> cmd;
-          RequestRedrawCommandD data;
-          cmd.push_back(new RequestRedrawCommand(data));
-          RenderRequest* rr = new RenderRequest(ws, cmd, false);
+      // in stream mode:
+      // if queue is empty, then keep firing redraws back to client, to build up iterations.
+      if (m_streamMode) {
+        // push another redraw request.
+        std::vector<Command*> cmd;
+        RequestRedrawCommandD data;
+        cmd.push_back(new RequestRedrawCommand(data));
+        RenderRequest* rr = new RenderRequest(ws, cmd, false);
 
-          this->m_requests << rr;
-          this->m_totalQueueDuration += rr->getDuration();
-        }
+        this->m_requests << rr;
+        this->m_totalQueueDuration += rr->getDuration();
+      }
     }
 
   } else {

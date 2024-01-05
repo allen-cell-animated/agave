@@ -28,6 +28,7 @@ class Renderer;
 class RenderRequest;
 class RenderSettings;
 class Scene;
+class ViewerWindow;
 
 // very simple scroll, zoom, pan and fit image to widget
 class ImageDisplay : public QWidget
@@ -101,7 +102,7 @@ class RenderDialog : public QDialog
   Q_OBJECT
 
 public:
-  RenderDialog(IRenderWindow* borrowedRenderer,
+  RenderDialog(ViewerWindow* borrowedRenderer,
                const RenderSettings& renderSettings,
                const Scene& scene,
                CCamera camera,
