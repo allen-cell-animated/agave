@@ -25,8 +25,8 @@ public:
   GLuint getTextureID() const { return m_texID; }
 
 private:
-  static constexpr int m_firstChar = 32;
-  static constexpr int m_numChars = 96;
+  static constexpr char m_firstChar = 32;
+  static constexpr size_t m_numChars = 96;
   stbtt_bakedchar m_cdata[m_numChars]; // ASCII 32..126 is 95 glyphs
 
   GLuint m_texID;
