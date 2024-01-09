@@ -6,6 +6,7 @@
 #include "renderlib/RenderSettings.h"
 #include "renderlib/command.h"
 #include "renderlib/graphics/IRenderWindow.h"
+#include "renderlib/ViewerWindow.h"
 
 #include <QApplication>
 #include <QButtonGroup>
@@ -230,7 +231,7 @@ makeGroupLabel(const std::string& text)
   return label;
 }
 
-RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
+RenderDialog::RenderDialog(ViewerWindow* borrowedRenderer,
                            const RenderSettings& renderSettings,
                            const Scene& scene,
                            CCamera camera,
@@ -240,7 +241,7 @@ RenderDialog::RenderDialog(IRenderWindow* borrowedRenderer,
                            int viewportWidth,
                            int viewportHeight,
                            QWidget* parent)
-  : m_renderer(borrowedRenderer)
+  : m_renderer(borrowedRenderer->m_renderer.get())
   , m_renderSettings(renderSettings)
   , m_scene(scene)
   , m_camera(camera)

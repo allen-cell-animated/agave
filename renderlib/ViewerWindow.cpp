@@ -8,6 +8,7 @@
 #include "ScaleBarTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
+#include "renderlib.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
@@ -23,7 +24,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
-  m_tools.push_back(new AreaLightTool());
+  // m_tools.push_back(new AreaLightTool());
   m_tools.push_back(new ScaleBarTool());
 }
 
@@ -174,8 +175,8 @@ ViewerWindow::redraw()
   }
 
   // lazy init
-  if (!gesture.graphics.font) {
-    gesture.graphics.font = new Font();
+  if (!gesture.graphics.font.get()) {
+    gesture.graphics.font.reset(new Font());
     std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
     gesture.graphics.font->load(fontPath.c_str());
   }
@@ -195,10 +196,13 @@ ViewerWindow::redraw()
   sceneView.scene = m_renderer->scene();
   sceneView.renderSettings = m_renderSettings;
 
+  // fill gesture graphics with draw commands
   update(sceneView.viewport, m_clock, gesture);
 
+  // main scene rendering
   m_renderer->render(sceneView.camera);
 
+  // render and then clear out draw commands from gesture graphics
   gesture.graphics.draw(sceneView, m_selection);
 
   // Make sure we consumed any unused input event before we poll new events.

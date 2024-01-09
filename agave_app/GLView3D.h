@@ -60,7 +60,7 @@ public:
   QImage captureQimage();
 
   // DANGER this must NOT outlive the GLView3D
-  IRenderWindow* borrowRenderer() { return m_viewerWindow->m_renderer.get(); }
+  ViewerWindow* borrowRenderer() { return m_viewerWindow; }
 
   void pauseRenderLoop();
   void restartRenderLoop();

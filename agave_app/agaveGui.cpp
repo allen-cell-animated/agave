@@ -469,8 +469,6 @@ agaveGui::onRenderAction()
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
-  // extract Renderer from GLView3D to hand to RenderDialog
-  IRenderWindow* renderer = m_glView->borrowRenderer();
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
     m_captureSettings.width = m_glView->width();
     m_captureSettings.height = m_glView->height();
@@ -483,6 +481,9 @@ agaveGui::onRenderAction()
 
   // copy of camera
   CCamera camera = m_glView->getCamera();
+  // extract ViewerWindow from GLView3D to hand to RenderDialog
+  ViewerWindow* renderer = m_glView->borrowRenderer();
+
   RenderDialog* rdialog = new RenderDialog(renderer,
                                            m_renderSettings,
                                            m_appScene,

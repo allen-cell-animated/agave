@@ -103,7 +103,7 @@ target_link_libraries(agaveapp PRIVATE
 # relative to our app executable
 if(WIN32)
 	add_custom_command(
-		TARGET ${target} POST_BUILD
+		TARGET agaveapp POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
 			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts"
 			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/fonts"
@@ -137,7 +137,7 @@ elseif(APPLE)
 	endforeach ()
 else() # LINUX
 	add_custom_command(
-		TARGET ${target} POST_BUILD
+		TARGET agaveapp POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
 			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts"
 			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/fonts"

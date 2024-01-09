@@ -23,7 +23,6 @@ public:
   void redraw();
 
   void update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture);
-  void updateCamera();
 
   void setRenderer(int rendererType);
 
@@ -48,6 +47,8 @@ public:
       fn(tool);
     fn(m_activeTool);
   }
+
+  void updateCamera();
 
   CCamera m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;

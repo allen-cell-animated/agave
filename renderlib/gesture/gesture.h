@@ -301,7 +301,7 @@ struct Gesture
     // TODO: use bindless textures
     uint32_t glTextureId = 0;
 
-    Font* font = nullptr;
+    std::unique_ptr<Font> font;
 
     // remember selection code to reuse while dragging
     uint32_t m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
