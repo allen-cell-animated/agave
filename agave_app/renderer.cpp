@@ -4,6 +4,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/SceneView.h"
 #include "renderlib/graphics/RenderGL.h"
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/io/FileReader.h"
@@ -278,7 +279,22 @@ Renderer::render()
   // DRAW
   m_myVolumeData.m_camera->Update();
 
-  m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
+  SceneView sceneView;
+  sceneView.viewport.region = { { 0, 0 }, { m_fbo->width(), m_fbo->height() } };
+  sceneView.camera = *(m_myVolumeData.m_camera);
+  sceneView.scene = m_myVolumeData.m_renderer->scene();
+  sceneView.renderSettings = m_myVolumeData.m_renderSettings;
+
+  // fill gesture graphics with draw commands
+  // update(sceneView.viewport, m_clock, gesture);
+
+  // main scene rendering
+  m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
+  // m_renderer->render(sceneView.camera);
+
+  // m_fbo->bind();
+  // gesture.graphics.draw(sceneView, m_selection);
+  // m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
   m_fbo->toImage(bytes.get());
