@@ -173,6 +173,13 @@ ViewerWindow::redraw()
     LOG_ERROR << "Failed to update selection buffer";
   }
 
+  // lazy init
+  if (!gesture.graphics.font) {
+    gesture.graphics.font = new Font();
+    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    gesture.graphics.font->load(fontPath.c_str());
+  }
+
   // renderer size may have been directly manipulated by e.g. the renderdialog
   uint32_t oldrendererwidth, oldrendererheight;
   m_renderer->getSize(oldrendererwidth, oldrendererheight);

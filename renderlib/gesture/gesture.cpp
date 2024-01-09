@@ -262,11 +262,6 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
   if (!shader.get()) {
     shader.reset(new GLGuiShader());
   }
-  if (!font) {
-    font = new Font();
-    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
-    font->load(fontPath.c_str());
-  }
 
   // YAGNI: With a small effort we could create dynamic passes that are
   //        fully user configurable...
