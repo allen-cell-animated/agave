@@ -57,7 +57,6 @@ computeScaleBarSize(SceneView& scene)
   const bool isOrtho = (scene.camera.m_Projection == ProjectionMode::ORTHOGRAPHIC);
   const float windowWidthPx = (float)scene.viewport.region.size().x;
   const float windowHeightPx = (float)scene.viewport.region.size().y;
-  const float SCALE_BAR_MAX_WIDTH = (windowWidthPx * 0.25f);
   // get physical size of volume
   auto volume = scene.scene->m_volume;
   const glm::vec3 volumePhysicalSize = volume->getPhysicalDimensions();
@@ -73,7 +72,7 @@ computeScaleBarSize(SceneView& scene)
   } else {
     // Round off all but the most significant digit of physicalMaxDim
     const float physicalSize = computePhysicalScaleBarSize(physicalMaxDim);
-    return { physicalSize, SCALE_BAR_MAX_WIDTH };
+    return { physicalSize, windowWidthPx * 0.2f };
   }
 }
 
