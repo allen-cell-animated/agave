@@ -94,7 +94,9 @@ public:
   float physicalSizeZ() const;
   std::string spatialUnits() const;
 
-  glm::vec3 getDimensions() const;
+  glm::vec3 getNormalizedDimensions() const;
+
+  glm::vec3 getPhysicalDimensions() const;
 
   uint32_t sizeC() const;
 

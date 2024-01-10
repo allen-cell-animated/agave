@@ -29,9 +29,9 @@ public:
   // Provide a new active tool
   void setTool(ManipulationTool* tool)
   {
-    if (m_activeTool != &m_defaultTool)
+    if (m_activeTool != &m_defaultTool) {
       ManipulationTool::destroyTool(m_activeTool);
-
+    }
     m_activeTool = (tool ? tool : &m_defaultTool);
 
     // Todo: this could be replaced with a push/pop mechanism to allow

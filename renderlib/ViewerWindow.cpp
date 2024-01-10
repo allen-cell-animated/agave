@@ -203,7 +203,7 @@ ViewerWindow::redraw()
   m_renderer->render(sceneView.camera);
 
   // render and then clear out draw commands from gesture graphics
-  gesture.graphics.draw(sceneView, m_selection);
+  gesture.graphics.draw(sceneView, &m_selection);
 
   // Make sure we consumed any unused input event before we poll new events.
   // (in the case of Qt we are not explicitly polling but using signals/slots.)

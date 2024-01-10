@@ -291,6 +291,17 @@ BoundingBoxDrawable::BoundingBoxDrawable()
   check_gl("init element data");
 
   glBindVertexArray(0);
+
+  // set up empty placeholder for now.
+  glGenVertexArrays(1, &_vertexArray2);
+  glBindVertexArray(_vertexArray2);
+  check_gl("create and bind verts for tickmarks");
+
+  glGenBuffers(1, &_vertices2);
+  glBindBuffer(GL_ARRAY_BUFFER, _vertices2);
+  // will be filled in from createTickMarks
+
+  glBindVertexArray(0);
   check_gl("unbind vtx array");
 
   _shader = new GLFlatShader2D();
@@ -308,6 +319,11 @@ BoundingBoxDrawable::~BoundingBoxDrawable()
   _line_indices = 0;
   glDeleteBuffers(1, &_face_indices);
   _face_indices = 0;
+
+  glDeleteVertexArrays(1, &_vertexArray2);
+  _vertexArray2 = 0;
+  glDeleteBuffers(1, &_vertices2);
+  _vertices2 = 0;
 }
 
 void
@@ -329,6 +345,107 @@ BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& colo
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _line_indices);
   check_gl("bind element buf");
   glDrawElements(GL_LINES, (GLsizei)_num_line_elements, GL_UNSIGNED_SHORT, 0);
+  check_gl("bounding box draw elements");
+
+  _shader->disableCoords();
+  glBindVertexArray(0);
+
+  _shader->release();
+}
+
+// physicalscale is max of physical dims x,y,z
+static float
+computePhysicalScaleBarSize(const float physicalScale)
+{
+  // note this result will always be some integer power of 10 independent of zoom...
+  return pow(10.0f, floor(log10(physicalScale / 2.0f)));
+}
+
+// Generate tick marks for a bounding box whose vertices span -1,-1,-1 to 1,1,1.
+// Know that the box will be scaled proportional to the normPhysicalSize
+// physicalscale is max of physical dims x,y,z
+// normPhysicalSize is the normalized physical size of the volume (physical size / physicalscale)
+std::vector<float>
+createTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
+{
+  std::vector<float> vertices;
+  // Length of tick mark lines in world units
+  static constexpr float TICK_LENGTH = 0.025f;
+  // this will always be some integer power of 10?
+  const float tickMarkPhysicalLength = computePhysicalScaleBarSize(physicalScale);
+  const float maxNumTickMarks = physicalScale / tickMarkPhysicalLength;
+
+  // un-scale the tick mark size based on the scaling that will be our transform later.
+  const float tickSizeX = TICK_LENGTH / normPhysicalSize.x;
+  const float tickSizeY = TICK_LENGTH / normPhysicalSize.y;
+  LOG_DEBUG << "normPhysicalSize: " << glm::to_string(normPhysicalSize) << " tickSizeX: " << tickSizeX
+            << " tickSizeY: " << tickSizeY << " maxNumTickMarks: " << maxNumTickMarks;
+  const float tickSpacingX = 1.0f / (normPhysicalSize.x * maxNumTickMarks);
+  for (float x = -1.0f; x <= 1.0f; x += tickSpacingX) {
+    vertices.insert(vertices.end(), { x, 1.0f,  1.0f,  x, 1.0f + tickSizeY,  1.0f,
+
+                                      x, -1.0f, -1.0f, x, -1.0f - tickSizeY, -1.0f,
+
+                                      x, 1.0f,  -1.0f, x, 1.0f + tickSizeY,  -1.0f,
+
+                                      x, -1.0f, 1.0f,  x, -1.0f - tickSizeY, 1.0f });
+  }
+
+  const float tickSpacingY = 1.0f / (normPhysicalSize.y * maxNumTickMarks);
+  for (float y = 1.0; y >= -1.0; y -= tickSpacingY) {
+    vertices.insert(vertices.end(), { -1.0f, y, 1.0f,  -1.0f - tickSizeX, y, 1.0f,
+
+                                      -1.0f, y, -1.0f, -1.0f - tickSizeX, y, -1.0f,
+
+                                      1.0f,  y, -1.0f, 1.0f + tickSizeX,  y, -1.0f,
+
+                                      1.0f,  y, 1.0f,  1.0f + tickSizeX,  y, 1.0f });
+  }
+
+  const float tickSpacingZ = 1.0f / (normPhysicalSize.z * maxNumTickMarks);
+  for (float z = 1.0; z >= -1.0; z -= tickSpacingZ) {
+    vertices.insert(vertices.end(), { -1.0f, 1.0f,  z, -1.0f - tickSizeX, 1.0f,  z,
+
+                                      -1.0f, -1.0f, z, -1.0f - tickSizeX, -1.0f, z,
+
+                                      1.0f,  -1.0f, z, 1.0f + tickSizeX,  -1.0f, z,
+
+                                      1.0f,  1.0f,  z, 1.0f + tickSizeX,  1.0f,  z });
+  }
+  return vertices;
+}
+
+void
+BoundingBoxDrawable::updateTickMarks(const glm::vec3& scale, float maxPhysicalDim)
+{
+  // TODO do some kind of check to avoid repeating this work every time?
+  std::vector<float> tickVerts = createTickMarks(maxPhysicalDim, scale);
+  _num_tick_mark_floats = tickVerts.size();
+  glBindVertexArray(_vertexArray2);
+  glBindBuffer(GL_ARRAY_BUFFER, _vertices2);
+  // upload data to gpu
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * tickVerts.size(), tickVerts.data(), GL_STATIC_DRAW);
+  check_gl("init tickmark buffer data");
+}
+
+void
+BoundingBoxDrawable::drawTickMarks(const glm::mat4& transform, const glm::vec4& color)
+{
+  _shader->bind();
+  check_gl("Bind shader for bounding box drawable tick mark lines");
+
+  _shader->setModelViewProjection(transform);
+  _shader->setColour(color);
+
+  glBindVertexArray(_vertexArray2);
+  check_gl("bind vtx buf");
+
+  _shader->enableCoords();
+  // 3 floats per vertex
+  _shader->setCoords(_vertices2, 0, 3);
+
+  // Push each element to the vertex shader
+  glDrawArrays(GL_LINES, 0, (GLsizei)_num_tick_mark_floats);
   check_gl("bounding box draw elements");
 
   _shader->disableCoords();

@@ -53,13 +53,22 @@ public:
   ~BoundingBoxDrawable();
 
   void drawLines(const glm::mat4& transform, const glm::vec4& color);
+  void drawTickMarks(const glm::mat4& transform, const glm::vec4& color);
   void drawFaces(const glm::mat4& transform, const glm::vec4& color);
+  void updateTickMarks(const glm::vec3& scale, float maxPhysicalDim);
 
 private:
   /// The vertex array.
   GLuint _vertexArray; // vao
   /// The image vertices.
   GLuint _vertices; // buffer
+
+  /// A second vertex array for tick marks.
+  GLuint _vertexArray2; // vao
+  /// The tick mark vertices.
+  GLuint _vertices2; // buffer
+  size_t _num_tick_mark_floats;
+
   /// The image elements.
   GLuint _line_indices; // buffer
   GLuint _face_indices; // buffer

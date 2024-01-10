@@ -248,7 +248,7 @@ private:
 };
 
 void
-Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
+Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer* selection)
 {
   // Gesture draw spans across the entire window and it is not restricted to a single
   // viewport.
@@ -335,7 +335,9 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 
     // The last thing we draw is selection codes for next frame. This allows us
     // to know what is under the pointer cursor.
-    drawGestureCodes(selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
+    if (selection) {
+      drawGestureCodes(*selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
+    }
   }
 
   // Restore state

@@ -146,11 +146,17 @@ ImageXYZC::channel(uint32_t channel) const
 }
 
 glm::vec3
-ImageXYZC::getDimensions() const
+ImageXYZC::getPhysicalDimensions() const
+{
+  return glm::vec3(
+    physicalSizeX() * (float)sizeX(), physicalSizeY() * (float)sizeY(), physicalSizeZ() * (float)sizeZ());
+}
+
+glm::vec3
+ImageXYZC::getNormalizedDimensions() const
 {
   // Compute physical size
-  const glm::vec3 PhysicalSize(
-    physicalSizeX() * (float)sizeX(), physicalSizeY() * (float)sizeY(), physicalSizeZ() * (float)sizeZ());
+  const glm::vec3 PhysicalSize = getPhysicalDimensions();
   // glm::gtx::component_wise::compMax(PhysicalSize);
   float m = std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
 
