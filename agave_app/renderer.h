@@ -3,9 +3,11 @@
 
 #include "glad/glad.h"
 
-#include "renderlib/io/FileReader.h"
+#include "renderlib/ScaleBarTool.h"
 #include "renderlib/command.h"
+#include "renderlib/gesture/gesture.h"
 #include "renderlib/graphics/gl/Util.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
 #include "renderrequest.h"
 
@@ -119,6 +121,7 @@ private:
     Scene* m_scene;
     CCamera* m_camera;
     LoadSpec m_loadSpec;
+    Gesture m_gesture;
 
     myVolumeData()
       : m_camera(nullptr)

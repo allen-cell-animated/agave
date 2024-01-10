@@ -279,6 +279,12 @@ Renderer::render()
   // DRAW
   m_myVolumeData.m_camera->Update();
 
+  if (!m_myVolumeData.m_gesture.graphics.font.get()) {
+    m_myVolumeData.m_gesture.graphics.font.reset(new Font());
+    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    m_myVolumeData.m_gesture.graphics.font->load(fontPath.c_str());
+  }
+
   SceneView sceneView;
   sceneView.viewport.region = { { 0, 0 }, { m_fbo->width(), m_fbo->height() } };
   sceneView.camera = *(m_myVolumeData.m_camera);
@@ -286,15 +292,17 @@ Renderer::render()
   sceneView.renderSettings = m_myVolumeData.m_renderSettings;
 
   // fill gesture graphics with draw commands
-  // update(sceneView.viewport, m_clock, gesture);
+  ScaleBarTool scalebar;
+  scalebar.clear();
+  scalebar.draw(sceneView, m_myVolumeData.m_gesture);
 
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
   // m_renderer->render(sceneView.camera);
 
-  // m_fbo->bind();
-  // gesture.graphics.draw(sceneView, m_selection);
-  // m_fbo->release();
+  m_fbo->bind();
+  m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
+  m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
   m_fbo->toImage(bytes.get());

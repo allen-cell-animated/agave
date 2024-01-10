@@ -378,8 +378,7 @@ createTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
   // un-scale the tick mark size based on the scaling that will be our transform later.
   const float tickSizeX = TICK_LENGTH / normPhysicalSize.x;
   const float tickSizeY = TICK_LENGTH / normPhysicalSize.y;
-  LOG_DEBUG << "normPhysicalSize: " << glm::to_string(normPhysicalSize) << " tickSizeX: " << tickSizeX
-            << " tickSizeY: " << tickSizeY << " maxNumTickMarks: " << maxNumTickMarks;
+
   const float tickSpacingX = 1.0f / (normPhysicalSize.x * maxNumTickMarks);
   for (float x = -1.0f; x <= 1.0f; x += tickSpacingX) {
     vertices.insert(vertices.end(), { x, 1.0f,  1.0f,  x, 1.0f + tickSizeY,  1.0f,
