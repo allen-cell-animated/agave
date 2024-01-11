@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <chrono>
 #include <map>
-#include <regex>
 #include <set>
 
 FileReaderTIFF::FileReaderTIFF(const std::string& filepath) {}
@@ -508,6 +507,10 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       LOG_WARNING << "Inconsistent physical size units in OME TIFF: '" << filepath << "' " << physicalSizeXunit << " "
                   << physicalSizeYunit << " " << physicalSizeZunit;
     }
+    // this is the documented ome-xml default.
+    if (units == "") {
+      units = "um";
+    }
 
     // find channel names
     int i = 0;
@@ -553,10 +556,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.physicalSizeX = physicalSizeX;
   dims.physicalSizeY = physicalSizeY;
   dims.physicalSizeZ = physicalSizeZ;
-  // sanitize known weird characters
-  units = std::regex_replace(units, std::regex("µ"), "u");
-  units = std::regex_replace(units, std::regex("Å"), "A");
-  dims.spatialUnits = units;
+  dims.spatialUnits = VolumeDimensions::sanitizeUnitsString(units);
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
   dims.sampleFormat = sampleFormat;

@@ -91,7 +91,7 @@ readCziDimensions(const std::shared_ptr<libCZI::ICZIReader>& reader,
   // just select the x unit for our units.
   using convert_typeX = std::codecvt_utf8<wchar_t>;
   std::wstring_convert<convert_typeX, wchar_t> converterX;
-  dims.spatialUnits = converterX.to_bytes(scalingInfo.defaultUnitFormatX);
+  dims.spatialUnits = VolumeDimensions::sanitizeUnitsString(converterX.to_bytes(scalingInfo.defaultUnitFormatX));
 
   // get all dimension bounds and enumerate.
   // I am making an assumption here that each scene has the same Z C and T dimensions.

@@ -313,7 +313,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
               zmd.dtype = dtype.name();
               zmd.path = pathstr;
               zmd.channelNames = channelNames;
-              zmd.spatialUnits = getSpatialUnit(axes);
+              zmd.spatialUnits = VolumeDimensions::sanitizeUnitsString(getSpatialUnit(axes));
               multiscaleDims.push_back(zmd);
             }
           }

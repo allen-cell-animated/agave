@@ -31,6 +31,8 @@ struct VolumeDimensions
   void log() const;
 
   std::vector<std::string> getChannelNames(const std::vector<uint32_t>& channels) const;
+
+  static std::string sanitizeUnitsString(std::string units);
 };
 
 struct MultiscaleDims
