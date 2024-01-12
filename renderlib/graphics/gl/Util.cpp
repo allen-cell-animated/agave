@@ -293,6 +293,7 @@ BoundingBoxDrawable::BoundingBoxDrawable()
   glBindVertexArray(0);
 
   // set up empty placeholder for now.
+  _num_tick_mark_floats = 0;
   glGenVertexArrays(1, &_vertexArray2);
   glBindVertexArray(_vertexArray2);
   check_gl("create and bind verts for tickmarks");
@@ -419,11 +420,18 @@ BoundingBoxDrawable::updateTickMarks(const glm::vec3& scale, float maxPhysicalDi
 {
   // TODO do some kind of check to avoid repeating this work every time?
   std::vector<float> tickVerts = createTickMarks(maxPhysicalDim, scale);
-  _num_tick_mark_floats = tickVerts.size();
+
   glBindVertexArray(_vertexArray2);
+  if (tickVerts.size() != _num_tick_mark_floats) {
+    // if count has changed then let's recreate the buffer?
+    glDeleteBuffers(1, &_vertices2);
+    glGenBuffers(1, &_vertices2);
+  }
   glBindBuffer(GL_ARRAY_BUFFER, _vertices2);
   // upload data to gpu
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * tickVerts.size(), tickVerts.data(), GL_STATIC_DRAW);
+
+  _num_tick_mark_floats = tickVerts.size();
   check_gl("init tickmark buffer data");
 }
 
@@ -444,7 +452,7 @@ BoundingBoxDrawable::drawTickMarks(const glm::mat4& transform, const glm::vec4& 
   _shader->setCoords(_vertices2, 0, 3);
 
   // Push each element to the vertex shader
-  glDrawArrays(GL_LINES, 0, (GLsizei)_num_tick_mark_floats);
+  glDrawArrays(GL_LINES, 0, (GLsizei)_num_tick_mark_floats / 3);
   check_gl("bounding box draw elements");
 
   _shader->disableCoords();
