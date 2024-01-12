@@ -91,6 +91,13 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
     return;
   }
 
+  const float windowWidthPx = (float)scene.viewport.region.size().x;
+  const float windowHeightPx = (float)scene.viewport.region.size().y;
+  // this number is chosen so that scalebar looks sized correctly in a 1200x1200 window
+  // with the default font size
+  static constexpr float WINDOW_REFERENCE_RES = 1200.0f;
+  glm::vec3 pctToPx(windowWidthPx / WINDOW_REFERENCE_RES, windowHeightPx / WINDOW_REFERENCE_RES, 1.0f);
+
   ScaleBarSize scaleBarSize = computeScaleBarSize(scene);
 
   glm::vec3 color = glm::vec3(1, 1, 1);
@@ -98,15 +105,16 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
   uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
   gesture.graphics.addCommand(GL_LINES, Gesture::Graphics::CommandSequence::k2dScreen);
 
-  static const glm::vec3 offsetFromBottomRight(-40.0f, 40.0f, 0.0f);
   // 0,0 is lower left, size() is upper right.  position bar at lower right.
+  const glm::vec3 offsetFromBottomRight = glm::vec3(-40.0f, 40.0f, 0.0f) * pctToPx;
+  // p0 is the rightmost point, p1 is the leftmost point
   glm::vec3 p0 = glm::vec3(scene.viewport.region.size().x, 0, 1.0f) + offsetFromBottomRight;
   glm::vec3 p1 = p0 - glm::vec3(scaleBarSize.pixels, 0, 0);
   // draw one horizontal line about 1/10 the width of the window, with short bars at the ends.
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
                            Gesture::Graphics::VertsCode(p1, color, opacity, code));
 
-  glm::vec3 v = glm::vec3(0, 15, 0);
+  glm::vec3 v = glm::vec3(0, 15.0f, 0) * pctToPx;
   // draw tick lines at the ends
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p0 + v, color, opacity, code),
                            Gesture::Graphics::VertsCode(p0 - v, color, opacity, code));
@@ -114,12 +122,14 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
                            Gesture::Graphics::VertsCode(p1 - v, color, opacity, code));
 
   // draw text
-  // TODO utilize m_size to scale the font quads
+  glm::vec2 textScale = glm::vec2(pctToPx.x, pctToPx.y);
   std::stringstream stream;
   stream << std::fixed << std::setprecision(2) << scaleBarSize.physicalSize;
   stream << " " << scene.scene->m_volume->spatialUnits();
   std::string msg = stream.str();
-  float wid = gesture.graphics.font->getStringWidth(msg);
+  float textWidth = gesture.graphics.font->getStringWidth(msg) * textScale.x;
+  float textHeight = gesture.graphics.font->getStringHeight(msg) * textScale.y;
   gesture.graphics.addCommand(GL_TRIANGLES, Gesture::Graphics::CommandSequence::k2dScreen);
-  gesture.drawText(msg, p1 + glm::vec3(scaleBarSize.pixels * 0.5 - wid * 0.5, 20, 0), color, opacity, code);
+  glm::vec3 textoffset = glm::vec3(scaleBarSize.pixels * 0.5 - textWidth * 0.5, textHeight, 0);
+  gesture.drawText(msg, p1 + textoffset, textScale, color, opacity, code);
 }

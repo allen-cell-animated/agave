@@ -21,6 +21,7 @@ public:
   bool getBakedQuad(char char_index, float* x, float* y, stbtt_aligned_quad* q);
 
   float getStringWidth(std::string text);
+  float getStringHeight(std::string text);
 
   GLuint getTextureID() const { return m_texID; }
 

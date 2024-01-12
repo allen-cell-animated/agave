@@ -661,7 +661,7 @@ Gesture::drawCone(glm::vec3 base,
 }
 
 void
-Gesture::drawText(std::string stext, glm::vec3 p, glm::vec3 color, float opacity, uint32_t code)
+Gesture::drawText(std::string stext, glm::vec3 p, glm::vec2 scale, glm::vec3 color, float opacity, uint32_t code)
 {
   float xpos = p.x;
   float ypos = p.y;
@@ -676,8 +676,15 @@ Gesture::drawText(std::string stext, glm::vec3 p, glm::vec3 color, float opacity
 
   stbtt_aligned_quad q;
   const char* text = stext.c_str();
+  float lastxpos = xpos;
+  float lastypos = ypos;
   while (*text) {
     if (graphics.font->getBakedQuad(*text, &xpos, &ypos, &q)) {
+      // apply scaling to q.x0, q.y0, q.x1, q.y1 relative to start position p
+      q.x0 = p.x + (q.x0 - p.x) * scale.x;
+      q.y0 = p.y + (q.y0 - p.y) * scale.y;
+      q.x1 = p.x + (q.x1 - p.x) * scale.x;
+      q.y1 = p.y + (q.y1 - p.y) * scale.y;
       // QUAD.
       // 0
       graphics.addVert(

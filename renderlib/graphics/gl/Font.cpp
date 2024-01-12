@@ -170,3 +170,25 @@ Font::getStringWidth(std::string stext)
   }
   return width;
 }
+
+float
+Font::getStringHeight(std::string stext)
+{
+  const char* text = stext.c_str();
+  float xpos = 0;
+  float ypos = 0;
+  float height = 0;
+  while (*text) {
+    if (*text >= m_firstChar && *text < (m_firstChar + m_numChars)) {
+      // stbtt_aligned_quad q;
+      // stbtt_GetBakedQuad(m_cdata, s_textureSize, s_textureSize, *text - m_firstChar, &xpos, &ypos, &q, 1);
+      // height = max(height, abs(q.y1 - q.y0));
+      // the above may be a bit more realistic but slightly more expensive to compute?
+      size_t offset = *text - m_firstChar;
+      const stbtt_bakedchar* b = m_cdata + offset;
+      height = std::max(height, std::abs((float)b->y1 - (float)b->y0));
+    }
+    ++text;
+  }
+  return height;
+}
