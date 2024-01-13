@@ -23,8 +23,6 @@ getScaleBarWidthOrtho(int windowWidthPx, float windowPhysicalWidth)
   const float physicalMaxWidth = (float)SCALE_BAR_MAX_WIDTH * windowPhysicalWidth / (float)windowWidthPx;
   // Round off all but the most significant digit of physicalMaxWidth
   const float div10 = computePhysicalScaleBarSize(physicalMaxWidth);
-  // const float digits = floor(log10(physicalMaxWidth));
-  // const float div10 = pow(10.0, digits);
   const float scaleValue = floor(physicalMaxWidth / (float)div10) * div10;
   static float lastScaleValue = scaleValue;
   if (scaleValue != lastScaleValue) {
@@ -33,14 +31,6 @@ getScaleBarWidthOrtho(int windowWidthPx, float windowPhysicalWidth)
     lastScaleValue = scaleValue;
   }
 
-  // convert to string
-  // let scaleStr = scaleValue.toString();
-  // if (digits < 1) {
-  //  // Handle irrational floating point values (e.g. 0.30000000000000004)
-  //  scaleStr = scaleStr.slice(0, Math.abs(digits) + 2);
-  //}
-  // this.orthoScaleBarElement.innerHTML = `${scaleStr}${unit || ""}`;
-  // this.orthoScaleBarElement.style.width = `${SCALE_BAR_MAX_WIDTH * (scaleValue / physicalMaxWidth)}px`;
   // return scaleValue in pixels
   return (float)SCALE_BAR_MAX_WIDTH * (scaleValue / physicalMaxWidth);
 }

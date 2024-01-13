@@ -666,13 +666,14 @@ Gesture::drawText(std::string stext, glm::vec3 p, glm::vec2 scale, glm::vec3 col
   float xpos = p.x;
   float ypos = p.y;
 
+  // Currently gesture.graphics only supports one global texture for all draw commands.
+  // This is safe for now because the font texture is the only one needed.
+  // In future, if e.g. tool buttons need texture images, then we have to
+  // attach the texture id with the draw command.
   graphics.glTextureId = graphics.font->getTextureID();
+
   // assume orthographic projection with units = screen pixels, origin at top left
-  // glEnable(GL_BLEND);
-  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  // glEnable(GL_TEXTURE_2D);
-  // glBindTexture(GL_TEXTURE_2D, ftex);
-  // glBegin(GL_QUADS);
+  // also assume we are in a "TRIANGLES" draw command.
 
   stbtt_aligned_quad q;
   const char* text = stext.c_str();

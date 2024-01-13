@@ -88,46 +88,6 @@ Font::unload()
   m_texID = 0;
 }
 
-// void
-// Font::drawText(const char* text, float x, float y, float scale, float color[4])
-// {
-//   float xpos = x;
-//   float ypos = y;
-
-//   // while (*text) {
-//   //   int advance, lsb, x0, y0, x1, y1;
-//   //   stbtt_GetCodepointHMetrics(&m_font, *text, &advance, &lsb);
-//   //   stbtt_GetCodepointBitmapBox(&m_font, *text, scale, scale, &x0, &y0, &x1, &y1);
-//   //   stbtt_MakeCodepointBitmap(&m_font, m_bitmap, x1 - x0, y1 - y0, m_bitmapWidth, scale, scale, *text);
-//   //   drawBitmap(m_bitmap, xpos + x0, ypos + y0, x1 - x0, y1 - y0, color);
-//   //   xpos += (advance * scale);
-//   //   text++;
-//   // }
-
-//   // assume orthographic projection with units = screen pixels, origin at top left
-//   glEnable(GL_BLEND);
-//   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//   glEnable(GL_TEXTURE_2D);
-//   glBindTexture(GL_TEXTURE_2D, ftex);
-//   glBegin(GL_QUADS);
-//   while (*text) {
-//     if (*text >= m_firstChar && *text < (m_firstChar + m_numChars)) {
-//       stbtt_aligned_quad q;
-//       stbtt_GetBakedQuad(cdata, 512, 512, *text - m_firstChar, &x, &y, &q, 1); // 1=opengl & d3d10+,0=d3d9
-//       glTexCoord2f(q.s0, q.t0);
-//       glVertex2f(q.x0, q.y0);
-//       glTexCoord2f(q.s1, q.t0);
-//       glVertex2f(q.x1, q.y0);
-//       glTexCoord2f(q.s1, q.t1);
-//       glVertex2f(q.x1, q.y1);
-//       glTexCoord2f(q.s0, q.t1);
-//       glVertex2f(q.x0, q.y1);
-//     }
-//     ++text;
-//   }
-//   glEnd();
-// }
-
 bool
 Font::getBakedQuad(char char_index, float* x, float* y, stbtt_aligned_quad* q)
 {
@@ -158,10 +118,7 @@ Font::getStringWidth(std::string stext)
   float width = 0;
   while (*text) {
     if (*text >= m_firstChar && *text < (m_firstChar + m_numChars)) {
-      // stbtt_aligned_quad q;
-      // stbtt_GetBakedQuad(m_cdata, s_textureSize, s_textureSize, *text - m_firstChar, &xpos, &ypos, &q, 1);
-      // width += q.x1 - q.x0;
-      // the above may be a bit more realistic but slightly more expensive to compute?
+      // if this ever proves inaccurate, consider using stbtt_GetBakedQuad for height/width info
       size_t offset = *text - m_firstChar;
       const stbtt_bakedchar* b = m_cdata + offset;
       width += b->xadvance;
@@ -180,10 +137,7 @@ Font::getStringHeight(std::string stext)
   float height = 0;
   while (*text) {
     if (*text >= m_firstChar && *text < (m_firstChar + m_numChars)) {
-      // stbtt_aligned_quad q;
-      // stbtt_GetBakedQuad(m_cdata, s_textureSize, s_textureSize, *text - m_firstChar, &xpos, &ypos, &q, 1);
-      // height = max(height, abs(q.y1 - q.y0));
-      // the above may be a bit more realistic but slightly more expensive to compute?
+      // if this ever proves inaccurate, consider using stbtt_GetBakedQuad for height/width info
       size_t offset = *text - m_firstChar;
       const stbtt_bakedchar* b = m_cdata + offset;
       height = std::max(height, std::abs((float)b->y1 - (float)b->y0));

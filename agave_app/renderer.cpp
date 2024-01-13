@@ -4,6 +4,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/ScaleBarTool.h"
 #include "renderlib/SceneView.h"
 #include "renderlib/graphics/RenderGL.h"
 #include "renderlib/graphics/RenderGLPT.h"

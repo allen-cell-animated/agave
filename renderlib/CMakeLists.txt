@@ -88,11 +88,3 @@ target_link_libraries(renderlib
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)
 ENDIF(WIN32)
-
-# add_custom_target(copy_assets ALL
-#   COMMAND ${CMAKE_COMMAND} -E copy_directory 
-#   ${PROJECT_SOURCE_DIR}/renderlib/fonts 
-#   ${PROJECT_BINARY_DIR}/fonts 
-#   COMMENT "Copying assets into binary directory"
-# )
-# add_dependencies(renderlib copy_assets)

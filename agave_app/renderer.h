@@ -3,7 +3,6 @@
 
 #include "glad/glad.h"
 
-#include "renderlib/ScaleBarTool.h"
 #include "renderlib/command.h"
 #include "renderlib/gesture/gesture.h"
 #include "renderlib/graphics/gl/Util.h"
