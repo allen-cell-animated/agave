@@ -88,6 +88,7 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
                              std::vector<char> dims,
                              std::vector<std::string> channelNames,
                              std::vector<float> physicalSizes,
+                             std::string spatialUnits,
                              bool addToCache)
 {
   // check cache first of all.
@@ -119,8 +120,8 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
   auto startTime = std::chrono::high_resolution_clock::now();
 
   // note that im will take ownership of dataArray
-  ImageXYZC* im =
-    new ImageXYZC(sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ);
+  ImageXYZC* im = new ImageXYZC(
+    sizeX, sizeY, sizeZ, sizeC, uint32_t(bpp), dataArray, physicalSizeX, physicalSizeY, physicalSizeZ, spatialUnits);
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - startTime;

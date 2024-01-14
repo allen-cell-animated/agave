@@ -2,11 +2,13 @@
 
 #include "renderlib/AppScene.h"
 #include "renderlib/CCamera.h"
-#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
+#include "renderlib/RenderSettings.h"
+#include "renderlib/ScaleBarTool.h"
+#include "renderlib/SceneView.h"
 #include "renderlib/graphics/RenderGL.h"
 #include "renderlib/graphics/RenderGLPT.h"
-#include "renderlib/RenderSettings.h"
+#include "renderlib/io/FileReader.h"
 
 #include "command.h"
 #include "commandBuffer.h"
@@ -182,26 +184,26 @@ Renderer::processRequest()
     if (lastReq) {
       QWebSocket* ws = lastReq->getClient();
       if (ws /* && ws->isValid() && ws->state() == QAbstractSocket::ConnectedState */) {
-          LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" << ws->peerAddress().toString().toStdString()
-                    << ":" << QString::number(ws->peerPort()).toStdString() << ")";
-        }
+        LOG_DEBUG << "RENDER for " << ws->peerName().toStdString() << "(" << ws->peerAddress().toString().toStdString()
+                  << ":" << QString::number(ws->peerPort()).toStdString() << ")";
+      }
 
-        img = this->render();
+      img = this->render();
 
-        lastReq->setActualDuration(timer.nsecsElapsed());
+      lastReq->setActualDuration(timer.nsecsElapsed());
 
-        // in stream mode:
-        // if queue is empty, then keep firing redraws back to client, to build up iterations.
-        if (m_streamMode) {
-          // push another redraw request.
-          std::vector<Command*> cmd;
-          RequestRedrawCommandD data;
-          cmd.push_back(new RequestRedrawCommand(data));
-          RenderRequest* rr = new RenderRequest(ws, cmd, false);
+      // in stream mode:
+      // if queue is empty, then keep firing redraws back to client, to build up iterations.
+      if (m_streamMode) {
+        // push another redraw request.
+        std::vector<Command*> cmd;
+        RequestRedrawCommandD data;
+        cmd.push_back(new RequestRedrawCommand(data));
+        RenderRequest* rr = new RenderRequest(ws, cmd, false);
 
-          this->m_requests << rr;
-          this->m_totalQueueDuration += rr->getDuration();
-        }
+        this->m_requests << rr;
+        this->m_totalQueueDuration += rr->getDuration();
+      }
     }
 
   } else {
@@ -278,7 +280,30 @@ Renderer::render()
   // DRAW
   m_myVolumeData.m_camera->Update();
 
-  m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
+  if (!m_myVolumeData.m_gesture.graphics.font.get()) {
+    m_myVolumeData.m_gesture.graphics.font.reset(new Font());
+    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    m_myVolumeData.m_gesture.graphics.font->load(fontPath.c_str());
+  }
+
+  SceneView sceneView;
+  sceneView.viewport.region = { { 0, 0 }, { m_fbo->width(), m_fbo->height() } };
+  sceneView.camera = *(m_myVolumeData.m_camera);
+  sceneView.scene = m_myVolumeData.m_renderer->scene();
+  sceneView.renderSettings = m_myVolumeData.m_renderSettings;
+
+  // fill gesture graphics with draw commands
+  ScaleBarTool scalebar;
+  scalebar.clear();
+  scalebar.draw(sceneView, m_myVolumeData.m_gesture);
+
+  // main scene rendering
+  m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
+  // m_renderer->render(sceneView.camera);
+
+  m_fbo->bind();
+  m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
+  m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);
   m_fbo->toImage(bytes.get());

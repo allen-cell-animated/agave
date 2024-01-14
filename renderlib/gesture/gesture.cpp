@@ -248,7 +248,7 @@ private:
 };
 
 void
-Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
+Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer* selection)
 {
   // Gesture draw spans across the entire window and it is not restricted to a single
   // viewport.
@@ -335,7 +335,9 @@ Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer& selection)
 
     // The last thing we draw is selection codes for next frame. This allows us
     // to know what is under the pointer cursor.
-    drawGestureCodes(selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
+    if (selection) {
+      drawGestureCodes(*selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
+    }
   }
 
   // Restore state
@@ -655,5 +657,56 @@ Gesture::drawCone(glm::vec3 base,
     graphics.addVert(Gesture::Graphics::VertsCode(base + zaxis, color, opacity, code));
     graphics.addVert(Gesture::Graphics::VertsCode(p1, color, opacity, code));
     graphics.addVert(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+  }
+}
+
+void
+Gesture::drawText(std::string stext, glm::vec3 p, glm::vec2 scale, glm::vec3 color, float opacity, uint32_t code)
+{
+  float xpos = p.x;
+  float ypos = p.y;
+
+  // Currently gesture.graphics only supports one global texture for all draw commands.
+  // This is safe for now because the font texture is the only one needed.
+  // In future, if e.g. tool buttons need texture images, then we have to
+  // attach the texture id with the draw command.
+  graphics.glTextureId = graphics.font->getTextureID();
+
+  // assume orthographic projection with units = screen pixels, origin at top left
+  // also assume we are in a "TRIANGLES" draw command.
+
+  stbtt_aligned_quad q;
+  const char* text = stext.c_str();
+  float lastxpos = xpos;
+  float lastypos = ypos;
+  while (*text) {
+    if (graphics.font->getBakedQuad(*text, &xpos, &ypos, &q)) {
+      // apply scaling to q.x0, q.y0, q.x1, q.y1 relative to start position p
+      q.x0 = p.x + (q.x0 - p.x) * scale.x;
+      q.y0 = p.y + (q.y0 - p.y) * scale.y;
+      q.x1 = p.x + (q.x1 - p.x) * scale.x;
+      q.y1 = p.y + (q.y1 - p.y) * scale.y;
+      // QUAD.
+      // 0
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
+      // 2
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
+      // 1
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y0, 0.0), glm::vec2(q.s1, q.t0), color, opacity, code));
+
+      // 2
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x1, q.y1, 0.0), glm::vec2(q.s1, q.t1), color, opacity, code));
+      // 0
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y0, 0.0), glm::vec2(q.s0, q.t0), color, opacity, code));
+      // 3
+      graphics.addVert(
+        Gesture::Graphics::VertsCode(glm::vec3(q.x0, q.y1, 0.0), glm::vec2(q.s0, q.t1), color, opacity, code));
+    }
+    ++text;
   }
 }

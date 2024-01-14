@@ -139,7 +139,17 @@ main(int argc, char* argv[])
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
 
-  if (!renderlib::initialize(isServer, listDevices, selectedGpu)) {
+  QString appPath = QCoreApplication::applicationDirPath();
+  std::string appPathStr = appPath.toStdString();
+  LOG_INFO << "Application path: " << appPathStr;
+
+  // we expect the bundled fonts to be in the app local data path in a fonts subdirectory
+  // QStringList localDataPaths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+  QString fontsPath =
+    QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "fonts", QStandardPaths::LocateDirectory);
+  LOG_INFO << "Fonts path: " << fontsPath.toStdString();
+
+  if (!renderlib::initialize(fontsPath.toStdString(), isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
     return 0;
   }

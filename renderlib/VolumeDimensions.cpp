@@ -2,6 +2,7 @@
 
 #include "Logging.h"
 
+#include <regex>
 #include <set>
 
 bool
@@ -187,6 +188,15 @@ VolumeDimensions::getChannelNames(const std::vector<uint32_t>& channels) const
   return channelNames;
 }
 
+std::string
+VolumeDimensions::sanitizeUnitsString(std::string units)
+{
+  // sanitize known weird characters
+  units = std::regex_replace(units, std::regex("µ"), "u");
+  units = std::regex_replace(units, std::regex("Å"), "A");
+  return units;
+}
+
 VolumeDimensions
 MultiscaleDims::getVolumeDimensions() const
 {
@@ -201,6 +211,7 @@ MultiscaleDims::getVolumeDimensions() const
   dims.physicalSizeX = scaleX();
   dims.physicalSizeY = scaleY();
   dims.physicalSizeZ = scaleZ();
+  dims.spatialUnits = VolumeDimensions::sanitizeUnitsString(spatialUnits);
   if (this->dtype == "int32") { // tensorstore::dtype_v<int32_t>) {
     dims.bitsPerPixel = 32;
     dims.sampleFormat = 2;

@@ -24,16 +24,15 @@ public:
   void redraw();
 
   void update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture);
-  void updateCamera();
 
   void setRenderer(int rendererType);
 
   // Provide a new active tool
   void setTool(ManipulationTool* tool)
   {
-    if (m_activeTool != &m_defaultTool)
+    if (m_activeTool != &m_defaultTool) {
       ManipulationTool::destroyTool(m_activeTool);
-
+    }
     m_activeTool = (tool ? tool : &m_defaultTool);
 
     // Todo: this could be replaced with a push/pop mechanism to allow
@@ -49,6 +48,8 @@ public:
       fn(tool);
     fn(m_activeTool);
   }
+
+  void updateCamera();
 
   CCamera m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;

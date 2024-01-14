@@ -6,8 +6,10 @@
 #include "MoveTool.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
+#include "ScaleBarTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
+#include "renderlib.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
@@ -24,7 +26,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
   m_areaLightTool = new AreaLightTool();
-  // m_tools.push_back(m_areaLightTool);
+  m_tools.push_back(new ScaleBarTool());
 }
 
 ViewerWindow::~ViewerWindow()
@@ -191,6 +193,13 @@ ViewerWindow::redraw()
     LOG_ERROR << "Failed to update selection buffer";
   }
 
+  // lazy init
+  if (!gesture.graphics.font.get()) {
+    gesture.graphics.font.reset(new Font());
+    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    gesture.graphics.font->load(fontPath.c_str());
+  }
+
   // renderer size may have been directly manipulated by e.g. the renderdialog
   uint32_t oldrendererwidth, oldrendererheight;
   m_renderer->getSize(oldrendererwidth, oldrendererheight);
@@ -206,11 +215,14 @@ ViewerWindow::redraw()
   sceneView.scene = m_renderer->scene();
   sceneView.renderSettings = m_renderSettings;
 
+  // fill gesture graphics with draw commands
   update(sceneView.viewport, m_clock, gesture);
 
+  // main scene rendering
   m_renderer->render(sceneView.camera);
 
-  gesture.graphics.draw(sceneView, m_selection);
+  // render and then clear out draw commands from gesture graphics
+  gesture.graphics.draw(sceneView, &m_selection);
 
   // Make sure we consumed any unused input event before we poll new events.
   // (in the case of Qt we are not explicitly polling but using signals/slots.)

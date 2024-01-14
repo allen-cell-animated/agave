@@ -140,7 +140,7 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 void
 Scene::initBoundsFromImg(std::shared_ptr<ImageXYZC> img)
 {
-  glm::vec3 dim = img->getDimensions();
+  glm::vec3 dim = img->getNormalizedDimensions();
 
   initBounds(CBoundingBox(glm::vec3(0.0f), dim));
 }

@@ -19,6 +19,8 @@
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
 #include "ViewerState.h"
+#include "aboutDialog.h"
+#include "citationDialog.h"
 #include "loadDialog.h"
 #include "renderDialog.h"
 
@@ -142,6 +144,30 @@ agaveGui::createActions()
   m_renderAction = new QAction(tr("&Render..."), this);
   m_renderAction->setStatusTip(tr("Open the render dialog"));
   connect(m_renderAction, SIGNAL(triggered()), this, SLOT(onRenderAction()));
+
+  m_aboutDialogAction = new QAction(tr("&About"), this);
+  m_aboutDialogAction->setStatusTip(tr("Open the about dialog"));
+  connect(m_aboutDialogAction, SIGNAL(triggered()), this, SLOT(onAboutDialogAction()));
+
+  m_supportForumAction = new QAction(tr("&Support Forum"), this);
+  m_supportForumAction->setStatusTip(tr("Open the support forum in your browser"));
+  connect(m_supportForumAction, SIGNAL(triggered()), this, SLOT(onSupportForumAction()));
+
+  m_documentationAction = new QAction(tr("&Documentation"), this);
+  m_documentationAction->setStatusTip(tr("Open the documentation in your browser"));
+  connect(m_documentationAction, SIGNAL(triggered()), this, SLOT(onDocumentationAction()));
+
+  m_reportBugAction = new QAction(tr("&Report a bug"), this);
+  m_reportBugAction->setStatusTip(tr("Open the bug reporting page in your browser"));
+  connect(m_reportBugAction, SIGNAL(triggered()), this, SLOT(onReportBugAction()));
+
+  m_sourceCodeAction = new QAction(tr("&Source code"), this);
+  m_sourceCodeAction->setStatusTip(tr("Open the source code in your browser"));
+  connect(m_sourceCodeAction, SIGNAL(triggered()), this, SLOT(onSourceCodeAction()));
+
+  m_citationAction = new QAction(tr("&Cite AGAVE"), this);
+  m_citationAction->setStatusTip(tr("Cite AGAVE in your research"));
+  connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
 }
 
 void
@@ -174,6 +200,14 @@ agaveGui::createMenus()
   m_viewMenu = menuBar()->addMenu(tr("&View"));
 
   m_fileMenu->addSeparator();
+
+  m_helpMenu = menuBar()->addMenu(tr("&Help"));
+  m_helpMenu->addAction(m_aboutDialogAction);
+  m_helpMenu->addAction(m_supportForumAction);
+  m_helpMenu->addAction(m_documentationAction);
+  m_helpMenu->addAction(m_reportBugAction);
+  m_helpMenu->addAction(m_sourceCodeAction);
+  m_helpMenu->addAction(m_citationAction);
 }
 
 void
@@ -191,6 +225,13 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addSeparator();
   m_ui.mainToolBar->addAction(m_viewResetAction);
   m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
+  m_ui.mainToolBar->addSeparator();
+
+  QToolButton* helpButton = new QToolButton(this);
+  helpButton->setText("Help");
+  helpButton->setPopupMode(QToolButton::InstantPopup);
+  helpButton->setMenu(m_helpMenu);
+  m_ui.mainToolBar->addWidget(helpButton);
 }
 
 void
@@ -380,6 +421,42 @@ agaveGui::saveImage()
 }
 
 void
+agaveGui::onAboutDialogAction()
+{
+  AboutDialog* dlg = new AboutDialog();
+  dlg->setModal(true);
+  dlg->exec();
+}
+
+void
+agaveGui::onSupportForumAction()
+{
+  QDesktopServices::openUrl(QUrl("https://forum.image.sc/tag/agave"));
+}
+void
+agaveGui::onDocumentationAction()
+{
+  QDesktopServices::openUrl(QUrl("https://allen-cell-animated.github.io/agave"));
+}
+void
+agaveGui::onReportBugAction()
+{
+  QDesktopServices::openUrl(QUrl("https://github.com/allen-cell-animated/agave/issues"));
+}
+void
+agaveGui::onSourceCodeAction()
+{
+  QDesktopServices::openUrl(QUrl("https://github.com/allen-cell-animated/agave"));
+}
+void
+agaveGui::onCitationAction()
+{
+  CitationDialog* dlg = new CitationDialog();
+  dlg->setModal(true);
+  dlg->exec();
+}
+
+void
 agaveGui::onRenderAction()
 {
   // TODO keep this loadspec time in sync with the timeline and the render dialog's time
@@ -392,8 +469,6 @@ agaveGui::onRenderAction()
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
-  // extract Renderer from GLView3D to hand to RenderDialog
-  IRenderWindow* renderer = m_glView->borrowRenderer();
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
     m_captureSettings.width = m_glView->width();
     m_captureSettings.height = m_glView->height();
@@ -406,6 +481,9 @@ agaveGui::onRenderAction()
 
   // copy of camera
   CCamera camera = m_glView->getCamera();
+  // extract ViewerWindow from GLView3D to hand to RenderDialog
+  ViewerWindow* renderer = m_glView->borrowRenderer();
+
   RenderDialog* rdialog = new RenderDialog(renderer,
                                            m_renderSettings,
                                            m_appScene,

@@ -9,6 +9,8 @@ target_include_directories(agaveapp PUBLIC
 	${GLM_INCLUDE_DIRS}
 )
 target_sources(agaveapp PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/aboutDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/aboutDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.qrc"
@@ -25,6 +27,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraWidget.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/citationDialog.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/citationDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
@@ -98,9 +102,52 @@ target_link_libraries(agaveapp PRIVATE
 	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 )
 
-install(TARGETS agaveapp
+# copy asset files from renderlib into a directory
+# relative to our app executable
+if(WIN32)
+	add_custom_command(
+		TARGET agaveapp POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts"
+			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/fonts"
+	)
+elseif(APPLE)
+	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
+	# Get a list of all of the files in the data-folder.
+	# file(GLOB_RECURSE RESOURCES "$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts/*")
+	set(RESOURCES 
+	  ${RENDERLIB_SOURCE_DIR}/fonts/Arial.ttf
+	  ${RENDERLIB_SOURCE_DIR}/fonts/Courier_New.ttf
+	)
 
-	# RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt6_DIR}/lib
+	# Add all of the files as "Source Files".
+	target_sources(agaveapp PRIVATE ${RESOURCES})
+
+	# message(STATUS "Copying ${RESOURCES} to macosx bundle Resources")
+	# Individually set the file's path properties.
+	foreach (FILE ${RESOURCES})
+		# Get the relative path from the data-folder to the particular file.
+		file(RELATIVE_PATH NEW_FILE "${RENDERLIB_SOURCE_DIR}" ${FILE})
+
+		# Get the relative path to the file.
+		get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
+
+		# Set it's location inside the app package (under Resources).
+		set_property(SOURCE ${FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}")
+		# Optional: Add the file to the 'Resources' folder group in Xcode.
+		#           This also preserves folder structure.
+		source_group("Resources/${NEW_FILE_PATH}" FILES "${FILE}")
+	endforeach ()
+else() # LINUX
+	add_custom_command(
+		TARGET agaveapp POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts"
+			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/fonts"
+	)
+endif(WIN32)
+
+install(TARGETS agaveapp
 	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR}
 	LIBRARY DESTINATION ${INSTALLDIR}

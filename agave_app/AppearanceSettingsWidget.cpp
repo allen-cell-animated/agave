@@ -533,6 +533,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
     this->OnBoundingBoxColorChanged(c);
   });
 
+  m_showScaleBarCheckBox.setChecked(false);
+  m_showScaleBarCheckBox.setStatusTip(tr("Show/hide scale bar"));
+  m_showScaleBarCheckBox.setToolTip(tr("Show/hide scale bar"));
+  m_MainLayout.addRow("Scale Bar", &m_showScaleBarCheckBox);
+  QObject::connect(&m_showScaleBarCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
+    this->OnShowScaleBarChecked(is_checked);
+  });
+
   m_scaleSection = new Section("Volume Scale", 0);
   auto* scaleSectionLayout = new QGridLayout();
   scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
@@ -999,6 +1007,7 @@ QAppearanceSettingsWidget::OnBackgroundColorChanged(const QColor& color)
   m_scene->m_material.m_backgroundColor[2] = rgba[2];
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
+
 void
 QAppearanceSettingsWidget::OnBoundingBoxColorChanged(const QColor& color)
 {
@@ -1010,12 +1019,21 @@ QAppearanceSettingsWidget::OnBoundingBoxColorChanged(const QColor& color)
   m_scene->m_material.m_boundingBoxColor[1] = rgba[1];
   m_scene->m_material.m_boundingBoxColor[2] = rgba[2];
 }
+
 void
 QAppearanceSettingsWidget::OnShowBoundsChecked(bool isChecked)
 {
   if (!m_scene)
     return;
   m_scene->m_material.m_showBoundingBox = isChecked;
+}
+
+void
+QAppearanceSettingsWidget::OnShowScaleBarChecked(bool isChecked)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_showScaleBar = isChecked;
 }
 
 void
