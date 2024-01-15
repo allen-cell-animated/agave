@@ -61,7 +61,7 @@ public:
   QImage captureQimage();
 
   // DANGER this must NOT outlive the GLView3D
-  IRenderWindow* borrowRenderer() { return m_viewerWindow->m_renderer.get(); }
+  ViewerWindow* borrowRenderer() { return m_viewerWindow; }
 
   void pauseRenderLoop();
   void restartRenderLoop();
@@ -144,7 +144,7 @@ public:
   void restartRenderLoop() { m_view->restartRenderLoop(); }
   void doneCurrent() {}
   // DANGER this must NOT outlive the WgpuCanvas
-  IRenderWindow* borrowRenderer() { return m_view->borrowRenderer(); }
+  ViewerWindow* borrowRenderer() { return m_view->borrowRenderer(); }
   const CCamera& getCamera() { return m_view->getCamera(); }
   QOpenGLContext* context() { return nullptr; }
   void resizeGL(int w, int h) { m_view->resizeGL(w, h); }
