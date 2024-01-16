@@ -264,8 +264,7 @@ elseif(APPLE)
   install(FILES
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
-    # or Contents/Resources/assets/fonts/ ?
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/assets/fonts/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/assets/fonts/
   )
 
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
