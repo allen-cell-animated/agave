@@ -170,4 +170,9 @@ SceneLight::updateTransform()
   m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
 
   m_light->updateBasisFrame();
+
+  // this lets the GUI have a chance to update in an abstract way
+  for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
+    (*it)(*m_light);
+  }
 }

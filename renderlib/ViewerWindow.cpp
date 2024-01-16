@@ -24,7 +24,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
-  // m_tools.push_back(new AreaLightTool());
+  m_tools.push_back(new AreaLightTool());
   m_tools.push_back(new ScaleBarTool());
 }
 

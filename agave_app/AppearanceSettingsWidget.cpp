@@ -739,6 +739,25 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   m_lt0gui.m_intensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorIntensity);
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
+  // attach light observer to scene's area light source, to receive updates from viewport controls
+  // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
+  scene->m_lighting.m_sceneLights[1].m_observers.push_back([this](const Light& light) {
+    // update gui controls
+
+    // bring theta into 0..2pi
+    m_lt0gui.m_thetaSlider->setValue(light.m_Theta < 0 ? light.m_Theta + TWO_PI_F : light.m_Theta);
+    // bring phi into 0..pi
+    m_lt0gui.m_phiSlider->setValue(light.m_Phi < 0 ? light.m_Phi + PI_F : light.m_Phi);
+    m_lt0gui.m_sizeSlider->setValue(light.m_Width);
+    m_lt0gui.m_distSlider->setValue(light.m_Distance);
+    // split color into color and intensity.
+    QColor c;
+    float i;
+    normalizeColorForGui(light.m_Color, c, i);
+    m_lt0gui.m_intensitySlider->setValue(i * light.m_ColorIntensity);
+    m_lt0gui.m_areaLightColorButton->SetColor(c);
+  });
+
   normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorTop, c, i);
   m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorTopIntensity);
   m_lt1gui.m_stColorButton->SetColor(c);
