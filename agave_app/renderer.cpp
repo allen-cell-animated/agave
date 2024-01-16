@@ -299,7 +299,6 @@ Renderer::render()
 
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
-  // m_renderer->render(sceneView.camera);
 
   m_fbo->bind();
   m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
