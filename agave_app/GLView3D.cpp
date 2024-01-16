@@ -301,24 +301,28 @@ GLView3D::keyPressEvent(QKeyEvent* event)
   } else if (event->key() == Qt::Key_R) {
     // toggle rotate tool
     if (mode == MODE::NONE || mode == MODE::TRANS) {
+      m_viewerWindow->showAreaLightGizmo(true);
       m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
                                              ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
       m_viewerWindow->forEachTool(
         [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
       mode = MODE::ROT;
     } else {
+      m_viewerWindow->showAreaLightGizmo(false);
       m_viewerWindow->setTool(nullptr);
       mode = MODE::NONE;
     }
   } else if (event->key() == Qt::Key_T) {
     // toggle translate tool
     if (mode == MODE::NONE || mode == MODE::ROT) {
+      m_viewerWindow->showAreaLightGizmo(true);
       m_viewerWindow->setTool(
         new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
       m_viewerWindow->forEachTool(
         [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
       mode = MODE::TRANS;
     } else {
+      m_viewerWindow->showAreaLightGizmo(false);
       m_viewerWindow->setTool(nullptr);
       mode = MODE::NONE;
     }

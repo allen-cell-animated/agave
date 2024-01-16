@@ -24,12 +24,17 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // m_activeTool should not be in m_tools
   // m_activeTool = new MoveTool();
   // m_activeTool = new RotateTool();
-  m_tools.push_back(new AreaLightTool());
+  m_areaLightTool = new AreaLightTool();
   m_tools.push_back(new ScaleBarTool());
 }
 
 ViewerWindow::~ViewerWindow()
 {
+  bool isShowingAreaLight = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
+  if (!isShowingAreaLight) {
+    delete m_areaLightTool;
+  }
+
   if (m_activeTool != &m_defaultTool) {
     ManipulationTool::destroyTool(m_activeTool);
   }
@@ -48,6 +53,21 @@ ViewerWindow::setSize(int width, int height)
   sceneView.viewport.region.upper.y = height;
 
   // TODO do whatever resizing now?
+}
+
+void
+ViewerWindow::showAreaLightGizmo(bool show)
+{
+  // check if m_areaLightTool is in m_tools
+  bool isShowing = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
+  if (isShowing == show) {
+    return;
+  }
+  if (show) {
+    m_tools.push_back(m_areaLightTool);
+  } else {
+    m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
+  }
 }
 
 void
