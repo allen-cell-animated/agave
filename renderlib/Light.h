@@ -6,6 +6,7 @@
 #include "Object3d.h"
 
 #include <functional>
+#include <vector>
 
 // this should map to the bundle of gpu parameters
 // passed to the shader for our lights
