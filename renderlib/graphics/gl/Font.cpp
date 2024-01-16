@@ -25,7 +25,6 @@ generateFontTexture(unsigned char* temp_bitmap)
   glGenTextures(1, &ftex);
   glBindTexture(GL_TEXTURE_2D, ftex);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, s_textureSize, s_textureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, expanded_bitmap);
-  // glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, s_textureSize, s_textureSize, 0, GL_ALPHA, GL_UNSIGNED_BYTE, temp_bitmap);
   check_gl("load font texture");
   // can free temp_bitmap at this point
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -47,7 +46,6 @@ Font::~Font()
 void
 Font::load(const char* filename)
 {
-  // lazy init? // TODO fix this to do explicit init?
   if (m_texID != 0) {
     return;
   }
