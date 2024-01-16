@@ -20,10 +20,6 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // TODO have a notion of a scene's selection set,
   // and activate tools via the UI to operate
   // on the selection set.
-  // TEST create a tool and activate it
-  // m_activeTool should not be in m_tools
-  // m_activeTool = new MoveTool();
-  // m_activeTool = new RotateTool();
   m_areaLightTool = new AreaLightTool();
   m_tools.push_back(new ScaleBarTool());
 }
