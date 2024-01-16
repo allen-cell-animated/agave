@@ -741,6 +741,7 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
+  // Currently in AGAVE this is not an issue..
   scene->m_lighting.m_sceneLights[1].m_observers.push_back([this](const Light& light) {
     // update gui controls
 
