@@ -139,8 +139,7 @@ main(int argc, char* argv[])
   std::string appPathStr = appPath.toStdString();
   LOG_INFO << "Application path: " << appPathStr;
 
-  // we expect the bundled fonts to be in the app local data path in a fonts subdirectory
-  // QStringList localDataPaths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+  // renderlib needs to be told where its assets live
   QString assetsPath =
     QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "assets", QStandardPaths::LocateDirectory);
   LOG_INFO << "Assets path: " << assetsPath.toStdString();
