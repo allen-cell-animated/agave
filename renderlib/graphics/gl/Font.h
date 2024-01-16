@@ -15,8 +15,6 @@ public:
   void load(const char* filename);
   void unload();
 
-  // void drawText(const char* text, float x, float y, float scale, float color[4]);
-
   // x and y will be updated to the next position to draw the next character.
   bool getBakedQuad(char char_index, float* x, float* y, stbtt_aligned_quad* q);
 
