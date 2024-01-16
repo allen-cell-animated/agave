@@ -177,7 +177,7 @@ ViewerWindow::redraw()
   // lazy init
   if (!gesture.graphics.font.get()) {
     gesture.graphics.font.reset(new Font());
-    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
     gesture.graphics.font->load(fontPath.c_str());
   }
 

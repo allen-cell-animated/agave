@@ -141,11 +141,11 @@ main(int argc, char* argv[])
 
   // we expect the bundled fonts to be in the app local data path in a fonts subdirectory
   // QStringList localDataPaths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-  QString fontsPath =
-    QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "fonts", QStandardPaths::LocateDirectory);
-  LOG_INFO << "Fonts path: " << fontsPath.toStdString();
+  QString assetsPath =
+    QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "assets", QStandardPaths::LocateDirectory);
+  LOG_INFO << "Assets path: " << assetsPath.toStdString();
 
-  if (!renderlib::initialize(fontsPath.toStdString(), isServer, listDevices, selectedGpu)) {
+  if (!renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
     return 0;
   }
