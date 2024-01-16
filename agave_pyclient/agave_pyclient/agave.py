@@ -909,6 +909,18 @@ class AgaveRenderer:
             "LOAD_DATA", path, scene, multiresolution_level, time, channels, region
         )
 
+    def show_scale_bar(self, on: int):
+        """
+        Turn scale bar display on or off
+
+        Parameters
+        ----------
+        on: int
+            0 to hide scale bar, 1 to show it
+        """
+        # 45
+        self.cb.add_command("SHOW_SCALE_BAR", on)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):

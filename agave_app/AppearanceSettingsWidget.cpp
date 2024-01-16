@@ -805,6 +805,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                   m_scene->m_material.m_boundingBoxColor[2]);
   m_boundingBoxColorButton.SetColor(cbbox);
   m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
+  m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
 
   initLightingControls(scene);
 

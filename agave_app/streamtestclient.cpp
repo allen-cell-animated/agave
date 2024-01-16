@@ -31,6 +31,7 @@ StreamTestClient::onConnected()
   commands.push_back(new SetResolutionCommand({ 681, 612 }));
   commands.push_back(new SetBackgroundColorCommand({ 0.0, 0.0, 0.0 }));
   commands.push_back(new ShowBoundingBoxCommand({ 1 }));
+  commands.push_back(new ShowScaleBarCommand({ 1 }));
   commands.push_back(new SetBoundingBoxColorCommand({ 1.0, 1.0, 1.0 }));
   commands.push_back(new SetRenderIterationsCommand({ 128 }));
   commands.push_back(new SetPrimaryRayStepSizeCommand({ 4.0 }));
@@ -68,7 +69,7 @@ StreamTestClient::onConnected()
   commands.push_back(new SessionCommand({ "caax-8.png" }));
   commands.push_back(new OrbitCameraCommand({ 60, 0 }));
   // r.batch_render_turntable(number_of_frames = 45, output_name = "orbitz")
-  //#r.redraw()
+  // #r.redraw()
   commands.push_back(new RequestRedrawCommand({}));
   commandBuffer* cb = commandBuffer::createBuffer(commands);
 
@@ -91,8 +92,8 @@ StreamTestClient::onTextMessageReceived(const QString& message)
 void
 StreamTestClient::onBinaryMessageReceived(const QByteArray& message)
 {
-  //if (m_debug)
-  //  qDebug() << "Testclient Binary Message received:" << message;
+  // if (m_debug)
+  //   qDebug() << "Testclient Binary Message received:" << message;
 
   // a single binary message is assumed to be a serialized png file ready to save.
   QFile newDoc("C:\\Users\\danielt\\Desktop\\test.png");

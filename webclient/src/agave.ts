@@ -687,6 +687,16 @@ export class AgaveClient {
     );
   }
 
+  /**
+   * Turn scale bar display on or off
+   *
+   * @param on 0 to hide scale bar, 1 to show it
+   */
+  showScaleBar(on: number) {
+    // 45
+    this.cb.addCommand("SHOW_SCALE_BAR", on);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {
