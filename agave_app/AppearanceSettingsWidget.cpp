@@ -10,11 +10,15 @@
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
+#include <QFrame>
 #include <QLinearGradient>
 
 static const int MAX_CHANNELS_CHECKED = 4;
 
-QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSettings* qrs, RenderSettings* rs)
+QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
+                                                     QRenderSettings* qrs,
+                                                     RenderSettings* rs,
+                                                     QAction* pLightRotationAction)
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_DensityScaleSlider()
@@ -198,7 +202,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
 
-  Section* section = createLightingControls();
+  Section* section = createLightingControls(pLightRotationAction);
   m_MainLayout.addRow(section);
 
   QFrame* lineA = new QFrame();
@@ -214,10 +218,21 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent, QRenderSe
 }
 
 Section*
-QAppearanceSettingsWidget::createLightingControls()
+QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
 {
   Section* section = new Section("Lighting", 0);
   auto* sectionLayout = Controls::createFormLayout();
+
+  m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
+  m_lt0gui.m_enableControlsCheckBox->setStatusTip(
+    tr("Show interactive controls in viewport for area light rotation angle"));
+  m_lt0gui.m_enableControlsCheckBox->setToolTip(
+    tr("Show interactive controls in viewport for area light rotation angle"));
+  sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
+  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, pLightRotationAction, &QAction::trigger);
+  QObject::connect(pLightRotationAction, &QAction::triggered, [this](bool toggled) {
+    this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
+  });
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
@@ -278,6 +293,12 @@ QAppearanceSettingsWidget::createLightingControls()
   QObject::connect(m_lt0gui.m_intensitySlider, &QNumericSlider::valueChanged, [this](double v) {
     this->OnSetAreaLightColor(v, this->m_lt0gui.m_areaLightColorButton->GetColor());
   });
+
+  // separator
+  QFrame* line = new QFrame();
+  line->setFrameShape(QFrame::HLine);
+  line->setFrameShadow(QFrame::Sunken);
+  sectionLayout->addRow(line);
 
   auto* skylightTopLayout = new QHBoxLayout();
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
