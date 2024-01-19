@@ -129,7 +129,8 @@ elseif(APPLE)
 		# Get the relative path to the file.
 		get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
 
-		# Set it's location inside the app package (under Resources).
+		# Set its location inside the app package (under Resources).
+
 		set_property(SOURCE ${FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}")
 		# Optional: Add the file to the 'Resources' folder group in Xcode.
 		#           This also preserves folder structure.
