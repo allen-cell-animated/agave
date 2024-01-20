@@ -72,7 +72,6 @@ public:
   // special case so it can be toggled on/off
   ManipulationTool* m_areaLightTool = nullptr;
 
-  AreaLightTool* m_areaLightTool = nullptr;
   void toggleAreaLightSelect();
 
   RenderSettings* m_renderSettings;

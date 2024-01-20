@@ -50,6 +50,7 @@ public:
 
   void initCameraFromImage(Scene* scene);
   void toggleCameraProjection();
+  void toggleAreaLightRotateControls();
 
   void onNewImage(Scene* scene);
 
@@ -117,6 +118,13 @@ private:
 
   void FitToScene();
 
+  enum AREALIGHT_MODE
+  {
+    NONE,
+    ROT,
+    TRANS
+  } m_areaLightMode = AREALIGHT_MODE::NONE;
+
 protected:
   /// Set up GL context and subsidiary objects.
   void initializeGL(WGPUTextureView nextTexture);
@@ -151,6 +159,7 @@ public:
   void initCameraFromImage(Scene* scene) { m_view->initCameraFromImage(scene); }
   void onNewImage(Scene* scene) { m_view->onNewImage(scene); }
   void toggleCameraProjection() { m_view->toggleCameraProjection(); }
+  void toggleAreaLightRotateControls() { m_view->toggleAreaLightRotateControls(); }
   void fromViewerState(const Serialize::ViewerState& s) { m_view->fromViewerState(s); }
 
 signals:

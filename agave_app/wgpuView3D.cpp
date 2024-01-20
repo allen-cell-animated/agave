@@ -100,6 +100,24 @@ WgpuView3D::toggleCameraProjection()
 }
 
 void
+WgpuView3D::toggleAreaLightRotateControls()
+{
+  // toggle rotate tool
+  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::TRANS) {
+    m_viewerWindow->showAreaLightGizmo(true);
+    m_viewerWindow->setTool(
+      new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+    m_viewerWindow->forEachTool(
+      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+    m_areaLightMode = AREALIGHT_MODE::ROT;
+  } else {
+    m_viewerWindow->showAreaLightGizmo(false);
+    m_viewerWindow->setTool(nullptr);
+    m_areaLightMode = AREALIGHT_MODE::NONE;
+  }
+}
+
+void
 WgpuView3D::onNewImage(Scene* scene)
 {
   m_viewerWindow->m_renderer->setScene(scene);
