@@ -39,14 +39,6 @@ struct VolumeDisplay
   VolumeDisplay();
 };
 
-// MUST NOT OUTLIVE ITS LIGHT
-class SceneLight : public SceneObject
-{
-public:
-  void updateTransform();
-  Light* m_light;
-};
-
 #define MAX_NO_LIGHTS 4
 class Lighting
 {

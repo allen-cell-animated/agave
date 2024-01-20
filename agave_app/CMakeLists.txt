@@ -108,16 +108,16 @@ if(WIN32)
 	add_custom_command(
 		TARGET agaveapp POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
-			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts"
-			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/fonts"
+			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/assets"
+			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
 	)
 elseif(APPLE)
 	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
 	# Get a list of all of the files in the data-folder.
-	# file(GLOB_RECURSE RESOURCES "$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts/*")
+	# file(GLOB_RECURSE RESOURCES "$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/assets/*")
 	set(RESOURCES 
-	  ${RENDERLIB_SOURCE_DIR}/fonts/Arial.ttf
-	  ${RENDERLIB_SOURCE_DIR}/fonts/Courier_New.ttf
+	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Arial.ttf
+	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Courier_New.ttf
 	)
 
 	# Add all of the files as "Source Files".
@@ -142,8 +142,8 @@ else() # LINUX
 	add_custom_command(
 		TARGET agaveapp POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
-			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/fonts"
-			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/fonts"
+			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/assets"
+			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
 	)
 endif(WIN32)
 

@@ -49,6 +49,8 @@ public:
     fn(m_activeTool);
   }
 
+  void showAreaLightGizmo(bool show);
+
   void updateCamera();
 
   CCamera m_CCamera;
@@ -67,6 +69,8 @@ public:
   ManipulationTool* m_activeTool = &m_defaultTool;
   std::vector<ManipulationTool*> m_tools;
   bool m_toolsUseLocalSpace = false;
+  // special case so it can be toggled on/off
+  ManipulationTool* m_areaLightTool = nullptr;
 
   AreaLightTool* m_areaLightTool = nullptr;
   void toggleAreaLightSelect();

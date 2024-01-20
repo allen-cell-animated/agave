@@ -91,6 +91,7 @@ struct ViewerState
   std::array<float, 3> boundingBoxColor = { 1, 1, 1 }; // m_boundingBoxColor
 
   bool showBoundingBox = false; // m_showBoundingBox
+  bool showScaleBar = false;
 
   std::vector<ChannelSettings_V1> channels; // m_channels
 
@@ -107,7 +108,8 @@ struct ViewerState
            timeline == other.timeline && clipRegion == other.clipRegion && scale == other.scale &&
            camera == other.camera && backgroundColor == other.backgroundColor &&
            boundingBoxColor == other.boundingBoxColor && showBoundingBox == other.showBoundingBox &&
-           channels == other.channels && density == other.density && lights == other.lights && capture == other.capture;
+           showScaleBar == other.showScaleBar && channels == other.channels && density == other.density &&
+           lights == other.lights && capture == other.capture;
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ViewerState,
                                  datasets,
@@ -124,7 +126,8 @@ struct ViewerState
                                  channels,
                                  density,
                                  lights,
-                                 capture)
+                                 capture,
+                                 showScaleBar)
 };
 
 ViewerState

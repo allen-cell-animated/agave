@@ -42,6 +42,7 @@ agaveGui::agaveGui(QWidget* parent)
   setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
 
+  // create actions first so they can be deposited in other gui elements
   createActions();
   createMenus();
   createToolbars();
@@ -168,6 +169,16 @@ agaveGui::createActions()
   m_citationAction = new QAction(tr("&Cite AGAVE"), this);
   m_citationAction->setStatusTip(tr("Cite AGAVE in your research"));
   connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
+
+  m_toggleRotateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleRotateControlsAction->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_toggleRotateControlsAction->setCheckable(true);
+  m_toggleRotateControlsAction->setShortcut(QKeySequence(Qt::Key_R));
+  // tie the action to the main app window.
+  addAction(m_toggleRotateControlsAction);
+  connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
+    this->m_glView->toggleAreaLightRotateControls();
+  });
 }
 
 void
@@ -246,7 +257,8 @@ agaveGui::createDockWindows()
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
   m_timelinedock->setVisible(false); // hide by default
 
-  m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings);
+  m_appearanceDockWidget =
+    new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 
@@ -955,6 +967,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
 
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
+  m_appScene.m_showScaleBar = v.showScaleBar;
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
@@ -1028,6 +1041,7 @@ agaveGui::appToViewerState()
                          m_appScene.m_material.m_boundingBoxColor[1],
                          m_appScene.m_material.m_boundingBoxColor[2] };
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
+  v.showScaleBar = m_appScene.m_showScaleBar;
 
   v.capture.samples = m_renderSettings.GetNoIterations();
 

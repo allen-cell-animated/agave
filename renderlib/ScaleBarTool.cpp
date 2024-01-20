@@ -100,12 +100,12 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
   // p0 is the rightmost point, p1 is the leftmost point
   glm::vec3 p0 = glm::vec3(scene.viewport.region.size().x, 0, 1.0f) + offsetFromBottomRight;
   glm::vec3 p1 = p0 - glm::vec3(scaleBarSize.pixels, 0, 0);
-  // draw one horizontal line about 1/10 the width of the window, with short bars at the ends.
+  // draw one horizontal line
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
                            Gesture::Graphics::VertsCode(p1, color, opacity, code));
 
   glm::vec3 v = glm::vec3(0, 15.0f, 0) * pctToPx;
-  // draw tick lines at the ends
+  // draw vertical tick lines at the ends
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p0 + v, color, opacity, code),
                            Gesture::Graphics::VertsCode(p0 - v, color, opacity, code));
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p1 + v, color, opacity, code),

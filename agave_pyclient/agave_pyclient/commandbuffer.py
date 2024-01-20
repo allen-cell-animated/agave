@@ -74,6 +74,7 @@ COMMANDS = {
     "TRACKBALL_CAMERA": [43, "F32", "F32"],
     # path, scene, multiresolution level, t, channel indices, region
     "LOAD_DATA": [44, "S", "I32", "I32", "I32", "I32A", "I32A"],
+    "SHOW_SCALE_BAR": [45, "I32"],
 }
 
 

@@ -1,10 +1,11 @@
 #include "pyrenderer.h"
 
 #include "renderlib/CCamera.h"
-#include "renderlib/io/FileReader.h"
 #include "renderlib/Logging.h"
-#include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/ScaleBarTool.h"
+#include "renderlib/graphics/RenderGLPT.h"
+#include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
 
 #include <QApplication>
@@ -103,10 +104,33 @@ OffscreenRenderer::render()
 
   // DRAW
   m_myVolumeData.m_camera->Update();
-  m_myVolumeData.m_renderer->renderTo(*(m_myVolumeData.m_camera), m_fbo);
 
   int vw = m_fbo->width();
   int vh = m_fbo->height();
+
+  if (!m_myVolumeData.m_gesture.graphics.font.get()) {
+    m_myVolumeData.m_gesture.graphics.font.reset(new Font());
+    std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
+    m_myVolumeData.m_gesture.graphics.font->load(fontPath.c_str());
+  }
+
+  SceneView sceneView;
+  sceneView.viewport.region = { { 0, 0 }, { vw, vh } };
+  sceneView.camera = *(m_myVolumeData.m_camera);
+  sceneView.scene = m_myVolumeData.m_renderer->scene();
+  sceneView.renderSettings = m_myVolumeData.m_renderSettings;
+
+  // fill gesture graphics with draw commands
+  ScaleBarTool scalebar;
+  scalebar.clear();
+  scalebar.draw(sceneView, m_myVolumeData.m_gesture);
+
+  // main scene rendering
+  m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
+
+  m_fbo->bind();
+  m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
+  m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[vw * vh * 4]);
   m_fbo->toImage(bytes.get());
@@ -504,6 +528,13 @@ int
 OffscreenRenderer::ShowBoundingBox(int32_t on)
 {
   ShowBoundingBoxCommand cmd({ on });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::ShowScaleBar(int32_t on)
+{
+  ShowScaleBarCommand cmd({ on });
   cmd.execute(&m_ec);
   return 1;
 }

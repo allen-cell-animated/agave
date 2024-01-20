@@ -175,24 +175,3 @@ Scene::getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32
   c2 = ch[2];
   c3 = ch[3];
 }
-
-void
-SceneLight::updateTransform()
-{
-  // update from transform position and rotation.
-
-  // calculate the new direction for the light to point in
-  glm::vec3 normdir = m_transform.m_rotation * glm::vec3(0, 0, 1);
-
-  // compute the phi and theta for the new direction
-  // because they will be used in future light updates
-  float phi, theta;
-  Light::cartesianToSpherical(normdir, phi, theta);
-  m_light->m_Phi = phi;
-  m_light->m_Theta = theta;
-
-  // get m_P in world space:
-  m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
-
-  m_light->updateBasisFrame();
-}

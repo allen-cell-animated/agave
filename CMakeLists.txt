@@ -190,9 +190,9 @@ if(WIN32)
     CONFIGURATIONS Debug
   )
   install(FILES
-    ${PROJECT_SOURCE_DIR}/renderlib/fonts/Arial.ttf
-    ${PROJECT_SOURCE_DIR}/renderlib/fonts/Courier_New.ttf
-    DESTINATION ${INSTALLDIR}/fonts/
+    ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
+    ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
+    DESTINATION ${INSTALLDIR}/assets/fonts/
   )
   install(FILES
     $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
@@ -263,10 +263,9 @@ elseif(APPLE)
     DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/)
 
   install(FILES
-    ${PROJECT_SOURCE_DIR}/renderlib/fonts/Arial.ttf
-    ${PROJECT_SOURCE_DIR}/renderlib/fonts/Courier_New.ttf
-    # or Contents/Resources/fonts/ ?
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/fonts/
+    ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
+    ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/assets/fonts/
   )
 
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
@@ -337,8 +336,8 @@ else() # Linux
   )
 
   install(FILES
-    ${PROJECT_SOURCE_DIR}/renderlib/fonts/Arial.ttf
-    ${PROJECT_SOURCE_DIR}/renderlib/fonts/Courier_New.ttf
-    DESTINATION ${INSTALLDIR}/fonts/
+    ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
+    ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
+    DESTINATION ${INSTALLDIR}/assets/fonts/
   )
 endif(WIN32)

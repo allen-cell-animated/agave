@@ -282,7 +282,7 @@ Renderer::render()
 
   if (!m_myVolumeData.m_gesture.graphics.font.get()) {
     m_myVolumeData.m_gesture.graphics.font.reset(new Font());
-    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
     m_myVolumeData.m_gesture.graphics.font->load(fontPath.c_str());
   }
 
@@ -299,7 +299,6 @@ Renderer::render()
 
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
-  // m_renderer->render(sceneView.camera);
 
   m_fbo->bind();
   m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);

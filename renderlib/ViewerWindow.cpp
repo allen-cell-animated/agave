@@ -21,21 +21,17 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // TODO have a notion of a scene's selection set,
   // and activate tools via the UI to operate
   // on the selection set.
-  // TEST create a tool and activate it
-  // m_activeTool should not be in m_tools
-  // m_activeTool = new MoveTool();
-  // m_activeTool = new RotateTool();
   m_areaLightTool = new AreaLightTool();
   m_tools.push_back(new ScaleBarTool());
 }
 
 ViewerWindow::~ViewerWindow()
 {
-  // remove and destroy area light tool
-  m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
-  ManipulationTool::destroyTool(m_areaLightTool);
+  bool isShowingAreaLight = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
+  if (!isShowingAreaLight) {
+    delete m_areaLightTool;
+  }
 
-  // clean up all other tools
   if (m_activeTool != &m_defaultTool) {
     ManipulationTool::destroyTool(m_activeTool);
   }
@@ -67,6 +63,21 @@ ViewerWindow::setSize(int width, int height)
   sceneView.viewport.region.upper.y = height;
 
   // TODO do whatever resizing now?
+}
+
+void
+ViewerWindow::showAreaLightGizmo(bool show)
+{
+  // check if m_areaLightTool is in m_tools
+  bool isShowing = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
+  if (isShowing == show) {
+    return;
+  }
+  if (show) {
+    m_tools.push_back(m_areaLightTool);
+  } else {
+    m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
+  }
 }
 
 void
@@ -196,7 +207,7 @@ ViewerWindow::redraw()
   // lazy init
   if (!gesture.graphics.font.get()) {
     gesture.graphics.font.reset(new Font());
-    std::string fontPath = renderlib::assetPath() + "/Arial.ttf";
+    std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
     gesture.graphics.font->load(fontPath.c_str());
   }
 

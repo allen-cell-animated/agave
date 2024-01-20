@@ -6,6 +6,7 @@
 
 #include "RenderInterface.h"
 #include "command.h"
+#include "renderlib/gesture/gesture.h"
 #include "renderlib/graphics/IRenderWindow.h"
 #include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
@@ -102,6 +103,7 @@ public:
   virtual int SetControlPoints(int32_t, std::vector<float>);
   virtual int SetBoundingBoxColor(float, float, float);
   virtual int ShowBoundingBox(int32_t);
+  virtual int ShowScaleBar(int32_t);
 
 protected:
   void init();
@@ -134,6 +136,7 @@ private:
     IRenderWindow* m_renderer;
     Scene* m_scene;
     CCamera* m_camera;
+    Gesture m_gesture;
 
     myVolumeData()
       : m_camera(nullptr)

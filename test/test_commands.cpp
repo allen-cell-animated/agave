@@ -427,4 +427,11 @@ TEST_CASE("Commands can write and read from binary", "[command]")
       REQUIRE(cmd->m_data.m_zmax == data.m_zmax);
     }
   }
+  SECTION("ShowScaleBarCommand")
+  {
+    ShowScaleBarCommandD data = { 1 };
+    auto cmd = testcodec<ShowScaleBarCommand, ShowScaleBarCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "show_scale_bar(1)");
+    REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
 }
