@@ -35,14 +35,8 @@ struct VolumeDisplay
   bool m_enabled[MAX_CPU_CHANNELS];
 
   GradientData m_gradientData[MAX_CPU_CHANNELS];
-};
 
-// MUST NOT OUTLIVE ITS LIGHT
-class SceneLight : public SceneObject
-{
-public:
-  void updateTransform();
-  Light* m_light;
+  VolumeDisplay();
 };
 
 #define MAX_NO_LIGHTS 4

@@ -3,6 +3,10 @@
 #include "BoundingBox.h"
 #include "Defines.h"
 #include "MathUtil.h"
+#include "Object3d.h"
+
+#include <functional>
+#include <vector>
 
 // this should map to the bundle of gpu parameters
 // passed to the shader for our lights
@@ -112,4 +116,13 @@ public:
 
   static void sphericalToCartesian(float phi, float theta, glm::vec3& v);
   static void cartesianToSpherical(glm::vec3 v, float& phi, float& theta);
+};
+
+// MUST NOT OUTLIVE ITS LIGHT
+class SceneLight : public SceneObject
+{
+public:
+  void updateTransform();
+  Light* m_light;
+  std::vector<std::function<void(const Light&)>> m_observers;
 };

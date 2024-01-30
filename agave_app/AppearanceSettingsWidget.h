@@ -23,7 +23,10 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
+  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+                            QRenderSettings* qrs = nullptr,
+                            RenderSettings* rs = nullptr,
+                            QAction* pLightRotationAction = nullptr);
 
   void onNewImage(Scene* scene);
 
@@ -102,6 +105,7 @@ private:
 
   struct lt0
   {
+    QCheckBox* m_enableControlsCheckBox;
     QNumericSlider* m_thetaSlider;
     QNumericSlider* m_phiSlider;
     QNumericSlider* m_sizeSlider;
@@ -120,6 +124,6 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
-  Section* createLightingControls();
+  Section* createLightingControls(QAction* pLightRotationAction);
   void initLightingControls(Scene* scene);
 };

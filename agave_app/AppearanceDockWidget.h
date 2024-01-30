@@ -12,7 +12,10 @@ class QAppearanceWidget : public QWidget
   Q_OBJECT
 
 public:
-  QAppearanceWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
+  QAppearanceWidget(QWidget* pParent = NULL,
+                    QRenderSettings* qrs = nullptr,
+                    RenderSettings* rs = nullptr,
+                    QAction* pLightRotationAction = nullptr);
 
   void onNewImage(Scene* s) { m_AppearanceSettingsWidget.onNewImage(s); }
 
@@ -26,7 +29,10 @@ class QAppearanceDockWidget : public QDockWidget
   Q_OBJECT
 
 public:
-  QAppearanceDockWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
+  QAppearanceDockWidget(QWidget* pParent = NULL,
+                        QRenderSettings* qrs = nullptr,
+                        RenderSettings* rs = nullptr,
+                        QAction* pLightRotationAction = nullptr);
 
   void onNewImage(Scene* s) { m_VolumeAppearanceWidget.onNewImage(s); }
 

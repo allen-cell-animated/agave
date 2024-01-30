@@ -49,6 +49,8 @@ public:
 
   void initCameraFromImage(Scene* scene);
   void toggleCameraProjection();
+  void toggleAreaLightRotateControls();
+  void toggleAreaLightTranslateControls();
 
   void onNewImage(Scene* scene);
 
@@ -103,4 +105,11 @@ private:
   QTimer* m_etimer;
 
   ViewerWindow* m_viewerWindow;
+
+  enum AREALIGHT_MODE
+  {
+    NONE,
+    ROT,
+    TRANS
+  } m_areaLightMode = AREALIGHT_MODE::NONE;
 };

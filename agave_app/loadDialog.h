@@ -34,6 +34,7 @@ public:
 
   LoadSpec getLoadSpec() const;
   int getMultiscaleLevelIndex() const { return mSelectedLevel; }
+  bool getKeepSettings() const { return m_keepSettingsCheckbox->isChecked(); }
 
   QSize sizeHint() const override { return QSize(400, 100); }
 
@@ -52,22 +53,22 @@ private:
   int mSelectedLevel;
 
   QSpinBox* mSceneInput;
+  // show multiresolutions
   QComboBox* mMultiresolutionInput;
+  // start with a single timepoint
   QIntSlider* m_TimeSlider;
+  // select any set of channels
   QListWidget* mChannels;
   Section* mChannelsSection;
   QTreeWidget* mMetadataTree;
   QLabel* mVolumeLabel;
   QLabel* mMemoryEstimateLabel;
+  // select region of interest in zyx
   RangeWidget* m_roiX;
   RangeWidget* m_roiY;
   RangeWidget* m_roiZ;
   Section* m_roiSection;
-  // show multiresolutions
-
-  // select region of interest in zyx
-  // select any set of channels
-  // start with a single timepoint
+  QCheckBox* m_keepSettingsCheckbox;
 
   void updateMemoryEstimate();
   void updateMultiresolutionInput();
