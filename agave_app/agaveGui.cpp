@@ -555,7 +555,9 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
                         uint32_t sizeT,
                         const Serialize::ViewerState* vs,
-                        std::shared_ptr<IFileReader> reader)
+                        std::shared_ptr<IFileReader> reader,
+                        // only used if vs is null
+                        bool keepCurrentUISettings)
 {
   m_loadSpec = loadSpec;
 
@@ -576,12 +578,17 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   // Show timeline widget if the loaded image has multiple frames.
   m_timelinedock->setVisible(sizeT > 1);
 
+  bool wasVolumeLoaded = m_appScene.m_volume != nullptr;
+
   // install the new volume image into the scene.
   // this is deref'ing the previous _volume shared_ptr.
   m_appScene.m_volume = image;
 
-  m_appScene.initSceneFromImg(image);
-  m_glView->initCameraFromImage(&m_appScene);
+  m_appScene.initBoundsFromImg(image);
+  if (!keepCurrentUISettings || !wasVolumeLoaded) {
+    m_appScene.initSceneFromImg(image);
+    m_glView->initCameraFromImage(&m_appScene);
+  }
 
   // initialize _appScene from ViewerState
   if (vs) {
@@ -666,12 +673,15 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     return false;
   }
 
+  bool keepCurrentUISettings = true;
+
   if (!vs) {
 
     LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+      keepCurrentUISettings = loadDialog->getKeepSettings();
     } else {
       LOG_INFO << "Canceled load dialog.";
       return true;
@@ -697,7 +707,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader);
+  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader, keepCurrentUISettings);
   return true;
 }
 
