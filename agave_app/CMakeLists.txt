@@ -110,8 +110,6 @@ if(WIN32)
 	)
 elseif(APPLE)
 	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
-	# Get a list of all of the files in the data-folder.
-	# file(GLOB_RECURSE RESOURCES "$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/assets/*")
 	set(RESOURCES 
 	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Arial.ttf
 	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Courier_New.ttf

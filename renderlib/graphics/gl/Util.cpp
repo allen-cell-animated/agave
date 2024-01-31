@@ -354,14 +354,6 @@ BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& colo
   _shader->release();
 }
 
-// physicalscale is max of physical dims x,y,z
-static float
-computePhysicalScaleBarSize(const float physicalScale)
-{
-  // note this result will always be some integer power of 10 independent of zoom...
-  return pow(10.0f, floor(log10(physicalScale / 2.0f)));
-}
-
 // Generate tick marks for a bounding box whose vertices span -1,-1,-1 to 1,1,1.
 // Know that the box will be scaled proportional to the normPhysicalSize
 // physicalscale is max of physical dims x,y,z
