@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "Logging.h"
+#include "MathUtil.h"
 #include "glsl/GLFlatShader2D.h"
 #include "glsl/GLImageShader2DnoLut.h"
 
