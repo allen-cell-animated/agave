@@ -48,6 +48,7 @@ public:
   QSize sizeHint() const;
 
   void initCameraFromImage(Scene* scene);
+  void retargetCameraForNewVolume(Scene* scene);
   void toggleCameraProjection();
   void toggleAreaLightRotateControls();
   void toggleAreaLightTranslateControls();
