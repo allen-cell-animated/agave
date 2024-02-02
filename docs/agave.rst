@@ -127,6 +127,12 @@ Subregion
 For OME-Zarr data, you may select a sub-region in X, Y, and Z. This is useful for loading a subset of a large dataset.
 A typical usage might be to first load a very low resolution level and then select a sub-region of interest to then load at a higher resolution.
 
+Keep Current AGAVE Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have already loaded a volume file and have made changes to the appearance, channel intensities, lighting, etc., you can choose to keep those settings when loading a new volume file.
+This is useful if you are loading several images consecutively that have similar channels and dimensions, and want to apply a consistent appearance to each.
+
 Adjusting the camera view
 -------------------------
 
