@@ -13,6 +13,8 @@
 #include <map>
 #include <set>
 
+// see https://www.ccpem.ac.uk/mrc_format/mrc2014.php
+
 // 1      NC              # of Columns    (fastest changing in map)
 //  2      NR              # of Rows
 //  3      NS              # of Sections   (slowest changing in map)
@@ -131,12 +133,14 @@ readCCP4Dimensions(const std::string filepath, VolumeDimensions& dims, uint32_t 
   }
   // 0 = envelope stored as signed bytes (from
   //     -128 lowest to 127 highest)
-  // 1 = Image     stored as Integer*2
-  // 2 = Image     stored as Reals
-  // 3 = Transform stored as Complex Integer*2
-  // 4 = Transform stored as Complex Reals
+  // 1 = Image     stored as Integer*2 (16-bit signed integer)
+  // 2 = Image     stored as Reals (32-bit float)
+  // 3 = Transform stored as Complex Integer*2 (complex 16-bit int)
+  // 4 = Transform stored as Complex Reals (complex 32-bit float)
   // 5 == 0
   // 6 == 16-bit unsigned int
+  // 12 == 16-bit float
+  // 101 == 4-bit data packed two per byte
   // SAMPLEFORMAT_UINT = 1;
   // SAMPLEFORMAT_INT = 2;
   // SAMPLEFORMAT_IEEEFP = 3;
@@ -165,16 +169,78 @@ readCCP4Dimensions(const std::string filepath, VolumeDimensions& dims, uint32_t 
     case 6:
       dims.bitsPerPixel = 16;
       dims.sampleFormat = 1;
+    case 12:
+      dims.bitsPerPixel = 16;
+      dims.sampleFormat = 3;
     default:
       LOG_ERROR << "Bad file read from " << filepath;
       return false;
   }
 
+  uint32_t dummy;
+  // NCSTART         Number of first COLUMN  in map
+  myFile.read((char*)&dummy, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // NRSTART         Number of first ROW     in map
+  myFile.read((char*)&dummy, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // NSSTART         Number of first SECTION in map
+  myFile.read((char*)&dummy, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // NX              Number of intervals along X
+  myFile.read((char*)&dummy, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // NY              Number of intervals along Y
+  myFile.read((char*)&dummy, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // NZ              Number of intervals along Z
+  myFile.read((char*)&dummy, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+
+  // these values are in Angstroms
+  // CELLA.x           Cell Dimensions (Angstroms)
+  dims.physicalSizeX = 1.0f;
+  myFile.read((char*)&dims.physicalSizeX, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // CELLA.y           Cell Dimensions (Angstroms)
+  dims.physicalSizeY = 1.0f;
+  myFile.read((char*)&dims.physicalSizeY, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+  // CELLA.z           Cell Dimensions (Angstroms)
+  dims.physicalSizeZ = 1.0f;
+  myFile.read((char*)&dims.physicalSizeZ, 4);
+  if (!myFile || myFile.gcount() != 4) {
+    LOG_ERROR << "Bad file read from " << filepath;
+    return false;
+  }
+
+  dims.spatialUnits = "Angstroms";
   dims.sizeC = 1;
   dims.sizeT = 1;
-  dims.physicalSizeX = 1.0f;
-  dims.physicalSizeY = 1.0f;
-  dims.physicalSizeZ = 1.0f;
   dims.dimensionOrder = "XYZCT";
   dims.channelNames = { "C0" };
 
@@ -354,7 +420,8 @@ FileReaderCCP4::loadFromFile(const LoadSpec& loadSpec)
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
-                                dims.physicalSizeZ);
+                                dims.physicalSizeZ,
+                                dims.spatialUnits);
 
   std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
   im->setChannelNames(channelNames);

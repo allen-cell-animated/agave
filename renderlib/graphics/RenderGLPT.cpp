@@ -205,6 +205,9 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_renderSettings->m_DenoiseParams.SetWindowRadius(3);
 
+  const glm::vec3 volumePhysicalSize = m_scene->m_volume->getPhysicalDimensions();
+  float maxPhysicalDim = std::max(volumePhysicalSize.x, std::max(volumePhysicalSize.y, volumePhysicalSize.z));
+
   // scene bounds are min=0.0, max=image physical dims scaled to max dim so that max dim is 1.0
   glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
   glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
@@ -327,6 +330,11 @@ RenderGLPT::doRender(const CCamera& camera)
   // draw volume
   // draw front of bounding box
 
+  glm::vec4 bboxColor(m_scene->m_material.m_boundingBoxColor[0],
+                      m_scene->m_material.m_boundingBoxColor[1],
+                      m_scene->m_material.m_boundingBoxColor[2],
+                      1.0);
+
   glBindFramebuffer(GL_FRAMEBUFFER, m_fb->id());
   check_glfb("bind framebuffer for tone map");
 
@@ -352,11 +360,11 @@ RenderGLPT::doRender(const CCamera& camera)
     glDepthFunc(GL_GREATER);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix,
-                                     glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
-                                               m_scene->m_material.m_boundingBoxColor[1],
-                                               m_scene->m_material.m_boundingBoxColor[2],
-                                               1.0));
+    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
+    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
+      m_boundingBoxDrawable->updateTickMarks(scales, maxPhysicalDim);
+      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
+    }
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
   }
@@ -395,11 +403,10 @@ RenderGLPT::doRender(const CCamera& camera)
     glDepthMask(GL_FALSE);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix,
-                                     glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
-                                               m_scene->m_material.m_boundingBoxColor[1],
-                                               m_scene->m_material.m_boundingBoxColor[2],
-                                               1.0));
+    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
+    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
+      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
+    }
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
   }

@@ -232,6 +232,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   float physicalSizeX = 1.0f;
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
+  std::string units = "units";
   // see if we can glean xy resolution from the tiff tags
   float tiffXResolution = 1.0f;
   if (TIFFGetField(tiff, TIFFTAG_XRESOLUTION, &tiffXResolution) == 1) {
@@ -293,6 +294,13 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       }
     }
 
+    iter = imagejmetadata.find("unit");
+    if (iter != imagejmetadata.end()) {
+      units = (*iter).second;
+    } else {
+      LOG_WARNING << "Failed to read spatial units of ImageJ TIFF: '" << filepath << "'";
+    }
+
     for (uint32_t i = 0; i < sizeC; ++i) {
       channelNames.push_back(std::to_string(i));
     }
@@ -338,22 +346,27 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     } else {
       LOG_WARNING << "Failed to read lengths of SCIFIO TIFF: '" << filepath << "'";
     }
-    std::vector<std::string> units;
+    std::vector<std::string> unitsArray;
     iter = scifiometadata.find("units");
     if (iter != scifiometadata.end()) {
-      split((*iter).second, ',', units);
+      split((*iter).second, ',', unitsArray);
+      // just take the first one for now?
+      units = unitsArray[0];
+      if (units == "null") {
+        units = "units";
+      }
     } else {
       LOG_WARNING << "Failed to read units of SCIFIO TIFF: '" << filepath << "'";
     }
 
-    if (lengths.size() != units.size() || scales.size() != axes.size() || scales.size() != units.size()) {
+    if (lengths.size() != unitsArray.size() || scales.size() != axes.size() || scales.size() != unitsArray.size()) {
       LOG_ERROR << "SCIFIO TIFF metadata has inconsistent counts of lengths,units,axes,scales";
     }
 
     for (size_t i = 0; i < axes.size(); ++i) {
       std::string axis = axes[i];
       double scale = std::stod(scales[i]);
-      std::string unit = units[i];
+      std::string unit = unitsArray[i];
       int length = std::stoi(lengths[i]);
       if (axis == "X") {
         // check consistency.
@@ -489,6 +502,15 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     std::string physicalSizeXunit = pixelsEl.attribute("PhysicalSizeXUnit").as_string("");
     std::string physicalSizeYunit = pixelsEl.attribute("PhysicalSizeYUnit").as_string("");
     std::string physicalSizeZunit = pixelsEl.attribute("PhysicalSizeZUnit").as_string("");
+    units = physicalSizeXunit;
+    if (physicalSizeYunit != units || physicalSizeZunit != units) {
+      LOG_WARNING << "Inconsistent physical size units in OME TIFF: '" << filepath << "' " << physicalSizeXunit << " "
+                  << physicalSizeYunit << " " << physicalSizeZunit;
+    }
+    // this is the documented ome-xml default.
+    if (units == "") {
+      units = "um";
+    }
 
     // find channel names
     int i = 0;
@@ -534,6 +556,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.physicalSizeX = physicalSizeX;
   dims.physicalSizeY = physicalSizeY;
   dims.physicalSizeZ = physicalSizeZ;
+  dims.spatialUnits = VolumeDimensions::sanitizeUnitsString(units);
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
   dims.sampleFormat = sampleFormat;
@@ -810,7 +833,8 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
-                                dims.physicalSizeZ);
+                                dims.physicalSizeZ,
+                                dims.spatialUnits);
 
   std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
   im->setChannelNames(channelNames);

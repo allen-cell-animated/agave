@@ -7,6 +7,7 @@
 #include "BoundingBox.h"
 #include "CCamera.h"
 #include "SceneView.h"
+#include "graphics/gl/Font.h"
 #include "graphics/gl/Util.h"
 #include "graphics/glsl/GLGuiShader.h"
 
@@ -300,6 +301,8 @@ struct Gesture
     // TODO: use bindless textures
     uint32_t glTextureId = 0;
 
+    std::unique_ptr<Font> font;
+
     // remember selection code to reuse while dragging
     uint32_t m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
 
@@ -395,7 +398,7 @@ struct Gesture
 
     // Gesture draw, called once per window update (frame) when the GUI draw commands
     // had been described in full.
-    void draw(struct SceneView& sceneView, const struct SelectionBuffer& selection);
+    void draw(struct SceneView& sceneView, const struct SelectionBuffer* selection);
 
     // Pick a GUI element using the cursor position in Input.
     // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
@@ -433,4 +436,7 @@ struct Gesture
                 glm::vec3 color,
                 float opacity,
                 uint32_t code);
+
+  // p expected in pixels
+  void drawText(std::string text, glm::vec3 p, glm::vec2 scale, glm::vec3 color, float opacity, uint32_t code);
 };

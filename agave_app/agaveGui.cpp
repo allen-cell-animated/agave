@@ -42,6 +42,7 @@ agaveGui::agaveGui(QWidget* parent)
   setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
 
+  // create actions first so they can be deposited in other gui elements
   createActions();
   createMenus();
   createToolbars();
@@ -168,6 +169,16 @@ agaveGui::createActions()
   m_citationAction = new QAction(tr("&Cite AGAVE"), this);
   m_citationAction->setStatusTip(tr("Cite AGAVE in your research"));
   connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
+
+  m_toggleRotateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleRotateControlsAction->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_toggleRotateControlsAction->setCheckable(true);
+  m_toggleRotateControlsAction->setShortcut(QKeySequence(Qt::Key_R));
+  // tie the action to the main app window.
+  addAction(m_toggleRotateControlsAction);
+  connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
+    this->m_glView->toggleAreaLightRotateControls();
+  });
 }
 
 void
@@ -246,7 +257,8 @@ agaveGui::createDockWindows()
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
   m_timelinedock->setVisible(false); // hide by default
 
-  m_appearanceDockWidget = new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings);
+  m_appearanceDockWidget =
+    new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 
@@ -469,8 +481,6 @@ agaveGui::onRenderAction()
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
-  // extract Renderer from GLView3D to hand to RenderDialog
-  IRenderWindow* renderer = m_glView->borrowRenderer();
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
     m_captureSettings.width = m_glView->width();
     m_captureSettings.height = m_glView->height();
@@ -483,6 +493,9 @@ agaveGui::onRenderAction()
 
   // copy of camera
   CCamera camera = m_glView->getCamera();
+  // extract ViewerWindow from GLView3D to hand to RenderDialog
+  ViewerWindow* renderer = m_glView->borrowRenderer();
+
   RenderDialog* rdialog = new RenderDialog(renderer,
                                            m_renderSettings,
                                            m_appScene,
@@ -542,7 +555,9 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
                         uint32_t sizeT,
                         const Serialize::ViewerState* vs,
-                        std::shared_ptr<IFileReader> reader)
+                        std::shared_ptr<IFileReader> reader,
+                        // only used if vs is null
+                        bool keepCurrentUISettings)
 {
   m_loadSpec = loadSpec;
 
@@ -563,12 +578,19 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   // Show timeline widget if the loaded image has multiple frames.
   m_timelinedock->setVisible(sizeT > 1);
 
+  bool wasVolumeLoaded = m_appScene.m_volume != nullptr;
+
   // install the new volume image into the scene.
   // this is deref'ing the previous _volume shared_ptr.
   m_appScene.m_volume = image;
 
-  m_appScene.initSceneFromImg(image);
-  m_glView->initCameraFromImage(&m_appScene);
+  m_appScene.initBoundsFromImg(image);
+  if (!keepCurrentUISettings || !wasVolumeLoaded) {
+    m_appScene.initSceneFromImg(image);
+    m_glView->initCameraFromImage(&m_appScene);
+  } else {
+    m_glView->retargetCameraForNewVolume(&m_appScene);
+  }
 
   // initialize _appScene from ViewerState
   if (vs) {
@@ -653,12 +675,15 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     return false;
   }
 
+  bool keepCurrentUISettings = true;
+
   if (!vs) {
 
     LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
+      keepCurrentUISettings = loadDialog->getKeepSettings();
     } else {
       LOG_INFO << "Canceled load dialog.";
       return true;
@@ -684,7 +709,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader);
+  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader, keepCurrentUISettings);
   return true;
 }
 
@@ -944,6 +969,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
 
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
+  m_appScene.m_showScaleBar = v.showScaleBar;
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
@@ -1017,6 +1043,7 @@ agaveGui::appToViewerState()
                          m_appScene.m_material.m_boundingBoxColor[1],
                          m_appScene.m_material.m_boundingBoxColor[2] };
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
+  v.showScaleBar = m_appScene.m_showScaleBar;
 
   v.capture.samples = m_renderSettings.GetNoIterations();
 

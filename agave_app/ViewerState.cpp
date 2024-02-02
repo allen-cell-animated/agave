@@ -130,6 +130,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
      << SetBackgroundColorCommand({ s.backgroundColor[0], s.backgroundColor[1], s.backgroundColor[2] }).toPythonString()
      << std::endl;
   ss << obj << ShowBoundingBoxCommand({ s.showBoundingBox }).toPythonString() << std::endl;
+  ss << obj << ShowScaleBarCommand({ s.showScaleBar }).toPythonString() << std::endl;
   ss << obj
      << SetBoundingBoxColorCommand({ s.boundingBoxColor[0], s.boundingBoxColor[1], s.boundingBoxColor[2] })
           .toPythonString()

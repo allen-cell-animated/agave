@@ -23,16 +23,15 @@ public:
   void redraw();
 
   void update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture);
-  void updateCamera();
 
   void setRenderer(int rendererType);
 
   // Provide a new active tool
   void setTool(ManipulationTool* tool)
   {
-    if (m_activeTool != &m_defaultTool)
+    if (m_activeTool != &m_defaultTool) {
       ManipulationTool::destroyTool(m_activeTool);
-
+    }
     m_activeTool = (tool ? tool : &m_defaultTool);
 
     // Todo: this could be replaced with a push/pop mechanism to allow
@@ -48,6 +47,10 @@ public:
       fn(tool);
     fn(m_activeTool);
   }
+
+  void showAreaLightGizmo(bool show);
+
+  void updateCamera();
 
   CCamera m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;
@@ -65,6 +68,8 @@ public:
   ManipulationTool* m_activeTool = &m_defaultTool;
   std::vector<ManipulationTool*> m_tools;
   bool m_toolsUseLocalSpace = false;
+  // special case so it can be toggled on/off
+  ManipulationTool* m_areaLightTool = nullptr;
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;

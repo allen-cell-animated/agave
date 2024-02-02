@@ -48,7 +48,10 @@ public:
   QSize sizeHint() const;
 
   void initCameraFromImage(Scene* scene);
+  void retargetCameraForNewVolume(Scene* scene);
   void toggleCameraProjection();
+  void toggleAreaLightRotateControls();
+  void toggleAreaLightTranslateControls();
 
   void onNewImage(Scene* scene);
 
@@ -60,7 +63,7 @@ public:
   QImage captureQimage();
 
   // DANGER this must NOT outlive the GLView3D
-  IRenderWindow* borrowRenderer() { return m_viewerWindow->m_renderer.get(); }
+  ViewerWindow* borrowRenderer() { return m_viewerWindow; }
 
   void pauseRenderLoop();
   void restartRenderLoop();
@@ -103,4 +106,11 @@ private:
   QTimer* m_etimer;
 
   ViewerWindow* m_viewerWindow;
+
+  enum AREALIGHT_MODE
+  {
+    NONE,
+    ROT,
+    TRANS
+  } m_areaLightMode = AREALIGHT_MODE::NONE;
 };

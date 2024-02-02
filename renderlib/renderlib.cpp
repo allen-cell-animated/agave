@@ -32,6 +32,9 @@ extern "C"
 static bool renderLibInitialized = false;
 
 static bool renderLibHeadless = false;
+
+static std::string s_assetPath = "";
+
 #if HAS_EGL
 static EGLDisplay eglDpy = NULL;
 #endif
@@ -191,12 +194,13 @@ initEGLDisplay(int selectedGpu)
 #endif
 
 int
-renderlib::initialize(bool headless, bool listDevices, int selectedGpu)
+renderlib::initialize(std::string assetPath, bool headless, bool listDevices, int selectedGpu)
 {
   if (renderLibInitialized) {
     return 1;
   }
   renderLibInitialized = true;
+  s_assetPath = assetPath;
 
 // no MACOS support for EGL
 #if HAS_EGL
@@ -290,6 +294,12 @@ renderlib::initialize(bool headless, bool listDevices, int selectedGpu)
 
   delete dummyHeadlessContext;
   return status;
+}
+
+std::string
+renderlib::assetPath()
+{
+  return s_assetPath;
 }
 
 void

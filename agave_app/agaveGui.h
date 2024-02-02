@@ -38,7 +38,9 @@ private:
                      const LoadSpec& loadSpec,
                      uint32_t sizeT,
                      const Serialize::ViewerState* vs,
-                     std::shared_ptr<IFileReader> reader);
+                     std::shared_ptr<IFileReader> reader,
+                     // only used if vs is null
+                     bool keepCurrentUISettings);
 
 private slots:
   void open();
@@ -113,6 +115,7 @@ private:
   QAction* m_reportBugAction = nullptr;
   QAction* m_sourceCodeAction = nullptr;
   QAction* m_citationAction = nullptr;
+  QAction* m_toggleRotateControlsAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

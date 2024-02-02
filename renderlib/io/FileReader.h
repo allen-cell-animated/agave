@@ -27,6 +27,7 @@ public:
                                                      std::vector<char> dims = {},
                                                      std::vector<std::string> channelNames = {},
                                                      std::vector<float> physicalSizes = { 1.0f, 1.0f, 1.0f },
+                                                     std::string spatialUnits = "units",
                                                      bool addToCache = false);
 
 private:

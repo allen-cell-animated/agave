@@ -166,6 +166,34 @@ convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& di
   return 0;
 }
 
+std::string
+getSpatialUnit(nlohmann::json axes)
+{
+  std::string unit = "units";
+  for (auto axis : axes) {
+    // use first spatial axis.
+    // identify spatial axis by type=space or name=z,y,x
+    std::string type = axis["type"];
+    if (type == "space") {
+      auto unitobj = axis["unit"];
+      if (unitobj.is_string()) {
+        unit = unitobj;
+        return unit;
+      }
+    }
+    std::string name = axis["name"];
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
+    if (name == "Z" || name == "Y" || name == "X") {
+      auto unitobj = axis["unit"];
+      if (unitobj.is_string()) {
+        unit = unitobj;
+        return unit;
+      }
+    }
+  }
+  return unit;
+}
+
 std::vector<std::string>
 getAxes(nlohmann::json axes)
 {
@@ -285,6 +313,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
               zmd.dtype = dtype.name();
               zmd.path = pathstr;
               zmd.channelNames = channelNames;
+              zmd.spatialUnits = VolumeDimensions::sanitizeUnitsString(getSpatialUnit(axes));
               multiscaleDims.push_back(zmd);
             }
           }
@@ -468,8 +497,9 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
       auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
-      auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
-      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+      LOG_ERROR << "Unrecognized format (" << levelDims.dtype
+                << "). Please let us know if you need support for this format. Can not load data.";
+      return emptyimage;
     }
 
     // convert to our internal format (IN_MEMORY_BPP)
@@ -494,7 +524,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
                                 smartPtr.release(),
                                 dims.physicalSizeX,
                                 dims.physicalSizeY,
-                                dims.physicalSizeZ);
+                                dims.physicalSizeZ,
+                                dims.spatialUnits);
 
   std::vector<std::string> channelNames = dims.getChannelNames(loadSpec.channels);
   im->setChannelNames(channelNames);

@@ -99,9 +99,51 @@ target_link_libraries(agaveapp PRIVATE
 	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
 )
 
-install(TARGETS agaveapp
+# copy asset files from renderlib into a directory
+# relative to our app executable
+if(WIN32)
+	add_custom_command(
+		TARGET agaveapp POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/assets"
+			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
+	)
+elseif(APPLE)
+	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
+	set(RESOURCES 
+	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Arial.ttf
+	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Courier_New.ttf
+	)
 
-	# RUNTIME_DEPENDENCIES DIRECTORIES $ENV{Qt6_DIR}/lib
+	# Add all of the files as "Source Files".
+	target_sources(agaveapp PRIVATE ${RESOURCES})
+
+	# message(STATUS "Copying ${RESOURCES} to macosx bundle Resources")
+	# Individually set the file's path properties.
+	foreach (FILE ${RESOURCES})
+		# Get the relative path from the data-folder to the particular file.
+		file(RELATIVE_PATH NEW_FILE "${RENDERLIB_SOURCE_DIR}" ${FILE})
+
+		# Get the relative path to the file.
+		get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
+
+		# Set its location inside the app package (under Resources).
+
+		set_property(SOURCE ${FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}")
+		# Optional: Add the file to the 'Resources' folder group in Xcode.
+		#           This also preserves folder structure.
+		source_group("Resources/${NEW_FILE_PATH}" FILES "${FILE}")
+	endforeach ()
+else() # LINUX
+	add_custom_command(
+		TARGET agaveapp POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"$<TARGET_PROPERTY:renderlib,SOURCE_DIR>/assets"
+			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
+	)
+endif(WIN32)
+
+install(TARGETS agaveapp
 	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
 	RUNTIME DESTINATION ${INSTALLDIR}
 	LIBRARY DESTINATION ${INSTALLDIR}
