@@ -249,6 +249,16 @@ Click the checkbox to show or hide a bounding box line around the volume data.
 Clicking on the color square allows you to select a color for the bounding
 box lines.
 
+Scale Bar
+^^^^^^^^^
+
+Click the checkbox to show or hide a scale bar at the bottom right corner
+of the display.  In a perspective camera, due to foreshortening, the
+scale bar will represent the distance between tickmarks shown on the 
+bounding box of the volume.  You will have to have bounding box turned on
+in order to see it.  The scale bar will use physical units if available 
+in the loaded volume data.
+
 Volume Scale
 ~~~~~~~~~~~~
 
@@ -285,6 +295,13 @@ Area Light Theta, Phi, and Distance
 These three coordinates let you position the light anywhere on a sphere
 around the volume. Theta and Phi are in radians (where 3.14159 radians
 is half a circle).
+If you press the R key while the main viewport has input focus
+(you may have to click once inside the window to give it focus), an
+interactive rotation widget will appear in the viewport.  You can click
+and drag on the widget to rotate the light direction around the volume.
+If you click on the colored lines of the axes, rotation will be 
+constrained to that axis.  Press R again to hide the rotate manipulator.
+
 
 |image0|
 
@@ -489,7 +506,7 @@ Camera Panel
 The camera panel controls will let you affect the image's exposure
 amount, and control the focus blurring.
 
-Film Exposure
+Exposure
 ~~~~~~~~~~~~~
 
 The exposure value will brighten or darken the overall image.
@@ -518,7 +535,7 @@ focus. A small aperture size will keep the entire image in focus at all
 times. A large aperture size will let you only focus on a thin plane a
 specific distance from the camera.
 
-Projection Field of View
+Field of View
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The field of view is an angle in degrees describing how narrow or wide
@@ -542,11 +559,11 @@ Time Panel
 
 For time series data, move the time
 slider or change the numeric input to load a new time sample. Beware
-that this is loading a whole new volume and can take some time. If your
-dataset only has a single time, then the slider will have no effect.
-Nothing will be loaded while dragging the
-slider; AGAVE will load the new time sample when the slider is released
-or the numeric input is incremented.
+that this is loading a whole new volume and can take some time. Nothing
+will be loaded while dragging the slider; AGAVE will load the new time
+sample when the slider is released or the numeric input is incremented.
+If your dataset only has a single time, then the Time Panel will be
+hidden.
 
 
 Python Interface
