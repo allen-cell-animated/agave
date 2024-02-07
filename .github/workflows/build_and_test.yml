@@ -24,11 +24,7 @@ jobs:
           path: docs/_build/html/
       - uses: actions/upload-artifact@v4
         with:
-          name: agave-macos
-          path: docs/_build/latex/agave.pdf
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agave-win
+          name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
   docs_pythonclient:
     runs-on: ubuntu-latest
@@ -51,11 +47,7 @@ jobs:
           path: agave_pyclient/docs/_build/html/
       - uses: actions/upload-artifact@v4
         with:
-          name: agave-macos
-          path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agave-win
+          name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
   cmake-build:
     strategy:
