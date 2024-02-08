@@ -34,7 +34,7 @@ jobs:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: :"pip install -e agave_pyclient/"
+          pre-build-command: "pip install -e agave_pyclient/"
           docs-folder: "agave_pyclient/docs/"
       - uses: ammaraskar/sphinx-action@master
         with:
