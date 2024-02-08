@@ -34,12 +34,12 @@ jobs:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: :"pip install -e ./agave_pyclient"
+          pre-build-command: :"pip install -e agave_pyclient/"
           docs-folder: "agave_pyclient/docs/"
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          pre-build-command: "pip install -e agave_pyclient/ && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
       - uses: actions/upload-artifact@v4
         with:
