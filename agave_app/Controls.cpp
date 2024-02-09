@@ -405,10 +405,10 @@ QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)
     this->m_spinner.setValue(v);
     this->m_spinner.blockSignals(false);
   });
-  // keep slider and spinner in sync
-  QObject::connect(&m_slider, &QSlider::sliderReleased, [this]() {
+  // note that m_slider's tracking state controls how often the valueChanged signal is emitted.
+  QObject::connect(&m_slider, &QSlider::valueChanged, [this](int v) {
     this->m_spinner.blockSignals(true);
-    this->m_spinner.setValue(this->m_slider.value());
+    this->m_spinner.setValue(v);
     this->m_spinner.blockSignals(false);
   });
 
