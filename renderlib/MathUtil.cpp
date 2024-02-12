@@ -41,3 +41,11 @@ AffineSpace3f::AffineSpace3f(const glm::quat& orientation, const glm::vec3& p)
   glm::mat3 m = glm::mat3_cast(orientation);
   l = LinearSpace3f(m[0], m[1], m[2]);
 }
+
+// physicalscale is max of physical dims x,y,z
+float
+computePhysicalScaleBarSize(const float physicalScale)
+{
+  // note this result will always be some integer power of 10 independent of zoom...
+  return pow(10.0f, floor(log10(physicalScale / 2.0f)));
+}

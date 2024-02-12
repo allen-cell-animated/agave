@@ -677,8 +677,6 @@ Gesture::drawText(std::string stext, glm::vec3 p, glm::vec2 scale, glm::vec3 col
 
   stbtt_aligned_quad q;
   const char* text = stext.c_str();
-  float lastxpos = xpos;
-  float lastypos = ypos;
   while (*text) {
     if (graphics.font->getBakedQuad(*text, &xpos, &ypos, &q)) {
       // apply scaling to q.x0, q.y0, q.x1, q.y1 relative to start position p

@@ -6,33 +6,23 @@
 #include <iomanip>
 #include <sstream>
 
-// physicalscale is max of physical dims x,y,z
-static float
-computePhysicalScaleBarSize(const float physicalScale)
-{
-  // note this result will always be some integer power of 10 independent of zoom...
-  return pow(10.0f, floor(log10(physicalScale / 2.0f)));
-}
-
 static float
 getScaleBarWidthOrtho(int windowWidthPx, float windowPhysicalWidth)
 {
   // We want to find the largest round number of physical units that keeps the scale bar within this width on screen
-  const int SCALE_BAR_MAX_WIDTH = (int)((float)windowWidthPx * 0.25f);
+  const float scaleBarMaxWidth = ((float)windowWidthPx * 0.25f);
   // Convert max width to volume physical units
-  const float physicalMaxWidth = (float)SCALE_BAR_MAX_WIDTH * windowPhysicalWidth / (float)windowWidthPx;
+  const float physicalMaxWidth = scaleBarMaxWidth * windowPhysicalWidth / (float)windowWidthPx;
   // Round off all but the most significant digit of physicalMaxWidth
   const float div10 = computePhysicalScaleBarSize(physicalMaxWidth);
   const float scaleValue = floor(physicalMaxWidth / (float)div10) * div10;
   static float lastScaleValue = scaleValue;
   if (scaleValue != lastScaleValue) {
-    LOG_DEBUG << "scaleValue changed from " << lastScaleValue << " to " << scaleValue
-              << " (px = " << (SCALE_BAR_MAX_WIDTH * (scaleValue / physicalMaxWidth)) << ")";
     lastScaleValue = scaleValue;
   }
 
   // return scaleValue in pixels
-  return (float)SCALE_BAR_MAX_WIDTH * (scaleValue / physicalMaxWidth);
+  return scaleBarMaxWidth * (scaleValue / physicalMaxWidth);
 }
 
 struct ScaleBarSize

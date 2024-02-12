@@ -2,7 +2,6 @@
 #include "glad/glad.h"
 
 #include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 #include "BoundingBox.h"
 #include "CCamera.h"

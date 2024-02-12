@@ -146,3 +146,6 @@ trackball(float xRadians, float yRadians, const glm::vec3& eye, const glm::vec3&
 
   return glm::angleAxis(angle, axis);
 }
+
+float
+computePhysicalScaleBarSize(const float physicalScale);

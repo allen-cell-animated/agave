@@ -497,8 +497,9 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
       auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
-      auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
-      tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
+      LOG_ERROR << "Unrecognized format (" << levelDims.dtype
+                << "). Please let us know if you need support for this format. Can not load data.";
+      return emptyimage;
     }
 
     // convert to our internal format (IN_MEMORY_BPP)

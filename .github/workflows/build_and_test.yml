@@ -7,7 +7,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
@@ -18,44 +18,36 @@ jobs:
           docs-folder: "docs/"
           pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: agave-macos
-          path: docs/_build/latex/agave.pdf
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agave-win
+          name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
   docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
         with:
+          pre-build-command: "pip install -e agave_pyclient/"
           docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "pip install -e ./agave_pyclient"
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          pre-build-command: "pip install -e agave_pyclient/ && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: agave-macos
-          path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
-      - uses: actions/upload-artifact@v3
-        with:
-          name: agave-win
+          name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
   cmake-build:
     strategy:
@@ -66,7 +58,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - name: Install Qt
@@ -98,7 +90,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: agave-macos
           path: ./build/agave-macos.zip
@@ -150,7 +142,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: agave-win
           path: ./build/agave-win.zip
@@ -158,12 +150,12 @@ jobs:
   lint-and-test-webclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: |
           cd webclient
@@ -175,11 +167,11 @@ jobs:
   lint-and-test-pyclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.10"
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip

@@ -588,6 +588,8 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   if (!keepCurrentUISettings || !wasVolumeLoaded) {
     m_appScene.initSceneFromImg(image);
     m_glView->initCameraFromImage(&m_appScene);
+  } else {
+    m_glView->retargetCameraForNewVolume(&m_appScene);
   }
 
   // initialize _appScene from ViewerState

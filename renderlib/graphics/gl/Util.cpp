@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "Logging.h"
+#include "MathUtil.h"
 #include "glsl/GLFlatShader2D.h"
 #include "glsl/GLImageShader2DnoLut.h"
 
@@ -352,14 +353,6 @@ BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& colo
   glBindVertexArray(0);
 
   _shader->release();
-}
-
-// physicalscale is max of physical dims x,y,z
-static float
-computePhysicalScaleBarSize(const float physicalScale)
-{
-  // note this result will always be some integer power of 10 independent of zoom...
-  return pow(10.0f, floor(log10(physicalScale / 2.0f)));
 }
 
 // Generate tick marks for a bounding box whose vertices span -1,-1,-1 to 1,1,1.
