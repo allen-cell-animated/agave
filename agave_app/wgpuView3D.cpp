@@ -90,6 +90,24 @@ WgpuView3D::initCameraFromImage(Scene* scene)
 }
 
 void
+WgpuView3D::retargetCameraForNewVolume(Scene* scene)
+{
+  // ASSUMPTION camera's sceneboundingbox has not yet been updated!
+
+  glm::vec3 oldctr = m_viewerWindow->m_CCamera.m_SceneBoundingBox.GetCenter();
+  // Tell the camera about the volume's bounding box
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  // reposition target to center of image
+  glm::vec3 ctr = m_viewerWindow->m_CCamera.m_SceneBoundingBox.GetCenter();
+  // offset target by delta of prev bounds and new bounds.
+  m_viewerWindow->m_CCamera.m_Target += (ctr - oldctr);
+
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
 WgpuView3D::toggleCameraProjection()
 {
   ProjectionMode p = m_viewerWindow->m_CCamera.m_Projection;

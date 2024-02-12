@@ -49,6 +49,8 @@ public:
   QSize sizeHint() const override;
 
   void initCameraFromImage(Scene* scene);
+  void retargetCameraForNewVolume(Scene* scene);
+
   void toggleCameraProjection();
   void toggleAreaLightRotateControls();
 
@@ -157,6 +159,8 @@ public:
   QOpenGLContext* context() { return nullptr; }
   void resizeGL(int w, int h) { m_view->resizeGL(w, h); }
   void initCameraFromImage(Scene* scene) { m_view->initCameraFromImage(scene); }
+  void retargetCameraForNewVolume(Scene* scene) { m_view->retargetCameraForNewVolume(scene); }
+
   void onNewImage(Scene* scene) { m_view->onNewImage(scene); }
   void toggleCameraProjection() { m_view->toggleCameraProjection(); }
   void toggleAreaLightRotateControls() { m_view->toggleAreaLightRotateControls(); }

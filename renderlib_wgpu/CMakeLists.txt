@@ -75,6 +75,7 @@ target_link_libraries(renderlib_wgpu
 
 # get the include dir for the c header file
 target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/ffi)
+target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/ffi/webgpu-headers)
 target_include_directories(renderlib_wgpu PUBLIC ${SOURCE_DIR}/)
 
 # message(STATUS "wgpu_native: ${SOURCE_DIR}/ffi")
