@@ -301,12 +301,16 @@ Area Light Theta, Phi, and Distance
 These three coordinates let you position the light anywhere on a sphere
 around the volume. Theta and Phi are in radians (where 3.14159 radians
 is half a circle).
-If you press the R key while the main viewport has input focus
-(you may have to click once inside the window to give it focus), an
+
+Viewport controls
+^^^^^^^^^^^^^^^^^
+
+If you check "Viewport controls" (or press the R key), an
 interactive rotation widget will appear in the viewport.  You can click
 and drag on the widget to rotate the light direction around the volume.
 If you click on the colored lines of the axes, rotation will be 
-constrained to that axis.  Press R again to hide the rotate manipulator.
+constrained to that axis.  Press R again or uncheck the checkbox to
+hide the rotate manipulator.
 
 
 |image0|
