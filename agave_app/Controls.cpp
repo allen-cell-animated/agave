@@ -1,6 +1,7 @@
 #include "Controls.h"
 
 #include <QColorDialog>
+#include <QLabel>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -509,4 +510,36 @@ void
 QIntSlider::setTracking(bool enabled)
 {
   m_slider.setTracking(enabled);
+}
+
+void
+MyFormLayout::addRow(const QString& label, QWidget* widget)
+{
+  int row = rowCount();
+  addWidget(new QLabel(label), row, 0);
+  addWidget(widget, row, 1);
+}
+
+QFormLayout*
+Controls::createFormLayout(QWidget* parent)
+{
+  QFormLayout* layout = new QFormLayout(parent);
+  initFormLayout(*layout);
+  return layout;
+}
+void
+Controls::initFormLayout(QFormLayout& layout)
+{
+  layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+  layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  layout.setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
+  layout.setLabelAlignment(Qt::AlignRight);
+}
+
+MyFormLayout*
+Controls::createMyFormLayout(QWidget* parent)
+{
+  MyFormLayout* layout = new MyFormLayout(parent);
+  // initFormLayout(*layout);
+  return layout;
 }

@@ -191,22 +191,24 @@ private:
   QSlider m_slider;
 };
 
+class MyFormLayout : public QGridLayout
+{
+  Q_OBJECT
+public:
+  MyFormLayout(QWidget* parent = nullptr)
+    : QGridLayout(parent)
+  {
+  }
+  void addRow(const QString& label, QWidget* widget);
+};
+
 class Controls
 {
 public:
-  static QFormLayout* createFormLayout(QWidget* parent = nullptr)
-  {
-    QFormLayout* layout = new QFormLayout(parent);
-    initFormLayout(*layout);
-    return layout;
-  }
-  static void initFormLayout(QFormLayout& layout)
-  {
-    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
-    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    layout.setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    layout.setLabelAlignment(Qt::AlignRight);
-  }
+  static QFormLayout* createFormLayout(QWidget* parent = nullptr);
+  static void initFormLayout(QFormLayout& layout);
+
+  static MyFormLayout* createMyFormLayout(QWidget* parent = nullptr);
 };
 
 /**
