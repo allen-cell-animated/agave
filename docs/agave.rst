@@ -261,7 +261,7 @@ Scale Bar
 Click the checkbox to show or hide a scale bar at the bottom right corner
 of the display.  In a perspective camera, due to foreshortening, the
 scale bar will represent the distance between tickmarks shown on the 
-bounding box of the volume.  You will have to have bounding box turned on
+bounding box of the volume.  You will have to have the bounding box turned on
 in order to see it.  The scale bar will use physical units if available 
 in the loaded volume data.
 
