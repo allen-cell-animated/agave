@@ -223,7 +223,7 @@ Section*
 QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAction)
 {
   Section* section = new Section("Area Light", 0);
-  auto* sectionLayout = Controls::createFormLayout();
+  auto* sectionLayout = Controls::createMyFormLayout();
 
   // QFrame* areaLightLine = new QFrame();
   // areaLightLine->setFrameShape(QFrame::HLine);
@@ -311,7 +311,7 @@ Section*
 QAppearanceSettingsWidget::createSkyLightingControls()
 {
   Section* section = new Section("Sky Light", 0);
-  auto* sectionLayout = Controls::createFormLayout();
+  auto* sectionLayout = Controls::createMyFormLayout();
 
   // separator
   // auto* skylightTitleLayout = new QHBoxLayout();
@@ -894,7 +894,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* fullLayout = new QVBoxLayout();
 
-    auto* sectionLayout = Controls::createFormLayout();
+    auto* sectionLayout = Controls::createMyFormLayout();
 
     GradientWidget* editor =
       new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);

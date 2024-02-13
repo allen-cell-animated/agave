@@ -288,7 +288,7 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   m_slider.setOrientation(Qt::Horizontal);
   m_slider.setFocusPolicy(Qt::StrongFocus);
-  m_spinner.setDecimals(4);
+  m_spinner.setDecimals(2);
   m_spinner.setFocusPolicy(Qt::StrongFocus);
 
   // entire control is one single row.
@@ -516,8 +516,15 @@ void
 MyFormLayout::addRow(const QString& label, QWidget* widget)
 {
   int row = rowCount();
-  addWidget(new QLabel(label), row, 0);
+  addWidget(new QLabel(label), row, 0, Qt::AlignRight);
   addWidget(widget, row, 1);
+}
+void
+MyFormLayout::addRow(const QString& label, QLayout* layout)
+{
+  int row = rowCount();
+  addWidget(new QLabel(label), row, 0, Qt::AlignRight);
+  addLayout(layout, row, 1);
 }
 
 QFormLayout*

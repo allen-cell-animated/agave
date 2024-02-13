@@ -371,7 +371,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   m_editor = new GradientEditor(m_histogram, this);
   mainGroupLayout->addWidget(m_editor);
 
-  auto* sectionLayout = Controls::createFormLayout();
+  auto* sectionLayout = Controls::createMyFormLayout();
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
   QPushButton* windowLevelButton = new QPushButton("Wnd/Lvl");
@@ -425,19 +425,19 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   mainGroupLayout->addLayout(hbox);
 
   QWidget* firstPageWidget = new QWidget;
-  auto* section0Layout = Controls::createFormLayout();
+  auto* section0Layout = Controls::createMyFormLayout();
   firstPageWidget->setLayout(section0Layout);
 
   QWidget* secondPageWidget = new QWidget;
-  auto* section1Layout = Controls::createFormLayout();
+  auto* section1Layout = Controls::createMyFormLayout();
   secondPageWidget->setLayout(section1Layout);
 
   QWidget* thirdPageWidget = new QWidget;
-  auto* section2Layout = Controls::createFormLayout();
+  auto* section2Layout = Controls::createMyFormLayout();
   thirdPageWidget->setLayout(section2Layout);
 
   QWidget* fourthPageWidget = new QWidget;
-  auto* section3Layout = Controls::createFormLayout();
+  auto* section3Layout = Controls::createMyFormLayout();
   fourthPageWidget->setLayout(section3Layout);
 
   QStackedLayout* stackedLayout = new QStackedLayout(mainGroupLayout);
