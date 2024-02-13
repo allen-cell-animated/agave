@@ -204,8 +204,8 @@ public:
   {
     layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
     layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-    layout.setLabelAlignment(Qt::AlignLeft);
+    layout.setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    layout.setLabelAlignment(Qt::AlignRight);
   }
 };
 
