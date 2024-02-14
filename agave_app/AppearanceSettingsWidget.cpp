@@ -326,7 +326,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   m_lt1gui.m_stintensitySlider->setToolTip(tr("Set intensity for top of skylight sphere"));
   m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_stintensitySlider->setValue(1.0);
-  m_lt1gui.m_stintensitySlider->setDecimals(2);
   skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider, 1);
   m_lt1gui.m_stColorButton = new QColorPushButton();
   m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
@@ -347,7 +346,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   m_lt1gui.m_smintensitySlider->setToolTip(tr("Set intensity for middle of skylight sphere"));
   m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_smintensitySlider->setValue(1.0);
-  m_lt1gui.m_smintensitySlider->setDecimals(2);
   skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider, 1);
   m_lt1gui.m_smColorButton = new QColorPushButton();
   m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
@@ -368,7 +366,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   m_lt1gui.m_sbintensitySlider->setToolTip(tr("Set intensity for bottom of skylight sphere"));
   m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
   m_lt1gui.m_sbintensitySlider->setValue(1.0);
-  m_lt1gui.m_sbintensitySlider->setDecimals(2);
   skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider, 1);
   m_lt1gui.m_sbColorButton = new QColorPushButton();
   m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));

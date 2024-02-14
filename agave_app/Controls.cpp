@@ -516,14 +516,15 @@ void
 MyFormLayout::addRow(const QString& label, QWidget* widget)
 {
   int row = rowCount();
-  addWidget(new QLabel(label), row, 0, Qt::AlignRight);
+  addWidget(new QLabel(label), row, 0, Qt::AlignLeft);
   addWidget(widget, row, 1);
 }
+
 void
 MyFormLayout::addRow(const QString& label, QLayout* layout)
 {
   int row = rowCount();
-  addWidget(new QLabel(label), row, 0, Qt::AlignRight);
+  addWidget(new QLabel(label), row, 0, Qt::AlignLeft);
   addLayout(layout, row, 1);
 }
 
@@ -534,6 +535,7 @@ Controls::createFormLayout(QWidget* parent)
   initFormLayout(*layout);
   return layout;
 }
+
 void
 Controls::initFormLayout(QFormLayout& layout)
 {
