@@ -291,6 +291,8 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
   m_spinner.setDecimals(2);
   m_spinner.setFocusPolicy(Qt::StrongFocus);
 
+  m_slider.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+  m_spinner.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
   // entire control is one single row.
   // slider is 3/4, spinner is 1/4 of the width
   const int sliderratio = 4;
@@ -516,7 +518,9 @@ void
 MyFormLayout::addRow(const QString& label, QWidget* widget)
 {
   int row = rowCount();
-  addWidget(new QLabel(label), row, 0, Qt::AlignLeft);
+  auto* labelWidget = new QLabel(label);
+  labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  addWidget(labelWidget, row, 0, Qt::AlignLeft);
   addWidget(widget, row, 1);
 }
 
@@ -524,7 +528,9 @@ void
 MyFormLayout::addRow(const QString& label, QLayout* layout)
 {
   int row = rowCount();
-  addWidget(new QLabel(label), row, 0, Qt::AlignLeft);
+  auto* labelWidget = new QLabel(label);
+  labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  addWidget(labelWidget, row, 0, Qt::AlignLeft);
   addLayout(layout, row, 1);
 }
 
@@ -549,6 +555,8 @@ MyFormLayout*
 Controls::createMyFormLayout(QWidget* parent)
 {
   MyFormLayout* layout = new MyFormLayout(parent);
-  // initFormLayout(*layout);
+  // basically keep the label column a fixed width and let the widget column grow
+  layout->setColumnStretch(0, 1);
+  layout->setColumnStretch(1, 100);
   return layout;
 }

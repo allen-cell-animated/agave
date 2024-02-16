@@ -485,7 +485,6 @@ RenderGLPT::resize(uint32_t w, uint32_t h)
   }
 
   initFB(w, h);
-  LOG_DEBUG << "Resized window to " << w << " x " << h;
 
   m_w = w;
   m_h = h;
