@@ -281,7 +281,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
   QObject::connect(
     m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
 
-  auto* arealightLayout = new QGridLayout();
+  auto* arealightLayout = new QHBoxLayout();
   m_lt0gui.m_intensitySlider = new QNumericSlider();
   m_lt0gui.m_intensitySlider->setStatusTip(tr("Set intensity for area light"));
   m_lt0gui.m_intensitySlider->setToolTip(tr("Set intensity for area light"));
@@ -289,14 +289,12 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
   m_lt0gui.m_intensitySlider->setSingleStep(10.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
   m_lt0gui.m_intensitySlider->setDecimals(1);
-  arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 0, 0);
+  arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
   m_lt0gui.m_areaLightColorButton->setStatusTip(tr("Set color for area light"));
   m_lt0gui.m_areaLightColorButton->setToolTip(tr("Set color for area light"));
-  m_lt0gui.m_areaLightColorButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
-
-  arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton, 0, 1);
-  arealightLayout->setRowStretch(0, 1);
+  arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton, 0);
+  arealightLayout->setContentsMargins(0, 0, 0, 0);
   sectionLayout->addRow("Intensity", arealightLayout);
   QObject::connect(m_lt0gui.m_areaLightColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnSetAreaLightColor(this->m_lt0gui.m_intensitySlider->value(), c);
@@ -304,10 +302,6 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
   QObject::connect(m_lt0gui.m_intensitySlider, &QNumericSlider::valueChanged, [this](double v) {
     this->OnSetAreaLightColor(v, this->m_lt0gui.m_areaLightColorButton->GetColor());
   });
-
-  m_lt0gui.m_intensitySlider2 =
-    new ValueSliders::DoubleSlider("", 100.0, 0.0, 1000.0, ValueSliders::BoundMode::UPPER_LOWER);
-  sectionLayout->addRow("TEST", m_lt0gui.m_intensitySlider2);
 
   section->setContentLayout(*sectionLayout);
   return section;

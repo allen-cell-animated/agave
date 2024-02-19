@@ -7,6 +7,7 @@
 #include <QFormLayout>
 #include <QFrame>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -123,6 +124,8 @@ class QNumericSlider : public QWidget
 public:
   QNumericSlider(QWidget* pParent = NULL);
 
+  virtual QSize sizeHint() const;
+
   double value(void) const;
   void setValue(double value, bool BlockSignals = false);
   void setRange(double rmin, double rmax);
@@ -139,7 +142,7 @@ signals:
   void valueChanged(double value);
 
 private:
-  QGridLayout m_layout;
+  QHBoxLayout m_layout;
   QDoubleSpinner m_spinner;
   QDoubleSlider m_slider;
 };

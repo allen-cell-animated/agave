@@ -4,7 +4,6 @@
 #include "doubleslider.hpp"
 #include "renderlib/GradientData.h"
 
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -113,7 +112,6 @@ private:
     QNumericSlider* m_sizeSlider;
     QNumericSlider* m_distSlider;
     QNumericSlider* m_intensitySlider;
-    ValueSliders::DoubleSlider* m_intensitySlider2;
     QColorPushButton* m_areaLightColorButton;
   } m_lt0gui;
 

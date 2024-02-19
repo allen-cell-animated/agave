@@ -293,11 +293,14 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   m_slider.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   m_spinner.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
-  // entire control is one single row.
-  // slider is 3/4, spinner is 1/4 of the width
+
+  //  entire control is one single row.
+  //  slider is 3/4, spinner is 1/4 of the width
   const int sliderratio = 4;
-  m_layout.addWidget(&m_slider, 0, 0, 1, sliderratio - 1);
-  m_layout.addWidget(&m_spinner, 0, sliderratio - 1, 1, 1);
+  m_layout.addWidget(&m_slider, 3, Qt::AlignVCenter);
+  m_layout.addWidget(&m_spinner, 1, Qt::AlignVCenter);
+  // m_layout.addWidget(&m_slider, 0, 0, 1, sliderratio - 1);
+  // m_layout.addWidget(&m_spinner, 0, sliderratio - 1, 1, 1);
 
   m_layout.setContentsMargins(0, 0, 0, 0);
 
@@ -328,6 +331,12 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   // only slider will emit the value...
   QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
+}
+
+QSize
+QNumericSlider::sizeHint() const
+{
+  return QSize(100, 20);
 }
 
 void
