@@ -247,12 +247,6 @@ QDoubleSlider::wheelEvent(QWheelEvent* event)
   QSlider::wheelEvent(event);
 }
 
-QSize
-QDoubleSpinner::sizeHint() const
-{
-  return QSize(50, 20);
-}
-
 QDoubleSpinner::QDoubleSpinner(QWidget* pParent /*= NULL*/)
   : QDoubleSpinBox(pParent)
 {

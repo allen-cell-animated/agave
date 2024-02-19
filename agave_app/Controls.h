@@ -111,7 +111,6 @@ class QDoubleSpinner : public QDoubleSpinBox
 public:
   QDoubleSpinner(QWidget* pParent = NULL);
 
-  virtual QSize sizeHint() const;
   void setValue(double Value, bool BlockSignals = false);
 
 protected:
