@@ -9,11 +9,13 @@
 
 QColorPushButton::QColorPushButton(QWidget* pParent)
   : QPushButton(pParent)
-  , m_Margin(5)
+  , m_Margin(4)
   , m_Radius(4)
   , m_Color(Qt::gray)
 {
   setText("");
+  // deal with a macos style bug which causes this button to misalign in some situations
+  setAttribute(Qt::WA_LayoutUsesWidgetRect);
 }
 
 void
