@@ -232,9 +232,9 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
 
   m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
   m_lt0gui.m_enableControlsCheckBox->setStatusTip(
-    tr("Show interactive controls in viewport for area light rotation angle"));
+    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   m_lt0gui.m_enableControlsCheckBox->setToolTip(
-    tr("Show interactive controls in viewport for area light rotation angle"));
+    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
   QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, pLightRotationAction, &QAction::trigger);
   QObject::connect(pLightRotationAction, &QAction::triggered, [this](bool toggled) {
