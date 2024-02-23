@@ -225,11 +225,6 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
   Section* section = new Section("Area Light", 0);
   auto* sectionLayout = Controls::createMyFormLayout();
 
-  // QFrame* areaLightLine = new QFrame();
-  // areaLightLine->setFrameShape(QFrame::HLine);
-  // areaLightLine->setFrameShadow(QFrame::Sunken);
-  // sectionLayout->addRow("AreaLight", areaLightLine);
-
   m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
   m_lt0gui.m_enableControlsCheckBox->setStatusTip(
     tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
@@ -313,13 +308,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   Section* section = new Section("Sky Light", 0);
   auto* sectionLayout = Controls::createMyFormLayout();
 
-  // separator
-  // auto* skylightTitleLayout = new QHBoxLayout();
-  // QFrame* skyLightLine = new QFrame();
-  // skyLightLine->setFrameShape(QFrame::HLine);
-  // skyLightLine->setFrameShadow(QFrame::Sunken);
-  // sectionLayout->addRow("SkyLight", skyLightLine);
-
   auto* skylightTopLayout = new QHBoxLayout();
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
   m_lt1gui.m_stintensitySlider->setStatusTip(tr("Set intensity for top of skylight sphere"));
@@ -330,7 +318,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   m_lt1gui.m_stColorButton = new QColorPushButton();
   m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
   m_lt1gui.m_stColorButton->setToolTip(tr("Set color for top of skylight sphere"));
-  // m_lt1gui.m_stColorButton->setMaximumWidth(40);
   skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
   sectionLayout->addRow("Top", skylightTopLayout);
   QObject::connect(m_lt1gui.m_stColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -350,7 +337,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   m_lt1gui.m_smColorButton = new QColorPushButton();
   m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
   m_lt1gui.m_smColorButton->setToolTip(tr("Set color for middle of skylight sphere"));
-  // m_lt1gui.m_smColorButton->setMaximumWidth(40);
   skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
   sectionLayout->addRow("Mid", skylightMidLayout);
   QObject::connect(m_lt1gui.m_smColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
@@ -370,7 +356,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   m_lt1gui.m_sbColorButton = new QColorPushButton();
   m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));
   m_lt1gui.m_sbColorButton->setToolTip(tr("Set color for bottom of skylight sphere"));
-  // m_lt1gui.m_sbColorButton->setMaximumWidth(40);
   skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
   sectionLayout->addRow("Bot", skylightBotLayout);
   QObject::connect(m_lt1gui.m_sbColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {

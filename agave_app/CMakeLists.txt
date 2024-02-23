@@ -75,12 +75,6 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/valueslider.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/valueslider.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/doubleslider.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/doubleslider.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/intslider.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/intslider.hpp"
 )
 add_subdirectory(python)
 
