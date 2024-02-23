@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Controls.h"
-#include "doubleslider.hpp"
 #include "renderlib/GradientData.h"
 
 #include <QCheckBox>
