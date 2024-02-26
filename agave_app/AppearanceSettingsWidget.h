@@ -24,7 +24,10 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr, RenderSettings* rs = nullptr);
+  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+                            QRenderSettings* qrs = nullptr,
+                            RenderSettings* rs = nullptr,
+                            QAction* pLightRotationAction = nullptr);
 
   void onNewImage(Scene* scene);
 
@@ -42,6 +45,7 @@ public:
   void OnBackgroundColorChanged(const QColor& color);
   void OnBoundingBoxColorChanged(const QColor& color);
   void OnShowBoundsChecked(bool isChecked);
+  void OnShowScaleBarChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
@@ -97,11 +101,13 @@ private:
   QDoubleSpinner* m_zscaleSpinner;
   QCheckBox m_showBoundingBoxCheckBox;
   QColorPushButton m_boundingBoxColorButton;
+  QCheckBox m_showScaleBarCheckBox;
 
   std::vector<Section*> m_channelSections;
 
   struct lt0
   {
+    QCheckBox* m_enableControlsCheckBox;
     QNumericSlider* m_thetaSlider;
     QNumericSlider* m_phiSlider;
     QNumericSlider* m_sizeSlider;
@@ -120,6 +126,6 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
-  Section* createLightingControls();
+  Section* createLightingControls(QAction* pLightRotationAction);
   void initLightingControls(Scene* scene);
 };

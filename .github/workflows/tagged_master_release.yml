@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - name: Install Qt
@@ -45,7 +45,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: agave-macos
           path: ./build/agave-macos.zip
@@ -98,7 +98,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: agave-win
           path: ./build/agave-win.zip
@@ -106,12 +106,12 @@ jobs:
   publish_webclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: |
           cd webclient
@@ -124,13 +124,13 @@ jobs:
   publish_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - name: Install Python 3.9 version
-        uses: actions/setup-python@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           architecture: "x64"
       - name: Install Dependencies
         run: |
@@ -145,12 +145,12 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          packages_dir: agave_pyclient/dist/
+          packages-dir: agave_pyclient/dist/
           verbose: true
   docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - run: |
@@ -165,18 +165,18 @@ jobs:
           docs-folder: "agave_pyclient/docs/"
           pre-build-command: "pip install -e ./agave_pyclient && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
       - name: Publish Docs
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          token: ${{ secrets.ACCESS_TOKEN }}
           branch: gh-pages # The branch the action should deploy to.
           folder: agave_pyclient/docs/_build/html/ # The folder the action should deploy.
           target-folder: agave_pyclient/
@@ -184,7 +184,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
       - uses: ammaraskar/sphinx-action@master
@@ -195,18 +195,18 @@ jobs:
           docs-folder: "docs/"
           pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
           build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
       - name: Publish Docs
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          token: ${{ secrets.ACCESS_TOKEN }}
           branch: gh-pages # The branch the action should deploy to.
           folder: docs/_build/html/ # The folder the action should deploy.
           clean: false
@@ -223,17 +223,17 @@ jobs:
           echo ${GITHUB_REF/refs\/tags\/v/}
           echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
       - name: Get mac build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: agave-macos
           path: agave-macos
       - name: Get windows build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: agave-win
           path: agave-win
       - name: Get PDF documentation build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: DocumentationPDF
           path: DocumentationPDF

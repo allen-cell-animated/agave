@@ -6,43 +6,6 @@
 
 #include <glm/gtx/color_space.hpp>
 
-void
-Scene::initLights()
-{
-  Light BackgroundLight;
-
-  BackgroundLight.m_T = 1;
-  float inten = 1.0f;
-
-  float topr = 0.5f;
-  float topg = 0.5f;
-  float topb = 0.5f;
-  float midr = 0.5f;
-  float midg = 0.5f;
-  float midb = 0.5f;
-  float botr = 0.5f;
-  float botg = 0.5f;
-  float botb = 0.5f;
-
-  BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
-  BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
-  BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
-
-  m_lighting.AddLight(BackgroundLight);
-
-  Light AreaLight;
-
-  AreaLight.m_T = 0;
-  AreaLight.m_Theta = 0.0f;
-  AreaLight.m_Phi = HALF_PI_F;
-  AreaLight.m_Width = 0.15f;
-  AreaLight.m_Height = 0.15f;
-  AreaLight.m_Distance = 1.5f;
-  AreaLight.m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
-
-  m_lighting.AddLight(AreaLight);
-}
-
 inline std::vector<float>
 rndColors(int count)
 {
@@ -83,6 +46,68 @@ rndColors(int count)
   return colors;
 }
 
+VolumeDisplay::VolumeDisplay()
+{
+  std::vector<float> colors = rndColors(MAX_CPU_CHANNELS);
+
+  for (uint32_t i = 0; i < MAX_CPU_CHANNELS; ++i) {
+    // enable first N channels!
+    m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
+
+    m_diffuse[i * 3] = colors[i * 3];
+    m_diffuse[i * 3 + 1] = colors[i * 3 + 1];
+    m_diffuse[i * 3 + 2] = colors[i * 3 + 2];
+
+    m_specular[i * 3] = 0.0;
+    m_specular[i * 3 + 1] = 0.0;
+    m_specular[i * 3 + 2] = 0.0;
+
+    m_emissive[i * 3] = 0.0;
+    m_emissive[i * 3 + 1] = 0.0;
+    m_emissive[i * 3 + 2] = 0.0;
+
+    m_opacity[i] = 1.0;
+    m_roughness[i] = 1.0;
+  }
+}
+
+void
+Scene::initLights()
+{
+  Light BackgroundLight;
+
+  BackgroundLight.m_T = 1;
+  float inten = 1.0f;
+
+  float topr = 0.5f;
+  float topg = 0.5f;
+  float topb = 0.5f;
+  float midr = 0.5f;
+  float midg = 0.5f;
+  float midb = 0.5f;
+  float botr = 0.5f;
+  float botg = 0.5f;
+  float botb = 0.5f;
+
+  BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
+  BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
+  BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
+
+  m_lighting.AddLight(BackgroundLight);
+
+  Light AreaLight;
+
+  AreaLight.m_T = 0;
+  AreaLight.m_Theta = 0.0f;
+  AreaLight.m_Phi = HALF_PI_F;
+  AreaLight.m_Width = 0.15f;
+  AreaLight.m_Height = 0.15f;
+  AreaLight.m_Distance = 1.5f;
+  AreaLight.m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+
+  m_lighting.AddLight(AreaLight);
+}
+
 // set up a couple of lights relative to the img's bounding box
 void
 Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
@@ -115,7 +140,7 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 void
 Scene::initBoundsFromImg(std::shared_ptr<ImageXYZC> img)
 {
-  glm::vec3 dim = img->getDimensions();
+  glm::vec3 dim = img->getNormalizedDimensions();
 
   initBounds(CBoundingBox(glm::vec3(0.0f), dim));
 }
@@ -149,25 +174,4 @@ Scene::getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32
   c1 = ch[1];
   c2 = ch[2];
   c3 = ch[3];
-}
-
-void
-SceneLight::updateTransform()
-{
-  // update from transform position and rotation.
-
-  // calculate the new direction for the light to point in
-  glm::vec3 normdir = m_transform.m_rotation * glm::vec3(0, 0, 1);
-
-  // compute the phi and theta for the new direction
-  // because they will be used in future light updates
-  float phi, theta;
-  Light::cartesianToSpherical(normdir, phi, theta);
-  m_light->m_Phi = phi;
-  m_light->m_Theta = theta;
-
-  // get m_P in world space:
-  m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
-
-  m_light->updateBasisFrame();
 }

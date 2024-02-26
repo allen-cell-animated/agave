@@ -127,6 +127,12 @@ Subregion
 For OME-Zarr data, you may select a sub-region in X, Y, and Z. This is useful for loading a subset of a large dataset.
 A typical usage might be to first load a very low resolution level and then select a sub-region of interest to then load at a higher resolution.
 
+Keep Current AGAVE Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have already loaded a volume file and have made changes to the appearance, channel intensities, lighting, etc., you can choose to keep those settings when loading a new volume file.
+This is useful if you are loading several images consecutively that have similar channels and dimensions, and want to apply a consistent appearance to each.
+
 Adjusting the camera view
 -------------------------
 
@@ -249,6 +255,16 @@ Click the checkbox to show or hide a bounding box line around the volume data.
 Clicking on the color square allows you to select a color for the bounding
 box lines.
 
+Scale Bar
+^^^^^^^^^
+
+Click the checkbox to show or hide a scale bar at the bottom right corner
+of the display.  In a perspective camera, due to foreshortening, the
+scale bar will represent the distance between tickmarks shown on the 
+bounding box of the volume.  You will have to have the bounding box turned on
+in order to see it.  The scale bar will use physical units if available 
+in the loaded volume data.
+
 Volume Scale
 ~~~~~~~~~~~~
 
@@ -285,6 +301,17 @@ Area Light Theta, Phi, and Distance
 These three coordinates let you position the light anywhere on a sphere
 around the volume. Theta and Phi are in radians (where 3.14159 radians
 is half a circle).
+
+Viewport controls
+^^^^^^^^^^^^^^^^^
+
+If you check "Viewport controls" (or press the R key), an
+interactive rotation widget will appear in the viewport.  You can click
+and drag on the widget to rotate the light direction around the volume.
+If you click on the colored lines of the axes, rotation will be 
+constrained to that axis.  Press R again or uncheck the checkbox to
+hide the rotate manipulator.
+
 
 |image0|
 
@@ -489,7 +516,7 @@ Camera Panel
 The camera panel controls will let you affect the image's exposure
 amount, and control the focus blurring.
 
-Film Exposure
+Exposure
 ~~~~~~~~~~~~~
 
 The exposure value will brighten or darken the overall image.
@@ -518,7 +545,7 @@ focus. A small aperture size will keep the entire image in focus at all
 times. A large aperture size will let you only focus on a thin plane a
 specific distance from the camera.
 
-Projection Field of View
+Field of View
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The field of view is an angle in degrees describing how narrow or wide
@@ -542,11 +569,11 @@ Time Panel
 
 For time series data, move the time
 slider or change the numeric input to load a new time sample. Beware
-that this is loading a whole new volume and can take some time. If your
-dataset only has a single time, then the slider will have no effect.
-Nothing will be loaded while dragging the
-slider; AGAVE will load the new time sample when the slider is released
-or the numeric input is incremented.
+that this is loading a whole new volume and can take some time. Nothing
+will be loaded while dragging the slider; AGAVE will load the new time
+sample when the slider is released or the numeric input is incremented.
+If your dataset only has a single time, then the Time Panel will be
+hidden.
 
 
 Python Interface

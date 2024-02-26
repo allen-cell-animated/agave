@@ -82,7 +82,8 @@ public:
             uint8_t* data = nullptr,
             float sx = 1.0,
             float sy = 1.0,
-            float sz = 1.0);
+            float sz = 1.0,
+            std::string spatialUnits = "units");
   virtual ~ImageXYZC();
 
   void setPhysicalSize(float x, float y, float z);
@@ -94,8 +95,11 @@ public:
   float physicalSizeX() const;
   float physicalSizeY() const;
   float physicalSizeZ() const;
+  std::string spatialUnits() const;
 
-  glm::vec3 getDimensions() const;
+  glm::vec3 getNormalizedDimensions() const;
+
+  glm::vec3 getPhysicalDimensions() const;
 
   uint32_t sizeC() const;
 
@@ -113,5 +117,6 @@ private:
   uint32_t m_x, m_y, m_z, m_c, m_bpp;
   uint8_t* m_data;
   float m_scaleX, m_scaleY, m_scaleZ;
+  std::string m_spatialUnits;
   std::vector<Channelu16*> m_channels;
 };

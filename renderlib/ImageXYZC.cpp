@@ -15,7 +15,8 @@ ImageXYZC::ImageXYZC(uint32_t x,
                      uint8_t* data,
                      float sx,
                      float sy,
-                     float sz)
+                     float sz,
+                     std::string spatialUnits)
   : m_x(x)
   , m_y(y)
   , m_z(z)
@@ -25,6 +26,7 @@ ImageXYZC::ImageXYZC(uint32_t x,
   , m_scaleX(sx)
   , m_scaleY(sy)
   , m_scaleZ(sz)
+  , m_spatialUnits(spatialUnits)
 {
   for (uint32_t i = 0; i < m_c; ++i) {
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
@@ -145,16 +147,28 @@ ImageXYZC::channel(uint32_t channel) const
 }
 
 glm::vec3
-ImageXYZC::getDimensions() const
+ImageXYZC::getPhysicalDimensions() const
+{
+  return glm::vec3(
+    physicalSizeX() * (float)sizeX(), physicalSizeY() * (float)sizeY(), physicalSizeZ() * (float)sizeZ());
+}
+
+glm::vec3
+ImageXYZC::getNormalizedDimensions() const
 {
   // Compute physical size
-  const glm::vec3 PhysicalSize(
-    physicalSizeX() * (float)sizeX(), physicalSizeY() * (float)sizeY(), physicalSizeZ() * (float)sizeZ());
+  const glm::vec3 PhysicalSize = getPhysicalDimensions();
   // glm::gtx::component_wise::compMax(PhysicalSize);
   float m = std::max(PhysicalSize.x, std::max(PhysicalSize.y, PhysicalSize.z));
 
   // Compute the volume's max extent - scaled to max dimension.
   return PhysicalSize / m;
+}
+
+std::string
+ImageXYZC::spatialUnits() const
+{
+  return m_spatialUnits;
 }
 
 // 3d median filter?

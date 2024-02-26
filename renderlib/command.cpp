@@ -726,6 +726,13 @@ LoadDataCommand::execute(ExecutionContext* c)
   c->m_message = j.dump();
 }
 
+void
+ShowScaleBarCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "ShowScaleBar " << m_data.m_on;
+  c->m_appScene->m_showScaleBar = m_data.m_on ? true : false;
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -1607,6 +1614,22 @@ LoadDataCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+ShowScaleBarCommand*
+ShowScaleBarCommand::parse(ParseableStream* c)
+{
+  ShowScaleBarCommandD data;
+  data.m_on = c->parseInt32();
+  return new ShowScaleBarCommand(data);
+}
+size_t
+ShowScaleBarCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_on);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2044,6 +2067,17 @@ LoadDataCommand::toPythonString() const
   ss << m_data.m_xmin << ", " << m_data.m_xmax << ", " << m_data.m_ymin << ", " << m_data.m_ymax << ", "
      << m_data.m_zmin << ", " << m_data.m_zmax;
   ss << "]";
+
+  ss << ")";
+  return ss.str();
+}
+std::string
+ShowScaleBarCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_on;
 
   ss << ")";
   return ss.str();

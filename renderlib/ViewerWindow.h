@@ -24,17 +24,23 @@ public:
   void redraw();
 
   void update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture);
-  void updateCamera();
 
   void setRenderer(int rendererType);
 
   // Provide a new active tool
   void setTool(ManipulationTool* tool)
   {
-    if (m_activeTool != &m_defaultTool)
+    if (m_activeTool != &m_defaultTool) {
       ManipulationTool::destroyTool(m_activeTool);
-
+    }
     m_activeTool = (tool ? tool : &m_defaultTool);
+
+    // clear out the buffer once.
+    // we could alternatively flag this for clearing on the next update.
+    // see in update() where we check for no vertices.
+    if (!tool) {
+      m_selection.clear();
+    }
 
     // Todo: this could be replaced with a push/pop mechanism to allow
     //       the completion of a tool to restore a previous state.
@@ -45,10 +51,15 @@ public:
   template<typename Fn>
   void forEachTool(Fn fn)
   {
-    for (ManipulationTool* tool : m_tools)
+    for (ManipulationTool* tool : m_tools) {
       fn(tool);
+    }
     fn(m_activeTool);
   }
+
+  void showAreaLightGizmo(bool show);
+
+  void updateCamera();
 
   CCamera m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;
@@ -66,6 +77,8 @@ public:
   ManipulationTool* m_activeTool = &m_defaultTool;
   std::vector<ManipulationTool*> m_tools;
   bool m_toolsUseLocalSpace = false;
+  // special case so it can be toggled on/off
+  ManipulationTool* m_areaLightTool = nullptr;
 
   AreaLightTool* m_areaLightTool = nullptr;
   void toggleAreaLightSelect();

@@ -83,6 +83,24 @@ GLView3D::initCameraFromImage(Scene* scene)
 }
 
 void
+GLView3D::retargetCameraForNewVolume(Scene* scene)
+{
+  // ASSUMPTION camera's sceneboundingbox has not yet been updated!
+
+  glm::vec3 oldctr = m_viewerWindow->m_CCamera.m_SceneBoundingBox.GetCenter();
+  // Tell the camera about the volume's bounding box
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  // reposition target to center of image
+  glm::vec3 ctr = m_viewerWindow->m_CCamera.m_SceneBoundingBox.GetCenter();
+  // offset target by delta of prev bounds and new bounds.
+  m_viewerWindow->m_CCamera.m_Target += (ctr - oldctr);
+
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
 GLView3D::toggleCameraProjection()
 {
   ProjectionMode p = m_viewerWindow->m_CCamera.m_Projection;
@@ -287,10 +305,46 @@ GLView3D::FitToScene()
 }
 
 void
+GLView3D::toggleAreaLightRotateControls()
+{
+  // toggle rotate tool
+  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::TRANS) {
+    m_viewerWindow->showAreaLightGizmo(true);
+    m_viewerWindow->setTool(
+      new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+    m_viewerWindow->forEachTool(
+      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+    m_areaLightMode = AREALIGHT_MODE::ROT;
+  } else {
+    m_viewerWindow->showAreaLightGizmo(false);
+    m_viewerWindow->setTool(nullptr);
+    m_areaLightMode = AREALIGHT_MODE::NONE;
+  }
+}
+
+// TODO currently this function is not wired up to any gui at all.
+// This is because translation of area light source still needs work.
+// (Currently rotation is sufficient.)
+void
+GLView3D::toggleAreaLightTranslateControls()
+{
+  // toggle translate tool
+  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::ROT) {
+    m_viewerWindow->showAreaLightGizmo(true);
+    m_viewerWindow->setTool(
+      new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+    m_viewerWindow->forEachTool(
+      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+    m_areaLightMode = AREALIGHT_MODE::TRANS;
+  } else {
+    m_viewerWindow->showAreaLightGizmo(false);
+    m_viewerWindow->setTool(nullptr);
+    m_areaLightMode = AREALIGHT_MODE::NONE;
+  }
+}
+void
 GLView3D::keyPressEvent(QKeyEvent* event)
 {
-  static enum MODE { NONE, ROT, TRANS } mode = MODE::NONE;
-
   if (event->key() == Qt::Key_A) {
     FitToScene();
   } else if (event->key() == Qt::Key_L) {
@@ -301,30 +355,6 @@ GLView3D::keyPressEvent(QKeyEvent* event)
     m_viewerWindow->m_toolsUseLocalSpace = !m_viewerWindow->m_toolsUseLocalSpace;
     m_viewerWindow->forEachTool(
       [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-  } else if (event->key() == Qt::Key_R) {
-    // toggle rotate tool
-    if (mode == MODE::NONE || mode == MODE::TRANS) {
-      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
-                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-      m_viewerWindow->forEachTool(
-        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-      mode = MODE::ROT;
-    } else {
-      m_viewerWindow->setTool(nullptr);
-      mode = MODE::NONE;
-    }
-  } else if (event->key() == Qt::Key_T) {
-    // toggle translate tool
-    if (mode == MODE::NONE || mode == MODE::ROT) {
-      m_viewerWindow->setTool(
-        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-      m_viewerWindow->forEachTool(
-        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-      mode = MODE::TRANS;
-    } else {
-      m_viewerWindow->setTool(nullptr);
-      mode = MODE::NONE;
-    }
   } else {
     QOpenGLWidget::keyPressEvent(event);
   }

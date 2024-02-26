@@ -35,14 +35,8 @@ struct VolumeDisplay
   bool m_enabled[MAX_CPU_CHANNELS];
 
   GradientData m_gradientData[MAX_CPU_CHANNELS];
-};
 
-// MUST NOT OUTLIVE ITS LIGHT
-class SceneLight : public SceneObject
-{
-public:
-  void updateTransform();
-  Light* m_light;
+  VolumeDisplay();
 };
 
 #define MAX_NO_LIGHTS 4
@@ -104,6 +98,7 @@ public:
   std::vector<Manipulator*> m_tools;
 
   CBoundingBox m_boundingBox;
+  bool m_showScaleBar = false;
 
   void initLights();
   void initSceneFromImg(std::shared_ptr<ImageXYZC> img);

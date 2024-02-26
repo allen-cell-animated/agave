@@ -467,3 +467,9 @@ CMDDECL(LoadDataCommand,
                    CommandArgType::I32,
                    CommandArgType::I32A,
                    CommandArgType::I32A }));
+
+struct ShowScaleBarCommandD
+{
+  int32_t m_on;
+};
+CMDDECL(ShowScaleBarCommand, 45, "show_scale_bar", CMD_ARGS({ CommandArgType::I32 }));

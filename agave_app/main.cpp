@@ -135,7 +135,16 @@ main(int argc, char* argv[])
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
 
-  if (!renderlib::initialize(isServer, listDevices, selectedGpu)) {
+  QString appPath = QCoreApplication::applicationDirPath();
+  std::string appPathStr = appPath.toStdString();
+  LOG_INFO << "Application path: " << appPathStr;
+
+  // renderlib needs to be told where its assets live
+  QString assetsPath =
+    QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "assets", QStandardPaths::LocateDirectory);
+  LOG_INFO << "Assets path: " << assetsPath.toStdString();
+
+  if (!renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
     return 0;
   }
