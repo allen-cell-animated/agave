@@ -76,7 +76,13 @@ agaveGui::agaveGui(QWidget* parent)
 
   m_appScene.initLights();
 
-  resize(1280, 720);
+  // find a nice size to init agave
+  QScreen* screen = QApplication::primaryScreen();
+  QRect screenGeometry = screen->geometry();
+  int height = screenGeometry.height();
+  int width = screenGeometry.width();
+  resize(width * 0.8, height * 0.8);
+  // consider resizeDocks to widen the appearance dock
 }
 
 void

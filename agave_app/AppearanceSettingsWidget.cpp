@@ -5,13 +5,432 @@
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/Colormap.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
-#include <QFrame>
+#include <QItemDelegate>
 #include <QLinearGradient>
+
+QGradientStops
+colormapToGradient(const std::vector<ColorControlPoint>& v)
+{
+  QGradientStops stops;
+  for (int i = 0; i < v.size(); ++i) {
+    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  }
+  return stops;
+}
+
+// 11 stops: 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1
+std::vector<std::pair<std::string, std::vector<ColorControlPoint>>> builtInGradients = {
+  { "none",
+    stringListToGradient({
+      "#ffffff",
+      "#ffffff",
+    }) },
+  { "greyscale",
+    stringListToGradient({
+      "#000000",
+      "#ffffff",
+    }) },
+  { "cool",
+    stringListToGradient({ "#6e40aa",
+                           "#6154c8",
+                           "#4c6edb",
+                           "#368ce1",
+                           "#24aad8",
+                           "#1ac7c2",
+                           "#1ddea3",
+                           "#30ee83",
+                           "#52f667",
+                           "#7ef658",
+                           "#7ef658" }) },
+  { "viridis",
+    stringListToGradient({ "#440154",
+                           "#482475",
+                           "#414487",
+                           "#355f8d",
+                           "#2a788e",
+                           "#21908d",
+                           "#22a884",
+                           "#42be71",
+                           "#7ad151",
+                           "#bddf26",
+                           "#bddf26" }) },
+  { "inferno",
+    stringListToGradient({ "#000004",
+                           "#160b39",
+                           "#420a68",
+                           "#6a176e",
+                           "#932667",
+                           "#ba3655",
+                           "#dd513a",
+                           "#f3761b",
+                           "#fca50a",
+                           "#f6d746",
+                           "#f6d746" }) },
+  { "magma",
+    stringListToGradient({ "#000004",
+                           "#140e36",
+                           "#3b0f70",
+                           "#641a80",
+                           "#8c2981",
+                           "#b5367a",
+                           "#de4968",
+                           "#f66e5c",
+                           "#fe9f6d",
+                           "#fecf92",
+                           "#fecf92" }) },
+  { "plasma",
+    stringListToGradient({ "#0d0887",
+                           "#41049d",
+                           "#6a00a8",
+                           "#8f0da4",
+                           "#b12a90",
+                           "#cb4679",
+                           "#e16462",
+                           "#f1834c",
+                           "#fca636",
+                           "#fcce25",
+                           "#fcce25" }) },
+  { "warm",
+    stringListToGradient({ "#6e40aa",
+                           "#963db3",
+                           "#bf3caf",
+                           "#e3419e",
+                           "#fe4b83",
+                           "#ff5e64",
+                           "#ff7747",
+                           "#fb9633",
+                           "#e2b72f",
+                           "#c7d63c",
+                           "#c7d63c" }) },
+  { "spectral",
+    stringListToGradient({ "#9e0142",
+                           "#d13b4b",
+                           "#f0704a",
+                           "#fcab63",
+                           "#fedc8c",
+                           "#fbf8b0",
+                           "#e0f3a1",
+                           "#aadda2",
+                           "#69bda9",
+                           "#4288b5",
+                           "#4288b5" }) },
+  { "rainbow",
+    stringListToGradient({ "#6e40aa",
+                           "#be3caf",
+                           "#fe4b83",
+                           "#ff7747",
+                           "#e3b62f",
+                           "#b0ef5a",
+                           "#53f666",
+                           "#1edfa2",
+                           "#23acd8",
+                           "#4c6fdc",
+                           "#4c6fdc" }) },
+  { "cubehelix",
+    stringListToGradient({ "#000000",
+                           "#1a1530",
+                           "#163d4e",
+                           "#1f6642",
+                           "#53792f",
+                           "#a07949",
+                           "#d07e93",
+                           "#d09cd9",
+                           "#c1caf3",
+                           "#d2eeef",
+                           "#d2eeef" }) },
+  { "RdYlGn",
+    stringListToGradient({ "#a50026",
+                           "#d3322b",
+                           "#f16d43",
+                           "#fcab63",
+                           "#fedc8c",
+                           "#f9f7ae",
+                           "#d7ee8e",
+                           "#a4d86f",
+                           "#64bc61",
+                           "#23964f",
+                           "#23964f" }) },
+  { "RdYlBu",
+    stringListToGradient({ "#a50026",
+                           "#d3322b",
+                           "#f16d43",
+                           "#fcab64",
+                           "#fedc90",
+                           "#faf8c0",
+                           "#dcf1ec",
+                           "#abd6e8",
+                           "#76abd0",
+                           "#4a74b4",
+                           "#4a74b4" }) },
+  { "PuBuGn",
+    stringListToGradient({ "#fff7fb",
+                           "#efe7f2",
+                           "#dbd8ea",
+                           "#bfc9e2",
+                           "#98b9d9",
+                           "#6aa8cf",
+                           "#4096c0",
+                           "#1987a0",
+                           "#047877",
+                           "#016353",
+                           "#016353" }) },
+  { "YlGnBu",
+    stringListToGradient({ "#ffffd9",
+                           "#eff9bd",
+                           "#d5efb3",
+                           "#a9ddb7",
+                           "#74c9bd",
+                           "#46b4c2",
+                           "#2897bf",
+                           "#2073b2",
+                           "#234ea0",
+                           "#1d3185",
+                           "#1d3185" }) },
+  { "GnBu",
+    stringListToGradient({ "#f7fcf0",
+                           "#e5f5df",
+                           "#d4eece",
+                           "#bde5bf",
+                           "#9fd9bb",
+                           "#7bcbc4",
+                           "#58b7cd",
+                           "#399cc6",
+                           "#1e7eb7",
+                           "#0b60a1",
+                           "#0b60a1" }) },
+  { "YlOrRd",
+    stringListToGradient({ "#ffffcc",
+                           "#fff1a9",
+                           "#fee087",
+                           "#fec966",
+                           "#feab4b",
+                           "#fd893c",
+                           "#fa5c2e",
+                           "#ec3023",
+                           "#d31121",
+                           "#af0225",
+                           "#af0225" }) },
+  { "YlOrBr",
+    stringListToGradient({ "#ffffe5",
+                           "#fff8c4",
+                           "#feeba2",
+                           "#fed676",
+                           "#febb4a",
+                           "#fb9a2c",
+                           "#ee7919",
+                           "#d85b0a",
+                           "#b74304",
+                           "#8f3204",
+                           "#8f3204" }) },
+  { "RdBu",
+    stringListToGradient({ "#67001f",
+                           "#ab202e",
+                           "#d55f50",
+                           "#f0a285",
+                           "#fad6c3",
+                           "#f2efee",
+                           "#cde3ee",
+                           "#90c2dd",
+                           "#4b94c4",
+                           "#2265a3",
+                           "#2265a3" }) },
+  { "BuGn",
+    stringListToGradient({ "#f7fcfd",
+                           "#e8f6f9",
+                           "#d5efed",
+                           "#b7e4da",
+                           "#8fd4c1",
+                           "#69c2a3",
+                           "#49b17f",
+                           "#2f995a",
+                           "#157f3c",
+                           "#036429",
+                           "#036429" }) },
+  { "BuPu",
+    stringListToGradient({ "#f7fcfd",
+                           "#e4eff5",
+                           "#ccddec",
+                           "#b2cae1",
+                           "#9cb3d5",
+                           "#8f95c6",
+                           "#8c74b5",
+                           "#8952a5",
+                           "#852d8f",
+                           "#730f71",
+                           "#730f71" }) },
+  { "PuBu",
+    stringListToGradient({ "#fff7fb",
+                           "#efeaf4",
+                           "#dbdaeb",
+                           "#bfc9e2",
+                           "#9cb9d9",
+                           "#72a8cf",
+                           "#4494c3",
+                           "#1b7db6",
+                           "#0668a1",
+                           "#045281",
+                           "#045281" }) },
+  { "RdPu",
+    stringListToGradient({ "#fff7f3",
+                           "#fde4e1",
+                           "#fccfcc",
+                           "#fbb5bc",
+                           "#f993b0",
+                           "#f369a3",
+                           "#e03f98",
+                           "#c11889",
+                           "#99037c",
+                           "#710174",
+                           "#710174" }) },
+  { "PuRd",
+    stringListToGradient({ "#f7f4f9",
+                           "#eae3f0",
+                           "#dcc9e2",
+                           "#d0aad2",
+                           "#d08ac2",
+                           "#dd63ae",
+                           "#e33890",
+                           "#d71c6c",
+                           "#b80b50",
+                           "#8f023a",
+                           "#8f023a" }) },
+  { "YlGn",
+    stringListToGradient({ "#ffffe5",
+                           "#f7fcc4",
+                           "#e4f4ac",
+                           "#c7e89b",
+                           "#a2d88a",
+                           "#78c578",
+                           "#4eaf63",
+                           "#2f944e",
+                           "#15793f",
+                           "#036034",
+                           "#036034" }) },
+  { "OrRd",
+    stringListToGradient({ "#fff7ec",
+                           "#feebcf",
+                           "#fddcaf",
+                           "#fdca94",
+                           "#fdb07a",
+                           "#fa8e5d",
+                           "#f16c49",
+                           "#e04630",
+                           "#c81e13",
+                           "#a70403",
+                           "#a70403" }) },
+  { "PiYG",
+    stringListToGradient({ "#8e0152",
+                           "#c0267e",
+                           "#dd72ad",
+                           "#f0b2d6",
+                           "#fadded",
+                           "#f5f3ef",
+                           "#e1f2ca",
+                           "#b7de88",
+                           "#81bb48",
+                           "#4f9125",
+                           "#4f9125" }) },
+  { "PRGn",
+    stringListToGradient({ "#40004b",
+                           "#722e80",
+                           "#9a6daa",
+                           "#c1a4cd",
+                           "#e3d2e6",
+                           "#eff0ef",
+                           "#d6eed1",
+                           "#a2d79f",
+                           "#5dad65",
+                           "#217939",
+                           "#217939" }) },
+  { "PuOr",
+    stringListToGradient({ "#7f3b08",
+                           "#b15a09",
+                           "#dd841f",
+                           "#f8b664",
+                           "#fdddb2",
+                           "#f3eeea",
+                           "#d7d7e9",
+                           "#b0aad0",
+                           "#8170ad",
+                           "#552d84",
+                           "#552d84" }) },
+  { "RdGy",
+    stringListToGradient({ "#67001f",
+                           "#ab202e",
+                           "#d55f50",
+                           "#f0a285",
+                           "#fcd8c4",
+                           "#faf4f0",
+                           "#dfdfdf",
+                           "#b8b8b8",
+                           "#868686",
+                           "#4e4e4e",
+                           "#4e4e4e" }) },
+  { "BrBG",
+    stringListToGradient({ "#543005",
+                           "#8b530f",
+                           "#bc8434",
+                           "#ddbd7b",
+                           "#f2e4bf",
+                           "#eef1ea",
+                           "#c3e7e2",
+                           "#80c9bf",
+                           "#399890",
+                           "#0a675f",
+                           "#0a675f" }) }
+};
+
+class GradientCombo : public QComboBox
+{
+public:
+  GradientCombo(QWidget* parent = nullptr)
+    : QComboBox(parent)
+  {
+  }
+
+  void paintEvent(QPaintEvent* e)
+  {
+    QComboBox::paintEvent(e);
+
+    QPainter painter(this);
+    painter.setPen(Qt::black);
+    painter.setBrush(itemData(currentIndex(), Qt::BackgroundRole).value<QBrush>());
+    QStyleOptionComboBox option;
+    option.rect = rect();
+    QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
+
+    painter.drawRect(r.adjusted(0, 0, -1, -1));
+  }
+};
+
+QComboBox*
+makeGradientCombo()
+{
+  QComboBox* cb = new GradientCombo();
+  const QStringList colorNames = QColor::colorNames();
+  int index = 0;
+  for (auto& gspec : builtInGradients) {
+    QLinearGradient gradient;
+    gradient.setStops(colormapToGradient(gspec.second));
+    gradient.setStart(0., 0.);     // top left
+    gradient.setFinalStop(1., 0.); // bottom right
+    gradient.setCoordinateMode(QGradient::ObjectMode);
+
+    QBrush brush(gradient);
+    brush.setStyle(Qt::LinearGradientPattern);
+    cb->addItem("", QVariant(gspec.first.c_str()));
+    cb->setItemData(index, QVariant(gspec.first.c_str()), Qt::ToolTipRole);
+    cb->setItemData(index, brush, Qt::BackgroundRole);
+    index++;
+  }
+  return cb;
+}
 
 static const int MAX_CHANNELS_CHECKED = 4;
 
@@ -202,8 +621,10 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
 
-  Section* section = createLightingControls(pLightRotationAction);
+  Section* section = createAreaLightingControls(pLightRotationAction);
   m_MainLayout.addRow(section);
+  Section* section2 = createSkyLightingControls();
+  m_MainLayout.addRow(section2);
 
   QFrame* lineA = new QFrame();
   lineA->setFrameShape(QFrame::HLine);
@@ -218,16 +639,16 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 }
 
 Section*
-QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
+QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAction)
 {
-  Section* section = new Section("Lighting", 0);
-  auto* sectionLayout = Controls::createFormLayout();
+  Section* section = new Section("Area Light", 0);
+  auto* sectionLayout = Controls::createMyFormLayout();
 
   m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
   m_lt0gui.m_enableControlsCheckBox->setStatusTip(
-    tr("Show interactive controls in viewport for area light rotation angle"));
+    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   m_lt0gui.m_enableControlsCheckBox->setToolTip(
-    tr("Show interactive controls in viewport for area light rotation angle"));
+    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
   QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, pLightRotationAction, &QAction::trigger);
   QObject::connect(pLightRotationAction, &QAction::triggered, [this](bool toggled) {
@@ -240,7 +661,7 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
   m_lt0gui.m_thetaSlider->setSingleStep(TWO_PI_F / 100.0);
   m_lt0gui.m_thetaSlider->setValue(0.0);
-  sectionLayout->addRow("AreaLight Theta", m_lt0gui.m_thetaSlider);
+  sectionLayout->addRow("Theta", m_lt0gui.m_thetaSlider);
   QObject::connect(
     m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
 
@@ -250,7 +671,7 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
   m_lt0gui.m_phiSlider->setSingleStep(PI_F / 100.0);
   m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
-  sectionLayout->addRow("AreaLight Phi", m_lt0gui.m_phiSlider);
+  sectionLayout->addRow("Phi", m_lt0gui.m_phiSlider);
   QObject::connect(
     m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
 
@@ -260,17 +681,17 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt0gui.m_sizeSlider->setRange(0.1, 5.0);
   m_lt0gui.m_sizeSlider->setSingleStep(5.0 / 100.0);
   m_lt0gui.m_sizeSlider->setValue(1.0);
-  sectionLayout->addRow("AreaLight Size", m_lt0gui.m_sizeSlider);
+  sectionLayout->addRow("Size", m_lt0gui.m_sizeSlider);
   QObject::connect(
     m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
 
   m_lt0gui.m_distSlider = new QNumericSlider();
   m_lt0gui.m_distSlider->setStatusTip(tr("Set distance for area light"));
   m_lt0gui.m_distSlider->setToolTip(tr("Set distance for area light"));
-  m_lt0gui.m_distSlider->setRange(0.1, 100.0);
+  m_lt0gui.m_distSlider->setRange(0.1, 10.0);
   m_lt0gui.m_distSlider->setSingleStep(1.0);
   m_lt0gui.m_distSlider->setValue(10.0);
-  sectionLayout->addRow("AreaLight Distance", m_lt0gui.m_distSlider);
+  sectionLayout->addRow("Distance", m_lt0gui.m_distSlider);
   QObject::connect(
     m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
 
@@ -279,14 +700,16 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt0gui.m_intensitySlider->setStatusTip(tr("Set intensity for area light"));
   m_lt0gui.m_intensitySlider->setToolTip(tr("Set intensity for area light"));
   m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
-  m_lt0gui.m_intensitySlider->setSingleStep(1.0);
+  m_lt0gui.m_intensitySlider->setSingleStep(10.0);
   m_lt0gui.m_intensitySlider->setValue(100.0);
+  m_lt0gui.m_intensitySlider->setDecimals(1);
   arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
   m_lt0gui.m_areaLightColorButton = new QColorPushButton();
   m_lt0gui.m_areaLightColorButton->setStatusTip(tr("Set color for area light"));
   m_lt0gui.m_areaLightColorButton->setToolTip(tr("Set color for area light"));
-  arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton);
-  sectionLayout->addRow("AreaLight Intensity", arealightLayout);
+  arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton, 0);
+  arealightLayout->setContentsMargins(0, 0, 0, 0);
+  sectionLayout->addRow("Intensity", arealightLayout);
   QObject::connect(m_lt0gui.m_areaLightColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnSetAreaLightColor(this->m_lt0gui.m_intensitySlider->value(), c);
   });
@@ -294,11 +717,15 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
     this->OnSetAreaLightColor(v, this->m_lt0gui.m_areaLightColorButton->GetColor());
   });
 
-  // separator
-  QFrame* line = new QFrame();
-  line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  sectionLayout->addRow(line);
+  section->setContentLayout(*sectionLayout);
+  return section;
+}
+
+Section*
+QAppearanceSettingsWidget::createSkyLightingControls()
+{
+  Section* section = new Section("Sky Light", 0);
+  auto* sectionLayout = Controls::createMyFormLayout();
 
   auto* skylightTopLayout = new QHBoxLayout();
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
@@ -311,7 +738,7 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
   m_lt1gui.m_stColorButton->setToolTip(tr("Set color for top of skylight sphere"));
   skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
-  sectionLayout->addRow("SkyLight Top", skylightTopLayout);
+  sectionLayout->addRow("Top", skylightTopLayout);
   QObject::connect(m_lt1gui.m_stColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnSetSkyLightTopColor(this->m_lt1gui.m_stintensitySlider->value(), c);
   });
@@ -330,7 +757,7 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
   m_lt1gui.m_smColorButton->setToolTip(tr("Set color for middle of skylight sphere"));
   skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
-  sectionLayout->addRow("SkyLight Mid", skylightMidLayout);
+  sectionLayout->addRow("Mid", skylightMidLayout);
   QObject::connect(m_lt1gui.m_smColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnSetSkyLightMidColor(this->m_lt1gui.m_smintensitySlider->value(), c);
   });
@@ -349,7 +776,7 @@ QAppearanceSettingsWidget::createLightingControls(QAction* pLightRotationAction)
   m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));
   m_lt1gui.m_sbColorButton->setToolTip(tr("Set color for bottom of skylight sphere"));
   skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
-  sectionLayout->addRow("SkyLight Bot", skylightBotLayout);
+  sectionLayout->addRow("Bot", skylightBotLayout);
   QObject::connect(m_lt1gui.m_sbColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnSetSkyLightBotColor(this->m_lt1gui.m_sbintensitySlider->value(), c);
   });
@@ -688,6 +1115,17 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
 }
 
 void
+QAppearanceSettingsWidget::OnUpdateColormap(int i, const std::vector<ColorControlPoint>& stops)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_volume->channel((uint32_t)i)->updateColormap(stops);
+
+  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void
 QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
 {
   if (!m_scene)
@@ -868,7 +1306,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* fullLayout = new QVBoxLayout();
 
-    auto* sectionLayout = Controls::createFormLayout();
+    auto* sectionLayout = Controls::createMyFormLayout();
 
     GradientWidget* editor =
       new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);
@@ -899,6 +1337,18 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
+
+    QComboBox* gradients = makeGradientCombo();
+    sectionLayout->addRow("ColorMap", gradients);
+    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
+      // get string from userdata
+      std::string name = gradients->itemData(index).toString().toStdString();
+      LOG_DEBUG << "Selected gradient " << index << " (" << name << ") for channel " << i;
+
+      auto colormap = builtInGradients[index].second;
+      // update channel colormap from stops
+      this->OnUpdateColormap(i, colormap);
+    });
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));

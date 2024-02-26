@@ -113,8 +113,11 @@ uniform float uShowLights;
 
 // per channel
 uniform sampler2D g_lutTexture[4];
+uniform sampler2D g_colormapTexture[4];
 uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
+uniform vec4 g_lutMax;
+uniform vec4 g_lutMin;
 uniform float g_opacity[4];
 uniform vec3 g_emissive[4];
 uniform vec3 g_diffuse[4];
@@ -317,12 +320,14 @@ float GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
   float maxIn = 0.0;
   ch = 0;
 
+  // relative to min/max for each channel
   intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
-  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
-  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
-  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
-  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
+  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x * pow(g_opacity[0], 4.0);
+  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x * pow(g_opacity[1], 4.0);
+  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x * pow(g_opacity[2], 4.0);
+  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x * pow(g_opacity[3], 4.0);
 
+  // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
     if (intensity[i] > maxIn) {
       maxIn = intensity[i];
@@ -330,6 +335,54 @@ float GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
     }
   }
   return maxIn; // *factor;
+}
+float GetNormalizedIntensityRnd4ch(in vec3 P, out int ch, inout uvec2 seed)
+{
+  vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P));
+
+  float maxIn = 0.0;
+  ch = 0;
+
+  // relative to min/max for each channel
+  intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
+
+  // take a random value of the 4 channels
+  // TODO weight this based on the post-LUT 4-channel intensities?
+  float r = rand(seed)*min(float(g_nChannels), 4.0);
+  ch = int(r);
+
+  float retval = texture(g_lutTexture[ch], vec2(intensity[ch], 0.5)).x * pow(g_opacity[ch], 4.0);
+
+  return retval;
+}
+float GetNormalizedIntensityRnd4ch_weighted(in vec3 P, out int ch, inout uvec2 seed)
+{
+  vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P));
+
+  ch = 0;
+
+  // relative to min/max for each channel
+  intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
+  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x * pow(g_opacity[0], 4.0);
+  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x * pow(g_opacity[1], 4.0);
+  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x * pow(g_opacity[2], 4.0);
+  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x * pow(g_opacity[3], 4.0);
+
+  // ensure 0 for nonexistent channels?
+  float sum = intensity.x + intensity.y + intensity.z + intensity.w;
+  // take a random value of the 4 channels
+  float r = rand(seed)*sum;
+  float cum = 0;
+  float retval = 0;
+  for (int i = 0; i < min(g_nChannels, 4); ++i) {
+    cum = cum + intensity[i];
+    if (r < cum) {
+      ch = i;
+      retval = intensity[i];
+      break;
+    }
+  }
+  return retval;
 }
 
 float GetNormalizedIntensity(in vec3 P, in int ch)
@@ -351,15 +404,24 @@ float GetNormalizedIntensity4ch(vec3 P, int ch)
   return intensityf;
 }
 
+float GetRawIntensity(vec3 P, int ch)
+{
+  return texture(volumeTexture, PtoVolumeTex(P))[ch];
+}
+
 // note that gInvGradientDelta is maxpixeldim of volume
 // gGradientDeltaX,Y,Z is 1/X,Y,Z of volume
 vec3 Gradient4ch(vec3 P, int ch)
 {
   vec3 Gradient;
 
-  Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
-  Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
-  Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
+  Gradient.x = (GetRawIntensity(P + (gGradientDeltaX), ch) - GetRawIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
+  Gradient.y = (GetRawIntensity(P + (gGradientDeltaY), ch) - GetRawIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
+  Gradient.z = (GetRawIntensity(P + (gGradientDeltaZ), ch) - GetRawIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
+
+  //Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
+  //Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
+  //Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
 
   return Gradient;
 }
@@ -368,7 +430,7 @@ vec3 Gradient4ch(vec3 P, int ch)
 float GetOpacity(float NormalizedIntensity, int ch)
 {
   // apply lut
-  float Intensity = NormalizedIntensity * g_opacity[ch];
+  float Intensity = NormalizedIntensity;// * exp(1.0-1.0/g_opacity[ch]);
   return Intensity;
 }
 
@@ -377,9 +439,21 @@ vec3 GetEmissionN(float NormalizedIntensity, int ch)
   return g_emissive[ch];
 }
 
-vec3 GetDiffuseN(float NormalizedIntensity, int ch)
+vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 {
-  return g_diffuse[ch];
+  //return texture(g_colormapTexture[ch], vec2(0.5, 0.5)).xyz;
+
+//  float i = NormalizedIntensity * (g_intensityMax[ch] - g_intensityMin[ch]) + g_intensityMin[ch];//(intensity - g_intensityMin) / (g_intensityMax - g_intensityMin)
+//  i = (i-g_lutMin[ch])/(g_lutMax[ch]-g_lutMin[ch]) * g_opacity[ch];
+//  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
+
+  vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
+  float i = intensity[ch];
+  i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
+  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
+
+
+  //return g_diffuse[ch];
 }
 
 vec3 GetSpecularN(float NormalizedIntensity, int ch)
@@ -843,7 +917,8 @@ bool FreePathRM(inout Ray R, inout uvec2 seed)
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
 
     Sum += SigmaT * gStepSizeShadow;
@@ -883,7 +958,7 @@ vec3 EstimateDirectLight(int shaderType, float Density, int ch, in Light light, 
 {
   vec3 Ld = BLACK, Li = BLACK, F = BLACK;
 
-  vec3 diffuse = GetDiffuseN(Density, ch);
+  vec3 diffuse = GetDiffuseN(Density, Pe, ch);
   vec3 specular = GetSpecularN(Density, ch);
   float roughness = GetRoughnessN(Density, ch);
 
@@ -968,7 +1043,7 @@ vec3 UniformSampleOneLight(int shaderType, float Density, int ch, in vec3 Wo, in
 
 }
 
-bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
+bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps, out float intensity, out int ch)
 {
   float MinT;
   float MaxT;
@@ -998,8 +1073,8 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
   float SigmaT	= 0.0f; // accumulated extinction along ray march
 
   MinT += rand(seed) * gStepSize;
-  int ch = 0;
-  float intensity = 0.0;
+  //int ch = 0;
+  //float intensity = 0.0;
   // ray march until we have traveled S (or hit the maxT of the ray)
   while (Sum < S)
   {
@@ -1008,7 +1083,8 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
     //SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
@@ -1094,8 +1170,10 @@ vec4 CalculateRadiance(inout uvec2 seed) {
   float lpdf = 0.0;
   float alpha = 0.0;
 
-  // find point Pe along ray Re
-  if (SampleDistanceRM(Re, seed, Pe))
+  int ch;
+  float D;
+  // find point Pe along ray Re, and get its normalized intensity D and channel ch
+  if (SampleDistanceRM(Re, seed, Pe, D, ch))
   {
     alpha = 1.0;
       //return vec4(1.0, 1.0, 1.0, 1.0);
@@ -1109,8 +1187,8 @@ vec4 CalculateRadiance(inout uvec2 seed) {
       return vec4(Li, 1.0);
     }
 
-    int ch = 0;
-    float D = GetNormalizedIntensityMax4ch(Pe, ch);
+    //int ch = 0;
+    //float D = GetNormalizedIntensityMax4ch(Pe, ch);
 
     // emission from volume
     Lv += RGBtoXYZ(GetEmissionN(D, ch));
@@ -1297,8 +1375,14 @@ void main()
   m_lutTexture1 = uniformLocation("g_lutTexture[1]");
   m_lutTexture2 = uniformLocation("g_lutTexture[2]");
   m_lutTexture3 = uniformLocation("g_lutTexture[3]");
+  m_colormapTexture0 = uniformLocation("g_colormapTexture[0]");
+  m_colormapTexture1 = uniformLocation("g_colormapTexture[1]");
+  m_colormapTexture2 = uniformLocation("g_colormapTexture[2]");
+  m_colormapTexture3 = uniformLocation("g_colormapTexture[3]");
   m_intensityMax = uniformLocation("g_intensityMax");
   m_intensityMin = uniformLocation("g_intensityMin");
+  m_lutMax = uniformLocation("g_lutMax");
+  m_lutMin = uniformLocation("g_lutMin");
   m_opacity = uniformLocation("g_opacity");
   m_emissive0 = uniformLocation("g_emissive[0]");
   m_emissive1 = uniformLocation("g_emissive[1]");
@@ -1334,12 +1418,8 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("before pathtrace shader uniform binding");
 
   glUniform1i(m_volumeTexture, 0);
-  check_gl("post vol textures");
-
-  glActiveTexture(GL_TEXTURE0);
-  check_gl("post vol textures");
+  glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, 0);
-  check_gl("post vol textures");
   glBindTexture(GL_TEXTURE_3D, imggpu.m_VolumeGLTexture);
   check_gl("post vol textures");
 
@@ -1435,16 +1515,20 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
   int activeChannel = 0;
   int luttex[4] = { 0, 0, 0, 0 };
+  int colormaptex[4] = { 0, 0, 0, 0 };
   float intensitymax[4] = { 1, 1, 1, 1 };
   float intensitymin[4] = { 0, 0, 0, 0 };
+  float lutmax[4] = { 1, 1, 1, 1 };
+  float lutmin[4] = { 0, 0, 0, 0 };
   float diffuse[3 * 4] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
   float specular[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float roughness[4] = { 0, 0, 0, 0 };
-  float opacity[4] = { 1, 1, 1, 1 };
+  float opacity[4] = { 0, 0, 0, 0 };
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
       luttex[activeChannel] = imggpu.m_channels[i].m_VolumeLutGLTexture;
+      colormaptex[activeChannel] = imggpu.m_channels[i].m_VolumeColorMapGLTexture;
       intensitymax[activeChannel] = scene->m_volume->channel(i)->m_max;
       intensitymin[activeChannel] = scene->m_volume->channel(i)->m_min;
       diffuse[activeChannel * 3 + 0] = scene->m_material.m_diffuse[i * 3 + 0];
@@ -1459,34 +1543,65 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
       roughness[activeChannel] = scene->m_material.m_roughness[i];
       opacity[activeChannel] = scene->m_material.m_opacity[i];
 
+      // get a min/max from the gradient data if possible
+      uint16_t imin16 = 0;
+      uint16_t imax16 = 0;
+      bool hasMinMax =
+        scene->m_material.m_gradientData[i].getMinMax(scene->m_volume->channel(i)->m_histogram, &imin16, &imax16);
+      lutmin[activeChannel] = hasMinMax ? imin16 : intensitymin[activeChannel];
+      lutmax[activeChannel] = hasMinMax ? imax16 : intensitymax[activeChannel];
+
       activeChannel++;
     }
   }
   glUniform1i(m_g_nChannels, activeChannel);
   check_gl("pre lut textures");
 
-  glUniform1i(m_lutTexture0, 3);
-  glActiveTexture(GL_TEXTURE0 + 3);
+  glUniform1i(m_lutTexture0, 2);
+  glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_2D, luttex[0]);
   check_gl("lut 0");
 
-  glUniform1i(m_lutTexture1, 4);
-  glActiveTexture(GL_TEXTURE0 + 4);
+  glUniform1i(m_lutTexture1, 3);
+  glActiveTexture(GL_TEXTURE0 + 3);
   glBindTexture(GL_TEXTURE_2D, luttex[1]);
   check_gl("lut 1");
 
-  glUniform1i(m_lutTexture2, 5);
-  glActiveTexture(GL_TEXTURE0 + 5);
+  glUniform1i(m_lutTexture2, 4);
+  glActiveTexture(GL_TEXTURE0 + 4);
   glBindTexture(GL_TEXTURE_2D, luttex[2]);
   check_gl("lut 2");
 
-  glUniform1i(m_lutTexture3, 6);
-  glActiveTexture(GL_TEXTURE0 + 6);
+  glUniform1i(m_lutTexture3, 5);
+  glActiveTexture(GL_TEXTURE0 + 5);
   glBindTexture(GL_TEXTURE_2D, luttex[3]);
   check_gl("lut 3");
 
+  glUniform1i(m_colormapTexture0, 6);
+  glActiveTexture(GL_TEXTURE0 + 6);
+  glBindTexture(GL_TEXTURE_2D, colormaptex[0]);
+  check_gl("colormap 0");
+
+  glUniform1i(m_colormapTexture1, 7);
+  glActiveTexture(GL_TEXTURE0 + 7);
+  glBindTexture(GL_TEXTURE_2D, colormaptex[1]);
+  check_gl("colormap 1");
+
+  glUniform1i(m_colormapTexture2, 8);
+  glActiveTexture(GL_TEXTURE0 + 8);
+  glBindTexture(GL_TEXTURE_2D, colormaptex[2]);
+  check_gl("colormap 2");
+
+  glUniform1i(m_colormapTexture3, 9);
+  glActiveTexture(GL_TEXTURE0 + 9);
+  glBindTexture(GL_TEXTURE_2D, colormaptex[3]);
+  check_gl("colormap 3");
+
   glUniform4fv(m_intensityMax, 1, intensitymax);
   glUniform4fv(m_intensityMin, 1, intensitymin);
+  glUniform4fv(m_lutMax, 1, lutmax);
+  glUniform4fv(m_lutMin, 1, lutmin);
+
   glUniform1fv(m_opacity, 4, opacity);
   glUniform3fv(m_emissive0, 1, emissive + 0);
   glUniform3fv(m_emissive1, 1, emissive + 3);
@@ -1509,5 +1624,4 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
 void
 GLPTVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
-{
-}
+{}
