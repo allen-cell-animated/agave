@@ -635,7 +635,9 @@ AGAVE supports the following command line options:
 Citation
 --------
 
-Daniel Toloudis, AGAVE Contributors (2024). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute for Cell Science. https://github.com/allen-cell-animated/agave
+.. |year| date:: %Y
+
+Daniel Toloudis, AGAVE Contributors (|year|). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute for Cell Science. https://github.com/allen-cell-animated/agave
 
 bibtex:
 
@@ -644,7 +646,7 @@ bibtex:
    @software{agave,
     author       = {Toloudis, Daniel and AGAVE Contributors},
     title        = {AGAVE: Advanced GPU Accelerated Volume Explorer}
-    year         = {2024},
+    year         = {|year|},
     version      = {|release|},
     url          = {https://github.com/allen-cell-animated/agave},
     organization = {Allen Institute for Cell Science},
