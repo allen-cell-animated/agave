@@ -223,7 +223,7 @@ Section*
 QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAction)
 {
   Section* section = new Section("Area Light", 0);
-  auto* sectionLayout = Controls::createMyFormLayout();
+  auto* sectionLayout = Controls::createAgaveFormLayout();
 
   m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
   m_lt0gui.m_enableControlsCheckBox->setStatusTip(
@@ -306,7 +306,7 @@ Section*
 QAppearanceSettingsWidget::createSkyLightingControls()
 {
   Section* section = new Section("Sky Light", 0);
-  auto* sectionLayout = Controls::createMyFormLayout();
+  auto* sectionLayout = Controls::createAgaveFormLayout();
 
   auto* skylightTopLayout = new QHBoxLayout();
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
@@ -876,7 +876,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     auto* fullLayout = new QVBoxLayout();
 
-    auto* sectionLayout = Controls::createMyFormLayout();
+    auto* sectionLayout = Controls::createAgaveFormLayout();
 
     GradientWidget* editor =
       new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);
