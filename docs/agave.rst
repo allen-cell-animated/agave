@@ -630,6 +630,27 @@ AGAVE supports the following command line options:
 
   Only valid in server mode on Linux. Allows AGAVE to run as a server on a headless cluster node.  On other platforms AGAVE must be run in a windowed desktop environment, even in server mode.
 
+.. _Citation:
+
+Citation
+--------
+
+Daniel Toloudis, AGAVE Contributors (2024). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute for Cell Science. https://github.com/allen-cell-animated/agave
+
+bibtex:
+
+.. parsed-literal::
+
+   @software{agave,
+    author       = {Toloudis, Daniel and AGAVE Contributors},
+    title        = {AGAVE: Advanced GPU Accelerated Volume Explorer}
+    year         = {2024},
+    version      = {|release|},
+    url          = {https://github.com/allen-cell-animated/agave},
+    organization = {Allen Institute for Cell Science},
+    note         = {Computer Software}
+    }
+
 Troubleshooting
 ---------------
 

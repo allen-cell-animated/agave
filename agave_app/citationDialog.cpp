@@ -1,6 +1,7 @@
 #include "citationDialog.h"
 
 #include <QApplication>
+#include <QDate>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QTextBrowser>
@@ -18,13 +19,15 @@ CitationDialog::CitationDialog()
 
   QString agaveUrl = "https://github.com/allen-cell-animated/agave";
 
+  int year = QDate::currentDate().year();
+  QString syear = QString::number(year);
+
   auto citationtext = new QLabel(this);
-  citationtext->setText(
-    "Daniel Toloudis, AGAVE Contributors (2023). AGAVE: Advanced GPU Accelerated Volume Explorer (Version " +
-    qApp->applicationVersion() +
-    ") [Computer software]. Allen Institute for Cell Science. <a "
-    "href=\"" +
-    agaveUrl + "\"></a>");
+  citationtext->setText("Daniel Toloudis, AGAVE Contributors (" + syear +
+                        "). AGAVE: Advanced GPU Accelerated Volume Explorer (Version " + qApp->applicationVersion() +
+                        ") [Computer software]. Allen Institute for Cell Science. <a "
+                        "href=\"" +
+                        agaveUrl + "\"></a>");
   citationtext->setFrameShape(QFrame::Panel);
   citationtext->setFrameShadow(QFrame::Sunken);
   citationtext->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -40,7 +43,9 @@ CitationDialog::CitationDialog()
   citationtext2->setText("<tt>@software{agave,<br/>"
                          "&nbsp;&nbsp;author    = {Toloudis, Daniel and AGAVE Contributors},<br/>"
                          "&nbsp;&nbsp;title     = {AGAVE: Advanced GPU Accelerated Volume Explorer},<br/>"
-                         "&nbsp;&nbsp;year      = {2023},<br/>"
+                         "&nbsp;&nbsp;year      = {" +
+                         syear +
+                         "},<br/>"
                          "&nbsp;&nbsp;version = {" +
                          qApp->applicationVersion() +
                          "},<br/>"
