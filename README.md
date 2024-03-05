@@ -17,9 +17,11 @@ git submodule update --init
 ```
 
 ### For WINDOWS:
+
 Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2022 x64 Native Tools Command Prompt"
 
 **tensorstore** requires:
+
 - Python 3.7 or later
 - CMake 3.24 or later
 - Perl, for building libaom from source (default). Must be in PATH. Not required if -DTENSORSTORE_USE_SYSTEM_LIBAOM=ON is specified.
@@ -27,25 +29,28 @@ Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2022
 - GNU Patch or equivalent. Must be in PATH.
 
 A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
+
 ```
 choco install strawberryperl nasm patch
 ```
 
-**Install Qt LTS 6.5.1.**
+**Install Qt LTS 6.5.3.**
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.5.1 win64_msvc2019_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwebsockets qtimageformats
 
 ```
 
 Use vcpkg (must use target triplet x64-windows) to install the following:
+
 ```
 vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
 ```
 
 **Build AGAVE**
+
 ```
 mkdir build
 cd build
@@ -53,18 +58,19 @@ cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
 ```
+
 You may need to adjust the vcpkg path depending on your configuration.
 
 If you encounter issues during your build, check that all of your dependencies are installed and try again. You can also build to the INSTALL target with Visual Studio by opening the project solution (`agave.sln`).
 
-
 ### For MAC OS: (using homebrew)
 
 In your favorite Python virtual environment:
+
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt mac desktop 6.5.1 -m qtwebsockets qtimageformats
-export Qt6_DIR=~/Qt/6.5.1/macos
+aqt install-qt --outputdir ~/Qt mac desktop 6.5.3 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.5.3/macos
 # and then:
 brew install spdlog glm libtiff
 
@@ -79,15 +85,15 @@ sudo make install
 
 ### For LINUX:
 
-Install Qt 6.5.1 in your directory of choice and tell the build where to find it.
+Install Qt 6.5.3 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt linux desktop 6.5.1 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir ~/Qt linux desktop 6.5.3 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
-export Qt6_DIR=~/Qt/6.5.1/gcc_64
+export Qt6_DIR=~/Qt/6.5.3/gcc_64
 ```
 
 - sudo apt install libtiff-dev

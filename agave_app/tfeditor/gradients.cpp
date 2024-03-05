@@ -371,7 +371,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   m_editor = new GradientEditor(m_histogram, this);
   mainGroupLayout->addWidget(m_editor);
 
-  auto* sectionLayout = Controls::createFormLayout();
+  auto* sectionLayout = Controls::createAgaveFormLayout();
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
   QPushButton* windowLevelButton = new QPushButton("Wnd/Lvl");
@@ -425,19 +425,19 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   mainGroupLayout->addLayout(hbox);
 
   QWidget* firstPageWidget = new QWidget;
-  auto* section0Layout = Controls::createFormLayout();
+  auto* section0Layout = Controls::createAgaveFormLayout();
   firstPageWidget->setLayout(section0Layout);
 
   QWidget* secondPageWidget = new QWidget;
-  auto* section1Layout = Controls::createFormLayout();
+  auto* section1Layout = Controls::createAgaveFormLayout();
   secondPageWidget->setLayout(section1Layout);
 
   QWidget* thirdPageWidget = new QWidget;
-  auto* section2Layout = Controls::createFormLayout();
+  auto* section2Layout = Controls::createAgaveFormLayout();
   thirdPageWidget->setLayout(section2Layout);
 
   QWidget* fourthPageWidget = new QWidget;
-  auto* section3Layout = Controls::createFormLayout();
+  auto* section3Layout = Controls::createAgaveFormLayout();
   fourthPageWidget->setLayout(section3Layout);
 
   QStackedLayout* stackedLayout = new QStackedLayout(mainGroupLayout);
@@ -475,7 +475,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   windowSlider->setToolTip(tr("Set size of range of intensities"));
   windowSlider->setRange(0.0, 1.0);
   windowSlider->setSingleStep(0.01);
-
+  windowSlider->setDecimals(3);
   windowSlider->setValue(m_gradientData->m_window);
   section0Layout->addRow("Window", windowSlider);
   QNumericSlider* levelSlider = new QNumericSlider();
@@ -483,6 +483,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   levelSlider->setToolTip(tr("Set level of mid intensity"));
   levelSlider->setRange(0.0, 1.0);
   levelSlider->setSingleStep(0.01);
+  levelSlider->setDecimals(3);
   levelSlider->setValue(m_gradientData->m_level);
   section0Layout->addRow("Level", levelSlider);
   connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
@@ -499,6 +500,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   isovalueSlider->setToolTip(tr("Set Isovalue"));
   isovalueSlider->setRange(0.0, 1.0);
   isovalueSlider->setSingleStep(0.01);
+  isovalueSlider->setDecimals(3);
   isovalueSlider->setValue(m_gradientData->m_isovalue);
   section1Layout->addRow("Isovalue", isovalueSlider);
   QNumericSlider* isorangeSlider = new QNumericSlider();
@@ -506,6 +508,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   isorangeSlider->setToolTip(tr("Set range above and below isovalue"));
   isorangeSlider->setRange(0.0, 1.0);
   isorangeSlider->setSingleStep(0.01);
+  isorangeSlider->setDecimals(3);
   isorangeSlider->setValue(m_gradientData->m_isorange);
   section1Layout->addRow("Iso-range", isorangeSlider);
   connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
@@ -522,6 +525,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctLowSlider->setToolTip(tr("Set bottom percentile"));
   pctLowSlider->setRange(0.0, 1.0);
   pctLowSlider->setSingleStep(0.01);
+  pctLowSlider->setDecimals(3);
   pctLowSlider->setValue(m_gradientData->m_pctLow);
   section2Layout->addRow("Pct Min", pctLowSlider);
   QNumericSlider* pctHighSlider = new QNumericSlider();
@@ -529,6 +533,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctHighSlider->setToolTip(tr("Set top percentile"));
   pctHighSlider->setRange(0.0, 1.0);
   pctHighSlider->setSingleStep(0.01);
+  pctHighSlider->setDecimals(3);
   pctHighSlider->setValue(m_gradientData->m_pctHigh);
   section2Layout->addRow("Pct Max", pctHighSlider);
   connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
