@@ -51,8 +51,8 @@ CitationDialog::CitationDialog()
                          "},<br/>"
                          "&nbsp;&nbsp;url       = {" +
                          agaveUrl +
-                         "}<br/>"
-                         "&nbsp;&nbsp;organization = {Allen Institute for Cell Science}<br/>"
+                         "},<br/>"
+                         "&nbsp;&nbsp;organization = {Allen Institute for Cell Science},<br/>"
                          "&nbsp;&nbsp;note      = {Computer Software}<br/>"
                          "}</tt><br/>");
   citationtext2->setFrameShape(QFrame::Panel);

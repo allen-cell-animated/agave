@@ -645,7 +645,7 @@ bibtex:
 
    @software{agave,
     author       = {Toloudis, Daniel and AGAVE Contributors},
-    title        = {AGAVE: Advanced GPU Accelerated Volume Explorer}
+    title        = {AGAVE: Advanced GPU Accelerated Volume Explorer},
     year         = {|year|},
     version      = {|release|},
     url          = {https://github.com/allen-cell-animated/agave},
