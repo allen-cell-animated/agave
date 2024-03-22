@@ -261,6 +261,8 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
 
   gesture.graphics.addCommand(GL_LINES);
 
+  glm::vec4 discPlane(camFrame.vz, -glm::dot(camFrame.vz, axis.p));
+
   float axisscale = scale * 0.85f;
   // Draw the x ring in yz plane
   {
@@ -269,7 +271,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateX) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code);
+    gesture.drawCircle(axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code, &discPlane);
   }
   // Draw the y ring in xz plane
   {
@@ -278,7 +280,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateY) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code);
+    gesture.drawCircle(axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code, &discPlane);
   }
   // Draw the z ring in xy plane
   {
@@ -287,7 +289,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateZ) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code);
+    gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code, &discPlane);
   }
 
   // Draw the camera-axis rotation manipulator as a circle always facing the view
