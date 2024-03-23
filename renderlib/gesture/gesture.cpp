@@ -248,12 +248,18 @@ private:
 };
 
 void
-Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer* selection)
+Gesture::Graphics::draw(SceneView& sceneView, SelectionBuffer* selection)
 {
   // Gesture draw spans across the entire window and it is not restricted to a single
   // viewport.
   if (this->verts.empty()) {
     clearCommands();
+
+    // TODO: do this clear only once if verts empty on consecutive frames?
+    // it would save some computation but this is really not a bottleneck here.
+    if (selection) {
+      selection->clear();
+    }
     return;
   }
 

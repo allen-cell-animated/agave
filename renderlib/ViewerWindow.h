@@ -35,8 +35,6 @@ public:
     m_activeTool = (tool ? tool : &m_defaultTool);
 
     // clear out the buffer once.
-    // we could alternatively flag this for clearing on the next update.
-    // see in update() where we check for no vertices.
     if (!tool) {
       m_selection.clear();
     }
