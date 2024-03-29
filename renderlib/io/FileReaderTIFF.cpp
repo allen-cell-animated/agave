@@ -139,7 +139,7 @@ readTiffNumScenes(TIFF* tiff, const std::string& filepath)
     LOG_WARNING << "Failed to read imagedescription of TIFF: '" << filepath << "';  interpreting as single channel.";
   }
 
-  std::string simagedescription = trim(imagedescription);
+  std::string simagedescription = trim(imagedescription ? imagedescription : "");
 
   // check for plain tiff with ImageJ imagedescription:
   if (startsWith(simagedescription, "ImageJ=")) {
@@ -246,7 +246,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   std::vector<std::string> channelNames;
   std::string dimensionOrder = "XYCZT";
 
-  std::string simagedescription = trim(imagedescription);
+  std::string simagedescription = trim(imagedescription ? imagedescription : "");
 
   // check for plain tiff with ImageJ imagedescription:
   if (startsWith(simagedescription, "ImageJ=")) {
