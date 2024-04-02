@@ -46,7 +46,7 @@ aqt install-qt --outputdir C:\Qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwe
 Use vcpkg (must use target triplet x64-windows) to install the following:
 
 ```
-vcpkg install spdlog glm zlib libjpeg-turbo tiff zstd --triplet x64-windows
+vcpkg install spdlog glm zlib tiff zstd --triplet x64-windows
 ```
 
 **Build AGAVE**
