@@ -210,7 +210,7 @@ jobs:
       - name: Publish Docs
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          token: ${{ secrets.ACCESS_TOKEN }}
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
           branch: gh-pages # The branch the action should deploy to.
           folder: docs/_build/html/ # The folder the action should deploy.
           clean: false
