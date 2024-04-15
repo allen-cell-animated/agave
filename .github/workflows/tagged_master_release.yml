@@ -104,6 +104,7 @@ jobs:
           path: ./build/agave-win.zip
 
   publish_webclient:
+    needs: cmake-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,6 +123,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
   publish_pythonclient:
+    needs: cmake-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -148,6 +150,7 @@ jobs:
           packages-dir: agave_pyclient/dist/
           verbose: true
   docs_pythonclient:
+    needs: cmake-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -182,6 +185,7 @@ jobs:
           target-folder: agave_pyclient/
           clean: false
   docs:
+    needs: cmake-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -211,8 +215,15 @@ jobs:
           folder: docs/_build/html/ # The folder the action should deploy.
           clean: false
   make-release:
+    needs:
+      [
+        cmake-build,
+        docs,
+        docs_pythonclient,
+        publish_pythonclient,
+        publish_webclient,
+      ]
     runs-on: ubuntu-latest
-    needs: cmake-build
     steps:
       # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
       # create it by ourselves. It is then made available to other steps in this job as a step.outputs
