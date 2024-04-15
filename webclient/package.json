@@ -8,6 +8,10 @@
     "es",
     "package.json"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },  
   "scripts": {
     "prepare": "npm run build",
     "build": "npm run transpileES && npm run build-types",
