@@ -73,6 +73,9 @@ public:
   void OnSetScaleX(double value);
   void OnSetScaleY(double value);
   void OnSetScaleZ(double value);
+  void OnFlipX(bool value);
+  void OnFlipY(bool value);
+  void OnFlipZ(bool value);
 
 private:
   Scene* m_scene;
@@ -95,8 +98,11 @@ private:
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
+  QCheckBox* m_xFlipCheckBox;
   QDoubleSpinner* m_yscaleSpinner;
+  QCheckBox* m_yFlipCheckBox;
   QDoubleSpinner* m_zscaleSpinner;
+  QCheckBox* m_zFlipCheckBox;
   QCheckBox m_showBoundingBoxCheckBox;
   QColorPushButton m_boundingBoxColorButton;
   QCheckBox m_showScaleBarCheckBox;

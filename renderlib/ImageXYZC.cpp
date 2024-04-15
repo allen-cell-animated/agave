@@ -26,6 +26,7 @@ ImageXYZC::ImageXYZC(uint32_t x,
   , m_scaleY(sy)
   , m_scaleZ(sz)
   , m_spatialUnits(spatialUnits)
+  , m_flipped(1.0, 1.0, 1.0)
 {
   for (uint32_t i = 0; i < m_c; ++i) {
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
@@ -79,9 +80,21 @@ ImageXYZC::maxPixelDimension() const
 void
 ImageXYZC::setPhysicalSize(float x, float y, float z)
 {
-  m_scaleX = x;
-  m_scaleY = y;
-  m_scaleZ = z;
+  m_scaleX = abs(x);
+  m_scaleY = abs(y);
+  m_scaleZ = abs(z);
+}
+
+void
+ImageXYZC::setVolumeAxesFlipped(float x, float y, float z)
+{
+  m_flipped = glm::vec3(x < 0 ? -1 : 1, y < 0 ? -1 : 1, z < 0 ? -1 : 1);
+}
+
+glm::vec3
+ImageXYZC::getVolumeAxesFlipped() const
+{
+  return m_flipped;
 }
 
 float

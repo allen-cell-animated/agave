@@ -93,6 +93,7 @@ public:
   int BREAK_STEPS;
   glm::vec3 AABB_CLIP_MIN;
   glm::vec3 AABB_CLIP_MAX;
+  glm::vec3 flipVolumeAxes;
   glm::vec2 resolution;
   float isPerspective;
   float orthoScale;
@@ -106,6 +107,6 @@ private:
   /// Vertex coordinates attribute.
   int attr_coords;
   int uModelViewMatrix, uProjectionMatrix, uDataRangeMin, uDataRangeMax, uBreakSteps, uAABBClipMin, uAABBClipMax,
-    uInverseModelViewMatrix, uCameraPosition, uResolution, uGammaMin, uGammaMax, uGammaScale, uBrightness, uDensity,
-    uMaskAlpha, uTextureAtlas, uTextureAtlasMask, uIsPerspective, uOrthoScale;
+    uFlipVolumeAxes, uInverseModelViewMatrix, uCameraPosition, uResolution, uGammaMin, uGammaMax, uGammaScale,
+    uBrightness, uDensity, uMaskAlpha, uTextureAtlas, uTextureAtlasMask, uIsPerspective, uOrthoScale;
 };

@@ -84,6 +84,7 @@ Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings*
   // axis aligned clip planes in object space
   m_image3d_shader->AABB_CLIP_MIN = scene->m_roi.GetMinP() - glm::vec3(0.5, 0.5, 0.5);
   m_image3d_shader->AABB_CLIP_MAX = scene->m_roi.GetMaxP() - glm::vec3(0.5, 0.5, 0.5);
+  m_image3d_shader->flipVolumeAxes = scene->m_volume->getVolumeAxesFlipped();
   m_image3d_shader->resolution = glm::vec2(camera.m_Film.GetWidth(), camera.m_Film.GetHeight());
   m_image3d_shader->isPerspective = (camera.m_Projection == PERSPECTIVE) ? 1.0f : 0.0f;
   m_image3d_shader->orthoScale = camera.m_OrthoScale;

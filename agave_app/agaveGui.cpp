@@ -964,7 +964,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   m_currentScene = v.datasets[0].scene;
 
-  m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
+  m_appScene.m_volume->setPhysicalSize(abs(v.scale[0]), abs(v.scale[1]), abs(v.scale[2]));
+  m_appScene.m_volume->setVolumeAxesFlipped(v.scale[0] < 0 ? -1 : 1, v.scale[1] < 0 ? -1 : 1, v.scale[2] < 0 ? -1 : 1);
 
   m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
   m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
@@ -1036,9 +1037,10 @@ agaveGui::appToViewerState()
   v.datasets.push_back(fromLoadSpec(m_loadSpec));
 
   if (m_appScene.m_volume) {
-    v.scale[0] = m_appScene.m_volume->physicalSizeX();
-    v.scale[1] = m_appScene.m_volume->physicalSizeY();
-    v.scale[2] = m_appScene.m_volume->physicalSizeZ();
+    glm::vec3 vflip = m_appScene.m_volume->getVolumeAxesFlipped();
+    v.scale[0] = m_appScene.m_volume->physicalSizeX() * vflip.x;
+    v.scale[1] = m_appScene.m_volume->physicalSizeY() * vflip.y;
+    v.scale[2] = m_appScene.m_volume->physicalSizeZ() * vflip.z;
   }
 
   v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],

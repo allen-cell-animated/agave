@@ -134,10 +134,15 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_xscaleSpinner->setDecimals(6);
   m_xscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_xscaleSpinner, 0, 1);
+  m_xFlipCheckBox = new QCheckBox("Flip");
+  m_xFlipCheckBox->setStatusTip(tr("Invert volume in X dimension"));
+  m_xFlipCheckBox->setToolTip(tr("Invert volume in X dimension"));
+  scaleSectionLayout->addWidget(m_xFlipCheckBox, 0, 2);
   QObject::connect(m_xscaleSpinner,
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleX);
+  QObject::connect(m_xFlipCheckBox, &QCheckBox::clicked, this, &QAppearanceSettingsWidget::OnFlipX);
   scaleSectionLayout->addWidget(new QLabel("Y"), 1, 0);
   m_yscaleSpinner = new QDoubleSpinner();
   m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
@@ -145,21 +150,32 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_yscaleSpinner->setDecimals(6);
   m_yscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_yscaleSpinner, 1, 1);
+  m_yFlipCheckBox = new QCheckBox("Flip");
+  m_yFlipCheckBox->setStatusTip(tr("Invert volume in Y dimension"));
+  m_yFlipCheckBox->setToolTip(tr("Invert volume in Y dimension"));
+  scaleSectionLayout->addWidget(m_yFlipCheckBox, 1, 2);
   QObject::connect(m_yscaleSpinner,
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleY);
+  QObject::connect(m_yFlipCheckBox, &QCheckBox::clicked, this, &QAppearanceSettingsWidget::OnFlipY);
   scaleSectionLayout->addWidget(new QLabel("Z"), 2, 0);
   m_zscaleSpinner = new QDoubleSpinner();
   m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setToolTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setDecimals(6);
   m_zscaleSpinner->setValue(1.0);
+  m_zscaleSpinner->setMinimum(-m_zscaleSpinner->maximum());
   scaleSectionLayout->addWidget(m_zscaleSpinner, 2, 1);
+  m_zFlipCheckBox = new QCheckBox("Flip");
+  m_zFlipCheckBox->setStatusTip(tr("Invert volume in Z dimension"));
+  m_zFlipCheckBox->setToolTip(tr("Invert volume in Z dimension"));
+  scaleSectionLayout->addWidget(m_zFlipCheckBox, 2, 2);
   QObject::connect(m_zscaleSpinner,
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleZ);
+  QObject::connect(m_zFlipCheckBox, &QCheckBox::clicked, this, &QAppearanceSettingsWidget::OnFlipZ);
 
   m_scaleSection->setContentLayout(*scaleSectionLayout);
   m_MainLayout.addRow(m_scaleSection);
@@ -367,6 +383,34 @@ QAppearanceSettingsWidget::createSkyLightingControls()
 
   section->setContentLayout(*sectionLayout);
   return section;
+}
+
+void
+QAppearanceSettingsWidget::OnFlipX(bool value)
+{
+  if (!m_scene)
+    return;
+  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
+  m_scene->m_volume->setVolumeAxesFlipped(value ? -1 : 1, v.y, v.z);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+QAppearanceSettingsWidget::OnFlipY(bool value)
+{
+  if (!m_scene)
+    return;
+  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
+  m_scene->m_volume->setVolumeAxesFlipped(v.x, value ? -1 : 1, v.z);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+QAppearanceSettingsWidget::OnFlipZ(bool value)
+{
+  if (!m_scene)
+    return;
+  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
+  m_scene->m_volume->setVolumeAxesFlipped(v.x, v.y, value ? -1 : 1);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
@@ -848,6 +892,10 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());
   m_zscaleSpinner->setValue(m_scene->m_volume->physicalSizeZ());
+  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
+  m_xFlipCheckBox->setChecked(v.x < 0);
+  m_yFlipCheckBox->setChecked(v.y < 0);
+  m_zFlipCheckBox->setChecked(v.z < 0);
 
   QColor cbbox = QColor::fromRgbF(m_scene->m_material.m_boundingBoxColor[0],
                                   m_scene->m_material.m_boundingBoxColor[1],
