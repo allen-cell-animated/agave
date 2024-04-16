@@ -20,7 +20,7 @@ And then in your Python code, import and use the :ref:`agave-renderer-label` cla
 
    from agave_pyclient import AgaveRenderer
 
-   # 1. connect to the agave server
+   # 1. connect to the AGAVE server
    r = agave_pyclient.AgaveRenderer()
    # 2. tell it what data to load
    r.load_data("my_favorite.ome.tiff", 0, 0, 0, [], [])

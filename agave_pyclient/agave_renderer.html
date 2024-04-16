@@ -1,19 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgaveRenderer &mdash; agave_pyclient 1.5.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <title>AgaveRenderer &mdash; agave_pyclient 1.6.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=acd34040"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,10 +43,63 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Overview</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">AgaveRenderer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">AgaveRenderer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.aperture"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.aperture()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.asset_path"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.asset_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.auto_threshold"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.auto_threshold()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.background_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.background_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.batch_render_rocker"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.batch_render_rocker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.batch_render_turntable"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.batch_render_turntable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.bounding_box_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.bounding_box_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.camera_projection"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.camera_projection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.density"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.density()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.enable_channel"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.enable_channel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.exposure"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.exposure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.eye"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.eye()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.focaldist"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.focaldist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.frame_scene"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.frame_scene()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.light_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.light_pos"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_pos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.light_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_data"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_ome_tif"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_ome_tif()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_volume_from_file"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_volume_from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.mat_diffuse"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_diffuse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.mat_emissive"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_emissive()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.mat_glossiness"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_glossiness()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.mat_opacity"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_opacity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.mat_specular"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_specular()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.orbit_camera"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.orbit_camera()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.redraw"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.redraw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.render_iterations"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.render_iterations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.session"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_clip_region"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_clip_region()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_control_points"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_control_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_isovalue_threshold"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_isovalue_threshold()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_percentile_threshold"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_percentile_threshold()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_primary_ray_step_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_resolution"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_resolution()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_secondary_ray_step_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_time"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_voxel_scale"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_voxel_scale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_window_level"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_window_level()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.show_bounding_box"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_bounding_box()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.show_scale_bar"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_scale_bar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.skylight_bottom_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_bottom_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.skylight_middle_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_middle_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.skylight_top_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_top_color()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.stream_mode"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.stream_mode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.target"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.target()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.trackball_camera"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.trackball_camera()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.up"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.up()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -72,20 +129,28 @@
            <div itemprop="articleBody">
              
   <section id="agaverenderer">
-<span id="agave-renderer-label"></span><h1>AgaveRenderer<a class="headerlink" href="#agaverenderer" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="agave_pyclient.agave.AgaveRenderer">
-<em class="property">class </em><code class="sig-prename descclassname">agave_pyclient.agave.</code><code class="sig-name descname">AgaveRenderer</code><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer" title="Permalink to this definition">¶</a></dt>
+<span id="agave-renderer-label"></span><h1>AgaveRenderer<a class="headerlink" href="#agaverenderer" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">agave_pyclient.agave.</span></span><span class="sig-name descname"><span class="pre">AgaveRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ws://localhost:1235/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pathtrace'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer" title="Permalink to this definition"></a></dt>
 <dd><p>AgaveRenderer communicates with AGAVE running in server mode to perform GPU volume
 rendering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – Full url to websocket server including port</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – “pathtrace” or “raymarch” (pathtrace is default)</p></li>
+</ul>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>Connect to an already running local AGAVE server instance</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">agaveclient</span> <span class="o">=</span> <span class="n">AgaveRenderer</span><span class="p">()</span>
 </pre></div>
 </div>
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.aperture">
-<code class="sig-name descname">aperture</code><span class="sig-paren">(</span><em class="sig-param">x: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.aperture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.aperture" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.aperture">
+<span class="sig-name descname"><span class="pre">aperture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.aperture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.aperture" title="Permalink to this definition"></a></dt>
 <dd><p>Set the viewer camera aperture size.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -96,9 +161,9 @@ pinhole camera.  1 means maximum defocus. Default is 0.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.asset_path">
-<code class="sig-name descname">asset_path</code><span class="sig-paren">(</span><em class="sig-param">name: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.asset_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.asset_path" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.asset_path">
+<span class="sig-name descname"><span class="pre">asset_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.asset_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.asset_path" title="Permalink to this definition"></a></dt>
 <dd><p>Sets a search path for volume files. NOT YET IMPLEMENTED.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -107,9 +172,9 @@ pinhole camera.  1 means maximum defocus. Default is 0.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.auto_threshold">
-<code class="sig-name descname">auto_threshold</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">method: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.auto_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.auto_threshold" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.auto_threshold">
+<span class="sig-name descname"><span class="pre">auto_threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.auto_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.auto_threshold" title="Permalink to this definition"></a></dt>
 <dd><p>Automatically determine the intensity thresholds</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -126,9 +191,9 @@ pinhole camera.  1 means maximum defocus. Default is 0.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.background_color">
-<code class="sig-name descname">background_color</code><span class="sig-paren">(</span><em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.background_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.background_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.background_color">
+<span class="sig-name descname"><span class="pre">background_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.background_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.background_color" title="Permalink to this definition"></a></dt>
 <dd><p>Set the background color of the rendering</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -141,9 +206,9 @@ pinhole camera.  1 means maximum defocus. Default is 0.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.batch_render_rocker">
-<code class="sig-name descname">batch_render_rocker</code><span class="sig-paren">(</span><em class="sig-param">number_of_frames=90</em>, <em class="sig-param">angle=30</em>, <em class="sig-param">direction=1</em>, <em class="sig-param">output_name='frame'</em>, <em class="sig-param">first_frame=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.batch_render_rocker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.batch_render_rocker" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.batch_render_rocker">
+<span class="sig-name descname"><span class="pre">batch_render_rocker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number_of_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'frame'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.batch_render_rocker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.batch_render_rocker" title="Permalink to this definition"></a></dt>
 <dd><p>Loop to render a rocker sequence, an oscillating partial rotation about the
 vertical axis.  Other commands must have been previously issued to load the
 data and set all the viewing parameters.</p>
@@ -161,9 +226,9 @@ automatically appended</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.batch_render_turntable">
-<code class="sig-name descname">batch_render_turntable</code><span class="sig-paren">(</span><em class="sig-param">number_of_frames=90</em>, <em class="sig-param">direction=1</em>, <em class="sig-param">output_name='frame'</em>, <em class="sig-param">first_frame=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.batch_render_turntable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.batch_render_turntable" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.batch_render_turntable">
+<span class="sig-name descname"><span class="pre">batch_render_turntable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number_of_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'frame'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.batch_render_turntable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.batch_render_turntable" title="Permalink to this definition"></a></dt>
 <dd><p>Loop to render a turntable sequence, a 360 degree rotation about the vertical
 axis.  Other commands must have been previously issued to load the data and set
 all the viewing parameters.</p>
@@ -180,9 +245,9 @@ automatically appended</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.bounding_box_color">
-<code class="sig-name descname">bounding_box_color</code><span class="sig-paren">(</span><em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.bounding_box_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.bounding_box_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.bounding_box_color">
+<span class="sig-name descname"><span class="pre">bounding_box_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.bounding_box_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.bounding_box_color" title="Permalink to this definition"></a></dt>
 <dd><p>Set the color for the bounding box display</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -195,9 +260,9 @@ automatically appended</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.camera_projection">
-<code class="sig-name descname">camera_projection</code><span class="sig-paren">(</span><em class="sig-param">projection_type: int</em>, <em class="sig-param">x: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.camera_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.camera_projection" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.camera_projection">
+<span class="sig-name descname"><span class="pre">camera_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projection_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.camera_projection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.camera_projection" title="Permalink to this definition"></a></dt>
 <dd><p>Set the viewer camera projection type, along with a relevant parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -211,9 +276,9 @@ Default: 55.0 degrees. (default Orthographic scale is 0.5)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.density">
-<code class="sig-name descname">density</code><span class="sig-paren">(</span><em class="sig-param">x: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.density" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.density">
+<span class="sig-name descname"><span class="pre">density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.density" title="Permalink to this definition"></a></dt>
 <dd><p>Set the scattering density.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -223,9 +288,9 @@ more opaque. Default is 8.5, which is relatively transparent.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.enable_channel">
-<code class="sig-name descname">enable_channel</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">enabled: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.enable_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.enable_channel" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.enable_channel">
+<span class="sig-name descname"><span class="pre">enable_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.enable_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.enable_channel" title="Permalink to this definition"></a></dt>
 <dd><p>Show or hide a given channel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -237,9 +302,9 @@ more opaque. Default is 8.5, which is relatively transparent.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.exposure">
-<code class="sig-name descname">exposure</code><span class="sig-paren">(</span><em class="sig-param">x: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.exposure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.exposure" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.exposure">
+<span class="sig-name descname"><span class="pre">exposure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.exposure" title="Permalink to this definition"></a></dt>
 <dd><p>Set the exposure level</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -249,9 +314,9 @@ brighter.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.eye">
-<code class="sig-name descname">eye</code><span class="sig-paren">(</span><em class="sig-param">x: float</em>, <em class="sig-param">y: float</em>, <em class="sig-param">z: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.eye"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.eye" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.eye">
+<span class="sig-name descname"><span class="pre">eye</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.eye"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.eye" title="Permalink to this definition"></a></dt>
 <dd><p>Set the viewer camera position.
 Default is (500,500,500).</p>
 <dl class="field-list simple">
@@ -265,9 +330,9 @@ Default is (500,500,500).</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.focaldist">
-<code class="sig-name descname">focaldist</code><span class="sig-paren">(</span><em class="sig-param">x: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.focaldist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.focaldist" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.focaldist">
+<span class="sig-name descname"><span class="pre">focaldist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.focaldist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.focaldist" title="Permalink to this definition"></a></dt>
 <dd><p>Set the viewer camera focal distance</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -276,16 +341,16 @@ Default is (500,500,500).</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.frame_scene">
-<code class="sig-name descname">frame_scene</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.frame_scene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.frame_scene" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.frame_scene">
+<span class="sig-name descname"><span class="pre">frame_scene</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.frame_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.frame_scene" title="Permalink to this definition"></a></dt>
 <dd><p>Automatically set camera parameters so that the volume fills the view.
 Useful when you have insufficient information to position the camera accurately.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.light_color">
-<code class="sig-name descname">light_color</code><span class="sig-paren">(</span><em class="sig-param">index: int</em>, <em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.light_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.light_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.light_color">
+<span class="sig-name descname"><span class="pre">light_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.light_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.light_color" title="Permalink to this definition"></a></dt>
 <dd><p>Set the color of an area light. Overdrive the values higher than 1 to increase
 the light’s intensity.</p>
 <dl class="field-list simple">
@@ -300,9 +365,9 @@ the light’s intensity.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.light_pos">
-<code class="sig-name descname">light_pos</code><span class="sig-paren">(</span><em class="sig-param">index: int</em>, <em class="sig-param">r: float</em>, <em class="sig-param">theta: float</em>, <em class="sig-param">phi: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.light_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.light_pos" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.light_pos">
+<span class="sig-name descname"><span class="pre">light_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.light_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.light_pos" title="Permalink to this definition"></a></dt>
 <dd><p>Set the position of an area light, in spherical coordinates</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -316,9 +381,9 @@ the light’s intensity.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.light_size">
-<code class="sig-name descname">light_size</code><span class="sig-paren">(</span><em class="sig-param">index: int</em>, <em class="sig-param">x: float</em>, <em class="sig-param">y: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.light_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.light_size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.light_size">
+<span class="sig-name descname"><span class="pre">light_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.light_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.light_size" title="Permalink to this definition"></a></dt>
 <dd><p>Set the size dimensions of a rectangular area light.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -331,9 +396,9 @@ the light’s intensity.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.load_data">
-<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">path: str</em>, <em class="sig-param">scene: int = 0</em>, <em class="sig-param">multiresolution_level: int = 0</em>, <em class="sig-param">time: int = 0</em>, <em class="sig-param">channels: List[int] = []</em>, <em class="sig-param">region: List[int] = []</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_data" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.load_data">
+<span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiresolution_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_data" title="Permalink to this definition"></a></dt>
 <dd><p>Completely specify volume data to load</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -351,21 +416,21 @@ Any list length other than 0 or 6 is an error.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.load_ome_tif">
-<code class="sig-name descname">load_ome_tif</code><span class="sig-paren">(</span><em class="sig-param">name: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_ome_tif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_ome_tif" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.load_ome_tif">
+<span class="sig-name descname"><span class="pre">load_ome_tif</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_ome_tif"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_ome_tif" title="Permalink to this definition"></a></dt>
 <dd><p>DEPRECATED. Use load_data</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.load_volume_from_file">
-<code class="sig-name descname">load_volume_from_file</code><span class="sig-paren">(</span><em class="sig-param">path: str</em>, <em class="sig-param">scene: int</em>, <em class="sig-param">time: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_volume_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_volume_from_file" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.load_volume_from_file">
+<span class="sig-name descname"><span class="pre">load_volume_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_volume_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_volume_from_file" title="Permalink to this definition"></a></dt>
 <dd><p>DEPRECATED. Use load_data</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.mat_diffuse">
-<code class="sig-name descname">mat_diffuse</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em>, <em class="sig-param">a: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_diffuse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_diffuse" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.mat_diffuse">
+<span class="sig-name descname"><span class="pre">mat_diffuse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_diffuse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_diffuse" title="Permalink to this definition"></a></dt>
 <dd><p>Set the diffuse color of a channel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -380,9 +445,9 @@ Any list length other than 0 or 6 is an error.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.mat_emissive">
-<code class="sig-name descname">mat_emissive</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em>, <em class="sig-param">a: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_emissive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_emissive" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.mat_emissive">
+<span class="sig-name descname"><span class="pre">mat_emissive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_emissive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_emissive" title="Permalink to this definition"></a></dt>
 <dd><p>Set the emissive color of a channel (defaults to black, for no emission)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -397,9 +462,9 @@ Any list length other than 0 or 6 is an error.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.mat_glossiness">
-<code class="sig-name descname">mat_glossiness</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">glossiness: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_glossiness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_glossiness" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.mat_glossiness">
+<span class="sig-name descname"><span class="pre">mat_glossiness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">glossiness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_glossiness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_glossiness" title="Permalink to this definition"></a></dt>
 <dd><p>Set the channel’s glossiness.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -411,9 +476,9 @@ Any list length other than 0 or 6 is an error.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.mat_opacity">
-<code class="sig-name descname">mat_opacity</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">opacity: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_opacity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_opacity" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.mat_opacity">
+<span class="sig-name descname"><span class="pre">mat_opacity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_opacity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_opacity" title="Permalink to this definition"></a></dt>
 <dd><p>Set channel opacity. This is a multiplier against all intensity values in the
 channel.</p>
 <dl class="field-list simple">
@@ -426,9 +491,9 @@ channel.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.mat_specular">
-<code class="sig-name descname">mat_specular</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em>, <em class="sig-param">a: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_specular"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_specular" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.mat_specular">
+<span class="sig-name descname"><span class="pre">mat_specular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.mat_specular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.mat_specular" title="Permalink to this definition"></a></dt>
 <dd><p>Set the specular color of a channel (defaults to black, for no specular
 response)</p>
 <dl class="field-list simple">
@@ -444,9 +509,9 @@ response)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.orbit_camera">
-<code class="sig-name descname">orbit_camera</code><span class="sig-paren">(</span><em class="sig-param">theta: float</em>, <em class="sig-param">phi: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.orbit_camera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.orbit_camera" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.orbit_camera">
+<span class="sig-name descname"><span class="pre">orbit_camera</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.orbit_camera"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.orbit_camera" title="Permalink to this definition"></a></dt>
 <dd><p>Rotate the camera around the volume by angle deltas</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -458,18 +523,18 @@ response)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.redraw">
-<code class="sig-name descname">redraw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.redraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.redraw" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.redraw">
+<span class="sig-name descname"><span class="pre">redraw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.redraw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.redraw" title="Permalink to this definition"></a></dt>
 <dd><p>Tell the server to process all commands and return an image, and then save the
 image.  This function will block and wait for the image to be returned.
 The image returned will be saved automatically using the session_name.
 TODO: a timeout is not yet implemented.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.render_iterations">
-<code class="sig-name descname">render_iterations</code><span class="sig-paren">(</span><em class="sig-param">x: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.render_iterations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.render_iterations" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.render_iterations">
+<span class="sig-name descname"><span class="pre">render_iterations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.render_iterations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.render_iterations" title="Permalink to this definition"></a></dt>
 <dd><p>Set the number of paths per pixel to accumulate.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -478,9 +543,9 @@ TODO: a timeout is not yet implemented.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.session">
-<code class="sig-name descname">session</code><span class="sig-paren">(</span><em class="sig-param">name: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.session" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.session">
+<span class="sig-name descname"><span class="pre">session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.session" title="Permalink to this definition"></a></dt>
 <dd><p>Set the current session name.  Use the full path to the name of the output
 image here.</p>
 <dl class="field-list simple">
@@ -491,9 +556,9 @@ Make sure the directory has already been created.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_clip_region">
-<code class="sig-name descname">set_clip_region</code><span class="sig-paren">(</span><em class="sig-param">minx: float</em>, <em class="sig-param">maxx: float</em>, <em class="sig-param">miny: float</em>, <em class="sig-param">maxy: float</em>, <em class="sig-param">minz: float</em>, <em class="sig-param">maxz: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_clip_region"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_clip_region" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_clip_region">
+<span class="sig-name descname"><span class="pre">set_clip_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">miny</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_clip_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_clip_region" title="Permalink to this definition"></a></dt>
 <dd><p>Set the axis aligned region of interest of the volume. All axis values are
 relative, where 0 is one extent of the volume and 1 is the opposite extent.
 For example, (0,1, 0,1, 0,0.5) will select the lower half of the volume’s z
@@ -512,9 +577,9 @@ slices.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_control_points">
-<code class="sig-name descname">set_control_points</code><span class="sig-paren">(</span><em class="sig-param">channel: int, data: List[float]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_control_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_control_points" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_control_points">
+<span class="sig-name descname"><span class="pre">set_control_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_control_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_control_points" title="Permalink to this definition"></a></dt>
 <dd><p>Set intensity thresholds based on a piecewise linear transfer function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -528,9 +593,9 @@ intensity value.  All others are linearly interpolated.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_isovalue_threshold">
-<code class="sig-name descname">set_isovalue_threshold</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">isovalue: float</em>, <em class="sig-param">isorange: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_isovalue_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_isovalue_threshold" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_isovalue_threshold">
+<span class="sig-name descname"><span class="pre">set_isovalue_threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isovalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isorange</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_isovalue_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_isovalue_threshold" title="Permalink to this definition"></a></dt>
 <dd><p>Set intensity thresholds based on values around an isovalue.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -544,9 +609,9 @@ Typically small, to select for a single isovalue.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_percentile_threshold">
-<code class="sig-name descname">set_percentile_threshold</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">pct_low: float</em>, <em class="sig-param">pct_high: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_percentile_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_percentile_threshold" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_percentile_threshold">
+<span class="sig-name descname"><span class="pre">set_percentile_threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pct_low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pct_high</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_percentile_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_percentile_threshold" title="Permalink to this definition"></a></dt>
 <dd><p>Set intensity thresholds based on percentiles of pixels to clip min and max
 intensity</p>
 <dl class="field-list simple">
@@ -560,9 +625,9 @@ intensity</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size">
-<code class="sig-name descname">set_primary_ray_step_size</code><span class="sig-paren">(</span><em class="sig-param">step_size: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_primary_ray_step_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size">
+<span class="sig-name descname"><span class="pre">set_primary_ray_step_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_primary_ray_step_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size" title="Permalink to this definition"></a></dt>
 <dd><p>Set primary ray step size. This is an accuracy versus speed tradeoff.  Low
 values are more accurate. High values will render faster.
 Primary rays are the rays that are cast from the camera out into the volume.</p>
@@ -573,9 +638,9 @@ Primary rays are the rays that are cast from the camera out into the volume.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_resolution">
-<code class="sig-name descname">set_resolution</code><span class="sig-paren">(</span><em class="sig-param">x: int</em>, <em class="sig-param">y: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_resolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_resolution" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_resolution">
+<span class="sig-name descname"><span class="pre">set_resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_resolution" title="Permalink to this definition"></a></dt>
 <dd><p>Set the image resolution in pixels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -587,9 +652,9 @@ Primary rays are the rays that are cast from the camera out into the volume.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size">
-<code class="sig-name descname">set_secondary_ray_step_size</code><span class="sig-paren">(</span><em class="sig-param">step_size: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_secondary_ray_step_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size">
+<span class="sig-name descname"><span class="pre">set_secondary_ray_step_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_secondary_ray_step_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size" title="Permalink to this definition"></a></dt>
 <dd><p>Set secondary ray step size. This is an accuracy versus speed tradeoff.  Low
 values are more accurate. High values will render faster.
 The secondary rays are rays which are cast toward lights after they have
@@ -601,9 +666,9 @@ scattered within the volume.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_time">
-<code class="sig-name descname">set_time</code><span class="sig-paren">(</span><em class="sig-param">time: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_time" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_time">
+<span class="sig-name descname"><span class="pre">set_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_time" title="Permalink to this definition"></a></dt>
 <dd><p>Load a time from the current volume file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -612,9 +677,9 @@ scattered within the volume.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_voxel_scale">
-<code class="sig-name descname">set_voxel_scale</code><span class="sig-paren">(</span><em class="sig-param">x: float</em>, <em class="sig-param">y: float</em>, <em class="sig-param">z: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_voxel_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_voxel_scale" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_voxel_scale">
+<span class="sig-name descname"><span class="pre">set_voxel_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_voxel_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_voxel_scale" title="Permalink to this definition"></a></dt>
 <dd><p>Set the relative scale of the pixels in the volume. Typically this is filled in
 with the physical pixel dimensions from the microscope metadata.  Often the x
 and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
@@ -629,9 +694,9 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.set_window_level">
-<code class="sig-name descname">set_window_level</code><span class="sig-paren">(</span><em class="sig-param">channel: int</em>, <em class="sig-param">window: float</em>, <em class="sig-param">level: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_window_level"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_window_level" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_window_level">
+<span class="sig-name descname"><span class="pre">set_window_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_window_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_window_level" title="Permalink to this definition"></a></dt>
 <dd><p>Set intensity threshold for a given channel based on Window/Level</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -644,9 +709,9 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.show_bounding_box">
-<code class="sig-name descname">show_bounding_box</code><span class="sig-paren">(</span><em class="sig-param">on: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.show_bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.show_bounding_box" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.show_bounding_box">
+<span class="sig-name descname"><span class="pre">show_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.show_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.show_bounding_box" title="Permalink to this definition"></a></dt>
 <dd><p>Turn bounding box display on or off</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -655,9 +720,20 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.skylight_bottom_color">
-<code class="sig-name descname">skylight_bottom_color</code><span class="sig-paren">(</span><em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.skylight_bottom_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.skylight_bottom_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.show_scale_bar">
+<span class="sig-name descname"><span class="pre">show_scale_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.show_scale_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.show_scale_bar" title="Permalink to this definition"></a></dt>
+<dd><p>Turn scale bar display on or off</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>on</strong> (<em>int</em>) – 0 to hide scale bar, 1 to show it</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.skylight_bottom_color">
+<span class="sig-name descname"><span class="pre">skylight_bottom_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.skylight_bottom_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.skylight_bottom_color" title="Permalink to this definition"></a></dt>
 <dd><p>Set the “south pole” color of the sky sphere</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -670,9 +746,9 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.skylight_middle_color">
-<code class="sig-name descname">skylight_middle_color</code><span class="sig-paren">(</span><em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.skylight_middle_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.skylight_middle_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.skylight_middle_color">
+<span class="sig-name descname"><span class="pre">skylight_middle_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.skylight_middle_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.skylight_middle_color" title="Permalink to this definition"></a></dt>
 <dd><p>Set the “equator” color of the sky sphere</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -685,9 +761,9 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.skylight_top_color">
-<code class="sig-name descname">skylight_top_color</code><span class="sig-paren">(</span><em class="sig-param">r: float</em>, <em class="sig-param">g: float</em>, <em class="sig-param">b: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.skylight_top_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.skylight_top_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.skylight_top_color">
+<span class="sig-name descname"><span class="pre">skylight_top_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.skylight_top_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.skylight_top_color" title="Permalink to this definition"></a></dt>
 <dd><p>Set the “north pole” color of the sky sphere</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -700,9 +776,9 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.stream_mode">
-<code class="sig-name descname">stream_mode</code><span class="sig-paren">(</span><em class="sig-param">x: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.stream_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.stream_mode" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.stream_mode">
+<span class="sig-name descname"><span class="pre">stream_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.stream_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.stream_mode" title="Permalink to this definition"></a></dt>
 <dd><p>Turn stream mode on or off.  Stream mode will send an image back to the client
 on each iteration up to some server-defined amount.  This mode is useful for
 interactive client-server applications but not for batch-mode offline rendering.</p>
@@ -713,9 +789,9 @@ interactive client-server applications but not for batch-mode offline rendering.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.target">
-<code class="sig-name descname">target</code><span class="sig-paren">(</span><em class="sig-param">x: float</em>, <em class="sig-param">y: float</em>, <em class="sig-param">z: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.target" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.target">
+<span class="sig-name descname"><span class="pre">target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.target"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.target" title="Permalink to this definition"></a></dt>
 <dd><p>Set the viewer target position. This is a point toward which we are looking.
 Default is (0,0,0).</p>
 <dl class="field-list simple">
@@ -729,9 +805,9 @@ Default is (0,0,0).</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.trackball_camera">
-<code class="sig-name descname">trackball_camera</code><span class="sig-paren">(</span><em class="sig-param">theta: float</em>, <em class="sig-param">phi: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.trackball_camera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.trackball_camera" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.trackball_camera">
+<span class="sig-name descname"><span class="pre">trackball_camera</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.trackball_camera"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.trackball_camera" title="Permalink to this definition"></a></dt>
 <dd><p>Rotate the camera around the volume by angle deltas</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -743,9 +819,9 @@ Default is (0,0,0).</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="agave_pyclient.agave.AgaveRenderer.up">
-<code class="sig-name descname">up</code><span class="sig-paren">(</span><em class="sig-param">x: float</em>, <em class="sig-param">y: float</em>, <em class="sig-param">z: float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.up" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.up">
+<span class="sig-name descname"><span class="pre">up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.up" title="Permalink to this definition"></a></dt>
 <dd><p>Set the viewer camera up direction.  This is a vector which should be nearly
 perpendicular to the view direction (target-eye), and defines the “roll” amount
 for the camera.
