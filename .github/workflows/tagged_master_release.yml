@@ -175,7 +175,6 @@ jobs:
       - name: Publish Docs
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          token: ${{ secrets.ACCESS_TOKEN }}
           branch: gh-pages # The branch the action should deploy to.
           folder: docs/_build/html/ # The folder the action should deploy.
           clean: false
@@ -209,7 +208,6 @@ jobs:
       - name: Publish Docs
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          token: ${{ secrets.ACCESS_TOKEN }}
           branch: gh-pages # The branch the action should deploy to.
           folder: agave_pyclient/docs/_build/html/ # The folder the action should deploy.
           target-folder: agave_pyclient/
