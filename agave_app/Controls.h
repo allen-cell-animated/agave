@@ -193,11 +193,11 @@ private:
   QSlider m_slider;
 };
 
-class MyFormLayout : public QGridLayout
+class AgaveFormLayout : public QGridLayout
 {
   Q_OBJECT
 public:
-  MyFormLayout(QWidget* parent = nullptr)
+  AgaveFormLayout(QWidget* parent = nullptr)
     : QGridLayout(parent)
   {
   }
@@ -211,7 +211,7 @@ public:
   static QFormLayout* createFormLayout(QWidget* parent = nullptr);
   static void initFormLayout(QFormLayout& layout);
 
-  static MyFormLayout* createMyFormLayout(QWidget* parent = nullptr);
+  static AgaveFormLayout* createAgaveFormLayout(QWidget* parent = nullptr);
 };
 
 /**

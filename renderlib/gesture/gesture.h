@@ -397,7 +397,7 @@ struct Gesture
 
     // Gesture draw, called once per window update (frame) when the GUI draw commands
     // had been described in full.
-    void draw(struct SceneView& sceneView, const struct SelectionBuffer* selection);
+    void draw(struct SceneView& sceneView, struct SelectionBuffer* selection);
 
     // Pick a GUI element using the cursor position in Input.
     // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
@@ -424,7 +424,8 @@ struct Gesture
                   uint32_t numSegments,
                   glm::vec3 color,
                   float opacity,
-                  uint32_t code);
+                  uint32_t code,
+                  glm::vec4* clipPlane = nullptr);
 
   // does not draw a flat base
   void drawCone(glm::vec3 base,

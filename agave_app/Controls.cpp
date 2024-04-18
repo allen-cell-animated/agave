@@ -520,7 +520,7 @@ QIntSlider::setTracking(bool enabled)
 }
 
 void
-MyFormLayout::addRow(const QString& label, QWidget* widget)
+AgaveFormLayout::addRow(const QString& label, QWidget* widget)
 {
   int row = rowCount();
   auto* labelWidget = new QLabel(label);
@@ -530,7 +530,7 @@ MyFormLayout::addRow(const QString& label, QWidget* widget)
 }
 
 void
-MyFormLayout::addRow(const QString& label, QLayout* layout)
+AgaveFormLayout::addRow(const QString& label, QLayout* layout)
 {
   int row = rowCount();
   auto* labelWidget = new QLabel(label);
@@ -556,10 +556,10 @@ Controls::initFormLayout(QFormLayout& layout)
   layout.setLabelAlignment(Qt::AlignRight);
 }
 
-MyFormLayout*
-Controls::createMyFormLayout(QWidget* parent)
+AgaveFormLayout*
+Controls::createAgaveFormLayout(QWidget* parent)
 {
-  MyFormLayout* layout = new MyFormLayout(parent);
+  AgaveFormLayout* layout = new AgaveFormLayout(parent);
   // basically keep the label column a fixed width and let the widget column grow
   layout->setColumnStretch(0, 1);
   layout->setColumnStretch(1, 100);

@@ -248,12 +248,18 @@ private:
 };
 
 void
-Gesture::Graphics::draw(SceneView& sceneView, const SelectionBuffer* selection)
+Gesture::Graphics::draw(SceneView& sceneView, SelectionBuffer* selection)
 {
   // Gesture draw spans across the entire window and it is not restricted to a single
   // viewport.
   if (this->verts.empty()) {
     clearCommands();
+
+    // TODO: do this clear only once if verts empty on consecutive frames?
+    // it would save some computation but this is really not a bottleneck here.
+    if (selection) {
+      selection->clear();
+    }
     return;
   }
 
@@ -616,7 +622,8 @@ Gesture::drawCircle(glm::vec3 center,
                     uint32_t numSegments,
                     glm::vec3 color,
                     float opacity,
-                    uint32_t code)
+                    uint32_t code,
+                    glm::vec4* clipPlane)
 {
   for (int i = 0; i < numSegments; ++i) {
     float t0 = float(i) / float(numSegments);
@@ -628,8 +635,15 @@ Gesture::drawCircle(glm::vec3 center,
     glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
     glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
 
-    graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
-                     Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    if (clipPlane) {
+      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
+        graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                         Gesture::Graphics::VertsCode(p1, color, opacity, code));
+      }
+    } else {
+      graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                       Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    }
   }
 }
 
