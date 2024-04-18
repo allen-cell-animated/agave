@@ -407,6 +407,8 @@ public:
     QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
 
     painter.drawRect(r.adjusted(0, 0, -1, -1));
+    // const QString& text = itemData(currentIndex(), Qt::ToolTipRole).toString();
+    painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter, itemText(currentIndex()));
   }
 };
 
@@ -430,6 +432,10 @@ makeGradientCombo()
     cb->setItemData(index, brush, Qt::BackgroundRole);
     index++;
   }
+  cb->addItem("Labels", QVariant("Labels"));
+  cb->setItemData(index, QVariant("Labels"), Qt::ToolTipRole);
+  QBrush brush;
+  cb->setItemData(index, brush, Qt::BackgroundRole);
   return cb;
 }
 
@@ -1393,9 +1399,19 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       std::string name = gradients->itemData(index).toString().toStdString();
       LOG_DEBUG << "Selected gradient " << index << " (" << name << ") for channel " << i;
 
-      auto colormap = builtInGradients[index].second;
-      // update channel colormap from stops
-      this->OnUpdateColormap(i, colormap);
+      if (name == "Labels") {
+        if (m_scene) {
+          m_scene->m_volume->channel((uint32_t)i)->colorize();
+
+          // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
+          m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+        }
+
+      } else {
+        auto colormap = builtInGradients[index].second;
+        // update channel colormap from stops
+        this->OnUpdateColormap(i, colormap);
+      }
     });
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();

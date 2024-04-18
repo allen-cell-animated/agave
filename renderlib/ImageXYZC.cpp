@@ -212,6 +212,12 @@ Channelu16::updateColormap(std::vector<ColorControlPoint> stops)
   delete[] m_colormap;
   m_colormap = colormapFromControlPoints(stops);
 }
+void
+Channelu16::colorize()
+{
+  delete[] m_colormap;
+  m_colormap = colormapRandomized();
+}
 
 Channelu16::~Channelu16()
 {
