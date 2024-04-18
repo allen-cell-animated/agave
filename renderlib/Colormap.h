@@ -62,6 +62,8 @@ struct ColorControlPoint
 
 uint8_t*
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length = 256);
+uint8_t*
+colormapRandomized(size_t length = 256);
 
 std::vector<ColorControlPoint>
 stringListToGradient(const std::vector<std::string>& colors);

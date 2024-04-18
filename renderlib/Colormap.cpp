@@ -1,5 +1,7 @@
 #include "Colormap.h"
 
+#include <QColor>
+
 uint8_t*
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 {
@@ -40,4 +42,22 @@ stringListToGradient(const std::vector<std::string>& colors)
     stops.push_back(ColorControlPoint(i / (n - 1.0f), colors[i]));
   }
   return stops;
+}
+
+uint8_t*
+colormapRandomized(size_t length)
+{
+  uint8_t* lut = new uint8_t[length * 4]{ 0 };
+
+  float r, g, b;
+  for (size_t x = 0; x < length; ++x) {
+    QColor color = QColor::fromHsvF(
+      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.5 + 0.5, (float)rand() / RAND_MAX * 0.5 + 0.5);
+    color.getRgbF(&r, &g, &b);
+    lut[x * 4 + 0] = r * 255;
+    lut[x * 4 + 1] = g * 255;
+    lut[x * 4 + 2] = b * 255;
+    lut[x * 4 + 3] = 255;
+  }
+  return lut;
 }
