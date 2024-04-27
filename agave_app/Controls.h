@@ -7,6 +7,7 @@
 #include <QFormLayout>
 #include <QFrame>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -110,7 +111,6 @@ class QDoubleSpinner : public QDoubleSpinBox
 public:
   QDoubleSpinner(QWidget* pParent = NULL);
 
-  virtual QSize sizeHint() const;
   void setValue(double Value, bool BlockSignals = false);
 
 protected:
@@ -122,6 +122,8 @@ class QNumericSlider : public QWidget
   Q_OBJECT
 public:
   QNumericSlider(QWidget* pParent = NULL);
+
+  virtual QSize sizeHint() const;
 
   double value(void) const;
   void setValue(double value, bool BlockSignals = false);
@@ -139,7 +141,7 @@ signals:
   void valueChanged(double value);
 
 private:
-  QGridLayout m_layout;
+  QHBoxLayout m_layout;
   QDoubleSpinner m_spinner;
   QDoubleSlider m_slider;
 };
@@ -191,22 +193,25 @@ private:
   QSlider m_slider;
 };
 
+class AgaveFormLayout : public QGridLayout
+{
+  Q_OBJECT
+public:
+  AgaveFormLayout(QWidget* parent = nullptr)
+    : QGridLayout(parent)
+  {
+  }
+  void addRow(const QString& label, QWidget* widget);
+  void addRow(const QString& label, QLayout* layout);
+};
+
 class Controls
 {
 public:
-  static QFormLayout* createFormLayout(QWidget* parent = nullptr)
-  {
-    QFormLayout* layout = new QFormLayout(parent);
-    initFormLayout(*layout);
-    return layout;
-  }
-  static void initFormLayout(QFormLayout& layout)
-  {
-    layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
-    layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    layout.setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-    layout.setLabelAlignment(Qt::AlignLeft);
-  }
+  static QFormLayout* createFormLayout(QWidget* parent = nullptr);
+  static void initFormLayout(QFormLayout& layout);
+
+  static AgaveFormLayout* createAgaveFormLayout(QWidget* parent = nullptr);
 };
 
 /**

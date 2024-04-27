@@ -35,6 +35,11 @@ public:
     }
     m_activeTool = (tool ? tool : &m_defaultTool);
 
+    // clear out the buffer once.
+    if (!tool) {
+      m_selection.clear();
+    }
+
     // Todo: this could be replaced with a push/pop mechanism to allow
     //       the completion of a tool to restore a previous state.
   }
@@ -44,8 +49,9 @@ public:
   template<typename Fn>
   void forEachTool(Fn fn)
   {
-    for (ManipulationTool* tool : m_tools)
+    for (ManipulationTool* tool : m_tools) {
       fn(tool);
+    }
     fn(m_activeTool);
   }
 

@@ -19,7 +19,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: 6.5.1
+          version: 6.5.3
           modules: qtwebsockets qtimageformats
       - name: macos install deps
         if: matrix.os == 'macos-latest'
@@ -104,6 +104,7 @@ jobs:
           path: ./build/agave-win.zip
 
   publish_webclient:
+    needs: cmake-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,6 +123,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
   publish_pythonclient:
+    needs: cmake-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -147,7 +149,37 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
           packages-dir: agave_pyclient/dist/
           verbose: true
+  docs:
+    needs: cmake-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+          pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          build-command: "make latexpdf"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DocumentationHTML
+          path: docs/_build/html/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DocumentationPDF
+          path: docs/_build/latex/agave.pdf
+      - name: Publish Docs
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs/_build/html/ # The folder the action should deploy.
+          clean: false
   docs_pythonclient:
+    needs: [cmake-build, docs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -176,43 +208,20 @@ jobs:
       - name: Publish Docs
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          token: ${{ secrets.ACCESS_TOKEN }}
           branch: gh-pages # The branch the action should deploy to.
           folder: agave_pyclient/docs/_build/html/ # The folder the action should deploy.
           target-folder: agave_pyclient/
           clean: false
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: "recursive"
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-          pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
-          build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: DocumentationHTML
-          path: docs/_build/html/
-      - uses: actions/upload-artifact@v4
-        with:
-          name: DocumentationPDF
-          path: docs/_build/latex/agave.pdf
-      - name: Publish Docs
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          branch: gh-pages # The branch the action should deploy to.
-          folder: docs/_build/html/ # The folder the action should deploy.
-          clean: false
   make-release:
+    needs:
+      [
+        cmake-build,
+        docs,
+        docs_pythonclient,
+        publish_pythonclient,
+        publish_webclient,
+      ]
     runs-on: ubuntu-latest
-    needs: cmake-build
     steps:
       # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
       # create it by ourselves. It is then made available to other steps in this job as a step.outputs

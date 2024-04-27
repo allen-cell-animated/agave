@@ -5,8 +5,9 @@
 #include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
-#include "streamserver.h"
 #include "renderlib_wgpu/renderlib_wgpu.h"
+#include "streamserver.h"
+
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -98,6 +99,7 @@ main(int argc, char* argv[])
 
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  QApplication::setStyle("fusion");
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QApplication a(argc, argv);
   a.setOrganizationName("Allen Institute for Cell Science");

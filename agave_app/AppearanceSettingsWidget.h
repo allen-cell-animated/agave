@@ -126,6 +126,7 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
-  Section* createLightingControls(QAction* pLightRotationAction);
+  Section* createSkyLightingControls();
+  Section* createAreaLightingControls(QAction* pLightRotationAction);
   void initLightingControls(Scene* scene);
 };

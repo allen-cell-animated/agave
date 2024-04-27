@@ -126,6 +126,7 @@ cameraManipulationDolly(const glm::vec2 viewportSize,
     camera.m_From += motion;
     camera.m_Target += targetMotion;
     camera.m_OrthoScale *= factor;
+    camera.Update();
 
     // Consume gesture on button release
     Gesture::Input::reset(button);

@@ -1,6 +1,6 @@
 {
   "name": "@aics/agave-webclient",
-  "version": "1.5.0",
+  "version": "1.6.4",
   "description": "client library for using agave as remote rendering server",
   "main": "es/index.js",
   "module": "es/index.js",
@@ -8,6 +8,10 @@
     "es",
     "package.json"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },  
   "scripts": {
     "prepare": "npm run build",
     "build": "npm run transpileES && npm run build-types",

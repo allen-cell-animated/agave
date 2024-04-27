@@ -1,6 +1,7 @@
 #include "Controls.h"
 
 #include <QColorDialog>
+#include <QLabel>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -8,11 +9,13 @@
 
 QColorPushButton::QColorPushButton(QWidget* pParent)
   : QPushButton(pParent)
-  , m_Margin(5)
+  , m_Margin(4)
   , m_Radius(4)
   , m_Color(Qt::gray)
 {
   setText("");
+  // deal with a macos style bug which causes this button to misalign in some situations
+  setAttribute(Qt::WA_LayoutUsesWidgetRect);
 }
 
 void
@@ -246,12 +249,6 @@ QDoubleSlider::wheelEvent(QWheelEvent* event)
   QSlider::wheelEvent(event);
 }
 
-QSize
-QDoubleSpinner::sizeHint() const
-{
-  return QSize(50, 20);
-}
-
 QDoubleSpinner::QDoubleSpinner(QWidget* pParent /*= NULL*/)
   : QDoubleSpinBox(pParent)
 {
@@ -287,14 +284,19 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   m_slider.setOrientation(Qt::Horizontal);
   m_slider.setFocusPolicy(Qt::StrongFocus);
-  m_spinner.setDecimals(4);
+  m_spinner.setDecimals(2);
   m_spinner.setFocusPolicy(Qt::StrongFocus);
 
-  // entire control is one single row.
-  // slider is 3/4, spinner is 1/4 of the width
+  m_slider.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+  m_spinner.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+
+  //  entire control is one single row.
+  //  slider is 3/4, spinner is 1/4 of the width
   const int sliderratio = 4;
-  m_layout.addWidget(&m_slider, 0, 0, 1, sliderratio - 1);
-  m_layout.addWidget(&m_spinner, 0, sliderratio - 1, 1, 1);
+  m_layout.addWidget(&m_slider, 3, Qt::AlignVCenter);
+  m_layout.addWidget(&m_spinner, 1, Qt::AlignVCenter);
+  // m_layout.addWidget(&m_slider, 0, 0, 1, sliderratio - 1);
+  // m_layout.addWidget(&m_spinner, 0, sliderratio - 1, 1, 1);
 
   m_layout.setContentsMargins(0, 0, 0, 0);
 
@@ -325,6 +327,12 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 
   // only slider will emit the value...
   QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
+}
+
+QSize
+QNumericSlider::sizeHint() const
+{
+  return QSize(100, 20);
 }
 
 void
@@ -509,4 +517,51 @@ void
 QIntSlider::setTracking(bool enabled)
 {
   m_slider.setTracking(enabled);
+}
+
+void
+AgaveFormLayout::addRow(const QString& label, QWidget* widget)
+{
+  int row = rowCount();
+  auto* labelWidget = new QLabel(label);
+  labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  addWidget(labelWidget, row, 0, Qt::AlignLeft);
+  addWidget(widget, row, 1);
+}
+
+void
+AgaveFormLayout::addRow(const QString& label, QLayout* layout)
+{
+  int row = rowCount();
+  auto* labelWidget = new QLabel(label);
+  labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  addWidget(labelWidget, row, 0, Qt::AlignLeft);
+  addLayout(layout, row, 1);
+}
+
+QFormLayout*
+Controls::createFormLayout(QWidget* parent)
+{
+  QFormLayout* layout = new QFormLayout(parent);
+  initFormLayout(*layout);
+  return layout;
+}
+
+void
+Controls::initFormLayout(QFormLayout& layout)
+{
+  layout.setRowWrapPolicy(QFormLayout::DontWrapRows);
+  layout.setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  layout.setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
+  layout.setLabelAlignment(Qt::AlignRight);
+}
+
+AgaveFormLayout*
+Controls::createAgaveFormLayout(QWidget* parent)
+{
+  AgaveFormLayout* layout = new AgaveFormLayout(parent);
+  // basically keep the label column a fixed width and let the widget column grow
+  layout->setColumnStretch(0, 1);
+  layout->setColumnStretch(1, 100);
+  return layout;
 }

@@ -261,7 +261,7 @@ Scale Bar
 Click the checkbox to show or hide a scale bar at the bottom right corner
 of the display.  In a perspective camera, due to foreshortening, the
 scale bar will represent the distance between tickmarks shown on the 
-bounding box of the volume.  You will have to have bounding box turned on
+bounding box of the volume.  You will have to have the bounding box turned on
 in order to see it.  The scale bar will use physical units if available 
 in the loaded volume data.
 
@@ -629,6 +629,29 @@ AGAVE supports the following command line options:
 ``-platform offscreen``
 
   Only valid in server mode on Linux. Allows AGAVE to run as a server on a headless cluster node.  On other platforms AGAVE must be run in a windowed desktop environment, even in server mode.
+
+.. _Citation:
+
+Citation
+--------
+
+.. |year| date:: %Y
+
+Daniel Toloudis, AGAVE Contributors (|year|). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute for Cell Science. https://github.com/allen-cell-animated/agave
+
+bibtex:
+
+.. parsed-literal::
+
+   @software{agave,
+    author       = {Toloudis, Daniel and AGAVE Contributors},
+    title        = {AGAVE: Advanced GPU Accelerated Volume Explorer},
+    year         = {|year|},
+    version      = {|release|},
+    url          = {https://github.com/allen-cell-animated/agave},
+    organization = {Allen Institute for Cell Science},
+    note         = {Computer Software}
+    }
 
 Troubleshooting
 ---------------
