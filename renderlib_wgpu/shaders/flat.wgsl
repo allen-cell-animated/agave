@@ -21,7 +21,7 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.clip_position = u.mvp * vec4(v.position, 1.0);
-    out.f_colour = u.colour;
+    out.f_color = u.color;
     return out;
 }
 
