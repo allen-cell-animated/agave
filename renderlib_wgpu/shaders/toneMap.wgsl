@@ -1,34 +1,47 @@
-#version 400 core
+struct VertexInput {
+    @location(0) position: vec3<f32>,
+    @location(1) uv: vec2<f32>,
+};
 
-uniform float gInvExposure;
-uniform sampler2D tTexture0;
-in vec2 vUv;
-out vec4 out_FragColor;
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) vUv: vec2<f32>,
+};
 
-vec3 XYZtoRGB(vec3 xyz) {
+@vertex
+fn vs_main(in: VertexInput) -> VertexOutput {
+    var out: VertexOutput;
+    out.clip_position = vec4<f32>(in.position, 1.0);
+    out.vUv = in.uv;
+    return out;
+}
+
+
+@group(1) @binding(0) var<uniform> gInvExposure:f32;
+
+@group(0) @binding(0)
+var tTexture0: texture_2d<f32>;
+@group(0) @binding(1)
+var s: sampler;
+
+
+fn XYZtoRGB(xyz: vec3<f32>) -> vec3<f32> {
     return vec3(
-        3.240479f*xyz[0] - 1.537150f*xyz[1] - 0.498535f*xyz[2],
-        -0.969256f*xyz[0] + 1.875991f*xyz[1] + 0.041556f*xyz[2],
-        0.055648f*xyz[0] - 0.204043f*xyz[1] + 1.057311f*xyz[2]
+        3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2],
+        -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2],
+        0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2]
     );
 }
 
-void main()
-{
-    vec4 pixelColor = texture(tTexture0, vUv);
-
-    //out_FragColor = pixelColor;
-    //return;
-
-    pixelColor.rgb = XYZtoRGB(pixelColor.rgb);
-
-    pixelColor.rgb = 1.0-exp(-pixelColor.rgb*gInvExposure);
-    pixelColor = clamp(pixelColor, 0.0, 1.0);
-
-    out_FragColor = pixelColor;
-    //out_FragColor = pow(pixelColor, vec4(1.0/2.2));
-
-return;
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+  // assumes texture stores colors in XYZ color space
+    var pixelColor: vec4<f32> = textureSample(tTexture0, s, in.vUv);
+    pixelColor = vec4<f32>(XYZtoRGB(pixelColor.xyz), pixelColor.w);
+    pixelColor = vec4<f32>(vec3(1.0) - exp(-pixelColor.xyz * gInvExposure), pixelColor.w);
+    pixelColor = clamp(pixelColor, vec4(0.0), vec4(1.0));
+    return pixelColor;
+}
 
 /*
     /////////////////////
@@ -97,4 +110,3 @@ return;
 
     out_FragColor = vec4(clr.rgb, clr00.a);
 */
-}
