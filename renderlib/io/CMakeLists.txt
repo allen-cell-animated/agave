@@ -39,8 +39,8 @@ FetchContent_MakeAvailable(zstd)
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 FetchContent_Declare(
 	tensorstore
-	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.36.tar.gz"
-	URL_HASH SHA256=5857582B1B68E5A3F470D2EE8E9A7FA1AD6E6C7E0867C7C69E5A523AE00BC002
+	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.58.tar.gz"
+	URL_HASH SHA256=e916c9dc0ca9a7f272fc975b76ea06c452f921e65a8b201fc45b4ea96261a6ad
 )
 
 # Additional FetchContent_Declare calls as needed...
