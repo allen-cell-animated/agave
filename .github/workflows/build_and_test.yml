@@ -83,7 +83,7 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.15
           mkdir ./build
           cd build
-          cmake ..
+          cmake .. -G Ninja
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
           zip -vr agave-macos.zip agave.app/
@@ -109,7 +109,7 @@ jobs:
         run: |
           mkdir ./build
           cd build
-          cmake ..
+          cmake .. -G Ninja
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
