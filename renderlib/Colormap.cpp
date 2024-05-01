@@ -3,6 +3,20 @@
 #include <QColor>
 
 uint8_t*
+colormapFromColormap(uint8_t* colormap, size_t length)
+{
+  // basically just copy the whole thing.
+  uint8_t* lut = new uint8_t[length * 4]{ 0 };
+  for (size_t x = 0; x < length; ++x) {
+    lut[x * 4 + 0] = colormap[x * 4 + 0];
+    lut[x * 4 + 1] = colormap[x * 4 + 1];
+    lut[x * 4 + 2] = colormap[x * 4 + 2];
+    lut[x * 4 + 3] = colormap[x * 4 + 3];
+  }
+  return lut;
+}
+
+uint8_t*
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 {
   // pts is piecewise linear from first to last control point.
@@ -52,7 +66,7 @@ colormapRandomized(size_t length)
   float r, g, b;
   for (size_t x = 0; x < length; ++x) {
     QColor color = QColor::fromHsvF(
-      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.5 + 0.5, (float)rand() / RAND_MAX * 0.5 + 0.5);
+      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25);
     color.getRgbF(&r, &g, &b);
     lut[x * 4 + 0] = r * 255;
     lut[x * 4 + 1] = g * 255;

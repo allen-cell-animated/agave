@@ -207,6 +207,13 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 }
 
 void
+Channelu16::copyColormap(uint8_t* colormap, size_t length)
+{
+  delete[] m_colormap;
+  m_colormap = colormapFromColormap(colormap, length);
+}
+
+void
 Channelu16::updateColormap(std::vector<ColorControlPoint> stops)
 {
   delete[] m_colormap;

@@ -415,13 +415,13 @@ vec3 Gradient4ch(vec3 P, int ch)
 {
   vec3 Gradient;
 
-  Gradient.x = (GetRawIntensity(P + (gGradientDeltaX), ch) - GetRawIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
-  Gradient.y = (GetRawIntensity(P + (gGradientDeltaY), ch) - GetRawIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
-  Gradient.z = (GetRawIntensity(P + (gGradientDeltaZ), ch) - GetRawIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
+  //Gradient.x = (GetRawIntensity(P + (gGradientDeltaX), ch) - GetRawIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
+  //Gradient.y = (GetRawIntensity(P + (gGradientDeltaY), ch) - GetRawIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
+  //Gradient.z = (GetRawIntensity(P + (gGradientDeltaZ), ch) - GetRawIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
 
-  //Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
-  //Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
-  //Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
+  Gradient.x = (GetNormalizedIntensity(P + (gGradientDeltaX), ch) - GetNormalizedIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
+  Gradient.y = (GetNormalizedIntensity(P + (gGradientDeltaY), ch) - GetNormalizedIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
+  Gradient.z = (GetNormalizedIntensity(P + (gGradientDeltaZ), ch) - GetNormalizedIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
 
   return Gradient;
 }
@@ -917,8 +917,8 @@ bool FreePathRM(inout Ray R, inout uvec2 seed)
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
-    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    //intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
 
     Sum += SigmaT * gStepSizeShadow;
@@ -1083,8 +1083,8 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps, out float inte
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
-    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    //intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
     //SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
@@ -1626,4 +1626,5 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
 void
 GLPTVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
-{}
+{
+}
