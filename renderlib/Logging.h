@@ -1,5 +1,6 @@
 #pragma once
 
+#define FMT_HEADER_ONLY
 #include <spdlog/spdlog.h>
 
 #include <sstream>
@@ -34,7 +35,8 @@ public:
     : m_log{ log }
     , m_lvl{ lvl }
     , m_loc{ loc }
-  {}
+  {
+  }
   bool operator==(const LogLine& line)
   {
     m_log->log(m_loc, m_lvl, "{}", line.str());
