@@ -69,15 +69,12 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
-      - name: windows setup msvc
-        if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v2
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd vcpkg-tool-ninja:x64-windows
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
       - name: windows get nasm
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1
@@ -92,10 +89,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows ..
-          cmake --build . --target agave_test --config Release
-          cmake --build . --target agaveapp --config Release
-          cmake --build . --target INSTALL --config Release
+          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake --build . --parallel --target agave_test --config Release
+          cmake --build . --parallel --target agaveapp --config Release
+          cmake --build . --parallel --target INSTALL --config Release
           cmake --install .
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
