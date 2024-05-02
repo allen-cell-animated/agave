@@ -28,7 +28,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff nasm zstd
+          brew install spdlog glm libtiff nasm zstd ninja
       - name: macos build and test
         if: matrix.os == 'macos-latest'
         env:
@@ -38,7 +38,7 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.15
           mkdir ./build
           cd build
-          cmake ..
+          cmake .. -G Ninja
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
           zip -vr agave-macos.zip agave.app/
@@ -55,7 +55,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
+          sudo apt-get install ninja-build libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -65,7 +65,7 @@ jobs:
           pwd
           mkdir ./build
           cd build
-          cmake ..
+          cmake .. -G Ninja
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
