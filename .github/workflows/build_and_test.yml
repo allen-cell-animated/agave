@@ -113,6 +113,19 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
+      - name: windows install ninja
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install ninja
+      - name: Configure MSVC console (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Set environment for MSVC (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Set these env vars so cmake picks the correct compiler
+          echo "::set-env name=CXX::cl.exe"
+          echo "::set-env name=CC::cl.exe"
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         env:
@@ -133,7 +146,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --target agaveapp --config Release
           cmake --build . --parallel --target INSTALL --config Release
