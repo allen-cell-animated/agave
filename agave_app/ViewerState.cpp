@@ -139,7 +139,12 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << obj << SetRenderIterationsCommand({ s.capture.samples }).toPythonString() << std::endl;
   ss << obj << SetPrimaryRayStepSizeCommand({ s.pathTracer.primaryStepSize }).toPythonString() << std::endl;
   ss << obj << SetSecondaryRayStepSizeCommand({ s.pathTracer.secondaryStepSize }).toPythonString() << std::endl;
-  ss << obj << SetVoxelScaleCommand({ s.scale[0], s.scale[1], s.scale[2] }).toPythonString() << std::endl;
+  ss << obj << SetVoxelScaleCommand({ abs(s.scale[0]), abs(s.scale[1]), abs(s.scale[2]) }).toPythonString()
+     << std::endl;
+  ss << obj
+     << SetFlipAxisCommand({ s.scale[0] < 0 ? -1 : 1, s.scale[1] < 0 ? -1 : 1, s.scale[2] < 0 ? -1 : 1 })
+          .toPythonString()
+     << std::endl;
   ss << obj
      << SetClipRegionCommand({ s.clipRegion[0][0],
                                s.clipRegion[0][1],
