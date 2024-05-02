@@ -476,7 +476,7 @@ CMDDECL(ShowScaleBarCommand, 45, "show_scale_bar", CMD_ARGS({ CommandArgType::I3
 
 struct SetFlipAxisCommandD
 {
-  float m_x, m_y, m_z;
+  int32_t m_x, m_y, m_z;
 };
 CMDDECL(SetFlipAxisCommand,
         46,
