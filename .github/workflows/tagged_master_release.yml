@@ -69,6 +69,9 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
+      - name: windows setup msvc
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         env:
