@@ -28,8 +28,8 @@ add_subdirectory(libCZI)
 # zstd dependency for tensorstore / riegeli
 FetchContent_Declare(
 	zstd
-	URL "https://github.com/facebook/zstd/archive/v1.5.5.tar.gz"
-	URL_HASH SHA256=98e9c3d949d1b924e28e01eccb7deed865eefebf25c2f21c702e5cd5b63b85e1
+	URL "https://github.com/facebook/zstd/archive/v1.5.6.tar.gz"
+	URL_HASH SHA256=8c29e06cf42aacc1eafc4077ae2ec6c6fcb96a626157e0593d5e82a34fd403c1
 )
 
 # Additional FetchContent_Declare calls as needed...
