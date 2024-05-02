@@ -120,16 +120,12 @@ jobs:
       - name: Configure MSVC console (Windows)
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Set environment for MSVC (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          # Set these env vars so cmake picks the correct compiler
-          echo "::set-env name=CXX::cl.exe"
-          echo "::set-env name=CC::cl.exe"
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
+          CXX: cl.exe
+          CC: cl.exe
         run: |
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
       - name: windows get nasm
@@ -143,6 +139,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
+          CXX: cl.exe
+          CC: cl.exe
         run: |
           mkdir build
           cd build
