@@ -118,8 +118,7 @@ jobs:
         env:
           vc_arch: "x64"
         run: |
-          choco install ninja
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd vcpkg-tool-ninja:x64-windows
       - name: windows get nasm
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1
