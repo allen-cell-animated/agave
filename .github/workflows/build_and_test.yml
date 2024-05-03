@@ -147,8 +147,8 @@ jobs:
           cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --target agaveapp --config Release
-          cmake --build . --parallel --target INSTALL --config Release
-          cmake --install .
+          # cmake --build . --parallel --target INSTALL --config Release
+          cmake --install . --config Release
           powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
         shell: cmd
       - name: Upload windows artifact
