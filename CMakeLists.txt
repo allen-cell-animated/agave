@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
 include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 
 if(APPLE)
@@ -148,11 +148,11 @@ if(WIN32)
 
     message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
   if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+    set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR})
+    set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR})
+  else()
     set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR}/Release/)
     set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR}/Debug/)
-  else()
-    set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR}/)
-    set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR}/)
   endif()
 
   # assuming vcpkg has done some work already to get dlls in here
