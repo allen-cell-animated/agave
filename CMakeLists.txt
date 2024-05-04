@@ -4,6 +4,7 @@ include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 if(APPLE)
   set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.15")
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+  set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)
 endif(APPLE)
 
 if(POLICY CMP0048)
