@@ -145,15 +145,24 @@ if(WIN32)
   # find_package(Qt6QWindowsIntegrationPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
   # find_package(Qt6QWindowsVistaStylePlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
+    message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+  if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+    set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR}/Release/)
+    set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR}/Debug/)
+  else()
+    set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR}/)
+    set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR}/)
+  endif()
+
   # assuming vcpkg has done some work already to get dlls in here
   install(
-    DIRECTORY ${CMAKE_BINARY_DIR}/Release/
+    DIRECTORY ${DLLS_RELEASE_DIR}
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Release
     FILES_MATCHING PATTERN "*.dll"
   )
   install(
-    DIRECTORY ${CMAKE_BINARY_DIR}/Debug/
+    DIRECTORY ${DLLS_DEBUG_DIR}
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Debug
     FILES_MATCHING PATTERN "*.dll"
