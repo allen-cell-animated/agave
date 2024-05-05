@@ -142,19 +142,6 @@ find_package(Qt6QTiffPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
 # copy all dlls into place.
 if(WIN32)
-  # find_package(Qt6QWindowsIntegrationPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
-  # find_package(Qt6QWindowsVistaStylePlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
-
-    message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-  if("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR})
-    set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR})
-  else()
-    set(DLLS_RELEASE_DIR ${CMAKE_BINARY_DIR}/Release/)
-    set(DLLS_DEBUG_DIR ${CMAKE_BINARY_DIR}/Debug/)
-  endif()
-
-  # assuming vcpkg has done some work already to get dlls in here
   install(CODE [[
   file(GET_RUNTIME_DEPENDENCIES
     EXECUTABLES "$<TARGET_FILE:agaveapp>"
