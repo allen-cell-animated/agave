@@ -95,9 +95,7 @@ jobs:
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
-          pushd install/Release
-          zip -vr ${{ matrix.artifact }}.zip agave.app/
-          popd
+          zip -vr ${{ matrix.artifact }}.zip install/Release/agave.app/
         shell: bash
       - name: Upload mac artifact
         if: contains(matrix.os, 'macos')
