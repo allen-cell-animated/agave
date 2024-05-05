@@ -156,18 +156,39 @@ if(WIN32)
   endif()
 
   # assuming vcpkg has done some work already to get dlls in here
-  install(
-    DIRECTORY ${DLLS_RELEASE_DIR}
-    DESTINATION ${INSTALLDIR}
-    CONFIGURATIONS Release
-    FILES_MATCHING PATTERN "*.dll"
+  # install(
+  #   DIRECTORY $<TARGET_FILE_DIR:agaveapp>
+  #   DESTINATION ${INSTALLDIR}
+  #   CONFIGURATIONS Release
+  #   FILES_MATCHING PATTERN "*.dll"
+  # )
+  # install(
+  #   DIRECTORY $<TARGET_FILE_DIR:agaveapp>
+  #   DESTINATION ${INSTALLDIR}
+  #   CONFIGURATIONS Debug
+  #   FILES_MATCHING PATTERN "*.dll"
+  # )
+  install(CODE [[
+  file(GET_RUNTIME_DEPENDENCIES
+    EXECUTABLES "$<TARGET_FILE:agaveapp>"
+    RESOLVED_DEPENDENCIES_VAR _r_deps
+    UNRESOLVED_DEPENDENCIES_VAR _u_deps
+    DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>"
+    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
   )
-  install(
-    DIRECTORY ${DLLS_DEBUG_DIR}
-    DESTINATION ${INSTALLDIR}
-    CONFIGURATIONS Debug
-    FILES_MATCHING PATTERN "*.dll"
-  )
+  foreach(_file ${_r_deps})
+    file(INSTALL
+      DESTINATION "${CMAKE_INSTALL_PREFIX}/agave-install"
+      TYPE SHARED_LIBRARY
+      FILES "${_file}"
+    )
+  endforeach()
+  list(LENGTH _u_deps _u_length)
+  if("${_u_length}" GREATER 0)
+    message(WARNING "Unresolved dependencies detected!")
+  endif()
+]] COMPONENT agaveapp)
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
