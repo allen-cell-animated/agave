@@ -71,6 +71,7 @@ jobs:
         env:
           CC: clang
           CXX: clang++
+          ARCHFLAGS: "-arch x86_64"
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           brew install spdlog glm libtiff nasm zstd ninja
@@ -79,6 +80,7 @@ jobs:
         env:
           CC: clang
           CXX: clang++
+          ARCHFLAGS: "-arch x86_64"
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           mkdir ./build
