@@ -155,18 +155,6 @@ if(WIN32)
   endif()
 
   # assuming vcpkg has done some work already to get dlls in here
-  # install(
-  #   DIRECTORY $<TARGET_FILE_DIR:agaveapp>
-  #   DESTINATION ${INSTALLDIR}
-  #   CONFIGURATIONS Release
-  #   FILES_MATCHING PATTERN "*.dll"
-  # )
-  # install(
-  #   DIRECTORY $<TARGET_FILE_DIR:agaveapp>
-  #   DESTINATION ${INSTALLDIR}
-  #   CONFIGURATIONS Debug
-  #   FILES_MATCHING PATTERN "*.dll"
-  # )
   install(CODE [[
   file(GET_RUNTIME_DEPENDENCIES
     EXECUTABLES "$<TARGET_FILE:agaveapp>"
