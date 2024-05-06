@@ -964,7 +964,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   m_currentScene = v.datasets[0].scene;
 
-  m_appScene.m_volume->setPhysicalSize(abs(v.scale[0]), abs(v.scale[1]), abs(v.scale[2]));
+  m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
   m_appScene.m_volume->setVolumeAxesFlipped(v.flipAxis[0], v.flipAxis[1], v.flipAxis[2]);
 
   m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];

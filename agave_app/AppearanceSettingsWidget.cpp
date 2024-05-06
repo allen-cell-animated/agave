@@ -165,7 +165,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_zscaleSpinner->setToolTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setDecimals(6);
   m_zscaleSpinner->setValue(1.0);
-  m_zscaleSpinner->setMinimum(-m_zscaleSpinner->maximum());
   scaleSectionLayout->addWidget(m_zscaleSpinner, 2, 1);
   m_zFlipCheckBox = new QCheckBox("Flip");
   m_zFlipCheckBox->setStatusTip(tr("Invert volume in Z dimension"));
@@ -392,7 +391,7 @@ QAppearanceSettingsWidget::OnFlipX(bool value)
     return;
   glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
   m_scene->m_volume->setVolumeAxesFlipped(value ? -1 : 1, v.y, v.z);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 void
 QAppearanceSettingsWidget::OnFlipY(bool value)
@@ -401,7 +400,7 @@ QAppearanceSettingsWidget::OnFlipY(bool value)
     return;
   glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
   m_scene->m_volume->setVolumeAxesFlipped(v.x, value ? -1 : 1, v.z);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 void
 QAppearanceSettingsWidget::OnFlipZ(bool value)
@@ -410,7 +409,7 @@ QAppearanceSettingsWidget::OnFlipZ(bool value)
     return;
   glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
   m_scene->m_volume->setVolumeAxesFlipped(v.x, v.y, value ? -1 : 1);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void
