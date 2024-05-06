@@ -96,7 +96,7 @@ jobs:
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
           cd install/Release
-          zip -vr ${{ matrix.artifact }}.zip agave.app/
+          zip -vr ../../${{ matrix.artifact }}.zip agave.app/
         shell: bash
       - name: Upload mac artifact
         if: contains(matrix.os, 'macos')
