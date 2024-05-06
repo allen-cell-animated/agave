@@ -737,7 +737,7 @@ SetFlipAxisCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetFlipAxis " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z;
   c->m_appScene->m_volume->setVolumeAxesFlipped(m_data.m_x, m_data.m_y, m_data.m_z);
-  c->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 SessionCommand*
