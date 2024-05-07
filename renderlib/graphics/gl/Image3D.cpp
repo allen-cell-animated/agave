@@ -253,9 +253,9 @@ Image3D::prepareTexture(Scene& s)
   // glGenTextures(1, &_textureid);
   glBindTexture(GL_TEXTURE_3D, m_textureid);
   check_gl("Bind texture");
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_filter);
   check_gl("Set texture min filter");
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_filter);
   check_gl("Set texture mag filter");
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   check_gl("Set texture wrap s");

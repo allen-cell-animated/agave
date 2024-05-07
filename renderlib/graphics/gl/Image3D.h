@@ -57,6 +57,7 @@ protected:
   size_t m_num_image_elements;
   /// The identifier of the texture owned and used by this object.
   unsigned int m_textureid;
+  GLint m_filter = GL_LINEAR;
   /// The image wrapped as a flat data ptr
   std::shared_ptr<ImageXYZC> m_img;
 

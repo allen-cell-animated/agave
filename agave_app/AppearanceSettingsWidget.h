@@ -85,6 +85,7 @@ private:
   QComboBox m_RendererType;
   QComboBox m_ShadingType;
   QNumericSlider m_GradientFactorSlider;
+  QComboBox m_VolumeInterpolationType;
   QNumericSlider m_StepSizePrimaryRaySlider;
   QNumericSlider m_StepSizeSecondaryRaySlider;
   QColorPushButton m_backgroundColorButton;

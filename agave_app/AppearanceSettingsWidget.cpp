@@ -67,6 +67,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
   QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
 
+  m_VolumeInterpolationType.setStatusTip(tr("Select volume sample interpolation"));
+  m_VolumeInterpolationType.setToolTip(tr("Select volume sample interpolation"));
+  m_VolumeInterpolationType.addItem("Linear", 0);
+  m_VolumeInterpolationType.addItem("Nearest", 1);
+  m_VolumeInterpolationType.setCurrentIndex(0);
+  m_MainLayout.addRow("Shading Type", &m_VolumeInterpolationType);
+
   m_StepSizePrimaryRaySlider.setStatusTip(tr("Set volume ray march step size for camera rays"));
   m_StepSizePrimaryRaySlider.setToolTip(tr("Set volume ray march step size for camera rays"));
   // step size is in voxels and step sizes of less than 1 voxel are not very useful, while slowing down performance

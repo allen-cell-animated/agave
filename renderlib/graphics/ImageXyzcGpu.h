@@ -23,6 +23,7 @@ struct ImageGpu
   std::vector<ChannelGpu> m_channels;
 
   GLuint m_VolumeGLTexture = 0;
+  GLint m_filter = GL_LINEAR;
 
   size_t m_gpuBytes = 0;
 
