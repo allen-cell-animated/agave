@@ -253,6 +253,7 @@ Image3D::prepareTexture(Scene& s)
   // glGenTextures(1, &_textureid);
   glBindTexture(GL_TEXTURE_3D, m_textureid);
   check_gl("Bind texture");
+  m_filter = s.m_material.m_VolumeInterpolationType == 0 ? GL_LINEAR : GL_NEAREST;
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_filter);
   check_gl("Set texture min filter");
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_filter);

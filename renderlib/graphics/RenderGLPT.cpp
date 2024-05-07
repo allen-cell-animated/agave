@@ -177,7 +177,9 @@ RenderGLPT::doRender(const CCamera& camera)
         m_imgGpu.updateLutGpu(i, m_scene->m_volume.get());
       }
     }
-
+    if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty)) {
+      m_imgGpu.updateFilter(m_scene->m_material.m_VolumeInterpolationType == 0 ? GL_LINEAR : GL_NEAREST);
+    }
     //		ResetRenderCanvasView();
 
     // Reset no. iterations

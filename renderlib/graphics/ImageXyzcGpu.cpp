@@ -199,3 +199,13 @@ ImageGpu::updateLutGpu(int channel, ImageXYZC* img)
 {
   m_channels[channel].updateLutGpu(channel, img);
 }
+
+void
+ImageGpu::updateFilter(GLint filter)
+{
+  m_filter = filter;
+  glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_filter);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_filter);
+  glBindTexture(GL_TEXTURE_3D, 0);
+}

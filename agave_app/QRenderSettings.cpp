@@ -6,7 +6,8 @@ QRenderSettings::QRenderSettings(QObject* pParent)
   : QObject(pParent)
   , m_RendererType(1)
   , m_renderSettings(nullptr)
-{}
+{
+}
 
 QRenderSettings::QRenderSettings(const QRenderSettings& Other)
 {

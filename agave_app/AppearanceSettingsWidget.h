@@ -39,6 +39,7 @@ public slots:
   void OnSetGradientFactor(double GradientFactor);
   void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
   void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
+  void OnSetVolumeInterpolationType(int Index);
 
 public:
   void OnBackgroundColorChanged(const QColor& color);

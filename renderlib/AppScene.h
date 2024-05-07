@@ -24,6 +24,7 @@ struct VolumeDisplay
   float m_DensityScale = 50.0f;
   float m_GradientFactor = 0.1f;
   int m_ShadingType = 2;
+  int m_VolumeInterpolationType = 0;
 
   // channels enabled/disabled
   // per channel colors

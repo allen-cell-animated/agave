@@ -24,6 +24,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   , m_DensityScaleSlider()
   , m_RendererType()
   , m_ShadingType()
+  , m_VolumeInterpolationType()
   , m_GradientFactorSlider()
   , m_StepSizePrimaryRaySlider()
   , m_StepSizeSecondaryRaySlider()
@@ -236,6 +237,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 
   QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
   QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
+  QObject::connect(
+    &m_VolumeInterpolationType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetVolumeInterpolationType(int)));
   // QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
 
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
@@ -627,6 +630,15 @@ QAppearanceSettingsWidget::OnSetRendererType(int Index)
 }
 
 void
+QAppearanceSettingsWidget::OnSetVolumeInterpolationType(int Index)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_material.m_VolumeInterpolationType = Index;
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
 QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)
 {
   m_qrendersettings->SetGradientFactor(GradientFactor);
@@ -871,6 +883,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_DensityScaleSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_DensityScale);
   m_ShadingType.setCurrentIndex(m_qrendersettings->renderSettings()->m_RenderSettings.m_ShadingType);
   m_GradientFactorSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_GradientFactor);
+
+  m_VolumeInterpolationType.setCurrentIndex(scene->m_material.m_VolumeInterpolationType);
 
   m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor);
   m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
