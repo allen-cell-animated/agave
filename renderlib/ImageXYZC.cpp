@@ -223,7 +223,7 @@ void
 Channelu16::colorize()
 {
   delete[] m_colormap;
-  m_colormap = colormapRandomized();
+  m_colormap = modifiedGlasbeyColormap(); // colormapRandomized();
 }
 
 Channelu16::~Channelu16()
