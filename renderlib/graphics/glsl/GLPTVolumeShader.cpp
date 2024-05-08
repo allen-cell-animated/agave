@@ -130,6 +130,39 @@ uniform float uSampleCounter;
 uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
 
+// from https://www.shadertoy.com/view/4ssXRX
+// uvec3 pcg3d(uvec3 v) {
+
+//     v = v * 1664525u + 1013904223u;
+
+//     v.x += v.y*v.z;
+//     v.y += v.z*v.x;
+//     v.z += v.x*v.y;
+
+//     v ^= v >> 16u;
+
+//     v.x += v.y*v.z;
+//     v.y += v.z*v.x;
+//     v.z += v.x*v.y;
+
+//     return v;
+// }
+// vec3 pcg3d_f( vec3 v )
+// {
+//     return (1.0/float(0xffffffffu)) * vec3(pcg3d( uvec3(floatBitsToUint(v.x),
+//                   			 							floatBitsToUint(v.y),
+//                   			 							floatBitsToUint(v.z)) ));
+// }
+// float nrand( vec3 n )
+// {
+//     return pcg3d_f(n).x;
+// }
+// float n1rand( in vec2 uv, in float t )
+// {
+// 	float nrnd0 = nrand( vec3(uv,t) + 0.07 );
+// 	return nrnd0;
+// }
+
 // from iq https://www.shadertoy.com/view/4tXyWN
 float rand( inout uvec2 seed )
 {
