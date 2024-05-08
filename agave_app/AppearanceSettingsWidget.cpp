@@ -73,7 +73,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_VolumeInterpolationType.addItem("Linear", 0);
   m_VolumeInterpolationType.addItem("Nearest", 1);
   m_VolumeInterpolationType.setCurrentIndex(0);
-  m_MainLayout.addRow("Shading Type", &m_VolumeInterpolationType);
+  m_MainLayout.addRow("Volume Interpolation", &m_VolumeInterpolationType);
 
   m_StepSizePrimaryRaySlider.setStatusTip(tr("Set volume ray march step size for camera rays"));
   m_StepSizePrimaryRaySlider.setToolTip(tr("Set volume ray march step size for camera rays"));
