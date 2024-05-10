@@ -18,6 +18,13 @@ class RenderSettings;
 class Scene;
 class Section;
 
+enum Axis
+{
+  X = 0,
+  Y = 1,
+  Z = 2
+};
+
 class QAppearanceSettingsWidget : public QGroupBox
 {
   Q_OBJECT
@@ -73,9 +80,7 @@ public:
   void OnSetScaleX(double value);
   void OnSetScaleY(double value);
   void OnSetScaleZ(double value);
-  void OnFlipX(bool value);
-  void OnFlipY(bool value);
-  void OnFlipZ(bool value);
+  void OnFlipAxis(Axis axis, bool value);
 
 private:
   Scene* m_scene;

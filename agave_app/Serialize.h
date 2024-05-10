@@ -82,8 +82,8 @@ struct ViewerState
   // [[xm, xM], [ym, yM], [zm, zM]]
   std::array<std::array<float, 2>, 3> clipRegion = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
 
-  std::array<float, 3> scale = { 1, 1, 1 };    // m_scaleX, m_scaleY, m_scaleZ
-  std::array<float, 3> flipAxis = { 1, 1, 1 }; // 1 is unflipped, -1 is flipped
+  std::array<float, 3> scale = { 1, 1, 1 };  // m_scaleX, m_scaleY, m_scaleZ
+  std::array<int, 3> flipAxis = { 1, 1, 1 }; // 1 is unflipped, -1 is flipped
 
   CameraSettings_V1 camera;
 

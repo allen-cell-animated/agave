@@ -1361,7 +1361,9 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1f(m_gStepSize, renderSettings.m_StepSizeFactor * renderSettings.m_GradientDelta);
   glUniform1f(m_gStepSizeShadow, renderSettings.m_StepSizeFactorShadow * renderSettings.m_GradientDelta);
   glUniform3fv(
-    m_gPosToUVW, 1, glm::value_ptr(scene->m_boundingBox.GetInverseExtent() * scene->m_volume->getVolumeAxesFlipped()));
+    m_gPosToUVW,
+    1,
+    glm::value_ptr(scene->m_boundingBox.GetInverseExtent() * glm::vec3(scene->m_volume->getVolumeAxesFlipped())));
 
   glUniform1i(m_gShadingType, renderSettings.m_ShadingType);
 

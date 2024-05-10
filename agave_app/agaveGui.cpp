@@ -1040,7 +1040,7 @@ agaveGui::appToViewerState()
     v.scale[0] = m_appScene.m_volume->physicalSizeX();
     v.scale[1] = m_appScene.m_volume->physicalSizeY();
     v.scale[2] = m_appScene.m_volume->physicalSizeZ();
-    glm::vec3 vflip = m_appScene.m_volume->getVolumeAxesFlipped();
+    glm::ivec3 vflip = m_appScene.m_volume->getVolumeAxesFlipped();
     v.flipAxis[0] = vflip.x > 0 ? 1 : -1;
     v.flipAxis[1] = vflip.y > 0 ? 1 : -1;
     v.flipAxis[2] = vflip.z > 0 ? 1 : -1;

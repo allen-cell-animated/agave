@@ -86,7 +86,7 @@ public:
   void setPhysicalSize(float x, float y, float z);
 
   // +1 means do not flip, -1 means flip
-  void setVolumeAxesFlipped(float x, float y, float z);
+  void setVolumeAxesFlipped(int x, int y, int z);
 
   uint32_t sizeX() const;
   uint32_t sizeY() const;
@@ -105,7 +105,7 @@ public:
   glm::vec3 getPhysicalDimensions() const;
 
   // +1 means do not flip, -1 means flip
-  glm::vec3 getVolumeAxesFlipped() const;
+  glm::ivec3 getVolumeAxesFlipped() const;
 
   uint32_t sizeC() const;
 
@@ -123,7 +123,7 @@ private:
   uint32_t m_x, m_y, m_z, m_c, m_bpp;
   uint8_t* m_data;
   float m_scaleX, m_scaleY, m_scaleZ;
-  glm::vec3 m_flipped;
+  glm::ivec3 m_flipped;
   std::string m_spatialUnits;
   std::vector<Channelu16*> m_channels;
 };
