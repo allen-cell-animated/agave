@@ -114,6 +114,12 @@ main(int argc, char* argv[])
   QCommandLineOption serverOption("server",
                                   QCoreApplication::translate("main", "Run as websocket server without GUI."));
   parser.addOption(serverOption);
+
+  QCommandLineOption loadOption("load",
+                                QCoreApplication::translate("main", "File or url to load."),
+                                QCoreApplication::translate("main", "fileToLoad"));
+  parser.addOption(loadOption);
+
   QCommandLineOption listDevicesOption(
     "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)."));
   parser.addOption(listDevicesOption);
@@ -135,6 +141,7 @@ main(int argc, char* argv[])
   bool isServer = parser.isSet(serverOption);
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
+  QString fileToLoad = parser.value(loadOption);
 
   QString appPath = QCoreApplication::applicationDirPath();
   std::string appPathStr = appPath.toStdString();
@@ -178,6 +185,9 @@ main(int argc, char* argv[])
     } else {
       agaveGui* w = new agaveGui();
       w->show();
+      if (!fileToLoad.isEmpty()) {
+        w->open(fileToLoad.toStdString());
+      }
       result = a.exec();
     }
   } catch (const std::exception& exc) {

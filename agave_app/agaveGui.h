@@ -30,10 +30,11 @@ class agaveGui : public QMainWindow
 public:
   agaveGui(QWidget* parent = Q_NULLPTR);
 
+  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
+
 private:
   Ui::agaveGuiClass m_ui;
 
-  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
                      uint32_t sizeT,
