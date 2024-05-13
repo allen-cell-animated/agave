@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
 include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 
 if(APPLE)
@@ -97,10 +97,11 @@ find_package(TIFF)
 
 find_package(OpenGL)
 
+# normally CMAKE_INSTALL_PREFIX is meant to be outside of the build tree
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 else()
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install/${CMAKE_BUILD_TYPE})
 endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -141,22 +142,27 @@ find_package(Qt6QTiffPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
 # copy all dlls into place.
 if(WIN32)
-  # find_package(Qt6QWindowsIntegrationPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
-  # find_package(Qt6QWindowsVistaStylePlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
-
-  # assuming vcpkg has done some work already to get dlls in here
-  install(
-    DIRECTORY ${CMAKE_BINARY_DIR}/Release/
-    DESTINATION ${INSTALLDIR}
-    CONFIGURATIONS Release
-    FILES_MATCHING PATTERN "*.dll"
+  install(CODE [[
+  file(GET_RUNTIME_DEPENDENCIES
+    EXECUTABLES "$<TARGET_FILE:agaveapp>"
+    RESOLVED_DEPENDENCIES_VAR _r_deps
+    UNRESOLVED_DEPENDENCIES_VAR _u_deps
+    DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>"
+    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
   )
-  install(
-    DIRECTORY ${CMAKE_BINARY_DIR}/Debug/
-    DESTINATION ${INSTALLDIR}
-    CONFIGURATIONS Debug
-    FILES_MATCHING PATTERN "*.dll"
-  )
+  foreach(_file ${_r_deps})
+    file(INSTALL
+      DESTINATION "${CMAKE_INSTALL_PREFIX}/agave-install"
+      TYPE SHARED_LIBRARY
+      FILES "${_file}"
+    )
+  endforeach()
+  list(LENGTH _u_deps _u_length)
+  if("${_u_length}" GREATER 0)
+    message(WARNING "Unresolved dependencies detected!")
+  endif()
+]] COMPONENT agaveapp)
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt

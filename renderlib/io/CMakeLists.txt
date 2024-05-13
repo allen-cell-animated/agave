@@ -18,6 +18,9 @@ target_sources(renderlib PRIVATE
 # libCZI dependency for renderlib
 # add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
+if(WIN32)
+  set(LIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3 ON)
+endif(WIN32)
 set(LIBCZI_BUILD_UNITTESTS OFF)
 set(LIBCZI_BUILD_DYNLIB ON)
 set(LIBCZI_BUILD_CZICMD OFF)
@@ -28,8 +31,8 @@ add_subdirectory(libCZI)
 # zstd dependency for tensorstore / riegeli
 FetchContent_Declare(
 	zstd
-	URL "https://github.com/facebook/zstd/archive/v1.5.5.tar.gz"
-	URL_HASH SHA256=98e9c3d949d1b924e28e01eccb7deed865eefebf25c2f21c702e5cd5b63b85e1
+	URL "https://github.com/facebook/zstd/archive/v1.5.6.tar.gz"
+	URL_HASH SHA256=8c29e06cf42aacc1eafc4077ae2ec6c6fcb96a626157e0593d5e82a34fd403c1
 )
 
 # Additional FetchContent_Declare calls as needed...
@@ -39,8 +42,8 @@ FetchContent_MakeAvailable(zstd)
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 FetchContent_Declare(
 	tensorstore
-	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.36.tar.gz"
-	URL_HASH SHA256=5857582B1B68E5A3F470D2EE8E9A7FA1AD6E6C7E0867C7C69E5A523AE00BC002
+	URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.58.tar.gz"
+	URL_HASH SHA256=e916c9dc0ca9a7f272fc975b76ea06c452f921e65a8b201fc45b4ea96261a6ad
 )
 
 # Additional FetchContent_Declare calls as needed...
