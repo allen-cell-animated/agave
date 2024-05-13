@@ -550,8 +550,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 void
 SetTimeCommand::execute(ExecutionContext* c)
 {
-  LOG_DEBUG << "SetTime command: "
-            << " T=" << m_data.m_time;
+  LOG_DEBUG << "SetTime command: " << " T=" << m_data.m_time;
 
   // setting same time is a no-op.
   if (m_data.m_time == c->m_appScene->m_timeLine.currentTime()) {
@@ -733,6 +732,14 @@ ShowScaleBarCommand::execute(ExecutionContext* c)
   c->m_appScene->m_showScaleBar = m_data.m_on ? true : false;
 }
 
+void
+SetFlipAxisCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetFlipAxis " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z;
+  c->m_appScene->m_volume->setVolumeAxesFlipped(m_data.m_x, m_data.m_y, m_data.m_z);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -740,6 +747,7 @@ SessionCommand::parse(ParseableStream* c)
   data.m_name = c->parseString();
   return new SessionCommand(data);
 }
+
 size_t
 SessionCommand::write(WriteableStream* o) const
 {
@@ -1630,6 +1638,27 @@ ShowScaleBarCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetFlipAxisCommand*
+SetFlipAxisCommand::parse(ParseableStream* c)
+{
+  SetFlipAxisCommandD data;
+  data.m_x = c->parseInt32();
+  data.m_y = c->parseInt32();
+  data.m_z = c->parseInt32();
+  return new SetFlipAxisCommand(data);
+}
+
+size_t
+SetFlipAxisCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_x);
+  bytesWritten += o->writeInt32(m_data.m_y);
+  bytesWritten += o->writeInt32(m_data.m_z);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2079,6 +2108,18 @@ ShowScaleBarCommand::toPythonString() const
 
   ss << m_data.m_on;
 
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetFlipAxisCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", ";
+  ss << m_data.m_y << ", ";
+  ss << m_data.m_z;
   ss << ")";
   return ss.str();
 }

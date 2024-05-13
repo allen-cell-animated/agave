@@ -697,6 +697,17 @@ export class AgaveClient {
     this.cb.addCommand("SHOW_SCALE_BAR", on);
   }
 
+  /**
+   * Flip the volume data on any axis
+   * @param x -1 to flip, 1 to not flip
+   * @param y -1 to flip, 1 to not flip
+   * @param z -1 to flip, 1 to not flip
+   */
+  setFlipAxis(x: number, y: number, z: number) {
+    // 46
+    this.cb.addCommand("SET_FLIP_AXIS", x, y, z);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {

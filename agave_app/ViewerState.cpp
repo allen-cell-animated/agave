@@ -141,6 +141,10 @@ stateToPythonScript(const Serialize::ViewerState& s)
   ss << obj << SetSecondaryRayStepSizeCommand({ s.pathTracer.secondaryStepSize }).toPythonString() << std::endl;
   ss << obj << SetVoxelScaleCommand({ s.scale[0], s.scale[1], s.scale[2] }).toPythonString() << std::endl;
   ss << obj
+     << SetFlipAxisCommand({ s.flipAxis[0] < 0 ? -1 : 1, s.flipAxis[1] < 0 ? -1 : 1, s.flipAxis[2] < 0 ? -1 : 1 })
+          .toPythonString()
+     << std::endl;
+  ss << obj
      << SetClipRegionCommand({ s.clipRegion[0][0],
                                s.clipRegion[0][1],
                                s.clipRegion[1][0],
