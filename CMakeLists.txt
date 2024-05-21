@@ -140,29 +140,29 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 find_package(Qt6QTiffPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
-# copy all dlls into place.
 if(WIN32)
+  # copy all dlls into place.
   install(CODE [[
-  file(GET_RUNTIME_DEPENDENCIES
-    EXECUTABLES "$<TARGET_FILE:agaveapp>"
-    RESOLVED_DEPENDENCIES_VAR _r_deps
-    UNRESOLVED_DEPENDENCIES_VAR _u_deps
-    DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>"
-    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-  )
-  foreach(_file ${_r_deps})
-    file(INSTALL
-      DESTINATION "${CMAKE_INSTALL_PREFIX}/agave-install"
-      TYPE SHARED_LIBRARY
-      FILES "${_file}"
+    file(GET_RUNTIME_DEPENDENCIES
+      EXECUTABLES "$<TARGET_FILE:agaveapp>"
+      RESOLVED_DEPENDENCIES_VAR _r_deps
+      UNRESOLVED_DEPENDENCIES_VAR _u_deps
+      DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>"
+      PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+      POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
     )
-  endforeach()
-  list(LENGTH _u_deps _u_length)
-  if("${_u_length}" GREATER 0)
-    message(WARNING "Unresolved dependencies detected!")
-  endif()
-]] COMPONENT agaveapp)
+    foreach(_file ${_r_deps})
+      file(INSTALL
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/agave-install"
+        TYPE SHARED_LIBRARY
+        FILES "${_file}"
+      )
+    endforeach()
+    list(LENGTH _u_deps _u_length)
+    if("${_u_length}" GREATER 0)
+      message(WARNING "Unresolved dependencies detected!")
+    endif()
+  ]] COMPONENT agaveapp)
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
@@ -217,18 +217,19 @@ if(WIN32)
   )
 
   set(CPACK_GENERATOR "NSIS")
-  include(CPack)
   SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-  WriteRegStr HKCR \"agave\" \"\" \"URL:agave\"
-  WriteRegStr HKCR \"agave\" \"agave viewer Protocol\" \"\"
-  WriteRegStr HKCR \"agave\\DefaultIcon\" \"\" \"$INSTDIR\\${APP_EXECUTABLE_FILENAME}\"
-  WriteRegStr HKCR \"agave\\shell\" \"\" \"\"
-  WriteRegStr HKCR \"agave\\shell\\Open\" \"\" \"\"
-  WriteRegStr HKCR \"agave\\shell\\Open\\command\" \"\" \"$INSTDIR\\${APP_EXECUTABLE_FILENAME} -load %1\"
+  WriteRegStr HKCR 'agave' '' 'URL:agave'
+  WriteRegStr HKCR 'agave' 'agave viewer Protocol' ''
+  WriteRegStr HKCR 'agave\\\\DefaultIcon' '' '$INSTDIR\\\\agave-install\\\\agave.exe'
+  WriteRegStr HKCR 'agave\\\\shell' '' ''
+  WriteRegStr HKCR 'agave\\\\shell\\\\Open' '' ''
+  WriteRegStr HKCR 'agave\\\\shell\\\\Open\\\\command' '' '$INSTDIR\\\\agave-install\\\\agave.exe -load %1'
    ")
 SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-  DeleteRegKey HKCR \"agave\"
+  DeleteRegKey HKCR 'agave'
  ")
+
+ include(CPack)
 
 # ###############
 elseif(APPLE)
