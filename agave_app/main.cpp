@@ -13,6 +13,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
 
 struct ServerParams
 {
@@ -147,7 +148,9 @@ main(int argc, char* argv[])
     // remove any leading and trailing double quotes or protocol prefixes
     fileToLoad = QUrl::fromPercentEncoding(fileToLoad.toUtf8());
     // remove agave:// prefix and trailing slash
-    fileToLoad = fileToLoad.replace(QRegExp("^agave://|/$"), "");
+    fileToLoad = fileToLoad.replace(QRegularExpression("^agave://|/$"), "");
+    // trim any leading or trailing double quotes
+    fileToLoad = fileToLoad.replace(QRegularExpression("^\"|\"$"), "");
   }
 
   QString appPath = QCoreApplication::applicationDirPath();
