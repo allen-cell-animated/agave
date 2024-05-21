@@ -216,6 +216,20 @@ if(WIN32)
     DESTINATION ${INSTALLDIR}/styles/
   )
 
+  set(CPACK_GENERATOR "NSIS")
+  include(CPack)
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+  WriteRegStr HKCR \"agave\" \"\" \"URL:agave\"
+  WriteRegStr HKCR \"agave\" \"agave viewer Protocol\" \"\"
+  WriteRegStr HKCR \"agave\\DefaultIcon\" \"\" \"$INSTDIR\\${APP_EXECUTABLE_FILENAME}\"
+  WriteRegStr HKCR \"agave\\shell\" \"\" \"\"
+  WriteRegStr HKCR \"agave\\shell\\Open\" \"\" \"\"
+  WriteRegStr HKCR \"agave\\shell\\Open\\command\" \"\" \"$INSTDIR\\${APP_EXECUTABLE_FILENAME} -load %1\"
+   ")
+SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+  DeleteRegKey HKCR \"agave\"
+ ")
+
 # ###############
 elseif(APPLE)
   find_package(Qt6QCocoaIntegrationPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
