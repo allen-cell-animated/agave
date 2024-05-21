@@ -142,6 +142,8 @@ main(int argc, char* argv[])
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
   QString fileToLoad = parser.value(loadOption);
+  // the file path may be percent encoded, if it came through a url protocol handler, so decode it
+  fileToLoad = QUrl::fromPercentEncoding(fileToLoad.toUtf8());
 
   QString appPath = QCoreApplication::applicationDirPath();
   std::string appPathStr = appPath.toStdString();
