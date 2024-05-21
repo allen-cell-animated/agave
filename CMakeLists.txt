@@ -223,7 +223,7 @@ if(WIN32)
   WriteRegStr HKCR 'agave\\\\DefaultIcon' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\"'
   WriteRegStr HKCR 'agave\\\\shell' '' ''
   WriteRegStr HKCR 'agave\\\\shell\\\\open' '' ''
-  WriteRegStr HKCR 'agave\\\\shell\\\\open\\\\command' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\" -load %1'
+  WriteRegStr HKCR 'agave\\\\shell\\\\open\\\\command' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\" --load %1'
    ")
 SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
   DeleteRegKey HKCR 'agave'
