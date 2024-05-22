@@ -9,6 +9,7 @@
 
 #include <array>
 #include <iostream>
+#include <vector>
 
 static bool GL_ERROR_CHECKS_ENABLED = true;
 

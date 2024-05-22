@@ -568,7 +568,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleX);
-  QObject::connect(m_xFlipCheckBox, &QCheckBox::clicked, this, &QAppearanceSettingsWidget::OnFlipX);
+  QObject::connect(
+    m_xFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::X, flipValue); });
   scaleSectionLayout->addWidget(new QLabel("Y"), 1, 0);
   m_yscaleSpinner = new QDoubleSpinner();
   m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
@@ -584,7 +585,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleY);
-  QObject::connect(m_yFlipCheckBox, &QCheckBox::clicked, this, &QAppearanceSettingsWidget::OnFlipY);
+  QObject::connect(
+    m_yFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::Y, flipValue); });
   scaleSectionLayout->addWidget(new QLabel("Z"), 2, 0);
   m_zscaleSpinner = new QDoubleSpinner();
   m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
@@ -600,7 +602,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                    QOverload<double>::of(&QDoubleSpinner::valueChanged),
                    this,
                    &QAppearanceSettingsWidget::OnSetScaleZ);
-  QObject::connect(m_zFlipCheckBox, &QCheckBox::clicked, this, &QAppearanceSettingsWidget::OnFlipZ);
+  QObject::connect(
+    m_zFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::Z, flipValue); });
 
   m_scaleSection->setContentLayout(*scaleSectionLayout);
   m_MainLayout.addRow(m_scaleSection);
@@ -811,30 +814,14 @@ QAppearanceSettingsWidget::createSkyLightingControls()
 }
 
 void
-QAppearanceSettingsWidget::OnFlipX(bool value)
+QAppearanceSettingsWidget::OnFlipAxis(Axis axis, bool value)
 {
   if (!m_scene)
     return;
-  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
-  m_scene->m_volume->setVolumeAxesFlipped(value ? -1 : 1, v.y, v.z);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
-}
-void
-QAppearanceSettingsWidget::OnFlipY(bool value)
-{
-  if (!m_scene)
-    return;
-  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
-  m_scene->m_volume->setVolumeAxesFlipped(v.x, value ? -1 : 1, v.z);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
-}
-void
-QAppearanceSettingsWidget::OnFlipZ(bool value)
-{
-  if (!m_scene)
-    return;
-  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
-  m_scene->m_volume->setVolumeAxesFlipped(v.x, v.y, value ? -1 : 1);
+  int flipValue = value ? -1 : 1;
+  glm::ivec3 v = m_scene->m_volume->getVolumeAxesFlipped();
+  m_scene->m_volume->setVolumeAxesFlipped(
+    axis == Axis::X ? flipValue : v.x, axis == Axis::Y ? flipValue : v.y, axis == Axis::Z ? flipValue : v.z);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
@@ -1328,7 +1315,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());
   m_zscaleSpinner->setValue(m_scene->m_volume->physicalSizeZ());
-  glm::vec3 v = m_scene->m_volume->getVolumeAxesFlipped();
+  glm::ivec3 v = m_scene->m_volume->getVolumeAxesFlipped();
   m_xFlipCheckBox->setChecked(v.x < 0);
   m_yFlipCheckBox->setChecked(v.y < 0);
   m_zFlipCheckBox->setChecked(v.z < 0);
