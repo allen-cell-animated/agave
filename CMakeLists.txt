@@ -140,6 +140,10 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 find_package(Qt6QTiffPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
+set(CPACK_PACKAGE_VENDOR "Allen Institute for Cell Science")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for multi-dimensional microscopy images.")
+set(CPACK_PACKAGE_NAME "AGAVE")
+
 if(WIN32)
   # copy all dlls into place.
   install(CODE [[
@@ -216,18 +220,21 @@ if(WIN32)
     DESTINATION ${INSTALLDIR}/styles/
   )
 
+  set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;/agave-install")
+  # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}")
+
   set(CPACK_GENERATOR "NSIS")
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-  WriteRegStr HKCR 'agave' '' 'URL:agave'
-  WriteRegStr HKCR 'agave' 'URL Protocol' ''
-  WriteRegStr HKCR 'agave\\\\DefaultIcon' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\"'
-  WriteRegStr HKCR 'agave\\\\shell' '' ''
-  WriteRegStr HKCR 'agave\\\\shell\\\\open' '' ''
-  WriteRegStr HKCR 'agave\\\\shell\\\\open\\\\command' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\" --load \\\"%1\\\"'
-   ")
-SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-  DeleteRegKey HKCR 'agave'
- ")
+  set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    WriteRegStr HKCR 'agave' '' 'URL:agave'
+    WriteRegStr HKCR 'agave' 'URL Protocol' ''
+    WriteRegStr HKCR 'agave\\\\DefaultIcon' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\"'
+    WriteRegStr HKCR 'agave\\\\shell' '' ''
+    WriteRegStr HKCR 'agave\\\\shell\\\\open' '' ''
+    WriteRegStr HKCR 'agave\\\\shell\\\\open\\\\command' '' '\\\"$INSTDIR\\\\agave-install\\\\agave.exe\\\" --load \\\"%1\\\"'
+  ")
+  set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+    DeleteRegKey HKCR 'agave'
+  ")
 
  include(CPack)
 
@@ -322,7 +329,7 @@ elseif(APPLE)
   install(CODE "include(BundleUtilities)
     fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" )" COMPONENT Runtime)
 
-  set(CPACK_GENERATOR "DragNDrop")
+  set(CPACK_GENERATOR "DRAGNDROP")
   include(CPack)
 
 else() # Linux

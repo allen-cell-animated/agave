@@ -145,7 +145,6 @@ main(int argc, char* argv[])
   QString fileToLoad = parser.value(loadOption);
   if (fileToLoad.startsWith("agave://")) {
     // the file path may be percent encoded, if it came through a url protocol handler, so decode it
-    // remove any leading and trailing double quotes or protocol prefixes
     fileToLoad = QUrl::fromPercentEncoding(fileToLoad.toUtf8());
     // remove agave:// prefix and trailing slash
     fileToLoad = fileToLoad.replace(QRegularExpression("^agave://|/$"), "");
