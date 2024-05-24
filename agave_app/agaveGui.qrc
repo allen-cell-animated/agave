@@ -9,5 +9,6 @@
         <file>icons/topView.svg</file>
         <file>icons/leftView.svg</file>
         <file>icons/orthoView.svg</file>
+        <file>icons/frameView.svg</file>
     </qresource>
 </RCC>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QWidget>
 #include <QPushButton>
+#include <QWidget>
 
 class ViewToolbar : public QWidget
 {
@@ -10,9 +10,14 @@ public:
   ViewToolbar(QWidget* parent = nullptr);
   virtual ~ViewToolbar();
 
+  QPushButton* frameViewButton;
+  QPushButton* orthoViewButton;
   QPushButton* topViewButton;
+  QPushButton* bottomViewButton;
   QPushButton* frontViewButton;
-  QPushButton* sideViewButton;
+  QPushButton* backViewButton;
+  QPushButton* leftViewButton;
+  QPushButton* rightViewButton;
 
   void positionToolbar();
 };

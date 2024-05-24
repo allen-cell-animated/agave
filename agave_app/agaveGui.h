@@ -44,8 +44,11 @@ private:
 
 public slots:
   void view_top();
+  void view_bottom();
   void view_front();
-  void view_side();
+  void view_back();
+  void view_left();
+  void view_right();
 private slots:
   void open();
   void openDirectory();
@@ -120,9 +123,9 @@ private:
   QAction* m_sourceCodeAction = nullptr;
   QAction* m_citationAction = nullptr;
   QAction* m_toggleRotateControlsAction = nullptr;
-  QAction* m_cameraTopViewAction = nullptr;
-  QAction* m_cameraFrontViewAction = nullptr;
-  QAction* m_cameraSideViewAction = nullptr;
+  // QAction* m_cameraTopViewAction = nullptr;
+  // QAction* m_cameraFrontViewAction = nullptr;
+  // QAction* m_cameraSideViewAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
