@@ -12,21 +12,21 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   toolbarLayout->setSpacing(0);
   toolbarLayout->setContentsMargins(0, 0, 0, 0);
 
-  QPushButton* topViewButton = new QPushButton(QIcon(":/icons/topView.svg"), "", this);
+  topViewButton = new QPushButton(QIcon(":/icons/topView.svg"), "", this);
   topViewButton->setToolTip(QString("<FONT>Top view</FONT>"));
   topViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   topViewButton->adjustSize();
   topViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(topViewButton);
 
-  QPushButton* frontViewButton = new QPushButton(QIcon(":/icons/frontView.svg"), "", this);
+  frontViewButton = new QPushButton(QIcon(":/icons/frontView.svg"), "", this);
   frontViewButton->setToolTip(QString("<FONT>Front view</FONT>"));
   frontViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   frontViewButton->adjustSize();
   frontViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(frontViewButton);
 
-  QPushButton* sideViewButton = new QPushButton(QIcon(":/icons/leftView.svg"), "", this);
+  sideViewButton = new QPushButton(QIcon(":/icons/leftView.svg"), "", this);
   sideViewButton->setToolTip(QString("<FONT>Side view</FONT>"));
   sideViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   sideViewButton->adjustSize();

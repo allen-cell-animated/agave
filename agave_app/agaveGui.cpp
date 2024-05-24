@@ -71,10 +71,15 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+  // TODO can make this a custom widget that exposes the toolbar and the view
   m_viewWithToolbar = new QWidget(this);
   auto vlayout = new QVBoxLayout();
   vlayout->setContentsMargins(0, 0, 0, 0);
-  vlayout->addWidget(new ViewToolbar());
+  auto toolbar = new ViewToolbar();
+  connect(toolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
+  connect(toolbar->sideViewButton, &QPushButton::clicked, this, &agaveGui::view_side);
+  connect(toolbar->frontViewButton, &QPushButton::clicked, this, &agaveGui::view_front);
+  vlayout->addWidget(toolbar);
   vlayout->addWidget(m_glView, 1);
 
   m_viewWithToolbar->setLayout(vlayout);
@@ -196,6 +201,16 @@ agaveGui::createActions()
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleAreaLightRotateControls();
   });
+
+  m_cameraTopViewAction = new QAction(tr("&Top view"), this);
+  m_cameraTopViewAction->setStatusTip(tr("Set camera to top view"));
+  connect(m_cameraTopViewAction, SIGNAL(triggered()), this, SLOT(view_top()));
+  m_cameraFrontViewAction = new QAction(tr("&Front view"), this);
+  m_cameraFrontViewAction->setStatusTip(tr("Set camera to front view"));
+  connect(m_cameraFrontViewAction, SIGNAL(triggered()), this, SLOT(view_front()));
+  m_cameraSideViewAction = new QAction(tr("&Side view"), this);
+  m_cameraSideViewAction->setStatusTip(tr("Set camera to side view"));
+  connect(m_cameraSideViewAction, SIGNAL(triggered()), this, SLOT(view_side()));
 }
 
 void
@@ -792,6 +807,30 @@ void
 agaveGui::view_reset()
 {
   m_glView->initCameraFromImage(&m_appScene);
+}
+
+void
+agaveGui::view_top()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_front()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_side()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
