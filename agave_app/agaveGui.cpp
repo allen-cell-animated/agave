@@ -25,7 +25,6 @@
 #include "loadDialog.h"
 #include "renderDialog.h"
 
-
 #include <QAction>
 #include <QElapsedTimer>
 #include <QFileDialog>
@@ -75,6 +74,8 @@ agaveGui::agaveGui(QWidget* parent)
   auto vlayout = new QVBoxLayout();
   vlayout->addWidget(new ViewToolbar());
   vlayout->addWidget(m_glView);
+  vlayout->setContentsMargins(0, 0, 0, 0);
+
   w->setLayout(vlayout);
 
   m_tabs->addTab(w, "None");

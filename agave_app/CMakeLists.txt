@@ -98,7 +98,7 @@ endif(MSVC)
 
 target_link_libraries(agaveapp PRIVATE
 	renderlib
-	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
+	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml Qt::Svg
 )
 
 # copy asset files from renderlib into a directory
