@@ -134,6 +134,7 @@ private:
 
   QTabWidget* m_tabs;
   GLView3D* m_glView;
+  QWidget* m_viewWithToolbar;
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.

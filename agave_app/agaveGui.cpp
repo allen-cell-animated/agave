@@ -69,16 +69,17 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
+  m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  auto w = new QWidget();
+  m_viewWithToolbar = new QWidget(this);
   auto vlayout = new QVBoxLayout();
-  vlayout->addWidget(new ViewToolbar());
-  vlayout->addWidget(m_glView);
   vlayout->setContentsMargins(0, 0, 0, 0);
+  vlayout->addWidget(new ViewToolbar());
+  vlayout->addWidget(m_glView, 1);
 
-  w->setLayout(vlayout);
+  m_viewWithToolbar->setLayout(vlayout);
 
-  m_tabs->addTab(w, "None");
+  m_tabs->addTab(m_viewWithToolbar, "None");
 
   QString windowTitle =
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
@@ -772,7 +773,10 @@ agaveGui::tabChanged(int index)
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
-      current = static_cast<GLView3D*>(w);
+      QLayout* layout = w->layout();
+      // ASSUMES THAT THE GLVIEW IS THE SECOND WIDGET IN THE LAYOUT
+      // TODO could use a QWidget wrapper class to get the glview out
+      current = static_cast<GLView3D*>(layout->itemAt(1)->widget());
     }
   }
   viewFocusChanged(current);
