@@ -18,11 +18,13 @@
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
+#include "ViewToolbar.h"
 #include "ViewerState.h"
 #include "aboutDialog.h"
 #include "citationDialog.h"
 #include "loadDialog.h"
 #include "renderDialog.h"
+
 
 #include <QAction>
 #include <QElapsedTimer>
@@ -68,7 +70,14 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
-  m_tabs->addTab(m_glView, "None");
+
+  auto w = new QWidget();
+  auto vlayout = new QVBoxLayout();
+  vlayout->addWidget(new ViewToolbar());
+  vlayout->addWidget(m_glView);
+  w->setLayout(vlayout);
+
+  m_tabs->addTab(w, "None");
 
   QString windowTitle =
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();

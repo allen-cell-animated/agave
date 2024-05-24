@@ -5,5 +5,9 @@
         <file>icons/lock.png</file>
         <file>icons/linked.png</file>
         <file>icons/unlinked.png</file>
+        <file>icons/frontView.svg</file>
+        <file>icons/topView.svg</file>
+        <file>icons/leftView.svg</file>
+        <file>icons/orthoView.svg</file>
     </qresource>
 </RCC>

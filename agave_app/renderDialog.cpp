@@ -4,9 +4,10 @@
 #include "renderlib/AppScene.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/ViewerWindow.h"
 #include "renderlib/command.h"
 #include "renderlib/graphics/IRenderWindow.h"
-#include "renderlib/ViewerWindow.h"
+
 
 #include <QApplication>
 #include <QButtonGroup>

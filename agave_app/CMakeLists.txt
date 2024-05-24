@@ -75,6 +75,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewToolbar.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ViewToolbar.h"
 )
 add_subdirectory(python)
 
@@ -110,7 +112,7 @@ if(WIN32)
 	)
 elseif(APPLE)
 	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
-	set(RESOURCES 
+	set(RESOURCES
 	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Arial.ttf
 	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Courier_New.ttf
 	)
