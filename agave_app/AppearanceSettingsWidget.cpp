@@ -1389,12 +1389,13 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       if (name == "Labels") {
         if (m_scene) {
           m_scene->m_volume->channel((uint32_t)i)->colorize();
-
+          m_scene->m_material.m_labels[i] = 1.0;
           // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
           m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
         }
 
       } else {
+        m_scene->m_material.m_labels[i] = 0.0;
         auto colormap = builtInGradients[index].second;
         // update channel colormap from stops
         this->OnUpdateColormap(i, colormap);

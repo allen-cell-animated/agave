@@ -118,6 +118,7 @@ uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
 uniform vec4 g_lutMax;
 uniform vec4 g_lutMin;
+uniform vec4 g_labels;
 uniform float g_opacity[4];
 uniform vec3 g_emissive[4];
 uniform vec3 g_diffuse[4];
@@ -481,9 +482,14 @@ vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 //  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
 
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
+  if (g_labels[ch] > 0.0) {
+  return texelFetch(g_colormapTexture[ch], ivec2(int(intensity[ch]), 0), 0).xyz * g_diffuse[ch];
+  }
+  else {
   float i = intensity[ch];
   i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
   return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
+  }
 
 
   //return g_diffuse[ch];
@@ -1416,6 +1422,7 @@ void main()
   m_intensityMin = uniformLocation("g_intensityMin");
   m_lutMax = uniformLocation("g_lutMax");
   m_lutMin = uniformLocation("g_lutMin");
+  m_labels = uniformLocation("g_labels");
   m_opacity = uniformLocation("g_opacity");
   m_emissive0 = uniformLocation("g_emissive[0]");
   m_emissive1 = uniformLocation("g_emissive[1]");
@@ -1557,6 +1564,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   float intensitymin[4] = { 0, 0, 0, 0 };
   float lutmax[4] = { 1, 1, 1, 1 };
   float lutmin[4] = { 0, 0, 0, 0 };
+  float labels[4] = { 0, 0, 0, 0 };
   float diffuse[3 * 4] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
   float specular[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -1587,7 +1595,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
         scene->m_material.m_gradientData[i].getMinMax(scene->m_volume->channel(i)->m_histogram, &imin16, &imax16);
       lutmin[activeChannel] = hasMinMax ? imin16 : intensitymin[activeChannel];
       lutmax[activeChannel] = hasMinMax ? imax16 : intensitymax[activeChannel];
-
+      labels[activeChannel] = scene->m_material.m_labels[i];
       activeChannel++;
     }
   }
@@ -1638,6 +1646,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform4fv(m_intensityMin, 1, intensitymin);
   glUniform4fv(m_lutMax, 1, lutmax);
   glUniform4fv(m_lutMin, 1, lutmin);
+  glUniform4fv(m_labels, 1, labels);
 
   glUniform1fv(m_opacity, 4, opacity);
   glUniform3fv(m_emissive0, 1, emissive + 0);
