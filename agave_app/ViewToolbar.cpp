@@ -214,7 +214,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   topViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(topViewButton);
 
-  bottomViewButton = new QPushButton(QIcon(":/icons/topView.svg"), "", this);
+  bottomViewButton = new QPushButton(QIcon(":/icons/bottomView.svg"), "", this);
   bottomViewButton->setToolTip(QString("<FONT>Bottom view (+Y)</FONT>"));
   bottomViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   bottomViewButton->adjustSize();
@@ -228,7 +228,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   frontViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(frontViewButton);
 
-  backViewButton = new QPushButton(QIcon(":/icons/frontView.svg"), "", this);
+  backViewButton = new QPushButton(QIcon(":/icons/backView.svg"), "", this);
   backViewButton->setToolTip(QString("<FONT>Back view (+Z)</FONT>"));
   backViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   backViewButton->adjustSize();
@@ -242,7 +242,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   leftViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(leftViewButton);
 
-  rightViewButton = new QPushButton(QIcon(":/icons/leftView.svg"), "", this);
+  rightViewButton = new QPushButton(QIcon(":/icons/rightView.svg"), "", this);
   rightViewButton->setToolTip(QString("<FONT>Right view (-X)</FONT>"));
   rightViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   rightViewButton->adjustSize();
