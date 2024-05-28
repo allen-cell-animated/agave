@@ -1,4 +1,51 @@
-<?xml version="1.0"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-    <path d="M 5 5 L 5 6 L 5 22 L 5 22.40625 L 5.28125 22.71875 L 9.28125 26.71875 L 9.59375 27 L 10 27 L 26 27 L 27 27 L 27 26 L 27 10 L 27 9.59375 L 26.71875 9.28125 L 22.71875 5.28125 L 22.40625 5 L 22 5 L 6 5 L 5 5 z M 8.4375 7 L 21.5625 7 L 24.5625 10 L 11.4375 10 L 8.4375 7 z M 7 8.4375 L 10 11.4375 L 10 24.5625 L 7 21.5625 L 7 8.4375 z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="backView.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="29.5"
+     inkscape:cx="15.237288"
+     inkscape:cy="16.355932"
+     inkscape:window-width="2320"
+     inkscape:window-height="1228"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1" />
+  <path
+     d="M 27,27 V 26 10 9.59375 l -0.28125,-0.3125 -4,-4 L 22.40625,5 H 22 6 5 v 1 16 0.40625 l 0.28125,0.3125 4,4 L 9.59375,27 H 10 26 Z m -3.4375,-2 h -13.125 l -3,-3 h 13.125 z M 25,23.5625 l -3,-3 V 7.4375 l 3,3 z"
+     id="path1"
+     inkscape:label="path1"
+     style="display:inline" />
+  <rect
+     style="fill:#000000"
+     id="rect2"
+     width="2.0338984"
+     height="16.881355"
+     x="8.9830513"
+     y="8.9152546" />
+  <rect
+     style="fill:#000000"
+     id="rect3"
+     width="16.813559"
+     height="2.0677967"
+     x="9.0508471"
+     y="9.2881355" />
 </svg>
