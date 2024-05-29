@@ -140,6 +140,167 @@ GetPlanesIntersection(Plane p1, Plane p2)
     p3Normal);
 }
 #endif
+bool
+IsOutermostPointInDirection(int pointIndex, const glm::vec3& direction)
+{
+  glm::vec3 point = boundingBoxPoints[pointIndex];
+  for (int i = 0; i < boundingBoxPoints.Length; i++) {
+    if (i != pointIndex && glm::dot(direction, boundingBoxPoints[i] - point) > 0)
+      return false;
+  }
+
+  return true;
+}
+struct Ray
+{
+  glm::vec3 origin;
+  glm::vec3 direction;
+  Ray(const glm::vec3& o, const glm::vec3& d)
+    : origin(o)
+    , direction(d)
+  {
+  }
+};
+
+// Credit: https://stackoverflow.com/a/32410473/2373034
+// Returns the intersection line of the 2 planes
+Ray
+GetPlanesIntersection(const glm::vec4& p1, const glm::vec4& p2)
+{
+  glm::vec3 p3Normal = glm::cross(glm::vec3(p1), glm::vec3(p2));
+  float det = glm::length2(p3Normal);
+
+  return Ray(((glm::cross(p3Normal, glm::vec3(p2)) * p1.w) + (glm::cross(glm::vec3(p1), p3Normal) * p2.w)) / det,
+             p3Normal);
+}
+
+// Credit: http://wiki.unity3d.com/index.php/3d_Math_functions
+// Returns the edge points of the closest line segment between 2 lines
+void
+FindClosestPointsOnTwoLines(Ray line1, Ray line2, glm::vec3& closestPointLine1, glm::vec3& closestPointLine2)
+{
+  glm::vec3 line1Direction = line1.direction;
+  glm::vec3 line2Direction = line2.direction;
+
+  float a = glm::dot(line1Direction, line1Direction);
+  float b = glm::dot(line1Direction, line2Direction);
+  float e = glm::dot(line2Direction, line2Direction);
+
+  float d = a * e - b * b;
+
+  glm::vec3 r = line1.origin - line2.origin;
+  float c = glm::dot(line1Direction, r);
+  float f = glm::dot(line2Direction, r);
+
+  float s = (b * f - c * e) / d;
+  float t = (a * f - c * b) / d;
+
+  closestPointLine1 = line1.origin + line1Direction * s;
+  closestPointLine2 = line2.origin + line2Direction * t;
+}
+
+void
+CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, float padding = 0.0f)
+{
+  // doing the math in camera space assuming there is no scaling betw camera and world space??
+
+  CBoundingBox bounds = sceneBBox;
+  glm::vec3 cameraDirection = glm::normalize(camera.m_From - camera.m_Target);
+  float aspect = (float)camera.m_Film.GetWidth() / (float)camera.m_Film.GetHeight();
+
+  if (padding != 0.0f) {
+    bounds.Extend(padding);
+  }
+  glm::vec3 boundsCenter = bounds.GetCenter();
+  glm::vec3 boundsSize = bounds.GetExtent();
+  glm::vec3 boundsExtents = boundsSize * 0.5f;
+
+  glm::mat4 viewMatrix;
+  camera.getViewMatrix(viewMatrix);
+  std::array<glm::vec3, 8> boundingBoxPoints;
+  bounds.GetCorners(boundingBoxPoints);
+  // transform into camera space
+  for (int i = 0; i < 8; i++) {
+    boundingBoxPoints[i] = viewMatrix * glm::vec4(boundingBoxPoints[i], 1.0f);
+  }
+
+  if (camera.m_Projection == ORTHOGRAPHIC) {
+    camera.m_Target = boundsCenter;
+
+    float minX = FLT_MAX;
+    float minY = FLT_MAX;
+    float maxX = -FLT_MAX;
+    float maxY = -FLT_MAX;
+
+    for (int i = 0; i < 8; i++) {
+      glm::vec3 localPoint = (boundingBoxPoints[i]);
+      if (localPoint.x < minX) {
+        minX = localPoint.x;
+      }
+      if (localPoint.x > maxX) {
+        maxX = localPoint.x;
+      }
+      if (localPoint.y < minY) {
+        minY = localPoint.y;
+      }
+      if (localPoint.y > maxY) {
+        maxY = localPoint.y;
+      }
+    }
+
+    float distance = glm::length(boundsExtents) + 1.0f;
+    camera.m_OrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
+    camera.m_From = boundsCenter - cameraDirection * distance;
+  } else {
+    glm::vec3 cameraUp = camera.m_Up;
+    glm::vec3 cameraRight = camera.m_U; // or m_V?
+
+    float verticalFOV = camera.m_FovV * 0.5f * DEG_TO_RAD; // radians
+    float horizontalFOV =
+      camera.getHalfHorizontalAperture(); // .Atan(Mathf.Tan(verticalFOV * Mathf.Deg2Rad) * aspect) * Mathf.Rad2Deg;
+
+    // Normals of the camera's frustum planes
+    glm::vec3 topFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + verticalFOV, -cameraRight);
+    glm::vec3 bottomFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + verticalFOV, cameraRight);
+    glm::vec3 rightFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + horizontalFOV, cameraUp);
+    glm::vec3 leftFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + horizontalFOV, -cameraUp);
+
+    // Credit for algorithm: https://stackoverflow.com/a/66113254/2373034
+    // 1. Find edge points of the bounds using the camera's frustum planes
+    // 2. Create a plane for each edge point that goes through the point and has the corresponding frustum plane's
+    // normal
+    // 3. Find the intersection line of horizontal edge points' planes (horizontalIntersection) and vertical edge
+    // points' planes (verticalIntersection)
+    //    If we move the camera along horizontalIntersection, the bounds will always with the camera's width perfectly
+    //    (similar effect goes for verticalIntersection)
+    // 4. Find the closest line segment between these two lines (horizontalIntersection and verticalIntersection) and
+    // place the camera at the farthest point on that line
+    int leftmostPoint = -1, rightmostPoint = -1, topmostPoint = -1, bottommostPoint = -1;
+    for (int i = 0; i < 8; i++) {
+      if (leftmostPoint < 0 && IsOutermostPointInDirection(i, leftFrustumPlaneNormal))
+        leftmostPoint = i;
+      if (rightmostPoint < 0 && IsOutermostPointInDirection(i, rightFrustumPlaneNormal))
+        rightmostPoint = i;
+      if (topmostPoint < 0 && IsOutermostPointInDirection(i, topFrustumPlaneNormal))
+        topmostPoint = i;
+      if (bottommostPoint < 0 && IsOutermostPointInDirection(i, bottomFrustumPlaneNormal))
+        bottommostPoint = i;
+    }
+
+    Ray horizontalIntersection =
+      GetPlanesIntersection(new Plane(leftFrustumPlaneNormal, boundingBoxPoints[leftmostPoint]),
+                            new Plane(rightFrustumPlaneNormal, boundingBoxPoints[rightmostPoint]));
+    Ray verticalIntersection =
+      GetPlanesIntersection(new Plane(topFrustumPlaneNormal, boundingBoxPoints[topmostPoint]),
+                            new Plane(bottomFrustumPlaneNormal, boundingBoxPoints[bottommostPoint]));
+
+    glm::vec3 closestPoint1, closestPoint2;
+    FindClosestPointsOnTwoLines(horizontalIntersection, verticalIntersection, out closestPoint1, out closestPoint2);
+
+    camera.m_From = glm::dot(closestPoint1 - closestPoint2, cameraDirection) < 0 ? closestPoint1 : closestPoint2;
+  }
+}
+
 void
 CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget)
 {
