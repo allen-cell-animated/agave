@@ -10,6 +10,7 @@ public:
   ViewToolbar(QWidget* parent = nullptr);
   virtual ~ViewToolbar();
 
+  QPushButton* homeButton;
   QPushButton* frameViewButton;
   QPushButton* orthoViewButton;
   QPushButton* topViewButton;

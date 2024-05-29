@@ -193,8 +193,17 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   toolbarLayout->setSpacing(0);
   toolbarLayout->setContentsMargins(0, 0, 0, 0);
 
+  homeButton = new QPushButton(QIcon(":/icons/Home-icon.svg"), "", this);
+  homeButton->setToolTip(QString("<FONT>Reset view</FONT>"));
+  homeButton->setStatusTip(tr("Reset the view"));
+  homeButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  homeButton->adjustSize();
+  homeButton->setFocusPolicy(Qt::NoFocus);
+  toolbarLayout->addWidget(homeButton);
+
   frameViewButton = new QPushButton(QIcon(":/icons/frameView.svg"), "", this);
   frameViewButton->setToolTip(QString("<FONT>Frame view</FONT>"));
+  frameViewButton->setStatusTip(tr("Frame the current view"));
   frameViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   frameViewButton->adjustSize();
   frameViewButton->setFocusPolicy(Qt::NoFocus);
@@ -202,6 +211,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   orthoViewButton = new QPushButton(QIcon(":/icons/orthoView.svg"), "", this);
   orthoViewButton->setToolTip(QString("<FONT>Ortho/Persp view</FONT>"));
+  orthoViewButton->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   orthoViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   orthoViewButton->adjustSize();
   orthoViewButton->setFocusPolicy(Qt::NoFocus);
@@ -209,6 +219,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   topViewButton = new QPushButton(QIcon(":/icons/topView.svg"), "", this);
   topViewButton->setToolTip(QString("<FONT>Top view (-Y)</FONT>"));
+  topViewButton->setStatusTip(tr("Set the view to look down the negative Y axis"));
   topViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   topViewButton->adjustSize();
   topViewButton->setFocusPolicy(Qt::NoFocus);
@@ -216,6 +227,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   bottomViewButton = new QPushButton(QIcon(":/icons/bottomView.svg"), "", this);
   bottomViewButton->setToolTip(QString("<FONT>Bottom view (+Y)</FONT>"));
+  bottomViewButton->setStatusTip(tr("Set the view to look down the positive Y axis"));
   bottomViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   bottomViewButton->adjustSize();
   bottomViewButton->setFocusPolicy(Qt::NoFocus);
@@ -223,6 +235,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   frontViewButton = new QPushButton(QIcon(":/icons/frontView.svg"), "", this);
   frontViewButton->setToolTip(QString("<FONT>Front view (-Z)</FONT>"));
+  frontViewButton->setStatusTip(tr("Set the view to look down the negative Z axis"));
   frontViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   frontViewButton->adjustSize();
   frontViewButton->setFocusPolicy(Qt::NoFocus);
@@ -230,6 +243,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   backViewButton = new QPushButton(QIcon(":/icons/backView.svg"), "", this);
   backViewButton->setToolTip(QString("<FONT>Back view (+Z)</FONT>"));
+  backViewButton->setStatusTip(tr("Set the view to look down the positive Z axis"));
   backViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   backViewButton->adjustSize();
   backViewButton->setFocusPolicy(Qt::NoFocus);
@@ -237,6 +251,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   leftViewButton = new QPushButton(QIcon(":/icons/leftView.svg"), "", this);
   leftViewButton->setToolTip(QString("<FONT>Left view (+X)</FONT>"));
+  leftViewButton->setStatusTip(tr("Set the view to look down the positive X axis"));
   leftViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   leftViewButton->adjustSize();
   leftViewButton->setFocusPolicy(Qt::NoFocus);
@@ -244,6 +259,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   rightViewButton = new QPushButton(QIcon(":/icons/rightView.svg"), "", this);
   rightViewButton->setToolTip(QString("<FONT>Right view (-X)</FONT>"));
+  rightViewButton->setStatusTip(tr("Set the view to look down the negative X axis"));
   rightViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   rightViewButton->adjustSize();
   rightViewButton->setFocusPolicy(Qt::NoFocus);

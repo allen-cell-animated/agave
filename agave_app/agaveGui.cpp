@@ -82,6 +82,9 @@ agaveGui::agaveGui(QWidget* parent)
   connect(toolbar->rightViewButton, &QPushButton::clicked, this, &agaveGui::view_right);
   connect(toolbar->frontViewButton, &QPushButton::clicked, this, &agaveGui::view_front);
   connect(toolbar->backViewButton, &QPushButton::clicked, this, &agaveGui::view_back);
+  connect(toolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
+  connect(toolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
+  connect(toolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
   vlayout->addWidget(toolbar);
   vlayout->addWidget(m_glView, 1);
 
@@ -269,9 +272,9 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_renderAction);
   m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_viewResetAction);
-  m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
-  m_ui.mainToolBar->addSeparator();
+  // m_ui.mainToolBar->addAction(m_viewResetAction);
+  // m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
+  // m_ui.mainToolBar->addSeparator();
 
   QToolButton* helpButton = new QToolButton(this);
   helpButton->setText("Help");
@@ -810,6 +813,11 @@ void
 agaveGui::view_reset()
 {
   m_glView->initCameraFromImage(&m_appScene);
+}
+void
+agaveGui::view_frame()
+{
+  m_glView->FitToScene();
 }
 
 void

@@ -58,6 +58,7 @@ private slots:
   void updateRecentFileActions();
   void quit();
   void view_reset();
+  void view_frame();
   void view_toggleProjection();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);

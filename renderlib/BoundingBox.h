@@ -6,6 +6,43 @@
 
 #include <sstream>
 
+struct CRegion
+{
+  CRegion()
+    : lower(+FLT_MAX)
+    , upper(-FLT_MAX)
+  {
+  }
+
+  CRegion(const glm::vec2& lower, const glm::vec2& upper)
+    : lower(lower)
+    , upper(upper) {};
+
+  // assignment operator
+  CRegion& operator=(const CRegion& other)
+  {
+    lower = other.lower;
+    upper = other.upper;
+    return *this;
+  }
+
+  void extend(const glm::vec2& p)
+  {
+    lower = glm::min(lower, p);
+    upper = glm::max(upper, p);
+  }
+
+  glm::vec2 size() const { return upper - lower; }
+  glm::vec2 center() const { return 0.5f * (lower + upper); }
+
+  bool empty() const { return size().x < 0 || size().y < 0; }
+
+  glm::vec2 lower;
+  glm::vec2 upper;
+
+  static CRegion intersect(const CRegion& a, const CRegion& b);
+};
+
 class CBoundingBox
 {
 public:
@@ -15,12 +52,14 @@ public:
   CBoundingBox(void)
     : m_MinP(FLT_MAX, FLT_MAX, FLT_MAX)
     , m_MaxP(-FLT_MAX, -FLT_MAX, -FLT_MAX)
-  {}
+  {
+  }
 
   CBoundingBox(const glm::vec3& v1, const glm::vec3& v2)
     : m_MinP(v1)
     , m_MaxP(v2)
-  {}
+  {
+  }
 
   CBoundingBox& operator=(const CBoundingBox& B)
   {
@@ -179,6 +218,7 @@ public:
     return ss.str();
   }
 
+  CRegion projectToXY(const glm::mat4& transform) const;
 #if 0
 	// Performs a line box intersection
 	bool Intersect(CRay& R, float* pMinT = NULL, float* pMaxT = NULL)

@@ -13,5 +13,6 @@
         <file>icons/rightView.svg</file>
         <file>icons/orthoView.svg</file>
         <file>icons/frameView.svg</file>
+        <file>icons/Home-icon.svg</file>
     </qresource>
 </RCC>

@@ -18,6 +18,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AreaLightTool.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AreaLightTool.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/command.cpp"
