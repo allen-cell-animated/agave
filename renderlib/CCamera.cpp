@@ -249,20 +249,20 @@ CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPositio
 
   newPosition = CalculateCameraPosition(*this, sceneBBox, 0.0f);
 
-  glm::mat4 mv, mp;
-  getViewMatrix(mv);
-  getProjMatrix(mp);
-  glm::mat4 mvp = mp * mv;
-  CRegion region = sceneBBox.projectToXY(mvp);
-  glm::vec2 size = region.size();
-  float maxdim = std::max(size.x, size.y);
-  float ratio = maxdim / 2.0f;
+  // glm::mat4 mv, mp;
+  // getViewMatrix(mv);
+  // getProjMatrix(mp);
+  // glm::mat4 mvp = mp * mv;
+  // CRegion region = sceneBBox.projectToXY(mvp);
+  // glm::vec2 size = region.size();
+  // float maxdim = std::max(size.x, size.y);
+  // float ratio = maxdim / 2.0f;
 
-  glm::vec3 direction = m_From - m_Target;
-  direction = direction * ratio;
-  // The new target position is the center of the scene bbox
-  newTarget = sceneBBox.GetCenter();
-  newPosition = newTarget + direction;
+  // glm::vec3 direction = m_From - m_Target;
+  // direction = direction * ratio;
+  // // The new target position is the center of the scene bbox
+  // newTarget = sceneBBox.GetCenter();
+  // newPosition = newTarget + direction;
 
   // the center is a vector in clip space that we need to transform back to world space.
   // glm::vec4 centernear = glm::vec4(region.center(), 0.0f, 1.0f);
