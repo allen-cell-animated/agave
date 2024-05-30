@@ -166,8 +166,6 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
   // }
 
   if (camera.m_Projection == ORTHOGRAPHIC) {
-    camera.m_Target = boundsCenter;
-
     float minX = FLT_MAX;
     float minY = FLT_MAX;
     float maxX = -FLT_MAX;
@@ -189,9 +187,11 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
       }
     }
 
-    float distance = glm::length(boundsExtents) + 1.0f;
-    camera.m_OrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
-    return boundsCenter - cameraDirection * distance;
+    float olddist = glm::length(camera.m_From - camera.m_Target);
+    float newOrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
+    float newDistance = olddist * newOrthoScale / camera.m_OrthoScale;
+
+    return boundsCenter - cameraDirection * newDistance;
   } else {
     glm::vec3 cameraUp = camera.m_Up;
     glm::vec3 cameraRight = camera.m_U; // or m_V?
