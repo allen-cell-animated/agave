@@ -558,7 +558,7 @@ struct CameraModifier
   glm::vec3 position = { 0, 0, 0 };
   glm::vec3 target = { 0, 0, 0 };
   glm::vec3 up = { 0, 0, 0 };
-  // float fov = 0;
+  float fov = 0;
   float nearClip = 0, farClip = 0;
 
   CameraModifier()
@@ -575,7 +575,7 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   c.position = a.position + b.position;
   c.target = a.target + b.target;
   c.up = a.up + b.up;
-  // c.fov = a.fov + b.fov;
+  c.fov = a.fov + b.fov;
   c.nearClip = a.nearClip + b.nearClip;
   c.farClip = a.farClip + b.farClip;
   return c;
@@ -588,7 +588,7 @@ operator*(const CameraModifier& a, const float b)
   c.position = a.position * b;
   c.target = a.target * b;
   c.up = a.up * b;
-  // c.fov = a.fov * b;
+  c.fov = a.fov * b;
   c.nearClip = a.nearClip * b;
   c.farClip = a.farClip * b;
   return c;
