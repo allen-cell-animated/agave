@@ -155,17 +155,18 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
   glm::vec3 boundsSize = bounds.GetExtent();
   glm::vec3 boundsExtents = boundsSize * 0.5f;
 
-  // the following assumes no scaling between camera and world space
-  // glm::mat4 viewMatrix;
-  // camera.getViewMatrix(viewMatrix);
   std::array<glm::vec3, 8> boundingBoxPoints;
   bounds.GetCorners(boundingBoxPoints);
-  // transform into camera space
-  // for (int i = 0; i < 8; i++) {
-  //   boundingBoxPoints[i] = viewMatrix * glm::vec4(boundingBoxPoints[i], 1.0f);
-  // }
 
   if (camera.m_Projection == ORTHOGRAPHIC) {
+    // the following assumes no scaling between camera and world space
+    glm::mat4 viewMatrix;
+    camera.getViewMatrix(viewMatrix);
+    // transform into camera space
+    for (int i = 0; i < 8; i++) {
+      boundingBoxPoints[i] = viewMatrix * glm::vec4(boundingBoxPoints[i], 1.0f);
+    }
+
     float minX = FLT_MAX;
     float minY = FLT_MAX;
     float maxX = -FLT_MAX;
@@ -191,7 +192,7 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
     float newOrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
     float newDistance = olddist * newOrthoScale / camera.m_OrthoScale;
 
-    return boundsCenter - cameraDirection * newDistance;
+    return boundsCenter + cameraDirection * newDistance;
   } else {
     glm::vec3 cameraUp = camera.m_Up;
     glm::vec3 cameraRight = camera.m_U; // or m_V?
