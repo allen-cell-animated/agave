@@ -153,22 +153,21 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
 {
   // assume bbox, padding and cam in world space.
 
-  // doing the math in camera space assuming there is no scaling betw camera and world space??
-
+  // make a copy of the bounds and add padding
   CBoundingBox bounds = sceneBBox;
-  glm::vec3 cameraDirection = glm::normalize(camera.m_Target - camera.m_From);
-
   if (padding != 0.0f) {
     bounds.Extend(padding);
   }
   glm::vec3 boundsCenter = bounds.GetCenter();
   glm::vec3 boundsSize = bounds.GetExtent();
   glm::vec3 boundsExtents = boundsSize * 0.5f;
-
   std::array<glm::vec3, 8> boundingBoxPoints;
   bounds.GetCorners(boundingBoxPoints);
 
+  glm::vec3 cameraDirection = glm::normalize(camera.m_Target - camera.m_From);
+
   if (camera.m_Projection == ORTHOGRAPHIC) {
+    // orthographic mode strategy: for ortho mode, find the left, top, bottom and rightmost points of the bounding box.
     // the following assumes no scaling between camera and world space
     glm::mat4 viewMatrix;
     camera.getViewMatrix(viewMatrix);
@@ -198,6 +197,9 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
       }
     }
 
+    // the math here is a bit backwards. Rather than computing a new orthoScale,
+    // we are computing a camera position that will RESULT in a new orthoScale value when
+    // applied via operator+=(CCamera& camera, const CameraModifier& mod)
     float aspect = (float)camera.m_Film.GetWidth() / (float)camera.m_Film.GetHeight();
     float olddist = glm::length(camera.m_Target - camera.m_From);
     float newOrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
@@ -205,13 +207,18 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
 
     return boundsCenter - cameraDirection * newDistance;
   } else {
-    glm::vec3 cameraUp = camera.m_V;
-    glm::vec3 cameraRight = camera.m_U; // or m_V?
+    // perspective mode strategy:
+    // we will find the outermost points of the bounding box in the direction of the camera's top, bottom, left and
+    // right frustum planes.
+    // We will compute new frustum planes using those outermost points, and find
+    // the intersection of top/bottom planes, and left/right planes.
+    // Then we will find the camera distance that is the best choice on the line between the two plane intersections.
 
     float verticalFOV = camera.m_FovV * 0.5f * DEG_TO_RAD; // radians
     float horizontalFOV = camera.GetHorizontalFOV_radians() * 0.5f;
 
-    // Normals of the camera's frustum planes
+    // Normals of the camera's frustum planes.
+    // recall that m_V is the up direction and m_U is the right direction.
     glm::vec3 topFrustumPlaneNormal = glm::rotate(camera.m_V, verticalFOV, camera.m_U);
     glm::vec3 bottomFrustumPlaneNormal = glm::rotate(-camera.m_V, -verticalFOV, camera.m_U);
     glm::vec3 rightFrustumPlaneNormal = glm::rotate(camera.m_U, -horizontalFOV, camera.m_V);
