@@ -75,6 +75,7 @@ agaveGui::agaveGui(QWidget* parent)
   m_viewWithToolbar = new QWidget(this);
   auto vlayout = new QVBoxLayout();
   vlayout->setContentsMargins(0, 0, 0, 0);
+  vlayout->setSpacing(2);
   auto toolbar = new ViewToolbar();
   connect(toolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
   connect(toolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);

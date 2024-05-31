@@ -261,49 +261,7 @@ void
 CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget)
 {
   newTarget = sceneBBox.GetCenter();
-
   newPosition = CalculateCameraPosition(*this, sceneBBox, sceneBBox.GetDiagonalLength() * 0.025f);
-
-  // glm::mat4 mv, mp;
-  // getViewMatrix(mv);
-  // getProjMatrix(mp);
-  // glm::mat4 mvp = mp * mv;
-  // CRegion region = sceneBBox.projectToXY(mvp);
-  // glm::vec2 size = region.size();
-  // float maxdim = std::max(size.x, size.y);
-  // float ratio = maxdim / 2.0f;
-
-  // glm::vec3 direction = m_From - m_Target;
-  // direction = direction * ratio;
-  // // The new target position is the center of the scene bbox
-  // newTarget = sceneBBox.GetCenter();
-  // newPosition = newTarget + direction;
-
-  // the center is a vector in clip space that we need to transform back to world space.
-  // glm::vec4 centernear = glm::vec4(region.center(), 0.0f, 1.0f);
-  // glm::vec4 centerfar = glm::vec4(region.center(), 1.0f, 1.0f);
-  // glm::vec4 centerWorldNear = glm::inverse(mvp) * centernear;
-  // glm::vec4 centerWorldFar = glm::inverse(mvp) * centerfar;
-#if 0
-
-  // now we have a region in clip space.
-  // the ratio of this region is proportional to the ratio of the camera distances?
-
-  // Approximatively compute at what distance the camera need to be to frame
-  // the scene content
-  float boundingSphereRadius = sceneBBox.GetEquivalentRadius();
-
-  glm::vec3 direction = m_From - m_Target;
-  float halfAperture = getHalfHorizontalAperture();
-  const float somePadding = 1.1f;
-  // the distance at which the bounding sphere fits in the FOV
-  float distanceFit = boundingSphereRadius / halfAperture;
-
-  direction = glm::normalize(direction) * (somePadding * distanceFit);
-  // The new target position is the center of the scene bbox
-  newTarget = sceneBBox.GetCenter();
-  newPosition = newTarget + direction;
-#endif
 }
 
 glm::vec3
