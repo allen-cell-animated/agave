@@ -124,9 +124,6 @@ private:
   QAction* m_sourceCodeAction = nullptr;
   QAction* m_citationAction = nullptr;
   QAction* m_toggleRotateControlsAction = nullptr;
-  // QAction* m_cameraTopViewAction = nullptr;
-  // QAction* m_cameraFrontViewAction = nullptr;
-  // QAction* m_cameraSideViewAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();

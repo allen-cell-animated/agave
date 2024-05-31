@@ -208,16 +208,6 @@ agaveGui::createActions()
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleAreaLightRotateControls();
   });
-
-  // m_cameraTopViewAction = new QAction(tr("&Top view"), this);
-  // m_cameraTopViewAction->setStatusTip(tr("Set camera to top view"));
-  // connect(m_cameraTopViewAction, SIGNAL(triggered()), this, SLOT(view_top()));
-  // m_cameraFrontViewAction = new QAction(tr("&Front view"), this);
-  // m_cameraFrontViewAction->setStatusTip(tr("Set camera to front view"));
-  // connect(m_cameraFrontViewAction, SIGNAL(triggered()), this, SLOT(view_front()));
-  // m_cameraSideViewAction = new QAction(tr("&Side view"), this);
-  // m_cameraSideViewAction->setStatusTip(tr("Set camera to side view"));
-  // connect(m_cameraSideViewAction, SIGNAL(triggered()), this, SLOT(view_side()));
 }
 
 void
@@ -273,9 +263,6 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_renderAction);
   m_ui.mainToolBar->addSeparator();
-  // m_ui.mainToolBar->addAction(m_viewResetAction);
-  // m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
-  // m_ui.mainToolBar->addSeparator();
 
   QToolButton* helpButton = new QToolButton(this);
   helpButton->setText("Help");

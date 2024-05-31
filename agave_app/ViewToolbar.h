@@ -19,6 +19,4 @@ public:
   QPushButton* backViewButton;
   QPushButton* leftViewButton;
   QPushButton* rightViewButton;
-
-  void positionToolbar();
 };
