@@ -98,11 +98,16 @@ GetPlanesIntersection(const Plane& p1, const Plane& p2)
   return Ray(((glm::cross(p3Normal, p2.normal) * p1.d) + (glm::cross(p1.normal, p3Normal) * p2.d)) / det, p3Normal);
 }
 
-// Credit: http://wiki.unity3d.com/index.php/3d_Math_functions
-// Returns the edge points of the closest line segment between 2 lines
-void
+// this implementation comes from an old unity3d wiki page.
+// Two non-parallel lines which may or may not touch each other have a point on each line which are closest
+// to each other. This function finds those two points. If the lines are not parallel, the function
+// outputs true, otherwise false.
+bool
 FindClosestPointsOnTwoLines(Ray line1, Ray line2, glm::vec3& closestPointLine1, glm::vec3& closestPointLine2)
 {
+  closestPointLine1 = glm::vec3(0);
+  closestPointLine2 = glm::vec3(0);
+
   glm::vec3 line1Direction = line1.direction;
   glm::vec3 line2Direction = line2.direction;
 
@@ -111,6 +116,10 @@ FindClosestPointsOnTwoLines(Ray line1, Ray line2, glm::vec3& closestPointLine1, 
   float e = glm::dot(line2Direction, line2Direction);
 
   float d = a * e - b * b;
+  if (d == 0.0f) {
+    return false;
+  }
+  // if d==0 then lines are parallel and this is a big fail.
 
   glm::vec3 r = line1.origin - line2.origin;
   float c = glm::dot(line1Direction, r);
@@ -121,6 +130,7 @@ FindClosestPointsOnTwoLines(Ray line1, Ray line2, glm::vec3& closestPointLine1, 
 
   closestPointLine1 = line1.origin + line1Direction * s;
   closestPointLine2 = line2.origin + line2Direction * t;
+  return true;
 }
 
 bool
@@ -198,8 +208,7 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
     glm::vec3 cameraRight = camera.m_U; // or m_V?
 
     float verticalFOV = camera.m_FovV * 0.5f * DEG_TO_RAD; // radians
-    float horizontalFOV =
-      camera.getHalfHorizontalAperture(); // .Atan(Mathf.Tan(verticalFOV * Mathf.Deg2Rad) * aspect) * Mathf.Rad2Deg;
+    float horizontalFOV = camera.GetHorizontalFOV_radians() * 0.5f;
 
     // Normals of the camera's frustum planes
     glm::vec3 topFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + verticalFOV, -cameraRight);
