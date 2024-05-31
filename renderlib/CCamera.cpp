@@ -140,23 +140,23 @@ IsOutermostPointInDirection(int pointIndex,
 {
   glm::vec3 point = boundingBoxPoints[pointIndex];
   for (int i = 0; i < 8; i++) {
-    if (i != pointIndex && glm::dot(direction, boundingBoxPoints[i] - point) > 0)
+    if (i != pointIndex && glm::dot(direction, boundingBoxPoints[i] - point) > 0) {
       return false;
+    }
   }
 
   return true;
 }
 
 glm::vec3
-CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float padding = 0.0f)
+CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, float padding = 0.0f)
 {
   // assume bbox, padding and cam in world space.
 
   // doing the math in camera space assuming there is no scaling betw camera and world space??
 
   CBoundingBox bounds = sceneBBox;
-  glm::vec3 cameraDirection = glm::normalize(camera.m_From - camera.m_Target);
-  float aspect = (float)camera.m_Film.GetWidth() / (float)camera.m_Film.GetHeight();
+  glm::vec3 cameraDirection = glm::normalize(camera.m_Target - camera.m_From);
 
   if (padding != 0.0f) {
     bounds.Extend(padding);
@@ -198,23 +198,24 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
       }
     }
 
-    float olddist = glm::length(camera.m_From - camera.m_Target);
+    float aspect = (float)camera.m_Film.GetWidth() / (float)camera.m_Film.GetHeight();
+    float olddist = glm::length(camera.m_Target - camera.m_From);
     float newOrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
     float newDistance = olddist * newOrthoScale / camera.m_OrthoScale;
 
-    return boundsCenter + cameraDirection * newDistance;
+    return boundsCenter - cameraDirection * newDistance;
   } else {
-    glm::vec3 cameraUp = camera.m_Up;
+    glm::vec3 cameraUp = camera.m_V;
     glm::vec3 cameraRight = camera.m_U; // or m_V?
 
     float verticalFOV = camera.m_FovV * 0.5f * DEG_TO_RAD; // radians
     float horizontalFOV = camera.GetHorizontalFOV_radians() * 0.5f;
 
     // Normals of the camera's frustum planes
-    glm::vec3 topFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + verticalFOV, -cameraRight);
-    glm::vec3 bottomFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + verticalFOV, cameraRight);
-    glm::vec3 rightFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + horizontalFOV, cameraUp);
-    glm::vec3 leftFrustumPlaneNormal = glm::rotate(cameraDirection, HALF_PI_F + horizontalFOV, -cameraUp);
+    glm::vec3 topFrustumPlaneNormal = glm::rotate(camera.m_V, verticalFOV, camera.m_U);
+    glm::vec3 bottomFrustumPlaneNormal = glm::rotate(-camera.m_V, -verticalFOV, camera.m_U);
+    glm::vec3 rightFrustumPlaneNormal = glm::rotate(camera.m_U, -horizontalFOV, camera.m_V);
+    glm::vec3 leftFrustumPlaneNormal = glm::rotate(-camera.m_U, horizontalFOV, camera.m_V);
 
     // Credit for algorithm: https://stackoverflow.com/a/66113254/2373034
     // 1. Find edge points of the bounds using the camera's frustum planes
@@ -228,14 +229,18 @@ CalculateCameraPosition(CCamera& camera, const CBoundingBox& sceneBBox, float pa
     // place the camera at the farthest point on that line
     int leftmostPoint = -1, rightmostPoint = -1, topmostPoint = -1, bottommostPoint = -1;
     for (int i = 0; i < 8; i++) {
-      if (leftmostPoint < 0 && IsOutermostPointInDirection(i, leftFrustumPlaneNormal, boundingBoxPoints))
+      if (leftmostPoint < 0 && IsOutermostPointInDirection(i, leftFrustumPlaneNormal, boundingBoxPoints)) {
         leftmostPoint = i;
-      if (rightmostPoint < 0 && IsOutermostPointInDirection(i, rightFrustumPlaneNormal, boundingBoxPoints))
+      }
+      if (rightmostPoint < 0 && IsOutermostPointInDirection(i, rightFrustumPlaneNormal, boundingBoxPoints)) {
         rightmostPoint = i;
-      if (topmostPoint < 0 && IsOutermostPointInDirection(i, topFrustumPlaneNormal, boundingBoxPoints))
+      }
+      if (topmostPoint < 0 && IsOutermostPointInDirection(i, topFrustumPlaneNormal, boundingBoxPoints)) {
         topmostPoint = i;
-      if (bottommostPoint < 0 && IsOutermostPointInDirection(i, bottomFrustumPlaneNormal, boundingBoxPoints))
+      }
+      if (bottommostPoint < 0 && IsOutermostPointInDirection(i, bottomFrustumPlaneNormal, boundingBoxPoints)) {
         bottommostPoint = i;
+      }
     }
 
     Ray horizontalIntersection =
@@ -257,7 +262,7 @@ CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPositio
 {
   newTarget = sceneBBox.GetCenter();
 
-  newPosition = CalculateCameraPosition(*this, sceneBBox, 0.0f);
+  newPosition = CalculateCameraPosition(*this, sceneBBox, sceneBBox.GetDiagonalLength() * 0.025f);
 
   // glm::mat4 mv, mp;
   // getViewMatrix(mv);
