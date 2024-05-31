@@ -193,6 +193,8 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   toolbarLayout->setSpacing(0);
   toolbarLayout->setContentsMargins(0, 0, 0, 0);
 
+  static const int spacing = 4;
+
   homeButton = new QPushButton(QIcon(":/icons/Home-icon.svg"), "", this);
   homeButton->setToolTip(QString("<FONT>Reset view</FONT>"));
   homeButton->setStatusTip(tr("Reset the view"));
@@ -209,6 +211,8 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   frameViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(frameViewButton);
 
+  toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+
   orthoViewButton = new QPushButton(QIcon(":/icons/orthoView.svg"), "", this);
   orthoViewButton->setToolTip(QString("<FONT>Ortho/Persp view</FONT>"));
   orthoViewButton->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
@@ -216,6 +220,8 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   orthoViewButton->adjustSize();
   orthoViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(orthoViewButton);
+
+  toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
   topViewButton = new QPushButton(QIcon(":/icons/topView.svg"), "", this);
   topViewButton->setToolTip(QString("<FONT>Top view (-Y)</FONT>"));
