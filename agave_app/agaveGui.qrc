@@ -12,6 +12,7 @@
         <file>icons/leftView.svg</file>
         <file>icons/rightView.svg</file>
         <file>icons/orthoView.svg</file>
+        <file>icons/perspView.svg</file>
         <file>icons/frameView.svg</file>
         <file>icons/Home-icon.svg</file>
     </qresource>

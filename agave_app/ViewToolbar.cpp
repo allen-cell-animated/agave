@@ -186,6 +186,56 @@ class SwitchingIcon : public QIcon
 };
 #endif
 
+class DualIconButton : public QPushButton
+{
+private:
+  QIcon icon1;
+  QIcon icon2;
+  QString tooltip1;
+  QString tooltip2;
+  QString statustip1;
+  QString statustip2;
+  int state;
+
+public:
+  DualIconButton(const QIcon& icon1,
+                 const QIcon& icon2,
+                 const QString& tooltip1,
+                 const QString& statustip1,
+                 const QString& tooltip2,
+                 const QString& statustip2,
+                 QWidget* parent = nullptr)
+    : icon1(icon1)
+    , icon2(icon2)
+    , tooltip1(tooltip1)
+    , tooltip2(tooltip2)
+    , statustip1(statustip1)
+    , statustip2(statustip2)
+    , state(0)
+    , QPushButton(parent)
+  {
+
+    setIcon((icon1));
+    setToolTip(tooltip1);
+    setStatusTip(statustip1);
+    connect(this, &QPushButton::clicked, this, &DualIconButton::toggleIcon);
+  }
+
+  void toggleIcon()
+  {
+    state = 1 - state;
+    if (state == 1) {
+      setIcon(icon2);
+      setToolTip(tooltip2);
+      setStatusTip(statustip2);
+    } else {
+      setIcon(icon1);
+      setToolTip(tooltip1);
+      setStatusTip(statustip1);
+    }
+  }
+};
+
 ViewToolbar::ViewToolbar(QWidget* parent)
   : QWidget(parent)
 {
@@ -213,9 +263,16 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
-  orthoViewButton = new QPushButton(QIcon(":/icons/orthoView.svg"), "", this);
-  orthoViewButton->setToolTip(QString("<FONT>Ortho/Persp view</FONT>"));
-  orthoViewButton->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
+  orthoViewButton = new DualIconButton(QIcon(":/icons/orthoView.svg"),
+                                       QIcon(":/icons/perspView.svg"),
+                                       QString("<FONT>Ortho view</FONT>"),
+                                       tr("Toggle perspective and orthographic camera projection modes"),
+                                       QString("<FONT>Persp view</FONT>"),
+                                       tr("Toggle perspective and orthographic camera projection modes"),
+                                       this);
+  // orthoViewButton = new QPushButton(QIcon(":/icons/orthoView.svg"), "", this);
+  // orthoViewButton->setToolTip(QString("<FONT>Ortho/Persp view</FONT>"));
+  // orthoViewButton->setStatusTip(tr("Toggle perspective and orthographic camera projection modes"));
   orthoViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   orthoViewButton->adjustSize();
   orthoViewButton->setFocusPolicy(Qt::NoFocus);
