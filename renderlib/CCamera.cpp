@@ -148,9 +148,13 @@ IsOutermostPointInDirection(int pointIndex,
   return true;
 }
 
-glm::vec3
-CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, float padding = 0.0f)
+void
+CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget) const
 {
+  newTarget = sceneBBox.GetCenter();
+
+  float padding = sceneBBox.GetDiagonalLength() * 0.025f;
+
   // assume bbox, padding and cam in world space.
 
   // make a copy of the bounds and add padding
@@ -162,13 +166,13 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
   std::array<glm::vec3, NUM_BBOX_CORNERS> boundingBoxPoints;
   bounds.GetCorners(boundingBoxPoints);
 
-  glm::vec3 cameraDirection = glm::normalize(camera.m_Target - camera.m_From);
+  glm::vec3 cameraDirection = glm::normalize(m_Target - m_From);
 
-  if (camera.m_Projection == ORTHOGRAPHIC) {
+  if (m_Projection == ORTHOGRAPHIC) {
     // orthographic mode strategy: for ortho mode, find the left, top, bottom and rightmost points of the bounding box.
     // the following assumes no scaling between camera and world space
     glm::mat4 viewMatrix;
-    camera.getViewMatrix(viewMatrix);
+    getViewMatrix(viewMatrix);
     // transform into camera space
     for (int i = 0; i < NUM_BBOX_CORNERS; i++) {
       boundingBoxPoints[i] = viewMatrix * glm::vec4(boundingBoxPoints[i], 1.0f);
@@ -198,12 +202,12 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     // the math here is a bit backwards. Rather than computing a new orthoScale,
     // we are computing a camera position that will RESULT in a new orthoScale value when
     // applied via operator+=(CCamera& camera, const CameraModifier& mod)
-    float aspect = (float)camera.m_Film.GetWidth() / (float)camera.m_Film.GetHeight();
-    float oldDistance = glm::length(camera.m_Target - camera.m_From);
+    float aspect = (float)m_Film.GetWidth() / (float)m_Film.GetHeight();
+    float oldDistance = glm::length(m_Target - m_From);
     float newOrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
-    float newDistance = oldDistance * newOrthoScale / camera.m_OrthoScale;
+    float newDistance = oldDistance * newOrthoScale / m_OrthoScale;
 
-    return boundsCenter - cameraDirection * newDistance;
+    newPosition = boundsCenter - cameraDirection * newDistance;
   } else {
     // perspective mode strategy:
     // we will find the outermost points of the bounding box in the direction of the camera's top, bottom, left and
@@ -212,15 +216,15 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     // the intersection of top/bottom planes, and left/right planes.
     // Then we will find the camera distance that is the best choice on the line between the two plane intersections.
 
-    float verticalFOV = camera.m_FovV * 0.5f * DEG_TO_RAD; // radians
-    float horizontalFOV = camera.GetHorizontalFOV_radians() * 0.5f;
+    float verticalFOV = m_FovV * 0.5f * DEG_TO_RAD; // radians
+    float horizontalFOV = GetHorizontalFOV_radians() * 0.5f;
 
     // Normals of the camera's frustum planes.
     // recall that m_V is the up direction and m_U is the right direction.
-    glm::vec3 topFrustumPlaneNormal = glm::rotate(camera.m_V, verticalFOV, camera.m_U);
-    glm::vec3 bottomFrustumPlaneNormal = glm::rotate(-camera.m_V, -verticalFOV, camera.m_U);
-    glm::vec3 rightFrustumPlaneNormal = glm::rotate(camera.m_U, -horizontalFOV, camera.m_V);
-    glm::vec3 leftFrustumPlaneNormal = glm::rotate(-camera.m_U, horizontalFOV, camera.m_V);
+    glm::vec3 topFrustumPlaneNormal = glm::rotate(m_V, verticalFOV, m_U);
+    glm::vec3 bottomFrustumPlaneNormal = glm::rotate(-m_V, -verticalFOV, m_U);
+    glm::vec3 rightFrustumPlaneNormal = glm::rotate(m_U, -horizontalFOV, m_V);
+    glm::vec3 leftFrustumPlaneNormal = glm::rotate(-m_U, horizontalFOV, m_V);
 
     // Credit for algorithm: https://stackoverflow.com/a/66113254/2373034
     // 1. Find edge points of the bounds using the camera's frustum planes
@@ -258,15 +262,8 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     glm::vec3 closestPoint1, closestPoint2;
     FindClosestPointsOnTwoLines(horizontalIntersection, verticalIntersection, closestPoint1, closestPoint2);
 
-    return glm::dot(closestPoint1 - closestPoint2, cameraDirection) < 0 ? closestPoint1 : closestPoint2;
+    newPosition = glm::dot(closestPoint1 - closestPoint2, cameraDirection) < 0 ? closestPoint1 : closestPoint2;
   }
-}
-
-void
-CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget)
-{
-  newTarget = sceneBBox.GetCenter();
-  newPosition = CalculateCameraPosition(*this, sceneBBox, sceneBBox.GetDiagonalLength() * 0.025f);
 }
 
 glm::vec3

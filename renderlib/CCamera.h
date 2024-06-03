@@ -550,7 +550,7 @@ public:
     }
   }
 
-  void ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget);
+  void ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget) const;
 };
 
 struct CameraModifier
