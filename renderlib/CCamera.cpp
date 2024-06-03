@@ -136,10 +136,10 @@ FindClosestPointsOnTwoLines(Ray line1, Ray line2, glm::vec3& closestPointLine1, 
 bool
 IsOutermostPointInDirection(int pointIndex,
                             const glm::vec3& direction,
-                            const std::array<glm::vec3, 8>& boundingBoxPoints)
+                            const std::array<glm::vec3, NUM_BBOX_CORNERS>& boundingBoxPoints)
 {
   glm::vec3 point = boundingBoxPoints[pointIndex];
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < NUM_BBOX_CORNERS; i++) {
     if (i != pointIndex && glm::dot(direction, boundingBoxPoints[i] - point) > 0) {
       return false;
     }
@@ -159,7 +159,7 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     bounds.Extend(padding);
   }
   glm::vec3 boundsCenter = bounds.GetCenter();
-  std::array<glm::vec3, 8> boundingBoxPoints;
+  std::array<glm::vec3, NUM_BBOX_CORNERS> boundingBoxPoints;
   bounds.GetCorners(boundingBoxPoints);
 
   glm::vec3 cameraDirection = glm::normalize(camera.m_Target - camera.m_From);
@@ -170,7 +170,7 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     glm::mat4 viewMatrix;
     camera.getViewMatrix(viewMatrix);
     // transform into camera space
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < NUM_BBOX_CORNERS; i++) {
       boundingBoxPoints[i] = viewMatrix * glm::vec4(boundingBoxPoints[i], 1.0f);
     }
 
@@ -179,7 +179,7 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     float maxX = -FLT_MAX;
     float maxY = -FLT_MAX;
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < NUM_BBOX_CORNERS; i++) {
       glm::vec3 localPoint = (boundingBoxPoints[i]);
       if (localPoint.x < minX) {
         minX = localPoint.x;
@@ -233,7 +233,7 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     // 4. Find the closest line segment between these two lines (horizontalIntersection and verticalIntersection) and
     // place the camera at the farthest point on that line
     int leftmostPoint = -1, rightmostPoint = -1, topmostPoint = -1, bottommostPoint = -1;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < NUM_BBOX_CORNERS; i++) {
       if (leftmostPoint < 0 && IsOutermostPointInDirection(i, leftFrustumPlaneNormal, boundingBoxPoints)) {
         leftmostPoint = i;
       }

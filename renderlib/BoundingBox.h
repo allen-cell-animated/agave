@@ -7,6 +7,8 @@
 #include <array>
 #include <sstream>
 
+#define NUM_BBOX_CORNERS 8
+
 class CBoundingBox
 {
 public:
@@ -188,7 +190,7 @@ public:
     m_MaxP += glm::vec3(f);
   }
 
-  void GetCorners(std::array<glm::vec3, 8>& corners) const
+  void GetCorners(std::array<glm::vec3, NUM_BBOX_CORNERS>& corners) const
   {
     corners[0] = glm::vec3(m_MinP.x, m_MinP.y, m_MinP.z);
     corners[1] = glm::vec3(m_MaxP.x, m_MinP.y, m_MinP.z);
