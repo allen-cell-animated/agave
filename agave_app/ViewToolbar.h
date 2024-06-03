@@ -1,7 +1,11 @@
 #pragma once
 
+#include "Controls.h"
+
 #include <QPushButton>
 #include <QWidget>
+
+class CCamera;
 
 class ViewToolbar : public QWidget
 {
@@ -9,10 +13,11 @@ class ViewToolbar : public QWidget
 public:
   ViewToolbar(QWidget* parent = nullptr);
   virtual ~ViewToolbar();
+  void initFromCamera(const CCamera& camera);
 
   QPushButton* homeButton;
   QPushButton* frameViewButton;
-  QPushButton* orthoViewButton;
+  DualIconButton* orthoViewButton;
   QPushButton* topViewButton;
   QPushButton* bottomViewButton;
   QPushButton* frontViewButton;

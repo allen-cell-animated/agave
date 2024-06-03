@@ -76,17 +76,17 @@ agaveGui::agaveGui(QWidget* parent)
   auto vlayout = new QVBoxLayout();
   vlayout->setContentsMargins(0, 0, 0, 0);
   vlayout->setSpacing(2);
-  auto toolbar = new ViewToolbar();
-  connect(toolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
-  connect(toolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
-  connect(toolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
-  connect(toolbar->rightViewButton, &QPushButton::clicked, this, &agaveGui::view_right);
-  connect(toolbar->frontViewButton, &QPushButton::clicked, this, &agaveGui::view_front);
-  connect(toolbar->backViewButton, &QPushButton::clicked, this, &agaveGui::view_back);
-  connect(toolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
-  connect(toolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
-  connect(toolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
-  vlayout->addWidget(toolbar);
+  m_viewToolbar = new ViewToolbar();
+  connect(m_viewToolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
+  connect(m_viewToolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
+  connect(m_viewToolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
+  connect(m_viewToolbar->rightViewButton, &QPushButton::clicked, this, &agaveGui::view_right);
+  connect(m_viewToolbar->frontViewButton, &QPushButton::clicked, this, &agaveGui::view_front);
+  connect(m_viewToolbar->backViewButton, &QPushButton::clicked, this, &agaveGui::view_back);
+  connect(m_viewToolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
+  connect(m_viewToolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
+  connect(m_viewToolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
+  vlayout->addWidget(m_viewToolbar);
   vlayout->addWidget(m_glView, 1);
 
   m_viewWithToolbar->setLayout(vlayout);
@@ -768,7 +768,7 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 
   m_viewResetAction->setEnabled(false);
 
-  bool enable(newGlView != 0);
+  bool enable = (newGlView != nullptr);
 
   m_viewResetAction->setEnabled(enable);
 
@@ -1028,6 +1028,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   // position camera
   m_glView->fromViewerState(v);
+  m_viewToolbar->initFromCamera(m_glView->getCamera());
 
   m_appScene.m_roi.SetMinP(glm::vec3(v.clipRegion[0][0], v.clipRegion[1][0], v.clipRegion[2][0]));
   m_appScene.m_roi.SetMaxP(glm::vec3(v.clipRegion[0][1], v.clipRegion[1][1], v.clipRegion[2][1]));

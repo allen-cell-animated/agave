@@ -20,6 +20,7 @@ class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
 class IFileReader;
+class ViewToolbar;
 struct VolumeDimensions;
 struct LoadSpec;
 
@@ -142,6 +143,7 @@ private:
 
   QTabWidget* m_tabs;
   GLView3D* m_glView;
+  ViewToolbar* m_viewToolbar;
   QWidget* m_viewWithToolbar;
 
   // THE underlying render settings container.
