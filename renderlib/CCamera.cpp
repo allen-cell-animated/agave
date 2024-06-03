@@ -159,8 +159,6 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     bounds.Extend(padding);
   }
   glm::vec3 boundsCenter = bounds.GetCenter();
-  glm::vec3 boundsSize = bounds.GetExtent();
-  glm::vec3 boundsExtents = boundsSize * 0.5f;
   std::array<glm::vec3, 8> boundingBoxPoints;
   bounds.GetCorners(boundingBoxPoints);
 
