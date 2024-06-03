@@ -82,7 +82,7 @@ public:
 
   /// Resize the view.
   void resizeGL(int w, int h);
-  void FitToScene(float seconds = 0.0f);
+  void FitToScene(float transitionDurationSeconds = 0.0f);
 
 protected:
   /// Set up GL context and subsidiary objects.
