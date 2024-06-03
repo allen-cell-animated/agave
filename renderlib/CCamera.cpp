@@ -199,9 +199,9 @@ CalculateCameraPosition(const CCamera& camera, const CBoundingBox& sceneBBox, fl
     // we are computing a camera position that will RESULT in a new orthoScale value when
     // applied via operator+=(CCamera& camera, const CameraModifier& mod)
     float aspect = (float)camera.m_Film.GetWidth() / (float)camera.m_Film.GetHeight();
-    float olddist = glm::length(camera.m_Target - camera.m_From);
+    float oldDistance = glm::length(camera.m_Target - camera.m_From);
     float newOrthoScale = std::max(maxY - minY, (maxX - minX) / aspect) * 0.5f;
-    float newDistance = olddist * newOrthoScale / camera.m_OrthoScale;
+    float newDistance = oldDistance * newOrthoScale / camera.m_OrthoScale;
 
     return boundsCenter - cameraDirection * newDistance;
   } else {
