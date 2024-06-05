@@ -16,9 +16,6 @@ CCamera::SetViewMode(const EViewMode ViewMode)
   const float Length = (m_Projection == ORTHOGRAPHIC) ? 2.0f : size * 0.5f / tan(0.5f * m_FovV * DEG_TO_RAD);
   m_OrthoScale = DEF_ORTHO_SCALE;
 
-  // const float Distance = 0.866f;
-  // const float Length = Distance * m_SceneBoundingBox.GetMaxLength();
-
   m_From = m_Target;
 
   switch (ViewMode) {
