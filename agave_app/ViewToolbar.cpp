@@ -39,12 +39,12 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
-  orthoViewButton = new DualIconButton(QIcon(":/icons/orthoView.svg"),
-                                       QIcon(":/icons/perspView.svg"),
-                                       QString("<FONT>Ortho view</FONT>"),
-                                       tr("Toggle perspective and orthographic camera projection modes"),
-                                       QString("<FONT>Persp view</FONT>"),
-                                       tr("Toggle perspective and orthographic camera projection modes"),
+  orthoViewButton = new DualIconButton(QIcon(":/icons/perspView.svg"),
+                                       QIcon(":/icons/orthoView.svg"),
+                                       QString("<FONT>Switch to orthographic view</FONT>"),
+                                       tr("Switch to orthographic view"),
+                                       QString("<FONT>Switch to perspective view</FONT>"),
+                                       tr("Switch to perspective view"),
                                        this);
   orthoViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   orthoViewButton->adjustSize();
