@@ -505,75 +505,7 @@ public:
     Update();
   }
 
-  void SetViewMode(const EViewMode ViewMode)
-  {
-    if (ViewMode == ViewModeUser)
-      return;
-
-    glm::vec3 ctr = m_SceneBoundingBox.GetCenter();
-    m_Target = ctr;
-    m_Up = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    const float size = m_SceneBoundingBox.GetDiagonalLength();
-    const float Length = (m_Projection == ORTHOGRAPHIC) ? 2.0f : size * 0.5f / tan(0.5f * m_FovV * DEG_TO_RAD);
-    m_OrthoScale = DEF_ORTHO_SCALE;
-
-    // const float Distance = 0.866f;
-    // const float Length = Distance * m_SceneBoundingBox.GetMaxLength();
-
-    m_From = m_Target;
-
-    switch (ViewMode) {
-      case ViewModeFront:
-        m_From.z += Length;
-        break;
-      case ViewModeBack:
-        m_From.z -= Length;
-        break;
-      case ViewModeLeft:
-        m_From.x += Length;
-        break;
-      case ViewModeRight:
-        m_From.x -= -Length;
-        break;
-      case ViewModeTop:
-        m_From.y += Length;
-        m_Up = glm::vec3(0.0f, 0.0f, 1.0f);
-        break;
-      case ViewModeBottom:
-        m_From.y -= -Length;
-        m_Up = glm::vec3(0.0f, 0.0f, -1.0f);
-        break;
-      case ViewModeIsometricFrontLeftTop:
-        m_From = glm::vec3(Length, Length, -Length);
-        break;
-      case ViewModeIsometricFrontRightTop:
-        m_From = m_Target + glm::vec3(-Length, Length, -Length);
-        break;
-      case ViewModeIsometricFrontLeftBottom:
-        m_From = m_Target + glm::vec3(Length, -Length, -Length);
-        break;
-      case ViewModeIsometricFrontRightBottom:
-        m_From = m_Target + glm::vec3(-Length, -Length, -Length);
-        break;
-      case ViewModeIsometricBackLeftTop:
-        m_From = m_Target + glm::vec3(Length, Length, Length);
-        break;
-      case ViewModeIsometricBackRightTop:
-        m_From = m_Target + glm::vec3(-Length, Length, Length);
-        break;
-      case ViewModeIsometricBackLeftBottom:
-        m_From = m_Target + glm::vec3(Length, -Length, Length);
-        break;
-      case ViewModeIsometricBackRightBottom:
-        m_From = m_Target + glm::vec3(-Length, -Length, Length);
-        break;
-      default:
-        break;
-    }
-
-    Update();
-  }
+  void SetViewMode(const EViewMode ViewMode);
 
   float getHalfHorizontalAperture() const { return tan(this->GetHorizontalFOV_radians() * 0.5f); }
 
@@ -618,7 +550,7 @@ public:
     }
   }
 
-  void ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget);
+  void ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPosition, glm::vec3& newTarget) const;
 };
 
 struct CameraModifier
@@ -626,13 +558,14 @@ struct CameraModifier
   glm::vec3 position = { 0, 0, 0 };
   glm::vec3 target = { 0, 0, 0 };
   glm::vec3 up = { 0, 0, 0 };
-  // float fov = 0;
+  float fov = 0;
   float nearClip = 0, farClip = 0;
 
   CameraModifier()
     : nearClip(0)
     , farClip(0)
-  {}
+  {
+  }
 };
 
 inline CameraModifier
@@ -642,19 +575,20 @@ operator+(const CameraModifier& a, const CameraModifier& b)
   c.position = a.position + b.position;
   c.target = a.target + b.target;
   c.up = a.up + b.up;
-  // c.fov = a.fov + b.fov;
+  c.fov = a.fov + b.fov;
   c.nearClip = a.nearClip + b.nearClip;
   c.farClip = a.farClip + b.farClip;
   return c;
 }
 
-inline CameraModifier operator*(const CameraModifier& a, const float b)
+inline CameraModifier
+operator*(const CameraModifier& a, const float b)
 {
   CameraModifier c;
   c.position = a.position * b;
   c.target = a.target * b;
   c.up = a.up * b;
-  // c.fov = a.fov * b;
+  c.fov = a.fov * b;
   c.nearClip = a.nearClip * b;
   c.farClip = a.farClip * b;
   return c;
