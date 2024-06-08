@@ -56,6 +56,7 @@ struct PathTraceRenderSettings
   float m_GradientDelta;
   float m_GradientFactor;
   bool m_ShowLightsBackground;
+  bool m_InterpolatedVolumeSampling;
 
   PathTraceRenderSettings()
     : m_DensityScale(8.5f)
@@ -65,5 +66,7 @@ struct PathTraceRenderSettings
     , m_GradientDelta(4.0f)
     , m_GradientFactor(0.5f)
     , m_ShowLightsBackground(false)
-  {}
+    , m_InterpolatedVolumeSampling(true)
+  {
+  }
 };

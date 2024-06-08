@@ -88,6 +88,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(
     &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
+  m_interpolateCheckBox.setChecked(true);
+  m_interpolateCheckBox.setStatusTip(tr("Interpolated volume sampling"));
+  m_interpolateCheckBox.setToolTip(tr("Interpolated volume sampling"));
+  m_MainLayout.addRow("Interpolate", &m_interpolateCheckBox);
+  QObject::connect(&m_interpolateCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
+    this->OnInterpolateChecked(is_checked);
+  });
+
   m_backgroundColorButton.setStatusTip(tr("Set background color"));
   m_backgroundColorButton.setToolTip(tr("Set background color"));
   m_backgroundColorButton.SetColor(QColor(0, 0, 0), true);
@@ -673,6 +681,14 @@ QAppearanceSettingsWidget::OnShowScaleBarChecked(bool isChecked)
   if (!m_scene)
     return;
   m_scene->m_showScaleBar = isChecked;
+}
+void
+QAppearanceSettingsWidget::OnInterpolateChecked(bool isChecked)
+{
+  if (!m_scene)
+    return;
+  m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling = isChecked;
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
 void

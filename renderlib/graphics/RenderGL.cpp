@@ -67,7 +67,7 @@ RenderGL::prepareToRender()
   }
 
   if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty)) {
-    m_image3d->prepareTexture(*m_scene);
+    m_image3d->prepareTexture(*m_scene, m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
   }
 
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now
