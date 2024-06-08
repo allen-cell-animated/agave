@@ -708,6 +708,16 @@ export class AgaveClient {
     this.cb.addCommand("SET_FLIP_AXIS", x, y, z);
   }
 
+  /**
+   * Turn volume sampling interpolation on or off
+   *
+   * @param on 0 to turn off, 1 to turn on
+   */
+  setInterpolation(on: number) {
+    // 47
+    this.cb.addCommand("SET_INTERPOLATION", on);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {

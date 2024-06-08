@@ -83,6 +83,7 @@ export const COMMANDS = {
   LOAD_DATA: [44, "S", "I32", "I32", "I32", "I32A", "I32A"],
   SHOW_SCALE_BAR: [45, "I32"],
   SET_FLIP_AXIS: [46, "I32", "I32", "I32"],
+  SET_INTERPOLATION: [47, "I32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert

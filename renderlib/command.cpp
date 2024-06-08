@@ -550,7 +550,8 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 void
 SetTimeCommand::execute(ExecutionContext* c)
 {
-  LOG_DEBUG << "SetTime command: " << " T=" << m_data.m_time;
+  LOG_DEBUG << "SetTime command: "
+            << " T=" << m_data.m_time;
 
   // setting same time is a no-op.
   if (m_data.m_time == c->m_appScene->m_timeLine.currentTime()) {
@@ -737,6 +738,14 @@ SetFlipAxisCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetFlipAxis " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z;
   c->m_appScene->m_volume->setVolumeAxesFlipped(m_data.m_x, m_data.m_y, m_data.m_z);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
+SetInterpolationCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetInterpolation " << m_data.m_on;
+  c->m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling = m_data.m_on;
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
@@ -1659,6 +1668,23 @@ SetFlipAxisCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetInterpolationCommand*
+SetInterpolationCommand::parse(ParseableStream* c)
+{
+  SetInterpolationCommandD data;
+  data.m_on = c->parseInt32();
+  return new SetInterpolationCommand(data);
+}
+
+size_t
+SetInterpolationCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_on);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2120,6 +2146,16 @@ SetFlipAxisCommand::toPythonString() const
   ss << m_data.m_x << ", ";
   ss << m_data.m_y << ", ";
   ss << m_data.m_z;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetInterpolationCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_on;
   ss << ")";
   return ss.str();
 }

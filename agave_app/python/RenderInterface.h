@@ -70,4 +70,9 @@ public:
   virtual int BackgroundColor(float, float, float) = 0;
   virtual int SetIsovalueThreshold(int32_t, float, float) = 0;
   virtual int SetControlPoints(int32_t, std::vector<float>) = 0;
+  virtual int SetBoundingBoxColor(float, float, float) = 0;
+  virtual int ShowBoundingBox(int32_t) = 0;
+  virtual int ShowScaleBar(int32_t) = 0;
+  virtual int SetFlipAxis(int32_t, int32_t, int32_t) = 0;
+  virtual int SetInterpolation(int32_t) = 0;
 };

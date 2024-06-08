@@ -443,4 +443,11 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_y == data.m_y);
     REQUIRE(cmd->m_data.m_z == data.m_z);
   }
+  SECTION("SetInterpolationCommand")
+  {
+    SetInterpolationCommandD data = { 1 };
+    auto cmd = testcodec<SetInterpolationCommand, SetInterpolationCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_interpolation(1)");
+    REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
 }
