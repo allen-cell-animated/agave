@@ -97,6 +97,7 @@ struct ViewerState
   std::vector<ChannelSettings_V1> channels; // m_channels
 
   float density = 50.0f;
+  bool interpolate = true;
 
   // lighting
   std::vector<LightSettings_V1> lights; // m_lights
@@ -110,7 +111,7 @@ struct ViewerState
            flipAxis == other.flipAxis && camera == other.camera && backgroundColor == other.backgroundColor &&
            boundingBoxColor == other.boundingBoxColor && showBoundingBox == other.showBoundingBox &&
            showScaleBar == other.showScaleBar && channels == other.channels && density == other.density &&
-           lights == other.lights && capture == other.capture;
+           lights == other.lights && capture == other.capture && interpolate == other.interpolate;
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ViewerState,
                                               datasets,
@@ -127,6 +128,7 @@ struct ViewerState
                                               showBoundingBox,
                                               channels,
                                               density,
+                                              interpolate,
                                               lights,
                                               capture,
                                               showScaleBar)

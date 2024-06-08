@@ -593,6 +593,7 @@ QAppearanceSettingsWidget::OnRenderBegin(void)
   m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
   m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow,
                                         true);
+  m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
 }
 
 void
@@ -870,6 +871,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
   m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor);
   m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
+  m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
 
   QColor cbg = QColor::fromRgbF(m_scene->m_material.m_backgroundColor[0],
                                 m_scene->m_material.m_backgroundColor[1],
