@@ -125,14 +125,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
     this->OnBoundingBoxColorChanged(c);
   });
 
-  m_showAxisHelperCheckBox.setChecked(false);
-  m_showAxisHelperCheckBox.setStatusTip(tr("Show/hide axis helper"));
-  m_showAxisHelperCheckBox.setToolTip(tr("Show/hide axis helper"));
-  m_MainLayout.addRow("Axes", &m_showAxisHelperCheckBox);
-  QObject::connect(&m_showAxisHelperCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
-    this->OnShowAxisHelperChecked(is_checked);
-  });
-
   m_showScaleBarCheckBox.setChecked(false);
   m_showScaleBarCheckBox.setStatusTip(tr("Show/hide scale bar"));
   m_showScaleBarCheckBox.setToolTip(tr("Show/hide scale bar"));
@@ -690,14 +682,6 @@ QAppearanceSettingsWidget::OnShowScaleBarChecked(bool isChecked)
   if (!m_scene)
     return;
   m_scene->m_showScaleBar = isChecked;
-}
-
-void
-QAppearanceSettingsWidget::OnShowAxisHelperChecked(bool isChecked)
-{
-  if (!m_scene)
-    return;
-  m_scene->m_showAxisHelper = isChecked;
 }
 
 void
