@@ -1,6 +1,7 @@
 #include "ViewerWindow.h"
 
 #include "AreaLightTool.h"
+#include "AxisHelperTool.h"
 #include "IRenderWindow.h"
 #include "MoveTool.h"
 #include "RenderSettings.h"
@@ -22,6 +23,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   // on the selection set.
   m_areaLightTool = new AreaLightTool();
   m_tools.push_back(new ScaleBarTool());
+  m_tools.push_back(new AxisHelperTool());
 }
 
 ViewerWindow::~ViewerWindow()

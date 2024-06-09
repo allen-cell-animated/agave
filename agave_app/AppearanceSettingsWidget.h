@@ -52,6 +52,7 @@ public:
   void OnBoundingBoxColorChanged(const QColor& color);
   void OnShowBoundsChecked(bool isChecked);
   void OnShowScaleBarChecked(bool isChecked);
+  void OnShowAxisHelperChecked(bool isChecked);
   void OnInterpolateChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
@@ -113,6 +114,7 @@ private:
   QCheckBox m_showBoundingBoxCheckBox;
   QColorPushButton m_boundingBoxColorButton;
   QCheckBox m_showScaleBarCheckBox;
+  QCheckBox m_showAxisHelperCheckBox;
 
   std::vector<Section*> m_channelSections;
 
