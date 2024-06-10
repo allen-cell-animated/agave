@@ -36,6 +36,7 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
     origins.update(scene);
   }
   AffineSpace3f target; // = origins.currentReference(scene);
+  target.p = scene.camera.m_Target;
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
   LinearSpace3f camFrame = scene.camera.getFrame();
@@ -45,6 +46,7 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
 
   AffineSpace3f axis;
   axis.p = target.p;
+
   if (m_localSpace) {
     axis.l = origins.currentReference(scene).l;
   }
