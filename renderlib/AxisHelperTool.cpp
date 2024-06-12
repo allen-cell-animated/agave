@@ -35,17 +35,23 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
   if (origins.empty()) {
     origins.update(scene);
   }
+
+  LinearSpace3f camFrame = scene.camera.getFrame();
+
   AffineSpace3f target; // = origins.currentReference(scene);
   target.p = scene.camera.m_Target;
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
-  LinearSpace3f camFrame = scene.camera.getFrame();
 
   // Draw the manipulator to be at some constant size on screen
-  float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
+  float scaleFactor = 0.333; // make it smaller
+  float scale = scaleFactor * length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
 
   AffineSpace3f axis;
   axis.p = target.p;
+  // translate this in screen space toward the lower left corner!
+  axis.p -= camFrame.vx * 0.4f * glm::length(viewDir) * resolution.x / resolution.y;
+  axis.p -= camFrame.vy * 0.4f * glm::length(viewDir);
 
   if (m_localSpace) {
     axis.l = origins.currentReference(scene).l;

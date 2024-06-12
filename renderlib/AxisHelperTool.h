@@ -9,7 +9,7 @@ struct AxisHelperTool : public ManipulationTool
     : ManipulationTool(0)
     , m_localSpace(localspace)
   {
-    setSize(size / 3.0);
+    setSize(size);
   }
 
   virtual void action(SceneView& scene, Gesture& gesture) final;
