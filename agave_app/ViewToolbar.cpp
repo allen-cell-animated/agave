@@ -101,6 +101,16 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   rightViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(rightViewButton);
 
+  toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+
+  axisHelperButton = new QPushButton(QIcon(":/icons/coordinates.svg"), "", this);
+  axisHelperButton->setToolTip(QString("<FONT>Show/Hide axis helper</FONT>"));
+  axisHelperButton->setStatusTip(tr("Show/Hide axis helper"));
+  axisHelperButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  axisHelperButton->adjustSize();
+  axisHelperButton->setFocusPolicy(Qt::NoFocus);
+  toolbarLayout->addWidget(axisHelperButton);
+
   toolbarLayout->addStretch();
 
   setLayout(toolbarLayout);

@@ -24,4 +24,5 @@ public:
   QPushButton* backViewButton;
   QPushButton* leftViewButton;
   QPushButton* rightViewButton;
+  QPushButton* axisHelperButton;
 };

@@ -15,5 +15,6 @@
         <file>icons/perspView.svg</file>
         <file>icons/frameView.svg</file>
         <file>icons/Home-icon.svg</file>
+        <file>icons/coordinates.svg</file>
     </qresource>
 </RCC>

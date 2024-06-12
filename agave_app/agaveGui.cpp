@@ -86,6 +86,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_viewToolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
   connect(m_viewToolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
   connect(m_viewToolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
+  connect(m_viewToolbar->axisHelperButton, &QPushButton::clicked, this, &agaveGui::showAxisHelper);
   vlayout->addWidget(m_viewToolbar);
   vlayout->addWidget(m_glView, 1);
 
@@ -857,6 +858,12 @@ void
 agaveGui::view_toggleProjection()
 {
   m_glView->toggleCameraProjection();
+}
+
+void
+agaveGui::showAxisHelper()
+{
+  m_appScene.m_showAxisHelper = !m_appScene.m_showAxisHelper;
 }
 
 void
