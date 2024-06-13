@@ -6,6 +6,10 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>agave</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>agave</string>
+        </array>
 	<key>CFBundleIconFile</key>
 	<string>Icon</string>
 	<key>CFBundleIdentifier</key>
