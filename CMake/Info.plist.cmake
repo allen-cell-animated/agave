@@ -6,10 +6,6 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>agave</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>agave</string>
-        </array>
 	<key>CFBundleIconFile</key>
 	<string>Icon</string>
 	<key>CFBundleIdentifier</key>
@@ -26,6 +22,17 @@
 	<string>@PROJECT_VERSION@</string>
 	<key>CFBundleShortVersionString</key>
 	<string>@PROJECT_VERSION@</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+		<key>CFBundleURLName</key>
+		<string>com.aics.agave</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>agave</string>
+		</array>
+		</dict>
+	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>@PACKAGE_OSX_TARGET@</string>
 	<key>NSPrincipalClass</key>
