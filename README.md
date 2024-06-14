@@ -46,7 +46,7 @@ aqt install-qt --outputdir C:\Qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwe
 Use vcpkg (must use target triplet x64-windows) to install the following:
 
 ```
-vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd eigen3 --triplet x64-windows
+vcpkg install glm zlib libjpeg-turbo liblzma tiff zstd eigen3 --triplet x64-windows
 ```
 
 **Build AGAVE**
@@ -72,7 +72,7 @@ pip install aqtinstall
 aqt install-qt --outputdir ~/Qt mac desktop 6.5.3 -m qtwebsockets qtimageformats
 export Qt6_DIR=~/Qt/6.5.3/macos
 # and then:
-brew install spdlog glm libtiff
+brew install glm libtiff
 
 mkdir build
 cd build
