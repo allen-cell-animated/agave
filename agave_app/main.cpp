@@ -91,6 +91,41 @@ preloadFiles(QStringList preloadlist)
   }
 }
 
+class AgaveApplication : public QApplication
+{
+public:
+    AgaveApplication(int &argc, char **argv)
+        : QApplication(argc, argv)
+    {
+    }
+
+    void setGUI(agaveGui *gui) {
+      m_gui = gui;
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (event->type() == QEvent::FileOpen) {
+            QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
+            const QUrl url = openEvent->url();
+            if (url.isLocalFile()) {
+                m_gui->open(url.toLocalFile().toStdString());
+                // read from local file
+            } else if (url.isValid()) {
+                m_gui->open(url.toString().toStdString());
+                // process according to the URL's schema
+            } else {
+                // parse openEvent->file()
+                LOG_WARNING << "Received QFileOpenEvent with invalid url/local file path: " << openEvent->file().toStdString();
+            }
+        }
+
+        return QApplication::event(event);
+    }
+
+    agaveGui* m_gui = nullptr;
+};
+
 int
 main(int argc, char* argv[])
 {
@@ -99,7 +134,7 @@ main(int argc, char* argv[])
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication::setStyle("fusion");
-  QApplication a(argc, argv);
+  AgaveApplication a(argc, argv);
   a.setOrganizationName("Allen Institute for Cell Science");
   a.setOrganizationDomain("allencell.org");
   a.setApplicationName("AGAVE");
@@ -193,6 +228,7 @@ main(int argc, char* argv[])
       result = a.exec();
     } else {
       agaveGui* w = new agaveGui();
+      a.setGUI(w);
       w->show();
       if (!fileToLoad.isEmpty()) {
         w->open(fileToLoad.toStdString());
