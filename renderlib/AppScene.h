@@ -33,6 +33,7 @@ struct VolumeDisplay
   float m_roughness[MAX_CPU_CHANNELS];
   float m_opacity[MAX_CPU_CHANNELS];
   bool m_enabled[MAX_CPU_CHANNELS];
+  float m_labels[MAX_CPU_CHANNELS];
 
   GradientData m_gradientData[MAX_CPU_CHANNELS];
 
