@@ -329,7 +329,10 @@ elseif(APPLE)
   install(CODE "include(BundleUtilities)
     fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" )" COMPONENT Runtime)
 
-  set(CPACK_GENERATOR "DRAGNDROP")
+  set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;/agave.app")
+  # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}")
+
+  set(CPACK_GENERATOR "DragNDrop")
   include(CPack)
 
 else() # Linux
