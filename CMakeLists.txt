@@ -73,8 +73,6 @@ endif(APPLE)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml REQUIRED)
 
-find_package(spdlog REQUIRED)
-
 # if(MSVC)
 # Debug library suffix.
 # set(CMAKE_DEBUG_POSTFIX "d")
@@ -103,6 +101,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "")
 else()
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install/${CMAKE_BUILD_TYPE})
 endif()
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -143,6 +142,13 @@ find_package(Qt6QTiffPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 set(CPACK_PACKAGE_VENDOR "Allen Institute for Cell Science")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for multi-dimensional microscopy images.")
 set(CPACK_PACKAGE_NAME "AGAVE")
+
+install(TARGETS agaveapp
+	BUNDLE DESTINATION .
+	RUNTIME DESTINATION ${INSTALLDIR}
+	LIBRARY DESTINATION ${INSTALLDIR}
+	DESTINATION ${INSTALLDIR}
+)
 
 if(WIN32)
   # copy all dlls into place.
@@ -255,11 +261,11 @@ elseif(APPLE)
       get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
       get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
       get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
-      set(_qt_plugin_dest "${_prefix}/PlugIns/${_qt_plugin_type}")
+      set(_qt_plugin_dest "${_prefix}/Contents/PlugIns/${_qt_plugin_type}")
       install(FILES "${_qt_plugin_path}"
         DESTINATION "${_qt_plugin_dest}")
       set(${_qt_plugins_var}
-        "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
+        "${${_qt_plugins_var}};\$ENV{DEST_DIR}\${CMAKE_INSTALL_PREFIX}/${_qt_plugin_dest}/${_qt_plugin_file}")
     else()
       message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found")
     endif()
@@ -275,24 +281,24 @@ elseif(APPLE)
     $<TARGET_FILE:Qt6::Network>
     $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Frameworks/
+    DESTINATION agave.app/Contents/Frameworks/
   )
 
   # calls cmake install command and also adds to the QT_PLUGINS list for use below
-  install_qt6_plugin("Qt6::QCocoaIntegrationPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt6_plugin("Qt6::QTiffPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt6_plugin("Qt6::QJpegPlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
-  install_qt6_plugin("Qt6::QMacStylePlugin" QT_PLUGINS ${CMAKE_INSTALL_PREFIX}/agave.app/Contents)
+  install_qt6_plugin("Qt6::QCocoaIntegrationPlugin" QT_PLUGINS agave.app)
+  install_qt6_plugin("Qt6::QTiffPlugin" QT_PLUGINS agave.app)
+  install_qt6_plugin("Qt6::QJpegPlugin" QT_PLUGINS agave.app)
+  install_qt6_plugin("Qt6::QMacStylePlugin" QT_PLUGINS agave.app)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
     "[Paths]\nPlugins = PlugIns\n")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/)
+    DESTINATION agave.app/Contents/Resources/)
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/agave.app/Contents/Resources/assets/fonts/
+    DESTINATION agave.app/Contents/Resources/assets/fonts/
   )
 
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
@@ -318,21 +324,23 @@ elseif(APPLE)
   # Append Qt's lib folder
   # list(APPEND DIRS "${QTDIR}/lib")
   # list(APPEND DIRS "${Qt6Widgets_DIR}/../..")
-  set(PLUGINS "${QT_PLUGINS}")
 
   include(InstallRequiredSystemLibraries)
 
   message(STATUS "APPS: ${APPS}")
-  message(STATUS "PLUGINS: ${PLUGINS}")
+  message(STATUS "PLUGINS: ${QT_PLUGINS}")
   message(STATUS "DIRS: ${DIRS}")
-
-  install(CODE "include(BundleUtilities)
-    fixup_bundle(\${CMAKE_INSTALL_PREFIX}/agave.app \"${PLUGINS}\" \"${DIRS}\" )" COMPONENT Runtime)
-
-  set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;/agave.app")
-  # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}")
+  
+  install(CODE "
+    include(InstallRequiredSystemLibraries)
+    include(BundleUtilities)
+    set(BU_CHMOD_BUNDLE_ITEMS TRUE)
+    fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/agave.app\" \"${QT_PLUGINS}\" \"${DIRS}\" )")
 
   set(CPACK_GENERATOR "DragNDrop")
+  # set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;install/Release/agave.app")
+  # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/agave.app")
+  # set(CPACK_PACKAGE_EXECUTABLES "${CMAKE_INSTALL_PREFIX}/agave.app")
   include(CPack)
 
 else() # Linux
