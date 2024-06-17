@@ -14,6 +14,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QString>
 
 struct ServerParams
 {
@@ -91,6 +92,18 @@ preloadFiles(QStringList preloadlist)
   }
 }
 
+std::string
+sanitizeAgaveUrlString(QString &agaveUrlString)
+{
+  // the file path may be percent encoded, if it came through a url protocol handler, so decode it
+  QString output = QUrl::fromPercentEncoding(agaveUrlString.toUtf8());
+  // remove agave:// prefix and trailing slash
+  output = output.replace(QRegularExpression("^agave://|/$"), "");
+  // trim any leading or trailing double quotes
+  output = output.replace(QRegularExpression("^\"|\"$"), "");
+  return output.toStdString();
+}
+
 class AgaveApplication : public QApplication
 {
 public:
@@ -108,15 +121,17 @@ public:
         if (event->type() == QEvent::FileOpen) {
             QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
             const QUrl url = openEvent->url();
-            if (url.isLocalFile()) {
-                m_gui->open(url.toLocalFile().toStdString());
-                // read from local file
-            } else if (url.isValid()) {
-                m_gui->open(url.toString().toStdString());
-                // process according to the URL's schema
+            QString urlString = url.toString();
+            if (url.isValid()) {
+              std::string fileToOpen;
+              if (urlString.startsWith("agave://")) {
+                fileToOpen = sanitizeAgaveUrlString(urlString);
+              } else {
+                fileToOpen = urlString.toStdString();
+              }
+              m_gui->open(fileToOpen);
             } else {
-                // parse openEvent->file()
-                LOG_WARNING << "Received QFileOpenEvent with invalid url/local file path: " << openEvent->file().toStdString();
+                LOG_WARNING << "Received QFileOpenEvent with invalid url/file path: " << urlString.toStdString();
             }
         }
 
@@ -177,14 +192,12 @@ main(int argc, char* argv[])
   bool isServer = parser.isSet(serverOption);
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
-  QString fileToLoad = parser.value(loadOption);
-  if (fileToLoad.startsWith("agave://")) {
-    // the file path may be percent encoded, if it came through a url protocol handler, so decode it
-    fileToLoad = QUrl::fromPercentEncoding(fileToLoad.toUtf8());
-    // remove agave:// prefix and trailing slash
-    fileToLoad = fileToLoad.replace(QRegularExpression("^agave://|/$"), "");
-    // trim any leading or trailing double quotes
-    fileToLoad = fileToLoad.replace(QRegularExpression("^\"|\"$"), "");
+  QString fileInput = parser.value(loadOption);
+  std::string fileToLoad;
+  if (fileInput.startsWith("agave://")) {
+    fileToLoad = sanitizeAgaveUrlString(fileInput);
+  } else {
+    fileToLoad = fileInput.toStdString();
   }
 
   QString appPath = QCoreApplication::applicationDirPath();
@@ -230,8 +243,8 @@ main(int argc, char* argv[])
       agaveGui* w = new agaveGui();
       a.setGUI(w);
       w->show();
-      if (!fileToLoad.isEmpty()) {
-        w->open(fileToLoad.toStdString());
+      if (!fileToLoad.empty()) {
+        w->open(fileToLoad);
       }
       result = a.exec();
     }
