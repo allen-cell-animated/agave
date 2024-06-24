@@ -7,6 +7,7 @@
 #include <chrono>
 #include <memory>
 
+class BoundingBoxDrawable;
 class Image3D;
 class ImageXYZC;
 class RenderSettings;
@@ -38,6 +39,7 @@ public:
 
 private:
   Image3D* m_image3d;
+  BoundingBoxDrawable* m_boundingBoxDrawable;
   RenderSettings* m_renderSettings;
 
   Scene* m_scene;
@@ -51,4 +53,5 @@ private:
   void initFromScene();
   bool prepareToRender();
   void doClear();
+  void drawSceneObjects(const CCamera& camera);
 };

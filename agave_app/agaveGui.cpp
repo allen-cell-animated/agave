@@ -18,6 +18,7 @@
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
+#include "ViewToolbar.h"
 #include "ViewerState.h"
 #include "aboutDialog.h"
 #include "citationDialog.h"
@@ -68,7 +69,29 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
-  m_tabs->addTab(m_glView, "None");
+  m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  // TODO can make this a custom widget that exposes the toolbar and the view
+  m_viewWithToolbar = new QWidget(this);
+  auto vlayout = new QVBoxLayout();
+  vlayout->setContentsMargins(0, 0, 0, 0);
+  vlayout->setSpacing(2);
+  m_viewToolbar = new ViewToolbar();
+  connect(m_viewToolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
+  connect(m_viewToolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
+  connect(m_viewToolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
+  connect(m_viewToolbar->rightViewButton, &QPushButton::clicked, this, &agaveGui::view_right);
+  connect(m_viewToolbar->frontViewButton, &QPushButton::clicked, this, &agaveGui::view_front);
+  connect(m_viewToolbar->backViewButton, &QPushButton::clicked, this, &agaveGui::view_back);
+  connect(m_viewToolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
+  connect(m_viewToolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
+  connect(m_viewToolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
+  vlayout->addWidget(m_viewToolbar);
+  vlayout->addWidget(m_glView, 1);
+
+  m_viewWithToolbar->setLayout(vlayout);
+
+  m_tabs->addTab(m_viewWithToolbar, "None");
 
   QString windowTitle =
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
@@ -239,9 +262,6 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_renderAction);
-  m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_viewResetAction);
-  m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
   m_ui.mainToolBar->addSeparator();
 
   QToolButton* helpButton = new QToolButton(this);
@@ -748,7 +768,7 @@ agaveGui::viewFocusChanged(WgpuCanvas* newGlView)
 
   m_viewResetAction->setEnabled(false);
 
-  bool enable(newGlView != 0);
+  bool enable = (newGlView != nullptr);
 
   m_viewResetAction->setEnabled(enable);
 
@@ -762,7 +782,10 @@ agaveGui::tabChanged(int index)
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
-      current = static_cast<WgpuCanvas*>(w);
+      QLayout* layout = w->layout();
+      // ASSUMES THAT THE GLVIEW IS THE SECOND WIDGET IN THE LAYOUT
+      // TODO could use a QWidget wrapper class to get the glview out
+      current = static_cast<WgpuCanvas*>(layout->itemAt(1)->widget());
     }
   }
   viewFocusChanged(current);
@@ -778,6 +801,56 @@ void
 agaveGui::view_reset()
 {
   m_glView->initCameraFromImage(&m_appScene);
+}
+void
+agaveGui::view_frame()
+{
+  m_glView->FitToScene();
+}
+
+void
+agaveGui::view_top()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+agaveGui::view_bottom()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBottom);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_front()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+agaveGui::view_back()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBack);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_left()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+agaveGui::view_right()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeRight);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
@@ -955,6 +1028,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   // position camera
   m_glView->fromViewerState(v);
+  m_viewToolbar->initFromCamera(m_glView->getCamera());
 
   m_appScene.m_roi.SetMinP(glm::vec3(v.clipRegion[0][0], v.clipRegion[1][0], v.clipRegion[2][0]));
   m_appScene.m_roi.SetMaxP(glm::vec3(v.clipRegion[0][1], v.clipRegion[1][1], v.clipRegion[2][1]));
@@ -965,6 +1039,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_currentScene = v.datasets[0].scene;
 
   m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
+  m_appScene.m_volume->setVolumeAxesFlipped(v.flipAxis[0], v.flipAxis[1], v.flipAxis[2]);
 
   m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
   m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
@@ -1039,6 +1114,10 @@ agaveGui::appToViewerState()
     v.scale[0] = m_appScene.m_volume->physicalSizeX();
     v.scale[1] = m_appScene.m_volume->physicalSizeY();
     v.scale[2] = m_appScene.m_volume->physicalSizeZ();
+    glm::ivec3 vflip = m_appScene.m_volume->getVolumeAxesFlipped();
+    v.flipAxis[0] = vflip.x > 0 ? 1 : -1;
+    v.flipAxis[1] = vflip.y > 0 ? 1 : -1;
+    v.flipAxis[2] = vflip.z > 0 ? 1 : -1;
   }
 
   v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],

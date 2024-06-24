@@ -38,7 +38,7 @@ getDraggedAngle(const glm::vec3& vN, const glm::vec3& p, const glm::vec3& l, con
   // and we must calculate angle another way
   if (p0 == p1 || axisIsOrthogonal) {
     // we want a linear measure of the amount of drag along the line of the ring
-    glm::vec3 projectionAxis = cross(vN, globalAxis);
+    glm::vec3 projectionAxis = cross(globalAxis, vN);
     glm::vec3 delta = l1 - l0;
     float projection = dot(delta, projectionAxis);
     return projection * glm::two_pi<float>();
