@@ -8,6 +8,7 @@
 #include "command.h"
 #include "renderlib/gesture/gesture.h"
 #include "renderlib/graphics/IRenderWindow.h"
+#include "renderlib/graphics/GestureGraphicsGL.h"
 #include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
 
@@ -137,6 +138,7 @@ private:
     Scene* m_scene;
     CCamera* m_camera;
     Gesture m_gesture;
+    GestureRendererGL m_gestureRenderer;
 
     myVolumeData()
       : m_camera(nullptr)

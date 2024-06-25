@@ -2,7 +2,7 @@
 
 #include <glad/glad.h> // for gl types
 
-#include "renderlib/Font.h"
+#include "Font.h"
 
 #include <string>
 

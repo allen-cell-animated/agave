@@ -166,17 +166,18 @@ struct Gesture
     };
     static constexpr int kNumCommandsLists = 3;
 
+    enum class PrimitiveType : int
+    {
+        kPoints = 0,
+        kLines = 1,
+        kTriangles = 2
+    };
+
     // a Command is just an instruction to the graphics
     // api to draw a certain type of geometry.
     // In the case of Lines, the command can also hold a thickness value.
     struct Command
     {
-      enum class PrimitiveType : int
-      {
-        kPoints = 0,
-        kLines = 1,
-        kTriangles = 2
-      };
       Command() = default;
       Command(PrimitiveType command, float thickness = 1)
         : command(command)
@@ -257,10 +258,10 @@ struct Gesture
     std::vector<CommandRange> commands[kNumCommandsLists];
 
     Font font;
-    GestureRendererGL* renderer = nullptr;
 
     // remember selection code to reuse while dragging
-    uint32_t m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    static constexpr uint32_t k_noSelectionCode = -1u;
+    uint32_t m_retainedSelectionCode = k_noSelectionCode;
 
     // Empty the commands/verts buffers, typically done after drawing the GUI.
     void clearCommands()
@@ -298,7 +299,7 @@ struct Gesture
 
     // Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
     // TODO: abstract the command type into an api-independent enum
-    inline void addCommand(Command::PrimitiveType command, CommandSequence index = CommandSequence::k3dStacked)
+    inline void addCommand(PrimitiveType command, CommandSequence index = CommandSequence::k3dStacked)
     {
       addCommand(Command(command), index);
     }

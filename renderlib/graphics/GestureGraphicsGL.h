@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gesture/gesture.h"
+
 ///////////////////////////////////////////////
 
 // 1. make a gesture graphics renderer that accepts a Gesture::Graphics object
@@ -84,13 +86,16 @@ public:
 
   // Gesture draw, called once per window update (frame) when the GUI draw commands
   // had been described in full.
-  void draw(struct SceneView& sceneView, struct SelectionBuffer* selection);
+  void draw(struct SceneView& sceneView, struct SelectionBuffer* selection, Gesture::Graphics& graphics);
 
   // Pick a GUI element using the cursor position in Input.
   // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
   // otherwise.
   // viewport: left, top, width, height
-  bool pick(struct SelectionBuffer& selection, const Input& input, const SceneView::Viewport& viewport);
+  bool pick(struct SelectionBuffer& selection,
+            const Gesture::Input& input,
+            const SceneView::Viewport& viewport,
+            Gesture::Graphics& graphics);
 
   // the one "scene" that this class will render
   Gesture::Graphics* graphics;

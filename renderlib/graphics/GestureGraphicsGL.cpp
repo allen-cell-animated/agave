@@ -51,16 +51,14 @@ namespace Pipeline {
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
 static void
-configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics)
+configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
 {
-  auto& shader = graphics.shader;
-
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
   glm::mat4 p(1.0);
   sceneView.camera.getProjMatrix(p);
 
-  glUniformMatrix4fv(shader->m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -74,17 +72,15 @@ configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics)
 // Overlay something "in the scene". This has a limitation that we assume there
 // is a single viewport.
 static void
-configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics)
+configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
 {
-  auto& shader = graphics.shader;
-
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
   glm::mat4 p(1.0);
   sceneView.camera.getProjMatrix(p);
   check_gl("PRE set proj matrix");
 
-  glUniformMatrix4fv(shader->m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
 
   check_gl("set proj matrix");
 
@@ -98,17 +94,15 @@ configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics)
 
 // Draw something in screen space without zbuffer.
 static void
-configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics)
+configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
 {
-  auto& shader = graphics.shader;
-
   auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
                       (float)sceneView.viewport.region.upper.x,
                       (float)sceneView.viewport.region.lower.y,
                       (float)sceneView.viewport.region.upper.y,
                       1.0f,
                       -1.f);
-  glUniformMatrix4fv(shader->m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -118,9 +112,7 @@ configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics)
 
 template<typename DrawBlock>
 void
-drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
-                 const SceneView::Viewport& viewport,
-                 DrawBlock drawSceneGeometry)
+drawGestureCodes(const SelectionBuffer& selection, const SceneView::Viewport& viewport, DrawBlock drawSceneGeometry)
 {
   // Backup
   GLenum last_framebuffer;
@@ -139,7 +131,7 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   {
     glViewport(viewport.region.lower.x, viewport.region.lower.y, viewport.region.upper.x, viewport.region.upper.y);
     glDisable(GL_BLEND);
-    uint32_t clearcode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+    uint32_t clearcode = Gesture::Graphics::k_noSelectionCode;
     glClearColor(((clearcode >> 0) & 0xFF) / 255.0,
                  ((clearcode >> 8) & 0xFF) / 255.0,
                  ((clearcode >> 16) & 0xFF) / 255.0,
@@ -167,8 +159,9 @@ drawGestureCodes(const Gesture::Graphics::SelectionBuffer& selection,
   glClearColor(last_clear_color[0], last_clear_color[1], last_clear_color[2], last_clear_color[3]);
   check_gl("restore clear color");
 }
+
 void
-Gesture::Graphics::RenderBuffer::destroy()
+RenderBuffer::destroy()
 {
   if (frameBuffer == 0) {
     return;
@@ -184,7 +177,7 @@ Gesture::Graphics::RenderBuffer::destroy()
 }
 
 bool
-Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
+RenderBuffer::create(glm::ivec2 resolution, int samples)
 {
   this->resolution = resolution;
   this->samples = samples;
@@ -244,7 +237,7 @@ Gesture::Graphics::RenderBuffer::create(glm::ivec2 resolution, int samples)
 }
 
 void
-Gesture::Graphics::SelectionBuffer::clear()
+SelectionBuffer::clear()
 {
   // Backup
   GLenum last_framebuffer;
@@ -256,7 +249,7 @@ Gesture::Graphics::SelectionBuffer::clear()
   glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
   {
     glViewport(0, 0, resolution.x, resolution.y);
-    uint32_t clearcode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+    uint32_t clearcode = SelectionBuffer::k_noSelectionCode;
     glClearColor(((clearcode >> 0) & 0xFF) / 255.0,
                  ((clearcode >> 8) & 0xFF) / 255.0,
                  ((clearcode >> 16) & 0xFF) / 255.0,
@@ -267,4 +260,259 @@ Gesture::Graphics::SelectionBuffer::clear()
   // Restore
   glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
   glClearColor(last_clear_color[0], last_clear_color[1], last_clear_color[2], last_clear_color[3]);
+}
+
+void
+GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gesture::Graphics& graphics)
+{
+  // Gesture draw spans across the entire window and it is not restricted to a single
+  // viewport.
+  if (graphics.verts.empty()) {
+    graphics.clearCommands();
+
+    // TODO: do this clear only once if verts empty on consecutive frames?
+    // it would save some computation but this is really not a bottleneck here.
+    if (selection) {
+      selection->clear();
+    }
+    return;
+  }
+
+  // lazy init
+  if (!shader.get()) {
+    shader.reset(new GLGuiShader());
+  }
+  if (!font.get()) {
+    font.reset(new FontGL());
+    font->load(graphics.font);
+
+    // Currently gesture.graphics only supports one global texture for all draw commands.
+    // This is safe for now because the font texture is the only one needed.
+    // In future, if e.g. tool buttons need texture images, then we have to
+    // attach the texture id with the draw command.
+    glTextureId = font->getTextureID();
+  }
+
+  // YAGNI: With a small effort we could create dynamic passes that are
+  //        fully user configurable...
+  //
+  // Configure command lists
+  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, GLGuiShader& shader);
+  // Step 1: we draw any command that is depth-composited with the scene
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dDepthTested)] =
+    Pipeline::configure_3dDepthTested;
+  // Step 2: we draw any command that is not depth composited but is otherwise using
+  //         the same perspective projection
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dStacked)] = Pipeline::configure_3dStacked;
+  // Step 3: we draw anything that is just an overlay in creen space. Most of the UI
+  //         elements go here.
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k2dScreen)] = Pipeline::configure_2dScreen;
+
+  // Backup state
+  float lineWidth;
+  glGetFloatv(GL_LINE_WIDTH, &lineWidth);
+  check_gl("get line width");
+  float pointSize;
+  glGetFloatv(GL_POINT_SIZE, &pointSize);
+  check_gl("get point size");
+  bool depthTest = glIsEnabled(GL_DEPTH_TEST);
+  check_gl("is depth test enabled");
+
+  glEnable(GL_CULL_FACE);
+
+  // Draw UI and viewport manipulators
+  {
+    // TODO are we really creating, uploading, and destroying the vertex buffer every frame?
+    ScopedGlVertexBuffer vertex_buffer(graphics.verts.data(),
+                                       graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
+
+    // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
+    // draw the GUI and once to draw the selection buffer data.
+    // (display var is for draw vs pick)
+    auto drawGesture = [&](bool display) {
+      shader->configure(display, this->glTextureId);
+
+      for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
+        if (!graphics.commands[sequence].empty()) {
+          pipelineConfig[sequence](sceneView, graphics, *shader.get());
+
+          // YAGNI: Commands could be coalesced, setting state could be avoided
+          //        if not changing... For now it seems we can draw at over 2000 Hz
+          //        and no further optimization is required.
+          for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
+            Gesture::Graphics::Command& cmd = cmdr.command;
+            if (cmdr.end == -1)
+              cmdr.end = graphics.verts.size();
+            if (cmdr.begin >= cmdr.end)
+              continue;
+
+            if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
+              glLineWidth(cmd.thickness);
+              check_gl("linewidth");
+            }
+            if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
+              glPointSize(cmd.thickness);
+              check_gl("pointsize");
+            }
+            GLenum mode = GL_TRIANGLES;
+            switch (cmd.command) {
+              case Gesture::Graphics::PrimitiveType::kLines:
+                mode = GL_LINES;
+                break;
+              case Gesture::Graphics::PrimitiveType::kPoints:
+                mode = GL_POINTS;
+                break;
+              case Gesture::Graphics::PrimitiveType::kTriangles:
+                mode = GL_TRIANGLES;
+                break;
+              default:
+                assert(false && "unsupported primitive type");
+            }
+            glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
+            check_gl("drawarrays");
+          }
+        }
+      }
+
+      shader->cleanup();
+      check_gl("disablevertexattribarray");
+    };
+    drawGesture(/*display*/ true);
+
+    // The last thing we draw is selection codes for next frame. This allows us
+    // to know what is under the pointer cursor.
+    if (selection) {
+      drawGestureCodes(*selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
+    }
+  }
+
+  // Restore state
+  glLineWidth(lineWidth);
+  check_gl("linewidth");
+  glPointSize(pointSize);
+  check_gl("pointsize");
+  if (depthTest) {
+    glEnable(GL_DEPTH_TEST);
+  } else {
+    glDisable(GL_DEPTH_TEST);
+  }
+  check_gl("toggle depth test");
+
+  graphics.clearCommands();
+}
+
+uint32_t
+selectionRGB8ToCode(const uint8_t* rgba)
+{
+  // ignores 4th component (== 0)
+  uint32_t code = (uint32_t(rgba[0]) << 0) | (uint32_t(rgba[1]) << 8) | (uint32_t(rgba[2]) << 16);
+  return code == 0xffffff ? Gesture::Graphics::k_noSelectionCode : code;
+}
+
+bool
+GestureRendererGL::pick(SelectionBuffer& selection,
+                        const Gesture::Input& input,
+                        const SceneView::Viewport& viewport,
+                        Gesture::Graphics& graphics)
+{
+  // If we are in mid-gesture, then we can continue to use the retained selection code.
+  // if we never had anything to draw into the pick buffer, then we didn't pick anything.
+  // This is a slight oversimplification because it checks for any single-button release
+  // or drag: two-button drag gestures are not handled well.
+  if (input.clickEnded() || input.isDragging()) {
+    return graphics.m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
+  }
+
+  // Prepare a region in raster space
+
+  SceneView::Viewport::Region region;
+  {
+    glm::ivec2 pixel = viewport.toRaster(input.cursorPos);
+
+    // Grow the click position by some pixels to improve usability. Ideally
+    // this should be a configurable parameter to improve accessibility.
+    constexpr int kClickRadius = 7; //< in pixels
+    region.extend(pixel - glm::ivec2(kClickRadius));
+    region.extend(pixel + glm::ivec2(kClickRadius));
+  }
+
+  // Render on the whole framebuffer, complete from the lower left corner to the upper right
+  SceneView::Viewport::Region viewRegion(viewport.region.lower, viewport.region.upper - glm::ivec2(1));
+
+  // Crop selection with view in order to feed GL draw a valid region.
+  region = SceneView::Viewport::Region::intersect(region, viewRegion);
+
+  // if the intersection is empty, return no selection
+  if (region.empty()) {
+    graphics.m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    return false;
+  }
+
+  // Frame buffer resolution should be correct, check just in case.
+  if (selection.resolution != viewport.region.size()) {
+    graphics.m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    return false;
+  }
+
+  uint32_t entry = SelectionBuffer::k_noSelectionCode;
+
+  // Each selection code has a priority, lower values means higher priority.
+  // I pick region around the cursor, the size of which is a arbitrary.
+  // Depending on the purpose of an app, the size of the region should be
+  // dictated by accessibility guidelines. The purpose of the region is to
+  // allow to select thin elements, without having to be precise. I wouldn’t
+  // want to draw thick “Lego Duplo” like lines just to be able to select
+  // them. I do like the visual elegance of thin lines. At the same time,
+  // selection codes do need a priority, I cannot just pick the code in the
+  // nearest non-empty pixel.
+
+  // Render to texture
+  GLint last_framebuffer;
+  glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &last_framebuffer);
+  check_gl("get last framebuffer");
+  glBindFramebuffer(GL_FRAMEBUFFER, selection.frameBuffer);
+  {
+    // LOG_DEBUG << "Picking viewRegion " << viewRegion.lower.x << " " << viewRegion.lower.y << " " <<
+    // viewRegion.upper.x
+    //           << " " << viewRegion.upper.y;
+    // LOG_DEBUG << "Picking region " << region.lower.x << " " << region.lower.y << " " << region.upper.x << " "
+    //           << region.upper.y;
+    glViewport(viewRegion.lower.x, viewRegion.lower.y, viewRegion.upper.x + 1, viewRegion.upper.y + 1);
+
+    glm::ivec2 regionSize = region.size() + glm::ivec2(1);
+    size_t size = size_t(regionSize.x) * size_t(regionSize.y);
+    if (size) {
+      // Read pixels over a region. What we read is an 32 bits unsigned partitioned into 8 bits
+      // RGB values... at least until we figure out how to do it better.
+      // If selection region is small, work on stack memory, otherwise allocate.
+      uint8_t valuesLocalBuffer[1024 * 4];
+      uint8_t* values = (size <= 1024 ? valuesLocalBuffer : (uint8_t*)malloc(size * 4));
+      glReadPixels(region.lower.x, region.lower.y, regionSize.x, regionSize.y, GL_RGBA, GL_UNSIGNED_BYTE, values);
+      check_gl("readpixels");
+
+      // Search the click area for the lowest selection code. Lower code means
+      // higher selection priority.
+      for (uint8_t* rgba = values; rgba < (values + size * 4); rgba += 4) {
+        uint32_t code = selectionRGB8ToCode(rgba);
+        if (code != SelectionBuffer::k_noSelectionCode) {
+          if (code < entry) {
+            entry = code;
+          }
+        }
+      }
+
+      if (values != valuesLocalBuffer) {
+        free(values);
+      }
+    }
+  }
+  // Restore previous framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
+  check_gl("restore framebuffer");
+
+  // if (entry < SelectionBuffer::k_noSelectionCode) {
+  //   LOG_DEBUG << "Selection: " << entry;
+  // }
+  graphics.m_retainedSelectionCode = entry;
+  return entry != SelectionBuffer::k_noSelectionCode;
 }

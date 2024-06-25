@@ -8,6 +8,7 @@
 #include "ScaleBarTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
+#include "graphics/GestureGraphicsGL.h"
 #include "renderlib.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
@@ -125,7 +126,7 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   forEachTool([&](ManipulationTool* tool) { tool->clear(); });
 
   // Query Gesture::Graphics for selection codes
-  bool pickedAnything = gesture.graphics.pick(m_selection, gesture.input, viewport);
+  bool pickedAnything = m_gestureRenderer->pick(m_selection, gesture.input, viewport, gesture.graphics);
   if (pickedAnything) {
     int selectionCode = gesture.graphics.getCurrentSelectionCode();
     forEachTool([&](ManipulationTool* tool) { tool->setActiveCode(selectionCode); });
@@ -218,7 +219,7 @@ ViewerWindow::redraw()
   m_renderer->render(sceneView.camera);
 
   // render and then clear out draw commands from gesture graphics
-  gesture.graphics.draw(sceneView, &m_selection);
+  m_gestureRenderer->draw(sceneView, &m_selection, gesture.graphics);
 
   // Make sure we consumed any unused input event before we poll new events.
   // (in the case of Qt we are not explicitly polling but using signals/slots.)

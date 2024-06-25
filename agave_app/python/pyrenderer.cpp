@@ -128,7 +128,7 @@ OffscreenRenderer::render()
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
 
   m_fbo->bind();
-  m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
+  m_myVolumeData.m_gestureRenderer.draw(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
   m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[vw * vh * 4]);
