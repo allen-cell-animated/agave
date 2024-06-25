@@ -191,10 +191,9 @@ ViewerWindow::redraw()
   }
 
   // lazy init
-  if (!gesture.graphics.font.get()) {
-    gesture.graphics.font.reset(new Font());
+  if (!gesture.graphics.font.isLoaded()) {
     std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
-    gesture.graphics.font->load(fontPath.c_str());
+    gesture.graphics.font.load(fontPath.c_str());
   }
 
   // renderer size may have been directly manipulated by e.g. the renderdialog

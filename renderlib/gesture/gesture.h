@@ -5,8 +5,9 @@
 
 #include "BoundingBox.h"
 #include "CCamera.h"
+#include "Font.h"
 #include "SceneView.h"
-#include "graphics/gl/Font.h"
+#include "graphics/gl/FontGL.h"
 #include "graphics/gl/Util.h"
 #include "graphics/glsl/GLGuiShader.h"
 
@@ -170,15 +171,21 @@ struct Gesture
     // In the case of Lines, the command can also hold a thickness value.
     struct Command
     {
+      enum class PrimitiveType : int
+      {
+        kPoints = 0,
+        kLines = 1,
+        kTriangles = 2
+      };
       Command() = default;
-      Command(GLenum command, float thickness = 1)
+      Command(PrimitiveType command, float thickness = 1)
         : command(command)
         , thickness(thickness)
       {
       }
 
-      GLenum command;  //< Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
-      float thickness; //< Line thickness or point radius.
+      PrimitiveType command; //< Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
+      float thickness;       //< Line thickness or point radius.
     };
     // A command range is a sequence of vertices to be drawn with a specific command.
     struct CommandRange
@@ -242,65 +249,15 @@ struct Gesture
       // millisecond, so we are going to keep it simple for now.
     };
 
-    // Some base RenderBuffer struct, in common between viewport rendering and
-    // other stuff...
-    // TODO reconcile with Graphics/FrameBuffer.h
-    struct RenderBuffer
-    {
-      glm::ivec2 resolution = glm::ivec2(0);
-      int samples = 0;
-      uint32_t frameBuffer = 0;
-      uint32_t depthRenderBuffer = 0;
-      uint32_t renderedTexture = 0;
-      uint32_t depthTexture = 0;
-
-      // Call update at the beginning of scene/frame update. We need to make sure
-      // we do have a frame buffer (created lazily) at the right resolution.
-      // @param samples is for MSAA, should be zero for selection buffers.
-      bool update(glm::ivec2 resolution, int samples = 0)
-      {
-        if (resolution == this->resolution && samples == this->samples)
-          return true;
-
-        // To prevent some buffer allocation issue, ignore zero-size buffer resize, this happens when
-        // the app is minimized.
-        if (resolution == glm::ivec2(0)) {
-          return true;
-        }
-
-        destroy();
-        bool ok = create(resolution, samples);
-        if (ok) {
-          clear();
-        }
-        return ok;
-      }
-      void destroy();
-      bool create(glm::ivec2 resolution, int samples = 0);
-      virtual void clear(){};
-    };
-
-    struct SelectionBuffer : RenderBuffer
-    {
-      // 1 bit is reserved for component flags.
-      static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
-
-      virtual void clear();
-    };
-
     // Gesture draw
     double timeDelta; //< A frame time for GUI interaction animation
     const CommandRange* currentCommand = nullptr;
     int lineLoopBegin = kInvalidVertexIndex;
     std::vector<VertsCode> verts;
     std::vector<CommandRange> commands[kNumCommandsLists];
-    std::unique_ptr<GLGuiShader> shader;
 
-    // A texture atlas for GUI elements
-    // TODO: use bindless textures
-    uint32_t glTextureId = 0;
-
-    std::unique_ptr<Font> font;
+    Font font;
+    GestureRendererGL* renderer = nullptr;
 
     // remember selection code to reuse while dragging
     uint32_t m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
@@ -341,7 +298,7 @@ struct Gesture
 
     // Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
     // TODO: abstract the command type into an api-independent enum
-    inline void addCommand(GLenum command, CommandSequence index = CommandSequence::k3dStacked)
+    inline void addCommand(Command::PrimitiveType command, CommandSequence index = CommandSequence::k3dStacked)
     {
       addCommand(Command(command), index);
     }
