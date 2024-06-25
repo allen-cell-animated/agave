@@ -1,5 +1,9 @@
 #pragma once
 
+#include "glad/glad.h"
+
+#include "graphics/glsl/GLGuiShader.h"
+#include "graphics/gl/FontGL.h"
 #include "gesture/gesture.h"
 
 ///////////////////////////////////////////////

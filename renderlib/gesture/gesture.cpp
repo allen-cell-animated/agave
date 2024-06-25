@@ -1,7 +1,4 @@
 #include "gesture.h"
-#include "gl/Util.h"
-#include "graphics/GestureGraphicsGL.h"
-#include "graphics/glsl/GLGuiShader.h"
 
 // Update the current action for one of the button of the pointer device
 void

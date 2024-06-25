@@ -1,5 +1,4 @@
 #pragma once
-#include "glad/glad.h"
 
 #include <glm/glm.hpp>
 
@@ -7,14 +6,10 @@
 #include "CCamera.h"
 #include "Font.h"
 #include "SceneView.h"
-#include "graphics/gl/FontGL.h"
-#include "graphics/gl/Util.h"
-#include "graphics/glsl/GLGuiShader.h"
 
 #include <memory>
 #include <vector>
 
-class GLGuiShader;
 class Scene;
 class RenderSettings;
 
@@ -168,9 +163,9 @@ struct Gesture
 
     enum class PrimitiveType : int
     {
-        kPoints = 0,
-        kLines = 1,
-        kTriangles = 2
+      kPoints = 0,
+      kLines = 1,
+      kTriangles = 2
     };
 
     // a Command is just an instruction to the graphics
@@ -352,16 +347,6 @@ struct Gesture
         lineLoopBegin = kInvalidVertexIndex;
       }
     }
-
-    // Gesture draw, called once per window update (frame) when the GUI draw commands
-    // had been described in full.
-    void draw(struct SceneView& sceneView, struct SelectionBuffer* selection);
-
-    // Pick a GUI element using the cursor position in Input.
-    // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
-    // otherwise.
-    // viewport: left, top, width, height
-    bool pick(struct SelectionBuffer& selection, const Input& input, const SceneView::Viewport& viewport);
 
     int getCurrentSelectionCode() { return m_retainedSelectionCode; }
   };
