@@ -517,14 +517,14 @@ WgpuView3D::wheelEvent(QWheelEvent* event)
 #endif
 
 void
-WgpuView3D::FitToScene()
+WgpuView3D::FitToScene(float transitionDurationSeconds)
 {
   Scene* sc = m_viewerWindow->m_renderer->scene();
 
   glm::vec3 newPosition, newTarget;
   m_viewerWindow->m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
   CameraAnimation anim = {};
-  anim.duration = 0.5f; //< duration is seconds.
+  anim.duration = transitionDurationSeconds;
   anim.mod.position = newPosition - m_viewerWindow->m_CCamera.m_From;
   anim.mod.target = newTarget - m_viewerWindow->m_CCamera.m_Target;
   m_viewerWindow->m_cameraAnim.push_back(anim);

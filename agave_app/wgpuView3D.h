@@ -73,6 +73,7 @@ public:
   void doneCurrent() {}
   QOpenGLContext* context() { return nullptr; }
   void resizeGL(int w, int h);
+  void FitToScene(float transitionDurationSeconds = 0.0f);
 
 signals:
   void ChangedRenderer();
@@ -118,8 +119,6 @@ private:
 
   QWidget* m_canvas;
 
-  void FitToScene();
-
   enum AREALIGHT_MODE
   {
     NONE,
@@ -158,6 +157,7 @@ public:
   const CCamera& getCamera() { return m_view->getCamera(); }
   QOpenGLContext* context() { return nullptr; }
   void resizeGL(int w, int h) { m_view->resizeGL(w, h); }
+  void FitToScene(float transitionDurationSeconds = 0.0f) { m_view->FitToScene(transitionDurationSeconds); }
   void initCameraFromImage(Scene* scene) { m_view->initCameraFromImage(scene); }
   void retargetCameraForNewVolume(Scene* scene) { m_view->retargetCameraForNewVolume(scene); }
 
