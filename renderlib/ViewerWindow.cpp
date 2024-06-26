@@ -14,6 +14,7 @@
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
+  , m_gestureRenderer(new GestureRendererGL())
   , m_rendererType(1)
 {
   gesture.input.reset();

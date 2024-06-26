@@ -312,7 +312,7 @@ struct Gesture
     inline void addLine(const VertsCode& v0, const VertsCode& v1)
     {
       assert(currentCommand != nullptr);
-      assert(currentCommand->command.command == GL_LINES);
+      assert(currentCommand->command.command == PrimitiveType::kLines);
 
       // Mark the spot for the first line vertex so that we can close a line
       // loop if we want to.
@@ -331,7 +331,7 @@ struct Gesture
     inline void extLine(const VertsCode& v, LoopEntry loop = LoopEntry::kContinue)
     {
       assert(currentCommand != nullptr);
-      assert(currentCommand->command.command == GL_LINES);
+      assert(currentCommand->command.command == PrimitiveType::kLines);
 
       // Since we draw lines, each line has two points. Repeat last vertex as the
       // first of this new line. We could make this more efficient by not repeating

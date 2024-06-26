@@ -6,6 +6,8 @@
 #include "graphics/gl/FontGL.h"
 #include "gesture/gesture.h"
 
+#include <memory>
+
 ///////////////////////////////////////////////
 
 // 1. make a gesture graphics renderer that accepts a Gesture::Graphics object
@@ -100,7 +102,4 @@ public:
             const Gesture::Input& input,
             const SceneView::Viewport& viewport,
             Gesture::Graphics& graphics);
-
-  // the one "scene" that this class will render
-  Gesture::Graphics* graphics;
 };
