@@ -8,18 +8,6 @@
 
 #include <memory>
 
-///////////////////////////////////////////////
-
-// 1. make a gesture graphics renderer that accepts a Gesture::Graphics object
-// and depends on Gesture::Graphics, not the other way around. Gesture::Graphics should not depend on any GL.
-
-// 2. factor gl stuff out of Font so that Font just wraps the glyph data but not the texture
-
-// 3. the ViewerWindow uses the GestureRendererGL to draw the GUI elements just like it uses a RenderGLPT to draw the
-// scene
-
-///////////////////////////////////////////////
-
 // a vertex buffer that is automatically allocated and then deleted when it goes out of scope
 class ScopedGlVertexBuffer
 {
