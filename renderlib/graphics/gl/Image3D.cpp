@@ -12,13 +12,12 @@
 #include <chrono>
 #include <iostream>
 
-Image3D::Image3D(std::shared_ptr<ImageXYZC> img)
+Image3D::Image3D()
   : m_vertices(0)
   , m_image_vertices(0)
   , m_image_elements(0)
   , m_num_image_elements(0)
   , m_textureid(0)
-  , m_img(img)
   , m_image3d_shader(new GLBasicVolumeShader())
   , m_fusedrgbvolume(nullptr)
 {
@@ -33,16 +32,16 @@ Image3D::~Image3D()
 }
 
 void
-Image3D::create()
+Image3D::create(std::shared_ptr<ImageXYZC> img)
 {
-  m_fusedrgbvolume = new uint8_t[3 * m_img->sizeX() * m_img->sizeY() * m_img->sizeZ()];
+  m_fusedrgbvolume = new uint8_t[3 * img->sizeX() * img->sizeY() * img->sizeZ()];
   // destroy old
   glDeleteTextures(1, &m_textureid);
   // Create image texture.
   glGenTextures(1, &m_textureid);
 
-  setSize(glm::vec2(-(m_img->sizeX() / 2.0f), m_img->sizeX() / 2.0f),
-          glm::vec2(-(m_img->sizeY() / 2.0f), m_img->sizeY() / 2.0f));
+  setSize(glm::vec2(-(img->sizeX() / 2.0f), img->sizeX() / 2.0f),
+          glm::vec2(-(img->sizeY() / 2.0f), img->sizeY() / 2.0f));
 
   // HiLo
   uint8_t lut[256][3];
@@ -92,9 +91,9 @@ Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings*
 
   // move the box to match where the camera is pointed
   // transform the box from -0.5..0.5 to 0..physicalsize
-  glm::vec3 dims(m_img->sizeX() * m_img->physicalSizeX(),
-                 m_img->sizeY() * m_img->physicalSizeY(),
-                 m_img->sizeZ() * m_img->physicalSizeZ());
+  glm::vec3 dims(scene->m_volume->sizeX() * scene->m_volume->physicalSizeX(),
+                 scene->m_volume->sizeY() * scene->m_volume->physicalSizeY(),
+                 scene->m_volume->sizeZ() * scene->m_volume->physicalSizeZ());
   float maxd = (std::max)(dims.x, (std::max)(dims.y, dims.z));
   glm::vec3 scales(dims.x / maxd, dims.y / maxd, dims.z / maxd);
   // it helps to imagine these transforming the space in reverse order
@@ -239,7 +238,7 @@ Image3D::prepareTexture(Scene& s)
     }
   }
 
-  Fuse::fuse(m_img.get(), colors, &m_fusedrgbvolume, nullptr);
+  Fuse::fuse(s.m_volume.get(), colors, &m_fusedrgbvolume, nullptr);
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - startTime;
@@ -271,12 +270,12 @@ Image3D::prepareTexture(Scene& s)
   // pixel data is tightly packed
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-  glTexImage3D(GL_TEXTURE_3D,           // target
-               0,                       // level, 0 = base, no minimap,
-               internal_format,         // internal format
-               (GLsizei)m_img->sizeX(), // width
-               (GLsizei)m_img->sizeY(), // height
-               (GLsizei)m_img->sizeZ(),
+  glTexImage3D(GL_TEXTURE_3D,                // target
+               0,                            // level, 0 = base, no minimap,
+               internal_format,              // internal format
+               (GLsizei)s.m_volume->sizeX(), // width
+               (GLsizei)s.m_volume->sizeY(), // height
+               (GLsizei)s.m_volume->sizeZ(),
                0,               // border
                external_format, // external format
                external_type,   // external type
