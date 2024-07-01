@@ -28,12 +28,12 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  explicit Image3D(std::shared_ptr<ImageXYZC> img);
+  explicit Image3D();
 
   /// Destructor.
   virtual ~Image3D();
 
-  void create();
+  void create(std::shared_ptr<ImageXYZC> img);
 
   void render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings);
 
@@ -57,8 +57,6 @@ protected:
   size_t m_num_image_elements;
   /// The identifier of the texture owned and used by this object.
   unsigned int m_textureid;
-  /// The image wrapped as a flat data ptr
-  std::shared_ptr<ImageXYZC> m_img;
 
 private:
   /// The shader program for image rendering.
