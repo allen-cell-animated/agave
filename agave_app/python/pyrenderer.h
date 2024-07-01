@@ -104,6 +104,8 @@ public:
   virtual int SetBoundingBoxColor(float, float, float);
   virtual int ShowBoundingBox(int32_t);
   virtual int ShowScaleBar(int32_t);
+  virtual int SetFlipAxis(int32_t, int32_t, int32_t);
+  virtual int SetInterpolation(int32_t);
 
 protected:
   void init();

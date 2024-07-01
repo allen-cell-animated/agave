@@ -37,7 +37,7 @@ public:
 
   void render(const CCamera& camera, const Scene* scene, const RenderSettings* renderSettings);
 
-  void prepareTexture(Scene& s);
+  void prepareTexture(Scene& s, bool useLinearInterpolation);
 
 protected:
   /**

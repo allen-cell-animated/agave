@@ -552,3 +552,17 @@ OffscreenRenderer::SetControlPoints(int32_t channel, std::vector<float> controlP
   cmd.execute(&m_ec);
   return 1;
 }
+int
+OffscreenRenderer::SetFlipAxis(int32_t x, int32_t y, int32_t z)
+{
+  SetFlipAxisCommand cmd({ x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SetInterpolation(int32_t x)
+{
+  SetInterpolationCommand cmd({ x });
+  cmd.execute(&m_ec);
+  return 1;
+}
