@@ -6,6 +6,7 @@
 #include "renderlib/command.h"
 #include "renderlib/gesture/gesture.h"
 #include "renderlib/graphics/gl/Util.h"
+#include "renderlib/graphics/GestureGraphicsGL.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
 #include "renderrequest.h"
@@ -121,6 +122,7 @@ private:
     CCamera* m_camera;
     LoadSpec m_loadSpec;
     Gesture m_gesture;
+    GestureRendererGL m_gestureRenderer;
 
     myVolumeData()
       : m_camera(nullptr)

@@ -280,10 +280,9 @@ Renderer::render()
   // DRAW
   m_myVolumeData.m_camera->Update();
 
-  if (!m_myVolumeData.m_gesture.graphics.font.get()) {
-    m_myVolumeData.m_gesture.graphics.font.reset(new Font());
+  if (!m_myVolumeData.m_gesture.graphics.font.isLoaded()) {
     std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
-    m_myVolumeData.m_gesture.graphics.font->load(fontPath.c_str());
+    m_myVolumeData.m_gesture.graphics.font.load(fontPath.c_str());
   }
 
   SceneView sceneView;
@@ -301,7 +300,7 @@ Renderer::render()
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
 
   m_fbo->bind();
-  m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
+  m_myVolumeData.m_gestureRenderer.draw(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
   m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[m_fbo->width() * m_fbo->height() * 4]);

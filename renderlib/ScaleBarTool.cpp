@@ -82,8 +82,8 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
-  uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
-  gesture.graphics.addCommand(GL_LINES, Gesture::Graphics::CommandSequence::k2dScreen);
+  uint32_t code = Gesture::Graphics::k_noSelectionCode;
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines, Gesture::Graphics::CommandSequence::k2dScreen);
 
   // 0,0 is lower left, size() is upper right.  position bar at lower right.
   const glm::vec3 offsetFromBottomRight = glm::vec3(-40.0f, 40.0f, 0.0f) * pctToPx;
@@ -107,9 +107,10 @@ ScaleBarTool::draw(SceneView& scene, Gesture& gesture)
   stream << std::fixed << std::setprecision(2) << scaleBarSize.physicalSize;
   stream << " " << scene.scene->m_volume->spatialUnits();
   std::string msg = stream.str();
-  float textWidth = gesture.graphics.font->getStringWidth(msg) * textScale.x;
-  float textHeight = gesture.graphics.font->getStringHeight(msg) * textScale.y;
-  gesture.graphics.addCommand(GL_TRIANGLES, Gesture::Graphics::CommandSequence::k2dScreen);
+  float textWidth = gesture.graphics.font.getStringWidth(msg) * textScale.x;
+  float textHeight = gesture.graphics.font.getStringHeight(msg) * textScale.y;
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles,
+                              Gesture::Graphics::CommandSequence::k2dScreen);
   glm::vec3 textoffset = glm::vec3(scaleBarSize.pixels * 0.5 - textWidth * 0.5, textHeight, 0);
   gesture.drawText(msg, p1 + textoffset, textScale, color, opacity, code);
 }

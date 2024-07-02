@@ -1,42 +1,13 @@
 #include "Font.h"
 
-#include "Util.h"
-
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb/stb_truetype.h"
 
 #include <stdio.h>
 
-static constexpr int s_textureSize = 512;
+static const int s_textureSize = 512;
 
-GLuint
-generateFontTexture(unsigned char* temp_bitmap)
-{
-  // expand temp_bitmap to RGBA
-  unsigned char* expanded_bitmap = new unsigned char[s_textureSize * s_textureSize * 4];
-  for (int i = 0; i < s_textureSize * s_textureSize; ++i) {
-    expanded_bitmap[i * 4 + 0] = 255;
-    expanded_bitmap[i * 4 + 1] = 255;
-    expanded_bitmap[i * 4 + 2] = 255;
-    expanded_bitmap[i * 4 + 3] = temp_bitmap[i];
-  }
-
-  GLuint ftex = 0;
-  glGenTextures(1, &ftex);
-  glBindTexture(GL_TEXTURE_2D, ftex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, s_textureSize, s_textureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, expanded_bitmap);
-  check_gl("load font texture");
-  // can free temp_bitmap at this point
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  check_gl("set filtering on font texture");
-  delete[] expanded_bitmap;
-  return ftex;
-}
-
-Font::Font()
-{
-  m_texID = 0;
-}
+Font::Font() {}
 
 Font::~Font()
 {
@@ -46,10 +17,6 @@ Font::~Font()
 void
 Font::load(const char* filename)
 {
-  if (m_texID != 0) {
-    return;
-  }
-
   FILE* file = fopen(filename, "rb");
   if (!file) {
     return;
@@ -63,6 +30,7 @@ Font::load(const char* filename)
   fread(buffer, 1, size, file);
   fclose(file);
 
+  // this is the texture data
   unsigned char temp_bitmap[s_textureSize * s_textureSize];
   stbtt_BakeFontBitmap(buffer,
                        0,
@@ -73,17 +41,22 @@ Font::load(const char* filename)
                        m_firstChar,
                        m_numChars,
                        m_cdata); // no guarantee this fits!
-
   free(buffer);
 
-  m_texID = generateFontTexture(temp_bitmap);
+  m_w = s_textureSize;
+  m_h = s_textureSize;
+  m_textureData.resize(m_w * m_h);
+  for (int i = 0; i < m_w * m_h; ++i) {
+    m_textureData[i] = temp_bitmap[i];
+  }
 }
 
 void
 Font::unload()
 {
-  glDeleteTextures(1, &m_texID);
-  m_texID = 0;
+  m_textureData.clear();
+  m_w = 0;
+  m_h = 0;
 }
 
 bool

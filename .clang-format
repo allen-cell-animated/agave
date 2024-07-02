@@ -4,4 +4,6 @@ BasedOnStyle: Mozilla
 ---
 Language: Cpp
 ColumnLimit: 120
+SortIncludes: false
 ---
+
