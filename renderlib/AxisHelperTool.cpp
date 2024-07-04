@@ -29,16 +29,10 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
     return;
   }
 
-  // Re-read targetPosition because object may have moved by the manipulator action,
-  // or animation. Target 3x3 linear space is a orthonormal frame. Target
-  // position is where the manipulator should be drawn in space
-  if (origins.empty()) {
-    origins.update(scene);
-  }
-
   LinearSpace3f camFrame = scene.camera.getFrame();
 
-  AffineSpace3f target; // = origins.currentReference(scene);
+  AffineSpace3f target;
+  // assume camera target is center of camera view!!
   target.p = scene.camera.m_Target;
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
@@ -49,13 +43,13 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
 
   AffineSpace3f axis;
   axis.p = target.p;
-  // translate this in screen space toward the lower left corner!
-  axis.p -= camFrame.vx * 0.4f * glm::length(viewDir) * resolution.x / resolution.y;
-  axis.p -= camFrame.vy * 0.4f * glm::length(viewDir);
-
-  if (m_localSpace) {
-    axis.l = origins.currentReference(scene).l;
-  }
+  // translate this in screen space toward the lower left corner.
+  // note that this is still drawn in perspective and will have fov distortion.
+  // Ideally we want to give this its own viewport as if it were centered.
+  static constexpr float XPOS_NDC = -0.45f;
+  static constexpr float YPOS_NDC = -0.45f;
+  axis.p += camFrame.vx * XPOS_NDC * glm::length(viewDir) * resolution.x / resolution.y;
+  axis.p += camFrame.vy * YPOS_NDC * glm::length(viewDir);
 
   // Lambda to draw one axis of the manipulator, a wire-frame arrow.
   auto drawAxis = [&](const glm::vec3& dir,
@@ -76,25 +70,6 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
     // Arrow line
     gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
                              Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code));
-
-    // Circle at the base of the arrow
-    // float diskScale = scale * (fullDraw ? 0.06f : 0.03f);
-    // gesture.drawCircle(axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
-    // if (fullDraw) {
-    //   // Arrow
-    //   glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
-    //   glm::vec3 vd = normalize(cross(ve, dir)) * (scale * 0.06f);
-    //   gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
-    //                            Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code));
-    //   gesture.graphics.extLine(Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code));
-    // }
-
-    // Extension to arrow line at the opposite end
-    // gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
-    //                          Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code));
-
-    // gesture.drawCircle(
-    //   axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
   };
 
   // Complete the axis with a transparent surface for the tip of the arrow
@@ -114,7 +89,7 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 
     if (fullDraw) {
-      float diskScale = scale * 0.06;
+      float diskScale = scale * 0.15;
 
       // The cone
       gesture.drawCone(
@@ -141,16 +116,4 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
   drawAxis(axis.l.vx, axis.l.vy, axis.l.vz, code, forceActiveX, ManipColors::xAxis, 1);
   drawAxis(axis.l.vy, axis.l.vz, axis.l.vx, code, forceActiveY, ManipColors::yAxis, 1);
   drawAxis(axis.l.vz, axis.l.vx, axis.l.vy, code, forceActiveZ, ManipColors::zAxis, 1);
-
-  // Draw planar move controls, only if facing angle makes them usable
-  glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
-
-  // Draw the origin of the manipulator as a circle always facing the view
-  // {
-  //   glm::vec3 color = ManipColors::bright;
-  //   float diskScale = scale * 0.09;
-  //   gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
-  //   diskScale = scale * 0.02;
-  //   gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
-  // }
 }
