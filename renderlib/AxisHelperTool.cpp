@@ -78,23 +78,23 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
                              Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code));
 
     // Circle at the base of the arrow
-    float diskScale = scale * (fullDraw ? 0.06f : 0.03f);
-    gesture.drawCircle(axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
-    if (fullDraw) {
-      // Arrow
-      glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
-      glm::vec3 vd = normalize(cross(ve, dir)) * (scale * 0.06f);
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
-                               Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code));
-      gesture.graphics.extLine(Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code));
-    }
+    // float diskScale = scale * (fullDraw ? 0.06f : 0.03f);
+    // gesture.drawCircle(axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
+    // if (fullDraw) {
+    //   // Arrow
+    //   glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
+    //   glm::vec3 vd = normalize(cross(ve, dir)) * (scale * 0.06f);
+    //   gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
+    //                            Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code));
+    //   gesture.graphics.extLine(Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code));
+    // }
 
     // Extension to arrow line at the opposite end
-    gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
-                             Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code));
+    // gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
+    //                          Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code));
 
-    gesture.drawCircle(
-      axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
+    // gesture.drawCircle(
+    //   axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
   };
 
   // Complete the axis with a transparent surface for the tip of the arrow
@@ -126,60 +126,6 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
     }
   };
 
-  // The control to move a plane spanning between two axis
-  auto drawDiag = [&](const glm::vec3& dir,
-                      const glm::vec3& dirX,
-                      const glm::vec3& dirY,
-                      const float facingScale,
-                      const uint32_t selectionCode,
-                      glm::vec3 color,
-                      float opacity) {
-    if (facingScale < 0.1f)
-      return;
-
-    bool fullDraw = (m_activeCode == selectionCode || !isCodeValid(m_activeCode));
-
-    glm::vec3 arrowsColor = glm::vec3(0.6);
-    if (m_activeCode == selectionCode)
-      arrowsColor = glm::vec3(1, 1, 0);
-
-    uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
-
-    glm::vec3 p = axis.p + (dirX + dirY) * (scale * 0.7f);
-    if (fullDraw) {
-      glm::vec3 v0 = (dirX + dirY) * (scale * 0.06f * facingScale);
-      glm::vec3 v1 = (dirX - dirY) * (scale * 0.06f * facingScale);
-      float li = lerp(1.0, 0.5, facingScale);
-      float lo = lerp(1.0, 0.7, facingScale);
-
-      // Draw a bunch of 2d arrows
-      float diskScale = scale * 0.17;
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirX * diskScale * li, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p + dirX * diskScale * lo, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirX * diskScale - v1, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p + dirX * diskScale, arrowsColor, opacity, code));
-      gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + dirX * diskScale - v0, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirY * diskScale * li, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p + dirY * diskScale * lo, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirY * diskScale + v1, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p + dirY * diskScale, arrowsColor, opacity, code));
-      gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + dirY * diskScale - v0, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirX * diskScale * li, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p - dirX * diskScale * lo, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirX * diskScale + v1, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p - dirX * diskScale, arrowsColor, opacity, code));
-      gesture.graphics.extLine(Gesture::Graphics::VertsCode(p - dirX * diskScale + v0, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirY * diskScale * li, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p - dirY * diskScale * lo, arrowsColor, opacity, code));
-      gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirY * diskScale - v1, arrowsColor, opacity, code),
-                               Gesture::Graphics::VertsCode(p - dirY * diskScale, arrowsColor, opacity, code));
-      gesture.graphics.extLine(Gesture::Graphics::VertsCode(p - dirY * diskScale + v0, arrowsColor, opacity, code));
-    }
-
-    float diskScale = scale * 0.04 * facingScale;
-    gesture.drawCircle(p, dirX * diskScale, dirY * diskScale, 8, color, opacity, code);
-  };
-
   bool forceActiveX = false;
   bool forceActiveY = false;
   bool forceActiveZ = false;
@@ -200,11 +146,11 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
   glm::vec3 vn = normalize(axis.p - scene.camera.m_From);
 
   // Draw the origin of the manipulator as a circle always facing the view
-  {
-    glm::vec3 color = ManipColors::bright;
-    float diskScale = scale * 0.09;
-    gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
-    diskScale = scale * 0.02;
-    gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
-  }
+  // {
+  //   glm::vec3 color = ManipColors::bright;
+  //   float diskScale = scale * 0.09;
+  //   gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
+  //   diskScale = scale * 0.02;
+  //   gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
+  // }
 }
