@@ -338,6 +338,7 @@ elseif(APPLE)
     fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/agave.app\" \"${QT_PLUGINS}\" \"${DIRS}\" )")
 
   set(CPACK_GENERATOR "DragNDrop")
+  set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/SignMacOSApp.cmake")
   # set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;install/Release/agave.app")
   # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/agave.app")
   # set(CPACK_PACKAGE_EXECUTABLES "${CMAKE_INSTALL_PREFIX}/agave.app")
