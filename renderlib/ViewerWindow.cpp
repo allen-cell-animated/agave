@@ -127,7 +127,18 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   forEachTool([&](ManipulationTool* tool) { tool->clear(); });
 
   // Query Gesture::Graphics for selection codes
-  bool pickedAnything = m_gestureRenderer->pick(m_selection, gesture.input, viewport, gesture.graphics);
+  // If we are in mid-gesture, then we can continue to use the retained selection code.
+  // if we never had anything to draw into the pick buffer, then we didn't pick anything.
+  // This is a slight oversimplification because it checks for any single-button release
+  // or drag: two-button drag gestures are not handled well.
+  bool pickedAnything = false;
+  if (gesture.input.clickEnded() || gesture.input.isDragging()) {
+    pickedAnything = gesture.graphics.m_retainedSelectionCode != Gesture::Graphics::k_noSelectionCode;
+  } else {
+    pickedAnything =
+      m_gestureRenderer->pick(m_selection, gesture.input, viewport, gesture.graphics.m_retainedSelectionCode);
+  }
+
   if (pickedAnything) {
     int selectionCode = gesture.graphics.getCurrentSelectionCode();
     forEachTool([&](ManipulationTool* tool) { tool->setActiveCode(selectionCode); });

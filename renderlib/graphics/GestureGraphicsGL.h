@@ -56,14 +56,11 @@ struct RenderBuffer
   }
   void destroy();
   bool create(glm::ivec2 resolution, int samples = 0);
-  virtual void clear(){};
+  virtual void clear() {};
 };
 
 struct SelectionBuffer : RenderBuffer
 {
-  // 1 bit is reserved for component flags.
-  static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
-
   virtual void clear();
 };
 
@@ -83,11 +80,11 @@ public:
   void draw(struct SceneView& sceneView, struct SelectionBuffer* selection, Gesture::Graphics& graphics);
 
   // Pick a GUI element using the cursor position in Input.
-  // Return a valid GUI selection code, SelectionBuffer::k_noSelectionCode
+  // Return a valid GUI selection code, Gesture::Graphics::k_noSelectionCode
   // otherwise.
   // viewport: left, top, width, height
   bool pick(struct SelectionBuffer& selection,
             const Gesture::Input& input,
             const SceneView::Viewport& viewport,
-            Gesture::Graphics& graphics);
+            uint32_t& selectionCode);
 };
