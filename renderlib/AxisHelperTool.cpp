@@ -37,19 +37,28 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
 
   glm::vec3 viewDir = (scene.camera.m_From - target.p);
 
-  // Draw the manipulator to be at some constant size on screen
-  float scaleFactor = 0.333; // make it smaller
-  float scale = scaleFactor * length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
-
   AffineSpace3f axis;
   axis.p = target.p;
+
   // translate this in screen space toward the lower left corner.
   // note that this is still drawn in perspective and will have fov distortion.
   // Ideally we want to give this its own viewport as if it were centered.
+  // (Or translate the center of projection!)
   static constexpr float XPOS_NDC = -0.45f;
   static constexpr float YPOS_NDC = -0.45f;
-  axis.p += camFrame.vx * XPOS_NDC * glm::length(viewDir) * resolution.x / resolution.y;
-  axis.p += camFrame.vy * YPOS_NDC * glm::length(viewDir);
+
+  // Draw the manipulator to be at some constant size on screen
+  float scaleFactor = 0.333; // make it smaller
+  float scale = scaleFactor;
+  if (scene.camera.m_Projection == ORTHOGRAPHIC) {
+    scale = scaleFactor * scene.camera.m_OrthoScale * (m_size / resolution.x);
+    axis.p += camFrame.vx * XPOS_NDC * 2.0f * scene.camera.m_OrthoScale * resolution.x / resolution.y;
+    axis.p += camFrame.vy * XPOS_NDC * 2.0f * scene.camera.m_OrthoScale;
+  } else {
+    scale = scaleFactor * glm::length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
+    axis.p += camFrame.vx * XPOS_NDC * glm::length(viewDir) * resolution.x / resolution.y;
+    axis.p += camFrame.vy * YPOS_NDC * glm::length(viewDir);
+  }
 
   // Lambda to draw one axis of the manipulator, a wire-frame arrow.
   auto drawAxis = [&](const glm::vec3& dir,
@@ -105,14 +114,14 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
   bool forceActiveY = false;
   bool forceActiveZ = false;
 
-  uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+  uint32_t code = Gesture::Graphics::k_noSelectionCode;
 
-  gesture.graphics.addCommand(GL_TRIANGLES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
   drawSolidArrow(axis.l.vx, axis.l.vy, axis.l.vz, code, forceActiveX, ManipColors::xAxis, 0.3f);
   drawSolidArrow(axis.l.vy, axis.l.vz, axis.l.vx, code, forceActiveY, ManipColors::yAxis, 0.3f);
   drawSolidArrow(axis.l.vz, axis.l.vx, axis.l.vy, code, forceActiveZ, ManipColors::zAxis, 0.3f);
 
-  gesture.graphics.addCommand(GL_LINES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
   drawAxis(axis.l.vx, axis.l.vy, axis.l.vz, code, forceActiveX, ManipColors::xAxis, 1);
   drawAxis(axis.l.vy, axis.l.vz, axis.l.vx, code, forceActiveY, ManipColors::yAxis, 1);
   drawAxis(axis.l.vz, axis.l.vx, axis.l.vy, code, forceActiveZ, ManipColors::zAxis, 1);
