@@ -249,7 +249,7 @@ SelectionBuffer::clear()
   glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
   {
     glViewport(0, 0, resolution.x, resolution.y);
-    uint32_t clearcode = SelectionBuffer::k_noSelectionCode;
+    uint32_t clearcode = Gesture::Graphics::k_noSelectionCode;
     glClearColor(((clearcode >> 0) & 0xFF) / 255.0,
                  ((clearcode >> 8) & 0xFF) / 255.0,
                  ((clearcode >> 16) & 0xFF) / 255.0,
@@ -414,16 +414,8 @@ bool
 GestureRendererGL::pick(SelectionBuffer& selection,
                         const Gesture::Input& input,
                         const SceneView::Viewport& viewport,
-                        Gesture::Graphics& graphics)
+                        uint32_t& selectionCode)
 {
-  // If we are in mid-gesture, then we can continue to use the retained selection code.
-  // if we never had anything to draw into the pick buffer, then we didn't pick anything.
-  // This is a slight oversimplification because it checks for any single-button release
-  // or drag: two-button drag gestures are not handled well.
-  if (input.clickEnded() || input.isDragging()) {
-    return graphics.m_retainedSelectionCode != SelectionBuffer::k_noSelectionCode;
-  }
-
   // Prepare a region in raster space
 
   SceneView::Viewport::Region region;
@@ -445,17 +437,17 @@ GestureRendererGL::pick(SelectionBuffer& selection,
 
   // if the intersection is empty, return no selection
   if (region.empty()) {
-    graphics.m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    selectionCode = Gesture::Graphics::k_noSelectionCode;
     return false;
   }
 
   // Frame buffer resolution should be correct, check just in case.
   if (selection.resolution != viewport.region.size()) {
-    graphics.m_retainedSelectionCode = SelectionBuffer::k_noSelectionCode;
+    selectionCode = Gesture::Graphics::k_noSelectionCode;
     return false;
   }
 
-  uint32_t entry = SelectionBuffer::k_noSelectionCode;
+  uint32_t entry = Gesture::Graphics::k_noSelectionCode;
 
   // Each selection code has a priority, lower values means higher priority.
   // I pick region around the cursor, the size of which is a arbitrary.
@@ -495,7 +487,7 @@ GestureRendererGL::pick(SelectionBuffer& selection,
       // higher selection priority.
       for (uint8_t* rgba = values; rgba < (values + size * 4); rgba += 4) {
         uint32_t code = selectionRGB8ToCode(rgba);
-        if (code != SelectionBuffer::k_noSelectionCode) {
+        if (code != Gesture::Graphics::k_noSelectionCode) {
           if (code < entry) {
             entry = code;
           }
@@ -511,9 +503,9 @@ GestureRendererGL::pick(SelectionBuffer& selection,
   glBindFramebuffer(GL_FRAMEBUFFER, last_framebuffer);
   check_gl("restore framebuffer");
 
-  // if (entry < SelectionBuffer::k_noSelectionCode) {
+  // if (entry < Gesture::Graphics::k_noSelectionCode) {
   //   LOG_DEBUG << "Selection: " << entry;
   // }
-  graphics.m_retainedSelectionCode = entry;
-  return entry != SelectionBuffer::k_noSelectionCode;
+  selectionCode = entry;
+  return entry != Gesture::Graphics::k_noSelectionCode;
 }

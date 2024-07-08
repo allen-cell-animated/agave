@@ -255,7 +255,8 @@ struct Gesture
     Font font;
 
     // remember selection code to reuse while dragging
-    static constexpr uint32_t k_noSelectionCode = -1u;
+    // 1 bit is reserved for component flags.
+    static constexpr uint32_t k_noSelectionCode = 0x7fffffffu;
     uint32_t m_retainedSelectionCode = k_noSelectionCode;
 
     // Empty the commands/verts buffers, typically done after drawing the GUI.
