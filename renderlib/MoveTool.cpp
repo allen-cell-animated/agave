@@ -318,12 +318,12 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
   bool forceActiveZ =
     (m_activeCode == MoveTool::kMoveYZ) || (m_activeCode == MoveTool::kMoveXZ) || (m_activeCode == MoveTool::kMove);
 
-  gesture.graphics.addCommand(GL_TRIANGLES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
   drawSolidArrow(axis.l.vx, axis.l.vy, axis.l.vz, MoveTool::kMoveX, forceActiveX, ManipColors::xAxis, 0.3f);
   drawSolidArrow(axis.l.vy, axis.l.vz, axis.l.vx, MoveTool::kMoveY, forceActiveY, ManipColors::yAxis, 0.3f);
   drawSolidArrow(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 0.3f);
 
-  gesture.graphics.addCommand(GL_LINES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
   drawAxis(axis.l.vx, axis.l.vy, axis.l.vz, MoveTool::kMoveX, forceActiveX, ManipColors::xAxis, 1);
   drawAxis(axis.l.vy, axis.l.vz, axis.l.vx, MoveTool::kMoveY, forceActiveY, ManipColors::yAxis, 1);
   drawAxis(axis.l.vz, axis.l.vx, axis.l.vy, MoveTool::kMoveZ, forceActiveZ, ManipColors::zAxis, 1);

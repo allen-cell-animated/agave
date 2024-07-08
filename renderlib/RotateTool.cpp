@@ -237,7 +237,7 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
   Gesture::Input::Button& button = gesture.input.mbs[Gesture::Input::kButtonLeft];
   bool isRotating = (button.action == Gesture::Input::Action::kDrag && m_activeCode > -1);
 
-  gesture.graphics.addCommand(GL_TRIANGLES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
   // draw a flat camera facing disk for freeform tumble rotation
   float tumblescale = scale * 0.84f;
   {
@@ -257,9 +257,9 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                      opacity,
                      code);
   }
-  static constexpr uint32_t noCode = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
+  static constexpr uint32_t noCode = Gesture::Graphics::k_noSelectionCode;
 
-  gesture.graphics.addCommand(GL_LINES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
 
   glm::vec4 discPlane(camFrame.vz, -glm::dot(camFrame.vz, axis.p));
 
