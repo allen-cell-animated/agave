@@ -104,9 +104,9 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
       gesture.drawCone(
         axis.p + dir * scale, dirX * diskScale, dirY * diskScale, dir * (scale * 0.2f), 12, color, opacity, code);
 
-      // The base of the cone (as a flat cone)
+      // The base of the cone (as a flat cone). X axis is negated so that the normals point down
       gesture.drawCone(
-        axis.p + dir * scale, dirX * diskScale, dirY * diskScale, glm::vec3(0, 0, 0), 12, color, opacity, code);
+        axis.p + dir * scale, -dirX * diskScale, dirY * diskScale, glm::vec3(0, 0, 0), 12, color, opacity, code);
     }
   };
 
@@ -117,9 +117,9 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
 
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
-  drawSolidArrow(axis.l.vx, axis.l.vy, axis.l.vz, code, forceActiveX, ManipColors::xAxis, 0.3f);
-  drawSolidArrow(axis.l.vy, axis.l.vz, axis.l.vx, code, forceActiveY, ManipColors::yAxis, 0.3f);
-  drawSolidArrow(axis.l.vz, axis.l.vx, axis.l.vy, code, forceActiveZ, ManipColors::zAxis, 0.3f);
+  drawSolidArrow(axis.l.vx, axis.l.vy, axis.l.vz, code, forceActiveX, ManipColors::xAxis, 1);
+  drawSolidArrow(axis.l.vy, axis.l.vz, axis.l.vx, code, forceActiveY, ManipColors::yAxis, 1);
+  drawSolidArrow(axis.l.vz, axis.l.vx, axis.l.vy, code, forceActiveZ, ManipColors::zAxis, 1);
 
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
   drawAxis(axis.l.vx, axis.l.vy, axis.l.vz, code, forceActiveX, ManipColors::xAxis, 1);
