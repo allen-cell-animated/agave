@@ -67,7 +67,7 @@ RenderGL::prepareToRender()
   }
 
   if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty)) {
-    m_image3d->prepareTexture(*m_scene);
+    m_image3d->prepareTexture(*m_scene, m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
   }
 
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now
@@ -215,8 +215,8 @@ RenderGL::initFromScene()
 {
   delete m_image3d;
 
-  m_image3d = new Image3D(m_scene->m_volume);
-  m_image3d->create();
+  m_image3d = new Image3D();
+  m_image3d->create(m_scene->m_volume);
 
   // we have set up everything there is to do before rendering
   mStartTime = std::chrono::high_resolution_clock::now();

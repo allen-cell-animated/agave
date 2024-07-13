@@ -40,5 +40,7 @@ struct ImageGpu
   // similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
   void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
 
+  void setVolumeTextureFiltering(bool linear);
+
   ~ImageGpu() { deallocGpu(); }
 };

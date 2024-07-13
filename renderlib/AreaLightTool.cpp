@@ -22,8 +22,8 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
-  uint32_t code = Gesture::Graphics::SelectionBuffer::k_noSelectionCode;
-  gesture.graphics.addCommand(GL_LINES);
+  uint32_t code = Gesture::Graphics::k_noSelectionCode;
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
 
   // draw a square around the area light
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v0, color, opacity, code),
@@ -43,7 +43,7 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
   gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + v3 * 0.1f, color, opacity, code),
                            Gesture::Graphics::VertsCode(t + v3 * 0.1f, color, opacity, code));
 
-  gesture.graphics.addCommand(GL_TRIANGLES);
+  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
   // fill in the rectangle of the light
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
   gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, color, opacity, code));

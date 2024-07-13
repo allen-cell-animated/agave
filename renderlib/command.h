@@ -482,3 +482,9 @@ CMDDECL(SetFlipAxisCommand,
         46,
         "set_flip_axis",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
+
+struct SetInterpolationCommandD
+{
+  int32_t m_on;
+};
+CMDDECL(SetInterpolationCommand, 47, "set_interpolation", CMD_ARGS({ CommandArgType::I32 }));

@@ -53,6 +53,7 @@ public:
   void OnBoundingBoxColorChanged(const QColor& color);
   void OnShowBoundsChecked(bool isChecked);
   void OnShowScaleBarChecked(bool isChecked);
+  void OnInterpolateChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
@@ -94,6 +95,7 @@ private:
   QNumericSlider m_GradientFactorSlider;
   QNumericSlider m_StepSizePrimaryRaySlider;
   QNumericSlider m_StepSizeSecondaryRaySlider;
+  QCheckBox m_interpolateCheckBox;
   QColorPushButton m_backgroundColorButton;
 
   QRenderSettings* m_qrendersettings;

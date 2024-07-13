@@ -8,6 +8,7 @@
 #include "command.h"
 #include "renderlib/gesture/gesture.h"
 #include "renderlib/graphics/IRenderWindow.h"
+#include "renderlib/graphics/GestureGraphicsGL.h"
 #include "renderlib/graphics/gl/Util.h"
 #include "renderlib/renderlib.h"
 
@@ -104,6 +105,8 @@ public:
   virtual int SetBoundingBoxColor(float, float, float);
   virtual int ShowBoundingBox(int32_t);
   virtual int ShowScaleBar(int32_t);
+  virtual int SetFlipAxis(int32_t, int32_t, int32_t);
+  virtual int SetInterpolation(int32_t);
 
 protected:
   void init();
@@ -137,6 +140,7 @@ private:
     Scene* m_scene;
     CCamera* m_camera;
     Gesture m_gesture;
+    GestureRendererGL m_gestureRenderer;
 
     myVolumeData()
       : m_camera(nullptr)

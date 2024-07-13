@@ -1,10 +1,9 @@
 #pragma once
 
-#include <glad/glad.h> // for gl types
-
 #include "stb/stb_truetype.h"
 
 #include <string>
+#include <vector>
 
 class Font
 {
@@ -12,6 +11,7 @@ public:
   Font();
   ~Font();
 
+  bool isLoaded() { return m_w > 0 && m_h > 0 && m_textureData.size() > 0; }
   void load(const char* filename);
   void unload();
 
@@ -21,12 +21,17 @@ public:
   float getStringWidth(std::string text);
   float getStringHeight(std::string text);
 
-  GLuint getTextureID() const { return m_texID; }
+  uint32_t getTextureWidth() const { return m_w; }
+  uint32_t getTextureHeight() const { return m_h; }
+  // BE CAREFUL THIS IS ONLY FOR SHORT LIFETIME ACCESSES (e.g. for OpenGL texture creation/copy to gpu)
+  const unsigned char* getTextureData() const { return m_textureData.data(); }
 
 private:
   static constexpr char m_firstChar = 32;
   static constexpr size_t m_numChars = 96;
   stbtt_bakedchar m_cdata[m_numChars]; // ASCII 32..126 is 95 glyphs
 
-  GLuint m_texID;
+  uint32_t m_w;
+  uint32_t m_h;
+  std::vector<unsigned char> m_textureData;
 };

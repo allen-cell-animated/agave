@@ -170,6 +170,10 @@ RenderGLPT::doRender(const CCamera& camera)
   // Restart the rendering when when the camera, lights and render params are dirty
   if (m_renderSettings->m_DirtyFlags.HasFlag(CameraDirty | LightsDirty | RenderParamsDirty | TransferFunctionDirty |
                                              RoiDirty)) {
+    if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty)) {
+      // update volume texture sampling state
+      m_imgGpu.setVolumeTextureFiltering(m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
+    }
     if (m_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
       // TODO: only update the ones that changed.
       int NC = m_scene->m_volume->sizeC();

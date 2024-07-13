@@ -3,6 +3,7 @@
 #include "CCamera.h"
 #include "Manipulator.h"
 #include "Timing.h"
+#include "graphics/GestureGraphicsGL.h"
 #include "gesture/gesture.h"
 
 #include <vector>
@@ -69,7 +70,8 @@ public:
   double m_frameRate;
   int m_increments;
 
-  Gesture::Graphics::SelectionBuffer m_selection;
+  SelectionBuffer m_selection;
+  std::unique_ptr<GestureRendererGL> m_gestureRenderer;
 
   ManipulationTool m_defaultTool; //< a null tool representing selection
   ManipulationTool* m_activeTool = &m_defaultTool;

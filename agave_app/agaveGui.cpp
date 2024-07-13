@@ -1055,7 +1055,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
-  // m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
+  m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -1164,7 +1164,7 @@ agaveGui::appToViewerState()
   v.camera.aperture = m_qcamera.GetAperture().GetSize();
   v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
-  // v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
+  v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
 
   v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
                                                             : Serialize::RendererType_PID::PATHTRACE;
