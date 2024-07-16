@@ -14,6 +14,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.qrc"
+	"${CMAKE_CURRENT_SOURCE_DIR}/qdarkstyle/dark/darkstyle.qrc"
+	"${CMAKE_CURRENT_SOURCE_DIR}/qdarkstyle/light/lightstyle.qrc"
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Aperture.h"

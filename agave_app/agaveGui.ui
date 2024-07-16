@@ -24,6 +24,8 @@
  <pixmapfunction></pixmapfunction>
  <resources>
    <include location="agaveGui.qrc"/>
+   <include location="qdarkstyle/dark/darkstyle.qrc"/>
+   <include location="qdarkstyle/light/lightstyle.qrc"/>
  </resources>
  <connections/>
 </UI>

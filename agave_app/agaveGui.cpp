@@ -40,8 +40,16 @@
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
+  QFile f(":qdarkstyle/light/lightstyle.qss");
+  if (!f.exists()) {
+    printf("Unable to set stylesheet, file not found\n");
+  } else {
+    f.open(QFile::ReadOnly | QFile::Text);
+    QTextStream ts(&f);
+    qApp->setStyleSheet(ts.readAll());
+  }
+  setStyleSheet("QToolTip{padding:3px;}");
 
   // create actions first so they can be deposited in other gui elements
   createActions();
