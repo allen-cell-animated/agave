@@ -9,7 +9,7 @@
 #include "ScaleBarTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
-#include "graphics/GestureGraphicsPT.h"
+#include "graphics/GestureGraphicsGL.h"
 #include "renderlib.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
