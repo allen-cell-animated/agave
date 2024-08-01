@@ -766,8 +766,9 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
     LOG_DEBUG << "SamplesPerPixel: " << samplesPerPixel;
   }
   if (samplesPerPixel != 1) {
-    LOG_ERROR << "" << samplesPerPixel << " samples per pixel is not supported in tiff";
-    return emptyimage;
+    LOG_WARNING << "" << samplesPerPixel << " samples per pixel is not supported in tiff. Attempting to ignore and use 1 sample";
+    samplesPerPixel = 1;
+    //return emptyimage;
   }
 
   uint32_t planarConfig = 0;
