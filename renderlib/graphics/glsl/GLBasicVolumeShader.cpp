@@ -68,6 +68,7 @@ uniform float maskAlpha;
 uniform int BREAK_STEPS;
 uniform vec3 AABB_CLIP_MIN;
 uniform vec3 AABB_CLIP_MAX;
+uniform vec3 flipVolumeAxes;
 
 uniform float dataRangeMin; // 0..1 (mapped from 0..uint16_max)
 uniform float dataRangeMax; // 0..1 (mapped from 0..uint16_max)
@@ -98,7 +99,7 @@ vec4 sampleAs3DTexture(sampler3D tex, vec4 pos) {
 		pos[1] > 0.001 && pos[1] < 0.999 &&
 		pos[2] > 0.001 && pos[2] < 0.999);
 
-    vec4 texval = textureLod(tex, pos.xyz, 0).rgba;
+    vec4 texval = textureLod(tex, pos.xyz*flipVolumeAxes, 0).rgba;
 	vec4 retval = vec4(texval.rgb, 1.0);
 
 //    float texval = textureLod(tex, pos.xyz, 0).r;
@@ -241,6 +242,7 @@ void main()
   uBreakSteps = uniformLocation("BREAK_STEPS");
   uAABBClipMin = uniformLocation("AABB_CLIP_MIN");
   uAABBClipMax = uniformLocation("AABB_CLIP_MAX");
+  uFlipVolumeAxes = uniformLocation("flipVolumeAxes");
   uInverseModelViewMatrix = uniformLocation("inverseModelViewMatrix");
   // uCameraPosition = uniformLocation("cameraPosition");
   uGammaMin = uniformLocation("GAMMA_MIN");
@@ -327,6 +329,7 @@ GLBasicVolumeShader::setShadingUniforms()
   // axis aligned clip planes
   glUniform3fv(uAABBClipMin, 1, glm::value_ptr(AABB_CLIP_MIN));
   glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
+  glUniform3fv(uFlipVolumeAxes, 1, glm::value_ptr(flipVolumeAxes));
   glUniform2fv(uResolution, 1, glm::value_ptr(resolution));
 }
 

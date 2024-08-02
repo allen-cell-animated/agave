@@ -101,7 +101,7 @@ uniform float gDensityScale;
 uniform float gStepSize;
 uniform float gStepSizeShadow;
 uniform sampler3D volumeTexture;
-uniform vec3 gInvAaBbSize;
+uniform vec3 gPosToUVW;
 uniform int g_nChannels;
 uniform int gShadingType;
 uniform vec3 gGradientDeltaX;
@@ -118,6 +118,7 @@ uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
 uniform vec4 g_lutMax;
 uniform vec4 g_lutMin;
+uniform vec4 g_labels;
 uniform float g_opacity[4];
 uniform vec3 g_emissive[4];
 uniform vec3 g_diffuse[4];
@@ -129,6 +130,39 @@ uniform float uFrameCounter;
 uniform float uSampleCounter;
 uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
+
+// from https://www.shadertoy.com/view/4ssXRX
+// uvec3 pcg3d(uvec3 v) {
+
+//     v = v * 1664525u + 1013904223u;
+
+//     v.x += v.y*v.z;
+//     v.y += v.z*v.x;
+//     v.z += v.x*v.y;
+
+//     v ^= v >> 16u;
+
+//     v.x += v.y*v.z;
+//     v.y += v.z*v.x;
+//     v.z += v.x*v.y;
+
+//     return v;
+// }
+// vec3 pcg3d_f( vec3 v )
+// {
+//     return (1.0/float(0xffffffffu)) * vec3(pcg3d( uvec3(floatBitsToUint(v.x),
+//                   			 							floatBitsToUint(v.y),
+//                   			 							floatBitsToUint(v.z)) ));
+// }
+// float nrand( vec3 n )
+// {
+//     return pcg3d_f(n).x;
+// }
+// float n1rand( in vec2 uv, in float t )
+// {
+// 	float nrnd0 = nrand( vec3(uv,t) + 0.07 );
+// 	return nrnd0;
+// }
 
 // from iq https://www.shadertoy.com/view/4tXyWN
 float rand( inout uvec2 seed )
@@ -309,7 +343,7 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 vec3 PtoVolumeTex(vec3 p) {
   // center of volume is 0.5*extents
   // this needs to return a number in 0..1 range, so just rescale to bounds.
-  return p * gInvAaBbSize;
+  return p * gPosToUVW;
 }
 
 const float UINT16_MAX = 65535.0;
@@ -415,13 +449,13 @@ vec3 Gradient4ch(vec3 P, int ch)
 {
   vec3 Gradient;
 
-  Gradient.x = (GetRawIntensity(P + (gGradientDeltaX), ch) - GetRawIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
-  Gradient.y = (GetRawIntensity(P + (gGradientDeltaY), ch) - GetRawIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
-  Gradient.z = (GetRawIntensity(P + (gGradientDeltaZ), ch) - GetRawIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
+  //Gradient.x = (GetRawIntensity(P + (gGradientDeltaX), ch) - GetRawIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
+  //Gradient.y = (GetRawIntensity(P + (gGradientDeltaY), ch) - GetRawIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
+  //Gradient.z = (GetRawIntensity(P + (gGradientDeltaZ), ch) - GetRawIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
 
-  //Gradient.x = (GetNormalizedIntensity4ch(P + (gGradientDeltaX), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
-  //Gradient.y = (GetNormalizedIntensity4ch(P + (gGradientDeltaY), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
-  //Gradient.z = (GetNormalizedIntensity4ch(P + (gGradientDeltaZ), ch) - GetNormalizedIntensity4ch(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
+  Gradient.x = (GetNormalizedIntensity(P + (gGradientDeltaX), ch) - GetNormalizedIntensity(P - (gGradientDeltaX), ch)) * gInvGradientDelta;
+  Gradient.y = (GetNormalizedIntensity(P + (gGradientDeltaY), ch) - GetNormalizedIntensity(P - (gGradientDeltaY), ch)) * gInvGradientDelta;
+  Gradient.z = (GetNormalizedIntensity(P + (gGradientDeltaZ), ch) - GetNormalizedIntensity(P - (gGradientDeltaZ), ch)) * gInvGradientDelta;
 
   return Gradient;
 }
@@ -448,9 +482,14 @@ vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 //  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
 
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
+  if (g_labels[ch] > 0.0) {
+  return texelFetch(g_colormapTexture[ch], ivec2(int(intensity[ch]), 0), 0).xyz * g_diffuse[ch];
+  }
+  else {
   float i = intensity[ch];
   i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
   return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
+  }
 
 
   //return g_diffuse[ch];
@@ -917,8 +956,8 @@ bool FreePathRM(inout Ray R, inout uvec2 seed)
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
-    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    //intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
 
     Sum += SigmaT * gStepSizeShadow;
@@ -1083,8 +1122,8 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps, out float inte
     if (MinT > MaxT)
       return false;
 
-    intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
-    //intensity = GetNormalizedIntensityMax4ch(Ps, ch);
+    //intensity = GetNormalizedIntensityRnd4ch_weighted(Ps, ch, seed);
+    intensity = GetNormalizedIntensityMax4ch(Ps, ch);
     SigmaT = gDensityScale * GetOpacity(intensity, ch);
     //SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
@@ -1298,7 +1337,7 @@ void main()
   m_gDensityScale = uniformLocation("gDensityScale");     // : { type : "f", value : 50.0 },
   m_gStepSize = uniformLocation("gStepSize");             // : { type : "f", value : 1.0 },
   m_gStepSizeShadow = uniformLocation("gStepSizeShadow"); // : { type : "f", value : 1.0 },
-  m_gInvAaBbSize = uniformLocation("gInvAaBbSize");       // : { type : "v3", value : new THREE.Vector3() },
+  m_gPosToUVW = uniformLocation("gPosToUVW");             // : { type : "v3", value : new THREE.Vector3() },
   m_g_nChannels = uniformLocation("g_nChannels");         // : { type : "i", value : 1 },
   m_gShadingType = uniformLocation("gShadingType");       // : { type : "i", value : 2 },
   m_gGradientDeltaX = uniformLocation("gGradientDeltaX"); // : { type : "v3", value : new THREE.Vector3(0.01, 0, 0) },
@@ -1383,6 +1422,7 @@ void main()
   m_intensityMin = uniformLocation("g_intensityMin");
   m_lutMax = uniformLocation("g_lutMax");
   m_lutMin = uniformLocation("g_lutMin");
+  m_labels = uniformLocation("g_labels");
   m_opacity = uniformLocation("g_opacity");
   m_emissive0 = uniformLocation("g_emissive[0]");
   m_emissive1 = uniformLocation("g_emissive[1]");
@@ -1440,7 +1480,11 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1f(m_gDensityScale, renderSettings.m_DensityScale);
   glUniform1f(m_gStepSize, renderSettings.m_StepSizeFactor * renderSettings.m_GradientDelta);
   glUniform1f(m_gStepSizeShadow, renderSettings.m_StepSizeFactorShadow * renderSettings.m_GradientDelta);
-  glUniform3fv(m_gInvAaBbSize, 1, glm::value_ptr(scene->m_boundingBox.GetInverseExtent()));
+  glUniform3fv(
+    m_gPosToUVW,
+    1,
+    glm::value_ptr(scene->m_boundingBox.GetInverseExtent() * glm::vec3(scene->m_volume->getVolumeAxesFlipped())));
+
   glUniform1i(m_gShadingType, renderSettings.m_ShadingType);
 
   const float GradientDelta = 1.0f * renderSettings.m_GradientDelta;
@@ -1520,6 +1564,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   float intensitymin[4] = { 0, 0, 0, 0 };
   float lutmax[4] = { 1, 1, 1, 1 };
   float lutmin[4] = { 0, 0, 0, 0 };
+  float labels[4] = { 0, 0, 0, 0 };
   float diffuse[3 * 4] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
   float specular[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -1550,7 +1595,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
         scene->m_material.m_gradientData[i].getMinMax(scene->m_volume->channel(i)->m_histogram, &imin16, &imax16);
       lutmin[activeChannel] = hasMinMax ? imin16 : intensitymin[activeChannel];
       lutmax[activeChannel] = hasMinMax ? imax16 : intensitymax[activeChannel];
-
+      labels[activeChannel] = scene->m_material.m_labels[i];
       activeChannel++;
     }
   }
@@ -1601,6 +1646,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform4fv(m_intensityMin, 1, intensitymin);
   glUniform4fv(m_lutMax, 1, lutmax);
   glUniform4fv(m_lutMin, 1, lutmin);
+  glUniform4fv(m_labels, 1, labels);
 
   glUniform1fv(m_opacity, 4, opacity);
   glUniform3fv(m_emissive0, 1, emissive + 0);

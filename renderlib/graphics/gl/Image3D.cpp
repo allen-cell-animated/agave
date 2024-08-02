@@ -84,6 +84,7 @@ Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings*
   // axis aligned clip planes in object space
   m_image3d_shader->AABB_CLIP_MIN = scene->m_roi.GetMinP() - glm::vec3(0.5, 0.5, 0.5);
   m_image3d_shader->AABB_CLIP_MAX = scene->m_roi.GetMaxP() - glm::vec3(0.5, 0.5, 0.5);
+  m_image3d_shader->flipVolumeAxes = scene->m_volume->getVolumeAxesFlipped();
   m_image3d_shader->resolution = glm::vec2(camera.m_Film.GetWidth(), camera.m_Film.GetHeight());
   m_image3d_shader->isPerspective = (camera.m_Projection == PERSPECTIVE) ? 1.0f : 0.0f;
   m_image3d_shader->orthoScale = camera.m_OrthoScale;
@@ -256,11 +257,11 @@ Image3D::prepareTexture(Scene& s)
   check_gl("Set texture min filter");
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   check_gl("Set texture mag filter");
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   check_gl("Set texture wrap s");
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   check_gl("Set texture wrap t");
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
   check_gl("Set texture wrap r");
 
   GLenum internal_format = GL_RGBA8;

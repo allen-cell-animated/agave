@@ -27,6 +27,7 @@ ImageXYZC::ImageXYZC(uint32_t x,
   , m_scaleY(sy)
   , m_scaleZ(sz)
   , m_spatialUnits(spatialUnits)
+  , m_flipped(1, 1, 1)
 {
   for (uint32_t i = 0; i < m_c; ++i) {
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
@@ -80,9 +81,21 @@ ImageXYZC::maxPixelDimension() const
 void
 ImageXYZC::setPhysicalSize(float x, float y, float z)
 {
-  m_scaleX = x;
-  m_scaleY = y;
-  m_scaleZ = z;
+  m_scaleX = abs(x);
+  m_scaleY = abs(y);
+  m_scaleZ = abs(z);
+}
+
+void
+ImageXYZC::setVolumeAxesFlipped(int x, int y, int z)
+{
+  m_flipped = glm::ivec3(x < 0 ? -1 : 1, y < 0 ? -1 : 1, z < 0 ? -1 : 1);
+}
+
+glm::ivec3
+ImageXYZC::getVolumeAxesFlipped() const
+{
+  return m_flipped;
 }
 
 float
@@ -194,6 +207,13 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
 }
 
 void
+Channelu16::copyColormap(uint8_t* colormap, size_t length)
+{
+  delete[] m_colormap;
+  m_colormap = colormapFromColormap(colormap, length);
+}
+
+void
 Channelu16::updateColormap(std::vector<ColorControlPoint> stops)
 {
   delete[] m_colormap;
@@ -203,7 +223,7 @@ void
 Channelu16::colorize()
 {
   delete[] m_colormap;
-  m_colormap = colormapRandomized();
+  m_colormap = modifiedGlasbeyColormap(); // colormapRandomized();
 }
 
 Channelu16::~Channelu16()

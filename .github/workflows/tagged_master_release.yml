@@ -8,7 +8,16 @@ jobs:
   cmake-build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            artifact: agave-linux
+          - os: windows-latest
+            artifact: agave-win
+          # note macos-14 is arm64 and macos-13 is x86_64
+          - os: macos-14
+            artifact: agave-macos-arm64
+          - os: macos-13
+            artifact: agave-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
@@ -22,15 +31,15 @@ jobs:
           version: 6.5.3
           modules: qtwebsockets qtimageformats
       - name: macos install deps
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         env:
           CC: clang
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff nasm zstd
+          brew install spdlog glm libtiff nasm zstd ninja
       - name: macos build and test
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         env:
           CC: clang
           CXX: clang++
@@ -38,24 +47,25 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.15
           mkdir ./build
           cd build
-          cmake ..
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
-          zip -vr agave-macos.zip agave.app/
+          cd install/Release
+          zip -vr ../../${{ matrix.artifact }}.zip agave.app/
         shell: bash
       - name: Upload mac artifact
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         uses: actions/upload-artifact@v4
         with:
-          name: agave-macos
-          path: ./build/agave-macos.zip
+          name: ${{ matrix.artifact }}
+          path: ./build/${{ matrix.artifact }}.zip
       - name: linux install deps
         if: matrix.os == 'ubuntu-latest'
         env:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
+          sudo apt-get install ninja-build libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -65,16 +75,23 @@ jobs:
           pwd
           mkdir ./build
           cd build
-          cmake ..
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
+      - name: windows install ninja
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install ninja
+      - name: Configure MSVC console (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
       - name: windows get nasm
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1
@@ -89,19 +106,19 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 ..
-          cmake --build . --target agave_test --config Release
-          cmake --build . --target agaveapp --config Release
-          cmake --build . --target INSTALL --config Release
-          cmake --install .
-          powershell Compress-Archive -Path .\agave-install -DestinationPath agave-win.zip
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows ..
+          cmake --build . --parallel --target agave_test --config Release
+          cmake --build . --parallel --target agaveapp --config Release
+          cmake --build . --parallel --target install --config Release
+          cmake --install . --config Release
+          powershell Compress-Archive -Path .\install\Release\agave-install -DestinationPath ${{ matrix.artifact }}.zip
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: agave-win
-          path: ./build/agave-win.zip
+          name: ${{ matrix.artifact }}
+          path: ./build/${{ matrix.artifact }}.zip
 
   publish_webclient:
     needs: cmake-build
@@ -231,11 +248,16 @@ jobs:
         run: |
           echo ${GITHUB_REF/refs\/tags\/v/}
           echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
-      - name: Get mac build artifact
+      - name: Get mac build artifact x86
         uses: actions/download-artifact@v4
         with:
-          name: agave-macos
-          path: agave-macos
+          name: agave-macos-x86_64
+          path: agave-macos-x86_64
+      - name: Get mac build artifact arm64
+        uses: actions/download-artifact@v4
+        with:
+          name: agave-macos-arm64
+          path: agave-macos-arm64
       - name: Get windows build artifact
         uses: actions/download-artifact@v4
         with:
@@ -248,7 +270,8 @@ jobs:
           path: DocumentationPDF
       - name: Version the artifacts
         run: |
-          mv ${{ github.workspace }}/agave-macos/agave-macos.zip ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
+          mv ${{ github.workspace }}/agave-macos-x86_64/agave-macos-x86_64.zip ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos-x86_64.zip
+          mv ${{ github.workspace }}/agave-macos-arm64/agave-macos-arm64.zip ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.zip
           mv ${{ github.workspace }}/agave-win/agave-win.zip ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.zip
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -258,6 +281,7 @@ jobs:
           draft: true
           prerelease: true
           files: |
-            ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos.zip
+            ${{ github.workspace }}/agave-macos-x86_64/agave-${{ steps.get_version.outputs.VERSION }}-macos-x86_64.zip
+            ${{ github.workspace }}/agave-macos-arm64/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.zip
             ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.zip
             ${{ github.workspace }}/DocumentationPDF/agave.pdf

@@ -50,7 +50,7 @@ private:
 
   int m_volumeTexture;
   int m_tPreviousTexture, m_uSampleCounter, m_uFrameCounter, m_uResolution, m_gClippedAaBbMin, m_gClippedAaBbMax,
-    m_gDensityScale, m_gStepSize, m_gStepSizeShadow, m_gInvAaBbSize, m_g_nChannels, m_gShadingType, m_gGradientDeltaX,
+    m_gDensityScale, m_gStepSize, m_gStepSizeShadow, m_gPosToUVW, m_g_nChannels, m_gShadingType, m_gGradientDeltaX,
     m_gGradientDeltaY, m_gGradientDeltaZ, m_gInvGradientDelta, m_gGradientFactor;
   int m_cameraFrom, m_cameraU, m_cameraV, m_cameraN, m_cameraScreen, m_cameraInvScreen, m_cameraFocalDistance,
     m_cameraApertureSize, m_cameraProjectionMode;
@@ -63,7 +63,7 @@ private:
     m_light1areaPdf, m_light1color, m_light1colorTop, m_light1colorMiddle, m_light1colorBottom, m_light1T;
 
   int m_lutTexture0, m_lutTexture1, m_lutTexture2, m_lutTexture3, m_colormapTexture0, m_colormapTexture1,
-    m_colormapTexture2, m_colormapTexture3, m_intensityMax, m_intensityMin, m_lutMax, m_lutMin, m_opacity, m_emissive0,
-    m_emissive1, m_emissive2, m_emissive3, m_diffuse0, m_diffuse1, m_diffuse2, m_diffuse3, m_specular0, m_specular1,
-    m_specular2, m_specular3, m_roughness, m_uShowLights;
+    m_colormapTexture2, m_colormapTexture3, m_intensityMax, m_intensityMin, m_lutMax, m_lutMin, m_labels, m_opacity,
+    m_emissive0, m_emissive1, m_emissive2, m_emissive3, m_diffuse0, m_diffuse1, m_diffuse2, m_diffuse3, m_specular0,
+    m_specular1, m_specular2, m_specular3, m_roughness, m_uShowLights;
 };

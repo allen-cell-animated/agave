@@ -921,6 +921,22 @@ class AgaveRenderer:
         # 45
         self.cb.add_command("SHOW_SCALE_BAR", on)
 
+    def set_flip_axis(self, x: int, y: int, z: int):
+        """
+        Flip the volume data on any axis
+
+        Parameters
+        ----------
+        x: int
+            -1 to flip, 1 to not flip
+        y: int
+            -1 to flip, 1 to not flip
+        z: int
+            -1 to flip, 1 to not flip
+        """
+        # 46
+        self.cb.add_command("SET_FLIP_AXIS", x, y, z)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):
