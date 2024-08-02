@@ -8,6 +8,7 @@
 
 #include <vector>
 
+class AreaLightTool;
 class RenderSettings;
 class IRenderWindow;
 
@@ -78,6 +79,7 @@ public:
   bool m_toolsUseLocalSpace = false;
   // special case so it can be toggled on/off
   ManipulationTool* m_areaLightTool = nullptr;
+  void toggleAreaLightSelect();
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;

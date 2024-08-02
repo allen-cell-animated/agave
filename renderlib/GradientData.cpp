@@ -30,3 +30,25 @@ GradientData::convert(const Histogram& histogram, const Histogram& newHistogram)
     m_customControlPoints[i] = p;
   }
 }
+
+bool
+GradientData::getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* imax) const
+{
+  if (m_activeMode == GradientEditMode::WINDOW_LEVEL) {
+    *imin = histogram._dataMin + m_level * histogram.dataRange() - m_window * histogram.dataRange() / 2;
+    *imax = histogram._dataMin + m_level * histogram.dataRange() + m_window * histogram.dataRange() / 2;
+    return true;
+  } else if (m_activeMode == GradientEditMode::PERCENTILE) {
+    float window, level;
+    histogram.computeWindowLevelFromPercentiles(m_pctLow, m_pctHigh, window, level);
+    *imin = histogram._dataMin + level * histogram.dataRange() - window * histogram.dataRange() / 2;
+    *imax = histogram._dataMin + level * histogram.dataRange() + window * histogram.dataRange() / 2;
+    return true;
+  } else if (m_activeMode == GradientEditMode::ISOVALUE) {
+    *imin = histogram._dataMin + m_isovalue * histogram.dataRange() - m_isorange * histogram.dataRange() / 2;
+    *imax = histogram._dataMin + m_isovalue * histogram.dataRange() + m_isorange * histogram.dataRange() / 2;
+    return true;
+  } else {
+    return false;
+  }
+}
