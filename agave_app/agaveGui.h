@@ -31,6 +31,9 @@ class agaveGui : public QMainWindow
 public:
   agaveGui(QWidget* parent = Q_NULLPTR);
 
+protected:
+  virtual void changeEvent(QEvent* event) override;
+
 private:
   Ui::agaveGuiClass m_ui;
 

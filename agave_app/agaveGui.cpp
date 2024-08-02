@@ -1209,3 +1209,19 @@ agaveGui::appToViewerState()
 
   return v;
 }
+
+void
+agaveGui::changeEvent(QEvent* event)
+{
+  if (event->type() == QEvent::ThemeChange) {
+    // check for dark or light mode
+    auto sh = QGuiApplication::styleHints();
+    auto colorScheme = sh->colorScheme();
+    if (colorScheme == Qt::ColorScheme::Dark) {
+      LOG_DEBUG << "ThemeChange to Dark";
+    } else if (colorScheme == Qt::ColorScheme::Light) {
+      LOG_DEBUG << "ThemeChange to Light";
+    }
+  }
+  QMainWindow::changeEvent(event);
+}
