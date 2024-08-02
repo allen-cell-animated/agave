@@ -149,3 +149,34 @@ trackball(float xRadians, float yRadians, const glm::vec3& eye, const glm::vec3&
 
 float
 computePhysicalScaleBarSize(const float physicalScale);
+
+struct Ray
+{
+  glm::vec3 origin;
+  glm::vec3 direction;
+  Ray(const glm::vec3& o, const glm::vec3& d)
+    : origin(o)
+    , direction(d)
+  {
+  }
+};
+
+struct Plane
+{
+  glm::vec3 normal;
+  float d;
+  Plane()
+    : normal(0.0f, 0.0f, 1.0f)
+    , d(0.0f)
+  {
+    // default plane points to +z and sits at origin in xy plane.
+  }
+  Plane(const glm::vec3& n, float dist)
+    : normal(n)
+    , d(dist)
+  {
+  }
+  Plane(const glm::vec3& n, const glm::vec3& p)
+    : normal(n)
+    , d(-glm::dot(n, p)){};
+};

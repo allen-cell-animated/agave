@@ -20,6 +20,7 @@ class QStatisticsDockWidget;
 class QTimelineDockWidget;
 
 class IFileReader;
+class ViewToolbar;
 struct VolumeDimensions;
 struct LoadSpec;
 
@@ -42,6 +43,13 @@ private:
                      // only used if vs is null
                      bool keepCurrentUISettings);
 
+public slots:
+  void view_top();
+  void view_bottom();
+  void view_front();
+  void view_back();
+  void view_left();
+  void view_right();
 private slots:
   void open();
   void openDirectory();
@@ -51,6 +59,7 @@ private slots:
   void updateRecentFileActions();
   void quit();
   void view_reset();
+  void view_frame();
   void view_toggleProjection();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
@@ -134,6 +143,8 @@ private:
 
   QTabWidget* m_tabs;
   GLView3D* m_glView;
+  ViewToolbar* m_viewToolbar;
+  QWidget* m_viewWithToolbar;
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.

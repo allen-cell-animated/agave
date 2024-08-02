@@ -8,11 +8,13 @@
 #include "ScaleBarTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
+#include "graphics/GestureGraphicsGL.h"
 #include "renderlib.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
+  , m_gestureRenderer(new GestureRendererGL())
   , m_rendererType(1)
 {
   gesture.input.reset();
@@ -138,7 +140,18 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   forEachTool([&](ManipulationTool* tool) { tool->clear(); });
 
   // Query Gesture::Graphics for selection codes
-  bool pickedAnything = gesture.graphics.pick(m_selection, gesture.input, viewport);
+  // If we are in mid-gesture, then we can continue to use the retained selection code.
+  // if we never had anything to draw into the pick buffer, then we didn't pick anything.
+  // This is a slight oversimplification because it checks for any single-button release
+  // or drag: two-button drag gestures are not handled well.
+  bool pickedAnything = false;
+  if (gesture.input.clickEnded() || gesture.input.isDragging()) {
+    pickedAnything = gesture.graphics.m_retainedSelectionCode != Gesture::Graphics::k_noSelectionCode;
+  } else {
+    pickedAnything =
+      m_gestureRenderer->pick(m_selection, gesture.input, viewport, gesture.graphics.m_retainedSelectionCode);
+  }
+
   if (pickedAnything) {
     int selectionCode = gesture.graphics.getCurrentSelectionCode();
     forEachTool([&](ManipulationTool* tool) { tool->setActiveCode(selectionCode); });
@@ -204,10 +217,9 @@ ViewerWindow::redraw()
   }
 
   // lazy init
-  if (!gesture.graphics.font.get()) {
-    gesture.graphics.font.reset(new Font());
+  if (!gesture.graphics.font.isLoaded()) {
     std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
-    gesture.graphics.font->load(fontPath.c_str());
+    gesture.graphics.font.load(fontPath.c_str());
   }
 
   // renderer size may have been directly manipulated by e.g. the renderdialog
@@ -232,7 +244,7 @@ ViewerWindow::redraw()
   m_renderer->render(sceneView.camera);
 
   // render and then clear out draw commands from gesture graphics
-  gesture.graphics.draw(sceneView, &m_selection);
+  m_gestureRenderer->draw(sceneView, &m_selection, gesture.graphics);
 
   // Make sure we consumed any unused input event before we poll new events.
   // (in the case of Qt we are not explicitly polling but using signals/slots.)

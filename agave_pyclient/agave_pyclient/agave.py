@@ -937,6 +937,18 @@ class AgaveRenderer:
         # 46
         self.cb.add_command("SET_FLIP_AXIS", x, y, z)
 
+    def set_interpolation(self, x: int):
+        """
+        Set the volume sampling interpolation mode
+
+        Parameters
+        ----------
+        x: int
+            0 for nearest, 1 for linear
+        """
+        # 47
+        self.cb.add_command("SET_INTERPOLATION", x)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):
