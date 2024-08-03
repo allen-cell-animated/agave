@@ -8,10 +8,11 @@
 std::vector<std::string>
 initializeSequence(const std::string& filepath)
 {
+  std::filesystem::path fpath(filepath);
   // return a listing of all files in directory of filepath with same file extension
   std::vector<std::string> files;
-  std::filesystem::path directory = filepath.parent_path();
-  std::filesystem::path extension = filepath.extension();
+  std::filesystem::path directory = fpath.parent_path();
+  std::filesystem::path extension = fpath.extension();
 
   for (const auto& entry : std::filesystem::directory_iterator(directory)) {
     if (entry.is_regular_file() && entry.path().extension() == extension) {
