@@ -17,7 +17,7 @@ public:
   FileReader();
   virtual ~FileReader();
 
-  static IFileReader* getReader(const std::string& filepath);
+  static IFileReader* getReader(const std::string& filepath, bool isImageSequence = false);
 
   static std::shared_ptr<ImageXYZC> loadAndCache(const LoadSpec& loadSpec);
 
