@@ -331,19 +331,36 @@ agaveGui::createRangeSlider()
 void
 agaveGui::open()
 {
-  QString dir = readRecentDirectory();
+    QString dir = readRecentDirectory();
 
-  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
-#ifdef __linux__
-  options |= QFileDialog::DontUseNativeDialog;
-#endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
+    QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
+    //#ifdef __linux__
+    options |= QFileDialog::DontUseNativeDialog;
+    //#endif
+    auto dlg = new QFileDialog(this, tr("Open Volume"), dir, QString());
+    dlg->setFileMode(QFileDialog::ExistingFile);
+    dlg->setOptions(options);
+    auto layout = dlg->layout();
+    // Image sequence will be interpreted as TIMES, one volume per time (= per file)
+    auto imageSequenceCheckbox = new QCheckBox("Image Sequence", dlg);
+    imageSequenceCheckbox->setToolTip("Will scan directory and read files as a time sequence in order sorted by filename");
+    layout->addWidget(imageSequenceCheckbox);
+    QStringList fileNames;
+    //  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
+    if (dlg->exec()){
+        fileNames = dlg->selectedFiles();
+        if (fileNames.size() > 0) {
+            QString file = fileNames[0];
 
-  if (!file.isEmpty()) {
-    if (!open(file.toStdString())) {
-      showOpenFailedMessageBox(file);
+
+            if (!file.isEmpty()) {
+                bool isImageSequence = imageSequenceCheckbox->isChecked();
+                if (!open(file.toStdString(), nullptr, isImageSequence)) {
+                    showOpenFailedMessageBox(file);
+                }
+            }
+        }
     }
-  }
 }
 void
 agaveGui::openDirectory()
@@ -646,7 +663,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
+agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool isImageSequence)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
