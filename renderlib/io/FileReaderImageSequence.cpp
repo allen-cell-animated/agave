@@ -28,6 +28,7 @@ FileReaderImageSequence::FileReaderImageSequence(const std::string& filepath)
 {
   m_sequence = initializeSequence(filepath);
 }
+
 FileReaderImageSequence::~FileReaderImageSequence() {}
 
 std::shared_ptr<ImageXYZC>
@@ -35,20 +36,30 @@ FileReaderImageSequence::loadFromFile(const LoadSpec& loadSpec)
 {
   LoadSpec sequenceSpec = loadSpec;
   sequenceSpec.filepath = m_sequence[loadSpec.time];
+  sequenceSpec.time = 0;
   return m_tiffReader->loadFromFile(sequenceSpec);
 }
+
 VolumeDimensions
 FileReaderImageSequence::loadDimensions(const std::string& filepath, uint32_t scene)
 {
-  return m_tiffReader->loadDimensions(filepath, scene);
+    VolumeDimensions vd = m_tiffReader->loadDimensions(filepath, scene);
+    vd.sizeT = m_sequence.size();
+    return vd;
 }
+
 uint32_t
 FileReaderImageSequence::loadNumScenes(const std::string& filepath)
 {
   return m_tiffReader->loadNumScenes(filepath);
 }
+
 std::vector<MultiscaleDims>
 FileReaderImageSequence::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
-  return m_tiffReader->loadMultiscaleDims(filepath, scene);
+    std::vector<MultiscaleDims> dims = m_tiffReader->loadMultiscaleDims(filepath, scene);
+    for (auto& d : dims) {
+      d.shape[0] = m_sequence.size();
+	}
+	return dims;
 }

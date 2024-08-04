@@ -83,7 +83,7 @@ QTimelineWidget::OnTimeChanged(int newTime)
     loadSpec.time = newTime;
 
     if (!m_reader) {
-      m_reader = std::shared_ptr<IFileReader>(FileReader::getReader(loadSpec.filepath));
+      m_reader = std::shared_ptr<IFileReader>(FileReader::getReader(loadSpec.filepath, loadSpec.isImageSequence));
       if (!m_reader) {
         LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
         return;

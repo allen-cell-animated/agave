@@ -725,6 +725,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
     LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
+      loadSpec.isImageSequence = isImageSequence;
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
       keepCurrentUISettings = loadDialog->getKeepSettings();
     } else {

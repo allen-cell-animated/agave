@@ -201,6 +201,9 @@ LoadSpec::toString() const
   if (!subpath.empty()) {
     stream << " " << subpath;
   }
+  if (isImageSequence) {
+	stream << " (sequence)";
+  }
   stream << " : scene " << scene << " time " << time;
   stream << " : channels [";
   for (auto i : channels) {
