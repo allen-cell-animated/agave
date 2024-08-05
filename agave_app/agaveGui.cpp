@@ -67,9 +67,15 @@ QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/light/orthoView.sv
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  setStyleSheet("QToolTip{padding:3px;}");
-  setStyleSheet(darkStyleSheet);
   m_ui.setupUi(this);
+
+  auto sh = QGuiApplication::styleHints();
+  auto colorScheme = sh->colorScheme();
+  if (colorScheme == Qt::ColorScheme::Dark) {
+    setStyleSheet(darkStyleSheet);
+  } else if (colorScheme == Qt::ColorScheme::Light) {
+    setStyleSheet(lightStyleSheet);
+  }
 
   // create actions first so they can be deposited in other gui elements
   createActions();
@@ -104,7 +110,7 @@ agaveGui::agaveGui(QWidget* parent)
   auto vlayout = new QVBoxLayout();
   vlayout->setContentsMargins(0, 0, 0, 0);
   vlayout->setSpacing(2);
-  m_viewToolbar = new ViewToolbar();
+  m_viewToolbar = new ViewToolbar(m_viewWithToolbar);
   connect(m_viewToolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
   connect(m_viewToolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
   connect(m_viewToolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
