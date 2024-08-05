@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1"
    sodipodi:docname="perspView.svg"
-   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -26,12 +26,12 @@
      showgrid="true"
      inkscape:zoom="0.81039122"
      inkscape:cx="298.6212"
-     inkscape:cy="312.19489"
-     inkscape:window-width="1696"
-     inkscape:window-height="993"
-     inkscape:window-x="0"
-     inkscape:window-y="25"
-     inkscape:window-maximized="0"
+     inkscape:cy="311.57791"
+     inkscape:window-width="3840"
+     inkscape:window-height="2066"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
      inkscape:current-layer="layer1">
     <inkscape:grid
        id="grid1"
@@ -59,26 +59,26 @@
      transform="translate(-19.936991,-23.712414)">
     <path
        id="rect1"
-       style="fill:none;stroke:#000000;stroke-width:10.465"
+       style="fill:none;stroke:#a6a6a6;stroke-width:10.465;stroke-opacity:1"
        d="m 54.226959,28.944914 87.120181,0.326488 32.32235,156.982838 H 25.169491 Z"
        sodipodi:nodetypes="ccccc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#a6a6a6;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
        d="m 82.601566,29.710443 -8.4887,155.734967"
        id="path1"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#a6a6a6;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
        d="m 113.29147,30.36342 10.44763,154.7555"
        id="path2"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#a6a6a6;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
        d="M 45.708376,61.053331 150.83764,60.929518"
        id="path3"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#a6a6a6;stroke-width:10.465;stroke-dasharray:none;stroke-opacity:1"
        d="m 37.219677,113.61796 122.759633,0.32649"
        id="path4"
        sodipodi:nodetypes="cc" />

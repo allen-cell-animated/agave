@@ -39,29 +39,29 @@
 
 const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
-QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg") }
-QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg") }
-QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg") }
-QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg") }
-QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg") }
-QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg") }
-QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg") }
-QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg") }
-QPushButton#orthoViewBtn { icon: url(":/icons/dark/perspView.svg") }
-QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/dark/orthoView.svg") }
+QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")} 
+QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg"); qproperty-icon: url(":/icons/dark/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg"); qproperty-icon: url(":/icons/dark/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") } 
+QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
+QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
+QPushButton#orthoViewBtn { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
+QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
-QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg") }
-QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg") }
-QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg") }
-QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg") }
-QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg") }
-QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg") }
-QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg") }
-QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg") }
-QPushButton#orthoViewBtn { icon: url(":/icons/light/perspView.svg") }
-QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/light/orthoView.svg") }
+QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") } 
+QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg"); qproperty-icon: url(":/icons/light/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg"); qproperty-icon: url(":/icons/light/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-icon: url(":/icons/light/frontView.svg") }
+QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-icon: url(":/icons/light/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
+QPushButton#orthoViewBtn { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
+QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
 )";
 
 agaveGui::agaveGui(QWidget* parent)

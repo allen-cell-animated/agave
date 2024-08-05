@@ -46,7 +46,7 @@ public:
     , state(0)
     , QPushButton(parent)
   {
-
+    setCheckable(true);
     setIcon(icon1);
     setToolTip(tooltip1);
     setStatusTip(statustip1);
@@ -59,11 +59,11 @@ public:
   {
     state = s;
     if (state == 1) {
-      setIcon(icon2);
+      // setIcon(icon2);
       setToolTip(tooltip2);
       setStatusTip(statustip2);
     } else {
-      setIcon(icon1);
+      // setIcon(icon1);
       setToolTip(tooltip1);
       setStatusTip(statustip1);
     }

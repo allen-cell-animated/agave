@@ -41,8 +41,8 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
-  orthoViewButton = new DualIconButton(QIcon(":/icons/dark/perspView.svg"),
-                                       QIcon(":/icons/dark/orthoView.svg"),
+  orthoViewButton = new DualIconButton(QIcon(),
+                                       QIcon(),
                                        QString("<FONT>Switch to orthographic view</FONT>"),
                                        tr("Switch to orthographic view"),
                                        QString("<FONT>Switch to perspective view</FONT>"),
