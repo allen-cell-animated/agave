@@ -37,10 +37,38 @@
 
 #include <filesystem>
 
+const QString darkStyleSheet = R"(
+QToolTip{padding:3px;}
+QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg") }
+QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg") }
+QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg") }
+QPushButton#orthoViewBtn { icon: url(":/icons/dark/perspView.svg") }
+QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/dark/orthoView.svg") }
+)";
+const QString lightStyleSheet = R"(
+QToolTip{padding:3px;}
+QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg") }
+QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg") }
+QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg") }
+QPushButton#orthoViewBtn { icon: url(":/icons/light/perspView.svg") }
+QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/light/orthoView.svg") }
+)";
+
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
   setStyleSheet("QToolTip{padding:3px;}");
+  setStyleSheet(darkStyleSheet);
   m_ui.setupUi(this);
 
   // create actions first so they can be deposited in other gui elements
@@ -1218,8 +1246,10 @@ agaveGui::changeEvent(QEvent* event)
     auto sh = QGuiApplication::styleHints();
     auto colorScheme = sh->colorScheme();
     if (colorScheme == Qt::ColorScheme::Dark) {
+      setStyleSheet(darkStyleSheet);
       LOG_DEBUG << "ThemeChange to Dark";
     } else if (colorScheme == Qt::ColorScheme::Light) {
+      setStyleSheet(lightStyleSheet);
       LOG_DEBUG << "ThemeChange to Light";
     }
   }
