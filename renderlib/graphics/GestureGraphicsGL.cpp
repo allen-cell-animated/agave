@@ -304,7 +304,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   // Step 2: we draw any command that is not depth composited but is otherwise using
   //         the same perspective projection
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dStacked)] = Pipeline::configure_3dStacked;
-  // Step 3: we draw anything that is just an overlay in creen space. Most of the UI
+  // Step 3: we draw anything that is just an overlay in screen space. Most of the UI
   //         elements go here.
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k2dScreen)] = Pipeline::configure_2dScreen;
 
@@ -377,6 +377,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
       shader->cleanup();
       check_gl("disablevertexattribarray");
     };
+
     drawGesture(/*display*/ true);
 
     // The last thing we draw is selection codes for next frame. This allows us
