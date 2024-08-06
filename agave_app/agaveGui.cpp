@@ -48,7 +48,7 @@ QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon
 QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
 QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
 QPushButton#orthoViewBtn { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
-QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
+QPushButton#orthoViewBtn:checked { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
@@ -61,7 +61,7 @@ QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-ico
 QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
 QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
 QPushButton#orthoViewBtn { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
-QPushButton#orthoViewBtn[checked="true"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
+QPushButton#orthoViewBtn:checked { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
 )";
 
 agaveGui::agaveGui(QWidget* parent)
@@ -70,10 +70,10 @@ agaveGui::agaveGui(QWidget* parent)
   m_ui.setupUi(this);
 
   auto sh = QGuiApplication::styleHints();
-  auto colorScheme = sh->colorScheme();
-  if (colorScheme == Qt::ColorScheme::Dark) {
+  m_colorScheme = sh->colorScheme();
+  if (m_colorScheme == Qt::ColorScheme::Dark) {
     setStyleSheet(darkStyleSheet);
-  } else if (colorScheme == Qt::ColorScheme::Light) {
+  } else if (m_colorScheme == Qt::ColorScheme::Light) {
     setStyleSheet(lightStyleSheet);
   }
 
@@ -1251,6 +1251,9 @@ agaveGui::changeEvent(QEvent* event)
     // check for dark or light mode
     auto sh = QGuiApplication::styleHints();
     auto colorScheme = sh->colorScheme();
+    if (m_colorScheme == colorScheme) {
+      return;
+    }
     if (colorScheme == Qt::ColorScheme::Dark) {
       setStyleSheet(darkStyleSheet);
       LOG_DEBUG << "ThemeChange to Dark";
@@ -1258,6 +1261,7 @@ agaveGui::changeEvent(QEvent* event)
       setStyleSheet(lightStyleSheet);
       LOG_DEBUG << "ThemeChange to Light";
     }
+    m_colorScheme = colorScheme;
   }
   QMainWindow::changeEvent(event);
 }

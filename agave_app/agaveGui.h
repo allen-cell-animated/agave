@@ -170,4 +170,6 @@ private:
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
   LoadSpec m_loadSpec;
+
+  Qt::ColorScheme m_colorScheme;
 };
