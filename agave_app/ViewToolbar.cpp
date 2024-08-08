@@ -41,8 +41,8 @@ ViewToolbar::ViewToolbar(QWidget* parent)
 
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
-  orthoViewButton = new DualIconButton(QIcon(),
-                                       QIcon(),
+  orthoViewButton = new DualIconButton("",
+                                       "",
                                        QString("<FONT>Switch to orthographic view</FONT>"),
                                        tr("Switch to orthographic view"),
                                        QString("<FONT>Switch to perspective view</FONT>"),
@@ -122,4 +122,14 @@ void
 ViewToolbar::initFromCamera(const CCamera& camera)
 {
   orthoViewButton->setState((camera.m_Projection == ProjectionMode::ORTHOGRAPHIC) ? 1 : 0);
+}
+
+void
+ViewToolbar::updateIcons(Qt::ColorScheme colorScheme)
+{
+  if (colorScheme == Qt::ColorScheme::Dark) {
+    orthoViewButton->setIcons(":/icons/dark/perspView.svg", ":/icons/dark/orthoView.svg");
+  } else if (colorScheme == Qt::ColorScheme::Light) {
+    orthoViewButton->setIcons(":/icons/light/perspView.svg", ":/icons/light/orthoView.svg");
+  }
 }

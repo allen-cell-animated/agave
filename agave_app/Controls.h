@@ -20,6 +20,8 @@
 
 class DualIconButton : public QPushButton
 {
+  Q_OBJECT
+
 private:
   QIcon icon1;
   QIcon icon2;
@@ -30,24 +32,22 @@ private:
   int state;
 
 public:
-  DualIconButton(const QIcon& icon1,
-                 const QIcon& icon2,
+  DualIconButton(const QString& icon1Path,
+                 const QString& icon2Path,
                  const QString& tooltip1,
                  const QString& statustip1,
                  const QString& tooltip2,
                  const QString& statustip2,
                  QWidget* parent = nullptr)
-    : icon1(icon1)
-    , icon2(icon2)
+    : icon1(icon1Path)
+    , icon2(icon2Path)
     , tooltip1(tooltip1)
     , tooltip2(tooltip2)
     , statustip1(statustip1)
     , statustip2(statustip2)
     , state(0)
-    , QPushButton(parent)
+    , QPushButton(QIcon(), "", parent)
   {
-    setCheckable(true);
-    setIcon(icon1);
     setToolTip(tooltip1);
     setStatusTip(statustip1);
     connect(this, &QPushButton::clicked, this, &DualIconButton::toggleIcon);
@@ -59,14 +59,22 @@ public:
   {
     state = s;
     if (state == 1) {
-      // setIcon(icon2);
+      setIcon(icon2);
       setToolTip(tooltip2);
       setStatusTip(statustip2);
     } else {
-      // setIcon(icon1);
+      setIcon(icon1);
       setToolTip(tooltip1);
       setStatusTip(statustip1);
     }
+  }
+
+  void setIcons(QString iconpath1, QString iconpath2)
+  {
+    icon1 = QIcon(iconpath1);
+    icon2 = QIcon(iconpath2);
+    // re-set the current state, to re-set the icon
+    setState(state);
   }
 };
 

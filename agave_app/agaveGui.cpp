@@ -47,8 +47,6 @@ QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-ic
 QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
 QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
 QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
-QPushButton#orthoViewBtn { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
-QPushButton#orthoViewBtn:checked { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
@@ -60,8 +58,6 @@ QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-i
 QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-icon: url(":/icons/light/backView.svg") }
 QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
 QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
-QPushButton#orthoViewBtn { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
-QPushButton#orthoViewBtn:checked { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
 )";
 
 agaveGui::agaveGui(QWidget* parent)
@@ -111,6 +107,7 @@ agaveGui::agaveGui(QWidget* parent)
   vlayout->setContentsMargins(0, 0, 0, 0);
   vlayout->setSpacing(2);
   m_viewToolbar = new ViewToolbar(m_viewWithToolbar);
+  m_viewToolbar->updateIcons(m_colorScheme);
   connect(m_viewToolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
   connect(m_viewToolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
   connect(m_viewToolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
@@ -1260,6 +1257,9 @@ agaveGui::changeEvent(QEvent* event)
     } else if (colorScheme == Qt::ColorScheme::Light) {
       setStyleSheet(lightStyleSheet);
       LOG_DEBUG << "ThemeChange to Light";
+    }
+    if (m_viewToolbar) {
+      m_viewToolbar->updateIcons(colorScheme);
     }
     m_colorScheme = colorScheme;
   }
