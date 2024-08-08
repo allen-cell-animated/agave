@@ -15,6 +15,7 @@
         <file>icons/light/perspView.svg</file>
         <file>icons/light/frameView.svg</file>
         <file>icons/light/Home-icon.svg</file>
+        <file>icons/light/coordinates.svg</file>
     </qresource>
     <qresource>
         <file>icons/dark/lock.png</file>
@@ -30,5 +31,6 @@
         <file>icons/dark/perspView.svg</file>
         <file>icons/dark/frameView.svg</file>
         <file>icons/dark/Home-icon.svg</file>
+        <file>icons/dark/coordinates.svg</file>
     </qresource>
 </RCC>
