@@ -64,6 +64,7 @@ private slots:
   void view_reset();
   void view_frame();
   void view_toggleProjection();
+  void showAxisHelper();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
   void openMeshDialog();

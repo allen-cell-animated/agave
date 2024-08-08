@@ -99,6 +99,7 @@ public:
 
   CBoundingBox m_boundingBox;
   bool m_showScaleBar = false;
+  bool m_showAxisHelper = false;
 
   void initLights();
   void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
