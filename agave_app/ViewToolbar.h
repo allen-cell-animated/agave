@@ -24,6 +24,4 @@ public:
   QPushButton* backViewButton;
   QPushButton* leftViewButton;
   QPushButton* rightViewButton;
-
-  void updateIcons(Qt::ColorScheme colorScheme);
 };

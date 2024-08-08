@@ -21,10 +21,9 @@
 class DualIconButton : public QPushButton
 {
   Q_OBJECT
+  Q_PROPERTY(int state READ getState)
 
 private:
-  QIcon icon1;
-  QIcon icon2;
   QString tooltip1;
   QString tooltip2;
   QString statustip1;
@@ -32,16 +31,12 @@ private:
   int state;
 
 public:
-  DualIconButton(const QString& icon1Path,
-                 const QString& icon2Path,
-                 const QString& tooltip1,
+  DualIconButton(const QString& tooltip1,
                  const QString& statustip1,
                  const QString& tooltip2,
                  const QString& statustip2,
                  QWidget* parent = nullptr)
-    : icon1(icon1Path)
-    , icon2(icon2Path)
-    , tooltip1(tooltip1)
+    : tooltip1(tooltip1)
     , tooltip2(tooltip2)
     , statustip1(statustip1)
     , statustip2(statustip2)
@@ -55,26 +50,18 @@ public:
 
   void toggleIcon() { setState(1 - state); }
 
+  int getState() const { return state; }
   void setState(int s)
   {
     state = s;
     if (state == 1) {
-      setIcon(icon2);
       setToolTip(tooltip2);
       setStatusTip(statustip2);
     } else {
-      setIcon(icon1);
       setToolTip(tooltip1);
       setStatusTip(statustip1);
     }
-  }
-
-  void setIcons(QString iconpath1, QString iconpath2)
-  {
-    icon1 = QIcon(iconpath1);
-    icon2 = QIcon(iconpath2);
-    // re-set the current state, to re-set the icon
-    setState(state);
+    style()->polish(this);
   }
 };
 
