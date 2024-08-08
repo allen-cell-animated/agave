@@ -8,7 +8,6 @@
 #include "renderlib/command.h"
 #include "renderlib/graphics/IRenderWindow.h"
 
-
 #include <QApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -330,16 +329,13 @@ QGroupBox
   mHeightInput = new QLineEdit(QString::number(mHeight), this);
   mHeightInput->setValidator(new QIntValidator(2, 16384, this));
 
-  mLockAspectRatio = new QPushButton(QIcon(":/icons/linked.png"), "", this);
+  mLockAspectRatio = new QPushButton(QIcon(), "", this);
+  mLockAspectRatio->setObjectName("lockAspectRatioBtn");
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
   mLockAspectRatio->setToolTip(QString("<FONT>Lock/unlock aspect ratio when editing X and Y values</FONT>"));
-  connect(mLockAspectRatio, &QPushButton::toggled, [this]() {
-    mLockAspectRatio->setIcon(QIcon(mLockAspectRatio->isChecked() ? ":/icons/linked.png" : ":/icons/unlinked.png"));
-  });
+  connect(mLockAspectRatio, &QPushButton::toggled, [this]() { mLockAspectRatio->style()->polish(mLockAspectRatio); });
 
-  // mLockAspectRatio->setStyleSheet(
-  //   "QPushButton:checked {image:url(:/icons/linked.png);} QPushButton:unchecked {image:url(:/icons/unlinked.png);}");
   mResolutionPresets = new QComboBox(this);
   mResolutionPresets->addItem("Resolution Presets...");
   mResolutionPresets->addItem(QString::fromStdString("Main window (" + std::to_string(mMainViewWidth) + "x" +

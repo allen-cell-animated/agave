@@ -2,19 +2,35 @@
     <qresource prefix="agaveGui">
     </qresource>
     <qresource>
-        <file>icons/lock.png</file>
-        <file>icons/linked.png</file>
-        <file>icons/unlinked.png</file>
-        <file>icons/frontView.svg</file>
-        <file>icons/backView.svg</file>
-        <file>icons/topView.svg</file>
-        <file>icons/bottomView.svg</file>
-        <file>icons/leftView.svg</file>
-        <file>icons/rightView.svg</file>
-        <file>icons/orthoView.svg</file>
-        <file>icons/perspView.svg</file>
-        <file>icons/frameView.svg</file>
-        <file>icons/Home-icon.svg</file>
-        <file>icons/coordinates.svg</file>
+        <file>icons/light/lock.png</file>
+        <file>icons/light/linked.png</file>
+        <file>icons/light/unlinked.png</file>
+        <file>icons/light/frontView.svg</file>
+        <file>icons/light/backView.svg</file>
+        <file>icons/light/topView.svg</file>
+        <file>icons/light/bottomView.svg</file>
+        <file>icons/light/leftView.svg</file>
+        <file>icons/light/rightView.svg</file>
+        <file>icons/light/orthoView.svg</file>
+        <file>icons/light/perspView.svg</file>
+        <file>icons/light/frameView.svg</file>
+        <file>icons/light/Home-icon.svg</file>
+        <file>icons/light/coordinates.svg</file>
+    </qresource>
+    <qresource>
+        <file>icons/dark/lock.png</file>
+        <file>icons/dark/linked.png</file>
+        <file>icons/dark/unlinked.png</file>
+        <file>icons/dark/frontView.svg</file>
+        <file>icons/dark/backView.svg</file>
+        <file>icons/dark/topView.svg</file>
+        <file>icons/dark/bottomView.svg</file>
+        <file>icons/dark/leftView.svg</file>
+        <file>icons/dark/rightView.svg</file>
+        <file>icons/dark/orthoView.svg</file>
+        <file>icons/dark/perspView.svg</file>
+        <file>icons/dark/frameView.svg</file>
+        <file>icons/dark/Home-icon.svg</file>
+        <file>icons/dark/coordinates.svg</file>
     </qresource>
 </RCC>
