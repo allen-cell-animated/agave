@@ -50,6 +50,8 @@ QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon
 QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
+QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/dark/linked.png"); qproperty-icon: url(":/icons/dark/linked.png") }
+QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/dark/unlinked.png"); qproperty-icon: url(":/icons/dark/unlinked.png") }
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
@@ -64,6 +66,8 @@ QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-ico
 QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
+QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/light/linked.png"); qproperty-icon: url(":/icons/light/linked.png") }
+QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/light/unlinked.png"); qproperty-icon: url(":/icons/light/unlinked.png") }
 )";
 
 agaveGui::agaveGui(QWidget* parent)
