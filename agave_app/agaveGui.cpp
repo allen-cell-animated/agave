@@ -41,13 +41,13 @@ const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
 QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
-QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")} 
+QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")}
 QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg"); qproperty-icon: url(":/icons/dark/topView.svg") }
 QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg"); qproperty-icon: url(":/icons/dark/bottomView.svg") }
-QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") } 
+QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") }
 QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
-QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
-QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
+QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") }
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
 QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/dark/linked.png"); qproperty-icon: url(":/icons/dark/linked.png") }
@@ -57,7 +57,7 @@ const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
 QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
-QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") } 
+QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") }
 QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg"); qproperty-icon: url(":/icons/light/topView.svg") }
 QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg"); qproperty-icon: url(":/icons/light/bottomView.svg") }
 QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-icon: url(":/icons/light/frontView.svg") }
@@ -190,6 +190,25 @@ agaveGui::createActions()
   m_viewResetAction->setToolTip(tr("Reset the current view"));
   m_viewResetAction->setStatusTip(tr("Reset the current view"));
   connect(m_viewResetAction, SIGNAL(triggered()), this, SLOT(view_reset()));
+
+  m_viewFrontAction = new QAction(tr("Front"), this);
+  m_viewFrontAction->setShortcut(QKeySequence(Qt::Key_X));
+  connect(m_viewFrontAction, SIGNAL(triggered()), this, SLOT(view_front()));
+  m_viewBackAction = new QAction(tr("Back"), this);
+  m_viewBackAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_X));
+  connect(m_viewBackAction, SIGNAL(triggered()), this, SLOT(view_back()));
+  m_viewLeftAction = new QAction(tr("Left"), this);
+  m_viewLeftAction->setShortcut(QKeySequence(Qt::Key_Y));
+  connect(m_viewLeftAction, SIGNAL(triggered()), this, SLOT(view_left()));
+  m_viewRightAction = new QAction(tr("Right"), this);
+  m_viewRightAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_Y));
+  connect(m_viewRightAction, SIGNAL(triggered()), this, SLOT(view_right()));
+  m_viewTopAction = new QAction(tr("Top"), this);
+  m_viewTopAction->setShortcut(QKeySequence(Qt::Key_Z));
+  connect(m_viewTopAction, SIGNAL(triggered()), this, SLOT(view_top()));
+  m_viewBottomAction = new QAction(tr("Bottom"), this);
+  m_viewBottomAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_Z));
+  connect(m_viewBottomAction, SIGNAL(triggered()), this, SLOT(view_bottom()));
 
   m_dumpJsonAction = new QAction(tr("&Save to JSON"), this);
   m_dumpJsonAction->setStatusTip(tr("Save a file containing all render settings and loaded volume path"));
