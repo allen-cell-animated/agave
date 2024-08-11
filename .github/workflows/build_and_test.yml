@@ -61,8 +61,8 @@ jobs:
           # note macos-14 is arm64 and macos-13 is x86_64
           - os: macos-14
             artifact: agave-macos-arm64
-          - os: macos-13
-            artifact: agave-macos-x86_64
+          # - os: macos-13
+          #   artifact: agave-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
@@ -107,7 +107,7 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.15
           mkdir ./build
           cd build
-          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
           cd install/Release
