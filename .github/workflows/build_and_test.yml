@@ -84,7 +84,7 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.15
           brew install glm libtiff nasm zstd ninja
       - name: macos build and test
-        if: contains(matrix.os, 'macos')
+        if: contains(matrix.os, 'macos-13')
         env:
           CC: clang
           CXX: clang++
@@ -93,6 +93,21 @@ jobs:
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --target agave_test --config Release
+          sudo cmake --build . --target install --config Release
+          cd install/Release
+          zip -vr ../../${{ matrix.artifact }}.zip agave.app/
+        shell: bash
+      - name: macos build and test
+        if: contains(matrix.os, 'macos-14')
+        env:
+          CC: clang
+          CXX: clang++
+        run: |
+          export MACOSX_DEPLOYMENT_TARGET=10.15
+          mkdir ./build
+          cd build
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
           cmake --build . --target agave_test --config Release
           sudo cmake --build . --target install --config Release
           cd install/Release
