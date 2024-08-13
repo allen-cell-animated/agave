@@ -3,6 +3,8 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/io/FileReader.h"
 
+#include "renderer.h"
+
 #include <QDialog>
 #include <QMutex>
 #include <QStandardPaths>
@@ -24,7 +26,6 @@ class QToolBar;
 class QWidget;
 
 class IRenderWindow;
-class Renderer;
 class RenderRequest;
 class RenderSettings;
 class Scene;
@@ -59,47 +60,6 @@ private:
 
 protected:
   void paintEvent(QPaintEvent* event) override;
-};
-
-// serialized so permanent?
-enum eRenderDurationType
-{
-  TIME = 0,
-  SAMPLES = 1
-};
-
-struct RenderDuration
-{
-  int samples = 1;
-  int duration = 0; // in seconds
-  eRenderDurationType durationType = SAMPLES;
-};
-
-struct CaptureSettings
-{
-  std::string outputDir;
-  std::string filenamePrefix;
-  int width;
-  int height;
-  RenderDuration renderDuration;
-  int startTime;
-  int endTime;
-
-  CaptureSettings()
-  {
-    // defaults!
-    QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    outputDir = docs.toStdString();
-
-    filenamePrefix = "frame";
-    width = 0;
-    height = 0;
-    renderDuration.duration = 10;
-    renderDuration.samples = 32;
-    renderDuration.durationType = SAMPLES;
-    startTime = 0;
-    endTime = 0;
-  }
 };
 
 class RenderDialog : public QDialog
@@ -204,6 +164,7 @@ private:
   void onStopButtonClick();
 
   void onRenderRequestProcessed(RenderRequest* req, QImage image);
+  void onFrameDone(QImage image);
   void onZoomInClicked();
   void onZoomOutClicked();
 
