@@ -338,19 +338,19 @@ agaveGui::open()
   // #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
   // #endif
-  auto dlg = new QFileDialog(this, tr("Open Volume"), dir, QString());
-  dlg->setFileMode(QFileDialog::ExistingFile);
-  dlg->setOptions(options);
-  auto layout = dlg->layout();
+  QFileDialog dlg(this, tr("Open Volume"), dir, QString());
+  dlg.setFileMode(QFileDialog::ExistingFile);
+  dlg.setOptions(options);
+  auto layout = dlg.layout();
   // Image sequence will be interpreted as TIMES, one volume per time (= per file)
-  auto imageSequenceCheckbox = new QCheckBox("Image Sequence", dlg);
+  auto imageSequenceCheckbox = new QCheckBox("Image Sequence", &dlg);
   imageSequenceCheckbox->setToolTip(
     "Will scan directory and read files as a time sequence in order sorted by filename");
   layout->addWidget(imageSequenceCheckbox);
   QStringList fileNames;
   //  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
-  if (dlg->exec()) {
-    fileNames = dlg->selectedFiles();
+  if (dlg.exec()) {
+    fileNames = dlg.selectedFiles();
     if (fileNames.size() > 0) {
       QString file = fileNames[0];
 
@@ -363,6 +363,7 @@ agaveGui::open()
     }
   }
 }
+
 void
 agaveGui::openDirectory()
 {
