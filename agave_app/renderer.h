@@ -15,9 +15,7 @@
 #include <QList>
 #include <QMutex>
 #include <QObject>
-#include <QOffscreenSurface>
 #include <QOpenGLContext>
-#include <QOpenGLTexture>
 #include <QThread>
 #include <QWaitCondition>
 
@@ -97,22 +95,6 @@ private:
 
   QElapsedTimer m_time;
 
-  class SceneDescription
-  {
-  public:
-    inline SceneDescription(QString name, int start, int end)
-      : m_name(name)
-      , m_start(start)
-      , m_end(end)
-    {
-    }
-
-    QString m_name;
-    int m_start;
-    int m_end;
-  };
-
-  QList<SceneDescription> m_scenes;
   struct myVolumeData
   {
     bool ownRenderer;
