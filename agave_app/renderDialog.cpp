@@ -249,6 +249,7 @@ RenderDialog::RenderDialog(ViewerWindow* borrowedRenderer,
   , m_loadSpec(loadSpec)
   , m_renderThread(nullptr)
   , m_frameRenderTime(0)
+  , m_uiUpdateTime(0)
   , mWidth(0)
   , mHeight(0)
   , mFrameNumber(0)
@@ -815,6 +816,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // increment our time counter
   this->m_frameRenderTime += req->getActualDuration();
+  m_uiUpdateTime += req->getActualDuration();
 
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
@@ -826,6 +828,9 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // did a frame finish?
   if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
+    // stop streaming mode while we deal with a completed frame
+    m_renderThread->setStreamMode(0);
+
     // we just received the last sample.
     // however, another sample was already enqueued!!!!
     // so we know we will have one sample to discard.
@@ -871,6 +876,10 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       // reset frame progress and render time
       mFrameProgressBar->setValue(0);
       m_frameRenderTime = 0;
+      m_uiUpdateTime = 0;
+
+      // force a redraw of this dialog
+      repaint();
 
       // set up for next frame!
       // SetTimeCommand should result in this anyway, so we don't need to do it here.
@@ -882,11 +891,17 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       timedata.m_time = mFrameNumber;
       cmd.push_back(new SetTimeCommand(timedata));
       m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
+      // re-enable streamed progressive render frames
+      m_renderThread->setStreamMode(1);
     }
 
   } else {
     // update display if it's time to do so.
-    this->setImage(&image);
+    static constexpr float IMAGE_UPDATE_INTERVAL_SECONDS = 1.0;
+    if (m_uiUpdateTime / (1000 * 1000 * 1000) > IMAGE_UPDATE_INTERVAL_SECONDS) {
+      m_uiUpdateTime = 0;
+      this->setImage(&image);
+    }
   }
 }
 
