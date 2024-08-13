@@ -41,7 +41,7 @@ RenderThread::run()
 void
 RenderThread::mainThreadFunc(RenderThread* rt)
 {
-
+#if 0
   rt->init();
 
   rt->m_rglContext.makeCurrent();
@@ -58,6 +58,7 @@ RenderThread::mainThreadFunc(RenderThread* rt)
     rt->m_myVolumeData.m_renderer->cleanUpResources();
   }
   rt->shutDown();
+#endif
 }
 
 #if 0
