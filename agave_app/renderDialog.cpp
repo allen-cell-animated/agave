@@ -8,7 +8,6 @@
 #include "renderlib/command.h"
 #include "renderlib/graphics/IRenderWindow.h"
 
-
 #include <QApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -874,7 +873,8 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
       m_frameRenderTime = 0;
 
       // set up for next frame!
-      m_renderer->renderSettings().SetNoIterations(0);
+      // SetTimeCommand should result in this anyway, so we don't need to do it here.
+      // m_renderer->renderSettings().SetNoIterations(0);
 
       LOG_DEBUG << "queueing setTime " << mFrameNumber << " command ";
       std::vector<Command*> cmd;
