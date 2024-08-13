@@ -334,10 +334,7 @@ agaveGui::open()
 {
   QString dir = readRecentDirectory();
 
-  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
-  // #ifdef __linux__
-  options |= QFileDialog::DontUseNativeDialog;
-  // #endif
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog;
   QFileDialog dlg(this, tr("Open Volume"), dir, QString());
   dlg.setFileMode(QFileDialog::ExistingFile);
   dlg.setOptions(options);
@@ -348,12 +345,11 @@ agaveGui::open()
     "Will scan directory and read files as a time sequence in order sorted by filename");
   layout->addWidget(imageSequenceCheckbox);
   QStringList fileNames;
-  //  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
   if (dlg.exec()) {
     fileNames = dlg.selectedFiles();
     if (fileNames.size() > 0) {
+      // only use the first filename for loading.
       QString file = fileNames[0];
-
       if (!file.isEmpty()) {
         bool isImageSequence = imageSequenceCheckbox->isChecked();
         if (!open(file.toStdString(), nullptr, isImageSequence)) {
@@ -723,10 +719,10 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
   bool keepCurrentUISettings = true;
 
   if (!vs) {
-
     LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
+      // the loadSpec will need to remember that we loaded an image sequence
       loadSpec.isImageSequence = isImageSequence;
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
       keepCurrentUISettings = loadDialog->getKeepSettings();
