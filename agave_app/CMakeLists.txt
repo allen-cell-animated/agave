@@ -57,8 +57,6 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/renderThread.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/renderThread.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Section.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.cpp"
