@@ -43,9 +43,9 @@ FileReaderImageSequence::loadFromFile(const LoadSpec& loadSpec)
 VolumeDimensions
 FileReaderImageSequence::loadDimensions(const std::string& filepath, uint32_t scene)
 {
-    VolumeDimensions vd = m_tiffReader->loadDimensions(filepath, scene);
-    vd.sizeT = m_sequence.size();
-    return vd;
+  VolumeDimensions vd = m_tiffReader->loadDimensions(filepath, scene);
+  vd.sizeT = m_sequence.size();
+  return vd;
 }
 
 uint32_t
@@ -57,9 +57,9 @@ FileReaderImageSequence::loadNumScenes(const std::string& filepath)
 std::vector<MultiscaleDims>
 FileReaderImageSequence::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
-    std::vector<MultiscaleDims> dims = m_tiffReader->loadMultiscaleDims(filepath, scene);
-    for (auto& d : dims) {
-      d.shape[0] = m_sequence.size();
-	}
-	return dims;
+  std::vector<MultiscaleDims> dims = m_tiffReader->loadMultiscaleDims(filepath, scene);
+  for (auto& d : dims) {
+    d.shape[0] = m_sequence.size();
+  }
+  return dims;
 }
