@@ -370,9 +370,9 @@ fromCaptureSettings(const CaptureSettings& cs, int viewWidth, int viewHeight)
   // render dialog has been opened.
   s.width = cs.width == 0 ? viewWidth : cs.width;
   s.height = cs.height == 0 ? viewHeight : cs.height;
-  s.samples = cs.samples;
-  s.seconds = cs.duration;
-  s.durationType = g_RenderDurationTypeToPermId[cs.durationType];
+  s.samples = cs.renderDuration.samples;
+  s.seconds = cs.renderDuration.duration;
+  s.durationType = g_RenderDurationTypeToPermId[cs.renderDuration.durationType];
   s.startTime = cs.startTime;
   s.endTime = cs.endTime;
   s.outputDirectory = cs.outputDir;

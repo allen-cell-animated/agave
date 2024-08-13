@@ -68,15 +68,20 @@ enum eRenderDurationType
   SAMPLES = 1
 };
 
+struct RenderDuration
+{
+  int samples = 1;
+  int duration = 0; // in seconds
+  eRenderDurationType durationType = SAMPLES;
+};
+
 struct CaptureSettings
 {
   std::string outputDir;
   std::string filenamePrefix;
   int width;
   int height;
-  int samples;
-  int duration; // in seconds
-  eRenderDurationType durationType;
+  RenderDuration renderDuration;
   int startTime;
   int endTime;
 
@@ -89,9 +94,9 @@ struct CaptureSettings
     filenamePrefix = "frame";
     width = 0;
     height = 0;
-    samples = 32;
-    duration = 10;
-    durationType = SAMPLES;
+    renderDuration.duration = 10;
+    renderDuration.samples = 32;
+    renderDuration.durationType = SAMPLES;
     startTime = 0;
     endTime = 0;
   }

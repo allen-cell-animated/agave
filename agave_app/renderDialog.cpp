@@ -278,10 +278,10 @@ QGroupBox
   bool isTimeSeries = scene.m_timeLine.maxTime() > 0;
 
   mFrameProgressBar = new QProgressBar(this);
-  if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
-    mFrameProgressBar->setRange(0, mCaptureSettings->samples);
+  if (mCaptureSettings->renderDuration.durationType == eRenderDurationType::SAMPLES) {
+    mFrameProgressBar->setRange(0, mCaptureSettings->renderDuration.samples);
   } else {
-    mFrameProgressBar->setRange(0, mCaptureSettings->duration);
+    mFrameProgressBar->setRange(0, mCaptureSettings->renderDuration.duration);
   }
 
   mRenderDurationEdit = new QButtonGroup(this);
@@ -301,19 +301,19 @@ QGroupBox
     { eRenderDurationType::SAMPLES, 0 },
     { eRenderDurationType::TIME, 1 },
   };
-  mRenderDurationEdit->button(mCaptureSettings->durationType)->setChecked(true);
+  mRenderDurationEdit->button(mCaptureSettings->renderDuration.durationType)->setChecked(true);
 
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
   // arbitrarily chosen
   mRenderSamplesEdit->setMaximum(65536);
-  mRenderSamplesEdit->setValue(mCaptureSettings->samples);
+  mRenderSamplesEdit->setValue(mCaptureSettings->renderDuration.samples);
   mRenderTimeEdit = new QTimeEdit(this);
   mRenderTimeEdit->setDisplayFormat("hh:mm:ss");
   mRenderTimeEdit->setMinimumTime(QTime(0, 0, 1));
-  int h = mCaptureSettings->duration / (60 * 60);
-  int m = (mCaptureSettings->duration - h * 60 * 60) / 60;
-  int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
+  int h = mCaptureSettings->renderDuration.duration / (60 * 60);
+  int m = (mCaptureSettings->renderDuration.duration - h * 60 * 60) / 60;
+  int s = (mCaptureSettings->renderDuration.duration - h * 60 * 60 - m * 60);
   mRenderTimeEdit->setTime(QTime(h, m, s));
 
   mMainViewWidth = viewportWidth;
@@ -505,7 +505,7 @@ QGroupBox
   mRenderDurationSettings->addWidget(durationSettingsTime);
   mRenderDurationSettings->addWidget(durationSettingsSamples);
   // initialize
-  setRenderDurationType(mCaptureSettings->durationType);
+  setRenderDurationType(mCaptureSettings->renderDuration.durationType);
 
   QWidget* durationsWidget = new QWidget();
   durationsWidget->setLayout(durationsHLayout);
@@ -1053,7 +1053,7 @@ RenderDialog::getYResolution()
 void
 RenderDialog::setRenderDurationType(eRenderDurationType type)
 {
-  mCaptureSettings->durationType = type;
+  mCaptureSettings->renderDuration.durationType = type;
 
   mRenderDurationType = type;
 
@@ -1072,7 +1072,7 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
 void
 RenderDialog::updateRenderSamples(int s)
 {
-  mCaptureSettings->samples = s;
+  mCaptureSettings->renderDuration.samples = s;
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setMaximum(s);
   }
@@ -1083,10 +1083,10 @@ RenderDialog::updateRenderSamples(int s)
 void
 RenderDialog::updateRenderTime(const QTime& t)
 {
-  mCaptureSettings->duration = t.hour() * 60 * 60 + t.minute() * 60 + t.second();
+  mCaptureSettings->renderDuration.duration = t.hour() * 60 * 60 + t.minute() * 60 + t.second();
 
   if (mRenderDurationType == eRenderDurationType::TIME) {
-    mFrameProgressBar->setMaximum(mCaptureSettings->duration);
+    mFrameProgressBar->setMaximum(mCaptureSettings->renderDuration.duration);
   }
   resetProgress();
   updateUIReadyToRender();
