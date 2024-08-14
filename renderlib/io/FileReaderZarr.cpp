@@ -18,14 +18,28 @@
 static bool
 isCloud(const std::string& filepath)
 {
-  return filepath.find("http") == 0;
+  return filepath.find("http") == 0 || filepath.find("s3:") == 0;
+}
+static bool
+isS3(const std::string& filepath)
+{
+  return filepath.find("s3:") == 0;
 }
 
 static nlohmann::json
 getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
 {
   if (isCloud(filepath)) {
-    return { { "driver", "http" }, { "base_url", filepath }, { "path", subpath } };
+    if (isS3(filepath)) {
+      // parse bucket and path from s3 url string of the form s3://bucket/path
+      std::string bucket = filepath.substr(5);
+      size_t pos = bucket.find("/");
+      std::string path = bucket.substr(pos + 1);
+      bucket = bucket.substr(0, pos);
+      return { { "driver", "s3" }, { "bucket", bucket }, { "path", path + "/" + subpath } };
+    } else {
+      return { { "driver", "http" }, { "base_url", filepath }, { "path", subpath } };
+    }
   } else {
     // if file path does not end with slash then add one
     // TODO maybe use std::filesystem::path for cross-platform?

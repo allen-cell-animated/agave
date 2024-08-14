@@ -42,6 +42,8 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
     return new FileReaderImageSequence(filepath);
   } else if (filepath.find("http") == 0) {
     return new FileReaderZarr(filepath);
+  } else if (filepath.find("s3:") == 0) {
+    return new FileReaderZarr(filepath);
   } else if (extstr == ".tif" || extstr == ".tiff") {
     return new FileReaderTIFF(filepath);
   } else if (extstr == ".czi") {
