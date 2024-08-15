@@ -1,9 +1,10 @@
 #include "StringUtil.h"
 
+#include "Logging.h"
+
 #include <sstream>
 
-// TODO: move into a String Utils
-static std::string
+std::string
 trim(const std::string& str, const std::string& whitespace)
 {
   const auto strBegin = str.find_first_not_of(whitespace);
@@ -16,8 +17,7 @@ trim(const std::string& str, const std::string& whitespace)
   return str.substr(strBegin, strRange);
 }
 
-// TODO: move into a String Utils
-static bool
+bool
 startsWith(const std::string mainStr, const std::string toMatch)
 {
   // std::string::find returns 0 if toMatch is found at starting
@@ -27,8 +27,7 @@ startsWith(const std::string mainStr, const std::string toMatch)
     return false;
 }
 
-// TODO: move into a String Utils
-static bool
+bool
 endsWith(std::string const& value, std::string const& ending)
 {
   if (ending.size() > value.size())
@@ -36,8 +35,7 @@ endsWith(std::string const& value, std::string const& ending)
   return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-// TODO: move into a String Utils
-static void
+void
 split(const std::string& s, char delim, std::vector<std::string>& elems)
 {
   std::stringstream ss;
