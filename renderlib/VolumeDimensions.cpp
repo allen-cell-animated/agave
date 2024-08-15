@@ -1,6 +1,7 @@
 #include "VolumeDimensions.h"
 
 #include "Logging.h"
+#include "StringUtil.h"
 
 #include <regex>
 #include <set>
