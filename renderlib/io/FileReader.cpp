@@ -44,6 +44,8 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
     return new FileReaderZarr(filepath);
   } else if (filepath.find("s3:") == 0) {
     return new FileReaderZarr(filepath);
+  } else if (filepath.find("gs:") == 0) {
+    return new FileReaderZarr(filepath);
   } else if (extstr == ".tif" || extstr == ".tiff") {
     return new FileReaderTIFF(filepath);
   } else if (extstr == ".czi") {
@@ -204,7 +206,7 @@ LoadSpec::toString() const
     stream << " " << subpath;
   }
   if (isImageSequence) {
-	stream << " (sequence)";
+    stream << " (sequence)";
   }
   stream << " : scene " << scene << " time " << time;
   stream << " : channels [";

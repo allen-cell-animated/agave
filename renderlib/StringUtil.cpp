@@ -1,6 +1,6 @@
 #include "StringUtil.h"
 
-#include <stringstream>
+#include <sstream>
 
 // TODO: move into a String Utils
 static std::string

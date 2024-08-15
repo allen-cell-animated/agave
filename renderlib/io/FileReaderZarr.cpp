@@ -3,6 +3,7 @@
 #include "BoundingBox.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
+#include "StringUtil.h"
 #include "VolumeDimensions.h"
 
 #include "tensorstore/context.h"
@@ -16,14 +17,25 @@
 #include <set>
 
 static bool
-isCloud(const std::string& filepath)
+isHTTP(const std::string& filepath)
 {
-  return filepath.find("http") == 0 || filepath.find("s3:") == 0;
+  return filepath.find("http") == 0;
 }
 static bool
 isS3(const std::string& filepath)
 {
   return filepath.find("s3:") == 0;
+}
+static bool
+isGS(const std::string& filepath)
+{
+  return filepath.find("gs:") == 0;
+}
+
+static bool
+isCloud(const std::string& filepath)
+{
+  return isHTTP(filepath) || isGS(filepath) || isS3(filepath);
 }
 
 static nlohmann::json
@@ -36,7 +48,28 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
       size_t pos = bucket.find("/");
       std::string path = bucket.substr(pos + 1);
       bucket = bucket.substr(0, pos);
-      return { { "driver", "s3" }, { "bucket", bucket }, { "path", path + "/" + subpath } };
+      if (!endsWith(path, "/")) {
+        path += "/";
+      }
+      path = path + subpath;
+      if (!endsWith(path, "/")) {
+        path += "/";
+      }
+      return { { "driver", "s3" }, { "bucket", bucket }, { "path", path } };
+    } else if (isGS(filepath)) {
+      // parse bucket and path from gs url string of the form gs://bucket/path
+      std::string bucket = filepath.substr(5);
+      size_t pos = bucket.find("/");
+      std::string path = bucket.substr(pos + 1);
+      bucket = bucket.substr(0, pos);
+      if (!endsWith(path, "/")) {
+        path += "/";
+      }
+      path = path + subpath;
+      if (!endsWith(path, "/")) {
+        path += "/";
+      }
+      return { { "driver", "gcs" }, { "bucket", bucket }, { "path", path } };
     } else {
       return { { "driver", "http" }, { "base_url", filepath }, { "path", subpath } };
     }
