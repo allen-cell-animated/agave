@@ -93,17 +93,15 @@ jobs:
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --target agave_test --config Release
-          sudo cmake --build . --target install --config Release
-          cd install/Release
-          zip -vr ../../${{ matrix.artifact }}.zip agave.app/
+          cmake --build . --config Release
+          cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
         shell: bash
       - name: Upload mac artifact
         if: contains(matrix.os, 'macos')
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: ./build/${{ matrix.artifact }}.zip
+          path: ./build/${{ matrix.artifact }}.dmg
       - name: linux install deps
         if: matrix.os == 'ubuntu-latest'
         env:
