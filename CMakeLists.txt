@@ -71,7 +71,9 @@ if(APPLE)
   add_link_options("-L/usr/local/opt/icu4c/lib")
 endif(APPLE)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml Svg REQUIRED)
+
+find_package(spdlog REQUIRED)
 
 # if(MSVC)
 # Debug library suffix.
@@ -182,6 +184,7 @@ if(WIN32)
     $<TARGET_FILE:Qt6::Gui>
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
+    $<TARGET_FILE:Qt6::Svg>
     $<TARGET_FILE:Qt6::Xml>
     $<TARGET_FILE:Qt6::Network>
     $<TARGET_FILE:Qt6::WebSockets>
@@ -197,6 +200,7 @@ if(WIN32)
     $<TARGET_FILE:Qt6::Gui>
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
+    $<TARGET_FILE:Qt6::Svg>
     $<TARGET_FILE:Qt6::Xml>
     $<TARGET_FILE:Qt6::Network>
     $<TARGET_FILE:Qt6::WebSockets>
@@ -212,6 +216,10 @@ if(WIN32)
   install(FILES
     $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
+  )
+  install(FILES
+    $<TARGET_FILE:Qt6::QSvgIconPlugin>
+    DESTINATION ${INSTALLDIR}/iconengines/
   )
   install(FILES
     $<TARGET_FILE:Qt6::QTiffPlugin>
@@ -278,6 +286,7 @@ elseif(APPLE)
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
     $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Svg>
     $<TARGET_FILE:Qt6::Network>
     $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
@@ -289,6 +298,7 @@ elseif(APPLE)
   install_qt6_plugin("Qt6::QTiffPlugin" QT_PLUGINS agave.app)
   install_qt6_plugin("Qt6::QJpegPlugin" QT_PLUGINS agave.app)
   install_qt6_plugin("Qt6::QMacStylePlugin" QT_PLUGINS agave.app)
+  install_qt6_plugin("Qt6::QSvgIconPlugin" QT_PLUGINS agave.app)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
     "[Paths]\nPlugins = PlugIns\n")
@@ -356,6 +366,7 @@ else() # Linux
     $<TARGET_FILE:Qt6::OpenGL>
     $<TARGET_FILE:Qt6::OpenGLWidgets>
     $<TARGET_FILE:Qt6::Xml>
+    $<TARGET_FILE:Qt6::Svg>
     $<TARGET_FILE:Qt6::Network>
     $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
@@ -372,6 +383,10 @@ else() # Linux
   install(FILES
     $<TARGET_FILE:Qt6::QJpegPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
+  )
+  install(FILES
+    $<TARGET_FILE:Qt6::QSvgIconPlugin>
+    DESTINATION ${INSTALLDIR}/iconengines/
   )
 
   install(FILES

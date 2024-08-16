@@ -108,10 +108,9 @@ OffscreenRenderer::render()
   int vw = m_fbo->width();
   int vh = m_fbo->height();
 
-  if (!m_myVolumeData.m_gesture.graphics.font.get()) {
-    m_myVolumeData.m_gesture.graphics.font.reset(new Font());
+  if (!m_myVolumeData.m_gesture.graphics.font.isLoaded()) {
     std::string fontPath = renderlib::assetPath() + "/fonts/Arial.ttf";
-    m_myVolumeData.m_gesture.graphics.font->load(fontPath.c_str());
+    m_myVolumeData.m_gesture.graphics.font.load(fontPath.c_str());
   }
 
   SceneView sceneView;
@@ -129,7 +128,7 @@ OffscreenRenderer::render()
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
 
   m_fbo->bind();
-  m_myVolumeData.m_gesture.graphics.draw(sceneView, nullptr);
+  m_myVolumeData.m_gestureRenderer.draw(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
   m_fbo->release();
 
   std::unique_ptr<uint8_t> bytes(new uint8_t[vw * vh * 4]);
@@ -549,6 +548,20 @@ int
 OffscreenRenderer::SetControlPoints(int32_t channel, std::vector<float> controlPoints)
 {
   SetControlPointsCommand cmd({ channel, controlPoints });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SetFlipAxis(int32_t x, int32_t y, int32_t z)
+{
+  SetFlipAxisCommand cmd({ x, y, z });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::SetInterpolation(int32_t x)
+{
+  SetInterpolationCommand cmd({ x });
   cmd.execute(&m_ec);
   return 1;
 }

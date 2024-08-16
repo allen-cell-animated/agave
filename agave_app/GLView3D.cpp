@@ -291,14 +291,14 @@ GLView3D::wheelEvent(QWheelEvent* event)
 #endif
 
 void
-GLView3D::FitToScene()
+GLView3D::FitToScene(float transitionDurationSeconds)
 {
   Scene* sc = m_viewerWindow->m_renderer->scene();
 
   glm::vec3 newPosition, newTarget;
   m_viewerWindow->m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
   CameraAnimation anim = {};
-  anim.duration = 0.5f; //< duration is seconds.
+  anim.duration = transitionDurationSeconds;
   anim.mod.position = newPosition - m_viewerWindow->m_CCamera.m_From;
   anim.mod.target = newTarget - m_viewerWindow->m_CCamera.m_Target;
   m_viewerWindow->m_cameraAnim.push_back(anim);
@@ -346,7 +346,7 @@ void
 GLView3D::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_A) {
-    FitToScene();
+    FitToScene(0.5f);
   } else if (event->key() == Qt::Key_L) {
     // toggle local/global coordinates for transforms
     m_viewerWindow->m_toolsUseLocalSpace = !m_viewerWindow->m_toolsUseLocalSpace;
@@ -502,7 +502,14 @@ GLView3D::captureQimage()
 
   // do a render into the temp framebuffer
   glViewport(0, 0, fbo->width(), fbo->height());
+
+  // fill gesture graphics with draw commands
+  m_viewerWindow->update(m_viewerWindow->sceneView.viewport, m_viewerWindow->m_clock, m_viewerWindow->gesture);
   m_viewerWindow->m_renderer->render(m_viewerWindow->m_CCamera);
+  // render and then clear out draw commands from gesture graphics
+  m_viewerWindow->m_gestureRenderer->draw(
+    m_viewerWindow->sceneView, &m_viewerWindow->m_selection, m_viewerWindow->gesture.graphics);
+
   fbo->release();
 
   QImage img(fbo->toImage());

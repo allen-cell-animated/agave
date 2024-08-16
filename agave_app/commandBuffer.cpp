@@ -124,6 +124,8 @@ commandBuffer::processBuffer()
           CMD_CASE(TrackballCameraCommand);
           CMD_CASE(LoadDataCommand);
           CMD_CASE(ShowScaleBarCommand);
+          CMD_CASE(SetFlipAxisCommand);
+          CMD_CASE(SetInterpolationCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!

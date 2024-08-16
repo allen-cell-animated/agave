@@ -6,6 +6,7 @@
 #include "Logging.h"
 #include "RenderSettings.h"
 #include "gl/Image3D.h"
+#include "gl/Util.h"
 
 #include <iostream>
 
@@ -17,6 +18,7 @@ RenderGL::RenderGL(RenderSettings* rs)
   , m_h(0)
   , m_renderSettings(rs)
   , m_scene(nullptr)
+  , m_boundingBoxDrawable(nullptr)
   , m_status(new CStatus)
 {
   mStartTime = std::chrono::high_resolution_clock::now();
@@ -40,6 +42,7 @@ RenderGL::initialize(uint32_t w, uint32_t h)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  m_boundingBoxDrawable = new BoundingBoxDrawable();
   if (m_scene && m_scene->m_volume) {
     initFromScene();
   }
@@ -64,7 +67,7 @@ RenderGL::prepareToRender()
   }
 
   if (m_renderSettings->m_DirtyFlags.HasFlag(RenderParamsDirty | TransferFunctionDirty | VolumeDataDirty)) {
-    m_image3d->prepareTexture(*m_scene);
+    m_image3d->prepareTexture(*m_scene, m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
   }
 
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now
@@ -100,9 +103,58 @@ RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 
   doClear();
   if (haveScene) {
-    m_image3d->render(camera, m_scene, m_renderSettings);
+    drawSceneObjects(camera);
   }
   fbo->release();
+}
+
+void
+RenderGL::drawSceneObjects(const CCamera& camera)
+{
+  const glm::vec3 volumePhysicalSize = m_scene->m_volume->getPhysicalDimensions();
+  float maxPhysicalDim = std::max(volumePhysicalSize.x, std::max(volumePhysicalSize.y, volumePhysicalSize.z));
+
+  // scene bounds are min=0.0, max=image physical dims scaled to max dim so that max dim is 1.0
+  glm::vec3 sn = m_scene->m_boundingBox.GetMinP();
+  glm::vec3 ext = m_scene->m_boundingBox.GetExtent();
+  CBoundingBox b;
+  b.SetMinP(glm::vec3(ext.x * m_scene->m_roi.GetMinP().x + sn.x,
+                      ext.y * m_scene->m_roi.GetMinP().y + sn.y,
+                      ext.z * m_scene->m_roi.GetMinP().z + sn.z));
+  b.SetMaxP(glm::vec3(ext.x * m_scene->m_roi.GetMaxP().x + sn.x,
+                      ext.y * m_scene->m_roi.GetMaxP().y + sn.y,
+                      ext.z * m_scene->m_roi.GetMaxP().z + sn.z));
+  // LOG_DEBUG << "CLIPPED BOUNDS" << b.ToString();
+  // LOG_DEBUG << "FULL BOUNDS" << m_scene->m_boundingBox.ToString();
+  // draw bounding box on top.
+  // move the box to match where the camera is pointed
+  // transform the box from -1..1 to 0..physicalsize
+  float maxd = (std::max)(ext.x, (std::max)(ext.y, ext.z));
+  glm::vec3 scales(0.5 * ext.x / maxd, 0.5 * ext.y / maxd, 0.5 * ext.z / maxd);
+  // it helps to imagine these transforming the space in reverse order
+  // (first translate by 1.0, and then scale down)
+  glm::mat4 bboxModelMatrix = glm::scale(glm::mat4(1.0f), scales);
+  bboxModelMatrix = glm::translate(bboxModelMatrix, glm::vec3(1.0, 1.0, 1.0));
+  glm::mat4 viewMatrix(1.0);
+  glm::mat4 projMatrix(1.0);
+  camera.getProjMatrix(projMatrix);
+  camera.getViewMatrix(viewMatrix);
+
+  if (m_scene->m_material.m_showBoundingBox) {
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glm::vec4 bboxColor(m_scene->m_material.m_boundingBoxColor[0],
+                        m_scene->m_material.m_boundingBoxColor[1],
+                        m_scene->m_material.m_boundingBoxColor[2],
+                        1.0);
+    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
+    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
+      m_boundingBoxDrawable->updateTickMarks(scales, maxPhysicalDim);
+      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
+    }
+  }
+
+  m_image3d->render(camera, m_scene, m_renderSettings);
 }
 
 void
@@ -115,7 +167,8 @@ RenderGL::render(const CCamera& camera)
   glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
   // Render image
   doClear();
-  m_image3d->render(camera, m_scene, m_renderSettings);
+
+  drawSceneObjects(camera);
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - mStartTime;
@@ -151,6 +204,8 @@ RenderGL::setScene(Scene* s)
 void
 RenderGL::cleanUpResources()
 {
+  delete m_boundingBoxDrawable;
+  m_boundingBoxDrawable = nullptr;
   delete m_image3d;
   m_image3d = nullptr;
 }
@@ -160,8 +215,8 @@ RenderGL::initFromScene()
 {
   delete m_image3d;
 
-  m_image3d = new Image3D(m_scene->m_volume);
-  m_image3d->create();
+  m_image3d = new Image3D();
+  m_image3d->create(m_scene->m_volume);
 
   // we have set up everything there is to do before rendering
   mStartTime = std::chrono::high_resolution_clock::now();

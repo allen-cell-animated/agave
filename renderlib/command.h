@@ -473,3 +473,18 @@ struct ShowScaleBarCommandD
   int32_t m_on;
 };
 CMDDECL(ShowScaleBarCommand, 45, "show_scale_bar", CMD_ARGS({ CommandArgType::I32 }));
+
+struct SetFlipAxisCommandD
+{
+  int32_t m_x, m_y, m_z;
+};
+CMDDECL(SetFlipAxisCommand,
+        46,
+        "set_flip_axis",
+        CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
+
+struct SetInterpolationCommandD
+{
+  int32_t m_on;
+};
+CMDDECL(SetInterpolationCommand, 47, "set_interpolation", CMD_ARGS({ CommandArgType::I32 }));

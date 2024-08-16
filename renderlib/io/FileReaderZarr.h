@@ -3,10 +3,11 @@
 #include "IFileReader.h"
 #include "VolumeDimensions.h"
 
-#include "json/json.hpp"
-
 #include "tensorstore/context.h"
 #include "tensorstore/tensorstore.h"
+
+// must include after tensorstore so that tensorstore picks up its own internal json impl
+#include "json/json.hpp"
 
 #include <memory>
 #include <string>

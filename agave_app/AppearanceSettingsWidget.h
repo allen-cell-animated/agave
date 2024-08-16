@@ -18,6 +18,13 @@ class RenderSettings;
 class Scene;
 class Section;
 
+enum Axis
+{
+  X = 0,
+  Y = 1,
+  Z = 2
+};
+
 class QAppearanceSettingsWidget : public QGroupBox
 {
   Q_OBJECT
@@ -45,6 +52,7 @@ public:
   void OnBoundingBoxColorChanged(const QColor& color);
   void OnShowBoundsChecked(bool isChecked);
   void OnShowScaleBarChecked(bool isChecked);
+  void OnInterpolateChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
@@ -73,6 +81,7 @@ public:
   void OnSetScaleX(double value);
   void OnSetScaleY(double value);
   void OnSetScaleZ(double value);
+  void OnFlipAxis(Axis axis, bool value);
 
 private:
   Scene* m_scene;
@@ -84,6 +93,7 @@ private:
   QNumericSlider m_GradientFactorSlider;
   QNumericSlider m_StepSizePrimaryRaySlider;
   QNumericSlider m_StepSizeSecondaryRaySlider;
+  QCheckBox m_interpolateCheckBox;
   QColorPushButton m_backgroundColorButton;
 
   QRenderSettings* m_qrendersettings;
@@ -95,8 +105,11 @@ private:
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
+  QCheckBox* m_xFlipCheckBox;
   QDoubleSpinner* m_yscaleSpinner;
+  QCheckBox* m_yFlipCheckBox;
   QDoubleSpinner* m_zscaleSpinner;
+  QCheckBox* m_zFlipCheckBox;
   QCheckBox m_showBoundingBoxCheckBox;
   QColorPushButton m_boundingBoxColorButton;
   QCheckBox m_showScaleBarCheckBox;

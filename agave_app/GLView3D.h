@@ -82,6 +82,7 @@ public:
 
   /// Resize the view.
   void resizeGL(int w, int h);
+  void FitToScene(float transitionDurationSeconds = 0.0f);
 
 protected:
   /// Set up GL context and subsidiary objects.
@@ -97,8 +98,6 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
 private:
-  void FitToScene();
-
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 

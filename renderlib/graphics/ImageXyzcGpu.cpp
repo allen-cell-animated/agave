@@ -95,9 +95,9 @@ ImageGpu::createVolumeTexture4x16(ImageXYZC* img)
   glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
   glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA16, img->sizeX(), img->sizeY(), img->sizeZ());
   glBindTexture(GL_TEXTURE_3D, 0);
@@ -198,4 +198,13 @@ void
 ImageGpu::updateLutGpu(int channel, ImageXYZC* img)
 {
   m_channels[channel].updateLutGpu(channel, img);
+}
+
+void
+ImageGpu::setVolumeTextureFiltering(bool linear)
+{
+  glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+  glBindTexture(GL_TEXTURE_3D, 0);
 }

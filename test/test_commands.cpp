@@ -434,4 +434,20 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->toPythonString() == "show_scale_bar(1)");
     REQUIRE(cmd->m_data.m_on == data.m_on);
   }
+  SECTION("SetFlipAxisCommand")
+  {
+    SetFlipAxisCommandD data = { 1, -1, -1 };
+    auto cmd = testcodec<SetFlipAxisCommand, SetFlipAxisCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_flip_axis(1, -1, -1)");
+    REQUIRE(cmd->m_data.m_x == data.m_x);
+    REQUIRE(cmd->m_data.m_y == data.m_y);
+    REQUIRE(cmd->m_data.m_z == data.m_z);
+  }
+  SECTION("SetInterpolationCommand")
+  {
+    SetInterpolationCommandD data = { 1 };
+    auto cmd = testcodec<SetInterpolationCommand, SetInterpolationCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_interpolation(1)");
+    REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
 }

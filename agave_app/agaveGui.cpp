@@ -18,6 +18,7 @@
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
+#include "ViewToolbar.h"
 #include "ViewerState.h"
 #include "aboutDialog.h"
 #include "citationDialog.h"
@@ -36,11 +37,51 @@
 
 #include <filesystem>
 
+const QString darkStyleSheet = R"(
+QToolTip{padding:3px;}
+QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
+QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")} 
+QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg"); qproperty-icon: url(":/icons/dark/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg"); qproperty-icon: url(":/icons/dark/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") } 
+QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
+QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
+QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
+QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
+QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/dark/linked.png"); qproperty-icon: url(":/icons/dark/linked.png") }
+QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/dark/unlinked.png"); qproperty-icon: url(":/icons/dark/unlinked.png") }
+)";
+const QString lightStyleSheet = R"(
+QToolTip{padding:3px;}
+QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
+QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") } 
+QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg"); qproperty-icon: url(":/icons/light/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg"); qproperty-icon: url(":/icons/light/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-icon: url(":/icons/light/frontView.svg") }
+QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-icon: url(":/icons/light/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
+QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
+QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
+QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/light/linked.png"); qproperty-icon: url(":/icons/light/linked.png") }
+QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/light/unlinked.png"); qproperty-icon: url(":/icons/light/unlinked.png") }
+)";
+
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
+
+  auto sh = QGuiApplication::styleHints();
+  m_colorScheme = sh->colorScheme();
+  if (m_colorScheme == Qt::ColorScheme::Dark) {
+    setStyleSheet(darkStyleSheet);
+  } else if (m_colorScheme == Qt::ColorScheme::Light) {
+    setStyleSheet(lightStyleSheet);
+  }
 
   // create actions first so they can be deposited in other gui elements
   createActions();
@@ -68,7 +109,30 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
-  m_tabs->addTab(m_glView, "None");
+  m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  // TODO can make this a custom widget that exposes the toolbar and the view
+  m_viewWithToolbar = new QWidget(this);
+  auto vlayout = new QVBoxLayout();
+  vlayout->setContentsMargins(0, 0, 0, 0);
+  vlayout->setSpacing(2);
+  m_viewToolbar = new ViewToolbar(m_viewWithToolbar);
+  connect(m_viewToolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
+  connect(m_viewToolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
+  connect(m_viewToolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
+  connect(m_viewToolbar->rightViewButton, &QPushButton::clicked, this, &agaveGui::view_right);
+  connect(m_viewToolbar->frontViewButton, &QPushButton::clicked, this, &agaveGui::view_front);
+  connect(m_viewToolbar->backViewButton, &QPushButton::clicked, this, &agaveGui::view_back);
+  connect(m_viewToolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
+  connect(m_viewToolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
+  connect(m_viewToolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
+  connect(m_viewToolbar->axisHelperButton, &QPushButton::clicked, this, &agaveGui::showAxisHelper);
+  vlayout->addWidget(m_viewToolbar);
+  vlayout->addWidget(m_glView, 1);
+
+  m_viewWithToolbar->setLayout(vlayout);
+
+  m_tabs->addTab(m_viewWithToolbar, "None");
 
   QString windowTitle =
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
@@ -239,9 +303,6 @@ agaveGui::createToolbars()
   m_ui.mainToolBar->addAction(m_dumpPythonAction);
   m_ui.mainToolBar->addAction(m_saveImageAction);
   m_ui.mainToolBar->addAction(m_renderAction);
-  m_ui.mainToolBar->addSeparator();
-  m_ui.mainToolBar->addAction(m_viewResetAction);
-  m_ui.mainToolBar->addAction(m_toggleCameraProjectionAction);
   m_ui.mainToolBar->addSeparator();
 
   QToolButton* helpButton = new QToolButton(this);
@@ -748,7 +809,7 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 
   m_viewResetAction->setEnabled(false);
 
-  bool enable(newGlView != 0);
+  bool enable = (newGlView != nullptr);
 
   m_viewResetAction->setEnabled(enable);
 
@@ -762,7 +823,10 @@ agaveGui::tabChanged(int index)
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
-      current = static_cast<GLView3D*>(w);
+      QLayout* layout = w->layout();
+      // ASSUMES THAT THE GLVIEW IS THE SECOND WIDGET IN THE LAYOUT
+      // TODO could use a QWidget wrapper class to get the glview out
+      current = static_cast<GLView3D*>(layout->itemAt(1)->widget());
     }
   }
   viewFocusChanged(current);
@@ -779,11 +843,67 @@ agaveGui::view_reset()
 {
   m_glView->initCameraFromImage(&m_appScene);
 }
+void
+agaveGui::view_frame()
+{
+  m_glView->FitToScene();
+}
+
+void
+agaveGui::view_top()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+agaveGui::view_bottom()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBottom);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_front()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+agaveGui::view_back()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBack);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_left()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
+void
+agaveGui::view_right()
+{
+  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeRight);
+  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+}
 
 void
 agaveGui::view_toggleProjection()
 {
   m_glView->toggleCameraProjection();
+}
+
+void
+agaveGui::showAxisHelper()
+{
+  m_appScene.m_showAxisHelper = !m_appScene.m_showAxisHelper;
 }
 
 void
@@ -955,6 +1075,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   // position camera
   m_glView->fromViewerState(v);
+  m_viewToolbar->initFromCamera(m_glView->getCamera());
 
   m_appScene.m_roi.SetMinP(glm::vec3(v.clipRegion[0][0], v.clipRegion[1][0], v.clipRegion[2][0]));
   m_appScene.m_roi.SetMaxP(glm::vec3(v.clipRegion[0][1], v.clipRegion[1][1], v.clipRegion[2][1]));
@@ -965,6 +1086,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_currentScene = v.datasets[0].scene;
 
   m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
+  m_appScene.m_volume->setVolumeAxesFlipped(v.flipAxis[0], v.flipAxis[1], v.flipAxis[2]);
 
   m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
   m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
@@ -980,7 +1102,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
-  // m_renderSettings.m_RenderSettings.m_GradientFactor = v.m_gradientFactor;
+  m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -1039,6 +1161,10 @@ agaveGui::appToViewerState()
     v.scale[0] = m_appScene.m_volume->physicalSizeX();
     v.scale[1] = m_appScene.m_volume->physicalSizeY();
     v.scale[2] = m_appScene.m_volume->physicalSizeZ();
+    glm::ivec3 vflip = m_appScene.m_volume->getVolumeAxesFlipped();
+    v.flipAxis[0] = vflip.x > 0 ? 1 : -1;
+    v.flipAxis[1] = vflip.y > 0 ? 1 : -1;
+    v.flipAxis[2] = vflip.z > 0 ? 1 : -1;
   }
 
   v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],
@@ -1085,7 +1211,7 @@ agaveGui::appToViewerState()
   v.camera.aperture = m_qcamera.GetAperture().GetSize();
   v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
-  // v.m_gradientFactor = m_renderSettings.m_RenderSettings.m_GradientFactor;
+  v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
 
   v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
                                                             : Serialize::RendererType_PID::PATHTRACE;
@@ -1129,4 +1255,26 @@ agaveGui::appToViewerState()
   v.capture = fromCaptureSettings(m_captureSettings, m_glView->width(), m_glView->height());
 
   return v;
+}
+
+void
+agaveGui::changeEvent(QEvent* event)
+{
+  if (event->type() == QEvent::ThemeChange) {
+    // check for dark or light mode
+    auto sh = QGuiApplication::styleHints();
+    auto colorScheme = sh->colorScheme();
+    if (m_colorScheme == colorScheme) {
+      return;
+    }
+    if (colorScheme == Qt::ColorScheme::Dark) {
+      setStyleSheet(darkStyleSheet);
+      LOG_DEBUG << "ThemeChange to Dark";
+    } else if (colorScheme == Qt::ColorScheme::Light) {
+      setStyleSheet(lightStyleSheet);
+      LOG_DEBUG << "ThemeChange to Light";
+    }
+    m_colorScheme = colorScheme;
+  }
+  QMainWindow::changeEvent(event);
 }

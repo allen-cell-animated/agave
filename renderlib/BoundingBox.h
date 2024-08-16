@@ -4,7 +4,10 @@
 
 #include "glm.h"
 
+#include <array>
 #include <sstream>
+
+#define NUM_BBOX_CORNERS 8
 
 class CBoundingBox
 {
@@ -15,12 +18,14 @@ public:
   CBoundingBox(void)
     : m_MinP(FLT_MAX, FLT_MAX, FLT_MAX)
     , m_MaxP(-FLT_MAX, -FLT_MAX, -FLT_MAX)
-  {}
+  {
+  }
 
   CBoundingBox(const glm::vec3& v1, const glm::vec3& v2)
     : m_MinP(v1)
     , m_MaxP(v2)
-  {}
+  {
+  }
 
   CBoundingBox& operator=(const CBoundingBox& B)
   {
@@ -177,6 +182,24 @@ public:
     ss << "Min(" << m_MinP.x << "," << m_MinP.y << "," << m_MinP.z << "), Max(" << m_MaxP.x << "," << m_MaxP.y << ","
        << m_MaxP.z << ")";
     return ss.str();
+  }
+
+  void Extend(float f)
+  {
+    m_MinP -= glm::vec3(f);
+    m_MaxP += glm::vec3(f);
+  }
+
+  void GetCorners(std::array<glm::vec3, NUM_BBOX_CORNERS>& corners) const
+  {
+    corners[0] = glm::vec3(m_MinP.x, m_MinP.y, m_MinP.z);
+    corners[1] = glm::vec3(m_MaxP.x, m_MinP.y, m_MinP.z);
+    corners[2] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MinP.z);
+    corners[3] = glm::vec3(m_MinP.x, m_MaxP.y, m_MinP.z);
+    corners[4] = glm::vec3(m_MinP.x, m_MinP.y, m_MaxP.z);
+    corners[5] = glm::vec3(m_MaxP.x, m_MinP.y, m_MaxP.z);
+    corners[6] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MaxP.z);
+    corners[7] = glm::vec3(m_MinP.x, m_MaxP.y, m_MaxP.z);
   }
 
 #if 0

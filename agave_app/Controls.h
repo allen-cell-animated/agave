@@ -18,6 +18,53 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 
+class DualIconButton : public QPushButton
+{
+  Q_OBJECT
+  Q_PROPERTY(int state READ getState)
+
+private:
+  QString tooltip1;
+  QString tooltip2;
+  QString statustip1;
+  QString statustip2;
+  int state;
+
+public:
+  DualIconButton(const QString& tooltip1,
+                 const QString& statustip1,
+                 const QString& tooltip2,
+                 const QString& statustip2,
+                 QWidget* parent = nullptr)
+    : tooltip1(tooltip1)
+    , tooltip2(tooltip2)
+    , statustip1(statustip1)
+    , statustip2(statustip2)
+    , state(0)
+    , QPushButton(QIcon(), "", parent)
+  {
+    setToolTip(tooltip1);
+    setStatusTip(statustip1);
+    connect(this, &QPushButton::clicked, this, &DualIconButton::toggleIcon);
+  }
+
+  void toggleIcon() { setState(1 - state); }
+
+  int getState() const { return state; }
+  void setState(int s)
+  {
+    state = s;
+    if (state == 1) {
+      setToolTip(tooltip2);
+      setStatusTip(statustip2);
+    } else {
+      setToolTip(tooltip1);
+      setStatusTip(statustip1);
+    }
+    style()->polish(this);
+  }
+};
+
 class QColorPushButton : public QPushButton
 {
   Q_OBJECT
