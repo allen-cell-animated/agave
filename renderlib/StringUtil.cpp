@@ -64,6 +64,8 @@ splitToNameValuePairs(const std::string& s)
       pairs[namevalue[0]] = namevalue[1];
     } else if (namevalue.size() == 1) {
       pairs[namevalue[0]] = "";
+    } else if (sl[i] == "") {
+      // ignore empty line
     } else {
       // on error return empty map.
       LOG_ERROR << "Unexpected name/value pair: " << sl[i];
