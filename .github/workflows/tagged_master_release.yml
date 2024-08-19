@@ -37,7 +37,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install glm libtiff nasm zstd ninja
+          brew install spdlog glm libtiff nasm zstd ninja
       - name: macos build and test
         if: contains(matrix.os, 'macos')
         env:
@@ -91,7 +91,7 @@ jobs:
         env:
           vc_arch: "x64"
         run: |
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma zstd eigen3
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
       - name: windows get nasm
         if: matrix.os == 'windows-latest'
         uses: ilammy/setup-nasm@v1
