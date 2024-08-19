@@ -238,6 +238,7 @@ if(WIN32)
   # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}")
 
   set(CPACK_GENERATOR "NSIS")
+  set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/WindowsPreBuild.cmake")
   set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     WriteRegStr HKCR 'agave' '' 'URL:agave'
     WriteRegStr HKCR 'agave' 'URL Protocol' ''
@@ -348,7 +349,7 @@ elseif(APPLE)
     fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/agave.app\" \"${QT_PLUGINS}\" \"${DIRS}\" )")
 
   set(CPACK_GENERATOR "DragNDrop")
-  set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/SignMacOSApp.cmake")
+  set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/MacOSPreBuild.cmake")
   # set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;install/Release/agave.app")
   # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/agave.app")
   # set(CPACK_PACKAGE_EXECUTABLES "${CMAKE_INSTALL_PREFIX}/agave.app")
