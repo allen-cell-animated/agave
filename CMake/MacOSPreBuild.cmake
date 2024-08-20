@@ -11,5 +11,6 @@ endforeach()
 execute_process(COMMAND codesign --force --sign - "${APP_DIR}/agave.app")
 
 # remove unneeded dirs from installer 
+# these directories are a result of the install step for libCZI (in renderlib/io)
 execute_process(COMMAND rm -rf "${APP_DIR}/include")
 execute_process(COMMAND rm -rf "${APP_DIR}/lib")
