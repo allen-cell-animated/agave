@@ -170,34 +170,30 @@ if(WIN32)
     CONFIGURATIONS Debug
   )
   install(FILES
+    ${PROJECT_SOURCE_DIR}/LICENSE.txt
+    ${PROJECT_SOURCE_DIR}/HELP.txt
     $<TARGET_FILE:libCZI>
+    $<TARGET_FILE:Qt6::Svg>
+    $<TARGET_FILE:Qt6::Xml>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Release
   )
   install(FILES
+    ${PROJECT_SOURCE_DIR}/LICENSE.txt
+    ${PROJECT_SOURCE_DIR}/HELP.txt
     $<TARGET_FILE:libCZI>
+    $<TARGET_FILE:Qt6::Svg>
+    $<TARGET_FILE:Qt6::Xml>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Debug
   )
 
   install(FILES
-    ${PROJECT_SOURCE_DIR}/LICENSE.txt
-    ${PROJECT_SOURCE_DIR}/HELP.txt
-    DESTINATION ${INSTALLDIR}
-    CONFIGURATIONS Release
-  )
-  install(FILES
-    ${PROJECT_SOURCE_DIR}/LICENSE.txt
-    ${PROJECT_SOURCE_DIR}/HELP.txt
-    DESTINATION ${INSTALLDIR}
-    CONFIGURATIONS Debug
-  )
-  install(FILES
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
     DESTINATION ${INSTALLDIR}/assets/fonts/
   )
-  install(DIRECTORY ${PROJECT_SOURCE_DIR}/agave_app/icons/ DESTINATION ${INSTALLDIR}/icons/)
+  #install(DIRECTORY ${PROJECT_SOURCE_DIR}/agave_app/icons/ DESTINATION ${INSTALLDIR}/icons/)
 
   install(FILES
     $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
