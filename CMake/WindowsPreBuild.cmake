@@ -3,6 +3,6 @@ if(NOT DEFINED APP_DIR)
 endif()
 
 # remove unneeded dirs from installer
-execute_process(COMMAND rd -r "${APP_DIR}/bin")
-execute_process(COMMAND rd -r "${APP_DIR}/include")
-execute_process(COMMAND rd -r "${APP_DIR}/lib")
+execute_process(COMMAND rd /s /q "${APP_DIR}\\bin")
+execute_process(COMMAND rd /s /q "${APP_DIR}\\include")
+execute_process(COMMAND rd /s /q "${APP_DIR}\\lib")
