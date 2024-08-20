@@ -153,58 +153,42 @@ install(TARGETS agaveapp
 )
 
 if(WIN32)
-  # copy all dlls into place.
-  install(CODE [[
-    file(GET_RUNTIME_DEPENDENCIES
-      EXECUTABLES "$<TARGET_FILE:agaveapp>"
-      RESOLVED_DEPENDENCIES_VAR _r_deps
-      UNRESOLVED_DEPENDENCIES_VAR _u_deps
-      DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>"
-      PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-      POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-    )
-    foreach(_file ${_r_deps})
-      file(INSTALL
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/agave-install"
-        TYPE SHARED_LIBRARY
-        FILES "${_file}"
-      )
-    endforeach()
-    list(LENGTH _u_deps _u_length)
-    if("${_u_length}" GREATER 0)
-      message(WARNING "Unresolved dependencies detected!")
-    endif()
-  ]] COMPONENT agaveapp)
+  install(TARGETS agaveapp
+    RUNTIME_DEPENDENCIES
+    DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>" "$<TARGET_FILE_DIR:Qt6::Core>"
+    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+    DESTINATION ${INSTALLDIR}
+    CONFIGURATIONS Release
+  )
+  install(TARGETS agaveapp
+    RUNTIME_DEPENDENCIES
+    DIRECTORIES "$<TARGET_FILE_DIR:agaveapp>" "$<TARGET_FILE_DIR:Qt6::Core>"
+    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+    DESTINATION ${INSTALLDIR}
+    CONFIGURATIONS Debug
+  )
+  install(FILES
+    $<TARGET_FILE:libCZI>
+    DESTINATION ${INSTALLDIR}
+    CONFIGURATIONS Release
+  )
+  install(FILES
+    $<TARGET_FILE:libCZI>
+    DESTINATION ${INSTALLDIR}
+    CONFIGURATIONS Debug
+  )
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt6::Widgets>
-    $<TARGET_FILE:Qt6::Core>
-    $<TARGET_FILE:Qt6::Gui>
-    $<TARGET_FILE:Qt6::OpenGL>
-    $<TARGET_FILE:Qt6::OpenGLWidgets>
-    $<TARGET_FILE:Qt6::Svg>
-    $<TARGET_FILE:Qt6::Xml>
-    $<TARGET_FILE:Qt6::Network>
-    $<TARGET_FILE:Qt6::WebSockets>
-    $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Release
   )
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:Qt6::Widgets>
-    $<TARGET_FILE:Qt6::Core>
-    $<TARGET_FILE:Qt6::Gui>
-    $<TARGET_FILE:Qt6::OpenGL>
-    $<TARGET_FILE:Qt6::OpenGLWidgets>
-    $<TARGET_FILE:Qt6::Svg>
-    $<TARGET_FILE:Qt6::Xml>
-    $<TARGET_FILE:Qt6::Network>
-    $<TARGET_FILE:Qt6::WebSockets>
-    $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Debug
   )
@@ -234,7 +218,7 @@ if(WIN32)
     DESTINATION ${INSTALLDIR}/styles/
   )
 
-  set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;/agave-install")
+  set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;/")
   # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}")
 
   set(CPACK_GENERATOR "NSIS")
@@ -341,7 +325,7 @@ elseif(APPLE)
   message(STATUS "APPS: ${APPS}")
   message(STATUS "PLUGINS: ${QT_PLUGINS}")
   message(STATUS "DIRS: ${DIRS}")
-  
+
   install(CODE "
     include(InstallRequiredSystemLibraries)
     include(BundleUtilities)
