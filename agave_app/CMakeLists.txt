@@ -104,6 +104,7 @@ target_link_libraries(agaveapp PRIVATE
 # copy asset files from renderlib into a directory
 # relative to our app executable
 if(WIN32)
+    qt_add_resources(agaveapp agaveGui.qrc)
 	add_custom_command(
 		TARGET agaveapp POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
