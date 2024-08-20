@@ -197,6 +197,8 @@ if(WIN32)
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
     DESTINATION ${INSTALLDIR}/assets/fonts/
   )
+  install(DIRECTORY ${PROJECT_SOURCE_DIR}/agave_app/icons/ DESTINATION ${INSTALLDIR}/icons/)
+
   install(FILES
     $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
