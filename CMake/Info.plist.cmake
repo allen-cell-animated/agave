@@ -25,12 +25,12 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
-		<key>CFBundleURLName</key>
-		<string>com.aics.agave</string>
-		<key>CFBundleURLSchemes</key>
-		<array>
-			<string>agave</string>
-		</array>
+			<key>CFBundleURLName</key>
+			<string>org.allencell.agave</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>agave</string>
+			</array>
 		</dict>
 	</array>
 	<key>LSMinimumSystemVersion</key>
