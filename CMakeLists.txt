@@ -142,7 +142,8 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 find_package(Qt6QTiffPlugin 6.5.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
 set(CPACK_PACKAGE_VENDOR "Allen Institute for Cell Science")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for multi-dimensional microscopy images.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for 4D multichannel microscopy images, using physically based lighting and rendering.")
+
 set(CPACK_PACKAGE_NAME "AGAVE")
 
 install(TARGETS agaveapp
