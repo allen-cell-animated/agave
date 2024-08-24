@@ -187,15 +187,11 @@ if(WIN32)
     DESTINATION ${INSTALLDIR}
     CONFIGURATIONS Debug
   )
-
   install(FILES
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
     DESTINATION ${INSTALLDIR}/assets/fonts/
   )
-  
-
-
   install(FILES
     $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
@@ -216,9 +212,6 @@ if(WIN32)
     $<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>
     DESTINATION ${INSTALLDIR}/styles/
   )
-
-  # set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;/")
-  # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${INSTALLDIR}")
 
   set(CPACK_GENERATOR "NSIS")
   set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/WindowsPreBuild.cmake")
@@ -340,9 +333,7 @@ elseif(APPLE)
 
   set(CPACK_GENERATOR "DragNDrop")
   set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/MacOSPreBuild.cmake")
-  # set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};Unspecified;install/Release/agave.app")
-  # set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/agave.app")
-  # set(CPACK_PACKAGE_EXECUTABLES "${CMAKE_INSTALL_PREFIX}/agave.app")
+
   include(CPack)
 
 else() # Linux
@@ -379,7 +370,6 @@ else() # Linux
     $<TARGET_FILE:Qt6::QSvgIconPlugin>
     DESTINATION ${INSTALLDIR}/iconengines/
   )
-
   install(FILES
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Arial.ttf
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
