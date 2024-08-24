@@ -71,6 +71,13 @@ TEST_CASE("StringUtil", "[StringUtil]")
     REQUIRE(elems.size() == 2);
     REQUIRE(elems[0] == "name=value");
     REQUIRE(elems[1] == "name2=value2");
+
+    elems.clear();
+    split("name=value\nname2=value2\n\n", '\n', elems);
+    REQUIRE(elems.size() == 3);
+    REQUIRE(elems[0] == "name=value");
+    REQUIRE(elems[1] == "name2=value2");
+    REQUIRE(elems[2] == "");
   }
 
   SECTION("splitToNameValuePairs")
