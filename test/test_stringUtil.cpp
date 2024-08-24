@@ -106,6 +106,11 @@ TEST_CASE("StringUtil", "[StringUtil]")
     REQUIRE(pairs["name"] == "value");
     REQUIRE(pairs["name2"] == "value2");
 
+    pairs = splitToNameValuePairs("name=value\n\nname2=value2");
+    REQUIRE(pairs.size() == 2);
+    REQUIRE(pairs["name"] == "value");
+    REQUIRE(pairs["name2"] == "value2");
+
     pairs = splitToNameValuePairs("name=value\nname2=value2\nname3=value3\n\n");
     REQUIRE(pairs.size() == 3);
     REQUIRE(pairs["name"] == "value");
