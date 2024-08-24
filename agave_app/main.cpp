@@ -92,8 +92,10 @@ preloadFiles(QStringList preloadlist)
   }
 }
 
+static const QString kAgaveUrlPrefix("agave://");
+
 std::string
-sanitizeAgaveUrlString(QString &agaveUrlString)
+sanitizeAgaveUrlString(QString& agaveUrlString)
 {
   // the file path may be percent encoded, if it came through a url protocol handler, so decode it
   QString output = QUrl::fromPercentEncoding(agaveUrlString.toUtf8());
@@ -107,38 +109,37 @@ sanitizeAgaveUrlString(QString &agaveUrlString)
 class AgaveApplication : public QApplication
 {
 public:
-    AgaveApplication(int &argc, char **argv)
-        : QApplication(argc, argv)
-    {
-    }
+  AgaveApplication(int& argc, char** argv)
+    : QApplication(argc, argv)
+  {
+  }
 
-    void setGUI(agaveGui *gui) {
-      m_gui = gui;
-    }
+  void setGUI(agaveGui* gui) { m_gui = gui; }
 
-    bool event(QEvent *event) override
-    {
-        if (event->type() == QEvent::FileOpen) {
-            QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-            const QUrl url = openEvent->url();
-            QString urlString = url.toString();
-            if (url.isValid()) {
-              std::string fileToOpen;
-              if (urlString.startsWith("agave://")) {
-                fileToOpen = sanitizeAgaveUrlString(urlString);
-              } else {
-                fileToOpen = urlString.toStdString();
-              }
-              m_gui->open(fileToOpen);
-            } else {
-                LOG_WARNING << "Received QFileOpenEvent with invalid url/file path: " << urlString.toStdString();
-            }
+  bool event(QEvent* event) override
+  {
+    if (event->type() == QEvent::FileOpen) {
+      // This is how MacOS sends file open events, e.g. from a registered agave:// url handler
+      QFileOpenEvent* openEvent = static_cast<QFileOpenEvent*>(event);
+      const QUrl url = openEvent->url();
+      QString urlString = url.toString();
+      if (url.isValid()) {
+        std::string fileToOpen;
+        if (urlString.startsWith(kAgaveUrlPrefix)) {
+          fileToOpen = sanitizeAgaveUrlString(urlString);
+        } else {
+          fileToOpen = urlString.toStdString();
         }
-
-        return QApplication::event(event);
+        m_gui->open(fileToOpen);
+      } else {
+        LOG_WARNING << "Received QFileOpenEvent with invalid url/file path: " << urlString.toStdString();
+      }
     }
 
-    agaveGui* m_gui = nullptr;
+    return QApplication::event(event);
+  }
+
+  agaveGui* m_gui = nullptr;
 };
 
 int
@@ -194,7 +195,7 @@ main(int argc, char* argv[])
   int selectedGpu = parser.value(selectGpuOption).toInt();
   QString fileInput = parser.value(loadOption);
   std::string fileToLoad;
-  if (fileInput.startsWith("agave://")) {
+  if (fileInput.startsWith(kAgaveUrlPrefix)) {
     fileToLoad = sanitizeAgaveUrlString(fileInput);
   } else {
     fileToLoad = fileInput.toStdString();
