@@ -31,6 +31,9 @@ class agaveGui : public QMainWindow
 public:
   agaveGui(QWidget* parent = Q_NULLPTR);
 
+protected:
+  virtual void changeEvent(QEvent* event) override;
+
 private:
   Ui::agaveGuiClass m_ui;
 
@@ -61,6 +64,7 @@ private slots:
   void view_reset();
   void view_frame();
   void view_toggleProjection();
+  void showAxisHelper();
   void viewFocusChanged(GLView3D* glView);
   void tabChanged(int index);
   void openMeshDialog();
@@ -167,4 +171,6 @@ private:
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
   LoadSpec m_loadSpec;
+
+  Qt::ColorScheme m_colorScheme;
 };

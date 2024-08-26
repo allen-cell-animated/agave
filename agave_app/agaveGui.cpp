@@ -37,11 +37,51 @@
 
 #include <filesystem>
 
+const QString darkStyleSheet = R"(
+QToolTip{padding:3px;}
+QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
+QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")} 
+QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg"); qproperty-icon: url(":/icons/dark/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg"); qproperty-icon: url(":/icons/dark/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") } 
+QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
+QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
+QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
+QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
+QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/dark/linked.png"); qproperty-icon: url(":/icons/dark/linked.png") }
+QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/dark/unlinked.png"); qproperty-icon: url(":/icons/dark/unlinked.png") }
+)";
+const QString lightStyleSheet = R"(
+QToolTip{padding:3px;}
+QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
+QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
+QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") } 
+QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg"); qproperty-icon: url(":/icons/light/topView.svg") }
+QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg"); qproperty-icon: url(":/icons/light/bottomView.svg") }
+QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-icon: url(":/icons/light/frontView.svg") }
+QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-icon: url(":/icons/light/backView.svg") }
+QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
+QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
+QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
+QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/light/linked.png"); qproperty-icon: url(":/icons/light/linked.png") }
+QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/light/unlinked.png"); qproperty-icon: url(":/icons/light/unlinked.png") }
+)";
+
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  setStyleSheet("QToolTip{padding:3px;}");
   m_ui.setupUi(this);
+
+  auto sh = QGuiApplication::styleHints();
+  m_colorScheme = sh->colorScheme();
+  if (m_colorScheme == Qt::ColorScheme::Dark) {
+    setStyleSheet(darkStyleSheet);
+  } else if (m_colorScheme == Qt::ColorScheme::Light) {
+    setStyleSheet(lightStyleSheet);
+  }
 
   // create actions first so they can be deposited in other gui elements
   createActions();
@@ -76,7 +116,7 @@ agaveGui::agaveGui(QWidget* parent)
   auto vlayout = new QVBoxLayout();
   vlayout->setContentsMargins(0, 0, 0, 0);
   vlayout->setSpacing(2);
-  m_viewToolbar = new ViewToolbar();
+  m_viewToolbar = new ViewToolbar(m_viewWithToolbar);
   connect(m_viewToolbar->topViewButton, &QPushButton::clicked, this, &agaveGui::view_top);
   connect(m_viewToolbar->bottomViewButton, &QPushButton::clicked, this, &agaveGui::view_bottom);
   connect(m_viewToolbar->leftViewButton, &QPushButton::clicked, this, &agaveGui::view_left);
@@ -86,6 +126,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_viewToolbar->frameViewButton, &QPushButton::clicked, this, &agaveGui::view_frame);
   connect(m_viewToolbar->homeButton, &QPushButton::clicked, this, &agaveGui::view_reset);
   connect(m_viewToolbar->orthoViewButton, &QPushButton::clicked, this, &agaveGui::view_toggleProjection);
+  connect(m_viewToolbar->axisHelperButton, &QPushButton::clicked, this, &agaveGui::showAxisHelper);
   vlayout->addWidget(m_viewToolbar);
   vlayout->addWidget(m_glView, 1);
 
@@ -860,6 +901,12 @@ agaveGui::view_toggleProjection()
 }
 
 void
+agaveGui::showAxisHelper()
+{
+  m_appScene.m_showAxisHelper = !m_appScene.m_showAxisHelper;
+}
+
+void
 agaveGui::setRecentFilesVisible(bool visible)
 {
   m_recentFileSubMenuAct->setVisible(visible);
@@ -1208,4 +1255,26 @@ agaveGui::appToViewerState()
   v.capture = fromCaptureSettings(m_captureSettings, m_glView->width(), m_glView->height());
 
   return v;
+}
+
+void
+agaveGui::changeEvent(QEvent* event)
+{
+  if (event->type() == QEvent::ThemeChange) {
+    // check for dark or light mode
+    auto sh = QGuiApplication::styleHints();
+    auto colorScheme = sh->colorScheme();
+    if (m_colorScheme == colorScheme) {
+      return;
+    }
+    if (colorScheme == Qt::ColorScheme::Dark) {
+      setStyleSheet(darkStyleSheet);
+      LOG_DEBUG << "ThemeChange to Dark";
+    } else if (colorScheme == Qt::ColorScheme::Light) {
+      setStyleSheet(lightStyleSheet);
+      LOG_DEBUG << "ThemeChange to Light";
+    }
+    m_colorScheme = colorScheme;
+  }
+  QMainWindow::changeEvent(event);
 }
