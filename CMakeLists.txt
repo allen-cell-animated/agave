@@ -298,6 +298,7 @@ elseif(APPLE)
 
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
   set_target_properties(agaveapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
+	set_target_properties(agaveapp PROPERTIES MACOSX_BUNDLE_ICON_FILE dmg-icon.icns)
 
   # Note Mac specific extension .app
   set(APPS "\${CMAKE_INSTALL_PREFIX}/agave.app")
@@ -334,6 +335,7 @@ elseif(APPLE)
 
   set(CPACK_GENERATOR "DragNDrop")
   set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/MacOSPreBuild.cmake")
+  set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/agave_app/icons/dmg-icon.icns")
 
   include(CPack)
 

@@ -111,8 +111,6 @@ if(WIN32)
 			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
 	)
 elseif(APPLE)
-	set(MACOSX_BUNDLE_ICON_FILE dmg-icon.icns)
-
 	# And the following tells CMake where to find and install the file itself.
 	set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/icons/dmg-icon.icns")
 	set_source_files_properties(${app_icon_macos} PROPERTIES
