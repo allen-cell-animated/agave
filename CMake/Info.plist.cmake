@@ -6,8 +6,18 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>agave</string>
-	<key>CFBundleIconFile</key>
-	<string>dmg-icon.icns</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>dmg-icon.icns</string>
+			</array>
+			<key>UIPrerenderedIcon</key>
+			<false/>
+		</dict>
+	</dict>
 	<key>CFBundleIdentifier</key>
 	<string>org.allencell.agave</string>
 	<key>CFBundleName</key>
