@@ -113,8 +113,7 @@ if(WIN32)
 elseif(APPLE)
 	# And the following tells CMake where to find and install the file itself.
 	set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/icons/dmg-icon.icns")
-	set_source_files_properties(${app_icon_macos} PROPERTIES
-		MACOSX_PACKAGE_LOCATION "Resources")
+	set_property(SOURCE ${app_icon_macos} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}")
 
 	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
 	set(RESOURCES
