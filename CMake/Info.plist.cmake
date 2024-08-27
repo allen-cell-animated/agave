@@ -7,9 +7,9 @@
 	<key>CFBundleExecutable</key>
 	<string>agave</string>
 	<key>CFBundleIconFile</key>
-	<string>Icon</string>
+	<string>dmg-icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.allencell.allencell</string>
+	<string>org.allencell.agave</string>
 	<key>CFBundleName</key>
 	<string>AGAVE</string>
 	<key>CFBundleInfoDictionaryVersion</key>
