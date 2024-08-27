@@ -12,7 +12,7 @@
 		<dict>
 			<key>CFBundleIconFiles</key>
 			<array>
-				<string>dmg-icon.icns</string>
+				<string>logo.icns</string>
 			</array>
 			<key>UIPrerenderedIcon</key>
 			<false/>

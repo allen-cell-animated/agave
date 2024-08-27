@@ -296,13 +296,13 @@ elseif(APPLE)
     DESTINATION agave.app/Contents/Resources/assets/fonts/
   )
   install(FILES
-    ${PROJECT_SOURCE_DIR}/agave_app/icons/dmg-icon.icns
+    ${PROJECT_SOURCE_DIR}/agave_app/icons/logo.icns
     DESTINATION agave.app/Contents/Resources/
   )
 
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/Info.plist.cmake ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
   set_target_properties(agaveapp PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
-	set_target_properties(agaveapp PROPERTIES MACOSX_BUNDLE_ICON_FILE dmg-icon.icns)
+	set_target_properties(agaveapp PROPERTIES MACOSX_BUNDLE_ICON_FILE logo.icns)
 
   # Note Mac specific extension .app
   set(APPS "\${CMAKE_INSTALL_PREFIX}/agave.app")
