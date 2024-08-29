@@ -2,6 +2,7 @@
 
 #include "FileReaderCCP4.h"
 #include "FileReaderCzi.h"
+#include "FileReaderImageSequence.h"
 #include "FileReaderTIFF.h"
 #include "FileReaderZarr.h"
 #include "ImageXYZC.h"
@@ -33,11 +34,13 @@ FileReader::FileReader() {}
 FileReader::~FileReader() {}
 
 IFileReader*
-FileReader::getReader(const std::string& filepath)
+FileReader::getReader(const std::string& filepath, bool isImageSequence)
 {
   std::string extstr = getExtension(filepath);
 
-  if (filepath.find("http") == 0) {
+  if (isImageSequence && (extstr == ".tif" || extstr == ".tiff")) {
+    return new FileReaderImageSequence(filepath);
+  } else if (filepath.find("http") == 0) {
     return new FileReaderZarr(filepath);
   } else if (extstr == ".tif" || extstr == ".tiff") {
     return new FileReaderTIFF(filepath);
@@ -197,6 +200,9 @@ LoadSpec::toString() const
   stream << filepath;
   if (!subpath.empty()) {
     stream << " " << subpath;
+  }
+  if (isImageSequence) {
+	stream << " (sequence)";
   }
   stream << " : scene " << scene << " time " << time;
   stream << " : channels [";

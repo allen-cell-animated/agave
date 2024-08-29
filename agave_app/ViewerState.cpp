@@ -264,6 +264,7 @@ stateToLoadSpec(const Serialize::ViewerState& state)
   LoadSpec spec;
   spec.filepath = s.url;
   spec.subpath = s.subpath;
+  spec.isImageSequence = s.isImageSequence;
   spec.scene = s.scene;
   spec.time = s.time;
   spec.channels = s.channels;
@@ -327,6 +328,7 @@ fromLoadSpec(const LoadSpec& loadSpec)
   Serialize::LoadSettings s;
   s.url = loadSpec.filepath;
   s.subpath = loadSpec.subpath;
+  s.isImageSequence = loadSpec.isImageSequence;
   s.scene = loadSpec.scene;
   s.time = loadSpec.time;
   s.channels = loadSpec.channels;
