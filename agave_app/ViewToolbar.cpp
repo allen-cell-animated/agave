@@ -11,15 +11,18 @@
 #include <QPixmapCache>
 #include <QPushButton>
 #include <QSvgRenderer>
+#include <QToolBar>
+#include <QWidgetAction>
+#include <QMenu>
 
 ViewToolbar::ViewToolbar(QWidget* parent)
   : QWidget(parent)
 {
   QHBoxLayout* toolbarLayout = new QHBoxLayout(this);
-  toolbarLayout->setSpacing(0);
-  toolbarLayout->setContentsMargins(0, 0, 0, 0);
+  toolbarLayout->setSpacing(1);
+  toolbarLayout->setContentsMargins(4, 4, 4, 4);
 
-  static const int spacing = 4;
+  static const int spacing = 8;
 
   homeButton = new QPushButton(QIcon(), "", this);
   homeButton->setObjectName("homeBtn");
@@ -52,7 +55,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   orthoViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(orthoViewButton);
 
-  toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+  // toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
   topViewButton = new QPushButton(QIcon(), "", this);
   topViewButton->setObjectName("topViewBtn");
@@ -61,7 +64,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   topViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   topViewButton->adjustSize();
   topViewButton->setFocusPolicy(Qt::NoFocus);
-  toolbarLayout->addWidget(topViewButton);
+  // toolbarLayout->addWidget(topViewButton);
 
   bottomViewButton = new QPushButton(QIcon(), "", this);
   bottomViewButton->setObjectName("bottomViewBtn");
@@ -70,7 +73,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   bottomViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   bottomViewButton->adjustSize();
   bottomViewButton->setFocusPolicy(Qt::NoFocus);
-  toolbarLayout->addWidget(bottomViewButton);
+  // toolbarLayout->addWidget(bottomViewButton);
 
   frontViewButton = new QPushButton(QIcon(), "", this);
   frontViewButton->setObjectName("frontViewBtn");
@@ -79,7 +82,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   frontViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   frontViewButton->adjustSize();
   frontViewButton->setFocusPolicy(Qt::NoFocus);
-  toolbarLayout->addWidget(frontViewButton);
+  // toolbarLayout->addWidget(frontViewButton);
 
   backViewButton = new QPushButton(QIcon(), "", this);
   backViewButton->setObjectName("backViewBtn");
@@ -88,7 +91,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   backViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   backViewButton->adjustSize();
   backViewButton->setFocusPolicy(Qt::NoFocus);
-  toolbarLayout->addWidget(backViewButton);
+  // toolbarLayout->addWidget(backViewButton);
 
   leftViewButton = new QPushButton(QIcon(), "", this);
   leftViewButton->setObjectName("leftViewBtn");
@@ -97,7 +100,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   leftViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   leftViewButton->adjustSize();
   leftViewButton->setFocusPolicy(Qt::NoFocus);
-  toolbarLayout->addWidget(leftViewButton);
+  // toolbarLayout->addWidget(leftViewButton);
 
   rightViewButton = new QPushButton(QIcon(), "", this);
   rightViewButton->setObjectName("rightViewBtn");
@@ -106,7 +109,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   rightViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   rightViewButton->adjustSize();
   rightViewButton->setFocusPolicy(Qt::NoFocus);
-  toolbarLayout->addWidget(rightViewButton);
+  // toolbarLayout->addWidget(rightViewButton);
 
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
@@ -118,6 +121,33 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   axisHelperButton->adjustSize();
   axisHelperButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(axisHelperButton);
+
+  toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+
+  QMenu* menu = new QMenu("QuickViews", this);
+  QToolBar* toolbar = new QToolBar();
+  toolbar->addWidget(rightViewButton);
+  toolbar->addWidget(leftViewButton);
+  toolbar->addWidget(frontViewButton);
+  toolbar->addWidget(backViewButton);
+  toolbar->addWidget(topViewButton);
+  toolbar->addWidget(bottomViewButton);
+  QWidgetAction* act = new QWidgetAction(toolbar);
+  act->setDefaultWidget(toolbar);
+  menu->addAction(act);
+
+  homeButton0 = new QPushButton(QIcon(), "", this);
+  homeButton0->setObjectName("homeBtn");
+  homeButton0->setToolTip(QString("<FONT>Quick Views</FONT>"));
+  homeButton0->setStatusTip(tr("Quickly set an axis-aligned view"));
+  homeButton0->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  homeButton0->adjustSize();
+  homeButton0->setFocusPolicy(Qt::NoFocus);
+  // homeButton0->setMenu(menu);
+  toolbarLayout->addWidget(homeButton0);
+  connect(homeButton0, &QPushButton::clicked, [menu, this]() {
+    menu->exec(homeButton0->mapToGlobal(homeButton0->rect().bottomLeft()));
+  });
 
   toolbarLayout->addStretch();
 
