@@ -48,6 +48,7 @@ QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-ic
 QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
 QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
 QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
+QPushButton#anyViewBtn { icon: url(":/icons/dark/anyView.svg"); qproperty-icon: url(":/icons/dark/anyView.svg") }
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
 QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/dark/linked.png"); qproperty-icon: url(":/icons/dark/linked.png") }
@@ -64,6 +65,7 @@ QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-i
 QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-icon: url(":/icons/light/backView.svg") }
 QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
 QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
+QPushButton#anyViewBtn { icon: url(":/icons/light/anyView.svg"); qproperty-icon: url(":/icons/light/anyView.svg") }
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
 QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/light/linked.png"); qproperty-icon: url(":/icons/light/linked.png") }

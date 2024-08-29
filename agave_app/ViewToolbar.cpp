@@ -137,7 +137,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   menu->addAction(act);
 
   homeButton0 = new QPushButton(QIcon(), "", this);
-  homeButton0->setObjectName("homeBtn");
+  homeButton0->setObjectName("anyViewBtn");
   homeButton0->setToolTip(QString("<FONT>Quick Views</FONT>"));
   homeButton0->setStatusTip(tr("Quickly set an axis-aligned view"));
   homeButton0->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
