@@ -55,61 +55,35 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   orthoViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(orthoViewButton);
 
-  // toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
-
   topViewButton = new QPushButton(QIcon(), "", this);
   topViewButton->setObjectName("topViewBtn");
   topViewButton->setToolTip(QString("<FONT>Top view (-Y)</FONT>"));
   topViewButton->setStatusTip(tr("Set the view to look down the negative Y axis"));
-  topViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  topViewButton->adjustSize();
-  topViewButton->setFocusPolicy(Qt::NoFocus);
-  // toolbarLayout->addWidget(topViewButton);
 
   bottomViewButton = new QPushButton(QIcon(), "", this);
   bottomViewButton->setObjectName("bottomViewBtn");
   bottomViewButton->setToolTip(QString("<FONT>Bottom view (+Y)</FONT>"));
   bottomViewButton->setStatusTip(tr("Set the view to look down the positive Y axis"));
-  bottomViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  bottomViewButton->adjustSize();
-  bottomViewButton->setFocusPolicy(Qt::NoFocus);
-  // toolbarLayout->addWidget(bottomViewButton);
 
   frontViewButton = new QPushButton(QIcon(), "", this);
   frontViewButton->setObjectName("frontViewBtn");
   frontViewButton->setToolTip(QString("<FONT>Front view (-Z)</FONT>"));
   frontViewButton->setStatusTip(tr("Set the view to look down the negative Z axis"));
-  frontViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  frontViewButton->adjustSize();
-  frontViewButton->setFocusPolicy(Qt::NoFocus);
-  // toolbarLayout->addWidget(frontViewButton);
 
   backViewButton = new QPushButton(QIcon(), "", this);
   backViewButton->setObjectName("backViewBtn");
   backViewButton->setToolTip(QString("<FONT>Back view (+Z)</FONT>"));
   backViewButton->setStatusTip(tr("Set the view to look down the positive Z axis"));
-  backViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  backViewButton->adjustSize();
-  backViewButton->setFocusPolicy(Qt::NoFocus);
-  // toolbarLayout->addWidget(backViewButton);
 
   leftViewButton = new QPushButton(QIcon(), "", this);
   leftViewButton->setObjectName("leftViewBtn");
   leftViewButton->setToolTip(QString("<FONT>Left view (+X)</FONT>"));
   leftViewButton->setStatusTip(tr("Set the view to look down the positive X axis"));
-  leftViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  leftViewButton->adjustSize();
-  leftViewButton->setFocusPolicy(Qt::NoFocus);
-  // toolbarLayout->addWidget(leftViewButton);
 
   rightViewButton = new QPushButton(QIcon(), "", this);
   rightViewButton->setObjectName("rightViewBtn");
   rightViewButton->setToolTip(QString("<FONT>Right view (-X)</FONT>"));
   rightViewButton->setStatusTip(tr("Set the view to look down the negative X axis"));
-  rightViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  rightViewButton->adjustSize();
-  rightViewButton->setFocusPolicy(Qt::NoFocus);
-  // toolbarLayout->addWidget(rightViewButton);
 
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
