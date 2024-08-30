@@ -16,7 +16,7 @@ public:
   virtual ~ViewToolbar();
   void initFromCamera(const CCamera& camera);
 
-  QToolButton* axisViewButton;
+  QPushButton* axisViewButton;
 
   QPushButton* homeButton;
   QPushButton* frameViewButton;
