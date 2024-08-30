@@ -3,6 +3,7 @@
 #include "Controls.h"
 
 #include <QPushButton>
+#include <QToolButton>
 #include <QWidget>
 
 class CCamera;
@@ -15,7 +16,7 @@ public:
   virtual ~ViewToolbar();
   void initFromCamera(const CCamera& camera);
 
-  QPushButton* axisViewButton;
+  QToolButton* axisViewButton;
 
   QPushButton* homeButton;
   QPushButton* frameViewButton;

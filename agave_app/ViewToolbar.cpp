@@ -110,14 +110,16 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   act->setDefaultWidget(toolbar);
   menu->addAction(act);
 
-  axisViewButton = new QPushButton(QIcon(), "", this);
+  axisViewButton = new QToolButton(this);
   axisViewButton->setObjectName("anyViewBtn");
   axisViewButton->setToolTip(QString("<FONT>Quick Views</FONT>"));
   axisViewButton->setStatusTip(tr("Quickly set an axis-aligned view"));
-  axisViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  axisViewButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+  axisViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
   axisViewButton->adjustSize();
   axisViewButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(axisViewButton);
+  axisViewButton->setMenu(menu);
   connect(axisViewButton, &QPushButton::clicked, [menu, this]() {
     menu->exec(axisViewButton->mapToGlobal(axisViewButton->rect().bottomLeft()));
   });
