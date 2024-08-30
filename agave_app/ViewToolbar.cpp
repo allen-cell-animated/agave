@@ -110,17 +110,16 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   act->setDefaultWidget(toolbar);
   menu->addAction(act);
 
-  homeButton0 = new QPushButton(QIcon(), "", this);
-  homeButton0->setObjectName("anyViewBtn");
-  homeButton0->setToolTip(QString("<FONT>Quick Views</FONT>"));
-  homeButton0->setStatusTip(tr("Quickly set an axis-aligned view"));
-  homeButton0->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  homeButton0->adjustSize();
-  homeButton0->setFocusPolicy(Qt::NoFocus);
-  // homeButton0->setMenu(menu);
-  toolbarLayout->addWidget(homeButton0);
-  connect(homeButton0, &QPushButton::clicked, [menu, this]() {
-    menu->exec(homeButton0->mapToGlobal(homeButton0->rect().bottomLeft()));
+  axisViewButton = new QPushButton(QIcon(), "", this);
+  axisViewButton->setObjectName("anyViewBtn");
+  axisViewButton->setToolTip(QString("<FONT>Quick Views</FONT>"));
+  axisViewButton->setStatusTip(tr("Quickly set an axis-aligned view"));
+  axisViewButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  axisViewButton->adjustSize();
+  axisViewButton->setFocusPolicy(Qt::NoFocus);
+  toolbarLayout->addWidget(axisViewButton);
+  connect(axisViewButton, &QPushButton::clicked, [menu, this]() {
+    menu->exec(axisViewButton->mapToGlobal(axisViewButton->rect().bottomLeft()));
   });
 
   toolbarLayout->addStretch();
