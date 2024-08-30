@@ -1149,10 +1149,10 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   // capture settings
   m_captureSettings.width = v.capture.width;
   m_captureSettings.height = v.capture.height;
-  m_captureSettings.samples = v.capture.samples;
-  m_captureSettings.duration = v.capture.seconds;
+  m_captureSettings.renderDuration.samples = v.capture.samples;
+  m_captureSettings.renderDuration.duration = v.capture.seconds;
   // TODO proper lookup for permid
-  m_captureSettings.durationType = (eRenderDurationType)v.capture.durationType;
+  m_captureSettings.renderDuration.durationType = (eRenderDurationType)v.capture.durationType;
   m_captureSettings.startTime = v.capture.startTime;
   m_captureSettings.endTime = v.capture.endTime;
   m_captureSettings.outputDir = v.capture.outputDirectory;

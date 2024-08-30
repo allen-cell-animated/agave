@@ -32,7 +32,7 @@ LoadDialog::LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims
   std::string title;
   QString pathString = QString::fromStdString(path);
   QString extension = pathString.sliced(pathString.lastIndexOf("."));
-  if (pathString.indexOf("http") == 0) {
+  if ((pathString.indexOf("http") == 0) || (pathString.indexOf("s3:") == 0) || (pathString.indexOf("gs:") == 0)) {
     title = "URL Load Settings";
   } else if (extension.indexOf(".zarr") == 0) {
     title = "Directory Load Settings";
