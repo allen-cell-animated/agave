@@ -156,15 +156,9 @@ Renderer::shouldContinue()
               << m_myVolumeData.m_captureSettings->renderDuration.samples << " && " << m_frameTimeSeconds << " < "
               << m_myVolumeData.m_captureSettings->renderDuration.duration;
     if (m_myVolumeData.m_captureSettings->renderDuration.durationType == SAMPLES) {
-      if (m_frameIterations < m_myVolumeData.m_captureSettings->renderDuration.samples) {
-        return true;
-      }
-      return false;
+      return (m_frameIterations < m_myVolumeData.m_captureSettings->renderDuration.samples);
     } else if (m_myVolumeData.m_captureSettings->renderDuration.durationType == TIME) {
-      if (m_frameTimeSeconds < m_myVolumeData.m_captureSettings->renderDuration.duration) {
-        return true;
-      }
-      return false;
+      return (m_frameTimeSeconds < m_myVolumeData.m_captureSettings->renderDuration.duration);
     }
   }
   return true;
