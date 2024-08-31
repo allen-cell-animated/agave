@@ -476,7 +476,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
   struct STAT64_STRUCT buf;
   if (STAT64_FUNCTION(m_data.m_path.c_str(), &buf) == 0) {
     // TODO load metadata dims first
-
+    // TODO can we load time sequences of separate files here?
     std::unique_ptr<IFileReader> reader(FileReader::getReader(m_data.m_path));
     if (!reader) {
       LOG_ERROR << "Could not find a reader for file " << m_data.m_path;
@@ -563,7 +563,7 @@ SetTimeCommand::execute(ExecutionContext* c)
   std::shared_ptr<ImageXYZC> image;
   try {
 
-    std::unique_ptr<IFileReader> reader(FileReader::getReader(loadSpec.filepath));
+    std::unique_ptr<IFileReader> reader(FileReader::getReader(loadSpec.filepath, loadSpec.isImageSequence));
     if (!reader) {
       LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
       image = nullptr;
@@ -664,6 +664,7 @@ LoadDataCommand::execute(ExecutionContext* c)
   c->m_loadSpec.minz = m_data.m_zmin;
   c->m_loadSpec.maxz = m_data.m_zmax;
 
+  // TODO can we load time sequences of separate files here?
   std::unique_ptr<IFileReader> reader(FileReader::getReader(m_data.m_path));
   if (!reader) {
     LOG_ERROR << "Could not find a reader for file " << m_data.m_path;

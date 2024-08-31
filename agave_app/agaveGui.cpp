@@ -374,18 +374,32 @@ agaveGui::open()
 {
   QString dir = readRecentDirectory();
 
-  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
-#ifdef __linux__
-  options |= QFileDialog::DontUseNativeDialog;
-#endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
-
-  if (!file.isEmpty()) {
-    if (!open(file.toStdString())) {
-      showOpenFailedMessageBox(file);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog;
+  QFileDialog dlg(this, tr("Open Volume"), dir, QString());
+  dlg.setFileMode(QFileDialog::ExistingFile);
+  dlg.setOptions(options);
+  auto layout = dlg.layout();
+  // Image sequence will be interpreted as TIMES, one volume per time (= per file)
+  auto imageSequenceCheckbox = new QCheckBox("Image Sequence", &dlg);
+  imageSequenceCheckbox->setToolTip(
+    "Will scan directory and read files as a time sequence in order sorted by filename");
+  layout->addWidget(imageSequenceCheckbox);
+  QStringList fileNames;
+  if (dlg.exec()) {
+    fileNames = dlg.selectedFiles();
+    if (fileNames.size() > 0) {
+      // only use the first filename for loading.
+      QString file = fileNames[0];
+      if (!file.isEmpty()) {
+        bool isImageSequence = imageSequenceCheckbox->isChecked();
+        if (!open(file.toStdString(), nullptr, isImageSequence)) {
+          showOpenFailedMessageBox(file);
+        }
+      }
     }
   }
 }
+
 void
 agaveGui::openDirectory()
 {
@@ -687,7 +701,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
+agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool isImageSequence)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
@@ -700,7 +714,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     timeToLoad = loadSpec.time;
   }
 
-  std::shared_ptr<IFileReader> reader(FileReader::getReader(file));
+  std::shared_ptr<IFileReader> reader(FileReader::getReader(file, isImageSequence));
   if (!reader) {
     QMessageBox b(QMessageBox::Warning,
                   "Error",
@@ -745,10 +759,11 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
   bool keepCurrentUISettings = true;
 
   if (!vs) {
-
     LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
+      // the loadSpec will need to remember that we loaded an image sequence
+      loadSpec.isImageSequence = isImageSequence;
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
       keepCurrentUISettings = loadDialog->getKeepSettings();
     } else {
@@ -1134,10 +1149,10 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   // capture settings
   m_captureSettings.width = v.capture.width;
   m_captureSettings.height = v.capture.height;
-  m_captureSettings.samples = v.capture.samples;
-  m_captureSettings.duration = v.capture.seconds;
+  m_captureSettings.renderDuration.samples = v.capture.samples;
+  m_captureSettings.renderDuration.duration = v.capture.seconds;
   // TODO proper lookup for permid
-  m_captureSettings.durationType = (eRenderDurationType)v.capture.durationType;
+  m_captureSettings.renderDuration.durationType = (eRenderDurationType)v.capture.durationType;
   m_captureSettings.startTime = v.capture.startTime;
   m_captureSettings.endTime = v.capture.endTime;
   m_captureSettings.outputDir = v.capture.outputDirectory;

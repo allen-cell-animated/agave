@@ -1,19 +1,10 @@
 #include "VolumeDimensions.h"
 
 #include "Logging.h"
+#include "StringUtil.h"
 
 #include <regex>
 #include <set>
-
-bool
-startsWith(std::string mainStr, std::string toMatch)
-{
-  // std::string::find returns 0 if toMatch is found at starting
-  if (mainStr.find(toMatch) == 0)
-    return true;
-  else
-    return false;
-}
 
 bool
 VolumeDimensions::validate() const

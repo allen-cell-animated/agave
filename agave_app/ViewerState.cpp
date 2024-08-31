@@ -264,6 +264,7 @@ stateToLoadSpec(const Serialize::ViewerState& state)
   LoadSpec spec;
   spec.filepath = s.url;
   spec.subpath = s.subpath;
+  spec.isImageSequence = s.isImageSequence;
   spec.scene = s.scene;
   spec.time = s.time;
   spec.channels = s.channels;
@@ -327,6 +328,7 @@ fromLoadSpec(const LoadSpec& loadSpec)
   Serialize::LoadSettings s;
   s.url = loadSpec.filepath;
   s.subpath = loadSpec.subpath;
+  s.isImageSequence = loadSpec.isImageSequence;
   s.scene = loadSpec.scene;
   s.time = loadSpec.time;
   s.channels = loadSpec.channels;
@@ -368,9 +370,9 @@ fromCaptureSettings(const CaptureSettings& cs, int viewWidth, int viewHeight)
   // render dialog has been opened.
   s.width = cs.width == 0 ? viewWidth : cs.width;
   s.height = cs.height == 0 ? viewHeight : cs.height;
-  s.samples = cs.samples;
-  s.seconds = cs.duration;
-  s.durationType = g_RenderDurationTypeToPermId[cs.durationType];
+  s.samples = cs.renderDuration.samples;
+  s.seconds = cs.renderDuration.duration;
+  s.durationType = g_RenderDurationTypeToPermId[cs.renderDuration.durationType];
   s.startTime = cs.startTime;
   s.endTime = cs.endTime;
   s.outputDirectory = cs.outputDir;

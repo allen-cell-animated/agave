@@ -23,6 +23,8 @@ Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
   : QThread(parent)
   , m_id(id)
   , m_streamMode(false)
+  , m_frameIterations(0)
+  , m_frameTimeSeconds(0.0f)
   , m_fbo(nullptr)
   , m_width(0)
   , m_height(0)
@@ -50,13 +52,15 @@ Renderer::configure(IRenderWindow* renderer,
                     const LoadSpec& loadSpec,
                     // rendererMode ignored if renderer is non-null
                     renderlib::RendererType rendererMode,
-                    QOpenGLContext* glContext)
+                    QOpenGLContext* glContext,
+                    const CaptureSettings* captureSettings)
 {
   // assumes scene is already set in renderer and everything is initialized
   m_myVolumeData.m_renderSettings = new RenderSettings(renderSettings);
   m_myVolumeData.m_camera = new CCamera(camera);
   m_myVolumeData.m_scene = new Scene(scene);
   m_myVolumeData.m_loadSpec = loadSpec;
+  m_myVolumeData.m_captureSettings = new CaptureSettings(*captureSettings);
   m_ec.m_loadSpec = loadSpec;
   if (!renderer) {
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(1024);
@@ -144,8 +148,26 @@ Renderer::addRequest(RenderRequest* request)
 }
 
 bool
+Renderer::shouldContinue()
+{
+  // check current frame time against capturesettings.
+  if (m_myVolumeData.m_captureSettings) {
+    LOG_DEBUG << "ShouldContinue check: " << m_frameIterations << " < "
+              << m_myVolumeData.m_captureSettings->renderDuration.samples << " && " << m_frameTimeSeconds << " < "
+              << m_myVolumeData.m_captureSettings->renderDuration.duration;
+    if (m_myVolumeData.m_captureSettings->renderDuration.durationType == SAMPLES) {
+      return (m_frameIterations < m_myVolumeData.m_captureSettings->renderDuration.samples);
+    } else if (m_myVolumeData.m_captureSettings->renderDuration.durationType == TIME) {
+      return (m_frameTimeSeconds < m_myVolumeData.m_captureSettings->renderDuration.duration);
+    }
+  }
+  return true;
+}
+
+bool
 Renderer::processRequest()
 {
+  // sleep till request queue has a task
   m_requestMutex.lock();
   if (m_requests.isEmpty()) {
     m_wait.wait(&m_requestMutex);
@@ -189,12 +211,15 @@ Renderer::processRequest()
       }
 
       img = this->render();
+      LOG_DEBUG << "RENDERED sample iteration " << m_frameIterations << " in " << timer.nsecsElapsed() << "ns";
 
       lastReq->setActualDuration(timer.nsecsElapsed());
 
       // in stream mode:
       // if queue is empty, then keep firing redraws back to client, to build up iterations.
-      if (m_streamMode) {
+      m_frameIterations++;
+      m_frameTimeSeconds += timer.nsecsElapsed() / (1000.0f * 1000.0f * 1000.0f);
+      if (m_streamMode && shouldContinue()) {
         // push another redraw request.
         std::vector<Command*> cmd;
         RequestRedrawCommandD data;
@@ -242,6 +267,12 @@ Renderer::processRequest()
     // QMetaObject::invokeMethod(
     //  renderDialog, [=]() { /* ... onRenderRequestProcessed(lastReq, img); ... */ }, Qt::QueuedConnection);
     emit requestProcessed(lastReq, img);
+
+    if (m_streamMode && !shouldContinue()) {
+      m_frameIterations = 0;
+      m_frameTimeSeconds = 0.0f;
+      emit frameDone(img);
+    }
   }
   return true;
 }
@@ -366,6 +397,9 @@ Renderer::shutDown()
   m_rglContext.makeCurrent();
 
   delete this->m_fbo;
+
+  delete m_myVolumeData.m_captureSettings;
+  m_myVolumeData.m_captureSettings = nullptr;
 
   delete m_myVolumeData.m_renderSettings;
   m_myVolumeData.m_renderSettings = nullptr;
