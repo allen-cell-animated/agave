@@ -8,7 +8,6 @@
 #include "renderlib/command.h"
 #include "renderlib/graphics/IRenderWindow.h"
 
-
 #include <QApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -250,6 +249,7 @@ RenderDialog::RenderDialog(ViewerWindow* borrowedRenderer,
   , m_loadSpec(loadSpec)
   , m_renderThread(nullptr)
   , m_frameRenderTime(0)
+  , m_uiUpdateTime(0)
   , mWidth(0)
   , mHeight(0)
   , mFrameNumber(0)
@@ -278,10 +278,10 @@ QGroupBox
   bool isTimeSeries = scene.m_timeLine.maxTime() > 0;
 
   mFrameProgressBar = new QProgressBar(this);
-  if (mCaptureSettings->durationType == eRenderDurationType::SAMPLES) {
-    mFrameProgressBar->setRange(0, mCaptureSettings->samples);
+  if (mCaptureSettings->renderDuration.durationType == eRenderDurationType::SAMPLES) {
+    mFrameProgressBar->setRange(0, mCaptureSettings->renderDuration.samples);
   } else {
-    mFrameProgressBar->setRange(0, mCaptureSettings->duration);
+    mFrameProgressBar->setRange(0, mCaptureSettings->renderDuration.duration);
   }
 
   mRenderDurationEdit = new QButtonGroup(this);
@@ -301,19 +301,19 @@ QGroupBox
     { eRenderDurationType::SAMPLES, 0 },
     { eRenderDurationType::TIME, 1 },
   };
-  mRenderDurationEdit->button(mCaptureSettings->durationType)->setChecked(true);
+  mRenderDurationEdit->button(mCaptureSettings->renderDuration.durationType)->setChecked(true);
 
   mRenderSamplesEdit = new QSpinBox(this);
   mRenderSamplesEdit->setMinimum(1);
   // arbitrarily chosen
   mRenderSamplesEdit->setMaximum(65536);
-  mRenderSamplesEdit->setValue(mCaptureSettings->samples);
+  mRenderSamplesEdit->setValue(mCaptureSettings->renderDuration.samples);
   mRenderTimeEdit = new QTimeEdit(this);
   mRenderTimeEdit->setDisplayFormat("hh:mm:ss");
   mRenderTimeEdit->setMinimumTime(QTime(0, 0, 1));
-  int h = mCaptureSettings->duration / (60 * 60);
-  int m = (mCaptureSettings->duration - h * 60 * 60) / 60;
-  int s = (mCaptureSettings->duration - h * 60 * 60 - m * 60);
+  int h = mCaptureSettings->renderDuration.duration / (60 * 60);
+  int m = (mCaptureSettings->renderDuration.duration - h * 60 * 60) / 60;
+  int s = (mCaptureSettings->renderDuration.duration - h * 60 * 60 - m * 60);
   mRenderTimeEdit->setTime(QTime(h, m, s));
 
   mMainViewWidth = viewportWidth;
@@ -330,16 +330,13 @@ QGroupBox
   mHeightInput = new QLineEdit(QString::number(mHeight), this);
   mHeightInput->setValidator(new QIntValidator(2, 16384, this));
 
-  mLockAspectRatio = new QPushButton(QIcon(":/icons/linked.png"), "", this);
+  mLockAspectRatio = new QPushButton(QIcon(), "", this);
+  mLockAspectRatio->setObjectName("lockAspectRatioBtn");
   mLockAspectRatio->setCheckable(true);
   mLockAspectRatio->setChecked(true);
   mLockAspectRatio->setToolTip(QString("<FONT>Lock/unlock aspect ratio when editing X and Y values</FONT>"));
-  connect(mLockAspectRatio, &QPushButton::toggled, [this]() {
-    mLockAspectRatio->setIcon(QIcon(mLockAspectRatio->isChecked() ? ":/icons/linked.png" : ":/icons/unlinked.png"));
-  });
+  connect(mLockAspectRatio, &QPushButton::toggled, [this]() { mLockAspectRatio->style()->polish(mLockAspectRatio); });
 
-  // mLockAspectRatio->setStyleSheet(
-  //   "QPushButton:checked {image:url(:/icons/linked.png);} QPushButton:unchecked {image:url(:/icons/unlinked.png);}");
   mResolutionPresets = new QComboBox(this);
   mResolutionPresets->addItem("Resolution Presets...");
   mResolutionPresets->addItem(QString::fromStdString("Main window (" + std::to_string(mMainViewWidth) + "x" +
@@ -505,7 +502,7 @@ QGroupBox
   mRenderDurationSettings->addWidget(durationSettingsTime);
   mRenderDurationSettings->addWidget(durationSettingsSamples);
   // initialize
-  setRenderDurationType(mCaptureSettings->durationType);
+  setRenderDurationType(mCaptureSettings->renderDuration.durationType);
 
   QWidget* durationsWidget = new QWidget();
   durationsWidget->setLayout(durationsHLayout);
@@ -750,12 +747,19 @@ RenderDialog::render()
 
       // queued across thread boundary.  requestProcessed is called from another thread, asynchronously.
       connect(m_renderThread, &Renderer::requestProcessed, this, &RenderDialog::onRenderRequestProcessed);
+      connect(m_renderThread, &Renderer::frameDone, this, &RenderDialog::onFrameDone);
       connect(m_renderThread, &Renderer::finished, this, &RenderDialog::onRenderThreadFinished);
     }
 
     // now get our rendering resources into this Renderer object
-    m_renderThread->configure(
-      m_renderer, m_renderSettings, m_scene, m_camera, m_loadSpec, renderlib::RendererType_Pathtrace, m_glContext);
+    m_renderThread->configure(m_renderer,
+                              m_renderSettings,
+                              m_scene,
+                              m_camera,
+                              m_loadSpec,
+                              renderlib::RendererType_Pathtrace,
+                              m_glContext,
+                              mCaptureSettings);
 
     onZoomFitClicked();
     // first time in, set up stream mode and give the first draw request
@@ -792,6 +796,92 @@ RenderDialog::getFullSavePath()
 }
 
 void
+RenderDialog::onFrameDone(QImage image)
+{
+  // note that every render request that comes thru here sends a
+  // whole new image.
+  // this is likely much less efficient than writing the image in-place
+
+  // this is called after the render thread has completed a render request
+  // the QImage is sent here from the thread.
+  // this is an incremental update of a render and our chance to update the GUI and state of our processing
+
+  if (!m_renderThread || m_renderThread->isFinished() || m_renderThread->isInterruptionRequested()) {
+    LOG_DEBUG << "received frame after render terminated";
+  }
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+    LOG_DEBUG << "received frame after timeline completed";
+    return;
+  }
+
+  mFrameProgressBar->setValue(mFrameProgressBar->maximum());
+  // stop streaming mode while we deal with a completed frame
+  m_renderThread->setStreamMode(0);
+
+  // we just received the last sample.
+  // however, another sample was already enqueued!!!!
+  // so we know we will have one sample to discard.
+
+  LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
+
+  // update display with finished frame
+  this->setImage(&image);
+
+  // save image
+  if (mAutosaveCheckbox->isChecked()) {
+    QString saveFilePath = getFullSavePath();
+    // if not in time series, then unique-ify the filename
+    if (!mTimeSeriesProgressLabel) {
+      saveFilePath = getUniqueNextFilename(saveFilePath);
+    }
+
+    // TODO don't throw away alpha - rethink how image is composited with background color
+    QImage im = image.convertToFormat(QImage::Format_RGB32);
+    bool ok = im.save(saveFilePath);
+    if (!ok) {
+      LOG_ERROR << "Failed to save render " << saveFilePath.toStdString();
+    } else {
+      LOG_INFO << "Saved " << saveFilePath.toStdString();
+    }
+  }
+
+  // increment frame
+  mFrameNumber += 1;
+  mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
+  updateTimeSeriesProgressLabel();
+  LOG_DEBUG << "Total Progress " << mTimeSeriesProgressBar->value() << " / " << mTimeSeriesProgressBar->maximum();
+
+  // done with LAST frame? halt everything.
+  if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
+    LOG_DEBUG << "all frames completed.  ending render";
+    stopRendering();
+    updateUIStopRendering(true);
+  } else {
+    LOG_DEBUG << "reset frame progress for next frame";
+    // reset frame progress and render time
+    mFrameProgressBar->setValue(0);
+    m_frameRenderTime = 0;
+    m_uiUpdateTime = 0;
+
+    // force a redraw of this dialog
+    repaint();
+
+    // set up for next frame!
+    // SetTimeCommand should result in this anyway, so we don't need to do it here.
+    // m_renderer->renderSettings().SetNoIterations(0);
+
+    LOG_DEBUG << "queueing setTime " << mFrameNumber << " command ";
+    std::vector<Command*> cmd;
+    SetTimeCommandD timedata;
+    timedata.m_time = mFrameNumber;
+    cmd.push_back(new SetTimeCommand(timedata));
+    m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
+    // re-enable streamed progressive render frames
+    m_renderThread->setStreamMode(1);
+  }
+}
+
+void
 RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 {
   // note that every render request that comes thru here sends a
@@ -816,6 +906,7 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
 
   // increment our time counter
   this->m_frameRenderTime += req->getActualDuration();
+  m_uiUpdateTime += req->getActualDuration();
 
   // increment progress
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
@@ -826,67 +917,13 @@ RenderDialog::onRenderRequestProcessed(RenderRequest* req, QImage image)
   }
 
   // did a frame finish?
-  if (mFrameProgressBar->value() >= mFrameProgressBar->maximum()) {
-    // we just received the last sample.
-    // however, another sample was already enqueued!!!!
-    // so we know we will have one sample to discard.
-
-    LOG_DEBUG << mFrameProgressBar->value() << " images received";
-    LOG_DEBUG << "Progress " << mFrameProgressBar->value() << " / " << mFrameProgressBar->maximum();
-    LOG_DEBUG << "frame " << mFrameNumber << " progress completed";
-
-    // update display with finished frame
-    this->setImage(&image);
-
-    // save image
-    if (mAutosaveCheckbox->isChecked()) {
-      QString saveFilePath = getFullSavePath();
-      // if not in time series, then unique-ify the filename
-      if (!mTimeSeriesProgressLabel) {
-        saveFilePath = getUniqueNextFilename(saveFilePath);
-      }
-
-      // TODO don't throw away alpha - rethink how image is composited with background color
-      QImage im = image.convertToFormat(QImage::Format_RGB32);
-      bool ok = im.save(saveFilePath);
-      if (!ok) {
-        LOG_ERROR << "Failed to save render " << saveFilePath.toStdString();
-      } else {
-        LOG_INFO << "Saved " << saveFilePath.toStdString();
-      }
-    }
-
-    // increment frame
-    mFrameNumber += 1;
-    mTimeSeriesProgressBar->setValue(mTimeSeriesProgressBar->value() + 1);
-    updateTimeSeriesProgressLabel();
-    LOG_DEBUG << "Total Progress " << mTimeSeriesProgressBar->value() << " / " << mTimeSeriesProgressBar->maximum();
-
-    // done with LAST frame? halt everything.
-    if (mTimeSeriesProgressBar->value() >= mTimeSeriesProgressBar->maximum()) {
-      LOG_DEBUG << "all frames completed.  ending render";
-      stopRendering();
-      updateUIStopRendering(true);
-    } else {
-      LOG_DEBUG << "reset frame progress for next frame";
-      // reset frame progress and render time
-      mFrameProgressBar->setValue(0);
-      m_frameRenderTime = 0;
-
-      // set up for next frame!
-      m_renderer->renderSettings().SetNoIterations(0);
-
-      LOG_DEBUG << "queueing setTime " << mFrameNumber << " command ";
-      std::vector<Command*> cmd;
-      SetTimeCommandD timedata;
-      timedata.m_time = mFrameNumber;
-      cmd.push_back(new SetTimeCommand(timedata));
-      m_renderThread->addRequest(new RenderRequest(nullptr, cmd, false));
-    }
-
-  } else {
+  {
     // update display if it's time to do so.
-    this->setImage(&image);
+    static constexpr float IMAGE_UPDATE_INTERVAL_SECONDS = 1.0;
+    if (m_uiUpdateTime / (1000 * 1000 * 1000) > IMAGE_UPDATE_INTERVAL_SECONDS) {
+      m_uiUpdateTime = 0;
+      this->setImage(&image);
+    }
   }
 }
 
@@ -1038,7 +1075,7 @@ RenderDialog::getYResolution()
 void
 RenderDialog::setRenderDurationType(eRenderDurationType type)
 {
-  mCaptureSettings->durationType = type;
+  mCaptureSettings->renderDuration.durationType = type;
 
   mRenderDurationType = type;
 
@@ -1057,7 +1094,7 @@ RenderDialog::setRenderDurationType(eRenderDurationType type)
 void
 RenderDialog::updateRenderSamples(int s)
 {
-  mCaptureSettings->samples = s;
+  mCaptureSettings->renderDuration.samples = s;
   if (mRenderDurationType == eRenderDurationType::SAMPLES) {
     mFrameProgressBar->setMaximum(s);
   }
@@ -1068,10 +1105,10 @@ RenderDialog::updateRenderSamples(int s)
 void
 RenderDialog::updateRenderTime(const QTime& t)
 {
-  mCaptureSettings->duration = t.hour() * 60 * 60 + t.minute() * 60 + t.second();
+  mCaptureSettings->renderDuration.duration = t.hour() * 60 * 60 + t.minute() * 60 + t.second();
 
   if (mRenderDurationType == eRenderDurationType::TIME) {
-    mFrameProgressBar->setMaximum(mCaptureSettings->duration);
+    mFrameProgressBar->setMaximum(mCaptureSettings->renderDuration.duration);
   }
   resetProgress();
   updateUIReadyToRender();

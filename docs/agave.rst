@@ -54,7 +54,7 @@ File-->Open directory or \[Open directory\] toolbar button
 File-->Open from URL or \[Open from URL\] toolbar button
 
 \[Open file\] will pop open a file browser dialog in which you can navigate to the
-volume file of choice.
+volume file of choice.  Check the "Image Sequence" checkbox if your directory contains a time sequence of individual TIFF files.
 \[Open directory\] will pop open a directory browser dialog in which you can navigate to the
 OME-Zarr store of choice.
 \[Open from URL\] will pop open an input dialog in which you can enter the URL to the

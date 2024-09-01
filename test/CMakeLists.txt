@@ -18,6 +18,7 @@ target_sources(agave_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/test_histogram.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_mathUtil.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_stringUtil.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_timeLine.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_serialize.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_version.cpp"

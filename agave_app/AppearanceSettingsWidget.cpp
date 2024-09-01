@@ -1103,6 +1103,7 @@ QAppearanceSettingsWidget::OnShowScaleBarChecked(bool isChecked)
     return;
   m_scene->m_showScaleBar = isChecked;
 }
+
 void
 QAppearanceSettingsWidget::OnInterpolateChecked(bool isChecked)
 {

@@ -14,6 +14,7 @@ struct MultiscaleDims;
 struct LoadSpec
 {
   std::string filepath;
+  bool isImageSequence;
   // important for zarr multiscale
   // (TODO should store multiscale index instead?  ...and then find subpath from metadata)
   std::string subpath;
@@ -33,7 +34,8 @@ struct LoadSpec
     , miny(0)
     , maxy(0)
     , minz(0)
-    , maxz(0)
+    , maxz(0),
+      isImageSequence(false)
   {
   }
 
