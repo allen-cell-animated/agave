@@ -24,7 +24,7 @@ renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
     return 1;
   }
 
-  WGPUInstanceDescriptor desc;
+  WGPUInstanceDescriptor desc = {};
   desc.nextInChain = nullptr;
   sInstance = wgpuCreateInstance(&desc);
   if (!sInstance) {
@@ -73,10 +73,9 @@ WGPUAdapter
 renderlib_wgpu::getAdapter(WGPUSurface surface)
 {
   WGPUAdapter adapter;
-  WGPURequestAdapterOptions options = {
-    .nextInChain = NULL,
-    .compatibleSurface = surface,
-  };
+  WGPURequestAdapterOptions options = {};
+  options.nextInChain = NULL;
+  options.compatibleSurface = surface;
 
   wgpuInstanceRequestAdapter(getInstance(), &options, request_adapter_callback, (void*)&adapter);
 
@@ -89,39 +88,39 @@ WGPUDevice
 renderlib_wgpu::requestDevice(WGPUAdapter adapter)
 {
   WGPUDevice device;
-  WGPURequiredLimits requiredLimits = {
-    .nextInChain = NULL,
-    .limits =
-      WGPULimits{
-        .maxBindGroups = 1,
-      },
-  };
-  WGPUDeviceExtras deviceExtras = {
-    .chain =
-      WGPUChainedStruct{
-        .next = NULL,
-        .sType = (WGPUSType)WGPUSType_DeviceExtras,
-      },
-    .tracePath = NULL,
-  };
-  WGPUUncapturedErrorCallbackInfo uncapturedErrorInfo = {
-    .nextInChain = nullptr,
-    .callback = handle_uncaptured_error,
-    .userdata = NULL,
-  };
 
-  WGPUDeviceDescriptor deviceDescriptor = { .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
-                                            .label = "AGAVE wgpu device",
-                                            .requiredFeatureCount = 0,
-                                            .requiredLimits = nullptr, // & requiredLimits,
-                                            .defaultQueue =
-                                              WGPUQueueDescriptor{
-                                                .nextInChain = NULL,
-                                                .label = "AGAVE default wgpu queue",
-                                              },
-                                            .deviceLostCallback = handle_device_lost,
-                                            .deviceLostUserdata = NULL,
-                                            .uncapturedErrorCallbackInfo = uncapturedErrorInfo };
+  WGPULimits limits;
+  limits.maxBindGroups = 1;
+
+  WGPURequiredLimits requiredLimits = {};
+  requiredLimits.nextInChain = NULL;
+  requiredLimits.limits = limits;
+
+  WGPUChainedStruct chain = {};
+  chain.next = NULL;
+  chain.sType = (WGPUSType)WGPUSType_DeviceExtras;
+  WGPUDeviceExtras deviceExtras = {};
+  deviceExtras.chain = chain;
+  deviceExtras.tracePath = NULL;
+
+  WGPUUncapturedErrorCallbackInfo uncapturedErrorInfo = {};
+  uncapturedErrorInfo.nextInChain = nullptr;
+  uncapturedErrorInfo.callback = handle_uncaptured_error;
+  uncapturedErrorInfo.userdata = NULL;
+
+  WGPUQueueDescriptor queueDescriptor = {};
+  queueDescriptor.nextInChain = NULL;
+  queueDescriptor.label = "AGAVE default wgpu queue";
+
+  WGPUDeviceDescriptor deviceDescriptor = {};
+  deviceDescriptor.nextInChain = (const WGPUChainedStruct*)&deviceExtras;
+  deviceDescriptor.label = "AGAVE wgpu device";
+  deviceDescriptor.requiredFeatureCount = 0;
+  deviceDescriptor.requiredLimits = nullptr;
+  deviceDescriptor.defaultQueue = queueDescriptor;
+  deviceDescriptor.deviceLostCallback = handle_device_lost;
+  deviceDescriptor.deviceLostUserdata = NULL;
+  deviceDescriptor.uncapturedErrorCallbackInfo = uncapturedErrorInfo;
 
   // creates/ fills in m_device!
   wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&device);
