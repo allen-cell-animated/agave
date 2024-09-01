@@ -104,24 +104,27 @@ renderlib_wgpu::requestDevice(WGPUAdapter adapter)
       },
     .tracePath = NULL,
   };
-  WGPUDeviceDescriptor deviceDescriptor = {
-    .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
-    .label = "AGAVE wgpu device",
-    .requiredFeatureCount = 0,
-    .requiredLimits = nullptr, // & requiredLimits,
-    .defaultQueue =
-      WGPUQueueDescriptor{
-        .nextInChain = NULL,
-        .label = "AGAVE default wgpu queue",
-      },
-    .deviceLostCallback = handle_device_lost,
-    .deviceLostUserdata = NULL,
+  WGPUUncapturedErrorCallbackInfo uncapturedErrorInfo = {
+    .nextInChain = nullptr,
+    .callback = handle_uncaptured_error,
+    .userdata = NULL,
   };
+
+  WGPUDeviceDescriptor deviceDescriptor = { .nextInChain = (const WGPUChainedStruct*)&deviceExtras,
+                                            .label = "AGAVE wgpu device",
+                                            .requiredFeatureCount = 0,
+                                            .requiredLimits = nullptr, // & requiredLimits,
+                                            .defaultQueue =
+                                              WGPUQueueDescriptor{
+                                                .nextInChain = NULL,
+                                                .label = "AGAVE default wgpu queue",
+                                              },
+                                            .deviceLostCallback = handle_device_lost,
+                                            .deviceLostUserdata = NULL,
+                                            .uncapturedErrorCallbackInfo = uncapturedErrorInfo };
 
   // creates/ fills in m_device!
   wgpuAdapterRequestDevice(adapter, &deviceDescriptor, request_device_callback, (void*)&device);
-
-  wgpuDeviceSetUncapturedErrorCallback(device, handle_uncaptured_error, NULL);
 
   return device;
 }
