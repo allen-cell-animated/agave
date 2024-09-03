@@ -152,9 +152,6 @@ Renderer::shouldContinue()
 {
   // check current frame time against capturesettings.
   if (m_myVolumeData.m_captureSettings) {
-    LOG_DEBUG << "ShouldContinue check: " << m_frameIterations << " < "
-              << m_myVolumeData.m_captureSettings->renderDuration.samples << " && " << m_frameTimeSeconds << " < "
-              << m_myVolumeData.m_captureSettings->renderDuration.duration;
     if (m_myVolumeData.m_captureSettings->renderDuration.durationType == SAMPLES) {
       return (m_frameIterations < m_myVolumeData.m_captureSettings->renderDuration.samples);
     } else if (m_myVolumeData.m_captureSettings->renderDuration.durationType == TIME) {
@@ -211,7 +208,7 @@ Renderer::processRequest()
       }
 
       img = this->render();
-      LOG_DEBUG << "RENDERED sample iteration " << m_frameIterations << " in " << timer.nsecsElapsed() << "ns";
+      // LOG_DEBUG << "RENDERED sample iteration " << m_frameIterations << " in " << timer.nsecsElapsed() << "ns";
 
       lastReq->setActualDuration(timer.nsecsElapsed());
 
