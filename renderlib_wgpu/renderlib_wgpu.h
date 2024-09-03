@@ -31,5 +31,5 @@ public:
   static WGPUSurface getSurfaceFromCanvas(void* win_id);
   static WGPUAdapter getAdapter(WGPUSurface surface);
   static WGPUDevice requestDevice(WGPUAdapter adapter);
-  static WgpuWindowContext setupWindowContext(WGPUSurface surface, WGPUDevice device, uint32_t width, uint32_t height);
+  static WgpuWindowContext* setupWindowContext(WGPUSurface surface, WGPUDevice device, uint32_t width, uint32_t height);
 };

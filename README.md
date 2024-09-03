@@ -30,6 +30,10 @@ Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2022
 
 A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
 
+wgpu-native requires:
+Rust
+LLVM and clang
+
 ```
 choco install strawberryperl nasm patch
 ```
@@ -57,6 +61,9 @@ cd build
 # (vs 2022)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
+
+cmake -DCMAKE_TOOLCHAIN_FILE=C:\Users\danielt\source\repos\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows C:\Users\danielt\source\repos\allen-cell-animated\agave
+cmake --build . --target install --config RelWithDebInfo
 ```
 
 You may need to adjust the vcpkg path depending on your configuration.

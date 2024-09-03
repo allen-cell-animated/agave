@@ -42,6 +42,7 @@ WgpuView3D::WgpuView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, Q
   , m_initialized(false)
   , m_fakeHidden(false)
   , m_qrendersettings(qrs)
+  , m_windowContext(nullptr)
 {
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
@@ -147,6 +148,7 @@ WgpuView3D::onNewImage(Scene* scene)
 
 WgpuView3D::~WgpuView3D()
 {
+  delete m_windowContext;
   wgpuQueueRelease(m_queue);
   wgpuDeviceRelease(m_device);
 }
@@ -294,7 +296,7 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
   int h = event->size().height();
 
   // (if w or h actually changed...)
-  m_windowContext.resize(w * dpr, h * dpr);
+  m_windowContext->resize(w * dpr, h * dpr);
 
   m_viewerWindow->setSize(w * dpr, h * dpr);
   m_viewerWindow->forEachTool(
@@ -356,7 +358,7 @@ WgpuView3D::render()
   }
   WGPUSurfaceTexture nextTexture;
 
-  wgpuSurfaceGetCurrentTexture(m_windowContext.m_surface, &nextTexture);
+  wgpuSurfaceGetCurrentTexture(m_windowContext->m_surface, &nextTexture);
   switch (nextTexture.status) {
     case WGPUSurfaceGetCurrentTextureStatus_Success:
       // All good, could check for `surface_texture.suboptimal` here.
@@ -370,7 +372,7 @@ WgpuView3D::render()
       }
       if (width() != 0 && height() != 0) {
         const float dpr = devicePixelRatioF();
-        m_windowContext.resize(width() * dpr, height() * dpr);
+        m_windowContext->resize(width() * dpr, height() * dpr);
       }
       return;
     }
@@ -388,7 +390,7 @@ WgpuView3D::render()
 
   renderWindowContents(frame);
 
-  m_windowContext.present();
+  m_windowContext->present();
 
   // LOG_DEBUG << "surface presented";
   //  TODO loop to poll a few times?

@@ -113,7 +113,7 @@ private:
   WGPUDevice m_device;
   WGPUQueue m_queue;
 
-  WgpuWindowContext m_windowContext;
+  WgpuWindowContext* m_windowContext;
 
   WGPURenderPipeline m_pipeline;
 
