@@ -147,7 +147,8 @@ WgpuView3D::onNewImage(Scene* scene)
 
 WgpuView3D::~WgpuView3D()
 {
-  wgpuSurfaceRelease(m_surface);
+  wgpuQueueRelease(m_queue);
+  wgpuDeviceRelease(m_device);
 }
 
 QSize
@@ -163,7 +164,7 @@ WgpuView3D::sizeHint() const
 }
 
 void
-WgpuView3D::initializeGL(WGPUTextureView nextTexture)
+WgpuView3D::initializeGL()
 {
   if (m_initialized) {
     return;
@@ -172,32 +173,23 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
 
   LOG_INFO << "calling get_surface_from_canvas";
 
-  m_surface = renderlib_wgpu::getSurfaceFromCanvas((void*)winId());
+  WGPUSurface surface = renderlib_wgpu::getSurfaceFromCanvas((void*)winId());
 
   LOG_INFO << "calling getAdapter";
-  WGPUAdapter adapter = renderlib_wgpu::getAdapter(m_surface);
+  WGPUAdapter adapter = renderlib_wgpu::getAdapter(surface);
   LOG_INFO << "calling requestDevice";
 
   m_device = renderlib_wgpu::requestDevice(adapter);
+  m_queue = wgpuDeviceGetQueue(m_device);
 
   LOG_INFO << "set up swap chain";
-  // set up swap chain
-  m_swapChainFormat = WGPUTextureFormat_BGRA8Unorm; // wgpuSurfaceGetPreferredFormat(m_surface, adapter);
-  m_surfaceConfig = {};
-  m_surfaceConfig.nextInChain = NULL;
-  m_surfaceConfig.device = m_device;
-  m_surfaceConfig.format = m_swapChainFormat;
-  m_surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
-  m_surfaceConfig.viewFormatCount = 0;
-  m_surfaceConfig.viewFormats = NULL;
-  m_surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
-  m_surfaceConfig.width = (uint32_t)(width() * dpr);
-  m_surfaceConfig.height = (uint32_t)(height() * dpr);
-  m_surfaceConfig.presentMode = WGPUPresentMode_Fifo;
-  wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
+  m_windowContext = renderlib_wgpu::setupWindowContext(surface, m_device, width() * dpr, height() * dpr);
+
+  // Release the adapter only after it has been fully utilized
+  wgpuAdapterRelease(adapter);
 
   // The WgpuView3D owns one CScene
-
+#if 0
   WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor = {};
   pipelineLayoutDescriptor.bindGroupLayoutCount = 0;
   pipelineLayoutDescriptor.bindGroupLayouts = NULL;
@@ -217,7 +209,7 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   blendState.alpha = blendComponentAlpha;
 
   WGPUColorTargetState colorTargetState = {};
-  colorTargetState.format = m_swapChainFormat;
+  colorTargetState.format = m_surfaceFormat;
   colorTargetState.blend = &blendState;
   colorTargetState.writeMask = WGPUColorWriteMask_All;
   WGPUFragmentState fragmentState = {};
@@ -251,6 +243,7 @@ WgpuView3D::initializeGL(WGPUTextureView nextTexture)
   renderPipelineDescriptor.fragment = nullptr; //&fragmentState,
 
   // m_pipeline = wgpuDeviceCreateRenderPipeline(m_device, &renderPipelineDescriptor);
+#endif
   m_initialized = true;
 
   QSize newsize = size();
@@ -282,6 +275,7 @@ WgpuView3D::resizeGL(int w, int h)
   QResizeEvent e(QSize(w, h), QSize(w, h));
   resizeEvent(&e);
 }
+
 void
 WgpuView3D::resizeEvent(QResizeEvent* event)
 {
@@ -290,7 +284,7 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
     return;
   }
   m_fakeHidden = false;
-  initializeGL(0);
+  initializeGL();
   if (!m_initialized) {
     return;
   }
@@ -300,9 +294,7 @@ WgpuView3D::resizeEvent(QResizeEvent* event)
   int h = event->size().height();
 
   // (if w or h actually changed...)
-  m_surfaceConfig.width = (uint32_t)(w * dpr);
-  m_surfaceConfig.height = (uint32_t)(h * dpr);
-  wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
+  m_windowContext.resize(w * dpr, h * dpr);
 
   m_viewerWindow->setSize(w * dpr, h * dpr);
   m_viewerWindow->forEachTool(
@@ -364,7 +356,7 @@ WgpuView3D::render()
   }
   WGPUSurfaceTexture nextTexture;
 
-  wgpuSurfaceGetCurrentTexture(m_surface, &nextTexture);
+  wgpuSurfaceGetCurrentTexture(m_windowContext.m_surface, &nextTexture);
   switch (nextTexture.status) {
     case WGPUSurfaceGetCurrentTextureStatus_Success:
       // All good, could check for `surface_texture.suboptimal` here.
@@ -377,9 +369,8 @@ WgpuView3D::render()
         wgpuTextureRelease(nextTexture.texture);
       }
       if (width() != 0 && height() != 0) {
-        m_surfaceConfig.width = (uint32_t)width();
-        m_surfaceConfig.height = (uint32_t)height();
-        wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
+        const float dpr = devicePixelRatioF();
+        m_windowContext.resize(width() * dpr, height() * dpr);
       }
       return;
     }
@@ -396,6 +387,14 @@ WgpuView3D::render()
   assert(frame);
 
   renderWindowContents(frame);
+
+  m_windowContext.present();
+
+  // LOG_DEBUG << "surface presented";
+  //  TODO loop to poll a few times?
+  // while (!queueDone) {
+  wgpuDevicePoll(m_device, false, nullptr);
+  //}
 
   wgpuTextureViewRelease(frame);
   wgpuTextureRelease(nextTexture.texture);
@@ -434,8 +433,6 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
   wgpuRenderPassEncoderEnd(renderPass);
   wgpuRenderPassEncoderRelease(renderPass);
 
-  WGPUQueue queue = wgpuDeviceGetQueue(m_device);
-
   static bool queueDone = false;
   queueDone = false;
 
@@ -447,13 +444,13 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
     bool* squeueDone = (bool*)pUserData;
     *squeueDone = true;
   };
-  wgpuQueueOnSubmittedWorkDone(queue, onQueueWorkDone, &queueDone /* pUserData */);
+  wgpuQueueOnSubmittedWorkDone(m_queue, onQueueWorkDone, &queueDone /* pUserData */);
 
   WGPUCommandBufferDescriptor commandBufferDescriptor = {};
   commandBufferDescriptor.label = NULL;
   WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &commandBufferDescriptor);
   wgpuCommandEncoderRelease(encoder); // release encoder after it's finished
-  wgpuQueueSubmit(queue, 1, &cmdBuffer);
+  wgpuQueueSubmit(m_queue, 1, &cmdBuffer);
   // release command buffer once submitted
   wgpuCommandBufferRelease(cmdBuffer);
 
@@ -461,13 +458,6 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
 
   // TODO ENABLE THIS!!!
   // m_viewerWindow->redraw();
-
-  wgpuSurfacePresent(m_surface);
-  // LOG_DEBUG << "surface presented";
-  //  TODO loop to poll a few times?
-  while (!queueDone) {
-    wgpuDevicePoll(m_device, false, nullptr);
-  }
 }
 
 void
@@ -775,6 +765,7 @@ WgpuView3D::restartRenderLoop()
 WgpuCanvas::WgpuCanvas(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
 {
   setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_TranslucentBackground);
   setMouseTracking(true);
 
   m_view = new WgpuView3D(cam, qrs, rs, this);

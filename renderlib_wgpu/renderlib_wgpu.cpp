@@ -142,3 +142,53 @@ renderlib_wgpu::cleanup()
   }
   renderLibInitialized = false;
 }
+
+WgpuWindowContext
+renderlib_wgpu::setupWindowContext(WGPUSurface surface, WGPUDevice device, uint32_t width, uint32_t height)
+{
+  WgpuWindowContext context;
+  context.m_surface = surface;
+  context.m_surfaceFormat = WGPUTextureFormat_BGRA8Unorm;
+  context.m_surfaceConfig = {};
+  context.m_surfaceConfig.nextInChain = NULL;
+  context.m_surfaceConfig.device = device;
+  context.m_surfaceConfig.format = context.m_surfaceFormat;
+  context.m_surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
+  context.m_surfaceConfig.viewFormatCount = 0;
+  context.m_surfaceConfig.viewFormats = NULL;
+  context.m_surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
+  context.m_surfaceConfig.width = width;
+  context.m_surfaceConfig.height = height;
+  context.m_surfaceConfig.presentMode = WGPUPresentMode_Fifo;
+
+  wgpuSurfaceConfigure(context.m_surface, &context.m_surfaceConfig);
+
+  return context;
+}
+
+WgpuWindowContext::WgpuWindowContext()
+{
+  m_surfaceConfig = {};
+  m_surface = nullptr;
+  m_surfaceFormat = WGPUTextureFormat_BGRA8Unorm;
+}
+
+WgpuWindowContext::~WgpuWindowContext()
+{
+  wgpuSurfaceUnconfigure(m_surface);
+  wgpuSurfaceRelease(m_surface);
+}
+
+void
+WgpuWindowContext::resize(uint32_t width, uint32_t height)
+{
+  m_surfaceConfig.width = width;
+  m_surfaceConfig.height = height;
+  wgpuSurfaceConfigure(m_surface, &m_surfaceConfig);
+}
+
+void
+WgpuWindowContext::present()
+{
+  wgpuSurfacePresent(m_surface);
+}

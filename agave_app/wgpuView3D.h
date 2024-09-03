@@ -110,10 +110,10 @@ private:
   bool m_fakeHidden;
   void render();
   void renderWindowContents(WGPUTextureView nextTexture);
-  WGPUTextureFormat m_swapChainFormat;
-  WGPUSurface m_surface;
   WGPUDevice m_device;
-  WGPUSurfaceConfiguration m_surfaceConfig;
+  WGPUQueue m_queue;
+
+  WgpuWindowContext m_windowContext;
 
   WGPURenderPipeline m_pipeline;
 
@@ -128,7 +128,7 @@ private:
 
 protected:
   /// Set up GL context and subsidiary objects.
-  void initializeGL(WGPUTextureView nextTexture);
+  void initializeGL();
 
   void resizeEvent(QResizeEvent* event) override;
   void paintEvent(QPaintEvent* event) override;

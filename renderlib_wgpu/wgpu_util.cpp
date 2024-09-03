@@ -8,7 +8,7 @@ request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, 
   if (status == WGPURequestAdapterStatus_Success) {
     LOG_INFO << "Got WebGPU adapter";
   } else {
-    LOG_INFO << "Could not get WebGPU adapter";
+    LOG_ERROR << "Could not get WebGPU adapter";
   }
   if (message) {
     LOG_INFO << message;
@@ -22,7 +22,7 @@ request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, con
   if (status == WGPURequestDeviceStatus_Success) {
     LOG_INFO << "Got WebGPU device";
   } else {
-    LOG_INFO << "Could not get WebGPU adapter";
+    LOG_WARNING << "Could not get WebGPU device";
   }
   if (message) {
     LOG_INFO << message;

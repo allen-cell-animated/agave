@@ -7,6 +7,20 @@
 #include <memory>
 #include <string>
 
+class WgpuWindowContext
+{
+
+public:
+  WgpuWindowContext();
+  ~WgpuWindowContext();
+  WGPUSurface m_surface;
+  WGPUSurfaceConfiguration m_surfaceConfig;
+  WGPUTextureFormat m_surfaceFormat;
+
+  void resize(uint32_t width, uint32_t height);
+  void present();
+};
+
 class renderlib_wgpu
 {
 public:
@@ -17,4 +31,5 @@ public:
   static WGPUSurface getSurfaceFromCanvas(void* win_id);
   static WGPUAdapter getAdapter(WGPUSurface surface);
   static WGPUDevice requestDevice(WGPUAdapter adapter);
+  static WgpuWindowContext setupWindowContext(WGPUSurface surface, WGPUDevice device, uint32_t width, uint32_t height);
 };
