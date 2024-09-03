@@ -11,6 +11,7 @@
         <file>icons/light/bottomView.svg</file>
         <file>icons/light/leftView.svg</file>
         <file>icons/light/rightView.svg</file>
+        <file>icons/light/anyView.svg</file>
         <file>icons/light/orthoView.svg</file>
         <file>icons/light/perspView.svg</file>
         <file>icons/light/frameView.svg</file>
@@ -27,6 +28,7 @@
         <file>icons/dark/bottomView.svg</file>
         <file>icons/dark/leftView.svg</file>
         <file>icons/dark/rightView.svg</file>
+        <file>icons/dark/anyView.svg</file>
         <file>icons/dark/orthoView.svg</file>
         <file>icons/dark/perspView.svg</file>
         <file>icons/dark/frameView.svg</file>
