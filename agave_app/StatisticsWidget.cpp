@@ -50,7 +50,9 @@ QStatisticsWidget::set(std::shared_ptr<CStatus> status)
     mStatusObject->removeObserver(&mStatusObserver);
   }
   mStatusObject = status;
-  mStatusObject->addObserver(&mStatusObserver);
+  if (mStatusObject) {
+    mStatusObject->addObserver(&mStatusObserver);
+  }
 }
 
 QSize

@@ -267,17 +267,17 @@ ViewerWindow::setRenderer(int rendererType)
   switch (rendererType) {
     case 1:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer.reset(new RenderWgpuPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer.reset(new RenderWgpuPT(m_renderSettings));
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     default:
       LOG_DEBUG << "Set OpenGL single pass Renderer";
-      m_renderer.reset(new RenderGL(m_renderSettings));
+      m_renderer.reset(new RenderWgpuPT(m_renderSettings));
   };
   m_rendererType = rendererType;
 

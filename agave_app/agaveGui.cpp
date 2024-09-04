@@ -697,7 +697,9 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   std::shared_ptr<CStatus> s = m_glView->getStatus();
   // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
   m_statisticsDockWidget->setStatus(s);
-  s->onNewImage(filename, &m_appScene);
+  if (s) {
+    s->onNewImage(filename, &m_appScene);
+  }
 
   m_currentFilePath = loadSpec.filepath;
   agaveGui::prependToRecentFiles(QString::fromStdString(loadSpec.filepath));

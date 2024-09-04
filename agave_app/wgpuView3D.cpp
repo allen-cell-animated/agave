@@ -413,7 +413,12 @@ WgpuView3D::renderWindowContents(WGPUTextureView nextTexture)
   WGPUCommandEncoderDescriptor commandEncoderDescriptor = {};
   commandEncoderDescriptor.label = "Command Encoder";
   WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(m_device, &commandEncoderDescriptor);
-  WGPUColor clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+  Scene* sc = (m_viewerWindow && m_viewerWindow->m_renderer) ? m_viewerWindow->m_renderer->scene() : nullptr;
+  WGPUColor clearColor = {};
+  clearColor.r = sc ? sc->m_material.m_backgroundColor[0] : 0.0f;
+  clearColor.g = sc ? sc->m_material.m_backgroundColor[1] : 0.0f;
+  clearColor.b = sc ? sc->m_material.m_backgroundColor[2] : 0.0f;
+  clearColor.a = 1.0f;
   WGPURenderPassColorAttachment renderPassColorAttachment = {};
   renderPassColorAttachment.view = nextTexture;
   renderPassColorAttachment.resolveTarget = nullptr;
