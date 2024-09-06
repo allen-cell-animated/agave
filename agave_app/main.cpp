@@ -15,6 +15,7 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 #include <QString>
+#include <QUrlQuery>
 
 struct ServerParams
 {
@@ -97,13 +98,17 @@ static const QString kAgaveUrlPrefix("agave://");
 std::string
 sanitizeAgaveUrlString(QString& agaveUrlString)
 {
-  // the file path may be percent encoded, if it came through a url protocol handler, so decode it
-  QString output = QUrl::fromPercentEncoding(agaveUrlString.toUtf8());
-  // remove agave:// prefix and trailing slash
-  output = output.replace(QRegularExpression("^agave://|/$"), "");
-  // trim any leading or trailing double quotes
-  output = output.replace(QRegularExpression("^\"|\"$"), "");
-  return output.toStdString();
+  QUrl url(agaveUrlString);
+  if (!url.isValid()) {
+    LOG_WARNING << "Received invalid agave:// url: " << agaveUrlString.toStdString();
+    return "";
+  }
+  QUrlQuery query(url);
+  if (query.hasQueryItem("url")) {
+    std::string fileToOpen = query.queryItemValue("url").toStdString();
+    return fileToOpen;
+  }
+  return "";
 }
 
 class AgaveApplication : public QApplication
@@ -121,16 +126,15 @@ public:
     if (event->type() == QEvent::FileOpen) {
       // This is how MacOS sends file open events, e.g. from a registered agave:// url handler
       QFileOpenEvent* openEvent = static_cast<QFileOpenEvent*>(event);
-      const QUrl url = openEvent->url();
+      QUrl url = openEvent->url();
       QString urlString = url.toString();
       if (url.isValid()) {
-        std::string fileToOpen;
-        if (urlString.startsWith(kAgaveUrlPrefix)) {
-          fileToOpen = sanitizeAgaveUrlString(urlString);
-        } else {
-          fileToOpen = urlString.toStdString();
+        QUrlQuery query(url);
+        if (query.hasQueryItem("url")) {
+          std::string fileToOpen = query.queryItemValue("url").toStdString();
+          m_gui->open(fileToOpen);
         }
-        m_gui->open(fileToOpen);
+
       } else {
         LOG_WARNING << "Received QFileOpenEvent with invalid url/file path: " << urlString.toStdString();
       }
