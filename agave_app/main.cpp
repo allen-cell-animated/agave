@@ -96,18 +96,17 @@ preloadFiles(QStringList preloadlist)
 static const QString kAgaveUrlPrefix("agave://");
 
 std::string
-sanitizeAgaveUrlString(QString& agaveUrlString)
+getUrlToOpen(const QUrl& agaveUrl)
 {
-  QUrl url(agaveUrlString);
-  if (!url.isValid()) {
-    LOG_WARNING << "Received invalid agave:// url: " << agaveUrlString.toStdString();
-    return "";
+  if (agaveUrl.isValid()) {
+    QUrlQuery query(agaveUrl);
+    if (query.hasQueryItem("url")) {
+      std::string fileToOpen = query.queryItemValue("url").toStdString();
+      return fileToOpen;
+    }
   }
-  QUrlQuery query(url);
-  if (query.hasQueryItem("url")) {
-    std::string fileToOpen = query.queryItemValue("url").toStdString();
-    return fileToOpen;
-  }
+  QString urlString = agaveUrl.toString();
+  LOG_WARNING << "Received invalid url/file path: " << urlString.toStdString();
   return "";
 }
 
@@ -127,22 +126,16 @@ public:
       // This is how MacOS sends file open events, e.g. from a registered agave:// url handler
       QFileOpenEvent* openEvent = static_cast<QFileOpenEvent*>(event);
       QUrl url = openEvent->url();
-      QString urlString = url.toString();
-      if (url.isValid()) {
-        QUrlQuery query(url);
-        if (query.hasQueryItem("url")) {
-          std::string fileToOpen = query.queryItemValue("url").toStdString();
-          m_gui->open(fileToOpen);
-        }
-
+      std::string fileToOpen = getUrlToOpen(url);
+      if (!fileToOpen.empty()) {
+        m_gui->open(fileToOpen);
       } else {
+        QString urlString = url.toString();
         LOG_WARNING << "Received QFileOpenEvent with invalid url/file path: " << urlString.toStdString();
       }
     }
-
     return QApplication::event(event);
   }
-
   agaveGui* m_gui = nullptr;
 };
 
@@ -200,7 +193,7 @@ main(int argc, char* argv[])
   QString fileInput = parser.value(loadOption);
   std::string fileToLoad;
   if (fileInput.startsWith(kAgaveUrlPrefix)) {
-    fileToLoad = sanitizeAgaveUrlString(fileInput);
+    fileToLoad = getUrlToOpen(QUrl(fileInput));
   } else {
     fileToLoad = fileInput.toStdString();
   }
