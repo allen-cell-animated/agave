@@ -31,7 +31,7 @@ class agaveGui : public QMainWindow
 public:
   agaveGui(QWidget* parent = Q_NULLPTR);
 
-  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr);
+  bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr, bool isImageSequence = false);
 
 protected:
   virtual void changeEvent(QEvent* event) override;

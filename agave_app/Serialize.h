@@ -19,6 +19,7 @@ struct LoadSettings
 {
   std::string url;
   std::string subpath;
+  bool isImageSequence = false;
   uint32_t scene = 0;
   uint32_t time = 0;
   std::vector<uint32_t> channels;
@@ -26,10 +27,17 @@ struct LoadSettings
 
   bool operator==(const LoadSettings& other) const
   {
-    return url == other.url && subpath == other.subpath && scene == other.scene && time == other.time &&
-           channels == other.channels && clipRegion == other.clipRegion;
+    return url == other.url && subpath == other.subpath && isImageSequence == other.isImageSequence &&
+           scene == other.scene && time == other.time && channels == other.channels && clipRegion == other.clipRegion;
   }
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LoadSettings, url, subpath, scene, time, channels, clipRegion)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(LoadSettings,
+                                              url,
+                                              subpath,
+                                              isImageSequence,
+                                              scene,
+                                              time,
+                                              channels,
+                                              clipRegion)
 };
 
 enum class DurationType_PID : int

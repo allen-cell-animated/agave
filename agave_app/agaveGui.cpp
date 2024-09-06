@@ -41,33 +41,37 @@ const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
 QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
-QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")} 
+QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")}
 QPushButton#topViewBtn { icon: url(":/icons/dark/topView.svg"); qproperty-icon: url(":/icons/dark/topView.svg") }
 QPushButton#bottomViewBtn { icon: url(":/icons/dark/bottomView.svg"); qproperty-icon: url(":/icons/dark/bottomView.svg") }
-QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") } 
+QPushButton#frontViewBtn { icon: url(":/icons/dark/frontView.svg"); qproperty-icon: url(":/icons/dark/frontView.svg") }
 QPushButton#backViewBtn { icon: url(":/icons/dark/backView.svg"); qproperty-icon: url(":/icons/dark/backView.svg") }
-QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") } 
-QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") } 
+QPushButton#leftViewBtn { icon: url(":/icons/dark/leftView.svg"); qproperty-icon: url(":/icons/dark/leftView.svg") }
+QPushButton#rightViewBtn { icon: url(":/icons/dark/rightView.svg"); qproperty-icon: url(":/icons/dark/rightView.svg") }
+QPushButton#anyViewBtn { icon: url(":/icons/dark/anyView.svg"); qproperty-icon: url(":/icons/dark/anyView.svg") }
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/dark/perspView.svg"); qproperty-icon: url(":/icons/dark/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/dark/orthoView.svg"); qproperty-icon: url(":/icons/dark/orthoView.svg")  }
 QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/dark/linked.png"); qproperty-icon: url(":/icons/dark/linked.png") }
 QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/dark/unlinked.png"); qproperty-icon: url(":/icons/dark/unlinked.png") }
+QMenu#quickViewsMenu {border-radius: 2px;}
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
 QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
-QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") } 
+QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") }
 QPushButton#topViewBtn { icon: url(":/icons/light/topView.svg"); qproperty-icon: url(":/icons/light/topView.svg") }
 QPushButton#bottomViewBtn { icon: url(":/icons/light/bottomView.svg"); qproperty-icon: url(":/icons/light/bottomView.svg") }
 QPushButton#frontViewBtn { icon: url(":/icons/light/frontView.svg"); qproperty-icon: url(":/icons/light/frontView.svg") }
 QPushButton#backViewBtn { icon: url(":/icons/light/backView.svg"); qproperty-icon: url(":/icons/light/backView.svg") }
 QPushButton#leftViewBtn { icon: url(":/icons/light/leftView.svg"); qproperty-icon: url(":/icons/light/leftView.svg") }
 QPushButton#rightViewBtn { icon: url(":/icons/light/rightView.svg"); qproperty-icon: url(":/icons/light/rightView.svg") }
+QPushButton#anyViewBtn { icon: url(":/icons/light/anyView.svg"); qproperty-icon: url(":/icons/light/anyView.svg") }
 QPushButton#orthoViewBtn[state="0"] { icon: url(":/icons/light/perspView.svg"); qproperty-icon: url(":/icons/light/perspView.svg") }
 QPushButton#orthoViewBtn[state="1"] { icon: url(":/icons/light/orthoView.svg"); qproperty-icon: url(":/icons/light/orthoView.svg")  }
 QPushButton#lockAspectRatioBtn[checked="true"] { icon: url(":/icons/light/linked.png"); qproperty-icon: url(":/icons/light/linked.png") }
 QPushButton#lockAspectRatioBtn[checked="false"] { icon: url(":/icons/light/unlinked.png"); qproperty-icon: url(":/icons/light/unlinked.png") }
+QMenu#quickViewsMenu {border-radius: 2px;}
 )";
 
 agaveGui::agaveGui(QWidget* parent)
@@ -374,18 +378,32 @@ agaveGui::open()
 {
   QString dir = readRecentDirectory();
 
-  QFileDialog::Options options = QFileDialog::DontResolveSymlinks;
-#ifdef __linux__
-  options |= QFileDialog::DontUseNativeDialog;
-#endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Volume"), dir, QString(), 0, options);
-
-  if (!file.isEmpty()) {
-    if (!open(file.toStdString())) {
-      showOpenFailedMessageBox(file);
+  QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog;
+  QFileDialog dlg(this, tr("Open Volume"), dir, QString());
+  dlg.setFileMode(QFileDialog::ExistingFile);
+  dlg.setOptions(options);
+  auto layout = dlg.layout();
+  // Image sequence will be interpreted as TIMES, one volume per time (= per file)
+  auto imageSequenceCheckbox = new QCheckBox("Image Sequence", &dlg);
+  imageSequenceCheckbox->setToolTip(
+    "Will scan directory and read files as a time sequence in order sorted by filename");
+  layout->addWidget(imageSequenceCheckbox);
+  QStringList fileNames;
+  if (dlg.exec()) {
+    fileNames = dlg.selectedFiles();
+    if (fileNames.size() > 0) {
+      // only use the first filename for loading.
+      QString file = fileNames[0];
+      if (!file.isEmpty()) {
+        bool isImageSequence = imageSequenceCheckbox->isChecked();
+        if (!open(file.toStdString(), nullptr, isImageSequence)) {
+          showOpenFailedMessageBox(file);
+        }
+      }
     }
   }
 }
+
 void
 agaveGui::openDirectory()
 {
@@ -687,7 +705,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 }
 
 bool
-agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
+agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool isImageSequence)
 {
   LoadSpec loadSpec;
   VolumeDimensions dims;
@@ -700,7 +718,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
     timeToLoad = loadSpec.time;
   }
 
-  std::shared_ptr<IFileReader> reader(FileReader::getReader(file));
+  std::shared_ptr<IFileReader> reader(FileReader::getReader(file, isImageSequence));
   if (!reader) {
     QMessageBox b(QMessageBox::Warning,
                   "Error",
@@ -745,10 +763,11 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs)
   bool keepCurrentUISettings = true;
 
   if (!vs) {
-
     LoadDialog* loadDialog = new LoadDialog(file, multiscaledims, sceneToLoad, this);
     if (loadDialog->exec() == QDialog::Accepted) {
       loadSpec = loadDialog->getLoadSpec();
+      // the loadSpec will need to remember that we loaded an image sequence
+      loadSpec.isImageSequence = isImageSequence;
       dims = multiscaledims[loadDialog->getMultiscaleLevelIndex()].getVolumeDimensions();
       keepCurrentUISettings = loadDialog->getKeepSettings();
     } else {
@@ -1134,10 +1153,10 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   // capture settings
   m_captureSettings.width = v.capture.width;
   m_captureSettings.height = v.capture.height;
-  m_captureSettings.samples = v.capture.samples;
-  m_captureSettings.duration = v.capture.seconds;
+  m_captureSettings.renderDuration.samples = v.capture.samples;
+  m_captureSettings.renderDuration.duration = v.capture.seconds;
   // TODO proper lookup for permid
-  m_captureSettings.durationType = (eRenderDurationType)v.capture.durationType;
+  m_captureSettings.renderDuration.durationType = (eRenderDurationType)v.capture.durationType;
   m_captureSettings.startTime = v.capture.startTime;
   m_captureSettings.endTime = v.capture.endTime;
   m_captureSettings.outputDir = v.capture.outputDirectory;
