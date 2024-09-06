@@ -4,6 +4,7 @@ variants:
   select: universal
 ports:
   - name: spdlog
+  - name: libfmt11
   - name: glm
   - name: tiff
   - name: nasm
