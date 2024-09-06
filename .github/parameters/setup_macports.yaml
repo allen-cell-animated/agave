@@ -1,0 +1,11 @@
+version: "2.10.1"
+prefix: "/opt/local"
+variants:
+  select: universal
+ports:
+  - name: spdlog
+  - name: glm
+  - name: libtiff
+  - name: nasm
+  - name: zstd
+  - name: ninja
