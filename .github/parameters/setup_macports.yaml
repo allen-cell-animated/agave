@@ -5,7 +5,7 @@ variants:
 ports:
   - name: spdlog
   - name: glm
-  - name: libtiff
+  - name: tiff
   - name: nasm
   - name: zstd
   - name: ninja
