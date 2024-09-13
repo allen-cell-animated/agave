@@ -76,36 +76,15 @@ jobs:
           version: 6.5.3
           modules: qtwebsockets qtimageformats
       - name: macos install deps
-        if: contains(matrix.os, 'macos-13')
+        if: contains(matrix.os, 'macos')
         env:
           CC: clang
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           brew install spdlog glm libtiff nasm zstd ninja
-      - name: macos 14 install deps
-        if: contains(matrix.os, 'macos-14')
-        uses: melusina-org/setup-macports@v1
-        env:
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-        with:
-          parameters: ".github/parameters/setup_macports.yaml"
-      - name: macos 14 build and test
-        if: contains(matrix.os, 'macos-14')
-        env:
-          CC: clang
-          CXX: clang++
-        run: |
-          export MACOSX_DEPLOYMENT_TARGET=10.15
-          mkdir ./build
-          cd build
-          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
-          cmake --build . --target agave_test --config Release
-          cmake --build . --config Release
-          cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
-        shell: bash
       - name: macos build and test
-        if: contains(matrix.os, 'macos-13')
+        if: contains(matrix.os, 'macos')
         env:
           CC: clang
           CXX: clang++
