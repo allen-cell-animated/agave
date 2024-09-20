@@ -72,7 +72,7 @@ pip install aqtinstall
 aqt install-qt --outputdir ~/Qt mac desktop 6.5.3 -m qtwebsockets qtimageformats
 export Qt6_DIR=~/Qt/6.5.3/macos
 # and then:
-brew install spdlog glm libtiff
+brew install spdlog glm libtiff nasm
 
 mkdir build
 cd build

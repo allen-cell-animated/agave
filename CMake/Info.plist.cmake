@@ -6,10 +6,20 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>agave</string>
-	<key>CFBundleIconFile</key>
-	<string>Icon</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>logo.icns</string>
+			</array>
+			<key>UIPrerenderedIcon</key>
+			<false/>
+		</dict>
+	</dict>
 	<key>CFBundleIdentifier</key>
-	<string>org.allencell.allencell</string>
+	<string>org.allencell.agave</string>
 	<key>CFBundleName</key>
 	<string>AGAVE</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -22,6 +32,17 @@
 	<string>@PROJECT_VERSION@</string>
 	<key>CFBundleShortVersionString</key>
 	<string>@PROJECT_VERSION@</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.allencell.agave</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>agave</string>
+			</array>
+		</dict>
+	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>@PACKAGE_OSX_TARGET@</string>
 	<key>NSPrincipalClass</key>

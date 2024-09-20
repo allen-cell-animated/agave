@@ -18,9 +18,9 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "CompanyName", "AICS"
+      VALUE "CompanyName", "Allen Institute for Cell Science"
       VALUE "FileVersion", AICS_VERSION_STRING
-      VALUE "ProductName", "GPU Volume Explorer"
+      VALUE "ProductName", "AGAVE"
       VALUE "ProductVersion", AICS_VERSION_STRING
     END
   END
@@ -29,3 +29,5 @@ BEGIN
     VALUE "Translation", 0x409, 1252
   END
 END
+
+1 ICON "icons/logo.ico"
