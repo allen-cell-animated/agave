@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>agave_pyclient.agave &mdash; agave_pyclient 1.6.4 documentation</title>
+  <title>agave_pyclient.agave &mdash; agave_pyclient 1.7.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=acd34040"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=217710be"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -77,6 +77,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.session"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.session()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_clip_region"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_clip_region()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_control_points"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_control_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_flip_axis"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_flip_axis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_interpolation"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_interpolation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_isovalue_threshold"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_isovalue_threshold()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_percentile_threshold"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_percentile_threshold()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_primary_ray_step_size()</span></code></a></li>
@@ -1047,6 +1049,34 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># 45</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SHOW_SCALE_BAR&quot;</span><span class="p">,</span> <span class="n">on</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgaveRenderer.set_flip_axis"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_flip_axis">[docs]</a>    <span class="k">def</span> <span class="nf">set_flip_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flip the volume data on any axis</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: int</span>
+<span class="sd">            -1 to flip, 1 to not flip</span>
+<span class="sd">        y: int</span>
+<span class="sd">            -1 to flip, 1 to not flip</span>
+<span class="sd">        z: int</span>
+<span class="sd">            -1 to flip, 1 to not flip</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 46</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SET_FLIP_AXIS&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgaveRenderer.set_interpolation"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_interpolation">[docs]</a>    <span class="k">def</span> <span class="nf">set_interpolation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the volume sampling interpolation mode</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: int</span>
+<span class="sd">            0 for nearest, 1 for linear</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 47</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SET_INTERPOLATION&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AgaveRenderer.batch_render_turntable"><a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.batch_render_turntable">[docs]</a>    <span class="k">def</span> <span class="nf">batch_render_turntable</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">number_of_frames</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="n">first_frame</span><span class="o">=</span><span class="mi">0</span>
