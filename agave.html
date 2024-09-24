@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface Overview &mdash; AGAVE 1.6.4 documentation</title>
+  <title>User Interface Overview &mdash; AGAVE 1.7.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=acd34040"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=217710be"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
@@ -64,8 +64,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#rotate">Rotate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#zoom">Zoom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pan">Pan</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#reset">Reset</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#perspective-orthographic">Perspective/Orthographic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image1-reset"> Reset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image2-frame-view"> Frame View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image4-image3-perspective-orthographic">  Perspective/Orthographic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image5-quick-views-image6-image7-image8-image9-image10-image11"> Quick Views      </a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image12-show-axes"> Show axes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#appearance-panel">Appearance Panel</a><ul>
@@ -76,6 +79,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#shading-type-mixture">Shading Type Mixture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#primary-ray-step-size">Primary Ray Step Size</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#secondary-ray-step-size">Secondary Ray Step Size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interpolate">Interpolate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#background-color">Background Color</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bounding-box">Bounding Box</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#scale-bar">Scale Bar</a></li>
@@ -204,14 +208,14 @@ ensure the expected data structure, channel order, etc.)</p>
 * .czi (Produced by Zeiss microscopes. See <a class="reference external" href="https://www.zeiss.com/microscopy/en/products/software/zeiss-zen/czi-image-file-format.html">https://www.zeiss.com/microscopy/en/products/software/zeiss-zen/czi-image-file-format.html</a>)
 * .map/.mrc (Typically used in electron cryo-microscopy. See <a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc_format.php">https://www.ccpem.ac.uk/mrc_format/mrc_format.php</a>)
 AGAVE can read 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.</p>
-<p>OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL.</p>
+<p>OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL using https, s3, or gc protocols.</p>
 <section id="open-file-directory-or-url">
 <h2>Open file, directory or URL<a class="headerlink" href="#open-file-directory-or-url" title="Permalink to this heading"></a></h2>
 <p>File–&gt;Open file or [Open file] toolbar button
 File–&gt;Open directory or [Open directory] toolbar button
 File–&gt;Open from URL or [Open from URL] toolbar button</p>
 <p>[Open file] will pop open a file browser dialog in which you can navigate to the
-volume file of choice.
+volume file of choice.  Check the “Image Sequence” checkbox if your directory contains a time sequence of individual TIFF files.
 [Open directory] will pop open a directory browser dialog in which you can navigate to the
 OME-Zarr store of choice.
 [Open from URL] will pop open an input dialog in which you can enter the URL to the
@@ -280,7 +284,8 @@ This is useful if you are loading several images consecutively that have similar
 <section id="adjusting-the-camera-view">
 <h1>Adjusting the camera view<a class="headerlink" href="#adjusting-the-camera-view" title="Permalink to this heading"></a></h1>
 <p>The 3D viewport in AGAVE supports direct manipulation by <em>zoom</em>, <em>pan</em>,
-and <em>rotate</em>.</p>
+and <em>rotate</em>.  It also provides a toolbar with some convenient buttons
+for common view settings.</p>
 <section id="rotate">
 <h2>Rotate<a class="headerlink" href="#rotate" title="Permalink to this heading"></a></h2>
 <p>To rotate the volume, left-click and drag the mouse.</p>
@@ -296,19 +301,37 @@ as if scrolling.</p>
 <p>To slide the camera parallel to the screen, middle-click and drag in the
 view. On Mac, Option-click and drag in the view.</p>
 </section>
-<section id="reset">
-<h2>Reset<a class="headerlink" href="#reset" title="Permalink to this heading"></a></h2>
-<p>The [Reset] button in the toolbar will return your camera to a default view position
-that should frame the volume data in the window.</p>
+<section id="image1-reset">
+<h2><a class="reference internal" href="_images/Home-icon.svg"><img alt="image1" src="_images/Home-icon.svg" width="24px" /></a> Reset<a class="headerlink" href="#image1-reset" title="Permalink to this heading"></a></h2>
+<p>The [Reset] button in the toolbar will return your camera to the default view position
+as if the volume were freshly loaded.</p>
 </section>
-<section id="perspective-orthographic">
-<h2>Perspective/Orthographic<a class="headerlink" href="#perspective-orthographic" title="Permalink to this heading"></a></h2>
+<section id="image2-frame-view">
+<h2><a class="reference internal" href="_images/frameView.svg"><img alt="image2" src="_images/frameView.svg" width="24px" /></a> Frame View<a class="headerlink" href="#image2-frame-view" title="Permalink to this heading"></a></h2>
+<p>The [Frame View] button in the toolbar will frame the volume data in the window.
+This is useful if you have zoomed or panned away from the volume data and want to
+quickly return to a view that shows the entire volume, but keep the rotation angle.</p>
+</section>
+<section id="image4-image3-perspective-orthographic">
+<h2><a class="reference internal" href="_images/perspView.svg"><img alt="image4" src="_images/perspView.svg" width="24px" /></a> <a class="reference internal" href="_images/orthoView.svg"><img alt="image3" src="_images/orthoView.svg" width="24px" /></a> Perspective/Orthographic<a class="headerlink" href="#image4-image3-perspective-orthographic" title="Permalink to this heading"></a></h2>
 <p>The [Persp/Ortho] toolbar button will toggle between a perspective projection and an
 orthographic one. In a perspective projection, parallel lines will meet
 in the distance and 3D objects will be foreshortened. This is considered
 a “realistic” view. In orthographic projection, parallel lines receding
 into the distance will remain parallel no matter which direction they
 go. There is no foreshortening or tapering of the volume.</p>
+</section>
+<section id="image5-quick-views-image6-image7-image8-image9-image10-image11">
+<h2><a class="reference internal" href="_images/anyView.svg"><img alt="image5" src="_images/anyView.svg" width="24px" /></a> Quick Views <a class="reference internal" href="_images/frontView.svg"><img alt="image6" src="_images/frontView.svg" width="24px" /></a> <a class="reference internal" href="_images/backView.svg"><img alt="image7" src="_images/backView.svg" width="24px" /></a> <a class="reference internal" href="_images/topView.svg"><img alt="image8" src="_images/topView.svg" width="24px" /></a> <a class="reference internal" href="_images/bottomView.svg"><img alt="image9" src="_images/bottomView.svg" width="24px" /></a> <a class="reference internal" href="_images/leftView.svg"><img alt="image10" src="_images/leftView.svg" width="24px" /></a> <a class="reference internal" href="_images/rightView.svg"><img alt="image11" src="_images/rightView.svg" width="24px" /></a><a class="headerlink" href="#image5-quick-views-image6-image7-image8-image9-image10-image11" title="Permalink to this heading"></a></h2>
+<p>The [Quick Views] toolbar button will pop open a menu of quick views that will
+automatically rotate the volume to a particular angle. The views are
+Front, Back, Top, Bottom, Left, and Right to align your viewport perfectly
+looking along the X, Y or Z axes from either direction.</p>
+</section>
+<section id="image12-show-axes">
+<h2><a class="reference internal" href="_images/coordinates.svg"><img alt="image12" src="_images/coordinates.svg" width="24px" /></a> Show axes<a class="headerlink" href="#image12-show-axes" title="Permalink to this heading"></a></h2>
+<p>The [Show axes] toolbar button will toggle the display of the X,Y,Z coordinate
+axes in the lower left corner of the viewport.</p>
 </section>
 </section>
 <section id="appearance-panel">
@@ -371,6 +394,14 @@ shadows because more rays will penetrate through the volume and make it
 out to the lights. Smaller values will ensure that some rays are stopped
 by volume data, which will increase the accuracy of cast shadows.</p>
 </section>
+<section id="interpolate">
+<h3>Interpolate<a class="headerlink" href="#interpolate" title="Permalink to this heading"></a></h3>
+<p>Check this box to enable or disable interpolation between volume pixels.
+Turning it off will work well for segmentation data or data that has definite
+discontinuous boundaries. Turning it on (the default) will smooth out the
+data and make it look more continuous, and can enhance the appearance of raw
+microscopy image data.</p>
+</section>
 <section id="background-color">
 <h3>Background Color<a class="headerlink" href="#background-color" title="Permalink to this heading"></a></h3>
 <p>Clicking on the color square next to Background Color allows you to
@@ -400,7 +431,9 @@ data relative to the number of pixels. Often microscopes do not have the
 same physical dimensions in Z that they do in X and Y. Usually these
 values are read from the volume file’s metadata. If they could not be
 found in the metadata, they will often appear here as X=1, Y=1, Z=1.
-They can be modified here.</p>
+They can be modified here.
+Each axis can also be inverted by checking the corresponding “Flip”
+checkbox.</p>
 </section>
 <section id="region-of-interest-roi">
 <h2>Region Of Interest (ROI)<a class="headerlink" href="#region-of-interest-roi" title="Permalink to this heading"></a></h2>
@@ -709,13 +742,13 @@ For Python users, the AGAVE Python client project full documentation can be foun
 </section>
 <section id="citation">
 <span id="id1"></span><h1>Citation<a class="headerlink" href="#citation" title="Permalink to this heading"></a></h1>
-<p>Daniel Toloudis, AGAVE Contributors (2024). AGAVE: Advanced GPU Accelerated Volume Explorer (Version 1.6.4) [Computer software]. Allen Institute for Cell Science. <a class="reference external" href="https://github.com/allen-cell-animated/agave">https://github.com/allen-cell-animated/agave</a></p>
+<p>Daniel Toloudis, AGAVE Contributors (2024). AGAVE: Advanced GPU Accelerated Volume Explorer (Version 1.7.0) [Computer software]. Allen Institute for Cell Science. <a class="reference external" href="https://github.com/allen-cell-animated/agave">https://github.com/allen-cell-animated/agave</a></p>
 <p>bibtex:</p>
 <pre class="literal-block">&#64;software{agave,
  author       = {Toloudis, Daniel and AGAVE Contributors},
  title        = {AGAVE: Advanced GPU Accelerated Volume Explorer},
  year         = {2024},
- version      = {1.6.4},
+ version      = {1.7.0},
  url          = {<a class="reference external" href="https://github.com/allen-cell-animated/agave">https://github.com/allen-cell-animated/agave</a>},
  organization = {Allen Institute for Cell Science},
  note         = {Computer Software}
