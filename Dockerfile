@@ -1,5 +1,5 @@
 ### Build image ###
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as build
+FROM nvidia/cuda:12.6.1-devel-ubuntu24.04 AS build
 
 # install dependencies
 ARG DEBIAN_FRONTEND=noninteractive
@@ -28,25 +28,20 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon-x11-0
 
 RUN apt-get install -y apt-transport-https ca-certificates gnupg
-# get gcc-10 (not default on ubuntu 20.04)
-RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
-RUN apt-get install -y gcc-10 g++-10
-#RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
-#RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
+
 # get a current cmake
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ jammy main'
+RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ noble main'
 RUN apt-get install kitware-archive-keyring
 RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
 RUN apt-get update && apt-get install -y cmake
 
 # get python
-RUN apt-get install -y python3-pip
-RUN pip3 install --upgrade pip
+RUN apt-get install -y python3-pip python3-venv
 
 # get Qt installed
 ENV QT_VERSION=6.5.3
-RUN pip3 install aqtinstall
+RUN pip install aqtinstall --break-system-packages
 RUN aqt install-qt --outputdir /qt linux desktop ${QT_VERSION} -m qtwebsockets qtimageformats
 # required for qt offscreen platform plugin
 RUN apt-get install -y libfontconfig
@@ -64,8 +59,6 @@ WORKDIR /agave
 RUN git submodule update --init --recursive
 
 # build agave project
-ENV CC=gcc-10
-ENV CXX=g++-10
 RUN cd ./build && \
     cmake .. && \
     cmake --build . --config Release -j 8
