@@ -2,7 +2,7 @@
 
 ## Windows
 
-Download the installer `agave-1.6.4-win64.exe` and run it.
+Download the installer `agave-1.7.0-win64.exe` and run it.
 
 It will take you through the installation process. In most cases you can accept all the default settings.
 
@@ -17,7 +17,7 @@ The Intel (x86-64) version should work on all Macs. However, you will get the be
 
 ### MacOS on Apple Silicon (Macs with M1-M4 processors)
 
-Download the installer `agave-1.6.4-macos-arm64.dmg` and open it.
+Download the installer `agave-1.7.0-macos-arm64.dmg` and open it.
 
 Drag the agave icon to the Applications folder.
 
@@ -33,7 +33,7 @@ After this, you should be able to run the application.
 
 ### MacOS on Intel processors
 
-Download the installer `agave-1.6.4-macos-x86-64.dmg` and open it.
+Download the installer `agave-1.7.0-macos-x86-64.dmg` and open it.
 
 Drag the agave icon to the Applications folder.
 
