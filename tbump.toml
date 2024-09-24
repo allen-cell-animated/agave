@@ -39,6 +39,8 @@ src = "agave_pyclient/docs/conf.py"
 src = "docs/conf.py"
 [[file]]
 src = "webclient/package.json"
+[[file]]
+src = "INSTALL.md"
 
 # You can specify a list of commands to
 # run after the files have been patched

@@ -2,11 +2,9 @@
 
 AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-TIFF and Zeiss .czi files.
 
-The code is currently organized into a few main sections:
+## To install AGAVE:
 
-1. agave_app is the Qt front end of the application
-2. renderlib is the code responsible for dealing with volume images and rendering them
-3. agave_pyclient provides a Python package for sending commands to AGAVE when run in server mode
+[Install instructions](INSTALL.md)
 
 ## How to build from source:
 
