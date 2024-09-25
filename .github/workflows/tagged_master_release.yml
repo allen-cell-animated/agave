@@ -105,7 +105,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows ..
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --config Release
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
