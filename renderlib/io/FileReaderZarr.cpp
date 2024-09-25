@@ -90,38 +90,25 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
+FileReaderZarr::FileReaderZarr(const std::string& filepath)
+  : m_zarrVersion(0)
+{
+}
 
 FileReaderZarr::~FileReaderZarr() {}
 
 ::nlohmann::json
-FileReaderZarr::jsonRead(const std::string& zarrurl)
+tryReadJson(const std::string& zarrurl, const std::string& jsonfile)
 {
-  if (m_zattrs.is_object()) {
-    return m_zattrs;
-  }
-
-  // try zarr.json first (indicating Zarr v3)
-  // and then try .zattrs (indicating Zarr v2)
-  bool hasV3 = false;
   auto zarr_json_open_result = tensorstore::Open<::nlohmann::json, 0>(
-                                 { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, "zarr.json") } })
+                                 { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, jsonfile) } })
                                  .result();
+  // did the open fail?
   if (!zarr_json_open_result.ok()) {
-    // now try .zattrs
-    zarr_json_open_result = tensorstore::Open<::nlohmann::json, 0>(
-                              { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
-                              .result();
-  } else {
-    hasV3 = true;
-  }
-  if (!zarr_json_open_result.ok()) {
-    LOG_ERROR << "Failed to open either a .zattrs or a zarr.json from the specified location " << zarrurl;
+    // tensorstore open failed
     LOG_ERROR << "Error: " << zarr_json_open_result.status();
     return ::nlohmann::json::object_t();
   }
-  LOG_DEBUG << (hasV3 ? "Zarr v3" : "Zarr v2");
-
   auto attrs_store = zarr_json_open_result.value();
   // Sets attrs_array to a rank-0 array of ::nlohmann::json
   auto attrs_array_result = tensorstore::Read(attrs_store).result();
@@ -136,6 +123,33 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
       attrs = ::nlohmann::json::object_t();
     }
   }
+  return attrs;
+}
+
+::nlohmann::json
+FileReaderZarr::jsonRead(const std::string& zarrurl)
+{
+  if (m_zattrs.is_object()) {
+    return m_zattrs;
+  }
+
+  bool hasV3 = false;
+
+  // try zarr.json first (indicating Zarr v3)
+  // and then try .zattrs (indicating Zarr v2)
+  nlohmann::json attrs = tryReadJson(zarrurl, "zarr.json");
+  if (attrs.is_object() && !attrs.empty()) {
+    hasV3 = true;
+  } else {
+    attrs = tryReadJson(zarrurl, ".zattrs");
+  }
+  if (attrs.is_object() && !attrs.empty()) {
+    LOG_DEBUG << (hasV3 ? "Zarr v3" : "Zarr v2");
+  } else {
+    LOG_ERROR << "Failed to open either a .zattrs or a zarr.json from the specified location " << zarrurl;
+    return ::nlohmann::json::object_t();
+  }
+
   m_zattrs = attrs;
   m_zarrVersion = hasV3 ? 3 : 2;
   return attrs;
