@@ -267,8 +267,8 @@ jobs:
           path: DocumentationPDF
       - name: Version the artifacts
         run: |
-          mv ${{ github.workspace }}/agave-macos-x86_64/agave-macos-x86_64.dmg ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos-x86_64.dmg
-          mv ${{ github.workspace }}/agave-macos-arm64/agave-macos-arm64.dmg ${{ github.workspace }}/agave-macos/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.dmg
+          mv ${{ github.workspace }}/agave-macos-x86_64/agave-macos-x86_64.dmg ${{ github.workspace }}/agave-macos-x86_64/agave-${{ steps.get_version.outputs.VERSION }}-macos-x86_64.dmg
+          mv ${{ github.workspace }}/agave-macos-arm64/agave-macos-arm64.dmg ${{ github.workspace }}/agave-macos-arm64/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.dmg
           mv ${{ github.workspace }}/agave-win/agave-win.exe ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.exe
       - name: Create Release
         uses: softprops/action-gh-release@v1
