@@ -31,6 +31,11 @@ private:
   nlohmann::json jsonRead(const std::string& filepath);
   std::vector<std::string> getChannelNames(const std::string& filepath);
 
+  nlohmann::json getMultiscales(nlohmann::json attrs);
+  nlohmann::json getOmero(nlohmann::json attrs);
+  std::string tensorstoreZarrDriverName();
+
+  int m_zarrVersion;
   nlohmann::json m_zattrs;
   tensorstore::TensorStore<> m_store;
 };
