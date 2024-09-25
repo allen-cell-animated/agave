@@ -22,7 +22,9 @@ Download the installer `agave-1.7.2-macos-arm64.dmg` and open it.
 Drag the agave icon to the Applications folder.
 
 You can now run the application from the Applications folder.
-The first time, you will get a warning that the application is from an unidentified developer. Right-click on the application and select "Open". You will get a warning that the application is from an unidentified developer. Click on "Open".
+
+The first time, you may get a warning that the application is from an unidentified developer. Click "Done" (do not Move to Trash). Then open System Settings, and go to Privacy & Security. Scroll down, and click Open Anyway. For more information, see [Apple's support page](https://support.apple.com/en-us/HT202491).
+
 If you get a warning that the application is damaged, you can run the following command in the terminal to remove the quarantine attribute:
 
 ```
@@ -38,4 +40,7 @@ Download the installer `agave-1.7.2-macos-x86-64.dmg` and open it.
 Drag the agave icon to the Applications folder.
 
 You can now run the application from the Applications folder.
-The first time, you will get a warning that the application is from an unidentified developer. Right-click on the application and select "Open". You will get a warning that the application is from an unidentified developer. Click on "Open".
+
+The first time, you may get a warning that the application is from an unidentified developer. Click "Done" (do not Move to Trash). Then open System Settings, and go to Privacy & Security. Scroll down, and click Open Anyway. For more information, see [Apple's support page](https://support.apple.com/en-us/HT202491).
+
+After this, you should be able to run the application.
