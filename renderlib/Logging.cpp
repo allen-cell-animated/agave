@@ -8,6 +8,7 @@
 #include <ostream>
 #if defined(__APPLE__) || defined(__linux__)
 #include <pwd.h>
+#include <unistd.h>
 #endif
 
 // the logs are written to LOGFILE

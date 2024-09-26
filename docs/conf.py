@@ -22,7 +22,7 @@ copyright = "2020, Allen Institute for Cell Science"
 author = "Allen Institute for Cell Science"
 
 # The full version, including alpha/beta/rc tags
-release = "1.6.4"
+release = "1.7.2"
 
 
 # -- General configuration ---------------------------------------------------
@@ -30,9 +30,7 @@ release = "1.6.4"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named "sphinx.ext.*") or your custom
 # ones.
-extensions = [
-    "m2r2"
-]
+extensions = ["m2r2", "sphinxcontrib.cairosvgconverter"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -54,3 +52,7 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+latex_elements = {
+    "preamble": "\\usepackage{svg}",
+}

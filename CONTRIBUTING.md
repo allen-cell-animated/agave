@@ -17,6 +17,12 @@ project documentation. If you cannot find the documentation you're
 looking for, please file a GitHub issue with details of what
 you'd like to see documented.
 
+The code is currently organized into a few main sections:
+
+1. agave_app is the Qt front end of the application
+2. renderlib is the code responsible for dealing with volume images and rendering them
+3. agave_pyclient provides a Python package for sending commands to AGAVE when run in server mode
+
 ## How to Contribute
 
 Typical steps to contribute:

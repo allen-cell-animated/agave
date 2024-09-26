@@ -44,7 +44,7 @@ AGAVE currently supports the following file formats:
 * .map/.mrc (Typically used in electron cryo-microscopy. See https://www.ccpem.ac.uk/mrc_format/mrc_format.php)
 AGAVE can read 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  
 
-OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL.
+OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL using https, s3, or gc protocols.
 
 Open file, directory or URL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,7 +137,8 @@ Adjusting the camera view
 -------------------------
 
 The 3D viewport in AGAVE supports direct manipulation by *zoom*, *pan*,
-and *rotate*.
+and *rotate*.  It also provides a toolbar with some convenient buttons 
+for common view settings.
 
 Rotate
 ~~~~~~
@@ -157,14 +158,21 @@ Pan
 To slide the camera parallel to the screen, middle-click and drag in the
 view. On Mac, Option-click and drag in the view.
 
-Reset
-~~~~~
+|image1| Reset
+~~~~~~~~~~~~~~
 
-The \[Reset\] button in the toolbar will return your camera to a default view position
-that should frame the volume data in the window.
+The \[Reset\] button in the toolbar will return your camera to the default view position
+as if the volume were freshly loaded.
 
-Perspective/Orthographic
-~~~~~~~~~~~~~~~~~~~~~~~~
+|image2| Frame View
+~~~~~~~~~~~~~~~~~~~
+
+The \[Frame View\] button in the toolbar will frame the volume data in the window.
+This is useful if you have zoomed or panned away from the volume data and want to 
+quickly return to a view that shows the entire volume, but keep the rotation angle.
+
+|image4| |image3| Perspective/Orthographic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The \[Persp/Ortho\] toolbar button will toggle between a perspective projection and an
 orthographic one. In a perspective projection, parallel lines will meet
@@ -172,6 +180,20 @@ in the distance and 3D objects will be foreshortened. This is considered
 a "realistic" view. In orthographic projection, parallel lines receding
 into the distance will remain parallel no matter which direction they
 go. There is no foreshortening or tapering of the volume.
+
+|image5| Quick Views |image6| |image7| |image8| |image9| |image10| |image11|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The \[Quick Views\] toolbar button will pop open a menu of quick views that will
+automatically rotate the volume to a particular angle. The views are
+Front, Back, Top, Bottom, Left, and Right to align your viewport perfectly 
+looking along the X, Y or Z axes from either direction.
+
+|image12| Show axes
+~~~~~~~~~~~~~~~~~~~
+
+The \[Show axes\] toolbar button will toggle the display of the X,Y,Z coordinate
+axes in the lower left corner of the viewport.
 
 Appearance Panel
 ----------------
@@ -241,6 +263,15 @@ shadows because more rays will penetrate through the volume and make it
 out to the lights. Smaller values will ensure that some rays are stopped
 by volume data, which will increase the accuracy of cast shadows.
 
+Interpolate
+^^^^^^^^^^^
+
+Check this box to enable or disable interpolation between volume pixels. 
+Turning it off will work well for segmentation data or data that has definite
+discontinuous boundaries. Turning it on (the default) will smooth out the 
+data and make it look more continuous, and can enhance the appearance of raw
+microscopy image data.
+
 Background Color
 ^^^^^^^^^^^^^^^^
 
@@ -274,6 +305,8 @@ same physical dimensions in Z that they do in X and Y. Usually these
 values are read from the volume file's metadata. If they could not be
 found in the metadata, they will often appear here as X=1, Y=1, Z=1.
 They can be modified here.
+Each axis can also be inverted by checking the corresponding "Flip" 
+checkbox.
 
 Region Of Interest (ROI)
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -700,3 +733,27 @@ a single multichannel file:
 To Open in AGAVE see the `Open Volume <#open-volume>`__ section above.
 
 .. |image0| image:: Light_SphericalCoordinate_1-3.png
+.. |image1| image:: ../agave_app/icons/light/Home-icon.svg
+   :width: 24px
+.. |image2| image:: ../agave_app/icons/light/frameView.svg
+   :width: 24px
+.. |image3| image:: ../agave_app/icons/light/orthoView.svg
+   :width: 24px
+.. |image4| image:: ../agave_app/icons/light/perspView.svg
+   :width: 24px
+.. |image5| image:: ../agave_app/icons/light/anyView.svg
+   :width: 24px
+.. |image6| image:: ../agave_app/icons/light/frontView.svg
+   :width: 24px
+.. |image7| image:: ../agave_app/icons/light/backView.svg
+   :width: 24px
+.. |image8| image:: ../agave_app/icons/light/topView.svg
+   :width: 24px
+.. |image9| image:: ../agave_app/icons/light/bottomView.svg
+   :width: 24px
+.. |image10| image:: ../agave_app/icons/light/leftView.svg
+   :width: 24px
+.. |image11| image:: ../agave_app/icons/light/rightView.svg
+   :width: 24px
+.. |image12| image:: ../agave_app/icons/light/coordinates.svg
+   :width: 24px

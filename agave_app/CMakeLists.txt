@@ -111,6 +111,10 @@ if(WIN32)
 			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
 	)
 elseif(APPLE)
+	# And the following tells CMake where to find and install the file itself.
+	set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/icons/logo.icns")
+	set_property(SOURCE ${app_icon_macos} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}")
+
 	get_target_property(RENDERLIB_SOURCE_DIR renderlib SOURCE_DIR)
 	set(RESOURCES
 	  ${RENDERLIB_SOURCE_DIR}/assets/fonts/Arial.ttf
@@ -144,10 +148,3 @@ else() # LINUX
 			"$<TARGET_PROPERTY:agaveapp,BINARY_DIR>/assets"
 	)
 endif(WIN32)
-
-install(TARGETS agaveapp
-	BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
-	RUNTIME DESTINATION ${INSTALLDIR}
-	LIBRARY DESTINATION ${INSTALLDIR}
-	DESTINATION ${INSTALLDIR}
-)

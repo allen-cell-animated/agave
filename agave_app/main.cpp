@@ -13,6 +13,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
+#include <QString>
+#include <QUrlQuery>
 
 struct ServerParams
 {
@@ -90,6 +93,52 @@ preloadFiles(QStringList preloadlist)
   }
 }
 
+static const QString kAgaveUrlPrefix("agave://");
+
+std::string
+getUrlToOpen(const QUrl& agaveUrl)
+{
+  if (agaveUrl.isValid()) {
+    QUrlQuery query(agaveUrl);
+    if (query.hasQueryItem("url")) {
+      std::string fileToOpen = query.queryItemValue("url").toStdString();
+      return fileToOpen;
+    }
+  }
+  QString urlString = agaveUrl.toString();
+  LOG_WARNING << "Received invalid url/file path: " << urlString.toStdString();
+  return "";
+}
+
+class AgaveApplication : public QApplication
+{
+public:
+  AgaveApplication(int& argc, char** argv)
+    : QApplication(argc, argv)
+  {
+  }
+
+  void setGUI(agaveGui* gui) { m_gui = gui; }
+
+  bool event(QEvent* event) override
+  {
+    if (event->type() == QEvent::FileOpen) {
+      // This is how MacOS sends file open events, e.g. from a registered agave:// url handler
+      QFileOpenEvent* openEvent = static_cast<QFileOpenEvent*>(event);
+      QUrl url = openEvent->url();
+      std::string fileToOpen = getUrlToOpen(url);
+      if (!fileToOpen.empty()) {
+        m_gui->open(fileToOpen);
+      } else {
+        QString urlString = url.toString();
+        LOG_WARNING << "Received QFileOpenEvent with invalid url/file path: " << urlString.toStdString();
+      }
+    }
+    return QApplication::event(event);
+  }
+  agaveGui* m_gui = nullptr;
+};
+
 int
 main(int argc, char* argv[])
 {
@@ -98,7 +147,7 @@ main(int argc, char* argv[])
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication::setStyle("fusion");
-  QApplication a(argc, argv);
+  AgaveApplication a(argc, argv);
   a.setOrganizationName("Allen Institute for Cell Science");
   a.setOrganizationDomain("allencell.org");
   a.setApplicationName("AGAVE");
@@ -114,6 +163,12 @@ main(int argc, char* argv[])
   QCommandLineOption serverOption("server",
                                   QCoreApplication::translate("main", "Run as websocket server without GUI."));
   parser.addOption(serverOption);
+
+  QCommandLineOption loadOption("load",
+                                QCoreApplication::translate("main", "File or url to load."),
+                                QCoreApplication::translate("main", "fileToLoad"));
+  parser.addOption(loadOption);
+
   QCommandLineOption listDevicesOption(
     "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)."));
   parser.addOption(listDevicesOption);
@@ -135,6 +190,13 @@ main(int argc, char* argv[])
   bool isServer = parser.isSet(serverOption);
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
+  QString fileInput = parser.value(loadOption);
+  std::string fileToLoad;
+  if (fileInput.startsWith(kAgaveUrlPrefix)) {
+    fileToLoad = getUrlToOpen(QUrl(fileInput));
+  } else {
+    fileToLoad = fileInput.toStdString();
+  }
 
   QString appPath = QCoreApplication::applicationDirPath();
   std::string appPathStr = appPath.toStdString();
@@ -177,7 +239,11 @@ main(int argc, char* argv[])
       result = a.exec();
     } else {
       agaveGui* w = new agaveGui();
+      a.setGUI(w);
       w->show();
+      if (!fileToLoad.empty()) {
+        w->open(fileToLoad);
+      }
       result = a.exec();
     }
   } catch (const std::exception& exc) {
