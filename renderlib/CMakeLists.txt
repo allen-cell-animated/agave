@@ -95,4 +95,5 @@ target_link_libraries(renderlib
 
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)
+    target_link_libraries(renderlib comsuppw.lib optimized comsuppw.lib debug comsuppwd.lib)
 ENDIF(WIN32)
