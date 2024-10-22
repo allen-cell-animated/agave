@@ -384,10 +384,11 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       // try to load the metadata file.
       // try prefixing the metadatafile with the directory of the tiff.
       std::filesystem::path tiffpath(filepath);
-      std::string tiffdir = tiffpath.parent_path().string();
-      metadatafile = tiffdir + "/" + metadatafile;
+      std::filesystem::path tiffdir = tiffpath.parent_path();
+      std::string metadatapath = (tiffdir / metadatafile).string();
+
       pugi_agave::xml_document metadataxml;
-      pugi_agave::xml_parse_result parseOk = metadataxml.load_file(metadatafile.c_str());
+      pugi_agave::xml_parse_result parseOk = metadataxml.load_file(metadatapath.c_str());
       if (!parseOk) {
         LOG_ERROR << "Failed to load metadata file: '" << metadatafile << "' for OME TIFF: '" << filepath << "'";
         return false;
