@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <map>
 #include <set>
 
@@ -371,6 +372,30 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
 
     pugi_agave::xml_node omenode = omexml.child("OME");
+
+    auto binaryonlynode = omenode.child("BinaryOnly");
+    if (binaryonlynode) {
+      // try to get metadata from the MetadataFile attribute
+      std::string metadatafile = binaryonlynode.attribute("MetadataFile").as_string("");
+      if (metadatafile.empty()) {
+        LOG_ERROR << "BinaryOnly OME TIFFs is missing a MetadataFile attribute: '" << filepath << "'";
+        return false;
+      }
+      // try to load the metadata file.
+      // try prefixing the metadatafile with the directory of the tiff.
+      std::filesystem::path tiffpath(filepath);
+      std::filesystem::path tiffdir = tiffpath.parent_path();
+      std::string metadatapath = (tiffdir / metadatafile).string();
+
+      pugi_agave::xml_document metadataxml;
+      pugi_agave::xml_parse_result parseOk = metadataxml.load_file(metadatapath.c_str());
+      if (!parseOk) {
+        LOG_ERROR << "Failed to load metadata file: '" << metadatafile << "' for OME TIFF: '" << filepath << "'";
+        return false;
+      }
+      omenode = metadataxml.child("OME");
+      // then continue with the metadata in the metadata file.
+    }
 
     // extract some necessary info from the xml:
 
