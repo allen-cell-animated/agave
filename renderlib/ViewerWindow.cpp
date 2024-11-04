@@ -12,6 +12,8 @@
 #include "graphics/GestureGraphicsGL.h"
 #include "renderlib.h"
 
+#include "imgui/imgui.h"
+
 ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
@@ -198,6 +200,8 @@ ViewerWindow::redraw()
     m_lastTimeCheck = m_clock.time;
     m_increments = 0;
   }
+
+  ImGui::NewFrame();
 
   glm::ivec2 oldpickbuffersize = m_selection.resolution;
   bool ok = m_selection.update(glm::ivec2(width(), height()));

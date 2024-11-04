@@ -10,6 +10,7 @@ set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui"
 	${GLM_INCLUDE_DIRS}
 	${GLAD_DIR}
 )
@@ -78,6 +79,19 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerWindow.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_draw.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_internal.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_tables.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imstb_rectpack.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imstb_textedit.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/imstb_truetype.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_opengl3_loader.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_opengl3.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_opengl3.cpp"
 )
 add_subdirectory(gesture)
 add_subdirectory(graphics)
