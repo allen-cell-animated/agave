@@ -60,7 +60,7 @@ Renderer::configure(IRenderWindow* renderer,
   m_myVolumeData.m_camera = new CCamera(camera);
   m_myVolumeData.m_scene = new Scene(scene);
   m_myVolumeData.m_loadSpec = loadSpec;
-  m_myVolumeData.m_captureSettings = new CaptureSettings(*captureSettings);
+  m_myVolumeData.m_captureSettings = captureSettings ? new CaptureSettings(*captureSettings) : new CaptureSettings();
   m_ec.m_loadSpec = loadSpec;
   if (!renderer) {
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(1024);
