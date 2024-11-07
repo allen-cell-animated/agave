@@ -243,6 +243,12 @@ ViewerWindow::redraw()
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   // ImGui_ImplGlfw_NewFrame();
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2((float)width(), (float)height());
+  // devicepixelratio?
+  io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+  io.DeltaTime = interval;
+
   ImGui::NewFrame();
 
   auto show_demo_window = true;
@@ -287,6 +293,23 @@ ViewerWindow::redraw()
   // Make sure we consumed any unused input event before we poll new events.
   // (in the case of Qt we are not explicitly polling but using signals/slots.)
   gesture.input.consume();
+
+  // lastly, complete the imgui
+  // Rendering
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+  // Update and Render additional Platform Windows
+  // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this
+  // code elsewhere.
+  //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
+  // if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+  // {
+  //     GLFWwindow* backup_current_context = glfwGetCurrentContext();
+  //     ImGui::UpdatePlatformWindows();
+  //     ImGui::RenderPlatformWindowsDefault();
+  //     glfwMakeContextCurrent(backup_current_context);
+  // }
 }
 
 void
