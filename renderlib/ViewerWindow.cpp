@@ -245,7 +245,7 @@ ViewerWindow::redraw()
   // ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  const auto show_demo_window = true;
+  auto show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
 
   glm::ivec2 oldpickbuffersize = m_selection.resolution;
