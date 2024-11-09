@@ -1,4 +1,4 @@
-#include "AreaLightTool.h"
+#include "ClipPlaneTool.h"
 
 void
 ClipPlaneTool::action(SceneView& scene, Gesture& gesture)
