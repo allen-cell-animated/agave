@@ -296,7 +296,7 @@ bool IntersectRayPlane(in Ray R, in vec4 plane, out float t) {
   if (abs(denom) > 0.0001f) // your favorite epsilon
   {
     vec3 center = plane.xyz * plane.w;
-    t = (center - ray.origin).dot(plane.xyz) / denom;
+    t = dot(center - R.m_O, plane.xyz) / denom;
     if (t >= 0) return true; // you might want to allow an epsilon here too
   }
   return false;
