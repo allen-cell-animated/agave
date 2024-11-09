@@ -55,7 +55,6 @@ const vec3 WHITE = vec3(1.0,1.0,1.0);
 const int ShaderType_Brdf = 0;
 const int ShaderType_Phase = 1;
 
-const vec4 clipPlane = vec4(0, 0, 1, 0.5);
 
 in vec2 vUv;
 out vec4 out_FragColor;
@@ -128,6 +127,8 @@ uniform float uFrameCounter;
 uniform float uSampleCounter;
 uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
+
+uniform vec4 g_clipPlane;
 
 // from iq https://www.shadertoy.com/view/4tXyWN
 float rand( inout uvec2 seed )
@@ -317,7 +318,7 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 
   // now constrain near and far using clipPlane if active.
   float tClipPlane = pNearT;
-  bool isectPlane = IntersectRayPlane(R, clipPlane, tClipPlane);
+  bool isectPlane = IntersectRayPlane(R, g_clipPlane, tClipPlane);
   if (isectPlane) {
     // clip either neart or fart depending on direction
     pNearT = max(pNearT, tClipPlane);
@@ -1338,6 +1339,7 @@ void main()
   m_specular3 = uniformLocation("g_specular[3]");
   m_roughness = uniformLocation("g_roughness");
   m_uShowLights = uniformLocation("uShowLights");
+  m_clipPlane = uniformLocation("g_clipPlane");
 }
 
 GLPTVolumeShader::~GLPTVolumeShader() {}
@@ -1531,6 +1533,12 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1fv(m_roughness, 4, roughness);
 
   glUniform1i(m_uShowLights, 0);
+
+  // transform world clip plane into camera space
+  glm::mat4 m;
+  cam.getViewMatrix(m);
+  Plane p = scene->m_userClipPlane.transform(m);
+  glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
 
   check_gl("pathtrace shader uniform binding");
 }
