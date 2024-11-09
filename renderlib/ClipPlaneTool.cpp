@@ -1,15 +1,16 @@
 #include "AreaLightTool.h"
 
 void
-AreaLightTool::action(SceneView& scene, Gesture& gesture)
+ClipPlaneTool::action(SceneView& scene, Gesture& gesture)
 {
 }
 void
-AreaLightTool::draw(SceneView& scene, Gesture& gesture)
+ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
 {
   if (!scene.scene) {
     return;
   }
+  // draw this as an oriented grid
   const Light& l = scene.scene->m_lighting.m_Lights[1];
   glm::vec3 p = l.m_P;
   glm::vec3 t = l.m_Target;
