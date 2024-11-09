@@ -55,6 +55,8 @@ const vec3 WHITE = vec3(1.0,1.0,1.0);
 const int ShaderType_Brdf = 0;
 const int ShaderType_Phase = 1;
 
+const vec4 clipPlane = vec4(0, 0, 1, 0.5);
+
 in vec2 vUv;
 out vec4 out_FragColor;
 
@@ -287,6 +289,19 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   return newRay(RayO, RayD);
 }
 
+// plane xyz is normal, plane w is distance from origin
+// only examine t if the function returned true!
+bool IntersectRayPlane(in Ray R, in vec4 plane, out float t) {
+  float denom = dot(plane.xyz, R.m_D);
+  if (abs(denom) > 0.0001f) // your favorite epsilon
+  {
+    vec3 center = plane.xyz * plane.w;
+    t = (center - ray.origin).dot(plane.xyz) / denom;
+    if (t >= 0) return true; // you might want to allow an epsilon here too
+  }
+  return false;
+}
+
 bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 {
   vec3 invR		= vec3(1.0f, 1.0f, 1.0f) / R.m_D;
@@ -300,7 +315,16 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
   pNearT = largestMinT;
   pFarT	= smallestMaxT;
 
-  return smallestMaxT > largestMinT;
+  // now constrain near and far using clipPlane if active.
+  float tClipPlane = pNearT;
+  bool isectPlane = IntersectRayPlane(R, clipPlane, tClipPlane);
+  if (isectPlane) {
+    // clip either neart or fart depending on direction
+    pNearT = max(pNearT, tClipPlane);
+    //pFarT = min(pFarT, tClipPlane);
+  }
+
+  return pFarT > pNearT;
 }
 
 vec3 PtoVolumeTex(vec3 p) {

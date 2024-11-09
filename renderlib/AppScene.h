@@ -92,6 +92,7 @@ public:
   // appearance settings for a volume
   VolumeDisplay m_material;
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
+  Plane m_userClipPlane;
 
   Lighting m_lighting;
 
