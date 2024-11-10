@@ -12,7 +12,7 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
   if (!scene.scene) {
     return;
   }
-  const Light& l = *m_light; // scene.scene->m_lighting.m_Lights[1];
+  const Light& l = *m_light;
   glm::vec3 p = l.m_P;
   glm::vec3 t = l.m_Target;
   float scale = l.m_Width * 0.5;
