@@ -102,8 +102,13 @@ public:
   Lighting m_lighting;
 
   // convenience functions
-  Light& SphereLight() const;
-  Light& AreaLight() const;
+  // For now, this must match the order in which the lights were added, in initLights
+  static constexpr int SphereLightIndex = 0;
+  Light& SphereLight() const { return *m_lighting.m_Lights[SphereLightIndex]; }
+  SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]; }
+  static constexpr int AreaLightIndex = 1;
+  Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
+  SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
 
   std::vector<Manipulator*> m_tools;
 

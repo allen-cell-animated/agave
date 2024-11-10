@@ -108,18 +108,6 @@ Scene::initLights()
   m_lighting.AddLight(AreaLight);
 }
 
-Light&
-Scene::AreaLight() const
-{
-  return m_lighting.LightRef(1);
-}
-
-Light&
-Scene::SphereLight() const
-{
-  return m_lighting.LightRef(0);
-}
-
 // set up a couple of lights relative to the img's bounding box
 void
 Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)

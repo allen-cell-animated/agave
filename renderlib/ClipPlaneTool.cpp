@@ -10,5 +10,5 @@ ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
   if (!scene.scene) {
     return;
   }
-  // draw this as an oriented grid
+  // TODO draw this as an oriented grid centered in the view (or on the volume?)
 }

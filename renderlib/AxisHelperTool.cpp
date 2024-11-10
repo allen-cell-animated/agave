@@ -1,6 +1,6 @@
 #include "AxisHelperTool.h"
 
-#include "AppScene.h" // for showAxisHelper... TODO move this to a more appropriate place
+#include "AppScene.h"
 
 struct ManipColors
 {
