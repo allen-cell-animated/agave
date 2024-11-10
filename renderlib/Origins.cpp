@@ -32,14 +32,13 @@ Origins::translate(SceneView& scene, glm::vec3 motion)
 
   glm::vec3 p = m_origins[0].m_center + motion;
 
-  SceneObject* lt = scene.selection;
-  // the above line could be more like:
-  // SceneObject& obj = scene.getSelection();
+  SceneObject* obj = scene.selection;
 
-  // actually set the light's transform here!!
-  lt->m_transform.m_center = p;
+  // actually set the transform here!!
+  obj->m_transform.m_center = p;
 
-  lt->updateTransform();
+  obj->updateTransform();
+  // FIXME still special-casing for light
   scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -53,16 +52,16 @@ Origins::rotate(SceneView& scene, glm::quat rotation)
   // if "cancelled" we could always restore the original rotation.
   glm::quat q = rotation * m_origins[0].m_rotation;
 
-  SceneObject* lt = scene.selection;
-  if (!lt) {
+  SceneObject* obj = scene.selection;
+  if (!obj) {
     return;
   }
 
-  // actually set the light's transform here!!
-  lt->m_transform.m_rotation = q;
+  // actually set the transform here!!
+  obj->m_transform.m_rotation = q;
 
-  lt->updateTransform();
+  obj->updateTransform();
 
-  // special for light!!!
+  // FIXME still special-casing for light
   scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
