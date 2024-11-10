@@ -128,8 +128,6 @@ uniform float uSampleCounter;
 uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
 
-uniform vec4 g_clipPlane;
-
 // from iq https://www.shadertoy.com/view/4tXyWN
 float rand( inout uvec2 seed )
 {
@@ -290,27 +288,6 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   return newRay(RayO, RayD);
 }
 
-// plane xyz is normal, plane w is distance from origin
-// only examine t if the function returned true!
-void ClipRayAgainstPlane(in Ray R, in vec4 plane, out float pNearT, out float pFarT) {
-  // now constrain near and far using clipPlane if active.
-  float denom = dot(R.m_D, plane.xyz);
-  if (abs(denom) > 0.0001f) // your favorite epsilon
-  {
-    float tClip = dot(plane.xyz*plane.w - R.m_O, plane.xyz) / denom;
-    if (denom < 0.0f) {
-      pNearT = max(pNearT, tClip);
-    }
-    else {
-      pFarT = min(pFarT, tClip);
-    }
-  }
-  else
-  {
-  // todo check to see which side of the plane we are on ?
-  }
-}
-
 bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 {
   vec3 invR		= vec3(1.0f, 1.0f, 1.0f) / R.m_D;
@@ -323,24 +300,6 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 
   pNearT = largestMinT;
   pFarT	= smallestMaxT;
-
-  // now constrain near and far using clipPlane if active.
-  //ClipRayAgainstPlane(R, g_clipPlane, pNearT, pFarT);
-  float denom = dot(R.m_D, g_clipPlane.xyz);
-  if (abs(denom) > 0.0001f) // your favorite epsilon
-  {
-    float tClip = dot(g_clipPlane.xyz*g_clipPlane.w - R.m_O, g_clipPlane.xyz) / denom;
-    if (denom < 0.0f) {
-      pNearT = max(pNearT, tClip);
-    }
-    else {
-      pFarT = min(pFarT, tClip);
-    }
-  }
-  else
-  {
-  // todo check to see which side of the plane we are on ?
-  }
 
   return pFarT > pNearT;
 }
@@ -1356,7 +1315,6 @@ void main()
   m_specular3 = uniformLocation("g_specular[3]");
   m_roughness = uniformLocation("g_roughness");
   m_uShowLights = uniformLocation("uShowLights");
-  m_clipPlane = uniformLocation("g_clipPlane");
 }
 
 GLPTVolumeShader::~GLPTVolumeShader() {}
@@ -1550,13 +1508,6 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1fv(m_roughness, 4, roughness);
 
   glUniform1i(m_uShowLights, 0);
-
-  // transform world clip plane into camera space
-  // glm::mat4 m;
-  // cam.getViewMatrix(m);
-  // Plane p = scene->m_userClipPlane.transform(m);
-  // glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
-  glUniform4fv(m_clipPlane, 1, glm::value_ptr(scene->m_userClipPlane.asVec4()));
 
   check_gl("pathtrace shader uniform binding");
 }

@@ -65,5 +65,4 @@ private:
   int m_lutTexture0, m_lutTexture1, m_lutTexture2, m_lutTexture3, m_intensityMax, m_intensityMin, m_opacity,
     m_emissive0, m_emissive1, m_emissive2, m_emissive3, m_diffuse0, m_diffuse1, m_diffuse2, m_diffuse3, m_specular0,
     m_specular1, m_specular2, m_specular3, m_roughness, m_uShowLights;
-  int m_clipPlane;
 };
