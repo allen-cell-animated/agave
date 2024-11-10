@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Object3d.h"
 
 #include "MathUtil.h"

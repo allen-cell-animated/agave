@@ -295,45 +295,45 @@ void
 SetSkylightTopColorCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetSkylightTopColor " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-  c->m_appScene->m_lighting.m_Lights[0].m_ColorTop = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
+  c->m_appScene->m_lighting.m_Lights[0]->m_ColorTop = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
 SetSkylightMiddleColorCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetSkylightMiddleColor " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-  c->m_appScene->m_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
+  c->m_appScene->m_lighting.m_Lights[0]->m_ColorMiddle = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
 SetSkylightBottomColorCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetSkylightBottomColor " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-  c->m_appScene->m_lighting.m_Lights[0].m_ColorBottom = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
+  c->m_appScene->m_lighting.m_Lights[0]->m_ColorBottom = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
 SetLightPosCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetLightPos " << m_data.m_r << " " << m_data.m_theta << " " << m_data.m_phi;
-  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index].m_Distance = m_data.m_r;
-  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index].m_Theta = m_data.m_theta;
-  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index].m_Phi = m_data.m_phi;
+  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index]->m_Distance = m_data.m_r;
+  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index]->m_Theta = m_data.m_theta;
+  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index]->m_Phi = m_data.m_phi;
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
 SetLightColorCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetLightColor " << m_data.m_index << " " << m_data.m_r << " " << m_data.m_g << " " << m_data.m_b;
-  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index].m_Color = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
+  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index]->m_Color = glm::vec3(m_data.m_r, m_data.m_g, m_data.m_b);
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
 SetLightSizeCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetLightSize " << m_data.m_index << " " << m_data.m_x << " " << m_data.m_y;
-  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index].m_Width = m_data.m_x;
-  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index].m_Height = m_data.m_y;
+  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index]->m_Width = m_data.m_x;
+  c->m_appScene->m_lighting.m_Lights[1 + m_data.m_index]->m_Height = m_data.m_y;
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void

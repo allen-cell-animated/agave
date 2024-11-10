@@ -4,9 +4,11 @@
 #include "Defines.h"
 #include "MathUtil.h"
 #include "Object3d.h"
+#include "AreaLightTool.h"
 
 #include <functional>
 #include <vector>
+#include <memory>
 
 // this should map to the bundle of gpu parameters
 // passed to the shader for our lights
@@ -116,22 +118,4 @@ public:
 
   static void sphericalToCartesian(float phi, float theta, glm::vec3& v);
   static void cartesianToSpherical(glm::vec3 v, float& phi, float& theta);
-};
-
-// MUST NOT OUTLIVE ITS LIGHT
-class SceneLight : public SceneObject
-{
-public:
-  SceneLight(Light* light = nullptr)
-    : m_light(light)
-  {
-    // we want the rotate manipulator to be centered at the target of the light, by default
-    if (light) {
-      m_transform.m_center = light->m_Target;
-    }
-  }
-
-  void updateTransform();
-  Light* m_light;
-  std::vector<std::function<void(const Light&)>> m_observers;
 };

@@ -19,8 +19,8 @@ Origins::update(SceneView& scene)
 
     // arealight special case:
     // we want the rotate manipulator to be centered at the target of the light
-    SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
-    m_origins[0].m_center = lt.m_light->m_Target;
+    SceneLight* lt = scene.scene->m_lighting.m_sceneLights[1];
+    m_origins[0].m_center = lt->m_light->m_Target;
   }
 }
 

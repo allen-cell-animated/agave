@@ -6,6 +6,7 @@
 #include "GradientData.h"
 #include "Light.h"
 #include "Object3d.h"
+#include "SceneLight.h"
 #include "Timeline.h"
 #include "glm.h"
 
@@ -45,43 +46,45 @@ class Lighting
 public:
   Lighting(void)
     : m_NoLights(0)
-    , m_Lights{ Light(), Light(), Light(), Light() }
-    , m_sceneLights{ SceneLight(), SceneLight(), SceneLight(), SceneLight() }
+    , m_Lights{ nullptr, nullptr, nullptr, nullptr }
+    , m_sceneLights{ nullptr, nullptr, nullptr, nullptr }
   {
   }
-
-  Lighting& operator=(const Lighting& Other)
+  ~Lighting()
   {
-    for (int i = 0; i < MAX_NO_LIGHTS; i++) {
-      m_Lights[i] = Other.m_Lights[i];
-      m_sceneLights[i].m_light = &m_Lights[i];
+    for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
+      delete m_sceneLights[i];
+      delete m_Lights[i];
     }
-
-    m_NoLights = Other.m_NoLights;
-
-    return *this;
   }
 
-  void AddLight(const Light& Light)
+  Light& LightRef(int i) const { return *m_Lights[i]; }
+
+  void AddLight(Light& light)
   {
     if (m_NoLights >= MAX_NO_LIGHTS)
       return;
 
-    m_Lights[m_NoLights] = Light;
-    m_sceneLights[m_NoLights].m_light = &m_Lights[m_NoLights];
+    m_Lights[m_NoLights] = new Light(light);
+    m_sceneLights[m_NoLights] = new SceneLight(m_Lights[m_NoLights]);
 
     m_NoLights = m_NoLights + 1;
   }
-
-  void Reset(void)
+  void SetLight(int i, Light& light)
   {
-    m_NoLights = 0;
-    // memset(m_Lights, 0 , MAX_NO_LIGHTS * sizeof(CLight));
+    if (i >= MAX_NO_LIGHTS)
+      return;
+
+    delete m_sceneLights[i];
+    delete m_Lights[i];
+
+    m_Lights[i] = new Light(light);
+    m_sceneLights[i] = new SceneLight(m_Lights[i]);
   }
 
-  Light m_Lights[MAX_NO_LIGHTS];
+  Light* m_Lights[MAX_NO_LIGHTS];
   int m_NoLights;
-  SceneLight m_sceneLights[MAX_NO_LIGHTS];
+  SceneLight* m_sceneLights[MAX_NO_LIGHTS];
 };
 
 class Scene
@@ -97,6 +100,10 @@ public:
   Plane m_userClipPlane = Plane(glm::vec3(0, 0, 1), 0.5f);
 
   Lighting m_lighting;
+
+  // convenience functions
+  Light& SphereLight() const;
+  Light& AreaLight() const;
 
   std::vector<Manipulator*> m_tools;
 

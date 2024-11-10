@@ -61,6 +61,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RotateTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScaleBarTool.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScaleBarTool.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SceneLight.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SceneLight.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenePlane.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenePlane.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.cpp"
@@ -89,7 +91,7 @@ add_subdirectory(io)
 add_subdirectory(pugixml)
 
 target_link_libraries(renderlib
-	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml
+	Qt::Core Qt::OpenGL
 	${CMAKE_DL_LIBS}
 	${TIFF_LIBRARIES}
 
