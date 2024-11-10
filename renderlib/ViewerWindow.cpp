@@ -73,28 +73,6 @@ ViewerWindow::select(SceneObject* obj)
     }
   }
 }
-#if 0
-void
-ViewerWindow::showAreaLightGizmo(bool show)
-{
-  // check if m_areaLightTool is in m_tools
-  bool isShowing = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
-  if (isShowing == show) {
-    return;
-  }
-  if (show) {
-    sceneView.selection = &sceneView.scene->m_lighting.m_sceneLights[1];
-    ManipulationTool* tool = sceneView.selection->getSelectedTool();
-    if (tool) {
-      m_tools.push_back(tool);
-    }
-  } else {
-    ManipulationTool* tool = sceneView.selection->getSelectedTool();
-    m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), tool), m_tools.end());
-    sceneView.selection = nullptr;
-  }
-}
-#endif
 
 void
 ViewerWindow::updateCamera()
