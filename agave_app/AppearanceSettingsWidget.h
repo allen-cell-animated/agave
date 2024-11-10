@@ -102,8 +102,6 @@ private:
   RangeWidget* m_roiX;
   RangeWidget* m_roiY;
   RangeWidget* m_roiZ;
-  QCheckBox* m_enableUserClipPlane;
-  QCheckBox* m_toggleClipPlaneControls;
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
