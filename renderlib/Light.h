@@ -122,6 +122,15 @@ public:
 class SceneLight : public SceneObject
 {
 public:
+  SceneLight(Light* light = nullptr)
+    : m_light(light)
+  {
+    // we want the rotate manipulator to be centered at the target of the light, by default
+    if (light) {
+      m_transform.m_center = light->m_Target;
+    }
+  }
+
   void updateTransform();
   Light* m_light;
   std::vector<std::function<void(const Light&)>> m_observers;

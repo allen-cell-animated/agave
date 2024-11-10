@@ -45,6 +45,8 @@ class Lighting
 public:
   Lighting(void)
     : m_NoLights(0)
+    , m_Lights{ Light(), Light(), Light(), Light() }
+    , m_sceneLights{ SceneLight(), SceneLight(), SceneLight(), SceneLight() }
   {
   }
 

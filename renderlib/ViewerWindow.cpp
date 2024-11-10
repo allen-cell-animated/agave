@@ -65,8 +65,10 @@ ViewerWindow::showAreaLightGizmo(bool show)
   }
   if (show) {
     m_tools.push_back(m_areaLightTool);
+    sceneView.selection = &sceneView.scene->m_lighting.m_sceneLights[1];
   } else {
     m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
+    sceneView.selection = nullptr;
   }
 }
 

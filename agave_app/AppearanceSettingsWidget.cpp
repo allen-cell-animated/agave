@@ -222,6 +222,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   roiSectionLayout->addWidget(m_roiZ, 2, 1);
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
+
+  m_enableUserClipPlane = new QCheckBox("Enable Clip Plane");
+  m_enableUserClipPlane->setChecked(false);
+  roiSectionLayout->addWidget(m_enableUserClipPlane, 3, 0, 1, 2);
+  m_toggleClipPlaneControls = new QCheckBox("Show Clip Plane Controls");
+  m_toggleClipPlaneControls->setChecked(false);
+  roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);
+
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);
 
