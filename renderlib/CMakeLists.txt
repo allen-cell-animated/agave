@@ -61,6 +61,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/RotateTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScaleBarTool.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScaleBarTool.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ScenePlane.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ScenePlane.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
