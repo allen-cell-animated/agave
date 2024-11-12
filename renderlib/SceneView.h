@@ -24,7 +24,7 @@ struct SceneView
 
       Region(const glm::ivec2& lower, const glm::ivec2& upper)
         : lower(lower)
-        , upper(upper){};
+        , upper(upper) {};
 
       // assignment operator
       Region& operator=(const Region& other)
@@ -59,8 +59,5 @@ struct SceneView
   Scene* scene = nullptr;
   RenderSettings* renderSettings = nullptr;
 
-  // weak ptr! must not outlive the objects it points to.
-  SceneObject* selection = nullptr;
-
-  bool anythingActive() const { return scene != nullptr && selection != nullptr; }
+  bool anythingActive() const;
 };

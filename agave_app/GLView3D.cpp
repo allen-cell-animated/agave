@@ -309,7 +309,7 @@ GLView3D::toggleClipPlaneDisplay()
 {
   // TODO use smart ptr here instead of getting raw ptr
   SceneObject* clipPlane = m_viewerWindow->sceneView.scene->m_clipPlane.get();
-  if (m_viewerWindow->sceneView.selection == clipPlane) {
+  if (m_viewerWindow->sceneView.scene->m_selection == clipPlane) {
     m_viewerWindow->select(nullptr);
   } else {
     m_viewerWindow->select(clipPlane);
