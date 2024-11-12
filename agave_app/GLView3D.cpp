@@ -320,17 +320,17 @@ void
 GLView3D::toggleAreaLightRotateControls()
 {
   // toggle rotate tool
-  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::TRANS) {
+  if (m_manipulatorMode == MANIPULATOR_MODE::NONE || m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
     m_viewerWindow->select(m_viewerWindow->sceneView.scene->SceneAreaLight());
     m_viewerWindow->setTool(
       new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
     m_viewerWindow->forEachTool(
       [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_areaLightMode = AREALIGHT_MODE::ROT;
+    m_manipulatorMode = MANIPULATOR_MODE::ROT;
   } else {
     m_viewerWindow->select(nullptr);
     m_viewerWindow->setTool(nullptr);
-    m_areaLightMode = AREALIGHT_MODE::NONE;
+    m_manipulatorMode = MANIPULATOR_MODE::NONE;
   }
 }
 
@@ -341,17 +341,17 @@ void
 GLView3D::toggleAreaLightTranslateControls()
 {
   // toggle translate tool
-  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::ROT) {
+  if (m_manipulatorMode == MANIPULATOR_MODE::NONE || m_manipulatorMode == MANIPULATOR_MODE::ROT) {
     m_viewerWindow->select(m_viewerWindow->sceneView.scene->SceneAreaLight());
     m_viewerWindow->setTool(
       new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
     m_viewerWindow->forEachTool(
       [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_areaLightMode = AREALIGHT_MODE::TRANS;
+    m_manipulatorMode = MANIPULATOR_MODE::TRANS;
   } else {
     m_viewerWindow->select(nullptr);
     m_viewerWindow->setTool(nullptr);
-    m_areaLightMode = AREALIGHT_MODE::NONE;
+    m_manipulatorMode = MANIPULATOR_MODE::NONE;
   }
 }
 void

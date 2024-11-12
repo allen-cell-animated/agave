@@ -107,10 +107,10 @@ private:
 
   ViewerWindow* m_viewerWindow;
 
-  enum AREALIGHT_MODE
+  enum MANIPULATOR_MODE
   {
     NONE,
     ROT,
     TRANS
-  } m_areaLightMode = AREALIGHT_MODE::NONE;
+  } m_manipulatorMode = MANIPULATOR_MODE::NONE;
 };
