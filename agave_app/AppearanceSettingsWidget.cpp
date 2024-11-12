@@ -19,7 +19,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QRenderSettings* qrs,
                                                      RenderSettings* rs,
                                                      QAction* pLightRotationAction,
-                                                     QAction* pToggleClipPlaneAction)
+                                                     QAction* pToggleClipPlaneAction,
+                                                     QAction* pToggleRotateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_DensityScaleSlider()
@@ -231,6 +232,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_toggleClipPlaneControls = new QCheckBox("Show Clip Plane Controls");
   m_toggleClipPlaneControls->setChecked(false);
   roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);
+  QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, pToggleRotateAction, &QAction::trigger);
 
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);

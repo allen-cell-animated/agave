@@ -34,7 +34,8 @@ public:
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
                             QAction* pLightRotationAction = nullptr,
-                            QAction* pToggleClipPlaneAction = nullptr);
+                            QAction* pToggleClipPlaneAction = nullptr,
+                            QAction* pToggleRotateAction = nullptr);
 
   void onNewImage(Scene* scene);
 

@@ -6,10 +6,11 @@ QAppearanceWidget::QAppearanceWidget(QWidget* pParent,
                                      QRenderSettings* qrs,
                                      RenderSettings* rs,
                                      QAction* pLightRotationAction,
-                                     QAction* pToggleClipPlaneAction)
+                                     QAction* pToggleClipPlaneAction,
+                                     QAction* pToggleRotateAction)
   : QWidget(pParent)
   , m_MainLayout()
-  , m_AppearanceSettingsWidget(nullptr, qrs, rs, pLightRotationAction, pToggleClipPlaneAction)
+  , m_AppearanceSettingsWidget(nullptr, qrs, rs, pLightRotationAction, pToggleClipPlaneAction, pToggleRotateAction)
 {
   // Create main layout
   m_MainLayout.setAlignment(Qt::AlignTop);
@@ -26,9 +27,10 @@ QAppearanceDockWidget::QAppearanceDockWidget(QWidget* parent,
                                              QRenderSettings* qrs,
                                              RenderSettings* rs,
                                              QAction* pLightRotationAction,
-                                             QAction* pToggleClipPlaneAction)
+                                             QAction* pToggleClipPlaneAction,
+                                             QAction* pToggleRotateAction)
   : QDockWidget(parent)
-  , m_VolumeAppearanceWidget(nullptr, qrs, rs, pLightRotationAction, pToggleClipPlaneAction)
+  , m_VolumeAppearanceWidget(nullptr, qrs, rs, pLightRotationAction, pToggleClipPlaneAction, pToggleRotateAction)
 {
   setWindowTitle("Appearance");
 
