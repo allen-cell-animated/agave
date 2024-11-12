@@ -227,13 +227,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_enableUserClipPlane->setChecked(false);
   roiSectionLayout->addWidget(m_enableUserClipPlane, 3, 0, 1, 2);
   QObject::connect(m_enableUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
-    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    emit this->m_qrendersettings->Selected(toggled ? this->m_scene->m_clipPlane.get() : nullptr);
   });
   m_toggleClipPlaneControls = new QCheckBox("Show Clip Plane Controls");
   m_toggleClipPlaneControls->setChecked(false);
   roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);
   QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
-    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    emit this->m_qrendersettings->Selected(toggled ? this->m_scene->m_clipPlane.get() : nullptr);
     pToggleRotateAction->trigger();
   });
 
@@ -274,8 +274,8 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
   QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool clicked) {
     // select area light
-    emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
-    pRotationAction->trigger();
+    emit this->m_qrendersettings->Selected(clicked ? this->m_scene->SceneAreaLight() : nullptr);
+    pRotationAction->trigger(clicked);
   });
   QObject::connect(pRotationAction, &QAction::triggered, [this](bool toggled) {
     this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
