@@ -3,6 +3,7 @@
 #include <QObject>
 
 class RenderSettings;
+class SceneObject;
 
 class QRenderSettings : public QObject
 {
@@ -28,6 +29,7 @@ public:
 signals:
   void Changed(void);
   void ChangedRenderer(int);
+  void Selected(SceneObject*);
 
 private:
   int m_RendererType;

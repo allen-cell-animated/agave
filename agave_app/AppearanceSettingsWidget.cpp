@@ -232,7 +232,10 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_toggleClipPlaneControls = new QCheckBox("Show Clip Plane Controls");
   m_toggleClipPlaneControls->setChecked(false);
   roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);
-  QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, pToggleRotateAction, &QAction::trigger);
+  QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
+    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    pToggleRotateAction->trigger();
+  });
 
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);
