@@ -52,7 +52,6 @@ public:
   void toggleCameraProjection();
   void toggleRotateControls();
   void toggleTranslateControls();
-  void toggleClipPlaneDisplay();
 
   void onNewImage(Scene* scene);
 

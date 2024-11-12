@@ -18,8 +18,6 @@ static const int MAX_CHANNELS_CHECKED = 4;
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QRenderSettings* qrs,
                                                      RenderSettings* rs,
-                                                     QAction* pLightRotationAction,
-                                                     QAction* pToggleClipPlaneAction,
                                                      QAction* pToggleRotateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
@@ -245,7 +243,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
 
-  Section* section = createAreaLightingControls(pLightRotationAction);
+  Section* section = createAreaLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section);
   Section* section2 = createSkyLightingControls();
   m_MainLayout.addRow(section2);
@@ -263,7 +261,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 }
 
 Section*
-QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAction)
+QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 {
   Section* section = new Section("Area Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
@@ -274,8 +272,12 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
   m_lt0gui.m_enableControlsCheckBox->setToolTip(
     tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
-  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, pLightRotationAction, &QAction::trigger);
-  QObject::connect(pLightRotationAction, &QAction::triggered, [this](bool toggled) {
+  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool clicked) {
+    // select area light
+    emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
+    pRotationAction->trigger();
+  });
+  QObject::connect(pRotationAction, &QAction::triggered, [this](bool toggled) {
     this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
   });
 
