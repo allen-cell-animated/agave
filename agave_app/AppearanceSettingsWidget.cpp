@@ -18,7 +18,8 @@ static const int MAX_CHANNELS_CHECKED = 4;
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QRenderSettings* qrs,
                                                      RenderSettings* rs,
-                                                     QAction* pLightRotationAction)
+                                                     QAction* pLightRotationAction,
+                                                     QAction* pToggleClipPlaneAction)
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_DensityScaleSlider()
@@ -226,6 +227,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_enableUserClipPlane = new QCheckBox("Enable Clip Plane");
   m_enableUserClipPlane->setChecked(false);
   roiSectionLayout->addWidget(m_enableUserClipPlane, 3, 0, 1, 2);
+  QObject::connect(m_enableUserClipPlane, &QCheckBox::clicked, pToggleClipPlaneAction, &QAction::trigger);
   m_toggleClipPlaneControls = new QCheckBox("Show Clip Plane Controls");
   m_toggleClipPlaneControls->setChecked(false);
   roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);

@@ -305,6 +305,18 @@ GLView3D::FitToScene(float transitionDurationSeconds)
 }
 
 void
+GLView3D::toggleClipPlaneDisplay()
+{
+  // TODO use smart ptr here instead of getting raw ptr
+  SceneObject* clipPlane = m_viewerWindow->sceneView.scene->m_clipPlane.get();
+  if (m_viewerWindow->sceneView.selection == clipPlane) {
+    m_viewerWindow->select(nullptr);
+  } else {
+    m_viewerWindow->select(clipPlane);
+  }
+}
+
+void
 GLView3D::toggleAreaLightRotateControls()
 {
   // toggle rotate tool

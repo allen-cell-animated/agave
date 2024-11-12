@@ -135,6 +135,9 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
   }
 
   initBoundsFromImg(img);
+
+  m_clipPlane = std::make_shared<ScenePlane>();
+  m_clipPlane->m_plane = Plane(glm::vec3(0.0f, 0.0f, 1.0f), m_boundingBox.GetCenter());
 }
 
 void

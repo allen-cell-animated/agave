@@ -253,6 +253,15 @@ agaveGui::createActions()
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleAreaLightRotateControls();
   });
+
+  m_toggleClipPlaneAction = new QAction(tr("&Clip plane"), this);
+  m_toggleClipPlaneAction->setStatusTip(tr("Enable/disable custom clip plane"));
+  m_toggleClipPlaneAction->setCheckable(true);
+  m_toggleClipPlaneAction->setShortcut(QKeySequence(Qt::Key_C));
+  // tie the action to the main app window.
+  addAction(m_toggleClipPlaneAction);
+  connect(
+    m_toggleClipPlaneAction, &QAction::triggered, [this](bool checked) { this->m_glView->toggleClipPlaneDisplay(); });
 }
 
 void
@@ -328,8 +337,8 @@ agaveGui::createDockWindows()
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
   m_timelinedock->setVisible(false); // hide by default
 
-  m_appearanceDockWidget =
-    new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction);
+  m_appearanceDockWidget = new QAppearanceDockWidget(
+    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleClipPlaneAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 

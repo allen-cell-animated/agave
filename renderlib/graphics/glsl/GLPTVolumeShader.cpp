@@ -1556,7 +1556,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   // cam.getViewMatrix(m);
   // Plane p = scene->m_userClipPlane.transform(m);
   // glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
-  glUniform4fv(m_clipPlane, 1, glm::value_ptr(scene->m_userClipPlane.asVec4()));
+  glUniform4fv(m_clipPlane, 1, glm::value_ptr(scene->m_clipPlane->m_plane.asVec4()));
 
   check_gl("pathtrace shader uniform binding");
 }

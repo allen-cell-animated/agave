@@ -130,6 +130,7 @@ private:
   QAction* m_sourceCodeAction = nullptr;
   QAction* m_citationAction = nullptr;
   QAction* m_toggleRotateControlsAction = nullptr;
+  QAction* m_toggleClipPlaneAction = nullptr;
 
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
