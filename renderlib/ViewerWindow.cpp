@@ -66,6 +66,7 @@ ViewerWindow::select(SceneObject* obj)
   }
 
   sceneView.scene->m_selection = obj;
+
   if (obj) {
     ManipulationTool* tool = sceneView.scene->m_selection->getSelectedTool();
     if (tool) {

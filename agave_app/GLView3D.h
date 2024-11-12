@@ -50,8 +50,8 @@ public:
   void initCameraFromImage(Scene* scene);
   void retargetCameraForNewVolume(Scene* scene);
   void toggleCameraProjection();
-  void toggleAreaLightRotateControls();
-  void toggleAreaLightTranslateControls();
+  void toggleRotateControls();
+  void toggleTranslateControls();
   void toggleClipPlaneDisplay();
 
   void onNewImage(Scene* scene);
@@ -77,6 +77,7 @@ public slots:
   void OnUpdateCamera();
   void OnUpdateQRenderSettings(void);
   void OnUpdateRenderer(int);
+  void OnSelectionChanged(SceneObject* so);
 
 public:
   std::shared_ptr<CStatus> getStatus();

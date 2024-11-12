@@ -228,7 +228,9 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_enableUserClipPlane = new QCheckBox("Enable Clip Plane");
   m_enableUserClipPlane->setChecked(false);
   roiSectionLayout->addWidget(m_enableUserClipPlane, 3, 0, 1, 2);
-  QObject::connect(m_enableUserClipPlane, &QCheckBox::clicked, pToggleClipPlaneAction, &QAction::trigger);
+  QObject::connect(m_enableUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
+    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+  });
   m_toggleClipPlaneControls = new QCheckBox("Show Clip Plane Controls");
   m_toggleClipPlaneControls->setChecked(false);
   roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);

@@ -251,7 +251,7 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    this->m_glView->toggleAreaLightRotateControls();
+    this->m_glView->toggleRotateControls();
   });
 
   m_toggleClipPlaneAction = new QAction(tr("&Clip plane"), this);
