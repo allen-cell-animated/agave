@@ -165,22 +165,26 @@ struct Plane
 {
   glm::vec3 normal;
   float d;
+
   Plane()
     : normal(0.0f, 0.0f, 1.0f)
     , d(0.0f)
   {
     // default plane points to +z and sits at origin in xy plane.
   }
+
   Plane(const glm::vec3& n, float dist)
-    : normal(n)
-    , d(dist) // negate?
+    : normal(glm::normalize(n))
+    , d(dist)
   {
   }
   Plane(const glm::vec3& n, const glm::vec3& p)
-    : normal(n)
-    , d(-glm::dot(n, p)) {};
+    : normal(glm::normalize(n))
+    , d(glm::dot(n, p)) {};
 
-  glm::vec4 asVec4() const { return glm::vec4(normal, d); }
+  // the vec4 version satisfies the plane equation: dot(normal, p) = d but is of the form v0*x + v1*y + v2*z + v3 = 0
+  // so you can do dot(asVec4, vec4(p,1)) = 0
+  glm::vec4 asVec4() const { return glm::vec4(normal, -d); }
 
   Plane transform(const glm::mat4& m) const;
 };

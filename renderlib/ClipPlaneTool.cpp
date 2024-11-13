@@ -19,7 +19,7 @@ ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
   // TODO draw this as an oriented grid centered in the view (or on the volume?)
   glm::vec3 n = m_plane->normal;
   // point in plane
-  glm::vec3 p = m_plane->normal * -m_plane->d;
+  glm::vec3 p = m_pos; // m_plane->normal * -m_plane->d;
   glm::vec3 u = glm::cross(n, glm::vec3(0, 1, 0));
   if (glm::length(u) < 0.001f) {
     u = glm::normalize(glm::cross(n, glm::vec3(1, 0, 0)));

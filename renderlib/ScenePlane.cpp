@@ -1,5 +1,13 @@
 #include "ScenePlane.h"
 
+#include "Logging.h"
+
+ScenePlane::ScenePlane(glm::vec3 pos)
+{
+  m_tool = std::make_unique<ClipPlaneTool>(&m_plane, pos);
+  LOG_DEBUG << "pos = " << pos.x << ", " << pos.y << ", " << pos.z;
+}
+
 void
 ScenePlane::updateTransform()
 {

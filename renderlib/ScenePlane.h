@@ -11,7 +11,7 @@
 class ScenePlane : public SceneObject
 {
 public:
-  ScenePlane() { m_tool = std::make_unique<ClipPlaneTool>(&m_plane); }
+  ScenePlane(glm::vec3 pos);
 
   void updateTransform();
   std::vector<std::function<void(const Plane&)>> m_observers;
