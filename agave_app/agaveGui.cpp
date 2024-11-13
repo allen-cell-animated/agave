@@ -91,7 +91,6 @@ agaveGui::agaveGui(QWidget* parent)
   createActions();
   createMenus();
   createToolbars();
-  LOG_DEBUG << "Creating dock windows";
   createDockWindows();
   setDockOptions(AllowTabbedDocks);
 
@@ -246,7 +245,6 @@ agaveGui::createActions()
   connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
 
   m_toggleRotateControlsAction = new QAction(tr("&Rotate controls"), this);
-  LOG_DEBUG << "create toggleRotateControlsAction";
   m_toggleRotateControlsAction->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
   m_toggleRotateControlsAction->setCheckable(true);
   m_toggleRotateControlsAction->setShortcut(QKeySequence(Qt::Key_R));
@@ -330,7 +328,6 @@ agaveGui::createDockWindows()
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
   m_timelinedock->setVisible(false); // hide by default
 
-  LOG_DEBUG << "pass toggleRotateControlsAction to appearancedockwidget";
   m_appearanceDockWidget =
     new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);

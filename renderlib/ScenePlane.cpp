@@ -8,4 +8,6 @@ ScenePlane::updateTransform()
   for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
     (*it)(p);
   }
+
+  m_plane = p;
 }
