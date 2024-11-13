@@ -297,7 +297,7 @@ void ClipRayAgainstPlane(in Ray R, in vec4 plane, out float pNearT, out float pF
   float denom = dot(R.m_D, plane.xyz);
   if (abs(denom) > 0.0001f) // your favorite epsilon
   {
-    float tClip = dot(plane.xyz*plane.w - R.m_O, plane.xyz) / denom;
+    float tClip = dot(plane.xyz*(-plane.w) - R.m_O, plane.xyz) / denom;
     if (denom < 0.0f) {
       pNearT = max(pNearT, tClip);
     }

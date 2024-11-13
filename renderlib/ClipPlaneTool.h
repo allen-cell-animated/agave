@@ -5,7 +5,7 @@
 struct ClipPlaneTool : ManipulationTool
 {
 
-  ClipPlaneTool(const Plane& plane)
+  ClipPlaneTool(Plane* plane)
     : ManipulationTool(0)
     , m_plane(plane)
   {
@@ -14,5 +14,5 @@ struct ClipPlaneTool : ManipulationTool
   virtual void action(SceneView& scene, Gesture& gesture) final;
   virtual void draw(SceneView& scene, Gesture& gesture) final;
 
-  Plane m_plane;
+  Plane* m_plane;
 };
