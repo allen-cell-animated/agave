@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "name": "agave",
+      "includePath": ["${workspaceFolder}/**"],
+      "browse": {
+        "path": ["${workspaceFolder}"],
+        "limitSymbolsToIncludedHeaders": true,
+        "databaseFilename": ""
+      }
+    }
+  ]
+}
