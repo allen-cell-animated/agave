@@ -1,17 +1,22 @@
 #include "ClipPlaneTool.h"
 
+#include "AppScene.h"
 #include "Logging.h"
+#include "SceneView.h"
 
 void
 ClipPlaneTool::action(SceneView& scene, Gesture& gesture)
 {
 }
+
 void
 ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
 {
   if (!scene.scene) {
     return;
   }
+  m_plane = scene.scene->m_clipPlane->m_plane;
+
   // TODO draw this as an oriented grid centered in the view (or on the volume?)
   glm::vec3 n = m_plane.normal;
   glm::vec3 p = m_plane.normal * m_plane.d;
