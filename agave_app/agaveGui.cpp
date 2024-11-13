@@ -253,7 +253,6 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    LOG_DEBUG << "toggleRotateControlsAction triggered";
     this->m_glView->toggleRotateControls();
   });
 }
