@@ -315,12 +315,15 @@ GLView3D::OnSelectionChanged(SceneObject* so)
 void
 GLView3D::toggleRotateControls()
 {
+  LOG_DEBUG << "toggleRotateControls";
   // if nothing selected, then just exit
   if (!m_viewerWindow->sceneView.scene->m_selection) {
     return;
   }
+  LOG_DEBUG << "toggleRotateControls has selection";
   // toggle rotate tool
   if (m_manipulatorMode == MANIPULATOR_MODE::NONE || m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
+    LOG_DEBUG << "toggleRotateControls added rotate tool";
     // m_viewerWindow->select(m_viewerWindow->sceneView.scene->SceneAreaLight());
     m_viewerWindow->setTool(
       new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
@@ -328,6 +331,8 @@ GLView3D::toggleRotateControls()
       [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
     m_manipulatorMode = MANIPULATOR_MODE::ROT;
   } else {
+    LOG_DEBUG << "toggleRotateControls removed rotate tool";
+
     // m_viewerWindow->select(nullptr);
     m_viewerWindow->setTool(nullptr);
     m_manipulatorMode = MANIPULATOR_MODE::NONE;

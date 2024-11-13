@@ -1,0 +1,4 @@
+{
+  "include": ["agave_pyclient/**/*.py"],
+  "exclude": ["build", "renderlib", "agave_app"]
+}
