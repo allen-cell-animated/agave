@@ -13,12 +13,12 @@ ScenePlane::ScenePlane(glm::vec3 pos)
 void
 ScenePlane::updateTransform()
 {
-  // rotation only... for now
-  m_transform.m_center = m_center;
-
   Plane p0;
   Plane p = p0.transform(m_transform.getMatrix());
-  // this lets the GUI have a chance to update in an abstract way
+  // rotation only about current plane center... for now
+  p = Plane(p.normal, m_center);
+
+  //  this lets the GUI have a chance to update in an abstract way
   for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
     (*it)(p);
   }
