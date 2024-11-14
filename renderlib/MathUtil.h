@@ -180,11 +180,13 @@ struct Plane
   }
   Plane(const glm::vec3& n, const glm::vec3& p)
     : normal(glm::normalize(n))
-    , d(glm::dot(n, p)) {};
+    , d(glm::dot(normal, p)) {};
 
   // the vec4 version satisfies the plane equation: dot(normal, p) = d but is of the form v0*x + v1*y + v2*z + v3 = 0
   // so you can do dot(asVec4, vec4(p,1)) = 0
   glm::vec4 asVec4() const { return glm::vec4(normal, -d); }
+
+  glm::vec3 getPointInPlane() const { return normal * d; }
 
   Plane transform(const glm::mat4& m) const;
 };

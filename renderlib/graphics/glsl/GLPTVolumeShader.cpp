@@ -329,7 +329,7 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
   float denom = dot(R.m_D, g_clipPlane.xyz);
   if (abs(denom) > 0.0001f) // your favorite epsilon
   {
-    float tClip = dot(g_clipPlane.xyz*g_clipPlane.w - R.m_O, g_clipPlane.xyz) / denom;
+    float tClip = dot(g_clipPlane.xyz*(-g_clipPlane.w) - R.m_O, g_clipPlane.xyz) / denom;
     if (denom < 0.0f) {
       pNearT = max(pNearT, tClip);
     }
@@ -1551,12 +1551,10 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
   glUniform1i(m_uShowLights, 0);
 
-  // transform world clip plane into camera space
-  // glm::mat4 m;
-  // cam.getViewMatrix(m);
-  // Plane p = scene->m_userClipPlane.transform(m);
-  // glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
-  glUniform4fv(m_clipPlane, 1, glm::value_ptr(scene->m_clipPlane->m_plane.asVec4()));
+  glUniform4fv(
+    m_clipPlane,
+    1,
+    glm::value_ptr(scene->m_clipPlane->m_enabled ? scene->m_clipPlane->m_plane.asVec4() : glm::vec4(0, 0, 0, 0)));
 
   check_gl("pathtrace shader uniform binding");
 }

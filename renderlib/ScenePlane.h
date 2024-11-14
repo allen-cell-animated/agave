@@ -16,7 +16,9 @@ public:
   void updateTransform();
   std::vector<std::function<void(const Plane&)>> m_observers;
 
+  glm::vec3 m_center;
   Plane m_plane;
+  bool m_enabled;
   std::unique_ptr<ClipPlaneTool> m_tool;
 
   virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }

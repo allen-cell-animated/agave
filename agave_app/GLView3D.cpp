@@ -313,22 +313,42 @@ GLView3D::OnSelectionChanged(SceneObject* so)
 }
 
 void
+GLView3D::setManipulatorMode(MANIPULATOR_MODE mode)
+{
+  m_manipulatorMode = mode;
+  switch (mode) {
+    case MANIPULATOR_MODE::NONE:
+      m_viewerWindow->setTool(nullptr);
+      break;
+    case MANIPULATOR_MODE::ROT:
+      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
+                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      break;
+    case MANIPULATOR_MODE::TRANS:
+      m_viewerWindow->setTool(
+        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      break;
+    default:
+      break;
+  }
+}
+
+void
 GLView3D::toggleRotateControls()
 {
-  // if nothing selected, then just exit
+  // if nothing selected, then switch off
   if (!m_viewerWindow->sceneView.scene->m_selection) {
-    return;
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
   // toggle rotate tool
-  if (m_manipulatorMode == MANIPULATOR_MODE::NONE || m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
-    m_viewerWindow->setTool(
-      new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-    m_viewerWindow->forEachTool(
-      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_manipulatorMode = MANIPULATOR_MODE::ROT;
+  else if (m_manipulatorMode == MANIPULATOR_MODE::ROT) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
   } else {
-    m_viewerWindow->setTool(nullptr);
-    m_manipulatorMode = MANIPULATOR_MODE::NONE;
+    setManipulatorMode(MANIPULATOR_MODE::ROT);
   }
 }
 
@@ -338,20 +358,15 @@ GLView3D::toggleRotateControls()
 void
 GLView3D::toggleTranslateControls()
 {
-  // if nothing selected, then just exit
+  // if nothing selected, then switch off
   if (!m_viewerWindow->sceneView.scene->m_selection) {
-    return;
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
-  // toggle translate tool
-  if (m_manipulatorMode == MANIPULATOR_MODE::NONE || m_manipulatorMode == MANIPULATOR_MODE::ROT) {
-    m_viewerWindow->setTool(
-      new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-    m_viewerWindow->forEachTool(
-      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_manipulatorMode = MANIPULATOR_MODE::TRANS;
+  // toggle rotate tool
+  else if (m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
   } else {
-    m_viewerWindow->setTool(nullptr);
-    m_manipulatorMode = MANIPULATOR_MODE::NONE;
+    setManipulatorMode(MANIPULATOR_MODE::TRANS);
   }
 }
 

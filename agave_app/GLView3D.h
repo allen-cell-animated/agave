@@ -50,6 +50,14 @@ public:
   void initCameraFromImage(Scene* scene);
   void retargetCameraForNewVolume(Scene* scene);
   void toggleCameraProjection();
+  enum MANIPULATOR_MODE
+  {
+    NONE,
+    ROT,
+    TRANS
+  };
+  void setManipulatorMode(MANIPULATOR_MODE mode);
+
   void toggleRotateControls();
   void toggleTranslateControls();
 
@@ -107,10 +115,5 @@ private:
 
   ViewerWindow* m_viewerWindow;
 
-  enum MANIPULATOR_MODE
-  {
-    NONE,
-    ROT,
-    TRANS
-  } m_manipulatorMode = MANIPULATOR_MODE::NONE;
+  MANIPULATOR_MODE m_manipulatorMode = MANIPULATOR_MODE::NONE;
 };

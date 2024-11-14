@@ -10,6 +10,8 @@ struct ClipPlaneTool : ManipulationTool
     , m_plane(plane)
     , m_pos(pos)
   {
+    // assumes pos is in plane! if not, there will be trouble.
+    assert(glm::dot(m_plane->normal, m_pos) == m_plane->d);
   }
 
   virtual void action(SceneView& scene, Gesture& gesture) final;

@@ -56,6 +56,8 @@ Plane::transform(const glm::mat4& m) const
   glm::vec4 O = glm::vec4(normal * d, 1);
   glm::vec4 N = glm::vec4(normal, 0);
   O = m * O;
-  N = glm::normalize(m * N); // use inverse transpose for normals
+  N = glm::normalize(m * N);
+  // only really need inv xpose if scaling is involved
+  //  N = glm::normalize(glm::transpose(glm::inverse(m)) * N); // use inverse transpose for normals
   return Plane(glm::vec3(N), glm::vec3(O));
 }
