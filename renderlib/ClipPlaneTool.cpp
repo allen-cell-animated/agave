@@ -34,10 +34,12 @@ ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
 
-  constexpr int numLines = 4;
   float scale = 0.5f;
+
+  constexpr int numLines = 8;
+  bool showFirstAndLast = false;
   // draw a grid across the u and v axes centered at p
-  for (int i = 0; i < numLines + 1; ++i) {
+  for (int i = showFirstAndLast ? 0 : 1; i < (showFirstAndLast ? (numLines + 1) : numLines); ++i) {
     float fraction = ((float)i - numLines / 2.0f) / (float)numLines;
     glm::vec3 p0 = p + u * (fraction * scale) + v * (0.5f * scale);
     glm::vec3 p1 = p + u * (fraction * scale) + v * (-0.5f * scale);
@@ -49,7 +51,7 @@ ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
                              Gesture::Graphics::VertsCode(p1, color, opacity, code));
   }
 
-  opacity = 0.3f;
+  opacity = 0.1f;
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
   // fill in the rectangle of the plane spanning the u and v axes
   glm::vec3 p0 = p - u * (0.5f * scale) - v * (0.5f * scale);
