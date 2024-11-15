@@ -33,6 +33,9 @@ Origins::translate(SceneView& scene, glm::vec3 motion)
   glm::vec3 p = m_origins[0].m_center + motion;
 
   SceneObject* obj = scene.scene->m_selection;
+  if (!obj) {
+    return;
+  }
 
   // actually set the transform here!!
   obj->m_transform.m_center = p;
