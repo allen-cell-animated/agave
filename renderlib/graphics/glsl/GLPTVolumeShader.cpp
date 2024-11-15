@@ -290,26 +290,6 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   return newRay(RayO, RayD);
 }
 
-// plane xyz is normal, plane w is distance from origin
-// only examine t if the function returned true!
-void ClipRayAgainstPlane(in Ray R, in vec4 plane, out float pNearT, out float pFarT) {
-  // now constrain near and far using clipPlane if active.
-  float denom = dot(R.m_D, plane.xyz);
-  if (abs(denom) > 0.0001f) // your favorite epsilon
-  {
-    float tClip = dot(plane.xyz*(-plane.w) - R.m_O, plane.xyz) / denom;
-    if (denom < 0.0f) {
-      pNearT = max(pNearT, tClip);
-    }
-    else {
-      pFarT = min(pFarT, tClip);
-    }
-  }
-  else
-  {
-  // todo check to see which side of the plane we are on ?
-  }
-}
 
 bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 {
@@ -325,7 +305,7 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
   pFarT	= smallestMaxT;
 
   // now constrain near and far using clipPlane if active.
-  //ClipRayAgainstPlane(R, g_clipPlane, pNearT, pFarT);
+  // plane xyz is normal, plane w is -distance from origin
   float denom = dot(R.m_D, g_clipPlane.xyz);
   if (abs(denom) > 0.0001f) // your favorite epsilon
   {
