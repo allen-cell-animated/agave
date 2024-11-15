@@ -7,7 +7,6 @@ ScenePlane::ScenePlane(glm::vec3 pos)
   m_enabled = true;
   m_center = pos;
   m_tool = std::make_unique<ClipPlaneTool>(&m_plane, pos);
-  LOG_DEBUG << "pos = " << pos.x << ", " << pos.y << ", " << pos.z;
 }
 
 void

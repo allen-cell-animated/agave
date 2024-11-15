@@ -98,7 +98,6 @@ public:
   VolumeDisplay m_material;
 
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
-  Plane m_userClipPlane;
   std::shared_ptr<ScenePlane> m_clipPlane;
 
   Lighting m_lighting;

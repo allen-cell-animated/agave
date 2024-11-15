@@ -253,6 +253,17 @@ agaveGui::createActions()
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleRotateControls();
   });
+
+  m_toggleTranslateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleTranslateControlsAction->setStatusTip(
+    tr("Show interactive controls in viewport for area light rotation angle"));
+  m_toggleTranslateControlsAction->setCheckable(true);
+  m_toggleTranslateControlsAction->setShortcut(QKeySequence(Qt::Key_T));
+  // tie the action to the main app window.
+  addAction(m_toggleTranslateControlsAction);
+  connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
+    this->m_glView->toggleTranslateControls();
+  });
 }
 
 void
