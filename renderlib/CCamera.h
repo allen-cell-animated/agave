@@ -466,7 +466,7 @@ public:
     glm::vec3 ReverseLoS = m_From - m_Target;
 
     glm::vec3 right = glm::cross(m_Up, ReverseLoS);
-    glm::vec3 orthogUp = glm::cross(ReverseLoS, right);
+    // glm::vec3 orthogUp = glm::cross(ReverseLoS, right);
     glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     ReverseLoS = glm::rotate(ReverseLoS, DownDegrees * DEG_TO_RAD, right);
