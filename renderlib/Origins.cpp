@@ -10,7 +10,7 @@ Origins::update(SceneView& scene)
   if (scene.scene) {
 
     // e.g. find all selected objects in scene and collect up their centers/transforms here.
-    SceneObject* obj = scene.scene->m_selection;
+    SceneObject* obj = scene.getSelectedObject();
 
     // save the initial transform? we could use this to reset things if cancelled.
 
@@ -32,7 +32,7 @@ Origins::translate(SceneView& scene, glm::vec3 motion)
 
   glm::vec3 p = m_origins[0].m_center + motion;
 
-  SceneObject* obj = scene.scene->m_selection;
+  SceneObject* obj = scene.getSelectedObject();
   if (!obj) {
     return;
   }
@@ -55,7 +55,7 @@ Origins::rotate(SceneView& scene, glm::quat rotation)
   // if "cancelled" we could always restore the original rotation.
   glm::quat q = rotation * m_origins[0].m_rotation;
 
-  SceneObject* obj = scene.scene->m_selection;
+  SceneObject* obj = scene.getSelectedObject();
   if (!obj) {
     return;
   }

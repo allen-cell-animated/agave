@@ -22,3 +22,17 @@ SceneView::anythingActive() const
 {
   return scene != nullptr && scene->m_selection != nullptr;
 }
+
+SceneObject*
+SceneView::getSelectedObject() const
+{
+  return scene ? scene->m_selection : nullptr;
+}
+
+void
+SceneView::setSelectedObject(SceneObject* obj)
+{
+  if (scene) {
+    scene->m_selection = obj;
+  }
+}

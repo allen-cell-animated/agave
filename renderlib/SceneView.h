@@ -60,4 +60,6 @@ struct SceneView
   RenderSettings* renderSettings = nullptr;
 
   bool anythingActive() const;
+  SceneObject* getSelectedObject() const;
+  void setSelectedObject(SceneObject* obj);
 };

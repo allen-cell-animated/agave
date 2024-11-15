@@ -341,7 +341,7 @@ void
 GLView3D::toggleRotateControls()
 {
   // if nothing selected, then switch off
-  if (!m_viewerWindow->sceneView.scene->m_selection) {
+  if (!m_viewerWindow->sceneView.getSelectedObject()) {
     setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
   // toggle rotate tool
@@ -359,7 +359,7 @@ void
 GLView3D::toggleTranslateControls()
 {
   // if nothing selected, then switch off
-  if (!m_viewerWindow->sceneView.scene->m_selection) {
+  if (!m_viewerWindow->sceneView.getSelectedObject()) {
     setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
   // toggle rotate tool
