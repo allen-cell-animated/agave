@@ -33,7 +33,8 @@ public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
-                            QAction* pToggleRotateAction = nullptr);
+                            QAction* pToggleRotateAction = nullptr,
+                            QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
 
@@ -105,6 +106,7 @@ private:
   QCheckBox* m_showUserClipPlane;
   QCheckBox* m_enableUserClipPlane;
   QCheckBox* m_toggleClipPlaneControls;
+  QCheckBox* m_toggleClipPlaneTranslateControls;
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;

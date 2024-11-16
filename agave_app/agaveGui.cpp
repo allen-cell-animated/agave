@@ -350,8 +350,8 @@ agaveGui::createDockWindows()
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
   m_timelinedock->setVisible(false); // hide by default
 
-  m_appearanceDockWidget =
-    new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction);
+  m_appearanceDockWidget = new QAppearanceDockWidget(
+    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 
