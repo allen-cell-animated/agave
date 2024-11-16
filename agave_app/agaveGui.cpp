@@ -39,6 +39,8 @@
 
 const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
+QPushButton#rotateBtn { icon: url(":/icons/dark/rotate.svg"); qproperty-icon: url(":/icons/dark/rotate.svg") }
+QPushButton#translateBtn { icon: url(":/icons/dark/translate.svg"); qproperty-icon: url(":/icons/dark/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")}
@@ -57,6 +59,8 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
+QPushButton#rotateBtn { icon: url(":/icons/light/rotate.svg"); qproperty-icon: url(":/icons/light/rotate.svg") }
+QPushButton#translateBtn { icon: url(":/icons/light/translate.svg"); qproperty-icon: url(":/icons/light/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") }
@@ -245,6 +249,7 @@ agaveGui::createActions()
   connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
 
   m_toggleRotateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleRotateControlsAction->setObjectName("toggleRotateControlsAction");
   m_toggleRotateControlsAction->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
   m_toggleRotateControlsAction->setCheckable(true);
   m_toggleRotateControlsAction->setShortcut(QKeySequence(Qt::Key_R));
@@ -255,6 +260,7 @@ agaveGui::createActions()
   });
 
   m_toggleTranslateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleTranslateControlsAction->setObjectName("toggleTranslateControlsAction");
   m_toggleTranslateControlsAction->setStatusTip(
     tr("Show interactive controls in viewport for area light rotation angle"));
   m_toggleTranslateControlsAction->setCheckable(true);
@@ -264,6 +270,11 @@ agaveGui::createActions()
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleTranslateControls();
   });
+
+  m_manipulatorModeGroup = new QActionGroup(this);
+  m_manipulatorModeGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+  m_manipulatorModeGroup->addAction(m_toggleRotateControlsAction);
+  m_manipulatorModeGroup->addAction(m_toggleTranslateControlsAction);
 }
 
 void
@@ -901,6 +912,7 @@ agaveGui::view_front()
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 agaveGui::view_back()
 {
@@ -916,6 +928,7 @@ agaveGui::view_left()
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 agaveGui::view_right()
 {
