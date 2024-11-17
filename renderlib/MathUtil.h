@@ -187,6 +187,7 @@ struct Plane
   glm::vec4 asVec4() const { return glm::vec4(normal, -d); }
 
   glm::vec3 getPointInPlane() const { return normal * d; }
+  bool isInPlane(const glm::vec3& p) const { return abs(glm::dot(normal, p) - d) < 0.0001; }
 
   Plane transform(const glm::mat4& m) const;
 };

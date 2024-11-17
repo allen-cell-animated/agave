@@ -4,8 +4,10 @@
 
 ScenePlane::ScenePlane(glm::vec3 pos)
 {
+  m_center = pos;
   m_transform.m_center = pos;
   m_plane = Plane().transform(m_transform.getMatrix());
+  assert(m_plane.isInPlane(pos));
   m_enabled = true;
   m_tool = std::make_unique<ClipPlaneTool>(m_plane, pos);
 }
@@ -27,4 +29,5 @@ ScenePlane::updateTransform()
   m_plane = p;
   m_tool->m_plane = p;
   m_tool->m_pos = m_transform.m_center;
+  m_center = m_transform.m_center;
 }
