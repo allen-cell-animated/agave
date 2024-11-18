@@ -102,8 +102,8 @@ Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings*
 
   // TODO transform plane from world to object space. use inverse of mm
   if (scene->m_clipPlane->m_enabled) {
-    Plane plane = scene->m_clipPlane->m_plane;
-    plane = plane.transform(scene->m_clipPlane->m_transform.getMatrix());
+    Plane plane(scene->m_clipPlane->m_transform.m_rotation * glm::vec3(0, 0, 1),
+                scene->m_clipPlane->m_transform.m_center);
     plane = plane.transform(glm::inverse(mm));
     m_image3d_shader->clipPlane = plane.asVec4();
   } else {
