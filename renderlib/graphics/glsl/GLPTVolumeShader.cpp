@@ -1531,10 +1531,12 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
   glUniform1i(m_uShowLights, 0);
 
-  glUniform4fv(
-    m_clipPlane,
-    1,
-    glm::value_ptr(scene->m_clipPlane->m_enabled ? scene->m_clipPlane->m_plane.asVec4() : glm::vec4(0, 0, 0, 0)));
+  if (scene->m_clipPlane->m_enabled) {
+    Plane p = scene->m_clipPlane->m_plane.transform(scene->m_clipPlane->m_transform.getMatrix());
+    glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
+  } else {
+    glUniform4fv(m_clipPlane, 1, glm::value_ptr(glm::vec4(0, 0, 0, 0)));
+  }
 
   check_gl("pathtrace shader uniform binding");
 }

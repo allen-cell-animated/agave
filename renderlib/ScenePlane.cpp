@@ -28,6 +28,7 @@ ScenePlane::updateTransform()
 
   //  this lets the GUI have a chance to update in an abstract way
   for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
+    // TODO if all info is in transform, then observers should be able to see it
     (*it)(p);
   }
 
