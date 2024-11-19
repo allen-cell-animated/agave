@@ -24,6 +24,4 @@ SceneLight::updateTransform()
   for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
     (*it)(*m_light);
   }
-
-  m_transform.m_center = m_light->m_Target;
 }
