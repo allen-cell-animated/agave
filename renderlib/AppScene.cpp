@@ -157,6 +157,7 @@ Scene::initBounds(const CBoundingBox& bb)
   // point lights toward scene's bounding box
   for (int i = 0; i < m_lighting.m_NoLights; ++i) {
     m_lighting.m_Lights[i]->Update(m_boundingBox);
+    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
   }
 }
 

@@ -20,8 +20,9 @@ Origins::update(SceneView& scene)
     // arealight special case:
     // we want the rotate manipulator to be centered at the target of the light.
     // This could be a virtual SceneObject method like getManipulatorCenter()
-    Light& lt = scene.scene->AreaLight();
-    m_origins[0].m_center = lt.m_Target;
+    m_origins[0].m_center = obj->m_transform.m_center;
+    // Light& lt = scene.scene->AreaLight();
+    // m_origins[0].m_center = lt.m_Target;
   }
 }
 
