@@ -267,11 +267,6 @@ agaveGui::createActions()
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleTranslateControls();
   });
-
-  m_manipulatorModeGroup = new QActionGroup(this);
-  m_manipulatorModeGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
-  m_manipulatorModeGroup->addAction(m_toggleRotateControlsAction);
-  m_manipulatorModeGroup->addAction(m_toggleTranslateControlsAction);
 }
 
 void
