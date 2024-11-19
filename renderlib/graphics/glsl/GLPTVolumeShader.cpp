@@ -288,7 +288,6 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   return newRay(RayO, RayD);
 }
 
-
 bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 {
   vec3 invR		= vec3(1.0f, 1.0f, 1.0f) / R.m_D;

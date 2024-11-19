@@ -97,7 +97,6 @@ public:
   glm::vec2 resolution;
   float isPerspective;
   float orthoScale;
-  glm::vec4 clipPlane;
 
 private:
   /// The vertex shader.
