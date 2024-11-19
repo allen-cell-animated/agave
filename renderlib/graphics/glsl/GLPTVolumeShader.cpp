@@ -1532,8 +1532,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1i(m_uShowLights, 0);
 
   if (scene->m_clipPlane->m_enabled) {
-    //    Plane p = Plane().transform(scene->m_clipPlane->m_transform.getMatrix());
-    Plane p(scene->m_clipPlane->m_transform.m_rotation * glm::vec3(0, 0, 1), scene->m_clipPlane->m_transform.m_center);
+    Plane p = Plane().transform(scene->m_clipPlane->m_transform.getMatrix());
     glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
   } else {
     glUniform4fv(m_clipPlane, 1, glm::value_ptr(glm::vec4(0, 0, 0, 0)));

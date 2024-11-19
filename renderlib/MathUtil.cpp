@@ -42,6 +42,17 @@ AffineSpace3f::AffineSpace3f(const glm::quat& orientation, const glm::vec3& p)
   l = LinearSpace3f(m[0], m[1], m[2]);
 }
 
+glm::mat4
+Transform3d::getMatrix() const
+{
+  // glm::mat4 getMatrix() const { return glm::translate(glm::mat4_cast(m_rotation), m_center); }
+  glm::mat4 transform = glm::mat4(1.0f);           // Identity matrix
+  transform = glm::translate(transform, m_center); // Apply translation
+  // m_rotation must be a _normalized_ quaternion
+  transform = transform * glm::toMat4(m_rotation); // Apply rotation
+  return transform;
+}
+
 // physicalscale is max of physical dims x,y,z
 float
 computePhysicalScaleBarSize(const float physicalScale)
@@ -56,8 +67,14 @@ Plane::transform(const glm::mat4& m) const
   glm::vec4 O = glm::vec4(normal * d, 1);
   glm::vec4 N = glm::vec4(normal, 0);
   O = m * O;
-  // N = glm::normalize(m * N);
-  //  only really need inv xpose if scaling is involved
-  N = glm::normalize(glm::transpose(glm::inverse(m)) * N); // use inverse transpose for normals
+  // only really need inv xpose if scaling is involved... but it does happen
+  N = glm::normalize(glm::transpose(glm::inverse(m)) * N);
   return Plane(glm::vec3(N), glm::vec3(O));
+}
+
+Plane
+Plane::transform(const Transform3d& transform) const
+{
+  Plane p(transform.m_rotation * normal, transform.m_center + normal * d);
+  return p;
 }
