@@ -110,5 +110,4 @@ private:
   int uModelViewMatrix, uProjectionMatrix, uDataRangeMin, uDataRangeMax, uBreakSteps, uAABBClipMin, uAABBClipMax,
     uFlipVolumeAxes, uInverseModelViewMatrix, uCameraPosition, uResolution, uGammaMin, uGammaMax, uGammaScale,
     uBrightness, uDensity, uMaskAlpha, uTextureAtlas, uTextureAtlasMask, uIsPerspective, uOrthoScale;
-  int uClipPlane;
 };

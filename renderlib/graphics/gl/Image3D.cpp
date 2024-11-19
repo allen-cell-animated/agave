@@ -100,15 +100,6 @@ Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings*
   glm::mat4 mm = glm::scale(glm::mat4(1.0f), scales);
   mm = glm::translate(mm, glm::vec3(0.5, 0.5, 0.5));
 
-  // transform plane from world to object space. use inverse of mm
-  if (scene->m_clipPlane->m_enabled) {
-    Plane plane = Plane().transform(scene->m_clipPlane->m_transform.getMatrix());
-    plane = plane.transform(glm::inverse(mm));
-    m_image3d_shader->clipPlane = plane.asVec4();
-  } else {
-    m_image3d_shader->clipPlane = glm::vec4(0, 0, 0, 0);
-  }
-
   m_image3d_shader->setShadingUniforms();
   m_image3d_shader->setTransformUniforms(camera, mm);
 

@@ -17,8 +17,6 @@
         <file>icons/light/frameView.svg</file>
         <file>icons/light/Home-icon.svg</file>
         <file>icons/light/coordinates.svg</file>
-        <file>icons/light/rotate.svg</file>
-        <file>icons/light/translate.svg</file>
     </qresource>
     <qresource>
         <file>icons/dark/lock.png</file>
@@ -36,7 +34,5 @@
         <file>icons/dark/frameView.svg</file>
         <file>icons/dark/Home-icon.svg</file>
         <file>icons/dark/coordinates.svg</file>
-        <file>icons/dark/rotate.svg</file>
-        <file>icons/dark/translate.svg</file>
     </qresource>
 </RCC>

@@ -39,8 +39,6 @@
 
 const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
-QPushButton#rotateBtn { icon: url(":/icons/dark/rotate.svg"); qproperty-icon: url(":/icons/dark/rotate.svg") }
-QPushButton#translateBtn { icon: url(":/icons/dark/translate.svg"); qproperty-icon: url(":/icons/dark/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")}
@@ -59,8 +57,6 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
-QPushButton#rotateBtn { icon: url(":/icons/light/rotate.svg"); qproperty-icon: url(":/icons/light/rotate.svg") }
-QPushButton#translateBtn { icon: url(":/icons/light/translate.svg"); qproperty-icon: url(":/icons/light/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") }

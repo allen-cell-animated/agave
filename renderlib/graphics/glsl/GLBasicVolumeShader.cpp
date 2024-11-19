@@ -73,8 +73,6 @@ uniform vec3 flipVolumeAxes;
 uniform float dataRangeMin; // 0..1 (mapped from 0..uint16_max)
 uniform float dataRangeMax; // 0..1 (mapped from 0..uint16_max)
 
-uniform vec4 g_clipPlane;
-
 float powf(float a, float b) {
 	return pow(a, b);
 }
@@ -128,25 +126,6 @@ bool intersectBox(in vec3 r_o, in vec3 r_d, in vec3 boxMin, in vec3 boxMax, out 
 	float smallest_tmax = min(min(tmax.x, tmax.y), min(tmax.x, tmax.z));
 	tnear = largest_tmin;
 	tfar = smallest_tmax;
-
-	// now constrain near and far using clipPlane if active.
-	// plane xyz is normal, plane w is -distance from origin.
-	float denom = dot(r_d, g_clipPlane.xyz);
-	if (abs(denom) > 0.0001f) // your favorite epsilon
-	{
-		float tClip = dot(g_clipPlane.xyz*(-g_clipPlane.w) - r_o, g_clipPlane.xyz) / denom;
-		if (denom < 0.0f) {
-			tnear = max(tnear, tClip);
-		}
-		else {
-			tfar = min(tfar, tClip);
-		}
-	}
-	else
-	{
-	// todo check to see which side of the plane we are on ?
-	}
-
 
 	return(tfar > tnear);
 }
@@ -283,8 +262,6 @@ void main()
   uIsPerspective = uniformLocation("isPerspective");
   uOrthoScale = uniformLocation("orthoScale");
   uResolution = uniformLocation("iResolution");
-
-  uClipPlane = uniformLocation("g_clipPlane");
 }
 
 GLBasicVolumeShader::~GLBasicVolumeShader() {}
@@ -355,7 +332,6 @@ GLBasicVolumeShader::setShadingUniforms()
   glUniform3fv(uAABBClipMax, 1, glm::value_ptr(AABB_CLIP_MAX));
   glUniform3fv(uFlipVolumeAxes, 1, glm::value_ptr(flipVolumeAxes));
   glUniform2fv(uResolution, 1, glm::value_ptr(resolution));
-  glUniform4fv(uClipPlane, 1, glm::value_ptr(clipPlane));
 }
 
 void
