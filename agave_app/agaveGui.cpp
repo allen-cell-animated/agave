@@ -252,6 +252,7 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
+    emit this->m_qrendersettings.Selected(checked ? this->m_appScene.SceneAreaLight() : nullptr);
     this->m_glView->toggleRotateControls();
   });
 
