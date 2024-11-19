@@ -60,21 +60,3 @@ computePhysicalScaleBarSize(const float physicalScale)
   // note this result will always be some integer power of 10 independent of zoom...
   return pow(10.0f, floor(log10(physicalScale / 2.0f)));
 }
-
-Plane
-Plane::transform(const glm::mat4& m) const
-{
-  glm::vec4 O = glm::vec4(normal * d, 1);
-  glm::vec4 N = glm::vec4(normal, 0);
-  O = m * O;
-  // only really need inv xpose if scaling is involved... but it does happen
-  N = glm::normalize(glm::transpose(glm::inverse(m)) * N);
-  return Plane(glm::vec3(N), glm::vec3(O));
-}
-
-Plane
-Plane::transform(const Transform3d& transform) const
-{
-  Plane p(transform.m_rotation * normal, transform.m_center + normal * d);
-  return p;
-}
