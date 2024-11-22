@@ -24,6 +24,8 @@ public:
   // no scaling yet
 };
 
+class ManipulationTool;
+
 class SceneObject
 {
 public:
@@ -33,4 +35,6 @@ public:
   virtual void updateTransform() {}
 
   Transform3d m_transform;
+
+  virtual ManipulationTool* getSelectedTool() { return nullptr; }
 };

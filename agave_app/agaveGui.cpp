@@ -1147,8 +1147,10 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
-  m_appScene.m_lighting.m_Lights[0] = stateToLight(v, 0);
-  m_appScene.m_lighting.m_Lights[1] = stateToLight(v, 1);
+  Light l0 = stateToLight(v, 0);
+  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
+  Light l1 = stateToLight(v, 1);
+  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
 
   // capture settings
   m_captureSettings.width = v.capture.width;
@@ -1261,11 +1263,11 @@ agaveGui::appToViewerState()
   }
 
   // lighting
-  Light& lt = m_appScene.m_lighting.m_Lights[0];
+  Light& lt = m_appScene.SphereLight();
   Serialize::LightSettings_V1 l = fromLight(lt);
   v.lights.push_back(l);
 
-  Light& lt1 = m_appScene.m_lighting.m_Lights[1];
+  Light& lt1 = m_appScene.AreaLight();
   Serialize::LightSettings_V1 l1 = fromLight(lt1);
   v.lights.push_back(l1);
 

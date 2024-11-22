@@ -55,6 +55,7 @@ const vec3 WHITE = vec3(1.0,1.0,1.0);
 const int ShaderType_Brdf = 0;
 const int ShaderType_Phase = 1;
 
+
 in vec2 vUv;
 out vec4 out_FragColor;
 
@@ -300,7 +301,7 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
   pNearT = largestMinT;
   pFarT	= smallestMaxT;
 
-  return smallestMaxT > largestMinT;
+  return pFarT > pNearT;
 }
 
 vec3 PtoVolumeTex(vec3 p) {
@@ -1390,7 +1391,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1f(m_cameraProjectionMode, (cam.m_Projection == PERSPECTIVE) ? 1.0f : 0.0f);
   check_gl("pre lights");
 
-  const Light& l = scene->m_lighting.m_Lights[0];
+  Light& l = scene->SphereLight();
   glUniform1f(m_light0theta, l.m_Theta);
   glUniform1f(m_light0phi, l.m_Phi);
   glUniform1f(m_light0width, l.m_Width);
@@ -1412,7 +1413,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform3fv(m_light0colorBottom, 1, glm::value_ptr(l.m_ColorBottom * l.m_ColorBottomIntensity));
   glUniform1i(m_light0T, l.m_T);
 
-  const Light& l1 = scene->m_lighting.m_Lights[1];
+  Light& l1 = scene->AreaLight();
   glUniform1f(m_light1theta, l1.m_Theta);
   glUniform1f(m_light1phi, l1.m_Phi);
   glUniform1f(m_light1width, l1.m_Width);

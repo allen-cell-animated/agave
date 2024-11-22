@@ -20,20 +20,14 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
 {
   gesture.input.reset();
 
-  // TODO have a notion of a scene's selection set,
-  // and activate tools via the UI to operate
-  // on the selection set.
-  m_areaLightTool = new AreaLightTool();
   m_tools.push_back(new ScaleBarTool());
   m_tools.push_back(new AxisHelperTool());
 }
 
 ViewerWindow::~ViewerWindow()
 {
-  bool isShowingAreaLight = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
-  if (!isShowingAreaLight) {
-    delete m_areaLightTool;
-  }
+  // any tool associated with a selected object should be deleted via the SceneObject, not here.
+  select(nullptr);
 
   if (m_activeTool != &m_defaultTool) {
     ManipulationTool::destroyTool(m_activeTool);
@@ -56,17 +50,27 @@ ViewerWindow::setSize(int width, int height)
 }
 
 void
-ViewerWindow::showAreaLightGizmo(bool show)
+ViewerWindow::select(SceneObject* obj)
 {
-  // check if m_areaLightTool is in m_tools
-  bool isShowing = std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) != m_tools.end();
-  if (isShowing == show) {
+  // if obj is currently selected then do nothing?
+  if (sceneView.selection == obj) {
     return;
   }
-  if (show) {
-    m_tools.push_back(m_areaLightTool);
-  } else {
-    m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
+
+  // deselect the current selection
+  if (sceneView.selection) {
+    ManipulationTool* tool = sceneView.selection->getSelectedTool();
+    if (tool) {
+      m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), tool), m_tools.end());
+    }
+  }
+
+  sceneView.selection = obj;
+  if (obj) {
+    ManipulationTool* tool = sceneView.selection->getSelectedTool();
+    if (tool) {
+      m_tools.push_back(tool);
+    }
   }
 }
 

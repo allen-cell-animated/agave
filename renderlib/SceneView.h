@@ -5,6 +5,7 @@
 #include <memory>
 
 class Scene;
+class SceneObject;
 class RenderSettings;
 
 // collect up a Scene, CCamera, and Viewport region for rendering
@@ -58,5 +59,8 @@ struct SceneView
   Scene* scene = nullptr;
   RenderSettings* renderSettings = nullptr;
 
-  bool anythingActive() const { return scene != nullptr; }
+  // weak ptr! must not outlive the objects it points to.
+  SceneObject* selection = nullptr;
+
+  bool anythingActive() const { return scene != nullptr && selection != nullptr; }
 };

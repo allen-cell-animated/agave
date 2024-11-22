@@ -206,7 +206,7 @@ public:
   int GetNoElements(void) const { return m_NoElements; }
   float GetAspectRatio(void) const { return m_AspectRatio; }
 
-  void PrintSelf(void) { printf("[%d x %d]\n", GetResX(), GetResY()); }
+  void PrintSelf(void) const { printf("[%d x %d]\n", GetResX(), GetResY()); }
 
 private:
   glm::ivec2 m_XY;        /*!< Resolution width and height */
@@ -352,6 +352,7 @@ public:
     m_Dirty = true;
     m_Projection = PERSPECTIVE;
     m_OrthoScale = DEF_ORTHO_SCALE;
+    m_AreaPixel = m_Film.m_Resolution.GetAspectRatio() / (m_Focus.m_FocalDistance * m_Focus.m_FocalDistance);
   }
   CCamera(const CCamera& other)
   {
@@ -517,7 +518,7 @@ public:
     float hfov = 2.0f * atan((float)m_Film.GetWidth() / (float)m_Film.GetHeight() * tan(m_FovV * 0.5f * DEG_TO_RAD));
     return hfov;
   }
-  float GetVerticalFOV_radians() { return m_FovV * DEG_TO_RAD; }
+  float GetVerticalFOV_radians() const { return m_FovV * DEG_TO_RAD; }
 
   void getViewMatrix(glm::mat4& viewMatrix) const
   {
