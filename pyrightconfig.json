@@ -1,0 +1,9 @@
+{
+  "include": ["${workspaceFolder}/agave_pyclient/agave_pyclient/**/*.py"],
+  "exclude": [
+    "${workspaceFolder}/build",
+    "${workspaceFolder}/renderlib",
+    "${workspaceFolder}/agave_app"
+  ],
+  "ignore": ["${workspaceFolder}/build"]
+}

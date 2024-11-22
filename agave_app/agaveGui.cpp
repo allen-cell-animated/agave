@@ -245,13 +245,27 @@ agaveGui::createActions()
   connect(m_citationAction, SIGNAL(triggered()), this, SLOT(onCitationAction()));
 
   m_toggleRotateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleRotateControlsAction->setObjectName("toggleRotateControlsAction");
   m_toggleRotateControlsAction->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
   m_toggleRotateControlsAction->setCheckable(true);
   m_toggleRotateControlsAction->setShortcut(QKeySequence(Qt::Key_R));
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    this->m_glView->toggleAreaLightRotateControls();
+    emit this->m_qrendersettings.Selected(checked ? this->m_appScene.SceneAreaLight() : nullptr);
+    this->m_glView->toggleRotateControls();
+  });
+
+  m_toggleTranslateControlsAction = new QAction(tr("&Rotate controls"), this);
+  m_toggleTranslateControlsAction->setObjectName("toggleTranslateControlsAction");
+  m_toggleTranslateControlsAction->setStatusTip(
+    tr("Show interactive controls in viewport for area light rotation angle"));
+  m_toggleTranslateControlsAction->setCheckable(true);
+  m_toggleTranslateControlsAction->setShortcut(QKeySequence(Qt::Key_T));
+  // tie the action to the main app window.
+  addAction(m_toggleTranslateControlsAction);
+  connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
+    this->m_glView->toggleTranslateControls();
   });
 }
 
@@ -328,8 +342,8 @@ agaveGui::createDockWindows()
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
   m_timelinedock->setVisible(false); // hide by default
 
-  m_appearanceDockWidget =
-    new QAppearanceDockWidget(this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction);
+  m_appearanceDockWidget = new QAppearanceDockWidget(
+    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 
@@ -890,6 +904,7 @@ agaveGui::view_front()
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 agaveGui::view_back()
 {
@@ -905,6 +920,7 @@ agaveGui::view_left()
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
+
 void
 agaveGui::view_right()
 {

@@ -126,7 +126,8 @@ bool intersectBox(in vec3 r_o, in vec3 r_d, in vec3 boxMin, in vec3 boxMax, out 
 	float smallest_tmax = min(min(tmax.x, tmax.y), min(tmax.x, tmax.z));
 	tnear = largest_tmin;
 	tfar = smallest_tmax;
-	return(smallest_tmax > largest_tmin);
+
+	return(tfar > tnear);
 }
 
 vec4 integrateVolume(vec4 eye_o, vec4 eye_d,

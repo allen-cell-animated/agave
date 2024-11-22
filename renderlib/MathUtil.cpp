@@ -42,6 +42,17 @@ AffineSpace3f::AffineSpace3f(const glm::quat& orientation, const glm::vec3& p)
   l = LinearSpace3f(m[0], m[1], m[2]);
 }
 
+glm::mat4
+Transform3d::getMatrix() const
+{
+  // glm::mat4 getMatrix() const { return glm::translate(glm::mat4_cast(m_rotation), m_center); }
+  glm::mat4 transform = glm::mat4(1.0f);           // Identity matrix
+  transform = glm::translate(transform, m_center); // Apply translation
+  // m_rotation must be a _normalized_ quaternion
+  transform = transform * glm::toMat4(m_rotation); // Apply rotation
+  return transform;
+}
+
 // physicalscale is max of physical dims x,y,z
 float
 computePhysicalScaleBarSize(const float physicalScale)

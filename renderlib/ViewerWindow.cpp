@@ -53,21 +53,22 @@ void
 ViewerWindow::select(SceneObject* obj)
 {
   // if obj is currently selected then do nothing?
-  if (sceneView.selection == obj) {
+  if (sceneView.getSelectedObject() == obj) {
     return;
   }
 
   // deselect the current selection
-  if (sceneView.selection) {
-    ManipulationTool* tool = sceneView.selection->getSelectedTool();
+  if (sceneView.getSelectedObject()) {
+    ManipulationTool* tool = sceneView.getSelectedObject()->getSelectedTool();
     if (tool) {
       m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), tool), m_tools.end());
     }
   }
 
-  sceneView.selection = obj;
+  sceneView.setSelectedObject(obj);
+
   if (obj) {
-    ManipulationTool* tool = sceneView.selection->getSelectedTool();
+    ManipulationTool* tool = sceneView.getSelectedObject()->getSelectedTool();
     if (tool) {
       m_tools.push_back(tool);
     }

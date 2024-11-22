@@ -7,6 +7,7 @@
 #include "RenderGLPT.h"
 
 #include <QGuiApplication>
+#include <QOpenGLDebugLogger>
 
 #include <string>
 

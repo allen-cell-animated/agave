@@ -14,7 +14,6 @@
 #include <vector>
 
 class ImageXYZC;
-class Manipulator;
 
 #define MAX_CPU_CHANNELS 32
 struct VolumeDisplay
@@ -96,6 +95,7 @@ public:
   std::shared_ptr<ImageXYZC> m_volume;
   // appearance settings for a volume
   VolumeDisplay m_material;
+
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 
   Lighting m_lighting;
@@ -109,7 +109,8 @@ public:
   Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
   SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
 
-  std::vector<Manipulator*> m_tools;
+  // weak ptr! must not outlive the objects it points to.
+  SceneObject* m_selection = nullptr;
 
   CBoundingBox m_boundingBox;
   bool m_showScaleBar = false;
