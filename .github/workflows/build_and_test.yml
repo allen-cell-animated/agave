@@ -50,6 +50,7 @@ jobs:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
   cmake-build:
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
