@@ -7,6 +7,7 @@
 std::string vertShader = R"(
 #version 460
 
+// for older gl, make this a texture / use instancing
 layout(std430, binding = 0) buffer TVertex
 {
    vec4 vertex[];
