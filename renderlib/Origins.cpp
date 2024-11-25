@@ -10,14 +10,12 @@ Origins::update(SceneView& scene)
   if (scene.scene) {
 
     // e.g. find all selected objects in scene and collect up their centers/transforms here.
-    SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
+    SceneObject* obj = scene.getSelectedObject();
 
     // save the initial transform? we could use this to reset things if cancelled.
 
     // this is a copy!!!
-    m_origins = { lt.m_transform };
-    // we want the rotate manipulator to be centered at the target of the light
-    m_origins[0].m_center = lt.m_light->m_Target;
+    m_origins = { obj->m_transform };
   }
 }
 
@@ -28,14 +26,16 @@ Origins::translate(SceneView& scene, glm::vec3 motion)
 
   glm::vec3 p = m_origins[0].m_center + motion;
 
-  SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
-  // the above line could be more like:
-  // SceneObject& obj = scene.getSelection();
+  SceneObject* obj = scene.getSelectedObject();
+  if (!obj) {
+    return;
+  }
 
-  // actually set the light's transform here!!
-  lt.m_transform.m_center = p;
+  // actually set the transform here!!
+  obj->m_transform.m_center = p;
 
-  lt.updateTransform();
+  obj->updateTransform();
+  // FIXME still special-casing for light
   scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -49,13 +49,16 @@ Origins::rotate(SceneView& scene, glm::quat rotation)
   // if "cancelled" we could always restore the original rotation.
   glm::quat q = rotation * m_origins[0].m_rotation;
 
-  SceneLight& lt = scene.scene->m_lighting.m_sceneLights[1];
-  // the above line could be more like:
-  // SceneObject& obj = scene.getSelection();
+  SceneObject* obj = scene.getSelectedObject();
+  if (!obj) {
+    return;
+  }
 
-  // actually set the light's transform here!!
-  lt.m_transform.m_rotation = q;
+  // actually set the transform here!!
+  obj->m_transform.m_rotation = q;
 
-  lt.updateTransform();
+  obj->updateTransform();
+
+  // FIXME still special-casing for light
   scene.renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }

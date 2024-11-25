@@ -193,7 +193,7 @@ RenderGLPT::doRender(const CCamera& camera)
   }
   if (m_renderSettings->m_DirtyFlags.HasFlag(LightsDirty)) {
     for (int i = 0; i < m_scene->m_lighting.m_NoLights; ++i) {
-      m_scene->m_lighting.m_Lights[i].Update(m_scene->m_boundingBox);
+      m_scene->m_lighting.m_Lights[i]->Update(m_scene->m_boundingBox);
     }
 
     // Reset no. iterations

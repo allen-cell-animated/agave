@@ -4,9 +4,7 @@
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
-#include <QOpenGLDebugLogger>
 #include <QSurfaceFormat>
-#include <QWindow>
 
 #include <map>
 #include <memory>

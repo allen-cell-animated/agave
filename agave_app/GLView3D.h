@@ -50,8 +50,16 @@ public:
   void initCameraFromImage(Scene* scene);
   void retargetCameraForNewVolume(Scene* scene);
   void toggleCameraProjection();
-  void toggleAreaLightRotateControls();
-  void toggleAreaLightTranslateControls();
+  enum MANIPULATOR_MODE
+  {
+    NONE,
+    ROT,
+    TRANS
+  };
+  void setManipulatorMode(MANIPULATOR_MODE mode);
+
+  void toggleRotateControls();
+  void toggleTranslateControls();
 
   void onNewImage(Scene* scene);
 
@@ -76,6 +84,7 @@ public slots:
   void OnUpdateCamera();
   void OnUpdateQRenderSettings(void);
   void OnUpdateRenderer(int);
+  void OnSelectionChanged(SceneObject* so);
 
 public:
   std::shared_ptr<CStatus> getStatus();
@@ -106,10 +115,5 @@ private:
 
   ViewerWindow* m_viewerWindow;
 
-  enum AREALIGHT_MODE
-  {
-    NONE,
-    ROT,
-    TRANS
-  } m_areaLightMode = AREALIGHT_MODE::NONE;
+  MANIPULATOR_MODE m_manipulatorMode = MANIPULATOR_MODE::NONE;
 };

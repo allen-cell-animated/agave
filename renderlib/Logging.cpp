@@ -5,10 +5,14 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <ostream>
 #if defined(__APPLE__) || defined(__linux__)
 #include <pwd.h>
 #include <unistd.h>
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) // WIN32
+#include <ShlObj.h>
+#include <comutil.h>
 #endif
 
 // the logs are written to LOGFILE
@@ -27,8 +31,18 @@ std::filesystem::path
 getLogPath()
 {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-  const char* rootdir = getenv("LOCALAPPDATA");
-  return std::filesystem::path(rootdir) / "AllenInstitute" / "agave";
+  PWSTR path = nullptr;
+  HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path);
+  if (SUCCEEDED(hr)) {
+    char* rootdir = _com_util::ConvertBSTRToString(path);
+    CoTaskMemFree(path);
+    return std::filesystem::path(rootdir) / "AllenInstitute" / "agave";
+  } else {
+    std::cout << "Failed to get local app data directory." << std::endl;
+    std::cout << "Falling back to user home directory." << std::endl;
+    // use user home directory instead
+    return std::filesystem::path(getenv("USERPROFILE")) / "AllenInstitute" / "agave";
+  }
 #elif defined(__APPLE__)
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
@@ -75,4 +89,5 @@ Logging::Init()
   Logging::Enable(true);
 
   LOG_INFO << "Logging Init DONE";
+  LOG_INFO << "Log directory: " << sLogFileDirectory.string();
 }
