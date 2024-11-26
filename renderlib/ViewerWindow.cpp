@@ -40,19 +40,6 @@ ViewerWindow::~ViewerWindow()
 }
 
 void
-ViewerWindow::toggleAreaLightSelect()
-{
-  // check if m_areaLightTool is in m_tools
-  // if it is, remove it
-  // if it is not, add it
-  if (std::find(m_tools.begin(), m_tools.end(), m_areaLightTool) == m_tools.end()) {
-    m_tools.push_back(m_areaLightTool);
-  } else {
-    m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), m_areaLightTool), m_tools.end());
-  }
-}
-
-void
 ViewerWindow::setSize(int width, int height)
 {
   sceneView.viewport.region.lower.x = 0;

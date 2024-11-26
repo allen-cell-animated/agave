@@ -78,8 +78,6 @@ public:
   std::vector<ManipulationTool*> m_tools;
   bool m_toolsUseLocalSpace = false;
 
-  void toggleAreaLightSelect();
-
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
   int m_rendererType;
