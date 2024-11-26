@@ -53,7 +53,7 @@ struct Tasks
   // queue( lambda ) will enqueue the lambda into the tasks for the threads
   // to use.  A future of the type the lambda returns is given to let you get
   // the result out.
-  template<class F, class R = std::result_of_t<F&()>>
+  template<class F, class R = std::invoke_result_t<F&()>>
   std::future<R> queue(F&& f);
 
   // start N threads in the thread pool.

@@ -60,7 +60,6 @@ private:
   // select any set of channels
   QListWidget* mChannels;
   Section* mChannelsSection;
-  QTreeWidget* mMetadataTree;
   QLabel* mVolumeLabel;
   QLabel* mMemoryEstimateLabel;
   // select region of interest in zyx

@@ -177,8 +177,12 @@ RenderGLPT::doRender(const CCamera& camera)
     if (m_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
       // TODO: only update the ones that changed.
       int NC = m_scene->m_volume->sizeC();
+      int activeChannel = 0;
       for (int i = 0; i < NC; ++i) {
-        m_imgGpu.updateLutGpu(i, m_scene->m_volume.get());
+        if (m_scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
+          m_imgGpu.updateLutGpu(i, m_scene->m_volume.get());
+          activeChannel++;
+        }
       }
     }
 
@@ -447,7 +451,7 @@ RenderGLPT::render(const CCamera& camera)
 }
 
 void
-RenderGLPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+RenderGLPT::renderTo(const CCamera& camera, IRenderTarget* fbo)
 {
   doRender(camera);
 
