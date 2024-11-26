@@ -10,10 +10,11 @@ static const char* vertex_shader_text =
   R"(
     #version 400 core
 
-    layout (location = 0) in vec3 vPos;
-    layout (location = 1) in vec2 vUV;
-    layout (location = 2) in vec4 vCol;
-    layout (location = 3) in uint vCode;
+    // this is the layout of the stripVerts buffer below
+    //layout (location = 0) in vec3 vPos;
+    //layout (location = 1) in vec2 vUV;
+    //layout (location = 2) in vec4 vCol;
+    //layout (location = 3) in uint vCode;
 
     uniform mat4 projection;
     uniform vec2 resolution;
@@ -32,28 +33,23 @@ uniform samplerBuffer stripVerts;
 
     void main()
     {
-        Frag_UV = vUV;
-        if (picking == 1) {
-          Frag_color = vec4(float(vCode & 0xffu) / 255.0,
-                            float((vCode >> 8) & 0xffu) / 255.0,
-                            float((vCode >> 16) & 0xffu) / 255.0,
-                            1.0);
-        }
-        else {
-          Frag_color = vCol;
-        }
-
-
-
     int line_i = gl_VertexID / 6;
     int tri_i  = gl_VertexID % 6;
+
+    uint vCode = 0;
+    vec2 vUV = vec2(0.0, 0.0);
+    vec4 vCol = vec4(0.0, 0.0, 0.0, 0.0);
 
     vec4 va[4];
     // put everything in pixel space so we can apply thickness and 
     // compute miters
     for (int i=0; i<4; ++i)
     {
-        vec4 vtx = texelFetch(stripVerts, line_i+i);
+        vec4 vtx;
+        vtx.x = texelFetch(stripVerts, (line_i+i)*10 + 0).x;
+        vtx.y = texelFetch(stripVerts, (line_i+i)*10 + 1).x;
+        vtx.z = texelFetch(stripVerts, (line_i+i)*10 + 2).x;
+        vtx.w = 1.0;
         va[i] = projection * vtx;//vertex[line_i+i];
         va[i].xyz /= va[i].w;
         va[i].xy = (va[i].xy + 1.0) * 0.5 * resolution;
@@ -70,6 +66,14 @@ uniform samplerBuffer stripVerts;
 
         pos = va[1];
         pos.xy += v_miter * thickness * (tri_i == 1 ? -0.5 : 0.5) / dot(v_miter, nv_line);
+
+        vUV.x = texelFetch(stripVerts, (line_i+1)*10 + 3).x;
+        vUV.y = texelFetch(stripVerts, (line_i+1)*10 + 4).x;
+        vCol.x = texelFetch(stripVerts, (line_i+1)*10 + 5).x;
+        vCol.y = texelFetch(stripVerts, (line_i+1)*10 + 6).x;
+        vCol.z = texelFetch(stripVerts, (line_i+1)*10 + 7).x;
+        vCol.w = texelFetch(stripVerts, (line_i+1)*10 + 8).x;
+        vCode = uint(texelFetch(stripVerts, (line_i+1)*10 + 9).x);
     }
     else
     {
@@ -78,12 +82,33 @@ uniform samplerBuffer stripVerts;
 
         pos = va[2];
         pos.xy += v_miter * thickness * (tri_i == 5 ? 0.5 : -0.5) / dot(v_miter, nv_line);
+
+        vUV.x = texelFetch(stripVerts, (line_i+2)*10 + 3).x;
+        vUV.y = texelFetch(stripVerts, (line_i+2)*10 + 4).x;
+        vCol.x = texelFetch(stripVerts, (line_i+2)*10 + 5).x;
+        vCol.y = texelFetch(stripVerts, (line_i+2)*10 + 6).x;
+        vCol.z = texelFetch(stripVerts, (line_i+2)*10 + 7).x;
+        vCol.w = texelFetch(stripVerts, (line_i+2)*10 + 8).x;
+        vCode = uint(texelFetch(stripVerts, (line_i+2)*10 + 9).x);
     }
 
     // undo the perspective divide and go back to clip space
     pos.xy = pos.xy / resolution * 2.0 - 1.0;
     pos.xyz *= pos.w;
     gl_Position = pos;
+
+
+        Frag_UV = vUV;
+        if (picking == 1) {
+          Frag_color = vec4(float(vCode & 0xffu) / 255.0,
+                            float((vCode >> 8) & 0xffu) / 255.0,
+                            float((vCode >> 16) & 0xffu) / 255.0,
+                            1.0);
+        }
+        else {
+          Frag_color = vCol;
+        }
+
     }
     )";
 
@@ -317,10 +342,10 @@ GLThickLinesShader::GLThickLinesShader()
   utilMakeSimpleProgram(vertex_shader_text, fragment_shader_text);
 
   m_loc_proj = uniformLocation("projection");
-  m_loc_vpos = attributeLocation("vPos");
-  m_loc_vuv = attributeLocation("vUV");
-  m_loc_vcol = attributeLocation("vCol");
-  m_loc_vcode = attributeLocation("vCode");
+  // m_loc_vpos = attributeLocation("vPos");
+  // m_loc_vuv = attributeLocation("vUV");
+  // m_loc_vcol = attributeLocation("vCol");
+  // m_loc_vcode = attributeLocation("vCode");
   m_loc_thickness = uniformLocation("thickness");
   m_loc_resolution = uniformLocation("resolution");
   m_loc_stripVerts = uniformLocation("stripVerts");
@@ -331,15 +356,6 @@ GLThickLinesShader::configure(bool display, GLuint textureId)
 {
   bind();
   check_gl("bind gesture draw shader");
-
-  glEnableVertexAttribArray(m_loc_vpos);
-  check_gl("enable vertex attrib array 0");
-  glEnableVertexAttribArray(m_loc_vuv);
-  check_gl("enable vertex attrib array 1");
-  glEnableVertexAttribArray(m_loc_vcol);
-  check_gl("enable vertex attrib array 2");
-  glEnableVertexAttribArray(m_loc_vcode);
-  check_gl("enable vertex attrib array 3");
 
   glUniform1i(uniformLocation("picking"), display ? 0 : 1);
   check_gl("set picking uniform");
@@ -357,10 +373,6 @@ void
 GLThickLinesShader::cleanup()
 {
   release();
-  glDisableVertexAttribArray(m_loc_vpos);
-  glDisableVertexAttribArray(m_loc_vuv);
-  glDisableVertexAttribArray(m_loc_vcol);
-  glDisableVertexAttribArray(m_loc_vcode);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);

@@ -406,6 +406,53 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
       }
 
       shader->cleanup();
+
+      // TODO the loop over sequence should only happen once, and
+      // we should switch draw types.
+      // which means managing bookkeeping of switching shaders...
+      if (!graphics.stripRanges.empty()) {
+        shaderLines->configure(display, this->glTextureId);
+        for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
+          pipelineConfig[sequence](sceneView, graphics, *shader.get(), *shaderLines.get());
+
+          // YAGNI: Commands could be coalesced, setting state could be avoided
+          //        if not changing... For now it seems we can draw at over 2000 Hz
+          //        and no further optimization is required.
+          for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
+            Gesture::Graphics::Command& cmd = cmdr.command;
+            if (cmdr.end == -1)
+              cmdr.end = graphics.verts.size();
+            if (cmdr.begin >= cmdr.end)
+              continue;
+
+            if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
+              glLineWidth(cmd.thickness);
+              check_gl("linewidth");
+            }
+            if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
+              glPointSize(cmd.thickness);
+              check_gl("pointsize");
+            }
+            GLenum mode = GL_TRIANGLES;
+            switch (cmd.command) {
+              case Gesture::Graphics::PrimitiveType::kLines:
+                mode = GL_LINES;
+                break;
+              case Gesture::Graphics::PrimitiveType::kPoints:
+                mode = GL_POINTS;
+                break;
+              case Gesture::Graphics::PrimitiveType::kTriangles:
+                mode = GL_TRIANGLES;
+                break;
+              default:
+                assert(false && "unsupported primitive type");
+            }
+            glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
+            check_gl("drawarrays");
+          }
+        }
+        shaderLines->cleanup();
+      }
       check_gl("disablevertexattribarray");
     };
 
