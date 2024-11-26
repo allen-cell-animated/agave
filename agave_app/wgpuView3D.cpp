@@ -119,24 +119,6 @@ WgpuView3D::toggleCameraProjection()
 }
 
 void
-WgpuView3D::toggleAreaLightRotateControls()
-{
-  // toggle rotate tool
-  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::TRANS) {
-    m_viewerWindow->showAreaLightGizmo(true);
-    m_viewerWindow->setTool(
-      new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-    m_viewerWindow->forEachTool(
-      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_areaLightMode = AREALIGHT_MODE::ROT;
-  } else {
-    m_viewerWindow->showAreaLightGizmo(false);
-    m_viewerWindow->setTool(nullptr);
-    m_areaLightMode = AREALIGHT_MODE::NONE;
-  }
-}
-
-void
 WgpuView3D::onNewImage(Scene* scene)
 {
   m_viewerWindow->m_renderer->setScene(scene);
@@ -549,41 +531,80 @@ WgpuView3D::FitToScene(float transitionDurationSeconds)
 }
 
 void
+WgpuView3D::OnSelectionChanged(SceneObject* so)
+{
+  // null ptr is valid here to deselect
+  m_viewerWindow->select(so);
+}
+
+void
+WgpuView3D::setManipulatorMode(MANIPULATOR_MODE mode)
+{
+  m_manipulatorMode = mode;
+  switch (mode) {
+    case MANIPULATOR_MODE::NONE:
+      m_viewerWindow->setTool(nullptr);
+      break;
+    case MANIPULATOR_MODE::ROT:
+      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
+                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      break;
+    case MANIPULATOR_MODE::TRANS:
+      m_viewerWindow->setTool(
+        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      break;
+    default:
+      break;
+  }
+}
+
+void
+WgpuView3D::toggleRotateControls()
+{
+  // if nothing selected, then switch off
+  if (!m_viewerWindow->sceneView.getSelectedObject()) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
+  // toggle rotate tool
+  else if (m_manipulatorMode == MANIPULATOR_MODE::ROT) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  } else {
+    setManipulatorMode(MANIPULATOR_MODE::ROT);
+  }
+}
+
+// TODO currently this function is not wired up to any gui at all.
+// This is because translation of area light source still needs work.
+// (Currently rotation is sufficient.)
+void
+WgpuView3D::toggleTranslateControls()
+{
+  // if nothing selected, then switch off
+  if (!m_viewerWindow->sceneView.getSelectedObject()) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
+  // toggle translate tool
+  else if (m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  } else {
+    setManipulatorMode(MANIPULATOR_MODE::TRANS);
+  }
+}
+
+void
 WgpuView3D::keyPressEvent(QKeyEvent* event)
 {
-  static enum MODE { NONE, ROT, TRANS } mode = MODE::NONE;
-
   if (event->key() == Qt::Key_A) {
-    FitToScene();
+    FitToScene(0.5f);
   } else if (event->key() == Qt::Key_L) {
     // toggle local/global coordinates for transforms
     m_viewerWindow->m_toolsUseLocalSpace = !m_viewerWindow->m_toolsUseLocalSpace;
     m_viewerWindow->forEachTool(
       [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-  } else if (event->key() == Qt::Key_R) {
-    // toggle rotate tool
-    if (mode == MODE::NONE || mode == MODE::TRANS) {
-      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
-                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-      m_viewerWindow->forEachTool(
-        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-      mode = MODE::ROT;
-    } else {
-      m_viewerWindow->setTool(nullptr);
-      mode = MODE::NONE;
-    }
-  } else if (event->key() == Qt::Key_T) {
-    // toggle translate tool
-    if (mode == MODE::NONE || mode == MODE::ROT) {
-      m_viewerWindow->setTool(
-        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-      m_viewerWindow->forEachTool(
-        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-      mode = MODE::TRANS;
-    } else {
-      m_viewerWindow->setTool(nullptr);
-      mode = MODE::NONE;
-    }
   } else {
     QWidget::keyPressEvent(event);
   }

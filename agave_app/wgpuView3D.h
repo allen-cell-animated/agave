@@ -50,9 +50,17 @@ public:
 
   void initCameraFromImage(Scene* scene);
   void retargetCameraForNewVolume(Scene* scene);
-
   void toggleCameraProjection();
-  void toggleAreaLightRotateControls();
+  enum MANIPULATOR_MODE
+  {
+    NONE,
+    ROT,
+    TRANS
+  };
+  void setManipulatorMode(MANIPULATOR_MODE mode);
+
+  void toggleRotateControls();
+  void toggleTranslateControls();
 
   void onNewImage(Scene* scene);
 
@@ -83,6 +91,7 @@ public slots:
   void OnUpdateCamera();
   void OnUpdateQRenderSettings(void);
   void OnUpdateRenderer(int);
+  void OnSelectionChanged(SceneObject* so);
 
 public:
   std::shared_ptr<CStatus> getStatus();
@@ -119,12 +128,7 @@ private:
 
   QWidget* m_canvas;
 
-  enum AREALIGHT_MODE
-  {
-    NONE,
-    ROT,
-    TRANS
-  } m_areaLightMode = AREALIGHT_MODE::NONE;
+  MANIPULATOR_MODE m_manipulatorMode = MANIPULATOR_MODE::NONE;
 
 protected:
   /// Set up GL context and subsidiary objects.
@@ -163,7 +167,8 @@ public:
 
   void onNewImage(Scene* scene) { m_view->onNewImage(scene); }
   void toggleCameraProjection() { m_view->toggleCameraProjection(); }
-  void toggleAreaLightRotateControls() { m_view->toggleAreaLightRotateControls(); }
+  void toggleRotateControls() { m_view->toggleRotateControls(); }
+  void toggleTranslateControls() { m_view->toggleTranslateControls(); }
   void fromViewerState(const Serialize::ViewerState& s) { m_view->fromViewerState(s); }
 
 signals:
