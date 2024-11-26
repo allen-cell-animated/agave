@@ -165,7 +165,8 @@ struct Gesture
     {
       kPoints = 0,
       kLines = 1,
-      kTriangles = 2
+      kTriangles = 2,
+      kLineStrips = 3
     };
 
     // a Command is just an instruction to the graphics
@@ -250,6 +251,10 @@ struct Gesture
     const CommandRange* currentCommand = nullptr;
     int lineLoopBegin = kInvalidVertexIndex;
     std::vector<VertsCode> verts;
+    std::vector<VertsCode> stripVerts;
+    std::vector<glm::ivec2> stripRanges;
+    std::vector<CommandSequence> stripProjections;
+    std::vector<float> stripThicknesses;
     std::vector<CommandRange> commands[kNumCommandsLists];
 
     Font font;
@@ -269,6 +274,11 @@ struct Gesture
       for (int i = 0; i < kNumCommandsLists; ++i) {
         commands[i].clear();
       }
+
+      stripVerts.clear();
+      stripRanges.clear();
+      stripProjections.clear();
+      stripThicknesses.clear();
     }
 
     // Add a draw command. There are multiple command sequences you can add to so
@@ -320,6 +330,38 @@ struct Gesture
       lineLoopBegin = verts.size();
       verts.push_back(v0);
       verts.push_back(v1);
+    }
+
+    // this is a single self contained command and does not require a command to be added first,
+    // but you must call addCommand after this to start the next one.
+    inline void addLineStrip(const std::vector<VertsCode> vertices,
+                             float thickness = 2.0f,
+                             bool closedLoop = false,
+                             CommandSequence index = CommandSequence::k3dStacked)
+    {
+      assert(vertices.size() >= 2);
+
+      // * first and last point define the tangents of the start and end of the line strip,
+      // so you need to add one pt at start and end
+      // * if drawing a line loop, then the last point has to be added to the array head,
+      // and the first point added to the tail
+
+      size_t stripStart = stripVerts.size();
+      if (closedLoop) {
+        stripVerts.push_back(vertices.back());
+      } else {
+        stripVerts.push_back(vertices.front());
+      }
+      std::for_each(vertices.begin(), vertices.end(), [&](const VertsCode& v) { stripVerts.push_back(v); });
+      if (closedLoop) {
+        stripVerts.push_back(vertices.front());
+      } else {
+        stripVerts.push_back(vertices.back());
+      }
+
+      stripRanges.push_back(glm::ivec2(stripStart, stripVerts.size()));
+      stripProjections.push_back(index);
+      stripThicknesses.push_back(thickness);
     }
 
     enum class LoopEntry : int

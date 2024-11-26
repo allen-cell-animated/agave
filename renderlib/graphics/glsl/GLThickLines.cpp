@@ -38,8 +38,11 @@ static const char* vertex_shader_text =
 
 
 
+    int line_i = gl_VertexID / 6;
+    int tri_i  = gl_VertexID % 6;
+
     vec4 va[4];
-    // put everyhing in pixel space so we can apply thickness and 
+    // put everything in pixel space so we can apply thickness and 
     // compute miters
     for (int i=0; i<4; ++i)
     {
