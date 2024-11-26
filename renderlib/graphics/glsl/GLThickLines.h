@@ -19,4 +19,5 @@ public:
   int m_loc_vcode;
   int m_loc_thickness;
   int m_loc_resolution;
+  int m_loc_stripVerts;
 };

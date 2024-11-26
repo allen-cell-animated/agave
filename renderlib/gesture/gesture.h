@@ -404,6 +404,15 @@ struct Gesture
                float opacity,
                uint32_t code);
 
+  void drawArcAsStrip(const glm::vec3& pstart,
+                      float angle,
+                      const glm::vec3& center,
+                      const glm::vec3& normal,
+                      uint32_t numSegments,
+                      glm::vec3 color,
+                      float opacity,
+                      uint32_t code);
+
   void drawCircle(glm::vec3 center,
                   glm::vec3 xaxis,
                   glm::vec3 yaxis,
@@ -412,6 +421,15 @@ struct Gesture
                   float opacity,
                   uint32_t code,
                   glm::vec4* clipPlane = nullptr);
+
+  void drawCircleAsStrip(glm::vec3 center,
+                         glm::vec3 xaxis,
+                         glm::vec3 yaxis,
+                         uint32_t numSegments,
+                         glm::vec3 color,
+                         float opacity,
+                         uint32_t code,
+                         glm::vec4* clipPlane);
 
   // does not draw a flat base
   void drawCone(glm::vec3 base,

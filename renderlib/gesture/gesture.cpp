@@ -112,6 +112,37 @@ Gesture::drawArc(const glm::vec3& pstart,
 }
 
 void
+Gesture::drawArcAsStrip(const glm::vec3& pstart,
+                        float angle,
+                        const glm::vec3& center,
+                        const glm::vec3& normal,
+                        uint32_t numSegments,
+                        glm::vec3 color,
+                        float opacity,
+                        uint32_t code)
+{
+  std::vector<Gesture::Graphics::VertsCode> v;
+  // draw arc from pstart through angle with center of circle at center
+  glm::vec3 xaxis = pstart - center;
+  glm::vec3 yaxis = glm::cross(normal, xaxis);
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * angle; // 2.0f * glm::pi<float>();
+    float theta1 = t1 * angle; // 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+    // graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+    //                  Gesture::Graphics::VertsCode(p1, color, opacity, code));
+  }
+  graphics.addLineStrip(v, 2.0f, false);
+}
+
+void
 Gesture::drawCircle(glm::vec3 center,
                     glm::vec3 xaxis,
                     glm::vec3 yaxis,
@@ -141,6 +172,42 @@ Gesture::drawCircle(glm::vec3 center,
                        Gesture::Graphics::VertsCode(p1, color, opacity, code));
     }
   }
+}
+
+void
+Gesture::drawCircleAsStrip(glm::vec3 center,
+                           glm::vec3 xaxis,
+                           glm::vec3 yaxis,
+                           uint32_t numSegments,
+                           glm::vec3 color,
+                           float opacity,
+                           uint32_t code,
+                           glm::vec4* clipPlane)
+{
+  std::vector<Gesture::Graphics::VertsCode> v;
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * 2.0f * glm::pi<float>();
+    float theta1 = t1 * 2.0f * glm::pi<float>();
+
+    glm::vec3 p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    if (clipPlane) {
+      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
+        v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+        // graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+        //                  Gesture::Graphics::VertsCode(p1, color, opacity, code));
+      }
+    } else {
+      v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+      // graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+      //                  Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    }
+  }
+  graphics.addLineStrip(v, 2.0f, true);
 }
 
 // does not draw a flat base

@@ -22,6 +22,20 @@ private:
   GLuint m_buffer;
 };
 
+// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+class ScopedGlTextureBuffer
+{
+public:
+  ScopedGlTextureBuffer(const void* data, size_t size);
+  ~ScopedGlTextureBuffer();
+  GLuint buffer() const { return m_buffer; }
+  GLuint texture() const { return m_texture; }
+
+private:
+  GLuint m_texture;
+  GLuint m_buffer;
+};
+
 // Some base RenderBuffer struct, in common between viewport rendering and
 // other stuff...
 // TODO reconcile with Graphics/FrameBuffer.h

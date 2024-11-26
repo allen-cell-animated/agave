@@ -41,6 +41,23 @@ ScopedGlVertexBuffer::~ScopedGlVertexBuffer()
   glDeleteBuffers(1, &m_buffer);
 }
 
+// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+ScopedGlTextureBuffer::ScopedGlTextureBuffer(const void* data, size_t size)
+{
+  glGenBuffers(1, &m_buffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, m_buffer);
+  glBufferData(GL_TEXTURE_BUFFER, size, data, GL_STATIC_DRAW);
+
+  glGenTextures(1, &m_texture);
+  glBindTexture(GL_TEXTURE_BUFFER, m_texture);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_buffer);
+}
+ScopedGlTextureBuffer::~ScopedGlTextureBuffer()
+{
+  glDeleteTextures(1, &m_texture);
+  glDeleteBuffers(1, &m_buffer);
+}
+
 namespace Pipeline {
 
 // First I may draw any GUI geometry that I want to be depth-composited with the
@@ -62,7 +79,6 @@ configure_3dDepthTested(SceneView& sceneView,
   sceneView.camera.getProjMatrix(p);
 
   glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
-  glUniformMatrix4fv(lineShader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -88,7 +104,6 @@ configure_3dStacked(SceneView& sceneView,
   check_gl("PRE set proj matrix");
 
   glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
-  glUniformMatrix4fv(lineShader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
 
   check_gl("set proj matrix");
 
@@ -114,7 +129,6 @@ configure_2dScreen(SceneView& sceneView,
                       1.0f,
                       -1.f);
   glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
-  glUniformMatrix4fv(lineShader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -294,6 +308,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   if (!shader.get()) {
     shader.reset(new GLGuiShader());
   }
+  if (!shaderLines.get()) {
+    shaderLines.reset(new GLThickLinesShader());
+  }
   if (!font.get()) {
     font.reset(new FontGL());
     font->load(graphics.font);
@@ -338,6 +355,8 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     ScopedGlVertexBuffer vertex_buffer(graphics.verts.data(),
                                        graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
 
+    ScopedGlTextureBuffer texture_buffer(graphics.stripVerts.data(),
+                                         graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
     // draw the GUI and once to draw the selection buffer data.
     // (display var is for draw vs pick)
@@ -359,9 +378,6 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
               continue;
 
             if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
-              glUniform1f(shaderLines->m_loc_thickness, cmd.thickness);
-              glUniform2fv(
-                shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
               glLineWidth(cmd.thickness);
               check_gl("linewidth");
             }

@@ -20,6 +20,13 @@ static const char* vertex_shader_text =
     uniform int picking;
     uniform float thickness;
 
+// for older gl, make this a texture / use instancing
+uniform samplerBuffer stripVerts;
+//layout(std430, binding = 0) buffer TVertex
+//{
+//   vec4 vertex[];
+//};
+
     out vec4 Frag_color;
     out vec2 Frag_UV;
 
@@ -46,9 +53,10 @@ static const char* vertex_shader_text =
     // compute miters
     for (int i=0; i<4; ++i)
     {
-        va[i] = projection * vertex[line_i+i];
+        vec4 vtx = texelFetch(stripVerts, line_i+i);
+        va[i] = projection * vtx;//vertex[line_i+i];
         va[i].xyz /= va[i].w;
-        va[i].xy = (va[i].xy + 1.0) * 0.5 * u_resolution;
+        va[i].xy = (va[i].xy + 1.0) * 0.5 * resolution;
     }
 
     vec2 v_line  = normalize(va[2].xy - va[1].xy);
@@ -61,7 +69,7 @@ static const char* vertex_shader_text =
         vec2 v_miter = normalize(nv_line + vec2(-v_pred.y, v_pred.x));
 
         pos = va[1];
-        pos.xy += v_miter * u_thickness * (tri_i == 1 ? -0.5 : 0.5) / dot(v_miter, nv_line);
+        pos.xy += v_miter * thickness * (tri_i == 1 ? -0.5 : 0.5) / dot(v_miter, nv_line);
     }
     else
     {
@@ -69,11 +77,11 @@ static const char* vertex_shader_text =
         vec2 v_miter = normalize(nv_line + vec2(-v_succ.y, v_succ.x));
 
         pos = va[2];
-        pos.xy += v_miter * u_thickness * (tri_i == 5 ? 0.5 : -0.5) / dot(v_miter, nv_line);
+        pos.xy += v_miter * thickness * (tri_i == 5 ? 0.5 : -0.5) / dot(v_miter, nv_line);
     }
 
     // undo the perspective divide and go back to clip space
-    pos.xy = pos.xy / u_resolution * 2.0 - 1.0;
+    pos.xy = pos.xy / resolution * 2.0 - 1.0;
     pos.xyz *= pos.w;
     gl_Position = pos;
     }
@@ -315,6 +323,7 @@ GLThickLinesShader::GLThickLinesShader()
   m_loc_vcode = attributeLocation("vCode");
   m_loc_thickness = uniformLocation("thickness");
   m_loc_resolution = uniformLocation("resolution");
+  m_loc_stripVerts = uniformLocation("stripVerts");
 }
 
 void
