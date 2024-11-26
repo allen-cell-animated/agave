@@ -55,6 +55,10 @@ cd build
 # (vs 2022)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
+
+# OR ninja build
+cmake -DCMAKE_TOOLCHAIN_FILE=C:\Users\dmt\source\repos\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows C:\Users\dmt\source\repos\allen-cell-animated\agave
+cmake --build . --target install --config RelWithDebInfo
 ```
 
 You may need to adjust the vcpkg path depending on your configuration.
