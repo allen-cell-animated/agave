@@ -930,7 +930,7 @@ GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLGuiShader: Failed to link shader program\n" << log();
+    LOG_ERROR << "GLShaderProgram: Failed to link shader program\n" << log();
   }
 
   if (outVShader != nullptr) {

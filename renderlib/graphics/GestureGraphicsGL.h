@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 
 #include "graphics/glsl/GLGuiShader.h"
+#include "graphics/glsl/GLThickLines.h"
 #include "graphics/gl/FontGL.h"
 #include "gesture/gesture.h"
 
@@ -68,6 +69,7 @@ class GestureRendererGL
 {
 public:
   std::unique_ptr<GLGuiShader> shader;
+  std::unique_ptr<GLThickLinesShader> shaderLines;
 
   // A texture atlas for GUI elements
   // TODO: use bindless textures

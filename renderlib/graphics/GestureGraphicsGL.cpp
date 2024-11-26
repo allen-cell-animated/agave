@@ -51,7 +51,10 @@ namespace Pipeline {
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
 static void
-configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
+configure_3dDepthTested(SceneView& sceneView,
+                        Gesture::Graphics& graphics,
+                        GLGuiShader& shader,
+                        GLThickLinesShader& lineShader)
 {
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
@@ -59,6 +62,7 @@ configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, GLGui
   sceneView.camera.getProjMatrix(p);
 
   glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  glUniformMatrix4fv(lineShader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -72,7 +76,10 @@ configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, GLGui
 // Overlay something "in the scene". This has a limitation that we assume there
 // is a single viewport.
 static void
-configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
+configure_3dStacked(SceneView& sceneView,
+                    Gesture::Graphics& graphics,
+                    GLGuiShader& shader,
+                    GLThickLinesShader& lineShader)
 {
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
@@ -81,6 +88,7 @@ configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShad
   check_gl("PRE set proj matrix");
 
   glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  glUniformMatrix4fv(lineShader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
 
   check_gl("set proj matrix");
 
@@ -94,7 +102,10 @@ configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShad
 
 // Draw something in screen space without zbuffer.
 static void
-configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
+configure_2dScreen(SceneView& sceneView,
+                   Gesture::Graphics& graphics,
+                   GLGuiShader& shader,
+                   GLThickLinesShader& lineShader)
 {
   auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
                       (float)sceneView.viewport.region.upper.x,
@@ -103,6 +114,7 @@ configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShade
                       1.0f,
                       -1.f);
   glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  glUniformMatrix4fv(lineShader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -297,7 +309,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   //        fully user configurable...
   //
   // Configure command lists
-  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, GLGuiShader& shader);
+  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, GLGuiShader& shader, GLThickLinesShader& lineShader);
   // Step 1: we draw any command that is depth-composited with the scene
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dDepthTested)] =
     Pipeline::configure_3dDepthTested;
@@ -334,7 +346,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
       for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
         if (!graphics.commands[sequence].empty()) {
-          pipelineConfig[sequence](sceneView, graphics, *shader.get());
+          pipelineConfig[sequence](sceneView, graphics, *shader.get(), *shaderLines.get());
 
           // YAGNI: Commands could be coalesced, setting state could be avoided
           //        if not changing... For now it seems we can draw at over 2000 Hz
@@ -347,6 +359,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
               continue;
 
             if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
+              glUniform1f(shaderLines->m_loc_thickness, cmd.thickness);
+              glUniform2fv(
+                shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
               glLineWidth(cmd.thickness);
               check_gl("linewidth");
             }

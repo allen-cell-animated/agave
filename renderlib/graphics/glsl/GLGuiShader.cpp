@@ -27,6 +27,7 @@ static const char* vertex_shader_text =
         else {
           Frag_color = vCol;
         }
+        
         gl_Position = projection * vec4(vPos, 1.0);
     }
     )";
