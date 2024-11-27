@@ -6,6 +6,7 @@
 #include "GradientData.h"
 #include "Light.h"
 #include "Object3d.h"
+#include "ScenePlane.h"
 #include "SceneLight.h"
 #include "Timeline.h"
 #include "glm.h"
@@ -97,6 +98,7 @@ public:
   VolumeDisplay m_material;
 
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
+  std::shared_ptr<ScenePlane> m_clipPlane;
 
   Lighting m_lighting;
 

@@ -34,8 +34,8 @@ add_subdirectory(libCZI)
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 FetchContent_Declare(
 	tensorstore
-        URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.61.tar.gz"
-        URL_HASH SHA256=E77508A3B833BCC718C4419C1604B16C138C34ECDAB4305F3EB352BC3C6EE0F0
+        URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.69.tar.gz"
+        URL_HASH SHA256=49c958c2003e9e159304e2f561b60fc6dd1110c8362bb87689b80700e8aba3ef
 )
 
 # Additional FetchContent_Declare calls as needed...
