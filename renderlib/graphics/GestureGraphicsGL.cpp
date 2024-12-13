@@ -68,17 +68,15 @@ namespace Pipeline {
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
 static void
-configure_3dDepthTested(SceneView& sceneView,
-                        Gesture::Graphics& graphics,
-                        GLGuiShader& shader,
-                        GLThickLinesShader& lineShader)
+configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, IGuiShader* shader)
 {
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
   glm::mat4 p(1.0);
   sceneView.camera.getProjMatrix(p);
 
-  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  shader->setProjMatrix(p * v);
+
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -92,10 +90,7 @@ configure_3dDepthTested(SceneView& sceneView,
 // Overlay something "in the scene". This has a limitation that we assume there
 // is a single viewport.
 static void
-configure_3dStacked(SceneView& sceneView,
-                    Gesture::Graphics& graphics,
-                    GLGuiShader& shader,
-                    GLThickLinesShader& lineShader)
+configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, IGuiShader* shader)
 {
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
@@ -103,7 +98,7 @@ configure_3dStacked(SceneView& sceneView,
   sceneView.camera.getProjMatrix(p);
   check_gl("PRE set proj matrix");
 
-  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  shader->setProjMatrix(p * v);
 
   check_gl("set proj matrix");
 
@@ -117,10 +112,7 @@ configure_3dStacked(SceneView& sceneView,
 
 // Draw something in screen space without zbuffer.
 static void
-configure_2dScreen(SceneView& sceneView,
-                   Gesture::Graphics& graphics,
-                   GLGuiShader& shader,
-                   GLThickLinesShader& lineShader)
+configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, IGuiShader* shader)
 {
   auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
                       (float)sceneView.viewport.region.upper.x,
@@ -128,7 +120,7 @@ configure_2dScreen(SceneView& sceneView,
                       (float)sceneView.viewport.region.upper.y,
                       1.0f,
                       -1.f);
-  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  shader->setProjMatrix(p);
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -326,7 +318,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   //        fully user configurable...
   //
   // Configure command lists
-  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, GLGuiShader& shader, GLThickLinesShader& lineShader);
+  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, IGuiShader* shader);
   // Step 1: we draw any command that is depth-composited with the scene
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dDepthTested)] =
     Pipeline::configure_3dDepthTested;
@@ -365,7 +357,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
       for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
         if (!graphics.commands[sequence].empty()) {
-          pipelineConfig[sequence](sceneView, graphics, *shader.get(), *shaderLines.get());
+          pipelineConfig[sequence](sceneView, graphics, shader.get());
 
           // YAGNI: Commands could be coalesced, setting state could be avoided
           //        if not changing... For now it seems we can draw at over 2000 Hz
@@ -413,11 +405,12 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
       if (!graphics.stripRanges.empty()) {
         shaderLines->configure(display, this->glTextureId);
         for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
-          pipelineConfig[sequence](sceneView, graphics, *shader.get(), *shaderLines.get());
+          pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
           // YAGNI: Commands could be coalesced, setting state could be avoided
           //        if not changing... For now it seems we can draw at over 2000 Hz
           //        and no further optimization is required.
+          // now lets draw some strips, using stripRanges
           for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
             Gesture::Graphics::Command& cmd = cmdr.command;
             if (cmdr.end == -1)

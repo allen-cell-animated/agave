@@ -2,7 +2,9 @@
 
 #include "graphics/gl/Util.h"
 
-class GLThickLinesShader : public GLShaderProgram
+class GLThickLinesShader
+  : public GLShaderProgram
+  , public IGuiShader
 {
 public:
   GLThickLinesShader();
@@ -11,6 +13,8 @@ public:
 
   void configure(bool display, GLuint textureId);
   void cleanup();
+
+  virtual void setProjMatrix(const glm::mat4& proj) override;
 
   int m_loc_proj;
   int m_loc_vpos;

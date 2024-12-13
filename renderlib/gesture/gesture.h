@@ -429,7 +429,7 @@ struct Gesture
                          glm::vec3 color,
                          float opacity,
                          uint32_t code,
-                         glm::vec4* clipPlane);
+                         glm::vec4* clipPlane = nullptr);
 
   // does not draw a flat base
   void drawCone(glm::vec3 base,
