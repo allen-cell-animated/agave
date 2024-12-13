@@ -299,7 +299,8 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateView) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
+    // gesture.drawCircle(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
+    gesture.drawCircleAsStrip(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
   }
 
   // if we are rotating, draw a tick mark where the rotation started, and where we are now
