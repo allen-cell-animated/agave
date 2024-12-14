@@ -74,7 +74,7 @@ uniform samplerBuffer stripVerts;
         vCol.y = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 6).x;
         vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 7).x;
         vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 8).x;
-        vCode = uint(texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 9).x);
+        vCode = floatBitsToUint(texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 9).x);
     }
     else
     {
@@ -92,7 +92,7 @@ uniform samplerBuffer stripVerts;
         vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 7).x;
         vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 8).x;
 
-        vCode = uint(texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 9).x);
+        vCode = floatBitsToUint(texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 9).x);
     }
 
     // undo the perspective divide and go back to clip space

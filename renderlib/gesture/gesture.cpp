@@ -189,7 +189,7 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
                            glm::vec4* clipPlane)
 {
   std::vector<Gesture::Graphics::VertsCode> v;
-  glm::vec3 p0, p1;
+  glm::vec3 p0(0, 0, 0), p1(0, 0, 0);
   for (int i = 0; i < numSegments; ++i) {
     float t0 = float(i) / float(numSegments);
     float t1 = float(i + 1) / float(numSegments);

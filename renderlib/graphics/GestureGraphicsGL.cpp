@@ -419,7 +419,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             const float thickness = graphics.stripThicknesses[i];
 
             // we are drawing N-1 line segments, but the number of elements in the array is N+2
-            GLsizei N = (GLsizei)(range.y - range.x) - 2 - 1;
+            GLsizei N = (GLsizei)(range.y - range.x) - 2;
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
             glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
