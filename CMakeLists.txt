@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.24)
 include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 
 if(APPLE)

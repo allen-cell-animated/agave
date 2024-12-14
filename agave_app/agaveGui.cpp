@@ -39,6 +39,8 @@
 
 const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
+QPushButton#rotateBtn { icon: url(":/icons/dark/rotate.svg"); qproperty-icon: url(":/icons/dark/rotate.svg") }
+QPushButton#translateBtn { icon: url(":/icons/dark/translate.svg"); qproperty-icon: url(":/icons/dark/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")}
@@ -57,6 +59,8 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
+QPushButton#rotateBtn { icon: url(":/icons/light/rotate.svg"); qproperty-icon: url(":/icons/light/rotate.svg") }
+QPushButton#translateBtn { icon: url(":/icons/light/translate.svg"); qproperty-icon: url(":/icons/light/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") }
@@ -252,7 +256,6 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    emit this->m_qrendersettings.Selected(checked ? this->m_appScene.SceneAreaLight() : nullptr);
     this->m_glView->toggleRotateControls();
   });
 
@@ -267,6 +270,11 @@ agaveGui::createActions()
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleTranslateControls();
   });
+
+  m_manipulatorModeGroup = new QActionGroup(this);
+  m_manipulatorModeGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+  m_manipulatorModeGroup->addAction(m_toggleRotateControlsAction);
+  m_manipulatorModeGroup->addAction(m_toggleTranslateControlsAction);
 }
 
 void

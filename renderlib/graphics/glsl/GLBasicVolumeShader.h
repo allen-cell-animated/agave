@@ -97,6 +97,7 @@ public:
   glm::vec2 resolution;
   float isPerspective;
   float orthoScale;
+  glm::vec4 clipPlane;
 
 private:
   /// The vertex shader.
@@ -109,4 +110,5 @@ private:
   int uModelViewMatrix, uProjectionMatrix, uDataRangeMin, uDataRangeMax, uBreakSteps, uAABBClipMin, uAABBClipMax,
     uFlipVolumeAxes, uInverseModelViewMatrix, uCameraPosition, uResolution, uGammaMin, uGammaMax, uGammaScale,
     uBrightness, uDensity, uMaskAlpha, uTextureAtlas, uTextureAtlasMask, uIsPerspective, uOrthoScale;
+  int uClipPlane;
 };

@@ -125,6 +125,30 @@ ViewToolbar::ViewToolbar(QWidget* parent)
     menu->exec(axisViewButton->mapToGlobal(axisViewButton->rect().bottomLeft() + QPoint(0, 4)));
   });
 
+  toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+
+  rotateButton = new QPushButton(QIcon(), "", this);
+  rotateButton->setCheckable(true);
+  rotateButton->setDisabled(true);
+  rotateButton->setObjectName("rotateBtn");
+  rotateButton->setToolTip(QString("<FONT>Rotate</FONT>"));
+  rotateButton->setStatusTip(tr("Rotate the selected object"));
+  rotateButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  rotateButton->adjustSize();
+  rotateButton->setFocusPolicy(Qt::NoFocus);
+  toolbarLayout->addWidget(rotateButton);
+
+  translateButton = new QPushButton(QIcon(), "", this);
+  translateButton->setCheckable(true);
+  translateButton->setDisabled(true);
+  translateButton->setObjectName("translateBtn");
+  translateButton->setToolTip(QString("<FONT>Translate</FONT>"));
+  translateButton->setStatusTip(tr("Translate the selected object"));
+  translateButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  translateButton->adjustSize();
+  translateButton->setFocusPolicy(Qt::NoFocus);
+  toolbarLayout->addWidget(translateButton);
+
   toolbarLayout->addStretch();
 
   setLayout(toolbarLayout);
