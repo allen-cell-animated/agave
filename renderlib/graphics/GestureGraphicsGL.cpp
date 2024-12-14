@@ -412,6 +412,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
           //        and no further optimization is required.
           // now lets draw some strips, using stripRanges
           for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
+            if ((int)graphics.stripProjections[i] != sequence) {
+              continue;
+            }
             const glm::ivec2& range = graphics.stripRanges[i];
             const float thickness = graphics.stripThicknesses[i];
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
