@@ -531,18 +531,18 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     tsdim++;
 
     static constexpr tensorstore::DimensionIndex kNumDims = 5;
-    tensorstore::Index shapeToLoad[kNumDims] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
+    const tensorstore::Index shapeToLoad[kNumDims] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
     if (levelDims.dtype == "uint8") {
-      tensorstore::Array<uint8_t, kNumDims> arr(reinterpret_cast<uint8_t*>(destptr), shapeToLoad);
+      auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "int32") {
-      tensorstore::Array<int32_t, kNumDims> arr(reinterpret_cast<int32_t*>(destptr), shapeToLoad);
+      auto arr = tensorstore::Array(reinterpret_cast<int32_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
-      tensorstore::Array<uint16_t, kNumDims> arr(reinterpret_cast<uint16_t*>(destptr), shapeToLoad);
+      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "float32") {
-      tensorstore::Array<float, kNumDims> arr(reinterpret_cast<float*>(destptr), shapeToLoad);
+      auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
       LOG_ERROR << "Unrecognized format (" << levelDims.dtype
