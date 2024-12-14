@@ -418,6 +418,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
             glUniform1i(shaderLines->m_loc_stripVerts, 0);
+            glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
             glUniform1f(shaderLines->m_loc_thickness, thickness);
             glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
             glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));

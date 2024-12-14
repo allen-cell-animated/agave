@@ -374,7 +374,7 @@ struct Gesture
 
       stripRanges.push_back(glm::ivec2(stripStart, stripVerts.size()));
       stripProjections.push_back(index);
-      stripThicknesses.push_back(thickness);
+      stripThicknesses.push_back(12.0); // thickness);
     }
 
     enum class LoopEntry : int

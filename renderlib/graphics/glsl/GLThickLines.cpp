@@ -18,6 +18,7 @@ static const char* vertex_shader_text =
 
     uniform mat4 projection;
     uniform vec2 resolution;
+    uniform int stripVertexOffset;
     uniform int picking;
     uniform float thickness;
 
@@ -33,22 +34,22 @@ uniform samplerBuffer stripVerts;
 
     void main()
     {
-    int line_i = gl_VertexID / 6;
-    int tri_i  = gl_VertexID % 6;
+    int line_i = (gl_VertexID) / 6;
+    int tri_i  = (gl_VertexID) % 6;
 
     uint vCode = 0;
     vec2 vUV = vec2(0.0, 0.0);
     vec4 vCol = vec4(0.0, 0.0, 0.0, 0.0);
 
     vec4 va[4];
-    // put everything in pixel space so we can apply thickness and 
+    // put everything in pixel space so we can apply thickness and
     // compute miters
     for (int i=0; i<4; ++i)
     {
         vec4 vtx;
-        vtx.x = texelFetch(stripVerts, (line_i+i)*10 + 0).x;
-        vtx.y = texelFetch(stripVerts, (line_i+i)*10 + 1).x;
-        vtx.z = texelFetch(stripVerts, (line_i+i)*10 + 2).x;
+        vtx.x = texelFetch(stripVerts, (stripVertexOffset + line_i+i)*10 + 0).x;
+        vtx.y = texelFetch(stripVerts, (stripVertexOffset + line_i+i)*10 + 1).x;
+        vtx.z = texelFetch(stripVerts, (stripVertexOffset + line_i+i)*10 + 2).x;
         vtx.w = 1.0;
         va[i] = projection * vtx;//vertex[line_i+i];
         va[i].xyz /= va[i].w;
@@ -67,13 +68,13 @@ uniform samplerBuffer stripVerts;
         pos = va[1];
         pos.xy += v_miter * thickness * (tri_i == 1 ? -0.5 : 0.5) / dot(v_miter, nv_line);
 
-        vUV.x = texelFetch(stripVerts, (line_i+1)*10 + 3).x;
-        vUV.y = texelFetch(stripVerts, (line_i+1)*10 + 4).x;
-        vCol.x = texelFetch(stripVerts, (line_i+1)*10 + 5).x;
-        vCol.y = texelFetch(stripVerts, (line_i+1)*10 + 6).x;
-        vCol.z = texelFetch(stripVerts, (line_i+1)*10 + 7).x;
-        vCol.w = texelFetch(stripVerts, (line_i+1)*10 + 8).x;
-        vCode = uint(texelFetch(stripVerts, (line_i+1)*10 + 9).x);
+        vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 3).x;
+        vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 4).x;
+        vCol.x = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 5).x;
+        vCol.y = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 6).x;
+        vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 7).x;
+        vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 8).x;
+        vCode = uint(texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 9).x);
     }
     else
     {
@@ -83,13 +84,13 @@ uniform samplerBuffer stripVerts;
         pos = va[2];
         pos.xy += v_miter * thickness * (tri_i == 5 ? 0.5 : -0.5) / dot(v_miter, nv_line);
 
-        vUV.x = texelFetch(stripVerts, (line_i+2)*10 + 3).x;
-        vUV.y = texelFetch(stripVerts, (line_i+2)*10 + 4).x;
-        vCol.x = texelFetch(stripVerts, (line_i+2)*10 + 5).x;
-        vCol.y = texelFetch(stripVerts, (line_i+2)*10 + 6).x;
-        vCol.z = texelFetch(stripVerts, (line_i+2)*10 + 7).x;
-        vCol.w = texelFetch(stripVerts, (line_i+2)*10 + 8).x;
-        vCode = uint(texelFetch(stripVerts, (line_i+2)*10 + 9).x);
+        vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 3).x;
+        vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 4).x;
+        vCol.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 5).x;
+        vCol.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 6).x;
+        vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 7).x;
+        vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 8).x;
+        vCode = uint(texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 9).x);
     }
 
     // undo the perspective divide and go back to clip space
@@ -134,15 +135,27 @@ uniform samplerBuffer stripVerts;
 std::string vertShader = R"(
 #version 460
 
+struct TVertexData
+{
+//  float v[11];
+  vec4 pos;
+  vec2 uv;
+  vec4 color;
+  uint code;
+};
+
 // for older gl, make this a texture / use instancing
 layout(std430, binding = 0) buffer TVertex
 {
-   vec4 vertex[];
+   TVertexData vertex[];
 };
 
 uniform mat4  u_mvp;
 uniform vec2  u_resolution;
 uniform float u_thickness;
+
+out vec4 Frag_color;
+out vec2 Frag_UV;
 
 void main()
 {
@@ -152,7 +165,7 @@ void main()
     vec4 va[4];
     for (int i=0; i<4; ++i)
     {
-        va[i] = u_mvp * vertex[line_i+i];
+        va[i] = u_mvp * vertex[line_i+i].pos;
         va[i].xyz /= va[i].w;
         va[i].xy = (va[i].xy + 1.0) * 0.5 * u_resolution;
     }
@@ -180,6 +193,19 @@ void main()
 
     pos.xy = pos.xy / u_resolution * 2.0 - 1.0;
     pos.xyz *= pos.w;
+
+    Frag_UV = vertex[line_i].uv;
+    if (picking == 1) {
+      uint vCode = vertex[line_i].code;
+      Frag_color = vec4(float(vCode & 0xffu) / 255.0,
+                        float((vCode >> 8) & 0xffu) / 255.0,
+                        float((vCode >> 16) & 0xffu) / 255.0,
+                        1.0);
+    }
+    else {
+      Frag_color = vertex[line_i].color;
+    }
+
     gl_Position = pos;
 }
 )";
@@ -207,7 +233,7 @@ static const char* fragment_shader_text =
 
         // Gesture geometry handshake: any uv value below -64 means
         // no texture lookup. Check VertsCode::k_noTexture
-        // (add an epsilon to fix some fp errors. 
+        // (add an epsilon to fix some fp errors.
         // TODO check to see if highp would have helped)
         if (picking == 0 && Frag_UV.x > -64+EPSILON) {
           result *= texture(Texture, Frag_UV.xy);
@@ -349,6 +375,7 @@ GLThickLinesShader::GLThickLinesShader()
   m_loc_thickness = uniformLocation("thickness");
   m_loc_resolution = uniformLocation("resolution");
   m_loc_stripVerts = uniformLocation("stripVerts");
+  m_loc_stripVertexOffset = uniformLocation("stripVertexOffset");
 }
 
 void
