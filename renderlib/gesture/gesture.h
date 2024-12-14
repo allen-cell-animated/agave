@@ -199,7 +199,19 @@ struct Gesture
       static constexpr float k_noTexture = -64.f;
       static constexpr float k_marqueePattern = -128.f;
 
-      VertsCode() {}
+      VertsCode()
+        : x(0)
+        , y(0)
+        , z(0)
+        , u(0)
+        , v(0)
+        , r(0)
+        , g(0)
+        , b(0)
+        , a(0)
+        , s(-1)
+      {
+      }
 
       // Constructor commonly used for non textured elements
       VertsCode(const glm::vec3& v, glm::vec3 c, float opacity = 1.0f, uint32_t selectionCode = 0)

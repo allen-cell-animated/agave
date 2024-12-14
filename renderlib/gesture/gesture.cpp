@@ -207,7 +207,7 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
       //                  Gesture::Graphics::VertsCode(p1, color, opacity, code));
     }
   }
-  graphics.addLineStrip(v, 2.0f, true);
+  graphics.addLineStrip(v, 6.0f, true);
 }
 
 // does not draw a flat base

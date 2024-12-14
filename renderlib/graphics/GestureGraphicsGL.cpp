@@ -411,38 +411,50 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
           //        if not changing... For now it seems we can draw at over 2000 Hz
           //        and no further optimization is required.
           // now lets draw some strips, using stripRanges
-          for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
-            Gesture::Graphics::Command& cmd = cmdr.command;
-            if (cmdr.end == -1)
-              cmdr.end = graphics.verts.size();
-            if (cmdr.begin >= cmdr.end)
-              continue;
-
-            if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
-              glLineWidth(cmd.thickness);
-              check_gl("linewidth");
-            }
-            if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
-              glPointSize(cmd.thickness);
-              check_gl("pointsize");
-            }
-            GLenum mode = GL_TRIANGLES;
-            switch (cmd.command) {
-              case Gesture::Graphics::PrimitiveType::kLines:
-                mode = GL_LINES;
-                break;
-              case Gesture::Graphics::PrimitiveType::kPoints:
-                mode = GL_POINTS;
-                break;
-              case Gesture::Graphics::PrimitiveType::kTriangles:
-                mode = GL_TRIANGLES;
-                break;
-              default:
-                assert(false && "unsupported primitive type");
-            }
-            glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
-            check_gl("drawarrays");
+          for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
+            const glm::ivec2& range = graphics.stripRanges[i];
+            const float thickness = graphics.stripThicknesses[i];
+            GLsizei N = (GLsizei)(range.y - range.x) - 2;
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
+            glUniform1i(shaderLines->m_loc_stripVerts, 0);
+            glUniform1f(shaderLines->m_loc_thickness, thickness);
+            glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
+            glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
+            check_gl("thicklines drawarrays");
           }
+          // for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
+          //   Gesture::Graphics::Command& cmd = cmdr.command;
+          //   if (cmdr.end == -1)
+          //     cmdr.end = graphics.verts.size();
+          //   if (cmdr.begin >= cmdr.end)
+          //     continue;
+
+          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
+          //     glLineWidth(cmd.thickness);
+          //     check_gl("linewidth");
+          //   }
+          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
+          //     glPointSize(cmd.thickness);
+          //     check_gl("pointsize");
+          //   }
+          //   GLenum mode = GL_TRIANGLES;
+          //   switch (cmd.command) {
+          //     case Gesture::Graphics::PrimitiveType::kLines:
+          //       mode = GL_LINES;
+          //       break;
+          //     case Gesture::Graphics::PrimitiveType::kPoints:
+          //       mode = GL_POINTS;
+          //       break;
+          //     case Gesture::Graphics::PrimitiveType::kTriangles:
+          //       mode = GL_TRIANGLES;
+          //       break;
+          //     default:
+          //       assert(false && "unsupported primitive type");
+          //   }
+          //   glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
+          //   check_gl("drawarrays");
+          // }
         }
         shaderLines->cleanup();
       }
