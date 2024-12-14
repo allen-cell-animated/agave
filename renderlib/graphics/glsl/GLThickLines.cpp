@@ -86,10 +86,12 @@ uniform samplerBuffer stripVerts;
 
         vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 3).x;
         vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 4).x;
+
         vCol.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 5).x;
         vCol.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 6).x;
         vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 7).x;
         vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 8).x;
+
         vCode = uint(texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 9).x);
     }
 
