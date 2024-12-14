@@ -9,7 +9,7 @@ class GLThickLinesShader
 public:
   GLThickLinesShader();
 
-  ~GLThickLinesShader() {}
+  ~GLThickLinesShader();
 
   void configure(bool display, GLuint textureId);
   void cleanup();
@@ -25,4 +25,7 @@ public:
   int m_loc_resolution;
   int m_loc_stripVerts;
   int m_loc_stripVertexOffset;
+
+  // to be bound just for drawArrays calls for this shader
+  GLuint m_vao;
 };

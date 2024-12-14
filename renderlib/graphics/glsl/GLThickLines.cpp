@@ -376,6 +376,12 @@ GLThickLinesShader::GLThickLinesShader()
   m_loc_resolution = uniformLocation("resolution");
   m_loc_stripVerts = uniformLocation("stripVerts");
   m_loc_stripVertexOffset = uniformLocation("stripVertexOffset");
+
+  glGenVertexArrays(1, &m_vao);
+}
+GLThickLinesShader::~GLThickLinesShader()
+{
+  glDeleteVertexArrays(1, &m_vao);
 }
 
 void
@@ -383,6 +389,7 @@ GLThickLinesShader::configure(bool display, GLuint textureId)
 {
   bind();
   check_gl("bind gesture draw shader");
+  // glBindVertexArray(m_vao);
 
   glUniform1i(uniformLocation("picking"), display ? 0 : 1);
   check_gl("set picking uniform");
@@ -391,8 +398,8 @@ GLThickLinesShader::configure(bool display, GLuint textureId)
   else
     glUniform1i(uniformLocation("Texture"), 1);
   check_gl("set texture uniform");
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureId);
+  // glActiveTexture(GL_TEXTURE0);
+  // glBindTexture(GL_TEXTURE_2D, textureId);
   check_gl("bind texture");
 }
 
@@ -402,7 +409,9 @@ GLThickLinesShader::cleanup()
   release();
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindTexture(GL_TEXTURE_BUFFER, 0);
+
+  // glBindVertexArray(0);
 }
 
 void

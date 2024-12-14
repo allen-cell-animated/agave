@@ -419,6 +419,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             const float thickness = graphics.stripThicknesses[i];
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
             glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
             glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
             glUniform1i(shaderLines->m_loc_stripVerts, 0);
             glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
