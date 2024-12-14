@@ -7,6 +7,7 @@
 #include "Font.h"
 #include "SceneView.h"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
