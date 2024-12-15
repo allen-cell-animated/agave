@@ -23,6 +23,7 @@ static const char* vertex_shader_text =
     uniform float thickness;
 
 // for older gl, make this a texture / use instancing
+// this will be defined with R32f format so we can read it one float at a time
 uniform samplerBuffer stripVerts;
 //layout(std430, binding = 0) buffer TVertex
 //{
@@ -63,7 +64,7 @@ uniform samplerBuffer stripVerts;
     if (tri_i == 0 || tri_i == 1 || tri_i == 3)
     {
         vec2 vtan = va[1].xy - va[0].xy;
-        vec2 v_pred  = length(vtan) > 0 ? normalize(vtan) : vtan;
+        vec2 v_pred  = length(vtan) > 0.5 ? normalize(vtan) : vtan;
         vec2 v_miter = normalize(nv_line + vec2(-v_pred.y, v_pred.x));
 
         pos = va[1];
@@ -80,7 +81,7 @@ uniform samplerBuffer stripVerts;
     else
     {
         vec2 vtan = va[3].xy - va[2].xy;
-        vec2 v_succ  = length(vtan) > 0 ? normalize(vtan) : vtan;
+        vec2 v_succ  = length(vtan) > 0.5 ? normalize(vtan) : vtan;
         vec2 v_miter = normalize(nv_line + vec2(-v_succ.y, v_succ.x));
 
         pos = va[2];
