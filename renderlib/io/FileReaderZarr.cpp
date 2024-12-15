@@ -6,6 +6,7 @@
 #include "StringUtil.h"
 #include "VolumeDimensions.h"
 
+#include "tensorstore/array.h"
 #include "tensorstore/context.h"
 #include "tensorstore/index_space/dim_expression.h"
 #include "tensorstore/kvstore/generation.h"
