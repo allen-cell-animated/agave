@@ -19,7 +19,7 @@
 // line index = gl_VertexID / 6
 // tri index = gl_VertexID % 6
 // * Since we are drawing N-1 line segments, but the number of elements in the array is N+2,
-// the elements form vertex[line_t] to vertex[line_t+3] can be accessed for each vertex which
+// the elements from vertex[line_t] to vertex[line_t+3] can be accessed for each vertex which
 // is processed in the vertex shader.
 // * vertex[line_t+1] and vertex[line_t+2] are the start and end coordinate of the line segment.
 // * vertex[line_t] and vertex[line_t+3] are required to compute the miter.

@@ -362,14 +362,22 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
         // draw arc showing the rotation
         // start pt, angle, normal
         float a = getSignedAngle(v0, v1, vN);
-        gesture.drawArc(axis.p - v0 * (radius * 1.1f),
-                        a,
-                        axis.p,
-                        vN,
-                        (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
-                        color,
-                        0.5,
-                        noCode);
+        gesture.drawArcAsStrip(axis.p - v0 * (radius * 1.1f),
+                               a,
+                               axis.p,
+                               vN,
+                               (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
+                               color,
+                               0.5,
+                               noCode);
+        // gesture.drawArc(axis.p - v0 * (radius * 1.1f),
+        //                 a,
+        //                 axis.p,
+        //                 vN,
+        //                 (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
+        //                 color,
+        //                 0.5,
+        //                 noCode);
       }
     }
   }

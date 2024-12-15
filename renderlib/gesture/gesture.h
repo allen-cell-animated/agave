@@ -264,11 +264,13 @@ struct Gesture
     const CommandRange* currentCommand = nullptr;
     int lineLoopBegin = kInvalidVertexIndex;
     std::vector<VertsCode> verts;
+    std::vector<CommandRange> commands[kNumCommandsLists];
+
+    // Line strip drawing needs a different data setup
     std::vector<VertsCode> stripVerts;
     std::vector<glm::ivec2> stripRanges;
     std::vector<CommandSequence> stripProjections;
     std::vector<float> stripThicknesses;
-    std::vector<CommandRange> commands[kNumCommandsLists];
 
     Font font;
 
