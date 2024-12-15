@@ -1,5 +1,7 @@
 #include "gesture.h"
 
+#include "Logging.h"
+
 // Update the current action for one of the button of the pointer device
 void
 Gesture::Input::setButtonEvent(uint32_t mbIndex, Action action, int mods, glm::vec2 position, double time)
@@ -190,34 +192,51 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
 {
   std::vector<Gesture::Graphics::VertsCode> v;
   glm::vec3 p0(0, 0, 0), p1(0, 0, 0);
-  for (int i = 0; i < numSegments; ++i) {
-    float t0 = float(i) / float(numSegments);
-    float t1 = float(i + 1) / float(numSegments);
+  if (!clipPlane) {
+    v.reserve(numSegments + 1);
+    // go all the way around, so use numSegments+1 for a closed loop
+    for (int i = 0; i < numSegments + 1; ++i) {
+      float t0 = float(i) / float(numSegments);
+      // float t1 = float(i + 1) / float(numSegments);
 
-    float theta0 = t0 * 2.0f * glm::pi<float>();
-    float theta1 = t1 * 2.0f * glm::pi<float>();
+      float theta0 = t0 * 2.0f * glm::pi<float>();
+      // float theta1 = t1 * 2.0f * glm::pi<float>();
 
-    p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
-    p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+      p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+      // p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
 
-    if (clipPlane) {
-      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
-        v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
-      }
-    } else {
       v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
     }
-  }
-  // last vertex
-  if (clipPlane) {
-    if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
-      v.push_back(Gesture::Graphics::VertsCode(p1, color, opacity, code));
-    }
-  } else {
-    v.push_back(Gesture::Graphics::VertsCode(p1, color, opacity, code));
-  }
-  if (v.size() >= 2) {
     graphics.addLineStrip(v, 6.0f, true);
+  } else {
+    // any segment that would be entirely clipped must terminate the strip as a non-closed strip
+    bool isClipped = false;
+    for (int i = 0; i < numSegments + 1; ++i) {
+      float t0 = float(i) / float(numSegments);
+      float t1 = float(i + 1) / float(numSegments);
+
+      float theta0 = t0 * 2.0f * glm::pi<float>();
+      float theta1 = t1 * 2.0f * glm::pi<float>();
+
+      p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+      p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
+        v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+      } else {
+        isClipped = true;
+        // add a line strip and then empty the vector and start anew
+        if (v.size() >= 2) {
+          // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
+          graphics.addLineStrip(v, 6.0f, false);
+        }
+        v.clear();
+      }
+    }
+    if (v.size() >= 2) {
+      // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
+      graphics.addLineStrip(v, 6.0f, isClipped ? false : true);
+    }
   }
 }
 

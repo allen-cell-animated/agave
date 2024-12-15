@@ -62,7 +62,8 @@ uniform samplerBuffer stripVerts;
     vec4 pos;
     if (tri_i == 0 || tri_i == 1 || tri_i == 3)
     {
-        vec2 v_pred  = normalize(va[1].xy - va[0].xy);
+        vec2 vtan = va[1].xy - va[0].xy;
+        vec2 v_pred  = length(vtan) > 0 ? normalize(vtan) : vtan;
         vec2 v_miter = normalize(nv_line + vec2(-v_pred.y, v_pred.x));
 
         pos = va[1];
@@ -78,7 +79,8 @@ uniform samplerBuffer stripVerts;
     }
     else
     {
-        vec2 v_succ  = normalize(va[3].xy - va[2].xy);
+        vec2 vtan = va[3].xy - va[2].xy;
+        vec2 v_succ  = length(vtan) > 0 ? normalize(vtan) : vtan;
         vec2 v_miter = normalize(nv_line + vec2(-v_succ.y, v_succ.x));
 
         pos = va[2];

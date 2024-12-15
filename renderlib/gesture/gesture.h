@@ -349,10 +349,13 @@ struct Gesture
     // but you must call addCommand after this to start the next one.
     inline void addLineStrip(const std::vector<VertsCode> vertices,
                              float thickness = 2.0f,
+                             // closedLoop implies that the first and last vertices are the same
                              bool closedLoop = false,
                              CommandSequence index = CommandSequence::k3dStacked)
     {
-      assert(vertices.size() >= 2);
+      // the minimum number of vertices for a line strip is 2
+      // and for a closed loop, it has to be 4 (consider a triangle where the 4th vertex connects the last to the first)
+      assert((closedLoop && vertices.size() >= 4) || (!closedLoop && vertices.size() >= 2));
 
       // * first and last point define the tangents of the start and end of the line strip,
       // so you need to add one pt at start and end
@@ -361,20 +364,24 @@ struct Gesture
 
       size_t stripStart = stripVerts.size();
       if (closedLoop) {
-        stripVerts.push_back(vertices.back());
+        // next-to-last vertex, assuming first and last to be the same because closed loop
+        // example: [0,1,2,0]: we want the first item here to be a 2 to lead in to the 0
+        stripVerts.push_back(vertices[vertices.size() - 2]);
       } else {
-        stripVerts.push_back(vertices.front());
+        stripVerts.push_back(vertices[0]);
       }
       std::for_each(vertices.begin(), vertices.end(), [&](const VertsCode& v) { stripVerts.push_back(v); });
       if (closedLoop) {
-        stripVerts.push_back(vertices.front());
+        // second vertex, assuming first and last to be the same because closed loop
+        // example: [0,1,2,0]: we want the last item here to be a 1 which is what the last 0 leads into
+        stripVerts.push_back(vertices[1]);
       } else {
-        stripVerts.push_back(vertices.back());
+        stripVerts.push_back(vertices[vertices.size() - 1]);
       }
 
       stripRanges.push_back(glm::ivec2(stripStart, stripVerts.size()));
       stripProjections.push_back(index);
-      stripThicknesses.push_back(12.0); // thickness);
+      stripThicknesses.push_back(thickness);
     }
 
     enum class LoopEntry : int
