@@ -6,6 +6,25 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// * create an array with the points of the line strip.
+// * first and last point define the tangents of the start and end of the line strip,
+// so you need to add one pt at start and end
+// * if drawing a line loop, then the last point has to be added to the array head,
+// and the first point added to the tail
+// * store the array of pts in a buffer that the shader can access by indexing (ideally SSBO?)
+// * shader doesn't need any vertex coordinates or attributes. It just needs to know the index of the line segment.
+// * to get the line segment index we just use the index of the vertex currently being processed (gl_VertexID)
+// * to draw a line strip with N points (N-1 segments), we need 6*(N-1) vertices
+// * each segment is 2 triangles. glDrawArrays(GL_TRIANGLES, 0, 6*(N-1)) will draw the line strip
+// line index = gl_VertexID / 6
+// tri index = gl_VertexID % 6
+// * Since we are drawing N-1 line segments, but the number of elements in the array is N+2,
+// the elements form vertex[line_t] to vertex[line_t+3] can be accessed for each vertex which
+// is processed in the vertex shader.
+// * vertex[line_t+1] and vertex[line_t+2] are the start and end coordinate of the line segment.
+// * vertex[line_t] and vertex[line_t+3] are required to compute the miter.
+// thickness is provided in pixels, and so we need to convert it to clip space and use window resolution
+
 static const char* vertex_shader_text =
   R"(
     #version 400 core
@@ -117,103 +136,6 @@ uniform samplerBuffer stripVerts;
 
     }
     )";
-
-// * create an array with the points of the line strip.
-// * first and last point define the tangents of the start and end of the line strip,
-// so you need to add one pt at start and end
-// * if drawing a line loop, then the last point has to be added to the array head,
-// and the first point added to the tail
-// * store the array of pts in a buffer that the shader can access by indexing (ideally SSBO?)
-// * shader doesn't need any vertex coordinates or attributes. It just needs to know the index of the line segment.
-// * to get the line segment index we just use the index of the vertex currently being processed (gl_VertexID)
-// * to draw a line strip with N points (N-1 segments), we need 6*(N-1) vertices
-// * each segment is 2 triangles. glDrawArrays(GL_TRIANGLES, 0, 6*(N-1)) will draw the line strip
-// line index = gl_VertexID / 6
-// tri index = gl_VertexID % 6
-// * Since we are drawing N-1 line segments, but the number of elements in the array is N+2,
-// the elements form vertex[line_t] to vertex[line_t+3] can be accessed for each vertex which
-// is processed in the vertex shader.
-// * vertex[line_t+1] and vertex[line_t+2] are the start and end coordinate of the line segment.
-// * vertex[line_t] and vertex[line_t+3] are required to compute the miter.
-// thickness is provided in pixels, and so we need to convert it to clip space and use window resolution
-
-std::string vertShader = R"(
-#version 460
-
-struct TVertexData
-{
-//  float v[11];
-  vec4 pos;
-  vec2 uv;
-  vec4 color;
-  uint code;
-};
-
-// for older gl, make this a texture / use instancing
-layout(std430, binding = 0) buffer TVertex
-{
-   TVertexData vertex[];
-};
-
-uniform mat4  u_mvp;
-uniform vec2  u_resolution;
-uniform float u_thickness;
-
-out vec4 Frag_color;
-out vec2 Frag_UV;
-
-void main()
-{
-    int line_i = gl_VertexID / 6;
-    int tri_i  = gl_VertexID % 6;
-
-    vec4 va[4];
-    for (int i=0; i<4; ++i)
-    {
-        va[i] = u_mvp * vertex[line_i+i].pos;
-        va[i].xyz /= va[i].w;
-        va[i].xy = (va[i].xy + 1.0) * 0.5 * u_resolution;
-    }
-
-    vec2 v_line  = normalize(va[2].xy - va[1].xy);
-    vec2 nv_line = vec2(-v_line.y, v_line.x);
-
-    vec4 pos;
-    if (tri_i == 0 || tri_i == 1 || tri_i == 3)
-    {
-        vec2 v_pred  = normalize(va[1].xy - va[0].xy);
-        vec2 v_miter = normalize(nv_line + vec2(-v_pred.y, v_pred.x));
-
-        pos = va[1];
-        pos.xy += v_miter * u_thickness * (tri_i == 1 ? -0.5 : 0.5) / dot(v_miter, nv_line);
-    }
-    else
-    {
-        vec2 v_succ  = normalize(va[3].xy - va[2].xy);
-        vec2 v_miter = normalize(nv_line + vec2(-v_succ.y, v_succ.x));
-
-        pos = va[2];
-        pos.xy += v_miter * u_thickness * (tri_i == 5 ? 0.5 : -0.5) / dot(v_miter, nv_line);
-    }
-
-    pos.xy = pos.xy / u_resolution * 2.0 - 1.0;
-    pos.xyz *= pos.w;
-
-    Frag_UV = vertex[line_i].uv;
-    if (picking == 1) {
-      uint vCode = vertex[line_i].code;
-      Frag_color = vec4(float(vCode & 0xffu) / 255.0,
-                        float((vCode >> 8) & 0xffu) / 255.0,
-                        float((vCode >> 16) & 0xffu) / 255.0,
-                        1.0);
-    }
-    else {
-      Frag_color = vertex[line_i].color;
-    }
-
-    gl_Position = pos;
-}
-)";
 
 static const char* fragment_shader_text =
   R"(
