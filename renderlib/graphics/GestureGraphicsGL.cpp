@@ -347,6 +347,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     ScopedGlVertexBuffer vertex_buffer(graphics.verts.data(),
                                        graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
 
+    // buffer containing all the strip vertices
     ScopedGlTextureBuffer texture_buffer(graphics.stripVerts.data(),
                                          graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
@@ -415,6 +416,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             if ((int)graphics.stripProjections[i] != sequence) {
               continue;
             }
+
             const glm::ivec2& range = graphics.stripRanges[i];
             const float thickness = graphics.stripThicknesses[i];
 

@@ -121,7 +121,8 @@ Gesture::drawArcAsStrip(const glm::vec3& pstart,
                         uint32_t numSegments,
                         glm::vec3 color,
                         float opacity,
-                        uint32_t code)
+                        uint32_t code,
+                        float thickness)
 {
   std::vector<Gesture::Graphics::VertsCode> v;
   // draw arc from pstart through angle with center of circle at center
@@ -144,7 +145,7 @@ Gesture::drawArcAsStrip(const glm::vec3& pstart,
   v.push_back(Gesture::Graphics::VertsCode(p1, color, opacity, code));
 
   if (v.size() >= 2) {
-    graphics.addLineStrip(v, 6.0f, false);
+    graphics.addLineStrip(v, thickness, false);
   }
 }
 
@@ -188,6 +189,7 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
                            glm::vec3 color,
                            float opacity,
                            uint32_t code,
+                           float thickness,
                            glm::vec4* clipPlane)
 {
   std::vector<Gesture::Graphics::VertsCode> v;
@@ -207,7 +209,7 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
 
       v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
     }
-    graphics.addLineStrip(v, 6.0f, true);
+    graphics.addLineStrip(v, thickness, true);
   } else {
     // any segment that would be entirely clipped must terminate the strip as a non-closed strip
     bool isClipped = false;
@@ -228,7 +230,7 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
         // add a line strip and then empty the vector and start anew
         if (v.size() >= 2) {
           // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
-          graphics.addLineStrip(v, 6.0f, false);
+          graphics.addLineStrip(v, thickness, false);
         }
         v.clear();
       }

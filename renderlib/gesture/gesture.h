@@ -433,7 +433,8 @@ struct Gesture
                       uint32_t numSegments,
                       glm::vec3 color,
                       float opacity,
-                      uint32_t code);
+                      uint32_t code,
+                      float thickness);
 
   void drawCircle(glm::vec3 center,
                   glm::vec3 xaxis,
@@ -451,6 +452,7 @@ struct Gesture
                          glm::vec3 color,
                          float opacity,
                          uint32_t code,
+                         float thickness,
                          glm::vec4* clipPlane = nullptr);
 
   // does not draw a flat base
