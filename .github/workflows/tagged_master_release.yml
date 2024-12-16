@@ -12,6 +12,7 @@ jobs:
           - os: ubuntu-latest
             artifact: agave-linux
           - os: windows-2019
+            # Revert to windows-latest after: https://github.com/actions/runner-images/issues/7662
             artifact: agave-win
           # note macos-14 is arm64 and macos-13 is x86_64
           - os: macos-14
