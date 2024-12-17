@@ -83,9 +83,9 @@ jobs:
         if: matrix.os == 'windows-2019'
         run: |
           choco install ninja
-      # - name: Configure MSVC console (Windows)
-      #   if: matrix.os == 'windows-2019'
-      #   uses: ilammy/msvc-dev-cmd@v1
+      - name: Configure MSVC console (Windows)
+        if: matrix.os == 'windows-2019'
+        uses: ilammy/msvc-dev-cmd@v1
       - name: windows install deps
         if: matrix.os == 'windows-2019'
         env:
