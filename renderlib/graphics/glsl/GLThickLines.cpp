@@ -88,7 +88,9 @@ uniform samplerBuffer stripVerts;
         vec2 v_miter = normalize(nv_line + vec2(-v_pred.y, v_pred.x));
 
         pos = va[1];
-        pos.xy += v_miter * thickness * (tri_i == 1 ? -0.5 : 0.5) / dot(v_miter, nv_line);
+        float d = dot(v_miter, nv_line);
+        d = abs(d) < 0.01 ? 1.0 : d;
+        pos.xy += v_miter * thickness * (tri_i == 1 ? -0.5 : 0.5) / d;
 
         vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 3).x;
         vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 4).x;
@@ -105,7 +107,9 @@ uniform samplerBuffer stripVerts;
         vec2 v_miter = normalize(nv_line + vec2(-v_succ.y, v_succ.x));
 
         pos = va[2];
-        pos.xy += v_miter * thickness * (tri_i == 5 ? 0.5 : -0.5) / dot(v_miter, nv_line);
+        float d = dot(v_miter, nv_line);
+        d = abs(d) < 0.01 ? 1.0 : d;
+        pos.xy += v_miter * thickness * (tri_i == 5 ? 0.5 : -0.5) / d;
 
         vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 3).x;
         vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 4).x;
