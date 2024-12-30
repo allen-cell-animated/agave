@@ -30,23 +30,18 @@ ${file_content}
 endfunction()
 
 # Convert your shader file
-convert_shader_to_cpp("basicVolume.frag" "basicVolume.frag")
-# convert_shader_to_cpp("pathTraceVolume.frag" "pathTraceVolume.frag")
+#convert_shader_to_cpp("basicVolume.frag" "basicVolume.frag")
 
-
-set(SHADER_FILE "pathTraceVolume.frag")
-set(OUTPUT_C_FILE "pathTraceVolume_frag_gen.hpp")
-execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/convert_shader.py ${SHADER_FILE} ${OUTPUT_C_FILE})
-# Add a custom command to convert the shader
-# add_custom_command(
-#     OUTPUT ${OUTPUT_C_FILE}
-#     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/convert_shader.py ${SHADER_FILE} ${OUTPUT_C_FILE}
-#     DEPENDS ${SHADER_FILE} ${CMAKE_SOURCE_DIR}/convert_shader.py
-#     COMMENT "Converting ${SHADER_FILE} to C source file ${OUTPUT_C_FILE}"
-# )
+find_package(Python3)
+if(NOT Python3_FOUND)
+    message(FATAL_ERROR "Python3 not found")
+endif()
+set(SHADER_FILE "pathTraceVolume.frag" "basicVolume.frag")
+set(OUTPUT_SHADER_FILE "pathTraceVolume_frag_gen.hpp" "basicVolume_frag_gen.hpp")
+foreach(shader IN LISTS SHADER_FILE)
+  message("Generate ${shader}...")
+  execute_process(COMMAND ${Python3_EXECUTABLE} convert_shader.py ${shader} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endforeach()
 
 # Add the generated C++ file to your target
-target_sources(renderlib PRIVATE 
-basicVolume_frag_gen.hpp
-pathTraceVolume_frag_gen.hpp
-)
+target_sources(renderlib PRIVATE ${OUTPUT_SHADER_FILE})

@@ -1,8 +1,8 @@
+// Generated C source file containing shader
 
 #include <string>
 
-const std::string basicVolume_frag_shader = R"(
-#version 400 core
+const std::string basicVolume_frag_chunk_0 = R"(#version 400 core
 
 in VertexData
 {
@@ -202,6 +202,7 @@ void main()
 	outputColour = C;
 	return;
 }
-
 )";
 
+const std::string basicVolume_frag_src = 
+    basicVolume_frag_chunk_0;

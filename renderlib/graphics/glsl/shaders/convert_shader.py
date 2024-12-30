@@ -1,34 +1,65 @@
 import sys
 
-def convert_shader_to_c(input_file, output_file, chunk_size=12*1024):
-    with open(input_file, 'r') as shader:
-        shader_content = shader.read()
 
-    chunks = [shader_content[i:i+chunk_size] for i in range(0, len(shader_content), chunk_size)]
+def read_file_in_chunks(file_path, chunk_size=12 * 1024):
+    """
+    Reads a file and yields chunks of text no larger than chunk_size,
+    ensuring chunks split on newline boundaries.
+    """
+    with open(file_path, "r", encoding="utf-8") as file:
+        buffer = ""
+        for line in file:
+            if len(buffer) + len(line) > chunk_size:
+                yield buffer
+                buffer = line
+            else:
+                buffer += line
+        if buffer:
+            yield buffer
+
+
+def convert_shader_to_c(input_file, output_file, chunk_size=12 * 1024):
     shadername = input_file  # input_file.split('/')[-1]
-    shadername = shadername.replace('-', '_').replace('.', '_').replace(' ', '_').replace('/', '_')
+    shadername = (
+        shadername.replace("-", "_")
+        .replace(".", "_")
+        .replace(" ", "_")
+        .replace("/", "_")
+    )
 
-    with open(output_file, 'w') as output:
-        output.write('// Generated C source file containing shader\n\n')
-        output.write('#include <string>\n\n')
-        i = 0
-        for chunk in chunks:
-            output.write(f'const std::string {shadername}_chunk{i} = R"(\n')
-            output.write(f'{chunk}')
-            output.write(')";\n\n')
+    with open(output_file, "w", encoding="utf-8") as cpp_file:
+        cpp_file.write("// Generated C source file containing shader\n\n")
+        cpp_file.write("#include <string>\n\n")
+        num_chunks = 0
+        for i, chunk in enumerate(read_file_in_chunks(input_file, chunk_size)):
+            cpp_file.write(
+                f'const std::string {shadername}_chunk_{i} = R"({chunk})";\n\n'
+            )
+            num_chunks += 1
 
-        output.write(f'const std::string {shadername}_src = \n')
-        for i in range(len(chunks)):
-            output.write(f'    {shadername}_chunk{i}')
-            if i < len(chunks) - 1:
-                output.write(' +\n')
-        output.write(';\n')
+        cpp_file.write(f"const std::string {shadername}_src = \n")
+        for i in range(num_chunks):
+            cpp_file.write(f"    {shadername}_chunk_{i}")
+            if i < num_chunks - 1:
+                cpp_file.write(" +\n")
+        cpp_file.write(";\n")
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print(f"Usage: {sys.argv[0]} <input_shader_file> <output_c_file>")
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} <input_shader_file>")
         sys.exit(1)
 
     input_shader = sys.argv[1]
-    output_c = sys.argv[2]
-    convert_shader_to_c(input_shader, output_c)
+    # output_c = sys.argv[2]
+
+    shadername = input_shader  # input_file.split('/')[-1]
+    shadername = (
+        shadername.replace("-", "_")
+        .replace(".", "_")
+        .replace(" ", "_")
+        .replace("/", "_")
+    )
+    shadername = shadername + "_gen.hpp"
+
+    convert_shader_to_c(input_shader, shadername)

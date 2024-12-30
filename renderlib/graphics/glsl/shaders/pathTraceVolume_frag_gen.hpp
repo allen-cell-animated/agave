@@ -1,4 +1,8 @@
-#version 400 core
+// Generated C source file containing shader
+
+#include <string>
+
+const std::string pathTraceVolume_frag_chunk_0 = R"(#version 400 core
 
 #define PI (3.1415926535897932384626433832795)
 #define PI_OVER_2 (1.57079632679489661923)
@@ -489,7 +493,9 @@ bool Light_Intersect(Light light, inout Ray R, out float T, out vec3 L, out floa
 
     vec2 UV = vec2(SphericalPhi(R.m_D) * INV_2_PI, SphericalTheta(R.m_D) * INV_PI);
 
-    L = Light_Le(light, vec2(1.0f,1.0f) - 2.0f * UV);
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(    L = Light_Le(light, vec2(1.0f,1.0f) - 2.0f * UV);
 
     pPdf = pow(light.m_skyRadius, 2.0f) / light.m_area;
     //pUV = UV;
@@ -968,7 +974,9 @@ bool SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps)
   // density scale 0... S --> 0..inf.  Low density means randomly sized ray paths
   // density scale inf... S --> 0.   High density means short ray paths!
   float Sum		= 0.0f;
-  float SigmaT	= 0.0f; // accumulated extinction along ray march
+)";
+
+const std::string pathTraceVolume_frag_chunk_2 = R"(  float SigmaT	= 0.0f; // accumulated extinction along ray march
 
   MinT += rand(seed) * gStepSize;
   int ch = 0;
@@ -1163,3 +1171,9 @@ void main()
 
   out_FragColor = CumulativeMovingAverage(previousColor, pixelColor, uSampleCounter);
 }
+)";
+
+const std::string pathTraceVolume_frag_src = 
+    pathTraceVolume_frag_chunk_0 +
+    pathTraceVolume_frag_chunk_1 +
+    pathTraceVolume_frag_chunk_2;
