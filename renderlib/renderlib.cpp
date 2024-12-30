@@ -5,6 +5,7 @@
 #include "Logging.h"
 #include "RenderGL.h"
 #include "RenderGLPT.h"
+#include "shaders.h"
 
 #include <QGuiApplication>
 #include <QOpenGLDebugLogger>
@@ -293,6 +294,11 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
   LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
   LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
 
+  LOG_INFO << "Compiling all shaders...";
+  if (!ShaderArray::BuildShaders()) {
+    status = 0;
+  }
+
   delete dummyHeadlessContext;
   return status;
 }
@@ -322,6 +328,8 @@ renderlib::cleanup()
   LOG_INFO << "Renderlib shutdown";
 
   clearGpuVolumeCache();
+
+  ShaderArray::DestroyShaders();
 
   delete dummySurface;
   dummySurface = nullptr;
