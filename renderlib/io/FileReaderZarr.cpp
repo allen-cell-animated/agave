@@ -533,19 +533,19 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
     tensorstore::Index shapeToLoad[5] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
     if (levelDims.dtype == "uint8") {
-      tensorstore::Array<uint8_t, 5, tensorstore::zero_origin, tensorstore::container> arr(
+      auto arr = tensorstore::Array<uint8_t, 5, tensorstore::zero_origin, tensorstore::container>(
         (uint8_t*)reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "int32") {
-      tensorstore::Array<int32_t, 5, tensorstore::zero_origin, tensorstore::container> arr(
+      auto arr = tensorstore::Array<int32_t, 5, tensorstore::zero_origin, tensorstore::container>(
         (int32_t*)reinterpret_cast<int32_t*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
-      tensorstore::Array<uint16_t, 5, tensorstore::zero_origin, tensorstore::container> arr(
+      auto arr = tensorstore::Array<uint16_t, 5, tensorstore::zero_origin, tensorstore::container>(
         (uint16_t*)reinterpret_cast<uint16_t*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "float32") {
-      tensorstore::Array<float, 5, tensorstore::zero_origin, tensorstore::container> arr(
+      auto arr = tensorstore::Array<float, 5, tensorstore::zero_origin, tensorstore::container>(
         (float*)reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
