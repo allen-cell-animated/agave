@@ -1,8 +1,8 @@
 #include "shaders.h"
 
-#include "shaders/shader_gen.hpp"
+#include "shaders/basicVolume_frag_gen.hpp"
 
-static std::unordered_map<std::string, std::string> shader_src = { { "shader", shader_shader } };
+static std::unordered_map<std::string, std::string> shader_src = { { "shader", basicVolume_frag_shader } };
 static std::unordered_map<std::string, GLShader*> shaders;
 
 bool

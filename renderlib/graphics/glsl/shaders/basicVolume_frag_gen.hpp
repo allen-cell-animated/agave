@@ -1,7 +1,7 @@
 
 #include <string>
 
-const std::string shader_shader = R"(
+const std::string basicVolume_frag_shader = R"(
 #version 400 core
 
 in VertexData

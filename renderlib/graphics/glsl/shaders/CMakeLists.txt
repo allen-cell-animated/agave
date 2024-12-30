@@ -23,7 +23,7 @@ ${shader_content}
 endfunction()
 
 # Convert your shader file
-convert_shader_to_cpp("shader.frag" "shader")
+convert_shader_to_cpp("basicVolume.frag" "basicVolume.frag")
 
 # Add the generated C++ file to your target
-target_sources(renderlib PRIVATE shader_gen.hpp)
+target_sources(renderlib PRIVATE basicVolume_frag_gen.hpp)
