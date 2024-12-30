@@ -10,8 +10,8 @@ struct ShaderEntry
 };
 
 static std::unordered_map<std::string, ShaderEntry> shader_src = {
-  { "basicVolumeFrag", { basicVolume_frag_shader, GL_FRAGMENT_SHADER } },
-  { "pathTraceVolumeFrag", { pathTraceVolume_frag_shader, GL_FRAGMENT_SHADER } }
+  { "basicVolumeFrag", { basicVolume_frag_src, GL_FRAGMENT_SHADER } },
+  { "pathTraceVolumeFrag", { pathTraceVolume_frag_src, GL_FRAGMENT_SHADER } }
 };
 static std::unordered_map<std::string, GLShader*> shaders;
 
