@@ -1,5 +1,6 @@
 #include "GLBasicVolumeShader.h"
 #include "glad/glad.h"
+#include "shaders.h"
 
 #include "Logging.h"
 
@@ -38,7 +39,9 @@ void main()
     LOG_ERROR << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log();
   }
 
-  fshader = new GLShader(GL_FRAGMENT_SHADER);
+  fshader = ShaderArray::GetShader("basicVolumeFrag");
+#if 0
+  new GLShader(GL_FRAGMENT_SHADER);
   fshader->compileSourceCode(R"(
 #version 400 core
 
@@ -241,6 +244,7 @@ void main()
 	return;
 }
     )");
+#endif
 
   if (!fshader->isCompiled()) {
     LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n" << fshader->log();
