@@ -2,18 +2,26 @@
 
 #include "shaders/basicVolume_frag_gen.hpp"
 
-static std::unordered_map<std::string, std::string> shader_src = { { "shader", basicVolume_frag_shader } };
+struct ShaderEntry
+{
+  std::string src;
+  GLenum type;
+};
+
+static std::unordered_map<std::string, ShaderEntry> shader_src = {
+  { "basicVolume", { basicVolume_frag_shader, GL_FRAGMENT_SHADER } }
+};
 static std::unordered_map<std::string, GLShader*> shaders;
 
 bool
 ShaderArray::BuildShaders()
 {
-  for (auto& shader : shader_src) {
-    GLShader* s = new GLShader(GL_FRAGMENT_SHADER);
-    if (s->compileSourceCode(shader.second.c_str())) {
-      shaders[shader.first] = s;
+  for (auto& shaderEntry : shader_src) {
+    GLShader* s = new GLShader(shaderEntry.second.type);
+    if (s->compileSourceCode(shaderEntry.second.src.c_str())) {
+      shaders[shaderEntry.first] = s;
     } else {
-      LOG_ERROR << "Failed to compile shader " << shader.first;
+      LOG_ERROR << "Failed to compile shader " << shaderEntry.first;
       return false;
     }
   }

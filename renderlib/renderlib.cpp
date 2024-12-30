@@ -297,6 +297,8 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
   LOG_INFO << "Compiling all shaders...";
   if (!ShaderArray::BuildShaders()) {
     status = 0;
+  } else {
+    LOG_INFO << "Shaders compiled successfully";
   }
 
   delete dummyHeadlessContext;
