@@ -944,3 +944,23 @@ GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
     delete fshader;
   }
 }
+
+void
+GLShaderProgram::utilMakeSimpleProgram(GLShader* vShader, GLShader* fShader)
+{
+  if (!vShader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile vertex shader\n" << vShader->log();
+  }
+
+  if (!fShader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile fragment shader\n" << fShader->log();
+  }
+
+  addShader(vShader);
+  addShader(fShader);
+  link();
+
+  if (!isLinked()) {
+    LOG_ERROR << "GLShaderProgram: Failed to link shader program\n" << log();
+  }
+}

@@ -54,7 +54,26 @@ if __name__ == "__main__":
     # output_c = sys.argv[2]
 
     # ALL NEW SHADERS MUST BE CONVERTED TO C STRINGS VIA THIS SCRIPT IN ORDER TO BE EMBEDDED
-    shaders = ["basicVolume.frag", "pathTraceVolume.vert", "pathTraceVolume.frag"]
+    shaders = [
+        "basicVolume.vert",
+        "basicVolume.frag",
+        "copy.vert",
+        "copy.frag",
+        "flat.vert",
+        "flat.frag",
+        "gui.vert",
+        "gui.frag",
+        "imageNoLut.vert",
+        "imageNoLut.frag",
+        "pathTraceVolume.vert",
+        "pathTraceVolume.frag",
+        "ptAccum.vert",
+        "ptAccum.frag",
+        "thickLines.vert",
+        "thickLines.frag",
+        "toneMap.vert",
+        "toneMap.frag",
+    ]
     for input_shader in shaders:
         shadername = input_shader  # input_file.split('/')[-1]
         shadername = (
