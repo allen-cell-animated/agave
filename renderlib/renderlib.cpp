@@ -85,6 +85,10 @@ QOpenGLContext*
 renderlib::createOpenGLContext()
 {
   QOpenGLContext* context = new QOpenGLContext();
+  //  context->setShareContext(QOpenGLContext::globalShareContext());
+  if (dummyContext) {
+    context->setShareContext(dummyContext);
+  }
   context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
 
   bool createdOk = context->create();
