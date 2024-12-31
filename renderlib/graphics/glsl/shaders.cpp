@@ -2,6 +2,7 @@
 
 #include "shaders/basicVolume_frag_gen.hpp"
 #include "shaders/pathTraceVolume_frag_gen.hpp"
+#include "shaders/pathTraceVolume_vert_gen.hpp"
 
 struct ShaderEntry
 {
@@ -11,8 +12,10 @@ struct ShaderEntry
 
 static std::unordered_map<std::string, ShaderEntry> shader_src = {
   { "basicVolumeFrag", { basicVolume_frag_src, GL_FRAGMENT_SHADER } },
+  { "pathTraceVolumeVert", { pathTraceVolume_vert_src, GL_VERTEX_SHADER } },
   { "pathTraceVolumeFrag", { pathTraceVolume_frag_src, GL_FRAGMENT_SHADER } }
 };
+
 static std::unordered_map<std::string, GLShader*> shaders;
 
 bool
@@ -24,6 +27,7 @@ ShaderArray::BuildShaders()
       shaders[shaderEntry.first] = s;
     } else {
       LOG_ERROR << "Failed to compile shader " << shaderEntry.first;
+      delete s;
       return false;
     }
   }

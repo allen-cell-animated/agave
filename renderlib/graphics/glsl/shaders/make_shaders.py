@@ -46,20 +46,23 @@ def convert_shader_to_c(input_file, output_file, chunk_size=12 * 1024):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <input_shader_file>")
-        sys.exit(1)
+    # if len(sys.argv) != 2:
+    #     print(f"Usage: {sys.argv[0]} <input_shader_file>")
+    #     sys.exit(1)
 
-    input_shader = sys.argv[1]
+    # input_shader = sys.argv[1]
     # output_c = sys.argv[2]
 
-    shadername = input_shader  # input_file.split('/')[-1]
-    shadername = (
-        shadername.replace("-", "_")
-        .replace(".", "_")
-        .replace(" ", "_")
-        .replace("/", "_")
-    )
-    shadername = shadername + "_gen.hpp"
+    # ALL NEW SHADERS MUST BE CONVERTED TO C STRINGS VIA THIS SCRIPT IN ORDER TO BE EMBEDDED
+    shaders = ["basicVolume.frag", "pathTraceVolume.vert", "pathTraceVolume.frag"]
+    for input_shader in shaders:
+        shadername = input_shader  # input_file.split('/')[-1]
+        shadername = (
+            shadername.replace("-", "_")
+            .replace(".", "_")
+            .replace(" ", "_")
+            .replace("/", "_")
+        )
+        shadername = shadername + "_gen.hpp"
 
-    convert_shader_to_c(input_shader, shadername)
+        convert_shader_to_c(input_shader, shadername)
