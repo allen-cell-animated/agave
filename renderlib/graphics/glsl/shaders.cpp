@@ -19,6 +19,10 @@
 #include "shaders/toneMap_frag_gen.hpp"
 #include "shaders/toneMap_vert_gen.hpp"
 
+#include "Logging.h"
+
+#include <memory>
+
 struct ShaderEntry
 {
   std::string src;
@@ -49,15 +53,12 @@ static std::unordered_map<std::string, ShaderEntry> shader_src = {
 static std::unordered_map<std::string, GLShader*> shaders;
 
 bool
-ShaderArray::BuildShaders()
+ShaderArray::CompileShaders()
 {
   for (auto& shaderEntry : shader_src) {
-    GLShader* s = new GLShader(shaderEntry.second.type);
-    if (s->compileSourceCode(shaderEntry.second.src.c_str())) {
-      shaders[shaderEntry.first] = s;
-    } else {
+    std::unique_ptr<GLShader> s = std::make_unique<GLShader>(shaderEntry.second.type);
+    if (!s->compileSourceCode(shaderEntry.second.src.c_str())) {
       LOG_ERROR << "Failed to compile shader " << shaderEntry.first;
-      delete s;
       return false;
     }
   }
@@ -67,7 +68,24 @@ ShaderArray::BuildShaders()
 GLShader*
 ShaderArray::GetShader(const std::string& name)
 {
-  return shaders[name];
+  if (shaders.find(name) == shaders.end()) {
+    if (shader_src.find(name) == shader_src.end()) {
+      LOG_ERROR << "Shader " << name << " not found";
+      return nullptr;
+    }
+    GLShader* s = new GLShader(shader_src[name].type);
+    if (s->compileSourceCode(shader_src[name].src.c_str())) {
+      shaders[name] = s;
+      // LOG_DEBUG << "Compiled shader " << name;
+      return s;
+    } else {
+      LOG_ERROR << "Failed to compile shader " << name;
+      delete s;
+      return nullptr;
+    }
+  } else {
+    return shaders[name];
+  }
 }
 
 void

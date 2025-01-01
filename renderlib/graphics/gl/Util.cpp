@@ -798,6 +798,7 @@ void
 GLShaderProgram::addShader(GLShader* shader)
 {
   glAttachShader(m_program, shader->id());
+  check_gl("GLShaderProgram::addShader");
   m_isLinked = false;
 }
 
@@ -816,6 +817,7 @@ GLShaderProgram::link()
   }
 
   glLinkProgram(m_program);
+  check_gl("GLShaderProgram::link");
   value = 0;
   glGetProgramiv(m_program, GL_LINK_STATUS, &value);
   m_isLinked = (value != 0);

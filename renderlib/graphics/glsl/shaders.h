@@ -5,7 +5,7 @@
 class ShaderArray
 {
 public:
-  static bool BuildShaders();
+  static bool CompileShaders();
   static GLShader* GetShader(const std::string& name);
   static void DestroyShaders();
 };
