@@ -3,14 +3,17 @@
 uniform vec4 colour;
 uniform mat4 mvp;
 
-layout (location = 0) in vec3 position;
+layout(location = 0) in vec3 position;
 
 out VertexData
 {
   vec4 f_colour;
-} outData;
+}
+outData;
 
-void main(void) {
+void
+main(void)
+{
   gl_Position = mvp * vec4(position, 1.0);
   outData.f_colour = colour;
 }

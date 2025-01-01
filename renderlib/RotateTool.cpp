@@ -9,6 +9,7 @@ struct ManipColors
 };
 
 static const float s_orthogonalThreshold = cos(glm::radians(89.0f));
+static const float s_lineThickness = 4.0f;
 
 static float
 getSignedAngle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& vN)
@@ -271,7 +272,9 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateX) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code, &discPlane);
+    // gesture.drawCircle(axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code, &discPlane);
+    gesture.drawCircleAsStrip(
+      axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code, s_lineThickness, &discPlane);
   }
   // Draw the y ring in xz plane
   {
@@ -280,7 +283,9 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateY) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code, &discPlane);
+    // gesture.drawCircle(axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code, &discPlane);
+    gesture.drawCircleAsStrip(
+      axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code, s_lineThickness, &discPlane);
   }
   // Draw the z ring in xy plane
   {
@@ -289,7 +294,9 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateZ) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code, &discPlane);
+    // gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code, &discPlane);
+    gesture.drawCircleAsStrip(
+      axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code, s_lineThickness, &discPlane);
   }
 
   // Draw the camera-axis rotation manipulator as a circle always facing the view
@@ -299,7 +306,8 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateView) {
       color = glm::vec3(1, 1, 0);
     }
-    gesture.drawCircle(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
+    // gesture.drawCircle(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
+    gesture.drawCircleAsStrip(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code, s_lineThickness);
   }
 
   // if we are rotating, draw a tick mark where the rotation started, and where we are now
@@ -358,14 +366,23 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
         // draw arc showing the rotation
         // start pt, angle, normal
         float a = getSignedAngle(v0, v1, vN);
-        gesture.drawArc(axis.p - v0 * (radius * 1.1f),
-                        a,
-                        axis.p,
-                        vN,
-                        (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
-                        color,
-                        0.5,
-                        noCode);
+        gesture.drawArcAsStrip(axis.p - v0 * (radius * 1.1f),
+                               a,
+                               axis.p,
+                               vN,
+                               (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
+                               color,
+                               0.5,
+                               noCode,
+                               s_lineThickness);
+        // gesture.drawArc(axis.p - v0 * (radius * 1.1f),
+        //                 a,
+        //                 axis.p,
+        //                 vN,
+        //                 (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
+        //                 color,
+        //                 0.5,
+        //                 noCode);
       }
     }
   }

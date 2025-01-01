@@ -3,6 +3,7 @@
 #include <glm.h>
 
 #include "Logging.h"
+#include "shaders.h"
 
 #include <iostream>
 
@@ -14,40 +15,14 @@ GLFlatShader2D::GLFlatShader2D()
   , m_uniform_colour()
   , m_uniform_mvp()
 {
-  m_vshader = new GLShader(GL_VERTEX_SHADER);
-  m_vshader->compileSourceCode("#version 400 core\n"
-                               "\n"
-                               "uniform vec4 colour;\n"
-                               "uniform mat4 mvp;\n"
-                               "\n"
-                               "layout (location = 0) in vec3 position;\n"
-                               "\n"
-                               "out VertexData\n"
-                               "{\n"
-                               "  vec4 f_colour;\n"
-                               "} outData;\n"
-                               "\n"
-                               "void main(void) {\n"
-                               "  gl_Position = mvp * vec4(position, 1.0);\n"
-                               "  outData.f_colour = colour;\n"
-                               "}\n");
+  m_vshader = ShaderArray::GetShader("flatVert");
+
   if (!m_vshader->isCompiled()) {
     LOG_ERROR << "Failed to compile vertex shader\n" << m_vshader->log();
   }
 
-  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
-  m_fshader->compileSourceCode("#version 400 core\n"
-                               "\n"
-                               "in VertexData\n"
-                               "{\n"
-                               "  vec4 f_colour;\n"
-                               "} inData;\n"
-                               "\n"
-                               "out vec4 outputColour;\n"
-                               "\n"
-                               "void main(void) {\n"
-                               "  outputColour = inData.f_colour;\n"
-                               "}\n");
+  m_fshader = ShaderArray::GetShader("flatFrag");
+
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLFlatShader2D: Failed to compile fragment shader\n" << m_fshader->log();
   }

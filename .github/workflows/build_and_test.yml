@@ -56,7 +56,8 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: agave-linux
-          - os: windows-latest
+          - os: windows-2019
+            # Revert to windows-latest after: https://github.com/actions/runner-images/issues/7662
             artifact: agave-win
           # note macos-14 is arm64 and macos-13 is x86_64
           - os: macos-14
@@ -123,14 +124,14 @@ jobs:
           cmake --build . --target install --config Release
         shell: bash
       - name: windows install ninja
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         run: |
           choco install ninja
       - name: Configure MSVC console (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: ilammy/msvc-dev-cmd@v1
       - name: windows install deps
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         env:
           vc_arch: "x64"
           CXX: cl.exe
@@ -138,14 +139,14 @@ jobs:
         run: |
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
       - name: windows get nasm
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: ilammy/setup-nasm@v1
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         run: del C:\Strawberry\c\bin\patch.EXE
       - name: windows build and test
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         env:
           vc_arch: "x64"
           CXX: cl.exe
@@ -159,7 +160,7 @@ jobs:
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
         shell: cmd
       - name: Upload windows artifact
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}

@@ -166,10 +166,17 @@ protected:
                              std::string const& fragmentShaderSource,
                              GLShader** outVShader = nullptr,
                              GLShader** outFShader = nullptr);
+  void utilMakeSimpleProgram(GLShader* vShader, GLShader* fShader);
 
 private:
   // std::vector<GLShader> m_shaders;
   GLuint m_program;
   bool m_isLinked;
   std::string m_log;
+};
+
+class IGuiShader
+{
+public:
+  virtual void setProjMatrix(const glm::mat4& proj) = 0;
 };

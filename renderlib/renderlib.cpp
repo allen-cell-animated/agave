@@ -5,6 +5,7 @@
 #include "Logging.h"
 #include "RenderGL.h"
 #include "RenderGLPT.h"
+#include "shaders.h"
 
 #include <QGuiApplication>
 #include <QOpenGLDebugLogger>
@@ -84,6 +85,10 @@ QOpenGLContext*
 renderlib::createOpenGLContext()
 {
   QOpenGLContext* context = new QOpenGLContext();
+  context->setShareContext(QOpenGLContext::globalShareContext());
+  // if (dummyContext) {
+  //   context->setShareContext(dummyContext);
+  // }
   context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
 
   bool createdOk = context->create();
@@ -214,9 +219,6 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
 
   bool enableDebug = false;
 
-  QSurfaceFormat format = getQSurfaceFormat();
-  QSurfaceFormat::setDefaultFormat(format);
-
   HeadlessGLContext* dummyHeadlessContext = nullptr;
 
   if (headless) {
@@ -293,6 +295,13 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
   LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
   LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
 
+  LOG_INFO << "Compiling all shaders...";
+  if (!ShaderArray::CompileShaders()) {
+    status = 0;
+  } else {
+    LOG_INFO << "Shaders compiled successfully";
+  }
+
   delete dummyHeadlessContext;
   return status;
 }
@@ -322,6 +331,8 @@ renderlib::cleanup()
   LOG_INFO << "Renderlib shutdown";
 
   clearGpuVolumeCache();
+
+  ShaderArray::DestroyShaders();
 
   delete dummySurface;
   dummySurface = nullptr;

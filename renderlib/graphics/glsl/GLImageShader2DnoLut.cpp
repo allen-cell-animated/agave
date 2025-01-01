@@ -1,6 +1,7 @@
 #include "GLImageShader2DnoLut.h"
 
 #include "Logging.h"
+#include "shaders.h"
 
 #include <gl/Util.h>
 #include <glm.h>
@@ -17,45 +18,13 @@ GLImageShader2DnoLut::GLImageShader2DnoLut()
   , m_uniform_mvp()
   , m_uniform_texture()
 {
-  m_vshader = new GLShader(GL_VERTEX_SHADER);
-
-  m_vshader->compileSourceCode("#version 400 core\n"
-                               "\n"
-                               "layout (location = 0) in vec2 coord2d;\n"
-                               "layout (location = 1) in vec2 texcoord;\n"
-                               "uniform mat4 mvp;\n"
-                               "\n"
-                               "out VertexData\n"
-                               "{\n"
-                               "  vec2 f_texcoord;\n"
-                               "} outData;\n"
-                               "\n"
-                               "void main(void) {\n"
-                               "  gl_Position = mvp * vec4(coord2d, 0.0, 1.0);\n"
-                               "  outData.f_texcoord = texcoord;\n"
-                               "}\n");
+  m_vshader = ShaderArray::GetShader("imageNoLutVert");
 
   if (!m_vshader->isCompiled()) {
     LOG_ERROR << "GLImageShader2DnoLut: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
-  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
-  m_fshader->compileSourceCode("#version 400 core\n"
-                               "\n"
-                               "uniform sampler2D tex;\n"
-                               "\n"
-                               "in VertexData\n"
-                               "{\n"
-                               "  vec2 f_texcoord;\n"
-                               "} inData;\n"
-                               "\n"
-                               "out vec4 outputColour;\n"
-                               "\n"
-                               "void main(void) {\n"
-                               "  vec4 texval = texture(tex, inData.f_texcoord);\n"
-                               "\n"
-                               "  outputColour = texval;\n"
-                               "}\n");
+  m_fshader = ShaderArray::GetShader("imageNoLutFrag");
 
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLImageShader2DnoLut: Failed to compile fragment shader\n" << m_fshader->log();
