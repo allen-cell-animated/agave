@@ -147,6 +147,7 @@ main(int argc, char* argv[])
 
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
   QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+  // TODO remove this for qt 6.6 and up?
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication::setStyle("fusion");
   // note that this is called before renderlib::initialize
