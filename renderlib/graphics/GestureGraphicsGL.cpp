@@ -313,6 +313,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     // attach the texture id with the draw command.
     glTextureId = font->getTextureID();
   }
+  if (thickLinesVertexArray == 0) {
+    glGenVertexArrays(1, &thickLinesVertexArray);
+  }
 
   // YAGNI: With a small effort we could create dynamic passes that are
   //        fully user configurable...
@@ -405,6 +408,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
       // which means managing bookkeeping of switching shaders...
       if (!graphics.stripRanges.empty()) {
         shaderLines->configure(display, this->glTextureId);
+        GLint currentVertexArray;
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArray);
+        glBindVertexArray(thickLinesVertexArray);
         for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
           pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
@@ -429,6 +435,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
             glUniform1f(shaderLines->m_loc_thickness, thickness);
             glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
+
             glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
             check_gl("thicklines drawarrays");
           }
@@ -466,6 +473,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
           // }
         }
         shaderLines->cleanup();
+        glBindVertexArray(currentVertexArray);
       }
       check_gl("disablevertexattribarray");
     };

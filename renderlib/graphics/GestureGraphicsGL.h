@@ -71,7 +71,7 @@ struct RenderBuffer
   }
   void destroy();
   bool create(glm::ivec2 resolution, int samples = 0);
-  virtual void clear() {};
+  virtual void clear(){};
 };
 
 struct SelectionBuffer : RenderBuffer
@@ -84,6 +84,7 @@ class GestureRendererGL
 public:
   std::unique_ptr<GLGuiShader> shader;
   std::unique_ptr<GLThickLinesShader> shaderLines;
+  GLuint thickLinesVertexArray = 0;
 
   // A texture atlas for GUI elements
   // TODO: use bindless textures
