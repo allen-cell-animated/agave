@@ -40,6 +40,37 @@ renderlib_wgpu::initialize(bool headless, bool listDevices, int selectedGpu)
 
   bool enableDebug = false;
 
+  // list out all known adapters in a headless style
+  LOG_INFO << "Enumerate Adapters:";
+  const size_t adapter_count = wgpuInstanceEnumerateAdapters(sInstance, NULL, NULL);
+  WGPUAdapter* adapters = new WGPUAdapter[adapter_count];
+  assert(adapters);
+  wgpuInstanceEnumerateAdapters(sInstance, NULL, adapters);
+  for (int i = 0; i < adapter_count; i++) {
+    WGPUAdapter adapter = adapters[i];
+    assert(adapter);
+
+    WGPUAdapterInfo info = { 0 };
+    wgpuAdapterGetInfo(adapter, &info);
+    LOG_INFO << "WGPUAdapter: " << i;
+    LOG_INFO << "\tvendor: " << info.vendor;
+    LOG_INFO << "\tarchitecture: " << info.architecture;
+    LOG_INFO << "\tdevice: " << info.device;
+    LOG_INFO << "\tdescription: " << info.description;
+    LOG_INFO << "\tbackendType: %#.8x" << info.backendType;
+    //  LOG_INFO << "\tadapterType: %#.8x" << ;
+    //  LOG_INFO << "\tvendorID: %" PRIu32 "" << ;
+    //  LOG_INFO << "\tdeviceID: %" PRIu32 "" << ;
+    //  info.backendType,
+    //  info.adapterType,
+    //  info.vendorID,
+    //  info.deviceID);
+
+    wgpuAdapterInfoFreeMembers(info);
+    wgpuAdapterRelease(adapter);
+  }
+  delete[] adapters;
+
   if (headless) {
   } else {
   }
