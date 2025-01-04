@@ -71,6 +71,19 @@ VolumeDisplay::VolumeDisplay()
   }
 }
 
+Lighting::Lighting(const Lighting& other)
+{
+  m_NoLights = other.m_NoLights;
+  for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
+      m_Lights[i] = nullptr;
+      m_sceneLights[i] = nullptr;
+  }
+  for (int i = 0; i < m_NoLights; ++i) {
+    m_Lights[i] = new Light(*other.m_Lights[i]);
+    m_sceneLights[i] = new SceneLight(m_Lights[i]);
+  }
+}
+
 void
 Scene::initLights()
 {

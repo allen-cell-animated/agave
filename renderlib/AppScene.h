@@ -58,6 +58,8 @@ public:
     }
   }
 
+  Lighting(const Lighting& other);
+
   Light& LightRef(int i) const { return *m_Lights[i]; }
 
   void AddLight(Light& light)
