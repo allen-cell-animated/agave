@@ -411,6 +411,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
         GLint currentVertexArray;
         glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArray);
         glBindVertexArray(thickLinesVertexArray);
+        check_gl("bind vertex array for thicklines");
         for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
           pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
@@ -428,14 +429,13 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
             // we are drawing N-1 line segments, but the number of elements in the array is N+2
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
-            glUniform1i(shaderLines->m_loc_stripVerts, 0);
+            glUniform1i(shaderLines->m_loc_stripVerts, 2);
             glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
             glUniform1f(shaderLines->m_loc_thickness, thickness);
             glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
-
+            check_gl("set strip uniforms");
             glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
             check_gl("thicklines drawarrays");
           }
