@@ -58,9 +58,13 @@ Renderer::configure(IRenderWindow* renderer,
   // assumes scene is already set in renderer and everything is initialized
   m_myVolumeData.m_renderSettings = new RenderSettings(renderSettings);
   m_myVolumeData.m_camera = new CCamera(camera);
+  // CONTROVERSIAL:
+  // it is hard to maintain a full scene copy ctor.
+  // do we really have to do this?
+  // if we share the scene, what would go wrong?
   m_myVolumeData.m_scene = new Scene(scene);
   m_myVolumeData.m_loadSpec = loadSpec;
-  m_myVolumeData.m_captureSettings = new CaptureSettings(*captureSettings);
+  m_myVolumeData.m_captureSettings = captureSettings ? new CaptureSettings(*captureSettings) : new CaptureSettings();
   m_ec.m_loadSpec = loadSpec;
   if (!renderer) {
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResX(1024);

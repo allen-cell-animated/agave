@@ -34,7 +34,8 @@ public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
-                            QAction* pLightRotationAction = nullptr);
+                            QAction* pToggleRotateAction = nullptr,
+                            QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
 

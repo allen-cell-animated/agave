@@ -156,7 +156,15 @@ Scene::initBounds(const CBoundingBox& bb)
 
   // point lights toward scene's bounding box
   for (int i = 0; i < m_lighting.m_NoLights; ++i) {
-    m_lighting.m_Lights[i].Update(m_boundingBox);
+    // TODO maybe this should be passed through the SceneLight first.
+    m_lighting.m_Lights[i]->Update(m_boundingBox);
+
+    // The transform center for the scene light is its target.
+    // This is used so that rotations are centered at the target which is the center of the volume.
+    // Note this is not the same as the light source's position.
+    // This is a very specific UX choice to make it easier to rotate the light around the volume,
+    // but is constraining for other operations e.g. translation.
+    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
   }
 }
 

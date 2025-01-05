@@ -444,7 +444,8 @@ static const int MAX_CHANNELS_CHECKED = 4;
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QRenderSettings* qrs,
                                                      RenderSettings* rs,
-                                                     QAction* pLightRotationAction)
+                                                     QAction* pToggleRotateAction,
+                                                     QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_DensityScaleSlider()
@@ -648,13 +649,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   roiSectionLayout->addWidget(m_roiZ, 2, 1);
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
+
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
 
-  Section* section = createAreaLightingControls(pLightRotationAction);
+  Section* section = createAreaLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section);
   Section* section2 = createSkyLightingControls();
   m_MainLayout.addRow(section2);
@@ -672,7 +674,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 }
 
 Section*
-QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAction)
+QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 {
   Section* section = new Section("Area Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
@@ -683,8 +685,12 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAct
   m_lt0gui.m_enableControlsCheckBox->setToolTip(
     tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
-  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, pLightRotationAction, &QAction::trigger);
-  QObject::connect(pLightRotationAction, &QAction::triggered, [this](bool toggled) {
+  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool clicked) {
+    // select area light
+    emit this->m_qrendersettings->Selected(clicked ? this->m_scene->SceneAreaLight() : nullptr);
+    pRotationAction->trigger();
+  });
+  QObject::connect(pRotationAction, &QAction::triggered, [this](bool toggled) {
     this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
   });
 
@@ -931,7 +937,7 @@ QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Theta = value;
+  m_scene->AreaLight().m_Theta = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -939,7 +945,7 @@ QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Phi = value;
+  m_scene->AreaLight().m_Phi = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -947,8 +953,8 @@ QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Width = value;
-  m_scene->m_lighting.m_Lights[1].m_Height = value;
+  m_scene->AreaLight().m_Width = value;
+  m_scene->AreaLight().m_Height = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -956,7 +962,7 @@ QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Distance = value;
+  m_scene->AreaLight().m_Distance = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -967,8 +973,8 @@ QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& c
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[1].m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[1].m_ColorIntensity = intensity;
+  m_scene->AreaLight().m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->AreaLight().m_ColorIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -980,8 +986,8 @@ QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor&
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[0].m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[0].m_ColorTopIntensity = intensity;
+  m_scene->SphereLight().m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->SphereLight().m_ColorTopIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -992,8 +998,8 @@ QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor&
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[0].m_ColorMiddleIntensity = intensity;
+  m_scene->SphereLight().m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->SphereLight().m_ColorMiddleIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -1004,8 +1010,8 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[0].m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[0].m_ColorBottomIntensity = intensity;
+  m_scene->SphereLight().m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->SphereLight().m_ColorBottomIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -1242,21 +1248,21 @@ normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outinten
 void
 QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 {
-  m_lt0gui.m_thetaSlider->setValue(scene->m_lighting.m_Lights[1].m_Theta);
-  m_lt0gui.m_phiSlider->setValue(scene->m_lighting.m_Lights[1].m_Phi);
-  m_lt0gui.m_sizeSlider->setValue(scene->m_lighting.m_Lights[1].m_Width);
-  m_lt0gui.m_distSlider->setValue(scene->m_lighting.m_Lights[1].m_Distance);
+  m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
+  m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
+  m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
+  m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
   // split color into color and intensity.
   QColor c;
   float i;
-  normalizeColorForGui(scene->m_lighting.m_Lights[1].m_Color, c, i);
-  m_lt0gui.m_intensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorIntensity);
+  normalizeColorForGui(scene->AreaLight().m_Color, c, i);
+  m_lt0gui.m_intensitySlider->setValue(i * scene->AreaLight().m_ColorIntensity);
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
-  scene->m_lighting.m_sceneLights[1].m_observers.push_back([this](const Light& light) {
+  scene->SceneAreaLight()->m_observers.push_back([this](const Light& light) {
     // update gui controls
 
     // bring theta into 0..2pi
@@ -1273,14 +1279,14 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
     m_lt0gui.m_areaLightColorButton->SetColor(c);
   });
 
-  normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorTopIntensity);
+  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
+  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
   m_lt1gui.m_stColorButton->SetColor(c);
-  normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorMiddleIntensity);
+  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
+  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
   m_lt1gui.m_smColorButton->SetColor(c);
-  normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorBottomIntensity);
+  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
+  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
   m_lt1gui.m_sbColorButton->SetColor(c);
 }
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "AppScene.h"
 #include "MathUtil.h"
 #include "RenderSettings.h"
+#include "SceneView.h"
 #include "gesture/gesture.h"
 
 #include <assert.h>

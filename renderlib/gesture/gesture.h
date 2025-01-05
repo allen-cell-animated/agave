@@ -115,7 +115,7 @@ struct Gesture
     Button mbs[kButtonsCount];
     glm::vec2 cursorPos = glm::vec2(0);
 
-    bool hasButtonAction(ButtonId id, int mods)
+    bool hasButtonAction(ButtonId id, int mods) const
     {
       return mbs[id].action != kNone && (mods == 0 || ((mbs[id].modifier & mods) > 0));
     }
@@ -349,7 +349,7 @@ struct Gesture
       }
     }
 
-    int getCurrentSelectionCode() { return m_retainedSelectionCode; }
+    int getCurrentSelectionCode() const { return m_retainedSelectionCode; }
   };
   Graphics graphics;
 
