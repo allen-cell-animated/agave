@@ -376,9 +376,6 @@ GLView3D::keyPressEvent(QKeyEvent* event)
   if (event->key() == Qt::Key_A) {
     FitToScene(0.5f);
   } else if (event->key() == Qt::Key_L) {
-    // toggle showing area light gizmo
-    m_viewerWindow->toggleAreaLightSelect();
-  } else if (event->key() == Qt::Key_S) {
     // toggle local/global coordinates for transforms
     m_viewerWindow->m_toolsUseLocalSpace = !m_viewerWindow->m_toolsUseLocalSpace;
     m_viewerWindow->forEachTool(
