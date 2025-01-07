@@ -339,10 +339,10 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
             LOG_ERROR << "Error: " << result.status();
             LOG_ERROR << "Failed to open store for " << filepath << " :: " << pathstr;
           } else {
-            auto store = result.value();
-
+            tensorstore::TensorStore<> store = result.value();
             tensorstore::DataType dtype = store.dtype();
-            auto shape_span = store.domain().shape();
+            tensorstore::IndexDomainView<> domain = store.domain();
+            auto shape_span = domain.shape();
             std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
             std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
