@@ -482,14 +482,19 @@ vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 //  i = (i-g_lutMin[ch])/(g_lutMax[ch]-g_lutMin[ch]) * g_opacity[ch];
 //  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
 
+  // TODO indexing into array of samplers like this with a dynamic index
+  // seems to result in undefined behavior on MacOS.
+  // We need to turn this into a sampler2dArray and use an array texture instead.
+  // This would probably be more efficient for the luttextures too.
+
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
   if (g_labels[ch] > 0.0) {
-  return texelFetch(g_colormapTexture[ch], ivec2(int(intensity[ch]), 0), 0).xyz * g_diffuse[ch];
+    return texelFetch(g_colormapTexture[ch], ivec2(int(intensity[ch]), 0), 0).xyz * g_diffuse[ch];
   }
   else {
-  float i = intensity[ch];
-  i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
-  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
+    float i = intensity[ch];
+    i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
+    return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
   }
 
 
@@ -1671,4 +1676,5 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
 void
 GLPTVolumeShader::setTransformUniforms(const CCamera& camera, const glm::mat4& modelMatrix)
-{}
+{
+}
