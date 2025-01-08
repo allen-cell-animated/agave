@@ -531,7 +531,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minx, maxx)).value();
     tsdim++;
 
-    tensorstore::Index shapeToLoad[5] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
+    static constexpr tensorstore::DimensionIndex kNumDims = 5;
+    const tensorstore::Index shapeToLoad[kNumDims] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
     if (levelDims.dtype == "uint8") {
       auto arr = tensorstore::Array((uint8_t*)reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
