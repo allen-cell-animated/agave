@@ -37,7 +37,7 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.8.1 win64_msvc2019_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.8.1 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
 ```
 
