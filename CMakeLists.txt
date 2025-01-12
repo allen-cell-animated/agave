@@ -210,10 +210,6 @@ if(WIN32)
     $<TARGET_FILE:Qt6::QJpegPlugin>
     DESTINATION ${INSTALLDIR}/imageformats/
   )
-  install(FILES
-    $<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>
-    DESTINATION ${INSTALLDIR}/styles/
-  )
 
   set(CPACK_GENERATOR "NSIS")
   set(CPACK_PRE_BUILD_SCRIPTS "${CMAKE_SOURCE_DIR}/CMake/WindowsPreBuild.cmake")
