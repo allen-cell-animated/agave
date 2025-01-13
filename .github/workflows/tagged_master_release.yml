@@ -45,6 +45,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
+          export Qt6_DIR=${{ runner.workspace }}/Qt/6.8.1/macos
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
