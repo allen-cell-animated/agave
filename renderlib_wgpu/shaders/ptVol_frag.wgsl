@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 
 #define PI (3.1415926535897932384626433832795)
 #define PI_OVER_2 (1.57079632679489661923)

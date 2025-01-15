@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string thickLines_vert_chunk_0 = R"(#version 400 core
+const std::string thickLines_vert_chunk_0 = R"(#version 460 core
 
 // this is the layout of the stripVerts buffer below
 // layout (location = 0) in vec3 vPos;

@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string gui_frag_chunk_0 = R"(    #version 400 core
+const std::string gui_frag_chunk_0 = R"(    #version 460 core
     in vec4 Frag_color;
     in vec2 Frag_UV;
     in vec4 gl_FragCoord;

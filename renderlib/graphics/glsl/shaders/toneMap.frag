@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 
 uniform float gInvExposure;
 uniform sampler2D tTexture0;

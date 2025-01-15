@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string copy_frag_chunk_0 = R"(#version 400 core
+const std::string copy_frag_chunk_0 = R"(#version 460 core
 
 uniform sampler2D tTexture0;
 in vec2 vUv;

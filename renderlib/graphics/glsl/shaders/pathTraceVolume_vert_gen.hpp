@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string pathTraceVolume_vert_chunk_0 = R"(#version 400 core
+const std::string pathTraceVolume_vert_chunk_0 = R"(#version 460 core
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 uv;

@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string pathTraceVolume_frag_chunk_0 = R"(#version 400 core
+const std::string pathTraceVolume_frag_chunk_0 = R"(#version 460 core
 
 #define PI (3.1415926535897932384626433832795)
 #define PI_OVER_2 (1.57079632679489661923)

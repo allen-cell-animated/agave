@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string basicVolume_frag_chunk_0 = R"(#version 400 core
+const std::string basicVolume_frag_chunk_0 = R"(#version 460 core
 
 in VertexData
 {

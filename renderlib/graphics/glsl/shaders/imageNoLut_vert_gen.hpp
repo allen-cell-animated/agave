@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string imageNoLut_vert_chunk_0 = R"(#version 400 core
+const std::string imageNoLut_vert_chunk_0 = R"(#version 460 core
 
 layout(location = 0) in vec2 coord2d;
 layout(location = 1) in vec2 texcoord;

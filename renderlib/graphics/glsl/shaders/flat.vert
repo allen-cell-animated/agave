@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 
 uniform vec4 colour;
 uniform mat4 mvp;

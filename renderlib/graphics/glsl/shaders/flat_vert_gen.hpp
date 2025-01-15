@@ -2,7 +2,7 @@
 
 #include <string>
 
-const std::string flat_vert_chunk_0 = R"(#version 400 core
+const std::string flat_vert_chunk_0 = R"(#version 460 core
 
 uniform vec4 colour;
 uniform mat4 mvp;

@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 
 // this is the layout of the stripVerts buffer below
 // layout (location = 0) in vec3 vPos;
