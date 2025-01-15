@@ -2,7 +2,9 @@
 
 #include "graphics/gl/Util.h"
 
-class GLGuiShader : public GLShaderProgram
+class GLGuiShader
+  : public GLShaderProgram
+  , public IGuiShader
 {
 public:
   GLGuiShader();
@@ -11,6 +13,7 @@ public:
 
   void configure(bool display, GLuint textureId);
   void cleanup();
+  virtual void setProjMatrix(const glm::mat4& proj) override;
 
   int m_loc_proj;
   int m_loc_vpos;

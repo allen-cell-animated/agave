@@ -135,6 +135,8 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
   }
 
   initBoundsFromImg(img);
+
+  m_clipPlane = std::make_shared<ScenePlane>(m_boundingBox.GetCenter());
 }
 
 void

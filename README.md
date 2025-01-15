@@ -28,6 +28,10 @@ Make sure you are in an environment where vsvarsall has been run, e.g. a "VS2022
 
 A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
 
+wgpu-native requires:
+Rust
+LLVM and clang
+
 ```
 choco install strawberryperl nasm patch
 ```
@@ -55,6 +59,9 @@ cd build
 # (vs 2022)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
 cmake --build .
+
+cmake -DCMAKE_TOOLCHAIN_FILE=C:\Users\danielt\source\repos\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows C:\Users\danielt\source\repos\allen-cell-animated\agave
+cmake --build . --target install --config RelWithDebInfo
 ```
 
 You may need to adjust the vcpkg path depending on your configuration.
@@ -83,6 +90,8 @@ sudo make install
 
 ### For LINUX:
 
+Make sure you have Rust 1.59 or greater installed for the wgpu-native dependency.
+
 Install Qt 6.5.3 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
@@ -94,10 +103,13 @@ aqt install-qt --outputdir ~/Qt linux desktop 6.5.3 -m qtwebsockets qtimageforma
 export Qt6_DIR=~/Qt/6.5.3/gcc_64
 ```
 
+- sudo apt install libclang-dev # for rust / wgpu-native
 - sudo apt install libtiff-dev
 - sudo apt install libglm-dev
 - sudo apt install libgl1-mesa-dev
 - sudo apt install libegl1-mesa-dev
+- sudo apt install libxkbcommon-dev
+- sudo apt install mesa-vulkan-drivers
 - sudo apt install libspdlog-dev
 - sudo apt install nasm
 

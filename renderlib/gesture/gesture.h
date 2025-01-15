@@ -7,6 +7,7 @@
 #include "Font.h"
 #include "SceneView.h"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -165,7 +166,8 @@ struct Gesture
     {
       kPoints = 0,
       kLines = 1,
-      kTriangles = 2
+      kTriangles = 2,
+      kLineStrips = 3
     };
 
     // a Command is just an instruction to the graphics
@@ -197,7 +199,19 @@ struct Gesture
       static constexpr float k_noTexture = -64.f;
       static constexpr float k_marqueePattern = -128.f;
 
-      VertsCode() {}
+      VertsCode()
+        : x(0)
+        , y(0)
+        , z(0)
+        , u(0)
+        , v(0)
+        , r(0)
+        , g(0)
+        , b(0)
+        , a(0)
+        , s(-1)
+      {
+      }
 
       // Constructor commonly used for non textured elements
       VertsCode(const glm::vec3& v, glm::vec3 c, float opacity = 1.0f, uint32_t selectionCode = 0)
@@ -252,6 +266,12 @@ struct Gesture
     std::vector<VertsCode> verts;
     std::vector<CommandRange> commands[kNumCommandsLists];
 
+    // Line strip drawing needs a different data setup
+    std::vector<VertsCode> stripVerts;
+    std::vector<glm::ivec2> stripRanges;
+    std::vector<CommandSequence> stripProjections;
+    std::vector<float> stripThicknesses;
+
     Font font;
 
     // remember selection code to reuse while dragging
@@ -269,6 +289,11 @@ struct Gesture
       for (int i = 0; i < kNumCommandsLists; ++i) {
         commands[i].clear();
       }
+
+      stripVerts.clear();
+      stripRanges.clear();
+      stripProjections.clear();
+      stripThicknesses.clear();
     }
 
     // Add a draw command. There are multiple command sequences you can add to so
@@ -322,6 +347,45 @@ struct Gesture
       verts.push_back(v1);
     }
 
+    // this is a single self contained command and does not require a command to be added first,
+    // but you must call addCommand after this to start the next one.
+    inline void addLineStrip(const std::vector<VertsCode> vertices,
+                             float thickness = 2.0f,
+                             // closedLoop implies that the first and last vertices are the same
+                             bool closedLoop = false,
+                             CommandSequence index = CommandSequence::k3dStacked)
+    {
+      // the minimum number of vertices for a line strip is 2
+      // and for a closed loop, it has to be 4 (consider a triangle where the 4th vertex connects the last to the first)
+      assert((closedLoop && vertices.size() >= 4) || (!closedLoop && vertices.size() >= 2));
+
+      // * first and last point define the tangents of the start and end of the line strip,
+      // so you need to add one pt at start and end
+      // * if drawing a line loop, then the last point has to be added to the array head,
+      // and the first point added to the tail
+
+      size_t stripStart = stripVerts.size();
+      if (closedLoop) {
+        // next-to-last vertex, assuming first and last to be the same because closed loop
+        // example: [0,1,2,0]: we want the first item here to be a 2 to lead in to the 0
+        stripVerts.push_back(vertices[vertices.size() - 2]);
+      } else {
+        stripVerts.push_back(vertices[0]);
+      }
+      std::for_each(vertices.begin(), vertices.end(), [&](const VertsCode& v) { stripVerts.push_back(v); });
+      if (closedLoop) {
+        // second vertex, assuming first and last to be the same because closed loop
+        // example: [0,1,2,0]: we want the last item here to be a 1 which is what the last 0 leads into
+        stripVerts.push_back(vertices[1]);
+      } else {
+        stripVerts.push_back(vertices[vertices.size() - 1]);
+      }
+
+      stripRanges.push_back(glm::ivec2(stripStart, stripVerts.size()));
+      stripProjections.push_back(index);
+      stripThicknesses.push_back(thickness);
+    }
+
     enum class LoopEntry : int
     {
       kContinue = 0,
@@ -362,6 +426,16 @@ struct Gesture
                float opacity,
                uint32_t code);
 
+  void drawArcAsStrip(const glm::vec3& pstart,
+                      float angle,
+                      const glm::vec3& center,
+                      const glm::vec3& normal,
+                      uint32_t numSegments,
+                      glm::vec3 color,
+                      float opacity,
+                      uint32_t code,
+                      float thickness);
+
   void drawCircle(glm::vec3 center,
                   glm::vec3 xaxis,
                   glm::vec3 yaxis,
@@ -370,6 +444,16 @@ struct Gesture
                   float opacity,
                   uint32_t code,
                   glm::vec4* clipPlane = nullptr);
+
+  void drawCircleAsStrip(glm::vec3 center,
+                         glm::vec3 xaxis,
+                         glm::vec3 yaxis,
+                         uint32_t numSegments,
+                         glm::vec3 color,
+                         float opacity,
+                         uint32_t code,
+                         float thickness,
+                         glm::vec4* clipPlane = nullptr);
 
   // does not draw a flat base
   void drawCone(glm::vec3 base,

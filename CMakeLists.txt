@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.24)
 include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 
 if(APPLE)
@@ -113,6 +113,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # THE COMMON CORE LIBRARIES
 # #####################
 add_subdirectory(renderlib)
+add_subdirectory(renderlib_wgpu)
 
 set(INSTALLDIR "${CMAKE_PROJECT_NAME}-install")
 

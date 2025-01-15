@@ -41,6 +41,23 @@ ScopedGlVertexBuffer::~ScopedGlVertexBuffer()
   glDeleteBuffers(1, &m_buffer);
 }
 
+// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+ScopedGlTextureBuffer::ScopedGlTextureBuffer(const void* data, size_t size)
+{
+  glGenBuffers(1, &m_buffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, m_buffer);
+  glBufferData(GL_TEXTURE_BUFFER, size, data, GL_STATIC_DRAW);
+
+  glGenTextures(1, &m_texture);
+  glBindTexture(GL_TEXTURE_BUFFER, m_texture);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_buffer);
+}
+ScopedGlTextureBuffer::~ScopedGlTextureBuffer()
+{
+  glDeleteTextures(1, &m_texture);
+  glDeleteBuffers(1, &m_buffer);
+}
+
 namespace Pipeline {
 
 // First I may draw any GUI geometry that I want to be depth-composited with the
@@ -51,14 +68,15 @@ namespace Pipeline {
 // Draw something "in the scene". This has a limitation that we assume there is a
 // single viewport.
 static void
-configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
+configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, IGuiShader* shader)
 {
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
   glm::mat4 p(1.0);
   sceneView.camera.getProjMatrix(p);
 
-  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  shader->setProjMatrix(p * v);
+
   check_gl("set proj matrix");
 
   glEnable(GL_DEPTH_TEST);
@@ -72,7 +90,7 @@ configure_3dDepthTested(SceneView& sceneView, Gesture::Graphics& graphics, GLGui
 // Overlay something "in the scene". This has a limitation that we assume there
 // is a single viewport.
 static void
-configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
+configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, IGuiShader* shader)
 {
   glm::mat4 v(1.0);
   sceneView.camera.getViewMatrix(v);
@@ -80,7 +98,7 @@ configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShad
   sceneView.camera.getProjMatrix(p);
   check_gl("PRE set proj matrix");
 
-  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p * v));
+  shader->setProjMatrix(p * v);
 
   check_gl("set proj matrix");
 
@@ -94,7 +112,7 @@ configure_3dStacked(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShad
 
 // Draw something in screen space without zbuffer.
 static void
-configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShader& shader)
+configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, IGuiShader* shader)
 {
   auto p = glm::ortho((float)sceneView.viewport.region.lower.x,
                       (float)sceneView.viewport.region.upper.x,
@@ -102,7 +120,7 @@ configure_2dScreen(SceneView& sceneView, Gesture::Graphics& graphics, GLGuiShade
                       (float)sceneView.viewport.region.upper.y,
                       1.0f,
                       -1.f);
-  glUniformMatrix4fv(shader.m_loc_proj, 1, GL_FALSE, glm::value_ptr(p));
+  shader->setProjMatrix(p);
   check_gl("set proj matrix");
 
   glDisable(GL_DEPTH_TEST);
@@ -282,6 +300,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   if (!shader.get()) {
     shader.reset(new GLGuiShader());
   }
+  if (!shaderLines.get()) {
+    shaderLines.reset(new GLThickLinesShader());
+  }
   if (!font.get()) {
     font.reset(new FontGL());
     font->load(graphics.font);
@@ -297,7 +318,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   //        fully user configurable...
   //
   // Configure command lists
-  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, GLGuiShader& shader);
+  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, IGuiShader* shader);
   // Step 1: we draw any command that is depth-composited with the scene
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dDepthTested)] =
     Pipeline::configure_3dDepthTested;
@@ -326,6 +347,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     ScopedGlVertexBuffer vertex_buffer(graphics.verts.data(),
                                        graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
 
+    // buffer containing all the strip vertices
+    ScopedGlTextureBuffer texture_buffer(graphics.stripVerts.data(),
+                                         graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
     // draw the GUI and once to draw the selection buffer data.
     // (display var is for draw vs pick)
@@ -334,7 +358,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
       for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
         if (!graphics.commands[sequence].empty()) {
-          pipelineConfig[sequence](sceneView, graphics, *shader.get());
+          pipelineConfig[sequence](sceneView, graphics, shader.get());
 
           // YAGNI: Commands could be coalesced, setting state could be avoided
           //        if not changing... For now it seems we can draw at over 2000 Hz
@@ -375,6 +399,74 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
       }
 
       shader->cleanup();
+
+      // TODO the loop over sequence should only happen once, and
+      // we should switch draw types.
+      // which means managing bookkeeping of switching shaders...
+      if (!graphics.stripRanges.empty()) {
+        shaderLines->configure(display, this->glTextureId);
+        for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
+          pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
+
+          // YAGNI: Commands could be coalesced, setting state could be avoided
+          //        if not changing... For now it seems we can draw at over 2000 Hz
+          //        and no further optimization is required.
+          // now lets draw some strips, using stripRanges
+          for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
+            if ((int)graphics.stripProjections[i] != sequence) {
+              continue;
+            }
+
+            const glm::ivec2& range = graphics.stripRanges[i];
+            const float thickness = graphics.stripThicknesses[i];
+
+            // we are drawing N-1 line segments, but the number of elements in the array is N+2
+            GLsizei N = (GLsizei)(range.y - range.x) - 2;
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
+            glUniform1i(shaderLines->m_loc_stripVerts, 0);
+            glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
+            glUniform1f(shaderLines->m_loc_thickness, thickness);
+            glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
+            glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
+            check_gl("thicklines drawarrays");
+          }
+          // for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
+          //   Gesture::Graphics::Command& cmd = cmdr.command;
+          //   if (cmdr.end == -1)
+          //     cmdr.end = graphics.verts.size();
+          //   if (cmdr.begin >= cmdr.end)
+          //     continue;
+
+          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
+          //     glLineWidth(cmd.thickness);
+          //     check_gl("linewidth");
+          //   }
+          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
+          //     glPointSize(cmd.thickness);
+          //     check_gl("pointsize");
+          //   }
+          //   GLenum mode = GL_TRIANGLES;
+          //   switch (cmd.command) {
+          //     case Gesture::Graphics::PrimitiveType::kLines:
+          //       mode = GL_LINES;
+          //       break;
+          //     case Gesture::Graphics::PrimitiveType::kPoints:
+          //       mode = GL_POINTS;
+          //       break;
+          //     case Gesture::Graphics::PrimitiveType::kTriangles:
+          //       mode = GL_TRIANGLES;
+          //       break;
+          //     default:
+          //       assert(false && "unsupported primitive type");
+          //   }
+          //   glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
+          //   check_gl("drawarrays");
+          // }
+        }
+        shaderLines->cleanup();
+      }
       check_gl("disablevertexattribarray");
     };
 

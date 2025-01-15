@@ -28,4 +28,6 @@ public:
   QPushButton* leftViewButton;
   QPushButton* rightViewButton;
   QPushButton* axisHelperButton;
+  QPushButton* rotateButton;
+  QPushButton* translateButton;
 };

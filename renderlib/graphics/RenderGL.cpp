@@ -91,7 +91,7 @@ RenderGL::doClear()
 }
 
 void
-RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
+RenderGL::renderTo(const CCamera& camera, IRenderTarget* fbo)
 {
   bool haveScene = prepareToRender();
 

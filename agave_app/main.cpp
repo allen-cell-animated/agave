@@ -5,6 +5,7 @@
 #include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
+#include "renderlib_wgpu/renderlib_wgpu.h"
 #include "streamserver.h"
 
 #include <QApplication>
@@ -145,16 +146,24 @@ main(int argc, char* argv[])
   Logging::Init();
 
   QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+  QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+  // TODO remove this for qt 6.6 and up?
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication::setStyle("fusion");
+  // note that this is called before renderlib::initialize
+  QSurfaceFormat format = renderlib::getQSurfaceFormat();
+  QSurfaceFormat::setDefaultFormat(format);
+
   AgaveApplication a(argc, argv);
   a.setOrganizationName("Allen Institute for Cell Science");
   a.setOrganizationDomain("allencell.org");
   a.setApplicationName("AGAVE");
   a.setApplicationVersion(AICS_VERSION_STRING);
 
-  LOG_INFO << a.organizationName().toStdString() << " " << a.applicationName().toStdString() << " "
-           << a.applicationVersion().toStdString();
+  std::string orgname = a.organizationName().toStdString();
+  std::string appname = a.applicationName().toStdString();
+  std::string appversion = a.applicationVersion().toStdString();
+  LOG_INFO << orgname << " " << appname << " " << appversion;
 
   QCommandLineParser parser;
   parser.setApplicationDescription("Advanced GPU Accelerated Volume Explorer");
@@ -209,6 +218,10 @@ main(int argc, char* argv[])
 
   if (!renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
+    return 0;
+  }
+  if (!renderlib_wgpu::initialize(isServer, listDevices, selectedGpu)) {
+    renderlib_wgpu::cleanup();
     return 0;
   }
 

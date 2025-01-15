@@ -39,6 +39,8 @@
 
 const QString darkStyleSheet = R"(
 QToolTip{padding:3px;}
+QPushButton#rotateBtn { icon: url(":/icons/dark/rotate.svg"); qproperty-icon: url(":/icons/dark/rotate.svg") }
+QPushButton#translateBtn { icon: url(":/icons/dark/translate.svg"); qproperty-icon: url(":/icons/dark/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/dark/coordinates.svg"); qproperty-icon: url(":/icons/dark/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/dark/Home-icon.svg"); qproperty-icon: url(":/icons/dark/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/dark/frameView.svg"); qproperty-icon: url(":/icons/dark/frameView.svg")}
@@ -57,6 +59,8 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 )";
 const QString lightStyleSheet = R"(
 QToolTip{padding:3px;}
+QPushButton#rotateBtn { icon: url(":/icons/light/rotate.svg"); qproperty-icon: url(":/icons/light/rotate.svg") }
+QPushButton#translateBtn { icon: url(":/icons/light/translate.svg"); qproperty-icon: url(":/icons/light/translate.svg") }
 QPushButton#axisHelperBtn { icon: url(":/icons/light/coordinates.svg"); qproperty-icon: url(":/icons/light/coordinates.svg") }
 QPushButton#homeBtn { icon: url(":/icons/light/Home-icon.svg"); qproperty-icon: url(":/icons/light/Home-icon.svg") }
 QPushButton#frameViewBtn { icon: url(":/icons/light/frameView.svg"); qproperty-icon: url(":/icons/light/frameView.svg") }
@@ -107,7 +111,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
+  m_glView = new WgpuCanvas(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
 
   m_glView->setObjectName("glcontainer");
@@ -252,7 +256,6 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    emit this->m_qrendersettings.Selected(checked ? this->m_appScene.SceneAreaLight() : nullptr);
     this->m_glView->toggleRotateControls();
   });
 
@@ -267,6 +270,11 @@ agaveGui::createActions()
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
     this->m_glView->toggleTranslateControls();
   });
+
+  m_manipulatorModeGroup = new QActionGroup(this);
+  m_manipulatorModeGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+  m_manipulatorModeGroup->addAction(m_toggleRotateControlsAction);
+  m_manipulatorModeGroup->addAction(m_toggleTranslateControlsAction);
 }
 
 void
@@ -711,7 +719,9 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   std::shared_ptr<CStatus> s = m_glView->getStatus();
   // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
   m_statisticsDockWidget->setStatus(s);
-  s->onNewImage(filename, &m_appScene);
+  if (s) {
+    s->onNewImage(filename, &m_appScene);
+  }
 
   m_currentFilePath = loadSpec.filepath;
   agaveGui::prependToRecentFiles(QString::fromStdString(loadSpec.filepath));
@@ -835,7 +845,7 @@ agaveGui::openMesh(const QString& file)
 }
 
 void
-agaveGui::viewFocusChanged(GLView3D* newGlView)
+agaveGui::viewFocusChanged(WgpuCanvas* newGlView)
 {
   if (m_glView == newGlView)
     return;
@@ -852,14 +862,14 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
+  WgpuCanvas* current = 0;
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
       QLayout* layout = w->layout();
       // ASSUMES THAT THE GLVIEW IS THE SECOND WIDGET IN THE LAYOUT
       // TODO could use a QWidget wrapper class to get the glview out
-      current = static_cast<GLView3D*>(layout->itemAt(1)->widget());
+      current = static_cast<WgpuCanvas*>(layout->itemAt(1)->widget());
     }
   }
   viewFocusChanged(current);

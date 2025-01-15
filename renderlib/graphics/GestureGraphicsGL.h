@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 
 #include "graphics/glsl/GLGuiShader.h"
+#include "graphics/glsl/GLThickLines.h"
 #include "graphics/gl/FontGL.h"
 #include "gesture/gesture.h"
 
@@ -18,6 +19,20 @@ public:
 
 private:
   GLuint m_vertexArray;
+  GLuint m_buffer;
+};
+
+// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+class ScopedGlTextureBuffer
+{
+public:
+  ScopedGlTextureBuffer(const void* data, size_t size);
+  ~ScopedGlTextureBuffer();
+  GLuint buffer() const { return m_buffer; }
+  GLuint texture() const { return m_texture; }
+
+private:
+  GLuint m_texture;
   GLuint m_buffer;
 };
 
@@ -68,6 +83,7 @@ class GestureRendererGL
 {
 public:
   std::unique_ptr<GLGuiShader> shader;
+  std::unique_ptr<GLThickLinesShader> shaderLines;
 
   // A texture atlas for GUI elements
   // TODO: use bindless textures
