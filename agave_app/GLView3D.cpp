@@ -144,8 +144,6 @@ void
 GLView3D::initializeGL()
 {
 
-  makeCurrent();
-
   QSize newsize = size();
   float dpr = devicePixelRatioF();
   m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr);
@@ -164,9 +162,7 @@ GLView3D::paintGL()
     return;
   }
 
-  makeCurrent();
   m_viewerWindow->redraw();
-  doneCurrent();
 }
 
 void

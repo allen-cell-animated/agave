@@ -8,14 +8,14 @@
 
 #include <chrono>
 
+static constexpr int LUT_SIZE = 256;
+
 void
 ChannelGpu::allocGpu(ImageXYZC* img, int channel)
 {
   Channelu16* ch = img->channel(channel);
 
   // LUT buffer
-
-  const int LUT_SIZE = 256;
 
   m_gpuBytes += (32) / 8 * LUT_SIZE;
 
@@ -32,17 +32,6 @@ ChannelGpu::allocGpu(ImageXYZC* img, int channel)
   glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, LUT_SIZE, 1);
   // glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, LUT_SIZE, 1, 0, GL_RED, GL_FLOAT, ch->m_lut);
 
-  glGenTextures(1, &m_VolumeColorMapGLTexture);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_VolumeColorMapGLTexture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-  glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, LUT_SIZE, 1);
-
   glBindTexture(GL_TEXTURE_2D, 0);
   check_gl("volume lut texture creation");
 }
@@ -52,8 +41,6 @@ ChannelGpu::deallocGpu()
 {
   glDeleteTextures(1, &m_VolumeLutGLTexture);
   m_VolumeLutGLTexture = 0;
-  glDeleteTextures(1, &m_VolumeColorMapGLTexture);
-  m_VolumeColorMapGLTexture = 0;
 
   m_gpuBytes = 0;
 }
@@ -65,20 +52,15 @@ ChannelGpu::updateLutGpu(int channel, ImageXYZC* img)
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_3D, 0);
-  check_gl("update lut texture");
+  check_gl("unbind to update lut texture");
 
   glBindTexture(GL_TEXTURE_2D, m_VolumeLutGLTexture);
-  check_gl("update lut texture");
+  check_gl("bind lut texture");
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, LUT_SIZE, 1, GL_RED, GL_FLOAT, img->channel(channel)->m_lut);
   check_gl("update lut texture");
 
-  glBindTexture(GL_TEXTURE_2D, m_VolumeColorMapGLTexture);
-  check_gl("update colormap texture");
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, LUT_SIZE, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(channel)->m_colormap);
-  check_gl("update colormap texture");
-
   glBindTexture(GL_TEXTURE_2D, 0);
-  check_gl("update lut texture");
+  check_gl("unbind lut texture");
 }
 
 void
@@ -119,6 +101,18 @@ ImageGpu::createVolumeTexture4x16(ImageXYZC* img)
 
   glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA16, img->sizeX(), img->sizeY(), img->sizeZ());
   glBindTexture(GL_TEXTURE_3D, 0);
+
+  glGenTextures(1, &m_ActiveChannelColormaps);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_ActiveChannelColormaps);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, LUT_SIZE, 1, 4);
+  // 4 * glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, LUT_SIZE, 1);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
   check_gl("volume texture creation");
 }
 
@@ -209,7 +203,28 @@ ImageGpu::deallocGpu()
   check_gl("destroy gl volume texture");
   m_VolumeGLTexture = 0;
 
+  glDeleteTextures(1, &m_ActiveChannelColormaps);
+  check_gl("destroy gl colormaps texture");
+  m_ActiveChannelColormaps = 0;
+
   m_gpuBytes = 0;
+}
+
+void
+ImageGpu::updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3)
+{
+  // and write color luts
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_ActiveChannelColormaps);
+  // mip level, xy offset, layer index
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c0)->m_colormap);
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c1)->m_colormap);
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c2)->m_colormap);
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c3)->m_colormap);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
 void

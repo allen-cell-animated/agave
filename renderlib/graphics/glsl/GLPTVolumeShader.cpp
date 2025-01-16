@@ -114,7 +114,7 @@ uniform float uShowLights;
 
 // per channel
 uniform sampler2D g_lutTexture[4];
-uniform sampler2D g_colormapTexture[4];
+uniform sampler2DArray g_colormapTexture;
 uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
 uniform vec4 g_lutMax;
@@ -489,12 +489,12 @@ vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
   if (g_labels[ch] > 0.0) {
-    return texelFetch(g_colormapTexture[ch], ivec2(int(intensity[ch]), 0), 0).xyz * g_diffuse[ch];
+    return texelFetch(g_colormapTexture, ivec3(int(intensity[ch]), 0, ch), 0).xyz * g_diffuse[ch];
   }
   else {
     float i = intensity[ch];
     i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
-    return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
+    return texture(g_colormapTexture, vec3(i, 0.5, float(ch))).xyz * g_diffuse[ch];
   }
 
 
@@ -1420,10 +1420,7 @@ void main()
   m_lutTexture1 = uniformLocation("g_lutTexture[1]");
   m_lutTexture2 = uniformLocation("g_lutTexture[2]");
   m_lutTexture3 = uniformLocation("g_lutTexture[3]");
-  m_colormapTexture0 = uniformLocation("g_colormapTexture[0]");
-  m_colormapTexture1 = uniformLocation("g_colormapTexture[1]");
-  m_colormapTexture2 = uniformLocation("g_colormapTexture[2]");
-  m_colormapTexture3 = uniformLocation("g_colormapTexture[3]");
+  m_colormapTexture = uniformLocation("g_colormapTexture");
   m_intensityMax = uniformLocation("g_intensityMax");
   m_intensityMin = uniformLocation("g_intensityMin");
   m_lutMax = uniformLocation("g_lutMax");
@@ -1565,7 +1562,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
   int activeChannel = 0;
   int luttex[4] = { 0, 0, 0, 0 };
-  int colormaptex[4] = { 0, 0, 0, 0 };
+  int colormaptex = imggpu.m_ActiveChannelColormaps;
   float intensitymax[4] = { 1, 1, 1, 1 };
   float intensitymin[4] = { 0, 0, 0, 0 };
   float lutmax[4] = { 1, 1, 1, 1 };
@@ -1579,7 +1576,6 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
       luttex[activeChannel] = imggpu.m_channels[i].m_VolumeLutGLTexture;
-      colormaptex[activeChannel] = imggpu.m_channels[i].m_VolumeColorMapGLTexture;
       intensitymax[activeChannel] = scene->m_volume->channel(i)->m_max;
       intensitymin[activeChannel] = scene->m_volume->channel(i)->m_min;
       diffuse[activeChannel * 3 + 0] = scene->m_material.m_diffuse[i * 3 + 0];
@@ -1628,25 +1624,10 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glBindTexture(GL_TEXTURE_2D, luttex[3]);
   check_gl("lut 3");
 
-  glUniform1i(m_colormapTexture0, 6);
+  glUniform1i(m_colormapTexture, 6);
   glActiveTexture(GL_TEXTURE0 + 6);
-  glBindTexture(GL_TEXTURE_2D, colormaptex[0]);
-  check_gl("colormap 0");
-
-  glUniform1i(m_colormapTexture1, 7);
-  glActiveTexture(GL_TEXTURE0 + 7);
-  glBindTexture(GL_TEXTURE_2D, colormaptex[1]);
-  check_gl("colormap 1");
-
-  glUniform1i(m_colormapTexture2, 8);
-  glActiveTexture(GL_TEXTURE0 + 8);
-  glBindTexture(GL_TEXTURE_2D, colormaptex[2]);
-  check_gl("colormap 2");
-
-  glUniform1i(m_colormapTexture3, 9);
-  glActiveTexture(GL_TEXTURE0 + 9);
-  glBindTexture(GL_TEXTURE_2D, colormaptex[3]);
-  check_gl("colormap 3");
+  glBindTexture(GL_TEXTURE_2D_ARRAY, colormaptex);
+  check_gl("colormap array");
 
   glUniform4fv(m_intensityMax, 1, intensitymax);
   glUniform4fv(m_intensityMin, 1, intensitymin);
