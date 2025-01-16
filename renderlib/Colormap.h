@@ -71,3 +71,6 @@ colormapFromColormap(uint8_t* colormap, size_t length = 256);
 
 std::vector<ColorControlPoint>
 stringListToGradient(const std::vector<std::string>& colors);
+
+const std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>>&
+getBuiltInGradients();
