@@ -15,7 +15,7 @@
 #include <QItemDelegate>
 #include <QLinearGradient>
 
-QGradientStops
+static QGradientStops
 colormapToGradient(const std::vector<ColorControlPoint>& v)
 {
   QGradientStops stops;
@@ -50,7 +50,7 @@ public:
   }
 };
 
-QComboBox*
+static QComboBox*
 makeGradientCombo()
 {
   QComboBox* cb = new GradientCombo();
@@ -873,7 +873,7 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 }
 
 // split color into color and intensity.
-inline void
+static inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
 {
   // if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
