@@ -483,8 +483,8 @@ vec3 GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 //  return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
 
   vec4 intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(Pe));
-  if (g_labels[ch] > 0.0) {
-    return texelFetch(g_colormapTexture, ivec3(int(intensity[ch]), 0, ch), 0).xyz * g_diffuse[ch];
+  if (g_labels[ch] > 0.5) {
+    return texelFetch(g_colormapTexture, ivec3(int(intensity[ch]) % 256, 0, ch), 0).xyz * g_diffuse[ch];
   }
   else {
     float i = intensity[ch];
