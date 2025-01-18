@@ -64,7 +64,7 @@ stringListToGradient(const std::vector<std::string>& colors)
 uint8_t*
 modifiedGlasbeyColormap(size_t length)
 {
-  static std::vector<std::array<uint8_t, 3>> modifiedGlasbey = {
+  static const std::vector<std::array<uint8_t, 3>> modifiedGlasbey = {
     { 0, 0, 0 },       { 255, 255, 0 },   { 255, 25, 255 },  { 0, 147, 147 },   { 156, 64, 0 },    { 88, 0, 199 },
     { 241, 235, 255 }, { 20, 75, 0 },     { 0, 188, 1 },     { 255, 159, 98 },  { 145, 144, 255 }, { 93, 0, 63 },
     { 0, 255, 214 },   { 255, 0, 95 },    { 120, 100, 119 }, { 0, 73, 96 },     { 140, 136, 74 },  { 82, 207, 255 },

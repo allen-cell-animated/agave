@@ -65,6 +65,8 @@ struct Channelu16
   }
 
   void debugprint();
+  void debugColormap();
+  void debugData();
 
   std::string m_name;
 };

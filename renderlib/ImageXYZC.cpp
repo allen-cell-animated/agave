@@ -300,3 +300,45 @@ Channelu16::debugprint()
   }
   LOG_DEBUG << "LUT: " << ss.str();
 }
+
+void
+Channelu16::debugColormap()
+{
+  // stringify for output
+  // std::stringstream ss;
+  // for (size_t x = 0; x < 256 * 4; ++x) {
+  //   ss << (int)m_colormap[x] << ", ";
+  // }
+  // LOG_DEBUG << "COLORMAP: " << ss.str();
+}
+
+// dump middle slice to QImage
+void
+Channelu16::debugData()
+{
+  // static constexpr bool useGreyscale = true;
+  // int z = m_z / 2;
+  // size_t npix = m_x * m_y;
+  // uint16_t* slice = m_ptr + z * npix;
+  // uint8_t* img = new uint8_t[npix * 4];
+  // // convert all pixels of slice into img:
+  // for (size_t i = 0; i < npix; ++i) {
+  //   uint16_t val = slice[i];
+  //   // if greyscale then just dump out val:
+  //   if (useGreyscale) {
+  //     img[i * 4 + 0] = val % 256;
+  //     img[i * 4 + 1] = val % 256;
+  //     img[i * 4 + 2] = val % 256;
+  //     img[i * 4 + 3] = 255;
+  //   } else {
+  //     uint8_t* color = &m_colormap[(val % 256) * 4];
+  //     img[i * 4 + 0] = color[0];
+  //     img[i * 4 + 1] = color[1];
+  //     img[i * 4 + 2] = color[2];
+  //     img[i * 4 + 3] = color[3];
+  //   }
+  // }
+  // QImage qimg(img, m_x, m_y, QImage::Format_RGBA8888);
+  // static int count = 0;
+  // qimg.save(QString("debug") + QString::number(count++) + QString(".png"));
+}
