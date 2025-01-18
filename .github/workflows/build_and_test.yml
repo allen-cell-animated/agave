@@ -113,8 +113,8 @@ jobs:
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
-          CC: gcc-10
-          CXX: g++-10
+          CC: gcc-13
+          CXX: g++-13
         run: |
           mkdir ./build
           cd build
