@@ -209,7 +209,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     // Arrow line
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
                                     Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code) },
-                                  4.0f,
+                                  s_lineThickness,
                                   false);
 
     // Circle at the base of the arrow
@@ -223,7 +223,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
       gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
                                       Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code),
                                       Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code) },
-                                    4.0f,
+                                    s_lineThickness,
                                     false);
     }
 
@@ -231,7 +231,7 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     gesture.graphics.addLineStrip(
       { Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
         Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code) },
-      4.0f,
+      s_lineThickness,
       false);
 
     gesture.drawCircleAsStrip(axis.p - dir * scale * 0.25f,
