@@ -267,9 +267,14 @@ struct Gesture
     std::vector<CommandRange> commands[kNumCommandsLists];
 
     // Line strip drawing needs a different data setup
+
+    // a buffer of all the line strip vertices for the current frame
     std::vector<VertsCode> stripVerts;
+    // start and end values of each line strip in the stripVerts buffer
     std::vector<glm::ivec2> stripRanges;
+    // the type of view/projection to use for each strip
     std::vector<CommandSequence> stripProjections;
+    // the thickness of each strip
     std::vector<float> stripThicknesses;
 
     Font font;
