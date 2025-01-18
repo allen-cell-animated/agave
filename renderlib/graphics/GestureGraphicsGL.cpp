@@ -403,9 +403,6 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
       shader->cleanup();
 
-      // TODO the loop over sequence should only happen once, and
-      // we should switch draw types.
-      // which means managing bookkeeping of switching shaders...
       if (!graphics.stripRanges.empty()) {
         shaderLines->configure(display, this->glTextureId);
         GLint currentVertexArray;
@@ -415,10 +412,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
         for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
           pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
-          // YAGNI: Commands could be coalesced, setting state could be avoided
-          //        if not changing... For now it seems we can draw at over 2000 Hz
-          //        and no further optimization is required.
-          // now lets draw some strips, using stripRanges
+          // now let's draw some strips, using stripRanges
           for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
             if ((int)graphics.stripProjections[i] != sequence) {
               continue;
@@ -428,6 +422,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             const float thickness = graphics.stripThicknesses[i];
 
             // we are drawing N-1 line segments, but the number of elements in the array is N+2
+            // see GLThickLines for comments explaining the data layout and draw strategy
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
             glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
