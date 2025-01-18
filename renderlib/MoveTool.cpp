@@ -207,8 +207,6 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 
     // Arrow line
-    // gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
-    //                          Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code));
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
                                     Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code) },
                                   4.0f,
