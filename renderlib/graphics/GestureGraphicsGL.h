@@ -22,7 +22,7 @@ private:
   GLuint m_buffer;
 };
 
-// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+// a texture buffer that is automatically allocated and then deleted when it goes out of scope
 class ScopedGlTextureBuffer
 {
 public:

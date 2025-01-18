@@ -41,7 +41,7 @@ ScopedGlVertexBuffer::~ScopedGlVertexBuffer()
   glDeleteBuffers(1, &m_buffer);
 }
 
-// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+// a texture buffer that is automatically allocated and then deleted when it goes out of scope
 ScopedGlTextureBuffer::ScopedGlTextureBuffer(const void* data, size_t size)
 {
   glGenBuffers(1, &m_buffer);
@@ -439,38 +439,6 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
             check_gl("thicklines drawarrays");
           }
-          // for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
-          //   Gesture::Graphics::Command& cmd = cmdr.command;
-          //   if (cmdr.end == -1)
-          //     cmdr.end = graphics.verts.size();
-          //   if (cmdr.begin >= cmdr.end)
-          //     continue;
-
-          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
-          //     glLineWidth(cmd.thickness);
-          //     check_gl("linewidth");
-          //   }
-          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
-          //     glPointSize(cmd.thickness);
-          //     check_gl("pointsize");
-          //   }
-          //   GLenum mode = GL_TRIANGLES;
-          //   switch (cmd.command) {
-          //     case Gesture::Graphics::PrimitiveType::kLines:
-          //       mode = GL_LINES;
-          //       break;
-          //     case Gesture::Graphics::PrimitiveType::kPoints:
-          //       mode = GL_POINTS;
-          //       break;
-          //     case Gesture::Graphics::PrimitiveType::kTriangles:
-          //       mode = GL_TRIANGLES;
-          //       break;
-          //     default:
-          //       assert(false && "unsupported primitive type");
-          //   }
-          //   glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
-          //   check_gl("drawarrays");
-          // }
         }
         shaderLines->cleanup();
         glBindVertexArray(currentVertexArray);
