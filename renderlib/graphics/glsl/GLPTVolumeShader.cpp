@@ -132,38 +132,7 @@ uniform float uSampleCounter;
 uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
 
-// from https://www.shadertoy.com/view/4ssXRX
-// uvec3 pcg3d(uvec3 v) {
-
-//     v = v * 1664525u + 1013904223u;
-
-//     v.x += v.y*v.z;
-//     v.y += v.z*v.x;
-//     v.z += v.x*v.y;
-
-//     v ^= v >> 16u;
-
-//     v.x += v.y*v.z;
-//     v.y += v.z*v.x;
-//     v.z += v.x*v.y;
-
-//     return v;
-// }
-// vec3 pcg3d_f( vec3 v )
-// {
-//     return (1.0/float(0xffffffffu)) * vec3(pcg3d( uvec3(floatBitsToUint(v.x),
-//                   			 							floatBitsToUint(v.y),
-//                   			 							floatBitsToUint(v.z)) ));
-// }
-// float nrand( vec3 n )
-// {
-//     return pcg3d_f(n).x;
-// }
-// float n1rand( in vec2 uv, in float t )
-// {
-// 	float nrnd0 = nrand( vec3(uv,t) + 0.07 );
-// 	return nrnd0;
-// }
+uniform vec4 g_clipPlane;
 
 // from iq https://www.shadertoy.com/view/4tXyWN
 float rand( inout uvec2 seed )
@@ -325,6 +294,7 @@ Ray GenerateCameraRay(in Camera cam, in vec2 Pixel, in vec2 ApertureRnd)
   return newRay(RayO, RayD);
 }
 
+
 bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 {
   vec3 invR		= vec3(1.0f, 1.0f, 1.0f) / R.m_D;
@@ -337,6 +307,24 @@ bool IntersectBox(in Ray R, out float pNearT, out float pFarT)
 
   pNearT = largestMinT;
   pFarT	= smallestMaxT;
+
+  // now constrain near and far using clipPlane if active.
+  // plane xyz is normal, plane w is -distance from origin
+  float denom = dot(R.m_D, g_clipPlane.xyz);
+  if (abs(denom) > 0.0001f) // your favorite epsilon
+  {
+    float tClip = dot(g_clipPlane.xyz*(-g_clipPlane.w) - R.m_O, g_clipPlane.xyz) / denom;
+    if (denom < 0.0f) {
+      pNearT = max(pNearT, tClip);
+    }
+    else {
+      pFarT = min(pFarT, tClip);
+    }
+  }
+  else
+  {
+  // todo check to see which side of the plane we are on ?
+  }
 
   return pFarT > pNearT;
 }
@@ -1436,6 +1424,7 @@ void main()
   m_specular3 = uniformLocation("g_specular[3]");
   m_roughness = uniformLocation("g_roughness");
   m_uShowLights = uniformLocation("uShowLights");
+  m_clipPlane = uniformLocation("g_clipPlane");
 }
 
 GLPTVolumeShader::~GLPTVolumeShader() {}
@@ -1646,6 +1635,13 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform1fv(m_roughness, 4, roughness);
 
   glUniform1i(m_uShowLights, 0);
+
+  if (scene->m_clipPlane->m_enabled) {
+    Plane p = Plane().transform(scene->m_clipPlane->m_transform.getMatrix());
+    glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
+  } else {
+    glUniform4fv(m_clipPlane, 1, glm::value_ptr(glm::vec4(0, 0, 0, 0)));
+  }
 
   check_gl("pathtrace shader uniform binding");
 }

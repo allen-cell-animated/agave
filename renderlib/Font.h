@@ -2,6 +2,7 @@
 
 #include "stb/stb_truetype.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

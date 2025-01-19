@@ -288,6 +288,43 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
 
+  m_showUserClipPlane = new QCheckBox("Show Clip Plane");
+  m_showUserClipPlane->setChecked(false);
+  roiSectionLayout->addWidget(m_showUserClipPlane, 3, 0, 1, 2);
+  QObject::connect(m_showUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
+    emit this->m_qrendersettings->Selected(toggled ? this->m_scene->m_clipPlane.get() : nullptr);
+  });
+  m_toggleClipPlaneControls = new QCheckBox("Rotate clip plane");
+  m_toggleClipPlaneControls->setChecked(false);
+  roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);
+  QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
+    if (toggled) {
+      // make sure it's selected if we clicked this.
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    }
+    pToggleRotateAction->trigger();
+  });
+  m_toggleClipPlaneTranslateControls = new QCheckBox("Translate clip plane");
+  m_toggleClipPlaneTranslateControls->setChecked(false);
+  roiSectionLayout->addWidget(m_toggleClipPlaneTranslateControls, 5, 0, 1, 2);
+  QObject::connect(
+    m_toggleClipPlaneTranslateControls, &QCheckBox::clicked, [this, pToggleTranslateAction](bool toggled) {
+      if (toggled) {
+        // make sure it's selected if we clicked this.
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+      pToggleTranslateAction->trigger();
+    });
+  m_enableUserClipPlane = new QCheckBox("Enable Clip Plane");
+  m_enableUserClipPlane->setChecked(true);
+  roiSectionLayout->addWidget(m_enableUserClipPlane, 6, 0, 1, 2);
+  QObject::connect(m_enableUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
+    if (this->m_scene->m_clipPlane) {
+      this->m_scene->m_clipPlane->m_enabled = toggled;
+      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+    }
+  });
+
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);
 
