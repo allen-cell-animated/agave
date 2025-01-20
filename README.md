@@ -54,6 +54,10 @@ mkdir build
 cd build
 # (vs 2022)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
+
+# or, example: ninja in separate build dir!
+cmake -DCMAKE_TOOLCHAIN_FILE=C:\Users\dmt\source\repos\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Ninja" -DVCPKG_TARGET_TRIPLET=x64-windows C:\Users\dmt\source\repos\allen-cell-animated\agave
+
 cmake --build .
 ```
 
