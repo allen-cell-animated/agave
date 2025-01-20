@@ -1,5 +1,7 @@
 #include "shaders.h"
 
+#include "Logging.h"
+
 #include "shadersrc/basicVolume_frag_gen.hpp"
 #include "shadersrc/basicVolume_vert_gen.hpp"
 #include "shadersrc/copy_frag_gen.hpp"
@@ -48,5 +50,6 @@ getShaderSource(const std::string& shaderName)
   if (shaderSources.find(shaderName) != shaderSources.end()) {
     return shaderSources[shaderName];
   }
+  LOG_ERROR << "Shader source not found: " << shaderName;
   return "";
 }
