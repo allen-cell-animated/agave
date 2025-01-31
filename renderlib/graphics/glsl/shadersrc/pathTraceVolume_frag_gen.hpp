@@ -276,7 +276,7 @@ IntersectBox(in Ray R, out float pNearT, out float pFarT)
   // now constrain near and far using clipPlane if active.
   // plane xyz is normal, plane w is -distance from origin
   float denom = dot(R.m_D, g_clipPlane.xyz);
-  if (abs(denom) > 0.0001f) // your favorite epsilon
+  if (abs(denom) > 0.0001f) // if denom is 0 then ray is parallel to plane
   {
     float tClip = dot(g_clipPlane.xyz * (-g_clipPlane.w) - R.m_O, g_clipPlane.xyz) / denom;
     if (denom < 0.0f) {
