@@ -1,5 +1,7 @@
 #include "Colormap.h"
 
+#include "Logging.h"
+
 #include <array>
 #include <tuple>
 #include <vector>
@@ -28,12 +30,15 @@ colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
   // Currently all callers satisfy this but we should check.
 
   if (pts.size() < 2) {
+    LOG_ERROR << "Need at least 2 control points to make a colormap";
     return nullptr;
   }
   if (pts[0].first != 0.0f) {
+    LOG_ERROR << "colormapFromControlPoints: First control point must be at 0.0";
     return nullptr;
   }
   if (pts[pts.size() - 1].first != 1.0f) {
+    LOG_ERROR << "colormapFromControlPoints: Last control point must be at 1.0";
     return nullptr;
   }
 
