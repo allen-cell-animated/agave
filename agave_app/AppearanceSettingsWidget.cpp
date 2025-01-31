@@ -45,7 +45,6 @@ public:
     QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
 
     painter.drawRect(r.adjusted(0, 0, -1, -1));
-    // const QString& text = itemData(currentIndex(), Qt::ToolTipRole).toString();
     painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter, itemText(currentIndex()));
   }
 };
