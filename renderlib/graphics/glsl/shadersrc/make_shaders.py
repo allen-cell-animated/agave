@@ -3,6 +3,9 @@
 ## After any shader edits, run this script to convert the shaders
 ## and then build renderlib to embed the shaders into the library.
 ##
+## Because "R" string literals are limited in length, this script
+## breaks up the shader source into chunks and then concatenates
+## them in the generated C++ source file.
 ##################################################################
 import sys
 
@@ -52,13 +55,6 @@ def convert_shader_to_c(input_file, output_file, chunk_size=12 * 1024):
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 2:
-    #     print(f"Usage: {sys.argv[0]} <input_shader_file>")
-    #     sys.exit(1)
-
-    # input_shader = sys.argv[1]
-    # output_c = sys.argv[2]
-
     # ALL NEW SHADERS MUST BE CONVERTED TO C STRINGS VIA THIS SCRIPT IN ORDER TO BE EMBEDDED
     shaders = [
         "basicVolume.vert",
