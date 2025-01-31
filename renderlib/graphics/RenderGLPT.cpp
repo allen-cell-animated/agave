@@ -177,9 +177,16 @@ RenderGLPT::doRender(const CCamera& camera)
     if (m_renderSettings->m_DirtyFlags.HasFlag(TransferFunctionDirty)) {
       // TODO: only update the ones that changed.
       int NC = m_scene->m_volume->sizeC();
+      int activeChannel = 0;
       for (int i = 0; i < NC; ++i) {
-        m_imgGpu.updateLutGpu(i, m_scene->m_volume.get());
+        if (m_scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
+          m_imgGpu.updateLutGpu(i, m_scene->m_volume.get());
+          activeChannel++;
+        }
       }
+      uint32_t c0, c1, c2, c3;
+      m_scene->getFirst4EnabledChannels(c0, c1, c2, c3);
+      m_imgGpu.updateLutGPU(m_scene->m_volume.get(), c0, c1, c2, c3);
     }
 
     //		ResetRenderCanvasView();
@@ -199,6 +206,7 @@ RenderGLPT::doRender(const CCamera& camera)
     uint32_t c0, c1, c2, c3;
     m_scene->getFirst4EnabledChannels(c0, c1, c2, c3);
     m_imgGpu.updateVolumeData4x16(m_scene->m_volume.get(), c0, c1, c2, c3);
+    m_imgGpu.updateLutGPU(m_scene->m_volume.get(), c0, c1, c2, c3);
     m_renderSettings->SetNoIterations(0);
   }
   // At this point, all dirty flags should have been taken care of, since the flags in the original scene are now

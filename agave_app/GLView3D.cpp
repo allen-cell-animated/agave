@@ -144,8 +144,6 @@ void
 GLView3D::initializeGL()
 {
 
-  makeCurrent();
-
   QSize newsize = size();
   float dpr = devicePixelRatioF();
   m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr);
@@ -164,9 +162,7 @@ GLView3D::paintGL()
     return;
   }
 
-  makeCurrent();
   m_viewerWindow->redraw();
-  doneCurrent();
 }
 
 void
@@ -362,7 +358,7 @@ GLView3D::toggleTranslateControls()
   if (!m_viewerWindow->sceneView.getSelectedObject()) {
     setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
-  // toggle rotate tool
+  // toggle translate tool
   else if (m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
     setManipulatorMode(MANIPULATOR_MODE::NONE);
   } else {
