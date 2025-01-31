@@ -1130,7 +1130,9 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_clipPlane->m_plane.normal =
     glm::vec3(v.clipPlane.clipPlane[0], v.clipPlane.clipPlane[1], v.clipPlane.clipPlane[2]);
   m_appScene.m_clipPlane->m_plane.d = v.clipPlane.clipPlane[3];
+  m_appScene.m_clipPlane->m_center = glm::vec3(v.clipPlane.center[0], v.clipPlane.center[1], v.clipPlane.center[2]);
   m_appScene.m_clipPlane->m_enabled = v.clipPlane.enabled;
+  m_appScene.m_clipPlane->updateTransform();
 
   m_appScene.m_timeLine.setRange(v.timeline.minTime, v.timeline.maxTime);
   m_appScene.m_timeLine.setCurrentTime(v.timeline.currentTime);
@@ -1248,6 +1250,9 @@ agaveGui::appToViewerState()
   v.clipPlane.clipPlane[1] = m_appScene.m_clipPlane->m_plane.normal.y;
   v.clipPlane.clipPlane[2] = m_appScene.m_clipPlane->m_plane.normal.z;
   v.clipPlane.clipPlane[3] = m_appScene.m_clipPlane->m_plane.d;
+  v.clipPlane.center[0] = m_appScene.m_clipPlane->m_center.x;
+  v.clipPlane.center[1] = m_appScene.m_clipPlane->m_center.y;
+  v.clipPlane.center[2] = m_appScene.m_clipPlane->m_center.z;
   v.clipPlane.enabled = m_appScene.m_clipPlane->m_enabled;
 
   v.camera.eye[0] = m_glView->getCamera().m_From.x;

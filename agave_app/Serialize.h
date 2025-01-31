@@ -79,11 +79,15 @@ struct CaptureSettings
 struct ClipPlane
 {
   std::array<float, 4> clipPlane = { 0, 0, 0, 0 };
+  std::array<float, 3> center = { 0, 0, 0 };
   bool enabled = false;
 
-  bool operator==(const ClipPlane& other) const { return clipPlane == other.clipPlane && enabled == other.enabled; }
+  bool operator==(const ClipPlane& other) const
+  {
+    return clipPlane == other.clipPlane && center == other.center && enabled == other.enabled;
+  }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClipPlane, clipPlane, enabled)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClipPlane, clipPlane, center, enabled)
 };
 
 struct ViewerState
