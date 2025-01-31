@@ -1,9 +1,8 @@
 #include "Colormap.h"
 
-#include <QColor>
-
-#include <vector>
 #include <array>
+#include <tuple>
+#include <vector>
 
 uint8_t*
 colormapFromColormap(uint8_t* colormap, size_t length)
@@ -26,6 +25,17 @@ colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
   // pts is in order of increasing x value (the first element of the pair)
   // pts[0].first === 0
   // pts[pts.size()-1].first === 1
+  // Currently all callers satisfy this but we should check.
+
+  if (pts.size() < 2) {
+    return nullptr;
+  }
+  if (pts[0].first != 0.0f) {
+    return nullptr;
+  }
+  if (pts[pts.size() - 1].first != 1.0f) {
+    return nullptr;
+  }
 
   uint8_t* lut = new uint8_t[length * 4]{ 0 };
 
@@ -112,6 +122,53 @@ modifiedGlasbeyColormap(size_t length)
   return lut;
 }
 
+std::tuple<float, float, float>
+hsvToRgb(float h, float s, float v)
+{
+  float r, g, b;
+
+  int i = static_cast<int>(h * 6);
+  float f = (h * 6) - i;
+  float p = v * (1 - s);
+  float q = v * (1 - f * s);
+  float t = v * (1 - (1 - f) * s);
+
+  switch (i % 6) {
+    case 0:
+      r = v;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = v;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = v;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = v;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = v;
+      break;
+    case 5:
+      r = v;
+      g = p;
+      b = q;
+      break;
+  }
+
+  return { r, g, b };
+}
+
 uint8_t*
 colormapRandomized(size_t length)
 {
@@ -119,9 +176,11 @@ colormapRandomized(size_t length)
 
   float r, g, b;
   for (size_t x = 0; x < length; ++x) {
-    QColor color = QColor::fromHsvF(
+    std::tuple<float, float, float> rgb = hsvToRgb(
       (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25);
-    color.getRgbF(&r, &g, &b);
+    r = std::get<0>(rgb);
+    g = std::get<1>(rgb);
+    b = std::get<2>(rgb);
     lut[x * 4 + 0] = r * 255;
     lut[x * 4 + 1] = g * 255;
     lut[x * 4 + 2] = b * 255;
