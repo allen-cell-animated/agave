@@ -40,6 +40,19 @@ struct LoadSettings
                                               clipRegion)
 };
 
+struct Transform
+{
+  std::array<float, 3> translation = { 0, 0, 0 };
+  std::array<float, 4> rotation = { 0, 0, 0, 0 }; // quaternion
+  std::array<float, 3> scale = { 1, 1, 1 };
+
+  bool operator==(const Transform& other) const
+  {
+    return translation == other.translation && rotation == other.rotation && scale == other.scale;
+  }
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Transform, translation, rotation, scale)
+};
+
 enum class DurationType_PID : int
 {
   SAMPLES = 0,
@@ -78,16 +91,16 @@ struct CaptureSettings
 
 struct ClipPlane
 {
+  Transform transform;
   std::array<float, 4> clipPlane = { 0, 0, 0, 0 };
-  std::array<float, 3> center = { 0, 0, 0 };
   bool enabled = false;
 
   bool operator==(const ClipPlane& other) const
   {
-    return clipPlane == other.clipPlane && center == other.center && enabled == other.enabled;
+    return clipPlane == other.clipPlane && transform == other.transform && enabled == other.enabled;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClipPlane, clipPlane, center, enabled)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClipPlane, clipPlane, transform, enabled)
 };
 
 struct ViewerState
