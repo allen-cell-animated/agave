@@ -751,6 +751,19 @@ SetInterpolationCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
+void
+SetClipPlaneCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetClipPlane " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z << " " << m_data.m_w;
+  // get the transform from the default clip plane.
+  Plane p(glm::vec3(m_data.m_x, m_data.m_y, m_data.m_z), m_data.m_w);
+  Plane p0;
+  Transform3d tr = p0.getTransformTo(p);
+  c->m_appScene->m_clipPlane->m_transform = tr;
+  c->m_appScene->m_clipPlane->updateTransform();
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -1687,6 +1700,29 @@ SetInterpolationCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetClipPlaneCommand*
+SetClipPlaneCommand::parse(ParseableStream* c)
+{
+  SetClipPlaneCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  data.m_w = c->parseFloat32();
+  return new SetClipPlaneCommand(data);
+}
+
+size_t
+SetClipPlaneCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  bytesWritten += o->writeFloat32(m_data.m_w);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2158,6 +2194,16 @@ SetInterpolationCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_on;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetClipPlaneCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
   ss << ")";
   return ss.str();
 }

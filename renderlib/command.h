@@ -488,3 +488,12 @@ struct SetInterpolationCommandD
   int32_t m_on;
 };
 CMDDECL(SetInterpolationCommand, 47, "set_interpolation", CMD_ARGS({ CommandArgType::I32 }));
+
+struct SetClipPlaneCommandD
+{
+  float m_x, m_y, m_z, m_w;
+};
+CMDDECL(SetClipPlaneCommand,
+        48,
+        "set_clip_plane",
+        CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));

@@ -154,6 +154,20 @@ stateToPythonScript(const Serialize::ViewerState& s)
                                s.clipRegion[2][1] })
           .toPythonString()
      << std::endl;
+  if (s.clipPlane.enabled) {
+    ss << obj
+       << SetClipPlaneCommand({
+                                s.clipPlane.clipPlane[0],
+                                s.clipPlane.clipPlane[1],
+                                s.clipPlane.clipPlane[2],
+                                s.clipPlane.clipPlane[3],
+                              })
+            .toPythonString()
+       << std::endl;
+  } else {
+    ss << obj << SetClipPlaneCommand({ 0, 0, 0, 0 }).toPythonString() << std::endl;
+  }
+  ss << obj << SetClipPlaneCommand({}).toPythonString() << std::endl;
   ss << obj << SetCameraPosCommand({ s.camera.eye[0], s.camera.eye[1], s.camera.eye[2] }).toPythonString() << std::endl;
   ss << obj << SetCameraTargetCommand({ s.camera.target[0], s.camera.target[1], s.camera.target[2] }).toPythonString()
      << std::endl;
