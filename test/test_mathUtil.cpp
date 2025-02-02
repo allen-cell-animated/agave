@@ -87,3 +87,89 @@ TEST_CASE("Affine Space can be inverted", "[AffineSpace3f]")
     REQUIRE(glm::all(glm::epsilonEqual(v2, testVec, epsilon)));
   }
 }
+
+TEST_CASE("Planes can be transformed", "[Plane]")
+{
+  SECTION("Plane transform using matrix or Transform3d")
+  {
+    Plane p(glm::normalize(glm::vec3(1.0f, 1.0f, 0.4f)), glm::vec3(1.0f, 2.0f, 3.0f));
+
+    Transform3d t;
+    t.m_center = glm::vec3(4.0f, 5.0f, 6.0f);
+    t.m_rotation = glm::quat(glm::vec3(glm::radians(37.0f), glm::radians(55.0f), glm::radians(17.0f)));
+
+    Plane p2 = p.transform(t.getMatrix());
+
+    Plane p3 = p.transform(t);
+
+    REQUIRE(glm::all(glm::epsilonEqual(p2.normal, p3.normal, epsilon)));
+    REQUIRE(glm::epsilonEqual(p2.d, p3.d, epsilon));
+  }
+
+  SECTION("Plane transform simple rotation")
+  {
+    // default plane points to +z and sits at origin in xy plane.
+    Plane p;
+
+    Transform3d t;
+    t.m_rotation = glm::quat(glm::vec3(glm::radians(90.0f), 0, 0));
+
+    Plane p2 = p.transform(t);
+
+    REQUIRE(glm::all(glm::epsilonEqual(p2.normal, glm::vec3(0.0f, -1.0f, 0.0f), epsilon)));
+    REQUIRE(glm::all(glm::epsilonEqual(p2.getPointInPlane(), glm::vec3(0.0f, 0.0f, 0.0f), epsilon)));
+  }
+
+  SECTION("Trivial Plane transform rotation and translate")
+  {
+    // default plane points to +z and sits at origin in xy plane.
+    Plane p;
+
+    Transform3d t;
+    t.m_center = glm::vec3(1.0f, 2.0f, 3.0f);
+    t.m_rotation = glm::quat(glm::vec3(glm::radians(90.0f), 0, 0));
+
+    Plane p2 = p.transform(t);
+
+    REQUIRE(glm::all(glm::epsilonEqual(p2.normal, glm::vec3(0.0f, -1.0f, 0.0f), epsilon)));
+    REQUIRE(p2.isInPlane(glm::vec3(1.0f, 2.0f, 3.0f)));
+  }
+
+  SECTION("Find transform between two planes")
+  {
+    Plane p1(glm::normalize(glm::vec3(0.7f, -1.0f, 1.0f)), glm::vec3(4.0f, 5.0f, 6.0f));
+    Plane p2(glm::normalize(glm::vec3(1.0f, 1.0f, 0.4f)), glm::vec3(1.0f, 2.0f, 3.0f));
+
+    // get the transform that takes p1 to p2
+    Transform3d t = p1.getTransformTo(p2);
+
+    Plane p3 = p1.transform(t);
+    // now p3 should describe the same plane as p2
+    REQUIRE(glm::all(glm::epsilonEqual(p3.normal, p2.normal, epsilon)));
+    REQUIRE(glm::epsilonEqual(p3.d, p2.d, epsilon));
+
+    // now swap and the transform should be an inverse.
+
+    Plane ptmp = p2;
+    p2 = p1;
+    p1 = ptmp;
+
+    Transform3d t2 = p1.getTransformTo(p2);
+    p3 = p1.transform(t2);
+    // now p3 should describe the same plane as p2
+    REQUIRE(glm::all(glm::epsilonEqual(p3.normal, p2.normal, epsilon)));
+    REQUIRE(glm::epsilonEqual(p3.d, p2.d, epsilon));
+
+    // t2 should be inverse of t?
+    // or: t2*t should be identity.
+    glm::mat4 m1 = t.getMatrix();
+    glm::mat4 m2 = t2.getMatrix();
+    glm::mat4 m3 = m1 * m2;
+    glm::mat4 mI = glm::mat4(1.0f);
+
+    REQUIRE(glm::all(glm::epsilonEqual(m3[0], mI[0], epsilon)));
+    REQUIRE(glm::all(glm::epsilonEqual(m3[1], mI[1], epsilon)));
+    REQUIRE(glm::all(glm::epsilonEqual(m3[2], mI[2], epsilon)));
+    REQUIRE(glm::all(glm::epsilonEqual(m3[3], mI[3], epsilon)));
+  }
+}
