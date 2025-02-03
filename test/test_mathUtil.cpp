@@ -2,6 +2,8 @@
 
 #include "renderlib/MathUtil.h"
 
+#include <iostream>
+
 static constexpr float epsilon = 0.000001f;
 
 TEST_CASE("Linear Space can be inverted", "[LinearSpace3f]")
@@ -171,5 +173,25 @@ TEST_CASE("Planes can be transformed", "[Plane]")
     REQUIRE(glm::all(glm::epsilonEqual(m3[1], mI[1], epsilon)));
     REQUIRE(glm::all(glm::epsilonEqual(m3[2], mI[2], epsilon)));
     REQUIRE(glm::all(glm::epsilonEqual(m3[3], mI[3], epsilon)));
+  }
+  SECTION("Compare pre-transformed plane vs plane with transform")
+  {
+    Plane ptest(glm::vec3(0.556908, -0.111588, 0.823044), 0.44196);
+    Plane ptest2;
+    Transform3d ttest2;
+    ttest2.m_center = glm::vec3(0.5, 0.49532708525657654, 0.26581597328186035);
+    // exact order that rotation was written to json:
+    ttest2.m_rotation = glm::quat(0.4693438410758972, 0.2827088534832001, 0.09248612821102142, 0.8314074873924255);
+
+    Plane ptest3 = ptest2.transform(ttest2);
+    REQUIRE(glm::all(glm::epsilonEqual(ptest3.normal, ptest.normal, epsilon)));
+    REQUIRE(glm::epsilonEqual(ptest3.d, ptest.d, epsilon));
+
+    // extract transform from ptest:
+    Transform3d ttest = ptest2.getTransformTo(ptest);
+
+    Plane ptest4 = ptest2.transform(ttest);
+    REQUIRE(glm::all(glm::epsilonEqual(ptest4.normal, ptest.normal, epsilon)));
+    REQUIRE(glm::epsilonEqual(ptest4.d, ptest.d, epsilon));
   }
 }

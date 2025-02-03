@@ -1132,6 +1132,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_clipPlane->m_plane.d = v.clipPlane.clipPlane[3];
   m_appScene.m_clipPlane->m_transform.m_center = glm::vec3(
     v.clipPlane.transform.translation[0], v.clipPlane.transform.translation[1], v.clipPlane.transform.translation[2]);
+  // quat ctor is w,x,y,z
   m_appScene.m_clipPlane->m_transform.m_rotation = glm::quat(v.clipPlane.transform.rotation[3],
                                                              v.clipPlane.transform.rotation[0],
                                                              v.clipPlane.transform.rotation[1],
@@ -1259,10 +1260,10 @@ agaveGui::appToViewerState()
   v.clipPlane.transform.translation[1] = m_appScene.m_clipPlane->m_transform.m_center.y;
   v.clipPlane.transform.translation[2] = m_appScene.m_clipPlane->m_transform.m_center.z;
   // note that the quat ctor takes w,x,y,z
-  v.clipPlane.transform.rotation[0] = m_appScene.m_clipPlane->m_transform.m_rotation.x;
-  v.clipPlane.transform.rotation[1] = m_appScene.m_clipPlane->m_transform.m_rotation.y;
-  v.clipPlane.transform.rotation[2] = m_appScene.m_clipPlane->m_transform.m_rotation.z;
-  v.clipPlane.transform.rotation[3] = m_appScene.m_clipPlane->m_transform.m_rotation.w;
+  v.clipPlane.transform.rotation[0] = m_appScene.m_clipPlane->m_transform.m_rotation[0];
+  v.clipPlane.transform.rotation[1] = m_appScene.m_clipPlane->m_transform.m_rotation[1];
+  v.clipPlane.transform.rotation[2] = m_appScene.m_clipPlane->m_transform.m_rotation[2];
+  v.clipPlane.transform.rotation[3] = m_appScene.m_clipPlane->m_transform.m_rotation[3];
   v.clipPlane.enabled = m_appScene.m_clipPlane->m_enabled;
 
   v.camera.eye[0] = m_glView->getCamera().m_From.x;
