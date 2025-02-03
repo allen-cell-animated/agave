@@ -411,6 +411,7 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     for (size_t i = 0; i < datasets.size(); ++i) {
       auto data = datasets[i];
       auto cmd = testcodec<LoadDataCommand, LoadDataCommandD>(data);
+
       REQUIRE(cmd->toPythonString() == pystrings[i]);
       REQUIRE(cmd->m_data.m_path == data.m_path);
       REQUIRE(cmd->m_data.m_scene == data.m_scene);

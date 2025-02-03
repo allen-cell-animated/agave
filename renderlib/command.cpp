@@ -12,6 +12,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include <regex>
+
 #if defined(WIN32)
 #define STAT64_STRUCT __stat64
 #define STAT64_FUNCTION _stat64
@@ -759,7 +761,9 @@ SetClipPlaneCommand::execute(ExecutionContext* c)
   Plane p(glm::vec3(m_data.m_x, m_data.m_y, m_data.m_z), m_data.m_w);
   Plane p0;
   Transform3d tr = p0.getTransformTo(p);
+  c->m_appScene->m_clipPlane->m_plane = p0;
   c->m_appScene->m_clipPlane->m_transform = tr;
+  c->m_appScene->m_clipPlane->m_enabled = true;
   c->m_appScene->m_clipPlane->updateTransform();
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
@@ -2148,7 +2152,10 @@ LoadDataCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
 
-  ss << "\"" << m_data.m_path << "\", ";
+  // escape slashes in path
+  std::string escaped = std::regex_replace(m_data.m_path, std::regex("\\\\"), "\\\\");
+
+  ss << "\"" << escaped << "\", ";
   ss << m_data.m_scene << ", " << m_data.m_level << ", " << m_data.m_time;
   ss << ", [";
   // insert comma delimited but no comma after the last entry
