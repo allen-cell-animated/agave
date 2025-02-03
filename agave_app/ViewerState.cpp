@@ -167,10 +167,11 @@ stateToPythonScript(const Serialize::ViewerState& s)
     tr.m_center = { s.clipPlane.transform.translation[0],
                     s.clipPlane.transform.translation[1],
                     s.clipPlane.transform.translation[2] };
-    tr.m_rotation = { s.clipPlane.transform.rotation[0],
+    // quat ctor is w,x,y,z
+    tr.m_rotation = { s.clipPlane.transform.rotation[3],
+                      s.clipPlane.transform.rotation[0],
                       s.clipPlane.transform.rotation[1],
-                      s.clipPlane.transform.rotation[2],
-                      s.clipPlane.transform.rotation[3] };
+                      s.clipPlane.transform.rotation[2] };
     p = p.transform(tr);
     ss << obj << SetClipPlaneCommand({ p.normal.x, p.normal.y, p.normal.z, p.d }).toPythonString() << std::endl;
   } else {
