@@ -6,6 +6,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
+#include "renderlib/StringUtil.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "renderlib/version.hpp"
@@ -87,7 +88,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
 {
   std::string outFileName = LoadSpec::getFilename(s.datasets[0].url);
   // escape any backslashes
-  outFileName = std::regex_replace(outFileName, std::regex("\\\\"), "\\\\");
+  outFileName = escapePath(outFileName);
 
   std::ostringstream ss;
   ss << "# pip install agave_pyclient" << std::endl;

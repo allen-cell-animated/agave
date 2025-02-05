@@ -5,6 +5,7 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "RenderSettings.h"
+#include "StringUtil.h"
 #include "VolumeDimensions.h"
 
 #include "json/json.hpp"
@@ -2153,7 +2154,7 @@ LoadDataCommand::toPythonString() const
   ss << PythonName() << "(";
 
   // escape slashes in path
-  std::string escaped = std::regex_replace(m_data.m_path, std::regex("\\\\"), "\\\\");
+  std::string escaped = escapePath(m_data.m_path);
 
   ss << "\"" << escaped << "\", ";
   ss << m_data.m_scene << ", " << m_data.m_level << ", " << m_data.m_time;
