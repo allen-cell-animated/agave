@@ -87,8 +87,6 @@ QString
 stateToPythonScript(const Serialize::ViewerState& s)
 {
   std::string outFileName = LoadSpec::getFilename(s.datasets[0].url);
-  // escape any backslashes
-  outFileName = escapePath(outFileName);
 
   std::ostringstream ss;
   ss << "# pip install agave_pyclient" << std::endl;

@@ -1733,7 +1733,7 @@ SessionCommand::toPythonString() const
 {
   std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << "\"" << m_data.m_name << "\"";
+  ss << "\"" << escapePath(m_data.m_name) << "\"";
   ss << ")";
   return ss.str();
 }
