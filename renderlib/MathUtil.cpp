@@ -45,7 +45,7 @@ AffineSpace3f::AffineSpace3f(const glm::quat& orientation, const glm::vec3& p)
 glm::mat4
 Transform3d::getMatrix() const
 {
-  // glm::mat4 getMatrix() const { return glm::translate(glm::mat4_cast(m_rotation), m_center); }
+  // return glm::translate(glm::mat4_cast(m_rotation), m_center);
   glm::mat4 transform = glm::mat4(1.0f);           // Identity matrix
   transform = glm::translate(transform, m_center); // Apply translation
   // m_rotation must be a _normalized_ quaternion
@@ -75,6 +75,27 @@ Plane::transform(const glm::mat4& m) const
 Plane
 Plane::transform(const Transform3d& transform) const
 {
-  Plane p(transform.m_rotation * normal, transform.m_center + normal * d);
+  // is this any better than just using Transform3d.getMatrix?
+  glm::vec3 rotatedNormal = glm::rotate(transform.m_rotation, normal);
+  glm::vec3 pt = getPointInPlane();
+  pt = glm::rotate(transform.m_rotation, pt) + transform.m_center;
+  Plane p(rotatedNormal, pt);
   return p;
+}
+
+Transform3d
+Plane::getTransformTo(const Plane& p) const
+{
+  Transform3d t;
+
+  glm::quat q = glm::rotation(normal, p.normal);
+  t.m_rotation = q;
+
+  // now I can rotate the plane to at least make it parallel to the other plane.
+  Plane ptmp = transform(t);
+
+  // now the translation is the difference between the two parallel planes.
+  t.m_center = p.getPointInPlane() - ptmp.getPointInPlane();
+
+  return t;
 }

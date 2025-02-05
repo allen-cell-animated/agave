@@ -949,6 +949,24 @@ class AgaveRenderer:
         # 47
         self.cb.add_command("SET_INTERPOLATION", x)
 
+    def set_clip_plane(self, x: float, y: float, z: float, d: float):
+        """
+        Set the clip plane equation.  The xyz vector must be normalized.
+
+        Parameters
+        ----------
+        x: float
+            The x component of the normal
+        y: float
+            The y component of the normal
+        z: float
+            The z component of the normal
+        d: float
+            The distance from the origin
+        """
+        # 48
+        self.cb.add_command("SET_CLIP_PLANE", x, y, z, d)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):

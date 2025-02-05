@@ -6,6 +6,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
+#include "renderlib/StringUtil.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "renderlib/version.hpp"
@@ -14,6 +15,7 @@
 #include <QFileInfo>
 
 #include <sstream>
+#include <regex>
 
 template<typename K, typename V>
 std::unordered_map<V, K>
@@ -154,6 +156,26 @@ stateToPythonScript(const Serialize::ViewerState& s)
                                s.clipRegion[2][1] })
           .toPythonString()
      << std::endl;
+  if (s.clipPlane.enabled) {
+    Plane p;
+    p.normal.x = s.clipPlane.clipPlane[0];
+    p.normal.y = s.clipPlane.clipPlane[1];
+    p.normal.z = s.clipPlane.clipPlane[2];
+    p.d = s.clipPlane.clipPlane[3];
+    Transform3d tr;
+    tr.m_center = { s.clipPlane.transform.translation[0],
+                    s.clipPlane.transform.translation[1],
+                    s.clipPlane.transform.translation[2] };
+    // quat ctor is w,x,y,z
+    tr.m_rotation = { s.clipPlane.transform.rotation[3],
+                      s.clipPlane.transform.rotation[0],
+                      s.clipPlane.transform.rotation[1],
+                      s.clipPlane.transform.rotation[2] };
+    p = p.transform(tr);
+    ss << obj << SetClipPlaneCommand({ p.normal.x, p.normal.y, p.normal.z, p.d }).toPythonString() << std::endl;
+  } else {
+    ss << obj << SetClipPlaneCommand({ 0, 0, 0, 0 }).toPythonString() << std::endl;
+  }
   ss << obj << SetCameraPosCommand({ s.camera.eye[0], s.camera.eye[1], s.camera.eye[2] }).toPythonString() << std::endl;
   ss << obj << SetCameraTargetCommand({ s.camera.target[0], s.camera.target[1], s.camera.target[2] }).toPythonString()
      << std::endl;
