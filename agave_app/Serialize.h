@@ -43,7 +43,7 @@ struct LoadSettings
 struct Transform
 {
   std::array<float, 3> translation = { 0, 0, 0 };
-  std::array<float, 4> rotation = { 0, 0, 0, 0 }; // quaternion
+  std::array<float, 4> rotation = { 0, 0, 0, 0 }; // quaternion in xyzw order
   std::array<float, 3> scale = { 1, 1, 1 };
 
   bool operator==(const Transform& other) const
