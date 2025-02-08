@@ -79,6 +79,7 @@ stringListToGradient(const std::vector<std::string>& colors)
 uint8_t*
 modifiedGlasbeyColormap(size_t length)
 {
+  // IF THIS GETS MODIFIED THEN OLD FILES USING IT WILL NO LONGER HAVE THE SAME COLORS ON LOAD
   static const std::vector<std::array<uint8_t, 3>> modifiedGlasbey = {
     { 0, 0, 0 },       { 255, 255, 0 },   { 255, 25, 255 },  { 0, 147, 147 },   { 156, 64, 0 },    { 88, 0, 199 },
     { 241, 235, 255 }, { 20, 75, 0 },     { 0, 188, 1 },     { 255, 159, 98 },  { 145, 144, 255 }, { 93, 0, 63 },
@@ -195,6 +196,7 @@ colormapRandomized(size_t length)
 }
 
 // 11 stops: 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1
+// The names are used for IO and therefore should not be changed.
 static std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>> builtInGradients = {
   { "none",
     stringListToGradient({
@@ -553,7 +555,8 @@ static std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>>
                            "#80c9bf",
                            "#399890",
                            "#0a675f",
-                           "#0a675f" }) }
+                           "#0a675f" }) },
+  { "Labels", {} }
 };
 
 const std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>>&

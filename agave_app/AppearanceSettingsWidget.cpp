@@ -62,17 +62,25 @@ makeGradientCombo()
     gradient.setFinalStop(1., 0.); // bottom right
     gradient.setCoordinateMode(QGradient::ObjectMode);
 
+    QString itemText;
     QBrush brush(gradient);
-    brush.setStyle(Qt::LinearGradientPattern);
-    cb->addItem("", QVariant(gspec.first.c_str()));
+    if (gspec.second.size() > 0) {
+      brush.setStyle(Qt::LinearGradientPattern);
+    } else {
+      // special case for Labels
+      brush.setColor(QColor(255, 255, 255));
+      brush.setStyle(Qt::SolidPattern);
+      itemText = gspec.first.c_str();
+    }
+    cb->addItem(itemText, QVariant(gspec.first.c_str()));
     cb->setItemData(index, QVariant(gspec.first.c_str()), Qt::ToolTipRole);
     cb->setItemData(index, brush, Qt::BackgroundRole);
     index++;
   }
-  cb->addItem("Labels", QVariant("Labels"));
-  cb->setItemData(index, QVariant("Labels"), Qt::ToolTipRole);
-  QBrush brush;
-  cb->setItemData(index, brush, Qt::BackgroundRole);
+  // cb->addItem("Labels", QVariant("Labels"));
+  // cb->setItemData(index, QVariant("Labels"), Qt::ToolTipRole);
+  // QBrush brush;
+  // cb->setItemData(index, brush, Qt::BackgroundRole);
   return cb;
 }
 
