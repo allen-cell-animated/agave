@@ -1312,6 +1312,7 @@ agaveGui::appToViewerState()
       ch.opacity = m_appScene.m_material.m_opacity[i];
 
       ch.lutParams = fromGradientData(m_appScene.m_material.m_gradientData[i]);
+      ch.colorMap = fromColorRamp(m_appScene.m_material.m_colormap[i]);
 
       v.channels.push_back(ch);
     }
