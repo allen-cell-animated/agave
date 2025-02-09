@@ -9,20 +9,6 @@
 
 const std::string NO_COLORMAP_NAME = "none";
 
-uint8_t*
-colormapFromColormap(uint8_t* colormap, size_t length)
-{
-  // basically just copy the whole thing.
-  uint8_t* lut = new uint8_t[length * 4]{ 0 };
-  for (size_t x = 0; x < length; ++x) {
-    lut[x * 4 + 0] = colormap[x * 4 + 0];
-    lut[x * 4 + 1] = colormap[x * 4 + 1];
-    lut[x * 4 + 2] = colormap[x * 4 + 2];
-    lut[x * 4 + 3] = colormap[x * 4 + 3];
-  }
-  return lut;
-}
-
 std::vector<uint8_t>
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 {
@@ -579,7 +565,7 @@ getBuiltInGradients()
 
 // "none" and "Labels" are special cases.
 const ColorRamp&
-colormapFromName(const std::string& name)
+ColorRamp::colormapFromName(const std::string& name)
 {
   for (auto& gspec : getBuiltInGradients()) {
     // the name is actually in our list:

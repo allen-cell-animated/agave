@@ -60,16 +60,6 @@ struct ColorControlPoint
   }
 };
 
-std::vector<uint8_t>
-colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length = 256);
-
-uint8_t*
-modifiedGlasbeyColormap(size_t length = 256);
-uint8_t*
-colormapRandomized(size_t length = 256);
-uint8_t*
-colormapFromColormap(uint8_t* colormap, size_t length = 256);
-
 class ColorRamp
 {
 public:
@@ -126,6 +116,7 @@ public:
   }
 
   static ColorRamp createLabels(size_t length = 256);
+  const ColorRamp& colormapFromName(const std::string& name);
 
   void updateStops(const std::vector<ColorControlPoint>& stops)
   {
@@ -140,6 +131,3 @@ private:
 
 const std::vector<ColorRamp>&
 getBuiltInGradients();
-
-const ColorRamp&
-colormapFromName(const std::string& name);

@@ -1085,13 +1085,13 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
       if (name == "Labels") {
         if (m_scene) {
-          m_scene->m_material.m_colormap[i] = colormapFromName(name);
+          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
           m_scene->m_material.m_labels[i] = 1.0;
           m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
         }
 
       } else {
-        m_scene->m_material.m_colormap[i] = colormapFromName(name);
+        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
         m_scene->m_material.m_labels[i] = 0.0;
         m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
