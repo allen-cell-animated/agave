@@ -13,8 +13,6 @@ void
 Fuse::fuse(const ImageXYZC* img,
            const std::vector<glm::vec3>& colorsPerChannel,
            const VolumeDisplay& volumeDisplay,
-           //  const GradientData* channelGradientData, material.m_gradientData
-           //  const float* channelIsLabels, material.m_labels
            uint8_t** outRGBVolume,
            uint16_t** outGradientVolume)
 {
@@ -58,7 +56,7 @@ Fuse::fuse(const ImageXYZC* img,
         float chmin = (float)img->channel(i)->m_min;
         // lut = luts[idx][c.enhancement];
 
-        isLabels = volumeDisplay.m_labels ? (volumeDisplay.m_labels[i] > 0 ? true : false) : false;
+        isLabels = volumeDisplay.m_labels[i] > 0 ? true : false;
         const uint8_t* colormap = volumeDisplay.m_colormap[i].m_colormap.data();
         //   get a min/max from the gradient data if possible
         uint16_t imin16 = 0;

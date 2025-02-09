@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 
-const std::string NO_COLORMAP_NAME = "none";
+const std::string ColorRamp::NO_COLORMAP_NAME = "none";
 
 std::vector<uint8_t>
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
@@ -554,8 +554,6 @@ static const std::vector<ColorRamp> builtInGradients = { ColorRamp(),
                                                                                   "#0a675f",
                                                                                   "#0a675f" }) },
                                                          ColorRamp::createLabels() };
-
-static constexpr int COLORMAP_NONE_INDEX = 0;
 
 const std::vector<ColorRamp>&
 getBuiltInGradients()
