@@ -875,8 +875,9 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 void
 QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
-  if (!m_scene)
+  if (!m_scene) {
     return;
+  }
   // if we are switching one on, count how many sections are checked.
   // if more than 4, then switch this one back off
   if (is_checked) {
@@ -1070,7 +1071,12 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    // get color ramp from scene
+    const ColorRamp& cr = scene->m_material.m_colormap[i];
     QComboBox* gradients = makeGradientCombo();
+    int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
+    LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
+    gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
@@ -1090,6 +1096,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
         m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
     });
+    // init
+    // this->OnColormapChanged(i, cr);
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));

@@ -80,11 +80,7 @@ public:
   // TODO consider putting the colormap outside of this class since it's almost an implementation detail.
   std::vector<uint8_t> m_colormap;
 
-  ColorRamp()
-  {
-    m_stops = { ColorControlPoint(0.0f, 255u, 255u, 255u, 255u), ColorControlPoint(1.0f, 255u, 255u, 255u, 255u) };
-    createColormap();
-  }
+  ColorRamp();
   ColorRamp(const std::string& name, const std::vector<ColorControlPoint>& stops)
     : m_name(name)
     , m_stops(stops)
@@ -92,7 +88,8 @@ public:
     createColormap();
   }
   ColorRamp(const std::vector<ColorControlPoint>& stops)
-    : m_stops(stops)
+    : m_name("custom")
+    , m_stops(stops)
   {
     createColormap();
   }

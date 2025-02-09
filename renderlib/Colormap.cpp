@@ -7,6 +7,8 @@
 #include <tuple>
 #include <vector>
 
+const std::string NO_COLORMAP_NAME = "none";
+
 uint8_t*
 colormapFromColormap(uint8_t* colormap, size_t length)
 {
@@ -211,11 +213,7 @@ ColorRamp::createLabels(size_t length)
 
 // 11 stops: 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1
 // The names are used for IO and therefore should not be changed.
-static const std::vector<ColorRamp> builtInGradients = { ColorRamp("none",
-                                                                   stringListToGradient({
-                                                                     "#ffffff",
-                                                                     "#ffffff",
-                                                                   })),
+static const std::vector<ColorRamp> builtInGradients = { ColorRamp(),
                                                          ColorRamp("greyscale",
                                                                    stringListToGradient({
                                                                      "#000000",
@@ -592,7 +590,7 @@ colormapFromName(const std::string& name)
 
   LOG_ERROR << "Unknown colormap name: " << name << ". Falling back to no colormap.";
   // use "none" as a special case when the map is not found.
-  return getBuiltInGradients()[COLORMAP_NONE_INDEX];
+  return colormapFromName(NO_COLORMAP_NAME);
 }
 
 void
@@ -610,4 +608,11 @@ ColorRamp::debugPrintColormap()
     ss << (int)m_colormap[x] << ", ";
   }
   LOG_DEBUG << "COLORMAP: " << ss.str();
+}
+
+ColorRamp::ColorRamp()
+{
+  m_name = NO_COLORMAP_NAME;
+  m_stops = stringListToGradient({ "#ffffff", "#ffffff" });
+  createColormap();
 }
