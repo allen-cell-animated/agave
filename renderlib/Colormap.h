@@ -116,7 +116,7 @@ public:
   }
 
   static ColorRamp createLabels(size_t length = 256);
-  const ColorRamp& colormapFromName(const std::string& name);
+  static const ColorRamp& colormapFromName(const std::string& name);
 
   void updateStops(const std::vector<ColorControlPoint>& stops)
   {
