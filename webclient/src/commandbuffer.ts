@@ -85,6 +85,8 @@ export const COMMANDS = {
   SET_FLIP_AXIS: [46, "I32", "I32", "I32"],
   SET_INTERPOLATION: [47, "I32"],
   SET_CLIP_PLANE: [48, "F32", "F32", "F32", "F32"],
+  // channel index, name, array of [stop, r, g, b, a]
+  SET_COLOR_RAMP: [49, "I32", "S", "F32A"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
