@@ -2264,7 +2264,7 @@ SetColorRampCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
 
-  ss << m_data.m_channel << ", " << m_data.m_name << ", [";
+  ss << m_data.m_channel << ", \"" << m_data.m_name << "\", [";
   // insert comma delimited but no comma after the last entry
   if (!m_data.m_data.empty()) {
     std::copy(m_data.m_data.begin(), std::prev(m_data.m_data.end()), std::ostream_iterator<float>(ss, ", "));
