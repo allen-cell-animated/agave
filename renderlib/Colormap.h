@@ -60,8 +60,9 @@ struct ColorControlPoint
   }
 };
 
-uint8_t*
+std::vector<uint8_t>
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length = 256);
+
 uint8_t*
 modifiedGlasbeyColormap(size_t length = 256);
 uint8_t*
@@ -69,8 +70,73 @@ colormapRandomized(size_t length = 256);
 uint8_t*
 colormapFromColormap(uint8_t* colormap, size_t length = 256);
 
-std::vector<ColorControlPoint>
-stringListToGradient(const std::vector<std::string>& colors);
+class ColorRamp
+{
+public:
+  std::string m_name;
+  std::vector<ColorControlPoint> m_stops;
 
-const std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>>&
+  // the colormap is "baked" but the stops should be the source of truth
+  // TODO consider putting the colormap outside of this class since it's almost an implementation detail.
+  std::vector<uint8_t> m_colormap;
+
+  ColorRamp()
+  {
+    m_stops = { ColorControlPoint(0.0f, 255u, 255u, 255u, 255u), ColorControlPoint(1.0f, 255u, 255u, 255u, 255u) };
+    createColormap();
+  }
+  ColorRamp(const std::string& name, const std::vector<ColorControlPoint>& stops)
+    : m_name(name)
+    , m_stops(stops)
+  {
+    createColormap();
+  }
+  ColorRamp(const std::vector<ColorControlPoint>& stops)
+    : m_stops(stops)
+  {
+    createColormap();
+  }
+  ColorRamp(const ColorRamp& other)
+    : m_name(other.m_name)
+    , m_stops(other.m_stops)
+    , m_colormap(other.m_colormap)
+  {
+  }
+  ColorRamp(ColorRamp&& other) noexcept
+    : m_name(std::move(other.m_name))
+    , m_stops(std::move(other.m_stops))
+    , m_colormap(std::move(other.m_colormap))
+  {
+  }
+  // Move assignment operator
+  ColorRamp& operator=(ColorRamp&& other) noexcept
+  {
+    if (this != &other) {
+      m_name = std::move(other.m_name);
+      m_stops = std::move(other.m_stops);
+      m_colormap = std::move(other.m_colormap);
+    }
+    return *this;
+  }
+  ColorRamp& operator=(const ColorRamp& other)
+  {
+    if (this != &other) {
+      m_name = other.m_name;
+      m_stops = other.m_stops;
+      m_colormap = other.m_colormap;
+    }
+    return *this;
+  }
+
+  static ColorRamp createLabels(size_t length = 256);
+
+private:
+  void createColormap(size_t length = 256);
+  void debugPrintColormap();
+};
+
+const std::vector<ColorRamp>&
 getBuiltInGradients();
+
+const ColorRamp&
+colormapFromName(const std::string& name);

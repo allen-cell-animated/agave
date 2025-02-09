@@ -24,11 +24,7 @@ struct Channelu16
 
   Histogram m_histogram;
   float* m_lut;
-  uint8_t* m_colormap;
 
-  void updateColormap(std::vector<ColorControlPoint> stops);
-  void copyColormap(uint8_t* colormap, size_t length = 256);
-  void colorize();
   uint16_t* generateGradientMagnitudeVolume(float scalex, float scaley, float scalez);
 
   void generateFromGradientData(const GradientData& gradientData)

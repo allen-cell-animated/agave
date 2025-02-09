@@ -1,5 +1,6 @@
 #include "Fuse.h"
 
+#include "AppScene.h" // for VolumeDisplay!  REFACTOR
 #include "GradientData.h"
 #include "ImageXYZC.h"
 
@@ -11,8 +12,9 @@
 void
 Fuse::fuse(const ImageXYZC* img,
            const std::vector<glm::vec3>& colorsPerChannel,
-           const GradientData* channelGradientData,
-           const float* channelIsLabels,
+           const VolumeDisplay& volumeDisplay,
+           //  const GradientData* channelGradientData, material.m_gradientData
+           //  const float* channelIsLabels, material.m_labels
            uint8_t** outRGBVolume,
            uint16_t** outGradientVolume)
 {
@@ -27,7 +29,7 @@ Fuse::fuse(const ImageXYZC* img,
 
   parallel_for(
     img->sizeX() * img->sizeY() * img->sizeZ(),
-    [&img, &colorsPerChannel, &channelGradientData, &channelIsLabels, &rgbVolume](size_t s, size_t e) {
+    [&img, &colorsPerChannel, &volumeDisplay, &rgbVolume](size_t s, size_t e) {
       float value = 0;
       uint16_t rawvalue = 0;
       float normalizedvalue = 0;
@@ -56,12 +58,12 @@ Fuse::fuse(const ImageXYZC* img,
         float chmin = (float)img->channel(i)->m_min;
         // lut = luts[idx][c.enhancement];
 
-        isLabels = channelIsLabels ? (channelIsLabels[i] > 0 ? true : false) : false;
-        uint8_t* colormap = img->channel(i)->m_colormap;
-        //  get a min/max from the gradient data if possible
+        isLabels = volumeDisplay.m_labels ? (volumeDisplay.m_labels[i] > 0 ? true : false) : false;
+        const uint8_t* colormap = volumeDisplay.m_colormap[i].m_colormap.data();
+        //   get a min/max from the gradient data if possible
         uint16_t imin16 = 0;
         uint16_t imax16 = 0;
-        bool hasMinMax = channelGradientData[i].getMinMax(img->channel(i)->m_histogram, &imin16, &imax16);
+        bool hasMinMax = volumeDisplay.m_gradientData[i].getMinMax(img->channel(i)->m_histogram, &imin16, &imax16);
         uint16_t lutmin = hasMinMax ? imin16 : chmin;
         uint16_t lutmax = hasMinMax ? imax16 : chmax;
 
