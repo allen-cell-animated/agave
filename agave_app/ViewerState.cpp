@@ -236,6 +236,15 @@ stateToPythonScript(const Serialize::ViewerState& s)
         ss << obj << SetControlPointsCommand({ i, v }).toPythonString() << std::endl;
         break;
     }
+    std::vector<float> v;
+    for (auto p : ch.colorMap.stops) {
+      v.push_back(p.x);
+      v.push_back(p.value[0]);
+      v.push_back(p.value[1]);
+      v.push_back(p.value[2]);
+      v.push_back(p.value[3]);
+    }
+    ss << obj << SetColorRampCommand({ i, ch.colorMap.name, v }).toPythonString() << std::endl;
   }
 
   // lighting

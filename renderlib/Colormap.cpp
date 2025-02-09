@@ -600,7 +600,7 @@ ColorRamp::createColormap(size_t length)
 }
 
 void
-ColorRamp::debugPrintColormap()
+ColorRamp::debugPrintColormap() const
 {
   // stringify for output
   std::stringstream ss;

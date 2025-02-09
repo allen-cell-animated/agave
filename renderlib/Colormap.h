@@ -127,9 +127,15 @@ public:
 
   static ColorRamp createLabels(size_t length = 256);
 
+  void updateStops(const std::vector<ColorControlPoint>& stops)
+  {
+    m_stops = stops;
+    createColormap();
+  }
+
 private:
   void createColormap(size_t length = 256);
-  void debugPrintColormap();
+  void debugPrintColormap() const;
 };
 
 const std::vector<ColorRamp>&

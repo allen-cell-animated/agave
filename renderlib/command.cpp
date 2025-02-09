@@ -768,6 +768,29 @@ SetClipPlaneCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
+void
+SetColorRampCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetColorRamp " << m_data.m_channel;
+  // TODO debug print the data
+  ColorRamp& ramp = c->m_appScene->m_material.m_colormap[m_data.m_channel];
+  ramp.m_name = m_data.m_name;
+  // if the data is a known name, then we can ignore the control points.
+  std::vector<ColorControlPoint> stops;
+  // 5 floats per stop.  first is position, next four are rgba.  use a only, for now.
+  // TODO SHOULD PARSE DO THIS JOB?
+  for (size_t i = 0; i < m_data.m_data.size() / 5; ++i) {
+    stops.push_back({ m_data.m_data[i * 5],
+                      m_data.m_data[i * 5 + 1],
+                      m_data.m_data[i * 5 + 2],
+                      m_data.m_data[i * 5 + 3],
+                      m_data.m_data[i * 5 + 4] });
+  }
+  ramp.updateStops(stops);
+
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -1727,6 +1750,26 @@ SetClipPlaneCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetColorRampCommand*
+SetColorRampCommand::parse(ParseableStream* c)
+{
+  SetColorRampCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_name = c->parseString();
+  data.m_data = c->parseFloat32Array();
+  return new SetColorRampCommand(data);
+}
+size_t
+SetColorRampCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeString(m_data.m_name);
+  bytesWritten += o->writeFloat32Array(m_data.m_data);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2211,6 +2254,24 @@ SetClipPlaneCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetColorRampCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+
+  ss << m_data.m_channel << ", " << m_data.m_name << ", [";
+  // insert comma delimited but no comma after the last entry
+  if (!m_data.m_data.empty()) {
+    std::copy(m_data.m_data.begin(), std::prev(m_data.m_data.end()), std::ostream_iterator<float>(ss, ", "));
+    ss << m_data.m_data.back();
+  }
+  ss << "]";
+
   ss << ")";
   return ss.str();
 }

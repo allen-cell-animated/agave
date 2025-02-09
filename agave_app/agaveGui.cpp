@@ -1185,6 +1185,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
     m_appScene.m_material.m_opacity[i] = ch.opacity;
 
     m_appScene.m_material.m_gradientData[i] = stateToGradientData(v, i);
+
+    m_appScene.m_material.m_colormap[i] = stateToColorRamp(v, i);
   }
 
   // lights
