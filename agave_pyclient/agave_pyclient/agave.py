@@ -980,7 +980,8 @@ class AgaveRenderer:
         data: List[float]
             An array of values.  5 floats per control point.  first is position (0-1),
             next four are rgba (all 0-1).  Currently alpha will be ignored.
-            To guarantee correct behavior, the first control point should be at 0.0 and the last at 1.0.
+            To guarantee correct behavior, the first control point should be at 0.0 and
+            the last at 1.0.
         """
         # 49
         self.cb.add_command("SET_COLOR_RAMP", channel, name, data)
