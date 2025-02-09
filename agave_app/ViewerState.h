@@ -3,7 +3,7 @@
 #include "Serialize.h"
 #include "renderDialog.h"
 
-#include "renderlib/ColorMap.h"
+#include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/IFileReader.h"
 #include "renderlib/json/json.hpp"
