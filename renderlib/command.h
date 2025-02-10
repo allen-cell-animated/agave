@@ -497,3 +497,14 @@ CMDDECL(SetClipPlaneCommand,
         48,
         "set_clip_plane",
         CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
+
+struct SetColorRampCommandD
+{
+  int32_t m_channel;
+  std::string m_name;
+  std::vector<float> m_data;
+};
+CMDDECL(SetColorRampCommand,
+        49,
+        "set_color_ramp",
+        CMD_ARGS({ CommandArgType::I32, CommandArgType::STR, CommandArgType::F32A }));
