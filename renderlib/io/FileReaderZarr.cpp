@@ -555,9 +555,10 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
       auto arr = tensorstore::Array(reinterpret_cast<int32_t*>(destptr), layout);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
-      auto layout = makeLayout(shapeToLoad, sizeof(uint16_t));
-//      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), layout);
-      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad);
+//      auto layout = makeLayout(shapeToLoad, sizeof(uint16_t));
+      auto layout = tensorstore::StridedLayout<kNumDims>(tensorstore::c_order, sizeof(uint16_t), shapeToLoad);
+      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), layout);
+//      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "float32") {
       auto layout = makeLayout(shapeToLoad, sizeof(float));
