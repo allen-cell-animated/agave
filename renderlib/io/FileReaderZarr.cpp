@@ -532,33 +532,36 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minx, maxx)).value();
     tsdim++;
 
-    auto makeLayout = [](const tensorstore::Index (&shape)[5], tensorstore::Index elementSize) {
-      static constexpr int kNumDims = 5;
-      const tensorstore::Index byteStrides[5] = { shape[1]*shape[2]*shape[3]*shape[4]*elementSize, shape[2]*shape[3]*shape[4]*elementSize, shape[3]*shape[4]*elementSize, shape[4]*elementSize, elementSize};
-      return tensorstore::StridedLayoutView<5>(shape, byteStrides);
+    static constexpr tensorstore::DimensionIndex kNumDims = 5;
+
+    auto makeLayout = [](const tensorstore::Index (&shape)[kNumDims], tensorstore::Index elementSize) {
+      const tensorstore::Index byteStrides[kNumDims] = { 
+        shape[1]*shape[2]*shape[3]*shape[4]*elementSize, 
+        shape[2]*shape[3]*shape[4]*elementSize, 
+        shape[3]*shape[4]*elementSize, 
+        shape[4]*elementSize, 
+        elementSize
+      };
+      return tensorstore::StridedLayoutView<kNumDims>(shape, byteStrides);
     };
 
-    static constexpr tensorstore::DimensionIndex kNumDims = 5;
     const tensorstore::Index shapeToLoad[kNumDims] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
-    const tensorstore::Index strides[kNumDims] = { 1*dims.sizeZ*dims.sizeY*dims.sizeX, dims.sizeZ*dims.sizeY*dims.sizeX, dims.sizeY*dims.sizeX, dims.sizeX, 1};
     if (levelDims.dtype == "uint8") {
       auto layout = makeLayout(shapeToLoad, sizeof(uint8_t));
-      // const tensorstore::Index byte_strides[] = { strides[0] * sizeof(uint8_t),
-      //   strides[1] * sizeof(uint8_t), strides[2] * sizeof(uint8_t), strides[3] * sizeof(uint8_t), strides[4] * sizeof(uint8_t)};
-      // tensorstore::StridedLayoutView<5> layout(shapeToLoad, byte_strides);
       auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), layout);
-      //auto arr = tensorstore::ArrayView<uint8_t, 5>(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
-      //auto arr = tensorstore::MakeArrayView(reinterpret_cast<uint8_t*>(destptr), shapeToLoad);
-      //auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "int32") {
-      auto arr = tensorstore::Array(reinterpret_cast<int32_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto layout = makeLayout(shapeToLoad, sizeof(int32_t));
+      auto arr = tensorstore::Array(reinterpret_cast<int32_t*>(destptr), layout);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
-      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto layout = makeLayout(shapeToLoad, sizeof(uint16_t));
+//      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), layout);
+      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "float32") {
-      auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto layout = makeLayout(shapeToLoad, sizeof(float));
+      auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), layout);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
       LOG_ERROR << "Unrecognized format (" << levelDims.dtype
