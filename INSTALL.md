@@ -4,7 +4,7 @@ You can access the latest installer release [here](https://github.com/allen-cell
 
 ## Windows
 
-Download the installer `agave-1.7.2-win64.exe` () and run it.
+Download the installer `agave-1.7.2-win64.exe` and run it.
 
 It will take you through the installation process. In most cases you can accept all the default settings.
 
