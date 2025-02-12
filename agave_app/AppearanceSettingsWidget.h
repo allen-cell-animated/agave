@@ -31,11 +31,13 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL,
-                            QRenderSettings* qrs = nullptr,
-                            RenderSettings* rs = nullptr,
-                            QAction* pToggleRotateAction = nullptr,
-                            QAction* pToggleTranslateAction = nullptr);
+  QAppearanceSettingsWidget(
+    QWidget* pParent = NULL,
+    QRenderSettings* qrs = nullptr,
+    RenderSettings* rs = nullptr,
+    QAction* pToggleRotateAction = nullptr,
+    QAction* pToggleTranslateAction = nullptr
+  );
 
   void onNewImage(Scene* scene);
 
@@ -104,8 +106,9 @@ private:
   RangeWidget* m_roiX;
   RangeWidget* m_roiY;
   RangeWidget* m_roiZ;
+
+  Section* m_clipPlaneSection;
   QCheckBox* m_showUserClipPlane;
-  QCheckBox* m_enableUserClipPlane;
   QCheckBox* m_toggleClipPlaneControls;
   QCheckBox* m_toggleClipPlaneTranslateControls;
 
@@ -145,5 +148,6 @@ private:
 
   Section* createSkyLightingControls();
   Section* createAreaLightingControls(QAction* pLightRotationAction);
+  Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);
 };

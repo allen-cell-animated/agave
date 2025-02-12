@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: Mozilla
-AlignAfterOpenBracket: BAS_BlockIndent
+AlignAfterOpenBracket: BlockIndent
 ---
 Language: Cpp
 ColumnLimit: 120
