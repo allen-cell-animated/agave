@@ -132,8 +132,7 @@ jobs:
         shell: cmd
         env:
           vc_arch: "x64"
-          CXX: cl.exe
-          CC: cl.exe
+        # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
@@ -146,13 +145,12 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
-          CXX: cl.exe
-          CC: cl.exe
+        # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
           mkdir build
           cd build
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
-          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_VERSION=10.0.22621.0 ..
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --config Release
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
