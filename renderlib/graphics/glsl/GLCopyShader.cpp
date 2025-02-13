@@ -2,6 +2,7 @@
 #include "glad/glad.h"
 
 #include "Logging.h"
+#include "shaders.h"
 
 #include <gl/Util.h>
 #include <glm.h>
@@ -15,38 +16,14 @@ GLCopyShader::GLCopyShader()
   , m_fshader()
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
-  m_vshader->compileSourceCode(R"(
-#version 400 core
-
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec2 uv;
-
-out vec2 vUv;
-      
-void main()
-{
-  vUv = uv;
-  gl_Position = vec4( position, 1.0 );
-}
-	)");
+  m_vshader->compileSourceCode(getShaderSource("copy_vert").c_str());
 
   if (!m_vshader->isCompiled()) {
     LOG_ERROR << "GLCopyShader: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
   m_fshader = new GLShader(GL_FRAGMENT_SHADER);
-  m_fshader->compileSourceCode(R"(
-#version 400 core
-
-uniform sampler2D tTexture0;
-in vec2 vUv;
-out vec4 out_FragColor;
-
-void main()
-{
-  out_FragColor = texture(tTexture0, vUv);
-}
-    )");
+  m_fshader->compileSourceCode(getShaderSource("copy_frag").c_str());
 
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLCopyShader: Failed to compile fragment shader\n" << m_fshader->log();
