@@ -319,10 +319,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(
 
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
+
 Section*
 QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
 {
-  m_clipPlaneSection = new Section("Clip Plane", 0, true, this->m_scene->m_clipPlane->m_enabled);
+  m_clipPlaneSection =
+    new Section("Clip Plane", 0, true, this->m_scene ? this->m_scene->m_clipPlane->m_enabled : false);
+  // section checkbox turns clip plane on or off
   QObject::connect(m_clipPlaneSection, &Section::checked, [this](bool is_checked) {
     if (this->m_scene->m_clipPlane) {
       this->m_scene->m_clipPlane->m_enabled = is_checked;
@@ -334,33 +337,43 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
 
   m_showUserClipPlane = new QCheckBox();
   m_showUserClipPlane->setChecked(false);
+  m_showUserClipPlane->setStatusTip(tr("Show clip plane grid in viewport"));
+  m_showUserClipPlane->setToolTip(tr("Show clip plane grid in viewport"));
   sectionLayout->addRow("Show", m_showUserClipPlane);
   QObject::connect(m_showUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
     emit this->m_qrendersettings->Selected(toggled ? this->m_scene->m_clipPlane.get() : nullptr);
   });
 
-  m_toggleClipPlaneControls = new QCheckBox();
-  m_toggleClipPlaneControls->setChecked(false);
-  sectionLayout->addRow("Rotate", m_toggleClipPlaneControls);
-  QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
-    if (toggled) {
-      // make sure it's selected if we clicked this.
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-    }
+  m_toggleClipPlaneRotateControls = new QCheckBox();
+  m_toggleClipPlaneRotateControls->setChecked(false);
+  m_toggleClipPlaneRotateControls->setStatusTip(
+    tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)")
+  );
+  m_toggleClipPlaneRotateControls->setToolTip(
+    tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)")
+  );
+  sectionLayout->addRow("Rotate", m_toggleClipPlaneRotateControls);
+  QObject::connect(m_toggleClipPlaneRotateControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
+    // make sure it's selected if we clicked this.
+    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
     pToggleRotateAction->trigger();
   });
 
   m_toggleClipPlaneTranslateControls = new QCheckBox();
   m_toggleClipPlaneTranslateControls->setChecked(false);
+  m_toggleClipPlaneTranslateControls->setStatusTip(
+    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)")
+  );
+  m_toggleClipPlaneTranslateControls->setToolTip(
+    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)")
+  );
   sectionLayout->addRow("Translate", m_toggleClipPlaneTranslateControls);
   QObject::connect(
     m_toggleClipPlaneTranslateControls,
     &QCheckBox::clicked,
     [this, pToggleTranslateAction](bool toggled) {
-      if (toggled) {
-        // make sure it's selected if we clicked this.
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
+      // make sure it's selected if we clicked this.
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
       pToggleTranslateAction->trigger();
     }
   );

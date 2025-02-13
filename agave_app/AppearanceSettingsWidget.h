@@ -109,7 +109,7 @@ private:
 
   Section* m_clipPlaneSection;
   QCheckBox* m_showUserClipPlane;
-  QCheckBox* m_toggleClipPlaneControls;
+  QCheckBox* m_toggleClipPlaneRotateControls;
   QCheckBox* m_toggleClipPlaneTranslateControls;
 
   Section* m_scaleSection;
