@@ -1,5 +1,7 @@
 # Installation Instructions
 
+You can access the [latest installer release here](https://github.com/allen-cell-animated/agave/tags).
+
 ## Windows
 
 Download the installer `agave-1.7.2-win64.exe` and run it.

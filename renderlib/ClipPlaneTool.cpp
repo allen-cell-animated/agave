@@ -37,9 +37,8 @@ ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
   float scale = 0.5f;
 
   constexpr int numLines = 8;
-  bool showFirstAndLast = false;
   // draw a grid across the u and v axes centered at p
-  for (int i = showFirstAndLast ? 0 : 1; i < (showFirstAndLast ? (numLines + 1) : numLines); ++i) {
+  for (int i = 1; i < numLines; ++i) {
     float fraction = ((float)i - numLines / 2.0f) / (float)numLines;
     glm::vec3 p0 = p + u * (fraction * scale) + v * (0.5f * scale);
     glm::vec3 p1 = p + u * (fraction * scale) + v * (-0.5f * scale);
