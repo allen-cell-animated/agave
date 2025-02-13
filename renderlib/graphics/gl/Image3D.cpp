@@ -247,7 +247,7 @@ Image3D::prepareTexture(Scene& s, bool useLinearInterpolation)
     }
   }
 
-  Fuse::fuse(s.m_volume.get(), colors, &m_fusedrgbvolume, nullptr);
+  Fuse::fuse(s.m_volume.get(), colors, s.m_material.m_gradientData, s.m_material.m_labels, &m_fusedrgbvolume, nullptr);
 
   auto endTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = endTime - startTime;
