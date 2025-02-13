@@ -6,12 +6,10 @@
 #include "StringUtil.h"
 #include "VolumeDimensions.h"
 
-#include "tensorstore/array.h"
 #include "tensorstore/context.h"
 #include "tensorstore/index_space/dim_expression.h"
 #include "tensorstore/kvstore/generation.h"
 #include "tensorstore/open.h"
-#include "tensorstore/tensorstore.h"
 
 #include <algorithm>
 #include <chrono>
@@ -343,8 +341,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
           } else {
             tensorstore::TensorStore<> store = result.value();
             tensorstore::DataType dtype = store.dtype();
-            tensorstore::IndexDomainView<> domain = store.domain();
-            auto shape_span = domain.shape();
+            auto shape_span = store.domain().shape();
             std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
             std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
