@@ -128,7 +128,9 @@ jobs:
           choco install ninja
       - name: Configure MSVC console (Windows)
         if: matrix.os == 'windows-2019'
-        uses: ilammy/msvc-dev-cmd@v1
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
       - name: windows install deps
         if: matrix.os == 'windows-2019'
         env:
