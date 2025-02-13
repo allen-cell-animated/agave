@@ -1,6 +1,6 @@
 # AGAVE : Advanced GPU Accelerated Volume Explorer
 
-AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-TIFF and Zeiss .czi files.
+AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-ZARR 0.4, OME-TIFF and Zeiss .czi files.
 
 ## To install AGAVE:
 
