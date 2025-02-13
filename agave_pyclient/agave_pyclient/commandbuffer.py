@@ -77,6 +77,7 @@ COMMANDS = {
     "SHOW_SCALE_BAR": [45, "I32"],
     "SET_FLIP_AXIS": [46, "I32", "I32", "I32"],
     "SET_INTERPOLATION": [47, "I32"],
+    "SET_CLIP_PLANE": [48, "F32", "F32", "F32", "F32"],
 }
 
 
