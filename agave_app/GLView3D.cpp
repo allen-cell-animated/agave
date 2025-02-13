@@ -362,7 +362,7 @@ GLView3D::toggleTranslateControls()
   if (!m_viewerWindow->sceneView.getSelectedObject()) {
     setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
-  // toggle rotate tool
+  // toggle translate tool
   else if (m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
     setManipulatorMode(MANIPULATOR_MODE::NONE);
   } else {
