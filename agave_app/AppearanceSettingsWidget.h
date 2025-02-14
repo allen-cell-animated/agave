@@ -31,13 +31,11 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(
-    QWidget* pParent = NULL,
-    QRenderSettings* qrs = nullptr,
-    RenderSettings* rs = nullptr,
-    QAction* pToggleRotateAction = nullptr,
-    QAction* pToggleTranslateAction = nullptr
-  );
+  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+                            QRenderSettings* qrs = nullptr,
+                            RenderSettings* rs = nullptr,
+                            QAction* pToggleRotateAction = nullptr,
+                            QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
 

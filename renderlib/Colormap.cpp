@@ -172,8 +172,7 @@ colormapRandomized(size_t length)
   float r, g, b;
   for (size_t x = 0; x < length; ++x) {
     std::tuple<float, float, float> rgb = hsvToRgb(
-      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25
-    );
+      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25);
     r = std::get<0>(rgb);
     g = std::get<1>(rgb);
     b = std::get<2>(rgb);
@@ -201,27 +200,23 @@ ColorRamp::createLabels(size_t length)
 // 11 stops: 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1
 // The names are used for IO and therefore should not be changed.
 static const std::vector<ColorRamp> builtInGradients = { ColorRamp(),
-                                                         ColorRamp(
-                                                           "greyscale",
-                                                           stringListToGradient({
-                                                             "#000000",
-                                                             "#ffffff",
-                                                           })
-                                                         ),
-                                                         ColorRamp(
-                                                           "cool",
-                                                           stringListToGradient({ "#6e40aa",
-                                                                                  "#6154c8",
-                                                                                  "#4c6edb",
-                                                                                  "#368ce1",
-                                                                                  "#24aad8",
-                                                                                  "#1ac7c2",
-                                                                                  "#1ddea3",
-                                                                                  "#30ee83",
-                                                                                  "#52f667",
-                                                                                  "#7ef658",
-                                                                                  "#7ef658" })
-                                                         ),
+                                                         ColorRamp("greyscale",
+                                                                   stringListToGradient({
+                                                                     "#000000",
+                                                                     "#ffffff",
+                                                                   })),
+                                                         ColorRamp("cool",
+                                                                   stringListToGradient({ "#6e40aa",
+                                                                                          "#6154c8",
+                                                                                          "#4c6edb",
+                                                                                          "#368ce1",
+                                                                                          "#24aad8",
+                                                                                          "#1ac7c2",
+                                                                                          "#1ddea3",
+                                                                                          "#30ee83",
+                                                                                          "#52f667",
+                                                                                          "#7ef658",
+                                                                                          "#7ef658" })),
                                                          { "viridis",
                                                            stringListToGradient({ "#440154",
                                                                                   "#482475",

@@ -82,13 +82,11 @@ makeGradientCombo()
 
 static const int MAX_CHANNELS_CHECKED = 4;
 
-QAppearanceSettingsWidget::QAppearanceSettingsWidget(
-  QWidget* pParent,
-  QRenderSettings* qrs,
-  RenderSettings* rs,
-  QAction* pToggleRotateAction,
-  QAction* pToggleTranslateAction
-)
+QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
+                                                     QRenderSettings* qrs,
+                                                     RenderSettings* rs,
+                                                     QAction* pToggleRotateAction,
+                                                     QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_DensityScaleSlider()
@@ -146,8 +144,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(
   m_MainLayout.addRow("Primary Ray Step Size", &m_StepSizePrimaryRaySlider);
 
   QObject::connect(
-    &m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double))
-  );
+    &m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
 
   m_StepSizeSecondaryRaySlider.setStatusTip(tr("Set volume ray march step size for scattered rays"));
   m_StepSizeSecondaryRaySlider.setToolTip(tr("Set volume ray march step size for scattered rays"));
@@ -157,8 +154,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(
   m_MainLayout.addRow("Secondary Ray Step Size", &m_StepSizeSecondaryRaySlider);
 
   QObject::connect(
-    &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double))
-  );
+    &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
 
   m_interpolateCheckBox.setChecked(true);
   m_interpolateCheckBox.setStatusTip(tr("Interpolated volume sampling"));
@@ -218,12 +214,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(
   m_xFlipCheckBox->setStatusTip(tr("Invert volume in X dimension"));
   m_xFlipCheckBox->setToolTip(tr("Invert volume in X dimension"));
   scaleSectionLayout->addWidget(m_xFlipCheckBox, 0, 2);
+  QObject::connect(m_xscaleSpinner,
+                   QOverload<double>::of(&QDoubleSpinner::valueChanged),
+                   this,
+                   &QAppearanceSettingsWidget::OnSetScaleX);
   QObject::connect(
-    m_xscaleSpinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), this, &QAppearanceSettingsWidget::OnSetScaleX
-  );
-  QObject::connect(m_xFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) {
-    this->OnFlipAxis(Axis::X, flipValue);
-  });
+    m_xFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::X, flipValue); });
   scaleSectionLayout->addWidget(new QLabel("Y"), 1, 0);
   m_yscaleSpinner = new QDoubleSpinner();
   m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
@@ -235,12 +231,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(
   m_yFlipCheckBox->setStatusTip(tr("Invert volume in Y dimension"));
   m_yFlipCheckBox->setToolTip(tr("Invert volume in Y dimension"));
   scaleSectionLayout->addWidget(m_yFlipCheckBox, 1, 2);
+  QObject::connect(m_yscaleSpinner,
+                   QOverload<double>::of(&QDoubleSpinner::valueChanged),
+                   this,
+                   &QAppearanceSettingsWidget::OnSetScaleY);
   QObject::connect(
-    m_yscaleSpinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), this, &QAppearanceSettingsWidget::OnSetScaleY
-  );
-  QObject::connect(m_yFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) {
-    this->OnFlipAxis(Axis::Y, flipValue);
-  });
+    m_yFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::Y, flipValue); });
   scaleSectionLayout->addWidget(new QLabel("Z"), 2, 0);
   m_zscaleSpinner = new QDoubleSpinner();
   m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
@@ -252,12 +248,12 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(
   m_zFlipCheckBox->setStatusTip(tr("Invert volume in Z dimension"));
   m_zFlipCheckBox->setToolTip(tr("Invert volume in Z dimension"));
   scaleSectionLayout->addWidget(m_zFlipCheckBox, 2, 2);
+  QObject::connect(m_zscaleSpinner,
+                   QOverload<double>::of(&QDoubleSpinner::valueChanged),
+                   this,
+                   &QAppearanceSettingsWidget::OnSetScaleZ);
   QObject::connect(
-    m_zscaleSpinner, QOverload<double>::of(&QDoubleSpinner::valueChanged), this, &QAppearanceSettingsWidget::OnSetScaleZ
-  );
-  QObject::connect(m_zFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) {
-    this->OnFlipAxis(Axis::Z, flipValue);
-  });
+    m_zFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::Z, flipValue); });
 
   m_scaleSection->setContentLayout(*scaleSectionLayout);
   m_MainLayout.addRow(m_scaleSection);
@@ -347,11 +343,9 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_toggleClipPlaneRotateControls = new QCheckBox();
   m_toggleClipPlaneRotateControls->setChecked(false);
   m_toggleClipPlaneRotateControls->setStatusTip(
-    tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)")
-  );
+    tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)"));
   m_toggleClipPlaneRotateControls->setToolTip(
-    tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)")
-  );
+    tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Rotate", m_toggleClipPlaneRotateControls);
   QObject::connect(m_toggleClipPlaneRotateControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
     // make sure it's selected if we clicked this.
@@ -362,21 +356,16 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_toggleClipPlaneTranslateControls = new QCheckBox();
   m_toggleClipPlaneTranslateControls->setChecked(false);
   m_toggleClipPlaneTranslateControls->setStatusTip(
-    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)")
-  );
+    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)"));
   m_toggleClipPlaneTranslateControls->setToolTip(
-    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)")
-  );
+    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)"));
   sectionLayout->addRow("Translate", m_toggleClipPlaneTranslateControls);
   QObject::connect(
-    m_toggleClipPlaneTranslateControls,
-    &QCheckBox::clicked,
-    [this, pToggleTranslateAction](bool toggled) {
+    m_toggleClipPlaneTranslateControls, &QCheckBox::clicked, [this, pToggleTranslateAction](bool toggled) {
       // make sure it's selected if we clicked this.
       emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
       pToggleTranslateAction->trigger();
-    }
-  );
+    });
   m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
 }
@@ -389,11 +378,9 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 
   m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
   m_lt0gui.m_enableControlsCheckBox->setStatusTip(
-    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)")
-  );
+    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   m_lt0gui.m_enableControlsCheckBox->setToolTip(
-    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)")
-  );
+    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
   QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool clicked) {
     // select area light
@@ -412,8 +399,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_thetaSlider->setValue(0.0);
   sectionLayout->addRow("Theta", m_lt0gui.m_thetaSlider);
   QObject::connect(
-    m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta
-  );
+    m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
 
   m_lt0gui.m_phiSlider = new QNumericSlider();
   m_lt0gui.m_phiSlider->setStatusTip(tr("Set angle phi for area light"));
@@ -423,8 +409,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
   sectionLayout->addRow("Phi", m_lt0gui.m_phiSlider);
   QObject::connect(
-    m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi
-  );
+    m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
 
   m_lt0gui.m_sizeSlider = new QNumericSlider();
   m_lt0gui.m_sizeSlider->setStatusTip(tr("Set size for area light"));
@@ -434,8 +419,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_sizeSlider->setValue(1.0);
   sectionLayout->addRow("Size", m_lt0gui.m_sizeSlider);
   QObject::connect(
-    m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize
-  );
+    m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
 
   m_lt0gui.m_distSlider = new QNumericSlider();
   m_lt0gui.m_distSlider->setStatusTip(tr("Set distance for area light"));
@@ -445,8 +429,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_distSlider->setValue(10.0);
   sectionLayout->addRow("Distance", m_lt0gui.m_distSlider);
   QObject::connect(
-    m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance
-  );
+    m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
 
   auto* arealightLayout = new QHBoxLayout();
   m_lt0gui.m_intensitySlider = new QNumericSlider();
@@ -549,8 +532,7 @@ QAppearanceSettingsWidget::OnFlipAxis(Axis axis, bool value)
   int flipValue = value ? -1 : 1;
   glm::ivec3 v = m_scene->m_volume->getVolumeAxesFlipped();
   m_scene->m_volume->setVolumeAxesFlipped(
-    axis == Axis::X ? flipValue : v.x, axis == Axis::Y ? flipValue : v.y, axis == Axis::Z ? flipValue : v.z
-  );
+    axis == Axis::X ? flipValue : v.x, axis == Axis::Y ? flipValue : v.y, axis == Axis::Z ? flipValue : v.z);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
@@ -738,9 +720,8 @@ QAppearanceSettingsWidget::OnRenderBegin(void)
   m_GradientFactorSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_GradientFactor);
 
   m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
-  m_StepSizeSecondaryRaySlider.setValue(
-    m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow, true
-  );
+  m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow,
+                                        true);
   m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
 }
 
@@ -1022,11 +1003,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
   m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
 
-  QColor cbg = QColor::fromRgbF(
-    m_scene->m_material.m_backgroundColor[0],
-    m_scene->m_material.m_backgroundColor[1],
-    m_scene->m_material.m_backgroundColor[2]
-  );
+  QColor cbg = QColor::fromRgbF(m_scene->m_material.m_backgroundColor[0],
+                                m_scene->m_material.m_backgroundColor[1],
+                                m_scene->m_material.m_backgroundColor[2]);
   m_backgroundColorButton.SetColor(cbg);
 
   size_t xmax = m_scene->m_volume->sizeX() - 1;
@@ -1052,11 +1031,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_yFlipCheckBox->setChecked(v.y < 0);
   m_zFlipCheckBox->setChecked(v.z < 0);
 
-  QColor cbbox = QColor::fromRgbF(
-    m_scene->m_material.m_boundingBoxColor[0],
-    m_scene->m_material.m_boundingBoxColor[1],
-    m_scene->m_material.m_boundingBoxColor[2]
-  );
+  QColor cbbox = QColor::fromRgbF(m_scene->m_material.m_boundingBoxColor[0],
+                                  m_scene->m_material.m_boundingBoxColor[1],
+                                  m_scene->m_material.m_boundingBoxColor[2]);
   m_boundingBoxColorButton.SetColor(cbbox);
   m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
@@ -1108,9 +1085,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     opacitySlider->setValue(scene->m_material.m_opacity[i], true);
     sectionLayout->addRow("Opacity", opacitySlider);
 
-    QObject::connect(opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) {
-      this->OnOpacityChanged(i, d);
-    });
+    QObject::connect(
+      opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
@@ -1145,11 +1121,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
     diffuseColorButton->setToolTip(tr("Set color for channel"));
-    QColor cdiff = QColor::fromRgbF(
-      scene->m_material.m_diffuse[i * 3 + 0],
-      scene->m_material.m_diffuse[i * 3 + 1],
-      scene->m_material.m_diffuse[i * 3 + 2]
-    );
+    QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
+                                    scene->m_material.m_diffuse[i * 3 + 1],
+                                    scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
     sectionLayout->addRow("DiffuseColor", diffuseColorButton);
     QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
@@ -1161,11 +1135,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QColorPushButton* specularColorButton = new QColorPushButton();
     specularColorButton->setStatusTip(tr("Set specular color for channel"));
     specularColorButton->setToolTip(tr("Set specular color for channel"));
-    QColor cspec = QColor::fromRgbF(
-      scene->m_material.m_specular[i * 3 + 0],
-      scene->m_material.m_specular[i * 3 + 1],
-      scene->m_material.m_specular[i * 3 + 2]
-    );
+    QColor cspec = QColor::fromRgbF(scene->m_material.m_specular[i * 3 + 0],
+                                    scene->m_material.m_specular[i * 3 + 1],
+                                    scene->m_material.m_specular[i * 3 + 2]);
     specularColorButton->SetColor(cspec, true);
     sectionLayout->addRow("SpecularColor", specularColorButton);
     QObject::connect(specularColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
@@ -1177,11 +1149,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QColorPushButton* emissiveColorButton = new QColorPushButton();
     emissiveColorButton->setStatusTip(tr("Set emissive color for channel"));
     emissiveColorButton->setToolTip(tr("Set emissive color for channel"));
-    QColor cemis = QColor::fromRgbF(
-      scene->m_material.m_emissive[i * 3 + 0],
-      scene->m_material.m_emissive[i * 3 + 1],
-      scene->m_material.m_emissive[i * 3 + 2]
-    );
+    QColor cemis = QColor::fromRgbF(scene->m_material.m_emissive[i * 3 + 0],
+                                    scene->m_material.m_emissive[i * 3 + 1],
+                                    scene->m_material.m_emissive[i * 3 + 2]);
     emissiveColorButton->SetColor(cemis, true);
     sectionLayout->addRow("EmissiveColor", emissiveColorButton);
     QObject::connect(emissiveColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
@@ -1197,9 +1167,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     roughnessSlider->setSingleStep(0.01);
     roughnessSlider->setValue(scene->m_material.m_roughness[i]);
     sectionLayout->addRow("Glossiness", roughnessSlider);
-    QObject::connect(roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) {
-      this->OnRoughnessChanged(i, d);
-    });
+    QObject::connect(
+      roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnRoughnessChanged(i, d); });
     this->OnRoughnessChanged(i, scene->m_material.m_roughness[i]);
 
     QObject::connect(section, &Section::checked, [i, this](bool is_checked) { this->OnChannelChecked(i, is_checked); });
