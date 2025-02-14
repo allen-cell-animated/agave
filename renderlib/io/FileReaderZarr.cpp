@@ -533,16 +533,6 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     tsdim++;
 
     static constexpr tensorstore::DimensionIndex kNumDims = 5;
-
-    auto makeLayout = [](const tensorstore::Index(&shape)[kNumDims], tensorstore::Index elementSize) {
-      const tensorstore::Index byteStrides[kNumDims] = { shape[1] * shape[2] * shape[3] * shape[4] * elementSize,
-                                                         shape[2] * shape[3] * shape[4] * elementSize,
-                                                         shape[3] * shape[4] * elementSize,
-                                                         shape[4] * elementSize,
-                                                         elementSize };
-      return tensorstore::StridedLayoutView<kNumDims>(shape, byteStrides);
-    };
-
     const tensorstore::Index shapeToLoad[kNumDims] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
     if (levelDims.dtype == "uint8") {
       auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad);
