@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: Mozilla
-# IndentWidth: 4
+AlignAfterOpenBracket: BAS_BlockIndent
 ---
 Language: Cpp
 ColumnLimit: 120

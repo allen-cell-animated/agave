@@ -59,7 +59,6 @@ public:
   void OnSpecularColorChanged(int i, const QColor& color);
   void OnEmissiveColorChanged(int i, const QColor& color);
   void OnUpdateLut(int i, const std::vector<LutControlPoint>& stops);
-  void OnUpdateColormap(int i, const std::vector<ColorControlPoint>& stops);
 
   void OnOpacityChanged(int i, double opacity);
   void OnRoughnessChanged(int i, double roughness);

@@ -967,6 +967,25 @@ class AgaveRenderer:
         # 48
         self.cb.add_command("SET_CLIP_PLANE", x, y, z, d)
 
+    def set_color_ramp(self, channel: int, name: str, data: List[float]):
+        """
+        Set intensity thresholds based on a piecewise linear transfer function.
+
+        Parameters
+        ----------
+        channel: int
+            Which channel index, 0 based.
+        name: str
+            The name of the color ramp
+        data: List[float]
+            An array of values.  5 floats per control point.  first is position (0-1),
+            next four are rgba (all 0-1).  Currently alpha will be ignored.
+            To guarantee correct behavior, the first control point should be at 0.0 and
+            the last at 1.0.
+        """
+        # 49
+        self.cb.add_command("SET_COLOR_RAMP", channel, name, data)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):

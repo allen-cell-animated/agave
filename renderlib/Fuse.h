@@ -5,7 +5,7 @@
 #include <vector>
 
 class ImageXYZC;
-struct GradientData;
+struct VolumeDisplay;
 
 // Runs a processing step that applies a color into each channel,
 // and then combines the channels to result in a single RGB colored volume
@@ -16,8 +16,7 @@ public:
   // allocates memory for outRGBVolume and outGradientVolume
   static void fuse(const ImageXYZC* img,
                    const std::vector<glm::vec3>& colorsPerChannel,
-                   const GradientData* channelGradientData,
-                   const float* channelIsLabels,
+                   const VolumeDisplay& volumeDisplay,
                    uint8_t** outRGBVolume,
                    uint16_t** outGradientVolume);
 };
