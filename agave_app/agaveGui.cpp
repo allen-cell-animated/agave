@@ -618,6 +618,10 @@ agaveGui::onRenderAction()
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
+    m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
+    m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
+    m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
+    m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);

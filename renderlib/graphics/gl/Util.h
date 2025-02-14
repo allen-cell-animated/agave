@@ -172,3 +172,9 @@ private:
   bool m_isLinked;
   std::string m_log;
 };
+
+class IGuiShader
+{
+public:
+  virtual void setProjMatrix(const glm::mat4& proj) = 0;
+};

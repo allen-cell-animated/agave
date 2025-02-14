@@ -2,17 +2,18 @@
 
 #include "graphics/gl/Util.h"
 
-class GLGuiShader
+class GLThickLinesShader
   : public GLShaderProgram
   , public IGuiShader
 {
 public:
-  GLGuiShader();
+  GLThickLinesShader();
 
-  ~GLGuiShader() {}
+  ~GLThickLinesShader();
 
   void configure(bool display, GLuint textureId);
   void cleanup();
+
   virtual void setProjMatrix(const glm::mat4& proj) override;
 
   int m_loc_proj;
@@ -20,4 +21,8 @@ public:
   int m_loc_vuv;
   int m_loc_vcol;
   int m_loc_vcode;
+  int m_loc_thickness;
+  int m_loc_resolution;
+  int m_loc_stripVerts;
+  int m_loc_stripVertexOffset;
 };
