@@ -27,6 +27,7 @@ static const char* vertex_shader_text =
         else {
           Frag_color = vCol;
         }
+        
         gl_Position = projection * vec4(vPos, 1.0);
     }
     )";
@@ -122,4 +123,10 @@ GLGuiShader::cleanup()
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void
+GLGuiShader::setProjMatrix(const glm::mat4& proj)
+{
+  glUniformMatrix4fv(m_loc_proj, 1, GL_FALSE, glm::value_ptr(proj));
 }
