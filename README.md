@@ -32,12 +32,12 @@ A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
 choco install strawberryperl nasm patch
 ```
 
-**Install Qt LTS 6.5.3.**
+**Install Qt LTS 6.8.1.**
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.8.1 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
 ```
 
@@ -67,8 +67,8 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt mac desktop 6.5.3 -m qtwebsockets qtimageformats
-export Qt6_DIR=~/Qt/6.5.3/macos
+aqt install-qt --outputdir ~/Qt mac desktop 6.8.1 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.8.1/macos
 # and then:
 brew install spdlog glm libtiff nasm
 
@@ -83,15 +83,15 @@ sudo make install
 
 ### For LINUX:
 
-Install Qt 6.5.3 in your directory of choice and tell the build where to find it.
+Install Qt 6.8.1 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt linux desktop 6.5.3 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir ~/Qt linux desktop 6.8.1 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
-export Qt6_DIR=~/Qt/6.5.3/gcc_64
+export Qt6_DIR=~/Qt/6.8.1/gcc_64
 ```
 
 - sudo apt install libtiff-dev

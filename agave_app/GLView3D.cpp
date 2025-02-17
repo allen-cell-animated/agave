@@ -164,9 +164,7 @@ GLView3D::paintGL()
     return;
   }
 
-  makeCurrent();
   m_viewerWindow->redraw();
-  doneCurrent();
 }
 
 void
