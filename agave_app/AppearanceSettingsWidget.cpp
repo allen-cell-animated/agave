@@ -340,31 +340,52 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     emit this->m_qrendersettings->Selected(toggled ? this->m_scene->m_clipPlane.get() : nullptr);
   });
 
-  m_toggleClipPlaneRotateControls = new QPushButton("Rotate");
-  m_toggleClipPlaneRotateControls->setStatusTip(
+  auto btnLayout = new QHBoxLayout();
+
+  m_clipPlaneRotateButton = new QPushButton("Rotate");
+  m_clipPlaneRotateButton->setStatusTip(
     tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)"));
-  m_toggleClipPlaneRotateControls->setToolTip(
+  m_clipPlaneRotateButton->setToolTip(
     tr("Show interactive controls in viewport for clip plane rotation angle (or press R to toggle)"));
-  sectionLayout->addRow("Rotate", m_toggleClipPlaneRotateControls);
-  QObject::connect(m_toggleClipPlaneRotateControls, &QPushButton::clicked, [this, pToggleRotateAction]() {
-    // make sure it's selected if we clicked this.
-    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-    // pToggleRotateAction->setChecked(toggled);
-    pToggleRotateAction->trigger();
+  btnLayout->addWidget(m_clipPlaneRotateButton);
+  QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
+    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pToggleRotateAction->trigger();
+      pToggleRotateAction->setChecked(false);
+      LOG_DEBUG << "Deselecting clip plane for rotation";
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleRotateAction->trigger();
+      pToggleRotateAction->setChecked(true);
+      LOG_DEBUG << "SELECTED clip plane for rotation";
+    }
   });
 
-  m_toggleClipPlaneTranslateControls = new QPushButton("Translate");
-  m_toggleClipPlaneTranslateControls->setStatusTip(
+  m_clipPlaneTranslateButton = new QPushButton("Translate");
+  m_clipPlaneTranslateButton->setStatusTip(
     tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)"));
-  m_toggleClipPlaneTranslateControls->setToolTip(
+  m_clipPlaneTranslateButton->setToolTip(
     tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)"));
-  sectionLayout->addRow("Translate", m_toggleClipPlaneTranslateControls);
-  QObject::connect(m_toggleClipPlaneTranslateControls, &QPushButton::clicked, [this, pToggleTranslateAction]() {
-    // make sure it's selected if we clicked this.
-    emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-    // pToggleTranslateAction->setChecked(toggled);
-    pToggleTranslateAction->trigger();
+  btnLayout->addWidget(m_clipPlaneTranslateButton);
+  QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
+    // if we were already selected AND already in translate mode, then this should switch off translate mode.
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleTranslateAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pToggleTranslateAction->trigger();
+      pToggleTranslateAction->setChecked(false);
+      LOG_DEBUG << "Deselecting clip plane for translate";
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleTranslateAction->trigger();
+      pToggleTranslateAction->setChecked(true);
+      LOG_DEBUG << "SELECTED clip plane for translate";
+    }
   });
+
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
+
   m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
 }
@@ -375,16 +396,29 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   Section* section = new Section("Area Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
-  m_lt0gui.m_enableControlsCheckBox = new QPushButton("Rotate");
-  m_lt0gui.m_enableControlsCheckBox->setStatusTip(
+  auto btnLayout = new QHBoxLayout();
+
+  m_lt0gui.m_RotateButton = new QPushButton("Rotate");
+  m_lt0gui.m_RotateButton->setStatusTip(
     tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
-  m_lt0gui.m_enableControlsCheckBox->setToolTip(
+  m_lt0gui.m_RotateButton->setToolTip(
     tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
-  sectionLayout->addRow("Rotate", m_lt0gui.m_enableControlsCheckBox);
-  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QPushButton::clicked, [this, pRotationAction]() {
-    emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
-    pRotationAction->trigger();
+  btnLayout->addWidget(m_lt0gui.m_RotateButton);
+  QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
+    if (this->m_scene->m_selection == this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pRotationAction->trigger();
+      pRotationAction->setChecked(false);
+      LOG_DEBUG << "Deselecting area light for rotation";
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
+      pRotationAction->trigger();
+      pRotationAction->setChecked(true);
+      LOG_DEBUG << "SELECTED area light for rotation";
+    }
   });
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
