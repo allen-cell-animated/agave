@@ -349,7 +349,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   QObject::connect(m_toggleClipPlaneRotateControls, &QPushButton::clicked, [this, pToggleRotateAction](bool toggled) {
     // make sure it's selected if we clicked this.
     emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-    pToggleRotateAction->setChecked(toggled);
+    // pToggleRotateAction->setChecked(toggled);
     pToggleRotateAction->trigger();
   });
 
@@ -363,7 +363,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     m_toggleClipPlaneTranslateControls, &QPushButton::clicked, [this, pToggleTranslateAction](bool toggled) {
       // make sure it's selected if we clicked this.
       emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      pToggleTranslateAction->setChecked(toggled);
+      // pToggleTranslateAction->setChecked(toggled);
       pToggleTranslateAction->trigger();
     });
   m_clipPlaneSection->setContentLayout(*sectionLayout);
@@ -394,7 +394,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
     //   emit this->m_qrendersettings->Selected(checked ? this->m_scene->SceneAreaLight() : nullptr);
     // } else {
     emit this->m_qrendersettings->Selected(checked ? this->m_scene->SceneAreaLight() : nullptr);
-    pRotationAction->setChecked(checked);
+    // pRotationAction->setChecked(checked);
     pRotationAction->trigger();
     // }
   });
