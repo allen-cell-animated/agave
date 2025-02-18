@@ -418,6 +418,8 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
       LOG_DEBUG << "SELECTED area light for rotation";
     }
   });
+  // dummy widget to fill space (TODO: Translate button?)
+  btnLayout->addWidget(new QWidget());
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
