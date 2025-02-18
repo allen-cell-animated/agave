@@ -350,6 +350,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   QObject::connect(m_toggleClipPlaneRotateControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
     // make sure it's selected if we clicked this.
     emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    pToggleRotateAction->setChecked(toggled);
     pToggleRotateAction->trigger();
   });
 
@@ -364,6 +365,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     m_toggleClipPlaneTranslateControls, &QCheckBox::clicked, [this, pToggleTranslateAction](bool toggled) {
       // make sure it's selected if we clicked this.
       emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleTranslateAction->setChecked(toggled);
       pToggleTranslateAction->trigger();
     });
   m_clipPlaneSection->setContentLayout(*sectionLayout);
@@ -382,14 +384,25 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_enableControlsCheckBox->setToolTip(
     tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
   sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
-  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool clicked) {
+  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool checked) {
+    // if light is not selected and rotation controls are active,
+    // then select light and make sure rotation controls stay up and connect to light
+
+    // if light is selected and rotation controls are active,
     // select area light
-    emit this->m_qrendersettings->Selected(clicked ? this->m_scene->SceneAreaLight() : nullptr);
-    pRotationAction->trigger();
+    // if this light is not selected, and rotation controls are active,
+    // then all we need to do is change the selection and not activate rotate action.
+    if (this->m_scene->m_selection != this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(checked ? this->m_scene->SceneAreaLight() : nullptr);
+    } else {
+      emit this->m_qrendersettings->Selected(checked ? this->m_scene->SceneAreaLight() : nullptr);
+      pRotationAction->setChecked(checked);
+      pRotationAction->trigger();
+    }
   });
-  QObject::connect(pRotationAction, &QAction::triggered, [this](bool toggled) {
-    this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
-  });
+  // QObject::connect(pRotationAction, &QAction::triggered, [this](bool toggled) {
+  //   this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
+  // });
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
