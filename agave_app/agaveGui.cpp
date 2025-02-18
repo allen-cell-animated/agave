@@ -256,7 +256,7 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    this->m_glView->toggleRotateControls();
+    this->m_glView->showRotateControls(true);
   });
 
   m_toggleTranslateControlsAction = new QAction(tr("&Rotate controls"), this);
@@ -268,7 +268,7 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleTranslateControlsAction);
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
-    this->m_glView->toggleTranslateControls();
+    this->m_glView->showTranslateControls(true);
   });
 
   m_manipulatorModeGroup = new QActionGroup(this);

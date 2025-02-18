@@ -306,11 +306,24 @@ GLView3D::OnSelectionChanged(SceneObject* so)
 {
   // null ptr is valid here to deselect
   m_viewerWindow->select(so);
+
+  // Toggling the manipulator mode like this
+  // has the effect of re-creating the manipulator tool,
+  // which will effectively call origins.update to get the new
+  // selection into the tool
+  if (so) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+    setManipulatorMode(m_manipulatorMode);
+  }
 }
 
 void
 GLView3D::setManipulatorMode(MANIPULATOR_MODE mode)
 {
+  // setting same mode does nothing
+  if (m_manipulatorMode == mode) {
+    return;
+  }
   m_manipulatorMode = mode;
   switch (mode) {
     case MANIPULATOR_MODE::NONE:
@@ -330,6 +343,26 @@ GLView3D::setManipulatorMode(MANIPULATOR_MODE mode)
       break;
     default:
       break;
+  }
+}
+
+void
+GLView3D::showRotateControls(bool show)
+{
+  if (show) {
+    setManipulatorMode(MANIPULATOR_MODE::ROT);
+  } else {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
+}
+
+void
+GLView3D::showTranslateControls(bool show)
+{
+  if (show) {
+    setManipulatorMode(MANIPULATOR_MODE::TRANS);
+  } else {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
   }
 }
 

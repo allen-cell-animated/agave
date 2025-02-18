@@ -107,8 +107,8 @@ private:
 
   Section* m_clipPlaneSection;
   QCheckBox* m_showUserClipPlane;
-  QCheckBox* m_toggleClipPlaneRotateControls;
-  QCheckBox* m_toggleClipPlaneTranslateControls;
+  QPushButton* m_toggleClipPlaneRotateControls;
+  QPushButton* m_toggleClipPlaneTranslateControls;
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
@@ -125,7 +125,7 @@ private:
 
   struct lt0
   {
-    QCheckBox* m_enableControlsCheckBox;
+    QPushButton* m_enableControlsCheckBox;
     QNumericSlider* m_thetaSlider;
     QNumericSlider* m_phiSlider;
     QNumericSlider* m_sizeSlider;
