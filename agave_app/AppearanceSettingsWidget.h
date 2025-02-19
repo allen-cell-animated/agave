@@ -106,7 +106,7 @@ private:
   RangeWidget* m_roiZ;
 
   Section* m_clipPlaneSection;
-  QCheckBox* m_showUserClipPlane;
+  QCheckBox* m_hideUserClipPlane;
   QPushButton* m_clipPlaneRotateButton;
   QPushButton* m_clipPlaneTranslateButton;
 

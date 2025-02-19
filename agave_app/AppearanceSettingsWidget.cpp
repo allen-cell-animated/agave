@@ -327,25 +327,11 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
       this->m_scene->m_clipPlane->m_enabled = is_checked;
       m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
       emit this->m_qrendersettings->Selected(
-        is_checked && !m_showUserClipPlane->isChecked() ? this->m_scene->m_clipPlane.get() : nullptr);
+        is_checked && !m_hideUserClipPlane->isChecked() ? this->m_scene->m_clipPlane.get() : nullptr);
     }
   });
 
   auto* sectionLayout = Controls::createAgaveFormLayout();
-
-  m_showUserClipPlane = new QCheckBox();
-  m_showUserClipPlane->setChecked(false);
-  m_showUserClipPlane->setStatusTip(tr("Show clip plane grid in viewport"));
-  m_showUserClipPlane->setToolTip(tr("Show clip plane grid in viewport"));
-  QObject::connect(
-    m_showUserClipPlane, &QCheckBox::clicked, [this, pToggleRotateAction, pToggleTranslateAction](bool toggled) {
-      if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
-        return;
-      }
-      if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
-        emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
-      }
-    });
 
   auto btnLayout = new QHBoxLayout();
 
@@ -358,7 +344,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
       emit this->m_qrendersettings->Selected(nullptr);
       pToggleRotateAction->trigger();
-      if (!m_showUserClipPlane->isChecked()) {
+      if (!m_hideUserClipPlane->isChecked()) {
         emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
       }
     } else {
@@ -378,7 +364,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleTranslateAction->isChecked()) {
       emit this->m_qrendersettings->Selected(nullptr);
       pToggleTranslateAction->trigger();
-      if (!m_showUserClipPlane->isChecked()) {
+      if (!m_hideUserClipPlane->isChecked()) {
         emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
       }
     } else {
@@ -388,7 +374,22 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   });
 
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
-  sectionLayout->addRow("Hide", m_showUserClipPlane);
+
+  m_hideUserClipPlane = new QCheckBox();
+  m_hideUserClipPlane->setChecked(false);
+  m_hideUserClipPlane->setStatusTip(tr("Show clip plane grid in viewport"));
+  m_hideUserClipPlane->setToolTip(tr("Show clip plane grid in viewport"));
+  QObject::connect(
+    m_hideUserClipPlane, &QCheckBox::clicked, [this, pToggleRotateAction, pToggleTranslateAction](bool toggled) {
+      if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
+        return;
+      }
+      if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
+        emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
+      }
+    });
+
+  sectionLayout->addRow("Hide", m_hideUserClipPlane);
 
   m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
