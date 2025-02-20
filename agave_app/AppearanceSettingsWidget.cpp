@@ -31,6 +31,16 @@ public:
   GradientCombo(QWidget* parent = nullptr)
     : QComboBox(parent)
   {
+    setFocusPolicy(Qt::StrongFocus);
+  }
+
+  void wheelEvent(QWheelEvent* event)
+  {
+    if (!hasFocus()) {
+      event->ignore();
+      return;
+    }
+    QComboBox::wheelEvent(event);
   }
 
   void paintEvent(QPaintEvent* e)
