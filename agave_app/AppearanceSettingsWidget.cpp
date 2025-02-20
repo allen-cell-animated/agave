@@ -319,8 +319,10 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 Section*
 QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
 {
-  m_clipPlaneSection =
-    new Section("Clip Plane", 0, true, this->m_scene ? this->m_scene->m_clipPlane->m_enabled : false);
+  Section::CheckBoxInfo checkBoxInfo = { this->m_scene ? this->m_scene->m_clipPlane->m_enabled : false,
+                                         "Enable/disable clip plane",
+                                         "Enable/disable clip plane" };
+  m_clipPlaneSection = new Section("Clip Plane", 0, &checkBoxInfo);
   // section checkbox turns clip plane on or off
   QObject::connect(m_clipPlaneSection, &Section::checked, [this](bool is_checked) {
     if (this->m_scene->m_clipPlane) {
@@ -395,6 +397,14 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   return m_clipPlaneSection;
 }
 
+// TODO App really needs to be architected to let the tool's visibility state be independent of whether it's selected
+// for manipulation.  Right now, selection of an object is the only thing that shows/hides the tool.
+bool
+QAppearanceSettingsWidget::shouldClipPlaneShow()
+{
+  return m_scene && !m_hideUserClipPlane->isChecked() && this->m_scene->m_clipPlane.get()->m_enabled;
+}
+
 Section*
 QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 {
@@ -412,6 +422,10 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
     if (this->m_scene->m_selection == this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
       emit this->m_qrendersettings->Selected(nullptr);
       pRotationAction->trigger();
+      // TODO remove this; the selection should be independent of the tool visibility
+      if (shouldClipPlaneShow()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
     } else {
       emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
       pRotationAction->trigger();
@@ -962,6 +976,13 @@ normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outinten
 }
 
 void
+QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
+{
+  const ScenePlane* clipPlane = scene->m_clipPlane.get();
+  m_clipPlaneSection->setChecked(clipPlane->m_enabled);
+}
+
+void
 QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 {
   m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
@@ -1069,6 +1090,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
 
   initLightingControls(scene);
+  initClipPlaneControls(scene);
 
   int numEnabled = 0;
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
@@ -1083,8 +1105,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       }
     }
 
-    Section* section =
-      new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
+    std::string tip = "Enable/disable channel " + scene->m_volume->channel(i)->m_name;
+    Section::CheckBoxInfo cbinfo = { channelenabled, tip, tip };
+    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo);
 
     auto* fullLayout = new QVBoxLayout();
 

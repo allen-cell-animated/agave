@@ -148,4 +148,6 @@ private:
   Section* createAreaLightingControls(QAction* pLightRotationAction);
   Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);
+  void initClipPlaneControls(Scene* scene);
+  bool shouldClipPlaneShow();
 };

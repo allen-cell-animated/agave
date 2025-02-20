@@ -4,7 +4,7 @@
 
 #include <QLabel>
 
-Section::Section(const QString& title, const int animationDuration, bool use_checkbox, bool is_checked, QWidget* parent)
+Section::Section(const QString& title, const int animationDuration, const CheckBoxInfo* checkBoxInfo, QWidget* parent)
   : QWidget(parent)
   , m_animationDuration(animationDuration)
   , m_checkBox(nullptr)
@@ -48,9 +48,12 @@ Section::Section(const QString& title, const int animationDuration, bool use_che
   int row = 0;
   m_mainLayout->addWidget(m_toggleButton, row, 0, 1, 1, Qt::AlignLeft);
   m_mainLayout->addWidget(m_headerLine, row, 2, 1, 1);
+  bool use_checkbox = checkBoxInfo != nullptr;
   if (use_checkbox) {
     m_checkBox = new QCheckBox(this);
-    m_checkBox->setChecked(is_checked);
+    m_checkBox->setChecked(checkBoxInfo->is_checked);
+    m_checkBox->setToolTip(QString::fromStdString(checkBoxInfo->toolTip));
+    m_checkBox->setStatusTip(QString::fromStdString(checkBoxInfo->statusTip));
     m_mainLayout->addWidget(m_checkBox, row, 3, 1, 1, Qt::AlignRight);
     QObject::connect(m_checkBox, &QCheckBox::clicked, [this](const bool is_checked) { emit checked(is_checked); });
   }
