@@ -64,7 +64,7 @@ makeGradientCombo()
 
     QString itemText;
     QBrush brush(gradient);
-    if (gspec.m_name == "Labels") {
+    if (gspec.m_name == "Labels" || gspec.m_name == ColorRamp::NO_COLORMAP_NAME) {
       // special case for Labels
       brush.setColor(QColor(255, 255, 255));
       brush.setStyle(Qt::SolidPattern);
@@ -1159,7 +1159,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
     LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
     gradients->setCurrentIndex(idx);
-    sectionLayout->addRow("ColorMap", gradients);
+    sectionLayout->addRow("Diffuse ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
