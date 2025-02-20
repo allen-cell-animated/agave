@@ -1153,13 +1153,18 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    auto separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator, sectionLayout->rowCount(), 0, 1, 2);
+
     // get color ramp from scene
     const ColorRamp& cr = scene->m_material.m_colormap[i];
     QComboBox* gradients = makeGradientCombo();
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
     LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
     gradients->setCurrentIndex(idx);
-    sectionLayout->addRow("Diffuse ColorMap", gradients);
+    sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
@@ -1188,12 +1193,17 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                     scene->m_material.m_diffuse[i * 3 + 1],
                                     scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
-    sectionLayout->addRow("DiffuseColor", diffuseColorButton);
+    sectionLayout->addRow("Color", diffuseColorButton);
     QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
     });
     // init
     this->OnDiffuseColorChanged(i, cdiff);
+
+    auto separator2 = new QFrame();
+    separator2->setFrameShape(QFrame::HLine);
+    separator2->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator2, sectionLayout->rowCount(), 0, 1, 2);
 
     QColorPushButton* specularColorButton = new QColorPushButton();
     specularColorButton->setStatusTip(tr("Set specular color for channel"));
