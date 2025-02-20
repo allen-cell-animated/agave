@@ -359,10 +359,8 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   });
 
   m_clipPlaneTranslateButton = new QPushButton("Translate");
-  m_clipPlaneTranslateButton->setStatusTip(
-    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)"));
-  m_clipPlaneTranslateButton->setToolTip(
-    tr("Show interactive controls in viewport for clip plane translation (or press T to toggle)"));
+  m_clipPlaneTranslateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
+  m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
   btnLayout->addWidget(m_clipPlaneTranslateButton);
   QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
     if (!this->m_scene) {
@@ -385,8 +383,8 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
 
   m_hideUserClipPlane = new QCheckBox();
   m_hideUserClipPlane->setChecked(false);
-  m_hideUserClipPlane->setStatusTip(tr("Show clip plane grid in viewport"));
-  m_hideUserClipPlane->setToolTip(tr("Show clip plane grid in viewport"));
+  m_hideUserClipPlane->setStatusTip(tr("Hide clip plane grid in viewport"));
+  m_hideUserClipPlane->setToolTip(tr("Hide clip plane grid in viewport"));
   QObject::connect(
     m_hideUserClipPlane, &QCheckBox::clicked, [this, pToggleRotateAction, pToggleTranslateAction](bool toggled) {
       if (!this->m_scene) {
