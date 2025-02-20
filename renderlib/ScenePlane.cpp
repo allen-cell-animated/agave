@@ -7,7 +7,7 @@ ScenePlane::ScenePlane(glm::vec3 pos)
   m_center = pos;
   m_transform.m_center = pos;
   m_plane = Plane();
-  m_enabled = true;
+  m_enabled = false;
   m_tool = std::make_unique<ClipPlaneTool>(m_plane, pos);
 }
 

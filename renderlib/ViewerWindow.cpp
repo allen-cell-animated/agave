@@ -61,6 +61,7 @@ ViewerWindow::select(SceneObject* obj)
   if (sceneView.getSelectedObject()) {
     ManipulationTool* tool = sceneView.getSelectedObject()->getSelectedTool();
     if (tool) {
+      // remove moves tool to end, then erase removes from the new tool position to end
       m_tools.erase(std::remove(m_tools.begin(), m_tools.end(), tool), m_tools.end());
     }
   }
