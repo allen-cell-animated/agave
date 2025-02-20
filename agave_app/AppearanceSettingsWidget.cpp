@@ -31,6 +31,16 @@ public:
   GradientCombo(QWidget* parent = nullptr)
     : QComboBox(parent)
   {
+    setFocusPolicy(Qt::StrongFocus);
+  }
+
+  void wheelEvent(QWheelEvent* event)
+  {
+    if (!hasFocus()) {
+      event->ignore();
+      return;
+    }
+    QComboBox::wheelEvent(event);
   }
 
   void paintEvent(QPaintEvent* e)
@@ -64,7 +74,7 @@ makeGradientCombo()
 
     QString itemText;
     QBrush brush(gradient);
-    if (gspec.m_name == "Labels") {
+    if (gspec.m_name == "Labels" || gspec.m_name == ColorRamp::NO_COLORMAP_NAME) {
       // special case for Labels
       brush.setColor(QColor(255, 255, 255));
       brush.setStyle(Qt::SolidPattern);
@@ -1153,17 +1163,25 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    auto separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator, sectionLayout->rowCount(), 0, 1, 2);
+
     // get color ramp from scene
     const ColorRamp& cr = scene->m_material.m_colormap[i];
     QComboBox* gradients = makeGradientCombo();
+    gradients->setToolTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
+    gradients->setStatusTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
-    LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
+
     gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
-      LOG_DEBUG << "Selected gradient " << index << " (" << name << ") for channel " << i;
 
       if (name == "Labels") {
         if (m_scene) {
@@ -1188,12 +1206,17 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                     scene->m_material.m_diffuse[i * 3 + 1],
                                     scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
-    sectionLayout->addRow("DiffuseColor", diffuseColorButton);
+    sectionLayout->addRow("Color", diffuseColorButton);
     QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
     });
     // init
     this->OnDiffuseColorChanged(i, cdiff);
+
+    auto separator2 = new QFrame();
+    separator2->setFrameShape(QFrame::HLine);
+    separator2->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator2, sectionLayout->rowCount(), 0, 1, 2);
 
     QColorPushButton* specularColorButton = new QColorPushButton();
     specularColorButton->setStatusTip(tr("Set specular color for channel"));
