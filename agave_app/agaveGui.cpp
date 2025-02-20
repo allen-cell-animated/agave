@@ -256,6 +256,7 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
+    // TODO restore to use checked state again when the action becomes more global
     this->m_glView->showRotateControls(true);
   });
 
@@ -268,6 +269,7 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleTranslateControlsAction);
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
+    // TODO restore to use checked state again when the action becomes more global
     this->m_glView->showTranslateControls(true);
   });
 
