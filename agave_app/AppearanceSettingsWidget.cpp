@@ -1171,14 +1171,17 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // get color ramp from scene
     const ColorRamp& cr = scene->m_material.m_colormap[i];
     QComboBox* gradients = makeGradientCombo();
+    gradients->setToolTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
+    gradients->setStatusTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
-    LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
+
     gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
-      LOG_DEBUG << "Selected gradient " << index << " (" << name << ") for channel " << i;
 
       if (name == "Labels") {
         if (m_scene) {
