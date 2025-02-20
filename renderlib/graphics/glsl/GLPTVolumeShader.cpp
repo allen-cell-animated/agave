@@ -228,6 +228,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("pre lights");
 
   Light& l = scene->SphereLight();
+  bool lenabled = scene->SceneSphereLight()->m_enabled;
   glUniform1f(m_light0theta, l.m_Theta);
   glUniform1f(m_light0phi, l.m_Phi);
   glUniform1f(m_light0width, l.m_Width);
@@ -243,13 +244,14 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform3fv(m_light0V, 1, glm::value_ptr(l.m_V));
   glUniform1f(m_light0area, l.m_Area);
   glUniform1f(m_light0areaPdf, l.m_AreaPdf);
-  glUniform3fv(m_light0color, 1, glm::value_ptr(l.m_Color * l.m_ColorIntensity));
-  glUniform3fv(m_light0colorTop, 1, glm::value_ptr(l.m_ColorTop * l.m_ColorTopIntensity));
-  glUniform3fv(m_light0colorMiddle, 1, glm::value_ptr(l.m_ColorMiddle * l.m_ColorMiddleIntensity));
-  glUniform3fv(m_light0colorBottom, 1, glm::value_ptr(l.m_ColorBottom * l.m_ColorBottomIntensity));
+  glUniform3fv(m_light0color, 1, glm::value_ptr(l.m_Color * (lenabled ? l.m_ColorIntensity : 0)));
+  glUniform3fv(m_light0colorTop, 1, glm::value_ptr(l.m_ColorTop * (lenabled ? l.m_ColorTopIntensity : 0)));
+  glUniform3fv(m_light0colorMiddle, 1, glm::value_ptr(l.m_ColorMiddle * (lenabled ? l.m_ColorMiddleIntensity : 0)));
+  glUniform3fv(m_light0colorBottom, 1, glm::value_ptr(l.m_ColorBottom * (lenabled ? l.m_ColorBottomIntensity : 0)));
   glUniform1i(m_light0T, l.m_T);
 
   Light& l1 = scene->AreaLight();
+  bool l1enabled = scene->SceneAreaLight()->m_enabled;
   glUniform1f(m_light1theta, l1.m_Theta);
   glUniform1f(m_light1phi, l1.m_Phi);
   glUniform1f(m_light1width, l1.m_Width);
@@ -265,10 +267,10 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   glUniform3fv(m_light1V, 1, glm::value_ptr(l1.m_V));
   glUniform1f(m_light1area, l1.m_Area);
   glUniform1f(m_light1areaPdf, l1.m_AreaPdf);
-  glUniform3fv(m_light1color, 1, glm::value_ptr(l1.m_Color * l1.m_ColorIntensity));
-  glUniform3fv(m_light1colorTop, 1, glm::value_ptr(l1.m_ColorTop * l1.m_ColorTopIntensity));
-  glUniform3fv(m_light1colorMiddle, 1, glm::value_ptr(l1.m_ColorMiddle * l1.m_ColorMiddleIntensity));
-  glUniform3fv(m_light1colorBottom, 1, glm::value_ptr(l1.m_ColorBottom * l1.m_ColorBottomIntensity));
+  glUniform3fv(m_light1color, 1, glm::value_ptr(l1.m_Color * (l1enabled ? l1.m_ColorIntensity : 0)));
+  glUniform3fv(m_light1colorTop, 1, glm::value_ptr(l1.m_ColorTop * (l1enabled ? l1.m_ColorTopIntensity : 0)));
+  glUniform3fv(m_light1colorMiddle, 1, glm::value_ptr(l1.m_ColorMiddle * (l1enabled ? l1.m_ColorMiddleIntensity : 0)));
+  glUniform3fv(m_light1colorBottom, 1, glm::value_ptr(l1.m_ColorBottom * (l1enabled ? l1.m_ColorBottomIntensity : 0)));
   glUniform1i(m_light1T, l1.m_T);
 
   // per channel

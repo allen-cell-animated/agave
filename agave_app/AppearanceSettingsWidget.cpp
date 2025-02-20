@@ -415,7 +415,15 @@ QAppearanceSettingsWidget::shouldClipPlaneShow()
 Section*
 QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 {
-  Section* section = new Section("Area Light", 0);
+  Section::CheckBoxInfo checkBoxInfo = { true, "Enable/disable area light", "Enable/disable area light" };
+  Section* section = new Section("Area Light", 0, &checkBoxInfo);
+  QObject::connect(section, &Section::checked, [this](bool is_checked) {
+    if (this->m_scene && this->m_scene->SceneAreaLight()) {
+      this->m_scene->SceneAreaLight()->m_enabled = is_checked;
+      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+    }
+  });
+
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
   auto btnLayout = new QHBoxLayout();
@@ -514,7 +522,15 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 Section*
 QAppearanceSettingsWidget::createSkyLightingControls()
 {
-  Section* section = new Section("Sky Light", 0);
+  Section::CheckBoxInfo checkBoxInfo = { true, "Enable/disable sky light", "Enable/disable sky light" };
+  Section* section = new Section("Sky Light", 0, &checkBoxInfo);
+  QObject::connect(section, &Section::checked, [this](bool is_checked) {
+    if (this->m_scene && this->m_scene->SceneSphereLight()) {
+      this->m_scene->SceneSphereLight()->m_enabled = is_checked;
+      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+    }
+  });
+
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
   auto* skylightTopLayout = new QHBoxLayout();
@@ -1159,7 +1175,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
     LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
     gradients->setCurrentIndex(idx);
-    sectionLayout->addRow("ColorMap", gradients);
+    sectionLayout->addRow("Diffuse Map", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
