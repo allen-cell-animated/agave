@@ -317,6 +317,17 @@ dimension from either side. For example, to see only the bottom Z half
 of your volume (or display the cross section middle slice), move the
 rightmost Z handle about halfway to the left.
 
+Clip Plane
+~~~~~~~~~~
+
+The clip plane is a plane that can be moved through the volume to cut it
+in half. The plane can be moved in X, Y, and Z, and rotated to any angle.
+Check the checkbox to enable or disable the clipping.
+Click "Hide" to make the clip plane grid indicator disappear.
+Select "Rotate" or "Translate" to enable viewport controls to let you move
+the clip plane interactively. Select the Rotate and Translate buttons
+a second time to disable the viewport controls. See \[Rotate\] below for more details.
+
 Lighting
 ~~~~~~~~
 
@@ -335,10 +346,10 @@ These three coordinates let you position the light anywhere on a sphere
 around the volume. Theta and Phi are in radians (where 3.14159 radians
 is half a circle).
 
-Viewport controls
-^^^^^^^^^^^^^^^^^
+Rotate
+^^^^^^
 
-If you check "Viewport controls" (or press the R key), an
+If you click "Rotate", an
 interactive rotation widget will appear in the viewport.  You can click
 and drag on the widget to rotate the light direction around the volume.
 If you click on the colored lines of the axes, rotation will be 
@@ -433,10 +444,27 @@ circle and drag to move it.
 Color settings
 ~~~~~~~~~~~~~~
 
-Diffuse Color
-^^^^^^^^^^^^^
+ColorMap
+^^^^^^^^
+
+The colormap is a gradient that maps intensity values to colors. You can
+select from a variety of built-in colormaps.  
+The color map will be applied between the max and min values of the transfer function.
+If you are using a "Custom" transfer function then there may be no inherent min and max,
+and so then the color map will be applied to the whole data range.
+To disable the color map,
+select the first entry (labeled as "none"). If your data is discrete labels
+such as a segmentation, you may use the final entry in the list, "Labels",
+which will assign a unique color to each unique intensity value.
+Note that the colormap colors will be multiplied with the \[Color\] setting.
+Set Color to white to see the colormap as it is. 
+
+Color
+^^^^^
 
 This should be thought of as the main color for this channel.
+Set this to pure white in order to use the color map without any extra
+color tinting.
 
 Specular Color
 ^^^^^^^^^^^^^^

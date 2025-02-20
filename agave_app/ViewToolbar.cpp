@@ -125,6 +125,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
     menu->exec(axisViewButton->mapToGlobal(axisViewButton->rect().bottomLeft() + QPoint(0, 4)));
   });
 
+#if 0
   toolbarLayout->addItem(new QSpacerItem(spacing, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
   rotateButton = new QPushButton(QIcon(), "", this);
@@ -148,6 +149,7 @@ ViewToolbar::ViewToolbar(QWidget* parent)
   translateButton->adjustSize();
   translateButton->setFocusPolicy(Qt::NoFocus);
   toolbarLayout->addWidget(translateButton);
+#endif
 
   toolbarLayout->addStretch();
 
