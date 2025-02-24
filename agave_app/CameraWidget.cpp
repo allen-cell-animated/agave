@@ -1,6 +1,215 @@
 #include "CameraWidget.h"
 #include "RenderSettings.h"
 
+#include <QLabel>
+
+struct GenericUIInfo
+{
+  std::string type;
+  std::string formLabel;
+  std::string statusTip;
+  std::string toolTip;
+
+  GenericUIInfo() = default;
+  GenericUIInfo(std::string type, std::string formLabel, std::string statusTip, std::string toolTip)
+    : type(type)
+    , formLabel(formLabel)
+    , statusTip(statusTip)
+    , toolTip(toolTip)
+  {
+  }
+};
+struct CheckBoxUiInfo : public GenericUIInfo
+{
+  static constexpr const char* TYPE = "CheckBox";
+
+  CheckBoxUiInfo() { type = CheckBoxUiInfo::TYPE; }
+  CheckBoxUiInfo(std::string formLabel, std::string statusTip, std::string toolTip)
+    : GenericUIInfo(CheckBoxUiInfo::TYPE, formLabel, statusTip, toolTip)
+  {
+  }
+};
+struct ComboBoxUiInfo : public GenericUIInfo
+{
+  static constexpr const char* TYPE = "ComboBox";
+  std::vector<std::string> items;
+
+  ComboBoxUiInfo() { type = ComboBoxUiInfo::TYPE; }
+  ComboBoxUiInfo(std::string formLabel, std::string statusTip, std::string toolTip, std::vector<std::string> items)
+    : GenericUIInfo(ComboBoxUiInfo::TYPE, formLabel, statusTip, toolTip)
+    , items(items)
+  {
+  }
+};
+struct FloatSliderSpinnerUiInfo : public GenericUIInfo
+{
+  static constexpr const char* TYPE = "FloatSliderSpinner";
+  float min = 0.0f;
+  float max = 0.0f;
+  int decimals = 0;
+  float singleStep = 0.0f;
+  int numTickMarks = 0;
+  std::string suffix;
+
+  FloatSliderSpinnerUiInfo() { type = FloatSliderSpinnerUiInfo::TYPE; }
+  FloatSliderSpinnerUiInfo(std::string formLabel,
+                           std::string statusTip,
+                           std::string toolTip,
+                           float min,
+                           float max,
+                           int decimals,
+                           float singleStep,
+                           int numTickMarks = 0,
+                           std::string suffix = "")
+    : GenericUIInfo(FloatSliderSpinnerUiInfo::TYPE, formLabel, statusTip, toolTip)
+    , min(min)
+    , max(max)
+    , decimals(decimals)
+    , singleStep(singleStep)
+    , numTickMarks(numTickMarks)
+    , suffix(suffix)
+  {
+  }
+};
+struct IntSliderSpinnerUiInfo : public GenericUIInfo
+{
+  static constexpr const char* TYPE = "IntSliderSpinner";
+  int min;
+  int max;
+  int singleStep;
+  int numTickMarks;
+  std::string suffix;
+
+  IntSliderSpinnerUiInfo() { type = IntSliderSpinnerUiInfo::TYPE; }
+};
+
+QNumericSlider*
+create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<float>> prop)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(QString::fromStdString(info->statusTip));
+  slider->setToolTip(QString::fromStdString(info->toolTip));
+  slider->setRange(info->min, info->max);
+  slider->setDecimals(info->decimals);
+  slider->setSingleStep(info->singleStep);
+  slider->setNumTickMarks(info->numTickMarks);
+  slider->setSuffix(QString::fromStdString(info->suffix));
+
+  slider->setValue(prop->get(), true);
+  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  // TODO how would this capture the "previous" value, for undo?
+  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+
+  return slider;
+}
+QNumericSlider*
+create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<int>> prop)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(QString::fromStdString(info->statusTip));
+  slider->setToolTip(QString::fromStdString(info->toolTip));
+  slider->setRange(info->min, info->max);
+  slider->setSingleStep(info->singleStep);
+  slider->setNumTickMarks(info->numTickMarks);
+  slider->setSuffix(QString::fromStdString(info->suffix));
+
+  slider->setValue(prop->get(), true);
+  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  // TODO how would this capture the "previous" value, for undo?
+  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+
+  return slider;
+}
+QCheckBox*
+create(const CheckBoxUiInfo* info, std::shared_ptr<prtyProperty<bool>> prop)
+{
+  QCheckBox* checkBox = new QCheckBox();
+  checkBox->setStatusTip(QString::fromStdString(info->statusTip));
+  checkBox->setToolTip(QString::fromStdString(info->toolTip));
+  // checkBox->setText(QString::fromStdString(info->formLabel));
+  checkBox->setCheckState(prop->get() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+  QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
+    prop->set(state == Qt::CheckState::Checked, true);
+  });
+  return checkBox;
+}
+QComboBox*
+create(const ComboBoxUiInfo* info, std::shared_ptr<prtyProperty<int>> prop)
+{
+  QComboBox* comboBox = new QComboBox();
+  comboBox->setStatusTip(QString::fromStdString(info->statusTip));
+  comboBox->setToolTip(QString::fromStdString(info->toolTip));
+  for (const auto& item : info->items) {
+    comboBox->addItem(QString::fromStdString(item));
+  }
+  comboBox->setCurrentIndex(prop->get());
+  QObject::connect(comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->set(index, true); });
+  return comboBox;
+}
+
+void
+createSection(QFormLayout* layout, std::vector<GenericUIInfo*> controlDescs)
+{
+  // for (const auto& desc : controlDescs) {
+  //   QLabel* label = new QLabel(QString::fromStdString(desc->formLabel));
+  //   if (desc->type == CheckBoxUiInfo::TYPE) {
+  //     layout->addRow(label, create(static_cast<const CheckBoxUiInfo*>(desc), ));
+  //   } else if (desc->type == ComboBoxUiInfo::TYPE) {
+  //     layout->addRow(label, create(static_cast<const ComboBoxUiInfo&>(desc)));
+  //   } else if (desc->type == FloatSliderSpinnerUiInfo::TYPE) {
+  //     layout->addRow(label, create(static_cast<const FloatSliderSpinnerUiInfo&>(desc)));
+  //   } else if (desc->type == IntSliderSpinnerUiInfo::TYPE) {
+  //     layout->addRow(label, create(static_cast<const IntSliderSpinnerUiInfo&>(desc)));
+  //   }
+  // }
+}
+
+QNumericSlider*
+addRow(const FloatSliderSpinnerUiInfo& info, prtyProperty<float>* prop)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(QString::fromStdString(info.statusTip));
+  slider->setToolTip(QString::fromStdString(info.toolTip));
+  slider->setRange(info.min, info.max);
+  slider->setDecimals(info.decimals);
+  slider->setSingleStep(info.singleStep);
+  slider->setNumTickMarks(info.numTickMarks);
+  slider->setSuffix(QString::fromStdString(info.suffix));
+
+  slider->setValue(prop->get(), true);
+  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  // TODO how would this capture the "previous" value, for undo?
+  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+
+  return slider;
+}
+QComboBox*
+addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop)
+{
+  QComboBox* comboBox = new QComboBox();
+  comboBox->setStatusTip(QString::fromStdString(info.statusTip));
+  comboBox->setToolTip(QString::fromStdString(info.toolTip));
+  for (const auto& item : info.items) {
+    comboBox->addItem(QString::fromStdString(item));
+  }
+  comboBox->setCurrentIndex(prop->get());
+  QObject::connect(comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->set(index, true); });
+  return comboBox;
+}
+QCheckBox*
+addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop)
+{
+  QCheckBox* checkBox = new QCheckBox();
+  checkBox->setStatusTip(QString::fromStdString(info.statusTip));
+  checkBox->setToolTip(QString::fromStdString(info.toolTip));
+  // checkBox->setText(QString::fromStdString(info.formLabel));
+  checkBox->setCheckState(prop->get() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+  QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
+    prop->set(state == Qt::CheckState::Checked, true);
+  });
+  return checkBox;
+}
+
 QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   : QWidget(pParent)
   , m_MainLayout()
@@ -9,6 +218,60 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
+
+  QNumericSlider* slider = addRow(FloatSliderSpinnerUiInfo("Exposure",
+                                                           "Set Exposure",
+                                                           "Set camera exposure",
+                                                           0.0f,
+                                                           1.0f,
+                                                           2,    // decimals
+                                                           0.01, // singleStep
+                                                           0     // numTickMarks
+                                                           ),
+                                  &m_cameraProps.Exposure);
+  m_MainLayout.addRow("Exposure", slider);
+  QComboBox* comboBox = addRow(ComboBoxUiInfo("Exposure Time",
+                                              "Set Exposure Time",
+                                              "Set number of samples to accumulate per viewport update",
+                                              { "1", "2", "4", "8" }),
+                               &m_cameraProps.ExposureIterations);
+  m_MainLayout.addRow("Exposure Time", comboBox);
+  QCheckBox* checkBox = addRow(CheckBoxUiInfo("Noise Reduction", "Enable denoising pass", "Enable denoising pass"),
+                               &m_cameraProps.NoiseReduction);
+  m_MainLayout.addRow("Noise Reduction", checkBox);
+  QNumericSlider* slider2 = addRow(FloatSliderSpinnerUiInfo("Aperture Size",
+                                                            "Set camera aperture size",
+                                                            "Set camera aperture size",
+                                                            0.0f,
+                                                            0.1f,
+                                                            2,    // decimals
+                                                            0.01, // singleStep
+                                                            0,    // numTickMarks
+                                                            " mm"),
+                                   &m_cameraProps.ApertureSize);
+  m_MainLayout.addRow("Aperture Size", slider2);
+  QNumericSlider* slider3 = addRow(FloatSliderSpinnerUiInfo("Field of view",
+                                                            "Set camera field of view angle",
+                                                            "Set camera field of view angle",
+                                                            10.0f,
+                                                            150.0f,
+                                                            2,    // decimals
+                                                            0.01, // singleStep
+                                                            0,    // numTickMarks
+                                                            " deg."),
+                                   &m_cameraProps.FieldOfView);
+  m_MainLayout.addRow("Field of view", slider3);
+  QNumericSlider* slider4 = addRow(FloatSliderSpinnerUiInfo("Focal distance",
+                                                            "Set focal distance",
+                                                            "Set focal distance",
+                                                            0.0f,
+                                                            15.0f,
+                                                            2,    // decimals
+                                                            0.01, // singleStep
+                                                            0,    // numTickMarks
+                                                            " m"),
+                                   &m_cameraProps.FocalDistance);
+  m_MainLayout.addRow("Focal distance", slider4);
 
   // Exposure, controls how bright or dim overall scene is
   m_ExposureSlider.setStatusTip(tr("Set Exposure"));
