@@ -323,10 +323,14 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
     if (!this->m_slider.hasTracking()) {
       this->m_spinner.setEnabled(true);
     }
+
+    // spinner changes are undoable
+    emit valueChangeCommit();
   });
 
   // only slider will emit the value...
   QObject::connect(&m_slider, SIGNAL(valueChanged(double)), this, SLOT(OnValueChanged(double)));
+  QObject::connect(&m_slider, SIGNAL(sliderReleased()), this, SLOT(OnSliderReleased()));
 }
 
 QSize
@@ -339,6 +343,11 @@ void
 QNumericSlider::OnValueChanged(double value)
 {
   emit valueChanged(value);
+}
+void
+QNumericSlider::OnSliderReleased()
+{
+  emit valueChangeCommit();
 }
 
 double
@@ -385,6 +394,18 @@ void
 QNumericSlider::setTracking(bool enabled)
 {
   m_slider.setTracking(enabled);
+}
+
+void
+QNumericSlider::setNumTickMarks(int num)
+{
+  if (num == 0) {
+    m_slider.setTickPosition(QSlider::NoTicks);
+    m_slider.setTickInterval(0);
+  } else {
+    m_slider.setTickPosition(QSlider::TicksBelow);
+    m_slider.setTickInterval((m_slider.maximum() - m_slider.minimum()) / num);
+  }
 }
 
 QIntSlider::QIntSlider(QWidget* pParent /*= NULL*/)

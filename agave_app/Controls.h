@@ -178,14 +178,19 @@ public:
   void setSingleStep(double val);
   void setDecimals(int decimals);
   void setSuffix(const QString&);
+  void setNumTickMarks(int num);
 
   void setTracking(bool enable);
+  bool tracking() const { return m_slider.hasTracking(); }
 
 private slots:
   void OnValueChanged(double value);
+  void OnSliderReleased();
 
 signals:
   void valueChanged(double value);
+  // good for committing changes for undo reasons.
+  void valueChangeCommit();
 
 private:
   QHBoxLayout m_layout;

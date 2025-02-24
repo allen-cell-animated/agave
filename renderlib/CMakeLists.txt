@@ -93,6 +93,7 @@ add_subdirectory(gesture)
 add_subdirectory(graphics)
 add_subdirectory(io)
 add_subdirectory(pugixml)
+add_subdirectory(core)
 
 target_link_libraries(renderlib
 	Qt::Core Qt::OpenGL
