@@ -95,6 +95,7 @@ private:
   void createMenus();
   void createToolbars();
   void createDockWindows();
+  void setupCameraDock(CameraDataObject* cdo);
 
   void showOpenFailedMessageBox(QString path);
 

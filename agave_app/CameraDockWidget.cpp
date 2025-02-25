@@ -1,8 +1,8 @@
 #include "CameraDockWidget.h"
 
-QCameraDockWidget::QCameraDockWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
+QCameraDockWidget::QCameraDockWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs, CameraDataObject* cdo)
   : QDockWidget(pParent)
-  , m_CameraWidget(nullptr, cam, rs)
+  , m_CameraWidget(nullptr, cam, rs, cdo)
 {
   setWindowTitle("Camera");
 
