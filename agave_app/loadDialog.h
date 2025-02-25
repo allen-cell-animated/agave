@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Controls.h"
-#include "Section.h"
+#include "qtControls/Controls.h"
+#include "qtControls/Section.h"
 
 #include "renderlib/VolumeDimensions.h"
 #include "renderlib/io/FileReader.h"

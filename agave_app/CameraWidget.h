@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Camera.h"
-#include "Controls.h"
+#include "qtControls/Controls.h"
 
 #include "renderlib/core/prty/prtyProperty.h"
 #include "renderlib/CameraDataObject.hpp"

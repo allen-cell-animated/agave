@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Controls.h"
+#include "qtControls/Controls.h"
 #include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 
