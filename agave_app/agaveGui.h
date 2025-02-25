@@ -93,11 +93,8 @@ private:
   void createActions();
   void createMenus();
   void createToolbars();
-  void addDockItemsToViewMenu();
+  void createDockWindows();
   void setupCameraDock(CameraDataObject* cdo);
-  void setupTimelineDock();
-  void setupAppearanceDock();
-  void setupStatisticsDock();
 
   void showOpenFailedMessageBox(QString path);
 

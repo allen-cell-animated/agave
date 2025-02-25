@@ -117,6 +117,8 @@ agaveGui::agaveGui(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  // create camera ui window now that there is an actual camera.
+  setupCameraDock(m_glView->getCameraDataObject());
 
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_glView->getCameraDataObject());
@@ -351,14 +353,24 @@ void
 agaveGui::setupCameraDock(CameraDataObject* cdo)
 {
   // TODO enable changing/resetting the camera data object shown in this dock?
-  m_cameradock = new QCameraDockWidget(this, &m_renderSettings, cdo);
+  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 }
 
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
+}
+
 void
-agaveGui::setupAppearanceDock()
+agaveGui::createDockWindows()
 {
+
+  m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
+  m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
+  m_timelinedock->setVisible(false); // hide by default
+
   m_appearanceDockWidget = new QAppearanceDockWidget(
     this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -387,8 +399,6 @@ agaveGui::setupStatisticsDock()
 void
 agaveGui::addDockItemsToViewMenu()
 {
-  m_viewMenu->addSeparator();
-  m_viewMenu->addAction(m_cameradock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();

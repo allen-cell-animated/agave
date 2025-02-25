@@ -18,7 +18,10 @@ class QCameraWidget : public QWidget
   Q_OBJECT
 
 public:
-  QCameraWidget(QWidget* pParent = NULL, RenderSettings* rs = nullptr, CameraDataObject* cdo = nullptr);
+  QCameraWidget(QWidget* pParent = NULL,
+                QCamera* cam = nullptr,
+                RenderSettings* rs = nullptr,
+                CameraDataObject* cdo = nullptr);
 
   virtual QSize sizeHint() const;
 

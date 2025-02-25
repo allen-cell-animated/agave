@@ -111,6 +111,7 @@ protected:
 
 private:
   CameraDataObject* m_cameraDataObject;
+  QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.

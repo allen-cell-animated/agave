@@ -28,8 +28,6 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDataObject.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDataObject.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/CameraUiDescription.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/CameraUiDescription.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Colormap.cpp"
