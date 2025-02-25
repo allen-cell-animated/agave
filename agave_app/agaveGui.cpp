@@ -136,17 +136,8 @@ agaveGui::agaveGui(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_glView->setCameraObject(m_cameraObject.get());
-
   // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_cameraObject.get());
-  // setupAreaLightDock(m_areaLightObject.get());
-  // setupSkyLightDock(m_skyLightObject.get());
-  setupTimelineDock();
-  setupStatisticsDock();
-  setupAppearanceDock(m_glView->getAppearanceDataObject());
-
-  addDockItemsToViewMenu();
+  setupCameraDock(m_glView->getCameraDataObject());
 
   // TODO can make this a custom widget that exposes the toolbar and the view
   m_viewWithToolbar = new QWidget(this);
@@ -418,6 +409,18 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
                                                      m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
+}
+
+void
+agaveGui::setupCameraDock(CameraDataObject* cdo)
+{
+  // TODO enable changing/resetting the camera data object shown in this dock?
+  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
+  m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
+
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
 }
 
 void

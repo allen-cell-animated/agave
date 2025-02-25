@@ -3,8 +3,8 @@
 #include "Camera.h"
 #include "qtControls/Controls.h"
 
-// #include "renderlib/core/prty/prtyProperty.h"
-#include "renderlib/CameraObject.hpp"
+#include "renderlib/core/prty/prtyProperty.h"
+#include "renderlib/CameraDataObject.hpp"
 #include "renderlib/Logging.h"
 
 #include <QCheckBox>
@@ -19,7 +19,10 @@ class QCameraWidget : public QWidget
   Q_OBJECT
 
 public:
-  QCameraWidget(QWidget* pParent = NULL, RenderSettings* rs = nullptr, CameraObject* cameraObject = nullptr);
+  QCameraWidget(QWidget* pParent = NULL,
+                QCamera* cam = nullptr,
+                RenderSettings* rs = nullptr,
+                CameraDataObject* cdo = nullptr);
 
   virtual QSize sizeHint() const;
 
@@ -29,5 +32,5 @@ private:
   RenderSettings* m_renderSettings;
 
 private:
-  CameraObject* m_cameraObject;
+  CameraDataObject* m_cameraDataObject;
 };

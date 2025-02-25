@@ -12,7 +12,6 @@
 #include <QOpenGLWidget>
 #include <QTimer>
 
-class AppearanceDataObject;
 class CameraDataObject;
 class CStatus;
 class ImageXYZC;
@@ -66,11 +65,9 @@ public:
 
   void onNewImage(Scene* scene);
 
-  const CCamera& getCamera() { return *m_viewerWindow->m_CCamera; }
+  const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
   // tied to the above camera.  CCamera must outlive this:
-  // CameraObject* getCameraDataObject() { return m_cameraObject; }
-  void setCameraObject(CameraObject* cameraObject);
-  AppearanceObject* getAppearanceDataObject() { return m_appearanceDataObject; }
+  CameraDataObject* getCameraDataObject() { return m_cameraDataObject; }
 
   void fromViewerState(const Serialize::ViewerState& s);
 
@@ -113,8 +110,8 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
 private:
-  CameraObject* m_cameraObject;
-  AppearanceObject* m_appearanceDataObject;
+  CameraDataObject* m_cameraDataObject;
+  QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.
