@@ -3,7 +3,6 @@
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
 #include "qtControls/Section.h"
-#include "qtControls/controlFactory.h"
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"

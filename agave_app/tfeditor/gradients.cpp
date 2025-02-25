@@ -52,9 +52,8 @@
 #include "hoverpoints.h"
 
 #include "qtControls/Controls.h"
-#include "renderlib/Defines.h"
-#include "renderlib/Logging.h"
-#include "renderlib/MathUtil.h"
+#include "Defines.h"
+#include "Logging.h"
 
 #include <algorithm>
 
