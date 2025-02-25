@@ -15,7 +15,6 @@
 class CameraDataObject;
 class CStatus;
 class ImageXYZC;
-class QCamera;
 class IRenderWindow;
 class QRenderSettings;
 class Scene;
@@ -40,7 +39,7 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
 
   /// Destructor.
   ~GLView3D();
@@ -86,7 +85,6 @@ signals:
 
 public slots:
 
-  void OnUpdateCamera();
   void OnUpdateQRenderSettings(void);
   void OnUpdateRenderer(int);
   void OnSelectionChanged(SceneObject* so);
@@ -113,7 +111,6 @@ protected:
 
 private:
   CameraDataObject* m_cameraDataObject;
-  QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.

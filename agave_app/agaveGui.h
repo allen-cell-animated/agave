@@ -138,8 +138,6 @@ private:
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
 
-  // THE camera parameter container
-  QCamera m_qcamera;
   // Camera UI
   QCameraDockWidget* m_cameradock;
   // Timeline UI

@@ -111,7 +111,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
+  m_glView = new GLView3D(&m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
@@ -345,7 +345,7 @@ void
 agaveGui::setupCameraDock(CameraDataObject* cdo)
 {
   // TODO enable changing/resetting the camera data object shown in this dock?
-  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
+  m_cameradock = new QCameraDockWidget(this, &m_renderSettings, cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 
@@ -1297,11 +1297,11 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  v.camera.fovY = m_qcamera.GetProjection().GetFieldOfView();
-
-  v.camera.exposure = m_qcamera.GetFilm().GetExposure();
-  v.camera.aperture = m_qcamera.GetAperture().GetSize();
-  v.camera.focalDistance = m_qcamera.GetFocus().GetFocalDistance();
+  CameraDataObject* cdo = m_glView->getCameraDataObject();
+  v.camera.fovY = cdo->FieldOfView.get();
+  v.camera.exposure = cdo->Exposure.get();
+  v.camera.aperture = cdo->ApertureSize.get();
+  v.camera.focalDistance = cdo->FocalDistance.get();
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
   v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
 
