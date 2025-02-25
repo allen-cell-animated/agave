@@ -17,7 +17,8 @@ public:
 
   CCamera* m_camera;
 
+  void updatePropsFromCamera();
+
 private:
   void update();
-  void updatePropsFromCamera();
 };
