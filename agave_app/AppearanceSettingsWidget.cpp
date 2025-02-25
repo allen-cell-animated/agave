@@ -1,7 +1,7 @@
 #include "AppearanceSettingsWidget.h"
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
-#include "Section.h"
+#include "qtControls/Section.h"
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"

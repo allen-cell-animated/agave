@@ -33,8 +33,6 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/cgiparser.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Controls.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Controls.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Film.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Film.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Focus.cpp"
@@ -49,16 +47,12 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/QRenderSettings.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/QRenderSettings.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/RangeWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/renderrequest.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Section.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Section.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Serialize.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SerializeV1.cpp"
@@ -81,6 +75,7 @@ target_sources(agaveapp PRIVATE
 add_subdirectory(python)
 
 add_subdirectory(tfeditor)
+add_subdirectory(qtControls)
 
 if(MSVC)
 	target_sources(agaveapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/version.rc")
