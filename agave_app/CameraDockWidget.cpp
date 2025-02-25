@@ -1,6 +1,6 @@
 #include "CameraDockWidget.h"
 
-QCameraDockWidget::QCameraDockWidget(QWidget* pParent, RenderSettings* rs, CameraObject* cdo)
+QCameraDockWidget::QCameraDockWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs, CameraDataObject* cdo)
   : QDockWidget(pParent)
   , m_CameraWidget(nullptr, cam, rs, cdo)
 {

@@ -124,15 +124,8 @@ agaveGui::agaveGui(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_glView->setCameraObject(m_cameraObject.get());
-
   // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_cameraObject.get());
-  setupTimelineDock();
-  setupStatisticsDock();
-  setupAppearanceDock(m_appearanceObject.get());
-
-  addDockItemsToViewMenu();
+  setupCameraDock(m_glView->getCameraDataObject());
 
   // TODO can make this a custom widget that exposes the toolbar and the view
   m_viewWithToolbar = new QWidget(this);
@@ -360,10 +353,10 @@ agaveGui::createToolbars()
 }
 
 void
-agaveGui::setupCameraDock(CameraObject* cdo)
+agaveGui::setupCameraDock(CameraDataObject* cdo)
 {
   // TODO enable changing/resetting the camera data object shown in this dock?
-  m_cameradock = new QCameraDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 }
@@ -373,28 +366,9 @@ agaveGui::setupCameraDock(CameraObject* cdo)
 }
 
 void
-agaveGui::setupAppearanceDock(AppearanceObject* ado)
+agaveGui::createDockWindows()
 {
-  // DANGER see borrowRenderer call
-  m_appearanceDockWidget2 =
-    new QAppearanceDockWidget2(this, m_appearanceObject->getRenderSettings().get(), m_glView->borrowRenderer(), ado);
-  m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
 
-  // original appearance dock widget
-
-  m_appearanceDockWidget = new QAppearanceDockWidget(this,
-                                                     &m_qrendersettings,
-                                                     m_appearanceObject->getRenderSettings().get(),
-                                                     m_toggleRotateControlsAction,
-                                                     m_toggleTranslateControlsAction);
-  m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
-}
-
-void
-agaveGui::setupTimelineDock()
-{
   m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
   m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
@@ -411,9 +385,6 @@ agaveGui::setupStatisticsDock()
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
 }
 
-void
-agaveGui::addDockItemsToViewMenu()
-{
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();

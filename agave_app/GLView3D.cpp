@@ -3,8 +3,7 @@
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
-#include "renderlib/AppearanceObject.hpp"
-#include "renderlib/CameraObject.hpp"
+#include "renderlib/CameraDataObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/MoveTool.h"
@@ -43,6 +42,9 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
 {
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
+
+  // camera is created deep down inside m_viewerWindow.
+  m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -140,6 +142,8 @@ GLView3D::onNewImage(Scene* scene)
 
 GLView3D::~GLView3D()
 {
+  delete m_cameraDataObject;
+
   makeCurrent();
   check_gl("view dtor makecurrent");
   // doneCurrent();
