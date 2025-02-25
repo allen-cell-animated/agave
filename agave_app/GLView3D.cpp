@@ -1,6 +1,5 @@
 #include "GLView3D.h"
 
-#include "Camera.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
