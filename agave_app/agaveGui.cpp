@@ -113,11 +113,12 @@ agaveGui::agaveGui(QWidget* parent)
   // add the single gl view as a tab
   m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
-
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  // create camera ui window now that there is an actual camera.
+  setupCameraDock(m_glView->getCameraDataObject());
 
   // TODO can make this a custom widget that exposes the toolbar and the view
   m_viewWithToolbar = new QWidget(this);
@@ -341,11 +342,20 @@ agaveGui::createToolbars()
 }
 
 void
-agaveGui::createDockWindows()
+agaveGui::setupCameraDock(CameraDataObject* cdo)
 {
-  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings);
+  // TODO enable changing/resetting the camera data object shown in this dock?
+  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
+
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
+}
+
+void
+agaveGui::createDockWindows()
+{
 
   m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
   m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -363,8 +373,6 @@ agaveGui::createDockWindows()
   m_statisticsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
 
-  m_viewMenu->addSeparator();
-  m_viewMenu->addAction(m_cameradock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
