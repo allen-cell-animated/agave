@@ -210,11 +210,12 @@ addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop)
   return checkBox;
 }
 
-QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
+QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs, CameraDataObject* cdo)
   : QWidget(pParent)
   , m_MainLayout()
   , m_qcamera(cam)
   , m_renderSettings(rs)
+  , m_cameraDataObject(cdo)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
@@ -228,16 +229,16 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
                                                            0.01, // singleStep
                                                            0     // numTickMarks
                                                            ),
-                                  &m_cameraProps.Exposure);
+                                  &m_cameraDataObject->Exposure);
   m_MainLayout.addRow("Exposure", slider);
   QComboBox* comboBox = addRow(ComboBoxUiInfo("Exposure Time",
                                               "Set Exposure Time",
                                               "Set number of samples to accumulate per viewport update",
                                               { "1", "2", "4", "8" }),
-                               &m_cameraProps.ExposureIterations);
+                               &m_cameraDataObject->ExposureIterations);
   m_MainLayout.addRow("Exposure Time", comboBox);
   QCheckBox* checkBox = addRow(CheckBoxUiInfo("Noise Reduction", "Enable denoising pass", "Enable denoising pass"),
-                               &m_cameraProps.NoiseReduction);
+                               &m_cameraDataObject->NoiseReduction);
   m_MainLayout.addRow("Noise Reduction", checkBox);
   QNumericSlider* slider2 = addRow(FloatSliderSpinnerUiInfo("Aperture Size",
                                                             "Set camera aperture size",
@@ -248,7 +249,7 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
                                                             0.01, // singleStep
                                                             0,    // numTickMarks
                                                             " mm"),
-                                   &m_cameraProps.ApertureSize);
+                                   &m_cameraDataObject->ApertureSize);
   m_MainLayout.addRow("Aperture Size", slider2);
   QNumericSlider* slider3 = addRow(FloatSliderSpinnerUiInfo("Field of view",
                                                             "Set camera field of view angle",
@@ -259,7 +260,7 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
                                                             0.01, // singleStep
                                                             0,    // numTickMarks
                                                             " deg."),
-                                   &m_cameraProps.FieldOfView);
+                                   &m_cameraDataObject->FieldOfView);
   m_MainLayout.addRow("Field of view", slider3);
   QNumericSlider* slider4 = addRow(FloatSliderSpinnerUiInfo("Focal distance",
                                                             "Set focal distance",
@@ -270,9 +271,10 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
                                                             0.01, // singleStep
                                                             0,    // numTickMarks
                                                             " m"),
-                                   &m_cameraProps.FocalDistance);
+                                   &m_cameraDataObject->FocalDistance);
   m_MainLayout.addRow("Focal distance", slider4);
 
+#if 0  
   // Exposure, controls how bright or dim overall scene is
   m_ExposureSlider.setStatusTip(tr("Set Exposure"));
   m_ExposureSlider.setToolTip(tr("Set camera exposure"));
@@ -341,6 +343,7 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   QObject::connect(&cam->GetAperture(), SIGNAL(Changed(const QAperture&)), this, SLOT(OnApertureChanged()));
   QObject::connect(&cam->GetProjection(), SIGNAL(Changed(const QProjection&)), this, SLOT(OnProjectionChanged()));
   QObject::connect(&cam->GetFocus(), SIGNAL(Changed(const QFocus&)), this, SLOT(OnFocusChanged()));
+#endif
 }
 
 void

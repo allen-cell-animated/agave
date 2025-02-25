@@ -12,6 +12,7 @@
 #include <QOpenGLWidget>
 #include <QTimer>
 
+class CameraDataObject;
 class CStatus;
 class ImageXYZC;
 class QCamera;
@@ -66,6 +67,8 @@ public:
   void onNewImage(Scene* scene);
 
   const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
+  // tied to the above camera.  CCamera must outlive this:
+  CameraDataObject* getCameraDataObject() { return m_cameraDataObject; }
 
   void fromViewerState(const Serialize::ViewerState& s);
 
@@ -109,6 +112,7 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
 private:
+  CameraDataObject* m_cameraDataObject;
   QCamera* m_qcamera;
   QRenderSettings* m_qrendersettings;
 
