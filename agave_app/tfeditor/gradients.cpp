@@ -1,10 +1,8 @@
 #include "gradients.h"
 
-#include "Controls.h"
-#include "qcustomplot.h"
-#include "renderlib/Defines.h"
-#include "renderlib/Logging.h"
-#include "renderlib/MathUtil.h"
+#include "qtControls/Controls.h"
+#include "Defines.h"
+#include "Logging.h"
 
 #include <algorithm>
 
