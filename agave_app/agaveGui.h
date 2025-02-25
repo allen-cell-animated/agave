@@ -2,7 +2,6 @@
 
 #include "ui_agaveGui.h"
 
-#include "Camera.h"
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
