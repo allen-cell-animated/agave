@@ -457,7 +457,7 @@ select the first entry (labeled as "none"). If your data is discrete labels
 such as a segmentation, you may use the final entry in the list, "Labels",
 which will assign a unique color to each unique intensity value.
 Note that the colormap colors will be multiplied with the \[Color\] setting.
-Set Color to white to see the colormap as it is. 
+Set Color to white to see the colormap directly. 
 
 Color
 ^^^^^
