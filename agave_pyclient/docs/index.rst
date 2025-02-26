@@ -8,7 +8,7 @@ Quick start
 
    pip install agave_pyclient
 
-You must have Agave installed separately. On command line, run:
+You must have AGAVE installed separately. On command line, run:
 
 .. code-block:: console
 
