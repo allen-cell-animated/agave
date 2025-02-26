@@ -1,0 +1,243 @@
+#include "GLThickLines.h"
+
+#include <vector>
+#include <string>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+// * create an array with the points of the line strip.
+// * first and last point define the tangents of the start and end of the line strip,
+// so you need to add one pt at start and end
+// * if drawing a line loop, then the last point has to be added to the array head,
+// and the first point added to the tail
+// * store the array of pts in a buffer that the shader can access by indexing (ideally SSBO?)
+// * shader doesn't need any vertex coordinates or attributes. It just needs to know the index of the line segment.
+// * to get the line segment index we just use the index of the vertex currently being processed (gl_VertexID)
+// * to draw a line strip with N points (N-1 segments), we need 6*(N-1) vertices
+// * each segment is 2 triangles. glDrawArrays(GL_TRIANGLES, 0, 6*(N-1)) will draw the line strip
+// line index = gl_VertexID / 6
+// tri index = gl_VertexID % 6
+// * Since we are drawing N-1 line segments, but the number of elements in the array is N+2,
+// the elements from vertex[line_t] to vertex[line_t+3] can be accessed for each vertex which
+// is processed in the vertex shader.
+// * vertex[line_t+1] and vertex[line_t+2] are the start and end coordinate of the line segment.
+// * vertex[line_t] and vertex[line_t+3] are required to compute the miter.
+// thickness is provided in pixels, and so we need to convert it to clip space and use window resolution
+
+static const char* vertex_shader_text =
+  R"(
+    #version 400 core
+
+    // this is the layout of the stripVerts buffer below
+    //layout (location = 0) in vec3 vPos;
+    //layout (location = 1) in vec2 vUV;
+    //layout (location = 2) in vec4 vCol;
+    //layout (location = 3) in uint vCode;
+
+    uniform mat4 projection;
+    uniform vec2 resolution;
+    uniform int stripVertexOffset;
+    uniform int picking;
+    uniform float thickness;
+
+    // this will be defined with R32f format so we can read it one float at a time
+    uniform samplerBuffer stripVerts;
+
+    out vec4 Frag_color;
+    out vec2 Frag_UV;
+
+    void main()
+    {
+    int line_i = (gl_VertexID) / 6;
+    int tri_i  = (gl_VertexID) % 6;
+
+    uint vCode = 0;
+    vec2 vUV = vec2(0.0, 0.0);
+    vec4 vCol = vec4(0.0, 0.0, 0.0, 0.0);
+
+    vec4 va[4];
+    // put everything in pixel space so we can apply thickness and
+    // compute miters
+    for (int i=0; i<4; ++i)
+    {
+        vec4 vtx;
+        vtx.x = texelFetch(stripVerts, (stripVertexOffset + line_i+i)*10 + 0).x;
+        vtx.y = texelFetch(stripVerts, (stripVertexOffset + line_i+i)*10 + 1).x;
+        vtx.z = texelFetch(stripVerts, (stripVertexOffset + line_i+i)*10 + 2).x;
+        vtx.w = 1.0;
+        va[i] = projection * vtx;
+        va[i].xyz /= va[i].w;
+        va[i].xy = (va[i].xy + 1.0) * 0.5 * resolution;
+    }
+
+    // it is possible for the projected line points to be very close to each other
+    // and so nearly coincident that the length is approaching zero.
+    vec2 v_line = va[2].xy - va[1].xy;
+    float len = length(v_line);
+    if (len < 1.0)
+    {
+        // if the line is too short, position the vertex so it will be clipped, out of view frustum
+        gl_Position = vec4(1,1,1,0);
+        Frag_UV = vec2(0.0, 0.0);
+        Frag_color = vec4(1.0, 1.0, 1.0, 1.0);
+        return;
+    }
+    v_line = normalize(v_line);
+    // rotate x,y to perpendicular to the line: (y, -x)
+    vec2 nv_line = vec2(-v_line.y, v_line.x);
+
+    vec4 pos;
+    if (tri_i == 0 || tri_i == 1 || tri_i == 3)
+    {
+        vec2 vtan = va[1].xy - va[0].xy;
+        vec2 v_pred  = length(vtan) > 0.5 ? normalize(vtan) : vtan;
+        vec2 v_miter = normalize(nv_line + vec2(-v_pred.y, v_pred.x));
+
+        pos = va[1];
+        float d = dot(v_miter, nv_line);
+        d = abs(d) < 1 ? 1.0 : d;
+        pos.xy += v_miter * thickness * (tri_i == 1 ? -0.5 : 0.5) / d;
+
+        vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 3).x;
+        vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 4).x;
+        vCol.x = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 5).x;
+        vCol.y = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 6).x;
+        vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 7).x;
+        vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 8).x;
+        vCode = floatBitsToUint(texelFetch(stripVerts, (stripVertexOffset + line_i+1)*10 + 9).x);
+    }
+    else
+    {
+        vec2 vtan = va[3].xy - va[2].xy;
+        vec2 v_succ  = length(vtan) > 0.5 ? normalize(vtan) : vtan;
+        vec2 v_miter = normalize(nv_line + vec2(-v_succ.y, v_succ.x));
+
+        pos = va[2];
+        float d = dot(v_miter, nv_line);
+        d = abs(d) < 1 ? 1.0 : d;
+        pos.xy += v_miter * thickness * (tri_i == 5 ? 0.5 : -0.5) / d;
+
+        vUV.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 3).x;
+        vUV.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 4).x;
+
+        vCol.x = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 5).x;
+        vCol.y = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 6).x;
+        vCol.z = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 7).x;
+        vCol.w = texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 8).x;
+
+        vCode = floatBitsToUint(texelFetch(stripVerts, (stripVertexOffset + line_i+2)*10 + 9).x);
+    }
+
+    // undo the perspective divide and go back to clip space
+    pos.xy = pos.xy / resolution * 2.0 - 1.0;
+    pos.xyz *= pos.w;
+    gl_Position = pos;
+
+
+        Frag_UV = vUV;
+        if (picking == 1) {
+          Frag_color = vec4(float(vCode & 0xffu) / 255.0,
+                            float((vCode >> 8) & 0xffu) / 255.0,
+                            float((vCode >> 16) & 0xffu) / 255.0,
+                            1.0);
+        }
+        else {
+          Frag_color = vCol;
+        }
+
+    }
+    )";
+
+static const char* fragment_shader_text =
+  R"(
+    #version 400 core
+    in vec4 Frag_color;
+    in vec2 Frag_UV;
+    in vec4 gl_FragCoord;
+    uniform int picking;  //< draw for display or for picking? Picking has no texture.
+    uniform sampler2D Texture;
+    out vec4 outputF;
+
+    const float EPSILON = 0.1;
+
+    void main()
+    {
+        vec4 result = Frag_color;
+
+        // When drawing selection codes, everything is opaque.
+        if (picking == 1) {
+          result.w = 1.0;
+        }
+
+        // Gesture geometry handshake: any uv value below -64 means
+        // no texture lookup. Check VertsCode::k_noTexture
+        // (add an epsilon to fix some fp errors.
+        // TODO check to see if highp would have helped)
+        if (picking == 0 && Frag_UV.x > -64+EPSILON) {
+          result *= texture(Texture, Frag_UV.xy);
+        }
+
+        // Gesture geometry handshake: any uv equal to -128 means
+        // overlay a checkerboard pattern. Check VertsCode::k_marqueePattern
+        if (Frag_UV.s == -128.0) {
+            // Create a pixel checkerboard pattern used for marquee
+            // selection
+            int x = int(gl_FragCoord.x); int y = int(gl_FragCoord.y);
+            if (((x+y) & 1) == 0) result = vec4(0,0,0,1);
+        }
+        outputF = result;
+    }
+    )";
+
+GLThickLinesShader::GLThickLinesShader()
+  : GLShaderProgram()
+{
+  utilMakeSimpleProgram(vertex_shader_text, fragment_shader_text);
+
+  m_loc_proj = uniformLocation("projection");
+  // m_loc_vpos = attributeLocation("vPos");
+  // m_loc_vuv = attributeLocation("vUV");
+  // m_loc_vcol = attributeLocation("vCol");
+  // m_loc_vcode = attributeLocation("vCode");
+  m_loc_thickness = uniformLocation("thickness");
+  m_loc_resolution = uniformLocation("resolution");
+  m_loc_stripVerts = uniformLocation("stripVerts");
+  m_loc_stripVertexOffset = uniformLocation("stripVertexOffset");
+}
+GLThickLinesShader::~GLThickLinesShader() {}
+
+void
+GLThickLinesShader::configure(bool display, GLuint textureId)
+{
+  bind();
+  check_gl("bind gesture draw shader");
+
+  glUniform1i(uniformLocation("picking"), display ? 0 : 1);
+  check_gl("set picking uniform");
+  if (display)
+    glUniform1i(uniformLocation("Texture"), 0);
+  else
+    glUniform1i(uniformLocation("Texture"), 1);
+  check_gl("set texture uniform");
+  // glActiveTexture(GL_TEXTURE0);
+  // glBindTexture(GL_TEXTURE_2D, textureId);
+  check_gl("bind texture");
+}
+
+void
+GLThickLinesShader::cleanup()
+{
+  release();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_BUFFER, 0);
+
+  // glBindVertexArray(0);
+}
+
+void
+GLThickLinesShader::setProjMatrix(const glm::mat4& proj)
+{
+  glUniformMatrix4fv(m_loc_proj, 1, GL_FALSE, glm::value_ptr(proj));
+}
