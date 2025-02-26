@@ -324,8 +324,8 @@ The clip plane is a plane that can be moved through the volume to cut it
 in half. The plane can be moved in X, Y, and Z, and rotated to any angle.
 Check the checkbox to enable or disable the clipping.
 Check "Hide" to make the clip plane grid indicator disappear.
-Select "Rotate" or "Translate" to enable viewport controls to let you move
-the clip plane interactively. Select the Rotate and Translate buttons
+Click "Rotate" or "Translate" to enable viewport controls to let you move
+the clip plane interactively. Click the Rotate and Translate buttons
 a second time to disable the viewport controls. See \[Rotate\] below for more details.
 
 Lighting
