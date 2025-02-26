@@ -449,7 +449,7 @@ ColorMap
 
 The colormap is a gradient that maps intensity values to colors. You can
 select from a variety of built-in colormaps.  
-The color map will be applied between the max and min values of the transfer function.
+The color map will be applied between the min and max values of the transfer function.
 If you are using a "Custom" transfer function then there may be no inherent min and max,
 and so then the color map will be applied to the whole data range.
 To disable the color map,
