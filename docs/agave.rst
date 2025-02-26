@@ -463,7 +463,7 @@ Color
 ^^^^^
 
 This should be thought of as the main color for this channel.
-Set this to pure white in order to use the color map without any extra
+Set this to white in order to use the color map without any extra
 color tinting.
 
 Specular Color
