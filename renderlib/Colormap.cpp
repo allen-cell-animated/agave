@@ -2,25 +2,14 @@
 
 #include "Logging.h"
 
+#include <algorithm>
 #include <array>
 #include <tuple>
 #include <vector>
 
-uint8_t*
-colormapFromColormap(uint8_t* colormap, size_t length)
-{
-  // basically just copy the whole thing.
-  uint8_t* lut = new uint8_t[length * 4]{ 0 };
-  for (size_t x = 0; x < length; ++x) {
-    lut[x * 4 + 0] = colormap[x * 4 + 0];
-    lut[x * 4 + 1] = colormap[x * 4 + 1];
-    lut[x * 4 + 2] = colormap[x * 4 + 2];
-    lut[x * 4 + 3] = colormap[x * 4 + 3];
-  }
-  return lut;
-}
+const std::string ColorRamp::NO_COLORMAP_NAME = "none";
 
-uint8_t*
+std::vector<uint8_t>
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 {
   // pts is piecewise linear from first to last control point.
@@ -31,18 +20,18 @@ colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 
   if (pts.size() < 2) {
     LOG_ERROR << "Need at least 2 control points to make a colormap";
-    return nullptr;
+    return {};
   }
   if (pts[0].first != 0.0f) {
     LOG_ERROR << "colormapFromControlPoints: First control point must be at 0.0";
-    return nullptr;
+    return {};
   }
   if (pts[pts.size() - 1].first != 1.0f) {
     LOG_ERROR << "colormapFromControlPoints: Last control point must be at 1.0";
-    return nullptr;
+    return {};
   }
 
-  uint8_t* lut = new uint8_t[length * 4]{ 0 };
+  std::vector<uint8_t> lut(length * 4, 0);
 
   for (size_t x = 0; x < length; ++x) {
     float fx = (float)x / (float)(length - 1);
@@ -79,6 +68,7 @@ stringListToGradient(const std::vector<std::string>& colors)
 uint8_t*
 modifiedGlasbeyColormap(size_t length)
 {
+  // IF THIS GETS MODIFIED THEN OLD FILES USING IT WILL NO LONGER HAVE THE SAME COLORS ON LOAD
   static const std::vector<std::array<uint8_t, 3>> modifiedGlasbey = {
     { 0, 0, 0 },       { 255, 255, 0 },   { 255, 25, 255 },  { 0, 147, 147 },   { 156, 64, 0 },    { 88, 0, 199 },
     { 241, 235, 255 }, { 20, 75, 0 },     { 0, 188, 1 },     { 255, 159, 98 },  { 145, 144, 255 }, { 93, 0, 63 },
@@ -182,7 +172,8 @@ colormapRandomized(size_t length)
   float r, g, b;
   for (size_t x = 0; x < length; ++x) {
     std::tuple<float, float, float> rgb = hsvToRgb(
-      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25);
+      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25
+    );
     r = std::get<0>(rgb);
     g = std::get<1>(rgb);
     b = std::get<2>(rgb);
@@ -194,13 +185,23 @@ colormapRandomized(size_t length)
   return lut;
 }
 
+ColorRamp
+ColorRamp::createLabels(size_t length)
+{
+  ColorRamp labels;
+  labels.m_name = "Labels";
+  uint8_t* lut = modifiedGlasbeyColormap(length);
+  // copy lut values into std::vector m_colormap
+  labels.m_colormap = std::vector<uint8_t>(lut, lut + length * 4);
+  // Labels will have no m_stops.
+  // the name "Labels" is a special case.
+  return labels;
+}
+
 // 11 stops: 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1
-static std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>> builtInGradients = {
-  { "none",
-    stringListToGradient({
-      "#ffffff",
-      "#ffffff",
-    }) },
+// The names are used for IO and therefore should not be changed.
+static const std::vector<ColorRamp> builtInGradients = {
+  ColorRamp(),
   { "greyscale",
     stringListToGradient({
       "#000000",
@@ -553,11 +554,52 @@ static std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>>
                            "#80c9bf",
                            "#399890",
                            "#0a675f",
-                           "#0a675f" }) }
+                           "#0a675f" }) },
+  ColorRamp::createLabels() 
 };
 
-const std::vector<std::pair<std::string, const std::vector<ColorControlPoint>>>&
+const std::vector<ColorRamp>&
 getBuiltInGradients()
 {
   return builtInGradients;
+}
+
+// "none" and "Labels" are special cases.
+const ColorRamp&
+ColorRamp::colormapFromName(const std::string& name)
+{
+  for (auto& gspec : getBuiltInGradients()) {
+    // the name is actually in our list:
+    if (gspec.m_name == name) {
+      return gspec;
+    }
+  }
+
+  LOG_ERROR << "Unknown colormap name: " << name << ". Falling back to no colormap.";
+  // use "none" as a special case when the map is not found.
+  return colormapFromName(NO_COLORMAP_NAME);
+}
+
+void
+ColorRamp::createColormap(size_t length)
+{
+  m_colormap = colormapFromControlPoints(m_stops, length);
+}
+
+void
+ColorRamp::debugPrintColormap() const
+{
+  // stringify for output
+  std::stringstream ss;
+  for (size_t x = 0; x < 256 * 4; ++x) {
+    ss << (int)m_colormap[x] << ", ";
+  }
+  LOG_DEBUG << "COLORMAP: " << ss.str();
+}
+
+ColorRamp::ColorRamp()
+{
+  m_name = NO_COLORMAP_NAME;
+  m_stops = stringListToGradient({ "#ffffff", "#ffffff" });
+  createColormap();
 }

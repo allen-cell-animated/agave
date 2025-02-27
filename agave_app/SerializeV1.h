@@ -99,6 +99,15 @@ struct LutParams_V1
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(LutParams_V1, window, level, isovalue, isorange, pctLow, pctHigh, controlPoints, mode)
 };
+
+struct ColorMap
+{
+  std::string name = "none";
+  std::vector<ControlPointSettings_V1> stops;
+  bool operator==(const ColorMap& other) const { return name == other.name && stops == other.stops; }
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ColorMap, name, stops)
+};
+
 struct ChannelSettings_V1
 {
   bool enabled = true;
@@ -108,21 +117,23 @@ struct ChannelSettings_V1
   float glossiness = 0.0f;
   float opacity = 1.0f;
   LutParams_V1 lutParams;
+  ColorMap colorMap;
 
   bool operator==(const ChannelSettings_V1& other) const
   {
     return enabled == other.enabled && diffuseColor == other.diffuseColor && specularColor == other.specularColor &&
            emissiveColor == other.emissiveColor && glossiness == other.glossiness && opacity == other.opacity &&
-           lutParams == other.lutParams;
+           lutParams == other.lutParams && colorMap == other.colorMap;
   }
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ChannelSettings_V1,
-                                 enabled,
-                                 diffuseColor,
-                                 specularColor,
-                                 emissiveColor,
-                                 glossiness,
-                                 opacity,
-                                 lutParams)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ChannelSettings_V1,
+                                              enabled,
+                                              diffuseColor,
+                                              specularColor,
+                                              emissiveColor,
+                                              glossiness,
+                                              opacity,
+                                              lutParams,
+                                              colorMap)
 };
 
 enum class LightType : int

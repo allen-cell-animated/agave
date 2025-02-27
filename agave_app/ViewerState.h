@@ -3,6 +3,7 @@
 #include "Serialize.h"
 #include "renderDialog.h"
 
+#include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/IFileReader.h"
 #include "renderlib/json/json.hpp"
@@ -25,6 +26,9 @@ stateToLoadSpec(const Serialize::ViewerState& state);
 GradientData
 stateToGradientData(const Serialize::ViewerState& state, int channelIndex);
 
+ColorRamp
+stateToColorRamp(const Serialize::ViewerState& state, int channelIndex);
+
 Light
 stateToLight(const Serialize::ViewerState& state, int lightIndex);
 
@@ -39,3 +43,6 @@ fromCaptureSettings(const CaptureSettings& captureSettings, int viewWidth, int v
 
 Serialize::LutParams_V1
 fromGradientData(const GradientData& lutParams);
+
+Serialize::ColorMap
+fromColorRamp(const ColorRamp& colorRamp);

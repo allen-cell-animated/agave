@@ -1,5 +1,6 @@
 #include "ImageXyzcGpu.h"
 
+#include "AppScene.h" // for VolumeDisplay!  REFACTOR
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "threading.h"
@@ -211,19 +212,55 @@ ImageGpu::deallocGpu()
 }
 
 void
-ImageGpu::updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3)
+ImageGpu::updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3, const VolumeDisplay& volumeDisplay)
 {
   // and write color luts
   glBindTexture(GL_TEXTURE_2D_ARRAY, m_ActiveChannelColormaps);
   // mip level, xy offset, layer index
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c0)->m_colormap);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c1)->m_colormap);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c2)->m_colormap);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3, LUT_SIZE, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, img->channel(c3)->m_colormap);
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                  0,
+                  0,
+                  0,
+                  0,
+                  LUT_SIZE,
+                  1,
+                  1,
+                  GL_RGBA,
+                  GL_UNSIGNED_BYTE,
+                  volumeDisplay.m_colormap[c0].m_colormap.data());
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                  0,
+                  0,
+                  0,
+                  1,
+                  LUT_SIZE,
+                  1,
+                  1,
+                  GL_RGBA,
+                  GL_UNSIGNED_BYTE,
+                  volumeDisplay.m_colormap[c1].m_colormap.data());
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                  0,
+                  0,
+                  0,
+                  2,
+                  LUT_SIZE,
+                  1,
+                  1,
+                  GL_RGBA,
+                  GL_UNSIGNED_BYTE,
+                  volumeDisplay.m_colormap[c2].m_colormap.data());
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                  0,
+                  0,
+                  0,
+                  3,
+                  LUT_SIZE,
+                  1,
+                  1,
+                  GL_RGBA,
+                  GL_UNSIGNED_BYTE,
+                  volumeDisplay.m_colormap[c3].m_colormap.data());
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 

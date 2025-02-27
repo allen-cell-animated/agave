@@ -103,7 +103,6 @@ QTimelineWidget::OnTimeChanged(int newTime)
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
       GradientData& lutInfo = m_scene->m_material.m_gradientData[i];
       lutInfo.convert(m_scene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
-      image->channel(i)->copyColormap(m_scene->m_volume->channel(i)->m_colormap);
       image->channel(i)->generateFromGradientData(lutInfo);
     }
 

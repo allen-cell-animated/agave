@@ -461,4 +461,13 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_z == data.m_z);
     REQUIRE(cmd->m_data.m_w == data.m_w);
   }
+  SECTION("SetColorRampCommand")
+  {
+    SetColorRampCommandD data = { 3, "HELLO_WORLD", { 0.25, 0.5, 0.333, 0.666, 0.999 } };
+    auto cmd = testcodec<SetColorRampCommand, SetColorRampCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_color_ramp(3, \"HELLO_WORLD\", [0.25, 0.5, 0.333, 0.666, 0.999])");
+    REQUIRE(cmd->m_data.m_channel == data.m_channel);
+    REQUIRE(cmd->m_data.m_name == data.m_name);
+    REQUIRE(cmd->m_data.m_data == data.m_data);
+  }
 }
