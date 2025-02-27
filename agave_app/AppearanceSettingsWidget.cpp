@@ -5,13 +5,76 @@
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/Colormap.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
 #include <QFrame>
+#include <QItemDelegate>
 #include <QLinearGradient>
+
+static QGradientStops
+colormapToGradient(const std::vector<ColorControlPoint>& v)
+{
+  QGradientStops stops;
+  for (int i = 0; i < v.size(); ++i) {
+    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  }
+  return stops;
+}
+
+class GradientCombo : public QComboBox
+{
+public:
+  GradientCombo(QWidget* parent = nullptr)
+    : QComboBox(parent)
+  {
+  }
+
+  void paintEvent(QPaintEvent* e)
+  {
+    QComboBox::paintEvent(e);
+
+    QPainter painter(this);
+    painter.setPen(Qt::black);
+    painter.setBrush(itemData(currentIndex(), Qt::BackgroundRole).value<QBrush>());
+    QStyleOptionComboBox option;
+    option.rect = rect();
+    QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
+
+    painter.drawRect(r.adjusted(0, 0, -1, -1));
+    painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter, itemText(currentIndex()));
+  }
+};
+
+static QComboBox*
+makeGradientCombo()
+{
+  QComboBox* cb = new GradientCombo();
+  const QStringList colorNames = QColor::colorNames();
+  int index = 0;
+  for (auto& gspec : getBuiltInGradients()) {
+    QLinearGradient gradient;
+    gradient.setStops(colormapToGradient(gspec.second));
+    gradient.setStart(0., 0.);     // top left
+    gradient.setFinalStop(1., 0.); // bottom right
+    gradient.setCoordinateMode(QGradient::ObjectMode);
+
+    QBrush brush(gradient);
+    brush.setStyle(Qt::LinearGradientPattern);
+    cb->addItem("", QVariant(gspec.first.c_str()));
+    cb->setItemData(index, QVariant(gspec.first.c_str()), Qt::ToolTipRole);
+    cb->setItemData(index, brush, Qt::BackgroundRole);
+    index++;
+  }
+  cb->addItem("Labels", QVariant("Labels"));
+  cb->setItemData(index, QVariant("Labels"), Qt::ToolTipRole);
+  QBrush brush;
+  cb->setItemData(index, brush, Qt::BackgroundRole);
+  return cb;
+}
 
 static const int MAX_CHANNELS_CHECKED = 4;
 
@@ -787,6 +850,17 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
 }
 
 void
+QAppearanceSettingsWidget::OnUpdateColormap(int i, const std::vector<ColorControlPoint>& stops)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_volume->channel((uint32_t)i)->updateColormap(stops);
+
+  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
+  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void
 QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
 {
   if (!m_scene)
@@ -835,7 +909,7 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 }
 
 // split color into color and intensity.
-inline void
+static inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
 {
   // if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
@@ -1003,6 +1077,29 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
+
+    QComboBox* gradients = makeGradientCombo();
+    sectionLayout->addRow("ColorMap", gradients);
+    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
+      // get string from userdata
+      std::string name = gradients->itemData(index).toString().toStdString();
+      LOG_DEBUG << "Selected gradient " << index << " (" << name << ") for channel " << i;
+
+      if (name == "Labels") {
+        if (m_scene) {
+          m_scene->m_volume->channel((uint32_t)i)->colorize();
+          m_scene->m_material.m_labels[i] = 1.0;
+          // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
+          m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+        }
+
+      } else {
+        m_scene->m_material.m_labels[i] = 0.0;
+        auto colormap = getBuiltInGradients()[index].second;
+        // update channel colormap from stops
+        this->OnUpdateColormap(i, colormap);
+      }
+    });
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));

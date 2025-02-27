@@ -1,6 +1,10 @@
 #include "ImageXYZC.h"
 
+#include "Colormap.h"
 #include "Logging.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
 
 #include <algorithm>
 #include <math.h>
@@ -199,6 +203,30 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_max = m_histogram._dataMax;
 
   m_lut = m_histogram.generate_percentiles();
+
+  // create a hardcoded colormap to test
+  m_colormap = colormapFromControlPoints(
+    { ColorControlPoint(0.0f, 255u, 255u, 255u, 255u), ColorControlPoint(1.0f, 255u, 255u, 255u, 255u) });
+}
+
+void
+Channelu16::copyColormap(uint8_t* colormap, size_t length)
+{
+  delete[] m_colormap;
+  m_colormap = colormapFromColormap(colormap, length);
+}
+
+void
+Channelu16::updateColormap(std::vector<ColorControlPoint> stops)
+{
+  delete[] m_colormap;
+  m_colormap = colormapFromControlPoints(stops);
+}
+void
+Channelu16::colorize()
+{
+  delete[] m_colormap;
+  m_colormap = modifiedGlasbeyColormap();
 }
 
 Channelu16::~Channelu16()
@@ -274,4 +302,49 @@ Channelu16::debugprint()
     ss << m_lut[x] << ", ";
   }
   LOG_DEBUG << "LUT: " << ss.str();
+}
+
+void
+Channelu16::debugColormap()
+{
+  // stringify for output
+  std::stringstream ss;
+  for (size_t x = 0; x < 256 * 4; ++x) {
+    ss << (int)m_colormap[x] << ", ";
+  }
+  LOG_DEBUG << "COLORMAP: " << ss.str();
+}
+
+// dump middle slice to image
+void
+Channelu16::debugData()
+{
+  static constexpr bool useGreyscale = true;
+  int z = m_z / 2;
+  size_t npix = m_x * m_y;
+  uint16_t* slice = m_ptr + z * npix;
+  uint8_t* img = new uint8_t[npix * 4];
+  // convert all pixels of slice into img:
+  for (size_t i = 0; i < npix; ++i) {
+    uint16_t val = slice[i];
+    // if greyscale then just dump out val:
+    if (useGreyscale) {
+      img[i * 4 + 0] = val % 256;
+      img[i * 4 + 1] = val % 256;
+      img[i * 4 + 2] = val % 256;
+      img[i * 4 + 3] = 255;
+    } else {
+      uint8_t* color = &m_colormap[(val % 256) * 4];
+      img[i * 4 + 0] = color[0];
+      img[i * 4 + 1] = color[1];
+      img[i * 4 + 2] = color[2];
+      img[i * 4 + 3] = color[3];
+    }
+  }
+
+  static int count = 0;
+  std::ostringstream oss;
+  oss << "debug" << (count++) << ".png";
+  std::string filename = oss.str();
+  stbi_write_png(filename.c_str(), m_x, m_y, 4, img, m_x * 4);
 }

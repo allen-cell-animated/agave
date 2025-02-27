@@ -68,6 +68,8 @@ VolumeDisplay::VolumeDisplay()
 
     m_opacity[i] = 1.0;
     m_roughness[i] = 1.0;
+
+    m_labels[i] = 0.0;
   }
 }
 
