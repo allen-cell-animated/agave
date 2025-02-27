@@ -411,6 +411,7 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     for (size_t i = 0; i < datasets.size(); ++i) {
       auto data = datasets[i];
       auto cmd = testcodec<LoadDataCommand, LoadDataCommandD>(data);
+
       REQUIRE(cmd->toPythonString() == pystrings[i]);
       REQUIRE(cmd->m_data.m_path == data.m_path);
       REQUIRE(cmd->m_data.m_scene == data.m_scene);
@@ -449,5 +450,15 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     auto cmd = testcodec<SetInterpolationCommand, SetInterpolationCommandD>(data);
     REQUIRE(cmd->toPythonString() == "set_interpolation(1)");
     REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
+  SECTION("SetClipPlaneCommand")
+  {
+    SetClipPlaneCommandD data = { 1.0f, 2.0f, 3.0f, 4.0f };
+    auto cmd = testcodec<SetClipPlaneCommand, SetClipPlaneCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_clip_plane(1, 2, 3, 4)");
+    REQUIRE(cmd->m_data.m_x == data.m_x);
+    REQUIRE(cmd->m_data.m_y == data.m_y);
+    REQUIRE(cmd->m_data.m_z == data.m_z);
+    REQUIRE(cmd->m_data.m_w == data.m_w);
   }
 }

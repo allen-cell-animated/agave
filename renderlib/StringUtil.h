@@ -20,3 +20,6 @@ split(const std::string& s, char delim, std::vector<std::string>& elems);
 // each line split by =
 std::map<std::string, std::string>
 splitToNameValuePairs(const std::string& s);
+
+std::string
+escapePath(const std::string& path);

@@ -718,6 +718,19 @@ export class AgaveClient {
     this.cb.addCommand("SET_INTERPOLATION", on);
   }
 
+  /**
+   * Set the clip plane equation.  The xyz vector must be normalized.
+   *
+   * @param x The x component of the normal
+   * @param y The y component of the normal
+   * @param z The z component of the normal
+   * @param d The distance to the origin
+   */
+  setClipPlane(x: number, y: number, z: number, d: number) {
+    // 48
+    this.cb.addCommand("SET_CLIP_PLANE", x, y, z, d);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {

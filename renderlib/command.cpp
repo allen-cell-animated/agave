@@ -5,12 +5,15 @@
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "RenderSettings.h"
+#include "StringUtil.h"
 #include "VolumeDimensions.h"
 
 #include "json/json.hpp"
 
 #include <errno.h>
 #include <sys/stat.h>
+
+#include <regex>
 
 #if defined(WIN32)
 #define STAT64_STRUCT __stat64
@@ -748,6 +751,21 @@ SetInterpolationCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetInterpolation " << m_data.m_on;
   c->m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling = m_data.m_on;
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
+SetClipPlaneCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetClipPlane " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z << " " << m_data.m_w;
+  // get the transform from the default clip plane.
+  Plane p(glm::vec3(m_data.m_x, m_data.m_y, m_data.m_z), m_data.m_w);
+  Plane p0;
+  Transform3d tr = p0.getTransformTo(p);
+  c->m_appScene->m_clipPlane->m_plane = p0;
+  c->m_appScene->m_clipPlane->m_transform = tr;
+  c->m_appScene->m_clipPlane->m_enabled = true;
+  c->m_appScene->m_clipPlane->updateTransform();
   c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
 }
 
@@ -1687,12 +1705,35 @@ SetInterpolationCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetClipPlaneCommand*
+SetClipPlaneCommand::parse(ParseableStream* c)
+{
+  SetClipPlaneCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  data.m_w = c->parseFloat32();
+  return new SetClipPlaneCommand(data);
+}
+
+size_t
+SetClipPlaneCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  bytesWritten += o->writeFloat32(m_data.m_w);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
   std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << "\"" << m_data.m_name << "\"";
+  ss << "\"" << escapePath(m_data.m_name) << "\"";
   ss << ")";
   return ss.str();
 }
@@ -2112,7 +2153,10 @@ LoadDataCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
 
-  ss << "\"" << m_data.m_path << "\", ";
+  // escape slashes in path
+  std::string escaped = escapePath(m_data.m_path);
+
+  ss << "\"" << escaped << "\", ";
   ss << m_data.m_scene << ", " << m_data.m_level << ", " << m_data.m_time;
   ss << ", [";
   // insert comma delimited but no comma after the last entry
@@ -2158,6 +2202,16 @@ SetInterpolationCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_on;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetClipPlaneCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
   ss << ")";
   return ss.str();
 }
