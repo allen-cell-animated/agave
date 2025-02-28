@@ -731,6 +731,20 @@ export class AgaveClient {
     this.cb.addCommand("SET_CLIP_PLANE", x, y, z, d);
   }
 
+  /**
+   * Set the color ramp for a channel
+   *
+   * @param channel Which channel index, 0 based.
+   * @param name The name of the color ramp
+   * @param data An array of values.  5 floats per control point.  first is position (0-1),
+   * next four are rgba (all 0-1).  Currently alpha will be ignored.
+   * To guarantee correct behavior, the first control point should be at 0.0 and the last at 1.0.
+   */
+  setColorRamp(channel: number, name: string, data: number[]) {
+    // 49
+    this.cb.addCommand("SET_COLOR_RAMP", channel, name, data);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {

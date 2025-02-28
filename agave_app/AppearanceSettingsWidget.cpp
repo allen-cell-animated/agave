@@ -57,22 +57,26 @@ makeGradientCombo()
   int index = 0;
   for (auto& gspec : getBuiltInGradients()) {
     QLinearGradient gradient;
-    gradient.setStops(colormapToGradient(gspec.second));
+    gradient.setStops(colormapToGradient(gspec.m_stops));
     gradient.setStart(0., 0.);     // top left
     gradient.setFinalStop(1., 0.); // bottom right
     gradient.setCoordinateMode(QGradient::ObjectMode);
 
+    QString itemText;
     QBrush brush(gradient);
-    brush.setStyle(Qt::LinearGradientPattern);
-    cb->addItem("", QVariant(gspec.first.c_str()));
-    cb->setItemData(index, QVariant(gspec.first.c_str()), Qt::ToolTipRole);
+    if (gspec.m_name == "Labels") {
+      // special case for Labels
+      brush.setColor(QColor(255, 255, 255));
+      brush.setStyle(Qt::SolidPattern);
+      itemText = gspec.m_name.c_str();
+    } else {
+      brush.setStyle(Qt::LinearGradientPattern);
+    }
+    cb->addItem(itemText, QVariant(gspec.m_name.c_str()));
+    cb->setItemData(index, QVariant(gspec.m_name.c_str()), Qt::ToolTipRole);
     cb->setItemData(index, brush, Qt::BackgroundRole);
     index++;
   }
-  cb->addItem("Labels", QVariant("Labels"));
-  cb->setItemData(index, QVariant("Labels"), Qt::ToolTipRole);
-  QBrush brush;
-  cb->setItemData(index, brush, Qt::BackgroundRole);
   return cb;
 }
 
@@ -845,18 +849,6 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
     return;
   m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
 
-  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-}
-
-void
-QAppearanceSettingsWidget::OnUpdateColormap(int i, const std::vector<ColorControlPoint>& stops)
-{
-  if (!m_scene)
-    return;
-  m_scene->m_volume->channel((uint32_t)i)->updateColormap(stops);
-
-  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -883,8 +875,9 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 void
 QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
-  if (!m_scene)
+  if (!m_scene) {
     return;
+  }
   // if we are switching one on, count how many sections are checked.
   // if more than 4, then switch this one back off
   if (is_checked) {
@@ -1078,7 +1071,12 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    // get color ramp from scene
+    const ColorRamp& cr = scene->m_material.m_colormap[i];
     QComboBox* gradients = makeGradientCombo();
+    int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
+    LOG_DEBUG << "Found gradient " << idx << " (" << cr.m_name << ") for channel " << i;
+    gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
@@ -1087,19 +1085,19 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
       if (name == "Labels") {
         if (m_scene) {
-          m_scene->m_volume->channel((uint32_t)i)->colorize();
+          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
           m_scene->m_material.m_labels[i] = 1.0;
-          // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
           m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
         }
 
       } else {
+        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
         m_scene->m_material.m_labels[i] = 0.0;
-        auto colormap = getBuiltInGradients()[index].second;
-        // update channel colormap from stops
-        this->OnUpdateColormap(i, colormap);
+        m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
     });
+    // init
+    // this->OnColormapChanged(i, cr);
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));

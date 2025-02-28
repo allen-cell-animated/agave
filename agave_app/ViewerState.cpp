@@ -236,6 +236,15 @@ stateToPythonScript(const Serialize::ViewerState& s)
         ss << obj << SetControlPointsCommand({ i, v }).toPythonString() << std::endl;
         break;
     }
+    std::vector<float> v;
+    for (auto p : ch.colorMap.stops) {
+      v.push_back(p.x);
+      v.push_back(p.value[0]);
+      v.push_back(p.value[1]);
+      v.push_back(p.value[2]);
+      v.push_back(p.value[3]);
+    }
+    ss << obj << SetColorRampCommand({ i, ch.colorMap.name, v }).toPythonString() << std::endl;
   }
 
   // lighting
@@ -297,6 +306,21 @@ stateToLoadSpec(const Serialize::ViewerState& state)
   spec.minz = s.clipRegion[2][0];
   spec.maxz = s.clipRegion[2][1];
   return spec;
+}
+
+ColorRamp
+stateToColorRamp(const Serialize::ViewerState& state, int channelIndex)
+{
+  ColorRamp cr;
+  const auto& ch = state.channels[channelIndex];
+  const auto& cm = ch.colorMap;
+  cr.m_name = cm.name;
+  for (size_t i = 0; i < cm.stops.size(); i++) {
+    ColorControlPoint cp(
+      cm.stops[i].x, cm.stops[i].value[0], cm.stops[i].value[1], cm.stops[i].value[2], cm.stops[i].value[3]);
+    cr.m_stops.push_back(cp);
+  }
+  return cr;
 }
 
 GradientData
@@ -399,6 +423,20 @@ fromCaptureSettings(const CaptureSettings& cs, int viewWidth, int viewHeight)
   s.endTime = cs.endTime;
   s.outputDirectory = cs.outputDir;
   s.filenamePrefix = cs.filenamePrefix;
+  return s;
+}
+
+Serialize::ColorMap
+fromColorRamp(const ColorRamp& cr)
+{
+  Serialize::ColorMap s;
+  s.name = cr.m_name;
+  for (const auto& cp : cr.m_stops) {
+    Serialize::ControlPointSettings_V1 c;
+    c.x = cp.first;
+    c.value = { (float)cp.r / 255.0f, (float)cp.g / 255.0f, (float)cp.b / 255.0f, (float)cp.a / 255.0f };
+    s.stops.push_back(c);
+  }
   return s;
 }
 
