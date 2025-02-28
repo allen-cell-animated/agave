@@ -60,6 +60,8 @@ public:
 
   void toggleRotateControls();
   void toggleTranslateControls();
+  void showRotateControls(bool show);
+  void showTranslateControls(bool show);
 
   void onNewImage(Scene* scene);
 

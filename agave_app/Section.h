@@ -22,10 +22,16 @@ private:
   QCheckBox* m_checkBox;
 
 public:
+  struct CheckBoxInfo
+  {
+    bool is_checked;
+    std::string toolTip;
+    std::string statusTip;
+  };
+
   explicit Section(const QString& title = "",
                    const int animationDuration = 100,
-                   bool use_checkbox = false,
-                   bool is_checked = true,
+                   const CheckBoxInfo* checkBoxInfo = nullptr,
                    QWidget* parent = 0);
 
   void setContentLayout(QLayout& contentLayout);
