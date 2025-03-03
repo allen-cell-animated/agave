@@ -51,7 +51,7 @@
 #include "gradients.h"
 #include "hoverpoints.h"
 
-#include "Controls.h"
+#include "qtControls/Controls.h"
 #include "Defines.h"
 #include "Logging.h"
 
