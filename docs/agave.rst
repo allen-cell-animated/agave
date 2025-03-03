@@ -42,7 +42,7 @@ AGAVE currently supports the following file formats:
 * .tiff
 * .czi (Produced by Zeiss microscopes. See https://www.zeiss.com/microscopy/en/products/software/zeiss-zen/czi-image-file-format.html)
 * .map/.mrc (Typically used in electron cryo-microscopy. See https://www.ccpem.ac.uk/mrc_format/mrc_format.php)
-AGAVE can read 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.  
+AGAVE can read 8-bit, 16-bit unsigned, or 32-bit float pixel intensities.
 
 OME-Zarr data is not stored as single files - instead it is a directory.  AGAVE can load OME-Zarr data either from a local directory or from a public cloud URL using https, s3, or gc protocols.
 
@@ -94,9 +94,9 @@ This choice will then open the `Load Settings <#load-settings>`__ dialog.
 Load Settings
 -------------
 
-In order to support loading from very large datasets, AGAVE can load subsets of data 
-based on precomputed multiresolution levels stored in the data, time series, channels, 
-and in some cases sub-regions within the spatial volume data. 
+In order to support loading from very large datasets, AGAVE can load subsets of data
+based on precomputed multiresolution levels stored in the data, time series, channels,
+and in some cases sub-regions within the spatial volume data.
 
 OME-Zarr supports all of the above selections when present in the data.  Other formats are more restrictive and may only support a few of the options.
 The Load Settings dialog presents you with a memory estimate of how much data will be loaded with current settings.  Coupled with knowledge of your own system's configuration, this allows you to make informed choices about how much data to load.
@@ -106,19 +106,19 @@ Resolution Level
 ~~~~~~~~~~~~~~~~
 
 The OME-Zarr format supports precomputed multiresolution data and will let you select the resolution level.
-The highest resolution is the default, so beware if you have a large dataset, you risk running out of memory. 
+The highest resolution is the default, so beware if you have a large dataset, you risk running out of memory.
 
 Time
 ~~~~
 
 If you are loading time-series data, you may select the initial time to load.
-You will be able to change the current time point after the data is loaded. 
+You will be able to change the current time point after the data is loaded.
 (See `Time Panel <#time-panel>`__)
 
 Channels
 ~~~~~~~~
 
-You may choose to exclude certain channels from being loaded.  
+You may choose to exclude certain channels from being loaded.
 All channels will be selected by default. If you leave channels out, be aware you will have to reload the file to get them back.
 
 Subregion
@@ -137,7 +137,7 @@ Adjusting the camera view
 -------------------------
 
 The 3D viewport in AGAVE supports direct manipulation by *zoom*, *pan*,
-and *rotate*.  It also provides a toolbar with some convenient buttons 
+and *rotate*.  It also provides a toolbar with some convenient buttons
 for common view settings.
 
 Rotate
@@ -168,7 +168,7 @@ as if the volume were freshly loaded.
 ~~~~~~~~~~~~~~~~~~~
 
 The \[Frame View\] button in the toolbar will frame the volume data in the window.
-This is useful if you have zoomed or panned away from the volume data and want to 
+This is useful if you have zoomed or panned away from the volume data and want to
 quickly return to a view that shows the entire volume, but keep the rotation angle.
 
 |image4| |image3| Perspective/Orthographic
@@ -186,7 +186,7 @@ go. There is no foreshortening or tapering of the volume.
 
 The \[Quick Views\] toolbar button will pop open a menu of quick views that will
 automatically rotate the volume to a particular angle. The views are
-Front, Back, Top, Bottom, Left, and Right to align your viewport perfectly 
+Front, Back, Top, Bottom, Left, and Right to align your viewport perfectly
 looking along the X, Y or Z axes from either direction.
 
 |image12| Show axes
@@ -266,9 +266,9 @@ by volume data, which will increase the accuracy of cast shadows.
 Interpolate
 ^^^^^^^^^^^
 
-Check this box to enable or disable interpolation between volume pixels. 
+Check this box to enable or disable interpolation between volume pixels.
 Turning it off will work well for segmentation data or data that has definite
-discontinuous boundaries. Turning it on (the default) will smooth out the 
+discontinuous boundaries. Turning it on (the default) will smooth out the
 data and make it look more continuous, and can enhance the appearance of raw
 microscopy image data.
 
@@ -291,9 +291,9 @@ Scale Bar
 
 Click the checkbox to show or hide a scale bar at the bottom right corner
 of the display.  In a perspective camera, due to foreshortening, the
-scale bar will represent the distance between tickmarks shown on the 
+scale bar will represent the distance between tickmarks shown on the
 bounding box of the volume.  You will have to have the bounding box turned on
-in order to see it.  The scale bar will use physical units if available 
+in order to see it.  The scale bar will use physical units if available
 in the loaded volume data.
 
 Volume Scale
@@ -305,7 +305,7 @@ same physical dimensions in Z that they do in X and Y. Usually these
 values are read from the volume file's metadata. If they could not be
 found in the metadata, they will often appear here as X=1, Y=1, Z=1.
 They can be modified here.
-Each axis can also be inverted by checking the corresponding "Flip" 
+Each axis can also be inverted by checking the corresponding "Flip"
 checkbox.
 
 Region Of Interest (ROI)
@@ -320,13 +320,13 @@ rightmost Z handle about halfway to the left.
 Clip Plane
 ~~~~~~~~~~
 
-The clip plane is a plane that can be moved through the volume to cut it
-in half. The plane can be moved in X, Y, and Z, and rotated to any angle.
+The clip plane is a plane that can be moved through the volume to cut away
+sections. The plane can be moved in X, Y, and Z, and rotated to any angle.
 Check the checkbox to enable or disable the clipping.
 Check "Hide" to make the clip plane grid indicator disappear.
 Click "Rotate" or "Translate" to enable viewport controls to let you move
 the clip plane interactively. Click the Rotate and Translate buttons
-a second time to disable the viewport controls. See \[Rotate\] below for more details.
+a second time to disable the viewport controls. See :ref:`Rotate <rotateMode>` below for more details.
 
 Lighting
 ~~~~~~~~
@@ -346,18 +346,19 @@ These three coordinates let you position the light anywhere on a sphere
 around the volume. Theta and Phi are in radians (where 3.14159 radians
 is half a circle).
 
+|image0|
+
+.. _rotateMode:
 Rotate
 ^^^^^^
 
 If you click "Rotate", an
 interactive rotation widget will appear in the viewport.  You can click
 and drag on the widget to rotate the light direction around the volume.
-If you click on the colored lines of the axes, rotation will be 
-constrained to that axis.  Press R again or uncheck the checkbox to
+If you click on the colored lines of the axes, rotation will be
+constrained to that axis.  Click "Rotate" again to
 hide the rotate manipulator.
 
-
-|image0|
 
 Area Light Size
 ^^^^^^^^^^^^^^^
@@ -448,7 +449,7 @@ ColorMap
 ^^^^^^^^
 
 The colormap is a gradient that maps intensity values to colors. You can
-select from a variety of built-in colormaps.  
+select from a variety of built-in colormaps.
 The color map will be applied between the min and max values of the transfer function.
 If you are using a "Custom" transfer function then there may be no inherent min and max.
 In this case, the color map will be applied to the whole data range.
@@ -457,7 +458,7 @@ select the first entry (labeled as "none"). If your data is discrete labels
 such as a segmentation, you may use the final entry in the list, "Labels",
 which will assign a unique color to each unique intensity value.
 Note that the colormap colors will be multiplied with the \[Color\] setting.
-Set Color to white to see the colormap directly. 
+Set Color to white to see the colormap directly.
 
 Color
 ^^^^^
@@ -529,7 +530,7 @@ AGAVE to create animation sequences or batch rendering of many images.
 Render Dialog
 -------------
 
-The Render dialog lets you control various quality settings for output of your final image.  
+The Render dialog lets you control various quality settings for output of your final image.
 It also allows you to orchestrate time series batches.
 Hint: Quick Render is the best way to just get a snapshot of your 3D viewport.  Render is for when you want to more carefully control output resolution and quality.
 Progress bars for single image and time series rendering are displayed at the bottom of the dialog.
@@ -537,16 +538,16 @@ Progress bars for single image and time series rendering are displayed at the bo
 Image preview
 ~~~~~~~~~~~~~
 
-The preview window will update during rendering with the current image as it is being computed. 
+The preview window will update during rendering with the current image as it is being computed.
 Left-button drag in the view to pan the image.  There are three tool buttons to let you zoom in ("+"), zoom out ("-"), and frame the image to the preview window ("[]").
 When you stop rendering and start changing any output resolution parameters, the image will reset to a checkerboard.
 
 Output Resolution
 ~~~~~~~~~~~~~~~~~
 
-Choose the number of pixels for the final rendered image.  
-By default, the X and Y values are linked to maintain the same aspect ratio. 
-Changing one will cause the other to change automatically. Toggle the link icon 
+Choose the number of pixels for the final rendered image.
+By default, the X and Y values are linked to maintain the same aspect ratio.
+Changing one will cause the other to change automatically. Toggle the link icon
 to allow them to change independently.
 
 Several Resolution Presets are offered as a convenience to quickly select commonly used output resolutions.
@@ -554,19 +555,19 @@ Several Resolution Presets are offered as a convenience to quickly select common
 Image Quality
 ~~~~~~~~~~~~~
 
-You can choose to control the final image quality by specifying either number of 
+You can choose to control the final image quality by specifying either number of
 Samples per pixel, or how much Time to spend rendering.
-Higher values will result in higher quality.  AGAVE computes its final image by gathering samples iteratively. 
+Higher values will result in higher quality.  AGAVE computes its final image by gathering samples iteratively.
 For a quick preview render, you can set the number of samples to a low value such as 32.  For a final image, you can set the number of samples to a high value such as 1024.
 The contribution of each sample will be less than the previous sample. Therefore you may get subtle but important improvements in quality well beyond 1024 samples.
-The rate at which each sample is gathered is completely dependent on the performance characteristics of your computer. 
+The rate at which each sample is gathered is completely dependent on the performance characteristics of your computer.
 If you prefer to simply have a time budget, you may also choose to select Time and specify how long to render.  The renderer will gather as many samples as possible within the specified time.
 
 Output File
 ~~~~~~~~~~~
 
-Here you can select the output directory and a name for the output file.  
-AGAVE currently only renders to PNG file format.  If you are rendering a time series, 
+Here you can select the output directory and a name for the output file.
+AGAVE currently only renders to PNG file format.  If you are rendering a time series,
 AGAVE will append "_0000", "_0001", etc. to the file name for each frame.
 For time series, if the file you are rendering already exists, AGAVE will prompt you to overwrite it.
 If you are rendering only a single frame, AGAVE will append a number to the file name if the file already exists.
