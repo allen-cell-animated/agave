@@ -349,6 +349,7 @@ is half a circle).
 |image0|
 
 .. _rotateMode:
+
 Rotate
 ^^^^^^
 
