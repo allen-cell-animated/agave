@@ -798,6 +798,7 @@ void
 GLShaderProgram::addShader(GLShader* shader)
 {
   glAttachShader(m_program, shader->id());
+  check_gl("GLShaderProgram::addShader");
   m_isLinked = false;
 }
 
@@ -816,6 +817,7 @@ GLShaderProgram::link()
   }
 
   glLinkProgram(m_program);
+  check_gl("GLShaderProgram::link");
   value = 0;
   glGetProgramiv(m_program, GL_LINK_STATUS, &value);
   m_isLinked = (value != 0);
@@ -942,5 +944,25 @@ GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
     *outFShader = fshader;
   } else {
     delete fshader;
+  }
+}
+
+void
+GLShaderProgram::utilMakeSimpleProgram(GLShader* vShader, GLShader* fShader)
+{
+  if (!vShader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile vertex shader\n" << vShader->log();
+  }
+
+  if (!fShader->isCompiled()) {
+    LOG_ERROR << "GLShaderProgram: Failed to compile fragment shader\n" << fShader->log();
+  }
+
+  addShader(vShader);
+  addShader(fShader);
+  link();
+
+  if (!isLinked()) {
+    LOG_ERROR << "GLShaderProgram: Failed to link shader program\n" << log();
   }
 }

@@ -10,6 +10,17 @@ class Scene;
 
 #include <memory>
 
+class IRenderTarget
+{
+public:
+  virtual ~IRenderTarget() {}
+
+  virtual void bind() = 0;
+  virtual void release() = 0;
+  virtual int width() const = 0;
+  virtual int height() const = 0;
+};
+
 class IRenderWindow
 {
 public:
@@ -18,7 +29,7 @@ public:
 
   virtual void initialize(uint32_t w, uint32_t h) = 0;
   virtual void render(const CCamera& camera) = 0;
-  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo) = 0;
+  virtual void renderTo(const CCamera& camera, IRenderTarget* fbo) = 0;
   virtual void resize(uint32_t w, uint32_t h) = 0;
   virtual void getSize(uint32_t& w, uint32_t& h) = 0;
   virtual void cleanUpResources() {}

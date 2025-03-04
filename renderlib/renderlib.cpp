@@ -5,6 +5,7 @@
 #include "Logging.h"
 #include "RenderGL.h"
 #include "RenderGLPT.h"
+#include "shaders.h"
 
 #include <QGuiApplication>
 #include <QOpenGLDebugLogger>
@@ -84,6 +85,10 @@ QOpenGLContext*
 renderlib::createOpenGLContext()
 {
   QOpenGLContext* context = new QOpenGLContext();
+  context->setShareContext(QOpenGLContext::globalShareContext());
+  // if (dummyContext) {
+  //   context->setShareContext(dummyContext);
+  // }
   context->setFormat(getQSurfaceFormat()); // ...and set the format on the context too
 
   bool createdOk = context->create();
@@ -213,9 +218,6 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
   LOG_INFO << "Renderlib startup";
 
   bool enableDebug = false;
-
-  QSurfaceFormat format = getQSurfaceFormat();
-  QSurfaceFormat::setDefaultFormat(format);
 
   HeadlessGLContext* dummyHeadlessContext = nullptr;
 
