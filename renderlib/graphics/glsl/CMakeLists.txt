@@ -2,8 +2,6 @@ target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-add_subdirectory(shaders)
-
 target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLBasicVolumeShader.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/GLBasicVolumeShader.h"

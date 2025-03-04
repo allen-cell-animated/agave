@@ -936,17 +936,6 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
 }
 
 void
-QAppearanceSettingsWidget::OnUpdateColormap(int i, const std::vector<ColorControlPoint>& stops)
-{
-  if (!m_scene)
-    return;
-  m_scene->m_volume->channel((uint32_t)i)->updateColormap(stops);
-
-  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
-  m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-}
-
-void
 QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
 {
   if (!m_scene)

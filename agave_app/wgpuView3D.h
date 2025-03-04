@@ -61,6 +61,8 @@ public:
 
   void toggleRotateControls();
   void toggleTranslateControls();
+  void showRotateControls(bool show);
+  void showTranslateControls(bool show);
 
   void onNewImage(Scene* scene);
 
@@ -170,6 +172,8 @@ public:
   void toggleRotateControls() { m_view->toggleRotateControls(); }
   void toggleTranslateControls() { m_view->toggleTranslateControls(); }
   void fromViewerState(const Serialize::ViewerState& s) { m_view->fromViewerState(s); }
+  void showRotateControls(bool show) { m_view->showRotateControls(show); }
+  void showTranslateControls(bool show) { m_view->showTranslateControls(show); }
 
 signals:
   void ChangedRenderer();
