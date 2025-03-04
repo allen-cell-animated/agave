@@ -10,7 +10,6 @@ struct VolumeDisplay;
 struct ChannelGpu
 {
   GLuint m_VolumeLutGLTexture = 0;
-  GLuint m_VolumeColorMapGLTexture = 0;
 
   int m_index;
   size_t m_gpuBytes = 0;

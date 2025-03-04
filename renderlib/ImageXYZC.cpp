@@ -203,17 +203,6 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_max = m_histogram._dataMax;
 
   m_lut = m_histogram.generate_percentiles();
-
-  // create a hardcoded colormap to test
-  m_colormap = colormapFromControlPoints(
-    { ColorControlPoint(0.0f, 255u, 255u, 255u, 255u), ColorControlPoint(1.0f, 255u, 255u, 255u, 255u) });
-}
-
-void
-Channelu16::updateColormap(std::vector<ColorControlPoint> stops)
-{
-  delete[] m_colormap;
-  m_colormap = colormapFromControlPoints(stops);
 }
 
 Channelu16::~Channelu16()
