@@ -15,7 +15,7 @@
 #include <QItemDelegate>
 #include <QLinearGradient>
 
-QGradientStops
+static QGradientStops
 colormapToGradient(const std::vector<ColorControlPoint>& v)
 {
   QGradientStops stops;
@@ -25,374 +25,22 @@ colormapToGradient(const std::vector<ColorControlPoint>& v)
   return stops;
 }
 
-// 11 stops: 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1
-std::vector<std::pair<std::string, std::vector<ColorControlPoint>>> builtInGradients = {
-  { "none",
-    stringListToGradient({
-      "#ffffff",
-      "#ffffff",
-    }) },
-  { "greyscale",
-    stringListToGradient({
-      "#000000",
-      "#ffffff",
-    }) },
-  { "cool",
-    stringListToGradient({ "#6e40aa",
-                           "#6154c8",
-                           "#4c6edb",
-                           "#368ce1",
-                           "#24aad8",
-                           "#1ac7c2",
-                           "#1ddea3",
-                           "#30ee83",
-                           "#52f667",
-                           "#7ef658",
-                           "#7ef658" }) },
-  { "viridis",
-    stringListToGradient({ "#440154",
-                           "#482475",
-                           "#414487",
-                           "#355f8d",
-                           "#2a788e",
-                           "#21908d",
-                           "#22a884",
-                           "#42be71",
-                           "#7ad151",
-                           "#bddf26",
-                           "#bddf26" }) },
-  { "inferno",
-    stringListToGradient({ "#000004",
-                           "#160b39",
-                           "#420a68",
-                           "#6a176e",
-                           "#932667",
-                           "#ba3655",
-                           "#dd513a",
-                           "#f3761b",
-                           "#fca50a",
-                           "#f6d746",
-                           "#f6d746" }) },
-  { "magma",
-    stringListToGradient({ "#000004",
-                           "#140e36",
-                           "#3b0f70",
-                           "#641a80",
-                           "#8c2981",
-                           "#b5367a",
-                           "#de4968",
-                           "#f66e5c",
-                           "#fe9f6d",
-                           "#fecf92",
-                           "#fecf92" }) },
-  { "plasma",
-    stringListToGradient({ "#0d0887",
-                           "#41049d",
-                           "#6a00a8",
-                           "#8f0da4",
-                           "#b12a90",
-                           "#cb4679",
-                           "#e16462",
-                           "#f1834c",
-                           "#fca636",
-                           "#fcce25",
-                           "#fcce25" }) },
-  { "warm",
-    stringListToGradient({ "#6e40aa",
-                           "#963db3",
-                           "#bf3caf",
-                           "#e3419e",
-                           "#fe4b83",
-                           "#ff5e64",
-                           "#ff7747",
-                           "#fb9633",
-                           "#e2b72f",
-                           "#c7d63c",
-                           "#c7d63c" }) },
-  { "spectral",
-    stringListToGradient({ "#9e0142",
-                           "#d13b4b",
-                           "#f0704a",
-                           "#fcab63",
-                           "#fedc8c",
-                           "#fbf8b0",
-                           "#e0f3a1",
-                           "#aadda2",
-                           "#69bda9",
-                           "#4288b5",
-                           "#4288b5" }) },
-  { "rainbow",
-    stringListToGradient({ "#6e40aa",
-                           "#be3caf",
-                           "#fe4b83",
-                           "#ff7747",
-                           "#e3b62f",
-                           "#b0ef5a",
-                           "#53f666",
-                           "#1edfa2",
-                           "#23acd8",
-                           "#4c6fdc",
-                           "#4c6fdc" }) },
-  { "cubehelix",
-    stringListToGradient({ "#000000",
-                           "#1a1530",
-                           "#163d4e",
-                           "#1f6642",
-                           "#53792f",
-                           "#a07949",
-                           "#d07e93",
-                           "#d09cd9",
-                           "#c1caf3",
-                           "#d2eeef",
-                           "#d2eeef" }) },
-  { "RdYlGn",
-    stringListToGradient({ "#a50026",
-                           "#d3322b",
-                           "#f16d43",
-                           "#fcab63",
-                           "#fedc8c",
-                           "#f9f7ae",
-                           "#d7ee8e",
-                           "#a4d86f",
-                           "#64bc61",
-                           "#23964f",
-                           "#23964f" }) },
-  { "RdYlBu",
-    stringListToGradient({ "#a50026",
-                           "#d3322b",
-                           "#f16d43",
-                           "#fcab64",
-                           "#fedc90",
-                           "#faf8c0",
-                           "#dcf1ec",
-                           "#abd6e8",
-                           "#76abd0",
-                           "#4a74b4",
-                           "#4a74b4" }) },
-  { "PuBuGn",
-    stringListToGradient({ "#fff7fb",
-                           "#efe7f2",
-                           "#dbd8ea",
-                           "#bfc9e2",
-                           "#98b9d9",
-                           "#6aa8cf",
-                           "#4096c0",
-                           "#1987a0",
-                           "#047877",
-                           "#016353",
-                           "#016353" }) },
-  { "YlGnBu",
-    stringListToGradient({ "#ffffd9",
-                           "#eff9bd",
-                           "#d5efb3",
-                           "#a9ddb7",
-                           "#74c9bd",
-                           "#46b4c2",
-                           "#2897bf",
-                           "#2073b2",
-                           "#234ea0",
-                           "#1d3185",
-                           "#1d3185" }) },
-  { "GnBu",
-    stringListToGradient({ "#f7fcf0",
-                           "#e5f5df",
-                           "#d4eece",
-                           "#bde5bf",
-                           "#9fd9bb",
-                           "#7bcbc4",
-                           "#58b7cd",
-                           "#399cc6",
-                           "#1e7eb7",
-                           "#0b60a1",
-                           "#0b60a1" }) },
-  { "YlOrRd",
-    stringListToGradient({ "#ffffcc",
-                           "#fff1a9",
-                           "#fee087",
-                           "#fec966",
-                           "#feab4b",
-                           "#fd893c",
-                           "#fa5c2e",
-                           "#ec3023",
-                           "#d31121",
-                           "#af0225",
-                           "#af0225" }) },
-  { "YlOrBr",
-    stringListToGradient({ "#ffffe5",
-                           "#fff8c4",
-                           "#feeba2",
-                           "#fed676",
-                           "#febb4a",
-                           "#fb9a2c",
-                           "#ee7919",
-                           "#d85b0a",
-                           "#b74304",
-                           "#8f3204",
-                           "#8f3204" }) },
-  { "RdBu",
-    stringListToGradient({ "#67001f",
-                           "#ab202e",
-                           "#d55f50",
-                           "#f0a285",
-                           "#fad6c3",
-                           "#f2efee",
-                           "#cde3ee",
-                           "#90c2dd",
-                           "#4b94c4",
-                           "#2265a3",
-                           "#2265a3" }) },
-  { "BuGn",
-    stringListToGradient({ "#f7fcfd",
-                           "#e8f6f9",
-                           "#d5efed",
-                           "#b7e4da",
-                           "#8fd4c1",
-                           "#69c2a3",
-                           "#49b17f",
-                           "#2f995a",
-                           "#157f3c",
-                           "#036429",
-                           "#036429" }) },
-  { "BuPu",
-    stringListToGradient({ "#f7fcfd",
-                           "#e4eff5",
-                           "#ccddec",
-                           "#b2cae1",
-                           "#9cb3d5",
-                           "#8f95c6",
-                           "#8c74b5",
-                           "#8952a5",
-                           "#852d8f",
-                           "#730f71",
-                           "#730f71" }) },
-  { "PuBu",
-    stringListToGradient({ "#fff7fb",
-                           "#efeaf4",
-                           "#dbdaeb",
-                           "#bfc9e2",
-                           "#9cb9d9",
-                           "#72a8cf",
-                           "#4494c3",
-                           "#1b7db6",
-                           "#0668a1",
-                           "#045281",
-                           "#045281" }) },
-  { "RdPu",
-    stringListToGradient({ "#fff7f3",
-                           "#fde4e1",
-                           "#fccfcc",
-                           "#fbb5bc",
-                           "#f993b0",
-                           "#f369a3",
-                           "#e03f98",
-                           "#c11889",
-                           "#99037c",
-                           "#710174",
-                           "#710174" }) },
-  { "PuRd",
-    stringListToGradient({ "#f7f4f9",
-                           "#eae3f0",
-                           "#dcc9e2",
-                           "#d0aad2",
-                           "#d08ac2",
-                           "#dd63ae",
-                           "#e33890",
-                           "#d71c6c",
-                           "#b80b50",
-                           "#8f023a",
-                           "#8f023a" }) },
-  { "YlGn",
-    stringListToGradient({ "#ffffe5",
-                           "#f7fcc4",
-                           "#e4f4ac",
-                           "#c7e89b",
-                           "#a2d88a",
-                           "#78c578",
-                           "#4eaf63",
-                           "#2f944e",
-                           "#15793f",
-                           "#036034",
-                           "#036034" }) },
-  { "OrRd",
-    stringListToGradient({ "#fff7ec",
-                           "#feebcf",
-                           "#fddcaf",
-                           "#fdca94",
-                           "#fdb07a",
-                           "#fa8e5d",
-                           "#f16c49",
-                           "#e04630",
-                           "#c81e13",
-                           "#a70403",
-                           "#a70403" }) },
-  { "PiYG",
-    stringListToGradient({ "#8e0152",
-                           "#c0267e",
-                           "#dd72ad",
-                           "#f0b2d6",
-                           "#fadded",
-                           "#f5f3ef",
-                           "#e1f2ca",
-                           "#b7de88",
-                           "#81bb48",
-                           "#4f9125",
-                           "#4f9125" }) },
-  { "PRGn",
-    stringListToGradient({ "#40004b",
-                           "#722e80",
-                           "#9a6daa",
-                           "#c1a4cd",
-                           "#e3d2e6",
-                           "#eff0ef",
-                           "#d6eed1",
-                           "#a2d79f",
-                           "#5dad65",
-                           "#217939",
-                           "#217939" }) },
-  { "PuOr",
-    stringListToGradient({ "#7f3b08",
-                           "#b15a09",
-                           "#dd841f",
-                           "#f8b664",
-                           "#fdddb2",
-                           "#f3eeea",
-                           "#d7d7e9",
-                           "#b0aad0",
-                           "#8170ad",
-                           "#552d84",
-                           "#552d84" }) },
-  { "RdGy",
-    stringListToGradient({ "#67001f",
-                           "#ab202e",
-                           "#d55f50",
-                           "#f0a285",
-                           "#fcd8c4",
-                           "#faf4f0",
-                           "#dfdfdf",
-                           "#b8b8b8",
-                           "#868686",
-                           "#4e4e4e",
-                           "#4e4e4e" }) },
-  { "BrBG",
-    stringListToGradient({ "#543005",
-                           "#8b530f",
-                           "#bc8434",
-                           "#ddbd7b",
-                           "#f2e4bf",
-                           "#eef1ea",
-                           "#c3e7e2",
-                           "#80c9bf",
-                           "#399890",
-                           "#0a675f",
-                           "#0a675f" }) }
-};
-
 class GradientCombo : public QComboBox
 {
 public:
   GradientCombo(QWidget* parent = nullptr)
     : QComboBox(parent)
   {
+    setFocusPolicy(Qt::StrongFocus);
+  }
+
+  void wheelEvent(QWheelEvent* event)
+  {
+    if (!hasFocus()) {
+      event->ignore();
+      return;
+    }
+    QComboBox::wheelEvent(event);
   }
 
   void paintEvent(QPaintEvent* e)
@@ -407,26 +55,35 @@ public:
     QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
 
     painter.drawRect(r.adjusted(0, 0, -1, -1));
+    painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter, itemText(currentIndex()));
   }
 };
 
-QComboBox*
+static QComboBox*
 makeGradientCombo()
 {
   QComboBox* cb = new GradientCombo();
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
-  for (auto& gspec : builtInGradients) {
+  for (auto& gspec : getBuiltInGradients()) {
     QLinearGradient gradient;
-    gradient.setStops(colormapToGradient(gspec.second));
+    gradient.setStops(colormapToGradient(gspec.m_stops));
     gradient.setStart(0., 0.);     // top left
     gradient.setFinalStop(1., 0.); // bottom right
     gradient.setCoordinateMode(QGradient::ObjectMode);
 
+    QString itemText;
     QBrush brush(gradient);
-    brush.setStyle(Qt::LinearGradientPattern);
-    cb->addItem("", QVariant(gspec.first.c_str()));
-    cb->setItemData(index, QVariant(gspec.first.c_str()), Qt::ToolTipRole);
+    if (gspec.m_name == "Labels" || gspec.m_name == ColorRamp::NO_COLORMAP_NAME) {
+      // special case for Labels
+      brush.setColor(QColor(255, 255, 255));
+      brush.setStyle(Qt::SolidPattern);
+      itemText = gspec.m_name.c_str();
+    } else {
+      brush.setStyle(Qt::LinearGradientPattern);
+    }
+    cb->addItem(itemText, QVariant(gspec.m_name.c_str()));
+    cb->setItemData(index, QVariant(gspec.m_name.c_str()), Qt::ToolTipRole);
     cb->setItemData(index, brush, Qt::BackgroundRole);
     index++;
   }
@@ -644,49 +301,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
 
-  m_showUserClipPlane = new QCheckBox("Show Clip Plane");
-  m_showUserClipPlane->setChecked(false);
-  roiSectionLayout->addWidget(m_showUserClipPlane, 3, 0, 1, 2);
-  QObject::connect(m_showUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
-    emit this->m_qrendersettings->Selected(toggled ? this->m_scene->m_clipPlane.get() : nullptr);
-  });
-  m_toggleClipPlaneControls = new QCheckBox("Rotate clip plane");
-  m_toggleClipPlaneControls->setChecked(false);
-  roiSectionLayout->addWidget(m_toggleClipPlaneControls, 4, 0, 1, 2);
-  QObject::connect(m_toggleClipPlaneControls, &QCheckBox::clicked, [this, pToggleRotateAction](bool toggled) {
-    if (toggled) {
-      // make sure it's selected if we clicked this.
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-    }
-    pToggleRotateAction->trigger();
-  });
-  m_toggleClipPlaneTranslateControls = new QCheckBox("Translate clip plane");
-  m_toggleClipPlaneTranslateControls->setChecked(false);
-  roiSectionLayout->addWidget(m_toggleClipPlaneTranslateControls, 5, 0, 1, 2);
-  QObject::connect(
-    m_toggleClipPlaneTranslateControls, &QCheckBox::clicked, [this, pToggleTranslateAction](bool toggled) {
-      if (toggled) {
-        // make sure it's selected if we clicked this.
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-      pToggleTranslateAction->trigger();
-    });
-  m_enableUserClipPlane = new QCheckBox("Enable Clip Plane");
-  m_enableUserClipPlane->setChecked(true);
-  roiSectionLayout->addWidget(m_enableUserClipPlane, 6, 0, 1, 2);
-  QObject::connect(m_enableUserClipPlane, &QCheckBox::clicked, [this](bool toggled) {
-    if (this->m_scene->m_clipPlane) {
-      this->m_scene->m_clipPlane->m_enabled = toggled;
-      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
-    }
-  });
-
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
 
+  Section* sectionCP = createClipPlaneSection(pToggleRotateAction, pToggleTranslateAction);
+  m_MainLayout.addRow(sectionCP);
   Section* section = createAreaLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section);
   Section* section2 = createSkyLightingControls();
@@ -705,25 +327,133 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 }
 
 Section*
+QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
+{
+  Section::CheckBoxInfo checkBoxInfo = { this->m_scene ? this->m_scene->m_clipPlane->m_enabled : false,
+                                         "Enable/disable clip plane",
+                                         "Enable/disable clip plane" };
+  m_clipPlaneSection = new Section("Clip Plane", 0, &checkBoxInfo);
+  // section checkbox turns clip plane on or off
+  QObject::connect(m_clipPlaneSection, &Section::checked, [this](bool is_checked) {
+    if (this->m_scene && this->m_scene->m_clipPlane) {
+      this->m_scene->m_clipPlane->m_enabled = is_checked;
+      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+      emit this->m_qrendersettings->Selected(
+        is_checked && !m_hideUserClipPlane->isChecked() ? this->m_scene->m_clipPlane.get() : nullptr);
+    }
+  });
+
+  auto* sectionLayout = Controls::createAgaveFormLayout();
+
+  auto btnLayout = new QHBoxLayout();
+
+  m_clipPlaneRotateButton = new QPushButton("Rotate");
+  m_clipPlaneRotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
+  m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
+  btnLayout->addWidget(m_clipPlaneRotateButton);
+  QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
+    if (!this->m_scene) {
+      return;
+    }
+    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pToggleRotateAction->trigger();
+      if (!m_hideUserClipPlane->isChecked()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleRotateAction->trigger();
+    }
+  });
+
+  m_clipPlaneTranslateButton = new QPushButton("Translate");
+  m_clipPlaneTranslateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
+  m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
+  btnLayout->addWidget(m_clipPlaneTranslateButton);
+  QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
+    if (!this->m_scene) {
+      return;
+    }
+    // if we were already selected AND already in translate mode, then this should switch off translate mode.
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleTranslateAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pToggleTranslateAction->trigger();
+      if (!m_hideUserClipPlane->isChecked()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleTranslateAction->trigger();
+    }
+  });
+
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
+
+  m_hideUserClipPlane = new QCheckBox();
+  m_hideUserClipPlane->setChecked(false);
+  m_hideUserClipPlane->setStatusTip(tr("Hide clip plane grid in viewport"));
+  m_hideUserClipPlane->setToolTip(tr("Hide clip plane grid in viewport"));
+  QObject::connect(
+    m_hideUserClipPlane, &QCheckBox::clicked, [this, pToggleRotateAction, pToggleTranslateAction](bool toggled) {
+      if (!this->m_scene) {
+        return;
+      }
+      if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
+        return;
+      }
+      if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
+        emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
+      }
+    });
+
+  sectionLayout->addRow("Hide", m_hideUserClipPlane);
+
+  m_clipPlaneSection->setContentLayout(*sectionLayout);
+  return m_clipPlaneSection;
+}
+
+// TODO App really needs to be architected to let the tool's visibility state be independent of whether it's selected
+// for manipulation.  Right now, selection of an object is the only thing that shows/hides the tool.
+bool
+QAppearanceSettingsWidget::shouldClipPlaneShow()
+{
+  return m_scene && !m_hideUserClipPlane->isChecked() && this->m_scene->m_clipPlane.get()->m_enabled;
+}
+
+Section*
 QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 {
   Section* section = new Section("Area Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
-  m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
-  m_lt0gui.m_enableControlsCheckBox->setStatusTip(
-    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
-  m_lt0gui.m_enableControlsCheckBox->setToolTip(
-    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
-  sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
-  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, [this, pRotationAction](bool clicked) {
-    // select area light
-    emit this->m_qrendersettings->Selected(clicked ? this->m_scene->SceneAreaLight() : nullptr);
-    pRotationAction->trigger();
+  auto btnLayout = new QHBoxLayout();
+
+  m_lt0gui.m_RotateButton = new QPushButton("Rotate");
+  m_lt0gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  btnLayout->addWidget(m_lt0gui.m_RotateButton);
+  QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    if (!this->m_scene) {
+      return;
+    }
+    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
+    if (this->m_scene->m_selection == this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pRotationAction->trigger();
+      // TODO the selection should be independent of the tool visibility
+      if (shouldClipPlaneShow()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
+      pRotationAction->trigger();
+    }
   });
-  QObject::connect(pRotationAction, &QAction::triggered, [this](bool toggled) {
-    this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
-  });
+  // dummy widget to fill space (TODO: Translate button?)
+  btnLayout->addWidget(new QWidget());
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
@@ -1202,7 +932,6 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
     return;
   m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
 
-  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -1240,8 +969,9 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 void
 QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
-  if (!m_scene)
+  if (!m_scene) {
     return;
+  }
   // if we are switching one on, count how many sections are checked.
   // if more than 4, then switch this one back off
   if (is_checked) {
@@ -1266,7 +996,7 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 }
 
 // split color into color and intensity.
-inline void
+static inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
 {
   // if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
@@ -1274,6 +1004,13 @@ normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outinten
   outintensity = (i > 1.0f) ? i : 1.0f;
   glm::vec3 voutcolor = incolor / i;
   outcolor = QColor::fromRgbF(voutcolor.x, voutcolor.y, voutcolor.z);
+}
+
+void
+QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
+{
+  const ScenePlane* clipPlane = scene->m_clipPlane.get();
+  m_clipPlaneSection->setChecked(clipPlane->m_enabled);
 }
 
 void
@@ -1384,6 +1121,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
 
   initLightingControls(scene);
+  initClipPlaneControls(scene);
 
   int numEnabled = 0;
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
@@ -1398,8 +1136,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       }
     }
 
-    Section* section =
-      new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
+    std::string tip = "Enable/disable channel " + scene->m_volume->channel(i)->m_name;
+    Section::CheckBoxInfo cbinfo = { channelenabled, tip, tip };
+    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo);
 
     auto* fullLayout = new QVBoxLayout();
 
@@ -1435,17 +1174,41 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    auto separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator, sectionLayout->rowCount(), 0, 1, 2);
+
+    // get color ramp from scene
+    const ColorRamp& cr = scene->m_material.m_colormap[i];
     QComboBox* gradients = makeGradientCombo();
+    gradients->setToolTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
+    gradients->setStatusTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap only, set Color to white."));
+    int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
+
+    gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
-      LOG_DEBUG << "Selected gradient " << index << " (" << name << ") for channel " << i;
 
-      auto colormap = builtInGradients[index].second;
-      // update channel colormap from stops
-      this->OnUpdateColormap(i, colormap);
+      if (name == "Labels") {
+        if (m_scene) {
+          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+          m_scene->m_material.m_labels[i] = 1.0;
+          m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+        }
+
+      } else {
+        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+        m_scene->m_material.m_labels[i] = 0.0;
+        m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+      }
     });
+    // init
+    // this->OnColormapChanged(i, cr);
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
@@ -1454,12 +1217,17 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                     scene->m_material.m_diffuse[i * 3 + 1],
                                     scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
-    sectionLayout->addRow("DiffuseColor", diffuseColorButton);
+    sectionLayout->addRow("Color", diffuseColorButton);
     QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
     });
     // init
     this->OnDiffuseColorChanged(i, cdiff);
+
+    auto separator2 = new QFrame();
+    separator2->setFrameShape(QFrame::HLine);
+    separator2->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator2, sectionLayout->rowCount(), 0, 1, 2);
 
     QColorPushButton* specularColorButton = new QColorPushButton();
     specularColorButton->setStatusTip(tr("Set specular color for channel"));

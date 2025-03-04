@@ -207,43 +207,33 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 
     // Arrow line
-    // gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
-    //                          Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code));
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
                                     Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code) },
-                                  4.0f,
+                                  s_lineThickness,
                                   false);
 
     // Circle at the base of the arrow
     float diskScale = scale * (fullDraw ? 0.06f : 0.03f);
-    // gesture.drawCircle(axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code);
     gesture.drawCircleAsStrip(
       axis.p + dir * scale, dirX * diskScale, dirY * diskScale, 12, color, 1, code, s_lineThickness);
     if (fullDraw) {
       // Arrow
       glm::vec3 ve = camFrame.vz - dir * dot(dir, camFrame.vz);
       glm::vec3 vd = normalize(cross(ve, dir)) * (scale * 0.06f);
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
-      //                          Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code));
-      // gesture.graphics.extLine(Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code));
       gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(axis.p + dir * scale + vd, color, opacity, code),
                                       Gesture::Graphics::VertsCode(axis.p + dir * (scale * 1.2f), color, opacity, code),
                                       Gesture::Graphics::VertsCode(axis.p + dir * scale - vd, color, opacity, code) },
-                                    4.0f,
+                                    s_lineThickness,
                                     false);
     }
 
     // Extension to arrow line at the opposite end
-    // gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
-    //                          Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code));
     gesture.graphics.addLineStrip(
       { Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.05f), color, opacity, code),
         Gesture::Graphics::VertsCode(axis.p - dir * (scale * 0.25f), color, opacity, code) },
-      4.0f,
+      s_lineThickness,
       false);
 
-    // gesture.drawCircle(
-    //   axis.p - dir * scale * 0.25f, dirX * scale * 0.03f, dirY * scale * 0.03f, 12, color, opacity, code);
     gesture.drawCircleAsStrip(axis.p - dir * scale * 0.25f,
                               dirX * scale * 0.03f,
                               dirY * scale * 0.03f,
@@ -311,17 +301,12 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
 
       // Draw a bunch of 2d arrows
       float diskScale = scale * 0.17;
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirX * diskScale * li, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p + dirX * diskScale * lo, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p + dirX * diskScale * li, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p + dirX * diskScale * lo, arrowsColor, opacity, code) },
         s_lineThickness,
         false);
 
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirX * diskScale - v1, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p + dirX * diskScale, arrowsColor, opacity, code));
-      // gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + dirX * diskScale - v0, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p + dirX * diskScale - v1, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p + dirX * diskScale, arrowsColor, opacity, code),
@@ -335,41 +320,28 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
           Gesture::Graphics::VertsCode(p + dirY * diskScale * lo, arrowsColor, opacity, code) },
         s_lineThickness,
         false);
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p + dirY * diskScale + v1, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p + dirY * diskScale, arrowsColor, opacity, code));
-      // gesture.graphics.extLine(Gesture::Graphics::VertsCode(p + dirY * diskScale - v0, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p + dirY * diskScale + v1, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p + dirY * diskScale, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p + dirY * diskScale - v0, arrowsColor, opacity, code) },
         s_lineThickness,
         false);
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirX * diskScale * li, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p - dirX * diskScale * lo, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p - dirX * diskScale * li, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p - dirX * diskScale * lo, arrowsColor, opacity, code) },
         s_lineThickness,
         false);
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirX * diskScale + v1, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p - dirX * diskScale, arrowsColor, opacity, code));
-      // gesture.graphics.extLine(Gesture::Graphics::VertsCode(p - dirX * diskScale + v0, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p - dirX * diskScale + v1, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p - dirX * diskScale, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p - dirX * diskScale + v0, arrowsColor, opacity, code) },
         s_lineThickness,
         false);
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirY * diskScale * li, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p - dirY * diskScale * lo, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p - dirY * diskScale * li, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p - dirY * diskScale * lo, arrowsColor, opacity, code) },
         s_lineThickness,
         false);
-      // gesture.graphics.addLine(Gesture::Graphics::VertsCode(p - dirY * diskScale - v1, arrowsColor, opacity, code),
-      //                          Gesture::Graphics::VertsCode(p - dirY * diskScale, arrowsColor, opacity, code));
-      // gesture.graphics.extLine(Gesture::Graphics::VertsCode(p - dirY * diskScale + v0, arrowsColor, opacity, code));
       gesture.graphics.addLineStrip(
         { Gesture::Graphics::VertsCode(p - dirY * diskScale - v1, arrowsColor, opacity, code),
           Gesture::Graphics::VertsCode(p - dirY * diskScale, arrowsColor, opacity, code),
@@ -379,7 +351,6 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     }
 
     float diskScale = scale * 0.04 * facingScale;
-    // gesture.drawCircle(p, dirX * diskScale, dirY * diskScale, 8, color, opacity, code);
     gesture.drawCircleAsStrip(p, dirX * diskScale, dirY * diskScale, 8, color, opacity, code, s_lineThickness);
   };
 
@@ -419,11 +390,9 @@ MoveTool::draw(SceneView& scene, Gesture& gesture)
     }
 
     float diskScale = scale * 0.09;
-    // gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
     gesture.drawCircleAsStrip(
       axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code, s_lineThickness);
     diskScale = scale * 0.02;
-    // gesture.drawCircle(axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code);
     gesture.drawCircleAsStrip(
       axis.p, camFrame.vx * diskScale, camFrame.vy * diskScale, 24, color, 1, code, s_lineThickness);
   }

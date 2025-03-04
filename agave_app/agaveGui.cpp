@@ -256,7 +256,8 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleRotateControlsAction);
   connect(m_toggleRotateControlsAction, &QAction::triggered, [this](bool checked) {
-    this->m_glView->toggleRotateControls();
+    // TODO restore to use checked state again when the action becomes more global
+    this->m_glView->showRotateControls(true);
   });
 
   m_toggleTranslateControlsAction = new QAction(tr("&Rotate controls"), this);
@@ -268,7 +269,8 @@ agaveGui::createActions()
   // tie the action to the main app window.
   addAction(m_toggleTranslateControlsAction);
   connect(m_toggleTranslateControlsAction, &QAction::triggered, [this](bool checked) {
-    this->m_glView->toggleTranslateControls();
+    // TODO restore to use checked state again when the action becomes more global
+    this->m_glView->showTranslateControls(true);
   });
 
   m_manipulatorModeGroup = new QActionGroup(this);
@@ -618,6 +620,10 @@ agaveGui::onRenderAction()
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
+    m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
+    m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
+    m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
+    m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
@@ -1125,6 +1131,19 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_roi.SetMinP(glm::vec3(v.clipRegion[0][0], v.clipRegion[1][0], v.clipRegion[2][0]));
   m_appScene.m_roi.SetMaxP(glm::vec3(v.clipRegion[0][1], v.clipRegion[1][1], v.clipRegion[2][1]));
 
+  m_appScene.m_clipPlane->m_plane.normal =
+    glm::vec3(v.clipPlane.clipPlane[0], v.clipPlane.clipPlane[1], v.clipPlane.clipPlane[2]);
+  m_appScene.m_clipPlane->m_plane.d = v.clipPlane.clipPlane[3];
+  m_appScene.m_clipPlane->m_transform.m_center = glm::vec3(
+    v.clipPlane.transform.translation[0], v.clipPlane.transform.translation[1], v.clipPlane.transform.translation[2]);
+  // quat ctor is w,x,y,z
+  m_appScene.m_clipPlane->m_transform.m_rotation = glm::quat(v.clipPlane.transform.rotation[3],
+                                                             v.clipPlane.transform.rotation[0],
+                                                             v.clipPlane.transform.rotation[1],
+                                                             v.clipPlane.transform.rotation[2]);
+  m_appScene.m_clipPlane->m_enabled = v.clipPlane.enabled;
+  m_appScene.m_clipPlane->updateTransform();
+
   m_appScene.m_timeLine.setRange(v.timeline.minTime, v.timeline.maxTime);
   m_appScene.m_timeLine.setCurrentTime(v.timeline.currentTime);
 
@@ -1170,6 +1189,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
     m_appScene.m_material.m_opacity[i] = ch.opacity;
 
     m_appScene.m_material.m_gradientData[i] = stateToGradientData(v, i);
+
+    m_appScene.m_material.m_colormap[i] = stateToColorRamp(v, i);
   }
 
   // lights
@@ -1237,6 +1258,20 @@ agaveGui::appToViewerState()
   v.clipRegion[1][0] = m_appScene.m_roi.GetMinP().y;
   v.clipRegion[2][0] = m_appScene.m_roi.GetMinP().z;
 
+  v.clipPlane.clipPlane[0] = m_appScene.m_clipPlane->m_plane.normal.x;
+  v.clipPlane.clipPlane[1] = m_appScene.m_clipPlane->m_plane.normal.y;
+  v.clipPlane.clipPlane[2] = m_appScene.m_clipPlane->m_plane.normal.z;
+  v.clipPlane.clipPlane[3] = m_appScene.m_clipPlane->m_plane.d;
+  v.clipPlane.transform.translation[0] = m_appScene.m_clipPlane->m_transform.m_center.x;
+  v.clipPlane.transform.translation[1] = m_appScene.m_clipPlane->m_transform.m_center.y;
+  v.clipPlane.transform.translation[2] = m_appScene.m_clipPlane->m_transform.m_center.z;
+  // note that the quat ctor takes w,x,y,z
+  v.clipPlane.transform.rotation[0] = m_appScene.m_clipPlane->m_transform.m_rotation[0];
+  v.clipPlane.transform.rotation[1] = m_appScene.m_clipPlane->m_transform.m_rotation[1];
+  v.clipPlane.transform.rotation[2] = m_appScene.m_clipPlane->m_transform.m_rotation[2];
+  v.clipPlane.transform.rotation[3] = m_appScene.m_clipPlane->m_transform.m_rotation[3];
+  v.clipPlane.enabled = m_appScene.m_clipPlane->m_enabled;
+
   v.camera.eye[0] = m_glView->getCamera().m_From.x;
   v.camera.eye[1] = m_glView->getCamera().m_From.y;
   v.camera.eye[2] = m_glView->getCamera().m_From.z;
@@ -1283,6 +1318,7 @@ agaveGui::appToViewerState()
       ch.opacity = m_appScene.m_material.m_opacity[i];
 
       ch.lutParams = fromGradientData(m_appScene.m_material.m_gradientData[i]);
+      ch.colorMap = fromColorRamp(m_appScene.m_material.m_colormap[i]);
 
       v.channels.push_back(ch);
     }

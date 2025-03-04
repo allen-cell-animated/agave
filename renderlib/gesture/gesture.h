@@ -166,8 +166,7 @@ struct Gesture
     {
       kPoints = 0,
       kLines = 1,
-      kTriangles = 2,
-      kLineStrips = 3
+      kTriangles = 2
     };
 
     // a Command is just an instruction to the graphics
@@ -267,9 +266,14 @@ struct Gesture
     std::vector<CommandRange> commands[kNumCommandsLists];
 
     // Line strip drawing needs a different data setup
+
+    // a buffer of all the line strip vertices for the current frame
     std::vector<VertsCode> stripVerts;
+    // start and end values of each line strip in the stripVerts buffer
     std::vector<glm::ivec2> stripRanges;
+    // the type of view/projection to use for each strip
     std::vector<CommandSequence> stripProjections;
+    // the thickness of each strip
     std::vector<float> stripThicknesses;
 
     Font font;
@@ -356,7 +360,8 @@ struct Gesture
                              CommandSequence index = CommandSequence::k3dStacked)
     {
       // the minimum number of vertices for a line strip is 2
-      // and for a closed loop, it has to be 4 (consider a triangle where the 4th vertex connects the last to the first)
+      // and for a closed loop, it has to be 4 (consider the smallest closed loop
+      // to be a triangle where the 4th vertex connects the last to the first)
       assert((closedLoop && vertices.size() >= 4) || (!closedLoop && vertices.size() >= 2));
 
       // * first and last point define the tangents of the start and end of the line strip,

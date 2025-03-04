@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BoundingBox.h"
+#include "Colormap.h"
 #include "Defines.h"
 #include "DenoiseParams.h"
 #include "GradientData.h"
@@ -34,6 +35,8 @@ struct VolumeDisplay
   float m_roughness[MAX_CPU_CHANNELS];
   float m_opacity[MAX_CPU_CHANNELS];
   bool m_enabled[MAX_CPU_CHANNELS];
+  float m_labels[MAX_CPU_CHANNELS];
+  ColorRamp m_colormap[MAX_CPU_CHANNELS];
 
   GradientData m_gradientData[MAX_CPU_CHANNELS];
 
@@ -57,6 +60,8 @@ public:
       delete m_Lights[i];
     }
   }
+
+  Lighting(const Lighting& other);
 
   Light& LightRef(int i) const { return *m_Lights[i]; }
 

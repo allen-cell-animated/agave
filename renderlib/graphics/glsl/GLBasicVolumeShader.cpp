@@ -3,6 +3,7 @@
 #include "shaders.h"
 
 #include "Logging.h"
+#include "shaders.h"
 
 #include <gl/Util.h>
 #include <glm.h>
@@ -16,13 +17,15 @@ GLBasicVolumeShader::GLBasicVolumeShader()
   , fshader()
   , attr_coords()
 {
-  vshader = ShaderArray::GetShader("basicVolumeVert");
+  vshader = new GLShader(GL_VERTEX_SHADER);
+  vshader->compileSourceCode(getShaderSource("basicVolume_vert").c_str());
 
   if (!vshader->isCompiled()) {
     LOG_ERROR << "GLBasicVolumeShader: Failed to compile vertex shader\n" << vshader->log();
   }
 
-  fshader = ShaderArray::GetShader("basicVolumeFrag");
+  fshader = new GLShader(GL_FRAGMENT_SHADER);
+  fshader->compileSourceCode(getShaderSource("basicVolume_frag").c_str());
 
   if (!fshader->isCompiled()) {
     LOG_ERROR << "GLBasicVolumeShader: Failed to compile fragment shader\n" << fshader->log();

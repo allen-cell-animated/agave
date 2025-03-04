@@ -272,7 +272,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateX) {
       color = glm::vec3(1, 1, 0);
     }
-    // gesture.drawCircle(axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code, &discPlane);
     gesture.drawCircleAsStrip(
       axis.p, axis.l.vy * axisscale, axis.l.vz * axisscale, 48, color, 1, code, s_lineThickness, &discPlane);
   }
@@ -283,7 +282,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateY) {
       color = glm::vec3(1, 1, 0);
     }
-    // gesture.drawCircle(axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code, &discPlane);
     gesture.drawCircleAsStrip(
       axis.p, axis.l.vz * axisscale, axis.l.vx * axisscale, 48, color, 1, code, s_lineThickness, &discPlane);
   }
@@ -294,7 +292,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateZ) {
       color = glm::vec3(1, 1, 0);
     }
-    // gesture.drawCircle(axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code, &discPlane);
     gesture.drawCircleAsStrip(
       axis.p, axis.l.vx * axisscale, axis.l.vy * axisscale, 48, color, 1, code, s_lineThickness, &discPlane);
   }
@@ -306,7 +303,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
     if (m_activeCode == RotateTool::kRotateView) {
       color = glm::vec3(1, 1, 0);
     }
-    // gesture.drawCircle(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code);
     gesture.drawCircleAsStrip(axis.p, camFrame.vx * scale, camFrame.vy * scale, 48, color, 1, code, s_lineThickness);
   }
 
@@ -375,14 +371,6 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                                0.5,
                                noCode,
                                s_lineThickness);
-        // gesture.drawArc(axis.p - v0 * (radius * 1.1f),
-        //                 a,
-        //                 axis.p,
-        //                 vN,
-        //                 (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
-        //                 color,
-        //                 0.5,
-        //                 noCode);
       }
     }
   }

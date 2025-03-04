@@ -20,12 +20,16 @@ GLPTVolumeShader::GLPTVolumeShader()
   , m_vshader(nullptr)
   , m_fshader(nullptr)
 {
-  m_vshader = ShaderArray::GetShader("pathTraceVolumeVert");
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
+  m_vshader->compileSourceCode(getShaderSource("pathTraceVolume_vert").c_str());
+
   if (!m_vshader->isCompiled()) {
     LOG_ERROR << "GLPTVolumeShader: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
-  m_fshader = ShaderArray::GetShader("pathTraceVolumeFrag");
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
+
+  m_fshader->compileSourceCode(getShaderSource("pathTraceVolume_frag").c_str());
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLPTVolumeShader: Failed to compile fragment shader\n" << m_fshader->log();
   }
@@ -129,8 +133,12 @@ GLPTVolumeShader::GLPTVolumeShader()
   m_lutTexture1 = uniformLocation("g_lutTexture[1]");
   m_lutTexture2 = uniformLocation("g_lutTexture[2]");
   m_lutTexture3 = uniformLocation("g_lutTexture[3]");
+  m_colormapTexture = uniformLocation("g_colormapTexture");
   m_intensityMax = uniformLocation("g_intensityMax");
   m_intensityMin = uniformLocation("g_intensityMin");
+  m_lutMax = uniformLocation("g_lutMax");
+  m_lutMin = uniformLocation("g_lutMin");
+  m_labels = uniformLocation("g_labels");
   m_opacity = uniformLocation("g_opacity");
   m_emissive0 = uniformLocation("g_emissive[0]");
   m_emissive1 = uniformLocation("g_emissive[1]");
@@ -167,12 +175,8 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   check_gl("before pathtrace shader uniform binding");
 
   glUniform1i(m_volumeTexture, 0);
-  check_gl("post vol textures");
-
-  glActiveTexture(GL_TEXTURE0);
-  check_gl("post vol textures");
+  glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, 0);
-  check_gl("post vol textures");
   glBindTexture(GL_TEXTURE_3D, imggpu.m_VolumeGLTexture);
   check_gl("post vol textures");
 
@@ -272,13 +276,17 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
   int activeChannel = 0;
   int luttex[4] = { 0, 0, 0, 0 };
+  int colormaptex = imggpu.m_ActiveChannelColormaps;
   float intensitymax[4] = { 1, 1, 1, 1 };
   float intensitymin[4] = { 0, 0, 0, 0 };
+  float lutmax[4] = { 1, 1, 1, 1 };
+  float lutmin[4] = { 0, 0, 0, 0 };
+  float labels[4] = { 0, 0, 0, 0 };
   float diffuse[3 * 4] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
   float specular[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float roughness[4] = { 0, 0, 0, 0 };
-  float opacity[4] = { 1, 1, 1, 1 };
+  float opacity[4] = { 0, 0, 0, 0 };
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
       luttex[activeChannel] = imggpu.m_channels[i].m_VolumeLutGLTexture;
@@ -296,34 +304,51 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
       roughness[activeChannel] = scene->m_material.m_roughness[i];
       opacity[activeChannel] = scene->m_material.m_opacity[i];
 
+      // get a min/max from the gradient data if possible
+      uint16_t imin16 = 0;
+      uint16_t imax16 = 0;
+      bool hasMinMax =
+        scene->m_material.m_gradientData[i].getMinMax(scene->m_volume->channel(i)->m_histogram, &imin16, &imax16);
+      lutmin[activeChannel] = hasMinMax ? imin16 : intensitymin[activeChannel];
+      lutmax[activeChannel] = hasMinMax ? imax16 : intensitymax[activeChannel];
+      labels[activeChannel] = scene->m_material.m_labels[i];
       activeChannel++;
     }
   }
   glUniform1i(m_g_nChannels, activeChannel);
   check_gl("pre lut textures");
 
-  glUniform1i(m_lutTexture0, 3);
-  glActiveTexture(GL_TEXTURE0 + 3);
+  glUniform1i(m_lutTexture0, 2);
+  glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_2D, luttex[0]);
   check_gl("lut 0");
 
-  glUniform1i(m_lutTexture1, 4);
-  glActiveTexture(GL_TEXTURE0 + 4);
+  glUniform1i(m_lutTexture1, 3);
+  glActiveTexture(GL_TEXTURE0 + 3);
   glBindTexture(GL_TEXTURE_2D, luttex[1]);
   check_gl("lut 1");
 
-  glUniform1i(m_lutTexture2, 5);
-  glActiveTexture(GL_TEXTURE0 + 5);
+  glUniform1i(m_lutTexture2, 4);
+  glActiveTexture(GL_TEXTURE0 + 4);
   glBindTexture(GL_TEXTURE_2D, luttex[2]);
   check_gl("lut 2");
 
-  glUniform1i(m_lutTexture3, 6);
-  glActiveTexture(GL_TEXTURE0 + 6);
+  glUniform1i(m_lutTexture3, 5);
+  glActiveTexture(GL_TEXTURE0 + 5);
   glBindTexture(GL_TEXTURE_2D, luttex[3]);
   check_gl("lut 3");
 
+  glUniform1i(m_colormapTexture, 6);
+  glActiveTexture(GL_TEXTURE0 + 6);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, colormaptex);
+  check_gl("colormap array");
+
   glUniform4fv(m_intensityMax, 1, intensitymax);
   glUniform4fv(m_intensityMin, 1, intensitymin);
+  glUniform4fv(m_lutMax, 1, lutmax);
+  glUniform4fv(m_lutMin, 1, lutmin);
+  glUniform4fv(m_labels, 1, labels);
+
   glUniform1fv(m_opacity, 4, opacity);
   glUniform3fv(m_emissive0, 1, emissive + 0);
   glUniform3fv(m_emissive1, 1, emissive + 3);

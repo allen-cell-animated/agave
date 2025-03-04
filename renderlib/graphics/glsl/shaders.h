@@ -1,11 +1,6 @@
 #pragma once
 
-#include "gl/Util.h"
+#include <string>
 
-class ShaderArray
-{
-public:
-  static bool CompileShaders();
-  static GLShader* GetShader(const std::string& name);
-  static void DestroyShaders();
-};
+const std::string
+getShaderSource(const std::string& shaderName);

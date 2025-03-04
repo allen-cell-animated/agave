@@ -5,7 +5,7 @@
 GLGuiShader::GLGuiShader()
   : GLShaderProgram()
 {
-  utilMakeSimpleProgram(ShaderArray::GetShader("guiVert"), ShaderArray::GetShader("guiFrag"));
+  utilMakeSimpleProgram(getShaderSource("gui_vert").c_str(), getShaderSource("gui_frag").c_str());
 
   m_loc_proj = uniformLocation("projection");
   m_loc_vpos = attributeLocation("vPos");

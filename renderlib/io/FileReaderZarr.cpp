@@ -6,7 +6,6 @@
 #include "StringUtil.h"
 #include "VolumeDimensions.h"
 
-#include "tensorstore/array.h"
 #include "tensorstore/context.h"
 #include "tensorstore/index_space/dim_expression.h"
 #include "tensorstore/kvstore/generation.h"
@@ -531,18 +530,19 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     transform = (std::move(transform) | tensorstore::Dims(tsdim).HalfOpenInterval(minx, maxx)).value();
     tsdim++;
 
-    tensorstore::Index shapeToLoad[5] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
+    static constexpr tensorstore::DimensionIndex kNumDims = 5;
+    const tensorstore::Index shapeToLoad[kNumDims] = { 1, 1, dims.sizeZ, dims.sizeY, dims.sizeX };
     if (levelDims.dtype == "uint8") {
-      auto arr = tensorstore::Array((uint8_t*)reinterpret_cast<uint8_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto arr = tensorstore::Array(reinterpret_cast<uint8_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "int32") {
-      auto arr = tensorstore::Array((int32_t*)reinterpret_cast<int32_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto arr = tensorstore::Array(reinterpret_cast<int32_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "uint16") {
-      auto arr = tensorstore::Array((uint16_t*)reinterpret_cast<uint16_t*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else if (levelDims.dtype == "float32") {
-      auto arr = tensorstore::Array((float*)reinterpret_cast<float*>(destptr), shapeToLoad, tensorstore::c_order);
+      auto arr = tensorstore::Array(reinterpret_cast<float*>(destptr), shapeToLoad);
       tensorstore::Read(m_store | transform, tensorstore::UnownedToShared(arr)).value();
     } else {
       LOG_ERROR << "Unrecognized format (" << levelDims.dtype

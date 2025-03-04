@@ -15,13 +15,15 @@ GLCopyShader::GLCopyShader()
   , m_vshader()
   , m_fshader()
 {
-  m_vshader = ShaderArray::GetShader("copyVert");
+  m_vshader = new GLShader(GL_VERTEX_SHADER);
+  m_vshader->compileSourceCode(getShaderSource("copy_vert").c_str());
 
   if (!m_vshader->isCompiled()) {
     LOG_ERROR << "GLCopyShader: Failed to compile vertex shader\n" << m_vshader->log();
   }
 
-  m_fshader = ShaderArray::GetShader("copyFrag");
+  m_fshader = new GLShader(GL_FRAGMENT_SHADER);
+  m_fshader->compileSourceCode(getShaderSource("copy_frag").c_str());
 
   if (!m_fshader->isCompiled()) {
     LOG_ERROR << "GLCopyShader: Failed to compile fragment shader\n" << m_fshader->log();

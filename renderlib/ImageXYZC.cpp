@@ -3,6 +3,9 @@
 #include "Colormap.h"
 #include "Logging.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
+
 #include <algorithm>
 #include <math.h>
 #include <sstream>
@@ -286,4 +289,28 @@ Channelu16::debugprint()
     ss << m_lut[x] << ", ";
   }
   LOG_DEBUG << "LUT: " << ss.str();
+}
+
+// dump middle slice to image
+void
+Channelu16::debugData()
+{
+  int z = m_z / 2;
+  size_t npix = m_x * m_y;
+  uint16_t* slice = m_ptr + z * npix;
+  uint8_t* img = new uint8_t[npix * 4];
+  // convert all pixels of slice into img:
+  for (size_t i = 0; i < npix; ++i) {
+    uint16_t val = slice[i];
+    img[i * 4 + 0] = val % 256;
+    img[i * 4 + 1] = val % 256;
+    img[i * 4 + 2] = val % 256;
+    img[i * 4 + 3] = 255;
+  }
+
+  static int count = 0;
+  std::ostringstream oss;
+  oss << "debug" << (count++) << ".png";
+  std::string filename = oss.str();
+  stbi_write_png(filename.c_str(), m_x, m_y, 4, img, m_x * 4);
 }

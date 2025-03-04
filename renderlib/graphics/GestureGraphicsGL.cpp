@@ -41,7 +41,7 @@ ScopedGlVertexBuffer::~ScopedGlVertexBuffer()
   glDeleteBuffers(1, &m_buffer);
 }
 
-// a vertex buffer that is automatically allocated and then deleted when it goes out of scope
+// a texture buffer that is automatically allocated and then deleted when it goes out of scope
 ScopedGlTextureBuffer::ScopedGlTextureBuffer(const void* data, size_t size)
 {
   glGenBuffers(1, &m_buffer);
@@ -313,6 +313,9 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     // attach the texture id with the draw command.
     glTextureId = font->getTextureID();
   }
+  if (thickLinesVertexArray == 0) {
+    glGenVertexArrays(1, &thickLinesVertexArray);
+  }
 
   // YAGNI: With a small effort we could create dynamic passes that are
   //        fully user configurable...
@@ -400,18 +403,16 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
       shader->cleanup();
 
-      // TODO the loop over sequence should only happen once, and
-      // we should switch draw types.
-      // which means managing bookkeeping of switching shaders...
       if (!graphics.stripRanges.empty()) {
         shaderLines->configure(display, this->glTextureId);
+        GLint currentVertexArray;
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArray);
+        glBindVertexArray(thickLinesVertexArray);
+        check_gl("bind vertex array for thicklines");
         for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
           pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
-          // YAGNI: Commands could be coalesced, setting state could be avoided
-          //        if not changing... For now it seems we can draw at over 2000 Hz
-          //        and no further optimization is required.
-          // now lets draw some strips, using stripRanges
+          // now let's draw some strips, using stripRanges
           for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
             if ((int)graphics.stripProjections[i] != sequence) {
               continue;
@@ -421,51 +422,21 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             const float thickness = graphics.stripThicknesses[i];
 
             // we are drawing N-1 line segments, but the number of elements in the array is N+2
+            // see GLThickLines for comments explaining the data layout and draw strategy
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
-            glUniform1i(shaderLines->m_loc_stripVerts, 0);
+            glUniform1i(shaderLines->m_loc_stripVerts, 2);
             glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
             glUniform1f(shaderLines->m_loc_thickness, thickness);
             glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
+            check_gl("set strip uniforms");
             glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
             check_gl("thicklines drawarrays");
           }
-          // for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
-          //   Gesture::Graphics::Command& cmd = cmdr.command;
-          //   if (cmdr.end == -1)
-          //     cmdr.end = graphics.verts.size();
-          //   if (cmdr.begin >= cmdr.end)
-          //     continue;
-
-          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
-          //     glLineWidth(cmd.thickness);
-          //     check_gl("linewidth");
-          //   }
-          //   if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
-          //     glPointSize(cmd.thickness);
-          //     check_gl("pointsize");
-          //   }
-          //   GLenum mode = GL_TRIANGLES;
-          //   switch (cmd.command) {
-          //     case Gesture::Graphics::PrimitiveType::kLines:
-          //       mode = GL_LINES;
-          //       break;
-          //     case Gesture::Graphics::PrimitiveType::kPoints:
-          //       mode = GL_POINTS;
-          //       break;
-          //     case Gesture::Graphics::PrimitiveType::kTriangles:
-          //       mode = GL_TRIANGLES;
-          //       break;
-          //     default:
-          //       assert(false && "unsupported primitive type");
-          //   }
-          //   glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
-          //   check_gl("drawarrays");
-          // }
         }
         shaderLines->cleanup();
+        glBindVertexArray(currentVertexArray);
       }
       check_gl("disablevertexattribarray");
     };
