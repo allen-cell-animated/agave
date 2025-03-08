@@ -3,10 +3,10 @@
 #include "ui_agaveGui.h"
 
 #include "Camera.h"
-#include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 #include "renderDialog.h"
+#include "wgpuView3D.h"
 
 #include "renderlib/AppScene.h"
 #include "renderlib/RenderSettings.h"
@@ -66,7 +66,7 @@ private slots:
   void view_frame();
   void view_toggleProjection();
   void showAxisHelper();
-  void viewFocusChanged(GLView3D* glView);
+  void viewFocusChanged(WgpuCanvas* glView);
   void tabChanged(int index);
   void openMeshDialog();
   void openMesh(const QString& file);
@@ -150,7 +150,7 @@ private:
   QStatisticsDockWidget* m_statisticsDockWidget;
 
   QTabWidget* m_tabs;
-  GLView3D* m_glView;
+  WgpuCanvas* m_glView;
   ViewToolbar* m_viewToolbar;
   QWidget* m_viewWithToolbar;
 

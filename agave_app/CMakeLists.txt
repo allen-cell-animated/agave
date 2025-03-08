@@ -75,6 +75,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/TimelineDockWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewerState.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/wgpuView3D.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/wgpuView3D.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewToolbar.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ViewToolbar.h"
 )
@@ -98,6 +100,7 @@ endif(MSVC)
 
 target_link_libraries(agaveapp PRIVATE
 	renderlib
+	renderlib_wgpu
 	Qt::Widgets Qt::Core Qt::Gui Qt::Network Qt::OpenGL Qt::OpenGLWidgets Qt::WebSockets Qt::Xml Qt::Svg
 )
 

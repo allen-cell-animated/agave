@@ -17,8 +17,8 @@
 
 GLPTVolumeShader::GLPTVolumeShader()
   : GLShaderProgram()
-  , m_vshader()
-  , m_fshader()
+  , m_vshader(nullptr)
+  , m_fshader(nullptr)
 {
   m_vshader = new GLShader(GL_VERTEX_SHADER);
   m_vshader->compileSourceCode(getShaderSource("pathTraceVolume_vert").c_str());

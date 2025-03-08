@@ -1,5 +1,6 @@
 #include "GLBasicVolumeShader.h"
 #include "glad/glad.h"
+#include "shaders.h"
 
 #include "Logging.h"
 #include "shaders.h"
