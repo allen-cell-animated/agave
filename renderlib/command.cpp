@@ -274,7 +274,7 @@ EnableChannelCommand::execute(ExecutionContext* c)
   LOG_DEBUG << "EnableChannel " << m_data.m_channel << " " << m_data.m_enabled;
   // 0 or 1 hopefully.
   c->m_appScene->m_material.m_enabled[m_data.m_channel] = (m_data.m_enabled != 0);
-  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty | TransferFunctionDirty);
 }
 void
 SetWindowLevelCommand::execute(ExecutionContext* c)
