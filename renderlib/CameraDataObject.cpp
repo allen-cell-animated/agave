@@ -64,6 +64,7 @@ CameraDataObject::update()
 
     m_camera->Update();
 
+    // TODO how can I hook this up automatically to the RenderSettings dirty flags?
     // renderer should pick this up and do the right thing (TM)
     m_camera->m_Dirty = true;
   }

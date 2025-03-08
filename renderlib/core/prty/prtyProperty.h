@@ -18,6 +18,7 @@ public:
   prtyProperty(std::string name)
     : name(name)
   {
+    // value = typename T::value_type();
   }
 
   prtyProperty(std::string name, const T& val)
@@ -37,6 +38,8 @@ public:
     // call all callbacks
     notifyAll(isFromUI);
   }
+
+  std::string getName() const { return name; }
 
   // copy????
   T get() const { return value; }
@@ -84,8 +87,8 @@ public:
 
   // callback for when the property's value is set.
   // The boolean flag is true
-  //	if the change is coming from the user interface and therefore
-  //	should mark the document containing the property as dirty.
+  // if the change is coming from the user interface and therefore
+  // should mark the document containing the property as dirty.
   typedef std::function<void(prtyProperty<T>*, bool)> prtyPropertyCallback;
 
   void addCallback(prtyPropertyCallback cb) { callbacks.push_back(cb); }
