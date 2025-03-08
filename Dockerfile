@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y cmake
 RUN apt-get install -y python3-pip python3-venv
 
 # get Qt installed
-ENV QT_VERSION=6.5.3
+ENV QT_VERSION=6.8.2
 RUN pip install aqtinstall --break-system-packages
 RUN aqt install-qt --outputdir /qt linux desktop ${QT_VERSION} -m qtwebsockets qtimageformats
 # required for qt offscreen platform plugin

@@ -6,12 +6,10 @@
 #include "StringUtil.h"
 #include "VolumeDimensions.h"
 
-#include "tensorstore/array.h"
 #include "tensorstore/context.h"
 #include "tensorstore/index_space/dim_expression.h"
 #include "tensorstore/kvstore/generation.h"
 #include "tensorstore/open.h"
-#include "tensorstore/tensorstore.h"
 
 #include <algorithm>
 #include <chrono>
