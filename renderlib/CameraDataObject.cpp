@@ -7,30 +7,12 @@ CameraDataObject::CameraDataObject(CCamera* camera)
 {
   updatePropsFromCamera();
   // hook up properties to update the underlying camera
-  Exposure.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting exposure to " << p->get();
-    update();
-  });
-  ExposureIterations.addCallback([this](prtyProperty<int>* p, bool) {
-    // LOG_DEBUG << "Setting exposure iterations to " << p->get();
-    update();
-  });
-  NoiseReduction.addCallback([this](prtyProperty<bool>* p, bool) {
-    // LOG_DEBUG << "Setting noise reduction to " << p->get();
-    update();
-  });
-  ApertureSize.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting aperture size to " << p->get();
-    update();
-  });
-  FieldOfView.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting field of view to " << p->get();
-    update();
-  });
-  FocalDistance.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting focal distance to " << p->get();
-    update();
-  });
+  Exposure.addCallback([this](prtyProperty<float>* p, bool) { update(); });
+  ExposureIterations.addCallback([this](prtyProperty<int>* p, bool) { update(); });
+  NoiseReduction.addCallback([this](prtyProperty<bool>* p, bool) { update(); });
+  ApertureSize.addCallback([this](prtyProperty<float>* p, bool) { update(); });
+  FieldOfView.addCallback([this](prtyProperty<float>* p, bool) { update(); });
+  FocalDistance.addCallback([this](prtyProperty<float>* p, bool) { update(); });
 }
 
 void
@@ -39,6 +21,7 @@ CameraDataObject::updatePropsFromCamera()
   if (m_camera) {
     Exposure.set(1.0f - m_camera->m_Film.m_Exposure);
     ExposureIterations.set(m_camera->m_Film.m_ExposureIterations);
+    // TODO this is not hooked up to the camera properly
     // NoiseReduction.set(m_camera->m_Film.m_NoiseReduction);
     ApertureSize.set(m_camera->m_Aperture.m_Size);
     FieldOfView.set(m_camera->m_FovV);
@@ -63,6 +46,8 @@ CameraDataObject::update()
     m_camera->m_Focus.m_FocalDistance = FocalDistance.get();
 
     m_camera->Update();
+
+    // TODO noise reduction!!!
 
     // TODO how can I hook this up automatically to the RenderSettings dirty flags?
     // renderer should pick this up and do the right thing (TM)
