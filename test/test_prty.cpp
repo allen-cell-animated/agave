@@ -5,6 +5,7 @@
 #include "core/prty/prtyProperty.h"
 
 #include <string>
+#include <iostream>
 
 TEST_CASE("prtyProperty", "[prtyProperty]")
 {
@@ -69,6 +70,12 @@ struct Foo
 {
   int x;
   int y;
+
+  friend std::ostream& operator<<(std::ostream& os, const Foo& f)
+  {
+    os << "{ " << f.x << ", " << f.y << " }";
+    return os;
+  }
 };
 
 TEST_CASE("prtyProperty struct", "[prtyProperty]")
