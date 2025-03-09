@@ -4,6 +4,7 @@
 #include "qtControls/controlFactory.h"
 
 #include "renderlib/uiInfo.hpp"
+#include "renderlib/CameraUiDescription.hpp"
 
 #include <QLabel>
 
@@ -16,58 +17,17 @@ QCameraWidget::QCameraWidget(QWidget* pParent, RenderSettings* rs, CameraDataObj
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
 
-  QNumericSlider* slider = addRow(FloatSliderSpinnerUiInfo("Exposure",
-                                                           "Set Exposure",
-                                                           "Set camera exposure",
-                                                           0.0f,
-                                                           1.0f,
-                                                           2,    // decimals
-                                                           0.01, // singleStep
-                                                           0     // numTickMarks
-                                                           ),
-                                  &m_cameraDataObject->Exposure);
+  QNumericSlider* slider = addRow(CameraUiDescription::m_exposure, &m_cameraDataObject->Exposure);
   m_MainLayout.addRow("Exposure", slider);
-  QComboBox* comboBox = addRow(ComboBoxUiInfo("Exposure Time",
-                                              "Set Exposure Time",
-                                              "Set number of samples to accumulate per viewport update",
-                                              { "1", "2", "4", "8" }),
-                               &m_cameraDataObject->ExposureIterations);
+  QComboBox* comboBox = addRow(CameraUiDescription::m_exposureIterations, &m_cameraDataObject->ExposureIterations);
   m_MainLayout.addRow("Exposure Time", comboBox);
-  QCheckBox* checkBox = addRow(CheckBoxUiInfo("Noise Reduction", "Enable denoising pass", "Enable denoising pass"),
-                               &m_cameraDataObject->NoiseReduction);
+  QCheckBox* checkBox = addRow(CameraUiDescription::m_noiseReduction, &m_cameraDataObject->NoiseReduction);
   m_MainLayout.addRow("Noise Reduction", checkBox);
-  QNumericSlider* slider2 = addRow(FloatSliderSpinnerUiInfo("Aperture Size",
-                                                            "Set camera aperture size",
-                                                            "Set camera aperture size",
-                                                            0.0f,
-                                                            0.1f,
-                                                            2,    // decimals
-                                                            0.01, // singleStep
-                                                            0,    // numTickMarks
-                                                            " mm"),
-                                   &m_cameraDataObject->ApertureSize);
+  QNumericSlider* slider2 = addRow(CameraUiDescription::m_apertureSize, &m_cameraDataObject->ApertureSize);
   m_MainLayout.addRow("Aperture Size", slider2);
-  QNumericSlider* slider3 = addRow(FloatSliderSpinnerUiInfo("Field of view",
-                                                            "Set camera field of view angle",
-                                                            "Set camera field of view angle",
-                                                            10.0f,
-                                                            150.0f,
-                                                            2,    // decimals
-                                                            0.01, // singleStep
-                                                            0,    // numTickMarks
-                                                            " deg."),
-                                   &m_cameraDataObject->FieldOfView);
+  QNumericSlider* slider3 = addRow(CameraUiDescription::m_fieldOfView, &m_cameraDataObject->FieldOfView);
   m_MainLayout.addRow("Field of view", slider3);
-  QNumericSlider* slider4 = addRow(FloatSliderSpinnerUiInfo("Focal distance",
-                                                            "Set focal distance",
-                                                            "Set focal distance",
-                                                            0.0f,
-                                                            15.0f,
-                                                            2,    // decimals
-                                                            0.01, // singleStep
-                                                            0,    // numTickMarks
-                                                            " m"),
-                                   &m_cameraDataObject->FocalDistance);
+  QNumericSlider* slider4 = addRow(CameraUiDescription::m_focalDistance, &m_cameraDataObject->FocalDistance);
   m_MainLayout.addRow("Focal distance", slider4);
 }
 
