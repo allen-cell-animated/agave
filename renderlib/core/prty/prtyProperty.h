@@ -18,22 +18,18 @@
 // a property has a name and a value.
 // the init value is default-constructed or passed in.
 // The value type must be copyable, assignable, and default-constructible.
-// For debugging, the value must also be streamable to std::ostream.
+// The value must also be streamable to std::ostream.
 template<typename T,
          typename = std::enable_if_t<
            std::is_copy_constructible_v<T> && std::is_copy_assignable_v<T> && std::is_default_constructible_v<T> &&
-           std::is_move_constructible_v<T> && std::is_move_assignable_v<T>
-#if PRTY_PROPERTY_DEBUG
-           && std::is_convertible_v<decltype(std::declval<std::ostream&>() << std::declval<T>()), std::ostream&>
-#endif
-           >>
+           std::is_move_constructible_v<T> && std::is_move_assignable_v<T> &&
+           std::is_convertible_v<decltype(std::declval<std::ostream&>() << std::declval<T>()), std::ostream&>>>
 class prtyProperty
 {
 public:
   prtyProperty(std::string name)
     : name(name)
   {
-    // value = typename T::value_type();
   }
 
   prtyProperty(std::string name, const T& val)
