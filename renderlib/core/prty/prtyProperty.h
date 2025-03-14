@@ -102,9 +102,9 @@ public:
   }
 
   // callback for when the property's value is set.
-  // The boolean flag is true
-  // if the change is coming from the user interface and therefore
-  // should mark the document containing the property as dirty.
+  // The boolean flag is true if the change is coming from the
+  // user interface and therefore should mark the document
+  // containing the property as dirty.
   typedef std::function<void(prtyProperty<T>*, bool)> prtyPropertyCallback;
 
   void addCallback(prtyPropertyCallback cb) { callbacks.push_back(cb); }
