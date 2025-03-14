@@ -1,5 +1,6 @@
 #include "ScaleBarTool.h"
 
+#include "AppScene.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 

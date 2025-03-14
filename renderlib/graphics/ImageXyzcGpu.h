@@ -5,6 +5,7 @@
 #include <vector>
 
 class ImageXYZC;
+struct VolumeDisplay;
 
 struct ChannelGpu
 {
@@ -23,6 +24,7 @@ struct ImageGpu
   std::vector<ChannelGpu> m_channels;
 
   GLuint m_VolumeGLTexture = 0;
+  GLuint m_ActiveChannelColormaps = 0;
 
   size_t m_gpuBytes = 0;
 
@@ -38,6 +40,7 @@ struct ImageGpu
 
   // similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
   void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
+  void updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3, const VolumeDisplay& volumeDisplay);
 
   void setVolumeTextureFiltering(bool linear);
 

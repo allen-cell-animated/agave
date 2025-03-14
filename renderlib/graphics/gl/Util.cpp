@@ -184,7 +184,7 @@ RectImage2D::draw(GLuint texture2d)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _quadIndices);
   check_gl("bind element buf");
   glDrawElements(GL_TRIANGLES, (GLsizei)_num_image_elements, GL_UNSIGNED_SHORT, 0);
-  check_gl("Image2D draw elements");
+  check_gl("RectImage2D draw elements");
 
   _image_shader->disableCoords();
   _image_shader->disableTexCoords();
@@ -930,7 +930,7 @@ GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
   link();
 
   if (!isLinked()) {
-    LOG_ERROR << "GLGuiShader: Failed to link shader program\n" << log();
+    LOG_ERROR << "GLShaderProgram: Failed to link shader program\n" << log();
   }
 
   if (outVShader != nullptr) {

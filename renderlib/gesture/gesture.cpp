@@ -1,5 +1,7 @@
 #include "gesture.h"
 
+#include "Logging.h"
+
 // Update the current action for one of the button of the pointer device
 void
 Gesture::Input::setButtonEvent(uint32_t mbIndex, Action action, int mods, glm::vec2 position, double time)
@@ -112,6 +114,42 @@ Gesture::drawArc(const glm::vec3& pstart,
 }
 
 void
+Gesture::drawArcAsStrip(const glm::vec3& pstart,
+                        float angle,
+                        const glm::vec3& center,
+                        const glm::vec3& normal,
+                        uint32_t numSegments,
+                        glm::vec3 color,
+                        float opacity,
+                        uint32_t code,
+                        float thickness)
+{
+  std::vector<Gesture::Graphics::VertsCode> v;
+  // draw arc from pstart through angle with center of circle at center
+  glm::vec3 xaxis = pstart - center;
+  glm::vec3 yaxis = glm::cross(normal, xaxis);
+  glm::vec3 p0, p1;
+  for (int i = 0; i < numSegments; ++i) {
+    float t0 = float(i) / float(numSegments);
+    float t1 = float(i + 1) / float(numSegments);
+
+    float theta0 = t0 * angle; // 2.0f * glm::pi<float>();
+    float theta1 = t1 * angle; // 2.0f * glm::pi<float>();
+
+    p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+    p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+    v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+  }
+  // last vertex
+  v.push_back(Gesture::Graphics::VertsCode(p1, color, opacity, code));
+
+  if (v.size() >= 2) {
+    graphics.addLineStrip(v, thickness, false);
+  }
+}
+
+void
 Gesture::drawCircle(glm::vec3 center,
                     glm::vec3 xaxis,
                     glm::vec3 yaxis,
@@ -139,6 +177,67 @@ Gesture::drawCircle(glm::vec3 center,
     } else {
       graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
                        Gesture::Graphics::VertsCode(p1, color, opacity, code));
+    }
+  }
+}
+
+void
+Gesture::drawCircleAsStrip(glm::vec3 center,
+                           glm::vec3 xaxis,
+                           glm::vec3 yaxis,
+                           uint32_t numSegments,
+                           glm::vec3 color,
+                           float opacity,
+                           uint32_t code,
+                           float thickness,
+                           glm::vec4* clipPlane)
+{
+  std::vector<Gesture::Graphics::VertsCode> v;
+  glm::vec3 p0(0, 0, 0), p1(0, 0, 0);
+  if (!clipPlane) {
+    v.reserve(numSegments + 1);
+    // go all the way around, so use numSegments+1 for a closed loop
+    for (int i = 0; i < numSegments + 1; ++i) {
+      float t0 = float(i) / float(numSegments);
+      // float t1 = float(i + 1) / float(numSegments);
+
+      float theta0 = t0 * 2.0f * glm::pi<float>();
+      // float theta1 = t1 * 2.0f * glm::pi<float>();
+
+      p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+      // p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+      v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+    }
+    graphics.addLineStrip(v, thickness, true);
+  } else {
+    // any segment that would be entirely clipped must terminate the strip as a non-closed strip
+    bool isClipped = false;
+    for (int i = 0; i < numSegments + 1; ++i) {
+      float t0 = float(i) / float(numSegments);
+      float t1 = float(i + 1) / float(numSegments);
+
+      float theta0 = t0 * 2.0f * glm::pi<float>();
+      float theta1 = t1 * 2.0f * glm::pi<float>();
+
+      p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
+      p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
+
+      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
+        v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+      } else {
+        isClipped = true;
+        // add a line strip and then empty the vector and start anew
+        if (v.size() >= 2) {
+          // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
+          graphics.addLineStrip(v, thickness, false);
+        }
+        v.clear();
+      }
+    }
+    if (v.size() >= 2) {
+      // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
+      graphics.addLineStrip(v, 6.0f, isClipped ? false : true);
     }
   }
 }

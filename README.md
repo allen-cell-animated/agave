@@ -1,6 +1,6 @@
 # AGAVE : Advanced GPU Accelerated Volume Explorer
 
-AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-TIFF and Zeiss .czi files.
+AGAVE is a desktop application for viewing multichannel volume data. Several formats are supported, including OME-ZARR 0.4, OME-TIFF and Zeiss .czi files.
 
 ## To install AGAVE:
 
@@ -32,12 +32,12 @@ A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
 choco install strawberryperl nasm patch
 ```
 
-**Install Qt LTS 6.5.3.**
+**Install Qt LTS 6.8.2.**
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.8.2 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
 ```
 
@@ -54,6 +54,10 @@ mkdir build
 cd build
 # (vs 2022)
 cmake -DCMAKE_TOOLCHAIN_FILE=D:\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows ..
+
+# or, example: ninja in separate build dir!
+cmake -DCMAKE_TOOLCHAIN_FILE=C:\Users\dmt\source\repos\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Ninja" -DVCPKG_TARGET_TRIPLET=x64-windows C:\Users\dmt\source\repos\allen-cell-animated\agave
+
 cmake --build .
 
 # OR ninja build
@@ -71,8 +75,8 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt mac desktop 6.5.3 -m qtwebsockets qtimageformats
-export Qt6_DIR=~/Qt/6.5.3/macos
+aqt install-qt --outputdir ~/Qt mac desktop 6.8.2 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.8.2/macos
 # and then:
 brew install spdlog glm libtiff nasm
 
@@ -87,15 +91,15 @@ sudo make install
 
 ### For LINUX:
 
-Install Qt 6.5.3 in your directory of choice and tell the build where to find it.
+Install Qt 6.8.2 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt linux desktop 6.5.3 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir ~/Qt linux desktop 6.8.2 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
-export Qt6_DIR=~/Qt/6.5.3/gcc_64
+export Qt6_DIR=~/Qt/6.8.2/gcc_64
 ```
 
 - sudo apt install libtiff-dev

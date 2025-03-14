@@ -6,6 +6,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
+#include "renderlib/StringUtil.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
 #include "renderlib/version.hpp"
@@ -14,6 +15,7 @@
 #include <QFileInfo>
 
 #include <sstream>
+#include <regex>
 
 template<typename K, typename V>
 std::unordered_map<V, K>
@@ -154,6 +156,26 @@ stateToPythonScript(const Serialize::ViewerState& s)
                                s.clipRegion[2][1] })
           .toPythonString()
      << std::endl;
+  if (s.clipPlane.enabled) {
+    Plane p;
+    p.normal.x = s.clipPlane.clipPlane[0];
+    p.normal.y = s.clipPlane.clipPlane[1];
+    p.normal.z = s.clipPlane.clipPlane[2];
+    p.d = s.clipPlane.clipPlane[3];
+    Transform3d tr;
+    tr.m_center = { s.clipPlane.transform.translation[0],
+                    s.clipPlane.transform.translation[1],
+                    s.clipPlane.transform.translation[2] };
+    // quat ctor is w,x,y,z
+    tr.m_rotation = { s.clipPlane.transform.rotation[3],
+                      s.clipPlane.transform.rotation[0],
+                      s.clipPlane.transform.rotation[1],
+                      s.clipPlane.transform.rotation[2] };
+    p = p.transform(tr);
+    ss << obj << SetClipPlaneCommand({ p.normal.x, p.normal.y, p.normal.z, p.d }).toPythonString() << std::endl;
+  } else {
+    ss << obj << SetClipPlaneCommand({ 0, 0, 0, 0 }).toPythonString() << std::endl;
+  }
   ss << obj << SetCameraPosCommand({ s.camera.eye[0], s.camera.eye[1], s.camera.eye[2] }).toPythonString() << std::endl;
   ss << obj << SetCameraTargetCommand({ s.camera.target[0], s.camera.target[1], s.camera.target[2] }).toPythonString()
      << std::endl;
@@ -214,6 +236,15 @@ stateToPythonScript(const Serialize::ViewerState& s)
         ss << obj << SetControlPointsCommand({ i, v }).toPythonString() << std::endl;
         break;
     }
+    std::vector<float> v;
+    for (auto p : ch.colorMap.stops) {
+      v.push_back(p.x);
+      v.push_back(p.value[0]);
+      v.push_back(p.value[1]);
+      v.push_back(p.value[2]);
+      v.push_back(p.value[3]);
+    }
+    ss << obj << SetColorRampCommand({ i, ch.colorMap.name, v }).toPythonString() << std::endl;
   }
 
   // lighting
@@ -275,6 +306,21 @@ stateToLoadSpec(const Serialize::ViewerState& state)
   spec.minz = s.clipRegion[2][0];
   spec.maxz = s.clipRegion[2][1];
   return spec;
+}
+
+ColorRamp
+stateToColorRamp(const Serialize::ViewerState& state, int channelIndex)
+{
+  ColorRamp cr;
+  const auto& ch = state.channels[channelIndex];
+  const auto& cm = ch.colorMap;
+  cr.m_name = cm.name;
+  for (size_t i = 0; i < cm.stops.size(); i++) {
+    ColorControlPoint cp(
+      cm.stops[i].x, cm.stops[i].value[0], cm.stops[i].value[1], cm.stops[i].value[2], cm.stops[i].value[3]);
+    cr.m_stops.push_back(cp);
+  }
+  return cr;
 }
 
 GradientData
@@ -377,6 +423,20 @@ fromCaptureSettings(const CaptureSettings& cs, int viewWidth, int viewHeight)
   s.endTime = cs.endTime;
   s.outputDirectory = cs.outputDir;
   s.filenamePrefix = cs.filenamePrefix;
+  return s;
+}
+
+Serialize::ColorMap
+fromColorRamp(const ColorRamp& cr)
+{
+  Serialize::ColorMap s;
+  s.name = cr.m_name;
+  for (const auto& cp : cr.m_stops) {
+    Serialize::ControlPointSettings_V1 c;
+    c.x = cp.first;
+    c.value = { (float)cp.r / 255.0f, (float)cp.g / 255.0f, (float)cp.b / 255.0f, (float)cp.a / 255.0f };
+    s.stops.push_back(c);
+  }
   return s;
 }
 

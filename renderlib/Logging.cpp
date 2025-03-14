@@ -3,12 +3,17 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <codecvt>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <locale>
 #include <ostream>
 #if defined(__APPLE__) || defined(__linux__)
 #include <pwd.h>
 #include <unistd.h>
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) // WIN32
+#include <ShlObj.h>
 #endif
 
 // the logs are written to LOGFILE
@@ -27,8 +32,24 @@ std::filesystem::path
 getLogPath()
 {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-  const char* rootdir = getenv("LOCALAPPDATA");
-  return std::filesystem::path(rootdir) / "AllenInstitute" / "agave";
+  PWSTR path = nullptr;
+  HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path);
+  if (SUCCEEDED(hr)) {
+    // Create a wstring_convert object with the appropriate codecvt facet
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+    // Convert the wide string to a string
+    std::string rootdir = converter.to_bytes(path);
+
+    CoTaskMemFree(path);
+    return std::filesystem::path(rootdir) / "AllenInstitute" / "agave";
+  } else {
+    CoTaskMemFree(path);
+    std::cout << "Failed to get local app data directory." << std::endl;
+    std::cout << "Falling back to user home directory." << std::endl;
+    // use user home directory instead
+    return std::filesystem::path(getenv("USERPROFILE")) / "AllenInstitute" / "agave";
+  }
 #elif __APPLE__
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
@@ -75,4 +96,5 @@ Logging::Init()
   Logging::Enable(true);
 
   LOG_INFO << "Logging Init DONE";
+  LOG_INFO << "Log directory: " << sLogFileDirectory.string();
 }

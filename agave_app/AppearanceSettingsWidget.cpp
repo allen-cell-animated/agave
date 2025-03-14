@@ -5,20 +5,98 @@
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/Colormap.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
 #include <QFrame>
+#include <QItemDelegate>
 #include <QLinearGradient>
+
+static QGradientStops
+colormapToGradient(const std::vector<ColorControlPoint>& v)
+{
+  QGradientStops stops;
+  for (int i = 0; i < v.size(); ++i) {
+    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  }
+  return stops;
+}
+
+class GradientCombo : public QComboBox
+{
+public:
+  GradientCombo(QWidget* parent = nullptr)
+    : QComboBox(parent)
+  {
+    setFocusPolicy(Qt::StrongFocus);
+  }
+
+  void wheelEvent(QWheelEvent* event)
+  {
+    if (!hasFocus()) {
+      event->ignore();
+      return;
+    }
+    QComboBox::wheelEvent(event);
+  }
+
+  void paintEvent(QPaintEvent* e)
+  {
+    QComboBox::paintEvent(e);
+
+    QPainter painter(this);
+    painter.setPen(Qt::black);
+    painter.setBrush(itemData(currentIndex(), Qt::BackgroundRole).value<QBrush>());
+    QStyleOptionComboBox option;
+    option.rect = rect();
+    QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
+
+    painter.drawRect(r.adjusted(0, 0, -1, -1));
+    painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter, itemText(currentIndex()));
+  }
+};
+
+static QComboBox*
+makeGradientCombo()
+{
+  QComboBox* cb = new GradientCombo();
+  const QStringList colorNames = QColor::colorNames();
+  int index = 0;
+  for (auto& gspec : getBuiltInGradients()) {
+    QLinearGradient gradient;
+    gradient.setStops(colormapToGradient(gspec.m_stops));
+    gradient.setStart(0., 0.);     // top left
+    gradient.setFinalStop(1., 0.); // bottom right
+    gradient.setCoordinateMode(QGradient::ObjectMode);
+
+    QString itemText;
+    QBrush brush(gradient);
+    if (gspec.m_name == "Labels" || gspec.m_name == ColorRamp::NO_COLORMAP_NAME) {
+      // special case for Labels
+      brush.setColor(QColor(255, 255, 255));
+      brush.setStyle(Qt::SolidPattern);
+      itemText = gspec.m_name.c_str();
+    } else {
+      brush.setStyle(Qt::LinearGradientPattern);
+    }
+    cb->addItem(itemText, QVariant(gspec.m_name.c_str()));
+    cb->setItemData(index, QVariant(gspec.m_name.c_str()), Qt::ToolTipRole);
+    cb->setItemData(index, brush, Qt::BackgroundRole);
+    index++;
+  }
+  return cb;
+}
 
 static const int MAX_CHANNELS_CHECKED = 4;
 
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QRenderSettings* qrs,
                                                      RenderSettings* rs,
-                                                     QAction* pLightRotationAction)
+                                                     QAction* pToggleRotateAction,
+                                                     QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_DensityScaleSlider()
@@ -225,13 +303,16 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   roiSectionLayout->addWidget(m_roiZ, 2, 1);
   QObject::connect(m_roiZ, &RangeWidget::minValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMin);
   QObject::connect(m_roiZ, &RangeWidget::maxValueChanged, this, &QAppearanceSettingsWidget::OnSetRoiZMax);
+
   roiSectionLayout->setColumnStretch(0, 1);
   roiSectionLayout->setColumnStretch(1, 3);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
   m_MainLayout.addRow(m_clipRoiSection);
 
-  Section* section = createAreaLightingControls(pLightRotationAction);
+  Section* sectionCP = createClipPlaneSection(pToggleRotateAction, pToggleTranslateAction);
+  m_MainLayout.addRow(sectionCP);
+  Section* section = createAreaLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section);
   Section* section2 = createSkyLightingControls();
   m_MainLayout.addRow(section2);
@@ -249,21 +330,133 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 }
 
 Section*
-QAppearanceSettingsWidget::createAreaLightingControls(QAction* pLightRotationAction)
+QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
+{
+  Section::CheckBoxInfo checkBoxInfo = { this->m_scene ? this->m_scene->m_clipPlane->m_enabled : false,
+                                         "Enable/disable clip plane",
+                                         "Enable/disable clip plane" };
+  m_clipPlaneSection = new Section("Clip Plane", 0, &checkBoxInfo);
+  // section checkbox turns clip plane on or off
+  QObject::connect(m_clipPlaneSection, &Section::checked, [this](bool is_checked) {
+    if (this->m_scene && this->m_scene->m_clipPlane) {
+      this->m_scene->m_clipPlane->m_enabled = is_checked;
+      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+      emit this->m_qrendersettings->Selected(
+        is_checked && !m_hideUserClipPlane->isChecked() ? this->m_scene->m_clipPlane.get() : nullptr);
+    }
+  });
+
+  auto* sectionLayout = Controls::createAgaveFormLayout();
+
+  auto btnLayout = new QHBoxLayout();
+
+  m_clipPlaneRotateButton = new QPushButton("Rotate");
+  m_clipPlaneRotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
+  m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
+  btnLayout->addWidget(m_clipPlaneRotateButton);
+  QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
+    if (!this->m_scene) {
+      return;
+    }
+    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pToggleRotateAction->trigger();
+      if (!m_hideUserClipPlane->isChecked()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleRotateAction->trigger();
+    }
+  });
+
+  m_clipPlaneTranslateButton = new QPushButton("Translate");
+  m_clipPlaneTranslateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
+  m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
+  btnLayout->addWidget(m_clipPlaneTranslateButton);
+  QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
+    if (!this->m_scene) {
+      return;
+    }
+    // if we were already selected AND already in translate mode, then this should switch off translate mode.
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleTranslateAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pToggleTranslateAction->trigger();
+      if (!m_hideUserClipPlane->isChecked()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      pToggleTranslateAction->trigger();
+    }
+  });
+
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
+
+  m_hideUserClipPlane = new QCheckBox();
+  m_hideUserClipPlane->setChecked(false);
+  m_hideUserClipPlane->setStatusTip(tr("Hide clip plane grid in viewport"));
+  m_hideUserClipPlane->setToolTip(tr("Hide clip plane grid in viewport"));
+  QObject::connect(
+    m_hideUserClipPlane, &QCheckBox::clicked, [this, pToggleRotateAction, pToggleTranslateAction](bool toggled) {
+      if (!this->m_scene) {
+        return;
+      }
+      if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
+        return;
+      }
+      if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
+        emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
+      }
+    });
+
+  sectionLayout->addRow("Hide", m_hideUserClipPlane);
+
+  m_clipPlaneSection->setContentLayout(*sectionLayout);
+  return m_clipPlaneSection;
+}
+
+// TODO App really needs to be architected to let the tool's visibility state be independent of whether it's selected
+// for manipulation.  Right now, selection of an object is the only thing that shows/hides the tool.
+bool
+QAppearanceSettingsWidget::shouldClipPlaneShow()
+{
+  return m_scene && !m_hideUserClipPlane->isChecked() && this->m_scene->m_clipPlane.get()->m_enabled;
+}
+
+Section*
+QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 {
   Section* section = new Section("Area Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
-  m_lt0gui.m_enableControlsCheckBox = new QCheckBox();
-  m_lt0gui.m_enableControlsCheckBox->setStatusTip(
-    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
-  m_lt0gui.m_enableControlsCheckBox->setToolTip(
-    tr("Show interactive controls in viewport for area light rotation angle (or press R to toggle)"));
-  sectionLayout->addRow("Viewport Controls", m_lt0gui.m_enableControlsCheckBox);
-  QObject::connect(m_lt0gui.m_enableControlsCheckBox, &QCheckBox::clicked, pLightRotationAction, &QAction::trigger);
-  QObject::connect(pLightRotationAction, &QAction::triggered, [this](bool toggled) {
-    this->m_lt0gui.m_enableControlsCheckBox->setChecked(toggled);
+  auto btnLayout = new QHBoxLayout();
+
+  m_lt0gui.m_RotateButton = new QPushButton("Rotate");
+  m_lt0gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  btnLayout->addWidget(m_lt0gui.m_RotateButton);
+  QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    if (!this->m_scene) {
+      return;
+    }
+    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
+    if (this->m_scene->m_selection == this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pRotationAction->trigger();
+      // TODO the selection should be independent of the tool visibility
+      if (shouldClipPlaneShow()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
+    } else {
+      emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
+      pRotationAction->trigger();
+    }
   });
+  // dummy widget to fill space (TODO: Translate button?)
+  btnLayout->addWidget(new QWidget());
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
@@ -508,7 +701,7 @@ QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Theta = value;
+  m_scene->AreaLight().m_Theta = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -516,7 +709,7 @@ QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Phi = value;
+  m_scene->AreaLight().m_Phi = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -524,8 +717,8 @@ QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Width = value;
-  m_scene->m_lighting.m_Lights[1].m_Height = value;
+  m_scene->AreaLight().m_Width = value;
+  m_scene->AreaLight().m_Height = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -533,7 +726,7 @@ QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_lighting.m_Lights[1].m_Distance = value;
+  m_scene->AreaLight().m_Distance = value;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -544,8 +737,8 @@ QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& c
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[1].m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[1].m_ColorIntensity = intensity;
+  m_scene->AreaLight().m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->AreaLight().m_ColorIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -557,8 +750,8 @@ QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor&
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[0].m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[0].m_ColorTopIntensity = intensity;
+  m_scene->SphereLight().m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->SphereLight().m_ColorTopIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -569,8 +762,8 @@ QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor&
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[0].m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[0].m_ColorMiddleIntensity = intensity;
+  m_scene->SphereLight().m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->SphereLight().m_ColorMiddleIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -581,8 +774,8 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
   float rgba[4];
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-  m_scene->m_lighting.m_Lights[0].m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->m_lighting.m_Lights[0].m_ColorBottomIntensity = intensity;
+  m_scene->SphereLight().m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
+  m_scene->SphereLight().m_ColorBottomIntensity = intensity;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -742,7 +935,6 @@ QAppearanceSettingsWidget::OnUpdateLut(int i, const std::vector<LutControlPoint>
     return;
   m_scene->m_volume->channel((uint32_t)i)->generateFromGradientData(m_scene->m_material.m_gradientData[i]);
 
-  // m_scene->m_volume->channel((uint32_t)i)->generate_controlPoints(stops);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -769,8 +961,9 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 void
 QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
 {
-  if (!m_scene)
+  if (!m_scene) {
     return;
+  }
   // if we are switching one on, count how many sections are checked.
   // if more than 4, then switch this one back off
   if (is_checked) {
@@ -790,12 +983,12 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   bool old_value = m_scene->m_material.m_enabled[i];
   if (old_value != is_checked) {
     m_scene->m_material.m_enabled[i] = is_checked;
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty | TransferFunctionDirty);
   }
 }
 
 // split color into color and intensity.
-inline void
+static inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
 {
   // if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
@@ -806,23 +999,30 @@ normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outinten
 }
 
 void
+QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
+{
+  const ScenePlane* clipPlane = scene->m_clipPlane.get();
+  m_clipPlaneSection->setChecked(clipPlane->m_enabled);
+}
+
+void
 QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 {
-  m_lt0gui.m_thetaSlider->setValue(scene->m_lighting.m_Lights[1].m_Theta);
-  m_lt0gui.m_phiSlider->setValue(scene->m_lighting.m_Lights[1].m_Phi);
-  m_lt0gui.m_sizeSlider->setValue(scene->m_lighting.m_Lights[1].m_Width);
-  m_lt0gui.m_distSlider->setValue(scene->m_lighting.m_Lights[1].m_Distance);
+  m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
+  m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
+  m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
+  m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
   // split color into color and intensity.
   QColor c;
   float i;
-  normalizeColorForGui(scene->m_lighting.m_Lights[1].m_Color, c, i);
-  m_lt0gui.m_intensitySlider->setValue(i * scene->m_lighting.m_Lights[1].m_ColorIntensity);
+  normalizeColorForGui(scene->AreaLight().m_Color, c, i);
+  m_lt0gui.m_intensitySlider->setValue(i * scene->AreaLight().m_ColorIntensity);
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
-  scene->m_lighting.m_sceneLights[1].m_observers.push_back([this](const Light& light) {
+  scene->SceneAreaLight()->m_observers.push_back([this](const Light& light) {
     // update gui controls
 
     // bring theta into 0..2pi
@@ -839,14 +1039,14 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
     m_lt0gui.m_areaLightColorButton->SetColor(c);
   });
 
-  normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorTopIntensity);
+  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
+  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
   m_lt1gui.m_stColorButton->SetColor(c);
-  normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorMiddleIntensity);
+  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
+  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
   m_lt1gui.m_smColorButton->SetColor(c);
-  normalizeColorForGui(scene->m_lighting.m_Lights[0].m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->m_lighting.m_Lights[0].m_ColorBottomIntensity);
+  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
+  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
   m_lt1gui.m_sbColorButton->SetColor(c);
 }
 
@@ -913,6 +1113,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
 
   initLightingControls(scene);
+  initClipPlaneControls(scene);
 
   int numEnabled = 0;
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
@@ -927,8 +1128,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       }
     }
 
-    Section* section =
-      new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, true, channelenabled);
+    std::string tip = "Enable/disable channel " + scene->m_volume->channel(i)->m_name;
+    Section::CheckBoxInfo cbinfo = { channelenabled, tip, tip };
+    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo);
 
     auto* fullLayout = new QVBoxLayout();
 
@@ -964,6 +1166,42 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     // init
     this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
 
+    auto separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator, sectionLayout->rowCount(), 0, 1, 2);
+
+    // get color ramp from scene
+    const ColorRamp& cr = scene->m_material.m_colormap[i];
+    QComboBox* gradients = makeGradientCombo();
+    gradients->setToolTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
+    gradients->setStatusTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap only, set Color to white."));
+    int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
+
+    gradients->setCurrentIndex(idx);
+    sectionLayout->addRow("ColorMap", gradients);
+    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
+      // get string from userdata
+      std::string name = gradients->itemData(index).toString().toStdString();
+
+      if (name == "Labels") {
+        if (m_scene) {
+          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+          m_scene->m_material.m_labels[i] = 1.0;
+          m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+        }
+
+      } else {
+        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+        m_scene->m_material.m_labels[i] = 0.0;
+        m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+      }
+    });
+    // init
+    // this->OnColormapChanged(i, cr);
+
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
     diffuseColorButton->setToolTip(tr("Set color for channel"));
@@ -971,12 +1209,17 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                     scene->m_material.m_diffuse[i * 3 + 1],
                                     scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
-    sectionLayout->addRow("DiffuseColor", diffuseColorButton);
+    sectionLayout->addRow("Color", diffuseColorButton);
     QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
     });
     // init
     this->OnDiffuseColorChanged(i, cdiff);
+
+    auto separator2 = new QFrame();
+    separator2->setFrameShape(QFrame::HLine);
+    separator2->setFrameShadow(QFrame::Sunken);
+    sectionLayout->addWidget(separator2, sectionLayout->rowCount(), 0, 1, 2);
 
     QColorPushButton* specularColorButton = new QColorPushButton();
     specularColorButton->setStatusTip(tr("Set specular color for channel"));

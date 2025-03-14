@@ -68,6 +68,22 @@ VolumeDisplay::VolumeDisplay()
 
     m_opacity[i] = 1.0;
     m_roughness[i] = 1.0;
+
+    m_labels[i] = 0.0;
+  }
+}
+
+Lighting::Lighting(const Lighting& other)
+{
+  m_NoLights = other.m_NoLights;
+  for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
+    if (other.m_Lights[i]) {
+      m_Lights[i] = new Light(*other.m_Lights[i]);
+      m_sceneLights[i] = new SceneLight(m_Lights[i]);
+    } else {
+      m_Lights[i] = nullptr;
+      m_sceneLights[i] = nullptr;
+    }
   }
 }
 
@@ -135,6 +151,8 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
   }
 
   initBoundsFromImg(img);
+
+  m_clipPlane = std::make_shared<ScenePlane>(m_boundingBox.GetCenter());
 }
 
 void
@@ -154,7 +172,15 @@ Scene::initBounds(const CBoundingBox& bb)
 
   // point lights toward scene's bounding box
   for (int i = 0; i < m_lighting.m_NoLights; ++i) {
-    m_lighting.m_Lights[i].Update(m_boundingBox);
+    // TODO maybe this should be passed through the SceneLight first.
+    m_lighting.m_Lights[i]->Update(m_boundingBox);
+
+    // The transform center for the scene light is its target.
+    // This is used so that rotations are centered at the target which is the center of the volume.
+    // Note this is not the same as the light source's position.
+    // This is a very specific UX choice to make it easier to rotate the light around the volume,
+    // but is constraining for other operations e.g. translation.
+    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
   }
 }
 

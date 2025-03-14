@@ -42,10 +42,60 @@ AffineSpace3f::AffineSpace3f(const glm::quat& orientation, const glm::vec3& p)
   l = LinearSpace3f(m[0], m[1], m[2]);
 }
 
+glm::mat4
+Transform3d::getMatrix() const
+{
+  // return glm::translate(glm::mat4_cast(m_rotation), m_center);
+  glm::mat4 transform = glm::mat4(1.0f);           // Identity matrix
+  transform = glm::translate(transform, m_center); // Apply translation
+  // m_rotation must be a _normalized_ quaternion
+  transform = transform * glm::toMat4(m_rotation); // Apply rotation
+  return transform;
+}
+
 // physicalscale is max of physical dims x,y,z
 float
 computePhysicalScaleBarSize(const float physicalScale)
 {
   // note this result will always be some integer power of 10 independent of zoom...
   return pow(10.0f, floor(log10(physicalScale / 2.0f)));
+}
+
+Plane
+Plane::transform(const glm::mat4& m) const
+{
+  glm::vec4 O = glm::vec4(normal * d, 1);
+  glm::vec4 N = glm::vec4(normal, 0);
+  O = m * O;
+  // only really need inv xpose if scaling is involved... but it does happen
+  N = glm::normalize(glm::transpose(glm::inverse(m)) * N);
+  return Plane(glm::vec3(N), glm::vec3(O));
+}
+
+Plane
+Plane::transform(const Transform3d& transform) const
+{
+  // is this any better than just using Transform3d.getMatrix?
+  glm::vec3 rotatedNormal = glm::rotate(transform.m_rotation, normal);
+  glm::vec3 pt = getPointInPlane();
+  pt = glm::rotate(transform.m_rotation, pt) + transform.m_center;
+  Plane p(rotatedNormal, pt);
+  return p;
+}
+
+Transform3d
+Plane::getTransformTo(const Plane& p) const
+{
+  Transform3d t;
+
+  glm::quat q = glm::rotation(normal, p.normal);
+  t.m_rotation = q;
+
+  // now I can rotate the plane to at least make it parallel to the other plane.
+  Plane ptmp = transform(t);
+
+  // now the translation is the difference between the two parallel planes.
+  t.m_center = p.getPointInPlane() - ptmp.getPointInPlane();
+
+  return t;
 }

@@ -5,6 +5,7 @@
 #include <memory>
 
 class Scene;
+class SceneObject;
 class RenderSettings;
 
 // collect up a Scene, CCamera, and Viewport region for rendering
@@ -23,7 +24,7 @@ struct SceneView
 
       Region(const glm::ivec2& lower, const glm::ivec2& upper)
         : lower(lower)
-        , upper(upper){};
+        , upper(upper) {};
 
       // assignment operator
       Region& operator=(const Region& other)
@@ -58,5 +59,7 @@ struct SceneView
   Scene* scene = nullptr;
   RenderSettings* renderSettings = nullptr;
 
-  bool anythingActive() const { return scene != nullptr; }
+  bool anythingActive() const;
+  SceneObject* getSelectedObject() const;
+  void setSelectedObject(SceneObject* obj);
 };

@@ -54,6 +54,7 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
   QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
   QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
+  QObject::connect(qrs, SIGNAL(Selected(SceneObject*)), this, SLOT(OnSelectionChanged(SceneObject*)));
 
   // run a timer to update the clock
   // TODO is this different than using this->startTimer and QTimerEvent?
@@ -143,8 +144,6 @@ void
 GLView3D::initializeGL()
 {
 
-  makeCurrent();
-
   QSize newsize = size();
   float dpr = devicePixelRatioF();
   m_viewerWindow->m_renderer->initialize(newsize.width() * dpr, newsize.height() * dpr);
@@ -163,9 +162,7 @@ GLView3D::paintGL()
     return;
   }
 
-  makeCurrent();
   m_viewerWindow->redraw();
-  doneCurrent();
 }
 
 void
@@ -305,20 +302,80 @@ GLView3D::FitToScene(float transitionDurationSeconds)
 }
 
 void
-GLView3D::toggleAreaLightRotateControls()
+GLView3D::OnSelectionChanged(SceneObject* so)
 {
-  // toggle rotate tool
-  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::TRANS) {
-    m_viewerWindow->showAreaLightGizmo(true);
-    m_viewerWindow->setTool(
-      new RotateTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-    m_viewerWindow->forEachTool(
-      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_areaLightMode = AREALIGHT_MODE::ROT;
+  // null ptr is valid here to deselect
+  m_viewerWindow->select(so);
+
+  // Toggling the manipulator mode like this
+  // has the effect of re-creating the manipulator tool,
+  // which will effectively call origins.update to get the new
+  // selection into the tool
+  setManipulatorMode(MANIPULATOR_MODE::NONE);
+  setManipulatorMode(m_manipulatorMode);
+}
+
+void
+GLView3D::setManipulatorMode(MANIPULATOR_MODE mode)
+{
+  // setting same mode does nothing
+  if (m_manipulatorMode == mode) {
+    return;
+  }
+  m_manipulatorMode = mode;
+  switch (mode) {
+    case MANIPULATOR_MODE::NONE:
+      m_viewerWindow->setTool(nullptr);
+      break;
+    case MANIPULATOR_MODE::ROT:
+      m_viewerWindow->setTool(new RotateTool(m_viewerWindow->m_toolsUseLocalSpace,
+                                             ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      break;
+    case MANIPULATOR_MODE::TRANS:
+      m_viewerWindow->setTool(
+        new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
+      m_viewerWindow->forEachTool(
+        [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
+      break;
+    default:
+      break;
+  }
+}
+
+void
+GLView3D::showRotateControls(bool show)
+{
+  if (show) {
+    setManipulatorMode(MANIPULATOR_MODE::ROT);
   } else {
-    m_viewerWindow->showAreaLightGizmo(false);
-    m_viewerWindow->setTool(nullptr);
-    m_areaLightMode = AREALIGHT_MODE::NONE;
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
+}
+
+void
+GLView3D::showTranslateControls(bool show)
+{
+  if (show) {
+    setManipulatorMode(MANIPULATOR_MODE::TRANS);
+  } else {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
+}
+
+void
+GLView3D::toggleRotateControls()
+{
+  // if nothing selected, then switch off
+  if (!m_viewerWindow->sceneView.getSelectedObject()) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
+  // toggle rotate tool
+  else if (m_manipulatorMode == MANIPULATOR_MODE::ROT) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  } else {
+    setManipulatorMode(MANIPULATOR_MODE::ROT);
   }
 }
 
@@ -326,22 +383,20 @@ GLView3D::toggleAreaLightRotateControls()
 // This is because translation of area light source still needs work.
 // (Currently rotation is sufficient.)
 void
-GLView3D::toggleAreaLightTranslateControls()
+GLView3D::toggleTranslateControls()
 {
+  // if nothing selected, then switch off
+  if (!m_viewerWindow->sceneView.getSelectedObject()) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
+  }
   // toggle translate tool
-  if (m_areaLightMode == AREALIGHT_MODE::NONE || m_areaLightMode == AREALIGHT_MODE::ROT) {
-    m_viewerWindow->showAreaLightGizmo(true);
-    m_viewerWindow->setTool(
-      new MoveTool(m_viewerWindow->m_toolsUseLocalSpace, ManipulationTool::s_manipulatorSize * devicePixelRatioF()));
-    m_viewerWindow->forEachTool(
-      [this](ManipulationTool* tool) { tool->setUseLocalSpace(m_viewerWindow->m_toolsUseLocalSpace); });
-    m_areaLightMode = AREALIGHT_MODE::TRANS;
+  else if (m_manipulatorMode == MANIPULATOR_MODE::TRANS) {
+    setManipulatorMode(MANIPULATOR_MODE::NONE);
   } else {
-    m_viewerWindow->showAreaLightGizmo(false);
-    m_viewerWindow->setTool(nullptr);
-    m_areaLightMode = AREALIGHT_MODE::NONE;
+    setManipulatorMode(MANIPULATOR_MODE::TRANS);
   }
 }
+
 void
 GLView3D::keyPressEvent(QKeyEvent* event)
 {

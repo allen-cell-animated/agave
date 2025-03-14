@@ -2,6 +2,7 @@
 
 #include "Logging.h"
 
+#include <regex>
 #include <sstream>
 
 std::string
@@ -73,4 +74,10 @@ splitToNameValuePairs(const std::string& s)
     }
   }
   return pairs;
+}
+
+std::string
+escapePath(const std::string& path)
+{
+  return std::regex_replace(path, std::regex("\\\\"), "\\\\");
 }

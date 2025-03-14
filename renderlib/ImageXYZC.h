@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Colormap.h"
 #include "Histogram.h"
 
 #include "glm.h"
@@ -60,6 +61,8 @@ struct Channelu16
   }
 
   void debugprint();
+  void debugColormap();
+  void debugData();
 
   std::string m_name;
 };

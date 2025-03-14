@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Controls.h"
+#include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 
 #include <QCheckBox>
@@ -33,7 +34,8 @@ public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
-                            QAction* pLightRotationAction = nullptr);
+                            QAction* pToggleRotateAction = nullptr,
+                            QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
 
@@ -103,6 +105,11 @@ private:
   RangeWidget* m_roiY;
   RangeWidget* m_roiZ;
 
+  Section* m_clipPlaneSection;
+  QCheckBox* m_hideUserClipPlane;
+  QPushButton* m_clipPlaneRotateButton;
+  QPushButton* m_clipPlaneTranslateButton;
+
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
   QCheckBox* m_xFlipCheckBox;
@@ -118,7 +125,7 @@ private:
 
   struct lt0
   {
-    QCheckBox* m_enableControlsCheckBox;
+    QPushButton* m_RotateButton;
     QNumericSlider* m_thetaSlider;
     QNumericSlider* m_phiSlider;
     QNumericSlider* m_sizeSlider;
@@ -139,5 +146,8 @@ private:
 
   Section* createSkyLightingControls();
   Section* createAreaLightingControls(QAction* pLightRotationAction);
+  Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);
+  void initClipPlaneControls(Scene* scene);
+  bool shouldClipPlaneShow();
 };

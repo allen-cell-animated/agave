@@ -26,9 +26,9 @@ jobs:
         with:
           submodules: "recursive"
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: 6.5.3
+          version: 6.8.2
           modules: qtwebsockets qtimageformats
       - name: macos install deps
         if: contains(matrix.os, 'macos')
@@ -45,6 +45,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
+          export Qt6_DIR=${{ runner.workspace }}/Qt/6.8.2/macos
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -68,8 +69,8 @@ jobs:
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
-          CC: gcc-10
-          CXX: g++-10
+          CC: gcc-13
+          CXX: g++-13
         run: |
           pwd
           mkdir ./build
@@ -82,29 +83,30 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
-      - name: Configure MSVC console (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1
+          choco install nasm
       - name: windows install deps
         if: matrix.os == 'windows-latest'
+        shell: cmd
         env:
           vc_arch: "x64"
+        # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
-      - name: windows get nasm
-        if: matrix.os == 'windows-latest'
-        uses: ilammy/setup-nasm@v1
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
         if: matrix.os == 'windows-latest'
-        run: del C:\Strawberry\c\bin\patch.EXE
+        run: |
+          echo "C:\Program Files\git\usr\bin" >> $env:GITHUB_PATH
       - name: windows build and test
         if: matrix.os == 'windows-latest'
         env:
           vc_arch: "x64"
+        # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
           mkdir build
           cd build
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
           cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --config Release

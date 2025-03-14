@@ -1,5 +1,7 @@
 #include "AxisHelperTool.h"
 
+#include "AppScene.h"
+
 struct ManipColors
 {
   static constexpr glm::vec3 xAxis = { 1.0f, 0.0f, 0.0f };
