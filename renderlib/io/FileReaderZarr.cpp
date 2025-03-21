@@ -133,26 +133,50 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
     return m_zattrs;
   }
 
-  bool hasV3 = false;
-
   // try zarr.json first (indicating Zarr v3)
   // and then try .zattrs (indicating Zarr v2)
+
   nlohmann::json attrs = tryReadJson(zarrurl, "zarr.json");
   if (attrs.is_object() && !attrs.empty()) {
-    hasV3 = true;
-  } else {
-    attrs = tryReadJson(zarrurl, ".zattrs");
-  }
-  if (attrs.is_object() && !attrs.empty()) {
-    LOG_DEBUG << (hasV3 ? "Zarr v3" : "Zarr v2");
-  } else {
-    LOG_ERROR << "Failed to open either a .zattrs or a zarr.json from the specified location " << zarrurl;
-    return ::nlohmann::json::object_t();
+    m_zarrVersion = 3;
+    m_zattrs = attrs;
+    LOG_DEBUG << "Zarr v3";
+    return attrs;
   }
 
-  m_zattrs = attrs;
-  m_zarrVersion = hasV3 ? 3 : 2;
-  return attrs;
+  attrs = tryReadJson(zarrurl, ".zattrs");
+  if (attrs.is_object() && !attrs.empty()) {
+    m_zarrVersion = 2;
+    m_zattrs = attrs;
+    LOG_DEBUG << "Zarr v2";
+    return attrs;
+  }
+
+  LOG_ERROR << "Failed to open either a .zattrs or a zarr.json from the specified location " << zarrurl;
+  return ::nlohmann::json::object_t();
+}
+
+nlohmann::json
+FileReaderZarr::getOmero(nlohmann::json attrs)
+{
+  nlohmann::json omero;
+  if (m_zarrVersion == 3) {
+    auto attributes = attrs["attributes"];
+    if (attributes.is_null()) {
+      LOG_ERROR << "No attributes found in zarr.json";
+      return omero;
+    }
+    auto ome = attributes["ome"];
+    if (ome.is_null()) {
+      LOG_ERROR << "No attributes.ome found in zarr.json";
+      return omero;
+    }
+    omero = ome["omero"];
+  } else {
+    omero = attrs["omero"];
+  }
+
+  return omero;
 }
 
 std::vector<std::string>
@@ -193,28 +217,6 @@ FileReaderZarr::getMultiscales(nlohmann::json attrs)
   }
 
   return multiscales;
-}
-nlohmann::json
-FileReaderZarr::getOmero(nlohmann::json attrs)
-{
-  nlohmann::json omero;
-  if (m_zarrVersion == 3) {
-    auto attributes = attrs["attributes"];
-    if (attributes.is_null()) {
-      LOG_ERROR << "No attributes found in zarr.json";
-      return omero;
-    }
-    auto ome = attributes["ome"];
-    if (ome.is_null()) {
-      LOG_ERROR << "No attributes.ome found in zarr.json";
-      return omero;
-    }
-    omero = ome["omero"];
-  } else {
-    omero = attrs["omero"];
-  }
-
-  return omero;
 }
 
 uint32_t
