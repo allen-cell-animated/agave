@@ -218,6 +218,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_xscaleSpinner->setStatusTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setToolTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setDecimals(6);
+  m_xscaleSpinner->setMaximum(10000.0);
   m_xscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_xscaleSpinner, 0, 1);
   m_xFlipCheckBox = new QCheckBox("Flip");
@@ -235,6 +236,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setToolTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setDecimals(6);
+  m_yscaleSpinner->setMaximum(10000.0);
   m_yscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_yscaleSpinner, 1, 1);
   m_yFlipCheckBox = new QCheckBox("Flip");
@@ -252,6 +254,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setToolTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setDecimals(6);
+  m_zscaleSpinner->setMaximum(10000.0);
   m_zscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_zscaleSpinner, 2, 1);
   m_zFlipCheckBox = new QCheckBox("Flip");
