@@ -36,3 +36,13 @@ ScenePlane::updateTransform()
   m_tool->m_plane = p.transform(m_transform.getMatrix());
   m_tool->m_pos = m_transform.m_center;
 }
+
+void
+ScenePlane::resetTo(const glm::vec3& c)
+{
+  m_center = c;
+  m_transform.m_center = c;
+  m_transform.m_rotation = glm::quat(glm::vec3(0, 0, 0));
+  m_plane = Plane();
+  updateTransform();
+}

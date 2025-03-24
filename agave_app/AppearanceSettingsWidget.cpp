@@ -413,6 +413,28 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
 
   sectionLayout->addRow("Hide", m_hideUserClipPlane);
 
+  // Add the Reset button
+  m_clipPlaneResetButton = new QPushButton("Reset");
+  m_clipPlaneResetButton->setStatusTip(tr("Reset clip plane to 0,0,0,0"));
+  m_clipPlaneResetButton->setToolTip(tr("Reset clip plane to 0,0,0,0"));
+  QObject::connect(m_clipPlaneResetButton, &QPushButton::clicked, [this]() {
+    if (!this->m_scene || !this->m_scene->m_clipPlane) {
+      return;
+    }
+    glm::vec3 c = this->m_scene->m_boundingBox.GetCenter();
+    this->m_scene->m_clipPlane->resetTo(c);
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+    // re-select to cause Origins.update to reset the translate or rotate tools
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get()) {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    }
+  });
+
+  auto* resetbtnLayout = new QHBoxLayout();
+  resetbtnLayout->addWidget(new QWidget());
+  resetbtnLayout->addWidget(m_clipPlaneResetButton);
+  sectionLayout->addLayout(resetbtnLayout, sectionLayout->rowCount(), 0, 1, 2);
+
   m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
 }

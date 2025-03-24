@@ -311,8 +311,9 @@ GLView3D::OnSelectionChanged(SceneObject* so)
   // has the effect of re-creating the manipulator tool,
   // which will effectively call origins.update to get the new
   // selection into the tool
+  MANIPULATOR_MODE mode = m_manipulatorMode;
   setManipulatorMode(MANIPULATOR_MODE::NONE);
-  setManipulatorMode(m_manipulatorMode);
+  setManipulatorMode(mode);
 }
 
 void
