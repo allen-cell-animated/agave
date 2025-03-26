@@ -109,6 +109,7 @@ private:
   QCheckBox* m_hideUserClipPlane;
   QPushButton* m_clipPlaneRotateButton;
   QPushButton* m_clipPlaneTranslateButton;
+  QPushButton* m_clipPlaneResetButton;
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;

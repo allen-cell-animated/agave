@@ -23,4 +23,6 @@ public:
   std::unique_ptr<ClipPlaneTool> m_tool;
 
   virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
+
+  void resetTo(const glm::vec3& c);
 };
