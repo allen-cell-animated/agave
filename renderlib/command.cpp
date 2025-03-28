@@ -601,14 +601,12 @@ SetTimeCommand::execute(ExecutionContext* c)
   for (uint32_t i = 0; i < image->sizeC(); ++i) {
     GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[i];
     lutInfo.convert(c->m_appScene->m_volume->channel(i)->m_histogram, image->channel(i)->m_histogram);
-
     image->channel(i)->generateFromGradientData(lutInfo);
   }
 
   // now we're ready to lose the old channel histograms
   c->m_appScene->m_volume = image;
 
-  c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDirty);
   c->m_renderSettings->m_DirtyFlags.SetFlag(VolumeDataDirty);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 

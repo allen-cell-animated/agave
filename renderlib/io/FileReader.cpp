@@ -55,6 +55,13 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
   } else if (extstr == ".zarr") {
     return new FileReaderZarr(filepath);
   }
+  // if it's a directory, and contains the string zarr anywhere, we assume it's a zarr
+  else if (std::filesystem::is_directory(filepath)) {
+    if (filepath.find("zarr") != std::string::npos) {
+      return new FileReaderZarr(filepath);
+    }
+  }
+  
   return nullptr;
 }
 

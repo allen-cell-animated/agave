@@ -90,26 +90,26 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
+FileReaderZarr::FileReaderZarr(const std::string& filepath)
+  : m_zarrVersion(0)
+{
+}
 
 FileReaderZarr::~FileReaderZarr() {}
 
 ::nlohmann::json
-FileReaderZarr::jsonRead(const std::string& zarrurl)
+tryReadJson(const std::string& zarrurl, const std::string& jsonfile)
 {
-  if (m_zattrs.is_object()) {
-    return m_zattrs;
-  }
-
-  // JSON uses a separate driver
-  auto attrs_store_open_result = tensorstore::Open<::nlohmann::json, 0>(
-                                   { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
-                                   .result();
-  if (!attrs_store_open_result.ok()) {
-    LOG_ERROR << "Error: " << attrs_store_open_result.status();
+  auto zarr_json_open_result = tensorstore::Open<::nlohmann::json, 0>(
+                                 { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, jsonfile) } })
+                                 .result();
+  // did the open fail?
+  if (!zarr_json_open_result.ok()) {
+    // tensorstore open failed
+    LOG_ERROR << "Error: " << zarr_json_open_result.status();
     return ::nlohmann::json::object_t();
   }
-  auto attrs_store = attrs_store_open_result.value();
+  auto attrs_store = zarr_json_open_result.value();
   // Sets attrs_array to a rank-0 array of ::nlohmann::json
   auto attrs_array_result = tensorstore::Read(attrs_store).result();
 
@@ -123,8 +123,60 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
       attrs = ::nlohmann::json::object_t();
     }
   }
-  m_zattrs = attrs;
   return attrs;
+}
+
+::nlohmann::json
+FileReaderZarr::jsonRead(const std::string& zarrurl)
+{
+  if (m_zattrs.is_object()) {
+    return m_zattrs;
+  }
+
+  // try zarr.json first (indicating Zarr v3)
+  // and then try .zattrs (indicating Zarr v2)
+
+  nlohmann::json attrs = tryReadJson(zarrurl, "zarr.json");
+  if (attrs.is_object() && !attrs.empty()) {
+    m_zarrVersion = 3;
+    m_zattrs = attrs;
+    LOG_DEBUG << "Zarr v3";
+    return attrs;
+  }
+
+  attrs = tryReadJson(zarrurl, ".zattrs");
+  if (attrs.is_object() && !attrs.empty()) {
+    m_zarrVersion = 2;
+    m_zattrs = attrs;
+    LOG_DEBUG << "Zarr v2";
+    return attrs;
+  }
+
+  LOG_ERROR << "Failed to open either a .zattrs or a zarr.json from the specified location " << zarrurl;
+  return ::nlohmann::json::object_t();
+}
+
+nlohmann::json
+FileReaderZarr::getOmero(nlohmann::json attrs)
+{
+  nlohmann::json omero;
+  if (m_zarrVersion == 3) {
+    auto attributes = attrs["attributes"];
+    if (attributes.is_null()) {
+      LOG_ERROR << "No attributes found in zarr.json";
+      return omero;
+    }
+    auto ome = attributes["ome"];
+    if (ome.is_null()) {
+      LOG_ERROR << "No attributes.ome found in zarr.json";
+      return omero;
+    }
+    omero = ome["omero"];
+  } else {
+    omero = attrs["omero"];
+  }
+
+  return omero;
 }
 
 std::vector<std::string>
@@ -132,7 +184,7 @@ FileReaderZarr::getChannelNames(const std::string& filepath)
 {
   std::vector<std::string> channelNames;
   nlohmann::json attrs = jsonRead(filepath);
-  auto omero = m_zattrs["omero"];
+  auto omero = getOmero(m_zattrs);
   if (omero.is_object()) {
     auto channels = omero["channels"];
     if (channels.is_array()) {
@@ -143,11 +195,35 @@ FileReaderZarr::getChannelNames(const std::string& filepath)
   }
   return channelNames;
 }
+
+nlohmann::json
+FileReaderZarr::getMultiscales(nlohmann::json attrs)
+{
+  nlohmann::json multiscales;
+  if (m_zarrVersion == 3) {
+    auto attributes = attrs["attributes"];
+    if (attributes.is_null()) {
+      LOG_ERROR << "No attributes found in zarr.json";
+      return multiscales;
+    }
+    auto ome = attributes["ome"];
+    if (ome.is_null()) {
+      LOG_ERROR << "No attributes.ome found in zarr.json";
+      return multiscales;
+    }
+    multiscales = ome["multiscales"];
+  } else {
+    multiscales = attrs["multiscales"];
+  }
+
+  return multiscales;
+}
+
 uint32_t
 FileReaderZarr::loadNumScenes(const std::string& filepath)
 {
   nlohmann::json attrs = jsonRead(filepath);
-  auto multiscales = attrs["multiscales"];
+  auto multiscales = getMultiscales(attrs);
   if (multiscales.is_array()) {
     return multiscales.size();
   }
@@ -307,6 +383,12 @@ getAxes(nlohmann::json axes)
   return dims;
 }
 
+std::string
+FileReaderZarr::tensorstoreZarrDriverName()
+{
+  return m_zarrVersion == 3 ? "zarr3" : "zarr";
+}
+
 std::vector<MultiscaleDims>
 FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
@@ -316,7 +398,8 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 
   std::vector<std::string> channelNames = getChannelNames(filepath);
 
-  auto multiscales = attrs["multiscales"];
+  nlohmann::json multiscales = getMultiscales(attrs);
+
   if (multiscales.is_array()) {
     auto multiscale = multiscales[scene];
     std::vector<std::string> dimorder = { "T", "C", "Z", "Y", "X" };
@@ -330,7 +413,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
         auto path = dataset["path"];
         if (path.is_string()) {
           std::string pathstr = path;
-          auto result = tensorstore::Open({ { "driver", "zarr" },
+          auto result = tensorstore::Open({ { "driver", tensorstoreZarrDriverName() },
                                             { "kvstore",
 
                                               getKvStoreDriverParams(filepath, pathstr) } })
@@ -432,13 +515,13 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   if (!m_store.valid()) {
     auto context = tensorstore::Context::FromJson({ { "cache_pool", { { "total_bytes_limit", 100000000 } } } }).value();
 
-    auto openFuture = tensorstore::Open(
-      { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
-      context,
-      tensorstore::OpenMode::open,
-      tensorstore::RecheckCached{ false },
-      tensorstore::RecheckCachedData{ false },
-      tensorstore::ReadWriteMode::read);
+    auto openFuture = tensorstore::Open({ { "driver", tensorstoreZarrDriverName() },
+                                          { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
+                                        context,
+                                        tensorstore::OpenMode::open,
+                                        tensorstore::RecheckCached{ false },
+                                        tensorstore::RecheckCachedData{ false },
+                                        tensorstore::ReadWriteMode::read);
 
     auto result = openFuture.result();
     if (!result.ok()) {

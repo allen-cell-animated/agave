@@ -218,6 +218,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_xscaleSpinner->setStatusTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setToolTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setDecimals(6);
+  m_xscaleSpinner->setMaximum(10000.0);
   m_xscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_xscaleSpinner, 0, 1);
   m_xFlipCheckBox = new QCheckBox("Flip");
@@ -235,6 +236,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setToolTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setDecimals(6);
+  m_yscaleSpinner->setMaximum(10000.0);
   m_yscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_yscaleSpinner, 1, 1);
   m_yFlipCheckBox = new QCheckBox("Flip");
@@ -252,6 +254,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setToolTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setDecimals(6);
+  m_zscaleSpinner->setMaximum(10000.0);
   m_zscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_zscaleSpinner, 2, 1);
   m_zFlipCheckBox = new QCheckBox("Flip");
@@ -409,6 +412,28 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     });
 
   sectionLayout->addRow("Hide", m_hideUserClipPlane);
+
+  // Add the Reset button
+  m_clipPlaneResetButton = new QPushButton("Reset");
+  m_clipPlaneResetButton->setStatusTip(tr("Reset clip plane to 0,0,0,0"));
+  m_clipPlaneResetButton->setToolTip(tr("Reset clip plane to 0,0,0,0"));
+  QObject::connect(m_clipPlaneResetButton, &QPushButton::clicked, [this]() {
+    if (!this->m_scene || !this->m_scene->m_clipPlane) {
+      return;
+    }
+    glm::vec3 c = this->m_scene->m_boundingBox.GetCenter();
+    this->m_scene->m_clipPlane->resetTo(c);
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+    // re-select to cause Origins.update to reset the translate or rotate tools
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get()) {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    }
+  });
+
+  auto* resetbtnLayout = new QHBoxLayout();
+  resetbtnLayout->addWidget(new QWidget());
+  resetbtnLayout->addWidget(m_clipPlaneResetButton);
+  sectionLayout->addLayout(resetbtnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
