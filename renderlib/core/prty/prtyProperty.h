@@ -98,6 +98,8 @@ public:
   prtyProperty& operator=(const T& val)
   {
     value = val;
+    // call all callbacks
+    notifyAll(false);
     return *this;
   }
 
