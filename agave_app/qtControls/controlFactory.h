@@ -24,6 +24,9 @@ create(const ComboBoxUiInfo* info, std::shared_ptr<prtyProperty<int>> prop);
 QNumericSlider*
 addRow(const FloatSliderSpinnerUiInfo& info, prtyProperty<float>* prop);
 
+QNumericSlider*
+addRow(const IntSliderSpinnerUiInfo& info, prtyProperty<int>* prop);
+
 QComboBox*
 addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop);
 

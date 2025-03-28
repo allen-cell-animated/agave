@@ -85,6 +85,25 @@ addRow(const FloatSliderSpinnerUiInfo& info, prtyProperty<float>* prop)
 
   return slider;
 }
+QNumericSlider*
+addRow(const IntSliderSpinnerUiInfo& info, prtyProperty<int>* prop)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(QString::fromStdString(info.statusTip));
+  slider->setToolTip(QString::fromStdString(info.toolTip));
+  slider->setRange(info.min, info.max);
+  slider->setSingleStep(info.singleStep);
+  slider->setNumTickMarks(info.numTickMarks);
+  slider->setSuffix(QString::fromStdString(info.suffix));
+
+  slider->setValue(prop->get(), true);
+  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  // TODO how would this capture the "previous" value, for undo?
+  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+
+  return slider;
+}
+
 QComboBox*
 addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop)
 {
