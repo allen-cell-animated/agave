@@ -14,12 +14,18 @@ regex = '''
   \.
   (?P<patch>\d+)
   (?P<suffix>\-
-    (?P<extra>.+)
+    (?P<extra>.+)\.(?P<extraver>\d+)
   )?
   '''
 
 [[field]]
 name="suffix"
+default=""
+[[field]]
+name="extra"
+default=""
+[[field]]
+name="extraver"
 default=""
 
 [git]
@@ -31,7 +37,7 @@ tag_template = "v{new_version}"
 # tbump.toml location.
 [[file]]
 src = "CMakeLists.txt"
-version_template = "{major}.{minor}.{patch}{suffix}"
+version_template = "{major}.{minor}.{patch}"
 [[file]]
 src = "agave_pyclient/setup.py"
 search = 'version="{current_version}"'
