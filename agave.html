@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Interface Overview &mdash; AGAVE 1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>User Interface Overview &mdash; AGAVE 1.8.0-rc.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b2f71ecd"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=2a9bf400"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -87,9 +85,10 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#volume-scale">Volume Scale</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#region-of-interest-roi">Region Of Interest (ROI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clip-plane">Clip Plane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#lighting">Lighting</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#area-light-theta-phi-and-distance">Area Light Theta, Phi, and Distance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#viewport-controls">Viewport controls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rotatemode">Rotate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#area-light-size">Area Light Size</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#area-light-intensity">Area Light Intensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#skylight-top-middle-and-bottom">SkyLight Top, Middle, and Bottom</a></li>
@@ -106,7 +105,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#color-settings">Color settings</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#diffuse-color">Diffuse Color</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#colormap">ColorMap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#color">Color</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#specular-color">Specular Color</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#emissive-color">Emissive Color</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#glossiness">Glossiness</a></li>
@@ -443,6 +443,17 @@ dimension from either side. For example, to see only the bottom Z half
 of your volume (or display the cross section middle slice), move the
 rightmost Z handle about halfway to the left.</p>
 </section>
+<section id="clip-plane">
+<h2>Clip Plane<a class="headerlink" href="#clip-plane" title="Permalink to this heading"></a></h2>
+<p>The clip plane is a plane that can be moved through the volume to cut away
+sections. The plane can be moved in X, Y, and Z, and rotated to any angle.
+Check the checkbox to enable or disable the clipping.
+Check “Hide” to make the clip plane grid indicator disappear.
+Click “Reset” to return the plane to its initial position.
+Click “Rotate” or “Translate” to enable viewport controls to let you move
+the clip plane interactively. Click the Rotate and Translate buttons
+a second time to disable the viewport controls. See <a class="reference internal" href="#rotatemode"><span class="std std-ref">Rotate</span></a> below for more details.</p>
+</section>
 <section id="lighting">
 <h2>Lighting<a class="headerlink" href="#lighting" title="Permalink to this heading"></a></h2>
 <p>There are two types of light illuminating your volume. One is an “Area
@@ -456,16 +467,16 @@ for the other.</p>
 <p>These three coordinates let you position the light anywhere on a sphere
 around the volume. Theta and Phi are in radians (where 3.14159 radians
 is half a circle).</p>
+<p><img alt="image0" src="_images/Light_SphericalCoordinate_1-3.png" /></p>
 </section>
-<section id="viewport-controls">
-<h3>Viewport controls<a class="headerlink" href="#viewport-controls" title="Permalink to this heading"></a></h3>
-<p>If you check “Viewport controls” (or press the R key), an
+<section id="rotatemode">
+<span id="id1"></span><h3>Rotate<a class="headerlink" href="#rotatemode" title="Permalink to this heading"></a></h3>
+<p>If you click “Rotate”, an
 interactive rotation widget will appear in the viewport.  You can click
 and drag on the widget to rotate the light direction around the volume.
 If you click on the colored lines of the axes, rotation will be
-constrained to that axis.  Press R again or uncheck the checkbox to
+constrained to that axis.  Click “Rotate” again to
 hide the rotate manipulator.</p>
-<p><img alt="image0" src="_images/Light_SphericalCoordinate_1-3.png" /></p>
 </section>
 <section id="area-light-size">
 <h3>Area Light Size<a class="headerlink" href="#area-light-size" title="Permalink to this heading"></a></h3>
@@ -541,9 +552,25 @@ circle and drag to move it.</p>
 </section>
 <section id="color-settings">
 <h2>Color settings<a class="headerlink" href="#color-settings" title="Permalink to this heading"></a></h2>
-<section id="diffuse-color">
-<h3>Diffuse Color<a class="headerlink" href="#diffuse-color" title="Permalink to this heading"></a></h3>
-<p>This should be thought of as the main color for this channel.</p>
+<section id="colormap">
+<h3>ColorMap<a class="headerlink" href="#colormap" title="Permalink to this heading"></a></h3>
+<p>The colormap is a gradient that maps intensity values to colors. You can
+select from a variety of built-in colormaps.
+The color map will be applied between the min and max values of the transfer function.
+If you are using a “Custom” transfer function then there may be no inherent min and max.
+In this case, the color map will be applied to the whole data range.
+To disable the color map,
+select the first entry (labeled as “none”). If your data is discrete labels
+such as a segmentation, you may use the final entry in the list, “Labels”,
+which will assign a unique color to each unique intensity value.
+Note that the colormap colors will be multiplied with the [Color] setting.
+Set Color to white to see the colormap directly.</p>
+</section>
+<section id="color">
+<h3>Color<a class="headerlink" href="#color" title="Permalink to this heading"></a></h3>
+<p>This should be thought of as the main color for this channel.
+Set this to white in order to use the color map without any extra
+color tinting.</p>
 </section>
 <section id="specular-color">
 <h3>Specular Color<a class="headerlink" href="#specular-color" title="Permalink to this heading"></a></h3>
@@ -741,14 +768,14 @@ For Python users, the AGAVE Python client project full documentation can be foun
 </div></blockquote>
 </section>
 <section id="citation">
-<span id="id1"></span><h1>Citation<a class="headerlink" href="#citation" title="Permalink to this heading"></a></h1>
-<p>Daniel Toloudis, AGAVE Contributors (2024). AGAVE: Advanced GPU Accelerated Volume Explorer (Version 1.7.2) [Computer software]. Allen Institute for Cell Science. <a class="reference external" href="https://github.com/allen-cell-animated/agave">https://github.com/allen-cell-animated/agave</a></p>
+<span id="id2"></span><h1>Citation<a class="headerlink" href="#citation" title="Permalink to this heading"></a></h1>
+<p>Daniel Toloudis, AGAVE Contributors (2025). AGAVE: Advanced GPU Accelerated Volume Explorer (Version 1.8.0-rc.0) [Computer software]. Allen Institute for Cell Science. <a class="reference external" href="https://github.com/allen-cell-animated/agave">https://github.com/allen-cell-animated/agave</a></p>
 <p>bibtex:</p>
 <pre class="literal-block">&#64;software{agave,
  author       = {Toloudis, Daniel and AGAVE Contributors},
  title        = {AGAVE: Advanced GPU Accelerated Volume Explorer},
- year         = {2024},
- version      = {1.7.2},
+ year         = {2025},
+ version      = {1.8.0-rc.0},
  url          = {<a class="reference external" href="https://github.com/allen-cell-animated/agave">https://github.com/allen-cell-animated/agave</a>},
  organization = {Allen Institute for Cell Science},
  note         = {Computer Software}
