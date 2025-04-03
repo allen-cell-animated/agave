@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgaveRenderer &mdash; agave_pyclient 1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>AgaveRenderer &mdash; agave_pyclient 1.8.0-rc.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b2f71ecd"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=2a9bf400"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -77,7 +75,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.redraw"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.redraw()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.render_iterations"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.render_iterations()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.session"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_clip_plane"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_clip_plane()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_clip_region"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_clip_region()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_color_ramp"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_color_ramp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_control_points"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_control_points()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_flip_axis"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_flip_axis()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_interpolation"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_interpolation()</span></code></a></li>
@@ -559,6 +559,22 @@ Make sure the directory has already been created.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_clip_plane">
+<span class="sig-name descname"><span class="pre">set_clip_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_clip_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_clip_plane" title="Permalink to this definition"></a></dt>
+<dd><p>Set the clip plane equation.  The xyz vector must be normalized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The x component of the normal</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The y component of the normal</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – The z component of the normal</p></li>
+<li><p><strong>d</strong> (<em>float</em>) – The distance from the origin</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_clip_region">
 <span class="sig-name descname"><span class="pre">set_clip_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">miny</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_clip_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_clip_region" title="Permalink to this definition"></a></dt>
 <dd><p>Set the axis aligned region of interest of the volume. All axis values are
@@ -574,6 +590,24 @@ slices.</p>
 <li><p><strong>maxy</strong> (<em>float</em>) – The higher y extent between 0 and 1</p></li>
 <li><p><strong>minz</strong> (<em>float</em>) – The lower z extent between 0 and 1</p></li>
 <li><p><strong>maxz</strong> (<em>float</em>) – The higher z extent between 0 and 1</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_color_ramp">
+<span class="sig-name descname"><span class="pre">set_color_ramp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_color_ramp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_color_ramp" title="Permalink to this definition"></a></dt>
+<dd><p>Set intensity thresholds based on a piecewise linear transfer function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> (<em>int</em>) – Which channel index, 0 based.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The name of the color ramp</p></li>
+<li><p><strong>data</strong> (<em>List[float]</em>) – An array of values.  5 floats per control point.  first is position (0-1),
+next four are rgba (all 0-1).  Currently alpha will be ignored.
+To guarantee correct behavior, the first control point should be at 0.0 and
+the last at 1.0.</p></li>
 </ul>
 </dd>
 </dl>
