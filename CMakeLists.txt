@@ -15,7 +15,7 @@ cmake_policy(SET CMP0135 NEW) # set timestamps to time of extraction for Externa
 
 project(
   agave
-  VERSION 1.7.2
+  VERSION 1.8.0
   LANGUAGES C CXX
 )
 
