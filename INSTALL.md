@@ -25,15 +25,18 @@ Drag the agave icon to the Applications folder.
 
 You can now run the application from the Applications folder.
 
-The first time, you may get a warning that the application is from an unidentified developer. Click "Done" (do not Move to Trash). Then open System Settings, and go to Privacy & Security. Scroll down, and click Open Anyway. For more information, see [Apple's support page](https://support.apple.com/en-us/HT202491).
+If you get a warning that the application is damaged:
 
-If you get a warning that the application is damaged, you can run the following command in the terminal to remove the quarantine attribute:
+![](docs/agave_macos_security.png)
+
+Press Cancel, and then run the following command in the terminal to remove the quarantine attribute:
 
 ```
 xattr -d com.apple.quarantine /Applications/agave.app
 ```
 
 After this, you should be able to run the application.
+For more information, see [Apple's support page](https://support.apple.com/en-us/HT202491).
 
 ### MacOS on Intel processors
 
