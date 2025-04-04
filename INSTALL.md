@@ -40,9 +40,16 @@ If you get a warning that the application is damaged:
 ![](docs/agave_macos_security.png)
 
 Press Cancel, and then run the following command in the terminal to remove the quarantine attribute:
+(BEFORE YOU DO THIS, MAKE SURE YOU TRUST THE SOURCE OF THE DOWNLOADED APPLICATION)
 
+(Intel processors)
 ```
 xattr -d com.apple.quarantine /Applications/agave.app
+```
+
+(Apple processors)
+```
+codesign --force --deep --sign - /Applications/agave.app
 ```
 
 After this, you should be able to run the application.
