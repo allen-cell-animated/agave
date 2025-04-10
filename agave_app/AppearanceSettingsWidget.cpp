@@ -360,13 +360,19 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     }
     // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
     if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
+      LOG_DEBUG << "ROTATE: already in rotate mode and grid showing";
       emit this->m_qrendersettings->Selected(nullptr);
       pToggleRotateAction->trigger();
       if (!m_hideUserClipPlane->isChecked()) {
+        LOG_DEBUG << "ROTATE: disabling rotate but hide is unchecked, so select to show grid.";
         emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
       }
     } else {
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      LOG_DEBUG
+        << "ROTATE: not already in rotate mode or grid not selected/showing. So either way we select to show grid";
+      if (!pToggleRotateAction->isChecked()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
       pToggleRotateAction->trigger();
     }
   });
@@ -387,7 +393,9 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
         emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
       }
     } else {
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      if (!pToggleTranslateAction->isChecked()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+      }
       pToggleTranslateAction->trigger();
     }
   });
@@ -404,9 +412,12 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
         return;
       }
       if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
+        LOG_DEBUG << ("UNCHECK HIDE: Clip plane selected, so grid will still show.");
         return;
       }
       if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
+
+        LOG_DEBUG << "rotate/translate not checked, so emit selected signal to update grid visibility";
         emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
       }
     });
