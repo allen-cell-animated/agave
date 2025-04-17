@@ -17,6 +17,10 @@ struct ClipPlaneTool : ManipulationTool
   virtual void action(SceneView& scene, Gesture& gesture) final;
   virtual void draw(SceneView& scene, Gesture& gesture) final;
 
+  void setVisible(bool v) { m_visible = v; }
+
   Plane m_plane;
   glm::vec3 m_pos;
+
+  bool m_visible = true;
 };

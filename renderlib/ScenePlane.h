@@ -20,9 +20,19 @@ public:
   // transformed into world space:
   Plane m_plane;
   bool m_enabled;
+
   std::unique_ptr<ClipPlaneTool> m_tool;
 
   virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
 
   void resetTo(const glm::vec3& c);
+
+  // should the tool be showing?
+  void setVisible(bool v)
+  {
+    // tool should always be around (see ctor)
+    if (m_tool) {
+      m_tool->setVisible(v);
+    }
+  }
 };

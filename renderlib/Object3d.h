@@ -15,4 +15,6 @@ public:
   Transform3d m_transform;
 
   virtual ManipulationTool* getSelectedTool() { return nullptr; }
+
+  virtual void onSelection(bool selected) {}
 };

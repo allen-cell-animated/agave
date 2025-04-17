@@ -329,6 +329,32 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
+void
+QAppearanceSettingsWidget::toggleActionForObject(QAction* pAction, SceneObject* object)
+{
+  if (!this->m_scene) {
+    return;
+  }
+  bool wasActionOn = pAction->isChecked();
+  bool isObjectSelected = this->m_scene->m_selection == object;
+  if (!wasActionOn) {
+    // if we are turning the action on, then select the object and turn rotate on.
+    emit this->m_qrendersettings->Selected(object);
+    pAction->trigger();
+  } else {
+    // If we are turning the action off but something else is selected, then we are really just selecting this
+    // object but leaving the action ON.
+    // If we are turning the action off but THIS object is selected, then turn the action off
+    // and deselect the object.
+    if (!isObjectSelected) {
+      emit this->m_qrendersettings->Selected(object);
+    } else {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pAction->trigger();
+    }
+  }
+}
+
 Section*
 QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
 {
@@ -341,8 +367,6 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     if (this->m_scene && this->m_scene->m_clipPlane) {
       this->m_scene->m_clipPlane->m_enabled = is_checked;
       m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
-      emit this->m_qrendersettings->Selected(
-        is_checked && !m_hideUserClipPlane->isChecked() ? this->m_scene->m_clipPlane.get() : nullptr);
     }
   });
 
@@ -355,26 +379,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
   btnLayout->addWidget(m_clipPlaneRotateButton);
   QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
-    if (!this->m_scene) {
-      return;
-    }
-    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
-    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
-      LOG_DEBUG << "ROTATE: already in rotate mode and grid showing";
-      emit this->m_qrendersettings->Selected(nullptr);
-      pToggleRotateAction->trigger();
-      if (!m_hideUserClipPlane->isChecked()) {
-        LOG_DEBUG << "ROTATE: disabling rotate but hide is unchecked, so select to show grid.";
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-    } else {
-      LOG_DEBUG
-        << "ROTATE: not already in rotate mode or grid not selected/showing. So either way we select to show grid";
-      if (!pToggleRotateAction->isChecked()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-      pToggleRotateAction->trigger();
-    }
+    toggleActionForObject(pToggleRotateAction, this->m_scene->m_clipPlane.get());
   });
 
   m_clipPlaneTranslateButton = new QPushButton("Translate");
@@ -382,22 +387,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
   btnLayout->addWidget(m_clipPlaneTranslateButton);
   QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
-    if (!this->m_scene) {
-      return;
-    }
-    // if we were already selected AND already in translate mode, then this should switch off translate mode.
-    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleTranslateAction->isChecked()) {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pToggleTranslateAction->trigger();
-      if (!m_hideUserClipPlane->isChecked()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-    } else {
-      if (!pToggleTranslateAction->isChecked()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-      pToggleTranslateAction->trigger();
-    }
+    toggleActionForObject(pToggleTranslateAction, this->m_scene->m_clipPlane.get());
   });
 
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
@@ -411,15 +401,9 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
       if (!this->m_scene) {
         return;
       }
-      if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
-        LOG_DEBUG << ("UNCHECK HIDE: Clip plane selected, so grid will still show.");
-        return;
-      }
-      if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
 
-        LOG_DEBUG << "rotate/translate not checked, so emit selected signal to update grid visibility";
-        emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
-      }
+      ScenePlane* p = this->m_scene->m_clipPlane.get();
+      p->setVisible(!toggled);
     });
 
   sectionLayout->addRow("Hide", m_hideUserClipPlane);
@@ -471,21 +455,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt0gui.m_RotateButton);
   QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
-    if (!this->m_scene) {
-      return;
-    }
-    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
-    if (this->m_scene->m_selection == this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pRotationAction->trigger();
-      // TODO the selection should be independent of the tool visibility
-      if (shouldClipPlaneShow()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-    } else {
-      emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
-      pRotationAction->trigger();
-    }
+    toggleActionForObject(pRotationAction, this->m_scene->SceneAreaLight());
   });
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
@@ -1053,8 +1023,8 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
-  // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
-  // Currently in AGAVE this is not an issue..
+  // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have
+  // problems. Currently in AGAVE this is not an issue..
   scene->SceneAreaLight()->m_observers.push_back([this](const Light& light) {
     // update gui controls
 
@@ -1209,8 +1179,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QComboBox* gradients = makeGradientCombo();
     gradients->setToolTip(tr(
       "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
-    gradients->setStatusTip(tr(
-      "Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap only, set Color to white."));
+    gradients->setStatusTip(tr("Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap "
+                               "only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
 
     gradients->setCurrentIndex(idx);
