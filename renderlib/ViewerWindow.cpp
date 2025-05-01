@@ -134,9 +134,9 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   // [...]
 
   // TODO FIXME
-  // gross ugly disgusting hack
   // We need a mechanism to add a tool just from a scene object that was added to the scene.
   // For now, we just add the tool for special scene objects(like clip plane) right here on the fly.
+  // Instead of adding to this temporary vector, we should add to the sceneView.scene->m_tools
   std::vector<ManipulationTool*> sceneTools;
   if (sceneView.scene) {
     if (sceneView.scene->m_clipPlane) {

@@ -338,7 +338,7 @@ QAppearanceSettingsWidget::toggleActionForObject(QAction* pAction, SceneObject* 
   bool wasActionOn = pAction->isChecked();
   bool isObjectSelected = this->m_scene->m_selection == object;
   if (!wasActionOn) {
-    // if we are turning the action on, then select the object and turn rotate on.
+    // if we are turning the action on, then select the object and turn the action on.
     emit this->m_qrendersettings->Selected(object);
     pAction->trigger();
   } else {
@@ -1023,8 +1023,8 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   m_lt0gui.m_areaLightColorButton->SetColor(c);
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
-  // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have
-  // problems. Currently in AGAVE this is not an issue..
+  // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
+  // Currently in AGAVE this is not an issue..
   scene->SceneAreaLight()->m_observers.push_back([this](const Light& light) {
     // update gui controls
 
@@ -1179,8 +1179,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QComboBox* gradients = makeGradientCombo();
     gradients->setToolTip(tr(
       "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
-    gradients->setStatusTip(tr("Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap "
-                               "only, set Color to white."));
+    gradients->setStatusTip(tr(
+      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
 
     gradients->setCurrentIndex(idx);
