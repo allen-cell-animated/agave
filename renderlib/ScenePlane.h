@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Object3d.h"
+#include "ClipPlaneTool.h"
 
 #include "MathUtil.h"
-#include "ClipPlaneTool.h"
 
 #include <vector>
 #include <functional>
@@ -23,16 +23,10 @@ public:
 
   std::unique_ptr<ClipPlaneTool> m_tool;
 
-  virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
+  virtual ManipulationTool* getTool();
 
   void resetTo(const glm::vec3& c);
 
   // should the tool be showing?
-  void setVisible(bool v)
-  {
-    // tool should always be around (see ctor)
-    if (m_tool) {
-      m_tool->setVisible(v);
-    }
-  }
+  void setVisible(bool v);
 };

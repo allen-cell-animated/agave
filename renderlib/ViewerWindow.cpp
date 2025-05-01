@@ -133,7 +133,25 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
 {
   // [...]
 
+  // TODO FIXME
+  // gross ugly disgusting hack
+  // We need a mechanism to add a tool just from a scene object that was added to the scene.
+  // For now, we just add the tool for special scene objects(like clip plane) right here on the fly.
+  std::vector<ManipulationTool*> sceneTools;
+  if (sceneView.scene) {
+    if (sceneView.scene->m_clipPlane) {
+      if (sceneView.scene->m_clipPlane->m_enabled) {
+        if (sceneView.scene->m_clipPlane->getTool()) {
+          sceneTools.push_back(sceneView.scene->m_clipPlane->getTool());
+        }
+      }
+    }
+  }
+
   // Reset all manipulators and tools
+  for (ManipulationTool* tool : sceneTools) {
+    tool->clear();
+  }
   forEachTool([&](ManipulationTool* tool) { tool->clear(); });
 
   // Query Gesture::Graphics for selection codes
@@ -151,6 +169,9 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
 
   if (pickedAnything) {
     int selectionCode = gesture.graphics.getCurrentSelectionCode();
+    for (ManipulationTool* tool : sceneTools) {
+      tool->setActiveCode(selectionCode);
+    }
     forEachTool([&](ManipulationTool* tool) { tool->setActiveCode(selectionCode); });
   } else {
     // User didn't click on a manipulator, run scene object selection
@@ -166,14 +187,23 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   {
     // Ask manipulation tools to do something. Typically only one of them does
     // something, if anything at all
+    for (ManipulationTool* tool : sceneTools) {
+      tool->action(sceneView, gesture);
+    }
     forEachTool([&](ManipulationTool* tool) { tool->action(sceneView, gesture); });
 
     // Leave code 0 as neutral, we can start at any number, this will not affect
     // anything else in the system... start at 1
     int selectionCodeOffset = 1;
+    for (ManipulationTool* tool : sceneTools) {
+      tool->requestCodesRange(&selectionCodeOffset);
+    }
     forEachTool([&](ManipulationTool* tool) { tool->requestCodesRange(&selectionCodeOffset); });
 
     // Ask tools to generate draw commands
+    for (ManipulationTool* tool : sceneTools) {
+      tool->draw(sceneView, gesture);
+    }
     forEachTool([&](ManipulationTool* tool) { tool->draw(sceneView, gesture); });
   }
 
