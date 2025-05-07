@@ -7,6 +7,7 @@ import math
 import numpy
 import queue
 from PIL import Image
+import subprocess
 from typing import List
 
 from .commandbuffer import CommandBuffer
@@ -113,8 +114,8 @@ class AgaveClient(WebSocketClient):
             break
         return None
 
-    def received_message(self, m):
-        self.messages.put(copy.deepcopy(m))
+    def received_message(self, message):
+        self.messages.put(copy.deepcopy(message))
 
     def closed(self, code, reason=None):
         """
@@ -170,7 +171,10 @@ class AgaveRenderer:
 
     """
 
-    def __init__(self, url="ws://localhost:1235/", mode="pathtrace") -> None:
+    def __init__(
+        self, url="ws://localhost:1235/", mode="pathtrace", agave_process=None
+    ) -> None:
+        self.agave_process = agave_process
         self.cb = CommandBuffer()
         self.session_name = ""
         if mode != "pathtrace" and mode != "raymarch":
@@ -182,6 +186,26 @@ class AgaveRenderer:
         # except KeyboardInterrupt:
         #     print("keyboard")
         #     ws.close()
+
+    @classmethod
+    def launch_agave(cls, path: str, port: int = 1235):
+        a = subprocess.Popen(
+            [
+                path if path else "D:\\agave_build\\install\\agave-install\\agave.exe",
+                "--server",
+                f"--port={port}",
+            ]
+        )
+        # on error raise...
+        return cls(f"ws://localhost:{port}/", mode="pathtrace", agave_process=a)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.ws.close()
+        if self.agave_process:
+            self.agave_process.terminate()
 
     def session(self, name: str):
         """
