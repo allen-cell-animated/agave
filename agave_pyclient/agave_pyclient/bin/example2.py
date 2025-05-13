@@ -3,7 +3,7 @@ from agave_pyclient import AgaveRenderer
 
 def main():
     # r = AgaveRenderer(url="ws://localhost:1235/", mode="pathtrace")
-    r = AgaveRenderer.launch_agave("D:\\agave_build\\install\\agave-install\\agave.exe")
+    r = AgaveRenderer.launch_agave("D:\\agave_build\\install\\agave-install\\agav.exe")
     with r:
         r.load_data(
             "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/1.zarr",

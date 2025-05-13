@@ -189,14 +189,21 @@ class AgaveRenderer:
 
     @classmethod
     def launch_agave(cls, path: str, port: int = 1235):
-        a = subprocess.Popen(
-            [
-                path if path else "D:\\agave_build\\install\\agave-install\\agave.exe",
-                "--server",
-                f"--port={port}",
-            ]
-        )
-        # on error raise...
+        try:
+            a = subprocess.Popen(
+                [
+                    (
+                        path
+                        if path
+                        else "D:\\agave_build\\install\\agave-install\\agave.exe"
+                    ),
+                    "--server",
+                    f"--port={port}",
+                ]
+            )
+        except OSError as e:
+            print(f"Error launching AGAVE: {e}")
+            return None
         return cls(f"ws://localhost:{port}/", mode="pathtrace", agave_process=a)
 
     def __enter__(self):
