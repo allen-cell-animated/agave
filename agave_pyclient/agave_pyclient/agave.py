@@ -5,12 +5,58 @@ import io
 import json
 import math
 import numpy
+import os
 import queue
+import re
 from PIL import Image
 import subprocess
+import sys
 from typing import List
 
 from .commandbuffer import CommandBuffer
+
+
+def find_matching_subdirectories(root_dir, regex):
+    """
+    Finds subdirectories within a root directory that match a given regular expression.
+
+    Args:
+        root_dir: The path to the root directory to search within.
+        regex: The regular expression pattern to match against subdirectory names.
+
+    Returns:
+        A list of strings, where each string is the full path to a matching subdirectory.
+        Returns an empty list if no matching subdirectories are found.
+    """
+    matching_dirs = []
+    for item in os.listdir(root_dir):
+        item_path = os.path.join(root_dir, item)
+        if os.path.isdir(item_path) and re.search(regex, item):
+            matching_dirs.append(item_path)
+    return matching_dirs
+
+
+def guess_agave_path() -> str | None:
+    if sys.platform == "win32":
+        # find versioned install directory of the form "Program Files\\AGAVE #.#.#\\agave-install"
+        possible = find_matching_subdirectories(
+            "C:\\Program Files", "AGAVE [0-9]+.[0-9]+.[0-9]+"
+        )
+        if len(possible) == 0:
+            print("AGAVE not found in Program Files")
+            return None
+        # if there are multiple versions, pick the last one
+        path = os.path.join(possible[-1], "agave-install", "agave.exe")
+    elif sys.platform == "linux" or sys.platform == "linux2":
+        path = "~/agave/build/agave"
+    elif sys.platform == "darwin":
+        path = "/Applications/agave.app/Contents/MacOS/agave"
+    else:
+        # Code to run on other platforms
+        print("Running on an unknown operating system")
+        print("Can't guess agave path")
+        return None
+    return path
 
 
 def lerp(startframe, endframe, startval, endval):
@@ -190,19 +236,27 @@ class AgaveRenderer:
     @classmethod
     def launch_agave(cls, path: str, port: int = 1235):
         try:
+            # check to see if path exists.
+            # if path is empty or None, then try to guess at agave install locations.
+            # not os.path.exists(path):
+            if path is None or path == "":
+                guesspath = guess_agave_path()
+                if guesspath is None:
+                    print(
+                        "AGAVE not found. Try passing a known AGAVE path to launch_agave."
+                    )
+                    return None
+                path = guesspath
+
             a = subprocess.Popen(
                 [
-                    (
-                        path
-                        if path
-                        else "D:\\agave_build\\install\\agave-install\\agave.exe"
-                    ),
+                    path,
                     "--server",
                     f"--port={port}",
                 ]
             )
         except OSError as e:
-            print(f"Error launching AGAVE: {e}")
+            print(f"Error launching AGAVE from {path}: {e}")
             return None
         return cls(f"ws://localhost:{port}/", mode="pathtrace", agave_process=a)
 
