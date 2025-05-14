@@ -17,6 +17,7 @@ class ImageXYZC;
 class RangeWidget;
 class RenderSettings;
 class Scene;
+class SceneObject;
 class Section;
 
 enum Axis
@@ -151,4 +152,6 @@ private:
   void initLightingControls(Scene* scene);
   void initClipPlaneControls(Scene* scene);
   bool shouldClipPlaneShow();
+
+  void toggleActionForObject(QAction* pAction, SceneObject* object);
 };

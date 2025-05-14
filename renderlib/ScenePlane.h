@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Object3d.h"
+#include "ClipPlaneTool.h"
 
 #include "MathUtil.h"
-#include "ClipPlaneTool.h"
 
 #include <vector>
 #include <functional>
@@ -20,9 +20,13 @@ public:
   // transformed into world space:
   Plane m_plane;
   bool m_enabled;
+
   std::unique_ptr<ClipPlaneTool> m_tool;
 
-  virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
+  virtual ManipulationTool* getTool();
 
   void resetTo(const glm::vec3& c);
+
+  // should the tool be showing?
+  void setVisible(bool v);
 };
