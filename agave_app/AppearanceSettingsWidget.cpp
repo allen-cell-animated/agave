@@ -1183,7 +1183,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
 
-    gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
@@ -1202,8 +1201,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
         m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
     });
-    // init
-    // this->OnColormapChanged(i, cr);
+    // init after creating the callback, so that we can reinit a named colormap properly.
+    gradients->setCurrentIndex(idx);
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
