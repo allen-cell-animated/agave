@@ -234,7 +234,7 @@ class AgaveRenderer:
         #     ws.close()
 
     @classmethod
-    def launch_agave(cls, path: str, port: int = 1235):
+    def launch_agave(cls, path: str, port: int = 1235, mode: str = "pathtrace"):
         try:
             # check to see if path exists.
             # if path is empty or None, then try to guess at agave install locations.
@@ -258,7 +258,7 @@ class AgaveRenderer:
         except OSError as e:
             print(f"Error launching AGAVE from {path}: {e}")
             return None
-        return cls(f"ws://localhost:{port}/", mode="pathtrace", agave_process=a)
+        return cls(f"ws://localhost:{port}/", mode=mode, agave_process=a)
 
     def __enter__(self):
         return self
