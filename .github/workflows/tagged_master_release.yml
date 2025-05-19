@@ -37,7 +37,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff nasm zstd ninja
+          brew install spdlog glm nasm
       - name: macos build and test
         if: contains(matrix.os, 'macos')
         env:
@@ -246,7 +246,7 @@ jobs:
         id: get_version
         run: |
           echo ${GITHUB_REF/refs\/tags\/v/}
-          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+          echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> "$GITHUB_OUTPUT"
       - name: Get mac build artifact x86
         uses: actions/download-artifact@v4
         with:
