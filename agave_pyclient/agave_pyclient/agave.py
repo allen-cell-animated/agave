@@ -38,7 +38,8 @@ def find_matching_subdirectories(root_dir, regex):
 
 def guess_agave_path() -> str | None:
     if sys.platform == "win32":
-        # find versioned install directory of the form "Program Files\\AGAVE #.#.#\\agave-install"
+        # find versioned install directory of the form:
+        # "Program Files\\AGAVE #.#.#\\agave-install"
         possible = find_matching_subdirectories(
             "C:\\Program Files", "AGAVE [0-9]+.[0-9]+.[0-9]+"
         )
@@ -236,9 +237,8 @@ class AgaveRenderer:
     @classmethod
     def launch_agave(cls, path: str, port: int = 1235, mode: str = "pathtrace"):
         try:
-            # check to see if path exists.
-            # if path is empty or None, then try to guess at agave install locations.
-            # not os.path.exists(path):
+            # Check to see if path exists. If path is empty or None, 
+            # then try to guess at agave install locations.
             if path is None or path == "":
                 guesspath = guess_agave_path()
                 if guesspath is None:
