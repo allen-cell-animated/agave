@@ -12,7 +12,14 @@ ClipPlaneTool::action(SceneView& scene, Gesture& gesture)
 void
 ClipPlaneTool::draw(SceneView& scene, Gesture& gesture)
 {
+
   if (!scene.scene) {
+    return;
+  }
+  // if is being manipulated, then draw the plane!
+  // assumption: the one and only scene plane is associated with this tool.
+  const std::shared_ptr<ScenePlane> plane = scene.scene->m_clipPlane;
+  if (plane.get() != scene.getSelectedObject() && !m_visible) {
     return;
   }
 

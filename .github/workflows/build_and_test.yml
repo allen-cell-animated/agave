@@ -82,7 +82,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff nasm zstd ninja
+          brew install spdlog glm nasm
       - name: macos build and test
         if: contains(matrix.os, 'macos')
         env:
