@@ -82,3 +82,14 @@ struct IntSliderSpinnerUiInfo : public GenericUIInfo
 
   IntSliderSpinnerUiInfo() { type = IntSliderSpinnerUiInfo::TYPE; }
 };
+
+struct ColorPickerUiInfo : public GenericUIInfo
+{
+  static constexpr const char* TYPE = "ColorPicker";
+
+  ColorPickerUiInfo() { type = ColorPickerUiInfo::TYPE; }
+  ColorPickerUiInfo(std::string formLabel, std::string statusTip, std::string toolTip)
+    : GenericUIInfo(ColorPickerUiInfo::TYPE, formLabel, statusTip, toolTip)
+  {
+  }
+};
