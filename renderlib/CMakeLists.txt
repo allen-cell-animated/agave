@@ -16,8 +16,8 @@ target_include_directories(renderlib PUBLIC
 target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDataObject.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDataObject.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceObject.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceObject.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceUiDescription.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceUiDescription.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppScene.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AreaLightTool.cpp"
