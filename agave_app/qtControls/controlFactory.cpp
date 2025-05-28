@@ -117,6 +117,7 @@ addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop)
   QObject::connect(comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->set(index, true); });
   return comboBox;
 }
+
 QCheckBox*
 addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop)
 {
@@ -129,4 +130,20 @@ addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop)
     prop->set(state == Qt::CheckState::Checked, true);
   });
   return checkBox;
+}
+
+QColorPushButton*
+addRow(const ColorPickerUiInfo& info, prtyProperty<glm::vec3>* prop)
+{
+  QColorPushButton* colorButton = new QColorPushButton();
+  colorButton->setStatusTip(QString::fromStdString(info.statusTip));
+  colorButton->setToolTip(QString::fromStdString(info.toolTip));
+  QColor c = QColor::fromRgbF(prop->get().r, prop->get().g, prop->get().b);
+  colorButton->SetColor(c, true);
+  QObject::connect(colorButton, &QColorPushButton::currentColorChanged, [colorButton, prop](const QColor& c) {
+    // Convert QColor to glm::vec3
+    glm::vec3 color(c.redF(), c.greenF(), c.blueF());
+    prop->set(color, true);
+  });
+  return colorButton;
 }

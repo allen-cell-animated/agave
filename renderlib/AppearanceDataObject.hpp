@@ -4,13 +4,13 @@
 #include "RenderSettings.h"
 #include "glm.h"
 
-class AppearanceDataOject
+class AppearanceDataObject
 {
 public:
-  AppearanceDataOject(RenderSettings* camera);
+  AppearanceDataObject(RenderSettings* camera);
 
-  prtyProperty<uint8_t> RendererType{ "RendererType", 0 };
-  prtyProperty<uint8_t> ShadingType{ "ShadingType", 0 };
+  prtyProperty<int> RendererType{ "RendererType", 0 };
+  prtyProperty<int> ShadingType{ "ShadingType", 0 };
   prtyProperty<float> DensityScale{ "DensityScale", 1.0f };
   prtyProperty<float> GradientFactor{ "GradientFactor", 0.5f };
   prtyProperty<float> StepSizePrimaryRay{ "StepSizePrimaryRay", 1.0f };
