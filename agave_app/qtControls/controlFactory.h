@@ -2,12 +2,14 @@
 
 #include "renderlib/uiInfo.hpp"
 #include "renderlib/core/prty/prtyProperty.h"
+#include "renderlib/glm.h"
 
 #include <memory>
 
 class QNumericSlider;
 class QCheckBox;
 class QComboBox;
+class QColorPushButton;
 
 QNumericSlider*
 create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<float>> prop);
@@ -32,3 +34,6 @@ addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop);
 
 QCheckBox*
 addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop);
+
+QColorPushButton*
+addRow(const ColorPickerUiInfo& info, prtyProperty<glm::vec3>* prop);
