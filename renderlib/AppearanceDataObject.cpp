@@ -3,13 +3,13 @@
 #include "Enumerations.h"
 #include "Logging.h"
 
-AppearanceDataOject::AppearanceDataOject(RenderSettings* renderSettings)
+AppearanceDataObject::AppearanceDataObject(RenderSettings* renderSettings)
   : m_renderSettings(renderSettings)
 {
   updatePropsFromRenderSettings();
   // hook up properties to update the underlying camera
-  RendererType.addCallback([this](prtyProperty<uint8_t>* p, bool) { update(); });
-  ShadingType.addCallback([this](prtyProperty<uint8_t>* p, bool) { update(); });
+  RendererType.addCallback([this](prtyProperty<int>* p, bool) { update(); });
+  ShadingType.addCallback([this](prtyProperty<int>* p, bool) { update(); });
   DensityScale.addCallback([this](prtyProperty<float>* p, bool) { update(); });
   GradientFactor.addCallback([this](prtyProperty<float>* p, bool) { update(); });
   StepSizePrimaryRay.addCallback([this](prtyProperty<float>* p, bool) { update(); });
@@ -22,7 +22,7 @@ AppearanceDataOject::AppearanceDataOject(RenderSettings* renderSettings)
 }
 
 void
-AppearanceDataOject::updatePropsFromRenderSettings()
+AppearanceDataObject::updatePropsFromRenderSettings()
 {
   if (m_renderSettings) {
     ShadingType.set(m_renderSettings->m_RenderSettings.m_ShadingType);
@@ -43,7 +43,7 @@ AppearanceDataOject::updatePropsFromRenderSettings()
   }
 }
 void
-AppearanceDataOject::update()
+AppearanceDataObject::update()
 {
   // update low-level object from properties
   if (m_renderSettings) {
