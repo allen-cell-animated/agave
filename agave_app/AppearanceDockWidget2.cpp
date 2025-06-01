@@ -1,11 +1,8 @@
 #include "AppearanceDockWidget2.h"
 
-QAppearanceDockWidget2::QAppearanceDockWidget2(QWidget* pParent,
-                                               RenderSettings* rs,
-                                               ViewerWindow* vw,
-                                               AppearanceObject* ado)
+QAppearanceDockWidget2::QAppearanceDockWidget2(QWidget* pParent, RenderSettings* rs, AppearanceDataObject* ado)
   : QDockWidget(pParent)
-  , m_AppearanceWidget(nullptr, rs, vw, ado)
+  , m_AppearanceWidget(nullptr, rs, ado)
 {
   setWindowTitle("Appearance");
 

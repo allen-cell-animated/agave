@@ -126,6 +126,11 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_glView->getCameraDataObject());
+  setupTimelineDock();
+  setupStatisticsDock();
+  setupAppearanceDock(m_glView->getAppearanceDataObject());
+
+  addDockItemsToViewMenu();
 
   // TODO can make this a custom widget that exposes the toolbar and the view
   m_viewWithToolbar = new QWidget(this);
@@ -361,8 +366,19 @@ agaveGui::setupCameraDock(CameraDataObject* cdo)
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 }
 
-  m_viewMenu->addSeparator();
-  m_viewMenu->addAction(m_cameradock->toggleViewAction());
+void
+agaveGui::setupAppearanceDock(AppearanceDataObject* ado)
+{
+  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, ado);
+  m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
+
+  // original appearance dock widget
+
+  m_appearanceDockWidget = new QAppearanceDockWidget(
+    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
+  m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 }
 
 void
