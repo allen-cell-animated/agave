@@ -17,6 +17,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/agaveGui.ui"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDockWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDockWidget.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDockWidget2.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceDockWidget2.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceWidget.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceWidget.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/AppearanceSettingsWidget.cpp"

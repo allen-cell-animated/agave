@@ -7,7 +7,7 @@
 class AppearanceDataObject
 {
 public:
-  AppearanceDataObject(RenderSettings* camera);
+  AppearanceDataObject(RenderSettings* rs);
 
   prtyProperty<int> RendererType{ "RendererType", 0 };
   prtyProperty<int> ShadingType{ "ShadingType", 0 };
