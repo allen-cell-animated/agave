@@ -14,6 +14,7 @@
 #include "renderlib/version.hpp"
 
 #include "AppearanceDockWidget.h"
+#include "AppearanceDockWidget2.h"
 #include "CameraDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
@@ -122,7 +123,7 @@ agaveGui::agaveGui(QWidget* parent)
   setupCameraDock(m_glView->getCameraDataObject());
   setupTimelineDock();
   setupStatisticsDock();
-  setupAppearanceDock();
+  setupAppearanceDock(m_glView->getAppearanceDataObject());
 
   addDockItemsToViewMenu();
 
@@ -357,8 +358,14 @@ agaveGui::setupCameraDock(CameraDataObject* cdo)
 }
 
 void
-agaveGui::setupAppearanceDock()
+agaveGui::setupAppearanceDock(AppearanceDataObject* ado)
 {
+  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, ado);
+  m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
+
+  // original appearance dock widget
+
   m_appearanceDockWidget = new QAppearanceDockWidget(
     this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
