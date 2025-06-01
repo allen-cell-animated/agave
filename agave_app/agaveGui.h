@@ -14,6 +14,7 @@
 #include <QSlider>
 
 class QAppearanceDockWidget;
+class QAppearanceDockWidget2;
 class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
@@ -95,6 +96,9 @@ private:
   void createToolbars();
   void createDockWindows();
   void setupCameraDock(CameraDataObject* cdo);
+  void setupTimelineDock();
+  void setupAppearanceDock(AppearanceDataObject* ado);
+  void setupStatisticsDock();
 
   void showOpenFailedMessageBox(QString path);
 
@@ -144,6 +148,7 @@ private:
 
   QRenderSettings m_qrendersettings;
   QAppearanceDockWidget* m_appearanceDockWidget;
+  QAppearanceDockWidget2* m_appearanceDockWidget2;
 
   QStatisticsDockWidget* m_statisticsDockWidget;
 
