@@ -15,7 +15,6 @@
 
 class QAppearanceDockWidget;
 class QAppearanceDockWidget2;
-class QAreaLightDockWidget;
 class QCameraDockWidget;
 class QSkyLightDockWidget;
 class QStatisticsDockWidget;
@@ -104,6 +103,9 @@ private:
   void createToolbars();
   void createDockWindows();
   void setupCameraDock(CameraDataObject* cdo);
+  void setupTimelineDock();
+  void setupAppearanceDock(AppearanceDataObject* ado);
+  void setupStatisticsDock();
 
   void showOpenFailedMessageBox(QString path);
 

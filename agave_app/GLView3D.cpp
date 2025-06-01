@@ -3,6 +3,7 @@
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
+#include "renderlib/AppearanceDataObject.hpp"
 #include "renderlib/CameraDataObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
@@ -45,6 +46,7 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
 
   // camera is created deep down inside m_viewerWindow.
   m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
+  m_appearanceDataObject = new AppearanceDataObject(rs);
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -143,6 +145,7 @@ GLView3D::onNewImage(Scene* scene)
 GLView3D::~GLView3D()
 {
   delete m_cameraDataObject;
+  delete m_appearanceDataObject;
 
   makeCurrent();
   check_gl("view dtor makecurrent");
@@ -493,9 +496,9 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
-  m_cameraObject->updatePropsFromObject();
+  m_cameraDataObject->updatePropsFromCamera();
 
-  m_appearanceDataObject->updatePropsFromObject();
+  m_appearanceDataObject->updatePropsFromRenderSettings();
 }
 
 QPixmap

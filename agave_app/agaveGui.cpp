@@ -17,7 +17,6 @@
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
-#include "ArealightDockWidget.h"
 #include "CameraDockWidget.h"
 #include "SkylightDockWidget.h"
 #include "Serialize.h"
@@ -138,6 +137,11 @@ agaveGui::agaveGui(QWidget* parent)
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_glView->getCameraDataObject());
+  setupTimelineDock();
+  setupStatisticsDock();
+  setupAppearanceDock(m_glView->getAppearanceDataObject());
+
+  addDockItemsToViewMenu();
 
   // TODO can make this a custom widget that exposes the toolbar and the view
   m_viewWithToolbar = new QWidget(this);
@@ -390,23 +394,16 @@ agaveGui::setupCameraDock(CameraObject* cdo)
 }
 
 void
-agaveGui::setupAppearanceDock(AppearanceObject* ado)
+agaveGui::setupAppearanceDock(AppearanceDataObject* ado)
 {
-  // DANGER see borrowRenderer call
-  m_appearanceDockWidget2 =
-    new QAppearanceDockWidget2(this, m_appearanceObject->getRenderSettings().get(), m_glView->borrowRenderer(), ado);
+  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, ado);
   m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
 
   // original appearance dock widget
 
-  m_appearanceDockWidget = new QAppearanceDockWidget(this,
-                                                     &m_qrendersettings,
-                                                     m_appearanceObject->getRenderSettings().get(),
-                                                     m_areaLightObject.get(),
-                                                     m_skyLightObject.get(),
-                                                     m_toggleRotateControlsAction,
-                                                     m_toggleTranslateControlsAction);
+  m_appearanceDockWidget = new QAppearanceDockWidget(
+    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 }
