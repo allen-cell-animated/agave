@@ -36,10 +36,8 @@ if(APPLE)
 endif(APPLE)
 FetchContent_Declare(
 	tensorstore
-        URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.78.tar.gz"
-        URL_HASH SHA256=f59667a32357b8cc0c752429927ad97654f6a67c7d3d62b9efea902c6798d473
-        # URL "https://github.com/google/tensorstore/tarball/1461a5247186a84f5be7b632309ca0f5bf05a55e"
-        # URL_HASH SHA256=1ac9ac2c3a24d0c25f049d289968b4e3944a798a9466b84d80a964b74a2d018a
+        URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.75.tar.gz"
+        URL_HASH SHA256=82f8a170bd6635147315036dcad4e5f32c4d5374a3faa7cdd4e958a15b9cba2e
 )
 
 FetchContent_MakeAvailable(tensorstore)
