@@ -3,8 +3,9 @@
 #include "Enumerations.h"
 #include "Logging.h"
 
-AppearanceDataObject::AppearanceDataObject(RenderSettings* renderSettings)
+AppearanceDataObject::AppearanceDataObject(RenderSettings* renderSettings, Scene* scene)
   : m_renderSettings(renderSettings)
+  , m_scene(scene)
 {
   updatePropsFromRenderSettings();
   // hook up properties to update the underlying camera
@@ -32,14 +33,14 @@ AppearanceDataObject::updatePropsFromRenderSettings()
     StepSizePrimaryRay.set(m_renderSettings->m_RenderSettings.m_StepSizeFactor);
     StepSizeSecondaryRay.set(m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow);
     Interpolate.set(m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
-    // BackgroundColor.set(glm::vec3(m_renderSettings->m_RenderSettings.m_BackgroundColor[0],
-    //                               m_renderSettings->m_RenderSettings.m_BackgroundColor[1],
-    //                               m_renderSettings->m_RenderSettings.m_BackgroundColor[2]));
-    // ShowBoundingBox.set(m_renderSettings->m_RenderSettings.m_ShowBoundingBox);
-    // BoundingBoxColor.set(glm::vec3(m_renderSettings->m_RenderSettings.m_BoundingBoxColor[0],
-    //                                m_renderSettings->m_RenderSettings.m_BoundingBoxColor[1],
-    //                                m_renderSettings->m_RenderSettings.m_BoundingBoxColor[2]));
-    // ShowScaleBar.set(m_renderSettings->m_RenderSettings.m_ShowScaleBar);
+    BackgroundColor.set(glm::vec3(m_scene->m_material.m_backgroundColor[0],
+                                  m_scene->m_material.m_backgroundColor[1],
+                                  m_scene->m_material.m_backgroundColor[2]));
+    ShowBoundingBox.set(m_scene->m_material.m_showBoundingBox);
+    BoundingBoxColor.set(glm::vec3(m_scene->m_material.m_boundingBoxColor[0],
+                                   m_scene->m_material.m_boundingBoxColor[1],
+                                   m_scene->m_material.m_boundingBoxColor[2]));
+    ShowScaleBar.set(m_scene->m_showScaleBar);
   }
 }
 void
@@ -54,14 +55,14 @@ AppearanceDataObject::update()
     m_renderSettings->m_RenderSettings.m_StepSizeFactor = StepSizePrimaryRay.get();
     m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow = StepSizeSecondaryRay.get();
     m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling = Interpolate.get();
-    // m_renderSettings->m_RenderSettings.m_BackgroundColor[0] = BackgroundColor.get().x;
-    // m_renderSettings->m_RenderSettings.m_BackgroundColor[1] = BackgroundColor.get().y;
-    // m_renderSettings->m_RenderSettings.m_BackgroundColor[2] = BackgroundColor.get().z;
-    // m_renderSettings->m_RenderSettings.m_ShowBoundingBox = ShowBoundingBox.get();
-    // m_renderSettings->m_RenderSettings.m_BoundingBoxColor[0] = BoundingBoxColor.get().x;
-    // m_renderSettings->m_RenderSettings.m_BoundingBoxColor[1] = BoundingBoxColor.get().y;
-    // m_renderSettings->m_RenderSettings.m_BoundingBoxColor[2] = BoundingBoxColor.get().z;
-    // m_renderSettings->m_RenderSettings.m_ShowScaleBar = ShowScaleBar.get();
+    m_scene->m_material.m_backgroundColor[0] = BackgroundColor.get().x;
+    m_scene->m_material.m_backgroundColor[1] = BackgroundColor.get().y;
+    m_scene->m_material.m_backgroundColor[2] = BackgroundColor.get().z;
+    m_scene->m_material.m_showBoundingBox = ShowBoundingBox.get();
+    m_scene->m_material.m_boundingBoxColor[0] = BoundingBoxColor.get().x;
+    m_scene->m_material.m_boundingBoxColor[1] = BoundingBoxColor.get().y;
+    m_scene->m_material.m_boundingBoxColor[2] = BoundingBoxColor.get().z;
+    m_scene->m_showScaleBar = ShowScaleBar.get();
 
     m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
     m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
