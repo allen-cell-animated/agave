@@ -44,7 +44,7 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
 
   // camera is created deep down inside m_viewerWindow.
   m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
-  m_appearanceDataObject = new AppearanceDataObject(rs);
+  m_appearanceDataObject = new AppearanceDataObject(rs, m_viewerWindow->sceneView.m_scene);
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
