@@ -1,13 +1,14 @@
 #pragma once
 
 #include "core/prty/prtyProperty.h"
+#include "AppScene.h"
 #include "RenderSettings.h"
 #include "glm.h"
 
 class AppearanceDataObject
 {
 public:
-  AppearanceDataObject(RenderSettings* rs);
+  AppearanceDataObject(RenderSettings* rs, Scene* scene);
 
   prtyProperty<int> RendererType{ "RendererType", 0 };
   prtyProperty<int> ShadingType{ "ShadingType", 0 };
@@ -22,6 +23,7 @@ public:
   prtyProperty<bool> ShowScaleBar{ "ShowScaleBar", false };
 
   RenderSettings* m_renderSettings;
+  Scene* m_scene;
 
   void updatePropsFromRenderSettings();
 
