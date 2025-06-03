@@ -1028,7 +1028,7 @@ class AgaveRenderer:
 
         # then orbit the camera parametrically
         for i in range(0, number_of_frames):
-            self.session(f"{output_name}_{i+first_frame}.png")
+            self.session(f"{output_name}_{i + first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
             self.trackball_camera(0.0, direction * (360.0 / float(number_of_frames)))
@@ -1069,7 +1069,7 @@ class AgaveRenderer:
         for i in range(0, number_of_frames):
             quadrant = (i * 4) // number_of_frames
             quadrantdirection = 1 if quadrant == 0 or quadrant == 3 else -1
-            self.session(f"{output_name}_{i+first_frame}.png")
+            self.session(f"{output_name}_{i + first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
             self.trackball_camera(0.0, angledelta * direction * quadrantdirection)
