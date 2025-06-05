@@ -33,14 +33,16 @@ AppearanceDataObject::updatePropsFromRenderSettings()
     StepSizePrimaryRay.set(m_renderSettings->m_RenderSettings.m_StepSizeFactor);
     StepSizeSecondaryRay.set(m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow);
     Interpolate.set(m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
-    BackgroundColor.set(glm::vec3(m_scene->m_material.m_backgroundColor[0],
-                                  m_scene->m_material.m_backgroundColor[1],
-                                  m_scene->m_material.m_backgroundColor[2]));
-    ShowBoundingBox.set(m_scene->m_material.m_showBoundingBox);
-    BoundingBoxColor.set(glm::vec3(m_scene->m_material.m_boundingBoxColor[0],
-                                   m_scene->m_material.m_boundingBoxColor[1],
-                                   m_scene->m_material.m_boundingBoxColor[2]));
-    ShowScaleBar.set(m_scene->m_showScaleBar);
+    if (m_scene) {
+      BackgroundColor.set(glm::vec3(m_scene->m_material.m_backgroundColor[0],
+                                    m_scene->m_material.m_backgroundColor[1],
+                                    m_scene->m_material.m_backgroundColor[2]));
+      ShowBoundingBox.set(m_scene->m_material.m_showBoundingBox);
+      BoundingBoxColor.set(glm::vec3(m_scene->m_material.m_boundingBoxColor[0],
+                                     m_scene->m_material.m_boundingBoxColor[1],
+                                     m_scene->m_material.m_boundingBoxColor[2]));
+      ShowScaleBar.set(m_scene->m_showScaleBar);
+    }
   }
 }
 void
