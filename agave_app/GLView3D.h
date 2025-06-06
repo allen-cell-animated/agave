@@ -40,7 +40,7 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidget* parent = 0);
 
   /// Destructor.
   ~GLView3D();

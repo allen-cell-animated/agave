@@ -112,7 +112,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qrendersettings, &m_renderSettings, this);
+  m_glView = new GLView3D(&m_qrendersettings, &m_renderSettings, &m_appScene, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
