@@ -44,7 +44,9 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
 
-  m_appearanceDataObject = new AppearanceObject();
+  // camera is created deep down inside m_viewerWindow.
+  m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
+  m_appearanceDataObject = new AppearanceDataObject(rs, scene);
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -139,7 +141,7 @@ GLView3D::onNewImage(Scene* scene)
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
 
-  m_appearanceDataObject->updatePropsFromObject();
+  m_appearanceDataObject->updatePropsFromRenderSettings();
 }
 
 GLView3D::~GLView3D()
