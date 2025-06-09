@@ -366,7 +366,8 @@ agaveGui::setupCameraDock(CameraDataObject* cdo)
 void
 agaveGui::setupAppearanceDock(AppearanceDataObject* ado)
 {
-  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, ado);
+  // DANGER see borrowRenderer call
+  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, m_glView->borrowRenderer(), ado);
   m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
 

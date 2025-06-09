@@ -5,10 +5,14 @@
 
 #include "renderlib/uiInfo.hpp"
 #include "renderlib/AppearanceUiDescription.hpp"
+#include "renderlib/ViewerWindow.h"
 
 #include <QLabel>
 
-QAppearanceWidget2::QAppearanceWidget2(QWidget* pParent, RenderSettings* rs, AppearanceDataObject* cdo)
+QAppearanceWidget2::QAppearanceWidget2(QWidget* pParent,
+                                       RenderSettings* rs,
+                                       ViewerWindow* vw,
+                                       AppearanceDataObject* cdo)
   : QWidget(pParent)
   , m_MainLayout()
   , m_renderSettings(rs)
@@ -46,9 +50,14 @@ QAppearanceWidget2::QAppearanceWidget2(QWidget* pParent, RenderSettings* rs, App
   QCheckBox* showScaleBarCheckBox =
     addRow(AppearanceUiDescription::m_showScaleBar, &m_appearanceDataObject->ShowScaleBar);
   m_MainLayout.addRow("Show Scale Bar", showScaleBarCheckBox);
-  // QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this](int index) {
-  //   this->m_appearanceDataObject->RendererType.setValue(index);
-  // });
+
+  //  QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
+  // QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
+
+  QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this, &vw](int index) { vw->setRenderer(index); });
+  QObject::connect(shadingType, &QComboBox::currentIndexChanged, [this, &gradientFactor](int index) {
+    gradientFactor->setEnabled(index == 2);
+  });
 }
 
 QSize
