@@ -12,13 +12,17 @@
 #include <QWidget>
 
 class RenderSettings;
+class ViewerWindow;
 
 class QAppearanceWidget2 : public QWidget
 {
   Q_OBJECT
 
 public:
-  QAppearanceWidget2(QWidget* pParent = NULL, RenderSettings* rs = nullptr, AppearanceDataObject* cdo = nullptr);
+  QAppearanceWidget2(QWidget* pParent = NULL,
+                     RenderSettings* rs = nullptr,
+                     ViewerWindow* vw = nullptr,
+                     AppearanceDataObject* cdo = nullptr);
 
   virtual QSize sizeHint() const;
 
