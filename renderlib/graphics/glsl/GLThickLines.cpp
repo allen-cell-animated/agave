@@ -1,12 +1,10 @@
 #include "GLThickLines.h"
 
+#include "glm.h"
 #include "shaders.h"
 
 #include <vector>
 #include <string>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 // * create an array with the points of the line strip.
 // * first and last point define the tangents of the start and end of the line strip,

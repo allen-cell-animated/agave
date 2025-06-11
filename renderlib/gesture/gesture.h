@@ -1,10 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "BoundingBox.h"
 #include "CCamera.h"
 #include "Font.h"
+#include "glm.h"
 #include "SceneView.h"
 
 #include <algorithm>
