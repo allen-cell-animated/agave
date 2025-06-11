@@ -291,6 +291,9 @@ void
 GLView3D::FitToScene(float transitionDurationSeconds)
 {
   Scene* sc = m_viewerWindow->m_renderer->scene();
+  if (!sc) {
+    return;
+  }
 
   glm::vec3 newPosition, newTarget;
   m_viewerWindow->m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
