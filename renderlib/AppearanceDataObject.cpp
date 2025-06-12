@@ -27,7 +27,7 @@ AppearanceDataObject::updatePropsFromRenderSettings()
 {
   if (m_renderSettings) {
     ShadingType.set(m_renderSettings->m_RenderSettings.m_ShadingType);
-    // RendererType.set(m_renderSettings->m_RenderSettings.m_RendererType);
+    RendererType.set(m_renderSettings->m_rendererType);
     DensityScale.set(m_renderSettings->m_RenderSettings.m_DensityScale);
     GradientFactor.set(m_renderSettings->m_RenderSettings.m_GradientFactor);
     StepSizePrimaryRay.set(m_renderSettings->m_RenderSettings.m_StepSizeFactor);
@@ -51,7 +51,7 @@ AppearanceDataObject::update()
   // update low-level object from properties
   if (m_renderSettings) {
     m_renderSettings->m_RenderSettings.m_ShadingType = ShadingType.get();
-    // m_renderSettings->m_RenderSettings.m_RendererType = RendererType.get();
+    m_renderSettings->m_rendererType = RendererType.get();
     m_renderSettings->m_RenderSettings.m_DensityScale = DensityScale.get();
     m_renderSettings->m_RenderSettings.m_GradientFactor = GradientFactor.get();
     m_renderSettings->m_RenderSettings.m_StepSizeFactor = StepSizePrimaryRay.get();
