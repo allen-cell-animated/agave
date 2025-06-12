@@ -99,12 +99,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
-  , m_DensityScaleSlider()
-  , m_RendererType()
-  , m_ShadingType()
-  , m_GradientFactorSlider()
-  , m_StepSizePrimaryRaySlider()
-  , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
   , m_scene(nullptr)
 {
@@ -221,12 +215,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   lineA->setFrameShape(QFrame::HLine);
   lineA->setFrameShadow(QFrame::Sunken);
   m_MainLayout.addRow(lineA);
-
-  QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
-  QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
-  // QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
-
-  QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
 void
@@ -683,29 +671,9 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
 }
 
 void
-QAppearanceSettingsWidget::OnRenderBegin(void)
-{
-  m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale());
-  m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
-  m_GradientFactorSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_GradientFactor);
-
-  m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
-  m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow,
-                                        true);
-  m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
-}
-
-void
 QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
 {
   m_qrendersettings->SetDensityScale(DensityScale);
-}
-
-void
-QAppearanceSettingsWidget::OnSetShadingType(int Index)
-{
-  m_qrendersettings->SetShadingType(Index);
-  m_GradientFactorSlider.setEnabled(Index == 2);
 }
 
 void
@@ -732,14 +700,6 @@ QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecon
 {
   m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
-}
-
-void
-QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
-{
-  m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale(), true);
-  m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
-  m_GradientFactorSlider.setValue(m_qrendersettings->GetGradientFactor(), true);
 }
 
 void
@@ -971,19 +931,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   if (!scene->m_volume) {
     return;
   }
-
-  m_DensityScaleSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_DensityScale);
-  m_ShadingType.setCurrentIndex(m_qrendersettings->renderSettings()->m_RenderSettings.m_ShadingType);
-  m_GradientFactorSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_GradientFactor);
-
-  m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor);
-  m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
-  m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
-
-  QColor cbg = QColor::fromRgbF(m_scene->m_material.m_backgroundColor[0],
-                                m_scene->m_material.m_backgroundColor[1],
-                                m_scene->m_material.m_backgroundColor[2]);
-  m_backgroundColorButton.SetColor(cbg);
 
   size_t xmax = m_scene->m_volume->sizeX() - 1;
   size_t ymax = m_scene->m_volume->sizeY() - 1;

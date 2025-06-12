@@ -7,12 +7,30 @@ CameraDataObject::CameraDataObject(CCamera* camera)
 {
   updatePropsFromCamera();
   // hook up properties to update the underlying camera
-  Exposure.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  ExposureIterations.addCallback([this](prtyProperty<int>* p, bool) { update(); });
-  NoiseReduction.addCallback([this](prtyProperty<bool>* p, bool) { update(); });
-  ApertureSize.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  FieldOfView.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  FocalDistance.addCallback([this](prtyProperty<float>* p, bool) { update(); });
+  Exposure.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  ExposureIterations.addCallback([this](prtyProperty<int>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  NoiseReduction.addCallback([this](prtyProperty<bool>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  ApertureSize.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  FieldOfView.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  FocalDistance.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
 }
 
 void
