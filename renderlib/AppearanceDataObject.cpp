@@ -8,17 +8,50 @@ AppearanceDataOject::AppearanceDataOject(RenderSettings* renderSettings)
 {
   updatePropsFromRenderSettings();
   // hook up properties to update the underlying camera
-  RendererType.addCallback([this](prtyProperty<uint8_t>* p, bool) { update(); });
-  ShadingType.addCallback([this](prtyProperty<uint8_t>* p, bool) { update(); });
-  DensityScale.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  GradientFactor.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  StepSizePrimaryRay.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  StepSizeSecondaryRay.addCallback([this](prtyProperty<float>* p, bool) { update(); });
-  Interpolate.addCallback([this](prtyProperty<bool>* p, bool) { update(); });
-  BackgroundColor.addCallback([this](prtyProperty<glm::vec3>* p, bool) { update(); });
-  ShowBoundingBox.addCallback([this](prtyProperty<bool>* p, bool) { update(); });
-  BoundingBoxColor.addCallback([this](prtyProperty<glm::vec3>* p, bool) { update(); });
-  ShowScaleBar.addCallback([this](prtyProperty<bool>* p, bool) { update(); });
+  RendererType.addCallback([this](prtyProperty<int>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  ShadingType.addCallback([this](prtyProperty<int>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  DensityScale.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  GradientFactor.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  StepSizePrimaryRay.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  StepSizeSecondaryRay.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  Interpolate.addCallback([this](prtyProperty<bool>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  BackgroundColor.addCallback([this](prtyProperty<glm::vec3>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  ShowBoundingBox.addCallback([this](prtyProperty<bool>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  BoundingBoxColor.addCallback([this](prtyProperty<glm::vec3>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
+  ShowScaleBar.addCallback([this](prtyProperty<bool>* p, bool fromUi) {
+    if (fromUi)
+      update();
+  });
 }
 
 void

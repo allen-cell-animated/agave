@@ -55,17 +55,10 @@ QAppearanceWidget2::QAppearanceWidget2(QWidget* pParent, RenderSettings* rs, Vie
   // QCheckBox* showScaleBarCheckBox = addRow(*m_appearanceDataObject->getShowScaleBarUiInfo());
   // m_MainLayout.addRow("Show Scale Bar", showScaleBarCheckBox);
 
-  // QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this, vw](int index) { vw->setRenderer(index); });
-  // QObject::connect(shadingType, &QComboBox::currentIndexChanged, [this, gradientFactor](int index) {
-  //   gradientFactor->setEnabled(index == 2);
-  // });
-  m_appearanceObject->getRendererTypeUiInfo()->GetProperty(0)->AddCallback(
-    new prtyCallbackLambda([this, vw](prtyProperty* i_Property, bool i_bDirty) {
-      if (i_bDirty) {
-        const int newvalue = (static_cast<prtyInt8*>(i_Property))->GetValue();
-        vw->setRenderer(newvalue);
-      }
-    }));
+  QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this, vw](int index) { vw->setRenderer(index); });
+  QObject::connect(shadingType, &QComboBox::currentIndexChanged, [this, gradientFactor](int index) {
+    gradientFactor->setEnabled(index == 2);
+  });
 }
 
 QSize
