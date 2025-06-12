@@ -7,29 +7,29 @@ CameraDataObject::CameraDataObject(CCamera* camera)
 {
   updatePropsFromCamera();
   // hook up properties to update the underlying camera
-  Exposure.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting exposure to " << p->get();
-    update();
+  Exposure.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
   });
-  ExposureIterations.addCallback([this](prtyProperty<int>* p, bool) {
-    // LOG_DEBUG << "Setting exposure iterations to " << p->get();
-    update();
+  ExposureIterations.addCallback([this](prtyProperty<int>* p, bool fromUi) {
+    if (fromUi)
+      update();
   });
-  NoiseReduction.addCallback([this](prtyProperty<bool>* p, bool) {
-    // LOG_DEBUG << "Setting noise reduction to " << p->get();
-    update();
+  NoiseReduction.addCallback([this](prtyProperty<bool>* p, bool fromUi) {
+    if (fromUi)
+      update();
   });
-  ApertureSize.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting aperture size to " << p->get();
-    update();
+  ApertureSize.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
   });
-  FieldOfView.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting field of view to " << p->get();
-    update();
+  FieldOfView.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
   });
-  FocalDistance.addCallback([this](prtyProperty<float>* p, bool) {
-    // LOG_DEBUG << "Setting focal distance to " << p->get();
-    update();
+  FocalDistance.addCallback([this](prtyProperty<float>* p, bool fromUi) {
+    if (fromUi)
+      update();
   });
 }
 
