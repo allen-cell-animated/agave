@@ -51,9 +51,6 @@ QAppearanceWidget2::QAppearanceWidget2(QWidget* pParent,
     addRow(AppearanceUiDescription::m_showScaleBar, &m_appearanceDataObject->ShowScaleBar);
   m_MainLayout.addRow("Show Scale Bar", showScaleBarCheckBox);
 
-  //  QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
-  // QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
-
   QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this, vw](int index) { vw->setRenderer(index); });
   QObject::connect(shadingType, &QComboBox::currentIndexChanged, [this, gradientFactor](int index) {
     gradientFactor->setEnabled(index == 2);
