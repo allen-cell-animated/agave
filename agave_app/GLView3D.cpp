@@ -119,7 +119,7 @@ GLView3D::onNewImage(Scene* scene)
 {
   m_viewerWindow->m_renderer->setScene(scene);
   // costly teardown and rebuild.
-  this->OnUpdateRenderer(m_viewerWindow->m_rendererType);
+  this->OnUpdateRenderer(m_viewerWindow->m_renderSettings->m_rendererType);
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
 

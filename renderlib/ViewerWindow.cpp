@@ -17,7 +17,6 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
   , m_gestureRenderer(new GestureRendererGL())
-  , m_rendererType(1)
 {
   gesture.input.reset();
 
@@ -327,7 +326,7 @@ ViewerWindow::setRenderer(int rendererType)
       LOG_DEBUG << "Set OpenGL single pass Renderer";
       m_renderer.reset(new RenderGL(m_renderSettings));
   };
-  m_rendererType = rendererType;
+  m_renderSettings->m_rendererType = rendererType;
 
   // need to update the scene in QAppearanceSettingsWidget.
   m_renderer->setScene(sc);

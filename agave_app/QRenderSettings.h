@@ -32,6 +32,5 @@ signals:
   void Selected(SceneObject*);
 
 private:
-  int m_RendererType;
   RenderSettings* m_renderSettings;
 };

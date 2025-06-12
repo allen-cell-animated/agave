@@ -79,5 +79,4 @@ public:
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
 };
