@@ -45,6 +45,7 @@ AppearanceDataObject::updatePropsFromRenderSettings()
     ShowScaleBar.set(m_scene->m_showScaleBar);
   }
 }
+
 void
 AppearanceDataObject::update()
 {
