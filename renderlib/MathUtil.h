@@ -202,7 +202,7 @@ struct Plane
   }
   Plane(const glm::vec3& n, const glm::vec3& p)
     : normal(glm::normalize(n))
-    , d(glm::dot(normal, p)){};
+    , d(glm::dot(normal, p)) {};
 
   // the vec4 version satisfies the plane equation: dot(normal, p) = d but is of the form v0*x + v1*y + v2*z + v3 = 0
   // so you can do dot(asVec4, vec4(p,1)) = 0
@@ -215,4 +215,14 @@ struct Plane
   Plane transform(const Transform3d& transform) const;
 
   Transform3d getTransformTo(const Plane& p) const;
+
+  // Credit: https://stackoverflow.com/a/32410473/2373034
+  // Returns the intersection line of the 2 planes
+  static Ray GetIntersection(const Plane& p1, const Plane& p2)
+  {
+    glm::vec3 p3Normal = glm::cross(p1.normal, p2.normal);
+    float det = glm::length2(p3Normal);
+
+    return Ray(((glm::cross(p3Normal, p2.normal) * -p1.d) + (glm::cross(p1.normal, p3Normal) * -p2.d)) / det, p3Normal);
+  }
 };
