@@ -71,6 +71,7 @@ typedef std::vector<prtyProperty*> property_list;
 **		prtyControlMgr::DeInitialize();
 **		prtyCallbackMgr::DeInitialize();
 **
+**	Refer to test/prty application for an example.
 **
 **
 **
