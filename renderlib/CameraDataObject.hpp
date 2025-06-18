@@ -1,6 +1,8 @@
 #pragma once
 
-#include "core/prty/prtyProperty.h"
+#include "core/prty/prtyFloat.hpp"
+#include "core/prty/prtyInt8.hpp"
+#include "core/prty/prtyBoolean.hpp"
 #include "CCamera.h"
 
 class CameraDataObject
@@ -8,12 +10,12 @@ class CameraDataObject
 public:
   CameraDataObject(CCamera* camera);
 
-  prtyProperty<float> Exposure{ "Exposure", 0.75f };
-  prtyProperty<int> ExposureIterations{ "ExposureIterations", 1 };
-  prtyProperty<bool> NoiseReduction{ "NoiseReduction", false };
-  prtyProperty<float> ApertureSize{ "ApertureSize", 0.0f };
-  prtyProperty<float> FieldOfView{ "FieldOfView", 30.0f };
-  prtyProperty<float> FocalDistance{ "FocalDistance", 0.0f };
+  prtyFloat Exposure{ "Exposure", 0.75f };
+  prtyInt8 ExposureIterations{ "ExposureIterations", 1 };
+  prtyBoolean NoiseReduction{ "NoiseReduction", false };
+  prtyFloat ApertureSize{ "ApertureSize", 0.0f };
+  prtyFloat FieldOfView{ "FieldOfView", 30.0f };
+  prtyFloat FocalDistance{ "FocalDistance", 0.0f };
 
   CCamera* m_camera;
 
