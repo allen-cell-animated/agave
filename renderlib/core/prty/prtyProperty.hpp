@@ -46,7 +46,7 @@
 **		prtyControlMgr::DeInitialize();
 **		prtyCallbackMgr::DeInitialize();
 **
-**	Refer to TestTerawatt/Tools/prty application for an example.
+**	Refer to test/prty application for an example.
 **
 **
 **
@@ -152,7 +152,7 @@ public:
   prtyProperty& operator=(const prtyProperty& i_Property);
 
   //--------------------------------------------------------------------
-  // AddCallback using interface, used by unmanaged classes.
+  // AddCallback using interface.
   //
   //	NOTE: This property will take ownership of the callback
   //	pointer and will delete it in its destructor! It should be
