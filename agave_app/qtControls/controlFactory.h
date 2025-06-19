@@ -1,7 +1,11 @@
 #pragma once
 
 #include "renderlib/uiInfo.hpp"
-#include "renderlib/core/prty/prtyProperty.h"
+#include "renderlib/core/prty/prtyColor.hpp"
+#include "renderlib/core/prty/prtyBoolean.hpp"
+#include "renderlib/core/prty/prtyFloat.hpp"
+#include "renderlib/core/prty/prtyInt32.hpp"
+#include "renderlib/core/prty/prtyInt8.hpp"
 #include "renderlib/glm.h"
 
 #include <memory>
@@ -12,28 +16,28 @@ class QComboBox;
 class QColorPushButton;
 
 QNumericSlider*
-create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<float>> prop);
+create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop);
 
 QNumericSlider*
-create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<int>> prop);
+create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyInt32> prop);
 
 QCheckBox*
-create(const CheckBoxUiInfo* info, std::shared_ptr<prtyProperty<bool>> prop);
+create(const CheckBoxUiInfo* info, std::shared_ptr<prtyBoolean> prop);
 
 QComboBox*
-create(const ComboBoxUiInfo* info, std::shared_ptr<prtyProperty<int>> prop);
+create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop);
 
 QNumericSlider*
-addRow(const FloatSliderSpinnerUiInfo& info, prtyProperty<float>* prop);
+addRow(const FloatSliderSpinnerUiInfo& info, prtyFloat* prop);
 
 QNumericSlider*
-addRow(const IntSliderSpinnerUiInfo& info, prtyProperty<int>* prop);
+addRow(const IntSliderSpinnerUiInfo& info, prtyInt32* prop);
 
 QComboBox*
-addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop);
+addRow(const ComboBoxUiInfo& info, prtyInt8* prop);
 
 QCheckBox*
-addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop);
+addRow(const CheckBoxUiInfo& info, prtyBoolean* prop);
 
 QColorPushButton*
-addRow(const ColorPickerUiInfo& info, prtyProperty<glm::vec3>* prop);
+addRow(const ColorPickerUiInfo& info, prtyColor* prop);
