@@ -6,6 +6,7 @@
 **
 **
 \****************************************************************************/
+#pragma once
 #ifdef PRTY_PROPERTYTEMPLATE_HPP
 #error prtyPropertyTemplate.hpp multiply included
 #endif

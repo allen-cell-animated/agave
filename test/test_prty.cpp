@@ -2,66 +2,70 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "core/prty/prtyProperty.h"
+#include "core/prty/prtyProperty.hpp"
+#include "core/prty/prtyInt8.hpp"
+#include "core/prty/prtyText.hpp"
+#include "core/prty/prtyPropertyTemplate.hpp"
 
 #include <string>
 #include <iostream>
 
 TEST_CASE("prtyProperty", "[prtyProperty]")
 {
-  prtyProperty<int> p("int");
+  prtyInt8 p("int");
 
   // no init value
   // REQUIRE(p.get() == 0);
-  p.set(42);
-  REQUIRE(p.get() == 42);
+  p.SetValue(42);
+  REQUIRE(p.GetValue() == 42);
 
-  prtyProperty<std::string> p2("string", "hello");
-  REQUIRE(p2.get() == "hello");
-  p2.set("world");
-  REQUIRE(p2.get() == "world");
+  prtyText p2("string", "hello");
+  REQUIRE(p2.GetValue() == "hello");
+  p2.SetValue("world");
+  REQUIRE(p2.GetValue() == "world");
 }
 
 // test prtyProperty callbacks
 
 TEST_CASE("prtyProperty callbacks", "[prtyProperty]")
 {
-  prtyProperty<int> p("int");
+
+  prtyInt8 p("int");
   int count = 0;
-  p.addCallback([&count](prtyProperty<int>*, bool) { count++; });
+
+  p.AddCallback(new prtyCallbackLambda([&count](prtyProperty*, bool) { count++; }));
   REQUIRE(count == 0);
-  p.set(42);
+  p.SetValue(42);
   REQUIRE(count == 1);
-  // callback fires even if value doesn't change
-  p.set(42);
+  p.SetValue(42);
+  REQUIRE(count == 1);
+  p.SetValue(43);
   REQUIRE(count == 2);
-  p.set(43);
-  REQUIRE(count == 3);
 }
 
 // test behavior of copying a prtyProperty with callbacks
 
 TEST_CASE("prtyProperty copy", "[prtyProperty]")
 {
-  prtyProperty<int> p("int");
+  prtyInt8 p("int");
   int count = 0;
-  p.addCallback([&count](prtyProperty<int>*, bool) { count++; });
+  p.AddCallback(new prtyCallbackLambda([&count](prtyProperty*, bool) { count++; }));
   REQUIRE(count == 0);
-  p.set(42);
+  p.SetValue(42);
   REQUIRE(count == 1);
 
-  prtyProperty<int> p2 = p;
-  REQUIRE(p2.get() == p.get());
-  REQUIRE(p2.getName() == p.getName());
+  prtyInt8 p2 = p;
+  REQUIRE(p2.GetValue() == p.GetValue());
+  REQUIRE(p2.GetPropertyName() == p.GetPropertyName());
   // callback not copied
   REQUIRE(count == 1);
-  p2.set(43);
+  p2.SetValue(43);
   REQUIRE(count == 1);
-  p.set(44);
+  p.SetValue(44);
   REQUIRE(count == 2);
 
-  REQUIRE(p2.get() == 43);
-  REQUIRE(p.get() == 44);
+  REQUIRE(p2.GetValue() == 43);
+  REQUIRE(p.GetValue() == 44);
 }
 
 // test a prtyProperty with a struct type
@@ -76,17 +80,38 @@ struct Foo
     os << "{ " << f.x << ", " << f.y << " }";
     return os;
   }
+
+  friend bool operator==(const Foo& lhs, const Foo& rhs) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+  friend bool operator!=(const Foo& lhs, const Foo& rhs) { return !(lhs == rhs); }
 };
 
 TEST_CASE("prtyProperty struct", "[prtyProperty]")
 {
-  prtyProperty<Foo> p("foo");
+  class prtyFoo : public prtyPropertyTemplate<Foo, const Foo&>
+  {
+  public:
+    prtyFoo(const std::string& i_Name)
+      : prtyPropertyTemplate<Foo, const Foo&>(i_Name, { 0, 0 })
+    {
+    }
+
+    virtual const char* GetType() override { return "Foo"; }
+    virtual void Read(chReader& io_Reader) override
+    {
+      // Implement reading from a reader if needed
+    }
+    virtual void Write(chWriter& io_Writer) const override
+    {
+      // Implement writing to a writer if needed
+    }
+  };
+  prtyFoo p("foo");
   Foo f = { 1, 2 };
-  p.set(f);
-  REQUIRE(p.get().x == 1);
-  REQUIRE(p.get().y == 2);
+  p.SetValue(f);
+  REQUIRE(p.GetValue().x == 1);
+  REQUIRE(p.GetValue().y == 2);
   Foo f2 = { 3, 4 };
-  p.set(f2);
-  REQUIRE(p.get().x == 3);
-  REQUIRE(p.get().y == 4);
+  p.SetValue(f2);
+  REQUIRE(p.GetValue().x == 3);
+  REQUIRE(p.GetValue().y == 4);
 }
