@@ -68,13 +68,15 @@ AppearanceDataObject::updatePropsFromRenderSettings()
     Interpolate.SetValue(m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
   }
   if (m_scene) {
-    BackgroundColor.SetValue(glm::vec3(m_scene->m_material.m_backgroundColor[0],
+    BackgroundColor.SetValue(glm::vec4(m_scene->m_material.m_backgroundColor[0],
                                        m_scene->m_material.m_backgroundColor[1],
-                                       m_scene->m_material.m_backgroundColor[2]));
+                                       m_scene->m_material.m_backgroundColor[2],
+                                       1.0f));
     ShowBoundingBox.SetValue(m_scene->m_material.m_showBoundingBox);
-    BoundingBoxColor.SetValue(glm::vec3(m_scene->m_material.m_boundingBoxColor[0],
+    BoundingBoxColor.SetValue(glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
                                         m_scene->m_material.m_boundingBoxColor[1],
-                                        m_scene->m_material.m_boundingBoxColor[2]));
+                                        m_scene->m_material.m_boundingBoxColor[2],
+                                        1.0f));
     ShowScaleBar.SetValue(m_scene->m_showScaleBar);
   }
 }
