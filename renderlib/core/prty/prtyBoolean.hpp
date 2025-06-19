@@ -6,6 +6,7 @@
 **
 **
 \****************************************************************************/
+#pragma once
 #ifdef PRTY_BOOLEAN_HPP
 #error prtyBoolean.hpp multiply included
 #endif

@@ -14,6 +14,8 @@
 #endif
 #define PRTY_PROPERTYCALLBACK_HPP
 
+#include <functional>
+
 //============================================================================
 //	forward references
 //============================================================================
@@ -27,7 +29,7 @@ class prtyPropertyCallback
 public:
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  virtual ~prtyPropertyCallback() = 0;
+  virtual ~prtyPropertyCallback() {}
 
   //--------------------------------------------------------------------
   // PropertyChanged is called when a property's value is changed
@@ -56,5 +58,21 @@ struct prtyCallbackWrapper : public prtyPropertyCallback
   virtual void PropertyChanged(prtyProperty* i_pProperty, bool i_bWithUndo)
   {
     (obj_ptr->*func_ptr)(i_pProperty, i_bWithUndo);
+  }
+};
+
+class prtyCallbackLambda : public prtyPropertyCallback
+{
+  std::function<void(prtyProperty*, bool)> m_Callback;
+
+public:
+  prtyCallbackLambda(std::function<void(prtyProperty*, bool)> i_Callback)
+    : m_Callback(i_Callback)
+  {
+  }
+
+  virtual void PropertyChanged(prtyProperty* i_pProperty, bool i_bWithUndo) override
+  {
+    m_Callback(i_pProperty, i_bWithUndo);
   }
 };

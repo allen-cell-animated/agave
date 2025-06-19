@@ -2,7 +2,7 @@
 
 #include "qtControls/Controls.h"
 
-#include "renderlib/core/prty/prtyProperty.h"
+// #include "renderlib/core/prty/prtyProperty.h"
 #include "renderlib/AppearanceDataObject.hpp"
 #include "renderlib/Logging.h"
 

@@ -6,6 +6,7 @@
 **
 **
 \****************************************************************************/
+#pragma once
 #ifdef PRTY_FLOAT_HPP
 #error prtyFloat.hpp multiply included
 #endif
