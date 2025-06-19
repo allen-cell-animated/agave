@@ -3,7 +3,7 @@
 #include "Camera.h"
 #include "qtControls/Controls.h"
 
-#include "renderlib/core/prty/prtyProperty.h"
+// #include "renderlib/core/prty/prtyProperty.h"
 #include "renderlib/CameraDataObject.hpp"
 #include "renderlib/Logging.h"
 
