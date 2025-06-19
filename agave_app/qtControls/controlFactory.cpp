@@ -3,7 +3,7 @@
 #include "Controls.h"
 
 QNumericSlider*
-create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<float>> prop)
+create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop)
 {
   QNumericSlider* slider = new QNumericSlider();
   slider->setStatusTip(QString::fromStdString(info->statusTip));
@@ -14,15 +14,16 @@ create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<float>
   slider->setNumTickMarks(info->numTickMarks);
   slider->setSuffix(QString::fromStdString(info->suffix));
 
-  slider->setValue(prop->get(), true);
-  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  slider->setValue(prop->GetValue(), true);
+  QObject::connect(
+    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
   // TODO how would this capture the "previous" value, for undo?
-  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
 QNumericSlider*
-create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<int>> prop)
+create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyInt32> prop)
 {
   QNumericSlider* slider = new QNumericSlider();
   slider->setStatusTip(QString::fromStdString(info->statusTip));
@@ -32,28 +33,29 @@ create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyProperty<int>> pr
   slider->setNumTickMarks(info->numTickMarks);
   slider->setSuffix(QString::fromStdString(info->suffix));
 
-  slider->setValue(prop->get(), true);
-  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  slider->setValue(prop->GetValue(), true);
+  QObject::connect(
+    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
   // TODO how would this capture the "previous" value, for undo?
-  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
 QCheckBox*
-create(const CheckBoxUiInfo* info, std::shared_ptr<prtyProperty<bool>> prop)
+create(const CheckBoxUiInfo* info, std::shared_ptr<prtyBoolean> prop)
 {
   QCheckBox* checkBox = new QCheckBox();
   checkBox->setStatusTip(QString::fromStdString(info->statusTip));
   checkBox->setToolTip(QString::fromStdString(info->toolTip));
   // checkBox->setText(QString::fromStdString(info->formLabel));
-  checkBox->setCheckState(prop->get() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+  checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
   QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
-    prop->set(state == Qt::CheckState::Checked, true);
+    prop->SetValue(state == Qt::CheckState::Checked, true);
   });
   return checkBox;
 }
 QComboBox*
-create(const ComboBoxUiInfo* info, std::shared_ptr<prtyProperty<int>> prop)
+create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop)
 {
   QComboBox* comboBox = new QComboBox();
   comboBox->setStatusTip(QString::fromStdString(info->statusTip));
@@ -61,13 +63,14 @@ create(const ComboBoxUiInfo* info, std::shared_ptr<prtyProperty<int>> prop)
   for (const auto& item : info->items) {
     comboBox->addItem(QString::fromStdString(item));
   }
-  comboBox->setCurrentIndex(prop->get());
-  QObject::connect(comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->set(index, true); });
+  comboBox->setCurrentIndex(prop->GetValue());
+  QObject::connect(
+    comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
   return comboBox;
 }
 
 QNumericSlider*
-addRow(const FloatSliderSpinnerUiInfo& info, prtyProperty<float>* prop)
+addRow(const FloatSliderSpinnerUiInfo& info, prtyFloat* prop)
 {
   QNumericSlider* slider = new QNumericSlider();
   slider->setStatusTip(QString::fromStdString(info.statusTip));
@@ -78,15 +81,16 @@ addRow(const FloatSliderSpinnerUiInfo& info, prtyProperty<float>* prop)
   slider->setNumTickMarks(info.numTickMarks);
   slider->setSuffix(QString::fromStdString(info.suffix));
 
-  slider->setValue(prop->get(), true);
-  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  slider->setValue(prop->GetValue(), true);
+  QObject::connect(
+    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
   // TODO how would this capture the "previous" value, for undo?
-  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
 QNumericSlider*
-addRow(const IntSliderSpinnerUiInfo& info, prtyProperty<int>* prop)
+addRow(const IntSliderSpinnerUiInfo& info, prtyInt32* prop)
 {
   QNumericSlider* slider = new QNumericSlider();
   slider->setStatusTip(QString::fromStdString(info.statusTip));
@@ -96,16 +100,17 @@ addRow(const IntSliderSpinnerUiInfo& info, prtyProperty<int>* prop)
   slider->setNumTickMarks(info.numTickMarks);
   slider->setSuffix(QString::fromStdString(info.suffix));
 
-  slider->setValue(prop->get(), true);
-  QObject::connect(slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->set(value, true); });
+  slider->setValue(prop->GetValue(), true);
+  QObject::connect(
+    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
   // TODO how would this capture the "previous" value, for undo?
-  QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->notifyAll(true); });
+  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
 
 QComboBox*
-addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop)
+addRow(const ComboBoxUiInfo& info, prtyInt8* prop)
 {
   QComboBox* comboBox = new QComboBox();
   comboBox->setStatusTip(QString::fromStdString(info.statusTip));
@@ -113,37 +118,38 @@ addRow(const ComboBoxUiInfo& info, prtyProperty<int>* prop)
   for (const auto& item : info.items) {
     comboBox->addItem(QString::fromStdString(item));
   }
-  comboBox->setCurrentIndex(prop->get());
-  QObject::connect(comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->set(index, true); });
+  comboBox->setCurrentIndex(prop->GetValue());
+  QObject::connect(
+    comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
   return comboBox;
 }
 
 QCheckBox*
-addRow(const CheckBoxUiInfo& info, prtyProperty<bool>* prop)
+addRow(const CheckBoxUiInfo& info, prtyBoolean* prop)
 {
   QCheckBox* checkBox = new QCheckBox();
   checkBox->setStatusTip(QString::fromStdString(info.statusTip));
   checkBox->setToolTip(QString::fromStdString(info.toolTip));
   // checkBox->setText(QString::fromStdString(info.formLabel));
-  checkBox->setCheckState(prop->get() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+  checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
   QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
-    prop->set(state == Qt::CheckState::Checked, true);
+    prop->SetValue(state == Qt::CheckState::Checked, true);
   });
   return checkBox;
 }
 
 QColorPushButton*
-addRow(const ColorPickerUiInfo& info, prtyProperty<glm::vec3>* prop)
+addRow(const ColorPickerUiInfo& info, prtyColor* prop)
 {
   QColorPushButton* colorButton = new QColorPushButton();
   colorButton->setStatusTip(QString::fromStdString(info.statusTip));
   colorButton->setToolTip(QString::fromStdString(info.toolTip));
-  QColor c = QColor::fromRgbF(prop->get().r, prop->get().g, prop->get().b);
+  QColor c = QColor::fromRgbF(prop->GetValue().r, prop->GetValue().g, prop->GetValue().b);
   colorButton->SetColor(c, true);
   QObject::connect(colorButton, &QColorPushButton::currentColorChanged, [colorButton, prop](const QColor& c) {
     // Convert QColor to glm::vec3
-    glm::vec3 color(c.redF(), c.greenF(), c.blueF());
-    prop->set(color, true);
+    glm::vec4 color(c.redF(), c.greenF(), c.blueF(), 1.0f);
+    prop->SetValue(color, true);
   });
   return colorButton;
 }

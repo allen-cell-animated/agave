@@ -1326,10 +1326,10 @@ agaveGui::appToViewerState()
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
   CameraDataObject* cdo = m_glView->getCameraDataObject();
-  v.camera.fovY = cdo->FieldOfView.get();
-  v.camera.exposure = cdo->Exposure.get();
-  v.camera.aperture = cdo->ApertureSize.get();
-  v.camera.focalDistance = cdo->FocalDistance.get();
+  v.camera.fovY = cdo->FieldOfView.GetValue();
+  v.camera.exposure = cdo->Exposure.GetValue();
+  v.camera.aperture = cdo->ApertureSize.GetValue();
+  v.camera.focalDistance = cdo->FocalDistance.GetValue();
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
   v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
 
