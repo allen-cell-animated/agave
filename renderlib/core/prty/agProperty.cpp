@@ -1,89 +1,34 @@
-/****************************************************************************\
-**	prtyProperty.cpp
-**
-**		see .hpp
-**
-**
-**
-\****************************************************************************/
-#include "core/prty/prtyProperty.hpp"
+#include "core/prty/agProperty.h"
 
 // #include "core/dbg/dbgMsg.hpp"
 #include "core/env/envSTLHelpers.hpp"
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-prtyProperty::prtyProperty()
-  : m_Name("property")
-  , m_bVisible(true)
-{
-  m_Flags.m_bAnimatable = false;
-  m_Flags.m_bScripted = false;
-  m_Flags.m_bValueVariation = false;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-prtyProperty::prtyProperty(const std::string& i_Name)
-  : m_Name(i_Name)
-  , m_bVisible(true)
-{
-  m_Flags.m_bAnimatable = false;
-  m_Flags.m_bScripted = false;
-  m_Flags.m_bValueVariation = false;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-prtyProperty::prtyProperty(const prtyProperty& i_Property)
-  : m_Name(i_Property.m_Name)
-  , m_bVisible(i_Property.m_bVisible)
-// m_Type(i_Property.m_Type)
-{
-  m_Flags.m_bAnimatable = false;
-  m_Flags.m_bScripted = false;
-  m_Flags.m_bValueVariation = false;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-prtyProperty::~prtyProperty()
-{
-  // if (!m_CallbackObjects.empty())
-  //{
-  //	DBG_LOG("Property destructor, num callback objects: %d" << m_CallbackObjects.size());
-  // }
-
-  // shared_ptr handles this for us now
-  // envSTLHelpers::DeleteContainer(this->m_CallbackObjects);
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 const std::string&
-prtyProperty::GetPropertyName() const
+agBaseProperty::GetPropertyName() const
 {
-  return m_Name;
+  return name;
 }
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
 void
-prtyProperty::SetPropertyName(const std::string& i_Name)
+agBaseProperty::SetPropertyName(const std::string& i_Name)
 {
-  m_Name = i_Name;
+  name = i_Name;
 }
 
 //--------------------------------------------------------------------
 // Animatable - can this property be animated?
 //--------------------------------------------------------------------
 bool
-prtyProperty::IsAnimatable() const
+agBaseProperty::IsAnimatable() const
 {
   return m_Flags.m_bAnimatable;
 }
 void
-prtyProperty::SetAnimatable(bool i_bVal)
+agBaseProperty::SetAnimatable(bool i_bVal)
 {
   m_Flags.m_bAnimatable = i_bVal;
 }
@@ -92,12 +37,12 @@ prtyProperty::SetAnimatable(bool i_bVal)
 // Scripted - Is this property currently being animated?
 //--------------------------------------------------------------------
 bool
-prtyProperty::IsScripted() const
+agBaseProperty::IsScripted() const
 {
   return m_Flags.m_bScripted;
 }
 void
-prtyProperty::SetScripted(bool i_bVal)
+agBaseProperty::SetScripted(bool i_bVal)
 {
   m_Flags.m_bScripted = i_bVal;
 }
@@ -106,12 +51,12 @@ prtyProperty::SetScripted(bool i_bVal)
 // ValueVariation - Does the current value vary from the scripted value?
 //--------------------------------------------------------------------
 bool
-prtyProperty::HasValueVariation() const
+agBaseProperty::HasValueVariation() const
 {
   return m_Flags.m_bValueVariation;
 }
 void
-prtyProperty::SetValueVariation(bool i_bVal)
+agBaseProperty::SetValueVariation(bool i_bVal)
 {
   m_Flags.m_bValueVariation = i_bVal;
 }
@@ -119,11 +64,11 @@ prtyProperty::SetValueVariation(bool i_bVal)
 //--------------------------------------------------------------------
 //	assignment operator - does not copy the callbacks
 //--------------------------------------------------------------------
-prtyProperty&
-prtyProperty::operator=(const prtyProperty& i_Property)
+agBaseProperty&
+agBaseProperty::operator=(const agBaseProperty& i_Property)
 {
   // m_Type = i_Property.m_Type;
-  m_Name = i_Property.m_Name;
+  name = i_Property.name;
 
   // flags should not be copied
   // m_Flags = i_Property.m_Flags;
@@ -140,10 +85,10 @@ prtyProperty::operator=(const prtyProperty& i_Property)
 //	prtyCallbackWrapper template.
 //--------------------------------------------------------------------
 void
-prtyProperty::AddCallback(prtyPropertyCallback* i_pCallback)
+agBaseProperty::AddCallback(agPropertyCallback* i_pCallback)
 {
   if (i_pCallback != NULL)
-    m_CallbackObjects.push_back(std::shared_ptr<prtyPropertyCallback>(i_pCallback));
+    m_CallbackObjects.push_back(std::shared_ptr<agPropertyCallback>(i_pCallback));
 }
 
 //--------------------------------------------------------------------
@@ -151,7 +96,7 @@ prtyProperty::AddCallback(prtyPropertyCallback* i_pCallback)
 //	keep a copy of the callback also.
 //--------------------------------------------------------------------
 void
-prtyProperty::AddCallback(std::shared_ptr<prtyPropertyCallback> i_pCallback)
+agBaseProperty::AddCallback(std::shared_ptr<agPropertyCallback> i_pCallback)
 {
   if (i_pCallback.get() != NULL)
     m_CallbackObjects.push_back(i_pCallback);
@@ -164,7 +109,7 @@ prtyProperty::AddCallback(std::shared_ptr<prtyPropertyCallback> i_pCallback)
 //	if you want to keep a copy.
 //--------------------------------------------------------------------
 void
-prtyProperty::RemoveCallback(std::shared_ptr<prtyPropertyCallback> i_pCallback)
+agBaseProperty::RemoveCallback(std::shared_ptr<agPropertyCallback> i_pCallback)
 {
   envSTLHelpers::RemoveOneValue(m_CallbackObjects, i_pCallback);
 }
@@ -173,7 +118,7 @@ prtyProperty::RemoveCallback(std::shared_ptr<prtyPropertyCallback> i_pCallback)
 //	call all the callbacks
 //--------------------------------------------------------------------
 void
-prtyProperty::NotifyCallbacksPropertyChanged(bool i_bWithUndo)
+agBaseProperty::NotifyCallbacksPropertyChanged(bool i_bWithUndo)
 {
   const int num_callbackobjs = m_CallbackObjects.size();
   for (int i = 0; i < num_callbackobjs; ++i) {
@@ -186,13 +131,13 @@ prtyProperty::NotifyCallbacksPropertyChanged(bool i_bWithUndo)
 // this property should be visible.
 //--------------------------------------------------------------------
 void
-prtyProperty::SetVisible(bool i_bVisible)
+agBaseProperty::SetVisible(bool i_bVisible)
 {
   m_bVisible = i_bVisible;
 }
 
 bool
-prtyProperty::GetVisible() const
+agBaseProperty::GetVisible() const
 {
   return m_bVisible;
 }
@@ -200,7 +145,7 @@ prtyProperty::GetVisible() const
 //--------------------------------------------------------------------
 //	The type of property it is
 //--------------------------------------------------------------------
-// const std::string& prtyProperty::GetType()
+// const std::string& agProperty::GetType()
 //{
 //	return m_Type;
 //}
@@ -208,7 +153,7 @@ prtyProperty::GetVisible() const
 //--------------------------------------------------------------------
 //	The type of property it is
 //--------------------------------------------------------------------
-// void prtyProperty::SetType(const std::string i_Type)
+// void agProperty::SetType(const std::string i_Type)
 //{
 //	m_Type = i_Type;
 //}

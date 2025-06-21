@@ -40,7 +40,7 @@ CameraDataObject::updatePropsFromCamera()
     Exposure.SetValue(1.0f - m_camera->m_Film.m_Exposure);
     ExposureIterations.SetValue(m_camera->m_Film.m_ExposureIterations);
     // TODO this is not hooked up to the camera properly
-    // NoiseReduction.set(m_camera->m_Film.m_NoiseReduction);
+    // NoiseReduction.SetValue(m_camera->m_Film.m_NoiseReduction);
     ApertureSize.SetValue(m_camera->m_Aperture.m_Size);
     FieldOfView.SetValue(m_camera->m_FovV);
     FocalDistance.SetValue(m_camera->m_Focus.m_FocalDistance);
