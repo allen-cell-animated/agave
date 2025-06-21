@@ -7,6 +7,8 @@
 **
 **
 \****************************************************************************/
+#pragma once
+
 #ifdef UNDO_UNDOOPERATION_HPP
 #error undoUndoOperation.hpp multiply included
 #endif

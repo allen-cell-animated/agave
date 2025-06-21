@@ -7,27 +7,26 @@
 **
 \****************************************************************************/
 #pragma once
-#ifdef PRTY_PROPERTYTEMPLATE_HPP
-#error prtyPropertyTemplate.hpp multiply included
-#endif
-#define PRTY_PROPERTYTEMPLATE_HPP
 
-#ifndef PRTY_PROPERTY_HPP
 #include "core/prty/prtyProperty.hpp"
-#endif
-#ifndef PRTY_UNDOTEMPLATE_HPP
 #include "core/prty/prtyUndoTemplate.hpp"
-#endif
+
+#include <iostream>
 
 //============================================================================
 //============================================================================
-template<typename ValueType, typename ConstRefType>
+template<typename ValueType,
+         typename = std::enable_if_t<
+           std::is_copy_constructible_v<ValueType> && std::is_copy_assignable_v<ValueType> &&
+           std::is_default_constructible_v<ValueType> && std::is_move_constructible_v<ValueType> &&
+           std::is_move_assignable_v<ValueType> &&
+           std::is_convertible_v<decltype(std::declval<std::ostream&>() << std::declval<ValueType>()), std::ostream&>>>
 class prtyPropertyTemplate : public prtyProperty
 {
 public:
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  prtyPropertyTemplate(const std::string& i_Name, ConstRefType i_InitialValue)
+  prtyPropertyTemplate(const std::string& i_Name, const ValueType& i_InitialValue)
     : prtyProperty(i_Name)
     , m_Value(i_InitialValue)
   {
@@ -36,15 +35,15 @@ public:
   //----------------------------------------------------------------------------
   // Get value of property
   //----------------------------------------------------------------------------
-  inline ConstRefType GetValue() const { return m_Value; }
+  inline const ValueType& GetValue() const { return m_Value; }
 
   //----------------------------------------------------------------------------
   // Set value of property. The boolean flag is true
   //	if the change is coming from the user interface and therefore
   //	should mark the document containing the property as dirty.
   //----------------------------------------------------------------------------
-  // void SetValue(ConstRefType i_Value, UndoFlags i_Undoable = eNoUndo)
-  void SetValue(ConstRefType i_Value, bool i_bDirty = false)
+  // void SetValue(const ValueType& i_Value, UndoFlags i_Undoable = eNoUndo)
+  void SetValue(const ValueType& i_Value, bool i_bDirty = false)
   {
     if (m_Value != i_Value) {
       m_Value = i_Value;
@@ -56,7 +55,7 @@ public:
   //--------------------------------------------------------------------
   // Set value of property without notifying the callbacks
   //--------------------------------------------------------------------
-  void SetValueWithoutNotify(ConstRefType i_Value) { m_Value = i_Value; }
+  void SetValueWithoutNotify(const ValueType& i_Value) { m_Value = i_Value; }
 
   //--------------------------------------------------------------------
   // Create and return undo operation of correct type for this property.
@@ -66,6 +65,35 @@ public:
   {
     return new prtyUndoTemplate<prtyPropertyTemplate, ValueType>(i_pPropertyRef, this->GetValue());
   }
+
+  prtyPropertyTemplate<ValueType>& operator=(const prtyPropertyTemplate<ValueType>& i_Property)
+  {
+    // copy base data
+    prtyProperty::operator=(i_Property);
+
+    SetValue(i_Property.GetValue());
+    return *this;
+  }
+
+  prtyPropertyTemplate<ValueType>& operator=(const ValueType& i_Value)
+  {
+    SetValue(i_Value);
+    return *this;
+  }
+
+  bool operator==(const prtyPropertyTemplate<ValueType>& i_Property) const
+  {
+    return GetValue() == i_Property.GetValue();
+  }
+
+  bool operator!=(const prtyPropertyTemplate<ValueType>& i_Property) const
+  {
+    return GetValue() != i_Property.GetValue();
+  }
+
+  bool operator==(const ValueType& i_Value) const { return GetValue() == i_Value; }
+
+  bool operator!=(const ValueType& i_Value) const { return GetValue() != i_Value; }
 
 protected:
   ValueType m_Value;

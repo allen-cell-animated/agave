@@ -19,6 +19,24 @@
 class prtyProperty;
 class prtyReferenceCreator;
 
+// TODO add statusTip and toolTip to prtyPropertyUIInfo
+// struct GenericUIInfo
+// {
+//   std::string type;
+//   std::string formLabel;
+//   std::string statusTip;
+//   std::string toolTip;
+
+//   GenericUIInfo() = default;
+//   GenericUIInfo(std::string type, std::string formLabel, std::string statusTip, std::string toolTip)
+//     : type(type)
+//     , formLabel(formLabel)
+//     , statusTip(statusTip)
+//     , toolTip(toolTip)
+//   {
+//   }
+// };
+
 //============================================================================
 //============================================================================
 class prtyPropertyUIInfo
