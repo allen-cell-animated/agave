@@ -18,9 +18,17 @@ TEST_CASE("prtyProperty", "[prtyProperty]")
   // REQUIRE(p.get() == 0);
   p.SetValue(42);
   REQUIRE(p.GetValue() == 42);
+  REQUIRE(p == 42);
+  REQUIRE(p.GetPropertyName() == "int");
+  REQUIRE(p.GetType() == "int8_t");
+  REQUIRE(p != 43);
 
   prtyText p2("string", "hello");
   REQUIRE(p2.GetValue() == "hello");
+  REQUIRE(p2.GetPropertyName() == "string");
+  REQUIRE(p2.GetType() == "std::string");
+  REQUIRE(p2 == "hello");
+  REQUIRE(p2 != "world");
   p2.SetValue("world");
   REQUIRE(p2.GetValue() == "world");
 }
