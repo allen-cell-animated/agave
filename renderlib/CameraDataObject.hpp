@@ -8,6 +8,11 @@
 class CameraDataObject
 {
 public:
+  CameraDataObject()
+    : m_camera(nullptr)
+  {
+    // updatePropsFromCamera();
+  }
   CameraDataObject(CCamera* camera);
 
   prtyFloat Exposure{ "Exposure", 0.75f };

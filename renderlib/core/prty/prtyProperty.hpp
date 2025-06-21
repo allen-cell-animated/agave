@@ -52,17 +52,9 @@
 **
 \****************************************************************************/
 #pragma once
-#ifdef PRTY_PROPERTY_HPP
-#error prtyProperty.hpp multiply included
-#endif
-#define PRTY_PROPERTY_HPP
 
-#ifndef PRTY_PROPERTYCALLBACK_HPP
 #include "core/prty/prtyPropertyCallback.hpp"
-#endif
-#ifndef UNDO_UNDOOPERATION_HPP
 #include "core/undo/undoUndoOperation.hpp"
-#endif
 
 #include <list>
 #include <memory>

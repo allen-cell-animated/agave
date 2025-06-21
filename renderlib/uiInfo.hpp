@@ -1,48 +1,62 @@
 #pragma once
 
+#include "core/prty/prtyPropertyUIInfo.hpp"
+
 #include <string>
 #include <vector>
 
-struct GenericUIInfo
+class CheckBoxUiInfo : public prtyPropertyUIInfo
 {
-  std::string type;
-  std::string formLabel;
-  std::string statusTip;
-  std::string toolTip;
-
-  GenericUIInfo() = default;
-  GenericUIInfo(std::string type, std::string formLabel, std::string statusTip, std::string toolTip)
-    : type(type)
-    , formLabel(formLabel)
-    , statusTip(statusTip)
-    , toolTip(toolTip)
-  {
-  }
-};
-struct CheckBoxUiInfo : public GenericUIInfo
-{
+public:
   static constexpr const char* TYPE = "CheckBox";
-
-  CheckBoxUiInfo() { type = CheckBoxUiInfo::TYPE; }
-  CheckBoxUiInfo(std::string formLabel, std::string statusTip, std::string toolTip)
-    : GenericUIInfo(CheckBoxUiInfo::TYPE, formLabel, statusTip, toolTip)
+  CheckBoxUiInfo(prtyProperty* i_pProperty)
+    : prtyPropertyUIInfo(i_pProperty)
   {
+    SetControlName(TYPE);
+  }
+  CheckBoxUiInfo(prtyProperty* i_pProperty, const std::string& i_Category, const std::string& i_Description)
+    : prtyPropertyUIInfo(i_pProperty, i_Category, i_Description)
+  {
+    SetControlName(TYPE);
   }
 };
-struct ComboBoxUiInfo : public GenericUIInfo
+
+class ColorPickerUiInfo : public prtyPropertyUIInfo
 {
+public:
+  static constexpr const char* TYPE = "ColorPicker";
+  ColorPickerUiInfo(prtyProperty* i_pProperty)
+    : prtyPropertyUIInfo(i_pProperty)
+  {
+    SetControlName(TYPE);
+  }
+  ColorPickerUiInfo(prtyProperty* i_pProperty, const std::string& i_Category, const std::string& i_Description)
+    : prtyPropertyUIInfo(i_pProperty, i_Category, i_Description)
+  {
+    SetControlName(TYPE);
+  }
+};
+
+class ComboBoxUiInfo : public prtyPropertyUIInfo
+{
+public:
   static constexpr const char* TYPE = "ComboBox";
   std::vector<std::string> items;
 
-  ComboBoxUiInfo() { type = ComboBoxUiInfo::TYPE; }
-  ComboBoxUiInfo(std::string formLabel, std::string statusTip, std::string toolTip, std::vector<std::string> items)
-    : GenericUIInfo(ComboBoxUiInfo::TYPE, formLabel, statusTip, toolTip)
-    , items(items)
+  ComboBoxUiInfo(prtyProperty* i_pProperty)
+    : prtyPropertyUIInfo(i_pProperty)
   {
+    SetControlName(TYPE);
+  }
+  ComboBoxUiInfo(prtyProperty* i_pProperty, const std::string& i_Category, const std::string& i_Description)
+    : prtyPropertyUIInfo(i_pProperty, i_Category, i_Description)
+  {
+    SetControlName(TYPE);
   }
 };
-struct FloatSliderSpinnerUiInfo : public GenericUIInfo
+class FloatSliderSpinnerUiInfo : public prtyPropertyUIInfo
 {
+public:
   static constexpr const char* TYPE = "FloatSliderSpinner";
   float min = 0.0f;
   float max = 0.0f;
@@ -51,28 +65,39 @@ struct FloatSliderSpinnerUiInfo : public GenericUIInfo
   int numTickMarks = 0;
   std::string suffix;
 
-  FloatSliderSpinnerUiInfo() { type = FloatSliderSpinnerUiInfo::TYPE; }
-  FloatSliderSpinnerUiInfo(std::string formLabel,
-                           std::string statusTip,
-                           std::string toolTip,
-                           float min,
-                           float max,
-                           int decimals,
-                           float singleStep,
-                           int numTickMarks = 0,
-                           std::string suffix = "")
-    : GenericUIInfo(FloatSliderSpinnerUiInfo::TYPE, formLabel, statusTip, toolTip)
-    , min(min)
-    , max(max)
-    , decimals(decimals)
-    , singleStep(singleStep)
-    , numTickMarks(numTickMarks)
-    , suffix(suffix)
+  FloatSliderSpinnerUiInfo(prtyProperty* i_pProperty)
+    : prtyPropertyUIInfo(i_pProperty)
   {
+    SetControlName(TYPE);
+  }
+  FloatSliderSpinnerUiInfo(prtyProperty* i_pProperty, const std::string& i_Category, const std::string& i_Description)
+    : prtyPropertyUIInfo(i_pProperty, i_Category, i_Description)
+  {
+    SetControlName(TYPE);
   }
 };
-struct IntSliderSpinnerUiInfo : public GenericUIInfo
+//                            std::string statusTip,
+//                            std::string toolTip,
+//                            float min,
+//                            float max,
+//                            int decimals,
+//                            float singleStep,
+//                            int numTickMarks = 0,
+//                            std::string suffix = "")
+//     : GenericUIInfo(FloatSliderSpinnerUiInfo::TYPE, formLabel, statusTip, toolTip)
+//     , min(min)
+//     , max(max)
+//     , decimals(decimals)
+//     , singleStep(singleStep)
+//     , numTickMarks(numTickMarks)
+//     , suffix(suffix)
+//   {
+//   }
+// };
+
+class IntSliderSpinnerUiInfo : public prtyPropertyUIInfo
 {
+public:
   static constexpr const char* TYPE = "IntSliderSpinner";
   int min;
   int max;
@@ -80,16 +105,15 @@ struct IntSliderSpinnerUiInfo : public GenericUIInfo
   int numTickMarks;
   std::string suffix;
 
-  IntSliderSpinnerUiInfo() { type = IntSliderSpinnerUiInfo::TYPE; }
-};
-
-struct ColorPickerUiInfo : public GenericUIInfo
-{
-  static constexpr const char* TYPE = "ColorPicker";
-
-  ColorPickerUiInfo() { type = ColorPickerUiInfo::TYPE; }
-  ColorPickerUiInfo(std::string formLabel, std::string statusTip, std::string toolTip)
-    : GenericUIInfo(ColorPickerUiInfo::TYPE, formLabel, statusTip, toolTip)
+  IntSliderSpinnerUiInfo(prtyProperty* i_pProperty)
+    : prtyPropertyUIInfo(i_pProperty)
   {
+    SetControlName(TYPE);
+  }
+
+  IntSliderSpinnerUiInfo(prtyProperty* i_pProperty, const std::string& i_Category, const std::string& i_Description)
+    : prtyPropertyUIInfo(i_pProperty, i_Category, i_Description)
+  {
+    SetControlName(TYPE);
   }
 };
