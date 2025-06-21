@@ -1,4 +1,7 @@
 target_sources(renderlib PRIVATE
+"${CMAKE_CURRENT_SOURCE_DIR}/agProperty.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/agProperty.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/agPropertyCallback.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/prtyBoolean.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/prtyBoolean.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/prtyColor.cpp"
