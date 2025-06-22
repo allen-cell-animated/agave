@@ -3,6 +3,7 @@
 #include "AppearanceDataObject.hpp"
 #include "core/prty/prtyObject.hpp"
 #include "RenderSettings.h"
+#include "AppScene.h"
 #include "uiInfo.hpp"
 
 struct AppearanceUiDescription
@@ -32,8 +33,9 @@ private:
   // the properties
   AppearanceDataObject m_appearanceDataObject;
 
-  // the actual camera
+  // the actual settings
   std::shared_ptr<RenderSettings> m_renderSettings;
+  std::weak_ptr<Scene> m_scene;
 
   // the ui info
   ComboBoxUiInfo* m_rendererType;
