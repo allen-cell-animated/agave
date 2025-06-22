@@ -5,14 +5,12 @@
 #include "core/prty/prtyBoolean.hpp"
 #include "core/prty/prtyVector3d.hpp"
 #include "core/prty/prtyColor.hpp"
-#include "AppScene.h"
-#include "RenderSettings.h"
 #include "glm.h"
 
 class AppearanceDataObject
 {
 public:
-  AppearanceDataObject(RenderSettings* rs, Scene* scene);
+  AppearanceDataObject();
 
   prtyInt8 RendererType{ "RendererType", 0 };
   prtyInt8 ShadingType{ "ShadingType", 0 };
@@ -25,12 +23,4 @@ public:
   prtyBoolean ShowBoundingBox{ "ShowBoundingBox", false };
   prtyColor BoundingBoxColor{ "BoundingBoxColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
   prtyBoolean ShowScaleBar{ "ShowScaleBar", false };
-
-  RenderSettings* m_renderSettings;
-  Scene* m_scene;
-
-  void updatePropsFromRenderSettings();
-
-private:
-  void update();
 };

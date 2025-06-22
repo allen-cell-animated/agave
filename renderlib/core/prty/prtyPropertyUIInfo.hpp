@@ -6,10 +6,7 @@
 **
 **
 \****************************************************************************/
-#ifdef PRTY_PROPERTYUIINFO_HPP
-#error prtyPropertyUIInfo.hpp multiply included
-#endif
-#define PRTY_PROPERTYUIINFO_HPP
+#pragma once
 
 #include <string>
 #include <vector>
