@@ -47,7 +47,7 @@
 CameraObject::CameraObject()
   : prtyObject()
 {
-  m_Camera = std::make_shared<CCamera>();
+  m_camera = std::make_shared<CCamera>();
   m_ExposureUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.Exposure, "Camera", "Exposure");
   m_ExposureIterationsUIInfo =
     new ComboBoxUiInfo(&m_cameraDataObject.ExposureIterations, "Camera", "Exposure Iterations");
@@ -55,4 +55,44 @@ CameraObject::CameraObject()
   m_ApertureSizeUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.ApertureSize, "Camera", "Aperture Size");
   m_FieldOfViewUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.FieldOfView, "Camera", "Field of View");
   m_FocalDistanceUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.FocalDistance, "Camera", "Focal Distance");
+}
+
+void
+CameraObject::updatePropsFromObject()
+{
+  if (m_camera) {
+    m_cameraDataObject.Exposure.SetValue(1.0f - m_camera->m_Film.m_Exposure);
+    m_cameraDataObject.ExposureIterations.SetValue(m_camera->m_Film.m_ExposureIterations);
+    // TODO this is not hooked up to the camera properly
+    // m_cameraDataObject.NoiseReduction.SetValue(m_camera->m_Film.m_NoiseReduction);
+    m_cameraDataObject.ApertureSize.SetValue(m_camera->m_Aperture.m_Size);
+    m_cameraDataObject.FieldOfView.SetValue(m_camera->m_FovV);
+    m_cameraDataObject.FocalDistance.SetValue(m_camera->m_Focus.m_FocalDistance);
+  }
+}
+void
+CameraObject::updateObjectFromProps()
+{
+  // update low-level camera object from properties
+  if (m_camera) {
+    m_camera->m_Film.m_Exposure = 1.0f - m_cameraDataObject.Exposure.GetValue();
+    m_camera->m_Film.m_ExposureIterations = m_cameraDataObject.ExposureIterations.GetValue();
+
+    // Aperture
+    m_camera->m_Aperture.m_Size = m_cameraDataObject.ApertureSize.GetValue();
+
+    // Projection
+    m_camera->m_FovV = m_cameraDataObject.FieldOfView.GetValue();
+
+    // Focus
+    m_camera->m_Focus.m_FocalDistance = m_cameraDataObject.FocalDistance.GetValue();
+
+    m_camera->Update();
+
+    // TODO noise reduction!!!
+
+    // TODO how can I hook this up automatically to the RenderSettings dirty flags?
+    // renderer should pick this up and do the right thing (TM)
+    m_camera->m_Dirty = true;
+  }
 }

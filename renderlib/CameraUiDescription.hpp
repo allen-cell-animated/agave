@@ -3,6 +3,7 @@
 #include "CameraDataObject.hpp"
 #include "uiInfo.hpp"
 #include "core/prty/prtyObject.hpp"
+#include "CCamera.h"
 
 struct CameraUiDescription
 {
@@ -27,7 +28,7 @@ private:
   CameraDataObject m_cameraDataObject;
 
   // the actual camera
-  std::shared_ptr<CCamera> m_Camera;
+  std::shared_ptr<CCamera> m_camera;
 
   // the ui info
   FloatSliderSpinnerUiInfo* m_ExposureUIInfo;
