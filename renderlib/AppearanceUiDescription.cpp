@@ -55,7 +55,7 @@
 AppearanceObject::AppearanceObject()
   : prtyObject()
 {
-  m_RenderSettings = std::make_shared<RenderSettings>();
+  m_renderSettings = std::make_shared<RenderSettings>();
   m_rendererType = new ComboBoxUiInfo(&m_appearanceDataObject.RendererType, "Appearance", "Renderer Type");
   m_shadingType = new ComboBoxUiInfo(&m_appearanceDataObject.ShadingType, "Appearance", "Shading Type");
   m_densityScale = new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.DensityScale, "Appearance", "Density Scale");
@@ -85,17 +85,17 @@ AppearanceObject::updatePropsFromObject()
     m_appearanceDataObject.StepSizeSecondaryRay.SetValue(m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow);
     m_appearanceDataObject.Interpolate.SetValue(m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling);
   }
-  if (m_scene) {
-    BackgroundColor.SetValue(glm::vec4(m_scene->m_material.m_backgroundColor[0],
-                                       m_scene->m_material.m_backgroundColor[1],
-                                       m_scene->m_material.m_backgroundColor[2],
-                                       1.0f));
-    ShowBoundingBox.SetValue(m_scene->m_material.m_showBoundingBox);
-    BoundingBoxColor.SetValue(glm::vec4(m_scene->m_material.m_boundingBoxColor[0],
-                                        m_scene->m_material.m_boundingBoxColor[1],
-                                        m_scene->m_material.m_boundingBoxColor[2],
-                                        1.0f));
-    ShowScaleBar.SetValue(m_scene->m_showScaleBar);
+  if (auto scene = m_scene.lock()) {
+    m_appearanceDataObject.BackgroundColor.SetValue(glm::vec4(scene->m_material.m_backgroundColor[0],
+                                                              scene->m_material.m_backgroundColor[1],
+                                                              scene->m_material.m_backgroundColor[2],
+                                                              1.0f));
+    m_appearanceDataObject.ShowBoundingBox.SetValue(scene->m_material.m_showBoundingBox);
+    m_appearanceDataObject.BoundingBoxColor.SetValue(glm::vec4(scene->m_material.m_boundingBoxColor[0],
+                                                               scene->m_material.m_boundingBoxColor[1],
+                                                               scene->m_material.m_boundingBoxColor[2],
+                                                               1.0f));
+    m_appearanceDataObject.ShowScaleBar.SetValue(scene->m_showScaleBar);
   }
 }
 
@@ -111,15 +111,16 @@ AppearanceObject::updateObjectFromProps()
     m_renderSettings->m_RenderSettings.m_StepSizeFactor = m_appearanceDataObject.StepSizePrimaryRay.GetValue();
     m_renderSettings->m_RenderSettings.m_StepSizeFactorShadow = m_appearanceDataObject.StepSizeSecondaryRay.GetValue();
     m_renderSettings->m_RenderSettings.m_InterpolatedVolumeSampling = m_appearanceDataObject.Interpolate.GetValue();
-    m_scene->m_material.m_backgroundColor[0] = m_appearanceDataObject.BackgroundColor.GetValue().x;
-    m_scene->m_material.m_backgroundColor[1] = m_appearanceDataObject.BackgroundColor.GetValue().y;
-    m_scene->m_material.m_backgroundColor[2] = m_appearanceDataObject.BackgroundColor.GetValue().z;
-    m_scene->m_material.m_showBoundingBox = m_appearanceDataObject.ShowBoundingBox.GetValue();
-    m_scene->m_material.m_boundingBoxColor[0] = m_appearanceDataObject.BoundingBoxColor.GetValue().x;
-    m_scene->m_material.m_boundingBoxColor[1] = m_appearanceDataObject.BoundingBoxColor.GetValue().y;
-    m_scene->m_material.m_boundingBoxColor[2] = m_appearanceDataObject.BoundingBoxColor.GetValue().z;
-    m_scene->m_showScaleBar = m_appearanceDataObject.ShowScaleBar.GetValue();
-
+    if (auto scene = m_scene.lock()) {
+      scene->m_material.m_backgroundColor[0] = m_appearanceDataObject.BackgroundColor.GetValue().x;
+      scene->m_material.m_backgroundColor[1] = m_appearanceDataObject.BackgroundColor.GetValue().y;
+      scene->m_material.m_backgroundColor[2] = m_appearanceDataObject.BackgroundColor.GetValue().z;
+      scene->m_material.m_showBoundingBox = m_appearanceDataObject.ShowBoundingBox.GetValue();
+      scene->m_material.m_boundingBoxColor[0] = m_appearanceDataObject.BoundingBoxColor.GetValue().x;
+      scene->m_material.m_boundingBoxColor[1] = m_appearanceDataObject.BoundingBoxColor.GetValue().y;
+      scene->m_material.m_boundingBoxColor[2] = m_appearanceDataObject.BoundingBoxColor.GetValue().z;
+      scene->m_showScaleBar = m_appearanceDataObject.ShowScaleBar.GetValue();
+    }
     m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
     m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
