@@ -37,4 +37,11 @@ private:
   FloatSliderSpinnerUiInfo* m_ApertureSizeUIInfo;
   FloatSliderSpinnerUiInfo* m_FieldOfViewUIInfo;
   FloatSliderSpinnerUiInfo* m_FocalDistanceUIInfo;
+
+  void ExposureChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ExposureIterationsChanged(prtyProperty* i_Property, bool i_bDirty);
+  void NoiseReductionChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ApertureSizeChanged(prtyProperty* i_Property, bool i_bDirty);
+  void FieldOfViewChanged(prtyProperty* i_Property, bool i_bDirty);
+  void FocalDistanceChanged(prtyProperty* i_Property, bool i_bDirty);
 };
