@@ -49,4 +49,16 @@ private:
   CheckBoxUiInfo* m_showBoundingBox;
   ColorPickerUiInfo* m_boundingBoxColor;
   CheckBoxUiInfo* m_showScaleBar;
+
+  void RendererTypeChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ShadingTypeChanged(prtyProperty* i_Property, bool i_bDirty);
+  void DensityScaleChanged(prtyProperty* i_Property, bool i_bDirty);
+  void GradientFactorChanged(prtyProperty* i_Property, bool i_bDirty);
+  void StepSizePrimaryRayChanged(prtyProperty* i_Property, bool i_bDirty);
+  void StepSizeSecondaryRayChanged(prtyProperty* i_Property, bool i_bDirty);
+  void InterpolateChanged(prtyProperty* i_Property, bool i_bDirty);
+  void BackgroundColorChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ShowBoundingBoxChanged(prtyProperty* i_Property, bool i_bDirty);
+  void BoundingBoxColorChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ShowScaleBarChanged(prtyProperty* i_Property, bool i_bDirty);
 };
