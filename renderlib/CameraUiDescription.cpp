@@ -1,5 +1,7 @@
 #include "CameraUiDescription.hpp"
 
+#include "Logging.h"
+
 // FloatSliderSpinnerUiInfo CameraUiDescription::m_exposure("Exposure",
 //                                                          "Set Exposure",
 //                                                          "Set camera exposure",
@@ -49,12 +51,30 @@ CameraObject::CameraObject()
 {
   m_camera = std::make_shared<CCamera>();
   m_ExposureUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.Exposure, "Camera", "Exposure");
+  AddProperty(m_ExposureUIInfo);
   m_ExposureIterationsUIInfo =
     new ComboBoxUiInfo(&m_cameraDataObject.ExposureIterations, "Camera", "Exposure Iterations");
+  AddProperty(m_ExposureIterationsUIInfo);
   m_NoiseReductionUIInfo = new CheckBoxUiInfo(&m_cameraDataObject.NoiseReduction, "Camera", "Noise Reduction");
+  AddProperty(m_NoiseReductionUIInfo);
   m_ApertureSizeUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.ApertureSize, "Camera", "Aperture Size");
+  AddProperty(m_ApertureSizeUIInfo);
   m_FieldOfViewUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.FieldOfView, "Camera", "Field of View");
+  AddProperty(m_FieldOfViewUIInfo);
   m_FocalDistanceUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.FocalDistance, "Camera", "Focal Distance");
+  AddProperty(m_FocalDistanceUIInfo);
+
+  m_cameraDataObject.Exposure.AddCallback(new prtyCallbackWrapper<CameraObject>(this, &CameraObject::ExposureChanged));
+  m_cameraDataObject.ExposureIterations.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::ExposureIterationsChanged));
+  m_cameraDataObject.NoiseReduction.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::NoiseReductionChanged));
+  m_cameraDataObject.ApertureSize.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::ApertureSizeChanged));
+  m_cameraDataObject.FieldOfView.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::FieldOfViewChanged));
+  m_cameraDataObject.FocalDistance.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::FocalDistanceChanged));
 }
 
 void
@@ -95,4 +115,35 @@ CameraObject::updateObjectFromProps()
     // renderer should pick this up and do the right thing (TM)
     m_camera->m_Dirty = true;
   }
+}
+
+void
+CameraObject::ExposureChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Film.m_Exposure = 1.0f - m_cameraDataObject.Exposure.GetValue();
+}
+void
+CameraObject::ExposureIterationsChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Film.m_ExposureIterations = m_cameraDataObject.ExposureIterations.GetValue();
+}
+void
+CameraObject::NoiseReductionChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  LOG_ERROR << "Noise reduction is not implemented yet!";
+}
+void
+CameraObject::ApertureSizeChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Aperture.m_Size = m_cameraDataObject.ApertureSize.GetValue();
+}
+void
+CameraObject::FieldOfViewChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_FovV = m_cameraDataObject.FieldOfView.GetValue();
+}
+void
+CameraObject::FocalDistanceChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Focus.m_FocalDistance = m_cameraDataObject.FocalDistance.GetValue();
 }
