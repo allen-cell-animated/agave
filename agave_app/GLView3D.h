@@ -12,8 +12,8 @@
 #include <QOpenGLWidget>
 #include <QTimer>
 
-class AppearanceDataObject;
-class CameraDataObject;
+class AppearanceObject;
+class CameraObject;
 class CStatus;
 class ImageXYZC;
 class IRenderWindow;
@@ -112,8 +112,8 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
 private:
-  CameraDataObject* m_cameraDataObject;
-  AppearanceDataObject* m_appearanceDataObject;
+  CameraObject* m_cameraDataObject;
+  AppearanceObject* m_appearanceDataObject;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.
