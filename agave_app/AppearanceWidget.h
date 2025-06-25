@@ -3,7 +3,7 @@
 #include "qtControls/Controls.h"
 
 // #include "renderlib/core/prty/prtyProperty.h"
-#include "renderlib/AppearanceObject.hpp"
+#include "renderlib/AppearanceUiDescription.hpp"
 #include "renderlib/Logging.h"
 
 #include <QCheckBox>
@@ -32,5 +32,5 @@ private:
   RenderSettings* m_renderSettings;
 
 private:
-  AppearanceObject* m_appearanceObject;
+  AppearanceObject* m_appearanceDataObject;
 };
