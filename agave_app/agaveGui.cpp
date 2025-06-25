@@ -351,7 +351,7 @@ agaveGui::createToolbars()
 }
 
 void
-agaveGui::setupCameraDock(CameraDataObject* cdo)
+agaveGui::setupCameraDock(CameraObject* cdo)
 {
   // TODO enable changing/resetting the camera data object shown in this dock?
   m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
@@ -364,7 +364,7 @@ agaveGui::setupCameraDock(CameraDataObject* cdo)
 }
 
 void
-agaveGui::setupAppearanceDock(AppearanceDataObject* ado)
+agaveGui::setupAppearanceDock(AppearanceObject* ado)
 {
   // DANGER see borrowRenderer call
   m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, m_glView->borrowRenderer(), ado);
@@ -1325,11 +1325,11 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  CameraDataObject* cdo = m_glView->getCameraDataObject();
-  v.camera.fovY = cdo->FieldOfView.GetValue();
-  v.camera.exposure = cdo->Exposure.GetValue();
-  v.camera.aperture = cdo->ApertureSize.GetValue();
-  v.camera.focalDistance = cdo->FocalDistance.GetValue();
+  CameraObject* cdo = m_glView->getCameraDataObject();
+  v.camera.fovY = cdo->getCameraDataObject().FieldOfView.GetValue();
+  v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
+  v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
+  v.camera.focalDistance = cdo->getCameraDataObject().FocalDistance.GetValue();
   v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
   v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
 

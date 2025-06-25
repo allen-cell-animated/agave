@@ -68,8 +68,8 @@ public:
 
   const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
   // tied to the above camera.  CCamera must outlive this:
-  CameraDataObject* getCameraDataObject() { return m_cameraDataObject; }
-  AppearanceDataObject* getAppearanceDataObject() { return m_appearanceDataObject; }
+  CameraObject* getCameraDataObject() { return m_cameraDataObject; }
+  AppearanceObject* getAppearanceDataObject() { return m_appearanceDataObject; }
 
   void fromViewerState(const Serialize::ViewerState& s);
 

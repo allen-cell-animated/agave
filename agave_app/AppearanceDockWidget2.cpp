@@ -3,7 +3,7 @@
 QAppearanceDockWidget2::QAppearanceDockWidget2(QWidget* pParent,
                                                RenderSettings* rs,
                                                ViewerWindow* vw,
-                                               AppearanceDataObject* ado)
+                                               AppearanceObject* ado)
   : QDockWidget(pParent)
   , m_AppearanceWidget(nullptr, rs, vw, ado)
 {

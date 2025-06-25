@@ -3,7 +3,7 @@
 #include "qtControls/Controls.h"
 
 // #include "renderlib/core/prty/prtyProperty.h"
-#include "renderlib/AppearanceDataObject.hpp"
+#include "renderlib/AppearanceUiDescription.hpp"
 #include "renderlib/Logging.h"
 
 #include <QCheckBox>
@@ -22,7 +22,7 @@ public:
   QAppearanceWidget2(QWidget* pParent = NULL,
                      RenderSettings* rs = nullptr,
                      ViewerWindow* vw = nullptr,
-                     AppearanceDataObject* cdo = nullptr);
+                     AppearanceObject* cdo = nullptr);
 
   virtual QSize sizeHint() const;
 
@@ -32,5 +32,5 @@ private:
   RenderSettings* m_renderSettings;
 
 private:
-  AppearanceDataObject* m_appearanceDataObject;
+  AppearanceObject* m_appearanceDataObject;
 };
