@@ -4,7 +4,6 @@
 #include "Section.h"
 
 #include "renderlib/core/prty/prtyObject.hpp"
-#include "renderlib/core/prty/prtyEnum.hpp"
 
 #include <QFormLayout>
 
@@ -223,7 +222,6 @@ addGenericRow(const prtyPropertyUIInfo& info)
   } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
     return addRow(*colorPickerInfo);
   }
-
   return nullptr; // or throw an exception
 }
 
