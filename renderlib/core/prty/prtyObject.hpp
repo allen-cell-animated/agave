@@ -6,6 +6,7 @@
 **
 **
 \****************************************************************************/
+#pragma once
 #ifdef PRTY_OBJECT_HPP
 #error prtyObject.hpp multiply included
 #endif

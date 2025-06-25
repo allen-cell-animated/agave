@@ -117,6 +117,11 @@ public:
   //--------------------------------------------------------------------
   void UpdateControl();
 
+  void SetStatusTip(const std::string& i_StatusTip);
+  const std::string& GetStatusTip() const;
+  void SetToolTip(const std::string& i_ToolTip);
+  const std::string& GetToolTip() const;
+
 protected:
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
@@ -131,4 +136,7 @@ private:
   std::string m_Description;
   bool m_bReadOnly;
   std::string m_ConfirmationString;
+
+  std::string m_StatusTip;
+  std::string m_ToolTip;
 };
