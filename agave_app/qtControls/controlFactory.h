@@ -6,6 +6,7 @@
 #include "renderlib/core/prty/prtyFloat.hpp"
 #include "renderlib/core/prty/prtyInt32.hpp"
 #include "renderlib/core/prty/prtyInt8.hpp"
+#include "renderlib/core/prty/prtyObject.hpp"
 #include "renderlib/glm.h"
 
 #include <memory>
@@ -14,6 +15,8 @@ class QNumericSlider;
 class QCheckBox;
 class QComboBox;
 class QColorPushButton;
+class QFormLayout;
+class QWidget;
 
 QNumericSlider*
 create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop);
@@ -41,3 +44,12 @@ addRow(const CheckBoxUiInfo& info);
 
 QColorPushButton*
 addRow(const ColorPickerUiInfo& info);
+
+QWidget*
+addGenericRow(const prtyPropertyUIInfo& info);
+
+void
+createFlatList(QFormLayout* mainLayout, prtyObject* object);
+
+void
+createCategorizedSections(QFormLayout* mainLayout, prtyObject* object);

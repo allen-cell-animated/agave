@@ -1,6 +1,11 @@
 #include "controlFactory.h"
 
 #include "Controls.h"
+#include "Section.h"
+
+#include "renderlib/core/prty/prtyObject.hpp"
+
+#include <QFormLayout>
 
 QNumericSlider*
 create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop)
@@ -157,4 +162,82 @@ addRow(const ColorPickerUiInfo& info)
     prop->SetValue(color, true);
   });
   return colorButton;
+}
+
+QWidget*
+addGenericRow(const prtyPropertyUIInfo& info)
+{
+  // TODO: consider checking info.GetControlName() to determine the type,
+  // but using dynamic_cast is more type-safe and extensible.
+  // If a new type is added, it will require a new dynamic_cast case here.
+  if (const auto* floatInfo = dynamic_cast<const FloatSliderSpinnerUiInfo*>(&info)) {
+    return addRow(*floatInfo);
+  } else if (const auto* intInfo = dynamic_cast<const IntSliderSpinnerUiInfo*>(&info)) {
+    return addRow(*intInfo);
+  } else if (const auto* comboBoxInfo = dynamic_cast<const ComboBoxUiInfo*>(&info)) {
+    return addRow(*comboBoxInfo);
+  } else if (const auto* checkBoxInfo = dynamic_cast<const CheckBoxUiInfo*>(&info)) {
+    return addRow(*checkBoxInfo);
+  } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
+    return addRow(*colorPickerInfo);
+  }
+  return nullptr; // or throw an exception
+}
+
+void
+createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
+{
+  // Map to organize properties by category
+  std::map<std::string, std::vector<std::shared_ptr<prtyPropertyUIInfo>>> categorizedProperties;
+
+  // Group properties by category
+  const auto& propertyList = object->GetList();
+  for (const auto& propertyInfo : propertyList) {
+    if (propertyInfo) {
+      std::string category = propertyInfo->GetCategory();
+      categorizedProperties[category].push_back(propertyInfo);
+    }
+  }
+
+  // Create sections for each category (automatically sorted by std::map)
+  for (const auto& [category, properties] : categorizedProperties) {
+    if (!properties.empty()) {
+      // Create section
+      Section* section = new Section(QString::fromStdString(category));
+
+      // Create form layout for this section's content
+      QFormLayout* sectionLayout = new QFormLayout();
+
+      // Add controls for each property in this category
+      for (const auto& propertyInfo : properties) {
+        QWidget* control = addGenericRow(*propertyInfo);
+        if (control) {
+          QString label = QString::fromStdString(propertyInfo->GetDescription());
+          sectionLayout->addRow(label, control);
+        }
+      }
+
+      // Set the section's content layout
+      section->setContentLayout(*sectionLayout);
+
+      // Add section to main layout
+      mainLayout->addRow(section);
+    }
+  }
+}
+
+void
+createFlatList(QFormLayout* mainLayout, prtyObject* object)
+{
+  // Simple flat list of all properties
+  const auto& propertyList = object->GetList();
+  for (const auto& propertyInfo : propertyList) {
+    if (propertyInfo) {
+      QWidget* control = addGenericRow(*propertyInfo);
+      if (control) {
+        QString label = QString::fromStdString(propertyInfo->GetDescription());
+        mainLayout->addRow(label, control);
+      }
+    }
+  }
 }
