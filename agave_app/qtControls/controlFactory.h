@@ -28,16 +28,16 @@ QComboBox*
 create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop);
 
 QNumericSlider*
-addRow(const FloatSliderSpinnerUiInfo& info, prtyFloat* prop);
+addRow(const FloatSliderSpinnerUiInfo& info);
 
 QNumericSlider*
-addRow(const IntSliderSpinnerUiInfo& info, prtyInt32* prop);
+addRow(const IntSliderSpinnerUiInfo& info);
 
 QComboBox*
-addRow(const ComboBoxUiInfo& info, prtyInt8* prop);
+addRow(const ComboBoxUiInfo& info);
 
 QCheckBox*
-addRow(const CheckBoxUiInfo& info, prtyBoolean* prop);
+addRow(const CheckBoxUiInfo& info);
 
 QColorPushButton*
-addRow(const ColorPickerUiInfo& info, prtyColor* prop);
+addRow(const ColorPickerUiInfo& info);
