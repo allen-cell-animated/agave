@@ -29,6 +29,23 @@ public:
   void updatePropsFromObject();
   void updateObjectFromProps();
 
+  // Getter for appearance data object
+  // AppearanceDataObject& getAppearanceDataObject() { return m_appearanceDataObject; }
+  const AppearanceDataObject& getAppearanceDataObject() const { return m_appearanceDataObject; }
+
+  // Getters for UI info objects
+  ComboBoxUiInfo* getRendererTypeUiInfo() { return m_rendererType; }
+  ComboBoxUiInfo* getShadingTypeUiInfo() { return m_shadingType; }
+  FloatSliderSpinnerUiInfo* getDensityScaleUiInfo() { return m_densityScale; }
+  FloatSliderSpinnerUiInfo* getGradientFactorUiInfo() { return m_gradientFactor; }
+  FloatSliderSpinnerUiInfo* getStepSizePrimaryRayUiInfo() { return m_stepSizePrimaryRay; }
+  FloatSliderSpinnerUiInfo* getStepSizeSecondaryRayUiInfo() { return m_stepSizeSecondaryRay; }
+  CheckBoxUiInfo* getInterpolateUiInfo() { return m_interpolate; }
+  ColorPickerUiInfo* getBackgroundColorUiInfo() { return m_backgroundColor; }
+  CheckBoxUiInfo* getShowBoundingBoxUiInfo() { return m_showBoundingBox; }
+  ColorPickerUiInfo* getBoundingBoxColorUiInfo() { return m_boundingBoxColor; }
+  CheckBoxUiInfo* getShowScaleBarUiInfo() { return m_showScaleBar; }
+
 private:
   // the properties
   AppearanceDataObject m_appearanceDataObject;
