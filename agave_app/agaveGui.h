@@ -95,9 +95,9 @@ private:
   void createMenus();
   void createToolbars();
   void addDockItemsToViewMenu();
-  void setupCameraDock(CameraDataObject* cdo);
+  void setupCameraDock(CameraObject* cdo);
   void setupTimelineDock();
-  void setupAppearanceDock(AppearanceDataObject* ado);
+  void setupAppearanceDock(AppearanceObject* ado);
   void setupStatisticsDock();
 
   void showOpenFailedMessageBox(QString path);

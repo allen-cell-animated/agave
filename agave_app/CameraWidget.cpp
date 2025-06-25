@@ -8,26 +8,26 @@
 
 #include <QLabel>
 
-QCameraWidget::QCameraWidget(QWidget* pParent, RenderSettings* rs, CameraDataObject* cdo)
+QCameraWidget::QCameraWidget(QWidget* pParent, RenderSettings* rs, CameraObject* cameraObject)
   : QWidget(pParent)
   , m_MainLayout()
   , m_renderSettings(rs)
-  , m_cameraDataObject(cdo)
+  , m_cameraObject(cameraObject)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
 
-  QNumericSlider* slider = addRow(CameraUiDescription::m_exposure, &m_cameraDataObject->Exposure);
+  QNumericSlider* slider = addRow(*m_cameraObject->getExposureUIInfo());
   m_MainLayout.addRow("Exposure", slider);
-  QComboBox* comboBox = addRow(CameraUiDescription::m_exposureIterations, &m_cameraDataObject->ExposureIterations);
+  QComboBox* comboBox = addRow(*m_cameraObject->getExposureIterationsUIInfo());
   m_MainLayout.addRow("Exposure Time", comboBox);
-  QCheckBox* checkBox = addRow(CameraUiDescription::m_noiseReduction, &m_cameraDataObject->NoiseReduction);
+  QCheckBox* checkBox = addRow(*m_cameraObject->getNoiseReductionUIInfo());
   m_MainLayout.addRow("Noise Reduction", checkBox);
-  QNumericSlider* slider2 = addRow(CameraUiDescription::m_apertureSize, &m_cameraDataObject->ApertureSize);
+  QNumericSlider* slider2 = addRow(*m_cameraObject->getApertureSizeUIInfo());
   m_MainLayout.addRow("Aperture Size", slider2);
-  QNumericSlider* slider3 = addRow(CameraUiDescription::m_fieldOfView, &m_cameraDataObject->FieldOfView);
+  QNumericSlider* slider3 = addRow(*m_cameraObject->getFieldOfViewUIInfo());
   m_MainLayout.addRow("Field of view", slider3);
-  QNumericSlider* slider4 = addRow(CameraUiDescription::m_focalDistance, &m_cameraDataObject->FocalDistance);
+  QNumericSlider* slider4 = addRow(*m_cameraObject->getFocalDistanceUIInfo());
   m_MainLayout.addRow("Focal distance", slider4);
 }
 

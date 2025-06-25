@@ -12,7 +12,7 @@ public:
   QAppearanceDockWidget2(QWidget* pParent = NULL,
                          RenderSettings* rs = NULL,
                          ViewerWindow* vw = NULL,
-                         AppearanceDataObject* cdo = NULL);
+                         AppearanceObject* cdo = NULL);
 
 private:
   QAppearanceWidget2 m_AppearanceWidget;
