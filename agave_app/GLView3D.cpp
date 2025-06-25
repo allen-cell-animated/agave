@@ -141,7 +141,7 @@ GLView3D::onNewImage(Scene* scene)
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
 
-  m_appearanceDataObject->updatePropsFromRenderSettings();
+  m_appearanceDataObject->updatePropsFromObject();
 }
 
 GLView3D::~GLView3D()
