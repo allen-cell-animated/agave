@@ -204,3 +204,36 @@ prtyPropertyUIInfo::SetControlName(const std::string i_ControlName)
 {
   m_ControlName = i_ControlName;
 }
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+void
+prtyPropertyUIInfo::SetStatusTip(const std::string& i_StatusTip)
+{
+  m_StatusTip = i_StatusTip;
+}
+const std::string&
+prtyPropertyUIInfo::GetStatusTip() const
+{
+  if (m_StatusTip.empty()) {
+    // If no status tip is set, use the description as a fallback
+    return m_Description;
+  }
+  return m_StatusTip;
+}
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+void
+prtyPropertyUIInfo::SetToolTip(const std::string& i_ToolTip)
+{
+  m_ToolTip = i_ToolTip;
+}
+const std::string&
+prtyPropertyUIInfo::GetToolTip() const
+{
+  if (m_ToolTip.empty()) {
+    // If no tooltip is set, use the description as a fallback
+    return m_Description;
+  }
+  return m_ToolTip;
+}
