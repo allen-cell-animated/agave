@@ -309,23 +309,8 @@ addGenericRow(const prtyPropertyUIInfo& info)
     return addRow(*checkBoxInfo);
   } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
     return addRow(*colorPickerInfo);
-  } else if (const auto* colorWithIntensityInfo = dynamic_cast<const ColorWithIntensityUiInfo*>(&info)) {
-    return addRow(*colorWithIntensityInfo);
   }
   return nullptr; // or throw an exception
-}
-
-template<typename LayoutType>
-QWidget*
-addPrtyRow(LayoutType* layout, std::shared_ptr<prtyPropertyUIInfo> propertyInfo)
-{
-  QWidget* control = addGenericRow(*propertyInfo);
-  if (control) {
-    QString label = QString::fromStdString(propertyInfo->GetDescription());
-    layout->addRow(label, control);
-    return control;
-  }
-  return nullptr;
 }
 
 void
@@ -354,7 +339,11 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
 
       // Add controls for each property in this category
       for (const auto& propertyInfo : properties) {
-        addPrtyRow(sectionLayout, propertyInfo);
+        QWidget* control = addGenericRow(*propertyInfo);
+        if (control) {
+          QString label = QString::fromStdString(propertyInfo->GetDescription());
+          sectionLayout->addRow(label, control);
+        }
       }
 
       // Set the section's content layout
@@ -366,20 +355,18 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
   }
 }
 
-template<typename LayoutType>
 void
-createFlatList(LayoutType* mainLayout, prtyObject* object)
+createFlatList(QFormLayout* mainLayout, prtyObject* object)
 {
   // Simple flat list of all properties
   const auto& propertyList = object->GetList();
   for (const auto& propertyInfo : propertyList) {
     if (propertyInfo) {
-      addPrtyRow(mainLayout, propertyInfo);
+      QWidget* control = addGenericRow(*propertyInfo);
+      if (control) {
+        QString label = QString::fromStdString(propertyInfo->GetDescription());
+        mainLayout->addRow(label, control);
+      }
     }
   }
 }
-
-template void
-createFlatList<QFormLayout>(QFormLayout* mainLayout, prtyObject* object);
-template void
-createFlatList<AgaveFormLayout>(AgaveFormLayout* mainLayout, prtyObject* object);
