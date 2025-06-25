@@ -41,13 +41,3 @@ addRow(const CheckBoxUiInfo& info);
 
 QColorPushButton*
 addRow(const ColorPickerUiInfo& info);
-
-QWidget*
-addGenericRow(const prtyPropertyUIInfo& info);
-
-template<typename LayoutType>
-void
-createFlatList(LayoutType* mainLayout, prtyObject* object);
-
-void
-createCategorizedSections(QFormLayout* mainLayout, prtyObject* object);

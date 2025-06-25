@@ -241,6 +241,7 @@ addRow(const ComboBoxUiInfo& info)
   for (const auto& item : info.items) {
     comboBox->addItem(QString::fromStdString(item));
   }
+  auto* prop = static_cast<prtyInt8*>(info.GetProperty(0));
   comboBox->setCurrentIndex(prop->GetValue());
   auto conn = QObject::connect(
     comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });

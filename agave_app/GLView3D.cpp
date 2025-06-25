@@ -45,8 +45,9 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
 
   // camera is created deep down inside m_viewerWindow.
-  m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
-  m_appearanceDataObject = new AppearanceDataObject(rs);
+  m_cameraDataObject = new CameraObject();
+  // m_cameraDataObject->setExternalCamera(&m_viewerWindow->m_CCamera);
+  m_appearanceDataObject = new AppearanceObject();
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -140,6 +141,8 @@ GLView3D::onNewImage(Scene* scene)
   this->OnUpdateRenderer(m_viewerWindow->m_renderSettings->m_rendererType);
   // would be better to preserve renderer and just change the scene data to include the new image.
   // how tightly coupled is renderer and scene????
+
+  m_appearanceDataObject->updatePropsFromObject();
 }
 
 GLView3D::~GLView3D()
@@ -496,9 +499,9 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
-  m_cameraDataObject->updatePropsFromCamera();
+  m_cameraDataObject->updatePropsFromObject();
 
-  m_appearanceDataObject->updatePropsFromRenderSettings();
+  m_appearanceDataObject->updatePropsFromObject();
 }
 
 QPixmap
