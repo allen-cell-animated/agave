@@ -22,8 +22,6 @@ create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop)
   slider->setValue(prop->GetValue(), true);
   QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-  // TODO how would this capture the "previous" value, for undo?
-  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
@@ -41,8 +39,6 @@ create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyInt32> prop)
   slider->setValue(prop->GetValue(), true);
   QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-  // TODO how would this capture the "previous" value, for undo?
-  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
@@ -52,7 +48,6 @@ create(const CheckBoxUiInfo* info, std::shared_ptr<prtyBoolean> prop)
   QCheckBox* checkBox = new QCheckBox();
   checkBox->setStatusTip(QString::fromStdString(info->GetStatusTip()));
   checkBox->setToolTip(QString::fromStdString(info->GetToolTip()));
-  // checkBox->setText(QString::fromStdString(info->formLabel));
   checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
   QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
     prop->SetValue(state == Qt::CheckState::Checked, true);
@@ -90,8 +85,6 @@ addRow(const FloatSliderSpinnerUiInfo& info)
   slider->setValue(prop->GetValue(), true);
   QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-  // TODO how would this capture the "previous" value, for undo?
-  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
@@ -110,8 +103,6 @@ addRow(const IntSliderSpinnerUiInfo& info)
   slider->setValue(prop->GetValue(), true);
   QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-  // TODO how would this capture the "previous" value, for undo?
-  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
 
   return slider;
 }
@@ -138,7 +129,6 @@ addRow(const CheckBoxUiInfo& info)
   QCheckBox* checkBox = new QCheckBox();
   checkBox->setStatusTip(QString::fromStdString(info.GetStatusTip()));
   checkBox->setToolTip(QString::fromStdString(info.GetToolTip()));
-  // checkBox->setText(QString::fromStdString(info.formLabel));
   auto* prop = static_cast<prtyBoolean*>(info.GetProperty(0));
   checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
   QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
