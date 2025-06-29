@@ -51,17 +51,53 @@ CameraObject::CameraObject()
 {
   m_camera = std::make_shared<CCamera>();
   m_ExposureUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.Exposure, "Camera", "Exposure");
+  m_ExposureUIInfo->SetToolTip("Set Exposure");
+  m_ExposureUIInfo->SetStatusTip("Set camera exposure");
+  m_ExposureUIInfo->min = 0.0f;
+  m_ExposureUIInfo->max = 1.0f;
+  m_ExposureUIInfo->decimals = 2;       // decimals
+  m_ExposureUIInfo->singleStep = 0.01f; // singleStep
+  m_ExposureUIInfo->numTickMarks = 0;   // numTickMarks
   AddProperty(m_ExposureUIInfo);
   m_ExposureIterationsUIInfo =
     new ComboBoxUiInfo(&m_cameraDataObject.ExposureIterations, "Camera", "Exposure Iterations");
+  m_ExposureIterationsUIInfo->SetToolTip("Set Exposure Iterations");
+  m_ExposureIterationsUIInfo->SetStatusTip("Set number of samples to accumulate per viewport update");
+  m_ExposureIterationsUIInfo->items = { "1", "2", "4", "8" };
   AddProperty(m_ExposureIterationsUIInfo);
   m_NoiseReductionUIInfo = new CheckBoxUiInfo(&m_cameraDataObject.NoiseReduction, "Camera", "Noise Reduction");
+  m_NoiseReductionUIInfo->SetToolTip("Enable Noise Reduction");
+  m_NoiseReductionUIInfo->SetStatusTip("Enable denoising pass");
   AddProperty(m_NoiseReductionUIInfo);
   m_ApertureSizeUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.ApertureSize, "Camera", "Aperture Size");
+  m_ApertureSizeUIInfo->SetToolTip("Set Aperture Size");
+  m_ApertureSizeUIInfo->SetStatusTip("Set camera aperture size");
+  m_ApertureSizeUIInfo->min = 0.0f;
+  m_ApertureSizeUIInfo->max = 0.1f;
+  m_ApertureSizeUIInfo->decimals = 2;       // decimals
+  m_ApertureSizeUIInfo->singleStep = 0.01f; //
+  m_ApertureSizeUIInfo->numTickMarks = 0;   // numTickMarks
+  m_ApertureSizeUIInfo->suffix = " mm";     // suffix
   AddProperty(m_ApertureSizeUIInfo);
   m_FieldOfViewUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.FieldOfView, "Camera", "Field of View");
+  m_FieldOfViewUIInfo->SetToolTip("Set Field of View");
+  m_FieldOfViewUIInfo->SetStatusTip("Set camera field of view angle");
+  m_FieldOfViewUIInfo->min = 10.0f;
+  m_FieldOfViewUIInfo->max = 150.0f;
+  m_FieldOfViewUIInfo->decimals = 2;       // decimals
+  m_FieldOfViewUIInfo->singleStep = 0.01f; // single
+  m_FieldOfViewUIInfo->numTickMarks = 0;   // numTickMarks
+  m_FieldOfViewUIInfo->suffix = " deg";    // suffix
   AddProperty(m_FieldOfViewUIInfo);
   m_FocalDistanceUIInfo = new FloatSliderSpinnerUiInfo(&m_cameraDataObject.FocalDistance, "Camera", "Focal Distance");
+  m_FocalDistanceUIInfo->SetToolTip("Set Focal Distance");
+  m_FocalDistanceUIInfo->SetStatusTip("Set focal distance");
+  m_FocalDistanceUIInfo->min = 0.0f;
+  m_FocalDistanceUIInfo->max = 15.0f;
+  m_FocalDistanceUIInfo->decimals = 2;       // decimals
+  m_FocalDistanceUIInfo->singleStep = 0.01f; // single
+  m_FocalDistanceUIInfo->numTickMarks = 0;   // numTickMarks
+  m_FocalDistanceUIInfo->suffix = " m";      // suffix
   AddProperty(m_FocalDistanceUIInfo);
 
   m_cameraDataObject.Exposure.AddCallback(new prtyCallbackWrapper<CameraObject>(this, &CameraObject::ExposureChanged));
