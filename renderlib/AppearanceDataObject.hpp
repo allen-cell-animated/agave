@@ -12,15 +12,15 @@ class AppearanceDataObject
 public:
   AppearanceDataObject();
 
-  prtyInt8 RendererType{ "RendererType", 0 };
+  prtyInt8 RendererType{ "RendererType", 1 };
   prtyInt8 ShadingType{ "ShadingType", 0 };
   prtyFloat DensityScale{ "DensityScale", 1.0f };
   prtyFloat GradientFactor{ "GradientFactor", 0.5f };
-  prtyFloat StepSizePrimaryRay{ "StepSizePrimaryRay", 1.0f };
-  prtyFloat StepSizeSecondaryRay{ "StepSizeSecondaryRay", 1.0f };
-  prtyBoolean Interpolate{ "Interpolate", false };
+  prtyFloat StepSizePrimaryRay{ "StepSizePrimaryRay", 4.0f };
+  prtyFloat StepSizeSecondaryRay{ "StepSizeSecondaryRay", 4.0f };
+  prtyBoolean Interpolate{ "Interpolate", true };
   prtyColor BackgroundColor{ "BackgroundColor", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) };
-  prtyBoolean ShowBoundingBox{ "ShowBoundingBox", false };
+  prtyBoolean ShowBoundingBox{ "ShowBoundingBox", true };
   prtyColor BoundingBoxColor{ "BoundingBoxColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
   prtyBoolean ShowScaleBar{ "ShowScaleBar", false };
 };
