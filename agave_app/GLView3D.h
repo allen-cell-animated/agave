@@ -66,7 +66,7 @@ public:
 
   void onNewImage(Scene* scene);
 
-  const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
+  const CCamera& getCamera() { return *m_viewerWindow->m_CCamera; }
   // tied to the above camera.  CCamera must outlive this:
   CameraObject* getCameraDataObject() { return m_cameraDataObject; }
   AppearanceObject* getAppearanceDataObject() { return m_appearanceDataObject; }

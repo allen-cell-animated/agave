@@ -22,6 +22,17 @@ QCameraWidget::QCameraWidget(QWidget* pParent, RenderSettings* rs, CameraObject*
   if (m_cameraObject) {
     createFlatList(&m_MainLayout, m_cameraObject);
   }
+  // // loop over all properties in cameraobject. for each property, add a callback that updates the rendersetttings
+  // // cameradirty flags
+  // for (const auto& prop : m_cameraObject->GetList()) {
+  //   if (prop) {
+  //     prop->GetProperty(0)->AddCallback(new prtyCallbackLambda([this](prtyProperty* i_Property, bool i_bDirty) {
+  //       if (i_bDirty) {
+  //         m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  //       }
+  //     }));
+  //   }
+  // }
 }
 
 QSize

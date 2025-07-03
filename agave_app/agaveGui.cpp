@@ -935,14 +935,14 @@ agaveGui::view_frame()
 void
 agaveGui::view_top()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeTop);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
 agaveGui::view_bottom()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBottom);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeBottom);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -950,7 +950,7 @@ agaveGui::view_bottom()
 void
 agaveGui::view_front()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeFront);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -958,7 +958,7 @@ agaveGui::view_front()
 void
 agaveGui::view_back()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBack);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeBack);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -966,7 +966,7 @@ agaveGui::view_back()
 void
 agaveGui::view_left()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeLeft);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -974,7 +974,7 @@ agaveGui::view_left()
 void
 agaveGui::view_right()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeRight);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeRight);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
