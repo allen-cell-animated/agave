@@ -96,3 +96,39 @@ CameraObject::updateObjectFromProps()
     m_camera->m_Dirty = true;
   }
 }
+
+void
+CameraObject::ExposureChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Film.m_Exposure = 1.0f - m_cameraDataObject.Exposure.GetValue();
+  m_camera->m_Dirty = true;
+}
+void
+CameraObject::ExposureIterationsChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Film.m_ExposureIterations = m_cameraDataObject.ExposureIterations.GetValue();
+  m_camera->m_Dirty = true;
+}
+void
+CameraObject::NoiseReductionChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  LOG_ERROR << "Noise reduction is not implemented yet!";
+}
+void
+CameraObject::ApertureSizeChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Aperture.m_Size = m_cameraDataObject.ApertureSize.GetValue();
+  m_camera->m_Dirty = true;
+}
+void
+CameraObject::FieldOfViewChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_FovV = m_cameraDataObject.FieldOfView.GetValue();
+  m_camera->m_Dirty = true;
+}
+void
+CameraObject::FocalDistanceChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  m_camera->m_Focus.m_FocalDistance = m_cameraDataObject.FocalDistance.GetValue();
+  m_camera->m_Dirty = true;
+}

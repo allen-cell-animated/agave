@@ -46,6 +46,8 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
 
   // camera is created deep down inside m_viewerWindow.
   m_cameraDataObject = new CameraObject();
+  m_viewerWindow->m_CCamera = m_cameraDataObject->getCamera();
+
   // m_cameraDataObject->setExternalCamera(&m_viewerWindow->m_CCamera);
   m_appearanceDataObject = new AppearanceObject();
 
