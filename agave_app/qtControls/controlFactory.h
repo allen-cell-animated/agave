@@ -19,18 +19,6 @@ class QFormLayout;
 class QWidget;
 
 QNumericSlider*
-create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop);
-
-QNumericSlider*
-create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyInt32> prop);
-
-QCheckBox*
-create(const CheckBoxUiInfo* info, std::shared_ptr<prtyBoolean> prop);
-
-QComboBox*
-create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop);
-
-QNumericSlider*
 addRow(const FloatSliderSpinnerUiInfo& info);
 
 QNumericSlider*
