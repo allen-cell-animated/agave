@@ -35,6 +35,9 @@ public:
   FloatSliderSpinnerUiInfo* getFieldOfViewUIInfo() { return m_FieldOfViewUIInfo; }
   FloatSliderSpinnerUiInfo* getFocalDistanceUIInfo() { return m_FocalDistanceUIInfo; }
 
+  // Getter for the camera
+  std::shared_ptr<CCamera> getCamera() const { return m_camera; }
+
 private:
   // the properties
   CameraDataObject m_cameraDataObject;
