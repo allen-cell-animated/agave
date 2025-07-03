@@ -8,68 +8,6 @@
 #include <QFormLayout>
 
 QNumericSlider*
-create(const FloatSliderSpinnerUiInfo* info, std::shared_ptr<prtyFloat> prop)
-{
-  QNumericSlider* slider = new QNumericSlider();
-  slider->setStatusTip(QString::fromStdString(info->GetStatusTip()));
-  slider->setToolTip(QString::fromStdString(info->GetToolTip()));
-  slider->setRange(info->min, info->max);
-  slider->setDecimals(info->decimals);
-  slider->setSingleStep(info->singleStep);
-  slider->setNumTickMarks(info->numTickMarks);
-  slider->setSuffix(QString::fromStdString(info->suffix));
-
-  slider->setValue(prop->GetValue(), true);
-  QObject::connect(
-    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-
-  return slider;
-}
-QNumericSlider*
-create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyInt32> prop)
-{
-  QNumericSlider* slider = new QNumericSlider();
-  slider->setStatusTip(QString::fromStdString(info->GetStatusTip()));
-  slider->setToolTip(QString::fromStdString(info->GetToolTip()));
-  slider->setRange(info->min, info->max);
-  slider->setSingleStep(info->singleStep);
-  slider->setNumTickMarks(info->numTickMarks);
-  slider->setSuffix(QString::fromStdString(info->suffix));
-
-  slider->setValue(prop->GetValue(), true);
-  QObject::connect(
-    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-
-  return slider;
-}
-QCheckBox*
-create(const CheckBoxUiInfo* info, std::shared_ptr<prtyBoolean> prop)
-{
-  QCheckBox* checkBox = new QCheckBox();
-  checkBox->setStatusTip(QString::fromStdString(info->GetStatusTip()));
-  checkBox->setToolTip(QString::fromStdString(info->GetToolTip()));
-  checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-  QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
-    prop->SetValue(state == Qt::CheckState::Checked, true);
-  });
-  return checkBox;
-}
-QComboBox*
-create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop)
-{
-  QComboBox* comboBox = new QComboBox();
-  comboBox->setStatusTip(QString::fromStdString(info->GetStatusTip()));
-  comboBox->setToolTip(QString::fromStdString(info->GetToolTip()));
-  for (const auto& item : info->items) {
-    comboBox->addItem(QString::fromStdString(item));
-  }
-  comboBox->setCurrentIndex(prop->GetValue());
-  QObject::connect(
-    comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
-  return comboBox;
-}
-
-QNumericSlider*
 addRow(const FloatSliderSpinnerUiInfo& info)
 {
   QNumericSlider* slider = new QNumericSlider();
@@ -83,9 +21,12 @@ addRow(const FloatSliderSpinnerUiInfo& info)
 
   auto* prop = static_cast<prtyFloat*>(info.GetProperty(0));
   slider->setValue(prop->GetValue(), true);
-  QObject::connect(
+  auto conn = QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-
+  QObject::connect(slider, &QNumericSlider::destroyed, [conn]() {
+    // Disconnect the signal when the slider is destroyed
+    QObject::disconnect(conn);
+  });
   return slider;
 }
 QNumericSlider*
@@ -101,9 +42,12 @@ addRow(const IntSliderSpinnerUiInfo& info)
 
   auto* prop = static_cast<prtyInt32*>(info.GetProperty(0));
   slider->setValue(prop->GetValue(), true);
-  QObject::connect(
+  auto conn = QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
-
+  QObject::connect(slider, &QNumericSlider::destroyed, [conn]() {
+    // Disconnect the signal when the slider is destroyed
+    QObject::disconnect(conn);
+  });
   return slider;
 }
 
@@ -118,8 +62,12 @@ addRow(const ComboBoxUiInfo& info)
   }
   auto* prop = static_cast<prtyInt8*>(info.GetProperty(0));
   comboBox->setCurrentIndex(prop->GetValue());
-  QObject::connect(
+  auto conn = QObject::connect(
     comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
+  QObject::connect(comboBox, &QComboBox::destroyed, [conn]() {
+    // Disconnect the signal when the combobox is destroyed
+    QObject::disconnect(conn);
+  });
   return comboBox;
 }
 
@@ -131,8 +79,12 @@ addRow(const CheckBoxUiInfo& info)
   checkBox->setToolTip(QString::fromStdString(info.GetToolTip()));
   auto* prop = static_cast<prtyBoolean*>(info.GetProperty(0));
   checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-  QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
+  auto conn = QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
     prop->SetValue(state == Qt::CheckState::Checked, true);
+  });
+  QObject::connect(checkBox, &QCheckBox::destroyed, [conn]() {
+    // Disconnect the signal when the checkbox is destroyed
+    QObject::disconnect(conn);
   });
   return checkBox;
 }
@@ -146,10 +98,15 @@ addRow(const ColorPickerUiInfo& info)
   auto* prop = static_cast<prtyColor*>(info.GetProperty(0));
   QColor c = QColor::fromRgbF(prop->GetValue().r, prop->GetValue().g, prop->GetValue().b);
   colorButton->SetColor(c, true);
-  QObject::connect(colorButton, &QColorPushButton::currentColorChanged, [colorButton, prop](const QColor& c) {
-    // Convert QColor to glm::vec3
-    glm::vec4 color(c.redF(), c.greenF(), c.blueF(), 1.0f);
-    prop->SetValue(color, true);
+  auto conn =
+    QObject::connect(colorButton, &QColorPushButton::currentColorChanged, [colorButton, prop](const QColor& c) {
+      // Convert QColor to glm::vec3
+      glm::vec4 color(c.redF(), c.greenF(), c.blueF(), 1.0f);
+      prop->SetValue(color, true);
+    });
+  QObject::connect(colorButton, &QColorPushButton::destroyed, [conn]() {
+    // Disconnect the signal when the button is destroyed
+    QObject::disconnect(conn);
   });
   return colorButton;
 }
@@ -171,6 +128,7 @@ addGenericRow(const prtyPropertyUIInfo& info)
   } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
     return addRow(*colorPickerInfo);
   }
+
   return nullptr; // or throw an exception
 }
 
