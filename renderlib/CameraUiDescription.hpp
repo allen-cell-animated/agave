@@ -23,6 +23,21 @@ public:
   void updatePropsFromObject();
   void updateObjectFromProps();
 
+  // Getter for camera data object
+  // CameraDataObject& getCameraDataObject() { return m_cameraDataObject; }
+  const CameraDataObject& getCameraDataObject() const { return m_cameraDataObject; }
+
+  // Getters for UI info objects
+  FloatSliderSpinnerUiInfo* getExposureUIInfo() { return m_ExposureUIInfo; }
+  ComboBoxUiInfo* getExposureIterationsUIInfo() { return m_ExposureIterationsUIInfo; }
+  CheckBoxUiInfo* getNoiseReductionUIInfo() { return m_NoiseReductionUIInfo; }
+  FloatSliderSpinnerUiInfo* getApertureSizeUIInfo() { return m_ApertureSizeUIInfo; }
+  FloatSliderSpinnerUiInfo* getFieldOfViewUIInfo() { return m_FieldOfViewUIInfo; }
+  FloatSliderSpinnerUiInfo* getFocalDistanceUIInfo() { return m_FocalDistanceUIInfo; }
+
+  // Getter for the camera
+  std::shared_ptr<CCamera> getCamera() const { return m_camera; }
+
 private:
   // the properties
   CameraDataObject m_cameraDataObject;
