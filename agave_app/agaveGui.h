@@ -30,6 +30,7 @@ class agaveGui : public QMainWindow
 
 public:
   agaveGui(QWidget* parent = Q_NULLPTR);
+  ~agaveGui();
 
   bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr, bool isImageSequence = false);
 
@@ -149,6 +150,7 @@ private:
   QTimelineDockWidget* m_timelinedock;
 
   QRenderSettings m_qrendersettings;
+
   QAppearanceDockWidget* m_appearanceDockWidget;
   QAppearanceDockWidget2* m_appearanceDockWidget2;
 
@@ -158,6 +160,16 @@ private:
   GLView3D* m_glView;
   ViewToolbar* m_viewToolbar;
   QWidget* m_viewWithToolbar;
+
+  QAction* m_recentFileActs[MaxRecentFiles];
+  QAction* m_recentFileSeparator;
+  QAction* m_recentFileSubMenuAct;
+
+  Qt::ColorScheme m_colorScheme;
+
+  ///////////////////////
+  // Objects related to the app state
+  ///////////////////////
 
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
@@ -172,14 +184,10 @@ private:
   // scene gets sent down to the renderer.
   Scene m_appScene;
   int m_currentScene = 0;
-
-  QAction* m_recentFileActs[MaxRecentFiles];
-  QAction* m_recentFileSeparator;
-  QAction* m_recentFileSubMenuAct;
+  std::unique_ptr<CameraObject> m_cameraObject;
+  std::unique_ptr<AppearanceObject> m_appearanceObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
   LoadSpec m_loadSpec;
-
-  Qt::ColorScheme m_colorScheme;
 };
