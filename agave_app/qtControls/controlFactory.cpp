@@ -23,12 +23,38 @@ addRow(const FloatSliderSpinnerUiInfo& info)
   slider->setValue(prop->GetValue(), true);
   auto conn = QObject::connect(
     slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
+  // now add a callback to the property to update the control when the property changes
+
+  //	Note: right now, this will not create a circular update because
+  //	of the m_bLocalChangeNoUpdate flag.  This IS NOT true the other way
+  //	around.  If a control calls its "ValueChanged" then the property will
+  //	call all of its callback controls and one of them could have been the one
+  //	that originally updated the property value(s).  By checking the diff of
+  //	the values we can avoid a repetitive setting of the control's values.
+  prop->AddCallback(new prtyCallbackLambda([slider](prtyProperty* i_pProperty, bool i_bDirty) {
+    // this is equivalent to QWidget::blockSignals(true);
+    // if (m_bLocalChangeNoUpdate)
+    //  return;
+    const float newvalue = (static_cast<prtyFloat*>(i_pProperty))->GetValue();
+    // m_bLocalChangeNoUpdate = true;
+    slider->blockSignals(true);
+    if ((float)slider->value() != newvalue) {
+      // Prevent recursive updates
+      // slider->setLocalChangeNoUpdate(true);
+      slider->setValue(newvalue, false);
+      // slider->setLocalChangeNoUpdate(false);
+    }
+    // m_bLocalChangeNoUpdate = false;
+    slider->blockSignals(false);
+  }));
+
   QObject::connect(slider, &QNumericSlider::destroyed, [conn]() {
     // Disconnect the signal when the slider is destroyed
     QObject::disconnect(conn);
   });
   return slider;
 }
+
 QNumericSlider*
 addRow(const IntSliderSpinnerUiInfo& info)
 {
