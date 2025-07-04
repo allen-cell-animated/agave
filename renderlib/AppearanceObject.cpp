@@ -1,4 +1,4 @@
-#include "AppearanceUiDescription.hpp"
+#include "AppearanceObject.hpp"
 
 #include "Logging.h"
 // ComboBoxUiInfo AppearanceUiDescription::m_rendererType("Renderer Type",
