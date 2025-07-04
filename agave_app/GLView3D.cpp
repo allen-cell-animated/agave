@@ -3,8 +3,8 @@
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
-#include "renderlib/AppearanceUiDescription.hpp"
-#include "renderlib/CameraUiDescription.hpp"
+#include "renderlib/AppearanceObject.hpp"
+#include "renderlib/CameraObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/MoveTool.h"
