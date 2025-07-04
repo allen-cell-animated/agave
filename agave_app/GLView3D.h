@@ -68,7 +68,8 @@ public:
 
   const CCamera& getCamera() { return *m_viewerWindow->m_CCamera; }
   // tied to the above camera.  CCamera must outlive this:
-  CameraObject* getCameraDataObject() { return m_cameraDataObject; }
+  // CameraObject* getCameraDataObject() { return m_cameraObject; }
+  void setCameraObject(CameraObject* cameraObject);
   AppearanceObject* getAppearanceDataObject() { return m_appearanceDataObject; }
 
   void fromViewerState(const Serialize::ViewerState& s);
@@ -112,7 +113,7 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
 private:
-  CameraObject* m_cameraDataObject;
+  CameraObject* m_cameraObject;
   AppearanceObject* m_appearanceDataObject;
   QRenderSettings* m_qrendersettings;
 
