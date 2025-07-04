@@ -5,7 +5,7 @@
 #include "qtControls/Section.h"
 
 #include "renderlib/uiInfo.hpp"
-#include "renderlib/CameraUiDescription.hpp"
+#include "renderlib/CameraObject.hpp"
 
 #include <QLabel>
 #include <QFormLayout>

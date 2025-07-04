@@ -4,7 +4,7 @@
 #include "qtControls/controlFactory.h"
 
 #include "renderlib/uiInfo.hpp"
-#include "renderlib/AppearanceUiDescription.hpp"
+#include "renderlib/AppearanceObject.hpp"
 #include "renderlib/ViewerWindow.h"
 
 #include <QLabel>

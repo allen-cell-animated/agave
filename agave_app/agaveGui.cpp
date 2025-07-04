@@ -12,8 +12,8 @@
 #include "renderlib/VolumeDimensions.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
-#include "renderlib/CameraUiDescription.hpp"
-#include "renderlib/AppearanceUiDescription.hpp"
+#include "renderlib/CameraObject.hpp"
+#include "renderlib/AppearanceObject.hpp"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"

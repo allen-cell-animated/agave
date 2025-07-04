@@ -3,7 +3,7 @@
 #include "qtControls/Controls.h"
 
 // #include "renderlib/core/prty/prtyProperty.h"
-#include "renderlib/CameraUiDescription.hpp"
+#include "renderlib/CameraObject.hpp"
 #include "renderlib/Logging.h"
 
 #include <QCheckBox>
