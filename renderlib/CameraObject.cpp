@@ -1,4 +1,4 @@
-#include "CameraUiDescription.hpp"
+#include "CameraObject.hpp"
 
 #include "Logging.h"
 
