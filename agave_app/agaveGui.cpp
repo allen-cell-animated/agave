@@ -130,7 +130,7 @@ agaveGui::agaveGui(QWidget* parent)
   setupCameraDock(m_cameraObject.get());
   setupTimelineDock();
   setupStatisticsDock();
-  setupAppearanceDock(m_glView->getAppearanceDataObject());
+  setupAppearanceDock(m_appearanceObject.get());
 
   addDockItemsToViewMenu();
 
@@ -1171,6 +1171,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
 
+  m_appearanceObject->updatePropsFromObject();
+
   // position camera
   m_glView->fromViewerState(v);
   m_viewToolbar->initFromCamera(m_glView->getCamera());
@@ -1210,6 +1212,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
   m_appScene.m_showScaleBar = v.showScaleBar;
 
+  /////////////// TODO set these through props in the AppearanceObject
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
   m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;

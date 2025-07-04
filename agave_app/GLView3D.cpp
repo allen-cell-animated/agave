@@ -42,8 +42,6 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
 
-  m_appearanceDataObject = new AppearanceObject();
-
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
 
@@ -142,8 +140,6 @@ GLView3D::onNewImage(Scene* scene)
 
 GLView3D::~GLView3D()
 {
-  delete m_appearanceDataObject;
-
   makeCurrent();
   check_gl("view dtor makecurrent");
   // doneCurrent();
@@ -480,6 +476,10 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
 
   // syntactic sugar
   std::shared_ptr<CCamera>& camera = m_viewerWindow->m_CCamera;
+
+  ///////////////////
+  // TODO do all of this through the camera object's properties!!!!!!!!!
+  ///////////////////
 
   camera->m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
   camera->m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
