@@ -12,8 +12,8 @@
 #include "renderlib/VolumeDimensions.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
-#include "renderlib/CameraObject.hpp"
-#include "renderlib/AppearanceObject.hpp"
+#include "renderlib/CameraUiDescription.hpp"
+#include "renderlib/AppearanceUiDescription.hpp"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
@@ -85,19 +85,9 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  // create our document objects
-  // render settings
-  m_appearanceObject = std::make_unique<AppearanceObject>();
-  // scene objects
+  // create our two document objects
   m_cameraObject = std::make_unique<CameraObject>();
-  m_areaLightObject = std::make_unique<AreaLightObject>();
-  m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
-  m_areaLightObject->setDirtyCallback(
-    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
-  m_skyLightObject = std::make_unique<SkyLightObject>();
-  m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
-  m_skyLightObject->setDirtyCallback(
-    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
+  m_appearanceObject = std::make_unique<AppearanceObject>();
 
   m_ui.setupUi(this);
 
@@ -135,8 +125,10 @@ agaveGui::agaveGui(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_glView->setCameraObject(m_cameraObject.get());
+
   // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_glView->getCameraDataObject());
+  setupCameraDock(m_cameraObject.get());
   setupTimelineDock();
   setupStatisticsDock();
   setupAppearanceDock(m_glView->getAppearanceDataObject());
@@ -1382,7 +1374,7 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  CameraObject* cdo = m_glView->getCameraDataObject();
+  CameraObject* cdo = m_cameraObject.get();
   v.camera.fovY = cdo->getCameraDataObject().FieldOfView.GetValue();
   v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
   v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
