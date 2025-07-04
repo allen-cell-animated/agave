@@ -88,6 +88,8 @@ private:
     MaxRecentFiles = 8
   };
 
+  // there is a concept of a serializable document and it can be captured from current app state,
+  // or loaded from a file and then applied to the app state.
   Serialize::ViewerState appToViewerState();
   void viewerStateToApp(const Serialize::ViewerState& s);
 
