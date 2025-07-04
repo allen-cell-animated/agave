@@ -12,6 +12,8 @@
 #include "renderlib/VolumeDimensions.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
+#include "renderlib/CameraUiDescription.hpp"
+#include "renderlib/AppearanceUiDescription.hpp"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
@@ -82,6 +84,10 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
+  // create our two document objects
+  m_cameraObject = std::make_unique<CameraObject>();
+  m_appearanceObject = std::make_unique<AppearanceObject>();
+
   m_ui.setupUi(this);
 
   setDockOptions(AllowTabbedDocks);
@@ -118,11 +124,10 @@ agaveGui::agaveGui(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_glView->getCameraDataObject());
+  m_glView->setCameraObject(m_cameraObject.get());
 
   // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_glView->getCameraDataObject());
+  setupCameraDock(m_cameraObject.get());
   setupTimelineDock();
   setupStatisticsDock();
   setupAppearanceDock(m_glView->getAppearanceDataObject());
@@ -165,6 +170,10 @@ agaveGui::agaveGui(QWidget* parent)
   int width = screenGeometry.width();
   resize(width * 0.8, height * 0.8);
   // consider resizeDocks to widen the appearance dock
+}
+agaveGui::~agaveGui()
+{
+  // Clean up any allocated resources
 }
 
 void
@@ -1325,7 +1334,7 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  CameraObject* cdo = m_glView->getCameraDataObject();
+  CameraObject* cdo = m_cameraObject.get();
   v.camera.fovY = cdo->getCameraDataObject().FieldOfView.GetValue();
   v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
   v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
