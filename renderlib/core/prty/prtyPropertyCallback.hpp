@@ -21,6 +21,8 @@
 //============================================================================
 class prtyProperty;
 
+typedef std::function<void(prtyProperty*, bool)> prtyPropertyCallbackFunc;
+
 //============================================================================
 //	Interface
 //============================================================================
@@ -63,10 +65,10 @@ struct prtyCallbackWrapper : public prtyPropertyCallback
 
 class prtyCallbackLambda : public prtyPropertyCallback
 {
-  std::function<void(prtyProperty*, bool)> m_Callback;
+  prtyPropertyCallbackFunc m_Callback;
 
 public:
-  prtyCallbackLambda(std::function<void(prtyProperty*, bool)> i_Callback)
+  prtyCallbackLambda(prtyPropertyCallbackFunc i_Callback)
     : m_Callback(i_Callback)
   {
   }
