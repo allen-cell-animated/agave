@@ -44,11 +44,6 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidg
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
 
-  // camera is created deep down inside m_viewerWindow.
-  m_cameraDataObject = new CameraObject();
-  m_viewerWindow->m_CCamera = m_cameraDataObject->getCamera();
-
-  // m_cameraDataObject->setExternalCamera(&m_viewerWindow->m_CCamera);
   m_appearanceDataObject = new AppearanceObject();
 
   setFocusPolicy(Qt::StrongFocus);
@@ -149,7 +144,6 @@ GLView3D::onNewImage(Scene* scene)
 
 GLView3D::~GLView3D()
 {
-  delete m_cameraDataObject;
   delete m_appearanceDataObject;
 
   makeCurrent();
@@ -501,7 +495,7 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
-  m_cameraDataObject->updatePropsFromObject();
+  m_cameraObject->updatePropsFromObject();
 
   m_appearanceDataObject->updatePropsFromObject();
 }

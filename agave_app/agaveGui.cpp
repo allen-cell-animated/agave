@@ -12,8 +12,8 @@
 #include "renderlib/VolumeDimensions.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
-#include "renderlib/CameraObject.hpp"
-#include "renderlib/AppearanceObject.hpp"
+#include "renderlib/CameraUiDescription.hpp"
+#include "renderlib/AppearanceUiDescription.hpp"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
@@ -124,8 +124,10 @@ agaveGui::agaveGui(QWidget* parent)
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_glView->setCameraObject(m_cameraObject.get());
+
   // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_glView->getCameraDataObject());
+  setupCameraDock(m_cameraObject.get());
   setupTimelineDock();
   setupStatisticsDock();
   setupAppearanceDock(m_glView->getAppearanceDataObject());
@@ -1340,7 +1342,7 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  CameraObject* cdo = m_glView->getCameraDataObject();
+  CameraObject* cdo = m_cameraObject.get();
   v.camera.fovY = cdo->getCameraDataObject().FieldOfView.GetValue();
   v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
   v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
