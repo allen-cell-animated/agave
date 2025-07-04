@@ -3,7 +3,7 @@
 #include "qtControls/Controls.h"
 
 // #include "renderlib/core/prty/prtyProperty.h"
-#include "renderlib/AppearanceUiDescription.hpp"
+#include "renderlib/AppearanceObject.hpp"
 #include "renderlib/Logging.h"
 
 #include <QCheckBox>
