@@ -175,7 +175,7 @@ private:
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
   // if renderer is on a separate thread, then this will need a mutex guard
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
-  RenderSettings m_renderSettings;
+  std::unique_ptr<AppearanceObject> m_appearanceObject;
 
   // the render dialog will modify the contents of this object
   CaptureSettings m_captureSettings;
@@ -185,7 +185,6 @@ private:
   Scene m_appScene;
   int m_currentScene = 0;
   std::unique_ptr<CameraObject> m_cameraObject;
-  std::unique_ptr<AppearanceObject> m_appearanceObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead

@@ -47,7 +47,7 @@ Renderer::~Renderer()
 
 void
 Renderer::configure(IRenderWindow* renderer,
-                    const RenderSettings& renderSettings,
+                    std::shared_ptr<RenderSettings> renderSettings,
                     const Scene& scene,
                     const CCamera& camera,
                     const LoadSpec& loadSpec,
@@ -57,7 +57,7 @@ Renderer::configure(IRenderWindow* renderer,
                     const CaptureSettings* captureSettings)
 {
   // assumes scene is already set in renderer and everything is initialized
-  m_myVolumeData.m_renderSettings = new RenderSettings(renderSettings);
+  m_myVolumeData.m_renderSettings = new RenderSettings(*renderSettings.get());
   m_myVolumeData.m_camera = new CCamera(camera);
   // CONTROVERSIAL:
   // it is hard to maintain a full scene copy ctor.

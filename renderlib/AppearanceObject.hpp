@@ -46,6 +46,9 @@ public:
   ColorPickerUiInfo* getBoundingBoxColorUiInfo() { return m_boundingBoxColor; }
   CheckBoxUiInfo* getShowScaleBarUiInfo() { return m_showScaleBar; }
 
+  // Getter for the rendersettings
+  std::shared_ptr<RenderSettings> getRenderSettings() const { return m_renderSettings; }
+
 private:
   // the properties
   AppearanceDataObject m_appearanceDataObject;

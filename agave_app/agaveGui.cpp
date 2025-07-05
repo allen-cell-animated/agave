@@ -118,7 +118,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qrendersettings, &m_renderSettings, &m_appScene, this);
+  m_glView = new GLView3D(&m_qrendersettings, m_appearanceObject->getRenderSettings().get(), &m_appScene, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
@@ -363,7 +363,7 @@ void
 agaveGui::setupCameraDock(CameraObject* cdo)
 {
   // TODO enable changing/resetting the camera data object shown in this dock?
-  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
+  m_cameradock = new QCameraDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 }
@@ -376,14 +376,18 @@ void
 agaveGui::setupAppearanceDock(AppearanceObject* ado)
 {
   // DANGER see borrowRenderer call
-  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, m_glView->borrowRenderer(), ado);
+  m_appearanceDockWidget2 =
+    new QAppearanceDockWidget2(this, m_appearanceObject->getRenderSettings().get(), m_glView->borrowRenderer(), ado);
   m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
 
   // original appearance dock widget
 
-  m_appearanceDockWidget = new QAppearanceDockWidget(
-    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
+  m_appearanceDockWidget = new QAppearanceDockWidget(this,
+                                                     &m_qrendersettings,
+                                                     m_appearanceObject->getRenderSettings().get(),
+                                                     m_toggleRotateControlsAction,
+                                                     m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 }
@@ -651,7 +655,7 @@ agaveGui::onRenderAction()
   ViewerWindow* renderer = m_glView->borrowRenderer();
 
   RenderDialog* rdialog = new RenderDialog(renderer,
-                                           m_renderSettings,
+                                           m_appearanceObject->getRenderSettings(),
                                            m_appScene,
                                            camera,
                                            m_glView->context(),
@@ -665,10 +669,11 @@ agaveGui::onRenderAction()
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
-    m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
-    m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
-    m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
-    m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    auto rs = m_appearanceObject->getRenderSettings();
+    rs->m_DirtyFlags.SetFlag(CameraDirty);
+    rs->m_DirtyFlags.SetFlag(LightsDirty);
+    rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
+    rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
@@ -1214,10 +1219,11 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_showScaleBar = v.showScaleBar;
 
   /////////////// TODO set these through props in the AppearanceObject
-  m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
-  m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
+  auto rs = m_appearanceObject->getRenderSettings();
+  rs->m_RenderSettings.m_DensityScale = v.density;
+  rs->m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
+  rs->m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
+  rs->m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -1262,10 +1268,10 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_captureSettings.outputDir = v.capture.outputDirectory;
   m_captureSettings.filenamePrefix = v.capture.filenamePrefix;
 
-  m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
-  m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
-  m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
-  m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  rs->m_DirtyFlags.SetFlag(LightsDirty);
+  rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 Serialize::ViewerState
@@ -1296,7 +1302,7 @@ agaveGui::appToViewerState()
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
   v.showScaleBar = m_appScene.m_showScaleBar;
 
-  v.capture.samples = m_renderSettings.GetNoIterations();
+  v.capture.samples = m_appearanceObject->getRenderSettings()->GetNoIterations();
 
   v.timeline.minTime = m_appScene.m_timeLine.minTime();
   v.timeline.maxTime = m_appScene.m_timeLine.maxTime();
@@ -1343,14 +1349,15 @@ agaveGui::appToViewerState()
   v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
   v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
   v.camera.focalDistance = cdo->getCameraDataObject().FocalDistance.GetValue();
-  v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
-  v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
+  auto rs = m_appearanceObject->getRenderSettings();
+  v.density = rs->m_RenderSettings.m_DensityScale;
+  v.interpolate = rs->m_RenderSettings.m_InterpolatedVolumeSampling;
 
   v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
                                                             : Serialize::RendererType_PID::PATHTRACE;
 
-  v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
-  v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
+  v.pathTracer.primaryStepSize = rs->m_RenderSettings.m_StepSizeFactor;
+  v.pathTracer.secondaryStepSize = rs->m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
