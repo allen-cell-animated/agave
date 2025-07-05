@@ -92,7 +92,7 @@ public:
   virtual ~Renderer();
 
   void configure(IRenderWindow* renderer,
-                 const RenderSettings& renderSettings,
+                 std::shared_ptr<RenderSettings> renderSettings,
                  const Scene& scene,
                  const CCamera& camera,
                  const LoadSpec& loadSpec,

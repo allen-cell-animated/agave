@@ -9,6 +9,8 @@
 #include <QMutex>
 #include <QStandardPaths>
 
+#include <memory>
+
 class QButtonGroup;
 class QCheckBox;
 class QComboBox;
@@ -68,7 +70,7 @@ class RenderDialog : public QDialog
 
 public:
   RenderDialog(ViewerWindow* borrowedRenderer,
-               const RenderSettings& renderSettings,
+               std::shared_ptr<RenderSettings> renderSettings,
                const Scene& scene,
                CCamera camera,
                QOpenGLContext* glContext,
@@ -107,7 +109,7 @@ private:
   QOpenGLContext* m_glContext;
   Renderer* m_renderThread;
   IRenderWindow* m_renderer;
-  const RenderSettings& m_renderSettings;
+  std::shared_ptr<RenderSettings> m_renderSettings;
   const Scene& m_scene;
   LoadSpec m_loadSpec;
   // reference that I don't own
