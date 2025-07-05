@@ -32,5 +32,5 @@ private:
   RenderSettings* m_renderSettings;
 
 private:
-  AppearanceObject* m_appearanceDataObject;
+  AppearanceObject* m_appearanceObject;
 };
