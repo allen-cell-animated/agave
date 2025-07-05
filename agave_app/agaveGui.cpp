@@ -388,14 +388,19 @@ agaveGui::setupCameraDock(CameraObject* cdo)
 void
 agaveGui::setupAppearanceDock(AppearanceObject* ado)
 {
-  m_appearanceDockWidget2 = new QAppearanceDockWidget2(this, &m_renderSettings, ado);
+  // DANGER see borrowRenderer call
+  m_appearanceDockWidget2 =
+    new QAppearanceDockWidget2(this, m_appearanceObject->getRenderSettings().get(), m_glView->borrowRenderer(), ado);
   m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
 
   // original appearance dock widget
 
-  m_appearanceDockWidget = new QAppearanceDockWidget(
-    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
+  m_appearanceDockWidget = new QAppearanceDockWidget(this,
+                                                     &m_qrendersettings,
+                                                     m_appearanceObject->getRenderSettings().get(),
+                                                     m_toggleRotateControlsAction,
+                                                     m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 }
@@ -1379,8 +1384,9 @@ agaveGui::appToViewerState()
   v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
   v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
   v.camera.focalDistance = cdo->getCameraDataObject().FocalDistance.GetValue();
-  v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
-  v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
+  auto rs = m_appearanceObject->getRenderSettings();
+  v.density = rs->m_RenderSettings.m_DensityScale;
+  v.interpolate = rs->m_RenderSettings.m_InterpolatedVolumeSampling;
 
   v.density = appearanceData.DensityScale.GetValue();
   v.interpolate = appearanceData.Interpolate.GetValue();

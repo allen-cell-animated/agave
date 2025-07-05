@@ -193,7 +193,6 @@ private:
   Scene m_appScene;
   int m_currentScene = 0;
   std::unique_ptr<CameraObject> m_cameraObject;
-  std::unique_ptr<AppearanceObject> m_appearanceObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
