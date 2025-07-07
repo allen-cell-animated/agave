@@ -1207,23 +1207,29 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
   m_appScene.m_volume->setVolumeAxesFlipped(v.flipAxis[0], v.flipAxis[1], v.flipAxis[2]);
 
-  m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
-  m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
-  m_appScene.m_material.m_backgroundColor[2] = v.backgroundColor[2];
+  m_appearanceObject->appearanceDataObject().BackgroundColor.SetValue(
+    { v.backgroundColor[0], v.backgroundColor[1], v.backgroundColor[2], 1.0f });
+  m_appearanceObject->appearanceDataObject().BoundingBoxColor.SetValue(
+    { v.boundingBoxColor[0], v.boundingBoxColor[1], v.boundingBoxColor[2], 1.0f });
+  // m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
+  // m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
+  // m_appScene.m_material.m_backgroundColor[2] = v.backgroundColor[2];
 
-  m_appScene.m_material.m_boundingBoxColor[0] = v.boundingBoxColor[0];
-  m_appScene.m_material.m_boundingBoxColor[1] = v.boundingBoxColor[1];
-  m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
+  // m_appScene.m_material.m_boundingBoxColor[0] = v.boundingBoxColor[0];
+  // m_appScene.m_material.m_boundingBoxColor[1] = v.boundingBoxColor[1];
+  // m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
 
-  m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
-  m_appScene.m_showScaleBar = v.showScaleBar;
+  m_appearanceObject->appearanceDataObject().ShowBoundingBox.SetValue(v.showBoundingBox);
+  m_appearanceObject->appearanceDataObject().ShowScaleBar.SetValue(v.showScaleBar);
+  // m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
+  // m_appScene.m_showScaleBar = v.showScaleBar;
 
   /////////////// TODO set these through props in the AppearanceObject
-  auto rs = m_appearanceObject->getRenderSettings();
-  rs->m_RenderSettings.m_DensityScale = v.density;
-  rs->m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
-  rs->m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
-  rs->m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
+  auto rs = m_appearanceObject->appearanceDataObject();
+  rs.DensityScale.SetValue(v.density);
+  rs.StepSizePrimaryRay.SetValue(v.pathTracer.primaryStepSize);
+  rs.StepSizeSecondaryRay.SetValue(v.pathTracer.secondaryStepSize);
+  rs.Interpolate.SetValue(v.interpolate);
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -1268,10 +1274,11 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_captureSettings.outputDir = v.capture.outputDirectory;
   m_captureSettings.filenamePrefix = v.capture.filenamePrefix;
 
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
-  rs->m_DirtyFlags.SetFlag(LightsDirty);
-  rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
-  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  auto renderSettings = m_appearanceObject->getRenderSettings();
+  renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+  renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 Serialize::ViewerState
@@ -1292,15 +1299,15 @@ agaveGui::appToViewerState()
     v.flipAxis[2] = vflip.z > 0 ? 1 : -1;
   }
 
-  v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],
-                        m_appScene.m_material.m_backgroundColor[1],
-                        m_appScene.m_material.m_backgroundColor[2] };
+  v.backgroundColor = { m_appearanceObject->getAppearanceDataObject().BackgroundColor.GetValue()[0],
+                        m_appearanceObject->getAppearanceDataObject().BackgroundColor.GetValue()[1],
+                        m_appearanceObject->getAppearanceDataObject().BackgroundColor.GetValue()[2] };
 
-  v.boundingBoxColor = { m_appScene.m_material.m_boundingBoxColor[0],
-                         m_appScene.m_material.m_boundingBoxColor[1],
-                         m_appScene.m_material.m_boundingBoxColor[2] };
-  v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
-  v.showScaleBar = m_appScene.m_showScaleBar;
+  v.boundingBoxColor = { m_appearanceObject->getAppearanceDataObject().BoundingBoxColor.GetValue()[0],
+                         m_appearanceObject->getAppearanceDataObject().BoundingBoxColor.GetValue()[1],
+                         m_appearanceObject->getAppearanceDataObject().BoundingBoxColor.GetValue()[2] };
+  v.showBoundingBox = m_appearanceObject->getAppearanceDataObject().ShowBoundingBox.GetValue();
+  v.showScaleBar = m_appearanceObject->getAppearanceDataObject().ShowScaleBar.GetValue();
 
   v.capture.samples = m_appearanceObject->getRenderSettings()->GetNoIterations();
 
@@ -1349,15 +1356,15 @@ agaveGui::appToViewerState()
   v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
   v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
   v.camera.focalDistance = cdo->getCameraDataObject().FocalDistance.GetValue();
-  auto rs = m_appearanceObject->getRenderSettings();
-  v.density = rs->m_RenderSettings.m_DensityScale;
-  v.interpolate = rs->m_RenderSettings.m_InterpolatedVolumeSampling;
+  auto rs = m_appearanceObject->getAppearanceDataObject();
+  v.density = rs.DensityScale.GetValue();
+  v.interpolate = rs.Interpolate.GetValue();
 
   v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
                                                             : Serialize::RendererType_PID::PATHTRACE;
 
-  v.pathTracer.primaryStepSize = rs->m_RenderSettings.m_StepSizeFactor;
-  v.pathTracer.secondaryStepSize = rs->m_RenderSettings.m_StepSizeFactorShadow;
+  v.pathTracer.primaryStepSize = rs.StepSizePrimaryRay.GetValue();
+  v.pathTracer.secondaryStepSize = rs.StepSizeSecondaryRay.GetValue();
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
