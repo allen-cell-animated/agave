@@ -1299,15 +1299,17 @@ agaveGui::appToViewerState()
     v.flipAxis[2] = vflip.z > 0 ? 1 : -1;
   }
 
-  v.backgroundColor = { m_appearanceObject->getAppearanceDataObject().BackgroundColor.GetValue()[0],
-                        m_appearanceObject->getAppearanceDataObject().BackgroundColor.GetValue()[1],
-                        m_appearanceObject->getAppearanceDataObject().BackgroundColor.GetValue()[2] };
+  // TODO just dump data objects directly to serialization?
+  const AppearanceDataObject& appearanceData = m_appearanceObject->getAppearanceDataObject();
+  v.backgroundColor = { appearanceData.BackgroundColor.GetValue()[0],
+                        appearanceData.BackgroundColor.GetValue()[1],
+                        appearanceData.BackgroundColor.GetValue()[2] };
 
-  v.boundingBoxColor = { m_appearanceObject->getAppearanceDataObject().BoundingBoxColor.GetValue()[0],
-                         m_appearanceObject->getAppearanceDataObject().BoundingBoxColor.GetValue()[1],
-                         m_appearanceObject->getAppearanceDataObject().BoundingBoxColor.GetValue()[2] };
-  v.showBoundingBox = m_appearanceObject->getAppearanceDataObject().ShowBoundingBox.GetValue();
-  v.showScaleBar = m_appearanceObject->getAppearanceDataObject().ShowScaleBar.GetValue();
+  v.boundingBoxColor = { appearanceData.BoundingBoxColor.GetValue()[0],
+                         appearanceData.BoundingBoxColor.GetValue()[1],
+                         appearanceData.BoundingBoxColor.GetValue()[2] };
+  v.showBoundingBox = appearanceData.ShowBoundingBox.GetValue();
+  v.showScaleBar = appearanceData.ShowScaleBar.GetValue();
 
   v.capture.samples = m_appearanceObject->getRenderSettings()->GetNoIterations();
 
@@ -1351,20 +1353,20 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  CameraObject* cdo = m_cameraObject.get();
-  v.camera.fovY = cdo->getCameraDataObject().FieldOfView.GetValue();
-  v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
-  v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
-  v.camera.focalDistance = cdo->getCameraDataObject().FocalDistance.GetValue();
-  auto rs = m_appearanceObject->getAppearanceDataObject();
-  v.density = rs.DensityScale.GetValue();
-  v.interpolate = rs.Interpolate.GetValue();
+  // CameraObject* cdo = m_cameraObject.get();
+  const CameraDataObject& cameraData = m_cameraObject->getCameraDataObject();
+  v.camera.fovY = cameraData.FieldOfView.GetValue();
+  v.camera.exposure = cameraData.Exposure.GetValue();
+  v.camera.aperture = cameraData.ApertureSize.GetValue();
+  v.camera.focalDistance = cameraData.FocalDistance.GetValue();
 
-  v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
-                                                            : Serialize::RendererType_PID::PATHTRACE;
+  v.density = appearanceData.DensityScale.GetValue();
+  v.interpolate = appearanceData.Interpolate.GetValue();
 
-  v.pathTracer.primaryStepSize = rs.StepSizePrimaryRay.GetValue();
-  v.pathTracer.secondaryStepSize = rs.StepSizeSecondaryRay.GetValue();
+  v.rendererType = appearanceData.RendererType.GetValue() == 0 ? Serialize::RendererType_PID::RAYMARCH
+                                                               : Serialize::RendererType_PID::PATHTRACE;
+  v.pathTracer.primaryStepSize = appearanceData.StepSizePrimaryRay.GetValue();
+  v.pathTracer.secondaryStepSize = appearanceData.StepSizeSecondaryRay.GetValue();
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
