@@ -30,7 +30,7 @@ public:
   void updateObjectFromProps();
 
   // Getter for appearance data object
-  // AppearanceDataObject& getAppearanceDataObject() { return m_appearanceDataObject; }
+  AppearanceDataObject& appearanceDataObject() { return m_appearanceDataObject; }
   const AppearanceDataObject& getAppearanceDataObject() const { return m_appearanceDataObject; }
 
   // Getters for UI info objects
