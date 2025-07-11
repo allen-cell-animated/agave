@@ -745,6 +745,18 @@ export class AgaveClient {
     this.cb.addCommand("SET_COLOR_RAMP", channel, name, data);
   }
 
+  /**
+   * Set the min and max threshold for a channel
+   *
+   * @param channel Which channel index, 0 based.
+   * @param min The minimum intensity value
+   * @param max The maximum intensity value
+   */
+  setMinMaxThreshold(channel: number, min: number, max: number) {
+    // 50
+    this.cb.addCommand("SET_MIN_MAX_THRESHOLD", channel, min, max);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {
