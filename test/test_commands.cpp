@@ -470,4 +470,13 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_name == data.m_name);
     REQUIRE(cmd->m_data.m_data == data.m_data);
   }
+  SECTION("SetMinMaxThresholdCommand")
+  {
+    SetMinMaxThresholdCommandD data = { 3, 256, 512 };
+    auto cmd = testcodec<SetMinMaxThresholdCommand, SetMinMaxThresholdCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_min_max_threshold(3, 256, 512)");
+    REQUIRE(cmd->m_data.m_channel == data.m_channel);
+    REQUIRE(cmd->m_data.m_min == data.m_min);
+    REQUIRE(cmd->m_data.m_max == data.m_max);
+  }
 }

@@ -71,6 +71,8 @@ TEST_CASE("Json Serialization", "[serialize]")
     settings.isorange = 0.4f;
     settings.pctLow = 0.5f;
     settings.pctHigh = 0.6f;
+    settings.minu16 = 256;
+    settings.maxu16 = 512;
     settings.controlPoints = { { 0.1f, { 0.2f, 0.3f, 0.4f, 0.5f } }, { 0.2f, { 0.3f, 0.4f, 0.5f, 0.6f } } };
     settings.mode = Serialize::GradientEditMode_PID::CUSTOM;
     nlohmann::json json = settings;
@@ -90,6 +92,8 @@ TEST_CASE("Json Serialization", "[serialize]")
                            0.4f,
                            0.5f,
                            0.6f,
+                           256,
+                           512,
                            { { 0.1f, { 0.2f, 0.3f, 0.4f, 0.5f } }, { 0.2f, { 0.3f, 0.4f, 0.5f, 0.6f } } },
                            Serialize::GradientEditMode_PID::CUSTOM };
     nlohmann::json json = settings;
@@ -287,7 +291,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -336,7 +342,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -385,7 +393,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -434,7 +444,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -483,7 +495,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -532,7 +546,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -581,7 +597,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -630,7 +648,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -679,7 +699,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -883,7 +905,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -932,7 +956,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -981,7 +1007,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -1030,7 +1058,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -1079,7 +1109,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -1128,7 +1160,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -1177,7 +1211,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -1226,7 +1262,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [
@@ -1275,7 +1313,9 @@ TEST_CASE("Json Serialization", "[serialize]")
                 "mode": 2,
                 "pctHigh": 0.9800000190734863,
                 "pctLow": 0.5,
-                "window": 0.25
+                "window": 0.25,
+                "minu16": 256,
+                "maxu16": 512
             },
             "opacity": 1,
             "specularColor": [

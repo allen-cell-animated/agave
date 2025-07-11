@@ -799,6 +799,18 @@ SetColorRampCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
+void
+SetMinMaxThresholdCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetMinMaxThreshold " << m_data.m_channel << " " << m_data.m_min << " " << m_data.m_max;
+  GradientData& lutInfo = c->m_appScene->m_material.m_gradientData[m_data.m_channel];
+  lutInfo.m_activeMode = GradientEditMode::MINMAX;
+  lutInfo.m_minu16 = m_data.m_min;
+  lutInfo.m_maxu16 = m_data.m_max;
+  c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -1778,6 +1790,27 @@ SetColorRampCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetMinMaxThresholdCommand*
+SetMinMaxThresholdCommand::parse(ParseableStream* c)
+{
+  SetMinMaxThresholdCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_min = c->parseInt32();
+  data.m_max = c->parseInt32();
+  return new SetMinMaxThresholdCommand(data);
+}
+
+size_t
+SetMinMaxThresholdCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeInt32(m_data.m_min);
+  bytesWritten += o->writeInt32(m_data.m_max);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2280,6 +2313,16 @@ SetColorRampCommand::toPythonString() const
   }
   ss << "]";
 
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetMinMaxThresholdCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_min << ", " << m_data.m_max;
   ss << ")";
   return ss.str();
 }

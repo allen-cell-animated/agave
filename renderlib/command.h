@@ -508,3 +508,14 @@ CMDDECL(SetColorRampCommand,
         49,
         "set_color_ramp",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::STR, CommandArgType::F32A }));
+
+struct SetMinMaxThresholdCommandD
+{
+  int32_t m_channel;
+  int32_t m_min;
+  int32_t m_max;
+};
+CMDDECL(SetMinMaxThresholdCommand,
+        50,
+        "set_min_max_threshold",
+        CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
