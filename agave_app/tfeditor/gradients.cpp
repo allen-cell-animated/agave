@@ -374,6 +374,9 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
+  QPushButton* minMaxButton = new QPushButton("Min/Max");
+  minMaxButton->setToolTip(tr("Min/Max"));
+  minMaxButton->setStatusTip(tr("Choose Min/Max mode"));
   QPushButton* windowLevelButton = new QPushButton("Wnd/Lvl");
   windowLevelButton->setToolTip(tr("Window/Level"));
   windowLevelButton->setStatusTip(tr("Choose Window/Level mode"));
@@ -391,17 +394,21 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   static const int ISO_BTNID = 2;
   static const int PCT_BTNID = 3;
   static const int CUSTOM_BTNID = 4;
+  static const int MINMAX_BTNID = 5;
   static std::map<int, GradientEditMode> btnIdToGradientMode = { { WINDOW_LEVEL_BTNID, GradientEditMode::WINDOW_LEVEL },
                                                                  { ISO_BTNID, GradientEditMode::ISOVALUE },
                                                                  { PCT_BTNID, GradientEditMode::PERCENTILE },
+                                                                 { MINMAX_BTNID, GradientEditMode::MINMAX },
                                                                  { CUSTOM_BTNID, GradientEditMode::CUSTOM } };
   static std::map<GradientEditMode, int> gradientModeToBtnId = { { GradientEditMode::WINDOW_LEVEL, WINDOW_LEVEL_BTNID },
                                                                  { GradientEditMode::ISOVALUE, ISO_BTNID },
                                                                  { GradientEditMode::PERCENTILE, PCT_BTNID },
+                                                                 { GradientEditMode::MINMAX, MINMAX_BTNID },
                                                                  { GradientEditMode::CUSTOM, CUSTOM_BTNID } };
   static std::map<int, int> btnIdToStackedPage = {
-    { WINDOW_LEVEL_BTNID, 0 }, { ISO_BTNID, 1 }, { PCT_BTNID, 2 }, { CUSTOM_BTNID, 3 }
+    { WINDOW_LEVEL_BTNID, 1 }, { ISO_BTNID, 2 }, { PCT_BTNID, 3 }, { MINMAX_BTNID, 0 }, { CUSTOM_BTNID, 4 }
   };
+  btnGroup->addButton(minMaxButton, MINMAX_BTNID);
   btnGroup->addButton(windowLevelButton, WINDOW_LEVEL_BTNID);
   btnGroup->addButton(isoButton, ISO_BTNID);
   btnGroup->addButton(pctButton, PCT_BTNID);
@@ -440,11 +447,16 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   auto* section3Layout = Controls::createAgaveFormLayout();
   fourthPageWidget->setLayout(section3Layout);
 
+  QWidget* fifthPageWidget = new QWidget;
+  auto* section4Layout = Controls::createAgaveFormLayout();
+  fifthPageWidget->setLayout(section4Layout);
+
   QStackedLayout* stackedLayout = new QStackedLayout(mainGroupLayout);
   stackedLayout->addWidget(firstPageWidget);
   stackedLayout->addWidget(secondPageWidget);
   stackedLayout->addWidget(thirdPageWidget);
   stackedLayout->addWidget(fourthPageWidget);
+  stackedLayout->addWidget(fifthPageWidget);
 
   int initialStackedPageIndex = btnIdToStackedPage[initialButtonId];
   stackedLayout->setCurrentIndex(initialStackedPageIndex);
@@ -470,6 +482,29 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
             this->forceDataUpdate();
           });
 
+  QIntSlider* minu16Slider = new QIntSlider();
+  minu16Slider->setStatusTip(tr("Minimum u16 value"));
+  minu16Slider->setToolTip(tr("Set minimum u16 value"));
+  minu16Slider->setRange(0, 65535);
+  minu16Slider->setSingleStep(1);
+  minu16Slider->setValue(m_gradientData->m_minu16);
+  section0Layout->addRow("Min u16", minu16Slider);
+  QIntSlider* maxu16Slider = new QIntSlider();
+  maxu16Slider->setStatusTip(tr("Maximum u16 value"));
+  maxu16Slider->setToolTip(tr("Set maximum u16 value"));
+  maxu16Slider->setRange(0, 65535);
+  maxu16Slider->setSingleStep(1);
+  maxu16Slider->setValue(m_gradientData->m_maxu16);
+  section0Layout->addRow("Max u16", maxu16Slider);
+  connect(minu16Slider, &QIntSlider::valueChanged, [this, maxu16Slider](int i) {
+    this->m_gradientData->m_minu16 = i;
+    this->onSetMinMax(i, this->m_gradientData->m_maxu16);
+  });
+  connect(maxu16Slider, &QIntSlider::valueChanged, [this, minu16Slider](int i) {
+    this->m_gradientData->m_maxu16 = i;
+    this->onSetMinMax(this->m_gradientData->m_minu16, i);
+  });
+
   QNumericSlider* windowSlider = new QNumericSlider();
   windowSlider->setStatusTip(tr("Window"));
   windowSlider->setToolTip(tr("Set size of range of intensities"));
@@ -477,7 +512,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   windowSlider->setSingleStep(0.01);
   windowSlider->setDecimals(3);
   windowSlider->setValue(m_gradientData->m_window);
-  section0Layout->addRow("Window", windowSlider);
+  section1Layout->addRow("Window", windowSlider);
   QNumericSlider* levelSlider = new QNumericSlider();
   levelSlider->setStatusTip(tr("Level"));
   levelSlider->setToolTip(tr("Set level of mid intensity"));
@@ -485,7 +520,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   levelSlider->setSingleStep(0.01);
   levelSlider->setDecimals(3);
   levelSlider->setValue(m_gradientData->m_level);
-  section0Layout->addRow("Level", levelSlider);
+  section1Layout->addRow("Level", levelSlider);
   connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
     this->m_gradientData->m_window = d;
     this->onSetWindowLevel(d, levelSlider->value());
@@ -502,7 +537,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   isovalueSlider->setSingleStep(0.01);
   isovalueSlider->setDecimals(3);
   isovalueSlider->setValue(m_gradientData->m_isovalue);
-  section1Layout->addRow("Isovalue", isovalueSlider);
+  section2Layout->addRow("Isovalue", isovalueSlider);
   QNumericSlider* isorangeSlider = new QNumericSlider();
   isorangeSlider->setStatusTip(tr("Isovalue range"));
   isorangeSlider->setToolTip(tr("Set range above and below isovalue"));
@@ -510,7 +545,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   isorangeSlider->setSingleStep(0.01);
   isorangeSlider->setDecimals(3);
   isorangeSlider->setValue(m_gradientData->m_isorange);
-  section1Layout->addRow("Iso-range", isorangeSlider);
+  section2Layout->addRow("Iso-range", isorangeSlider);
   connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
     this->m_gradientData->m_isovalue = d;
     this->onSetIsovalue(d, isorangeSlider->value());
@@ -527,7 +562,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctLowSlider->setSingleStep(0.01);
   pctLowSlider->setDecimals(3);
   pctLowSlider->setValue(m_gradientData->m_pctLow);
-  section2Layout->addRow("Pct Min", pctLowSlider);
+  section3Layout->addRow("Pct Min", pctLowSlider);
   QNumericSlider* pctHighSlider = new QNumericSlider();
   pctHighSlider->setStatusTip(tr("High percentile"));
   pctHighSlider->setToolTip(tr("Set top percentile"));
@@ -535,7 +570,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctHighSlider->setSingleStep(0.01);
   pctHighSlider->setDecimals(3);
   pctHighSlider->setValue(m_gradientData->m_pctHigh);
-  section2Layout->addRow("Pct Max", pctHighSlider);
+  section3Layout->addRow("Pct Max", pctHighSlider);
   connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
     this->m_gradientData->m_pctLow = d;
     this->onSetHistogramPercentiles(d, pctHighSlider->value());
@@ -567,6 +602,9 @@ GradientWidget::forceDataUpdate()
       break;
     case GradientEditMode::PERCENTILE:
       this->onSetHistogramPercentiles(this->m_gradientData->m_pctLow, this->m_gradientData->m_pctHigh);
+      break;
+    case GradientEditMode::MINMAX:
+      this->onSetMinMax(this->m_gradientData->m_minu16, this->m_gradientData->m_maxu16);
       break;
     case GradientEditMode::CUSTOM: {
       m_editor->setControlPoints(this->m_gradientData->m_customControlPoints);
@@ -623,6 +661,23 @@ GradientWidget::onSetWindowLevel(float window, float level)
   }
   m_editor->setControlPoints(points);
   emit gradientStopsChanged(vectorToGradientStops(points));
+}
+
+void
+GradientWidget::onSetMinMax(uint16_t minu16, uint16_t maxu16)
+{
+  float relativeMin = (float)minu16 / (float)65535;
+  float relativeMax = (float)maxu16 / (float)65535;
+  relativeMin = std::max(relativeMin, 0.0f);
+  relativeMax = std::min(relativeMax, 1.0f);
+  if (relativeMin >= relativeMax) {
+    LOG_ERROR << "Min value is greater than or equal to max value: " << minu16 << " >= " << maxu16
+              << ", datarange=" << m_histogram.dataRange();
+    return;
+  }
+  float window = relativeMax - relativeMin;
+  float level = (relativeMax + relativeMin) / 2.0f;
+  this->onSetWindowLevel(window, level);
 }
 
 void
