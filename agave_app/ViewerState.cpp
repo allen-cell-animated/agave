@@ -340,6 +340,8 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
   gd.m_isorange = lut.isorange;
   gd.m_pctLow = lut.pctLow;
   gd.m_pctHigh = lut.pctHigh;
+  gd.m_maxu16 = lut.maxu16;
+  gd.m_minu16 = lut.minu16;
   for (size_t i = 0; i < lut.controlPoints.size(); i += 5) {
     LutControlPoint cp;
     cp.first = lut.controlPoints[i].x;
@@ -455,6 +457,8 @@ fromGradientData(const GradientData& gd)
   s.isorange = gd.m_isorange;
   s.pctLow = gd.m_pctLow;
   s.pctHigh = gd.m_pctHigh;
+  s.maxu16 = gd.m_maxu16;
+  s.minu16 = gd.m_minu16;
   for (const auto& cp : gd.m_customControlPoints) {
     Serialize::ControlPointSettings_V1 c;
     c.x = cp.first;
