@@ -134,7 +134,7 @@ jobs:
         env:
           vc_arch: "x64"
         run: |
-          # call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
@@ -149,7 +149,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          # call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
           cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --config Release
