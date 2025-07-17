@@ -202,6 +202,7 @@ ImageGpu::deallocGpu()
   //  glBindTexture(GL_TEXTURE_3D, 0);
   glDeleteTextures(1, &m_VolumeGLTexture);
   check_gl("destroy gl volume texture");
+  LOG_DEBUG << "deallocGPU: GPU bytes: " << m_gpuBytes;
   m_VolumeGLTexture = 0;
 
   glDeleteTextures(1, &m_ActiveChannelColormaps);
@@ -209,6 +210,8 @@ ImageGpu::deallocGpu()
   m_ActiveChannelColormaps = 0;
 
   m_gpuBytes = 0;
+
+  glFinish();
 }
 
 void
