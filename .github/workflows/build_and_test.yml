@@ -125,9 +125,9 @@ jobs:
         shell: bash
       - name: Setup MSBuild
         if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v1.1
+        uses: ilammy/msvc-dev-cmd@v1
         with:
-          vs-version: "17.13.2"
+          toolset: "17.13"
       - name: windows install ninja
         if: matrix.os == 'windows-latest'
         run: |
