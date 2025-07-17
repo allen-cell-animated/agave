@@ -123,12 +123,7 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
-      - name: Setup MSBuild
-        if: matrix.os == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          toolset: "17.13"
-      - name: windows install ninja
+      - name: windows install ninja and nasm
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
