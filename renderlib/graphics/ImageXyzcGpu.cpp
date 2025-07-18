@@ -87,7 +87,12 @@ ImageGpu::createVolumeTextureFusedRGBA8(ImageXYZC* img)
 void
 ImageGpu::createVolumeTexture4x16(ImageXYZC* img)
 {
-  m_gpuBytes += (16 * 4) / 8 * img->sizeX() * img->sizeY() * img->sizeZ();
+  int N = 4;
+  if (img->sizeC() < 4) {
+    N = img->sizeC();
+  }
+
+  m_gpuBytes += (16 * N) / 8 * img->sizeX() * img->sizeY() * img->sizeZ();
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenTextures(1, &m_VolumeGLTexture);
@@ -100,7 +105,15 @@ ImageGpu::createVolumeTexture4x16(ImageXYZC* img)
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
-  glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA16, img->sizeX(), img->sizeY(), img->sizeZ());
+  GLenum internalFormat = GL_RGBA16;
+  if (img->sizeC() == 3) {
+    internalFormat = GL_RGB16;
+  } else if (img->sizeC() == 2) {
+    internalFormat = GL_RG16;
+  } else if (img->sizeC() == 1) {
+    internalFormat = GL_R16;
+  }
+  glTexStorage3D(GL_TEXTURE_3D, 1, internalFormat, img->sizeX(), img->sizeY(), img->sizeZ());
   glBindTexture(GL_TEXTURE_3D, 0);
 
   glGenTextures(1, &m_ActiveChannelColormaps);
@@ -122,10 +135,13 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
 {
   auto startTime = std::chrono::high_resolution_clock::now();
 
-  const int N = 4;
+  int N = 4;
+  if (img->sizeC() < 4) {
+    N = img->sizeC();
+  }
   int ch[4] = { c0, c1, c2, c3 };
   // interleaved all channels.
-  // first 4.
+  // up to the first 4.
   size_t xyz = img->sizeX() * img->sizeY() * img->sizeZ();
   uint16_t* v = new uint16_t[xyz * N];
 
@@ -147,13 +163,23 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindTexture(GL_TEXTURE_3D, m_VolumeGLTexture);
-  glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, img->sizeX(), img->sizeY(), img->sizeZ(), GL_RGBA, GL_UNSIGNED_SHORT, v);
+  GLenum dataFormat = GL_RGBA;
+  if (img->sizeC() == 1) {
+    dataFormat = GL_RED;
+  } else if (img->sizeC() == 2) {
+    dataFormat = GL_RG;
+  } else if (img->sizeC() == 3) {
+    dataFormat = GL_RGB;
+  }
+  glTexSubImage3D(
+    GL_TEXTURE_3D, 0, 0, 0, 0, img->sizeX(), img->sizeY(), img->sizeZ(), dataFormat, GL_UNSIGNED_SHORT, v);
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("update volume texture");
 
   endTime = std::chrono::high_resolution_clock::now();
   elapsed = endTime - startTime;
-  LOG_DEBUG << "Copy volume to gpu: " << (elapsed.count() * 1000.0) << "ms";
+  LOG_DEBUG << "Copy volume to gpu: " << (xyz * sizeof(uint16_t) * N) << " bytes in " << (elapsed.count() * 1000.0)
+            << "ms";
 
   delete[] v;
 }
