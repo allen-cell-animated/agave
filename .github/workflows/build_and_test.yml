@@ -50,10 +50,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r agave_pyclient/docs/requirements.txt
-          pip install -r agave_pyclient/docs/requirements-dev.txt
-          pip install -r agave_pyclient/docs/requirements-docs.txt
           pip install Sphinx>=8.0.0 sphinx-copybutton myst-parser>=1.0 linkify-it-py>=2.0.0
+          pip install -r agave_pyclient/docs/requirements.txt
       - name: Build HTML documentation
         run: |
           pip install -e agave_pyclient/
