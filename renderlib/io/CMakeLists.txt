@@ -40,7 +40,9 @@ FetchContent_Declare(
 
 # Additional FetchContent_Declare calls as needed...
 FetchContent_MakeAvailable(tensorstore)
-
+set_target_properties(tensorstore::tensorstore PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON)
 # end tensorstore dependency
 
 target_link_libraries(renderlib
