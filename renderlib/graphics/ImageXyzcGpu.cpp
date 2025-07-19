@@ -11,6 +11,14 @@
 
 static constexpr int LUT_SIZE = 256;
 
+ChannelGpu::~ChannelGpu()
+{
+  deallocGpu();
+  m_VolumeLutGLTexture = 0;
+  m_gpuBytes = 0;
+  LOG_DEBUG << "ChannelGpu destructor called.";
+}
+
 void
 ChannelGpu::allocGpu(ImageXYZC* img, int channel)
 {
@@ -188,7 +196,6 @@ void
 ImageGpu::allocGpuInterleaved(ImageXYZC* img, uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3)
 {
   deallocGpu();
-  m_channels.clear();
 
   auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -201,12 +208,11 @@ ImageGpu::allocGpuInterleaved(ImageXYZC* img, uint32_t c0, uint32_t c1, uint32_t
                        std::min(c3, numChannels - 1));
 
   for (uint32_t i = 0; i < numChannels; ++i) {
-    ChannelGpu c;
-    c.m_index = i;
-    c.allocGpu(img, i);
+    ChannelGpu* c = new ChannelGpu(i);
+    c->allocGpu(img, i);
     m_channels.push_back(c);
 
-    m_gpuBytes += c.m_gpuBytes;
+    m_gpuBytes += c->m_gpuBytes;
   }
 
   auto endTime = std::chrono::high_resolution_clock::now();
@@ -219,8 +225,9 @@ void
 ImageGpu::deallocGpu()
 {
   for (size_t i = 0; i < m_channels.size(); ++i) {
-    m_channels[i].deallocGpu();
+    delete m_channels[i];
   }
+  m_channels.clear();
 
   // needs current gl context.
 
@@ -296,7 +303,7 @@ ImageGpu::updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3, const Vol
 void
 ImageGpu::updateLutGpu(int channel, ImageXYZC* img)
 {
-  m_channels[channel].updateLutGpu(channel, img);
+  m_channels[channel]->updateLutGpu(channel, img);
 }
 
 void
@@ -306,4 +313,10 @@ ImageGpu::setVolumeTextureFiltering(bool linear)
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
   glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+ImageGpu::~ImageGpu()
+{
+  deallocGpu();
+  LOG_DEBUG << "ImageGpu destructor called.";
 }
