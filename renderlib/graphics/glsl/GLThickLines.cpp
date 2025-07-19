@@ -46,7 +46,7 @@ void
 GLThickLinesShader::configure(bool display, GLuint textureId)
 {
   bind();
-  check_gl("bind gesture draw shader");
+  check_gl("bind gesture draw thicklines shader");
 
   glUniform1i(uniformLocation("picking"), display ? 0 : 1);
   check_gl("set picking uniform");

@@ -13,27 +13,37 @@
 class ScopedGlVertexBuffer
 {
 public:
-  ScopedGlVertexBuffer(const void* data, size_t size);
+  ScopedGlVertexBuffer();
   ~ScopedGlVertexBuffer();
   GLuint buffer() const { return m_buffer; }
+
+  void create();
+  void updateDataAndBind(const void* data, size_t size);
+  void bind();
 
 private:
   GLuint m_vertexArray;
   GLuint m_buffer;
+  size_t m_size; // size of the buffer in bytes, for lazy loading
 };
 
 // a texture buffer that is automatically allocated and then deleted when it goes out of scope
 class ScopedGlTextureBuffer
 {
 public:
-  ScopedGlTextureBuffer(const void* data, size_t size);
+  ScopedGlTextureBuffer();
   ~ScopedGlTextureBuffer();
   GLuint buffer() const { return m_buffer; }
   GLuint texture() const { return m_texture; }
 
+  void create();
+  void updateDataAndBind(const void* data, size_t size);
+  void bind();
+
 private:
   GLuint m_texture;
   GLuint m_buffer;
+  size_t m_size; // size of the buffer in bytes, for lazy loading
 };
 
 // Some base RenderBuffer struct, in common between viewport rendering and
@@ -71,7 +81,7 @@ struct RenderBuffer
   }
   void destroy();
   bool create(glm::ivec2 resolution, int samples = 0);
-  virtual void clear(){};
+  virtual void clear() {};
 };
 
 struct SelectionBuffer : RenderBuffer
@@ -104,4 +114,12 @@ public:
             const Gesture::Input& input,
             const SceneView::Viewport& viewport,
             uint32_t& selectionCode);
+
+  GestureRendererGL();
+  ~GestureRendererGL();
+
+private:
+  ScopedGlVertexBuffer vertex_buffer;
+  // contains all the strip vertices for thick lines
+  ScopedGlTextureBuffer texture_buffer;
 };
