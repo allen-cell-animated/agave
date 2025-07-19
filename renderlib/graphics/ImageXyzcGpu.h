@@ -9,6 +9,13 @@ struct VolumeDisplay;
 
 struct ChannelGpu
 {
+  ChannelGpu(int index)
+    : m_index(index)
+    , m_VolumeLutGLTexture(0)
+    , m_gpuBytes(0)
+  {
+  }
+  ~ChannelGpu();
   GLuint m_VolumeLutGLTexture = 0;
 
   int m_index;
@@ -21,7 +28,15 @@ struct ChannelGpu
 
 struct ImageGpu
 {
-  std::vector<ChannelGpu> m_channels;
+  ImageGpu()
+    : m_VolumeGLTexture(0)
+    , m_ActiveChannelColormaps(0)
+    , m_gpuBytes(0)
+  {
+  }
+  ~ImageGpu();
+
+  std::vector<ChannelGpu*> m_channels;
 
   GLuint m_VolumeGLTexture = 0;
   GLuint m_ActiveChannelColormaps = 0;
@@ -43,6 +58,4 @@ struct ImageGpu
   void updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3, const VolumeDisplay& volumeDisplay);
 
   void setVolumeTextureFiltering(bool linear);
-
-  ~ImageGpu() { deallocGpu(); }
 };
