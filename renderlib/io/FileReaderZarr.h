@@ -3,8 +3,16 @@
 #include "IFileReader.h"
 #include "VolumeDimensions.h"
 
+#include "tensorstore/array.h"
 #include "tensorstore/context.h"
 #include "tensorstore/tensorstore.h"
+#include "tensorstore/open.h"
+#include "tensorstore/open_mode.h"
+#include "tensorstore/spec.h"
+#include "tensorstore/util/future.h"
+#include "tensorstore/util/json_absl_flag.h"
+#include "tensorstore/util/result.h"
+#include "tensorstore/util/span.h"
 
 // must include after tensorstore so that tensorstore picks up its own internal json impl
 #include "json/json.hpp"
