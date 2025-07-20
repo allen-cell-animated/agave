@@ -53,6 +53,7 @@ GradientData::getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* im
   } else if (m_activeMode == GradientEditMode::MINMAX) {
     *imin = m_minu16;
     *imax = m_maxu16;
+    return true;
   } else {
     return false;
   }
