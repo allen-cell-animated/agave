@@ -228,6 +228,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
       case GradientEditMode::MINMAX:
         ss << obj << SetMinMaxThresholdCommand({ i, ch.lutParams.minu16, ch.lutParams.maxu16 }).toPythonString()
            << std::endl;
+        break;
       case GradientEditMode::CUSTOM:
         std::vector<float> v;
         for (auto p : ch.lutParams.controlPoints) {
