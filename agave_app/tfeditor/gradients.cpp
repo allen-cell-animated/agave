@@ -52,8 +52,9 @@
 #include "hoverpoints.h"
 
 #include "Controls.h"
-#include "Defines.h"
-#include "Logging.h"
+#include "renderlib/Defines.h"
+#include "renderlib/Logging.h"
+#include "renderlib/MathUtil.h"
 
 #include <algorithm>
 
@@ -666,8 +667,8 @@ GradientWidget::onSetWindowLevel(float window, float level)
 void
 GradientWidget::onSetMinMax(uint16_t minu16, uint16_t maxu16)
 {
-  float relativeMin = (float)minu16 / (float)65535;
-  float relativeMax = (float)maxu16 / (float)65535;
+  float relativeMin = normalizeInt(minu16);
+  float relativeMax = normalizeInt(maxu16);
   relativeMin = std::max(relativeMin, 0.0f);
   relativeMax = std::min(relativeMax, 1.0f);
   if (relativeMin >= relativeMax) {
