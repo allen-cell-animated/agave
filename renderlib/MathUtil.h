@@ -226,3 +226,13 @@ struct Plane
     return Ray(((glm::cross(p3Normal, p2.normal) * -p1.d) + (glm::cross(p1.normal, p3Normal) * -p2.d)) / det, p3Normal);
   }
 };
+
+// convert an integer to a float in the range [0,1]
+// for uint16, this will return [0, 65535] -> [0.0, 1.0]
+// for uint8, this will return [0, 255] -> [0.0, 1.0]
+template<typename INTTYPE>
+float
+normalizeInt(INTTYPE value)
+{
+  return static_cast<float>(value) / static_cast<float>(std::numeric_limits<INTTYPE>::max());
+}

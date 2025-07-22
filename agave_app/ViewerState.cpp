@@ -31,7 +31,8 @@ std::unordered_map<GradientEditMode, Serialize::GradientEditMode_PID> g_Gradient
   { GradientEditMode::WINDOW_LEVEL, Serialize::GradientEditMode_PID::WINDOW_LEVEL },
   { GradientEditMode::ISOVALUE, Serialize::GradientEditMode_PID::ISOVALUE },
   { GradientEditMode::PERCENTILE, Serialize::GradientEditMode_PID::PERCENTILE },
-  { GradientEditMode::CUSTOM, Serialize::GradientEditMode_PID::CUSTOM }
+  { GradientEditMode::CUSTOM, Serialize::GradientEditMode_PID::CUSTOM },
+  { GradientEditMode::MINMAX, Serialize::GradientEditMode_PID::MINMAX },
 };
 auto g_PermIdToGradientMode = inverse_map(g_GradientModeToPermId);
 
@@ -224,6 +225,10 @@ stateToPythonScript(const Serialize::ViewerState& s)
         ss << obj << SetPercentileThresholdCommand({ i, ch.lutParams.pctLow, ch.lutParams.pctHigh }).toPythonString()
            << std::endl;
         break;
+      case GradientEditMode::MINMAX:
+        ss << obj << SetMinMaxThresholdCommand({ i, ch.lutParams.minu16, ch.lutParams.maxu16 }).toPythonString()
+           << std::endl;
+        break;
       case GradientEditMode::CUSTOM:
         std::vector<float> v;
         for (auto p : ch.lutParams.controlPoints) {
@@ -336,6 +341,8 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
   gd.m_isorange = lut.isorange;
   gd.m_pctLow = lut.pctLow;
   gd.m_pctHigh = lut.pctHigh;
+  gd.m_maxu16 = lut.maxu16;
+  gd.m_minu16 = lut.minu16;
   for (size_t i = 0; i < lut.controlPoints.size(); i += 5) {
     LutControlPoint cp;
     cp.first = lut.controlPoints[i].x;
@@ -451,6 +458,8 @@ fromGradientData(const GradientData& gd)
   s.isorange = gd.m_isorange;
   s.pctLow = gd.m_pctLow;
   s.pctHigh = gd.m_pctHigh;
+  s.maxu16 = gd.m_maxu16;
+  s.minu16 = gd.m_minu16;
   for (const auto& cp : gd.m_customControlPoints) {
     Serialize::ControlPointSettings_V1 c;
     c.x = cp.first;
