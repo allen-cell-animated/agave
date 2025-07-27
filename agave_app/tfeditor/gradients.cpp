@@ -497,6 +497,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   maxu16Slider->setSingleStep(1);
   maxu16Slider->setValue(m_gradientData->m_maxu16);
   section0Layout->addRow("Max u16", maxu16Slider);
+  QNumericSlider* nonlinearitySlider = new QNumericSlider();
+  nonlinearitySlider->setStatusTip(tr("Nonlinearity"));
+  nonlinearitySlider->setToolTip(tr("Set nonlinearity of the curve"));
+  nonlinearitySlider->setRange(-4.0, 4.0);
+  nonlinearitySlider->setSingleStep(0.01);
+  nonlinearitySlider->setDecimals(2);
+  nonlinearitySlider->setValue(m_gradientData->m_nonlinearityMinMax);
+  section0Layout->addRow("Nonlinearity", nonlinearitySlider);
   connect(minu16Slider, &QIntSlider::valueChanged, [this, maxu16Slider](int i) {
     this->m_gradientData->m_minu16 = i;
     this->onSetMinMax(i, this->m_gradientData->m_maxu16);
@@ -504,6 +512,10 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   connect(maxu16Slider, &QIntSlider::valueChanged, [this, minu16Slider](int i) {
     this->m_gradientData->m_maxu16 = i;
     this->onSetMinMax(this->m_gradientData->m_minu16, i);
+  });
+  connect(nonlinearitySlider, &QNumericSlider::valueChanged, [this](double d) {
+    this->m_gradientData->m_nonlinearityMinMax = d;
+    this->onSetMinMax(this->m_gradientData->m_minu16, this->m_gradientData->m_maxu16);
   });
 
   QNumericSlider* windowSlider = new QNumericSlider();

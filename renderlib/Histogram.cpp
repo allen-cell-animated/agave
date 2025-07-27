@@ -87,7 +87,7 @@ Histogram::generate_fullRange(size_t length) const
 {
   float window = 1.0;
   float level = 0.5;
-  return generate_windowLevel(window, level, length);
+  return generate_windowLevel(window, level, 0.0, length);
 }
 
 float*
@@ -95,7 +95,7 @@ Histogram::generate_dataRange(size_t length) const
 {
   float window = 1.0;
   float level = 0.5;
-  return generate_windowLevel(window, level, length);
+  return generate_windowLevel(window, level, 0.0, length);
 }
 
 float*
@@ -130,7 +130,7 @@ Histogram::generate_bestFit(size_t length) const
 
   float window = (float)(range) / (float)(_bins.size() - 1);
   float level = ((float)hmin + (float)range * 0.5f) / (float)(_bins.size() - 1);
-  return generate_windowLevel(window, level, length);
+  return generate_windowLevel(window, level, 0.0, length);
 }
 
 // attempt to redo imagej's Auto
@@ -195,7 +195,7 @@ Histogram::generate_auto2(size_t length) const
     float window = (range) / (float)(nbins - 1);
     float level = ((float)hmin + range * 0.5f) / (float)(nbins - 1);
     // LOG_DEBUG << "auto2 window/level: " << window << " / " << level;
-    return generate_windowLevel(window, level, length);
+    return generate_windowLevel(window, level, 0.0, length);
   }
 }
 
@@ -232,7 +232,7 @@ Histogram::generate_auto(size_t length) const
   //
   float window = (float)range / (float)(_bins.size() - 1);
   float level = ((float)b + (float)range * 0.5f) / (float)(_bins.size() - 1);
-  return generate_windowLevel(window, level, length);
+  return generate_windowLevel(window, level, 0.0, length);
 }
 
 /**
@@ -251,7 +251,7 @@ Histogram::generate_auto(size_t length) const
  */
 // window and level are percentages of full range 0..1
 float*
-Histogram::generate_windowLevel(float window, float level, size_t length) const
+Histogram::generate_windowLevel(float window, float level, float nonlinearity, size_t length) const
 {
   // return a LUT with new values(?)
   // data type of lut values is out_phys_range (uint8)
@@ -266,8 +266,10 @@ Histogram::generate_windowLevel(float window, float level, size_t length) const
   // float range = b - a;
 
   for (size_t x = 0; x < length; ++x) {
+    // apply some nonlinearity
     float v = ((float)x / (float)(length - 1) - a) / range;
     lut[x] = clamp(v, 0.0f, 1.0f);
+    lut[x] = pow(lut[x], 1.0f + nonlinearity * (lut[x] - 0.5f) * 2.0f);
   }
 
   return lut;
@@ -313,11 +315,11 @@ Histogram::computeWindowLevelFromPercentiles(float pct_low, float pct_high, floa
 }
 
 float*
-Histogram::generate_percentiles(float lo, float hi, size_t length) const
+Histogram::generate_percentiles(float lo, float hi, float nonlinearity, size_t length) const
 {
   float window, level;
   computeWindowLevelFromPercentiles(lo, hi, window, level);
-  return generate_windowLevel(window, level, length);
+  return generate_windowLevel(window, level, nonlinearity, length);
 }
 
 float*
@@ -524,16 +526,17 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
 {
   switch (gradientData.m_activeMode) {
     case GradientEditMode::WINDOW_LEVEL:
-      return generate_windowLevel(gradientData.m_window, gradientData.m_level, length);
+      return generate_windowLevel(gradientData.m_window, gradientData.m_level, gradientData.m_nonlinearityWL, length);
     case GradientEditMode::PERCENTILE:
-      return generate_percentiles(gradientData.m_pctLow, gradientData.m_pctHigh, length);
+      return generate_percentiles(
+        gradientData.m_pctLow, gradientData.m_pctHigh, gradientData.m_nonlinearityPct, length);
     case GradientEditMode::MINMAX: {
       // min and max are already set in gradientData
       float lowEnd = normalizeInt(gradientData.m_minu16);
       float highEnd = normalizeInt(gradientData.m_maxu16);
       float window = highEnd - lowEnd;
       float level = (lowEnd + highEnd) * 0.5f;
-      return generate_windowLevel(window, level, length);
+      return generate_windowLevel(window, level, gradientData.m_nonlinearityMinMax, length);
     }
     case GradientEditMode::ISOVALUE: {
       float lowEnd = gradientData.m_isovalue - gradientData.m_isorange * 0.5f;
