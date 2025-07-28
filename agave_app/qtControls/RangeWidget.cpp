@@ -95,7 +95,7 @@ RangeWidget::paintEvent(QPaintEvent* event)
     r = QRect(
       std::floor((m_handleHeight - m_trackHeight + totalOutline) / 2.), 0, m_trackHeight, height() - totalOutline);
   QPainterPath trackPath;
-  trackPath.addRoundedRect(r.translated(0.5, 0.0), radius, radius);
+  trackPath.addRoundedRect(QRectF(r).translated(0.5, 0.0), radius, radius);
   p.fillPath(trackPath, m_trackFillColor);
 
   // Color the selected range of the track
