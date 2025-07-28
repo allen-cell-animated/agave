@@ -40,7 +40,6 @@ FetchContent_Declare(
 
 # Additional FetchContent_Declare calls as needed...
 FetchContent_MakeAvailable(tensorstore)
-
 # end tensorstore dependency
 
 target_link_libraries(renderlib

@@ -100,7 +100,7 @@ FileReaderZarr::~FileReaderZarr() {}
 ::nlohmann::json
 tryReadJson(const std::string& zarrurl, const std::string& jsonfile)
 {
-  auto zarr_json_open_result = tensorstore::Open<::nlohmann::json, 0>(
+  auto zarr_json_open_result = tensorstore::Open<::nlohmann::json>(
                                  { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, jsonfile) } })
                                  .result();
   // did the open fail?

@@ -153,6 +153,11 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     return false;
   }
 
+  uint16_t photometric = PHOTOMETRIC_MINISBLACK;
+  if (TIFFGetField(tiff, TIFFTAG_PHOTOMETRIC, &photometric) != 1) {
+    LOG_WARNING << "Failed to read photometric of TIFF: '" << filepath << "'";
+  }
+
   uint32_t sizeT = 1;
   uint32_t sizeX = width;
   uint32_t sizeY = height;
@@ -336,31 +341,46 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
     }
 
   } else if (startsWith(simagedescription, "{\"shape\":")) {
-    // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X
+    // expect a 4d shape array of C,Z,Y,X or 5d T,C,Z,Y,X, or 3d Z,Y,X, or 2d Y,X
     size_t firstBracket = simagedescription.find('[');
     size_t lastBracket = simagedescription.rfind(']');
     std::string shape = simagedescription.substr(firstBracket + 1, lastBracket - firstBracket - 1);
     LOG_INFO << shape;
     std::vector<std::string> shapelist;
     split(shape, ',', shapelist);
-    if ((shapelist.size() != 4) && (shapelist.size() != 5)) {
-      LOG_ERROR << "Expected shape to be 4D or 5D TIFF: '" << filepath << "'";
+    if ((shapelist.size() > 5) || (shapelist.size() < 2)) {
+      LOG_ERROR << "Expected shape to be 2D, 3D, 4D, or 5D TIFF: '" << filepath << "'";
       return false;
     }
     dimensionOrder = "XYZCT";
-    bool hasT = (shapelist.size() == 5);
-    int shapeIndex = 0;
-    if (hasT) {
-      sizeT = std::stoi(shapelist[shapeIndex++]);
+    // basically, if the shape has
+    // 5 elements, then it is T,C,Z,Y,X
+    // 4 elements, then it is C,Z,Y,X
+    // 3 elements, then it is Z,Y,X
+    // 2 elements, then it is Y,X
+    sizeT = 1;
+    sizeC = 1;
+    sizeZ = 1;
+    sizeY = 1;
+    sizeX = 1;
+
+    // reverse the shapelist
+    std::reverse(shapelist.begin(), shapelist.end());
+    sizeX = std::stoi(shapelist[0]);
+    sizeY = std::stoi(shapelist[1]);
+    if (shapelist.size() > 2) {
+      sizeZ = std::stoi(shapelist[2]);
     }
-    sizeC = std::stoi(shapelist[shapeIndex++]);
-    sizeZ = std::stoi(shapelist[shapeIndex++]);
-    sizeY = std::stoi(shapelist[shapeIndex++]);
-    sizeX = std::stoi(shapelist[shapeIndex++]);
+    if (shapelist.size() > 3) {
+      sizeC = std::stoi(shapelist[3]);
+    }
+    if (shapelist.size() > 4) {
+      sizeT = std::stoi(shapelist[4]);
+    }
     for (uint32_t i = 0; i < sizeC; ++i) {
       channelNames.push_back(std::to_string(i));
     }
-
+    LOG_DEBUG << "Parsed shape: " << sizeT << "," << sizeC << "," << sizeZ << "," << sizeY << "," << sizeX;
   } else if ((startsWith(simagedescription, "<?xml version") || startsWith(simagedescription, "<OME xmlns")) &&
              endsWith(simagedescription, "OME>")) {
     // convert c to xml doc.  if this fails then we don't have an ome tif.
