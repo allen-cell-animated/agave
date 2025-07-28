@@ -986,6 +986,22 @@ class AgaveRenderer:
         # 49
         self.cb.add_command("SET_COLOR_RAMP", channel, name, data)
 
+    def set_min_max_threshold(self, channel: int, min_val: int, max_val: int):
+        """
+        Set the minimum and maximum intensity thresholds for a channel.
+
+        Parameters
+        ----------
+        channel: int
+            Which channel index, 0 based.
+        min_val: int
+            The minimum intensity value.
+        max_val: int
+            The maximum intensity value.
+        """
+        # 50
+        self.cb.add_command("SET_MIN_MAX_THRESHOLD", channel, min_val, max_val)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):

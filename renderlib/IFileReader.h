@@ -34,15 +34,15 @@ struct LoadSpec
     , miny(0)
     , maxy(0)
     , minz(0)
-    , maxz(0),
-      isImageSequence(false)
+    , maxz(0)
+    , isImageSequence(false)
   {
   }
 
   std::string toString() const;
 
   // GPU estimate for 4 channels and one time at 16bpp
-  size_t getMemoryEstimate() const;
+  size_t getMemoryEstimate(int totalChannels) const;
 
   static std::string bytesToStringLabel(size_t mem, int decimals = 1);
 

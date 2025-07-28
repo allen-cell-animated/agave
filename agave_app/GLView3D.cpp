@@ -130,10 +130,13 @@ void
 GLView3D::onNewImage(Scene* scene)
 {
   m_viewerWindow->m_renderer->setScene(scene);
-  // costly teardown and rebuild.
-  this->OnUpdateRenderer(m_viewerWindow->m_renderSettings->m_rendererType);
-  // would be better to preserve renderer and just change the scene data to include the new image.
-  // how tightly coupled is renderer and scene????
+  // set volume dirty
+  RenderSettings* rs = m_viewerWindow->m_renderSettings;
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  rs->m_DirtyFlags.SetFlag(VolumeDirty);
+  rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  rs->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
 GLView3D::~GLView3D()
@@ -306,6 +309,9 @@ void
 GLView3D::FitToScene(float transitionDurationSeconds)
 {
   Scene* sc = m_viewerWindow->m_renderer->scene();
+  if (!sc) {
+    return;
+  }
 
   glm::vec3 newPosition, newTarget;
   m_viewerWindow->m_CCamera->ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
