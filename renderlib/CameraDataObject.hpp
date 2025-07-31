@@ -1,17 +1,23 @@
 #pragma once
 
 #include "core/prty/prtyFloat.hpp"
-#include "core/prty/prtyInt8.hpp"
+#include "core/prty/prtyEnum.hpp"
 #include "core/prty/prtyBoolean.hpp"
 #include "core/prty/prtyVector3d.hpp"
 
 class CameraDataObject
 {
 public:
-  CameraDataObject() {}
+  CameraDataObject()
+  {
+    ExposureIterations.SetEnumTag(0, "1");
+    ExposureIterations.SetEnumTag(1, "2");
+    ExposureIterations.SetEnumTag(2, "4");
+    ExposureIterations.SetEnumTag(3, "8");
+  }
 
   prtyFloat Exposure{ "Exposure", 0.75f };
-  prtyInt8 ExposureIterations{ "ExposureIterations", 1 };
+  prtyEnum ExposureIterations{ "ExposureIterations", 0 };
   prtyBoolean NoiseReduction{ "NoiseReduction", false };
   prtyFloat ApertureSize{ "ApertureSize", 0.0f };
   prtyFloat FieldOfView{ "FieldOfView", 30.0f }; // degrees

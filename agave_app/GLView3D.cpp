@@ -491,6 +491,7 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
+  // TODO FIXME if we set everything through props, then this is not needed.
   m_cameraObject->updatePropsFromObject();
 }
 
