@@ -52,8 +52,10 @@
 #include "hoverpoints.h"
 
 #include "qtControls/Controls.h"
-#include "renderlib/Defines.h"#include "renderlib/Logging.h"
-#include "renderlib/MathUtil.h"
+#include "renderlib/Defines.h"
+#include "renderlib/Logging.h"
+#include "renderlib/MathUtil.h"
+
 #include <algorithm>
 
 std::vector<LutControlPoint>
