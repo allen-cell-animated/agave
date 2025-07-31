@@ -63,7 +63,6 @@ CameraObject::CameraObject()
     new ComboBoxUiInfo(&m_cameraDataObject.ExposureIterations, "Camera", "Exposure Iterations");
   m_ExposureIterationsUIInfo->SetToolTip("Set Exposure Iterations");
   m_ExposureIterationsUIInfo->SetStatusTip("Set number of samples to accumulate per viewport update");
-  m_ExposureIterationsUIInfo->items = { "1", "2", "4", "8" };
   AddProperty(m_ExposureIterationsUIInfo);
   m_NoiseReductionUIInfo = new CheckBoxUiInfo(&m_cameraDataObject.NoiseReduction, "Camera", "Noise Reduction");
   m_NoiseReductionUIInfo->SetToolTip("Enable Noise Reduction");
@@ -116,9 +115,31 @@ CameraObject::CameraObject()
 void
 CameraObject::updatePropsFromObject()
 {
+  // TODO FIXME if we set everything through props, then this is not needed.
   if (m_camera) {
     m_cameraDataObject.Exposure.SetValue(1.0f - m_camera->m_Film.m_Exposure);
-    m_cameraDataObject.ExposureIterations.SetValue(m_camera->m_Film.m_ExposureIterations);
+
+    uint8_t exposureIterationsValue = m_camera->m_Film.m_ExposureIterations;
+    // convert m_camera->m_Film.m_ExposureIterations to string
+    // and then find the corresponding index in the enum
+    switch (m_camera->m_Film.m_ExposureIterations) {
+      case 1:
+        exposureIterationsValue = 0;
+        break;
+      case 2:
+        exposureIterationsValue = 1;
+        break;
+      case 4:
+        exposureIterationsValue = 2;
+        break;
+      case 8:
+        exposureIterationsValue = 3;
+        break;
+      default:
+        LOG_ERROR << "Invalid Exposure Iterations: " << m_camera->m_Film.m_ExposureIterations;
+        exposureIterationsValue = 0; // default to 1
+    }
+    m_cameraDataObject.ExposureIterations.SetValue(exposureIterationsValue);
     // TODO this is not hooked up to the camera properly
     // m_cameraDataObject.NoiseReduction.SetValue(m_camera->m_Film.m_NoiseReduction);
     m_cameraDataObject.ApertureSize.SetValue(m_camera->m_Aperture.m_Size);
@@ -126,13 +147,33 @@ CameraObject::updatePropsFromObject()
     m_cameraDataObject.FocalDistance.SetValue(m_camera->m_Focus.m_FocalDistance);
   }
 }
+uint8_t
+CameraObject::GetExposureIterationsValue(int i_ComboBoxIndex)
+{
+  // Convert the combo box index to the corresponding exposure iterations value
+  switch (i_ComboBoxIndex) {
+    case 0:
+      return 1; // 1 iteration
+    case 1:
+      return 2; // 2 iterations
+    case 2:
+      return 4; // 4 iterations
+    case 3:
+      return 8; // 8 iterations
+    default:
+      LOG_ERROR << "Invalid Exposure Iterations index: " << i_ComboBoxIndex;
+      return 1; // default to 1 iteration
+  }
+}
+
 void
 CameraObject::updateObjectFromProps()
 {
   // update low-level camera object from properties
   if (m_camera) {
     m_camera->m_Film.m_Exposure = 1.0f - m_cameraDataObject.Exposure.GetValue();
-    m_camera->m_Film.m_ExposureIterations = m_cameraDataObject.ExposureIterations.GetValue();
+    uint8_t exposureIterationsValue = GetExposureIterationsValue(m_cameraDataObject.ExposureIterations.GetValue());
+    m_camera->m_Film.m_ExposureIterations = exposureIterationsValue;
 
     // Aperture
     m_camera->m_Aperture.m_Size = m_cameraDataObject.ApertureSize.GetValue();
@@ -162,7 +203,7 @@ CameraObject::ExposureChanged(prtyProperty* i_Property, bool i_bDirty)
 void
 CameraObject::ExposureIterationsChanged(prtyProperty* i_Property, bool i_bDirty)
 {
-  m_camera->m_Film.m_ExposureIterations = m_cameraDataObject.ExposureIterations.GetValue();
+  m_camera->m_Film.m_ExposureIterations = GetExposureIterationsValue(m_cameraDataObject.ExposureIterations.GetValue());
   m_camera->m_Dirty = true;
 }
 void

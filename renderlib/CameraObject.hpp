@@ -38,6 +38,9 @@ public:
   // Getter for the camera
   std::shared_ptr<CCamera> getCamera() const { return m_camera; }
 
+  // Convert UI specific combo box index to a known enum type
+  static uint8_t GetExposureIterationsValue(int i_ComboBoxIndex);
+
 private:
   // the properties
   CameraDataObject m_cameraDataObject;

@@ -6,6 +6,7 @@
 **
 **
 \****************************************************************************/
+#pragma once
 #ifdef PRTY_ENUM_HPP
 #error prtyEnum.hpp multiply included
 #endif
