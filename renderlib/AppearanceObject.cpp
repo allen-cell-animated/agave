@@ -60,12 +60,10 @@ AppearanceObject::AppearanceObject()
   m_rendererType = new ComboBoxUiInfo(&m_appearanceDataObject.RendererType, "Appearance", "Renderer Type");
   m_rendererType->SetToolTip("Select volume rendering type");
   m_rendererType->SetStatusTip("Select volume rendering type");
-  m_rendererType->items = { "Ray march blending", "Path Traced" };
   AddProperty(m_rendererType);
   m_shadingType = new ComboBoxUiInfo(&m_appearanceDataObject.ShadingType, "Appearance", "Shading Type");
   m_shadingType->SetToolTip("Select volume shading style");
   m_shadingType->SetStatusTip("Select volume shading style");
-  m_shadingType->items = { "BRDF Only", "Phase Function Only", "Mixed" };
   AddProperty(m_shadingType);
   m_densityScale = new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.DensityScale, "Appearance", "Density Scale");
   m_densityScale->SetToolTip("Set scattering density for volume");

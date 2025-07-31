@@ -41,7 +41,6 @@ class ComboBoxUiInfo : public prtyPropertyUIInfo
 {
 public:
   static constexpr const char* TYPE = "ComboBox";
-  std::vector<std::string> items;
 
   ComboBoxUiInfo(prtyProperty* i_pProperty)
     : prtyPropertyUIInfo(i_pProperty)

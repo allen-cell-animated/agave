@@ -4,6 +4,7 @@
 #include "Section.h"
 
 #include "renderlib/core/prty/prtyObject.hpp"
+#include "renderlib/core/prty/prtyEnum.hpp"
 
 #include <QFormLayout>
 
@@ -83,10 +84,10 @@ addRow(const ComboBoxUiInfo& info)
   QComboBox* comboBox = new QComboBox();
   comboBox->setStatusTip(QString::fromStdString(info.GetStatusTip()));
   comboBox->setToolTip(QString::fromStdString(info.GetToolTip()));
-  for (const auto& item : info.items) {
-    comboBox->addItem(QString::fromStdString(item));
+  auto* prop = static_cast<prtyEnum*>(info.GetProperty(0));
+  for (int i = 0; i < prop->GetNumTags(); ++i) {
+    comboBox->addItem(QString::fromStdString(prop->GetEnumTag(i)));
   }
-  auto* prop = static_cast<prtyInt8*>(info.GetProperty(0));
   comboBox->setCurrentIndex(prop->GetValue());
   auto conn = QObject::connect(
     comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
