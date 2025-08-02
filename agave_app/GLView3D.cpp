@@ -13,6 +13,8 @@
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/graphics/gl/Image3D.h"
 #include "renderlib/graphics/gl/Util.h"
+#include "renderlib/core/prty/prtyVector3d.hpp"
+#include "renderlib/core/prty/prtyFloat.hpp"
 
 #include <glm.h>
 
@@ -478,20 +480,38 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   ///////////////////
   // TODO do all of this through the camera object's properties!!!!!!!!!
   ///////////////////
+  m_cameraObject->getCameraDataObject().Position.SetValue(glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]));
+  // camera->m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
 
-  camera->m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
-  camera->m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+  m_cameraObject->getCameraDataObject().Target.SetValue(
+    glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]));
+  // camera->m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+
+  // m_cameraObject->getCameraDataObject().Up.SetValue(glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]));
   camera->m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
-  camera->m_FovV = s.camera.fovY;
-  camera->SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
-  camera->m_OrthoScale = s.camera.orthoScale;
 
-  camera->m_Film.m_Exposure = s.camera.exposure;
-  camera->m_Aperture.m_Size = s.camera.aperture;
-  camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
+  m_cameraObject->getCameraDataObject().FieldOfView.SetValue(s.camera.fovY);
+  // camera->m_FovV = s.camera.fovY;
+
+  m_cameraObject->getCameraDataObject().ProjectionMode.SetValue(
+    (s.camera.projection == Serialize::Projection_PID::PERSPECTIVE) ? PERSPECTIVE : ORTHOGRAPHIC);
+  // camera->SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE :
+  // ORTHOGRAPHIC);
+
+  m_cameraObject->getCameraDataObject().OrthoScale.SetValue(s.camera.orthoScale);
+  // camera->m_OrthoScale = s.camera.orthoScale;
+
+  m_cameraObject->getCameraDataObject().Exposure.SetValue(s.camera.exposure);
+  // camera->m_Film.m_Exposure = s.camera.exposure;
+
+  m_cameraObject->getCameraDataObject().ApertureSize.SetValue(s.camera.aperture);
+  // camera->m_Aperture.m_Size = s.camera.aperture;
+
+  m_cameraObject->getCameraDataObject().FocalDistance.SetValue(s.camera.focalDistance);
+  // camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
-  // TODO FIXME if we set everything through props, then this is not needed.
+  // TODO FIXME if we set EVERYTHING through props, then this is not needed.
   m_cameraObject->updatePropsFromObject();
 }
 

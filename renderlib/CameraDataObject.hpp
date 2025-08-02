@@ -14,6 +14,9 @@ public:
     ExposureIterations.SetEnumTag(1, "2");
     ExposureIterations.SetEnumTag(2, "4");
     ExposureIterations.SetEnumTag(3, "8");
+
+    ProjectionMode.SetEnumTag(0, "Perspective");
+    ProjectionMode.SetEnumTag(1, "Orthographic");
   }
 
   prtyFloat Exposure{ "Exposure", 0.75f };
@@ -28,4 +31,7 @@ public:
   prtyFloat NearPlane{ "NearPlane", 0.1f };
   prtyFloat FarPlane{ "FarPlane", 1000.0f };
   prtyFloat Roll{ "Roll", 0.0f }; // tilt angle in degrees
+
+  prtyFloat OrthoScale{ "OrthoScale", 1.0f };     // orthographic scale for orthographic projection
+  prtyEnum ProjectionMode{ "ProjectionMode", 0 }; // 0 = perspective, 1 = orthographic
 };

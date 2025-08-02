@@ -24,7 +24,7 @@ public:
   void updateObjectFromProps();
 
   // Getter for camera data object
-  // CameraDataObject& getCameraDataObject() { return m_cameraDataObject; }
+  CameraDataObject& getCameraDataObject() { return m_cameraDataObject; }
   const CameraDataObject& getCameraDataObject() const { return m_cameraDataObject; }
 
   // Getters for UI info objects
