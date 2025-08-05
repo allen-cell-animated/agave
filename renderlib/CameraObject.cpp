@@ -1,6 +1,7 @@
 #include "CameraObject.hpp"
 
 #include "Logging.h"
+#include "glm.h"
 
 // FloatSliderSpinnerUiInfo CameraUiDescription::m_exposure("Exposure",
 //                                                          "Set Exposure",
@@ -110,6 +111,13 @@ CameraObject::CameraObject()
     new prtyCallbackWrapper<CameraObject>(this, &CameraObject::FieldOfViewChanged));
   m_cameraDataObject.FocalDistance.AddCallback(
     new prtyCallbackWrapper<CameraObject>(this, &CameraObject::FocalDistanceChanged));
+
+  m_cameraDataObject.Position.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::TransformationChanged));
+  m_cameraDataObject.Target.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::TransformationChanged));
+  m_cameraDataObject.Roll.AddCallback(
+    new prtyCallbackWrapper<CameraObject>(this, &CameraObject::TransformationChanged));
 }
 
 void
@@ -227,5 +235,27 @@ void
 CameraObject::FocalDistanceChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   m_camera->m_Focus.m_FocalDistance = m_cameraDataObject.FocalDistance.GetValue();
+  m_camera->m_Dirty = true;
+}
+
+//--------------------------------------------------------------------
+// common code when a property related to position of light is changed
+//--------------------------------------------------------------------
+void
+CameraObject::TransformationChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  // Rotate up vector through tilt angle
+  glm::vec3 pos, target;
+  // assumes world space.
+  pos = m_cameraDataObject.Position.GetValue();
+  target = m_cameraDataObject.Target.GetValue();
+  glm::vec3 up = glm::vec3(0, 1, 0); // default up vector
+  // Rotate the up vector around the vector from position to target
+  // using the roll angle (tilt angle)
+  up = glm::rotate(up, DEG_TO_RAD * m_cameraDataObject.Roll.GetValue(), target - pos);
+
+  m_camera->m_From = pos;
+  m_camera->m_Target = target;
+  m_camera->m_Up = up;
   m_camera->m_Dirty = true;
 }
