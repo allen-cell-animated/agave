@@ -62,4 +62,5 @@ private:
   void ApertureSizeChanged(prtyProperty* i_Property, bool i_bDirty);
   void FieldOfViewChanged(prtyProperty* i_Property, bool i_bDirty);
   void FocalDistanceChanged(prtyProperty* i_Property, bool i_bDirty);
+  void TransformationChanged(prtyProperty* i_Property, bool i_bDirty);
 };
