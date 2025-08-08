@@ -5,14 +5,20 @@
 #include "graphics/glsl/GLGuiShader.h"
 
 // a vertex buffer that is automatically allocated and then deleted when it goes out of scope
-ScopedGlVertexBuffer::ScopedGlVertexBuffer(const void* data, size_t size)
+ScopedGlVertexBuffer::ScopedGlVertexBuffer()
+  : m_vertexArray(0)
+  , m_buffer(0)
+  , m_size(0)
+{
+}
+void
+ScopedGlVertexBuffer::create()
 {
   glGenVertexArrays(1, &m_vertexArray);
   glBindVertexArray(m_vertexArray);
 
   glGenBuffers(1, &m_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-  glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 
   const size_t vtxStride = 9 * sizeof(GLfloat) + 1 * sizeof(GLuint);
 
@@ -33,6 +39,25 @@ ScopedGlVertexBuffer::ScopedGlVertexBuffer(const void* data, size_t size)
   // specify selection id attribute
   glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, vtxStride, (GLvoid*)(9 * sizeof(GLfloat)));
   glEnableVertexAttribArray(3); // m_loc_vcode
+
+  check_gl("create scoped gl vertex buffer");
+}
+void
+ScopedGlVertexBuffer::updateDataAndBind(const void* data, size_t size)
+{
+  if (size > m_size) {
+    m_size = size;
+    glBindVertexArray(m_vertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    check_gl("resized scoped gl vertex buffer data");
+  } else {
+    // no need to re-upload the data
+    glBindVertexArray(m_vertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+    check_gl("updated scoped gl vertex buffer data");
+  }
 }
 ScopedGlVertexBuffer::~ScopedGlVertexBuffer()
 {
@@ -42,16 +67,39 @@ ScopedGlVertexBuffer::~ScopedGlVertexBuffer()
 }
 
 // a texture buffer that is automatically allocated and then deleted when it goes out of scope
-ScopedGlTextureBuffer::ScopedGlTextureBuffer(const void* data, size_t size)
+ScopedGlTextureBuffer::ScopedGlTextureBuffer()
+  : m_texture(0)
+  , m_buffer(0)
+  , m_size(0)
+{
+}
+void
+ScopedGlTextureBuffer::create()
 {
   glGenBuffers(1, &m_buffer);
   glBindBuffer(GL_TEXTURE_BUFFER, m_buffer);
-  glBufferData(GL_TEXTURE_BUFFER, size, data, GL_STATIC_DRAW);
 
   glGenTextures(1, &m_texture);
   glBindTexture(GL_TEXTURE_BUFFER, m_texture);
   glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_buffer);
+  check_gl("create scoped gl texture buffer");
 }
+void
+ScopedGlTextureBuffer::updateDataAndBind(const void* data, size_t size)
+{
+  if (size > m_size) {
+    m_size = size;
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    check_gl("resized scoped gl texture buffer data");
+  } else {
+    // no need to re-upload the data
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+    check_gl("updated scoped gl texture buffer data");
+  }
+}
+
 ScopedGlTextureBuffer::~ScopedGlTextureBuffer()
 {
   glDeleteTextures(1, &m_texture);
@@ -313,6 +361,14 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     // attach the texture id with the draw command.
     glTextureId = font->getTextureID();
   }
+  if (!vertex_buffer.get()) {
+    vertex_buffer.reset(new ScopedGlVertexBuffer());
+    vertex_buffer->create();
+  }
+  if (!texture_buffer.get()) {
+    texture_buffer.reset(new ScopedGlTextureBuffer());
+    texture_buffer->create();
+  }
   if (thickLinesVertexArray == 0) {
     glGenVertexArrays(1, &thickLinesVertexArray);
   }
@@ -346,13 +402,13 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
   // Draw UI and viewport manipulators
   {
-    // TODO are we really creating, uploading, and destroying the vertex buffer every frame?
-    ScopedGlVertexBuffer vertex_buffer(graphics.verts.data(),
-                                       graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
+    vertex_buffer->updateDataAndBind(graphics.verts.data(),
+                                     graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
 
     // buffer containing all the strip vertices
-    ScopedGlTextureBuffer texture_buffer(graphics.stripVerts.data(),
-                                         graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
+    texture_buffer->updateDataAndBind(graphics.stripVerts.data(),
+                                      graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
+
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
     // draw the GUI and once to draw the selection buffer data.
     // (display var is for draw vs pick)
@@ -425,7 +481,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             // see GLThickLines for comments explaining the data layout and draw strategy
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
             glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
+            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer->texture());
             glUniform1i(shaderLines->m_loc_stripVerts, 2);
             glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
             glUniform1f(shaderLines->m_loc_thickness, thickness);
@@ -448,6 +504,8 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     if (selection) {
       drawGestureCodes(*selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
     }
+
+    glBindVertexArray(0);
   }
 
   // Restore state
@@ -571,4 +629,21 @@ GestureRendererGL::pick(SelectionBuffer& selection,
   // }
   selectionCode = entry;
   return entry != Gesture::Graphics::k_noSelectionCode;
+}
+
+GestureRendererGL::GestureRendererGL() {}
+
+GestureRendererGL::~GestureRendererGL()
+{
+  // Destroy OpenGL resources
+  vertex_buffer.reset();
+  texture_buffer.reset();
+  if (thickLinesVertexArray) {
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &thickLinesVertexArray);
+    thickLinesVertexArray = 0;
+  }
+  shader.reset();
+  shaderLines.reset();
+  font.reset();
 }

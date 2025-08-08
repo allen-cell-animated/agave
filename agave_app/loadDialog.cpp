@@ -227,7 +227,8 @@ LoadDialog::updateMemoryEstimate()
   spec.maxy = m_roiY->maxValue();
   spec.minz = m_roiZ->minValue();
   spec.maxz = m_roiZ->maxValue();
-  size_t mem = spec.getMemoryEstimate();
+  spec.channels = getCheckedChannels();
+  size_t mem = spec.getMemoryEstimate(mDims[mSelectedLevel].sizeC());
   std::string label = LoadSpec::bytesToStringLabel(mem);
 
   mVolumeLabel->setText(QString::number(spec.maxx - spec.minx) + " x " + QString::number(spec.maxy - spec.miny) +
@@ -307,7 +308,7 @@ LoadDialog::updateMultiresolutionInput()
     spec.maxx = d.sizeX();
     spec.maxy = d.sizeY();
     spec.maxz = d.sizeZ();
-    size_t mem = spec.getMemoryEstimate();
+    size_t mem = spec.getMemoryEstimate(d.sizeC());
     std::string label = LoadSpec::bytesToStringLabel(mem);
 
     mMultiresolutionInput->addItem(QString::fromStdString(d.path + " (" + label + " max.)"));
