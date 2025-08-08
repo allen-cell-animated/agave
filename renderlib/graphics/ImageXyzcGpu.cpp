@@ -39,7 +39,7 @@ ChannelGpu::allocGpu(ImageXYZC* img, int channel)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
   glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, LUT_SIZE, 1);
-  // glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, LUT_SIZE, 1, 0, GL_RED, GL_FLOAT, ch->m_lut);
+  LOG_DEBUG << "Allocated GPU resources for ChannelGpu: texture id " << m_VolumeLutGLTexture;
 
   glBindTexture(GL_TEXTURE_2D, 0);
   check_gl("volume lut texture creation");
@@ -48,6 +48,8 @@ ChannelGpu::allocGpu(ImageXYZC* img, int channel)
 void
 ChannelGpu::deallocGpu()
 {
+  LOG_DEBUG << "Deallocating GPU resources for ChannelGpu: texture id " << m_VolumeLutGLTexture;
+  glBindTexture(GL_TEXTURE_2D, 0);
   glDeleteTextures(1, &m_VolumeLutGLTexture);
   m_VolumeLutGLTexture = 0;
 
@@ -67,7 +69,7 @@ ChannelGpu::updateLutGpu(int channel, ImageXYZC* img)
   check_gl("bind lut texture");
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, LUT_SIZE, 1, GL_RED, GL_FLOAT, img->channel(channel)->m_lut);
   check_gl("update lut texture");
-
+  LOG_DEBUG << "Updated LUT for channel " << channel << " in ChannelGpu: texture id " << m_VolumeLutGLTexture;
   glBindTexture(GL_TEXTURE_2D, 0);
   check_gl("unbind lut texture");
 }
@@ -232,12 +234,13 @@ ImageGpu::deallocGpu()
   // needs current gl context.
 
   check_gl("pre-destroy gl volume texture");
-  //  glBindTexture(GL_TEXTURE_3D, 0);
+  glBindTexture(GL_TEXTURE_3D, 0);
   glDeleteTextures(1, &m_VolumeGLTexture);
   check_gl("destroy gl volume texture");
   LOG_DEBUG << "deallocGPU: GPU bytes: " << m_gpuBytes;
   m_VolumeGLTexture = 0;
 
+  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
   glDeleteTextures(1, &m_ActiveChannelColormaps);
   check_gl("destroy gl colormaps texture");
   m_ActiveChannelColormaps = 0;

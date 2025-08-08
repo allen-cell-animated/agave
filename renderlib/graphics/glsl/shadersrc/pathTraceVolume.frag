@@ -305,15 +305,16 @@ GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
 
   // relative to min/max for each channel
   intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
-  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
-  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
-  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
-  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
+  //intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
+  //intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
+  //intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
+  //intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
 
   // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
-    if (intensity[i] > maxIn) {
-      maxIn = intensity[i];
+    float val = texture(g_lutTexture[i], vec2(intensity[i], 0.5)).x;
+    if (val > maxIn) {
+      maxIn = val;
       ch = i;
     }
   }

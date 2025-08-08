@@ -944,3 +944,32 @@ GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
     delete fshader;
   }
 }
+
+void
+dumpOpenGLTextureState()
+{
+  GLint maxTextureUnits;
+  // glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+  // std::cout << "Max Combined Texture Image Units: " << maxTextureUnits << std::endl;
+
+  for (int i = 0; i < 10; ++i) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    LOG_DEBUG << "--- Texture Unit " << i << " ---";
+
+    GLint boundTexture;
+
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
+    LOG_DEBUG << "  GL_TEXTURE_2D: " << boundTexture;
+
+    glGetIntegerv(GL_TEXTURE_BINDING_BUFFER, &boundTexture);
+    LOG_DEBUG << "  GL_TEXTURE_BUFFER: " << boundTexture;
+
+    glGetIntegerv(GL_TEXTURE_BINDING_3D, &boundTexture);
+    LOG_DEBUG << "  GL_TEXTURE_3D: " << boundTexture;
+
+    glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &boundTexture);
+    LOG_DEBUG << "  GL_TEXTURE_2D_ARRAY: " << boundTexture;
+
+    // Add queries for other targets as needed
+  }
+}

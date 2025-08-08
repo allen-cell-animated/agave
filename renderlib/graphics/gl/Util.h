@@ -20,6 +20,9 @@ check_gl(std::string const& message);
 extern bool
 check_glfb(std::string const& message);
 
+extern void
+dumpOpenGLTextureState();
+
 class GLImageShader2DnoLut;
 class RectImage2D
 {
