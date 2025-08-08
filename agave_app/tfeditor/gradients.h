@@ -140,6 +140,7 @@ private:
   void onSetWindowLevel(float window, float level);
   void onSetIsovalue(float isovalue, float width);
   void onSetHistogramPercentiles(float pctLow, float pctHigh);
+  void onSetMinMax(uint16_t minu16, uint16_t maxu16);
   void forceDataUpdate();
 
   GradientEditor* m_editor;

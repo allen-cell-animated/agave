@@ -154,7 +154,7 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
-      - name: windows install ninja
+      - name: windows install ninja and nasm
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
@@ -164,7 +164,6 @@ jobs:
         shell: cmd
         env:
           vc_arch: "x64"
-        # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3

@@ -12,7 +12,8 @@ enum class GradientEditMode
   WINDOW_LEVEL,
   ISOVALUE,
   PERCENTILE,
-  CUSTOM
+  CUSTOM,
+  MINMAX
 };
 
 struct GradientData
@@ -24,6 +25,8 @@ struct GradientData
   float m_isorange = 0.1f;
   float m_pctLow = 0.5f;
   float m_pctHigh = 0.98f;
+  uint16_t m_maxu16 = 65535;
+  uint16_t m_minu16 = 0;
   std::vector<LutControlPoint> m_customControlPoints = { { 0.0f, 0.0f }, { 1.0f, 1.0f } };
 
   void convert(const Histogram& oldHistogram, const Histogram& newHistogram);
