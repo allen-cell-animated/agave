@@ -179,8 +179,51 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
   } else if (img->sizeC() == 3) {
     dataFormat = GL_RGB;
   }
-  glTexSubImage3D(
-    GL_TEXTURE_3D, 0, 0, 0, 0, img->sizeX(), img->sizeY(), img->sizeZ(), dataFormat, GL_UNSIGNED_SHORT, v);
+  try {
+    // do this in chunks for very large data sizes.
+    static const size_t GB = 1024 * 1024 * 1024;
+    if (xyz > 2 * GB) {
+      // split the operation into chunks of about 1GB each.
+      // find number of z planes that fit into 1 GB:
+      size_t zPlanesPerGB = GB / (img->sizeX() * img->sizeY() * sizeof(uint16_t));
+      size_t numChunks = (img->sizeZ()+ zPlanesPerGB-1) / zPlanesPerGB;
+      LOG_DEBUG << "Updating volume texture in " << numChunks << " chunks of " << zPlanesPerGB
+                << " z-planes each, total size: " << (xyz * sizeof(uint16_t) * N) << " bytes";
+      // loop over all the chunks and call glTexSubImage3D with the right z offset for each
+      for (size_t chunk = 0; chunk < numChunks; ++chunk) {
+        size_t offset = chunk * zPlanesPerGB;
+        while (offset < xyz) {
+          size_t chunkSize = std::min(xyz - offset, zPlanesPerGB);
+          glTexSubImage3D(GL_TEXTURE_3D,
+                          0,
+                          0,
+                          0,
+                          offset,
+                          img->sizeX(),
+                          img->sizeY(),
+                          chunkSize,
+                          dataFormat,
+                          GL_UNSIGNED_SHORT,
+                          v + offset * N);
+          offset += chunkSize;
+        }
+      }
+    } else {
+      glTexSubImage3D(
+        GL_TEXTURE_3D, 0, 0, 0, 0, img->sizeX(), img->sizeY(), img->sizeZ(), dataFormat, GL_UNSIGNED_SHORT, v);
+    }
+
+  } catch (const std::exception& e) {
+    LOG_ERROR << "Failed to update volume texture (" << img->sizeX() << ", " << img->sizeY() << ", " << img->sizeZ()
+              << "): " << e.what();
+    delete[] v;
+    return;
+  } catch (...) {
+    LOG_ERROR << "Failed to update volume texture (" << img->sizeX() << ", " << img->sizeY() << ", " << img->sizeZ()
+              << "): unknown error";
+    delete[] v;
+    return;
+  }
   glBindTexture(GL_TEXTURE_3D, 0);
   check_gl("update volume texture");
 
