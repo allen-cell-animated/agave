@@ -10,14 +10,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - uses: ammaraskar/sphinx-action@master
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          docs-folder: "docs/"
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-          pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
-          build-command: "make latexpdf"
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+          sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install Sphinx>=8.0.0 sphinx-copybutton myst-parser>=1.0 linkify-it-py>=2.0.0
+          pip install -r docs/requirements.txt
+      - name: Build HTML documentation
+        run: |
+          cd docs/
+          make html
+      - name: Build PDF documentation
+        run: |
+          cd docs/
+          make latexpdf
       - uses: actions/upload-artifact@v4
         with:
           name: DocumentationHTML
@@ -32,15 +47,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - uses: ammaraskar/sphinx-action@master
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          pre-build-command: "pip install -e agave_pyclient/"
-          docs-folder: "agave_pyclient/docs/"
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "pip install -e agave_pyclient/ && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
-          build-command: "make latexpdf"
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+          sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install Sphinx>=8.0.0 sphinx-copybutton myst-parser>=1.0 linkify-it-py>=2.0.0
+          pip install -r agave_pyclient/docs/requirements.txt
+      - name: Build HTML documentation
+        run: |
+          pip install -e agave_pyclient/
+          cd agave_pyclient/docs/
+          make html
+      - name: Build PDF documentation
+        run: |
+          pip install -e agave_pyclient/
+          cd agave_pyclient/docs/
+          make latexpdf
       - uses: actions/upload-artifact@v4
         with:
           name: DocumentationPythonClientHTML

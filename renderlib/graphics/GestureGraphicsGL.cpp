@@ -361,11 +361,13 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     // attach the texture id with the draw command.
     glTextureId = font->getTextureID();
   }
-  if (!vertex_buffer.buffer()) {
-    vertex_buffer.create();
+  if (!vertex_buffer.get()) {
+    vertex_buffer.reset(new ScopedGlVertexBuffer());
+    vertex_buffer->create();
   }
-  if (!texture_buffer.buffer()) {
-    texture_buffer.create();
+  if (!texture_buffer.get()) {
+    texture_buffer.reset(new ScopedGlTextureBuffer());
+    texture_buffer->create();
   }
   if (thickLinesVertexArray == 0) {
     glGenVertexArrays(1, &thickLinesVertexArray);
@@ -400,17 +402,12 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 
   // Draw UI and viewport manipulators
   {
-    // TODO are we really creating, uploading, and destroying the vertex buffer every frame?
-    // ScopedGlVertexBuffer vertex_buffer(graphics.verts.data(),
-    //                                    graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
-    vertex_buffer.updateDataAndBind(graphics.verts.data(),
-                                    graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
+    vertex_buffer->updateDataAndBind(graphics.verts.data(),
+                                     graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
 
     // buffer containing all the strip vertices
-    // ScopedGlTextureBuffer texture_buffer(graphics.stripVerts.data(),
-    //                                      graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
-    texture_buffer.updateDataAndBind(graphics.stripVerts.data(),
-                                     graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
+    texture_buffer->updateDataAndBind(graphics.stripVerts.data(),
+                                      graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
 
     // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
     // draw the GUI and once to draw the selection buffer data.
@@ -484,7 +481,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             // see GLThickLines for comments explaining the data layout and draw strategy
             GLsizei N = (GLsizei)(range.y - range.x) - 2;
             glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer.texture());
+            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer->texture());
             glUniform1i(shaderLines->m_loc_stripVerts, 2);
             glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
             glUniform1f(shaderLines->m_loc_thickness, thickness);
@@ -639,8 +636,8 @@ GestureRendererGL::GestureRendererGL() {}
 GestureRendererGL::~GestureRendererGL()
 {
   // Destroy OpenGL resources
-  vertex_buffer.~ScopedGlVertexBuffer();
-  texture_buffer.~ScopedGlTextureBuffer();
+  vertex_buffer.reset();
+  texture_buffer.reset();
   if (thickLinesVertexArray) {
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &thickLinesVertexArray);

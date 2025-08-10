@@ -119,7 +119,7 @@ public:
   ~GestureRendererGL();
 
 private:
-  ScopedGlVertexBuffer vertex_buffer;
+  std::unique_ptr<ScopedGlVertexBuffer> vertex_buffer;
   // contains all the strip vertices for thick lines
-  ScopedGlTextureBuffer texture_buffer;
+  std::unique_ptr<ScopedGlTextureBuffer> texture_buffer;
 };
