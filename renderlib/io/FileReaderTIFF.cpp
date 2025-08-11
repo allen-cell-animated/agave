@@ -555,8 +555,8 @@ size_t
 convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& dims)
 {
   // how many pixels in this channel:
-  size_t numPixels = dims.sizeX * dims.sizeY * dims.sizeZ;
-  int srcBitsPerPixel = dims.bitsPerPixel;
+  size_t numPixels = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)dims.sizeZ;
+  size_t srcBitsPerPixel = dims.bitsPerPixel;
 
   // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
   if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
@@ -752,7 +752,7 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
 
   uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = (size_t)dims.sizeX * (size_t)dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * nch];
   memset(data, 0, channelsize_bytes * nch);
@@ -762,10 +762,10 @@ FileReaderTIFF::loadFromFile(const LoadSpec& loadSpec)
   uint8_t* destptr = data;
 
   // still assuming 1 sample per pixel (scalar data) here.
-  size_t rawPlanesize = dims.sizeX * dims.sizeY * (dims.bitsPerPixel / 8);
+  size_t rawPlanesize = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(dims.bitsPerPixel / 8);
   // allocate temp data for one channel
-  uint8_t* channelRawMem = new uint8_t[dims.sizeZ * rawPlanesize];
-  memset(channelRawMem, 0, dims.sizeZ * rawPlanesize);
+  uint8_t* channelRawMem = new uint8_t[(size_t)dims.sizeZ * rawPlanesize];
+  memset(channelRawMem, 0, (size_t)dims.sizeZ * rawPlanesize);
 
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtrTemp(channelRawMem);
