@@ -24,7 +24,7 @@ struct VolumeDimensions
   std::string dimensionOrder = "XYZCT";
   std::vector<std::string> channelNames;
 
-  uint32_t getPlaneIndex(uint32_t z, uint32_t c, uint32_t t) const;
+  size_t getPlaneIndex(uint32_t z, uint32_t c, uint32_t t) const;
   std::vector<uint32_t> getPlaneZCT(uint32_t planeIndex) const;
 
   bool validate() const;

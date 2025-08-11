@@ -3,6 +3,8 @@ target_include_directories(renderlib PUBLIC
 )
 
 target_sources(renderlib PRIVATE
+"${CMAKE_CURRENT_SOURCE_DIR}/ConvertChannelData.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ConvertChannelData.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.cpp"

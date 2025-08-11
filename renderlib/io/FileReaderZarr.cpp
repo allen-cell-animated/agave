@@ -1,6 +1,7 @@
 #include "FileReaderZarr.h"
 
 #include "BoundingBox.h"
+#include "ConvertChannelData.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "StringUtil.h"
@@ -236,57 +237,6 @@ copyDirect(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPix
 {
   memcpy(dest, src, numBytes);
   return numBytes;
-}
-
-// convert pixels
-// this assumes tight packing of pixels in both buf(source) and dataptr(dest)
-// assumes dest is of format IN_MEMORY_BPP
-// return 1 for successful conversion, 0 on failure (e.g. unacceptable srcBitsPerPixel)
-static size_t
-convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& dims)
-{
-  // how many pixels in this channel:
-  size_t numPixels = dims.sizeX * dims.sizeY * dims.sizeZ;
-  int srcBitsPerPixel = dims.bitsPerPixel;
-
-  // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
-    memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
-    return 1;
-  } else if (srcBitsPerPixel == 8) {
-    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
-    for (size_t b = 0; b < numPixels; ++b) {
-      *dataptr16 = (uint16_t)src[b];
-      dataptr16++;
-    }
-    return 1;
-  } else if (srcBitsPerPixel == 32) {
-    // assumes 32-bit floating point (not int or uint)
-    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
-    const float* src32 = reinterpret_cast<const float*>(src);
-    // compute min and max; and then rescale values to fill dynamic range.
-    float lowest = FLT_MAX;
-    float highest = -FLT_MAX;
-    float f;
-    for (size_t b = 0; b < numPixels; ++b) {
-      f = src32[b];
-      if (f < lowest) {
-        lowest = f;
-      }
-      if (f > highest) {
-        highest = f;
-      }
-    }
-    for (size_t b = 0; b < numPixels; ++b) {
-      *dataptr16 = (uint16_t)((src32[b] - lowest) / (highest - lowest) * 65535.0);
-      dataptr16++;
-    }
-    return 1;
-  } else {
-    LOG_ERROR << "Unexpected tiff pixel size " << srcBitsPerPixel << " bits";
-    return 0;
-  }
-  return 0;
 }
 
 std::string
@@ -538,8 +488,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
   // std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
-  size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
+  size_t planesize_bytes = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(ImageXYZC::IN_MEMORY_BPP / 8);
+  size_t channelsize_bytes = planesize_bytes * (size_t)dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * nch];
   memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
@@ -548,10 +498,10 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   uint8_t* destptr = data;
 
   // still assuming 1 sample per pixel (scalar data) here.
-  size_t rawPlanesize = dims.sizeX * dims.sizeY * (dims.bitsPerPixel / 8);
+  size_t rawPlanesize = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(dims.bitsPerPixel / 8);
   // allocate temp data for one channel
-  uint8_t* channelRawMem = new uint8_t[dims.sizeZ * rawPlanesize];
-  memset(channelRawMem, 0, dims.sizeZ * rawPlanesize);
+  uint8_t* channelRawMem = new uint8_t[(size_t)dims.sizeZ * rawPlanesize];
+  memset(channelRawMem, 0, (size_t)dims.sizeZ * rawPlanesize);
 
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtrTemp(channelRawMem);
@@ -634,7 +584,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     }
 
     // convert to our internal format (IN_MEMORY_BPP)
-    if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
+    if (!FileReaderUtil::convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
       return emptyimage;
     }
   }

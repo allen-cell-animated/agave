@@ -92,25 +92,27 @@ Install Qt 6.8.3 in your directory of choice and tell the build where to find it
 In your favorite Python virtual environment:
 
 ```
+
 pip install aqtinstall
 aqt install-qt --outputdir ~/Qt linux desktop 6.8.3 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
+
 export Qt6_DIR=~/Qt/6.8.3/gcc_64
-```
 
-- sudo apt install libtiff-dev
-- sudo apt install libglm-dev
-- sudo apt install libgl1-mesa-dev
-- sudo apt install libegl1-mesa-dev
-- sudo apt install libspdlog-dev
-- sudo apt install nasm
+sudo apt install libtiff-dev
+sudo apt install libglm-dev
+sudo apt install libgl1-mesa-dev
+sudo apt install libegl1-mesa-dev
+sudo apt install libspdlog-dev
+sudo apt install nasm
+sudo apt install libxcb-xkb-dev
 
-```
 mkdir build
 cd build
 cmake ..
 make
+
 ```
 
 If cmake fails please refer to the Dockerfile for a more complete list of Linux dependencies.
@@ -122,17 +124,23 @@ Use tbump (https://github.com/your-tools/tbump). See the tbump.toml file which s
 Just run
 
 ```
+
 tbump major.minor.patch --dry-run
+
 ```
 
 and if everything looks ok
 
 ```
+
 tbump major.minor.patch
+
 ```
 
 or, to do the git steps manually:
 
 ```
+
 tbump major.minor.patch --only-patch
+
 ```
