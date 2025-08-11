@@ -185,8 +185,8 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
     size_t chunkThresholdBytes = 4 * GB;
     // if whole volume is larger than chunk size:
     if (xyz * N * sizeof(uint16_t) > chunkThresholdBytes) {
-      // split the operation into chunks of about 1GB each.
-      // find number of z planes that fit into 1 GB:
+      // split the operation into chunks.
+      // find number of z planes that fit into 1 chunk:
       size_t zPlanes = img->sizeZ();
       size_t planeSizeElements = img->sizeX() * img->sizeY() * N;
       size_t zPlanesPerChunk = chunkThresholdBytes / (planeSizeElements * sizeof(uint16_t));
