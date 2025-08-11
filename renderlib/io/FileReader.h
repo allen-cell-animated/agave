@@ -30,6 +30,8 @@ public:
                                                      std::string spatialUnits = "units",
                                                      bool addToCache = false);
 
+  static size_t convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& dims);
+
 private:
   static std::map<std::string, std::shared_ptr<ImageXYZC>> sPreloadedImageCache;
 };

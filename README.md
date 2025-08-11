@@ -105,12 +105,13 @@ export Qt6_DIR=~/Qt/6.8.3/gcc_64
 - sudo apt install libegl1-mesa-dev
 - sudo apt install libspdlog-dev
 - sudo apt install nasm
+- sudo apt install libxcb-xkb-dev
 
-```
 mkdir build
 cd build
 cmake ..
 make
+
 ```
 
 If cmake fails please refer to the Dockerfile for a more complete list of Linux dependencies.
@@ -122,17 +123,26 @@ Use tbump (https://github.com/your-tools/tbump). See the tbump.toml file which s
 Just run
 
 ```
+
 tbump major.minor.patch --dry-run
+
 ```
 
 and if everything looks ok
 
 ```
+
 tbump major.minor.patch
+
 ```
 
 or, to do the git steps manually:
 
 ```
+
 tbump major.minor.patch --only-patch
+
+```
+
+(.venv) danielt@OSXLT09QT9N build % codesign -s - -f --entitlements ../entitlements.xml ./agave.app/Contents/MacOS/agave
 ```
