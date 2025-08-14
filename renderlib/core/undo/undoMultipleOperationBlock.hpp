@@ -1,23 +1,15 @@
+#pragma once
+
+#include "core/undo/undoUndoMgr.hpp"
+
+//============================================================================
 /*****************************************************************************
-**	undoMultipleOperationBlock.hpp
 **
 **	 A helper class for begining and ending a multiple operation
 **	undo block. The class begin the block on constructor and ends
 **	it on destructor so that exceptions don't throw off the block stack.
 **
-**
-**
 \****************************************************************************/
-#ifdef UNDO_UNDOMULTIPLEOPERATIONBLOCK_HPP
-#error undoMultipleOperationBlock.hpp multiply included
-#endif
-#define UNDO_UNDOMULTIPLEOPERATIONBLOCK_HPP
-
-#ifndef UNDO_UNDOMGR_HPP
-#include "core/undo/undoUndoMgr.hpp"
-#endif
-
-//============================================================================
 //============================================================================
 class undoMultipleOperationBlock
 {

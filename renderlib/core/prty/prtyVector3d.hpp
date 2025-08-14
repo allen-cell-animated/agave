@@ -1,20 +1,6 @@
-/****************************************************************************\
-**	prtyVector3d.hpp
-**
-**		Vector3d property
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_VECTOR3D_HPP
-#error prtyVector3d.hpp multiply included
-#endif
-#define PRTY_VECTOR3D_HPP
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 #include "glm.h"
 

@@ -1,23 +1,7 @@
-/*****************************************************************************
-**	prtyRotationUndo.hpp
-**
-**		store a state of Rotation for undo/redo
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_ROTATIONUNDO_HPP
-#error prtyRotationUndo.hpp multiply included
-#endif
-#define PRTY_ROTATIONUNDO_HPP
 
-#ifndef UNDO_UNDOOPERATION_HPP
 #include "core/undo/undoUndoOperation.hpp"
-#endif
-#ifndef PRTY_PROPERTYREFERENCE_HPP
 #include "core/prty/prtyPropertyReference.hpp"
-#endif
 
 #include "glm.h"
 

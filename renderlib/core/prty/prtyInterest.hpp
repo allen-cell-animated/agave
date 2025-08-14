@@ -1,14 +1,4 @@
-/****************************************************************************\
-**	prtyInterest.cpp
-**
-**
-**
-\****************************************************************************/
-
-#ifdef PRTY_INTEREST_HPP
-#error prtyInterest.hpp multiply included
-#endif
-#define PRTY_INTEREST_HPP
+#pragma once
 
 #include <string>
 

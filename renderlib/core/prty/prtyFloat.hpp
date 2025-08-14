@@ -1,20 +1,6 @@
-/****************************************************************************\
-**	prtyFloat.hpp
-**
-**		Float property
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_FLOAT_HPP
-#error prtyFloat.hpp multiply included
-#endif
-#define PRTY_FLOAT_HPP
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 //============================================================================
 //============================================================================

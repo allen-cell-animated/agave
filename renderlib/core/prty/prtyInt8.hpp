@@ -1,23 +1,6 @@
 #pragma once
-/****************************************************************************\
-**	prtyInt8.hpp
-**
-**		Int8 property
-**
-**	NOTE: a possible code optimization would be to elminate the int8 and
-**	just use int32 and set the min and max values to be correct.
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_INT8_HPP
-#error prtyInt8.hpp multiply included
-#endif
-#define PRTY_INT8_HPP
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 //============================================================================
 //============================================================================

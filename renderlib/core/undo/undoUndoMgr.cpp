@@ -1,11 +1,3 @@
-/*****************************************************************************
-**	undoUndoMgr.cpp
-**
-**		see .hpp
-**
-**
-**
-\****************************************************************************/
 #include "core/undo/undoUndoMgr.hpp"
 
 #include "core/undo/undoMultipleOperation.hpp"

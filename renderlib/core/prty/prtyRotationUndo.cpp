@@ -1,11 +1,3 @@
-/*****************************************************************************
-**	prtyRotationUndo.cpp
-**
-**		see .hpp
-**
-**
-**
-\****************************************************************************/
 #include "core/prty/prtyRotationUndo.hpp"
 
 #include "core/prty/prtyRotation.hpp"

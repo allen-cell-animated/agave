@@ -1,20 +1,6 @@
-/****************************************************************************\
-**	prtyBoolean.hpp
-**
-**		Boolean property
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_BOOLEAN_HPP
-#error prtyBoolean.hpp multiply included
-#endif
-#define PRTY_BOOLEAN_HPP
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 //============================================================================
 //============================================================================

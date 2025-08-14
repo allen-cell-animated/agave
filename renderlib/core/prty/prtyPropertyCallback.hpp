@@ -1,18 +1,4 @@
-/****************************************************************************\
-**	prtyPropertyCallback.hpp
-**
-**	Template and interface for handling property changed callbacks.
-**
-**	You create and register a callback to a member function with this syntax:
-**		m_Property.AddCallback(new prtyCallbackWrapper<xxxObject>(this, &xxxObject::FunctionName));
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_PROPERTYCALLBACK_HPP
-#error prtyPropertyCallback.hpp multiply included
-#endif
-#define PRTY_PROPERTYCALLBACK_HPP
+#pragma once
 
 #include <functional>
 

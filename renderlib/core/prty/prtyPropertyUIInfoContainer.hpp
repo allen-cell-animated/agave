@@ -1,20 +1,6 @@
-/****************************************************************************\
-**	prtyPropertyUIInfoContainer.hpp
-**
-**		Container for property UI info
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_PROPERTYUIINFOCONTAINER_HPP
-#error prtyPropertyUIInfoContainer.hpp multiply included
-#endif
-#define PRTY_PROPERTYUIINFOCONTAINER_HPP
 
-#ifndef PRTY_PROPERTYUIINFO_HPP
 #include "core/prty/prtyPropertyUIInfo.hpp"
-#endif
 
 #include <list>
 #include <memory>

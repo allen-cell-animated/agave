@@ -1,17 +1,4 @@
-/*****************************************************************************
-**	undoUndoMgr.hpp
-**
-**	 An UndoOperation should be created each time a step is
-**	taken that can be undone. The UndoMgr keeps track of the
-**	last few operations.
-**
-**
-**
-\****************************************************************************/
-#ifdef UNDO_UNDOMGR_HPP
-#error undoUndoMgr.hpp multiply included
-#endif
-#define UNDO_UNDOMGR_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -22,6 +9,13 @@ class undoUndoInterest;
 class undoUndoOperation;
 
 //============================================================================
+/*****************************************************************************
+**
+**	 An UndoOperation should be created each time a step is
+**	taken that can be undone. The UndoMgr keeps track of the
+**	last few operations.
+**
+\****************************************************************************/
 //============================================================================
 namespace undoUndoMgr {
 //--------------------------------------------------------------------

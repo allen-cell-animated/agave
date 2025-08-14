@@ -1,15 +1,4 @@
-/*****************************************************************************\
-**	prtyUnits.hpp
-**
-**		Tracks the units for display of properties realted to distance.
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_UNITS_HPP
-#error prtyUnits.hpp multiply included
-#endif
-#define PRTY_UNITS_HPP
+#pragma once
 
 #include <string>
 

@@ -1,11 +1,3 @@
-/****************************************************************************\
-**	prtyPropertyUIInfo.cpp
-**
-**		see .hpp
-**
-**
-**
-\****************************************************************************/
 #include "core/prty/prtyPropertyUIInfo.hpp"
 
 #include "core/prty/prtyProperty.hpp"
