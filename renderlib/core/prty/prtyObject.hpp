@@ -1,26 +1,8 @@
-/****************************************************************************\
-**	prtyObject.hpp
-**
-**		Object base class
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_OBJECT_HPP
-#error prtyObject.hpp multiply included
-#endif
-#define PRTY_OBJECT_HPP
 
-#ifndef PRTY_PROPERTYUIINFO_HPP
 #include "core/prty/prtyPropertyUIInfo.hpp"
-#endif
-#ifndef PRTY_PROPERTYUIINFOCONTAINER_HPP
 #include "core/prty/prtyPropertyUIInfoContainer.hpp"
-#endif
-#ifndef PRTY_PROPERTYREFERENCE_HPP
 #include "core/prty/prtyPropertyReference.hpp"
-#endif
 
 #include <string>
 

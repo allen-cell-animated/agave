@@ -1,3 +1,4 @@
+#pragma once
 /****************************************************************************\
 **	prtyProperty.hpp
 **
@@ -46,12 +47,10 @@
 **		prtyControlMgr::DeInitialize();
 **		prtyCallbackMgr::DeInitialize();
 **
-**	Refer to test/prty application for an example.
 **
 **
 **
 \****************************************************************************/
-#pragma once
 
 #include "core/prty/prtyPropertyCallback.hpp"
 #include "core/undo/undoUndoOperation.hpp"

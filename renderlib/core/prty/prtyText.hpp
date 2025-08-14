@@ -1,19 +1,6 @@
-/****************************************************************************\
-**	prtyText.hpp
-**
-**		Text property
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_TEXT_HPP
-#error prtyText.hpp multiply included
-#endif
-#define PRTY_TEXT_HPP
+#pragma once
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 //============================================================================
 //============================================================================

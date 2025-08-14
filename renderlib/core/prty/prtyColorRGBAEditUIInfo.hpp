@@ -1,19 +1,6 @@
-/****************************************************************************\
-**	prtyColorRGBAEditUIInfo.hpp
-**
-**		ColorRGBAEdit UI info
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_COLORRGBAEDITUIINFO_HPP
-#error prtyColorRGBAEditUIInfo.hpp multiply included
-#endif
-#define PRTY_COLORRGBAEDITUIINFO_HPP
+#pragma once
 
-#ifndef PRTY_PROPERTYUIINFO_HPP
 #include "core/prty/prtyPropertyUIInfo.hpp"
-#endif
 
 #include <string>
 

@@ -1,11 +1,3 @@
-/****************************************************************************\
-**	prtyPropertyUIInfoContainer.cpp
-**
-**		see .hpp
-**
-**
-**
-\****************************************************************************/
 #include "core/prty/prtyPropertyUIInfoContainer.hpp"
 
 #include "Logging.h"

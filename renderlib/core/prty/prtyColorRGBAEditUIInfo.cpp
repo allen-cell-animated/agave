@@ -1,11 +1,3 @@
-/****************************************************************************\
-**	prtyColorRGBAEditUIInfo.cpp
-**
-**		see .hpp
-**
-**
-**
-\****************************************************************************/
 #include "core/prty/prtyColorRGBAEditUIInfo.hpp"
 
 #include "core/prty/prtyProperty.hpp"

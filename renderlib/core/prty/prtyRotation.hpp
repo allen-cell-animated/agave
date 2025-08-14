@@ -1,19 +1,6 @@
-/****************************************************************************\
-**	prtyRotation.hpp
-**
-**		Rotation property
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_ROTATION_HPP
-#error prtyRotation.hpp multiply included
-#endif
-#define PRTY_ROTATION_HPP
+#pragma once
 
-#ifndef PRTY_PROPERTY_HPP
 #include "core/prty/prtyProperty.hpp"
-#endif
 
 #include "glm.h"
 

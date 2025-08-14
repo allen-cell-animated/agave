@@ -1,20 +1,6 @@
-/****************************************************************************\
-**	prtyColor.hpp
-**
-**		Color property
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_COLOR_HPP
-#error prtyColor.hpp multiply included
-#endif
-#define PRTY_COLOR_HPP
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 #include "glm.h"
 
