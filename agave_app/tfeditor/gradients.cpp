@@ -51,10 +51,10 @@
 #include "gradients.h"
 #include "hoverpoints.h"
 
-#include "Controls.h"
+#include "qtControls/Controls.h"
+
 #include "renderlib/Defines.h"
 #include "renderlib/Logging.h"
-#include "renderlib/MathUtil.h"
 
 #include <algorithm>
 
