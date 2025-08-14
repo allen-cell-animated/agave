@@ -15,7 +15,7 @@ cmake_policy(SET CMP0135 NEW) # set timestamps to time of extraction for Externa
 
 project(
   agave
-  VERSION 1.8.0
+  VERSION 1.8.1
   LANGUAGES C CXX
 )
 
@@ -85,14 +85,20 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 
 # endif()
 
+FetchContent_Declare(
+            glm
+            GIT_REPOSITORY https://github.com/g-truc/glm.git
+            GIT_TAG 1.0.1
+    )
+FetchContent_MakeAvailable(glm)
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
-if(APPLE)
-  # On MacOS, newer homebrew glm is broken with respect to cmake.
-  # Revisit in a future version to try to remove this conditional.
-  find_path(GLM_PATH glm/glm.hpp)
-else()
-  find_package(glm REQUIRED)
-endif(APPLE)
+# if(APPLE)
+#   # On MacOS, newer homebrew glm is broken with respect to cmake.
+#   # Revisit in a future version to try to remove this conditional.
+#   find_path(GLM_PATH glm/glm.hpp)
+# else()
+#   find_package(glm REQUIRED)
+# endif(APPLE)
 
 find_package(TIFF)
 

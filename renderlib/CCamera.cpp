@@ -84,17 +84,6 @@ CCamera::getFrame() const
   return LinearSpace3f(m_U, m_V, -m_N);
 }
 
-// Credit: https://stackoverflow.com/a/32410473/2373034
-// Returns the intersection line of the 2 planes
-Ray
-GetPlanesIntersection(const Plane& p1, const Plane& p2)
-{
-  glm::vec3 p3Normal = glm::cross(p1.normal, p2.normal);
-  float det = glm::length2(p3Normal);
-
-  return Ray(((glm::cross(p3Normal, p2.normal) * p1.d) + (glm::cross(p1.normal, p3Normal) * p2.d)) / det, p3Normal);
-}
-
 // this implementation comes from an old unity3d wiki page.
 // Two non-parallel lines which may or may not touch each other have a point on each line which are closest
 // to each other. This function finds those two points. If the lines are not parallel, the function
@@ -250,11 +239,11 @@ CCamera::ComputeFitToBounds(const CBoundingBox& sceneBBox, glm::vec3& newPositio
     }
 
     Ray horizontalIntersection =
-      GetPlanesIntersection(Plane(leftFrustumPlaneNormal, boundingBoxPoints[leftmostPoint]),
-                            Plane(rightFrustumPlaneNormal, boundingBoxPoints[rightmostPoint]));
+      Plane::GetIntersection(Plane(leftFrustumPlaneNormal, boundingBoxPoints[leftmostPoint]),
+                             Plane(rightFrustumPlaneNormal, boundingBoxPoints[rightmostPoint]));
     Ray verticalIntersection =
-      GetPlanesIntersection(Plane(topFrustumPlaneNormal, boundingBoxPoints[topmostPoint]),
-                            Plane(bottomFrustumPlaneNormal, boundingBoxPoints[bottommostPoint]));
+      Plane::GetIntersection(Plane(topFrustumPlaneNormal, boundingBoxPoints[topmostPoint]),
+                             Plane(bottomFrustumPlaneNormal, boundingBoxPoints[bottommostPoint]));
 
     glm::vec3 closestPoint1, closestPoint2;
     FindClosestPointsOnTwoLines(horizontalIntersection, verticalIntersection, closestPoint1, closestPoint2);
