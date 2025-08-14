@@ -1,17 +1,6 @@
-/****************************************************************************\
-**	prtyInterestUtil.hpp
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_INTERESTUTIL_HPP
-#error prtyInterestUtil.hpp multiply included
-#endif
-#define PRTY_INTERESTUTIL_HPP
+#pragma once
 
-#ifndef PRTY_INTEREST_HPP
 #include "core/prty/prtyInterest.hpp"
-#endif
 
 #include <string>
 #include <vector>

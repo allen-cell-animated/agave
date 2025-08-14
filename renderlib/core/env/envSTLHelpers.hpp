@@ -1,17 +1,4 @@
-/****************************************************************************\
-**  envSTLHelpers.hpp
-**
-**	envSTLHelpers is meant to contain definitions useful when using the
-**	STL in our library.
-**
-**
-**
-\****************************************************************************/
-
-#ifdef ENV_STLHELPERS_HPP
-#error envSTLHelpers.hpp multiple included
-#endif
-#define ENV_STLHELPERS_HPP
+#pragma once
 
 #include <algorithm> // for_each
 #include <functional>

@@ -1,19 +1,6 @@
-/****************************************************************************\
-**	prtyInt32.hpp
-**
-**		Int32 property
-**
-**
-**
-\****************************************************************************/
-#ifdef PRTY_INT32_HPP
-#error prtyInt32.hpp multiply included
-#endif
-#define PRTY_INT32_HPP
+#pragma once
 
-#ifndef PRTY_PROPERTYTEMPLATE_HPP
 #include "core/prty/prtyPropertyTemplate.hpp"
-#endif
 
 //============================================================================
 //============================================================================

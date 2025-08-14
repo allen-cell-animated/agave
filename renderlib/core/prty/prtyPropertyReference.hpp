@@ -1,19 +1,4 @@
-/*****************************************************************************\
-**	prtyPropertyReference.hpp
-**
-**		Provides a safe way to refer to a property for undo operations.
-**	Derivations of this class should provide a way to access a property
-**	by a reference that is consistent through deletion and restoration of
-**	the parent property object.
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_PROPERTYREFERENCE_HPP
-#error prtyPropertyReference.hpp multiply included
-#endif
-#define PRTY_PROPERTYREFERENCE_HPP
 
 #include <memory>
 
@@ -26,6 +11,11 @@ class prtyProperty;
 // A prtyReference is a logical reference to a property that may point to
 //	different actual prtyProperty classes at different times. This may happen
 //	during undo and redo when an object is deleted and restored.
+
+// Provides a safe way to refer to a property for undo operations.
+// Derivations of this class should provide a way to access a property
+// by a reference that is consistent through deletion and restoration of
+// the parent property object.
 //============================================================================
 class prtyPropertyReference
 {

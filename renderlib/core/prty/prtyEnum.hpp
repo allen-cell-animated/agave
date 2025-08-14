@@ -1,20 +1,6 @@
-/****************************************************************************\
-**	prtyEnum.hpp
-**
-**		Enum property
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_ENUM_HPP
-#error prtyEnum.hpp multiply included
-#endif
-#define PRTY_ENUM_HPP
 
-#ifndef PRTY_INT8_HPP
 #include "core/prty/prtyInt8.hpp"
-#endif
 
 #include <vector>
 

@@ -1,18 +1,4 @@
-/*****************************************************************************
-**	undoUndoOperation.hpp
-**
-**	 This is the abstract base class for operations that can
-**	be undone
-**
-**
-**
-\****************************************************************************/
 #pragma once
-
-#ifdef UNDO_UNDOOPERATION_HPP
-#error undoUndoOperation.hpp multiply included
-#endif
-#define UNDO_UNDOOPERATION_HPP
 
 #include <string>
 

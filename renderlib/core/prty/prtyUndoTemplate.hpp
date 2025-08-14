@@ -1,23 +1,7 @@
-/*****************************************************************************
-**	prtyUndoTemplate.hpp
-**
-**		store a state of Text for undo/redo
-**
-**
-**
-\****************************************************************************/
 #pragma once
-#ifdef PRTY_UNDOTEMPLATE_HPP
-#error prtyUndoTemplate.hpp multiply included
-#endif
-#define PRTY_UNDOTEMPLATE_HPP
 
-#ifndef UNDO_UNDOOPERATION_HPP
 #include "core/undo/undoUndoOperation.hpp"
-#endif
-#ifndef PRTY_PROPERTYREFERENCE_HPP
 #include "core/prty/prtyPropertyReference.hpp"
-#endif
 
 #include "core/prty/prtyProperty.hpp"
 

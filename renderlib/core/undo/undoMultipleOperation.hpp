@@ -1,24 +1,12 @@
-/*****************************************************************************
-**	undoMultipleOperation.hpp
-**
-**	 This class can be used to group a number of single undo operations
-**	into one undo operation that can be undone and redone in one step.
-**
-**
-**
-\****************************************************************************/
-#ifdef UNDO_MULTIPLEOPERATION_HPP
-#error undoUndoOperation.hpp multiply included
-#endif
-#define UNDO_MULTIPLEOPERATION_HPP
+#pragma once
 
-#ifndef UNDO_UNDOOPERATION_HPP
 #include "core/undo/undoUndoOperation.hpp"
-#endif
 
 #include <vector>
 
 //============================================================================
+//**	 This class can be used to group a number of single undo operations
+//**	into one undo operation that can be undone and redone in one step.
 //============================================================================
 class undoMultipleOperation : public undoUndoOperation
 {
