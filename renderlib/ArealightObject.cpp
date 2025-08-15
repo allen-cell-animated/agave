@@ -1,0 +1,155 @@
+#include "ArealightObject.hpp"
+
+#include "SceneLight.h"
+#include "MathUtil.h"
+#include "Logging.h"
+
+ArealightObject::ArealightObject()
+  : prtyObject()
+{
+  m_thetaUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Theta, "Position", "Theta");
+  m_thetaUIInfo->SetToolTip("Set Theta angle");
+  m_thetaUIInfo->SetStatusTip("Set area light theta angle in degrees");
+  m_thetaUIInfo->min = 0.0f;
+  m_thetaUIInfo->max = 360.0f;
+  m_thetaUIInfo->decimals = 1;
+  m_thetaUIInfo->singleStep = 1.0f;
+  m_thetaUIInfo->suffix = "°";
+  AddProperty(m_thetaUIInfo);
+
+  m_phiUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Phi, "Position", "Phi");
+  m_phiUIInfo->SetToolTip("Set Phi angle");
+  m_phiUIInfo->SetStatusTip("Set area light phi angle in degrees");
+  m_phiUIInfo->min = 0.0f;
+  m_phiUIInfo->max = 180.0f;
+  m_phiUIInfo->decimals = 1;
+  m_phiUIInfo->singleStep = 1.0f;
+  m_phiUIInfo->suffix = "°";
+  AddProperty(m_phiUIInfo);
+
+  m_sizeUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Size, "Dimensions", "Size");
+  m_sizeUIInfo->SetToolTip("Set Size");
+  m_sizeUIInfo->SetStatusTip("Set area light size");
+  m_sizeUIInfo->min = 0.1f;
+  m_sizeUIInfo->max = 100.0f;
+  m_sizeUIInfo->decimals = 2;
+  m_sizeUIInfo->singleStep = 0.1f;
+  AddProperty(m_sizeUIInfo);
+
+  m_distanceUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Distance, "Position", "Distance");
+  m_distanceUIInfo->SetToolTip("Set Distance");
+  m_distanceUIInfo->SetStatusTip("Set area light distance");
+  m_distanceUIInfo->min = 0.1f;
+  m_distanceUIInfo->max = 1000.0f;
+  m_distanceUIInfo->decimals = 1;
+  m_distanceUIInfo->singleStep = 1.0f;
+  AddProperty(m_distanceUIInfo);
+
+  m_intensityUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Intensity, "Light", "Intensity");
+  m_intensityUIInfo->SetToolTip("Set Intensity");
+  m_intensityUIInfo->SetStatusTip("Set area light intensity");
+  m_intensityUIInfo->min = 0.0f;
+  m_intensityUIInfo->max = 1000.0f;
+  m_intensityUIInfo->decimals = 1;
+  m_intensityUIInfo->singleStep = 1.0f;
+  AddProperty(m_intensityUIInfo);
+
+  m_colorUIInfo = new ColorPickerUiInfo(&m_arealightDataObject.Color, "Light", "Color");
+  m_colorUIInfo->SetToolTip("Set Color");
+  m_colorUIInfo->SetStatusTip("Set area light color");
+  AddProperty(m_colorUIInfo);
+
+  // Add callbacks for property changes
+  m_arealightDataObject.Theta.AddCallback(
+    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::ThetaChanged));
+  m_arealightDataObject.Phi.AddCallback(new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::PhiChanged));
+  m_arealightDataObject.Size.AddCallback(new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::SizeChanged));
+  m_arealightDataObject.Distance.AddCallback(
+    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::DistanceChanged));
+  m_arealightDataObject.Intensity.AddCallback(
+    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::IntensityChanged));
+  m_arealightDataObject.Color.AddCallback(
+    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::ColorChanged));
+}
+
+void
+ArealightObject::updatePropsFromSceneLight()
+{
+  if (!m_sceneLight || !m_sceneLight->m_light)
+    return;
+
+  Light* light = m_sceneLight->m_light;
+
+  // Convert from radians to degrees and update properties
+  m_arealightDataObject.Theta.SetValue(light->m_Theta);
+  m_arealightDataObject.Phi.SetValue(light->m_Phi);
+  m_arealightDataObject.Size.SetValue(light->m_Width);
+  m_arealightDataObject.Distance.SetValue(light->m_Distance);
+  m_arealightDataObject.Intensity.SetValue(light->m_ColorIntensity);
+  m_arealightDataObject.Color.SetValue(glm::vec4(light->m_Color, 1.0f));
+}
+
+void
+ArealightObject::updateSceneLightFromProps()
+{
+  if (!m_sceneLight || !m_sceneLight->m_light)
+    return;
+
+  Light* light = m_sceneLight->m_light;
+
+  // Convert from degrees to radians and update light
+  light->m_Theta = m_arealightDataObject.Theta.GetValue();
+  light->m_Phi = m_arealightDataObject.Phi.GetValue();
+  light->m_Width = m_arealightDataObject.Size.GetValue();
+  light->m_Distance = m_arealightDataObject.Distance.GetValue();
+  light->m_ColorIntensity = m_arealightDataObject.Intensity.GetValue();
+
+  glm::vec4 color = m_arealightDataObject.Color.GetValue();
+  light->m_Color = glm::vec3(color.x, color.y, color.z);
+
+  // Notify observers
+  for (auto& observer : m_sceneLight->m_observers) {
+    observer(*light);
+  }
+
+  // Call dirty callback if set
+  if (m_dirtyCallback) {
+    m_dirtyCallback();
+  }
+}
+
+void
+ArealightObject::ThetaChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  updateSceneLightFromProps();
+}
+
+void
+ArealightObject::PhiChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  updateSceneLightFromProps();
+}
+
+void
+ArealightObject::SizeChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  updateSceneLightFromProps();
+}
+
+void
+ArealightObject::DistanceChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  updateSceneLightFromProps();
+}
+
+void
+ArealightObject::IntensityChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  updateSceneLightFromProps();
+}
+
+void
+ArealightObject::ColorChanged(prtyProperty* i_Property, bool i_bDirty)
+{
+  updateSceneLightFromProps();
+}
