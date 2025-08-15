@@ -29,12 +29,7 @@ class AreaLightObject : public prtyObject
 public:
   AreaLightObject();
 
-  // Set the scene light instance to control
-  void setSceneLight(SceneLight* sceneLight) { m_sceneLight = sceneLight; }
-  SceneLight* getSceneLight() const { return m_sceneLight; }
-
-  // Set dirty callback for change notifications
-  void setDirtyCallback(std::function<void()> callback) { m_dirtyCallback = callback; }
+  std::shared_ptr<SceneLight> getSceneLight() const { return m_sceneLight; }
 
   // Update properties from scene light instance
   void updatePropsFromSceneLight();
@@ -52,7 +47,10 @@ public:
 
 private:
   ArealightDataObject m_arealightDataObject;
-  SceneLight* m_sceneLight = nullptr;
+
+  // the actual object
+  std::shared_ptr<SceneLight> m_sceneLight;
+
   std::function<void()> m_dirtyCallback;
 
   // UI Info objects
