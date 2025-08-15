@@ -49,7 +49,8 @@ StreamServer::createNewRenderer(QWebSocket* client)
   camera->m_Film.m_Resolution.SetResX(1024);
   camera->m_Film.m_Resolution.SetResY(1024);
   Scene* scene = new Scene();
-  scene->initLights();
+  scene->initLights(std::make_shared<SceneLight>(Scene::defaultSkyLight()),
+                    std::make_shared<SceneLight>(Scene::defaultAreaLight()));
 
   r->configure(nullptr, rs, *scene, *camera, LoadSpec(), renderMode);
 

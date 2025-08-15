@@ -12,16 +12,16 @@ SceneLight::updateTransform()
   // because they will be used in future light updates
   float phi, theta;
   Light::cartesianToSpherical(normdir, phi, theta);
-  m_light->m_Phi = phi;
-  m_light->m_Theta = theta;
+  m_light.m_Phi = phi;
+  m_light.m_Theta = theta;
 
   // get m_P in world space:
-  m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
+  m_light.m_P = m_light.m_Distance * normdir + m_light.m_Target;
 
-  m_light->updateBasisFrame();
+  m_light.updateBasisFrame();
 
   // this lets the GUI have a chance to update in an abstract way
   for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
-    (*it)(*m_light);
+    (*it)(m_light);
   }
 }

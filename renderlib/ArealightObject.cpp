@@ -75,41 +75,41 @@ AreaLightObject::AreaLightObject()
 void
 AreaLightObject::updatePropsFromSceneLight()
 {
-  if (!m_sceneLight || !m_sceneLight->m_light)
+  if (!m_sceneLight)
     return;
 
-  Light* light = m_sceneLight->m_light;
+  const Light& light = m_sceneLight->m_light;
 
   // Convert from radians to degrees and update properties
-  m_arealightDataObject.Theta.SetValue(light->m_Theta);
-  m_arealightDataObject.Phi.SetValue(light->m_Phi);
-  m_arealightDataObject.Size.SetValue(light->m_Width);
-  m_arealightDataObject.Distance.SetValue(light->m_Distance);
-  m_arealightDataObject.Intensity.SetValue(light->m_ColorIntensity);
-  m_arealightDataObject.Color.SetValue(glm::vec4(light->m_Color, 1.0f));
+  m_arealightDataObject.Theta.SetValue(light.m_Theta);
+  m_arealightDataObject.Phi.SetValue(light.m_Phi);
+  m_arealightDataObject.Size.SetValue(light.m_Width);
+  m_arealightDataObject.Distance.SetValue(light.m_Distance);
+  m_arealightDataObject.Intensity.SetValue(light.m_ColorIntensity);
+  m_arealightDataObject.Color.SetValue(glm::vec4(light.m_Color, 1.0f));
 }
 
 void
 AreaLightObject::updateSceneLightFromProps()
 {
-  if (!m_sceneLight || !m_sceneLight->m_light)
+  if (!m_sceneLight)
     return;
 
-  Light* light = m_sceneLight->m_light;
+  Light& light = m_sceneLight->m_light;
 
   // Convert from degrees to radians and update light
-  light->m_Theta = m_arealightDataObject.Theta.GetValue();
-  light->m_Phi = m_arealightDataObject.Phi.GetValue();
-  light->m_Width = m_arealightDataObject.Size.GetValue();
-  light->m_Distance = m_arealightDataObject.Distance.GetValue();
-  light->m_ColorIntensity = m_arealightDataObject.Intensity.GetValue();
+  light.m_Theta = m_arealightDataObject.Theta.GetValue();
+  light.m_Phi = m_arealightDataObject.Phi.GetValue();
+  light.m_Width = m_arealightDataObject.Size.GetValue();
+  light.m_Distance = m_arealightDataObject.Distance.GetValue();
+  light.m_ColorIntensity = m_arealightDataObject.Intensity.GetValue();
 
   glm::vec4 color = m_arealightDataObject.Color.GetValue();
-  light->m_Color = glm::vec3(color.x, color.y, color.z);
+  light.m_Color = glm::vec3(color.x, color.y, color.z);
 
   // Notify observers
   for (auto& observer : m_sceneLight->m_observers) {
-    observer(*light);
+    observer(light);
   }
 
   // Call dirty callback if set

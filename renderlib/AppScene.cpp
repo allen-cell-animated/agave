@@ -85,6 +85,47 @@ Lighting::Lighting(const Lighting& other)
   }
 }
 
+Light
+Scene::defaultSkyLight()
+{
+  Light BackgroundLight;
+
+  BackgroundLight.m_T = 1;
+  float inten = 1.0f;
+
+  float topr = 0.5f;
+  float topg = 0.5f;
+  float topb = 0.5f;
+  float midr = 0.5f;
+  float midg = 0.5f;
+  float midb = 0.5f;
+  float botr = 0.5f;
+  float botg = 0.5f;
+  float botb = 0.5f;
+
+  BackgroundLight.m_ColorTop = inten * glm::vec3(topr, topg, topb);
+  BackgroundLight.m_ColorMiddle = inten * glm::vec3(midr, midg, midb);
+  BackgroundLight.m_ColorBottom = inten * glm::vec3(botr, botg, botb);
+
+  return BackgroundLight;
+}
+
+Light
+Scene::defaultAreaLight()
+{
+  Light AreaLight;
+
+  AreaLight.m_T = 0;
+  AreaLight.m_Theta = 0.0f;
+  AreaLight.m_Phi = HALF_PI_F;
+  AreaLight.m_Width = 0.15f;
+  AreaLight.m_Height = 0.15f;
+  AreaLight.m_Distance = 1.5f;
+  AreaLight.m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+
+  return AreaLight;
+}
+
 void
 Scene::initLights(std::shared_ptr<SceneLight> skyLight, std::shared_ptr<SceneLight> areaLight)
 {
@@ -183,14 +224,14 @@ Scene::initBounds(const CBoundingBox& bb)
   // point lights toward scene's bounding box
   for (int i = 0; i < m_lighting.m_NoLights; ++i) {
     // TODO maybe this should be passed through the SceneLight first.
-    m_lighting.m_sceneLights[i]->m_light->Update(m_boundingBox);
+    m_lighting.m_sceneLights[i]->m_light.Update(m_boundingBox);
 
     // The transform center for the scene light is its target.
     // This is used so that rotations are centered at the target which is the center of the volume.
     // Note this is not the same as the light source's position.
     // This is a very specific UX choice to make it easier to rotate the light around the volume,
     // but is constraining for other operations e.g. translation.
-    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_sceneLights[i]->m_light->m_Target;
+    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_sceneLights[i]->m_light.m_Target;
   }
 }
 
