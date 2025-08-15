@@ -56,16 +56,17 @@
 AppearanceObject::AppearanceObject()
   : prtyObject()
 {
+  std::string category("Rendering");
   m_renderSettings = std::make_shared<RenderSettings>();
-  m_rendererType = new ComboBoxUiInfo(&m_appearanceDataObject.RendererType, "Appearance", "Renderer Type");
+  m_rendererType = new ComboBoxUiInfo(&m_appearanceDataObject.RendererType, category, "Renderer Type");
   m_rendererType->SetToolTip("Select volume rendering type");
   m_rendererType->SetStatusTip("Select volume rendering type");
   AddProperty(m_rendererType);
-  m_shadingType = new ComboBoxUiInfo(&m_appearanceDataObject.ShadingType, "Appearance", "Shading Type");
+  m_shadingType = new ComboBoxUiInfo(&m_appearanceDataObject.ShadingType, category, "Shading Type");
   m_shadingType->SetToolTip("Select volume shading style");
   m_shadingType->SetStatusTip("Select volume shading style");
   AddProperty(m_shadingType);
-  m_densityScale = new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.DensityScale, "Appearance", "Density Scale");
+  m_densityScale = new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.DensityScale, category, "Density Scale");
   m_densityScale->SetToolTip("Set scattering density for volume");
   m_densityScale->SetStatusTip("Set scattering density for volume");
   m_densityScale->min = 0.001f;
@@ -75,8 +76,7 @@ AppearanceObject::AppearanceObject()
   m_densityScale->numTickMarks = 10;  // numTickMarks
   m_densityScale->suffix = "";        // suffix
   AddProperty(m_densityScale);
-  m_gradientFactor =
-    new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.GradientFactor, "Appearance", "Gradient Factor");
+  m_gradientFactor = new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.GradientFactor, category, "Gradient Factor");
   m_gradientFactor->SetToolTip("Mix between BRDF and Phase shading");
   m_gradientFactor->SetStatusTip("Mix between BRDF and Phase shading");
   m_gradientFactor->min = 0.0f;
@@ -87,7 +87,7 @@ AppearanceObject::AppearanceObject()
   m_gradientFactor->suffix = "";        // suffix
   AddProperty(m_gradientFactor);
   m_stepSizePrimaryRay =
-    new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.StepSizePrimaryRay, "Appearance", "Step Size Primary Ray");
+    new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.StepSizePrimaryRay, category, "Step Size Primary Ray");
   m_stepSizePrimaryRay->SetToolTip("Set volume ray march step size for camera rays");
   m_stepSizePrimaryRay->SetStatusTip("Set volume ray march step size for camera rays");
   m_stepSizePrimaryRay->min = 1.0f;
@@ -98,7 +98,7 @@ AppearanceObject::AppearanceObject()
   m_stepSizePrimaryRay->suffix = "";        // suffix
   AddProperty(m_stepSizePrimaryRay);
   m_stepSizeSecondaryRay =
-    new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.StepSizeSecondaryRay, "Appearance", "Step Size Secondary Ray");
+    new FloatSliderSpinnerUiInfo(&m_appearanceDataObject.StepSizeSecondaryRay, category, "Step Size Secondary Ray");
   m_stepSizeSecondaryRay->SetToolTip("Set volume ray march step size for scattered rays");
   m_stepSizeSecondaryRay->SetStatusTip("Set volume ray march step size for scattered rays");
   m_stepSizeSecondaryRay->min = 1.0f;
@@ -108,24 +108,23 @@ AppearanceObject::AppearanceObject()
   m_stepSizeSecondaryRay->numTickMarks = 10;  // numTickMarks
   m_stepSizeSecondaryRay->suffix = "";        // suffix
   AddProperty(m_stepSizeSecondaryRay);
-  m_interpolate = new CheckBoxUiInfo(&m_appearanceDataObject.Interpolate, "Appearance", "Interpolate");
+  m_interpolate = new CheckBoxUiInfo(&m_appearanceDataObject.Interpolate, category, "Interpolate");
   m_interpolate->SetToolTip("Interpolated volume sampling");
   m_interpolate->SetStatusTip("Interpolated volume sampling");
   AddProperty(m_interpolate);
-  m_backgroundColor = new ColorPickerUiInfo(&m_appearanceDataObject.BackgroundColor, "Appearance", "Background Color");
+  m_backgroundColor = new ColorPickerUiInfo(&m_appearanceDataObject.BackgroundColor, category, "Background Color");
   m_backgroundColor->SetToolTip("Set background color");
   m_backgroundColor->SetStatusTip("Set background color");
   AddProperty(m_backgroundColor);
-  m_showBoundingBox = new CheckBoxUiInfo(&m_appearanceDataObject.ShowBoundingBox, "Appearance", "Show Bounding Box");
+  m_showBoundingBox = new CheckBoxUiInfo(&m_appearanceDataObject.ShowBoundingBox, category, "Show Bounding Box");
   m_showBoundingBox->SetToolTip("Show/hide bounding box");
   m_showBoundingBox->SetStatusTip("Show/hide bounding box");
   AddProperty(m_showBoundingBox);
-  m_boundingBoxColor =
-    new ColorPickerUiInfo(&m_appearanceDataObject.BoundingBoxColor, "Appearance", "Bounding Box Color");
+  m_boundingBoxColor = new ColorPickerUiInfo(&m_appearanceDataObject.BoundingBoxColor, category, "Bounding Box Color");
   m_boundingBoxColor->SetToolTip("Set bounding box color");
   m_boundingBoxColor->SetStatusTip("Set bounding box color");
   AddProperty(m_boundingBoxColor);
-  m_showScaleBar = new CheckBoxUiInfo(&m_appearanceDataObject.ShowScaleBar, "Appearance", "Show Scale Bar");
+  m_showScaleBar = new CheckBoxUiInfo(&m_appearanceDataObject.ShowScaleBar, category, "Show Scale Bar");
   m_showScaleBar->SetToolTip("Show/hide scale bar");
   m_showScaleBar->SetStatusTip("Show/hide scale bar");
   AddProperty(m_showScaleBar);
