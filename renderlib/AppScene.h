@@ -49,47 +49,36 @@ class Lighting
 public:
   Lighting(void)
     : m_NoLights(0)
-    , m_Lights{ nullptr, nullptr, nullptr, nullptr }
     , m_sceneLights{ nullptr, nullptr, nullptr, nullptr }
   {
   }
   ~Lighting()
   {
-    for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
-      delete m_sceneLights[i];
-      delete m_Lights[i];
-    }
+    // lights are not owned here.
   }
 
   Lighting(const Lighting& other);
 
-  Light& LightRef(int i) const { return *m_Lights[i]; }
-
-  void AddLight(Light& light)
+  void AddLight(std::shared_ptr<SceneLight> sceneLight)
   {
     if (m_NoLights >= MAX_NO_LIGHTS)
       return;
 
-    m_Lights[m_NoLights] = new Light(light);
-    m_sceneLights[m_NoLights] = new SceneLight(m_Lights[m_NoLights]);
-
+    m_sceneLights[m_NoLights] = sceneLight;
     m_NoLights = m_NoLights + 1;
   }
-  void SetLight(int i, Light& light)
+
+  void SetLight(int i, std::shared_ptr<SceneLight> sceneLight)
   {
-    if (i >= MAX_NO_LIGHTS)
+    if (m_NoLights >= MAX_NO_LIGHTS)
       return;
 
-    delete m_sceneLights[i];
-    delete m_Lights[i];
-
-    m_Lights[i] = new Light(light);
-    m_sceneLights[i] = new SceneLight(m_Lights[i]);
+    m_sceneLights[i] = sceneLight;
+    m_NoLights = m_NoLights + 1;
   }
 
-  Light* m_Lights[MAX_NO_LIGHTS];
   int m_NoLights;
-  SceneLight* m_sceneLights[MAX_NO_LIGHTS];
+  std::shared_ptr<SceneLight> m_sceneLights[MAX_NO_LIGHTS];
 };
 
 class Scene
@@ -110,11 +99,11 @@ public:
   // convenience functions
   // For now, this must match the order in which the lights were added, in initLights
   static constexpr int SphereLightIndex = 0;
-  Light& SphereLight() const { return *m_lighting.m_Lights[SphereLightIndex]; }
-  SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]; }
+  Light& SphereLight() const { return *m_lighting.m_sceneLights[SphereLightIndex]->m_light; }
+  SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex].get(); }
   static constexpr int AreaLightIndex = 1;
-  Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
-  SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
+  Light& AreaLight() const { return *m_lighting.m_sceneLights[AreaLightIndex]->m_light; }
+  SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex].get(); }
 
   // weak ptr! must not outlive the objects it points to.
   SceneObject* m_selection = nullptr;
@@ -123,7 +112,7 @@ public:
   bool m_showScaleBar = false;
   bool m_showAxisHelper = false;
 
-  void initLights();
+  void initLights(std::shared_ptr<SceneLight> skyLight, std::shared_ptr<SceneLight> areaLight);
   void initSceneFromImg(std::shared_ptr<ImageXYZC> img);
   void initBounds(const CBoundingBox& bb);
   void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);

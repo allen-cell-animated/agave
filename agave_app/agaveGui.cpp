@@ -167,7 +167,7 @@ agaveGui::agaveGui(QWidget* parent)
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
   setWindowTitle(windowTitle);
 
-  m_appScene.initLights();
+  m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
 
   // find a nice size to init agave
   QScreen* screen = QApplication::primaryScreen();
@@ -1273,6 +1273,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
+  // TODO FIXME initialize the light property objects
+  // create new SceneLights here? or rewrite into pre-existing?
   Light l0 = stateToLight(v, 0);
   m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
   Light l1 = stateToLight(v, 1);
