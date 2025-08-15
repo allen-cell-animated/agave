@@ -89,7 +89,9 @@ agaveGui::agaveGui(QWidget* parent)
   // create our two document objects
   m_cameraObject = std::make_unique<CameraObject>();
   m_areaLightObject = std::make_unique<AreaLightObject>();
+  m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
   m_skyLightObject = std::make_unique<SkyLightObject>();
+  m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
   m_appearanceObject = std::make_unique<AppearanceObject>();
 
   m_ui.setupUi(this);
@@ -1276,9 +1278,11 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   // TODO FIXME initialize the light property objects
   // create new SceneLights here? or rewrite into pre-existing?
   Light l0 = stateToLight(v, 0);
-  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
+  m_skyLightObject->getSceneLight()->m_light = l0;
+  // m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
   Light l1 = stateToLight(v, 1);
-  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
+  m_areaLightObject->getSceneLight()->m_light = l1;
+  // m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
 
   // capture settings
   m_captureSettings.width = v.capture.width;

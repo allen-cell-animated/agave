@@ -99,10 +99,10 @@ public:
   // convenience functions
   // For now, this must match the order in which the lights were added, in initLights
   static constexpr int SphereLightIndex = 0;
-  Light& SphereLight() const { return *m_lighting.m_sceneLights[SphereLightIndex]->m_light; }
+  Light& SphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]->m_light; }
   SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex].get(); }
   static constexpr int AreaLightIndex = 1;
-  Light& AreaLight() const { return *m_lighting.m_sceneLights[AreaLightIndex]->m_light; }
+  Light& AreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]->m_light; }
   SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex].get(); }
 
   // weak ptr! must not outlive the objects it points to.
@@ -117,4 +117,7 @@ public:
   void initBounds(const CBoundingBox& bb);
   void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);
   void getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32_t& c3) const;
+
+  static Light defaultSkyLight();
+  static Light defaultAreaLight();
 };

@@ -67,41 +67,41 @@ SkyLightObject::SkyLightObject()
 void
 SkyLightObject::updatePropsFromSceneLight()
 {
-  if (!m_sceneLight || !m_sceneLight->m_light)
+  if (!m_sceneLight)
     return;
 
-  Light* light = m_sceneLight->m_light;
+  const Light& light = m_sceneLight->m_light;
 
-  m_skylightDataObject.TopIntensity.SetValue(light->m_ColorTopIntensity);
-  m_skylightDataObject.TopColor.SetValue(glm::vec4(light->m_ColorTop, 1.0f));
-  m_skylightDataObject.MiddleIntensity.SetValue(light->m_ColorMiddleIntensity);
-  m_skylightDataObject.MiddleColor.SetValue(glm::vec4(light->m_ColorMiddle, 1.0f));
-  m_skylightDataObject.BottomIntensity.SetValue(light->m_ColorBottomIntensity);
-  m_skylightDataObject.BottomColor.SetValue(glm::vec4(light->m_ColorBottom, 1.0f));
+  m_skylightDataObject.TopIntensity.SetValue(light.m_ColorTopIntensity);
+  m_skylightDataObject.TopColor.SetValue(glm::vec4(light.m_ColorTop, 1.0f));
+  m_skylightDataObject.MiddleIntensity.SetValue(light.m_ColorMiddleIntensity);
+  m_skylightDataObject.MiddleColor.SetValue(glm::vec4(light.m_ColorMiddle, 1.0f));
+  m_skylightDataObject.BottomIntensity.SetValue(light.m_ColorBottomIntensity);
+  m_skylightDataObject.BottomColor.SetValue(glm::vec4(light.m_ColorBottom, 1.0f));
 }
 
 void
 SkyLightObject::updateSceneLightFromProps()
 {
-  if (!m_sceneLight || !m_sceneLight->m_light)
+  if (!m_sceneLight)
     return;
 
-  Light* light = m_sceneLight->m_light;
+  Light& light = m_sceneLight->m_light;
 
-  light->m_ColorTopIntensity = m_skylightDataObject.TopIntensity.GetValue();
+  light.m_ColorTopIntensity = m_skylightDataObject.TopIntensity.GetValue();
   glm::vec4 topColor = m_skylightDataObject.TopColor.GetValue();
-  light->m_ColorTop = glm::vec3(topColor.x, topColor.y, topColor.z);
+  light.m_ColorTop = glm::vec3(topColor.x, topColor.y, topColor.z);
 
-  light->m_ColorMiddleIntensity = m_skylightDataObject.MiddleIntensity.GetValue();
+  light.m_ColorMiddleIntensity = m_skylightDataObject.MiddleIntensity.GetValue();
   glm::vec4 middleColor = m_skylightDataObject.MiddleColor.GetValue();
-  light->m_ColorMiddle = glm::vec3(middleColor.x, middleColor.y, middleColor.z);
+  light.m_ColorMiddle = glm::vec3(middleColor.x, middleColor.y, middleColor.z);
 
-  light->m_ColorBottomIntensity = m_skylightDataObject.BottomIntensity.GetValue();
+  light.m_ColorBottomIntensity = m_skylightDataObject.BottomIntensity.GetValue();
   glm::vec4 bottomColor = m_skylightDataObject.BottomColor.GetValue();
-  light->m_ColorBottom = glm::vec3(bottomColor.x, bottomColor.y, bottomColor.z);
+  light.m_ColorBottom = glm::vec3(bottomColor.x, bottomColor.y, bottomColor.z);
 
   for (auto& observer : m_sceneLight->m_observers) {
-    observer(*light);
+    observer(light);
   }
 
   if (m_dirtyCallback) {
