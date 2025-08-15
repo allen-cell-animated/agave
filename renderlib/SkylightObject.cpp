@@ -1,9 +1,9 @@
-#include "SkylightObject.hpp"
+#include "SkyLightObject.hpp"
 
 #include "SceneLight.h"
 #include "Logging.h"
 
-SkylightObject::SkylightObject()
+SkyLightObject::SkyLightObject()
   : prtyObject()
 {
   m_topIntensityUIInfo = new FloatSliderSpinnerUiInfo(&m_skylightDataObject.TopIntensity, "Intensity", "Top Intensity");
@@ -51,21 +51,21 @@ SkylightObject::SkylightObject()
   AddProperty(m_bottomColorUIInfo);
 
   m_skylightDataObject.TopIntensity.AddCallback(
-    new prtyCallbackWrapper<SkylightObject>(this, &SkylightObject::TopIntensityChanged));
+    new prtyCallbackWrapper<SkyLightObject>(this, &SkyLightObject::TopIntensityChanged));
   m_skylightDataObject.TopColor.AddCallback(
-    new prtyCallbackWrapper<SkylightObject>(this, &SkylightObject::TopColorChanged));
+    new prtyCallbackWrapper<SkyLightObject>(this, &SkyLightObject::TopColorChanged));
   m_skylightDataObject.MiddleIntensity.AddCallback(
-    new prtyCallbackWrapper<SkylightObject>(this, &SkylightObject::MiddleIntensityChanged));
+    new prtyCallbackWrapper<SkyLightObject>(this, &SkyLightObject::MiddleIntensityChanged));
   m_skylightDataObject.MiddleColor.AddCallback(
-    new prtyCallbackWrapper<SkylightObject>(this, &SkylightObject::MiddleColorChanged));
+    new prtyCallbackWrapper<SkyLightObject>(this, &SkyLightObject::MiddleColorChanged));
   m_skylightDataObject.BottomIntensity.AddCallback(
-    new prtyCallbackWrapper<SkylightObject>(this, &SkylightObject::BottomIntensityChanged));
+    new prtyCallbackWrapper<SkyLightObject>(this, &SkyLightObject::BottomIntensityChanged));
   m_skylightDataObject.BottomColor.AddCallback(
-    new prtyCallbackWrapper<SkylightObject>(this, &SkylightObject::BottomColorChanged));
+    new prtyCallbackWrapper<SkyLightObject>(this, &SkyLightObject::BottomColorChanged));
 }
 
 void
-SkylightObject::updatePropsFromSceneLight()
+SkyLightObject::updatePropsFromSceneLight()
 {
   if (!m_sceneLight || !m_sceneLight->m_light)
     return;
@@ -81,7 +81,7 @@ SkylightObject::updatePropsFromSceneLight()
 }
 
 void
-SkylightObject::updateSceneLightFromProps()
+SkyLightObject::updateSceneLightFromProps()
 {
   if (!m_sceneLight || !m_sceneLight->m_light)
     return;
@@ -110,37 +110,37 @@ SkylightObject::updateSceneLightFromProps()
 }
 
 void
-SkylightObject::TopIntensityChanged(prtyProperty* i_Property, bool i_bDirty)
+SkyLightObject::TopIntensityChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-SkylightObject::TopColorChanged(prtyProperty* i_Property, bool i_bDirty)
+SkyLightObject::TopColorChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-SkylightObject::MiddleIntensityChanged(prtyProperty* i_Property, bool i_bDirty)
+SkyLightObject::MiddleIntensityChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-SkylightObject::MiddleColorChanged(prtyProperty* i_Property, bool i_bDirty)
+SkyLightObject::MiddleColorChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-SkylightObject::BottomIntensityChanged(prtyProperty* i_Property, bool i_bDirty)
+SkyLightObject::BottomIntensityChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-SkylightObject::BottomColorChanged(prtyProperty* i_Property, bool i_bDirty)
+SkyLightObject::BottomColorChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }

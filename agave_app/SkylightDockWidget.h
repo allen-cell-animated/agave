@@ -4,16 +4,13 @@
 
 #include "SkylightWidget.h"
 
-class QSkylightDockWidget : public QDockWidget
+class QSkyLightDockWidget : public QDockWidget
 {
   Q_OBJECT
 
 public:
-  QSkylightDockWidget(QWidget* pParent = NULL,
-                      RenderSettings* rs = NULL,
-                      ViewerWindow* vw = NULL,
-                      SkylightObject* skylightObject = NULL);
+  QSkyLightDockWidget(QWidget* pParent = NULL, RenderSettings* rs = NULL, SkyLightObject* skylightObject = NULL);
 
 private:
-  QSkylightWidget m_SkylightWidget;
+  QSkyLightWidget m_SkylightWidget;
 };
