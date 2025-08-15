@@ -77,19 +77,28 @@ Lighting::Lighting(const Lighting& other)
 {
   m_NoLights = other.m_NoLights;
   for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
-    if (other.m_Lights[i]) {
-      m_Lights[i] = new Light(*other.m_Lights[i]);
-      m_sceneLights[i] = new SceneLight(m_Lights[i]);
+    if (other.m_sceneLights[i]) {
+      m_sceneLights[i] = other.m_sceneLights[i];
     } else {
-      m_Lights[i] = nullptr;
       m_sceneLights[i] = nullptr;
     }
   }
 }
 
 void
-Scene::initLights()
+Scene::initLights(std::shared_ptr<SceneLight> skyLight, std::shared_ptr<SceneLight> areaLight)
 {
+  // Clear existing lights
+  for (int i = 0; i < m_lighting.m_NoLights; ++i) {
+    m_lighting.m_sceneLights[i].reset();
+  }
+
+  m_lighting.SetLight(SphereLightIndex, skyLight);
+  m_lighting.SetLight(AreaLightIndex, areaLight);
+  m_lighting.m_NoLights = 2;
+
+// TODO FIXME use this code to initialize the lights way up at the app level.
+#if 0
   Light BackgroundLight;
 
   BackgroundLight.m_T = 1;
@@ -122,6 +131,7 @@ Scene::initLights()
   AreaLight.m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
   m_lighting.AddLight(AreaLight);
+#endif
 }
 
 // set up a couple of lights relative to the img's bounding box
@@ -173,14 +183,14 @@ Scene::initBounds(const CBoundingBox& bb)
   // point lights toward scene's bounding box
   for (int i = 0; i < m_lighting.m_NoLights; ++i) {
     // TODO maybe this should be passed through the SceneLight first.
-    m_lighting.m_Lights[i]->Update(m_boundingBox);
+    m_lighting.m_sceneLights[i]->m_light->Update(m_boundingBox);
 
     // The transform center for the scene light is its target.
     // This is used so that rotations are centered at the target which is the center of the volume.
     // Note this is not the same as the light source's position.
     // This is a very specific UX choice to make it easier to rotate the light around the volume,
     // but is constraining for other operations e.g. translation.
-    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
+    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_sceneLights[i]->m_light->m_Target;
   }
 }
 
