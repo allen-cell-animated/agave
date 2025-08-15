@@ -5,8 +5,8 @@
 #include <vector>
 
 //============================================================================
-//**	 This class can be used to group a number of single undo operations
-//**	into one undo operation that can be undone and redone in one step.
+// This class can be used to group a number of single undo operations
+// into one undo operation that can be undone and redone in one step.
 //============================================================================
 class undoMultipleOperation : public undoUndoOperation
 {

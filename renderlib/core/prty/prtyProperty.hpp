@@ -1,6 +1,30 @@
 #pragma once
+
+#include "core/prty/prtyPropertyCallback.hpp"
+#include "core/undo/undoUndoOperation.hpp"
+
+#include <list>
+#include <memory>
+#include <string>
+#include <vector>
+
+//============================================================================
+//	forward references
+//============================================================================
+class prtyProperty;
+class prtyPropertyReference;
+class chReader;
+class chWriter;
+
+//============================================================================
+//	typedefs
+//============================================================================
+namespace {
+typedef std::vector<prtyProperty*> property_list;
+};
+
+//============================================================================
 /****************************************************************************\
-**	prtyProperty.hpp
 **
 **		A property corresponds to a value, singular or compound.
 **	(int, float, vector, matrix, color, etc.)
@@ -51,31 +75,6 @@
 **
 **
 \****************************************************************************/
-
-#include "core/prty/prtyPropertyCallback.hpp"
-#include "core/undo/undoUndoOperation.hpp"
-
-#include <list>
-#include <memory>
-#include <string>
-#include <vector>
-
-//============================================================================
-//	forward references
-//============================================================================
-class prtyProperty;
-class prtyPropertyReference;
-class chReader;
-class chWriter;
-
-//============================================================================
-//	typedefs
-//============================================================================
-namespace {
-typedef std::vector<prtyProperty*> property_list;
-};
-
-//============================================================================
 //============================================================================
 class prtyProperty
 {
