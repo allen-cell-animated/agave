@@ -2,7 +2,7 @@
 
 #include "qtControls/Controls.h"
 
-#include "renderlib/SkylightObject.hpp"
+#include "renderlib/SkyLightObject.hpp"
 #include "renderlib/Logging.h"
 
 #include <QFormLayout>
@@ -11,20 +11,17 @@
 class RenderSettings;
 class ViewerWindow;
 
-class QSkylightWidget : public QWidget
+class QSkyLightWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  QSkylightWidget(QWidget* pParent = NULL,
-                  RenderSettings* rs = nullptr,
-                  ViewerWindow* vw = nullptr,
-                  SkylightObject* skylightObject = nullptr);
+  QSkyLightWidget(QWidget* pParent = NULL, RenderSettings* rs = nullptr, SkyLightObject* skylightObject = nullptr);
 
   virtual QSize sizeHint() const;
 
 private:
   QFormLayout m_MainLayout;
   RenderSettings* m_renderSettings;
-  SkylightObject* m_skylightObject;
+  SkyLightObject* m_skylightObject;
 };

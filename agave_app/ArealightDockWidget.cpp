@@ -1,11 +1,8 @@
 #include "ArealightDockWidget.h"
 
-QArealightDockWidget::QArealightDockWidget(QWidget* pParent,
-                                           RenderSettings* rs,
-                                           ViewerWindow* vw,
-                                           ArealightObject* arealightObject)
+QAreaLightDockWidget::QAreaLightDockWidget(QWidget* pParent, RenderSettings* rs, AreaLightObject* arealightObject)
   : QDockWidget(pParent)
-  , m_ArealightWidget(nullptr, rs, vw, arealightObject)
+  , m_ArealightWidget(nullptr, rs, arealightObject)
 {
   setWindowTitle("Area Light");
 

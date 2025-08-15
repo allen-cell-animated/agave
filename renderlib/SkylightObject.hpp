@@ -24,10 +24,10 @@ public:
   prtyColor BottomColor{ "BottomColor", glm::vec4(0.2f, 0.2f, 0.2f, 1.0f) };
 };
 
-class SkylightObject : public prtyObject
+class SkyLightObject : public prtyObject
 {
 public:
-  SkylightObject();
+  SkyLightObject();
 
   // Set the scene light instance to control
   void setSceneLight(SceneLight* sceneLight) { m_sceneLight = sceneLight; }

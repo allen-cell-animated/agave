@@ -1,10 +1,10 @@
-#include "ArealightObject.hpp"
+#include "AreaLightObject.hpp"
 
 #include "SceneLight.h"
 #include "MathUtil.h"
 #include "Logging.h"
 
-ArealightObject::ArealightObject()
+AreaLightObject::AreaLightObject()
   : prtyObject()
 {
   m_thetaUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Theta, "Position", "Theta");
@@ -61,19 +61,19 @@ ArealightObject::ArealightObject()
 
   // Add callbacks for property changes
   m_arealightDataObject.Theta.AddCallback(
-    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::ThetaChanged));
-  m_arealightDataObject.Phi.AddCallback(new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::PhiChanged));
-  m_arealightDataObject.Size.AddCallback(new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::SizeChanged));
+    new prtyCallbackWrapper<AreaLightObject>(this, &AreaLightObject::ThetaChanged));
+  m_arealightDataObject.Phi.AddCallback(new prtyCallbackWrapper<AreaLightObject>(this, &AreaLightObject::PhiChanged));
+  m_arealightDataObject.Size.AddCallback(new prtyCallbackWrapper<AreaLightObject>(this, &AreaLightObject::SizeChanged));
   m_arealightDataObject.Distance.AddCallback(
-    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::DistanceChanged));
+    new prtyCallbackWrapper<AreaLightObject>(this, &AreaLightObject::DistanceChanged));
   m_arealightDataObject.Intensity.AddCallback(
-    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::IntensityChanged));
+    new prtyCallbackWrapper<AreaLightObject>(this, &AreaLightObject::IntensityChanged));
   m_arealightDataObject.Color.AddCallback(
-    new prtyCallbackWrapper<ArealightObject>(this, &ArealightObject::ColorChanged));
+    new prtyCallbackWrapper<AreaLightObject>(this, &AreaLightObject::ColorChanged));
 }
 
 void
-ArealightObject::updatePropsFromSceneLight()
+AreaLightObject::updatePropsFromSceneLight()
 {
   if (!m_sceneLight || !m_sceneLight->m_light)
     return;
@@ -90,7 +90,7 @@ ArealightObject::updatePropsFromSceneLight()
 }
 
 void
-ArealightObject::updateSceneLightFromProps()
+AreaLightObject::updateSceneLightFromProps()
 {
   if (!m_sceneLight || !m_sceneLight->m_light)
     return;
@@ -119,37 +119,37 @@ ArealightObject::updateSceneLightFromProps()
 }
 
 void
-ArealightObject::ThetaChanged(prtyProperty* i_Property, bool i_bDirty)
+AreaLightObject::ThetaChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-ArealightObject::PhiChanged(prtyProperty* i_Property, bool i_bDirty)
+AreaLightObject::PhiChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-ArealightObject::SizeChanged(prtyProperty* i_Property, bool i_bDirty)
+AreaLightObject::SizeChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-ArealightObject::DistanceChanged(prtyProperty* i_Property, bool i_bDirty)
+AreaLightObject::DistanceChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-ArealightObject::IntensityChanged(prtyProperty* i_Property, bool i_bDirty)
+AreaLightObject::IntensityChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
 
 void
-ArealightObject::ColorChanged(prtyProperty* i_Property, bool i_bDirty)
+AreaLightObject::ColorChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
 }
