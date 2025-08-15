@@ -24,10 +24,10 @@ public:
   prtyColor Color{ "Color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
 };
 
-class ArealightObject : public prtyObject
+class AreaLightObject : public prtyObject
 {
 public:
-  ArealightObject();
+  AreaLightObject();
 
   // Set the scene light instance to control
   void setSceneLight(SceneLight* sceneLight) { m_sceneLight = sceneLight; }

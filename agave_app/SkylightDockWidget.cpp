@@ -1,11 +1,8 @@
 #include "SkylightDockWidget.h"
 
-QSkylightDockWidget::QSkylightDockWidget(QWidget* pParent,
-                                         RenderSettings* rs,
-                                         ViewerWindow* vw,
-                                         SkylightObject* skylightObject)
+QSkyLightDockWidget::QSkyLightDockWidget(QWidget* pParent, RenderSettings* rs, SkyLightObject* skylightObject)
   : QDockWidget(pParent)
-  , m_SkylightWidget(nullptr, rs, vw, skylightObject)
+  , m_SkylightWidget(nullptr, rs, skylightObject)
 {
   setWindowTitle("Skylight");
 

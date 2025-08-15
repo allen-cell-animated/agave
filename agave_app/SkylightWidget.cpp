@@ -4,12 +4,12 @@
 #include "qtControls/controlFactory.h"
 
 #include "renderlib/uiInfo.hpp"
-#include "renderlib/SkylightObject.hpp"
+#include "renderlib/SkyLightObject.hpp"
 #include "renderlib/ViewerWindow.h"
 
 #include <QLabel>
 
-QSkylightWidget::QSkylightWidget(QWidget* pParent, RenderSettings* rs, ViewerWindow* vw, SkylightObject* skylightObject)
+QSkyLightWidget::QSkyLightWidget(QWidget* pParent, RenderSettings* rs, SkyLightObject* skylightObject)
   : QWidget(pParent)
   , m_MainLayout()
   , m_renderSettings(rs)
@@ -24,7 +24,7 @@ QSkylightWidget::QSkylightWidget(QWidget* pParent, RenderSettings* rs, ViewerWin
 }
 
 QSize
-QSkylightWidget::sizeHint() const
+QSkyLightWidget::sizeHint() const
 {
   return QSize(20, 20);
 }

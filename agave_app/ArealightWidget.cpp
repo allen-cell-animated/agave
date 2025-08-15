@@ -4,15 +4,12 @@
 #include "qtControls/controlFactory.h"
 
 #include "renderlib/uiInfo.hpp"
-#include "renderlib/ArealightObject.hpp"
+#include "renderlib/AreaLightObject.hpp"
 #include "renderlib/ViewerWindow.h"
 
 #include <QLabel>
 
-QArealightWidget::QArealightWidget(QWidget* pParent,
-                                   RenderSettings* rs,
-                                   ViewerWindow* vw,
-                                   ArealightObject* arealightObject)
+QAreaLightWidget::QAreaLightWidget(QWidget* pParent, RenderSettings* rs, AreaLightObject* arealightObject)
   : QWidget(pParent)
   , m_MainLayout()
   , m_renderSettings(rs)
@@ -27,7 +24,7 @@ QArealightWidget::QArealightWidget(QWidget* pParent,
 }
 
 QSize
-QArealightWidget::sizeHint() const
+QAreaLightWidget::sizeHint() const
 {
   return QSize(20, 20);
 }
