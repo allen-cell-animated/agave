@@ -8,15 +8,20 @@
 #include <vector>
 #include <functional>
 
-// MUST NOT OUTLIVE ITS LIGHT
 class SceneLight : public SceneObject
 {
 public:
+  SceneLight()
+  {
+    // we want the rotate manipulator to be centered at the target of the light, by default
+    m_transform.m_center = m_light.m_Target;
+    m_tool = std::make_unique<AreaLightTool>(&m_light);
+  }
   SceneLight(const Light& light)
     : m_light(light)
   {
     // we want the rotate manipulator to be centered at the target of the light, by default
-    m_transform.m_center = light.m_Target;
+    m_transform.m_center = m_light.m_Target;
     m_tool = std::make_unique<AreaLightTool>(&m_light);
   }
 

@@ -6,6 +6,8 @@
 SkyLightObject::SkyLightObject()
   : prtyObject()
 {
+  m_sceneLight = std::make_shared<SceneLight>();
+
   m_topIntensityUIInfo = new FloatSliderSpinnerUiInfo(&m_skylightDataObject.TopIntensity, "Intensity", "Top Intensity");
   m_topIntensityUIInfo->SetToolTip("Set Top Intensity");
   m_topIntensityUIInfo->SetStatusTip("Set skylight top intensity");
