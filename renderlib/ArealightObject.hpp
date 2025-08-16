@@ -45,6 +45,8 @@ public:
   void IntensityChanged(prtyProperty* i_Property, bool i_bDirty);
   void ColorChanged(prtyProperty* i_Property, bool i_bDirty);
 
+  void setDirtyCallback(std::function<void()> callback) { m_dirtyCallback = callback; }
+
 private:
   ArealightDataObject m_arealightDataObject;
 

@@ -7,6 +7,8 @@
 AreaLightObject::AreaLightObject()
   : prtyObject()
 {
+  m_sceneLight = std::make_shared<SceneLight>();
+
   m_thetaUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Theta, "Position", "Theta");
   m_thetaUIInfo->SetToolTip("Set Theta angle");
   m_thetaUIInfo->SetStatusTip("Set area light theta angle in degrees");
