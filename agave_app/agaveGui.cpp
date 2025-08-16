@@ -86,13 +86,19 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  // create our two document objects
+  // create our document objects
+  // render settings
+  m_appearanceObject = std::make_unique<AppearanceObject>();
+  // scene objects
   m_cameraObject = std::make_unique<CameraObject>();
   m_areaLightObject = std::make_unique<AreaLightObject>();
   m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
+  m_areaLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
   m_skyLightObject = std::make_unique<SkyLightObject>();
   m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
-  m_appearanceObject = std::make_unique<AppearanceObject>();
+  m_skyLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
 
   m_ui.setupUi(this);
 

@@ -45,6 +45,8 @@ public:
   void BottomIntensityChanged(prtyProperty* i_Property, bool i_bDirty);
   void BottomColorChanged(prtyProperty* i_Property, bool i_bDirty);
 
+  void setDirtyCallback(std::function<void()> callback) { m_dirtyCallback = callback; }
+
 private:
   SkylightDataObject m_skylightDataObject;
 
