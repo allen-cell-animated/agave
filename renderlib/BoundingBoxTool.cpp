@@ -41,7 +41,10 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     center + glm::vec3(-halfExtent.x, halfExtent.y, halfExtent.z)    // 7
   };
 
-  glm::vec3 color = glm::vec3(1, 1, 0); // Yellow color for bounding box
+  // Get bounding box color from scene material
+  glm::vec3 color = glm::vec3(theScene->m_material.m_boundingBoxColor[0],
+                              theScene->m_material.m_boundingBoxColor[1],
+                              theScene->m_material.m_boundingBoxColor[2]);
   float opacity = 1.0f;
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
 
