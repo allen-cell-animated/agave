@@ -159,6 +159,18 @@ addGenericRow(const prtyPropertyUIInfo& info)
   return nullptr; // or throw an exception
 }
 
+QWidget*
+addPrtyRow(QFormLayout* layout, std::shared_ptr<prtyPropertyUIInfo> propertyInfo)
+{
+  QWidget* control = addGenericRow(*propertyInfo);
+  if (control) {
+    QString label = QString::fromStdString(propertyInfo->GetDescription());
+    layout->addRow(label, control);
+    return control;
+  }
+  return nullptr;
+}
+
 void
 createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
 {
@@ -185,11 +197,7 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
 
       // Add controls for each property in this category
       for (const auto& propertyInfo : properties) {
-        QWidget* control = addGenericRow(*propertyInfo);
-        if (control) {
-          QString label = QString::fromStdString(propertyInfo->GetDescription());
-          sectionLayout->addRow(label, control);
-        }
+        addPrtyRow(sectionLayout, propertyInfo);
       }
 
       // Set the section's content layout
@@ -208,11 +216,7 @@ createFlatList(QFormLayout* mainLayout, prtyObject* object)
   const auto& propertyList = object->GetList();
   for (const auto& propertyInfo : propertyList) {
     if (propertyInfo) {
-      QWidget* control = addGenericRow(*propertyInfo);
-      if (control) {
-        QString label = QString::fromStdString(propertyInfo->GetDescription());
-        mainLayout->addRow(label, control);
-      }
+      addPrtyRow(mainLayout, propertyInfo);
     }
   }
 }
