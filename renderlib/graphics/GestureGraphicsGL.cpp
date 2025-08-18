@@ -333,7 +333,7 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
 {
   // Gesture draw spans across the entire window and it is not restricted to a single
   // viewport.
-  if (graphics.verts.empty()) {
+  if (graphics.verts.empty() && graphics.stripVerts.empty()) {
     graphics.clearCommands();
 
     // TODO: do this clear only once if verts empty on consecutive frames?
