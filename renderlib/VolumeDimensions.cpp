@@ -81,7 +81,7 @@ VolumeDimensions::validate() const
   return ok;
 }
 
-uint32_t
+size_t
 VolumeDimensions::getPlaneIndex(uint32_t z, uint32_t c, uint32_t t) const
 {
   size_t iz = dimensionOrder.find('Z') - 2;
@@ -106,11 +106,11 @@ VolumeDimensions::getPlaneIndex(uint32_t z, uint32_t c, uint32_t t) const
   }
 
   // assign rasterization order
-  int v0 = iz == 0 ? z : (ic == 0 ? c : t);
-  int v1 = iz == 1 ? z : (ic == 1 ? c : t);
-  int v2 = iz == 2 ? z : (ic == 2 ? c : t);
-  int len0 = iz == 0 ? sizeZ : (ic == 0 ? sizeC : sizeT);
-  int len1 = iz == 1 ? sizeZ : (ic == 1 ? sizeC : sizeT);
+  size_t v0 = iz == 0 ? z : (ic == 0 ? c : t);
+  size_t v1 = iz == 1 ? z : (ic == 1 ? c : t);
+  size_t v2 = iz == 2 ? z : (ic == 2 ? c : t);
+  size_t len0 = iz == 0 ? sizeZ : (ic == 0 ? sizeC : sizeT);
+  size_t len1 = iz == 1 ? sizeZ : (ic == 1 ? sizeC : sizeT);
 
   return v0 + v1 * len0 + v2 * len0 * len1;
 }
