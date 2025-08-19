@@ -393,6 +393,7 @@ RenderGLPT::doRender(const CCamera& camera)
   m_toneMapShader->release();
 
   // draw front of bounding box
+#if 0
   if (m_scene->m_material.m_showBoundingBox) {
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
@@ -421,6 +422,7 @@ RenderGLPT::doRender(const CCamera& camera)
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
   }
+#endif
   glDisable(GL_BLEND);
 
   // LOG_DEBUG << "RETURN FROM RENDER";
