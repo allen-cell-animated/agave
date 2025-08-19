@@ -180,6 +180,8 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
     dataFormat = GL_RGB;
   }
   try {
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
     // do this in chunks for very large data sizes.
     static const size_t GB = 1024 * 1024 * 1024;
     size_t chunkThresholdBytes = 4 * GB;
