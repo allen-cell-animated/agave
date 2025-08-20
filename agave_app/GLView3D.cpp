@@ -1,9 +1,9 @@
 #include "GLView3D.h"
 
-#include "Camera.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
+#include "renderlib/CameraDataObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/MoveTool.h"
@@ -32,15 +32,17 @@
 #pragma warning(disable : 4351)
 #endif
 
-GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
+GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
   : QOpenGLWidget(parent)
   , m_etimer()
-  , m_qcamera(cam)
   , m_viewerWindow(nullptr)
   , m_qrendersettings(qrs)
 {
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
+
+  // camera is created deep down inside m_viewerWindow.
+  m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -50,8 +52,7 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
   m_qrendersettings->setRenderSettings(*rs);
 
   // IMPORTANT this is where the QT gui container classes send their values down into the CScene object.
-  // GUI updates --> QT Object Changed() --> cam->Changed() --> GLView3D->OnUpdateCamera
-  QObject::connect(cam, SIGNAL(Changed()), this, SLOT(OnUpdateCamera()));
+  // GUI updates --> Data Object Changed() --> notify --> GLView3D->OnChanged ?
   QObject::connect(qrs, SIGNAL(Changed()), this, SLOT(OnUpdateQRenderSettings()));
   QObject::connect(qrs, SIGNAL(ChangedRenderer(int)), this, SLOT(OnUpdateRenderer(int)));
   QObject::connect(qrs, SIGNAL(Selected(SceneObject*)), this, SLOT(OnSelectionChanged(SceneObject*)));
@@ -126,6 +127,8 @@ GLView3D::onNewImage(Scene* scene)
 
 GLView3D::~GLView3D()
 {
+  delete m_cameraDataObject;
+
   makeCurrent();
   check_gl("view dtor makecurrent");
   // doneCurrent();
@@ -420,43 +423,6 @@ GLView3D::keyPressEvent(QKeyEvent* event)
 }
 
 void
-GLView3D::OnUpdateCamera()
-{
-  //	QMutexLocker Locker(&gSceneMutex);
-  RenderSettings* rs = m_viewerWindow->m_renderSettings;
-  m_viewerWindow->m_CCamera.m_Film.m_Exposure = 1.0f - m_qcamera->GetFilm().GetExposure();
-  m_viewerWindow->m_CCamera.m_Film.m_ExposureIterations = m_qcamera->GetFilm().GetExposureIterations();
-
-  if (m_qcamera->GetFilm().IsDirty()) {
-    const int FilmWidth = m_qcamera->GetFilm().GetWidth();
-    const int FilmHeight = m_qcamera->GetFilm().GetHeight();
-
-    m_viewerWindow->m_CCamera.m_Film.m_Resolution.SetResX(FilmWidth);
-    m_viewerWindow->m_CCamera.m_Film.m_Resolution.SetResY(FilmHeight);
-    m_viewerWindow->m_CCamera.Update();
-    m_qcamera->GetFilm().UnDirty();
-
-    rs->m_DirtyFlags.SetFlag(FilmResolutionDirty);
-  }
-
-  m_viewerWindow->m_CCamera.Update();
-
-  // Aperture
-  m_viewerWindow->m_CCamera.m_Aperture.m_Size = m_qcamera->GetAperture().GetSize();
-
-  // Projection
-  m_viewerWindow->m_CCamera.m_FovV = m_qcamera->GetProjection().GetFieldOfView();
-
-  // Focus
-  m_viewerWindow->m_CCamera.m_Focus.m_Type = (Focus::EType)m_qcamera->GetFocus().GetType();
-  m_viewerWindow->m_CCamera.m_Focus.m_FocalDistance = m_qcamera->GetFocus().GetFocalDistance();
-
-  rs->m_DenoiseParams.m_Enabled = m_qcamera->GetFilm().GetNoiseReduction();
-
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
-}
-
-void
 GLView3D::OnUpdateQRenderSettings(void)
 {
   // QMutexLocker Locker(&gSceneMutex);
@@ -511,11 +477,8 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   camera.m_Aperture.m_Size = s.camera.aperture;
   camera.m_Focus.m_FocalDistance = s.camera.focalDistance;
 
-  // TODO disentangle these QCamera* _camera and CCamera mCamera objects. Only CCamera should be necessary, I think.
-  m_qcamera->GetProjection().SetFieldOfView(s.camera.fovY);
-  m_qcamera->GetFilm().SetExposure(s.camera.exposure);
-  m_qcamera->GetAperture().SetSize(s.camera.aperture);
-  m_qcamera->GetFocus().SetFocalDistance(s.camera.focalDistance);
+  // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
+  m_cameraDataObject->updatePropsFromCamera();
 }
 
 QPixmap
