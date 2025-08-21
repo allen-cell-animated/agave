@@ -15,9 +15,13 @@ struct BoundingBoxTool : public ManipulationTool
   virtual void draw(SceneView& scene, Gesture& gesture) final;
 
 private:
-  void drawTickMarks(const class CBoundingBox& bbox,
-                     Gesture& gesture,
-                     const glm::vec3& color,
-                     float opacity,
-                     uint32_t code);
+  void drawTickMarks(const CBoundingBox& bbox, Gesture& gesture, const glm::vec3& color, float opacity, uint32_t code);
+
+  void drawEdgeTickMarks(const glm::vec3& vertex1,
+                         const glm::vec3& vertex2,
+                         const CBoundingBox& bbox,
+                         Gesture& gesture,
+                         const glm::vec3& color,
+                         float opacity,
+                         uint32_t code);
 };

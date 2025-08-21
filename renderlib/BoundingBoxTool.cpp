@@ -229,3 +229,87 @@ BoundingBoxTool::drawTickMarks(const CBoundingBox& bbox,
                                   s_lineThickness);
   }
 }
+
+void
+BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
+                                   const glm::vec3& vertex2,
+                                   const CBoundingBox& bbox,
+                                   Gesture& gesture,
+                                   const glm::vec3& color,
+                                   float opacity,
+                                   uint32_t code)
+{
+  glm::vec3 extent = bbox.GetExtent();
+
+  // Length of tick mark lines as a fraction of the smallest dimension
+  float minDim = glm::min(glm::min(extent.x, extent.y), extent.z);
+  float tickLength = minDim * 0.025f; // 2.5% of smallest dimension
+
+  // Calculate physical scale based on extent - use largest dimension
+  float maxDim = glm::max(glm::max(extent.x, extent.y), extent.z);
+  float tickSpacing = computePhysicalScaleBarSize(maxDim) / maxDim; // Normalized tick spacing
+
+  // Ensure we don't create too many or too few tick marks
+  tickSpacing = glm::max(tickSpacing, 0.1f); // At least 10 ticks max
+  tickSpacing = glm::min(tickSpacing, 0.5f); // At most 2 ticks per dimension
+
+  // Calculate edge direction and length
+  glm::vec3 edgeVector = vertex2 - vertex1;
+  float edgeLength = glm::length(edgeVector);
+  glm::vec3 edgeDirection = glm::normalize(edgeVector);
+
+  // Calculate tick direction perpendicular to the edge
+  // Choose the best perpendicular direction based on edge orientation
+  glm::vec3 tickDirection;
+
+  // Determine which axis the edge is primarily aligned with
+  glm::vec3 absEdgeDir = glm::abs(edgeDirection);
+
+  glm::vec3 center = bbox.GetCenter();
+  glm::vec3 edgeMidpoint = (vertex1 + vertex2) * 0.5f;
+  glm::vec3 toCenter = center - edgeMidpoint;
+
+  if (absEdgeDir.x > absEdgeDir.y && absEdgeDir.x > absEdgeDir.z) {
+    // Edge is primarily along X axis
+    // Use Y or Z for tick direction, preferring the one that points outward from bbox center
+    if (glm::abs(toCenter.y) > glm::abs(toCenter.z)) {
+      tickDirection = glm::vec3(0, toCenter.y > 0 ? -1 : 1, 0); // Point away from center
+    } else {
+      tickDirection = glm::vec3(0, 0, toCenter.z > 0 ? -1 : 1); // Point away from center
+    }
+  } else if (absEdgeDir.y > absEdgeDir.z) {
+    // Edge is primarily along Y axis
+
+    if (glm::abs(toCenter.x) > glm::abs(toCenter.z)) {
+      tickDirection = glm::vec3(toCenter.x > 0 ? -1 : 1, 0, 0); // Point away from center
+    } else {
+      tickDirection = glm::vec3(0, 0, toCenter.z > 0 ? -1 : 1); // Point away from center
+    }
+  } else {
+    // Edge is primarily along Z axis
+
+    if (glm::abs(toCenter.x) > glm::abs(toCenter.y)) {
+      tickDirection = glm::vec3(toCenter.x > 0 ? -1 : 1, 0, 0); // Point away from center
+    } else {
+      tickDirection = glm::vec3(0, toCenter.y > 0 ? -1 : 1, 0); // Point away from center
+    }
+  }
+
+  // Draw tick marks along the edge
+  for (float t = 0.0f; t <= 1.0f; t += tickSpacing) {
+    if (t > 1.0f)
+      t = 1.0f;
+
+    // Calculate position along the edge
+    glm::vec3 edgePoint = vertex1 + t * edgeVector;
+
+    // Calculate tick mark endpoints
+    glm::vec3 tickStart = edgePoint;
+    glm::vec3 tickEnd = edgePoint + tickDirection * tickLength;
+
+    // Draw the tick mark
+    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(tickStart, color, opacity, code),
+                                    Gesture::Graphics::VertsCode(tickEnd, color, opacity, code) },
+                                  s_lineThickness);
+  }
+}
