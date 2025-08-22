@@ -209,7 +209,8 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
       t = 1.0f;
 
     // Calculate position along the edge
-    glm::vec3 edgePoint = vertex1 + t * edgeVector;
+    // TODO the 1-t here is to match up with the tickmarks in Utils.cpp createTickMarks
+    glm::vec3 edgePoint = vertex1 + (1.0f - t) * edgeVector;
 
     // Calculate tick mark endpoints
     glm::vec3 tickStart = edgePoint;
