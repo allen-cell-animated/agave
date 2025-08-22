@@ -2,6 +2,8 @@
 
 #include "AppScene.h"
 #include "BoundingBox.h"
+#include "ImageXYZC.h"
+#include "Logging.h"
 #include "MathUtil.h"
 
 #include <unordered_set>
@@ -59,6 +61,17 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     center + glm::vec3(halfExtent.x, halfExtent.y, halfExtent.z),    // 6: max corner
     center + glm::vec3(-halfExtent.x, halfExtent.y, halfExtent.z)    // 7
   };
+
+  // Make the edges go in a particular direction so that the tickmarks are lined up on both sides.
+  // These edges are set up to go from negative to positive values of the corner coordinates.
+  // The indices of the edge are indices into the corners array.
+  static const Edge edgesArray[12] = {
+    { 0, 1 }, { 1, 2 }, { 3, 2 }, { 0, 3 }, // bottom (-z) face
+    { 4, 5 }, { 5, 6 }, { 7, 6 }, { 4, 7 }, // top (+z) face
+    { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }  // vertical edges
+  };
+
+  // Corner coordinate indices of the 4 vertices of each face, in somewhat arbitrary order.
   static const int faces[6][4] = {
     { 0, 1, 2, 3 }, // bottom (-z)
     { 4, 5, 6, 7 }, // top (+z)
@@ -67,6 +80,8 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     { 0, 3, 7, 4 }, // left (-x)
     { 1, 2, 6, 5 }  // right (+x)
   };
+
+  // Face normals for each face
   static const glm::vec3 faceNormals[6] = {
     { 0, 0, -1 }, // bottom (-z)
     { 0, 0, 1 },  // top (+z)
@@ -75,28 +90,30 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     { -1, 0, 0 }, // left (-x)
     { 1, 0, 0 }   // right (+x)
   };
-  std::unordered_set<Edge, EdgeHash> edges;
 
-  glm::vec3 dir = scene.camera.m_N; // glm::normalize(camDir);
+  // Each edge belongs to 2 faces.  Set up an array of indices to the 2 face normals for each edge.
+  static const int edgeToFace[12][2] = {
+    { 0, 2 }, { 0, 5 }, { 0, 3 }, { 0, 4 }, // bottom (-z) face
+    { 1, 2 }, { 1, 5 }, { 1, 3 }, { 1, 4 }, // top (+z) face
+    { 2, 4 }, { 2, 5 }, { 3, 5 }, { 3, 4 }  // vertical edges
+  };
 
-  for (int f = 0; f < 6; ++f) {
-    int i0 = faces[f][0], i1 = faces[f][1], i2 = faces[f][2];
-    glm::vec3 v0 = corners[i0], v1 = corners[i1], v2 = corners[i2];
+  std::vector<Edge> frontFacingEdges;
 
-    // Face normal
-    glm::vec3 n = faceNormals[f];
-
-    // Vector from face to camera
-    glm::vec3 toCam = scene.camera.m_From - v0;
-
-    // If normal points towards camera, it's front-facing
-    if (glm::dot(n, toCam) > 0) {
-      // Add all 4 edges of this face
-      for (int e = 0; e < 4; ++e) {
-        int a = faces[f][e];
-        int b = faces[f][(e + 1) % 4];
-        Edge edge = { std::min(a, b), std::max(a, b) };
-        edges.insert(edge);
+  // loop over all edges
+  for (int i = 0; i < 12; ++i) {
+    // loop over the two faces of each edge:
+    for (int j = 0; j < 2; ++j) {
+      int faceIndex = edgeToFace[i][j];
+      glm::vec3 faceNormal = faceNormals[faceIndex];
+      auto edge = edgesArray[i];
+      // Vector from face to camera (pick either edge vertex for this, or maybe even the midpoint)
+      glm::vec3 toCam = scene.camera.m_From - corners[edge.a];
+      // If normal points towards camera, it's front-facing
+      if (glm::dot(faceNormal, toCam) > 0) {
+        frontFacingEdges.push_back(edgesArray[i]);
+        // Do not check the other face; we don't want to add it twice.
+        break;
       }
     }
   }
@@ -109,38 +126,26 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
   float opacity = 0.5f;
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
 
-  for (auto edge : edges) {
+  const glm::vec3 volumePhysicalSize = theScene->m_volume->getPhysicalDimensions();
+  float maxPhysicalDim = std::max(volumePhysicalSize.x, std::max(volumePhysicalSize.y, volumePhysicalSize.z));
+  const float tickMarkPhysicalLength = computePhysicalScaleBarSize(maxPhysicalDim);
+  const float maxNumTickMarks = maxPhysicalDim / tickMarkPhysicalLength;
+
+  for (auto edge : frontFacingEdges) {
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[edge.a], color, opacity, code),
                                     Gesture::Graphics::VertsCode(corners[edge.b], color, opacity, code) },
                                   s_lineThickness);
     if (theScene->m_showScaleBar && scene.camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-      drawEdgeTickMarks(corners[edge.a], corners[edge.b], bbox, gesture, color, opacity, code);
+      drawEdgeTickMarks(corners[edge.a], corners[edge.b], bbox, maxNumTickMarks, gesture, color, opacity, code);
     }
   }
 }
-#if 0
-void computeTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
-{
-  std::vector<float> vertices;
-  // Length of tick mark lines in world units
-  static constexpr float TICK_LENGTH = 0.025f;
-  // this will always be some integer power of 10?
-  const float tickMarkPhysicalLength = computePhysicalScaleBarSize(physicalScale);
-  const float maxNumTickMarks = physicalScale / tickMarkPhysicalLength;
 
-  // un-scale the tick mark size based on the scaling that will be our transform later.
-  const float tickSizeX = TICK_LENGTH / normPhysicalSize.x;
-  const float tickSizeY = TICK_LENGTH / normPhysicalSize.y;
-
-  const float tickSpacingX = 1.0f / (normPhysicalSize.x * maxNumTickMarks);
-
-
-}
-#endif
 void
 BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
                                    const glm::vec3& vertex2,
                                    const CBoundingBox& bbox,
+                                   float maxNumTickMarks,
                                    Gesture& gesture,
                                    const glm::vec3& color,
                                    float opacity,
@@ -152,17 +157,8 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
   float minDim = glm::min(glm::min(extent.x, extent.y), extent.z);
   float tickLength = minDim * 0.05f; // 5% of smallest dimension
 
-  // Calculate physical scale based on extent - use largest dimension
-  float maxDim = glm::max(glm::max(extent.x, extent.y), extent.z);
-  float tickSpacing = 4.0 * computePhysicalScaleBarSize(maxDim) / maxDim; // Normalized tick spacing
-
-  // Ensure we don't create too many or too few tick marks
-  // tickSpacing = glm::max(tickSpacing, 0.1f); // At least 10 ticks max
-  // tickSpacing = glm::min(tickSpacing, 0.5f); // At most 2 ticks per dimension
-
   // Calculate edge direction and length
   glm::vec3 edgeVector = vertex2 - vertex1;
-  float edgeLength = glm::length(edgeVector);
   glm::vec3 edgeDirection = glm::normalize(edgeVector);
 
   // Calculate tick direction perpendicular to the edge
@@ -176,6 +172,7 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
   glm::vec3 edgeMidpoint = (vertex1 + vertex2) * 0.5f;
   glm::vec3 toCenter = center - edgeMidpoint;
 
+  float tickSpacing = 1.0f;
   if (absEdgeDir.x > absEdgeDir.y && absEdgeDir.x > absEdgeDir.z) {
     // Edge is primarily along X axis
     // Use Y or Z for tick direction, preferring the one that points outward from bbox center
@@ -184,6 +181,8 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
     } else {
       tickDirection = glm::vec3(0, 0, toCenter.z > 0 ? -1 : 1); // Point away from center
     }
+    tickSpacing = 1.0f / (extent.x * maxNumTickMarks);
+
   } else if (absEdgeDir.y > absEdgeDir.z) {
     // Edge is primarily along Y axis
 
@@ -192,6 +191,7 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
     } else {
       tickDirection = glm::vec3(0, 0, toCenter.z > 0 ? -1 : 1); // Point away from center
     }
+    tickSpacing = 1.0f / (extent.y * maxNumTickMarks);
   } else {
     // Edge is primarily along Z axis
 
@@ -200,6 +200,7 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
     } else {
       tickDirection = glm::vec3(0, toCenter.y > 0 ? -1 : 1, 0); // Point away from center
     }
+    tickSpacing = 1.0f / (extent.z * maxNumTickMarks);
   }
 
   // Draw tick marks along the edge
