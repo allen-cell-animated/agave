@@ -4,7 +4,20 @@
 #include "BoundingBox.h"
 #include "MathUtil.h"
 
+#include <unordered_set>
+
 static const float s_lineThickness = 4.0f;
+// Edge represented canonically as {minIndex, maxIndex}
+struct Edge
+{
+  int a, b;
+  bool operator==(const Edge& o) const { return a == o.a && b == o.b; }
+};
+
+struct EdgeHash
+{
+  size_t operator()(const Edge& e) const { return (size_t(e.a) << 16) ^ size_t(e.b); }
+};
 
 void
 BoundingBoxTool::action(SceneView& scene, Gesture& gesture)
@@ -46,16 +59,57 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     center + glm::vec3(halfExtent.x, halfExtent.y, halfExtent.z),    // 6: max corner
     center + glm::vec3(-halfExtent.x, halfExtent.y, halfExtent.z)    // 7
   };
+  static const int faces[6][4] = {
+    { 0, 1, 2, 3 }, // bottom (-z)
+    { 4, 5, 6, 7 }, // top (+z)
+    { 0, 1, 5, 4 }, // front (-y)
+    { 2, 3, 7, 6 }, // back (+y)
+    { 0, 3, 7, 4 }, // left (-x)
+    { 1, 2, 6, 5 }  // right (+x)
+  };
+  std::unordered_set<Edge, EdgeHash> edges;
+
+  glm::vec3 dir = scene.camera.m_N; // glm::normalize(camDir);
+
+  for (int f = 0; f < 6; ++f) {
+    int i0 = faces[f][0], i1 = faces[f][1], i2 = faces[f][2];
+    glm::vec3 v0 = corners[i0], v1 = corners[i1], v2 = corners[i2];
+
+    // Face normal
+    glm::vec3 n = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+
+    // Vector from face to camera
+    glm::vec3 toCam = scene.camera.m_From - v0;
+
+    // If normal points towards camera, it's front-facing
+    if (glm::dot(n, toCam) > 0) {
+      // Add all 4 edges of this face
+      for (int e = 0; e < 4; ++e) {
+        int a = faces[f][e];
+        int b = faces[f][(e + 1) % 4];
+        Edge edge = { std::min(a, b), std::max(a, b) };
+        edges.insert(edge);
+      }
+    }
+  }
 
   // Get bounding box color from scene material
   glm::vec3 color = glm::vec3(theScene->m_material.m_boundingBoxColor[0],
                               theScene->m_material.m_boundingBoxColor[1],
                               theScene->m_material.m_boundingBoxColor[2]);
-  color = glm::vec3(1, 0, 0);
 
-  float opacity = 1.0f;
+  float opacity = 0.5f;
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
 
+  for (auto edge : edges) {
+    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[edge.a], color, opacity, code),
+                                    Gesture::Graphics::VertsCode(corners[edge.b], color, opacity, code) },
+                                  s_lineThickness);
+    if (theScene->m_showScaleBar && scene.camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
+      drawEdgeTickMarks(corners[edge.a], corners[edge.b], bbox, gesture, color, opacity, code);
+    }
+  }
+#if 0
   // Draw the 12 edges of the bounding box using addLineStrip for thick lines
   // Bottom face edges (closed loop)
   gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[0], color, opacity, code),
@@ -93,6 +147,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     // Draw tick marks similar to BoundingBoxDrawable
     drawTickMarks(bbox, gesture, color, opacity, code);
   }
+#endif
 }
 
 void
