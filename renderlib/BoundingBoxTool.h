@@ -18,6 +18,7 @@ private:
   void drawEdgeTickMarks(const glm::vec3& vertex1,
                          const glm::vec3& vertex2,
                          const CBoundingBox& bbox,
+                         float maxNumTickMarks,
                          Gesture& gesture,
                          const glm::vec3& color,
                          float opacity,
