@@ -67,6 +67,14 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     { 0, 3, 7, 4 }, // left (-x)
     { 1, 2, 6, 5 }  // right (+x)
   };
+  static const glm::vec3 faceNormals[6] = {
+    { 0, 0, -1 }, // bottom (-z)
+    { 0, 0, 1 },  // top (+z)
+    { 0, -1, 0 }, // front (-y)
+    { 0, 1, 0 },  // back (+y)
+    { -1, 0, 0 }, // left (-x)
+    { 1, 0, 0 }   // right (+x)
+  };
   std::unordered_set<Edge, EdgeHash> edges;
 
   glm::vec3 dir = scene.camera.m_N; // glm::normalize(camDir);
@@ -76,7 +84,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
     glm::vec3 v0 = corners[i0], v1 = corners[i1], v2 = corners[i2];
 
     // Face normal
-    glm::vec3 n = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    glm::vec3 n = faceNormals[f];
 
     // Vector from face to camera
     glm::vec3 toCam = scene.camera.m_From - v0;
@@ -109,182 +117,26 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
       drawEdgeTickMarks(corners[edge.a], corners[edge.b], bbox, gesture, color, opacity, code);
     }
   }
+}
 #if 0
-  // Draw the 12 edges of the bounding box using addLineStrip for thick lines
-  // Bottom face edges (closed loop)
-  gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[0], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[1], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[2], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[3], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[0], color, opacity, code) },
-                                s_lineThickness,
-                                true);
-
-  // Top face edges (closed loop)
-  gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[4], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[5], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[6], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[7], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[4], color, opacity, code) },
-                                s_lineThickness,
-                                true);
-
-  // Vertical edges connecting bottom and top
-  gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[0], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[4], color, opacity, code) },
-                                s_lineThickness);
-  gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[1], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[5], color, opacity, code) },
-                                s_lineThickness);
-  gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[2], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[6], color, opacity, code) },
-                                s_lineThickness);
-  gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[3], color, opacity, code),
-                                  Gesture::Graphics::VertsCode(corners[7], color, opacity, code) },
-                                s_lineThickness);
-
-  if (theScene->m_showScaleBar && scene.camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-    // Draw tick marks similar to BoundingBoxDrawable
-    drawTickMarks(bbox, gesture, color, opacity, code);
-  }
-#endif
-}
-
-void
-BoundingBoxTool::drawTickMarks(const CBoundingBox& bbox,
-                               Gesture& gesture,
-                               const glm::vec3& color,
-                               float opacity,
-                               uint32_t code)
+void computeTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
 {
-  glm::vec3 center = bbox.GetCenter();
-  glm::vec3 extent = bbox.GetExtent();
-  glm::vec3 halfExtent = extent * 0.5f;
+  std::vector<float> vertices;
+  // Length of tick mark lines in world units
+  static constexpr float TICK_LENGTH = 0.025f;
+  // this will always be some integer power of 10?
+  const float tickMarkPhysicalLength = computePhysicalScaleBarSize(physicalScale);
+  const float maxNumTickMarks = physicalScale / tickMarkPhysicalLength;
 
-  // Add thick line command for tick marks
-  // Note: addLineStrip is self-contained and doesn't require addCommand
+  // un-scale the tick mark size based on the scaling that will be our transform later.
+  const float tickSizeX = TICK_LENGTH / normPhysicalSize.x;
+  const float tickSizeY = TICK_LENGTH / normPhysicalSize.y;
 
-  // Length of tick mark lines as a fraction of the smallest dimension
-  float minDim = glm::min(glm::min(extent.x, extent.y), extent.z);
-  float tickLength = minDim * 0.025f; // 2.5% of smallest dimension
+  const float tickSpacingX = 1.0f / (normPhysicalSize.x * maxNumTickMarks);
 
-  // Calculate physical scale based on extent - use largest dimension
-  float maxDim = glm::max(glm::max(extent.x, extent.y), extent.z);
-  float tickSpacing = computePhysicalScaleBarSize(maxDim) / maxDim; // Normalized tick spacing
 
-  // Ensure we don't create too many or too few tick marks
-  tickSpacing = glm::max(tickSpacing, 0.1f); // At least 10 ticks max
-  tickSpacing = glm::min(tickSpacing, 0.5f); // At most 2 ticks per dimension
-
-  // Draw tick marks along X axis on the bottom edges
-  for (float t = 0.0f; t <= 1.0f; t += tickSpacing) {
-    if (t > 1.0f)
-      t = 1.0f;
-
-    float x = center.x + (t - 0.5f) * extent.x;
-
-    // Bottom front edge
-    glm::vec3 p1(x, bbox.m_MinP.y, bbox.m_MaxP.z);
-    glm::vec3 p2(x, bbox.m_MinP.y - tickLength, bbox.m_MaxP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Bottom back edge
-    p1 = glm::vec3(x, bbox.m_MinP.y, bbox.m_MinP.z);
-    p2 = glm::vec3(x, bbox.m_MinP.y - tickLength, bbox.m_MinP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Top front edge
-    p1 = glm::vec3(x, bbox.m_MaxP.y, bbox.m_MaxP.z);
-    p2 = glm::vec3(x, bbox.m_MaxP.y + tickLength, bbox.m_MaxP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Top back edge
-    p1 = glm::vec3(x, bbox.m_MaxP.y, bbox.m_MinP.z);
-    p2 = glm::vec3(x, bbox.m_MaxP.y + tickLength, bbox.m_MinP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-  }
-
-  // Draw tick marks along Y axis on the side edges
-  for (float t = 0.0f; t <= 1.0f; t += tickSpacing) {
-    if (t > 1.0f)
-      t = 1.0f;
-
-    float y = center.y + (t - 0.5f) * extent.y;
-
-    // Left front edge
-    glm::vec3 p1(bbox.m_MinP.x, y, bbox.m_MaxP.z);
-    glm::vec3 p2(bbox.m_MinP.x - tickLength, y, bbox.m_MaxP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Left back edge
-    p1 = glm::vec3(bbox.m_MinP.x, y, bbox.m_MinP.z);
-    p2 = glm::vec3(bbox.m_MinP.x - tickLength, y, bbox.m_MinP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Right front edge
-    p1 = glm::vec3(bbox.m_MaxP.x, y, bbox.m_MaxP.z);
-    p2 = glm::vec3(bbox.m_MaxP.x + tickLength, y, bbox.m_MaxP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Right back edge
-    p1 = glm::vec3(bbox.m_MaxP.x, y, bbox.m_MinP.z);
-    p2 = glm::vec3(bbox.m_MaxP.x + tickLength, y, bbox.m_MinP.z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-  }
-
-  // Draw tick marks along Z axis on the vertical edges
-  for (float t = 0.0f; t <= 1.0f; t += tickSpacing) {
-    if (t > 1.0f)
-      t = 1.0f;
-
-    float z = center.z + (t - 0.5f) * extent.z;
-
-    // Bottom left edge
-    glm::vec3 p1(bbox.m_MinP.x, bbox.m_MinP.y, z);
-    glm::vec3 p2(bbox.m_MinP.x - tickLength, bbox.m_MinP.y, z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Bottom right edge
-    p1 = glm::vec3(bbox.m_MaxP.x, bbox.m_MinP.y, z);
-    p2 = glm::vec3(bbox.m_MaxP.x + tickLength, bbox.m_MinP.y, z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Top left edge
-    p1 = glm::vec3(bbox.m_MinP.x, bbox.m_MaxP.y, z);
-    p2 = glm::vec3(bbox.m_MinP.x - tickLength, bbox.m_MaxP.y, z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-
-    // Top right edge
-    p1 = glm::vec3(bbox.m_MaxP.x, bbox.m_MaxP.y, z);
-    p2 = glm::vec3(bbox.m_MaxP.x + tickLength, bbox.m_MaxP.y, z);
-    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(p1, color, opacity, code),
-                                    Gesture::Graphics::VertsCode(p2, color, opacity, code) },
-                                  s_lineThickness);
-  }
 }
-
+#endif
 void
 BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
                                    const glm::vec3& vertex2,
@@ -298,15 +150,15 @@ BoundingBoxTool::drawEdgeTickMarks(const glm::vec3& vertex1,
 
   // Length of tick mark lines as a fraction of the smallest dimension
   float minDim = glm::min(glm::min(extent.x, extent.y), extent.z);
-  float tickLength = minDim * 0.025f; // 2.5% of smallest dimension
+  float tickLength = minDim * 0.05f; // 5% of smallest dimension
 
   // Calculate physical scale based on extent - use largest dimension
   float maxDim = glm::max(glm::max(extent.x, extent.y), extent.z);
-  float tickSpacing = computePhysicalScaleBarSize(maxDim) / maxDim; // Normalized tick spacing
+  float tickSpacing = 4.0 * computePhysicalScaleBarSize(maxDim) / maxDim; // Normalized tick spacing
 
   // Ensure we don't create too many or too few tick marks
-  tickSpacing = glm::max(tickSpacing, 0.1f); // At least 10 ticks max
-  tickSpacing = glm::min(tickSpacing, 0.5f); // At most 2 ticks per dimension
+  // tickSpacing = glm::max(tickSpacing, 0.1f); // At least 10 ticks max
+  // tickSpacing = glm::min(tickSpacing, 0.5f); // At most 2 ticks per dimension
 
   // Calculate edge direction and length
   glm::vec3 edgeVector = vertex2 - vertex1;
