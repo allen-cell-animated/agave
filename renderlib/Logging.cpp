@@ -50,7 +50,7 @@ getLogPath()
     // use user home directory instead
     return std::filesystem::path(getenv("USERPROFILE")) / "AllenInstitute" / "agave";
   }
-#elif __APPLE__
+#elif defined(__APPLE__)
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
     struct passwd* pwd = getpwuid(getuid());
@@ -58,7 +58,7 @@ getLogPath()
       rootdir = pwd->pw_dir;
   }
   return std::filesystem::path(rootdir) / "Library" / "Logs" / "AllenInstitute" / "agave";
-#elif __linux__
+#elif defined(__linux__)
   const char* rootdir = getenv("HOME");
   if (!rootdir) {
     struct passwd* pwd = getpwuid(getuid());

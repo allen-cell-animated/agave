@@ -111,7 +111,7 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
+  m_glView = new WgpuCanvas(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
 
   m_glView->setObjectName("glcontainer");
@@ -725,7 +725,9 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   std::shared_ptr<CStatus> s = m_glView->getStatus();
   // set up the m_statisticsDockWidget as a CStatus  IStatusObserver
   m_statisticsDockWidget->setStatus(s);
-  s->onNewImage(filename, &m_appScene);
+  if (s) {
+    s->onNewImage(filename, &m_appScene);
+  }
 
   m_currentFilePath = loadSpec.filepath;
   agaveGui::prependToRecentFiles(QString::fromStdString(loadSpec.filepath));
@@ -853,7 +855,7 @@ agaveGui::openMesh(const QString& file)
 }
 
 void
-agaveGui::viewFocusChanged(GLView3D* newGlView)
+agaveGui::viewFocusChanged(WgpuCanvas* newGlView)
 {
   if (m_glView == newGlView)
     return;
@@ -870,14 +872,14 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
+  WgpuCanvas* current = 0;
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
       QLayout* layout = w->layout();
       // ASSUMES THAT THE GLVIEW IS THE SECOND WIDGET IN THE LAYOUT
       // TODO could use a QWidget wrapper class to get the glview out
-      current = static_cast<GLView3D*>(layout->itemAt(1)->widget());
+      current = static_cast<WgpuCanvas*>(layout->itemAt(1)->widget());
     }
   }
   viewFocusChanged(current);

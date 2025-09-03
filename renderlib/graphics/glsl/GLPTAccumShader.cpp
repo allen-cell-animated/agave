@@ -1,6 +1,7 @@
 #include "glad/glad.h"
 
 #include "GLPTAccumShader.h"
+#include "shaders.h"
 
 #include "shaders.h"
 

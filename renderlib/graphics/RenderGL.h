@@ -21,7 +21,7 @@ public:
 
   virtual void initialize(uint32_t w, uint32_t h);
   virtual void render(const CCamera& camera);
-  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
+  virtual void renderTo(const CCamera& camera, IRenderTarget* fbo);
   virtual void resize(uint32_t w, uint32_t h);
   virtual void getSize(uint32_t& w, uint32_t& h)
   {
