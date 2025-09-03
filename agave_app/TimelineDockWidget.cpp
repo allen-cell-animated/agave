@@ -1,6 +1,6 @@
 #include "TimelineDockWidget.h"
 
-#include "Controls.h"
+#include "qtControls/Controls.h"
 #include "QRenderSettings.h"
 
 #include "renderlib/AppScene.h"
