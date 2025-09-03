@@ -11,6 +11,21 @@ ScenePlane::ScenePlane(glm::vec3 pos)
   m_tool = std::make_unique<ClipPlaneTool>(m_plane, pos);
 }
 
+ManipulationTool*
+ScenePlane::getTool()
+{
+  return m_tool.get();
+}
+
+void
+ScenePlane::setVisible(bool v)
+{
+  // tool should always be around (see ctor)
+  if (m_tool) {
+    m_tool->setVisible(v);
+  }
+}
+
 void
 ScenePlane::updateTransform()
 {
@@ -35,4 +50,14 @@ ScenePlane::updateTransform()
   // the clip plane tool should get the transformed plane and position to draw with
   m_tool->m_plane = p.transform(m_transform.getMatrix());
   m_tool->m_pos = m_transform.m_center;
+}
+
+void
+ScenePlane::resetTo(const glm::vec3& c)
+{
+  m_center = c;
+  m_transform.m_center = c;
+  m_transform.m_rotation = glm::quat(glm::vec3(0, 0, 0));
+  m_plane = Plane();
+  updateTransform();
 }

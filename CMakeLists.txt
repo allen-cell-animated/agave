@@ -15,7 +15,7 @@ cmake_policy(SET CMP0135 NEW) # set timestamps to time of extraction for Externa
 
 project(
   agave
-  VERSION 1.7.2
+  VERSION 1.8.1
   LANGUAGES C CXX
 )
 
@@ -49,7 +49,7 @@ if(DEFINED ENV{Qt6_DIR})
   list(INSERT CMAKE_PREFIX_PATH 0 $ENV{Qt6_DIR})
 endif()
 
-set(AGAVE_QT_VERSION 6.8.2)
+set(AGAVE_QT_VERSION 6.8.3)
 
 if(WIN32)
   set(GUESS_Qt6_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2022_64 CACHE STRING "Qt6 directory")
@@ -85,14 +85,20 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 
 # endif()
 
+FetchContent_Declare(
+            glm
+            GIT_REPOSITORY https://github.com/g-truc/glm.git
+            GIT_TAG 1.0.1
+    )
+FetchContent_MakeAvailable(glm)
 # set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
-if(APPLE)
-  # On MacOS, newer homebrew glm is broken with respect to cmake.
-  # Revisit in a future version to try to remove this conditional.
-  find_path(GLM_PATH glm/glm.hpp)
-else()
-  find_package(glm REQUIRED)
-endif(APPLE)
+# if(APPLE)
+#   # On MacOS, newer homebrew glm is broken with respect to cmake.
+#   # Revisit in a future version to try to remove this conditional.
+#   find_path(GLM_PATH glm/glm.hpp)
+# else()
+#   find_package(glm REQUIRED)
+# endif(APPLE)
 
 find_package(TIFF)
 
@@ -141,7 +147,7 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 # CPack
 # #####################
-find_package(Qt6QTiffPlugin 6.8.2 REQUIRED PATHS ${Qt6Gui_DIR})
+find_package(Qt6QTiffPlugin 6.8.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
 set(CPACK_PACKAGE_VENDOR "Allen Institute for Cell Science")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for 4D multichannel microscopy images, using physically based lighting and rendering.")
@@ -237,8 +243,8 @@ if(WIN32)
 
 # ###############
 elseif(APPLE)
-  find_package(Qt6QCocoaIntegrationPlugin 6.8.2 REQUIRED PATHS ${Qt6Gui_DIR})
-  find_package(Qt6QMacStylePlugin 6.8.2 REQUIRED PATHS ${Qt6Widgets_DIR})
+  find_package(Qt6QCocoaIntegrationPlugin 6.8.3 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QMacStylePlugin 6.8.3 REQUIRED PATHS ${Qt6Widgets_DIR})
 
   # ###############
   set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
@@ -342,7 +348,7 @@ elseif(APPLE)
   include(CPack)
 
 else() # Linux
-  find_package(Qt6QXcbIntegrationPlugin 6.8.2 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QXcbIntegrationPlugin 6.8.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt

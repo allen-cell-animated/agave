@@ -55,6 +55,13 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
   } else if (extstr == ".zarr") {
     return new FileReaderZarr(filepath);
   }
+  // if it's a directory, and contains the string zarr anywhere, we assume it's a zarr
+  else if (std::filesystem::is_directory(filepath)) {
+    if (filepath.find("zarr") != std::string::npos) {
+      return new FileReaderZarr(filepath);
+    }
+  }
+
   return nullptr;
 }
 
@@ -144,15 +151,22 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
 }
 
 size_t
-LoadSpec::getMemoryEstimate() const
+LoadSpec::getMemoryEstimate(int totalChannels) const
 {
   size_t npix = 1;
   npix *= (maxx - minx);
   npix *= (maxy - miny);
   npix *= (maxz - minz);
   // on gpu we upload only 4 channels max
-  size_t bytesperpixel = 4 * ImageXYZC::IN_MEMORY_BPP / 8; // 4 channels * 2 bytes per channel
-  size_t mem = npix * bytesperpixel;                       // overflow?
+  int nch = 4;
+  if (channels.empty()) {
+    // then get the number of channels from the image
+    nch = std::min(nch, totalChannels);
+  } else if (channels.size() > 0 && channels.size() < 4) {
+    nch = channels.size();
+  }
+  size_t bytesperpixel = nch * ImageXYZC::IN_MEMORY_BPP / 8; // 4 channels * 2 bytes per channel
+  size_t mem = npix * bytesperpixel;                         // overflow?
   return mem;
 }
 

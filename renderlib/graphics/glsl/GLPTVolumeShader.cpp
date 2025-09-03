@@ -289,7 +289,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   float opacity[4] = { 0, 0, 0, 0 };
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
-      luttex[activeChannel] = imggpu.m_channels[i].m_VolumeLutGLTexture;
+      luttex[activeChannel] = imggpu.m_channels[i]->m_VolumeLutGLTexture;
       intensitymax[activeChannel] = scene->m_volume->channel(i)->m_max;
       intensitymin[activeChannel] = scene->m_volume->channel(i)->m_min;
       diffuse[activeChannel * 3 + 0] = scene->m_material.m_diffuse[i * 3 + 0];

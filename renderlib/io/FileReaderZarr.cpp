@@ -1,6 +1,7 @@
 #include "FileReaderZarr.h"
 
 #include "BoundingBox.h"
+#include "ConvertChannelData.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
 #include "StringUtil.h"
@@ -90,26 +91,26 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
   }
 }
 
-FileReaderZarr::FileReaderZarr(const std::string& filepath) {}
+FileReaderZarr::FileReaderZarr(const std::string& filepath)
+  : m_zarrVersion(0)
+{
+}
 
 FileReaderZarr::~FileReaderZarr() {}
 
 ::nlohmann::json
-FileReaderZarr::jsonRead(const std::string& zarrurl)
+tryReadJson(const std::string& zarrurl, const std::string& jsonfile)
 {
-  if (m_zattrs.is_object()) {
-    return m_zattrs;
-  }
-
-  // JSON uses a separate driver
-  auto attrs_store_open_result = tensorstore::Open<::nlohmann::json, 0>(
-                                   { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, ".zattrs") } })
-                                   .result();
-  if (!attrs_store_open_result.ok()) {
-    LOG_ERROR << "Error: " << attrs_store_open_result.status();
+  auto zarr_json_open_result = tensorstore::Open<::nlohmann::json>(
+                                 { { "driver", "json" }, { "kvstore", getKvStoreDriverParams(zarrurl, jsonfile) } })
+                                 .result();
+  // did the open fail?
+  if (!zarr_json_open_result.ok()) {
+    // tensorstore open failed
+    LOG_ERROR << "Error: " << zarr_json_open_result.status();
     return ::nlohmann::json::object_t();
   }
-  auto attrs_store = attrs_store_open_result.value();
+  auto attrs_store = zarr_json_open_result.value();
   // Sets attrs_array to a rank-0 array of ::nlohmann::json
   auto attrs_array_result = tensorstore::Read(attrs_store).result();
 
@@ -123,8 +124,60 @@ FileReaderZarr::jsonRead(const std::string& zarrurl)
       attrs = ::nlohmann::json::object_t();
     }
   }
-  m_zattrs = attrs;
   return attrs;
+}
+
+::nlohmann::json
+FileReaderZarr::jsonRead(const std::string& zarrurl)
+{
+  if (m_zattrs.is_object()) {
+    return m_zattrs;
+  }
+
+  // try zarr.json first (indicating Zarr v3)
+  // and then try .zattrs (indicating Zarr v2)
+
+  nlohmann::json attrs = tryReadJson(zarrurl, "zarr.json");
+  if (attrs.is_object() && !attrs.empty()) {
+    m_zarrVersion = 3;
+    m_zattrs = attrs;
+    LOG_DEBUG << "Zarr v3";
+    return attrs;
+  }
+
+  attrs = tryReadJson(zarrurl, ".zattrs");
+  if (attrs.is_object() && !attrs.empty()) {
+    m_zarrVersion = 2;
+    m_zattrs = attrs;
+    LOG_DEBUG << "Zarr v2";
+    return attrs;
+  }
+
+  LOG_ERROR << "Failed to open either a .zattrs or a zarr.json from the specified location " << zarrurl;
+  return ::nlohmann::json::object_t();
+}
+
+nlohmann::json
+FileReaderZarr::getOmero(nlohmann::json attrs)
+{
+  nlohmann::json omero;
+  if (m_zarrVersion == 3) {
+    auto attributes = attrs["attributes"];
+    if (attributes.is_null()) {
+      LOG_ERROR << "No attributes found in zarr.json";
+      return omero;
+    }
+    auto ome = attributes["ome"];
+    if (ome.is_null()) {
+      LOG_ERROR << "No attributes.ome found in zarr.json";
+      return omero;
+    }
+    omero = ome["omero"];
+  } else {
+    omero = attrs["omero"];
+  }
+
+  return omero;
 }
 
 std::vector<std::string>
@@ -132,7 +185,7 @@ FileReaderZarr::getChannelNames(const std::string& filepath)
 {
   std::vector<std::string> channelNames;
   nlohmann::json attrs = jsonRead(filepath);
-  auto omero = m_zattrs["omero"];
+  auto omero = getOmero(m_zattrs);
   if (omero.is_object()) {
     auto channels = omero["channels"];
     if (channels.is_array()) {
@@ -143,11 +196,35 @@ FileReaderZarr::getChannelNames(const std::string& filepath)
   }
   return channelNames;
 }
+
+nlohmann::json
+FileReaderZarr::getMultiscales(nlohmann::json attrs)
+{
+  nlohmann::json multiscales;
+  if (m_zarrVersion == 3) {
+    auto attributes = attrs["attributes"];
+    if (attributes.is_null()) {
+      LOG_ERROR << "No attributes found in zarr.json";
+      return multiscales;
+    }
+    auto ome = attributes["ome"];
+    if (ome.is_null()) {
+      LOG_ERROR << "No attributes.ome found in zarr.json";
+      return multiscales;
+    }
+    multiscales = ome["multiscales"];
+  } else {
+    multiscales = attrs["multiscales"];
+  }
+
+  return multiscales;
+}
+
 uint32_t
 FileReaderZarr::loadNumScenes(const std::string& filepath)
 {
   nlohmann::json attrs = jsonRead(filepath);
-  auto multiscales = attrs["multiscales"];
+  auto multiscales = getMultiscales(attrs);
   if (multiscales.is_array()) {
     return multiscales.size();
   }
@@ -160,57 +237,6 @@ copyDirect(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPix
 {
   memcpy(dest, src, numBytes);
   return numBytes;
-}
-
-// convert pixels
-// this assumes tight packing of pixels in both buf(source) and dataptr(dest)
-// assumes dest is of format IN_MEMORY_BPP
-// return 1 for successful conversion, 0 on failure (e.g. unacceptable srcBitsPerPixel)
-static size_t
-convertChannelData(uint8_t* dest, const uint8_t* src, const VolumeDimensions& dims)
-{
-  // how many pixels in this channel:
-  size_t numPixels = dims.sizeX * dims.sizeY * dims.sizeZ;
-  int srcBitsPerPixel = dims.bitsPerPixel;
-
-  // dest bits per pixel is IN_MEMORY_BPP which is currently 16, or 2 bytes
-  if (ImageXYZC::IN_MEMORY_BPP == srcBitsPerPixel) {
-    memcpy(dest, src, numPixels * (srcBitsPerPixel / 8));
-    return 1;
-  } else if (srcBitsPerPixel == 8) {
-    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
-    for (size_t b = 0; b < numPixels; ++b) {
-      *dataptr16 = (uint16_t)src[b];
-      dataptr16++;
-    }
-    return 1;
-  } else if (srcBitsPerPixel == 32) {
-    // assumes 32-bit floating point (not int or uint)
-    uint16_t* dataptr16 = reinterpret_cast<uint16_t*>(dest);
-    const float* src32 = reinterpret_cast<const float*>(src);
-    // compute min and max; and then rescale values to fill dynamic range.
-    float lowest = FLT_MAX;
-    float highest = -FLT_MAX;
-    float f;
-    for (size_t b = 0; b < numPixels; ++b) {
-      f = src32[b];
-      if (f < lowest) {
-        lowest = f;
-      }
-      if (f > highest) {
-        highest = f;
-      }
-    }
-    for (size_t b = 0; b < numPixels; ++b) {
-      *dataptr16 = (uint16_t)((src32[b] - lowest) / (highest - lowest) * 65535.0);
-      dataptr16++;
-    }
-    return 1;
-  } else {
-    LOG_ERROR << "Unexpected tiff pixel size " << srcBitsPerPixel << " bits";
-    return 0;
-  }
-  return 0;
 }
 
 std::string
@@ -307,6 +333,12 @@ getAxes(nlohmann::json axes)
   return dims;
 }
 
+std::string
+FileReaderZarr::tensorstoreZarrDriverName()
+{
+  return m_zarrVersion == 3 ? "zarr3" : "zarr";
+}
+
 std::vector<MultiscaleDims>
 FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 {
@@ -316,7 +348,8 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
 
   std::vector<std::string> channelNames = getChannelNames(filepath);
 
-  auto multiscales = attrs["multiscales"];
+  nlohmann::json multiscales = getMultiscales(attrs);
+
   if (multiscales.is_array()) {
     auto multiscale = multiscales[scene];
     std::vector<std::string> dimorder = { "T", "C", "Z", "Y", "X" };
@@ -330,7 +363,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
         auto path = dataset["path"];
         if (path.is_string()) {
           std::string pathstr = path;
-          auto result = tensorstore::Open({ { "driver", "zarr" },
+          auto result = tensorstore::Open({ { "driver", tensorstoreZarrDriverName() },
                                             { "kvstore",
 
                                               getKvStoreDriverParams(filepath, pathstr) } })
@@ -432,13 +465,13 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   if (!m_store.valid()) {
     auto context = tensorstore::Context::FromJson({ { "cache_pool", { { "total_bytes_limit", 100000000 } } } }).value();
 
-    auto openFuture = tensorstore::Open(
-      { { "driver", "zarr" }, { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
-      context,
-      tensorstore::OpenMode::open,
-      tensorstore::RecheckCached{ false },
-      tensorstore::RecheckCachedData{ false },
-      tensorstore::ReadWriteMode::read);
+    auto openFuture = tensorstore::Open({ { "driver", tensorstoreZarrDriverName() },
+                                          { "kvstore", getKvStoreDriverParams(loadSpec.filepath, loadSpec.subpath) } },
+                                        context,
+                                        tensorstore::OpenMode::open,
+                                        tensorstore::RecheckCached{ false },
+                                        tensorstore::RecheckCachedData{ false },
+                                        tensorstore::ReadWriteMode::read);
 
     auto result = openFuture.result();
     if (!result.ok()) {
@@ -455,8 +488,8 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
   // std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
-  size_t planesize_bytes = dims.sizeX * dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
-  size_t channelsize_bytes = planesize_bytes * dims.sizeZ;
+  size_t planesize_bytes = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(ImageXYZC::IN_MEMORY_BPP / 8);
+  size_t channelsize_bytes = planesize_bytes * (size_t)dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * nch];
   memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
@@ -465,10 +498,10 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   uint8_t* destptr = data;
 
   // still assuming 1 sample per pixel (scalar data) here.
-  size_t rawPlanesize = dims.sizeX * dims.sizeY * (dims.bitsPerPixel / 8);
+  size_t rawPlanesize = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(dims.bitsPerPixel / 8);
   // allocate temp data for one channel
-  uint8_t* channelRawMem = new uint8_t[dims.sizeZ * rawPlanesize];
-  memset(channelRawMem, 0, dims.sizeZ * rawPlanesize);
+  uint8_t* channelRawMem = new uint8_t[(size_t)dims.sizeZ * rawPlanesize];
+  memset(channelRawMem, 0, (size_t)dims.sizeZ * rawPlanesize);
 
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtrTemp(channelRawMem);
@@ -551,7 +584,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     }
 
     // convert to our internal format (IN_MEMORY_BPP)
-    if (!convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
+    if (!FileReaderUtil::convertChannelData(data + channel * channelsize_bytes, channelRawMem, dims)) {
       return emptyimage;
     }
   }

@@ -10,6 +10,8 @@ struct ManipColors
   static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
+static const float s_lineThickness = 4.0f;
+
 void
 AxisHelperTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -26,10 +28,6 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
   }
 
   const glm::vec2 resolution = scene.viewport.region.size();
-  // Move tool is only active if something is selected
-  if (!scene.anythingActive()) {
-    return;
-  }
 
   LinearSpace3f camFrame = scene.camera.getFrame();
 
@@ -79,8 +77,10 @@ AxisHelperTool::draw(SceneView& scene, Gesture& gesture)
     uint32_t code = manipulatorCode(selectionCode, m_codesOffset);
 
     // Arrow line
-    gesture.graphics.addLine(Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
-                             Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code));
+    gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(axis.p + dir * (scale * 0.05f), color, opacity, code),
+                                    Gesture::Graphics::VertsCode(axis.p + dir * scale, color, opacity, code) },
+                                  s_lineThickness,
+                                  false);
   };
 
   // Complete the axis with a transparent surface for the tip of the arrow

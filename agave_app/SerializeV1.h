@@ -77,7 +77,8 @@ enum class GradientEditMode_PID : int
   WINDOW_LEVEL = 0,
   ISOVALUE = 1,
   PERCENTILE = 2,
-  CUSTOM = 3
+  CUSTOM = 3,
+  MINMAX = 4
 };
 
 struct LutParams_V1
@@ -88,6 +89,8 @@ struct LutParams_V1
   float isorange = 0.01f;
   float pctLow = 0.5f;
   float pctHigh = 0.98f;
+  uint16_t minu16 = 0;
+  uint16_t maxu16 = 65535;
   std::vector<ControlPointSettings_V1> controlPoints;
   GradientEditMode_PID mode = GradientEditMode_PID::WINDOW_LEVEL;
 
@@ -95,9 +98,19 @@ struct LutParams_V1
   {
     return window == other.window && level == other.level && isovalue == other.isovalue && isorange == other.isorange &&
            pctLow == other.pctLow && pctHigh == other.pctHigh && controlPoints == other.controlPoints &&
-           mode == other.mode;
+           minu16 == other.minu16 && maxu16 == other.maxu16 && mode == other.mode;
   }
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LutParams_V1, window, level, isovalue, isorange, pctLow, pctHigh, controlPoints, mode)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LutParams_V1,
+                                 window,
+                                 level,
+                                 isovalue,
+                                 isorange,
+                                 pctLow,
+                                 pctHigh,
+                                 controlPoints,
+                                 mode,
+                                 minu16,
+                                 maxu16)
 };
 
 struct ColorMap

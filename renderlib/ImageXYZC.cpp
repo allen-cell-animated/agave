@@ -57,25 +57,25 @@ ImageXYZC::setChannelNames(std::vector<std::string>& channelNames)
   }
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeX() const
 {
   return m_x;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeY() const
 {
   return m_y;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeZ() const
 {
   return m_z;
 }
 
-uint32_t
+size_t
 ImageXYZC::maxPixelDimension() const
 {
   return std::max(m_x, std::max(m_y, m_z));
@@ -119,13 +119,13 @@ ImageXYZC::physicalSizeZ() const
   return m_scaleZ;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeC() const
 {
   return m_c;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeOfElement() const
 {
   return m_bpp / 8;
@@ -150,7 +150,7 @@ ImageXYZC::size() const
 }
 
 uint8_t*
-ImageXYZC::ptr(uint32_t channel, uint32_t z) const
+ImageXYZC::ptr(size_t channel, size_t z) const
 {
   // advance ptr by this amount of uint8s.
   return m_data + ((channel * sizeOfChannel()) + (z * sizeOfPlane()));

@@ -17,6 +17,7 @@ class ImageXYZC;
 class RangeWidget;
 class RenderSettings;
 class Scene;
+class SceneObject;
 class Section;
 
 enum Axis
@@ -109,6 +110,7 @@ private:
   QCheckBox* m_hideUserClipPlane;
   QPushButton* m_clipPlaneRotateButton;
   QPushButton* m_clipPlaneTranslateButton;
+  QPushButton* m_clipPlaneResetButton;
 
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
@@ -150,4 +152,6 @@ private:
   void initLightingControls(Scene* scene);
   void initClipPlaneControls(Scene* scene);
   bool shouldClipPlaneShow();
+
+  void toggleActionForObject(QAction* pAction, SceneObject* object);
 };

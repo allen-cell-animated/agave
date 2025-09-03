@@ -218,6 +218,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_xscaleSpinner->setStatusTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setToolTip(tr("Scale volume in X dimension"));
   m_xscaleSpinner->setDecimals(6);
+  m_xscaleSpinner->setMaximum(10000.0);
   m_xscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_xscaleSpinner, 0, 1);
   m_xFlipCheckBox = new QCheckBox("Flip");
@@ -235,6 +236,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_yscaleSpinner->setStatusTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setToolTip(tr("Scale volume in Y dimension"));
   m_yscaleSpinner->setDecimals(6);
+  m_yscaleSpinner->setMaximum(10000.0);
   m_yscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_yscaleSpinner, 1, 1);
   m_yFlipCheckBox = new QCheckBox("Flip");
@@ -252,6 +254,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_zscaleSpinner->setStatusTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setToolTip(tr("Scale volume in Z dimension"));
   m_zscaleSpinner->setDecimals(6);
+  m_zscaleSpinner->setMaximum(10000.0);
   m_zscaleSpinner->setValue(1.0);
   scaleSectionLayout->addWidget(m_zscaleSpinner, 2, 1);
   m_zFlipCheckBox = new QCheckBox("Flip");
@@ -326,6 +329,32 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
+void
+QAppearanceSettingsWidget::toggleActionForObject(QAction* pAction, SceneObject* object)
+{
+  if (!this->m_scene) {
+    return;
+  }
+  bool wasActionOn = pAction->isChecked();
+  bool isObjectSelected = this->m_scene->m_selection == object;
+  if (!wasActionOn) {
+    // if we are turning the action on, then select the object and turn the action on.
+    emit this->m_qrendersettings->Selected(object);
+    pAction->trigger();
+  } else {
+    // If we are turning the action off but something else is selected, then we are really just selecting this
+    // object but leaving the action ON.
+    // If we are turning the action off but THIS object is selected, then turn the action off
+    // and deselect the object.
+    if (!isObjectSelected) {
+      emit this->m_qrendersettings->Selected(object);
+    } else {
+      emit this->m_qrendersettings->Selected(nullptr);
+      pAction->trigger();
+    }
+  }
+}
+
 Section*
 QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
 {
@@ -338,8 +367,6 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     if (this->m_scene && this->m_scene->m_clipPlane) {
       this->m_scene->m_clipPlane->m_enabled = is_checked;
       m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
-      emit this->m_qrendersettings->Selected(
-        is_checked && !m_hideUserClipPlane->isChecked() ? this->m_scene->m_clipPlane.get() : nullptr);
     }
   });
 
@@ -352,20 +379,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
   btnLayout->addWidget(m_clipPlaneRotateButton);
   QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
-    if (!this->m_scene) {
-      return;
-    }
-    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
-    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleRotateAction->isChecked()) {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pToggleRotateAction->trigger();
-      if (!m_hideUserClipPlane->isChecked()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-    } else {
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      pToggleRotateAction->trigger();
-    }
+    toggleActionForObject(pToggleRotateAction, this->m_scene->m_clipPlane.get());
   });
 
   m_clipPlaneTranslateButton = new QPushButton("Translate");
@@ -373,20 +387,7 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
   btnLayout->addWidget(m_clipPlaneTranslateButton);
   QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
-    if (!this->m_scene) {
-      return;
-    }
-    // if we were already selected AND already in translate mode, then this should switch off translate mode.
-    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && pToggleTranslateAction->isChecked()) {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pToggleTranslateAction->trigger();
-      if (!m_hideUserClipPlane->isChecked()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-    } else {
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      pToggleTranslateAction->trigger();
-    }
+    toggleActionForObject(pToggleTranslateAction, this->m_scene->m_clipPlane.get());
   });
 
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
@@ -400,15 +401,34 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
       if (!this->m_scene) {
         return;
       }
-      if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get() && !toggled) {
-        return;
-      }
-      if (!pToggleRotateAction->isChecked() && !pToggleTranslateAction->isChecked()) {
-        emit this->m_qrendersettings->Selected(toggled ? nullptr : this->m_scene->m_clipPlane.get());
-      }
+
+      ScenePlane* p = this->m_scene->m_clipPlane.get();
+      p->setVisible(!toggled);
     });
 
   sectionLayout->addRow("Hide", m_hideUserClipPlane);
+
+  // Add the Reset button
+  m_clipPlaneResetButton = new QPushButton("Reset");
+  m_clipPlaneResetButton->setStatusTip(tr("Reset clip plane to 0,0,0,0"));
+  m_clipPlaneResetButton->setToolTip(tr("Reset clip plane to 0,0,0,0"));
+  QObject::connect(m_clipPlaneResetButton, &QPushButton::clicked, [this]() {
+    if (!this->m_scene || !this->m_scene->m_clipPlane) {
+      return;
+    }
+    glm::vec3 c = this->m_scene->m_boundingBox.GetCenter();
+    this->m_scene->m_clipPlane->resetTo(c);
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+    // re-select to cause Origins.update to reset the translate or rotate tools
+    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get()) {
+      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
+    }
+  });
+
+  auto* resetbtnLayout = new QHBoxLayout();
+  resetbtnLayout->addWidget(new QWidget());
+  resetbtnLayout->addWidget(m_clipPlaneResetButton);
+  sectionLayout->addLayout(resetbtnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
@@ -435,21 +455,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt0gui.m_RotateButton);
   QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
-    if (!this->m_scene) {
-      return;
-    }
-    // if we were already selected AND already in rotate mode, then this should switch off rotate mode.
-    if (this->m_scene->m_selection == this->m_scene->SceneAreaLight() && pRotationAction->isChecked()) {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pRotationAction->trigger();
-      // TODO the selection should be independent of the tool visibility
-      if (shouldClipPlaneShow()) {
-        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-      }
-    } else {
-      emit this->m_qrendersettings->Selected(this->m_scene->SceneAreaLight());
-      pRotationAction->trigger();
-    }
+    toggleActionForObject(pRotationAction, this->m_scene->SceneAreaLight());
   });
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
@@ -1174,10 +1180,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     gradients->setToolTip(tr(
       "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
     gradients->setStatusTip(tr(
-      "Set colormap for channel. ColorMap will be multiplied with Color.  To use ColorMap only, set Color to white."));
+      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
 
-    gradients->setCurrentIndex(idx);
     sectionLayout->addRow("ColorMap", gradients);
     QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
       // get string from userdata
@@ -1196,8 +1201,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
         m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
     });
-    // init
-    // this->OnColormapChanged(i, cr);
+    // init after creating the callback, so that we can reinit a named colormap properly.
+    gradients->setCurrentIndex(idx);
 
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));

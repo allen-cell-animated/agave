@@ -7,6 +7,8 @@ GradientData::convert(const Histogram& histogram, const Histogram& newHistogram)
 {
   // pct can remain the same; percentiles are always relative to binned pixel counts?
 
+  // min and max can also remain the same.
+
   // window/level:
   // 0 and 1 correspond to histogram._dataMin and histogram._dataMax
   float absoluteWindowSize = m_window * histogram.dataRange();
@@ -47,6 +49,10 @@ GradientData::getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* im
   } else if (m_activeMode == GradientEditMode::ISOVALUE) {
     *imin = histogram._dataMin + m_isovalue * histogram.dataRange() - m_isorange * histogram.dataRange() / 2;
     *imax = histogram._dataMin + m_isovalue * histogram.dataRange() + m_isorange * histogram.dataRange() / 2;
+    return true;
+  } else if (m_activeMode == GradientEditMode::MINMAX) {
+    *imin = m_minu16;
+    *imax = m_maxu16;
     return true;
   } else {
     return false;

@@ -765,6 +765,10 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
   // if successful
   int numScenes = reader->loadNumScenes(file);
   LOG_INFO << "Found " << numScenes << " scene(s)";
+  if (numScenes < 1) {
+    return false;
+  }
+
   // if current scene is out of range or if there is not currently a scene selected
   bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
   if (needSelectScene) {
