@@ -65,3 +65,20 @@ void
 Enable(bool enabled);
 
 };
+
+#if defined(_DEBUG) || defined(DEBUG) || defined(_DEBUG)
+#define DBG_ASSERT(condition, message)                                                                                 \
+  do {                                                                                                                 \
+    if (!(condition)) {                                                                                                \
+      LOG_ERROR << "Assertion failed: " << #condition << ", message: " << message;                                     \
+      std::abort();                                                                                                    \
+    }                                                                                                                  \
+  } while (false)
+#else
+#define DBG_ASSERT(condition, message)                                                                                 \
+  do {                                                                                                                 \
+    if (!(condition)) {                                                                                                \
+      LOG_ERROR << "Assertion failed: " << #condition << ", message: " << message;                                     \
+    }                                                                                                                  \
+  } while (false)
+#endif

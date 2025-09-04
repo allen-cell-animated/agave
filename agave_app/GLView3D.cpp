@@ -3,7 +3,8 @@
 #include "QRenderSettings.h"
 #include "ViewerState.h"
 
-#include "renderlib/CameraDataObject.hpp"
+#include "renderlib/AppearanceObject.hpp"
+#include "renderlib/CameraObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/MoveTool.h"
@@ -12,6 +13,8 @@
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/graphics/gl/Image3D.h"
 #include "renderlib/graphics/gl/Util.h"
+#include "renderlib/core/prty/prtyVector3d.hpp"
+#include "renderlib/core/prty/prtyFloat.hpp"
 
 #include <glm.h>
 
@@ -32,7 +35,7 @@
 #pragma warning(disable : 4351)
 #endif
 
-GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
+GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidget* parent)
   : QOpenGLWidget(parent)
   , m_etimer()
   , m_viewerWindow(nullptr)
@@ -40,9 +43,6 @@ GLView3D::GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent)
 {
   m_viewerWindow = new ViewerWindow(rs);
   m_viewerWindow->gesture.input.setDoubleClickTime((double)QApplication::doubleClickInterval() / 1000.0);
-
-  // camera is created deep down inside m_viewerWindow.
-  m_cameraDataObject = new CameraDataObject(&m_viewerWindow->m_CCamera);
 
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -75,10 +75,10 @@ void
 GLView3D::initCameraFromImage(Scene* scene)
 {
   // Tell the camera about the volume's bounding box
-  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
-  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  m_viewerWindow->m_CCamera->m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_viewerWindow->m_CCamera->m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
   // reposition to face image
-  m_viewerWindow->m_CCamera.SetViewMode(ViewModeFront);
+  m_viewerWindow->m_CCamera->SetViewMode(ViewModeFront);
 
   RenderSettings* rs = m_viewerWindow->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
@@ -89,14 +89,14 @@ GLView3D::retargetCameraForNewVolume(Scene* scene)
 {
   // ASSUMPTION camera's sceneboundingbox has not yet been updated!
 
-  glm::vec3 oldctr = m_viewerWindow->m_CCamera.m_SceneBoundingBox.GetCenter();
+  glm::vec3 oldctr = m_viewerWindow->m_CCamera->m_SceneBoundingBox.GetCenter();
   // Tell the camera about the volume's bounding box
-  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
-  m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
+  m_viewerWindow->m_CCamera->m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
+  m_viewerWindow->m_CCamera->m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
   // reposition target to center of image
-  glm::vec3 ctr = m_viewerWindow->m_CCamera.m_SceneBoundingBox.GetCenter();
+  glm::vec3 ctr = m_viewerWindow->m_CCamera->m_SceneBoundingBox.GetCenter();
   // offset target by delta of prev bounds and new bounds.
-  m_viewerWindow->m_CCamera.m_Target += (ctr - oldctr);
+  m_viewerWindow->m_CCamera->m_Target += (ctr - oldctr);
 
   RenderSettings* rs = m_viewerWindow->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
@@ -105,30 +105,41 @@ GLView3D::retargetCameraForNewVolume(Scene* scene)
 void
 GLView3D::toggleCameraProjection()
 {
-  ProjectionMode p = m_viewerWindow->m_CCamera.m_Projection;
-  m_viewerWindow->m_CCamera.SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
+  ProjectionMode p = m_viewerWindow->m_CCamera->m_Projection;
+  m_viewerWindow->m_CCamera->SetProjectionMode((p == PERSPECTIVE) ? ORTHOGRAPHIC : PERSPECTIVE);
 
   RenderSettings* rs = m_viewerWindow->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 
 void
+GLView3D::setCameraObject(CameraObject* cameraObject)
+{
+  if (cameraObject != nullptr) {
+    // Set the new camera object (don't delete the old one as we don't own it)
+    m_cameraObject = cameraObject;
+
+    // Update the internal camera reference
+    m_viewerWindow->m_CCamera = m_cameraObject->getCamera();
+
+    // Mark camera as dirty to trigger updates
+    RenderSettings* rs = m_viewerWindow->m_renderSettings;
+    rs->m_DirtyFlags.SetFlag(CameraDirty);
+  }
+}
+
+void
 GLView3D::onNewImage(Scene* scene)
 {
   m_viewerWindow->m_renderer->setScene(scene);
-  // set volume dirty
-  RenderSettings* rs = m_viewerWindow->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
-  rs->m_DirtyFlags.SetFlag(VolumeDirty);
-  rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
-  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-  rs->m_DirtyFlags.SetFlag(LightsDirty);
+  // costly teardown and rebuild.
+  this->OnUpdateRenderer(m_viewerWindow->m_renderSettings->m_rendererType);
+  // would be better to preserve renderer and just change the scene data to include the new image.
+  // how tightly coupled is renderer and scene????
 }
 
 GLView3D::~GLView3D()
 {
-  delete m_cameraDataObject;
-
   makeCurrent();
   check_gl("view dtor makecurrent");
   // doneCurrent();
@@ -302,11 +313,11 @@ GLView3D::FitToScene(float transitionDurationSeconds)
   }
 
   glm::vec3 newPosition, newTarget;
-  m_viewerWindow->m_CCamera.ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
+  m_viewerWindow->m_CCamera->ComputeFitToBounds(sc->m_boundingBox, newPosition, newTarget);
   CameraAnimation anim = {};
   anim.duration = transitionDurationSeconds;
-  anim.mod.position = newPosition - m_viewerWindow->m_CCamera.m_From;
-  anim.mod.target = newTarget - m_viewerWindow->m_CCamera.m_Target;
+  anim.mod.position = newPosition - m_viewerWindow->m_CCamera->m_From;
+  anim.mod.target = newTarget - m_viewerWindow->m_CCamera->m_Target;
   m_viewerWindow->m_cameraAnim.push_back(anim);
 }
 
@@ -464,21 +475,44 @@ GLView3D::fromViewerState(const Serialize::ViewerState& s)
   m_qrendersettings->SetRendererType(s.rendererType == Serialize::RendererType_PID::PATHTRACE ? 1 : 0);
 
   // syntactic sugar
-  CCamera& camera = m_viewerWindow->m_CCamera;
+  std::shared_ptr<CCamera>& camera = m_viewerWindow->m_CCamera;
 
-  camera.m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
-  camera.m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
-  camera.m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
-  camera.m_FovV = s.camera.fovY;
-  camera.SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE : ORTHOGRAPHIC);
-  camera.m_OrthoScale = s.camera.orthoScale;
+  ///////////////////
+  // TODO do all of this through the camera object's properties!!!!!!!!!
+  ///////////////////
+  m_cameraObject->getCameraDataObject().Position.SetValue(glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]));
+  // camera->m_From = glm::vec3(s.camera.eye[0], s.camera.eye[1], s.camera.eye[2]);
 
-  camera.m_Film.m_Exposure = s.camera.exposure;
-  camera.m_Aperture.m_Size = s.camera.aperture;
-  camera.m_Focus.m_FocalDistance = s.camera.focalDistance;
+  m_cameraObject->getCameraDataObject().Target.SetValue(
+    glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]));
+  // camera->m_Target = glm::vec3(s.camera.target[0], s.camera.target[1], s.camera.target[2]);
+
+  // m_cameraObject->getCameraDataObject().Up.SetValue(glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]));
+  camera->m_Up = glm::vec3(s.camera.up[0], s.camera.up[1], s.camera.up[2]);
+
+  m_cameraObject->getCameraDataObject().FieldOfView.SetValue(s.camera.fovY);
+  // camera->m_FovV = s.camera.fovY;
+
+  m_cameraObject->getCameraDataObject().ProjectionMode.SetValue(
+    (s.camera.projection == Serialize::Projection_PID::PERSPECTIVE) ? PERSPECTIVE : ORTHOGRAPHIC);
+  // camera->SetProjectionMode(s.camera.projection == Serialize::Projection_PID::PERSPECTIVE ? PERSPECTIVE :
+  // ORTHOGRAPHIC);
+
+  m_cameraObject->getCameraDataObject().OrthoScale.SetValue(s.camera.orthoScale);
+  // camera->m_OrthoScale = s.camera.orthoScale;
+
+  m_cameraObject->getCameraDataObject().Exposure.SetValue(s.camera.exposure);
+  // camera->m_Film.m_Exposure = s.camera.exposure;
+
+  m_cameraObject->getCameraDataObject().ApertureSize.SetValue(s.camera.aperture);
+  // camera->m_Aperture.m_Size = s.camera.aperture;
+
+  m_cameraObject->getCameraDataObject().FocalDistance.SetValue(s.camera.focalDistance);
+  // camera->m_Focus.m_FocalDistance = s.camera.focalDistance;
 
   // ASSUMES THIS IS ATTACHED TO m_viewerWindow->m_CCamera !!!
-  m_cameraDataObject->updatePropsFromCamera();
+  // TODO FIXME if we set EVERYTHING through props, then this is not needed.
+  m_cameraObject->updatePropsFromObject();
 }
 
 QPixmap
@@ -530,7 +564,7 @@ GLView3D::captureQimage()
 
   // fill gesture graphics with draw commands
   m_viewerWindow->update(m_viewerWindow->sceneView.viewport, m_viewerWindow->m_clock, m_viewerWindow->gesture);
-  m_viewerWindow->m_renderer->render(m_viewerWindow->m_CCamera);
+  m_viewerWindow->m_renderer->render(*m_viewerWindow->m_CCamera);
   // render and then clear out draw commands from gesture graphics
   m_viewerWindow->m_gestureRenderer->draw(
     m_viewerWindow->sceneView, &m_viewerWindow->m_selection, m_viewerWindow->gesture.graphics);

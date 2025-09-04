@@ -7,6 +7,7 @@
 #include "gesture/gesture.h"
 
 #include <vector>
+#include <memory>
 
 class AreaLightTool;
 class RenderSettings;
@@ -60,7 +61,7 @@ public:
 
   void updateCamera();
 
-  CCamera m_CCamera;
+  std::shared_ptr<CCamera> m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;
 
   Gesture gesture;
@@ -80,5 +81,4 @@ public:
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
 };

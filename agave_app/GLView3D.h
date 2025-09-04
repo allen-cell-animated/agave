@@ -12,7 +12,8 @@
 #include <QOpenGLWidget>
 #include <QTimer>
 
-class CameraDataObject;
+class AppearanceObject;
+class CameraObject;
 class CStatus;
 class ImageXYZC;
 class IRenderWindow;
@@ -39,7 +40,7 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  GLView3D(QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  GLView3D(QRenderSettings* qrs, RenderSettings* rs, Scene* scene, QWidget* parent = 0);
 
   /// Destructor.
   ~GLView3D();
@@ -65,9 +66,10 @@ public:
 
   void onNewImage(Scene* scene);
 
-  const CCamera& getCamera() { return m_viewerWindow->m_CCamera; }
+  const CCamera& getCamera() { return *m_viewerWindow->m_CCamera; }
   // tied to the above camera.  CCamera must outlive this:
-  CameraDataObject* getCameraDataObject() { return m_cameraDataObject; }
+  // CameraObject* getCameraDataObject() { return m_cameraObject; }
+  void setCameraObject(CameraObject* cameraObject);
 
   void fromViewerState(const Serialize::ViewerState& s);
 
@@ -110,7 +112,7 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
 private:
-  CameraDataObject* m_cameraDataObject;
+  CameraObject* m_cameraObject;
   QRenderSettings* m_qrendersettings;
 
   /// Rendering timer.
