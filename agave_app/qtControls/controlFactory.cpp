@@ -88,7 +88,6 @@ addRow(const ComboBoxUiInfo& info)
   for (int i = 0; i < prop->GetNumTags(); ++i) {
     comboBox->addItem(QString::fromStdString(prop->GetEnumTag(i)));
   }
-  auto* prop = static_cast<prtyInt8*>(info.GetProperty(0));
   comboBox->setCurrentIndex(prop->GetValue());
   auto conn = QObject::connect(
     comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
