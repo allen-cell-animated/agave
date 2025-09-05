@@ -90,7 +90,8 @@ jobs:
           - os: windows-latest
             artifact: agave-win
           # note macos-14 is arm64 and macos-13 is x86_64
-          - os: macos-15
+          # Tensorstore does not support universal builds yet
+          - os: macos-14
             artifact: agave-macos-arm64
           - os: macos-15-intel
             artifact: agave-macos-x86_64
