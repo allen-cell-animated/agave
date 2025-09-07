@@ -47,7 +47,8 @@ AreaLightObject::AreaLightObject()
   m_distanceUIInfo->singleStep = 1.0f;
   AddProperty(m_distanceUIInfo);
 
-  m_intensityUIInfo = new FloatSliderSpinnerUiInfo(&m_arealightDataObject.Intensity, "Light", "Intensity");
+  m_intensityUIInfo =
+    new ColorWithIntensityUiInfo(&m_arealightDataObject.Color, &m_arealightDataObject.Intensity, "Light", "Intensity");
   m_intensityUIInfo->SetToolTip("Set Intensity");
   m_intensityUIInfo->SetStatusTip("Set area light intensity");
   m_intensityUIInfo->min = 0.0f;
@@ -56,10 +57,10 @@ AreaLightObject::AreaLightObject()
   m_intensityUIInfo->singleStep = 1.0f;
   AddProperty(m_intensityUIInfo);
 
-  m_colorUIInfo = new ColorPickerUiInfo(&m_arealightDataObject.Color, "Light", "Color");
-  m_colorUIInfo->SetToolTip("Set Color");
-  m_colorUIInfo->SetStatusTip("Set area light color");
-  AddProperty(m_colorUIInfo);
+  //   m_colorUIInfo = new ColorPickerUiInfo(&m_arealightDataObject.Color, "Light", "Color");
+  //   m_colorUIInfo->SetToolTip("Set Color");
+  //   m_colorUIInfo->SetStatusTip("Set area light color");
+  //   AddProperty(m_colorUIInfo);
 
   // Add callbacks for property changes
   m_arealightDataObject.Theta.AddCallback(

@@ -60,6 +60,6 @@ private:
   FloatSliderSpinnerUiInfo* m_phiUIInfo = nullptr;
   FloatSliderSpinnerUiInfo* m_sizeUIInfo = nullptr;
   FloatSliderSpinnerUiInfo* m_distanceUIInfo = nullptr;
-  FloatSliderSpinnerUiInfo* m_intensityUIInfo = nullptr;
-  ColorPickerUiInfo* m_colorUIInfo = nullptr;
+  ColorWithIntensityUiInfo* m_intensityUIInfo = nullptr;
+  // ColorPickerUiInfo* m_colorUIInfo = nullptr;
 };
