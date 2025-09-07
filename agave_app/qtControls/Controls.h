@@ -245,6 +245,32 @@ private:
   QSlider m_slider;
 };
 
+class QColorWithIntensity : public QWidget
+{
+  Q_OBJECT
+public:
+  QColorWithIntensity(QColor color, float intensity = 1.0f, QWidget* parent = nullptr);
+
+  void setIntensity(float intensity);
+  void setColor(const QColor& color);
+  QColor getColor();
+  float getIntensity();
+
+  void setRange(double min, double max) { m_intensitySlider->setRange(min, max); }
+  void setDecimals(int decimals) { m_intensitySlider->setDecimals(decimals); }
+  void setSingleStep(double step) { m_intensitySlider->setSingleStep(step); }
+  void setNumTickMarks(int num) { m_intensitySlider->setNumTickMarks(num); }
+  void setSuffix(const QString& suffix) { m_intensitySlider->setSuffix(suffix); }
+
+signals:
+  void intensityChanged(float intensity);
+  void colorChanged(const QColor& color);
+
+private:
+  QNumericSlider* m_intensitySlider;
+  QColorPushButton* m_colorButton;
+};
+
 class AgaveFormLayout : public QGridLayout
 {
   Q_OBJECT

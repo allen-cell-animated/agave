@@ -127,8 +127,7 @@ addRow(const ColorWithIntensityUiInfo& info)
 {
   auto* propColor = static_cast<prtyColor*>(info.GetProperty(0));
   glm::vec4 c = propColor->GetValue();
-  QColor qc;
-  qc.setRgbF(c.r, c.g, c.b);
+  QColor qc(c.r, c.g, c.b);
 
   QColorWithIntensity* colorPicker = new QColorWithIntensity(qc);
   colorPicker->setStatusTip(QString::fromStdString(info.GetStatusTip()));
@@ -194,7 +193,9 @@ addRow(const ColorWithIntensityUiInfo& info)
     if (c != newvalue) {
       // Prevent recursive updates
       // slider->setLocalChangeNoUpdate(true);
-      qc.setRgbF(c.r, c.g, c.b);
+      qc.setRedF(c.r);
+      qc.setGreenF(c.g);
+      qc.setBlueF(c.b);
       colorPicker->setColor(qc);
       // slider->setLocalChangeNoUpdate(false);
     }
@@ -308,6 +309,8 @@ addGenericRow(const prtyPropertyUIInfo& info)
     return addRow(*checkBoxInfo);
   } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
     return addRow(*colorPickerInfo);
+  } else if (const auto* colorWithIntensityInfo = dynamic_cast<const ColorWithIntensityUiInfo*>(&info)) {
+    return addRow(*colorWithIntensityInfo);
   }
   return nullptr; // or throw an exception
 }
