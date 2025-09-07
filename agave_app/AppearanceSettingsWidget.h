@@ -121,8 +121,9 @@ private:
     QNumericSlider* m_phiSlider;
     QNumericSlider* m_sizeSlider;
     QNumericSlider* m_distSlider;
-    QNumericSlider* m_intensitySlider;
-    QColorPushButton* m_areaLightColorButton;
+    // QNumericSlider* m_intensitySlider;
+    // QColorPushButton* m_areaLightColorButton;
+    QColorWithIntensity* m_areaLightColor;
   } m_lt0gui;
 
   struct lt1

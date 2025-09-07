@@ -122,6 +122,95 @@ addRow(const FloatSliderSpinnerUiInfo& info)
   return slider;
 }
 
+QColorWithIntensity*
+addRow(const ColorWithIntensityUiInfo& info)
+{
+  auto* propColor = static_cast<prtyColor*>(info.GetProperty(0));
+  glm::vec4 c = propColor->GetValue();
+  QColor qc(c.r, c.g, c.b);
+
+  QColorWithIntensity* colorPicker = new QColorWithIntensity(qc);
+  colorPicker->setStatusTip(QString::fromStdString(info.GetStatusTip()));
+  colorPicker->setToolTip(QString::fromStdString(info.GetToolTip()));
+  // colorPicker->setRange(info.min, info.max);
+  // colorPicker->setDecimals(info.decimals);
+  // colorPicker->setSingleStep(info.singleStep);
+  // colorPicker->setNumTickMarks(info.numTickMarks);
+  // colorPicker->setSuffix(QString::fromStdString(info.suffix));
+
+  auto* prop = static_cast<prtyFloat*>(info.GetProperty(1));
+  colorPicker->setIntensity(prop->GetValue());
+  auto conn = QObject::connect(colorPicker, &QColorWithIntensity::intensityChanged, [colorPicker, prop](double value) {
+    prop->SetValue(value, true);
+  });
+
+  colorPicker->setColor(qc);
+  auto connColor =
+    QObject::connect(colorPicker, &QColorWithIntensity::colorChanged, [colorPicker, propColor](const QColor& value) {
+      glm::vec4 c;
+      c.r = value.redF();
+      c.g = value.greenF();
+      c.b = value.blueF();
+      propColor->SetValue(c, true);
+    });
+
+  // now add a callback to the property to update the control when the property changes
+
+  //	Note: right now, this will not create a circular update because
+  //	of the m_bLocalChangeNoUpdate flag.  This IS NOT true the other way
+  //	around.  If a control calls its "ValueChanged" then the property will
+  //	call all of its callback controls and one of them could have been the one
+  //	that originally updated the property value(s).  By checking the diff of
+  //	the values we can avoid a repetitive setting of the control's values.
+  prop->AddCallback(new prtyCallbackLambda([colorPicker](prtyProperty* i_pProperty, bool i_bDirty) {
+    // this is equivalent to QWidget::blockSignals(true);
+    // if (m_bLocalChangeNoUpdate)
+    //  return;
+    const float newvalue = (static_cast<prtyFloat*>(i_pProperty))->GetValue();
+    // m_bLocalChangeNoUpdate = true;
+    colorPicker->blockSignals(true);
+    if ((float)colorPicker->getIntensity() != newvalue) {
+      // Prevent recursive updates
+      // slider->setLocalChangeNoUpdate(true);
+      colorPicker->setIntensity(newvalue);
+      // slider->setLocalChangeNoUpdate(false);
+    }
+    // m_bLocalChangeNoUpdate = false;
+    colorPicker->blockSignals(false);
+  }));
+  propColor->AddCallback(new prtyCallbackLambda([colorPicker](prtyProperty* i_pProperty, bool i_bDirty) {
+    // this is equivalent to QWidget::blockSignals(true);
+    // if (m_bLocalChangeNoUpdate)
+    //  return;
+    const glm::vec4 newvalue = (static_cast<prtyColor*>(i_pProperty))->GetValue();
+    // m_bLocalChangeNoUpdate = true;
+    colorPicker->blockSignals(true);
+    QColor qc = colorPicker->getColor();
+    glm::vec4 c;
+    c.r = qc.redF();
+    c.g = qc.greenF();
+    c.b = qc.blueF();
+    if (c != newvalue) {
+      // Prevent recursive updates
+      // slider->setLocalChangeNoUpdate(true);
+      qc.setRedF(c.r);
+      qc.setGreenF(c.g);
+      qc.setBlueF(c.b);
+      colorPicker->setColor(qc);
+      // slider->setLocalChangeNoUpdate(false);
+    }
+    // m_bLocalChangeNoUpdate = false;
+    colorPicker->blockSignals(false);
+  }));
+
+  QObject::connect(colorPicker, &QColorWithIntensity::destroyed, [conn, connColor]() {
+    // Disconnect the signal when the color picker is destroyed
+    QObject::disconnect(conn);
+    QObject::disconnect(connColor);
+  });
+  return colorPicker;
+}
+
 QNumericSlider*
 addRow(const IntSliderSpinnerUiInfo& info)
 {
@@ -220,6 +309,8 @@ addGenericRow(const prtyPropertyUIInfo& info)
     return addRow(*checkBoxInfo);
   } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
     return addRow(*colorPickerInfo);
+  } else if (const auto* colorWithIntensityInfo = dynamic_cast<const ColorWithIntensityUiInfo*>(&info)) {
+    return addRow(*colorWithIntensityInfo);
   }
   return nullptr; // or throw an exception
 }

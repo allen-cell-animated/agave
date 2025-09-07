@@ -56,10 +56,10 @@ private:
   std::function<void()> m_dirtyCallback;
 
   // UI Info objects
-  FloatSliderSpinnerUiInfo* m_topIntensityUIInfo = nullptr;
-  ColorPickerUiInfo* m_topColorUIInfo = nullptr;
-  FloatSliderSpinnerUiInfo* m_middleIntensityUIInfo = nullptr;
-  ColorPickerUiInfo* m_middleColorUIInfo = nullptr;
-  FloatSliderSpinnerUiInfo* m_bottomIntensityUIInfo = nullptr;
-  ColorPickerUiInfo* m_bottomColorUIInfo = nullptr;
+  ColorWithIntensityUiInfo* m_topIntensityUIInfo = nullptr;
+  // ColorPickerUiInfo* m_topColorUIInfo = nullptr;
+  ColorWithIntensityUiInfo* m_middleIntensityUIInfo = nullptr;
+  // ColorPickerUiInfo* m_middleColorUIInfo = nullptr;
+  ColorWithIntensityUiInfo* m_bottomIntensityUIInfo = nullptr;
+  // ColorPickerUiInfo* m_bottomColorUIInfo = nullptr;
 };
