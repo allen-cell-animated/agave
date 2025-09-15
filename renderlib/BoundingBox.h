@@ -202,6 +202,78 @@ public:
     corners[7] = glm::vec3(m_MinP.x, m_MaxP.y, m_MaxP.z);
   }
 
+  // pass in two vertices of the edge (should be corners from GetCorners)
+  void GetEdgeTickMarkVertices(const glm::vec3& vertex1,
+                               const glm::vec3& vertex2,
+                               float maxNumTickMarks,
+                               float tickLength,
+                               std::vector<glm::vec3>& tickVertices) const
+  {
+    glm::vec3 extent = GetExtent();
+
+    // Calculate edge direction and length
+    glm::vec3 edgeVector = vertex2 - vertex1;
+    glm::vec3 edgeDirection = glm::normalize(edgeVector);
+
+    // Calculate tick direction perpendicular to the edge
+    // Choose the best perpendicular direction based on edge orientation
+    glm::vec3 tickDirection;
+
+    // Determine which axis the edge is primarily aligned with
+    glm::vec3 absEdgeDir = glm::abs(edgeDirection);
+
+    glm::vec3 center = GetCenter();
+    glm::vec3 edgeMidpoint = (vertex1 + vertex2) * 0.5f;
+    glm::vec3 toCenter = center - edgeMidpoint;
+
+    float tickSpacing = 1.0f;
+    if (absEdgeDir.x > absEdgeDir.y && absEdgeDir.x > absEdgeDir.z) {
+      // Edge is primarily along X axis
+      // Use Y or Z for tick direction, preferring the one that points outward from bbox center
+      if (glm::abs(toCenter.y) > glm::abs(toCenter.z)) {
+        tickDirection = glm::vec3(0, toCenter.y > 0 ? -1 : 1, 0); // Point away from center
+      } else {
+        tickDirection = glm::vec3(0, 0, toCenter.z > 0 ? -1 : 1); // Point away from center
+      }
+      tickSpacing = 1.0f / (extent.x * maxNumTickMarks);
+
+    } else if (absEdgeDir.y > absEdgeDir.z) {
+      // Edge is primarily along Y axis
+
+      if (glm::abs(toCenter.x) > glm::abs(toCenter.z)) {
+        tickDirection = glm::vec3(toCenter.x > 0 ? -1 : 1, 0, 0); // Point away from center
+      } else {
+        tickDirection = glm::vec3(0, 0, toCenter.z > 0 ? -1 : 1); // Point away from center
+      }
+      tickSpacing = 1.0f / (extent.y * maxNumTickMarks);
+    } else {
+      // Edge is primarily along Z axis
+
+      if (glm::abs(toCenter.x) > glm::abs(toCenter.y)) {
+        tickDirection = glm::vec3(toCenter.x > 0 ? -1 : 1, 0, 0); // Point away from center
+      } else {
+        tickDirection = glm::vec3(0, toCenter.y > 0 ? -1 : 1, 0); // Point away from center
+      }
+      tickSpacing = 1.0f / (extent.z * maxNumTickMarks);
+    }
+
+    // Draw tick marks along the edge
+    for (float t = 0.0f; t <= 1.0f; t += tickSpacing) {
+      if (t > 1.0f)
+        t = 1.0f;
+
+      // Calculate position along the edge
+      // TODO the 1-t here is to match up with the tickmarks in Utils.cpp createTickMarks
+      glm::vec3 edgePoint = vertex1 + (1.0f - t) * edgeVector;
+
+      // Calculate tick mark endpoints
+      glm::vec3 tickStart = edgePoint;
+      glm::vec3 tickEnd = edgePoint + tickDirection * tickLength;
+      tickVertices.push_back(tickStart);
+      tickVertices.push_back(tickEnd);
+    }
+  }
+
 #if 0
 	// Performs a line box intersection
 	bool Intersect(CRay& R, float* pMinT = NULL, float* pMaxT = NULL)
