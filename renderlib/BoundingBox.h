@@ -192,13 +192,13 @@ public:
 
   void GetCorners(std::array<glm::vec3, NUM_BBOX_CORNERS>& corners) const
   {
-    corners[0] = glm::vec3(m_MinP.x, m_MinP.y, m_MinP.z);
+    corners[0] = glm::vec3(m_MinP.x, m_MinP.y, m_MinP.z); // min corner
     corners[1] = glm::vec3(m_MaxP.x, m_MinP.y, m_MinP.z);
     corners[2] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MinP.z);
     corners[3] = glm::vec3(m_MinP.x, m_MaxP.y, m_MinP.z);
     corners[4] = glm::vec3(m_MinP.x, m_MinP.y, m_MaxP.z);
     corners[5] = glm::vec3(m_MaxP.x, m_MinP.y, m_MaxP.z);
-    corners[6] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MaxP.z);
+    corners[6] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MaxP.z); // max corner
     corners[7] = glm::vec3(m_MinP.x, m_MaxP.y, m_MaxP.z);
   }
 
