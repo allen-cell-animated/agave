@@ -51,16 +51,18 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
   glm::vec3 halfExtent = extent * 0.5f;
 
   // Calculate the 8 corners of the bounding box
-  std::array<glm::vec3, 8> corners = {
-    center + glm::vec3(-halfExtent.x, -halfExtent.y, -halfExtent.z), // 0: min corner
-    center + glm::vec3(halfExtent.x, -halfExtent.y, -halfExtent.z),  // 1
-    center + glm::vec3(halfExtent.x, halfExtent.y, -halfExtent.z),   // 2
-    center + glm::vec3(-halfExtent.x, halfExtent.y, -halfExtent.z),  // 3
-    center + glm::vec3(-halfExtent.x, -halfExtent.y, halfExtent.z),  // 4
-    center + glm::vec3(halfExtent.x, -halfExtent.y, halfExtent.z),   // 5
-    center + glm::vec3(halfExtent.x, halfExtent.y, halfExtent.z),    // 6: max corner
-    center + glm::vec3(-halfExtent.x, halfExtent.y, halfExtent.z)    // 7
-  };
+  std::array<glm::vec3, 8> corners;
+  bbox.GetCorners(corners);
+  //  = {
+  //   center + glm::vec3(-halfExtent.x, -halfExtent.y, -halfExtent.z), // 0: min corner
+  //   center + glm::vec3(halfExtent.x, -halfExtent.y, -halfExtent.z),  // 1
+  //   center + glm::vec3(halfExtent.x, halfExtent.y, -halfExtent.z),   // 2
+  //   center + glm::vec3(-halfExtent.x, halfExtent.y, -halfExtent.z),  // 3
+  //   center + glm::vec3(-halfExtent.x, -halfExtent.y, halfExtent.z),  // 4
+  //   center + glm::vec3(halfExtent.x, -halfExtent.y, halfExtent.z),   // 5
+  //   center + glm::vec3(halfExtent.x, halfExtent.y, halfExtent.z),    // 6: max corner
+  //   center + glm::vec3(-halfExtent.x, halfExtent.y, halfExtent.z)    // 7
+  // };
 
   // Make the edges go in a particular direction so that the tickmarks are lined up on both sides.
   // These edges are set up to go from negative to positive values of the corner coordinates.
