@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "Logging.h"
+#include "BoundingBox.h"
 #include "MathUtil.h"
 #include "glsl/GLFlatShader2D.h"
 #include "glsl/GLImageShader2DnoLut.h"
@@ -374,6 +375,28 @@ createTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
   const float tickSizeX = TICK_LENGTH / normPhysicalSize.x;
   const float tickSizeY = TICK_LENGTH / normPhysicalSize.y;
 
+  // generate tick mark vertices for each edge one edge at a time.
+  CBoundingBox bbox(glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+  std::array<glm::vec3, 8> corners;
+  bbox.GetCorners(corners);
+
+  std::vector<glm::vec3> tickVertices;
+  // loop over edges:
+  for (size_t i = 0; i < 12; ++i) {
+    bbox.GetEdgeTickMarkVertices(corners[CBoundingBox::EDGES_ARRAY[i].a],
+                                 corners[CBoundingBox::EDGES_ARRAY[i].b],
+                                 maxNumTickMarks,
+                                 TICK_LENGTH,
+                                 tickVertices);
+  }
+  for (const auto& v : tickVertices) {
+    vertices.push_back(v.x);
+    vertices.push_back(v.y);
+    vertices.push_back(v.z);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+#if 0
   const float tickSpacingX = 1.0f / (normPhysicalSize.x * maxNumTickMarks);
   for (float x = -1.0f; x <= 1.0f; x += tickSpacingX) {
     vertices.insert(vertices.end(), { x, 1.0f,  1.0f,  x, 1.0f + tickSizeY,  1.0f,
@@ -406,6 +429,7 @@ createTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
 
                                       1.0f,  1.0f,  z, 1.0f + tickSizeX,  1.0f,  z });
   }
+#endif
   return vertices;
 }
 
