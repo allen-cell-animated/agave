@@ -9,16 +9,10 @@
 #include <unordered_set>
 
 static const float s_lineThickness = 4.0f;
-// Edge represented canonically as {minIndex, maxIndex}
-struct Edge
-{
-  int a, b;
-  bool operator==(const Edge& o) const { return a == o.a && b == o.b; }
-};
 
 struct EdgeHash
 {
-  size_t operator()(const Edge& e) const { return (size_t(e.a) << 16) ^ size_t(e.b); }
+  size_t operator()(const CBoundingBox::Edge& e) const { return (size_t(e.a) << 16) ^ size_t(e.b); }
 };
 
 void
@@ -53,67 +47,21 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
   // Calculate the 8 corners of the bounding box
   std::array<glm::vec3, 8> corners;
   bbox.GetCorners(corners);
-  //  = {
-  //   center + glm::vec3(-halfExtent.x, -halfExtent.y, -halfExtent.z), // 0: min corner
-  //   center + glm::vec3(halfExtent.x, -halfExtent.y, -halfExtent.z),  // 1
-  //   center + glm::vec3(halfExtent.x, halfExtent.y, -halfExtent.z),   // 2
-  //   center + glm::vec3(-halfExtent.x, halfExtent.y, -halfExtent.z),  // 3
-  //   center + glm::vec3(-halfExtent.x, -halfExtent.y, halfExtent.z),  // 4
-  //   center + glm::vec3(halfExtent.x, -halfExtent.y, halfExtent.z),   // 5
-  //   center + glm::vec3(halfExtent.x, halfExtent.y, halfExtent.z),    // 6: max corner
-  //   center + glm::vec3(-halfExtent.x, halfExtent.y, halfExtent.z)    // 7
-  // };
 
-  // Make the edges go in a particular direction so that the tickmarks are lined up on both sides.
-  // These edges are set up to go from negative to positive values of the corner coordinates.
-  // The indices of the edge are indices into the corners array.
-  static const Edge edgesArray[12] = {
-    { 0, 1 }, { 1, 2 }, { 3, 2 }, { 0, 3 }, // bottom (-z) face
-    { 4, 5 }, { 5, 6 }, { 7, 6 }, { 4, 7 }, // top (+z) face
-    { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }  // vertical edges
-  };
-
-  // Corner coordinate indices of the 4 vertices of each face, in somewhat arbitrary order.
-  static const int faces[6][4] = {
-    { 0, 1, 2, 3 }, // bottom (-z)
-    { 4, 5, 6, 7 }, // top (+z)
-    { 0, 1, 5, 4 }, // front (-y)
-    { 2, 3, 7, 6 }, // back (+y)
-    { 0, 3, 7, 4 }, // left (-x)
-    { 1, 2, 6, 5 }  // right (+x)
-  };
-
-  // Face normals for each face
-  static const glm::vec3 faceNormals[6] = {
-    { 0, 0, -1 }, // bottom (-z)
-    { 0, 0, 1 },  // top (+z)
-    { 0, -1, 0 }, // front (-y)
-    { 0, 1, 0 },  // back (+y)
-    { -1, 0, 0 }, // left (-x)
-    { 1, 0, 0 }   // right (+x)
-  };
-
-  // Each edge belongs to 2 faces.  Set up an array of indices to the 2 face normals for each edge.
-  static const int edgeToFace[12][2] = {
-    { 0, 2 }, { 0, 5 }, { 0, 3 }, { 0, 4 }, // bottom (-z) face
-    { 1, 2 }, { 1, 5 }, { 1, 3 }, { 1, 4 }, // top (+z) face
-    { 2, 4 }, { 2, 5 }, { 3, 5 }, { 3, 4 }  // vertical edges
-  };
-
-  std::vector<Edge> frontFacingEdges;
+  std::vector<CBoundingBox::Edge> frontFacingEdges;
 
   // loop over all edges
   for (int i = 0; i < 12; ++i) {
     // loop over the two faces of each edge:
     for (int j = 0; j < 2; ++j) {
-      int faceIndex = edgeToFace[i][j];
-      glm::vec3 faceNormal = faceNormals[faceIndex];
-      auto edge = edgesArray[i];
+      int faceIndex = CBoundingBox::EDGE_TO_FACE[i][j];
+      glm::vec3 faceNormal = CBoundingBox::FACE_NORMALS[faceIndex];
+      auto edge = CBoundingBox::EDGES_ARRAY[i];
       // Vector from face to camera (pick either edge vertex for this, or maybe even the midpoint)
       glm::vec3 toCam = scene.camera.m_From - corners[edge.a];
       // If normal points towards camera, it's front-facing
       if (glm::dot(faceNormal, toCam) > 0) {
-        frontFacingEdges.push_back(edgesArray[i]);
+        frontFacingEdges.push_back(edge);
         // Do not check the other face; we don't want to add it twice.
         break;
       }
