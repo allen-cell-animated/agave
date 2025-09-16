@@ -6,6 +6,7 @@
 
 #include <array>
 #include <sstream>
+#include <vector>
 
 #define NUM_BBOX_CORNERS 8
 
