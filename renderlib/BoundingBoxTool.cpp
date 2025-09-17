@@ -78,8 +78,8 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
 
   const glm::vec3 volumePhysicalSize = theScene->m_volume->getPhysicalDimensions();
   float maxPhysicalDim = std::max(volumePhysicalSize.x, std::max(volumePhysicalSize.y, volumePhysicalSize.z));
-  const float tickMarkPhysicalLength = computePhysicalScaleBarSize(maxPhysicalDim);
-  const float maxNumTickMarks = maxPhysicalDim / tickMarkPhysicalLength;
+  const float tickMarkPhysicalSpacing = computePhysicalScaleBarSize(maxPhysicalDim);
+  const float maxNumTickMarks = maxPhysicalDim / tickMarkPhysicalSpacing;
 
   for (auto edge : frontFacingEdges) {
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[edge.a], color, opacity, code),
@@ -90,7 +90,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
 
       // Length of tick mark lines as a fraction of the smallest dimension
       float minDim = glm::min(glm::min(extent.x, extent.y), extent.z);
-      float tickLength = minDim * 0.05f; // 5% of smallest dimension
+      float tickLength = minDim * 0.025f; // 5% of smallest dimension
 
       std::vector<glm::vec3> tickVertices;
       bbox.GetEdgeTickMarkVertices(corners[edge.a], corners[edge.b], maxNumTickMarks, tickLength, tickVertices);
