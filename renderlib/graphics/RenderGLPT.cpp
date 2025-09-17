@@ -392,37 +392,8 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_toneMapShader->release();
 
-  // draw front of bounding box
-#if 0
-  if (m_scene->m_material.m_showBoundingBox) {
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  // front of bounding box is now drawn by BoundingBoxTool
 
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(1.0, 1.0);
-    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix, glm::vec4(1.0, 1.0, 1.0, 1.0));
-    glPolygonOffset(0.0, 0.0);
-    glEnable(GL_CULL_FACE);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_FALSE);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_BLEND);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    }
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-  }
-#endif
   glDisable(GL_BLEND);
 
   // LOG_DEBUG << "RETURN FROM RENDER";
