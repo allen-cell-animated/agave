@@ -266,7 +266,7 @@ public:
 	bool IntersectP(const CRay& ray, float* hitt0 = NULL, float* hitt1 = NULL)
 	{
 		float t0 = ray.m_MinT, t1 = ray.m_MaxT;
-		
+
 		for (int i = 0; i < 3; ++i)
 		{
 			// Update interval for _i_th bounding box slab
