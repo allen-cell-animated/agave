@@ -305,10 +305,10 @@ GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
 
   // relative to min/max for each channel
   intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
-  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
-  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
-  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
-  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
+  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x * g_opacity[0];
+  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x * g_opacity[1];
+  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x * g_opacity[2];
+  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x * g_opacity[3];
 
   // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
@@ -875,7 +875,7 @@ FreePathRM(inout Ray R, inout uvec2 seed)
       return false;
 
     intensity = GetNormalizedIntensityMax4ch(Ps, ch);
-    SigmaT = gDensityScale * GetOpacity(intensity, ch);
+    SigmaT = gDensityScale * intensity;//GetOpacity(intensity, ch);
 
     Sum += SigmaT * gStepSizeShadow;
     MinT += gStepSizeShadow;
@@ -1041,7 +1041,7 @@ SampleDistanceRM(inout Ray R, inout uvec2 seed, out vec3 Ps, out float intensity
       return false;
 
     intensity = GetNormalizedIntensityMax4ch(Ps, ch);
-    SigmaT = gDensityScale * GetOpacity(intensity, ch);
+    SigmaT = gDensityScale * intensity;//GetOpacity(intensity, ch);
     // SigmaT = gDensityScale * GetBlendedOpacity(volumedata, GetIntensity4ch(Ps, volumedata));
 
     Sum += SigmaT * gStepSize;
