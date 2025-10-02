@@ -28,7 +28,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: 6.8.3
+          version: 6.9.3
           modules: qtwebsockets qtimageformats
       - name: macos install deps
         if: contains(matrix.os, 'macos')
@@ -45,7 +45,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          export Qt6_DIR=${{ runner.workspace }}/Qt/6.8.3/macos
+          export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
