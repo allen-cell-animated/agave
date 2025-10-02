@@ -38,8 +38,8 @@ FetchContent_Declare(
 	tensorstore
         # URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.71.tar.gz"
         # URL_HASH SHA256=997ae179a3e6203c745afe9dfd5a1594ce5cf1738ebfafd3031f5f23211929f2
-        URL "https://github.com/google/tensorstore/tarball/9e1feb7215ee876d3b62b8d84c03c9c2a1eec0c2"
-        URL_HASH SHA256=baeb9e1eafe1d8244d37c614711a8125467404801274e35979ba2896c8abdf29
+        URL "https://github.com/google/tensorstore/tarball/1461a5247186a84f5be7b632309ca0f5bf05a55e"
+        URL_HASH SHA256=1ac9ac2c3a24d0c25f049d289968b4e3944a798a9466b84d80a964b74a2d018a
 )
 
 # Additional FetchContent_Declare calls as needed...
