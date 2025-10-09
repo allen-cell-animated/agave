@@ -64,12 +64,12 @@ list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt6_DIR})
 
 if(APPLE)
   # homebrew
-  list(APPEND CMAKE_LIBRARY_PATH /usr/local/lib /usr/local/opt/icu4c/lib)
+  #list(APPEND CMAKE_LIBRARY_PATH /usr/local/lib /usr/local/opt/icu4c/lib)
   list(APPEND CMAKE_INCLUDE_PATH /usr/local/include)
 
   # set(CMAKE_MACOSX_RPATH TRUE)
-  add_compile_options("-I/usr/local/opt/icu4c/include")
-  add_link_options("-L/usr/local/opt/icu4c/lib")
+  #add_compile_options("-I/usr/local/opt/icu4c/include")
+  #add_link_options("-L/usr/local/opt/icu4c/lib")
 endif(APPLE)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml Svg REQUIRED)
