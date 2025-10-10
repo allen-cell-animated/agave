@@ -159,7 +159,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: ./build/install/agave-install
+          path: ./build/install/Release/agave-install
       - name: windows install ninja and nasm
         if: matrix.os == 'windows-latest'
         run: |
