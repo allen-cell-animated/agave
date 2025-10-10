@@ -154,12 +154,16 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
-      - name: windows install ninja, nasm, nsis
+      - name: windows install ninja and nasm
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
           choco install nasm
-          winget install NSIS.NSIS --silent
+      - name: windows install nsis
+        if: matrix.os == 'windows-latest'
+        uses: repolevedavaj/install-nsis@v1.1.0
+        with:
+          nsis-version: "3.10"
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         shell: cmd
