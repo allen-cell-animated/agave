@@ -154,6 +154,12 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
+      - name: linux upload artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ./build/install/agave-install
       - name: windows install ninja and nasm
         if: matrix.os == 'windows-latest'
         run: |
