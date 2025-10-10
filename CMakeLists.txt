@@ -58,6 +58,7 @@ elseif(APPLE)
 else()
   set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif(WIN32)
 
 list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt6_DIR})
@@ -381,4 +382,9 @@ else() # Linux
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
     DESTINATION ${INSTALLDIR}/assets/fonts/
   )
+  set(CPACK_GENERATOR "DEB")
+  set(CPACK_DEBIAN_PACKAGE_NAME "agave")
+  set(CPACK_PACKAGE_CONTACT "Allen Institute for Cell Science")
+
+  include(CPack)
 endif(WIN32)
