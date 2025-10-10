@@ -347,7 +347,6 @@ else() # Linux
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/HELP.txt
-    $<TARGET_FILE:libCZI>
     $<TARGET_FILE:Qt6::Widgets>
     $<TARGET_FILE:Qt6::Core>
     $<TARGET_FILE:Qt6::Gui>
@@ -360,6 +359,7 @@ else() # Linux
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
   )
+  install(TARGETS libCZI LIBRARY DESTINATION ${INSTALLDIR})
   install(FILES
     $<TARGET_FILE:Qt6::QXcbIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
