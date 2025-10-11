@@ -22,9 +22,6 @@ target_sources(renderlib PRIVATE
 # libCZI dependency for renderlib
 # add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
-# if(WIN32)
-#   set(LIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3 ON)
-# endif(WIN32)
 set(LIBCZI_BUILD_UNITTESTS OFF)
 set(LIBCZI_BUILD_DYNLIB ON)
 set(LIBCZI_BUILD_CZICMD OFF)
