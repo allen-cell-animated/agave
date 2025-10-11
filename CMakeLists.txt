@@ -65,7 +65,7 @@ list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt6_DIR})
 
 if(APPLE)
   # homebrew
-  list(APPEND CMAKE_INCLUDE_PATH /usr/local/include)
+  # list(APPEND CMAKE_INCLUDE_PATH /usr/local/include)
 endif(APPLE)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml Svg REQUIRED)
