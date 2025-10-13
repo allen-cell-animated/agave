@@ -62,7 +62,8 @@ public:
   enum PointShape
   {
     CircleShape,
-    RectangleShape
+    RectangleShape,
+    VerticalBarShape
   };
 
   enum LockType
@@ -87,6 +88,13 @@ public:
     CurveConnection
   };
 
+  enum EditMode
+  {
+    NoEdit,     // no editing at all
+    MinMaxEdit, // only 2 points and their heights don't matter
+    FullEdit    // full editing of all points
+  };
+
   HoverPoints(QWidget* widget, PointShape shape);
 
   bool eventFilter(QObject* object, QEvent* event) override;
@@ -102,6 +110,9 @@ public:
   QSizeF pointSize() const { return m_pointSize; }
   void setPointSize(const QSizeF& size) { m_pointSize = size; }
 
+  PointShape pointShape() const { return m_shape; }
+  void setPointShape(PointShape shape) { m_shape = shape; }
+
   SortType sortType() const { return m_sortType; }
   void setSortType(SortType sortType) { m_sortType = sortType; }
 
@@ -114,8 +125,8 @@ public:
 
   void setPointLock(int pos, LockType lock) { m_locks[pos] = lock; }
 
-  void setEditable(bool editable) { m_editable = editable; }
-  bool editable() const { return m_editable; }
+  void setEditMode(EditMode editMode) { m_editMode = editMode; }
+  EditMode editMode() const { return m_editMode; }
 
 public slots:
   void setEnabled(bool enabled);
@@ -147,7 +158,7 @@ private:
 
   QSizeF m_pointSize;
   int m_currentIndex;
-  bool m_editable;
+  EditMode m_editMode;
   bool m_enabled;
 
   QHash<int, int> m_fingerPointMapping;
@@ -180,7 +191,7 @@ HoverPoints::normalizePoint(const QPointF& p) const
   QPointF pout = p;
   pout.setX(p.x() / (float)(m_widget->size().width() - 1));
   // y = 1.0 is at top of window, which is pixel height 0
-  pout.setY(1.0f - p.y() / (float)(m_widget->size().height()-1));
+  pout.setY(1.0f - p.y() / (float)(m_widget->size().height() - 1));
   return pout;
 }
 

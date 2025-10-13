@@ -52,6 +52,7 @@
 #define GRADIENTS_H
 
 #include "AppScene.h"
+#include "Controls.h"
 #include "Histogram.h"
 
 #include <QPushButton>
@@ -75,7 +76,7 @@ public:
 
   void setGradientStops(const QGradientStops& stops);
 
-  void setEditable(bool editable);
+  void setEditMode(GradientEditMode gradientEditMode);
 
   void paintEvent(QPaintEvent* e) override;
 
@@ -109,7 +110,7 @@ public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setControlPoints(const std::vector<LutControlPoint>& points);
-  void setEditable(bool editable) { m_alpha_shade->setEditable(editable); }
+  void setEditMode(GradientEditMode gradientEditMode) { m_alpha_shade->setEditMode(gradientEditMode); }
 public slots:
   void pointsUpdated();
 
@@ -148,6 +149,15 @@ private:
 
   // owned externally, passed in via ctor
   GradientData* m_gradientData;
+
+  QIntSlider* minu16Slider = nullptr;
+  QIntSlider* maxu16Slider = nullptr;
+  QNumericSlider* windowSlider = nullptr;
+  QNumericSlider* levelSlider = nullptr;
+  QNumericSlider* isovalueSlider = nullptr;
+  QNumericSlider* isorangeSlider = nullptr;
+  QNumericSlider* pctLowSlider = nullptr;
+  QNumericSlider* pctHighSlider = nullptr;
 };
 
 #endif // GRADIENTS_H

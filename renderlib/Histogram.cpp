@@ -553,3 +553,30 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
       return generate_fullRange(length);
   }
 }
+
+void
+Histogram::computePercentile(uint16_t intensity, float& percentile) const
+{
+  // given an intensity value, compute the percentile of pixels in the histogram less than or equal to that value.
+  if (intensity <= _dataMin) {
+    percentile = 0.0f;
+    return;
+  }
+  if (intensity >= _dataMax) {
+    percentile = 1.0f;
+    return;
+  }
+
+  // Find the bin corresponding to the intensity value
+  size_t bin = 0;
+  while (bin < _bins.size() && _bins[bin] < intensity) {
+    ++bin;
+  }
+
+  // Compute the percentile based on the cumulative counts
+  if (bin > 0) {
+    percentile = (float)_ccounts[bin - 1] / (float)_pixelCount;
+  } else {
+    percentile = 0.0f;
+  }
+}

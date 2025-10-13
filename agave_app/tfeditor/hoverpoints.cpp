@@ -70,7 +70,7 @@ HoverPoints::HoverPoints(QWidget* widget, PointShape shape)
   m_pointBrush = QBrush(QColor(191, 191, 191, 127));
   m_pointSize = QSize(11, 11);
   m_currentIndex = -1;
-  m_editable = true;
+  m_editMode = FullEdit;
   m_enabled = true;
 
   connect(this, SIGNAL(pointsChanged(QPolygonF)), m_widget, SLOT(update()));
@@ -100,11 +100,15 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
         int index = -1;
         for (int i = 0; i < m_points.size(); ++i) {
           QPainterPath path;
-          if (m_shape == CircleShape)
+          if (m_shape == CircleShape) {
             path.addEllipse(pointBoundingRect(i));
-          else
+          } else if (m_shape == RectangleShape) {
             path.addRect(pointBoundingRect(i));
-
+          } else if (m_shape == VerticalBarShape) {
+            // make the height of the rectangle the full height of the widget
+            QRectF r = pointBoundingRect(i);
+            path.addRect(QRectF(r.x(), 0, r.width(), m_widget->height()));
+          }
           if (path.contains(clickPos)) {
             index = i;
             break;
@@ -113,39 +117,49 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
 
         if (me->button() == Qt::LeftButton) {
           if (index == -1) {
-            if (!m_editable)
+            if (m_editMode == NoEdit) {
               return false;
-            int pos = 0;
-            // Insert sort for x or y
-            if (m_sortType == XSort) {
-              for (int i = 0; i < m_points.size(); ++i) {
-                QPointF p = pointInPixels(i);
-                if (p.x() > clickPos.x()) {
-                  pos = i;
-                  break;
-                }
-              }
-            } else if (m_sortType == YSort) {
-              for (int i = 0; i < m_points.size(); ++i) {
-                QPointF p = pointInPixels(i);
-                if (p.y() > clickPos.y()) {
-                  pos = i;
-                  break;
-                }
-              }
             }
 
-            m_points.insert(pos, normalizePoint(clickPos));
-            m_locks.insert(pos, 0);
-            m_currentIndex = pos;
-            firePointChange();
+            // for minmaxedit, clicking should never add a point and should only do something if a preexisting point was
+            // clicked on.
+            if (m_editMode == MinMaxEdit && m_points.size() >= 2) {
+              return false;
+            }
+
+            if (m_editMode == FullEdit) {
+              int pos = 0;
+              // Insert sort for x or y
+              if (m_sortType == XSort) {
+                for (int i = 0; i < m_points.size(); ++i) {
+                  QPointF p = pointInPixels(i);
+                  if (p.x() > clickPos.x()) {
+                    pos = i;
+                    break;
+                  }
+                }
+              } else if (m_sortType == YSort) {
+                for (int i = 0; i < m_points.size(); ++i) {
+                  QPointF p = pointInPixels(i);
+                  if (p.y() > clickPos.y()) {
+                    pos = i;
+                    break;
+                  }
+                }
+              }
+
+              m_points.insert(pos, normalizePoint(clickPos));
+              m_locks.insert(pos, 0);
+              m_currentIndex = pos;
+              firePointChange();
+            }
           } else {
             m_currentIndex = index;
           }
           return true;
 
         } else if (me->button() == Qt::RightButton) {
-          if (index >= 0 && m_editable) {
+          if (index >= 0 && m_editMode == FullEdit) {
             if (m_locks[index] == 0) {
               m_locks.remove(index);
               m_points.remove(index);
@@ -164,11 +178,14 @@ HoverPoints::eventFilter(QObject* object, QEvent* event)
         break;
 
       case QEvent::MouseMove:
-        if (!m_fingerPointMapping.isEmpty())
+        if (!m_fingerPointMapping.isEmpty()) {
           return true;
-        if (m_editable && m_currentIndex >= 0)
+        }
+        if (m_editMode != NoEdit && m_currentIndex >= 0) {
           movePoint(m_currentIndex, ((QMouseEvent*)event)->pos());
+        }
         break;
+
       case QEvent::TouchBegin:
       case QEvent::TouchUpdate: {
         const QTouchEvent* const touchEvent = static_cast<const QTouchEvent*>(event);
@@ -309,10 +326,19 @@ HoverPoints::paintPoints()
 
   for (int i = 0; i < m_points.size(); ++i) {
     QRectF bounds = pointBoundingRect(i);
-    if (m_shape == CircleShape)
+    if (m_shape == CircleShape) {
       p.drawEllipse(bounds);
-    else
+    } else if (m_shape == VerticalBarShape) {
+      // draw a vertical dashed line
+      QPen dashedPen = m_pointPen;
+      dashedPen.setStyle(Qt::DashLine);
+      p.setPen(dashedPen);
+      p.drawLine(QPointF(bounds.x() + bounds.width() / 2, 0),
+                 QPointF(bounds.x() + bounds.width() / 2, m_widget->height()));
+      // p.drawRect(QRectF(bounds.x(), 0, bounds.width(), m_widget->height()));
+    } else { // RectangleShape
       p.drawRect(bounds);
+    }
   }
 }
 
