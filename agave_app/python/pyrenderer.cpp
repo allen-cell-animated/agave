@@ -124,6 +124,11 @@ OffscreenRenderer::render()
   scalebar.clear();
   scalebar.draw(sceneView, m_myVolumeData.m_gesture);
 
+  m_fbo->bind();
+  clearFramebuffer(sceneView.scene);
+  m_myVolumeData.m_gestureRenderer.drawUnderlay(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
+  m_fbo->release();
+
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
 

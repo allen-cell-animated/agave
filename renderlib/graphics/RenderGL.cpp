@@ -101,7 +101,7 @@ RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
   int vh = fbo->height();
   glViewport(0, 0, vw, vh);
 
-  doClear();
+  // doClear();
   if (haveScene) {
     drawSceneObjects(camera);
   }
@@ -141,6 +141,7 @@ RenderGL::drawSceneObjects(const CCamera& camera)
   camera.getViewMatrix(viewMatrix);
 
   if (m_scene->m_material.m_showBoundingBox) {
+#if 0
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glm::vec4 bboxColor(m_scene->m_material.m_boundingBoxColor[0],
@@ -152,6 +153,7 @@ RenderGL::drawSceneObjects(const CCamera& camera)
       m_boundingBoxDrawable->updateTickMarks(scales, maxPhysicalDim);
       m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
     }
+#endif
   }
 
   m_image3d->render(camera, m_scene, m_renderSettings);
