@@ -377,13 +377,15 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
   //        fully user configurable...
   //
   // Configure command lists
-  void (*pipelineConfig[3])(SceneView&, Gesture::Graphics&, IGuiShader* shader);
+  void (*pipelineConfig[4])(SceneView&, Gesture::Graphics&, IGuiShader* shader);
   // Step 1: we draw any command that is depth-composited with the scene
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dDepthTested)] =
     Pipeline::configure_3dDepthTested;
   // Step 2: we draw any command that is not depth composited but is otherwise using
   //         the same perspective projection
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dStacked)] = Pipeline::configure_3dStacked;
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dStackedUnderlay)] =
+    Pipeline::configure_3dStacked;
   // Step 3: we draw anything that is just an overlay in screen space. Most of the UI
   //         elements go here.
   pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k2dScreen)] = Pipeline::configure_2dScreen;
@@ -415,7 +417,12 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
     auto drawGesture = [&](bool display) {
       shader->configure(display, this->glTextureId);
 
-      for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
+      std::array<int, 3> sequenceOrder = {
+        (int)Gesture::Graphics::CommandSequence::k3dDepthTested,
+        (int)Gesture::Graphics::CommandSequence::k3dStacked,
+        (int)Gesture::Graphics::CommandSequence::k2dScreen,
+      };
+      for (int sequence : sequenceOrder) {
         if (!graphics.commands[sequence].empty()) {
           pipelineConfig[sequence](sceneView, graphics, shader.get());
 
@@ -454,6 +461,196 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
             glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
             check_gl("drawarrays");
           }
+        }
+      }
+
+      shader->cleanup();
+
+      if (!graphics.stripRanges.empty()) {
+        shaderLines->configure(display, this->glTextureId);
+        GLint currentVertexArray;
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArray);
+        glBindVertexArray(thickLinesVertexArray);
+        check_gl("bind vertex array for thicklines");
+        for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
+          pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
+
+          // now let's draw some strips, using stripRanges
+          for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
+            if ((int)graphics.stripProjections[i] != sequence) {
+              continue;
+            }
+
+            const glm::ivec2& range = graphics.stripRanges[i];
+            const float thickness = graphics.stripThicknesses[i];
+
+            // we are drawing N-1 line segments, but the number of elements in the array is N+2
+            // see GLThickLines for comments explaining the data layout and draw strategy
+            GLsizei N = (GLsizei)(range.y - range.x) - 2;
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer->texture());
+            glUniform1i(shaderLines->m_loc_stripVerts, 2);
+            glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
+            glUniform1f(shaderLines->m_loc_thickness, thickness);
+            glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
+            check_gl("set strip uniforms");
+            glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
+            check_gl("thicklines drawarrays");
+          }
+        }
+        shaderLines->cleanup();
+        glBindVertexArray(currentVertexArray);
+      }
+      check_gl("disablevertexattribarray");
+    };
+
+    drawGesture(/*display*/ true);
+
+    // The last thing we draw is selection codes for next frame. This allows us
+    // to know what is under the pointer cursor.
+    if (selection) {
+      drawGestureCodes(*selection, sceneView.viewport, [&]() { drawGesture(/*display*/ false); });
+    }
+
+    glBindVertexArray(0);
+  }
+
+  // Restore state
+  glLineWidth(lineWidth);
+  check_gl("linewidth");
+  glPointSize(pointSize);
+  check_gl("pointsize");
+  if (depthTest) {
+    glEnable(GL_DEPTH_TEST);
+  } else {
+    glDisable(GL_DEPTH_TEST);
+  }
+  check_gl("toggle depth test");
+
+  graphics.clearCommands();
+}
+
+void
+GestureRendererGL::drawUnderlay(SceneView& sceneView, SelectionBuffer* selection, Gesture::Graphics& graphics)
+{
+  // Gesture draw spans across the entire window and it is not restricted to a single
+  // viewport.
+
+  if (graphics.verts.empty() && graphics.stripVerts.empty()) {
+    return;
+  }
+
+  // lazy init
+  if (!shader.get()) {
+    shader.reset(new GLGuiShader());
+  }
+  if (!shaderLines.get()) {
+    shaderLines.reset(new GLThickLinesShader());
+  }
+  if (!font.get()) {
+    font.reset(new FontGL());
+    font->load(graphics.font);
+
+    // Currently gesture.graphics only supports one global texture for all draw commands.
+    // This is safe for now because the font texture is the only one needed.
+    // In future, if e.g. tool buttons need texture images, then we have to
+    // attach the texture id with the draw command.
+    glTextureId = font->getTextureID();
+  }
+  if (!vertex_buffer.get()) {
+    vertex_buffer.reset(new ScopedGlVertexBuffer());
+    vertex_buffer->create();
+  }
+  if (!texture_buffer.get()) {
+    texture_buffer.reset(new ScopedGlTextureBuffer());
+    texture_buffer->create();
+  }
+  if (thickLinesVertexArray == 0) {
+    glGenVertexArrays(1, &thickLinesVertexArray);
+  }
+
+  // YAGNI: With a small effort we could create dynamic passes that are
+  //        fully user configurable...
+  //
+  // Configure command lists
+  void (*pipelineConfig[4])(SceneView&, Gesture::Graphics&, IGuiShader* shader);
+  // Step 1: we draw any command that is depth-composited with the scene
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dDepthTested)] =
+    Pipeline::configure_3dDepthTested;
+  // Step 2: we draw any command that is not depth composited but is otherwise using
+  //         the same perspective projection
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dStacked)] = Pipeline::configure_3dStacked;
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k3dStackedUnderlay)] =
+    Pipeline::configure_3dStacked;
+  // Step 3: we draw anything that is just an overlay in screen space. Most of the UI
+  //         elements go here.
+  pipelineConfig[static_cast<int>(Gesture::Graphics::CommandSequence::k2dScreen)] = Pipeline::configure_2dScreen;
+
+  // Backup state
+  float lineWidth;
+  glGetFloatv(GL_LINE_WIDTH, &lineWidth);
+  check_gl("get line width");
+  float pointSize;
+  glGetFloatv(GL_POINT_SIZE, &pointSize);
+  check_gl("get point size");
+  bool depthTest = glIsEnabled(GL_DEPTH_TEST);
+  check_gl("is depth test enabled");
+
+  glEnable(GL_CULL_FACE);
+
+  // Draw UI and viewport manipulators
+  {
+    vertex_buffer->updateDataAndBind(graphics.verts.data(),
+                                     graphics.verts.size() * sizeof(Gesture::Graphics::VertsCode));
+
+    // buffer containing all the strip vertices
+    texture_buffer->updateDataAndBind(graphics.stripVerts.data(),
+                                      graphics.stripVerts.size() * sizeof(Gesture::Graphics::VertsCode));
+
+    // Prepare a lambda to draw the Gesture commands. We'll run the lambda twice, once to
+    // draw the GUI and once to draw the selection buffer data.
+    // (display var is for draw vs pick)
+    auto drawGesture = [&](bool display) {
+      shader->configure(display, this->glTextureId);
+
+      int sequence = (int)Gesture::Graphics::CommandSequence::k3dStackedUnderlay;
+      if (!graphics.commands[sequence].empty()) {
+        pipelineConfig[sequence](sceneView, graphics, shader.get());
+
+        // YAGNI: Commands could be coalesced, setting state could be avoided
+        //        if not changing... For now it seems we can draw at over 2000 Hz
+        //        and no further optimization is required.
+        for (Gesture::Graphics::CommandRange cmdr : graphics.commands[sequence]) {
+          Gesture::Graphics::Command& cmd = cmdr.command;
+          if (cmdr.end == -1)
+            cmdr.end = graphics.verts.size();
+          if (cmdr.begin >= cmdr.end)
+            continue;
+
+          if (cmd.command == Gesture::Graphics::PrimitiveType::kLines) {
+            glLineWidth(cmd.thickness);
+            check_gl("linewidth");
+          }
+          if (cmd.command == Gesture::Graphics::PrimitiveType::kPoints) {
+            glPointSize(cmd.thickness);
+            check_gl("pointsize");
+          }
+          GLenum mode = GL_TRIANGLES;
+          switch (cmd.command) {
+            case Gesture::Graphics::PrimitiveType::kLines:
+              mode = GL_LINES;
+              break;
+            case Gesture::Graphics::PrimitiveType::kPoints:
+              mode = GL_POINTS;
+              break;
+            case Gesture::Graphics::PrimitiveType::kTriangles:
+              mode = GL_TRIANGLES;
+              break;
+            default:
+              assert(false && "unsupported primitive type");
+          }
+          glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
+          check_gl("drawarrays");
         }
       }
 

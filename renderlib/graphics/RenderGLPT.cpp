@@ -354,6 +354,7 @@ RenderGLPT::doRender(const CCamera& camera)
   glEnable(GL_BLEND);
   // draw back of bounding box
   if (m_scene->m_material.m_showBoundingBox) {
+#if 0
     glEnable(GL_DEPTH_TEST);
 
     glDepthMask(GL_TRUE);
@@ -378,6 +379,7 @@ RenderGLPT::doRender(const CCamera& camera)
     }
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+#endif
   }
 
   glActiveTexture(GL_TEXTURE0);

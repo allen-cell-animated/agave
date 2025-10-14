@@ -103,7 +103,10 @@ public:
   std::unique_ptr<FontGL> font;
 
   // Gesture draw, called once per window update (frame) when the GUI draw commands
-  // had been described in full.
+  // had been described in full.  This is drawn BEFORE the main scene rendering.
+  void drawUnderlay(SceneView& sceneView, SelectionBuffer* selection, Gesture::Graphics& graphics);
+  // Gesture draw, called once per window update (frame) when the GUI draw commands
+  // had been described in full.  This is drawn AFTER the main scene rendering.
   void draw(struct SceneView& sceneView, struct SelectionBuffer* selection, Gesture::Graphics& graphics);
 
   // Pick a GUI element using the cursor position in Input.

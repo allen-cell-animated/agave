@@ -268,6 +268,9 @@ ViewerWindow::redraw()
   // fill gesture graphics with draw commands
   update(sceneView.viewport, m_clock, gesture);
 
+  // render and then clear out draw commands from gesture graphics
+  m_gestureRenderer->drawUnderlay(sceneView, &m_selection, gesture.graphics);
+
   // main scene rendering
   m_renderer->render(sceneView.camera);
 
