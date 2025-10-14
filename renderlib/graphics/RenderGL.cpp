@@ -166,7 +166,9 @@ RenderGL::render(const CCamera& camera)
 
   glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
   // Render image
-  doClear();
+  //  doClear();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   drawSceneObjects(camera);
 

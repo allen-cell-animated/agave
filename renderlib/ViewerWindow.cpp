@@ -268,10 +268,26 @@ ViewerWindow::redraw()
   // fill gesture graphics with draw commands
   update(sceneView.viewport, m_clock, gesture);
 
+  // ready to start drawing; clear our main framebuffer
+  if (sceneView.scene) {
+    glClearColor(sceneView.scene->m_material.m_backgroundColor[0],
+                 sceneView.scene->m_material.m_backgroundColor[1],
+                 sceneView.scene->m_material.m_backgroundColor[2],
+                 0.0);
+  } else {
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+  }
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glViewport(0, 0, (GLsizei)(sceneView.viewport.region.upper.x), (GLsizei)(sceneView.viewport.region.upper.y));
+
   // render and then clear out draw commands from gesture graphics
   m_gestureRenderer->drawUnderlay(sceneView, &m_selection, gesture.graphics);
 
-  // main scene rendering
+  // main scene rendering; need to blend/composite on top of overlay previously drawn
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  check_gl("enable blending");
   m_renderer->render(sceneView.camera);
 
   // render and then clear out draw commands from gesture graphics

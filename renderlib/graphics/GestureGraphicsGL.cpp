@@ -472,7 +472,12 @@ GestureRendererGL::draw(SceneView& sceneView, SelectionBuffer* selection, Gestur
         glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArray);
         glBindVertexArray(thickLinesVertexArray);
         check_gl("bind vertex array for thicklines");
-        for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
+        std::array<int, 3> sequenceOrder = {
+          (int)Gesture::Graphics::CommandSequence::k3dDepthTested,
+          (int)Gesture::Graphics::CommandSequence::k3dStacked,
+          (int)Gesture::Graphics::CommandSequence::k2dScreen,
+        };
+        for (int sequence : sequenceOrder) {
           pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
           // now let's draw some strips, using stripRanges
@@ -662,31 +667,30 @@ GestureRendererGL::drawUnderlay(SceneView& sceneView, SelectionBuffer* selection
         glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArray);
         glBindVertexArray(thickLinesVertexArray);
         check_gl("bind vertex array for thicklines");
-        for (int sequence = 0; sequence < Gesture::Graphics::kNumCommandsLists; ++sequence) {
-          pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
+        int sequence = (int)Gesture::Graphics::CommandSequence::k3dStackedUnderlay;
+        pipelineConfig[sequence](sceneView, graphics, shaderLines.get());
 
-          // now let's draw some strips, using stripRanges
-          for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
-            if ((int)graphics.stripProjections[i] != sequence) {
-              continue;
-            }
-
-            const glm::ivec2& range = graphics.stripRanges[i];
-            const float thickness = graphics.stripThicknesses[i];
-
-            // we are drawing N-1 line segments, but the number of elements in the array is N+2
-            // see GLThickLines for comments explaining the data layout and draw strategy
-            GLsizei N = (GLsizei)(range.y - range.x) - 2;
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_BUFFER, texture_buffer->texture());
-            glUniform1i(shaderLines->m_loc_stripVerts, 2);
-            glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
-            glUniform1f(shaderLines->m_loc_thickness, thickness);
-            glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
-            check_gl("set strip uniforms");
-            glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
-            check_gl("thicklines drawarrays");
+        // now let's draw some strips, using stripRanges
+        for (size_t i = 0; i < graphics.stripRanges.size(); ++i) {
+          if ((int)graphics.stripProjections[i] != sequence) {
+            continue;
           }
+
+          const glm::ivec2& range = graphics.stripRanges[i];
+          const float thickness = graphics.stripThicknesses[i];
+
+          // we are drawing N-1 line segments, but the number of elements in the array is N+2
+          // see GLThickLines for comments explaining the data layout and draw strategy
+          GLsizei N = (GLsizei)(range.y - range.x) - 2;
+          glActiveTexture(GL_TEXTURE2);
+          glBindTexture(GL_TEXTURE_BUFFER, texture_buffer->texture());
+          glUniform1i(shaderLines->m_loc_stripVerts, 2);
+          glUniform1i(shaderLines->m_loc_stripVertexOffset, range.x);
+          glUniform1f(shaderLines->m_loc_thickness, thickness);
+          glUniform2fv(shaderLines->m_loc_resolution, 1, glm::value_ptr(glm::vec2(sceneView.viewport.region.size())));
+          check_gl("set strip uniforms");
+          glDrawArrays(GL_TRIANGLES, 0, 6 * (N - 1));
+          check_gl("thicklines drawarrays");
         }
         shaderLines->cleanup();
         glBindVertexArray(currentVertexArray);
@@ -716,8 +720,6 @@ GestureRendererGL::drawUnderlay(SceneView& sceneView, SelectionBuffer* selection
     glDisable(GL_DEPTH_TEST);
   }
   check_gl("toggle depth test");
-
-  graphics.clearCommands();
 }
 
 uint32_t

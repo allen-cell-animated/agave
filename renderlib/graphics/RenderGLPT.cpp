@@ -445,18 +445,11 @@ RenderGLPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 void
 RenderGLPT::drawImage()
 {
-  if (m_scene) {
-    glClearColor(m_scene->m_material.m_backgroundColor[0],
-                 m_scene->m_material.m_backgroundColor[1],
-                 m_scene->m_material.m_backgroundColor[2],
-                 0.0);
-  } else {
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // draw quad using the tex that cudaTex was mapped to
   m_imagequad->draw(m_fb->colorTextureId());
 }
