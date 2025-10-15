@@ -125,4 +125,7 @@ private:
   std::unique_ptr<ScopedGlVertexBuffer> vertex_buffer;
   // contains all the strip vertices for thick lines
   std::unique_ptr<ScopedGlTextureBuffer> texture_buffer;
+
+  void lazyInit(Gesture::Graphics& graphics);
+  void drawGesture(bool display, Gesture::Graphics& graphics, SceneView& sceneView, std::vector<int> sequenceOrder);
 };
