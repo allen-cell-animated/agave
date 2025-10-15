@@ -39,7 +39,6 @@ public:
 
 private:
   Image3D* m_image3d;
-  BoundingBoxDrawable* m_boundingBoxDrawable;
   RenderSettings* m_renderSettings;
 
   Scene* m_scene;

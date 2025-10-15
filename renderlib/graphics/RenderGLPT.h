@@ -81,8 +81,6 @@ private:
   GLCopyShader* m_copyShader;
   GLToneMapShader* m_toneMapShader;
 
-  BoundingBoxDrawable* m_boundingBoxDrawable;
-
   // screen size auxiliary buffers for rendering
   unsigned int* m_randomSeeds1;
   unsigned int* m_randomSeeds2;

@@ -34,7 +34,6 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_scene(nullptr)
   , m_gpuBytes(0)
   , m_imagequad(nullptr)
-  , m_boundingBoxDrawable(nullptr)
   , m_RandSeed(0)
   , m_status(new CStatus)
 {
@@ -134,7 +133,6 @@ void
 RenderGLPT::initialize(uint32_t w, uint32_t h)
 {
   m_imagequad = new RectImage2D();
-  m_boundingBoxDrawable = new BoundingBoxDrawable();
 
   initVolumeTextureGpu();
   check_gl("init gl volume");
@@ -352,35 +350,6 @@ RenderGLPT::doRender(const CCamera& camera)
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
-  // draw back of bounding box
-  if (m_scene->m_material.m_showBoundingBox) {
-#if 0
-    glEnable(GL_DEPTH_TEST);
-
-    glDepthMask(GL_TRUE);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-
-    glPolygonOffset(-1.0, -1.0);
-    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix, glm::vec4(1.0, 1.0, 1.0, 1.0));
-    glEnable(GL_CULL_FACE);
-    glPolygonOffset(0.0, 0.0);
-
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_GREATER);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_BLEND);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-      m_boundingBoxDrawable->updateTickMarks(scales, maxPhysicalDim);
-      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    }
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-#endif
-  }
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_fbF32Accum->colorTextureId());
@@ -478,8 +447,6 @@ RenderGLPT::cleanUpResources()
 
   delete m_imagequad;
   m_imagequad = nullptr;
-  delete m_boundingBoxDrawable;
-  m_boundingBoxDrawable = nullptr;
 
   cleanUpFB();
 }
