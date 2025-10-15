@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/BoundingBoxTool.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
@@ -327,6 +328,9 @@ Renderer::render()
   ScaleBarTool scalebar;
   scalebar.clear();
   scalebar.draw(sceneView, m_myVolumeData.m_gesture);
+  BoundingBoxTool bbox;
+  bbox.clear();
+  bbox.draw(sceneView, m_myVolumeData.m_gesture);
 
   m_fbo->bind();
   clearFramebuffer(sceneView.scene);
