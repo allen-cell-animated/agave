@@ -8,7 +8,7 @@
 
 #include <unordered_set>
 
-static const float s_lineThickness = 4.0f;
+static const float s_lineThickness = 3.0f;
 
 struct EdgeHash
 {
@@ -87,10 +87,12 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
   const float tickMarkPhysicalSpacing = computePhysicalScaleBarSize(maxPhysicalDim);
   const float maxNumTickMarks = maxPhysicalDim / tickMarkPhysicalSpacing;
 
+  const float thickness = s_lineThickness * m_size / s_manipulatorSize;
+
   for (auto edge : frontFacingEdges) {
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[edge.a], color, opacity, code),
                                     Gesture::Graphics::VertsCode(corners[edge.b], color, opacity, code) },
-                                  s_lineThickness);
+                                  thickness);
     if (theScene->m_showScaleBar && scene.camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
       glm::vec3 extent = bbox.GetExtent();
 
@@ -105,7 +107,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
         for (size_t i = 0; i + 1 < tickVertices.size(); i += 2) {
           gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(tickVertices[i], color, opacity, code),
                                           Gesture::Graphics::VertsCode(tickVertices[i + 1], color, opacity, code) },
-                                        s_lineThickness);
+                                        thickness);
         }
       }
     }
@@ -113,7 +115,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
   for (auto edge : backFacingEdges) {
     gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(corners[edge.a], color, opacity, code),
                                     Gesture::Graphics::VertsCode(corners[edge.b], color, opacity, code) },
-                                  s_lineThickness,
+                                  thickness,
                                   false,
                                   Gesture::Graphics::CommandSequence::k3dStackedUnderlay);
     if (theScene->m_showScaleBar && scene.camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
@@ -130,7 +132,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
         for (size_t i = 0; i + 1 < tickVertices.size(); i += 2) {
           gesture.graphics.addLineStrip({ Gesture::Graphics::VertsCode(tickVertices[i], color, opacity, code),
                                           Gesture::Graphics::VertsCode(tickVertices[i + 1], color, opacity, code) },
-                                        s_lineThickness,
+                                        thickness,
                                         false,
                                         Gesture::Graphics::CommandSequence::k3dStackedUnderlay);
         }
