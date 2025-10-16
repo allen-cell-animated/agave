@@ -16,8 +16,6 @@ jobs:
           # note macos-14 is arm64 and macos-13 is x86_64
           - os: macos-14
             artifact: agave-macos-arm64
-          - os: macos-13
-            artifact: agave-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
