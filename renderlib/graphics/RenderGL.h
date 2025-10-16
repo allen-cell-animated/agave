@@ -51,6 +51,5 @@ private:
 
   void initFromScene();
   bool prepareToRender();
-  void doClear();
   void drawSceneObjects(const CCamera& camera);
 };
