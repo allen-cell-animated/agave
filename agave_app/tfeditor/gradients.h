@@ -54,6 +54,7 @@
 #include "AppScene.h"
 #include "Controls.h"
 #include "Histogram.h"
+#include "qcustomplot.h"
 
 #include <QPushButton>
 #include <QRadioButton>
@@ -119,6 +120,8 @@ signals:
 
 private:
   ShadeWidget* m_alpha_shade;
+  QCustomPlot* m_customPlot;
+  Histogram m_histogram;
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;

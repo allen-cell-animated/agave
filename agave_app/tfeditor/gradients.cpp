@@ -52,6 +52,7 @@
 #include "hoverpoints.h"
 
 #include "Controls.h"
+#include "qcustomplot.h"
 #include "renderlib/Defines.h"
 #include "renderlib/Logging.h"
 #include "renderlib/MathUtil.h"
@@ -201,13 +202,18 @@ ShadeWidget::paintEvent(QPaintEvent*)
 void
 ShadeWidget::drawHistogram(QPainter& p, int w, int h)
 {
+  float zoom = 1.0f;
+  int zoomedWidth = (int)(w * zoom);
+
   size_t nbins = m_histogram._bins.size();
   int maxbinsize = m_histogram._bins[m_histogram._maxBin];
   for (size_t i = 0; i < nbins; ++i) {
     float binheight = (float)m_histogram._bins[i] * (float)(h - 1) / (float)maxbinsize;
-    p.fillRect(
-      QRectF((float)i * (float)(w - 1) / (float)nbins, h - 1 - binheight, (float)(w - 1) / (float)nbins, binheight),
-      QColor(0, 0, 0, 255));
+    p.fillRect(QRectF((float)i * (float)(zoomedWidth - 1) / (float)nbins,
+                      h - 1 - binheight,
+                      (float)(zoomedWidth - 1) / (float)nbins,
+                      binheight),
+               QColor(0, 0, 0, 255));
   }
 }
 
@@ -265,14 +271,46 @@ ShadeWidget::generateShade()
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
+  , m_histogram(histogram)
 {
   QVBoxLayout* vbox = new QVBoxLayout(this);
   vbox->setSpacing(1);
   // vbox->setMargin(1);
 
   m_alpha_shade = new ShadeWidget(histogram, ShadeWidget::ARGBShade, this);
+  m_customPlot = new QCustomPlot(this);
+  // first graph will be histogram
+  QCPBars* myBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis);
+  myBars->setWidthType(QCPBars::wtPlotCoords);
+  float firstBinCenter, lastBinCenter, binSize;
+  histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
+  myBars->setWidth(binSize);
+  QVector<double> keyData;
+  QVector<double> valueData;
+  for (size_t i = 0; i < histogram._bins.size(); ++i) {
+    keyData << firstBinCenter + i * binSize;
+    valueData << (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
+  }
+  myBars->setData(keyData, valueData);
+
+  // first "graph" will the the piecewise linear transfer function
+  m_customPlot->addGraph();
+  m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
+
+  //   give the axes some labels:
+  m_customPlot->xAxis->setLabel("");
+  m_customPlot->yAxis->setLabel("");
+
+  // set axes ranges, so we see all data:
+  m_customPlot->xAxis->setRange(histogram._dataMin, histogram._dataMax);
+  m_customPlot->xAxis->ticker()->setTickCount(4);
+  m_customPlot->xAxis->ticker()->setTickOrigin(histogram._dataMin);
+  m_customPlot->yAxis->setRange(0, 1);
+  m_customPlot->yAxis->ticker()->setTickCount(1);
+  m_customPlot->replot();
 
   vbox->addWidget(m_alpha_shade);
+  vbox->addWidget(m_customPlot);
 
   connect(m_alpha_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
 }
@@ -325,15 +363,25 @@ GradientEditor::pointsUpdated()
 {
   // qreal w = m_alpha_shade->width();
 
-  QGradientStops stops = pointsToGradientStops(m_alpha_shade->points());
+  auto points = m_alpha_shade->points();
+  QGradientStops stops = pointsToGradientStops(points);
 
   m_alpha_shade->setGradientStops(stops);
+
+  QVector<double> x, y;
+  for (int i = 0; i < points.size(); ++i) {
+    float dx = m_histogram._dataMin + points.at(i).x() * (m_histogram._dataMax - m_histogram._dataMin);
+    x << dx;
+    y << points.at(i).y();
+  }
+  m_customPlot->graph(0)->setData(x, y);
+  m_customPlot->replot();
 
   emit gradientStopsChanged(stops);
 }
 
 static void
-set_shade_points(const QPolygonF& points, ShadeWidget* shade)
+set_shade_points(const QPolygonF& points, ShadeWidget* shade, QCustomPlot* plot, const Histogram& histogram)
 {
   if (points.size() < 2) {
     return;
@@ -346,6 +394,15 @@ set_shade_points(const QPolygonF& points, ShadeWidget* shade)
   shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
   shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
   shade->update();
+
+  QVector<double> x, y;
+  for (int i = 0; i < points.size(); ++i) {
+    float dx = histogram._dataMin + points.at(i).x() * (histogram._dataMax - histogram._dataMin);
+    x << dx;
+    y << points.at(i).y();
+  }
+  plot->graph(0)->setData(x, y);
+  plot->replot();
 }
 
 void
@@ -357,7 +414,7 @@ GradientEditor::setControlPoints(const std::vector<LutControlPoint>& points)
     pts_alpha << QPointF(p.first, p.second);
   }
 
-  set_shade_points(pts_alpha, m_alpha_shade);
+  set_shade_points(pts_alpha, m_alpha_shade, m_customPlot, m_histogram);
 }
 
 void
