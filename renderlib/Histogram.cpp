@@ -529,8 +529,8 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
       return generate_percentiles(gradientData.m_pctLow, gradientData.m_pctHigh, length);
     case GradientEditMode::MINMAX: {
       // min and max are already set in gradientData
-      float lowEnd = normalizeInt(gradientData.m_minu16);
-      float highEnd = normalizeInt(gradientData.m_maxu16);
+      float lowEnd = normalizeInt(gradientData.m_minu16, _dataMin, _dataMax);
+      float highEnd = normalizeInt(gradientData.m_maxu16, _dataMin, _dataMax);
       float window = highEnd - lowEnd;
       float level = (lowEnd + highEnd) * 0.5f;
       return generate_windowLevel(window, level, length);
