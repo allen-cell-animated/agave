@@ -296,6 +296,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   // first "graph" will the the piecewise linear transfer function
   m_customPlot->addGraph();
   m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
+  m_customPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, 5));
 
   //   give the axes some labels:
   m_customPlot->xAxis->setLabel("");
@@ -307,6 +308,12 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->xAxis->ticker()->setTickOrigin(histogram._dataMin);
   m_customPlot->yAxis->setRange(0, 1);
   m_customPlot->yAxis->ticker()->setTickCount(1);
+
+  m_customPlot->setInteractions(
+    QCP::iRangeDrag | QCP::iRangeZoom |
+    QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
+  m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
+  m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
   m_customPlot->replot();
 
   vbox->addWidget(m_alpha_shade);
