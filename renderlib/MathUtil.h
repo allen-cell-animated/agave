@@ -232,7 +232,7 @@ struct Plane
 // for uint8, this will return [0, 255] -> [0.0, 1.0]
 template<typename INTTYPE>
 float
-normalizeInt(INTTYPE value)
+normalizeInt(INTTYPE value, INTTYPE minValue = 0, INTTYPE maxValue = std::numeric_limits<INTTYPE>::max())
 {
-  return static_cast<float>(value) / static_cast<float>(std::numeric_limits<INTTYPE>::max());
+  return static_cast<float>(value - minValue) / static_cast<float>(maxValue - minValue);
 }
