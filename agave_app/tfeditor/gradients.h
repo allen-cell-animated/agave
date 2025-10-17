@@ -114,6 +114,10 @@ public:
   void setEditMode(GradientEditMode gradientEditMode) { m_alpha_shade->setEditMode(gradientEditMode); }
 public slots:
   void pointsUpdated();
+  void onPlotMousePress(QMouseEvent* event);
+  void onPlotMouseMove(QMouseEvent* event);
+  void onPlotMouseRelease(QMouseEvent* event);
+  void onPlotMouseWheel(QWheelEvent* event);
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);

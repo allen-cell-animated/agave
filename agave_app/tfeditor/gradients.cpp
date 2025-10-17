@@ -325,10 +325,65 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
   m_customPlot->replot();
 
+  connect(m_customPlot, &QCustomPlot::mousePress, this, &GradientEditor::onPlotMousePress);
+  connect(m_customPlot, &QCustomPlot::mouseMove, this, &GradientEditor::onPlotMouseMove);
+  connect(m_customPlot, &QCustomPlot::mouseRelease, this, &GradientEditor::onPlotMouseRelease);
+  connect(m_customPlot, &QCustomPlot::mouseWheel, this, &GradientEditor::onPlotMouseWheel);
+
   vbox->addWidget(m_alpha_shade);
   vbox->addWidget(m_customPlot);
 
   connect(m_alpha_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
+}
+
+void
+GradientEditor::onPlotMousePress(QMouseEvent* event)
+{
+  if (event->button() == Qt::LeftButton) {
+    double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+    double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+
+    int indexOfDataPoint = -1;
+    QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), false, &indexOfDataPoint);
+    if (indexOfDataPoint > -1) {
+      LOG_DEBUG << "plottable index " << indexOfDataPoint;
+      QVariant vt;
+      double dist = plottable->selectTest(event->pos(), false, &vt);
+      QCPDataSelection selection = plottable->selection();
+      LOG_DEBUG << "selectTest distance " << dist;
+      // compare dist to indexOfDataPoint to see how close we are clicking to the actual point
+
+      // swallow this event so it doesn't propagate to the plot
+      event->accept();
+    }
+  }
+}
+void
+GradientEditor::onPlotMouseMove(QMouseEvent* event)
+{
+  if (event->buttons() & Qt::LeftButton) {
+    double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+    double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+
+    // if we are dragging a point then move it
+  }
+}
+
+void
+GradientEditor::onPlotMouseRelease(QMouseEvent* event)
+{
+  Q_UNUSED(event);
+  // if we were dragging a point then stop
+}
+
+void
+GradientEditor::onPlotMouseWheel(QWheelEvent* event)
+{
+  Q_UNUSED(event);
+  // check if we have a selected point or not?
+  // check if wheel is happening inside the plot or not?
+  // if (m_customPlot->axisRect()->contains(event->pos())) {
+  // }
 }
 
 inline static bool
