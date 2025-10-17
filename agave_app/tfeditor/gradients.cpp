@@ -344,8 +344,8 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
     double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
 
     int indexOfDataPoint = -1;
-    QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), false, &indexOfDataPoint);
-    if (indexOfDataPoint > -1) {
+    QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), true, &indexOfDataPoint);
+    if (plottable != nullptr && indexOfDataPoint > -1) {
       LOG_DEBUG << "plottable index " << indexOfDataPoint;
       QVariant vt;
       double dist = plottable->selectTest(event->pos(), false, &vt);
@@ -353,6 +353,14 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
       LOG_DEBUG << "selectTest distance " << dist;
       // compare dist to indexOfDataPoint to see how close we are clicking to the actual point
 
+      // QCPDataSelection dataPoints = vt.value<QCPDataSelection>();
+      // if (dataPoints.dataPointCount() > 0)
+      //   it = graph->data()->at(dataPoints.dataRange().begin());
+
+      m_isDraggingPoint = true;
+      m_currentPointIndex = indexOfDataPoint;
+      // turn off axis dragging while we are dragging a point
+      m_customPlot->axisRect()->setRangeDrag((Qt::Orientations)0);
       // swallow this event so it doesn't propagate to the plot
       event->accept();
     }
@@ -361,19 +369,107 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
 void
 GradientEditor::onPlotMouseMove(QMouseEvent* event)
 {
-  if (event->buttons() & Qt::LeftButton) {
-    double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
-    double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+  if (m_isDraggingPoint && m_currentPointIndex >= 0) {
+    if (event->buttons() & Qt::LeftButton) {
+      double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+      double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
 
-    // if we are dragging a point then move it
+      // if we are dragging a point then move it
+      (m_customPlot->graph(0)->data()->begin() + m_currentPointIndex)->value = y;
+      (m_customPlot->graph(0)->data()->begin() + m_currentPointIndex)->key = x;
+      // emit( DataChanged() );
+      m_customPlot->replot();
+    }
   }
 }
+
+#if 0
+void EQWidget::mousePressEvent(QMouseEvent *event)
+{
+    double x,y;
+ 
+    double best_dist = 1E+300;
+    int best_index = 0;
+    if( (dragable_graph_number >= 0) && ( dragable_graph_number < this->graphCount()) )
+    {
+        QCPGraph* pq_graph = this->graph(dragable_graph_number);
+        pq_graph->pixelsToCoords(event->localPos(),x,y);
+        if( pq_graph->data()->size() >= 1 )
+        {
+            for( int n=0; n<(pq_graph->data()->size()); n++ )
+            {
+                double dist = fabs( (pq_graph->data()->begin()+n)->value - y );
+                dist += fabs( (pq_graph->data()->begin()+n)->key - x );
+                if( dist < best_dist )
+                {
+                    best_dist = dist;
+                    best_index = n;
+                }
+            }
+            if( max_distance_to_add_point > 0 )
+            {
+                QPointF q_pos_gui = pq_graph->coordsToPixels( (pq_graph->data()->begin()+best_index)->key, (pq_graph->data()->begin()+best_index)->value );
+                int dist_px = fabs( event->localPos().x() - q_pos_gui.x()) +  fabs( event->localPos().y() - q_pos_gui.y());
+                if( dist_px/2 > max_distance_to_add_point )
+                {
+                    pq_graph->addData(x,y);
+                    pq_graph->data().data()->sort();
+                    for( int n=0; n<(pq_graph->data()->size()); n++ )
+                    {
+                        if(  (pq_graph->data()->begin()+n)->value == y && (pq_graph->data()->begin()+n)->key == x ) best_index = n;
+                    }
+                }
+            }
+            drag_number = best_index;
+        }
+    }
+    QCustomPlot::mousePressEvent(event);
+}
+ 
+void EQWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    drag_number = -1;
+    if( (dragable_graph_number >= 0) && ( dragable_graph_number < this->graphCount()) )
+    {
+        this->graph(dragable_graph_number)->data().data()->sort();
+    }
+    this->replot();
+    emit( EditingFinished() );
+    QCustomPlot::mouseReleaseEvent(event);
+}
+ 
+void EQWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    double x,y;
+ 
+    if( (dragable_graph_number >= 0) && ( dragable_graph_number < this->graphCount()) )
+    {
+        QCPGraph* pq_graph = this->graph(dragable_graph_number);
+        pq_graph->pixelsToCoords(event->localPos(),x,y);
+ 
+        y = round( y*16 ) / 16; //snap to grid
+        x = round( x*4 ) / 4; //snap to grid
+ 
+        if( drag_number >= 0 )
+        {
+            (pq_graph->data()->begin()+drag_number)->value = y;
+            (pq_graph->data()->begin()+drag_number)->key = x;
+            emit( DataChanged() );
+            this->replot();
+        }
+    }
+}
+#endif
 
 void
 GradientEditor::onPlotMouseRelease(QMouseEvent* event)
 {
   Q_UNUSED(event);
   // if we were dragging a point then stop
+  m_isDraggingPoint = false;
+  m_currentPointIndex = -1;
+  // re-enable axis dragging
+  m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
 }
 
 void

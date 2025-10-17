@@ -123,9 +123,12 @@ signals:
   void gradientStopsChanged(const QGradientStops& stops);
 
 private:
-  ShadeWidget* m_alpha_shade;
-  QCustomPlot* m_customPlot;
   Histogram m_histogram;
+  ShadeWidget* m_alpha_shade;
+
+  QCustomPlot* m_customPlot;
+  bool m_isDraggingPoint = false;
+  int m_currentPointIndex = -1;
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
