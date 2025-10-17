@@ -308,8 +308,15 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->xAxis->setRange(histogram._dataMin, histogram._dataMax);
   m_customPlot->xAxis->ticker()->setTickCount(4);
   m_customPlot->xAxis->ticker()->setTickOrigin(histogram._dataMin);
+  auto tickLabelFont = m_customPlot->xAxis->tickLabelFont();
+  tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
+  m_customPlot->xAxis->setTickLabelFont(tickLabelFont);
+
   m_customPlot->yAxis->setRange(0, 1);
   m_customPlot->yAxis->ticker()->setTickCount(1);
+  tickLabelFont = m_customPlot->yAxis->tickLabelFont();
+  tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
+  m_customPlot->yAxis->setTickLabelFont(tickLabelFont);
 
   m_customPlot->setInteractions(
     QCP::iRangeDrag | QCP::iRangeZoom |
