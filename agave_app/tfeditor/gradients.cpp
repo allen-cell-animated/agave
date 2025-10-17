@@ -292,11 +292,13 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
     valueData << (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
   }
   myBars->setData(keyData, valueData);
+  myBars->setSelectable(QCP::stNone);
 
   // first "graph" will the the piecewise linear transfer function
   m_customPlot->addGraph();
   m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
   m_customPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, 5));
+  m_customPlot->graph(0)->setSelectable(QCP::stSingleData);
 
   //   give the axes some labels:
   m_customPlot->xAxis->setLabel("");
