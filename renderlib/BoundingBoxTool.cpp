@@ -8,7 +8,7 @@
 
 #include <unordered_set>
 
-static const float s_lineThickness = 3.0f;
+static const float s_lineThickness = 2.0f;
 
 struct EdgeHash
 {
@@ -79,7 +79,7 @@ BoundingBoxTool::draw(SceneView& scene, Gesture& gesture)
                               theScene->m_material.m_boundingBoxColor[1],
                               theScene->m_material.m_boundingBoxColor[2]);
 
-  float opacity = 0.5f;
+  const float opacity = 0.65f;
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
 
   const glm::vec3 volumePhysicalSize = theScene->m_volume->getPhysicalDimensions();
