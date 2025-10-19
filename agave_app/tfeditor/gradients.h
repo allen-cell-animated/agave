@@ -111,7 +111,11 @@ public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setControlPoints(const std::vector<LutControlPoint>& points);
-  void setEditMode(GradientEditMode gradientEditMode) { m_alpha_shade->setEditMode(gradientEditMode); }
+  void setEditMode(GradientEditMode gradientEditMode)
+  {
+    m_alpha_shade->setEditMode(gradientEditMode);
+    m_currentEditMode = gradientEditMode;
+  }
 public slots:
   void pointsUpdated();
   void onPlotMousePress(QMouseEvent* event);
@@ -125,6 +129,8 @@ signals:
 private:
   Histogram m_histogram;
   ShadeWidget* m_alpha_shade;
+
+  GradientEditMode m_currentEditMode;
 
   QCustomPlot* m_customPlot;
   bool m_isDraggingPoint = false;

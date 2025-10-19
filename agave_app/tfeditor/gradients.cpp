@@ -339,9 +339,13 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 void
 GradientEditor::onPlotMousePress(QMouseEvent* event)
 {
+  // in custom mode, any click is either ON a point or creating a new point?
+  bool isCustomMode = (m_currentEditMode == GradientEditMode::CUSTOM);
+  if (!isCustomMode) {
+    return;
+  }
+
   if (event->button() == Qt::LeftButton) {
-    double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
-    double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
 
     int indexOfDataPoint = -1;
     QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), true, &indexOfDataPoint);
@@ -352,6 +356,18 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
       QCPDataSelection selection = plottable->selection();
       LOG_DEBUG << "selectTest distance " << dist;
       // compare dist to indexOfDataPoint to see how close we are clicking to the actual point
+
+      // distances are in pixels?
+      if (abs(dist) < 1.5) {
+        LOG_DEBUG << "ON point " << indexOfDataPoint;
+      } else {
+        LOG_DEBUG << "NEAR point " << indexOfDataPoint;
+        // create a new point at x, y
+        double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+        double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+        plottable->addData(x, y);
+        plottable->data()->sort();
+      }
 
       // QCPDataSelection dataPoints = vt.value<QCPDataSelection>();
       // if (dataPoints.dataPointCount() > 0)
@@ -369,6 +385,11 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
 void
 GradientEditor::onPlotMouseMove(QMouseEvent* event)
 {
+  bool isCustomMode = (m_currentEditMode == GradientEditMode::CUSTOM);
+  if (!isCustomMode) {
+    return;
+  }
+
   if (m_isDraggingPoint && m_currentPointIndex >= 0) {
     if (event->buttons() & Qt::LeftButton) {
       double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
@@ -465,6 +486,9 @@ void
 GradientEditor::onPlotMouseRelease(QMouseEvent* event)
 {
   Q_UNUSED(event);
+  if (m_currentEditMode != GradientEditMode::CUSTOM) {
+    return;
+  }
   // if we were dragging a point then stop
   m_isDraggingPoint = false;
   m_currentPointIndex = -1;
