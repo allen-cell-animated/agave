@@ -49,7 +49,6 @@
 ****************************************************************************/
 
 #include "gradients.h"
-#include "hoverpoints.h"
 
 #include "Controls.h"
 #include "qcustomplot.h"
@@ -92,14 +91,14 @@ bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, d
   out_x = x;
   out_y = y;
 
-  if (x <= left || (lock & HoverPoints::LockToLeft))
+  if (x <= left || (lock & GradientEditor::LockToLeft))
     out_x = left;
-  else if (x >= right || (lock & HoverPoints::LockToRight))
+  else if (x >= right || (lock & GradientEditor::LockToRight))
     out_x = right;
 
-  if (y >= top || (lock & HoverPoints::LockToTop))
+  if (y >= top || (lock & GradientEditor::LockToTop))
     out_y = top;
-  else if (y <= bottom || (lock & HoverPoints::LockToBottom))
+  else if (y <= bottom || (lock & GradientEditor::LockToBottom))
     out_y = bottom;
 }
 
@@ -127,39 +126,20 @@ ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* pa
     setAttribute(Qt::WA_OpaquePaintEvent);
   }
 
-  QPolygonF points;
-  points << QPointF(0.0f, 0.0f) << QPointF(1.0f, 1.0f);
-
-  // the event filter that is installed last is activated first
-  m_hoverPoints = new HoverPoints(this, HoverPoints::VerticalBarShape);
-  // m_minmax = new MinMaxBars(this);
-
-  //     m_hoverPoints->setConnectionType(HoverPoints::LineConnection);
-  m_hoverPoints->setPoints(points);
-  m_hoverPoints->setPointLock(0, HoverPoints::LockToLeft);
-  m_hoverPoints->setPointLock(1, HoverPoints::LockToRight);
-  m_hoverPoints->setSortType(HoverPoints::XSort);
-
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-  connect(m_hoverPoints, &HoverPoints::pointsChanged, this, &ShadeWidget::colorsChanged);
 }
 
 QPolygonF
 ShadeWidget::points() const
 {
-  return m_hoverPoints->points();
+  return QPolygonF();
 }
 
 void
 ShadeWidget::setEditMode(GradientEditMode gradientEditMode)
 {
   if (gradientEditMode == GradientEditMode::CUSTOM) {
-    m_hoverPoints->setEditMode(HoverPoints::FullEdit);
-    m_hoverPoints->setPointShape(HoverPoints::CircleShape);
   } else {
-    m_hoverPoints->setEditMode(HoverPoints::MinMaxEdit);
-    m_hoverPoints->setPointShape(HoverPoints::VerticalBarShape);
   }
 }
 
@@ -171,7 +151,7 @@ ShadeWidget::colorAt(int x)
     return 0;
   }
 
-  QPolygonF pts = m_hoverPoints->points();
+  QPolygonF pts = QPolygonF();
   for (int i = 1; i < pts.size(); ++i) {
     if (pts.at(i - 1).x() <= x && pts.at(i).x() >= x) {
       QLineF l(pts.at(i - 1), pts.at(i));
@@ -292,7 +272,7 @@ ShadeWidget::generateShade()
   }
 }
 
-static constexpr double SCATTERSIZE = 5.0;
+static constexpr double SCATTERSIZE = 10.0;
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
@@ -343,11 +323,25 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
   m_customPlot->yAxis->setTickLabelFont(tickLabelFont);
 
+  m_customPlot->xAxis->grid()->setVisible(true);
+  m_customPlot->xAxis->grid()->setSubGridVisible(true);
+  m_customPlot->yAxis->grid()->setVisible(true);
+  m_customPlot->yAxis->grid()->setSubGridVisible(true);
+
   m_customPlot->setInteractions(
     QCP::iRangeDrag | QCP::iRangeZoom |
     QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
   m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
   m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
+
+  // QPixmap pm(20, 20);
+  // QPainter pmp(&pm);
+  // pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
+  // pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
+  // pmp.fillRect(0, 10, 10, 10, Qt::gray);
+  // pmp.fillRect(10, 0, 10, 10, Qt::gray);
+  // pmp.end();
+  // m_customPlot->setBackground(QBrush(pm));
   m_customPlot->replot();
 
   connect(m_customPlot, &QCustomPlot::mousePress, this, &GradientEditor::onPlotMousePress);
@@ -634,17 +628,13 @@ GradientEditor::set_shade_points(const QPolygonF& points,
   QGradientStops stops = pointsToGradientStops(points);
   shade->setGradientStops(stops);
 
-  shade->hoverPoints()->setPoints(points);
   m_locks.clear();
   if (points.size() > 0) {
     m_locks.resize(points.size());
     m_locks.fill(0);
   }
-
-  shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
-  m_locks[0] = HoverPoints::LockToLeft;
-  shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
-  m_locks[points.size() - 1] = HoverPoints::LockToRight;
+  m_locks[0] = GradientEditor::LockToLeft;
+  m_locks[points.size() - 1] = GradientEditor::LockToRight;
   shade->update();
 
   QVector<double> x, y;

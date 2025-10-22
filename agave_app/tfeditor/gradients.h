@@ -59,7 +59,6 @@
 #include <QPushButton>
 #include <QRadioButton>
 
-class HoverPoints;
 class ShadeWidget : public QWidget
 {
   Q_OBJECT
@@ -84,8 +83,6 @@ public:
   QSize sizeHint() const override { return QSize(150, 40); }
   QPolygonF points() const;
 
-  HoverPoints* hoverPoints() const { return m_hoverPoints; }
-
   uint colorAt(int x);
 
 signals:
@@ -97,7 +94,6 @@ private:
 
   ShadeType m_shade_type;
   QImage m_shade;
-  HoverPoints* m_hoverPoints;
   QLinearGradient m_alpha_gradient;
 
   Histogram m_histogram;
@@ -116,6 +112,16 @@ public:
     m_alpha_shade->setEditMode(gradientEditMode);
     m_currentEditMode = gradientEditMode;
   }
+
+  enum LockType
+  {
+    LockToNone = 0x00,
+    LockToLeft = 0x01,
+    LockToRight = 0x02,
+    LockToTop = 0x04,
+    LockToBottom = 0x08
+  };
+
 public slots:
   void pointsUpdated();
   void onPlotMousePress(QMouseEvent* event);
