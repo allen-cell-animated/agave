@@ -107,11 +107,7 @@ public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setControlPoints(const std::vector<LutControlPoint>& points);
-  void setEditMode(GradientEditMode gradientEditMode)
-  {
-    m_alpha_shade->setEditMode(gradientEditMode);
-    m_currentEditMode = gradientEditMode;
-  }
+  void setEditMode(GradientEditMode gradientEditMode) { m_currentEditMode = gradientEditMode; }
 
   enum LockType
   {
@@ -134,7 +130,6 @@ signals:
 
 private:
   Histogram m_histogram;
-  ShadeWidget* m_alpha_shade;
 
   GradientEditMode m_currentEditMode;
 
@@ -143,7 +138,7 @@ private:
   int m_currentPointIndex = -1;
 
   QGradientStops buildStopsFromPlot();
-  void set_shade_points(const QPolygonF& points, ShadeWidget* shade, QCustomPlot* plot, const Histogram& histogram);
+  void set_shade_points(const QPolygonF& points, QCustomPlot* plot, const Histogram& histogram);
 
   QVector<uint32_t> m_locks;
 

@@ -282,7 +282,6 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   vbox->setSpacing(1);
   // vbox->setMargin(1);
 
-  m_alpha_shade = new ShadeWidget(histogram, ShadeWidget::ARGBShade, this);
   m_customPlot = new QCustomPlot(this);
   // first graph will be histogram
   QCPBars* myBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis);
@@ -349,10 +348,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   connect(m_customPlot, &QCustomPlot::mouseRelease, this, &GradientEditor::onPlotMouseRelease);
   connect(m_customPlot, &QCustomPlot::mouseWheel, this, &GradientEditor::onPlotMouseWheel);
 
-  vbox->addWidget(m_alpha_shade);
   vbox->addWidget(m_customPlot);
-
-  connect(m_alpha_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
 }
 
 void
@@ -612,35 +608,31 @@ GradientEditor::pointsUpdated()
 {
   // qreal w = m_alpha_shade->width();
 
-  auto points = m_alpha_shade->points();
-  QGradientStops stops = pointsToGradientStops(points);
+  // auto points = m_alpha_shade->points();
+  // QGradientStops stops = pointsToGradientStops(points);
 
-  m_alpha_shade->setGradientStops(stops);
+  // m_alpha_shade->setGradientStops(stops);
 
-  QVector<double> x, y;
-  for (int i = 0; i < points.size(); ++i) {
-    float dx = m_histogram._dataMin + points.at(i).x() * (m_histogram._dataMax - m_histogram._dataMin);
-    x << dx;
-    y << points.at(i).y();
-  }
-  m_customPlot->graph(0)->setData(x, y);
-  m_customPlot->replot();
+  // QVector<double> x, y;
+  // for (int i = 0; i < points.size(); ++i) {
+  //   float dx = m_histogram._dataMin + points.at(i).x() * (m_histogram._dataMax - m_histogram._dataMin);
+  //   x << dx;
+  //   y << points.at(i).y();
+  // }
+  // m_customPlot->graph(0)->setData(x, y);
+  // m_customPlot->replot();
 
-  emit gradientStopsChanged(stops);
+  // emit gradientStopsChanged(stops);
 }
 
 void
-GradientEditor::set_shade_points(const QPolygonF& points,
-                                 ShadeWidget* shade,
-                                 QCustomPlot* plot,
-                                 const Histogram& histogram)
+GradientEditor::set_shade_points(const QPolygonF& points, QCustomPlot* plot, const Histogram& histogram)
 {
   if (points.size() < 2) {
     return;
   }
 
   QGradientStops stops = pointsToGradientStops(points);
-  shade->setGradientStops(stops);
 
   m_locks.clear();
   if (points.size() > 0) {
@@ -649,7 +641,6 @@ GradientEditor::set_shade_points(const QPolygonF& points,
   }
   m_locks[0] = GradientEditor::LockToLeft;
   m_locks[points.size() - 1] = GradientEditor::LockToRight;
-  shade->update();
 
   QVector<double> x, y;
   for (int i = 0; i < points.size(); ++i) {
@@ -671,7 +662,7 @@ GradientEditor::setControlPoints(const std::vector<LutControlPoint>& points)
     pts_alpha << QPointF(p.first, p.second);
   }
 
-  set_shade_points(pts_alpha, m_alpha_shade, m_customPlot, m_histogram);
+  set_shade_points(pts_alpha, m_customPlot, m_histogram);
 }
 
 void
