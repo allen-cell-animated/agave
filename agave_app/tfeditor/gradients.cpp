@@ -364,29 +364,32 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
     return;
   }
 
+  // let's look to see if a data point was clicked.
+
+  int indexOfDataPoint = -1;
+  double dist = 1E+9;
+
+  auto graph = m_customPlot->graph(0);
+  for (int n = 0; n < (graph->data()->size()); n++) {
+    // get xy of each data pt in pixels. compare with scattersize.
+    // first hit wins.
+    double x = (graph->data()->begin() + n)->key;
+    double y = (graph->data()->begin() + n)->value;
+    double px = m_customPlot->xAxis->coordToPixel(x);
+    double py = m_customPlot->yAxis->coordToPixel(y);
+    double dx = (px - (double)event->pos().x());
+    double dy = (py - (double)event->pos().y());
+    dist = sqrt(dx * dx + dy * dy);
+    if (dist < SCATTERSIZE / 2.0) {
+      LOG_DEBUG << "press is ON point " << n;
+      indexOfDataPoint = n;
+      // remember dist!
+      break;
+    }
+  }
+
   if (event->button() == Qt::LeftButton) {
 
-    int indexOfDataPoint = -1;
-    double dist = 1E+9;
-
-    auto graph = m_customPlot->graph(0);
-    for (int n = 0; n < (graph->data()->size()); n++) {
-      // get xy of each data pt in pixels. compare with scattersize.
-      // first hit wins.
-      double x = (graph->data()->begin() + n)->key;
-      double y = (graph->data()->begin() + n)->value;
-      double px = m_customPlot->xAxis->coordToPixel(x);
-      double py = m_customPlot->yAxis->coordToPixel(y);
-      double dx = (px - (double)event->pos().x());
-      double dy = (py - (double)event->pos().y());
-      dist = dx * dx + dy * dy;
-      if (dist < SCATTERSIZE / 2.0) {
-        LOG_DEBUG << "ON point " << n;
-        indexOfDataPoint = n;
-        // remember dist!
-        break;
-      }
-    }
     // if we didn't click on a point, then we could add a point:
     if (indexOfDataPoint == -1) {
       // this checks to see if user clicked along the line anywhere close.
@@ -406,7 +409,7 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
             break;
           }
         }
-        LOG_DEBUG << "added point " << indexOfDataPoint;
+        LOG_DEBUG << "ADDING point " << indexOfDataPoint;
         m_locks.insert(indexOfDataPoint, 0);
         graph->addData(x, y);
         graph->data()->sort();
@@ -421,6 +424,19 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
       m_customPlot->axisRect()->setRangeDrag((Qt::Orientations)0);
       // swallow this event so it doesn't propagate to the plot
       event->accept();
+    }
+  } else if (event->button() == Qt::RightButton) {
+    if (indexOfDataPoint >= 0 && isCustomMode) {
+      if (m_locks[indexOfDataPoint] == 0) {
+        m_locks.remove(indexOfDataPoint);
+        // remove data pt from plot
+        graph->data()->remove((graph->data()->begin() + indexOfDataPoint)->key);
+
+        // update the stuff because we did something
+        emit gradientStopsChanged(this->buildStopsFromPlot());
+        m_customPlot->replot();
+        event->accept();
+      }
     }
   }
 }
@@ -461,7 +477,7 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
       // if we are dragging a point then move it
       (graph->data()->begin() + m_currentPointIndex)->value = py;
       (graph->data()->begin() + m_currentPointIndex)->key = px;
-      LOG_DEBUG << "moved pt " << m_currentPointIndex;
+      // LOG_DEBUG << "moved pt " << m_currentPointIndex;
 
       // The point may have moved past other points, so sort,
       // and account for current point index possibly changing.
@@ -503,8 +519,6 @@ GradientEditor::buildStopsFromPlot()
 
   auto graph = m_customPlot->graph(0);
   for (int n = 0; n < (graph->data()->size()); n++) {
-    // get xy of each data pt in pixels. compare with scattersize.
-    // first hit wins.
     auto dataIter = graph->data()->begin() + n;
     double x = dataIter->key;
     // skip duplicates?
