@@ -136,6 +136,11 @@ private:
   bool m_isDraggingPoint = false;
   int m_currentPointIndex = -1;
 
+  QGradientStops buildStopsFromPlot();
+  void set_shade_points(const QPolygonF& points, ShadeWidget* shade, QCustomPlot* plot, const Histogram& histogram);
+
+  QVector<uint32_t> m_locks;
+
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
 };

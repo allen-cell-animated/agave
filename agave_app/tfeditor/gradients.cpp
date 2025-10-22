@@ -80,6 +80,29 @@ vectorToGradientStops(std::vector<LutControlPoint>& v)
   return stops;
 }
 
+static void
+bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, double& out_y)
+{
+  qreal left = bounds.left();
+  qreal right = bounds.right();
+  // notice top/bottom switch here.
+  qreal bottom = bounds.top();
+  qreal top = bounds.bottom();
+
+  out_x = x;
+  out_y = y;
+
+  if (x <= left || (lock & HoverPoints::LockToLeft))
+    out_x = left;
+  else if (x >= right || (lock & HoverPoints::LockToRight))
+    out_x = right;
+
+  if (y >= top || (lock & HoverPoints::LockToTop))
+    out_y = top;
+  else if (y <= bottom || (lock & HoverPoints::LockToBottom))
+    out_y = bottom;
+}
+
 ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent)
   : QWidget(parent)
   , m_shade_type(type)
@@ -269,6 +292,8 @@ ShadeWidget::generateShade()
   }
 }
 
+static constexpr double SCATTERSIZE = 5.0;
+
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
   , m_histogram(histogram)
@@ -297,7 +322,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   // first "graph" will the the piecewise linear transfer function
   m_customPlot->addGraph();
   m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
-  m_customPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, 5));
+  m_customPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, SCATTERSIZE));
   m_customPlot->graph(0)->setSelectable(QCP::stSingleData);
 
   //   give the axes some labels:
@@ -348,31 +373,54 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
   if (event->button() == Qt::LeftButton) {
 
     int indexOfDataPoint = -1;
-    QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), true, &indexOfDataPoint);
-    if (plottable != nullptr && indexOfDataPoint > -1) {
-      LOG_DEBUG << "plottable index " << indexOfDataPoint;
-      QVariant vt;
-      double dist = plottable->selectTest(event->pos(), false, &vt);
-      QCPDataSelection selection = plottable->selection();
-      LOG_DEBUG << "selectTest distance " << dist;
-      // compare dist to indexOfDataPoint to see how close we are clicking to the actual point
+    double dist = 1E+9;
 
-      // distances are in pixels?
-      if (abs(dist) < 1.5) {
-        LOG_DEBUG << "ON point " << indexOfDataPoint;
-      } else {
-        LOG_DEBUG << "NEAR point " << indexOfDataPoint;
+    auto graph = m_customPlot->graph(0);
+    for (int n = 0; n < (graph->data()->size()); n++) {
+      // get xy of each data pt in pixels. compare with scattersize.
+      // first hit wins.
+      double x = (graph->data()->begin() + n)->key;
+      double y = (graph->data()->begin() + n)->value;
+      double px = m_customPlot->xAxis->coordToPixel(x);
+      double py = m_customPlot->yAxis->coordToPixel(y);
+      double dx = (px - (double)event->pos().x());
+      double dy = (py - (double)event->pos().y());
+      dist = dx * dx + dy * dy;
+      if (dist < SCATTERSIZE / 2.0) {
+        LOG_DEBUG << "ON point " << n;
+        indexOfDataPoint = n;
+        // remember dist!
+        break;
+      }
+    }
+    // if we didn't click on a point, then we could add a point:
+    if (indexOfDataPoint == -1) {
+      // this checks to see if user clicked along the line anywhere close.
+      QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), true, &indexOfDataPoint);
+      if (plottable != nullptr && indexOfDataPoint > -1) {
         // create a new point at x, y
         double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
         double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
-        plottable->addData(x, y);
-        plottable->data()->sort();
+        // find first point above x to know the index?
+        for (int n = 0; n < (graph->data()->size()); n++) {
+          // get xy of each data pt in pixels. compare with scattersize.
+          // first hit wins.
+          double xn = (graph->data()->begin() + n)->key;
+          if (x < xn) {
+            // the index of x will be n.
+            indexOfDataPoint = n;
+            break;
+          }
+        }
+        LOG_DEBUG << "added point " << indexOfDataPoint;
+        m_locks.insert(indexOfDataPoint, 0);
+        graph->addData(x, y);
+        graph->data()->sort();
+        m_customPlot->replot();
       }
+    }
 
-      // QCPDataSelection dataPoints = vt.value<QCPDataSelection>();
-      // if (dataPoints.dataPointCount() > 0)
-      //   it = graph->data()->at(dataPoints.dataRange().begin());
-
+    if (indexOfDataPoint > -1) {
       m_isDraggingPoint = true;
       m_currentPointIndex = indexOfDataPoint;
       // turn off axis dragging while we are dragging a point
@@ -392,95 +440,97 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
 
   if (m_isDraggingPoint && m_currentPointIndex >= 0) {
     if (event->buttons() & Qt::LeftButton) {
-      double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
-      double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+      double evx = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+      double evy = m_customPlot->yAxis->pixelToCoord(event->pos().y());
 
+      // see hoverpoints.cpp.
+      // this will make sure we don't move past locked edges in the bounding rectangle.
+      double px = evx, py = evy;
+      bound_point(evx,
+                  evy,
+                  // we really want clipRect() here?  to capture zoomed region
+                  QRectF(m_histogram._dataMin, 0.0f, m_histogram._dataMax - m_histogram._dataMin, 1.0f),
+                  //        qreal left = histogram._dataMin;  // bounds.left()
+                  // qreal right = histogram._dataMax; // bounds.right()
+                  // qreal top = 1.0f;                 // bounds.top();
+                  // qreal bottom = 0.0f;              // bounds.bottom();
+
+                  // QRectf(m_customPlot->xAxis->range().lower,
+                  //        m_customPlot->yAxis->range().lower,
+                  //        m_customPlot->xAxis->range().size(),
+                  //        m_customPlot->yAxis->range().size()),
+                  m_locks.at(m_currentPointIndex),
+                  px,
+                  py);
+
+      auto graph = m_customPlot->graph(0);
       // if we are dragging a point then move it
-      (m_customPlot->graph(0)->data()->begin() + m_currentPointIndex)->value = y;
-      (m_customPlot->graph(0)->data()->begin() + m_currentPointIndex)->key = x;
+      (graph->data()->begin() + m_currentPointIndex)->value = py;
+      (graph->data()->begin() + m_currentPointIndex)->key = px;
+      LOG_DEBUG << "moved pt " << m_currentPointIndex;
+
+      // The point may have moved past other points, so sort,
+      // and account for current point index possibly changing.
+      // TODO should we always sort on every move? Or can we tell if we crossed another point?
+      graph->data().data()->sort();
+      // find new index of current point
+      // find first point above x to know the index?
+      int indexOfDataPoint = m_currentPointIndex;
+      for (int n = 0; n < (graph->data()->size()); n++) {
+        // get xy of each data pt in pixels. compare with scattersize.
+        // first hit wins.
+        double xn = (graph->data()->begin() + n)->key;
+        if (px == xn) {
+          // the index of x will be n.
+          indexOfDataPoint = n;
+
+          break;
+        }
+      }
+      if (indexOfDataPoint != m_currentPointIndex) {
+        m_currentPointIndex = indexOfDataPoint;
+        LOG_DEBUG << "updated cur point index to " << m_currentPointIndex;
+      }
+
       // emit( DataChanged() );
+
+      emit gradientStopsChanged(this->buildStopsFromPlot());
+
       m_customPlot->replot();
     }
   }
 }
 
-#if 0
-void EQWidget::mousePressEvent(QMouseEvent *event)
+QGradientStops
+GradientEditor::buildStopsFromPlot()
 {
-    double x,y;
- 
-    double best_dist = 1E+300;
-    int best_index = 0;
-    if( (dragable_graph_number >= 0) && ( dragable_graph_number < this->graphCount()) )
-    {
-        QCPGraph* pq_graph = this->graph(dragable_graph_number);
-        pq_graph->pixelsToCoords(event->localPos(),x,y);
-        if( pq_graph->data()->size() >= 1 )
-        {
-            for( int n=0; n<(pq_graph->data()->size()); n++ )
-            {
-                double dist = fabs( (pq_graph->data()->begin()+n)->value - y );
-                dist += fabs( (pq_graph->data()->begin()+n)->key - x );
-                if( dist < best_dist )
-                {
-                    best_dist = dist;
-                    best_index = n;
-                }
-            }
-            if( max_distance_to_add_point > 0 )
-            {
-                QPointF q_pos_gui = pq_graph->coordsToPixels( (pq_graph->data()->begin()+best_index)->key, (pq_graph->data()->begin()+best_index)->value );
-                int dist_px = fabs( event->localPos().x() - q_pos_gui.x()) +  fabs( event->localPos().y() - q_pos_gui.y());
-                if( dist_px/2 > max_distance_to_add_point )
-                {
-                    pq_graph->addData(x,y);
-                    pq_graph->data().data()->sort();
-                    for( int n=0; n<(pq_graph->data()->size()); n++ )
-                    {
-                        if(  (pq_graph->data()->begin()+n)->value == y && (pq_graph->data()->begin()+n)->key == x ) best_index = n;
-                    }
-                }
-            }
-            drag_number = best_index;
-        }
+  // build up coords from the customplot into the form of gradient stops
+  QGradientStops stops;
+
+  auto graph = m_customPlot->graph(0);
+  for (int n = 0; n < (graph->data()->size()); n++) {
+    // get xy of each data pt in pixels. compare with scattersize.
+    // first hit wins.
+    auto dataIter = graph->data()->begin() + n;
+    double x = dataIter->key;
+    // skip duplicates?
+    if (n + 1 < graph->data()->size() && x == graph->data()->at(n + 1)->key)
+      continue;
+
+    // rescale x to 0-1 range.
+    x = (x - m_histogram._dataMin) / (m_histogram._dataMax - m_histogram._dataMin);
+    double y = dataIter->value;
+
+    QColor color = QColor::fromRgbF(y, y, y, y);
+    if (x > 1.0) {
+      LOG_ERROR << "control point x greater than 1";
+      return stops;
     }
-    QCustomPlot::mousePressEvent(event);
+
+    stops << QGradientStop(x, color);
+  }
+  return stops;
 }
- 
-void EQWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    drag_number = -1;
-    if( (dragable_graph_number >= 0) && ( dragable_graph_number < this->graphCount()) )
-    {
-        this->graph(dragable_graph_number)->data().data()->sort();
-    }
-    this->replot();
-    emit( EditingFinished() );
-    QCustomPlot::mouseReleaseEvent(event);
-}
- 
-void EQWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    double x,y;
- 
-    if( (dragable_graph_number >= 0) && ( dragable_graph_number < this->graphCount()) )
-    {
-        QCPGraph* pq_graph = this->graph(dragable_graph_number);
-        pq_graph->pixelsToCoords(event->localPos(),x,y);
- 
-        y = round( y*16 ) / 16; //snap to grid
-        x = round( x*4 ) / 4; //snap to grid
- 
-        if( drag_number >= 0 )
-        {
-            (pq_graph->data()->begin()+drag_number)->value = y;
-            (pq_graph->data()->begin()+drag_number)->key = x;
-            emit( DataChanged() );
-            this->replot();
-        }
-    }
-}
-#endif
 
 void
 GradientEditor::onPlotMouseRelease(QMouseEvent* event)
@@ -540,7 +590,7 @@ pointsToGradientStops(QPolygonF points)
 
     QColor color = QColor::fromRgbF(pixelvalue, pixelvalue, pixelvalue, pixelvalue);
     if (x > 1) {
-      LOG_ERROR << "control point x greater than 1";
+      // LOG_ERROR << "control point x greater than 1";
       return stops;
     }
 
@@ -571,8 +621,11 @@ GradientEditor::pointsUpdated()
   emit gradientStopsChanged(stops);
 }
 
-static void
-set_shade_points(const QPolygonF& points, ShadeWidget* shade, QCustomPlot* plot, const Histogram& histogram)
+void
+GradientEditor::set_shade_points(const QPolygonF& points,
+                                 ShadeWidget* shade,
+                                 QCustomPlot* plot,
+                                 const Histogram& histogram)
 {
   if (points.size() < 2) {
     return;
@@ -582,12 +635,21 @@ set_shade_points(const QPolygonF& points, ShadeWidget* shade, QCustomPlot* plot,
   shade->setGradientStops(stops);
 
   shade->hoverPoints()->setPoints(points);
+  m_locks.clear();
+  if (points.size() > 0) {
+    m_locks.resize(points.size());
+    m_locks.fill(0);
+  }
+
   shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
+  m_locks[0] = HoverPoints::LockToLeft;
   shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
+  m_locks[points.size() - 1] = HoverPoints::LockToRight;
   shade->update();
 
   QVector<double> x, y;
   for (int i = 0; i < points.size(); ++i) {
+    // incoming points x values are in 0-1 range which is normalized to histogram data range
     float dx = histogram._dataMin + points.at(i).x() * (histogram._dataMax - histogram._dataMin);
     x << dx;
     y << points.at(i).y();

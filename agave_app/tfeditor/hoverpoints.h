@@ -68,6 +68,7 @@ public:
 
   enum LockType
   {
+    LockToNone = 0x00,
     LockToLeft = 0x01,
     LockToRight = 0x02,
     LockToTop = 0x04,
