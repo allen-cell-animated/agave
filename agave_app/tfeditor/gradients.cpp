@@ -356,7 +356,12 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
 {
   // in custom mode, any click is either ON a point or creating a new point?
   bool isCustomMode = (m_currentEditMode == GradientEditMode::CUSTOM);
-  if (!isCustomMode) {
+  bool isMinMaxMode = (m_currentEditMode == GradientEditMode::MINMAX);
+  bool isWindowLevelMode = (m_currentEditMode == GradientEditMode::WINDOW_LEVEL);
+  bool isPercentileMode = (m_currentEditMode == GradientEditMode::PERCENTILE);
+  bool isInteractiveMode = isCustomMode || isMinMaxMode || isWindowLevelMode || isPercentileMode;
+
+  if (!isInteractiveMode) {
     return;
   }
 
@@ -377,7 +382,6 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
     double dy = (py - (double)event->pos().y());
     dist = sqrt(dx * dx + dy * dy);
     if (dist < SCATTERSIZE / 2.0) {
-      LOG_DEBUG << "press is ON point " << n;
       indexOfDataPoint = n;
       // remember dist!
       break;
@@ -386,8 +390,8 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
 
   if (event->button() == Qt::LeftButton) {
 
-    // if we didn't click on a point, then we could add a point:
-    if (indexOfDataPoint == -1) {
+    // if we didn't click on a point, then we could add a point (only in custom mode):
+    if (indexOfDataPoint == -1 && isCustomMode) {
       // this checks to see if user clicked along the line anywhere close.
       QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), true, &indexOfDataPoint);
       if (plottable != nullptr && indexOfDataPoint > -1) {
@@ -405,7 +409,6 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
             break;
           }
         }
-        LOG_DEBUG << "ADDING point " << indexOfDataPoint;
         m_locks.insert(indexOfDataPoint, 0);
         graph->addData(x, y);
         graph->data()->sort();
@@ -414,6 +417,16 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
     }
 
     if (indexOfDataPoint > -1) {
+      // In MINMAX, Window/Level, and Percentile modes, only allow dragging of second and third points (threshold
+      // points)
+      if (isMinMaxMode || isWindowLevelMode || isPercentileMode) {
+        int dataSize = graph->data()->size();
+        if (indexOfDataPoint != 1 && indexOfDataPoint != 2) {
+          // Not the second or third point (threshold points), don't allow dragging
+          return;
+        }
+      }
+
       m_isDraggingPoint = true;
       m_currentPointIndex = indexOfDataPoint;
       // turn off axis dragging while we are dragging a point
@@ -422,6 +435,7 @@ GradientEditor::onPlotMousePress(QMouseEvent* event)
       event->accept();
     }
   } else if (event->button() == Qt::RightButton) {
+    // Only allow point deletion in custom mode
     if (indexOfDataPoint >= 0 && isCustomMode) {
       if (m_locks[indexOfDataPoint] == 0) {
         m_locks.remove(indexOfDataPoint);
@@ -440,14 +454,52 @@ void
 GradientEditor::onPlotMouseMove(QMouseEvent* event)
 {
   bool isCustomMode = (m_currentEditMode == GradientEditMode::CUSTOM);
-  if (!isCustomMode) {
+  bool isMinMaxMode = (m_currentEditMode == GradientEditMode::MINMAX);
+  bool isWindowLevelMode = (m_currentEditMode == GradientEditMode::WINDOW_LEVEL);
+  bool isPercentileMode = (m_currentEditMode == GradientEditMode::PERCENTILE);
+  bool isInteractiveMode = isCustomMode || isMinMaxMode || isWindowLevelMode || isPercentileMode;
+
+  if (!isInteractiveMode) {
     return;
   }
 
   if (m_isDraggingPoint && m_currentPointIndex >= 0) {
     if (event->buttons() & Qt::LeftButton) {
+      auto graph = m_customPlot->graph(0);
       double evx = m_customPlot->xAxis->pixelToCoord(event->pos().x());
       double evy = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+
+      // Handle threshold-based modes (MINMAX, Window/Level, Percentile) differently
+      if (isMinMaxMode || isWindowLevelMode || isPercentileMode) {
+        // In threshold-based modes, keep Y value constant and only allow horizontal movement
+        double originalY = (graph->data()->begin() + m_currentPointIndex)->value;
+        evy = originalY; // Keep Y constant
+
+        // Apply additional constraints for min/max threshold points
+        if (m_currentPointIndex == 1) {
+          // This is the min threshold point - don't let it go past the max threshold point
+          if (graph->data()->size() > 2) {
+            double maxThresholdX = (graph->data()->begin() + 2)->key;
+            evx = std::min(evx, maxThresholdX - 0.001); // Small epsilon to prevent overlap
+          }
+          // Also don't let it go before the first fixed point
+          if (graph->data()->size() > 0) {
+            double firstPointX = (graph->data()->begin())->key;
+            evx = std::max(evx, firstPointX + 0.001);
+          }
+        } else if (m_currentPointIndex == 2) {
+          // This is the max threshold point - don't let it go past the min threshold point
+          if (graph->data()->size() > 1) {
+            double minThresholdX = (graph->data()->begin() + 1)->key;
+            evx = std::max(evx, minThresholdX + 0.001); // Small epsilon to prevent overlap
+          }
+          // Also don't let it go past the last fixed point
+          if (graph->data()->size() > 3) {
+            double lastPointX = (graph->data()->begin() + 3)->key;
+            evx = std::min(evx, lastPointX - 0.001);
+          }
+        }
+      }
 
       // see hoverpoints.cpp.
       // this will make sure we don't move past locked edges in the bounding rectangle.
@@ -469,33 +521,40 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
                   px,
                   py);
 
-      auto graph = m_customPlot->graph(0);
       // if we are dragging a point then move it
       (graph->data()->begin() + m_currentPointIndex)->value = py;
       (graph->data()->begin() + m_currentPointIndex)->key = px;
-      // LOG_DEBUG << "moved pt " << m_currentPointIndex;
 
-      // The point may have moved past other points, so sort,
-      // and account for current point index possibly changing.
-      // TODO should we always sort on every move? Or can we tell if we crossed another point?
-      graph->data().data()->sort();
-      // find new index of current point
-      // find first point above x to know the index?
-      int indexOfDataPoint = m_currentPointIndex;
-      for (int n = 0; n < (graph->data()->size()); n++) {
-        // get xy of each data pt in pixels. compare with scattersize.
-        // first hit wins.
-        double xn = (graph->data()->begin() + n)->key;
-        if (px == xn) {
-          // the index of x will be n.
-          indexOfDataPoint = n;
-
-          break;
+      // In MINMAX mode, don't sort - keep points in their fixed positions
+      if (!isMinMaxMode) {
+        // The point may have moved past other points, so sort,
+        // and account for current point index possibly changing.
+        // TODO should we always sort on every move? Or can we tell if we crossed another point?
+        graph->data().data()->sort();
+        // find new index of current point
+        // find first point above x to know the index?
+        int indexOfDataPoint = m_currentPointIndex;
+        for (int n = 0; n < (graph->data()->size()); n++) {
+          // get xy of each data pt in pixels. compare with scattersize.
+          // first hit wins.
+          double xn = (graph->data()->begin() + n)->key;
+          if (px == xn) {
+            // the index of x will be n.
+            indexOfDataPoint = n;
+            break;
+          }
+        }
+        if (indexOfDataPoint != m_currentPointIndex) {
+          m_currentPointIndex = indexOfDataPoint;
         }
       }
-      if (indexOfDataPoint != m_currentPointIndex) {
-        m_currentPointIndex = indexOfDataPoint;
-        LOG_DEBUG << "updated cur point index to " << m_currentPointIndex;
+
+      // In threshold-based modes, emit interactivePointsChanged for real-time slider updates
+      // Use the second and third points (indices 1 and 2) as the threshold points
+      if ((isMinMaxMode || isWindowLevelMode || isPercentileMode) && graph->data()->size() >= 4) {
+        double minThresholdX = (graph->data()->begin() + 1)->key;
+        double maxThresholdX = (graph->data()->begin() + 2)->key;
+        emit interactivePointsChanged(minThresholdX, maxThresholdX);
       }
 
       // emit( DataChanged() );
@@ -540,7 +599,8 @@ void
 GradientEditor::onPlotMouseRelease(QMouseEvent* event)
 {
   Q_UNUSED(event);
-  if (m_currentEditMode != GradientEditMode::CUSTOM) {
+  if (m_currentEditMode != GradientEditMode::CUSTOM && m_currentEditMode != GradientEditMode::MINMAX &&
+      m_currentEditMode != GradientEditMode::WINDOW_LEVEL && m_currentEditMode != GradientEditMode::PERCENTILE) {
     return;
   }
   // if we were dragging a point then stop
@@ -901,6 +961,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   mainGroupLayout->addStretch(1);
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
+  connect(m_editor, &GradientEditor::interactivePointsChanged, this, &GradientWidget::onInteractivePointsChanged);
 
   forceDataUpdate();
 }
@@ -946,29 +1007,29 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     }
     emit gradientStopsChanged(stops);
   } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
-    // extract window and level from the stops
+    // extract window and level from the stops - use second and third points (threshold points)
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 2) {
-      LOG_ERROR << "Too few control points to extract window/level";
+    if (points.size() < 4) {
+      // LOG_ERROR << "Too few control points to extract window/level thresholds";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    float low = points[0].first;
-    float high = points[1].first;
+    float low = points[1].first;  // Second point (low threshold)
+    float high = points[2].first; // Third point (high threshold)
     float window = high - low;
     float level = (high + low) * 0.5f;
     m_gradientData->m_window = window;
     m_gradientData->m_level = level;
 
     // update the sliders to match:
-    windowSlider->setValue(window, true);
-    levelSlider->setValue(level, true);
+    windowSlider->setValue(window);
+    levelSlider->setValue(level);
 
   } else if (m_gradientData->m_activeMode == GradientEditMode::ISOVALUE) {
     // extract isovalue and range from the stops
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
     if (points.size() < 2) {
-      LOG_ERROR << "Too few control points to extract isovalue/range";
+      // LOG_ERROR << "Too few control points to extract isovalue/range";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
@@ -983,15 +1044,15 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     isovalueSlider->setValue(isovalue);
     isorangeSlider->setValue(isorange);
   } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
-    // get percentiles from the stops and histogram
+    // get percentiles from the stops and histogram - use second and third points (threshold points)
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 2) {
-      LOG_ERROR << "Too few control points to extract percentiles";
+    if (points.size() < 4) {
+      // LOG_ERROR << "Too few control points to extract percentile thresholds";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    float low = points[0].first;
-    float high = points[1].first;
+    float low = points[1].first;  // Second point (low threshold)
+    float high = points[2].first; // Third point (high threshold)
     // calculate percentiles from the histogram:
     uint16_t ulow = m_histogram._dataMin + static_cast<uint16_t>(low * (m_histogram._dataMax - m_histogram._dataMin));
     uint16_t uhigh = m_histogram._dataMin + static_cast<uint16_t>(high * (m_histogram._dataMax - m_histogram._dataMin));
@@ -1005,16 +1066,16 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     pctLowSlider->setValue(pctLow);
     pctHighSlider->setValue(pctHigh);
   } else if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
-    // get absolute min/max from the stops
+    // get absolute min/max from the stops - use second and third points (threshold points)
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 2) {
-      LOG_ERROR << "Too few control points to extract min/max";
+    if (points.size() < 4) {
+      // LOG_ERROR << "Too few control points to extract min/max thresholds";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    // turn each point's x value into a u16 intensity from the histogram range:
-    float low = points[0].first;
-    float high = points[1].first;
+    // turn the second and third points' x values into u16 intensities from the histogram range:
+    float low = points[1].first;  // Second point (min threshold)
+    float high = points[2].first; // Third point (max threshold)
     // calculate percentiles from the histogram:
     uint16_t ulow = m_histogram._dataMin + static_cast<uint16_t>(low * (m_histogram._dataMax - m_histogram._dataMin));
     uint16_t uhigh = m_histogram._dataMin + static_cast<uint16_t>(high * (m_histogram._dataMax - m_histogram._dataMin));
@@ -1094,4 +1155,126 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
   points.push_back({ 1.0f, 0.0f });
   m_editor->setControlPoints(points);
   emit gradientStopsChanged(vectorToGradientStops(points));
+}
+
+void
+GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity)
+{
+  // Handle different modes appropriately
+  if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
+    // Convert from graph coordinates (histogram data range) to u16 intensity values
+    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
+    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
+
+    // Ensure values are within valid range
+    minu16 = std::max(minu16, static_cast<uint16_t>(m_histogram._dataMin));
+    maxu16 = std::min(maxu16, static_cast<uint16_t>(m_histogram._dataMax));
+
+    // Update the data
+    m_gradientData->m_minu16 = minu16;
+    m_gradientData->m_maxu16 = maxu16;
+
+    // Update sliders without triggering their signals (to avoid feedback loops)
+    if (minu16Slider) {
+      minu16Slider->blockSignals(true);
+      minu16Slider->setValue(minu16);
+      minu16Slider->blockSignals(false);
+    }
+    if (maxu16Slider) {
+      maxu16Slider->blockSignals(true);
+      maxu16Slider->setValue(maxu16);
+      maxu16Slider->blockSignals(false);
+    }
+  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
+    // Convert intensities to normalized values (0-1 range)
+    uint16_t minInt = static_cast<uint16_t>(minIntensity);
+    uint16_t maxInt = static_cast<uint16_t>(maxIntensity);
+    float relativeMin = normalizeInt<uint16_t>(minInt, m_histogram._dataMin, m_histogram._dataMax);
+    float relativeMax = normalizeInt<uint16_t>(maxInt, m_histogram._dataMin, m_histogram._dataMax);
+
+    // Calculate window and level from the threshold points
+    float window = relativeMax - relativeMin;
+    float level = (relativeMax + relativeMin) * 0.5f;
+
+    // Update the data
+    m_gradientData->m_window = window;
+    m_gradientData->m_level = level;
+
+    // Update sliders without triggering their signals
+    if (windowSlider) {
+      windowSlider->blockSignals(true);
+      windowSlider->setValue(window);
+      windowSlider->blockSignals(false);
+    }
+    if (levelSlider) {
+      levelSlider->blockSignals(true);
+      levelSlider->setValue(level);
+      levelSlider->blockSignals(false);
+    }
+  } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
+    // Convert intensities to u16 values first
+    uint16_t minu16 = static_cast<uint16_t>(std::max(minIntensity, (float)m_histogram._dataMin));
+    uint16_t maxu16 = static_cast<uint16_t>(std::min(maxIntensity, (float)m_histogram._dataMax));
+
+    // Calculate percentiles by converting intensity to bin index and using cumulative counts
+    float pctLow = 0.0f, pctHigh = 1.0f;
+
+    if (m_histogram._pixelCount > 0 && !m_histogram._ccounts.empty()) {
+      // For low percentile
+      if (minu16 <= m_histogram._dataMin) {
+        pctLow = 0.0f;
+      } else if (minu16 >= m_histogram._dataMax) {
+        pctLow = 1.0f;
+      } else {
+        // Convert intensity to bin index: bin = intensity - dataMin
+        size_t bin = m_histogram.getBinOfIntensity(minu16);
+        if (bin < m_histogram._ccounts.size()) {
+          // _ccounts[i] = cumulative count of pixels with intensity <= (dataMin + i)
+          // For percentile calculation, we want pixels with intensity < minu16
+          // So we use _ccounts[bin - 1] if bin > 0
+          if (bin == 0) {
+            pctLow = 0.0f;
+          } else {
+            pctLow = (float)m_histogram._ccounts[bin - 1] / (float)m_histogram._pixelCount;
+          }
+        }
+      }
+
+      // For high percentile
+      if (maxu16 <= m_histogram._dataMin) {
+        pctHigh = 0.0f;
+      } else if (maxu16 >= m_histogram._dataMax) {
+        pctHigh = 1.0f;
+      } else {
+        // Convert intensity to bin index: bin = intensity - dataMin
+        size_t bin = m_histogram.getBinOfIntensity(maxu16);
+        if (bin < m_histogram._ccounts.size()) {
+          // _ccounts[i] = cumulative count of pixels with intensity <= (dataMin + i)
+          // For percentile calculation, we want pixels with intensity < maxu16
+          // So we use _ccounts[bin - 1] if bin > 0
+          if (bin == 0) {
+            pctHigh = 0.0f;
+          } else {
+            pctHigh = (float)m_histogram._ccounts[bin - 1] / (float)m_histogram._pixelCount;
+          }
+        }
+      }
+    }
+
+    // Update the data
+    m_gradientData->m_pctLow = pctLow;
+    m_gradientData->m_pctHigh = pctHigh;
+
+    // Update sliders without triggering their signals
+    if (pctLowSlider) {
+      pctLowSlider->blockSignals(true);
+      pctLowSlider->setValue(pctLow);
+      pctLowSlider->blockSignals(false);
+    }
+    if (pctHighSlider) {
+      pctHighSlider->blockSignals(true);
+      pctHighSlider->setValue(pctHigh);
+      pctHighSlider->blockSignals(false);
+    }
+  }
 }

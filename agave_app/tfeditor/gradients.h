@@ -127,6 +127,7 @@ public slots:
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);
+  void interactivePointsChanged(float minIntensity, float maxIntensity);
 
 private:
   Histogram m_histogram;
@@ -155,6 +156,7 @@ public:
 
 public slots:
   void onGradientStopsChanged(const QGradientStops& stops);
+  void onInteractivePointsChanged(float minIntensity, float maxIntensity);
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);

@@ -46,5 +46,6 @@ struct Histogram
 
   float* generateFromGradientData(const GradientData& gradientData, size_t length = 256) const;
 
+  size_t getBinOfIntensity(uint16_t intensity) const;
   void computePercentile(uint16_t intensity, float& percentile) const;
 };

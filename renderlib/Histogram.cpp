@@ -19,6 +19,19 @@ clamp(const T& v, const T& lo, const T& hi)
 const float Histogram::DEFAULT_PCT_LOW = 0.5f;
 const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
 
+size_t
+Histogram::getBinOfIntensity(uint16_t intensity) const
+{
+  if (intensity <= _dataMin) {
+    return 0;
+  } else if (intensity >= _dataMax) {
+    return _bins.size() - 1;
+  } else {
+    size_t whichbin = (size_t)((float)(intensity - _dataMin) / (_dataMax - _dataMin) * (_bins.size() - 1) + 0.5);
+    return whichbin;
+  }
+}
+
 Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   : _bins(num_bins)
   , _ccounts(num_bins)
@@ -568,10 +581,7 @@ Histogram::computePercentile(uint16_t intensity, float& percentile) const
   }
 
   // Find the bin corresponding to the intensity value
-  size_t bin = 0;
-  while (bin < _bins.size() && _bins[bin] < intensity) {
-    ++bin;
-  }
+  size_t bin = this->getBinOfIntensity(intensity);
 
   // Compute the percentile based on the cumulative counts
   if (bin > 0) {
