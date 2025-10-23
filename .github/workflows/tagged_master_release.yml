@@ -16,8 +16,6 @@ jobs:
           # note macos-14 is arm64 and macos-13 is x86_64
           - os: macos-14
             artifact: agave-macos-arm64
-          - os: macos-13
-            artifact: agave-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
@@ -28,7 +26,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: 6.8.3
+          version: 6.9.3
           modules: qtwebsockets qtimageformats
       - name: macos install deps
         if: contains(matrix.os, 'macos')
@@ -45,7 +43,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          export Qt6_DIR=${{ runner.workspace }}/Qt/6.8.3/macos
+          export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -79,11 +77,22 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
+      - name: linux upload artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ./build/install/Release/agave-install
       - name: windows install ninja
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
           choco install nasm
+      - name: windows install nsis
+        if: matrix.os == 'windows-latest'
+        uses: repolevedavaj/install-nsis@v1.1.0
+        with:
+          nsis-version: "3.10"
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         shell: cmd
@@ -92,7 +101,7 @@ jobs:
         # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
         if: matrix.os == 'windows-latest'

@@ -34,19 +34,19 @@ A convenient way to install Perl, NASM, and GNU Patch is with chocolatey.
 choco install strawberryperl nasm patch
 ```
 
-**Install Qt LTS 6.8.3.**
+**Install Qt LTS 6.9.3.**
 In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.8.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
 ```
 
 Use vcpkg (must use target triplet x64-windows) to install the following:
 
 ```
-vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd eigen3 --triplet x64-windows
+vcpkg install spdlog glm zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
 ```
 
 **Build AGAVE**
@@ -72,8 +72,8 @@ In your favorite Python virtual environment:
 
 ```
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt mac desktop 6.8.3 -m qtwebsockets qtimageformats
-export Qt6_DIR=~/Qt/6.8.3/macos
+aqt install-qt --outputdir ~/Qt mac desktop 6.9.3 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.9.3/macos
 # and then:
 brew install spdlog glm libtiff nasm
 
@@ -88,17 +88,17 @@ sudo make install
 
 ### For LINUX:
 
-Install Qt 6.8.3 in your directory of choice and tell the build where to find it.
+Install Qt 6.9.3 in your directory of choice and tell the build where to find it.
 In your favorite Python virtual environment:
 
 ```
 
 pip install aqtinstall
-aqt install-qt --outputdir ~/Qt linux desktop 6.8.3 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir ~/Qt linux desktop 6.9.3 -m qtwebsockets qtimageformats
 
 # the next line is needed for CMake
 
-export Qt6_DIR=~/Qt/6.8.3/gcc_64
+export Qt6_DIR=~/Qt/6.9.3/gcc_64
 
 sudo apt install libtiff-dev
 sudo apt install libglm-dev
