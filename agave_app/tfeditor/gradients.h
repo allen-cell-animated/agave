@@ -59,46 +59,6 @@
 #include <QPushButton>
 #include <QRadioButton>
 
-class ShadeWidget : public QWidget
-{
-  Q_OBJECT
-
-public:
-  enum ShadeType
-  {
-    RedShade,
-    GreenShade,
-    BlueShade,
-    ARGBShade
-  };
-
-  ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent);
-
-  void setGradientStops(const QGradientStops& stops);
-
-  void setEditMode(GradientEditMode gradientEditMode);
-
-  void paintEvent(QPaintEvent* e) override;
-
-  QSize sizeHint() const override { return QSize(150, 40); }
-  QPolygonF points() const;
-
-  uint colorAt(int x);
-
-signals:
-  void colorsChanged();
-
-private:
-  void generateShade();
-  void drawHistogram(QPainter& p, int w, int h);
-
-  ShadeType m_shade_type;
-  QImage m_shade;
-  QLinearGradient m_alpha_gradient;
-
-  Histogram m_histogram;
-};
-
 class GradientEditor : public QWidget
 {
   Q_OBJECT
