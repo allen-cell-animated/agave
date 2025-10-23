@@ -486,14 +486,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   QIntSlider* minu16Slider = new QIntSlider();
   minu16Slider->setStatusTip(tr("Minimum u16 value"));
   minu16Slider->setToolTip(tr("Set minimum u16 value"));
-  minu16Slider->setRange(0, 65535);
+  minu16Slider->setRange(m_histogram._dataMin, m_histogram._dataMax);
   minu16Slider->setSingleStep(1);
   minu16Slider->setValue(m_gradientData->m_minu16);
   section0Layout->addRow("Min u16", minu16Slider);
   QIntSlider* maxu16Slider = new QIntSlider();
   maxu16Slider->setStatusTip(tr("Maximum u16 value"));
   maxu16Slider->setToolTip(tr("Set maximum u16 value"));
-  maxu16Slider->setRange(0, 65535);
+  maxu16Slider->setRange(m_histogram._dataMin, m_histogram._dataMax);
   maxu16Slider->setSingleStep(1);
   maxu16Slider->setValue(m_gradientData->m_maxu16);
   section0Layout->addRow("Max u16", maxu16Slider);
@@ -667,8 +667,9 @@ GradientWidget::onSetWindowLevel(float window, float level)
 void
 GradientWidget::onSetMinMax(uint16_t minu16, uint16_t maxu16)
 {
-  float relativeMin = normalizeInt(minu16);
-  float relativeMax = normalizeInt(maxu16);
+  // these need to be relative to the data range of the channel, not absolute!
+  float relativeMin = normalizeInt(minu16, m_histogram._dataMin, m_histogram._dataMax);
+  float relativeMax = normalizeInt(maxu16, m_histogram._dataMin, m_histogram._dataMax);
   relativeMin = std::max(relativeMin, 0.0f);
   relativeMax = std::min(relativeMax, 1.0f);
   if (relativeMin >= relativeMax) {
