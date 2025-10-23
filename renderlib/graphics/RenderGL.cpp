@@ -18,7 +18,6 @@ RenderGL::RenderGL(RenderSettings* rs)
   , m_h(0)
   , m_renderSettings(rs)
   , m_scene(nullptr)
-  , m_boundingBoxDrawable(nullptr)
   , m_status(new CStatus)
 {
   mStartTime = std::chrono::high_resolution_clock::now();
@@ -42,7 +41,6 @@ RenderGL::initialize(uint32_t w, uint32_t h)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  m_boundingBoxDrawable = new BoundingBoxDrawable();
   if (m_scene && m_scene->m_volume) {
     initFromScene();
   }
@@ -77,20 +75,6 @@ RenderGL::prepareToRender()
 }
 
 void
-RenderGL::doClear()
-{
-  if (m_scene) {
-    glClearColor(m_scene->m_material.m_backgroundColor[0],
-                 m_scene->m_material.m_backgroundColor[1],
-                 m_scene->m_material.m_backgroundColor[2],
-                 1.0);
-  } else {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void
 RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 {
   bool haveScene = prepareToRender();
@@ -101,7 +85,6 @@ RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
   int vh = fbo->height();
   glViewport(0, 0, vw, vh);
 
-  doClear();
   if (haveScene) {
     drawSceneObjects(camera);
   }
@@ -140,20 +123,6 @@ RenderGL::drawSceneObjects(const CCamera& camera)
   camera.getProjMatrix(projMatrix);
   camera.getViewMatrix(viewMatrix);
 
-  if (m_scene->m_material.m_showBoundingBox) {
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_BLEND);
-    glm::vec4 bboxColor(m_scene->m_material.m_boundingBoxColor[0],
-                        m_scene->m_material.m_boundingBoxColor[1],
-                        m_scene->m_material.m_boundingBoxColor[2],
-                        1.0);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-      m_boundingBoxDrawable->updateTickMarks(scales, maxPhysicalDim);
-      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    }
-  }
-
   m_image3d->render(camera, m_scene, m_renderSettings);
 }
 
@@ -166,7 +135,8 @@ RenderGL::render(const CCamera& camera)
 
   glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
   // Render image
-  doClear();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   drawSceneObjects(camera);
 
@@ -204,8 +174,6 @@ RenderGL::setScene(Scene* s)
 void
 RenderGL::cleanUpResources()
 {
-  delete m_boundingBoxDrawable;
-  m_boundingBoxDrawable = nullptr;
   delete m_image3d;
   m_image3d = nullptr;
 }

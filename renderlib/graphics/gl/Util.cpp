@@ -3,6 +3,7 @@
 #include "Logging.h"
 #include "BoundingBox.h"
 #include "MathUtil.h"
+#include "AppScene.h"
 #include "glsl/GLFlatShader2D.h"
 #include "glsl/GLImageShader2DnoLut.h"
 
@@ -372,7 +373,7 @@ createTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
   const float maxNumTickMarks = physicalScale / tickMarkPhysicalSpacing;
 
   // generate tick mark vertices for each edge one edge at a time.
-  CBoundingBox bbox(glm::vec3(-1.0f, -1.0f, -1.0f)*normPhysicalSize, glm::vec3(1.0f, 1.0f, 1.0f)*normPhysicalSize);
+  CBoundingBox bbox(glm::vec3(-1.0f, -1.0f, -1.0f) * normPhysicalSize, glm::vec3(1.0f, 1.0f, 1.0f) * normPhysicalSize);
   std::array<glm::vec3, 8> corners;
   bbox.GetCorners(corners);
 
@@ -930,4 +931,19 @@ GLShaderProgram::utilMakeSimpleProgram(std::string const& vertexShaderSource,
   } else {
     delete fshader;
   }
+}
+
+void
+clearFramebuffer(const Scene* scene)
+{
+  // ready to start drawing; clear our main framebuffer
+  if (scene) {
+    glClearColor(scene->m_material.m_backgroundColor[0],
+                 scene->m_material.m_backgroundColor[1],
+                 scene->m_material.m_backgroundColor[2],
+                 0.0);
+  } else {
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+  }
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

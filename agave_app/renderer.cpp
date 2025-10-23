@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/BoundingBoxTool.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
@@ -327,6 +328,14 @@ Renderer::render()
   ScaleBarTool scalebar;
   scalebar.clear();
   scalebar.draw(sceneView, m_myVolumeData.m_gesture);
+  BoundingBoxTool bbox;
+  bbox.clear();
+  bbox.draw(sceneView, m_myVolumeData.m_gesture);
+
+  m_fbo->bind();
+  clearFramebuffer(sceneView.scene);
+  m_myVolumeData.m_gestureRenderer.drawUnderlay(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
+  m_fbo->release();
 
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);
