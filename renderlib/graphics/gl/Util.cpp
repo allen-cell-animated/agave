@@ -1,6 +1,7 @@
 #include "Util.h"
 
 #include "Logging.h"
+#include "BoundingBox.h"
 #include "MathUtil.h"
 #include "glsl/GLFlatShader2D.h"
 #include "glsl/GLImageShader2DnoLut.h"
@@ -367,45 +368,31 @@ createTickMarks(const float physicalScale, const glm::vec3 normPhysicalSize)
   // Length of tick mark lines in world units
   static constexpr float TICK_LENGTH = 0.025f;
   // this will always be some integer power of 10?
-  const float tickMarkPhysicalLength = computePhysicalScaleBarSize(physicalScale);
-  const float maxNumTickMarks = physicalScale / tickMarkPhysicalLength;
+  const float tickMarkPhysicalSpacing = computePhysicalScaleBarSize(physicalScale);
+  const float maxNumTickMarks = physicalScale / tickMarkPhysicalSpacing;
 
-  // un-scale the tick mark size based on the scaling that will be our transform later.
-  const float tickSizeX = TICK_LENGTH / normPhysicalSize.x;
-  const float tickSizeY = TICK_LENGTH / normPhysicalSize.y;
+  // generate tick mark vertices for each edge one edge at a time.
+  CBoundingBox bbox(glm::vec3(-1.0f, -1.0f, -1.0f)*normPhysicalSize, glm::vec3(1.0f, 1.0f, 1.0f)*normPhysicalSize);
+  std::array<glm::vec3, 8> corners;
+  bbox.GetCorners(corners);
 
-  const float tickSpacingX = 1.0f / (normPhysicalSize.x * maxNumTickMarks);
-  for (float x = -1.0f; x <= 1.0f; x += tickSpacingX) {
-    vertices.insert(vertices.end(), { x, 1.0f,  1.0f,  x, 1.0f + tickSizeY,  1.0f,
-
-                                      x, -1.0f, -1.0f, x, -1.0f - tickSizeY, -1.0f,
-
-                                      x, 1.0f,  -1.0f, x, 1.0f + tickSizeY,  -1.0f,
-
-                                      x, -1.0f, 1.0f,  x, -1.0f - tickSizeY, 1.0f });
+  std::vector<glm::vec3> tickVertices;
+  // loop over edges:
+  for (size_t i = 0; i < 12; ++i) {
+    bbox.GetEdgeTickMarkVertices(corners[CBoundingBox::EDGES_ARRAY[i].a],
+                                 corners[CBoundingBox::EDGES_ARRAY[i].b],
+                                 maxNumTickMarks,
+                                 TICK_LENGTH,
+                                 tickVertices);
   }
 
-  const float tickSpacingY = 1.0f / (normPhysicalSize.y * maxNumTickMarks);
-  for (float y = 1.0; y >= -1.0; y -= tickSpacingY) {
-    vertices.insert(vertices.end(), { -1.0f, y, 1.0f,  -1.0f - tickSizeX, y, 1.0f,
-
-                                      -1.0f, y, -1.0f, -1.0f - tickSizeX, y, -1.0f,
-
-                                      1.0f,  y, -1.0f, 1.0f + tickSizeX,  y, -1.0f,
-
-                                      1.0f,  y, 1.0f,  1.0f + tickSizeX,  y, 1.0f });
+  // un-scale the tick mark coordinates based on the scaling that will be our transform later.
+  for (const auto& v : tickVertices) {
+    vertices.push_back(v.x / normPhysicalSize.x);
+    vertices.push_back(v.y / normPhysicalSize.y);
+    vertices.push_back(v.z / normPhysicalSize.z);
   }
 
-  const float tickSpacingZ = 1.0f / (normPhysicalSize.z * maxNumTickMarks);
-  for (float z = 1.0; z >= -1.0; z -= tickSpacingZ) {
-    vertices.insert(vertices.end(), { -1.0f, 1.0f,  z, -1.0f - tickSizeX, 1.0f,  z,
-
-                                      -1.0f, -1.0f, z, -1.0f - tickSizeX, -1.0f, z,
-
-                                      1.0f,  -1.0f, z, 1.0f + tickSizeX,  -1.0f, z,
-
-                                      1.0f,  1.0f,  z, 1.0f + tickSizeX,  1.0f,  z });
-  }
   return vertices;
 }
 
