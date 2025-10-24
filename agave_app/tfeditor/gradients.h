@@ -52,54 +52,12 @@
 #define GRADIENTS_H
 
 #include "AppScene.h"
+#include "Controls.h"
 #include "Histogram.h"
+#include "qcustomplot.h"
 
 #include <QPushButton>
 #include <QRadioButton>
-
-class HoverPoints;
-class ShadeWidget : public QWidget
-{
-  Q_OBJECT
-
-public:
-  enum ShadeType
-  {
-    RedShade,
-    GreenShade,
-    BlueShade,
-    ARGBShade
-  };
-
-  ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent);
-
-  void setGradientStops(const QGradientStops& stops);
-
-  void setEditable(bool editable);
-
-  void paintEvent(QPaintEvent* e) override;
-
-  QSize sizeHint() const override { return QSize(150, 40); }
-  QPolygonF points() const;
-
-  HoverPoints* hoverPoints() const { return m_hoverPoints; }
-
-  uint colorAt(int x);
-
-signals:
-  void colorsChanged();
-
-private:
-  void generateShade();
-  void drawHistogram(QPainter& p, int w, int h);
-
-  ShadeType m_shade_type;
-  QImage m_shade;
-  HoverPoints* m_hoverPoints;
-  QLinearGradient m_alpha_gradient;
-
-  Histogram m_histogram;
-};
 
 class GradientEditor : public QWidget
 {
@@ -109,15 +67,42 @@ public:
   GradientEditor(const Histogram& histogram, QWidget* parent = nullptr);
 
   void setControlPoints(const std::vector<LutControlPoint>& points);
-  void setEditable(bool editable) { m_alpha_shade->setEditable(editable); }
+  void setEditMode(GradientEditMode gradientEditMode) { m_currentEditMode = gradientEditMode; }
+
+  enum LockType
+  {
+    LockToNone = 0x00,
+    LockToLeft = 0x01,
+    LockToRight = 0x02,
+    LockToTop = 0x04,
+    LockToBottom = 0x08
+  };
+
 public slots:
   void pointsUpdated();
+  void onPlotMousePress(QMouseEvent* event);
+  void onPlotMouseMove(QMouseEvent* event);
+  void onPlotMouseRelease(QMouseEvent* event);
+  void onPlotMouseDoubleClick(QMouseEvent* event);
+  void onPlotMouseWheel(QWheelEvent* event);
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);
+  void interactivePointsChanged(float minIntensity, float maxIntensity);
 
 private:
-  ShadeWidget* m_alpha_shade;
+  Histogram m_histogram;
+
+  GradientEditMode m_currentEditMode;
+
+  QCustomPlot* m_customPlot;
+  bool m_isDraggingPoint = false;
+  int m_currentPointIndex = -1;
+
+  QGradientStops buildStopsFromPlot();
+  void set_shade_points(const QPolygonF& points, QCustomPlot* plot, const Histogram& histogram);
+
+  QVector<uint32_t> m_locks;
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
@@ -132,6 +117,7 @@ public:
 
 public slots:
   void onGradientStopsChanged(const QGradientStops& stops);
+  void onInteractivePointsChanged(float minIntensity, float maxIntensity);
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);
@@ -148,6 +134,15 @@ private:
 
   // owned externally, passed in via ctor
   GradientData* m_gradientData;
+
+  QIntSlider* minu16Slider = nullptr;
+  QIntSlider* maxu16Slider = nullptr;
+  QNumericSlider* windowSlider = nullptr;
+  QNumericSlider* levelSlider = nullptr;
+  QNumericSlider* isovalueSlider = nullptr;
+  QNumericSlider* isorangeSlider = nullptr;
+  QNumericSlider* pctLowSlider = nullptr;
+  QNumericSlider* pctHighSlider = nullptr;
 };
 
 #endif // GRADIENTS_H
