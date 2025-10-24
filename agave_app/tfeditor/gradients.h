@@ -83,6 +83,7 @@ public slots:
   void onPlotMousePress(QMouseEvent* event);
   void onPlotMouseMove(QMouseEvent* event);
   void onPlotMouseRelease(QMouseEvent* event);
+  void onPlotMouseDoubleClick(QMouseEvent* event);
   void onPlotMouseWheel(QWheelEvent* event);
 
 signals:

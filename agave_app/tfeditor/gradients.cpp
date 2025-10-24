@@ -177,6 +177,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   connect(m_customPlot, &QCustomPlot::mouseMove, this, &GradientEditor::onPlotMouseMove);
   connect(m_customPlot, &QCustomPlot::mouseRelease, this, &GradientEditor::onPlotMouseRelease);
   connect(m_customPlot, &QCustomPlot::mouseWheel, this, &GradientEditor::onPlotMouseWheel);
+  connect(m_customPlot, &QCustomPlot::mouseDoubleClick, this, &GradientEditor::onPlotMouseDoubleClick);
 
   vbox->addWidget(m_customPlot);
 }
@@ -441,13 +442,17 @@ GradientEditor::onPlotMouseRelease(QMouseEvent* event)
 }
 
 void
+GradientEditor::onPlotMouseDoubleClick(QMouseEvent* event)
+{
+  // double click should reset zoom
+  this->m_customPlot->rescaleAxes();
+  this->m_customPlot->replot();
+}
+
+void
 GradientEditor::onPlotMouseWheel(QWheelEvent* event)
 {
   Q_UNUSED(event);
-  // check if we have a selected point or not?
-  // check if wheel is happening inside the plot or not?
-  // if (m_customPlot->axisRect()->contains(event->pos())) {
-  // }
 }
 
 inline static bool
