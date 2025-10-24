@@ -75,20 +75,6 @@ RenderGL::prepareToRender()
 }
 
 void
-RenderGL::doClear()
-{
-  if (m_scene) {
-    glClearColor(m_scene->m_material.m_backgroundColor[0],
-                 m_scene->m_material.m_backgroundColor[1],
-                 m_scene->m_material.m_backgroundColor[2],
-                 1.0);
-  } else {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void
 RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 {
   bool haveScene = prepareToRender();
@@ -99,7 +85,6 @@ RenderGL::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
   int vh = fbo->height();
   glViewport(0, 0, vw, vh);
 
-  // doClear();
   if (haveScene) {
     drawSceneObjects(camera);
   }
@@ -150,7 +135,6 @@ RenderGL::render(const CCamera& camera)
 
   glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
   // Render image
-  //  doClear();
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

@@ -205,6 +205,11 @@ main(int argc, char* argv[])
   // renderlib needs to be told where its assets live
   QString assetsPath =
     QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "assets", QStandardPaths::LocateDirectory);
+  if (assetsPath.isEmpty()) {
+    // fallback to relative to application dir
+    assetsPath = appPath + "/assets";
+  }
+
   LOG_INFO << "Assets path: " << assetsPath.toStdString();
 
   if (!renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
