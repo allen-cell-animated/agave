@@ -7,6 +7,8 @@
 
 #include <string>
 
+class Scene;
+
 /**
  * Check OpenGL status.
  *
@@ -178,3 +180,6 @@ class IGuiShader
 public:
   virtual void setProjMatrix(const glm::mat4& proj) = 0;
 };
+
+void
+clearFramebuffer(const Scene* scene);

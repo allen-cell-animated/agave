@@ -4,7 +4,6 @@
 #include "Defines.h"
 #include "MathUtil.h"
 #include "Object3d.h"
-#include "AreaLightTool.h"
 
 #include <functional>
 #include <vector>
