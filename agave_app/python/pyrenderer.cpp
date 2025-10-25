@@ -1,5 +1,6 @@
 #include "pyrenderer.h"
 
+#include "renderlib/BoundingBoxTool.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
@@ -44,7 +45,8 @@ OffscreenRenderer::myVolumeInit()
   m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(m_height);
 
   m_myVolumeData.m_scene = new Scene();
-  m_myVolumeData.m_scene->initLights();
+  m_myVolumeData.m_scene->initLights(std::make_shared<SceneLight>(Scene::defaultSkyLight()),
+                                     std::make_shared<SceneLight>(Scene::defaultAreaLight()));
 
   // TODO allow for all renderer types (e.g. RendererGL also)
   m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
@@ -123,6 +125,14 @@ OffscreenRenderer::render()
   ScaleBarTool scalebar;
   scalebar.clear();
   scalebar.draw(sceneView, m_myVolumeData.m_gesture);
+  BoundingBoxTool bbox;
+  bbox.clear();
+  bbox.draw(sceneView, m_myVolumeData.m_gesture);
+
+  m_fbo->bind();
+  clearFramebuffer(sceneView.scene);
+  m_myVolumeData.m_gestureRenderer.drawUnderlay(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
+  m_fbo->release();
 
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);

@@ -389,26 +389,13 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   QObject::connect(
     m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
 
-  auto* arealightLayout = new QHBoxLayout();
-  m_lt0gui.m_intensitySlider = new QNumericSlider();
-  m_lt0gui.m_intensitySlider->setStatusTip(tr("Set intensity for area light"));
-  m_lt0gui.m_intensitySlider->setToolTip(tr("Set intensity for area light"));
-  m_lt0gui.m_intensitySlider->setRange(0.0, 1000.0);
-  m_lt0gui.m_intensitySlider->setSingleStep(10.0);
-  m_lt0gui.m_intensitySlider->setValue(100.0);
-  m_lt0gui.m_intensitySlider->setDecimals(1);
-  arealightLayout->addWidget(m_lt0gui.m_intensitySlider, 1);
-  m_lt0gui.m_areaLightColorButton = new QColorPushButton();
-  m_lt0gui.m_areaLightColorButton->setStatusTip(tr("Set color for area light"));
-  m_lt0gui.m_areaLightColorButton->setToolTip(tr("Set color for area light"));
-  arealightLayout->addWidget(m_lt0gui.m_areaLightColorButton, 0);
-  arealightLayout->setContentsMargins(0, 0, 0, 0);
-  sectionLayout->addRow("Intensity", arealightLayout);
-  QObject::connect(m_lt0gui.m_areaLightColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnSetAreaLightColor(this->m_lt0gui.m_intensitySlider->value(), c);
+  m_lt0gui.m_areaLightColor = new QColorWithIntensity(QColor(255, 255, 255), 100.0, this);
+  sectionLayout->addRow("Intensity", m_lt0gui.m_areaLightColor);
+  QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::colorChanged, [this](const QColor& c) {
+    this->OnSetAreaLightColor(m_lt0gui.m_areaLightColor->getIntensity(), c);
   });
-  QObject::connect(m_lt0gui.m_intensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-    this->OnSetAreaLightColor(v, this->m_lt0gui.m_areaLightColorButton->GetColor());
+  QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::intensityChanged, [this](double v) {
+    this->OnSetAreaLightColor(v, m_lt0gui.m_areaLightColor->getColor());
   });
 
   section->setContentLayout(*sectionLayout);
@@ -879,8 +866,8 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   QColor c;
   float i;
   normalizeColorForGui(scene->AreaLight().m_Color, c, i);
-  m_lt0gui.m_intensitySlider->setValue(i * scene->AreaLight().m_ColorIntensity);
-  m_lt0gui.m_areaLightColorButton->SetColor(c);
+  m_lt0gui.m_areaLightColor->setIntensity(i * scene->AreaLight().m_ColorIntensity);
+  m_lt0gui.m_areaLightColor->setColor(c);
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
@@ -898,8 +885,8 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
     QColor c;
     float i;
     normalizeColorForGui(light.m_Color, c, i);
-    m_lt0gui.m_intensitySlider->setValue(i * light.m_ColorIntensity);
-    m_lt0gui.m_areaLightColorButton->SetColor(c);
+    m_lt0gui.m_areaLightColor->setIntensity(i * light.m_ColorIntensity);
+    m_lt0gui.m_areaLightColor->setColor(c);
   });
 
   normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);

@@ -17,7 +17,9 @@
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
+#include "ArealightDockWidget.h"
 #include "CameraDockWidget.h"
+#include "SkylightDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
@@ -84,9 +86,19 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  // create our two document objects
-  m_cameraObject = std::make_unique<CameraObject>();
+  // create our document objects
+  // render settings
   m_appearanceObject = std::make_unique<AppearanceObject>();
+  // scene objects
+  m_cameraObject = std::make_unique<CameraObject>();
+  m_areaLightObject = std::make_unique<AreaLightObject>();
+  m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
+  m_areaLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
+  m_skyLightObject = std::make_unique<SkyLightObject>();
+  m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
+  m_skyLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
 
   m_ui.setupUi(this);
 
@@ -128,6 +140,8 @@ agaveGui::agaveGui(QWidget* parent)
 
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_cameraObject.get());
+  setupAreaLightDock(m_areaLightObject.get());
+  setupSkyLightDock(m_skyLightObject.get());
   setupTimelineDock();
   setupStatisticsDock();
   setupAppearanceDock(m_appearanceObject.get());
@@ -161,7 +175,7 @@ agaveGui::agaveGui(QWidget* parent)
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
   setWindowTitle(windowTitle);
 
-  m_appScene.initLights();
+  m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
 
   // find a nice size to init agave
   QScreen* screen = QApplication::primaryScreen();
@@ -357,6 +371,22 @@ agaveGui::createToolbars()
   helpButton->setPopupMode(QToolButton::InstantPopup);
   helpButton->setMenu(m_helpMenu);
   m_ui.mainToolBar->addWidget(helpButton);
+}
+void
+agaveGui::setupAreaLightDock(AreaLightObject* cdo)
+{
+  // TODO enable changing/resetting the area light data object shown in this dock?
+  m_areaLightDock = new QAreaLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  m_areaLightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_areaLightDock);
+}
+void
+agaveGui::setupSkyLightDock(SkyLightObject* cdo)
+{
+  // TODO enable changing/resetting the skylight data object shown in this dock?
+  m_skylightDock = new QSkyLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  m_skylightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_skylightDock);
 }
 
 void
@@ -1255,10 +1285,14 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
+  // TODO FIXME initialize the light property objects
+  // create new SceneLights here? or rewrite into pre-existing?
   Light l0 = stateToLight(v, 0);
-  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
+  m_skyLightObject->getSceneLight()->m_light = l0;
+  // m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
   Light l1 = stateToLight(v, 1);
-  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
+  m_areaLightObject->getSceneLight()->m_light = l1;
+  // m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
 
   // capture settings
   m_captureSettings.width = v.capture.width;

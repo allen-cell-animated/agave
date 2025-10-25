@@ -155,11 +155,12 @@ struct Gesture
     // pointers to setup each draw pass.
     enum class CommandSequence : int
     {
-      k3dDepthTested = 0, //< for viewport depth compositing 3d GUI elements
-      k3dStacked = 1,     //< for 3d GUI elements overlay
-      k2dScreen = 2       //< for topmost 2d elements (widgets and buttons)
+      k3dDepthTested = 0,     //< for viewport depth compositing 3d GUI elements
+      k3dStacked = 1,         //< for 3d GUI elements overlay
+      k2dScreen = 2,          //< for topmost 2d elements (widgets and buttons)
+      k3dStackedUnderlay = 3, //< for 3d GUI elements underlay
     };
-    static constexpr int kNumCommandsLists = 3;
+    static constexpr int kNumCommandsLists = 4;
 
     enum class PrimitiveType : int
     {
