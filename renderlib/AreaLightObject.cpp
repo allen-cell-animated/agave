@@ -84,8 +84,8 @@ AreaLightObject::updatePropsFromSceneLight()
   const Light& light = m_sceneLight->m_light;
 
   // Convert from radians to degrees and update properties
-  m_arealightDataObject.Theta.SetValue(light.m_Theta);
-  m_arealightDataObject.Phi.SetValue(light.m_Phi);
+  m_arealightDataObject.Theta.SetValue(light.m_Theta * (180.0f / PI_F));
+  m_arealightDataObject.Phi.SetValue(light.m_Phi * (180.0f / PI_F));
   m_arealightDataObject.Size.SetValue(light.m_Width);
   m_arealightDataObject.Distance.SetValue(light.m_Distance);
   m_arealightDataObject.Intensity.SetValue(light.m_ColorIntensity);
