@@ -412,6 +412,8 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
   m_appearanceDockWidget = new QAppearanceDockWidget(this,
                                                      &m_qrendersettings,
                                                      m_appearanceObject->getRenderSettings().get(),
+                                                     m_areaLightObject.get(),
+                                                     m_skyLightObject.get(),
                                                      m_toggleRotateControlsAction,
                                                      m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);

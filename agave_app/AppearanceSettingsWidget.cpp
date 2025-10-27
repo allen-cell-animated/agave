@@ -95,6 +95,8 @@ static const int MAX_CHANNELS_CHECKED = 4;
 QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QRenderSettings* qrs,
                                                      RenderSettings* rs,
+                                                     AreaLightObject* alo,
+                                                     SkyLightObject* slo,
                                                      QAction* pToggleRotateAction,
                                                      QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
