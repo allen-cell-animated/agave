@@ -583,10 +583,15 @@ Histogram::computePercentile(uint16_t intensity, float& percentile) const
   // Find the bin corresponding to the intensity value
   size_t bin = this->getBinOfIntensity(intensity);
 
-  // Compute the percentile based on the cumulative counts
-  if (bin > 0) {
-    percentile = (float)_ccounts[bin - 1] / (float)_pixelCount;
+  if (bin < _ccounts.size()) {
+
+    // Compute the percentile based on the cumulative counts
+    if (bin > 0) {
+      percentile = (float)_ccounts[bin - 1] / (float)_pixelCount;
+    } else {
+      percentile = 0.0f;
+    }
   } else {
-    percentile = 0.0f;
+    percentile = 1.0f;
   }
 }

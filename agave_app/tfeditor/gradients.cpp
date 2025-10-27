@@ -1,53 +1,3 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the demonstration applications of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
 #include "gradients.h"
 
 #include "Controls.h"
@@ -163,14 +113,6 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
   m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
 
-  // QPixmap pm(20, 20);
-  // QPainter pmp(&pm);
-  // pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
-  // pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
-  // pmp.fillRect(0, 10, 10, 10, Qt::gray);
-  // pmp.fillRect(10, 0, 10, 10, Qt::gray);
-  // pmp.end();
-  // m_customPlot->setBackground(QBrush(pm));
   m_customPlot->replot();
 
   connect(m_customPlot, &QCustomPlot::mousePress, this, &GradientEditor::onPlotMousePress);
@@ -339,15 +281,6 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
                   evy,
                   // we really want clipRect() here?  to capture zoomed region
                   QRectF(m_histogram._dataMin, 0.0f, m_histogram._dataMax - m_histogram._dataMin, 1.0f),
-                  //        qreal left = histogram._dataMin;  // bounds.left()
-                  // qreal right = histogram._dataMax; // bounds.right()
-                  // qreal top = 1.0f;                 // bounds.top();
-                  // qreal bottom = 0.0f;              // bounds.bottom();
-
-                  // QRectf(m_customPlot->xAxis->range().lower,
-                  //        m_customPlot->yAxis->range().lower,
-                  //        m_customPlot->xAxis->range().size(),
-                  //        m_customPlot->yAxis->range().size()),
                   m_locks.at(m_currentPointIndex),
                   px,
                   py);
@@ -478,14 +411,8 @@ pointsToGradientStops(QPolygonF points)
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
     float pixelvalue = points.at(i).y();
-    // TODO future: let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl
+    // TODO future: let each point have a full RGBA color and use a color picker to assign it via dbl
     // click or some other means
-    // unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
-    // unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
-    // unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
-    // unsigned int b = (0x000000ff & pixelvalue);
-    // unsigned int a = (0xff000000 & pixelvalue) >> 24;
-    // QColor color(r, g, b, a);
 
     QColor color = QColor::fromRgbF(pixelvalue, pixelvalue, pixelvalue, pixelvalue);
     if (x > 1) {
@@ -496,28 +423,6 @@ pointsToGradientStops(QPolygonF points)
     stops << QGradientStop(x, color);
   }
   return stops;
-}
-
-void
-GradientEditor::pointsUpdated()
-{
-  // qreal w = m_alpha_shade->width();
-
-  // auto points = m_alpha_shade->points();
-  // QGradientStops stops = pointsToGradientStops(points);
-
-  // m_alpha_shade->setGradientStops(stops);
-
-  // QVector<double> x, y;
-  // for (int i = 0; i < points.size(); ++i) {
-  //   float dx = m_histogram._dataMin + points.at(i).x() * (m_histogram._dataMax - m_histogram._dataMin);
-  //   x << dx;
-  //   y << points.at(i).y();
-  // }
-  // m_customPlot->graph(0)->setData(x, y);
-  // m_customPlot->replot();
-
-  // emit gradientStopsChanged(stops);
 }
 
 void
@@ -574,10 +479,6 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 {
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
 
-  // setWindowTitle(tr("Gradients"));
-
-  // QGroupBox* editorGroup = new QGroupBox(this);
-  // editorGroup->setTitle(tr("Color Editor"));
   m_editor = new GradientEditor(m_histogram, this);
   mainGroupLayout->addWidget(m_editor);
 
@@ -845,7 +746,6 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     // extract window and level from the stops - use second and third points (threshold points)
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
     if (points.size() < 4) {
-      // LOG_ERROR << "Too few control points to extract window/level thresholds";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
@@ -882,7 +782,6 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     // get percentiles from the stops and histogram - use second and third points (threshold points)
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
     if (points.size() < 4) {
-      // LOG_ERROR << "Too few control points to extract percentile thresholds";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
@@ -904,7 +803,6 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     // get absolute min/max from the stops - use second and third points (threshold points)
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
     if (points.size() < 4) {
-      // LOG_ERROR << "Too few control points to extract min/max thresholds";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
@@ -1061,18 +959,7 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
       } else if (minu16 >= m_histogram._dataMax) {
         pctLow = 1.0f;
       } else {
-        // Convert intensity to bin index: bin = intensity - dataMin
-        size_t bin = m_histogram.getBinOfIntensity(minu16);
-        if (bin < m_histogram._ccounts.size()) {
-          // _ccounts[i] = cumulative count of pixels with intensity <= (dataMin + i)
-          // For percentile calculation, we want pixels with intensity < minu16
-          // So we use _ccounts[bin - 1] if bin > 0
-          if (bin == 0) {
-            pctLow = 0.0f;
-          } else {
-            pctLow = (float)m_histogram._ccounts[bin - 1] / (float)m_histogram._pixelCount;
-          }
-        }
+        m_histogram.computePercentile(minu16, pctLow);
       }
 
       // For high percentile
@@ -1081,18 +968,7 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
       } else if (maxu16 >= m_histogram._dataMax) {
         pctHigh = 1.0f;
       } else {
-        // Convert intensity to bin index: bin = intensity - dataMin
-        size_t bin = m_histogram.getBinOfIntensity(maxu16);
-        if (bin < m_histogram._ccounts.size()) {
-          // _ccounts[i] = cumulative count of pixels with intensity <= (dataMin + i)
-          // For percentile calculation, we want pixels with intensity < maxu16
-          // So we use _ccounts[bin - 1] if bin > 0
-          if (bin == 0) {
-            pctHigh = 0.0f;
-          } else {
-            pctHigh = (float)m_histogram._ccounts[bin - 1] / (float)m_histogram._pixelCount;
-          }
-        }
+        m_histogram.computePercentile(maxu16, pctHigh);
       }
     }
 
