@@ -250,8 +250,9 @@ addGenericRow(const prtyPropertyUIInfo& info)
   return nullptr; // or throw an exception
 }
 
+template<typename LayoutType>
 QWidget*
-addPrtyRow(QFormLayout* layout, std::shared_ptr<prtyPropertyUIInfo> propertyInfo)
+addPrtyRow(LayoutType* layout, std::shared_ptr<prtyPropertyUIInfo> propertyInfo)
 {
   QWidget* control = addGenericRow(*propertyInfo);
   if (control) {
@@ -300,8 +301,9 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
   }
 }
 
+template<typename LayoutType>
 void
-createFlatList(QFormLayout* mainLayout, prtyObject* object)
+createFlatList(LayoutType* mainLayout, prtyObject* object)
 {
   // Simple flat list of all properties
   const auto& propertyList = object->GetList();
@@ -311,3 +313,8 @@ createFlatList(QFormLayout* mainLayout, prtyObject* object)
     }
   }
 }
+
+template void
+createFlatList<QFormLayout>(QFormLayout* mainLayout, prtyObject* object);
+template void
+createFlatList<AgaveFormLayout>(AgaveFormLayout* mainLayout, prtyObject* object);

@@ -1,13 +1,17 @@
 #include "AppearanceSettingsWidget.h"
+
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
 #include "qtControls/Section.h"
+#include "qtControls/controlFactory.h"
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
+#include "renderlib/AreaLightObject.hpp"
 #include "renderlib/Colormap.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
+#include "renderlib/SkyLightObject.hpp"
 #include "tfeditor/gradients.h"
 
 #include <QFormLayout>
@@ -102,6 +106,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   : QGroupBox(pParent)
   , m_MainLayout()
   , m_qrendersettings(qrs)
+  , m_arealightObject(alo)
+  , m_skylightObject(slo)
   , m_scene(nullptr)
 {
   Controls::initFormLayout(m_MainLayout);
@@ -350,6 +356,10 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
+
+  if (m_arealightObject) {
+    createFlatList(sectionLayout, m_arealightObject);
+  }
 
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
