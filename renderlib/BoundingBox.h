@@ -6,6 +6,7 @@
 
 #include <array>
 #include <sstream>
+#include <vector>
 
 #define NUM_BBOX_CORNERS 8
 
@@ -192,15 +193,49 @@ public:
 
   void GetCorners(std::array<glm::vec3, NUM_BBOX_CORNERS>& corners) const
   {
-    corners[0] = glm::vec3(m_MinP.x, m_MinP.y, m_MinP.z);
+    corners[0] = glm::vec3(m_MinP.x, m_MinP.y, m_MinP.z); // min corner
     corners[1] = glm::vec3(m_MaxP.x, m_MinP.y, m_MinP.z);
     corners[2] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MinP.z);
     corners[3] = glm::vec3(m_MinP.x, m_MaxP.y, m_MinP.z);
     corners[4] = glm::vec3(m_MinP.x, m_MinP.y, m_MaxP.z);
     corners[5] = glm::vec3(m_MaxP.x, m_MinP.y, m_MaxP.z);
-    corners[6] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MaxP.z);
+    corners[6] = glm::vec3(m_MaxP.x, m_MaxP.y, m_MaxP.z); // max corner
     corners[7] = glm::vec3(m_MinP.x, m_MaxP.y, m_MaxP.z);
   }
+
+  // Edge represented canonically as {minIndex, maxIndex}
+  struct Edge
+  {
+    int a, b;
+    bool operator==(const Edge& o) const { return a == o.a && b == o.b; }
+  };
+
+  static constexpr int NUM_EDGES = 12;
+  static constexpr int NUM_FACES = 6;
+  // Make the edges go in a particular direction so that the tickmarks are lined up on both sides.
+  // These edges are set up to go from negative to positive values of the corner coordinates.
+  // The indices of the edge are indices into the corners array.
+  static const Edge EDGES_ARRAY[NUM_EDGES];
+
+  // what is the axis aligned with each edge
+  static const glm::vec3 EDGE_DIRECTION[NUM_EDGES];
+  static const EAxis EDGE_AXIS[NUM_EDGES];
+
+  // Corner coordinate indices of the 4 vertices of each face, in somewhat arbitrary order.
+  static const int FACES[NUM_FACES][4];
+
+  // Face normals for each face.. assumes axis-aligned.
+  static const glm::vec3 FACE_NORMALS[NUM_FACES];
+
+  // Each edge belongs to 2 faces.  Set up an array of indices to the 2 faces for each edge.
+  static const int EDGE_TO_FACE[NUM_EDGES][2];
+
+  // pass in two vertices of the edge (should be corners from GetCorners)
+  void GetEdgeTickMarkVertices(const glm::vec3& vertex1,
+                               const glm::vec3& vertex2,
+                               float maxNumTickMarks,
+                               float tickLength,
+                               std::vector<glm::vec3>& tickVertices) const;
 
 #if 0
 	// Performs a line box intersection
@@ -231,7 +266,7 @@ public:
 	bool IntersectP(const CRay& ray, float* hitt0 = NULL, float* hitt1 = NULL)
 	{
 		float t0 = ray.m_MinT, t1 = ray.m_MaxT;
-		
+
 		for (int i = 0; i < 3; ++i)
 		{
 			// Update interval for _i_th bounding box slab

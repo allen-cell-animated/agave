@@ -15,6 +15,8 @@ public:
   QAppearanceWidget(QWidget* pParent = NULL,
                     QRenderSettings* qrs = nullptr,
                     RenderSettings* rs = nullptr,
+                    AreaLightObject* alo = nullptr,
+                    SkyLightObject* slo = nullptr,
                     QAction* pToggleRotateAction = nullptr,
                     QAction* pToggleTranslateAction = nullptr);
 
@@ -33,6 +35,8 @@ public:
   QAppearanceDockWidget(QWidget* pParent = NULL,
                         QRenderSettings* qrs = nullptr,
                         RenderSettings* rs = nullptr,
+                        AreaLightObject* alo = nullptr,
+                        SkyLightObject* slo = nullptr,
                         QAction* pToggleRotateAction = nullptr,
                         QAction* pToggleTranslateAction = nullptr);
 

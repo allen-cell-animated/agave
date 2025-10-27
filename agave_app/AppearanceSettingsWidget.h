@@ -12,6 +12,8 @@
 
 #include <memory>
 
+class AreaLightObject;
+class SkyLightObject;
 class QRenderSettings;
 class ImageXYZC;
 class RangeWidget;
@@ -35,6 +37,8 @@ public:
   QAppearanceSettingsWidget(QWidget* pParent = NULL,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
+                            AreaLightObject* alo = nullptr,
+                            SkyLightObject* slo = nullptr,
                             QAction* pToggleRotateAction = nullptr,
                             QAction* pToggleTranslateAction = nullptr);
 
@@ -89,6 +93,8 @@ private:
   QFormLayout m_MainLayout;
 
   QRenderSettings* m_qrendersettings;
+  AreaLightObject* m_arealightObject;
+  SkyLightObject* m_skylightObject;
 
   Section* m_clipRoiSection;
   RangeWidget* m_roiX;
@@ -121,8 +127,9 @@ private:
     QNumericSlider* m_phiSlider;
     QNumericSlider* m_sizeSlider;
     QNumericSlider* m_distSlider;
-    QNumericSlider* m_intensitySlider;
-    QColorPushButton* m_areaLightColorButton;
+    // QNumericSlider* m_intensitySlider;
+    // QColorPushButton* m_areaLightColorButton;
+    QColorWithIntensity* m_areaLightColor;
   } m_lt0gui;
 
   struct lt1

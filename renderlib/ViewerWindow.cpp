@@ -1,7 +1,7 @@
 #include "ViewerWindow.h"
 
-#include "AreaLightTool.h"
 #include "AxisHelperTool.h"
+#include "BoundingBoxTool.h"
 #include "IRenderWindow.h"
 #include "MoveTool.h"
 #include "RenderSettings.h"
@@ -10,6 +10,7 @@
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
 #include "graphics/GestureGraphicsGL.h"
+#include "graphics/gl/Util.h"
 #include "renderlib.h"
 
 ViewerWindow::ViewerWindow(RenderSettings* rs)
@@ -22,6 +23,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
 
   m_tools.push_back(new ScaleBarTool());
   m_tools.push_back(new AxisHelperTool());
+  m_tools.push_back(new BoundingBoxTool());
 }
 
 ViewerWindow::~ViewerWindow()
@@ -279,7 +281,13 @@ ViewerWindow::redraw()
   // fill gesture graphics with draw commands
   update(sceneView.viewport, m_clock, gesture);
 
-  // main scene rendering
+  // ready to start drawing; clear our main framebuffer
+  clearFramebuffer(sceneView.scene);
+
+  // render and then clear out draw commands from gesture graphics
+  m_gestureRenderer->drawUnderlay(sceneView, &m_selection, gesture.graphics);
+
+  // main scene rendering; need to blend/composite on top of overlay previously drawn
   m_renderer->render(sceneView.camera);
 
   // render and then clear out draw commands from gesture graphics

@@ -9,7 +9,6 @@
 #include <vector>
 #include <memory>
 
-class AreaLightTool;
 class RenderSettings;
 class IRenderWindow;
 
