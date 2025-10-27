@@ -45,8 +45,9 @@ addRow(const ColorPickerUiInfo& info);
 QWidget*
 addGenericRow(const prtyPropertyUIInfo& info);
 
+template<typename LayoutType>
 void
-createFlatList(QFormLayout* mainLayout, prtyObject* object);
+createFlatList(LayoutType* mainLayout, prtyObject* object);
 
 void
 createCategorizedSections(QFormLayout* mainLayout, prtyObject* object);

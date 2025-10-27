@@ -93,6 +93,8 @@ private:
   QFormLayout m_MainLayout;
 
   QRenderSettings* m_qrendersettings;
+  AreaLightObject* m_arealightObject;
+  SkyLightObject* m_skylightObject;
 
   Section* m_clipRoiSection;
   RangeWidget* m_roiX;
