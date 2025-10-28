@@ -82,14 +82,6 @@ FetchContent_Declare(
             GIT_TAG 1.0.1
     )
 FetchContent_MakeAvailable(glm)
-# set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
-# if(APPLE)
-#   # On MacOS, newer homebrew glm is broken with respect to cmake.
-#   # Revisit in a future version to try to remove this conditional.
-#   find_path(GLM_PATH glm/glm.hpp)
-# else()
-#   find_package(glm REQUIRED)
-# endif(APPLE)
 
 find_package(TIFF)
 

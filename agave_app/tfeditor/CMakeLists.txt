@@ -1,7 +1,7 @@
 target_include_directories(agaveapp PUBLIC
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${GLM_INCLUDE_DIRS}
+	"${glm_SOURCE_DIR}"
 )
 
 target_sources(agaveapp PRIVATE
