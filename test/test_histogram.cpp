@@ -45,7 +45,7 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
   {
     uint16_t data[] = { 0, 0, 1, 1, 2, 2, 510, 510, 511, 511, 512, 512 };
     int COUNT = sizeof(data) / sizeof(data[0]);
-    Histogram h(data, COUNT);
+    Histogram h(data, COUNT, 512);
 
     REQUIRE(h._pixelCount == COUNT);
     REQUIRE(h._dataMax == 512);
