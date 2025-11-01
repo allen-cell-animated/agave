@@ -248,28 +248,29 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
         double originalY = (graph->data()->begin() + m_currentPointIndex)->value;
         evy = originalY; // Keep Y constant
 
+        static constexpr double OVERLAP_EPSILON = 0.001;
         // Apply additional constraints for min/max threshold points
         if (m_currentPointIndex == 1) {
           // This is the min threshold point - don't let it go past the max threshold point
           if (graph->data()->size() > 2) {
             double maxThresholdX = (graph->data()->begin() + 2)->key;
-            evx = std::min(evx, maxThresholdX - 0.001); // Small epsilon to prevent overlap
+            evx = std::min(evx, maxThresholdX - OVERLAP_EPSILON); // Small epsilon to prevent overlap
           }
           // Also don't let it go before the first fixed point
           if (graph->data()->size() > 0) {
             double firstPointX = (graph->data()->begin())->key;
-            evx = std::max(evx, firstPointX + 0.001);
+            evx = std::max(evx, firstPointX + OVERLAP_EPSILON);
           }
         } else if (m_currentPointIndex == 2) {
           // This is the max threshold point - don't let it go past the min threshold point
           if (graph->data()->size() > 1) {
             double minThresholdX = (graph->data()->begin() + 1)->key;
-            evx = std::max(evx, minThresholdX + 0.001); // Small epsilon to prevent overlap
+            evx = std::max(evx, minThresholdX + OVERLAP_EPSILON); // Small epsilon to prevent overlap
           }
           // Also don't let it go past the last fixed point
           if (graph->data()->size() > 3) {
             double lastPointX = (graph->data()->begin() + 3)->key;
-            evx = std::min(evx, lastPointX - 0.001);
+            evx = std::min(evx, lastPointX - OVERLAP_EPSILON);
           }
         }
       }
@@ -416,7 +417,6 @@ pointsToGradientStops(QPolygonF points)
 
     QColor color = QColor::fromRgbF(pixelvalue, pixelvalue, pixelvalue, pixelvalue);
     if (x > 1) {
-      // LOG_ERROR << "control point x greater than 1";
       return stops;
     }
 
@@ -764,7 +764,6 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     // extract isovalue and range from the stops
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
     if (points.size() < 2) {
-      // LOG_ERROR << "Too few control points to extract isovalue/range";
       return;
     }
     std::sort(points.begin(), points.end(), controlpoint_x_less_than);
