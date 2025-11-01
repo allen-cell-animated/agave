@@ -27,7 +27,9 @@ Histogram::getBinOfIntensity(uint16_t intensity) const
   } else if (intensity >= _dataMax) {
     return _bins.size() - 1;
   } else {
-    size_t whichbin = (size_t)((float)(intensity - _dataMin) / (_dataMax - _dataMin) * (_bins.size() - 1) + 0.5);
+    static constexpr float ROUNDING_OFFSET = 0.5f;
+    size_t whichbin =
+      (size_t)((float)(intensity - _dataMin) / (_dataMax - _dataMin) * (_bins.size() - 1) + ROUNDING_OFFSET);
     return whichbin;
   }
 }
