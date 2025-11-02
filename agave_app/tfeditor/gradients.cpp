@@ -71,9 +71,17 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   myBars->setWidth(binSize);
   QVector<double> keyData;
   QVector<double> valueData;
+  static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
   for (size_t i = 0; i < histogram._bins.size(); ++i) {
     keyData << firstBinCenter + i * binSize;
-    valueData << (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
+    if (histogram._bins[i] == 0) {
+      // Zero bins get zero height
+      valueData << 0.0;
+    } else {
+      // Nonzero bins get at least the minimum height
+      double normalizedHeight = (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
+      valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
+    }
   }
   myBars->setData(keyData, valueData);
   myBars->setSelectable(QCP::stNone);
