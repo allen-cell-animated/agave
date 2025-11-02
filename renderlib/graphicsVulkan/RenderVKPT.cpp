@@ -45,9 +45,14 @@ RenderVKPT::~RenderVKPT()
   cleanup();
 }
 
-void RenderVKPT::initialize(VkDevice device, VkPhysicalDevice physicalDevice,
-                           VkCommandPool commandPool, VkQueue graphicsQueue,
-                           VkRenderPass renderPass, uint32_t width, uint32_t height)
+void
+RenderVKPT::initialize(VkDevice device,
+                       VkPhysicalDevice physicalDevice,
+                       VkCommandPool commandPool,
+                       VkQueue graphicsQueue,
+                       VkRenderPass renderPass,
+                       uint32_t width,
+                       uint32_t height)
 {
   RenderVK::initialize(device, physicalDevice, commandPool, graphicsQueue, renderPass, width, height);
 
@@ -74,7 +79,8 @@ void RenderVKPT::initialize(VkDevice device, VkPhysicalDevice physicalDevice,
   LOG_INFO << "RenderVKPT initialized with dimensions " << width << "x" << height;
 }
 
-void RenderVKPT::cleanup()
+void
+RenderVKPT::cleanup()
 {
   if (m_device != VK_NULL_HANDLE) {
     vkDeviceWaitIdle(m_device);
@@ -158,7 +164,8 @@ void RenderVKPT::cleanup()
   RenderVK::cleanup();
 }
 
-void RenderVKPT::render(VkCommandBuffer commandBuffer, Scene* scene, Camera* camera)
+void
+RenderVKPT::render(VkCommandBuffer commandBuffer, Scene* scene, Camera* camera)
 {
   // Update uniform buffer with current scene/camera data
   updateUniformBuffer(scene, camera);
@@ -178,15 +185,16 @@ void RenderVKPT::render(VkCommandBuffer commandBuffer, Scene* scene, Camera* cam
   }
 }
 
-void RenderVKPT::resize(uint32_t width, uint32_t height)
+void
+RenderVKPT::resize(uint32_t width, uint32_t height)
 {
   if (m_width != width || m_height != height) {
     m_width = width;
     m_height = height;
-    
+
     // Recreate images with new dimensions
     vkDeviceWaitIdle(m_device);
-    
+
     // Cleanup old images
     if (m_compute.colorImageView != VK_NULL_HANDLE) {
       vkDestroyImageView(m_device, m_compute.colorImageView, nullptr);
@@ -216,66 +224,75 @@ void RenderVKPT::resize(uint32_t width, uint32_t height)
 
     // Create new images
     createImages();
-    
+
     // Reset accumulation
     resetAccumulation();
   }
 }
 
-void RenderVKPT::setMaxBounces(uint32_t maxBounces)
+void
+RenderVKPT::setMaxBounces(uint32_t maxBounces)
 {
   m_maxBounces = maxBounces;
   resetAccumulation();
 }
 
-void RenderVKPT::setSamplesPerPixel(uint32_t samples)
+void
+RenderVKPT::setSamplesPerPixel(uint32_t samples)
 {
   m_samplesPerPixel = samples;
   resetAccumulation();
 }
 
-void RenderVKPT::setDenoising(bool enabled)
+void
+RenderVKPT::setDenoising(bool enabled)
 {
   m_denoisingEnabled = enabled;
 }
 
-void RenderVKPT::resetAccumulation()
+void
+RenderVKPT::resetAccumulation()
 {
   m_accumulationReset = true;
   m_frameNumber = 0;
 }
 
-void RenderVKPT::setVolumeData(ImageXyzcGpuVK* volumeData)
+void
+RenderVKPT::setVolumeData(ImageXyzcGpuVK* volumeData)
 {
   m_volumeData = volumeData;
   resetAccumulation();
 }
 
-void RenderVKPT::setTransferFunction(const std::vector<float>& transferFunction)
+void
+RenderVKPT::setTransferFunction(const std::vector<float>& transferFunction)
 {
   m_transferFunction = transferFunction;
-  
+
   // Update transfer function buffer
   if (!m_transferFunction.empty()) {
     createTransferFunctionBuffer();
   }
-  
+
   resetAccumulation();
 }
 
-void RenderVKPT::setStepSize(float stepSize)
+void
+RenderVKPT::setStepSize(float stepSize)
 {
   m_stepSize = stepSize;
   resetAccumulation();
 }
 
-void RenderVKPT::setDensityScale(float densityScale)
+void
+RenderVKPT::setDensityScale(float densityScale)
 {
   m_densityScale = densityScale;
   resetAccumulation();
 }
 
-void RenderVKPT::setLightDirection(float x, float y, float z)
+void
+RenderVKPT::setLightDirection(float x, float y, float z)
 {
   m_lightDirection[0] = x;
   m_lightDirection[1] = y;
@@ -283,7 +300,8 @@ void RenderVKPT::setLightDirection(float x, float y, float z)
   resetAccumulation();
 }
 
-bool RenderVKPT::createComputeResources()
+bool
+RenderVKPT::createComputeResources()
 {
   if (!createUniformBuffer()) {
     LOG_ERROR << "Failed to create uniform buffer";
@@ -308,7 +326,8 @@ bool RenderVKPT::createComputeResources()
   return true;
 }
 
-bool RenderVKPT::createDisplayResources()
+bool
+RenderVKPT::createDisplayResources()
 {
   if (!createScreenQuad()) {
     LOG_ERROR << "Failed to create screen quad";
@@ -323,41 +342,53 @@ bool RenderVKPT::createDisplayResources()
   return true;
 }
 
-bool RenderVKPT::createUniformBuffer()
+bool
+RenderVKPT::createUniformBuffer()
 {
   VkDeviceSize bufferSize = sizeof(PathTracingUniforms);
-  
-  return createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     m_compute.uniformBuffer, m_compute.uniformBufferMemory);
+
+  return createBuffer(bufferSize,
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      m_compute.uniformBuffer,
+                      m_compute.uniformBufferMemory);
 }
 
-bool RenderVKPT::createImages()
+bool
+RenderVKPT::createImages()
 {
   // Create color output image (RGBA32F for HDR)
-  if (!createImage(m_width, m_height, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
-                  VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                  m_compute.colorImage, m_compute.colorImageMemory)) {
+  if (!createImage(m_width,
+                   m_height,
+                   VK_FORMAT_R32G32B32A32_SFLOAT,
+                   VK_IMAGE_TILING_OPTIMAL,
+                   VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                   m_compute.colorImage,
+                   m_compute.colorImageMemory)) {
     return false;
   }
 
-  m_compute.colorImageView = createImageView(m_compute.colorImage, VK_FORMAT_R32G32B32A32_SFLOAT,
-                                            VK_IMAGE_ASPECT_COLOR_BIT);
+  m_compute.colorImageView =
+    createImageView(m_compute.colorImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
   if (m_compute.colorImageView == VK_NULL_HANDLE) {
     return false;
   }
 
   // Create accumulation image for progressive rendering
-  if (!createImage(m_width, m_height, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
-                  VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                  m_compute.accumulationImage, m_compute.accumulationImageMemory)) {
+  if (!createImage(m_width,
+                   m_height,
+                   VK_FORMAT_R32G32B32A32_SFLOAT,
+                   VK_IMAGE_TILING_OPTIMAL,
+                   VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                   m_compute.accumulationImage,
+                   m_compute.accumulationImageMemory)) {
     return false;
   }
 
-  m_compute.accumulationImageView = createImageView(m_compute.accumulationImage, VK_FORMAT_R32G32B32A32_SFLOAT,
-                                                   VK_IMAGE_ASPECT_COLOR_BIT);
+  m_compute.accumulationImageView =
+    createImageView(m_compute.accumulationImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
   if (m_compute.accumulationImageView == VK_NULL_HANDLE) {
     return false;
   }
@@ -366,17 +397,47 @@ bool RenderVKPT::createImages()
 }
 
 // Stub implementations for remaining methods
-bool RenderVKPT::createDescriptorSets() { return true; }
-bool RenderVKPT::createComputePipeline() { return true; }
-bool RenderVKPT::createDisplayPipeline() { return true; }
-bool RenderVKPT::createTransferFunctionBuffer() { return true; }
-bool RenderVKPT::createScreenQuad() { return true; }
+bool
+RenderVKPT::createDescriptorSets()
+{
+  return true;
+}
+bool
+RenderVKPT::createComputePipeline()
+{
+  return true;
+}
+bool
+RenderVKPT::createDisplayPipeline()
+{
+  return true;
+}
+bool
+RenderVKPT::createTransferFunctionBuffer()
+{
+  return true;
+}
+bool
+RenderVKPT::createScreenQuad()
+{
+  return true;
+}
 
-void RenderVKPT::updateUniformBuffer(Scene* scene, Camera* camera) {}
-void RenderVKPT::dispatchCompute(VkCommandBuffer commandBuffer) {}
-void RenderVKPT::renderToScreen(VkCommandBuffer commandBuffer) {}
+void
+RenderVKPT::updateUniformBuffer(Scene* scene, Camera* camera)
+{
+}
+void
+RenderVKPT::dispatchCompute(VkCommandBuffer commandBuffer)
+{
+}
+void
+RenderVKPT::renderToScreen(VkCommandBuffer commandBuffer)
+{
+}
 
-uint32_t RenderVKPT::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t
+RenderVKPT::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
@@ -391,8 +452,12 @@ uint32_t RenderVKPT::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags p
   return 0;
 }
 
-bool RenderVKPT::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-                             VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+bool
+RenderVKPT::createBuffer(VkDeviceSize size,
+                         VkBufferUsageFlags usage,
+                         VkMemoryPropertyFlags properties,
+                         VkBuffer& buffer,
+                         VkDeviceMemory& bufferMemory)
 {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -424,9 +489,15 @@ bool RenderVKPT::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
   return true;
 }
 
-bool RenderVKPT::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                            VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-                            VkImage& image, VkDeviceMemory& imageMemory)
+bool
+RenderVKPT::createImage(uint32_t width,
+                        uint32_t height,
+                        VkFormat format,
+                        VkImageTiling tiling,
+                        VkImageUsageFlags usage,
+                        VkMemoryPropertyFlags properties,
+                        VkImage& image,
+                        VkDeviceMemory& imageMemory)
 {
   VkImageCreateInfo imageInfo{};
   imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -467,7 +538,8 @@ bool RenderVKPT::createImage(uint32_t width, uint32_t height, VkFormat format, V
   return true;
 }
 
-VkImageView RenderVKPT::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+VkImageView
+RenderVKPT::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 {
   VkImageViewCreateInfo viewInfo{};
   viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -490,8 +562,12 @@ VkImageView RenderVKPT::createImageView(VkImage image, VkFormat format, VkImageA
   return imageView;
 }
 
-void RenderVKPT::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image,
-                                      VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+void
+RenderVKPT::transitionImageLayout(VkCommandBuffer commandBuffer,
+                                  VkImage image,
+                                  VkFormat format,
+                                  VkImageLayout oldLayout,
+                                  VkImageLayout newLayout)
 {
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

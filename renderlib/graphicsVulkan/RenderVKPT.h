@@ -16,9 +16,13 @@ public:
   virtual ~RenderVKPT();
 
   // Override RenderVK methods
-  virtual void initialize(VkDevice device, VkPhysicalDevice physicalDevice,
-                         VkCommandPool commandPool, VkQueue graphicsQueue,
-                         VkRenderPass renderPass, uint32_t width, uint32_t height) override;
+  virtual void initialize(VkDevice device,
+                          VkPhysicalDevice physicalDevice,
+                          VkCommandPool commandPool,
+                          VkQueue graphicsQueue,
+                          VkRenderPass renderPass,
+                          uint32_t width,
+                          uint32_t height) override;
   virtual void cleanup() override;
   virtual void render(VkCommandBuffer commandBuffer, Scene* scene, Camera* camera) override;
   virtual void resize(uint32_t width, uint32_t height) override;
@@ -28,18 +32,19 @@ public:
   void setSamplesPerPixel(uint32_t samples);
   void setDenoising(bool enabled);
   void resetAccumulation();
-  
+
   // Volume rendering
   void setVolumeData(ImageXyzcGpuVK* volumeData);
   void setTransferFunction(const std::vector<float>& transferFunction);
-  
+
   // Ray tracing parameters
   void setStepSize(float stepSize);
   void setDensityScale(float densityScale);
   void setLightDirection(float x, float y, float z);
 
 private:
-  struct PathTracingUniforms {
+  struct PathTracingUniforms
+  {
     float viewMatrix[16];
     float projMatrix[16];
     float invViewMatrix[16];
@@ -56,7 +61,8 @@ private:
     uint32_t height;
   };
 
-  struct ComputeResources {
+  struct ComputeResources
+  {
     VkBuffer uniformBuffer;
     VkDeviceMemory uniformBufferMemory;
     VkImage colorImage;
@@ -82,7 +88,7 @@ private:
 
   // Compute resources
   ComputeResources m_compute;
-  
+
   // Path tracing state
   uint32_t m_frameNumber;
   uint32_t m_maxBounces;
@@ -123,20 +129,31 @@ private:
   bool createDisplayPipeline();
   bool createTransferFunctionBuffer();
   bool createScreenQuad();
-  
+
   void updateUniformBuffer(Scene* scene, Camera* camera);
   void dispatchCompute(VkCommandBuffer commandBuffer);
   void renderToScreen(VkCommandBuffer commandBuffer);
-  
+
   // Utility methods
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-  bool createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, 
-                   VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-  bool createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                  VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-                  VkImage& image, VkDeviceMemory& imageMemory);
+  bool createBuffer(VkDeviceSize size,
+                    VkBufferUsageFlags usage,
+                    VkMemoryPropertyFlags properties,
+                    VkBuffer& buffer,
+                    VkDeviceMemory& bufferMemory);
+  bool createImage(uint32_t width,
+                   uint32_t height,
+                   VkFormat format,
+                   VkImageTiling tiling,
+                   VkImageUsageFlags usage,
+                   VkMemoryPropertyFlags properties,
+                   VkImage& image,
+                   VkDeviceMemory& imageMemory);
   VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-  
-  void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, 
-                            VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+  void transitionImageLayout(VkCommandBuffer commandBuffer,
+                             VkImage image,
+                             VkFormat format,
+                             VkImageLayout oldLayout,
+                             VkImageLayout newLayout);
 };

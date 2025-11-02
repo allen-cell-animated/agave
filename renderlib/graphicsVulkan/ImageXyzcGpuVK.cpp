@@ -26,8 +26,11 @@ ImageXyzcGpuVK::~ImageXyzcGpuVK()
   deallocGpu();
 }
 
-void ImageXyzcGpuVK::allocGpu(VkDevice device, VkPhysicalDevice physicalDevice, 
-                             VkCommandPool commandPool, VkQueue transferQueue)
+void
+ImageXyzcGpuVK::allocGpu(VkDevice device,
+                         VkPhysicalDevice physicalDevice,
+                         VkCommandPool commandPool,
+                         VkQueue transferQueue)
 {
   m_device = device;
   m_physicalDevice = physicalDevice;
@@ -35,7 +38,8 @@ void ImageXyzcGpuVK::allocGpu(VkDevice device, VkPhysicalDevice physicalDevice,
   m_transferQueue = transferQueue;
 }
 
-void ImageXyzcGpuVK::deallocGpu()
+void
+ImageXyzcGpuVK::deallocGpu()
 {
   if (m_device != VK_NULL_HANDLE) {
     // Wait for device to be idle before cleanup
@@ -90,9 +94,12 @@ void ImageXyzcGpuVK::deallocGpu()
   m_transferQueue = VK_NULL_HANDLE;
 }
 
-void ImageXyzcGpuVK::allocGpuInterleaved(VkDevice device, VkPhysicalDevice physicalDevice,
-                                        VkCommandPool commandPool, VkQueue transferQueue,
-                                        const ImageXYZC* image)
+void
+ImageXyzcGpuVK::allocGpuInterleaved(VkDevice device,
+                                    VkPhysicalDevice physicalDevice,
+                                    VkCommandPool commandPool,
+                                    VkQueue transferQueue,
+                                    const ImageXYZC* image)
 {
   allocGpu(device, physicalDevice, commandPool, transferQueue);
 
@@ -106,7 +113,7 @@ void ImageXyzcGpuVK::allocGpuInterleaved(VkDevice device, VkPhysicalDevice physi
   m_depth = image->sizeZ();
   m_channels = image->sizeC();
 
-  LOG_INFO << "Allocating Vulkan volume texture: " << m_width << "x" << m_height << "x" << m_depth 
+  LOG_INFO << "Allocating Vulkan volume texture: " << m_width << "x" << m_height << "x" << m_depth
            << " channels: " << m_channels;
 
   // Create volume texture
@@ -158,13 +165,13 @@ void ImageXyzcGpuVK::allocGpuInterleaved(VkDevice device, VkPhysicalDevice physi
   vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
   // Transition image layout and copy data
-  transitionImageLayout(commandBuffer, m_volumeTexture, 
-                       VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  
+  transitionImageLayout(
+    commandBuffer, m_volumeTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
   copyBufferToImage(commandBuffer, m_stagingBuffer, m_volumeTexture, m_width, m_height, m_depth);
-  
-  transitionImageLayout(commandBuffer, m_volumeTexture,
-                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  transitionImageLayout(
+    commandBuffer, m_volumeTexture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   vkEndCommandBuffer(commandBuffer);
 
@@ -182,7 +189,8 @@ void ImageXyzcGpuVK::allocGpuInterleaved(VkDevice device, VkPhysicalDevice physi
   LOG_INFO << "Vulkan volume texture created and uploaded successfully";
 }
 
-bool ImageXyzcGpuVK::createVolumeTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t channels)
+bool
+ImageXyzcGpuVK::createVolumeTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t channels)
 {
   // Create 3D texture
   VkImageCreateInfo imageInfo{};
@@ -213,8 +221,7 @@ bool ImageXyzcGpuVK::createVolumeTexture(uint32_t width, uint32_t height, uint32
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, 
-                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   result = vkAllocateMemory(m_device, &allocInfo, nullptr, &m_volumeTextureMemory);
   if (result != VK_SUCCESS) {
@@ -265,7 +272,8 @@ bool ImageXyzcGpuVK::createVolumeTexture(uint32_t width, uint32_t height, uint32
   return true;
 }
 
-bool ImageXyzcGpuVK::createChannelTextures(uint32_t width, uint32_t height, uint32_t depth, uint32_t channels)
+bool
+ImageXyzcGpuVK::createChannelTextures(uint32_t width, uint32_t height, uint32_t depth, uint32_t channels)
 {
   m_channelTextures.resize(channels);
 
@@ -301,8 +309,7 @@ bool ImageXyzcGpuVK::createChannelTextures(uint32_t width, uint32_t height, uint
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
-                                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     result = vkAllocateMemory(m_device, &allocInfo, nullptr, &channel.memory);
     if (result != VK_SUCCESS) {
@@ -334,7 +341,8 @@ bool ImageXyzcGpuVK::createChannelTextures(uint32_t width, uint32_t height, uint
   return true;
 }
 
-bool ImageXyzcGpuVK::createStagingBuffer(size_t size)
+bool
+ImageXyzcGpuVK::createStagingBuffer(size_t size)
 {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -354,8 +362,8 @@ bool ImageXyzcGpuVK::createStagingBuffer(size_t size)
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
-                                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  allocInfo.memoryTypeIndex = findMemoryType(
+    memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
   result = vkAllocateMemory(m_device, &allocInfo, nullptr, &m_stagingBufferMemory);
   if (result != VK_SUCCESS) {
@@ -367,8 +375,11 @@ bool ImageXyzcGpuVK::createStagingBuffer(size_t size)
   return true;
 }
 
-void ImageXyzcGpuVK::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image,
-                                          VkImageLayout oldLayout, VkImageLayout newLayout)
+void
+ImageXyzcGpuVK::transitionImageLayout(VkCommandBuffer commandBuffer,
+                                      VkImage image,
+                                      VkImageLayout oldLayout,
+                                      VkImageLayout newLayout)
 {
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -392,7 +403,8 @@ void ImageXyzcGpuVK::transitionImageLayout(VkCommandBuffer commandBuffer, VkImag
 
     sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+  } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -406,8 +418,13 @@ void ImageXyzcGpuVK::transitionImageLayout(VkCommandBuffer commandBuffer, VkImag
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
-void ImageXyzcGpuVK::copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image,
-                                      uint32_t width, uint32_t height, uint32_t depth)
+void
+ImageXyzcGpuVK::copyBufferToImage(VkCommandBuffer commandBuffer,
+                                  VkBuffer buffer,
+                                  VkImage image,
+                                  uint32_t width,
+                                  uint32_t height,
+                                  uint32_t depth)
 {
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
@@ -417,13 +434,14 @@ void ImageXyzcGpuVK::copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer b
   region.imageSubresource.mipLevel = 0;
   region.imageSubresource.baseArrayLayer = 0;
   region.imageSubresource.layerCount = 1;
-  region.imageOffset = {0, 0, 0};
-  region.imageExtent = {width, height, depth};
+  region.imageOffset = { 0, 0, 0 };
+  region.imageExtent = { width, height, depth };
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 }
 
-uint32_t ImageXyzcGpuVK::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t
+ImageXyzcGpuVK::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
@@ -438,7 +456,8 @@ uint32_t ImageXyzcGpuVK::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
   return 0;
 }
 
-VkImage ImageXyzcGpuVK::getChannelTexture(uint32_t channel) const
+VkImage
+ImageXyzcGpuVK::getChannelTexture(uint32_t channel) const
 {
   if (channel < m_channelTextures.size()) {
     return m_channelTextures[channel].image;
@@ -446,7 +465,8 @@ VkImage ImageXyzcGpuVK::getChannelTexture(uint32_t channel) const
   return VK_NULL_HANDLE;
 }
 
-VkImageView ImageXyzcGpuVK::getChannelTextureView(uint32_t channel) const
+VkImageView
+ImageXyzcGpuVK::getChannelTextureView(uint32_t channel) const
 {
   if (channel < m_channelTextures.size()) {
     return m_channelTextures[channel].view;

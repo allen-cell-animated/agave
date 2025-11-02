@@ -13,8 +13,11 @@ public:
   GestureGraphicsVK();
   ~GestureGraphicsVK();
 
-  void init(VkInstance instance, VkDevice device, VkPhysicalDevice physicalDevice,
-            VkCommandPool commandPool, VkQueue graphicsQueue);
+  void init(VkInstance instance,
+            VkDevice device,
+            VkPhysicalDevice physicalDevice,
+            VkCommandPool commandPool,
+            VkQueue graphicsQueue);
   void cleanup();
 
   // Gesture handling
@@ -63,7 +66,7 @@ private:
   bool m_panning;
   bool m_zooming;
   bool m_rotating;
-  
+
   float m_lastPanX, m_lastPanY;
   float m_lastZoomX, m_lastZoomY, m_lastZoomScale;
   float m_lastRotateX, m_lastRotateY;
@@ -101,7 +104,14 @@ private:
   void rotationMatrix(float angleX, float angleY, float angleZ, float* matrix);
   void scaleMatrix(float scale, float* matrix);
   void perspectiveMatrix(float fov, float aspect, float nearZ, float farZ, float* matrix);
-  void lookAtMatrix(float eyeX, float eyeY, float eyeZ,
-                   float centerX, float centerY, float centerZ,
-                   float upX, float upY, float upZ, float* matrix);
+  void lookAtMatrix(float eyeX,
+                    float eyeY,
+                    float eyeZ,
+                    float centerX,
+                    float centerY,
+                    float centerZ,
+                    float upX,
+                    float upY,
+                    float upZ,
+                    float* matrix);
 };

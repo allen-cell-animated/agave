@@ -14,9 +14,11 @@ public:
   void allocGpu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue transferQueue);
   void deallocGpu();
 
-  void allocGpuInterleaved(VkDevice device, VkPhysicalDevice physicalDevice, 
-                          VkCommandPool commandPool, VkQueue transferQueue,
-                          const ImageXYZC* image);
+  void allocGpuInterleaved(VkDevice device,
+                           VkPhysicalDevice physicalDevice,
+                           VkCommandPool commandPool,
+                           VkQueue transferQueue,
+                           const ImageXYZC* image);
 
   // Get the 3D texture for volume rendering
   VkImage getVolumeTexture() const { return m_volumeTexture; }
@@ -45,7 +47,8 @@ private:
   VkSampler m_volumeSampler;
 
   // Individual channel textures
-  struct ChannelTexture {
+  struct ChannelTexture
+  {
     VkImage image;
     VkDeviceMemory memory;
     VkImageView view;
@@ -66,9 +69,15 @@ private:
   bool createVolumeTexture(uint32_t width, uint32_t height, uint32_t depth, uint32_t channels);
   bool createChannelTextures(uint32_t width, uint32_t height, uint32_t depth, uint32_t channels);
   bool createStagingBuffer(size_t size);
-  void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, 
-                            VkImageLayout oldLayout, VkImageLayout newLayout);
-  void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image,
-                        uint32_t width, uint32_t height, uint32_t depth);
+  void transitionImageLayout(VkCommandBuffer commandBuffer,
+                             VkImage image,
+                             VkImageLayout oldLayout,
+                             VkImageLayout newLayout);
+  void copyBufferToImage(VkCommandBuffer commandBuffer,
+                         VkBuffer buffer,
+                         VkImage image,
+                         uint32_t width,
+                         uint32_t height,
+                         uint32_t depth);
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 };

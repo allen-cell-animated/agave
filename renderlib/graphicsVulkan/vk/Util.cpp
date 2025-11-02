@@ -4,7 +4,8 @@
 #include <fstream>
 #include <array>
 
-void check_vk(VkResult result, const std::string& message)
+void
+check_vk(VkResult result, const std::string& message)
 {
   if (result != VK_SUCCESS) {
     LOG_ERROR << "Vulkan error in " << message << ": " << result;
@@ -26,8 +27,12 @@ VulkanBuffer::~VulkanBuffer()
   destroy();
 }
 
-bool VulkanBuffer::create(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size,
-                         VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+bool
+VulkanBuffer::create(VkDevice device,
+                     VkPhysicalDevice physicalDevice,
+                     VkDeviceSize size,
+                     VkBufferUsageFlags usage,
+                     VkMemoryPropertyFlags properties)
 {
   m_device = device;
   m_size = size;
@@ -62,7 +67,8 @@ bool VulkanBuffer::create(VkDevice device, VkPhysicalDevice physicalDevice, VkDe
   return true;
 }
 
-void VulkanBuffer::destroy()
+void
+VulkanBuffer::destroy()
 {
   if (m_device != VK_NULL_HANDLE) {
     if (m_mapped) {
@@ -80,12 +86,13 @@ void VulkanBuffer::destroy()
   m_device = VK_NULL_HANDLE;
 }
 
-void* VulkanBuffer::map()
+void*
+VulkanBuffer::map()
 {
   if (m_mapped) {
     return m_mapped;
   }
-  
+
   VkResult result = vkMapMemory(m_device, m_bufferMemory, 0, m_size, 0, &m_mapped);
   if (result != VK_SUCCESS) {
     LOG_ERROR << "Failed to map buffer memory: " << result;
@@ -94,7 +101,8 @@ void* VulkanBuffer::map()
   return m_mapped;
 }
 
-void VulkanBuffer::unmap()
+void
+VulkanBuffer::unmap()
 {
   if (m_mapped) {
     vkUnmapMemory(m_device, m_bufferMemory);
@@ -102,7 +110,8 @@ void VulkanBuffer::unmap()
   }
 }
 
-void VulkanBuffer::copyData(const void* data, VkDeviceSize size)
+void
+VulkanBuffer::copyData(const void* data, VkDeviceSize size)
 {
   void* mappedData = map();
   if (mappedData) {
@@ -111,8 +120,8 @@ void VulkanBuffer::copyData(const void* data, VkDeviceSize size)
   }
 }
 
-uint32_t VulkanBuffer::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter,
-                                     VkMemoryPropertyFlags properties)
+uint32_t
+VulkanBuffer::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -146,10 +155,16 @@ VulkanImage::~VulkanImage()
   destroy();
 }
 
-bool VulkanImage::create(VkDevice device, VkPhysicalDevice physicalDevice,
-                        uint32_t width, uint32_t height, uint32_t depth,
-                        VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
-                        VkMemoryPropertyFlags properties)
+bool
+VulkanImage::create(VkDevice device,
+                    VkPhysicalDevice physicalDevice,
+                    uint32_t width,
+                    uint32_t height,
+                    uint32_t depth,
+                    VkFormat format,
+                    VkImageTiling tiling,
+                    VkImageUsageFlags usage,
+                    VkMemoryPropertyFlags properties)
 {
   m_device = device;
   m_physicalDevice = physicalDevice;
@@ -197,7 +212,8 @@ bool VulkanImage::create(VkDevice device, VkPhysicalDevice physicalDevice,
   return true;
 }
 
-void VulkanImage::destroy()
+void
+VulkanImage::destroy()
 {
   if (m_device != VK_NULL_HANDLE) {
     if (m_imageView != VK_NULL_HANDLE) {
@@ -217,7 +233,8 @@ void VulkanImage::destroy()
   m_physicalDevice = VK_NULL_HANDLE;
 }
 
-bool VulkanImage::createImageView(VkImageViewType viewType, VkImageAspectFlags aspectFlags)
+bool
+VulkanImage::createImageView(VkImageViewType viewType, VkImageAspectFlags aspectFlags)
 {
   VkImageViewCreateInfo viewInfo{};
   viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -238,7 +255,8 @@ bool VulkanImage::createImageView(VkImageViewType viewType, VkImageAspectFlags a
   return true;
 }
 
-uint32_t VulkanImage::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t
+VulkanImage::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
@@ -273,16 +291,16 @@ RectImage2DVK::~RectImage2DVK()
   cleanup();
 }
 
-bool RectImage2DVK::initialize(VkDevice device, VkPhysicalDevice physicalDevice,
-                              VkRenderPass renderPass, VkDescriptorPool descriptorPool)
+bool
+RectImage2DVK::initialize(VkDevice device,
+                          VkPhysicalDevice physicalDevice,
+                          VkRenderPass renderPass,
+                          VkDescriptorPool descriptorPool)
 {
   m_device = device;
 
-  if (!createVertexBuffer(physicalDevice) ||
-      !createIndexBuffer(physicalDevice) ||
-      !createDescriptorSetLayout() ||
-      !createGraphicsPipeline(renderPass) ||
-      !createTextureSampler()) {
+  if (!createVertexBuffer(physicalDevice) || !createIndexBuffer(physicalDevice) || !createDescriptorSetLayout() ||
+      !createGraphicsPipeline(renderPass) || !createTextureSampler()) {
     return false;
   }
 
@@ -290,24 +308,26 @@ bool RectImage2DVK::initialize(VkDevice device, VkPhysicalDevice physicalDevice,
   return true;
 }
 
-void RectImage2DVK::draw(VkCommandBuffer commandBuffer, VkImageView texture)
+void
+RectImage2DVK::draw(VkCommandBuffer commandBuffer, VkImageView texture)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
-  VkBuffer vertexBuffers[] = {m_vertexBuffer};
-  VkDeviceSize offsets[] = {0};
+  VkBuffer vertexBuffers[] = { m_vertexBuffer };
+  VkDeviceSize offsets[] = { 0 };
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
   if (m_descriptorSet != VK_NULL_HANDLE) {
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                           m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+    vkCmdBindDescriptorSets(
+      commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
   }
 
   vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 }
 
-void RectImage2DVK::cleanup()
+void
+RectImage2DVK::cleanup()
 {
   if (m_device != VK_NULL_HANDLE) {
     if (m_textureSampler != VK_NULL_HANDLE) {
@@ -337,19 +357,19 @@ void RectImage2DVK::cleanup()
   }
 }
 
-bool RectImage2DVK::createVertexBuffer(VkPhysicalDevice physicalDevice)
+bool
+RectImage2DVK::createVertexBuffer(VkPhysicalDevice physicalDevice)
 {
-  struct Vertex {
+  struct Vertex
+  {
     float pos[2];
     float texCoord[2];
   };
 
-  std::array<Vertex, 4> vertices = {{
-    {{-1.0f, -1.0f}, {0.0f, 0.0f}},
-    {{ 1.0f, -1.0f}, {1.0f, 0.0f}},
-    {{ 1.0f,  1.0f}, {1.0f, 1.0f}},
-    {{-1.0f,  1.0f}, {0.0f, 1.0f}}
-  }};
+  std::array<Vertex, 4> vertices = { { { { -1.0f, -1.0f }, { 0.0f, 0.0f } },
+                                       { { 1.0f, -1.0f }, { 1.0f, 0.0f } },
+                                       { { 1.0f, 1.0f }, { 1.0f, 1.0f } },
+                                       { { -1.0f, 1.0f }, { 0.0f, 1.0f } } } };
 
   VkDeviceSize bufferSize = sizeof(vertices);
 
@@ -373,7 +393,8 @@ bool RectImage2DVK::createVertexBuffer(VkPhysicalDevice physicalDevice)
   uint32_t memoryTypeIndex = 0;
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((memRequirements.memoryTypeBits & (1 << i)) &&
-        (memProperties.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))) {
+        (memProperties.memoryTypes[i].propertyFlags &
+         (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))) {
       memoryTypeIndex = i;
       break;
     }
@@ -399,9 +420,10 @@ bool RectImage2DVK::createVertexBuffer(VkPhysicalDevice physicalDevice)
   return true;
 }
 
-bool RectImage2DVK::createIndexBuffer(VkPhysicalDevice physicalDevice)
+bool
+RectImage2DVK::createIndexBuffer(VkPhysicalDevice physicalDevice)
 {
-  std::array<uint16_t, 6> indices = {0, 1, 2, 2, 3, 0};
+  std::array<uint16_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
   VkDeviceSize bufferSize = sizeof(indices);
 
   VkBufferCreateInfo bufferInfo{};
@@ -424,7 +446,8 @@ bool RectImage2DVK::createIndexBuffer(VkPhysicalDevice physicalDevice)
   uint32_t memoryTypeIndex = 0;
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((memRequirements.memoryTypeBits & (1 << i)) &&
-        (memProperties.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))) {
+        (memProperties.memoryTypes[i].propertyFlags &
+         (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))) {
       memoryTypeIndex = i;
       break;
     }
@@ -450,7 +473,8 @@ bool RectImage2DVK::createIndexBuffer(VkPhysicalDevice physicalDevice)
   return true;
 }
 
-bool RectImage2DVK::createDescriptorSetLayout()
+bool
+RectImage2DVK::createDescriptorSetLayout()
 {
   VkDescriptorSetLayoutBinding samplerLayoutBinding{};
   samplerLayoutBinding.binding = 0;
@@ -472,11 +496,12 @@ bool RectImage2DVK::createDescriptorSetLayout()
   return true;
 }
 
-bool RectImage2DVK::createGraphicsPipeline(VkRenderPass renderPass)
+bool
+RectImage2DVK::createGraphicsPipeline(VkRenderPass renderPass)
 {
   // TODO: Load compiled SPIR-V shaders
   // For now, create a minimal pipeline
-  
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount = 1;
@@ -492,7 +517,8 @@ bool RectImage2DVK::createGraphicsPipeline(VkRenderPass renderPass)
   return true;
 }
 
-bool RectImage2DVK::createTextureSampler()
+bool
+RectImage2DVK::createTextureSampler()
 {
   VkSamplerCreateInfo samplerInfo{};
   samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;

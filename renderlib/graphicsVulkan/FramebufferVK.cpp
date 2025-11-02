@@ -18,8 +18,13 @@ FramebufferVK::~FramebufferVK()
   destroy();
 }
 
-bool FramebufferVK::create(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass,
-                          uint32_t width, uint32_t height, uint32_t layers)
+bool
+FramebufferVK::create(VkDevice device,
+                      VkPhysicalDevice physicalDevice,
+                      VkRenderPass renderPass,
+                      uint32_t width,
+                      uint32_t height,
+                      uint32_t layers)
 {
   m_device = device;
   m_physicalDevice = physicalDevice;
@@ -30,10 +35,15 @@ bool FramebufferVK::create(VkDevice device, VkPhysicalDevice physicalDevice, VkR
 
   // Create color attachment
   m_colorImage = std::make_unique<VulkanImage>();
-  if (!m_colorImage->create(device, physicalDevice, width, height, 1,
-                           VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+  if (!m_colorImage->create(device,
+                            physicalDevice,
+                            width,
+                            height,
+                            1,
+                            VK_FORMAT_R8G8B8A8_UNORM,
+                            VK_IMAGE_TILING_OPTIMAL,
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
     LOG_ERROR << "Failed to create color attachment";
     return false;
   }
@@ -45,10 +55,15 @@ bool FramebufferVK::create(VkDevice device, VkPhysicalDevice physicalDevice, VkR
 
   // Create depth attachment
   m_depthImage = std::make_unique<VulkanImage>();
-  if (!m_depthImage->create(device, physicalDevice, width, height, 1,
-                           VK_FORMAT_D32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
-                           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+  if (!m_depthImage->create(device,
+                            physicalDevice,
+                            width,
+                            height,
+                            1,
+                            VK_FORMAT_D32_SFLOAT,
+                            VK_IMAGE_TILING_OPTIMAL,
+                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
     LOG_ERROR << "Failed to create depth attachment";
     return false;
   }
@@ -59,10 +74,7 @@ bool FramebufferVK::create(VkDevice device, VkPhysicalDevice physicalDevice, VkR
   }
 
   // Create framebuffer
-  std::vector<VkImageView> attachments = {
-    m_colorImage->getImageView(),
-    m_depthImage->getImageView()
-  };
+  std::vector<VkImageView> attachments = { m_colorImage->getImageView(), m_depthImage->getImageView() };
 
   VkFramebufferCreateInfo framebufferInfo{};
   framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -83,7 +95,8 @@ bool FramebufferVK::create(VkDevice device, VkPhysicalDevice physicalDevice, VkR
   return true;
 }
 
-void FramebufferVK::destroy()
+void
+FramebufferVK::destroy()
 {
   if (m_device != VK_NULL_HANDLE) {
     if (m_framebuffer != VK_NULL_HANDLE) {
@@ -94,23 +107,24 @@ void FramebufferVK::destroy()
 
   m_colorImage.reset();
   m_depthImage.reset();
-  
+
   m_device = VK_NULL_HANDLE;
   m_physicalDevice = VK_NULL_HANDLE;
 }
 
-void FramebufferVK::bind(VkCommandBuffer commandBuffer)
+void
+FramebufferVK::bind(VkCommandBuffer commandBuffer)
 {
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
   renderPassInfo.renderPass = m_renderPass;
   renderPassInfo.framebuffer = m_framebuffer;
-  renderPassInfo.renderArea.offset = {0, 0};
-  renderPassInfo.renderArea.extent = {m_width, m_height};
+  renderPassInfo.renderArea.offset = { 0, 0 };
+  renderPassInfo.renderArea.extent = { m_width, m_height };
 
   std::vector<VkClearValue> clearValues(2);
-  clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-  clearValues[1].depthStencil = {1.0f, 0};
+  clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+  clearValues[1].depthStencil = { 1.0f, 0 };
 
   renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
   renderPassInfo.pClearValues = clearValues.data();
@@ -118,9 +132,10 @@ void FramebufferVK::bind(VkCommandBuffer commandBuffer)
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void FramebufferVK::clear(VkCommandBuffer commandBuffer, float r, float g, float b, float a)
+void
+FramebufferVK::clear(VkCommandBuffer commandBuffer, float r, float g, float b, float a)
 {
-  VkClearColorValue clearColor = {{r, g, b, a}};
+  VkClearColorValue clearColor = { { r, g, b, a } };
   VkImageSubresourceRange range = {};
   range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   range.baseMipLevel = 0;
@@ -128,28 +143,32 @@ void FramebufferVK::clear(VkCommandBuffer commandBuffer, float r, float g, float
   range.baseArrayLayer = 0;
   range.layerCount = 1;
 
-  vkCmdClearColorImage(commandBuffer, m_colorImage->getImage(), 
-                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearColor, 1, &range);
+  vkCmdClearColorImage(
+    commandBuffer, m_colorImage->getImage(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearColor, 1, &range);
 }
 
-VkImageView FramebufferVK::getColorImageView() const
+VkImageView
+FramebufferVK::getColorImageView() const
 {
   return m_colorImage ? m_colorImage->getImageView() : VK_NULL_HANDLE;
 }
 
-VkImageView FramebufferVK::getDepthImageView() const
+VkImageView
+FramebufferVK::getDepthImageView() const
 {
   return m_depthImage ? m_depthImage->getImageView() : VK_NULL_HANDLE;
 }
 
-bool FramebufferVK::copyToMemory(void* data, VkFormat format)
+bool
+FramebufferVK::copyToMemory(void* data, VkFormat format)
 {
   // TODO: Implement framebuffer readback
   LOG_WARNING << "FramebufferVK::copyToMemory not yet implemented";
   return false;
 }
 
-uint32_t FramebufferVK::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t
+FramebufferVK::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
