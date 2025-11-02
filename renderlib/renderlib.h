@@ -1,7 +1,6 @@
 #pragma once
 
 #include "glad/glad.h"
-#include "graphics/IGraphicsAPI.h"
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
@@ -27,20 +26,11 @@ typedef void* EGLContext; // Forward declaration from EGL.h.
 class renderlib
 {
 public:
-  // Enhanced initialization with graphics API selection
-  static int initialize(std::string assetPath,
-                        bool headless = false,
-                        bool listDevices = false,
-                        int selectedGpu = 0,
-                        GraphicsAPI api = GraphicsAPI::OpenGL);
+  static int initialize(std::string assetPath, bool headless = false, bool listDevices = false, int selectedGpu = 0);
   static void clearGpuVolumeCache();
   static void cleanup();
 
   static std::string assetPath();
-
-  // Graphics API abstraction
-  static IGraphicsAPI* getGraphicsAPI();
-  static GraphicsAPI getGraphicsAPIType();
 
   // usage of this cache:
   // websocketserver:

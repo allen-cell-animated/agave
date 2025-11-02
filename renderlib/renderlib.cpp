@@ -5,7 +5,6 @@
 #include "Logging.h"
 #include "RenderGL.h"
 #include "RenderGLPT.h"
-#include "graphics/GraphicsContextManager.h"
 
 #include <QGuiApplication>
 #include <QOpenGLDebugLogger>
@@ -196,7 +195,7 @@ initEGLDisplay(int selectedGpu)
 #endif
 
 int
-renderlib::initialize(std::string assetPath, bool headless, bool listDevices, int selectedGpu, GraphicsAPI api)
+renderlib::initialize(std::string assetPath, bool headless, bool listDevices, int selectedGpu)
 {
   if (renderLibInitialized) {
     return 1;
@@ -211,21 +210,7 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
 #endif
   renderLibHeadless = headless;
 
-  LOG_INFO << "Renderlib startup with " << (api == GraphicsAPI::OpenGL ? "OpenGL" : "Vulkan") << " API";
-
-  // Initialize global graphics context manager
-  if (!g_graphicsContext) {
-    g_graphicsContext = new GraphicsContextManager();
-  }
-
-  // Initialize graphics context with specified API
-  if (!g_graphicsContext->initialize(api, headless, selectedGpu)) {
-    LOG_ERROR << "Failed to initialize graphics context";
-    delete g_graphicsContext;
-    g_graphicsContext = nullptr;
-    renderLibInitialized = false;
-    return 0;
-  }
+  LOG_INFO << "Renderlib startup";
 
   bool enableDebug = false;
 
@@ -234,27 +219,62 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
 
   HeadlessGLContext* dummyHeadlessContext = nullptr;
 
-  // Handle device listing for headless mode
-  if (headless && listDevices) {
+  if (headless) {
 #if HAS_EGL
-    // TODO: Implement device listing through graphics abstraction layer
-    LOG_INFO << "Device listing not yet implemented in abstraction layer";
+
+    // one-time EGL init
+
+    EGLint lastError = EGL_SUCCESS;
+
+    // 1. Initialize EGL
+    eglDpy = initEGLDisplay(selectedGpu);
+
+    if (listDevices) {
+      return 0;
+    }
+
+    EGLint major, minor;
+
+    EGLBoolean init_ok = eglInitialize(eglDpy, &major, &minor);
+    if (init_ok == EGL_FALSE) {
+      LOG_ERROR << "renderlib::initialize, eglInitialize failed";
+    }
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
+    }
+    // 2. Bind the API
+    EGLBoolean bindapi_ok = eglBindAPI(EGL_OPENGL_API);
+    if (bindapi_ok == EGL_FALSE) {
+      LOG_ERROR << "renderlib::initialize, eglBindAPI failed";
+    }
+    if ((lastError = eglGetError()) != EGL_SUCCESS) {
+      LOG_ERROR << "eglGetError " << lastError;
+    }
+    dummyHeadlessContext = new HeadlessGLContext();
+    dummyHeadlessContext->makeCurrent();
+#else
+    LOG_ERROR << "Headless operation without EGL support is not available";
 #endif
-    return 0;
+  } else {
+    dummyContext = renderlib::createOpenGLContext();
+
+    dummySurface = new QOffscreenSurface();
+    dummySurface->setFormat(dummyContext->format());
+    dummySurface->create();
+    LOG_INFO << "Created offscreen surface";
+    if (!dummySurface->isValid()) {
+      LOG_ERROR << "QOffscreenSurface is not valid";
+    }
+
+    bool ok = dummyContext->makeCurrent(dummySurface);
+    if (!ok) {
+      LOG_ERROR << "Failed to makeCurrent on offscreen surface";
+    } else {
+      LOG_INFO << "Made context current on offscreen surface";
+    }
   }
 
-  // The graphics context is already initialized by GraphicsContextManager
-  // Make sure it's current
-  if (!g_graphicsContext->makeCurrent()) {
-    LOG_ERROR << "Failed to make graphics context current";
-    delete g_graphicsContext;
-    g_graphicsContext = nullptr;
-    renderLibInitialized = false;
-    return 0;
-  }
-
-  // Initialize debug logging (OpenGL-specific for now)
-  if (enableDebug && api == GraphicsAPI::OpenGL) {
+  if (enableDebug) {
     logger = new QOpenGLDebugLogger();
     QObject::connect(logger, &QOpenGLDebugLogger::messageLogged, logMessage);
     if (logger->initialize()) {
@@ -263,39 +283,24 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
     }
   }
 
-  // For OpenGL, we still need GLAD for function loading
-  // TODO: Move this into the OpenGL-specific implementation
-  if (api == GraphicsAPI::OpenGL) {
-    int status = gladLoadGL();
-    if (!status) {
-      LOG_ERROR << "Failed to init GL";
-      return status;
-    }
-
-    LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
-    LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
+  // note: there MUST be a valid current gl context in order to run this:
+  int status = gladLoadGL();
+  if (!status) {
+    LOG_ERROR << "Failed to init GL";
+    return status;
   }
 
-  LOG_INFO << "Graphics initialization complete";
-  return 1;
+  LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
+  LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
+
+  delete dummyHeadlessContext;
+  return status;
 }
 
 std::string
 renderlib::assetPath()
 {
   return s_assetPath;
-}
-
-IGraphicsAPI*
-renderlib::getGraphicsAPI()
-{
-  return g_graphicsContext ? g_graphicsContext->getAPI() : nullptr;
-}
-
-GraphicsAPI
-renderlib::getGraphicsAPIType()
-{
-  return g_graphicsContext ? g_graphicsContext->getAPIType() : GraphicsAPI::OpenGL;
 }
 
 void
@@ -318,14 +323,6 @@ renderlib::cleanup()
 
   clearGpuVolumeCache();
 
-  // Cleanup graphics context manager
-  if (g_graphicsContext) {
-    g_graphicsContext->shutdown();
-    delete g_graphicsContext;
-    g_graphicsContext = nullptr;
-  }
-
-  // Cleanup legacy OpenGL resources (will be removed once fully abstracted)
   delete dummySurface;
   dummySurface = nullptr;
   delete dummyContext;
