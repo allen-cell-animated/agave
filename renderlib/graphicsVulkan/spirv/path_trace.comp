@@ -1,0 +1,188 @@
+#version 450
+
+// Path tracing compute shader for volume rendering
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) uniform UniformBuffer {
+    mat4 viewMatrix;
+    mat4 projMatrix;
+    mat4 invViewMatrix;
+    mat4 invProjMatrix;
+    vec4 cameraPos;
+    vec4 lightDir;
+    uint frameNumber;
+    uint maxBounces;
+    uint samplesPerPixel;
+    float stepSize;
+    float densityScale;
+    float time;
+    uint width;
+    uint height;
+} ubo;
+
+layout(set = 0, binding = 1, rgba32f) uniform writeonly image2D colorImage;
+layout(set = 0, binding = 2, rgba32f) uniform image2D accumulationImage;
+layout(set = 0, binding = 3) uniform sampler3D volumeTexture;
+layout(set = 0, binding = 4) uniform sampler1D transferFunction;
+
+// Ray structure
+struct Ray {
+    vec3 origin;
+    vec3 direction;
+};
+
+// Hit result
+struct HitResult {
+    bool hit;
+    float t;
+    vec3 position;
+    vec3 normal;
+    vec4 color;
+};
+
+// Random number generation
+uint rngState;
+
+uint wang_hash(uint seed) {
+    seed = (seed ^ 61u) ^ (seed >> 16u);
+    seed *= 9u;
+    seed = seed ^ (seed >> 4u);
+    seed *= 0x27d4eb2du;
+    seed = seed ^ (seed >> 15u);
+    return seed;
+}
+
+float random() {
+    rngState = wang_hash(rngState);
+    return float(rngState) / 4294967296.0;
+}
+
+void initRandom(uvec2 pixelCoord, uint frameNumber) {
+    rngState = wang_hash(pixelCoord.x + pixelCoord.y * ubo.width + frameNumber * 719393u);
+}
+
+// Generate primary ray from camera through pixel
+Ray generateCameraRay(vec2 pixelCoord) {
+    vec2 ndc = (pixelCoord / vec2(ubo.width, ubo.height)) * 2.0 - 1.0;
+    
+    vec4 rayClip = vec4(ndc, -1.0, 1.0);
+    vec4 rayEye = ubo.invProjMatrix * rayClip;
+    rayEye = vec4(rayEye.xy, -1.0, 0.0);
+    
+    vec4 rayWorld = ubo.invViewMatrix * rayEye;
+    
+    Ray ray;
+    ray.origin = ubo.cameraPos.xyz;
+    ray.direction = normalize(rayWorld.xyz);
+    
+    return ray;
+}
+
+// Volume ray marching
+vec4 sampleVolume(Ray ray, float maxDistance) {
+    vec4 color = vec4(0.0);
+    float transmittance = 1.0;
+    
+    float t = 0.0;
+    float dt = ubo.stepSize;
+    
+    while (t < maxDistance && transmittance > 0.01) {
+        vec3 pos = ray.origin + ray.direction * t;
+        
+        // Transform to volume texture coordinates [0,1]
+        vec3 texCoord = pos * 0.5 + 0.5;
+        
+        // Check if we're inside the volume
+        if (all(greaterThanEqual(texCoord, vec3(0.0))) && all(lessThanEqual(texCoord, vec3(1.0)))) {
+            float density = texture(volumeTexture, texCoord).r * ubo.densityScale;
+            
+            if (density > 0.0) {
+                // Sample transfer function
+                vec4 tfColor = texture(transferFunction, density);
+                
+                // Lighting calculation
+                vec3 lightDir = normalize(ubo.lightDir.xyz);
+                vec3 normal = normalize(vec3(
+                    texture(volumeTexture, texCoord + vec3(dt, 0, 0)).r - 
+                    texture(volumeTexture, texCoord - vec3(dt, 0, 0)).r,
+                    texture(volumeTexture, texCoord + vec3(0, dt, 0)).r - 
+                    texture(volumeTexture, texCoord - vec3(0, dt, 0)).r,
+                    texture(volumeTexture, texCoord + vec3(0, 0, dt)).r - 
+                    texture(volumeTexture, texCoord - vec3(0, 0, dt)).r
+                ));
+                
+                float lighting = max(0.2, dot(normal, lightDir));
+                
+                // Accumulate color with front-to-back blending
+                float alpha = tfColor.a * density * dt;
+                color.rgb += transmittance * alpha * tfColor.rgb * lighting;
+                transmittance *= (1.0 - alpha);
+            }
+        }
+        
+        t += dt;
+    }
+    
+    color.a = 1.0 - transmittance;
+    return color;
+}
+
+// Path tracing with volume rendering
+vec4 traceRay(Ray ray) {
+    vec4 color = vec4(0.0);
+    vec4 throughput = vec4(1.0);
+    
+    // For volume rendering, we primarily do ray marching
+    float maxDistance = 10.0; // Adjust based on scene bounds
+    vec4 volumeColor = sampleVolume(ray, maxDistance);
+    
+    // Simple environmental background
+    if (volumeColor.a < 1.0) {
+        vec3 skyColor = mix(vec3(0.3, 0.5, 0.8), vec3(0.8, 0.9, 1.0), 
+                           max(0.0, ray.direction.y));
+        volumeColor.rgb = mix(skyColor, volumeColor.rgb, volumeColor.a);
+        volumeColor.a = 1.0;
+    }
+    
+    return volumeColor;
+}
+
+void main() {
+    ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
+    
+    if (pixelCoord.x >= ubo.width || pixelCoord.y >= ubo.height) {
+        return;
+    }
+    
+    initRandom(uvec2(pixelCoord), ubo.frameNumber);
+    
+    vec4 color = vec4(0.0);
+    
+    // Multi-sampling for anti-aliasing
+    for (uint sample = 0; sample < ubo.samplesPerPixel; ++sample) {
+        vec2 jitter = vec2(random(), random()) - 0.5;
+        vec2 sampleCoord = vec2(pixelCoord) + jitter;
+        
+        Ray ray = generateCameraRay(sampleCoord);
+        color += traceRay(ray);
+    }
+    
+    color /= float(ubo.samplesPerPixel);
+    
+    // Progressive accumulation
+    if (ubo.frameNumber > 0) {
+        vec4 prevColor = imageLoad(accumulationImage, pixelCoord);
+        float weight = 1.0 / float(ubo.frameNumber + 1);
+        color = mix(prevColor, color, weight);
+    }
+    
+    // Store accumulated result
+    imageStore(accumulationImage, pixelCoord, color);
+    
+    // Tone mapping for display
+    vec3 toneMapped = color.rgb / (color.rgb + vec3(1.0));
+    toneMapped = pow(toneMapped, vec3(1.0/2.2)); // Gamma correction
+    
+    imageStore(colorImage, pixelCoord, vec4(toneMapped, color.a));
+}

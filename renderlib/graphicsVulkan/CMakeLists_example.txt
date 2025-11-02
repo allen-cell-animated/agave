@@ -1,0 +1,77 @@
+# Example CMakeLists.txt modifications for dual graphics backend support
+
+# Add option to choose graphics backend
+option(AGAVE_USE_VULKAN "Use Vulkan graphics backend instead of OpenGL" OFF)
+
+# Find required packages based on backend selection  
+if(AGAVE_USE_VULKAN)
+    find_package(Vulkan REQUIRED)
+    message(STATUS "Building with Vulkan graphics backend")
+else()
+    find_package(OpenGL REQUIRED)
+    message(STATUS "Building with OpenGL graphics backend")  
+endif()
+
+# Core renderlib sources (graphics-agnostic)
+set(RENDERLIB_CORE_SOURCES
+    renderlib.cpp
+    ImageXYZC.cpp
+    RenderSettings.cpp
+    # ... other core files
+)
+
+# Graphics backend sources
+if(AGAVE_USE_VULKAN)
+    set(GRAPHICS_SOURCES
+        graphicsVulkan/IVulkanRenderWindow.cpp
+        graphicsVulkan/RenderVK.cpp
+        graphicsVulkan/RenderVKPT.cpp
+        graphicsVulkan/vk/Util.cpp
+        graphicsVulkan/vk/Image3DVK.cpp
+        # ... other Vulkan files
+    )
+    set(GRAPHICS_LIBRARIES ${Vulkan_LIBRARIES})
+    set(GRAPHICS_INCLUDE_DIRS ${Vulkan_INCLUDE_DIRS})
+else()
+    set(GRAPHICS_SOURCES  
+        graphics/IRenderWindow.cpp
+        graphics/RenderGL.cpp
+        graphics/RenderGLPT.cpp
+        graphics/gl/Util.cpp
+        graphics/gl/Image3D.cpp
+        # ... other OpenGL files
+    )
+    set(GRAPHICS_LIBRARIES ${OPENGL_LIBRARIES} glad)
+    set(GRAPHICS_INCLUDE_DIRS ${OPENGL_INCLUDE_DIRS})
+endif()
+
+# Create renderlib
+add_library(renderlib STATIC 
+    ${RENDERLIB_CORE_SOURCES} 
+    ${GRAPHICS_SOURCES}
+)
+
+# Set preprocessor definitions
+if(AGAVE_USE_VULKAN)
+    target_compile_definitions(renderlib PUBLIC AGAVE_USE_VULKAN=1)
+endif()
+
+# Link libraries
+target_link_libraries(renderlib 
+    ${GRAPHICS_LIBRARIES}
+    Qt6::Core
+    Qt6::Widgets
+    # ... other dependencies
+)
+
+target_include_directories(renderlib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${GRAPHICS_INCLUDE_DIRS}
+)
+
+# Optional: Add subdirectories for modular builds
+if(AGAVE_USE_VULKAN)
+    add_subdirectory(graphicsVulkan)
+else()
+    add_subdirectory(graphics)
+endif()
