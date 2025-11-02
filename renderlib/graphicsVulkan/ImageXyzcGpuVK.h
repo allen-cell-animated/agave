@@ -2,32 +2,39 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include "../ImageGpuVK.h"
 
 class ImageXYZC;
 
-class ImageXyzcGpuVK
+class ImageXyzcGpuVK : public ImageGpuVK
 {
 public:
   ImageXyzcGpuVK();
   ~ImageXyzcGpuVK();
 
   void allocGpu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue transferQueue);
-  void deallocGpu();
+  virtual void deallocGpu() override;
 
-  void allocGpuInterleaved(VkDevice device,
-                           VkPhysicalDevice physicalDevice,
-                           VkCommandPool commandPool,
-                           VkQueue transferQueue,
-                           const ImageXYZC* image);
+  virtual void allocGpuInterleaved(VkDevice device,
+                                   VkPhysicalDevice physicalDevice,
+                                   VkCommandPool commandPool,
+                                   VkQueue transferQueue,
+                                   const ImageXYZC* image) override;
+
+  // Virtual interface implementation
+  virtual uint32_t getWidth() const override { return m_width; }
+  virtual uint32_t getHeight() const override { return m_height; }
+  virtual uint32_t getDepth() const override { return m_depth; }
+  virtual uint32_t getChannels() const override { return m_channels; }
 
   // Get the 3D texture for volume rendering
-  VkImage getVolumeTexture() const { return m_volumeTexture; }
-  VkImageView getVolumeTextureView() const { return m_volumeTextureView; }
-  VkSampler getVolumeSampler() const { return m_volumeSampler; }
+  virtual VkImage getVolumeTexture() const override { return m_volumeTexture; }
+  virtual VkImageView getVolumeTextureView() const override { return m_volumeTextureView; }
+  virtual VkSampler getVolumeSampler() const override { return m_volumeSampler; }
 
   // Get individual channel textures
-  VkImage getChannelTexture(uint32_t channel) const;
-  VkImageView getChannelTextureView(uint32_t channel) const;
+  virtual VkImage getChannelTexture(uint32_t channel) const override;
+  virtual VkImageView getChannelTextureView(uint32_t channel) const override;
 
   bool isAllocated() const { return m_volumeTexture != VK_NULL_HANDLE; }
 
