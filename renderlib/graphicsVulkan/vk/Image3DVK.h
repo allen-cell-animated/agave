@@ -1,8 +1,10 @@
 #pragma once
 
-#include "AppScene.h"
+#include "../../AppScene.h"
 #include <vulkan/vulkan.h>
+#include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 
 class ImageXYZC;
 class RenderSettings;

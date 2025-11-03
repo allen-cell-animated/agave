@@ -160,7 +160,7 @@ void main() {
     vec4 color = vec4(0.0);
     
     // Multi-sampling for anti-aliasing
-    for (uint sample = 0; sample < ubo.samplesPerPixel; ++sample) {
+    for (uint sampl = 0; sampl < ubo.samplesPerPixel; ++sampl) {
         vec2 jitter = vec2(random(), random()) - 0.5;
         vec2 sampleCoord = vec2(pixelCoord) + jitter;
         

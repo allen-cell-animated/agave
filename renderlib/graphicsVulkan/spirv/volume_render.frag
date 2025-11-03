@@ -38,13 +38,13 @@ void main() {
     
     // Ray marching through volume
     for (int i = 0; i < maxSteps && alpha < 0.99; i++) {
-        vec4 sample = sampleVolume(currentPos);
-        sample.a *= densityScale;
+        vec4 sampl = sampleVolume(currentPos);
+        sampl.a *= densityScale;
         
         // Front-to-back alpha blending
-        color.rgb += (1.0 - alpha) * sample.a * sample.rgb;
-        alpha += (1.0 - alpha) * sample.a;
-        
+        color.rgb += (1.0 - alpha) * sampl.a * sampl.rgb;
+        alpha += (1.0 - alpha) * sampl.a;
+
         currentPos += rayDirection * stepSize;
     }
     

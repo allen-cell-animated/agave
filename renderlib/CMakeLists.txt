@@ -1,5 +1,8 @@
 set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/graphics/glad/include")
 
+# Option to enable Vulkan backend
+option(AGAVE_USE_VULKAN "Use Vulkan graphics backend" OFF)
+
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
 	"${CMAKE_CURRENT_SOURCE_DIR}/version.h"
@@ -89,8 +92,22 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/VolumeDimensions.h"
 )
+
+# Conditionally add Vulkan sources
+if(AGAVE_USE_VULKAN)
+	target_sources(renderlib PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/renderlibVulkan.cpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/renderlibVulkan.h"
+		"${CMAKE_CURRENT_SOURCE_DIR}/ImageGpuVK.h"
+	)
+endif()
+
 add_subdirectory(gesture)
 add_subdirectory(graphics)
+# Conditionally add Vulkan graphics subdirectory
+if(AGAVE_USE_VULKAN)
+	add_subdirectory(graphicsVulkan)
+endif()
 add_subdirectory(io)
 add_subdirectory(pugixml)
 
@@ -102,6 +119,32 @@ target_link_libraries(renderlib
 	${OPENGL_egl_LIBRARY}
 	spdlog::spdlog_header_only
 )
+
+# Conditional Vulkan support
+if(AGAVE_USE_VULKAN)
+	find_package(Vulkan REQUIRED)
+	target_compile_definitions(renderlib PUBLIC AGAVE_USE_VULKAN=1)
+	target_link_libraries(renderlib ${Vulkan_LIBRARIES})
+	target_include_directories(renderlib PRIVATE ${Vulkan_INCLUDE_DIRS})
+	
+	# Add Qt Vulkan support
+	find_package(Qt6 COMPONENTS Gui QUIET)
+	if(Qt6_FOUND)
+		target_link_libraries(renderlib Qt::Gui)
+	else()
+		find_package(Qt5 COMPONENTS Gui REQUIRED)
+		target_link_libraries(renderlib Qt5::Gui)
+	endif()
+	
+	# Link with Vulkan graphics library if it exists
+	if(TARGET vulkan_graphics)
+		target_link_libraries(renderlib vulkan_graphics)
+	endif()
+	
+	message(STATUS "Vulkan backend enabled - using Vulkan rendering")
+else()
+	message(STATUS "OpenGL backend enabled - using OpenGL rendering")
+endif()
 
 IF(WIN32)
 	target_link_libraries(renderlib glm::glm)
