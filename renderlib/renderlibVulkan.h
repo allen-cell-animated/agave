@@ -41,7 +41,7 @@ public:
     RendererType_Pathtrace,
     RendererType_Raymarch
   };
-  
+
   // Factory method for creating Vulkan renderers
   static IVulkanRenderWindow* createRenderer(RendererType rendererType, RenderSettings* rs = nullptr);
   static RendererType stringToRendererType(std::string rendererTypeString);
@@ -55,7 +55,7 @@ public:
 
 private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpuVK>> sGpuImageCache;
-  
+
   // Vulkan state
   static QVulkanInstance* s_vulkanInstance;
   static VkDevice s_device;
@@ -75,14 +75,13 @@ private:
   static bool checkValidationLayerSupport();
   static std::vector<const char*> getRequiredExtensions();
   static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-  
+
   // Debug callback
-  static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData);
-    
+  static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                      VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                      const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                      void* pUserData);
+
   static VkDebugUtilsMessengerEXT s_debugMessenger;
 };
 
@@ -92,10 +91,10 @@ class HeadlessVKContext
 public:
   HeadlessVKContext();
   ~HeadlessVKContext();
-  
+
   bool initialize(VkPhysicalDevice physicalDevice);
   void cleanup();
-  
+
   VkDevice getDevice() const { return m_device; }
   VkQueue getQueue() const { return m_queue; }
   VkCommandPool getCommandPool() const { return m_commandPool; }
@@ -113,7 +112,7 @@ class RendererVKContext
 public:
   RendererVKContext();
   ~RendererVKContext();
-  
+
   void configure(VkDevice device = VK_NULL_HANDLE);
   void init();
   void destroy();
@@ -122,7 +121,7 @@ public:
   VkQueue getGraphicsQueue() const;
   VkQueue getComputeQueue() const;
   VkCommandPool getCommandPool() const;
-  
+
   // Command buffer management for threading
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -133,8 +132,8 @@ private:
   VkQueue m_graphicsQueue;
   VkQueue m_computeQueue;
   VkCommandPool m_commandPool;
-  
+
   HeadlessVKContext* m_headlessContext;
-  
+
   void initVulkanDevice();
 };

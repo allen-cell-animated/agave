@@ -110,6 +110,7 @@ if(AGAVE_USE_VULKAN)
 endif()
 add_subdirectory(io)
 add_subdirectory(pugixml)
+add_subdirectory(stb)
 
 target_link_libraries(renderlib
 	Qt::Core Qt::OpenGL

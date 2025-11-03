@@ -30,15 +30,15 @@ set(VULKAN_GRAPHICS_HEADERS
 find_package(Vulkan REQUIRED)
 
 # Create Vulkan graphics library
-add_library(vulkan_graphics STATIC ${VULKAN_GRAPHICS_SOURCES} ${VULKAN_GRAPHICS_HEADERS})
+target_sources(renderlib PRIVATE ${VULKAN_GRAPHICS_SOURCES} ${VULKAN_GRAPHICS_HEADERS})
 
-target_include_directories(vulkan_graphics PUBLIC
+target_include_directories(renderlib PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/vk
     ${Vulkan_INCLUDE_DIRS}
 )
 
-target_link_libraries(vulkan_graphics 
+target_link_libraries(renderlib
     ${Vulkan_LIBRARIES}
     glm
 )
@@ -66,10 +66,10 @@ if(GLSLC)
     endforeach()
     
     add_custom_target(vulkan_shaders DEPENDS ${SPIRV_SHADERS})
-    add_dependencies(vulkan_graphics vulkan_shaders)
+    add_dependencies(renderlib vulkan_shaders)
 else()
     message(WARNING "glslc not found - Vulkan shaders will not be compiled")
 endif()
 
 # Set preprocessor definition to indicate Vulkan support
-target_compile_definitions(vulkan_graphics PUBLIC AGAVE_USE_VULKAN=1)
+target_compile_definitions(renderlib PUBLIC AGAVE_USE_VULKAN=1)
