@@ -200,7 +200,7 @@ VulkanImage::create(VkDevice device,
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+  allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, properties);
 
   result = vkAllocateMemory(device, &allocInfo, nullptr, &m_imageMemory);
   if (result != VK_SUCCESS) {

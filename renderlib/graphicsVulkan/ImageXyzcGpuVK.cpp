@@ -135,18 +135,32 @@ ImageXyzcGpuVK::allocGpuInterleaved(VkDevice device,
     return;
   }
 
+  // Create interleaved channel data like the OpenGL version
+  size_t xyz = m_width * m_height * m_depth;
+  uint16_t* interleavedData = new uint16_t[xyz * m_channels];
+
+  // Interleave all channels (similar to OpenGL version)
+  for (size_t i = 0; i < xyz; ++i) {
+    for (size_t j = 0; j < m_channels; ++j) {
+      interleavedData[m_channels * i + j] = image->channel(j)->m_ptr[i];
+    }
+  }
+
   // Upload image data
   void* stagingData;
   VkResult result = vkMapMemory(m_device, m_stagingBufferMemory, 0, dataSize, 0, &stagingData);
   if (result != VK_SUCCESS) {
     LOG_ERROR << "Failed to map staging buffer: " << result;
+    delete[] interleavedData;
     return;
   }
 
   // Copy interleaved data to staging buffer
-  const uint16_t* imageData = image->ptr();
-  memcpy(stagingData, imageData, dataSize);
+  memcpy(stagingData, interleavedData, dataSize);
   vkUnmapMemory(m_device, m_stagingBufferMemory);
+
+  // Clean up temporary buffer
+  delete[] interleavedData;
 
   // Create command buffer for transfer operations
   VkCommandBufferAllocateInfo allocInfo{};

@@ -2,6 +2,7 @@
 #include "ImageXyzcGpuVK.h"
 #include "Logging.h"
 #include "RenderSettings.h"
+#include "vk/Util.h"
 #include <cstring>
 
 const std::string RenderVKPT::TYPE_NAME = "vulkan-pt";
@@ -559,22 +560,6 @@ RenderVKPT::updateUniformBuffer(const CCamera& camera)
   }
 }
 
-uint32_t
-RenderVKPT::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-  VkPhysicalDeviceMemoryProperties memProperties;
-  vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
-
-  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-    if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-      return i;
-    }
-  }
-
-  LOG_ERROR << "Failed to find suitable memory type";
-  return 0;
-}
-
 bool
 RenderVKPT::createBuffer(VkDeviceSize size,
                          VkBufferUsageFlags usage,
@@ -600,7 +585,8 @@ RenderVKPT::createBuffer(VkDeviceSize size,
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+  allocInfo.memoryTypeIndex =
+    VulkanBuffer::findMemoryType(m_physicalDevice, memRequirements.memoryTypeBits, properties);
 
   result = vkAllocateMemory(m_device, &allocInfo, nullptr, &bufferMemory);
   if (result != VK_SUCCESS) {
@@ -649,7 +635,8 @@ RenderVKPT::createImage(uint32_t width,
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+  allocInfo.memoryTypeIndex =
+    VulkanBuffer::findMemoryType(m_physicalDevice, memRequirements.memoryTypeBits, properties);
 
   result = vkAllocateMemory(m_device, &allocInfo, nullptr, &imageMemory);
   if (result != VK_SUCCESS) {

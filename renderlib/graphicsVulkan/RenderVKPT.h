@@ -166,7 +166,6 @@ private:
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
   // Utility methods
-  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
   bool createBuffer(VkDeviceSize size,
                     VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties,

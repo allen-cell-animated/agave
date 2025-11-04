@@ -41,14 +41,17 @@ public:
   VkDeviceMemory getMemory() const { return m_bufferMemory; }
   VkDeviceSize getSize() const { return m_size; }
 
+  // Static utility method for finding memory type
+  static uint32_t findMemoryType(VkPhysicalDevice physicalDevice,
+                                 uint32_t typeFilter,
+                                 VkMemoryPropertyFlags properties);
+
 private:
   VkDevice m_device;
   VkBuffer m_buffer;
   VkDeviceMemory m_bufferMemory;
   VkDeviceSize m_size;
   void* m_mapped;
-
-  uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 };
 
 /**
@@ -78,6 +81,7 @@ public:
   VkDeviceMemory getMemory() const { return m_imageMemory; }
 
 private:
+  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
   VkDevice m_device;
   VkPhysicalDevice m_physicalDevice;
   VkImage m_image;
