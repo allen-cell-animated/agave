@@ -1,8 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <QWindow>
-#include <QVulkanInstance>
 
 class QVulkanDeviceFunctions;
 class QVulkanFunctions;

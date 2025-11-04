@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <memory>
 #include "../ImageGpuVK.h"
+
+#include <memory>
+#include <vector>
 
 class ImageXYZC;
 

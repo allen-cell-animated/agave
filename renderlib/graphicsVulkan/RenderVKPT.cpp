@@ -1,15 +1,27 @@
 #include "RenderVKPT.h"
 #include "ImageXyzcGpuVK.h"
 #include "Logging.h"
+#include "RenderSettings.h"
 #include <cstring>
 
-RenderVKPT::RenderVKPT()
-  : m_device(VK_NULL_HANDLE)
+const std::string RenderVKPT::TYPE_NAME = "vulkan-pt";
+
+RenderVKPT::RenderVKPT(RenderSettings* rs)
+  : m_instance(VK_NULL_HANDLE)
   , m_physicalDevice(VK_NULL_HANDLE)
-  , m_commandPool(VK_NULL_HANDLE)
+  , m_device(VK_NULL_HANDLE)
   , m_graphicsQueue(VK_NULL_HANDLE)
+  , m_presentQueue(VK_NULL_HANDLE)
   , m_computeQueue(VK_NULL_HANDLE)
+  , m_surface(VK_NULL_HANDLE)
   , m_renderPass(VK_NULL_HANDLE)
+  , m_commandPool(VK_NULL_HANDLE)
+  , m_image3d(nullptr)
+  , m_renderSettings(rs)
+  , m_scene(nullptr)
+  , m_w(0)
+  , m_h(0)
+  , m_currentFrame(0)
   , m_frameNumber(0)
   , m_maxBounces(8)
   , m_samplesPerPixel(1)
@@ -28,9 +40,9 @@ RenderVKPT::RenderVKPT()
   , m_displayPipeline(VK_NULL_HANDLE)
   , m_displayDescriptorLayout(VK_NULL_HANDLE)
   , m_displayDescriptorSet(VK_NULL_HANDLE)
-  , m_width(800)
-  , m_height(600)
 {
+  m_status = std::make_shared<CStatus>();
+
   // Initialize light direction
   m_lightDirection[0] = 1.0f;
   m_lightDirection[1] = 1.0f;
@@ -38,32 +50,26 @@ RenderVKPT::RenderVKPT()
 
   // Initialize compute resources
   memset(&m_compute, 0, sizeof(m_compute));
+
+  LOG_INFO << "RenderVKPT created";
 }
 
 RenderVKPT::~RenderVKPT()
 {
-  cleanup();
+  cleanUpResources();
+  LOG_INFO << "RenderVKPT destroyed";
 }
 
 void
-RenderVKPT::initialize(VkDevice device,
-                       VkPhysicalDevice physicalDevice,
-                       VkCommandPool commandPool,
-                       VkQueue graphicsQueue,
-                       VkRenderPass renderPass,
-                       uint32_t width,
-                       uint32_t height)
+RenderVKPT::initialize(uint32_t w, uint32_t h)
 {
-  RenderVK::initialize(device, physicalDevice, commandPool, graphicsQueue, renderPass, width, height);
+  m_w = w;
+  m_h = h;
 
-  m_device = device;
-  m_physicalDevice = physicalDevice;
-  m_commandPool = commandPool;
-  m_graphicsQueue = graphicsQueue;
-  m_computeQueue = graphicsQueue; // Assume same queue for now
-  m_renderPass = renderPass;
-  m_width = width;
-  m_height = height;
+  if (!initVulkan()) {
+    LOG_ERROR << "Failed to initialize Vulkan for path tracing";
+    return;
+  }
 
   if (!createComputeResources()) {
     LOG_ERROR << "Failed to create compute resources";
@@ -75,100 +81,21 @@ RenderVKPT::initialize(VkDevice device,
     return;
   }
 
-  resetAccumulation();
-  LOG_INFO << "RenderVKPT initialized with dimensions " << width << "x" << height;
+  LOG_INFO << "RenderVKPT initialized with size " << w << "x" << h;
 }
 
 void
-RenderVKPT::cleanup()
+RenderVKPT::render(const CCamera& camera)
 {
-  if (m_device != VK_NULL_HANDLE) {
-    vkDeviceWaitIdle(m_device);
-
-    // Cleanup compute resources
-    if (m_compute.computePipeline != VK_NULL_HANDLE) {
-      vkDestroyPipeline(m_device, m_compute.computePipeline, nullptr);
-    }
-    if (m_compute.pipelineLayout != VK_NULL_HANDLE) {
-      vkDestroyPipelineLayout(m_device, m_compute.pipelineLayout, nullptr);
-    }
-    if (m_compute.descriptorPool != VK_NULL_HANDLE) {
-      vkDestroyDescriptorPool(m_device, m_compute.descriptorPool, nullptr);
-    }
-    if (m_compute.descriptorSetLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(m_device, m_compute.descriptorSetLayout, nullptr);
-    }
-
-    // Cleanup images
-    if (m_compute.colorImageView != VK_NULL_HANDLE) {
-      vkDestroyImageView(m_device, m_compute.colorImageView, nullptr);
-    }
-    if (m_compute.colorImage != VK_NULL_HANDLE) {
-      vkDestroyImage(m_device, m_compute.colorImage, nullptr);
-    }
-    if (m_compute.colorImageMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_compute.colorImageMemory, nullptr);
-    }
-
-    if (m_compute.accumulationImageView != VK_NULL_HANDLE) {
-      vkDestroyImageView(m_device, m_compute.accumulationImageView, nullptr);
-    }
-    if (m_compute.accumulationImage != VK_NULL_HANDLE) {
-      vkDestroyImage(m_device, m_compute.accumulationImage, nullptr);
-    }
-    if (m_compute.accumulationImageMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_compute.accumulationImageMemory, nullptr);
-    }
-
-    // Cleanup buffers
-    if (m_compute.uniformBuffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(m_device, m_compute.uniformBuffer, nullptr);
-    }
-    if (m_compute.uniformBufferMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_compute.uniformBufferMemory, nullptr);
-    }
-
-    if (m_transferFunctionBuffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(m_device, m_transferFunctionBuffer, nullptr);
-    }
-    if (m_transferFunctionMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_transferFunctionMemory, nullptr);
-    }
-
-    // Cleanup display resources
-    if (m_displayPipeline != VK_NULL_HANDLE) {
-      vkDestroyPipeline(m_device, m_displayPipeline, nullptr);
-    }
-    if (m_displayPipelineLayout != VK_NULL_HANDLE) {
-      vkDestroyPipelineLayout(m_device, m_displayPipelineLayout, nullptr);
-    }
-    if (m_displayDescriptorLayout != VK_NULL_HANDLE) {
-      vkDestroyDescriptorSetLayout(m_device, m_displayDescriptorLayout, nullptr);
-    }
-
-    if (m_quadVertexBuffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(m_device, m_quadVertexBuffer, nullptr);
-    }
-    if (m_quadVertexMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_quadVertexMemory, nullptr);
-    }
-    if (m_quadIndexBuffer != VK_NULL_HANDLE) {
-      vkDestroyBuffer(m_device, m_quadIndexBuffer, nullptr);
-    }
-    if (m_quadIndexMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_quadIndexMemory, nullptr);
-    }
+  // Main render entry point - port from RenderGLPT behavior
+  if (!m_scene || !m_device) {
+    return;
   }
 
-  memset(&m_compute, 0, sizeof(m_compute));
-  RenderVK::cleanup();
-}
+  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-void
-RenderVKPT::render(VkCommandBuffer commandBuffer, Scene* scene, Camera* camera)
-{
-  // Update uniform buffer with current scene/camera data
-  updateUniformBuffer(scene, camera);
+  // Update uniforms with camera
+  updateUniformBuffer(camera);
 
   // Dispatch compute shader for path tracing
   dispatchCompute(commandBuffer);
@@ -176,59 +103,161 @@ RenderVKPT::render(VkCommandBuffer commandBuffer, Scene* scene, Camera* camera)
   // Render result to screen
   renderToScreen(commandBuffer);
 
-  // Increment frame counter for accumulation
-  if (!m_accumulationReset) {
-    m_frameNumber++;
-  } else {
-    m_frameNumber = 0;
-    m_accumulationReset = false;
-  }
+  endSingleTimeCommands(commandBuffer);
+
+  m_frameNumber++;
 }
 
 void
-RenderVKPT::resize(uint32_t width, uint32_t height)
+RenderVKPT::renderTo(const CCamera& camera, VulkanFramebufferObject* fbo)
 {
-  if (m_width != width || m_height != height) {
-    m_width = width;
-    m_height = height;
+  // Render to specific framebuffer object
+  // This is similar to renderTo in RenderGLPT
+  if (!fbo) {
+    render(camera);
+    return;
+  }
 
-    // Recreate images with new dimensions
+  // TODO: Implement rendering to specific VulkanFramebufferObject
+  LOG_WARNING << "RenderVKPT::renderTo not yet implemented";
+}
+
+void
+RenderVKPT::resize(uint32_t w, uint32_t h)
+{
+  if (m_w == w && m_h == h) {
+    return;
+  }
+
+  m_w = w;
+  m_h = h;
+
+  // Recreate compute images with new size
+  if (m_device != VK_NULL_HANDLE) {
+    // Wait for device to be idle before recreating resources
     vkDeviceWaitIdle(m_device);
 
-    // Cleanup old images
-    if (m_compute.colorImageView != VK_NULL_HANDLE) {
-      vkDestroyImageView(m_device, m_compute.colorImageView, nullptr);
-      m_compute.colorImageView = VK_NULL_HANDLE;
-    }
-    if (m_compute.colorImage != VK_NULL_HANDLE) {
-      vkDestroyImage(m_device, m_compute.colorImage, nullptr);
-      m_compute.colorImage = VK_NULL_HANDLE;
-    }
-    if (m_compute.colorImageMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_compute.colorImageMemory, nullptr);
-      m_compute.colorImageMemory = VK_NULL_HANDLE;
-    }
-
-    if (m_compute.accumulationImageView != VK_NULL_HANDLE) {
-      vkDestroyImageView(m_device, m_compute.accumulationImageView, nullptr);
-      m_compute.accumulationImageView = VK_NULL_HANDLE;
-    }
-    if (m_compute.accumulationImage != VK_NULL_HANDLE) {
-      vkDestroyImage(m_device, m_compute.accumulationImage, nullptr);
-      m_compute.accumulationImage = VK_NULL_HANDLE;
-    }
-    if (m_compute.accumulationImageMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(m_device, m_compute.accumulationImageMemory, nullptr);
-      m_compute.accumulationImageMemory = VK_NULL_HANDLE;
-    }
-
-    // Create new images
+    // Recreate size-dependent resources
     createImages();
-
-    // Reset accumulation
     resetAccumulation();
   }
+
+  LOG_INFO << "RenderVKPT resized to " << w << "x" << h;
 }
+
+void
+RenderVKPT::cleanUpResources()
+{
+  if (m_device != VK_NULL_HANDLE) {
+    vkDeviceWaitIdle(m_device);
+
+    // Clean up path tracing specific resources
+    if (m_compute.uniformBuffer != VK_NULL_HANDLE) {
+      vkDestroyBuffer(m_device, m_compute.uniformBuffer, nullptr);
+      vkFreeMemory(m_device, m_compute.uniformBufferMemory, nullptr);
+    }
+
+    if (m_compute.colorImage != VK_NULL_HANDLE) {
+      vkDestroyImage(m_device, m_compute.colorImage, nullptr);
+      vkFreeMemory(m_device, m_compute.colorImageMemory, nullptr);
+      vkDestroyImageView(m_device, m_compute.colorImageView, nullptr);
+    }
+
+    if (m_compute.accumulationImage != VK_NULL_HANDLE) {
+      vkDestroyImage(m_device, m_compute.accumulationImage, nullptr);
+      vkFreeMemory(m_device, m_compute.accumulationImageMemory, nullptr);
+      vkDestroyImageView(m_device, m_compute.accumulationImageView, nullptr);
+    }
+
+    if (m_compute.descriptorPool != VK_NULL_HANDLE) {
+      vkDestroyDescriptorPool(m_device, m_compute.descriptorPool, nullptr);
+    }
+
+    if (m_compute.descriptorSetLayout != VK_NULL_HANDLE) {
+      vkDestroyDescriptorSetLayout(m_device, m_compute.descriptorSetLayout, nullptr);
+    }
+
+    if (m_compute.pipelineLayout != VK_NULL_HANDLE) {
+      vkDestroyPipelineLayout(m_device, m_compute.pipelineLayout, nullptr);
+    }
+
+    if (m_compute.computePipeline != VK_NULL_HANDLE) {
+      vkDestroyPipeline(m_device, m_compute.computePipeline, nullptr);
+    }
+
+    // Clean up display resources
+    if (m_displayPipeline != VK_NULL_HANDLE) {
+      vkDestroyPipeline(m_device, m_displayPipeline, nullptr);
+    }
+
+    if (m_displayPipelineLayout != VK_NULL_HANDLE) {
+      vkDestroyPipelineLayout(m_device, m_displayPipelineLayout, nullptr);
+    }
+
+    if (m_displayDescriptorLayout != VK_NULL_HANDLE) {
+      vkDestroyDescriptorSetLayout(m_device, m_displayDescriptorLayout, nullptr);
+    }
+
+    // Clean up transfer function buffer
+    if (m_transferFunctionBuffer != VK_NULL_HANDLE) {
+      vkDestroyBuffer(m_device, m_transferFunctionBuffer, nullptr);
+      vkFreeMemory(m_device, m_transferFunctionMemory, nullptr);
+    }
+
+    // Clean up screen quad
+    if (m_quadVertexBuffer != VK_NULL_HANDLE) {
+      vkDestroyBuffer(m_device, m_quadVertexBuffer, nullptr);
+      vkFreeMemory(m_device, m_quadVertexMemory, nullptr);
+    }
+
+    if (m_quadIndexBuffer != VK_NULL_HANDLE) {
+      vkDestroyBuffer(m_device, m_quadIndexBuffer, nullptr);
+      vkFreeMemory(m_device, m_quadIndexMemory, nullptr);
+    }
+
+    // Clean up core Vulkan objects
+    if (m_commandPool != VK_NULL_HANDLE) {
+      vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+    }
+
+    if (m_renderPass != VK_NULL_HANDLE) {
+      vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+    }
+
+    if (m_device != VK_NULL_HANDLE) {
+      vkDestroyDevice(m_device, nullptr);
+    }
+
+    if (m_surface != VK_NULL_HANDLE) {
+      vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+    }
+
+    if (m_instance != VK_NULL_HANDLE) {
+      vkDestroyInstance(m_instance, nullptr);
+    }
+  }
+}
+
+RenderSettings&
+RenderVKPT::renderSettings()
+{
+  return *m_renderSettings;
+}
+
+Scene*
+RenderVKPT::scene()
+{
+  return m_scene;
+}
+
+void
+RenderVKPT::setScene(Scene* s)
+{
+  m_scene = s;
+  resetAccumulation();
+}
+
+// Path tracing specific methods implementation
 
 void
 RenderVKPT::setMaxBounces(uint32_t maxBounces)
@@ -253,8 +282,8 @@ RenderVKPT::setDenoising(bool enabled)
 void
 RenderVKPT::resetAccumulation()
 {
-  m_accumulationReset = true;
   m_frameNumber = 0;
+  m_accumulationReset = true;
 }
 
 void
@@ -268,12 +297,9 @@ void
 RenderVKPT::setTransferFunction(const std::vector<float>& transferFunction)
 {
   m_transferFunction = transferFunction;
-
-  // Update transfer function buffer
-  if (!m_transferFunction.empty()) {
+  if (m_device != VK_NULL_HANDLE) {
     createTransferFunctionBuffer();
   }
-
   resetAccumulation();
 }
 
@@ -299,6 +325,78 @@ RenderVKPT::setLightDirection(float x, float y, float z)
   m_lightDirection[2] = z;
   resetAccumulation();
 }
+
+// Vulkan initialization methods (similar to RenderVK)
+bool
+RenderVKPT::initVulkan()
+{
+  // Initialize Vulkan instance, device, etc.
+  // This should be similar to RenderVK::initVulkan()
+  // For now, return true assuming external setup
+  LOG_INFO << "RenderVKPT Vulkan initialization";
+  return true;
+}
+
+bool
+RenderVKPT::createLogicalDevice()
+{
+  // Create logical device for path tracing
+  // This should be similar to RenderVK::createLogicalDevice()
+  LOG_INFO << "RenderVKPT logical device creation";
+  return true;
+}
+
+VkCommandBuffer
+RenderVKPT::beginSingleTimeCommands()
+{
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandPool = m_commandPool;
+  allocInfo.commandBufferCount = 1;
+
+  VkCommandBuffer commandBuffer;
+  vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+  vkBeginCommandBuffer(commandBuffer, &beginInfo);
+  return commandBuffer;
+}
+
+void
+RenderVKPT::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
+  vkEndCommandBuffer(commandBuffer);
+
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+  vkQueueWaitIdle(m_graphicsQueue);
+
+  vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
+}
+
+void
+RenderVKPT::dispatchCompute(VkCommandBuffer commandBuffer)
+{
+  // TODO: Implement compute shader dispatch for path tracing
+  // This should dispatch the compute shader that performs the path tracing
+}
+
+void
+RenderVKPT::renderToScreen(VkCommandBuffer commandBuffer)
+{
+  // TODO: Implement screen rendering
+  // This should render the path traced image to the screen using display pipeline
+}
+
+// Implementation stubs that need to be properly implemented
 
 bool
 RenderVKPT::createComputeResources()
@@ -358,8 +456,8 @@ bool
 RenderVKPT::createImages()
 {
   // Create color output image (RGBA32F for HDR)
-  if (!createImage(m_width,
-                   m_height,
+  if (!createImage(m_w,
+                   m_h,
                    VK_FORMAT_R32G32B32A32_SFLOAT,
                    VK_IMAGE_TILING_OPTIMAL,
                    VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -376,8 +474,8 @@ RenderVKPT::createImages()
   }
 
   // Create accumulation image for progressive rendering
-  if (!createImage(m_width,
-                   m_height,
+  if (!createImage(m_w,
+                   m_h,
                    VK_FORMAT_R32G32B32A32_SFLOAT,
                    VK_IMAGE_TILING_OPTIMAL,
                    VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -424,16 +522,41 @@ RenderVKPT::createScreenQuad()
 }
 
 void
-RenderVKPT::updateUniformBuffer(Scene* scene, Camera* camera)
+RenderVKPT::updateUniformBuffer(const CCamera& camera)
 {
-}
-void
-RenderVKPT::dispatchCompute(VkCommandBuffer commandBuffer)
-{
-}
-void
-RenderVKPT::renderToScreen(VkCommandBuffer commandBuffer)
-{
+  // TODO: Implement uniform buffer update based on camera and scene
+  if (!m_scene || m_compute.uniformBuffer == VK_NULL_HANDLE) {
+    return;
+  }
+
+  // Update path tracing uniforms structure
+  PathTracingUniforms uniforms = {};
+
+  // Copy camera matrices (placeholder - need proper matrix extraction)
+  // memcpy(uniforms.viewMatrix, camera.getViewMatrix().data(), sizeof(float) * 16);
+  // memcpy(uniforms.projMatrix, camera.getProjectionMatrix().data(), sizeof(float) * 16);
+
+  uniforms.frameNumber = m_frameNumber;
+  uniforms.maxBounces = m_maxBounces;
+  uniforms.samplesPerPixel = m_samplesPerPixel;
+  uniforms.stepSize = m_stepSize;
+  uniforms.densityScale = m_densityScale;
+  uniforms.width = m_w;
+  uniforms.height = m_h;
+
+  // Copy light direction
+  uniforms.lightDir[0] = m_lightDirection[0];
+  uniforms.lightDir[1] = m_lightDirection[1];
+  uniforms.lightDir[2] = m_lightDirection[2];
+  uniforms.lightDir[3] = 0.0f;
+
+  // Map and update uniform buffer
+  void* data;
+  VkResult result = vkMapMemory(m_device, m_compute.uniformBufferMemory, 0, sizeof(uniforms), 0, &data);
+  if (result == VK_SUCCESS) {
+    memcpy(data, &uniforms, sizeof(uniforms));
+    vkUnmapMemory(m_device, m_compute.uniformBufferMemory);
+  }
 }
 
 uint32_t

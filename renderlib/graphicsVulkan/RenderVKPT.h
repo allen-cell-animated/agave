@@ -1,31 +1,45 @@
 #pragma once
 
-#include "RenderVK.h"
+#include "IVulkanRenderWindow.h"
+#include "AppScene.h"
+#include "Status.h"
+#include "Timing.h"
+
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
+#include <chrono>
 
-class Scene;
-class Camera;
 class ImageXyzcGpuVK;
+class RenderSettings;
+class VulkanDevice;
+class VulkanSwapchain;
+class VulkanCommandBuffer;
 
-class RenderVKPT : public RenderVK
+class RenderVKPT : public IVulkanRenderWindow
 {
 public:
-  RenderVKPT();
+  static const std::string TYPE_NAME;
+
+  RenderVKPT(RenderSettings* rs);
   virtual ~RenderVKPT();
 
-  // Override RenderVK methods
-  virtual void initialize(VkDevice device,
-                          VkPhysicalDevice physicalDevice,
-                          VkCommandPool commandPool,
-                          VkQueue graphicsQueue,
-                          VkRenderPass renderPass,
-                          uint32_t width,
-                          uint32_t height) override;
-  virtual void cleanup() override;
-  virtual void render(VkCommandBuffer commandBuffer, Scene* scene, Camera* camera) override;
-  virtual void resize(uint32_t width, uint32_t height) override;
+  // Override IVulkanRenderWindow methods
+  virtual void initialize(uint32_t w, uint32_t h) override;
+  virtual void render(const CCamera& camera) override;
+  virtual void renderTo(const CCamera& camera, VulkanFramebufferObject* fbo) override;
+  virtual void resize(uint32_t w, uint32_t h) override;
+  virtual void getSize(uint32_t& w, uint32_t& h) override
+  {
+    w = m_w;
+    h = m_h;
+  }
+  virtual void cleanUpResources() override;
+
+  virtual std::shared_ptr<CStatus> getStatusInterface() override { return m_status; }
+  virtual RenderSettings& renderSettings() override;
+  virtual Scene* scene() override;
+  virtual void setScene(Scene* s) override;
 
   // Path tracing specific methods
   void setMaxBounces(uint32_t maxBounces);
@@ -41,6 +55,8 @@ public:
   void setStepSize(float stepSize);
   void setDensityScale(float densityScale);
   void setLightDirection(float x, float y, float z);
+
+  ImageXyzcGpuVK* getImage() const { return m_image3d; }
 
 private:
   struct PathTracingUniforms
@@ -78,13 +94,26 @@ private:
     VkPipeline computePipeline;
   };
 
-  // Vulkan objects
-  VkDevice m_device;
+  // Core Vulkan objects (like RenderVK)
+  VkInstance m_instance;
   VkPhysicalDevice m_physicalDevice;
-  VkCommandPool m_commandPool;
+  VkDevice m_device;
   VkQueue m_graphicsQueue;
+  VkQueue m_presentQueue;
   VkQueue m_computeQueue;
+  VkSurfaceKHR m_surface;
   VkRenderPass m_renderPass;
+  VkCommandPool m_commandPool;
+
+  // Core member variables (like RenderVK)
+  ImageXyzcGpuVK* m_image3d;
+  RenderSettings* m_renderSettings;
+  Scene* m_scene;
+  std::shared_ptr<CStatus> m_status;
+  Timing m_timingRender;
+  std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
+  uint32_t m_w, m_h;
+  uint32_t m_currentFrame;
 
   // Compute resources
   ComputeResources m_compute;
@@ -115,10 +144,6 @@ private:
   VkDescriptorSetLayout m_displayDescriptorLayout;
   VkDescriptorSet m_displayDescriptorSet;
 
-  // Dimensions
-  uint32_t m_width;
-  uint32_t m_height;
-
   // Helper methods
   bool createComputeResources();
   bool createDisplayResources();
@@ -130,9 +155,15 @@ private:
   bool createTransferFunctionBuffer();
   bool createScreenQuad();
 
-  void updateUniformBuffer(Scene* scene, Camera* camera);
+  void updateUniformBuffer(const CCamera& camera);
   void dispatchCompute(VkCommandBuffer commandBuffer);
   void renderToScreen(VkCommandBuffer commandBuffer);
+
+  // Vulkan initialization methods (like RenderVK)
+  bool initVulkan();
+  bool createLogicalDevice();
+  VkCommandBuffer beginSingleTimeCommands();
+  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
   // Utility methods
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

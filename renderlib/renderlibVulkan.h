@@ -2,9 +2,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <QVulkanInstance>
-#include <QWindow>
-
 #include <map>
 #include <memory>
 #include <string>
@@ -29,7 +26,7 @@ public:
   static std::shared_ptr<ImageGpuVK> imageAllocGPU(std::shared_ptr<ImageXYZC> image, bool do_cache = true);
   static void imageDeallocGPU(std::shared_ptr<ImageXYZC> image);
 
-  static QVulkanInstance* getVulkanInstance();
+  static VkInstance getVulkanInstance();
   static VkDevice getVulkanDevice();
   static VkPhysicalDevice getVulkanPhysicalDevice();
   static VkQueue getGraphicsQueue();
@@ -57,7 +54,7 @@ private:
   static std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpuVK>> sGpuImageCache;
 
   // Vulkan state
-  static QVulkanInstance* s_vulkanInstance;
+  static VkInstance s_vulkanInstance;
   static VkDevice s_device;
   static VkPhysicalDevice s_physicalDevice;
   static VkQueue s_graphicsQueue;

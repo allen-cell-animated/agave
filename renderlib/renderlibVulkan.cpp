@@ -7,9 +7,6 @@
 #include "graphicsVulkan/RenderVKPT.h"
 #include "Logging.h"
 
-#include <QGuiApplication>
-#include <QVulkanFunctions>
-
 #include <string>
 #include <set>
 #include <algorithm>
@@ -36,7 +33,7 @@ static std::string s_assetPath = "";
 
 std::map<std::shared_ptr<ImageXYZC>, std::shared_ptr<ImageGpuVK>> renderlibVK::sGpuImageCache;
 
-QVulkanInstance* renderlibVK::s_vulkanInstance = nullptr;
+VkInstance renderlibVK::s_vulkanInstance = nullptr;
 VkDevice renderlibVK::s_device = VK_NULL_HANDLE;
 VkPhysicalDevice renderlibVK::s_physicalDevice = VK_NULL_HANDLE;
 VkQueue renderlibVK::s_graphicsQueue = VK_NULL_HANDLE;
@@ -142,15 +139,11 @@ renderlibVK::cleanup()
 
   // Cleanup debug messenger
   if (s_debugMessenger != VK_NULL_HANDLE && s_vulkanInstance) {
-    auto func =
-      (PFN_vkDestroyDebugUtilsMessengerEXT)s_vulkanInstance->getInstanceProcAddr("vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-      func(s_vulkanInstance->vkInstance(), s_debugMessenger, nullptr);
-    }
+    vkDestroyDebugUtilsMessengerEXT(s_vulkanInstance, s_debugMessenger, nullptr);
     s_debugMessenger = VK_NULL_HANDLE;
   }
 
-  delete s_vulkanInstance;
+  vkDestroyInstance(s_vulkanInstance, nullptr);
   s_vulkanInstance = nullptr;
 
   renderLibVKInitialized = false;
@@ -185,7 +178,7 @@ renderlibVK::imageDeallocGPU(std::shared_ptr<ImageXYZC> image)
   }
 }
 
-QVulkanInstance*
+VkInstance
 renderlibVK::getVulkanInstance()
 {
   return s_vulkanInstance;
@@ -232,11 +225,11 @@ renderlibVK::getAvailableGPUs()
   }
 
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(s_vulkanInstance->vkInstance(), &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(s_vulkanInstance, &deviceCount, nullptr);
 
   if (deviceCount > 0) {
     devices.resize(deviceCount);
-    vkEnumeratePhysicalDevices(s_vulkanInstance->vkInstance(), &deviceCount, devices.data());
+    vkEnumeratePhysicalDevices(s_vulkanInstance, &deviceCount, devices.data());
   }
 
   return devices;
@@ -266,26 +259,33 @@ renderlibVK::listVulkanDevices()
 bool
 renderlibVK::createVulkanInstance(bool enableValidation)
 {
-  s_vulkanInstance = new QVulkanInstance();
+
+  VkInstanceCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+  VkApplicationInfo appInfo{};
+  appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+  appInfo.pApplicationName = "RenderlibVK";
+  appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+  appInfo.pEngineName = "RenderlibVKEngine";
+  appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+  appInfo.apiVersion = VK_API_VERSION_1_4;
+  createInfo.pApplicationInfo = &appInfo;
+
+  VkAllocationCallbacks* allocator = nullptr;
 
   if (enableValidation && checkValidationLayerSupport()) {
-    s_vulkanInstance->setLayers(QByteArrayList() << "VK_LAYER_KHRONOS_validation");
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
   }
 
   // Set required extensions
   auto extensions = getRequiredExtensions();
-  QByteArrayList qExtensions;
-  for (const char* ext : extensions) {
-    qExtensions << ext;
-  }
-  s_vulkanInstance->setExtensions(qExtensions);
+  createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+  createInfo.ppEnabledExtensionNames = extensions.data();
 
-  // Set API version
-  s_vulkanInstance->setApiVersion(QVersionNumber(1, 1));
-
-  if (!s_vulkanInstance->create()) {
+  VkResult result = vkCreateInstance(&createInfo, allocator, &s_vulkanInstance);
+  if (result != VK_SUCCESS) {
     LOG_ERROR << "Failed to create Vulkan instance";
-    delete s_vulkanInstance;
     s_vulkanInstance = nullptr;
     return false;
   }
@@ -495,7 +495,7 @@ renderlibVK::createRenderer(renderlibVK::RendererType rendererType, RenderSettin
     }
     case renderlibVK::RendererType::RendererType_Pathtrace:
     default: {
-      RenderVKPT* renderer = new RenderVKPT();
+      RenderVKPT* renderer = new RenderVKPT(rs);
       return renderer;
     }
   }

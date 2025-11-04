@@ -79,10 +79,15 @@ public:
 
 private:
   VkDevice m_device;
+  VkPhysicalDevice m_physicalDevice;
   VkImage m_image;
   VkImageView m_imageView;
   VkDeviceMemory m_imageMemory;
   VkFormat m_format;
+
+  uint32_t m_width;
+  uint32_t m_height;
+  uint32_t m_depth;
 };
 
 /**
