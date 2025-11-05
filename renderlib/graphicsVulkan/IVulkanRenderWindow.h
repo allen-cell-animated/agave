@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/IRenderWindowBase.h"
 #include <inttypes.h>
 
 class CCamera;
@@ -11,25 +12,12 @@ class Scene;
 #include <memory>
 
 // Vulkan version of IRenderWindow - exact same interface but Vulkan implementation
-class IVulkanRenderWindow
+class IVulkanRenderWindow : public IRenderWindowBase
 {
 public:
   IVulkanRenderWindow();
   virtual ~IVulkanRenderWindow();
 
-  virtual void initialize(uint32_t w, uint32_t h) = 0;
-  virtual void render(const CCamera& camera) = 0;
+  // Vulkan-specific version of renderTo
   virtual void renderTo(const CCamera& camera, VulkanFramebufferObject* fbo) = 0;
-  virtual void resize(uint32_t w, uint32_t h) = 0;
-  virtual void getSize(uint32_t& w, uint32_t& h) = 0;
-  virtual void cleanUpResources() {}
-
-  // An interface for reporting statistics and other data updates
-  virtual std::shared_ptr<CStatus> getStatusInterface() { return nullptr; }
-
-  // I own these.
-  virtual RenderSettings& renderSettings() = 0;
-
-  virtual Scene* scene() = 0;
-  virtual void setScene(Scene* s) = 0;
 };

@@ -72,7 +72,7 @@ Renderer::configure(IRenderWindow* renderer,
     m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(1024);
 
     m_myVolumeData.ownRenderer = true;
-    m_myVolumeData.m_renderer = renderlib::createRenderer(rendererMode, m_myVolumeData.m_renderSettings);
+    m_myVolumeData.m_renderer = renderlib::createOpenGLRenderer(rendererMode, m_myVolumeData.m_renderSettings);
     m_myVolumeData.m_renderer->setScene(m_myVolumeData.m_scene);
   } else {
     m_myVolumeData.ownRenderer = false;

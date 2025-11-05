@@ -5,6 +5,10 @@
 #include "Logging.h"
 #include "RenderGL.h"
 #include "RenderGLPT.h"
+#ifdef AGAVE_USE_VULKAN
+#include "renderlibVulkan.h"
+#include "IVulkanRenderWindow.h"
+#endif
 
 #include <QGuiApplication>
 #include <QOpenGLDebugLogger>
@@ -33,6 +37,8 @@ extern "C"
 static bool renderLibInitialized = false;
 
 static bool renderLibHeadless = false;
+
+static renderlib::GraphicsAPI renderLibGraphicsAPI = renderlib::GraphicsAPI_OpenGL;
 
 static std::string s_assetPath = "";
 
@@ -195,12 +201,13 @@ initEGLDisplay(int selectedGpu)
 #endif
 
 int
-renderlib::initialize(std::string assetPath, bool headless, bool listDevices, int selectedGpu)
+renderlib::initialize(std::string assetPath, GraphicsAPI api, bool headless, bool listDevices, int selectedGpu)
 {
   if (renderLibInitialized) {
     return 1;
   }
   renderLibInitialized = true;
+  renderLibGraphicsAPI = api;
   s_assetPath = assetPath;
 
 // no MACOS support for EGL
@@ -283,15 +290,37 @@ renderlib::initialize(std::string assetPath, bool headless, bool listDevices, in
     }
   }
 
-  // note: there MUST be a valid current gl context in order to run this:
-  int status = gladLoadGL();
-  if (!status) {
-    LOG_ERROR << "Failed to init GL";
-    return status;
-  }
+  // Initialize the selected graphics API
+  int status = 1;
 
-  LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
-  LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
+  switch (api) {
+    case GraphicsAPI_OpenGL:
+      // note: there MUST be a valid current gl context in order to run this:
+      status = gladLoadGL();
+      if (!status) {
+        LOG_ERROR << "Failed to init GL";
+        return status;
+      }
+
+      LOG_INFO << "GL_VENDOR: " << std::string((char*)glGetString(GL_VENDOR));
+      LOG_INFO << "GL_RENDERER: " << std::string((char*)glGetString(GL_RENDERER));
+      break;
+
+#ifdef AGAVE_USE_VULKAN
+    case GraphicsAPI_Vulkan:
+      // Initialize Vulkan library
+      status = renderlibVK::initialize(assetPath, headless, listDevices, selectedGpu);
+      if (!status) {
+        LOG_ERROR << "Failed to init Vulkan";
+        return status;
+      }
+      break;
+#endif
+
+    default:
+      LOG_ERROR << "Unknown graphics API";
+      return 0;
+  }
 
   delete dummyHeadlessContext;
   return status;
@@ -544,8 +573,60 @@ RendererGLContext::doneCurrent()
     this->m_eglContext->doneCurrent();
 }
 
-IRenderWindow*
+IRenderWindowBase*
+renderlib::createRenderer(renderlib::RendererType rendererType, GraphicsAPI api, RenderSettings* rs)
+{
+  switch (api) {
+    case GraphicsAPI_OpenGL:
+      switch (rendererType) {
+        case renderlib::RendererType::RendererType_Raymarch:
+          return new RenderGL(rs);
+        case renderlib::RendererType::RendererType_Pathtrace:
+        default:
+          return new RenderGLPT(rs);
+      }
+      break;
+
+#ifdef AGAVE_USE_VULKAN
+    case GraphicsAPI_Vulkan:
+      // Convert our RendererType to renderlibVK::RendererType
+      {
+        renderlibVK::RendererType vkRendererType;
+        switch (rendererType) {
+          case renderlib::RendererType::RendererType_Raymarch:
+            vkRendererType = renderlibVK::RendererType_Raymarch;
+            break;
+          case renderlib::RendererType::RendererType_Pathtrace:
+          default:
+            vkRendererType = renderlibVK::RendererType_Pathtrace;
+            break;
+        }
+        return renderlibVK::createRenderer(vkRendererType, rs);
+      }
+      break;
+#endif
+
+    default:
+      // Fallback to OpenGL
+      switch (rendererType) {
+        case renderlib::RendererType::RendererType_Raymarch:
+          return new RenderGL(rs);
+        case renderlib::RendererType::RendererType_Pathtrace:
+        default:
+          return new RenderGLPT(rs);
+      }
+      break;
+  }
+}
+
+IRenderWindowBase*
 renderlib::createRenderer(renderlib::RendererType rendererType, RenderSettings* rs)
+{
+  return createRenderer(rendererType, renderLibGraphicsAPI, rs);
+}
+
+IRenderWindow*
+renderlib::createOpenGLRenderer(renderlib::RendererType rendererType, RenderSettings* rs)
 {
   switch (rendererType) {
     case renderlib::RendererType::RendererType_Raymarch:

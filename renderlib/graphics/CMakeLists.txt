@@ -13,6 +13,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/GestureGraphicsGL.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcGpu.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXyzcGpu.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindowBase.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindowBase.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindow.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/IRenderWindow.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/RenderGL.cpp"

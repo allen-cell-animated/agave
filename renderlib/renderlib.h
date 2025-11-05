@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glad/glad.h"
+#include "graphics/IRenderWindowBase.h"
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
@@ -26,7 +27,17 @@ typedef void* EGLContext; // Forward declaration from EGL.h.
 class renderlib
 {
 public:
-  static int initialize(std::string assetPath, bool headless = false, bool listDevices = false, int selectedGpu = 0);
+  enum GraphicsAPI
+  {
+    GraphicsAPI_OpenGL,
+    GraphicsAPI_Vulkan
+  };
+
+  static int initialize(std::string assetPath,
+                        GraphicsAPI api = GraphicsAPI_OpenGL,
+                        bool headless = false,
+                        bool listDevices = false,
+                        int selectedGpu = 0);
   static void clearGpuVolumeCache();
   static void cleanup();
 
@@ -59,7 +70,14 @@ public:
     RendererType_Raymarch
   };
   // factory method for creating renderers
-  static IRenderWindow* createRenderer(RendererType rendererType, RenderSettings* rs = nullptr);
+  static IRenderWindowBase* createRenderer(RendererType rendererType,
+                                           GraphicsAPI api = GraphicsAPI_OpenGL,
+                                           RenderSettings* rs = nullptr);
+  // convenience method that uses the graphics API set during initialization
+  static IRenderWindowBase* createRenderer(RendererType rendererType, RenderSettings* rs = nullptr);
+
+  // OpenGL-specific factory method for backward compatibility
+  static IRenderWindow* createOpenGLRenderer(RendererType rendererType, RenderSettings* rs = nullptr);
   static RendererType stringToRendererType(std::string rendererTypeString);
   static std::string rendererTypeToString(RendererType rendererType);
 

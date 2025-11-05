@@ -212,7 +212,16 @@ main(int argc, char* argv[])
 
   LOG_INFO << "Assets path: " << assetsPath.toStdString();
 
-  if (!renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
+  // Determine graphics API based on compile-time flags and OS
+  renderlib::GraphicsAPI graphicsAPI = renderlib::GraphicsAPI_OpenGL;
+#ifdef AGAVE_USE_VULKAN
+  // For now, default to Vulkan on Linux and Windows when available
+#if defined(__linux__) || defined(_WIN32)
+  graphicsAPI = renderlib::GraphicsAPI_Vulkan;
+#endif
+#endif
+
+  if (!renderlib::initialize(assetsPath.toStdString(), graphicsAPI, isServer, listDevices, selectedGpu)) {
     renderlib::cleanup();
     return 0;
   }
