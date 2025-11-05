@@ -115,7 +115,7 @@ make
 
 ```
 
-If cmake fails please refer to the Dockerfile for a more complete list of Linux dependencies.
+If cmake fails please refer to the docker/Dockerfile\_\* for a more complete list of Linux dependencies.
 
 ## Versioned Releases
 
