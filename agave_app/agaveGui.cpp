@@ -129,8 +129,8 @@ agaveGui::agaveGui(QWidget* parent)
 
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_cameraObject.get());
-  setupAreaLightDock(m_areaLightObject.get());
-  setupSkyLightDock(m_skyLightObject.get());
+  // setupAreaLightDock(m_areaLightObject.get());
+  // setupSkyLightDock(m_skyLightObject.get());
   setupTimelineDock();
   setupStatisticsDock();
   setupAppearanceDock(m_glView->getAppearanceDataObject());

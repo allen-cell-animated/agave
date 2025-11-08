@@ -356,6 +356,11 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   btnLayout->addWidget(new QWidget());
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
+  if (m_arealightObject) {
+    createFlatList(sectionLayout, m_arealightObject);
+  }
+
+#if 0
   m_lt0gui.m_thetaSlider = new QNumericSlider();
   m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
   m_lt0gui.m_thetaSlider->setToolTip(tr("Set angle theta for area light"));
@@ -404,7 +409,7 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::intensityChanged, [this](double v) {
     this->OnSetAreaLightColor(v, m_lt0gui.m_areaLightColor->getColor());
   });
-
+#endif
   section->setContentLayout(*sectionLayout);
   return section;
 }
@@ -812,13 +817,14 @@ QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
 void
 QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 {
+  // split color into color and intensity.
+  QColor c;
+  float i;
+#if 0
   m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
   m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
   m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
   m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
-  // split color into color and intensity.
-  QColor c;
-  float i;
   normalizeColorForGui(scene->AreaLight().m_Color, c, i);
   m_lt0gui.m_areaLightColor->setIntensity(i * scene->AreaLight().m_ColorIntensity);
   m_lt0gui.m_areaLightColor->setColor(c);
@@ -842,8 +848,16 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
     m_lt0gui.m_areaLightColor->setIntensity(i * light.m_ColorIntensity);
     m_lt0gui.m_areaLightColor->setColor(c);
   });
-
-  m_skylightObject->updatePropsFromSceneLight();
+#endif
+  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
+  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
+  m_lt1gui.m_stColorButton->SetColor(c);
+  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
+  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
+  m_lt1gui.m_smColorButton->SetColor(c);
+  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
+  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
+  m_lt1gui.m_sbColorButton->SetColor(c);
 }
 
 void
