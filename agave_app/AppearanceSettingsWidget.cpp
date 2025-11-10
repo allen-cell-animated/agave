@@ -361,56 +361,6 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
     createFlatList(sectionLayout, m_arealightObject);
   }
 
-#if 0
-  m_lt0gui.m_thetaSlider = new QNumericSlider();
-  m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
-  m_lt0gui.m_thetaSlider->setToolTip(tr("Set angle theta for area light"));
-  m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
-  m_lt0gui.m_thetaSlider->setSingleStep(TWO_PI_F / 100.0);
-  m_lt0gui.m_thetaSlider->setValue(0.0);
-  sectionLayout->addRow("Theta", m_lt0gui.m_thetaSlider);
-  QObject::connect(
-    m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
-
-  m_lt0gui.m_phiSlider = new QNumericSlider();
-  m_lt0gui.m_phiSlider->setStatusTip(tr("Set angle phi for area light"));
-  m_lt0gui.m_phiSlider->setToolTip(tr("Set angle phi for area light"));
-  m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
-  m_lt0gui.m_phiSlider->setSingleStep(PI_F / 100.0);
-  m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
-  sectionLayout->addRow("Phi", m_lt0gui.m_phiSlider);
-  QObject::connect(
-    m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
-
-  m_lt0gui.m_sizeSlider = new QNumericSlider();
-  m_lt0gui.m_sizeSlider->setStatusTip(tr("Set size for area light"));
-  m_lt0gui.m_sizeSlider->setToolTip(tr("Set size for area light"));
-  m_lt0gui.m_sizeSlider->setRange(0.1, 5.0);
-  m_lt0gui.m_sizeSlider->setSingleStep(5.0 / 100.0);
-  m_lt0gui.m_sizeSlider->setValue(1.0);
-  sectionLayout->addRow("Size", m_lt0gui.m_sizeSlider);
-  QObject::connect(
-    m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
-
-  m_lt0gui.m_distSlider = new QNumericSlider();
-  m_lt0gui.m_distSlider->setStatusTip(tr("Set distance for area light"));
-  m_lt0gui.m_distSlider->setToolTip(tr("Set distance for area light"));
-  m_lt0gui.m_distSlider->setRange(0.1, 10.0);
-  m_lt0gui.m_distSlider->setSingleStep(1.0);
-  m_lt0gui.m_distSlider->setValue(10.0);
-  sectionLayout->addRow("Distance", m_lt0gui.m_distSlider);
-  QObject::connect(
-    m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
-
-  m_lt0gui.m_areaLightColor = new QColorWithIntensity(QColor(255, 255, 255), 100.0, this);
-  sectionLayout->addRow("Intensity", m_lt0gui.m_areaLightColor);
-  QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::colorChanged, [this](const QColor& c) {
-    this->OnSetAreaLightColor(m_lt0gui.m_areaLightColor->getIntensity(), c);
-  });
-  QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::intensityChanged, [this](double v) {
-    this->OnSetAreaLightColor(v, m_lt0gui.m_areaLightColor->getColor());
-  });
-#endif
   section->setContentLayout(*sectionLayout);
   return section;
 }
@@ -424,63 +374,6 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   if (m_skylightObject) {
     createFlatList(sectionLayout, m_skylightObject);
   }
-
-  // auto* skylightTopLayout = new QHBoxLayout();
-  // m_lt1gui.m_stintensitySlider = new QNumericSlider();
-  // m_lt1gui.m_stintensitySlider->setStatusTip(tr("Set intensity for top of skylight sphere"));
-  // m_lt1gui.m_stintensitySlider->setToolTip(tr("Set intensity for top of skylight sphere"));
-  // m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
-  // m_lt1gui.m_stintensitySlider->setValue(1.0);
-  // skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider, 1);
-  // m_lt1gui.m_stColorButton = new QColorPushButton();
-  // m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
-  // m_lt1gui.m_stColorButton->setToolTip(tr("Set color for top of skylight sphere"));
-  // skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
-  // sectionLayout->addRow("Top", skylightTopLayout);
-  // QObject::connect(m_lt1gui.m_stColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-  //   this->OnSetSkyLightTopColor(this->m_lt1gui.m_stintensitySlider->value(), c);
-  // });
-  // QObject::connect(m_lt1gui.m_stintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-  //   this->OnSetSkyLightTopColor(v, this->m_lt1gui.m_stColorButton->GetColor());
-  // });
-
-  // auto* skylightMidLayout = new QHBoxLayout();
-  // m_lt1gui.m_smintensitySlider = new QNumericSlider();
-  // m_lt1gui.m_smintensitySlider->setStatusTip(tr("Set intensity for middle of skylight sphere"));
-  // m_lt1gui.m_smintensitySlider->setToolTip(tr("Set intensity for middle of skylight sphere"));
-  // m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
-  // m_lt1gui.m_smintensitySlider->setValue(1.0);
-  // skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider, 1);
-  // m_lt1gui.m_smColorButton = new QColorPushButton();
-  // m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
-  // m_lt1gui.m_smColorButton->setToolTip(tr("Set color for middle of skylight sphere"));
-  // skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
-  // sectionLayout->addRow("Mid", skylightMidLayout);
-  // QObject::connect(m_lt1gui.m_smColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-  //   this->OnSetSkyLightMidColor(this->m_lt1gui.m_smintensitySlider->value(), c);
-  // });
-  // QObject::connect(m_lt1gui.m_smintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-  //   this->OnSetSkyLightMidColor(v, this->m_lt1gui.m_smColorButton->GetColor());
-  // });
-
-  // auto* skylightBotLayout = new QHBoxLayout();
-  // m_lt1gui.m_sbintensitySlider = new QNumericSlider();
-  // m_lt1gui.m_sbintensitySlider->setStatusTip(tr("Set intensity for bottom of skylight sphere"));
-  // m_lt1gui.m_sbintensitySlider->setToolTip(tr("Set intensity for bottom of skylight sphere"));
-  // m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
-  // m_lt1gui.m_sbintensitySlider->setValue(1.0);
-  // skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider, 1);
-  // m_lt1gui.m_sbColorButton = new QColorPushButton();
-  // m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));
-  // m_lt1gui.m_sbColorButton->setToolTip(tr("Set color for bottom of skylight sphere"));
-  // skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
-  // sectionLayout->addRow("Bot", skylightBotLayout);
-  // QObject::connect(m_lt1gui.m_sbColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-  //   this->OnSetSkyLightBotColor(this->m_lt1gui.m_sbintensitySlider->value(), c);
-  // });
-  // QObject::connect(m_lt1gui.m_sbintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-  //   this->OnSetSkyLightBotColor(v, this->m_lt1gui.m_sbColorButton->GetColor());
-  // });
 
   section->setContentLayout(*sectionLayout);
   return section;
@@ -875,19 +768,6 @@ QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
 void
 QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 {
-  // split color into color and intensity.
-  QColor c;
-  float i;
-#if 0
-  m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
-  m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
-  m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
-  m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
-  normalizeColorForGui(scene->AreaLight().m_Color, c, i);
-  m_lt0gui.m_areaLightColor->setIntensity(i * scene->AreaLight().m_ColorIntensity);
-  m_lt0gui.m_areaLightColor->setColor(c);
-
-#endif
   m_arealightObject->updatePropsFromSceneLight();
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
@@ -897,16 +777,6 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
     // update gui controls
     m_arealightObject->updatePropsFromSceneLight();
   });
-
-  // normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
-  // m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
-  // m_lt1gui.m_stColorButton->SetColor(c);
-  // normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
-  // m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
-  // m_lt1gui.m_smColorButton->SetColor(c);
-  // normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
-  // m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
-  // m_lt1gui.m_sbColorButton->SetColor(c);
 
   m_skylightObject->updatePropsFromSceneLight();
 }
