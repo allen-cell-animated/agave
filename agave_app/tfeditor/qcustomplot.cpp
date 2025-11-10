@@ -15732,6 +15732,7 @@ QCustomPlot::savePdf(const QString& fileName,
   bool success = false;
   // DMT TODO FIXME HACK SHORT CIRCUIT TO SKIP PRINT DEPENDENCY
   return success;
+#define QT_NO_PRINTER // DMT TODO FIXME HACK SHORT CIRCUIT TO SKIP PRINT DEPENDENCY
 #ifdef QT_NO_PRINTER
   Q_UNUSED(fileName)
   Q_UNUSED(exportPen)

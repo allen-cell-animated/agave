@@ -11,7 +11,7 @@ set_target_properties(agave_test PROPERTIES OUTPUT_NAME "agave_test")
 target_include_directories(agave_test PUBLIC
   "${CMAKE_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}"
-  ${GLM_INCLUDE_DIRS}
+	"${glm_SOURCE_DIR}"
 )
 target_sources(agave_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/test_commands.cpp"
