@@ -127,7 +127,8 @@ addRow(const ColorWithIntensityUiInfo& info)
 {
   auto* propColor = static_cast<prtyColor*>(info.GetProperty(0));
   glm::vec4 c = propColor->GetValue();
-  QColor qc(c.r, c.g, c.b);
+  QColor qc;
+  qc.setRgbF(c.r, c.g, c.b);
 
   QColorWithIntensity* colorPicker = new QColorWithIntensity(qc);
   colorPicker->setStatusTip(QString::fromStdString(info.GetStatusTip()));
@@ -193,9 +194,7 @@ addRow(const ColorWithIntensityUiInfo& info)
     if (c != newvalue) {
       // Prevent recursive updates
       // slider->setLocalChangeNoUpdate(true);
-      qc.setRedF(c.r);
-      qc.setGreenF(c.g);
-      qc.setBlueF(c.b);
+      qc.setRgbF(c.r, c.g, c.b);
       colorPicker->setColor(qc);
       // slider->setLocalChangeNoUpdate(false);
     }

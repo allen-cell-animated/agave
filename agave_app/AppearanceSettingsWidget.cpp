@@ -421,62 +421,66 @@ QAppearanceSettingsWidget::createSkyLightingControls()
   Section* section = new Section("Sky Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
-  auto* skylightTopLayout = new QHBoxLayout();
-  m_lt1gui.m_stintensitySlider = new QNumericSlider();
-  m_lt1gui.m_stintensitySlider->setStatusTip(tr("Set intensity for top of skylight sphere"));
-  m_lt1gui.m_stintensitySlider->setToolTip(tr("Set intensity for top of skylight sphere"));
-  m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
-  m_lt1gui.m_stintensitySlider->setValue(1.0);
-  skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider, 1);
-  m_lt1gui.m_stColorButton = new QColorPushButton();
-  m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
-  m_lt1gui.m_stColorButton->setToolTip(tr("Set color for top of skylight sphere"));
-  skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
-  sectionLayout->addRow("Top", skylightTopLayout);
-  QObject::connect(m_lt1gui.m_stColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnSetSkyLightTopColor(this->m_lt1gui.m_stintensitySlider->value(), c);
-  });
-  QObject::connect(m_lt1gui.m_stintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-    this->OnSetSkyLightTopColor(v, this->m_lt1gui.m_stColorButton->GetColor());
-  });
+  if (m_skylightObject) {
+    createFlatList(sectionLayout, m_skylightObject);
+  }
 
-  auto* skylightMidLayout = new QHBoxLayout();
-  m_lt1gui.m_smintensitySlider = new QNumericSlider();
-  m_lt1gui.m_smintensitySlider->setStatusTip(tr("Set intensity for middle of skylight sphere"));
-  m_lt1gui.m_smintensitySlider->setToolTip(tr("Set intensity for middle of skylight sphere"));
-  m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
-  m_lt1gui.m_smintensitySlider->setValue(1.0);
-  skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider, 1);
-  m_lt1gui.m_smColorButton = new QColorPushButton();
-  m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
-  m_lt1gui.m_smColorButton->setToolTip(tr("Set color for middle of skylight sphere"));
-  skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
-  sectionLayout->addRow("Mid", skylightMidLayout);
-  QObject::connect(m_lt1gui.m_smColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnSetSkyLightMidColor(this->m_lt1gui.m_smintensitySlider->value(), c);
-  });
-  QObject::connect(m_lt1gui.m_smintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-    this->OnSetSkyLightMidColor(v, this->m_lt1gui.m_smColorButton->GetColor());
-  });
+  // auto* skylightTopLayout = new QHBoxLayout();
+  // m_lt1gui.m_stintensitySlider = new QNumericSlider();
+  // m_lt1gui.m_stintensitySlider->setStatusTip(tr("Set intensity for top of skylight sphere"));
+  // m_lt1gui.m_stintensitySlider->setToolTip(tr("Set intensity for top of skylight sphere"));
+  // m_lt1gui.m_stintensitySlider->setRange(0.0, 10.0);
+  // m_lt1gui.m_stintensitySlider->setValue(1.0);
+  // skylightTopLayout->addWidget(m_lt1gui.m_stintensitySlider, 1);
+  // m_lt1gui.m_stColorButton = new QColorPushButton();
+  // m_lt1gui.m_stColorButton->setStatusTip(tr("Set color for top of skylight sphere"));
+  // m_lt1gui.m_stColorButton->setToolTip(tr("Set color for top of skylight sphere"));
+  // skylightTopLayout->addWidget(m_lt1gui.m_stColorButton);
+  // sectionLayout->addRow("Top", skylightTopLayout);
+  // QObject::connect(m_lt1gui.m_stColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+  //   this->OnSetSkyLightTopColor(this->m_lt1gui.m_stintensitySlider->value(), c);
+  // });
+  // QObject::connect(m_lt1gui.m_stintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
+  //   this->OnSetSkyLightTopColor(v, this->m_lt1gui.m_stColorButton->GetColor());
+  // });
 
-  auto* skylightBotLayout = new QHBoxLayout();
-  m_lt1gui.m_sbintensitySlider = new QNumericSlider();
-  m_lt1gui.m_sbintensitySlider->setStatusTip(tr("Set intensity for bottom of skylight sphere"));
-  m_lt1gui.m_sbintensitySlider->setToolTip(tr("Set intensity for bottom of skylight sphere"));
-  m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
-  m_lt1gui.m_sbintensitySlider->setValue(1.0);
-  skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider, 1);
-  m_lt1gui.m_sbColorButton = new QColorPushButton();
-  m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));
-  m_lt1gui.m_sbColorButton->setToolTip(tr("Set color for bottom of skylight sphere"));
-  skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
-  sectionLayout->addRow("Bot", skylightBotLayout);
-  QObject::connect(m_lt1gui.m_sbColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnSetSkyLightBotColor(this->m_lt1gui.m_sbintensitySlider->value(), c);
-  });
-  QObject::connect(m_lt1gui.m_sbintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
-    this->OnSetSkyLightBotColor(v, this->m_lt1gui.m_sbColorButton->GetColor());
-  });
+  // auto* skylightMidLayout = new QHBoxLayout();
+  // m_lt1gui.m_smintensitySlider = new QNumericSlider();
+  // m_lt1gui.m_smintensitySlider->setStatusTip(tr("Set intensity for middle of skylight sphere"));
+  // m_lt1gui.m_smintensitySlider->setToolTip(tr("Set intensity for middle of skylight sphere"));
+  // m_lt1gui.m_smintensitySlider->setRange(0.0, 10.0);
+  // m_lt1gui.m_smintensitySlider->setValue(1.0);
+  // skylightMidLayout->addWidget(m_lt1gui.m_smintensitySlider, 1);
+  // m_lt1gui.m_smColorButton = new QColorPushButton();
+  // m_lt1gui.m_smColorButton->setStatusTip(tr("Set color for middle of skylight sphere"));
+  // m_lt1gui.m_smColorButton->setToolTip(tr("Set color for middle of skylight sphere"));
+  // skylightMidLayout->addWidget(m_lt1gui.m_smColorButton);
+  // sectionLayout->addRow("Mid", skylightMidLayout);
+  // QObject::connect(m_lt1gui.m_smColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+  //   this->OnSetSkyLightMidColor(this->m_lt1gui.m_smintensitySlider->value(), c);
+  // });
+  // QObject::connect(m_lt1gui.m_smintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
+  //   this->OnSetSkyLightMidColor(v, this->m_lt1gui.m_smColorButton->GetColor());
+  // });
+
+  // auto* skylightBotLayout = new QHBoxLayout();
+  // m_lt1gui.m_sbintensitySlider = new QNumericSlider();
+  // m_lt1gui.m_sbintensitySlider->setStatusTip(tr("Set intensity for bottom of skylight sphere"));
+  // m_lt1gui.m_sbintensitySlider->setToolTip(tr("Set intensity for bottom of skylight sphere"));
+  // m_lt1gui.m_sbintensitySlider->setRange(0.0, 10.0);
+  // m_lt1gui.m_sbintensitySlider->setValue(1.0);
+  // skylightBotLayout->addWidget(m_lt1gui.m_sbintensitySlider, 1);
+  // m_lt1gui.m_sbColorButton = new QColorPushButton();
+  // m_lt1gui.m_sbColorButton->setStatusTip(tr("Set color for bottom of skylight sphere"));
+  // m_lt1gui.m_sbColorButton->setToolTip(tr("Set color for bottom of skylight sphere"));
+  // skylightBotLayout->addWidget(m_lt1gui.m_sbColorButton);
+  // sectionLayout->addRow("Bot", skylightBotLayout);
+  // QObject::connect(m_lt1gui.m_sbColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+  //   this->OnSetSkyLightBotColor(this->m_lt1gui.m_sbintensitySlider->value(), c);
+  // });
+  // QObject::connect(m_lt1gui.m_sbintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
+  //   this->OnSetSkyLightBotColor(v, this->m_lt1gui.m_sbColorButton->GetColor());
+  // });
 
   section->setContentLayout(*sectionLayout);
   return section;
@@ -884,6 +888,8 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   m_lt0gui.m_areaLightColor->setColor(c);
 
 #endif
+  m_arealightObject->updatePropsFromSceneLight();
+
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
@@ -892,15 +898,17 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
     m_arealightObject->updatePropsFromSceneLight();
   });
 
-  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
-  m_lt1gui.m_stColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
-  m_lt1gui.m_smColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
-  m_lt1gui.m_sbColorButton->SetColor(c);
+  // normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
+  // m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
+  // m_lt1gui.m_stColorButton->SetColor(c);
+  // normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
+  // m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
+  // m_lt1gui.m_smColorButton->SetColor(c);
+  // normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
+  // m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
+  // m_lt1gui.m_sbColorButton->SetColor(c);
+
+  m_skylightObject->updatePropsFromSceneLight();
 }
 
 void
