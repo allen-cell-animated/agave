@@ -402,12 +402,25 @@ select particular intensity ranges to view, to pick out particular
 details in the volume.
 
 The editor displays a graph at the top. The background of the graph
-contains a histogram in black, showing where the volume intensity is
+contains a histogram, showing where the volume intensity is
 distributed (Y axis) along the intensity range (X axis). The white line
 shows how volume intensities X are remapped to new intensities Y.
 
+The graph itself can be zoomed and panned along the X axis. 
+To zoom, use the mouse wheel (or two finger drag up/down on touchpad). To pan, click and drag the graph.
+To reset the graph to fit the data, double-click anywhere in the graph area.
+
 The editor has 4 mutually exclusive modes. You can switch between any of
 the modes and each mode's settings will be remembered.
+
+Min / Max
+^^^^^^^^^
+
+Min/Max lets you remap the data range to a narrower range and clip
+data above and below the selected range. AGAVE provides two controls:
+a minimum intensity that will be remapped to 0, and a max intensity
+that will be remapped to 1 (full brightness).  
+You can also click and drag the point handles in the graph directly to adjust the min and max.
 
 Window / Level
 ^^^^^^^^^^^^^^
@@ -415,7 +428,8 @@ Window / Level
 Window/Level lets you remap the data range to a narrower range and clip
 data above and below the selected range. AGAVE provides two controls:
 one to define how wide the range is (the window), and another to control
-where the window lies in the raw intensity range (the level).
+where the window lies in the raw intensity range (the level).  
+You can also click and drag the point handles in the graph directly to adjust the window and level.
 
 Isovalue
 ^^^^^^^^
@@ -432,7 +446,8 @@ Percentile mode is similar to Window/Level as it results in the same
 linear remapping, but the choice of start and end is based on a
 percentage of the total pixels in the image. The default is to clip the
 bottom 50% of pixels to zero, and clip the upper 2% of pixels to
-maximum.
+maximum. You can also click and drag the point handles in the graph directly to adjust the percentiles.
+
 
 Custom
 ^^^^^^

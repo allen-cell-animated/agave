@@ -19,6 +19,21 @@ clamp(const T& v, const T& lo, const T& hi)
 const float Histogram::DEFAULT_PCT_LOW = 0.5f;
 const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
 
+size_t
+Histogram::getBinOfIntensity(uint16_t intensity) const
+{
+  if (intensity <= _dataMin) {
+    return 0;
+  } else if (intensity >= _dataMax) {
+    return _bins.size() - 1;
+  } else {
+    static constexpr float ROUNDING_OFFSET = 0.5f;
+    size_t whichbin =
+      (size_t)((float)(intensity - _dataMin) / (_dataMax - _dataMin) * (_bins.size() - 1) + ROUNDING_OFFSET);
+    return whichbin;
+  }
+}
+
 Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   : _bins(num_bins)
   , _ccounts(num_bins)
@@ -551,5 +566,34 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
       return generate_controlPoints(gradientData.m_customControlPoints, length);
     default:
       return generate_fullRange(length);
+  }
+}
+
+void
+Histogram::computePercentile(uint16_t intensity, float& percentile) const
+{
+  // given an intensity value, compute the percentile of pixels in the histogram less than or equal to that value.
+  if (intensity <= _dataMin) {
+    percentile = 0.0f;
+    return;
+  }
+  if (intensity >= _dataMax) {
+    percentile = 1.0f;
+    return;
+  }
+
+  // Find the bin corresponding to the intensity value
+  size_t bin = this->getBinOfIntensity(intensity);
+
+  if (bin < _ccounts.size()) {
+
+    // Compute the percentile based on the cumulative counts
+    if (bin > 0) {
+      percentile = (float)_ccounts[bin - 1] / (float)_pixelCount;
+    } else {
+      percentile = 0.0f;
+    }
+  } else {
+    percentile = 1.0f;
   }
 }
