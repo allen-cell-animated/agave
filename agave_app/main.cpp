@@ -95,6 +95,14 @@ preloadFiles(QStringList preloadlist)
 
 static const QString kAgaveUrlPrefix("agave://");
 
+void
+customMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+  // Customize how you handle each message type
+  QByteArray localMsg = msg.toLocal8Bit();
+  LOG_DEBUG << localMsg.toStdString();
+}
+
 std::string
 getUrlToOpen(const QUrl& agaveUrl)
 {
@@ -243,6 +251,9 @@ main(int argc, char* argv[])
 
       result = a.exec();
     } else {
+
+      qInstallMessageHandler(customMessageHandler);
+
       agaveGui* w = new agaveGui();
       a.setGUI(w);
       w->show();
