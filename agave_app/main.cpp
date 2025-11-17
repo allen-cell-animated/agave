@@ -100,7 +100,25 @@ customMessageHandler(QtMsgType type, const QMessageLogContext& context, const QS
 {
   // Customize how you handle each message type
   QByteArray localMsg = msg.toLocal8Bit();
-  LOG_DEBUG << localMsg.toStdString();
+  switch (type) {
+    case QtDebugMsg:
+      LOG_DEBUG << localMsg.toStdString();
+      break;
+    case QtInfoMsg:
+      LOG_INFO << localMsg.toStdString();
+      break;
+    case QtWarningMsg:
+      LOG_WARNING << localMsg.toStdString();
+      break;
+    case QtCriticalMsg:
+      LOG_ERROR << localMsg.toStdString();
+      break;
+    case QtFatalMsg:
+      LOG_FATAL << localMsg.toStdString();
+      abort();
+    default:
+      LOG_DEBUG << localMsg.toStdString();
+  }
 }
 
 std::string
