@@ -1181,6 +1181,10 @@ QCPLayer::draw(QCPPainter* painter)
 void
 QCPLayer::drawToPaintBuffer()
 {
+  // prevent initializing painter if parent plot has no size (e.g. not yet shown)
+  if (parentPlot()->size().isEmpty())
+    return;
+
   if (QSharedPointer<QCPAbstractPaintBuffer> pb = mPaintBuffer.toStrongRef()) {
     if (QCPPainter* painter = pb->startPainting()) {
       if (painter->isActive())
