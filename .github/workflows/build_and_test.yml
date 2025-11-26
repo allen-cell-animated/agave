@@ -17,7 +17,7 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get --allow-releaseinfo-change update -y
           sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
           sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
       - name: Install Python dependencies
@@ -54,7 +54,7 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get --allow-releaseinfo-change update -y
           sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
           sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
       - name: Install Python dependencies
@@ -90,8 +90,10 @@ jobs:
           - os: windows-latest
             artifact: agave-win
           # note macos-14 is arm64 and macos-13 is x86_64
-          - os: macos-14
+          - os: macos-15
             artifact: agave-macos-arm64
+          - os: macos-15-intel
+            artifact: agave-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
