@@ -114,6 +114,9 @@ jobs:
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           brew install spdlog nasm
+          if [ -d /usr/local/include/openssl ]; then
+            mv /usr/local/include/openssl /usr/local/include/openssl.bak
+          fi
       - name: macos build and test
         if: contains(matrix.os, 'macos')
         env:
