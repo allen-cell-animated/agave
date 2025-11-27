@@ -125,13 +125,13 @@ jobs:
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
-          # adjust this path if your _deps path is different
-          ZLIB_SRC="${{ github.workspace }}/build/_deps/zlib-src"
-          # Force the vendored zlib include to appear first for all compile commands
-          export CFLAGS="-I${ZLIB_SRC} ${CFLAGS:-}"
-          export CXXFLAGS="-I${ZLIB_SRC} ${CXXFLAGS:-}"
-          # If you want to force-disable the SSE opt at compiler level (as a fallback):
-          export CXXFLAGS="$CXXFLAGS -DPNG_INTEL_SSE_OPT=0"
+          # Path to vendored zlib (adjust as needed)
+          ZLIB_SRC="${{ github.workspace }}/agave/build/_deps/zlib-src"
+          # Turn off macOS SDK include injection
+          export SDKROOT=""
+          # Force zlib as system include
+          export CFLAGS="-isystem $ZLIB_SRC"
+          export CXXFLAGS="-isystem $ZLIB_SRC"
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INCLUDE_DIRECTORIES_BEFORE=ON
