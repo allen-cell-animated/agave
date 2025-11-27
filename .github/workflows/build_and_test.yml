@@ -127,9 +127,9 @@ jobs:
           export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
           mkdir ./build
           cd build
-          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --target agave_test --config Release -DPNG_INTEL_SSE_OPT=0
-          cmake --build . --config Release -DPNG_INTEL_SSE_OPT=0
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DPNG_INTEL_SSE_OPT=0
+          cmake --build . --target agave_test --config Release
+          cmake --build . --config Release
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
         shell: bash
       - name: Upload mac artifact
