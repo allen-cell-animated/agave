@@ -39,10 +39,6 @@ FetchContent_Declare(
         # URL_HASH SHA256=1ac9ac2c3a24d0c25f049d289968b4e3944a798a9466b84d80a964b74a2d018a
 )
 
-# Additional FetchContent_Declare calls as needed...
-set(FETCHCONTENT_TENSORSTORE_CMAKE_ARGS
-    "-DCMAKE_INCLUDE_DIRECTORIES_BEFORE=ON"
-)
 FetchContent_MakeAvailable(tensorstore)
 # end tensorstore dependency
 

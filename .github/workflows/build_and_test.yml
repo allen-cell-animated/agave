@@ -125,9 +125,16 @@ jobs:
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
+          # adjust this path if your _deps path is different
+          ZLIB_SRC="${{ github.workspace }}/build/_deps/zlib-src"
+          # Force the vendored zlib include to appear first for all compile commands
+          export CFLAGS="-I${ZLIB_SRC} ${CFLAGS:-}"
+          export CXXFLAGS="-I${ZLIB_SRC} ${CXXFLAGS:-}"
+          # If you want to force-disable the SSE opt at compiler level (as a fallback):
+          export CXXFLAGS="$CXXFLAGS -DPNG_INTEL_SSE_OPT=0"
           mkdir ./build
           cd build
-          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INCLUDE_DIRECTORIES_BEFORE=ON
           cmake --build . --target agave_test --config Release
           cmake --build . --config Release
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
