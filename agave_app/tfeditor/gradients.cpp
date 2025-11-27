@@ -63,12 +63,18 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   // vbox->setMargin(1);
 
   m_customPlot = new QCustomPlot(this);
+
   // first graph will be histogram
-  QCPBars* myBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis);
-  myBars->setWidthType(QCPBars::wtPlotCoords);
+  QPalette pal = m_customPlot->palette();
+  QColor histFillColor = pal.color(QPalette::Link).lighter(150);
+  m_histogramBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis);
+  QPen barPen = m_histogramBars->pen();
+  barPen.setColor(histFillColor);
+  m_histogramBars->setPen(barPen);
+  m_histogramBars->setWidthType(QCPBars::wtPlotCoords);
   float firstBinCenter, lastBinCenter, binSize;
   histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
-  myBars->setWidth(binSize);
+  m_histogramBars->setWidth(binSize);
   QVector<double> keyData;
   QVector<double> valueData;
   static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
@@ -83,13 +89,17 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
       valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
     }
   }
-  myBars->setData(keyData, valueData);
-  myBars->setSelectable(QCP::stNone);
+  m_histogramBars->setData(keyData, valueData);
+  m_histogramBars->setSelectable(QCP::stNone);
 
   // first "graph" will the the piecewise linear transfer function
   m_customPlot->addGraph();
   m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
-  m_customPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, SCATTERSIZE));
+  QPen scatterPen(Qt::black);
+  scatterPen.setWidthF(1.0);
+  // QBrush scatterBrush(Qt::white);
+  m_customPlot->graph(0)->setScatterStyle(
+    QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
   m_customPlot->graph(0)->setSelectable(QCP::stSingleData);
 
   //   give the axes some labels:
@@ -103,12 +113,20 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   auto tickLabelFont = m_customPlot->xAxis->tickLabelFont();
   tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
   m_customPlot->xAxis->setTickLabelFont(tickLabelFont);
+  QPen penx = m_customPlot->xAxis->basePen();
+  penx.setWidthF(1.0);
+  m_customPlot->xAxis->setBasePen(penx);
+  static constexpr double AXIS_OFFSET_FRACTION = 0.1;
+  m_customPlot->xAxis->setOffset(AXIS_OFFSET_FRACTION);
 
-  m_customPlot->yAxis->setRange(0, 1);
+  m_customPlot->yAxis->setRange(0 - AXIS_OFFSET_FRACTION, 1 + AXIS_OFFSET_FRACTION);
   m_customPlot->yAxis->ticker()->setTickCount(1);
   tickLabelFont = m_customPlot->yAxis->tickLabelFont();
   tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
   m_customPlot->yAxis->setTickLabelFont(tickLabelFont);
+  QPen peny = m_customPlot->yAxis->basePen();
+  peny.setWidthF(1.0);
+  m_customPlot->yAxis->setBasePen(peny);
 
   m_customPlot->xAxis->grid()->setVisible(true);
   m_customPlot->xAxis->grid()->setSubGridVisible(true);
@@ -120,6 +138,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
     QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
   m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
   m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
+  // m_customPlot->axisRect()->setMargins(QMargins(10, 10, 10, 10));
 
   m_customPlot->replot();
 
@@ -130,6 +149,38 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   connect(m_customPlot, &QCustomPlot::mouseDoubleClick, this, &GradientEditor::onPlotMouseDoubleClick);
 
   vbox->addWidget(m_customPlot);
+}
+
+void
+GradientEditor::changeEvent(QEvent* event)
+{
+  // this might be too many but ThemeChange only seems to work on the QMainWindow
+  if (event->type() == QEvent::ThemeChange || event->type() == QEvent::ApplicationPaletteChange ||
+      event->type() == QEvent::StyleChange || event->type() == QEvent::PaletteChange) {
+    // check for dark or light mode
+    auto sh = QGuiApplication::styleHints();
+    auto colorScheme = sh->colorScheme();
+    if (colorScheme == Qt::ColorScheme::Dark) {
+      LOG_DEBUG << "Switching gradient editor histogram to dark mode";
+      m_customPlot->graph(0)->setPen(QPen(Qt::lightGray)); // line color blue for first graph
+      QPen scatterPen(Qt::lightGray);
+      scatterPen.setWidthF(1.0);
+      // QBrush scatterBrush(Qt::white);
+      m_customPlot->graph(0)->setScatterStyle(
+        QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
+      m_customPlot->replot();
+    } else if (colorScheme == Qt::ColorScheme::Light) {
+      LOG_DEBUG << "Switching gradient editor histogram to light mode";
+      m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
+      QPen scatterPen(Qt::black);
+      scatterPen.setWidthF(1.0);
+      // QBrush scatterBrush(Qt::white);
+      m_customPlot->graph(0)->setScatterStyle(
+        QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
+      m_customPlot->replot();
+    }
+  }
+  QWidget::changeEvent(event);
 }
 
 void
