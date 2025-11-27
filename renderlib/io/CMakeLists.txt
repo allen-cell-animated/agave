@@ -40,6 +40,9 @@ FetchContent_Declare(
 )
 
 # Additional FetchContent_Declare calls as needed...
+set(FETCHCONTENT_TENSORSTORE_CMAKE_ARGS
+    "-DCMAKE_INCLUDE_DIRECTORIES_BEFORE=ON"
+)
 FetchContent_MakeAvailable(tensorstore)
 # end tensorstore dependency
 
