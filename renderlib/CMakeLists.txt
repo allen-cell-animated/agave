@@ -106,6 +106,7 @@ add_subdirectory(graphics)
 add_subdirectory(io)
 add_subdirectory(pugixml)
 add_subdirectory(core)
+add_subdirectory(serialize)
 
 target_link_libraries(renderlib
 	Qt::Core Qt::OpenGL
