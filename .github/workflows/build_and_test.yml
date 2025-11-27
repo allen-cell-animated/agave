@@ -125,16 +125,9 @@ jobs:
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
           export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
-          # Path to vendored zlib (adjust as needed)
-          ZLIB_SRC="${{ github.workspace }}/agave/build/_deps/zlib-src"
-          # Turn off macOS SDK include injection
-          export SDKROOT=""
-          # Force zlib as system include
-          export CFLAGS="-isystem $ZLIB_SRC"
-          export CXXFLAGS="-isystem $ZLIB_SRC"
           mkdir ./build
           cd build
-          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INCLUDE_DIRECTORIES_BEFORE=ON
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target agave_test --config Release
           cmake --build . --config Release
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
