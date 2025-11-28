@@ -42,7 +42,10 @@ extra_requirements = {
     "setup": setup_requirements,
     "test": test_requirements,
     "dev": dev_requirements,
-    "all": [*requirements, *dev_requirements,],
+    "all": [
+        *requirements,
+        *dev_requirements,
+    ],
 }
 
 setup(
@@ -57,16 +60,19 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: Free for non-commercial use",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Multimedia :: Graphics :: 3D Rendering",
         "Topic :: Scientific/Engineering :: Visualization",
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
         "Topic :: Scientific/Engineering :: Image Processing",
     ],
     description="A Python client for the Agave 3d volume renderer",
-    entry_points={"console_scripts": [],},
+    entry_points={
+        "console_scripts": [],
+    },
     install_requires=requirements,
     license="Allen Institute Software License",
     long_description=readme,
