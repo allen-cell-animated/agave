@@ -22,18 +22,20 @@ docWriter::writeProperties(prtyObject* obj)
     int numProps = propUIInfo->GetNumberOfProperties();
     // std::cout << "Number of properties in UIInfo: " << numProps << std::endl;
 
-    prtyProperty* prop = propUIInfo->GetProperty(0);
-    if (!prop) {
-      // std::cout << "Property is null!" << std::endl;
-      continue;
+    for (int i = 0; i < numProps; ++i) {
+      prtyProperty* prop = propUIInfo->GetProperty(i);
+      if (!prop) {
+        // std::cout << "Property is null!" << std::endl;
+        continue;
+      }
+
+      const char* type = prop->GetType();
+      std::string propName = prop->GetPropertyName();
+      // std::cout << "Writing property: " << propName << " of type: " << type << std::endl;
+
+      // Set up the property name for writing
+      writePrty(prop);
     }
-
-    const char* type = prop->GetType();
-    std::string propName = prop->GetPropertyName();
-    // std::cout << "Writing property: " << propName << " of type: " << type << std::endl;
-
-    // Set up the property name for writing
-    writePrty(prop);
   }
 
   // endObject();

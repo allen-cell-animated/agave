@@ -154,6 +154,7 @@ docWriterYaml::writePrty(const prtyProperty* p)
 
   // Store the property name for the next write operation
   m_nextKey = p->GetPropertyName();
+
   p->Write(*this);
 }
 
