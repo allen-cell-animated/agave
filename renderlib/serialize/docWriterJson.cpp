@@ -10,6 +10,7 @@
 docWriterJson::docWriterJson()
   : m_root(nullptr)
   , m_current(nullptr)
+  , m_nextKey("")
 {
 }
 

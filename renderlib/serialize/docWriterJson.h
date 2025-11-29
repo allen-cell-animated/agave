@@ -2,13 +2,11 @@
 
 #include "docWriter.h"
 
+#include "json/json.hpp"
+
 #include <fstream>
 #include <stack>
 #include <string>
-
-namespace nlohmann {
-class json;
-}
 
 class docWriterJson : public docWriter
 {
