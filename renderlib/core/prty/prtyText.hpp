@@ -45,5 +45,5 @@ public:
 
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  virtual void Write(chWriter& io_Writer) const;
+  virtual void Write(docWriter& io_Writer) const;
 };

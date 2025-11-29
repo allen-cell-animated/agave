@@ -106,7 +106,7 @@ TEST_CASE("prtyProperty struct", "[prtyProperty]")
     {
       // Implement reading from a reader if needed
     }
-    virtual void Write(chWriter& io_Writer) const override
+    virtual void Write(docWriter& io_Writer) const override
     {
       // Implement writing to a writer if needed
     }

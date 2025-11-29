@@ -2,6 +2,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -135,8 +136,7 @@ prtyInt32::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyInt32::Write(chWriter& io_Writer) const
+prtyInt32::Write(docWriter& io_Writer) const
 {
-  // int32_t temp = GetValue();
-  // io_Writer.Write(temp);
+  io_Writer.writeInt32(GetValue());
 }

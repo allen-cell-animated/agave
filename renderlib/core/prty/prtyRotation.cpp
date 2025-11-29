@@ -5,6 +5,7 @@
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
 // #include "core/ma/maConstants.hpp"
+#include "serialize/docWriter.h"
 #include "core/undo/undoUndoMgr.hpp"
 
 namespace {
@@ -203,7 +204,7 @@ prtyRotation::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyRotation::Write(chWriter& io_Writer) const
+prtyRotation::Write(docWriter& io_Writer) const
 {
-  // chChunkParserUtil::Write(io_Writer, m_Quaternion);
+  io_Writer.writeFloat32Array(4, glm::value_ptr(GetQuaternion()));
 }

@@ -2,6 +2,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docWriter.h"
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
@@ -97,7 +98,8 @@ prtyText::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyText::Write(chWriter& io_Writer) const
+prtyText::Write(docWriter& io_Writer) const
 {
+  io_Writer.writeString(GetValue());
   //  chChunkParserUtil::Write(io_Writer, GetValue());
 }

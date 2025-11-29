@@ -14,7 +14,7 @@
 class prtyProperty;
 class prtyPropertyReference;
 class chReader;
-class chWriter;
+class docWriter;
 
 //============================================================================
 //	typedefs
@@ -191,7 +191,7 @@ public:
 
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  virtual void Write(chWriter& io_Writer) const = 0;
+  virtual void Write(docWriter& io_Writer) const = 0;
 
   //--------------------------------------------------------------------
   //  In some cases we want the form builder to check whether or not

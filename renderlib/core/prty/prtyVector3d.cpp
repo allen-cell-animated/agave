@@ -3,6 +3,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -143,7 +144,7 @@ prtyVector3d::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyVector3d::Write(chWriter& io_Writer) const
+prtyVector3d::Write(docWriter& io_Writer) const
 {
-  // chChunkParserUtil::Write(io_Writer, GetValue());
+  io_Writer.writeFloat32Array(3, glm::value_ptr(GetValue()));
 }

@@ -2,6 +2,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -91,7 +92,7 @@ prtyColor::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyColor::Write(chWriter& io_Writer) const
+prtyColor::Write(docWriter& io_Writer) const
 {
-  // chChunkParserUtil::Write(io_Writer, GetValue());
+  io_Writer.writeFloat32Array(4, glm::value_ptr(GetValue()));
 }

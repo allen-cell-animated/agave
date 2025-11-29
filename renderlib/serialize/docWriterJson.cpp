@@ -145,8 +145,41 @@ docWriterJson::writePrty(const prtyProperty* p)
   // Store the property name for the next write operation
   m_nextKey = p->GetPropertyName();
 
-  // Note: The actual value writing will be done by the specific write methods
-  // (writeInt32, writeFloat32, etc.) which will be called after this method
+  p->Write(*this);
+}
+
+size_t
+docWriterJson::writeBool(bool value)
+{
+  nlohmann::json* current = getCurrentObject();
+  if (!current) {
+    return 0;
+  }
+
+  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
+    (*current)[m_nextKey] = value;
+  } else {
+    current->push_back(value);
+  }
+
+  return sizeof(bool);
+}
+
+size_t
+docWriterJson::writeInt8(int8_t value)
+{
+  nlohmann::json* current = getCurrentObject();
+  if (!current) {
+    return 0;
+  }
+
+  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
+    (*current)[m_nextKey] = value;
+  } else {
+    current->push_back(value);
+  }
+
+  return sizeof(int8_t);
 }
 
 size_t
@@ -203,14 +236,20 @@ docWriterJson::writeFloat32(float value)
 size_t
 docWriterJson::writeFloat32Array(const std::vector<float>& value)
 {
+  return writeFloat32Array(value.size(), value.data());
+}
+
+size_t
+docWriterJson::writeFloat32Array(size_t count, const float* values)
+{
   nlohmann::json* current = getCurrentObject();
   if (!current) {
     return 0;
   }
 
   nlohmann::json arr = nlohmann::json::array();
-  for (float v : value) {
-    arr.push_back(v);
+  for (size_t i = 0; i < count; ++i) {
+    arr.push_back(values[i]);
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
@@ -219,7 +258,7 @@ docWriterJson::writeFloat32Array(const std::vector<float>& value)
     current->push_back(arr);
   }
 
-  return value.size() * sizeof(float);
+  return count * sizeof(float);
 }
 
 size_t

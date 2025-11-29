@@ -1,7 +1,7 @@
 #include "core/prty/prtyBoolean.hpp"
 
 // #include "core/ch/chReader.hpp"
-// #include "core/ch/chWriter.hpp"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ void
 prtyBoolean::Read(chReader& io_Reader)
 {
   // bool temp;
-  // io_Reader.Read(temp);
+  // io_Reader.readBool(temp);
   // SetValue(temp);
 }
 
@@ -91,7 +91,7 @@ prtyBoolean::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyBoolean::Write(chWriter& io_Writer) const
+prtyBoolean::Write(docWriter& io_Writer) const
 {
-  // io_Writer.Write(GetValue());
+  io_Writer.writeBool(GetValue());
 }

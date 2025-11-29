@@ -1,7 +1,7 @@
 #include "core/prty/prtyInt8.hpp"
 
 // #include "core/ch/chReader.hpp"
-// #include "core/ch/chWriter.hpp"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -135,8 +135,7 @@ prtyInt8::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyInt8::Write(chWriter& io_Writer) const
+prtyInt8::Write(docWriter& io_Writer) const
 {
-  //   int8_t temp = GetValue();
-  //   io_Writer.Write(temp);
+  io_Writer.writeInt8(GetValue());
 }

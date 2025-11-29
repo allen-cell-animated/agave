@@ -154,6 +154,53 @@ docWriterYaml::writePrty(const prtyProperty* p)
 
   // Store the property name for the next write operation
   m_nextKey = p->GetPropertyName();
+  p->Write(*this);
+}
+
+size_t
+docWriterYaml::writeBool(bool value)
+{
+  if (m_contextStack.empty()) {
+    writeKey(m_nextKey);
+    m_output << (value ? "true" : "false") << "\n";
+  } else {
+    Context& ctx = m_contextStack.top();
+    if (ctx.isArray()) {
+      writeIndent();
+      m_output << "- " << (value ? "true" : "false") << "\n";
+      ctx.firstItem = false;
+    } else {
+      writeIndent();
+      writeKey(m_nextKey);
+      m_output << (value ? "true" : "false") << "\n";
+      ctx.firstItem = false;
+    }
+  }
+
+  return sizeof(bool);
+}
+
+size_t
+docWriterYaml::writeInt8(int8_t value)
+{
+  if (m_contextStack.empty()) {
+    writeKey(m_nextKey);
+    m_output << static_cast<int>(value) << "\n";
+  } else {
+    Context& ctx = m_contextStack.top();
+    if (ctx.isArray()) {
+      writeIndent();
+      m_output << "- " << static_cast<int>(value) << "\n";
+      ctx.firstItem = false;
+    } else {
+      writeIndent();
+      writeKey(m_nextKey);
+      m_output << static_cast<int>(value) << "\n";
+      ctx.firstItem = false;
+    }
+  }
+
+  return sizeof(int8_t);
 }
 
 size_t
@@ -228,6 +275,12 @@ docWriterYaml::writeFloat32(float value)
 size_t
 docWriterYaml::writeFloat32Array(const std::vector<float>& value)
 {
+  return writeFloat32Array(value.size(), value.data());
+}
+
+size_t
+docWriterYaml::writeFloat32Array(size_t count, const float* values)
+{
   if (m_contextStack.empty()) {
     writeKey(m_nextKey);
   } else {
@@ -244,15 +297,15 @@ docWriterYaml::writeFloat32Array(const std::vector<float>& value)
 
   // Write as inline array [x, y, z, ...]
   m_output << "[";
-  for (size_t i = 0; i < value.size(); ++i) {
+  for (size_t i = 0; i < count; ++i) {
     if (i > 0) {
       m_output << ", ";
     }
-    m_output << std::setprecision(6) << value[i];
+    m_output << std::setprecision(6) << values[i];
   }
   m_output << "]\n";
 
-  return value.size() * sizeof(float);
+  return count * sizeof(float);
 }
 
 size_t

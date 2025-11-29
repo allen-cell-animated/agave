@@ -29,43 +29,7 @@ writePrtyObject(docWriter& writer, prtyObject* obj, const std::string& name)
 
   writer.beginObject(name.c_str());
 
-  const PropertyUIIList& propList = obj->GetList();
-  std::cout << "Property list size: " << propList.size() << std::endl;
-
-  for (const auto& propUIInfo : propList) {
-    int numProps = propUIInfo->GetNumberOfProperties();
-    std::cout << "Number of properties in UIInfo: " << numProps << std::endl;
-
-    prtyProperty* prop = propUIInfo->GetProperty(0);
-    if (!prop) {
-      std::cout << "Property is null!" << std::endl;
-      continue;
-    }
-
-    const char* type = prop->GetType();
-    std::string propName = prop->GetPropertyName();
-    std::cout << "Writing property: " << propName << " of type: " << type << std::endl;
-
-    // Set up the property name for writing
-    writer.writePrty(prop);
-
-    if (strcmp(type, "Int8") == 0) {
-      auto* p = static_cast<prtyInt8*>(prop);
-      writer.writeInt32(p->GetValue());
-    } else if (strcmp(type, "Int32") == 0) {
-      auto* p = static_cast<prtyInt32*>(prop);
-      writer.writeInt32(p->GetValue());
-    } else if (strcmp(type, "Float") == 0) {
-      auto* p = static_cast<prtyFloat*>(prop);
-      writer.writeFloat32(p->GetValue());
-    } else if (strcmp(type, "Text") == 0) {
-      auto* p = static_cast<prtyText*>(prop);
-      writer.writeString(p->GetValue());
-    } else if (strcmp(type, "Boolean") == 0) {
-      auto* p = static_cast<prtyBoolean*>(prop);
-      writer.writeInt32(p->GetValue() ? 1 : 0);
-    }
-  }
+  writer.writeProperties(obj);
 
   writer.endObject();
 }

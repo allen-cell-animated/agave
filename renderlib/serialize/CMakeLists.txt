@@ -4,6 +4,7 @@ target_include_directories(renderlib PUBLIC
 
 target_sources(renderlib PRIVATE
 "${CMAKE_CURRENT_SOURCE_DIR}/docWriter.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/docWriter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/docWriterJson.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/docWriterJson.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/docWriterYaml.h"

@@ -2,7 +2,7 @@
 #include "core/prty/prtyUnits.hpp"
 
 // #include "core/ch/chReader.hpp"
-// #include "core/ch/chWriter.hpp"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -155,8 +155,7 @@ prtyFloat::Read(chReader& io_Reader)
 //--------------------------------------------------------------------
 // virtual
 void
-prtyFloat::Write(chWriter& io_Writer) const
+prtyFloat::Write(docWriter& io_Writer) const
 {
-  // float temp = GetValue();
-  // io_Writer.Write(temp);
+  io_Writer.writeFloat32(GetValue());
 }

@@ -29,10 +29,13 @@ public:
   virtual void writePrty(const prtyProperty* p) override;
 
   // Primitive type writing
+  virtual size_t writeBool(bool) override;
+  virtual size_t writeInt8(int8_t value) override;
   virtual size_t writeInt32(int32_t value) override;
   virtual size_t writeUint32(uint32_t value) override;
   virtual size_t writeFloat32(float value) override;
   virtual size_t writeFloat32Array(const std::vector<float>& value) override;
+  virtual size_t writeFloat32Array(size_t count, const float* values) override;
   virtual size_t writeInt32Array(const std::vector<int32_t>& value) override;
   virtual size_t writeUint32Array(const std::vector<uint32_t>& value) override;
   virtual size_t writeString(const std::string& value) override;
