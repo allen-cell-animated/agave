@@ -14,6 +14,7 @@
 #include "renderlib/version.hpp"
 #include "renderlib/CameraObject.hpp"
 #include "renderlib/AppearanceObject.hpp"
+#include "renderlib/serialize/docWriterJson.h"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
@@ -735,6 +736,10 @@ agaveGui::saveJson()
     nlohmann::json doc = st;
     std::string str = doc.dump();
     saveFile.write(str.c_str()); // QString::fromStdString(str));
+
+    docWriterJson writer;
+    writer.beginDocument(file.toStdString());
+    writer.endDocument();
   }
 }
 
