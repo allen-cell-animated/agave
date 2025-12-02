@@ -739,6 +739,41 @@ agaveGui::saveJson()
 
     docWriterJson writer;
     writer.beginDocument(file.toStdString());
+    writer.beginObject("_AGAVE");
+    // write agave version at least
+    writer.endObject();
+    writer.beginList("_camera");
+    // list of all cameras
+    writer.endList();
+    writer.beginList("_light");
+    // list of all lights
+    writer.endList();
+    writer.beginList("_clipPlane");
+    // list of all clip planes
+    writer.endList();
+    writer.beginList("_renderSettings");
+    // list of all render settings objects
+    writer.endList();
+    writer.beginList("_captureSettings");
+    // list of capture settings objects (only one?)
+    writer.endList();
+
+    writer.beginObject("_geometry");
+    writer.beginList("_volume");
+    // list of all volumes
+    writer.endList();
+    writer.beginList("_mesh");
+    // list of all meshes
+    writer.endList();
+    writer.endObject();
+
+    writer.beginObject("_scene");
+    // one and only active scene.
+    // this includes references to selections of the above objects.
+    // other objects should not be cross referencing each other.
+    // so scene needs to be set up after other objects are defined.
+    writer.endObject();
+
     writer.endDocument();
   }
 }
