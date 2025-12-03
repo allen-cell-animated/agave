@@ -68,9 +68,10 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   QPalette pal = m_customPlot->palette();
   QColor histFillColor = pal.color(QPalette::Link).lighter(150);
   m_histogramBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis);
-  QPen barPen = m_histogramBars->pen();
-  barPen.setColor(histFillColor);
-  m_histogramBars->setPen(barPen);
+  QBrush barBrush = m_histogramBars->brush();
+  barBrush.setColor(histFillColor);
+  m_histogramBars->setBrush(barBrush);
+  m_histogramBars->setPen(Qt::NoPen);
   m_histogramBars->setWidthType(QCPBars::wtPlotCoords);
   float firstBinCenter, lastBinCenter, binSize;
   histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
@@ -116,7 +117,9 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   QPen penx = m_customPlot->xAxis->basePen();
   penx.setWidthF(1.0);
   m_customPlot->xAxis->setBasePen(penx);
-  static constexpr double AXIS_OFFSET_FRACTION = 0.1;
+
+  // increasing this will extend the Y axis up and down, so that the scatter handles are not clipped.
+  static constexpr double AXIS_OFFSET_FRACTION = 0.0; // 15;
   m_customPlot->xAxis->setOffset(AXIS_OFFSET_FRACTION);
 
   m_customPlot->yAxis->setRange(0 - AXIS_OFFSET_FRACTION, 1 + AXIS_OFFSET_FRACTION);
@@ -160,25 +163,67 @@ GradientEditor::changeEvent(QEvent* event)
     // check for dark or light mode
     auto sh = QGuiApplication::styleHints();
     auto colorScheme = sh->colorScheme();
+    QColor plotLineColor;
+    QColor backgroundColor;
+    QColor barsColor;
+    QColor gridColor;
+    QColor subgridColor;
     if (colorScheme == Qt::ColorScheme::Dark) {
+      barsColor = Qt::magenta;
+      barsColor.setAlphaF(0.5);
+      plotLineColor = this->palette().color(QPalette::Text);
+      backgroundColor = this->palette().color(QPalette::Window);
+      gridColor = plotLineColor.darker(150);
+      subgridColor = plotLineColor.darker(170);
+      //      plotLineColor = Qt::lightGray;
       LOG_DEBUG << "Switching gradient editor histogram to dark mode";
-      m_customPlot->graph(0)->setPen(QPen(Qt::lightGray)); // line color blue for first graph
-      QPen scatterPen(Qt::lightGray);
-      scatterPen.setWidthF(1.0);
-      // QBrush scatterBrush(Qt::white);
-      m_customPlot->graph(0)->setScatterStyle(
-        QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
-      m_customPlot->replot();
     } else if (colorScheme == Qt::ColorScheme::Light) {
+      barsColor = Qt::magenta;
+      barsColor.setAlphaF(0.25);
+      plotLineColor = this->palette().color(QPalette::Text);
+      backgroundColor = this->palette().color(QPalette::Window);
+      gridColor = plotLineColor.lighter(150);
+      subgridColor = plotLineColor.lighter(170);
+      //      plotLineColor = Qt::black;
       LOG_DEBUG << "Switching gradient editor histogram to light mode";
-      m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
-      QPen scatterPen(Qt::black);
-      scatterPen.setWidthF(1.0);
-      // QBrush scatterBrush(Qt::white);
-      m_customPlot->graph(0)->setScatterStyle(
-        QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
-      m_customPlot->replot();
     }
+    m_customPlot->graph(0)->setPen(QPen(plotLineColor)); // line color blue for first graph
+    QPen scatterPen(plotLineColor);
+    scatterPen.setWidthF(1.0);
+    m_customPlot->graph(0)->setScatterStyle(
+      QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
+    m_customPlot->setBackground(QBrush(backgroundColor));
+    m_customPlot->axisRect();
+
+    QPen basepen = m_customPlot->xAxis->basePen();
+    basepen.setColor(plotLineColor);
+    m_customPlot->xAxis->setBasePen(basepen);
+    m_customPlot->yAxis->setBasePen(basepen);
+
+    QPen gridpen = m_customPlot->xAxis->grid()->pen();
+    gridpen.setColor(gridColor);
+    m_customPlot->xAxis->grid()->setPen(gridpen);
+    m_customPlot->yAxis->grid()->setPen(gridpen);
+    QPen subgridpen = m_customPlot->xAxis->grid()->subGridPen();
+    subgridpen.setColor(subgridColor);
+    m_customPlot->xAxis->grid()->setSubGridPen(subgridpen);
+    m_customPlot->yAxis->grid()->setSubGridPen(subgridpen);
+
+    QPen axisTickPen = m_customPlot->xAxis->tickPen();
+    axisTickPen.setColor(plotLineColor);
+    m_customPlot->xAxis->setTickPen(axisTickPen);
+    m_customPlot->yAxis->setTickPen(axisTickPen);
+    m_customPlot->xAxis->setTickLabelColor(plotLineColor);
+    m_customPlot->yAxis->setTickLabelColor(plotLineColor);
+    QPen axisSubTickPen = m_customPlot->xAxis->subTickPen();
+    axisSubTickPen.setColor(plotLineColor);
+    m_customPlot->xAxis->setSubTickPen(axisSubTickPen);
+    m_customPlot->yAxis->setSubTickPen(axisSubTickPen);
+
+    m_histogramBars->setPen(Qt::NoPen); // QPen(barsColor));
+    m_histogramBars->setBrush(QBrush(barsColor));
+
+    m_customPlot->replot();
   }
   QWidget::changeEvent(event);
 }
