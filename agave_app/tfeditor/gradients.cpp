@@ -60,7 +60,6 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 {
   QVBoxLayout* vbox = new QVBoxLayout(this);
   vbox->setSpacing(1);
-  // vbox->setMargin(1);
 
   m_customPlot = new QCustomPlot(this);
 
@@ -98,7 +97,6 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
   QPen scatterPen(Qt::black);
   scatterPen.setWidthF(1.0);
-  // QBrush scatterBrush(Qt::white);
   m_customPlot->graph(0)->setScatterStyle(
     QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
   m_customPlot->graph(0)->setSelectable(QCP::stSingleData);
@@ -119,7 +117,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->xAxis->setBasePen(penx);
 
   // increasing this will extend the Y axis up and down, so that the scatter handles are not clipped.
-  static constexpr double AXIS_OFFSET_FRACTION = 0.0; // 15;
+  static constexpr double AXIS_OFFSET_FRACTION = 0.0;
   m_customPlot->xAxis->setOffset(AXIS_OFFSET_FRACTION);
 
   m_customPlot->yAxis->setRange(0 - AXIS_OFFSET_FRACTION, 1 + AXIS_OFFSET_FRACTION);
@@ -141,7 +139,6 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
     QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
   m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
   m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
-  // m_customPlot->axisRect()->setMargins(QMargins(10, 10, 10, 10));
 
   m_customPlot->replot();
 
