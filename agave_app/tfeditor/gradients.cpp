@@ -157,7 +157,8 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 void
 GradientEditor::changeEvent(QEvent* event)
 {
-  // this might be too many but ThemeChange only seems to work on the QMainWindow
+  // this might be too many but ThemeChange only seems to work on the QMainWindow.
+  // At least on Windows, changing dark mode to light mode incurs StyleChange and PaletteChange events too.
   if (event->type() == QEvent::ThemeChange || event->type() == QEvent::ApplicationPaletteChange ||
       event->type() == QEvent::StyleChange || event->type() == QEvent::PaletteChange) {
     // check for dark or light mode
@@ -175,8 +176,6 @@ GradientEditor::changeEvent(QEvent* event)
       backgroundColor = this->palette().color(QPalette::Window);
       gridColor = plotLineColor.darker(150);
       subgridColor = plotLineColor.darker(170);
-      //      plotLineColor = Qt::lightGray;
-      LOG_DEBUG << "Switching gradient editor histogram to dark mode";
     } else if (colorScheme == Qt::ColorScheme::Light) {
       barsColor = Qt::magenta;
       barsColor.setAlphaF(0.25);
@@ -184,8 +183,6 @@ GradientEditor::changeEvent(QEvent* event)
       backgroundColor = this->palette().color(QPalette::Window);
       gridColor = plotLineColor.lighter(150);
       subgridColor = plotLineColor.lighter(170);
-      //      plotLineColor = Qt::black;
-      LOG_DEBUG << "Switching gradient editor histogram to light mode";
     }
     m_customPlot->graph(0)->setPen(QPen(plotLineColor)); // line color blue for first graph
     QPen scatterPen(plotLineColor);
