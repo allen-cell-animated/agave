@@ -208,6 +208,8 @@ GradientEditor::changeEvent(QEvent* event)
     subgridpen.setColor(subgridColor);
     m_customPlot->xAxis->grid()->setSubGridPen(subgridpen);
     m_customPlot->yAxis->grid()->setSubGridPen(subgridpen);
+    m_customPlot->xAxis->grid()->setAntialiasedSubGrid(true);
+    m_customPlot->yAxis->grid()->setAntialiasedSubGrid(true);
 
     QPen axisTickPen = m_customPlot->xAxis->tickPen();
     axisTickPen.setColor(plotLineColor);
