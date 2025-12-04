@@ -92,9 +92,9 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_histogramBars->setData(keyData, valueData);
   m_histogramBars->setSelectable(QCP::stNone);
 
-  // first "graph" will the the piecewise linear transfer function
+  // first added graph will the the piecewise linear transfer function
   m_customPlot->addGraph();
-  m_customPlot->graph(0)->setPen(QPen(Qt::black)); // line color blue for first graph
+  m_customPlot->graph(0)->setPen(QPen(Qt::black));
   QPen scatterPen(Qt::black);
   scatterPen.setWidthF(1.0);
   m_customPlot->graph(0)->setScatterStyle(
@@ -154,7 +154,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 void
 GradientEditor::changeEvent(QEvent* event)
 {
-  // this might be too many but ThemeChange only seems to work on the QMainWindow.
+  // This might be too many event types to check, but ThemeChange only seems to work on the QMainWindow.
   // At least on Windows, changing dark mode to light mode incurs StyleChange and PaletteChange events too.
   if (event->type() == QEvent::ThemeChange || event->type() == QEvent::ApplicationPaletteChange ||
       event->type() == QEvent::StyleChange || event->type() == QEvent::PaletteChange) {
@@ -181,7 +181,7 @@ GradientEditor::changeEvent(QEvent* event)
       gridColor = plotLineColor.lighter(150);
       subgridColor = plotLineColor.lighter(170);
     }
-    m_customPlot->graph(0)->setPen(QPen(plotLineColor)); // line color blue for first graph
+    m_customPlot->graph(0)->setPen(QPen(plotLineColor));
     QPen scatterPen(plotLineColor);
     scatterPen.setWidthF(1.0);
     m_customPlot->graph(0)->setScatterStyle(
