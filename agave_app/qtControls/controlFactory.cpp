@@ -4,9 +4,75 @@
 #include "Section.h"
 
 #include "renderlib/core/prty/prtyObject.hpp"
-#include "renderlib/core/prty/prtyEnum.hpp"
 
 #include <QFormLayout>
+
+QNumericSlider*
+addRow(const FloatSliderSpinnerUiInfo& info)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(QString::fromStdString(info->GetStatusTip()));
+  slider->setToolTip(QString::fromStdString(info->GetToolTip()));
+  slider->setRange(info->min, info->max);
+  slider->setDecimals(info->decimals);
+  slider->setSingleStep(info->singleStep);
+  slider->setNumTickMarks(info->numTickMarks);
+  slider->setSuffix(QString::fromStdString(info->suffix));
+
+  slider->setValue(prop->GetValue(), true);
+  QObject::connect(
+    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
+  // TODO how would this capture the "previous" value, for undo?
+  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
+
+  return slider;
+}
+QNumericSlider*
+create(const IntSliderSpinnerUiInfo* info, std::shared_ptr<prtyInt32> prop)
+{
+  QNumericSlider* slider = new QNumericSlider();
+  slider->setStatusTip(QString::fromStdString(info->GetStatusTip()));
+  slider->setToolTip(QString::fromStdString(info->GetToolTip()));
+  slider->setRange(info->min, info->max);
+  slider->setSingleStep(info->singleStep);
+  slider->setNumTickMarks(info->numTickMarks);
+  slider->setSuffix(QString::fromStdString(info->suffix));
+
+  slider->setValue(prop->GetValue(), true);
+  QObject::connect(
+    slider, &QNumericSlider::valueChanged, [slider, prop](double value) { prop->SetValue(value, true); });
+  // TODO how would this capture the "previous" value, for undo?
+  // QObject::connect(slider, &QNumericSlider::valueChangeCommit, [slider, prop]() { prop->NotifyAll(true); });
+
+  return slider;
+}
+QCheckBox*
+create(const CheckBoxUiInfo* info, std::shared_ptr<prtyBoolean> prop)
+{
+  QCheckBox* checkBox = new QCheckBox();
+  checkBox->setStatusTip(QString::fromStdString(info->GetStatusTip()));
+  checkBox->setToolTip(QString::fromStdString(info->GetToolTip()));
+  // checkBox->setText(QString::fromStdString(info->formLabel));
+  checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+  QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
+    prop->SetValue(state == Qt::CheckState::Checked, true);
+  });
+  return checkBox;
+}
+QComboBox*
+create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop)
+{
+  QComboBox* comboBox = new QComboBox();
+  comboBox->setStatusTip(QString::fromStdString(info->GetStatusTip()));
+  comboBox->setToolTip(QString::fromStdString(info->GetToolTip()));
+  for (const auto& item : info->items) {
+    comboBox->addItem(QString::fromStdString(item));
+  }
+  comboBox->setCurrentIndex(prop->GetValue());
+  QObject::connect(
+    comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
+  return comboBox;
+}
 
 QNumericSlider*
 addRow(const FloatSliderSpinnerUiInfo& info)
@@ -56,6 +122,94 @@ addRow(const FloatSliderSpinnerUiInfo& info)
   return slider;
 }
 
+QColorWithIntensity*
+addRow(const ColorWithIntensityUiInfo& info)
+{
+  auto* propColor = static_cast<prtyColor*>(info.GetProperty(0));
+  glm::vec4 c = propColor->GetValue();
+  QColor qc;
+  qc.setRgbF(c.r, c.g, c.b);
+
+  QColorWithIntensity* colorPicker = new QColorWithIntensity(qc);
+  colorPicker->setStatusTip(QString::fromStdString(info.GetStatusTip()));
+  colorPicker->setToolTip(QString::fromStdString(info.GetToolTip()));
+  // colorPicker->setRange(info.min, info.max);
+  // colorPicker->setDecimals(info.decimals);
+  // colorPicker->setSingleStep(info.singleStep);
+  // colorPicker->setNumTickMarks(info.numTickMarks);
+  // colorPicker->setSuffix(QString::fromStdString(info.suffix));
+
+  auto* prop = static_cast<prtyFloat*>(info.GetProperty(1));
+  colorPicker->setIntensity(prop->GetValue());
+  auto conn = QObject::connect(colorPicker, &QColorWithIntensity::intensityChanged, [colorPicker, prop](double value) {
+    prop->SetValue(value, true);
+  });
+
+  colorPicker->setColor(qc);
+  auto connColor =
+    QObject::connect(colorPicker, &QColorWithIntensity::colorChanged, [colorPicker, propColor](const QColor& value) {
+      glm::vec4 c;
+      c.r = value.redF();
+      c.g = value.greenF();
+      c.b = value.blueF();
+      propColor->SetValue(c, true);
+    });
+
+  // now add a callback to the property to update the control when the property changes
+
+  //	Note: right now, this will not create a circular update because
+  //	of the m_bLocalChangeNoUpdate flag.  This IS NOT true the other way
+  //	around.  If a control calls its "ValueChanged" then the property will
+  //	call all of its callback controls and one of them could have been the one
+  //	that originally updated the property value(s).  By checking the diff of
+  //	the values we can avoid a repetitive setting of the control's values.
+  prop->AddCallback(new prtyCallbackLambda([colorPicker](prtyProperty* i_pProperty, bool i_bDirty) {
+    // this is equivalent to QWidget::blockSignals(true);
+    // if (m_bLocalChangeNoUpdate)
+    //  return;
+    const float newvalue = (static_cast<prtyFloat*>(i_pProperty))->GetValue();
+    // m_bLocalChangeNoUpdate = true;
+    colorPicker->blockSignals(true);
+    if ((float)colorPicker->getIntensity() != newvalue) {
+      // Prevent recursive updates
+      // slider->setLocalChangeNoUpdate(true);
+      colorPicker->setIntensity(newvalue);
+      // slider->setLocalChangeNoUpdate(false);
+    }
+    // m_bLocalChangeNoUpdate = false;
+    colorPicker->blockSignals(false);
+  }));
+  propColor->AddCallback(new prtyCallbackLambda([colorPicker](prtyProperty* i_pProperty, bool i_bDirty) {
+    // this is equivalent to QWidget::blockSignals(true);
+    // if (m_bLocalChangeNoUpdate)
+    //  return;
+    const glm::vec4 newvalue = (static_cast<prtyColor*>(i_pProperty))->GetValue();
+    // m_bLocalChangeNoUpdate = true;
+    colorPicker->blockSignals(true);
+    QColor qc = colorPicker->getColor();
+    glm::vec4 c;
+    c.r = qc.redF();
+    c.g = qc.greenF();
+    c.b = qc.blueF();
+    if (c != newvalue) {
+      // Prevent recursive updates
+      // slider->setLocalChangeNoUpdate(true);
+      qc.setRgbF(c.r, c.g, c.b);
+      colorPicker->setColor(qc);
+      // slider->setLocalChangeNoUpdate(false);
+    }
+    // m_bLocalChangeNoUpdate = false;
+    colorPicker->blockSignals(false);
+  }));
+
+  QObject::connect(colorPicker, &QColorWithIntensity::destroyed, [conn, connColor]() {
+    // Disconnect the signal when the color picker is destroyed
+    QObject::disconnect(conn);
+    QObject::disconnect(connColor);
+  });
+  return colorPicker;
+}
+
 QNumericSlider*
 addRow(const IntSliderSpinnerUiInfo& info)
 {
@@ -84,9 +238,8 @@ addRow(const ComboBoxUiInfo& info)
   QComboBox* comboBox = new QComboBox();
   comboBox->setStatusTip(QString::fromStdString(info.GetStatusTip()));
   comboBox->setToolTip(QString::fromStdString(info.GetToolTip()));
-  auto* prop = static_cast<prtyEnum*>(info.GetProperty(0));
-  for (int i = 0; i < prop->GetNumTags(); ++i) {
-    comboBox->addItem(QString::fromStdString(prop->GetEnumTag(i)));
+  for (const auto& item : info.items) {
+    comboBox->addItem(QString::fromStdString(item));
   }
   comboBox->setCurrentIndex(prop->GetValue());
   auto conn = QObject::connect(
@@ -104,6 +257,7 @@ addRow(const CheckBoxUiInfo& info)
   QCheckBox* checkBox = new QCheckBox();
   checkBox->setStatusTip(QString::fromStdString(info.GetStatusTip()));
   checkBox->setToolTip(QString::fromStdString(info.GetToolTip()));
+  // checkBox->setText(QString::fromStdString(info.formLabel));
   auto* prop = static_cast<prtyBoolean*>(info.GetProperty(0));
   checkBox->setCheckState(prop->GetValue() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
   auto conn = QObject::connect(checkBox, &QCheckBox::stateChanged, [checkBox, prop](int state) {
@@ -154,9 +308,23 @@ addGenericRow(const prtyPropertyUIInfo& info)
     return addRow(*checkBoxInfo);
   } else if (const auto* colorPickerInfo = dynamic_cast<const ColorPickerUiInfo*>(&info)) {
     return addRow(*colorPickerInfo);
+  } else if (const auto* colorWithIntensityInfo = dynamic_cast<const ColorWithIntensityUiInfo*>(&info)) {
+    return addRow(*colorWithIntensityInfo);
   }
-
   return nullptr; // or throw an exception
+}
+
+template<typename LayoutType>
+QWidget*
+addPrtyRow(LayoutType* layout, std::shared_ptr<prtyPropertyUIInfo> propertyInfo)
+{
+  QWidget* control = addGenericRow(*propertyInfo);
+  if (control) {
+    QString label = QString::fromStdString(propertyInfo->GetDescription());
+    layout->addRow(label, control);
+    return control;
+  }
+  return nullptr;
 }
 
 void
@@ -185,11 +353,7 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
 
       // Add controls for each property in this category
       for (const auto& propertyInfo : properties) {
-        QWidget* control = addGenericRow(*propertyInfo);
-        if (control) {
-          QString label = QString::fromStdString(propertyInfo->GetDescription());
-          sectionLayout->addRow(label, control);
-        }
+        addPrtyRow(sectionLayout, propertyInfo);
       }
 
       // Set the section's content layout
@@ -201,18 +365,20 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
   }
 }
 
+template<typename LayoutType>
 void
-createFlatList(QFormLayout* mainLayout, prtyObject* object)
+createFlatList(LayoutType* mainLayout, prtyObject* object)
 {
   // Simple flat list of all properties
   const auto& propertyList = object->GetList();
   for (const auto& propertyInfo : propertyList) {
     if (propertyInfo) {
-      QWidget* control = addGenericRow(*propertyInfo);
-      if (control) {
-        QString label = QString::fromStdString(propertyInfo->GetDescription());
-        mainLayout->addRow(label, control);
-      }
+      addPrtyRow(mainLayout, propertyInfo);
     }
   }
 }
+
+template void
+createFlatList<QFormLayout>(QFormLayout* mainLayout, prtyObject* object);
+template void
+createFlatList<AgaveFormLayout>(AgaveFormLayout* mainLayout, prtyObject* object);

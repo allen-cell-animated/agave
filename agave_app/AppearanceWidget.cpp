@@ -32,40 +32,33 @@ QAppearanceWidget2::QAppearanceWidget2(QWidget* pParent, RenderSettings* rs, Vie
   //   }
   // }
 
-  // QComboBox* rendererType = addRow(*m_appearanceDataObject->getRendererTypeUiInfo());
-  // m_MainLayout.addRow("Renderer", rendererType);
-  // QComboBox* shadingType = addRow(*m_appearanceDataObject->getShadingTypeUiInfo());
-  // m_MainLayout.addRow("Shading Type", shadingType);
-  // QNumericSlider* densityScale = addRow(*m_appearanceDataObject->getDensityScaleUiInfo());
-  // m_MainLayout.addRow("Scattering Density", densityScale);
-  // QNumericSlider* gradientFactor = addRow(*m_appearanceDataObject->getGradientFactorUiInfo());
-  // m_MainLayout.addRow("Shading Type Mixture", gradientFactor);
-  // QNumericSlider* stepSizePrimaryRay = addRow(*m_appearanceDataObject->getStepSizePrimaryRayUiInfo());
-  // m_MainLayout.addRow("Step Size Primary Ray", stepSizePrimaryRay);
-  // QNumericSlider* stepSizeSecondaryRay = addRow(*m_appearanceDataObject->getStepSizeSecondaryRayUiInfo());
-  // m_MainLayout.addRow("Step Size Secondary Ray", stepSizeSecondaryRay);
-  // QCheckBox* interpolateCheckBox = addRow(*m_appearanceDataObject->getInterpolateUiInfo());
-  // m_MainLayout.addRow("Interpolate", interpolateCheckBox);
-  // QColorPushButton* backgroundColorButton = addRow(*m_appearanceDataObject->getBackgroundColorUiInfo());
-  // m_MainLayout.addRow("Background Color", backgroundColorButton);
-  // QCheckBox* showBoundingBoxCheckBox = addRow(*m_appearanceDataObject->getShowBoundingBoxUiInfo());
-  // m_MainLayout.addRow("Show Bounding Box", showBoundingBoxCheckBox);
-  // QColorPushButton* boundingBoxColorButton = addRow(*m_appearanceDataObject->getBoundingBoxColorUiInfo());
-  // m_MainLayout.addRow("Bounding Box Color", boundingBoxColorButton);
-  // QCheckBox* showScaleBarCheckBox = addRow(*m_appearanceDataObject->getShowScaleBarUiInfo());
-  // m_MainLayout.addRow("Show Scale Bar", showScaleBarCheckBox);
+  QComboBox* rendererType = addRow(*m_appearanceDataObject->getRendererTypeUiInfo());
+  m_MainLayout.addRow("Renderer", rendererType);
+  QComboBox* shadingType = addRow(*m_appearanceDataObject->getShadingTypeUiInfo());
+  m_MainLayout.addRow("Shading Type", shadingType);
+  QNumericSlider* densityScale = addRow(*m_appearanceDataObject->getDensityScaleUiInfo());
+  m_MainLayout.addRow("Scattering Density", densityScale);
+  QNumericSlider* gradientFactor = addRow(*m_appearanceDataObject->getGradientFactorUiInfo());
+  m_MainLayout.addRow("Shading Type Mixture", gradientFactor);
+  QNumericSlider* stepSizePrimaryRay = addRow(*m_appearanceDataObject->getStepSizePrimaryRayUiInfo());
+  m_MainLayout.addRow("Step Size Primary Ray", stepSizePrimaryRay);
+  QNumericSlider* stepSizeSecondaryRay = addRow(*m_appearanceDataObject->getStepSizeSecondaryRayUiInfo());
+  m_MainLayout.addRow("Step Size Secondary Ray", stepSizeSecondaryRay);
+  QCheckBox* interpolateCheckBox = addRow(*m_appearanceDataObject->getInterpolateUiInfo());
+  m_MainLayout.addRow("Interpolate", interpolateCheckBox);
+  QColorPushButton* backgroundColorButton = addRow(*m_appearanceDataObject->getBackgroundColorUiInfo());
+  m_MainLayout.addRow("Background Color", backgroundColorButton);
+  QCheckBox* showBoundingBoxCheckBox = addRow(*m_appearanceDataObject->getShowBoundingBoxUiInfo());
+  m_MainLayout.addRow("Show Bounding Box", showBoundingBoxCheckBox);
+  QColorPushButton* boundingBoxColorButton = addRow(*m_appearanceDataObject->getBoundingBoxColorUiInfo());
+  m_MainLayout.addRow("Bounding Box Color", boundingBoxColorButton);
+  QCheckBox* showScaleBarCheckBox = addRow(*m_appearanceDataObject->getShowScaleBarUiInfo());
+  m_MainLayout.addRow("Show Scale Bar", showScaleBarCheckBox);
 
-  // QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this, vw](int index) { vw->setRenderer(index); });
-  // QObject::connect(shadingType, &QComboBox::currentIndexChanged, [this, gradientFactor](int index) {
-  //   gradientFactor->setEnabled(index == 2);
-  // });
-  m_appearanceObject->getRendererTypeUiInfo()->GetProperty(0)->AddCallback(
-    new prtyCallbackLambda([this, vw](prtyProperty* i_Property, bool i_bDirty) {
-      if (i_bDirty) {
-        const int newvalue = (static_cast<prtyInt8*>(i_Property))->GetValue();
-        vw->setRenderer(newvalue);
-      }
-    }));
+  QObject::connect(rendererType, &QComboBox::currentIndexChanged, [this, vw](int index) { vw->setRenderer(index); });
+  QObject::connect(shadingType, &QComboBox::currentIndexChanged, [this, gradientFactor](int index) {
+    gradientFactor->setEnabled(index == 2);
+  });
 }
 
 QSize

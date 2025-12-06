@@ -25,6 +25,15 @@ QNumericSlider*
 addRow(const IntSliderSpinnerUiInfo& info);
 
 QComboBox*
+create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop);
+
+QNumericSlider*
+addRow(const FloatSliderSpinnerUiInfo& info);
+
+QNumericSlider*
+addRow(const IntSliderSpinnerUiInfo& info);
+
+QComboBox*
 addRow(const ComboBoxUiInfo& info);
 
 QCheckBox*
@@ -36,8 +45,9 @@ addRow(const ColorPickerUiInfo& info);
 QWidget*
 addGenericRow(const prtyPropertyUIInfo& info);
 
+template<typename LayoutType>
 void
-createFlatList(QFormLayout* mainLayout, prtyObject* object);
+createFlatList(LayoutType* mainLayout, prtyObject* object);
 
 void
 createCategorizedSections(QFormLayout* mainLayout, prtyObject* object);

@@ -17,7 +17,9 @@
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
+#include "ArealightDockWidget.h"
 #include "CameraDockWidget.h"
+#include "SkylightDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
@@ -84,9 +86,19 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  // create our two document objects
-  m_cameraObject = std::make_unique<CameraObject>();
+  // create our document objects
+  // render settings
   m_appearanceObject = std::make_unique<AppearanceObject>();
+  // scene objects
+  m_cameraObject = std::make_unique<CameraObject>();
+  m_areaLightObject = std::make_unique<AreaLightObject>();
+  m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
+  m_areaLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
+  m_skyLightObject = std::make_unique<SkyLightObject>();
+  m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
+  m_skyLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
 
   m_ui.setupUi(this);
 
@@ -128,9 +140,11 @@ agaveGui::agaveGui(QWidget* parent)
 
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_cameraObject.get());
+  // setupAreaLightDock(m_areaLightObject.get());
+  // setupSkyLightDock(m_skyLightObject.get());
   setupTimelineDock();
   setupStatisticsDock();
-  setupAppearanceDock(m_appearanceObject.get());
+  setupAppearanceDock(m_glView->getAppearanceDataObject());
 
   addDockItemsToViewMenu();
 
@@ -161,7 +175,7 @@ agaveGui::agaveGui(QWidget* parent)
     QApplication::instance()->applicationName() + " " + QApplication::instance()->applicationVersion();
   setWindowTitle(windowTitle);
 
-  m_appScene.initLights();
+  m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
 
   // find a nice size to init agave
   QScreen* screen = QApplication::primaryScreen();
@@ -358,6 +372,22 @@ agaveGui::createToolbars()
   helpButton->setMenu(m_helpMenu);
   m_ui.mainToolBar->addWidget(helpButton);
 }
+void
+agaveGui::setupAreaLightDock(AreaLightObject* cdo)
+{
+  // TODO enable changing/resetting the area light data object shown in this dock?
+  m_areaLightDock = new QAreaLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  m_areaLightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_areaLightDock);
+}
+void
+agaveGui::setupSkyLightDock(SkyLightObject* cdo)
+{
+  // TODO enable changing/resetting the skylight data object shown in this dock?
+  m_skylightDock = new QSkyLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  m_skylightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::RightDockWidgetArea, m_skylightDock);
+}
 
 void
 agaveGui::setupCameraDock(CameraObject* cdo)
@@ -366,10 +396,6 @@ agaveGui::setupCameraDock(CameraObject* cdo)
   m_cameradock = new QCameraDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
-}
-
-  m_viewMenu->addSeparator();
-  m_viewMenu->addAction(m_cameradock->toggleViewAction());
 }
 
 void
@@ -386,6 +412,8 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
   m_appearanceDockWidget = new QAppearanceDockWidget(this,
                                                      &m_qrendersettings,
                                                      m_appearanceObject->getRenderSettings().get(),
+                                                     m_areaLightObject.get(),
+                                                     m_skyLightObject.get(),
                                                      m_toggleRotateControlsAction,
                                                      m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -393,8 +421,9 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
 }
 
 void
-agaveGui::setupTimelineDock()
+agaveGui::createDockWindows()
 {
+
   m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
   m_timelinedock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_timelinedock);
@@ -411,9 +440,6 @@ agaveGui::setupStatisticsDock()
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
 }
 
-void
-agaveGui::addDockItemsToViewMenu()
-{
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
@@ -1225,11 +1251,11 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   // m_appScene.m_showScaleBar = v.showScaleBar;
 
   /////////////// TODO set these through props in the AppearanceObject
-  auto rs = m_appearanceObject->appearanceDataObject();
-  rs.DensityScale.SetValue(v.density);
-  rs.StepSizePrimaryRay.SetValue(v.pathTracer.primaryStepSize);
-  rs.StepSizeSecondaryRay.SetValue(v.pathTracer.secondaryStepSize);
-  rs.Interpolate.SetValue(v.interpolate);
+  auto rs = m_appearanceObject->getRenderSettings();
+  rs->m_RenderSettings.m_DensityScale = v.density;
+  rs->m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
+  rs->m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
+  rs->m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -1257,10 +1283,14 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
+  // TODO FIXME initialize the light property objects
+  // create new SceneLights here? or rewrite into pre-existing?
   Light l0 = stateToLight(v, 0);
-  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
+  m_skyLightObject->getSceneLight()->m_light = l0;
+  // m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
   Light l1 = stateToLight(v, 1);
-  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
+  m_areaLightObject->getSceneLight()->m_light = l1;
+  // m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
 
   // capture settings
   m_captureSettings.width = v.capture.width;
@@ -1274,11 +1304,10 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_captureSettings.outputDir = v.capture.outputDirectory;
   m_captureSettings.filenamePrefix = v.capture.filenamePrefix;
 
-  auto renderSettings = m_appearanceObject->getRenderSettings();
-  renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-  renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
-  renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
-  renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  rs->m_DirtyFlags.SetFlag(LightsDirty);
+  rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 Serialize::ViewerState
@@ -1353,20 +1382,20 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  // CameraObject* cdo = m_cameraObject.get();
-  const CameraDataObject& cameraData = m_cameraObject->getCameraDataObject();
-  v.camera.fovY = cameraData.FieldOfView.GetValue();
-  v.camera.exposure = cameraData.Exposure.GetValue();
-  v.camera.aperture = cameraData.ApertureSize.GetValue();
-  v.camera.focalDistance = cameraData.FocalDistance.GetValue();
+  CameraObject* cdo = m_cameraObject.get();
+  v.camera.fovY = cdo->getCameraDataObject().FieldOfView.GetValue();
+  v.camera.exposure = cdo->getCameraDataObject().Exposure.GetValue();
+  v.camera.aperture = cdo->getCameraDataObject().ApertureSize.GetValue();
+  v.camera.focalDistance = cdo->getCameraDataObject().FocalDistance.GetValue();
+  auto rs = m_appearanceObject->getRenderSettings();
+  v.density = rs->m_RenderSettings.m_DensityScale;
+  v.interpolate = rs->m_RenderSettings.m_InterpolatedVolumeSampling;
 
   v.density = appearanceData.DensityScale.GetValue();
   v.interpolate = appearanceData.Interpolate.GetValue();
 
-  v.rendererType = appearanceData.RendererType.GetValue() == 0 ? Serialize::RendererType_PID::RAYMARCH
-                                                               : Serialize::RendererType_PID::PATHTRACE;
-  v.pathTracer.primaryStepSize = appearanceData.StepSizePrimaryRay.GetValue();
-  v.pathTracer.secondaryStepSize = appearanceData.StepSizeSecondaryRay.GetValue();
+  v.pathTracer.primaryStepSize = rs->m_RenderSettings.m_StepSizeFactor;
+  v.pathTracer.secondaryStepSize = rs->m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {

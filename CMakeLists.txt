@@ -4,6 +4,8 @@ include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 if(APPLE)
   set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.15")
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+  # Tensorstore does not support universal builds yet:
+  # set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 endif(APPLE)
 
 if(POLICY CMP0048)

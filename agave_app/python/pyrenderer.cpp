@@ -45,7 +45,8 @@ OffscreenRenderer::myVolumeInit()
   m_myVolumeData.m_camera->m_Film.m_Resolution.SetResY(m_height);
 
   m_myVolumeData.m_scene = new Scene();
-  m_myVolumeData.m_scene->initLights();
+  m_myVolumeData.m_scene->initLights(std::make_shared<SceneLight>(Scene::defaultSkyLight()),
+                                     std::make_shared<SceneLight>(Scene::defaultAreaLight()));
 
   // TODO allow for all renderer types (e.g. RendererGL also)
   m_myVolumeData.m_renderer = new RenderGLPT(m_myVolumeData.m_renderSettings);
