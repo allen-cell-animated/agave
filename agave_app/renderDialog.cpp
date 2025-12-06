@@ -232,7 +232,7 @@ makeGroupLabel(const std::string& text)
 }
 
 RenderDialog::RenderDialog(ViewerWindow* borrowedRenderer,
-                           const RenderSettings& renderSettings,
+                           std::shared_ptr<RenderSettings> renderSettings,
                            const Scene& scene,
                            CCamera camera,
                            QOpenGLContext* glContext,

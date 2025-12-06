@@ -17,6 +17,8 @@
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 
+#include <memory>
+
 QT_USE_NAMESPACE
 
 // JPG selected for potentially greater compression
@@ -41,7 +43,7 @@ StreamServer::createNewRenderer(QWebSocket* client)
   int i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 
-  RenderSettings* rs = new RenderSettings();
+  auto rs = std::make_shared<RenderSettings>();
   CCamera* camera = new CCamera();
   camera->m_Film.m_ExposureIterations = 1;
   camera->m_Film.m_Resolution.SetResX(1024);
@@ -49,7 +51,7 @@ StreamServer::createNewRenderer(QWebSocket* client)
   Scene* scene = new Scene();
   scene->initLights();
 
-  r->configure(nullptr, *rs, *scene, *camera, LoadSpec(), renderMode);
+  r->configure(nullptr, rs, *scene, *camera, LoadSpec(), renderMode);
 
   this->_renderers << r;
 

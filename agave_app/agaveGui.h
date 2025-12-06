@@ -14,6 +14,7 @@
 #include <QSlider>
 
 class QAppearanceDockWidget;
+class QAppearanceDockWidget2;
 class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
@@ -29,6 +30,7 @@ class agaveGui : public QMainWindow
 
 public:
   agaveGui(QWidget* parent = Q_NULLPTR);
+  ~agaveGui();
 
   bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr, bool isImageSequence = false);
 
@@ -87,6 +89,8 @@ private:
     MaxRecentFiles = 8
   };
 
+  // there is a concept of a serializable document and it can be captured from current app state,
+  // or loaded from a file and then applied to the app state.
   Serialize::ViewerState appToViewerState();
   void viewerStateToApp(const Serialize::ViewerState& s);
 
@@ -94,9 +98,9 @@ private:
   void createMenus();
   void createToolbars();
   void addDockItemsToViewMenu();
-  void setupCameraDock(CameraDataObject* cdo);
+  void setupCameraDock(CameraObject* cdo);
   void setupTimelineDock();
-  void setupAppearanceDock();
+  void setupAppearanceDock(AppearanceObject* ado);
   void setupStatisticsDock();
 
   void showOpenFailedMessageBox(QString path);
@@ -146,7 +150,9 @@ private:
   QTimelineDockWidget* m_timelinedock;
 
   QRenderSettings m_qrendersettings;
+
   QAppearanceDockWidget* m_appearanceDockWidget;
+  QAppearanceDockWidget2* m_appearanceDockWidget2;
 
   QStatisticsDockWidget* m_statisticsDockWidget;
 
@@ -155,11 +161,21 @@ private:
   ViewToolbar* m_viewToolbar;
   QWidget* m_viewWithToolbar;
 
+  QAction* m_recentFileActs[MaxRecentFiles];
+  QAction* m_recentFileSeparator;
+  QAction* m_recentFileSubMenuAct;
+
+  Qt::ColorScheme m_colorScheme;
+
+  ///////////////////////
+  // Objects related to the app state
+  ///////////////////////
+
   // THE underlying render settings container.
   // There is only one of these.  The app owns it and hands refs to the ui widgets and the renderer.
   // if renderer is on a separate thread, then this will need a mutex guard
   // any direct programmatic changes to this obj need to be pushed to the UI as well.
-  RenderSettings m_renderSettings;
+  std::unique_ptr<AppearanceObject> m_appearanceObject;
 
   // the render dialog will modify the contents of this object
   CaptureSettings m_captureSettings;
@@ -168,14 +184,9 @@ private:
   // scene gets sent down to the renderer.
   Scene m_appScene;
   int m_currentScene = 0;
-
-  QAction* m_recentFileActs[MaxRecentFiles];
-  QAction* m_recentFileSeparator;
-  QAction* m_recentFileSubMenuAct;
+  std::unique_ptr<CameraObject> m_cameraObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
   LoadSpec m_loadSpec;
-
-  Qt::ColorScheme m_colorScheme;
 };

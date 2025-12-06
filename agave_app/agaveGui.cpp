@@ -12,8 +12,11 @@
 #include "renderlib/VolumeDimensions.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
+#include "renderlib/CameraObject.hpp"
+#include "renderlib/AppearanceObject.hpp"
 
 #include "AppearanceDockWidget.h"
+#include "AppearanceDockWidget2.h"
 #include "CameraDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
@@ -81,6 +84,10 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
+  // create our two document objects
+  m_cameraObject = std::make_unique<CameraObject>();
+  m_appearanceObject = std::make_unique<AppearanceObject>();
+
   m_ui.setupUi(this);
 
   setDockOptions(AllowTabbedDocks);
@@ -111,18 +118,19 @@ agaveGui::agaveGui(QWidget* parent)
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   // add the single gl view as a tab
-  m_glView = new GLView3D(&m_qrendersettings, &m_renderSettings, this);
+  m_glView = new GLView3D(&m_qrendersettings, m_appearanceObject->getRenderSettings().get(), &m_appScene, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
   m_glView->setObjectName("glcontainer");
   // We need a minimum size or else the size defaults to zero.
   m_glView->setMinimumSize(256, 512);
   m_glView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_glView->setCameraObject(m_cameraObject.get());
 
   // create camera ui window now that there is an actual camera.
-  setupCameraDock(m_glView->getCameraDataObject());
+  setupCameraDock(m_cameraObject.get());
   setupTimelineDock();
   setupStatisticsDock();
-  setupAppearanceDock();
+  setupAppearanceDock(m_appearanceObject.get());
 
   addDockItemsToViewMenu();
 
@@ -162,6 +170,10 @@ agaveGui::agaveGui(QWidget* parent)
   int width = screenGeometry.width();
   resize(width * 0.8, height * 0.8);
   // consider resizeDocks to widen the appearance dock
+}
+agaveGui::~agaveGui()
+{
+  // Clean up any allocated resources
 }
 
 void
@@ -348,19 +360,34 @@ agaveGui::createToolbars()
 }
 
 void
-agaveGui::setupCameraDock(CameraDataObject* cdo)
+agaveGui::setupCameraDock(CameraObject* cdo)
 {
   // TODO enable changing/resetting the camera data object shown in this dock?
-  m_cameradock = new QCameraDockWidget(this, &m_renderSettings, cdo);
+  m_cameradock = new QCameraDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
   m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
 }
 
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
+}
+
 void
-agaveGui::setupAppearanceDock()
+agaveGui::setupAppearanceDock(AppearanceObject* ado)
 {
-  m_appearanceDockWidget = new QAppearanceDockWidget(
-    this, &m_qrendersettings, &m_renderSettings, m_toggleRotateControlsAction, m_toggleTranslateControlsAction);
+  // DANGER see borrowRenderer call
+  m_appearanceDockWidget2 =
+    new QAppearanceDockWidget2(this, m_appearanceObject->getRenderSettings().get(), m_glView->borrowRenderer(), ado);
+  m_appearanceDockWidget2->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget2);
+
+  // original appearance dock widget
+
+  m_appearanceDockWidget = new QAppearanceDockWidget(this,
+                                                     &m_qrendersettings,
+                                                     m_appearanceObject->getRenderSettings().get(),
+                                                     m_toggleRotateControlsAction,
+                                                     m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::LeftDockWidgetArea, m_appearanceDockWidget);
 }
@@ -387,8 +414,6 @@ agaveGui::setupStatisticsDock()
 void
 agaveGui::addDockItemsToViewMenu()
 {
-  m_viewMenu->addSeparator();
-  m_viewMenu->addAction(m_cameradock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
@@ -630,7 +655,7 @@ agaveGui::onRenderAction()
   ViewerWindow* renderer = m_glView->borrowRenderer();
 
   RenderDialog* rdialog = new RenderDialog(renderer,
-                                           m_renderSettings,
+                                           m_appearanceObject->getRenderSettings(),
                                            m_appScene,
                                            camera,
                                            m_glView->context(),
@@ -644,10 +669,11 @@ agaveGui::onRenderAction()
   connect(rdialog, &QDialog::finished, this, [this, &rdialog](int result) {
     // get renderer from RenderDialog and hand it back to GLView3D
     LOG_DEBUG << "RenderDialog finished with result " << result;
-    m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
-    m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
-    m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
-    m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    auto rs = m_appearanceObject->getRenderSettings();
+    rs->m_DirtyFlags.SetFlag(CameraDirty);
+    rs->m_DirtyFlags.SetFlag(LightsDirty);
+    rs->m_DirtyFlags.SetFlag(RenderParamsDirty);
+    rs->m_DirtyFlags.SetFlag(TransferFunctionDirty);
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
@@ -742,6 +768,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   std::string filename = loadSpec.getFilename();
   m_tabs->setTabText(0, QString::fromStdString(filename));
 
+  m_appearanceObject->updatePropsFromObject();
   m_appearanceDockWidget->onNewImage(&m_appScene);
   m_timelinedock->onNewImage(&m_appScene, loadSpec, reader);
 
@@ -927,14 +954,14 @@ agaveGui::view_frame()
 void
 agaveGui::view_top()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeTop);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
 void
 agaveGui::view_bottom()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBottom);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeBottom);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -942,7 +969,7 @@ agaveGui::view_bottom()
 void
 agaveGui::view_front()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeFront);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -950,7 +977,7 @@ agaveGui::view_front()
 void
 agaveGui::view_back()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBack);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeBack);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -958,7 +985,7 @@ agaveGui::view_back()
 void
 agaveGui::view_left()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeLeft);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -966,7 +993,7 @@ agaveGui::view_left()
 void
 agaveGui::view_right()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeRight);
+  m_glView->borrowRenderer()->m_CCamera->SetViewMode(ViewModeRight);
   RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -1150,6 +1177,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 {
   // ASSUME THAT IMAGE IS LOADED AND APPSCENE INITIALIZED
 
+  m_appearanceObject->updatePropsFromObject();
+
   // position camera
   m_glView->fromViewerState(v);
   m_viewToolbar->initFromCamera(m_glView->getCamera());
@@ -1178,21 +1207,29 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_volume->setPhysicalSize(v.scale[0], v.scale[1], v.scale[2]);
   m_appScene.m_volume->setVolumeAxesFlipped(v.flipAxis[0], v.flipAxis[1], v.flipAxis[2]);
 
-  m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
-  m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
-  m_appScene.m_material.m_backgroundColor[2] = v.backgroundColor[2];
+  m_appearanceObject->appearanceDataObject().BackgroundColor.SetValue(
+    { v.backgroundColor[0], v.backgroundColor[1], v.backgroundColor[2], 1.0f });
+  m_appearanceObject->appearanceDataObject().BoundingBoxColor.SetValue(
+    { v.boundingBoxColor[0], v.boundingBoxColor[1], v.boundingBoxColor[2], 1.0f });
+  // m_appScene.m_material.m_backgroundColor[0] = v.backgroundColor[0];
+  // m_appScene.m_material.m_backgroundColor[1] = v.backgroundColor[1];
+  // m_appScene.m_material.m_backgroundColor[2] = v.backgroundColor[2];
 
-  m_appScene.m_material.m_boundingBoxColor[0] = v.boundingBoxColor[0];
-  m_appScene.m_material.m_boundingBoxColor[1] = v.boundingBoxColor[1];
-  m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
+  // m_appScene.m_material.m_boundingBoxColor[0] = v.boundingBoxColor[0];
+  // m_appScene.m_material.m_boundingBoxColor[1] = v.boundingBoxColor[1];
+  // m_appScene.m_material.m_boundingBoxColor[2] = v.boundingBoxColor[2];
 
-  m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
-  m_appScene.m_showScaleBar = v.showScaleBar;
+  m_appearanceObject->appearanceDataObject().ShowBoundingBox.SetValue(v.showBoundingBox);
+  m_appearanceObject->appearanceDataObject().ShowScaleBar.SetValue(v.showScaleBar);
+  // m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
+  // m_appScene.m_showScaleBar = v.showScaleBar;
 
-  m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
-  m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow = v.pathTracer.secondaryStepSize;
-  m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
+  /////////////// TODO set these through props in the AppearanceObject
+  auto rs = m_appearanceObject->appearanceDataObject();
+  rs.DensityScale.SetValue(v.density);
+  rs.StepSizePrimaryRay.SetValue(v.pathTracer.primaryStepSize);
+  rs.StepSizeSecondaryRay.SetValue(v.pathTracer.secondaryStepSize);
+  rs.Interpolate.SetValue(v.interpolate);
 
   // channels
   for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
@@ -1237,10 +1274,11 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_captureSettings.outputDir = v.capture.outputDirectory;
   m_captureSettings.filenamePrefix = v.capture.filenamePrefix;
 
-  m_renderSettings.m_DirtyFlags.SetFlag(CameraDirty);
-  m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
-  m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
-  m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  auto renderSettings = m_appearanceObject->getRenderSettings();
+  renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+  renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+  renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
 Serialize::ViewerState
@@ -1261,17 +1299,19 @@ agaveGui::appToViewerState()
     v.flipAxis[2] = vflip.z > 0 ? 1 : -1;
   }
 
-  v.backgroundColor = { m_appScene.m_material.m_backgroundColor[0],
-                        m_appScene.m_material.m_backgroundColor[1],
-                        m_appScene.m_material.m_backgroundColor[2] };
+  // TODO just dump data objects directly to serialization?
+  const AppearanceDataObject& appearanceData = m_appearanceObject->getAppearanceDataObject();
+  v.backgroundColor = { appearanceData.BackgroundColor.GetValue()[0],
+                        appearanceData.BackgroundColor.GetValue()[1],
+                        appearanceData.BackgroundColor.GetValue()[2] };
 
-  v.boundingBoxColor = { m_appScene.m_material.m_boundingBoxColor[0],
-                         m_appScene.m_material.m_boundingBoxColor[1],
-                         m_appScene.m_material.m_boundingBoxColor[2] };
-  v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
-  v.showScaleBar = m_appScene.m_showScaleBar;
+  v.boundingBoxColor = { appearanceData.BoundingBoxColor.GetValue()[0],
+                         appearanceData.BoundingBoxColor.GetValue()[1],
+                         appearanceData.BoundingBoxColor.GetValue()[2] };
+  v.showBoundingBox = appearanceData.ShowBoundingBox.GetValue();
+  v.showScaleBar = appearanceData.ShowScaleBar.GetValue();
 
-  v.capture.samples = m_renderSettings.GetNoIterations();
+  v.capture.samples = m_appearanceObject->getRenderSettings()->GetNoIterations();
 
   v.timeline.minTime = m_appScene.m_timeLine.minTime();
   v.timeline.maxTime = m_appScene.m_timeLine.maxTime();
@@ -1313,19 +1353,20 @@ agaveGui::appToViewerState()
   v.camera.projection = m_glView->getCamera().m_Projection == PERSPECTIVE ? Serialize::Projection_PID::PERSPECTIVE
                                                                           : Serialize::Projection_PID::ORTHOGRAPHIC;
   v.camera.orthoScale = m_glView->getCamera().m_OrthoScale;
-  CameraDataObject* cdo = m_glView->getCameraDataObject();
-  v.camera.fovY = cdo->FieldOfView.get();
-  v.camera.exposure = cdo->Exposure.get();
-  v.camera.aperture = cdo->ApertureSize.get();
-  v.camera.focalDistance = cdo->FocalDistance.get();
-  v.density = m_renderSettings.m_RenderSettings.m_DensityScale;
-  v.interpolate = m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling;
+  // CameraObject* cdo = m_cameraObject.get();
+  const CameraDataObject& cameraData = m_cameraObject->getCameraDataObject();
+  v.camera.fovY = cameraData.FieldOfView.GetValue();
+  v.camera.exposure = cameraData.Exposure.GetValue();
+  v.camera.aperture = cameraData.ApertureSize.GetValue();
+  v.camera.focalDistance = cameraData.FocalDistance.GetValue();
 
-  v.rendererType = m_qrendersettings.GetRendererType() == 0 ? Serialize::RendererType_PID::RAYMARCH
-                                                            : Serialize::RendererType_PID::PATHTRACE;
+  v.density = appearanceData.DensityScale.GetValue();
+  v.interpolate = appearanceData.Interpolate.GetValue();
 
-  v.pathTracer.primaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactor;
-  v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
+  v.rendererType = appearanceData.RendererType.GetValue() == 0 ? Serialize::RendererType_PID::RAYMARCH
+                                                               : Serialize::RendererType_PID::PATHTRACE;
+  v.pathTracer.primaryStepSize = appearanceData.StepSizePrimaryRay.GetValue();
+  v.pathTracer.secondaryStepSize = appearanceData.StepSizeSecondaryRay.GetValue();
 
   if (m_appScene.m_volume) {
     for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {

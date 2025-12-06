@@ -259,6 +259,7 @@ main(int argc, char* argv[])
         MainWindow* _ = new MainWindow(server);
         _->resize(512, 512);
         _->show();
+        delete _;
       }
 
       LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
@@ -280,6 +281,7 @@ main(int argc, char* argv[])
         w->open(fileToLoad);
       }
       result = a.exec();
+      delete w;
     }
   } catch (const std::exception& exc) {
     LOG_ERROR << "Exception caught in main: " << exc.what();

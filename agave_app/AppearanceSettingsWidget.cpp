@@ -99,117 +99,11 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
   , m_MainLayout()
-  , m_DensityScaleSlider()
-  , m_RendererType()
-  , m_ShadingType()
-  , m_GradientFactorSlider()
-  , m_StepSizePrimaryRaySlider()
-  , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
   , m_scene(nullptr)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
-
-  m_RendererType.setStatusTip(tr("Select volume rendering type"));
-  m_RendererType.setToolTip(tr("Select volume rendering type"));
-
-  m_RendererType.addItem("Ray march blending", 0);
-  m_RendererType.addItem("Path Traced", 1);
-
-  m_RendererType.setCurrentIndex(1);
-  m_MainLayout.addRow("Renderer", &m_RendererType);
-
-  m_DensityScaleSlider.setStatusTip(tr("Set scattering density for volume"));
-  m_DensityScaleSlider.setToolTip(tr("Set scattering density for volume"));
-  m_DensityScaleSlider.setRange(0.001, 100.0);
-  m_DensityScaleSlider.setDecimals(3);
-  m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
-  m_MainLayout.addRow("Scattering Density", &m_DensityScaleSlider);
-
-  m_ShadingType.setStatusTip(tr("Select volume shading style"));
-  m_ShadingType.setToolTip(tr("Select volume shading style"));
-  m_ShadingType.addItem("BRDF Only", 0);
-  m_ShadingType.addItem("Phase Function Only", 1);
-  m_ShadingType.addItem("Mixed", 2);
-  m_ShadingType.setCurrentIndex(rs->m_RenderSettings.m_ShadingType);
-  m_MainLayout.addRow("Shading Type", &m_ShadingType);
-
-  m_GradientFactorSlider.setStatusTip(tr("Mix between BRDF and Phase shading"));
-  m_GradientFactorSlider.setToolTip(tr("Mix between BRDF and Phase shading"));
-  m_GradientFactorSlider.setRange(0.0, 1.0);
-  m_GradientFactorSlider.setDecimals(3);
-  m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
-  m_MainLayout.addRow("Shading Type Mixture", &m_GradientFactorSlider);
-
-  QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
-  QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
-
-  m_StepSizePrimaryRaySlider.setStatusTip(tr("Set volume ray march step size for camera rays"));
-  m_StepSizePrimaryRaySlider.setToolTip(tr("Set volume ray march step size for camera rays"));
-  // step size is in voxels and step sizes of less than 1 voxel are not very useful, while slowing down performance
-  m_StepSizePrimaryRaySlider.setRange(1.0, 100.0);
-  m_StepSizePrimaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactor);
-  m_StepSizePrimaryRaySlider.setDecimals(3);
-  m_MainLayout.addRow("Primary Ray Step Size", &m_StepSizePrimaryRaySlider);
-
-  QObject::connect(
-    &m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
-
-  m_StepSizeSecondaryRaySlider.setStatusTip(tr("Set volume ray march step size for scattered rays"));
-  m_StepSizeSecondaryRaySlider.setToolTip(tr("Set volume ray march step size for scattered rays"));
-  m_StepSizeSecondaryRaySlider.setRange(1.0, 100.0);
-  m_StepSizeSecondaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactorShadow);
-  m_StepSizeSecondaryRaySlider.setDecimals(3);
-  m_MainLayout.addRow("Secondary Ray Step Size", &m_StepSizeSecondaryRaySlider);
-
-  QObject::connect(
-    &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
-
-  m_interpolateCheckBox.setChecked(true);
-  m_interpolateCheckBox.setStatusTip(tr("Interpolated volume sampling"));
-  m_interpolateCheckBox.setToolTip(tr("Interpolated volume sampling"));
-  m_MainLayout.addRow("Interpolate", &m_interpolateCheckBox);
-  QObject::connect(&m_interpolateCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
-    this->OnInterpolateChecked(is_checked);
-  });
-
-  m_backgroundColorButton.setStatusTip(tr("Set background color"));
-  m_backgroundColorButton.setToolTip(tr("Set background color"));
-  m_backgroundColorButton.SetColor(QColor(0, 0, 0), true);
-  m_MainLayout.addRow("Background Color", &m_backgroundColorButton);
-
-  QObject::connect(&m_backgroundColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnBackgroundColorChanged(c);
-  });
-
-  auto* bboxLayout = new QHBoxLayout();
-  m_showBoundingBoxCheckBox.setChecked(false);
-  m_showBoundingBoxCheckBox.setStatusTip(tr("Show/hide bounding box"));
-  m_showBoundingBoxCheckBox.setToolTip(tr("Show/hide bounding box"));
-  bboxLayout->addWidget(&m_showBoundingBoxCheckBox, 0);
-
-  m_boundingBoxColorButton.setStatusTip(tr("Set bounding box color"));
-  m_boundingBoxColorButton.setToolTip(tr("Set bounding box color"));
-  m_boundingBoxColorButton.SetColor(QColor(255, 255, 255), true);
-  bboxLayout->addWidget(&m_boundingBoxColorButton, 1);
-
-  m_MainLayout.addRow("Bounding Box", bboxLayout);
-
-  QObject::connect(&m_showBoundingBoxCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
-    this->OnShowBoundsChecked(is_checked);
-  });
-  QObject::connect(&m_boundingBoxColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
-    this->OnBoundingBoxColorChanged(c);
-  });
-
-  m_showScaleBarCheckBox.setChecked(false);
-  m_showScaleBarCheckBox.setStatusTip(tr("Show/hide scale bar"));
-  m_showScaleBarCheckBox.setToolTip(tr("Show/hide scale bar"));
-  m_MainLayout.addRow("Scale Bar", &m_showScaleBarCheckBox);
-  QObject::connect(&m_showScaleBarCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
-    this->OnShowScaleBarChecked(is_checked);
-  });
 
   m_scaleSection = new Section("Volume Scale", 0);
   auto* scaleSectionLayout = new QGridLayout();
@@ -321,12 +215,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   lineA->setFrameShape(QFrame::HLine);
   lineA->setFrameShadow(QFrame::Sunken);
   m_MainLayout.addRow(lineA);
-
-  QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
-  QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
-  // QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
-
-  QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
 void
@@ -783,29 +671,9 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
 }
 
 void
-QAppearanceSettingsWidget::OnRenderBegin(void)
-{
-  m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale());
-  m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
-  m_GradientFactorSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_GradientFactor);
-
-  m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor, true);
-  m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow,
-                                        true);
-  m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
-}
-
-void
 QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
 {
   m_qrendersettings->SetDensityScale(DensityScale);
-}
-
-void
-QAppearanceSettingsWidget::OnSetShadingType(int Index)
-{
-  m_qrendersettings->SetShadingType(Index);
-  m_GradientFactorSlider.setEnabled(Index == 2);
 }
 
 void
@@ -832,14 +700,6 @@ QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecon
 {
   m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow = (float)StepSizeSecondaryRay;
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
-}
-
-void
-QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
-{
-  m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale(), true);
-  m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
-  m_GradientFactorSlider.setValue(m_qrendersettings->GetGradientFactor(), true);
 }
 
 void
@@ -1071,19 +931,6 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   if (!scene->m_volume) {
     return;
   }
-
-  m_DensityScaleSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_DensityScale);
-  m_ShadingType.setCurrentIndex(m_qrendersettings->renderSettings()->m_RenderSettings.m_ShadingType);
-  m_GradientFactorSlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_GradientFactor);
-
-  m_StepSizePrimaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactor);
-  m_StepSizeSecondaryRaySlider.setValue(m_qrendersettings->renderSettings()->m_RenderSettings.m_StepSizeFactorShadow);
-  m_interpolateCheckBox.setChecked(m_qrendersettings->renderSettings()->m_RenderSettings.m_InterpolatedVolumeSampling);
-
-  QColor cbg = QColor::fromRgbF(m_scene->m_material.m_backgroundColor[0],
-                                m_scene->m_material.m_backgroundColor[1],
-                                m_scene->m_material.m_backgroundColor[2]);
-  m_backgroundColorButton.SetColor(cbg);
 
   size_t xmax = m_scene->m_volume->sizeX() - 1;
   size_t ymax = m_scene->m_volume->sizeY() - 1;

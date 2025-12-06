@@ -41,11 +41,8 @@ public:
   void onNewImage(Scene* scene);
 
 public slots:
-  void OnRenderBegin(void);
   void OnSetDensityScale(double DensityScale);
-  void OnTransferFunctionChanged(void);
   void OnSetRendererType(int Index);
-  void OnSetShadingType(int Index);
   void OnSetGradientFactor(double GradientFactor);
   void OnSetStepSizePrimaryRay(const double& StepSizePrimaryRay);
   void OnSetStepSizeSecondaryRay(const double& StepSizeSecondaryRay);
@@ -90,14 +87,6 @@ private:
   Scene* m_scene;
 
   QFormLayout m_MainLayout;
-  QNumericSlider m_DensityScaleSlider;
-  QComboBox m_RendererType;
-  QComboBox m_ShadingType;
-  QNumericSlider m_GradientFactorSlider;
-  QNumericSlider m_StepSizePrimaryRaySlider;
-  QNumericSlider m_StepSizeSecondaryRaySlider;
-  QCheckBox m_interpolateCheckBox;
-  QColorPushButton m_backgroundColorButton;
 
   QRenderSettings* m_qrendersettings;
 

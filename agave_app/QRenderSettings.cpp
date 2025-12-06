@@ -4,9 +4,9 @@
 
 QRenderSettings::QRenderSettings(QObject* pParent)
   : QObject(pParent)
-  , m_RendererType(1)
   , m_renderSettings(nullptr)
-{}
+{
+}
 
 QRenderSettings::QRenderSettings(const QRenderSettings& Other)
 {
@@ -73,16 +73,16 @@ QRenderSettings::SetShadingType(const int& ShadingType)
 int
 QRenderSettings::GetRendererType(void) const
 {
-  return m_RendererType;
+  return m_renderSettings->m_rendererType;
 }
 
 void
 QRenderSettings::SetRendererType(const int& RendererType)
 {
-  if (RendererType == m_RendererType)
+  if (RendererType == m_renderSettings->m_rendererType)
     return;
 
-  m_RendererType = RendererType;
+  m_renderSettings->m_rendererType = RendererType;
 
   emit ChangedRenderer(RendererType);
 }

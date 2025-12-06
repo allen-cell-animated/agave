@@ -17,7 +17,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
   , m_gestureRenderer(new GestureRendererGL())
-  , m_rendererType(1)
+  , m_CCamera(std::make_shared<CCamera>())
 {
   gesture.input.reset();
 
@@ -89,7 +89,7 @@ ViewerWindow::updateCamera()
   bool cameraEdit = cameraManipulation(glm::vec2(width(), height()),
                                        // m_clock,
                                        gesture,
-                                       m_CCamera,
+                                       *m_CCamera,
                                        cameraMod);
   // Apply camera animation transitions if we have any
   if (!m_cameraAnim.empty()) {
@@ -105,7 +105,7 @@ ViewerWindow::updateCamera()
         ++it;
       } else {
         // Completed animation is applied to the camera instead
-        m_CCamera = m_CCamera + anim.mod;
+        *m_CCamera = *m_CCamera + anim.mod;
         it = m_cameraAnim.erase(it);
       }
 
@@ -123,19 +123,23 @@ ViewerWindow::updateCamera()
   // to set the renderSettings dirty flag. This could be a bit more direct
   // if the CameraDataObject had access to the renderSettings object.
   // (or a dirtyflags global interface)
-  if (m_CCamera.m_Dirty) {
+  if (m_CCamera->m_Dirty) {
     m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-    m_CCamera.m_Dirty = false;
+    m_CCamera->m_Dirty = false;
   }
 
-  CCamera renderCamera = m_CCamera;
+  CCamera renderCamera = *m_CCamera;
   if (cameraEdit) {
-    renderCamera = m_CCamera + cameraMod;
+    renderCamera = *m_CCamera + cameraMod;
   }
   // renderCamera.Update();
   if (cameraEdit) {
     // let renderer know camera is dirty
     m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  }
+  if (m_CCamera.m_Dirty) {
+    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+    m_CCamera.m_Dirty = false;
   }
 
   sceneView.camera = renderCamera;
@@ -269,12 +273,12 @@ ViewerWindow::redraw()
   if (width() != oldpickbuffersize.x || height() != oldpickbuffersize.y || width() != oldrendererwidth ||
       height() != oldrendererheight) {
     m_renderer->resize(width(), height());
-    m_CCamera.m_Film.m_Resolution.SetResX(width());
-    m_CCamera.m_Film.m_Resolution.SetResY(height());
+    m_CCamera->m_Film.m_Resolution.SetResX(width());
+    m_CCamera->m_Film.m_Resolution.SetResY(height());
   }
 
   sceneView.viewport.region = { { 0, 0 }, { width(), height() } };
-  sceneView.camera = m_CCamera;
+  sceneView.camera = *m_CCamera;
   sceneView.scene = m_renderer->scene();
   sceneView.renderSettings = m_renderSettings;
 
@@ -323,7 +327,7 @@ ViewerWindow::setRenderer(int rendererType)
       LOG_DEBUG << "Set OpenGL single pass Renderer";
       m_renderer.reset(new RenderGL(m_renderSettings));
   };
-  m_rendererType = rendererType;
+  m_renderSettings->m_rendererType = rendererType;
 
   // need to update the scene in QAppearanceSettingsWidget.
   m_renderer->setScene(sc);
