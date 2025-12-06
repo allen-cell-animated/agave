@@ -114,8 +114,20 @@ ViewerWindow::updateCamera()
     }
   }
 
+  //////////////////////////////////////////////////////////////////////////
   // Produce the render camera for current frame
-  // m_CCamera.Update();
+  //////////////////////////////////////////////////////////////////////////
+
+  // TODO FIXME ?
+  // this is the only way that camera property updates actually get through
+  // to set the renderSettings dirty flag. This could be a bit more direct
+  // if the CameraDataObject had access to the renderSettings object.
+  // (or a dirtyflags global interface)
+  if (m_CCamera.m_Dirty) {
+    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+    m_CCamera.m_Dirty = false;
+  }
+
   CCamera renderCamera = m_CCamera;
   if (cameraEdit) {
     renderCamera = m_CCamera + cameraMod;

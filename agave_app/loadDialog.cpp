@@ -1,8 +1,8 @@
 #include "loadDialog.h"
 
-#include "Controls.h"
+#include "qtControls/Controls.h"
 #include "RangeWidget.h"
-#include "Section.h"
+#include "qtControls/Section.h"
 
 #include "renderlib/Logging.h"
 #include "renderlib/io/FileReader.h"

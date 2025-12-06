@@ -26,6 +26,10 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBoxTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDataObject.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDataObject.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CameraUiDescription.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CameraUiDescription.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Colormap.cpp"
@@ -93,6 +97,7 @@ add_subdirectory(gesture)
 add_subdirectory(graphics)
 add_subdirectory(io)
 add_subdirectory(pugixml)
+add_subdirectory(core)
 
 target_link_libraries(renderlib
 	Qt::Core Qt::OpenGL

@@ -2,7 +2,6 @@
 
 #include "ui_agaveGui.h"
 
-#include "Camera.h"
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
@@ -94,7 +93,11 @@ private:
   void createActions();
   void createMenus();
   void createToolbars();
-  void createDockWindows();
+  void addDockItemsToViewMenu();
+  void setupCameraDock(CameraDataObject* cdo);
+  void setupTimelineDock();
+  void setupAppearanceDock();
+  void setupStatisticsDock();
 
   void showOpenFailedMessageBox(QString path);
 
@@ -137,8 +140,6 @@ private:
   QSlider* createAngleSlider();
   QSlider* createRangeSlider();
 
-  // THE camera parameter container
-  QCamera m_qcamera;
   // Camera UI
   QCameraDockWidget* m_cameradock;
   // Timeline UI
