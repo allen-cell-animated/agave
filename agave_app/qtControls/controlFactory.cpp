@@ -127,7 +127,8 @@ addRow(const ColorWithIntensityUiInfo& info)
 {
   auto* propColor = static_cast<prtyColor*>(info.GetProperty(0));
   glm::vec4 c = propColor->GetValue();
-  QColor qc(c.r, c.g, c.b);
+  QColor qc;
+  qc.setRgbF(c.r, c.g, c.b);
 
   QColorWithIntensity* colorPicker = new QColorWithIntensity(qc);
   colorPicker->setStatusTip(QString::fromStdString(info.GetStatusTip()));
@@ -193,9 +194,7 @@ addRow(const ColorWithIntensityUiInfo& info)
     if (c != newvalue) {
       // Prevent recursive updates
       // slider->setLocalChangeNoUpdate(true);
-      qc.setRedF(c.r);
-      qc.setGreenF(c.g);
-      qc.setBlueF(c.b);
+      qc.setRgbF(c.r, c.g, c.b);
       colorPicker->setColor(qc);
       // slider->setLocalChangeNoUpdate(false);
     }
@@ -242,6 +241,7 @@ addRow(const ComboBoxUiInfo& info)
   for (const auto& item : info.items) {
     comboBox->addItem(QString::fromStdString(item));
   }
+  auto* prop = static_cast<prtyInt8*>(info.GetProperty(0));
   comboBox->setCurrentIndex(prop->GetValue());
   auto conn = QObject::connect(
     comboBox, &QComboBox::currentIndexChanged, [comboBox, prop](int index) { prop->SetValue(index, true); });
@@ -315,6 +315,19 @@ addGenericRow(const prtyPropertyUIInfo& info)
   return nullptr; // or throw an exception
 }
 
+template<typename LayoutType>
+QWidget*
+addPrtyRow(LayoutType* layout, std::shared_ptr<prtyPropertyUIInfo> propertyInfo)
+{
+  QWidget* control = addGenericRow(*propertyInfo);
+  if (control) {
+    QString label = QString::fromStdString(propertyInfo->GetDescription());
+    layout->addRow(label, control);
+    return control;
+  }
+  return nullptr;
+}
+
 void
 createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
 {
@@ -341,11 +354,7 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
 
       // Add controls for each property in this category
       for (const auto& propertyInfo : properties) {
-        QWidget* control = addGenericRow(*propertyInfo);
-        if (control) {
-          QString label = QString::fromStdString(propertyInfo->GetDescription());
-          sectionLayout->addRow(label, control);
-        }
+        addPrtyRow(sectionLayout, propertyInfo);
       }
 
       // Set the section's content layout
@@ -357,18 +366,20 @@ createCategorizedSections(QFormLayout* mainLayout, prtyObject* object)
   }
 }
 
+template<typename LayoutType>
 void
-createFlatList(QFormLayout* mainLayout, prtyObject* object)
+createFlatList(LayoutType* mainLayout, prtyObject* object)
 {
   // Simple flat list of all properties
   const auto& propertyList = object->GetList();
   for (const auto& propertyInfo : propertyList) {
     if (propertyInfo) {
-      QWidget* control = addGenericRow(*propertyInfo);
-      if (control) {
-        QString label = QString::fromStdString(propertyInfo->GetDescription());
-        mainLayout->addRow(label, control);
-      }
+      addPrtyRow(mainLayout, propertyInfo);
     }
   }
 }
+
+template void
+createFlatList<QFormLayout>(QFormLayout* mainLayout, prtyObject* object);
+template void
+createFlatList<AgaveFormLayout>(AgaveFormLayout* mainLayout, prtyObject* object);

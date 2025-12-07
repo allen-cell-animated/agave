@@ -3,6 +3,7 @@
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
 #include "qtControls/Section.h"
+#include "qtControls/controlFactory.h"
 
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
@@ -360,56 +361,6 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
     createFlatList(sectionLayout, m_arealightObject);
   }
 
-#if 0
-  m_lt0gui.m_thetaSlider = new QNumericSlider();
-  m_lt0gui.m_thetaSlider->setStatusTip(tr("Set angle theta for area light"));
-  m_lt0gui.m_thetaSlider->setToolTip(tr("Set angle theta for area light"));
-  m_lt0gui.m_thetaSlider->setRange(0.0, TWO_PI_F);
-  m_lt0gui.m_thetaSlider->setSingleStep(TWO_PI_F / 100.0);
-  m_lt0gui.m_thetaSlider->setValue(0.0);
-  sectionLayout->addRow("Theta", m_lt0gui.m_thetaSlider);
-  QObject::connect(
-    m_lt0gui.m_thetaSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightTheta);
-
-  m_lt0gui.m_phiSlider = new QNumericSlider();
-  m_lt0gui.m_phiSlider->setStatusTip(tr("Set angle phi for area light"));
-  m_lt0gui.m_phiSlider->setToolTip(tr("Set angle phi for area light"));
-  m_lt0gui.m_phiSlider->setRange(0.0, PI_F);
-  m_lt0gui.m_phiSlider->setSingleStep(PI_F / 100.0);
-  m_lt0gui.m_phiSlider->setValue(HALF_PI_F);
-  sectionLayout->addRow("Phi", m_lt0gui.m_phiSlider);
-  QObject::connect(
-    m_lt0gui.m_phiSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightPhi);
-
-  m_lt0gui.m_sizeSlider = new QNumericSlider();
-  m_lt0gui.m_sizeSlider->setStatusTip(tr("Set size for area light"));
-  m_lt0gui.m_sizeSlider->setToolTip(tr("Set size for area light"));
-  m_lt0gui.m_sizeSlider->setRange(0.1, 5.0);
-  m_lt0gui.m_sizeSlider->setSingleStep(5.0 / 100.0);
-  m_lt0gui.m_sizeSlider->setValue(1.0);
-  sectionLayout->addRow("Size", m_lt0gui.m_sizeSlider);
-  QObject::connect(
-    m_lt0gui.m_sizeSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightSize);
-
-  m_lt0gui.m_distSlider = new QNumericSlider();
-  m_lt0gui.m_distSlider->setStatusTip(tr("Set distance for area light"));
-  m_lt0gui.m_distSlider->setToolTip(tr("Set distance for area light"));
-  m_lt0gui.m_distSlider->setRange(0.1, 10.0);
-  m_lt0gui.m_distSlider->setSingleStep(1.0);
-  m_lt0gui.m_distSlider->setValue(10.0);
-  sectionLayout->addRow("Distance", m_lt0gui.m_distSlider);
-  QObject::connect(
-    m_lt0gui.m_distSlider, &QNumericSlider::valueChanged, this, &QAppearanceSettingsWidget::OnSetAreaLightDistance);
-
-  m_lt0gui.m_areaLightColor = new QColorWithIntensity(QColor(255, 255, 255), 100.0, this);
-  sectionLayout->addRow("Intensity", m_lt0gui.m_areaLightColor);
-  QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::colorChanged, [this](const QColor& c) {
-    this->OnSetAreaLightColor(m_lt0gui.m_areaLightColor->getIntensity(), c);
-  });
-  QObject::connect(m_lt0gui.m_areaLightColor, &QColorWithIntensity::intensityChanged, [this](double v) {
-    this->OnSetAreaLightColor(v, m_lt0gui.m_areaLightColor->getColor());
-  });
-#endif
   section->setContentLayout(*sectionLayout);
   return section;
 }
@@ -817,47 +768,17 @@ QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
 void
 QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 {
-  // split color into color and intensity.
-  QColor c;
-  float i;
-#if 0
-  m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
-  m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
-  m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
-  m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
-  normalizeColorForGui(scene->AreaLight().m_Color, c, i);
-  m_lt0gui.m_areaLightColor->setIntensity(i * scene->AreaLight().m_ColorIntensity);
-  m_lt0gui.m_areaLightColor->setColor(c);
+  m_arealightObject->updatePropsFromSceneLight();
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
   m_arealightObject->getSceneLight()->m_observers.push_back([this](const Light& light) {
     // update gui controls
-
-    // bring theta into 0..2pi
-    m_lt0gui.m_thetaSlider->setValue(light.m_Theta < 0 ? light.m_Theta + TWO_PI_F : light.m_Theta);
-    // bring phi into 0..pi
-    m_lt0gui.m_phiSlider->setValue(light.m_Phi < 0 ? light.m_Phi + PI_F : light.m_Phi);
-    m_lt0gui.m_sizeSlider->setValue(light.m_Width);
-    m_lt0gui.m_distSlider->setValue(light.m_Distance);
-    // split color into color and intensity.
-    QColor c;
-    float i;
-    normalizeColorForGui(light.m_Color, c, i);
-    m_lt0gui.m_areaLightColor->setIntensity(i * light.m_ColorIntensity);
-    m_lt0gui.m_areaLightColor->setColor(c);
+    m_arealightObject->updatePropsFromSceneLight();
   });
-#endif
-  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
-  m_lt1gui.m_stColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
-  m_lt1gui.m_smColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
-  m_lt1gui.m_sbColorButton->SetColor(c);
+
+  m_skylightObject->updatePropsFromSceneLight();
 }
 
 void

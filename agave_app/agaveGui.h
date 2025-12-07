@@ -15,6 +15,7 @@
 
 class QAppearanceDockWidget;
 class QAppearanceDockWidget2;
+class QAreaLightDockWidget;
 class QCameraDockWidget;
 class QSkyLightDockWidget;
 class QStatisticsDockWidget;
@@ -102,6 +103,8 @@ private:
   void createMenus();
   void createToolbars();
   void addDockItemsToViewMenu();
+  void setupAreaLightDock(AreaLightObject* light);
+  void setupSkyLightDock(SkyLightObject* light);
   void setupCameraDock(CameraObject* cdo);
   void setupTimelineDock();
   void setupAppearanceDock(AppearanceObject* ado);
@@ -193,6 +196,8 @@ private:
   Scene m_appScene;
   int m_currentScene = 0;
   std::unique_ptr<CameraObject> m_cameraObject;
+  std::unique_ptr<AreaLightObject> m_areaLightObject;
+  std::unique_ptr<SkyLightObject> m_skyLightObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
