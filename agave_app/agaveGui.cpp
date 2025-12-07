@@ -90,6 +90,14 @@ agaveGui::agaveGui(QWidget* parent)
   // create our two document objects
   m_cameraObject = std::make_unique<CameraObject>();
   m_appearanceObject = std::make_unique<AppearanceObject>();
+  m_areaLightObject = std::make_unique<AreaLightObject>();
+  m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
+  m_areaLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
+  m_skyLightObject = std::make_unique<SkyLightObject>();
+  m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
+  m_skyLightObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
 
   m_ui.setupUi(this);
 
