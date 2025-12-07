@@ -6,6 +6,8 @@
 #include "agaveGui.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/AreaLightObject.hpp"
+#include "renderlib/SkyLightObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
@@ -19,7 +21,6 @@
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
 #include "CameraDockWidget.h"
-#include "SkylightDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
@@ -130,11 +131,9 @@ agaveGui::agaveGui(QWidget* parent)
 
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_cameraObject.get());
-  // setupAreaLightDock(m_areaLightObject.get());
-  // setupSkyLightDock(m_skyLightObject.get());
   setupTimelineDock();
   setupStatisticsDock();
-  setupAppearanceDock(m_glView->getAppearanceDataObject());
+  setupAppearanceDock(m_appearanceObject.get());
 
   addDockItemsToViewMenu();
 
@@ -366,17 +365,17 @@ void
 agaveGui::setupAreaLightDock(AreaLightObject* cdo)
 {
   // TODO enable changing/resetting the area light data object shown in this dock?
-  m_areaLightDock = new QAreaLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
-  m_areaLightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::RightDockWidgetArea, m_areaLightDock);
+  //  m_areaLightDock = new QAreaLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  //  m_areaLightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  //  addDockWidget(Qt::RightDockWidgetArea, m_areaLightDock);
 }
 void
 agaveGui::setupSkyLightDock(SkyLightObject* cdo)
 {
   // TODO enable changing/resetting the skylight data object shown in this dock?
-  m_skylightDock = new QSkyLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
-  m_skylightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::RightDockWidgetArea, m_skylightDock);
+  //  m_skylightDock = new QSkyLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  //  m_skylightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  //  addDockWidget(Qt::RightDockWidgetArea, m_skylightDock);
 }
 
 void
@@ -402,6 +401,8 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
   m_appearanceDockWidget = new QAppearanceDockWidget(this,
                                                      &m_qrendersettings,
                                                      m_appearanceObject->getRenderSettings().get(),
+                                                     m_areaLightObject.get(),
+                                                     m_skyLightObject.get(),
                                                      m_toggleRotateControlsAction,
                                                      m_toggleTranslateControlsAction);
   m_appearanceDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -409,19 +410,7 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
 }
 
 void
-agaveGui::setupCameraDock(CameraDataObject* cdo)
-{
-  // TODO enable changing/resetting the camera data object shown in this dock?
-  m_cameradock = new QCameraDockWidget(this, &m_qcamera, &m_renderSettings, cdo);
-  m_cameradock->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::RightDockWidgetArea, m_cameradock);
-
-  m_viewMenu->addSeparator();
-  m_viewMenu->addAction(m_cameradock->toggleViewAction());
-}
-
-void
-agaveGui::createDockWindows()
+agaveGui::setupTimelineDock()
 {
 
   m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
@@ -440,6 +429,11 @@ agaveGui::setupStatisticsDock()
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
 }
 
+void
+agaveGui::addDockItemsToViewMenu()
+{
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
