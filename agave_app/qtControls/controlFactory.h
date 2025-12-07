@@ -3,6 +3,7 @@
 #include "renderlib/uiInfo.hpp"
 #include "renderlib/core/prty/prtyColor.hpp"
 #include "renderlib/core/prty/prtyBoolean.hpp"
+#include "renderlib/core/prty/prtyEnum.hpp"
 #include "renderlib/core/prty/prtyFloat.hpp"
 #include "renderlib/core/prty/prtyInt32.hpp"
 #include "renderlib/core/prty/prtyInt8.hpp"
@@ -23,9 +24,6 @@ addRow(const FloatSliderSpinnerUiInfo& info);
 
 QNumericSlider*
 addRow(const IntSliderSpinnerUiInfo& info);
-
-QComboBox*
-create(const ComboBoxUiInfo* info, std::shared_ptr<prtyInt8> prop);
 
 QNumericSlider*
 addRow(const FloatSliderSpinnerUiInfo& info);
