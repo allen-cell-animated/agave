@@ -7,7 +7,7 @@
 #include "core/prty/prtyColor.hpp"
 #include "glm.h"
 
-class AppearanceDataOject
+class AppearanceDataObject
 {
 public:
   AppearanceDataObject();
