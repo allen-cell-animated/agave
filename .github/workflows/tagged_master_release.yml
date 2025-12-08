@@ -13,7 +13,6 @@ jobs:
             artifact: agave-linux
           - os: windows-latest
             artifact: agave-win
-          # note macos-14 is arm64 and macos-13 is x86_64
           - os: macos-15
             artifact: agave-macos-arm64
           - os: macos-15-intel
