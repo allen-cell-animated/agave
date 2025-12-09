@@ -734,49 +734,69 @@ agaveGui::saveJson()
       qWarning("Couldn't open save file.");
       return;
     }
-    Serialize::ViewerState st = appToViewerState();
-    nlohmann::json doc = st;
-    std::string str = doc.dump();
-    saveFile.write(str.c_str()); // QString::fromStdString(str));
+    // Serialize::ViewerState st = appToViewerState();
+    // nlohmann::json doc = st;
+    // std::string str = doc.dump();
+    // saveFile.write(str.c_str()); // QString::fromStdString(str));
 
-    docWriterJson writer;
-    writer.beginDocument(file.toStdString());
-    writer.beginObject("_AGAVE");
+    docWriter* writer = new docWriterJson();
+    writer->beginDocument(file.toStdString());
+    writer->beginObject("_AGAVE");
     // write agave version at least
-    writer.endObject();
-    writer.beginList("_camera");
+    writer->writeProperty("_version", std::string(AICS_VERSION_STRING));
+    writer->endObject();
+    writer->beginList("_camera");
     // list of all cameras
-    writer.endList();
-    writer.beginList("_light");
+    writer->beginObject("_camera0");
+    writer->writeProperties(m_cameraObject.get());
+    writer->endObject();
+    writer->endList();
+
+    writer->beginList("_light");
     // list of all lights
-    writer.endList();
-    writer.beginList("_clipPlane");
+    writer->beginObject("_skylight0");
+    writer->writeProperties(m_skyLightObject.get());
+    writer->endObject();
+    writer->beginObject("_arealight0");
+    writer->writeProperties(m_areaLightObject.get());
+    writer->endObject();
+    writer->endList();
+
+    writer->beginList("_clipPlane");
     // list of all clip planes
-    writer.endList();
-    writer.beginList("_renderSettings");
+    writer->beginObject("_clipPlane0");
+    //    writer.writeProperties(m_clipPlaneObject.get());
+    writer->endObject();
+    writer->endList();
+
+    writer->beginList("_renderSettings");
     // list of all render settings objects
-    writer.endList();
-    writer.beginList("_captureSettings");
+    writer->beginObject("_renderSettings0");
+    writer->writeProperties(m_appearanceObject.get());
+    writer->endObject();
+    writer->endList();
+
+    writer->beginList("_captureSettings");
     // list of capture settings objects (only one?)
-    writer.endList();
-
-    writer.beginObject("_geometry");
-    writer.beginList("_volume");
+    writer->endList();
+    writer->beginObject("_geometry");
+    writer->beginList("_volume");
     // list of all volumes
-    writer.endList();
-    writer.beginList("_mesh");
+    writer->endList();
+    writer->beginList("_mesh");
     // list of all meshes
-    writer.endList();
-    writer.endObject();
+    writer->endList();
+    writer->endObject();
 
-    writer.beginObject("_scene");
+    writer->beginObject("_scene");
     // one and only active scene.
     // this includes references to selections of the above objects.
     // other objects should not be cross referencing each other.
     // so scene needs to be set up after other objects are defined.
-    writer.endObject();
 
-    writer.endDocument();
+    writer->endObject();
+
+    writer->endDocument();
   }
 }
 
