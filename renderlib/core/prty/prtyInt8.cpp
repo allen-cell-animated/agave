@@ -137,5 +137,5 @@ prtyInt8::Read(chReader& io_Reader)
 void
 prtyInt8::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeInt8(GetValue());
+  io_Writer.writeInt8(GetPropertyName(), GetValue());
 }

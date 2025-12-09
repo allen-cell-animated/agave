@@ -138,5 +138,5 @@ prtyInt32::Read(chReader& io_Reader)
 void
 prtyInt32::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeInt32(GetValue());
+  io_Writer.writeInt32(GetPropertyName(), GetValue());
 }

@@ -93,5 +93,5 @@ prtyBoolean::Read(chReader& io_Reader)
 void
 prtyBoolean::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeBool(GetValue());
+  io_Writer.writeBool(GetPropertyName(), GetValue());
 }

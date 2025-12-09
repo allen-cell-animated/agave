@@ -48,7 +48,7 @@ docWriterYaml::endDocument()
 }
 
 void
-docWriterYaml::beginObject(const char* i_name)
+docWriterYaml::beginObject(const std::string& i_name)
 {
   if (m_contextStack.empty()) {
     // Root level object
@@ -61,7 +61,7 @@ docWriterYaml::beginObject(const char* i_name)
       // Adding object to an array
       writeIndent();
       m_output << "- ";
-      if (i_name && strlen(i_name) > 0) {
+      if (!i_name.empty()) {
         m_output << i_name << ":\n";
       } else {
         m_output << "\n";
@@ -97,7 +97,7 @@ docWriterYaml::endObject()
 }
 
 void
-docWriterYaml::beginList(const char* i_name)
+docWriterYaml::beginList(const std::string& i_name)
 {
   if (m_contextStack.empty()) {
     // Root level array
@@ -110,7 +110,7 @@ docWriterYaml::beginList(const char* i_name)
       // Adding array to an array
       writeIndent();
       m_output << "- ";
-      if (i_name && strlen(i_name) > 0) {
+      if (!i_name.empty()) {
         m_output << i_name << ":\n";
       } else {
         m_output << "\n";
@@ -152,17 +152,14 @@ docWriterYaml::writePrty(const prtyProperty* p)
     return;
   }
 
-  // Store the property name for the next write operation
-  m_nextKey = p->GetPropertyName();
-
   p->Write(*this);
 }
 
 size_t
-docWriterYaml::writeBool(bool value)
+docWriterYaml::writeBool(const std::string& name, bool value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
     m_output << (value ? "true" : "false") << "\n";
   } else {
     Context& ctx = m_contextStack.top();
@@ -172,7 +169,7 @@ docWriterYaml::writeBool(bool value)
       ctx.firstItem = false;
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       m_output << (value ? "true" : "false") << "\n";
       ctx.firstItem = false;
     }
@@ -182,10 +179,10 @@ docWriterYaml::writeBool(bool value)
 }
 
 size_t
-docWriterYaml::writeInt8(int8_t value)
+docWriterYaml::writeInt8(const std::string& name, int8_t value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
     m_output << static_cast<int>(value) << "\n";
   } else {
     Context& ctx = m_contextStack.top();
@@ -195,7 +192,7 @@ docWriterYaml::writeInt8(int8_t value)
       ctx.firstItem = false;
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       m_output << static_cast<int>(value) << "\n";
       ctx.firstItem = false;
     }
@@ -205,10 +202,10 @@ docWriterYaml::writeInt8(int8_t value)
 }
 
 size_t
-docWriterYaml::writeInt32(int32_t value)
+docWriterYaml::writeInt32(const std::string& name, int32_t value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
     m_output << value << "\n";
   } else {
     Context& ctx = m_contextStack.top();
@@ -218,7 +215,7 @@ docWriterYaml::writeInt32(int32_t value)
       ctx.firstItem = false;
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       m_output << value << "\n";
       ctx.firstItem = false;
     }
@@ -228,10 +225,10 @@ docWriterYaml::writeInt32(int32_t value)
 }
 
 size_t
-docWriterYaml::writeUint32(uint32_t value)
+docWriterYaml::writeUint32(const std::string& name, uint32_t value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
     m_output << value << "\n";
   } else {
     Context& ctx = m_contextStack.top();
@@ -241,7 +238,7 @@ docWriterYaml::writeUint32(uint32_t value)
       ctx.firstItem = false;
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       m_output << value << "\n";
       ctx.firstItem = false;
     }
@@ -251,10 +248,10 @@ docWriterYaml::writeUint32(uint32_t value)
 }
 
 size_t
-docWriterYaml::writeFloat32(float value)
+docWriterYaml::writeFloat32(const std::string& name, float value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
     m_output << std::setprecision(6) << value << "\n";
   } else {
     Context& ctx = m_contextStack.top();
@@ -264,7 +261,7 @@ docWriterYaml::writeFloat32(float value)
       ctx.firstItem = false;
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       m_output << std::setprecision(6) << value << "\n";
       ctx.firstItem = false;
     }
@@ -274,16 +271,16 @@ docWriterYaml::writeFloat32(float value)
 }
 
 size_t
-docWriterYaml::writeFloat32Array(const std::vector<float>& value)
+docWriterYaml::writeFloat32Array(const std::string& name, const std::vector<float>& value)
 {
-  return writeFloat32Array(value.size(), value.data());
+  return writeFloat32Array(name, value.size(), value.data());
 }
 
 size_t
-docWriterYaml::writeFloat32Array(size_t count, const float* values)
+docWriterYaml::writeFloat32Array(const std::string& name, size_t count, const float* values)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
   } else {
     Context& ctx = m_contextStack.top();
     if (ctx.isArray()) {
@@ -291,7 +288,7 @@ docWriterYaml::writeFloat32Array(size_t count, const float* values)
       m_output << "- ";
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       ctx.firstItem = false;
     }
   }
@@ -310,10 +307,10 @@ docWriterYaml::writeFloat32Array(size_t count, const float* values)
 }
 
 size_t
-docWriterYaml::writeInt32Array(const std::vector<int32_t>& value)
+docWriterYaml::writeInt32Array(const std::string& name, const std::vector<int32_t>& value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
   } else {
     Context& ctx = m_contextStack.top();
     if (ctx.isArray()) {
@@ -321,7 +318,7 @@ docWriterYaml::writeInt32Array(const std::vector<int32_t>& value)
       m_output << "- ";
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       ctx.firstItem = false;
     }
   }
@@ -340,10 +337,10 @@ docWriterYaml::writeInt32Array(const std::vector<int32_t>& value)
 }
 
 size_t
-docWriterYaml::writeUint32Array(const std::vector<uint32_t>& value)
+docWriterYaml::writeUint32Array(const std::string& name, const std::vector<uint32_t>& value)
 {
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
   } else {
     Context& ctx = m_contextStack.top();
     if (ctx.isArray()) {
@@ -351,7 +348,7 @@ docWriterYaml::writeUint32Array(const std::vector<uint32_t>& value)
       m_output << "- ";
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       ctx.firstItem = false;
     }
   }
@@ -370,12 +367,12 @@ docWriterYaml::writeUint32Array(const std::vector<uint32_t>& value)
 }
 
 size_t
-docWriterYaml::writeString(const std::string& value)
+docWriterYaml::writeString(const std::string& name, const std::string& value)
 {
   std::string escaped = escapeString(value);
 
   if (m_contextStack.empty()) {
-    writeKey(m_nextKey);
+    writeKey(name);
     m_output << escaped << "\n";
   } else {
     Context& ctx = m_contextStack.top();
@@ -385,7 +382,7 @@ docWriterYaml::writeString(const std::string& value)
       ctx.firstItem = false;
     } else {
       writeIndent();
-      writeKey(m_nextKey);
+      writeKey(name);
       m_output << escaped << "\n";
       ctx.firstItem = false;
     }

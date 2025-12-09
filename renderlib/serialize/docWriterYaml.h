@@ -18,27 +18,27 @@ public:
   virtual void endDocument() override;
 
   // Object support
-  virtual void beginObject(const char* i_name) override;
+  virtual void beginObject(const std::string& i_name) override;
   virtual void endObject() override;
 
   // List/array support
-  virtual void beginList(const char* i_name) override;
+  virtual void beginList(const std::string& i_name) override;
   virtual void endList() override;
 
   // Property writing
   virtual void writePrty(const prtyProperty* p) override;
 
-  // Primitive type writing
-  virtual size_t writeBool(bool) override;
-  virtual size_t writeInt8(int8_t value) override;
-  virtual size_t writeInt32(int32_t value) override;
-  virtual size_t writeUint32(uint32_t value) override;
-  virtual size_t writeFloat32(float value) override;
-  virtual size_t writeFloat32Array(const std::vector<float>& value) override;
-  virtual size_t writeFloat32Array(size_t count, const float* values) override;
-  virtual size_t writeInt32Array(const std::vector<int32_t>& value) override;
-  virtual size_t writeUint32Array(const std::vector<uint32_t>& value) override;
-  virtual size_t writeString(const std::string& value) override;
+  // Primitive type writing - all require a name parameter
+  virtual size_t writeBool(const std::string& name, bool value) override;
+  virtual size_t writeInt8(const std::string& name, int8_t value) override;
+  virtual size_t writeInt32(const std::string& name, int32_t value) override;
+  virtual size_t writeUint32(const std::string& name, uint32_t value) override;
+  virtual size_t writeFloat32(const std::string& name, float value) override;
+  virtual size_t writeFloat32Array(const std::string& name, const std::vector<float>& value) override;
+  virtual size_t writeFloat32Array(const std::string& name, size_t count, const float* values) override;
+  virtual size_t writeInt32Array(const std::string& name, const std::vector<int32_t>& value) override;
+  virtual size_t writeUint32Array(const std::string& name, const std::vector<uint32_t>& value) override;
+  virtual size_t writeString(const std::string& name, const std::string& value) override;
 
 private:
   enum class ContextType
@@ -67,7 +67,6 @@ private:
   std::string m_filePath;
   std::ostringstream m_output;
   std::stack<Context> m_contextStack;
-  std::string m_nextKey;
   int m_indentLevel;
 
   void pushContext(const std::string& name, ContextType type);

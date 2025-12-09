@@ -157,5 +157,5 @@ prtyFloat::Read(chReader& io_Reader)
 void
 prtyFloat::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeFloat32(GetValue());
+  io_Writer.writeFloat32(GetPropertyName(), GetValue());
 }

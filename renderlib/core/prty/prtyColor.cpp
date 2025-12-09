@@ -94,5 +94,5 @@ prtyColor::Read(chReader& io_Reader)
 void
 prtyColor::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeFloat32Array(4, glm::value_ptr(GetValue()));
+  io_Writer.writeFloat32Array(GetPropertyName(), 4, glm::value_ptr(GetValue()));
 }

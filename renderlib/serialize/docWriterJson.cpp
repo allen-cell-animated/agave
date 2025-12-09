@@ -10,7 +10,6 @@
 docWriterJson::docWriterJson()
   : m_root(nullptr)
   , m_current(nullptr)
-  , m_nextKey("")
 {
 }
 
@@ -60,7 +59,7 @@ docWriterJson::endDocument()
 }
 
 void
-docWriterJson::beginObject(const char* i_name)
+docWriterJson::beginObject(const std::string& i_name)
 {
   nlohmann::json* newObj = new nlohmann::json(nlohmann::json::object());
 
@@ -98,7 +97,7 @@ docWriterJson::endObject()
 }
 
 void
-docWriterJson::beginList(const char* i_name)
+docWriterJson::beginList(const std::string& i_name)
 {
   nlohmann::json* newArray = new nlohmann::json(nlohmann::json::array());
 
@@ -142,14 +141,11 @@ docWriterJson::writePrty(const prtyProperty* p)
     return;
   }
 
-  // Store the property name for the next write operation
-  m_nextKey = p->GetPropertyName();
-
   p->Write(*this);
 }
 
 size_t
-docWriterJson::writeBool(bool value)
+docWriterJson::writeBool(const std::string& name, bool value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -157,7 +153,7 @@ docWriterJson::writeBool(bool value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = value;
+    (*current)[name] = value;
   } else {
     current->push_back(value);
   }
@@ -166,7 +162,7 @@ docWriterJson::writeBool(bool value)
 }
 
 size_t
-docWriterJson::writeInt8(int8_t value)
+docWriterJson::writeInt8(const std::string& name, int8_t value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -174,7 +170,7 @@ docWriterJson::writeInt8(int8_t value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = value;
+    (*current)[name] = value;
   } else {
     current->push_back(value);
   }
@@ -183,7 +179,7 @@ docWriterJson::writeInt8(int8_t value)
 }
 
 size_t
-docWriterJson::writeInt32(int32_t value)
+docWriterJson::writeInt32(const std::string& name, int32_t value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -191,7 +187,7 @@ docWriterJson::writeInt32(int32_t value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = value;
+    (*current)[name] = value;
   } else {
     current->push_back(value);
   }
@@ -200,7 +196,7 @@ docWriterJson::writeInt32(int32_t value)
 }
 
 size_t
-docWriterJson::writeUint32(uint32_t value)
+docWriterJson::writeUint32(const std::string& name, uint32_t value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -208,7 +204,7 @@ docWriterJson::writeUint32(uint32_t value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = value;
+    (*current)[name] = value;
   } else {
     current->push_back(value);
   }
@@ -217,7 +213,7 @@ docWriterJson::writeUint32(uint32_t value)
 }
 
 size_t
-docWriterJson::writeFloat32(float value)
+docWriterJson::writeFloat32(const std::string& name, float value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -225,7 +221,7 @@ docWriterJson::writeFloat32(float value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = value;
+    (*current)[name] = value;
   } else {
     current->push_back(value);
   }
@@ -234,13 +230,13 @@ docWriterJson::writeFloat32(float value)
 }
 
 size_t
-docWriterJson::writeFloat32Array(const std::vector<float>& value)
+docWriterJson::writeFloat32Array(const std::string& name, const std::vector<float>& value)
 {
-  return writeFloat32Array(value.size(), value.data());
+  return writeFloat32Array(name, value.size(), value.data());
 }
 
 size_t
-docWriterJson::writeFloat32Array(size_t count, const float* values)
+docWriterJson::writeFloat32Array(const std::string& name, size_t count, const float* values)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -253,7 +249,7 @@ docWriterJson::writeFloat32Array(size_t count, const float* values)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = arr;
+    (*current)[name] = arr;
   } else {
     current->push_back(arr);
   }
@@ -262,7 +258,7 @@ docWriterJson::writeFloat32Array(size_t count, const float* values)
 }
 
 size_t
-docWriterJson::writeInt32Array(const std::vector<int32_t>& value)
+docWriterJson::writeInt32Array(const std::string& name, const std::vector<int32_t>& value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -275,7 +271,7 @@ docWriterJson::writeInt32Array(const std::vector<int32_t>& value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = arr;
+    (*current)[name] = arr;
   } else {
     current->push_back(arr);
   }
@@ -284,7 +280,7 @@ docWriterJson::writeInt32Array(const std::vector<int32_t>& value)
 }
 
 size_t
-docWriterJson::writeUint32Array(const std::vector<uint32_t>& value)
+docWriterJson::writeUint32Array(const std::string& name, const std::vector<uint32_t>& value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -297,7 +293,7 @@ docWriterJson::writeUint32Array(const std::vector<uint32_t>& value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = arr;
+    (*current)[name] = arr;
   } else {
     current->push_back(arr);
   }
@@ -306,7 +302,7 @@ docWriterJson::writeUint32Array(const std::vector<uint32_t>& value)
 }
 
 size_t
-docWriterJson::writeString(const std::string& value)
+docWriterJson::writeString(const std::string& name, const std::string& value)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -314,7 +310,7 @@ docWriterJson::writeString(const std::string& value)
   }
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[m_nextKey] = value;
+    (*current)[name] = value;
   } else {
     current->push_back(value);
   }

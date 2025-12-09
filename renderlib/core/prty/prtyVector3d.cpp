@@ -146,5 +146,5 @@ prtyVector3d::Read(chReader& io_Reader)
 void
 prtyVector3d::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeFloat32Array(3, glm::value_ptr(GetValue()));
+  io_Writer.writeFloat32Array(GetPropertyName(), 3, glm::value_ptr(GetValue()));
 }

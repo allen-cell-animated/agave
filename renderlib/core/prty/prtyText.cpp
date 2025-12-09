@@ -100,6 +100,6 @@ prtyText::Read(chReader& io_Reader)
 void
 prtyText::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeString(GetValue());
+  io_Writer.writeString(GetPropertyName(), GetValue());
   //  chChunkParserUtil::Write(io_Writer, GetValue());
 }
