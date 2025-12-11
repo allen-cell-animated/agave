@@ -48,7 +48,7 @@ docReaderYaml::endDocument()
 }
 
 bool
-docReaderYaml::beginObject(const char* i_name)
+docReaderYaml::beginObject(const std::string& i_name)
 {
   if (!m_current) {
     LOG_ERROR << "beginObject() called with null current value";
@@ -105,7 +105,7 @@ docReaderYaml::endObject()
 }
 
 bool
-docReaderYaml::beginList(const char* i_name)
+docReaderYaml::beginList(const std::string& i_name)
 {
   if (!m_current) {
     LOG_ERROR << "beginList() called with null current value";
@@ -162,7 +162,7 @@ docReaderYaml::endList()
 }
 
 bool
-docReaderYaml::hasKey(const char* key)
+docReaderYaml::hasKey(const std::string& key)
 {
   YamlValue* current = getCurrentValue();
   if (!current || !current->isObject()) {

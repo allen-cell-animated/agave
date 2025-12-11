@@ -69,7 +69,7 @@ docReaderJson::endDocument()
 }
 
 bool
-docReaderJson::beginObject(const char* i_name)
+docReaderJson::beginObject(const std::string& i_name)
 {
   if (!m_current) {
     LOG_ERROR << "beginObject() called with null current object";
@@ -125,7 +125,7 @@ docReaderJson::endObject()
 }
 
 bool
-docReaderJson::beginList(const char* i_name)
+docReaderJson::beginList(const std::string& i_name)
 {
   if (!m_current) {
     LOG_ERROR << "beginList() called with null current object";
@@ -181,7 +181,7 @@ docReaderJson::endList()
 }
 
 bool
-docReaderJson::hasKey(const char* key)
+docReaderJson::hasKey(const std::string& key)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current || !current->is_object()) {

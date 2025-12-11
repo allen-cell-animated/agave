@@ -19,15 +19,15 @@ public:
   virtual void endDocument() override;
 
   // Object support
-  virtual bool beginObject(const char* i_name) override;
+  virtual bool beginObject(const std::string& i_name) override;
   virtual void endObject() override;
 
   // List/array support
-  virtual bool beginList(const char* i_name) override;
+  virtual bool beginList(const std::string& i_name) override;
   virtual void endList() override;
 
   // Key checking
-  virtual bool hasKey(const char* key) override;
+  virtual bool hasKey(const std::string& key) override;
 
   // Peek operations
   virtual std::string peekObjectType() override;

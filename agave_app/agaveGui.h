@@ -78,6 +78,7 @@ private slots:
   void openMesh(const QString& file);
   void saveImage();
   void saveJson();
+  void loadJson();
   void savePython();
   void onRenderAction();
   void OnUpdateRenderer();

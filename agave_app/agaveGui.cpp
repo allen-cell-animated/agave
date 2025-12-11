@@ -17,6 +17,7 @@
 #include "renderlib/CameraObject.hpp"
 #include "renderlib/AppearanceObject.hpp"
 #include "renderlib/serialize/docWriterJson.h"
+#include "renderlib/serialize/docReaderJson.h"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
@@ -748,6 +749,7 @@ agaveGui::saveJson()
     writer->beginList("_camera");
     // list of all cameras
     writer->beginObject("_camera0");
+    writer->writeProperty("_version", (uint32_t)1); // Camera object version
     writer->writeProperties(m_cameraObject.get());
     writer->endObject();
     writer->endList();
@@ -755,9 +757,11 @@ agaveGui::saveJson()
     writer->beginList("_light");
     // list of all lights
     writer->beginObject("_skylight0");
+    writer->writeProperty("_version", (uint32_t)1); // SkyLight object version
     writer->writeProperties(m_skyLightObject.get());
     writer->endObject();
     writer->beginObject("_arealight0");
+    writer->writeProperty("_version", (uint32_t)1); // AreaLight object version
     writer->writeProperties(m_areaLightObject.get());
     writer->endObject();
     writer->endList();
@@ -765,6 +769,7 @@ agaveGui::saveJson()
     writer->beginList("_clipPlane");
     // list of all clip planes
     writer->beginObject("_clipPlane0");
+    writer->writeProperty("_version", (uint32_t)1); // ClipPlane object version
     //    writer.writeProperties(m_clipPlaneObject.get());
     writer->endObject();
     writer->endList();
@@ -772,6 +777,7 @@ agaveGui::saveJson()
     writer->beginList("_renderSettings");
     // list of all render settings objects
     writer->beginObject("_renderSettings0");
+    writer->writeProperty("_version", (uint32_t)1); // RenderSettings object version
     writer->writeProperties(m_appearanceObject.get());
     writer->endObject();
     writer->endList();
@@ -780,6 +786,7 @@ agaveGui::saveJson()
     // list of capture settings objects (only one?)
     writer->endList();
     writer->beginObject("_geometry");
+    writer->writeProperty("_version", (uint32_t)1); // Geometry object version
     writer->beginList("_volume");
     // list of all volumes
     writer->endList();
@@ -789,6 +796,7 @@ agaveGui::saveJson()
     writer->endObject();
 
     writer->beginObject("_scene");
+    writer->writeProperty("_version", (uint32_t)1); // Scene object version
     // one and only active scene.
     // this includes references to selections of the above objects.
     // other objects should not be cross referencing each other.
@@ -797,6 +805,164 @@ agaveGui::saveJson()
     writer->endObject();
 
     writer->endDocument();
+    delete writer;
+  }
+}
+
+void
+agaveGui::loadJson()
+{
+  QFileDialog::Options options;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Load JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
+  if (!file.isEmpty()) {
+
+    QFile loadFile(file);
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+      qWarning("Couldn't open load file.");
+      return;
+    }
+
+    docReader* reader = new docReaderJson();
+    if (!reader->beginDocument(file.toStdString())) {
+      qWarning("Failed to parse JSON document.");
+      delete reader;
+      return;
+    }
+
+    // Read AGAVE metadata
+    if (reader->beginObject("_AGAVE")) {
+      if (reader->hasKey("_version")) {
+        std::string agaveVersion = reader->readString();
+        LOG_INFO << "Loading AGAVE file version: " << agaveVersion;
+      }
+      reader->endObject();
+    }
+
+    // Read cameras
+    if (reader->beginList("_camera")) {
+      if (reader->beginObject("_camera0")) {
+        // Check version
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32();
+          LOG_INFO << "Camera object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown camera version " << version << ", attempting to read anyway";
+          }
+        }
+        // Read all camera properties
+        reader->readProperties(m_cameraObject.get());
+        // Update the actual camera from properties
+        m_cameraObject->updateObjectFromProps();
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read lights
+    if (reader->beginList("_light")) {
+      // Sky light
+      if (reader->beginObject("_skylight0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32();
+          LOG_INFO << "SkyLight object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown skylight version " << version << ", attempting to read anyway";
+          }
+        }
+        reader->readProperties(m_skyLightObject.get());
+        m_skyLightObject->updateObjectFromProps();
+        reader->endObject();
+      }
+
+      // Area light
+      if (reader->beginObject("_arealight0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32();
+          LOG_INFO << "AreaLight object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown arealight version " << version << ", attempting to read anyway";
+          }
+        }
+        reader->readProperties(m_areaLightObject.get());
+        m_areaLightObject->updateObjectFromProps();
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read clip planes
+    if (reader->beginList("_clipPlane")) {
+      if (reader->beginObject("_clipPlane0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32();
+          LOG_INFO << "ClipPlane object version: " << version;
+        }
+        // TODO: read clip plane properties when implemented
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read render settings
+    if (reader->beginList("_renderSettings")) {
+      if (reader->beginObject("_renderSettings0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32();
+          LOG_INFO << "RenderSettings object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown render settings version " << version << ", attempting to read anyway";
+          }
+        }
+        reader->readProperties(m_appearanceObject.get());
+        m_appearanceObject->updateObjectFromProps();
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read capture settings
+    if (reader->beginList("_captureSettings")) {
+      // TODO: implement capture settings
+      reader->endList();
+    }
+
+    // Read geometry
+    if (reader->beginObject("_geometry")) {
+      if (reader->hasKey("_version")) {
+        uint32_t version = reader->readUint32();
+        LOG_INFO << "Geometry object version: " << version;
+      }
+      
+      if (reader->beginList("_volume")) {
+        // TODO: implement volume loading
+        reader->endList();
+      }
+      
+      if (reader->beginList("_mesh")) {
+        // TODO: implement mesh loading
+        reader->endList();
+      }
+      
+      reader->endObject();
+    }
+
+    // Read scene
+    if (reader->beginObject("_scene")) {
+      if (reader->hasKey("_version")) {
+        uint32_t version = reader->readUint32();
+        LOG_INFO << "Scene object version: " << version;
+      }
+      // TODO: implement scene state loading
+      reader->endObject();
+    }
+
+    reader->endDocument();
+    delete reader;
+
+    LOG_INFO << "Successfully loaded JSON file: " << file.toStdString();
   }
 }
 

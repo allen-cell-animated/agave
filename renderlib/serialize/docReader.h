@@ -18,15 +18,15 @@ public:
   virtual void endDocument() = 0;
 
   // objects can contain other objects, lists, and properties.
-  virtual bool beginObject(const char* i_name) = 0;
+  virtual bool beginObject(const std::string& i_name) = 0;
   virtual void endObject() = 0;
 
   // lists can contain objects or properties.
-  virtual bool beginList(const char* i_name) = 0;
+  virtual bool beginList(const std::string& i_name) = 0;
   virtual void endList() = 0;
 
   // Check if a key exists at the current level
-  virtual bool hasKey(const char* key) = 0;
+  virtual bool hasKey(const std::string& key) = 0;
 
   // Peek at object type and version without consuming
   virtual std::string peekObjectType() = 0;
