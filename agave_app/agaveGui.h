@@ -119,6 +119,9 @@ private:
   void writeRecentDirectory(const QString& directory);
   QString readRecentDirectory();
 
+  void readDocument(std::string filepath);
+  void writeDocument(std::string filepath);
+
   QMenu* m_fileMenu;
   QMenu* m_viewMenu;
   QMenu* m_helpMenu;
