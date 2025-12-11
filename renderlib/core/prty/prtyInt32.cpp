@@ -2,6 +2,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docReader.h"
 #include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
@@ -125,11 +126,11 @@ prtyInt32::operator<=(const prtyInt32& i_Value) const
 //--------------------------------------------------------------------
 // virtual
 void
-prtyInt32::Read(chReader& io_Reader)
+prtyInt32::Read(docReader& io_Reader)
 {
-  // int32_t temp;
-  // io_Reader.Read(temp);
-  // SetValue(temp);
+  int32_t temp;
+  temp = io_Reader.readInt32();
+  SetValue(temp);
 }
 
 //--------------------------------------------------------------------

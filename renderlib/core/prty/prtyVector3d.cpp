@@ -3,6 +3,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docReader.h"
 #include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
@@ -133,11 +134,11 @@ prtyVector3d::SetScaledValue(const glm::vec3& i_Value, bool i_bDirty) // UndoFla
 //--------------------------------------------------------------------
 // virtual
 void
-prtyVector3d::Read(chReader& io_Reader)
+prtyVector3d::Read(docReader& io_Reader)
 {
-  // glm::vec3 temp;
-  // chChunkParserUtil::Read(io_Reader, temp);
-  // SetValue(temp);
+  std::vector<float> temp;
+  temp = io_Reader.readFloat32Array();
+  SetValue(glm::vec3(temp[0], temp[1], temp[2]));
 }
 
 //--------------------------------------------------------------------

@@ -220,6 +220,9 @@ docReaderYaml::readPrty(prtyProperty* p)
     LOG_ERROR << "readPrty() - property key not found: " << m_nextKey;
     return;
   }
+
+  // Let the property read itself
+  p->Read(*this);
 }
 
 bool

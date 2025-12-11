@@ -1,6 +1,7 @@
 #include "core/prty/prtyBoolean.hpp"
 
 // #include "core/ch/chReader.hpp"
+#include "serialize/docReader.h"
 #include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
@@ -80,11 +81,10 @@ prtyBoolean::operator!=(const bool i_Value) const
 //--------------------------------------------------------------------
 // virtual
 void
-prtyBoolean::Read(chReader& io_Reader)
+prtyBoolean::Read(docReader& io_Reader)
 {
-  // bool temp;
-  // io_Reader.readBool(temp);
-  // SetValue(temp);
+  bool temp = io_Reader.readBool();
+  SetValue(temp);
 }
 
 //--------------------------------------------------------------------
