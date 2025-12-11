@@ -1,6 +1,8 @@
 #include "CameraObject.hpp"
 
 #include "Logging.h"
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
 #include "glm.h"
 
 // FloatSliderSpinnerUiInfo CameraUiDescription::m_exposure("Exposure",
@@ -258,4 +260,21 @@ CameraObject::TransformationChanged(prtyProperty* i_Property, bool i_bDirty)
   m_camera->m_Target = target;
   m_camera->m_Up = up;
   m_camera->m_Dirty = true;
+}
+
+void
+CameraObject::fromDocument(docReader* reader)
+{
+  reader->beginObject("CameraObject");
+  reader->readProperties(this);
+  reader->endObject();
+}
+void
+CameraObject::toDocument(docWriter* writer)
+{
+  writer->beginObject("CameraObject");
+  // write version property explicitly?
+  // ensure that this and most other objects have a (unique) name property?
+  writer->writeProperties(this);
+  writer->endObject();
 }

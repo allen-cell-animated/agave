@@ -2,6 +2,7 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docReader.h"
 #include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
@@ -81,11 +82,11 @@ prtyColor::operator!=(const glm::vec4& i_Value) const
 //--------------------------------------------------------------------
 // virtual
 void
-prtyColor::Read(chReader& io_Reader)
+prtyColor::Read(docReader& io_Reader)
 {
-  // glm::vec4 temp;
-  // chChunkParserUtil::Read(io_Reader, temp);
-  // SetValue(temp);
+  std::vector<float> temp;
+  temp = io_Reader.readFloat32Array();
+  SetValue(glm::vec4(temp[0], temp[1], temp[2], temp[3]));
 }
 
 //--------------------------------------------------------------------

@@ -241,7 +241,7 @@ docReaderJson::readPrty(prtyProperty* p)
   }
 
   // Let the property read itself
-  // p->Read(*this);
+  p->Read(*this);
 }
 
 bool

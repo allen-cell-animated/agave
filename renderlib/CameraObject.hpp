@@ -5,6 +5,9 @@
 #include "core/prty/prtyObject.hpp"
 #include "CCamera.h"
 
+class docReader;
+class docWriter;
+
 struct CameraUiDescription
 {
   static FloatSliderSpinnerUiInfo m_exposure;
@@ -14,6 +17,16 @@ struct CameraUiDescription
   static FloatSliderSpinnerUiInfo m_fieldOfView;
   static FloatSliderSpinnerUiInfo m_focalDistance;
 };
+
+// class IDocumentObject
+// {
+// public:
+//   virtual void fromDocument(docReader* reader) = 0;
+//   virtual void toDocument(docWriter* writer) = 0;
+
+//   // necessary for doc reading and writing?
+//   prtyName m_Name;
+// }
 
 class CameraObject : public prtyObject
 {
@@ -40,6 +53,11 @@ public:
 
   // Convert UI specific combo box index to a known enum type
   static uint8_t GetExposureIterationsValue(int i_ComboBoxIndex);
+
+  // document reading and writing
+  static constexpr int CURRENT_VERSION = 1;
+  void fromDocument(docReader* reader);
+  void toDocument(docWriter* writer);
 
 private:
   // the properties

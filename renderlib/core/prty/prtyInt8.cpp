@@ -1,6 +1,7 @@
 #include "core/prty/prtyInt8.hpp"
 
 // #include "core/ch/chReader.hpp"
+#include "serialize/docReader.h"
 #include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
@@ -124,11 +125,11 @@ prtyInt8::operator<=(const prtyInt8& i_Value) const
 //--------------------------------------------------------------------
 // virtual
 void
-prtyInt8::Read(chReader& io_Reader)
+prtyInt8::Read(docReader& io_Reader)
 {
-  //   int8_t temp;
-  //   io_Reader.Read(temp);
-  //   SetValue(temp);
+  int8_t temp;
+  temp = io_Reader.readInt8();
+  SetValue(temp);
 }
 
 //--------------------------------------------------------------------

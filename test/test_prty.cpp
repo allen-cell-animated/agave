@@ -102,7 +102,7 @@ TEST_CASE("prtyProperty struct", "[prtyProperty]")
     }
 
     virtual const char* GetType() override { return "Foo"; }
-    virtual void Read(chReader& io_Reader) override
+    virtual void Read(docReader& io_Reader) override
     {
       // Implement reading from a reader if needed
     }
