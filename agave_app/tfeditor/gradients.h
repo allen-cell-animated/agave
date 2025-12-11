@@ -46,6 +46,7 @@ private:
   GradientEditMode m_currentEditMode;
 
   QCustomPlot* m_customPlot;
+  QCPBars* m_histogramBars;
   bool m_isDraggingPoint = false;
   int m_currentPointIndex = -1;
 
@@ -56,6 +57,7 @@ private:
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
+  virtual void changeEvent(QEvent* event) override;
 };
 
 class GradientWidget : public QWidget

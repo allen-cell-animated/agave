@@ -31,6 +31,9 @@ add_subdirectory(libCZI)
 
 # tensorstore dependency for renderlib
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
+if(APPLE)
+  set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
+endif(APPLE)
 FetchContent_Declare(
 	tensorstore
         URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.78.tar.gz"
@@ -39,7 +42,6 @@ FetchContent_Declare(
         # URL_HASH SHA256=1ac9ac2c3a24d0c25f049d289968b4e3944a798a9466b84d80a964b74a2d018a
 )
 
-# Additional FetchContent_Declare calls as needed...
 FetchContent_MakeAvailable(tensorstore)
 # end tensorstore dependency
 
