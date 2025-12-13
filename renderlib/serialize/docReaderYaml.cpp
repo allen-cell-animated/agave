@@ -574,9 +574,43 @@ docReaderYaml::parseObject(std::ifstream& file, int& currentIndent, int baseInde
           }
         }
       } else {
-        // Simple key-value pair
+        // Simple key-value pair - check if it's an inline array
         YamlValue yamlValue;
-        yamlValue.data = value;
+
+        // Check if value is an inline array (starts with [ and ends with ])
+        if (!value.empty() && value.front() == '[' && value.back() == ']') {
+          // Parse inline array
+          YamlArray arr;
+          std::string content = value.substr(1, value.length() - 2); // Remove [ and ]
+
+          if (!content.empty()) {
+            size_t start = 0;
+            size_t end = 0;
+
+            while ((end = content.find(',', start)) != std::string::npos) {
+              std::string element = trimString(content.substr(start, end - start));
+              if (!element.empty()) {
+                YamlValue elemValue;
+                elemValue.data = element;
+                arr.push_back(elemValue);
+              }
+              start = end + 1;
+            }
+
+            // Add the last element
+            std::string element = trimString(content.substr(start));
+            if (!element.empty()) {
+              YamlValue elemValue;
+              elemValue.data = element;
+              arr.push_back(elemValue);
+            }
+          }
+
+          yamlValue.data = arr;
+        } else {
+          yamlValue.data = value;
+        }
+
         obj[key] = yamlValue;
       }
     }

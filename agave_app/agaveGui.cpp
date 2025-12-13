@@ -726,6 +726,7 @@ agaveGui::writeDocument(std::string filepath)
   docWriter* writer = new docWriterJson();
 
   writer->beginDocument(filepath);
+
   writer->beginObject("_AGAVE", "AgaveDocument", 1);
   // write agave version at least
   writer->writeProperty("Version", std::string(AICS_VERSION_STRING));

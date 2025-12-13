@@ -52,21 +52,21 @@ verifyTestCameraObject(CameraObject* camera)
   REQUIRE(camera->getCameraDataObject().FieldOfView.GetValue() == Catch::Approx(45.0f));
   REQUIRE(camera->getCameraDataObject().FocalDistance.GetValue() == Catch::Approx(5.5f));
 
-  //   auto pos = camera->getCameraDataObject().Position.GetValue();
-  //   REQUIRE(pos.x == Catch::Approx(1.0f));
-  //   REQUIRE(pos.y == Catch::Approx(2.0f));
-  //   REQUIRE(pos.z == Catch::Approx(3.0f));
+  auto pos = camera->getCameraDataObject().Position.GetValue();
+  REQUIRE(pos.x == Catch::Approx(1.0f));
+  REQUIRE(pos.y == Catch::Approx(2.0f));
+  REQUIRE(pos.z == Catch::Approx(3.0f));
 
-  //   auto target = camera->getCameraDataObject().Target.GetValue();
-  //   REQUIRE(target.x == Catch::Approx(0.0f));
-  //   REQUIRE(target.y == Catch::Approx(0.0f));
-  //   REQUIRE(target.z == Catch::Approx(0.0f));
+  auto target = camera->getCameraDataObject().Target.GetValue();
+  REQUIRE(target.x == Catch::Approx(0.0f));
+  REQUIRE(target.y == Catch::Approx(0.0f));
+  REQUIRE(target.z == Catch::Approx(0.0f));
 
-  //   REQUIRE(camera->getCameraDataObject().NearPlane.GetValue() == Catch::Approx(0.5f));
-  //   REQUIRE(camera->getCameraDataObject().FarPlane.GetValue() == Catch::Approx(500.0f));
-  //   REQUIRE(camera->getCameraDataObject().Roll.GetValue() == Catch::Approx(15.0f));
-  //   REQUIRE(camera->getCameraDataObject().OrthoScale.GetValue() == Catch::Approx(1.5f));
-  //   REQUIRE(camera->getCameraDataObject().ProjectionMode.GetValue() == 0);
+  REQUIRE(camera->getCameraDataObject().NearPlane.GetValue() == Catch::Approx(0.5f));
+  REQUIRE(camera->getCameraDataObject().FarPlane.GetValue() == Catch::Approx(500.0f));
+  REQUIRE(camera->getCameraDataObject().Roll.GetValue() == Catch::Approx(15.0f));
+  REQUIRE(camera->getCameraDataObject().OrthoScale.GetValue() == Catch::Approx(1.5f));
+  REQUIRE(camera->getCameraDataObject().ProjectionMode.GetValue() == 0);
 }
 
 TEST_CASE("CameraObject JSON roundtrip serialization", "[CameraObject][serialize]")
@@ -151,9 +151,10 @@ TEST_CASE("CameraObject version 1 JSON format compatibility", "[CameraObject][se
   {
     std::ofstream file(jsonPath);
     file << R"({
-  "CameraObject": {
+  "camera0": {
     "_type": "CameraObject",
     "_version": 1,
+    "_name": "camera0",
     "Exposure": 0.85,
     "ExposureIterations": 2,
     "NoiseReduction": true,
@@ -179,8 +180,9 @@ TEST_CASE("CameraObject version 1 JSON format compatibility", "[CameraObject][se
     docReaderJson reader;
     reader.beginDocument(jsonPath);
 
+    loadedCamera->fromDocument(&reader);
     // Enter the CameraObject before checking version
-    reader.beginObject("CameraObject");
+    reader.beginObject("camera0");
 
     // Check version before reading properties
     std::string objectType = reader.peekObjectType();
@@ -189,8 +191,6 @@ TEST_CASE("CameraObject version 1 JSON format compatibility", "[CameraObject][se
     int version = reader.peekVersion();
     REQUIRE(version == 1);
 
-    // Read properties (fromDocument would normally call beginObject, but we already did)
-    reader.readProperties(loadedCamera);
     reader.endObject();
 
     reader.endDocument();
@@ -211,9 +211,10 @@ TEST_CASE("CameraObject version 1 YAML format compatibility", "[CameraObject][se
   // Manually create a version 1 YAML file to simulate old format
   {
     std::ofstream file(yamlPath);
-    file << R"(CameraObject:
+    file << R"(camera0:
   _type: CameraObject
   _version: 1
+  _name: camera0
   Exposure: 0.85
   ExposureIterations: 2
   NoiseReduction: true
@@ -238,8 +239,10 @@ TEST_CASE("CameraObject version 1 YAML format compatibility", "[CameraObject][se
     docReaderYaml reader;
     reader.beginDocument(yamlPath);
 
+    loadedCamera->fromDocument(&reader);
+
     // Enter the CameraObject before checking version
-    reader.beginObject("CameraObject");
+    reader.beginObject("camera0");
 
     // Check version before reading properties
     std::string objectType = reader.peekObjectType();
@@ -248,8 +251,6 @@ TEST_CASE("CameraObject version 1 YAML format compatibility", "[CameraObject][se
     int version = reader.peekVersion();
     REQUIRE(version == 1);
 
-    // Read properties (fromDocument would normally call beginObject, but we already did)
-    reader.readProperties(loadedCamera);
     reader.endObject();
 
     reader.endDocument();
@@ -317,9 +318,10 @@ TEST_CASE("CameraObject partial data loading", "[CameraObject][serialize]")
   {
     std::ofstream file(jsonPath);
     file << R"({
-  "CameraObject": {
+  "camera0": {
     "_type": "CameraObject",
     "_version": 1,
+    "_name": "camera0",
     "Exposure": 0.5,
     "FieldOfView": 60.0
   }
@@ -363,9 +365,10 @@ TEST_CASE("CameraObject invalid version handling", "[CameraObject][serialize][ve
   {
     std::ofstream file(jsonPath);
     file << R"({
-  "CameraObject": {
+  "camera0": {
     "_type": "CameraObject",
     "_version": 999,
+    "_name": "camera0",
     "Exposure": 0.85,
     "FieldOfView": 45.0
   }
@@ -380,14 +383,14 @@ TEST_CASE("CameraObject invalid version handling", "[CameraObject][serialize][ve
     docReaderJson reader;
     reader.beginDocument(jsonPath);
 
-    // Enter the CameraObject before checking version
-    reader.beginObject("CameraObject");
+    loadedCamera->fromDocument(&reader);
 
-    int version = reader.peekVersion();
+    // Enter the CameraObject before checking version
+    reader.beginObject("camera0");
+
+    uint32_t version = reader.peekVersion();
     REQUIRE(version == 999);
 
-    // Read properties (fromDocument would normally call beginObject, but we already did)
-    reader.readProperties(loadedCamera);
     reader.endObject();
 
     reader.endDocument();
