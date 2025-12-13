@@ -54,8 +54,8 @@ public:
   // Convert UI specific combo box index to a known enum type
   static uint8_t GetExposureIterationsValue(int i_ComboBoxIndex);
 
-  // document reading and writing
-  static constexpr int CURRENT_VERSION = 1;
+  // document reading and writing; TODO consider an abstract base class to enforce commonality
+  static constexpr uint32_t CURRENT_VERSION = 1;
   void fromDocument(docReader* reader);
   void toDocument(docWriter* writer);
 

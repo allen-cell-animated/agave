@@ -188,7 +188,7 @@ docReaderYaml::peekObjectType()
   return "";
 }
 
-int
+uint32_t
 docReaderYaml::peekVersion()
 {
   YamlValue* current = getCurrentValue();
@@ -205,11 +205,27 @@ docReaderYaml::peekVersion()
   return 0;
 }
 
-void
+std::string
+docReaderYaml::peekObjectName()
+{
+  YamlValue* current = getCurrentValue();
+  if (!current || !current->isObject()) {
+    return "";
+  }
+
+  YamlObject& obj = current->asObject();
+  if (obj.find(SerializationConstants::NAME_KEY) != obj.end() && obj[SerializationConstants::NAME_KEY].isString()) {
+    return obj[SerializationConstants::NAME_KEY].asString();
+  }
+
+  return "";
+}
+
+bool
 docReaderYaml::readPrty(prtyProperty* p)
 {
   if (!p) {
-    return;
+    return false;
   }
 
   // Store the property name for the next read operation
@@ -218,15 +234,16 @@ docReaderYaml::readPrty(prtyProperty* p)
   // Check if the key exists
   if (!hasKey(m_nextKey.c_str())) {
     LOG_ERROR << "readPrty() - property key not found: " << m_nextKey;
-    return;
+    return false;
   }
 
   // Let the property read itself
   p->Read(*this);
+  return true;
 }
 
 bool
-docReaderYaml::readBool()
+docReaderYaml::readBool(const std::string& name)
 {
   YamlValue* current = getCurrentValue();
   if (!current) {
@@ -237,8 +254,8 @@ docReaderYaml::readBool()
     // Reading from object by key
     if (current->isObject()) {
       YamlObject& obj = current->asObject();
-      if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isString()) {
-        return stringToBool(obj[m_nextKey].asString());
+      if (obj.find(name) != obj.end() && obj[name].isString()) {
+        return stringToBool(obj[name].asString());
       }
     }
   } else {
@@ -258,7 +275,7 @@ docReaderYaml::readBool()
 }
 
 int8_t
-docReaderYaml::readInt8()
+docReaderYaml::readInt8(const std::string& name)
 {
   YamlValue* current = getCurrentValue();
   if (!current) {
@@ -269,8 +286,8 @@ docReaderYaml::readInt8()
     // Reading from object by key
     if (current->isObject()) {
       YamlObject& obj = current->asObject();
-      if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isString()) {
-        return static_cast<int8_t>(stringToInt(obj[m_nextKey].asString()));
+      if (obj.find(name) != obj.end() && obj[name].isString()) {
+        return static_cast<int8_t>(stringToInt(obj[name].asString()));
       }
     }
   } else {
@@ -290,7 +307,7 @@ docReaderYaml::readInt8()
 }
 
 int32_t
-docReaderYaml::readInt32()
+docReaderYaml::readInt32(const std::string& name)
 {
   YamlValue* current = getCurrentValue();
   if (!current) {
@@ -301,8 +318,8 @@ docReaderYaml::readInt32()
     // Reading from object by key
     if (current->isObject()) {
       YamlObject& obj = current->asObject();
-      if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isString()) {
-        return stringToInt(obj[m_nextKey].asString());
+      if (obj.find(name) != obj.end() && obj[name].isString()) {
+        return stringToInt(obj[name].asString());
       }
     }
   } else {
@@ -322,7 +339,7 @@ docReaderYaml::readInt32()
 }
 
 uint32_t
-docReaderYaml::readUint32()
+docReaderYaml::readUint32(const std::string& name)
 {
   YamlValue* current = getCurrentValue();
   if (!current) {
@@ -333,8 +350,8 @@ docReaderYaml::readUint32()
     // Reading from object by key
     if (current->isObject()) {
       YamlObject& obj = current->asObject();
-      if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isString()) {
-        return static_cast<uint32_t>(stringToInt(obj[m_nextKey].asString()));
+      if (obj.find(name) != obj.end() && obj[name].isString()) {
+        return static_cast<uint32_t>(stringToInt(obj[name].asString()));
       }
     }
   } else {
@@ -354,7 +371,7 @@ docReaderYaml::readUint32()
 }
 
 float
-docReaderYaml::readFloat32()
+docReaderYaml::readFloat32(const std::string& name)
 {
   YamlValue* current = getCurrentValue();
   if (!current) {
@@ -365,8 +382,8 @@ docReaderYaml::readFloat32()
     // Reading from object by key
     if (current->isObject()) {
       YamlObject& obj = current->asObject();
-      if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isString()) {
-        return stringToFloat(obj[m_nextKey].asString());
+      if (obj.find(name) != obj.end() && obj[name].isString()) {
+        return stringToFloat(obj[name].asString());
       }
     }
   } else {
@@ -386,7 +403,7 @@ docReaderYaml::readFloat32()
 }
 
 std::vector<float>
-docReaderYaml::readFloat32Array()
+docReaderYaml::readFloat32Array(const std::string& name)
 {
   std::vector<float> result;
   YamlValue* current = getCurrentValue();
@@ -395,8 +412,8 @@ docReaderYaml::readFloat32Array()
   }
 
   YamlObject& obj = current->asObject();
-  if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isArray()) {
-    YamlArray& arr = obj[m_nextKey].asArray();
+  if (obj.find(name) != obj.end() && obj[name].isArray()) {
+    YamlArray& arr = obj[name].asArray();
     for (const auto& elem : arr) {
       if (elem.isString()) {
         result.push_back(stringToFloat(elem.asString()));
@@ -408,7 +425,7 @@ docReaderYaml::readFloat32Array()
 }
 
 std::vector<int32_t>
-docReaderYaml::readInt32Array()
+docReaderYaml::readInt32Array(const std::string& name)
 {
   std::vector<int32_t> result;
   YamlValue* current = getCurrentValue();
@@ -417,8 +434,8 @@ docReaderYaml::readInt32Array()
   }
 
   YamlObject& obj = current->asObject();
-  if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isArray()) {
-    YamlArray& arr = obj[m_nextKey].asArray();
+  if (obj.find(name) != obj.end() && obj[name].isArray()) {
+    YamlArray& arr = obj[name].asArray();
     for (const auto& elem : arr) {
       if (elem.isString()) {
         result.push_back(stringToInt(elem.asString()));
@@ -430,7 +447,7 @@ docReaderYaml::readInt32Array()
 }
 
 std::vector<uint32_t>
-docReaderYaml::readUint32Array()
+docReaderYaml::readUint32Array(const std::string& name)
 {
   std::vector<uint32_t> result;
   YamlValue* current = getCurrentValue();
@@ -439,8 +456,8 @@ docReaderYaml::readUint32Array()
   }
 
   YamlObject& obj = current->asObject();
-  if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isArray()) {
-    YamlArray& arr = obj[m_nextKey].asArray();
+  if (obj.find(name) != obj.end() && obj[name].isArray()) {
+    YamlArray& arr = obj[name].asArray();
     for (const auto& elem : arr) {
       if (elem.isString()) {
         result.push_back(static_cast<uint32_t>(stringToInt(elem.asString())));
@@ -452,7 +469,7 @@ docReaderYaml::readUint32Array()
 }
 
 std::string
-docReaderYaml::readString()
+docReaderYaml::readString(const std::string& name)
 {
   YamlValue* current = getCurrentValue();
   if (!current) {
@@ -463,8 +480,8 @@ docReaderYaml::readString()
     // Reading from object by key
     if (current->isObject()) {
       YamlObject& obj = current->asObject();
-      if (obj.find(m_nextKey) != obj.end() && obj[m_nextKey].isString()) {
-        return obj[m_nextKey].asString();
+      if (obj.find(name) != obj.end() && obj[name].isString()) {
+        return obj[name].asString();
       }
     }
   } else {

@@ -18,7 +18,7 @@ public:
   virtual void endDocument() = 0;
 
   // objects can contain other objects, lists, and properties.
-  virtual void beginObject(const std::string& i_name) = 0;
+  virtual void beginObject(const std::string& i_name, const std::string& i_objectType, uint32_t version) = 0;
   virtual void endObject() = 0;
 
   // lists can contain objects or properties.

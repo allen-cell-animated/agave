@@ -1,5 +1,7 @@
 #include "docWriterJson.h"
 
+#include "SerializationConstants.h"
+
 #include "core/prty/prtyProperty.hpp"
 #include "Logging.h"
 
@@ -59,9 +61,14 @@ docWriterJson::endDocument()
 }
 
 void
-docWriterJson::beginObject(const std::string& i_name)
+docWriterJson::beginObject(const std::string& i_name, const std::string& i_objectType, uint32_t version)
 {
   nlohmann::json* newObj = new nlohmann::json(nlohmann::json::object());
+
+  // Add _name, _type and _version metadata
+  (*newObj)[SerializationConstants::TYPE_KEY] = i_objectType;
+  (*newObj)[SerializationConstants::VERSION_KEY] = version;
+  (*newObj)[SerializationConstants::NAME_KEY] = i_name;
 
   if (m_contextStack.empty()) {
     // Root level object

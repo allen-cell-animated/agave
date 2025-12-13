@@ -3,6 +3,8 @@
 #include "core/prty/prtyProperty.hpp"
 #include "core/prty/prtyObject.hpp"
 
+#include "Logging.h"
+
 // Reads all properties from the current object context
 // Assumes we're already inside the object (after beginObject was called)
 void
@@ -28,7 +30,11 @@ docReader::readProperties(prtyObject* obj)
       // Check if the property exists in the document
       if (hasKey(propName.c_str())) {
         // Set up the property name for reading and let the property read itself
-        readPrty(prop);
+        bool ok = readPrty(prop);
+        if (!ok) {
+          // Log error if property read failed
+          LOG_ERROR << "Failed to read property: " << propName << " even though key exists.";
+        }
       }
     }
   }

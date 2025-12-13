@@ -1,5 +1,7 @@
 #include "docWriterYaml.h"
 
+#include "SerializationConstants.h"
+
 #include "core/prty/prtyProperty.hpp"
 #include "Logging.h"
 
@@ -48,7 +50,7 @@ docWriterYaml::endDocument()
 }
 
 void
-docWriterYaml::beginObject(const std::string& i_name)
+docWriterYaml::beginObject(const std::string& i_name, const std::string& i_objectType, uint32_t version)
 {
   if (m_contextStack.empty()) {
     // Root level object
@@ -77,6 +79,19 @@ docWriterYaml::beginObject(const std::string& i_name)
       ctx.firstItem = false;
     }
   }
+
+  // Write _type and _version metadata
+  writeIndent();
+  writeKey(SerializationConstants::TYPE_KEY);
+  m_output << escapeString(i_objectType) << "\n";
+
+  writeIndent();
+  writeKey(SerializationConstants::VERSION_KEY);
+  m_output << version << "\n";
+
+  writeIndent();
+  writeKey(SerializationConstants::NAME_KEY);
+  m_output << escapeString(i_name) << "\n";
 
   pushContext(i_name, ContextType::Object);
 }

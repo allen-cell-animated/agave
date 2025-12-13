@@ -129,7 +129,7 @@ void
 prtyInt32::Read(docReader& io_Reader)
 {
   int32_t temp;
-  temp = io_Reader.readInt32();
+  temp = io_Reader.readInt32(GetPropertyName());
   SetValue(temp);
 }
 

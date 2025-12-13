@@ -27,7 +27,7 @@ writePrtyObject(docWriter& writer, prtyObject* obj, const std::string& name)
     return;
   }
 
-  writer.beginObject(name.c_str());
+  writer.beginObject(name.c_str(), "MYTYPE", 1);
 
   writer.writeProperties(obj);
 
@@ -178,7 +178,7 @@ TEST_CASE("Validate nesting protection in docWriter", "[serialize][docWriter]")
   {
     docWriterJson writer;
     writer.beginDocument("test_nesting_error.json");
-    writer.beginObject("obj1");
+    writer.beginObject("obj1", "MYTYPE", 1);
     writer.endObject();
     writer.endObject(); // Extra end - should log error but not crash
     writer.endDocument();
@@ -189,7 +189,7 @@ TEST_CASE("Validate nesting protection in docWriter", "[serialize][docWriter]")
   {
     docWriterJson writer;
     writer.beginDocument("test_mismatch_error.json");
-    writer.beginObject("obj1");
+    writer.beginObject("obj1", "MYTYPE", 1);
     writer.endList(); // Wrong type - should log error
     writer.endDocument();
     std::filesystem::remove("test_mismatch_error.json");
@@ -199,8 +199,8 @@ TEST_CASE("Validate nesting protection in docWriter", "[serialize][docWriter]")
   {
     docWriterJson writer;
     writer.beginDocument("test_unclosed_error.json");
-    writer.beginObject("obj1");
-    writer.beginObject("obj2");
+    writer.beginObject("obj1", "MYTYPE", 1);
+    writer.beginObject("obj2", "MYTYPE", 1);
     // Missing endObject calls - should log error on endDocument
     writer.endDocument();
     std::filesystem::remove("test_unclosed_error.json");

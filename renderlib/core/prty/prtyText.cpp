@@ -91,7 +91,7 @@ void
 prtyText::Read(docReader& io_Reader)
 {
   std::string temp;
-  temp = io_Reader.readString();
+  temp = io_Reader.readString(GetPropertyName());
   SetValue(temp);
 }
 

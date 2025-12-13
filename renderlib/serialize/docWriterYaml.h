@@ -18,7 +18,7 @@ public:
   virtual void endDocument() override;
 
   // Object support
-  virtual void beginObject(const std::string& i_name) override;
+  virtual void beginObject(const std::string& i_name, const std::string& i_objectType, uint32_t version) override;
   virtual void endObject() override;
 
   // List/array support

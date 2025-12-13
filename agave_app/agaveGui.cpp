@@ -723,214 +723,136 @@ agaveGui::onRenderAction()
 void
 agaveGui::writeDocument(std::string filepath)
 {
-  docWriterJson writer;
-  writer.beginDocument(filepath);
-  writer.beginObject("_AGAVE");
+  docWriter* writer = new docWriterJson();
+
+  writer->beginDocument(filepath);
+  writer->beginObject("_AGAVE", "AgaveDocument", 1);
   // write agave version at least
-  writer.endObject();
-  writer.beginList("_camera");
+  writer->writeProperty("Version", std::string(AICS_VERSION_STRING));
+  writer->endObject();
+
+  writer->beginList("_camera");
   // list of all cameras
-  writer.endList();
-  writer.beginList("_light");
+  m_cameraObject->toDocument(writer);
+  // writer->beginObject("_camera0");
+  // writer->writeProperty("_version", (uint32_t)1); // Camera object version
+  // writer->writeProperties(m_cameraObject.get());
+  // writer->endObject();
+  writer->endList();
+
+  writer->beginList("_light");
   // list of all lights
-  writer.endList();
-  writer.beginList("_clipPlane");
+  writer->beginObject("_skylight0", "SkyLightObject", 1);
+  writer->writeProperties(m_skyLightObject.get());
+  writer->endObject();
+  writer->beginObject("_arealight0", "AreaLightObject", 1);
+  writer->writeProperties(m_areaLightObject.get());
+  writer->endObject();
+  writer->endList();
+
+  writer->beginList("_clipPlane");
   // list of all clip planes
-  writer.endList();
-  writer.beginList("_renderSettings");
+  writer->beginObject("_clipPlane0", "ClipPlaneObject", 1);
+  //    writer.writeProperties(m_clipPlaneObject.get());
+  writer->endObject();
+  writer->endList();
+
+  writer->beginList("_renderSettings");
   // list of all render settings objects
-  writer.endList();
-  writer.beginList("_captureSettings");
+  writer->beginObject("_renderSettings0", "RenderSettingsObject", 1);
+  writer->writeProperties(m_appearanceObject.get());
+  writer->endObject();
+  writer->endList();
+
+  writer->beginList("_captureSettings");
   // list of capture settings objects (only one?)
-  writer.endList();
-
-  writer.beginObject("_geometry");
-  writer.beginList("_volume");
+  writer->endList();
+  writer->beginObject("_geometry", "GeometryObject", 1);
+  writer->beginList("_volume");
   // list of all volumes
-  writer.endList();
-  writer.beginList("_mesh");
-  // list of all meshes
-  writer.endList();
-  writer.endObject();
+  writer->endList();
 
-  writer.beginObject("_scene");
+  writer->beginList("_mesh");
+  // list of all meshes
+  writer->endList();
+  writer->endObject();
+
+  writer->beginObject("_scene", "SceneObject", 1);
   // one and only active scene.
   // this includes references to selections of the above objects.
   // other objects should not be cross referencing each other.
   // so scene needs to be set up after other objects are defined.
-  writer.endObject();
 
-  writer.endDocument();
+  writer->endObject();
+
+  writer->endDocument();
+  delete writer;
 }
 
 void
 agaveGui::readDocument(std::string filepath)
 {
-  docReaderJson reader;
-  if (reader.beginDocument(filepath)) {
-    if (reader.beginObject("_AGAVE")) {
+  docReader* reader = new docReaderJson();
+  if (reader->beginDocument(filepath)) {
+    if (reader->beginObject("_AGAVE")) {
       // read agave version at least
-      reader.endObject();
+      reader->endObject();
     }
 
-    if (reader.beginList("_camera")) {
+    if (reader->beginList("_camera")) {
       // list of all cameras
       // v1, read only the first camera
 
       CameraObject* camObj = new CameraObject();
-      camObj->fromDocument(&reader);
+      camObj->fromDocument(reader);
+      camObj->updateObjectFromProps();
 
-      // install camObj into m_cameraObject
+      // install camObj into m_cameraObject???
       m_cameraObject = std::unique_ptr<CameraObject>(camObj);
       // follow through to other parts of the app that need to know about camera change
       m_glView->setCameraObject(m_cameraObject.get());
       // m_cameradock->setCameraObject(m_cameraObject);
 
-      reader.endList();
+      reader->endList();
     }
-    if (reader.beginList("_light")) {
+    if (reader->beginList("_light")) {
       // list of all lights
-      reader.endList();
+      reader->endList();
     }
-    if (reader.beginList("_clipPlane")) {
+    if (reader->beginList("_clipPlane")) {
       // list of all clip planes
-      reader.endList();
+      reader->endList();
     }
-    if (reader.beginList("_renderSettings")) {
+    if (reader->beginList("_renderSettings")) {
       // list of all render settings objects
-      reader.endList();
+      reader->endList();
     }
-    if (reader.beginList("_captureSettings")) {
+    if (reader->beginList("_captureSettings")) {
       // list of capture settings objects (only one?)
-      reader.endList();
+      reader->endList();
     }
 
-    if (reader.beginObject("_geometry")) {
-      if (reader.beginList("_volume")) {
+    if (reader->beginObject("_geometry")) {
+      if (reader->beginList("_volume")) {
         // list of all volumes
-        reader.endList();
+        reader->endList();
       }
-      if (reader.beginList("_mesh")) {
+      if (reader->beginList("_mesh")) {
         // list of all meshes
-        reader.endList();
+        reader->endList();
       }
-      reader.endObject();
+      reader->endObject();
     }
 
-    if (reader.beginObject("_scene")) {
+    if (reader->beginObject("_scene")) {
       // one and only active scene.
-      reader.endObject();
+      reader->endObject();
     }
 
-    reader.endDocument();
-  }
-}
+    reader->endDocument();
 
-void
-agaveGui::saveJson()
-{
-  QFileDialog::Options options;
-#ifdef __linux__
-  options |= QFileDialog::DontUseNativeDialog;
-#endif
-  QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
-  if (!file.isEmpty()) {
-
-    QFile saveFile(file);
-    if (!saveFile.open(QIODevice::WriteOnly)) {
-      qWarning("Couldn't open save file.");
-      return;
-    }
-    // Serialize::ViewerState st = appToViewerState();
-    // nlohmann::json doc = st;
-    // std::string str = doc.dump();
-    // saveFile.write(str.c_str()); // QString::fromStdString(str));
-
-    docWriter* writer = new docWriterJson();
-    writer->beginDocument(file.toStdString());
-    writer->beginObject("_AGAVE");
-    // write agave version at least
-    writer->writeProperty("_version", std::string(AICS_VERSION_STRING));
-    writer->endObject();
-    writer->beginList("_camera");
-    // list of all cameras
-    writer->beginObject("_camera0");
-    writer->writeProperty("_version", (uint32_t)1); // Camera object version
-    writer->writeProperties(m_cameraObject.get());
-    writer->endObject();
-    writer->endList();
-
-    writer->beginList("_light");
-    // list of all lights
-    writer->beginObject("_skylight0");
-    writer->writeProperty("_version", (uint32_t)1); // SkyLight object version
-    writer->writeProperties(m_skyLightObject.get());
-    writer->endObject();
-    writer->beginObject("_arealight0");
-    writer->writeProperty("_version", (uint32_t)1); // AreaLight object version
-    writer->writeProperties(m_areaLightObject.get());
-    writer->endObject();
-    writer->endList();
-
-    writer->beginList("_clipPlane");
-    // list of all clip planes
-    writer->beginObject("_clipPlane0");
-    writer->writeProperty("_version", (uint32_t)1); // ClipPlane object version
-    //    writer.writeProperties(m_clipPlaneObject.get());
-    writer->endObject();
-    writer->endList();
-
-    writer->beginList("_renderSettings");
-    // list of all render settings objects
-    writer->beginObject("_renderSettings0");
-    writer->writeProperty("_version", (uint32_t)1); // RenderSettings object version
-    writer->writeProperties(m_appearanceObject.get());
-    writer->endObject();
-    writer->endList();
-
-    writer->beginList("_captureSettings");
-    // list of capture settings objects (only one?)
-    writer->endList();
-    writer->beginObject("_geometry");
-    writer->writeProperty("_version", (uint32_t)1); // Geometry object version
-    writer->beginList("_volume");
-    // list of all volumes
-    writer->endList();
-    writer->beginList("_mesh");
-    // list of all meshes
-    writer->endList();
-    writer->endObject();
-
-    writer->beginObject("_scene");
-    writer->writeProperty("_version", (uint32_t)1); // Scene object version
-    // one and only active scene.
-    // this includes references to selections of the above objects.
-    // other objects should not be cross referencing each other.
-    // so scene needs to be set up after other objects are defined.
-
-    writer->endObject();
-
-    writer->endDocument();
-    delete writer;
-  }
-}
-
-void
-agaveGui::loadJson()
-{
-  QFileDialog::Options options;
-#ifdef __linux__
-  options |= QFileDialog::DontUseNativeDialog;
-#endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Load JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
-  if (!file.isEmpty()) {
-
-    QFile loadFile(file);
-    if (!loadFile.open(QIODevice::ReadOnly)) {
-      qWarning("Couldn't open load file.");
-      return;
-    }
-
+//////////////////////////////////
+#if 0
     docReader* reader = new docReaderJson();
     if (!reader->beginDocument(file.toStdString())) {
       qWarning("Failed to parse JSON document.");
@@ -941,7 +863,7 @@ agaveGui::loadJson()
     // Read AGAVE metadata
     if (reader->beginObject("_AGAVE")) {
       if (reader->hasKey("_version")) {
-        std::string agaveVersion = reader->readString();
+        std::string agaveVersion = reader->readString("_version");
         LOG_INFO << "Loading AGAVE file version: " << agaveVersion;
       }
       reader->endObject();
@@ -952,7 +874,7 @@ agaveGui::loadJson()
       if (reader->beginObject("_camera0")) {
         // Check version
         if (reader->hasKey("_version")) {
-          uint32_t version = reader->readUint32();
+          uint32_t version = reader->readUint32("_version");
           LOG_INFO << "Camera object version: " << version;
           if (version != 1) {
             LOG_WARNING << "Unknown camera version " << version << ", attempting to read anyway";
@@ -972,28 +894,28 @@ agaveGui::loadJson()
       // Sky light
       if (reader->beginObject("_skylight0")) {
         if (reader->hasKey("_version")) {
-          uint32_t version = reader->readUint32();
+          uint32_t version = reader->readUint32("_version");
           LOG_INFO << "SkyLight object version: " << version;
           if (version != 1) {
             LOG_WARNING << "Unknown skylight version " << version << ", attempting to read anyway";
           }
         }
         reader->readProperties(m_skyLightObject.get());
-        m_skyLightObject->updateObjectFromProps();
+        // m_skyLightObject->updateObjectFromProps();
         reader->endObject();
       }
 
       // Area light
       if (reader->beginObject("_arealight0")) {
         if (reader->hasKey("_version")) {
-          uint32_t version = reader->readUint32();
+          uint32_t version = reader->readUint32("_version");
           LOG_INFO << "AreaLight object version: " << version;
           if (version != 1) {
             LOG_WARNING << "Unknown arealight version " << version << ", attempting to read anyway";
           }
         }
         reader->readProperties(m_areaLightObject.get());
-        m_areaLightObject->updateObjectFromProps();
+        // m_areaLightObject->updateObjectFromProps();
         reader->endObject();
       }
       reader->endList();
@@ -1003,7 +925,7 @@ agaveGui::loadJson()
     if (reader->beginList("_clipPlane")) {
       if (reader->beginObject("_clipPlane0")) {
         if (reader->hasKey("_version")) {
-          uint32_t version = reader->readUint32();
+          uint32_t version = reader->readUint32("_version");
           LOG_INFO << "ClipPlane object version: " << version;
         }
         // TODO: read clip plane properties when implemented
@@ -1016,7 +938,7 @@ agaveGui::loadJson()
     if (reader->beginList("_renderSettings")) {
       if (reader->beginObject("_renderSettings0")) {
         if (reader->hasKey("_version")) {
-          uint32_t version = reader->readUint32();
+          uint32_t version = reader->readUint32("_version");
           LOG_INFO << "RenderSettings object version: " << version;
           if (version != 1) {
             LOG_WARNING << "Unknown render settings version " << version << ", attempting to read anyway";
@@ -1038,27 +960,27 @@ agaveGui::loadJson()
     // Read geometry
     if (reader->beginObject("_geometry")) {
       if (reader->hasKey("_version")) {
-        uint32_t version = reader->readUint32();
+        uint32_t version = reader->readUint32("_version");
         LOG_INFO << "Geometry object version: " << version;
       }
-      
+
       if (reader->beginList("_volume")) {
         // TODO: implement volume loading
         reader->endList();
       }
-      
+
       if (reader->beginList("_mesh")) {
         // TODO: implement mesh loading
         reader->endList();
       }
-      
+
       reader->endObject();
     }
 
     // Read scene
     if (reader->beginObject("_scene")) {
       if (reader->hasKey("_version")) {
-        uint32_t version = reader->readUint32();
+        uint32_t version = reader->readUint32("_version");
         LOG_INFO << "Scene object version: " << version;
       }
       // TODO: implement scene state loading
@@ -1066,7 +988,48 @@ agaveGui::loadJson()
     }
 
     reader->endDocument();
+#endif
     delete reader;
+  }
+}
+
+void
+agaveGui::saveJson()
+{
+  QFileDialog::Options options;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getSaveFileName(this, tr("Save JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
+  if (!file.isEmpty()) {
+
+    QFile saveFile(file);
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+      qWarning("Couldn't open save file.");
+      return;
+    }
+    Serialize::ViewerState st = appToViewerState();
+    nlohmann::json doc = st;
+    std::string str = doc.dump();
+    saveFile.write(str.c_str()); // QString::fromStdString(str));
+  }
+}
+
+void
+agaveGui::loadJson()
+{
+  QFileDialog::Options options;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Load JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
+  if (!file.isEmpty()) {
+
+    QFile loadFile(file);
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+      qWarning("Couldn't open load file.");
+      return;
+    }
 
     LOG_INFO << "Successfully loaded JSON file: " << file.toStdString();
   }

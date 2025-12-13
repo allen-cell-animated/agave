@@ -51,7 +51,7 @@ createTestJsonFile(const std::string& filePath)
 
   docWriterJson writer;
   writer.beginDocument(filePath);
-  writer.beginObject("testObject");
+  writer.beginObject("testObject", "MYTYPE", 1);
   writer.writeProperties(obj);
   writer.endObject();
   writer.endDocument();
@@ -67,7 +67,7 @@ createTestYamlFile(const std::string& filePath)
 
   docWriterYaml writer;
   writer.beginDocument(filePath);
-  writer.beginObject("testObject");
+  writer.beginObject("testObject", "MYTYPE", 1);
   writer.writeProperties(obj);
   writer.endObject();
   writer.endDocument();
@@ -93,27 +93,27 @@ TEST_CASE("Read prtyObject from JSON", "[serialize][docReader]")
   // Read individual properties
   prtyInt32 testInt("testInt");
   reader.readPrty(&testInt);
-  int32_t intValue = reader.readInt32();
+  int32_t intValue = testInt.GetValue();
   REQUIRE(intValue == 42);
 
   prtyFloat testFloat("testFloat");
   reader.readPrty(&testFloat);
-  float floatValue = reader.readFloat32();
+  float floatValue = testFloat.GetValue();
   REQUIRE(floatValue == Catch::Approx(3.14f));
 
   prtyText testString("testString");
   reader.readPrty(&testString);
-  std::string stringValue = reader.readString();
+  std::string stringValue = testString.GetValue();
   REQUIRE(stringValue == "Hello World");
 
   prtyBoolean testBool("testBool");
   reader.readPrty(&testBool);
-  bool boolValue = reader.readBool();
+  bool boolValue = testBool.GetValue();
   REQUIRE(boolValue == true);
 
   prtyInt8 testInt8("testInt8");
   reader.readPrty(&testInt8);
-  int8_t int8Value = reader.readInt8();
+  int8_t int8Value = testInt8.GetValue();
   REQUIRE(int8Value == 127);
 
   reader.endObject();
@@ -141,27 +141,27 @@ TEST_CASE("Read prtyObject from YAML", "[serialize][docReader]")
   // Read individual properties
   prtyInt32 testInt("testInt");
   reader.readPrty(&testInt);
-  int32_t intValue = reader.readInt32();
+  int32_t intValue = testInt.GetValue();
   REQUIRE(intValue == 42);
 
   prtyFloat testFloat("testFloat");
   reader.readPrty(&testFloat);
-  float floatValue = reader.readFloat32();
+  float floatValue = testFloat.GetValue();
   REQUIRE(floatValue == Catch::Approx(3.14f));
 
   prtyText testString("testString");
   reader.readPrty(&testString);
-  std::string stringValue = reader.readString();
+  std::string stringValue = testString.GetValue();
   REQUIRE(stringValue == "Hello World");
 
   prtyBoolean testBool("testBool");
   reader.readPrty(&testBool);
-  bool boolValue = reader.readBool();
+  bool boolValue = testBool.GetValue();
   REQUIRE(boolValue == true);
 
   prtyInt8 testInt8("testInt8");
   reader.readPrty(&testInt8);
-  int8_t int8Value = reader.readInt8();
+  int8_t int8Value = testInt8.GetValue();
   REQUIRE(int8Value == 127);
 
   reader.endObject();
@@ -179,7 +179,7 @@ TEST_CASE("Read and write roundtrip JSON", "[serialize][docReader]")
   prtyObject* originalObj = createTestObject();
   docWriterJson writer;
   writer.beginDocument(jsonPath);
-  writer.beginObject("testObject");
+  writer.beginObject("testObject", "MYTYPE", 1);
   writer.writeProperties(originalObj);
   writer.endObject();
   writer.endDocument();
@@ -206,19 +206,10 @@ TEST_CASE("Read and write roundtrip JSON", "[serialize][docReader]")
 
   // Read properties
   reader.readPrty(intProp->GetProperty(0));
-  static_cast<prtyInt32*>(intProp->GetProperty(0))->SetValue(reader.readInt32());
-
   reader.readPrty(floatProp->GetProperty(0));
-  static_cast<prtyFloat*>(floatProp->GetProperty(0))->SetValue(reader.readFloat32());
-
   reader.readPrty(stringProp->GetProperty(0));
-  static_cast<prtyText*>(stringProp->GetProperty(0))->SetValue(reader.readString());
-
   reader.readPrty(boolProp->GetProperty(0));
-  static_cast<prtyBoolean*>(boolProp->GetProperty(0))->SetValue(reader.readBool());
-
   reader.readPrty(int8Prop->GetProperty(0));
-  static_cast<prtyInt8*>(int8Prop->GetProperty(0))->SetValue(reader.readInt8());
 
   reader.endObject();
   reader.endDocument();
@@ -244,7 +235,7 @@ TEST_CASE("Read and write roundtrip YAML", "[serialize][docReader]")
   prtyObject* originalObj = createTestObject();
   docWriterYaml writer;
   writer.beginDocument(yamlPath);
-  writer.beginObject("testObject");
+  writer.beginObject("testObject", "MYTYPE", 1);
   writer.writeProperties(originalObj);
   writer.endObject();
   writer.endDocument();
@@ -271,19 +262,10 @@ TEST_CASE("Read and write roundtrip YAML", "[serialize][docReader]")
 
   // Read properties
   reader.readPrty(intProp->GetProperty(0));
-  static_cast<prtyInt32*>(intProp->GetProperty(0))->SetValue(reader.readInt32());
-
   reader.readPrty(floatProp->GetProperty(0));
-  static_cast<prtyFloat*>(floatProp->GetProperty(0))->SetValue(reader.readFloat32());
-
   reader.readPrty(stringProp->GetProperty(0));
-  static_cast<prtyText*>(stringProp->GetProperty(0))->SetValue(reader.readString());
-
   reader.readPrty(boolProp->GetProperty(0));
-  static_cast<prtyBoolean*>(boolProp->GetProperty(0))->SetValue(reader.readBool());
-
   reader.readPrty(int8Prop->GetProperty(0));
-  static_cast<prtyInt8*>(int8Prop->GetProperty(0))->SetValue(reader.readInt8());
 
   reader.endObject();
   reader.endDocument();

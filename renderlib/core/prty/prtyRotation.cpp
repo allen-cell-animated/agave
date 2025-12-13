@@ -197,7 +197,7 @@ prtyRotation::Read(docReader& io_Reader)
 {
   // // We need to write euler angles, how to handle versions?
   std::vector<float> temp;
-  temp = io_Reader.readFloat32Array();
+  temp = io_Reader.readFloat32Array(GetPropertyName());
   SetQuaternion(glm::quat(temp[3], temp[0], temp[1], temp[2]));
 }
 

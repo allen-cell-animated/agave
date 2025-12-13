@@ -128,7 +128,7 @@ void
 prtyInt8::Read(docReader& io_Reader)
 {
   int8_t temp;
-  temp = io_Reader.readInt8();
+  temp = io_Reader.readInt8(GetPropertyName());
   SetValue(temp);
 }
 

@@ -85,7 +85,7 @@ void
 prtyColor::Read(docReader& io_Reader)
 {
   std::vector<float> temp;
-  temp = io_Reader.readFloat32Array();
+  temp = io_Reader.readFloat32Array(GetPropertyName());
   SetValue(glm::vec4(temp[0], temp[1], temp[2], temp[3]));
 }
 

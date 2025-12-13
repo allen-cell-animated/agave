@@ -31,21 +31,22 @@ public:
 
   // Peek operations
   virtual std::string peekObjectType() override;
-  virtual int peekVersion() override;
+  virtual uint32_t peekVersion() override;
+  virtual std::string peekObjectName() override;
 
   // Property reading
-  virtual void readPrty(prtyProperty* p) override;
+  virtual bool readPrty(prtyProperty* p) override;
 
-  // Primitive type reading
-  virtual bool readBool() override;
-  virtual int8_t readInt8() override;
-  virtual int32_t readInt32() override;
-  virtual uint32_t readUint32() override;
-  virtual float readFloat32() override;
-  virtual std::vector<float> readFloat32Array() override;
-  virtual std::vector<int32_t> readInt32Array() override;
-  virtual std::vector<uint32_t> readUint32Array() override;
-  virtual std::string readString() override;
+  // Primitive type reading - all require a name parameter
+  virtual bool readBool(const std::string& name) override;
+  virtual int8_t readInt8(const std::string& name) override;
+  virtual int32_t readInt32(const std::string& name) override;
+  virtual uint32_t readUint32(const std::string& name) override;
+  virtual float readFloat32(const std::string& name) override;
+  virtual std::vector<float> readFloat32Array(const std::string& name) override;
+  virtual std::vector<int32_t> readInt32Array(const std::string& name) override;
+  virtual std::vector<uint32_t> readUint32Array(const std::string& name) override;
+  virtual std::string readString(const std::string& name) override;
 
 private:
   enum class ContextType

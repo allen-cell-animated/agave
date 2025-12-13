@@ -148,7 +148,7 @@ void
 prtyFloat::Read(docReader& io_Reader)
 {
   float temp;
-  temp = io_Reader.readFloat32();
+  temp = io_Reader.readFloat32(GetPropertyName());
   SetValue(temp);
 }
 

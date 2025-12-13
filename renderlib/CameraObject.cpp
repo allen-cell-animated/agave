@@ -265,16 +265,48 @@ CameraObject::TransformationChanged(prtyProperty* i_Property, bool i_bDirty)
 void
 CameraObject::fromDocument(docReader* reader)
 {
-  reader->beginObject("CameraObject");
-  reader->readProperties(this);
+  reader->beginObject("camera0");
+
+  // Peek at metadata
+  uint32_t version = reader->peekVersion();
+  std::string type = reader->peekObjectType();
+  std::string name = reader->peekObjectName();
+
+  reader->readPrty(&m_cameraDataObject.Exposure);
+  reader->readPrty(&m_cameraDataObject.ExposureIterations);
+  reader->readPrty(&m_cameraDataObject.NoiseReduction);
+  reader->readPrty(&m_cameraDataObject.ApertureSize);
+  reader->readPrty(&m_cameraDataObject.FieldOfView);
+  reader->readPrty(&m_cameraDataObject.FocalDistance);
+  reader->readPrty(&m_cameraDataObject.Position);
+  reader->readPrty(&m_cameraDataObject.Target);
+  reader->readPrty(&m_cameraDataObject.NearPlane);
+  reader->readPrty(&m_cameraDataObject.FarPlane);
+  reader->readPrty(&m_cameraDataObject.Roll);
+  reader->readPrty(&m_cameraDataObject.OrthoScale);
+  reader->readPrty(&m_cameraDataObject.ProjectionMode);
+
   reader->endObject();
 }
 void
 CameraObject::toDocument(docWriter* writer)
 {
-  writer->beginObject("CameraObject");
-  // write version property explicitly?
-  // ensure that this and most other objects have a (unique) name property?
-  writer->writeProperties(this);
+  writer->beginObject("camera0", "CameraObject", CameraObject::CURRENT_VERSION);
+
+  m_cameraDataObject.Exposure.Write(*writer);
+  m_cameraDataObject.ExposureIterations.Write(*writer);
+  m_cameraDataObject.NoiseReduction.Write(*writer);
+  m_cameraDataObject.ApertureSize.Write(*writer);
+  m_cameraDataObject.FieldOfView.Write(*writer);
+  m_cameraDataObject.FocalDistance.Write(*writer);
+
+  m_cameraDataObject.Position.Write(*writer);
+  m_cameraDataObject.Target.Write(*writer);
+  m_cameraDataObject.NearPlane.Write(*writer);
+  m_cameraDataObject.FarPlane.Write(*writer);
+  m_cameraDataObject.Roll.Write(*writer);
+  m_cameraDataObject.OrthoScale.Write(*writer);
+  m_cameraDataObject.ProjectionMode.Write(*writer);
+
   writer->endObject();
 }

@@ -30,20 +30,57 @@ public:
 
   // Peek at object type and version without consuming
   virtual std::string peekObjectType() = 0;
-  virtual int peekVersion() = 0;
+  virtual uint32_t peekVersion() = 0;
+  virtual std::string peekObjectName() = 0;
 
   // properties will read their name and associated value using the primitive read methods.
-  virtual void readPrty(prtyProperty* p) = 0;
+  virtual bool readPrty(prtyProperty* p) = 0;
 
-  virtual bool readBool() = 0;
-  virtual int8_t readInt8() = 0;
-  virtual int32_t readInt32() = 0;
-  virtual uint32_t readUint32() = 0;
-  virtual float readFloat32() = 0;
-  virtual std::vector<float> readFloat32Array() = 0;
-  virtual std::vector<int32_t> readInt32Array() = 0;
-  virtual std::vector<uint32_t> readUint32Array() = 0;
-  virtual std::string readString() = 0;
+  // Templated property reader that maps value types to primitive read methods
+  template<typename T>
+  T readProperty(const std::string& name)
+  {
+    if constexpr (std::is_same_v<T, bool>) {
+      return readBool(name);
+    } else if constexpr (std::is_same_v<T, int8_t>) {
+      return readInt8(name);
+    } else if constexpr (std::is_same_v<T, int32_t>) {
+      return readInt32(name);
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+      return readUint32(name);
+    } else if constexpr (std::is_same_v<T, float>) {
+      return readFloat32(name);
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      return readString(name);
+    } else if constexpr (std::is_same_v<T, std::vector<float>>) {
+      return readFloat32Array(name);
+    } else if constexpr (std::is_same_v<T, std::vector<int32_t>>) {
+      return readInt32Array(name);
+    } else if constexpr (std::is_same_v<T, std::vector<uint32_t>>) {
+      return readUint32Array(name);
+    } else {
+      static_assert(sizeof(T) == 0, "Unsupported type for readProperty");
+      return T{};
+    }
+  }
+
+  // Overload that takes a pointer and assigns to it
+  template<typename T>
+  void readProperty(const std::string& name, T* value)
+  {
+    *value = readProperty<T>(name);
+  }
+
+  // All primitive read methods now require a name parameter
+  virtual bool readBool(const std::string& name) = 0;
+  virtual int8_t readInt8(const std::string& name) = 0;
+  virtual int32_t readInt32(const std::string& name) = 0;
+  virtual uint32_t readUint32(const std::string& name) = 0;
+  virtual float readFloat32(const std::string& name) = 0;
+  virtual std::vector<float> readFloat32Array(const std::string& name) = 0;
+  virtual std::vector<int32_t> readInt32Array(const std::string& name) = 0;
+  virtual std::vector<uint32_t> readUint32Array(const std::string& name) = 0;
+  virtual std::string readString(const std::string& name) = 0;
 
   void readProperties(prtyObject* obj);
 };

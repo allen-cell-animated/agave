@@ -83,7 +83,7 @@ prtyBoolean::operator!=(const bool i_Value) const
 void
 prtyBoolean::Read(docReader& io_Reader)
 {
-  bool temp = io_Reader.readBool();
+  bool temp = io_Reader.readBool(GetPropertyName());
   SetValue(temp);
 }
 

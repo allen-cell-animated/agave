@@ -206,7 +206,7 @@ docReaderJson::peekObjectType()
   return "";
 }
 
-int
+uint32_t
 docReaderJson::peekVersion()
 {
   nlohmann::json* current = getCurrentObject();
@@ -217,17 +217,33 @@ docReaderJson::peekVersion()
   // Look for a "_version" key in the current object
   if (current->contains(SerializationConstants::VERSION_KEY) &&
       (*current)[SerializationConstants::VERSION_KEY].is_number_integer()) {
-    return (*current)[SerializationConstants::VERSION_KEY].get<int>();
+    return (*current)[SerializationConstants::VERSION_KEY].get<uint32_t>();
   }
 
   return 0;
 }
 
-void
+std::string
+docReaderJson::peekObjectName()
+{
+  nlohmann::json* current = getCurrentObject();
+  if (!current || !current->is_object()) {
+    return "";
+  }
+
+  // Look for a "_name" key in the current object
+  if (current->contains(SerializationConstants::NAME_KEY) && (*current)[SerializationConstants::NAME_KEY].is_string()) {
+    return (*current)[SerializationConstants::NAME_KEY].get<std::string>();
+  }
+
+  return "";
+}
+
+bool
 docReaderJson::readPrty(prtyProperty* p)
 {
   if (!p) {
-    return;
+    return false;
   }
 
   // Store the property name for the next read operation
@@ -237,15 +253,16 @@ docReaderJson::readPrty(prtyProperty* p)
   nlohmann::json* current = getCurrentObject();
   if (!current || !current->contains(m_nextKey)) {
     LOG_ERROR << "readPrty() - property key not found: " << m_nextKey;
-    return;
+    return false;
   }
 
   // Let the property read itself
   p->Read(*this);
+  return true;
 }
 
 bool
-docReaderJson::readBool()
+docReaderJson::readBool(const std::string& name)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -254,8 +271,8 @@ docReaderJson::readBool()
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
     // Reading from object by key
-    if (current->contains(m_nextKey) && (*current)[m_nextKey].is_boolean()) {
-      return (*current)[m_nextKey].get<bool>();
+    if (current->contains(name) && (*current)[name].is_boolean()) {
+      return (*current)[name].get<bool>();
     }
   } else {
     // Reading from array by index
@@ -271,7 +288,7 @@ docReaderJson::readBool()
 }
 
 int8_t
-docReaderJson::readInt8()
+docReaderJson::readInt8(const std::string& name)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -280,8 +297,8 @@ docReaderJson::readInt8()
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
     // Reading from object by key
-    if (current->contains(m_nextKey) && (*current)[m_nextKey].is_number_integer()) {
-      return (*current)[m_nextKey].get<int8_t>();
+    if (current->contains(name) && (*current)[name].is_number_integer()) {
+      return (*current)[name].get<int8_t>();
     }
   } else {
     // Reading from array by index
@@ -297,7 +314,7 @@ docReaderJson::readInt8()
 }
 
 int32_t
-docReaderJson::readInt32()
+docReaderJson::readInt32(const std::string& name)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -306,8 +323,8 @@ docReaderJson::readInt32()
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
     // Reading from object by key
-    if (current->contains(m_nextKey) && (*current)[m_nextKey].is_number_integer()) {
-      return (*current)[m_nextKey].get<int32_t>();
+    if (current->contains(name) && (*current)[name].is_number_integer()) {
+      return (*current)[name].get<int32_t>();
     }
   } else {
     // Reading from array by index
@@ -323,7 +340,7 @@ docReaderJson::readInt32()
 }
 
 uint32_t
-docReaderJson::readUint32()
+docReaderJson::readUint32(const std::string& name)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -332,8 +349,8 @@ docReaderJson::readUint32()
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
     // Reading from object by key
-    if (current->contains(m_nextKey) && (*current)[m_nextKey].is_number_unsigned()) {
-      return (*current)[m_nextKey].get<uint32_t>();
+    if (current->contains(name) && (*current)[name].is_number_unsigned()) {
+      return (*current)[name].get<uint32_t>();
     }
   } else {
     // Reading from array by index
@@ -349,7 +366,7 @@ docReaderJson::readUint32()
 }
 
 float
-docReaderJson::readFloat32()
+docReaderJson::readFloat32(const std::string& name)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -358,8 +375,8 @@ docReaderJson::readFloat32()
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
     // Reading from object by key
-    if (current->contains(m_nextKey) && (*current)[m_nextKey].is_number()) {
-      return (*current)[m_nextKey].get<float>();
+    if (current->contains(name) && (*current)[name].is_number()) {
+      return (*current)[name].get<float>();
     }
   } else {
     // Reading from array by index
@@ -375,7 +392,7 @@ docReaderJson::readFloat32()
 }
 
 std::vector<float>
-docReaderJson::readFloat32Array()
+docReaderJson::readFloat32Array(const std::string& name)
 {
   std::vector<float> result;
   nlohmann::json* current = getCurrentObject();
@@ -383,8 +400,8 @@ docReaderJson::readFloat32Array()
     return result;
   }
 
-  if (current->contains(m_nextKey) && (*current)[m_nextKey].is_array()) {
-    const nlohmann::json& arr = (*current)[m_nextKey];
+  if (current->contains(name) && (*current)[name].is_array()) {
+    const nlohmann::json& arr = (*current)[name];
     for (const auto& elem : arr) {
       if (elem.is_number()) {
         result.push_back(elem.get<float>());
@@ -396,7 +413,7 @@ docReaderJson::readFloat32Array()
 }
 
 std::vector<int32_t>
-docReaderJson::readInt32Array()
+docReaderJson::readInt32Array(const std::string& name)
 {
   std::vector<int32_t> result;
   nlohmann::json* current = getCurrentObject();
@@ -404,8 +421,8 @@ docReaderJson::readInt32Array()
     return result;
   }
 
-  if (current->contains(m_nextKey) && (*current)[m_nextKey].is_array()) {
-    const nlohmann::json& arr = (*current)[m_nextKey];
+  if (current->contains(name) && (*current)[name].is_array()) {
+    const nlohmann::json& arr = (*current)[name];
     for (const auto& elem : arr) {
       if (elem.is_number_integer()) {
         result.push_back(elem.get<int32_t>());
@@ -417,7 +434,7 @@ docReaderJson::readInt32Array()
 }
 
 std::vector<uint32_t>
-docReaderJson::readUint32Array()
+docReaderJson::readUint32Array(const std::string& name)
 {
   std::vector<uint32_t> result;
   nlohmann::json* current = getCurrentObject();
@@ -425,8 +442,8 @@ docReaderJson::readUint32Array()
     return result;
   }
 
-  if (current->contains(m_nextKey) && (*current)[m_nextKey].is_array()) {
-    const nlohmann::json& arr = (*current)[m_nextKey];
+  if (current->contains(name) && (*current)[name].is_array()) {
+    const nlohmann::json& arr = (*current)[name];
     for (const auto& elem : arr) {
       if (elem.is_number_unsigned()) {
         result.push_back(elem.get<uint32_t>());
@@ -438,7 +455,7 @@ docReaderJson::readUint32Array()
 }
 
 std::string
-docReaderJson::readString()
+docReaderJson::readString(const std::string& name)
 {
   nlohmann::json* current = getCurrentObject();
   if (!current) {
@@ -447,8 +464,8 @@ docReaderJson::readString()
 
   if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
     // Reading from object by key
-    if (current->contains(m_nextKey) && (*current)[m_nextKey].is_string()) {
-      return (*current)[m_nextKey].get<std::string>();
+    if (current->contains(name) && (*current)[name].is_string()) {
+      return (*current)[name].get<std::string>();
     }
   } else {
     // Reading from array by index
