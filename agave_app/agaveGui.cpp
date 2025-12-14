@@ -803,39 +803,117 @@ agaveGui::readDocument(std::string filepath)
     if (reader->beginList("_camera")) {
       // list of all cameras
       // v1, read only the first camera
+      // Iterate through objects in the list
+      while (reader->beginObject("")) {
 
-      CameraObject* camObj = new CameraObject();
-      camObj->fromDocument(reader);
-      camObj->updateObjectFromProps();
+        CameraObject* camObj = new CameraObject();
+        camObj->fromDocument(reader);
+        reader->endObject();
 
-      // install camObj into m_cameraObject???
-      m_cameraObject = std::unique_ptr<CameraObject>(camObj);
-      // follow through to other parts of the app that need to know about camera change
-      m_glView->setCameraObject(m_cameraObject.get());
-      // m_cameradock->setCameraObject(m_cameraObject);
+        camObj->updateObjectFromProps();
+
+        // install camObj into m_cameraObject???
+        m_cameraObject = std::unique_ptr<CameraObject>(camObj);
+        // follow through to other parts of the app that need to know about camera change
+        m_glView->setCameraObject(m_cameraObject.get());
+        // m_cameradock->setCameraObject(m_cameraObject);
+
+        break; // only read first camera for now
+      }
 
       reader->endList();
     }
     if (reader->beginList("_light")) {
       // list of all lights
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "SkyLightObject") {
+          SkyLightObject* skyLightObj = new SkyLightObject();
+          skyLightObj->fromDocument(reader);
+          reader->endObject();
+          // install skyLightObj into m_skyLightObject???
+          m_skyLightObject = std::unique_ptr<SkyLightObject>(skyLightObj);
+          // follow through to other parts of the app that need to know about skylight change
+          m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
+          // m_skylightDock->setSkyLightObject(m_skyLightObject);
+        } else if (objType == "AreaLightObject") {
+          AreaLightObject* areaLightObj = new AreaLightObject();
+          areaLightObj->fromDocument(reader);
+          reader->endObject();
+          // install areaLightObj into m_areaLightObject???
+          m_areaLightObject = std::unique_ptr<AreaLightObject>(areaLightObj);
+          // follow through to other parts of the app that need to know about area light change
+          m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
+          // m_areaLightDock->setAreaLightObject(m_areaLightObject);
+        } else {
+          LOG_WARNING << "Unknown light object type: " << objType;
+          reader->endObject();
+        }
+      }
       reader->endList();
     }
     if (reader->beginList("_clipPlane")) {
       // list of all clip planes
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "ClipPlaneObject") {
+          // TODO implement clip plane loading
+          reader->endObject();
+        } else {
+          LOG_WARNING << "Unknown clip plane object type: " << objType;
+          reader->endObject();
+        }
+      }
       reader->endList();
     }
     if (reader->beginList("_renderSettings")) {
       // list of all render settings objects
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "RenderSettingsObject") {
+          AppearanceObject* appObj = new AppearanceObject();
+          appObj->fromDocument(reader);
+          reader->endObject();
+          // install appObj into m_appearanceObject???
+          m_appearanceObject = std::unique_ptr<AppearanceObject>(appObj);
+          // follow through to other parts of the app that need to know about appearance change
+          m_appearanceObject->updateObjectFromProps();
+          // m_appearanceDockWidget->setAppearanceObject(m_appearanceObject);
+        } else {
+          LOG_WARNING << "Unknown render settings object type: " << objType;
+          reader->endObject();
+        }
+      }
       reader->endList();
     }
     if (reader->beginList("_captureSettings")) {
       // list of capture settings objects (only one?)
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "CaptureSettingsObject") {
+          // TODO implement capture settings loading
+          reader->endObject();
+        } else {
+          LOG_WARNING << "Unknown capture settings object type: " << objType;
+          reader->endObject();
+        }
+      }
       reader->endList();
     }
 
     if (reader->beginObject("_geometry")) {
       if (reader->beginList("_volume")) {
         // list of all volumes
+        while (reader->beginObject("")) {
+          std::string objType = reader->peekObjectType();
+          if (objType == "VolumeObject") {
+            // TODO implement volume loading
+            reader->endObject();
+          } else {
+            LOG_WARNING << "Unknown volume object type: " << objType;
+            reader->endObject();
+          }
+        }
         reader->endList();
       }
       if (reader->beginList("_mesh")) {

@@ -94,7 +94,9 @@ TEST_CASE("CameraObject JSON roundtrip serialization", "[CameraObject][serialize
 
     docReaderJson reader;
     reader.beginDocument(jsonPath);
+    reader.beginObject("camera0");
     loadedCamera->fromDocument(&reader);
+    reader.endObject();
     reader.endDocument();
 
     verifyTestCameraObject(loadedCamera);
@@ -131,7 +133,9 @@ TEST_CASE("CameraObject YAML roundtrip serialization", "[CameraObject][serialize
 
     docReaderYaml reader;
     reader.beginDocument(yamlPath);
+    reader.beginObject("camera0");
     loadedCamera->fromDocument(&reader);
+    reader.endObject();
     reader.endDocument();
 
     verifyTestCameraObject(loadedCamera);
@@ -180,8 +184,6 @@ TEST_CASE("CameraObject version 1 JSON format compatibility", "[CameraObject][se
     docReaderJson reader;
     reader.beginDocument(jsonPath);
 
-    loadedCamera->fromDocument(&reader);
-    // Enter the CameraObject before checking version
     reader.beginObject("camera0");
 
     // Check version before reading properties
@@ -190,6 +192,8 @@ TEST_CASE("CameraObject version 1 JSON format compatibility", "[CameraObject][se
 
     int version = reader.peekVersion();
     REQUIRE(version == 1);
+
+    loadedCamera->fromDocument(&reader);
 
     reader.endObject();
 
@@ -239,9 +243,6 @@ TEST_CASE("CameraObject version 1 YAML format compatibility", "[CameraObject][se
     docReaderYaml reader;
     reader.beginDocument(yamlPath);
 
-    loadedCamera->fromDocument(&reader);
-
-    // Enter the CameraObject before checking version
     reader.beginObject("camera0");
 
     // Check version before reading properties
@@ -250,6 +251,8 @@ TEST_CASE("CameraObject version 1 YAML format compatibility", "[CameraObject][se
 
     int version = reader.peekVersion();
     REQUIRE(version == 1);
+
+    loadedCamera->fromDocument(&reader);
 
     reader.endObject();
 
@@ -287,7 +290,9 @@ TEST_CASE("CameraObject default values serialization", "[CameraObject][serialize
 
     docReaderJson reader;
     reader.beginDocument(jsonPath);
+    reader.beginObject("camera0");
     loadedCamera->fromDocument(&reader);
+    reader.endObject();
     reader.endDocument();
 
     // Verify all values match defaults
@@ -336,7 +341,9 @@ TEST_CASE("CameraObject partial data loading", "[CameraObject][serialize]")
 
     docReaderJson reader;
     reader.beginDocument(jsonPath);
+    reader.beginObject("camera0");
     loadedCamera->fromDocument(&reader);
+    reader.endObject();
     reader.endDocument();
 
     // Specified properties should be loaded
@@ -383,13 +390,13 @@ TEST_CASE("CameraObject invalid version handling", "[CameraObject][serialize][ve
     docReaderJson reader;
     reader.beginDocument(jsonPath);
 
-    loadedCamera->fromDocument(&reader);
-
     // Enter the CameraObject before checking version
     reader.beginObject("camera0");
 
     uint32_t version = reader.peekVersion();
     REQUIRE(version == 999);
+
+    loadedCamera->fromDocument(&reader);
 
     reader.endObject();
 
@@ -430,7 +437,9 @@ TEST_CASE("CameraObject enum property serialization", "[CameraObject][serialize]
 
       docReaderJson reader;
       reader.beginDocument(jsonPath);
+      reader.beginObject("camera0");
       loadedCamera->fromDocument(&reader);
+      reader.endObject();
       reader.endDocument();
 
       REQUIRE(loadedCamera->getCameraDataObject().ExposureIterations.GetValue() == i);
@@ -460,7 +469,9 @@ TEST_CASE("CameraObject enum property serialization", "[CameraObject][serialize]
 
       docReaderJson reader;
       reader.beginDocument(jsonPath);
+      reader.beginObject("camera0");
       loadedCamera->fromDocument(&reader);
+      reader.endObject();
       reader.endDocument();
 
       REQUIRE(loadedCamera->getCameraDataObject().ProjectionMode.GetValue() == i);

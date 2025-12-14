@@ -265,8 +265,6 @@ CameraObject::TransformationChanged(prtyProperty* i_Property, bool i_bDirty)
 void
 CameraObject::fromDocument(docReader* reader)
 {
-  reader->beginObject("camera0");
-
   // Peek at metadata
   uint32_t version = reader->peekVersion();
   std::string type = reader->peekObjectType();
@@ -285,8 +283,6 @@ CameraObject::fromDocument(docReader* reader)
   reader->readPrty(&m_cameraDataObject.Roll);
   reader->readPrty(&m_cameraDataObject.OrthoScale);
   reader->readPrty(&m_cameraDataObject.ProjectionMode);
-
-  reader->endObject();
 }
 void
 CameraObject::toDocument(docWriter* writer)
