@@ -829,7 +829,7 @@ agaveGui::readDocument(std::string filepath)
         std::string objType = reader->peekObjectType();
         if (objType == "SkyLightObject") {
           SkyLightObject* skyLightObj = new SkyLightObject();
-          skyLightObj->fromDocument(reader);
+          // skyLightObj->fromDocument(reader);
           reader->endObject();
           // install skyLightObj into m_skyLightObject???
           m_skyLightObject = std::unique_ptr<SkyLightObject>(skyLightObj);
@@ -838,7 +838,7 @@ agaveGui::readDocument(std::string filepath)
           // m_skylightDock->setSkyLightObject(m_skyLightObject);
         } else if (objType == "AreaLightObject") {
           AreaLightObject* areaLightObj = new AreaLightObject();
-          areaLightObj->fromDocument(reader);
+          // areaLightObj->fromDocument(reader);
           reader->endObject();
           // install areaLightObj into m_areaLightObject???
           m_areaLightObject = std::unique_ptr<AreaLightObject>(areaLightObj);
@@ -872,7 +872,7 @@ agaveGui::readDocument(std::string filepath)
         std::string objType = reader->peekObjectType();
         if (objType == "RenderSettingsObject") {
           AppearanceObject* appObj = new AppearanceObject();
-          appObj->fromDocument(reader);
+          // appObj->fromDocument(reader);
           reader->endObject();
           // install appObj into m_appearanceObject???
           m_appearanceObject = std::unique_ptr<AppearanceObject>(appObj);
