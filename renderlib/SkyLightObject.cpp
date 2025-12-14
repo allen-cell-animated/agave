@@ -3,6 +3,9 @@
 #include "SceneLight.h"
 #include "Logging.h"
 
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
+
 SkyLightObject::SkyLightObject()
   : prtyObject()
 {
@@ -152,4 +155,35 @@ void
 SkyLightObject::BottomColorChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
+}
+
+void
+SkyLightObject::fromDocument(docReader* reader)
+{
+  // Peek at metadata
+  uint32_t version = reader->peekVersion();
+  std::string type = reader->peekObjectType();
+  std::string name = reader->peekObjectName();
+
+  reader->readPrty(&m_skylightDataObject.TopIntensity);
+  reader->readPrty(&m_skylightDataObject.TopColor);
+  reader->readPrty(&m_skylightDataObject.MiddleIntensity);
+  reader->readPrty(&m_skylightDataObject.MiddleColor);
+  reader->readPrty(&m_skylightDataObject.BottomIntensity);
+  reader->readPrty(&m_skylightDataObject.BottomColor);
+}
+
+void
+SkyLightObject::toDocument(docWriter* writer)
+{
+  writer->beginObject("skyLight0", "SkyLightObject", SkyLightObject::CURRENT_VERSION);
+
+  m_skylightDataObject.TopIntensity.Write(*writer);
+  m_skylightDataObject.TopColor.Write(*writer);
+  m_skylightDataObject.MiddleIntensity.Write(*writer);
+  m_skylightDataObject.MiddleColor.Write(*writer);
+  m_skylightDataObject.BottomIntensity.Write(*writer);
+  m_skylightDataObject.BottomColor.Write(*writer);
+
+  writer->endObject();
 }
