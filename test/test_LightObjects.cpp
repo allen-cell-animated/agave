@@ -65,7 +65,7 @@ TEST_CASE("AreaLightObject creation and initialization", "[AreaLightObject]")
   // Verify default values
   const ArealightDataObject& data = light->getDataObject();
   REQUIRE(data.Theta.GetValue() == Catch::Approx(0.0f));
-  REQUIRE(data.Phi.GetValue() == Catch::Approx(0.0f));
+  REQUIRE(data.Phi.GetValue() == Catch::Approx(90.0f));
   REQUIRE(data.Size.GetValue() == Catch::Approx(1.0f));
   REQUIRE(data.Distance.GetValue() == Catch::Approx(10.0f));
   REQUIRE(data.Intensity.GetValue() == Catch::Approx(100.0f));

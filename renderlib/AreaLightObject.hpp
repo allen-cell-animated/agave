@@ -17,7 +17,7 @@ public:
   ArealightDataObject() = default;
 
   prtyFloat Theta{ "Theta", 0.0f };
-  prtyFloat Phi{ "Phi", 1.5708f }; // PI/2
+  prtyFloat Phi{ "Phi", 90.0f }; // PI/2
   prtyFloat Size{ "Size", 1.0f };
   prtyFloat Distance{ "Distance", 10.0f };
   prtyFloat Intensity{ "Intensity", 100.0f };
