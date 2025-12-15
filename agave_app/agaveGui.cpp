@@ -735,34 +735,22 @@ agaveGui::writeDocument(std::string filepath)
   writer->beginList("_camera");
   // list of all cameras
   m_cameraObject->toDocument(writer);
-  // writer->beginObject("_camera0");
-  // writer->writeProperty("_version", (uint32_t)1); // Camera object version
-  // writer->writeProperties(m_cameraObject.get());
-  // writer->endObject();
   writer->endList();
 
   writer->beginList("_light");
   // list of all lights
-  writer->beginObject("_skylight0", "SkyLightObject", 1);
-  writer->writeProperties(m_skyLightObject.get());
-  writer->endObject();
-  writer->beginObject("_arealight0", "AreaLightObject", 1);
-  writer->writeProperties(m_areaLightObject.get());
-  writer->endObject();
+  m_skyLightObject->toDocument(writer);
+  m_areaLightObject->toDocument(writer);
   writer->endList();
 
   writer->beginList("_clipPlane");
   // list of all clip planes
-  writer->beginObject("_clipPlane0", "ClipPlaneObject", 1);
-  //    writer.writeProperties(m_clipPlaneObject.get());
-  writer->endObject();
+  // m_clipPlaneObject->toDocument(writer);
   writer->endList();
 
   writer->beginList("_renderSettings");
   // list of all render settings objects
-  writer->beginObject("_renderSettings0", "RenderSettingsObject", 1);
-  writer->writeProperties(m_appearanceObject.get());
-  writer->endObject();
+  m_appearanceObject->toDocument(writer);
   writer->endList();
 
   writer->beginList("_captureSettings");
@@ -872,7 +860,7 @@ agaveGui::readDocument(std::string filepath)
         std::string objType = reader->peekObjectType();
         if (objType == "RenderSettingsObject") {
           AppearanceObject* appObj = new AppearanceObject();
-          // appObj->fromDocument(reader);
+          appObj->fromDocument(reader);
           reader->endObject();
           // install appObj into m_appearanceObject???
           m_appearanceObject = std::unique_ptr<AppearanceObject>(appObj);
