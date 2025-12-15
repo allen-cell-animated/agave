@@ -6,6 +6,9 @@
 #include "AppScene.h"
 #include "uiInfo.hpp"
 
+class docReader;
+class docWriter;
+
 struct AppearanceUiDescription
 {
   static ComboBoxUiInfo m_rendererType;
@@ -48,6 +51,11 @@ public:
 
   // Getter for the rendersettings
   std::shared_ptr<RenderSettings> getRenderSettings() const { return m_renderSettings; }
+
+  // document reading and writing; TODO consider an abstract base class to enforce commonality
+  static constexpr uint32_t CURRENT_VERSION = 1;
+  void fromDocument(docReader* reader);
+  void toDocument(docWriter* writer);
 
 private:
   // the properties

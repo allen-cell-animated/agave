@@ -52,7 +52,18 @@ createTestJsonFile(const std::string& filePath)
   docWriterJson writer;
   writer.beginDocument(filePath);
   writer.beginObject("testObject", "MYTYPE", 1);
-  writer.writeProperties(obj);
+
+  // Write properties directly
+  for (const auto& propUIInfo : obj->GetList()) {
+    int numProps = propUIInfo->GetNumberOfProperties();
+    for (int i = 0; i < numProps; ++i) {
+      prtyProperty* prop = propUIInfo->GetProperty(i);
+      if (prop) {
+        prop->Write(writer);
+      }
+    }
+  }
+
   writer.endObject();
   writer.endDocument();
 
@@ -68,7 +79,18 @@ createTestYamlFile(const std::string& filePath)
   docWriterYaml writer;
   writer.beginDocument(filePath);
   writer.beginObject("testObject", "MYTYPE", 1);
-  writer.writeProperties(obj);
+
+  // Write properties directly
+  for (const auto& propUIInfo : obj->GetList()) {
+    int numProps = propUIInfo->GetNumberOfProperties();
+    for (int i = 0; i < numProps; ++i) {
+      prtyProperty* prop = propUIInfo->GetProperty(i);
+      if (prop) {
+        prop->Write(writer);
+      }
+    }
+  }
+
   writer.endObject();
   writer.endDocument();
 
@@ -180,7 +202,18 @@ TEST_CASE("Read and write roundtrip JSON", "[serialize][docReader]")
   docWriterJson writer;
   writer.beginDocument(jsonPath);
   writer.beginObject("testObject", "MYTYPE", 1);
-  writer.writeProperties(originalObj);
+
+  // Write properties directly
+  for (const auto& propUIInfo : originalObj->GetList()) {
+    int numProps = propUIInfo->GetNumberOfProperties();
+    for (int i = 0; i < numProps; ++i) {
+      prtyProperty* prop = propUIInfo->GetProperty(i);
+      if (prop) {
+        prop->Write(writer);
+      }
+    }
+  }
+
   writer.endObject();
   writer.endDocument();
 
@@ -236,7 +269,18 @@ TEST_CASE("Read and write roundtrip YAML", "[serialize][docReader]")
   docWriterYaml writer;
   writer.beginDocument(yamlPath);
   writer.beginObject("testObject", "MYTYPE", 1);
-  writer.writeProperties(originalObj);
+
+  // Write properties directly
+  for (const auto& propUIInfo : originalObj->GetList()) {
+    int numProps = propUIInfo->GetNumberOfProperties();
+    for (int i = 0; i < numProps; ++i) {
+      prtyProperty* prop = propUIInfo->GetProperty(i);
+      if (prop) {
+        prop->Write(writer);
+      }
+    }
+  }
+
   writer.endObject();
   writer.endDocument();
 

@@ -1,6 +1,8 @@
 #include "AppearanceObject.hpp"
 
 #include "Logging.h"
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
 // ComboBoxUiInfo AppearanceUiDescription::m_rendererType("Renderer Type",
 //                                                        "Select volume rendering type",
 //                                                        "Select volume rendering type",
@@ -283,4 +285,45 @@ AppearanceObject::ShowScaleBarChanged(prtyProperty* i_Property, bool i_bDirty)
     scene->m_showScaleBar = m_appearanceDataObject.ShowScaleBar.GetValue();
     m_renderSettings->m_DirtyFlags.SetFlag(EnvironmentDirty);
   }
+}
+
+void
+AppearanceObject::fromDocument(docReader* reader)
+{
+  // Peek at metadata
+  uint32_t version = reader->peekVersion();
+  std::string type = reader->peekObjectType();
+  std::string name = reader->peekObjectName();
+
+  reader->readPrty(&m_appearanceDataObject.RendererType);
+  reader->readPrty(&m_appearanceDataObject.ShadingType);
+  reader->readPrty(&m_appearanceDataObject.DensityScale);
+  reader->readPrty(&m_appearanceDataObject.GradientFactor);
+  reader->readPrty(&m_appearanceDataObject.StepSizePrimaryRay);
+  reader->readPrty(&m_appearanceDataObject.StepSizeSecondaryRay);
+  reader->readPrty(&m_appearanceDataObject.Interpolate);
+  reader->readPrty(&m_appearanceDataObject.BackgroundColor);
+  reader->readPrty(&m_appearanceDataObject.ShowBoundingBox);
+  reader->readPrty(&m_appearanceDataObject.BoundingBoxColor);
+  reader->readPrty(&m_appearanceDataObject.ShowScaleBar);
+}
+
+void
+AppearanceObject::toDocument(docWriter* writer)
+{
+  writer->beginObject("appearance0", "AppearanceObject", AppearanceObject::CURRENT_VERSION);
+
+  m_appearanceDataObject.RendererType.Write(*writer);
+  m_appearanceDataObject.ShadingType.Write(*writer);
+  m_appearanceDataObject.DensityScale.Write(*writer);
+  m_appearanceDataObject.GradientFactor.Write(*writer);
+  m_appearanceDataObject.StepSizePrimaryRay.Write(*writer);
+  m_appearanceDataObject.StepSizeSecondaryRay.Write(*writer);
+  m_appearanceDataObject.Interpolate.Write(*writer);
+  m_appearanceDataObject.BackgroundColor.Write(*writer);
+  m_appearanceDataObject.ShowBoundingBox.Write(*writer);
+  m_appearanceDataObject.BoundingBoxColor.Write(*writer);
+  m_appearanceDataObject.ShowScaleBar.Write(*writer);
+
+  writer->endObject();
 }

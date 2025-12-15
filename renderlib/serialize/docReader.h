@@ -81,6 +81,4 @@ public:
   virtual std::vector<int32_t> readInt32Array(const std::string& name) = 0;
   virtual std::vector<uint32_t> readUint32Array(const std::string& name) = 0;
   virtual std::string readString(const std::string& name) = 0;
-
-  void readProperties(prtyObject* obj);
 };

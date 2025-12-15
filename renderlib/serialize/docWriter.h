@@ -67,6 +67,4 @@ public:
   virtual size_t writeInt32Array(const std::string& name, const std::vector<int32_t>& value) = 0;
   virtual size_t writeUint32Array(const std::string& name, const std::vector<uint32_t>& value) = 0;
   virtual size_t writeString(const std::string& name, const std::string& value) = 0;
-
-  void writeProperties(prtyObject* obj);
 };

@@ -29,7 +29,16 @@ writePrtyObject(docWriter& writer, prtyObject* obj, const std::string& name)
 
   writer.beginObject(name.c_str(), "MYTYPE", 1);
 
-  writer.writeProperties(obj);
+  // Write properties directly
+  for (const auto& propUIInfo : obj->GetList()) {
+    int numProps = propUIInfo->GetNumberOfProperties();
+    for (int i = 0; i < numProps; ++i) {
+      prtyProperty* prop = propUIInfo->GetProperty(i);
+      if (prop) {
+        prop->Write(writer);
+      }
+    }
+  }
 
   writer.endObject();
 }
