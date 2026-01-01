@@ -15,6 +15,7 @@
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
 #include "renderlib/CameraObject.hpp"
+#include "renderlib/ClipPlaneObject.hpp"
 #include "renderlib/AppearanceObject.hpp"
 #include "renderlib/serialize/docWriterJson.h"
 #include "renderlib/serialize/docReaderJson.h"
@@ -88,7 +89,7 @@ QMenu#quickViewsMenu {border-radius: 2px;}
 agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
-  // create our two document objects
+  // create our document objects
   m_cameraObject = std::make_unique<CameraObject>();
   m_appearanceObject = std::make_unique<AppearanceObject>();
   m_areaLightObject = std::make_unique<AreaLightObject>();
@@ -99,6 +100,9 @@ agaveGui::agaveGui(QWidget* parent)
   m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
   m_skyLightObject->setDirtyCallback(
     [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
+  m_clipPlaneObject = std::make_unique<ClipPlaneObject>();
+  m_clipPlaneObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(RoiDirty); });
 
   m_ui.setupUi(this);
 
@@ -745,7 +749,7 @@ agaveGui::writeDocument(std::string filepath)
 
   writer->beginList("_clipPlane");
   // list of all clip planes
-  // m_clipPlaneObject->toDocument(writer);
+  m_clipPlaneObject->toDocument(writer);
   writer->endList();
 
   writer->beginList("_renderSettings");
@@ -843,14 +847,20 @@ agaveGui::readDocument(std::string filepath)
     if (reader->beginList("_clipPlane")) {
       // list of all clip planes
       while (reader->beginObject("")) {
-        std::string objType = reader->peekObjectType();
-        if (objType == "ClipPlaneObject") {
-          // TODO implement clip plane loading
-          reader->endObject();
-        } else {
-          LOG_WARNING << "Unknown clip plane object type: " << objType;
-          reader->endObject();
-        }
+        ClipPlaneObject* clipPlaneObj = new ClipPlaneObject();
+        clipPlaneObj->fromDocument(reader);
+        reader->endObject();
+
+        clipPlaneObj->updateObjectFromProps();
+
+        // std::string objType = reader->peekObjectType();
+        // if (objType == "ClipPlaneObject") {
+        //   // TODO implement clip plane loading
+        //   reader->endObject();
+        // } else {
+        //   LOG_WARNING << "Unknown clip plane object type: " << objType;
+        //   reader->endObject();
+        // }
       }
       reader->endList();
     }

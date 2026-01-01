@@ -29,4 +29,5 @@ public:
 
   // should the tool be showing?
   void setVisible(bool v);
+  bool getVisible() const { return m_tool->m_visible; }
 };

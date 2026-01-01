@@ -36,6 +36,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraDataObject.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraObject.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CameraObject.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneObject.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneObject.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Colormap.cpp"

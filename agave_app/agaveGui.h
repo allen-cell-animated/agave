@@ -23,6 +23,7 @@ class QTimelineDockWidget;
 
 class AreaLightObject;
 class CameraObject;
+class ClipPlaneObject;
 class SkyLightObject;
 class IFileReader;
 class ViewToolbar;
@@ -202,6 +203,7 @@ private:
   std::unique_ptr<CameraObject> m_cameraObject;
   std::unique_ptr<AreaLightObject> m_areaLightObject;
   std::unique_ptr<SkyLightObject> m_skyLightObject;
+  std::unique_ptr<ClipPlaneObject> m_clipPlaneObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead
