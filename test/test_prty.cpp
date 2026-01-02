@@ -3,7 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "core/prty/prtyProperty.hpp"
-#include "core/prty/prtyInt8.hpp"
+#include "core/prty/prtyIntegerTemplate.hpp"
 #include "core/prty/prtyText.hpp"
 #include "core/prty/prtyPropertyTemplate.hpp"
 

@@ -127,8 +127,7 @@ prtyInt8::operator<=(const prtyInt8& i_Value) const
 void
 prtyInt8::Read(docReader& io_Reader)
 {
-  int8_t temp;
-  temp = io_Reader.readInt8(GetPropertyName());
+  int8_t temp = io_Reader.readInt<int8_t>(GetPropertyName());
   SetValue(temp);
 }
 
@@ -138,5 +137,5 @@ prtyInt8::Read(docReader& io_Reader)
 void
 prtyInt8::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeInt8(GetPropertyName(), GetValue());
+  io_Writer.writeInt<int8_t>(GetPropertyName(), GetValue());
 }

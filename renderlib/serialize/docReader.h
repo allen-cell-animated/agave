@@ -71,11 +71,52 @@ public:
     *value = readProperty<T>(name);
   }
 
+  // Templated integer read method
+  template<typename T>
+  T readInt(const std::string& name)
+  {
+    if constexpr (std::is_same_v<T, int8_t>) {
+      return readInt8(name);
+    } else if constexpr (std::is_same_v<T, int16_t>) {
+      return readInt16(name);
+    } else if constexpr (std::is_same_v<T, int32_t> || std::is_same_v<T, int>) {
+      return readInt32(name);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+      return readInt64(name);
+    } else {
+      static_assert(sizeof(T) == 0, "Unsupported signed integer type for readInt");
+      return T{};
+    }
+  }
+
+  // Templated unsigned integer read method
+  template<typename T>
+  T readUint(const std::string& name)
+  {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      return readUint8(name);
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      return readUint16(name);
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+      return readUint32(name);
+    } else if constexpr (std::is_same_v<T, uint64_t>) {
+      return readUint64(name);
+    } else {
+      static_assert(sizeof(T) == 0, "Unsupported unsigned integer type for readUint");
+      return T{};
+    }
+  }
+
   // All primitive read methods now require a name parameter
   virtual bool readBool(const std::string& name) = 0;
   virtual int8_t readInt8(const std::string& name) = 0;
+  virtual int16_t readInt16(const std::string& name) = 0;
   virtual int32_t readInt32(const std::string& name) = 0;
+  virtual int64_t readInt64(const std::string& name) = 0;
+  virtual uint8_t readUint8(const std::string& name) = 0;
+  virtual uint16_t readUint16(const std::string& name) = 0;
   virtual uint32_t readUint32(const std::string& name) = 0;
+  virtual uint64_t readUint64(const std::string& name) = 0;
   virtual float readFloat32(const std::string& name) = 0;
   virtual std::vector<float> readFloat32Array(const std::string& name) = 0;
   virtual std::vector<int32_t> readInt32Array(const std::string& name) = 0;

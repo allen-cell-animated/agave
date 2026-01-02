@@ -40,8 +40,13 @@ public:
   // Primitive type reading - all require a name parameter
   virtual bool readBool(const std::string& name) override;
   virtual int8_t readInt8(const std::string& name) override;
+  virtual int16_t readInt16(const std::string& name) override;
   virtual int32_t readInt32(const std::string& name) override;
+  virtual int64_t readInt64(const std::string& name) override;
+  virtual uint8_t readUint8(const std::string& name) override;
+  virtual uint16_t readUint16(const std::string& name) override;
   virtual uint32_t readUint32(const std::string& name) override;
+  virtual uint64_t readUint64(const std::string& name) override;
   virtual float readFloat32(const std::string& name) override;
   virtual std::vector<float> readFloat32Array(const std::string& name) override;
   virtual std::vector<int32_t> readInt32Array(const std::string& name) override;

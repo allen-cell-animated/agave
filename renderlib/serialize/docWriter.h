@@ -56,11 +56,52 @@ public:
     }
   }
 
+  // Templated integer write method
+  template<typename T>
+  size_t writeInt(const std::string& name, T value)
+  {
+    if constexpr (std::is_same_v<T, int8_t>) {
+      return writeInt8(name, value);
+    } else if constexpr (std::is_same_v<T, int16_t>) {
+      return writeInt16(name, value);
+    } else if constexpr (std::is_same_v<T, int32_t> || std::is_same_v<T, int>) {
+      return writeInt32(name, value);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+      return writeInt64(name, value);
+    } else {
+      static_assert(sizeof(T) == 0, "Unsupported signed integer type for writeInt");
+      return 0;
+    }
+  }
+
+  // Templated unsigned integer write method
+  template<typename T>
+  size_t writeUint(const std::string& name, T value)
+  {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      return writeUint8(name, value);
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      return writeUint16(name, value);
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+      return writeUint32(name, value);
+    } else if constexpr (std::is_same_v<T, uint64_t>) {
+      return writeUint64(name, value);
+    } else {
+      static_assert(sizeof(T) == 0, "Unsupported unsigned integer type for writeUint");
+      return 0;
+    }
+  }
+
   // All primitive write methods now require a name parameter
   virtual size_t writeBool(const std::string& name, bool value) = 0;
   virtual size_t writeInt8(const std::string& name, int8_t value) = 0;
+  virtual size_t writeInt16(const std::string& name, int16_t value) = 0;
   virtual size_t writeInt32(const std::string& name, int32_t value) = 0;
+  virtual size_t writeInt64(const std::string& name, int64_t value) = 0;
+  virtual size_t writeUint8(const std::string& name, uint8_t value) = 0;
+  virtual size_t writeUint16(const std::string& name, uint16_t value) = 0;
   virtual size_t writeUint32(const std::string& name, uint32_t value) = 0;
+  virtual size_t writeUint64(const std::string& name, uint64_t value) = 0;
   virtual size_t writeFloat32(const std::string& name, float value) = 0;
   virtual size_t writeFloat32Array(const std::string& name, const std::vector<float>& value) = 0;
   virtual size_t writeFloat32Array(const std::string& name, size_t count, const float* values) = 0;

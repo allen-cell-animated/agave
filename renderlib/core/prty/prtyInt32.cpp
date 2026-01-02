@@ -128,8 +128,7 @@ prtyInt32::operator<=(const prtyInt32& i_Value) const
 void
 prtyInt32::Read(docReader& io_Reader)
 {
-  int32_t temp;
-  temp = io_Reader.readInt32(GetPropertyName());
+  int32_t temp = io_Reader.readInt<int32_t>(GetPropertyName());
   SetValue(temp);
 }
 
@@ -139,5 +138,5 @@ prtyInt32::Read(docReader& io_Reader)
 void
 prtyInt32::Write(docWriter& io_Writer) const
 {
-  io_Writer.writeInt32(GetPropertyName(), GetValue());
+  io_Writer.writeInt<int32_t>(GetPropertyName(), GetValue());
 }

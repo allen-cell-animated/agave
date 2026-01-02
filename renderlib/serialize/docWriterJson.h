@@ -32,8 +32,13 @@ public:
   // Primitive type writing - all require a name parameter
   virtual size_t writeBool(const std::string& name, bool value) override;
   virtual size_t writeInt8(const std::string& name, int8_t value) override;
+  virtual size_t writeInt16(const std::string& name, int16_t value) override;
   virtual size_t writeInt32(const std::string& name, int32_t value) override;
+  virtual size_t writeInt64(const std::string& name, int64_t value) override;
+  virtual size_t writeUint8(const std::string& name, uint8_t value) override;
+  virtual size_t writeUint16(const std::string& name, uint16_t value) override;
   virtual size_t writeUint32(const std::string& name, uint32_t value) override;
+  virtual size_t writeUint64(const std::string& name, uint64_t value) override;
   virtual size_t writeFloat32(const std::string& name, float value) override;
   virtual size_t writeFloat32Array(const std::string& name, const std::vector<float>& value) override;
   virtual size_t writeFloat32Array(const std::string& name, size_t count, const float* values) override;
