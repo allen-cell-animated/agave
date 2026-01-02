@@ -196,185 +196,49 @@ docWriterYaml::writeBool(const std::string& name, bool value)
 size_t
 docWriterYaml::writeInt8(const std::string& name, int8_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << static_cast<int>(value) << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << static_cast<int>(value) << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << static_cast<int>(value) << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(int8_t);
+  return writeIntegerValue(name, static_cast<int>(value));
 }
 
 size_t
 docWriterYaml::writeInt16(const std::string& name, int16_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << value << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << value << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << value << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(int16_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterYaml::writeInt32(const std::string& name, int32_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << value << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << value << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << value << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(int32_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterYaml::writeInt64(const std::string& name, int64_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << value << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << value << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << value << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(int64_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterYaml::writeUint8(const std::string& name, uint8_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << static_cast<unsigned int>(value) << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << static_cast<unsigned int>(value) << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << static_cast<unsigned int>(value) << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(uint8_t);
+  return writeIntegerValue(name, static_cast<unsigned int>(value));
 }
 
 size_t
 docWriterYaml::writeUint16(const std::string& name, uint16_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << value << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << value << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << value << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(uint16_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterYaml::writeUint32(const std::string& name, uint32_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << value << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << value << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << value << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(uint32_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterYaml::writeUint64(const std::string& name, uint64_t value)
 {
-  if (m_contextStack.empty()) {
-    writeKey(name);
-    m_output << value << "\n";
-  } else {
-    Context& ctx = m_contextStack.top();
-    if (ctx.isArray()) {
-      writeIndent();
-      m_output << "- " << value << "\n";
-      ctx.firstItem = false;
-    } else {
-      writeIndent();
-      writeKey(name);
-      m_output << value << "\n";
-      ctx.firstItem = false;
-    }
-  }
-
-  return sizeof(uint64_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t

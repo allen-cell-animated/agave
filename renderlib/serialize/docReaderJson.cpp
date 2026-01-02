@@ -290,209 +290,49 @@ docReaderJson::readBool(const std::string& name)
 int8_t
 docReaderJson::readInt8(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_integer()) {
-      return (*current)[name].get<int8_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_integer()) {
-      int8_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<int8_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readSignedIntegerValue<int8_t>(name);
 }
 
 int16_t
 docReaderJson::readInt16(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_integer()) {
-      return (*current)[name].get<int16_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_integer()) {
-      int16_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<int16_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readSignedIntegerValue<int16_t>(name);
 }
 
 int32_t
 docReaderJson::readInt32(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_integer()) {
-      return (*current)[name].get<int32_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_integer()) {
-      int32_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<int32_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readSignedIntegerValue<int32_t>(name);
 }
 
 int64_t
 docReaderJson::readInt64(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_integer()) {
-      return (*current)[name].get<int64_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_integer()) {
-      int64_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<int64_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readSignedIntegerValue<int64_t>(name);
 }
 
 uint8_t
 docReaderJson::readUint8(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_unsigned()) {
-      return (*current)[name].get<uint8_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_unsigned()) {
-      uint8_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<uint8_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readUnsignedIntegerValue<uint8_t>(name);
 }
 
 uint16_t
 docReaderJson::readUint16(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_unsigned()) {
-      return (*current)[name].get<uint16_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_unsigned()) {
-      uint16_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<uint16_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readUnsignedIntegerValue<uint16_t>(name);
 }
 
 uint32_t
 docReaderJson::readUint32(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_unsigned()) {
-      return (*current)[name].get<uint32_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_unsigned()) {
-      uint32_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<uint32_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readUnsignedIntegerValue<uint32_t>(name);
 }
 
 uint64_t
 docReaderJson::readUint64(const std::string& name)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->contains(name) && (*current)[name].is_number_unsigned()) {
-      return (*current)[name].get<uint64_t>();
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_unsigned()) {
-      uint64_t value = (*ctx.jsonObj)[ctx.arrayIndex].get<uint64_t>();
-      ctx.arrayIndex++;
-      return value;
-    }
-  }
-
-  return 0;
+  return readUnsignedIntegerValue<uint64_t>(name);
 }
 
 float

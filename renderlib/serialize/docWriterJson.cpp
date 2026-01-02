@@ -171,137 +171,49 @@ docWriterJson::writeBool(const std::string& name, bool value)
 size_t
 docWriterJson::writeInt8(const std::string& name, int8_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(int8_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeInt16(const std::string& name, int16_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(int16_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeInt32(const std::string& name, int32_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(int32_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeInt64(const std::string& name, int64_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(int64_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeUint8(const std::string& name, uint8_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(uint8_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeUint16(const std::string& name, uint16_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(uint16_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeUint32(const std::string& name, uint32_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(uint32_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t
 docWriterJson::writeUint64(const std::string& name, uint64_t value)
 {
-  nlohmann::json* current = getCurrentObject();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    (*current)[name] = value;
-  } else {
-    current->push_back(value);
-  }
-
-  return sizeof(uint64_t);
+  return writeIntegerValue(name, value);
 }
 
 size_t

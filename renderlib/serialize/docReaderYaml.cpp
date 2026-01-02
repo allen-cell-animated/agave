@@ -277,257 +277,49 @@ docReaderYaml::readBool(const std::string& name)
 int8_t
 docReaderYaml::readInt8(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return static_cast<int8_t>(stringToInt(obj[name].asString()));
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        int8_t value = static_cast<int8_t>(stringToInt(arr[ctx.arrayIndex].asString()));
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<int8_t>(name, [this](const std::string& s) { return stringToInt(s); });
 }
 
 int16_t
 docReaderYaml::readInt16(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return static_cast<int16_t>(stringToInt(obj[name].asString()));
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        int16_t value = static_cast<int16_t>(stringToInt(arr[ctx.arrayIndex].asString()));
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<int16_t>(name, [this](const std::string& s) { return stringToInt(s); });
 }
 
 int32_t
 docReaderYaml::readInt32(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return stringToInt(obj[name].asString());
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        int32_t value = stringToInt(arr[ctx.arrayIndex].asString());
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<int32_t>(name, [this](const std::string& s) { return stringToInt(s); });
 }
 
 int64_t
 docReaderYaml::readInt64(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return stringToInt64(obj[name].asString());
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        int64_t value = stringToInt64(arr[ctx.arrayIndex].asString());
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<int64_t>(name, [this](const std::string& s) { return stringToInt64(s); });
 }
 
 uint8_t
 docReaderYaml::readUint8(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return static_cast<uint8_t>(stringToUint(obj[name].asString()));
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        uint8_t value = static_cast<uint8_t>(stringToUint(arr[ctx.arrayIndex].asString()));
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<uint8_t>(name, [this](const std::string& s) { return stringToUint(s); });
 }
 
 uint16_t
 docReaderYaml::readUint16(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return static_cast<uint16_t>(stringToUint(obj[name].asString()));
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        uint16_t value = static_cast<uint16_t>(stringToUint(arr[ctx.arrayIndex].asString()));
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<uint16_t>(name, [this](const std::string& s) { return stringToUint(s); });
 }
 
 uint32_t
 docReaderYaml::readUint32(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return static_cast<uint32_t>(stringToInt(obj[name].asString()));
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        uint32_t value = static_cast<uint32_t>(stringToInt(arr[ctx.arrayIndex].asString()));
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<uint32_t>(name, [this](const std::string& s) { return stringToUint(s); });
 }
 
 uint64_t
 docReaderYaml::readUint64(const std::string& name)
 {
-  YamlValue* current = getCurrentValue();
-  if (!current) {
-    return 0;
-  }
-
-  if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
-    // Reading from object by key
-    if (current->isObject()) {
-      YamlObject& obj = current->asObject();
-      if (obj.find(name) != obj.end() && obj[name].isString()) {
-        return static_cast<uint64_t>(stringToUint(obj[name].asString()));
-      }
-    }
-  } else {
-    // Reading from array by index
-    Context& ctx = m_contextStack.top();
-    if (ctx.value->isArray()) {
-      YamlArray& arr = ctx.value->asArray();
-      if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
-        uint64_t value = static_cast<uint64_t>(stringToUint(arr[ctx.arrayIndex].asString()));
-        ctx.arrayIndex++;
-        return value;
-      }
-    }
-  }
-
-  return 0;
+  return readIntegerValue<uint64_t>(name, [this](const std::string& s) { return stringToUint(s); });
 }
 
 float

@@ -122,6 +122,39 @@ private:
   bool popContext(ContextType expectedType);
   YamlValue* getCurrentValue();
 
+  // Template helper to reduce duplication in integer reading
+  template<typename T, typename ConvFunc>
+  T readIntegerValue(const std::string& name, ConvFunc convFunc)
+  {
+    YamlValue* current = getCurrentValue();
+    if (!current) {
+      return 0;
+    }
+
+    if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
+      // Reading from object by key
+      if (current->isObject()) {
+        YamlObject& obj = current->asObject();
+        if (obj.find(name) != obj.end() && obj[name].isString()) {
+          return static_cast<T>(convFunc(obj[name].asString()));
+        }
+      }
+    } else {
+      // Reading from array by index
+      Context& ctx = m_contextStack.top();
+      if (ctx.value->isArray()) {
+        YamlArray& arr = ctx.value->asArray();
+        if (ctx.arrayIndex < arr.size() && arr[ctx.arrayIndex].isString()) {
+          T value = static_cast<T>(convFunc(arr[ctx.arrayIndex].asString()));
+          ctx.arrayIndex++;
+          return value;
+        }
+      }
+    }
+
+    return 0;
+  }
+
   YamlValue m_root;
   YamlValue* m_current;
   std::stack<Context> m_contextStack;

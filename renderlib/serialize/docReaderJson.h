@@ -83,6 +83,59 @@ private:
   bool popContext(ContextType expectedType);
   nlohmann::json* getCurrentObject();
 
+  // Template helpers to reduce duplication in integer reading
+  template<typename T>
+  T readSignedIntegerValue(const std::string& name)
+  {
+    nlohmann::json* current = getCurrentObject();
+    if (!current) {
+      return 0;
+    }
+
+    if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
+      // Reading from object by key
+      if (current->contains(name) && (*current)[name].is_number_integer()) {
+        return (*current)[name].get<T>();
+      }
+    } else {
+      // Reading from array by index
+      Context& ctx = m_contextStack.top();
+      if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_integer()) {
+        T value = (*ctx.jsonObj)[ctx.arrayIndex].get<T>();
+        ctx.arrayIndex++;
+        return value;
+      }
+    }
+
+    return 0;
+  }
+
+  template<typename T>
+  T readUnsignedIntegerValue(const std::string& name)
+  {
+    nlohmann::json* current = getCurrentObject();
+    if (!current) {
+      return 0;
+    }
+
+    if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
+      // Reading from object by key
+      if (current->contains(name) && (*current)[name].is_number_unsigned()) {
+        return (*current)[name].get<T>();
+      }
+    } else {
+      // Reading from array by index
+      Context& ctx = m_contextStack.top();
+      if (ctx.arrayIndex < ctx.jsonObj->size() && (*ctx.jsonObj)[ctx.arrayIndex].is_number_unsigned()) {
+        T value = (*ctx.jsonObj)[ctx.arrayIndex].get<T>();
+        ctx.arrayIndex++;
+        return value;
+      }
+    }
+
+    return 0;
+  }
+
   nlohmann::json* m_root;
   nlohmann::json* m_current;
   std::stack<Context> m_contextStack;

@@ -80,4 +80,28 @@ private:
   void writeKey(const std::string& key);
   std::string escapeString(const std::string& str);
   void logError(const std::string& message);
+
+  // Template helper to reduce duplication in integer writing
+  template<typename T>
+  size_t writeIntegerValue(const std::string& name, T value)
+  {
+    if (m_contextStack.empty()) {
+      writeKey(name);
+      m_output << value << "\n";
+    } else {
+      Context& ctx = m_contextStack.top();
+      if (ctx.isArray()) {
+        writeIndent();
+        m_output << "- " << value << "\n";
+        ctx.firstItem = false;
+      } else {
+        writeIndent();
+        writeKey(name);
+        m_output << value << "\n";
+        ctx.firstItem = false;
+      }
+    }
+
+    return sizeof(T);
+  }
 };

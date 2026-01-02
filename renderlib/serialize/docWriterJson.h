@@ -79,4 +79,22 @@ private:
   bool popContext(ContextType expectedType);
   nlohmann::json* getCurrentObject();
   void logError(const std::string& message);
+
+  // Template helper to reduce duplication in integer writing
+  template<typename T>
+  size_t writeIntegerValue(const std::string& name, T value)
+  {
+    nlohmann::json* current = getCurrentObject();
+    if (!current) {
+      return 0;
+    }
+
+    if (m_contextStack.empty() || !m_contextStack.top().isArray()) {
+      (*current)[name] = value;
+    } else {
+      current->push_back(value);
+    }
+
+    return sizeof(T);
+  }
 };
