@@ -60,6 +60,18 @@ struct ColorControlPoint
   }
 };
 
+// Serialization operator for ColorControlPoint vectors
+inline std::ostream&
+operator<<(std::ostream& os, const std::vector<ColorControlPoint>& f)
+{
+  os << "[ ";
+  for (const auto& point : f) {
+    os << "(" << point.first << ", [" << point.r << ", " << point.g << ", " << point.b << ", " << point.a << "]) ";
+  }
+  os << " ]";
+  return os;
+}
+
 class ColorRamp
 {
 public:

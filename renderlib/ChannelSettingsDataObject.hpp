@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Colormap.h"
 #include "GradientData.h"
 #include "core/prty/prtyColor.hpp"
 #include "core/prty/prtyFloat.hpp"
 #include "core/prty/prtyEnum.hpp"
 #include "core/prty/prtyBoolean.hpp"
 #include "core/prty/prtyVector3d.hpp"
+#include "core/prty/prtyText.hpp"
 
 class prtyControlPointVector
   : public prtyPropertyTemplate<std::vector<LutControlPoint>, const std::vector<LutControlPoint>&>
@@ -23,6 +25,33 @@ public:
   }
 
   virtual const char* GetType() override { return "ControlPointVector"; }
+  virtual void Read(docReader& io_Reader) override
+  {
+    // Implement reading from a reader if needed
+  }
+  virtual void Write(docWriter& io_Writer) const override
+  {
+    // Implement writing to a writer if needed
+  }
+};
+
+class prtyColorControlPointVector
+  : public prtyPropertyTemplate<std::vector<ColorControlPoint>, const std::vector<ColorControlPoint>&>
+{
+public:
+  prtyColorControlPointVector(const std::string& i_Name)
+    : prtyPropertyTemplate<std::vector<ColorControlPoint>, const std::vector<ColorControlPoint>&>(
+        i_Name,
+        std::vector<ColorControlPoint>{ { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f } })
+  {
+  }
+  prtyColorControlPointVector(const std::string& i_Name, const std::vector<ColorControlPoint>& i_InitialValue)
+    : prtyPropertyTemplate<std::vector<ColorControlPoint>, const std::vector<ColorControlPoint>&>(i_Name,
+                                                                                                  i_InitialValue)
+  {
+  }
+
+  virtual const char* GetType() override { return "ColorControlPointVector"; }
   virtual void Read(docReader& io_Reader) override
   {
     // Implement reading from a reader if needed
@@ -66,7 +95,15 @@ public:
   prtyBoolean Enabled{ "Enabled", true };
   prtyFloat Labels{ "Labels", 0.0f };
 
-  prtyColorMap Colormap{ "Colormap", ColorRamp() };
+  // a colormap has a name and a set of color control points
+  //  std::string name = "none";
+  // std::vector<ControlPointSettings_V1> stops;
+  // where a ControlPointSettings_V1 is  std::pair<float, std::array<float,4>>
+
+  prtyText ColormapName{ "ColormapName", ColorRamp::NO_COLORMAP_NAME };
+  prtyColorControlPointVector Colormap{ "Colormap",
+                                        std::vector<ColorControlPoint>{ { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                                                        { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f } } };
 
   GradientDataObject GradientData;
 };
