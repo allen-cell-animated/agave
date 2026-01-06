@@ -137,10 +137,6 @@ ViewerWindow::updateCamera()
     // let renderer know camera is dirty
     m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
   }
-  if (m_CCamera.m_Dirty) {
-    m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
-    m_CCamera.m_Dirty = false;
-  }
 
   sceneView.camera = renderCamera;
   sceneView.camera.Update();

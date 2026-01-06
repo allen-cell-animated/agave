@@ -3,7 +3,11 @@
 #include "AppearanceDataObject.hpp"
 #include "core/prty/prtyObject.hpp"
 #include "RenderSettings.h"
+#include "AppScene.h"
 #include "uiInfo.hpp"
+
+class docReader;
+class docWriter;
 
 struct AppearanceUiDescription
 {
@@ -29,7 +33,7 @@ public:
   void updateObjectFromProps();
 
   // Getter for appearance data object
-  // AppearanceDataObject& getAppearanceDataObject() { return m_appearanceDataObject; }
+  AppearanceDataObject& appearanceDataObject() { return m_appearanceDataObject; }
   const AppearanceDataObject& getAppearanceDataObject() const { return m_appearanceDataObject; }
 
   // Getters for UI info objects
@@ -48,12 +52,18 @@ public:
   // Getter for the rendersettings
   std::shared_ptr<RenderSettings> getRenderSettings() const { return m_renderSettings; }
 
+  // document reading and writing; TODO consider an abstract base class to enforce commonality
+  static constexpr uint32_t CURRENT_VERSION = 1;
+  void fromDocument(docReader* reader);
+  void toDocument(docWriter* writer);
+
 private:
   // the properties
   AppearanceDataObject m_appearanceDataObject;
 
-  // the actual camera
+  // the actual settings
   std::shared_ptr<RenderSettings> m_renderSettings;
+  std::weak_ptr<Scene> m_scene;
 
   // the ui info
   ComboBoxUiInfo* m_rendererType;
@@ -67,4 +77,16 @@ private:
   CheckBoxUiInfo* m_showBoundingBox;
   ColorPickerUiInfo* m_boundingBoxColor;
   CheckBoxUiInfo* m_showScaleBar;
+
+  void RendererTypeChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ShadingTypeChanged(prtyProperty* i_Property, bool i_bDirty);
+  void DensityScaleChanged(prtyProperty* i_Property, bool i_bDirty);
+  void GradientFactorChanged(prtyProperty* i_Property, bool i_bDirty);
+  void StepSizePrimaryRayChanged(prtyProperty* i_Property, bool i_bDirty);
+  void StepSizeSecondaryRayChanged(prtyProperty* i_Property, bool i_bDirty);
+  void InterpolateChanged(prtyProperty* i_Property, bool i_bDirty);
+  void BackgroundColorChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ShowBoundingBoxChanged(prtyProperty* i_Property, bool i_bDirty);
+  void BoundingBoxColorChanged(prtyProperty* i_Property, bool i_bDirty);
+  void ShowScaleBarChanged(prtyProperty* i_Property, bool i_bDirty);
 };

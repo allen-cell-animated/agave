@@ -140,8 +140,6 @@ GLView3D::onNewImage(Scene* scene)
 
 GLView3D::~GLView3D()
 {
-  delete m_appearanceDataObject;
-
   makeCurrent();
   check_gl("view dtor makecurrent");
   // doneCurrent();

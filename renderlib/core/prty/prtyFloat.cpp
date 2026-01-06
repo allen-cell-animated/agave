@@ -2,7 +2,8 @@
 #include "core/prty/prtyUnits.hpp"
 
 // #include "core/ch/chReader.hpp"
-// #include "core/ch/chWriter.hpp"
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -144,19 +145,18 @@ prtyFloat::operator<=(const float i_Value) const
 //--------------------------------------------------------------------
 // virtual
 void
-prtyFloat::Read(chReader& io_Reader)
+prtyFloat::Read(docReader& io_Reader)
 {
-  // float temp;
-  // io_Reader.Read(temp);
-  // SetValue(temp);
+  float temp;
+  temp = io_Reader.readFloat32(GetPropertyName());
+  SetValue(temp);
 }
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
 // virtual
 void
-prtyFloat::Write(chWriter& io_Writer) const
+prtyFloat::Write(docWriter& io_Writer) const
 {
-  // float temp = GetValue();
-  // io_Writer.Write(temp);
+  io_Writer.writeFloat32(GetPropertyName(), GetValue());
 }

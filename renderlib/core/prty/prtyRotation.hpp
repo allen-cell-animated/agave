@@ -81,11 +81,11 @@ public:
 
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  virtual void Read(chReader& io_Reader);
+  virtual void Read(docReader& io_Reader);
 
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  virtual void Write(chWriter& io_Writer) const;
+  virtual void Write(docWriter& io_Writer) const;
 
 private:
   glm::quat m_Quaternion;

@@ -5,7 +5,7 @@ QAppearanceDockWidget2::QAppearanceDockWidget2(QWidget* pParent,
                                                ViewerWindow* vw,
                                                AppearanceObject* ado)
   : QDockWidget(pParent)
-  , m_AppearanceWidget(nullptr, rs, ado)
+  , m_AppearanceWidget(nullptr, rs, vw, ado)
 {
   setWindowTitle("Appearance");
 

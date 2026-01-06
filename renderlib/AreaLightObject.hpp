@@ -17,7 +17,7 @@ public:
   ArealightDataObject() = default;
 
   prtyFloat Theta{ "Theta", 0.0f };
-  prtyFloat Phi{ "Phi", 1.5708f }; // PI/2
+  prtyFloat Phi{ "Phi", 90.0f }; // PI/2
   prtyFloat Size{ "Size", 1.0f };
   prtyFloat Distance{ "Distance", 10.0f };
   prtyFloat Intensity{ "Intensity", 100.0f };
@@ -37,6 +37,10 @@ public:
   // Update scene light instance from properties (called automatically via callbacks)
   void updateSceneLightFromProps();
 
+  // Getter for data object
+  ArealightDataObject& getDataObject() { return m_arealightDataObject; }
+  const ArealightDataObject& getDataObject() const { return m_arealightDataObject; }
+
   // Property change callbacks
   void ThetaChanged(prtyProperty* i_Property, bool i_bDirty);
   void PhiChanged(prtyProperty* i_Property, bool i_bDirty);
@@ -46,6 +50,11 @@ public:
   void ColorChanged(prtyProperty* i_Property, bool i_bDirty);
 
   void setDirtyCallback(std::function<void()> callback) { m_dirtyCallback = callback; }
+
+  // document reading and writing; TODO consider an abstract base class to enforce commonality
+  static constexpr uint32_t CURRENT_VERSION = 1;
+  void fromDocument(docReader* reader);
+  void toDocument(docWriter* writer);
 
 private:
   ArealightDataObject m_arealightDataObject;

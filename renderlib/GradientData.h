@@ -1,11 +1,24 @@
 #pragma once
 
 #include <inttypes.h>
+#include <iostream>
 #include <vector>
 
 struct Histogram;
 
 using LutControlPoint = std::pair<float, float>;
+
+// Serialization operator for LutControlPoint vectors
+inline std::ostream&
+operator<<(std::ostream& os, const std::vector<LutControlPoint>& f)
+{
+  os << "[ ";
+  for (const auto& point : f) {
+    os << "(" << point.first << ", " << point.second << ") ";
+  }
+  os << " ]";
+  return os;
+}
 
 enum class GradientEditMode
 {

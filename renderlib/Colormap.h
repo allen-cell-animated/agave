@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <ostream>
 #include <stddef.h>
 #include <string>
 #include <vector>
@@ -58,7 +59,26 @@ struct ColorControlPoint
     g = (rgb >> 8) & 0xff;
     b = (rgb >> 0) & 0xff;
   }
+
+  bool operator==(const ColorControlPoint& other) const
+  {
+    return first == other.first && r == other.r && g == other.g && b == other.b && a == other.a;
+  }
+
+  bool operator!=(const ColorControlPoint& other) const { return !(*this == other); }
 };
+
+// Serialization operator for ColorControlPoint vectors
+inline std::ostream&
+operator<<(std::ostream& os, const std::vector<ColorControlPoint>& f)
+{
+  os << "[ ";
+  for (const auto& point : f) {
+    os << "(" << point.first << ", [" << point.r << ", " << point.g << ", " << point.b << ", " << point.a << "]) ";
+  }
+  os << " ]";
+  return os;
+}
 
 class ColorRamp
 {

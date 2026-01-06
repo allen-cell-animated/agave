@@ -5,6 +5,8 @@
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
 // #include "core/ma/maConstants.hpp"
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
 #include "core/undo/undoUndoMgr.hpp"
 
 namespace {
@@ -191,19 +193,19 @@ prtyRotation::CreateUndoOperation(std::shared_ptr<prtyPropertyReference> i_pProp
 //--------------------------------------------------------------------
 // virtual
 void
-prtyRotation::Read(chReader& io_Reader)
+prtyRotation::Read(docReader& io_Reader)
 {
   // // We need to write euler angles, how to handle versions?
-  // glm::quat temp;
-  // chChunkParserUtil::Read(io_Reader, temp);
-  // SetQuaternion(temp);
+  std::vector<float> temp;
+  temp = io_Reader.readFloat32Array(GetPropertyName());
+  SetQuaternion(glm::quat(temp[3], temp[0], temp[1], temp[2]));
 }
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
 // virtual
 void
-prtyRotation::Write(chWriter& io_Writer) const
+prtyRotation::Write(docWriter& io_Writer) const
 {
-  // chChunkParserUtil::Write(io_Writer, m_Quaternion);
+  io_Writer.writeFloat32Array(GetPropertyName(), 4, glm::value_ptr(GetQuaternion()));
 }

@@ -2,7 +2,7 @@
 
 QCameraDockWidget::QCameraDockWidget(QWidget* pParent, RenderSettings* rs, CameraObject* cdo)
   : QDockWidget(pParent)
-  , m_CameraWidget(nullptr, cam, rs, cdo)
+  , m_CameraWidget(nullptr, rs, cdo)
 {
   setWindowTitle("Camera");
 

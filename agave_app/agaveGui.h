@@ -23,6 +23,7 @@ class QTimelineDockWidget;
 
 class AreaLightObject;
 class CameraObject;
+class ClipPlaneObject;
 class SkyLightObject;
 class IFileReader;
 class ViewToolbar;
@@ -78,6 +79,7 @@ private slots:
   void openMesh(const QString& file);
   void saveImage();
   void saveJson();
+  void loadJson();
   void savePython();
   void onRenderAction();
   void OnUpdateRenderer();
@@ -118,6 +120,9 @@ private:
   static QString strippedName(const QString& fullFileName);
   void writeRecentDirectory(const QString& directory);
   QString readRecentDirectory();
+
+  void readDocument(std::string filepath);
+  void writeDocument(std::string filepath);
 
   QMenu* m_fileMenu;
   QMenu* m_viewMenu;
@@ -198,6 +203,7 @@ private:
   std::unique_ptr<CameraObject> m_cameraObject;
   std::unique_ptr<AreaLightObject> m_areaLightObject;
   std::unique_ptr<SkyLightObject> m_skyLightObject;
+  std::unique_ptr<ClipPlaneObject> m_clipPlaneObject;
 
   std::string m_currentFilePath;
   // TODO remove the above m_currentFilePath and use this instead

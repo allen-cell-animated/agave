@@ -4,6 +4,9 @@
 #include "MathUtil.h"
 #include "Logging.h"
 
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
+
 AreaLightObject::AreaLightObject()
   : prtyObject()
 {
@@ -155,4 +158,35 @@ void
 AreaLightObject::ColorChanged(prtyProperty* i_Property, bool i_bDirty)
 {
   updateSceneLightFromProps();
+}
+
+void
+AreaLightObject::fromDocument(docReader* reader)
+{
+  // Peek at metadata
+  uint32_t version = reader->peekVersion();
+  std::string type = reader->peekObjectType();
+  std::string name = reader->peekObjectName();
+
+  reader->readPrty(&m_arealightDataObject.Theta);
+  reader->readPrty(&m_arealightDataObject.Phi);
+  reader->readPrty(&m_arealightDataObject.Size);
+  reader->readPrty(&m_arealightDataObject.Distance);
+  reader->readPrty(&m_arealightDataObject.Intensity);
+  reader->readPrty(&m_arealightDataObject.Color);
+}
+
+void
+AreaLightObject::toDocument(docWriter* writer)
+{
+  writer->beginObject("areaLight0", "AreaLightObject", AreaLightObject::CURRENT_VERSION);
+
+  m_arealightDataObject.Theta.Write(*writer);
+  m_arealightDataObject.Phi.Write(*writer);
+  m_arealightDataObject.Size.Write(*writer);
+  m_arealightDataObject.Distance.Write(*writer);
+  m_arealightDataObject.Intensity.Write(*writer);
+  m_arealightDataObject.Color.Write(*writer);
+
+  writer->endObject();
 }

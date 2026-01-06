@@ -37,6 +37,10 @@ public:
   // Update scene light instance from properties (called automatically via callbacks)
   void updateSceneLightFromProps();
 
+  // Getter for data object
+  SkylightDataObject& getDataObject() { return m_skylightDataObject; }
+  const SkylightDataObject& getDataObject() const { return m_skylightDataObject; }
+
   // Property change callbacks
   void TopIntensityChanged(prtyProperty* i_Property, bool i_bDirty);
   void TopColorChanged(prtyProperty* i_Property, bool i_bDirty);
@@ -46,6 +50,11 @@ public:
   void BottomColorChanged(prtyProperty* i_Property, bool i_bDirty);
 
   void setDirtyCallback(std::function<void()> callback) { m_dirtyCallback = callback; }
+
+  // document reading and writing; TODO consider an abstract base class to enforce commonality
+  static constexpr uint32_t CURRENT_VERSION = 1;
+  void fromDocument(docReader* reader);
+  void toDocument(docWriter* writer);
 
 private:
   SkylightDataObject m_skylightDataObject;

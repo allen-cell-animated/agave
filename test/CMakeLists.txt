@@ -14,8 +14,13 @@ target_include_directories(agave_test PUBLIC
 	"${glm_SOURCE_DIR}"
 )
 target_sources(agave_test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_AppearanceObject.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_CameraObject.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_commands.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_docWriter.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_docReader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_histogram.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_LightObjects.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_mathUtil.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_prty.cpp"

@@ -3,7 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "core/prty/prtyProperty.hpp"
-#include "core/prty/prtyInt8.hpp"
+#include "core/prty/prtyIntegerTemplate.hpp"
 #include "core/prty/prtyText.hpp"
 #include "core/prty/prtyPropertyTemplate.hpp"
 
@@ -102,11 +102,11 @@ TEST_CASE("prtyProperty struct", "[prtyProperty]")
     }
 
     virtual const char* GetType() override { return "Foo"; }
-    virtual void Read(chReader& io_Reader) override
+    virtual void Read(docReader& io_Reader) override
     {
       // Implement reading from a reader if needed
     }
-    virtual void Write(chWriter& io_Writer) const override
+    virtual void Write(docWriter& io_Writer) const override
     {
       // Implement writing to a writer if needed
     }

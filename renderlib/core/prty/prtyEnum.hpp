@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/prty/prtyInt8.hpp"
+#include "core/prty/prtyIntegerTemplate.hpp"
 
 #include <vector>
 

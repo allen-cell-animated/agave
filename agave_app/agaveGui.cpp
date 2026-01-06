@@ -6,6 +6,8 @@
 #include "agaveGui.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/AreaLightObject.hpp"
+#include "renderlib/SkyLightObject.hpp"
 #include "renderlib/ImageXYZC.h"
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
@@ -13,13 +15,14 @@
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
 #include "renderlib/CameraObject.hpp"
+#include "renderlib/ClipPlaneObject.hpp"
 #include "renderlib/AppearanceObject.hpp"
+#include "renderlib/serialize/docWriterJson.h"
+#include "renderlib/serialize/docReaderJson.h"
 
 #include "AppearanceDockWidget.h"
 #include "AppearanceDockWidget2.h"
-#include "ArealightDockWidget.h"
 #include "CameraDockWidget.h"
-#include "SkylightDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
 #include "TimelineDockWidget.h"
@@ -87,10 +90,8 @@ agaveGui::agaveGui(QWidget* parent)
   : QMainWindow(parent)
 {
   // create our document objects
-  // render settings
-  m_appearanceObject = std::make_unique<AppearanceObject>();
-  // scene objects
   m_cameraObject = std::make_unique<CameraObject>();
+  m_appearanceObject = std::make_unique<AppearanceObject>();
   m_areaLightObject = std::make_unique<AreaLightObject>();
   m_areaLightObject->getSceneLight()->m_light = Scene::defaultAreaLight();
   m_areaLightObject->setDirtyCallback(
@@ -99,6 +100,9 @@ agaveGui::agaveGui(QWidget* parent)
   m_skyLightObject->getSceneLight()->m_light = Scene::defaultSkyLight();
   m_skyLightObject->setDirtyCallback(
     [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(LightsDirty); });
+  m_clipPlaneObject = std::make_unique<ClipPlaneObject>();
+  m_clipPlaneObject->setDirtyCallback(
+    [this]() { m_appearanceObject->getRenderSettings()->m_DirtyFlags.SetFlag(RoiDirty); });
 
   m_ui.setupUi(this);
 
@@ -140,11 +144,9 @@ agaveGui::agaveGui(QWidget* parent)
 
   // create camera ui window now that there is an actual camera.
   setupCameraDock(m_cameraObject.get());
-  // setupAreaLightDock(m_areaLightObject.get());
-  // setupSkyLightDock(m_skyLightObject.get());
   setupTimelineDock();
   setupStatisticsDock();
-  setupAppearanceDock(m_glView->getAppearanceDataObject());
+  setupAppearanceDock(m_appearanceObject.get());
 
   addDockItemsToViewMenu();
 
@@ -376,17 +378,17 @@ void
 agaveGui::setupAreaLightDock(AreaLightObject* cdo)
 {
   // TODO enable changing/resetting the area light data object shown in this dock?
-  m_areaLightDock = new QAreaLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
-  m_areaLightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::RightDockWidgetArea, m_areaLightDock);
+  //  m_areaLightDock = new QAreaLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  //  m_areaLightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  //  addDockWidget(Qt::RightDockWidgetArea, m_areaLightDock);
 }
 void
 agaveGui::setupSkyLightDock(SkyLightObject* cdo)
 {
   // TODO enable changing/resetting the skylight data object shown in this dock?
-  m_skylightDock = new QSkyLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
-  m_skylightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-  addDockWidget(Qt::RightDockWidgetArea, m_skylightDock);
+  //  m_skylightDock = new QSkyLightDockWidget(this, m_appearanceObject->getRenderSettings().get(), cdo);
+  //  m_skylightDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+  //  addDockWidget(Qt::RightDockWidgetArea, m_skylightDock);
 }
 
 void
@@ -421,7 +423,7 @@ agaveGui::setupAppearanceDock(AppearanceObject* ado)
 }
 
 void
-agaveGui::createDockWindows()
+agaveGui::setupTimelineDock()
 {
 
   m_timelinedock = new QTimelineDockWidget(this, &m_qrendersettings);
@@ -440,6 +442,11 @@ agaveGui::setupStatisticsDock()
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
 }
 
+void
+agaveGui::addDockItemsToViewMenu()
+{
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cameradock->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_timelinedock->toggleViewAction());
   m_viewMenu->addSeparator();
@@ -718,6 +725,352 @@ agaveGui::onRenderAction()
 }
 
 void
+agaveGui::writeDocument(std::string filepath)
+{
+  docWriter* writer = new docWriterJson();
+
+  writer->beginDocument(filepath);
+
+  writer->beginObject("_AGAVE", "AgaveDocument", 1);
+  // write agave version at least
+  writer->writeProperty("Version", std::string(AICS_VERSION_STRING));
+  writer->endObject();
+
+  writer->beginList("_camera");
+  // list of all cameras
+  m_cameraObject->toDocument(writer);
+  writer->endList();
+
+  writer->beginList("_light");
+  // list of all lights
+  m_skyLightObject->toDocument(writer);
+  m_areaLightObject->toDocument(writer);
+  writer->endList();
+
+  writer->beginList("_clipPlane");
+  // list of all clip planes
+  m_clipPlaneObject->toDocument(writer);
+  writer->endList();
+
+  writer->beginList("_renderSettings");
+  // list of all render settings objects
+  m_appearanceObject->toDocument(writer);
+  writer->endList();
+
+  writer->beginList("_captureSettings");
+  // list of capture settings objects (only one?)
+  writer->endList();
+  writer->beginObject("_geometry", "GeometryObject", 1);
+  writer->beginList("_volume");
+  // list of all volumes
+  writer->endList();
+
+  writer->beginList("_mesh");
+  // list of all meshes
+  writer->endList();
+  writer->endObject();
+
+  writer->beginObject("_scene", "SceneObject", 1);
+  // one and only active scene.
+  // this includes references to selections of the above objects.
+  // other objects should not be cross referencing each other.
+  // so scene needs to be set up after other objects are defined.
+
+  writer->endObject();
+
+  writer->endDocument();
+  delete writer;
+}
+
+void
+agaveGui::readDocument(std::string filepath)
+{
+  docReader* reader = new docReaderJson();
+  if (reader->beginDocument(filepath)) {
+    if (reader->beginObject("_AGAVE")) {
+      // read agave version at least
+      reader->endObject();
+    }
+
+    if (reader->beginList("_camera")) {
+      // list of all cameras
+      // v1, read only the first camera
+      // Iterate through objects in the list
+      while (reader->beginObject("")) {
+
+        CameraObject* camObj = new CameraObject();
+        camObj->fromDocument(reader);
+        reader->endObject();
+
+        camObj->updateObjectFromProps();
+
+        // install camObj into m_cameraObject???
+        m_cameraObject = std::unique_ptr<CameraObject>(camObj);
+        // follow through to other parts of the app that need to know about camera change
+        m_glView->setCameraObject(m_cameraObject.get());
+        // m_cameradock->setCameraObject(m_cameraObject);
+
+        break; // only read first camera for now
+      }
+
+      reader->endList();
+    }
+    if (reader->beginList("_light")) {
+      // list of all lights
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "SkyLightObject") {
+          SkyLightObject* skyLightObj = new SkyLightObject();
+          // skyLightObj->fromDocument(reader);
+          reader->endObject();
+          // install skyLightObj into m_skyLightObject???
+          m_skyLightObject = std::unique_ptr<SkyLightObject>(skyLightObj);
+          // follow through to other parts of the app that need to know about skylight change
+          m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
+          // m_skylightDock->setSkyLightObject(m_skyLightObject);
+        } else if (objType == "AreaLightObject") {
+          AreaLightObject* areaLightObj = new AreaLightObject();
+          // areaLightObj->fromDocument(reader);
+          reader->endObject();
+          // install areaLightObj into m_areaLightObject???
+          m_areaLightObject = std::unique_ptr<AreaLightObject>(areaLightObj);
+          // follow through to other parts of the app that need to know about area light change
+          m_appScene.initLights(m_skyLightObject->getSceneLight(), m_areaLightObject->getSceneLight());
+          // m_areaLightDock->setAreaLightObject(m_areaLightObject);
+        } else {
+          LOG_WARNING << "Unknown light object type: " << objType;
+          reader->endObject();
+        }
+      }
+      reader->endList();
+    }
+    if (reader->beginList("_clipPlane")) {
+      // list of all clip planes
+      while (reader->beginObject("")) {
+        ClipPlaneObject* clipPlaneObj = new ClipPlaneObject();
+        clipPlaneObj->fromDocument(reader);
+        reader->endObject();
+
+        clipPlaneObj->updateObjectFromProps();
+
+        // std::string objType = reader->peekObjectType();
+        // if (objType == "ClipPlaneObject") {
+        //   // TODO implement clip plane loading
+        //   reader->endObject();
+        // } else {
+        //   LOG_WARNING << "Unknown clip plane object type: " << objType;
+        //   reader->endObject();
+        // }
+      }
+      reader->endList();
+    }
+    if (reader->beginList("_renderSettings")) {
+      // list of all render settings objects
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "RenderSettingsObject") {
+          AppearanceObject* appObj = new AppearanceObject();
+          appObj->fromDocument(reader);
+          reader->endObject();
+          // install appObj into m_appearanceObject???
+          m_appearanceObject = std::unique_ptr<AppearanceObject>(appObj);
+          // follow through to other parts of the app that need to know about appearance change
+          m_appearanceObject->updateObjectFromProps();
+          // m_appearanceDockWidget->setAppearanceObject(m_appearanceObject);
+        } else {
+          LOG_WARNING << "Unknown render settings object type: " << objType;
+          reader->endObject();
+        }
+      }
+      reader->endList();
+    }
+    if (reader->beginList("_captureSettings")) {
+      // list of capture settings objects (only one?)
+      while (reader->beginObject("")) {
+        std::string objType = reader->peekObjectType();
+        if (objType == "CaptureSettingsObject") {
+          // TODO implement capture settings loading
+          reader->endObject();
+        } else {
+          LOG_WARNING << "Unknown capture settings object type: " << objType;
+          reader->endObject();
+        }
+      }
+      reader->endList();
+    }
+
+    if (reader->beginObject("_geometry")) {
+      if (reader->beginList("_volume")) {
+        // list of all volumes
+        while (reader->beginObject("")) {
+          std::string objType = reader->peekObjectType();
+          if (objType == "VolumeObject") {
+            // TODO implement volume loading
+            reader->endObject();
+          } else {
+            LOG_WARNING << "Unknown volume object type: " << objType;
+            reader->endObject();
+          }
+        }
+        reader->endList();
+      }
+      if (reader->beginList("_mesh")) {
+        // list of all meshes
+        reader->endList();
+      }
+      reader->endObject();
+    }
+
+    if (reader->beginObject("_scene")) {
+      // one and only active scene.
+      reader->endObject();
+    }
+
+    reader->endDocument();
+
+//////////////////////////////////
+#if 0
+    docReader* reader = new docReaderJson();
+    if (!reader->beginDocument(file.toStdString())) {
+      qWarning("Failed to parse JSON document.");
+      delete reader;
+      return;
+    }
+
+    // Read AGAVE metadata
+    if (reader->beginObject("_AGAVE")) {
+      if (reader->hasKey("_version")) {
+        std::string agaveVersion = reader->readString("_version");
+        LOG_INFO << "Loading AGAVE file version: " << agaveVersion;
+      }
+      reader->endObject();
+    }
+
+    // Read cameras
+    if (reader->beginList("_camera")) {
+      if (reader->beginObject("_camera0")) {
+        // Check version
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32("_version");
+          LOG_INFO << "Camera object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown camera version " << version << ", attempting to read anyway";
+          }
+        }
+        // Read all camera properties
+        reader->readProperties(m_cameraObject.get());
+        // Update the actual camera from properties
+        m_cameraObject->updateObjectFromProps();
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read lights
+    if (reader->beginList("_light")) {
+      // Sky light
+      if (reader->beginObject("_skylight0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32("_version");
+          LOG_INFO << "SkyLight object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown skylight version " << version << ", attempting to read anyway";
+          }
+        }
+        reader->readProperties(m_skyLightObject.get());
+        // m_skyLightObject->updateObjectFromProps();
+        reader->endObject();
+      }
+
+      // Area light
+      if (reader->beginObject("_arealight0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32("_version");
+          LOG_INFO << "AreaLight object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown arealight version " << version << ", attempting to read anyway";
+          }
+        }
+        reader->readProperties(m_areaLightObject.get());
+        // m_areaLightObject->updateObjectFromProps();
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read clip planes
+    if (reader->beginList("_clipPlane")) {
+      if (reader->beginObject("_clipPlane0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32("_version");
+          LOG_INFO << "ClipPlane object version: " << version;
+        }
+        // TODO: read clip plane properties when implemented
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read render settings
+    if (reader->beginList("_renderSettings")) {
+      if (reader->beginObject("_renderSettings0")) {
+        if (reader->hasKey("_version")) {
+          uint32_t version = reader->readUint32("_version");
+          LOG_INFO << "RenderSettings object version: " << version;
+          if (version != 1) {
+            LOG_WARNING << "Unknown render settings version " << version << ", attempting to read anyway";
+          }
+        }
+        reader->readProperties(m_appearanceObject.get());
+        m_appearanceObject->updateObjectFromProps();
+        reader->endObject();
+      }
+      reader->endList();
+    }
+
+    // Read capture settings
+    if (reader->beginList("_captureSettings")) {
+      // TODO: implement capture settings
+      reader->endList();
+    }
+
+    // Read geometry
+    if (reader->beginObject("_geometry")) {
+      if (reader->hasKey("_version")) {
+        uint32_t version = reader->readUint32("_version");
+        LOG_INFO << "Geometry object version: " << version;
+      }
+
+      if (reader->beginList("_volume")) {
+        // TODO: implement volume loading
+        reader->endList();
+      }
+
+      if (reader->beginList("_mesh")) {
+        // TODO: implement mesh loading
+        reader->endList();
+      }
+
+      reader->endObject();
+    }
+
+    // Read scene
+    if (reader->beginObject("_scene")) {
+      if (reader->hasKey("_version")) {
+        uint32_t version = reader->readUint32("_version");
+        LOG_INFO << "Scene object version: " << version;
+      }
+      // TODO: implement scene state loading
+      reader->endObject();
+    }
+
+    reader->endDocument();
+#endif
+    delete reader;
+  }
+}
+
+void
 agaveGui::saveJson()
 {
   QFileDialog::Options options;
@@ -736,6 +1089,26 @@ agaveGui::saveJson()
     nlohmann::json doc = st;
     std::string str = doc.dump();
     saveFile.write(str.c_str()); // QString::fromStdString(str));
+  }
+}
+
+void
+agaveGui::loadJson()
+{
+  QFileDialog::Options options;
+#ifdef __linux__
+  options |= QFileDialog::DontUseNativeDialog;
+#endif
+  QString file = QFileDialog::getOpenFileName(this, tr("Load JSON"), QString(), tr("JSON (*.json)"), nullptr, options);
+  if (!file.isEmpty()) {
+
+    QFile loadFile(file);
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+      qWarning("Couldn't open load file.");
+      return;
+    }
+
+    LOG_INFO << "Successfully loaded JSON file: " << file.toStdString();
   }
 }
 

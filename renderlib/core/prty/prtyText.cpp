@@ -2,6 +2,8 @@
 
 // #include "core/ch/chChunkParserUtil.hpp"
 // #include "core/ch/chReader.hpp"
+#include "serialize/docReader.h"
+#include "serialize/docWriter.h"
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
@@ -86,18 +88,19 @@ prtyText::operator!=(const std::string& i_Value) const
 //--------------------------------------------------------------------
 // virtual
 void
-prtyText::Read(chReader& io_Reader)
+prtyText::Read(docReader& io_Reader)
 {
-  // std::string temp;
-  // chChunkParserUtil::Read(io_Reader, temp);
-  // SetValue(temp);
+  std::string temp;
+  temp = io_Reader.readString(GetPropertyName());
+  SetValue(temp);
 }
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
 // virtual
 void
-prtyText::Write(chWriter& io_Writer) const
+prtyText::Write(docWriter& io_Writer) const
 {
+  io_Writer.writeString(GetPropertyName(), GetValue());
   //  chChunkParserUtil::Write(io_Writer, GetValue());
 }
