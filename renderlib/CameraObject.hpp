@@ -8,26 +8,6 @@
 class docReader;
 class docWriter;
 
-struct CameraUiDescription
-{
-  static FloatSliderSpinnerUiInfo m_exposure;
-  static ComboBoxUiInfo m_exposureIterations;
-  static CheckBoxUiInfo m_noiseReduction;
-  static FloatSliderSpinnerUiInfo m_apertureSize;
-  static FloatSliderSpinnerUiInfo m_fieldOfView;
-  static FloatSliderSpinnerUiInfo m_focalDistance;
-};
-
-// class IDocumentObject
-// {
-// public:
-//   virtual void fromDocument(docReader* reader) = 0;
-//   virtual void toDocument(docWriter* writer) = 0;
-
-//   // necessary for doc reading and writing?
-//   prtyName m_Name;
-// }
-
 class CameraObject : public prtyObject
 {
 public:
