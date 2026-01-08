@@ -117,7 +117,7 @@ public:
   static void ConvertDimensionEntryDV(DimensionEntryDV& entry);
   static void ConvertSubBlockDirectoryEntryDV(SubBlockDirectoryEntryDV& entry);
 
-private:
+  static bool IsLittleEndian();
   static std::int16_t SwapInt16(std::int16_t val);
   static std::uint16_t SwapUInt16(std::uint16_t val);
   static std::int32_t SwapInt32(std::int32_t val);
@@ -126,7 +126,6 @@ private:
   static std::uint64_t SwapUInt64(std::uint64_t val);
   static float SwapFloat(float val);
   static libCZI::GUID SwapGUID(const libCZI::GUID& guid);
-  static bool IsLittleEndian();
 };
 
 } // namespace czi_multi
