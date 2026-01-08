@@ -5,6 +5,12 @@ target_include_directories(renderlib PUBLIC
 target_sources(renderlib PRIVATE
 "${CMAKE_CURRENT_SOURCE_DIR}/ConvertChannelData.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ConvertChannelData.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/CziDirectoryParser.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/CziDirectoryParser.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/CziMultiFileUtils.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/CziMultiFileUtils.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/CziStructures.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/CziStructures.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReader.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCCP4.cpp"
@@ -17,6 +23,8 @@ target_sources(renderlib PRIVATE
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/MultiFileCziStream.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/MultiFileCziStream.h"
 )
 
 # libCZI dependency for renderlib

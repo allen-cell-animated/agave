@@ -16,6 +16,11 @@
 #include <map>
 #include <set>
 
+// Multi-file CZI support
+#include "CziDirectoryParser.h"
+#include "CziMultiFileUtils.h"
+#include "MultiFileCziStream.h"
+
 FileReaderCzi::FileReaderCzi(const std::string& filepath) {}
 
 FileReaderCzi::~FileReaderCzi() {}
@@ -26,11 +31,61 @@ public:
   ScopedCziReader(const std::string& filepath)
   {
     std::filesystem::path fpath(filepath);
+    std::string pathToOpen = filepath;
+
+    // Check if this is a child file and redirect to parent
+    if (czi_multi::CziMultiFileUtils::IsChildCziFile(filepath)) {
+      LOG_DEBUG << "Detected child CZI file, searching for parent...";
+      auto parentPath = czi_multi::CziMultiFileUtils::FindParentFile(filepath);
+      if (parentPath) {
+        LOG_DEBUG << "Found parent CZI file: " << *parentPath;
+        pathToOpen = *parentPath;
+        fpath = std::filesystem::path(pathToOpen);
+      } else {
+        LOG_DEBUG << "Warning: Could not find parent CZI file, attempting to open child directly";
+      }
+    }
+
     const std::wstring widestr = fpath.wstring();
+    std::shared_ptr<libCZI::IStream> stream;
 
-    std::shared_ptr<libCZI::IStream> stream = libCZI::CreateStreamFromFile(widestr.c_str());
+    // Check if this is a multi-file CZI
+    bool isMultiFile = false;
+    czi_multi::CziDirectoryInfo dirInfo;
+
+    try {
+      auto tempStream = libCZI::CreateStreamFromFile(widestr.c_str());
+      dirInfo = czi_multi::CziDirectoryParser::ParseDirectory(tempStream.get());
+      isMultiFile = dirInfo.IsMultiFile();
+
+      if (isMultiFile) {
+        LOG_DEBUG << "Detected multi-file CZI with " << dirInfo.uniqueFileParts.size()
+                  << " file parts (max FilePart=" << dirInfo.GetMaxFilePart() << ")";
+
+        // Create multi-file stream wrapper
+        auto multiStream = std::make_shared<czi_multi::MultiFileCziStream>(pathToOpen, dirInfo);
+
+        // Validate all child files are accessible
+        auto missingParts = multiStream->GetMissingFileParts();
+        if (!missingParts.empty()) {
+          LOG_DEBUG << "Warning: Missing child files for FileParts: ";
+          for (auto part : missingParts) {
+            LOG_DEBUG << "  FilePart " << part;
+          }
+        }
+
+        stream = multiStream;
+      } else {
+        // Single file, use standard stream
+        stream = libCZI::CreateStreamFromFile(widestr.c_str());
+      }
+    } catch (const std::exception& e) {
+      LOG_DEBUG << "Warning: Failed to parse CZI directory for multi-file detection: " << e.what();
+      // Fall back to single-file mode
+      stream = libCZI::CreateStreamFromFile(widestr.c_str());
+    }
+
     m_reader = libCZI::CreateCZIReader();
-
     m_reader->Open(stream);
   }
   ~ScopedCziReader()
