@@ -39,8 +39,6 @@ struct FileHeaderSegment
     std::int64_t AttachmentDirectoryPosition;
     unsigned char Spare[SIZE_FILEHEADER_DATA - 80];
   } data;
-
-  static constexpr size_t SIZE_FILEHEADER_DATA = 512;
 };
 
 // Subblock directory segment
