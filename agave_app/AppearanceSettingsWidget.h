@@ -39,6 +39,7 @@ public:
                             QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
+  void onTimeChanged(int newTime);
 
 public slots:
   void OnRenderBegin(void);

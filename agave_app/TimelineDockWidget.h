@@ -23,6 +23,9 @@ public:
 
   void OnTimeChanged(int newTime);
 
+signals:
+  void timeChanged(int newTime);
+
 protected:
   QGridLayout m_MainLayout;
   QIntSlider* m_TimeSlider;
@@ -45,6 +48,9 @@ public:
     m_TimelineWidget.onNewImage(s, loadSpec, reader);
   }
   void setTime(int t) { m_TimelineWidget.setTime(t); }
+
+  // other Gui needs to connect to timeline signals
+  QTimelineWidget& timelineWidget() { return m_TimelineWidget; }
 
 protected:
   QTimelineWidget m_TimelineWidget;

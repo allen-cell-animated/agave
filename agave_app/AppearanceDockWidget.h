@@ -19,6 +19,11 @@ public:
                     QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* s) { m_AppearanceSettingsWidget.onNewImage(s); }
+  void onTimeChanged(int newTime)
+  {
+    // pass to the inner widget
+    m_AppearanceSettingsWidget.onTimeChanged(newTime);
+  }
 
 protected:
   QGridLayout m_MainLayout;
@@ -37,6 +42,11 @@ public:
                         QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* s) { m_VolumeAppearanceWidget.onNewImage(s); }
+  void onTimeChanged(int newTime)
+  {
+    // pass to the inner widget
+    m_VolumeAppearanceWidget.onTimeChanged(newTime);
+  }
 
 protected:
   QAppearanceWidget m_VolumeAppearanceWidget;

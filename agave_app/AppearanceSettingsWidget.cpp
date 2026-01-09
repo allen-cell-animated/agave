@@ -1271,3 +1271,19 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     m_channelSections.push_back(section);
   }
 }
+
+void
+QAppearanceSettingsWidget::onTimeChanged(int timePoint)
+{
+  // update all gradient widgets with new histogram for time point
+  for (auto section : m_channelSections) {
+    auto layouts = section->contentLayout()->children();
+    for (auto layout : layouts) {
+      auto gradientWidget = qobject_cast<GradientWidget*>(layout);
+      if (gradientWidget) {
+        gradientWidget->setHistogram(
+          m_scene->m_volume->channel(gradientWidget->channelIndex())->m_histograms[timePoint]);
+      }
+    }
+  }
+}
