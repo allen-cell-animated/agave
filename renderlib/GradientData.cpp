@@ -1,6 +1,7 @@
 #include "GradientData.h"
 
 #include "Histogram.h"
+#include "Logging.h"
 
 void
 GradientData::convert(const Histogram& histogram, const Histogram& newHistogram)
@@ -25,11 +26,26 @@ GradientData::convert(const Histogram& histogram, const Histogram& newHistogram)
   m_isovalue = (absoluteIsoValue - newHistogram._dataMin) / newHistogram.dataRange();
 
   // convert "custom":
+
+  // LOG_DEBUG out all the x values of the old control points
+  // and then log out all the converted x values
   for (int i = 0; i < m_customControlPoints.size(); ++i) {
     LutControlPoint p = m_customControlPoints[i];
-    p.first = p.first * histogram.dataRange() + histogram._dataMin;
-    p.first = (p.first - newHistogram._dataMin) / newHistogram.dataRange();
+    uint16_t intensity = histogram._dataMin + static_cast<uint16_t>(p.first * histogram.dataRange());
+    LOG_DEBUG << "Old control point " << i << ": " << p.first << " -> intensity " << intensity;
+  }
+
+  for (int i = 0; i < m_customControlPoints.size(); ++i) {
+    LutControlPoint p = m_customControlPoints[i];
+    uint16_t intensity = histogram._dataMin + static_cast<uint16_t>(p.first * histogram.dataRange());
+    p.first = (float)(intensity - newHistogram._dataMin) / (float)newHistogram.dataRange();
     m_customControlPoints[i] = p;
+  }
+
+  for (int i = 0; i < m_customControlPoints.size(); ++i) {
+    LutControlPoint p = m_customControlPoints[i];
+    uint16_t intensity = histogram._dataMin + static_cast<uint16_t>(p.first * histogram.dataRange());
+    LOG_DEBUG << "Converted control point " << i << ": " << p.first << " -> intensity " << intensity;
   }
 }
 
