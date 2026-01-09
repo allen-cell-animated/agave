@@ -72,24 +72,8 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_histogramBars->setBrush(barBrush);
   m_histogramBars->setPen(Qt::NoPen);
   m_histogramBars->setWidthType(QCPBars::wtPlotCoords);
-  float firstBinCenter, lastBinCenter, binSize;
-  histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
-  m_histogramBars->setWidth(binSize);
-  QVector<double> keyData;
-  QVector<double> valueData;
-  static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
-  for (size_t i = 0; i < histogram._bins.size(); ++i) {
-    keyData << firstBinCenter + i * binSize;
-    if (histogram._bins[i] == 0) {
-      // Zero bins get zero height
-      valueData << 0.0;
-    } else {
-      // Nonzero bins get at least the minimum height
-      double normalizedHeight = (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
-      valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
-    }
-  }
-  m_histogramBars->setData(keyData, valueData);
+
+  updateHistogramBarGraph(histogram);
   m_histogramBars->setSelectable(QCP::stNone);
 
   // first added graph will the the piecewise linear transfer function
@@ -149,6 +133,39 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   connect(m_customPlot, &QCustomPlot::mouseDoubleClick, this, &GradientEditor::onPlotMouseDoubleClick);
 
   vbox->addWidget(m_customPlot);
+}
+
+void
+GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
+{
+  float firstBinCenter, lastBinCenter, binSize;
+  histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
+  m_histogramBars->setWidth(binSize);
+  QVector<double> keyData;
+  QVector<double> valueData;
+  static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
+  for (size_t i = 0; i < histogram._bins.size(); ++i) {
+    keyData << firstBinCenter + i * binSize;
+    if (histogram._bins[i] == 0) {
+      // Zero bins get zero height
+      valueData << 0.0;
+    } else {
+      // Nonzero bins get at least the minimum height
+      double normalizedHeight = (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
+      valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
+    }
+  }
+  m_histogramBars->setData(keyData, valueData);
+}
+
+void
+GradientEditor::setHistogram(const Histogram& histogram)
+{
+  m_histogram = histogram;
+
+  updateHistogramBarGraph(histogram);
+
+  m_customPlot->replot();
 }
 
 void
@@ -800,6 +817,13 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   connect(m_editor, &GradientEditor::interactivePointsChanged, this, &GradientWidget::onInteractivePointsChanged);
 
   forceDataUpdate();
+}
+
+void
+GradientWidget::setHistogram(const Histogram& histogram)
+{
+  m_histogram = histogram;
+  m_editor->setHistogram(histogram);
 }
 
 void

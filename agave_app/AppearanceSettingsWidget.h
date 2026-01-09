@@ -125,6 +125,7 @@ private:
   QCheckBox m_showScaleBarCheckBox;
 
   std::vector<Section*> m_channelSections;
+  std::vector<class GradientWidget*> m_gradientWidgets;
 
   struct lt0
   {

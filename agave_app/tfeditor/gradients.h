@@ -19,6 +19,7 @@ public:
 
   void setControlPoints(const std::vector<LutControlPoint>& points);
   void setEditMode(GradientEditMode gradientEditMode) { m_currentEditMode = gradientEditMode; }
+  void setHistogram(const Histogram& histogram);
 
   enum LockType
   {
@@ -55,6 +56,8 @@ private:
 
   QVector<uint32_t> m_locks;
 
+  void updateHistogramBarGraph(const Histogram& histogram);
+
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
   virtual void changeEvent(QEvent* event) override;
@@ -66,6 +69,8 @@ class GradientWidget : public QWidget
 
 public:
   GradientWidget(const Histogram& histogram, GradientData* dataObject, QWidget* parent = nullptr);
+
+  void setHistogram(const Histogram& histogram);
 
 public slots:
   void onGradientStopsChanged(const QGradientStops& stops);

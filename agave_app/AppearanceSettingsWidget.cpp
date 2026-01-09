@@ -1064,6 +1064,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     delete s;
   }
   m_channelSections.clear();
+  m_gradientWidgets.clear();
 
   // I don't own this.
   m_scene = scene;
@@ -1144,6 +1145,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     fullLayout->addWidget(editor);
     // sectionLayout->addRow("Gradient", editor);
     fullLayout->addLayout(sectionLayout);
+
+    m_gradientWidgets.push_back(editor);
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
       // convert stops to control points
@@ -1276,14 +1279,15 @@ void
 QAppearanceSettingsWidget::onTimeChanged(int timePoint)
 {
   // update all gradient widgets with new histogram for time point
-  for (auto section : m_channelSections) {
-    auto layouts = section->contentLayout()->children();
-    for (auto layout : layouts) {
-      auto gradientWidget = qobject_cast<GradientWidget*>(layout);
-      if (gradientWidget) {
-        gradientWidget->setHistogram(
-          m_scene->m_volume->channel(gradientWidget->channelIndex())->m_histograms[timePoint]);
-      }
+  if (!m_scene || !m_scene->m_volume) {
+    return;
+  }
+
+  for (size_t i = 0; i < m_gradientWidgets.size(); ++i) {
+    GradientWidget* gradientWidget = m_gradientWidgets[i];
+    if (gradientWidget && i < m_scene->m_volume->sizeC()) {
+      // Update histogram from current channel
+      gradientWidget->setHistogram(m_scene->m_volume->channel(i)->m_histogram);
     }
   }
 }
