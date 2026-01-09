@@ -503,6 +503,7 @@ agaveGui::openJson()
     } catch (std::exception& e) {
       LOG_ERROR << "Failed to load from JSON: " << file.toStdString();
       LOG_ERROR << e.what();
+      showOpenFailedMessageBox(file);
       return;
     }
   }
