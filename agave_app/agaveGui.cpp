@@ -503,7 +503,7 @@ agaveGui::openJson()
     } catch (std::exception& e) {
       LOG_ERROR << "Failed to load from JSON: " << file.toStdString();
       LOG_ERROR << e.what();
-      showOpenFailedMessageBox(file);
+      showOpenFailedMessageBox(file, e.what());
       return;
     }
   }
@@ -1066,13 +1066,13 @@ agaveGui::updateRecentFileActions()
 }
 
 void
-agaveGui::showOpenFailedMessageBox(QString path)
+agaveGui::showOpenFailedMessageBox(QString path, QString details)
 {
   QMessageBox msgBox;
   msgBox.setIcon(QMessageBox::Warning);
   msgBox.setWindowTitle(tr("Error opening file"));
-  msgBox.setText(tr("Failed to open ") + path);
-  msgBox.setInformativeText(tr("Check logfile.log for more detailed error information."));
+  msgBox.setText(tr("Failed to open ") + path + "\n\n" + details);
+  msgBox.setInformativeText(tr("Check logfile.log for additional error information."));
   msgBox.exec();
 }
 
