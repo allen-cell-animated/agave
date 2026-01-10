@@ -110,6 +110,11 @@ agaveGui::agaveGui(QWidget* parent)
 
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
+  connect(&m_timelinedock->timelineWidget(), &QTimelineWidget::timeChanged, this, [this](int newTime) {
+    // we have loaded new data and need to update the channel histograms at least.
+    m_appearanceDockWidget->onTimeChanged(newTime);
+  });
+
   // add the single gl view as a tab
   m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
