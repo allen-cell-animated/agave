@@ -865,6 +865,9 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     for (int i = 0; i < stops.size(); ++i) {
       m_gradientData->m_customControlPoints.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
     }
+    std::sort(m_gradientData->m_customControlPoints.begin(),
+              m_gradientData->m_customControlPoints.end(),
+              controlpoint_x_less_than);
     emit gradientStopsChanged(stops);
   } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
     // extract window and level from the stops - use second and third points (threshold points)

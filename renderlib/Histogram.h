@@ -19,6 +19,8 @@ struct Histogram
   std::vector<uint32_t> _ccounts;
   uint16_t _dataMin;
   uint16_t _dataMax;
+  size_t _dataMinIdx;
+  size_t _dataMaxIdx;
   // index of bin with most pixels
   size_t _maxBin;
   size_t _pixelCount;

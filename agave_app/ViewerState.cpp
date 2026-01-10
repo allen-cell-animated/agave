@@ -350,6 +350,9 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
     cp.second = lut.controlPoints[i].value[3];
     gd.m_customControlPoints.push_back(cp);
   }
+  std::sort(gd.m_customControlPoints.begin(),
+            gd.m_customControlPoints.end(),
+            [](const LutControlPoint& a, const LutControlPoint& b) { return a.first < b.first; });
   return gd;
 }
 

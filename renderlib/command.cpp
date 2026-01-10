@@ -466,6 +466,9 @@ SetControlPointsCommand::execute(ExecutionContext* c)
   }
 
   lutInfo.m_customControlPoints = stops;
+  std::sort(lutInfo.m_customControlPoints.begin(),
+            lutInfo.m_customControlPoints.end(),
+            [](const LutControlPoint& a, const LutControlPoint& b) { return a.first < b.first; });
   c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
 
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);

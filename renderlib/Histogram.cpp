@@ -48,14 +48,19 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   }
 
   uint16_t val;
+  _dataMaxIdx = 0;
+  _dataMinIdx = 0;
   for (size_t i = 0; i < length; ++i) {
     val = data[i];
     if (val > _dataMax) {
       _dataMax = val;
+      _dataMaxIdx = i;
     } else if (val < _dataMin) {
       _dataMin = val;
+      _dataMinIdx = i;
     }
   }
+
   //	float fval;
   float rangeMin = (float)_dataMin;
   float rangeMax = (float)_dataMax;
