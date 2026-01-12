@@ -133,6 +133,10 @@ GLPTVolumeShader::GLPTVolumeShader()
   m_lutTexture1 = uniformLocation("g_lutTexture[1]");
   m_lutTexture2 = uniformLocation("g_lutTexture[2]");
   m_lutTexture3 = uniformLocation("g_lutTexture[3]");
+
+  m_tf = uniformLocation("g_tf");
+  m_tf_nNodes = uniformLocation("g_tf_nNodes");
+
   m_colormapTexture = uniformLocation("g_colormapTexture");
   m_intensityMax = uniformLocation("g_intensityMax");
   m_intensityMin = uniformLocation("g_intensityMin");
@@ -287,6 +291,11 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float roughness[4] = { 0, 0, 0, 0 };
   float opacity[4] = { 0, 0, 0, 0 };
+  // MUST MATCH SHADER
+  static constexpr int MAX_NO_TF_NODES = 16;
+  float tfdata[4 * MAX_NO_TF_NODES * 2] = { 0 };
+  uint32_t tfnodes[4] = { 0, 0, 0, 0 };
+
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
       luttex[activeChannel] = imggpu.m_channels[i]->m_VolumeLutGLTexture;
@@ -312,11 +321,23 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
       lutmin[activeChannel] = hasMinMax ? imin16 : intensitymin[activeChannel];
       lutmax[activeChannel] = hasMinMax ? imax16 : intensitymax[activeChannel];
       labels[activeChannel] = scene->m_material.m_labels[i];
+
+      // copy control points in to tfdata
+      const auto& tf = scene->m_material.m_gradientData[i].m_customControlPoints;
+      int nTfPoints = std::min((int)tf.size(), MAX_NO_TF_NODES);
+      tfnodes[activeChannel] = nTfPoints;
+      for (int j = 0; j < nTfPoints; ++j) {
+        tfdata[activeChannel * MAX_NO_TF_NODES * 2 + j * 2 + 0] = tf[j].first;
+        tfdata[activeChannel * MAX_NO_TF_NODES * 2 + j * 2 + 1] = tf[j].second;
+      }
       activeChannel++;
     }
   }
   glUniform1i(m_g_nChannels, activeChannel);
   check_gl("pre lut textures");
+
+  glUniform2fv(m_tf, 4 * MAX_NO_TF_NODES, tfdata);
+  glUniform4uiv(m_tf_nNodes, 1, tfnodes);
 
   glUniform1i(m_lutTexture0, 2);
   glActiveTexture(GL_TEXTURE0 + 2);
