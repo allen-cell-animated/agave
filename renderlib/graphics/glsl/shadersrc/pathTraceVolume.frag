@@ -84,6 +84,14 @@ uniform vec3 g_diffuse[4];
 uniform vec3 g_specular[4];
 uniform float g_roughness[4];
 
+const uint MAX_NO_TF_NODES = 32u;
+// Each node is a vec2: x = intensity, y = value
+// composing a piecewise linear transfer function.
+// This assumes that the x values are sorted in ascending order!!!
+uniform vec2 g_tf[4 * MAX_NO_TF_NODES];
+// actual number of active points per tf channel
+uniform uvec4 g_tf_nNodes;
+
 // compositing / progressive render
 uniform float uFrameCounter;
 uniform float uSampleCounter;
@@ -91,6 +99,67 @@ uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
 
 uniform vec4 g_clipPlane;
+
+float
+evalTf(in uint channel, in float intensity)
+{
+  // we have packed 4 channels of tf into a single array
+  uint offset = channel * MAX_NO_TF_NODES;
+  uint nNodes = g_tf_nNodes[channel];
+
+  if (nNodes == 0u) {
+    return 0.0f;
+  }
+  if (intensity <= g_tf[offset + 0].x) {
+    return g_tf[offset + 0].y;
+  }
+  if (intensity >= g_tf[offset + nNodes - 1].x) {
+    return g_tf[offset + nNodes - 1].y;
+  }
+
+  for (uint i = 0u; i < nNodes - 1u; ++i) {
+    float x0 = g_tf[offset + i].x;
+    float x1 = g_tf[offset + i + 1u].x;
+
+    if (intensity >= x0 && intensity <= x1) {
+      float t = (intensity - x0) / (x1 - x0);
+      return mix(g_tf[offset + i].y, g_tf[offset + i + 1u].y, t);
+    }
+  }
+  return 0.0f;
+}
+
+float
+evalTfLut(in uint channel, in float intensity)
+{
+  // relative to min/max for each channel
+  intensity = (intensity - g_intensityMin[channel]) / (g_intensityMax[channel] - g_intensityMin[channel]);
+  intensity = texture(g_lutTexture[channel], vec2(intensity, 0.5)).x;
+  return intensity;
+}
+
+vec4
+evalTfLut4ch(in vec4 intensity)
+{
+  // relative to min/max for each channel
+  intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
+  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
+  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
+  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
+  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
+  return intensity;
+}
+
+vec4
+evalTf4ch(in vec4 intensity)
+{
+  intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
+  intensity.x = evalTf(0u, intensity.x);
+  intensity.y = evalTf(1u, intensity.y);
+  intensity.z = evalTf(2u, intensity.z);
+  intensity.w = evalTf(3u, intensity.w);
+  return intensity;
+}
 
 // from iq https://www.shadertoy.com/view/4tXyWN
 float
@@ -303,12 +372,7 @@ GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
   float maxIn = 0.0;
   ch = 0;
 
-  // relative to min/max for each channel
-  intensity = (intensity - g_intensityMin) / (g_intensityMax - g_intensityMin);
-  intensity.x = texture(g_lutTexture[0], vec2(intensity.x, 0.5)).x;
-  intensity.y = texture(g_lutTexture[1], vec2(intensity.y, 0.5)).x;
-  intensity.z = texture(g_lutTexture[2], vec2(intensity.z, 0.5)).x;
-  intensity.w = texture(g_lutTexture[3], vec2(intensity.w, 0.5)).x;
+  intensity = evalTfLut4ch(intensity);
 
   // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
@@ -324,8 +388,7 @@ float
 GetNormalizedIntensity(in vec3 P, in int ch)
 {
   float intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P))[ch];
-  intensity = (intensity - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
-  intensity = texture(g_lutTexture[ch], vec2(intensity, 0.5)).x;
+  intensity = evalTfLut(ch, intensity);
   return intensity;
 }
 
