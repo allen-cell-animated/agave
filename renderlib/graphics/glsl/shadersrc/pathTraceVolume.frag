@@ -372,7 +372,7 @@ GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
   float maxIn = 0.0;
   ch = 0;
 
-  intensity = evalTfLut4ch(intensity);
+  intensity = evalTf4ch(intensity);
 
   // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
