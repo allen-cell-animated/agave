@@ -323,7 +323,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
       labels[activeChannel] = scene->m_material.m_labels[i];
 
       // copy control points in to tfdata
-      const auto& tf = scene->m_material.m_gradientData[i].m_customControlPoints;
+      const auto& tf = scene->m_material.m_gradientData[i].getControlPoints(scene->m_volume->channel(i)->m_histogram);
       int nTfPoints = std::min((int)tf.size(), MAX_NO_TF_NODES);
       tfnodes[activeChannel] = nTfPoints;
       for (int j = 0; j < nTfPoints; ++j) {

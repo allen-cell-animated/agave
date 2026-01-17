@@ -62,3 +62,22 @@ GradientData::getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* im
     return false;
   }
 }
+
+std::vector<LutControlPoint>
+GradientData::getControlPoints(const Histogram& histogram) const
+{
+  static constexpr float EPSILON = 0.0001f;
+  uint16_t imin, imax;
+  if (getMinMax(histogram, &imin, &imax)) {
+    float fmin, fmax;
+    fmin = (float)(imin - histogram._dataMin) / histogram.dataRange();
+    fmax = (float)(imax - histogram._dataMin) / histogram.dataRange();
+    // allow for fmin and fmax to be outside 0-1 range
+    std::vector<LutControlPoint> pts = {
+      { std::min(fmin - EPSILON, 0.0f), 0.0f }, { fmin, 0.0f }, { fmax, 1.0f }, { std::max(fmax + EPSILON, 1.0f), 1.0f }
+    };
+    return pts;
+  } else {
+    return m_customControlPoints;
+  }
+}
