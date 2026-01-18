@@ -18,6 +18,9 @@ clamp(const T& v, const T& lo, const T& hi)
 
 const float Histogram::DEFAULT_PCT_LOW = 0.5f;
 const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
+// Use 0.1% and 99.9% percentiles for histogram range to filter out extreme outliers
+const float Histogram::HISTOGRAM_RANGE_PCT_LOW = 0.001f;
+const float Histogram::HISTOGRAM_RANGE_PCT_HIGH = 0.999f;
 
 size_t
 Histogram::getBinOfIntensity(uint16_t intensity) const
@@ -34,7 +37,7 @@ Histogram::getBinOfIntensity(uint16_t intensity) const
   }
 }
 
-Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
+Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins, bool useOutlierFiltering)
   : _bins(num_bins)
   , _ccounts(num_bins)
   , _dataMin(0)
@@ -42,26 +45,93 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
 {
   std::fill(_bins.begin(), _bins.end(), 0);
 
-  if (data) {
-    _dataMin = data[0];
-    _dataMax = data[0];
+  if (!data || length == 0) {
+    _pixelCount = 0;
+    _dataMinIdx = 0;
+    _dataMaxIdx = 0;
+    _maxBin = 0;
+    return;
   }
 
-  uint16_t val;
+  // First pass: find absolute min and max
+  uint16_t absoluteMin = data[0];
+  uint16_t absoluteMax = data[0];
   _dataMaxIdx = 0;
   _dataMinIdx = 0;
   for (size_t i = 0; i < length; ++i) {
-    val = data[i];
-    if (val > _dataMax) {
-      _dataMax = val;
+    uint16_t val = data[i];
+    if (val > absoluteMax) {
+      absoluteMax = val;
       _dataMaxIdx = i;
-    } else if (val < _dataMin) {
-      _dataMin = val;
+    } else if (val < absoluteMin) {
+      absoluteMin = val;
       _dataMinIdx = i;
     }
   }
 
-  //	float fval;
+  // If all data is the same value, use it directly
+  if (absoluteMin == absoluteMax) {
+    _dataMin = absoluteMin;
+    _dataMax = absoluteMax;
+    _pixelCount = length;
+    _bins[0] = length;
+    _maxBin = 0;
+    std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
+    return;
+  }
+
+  // Determine data range based on whether outlier filtering is enabled
+  if (useOutlierFiltering) {
+    // For continuous intensity data: use percentile-based outlier filtering
+    // Build a temporary histogram using the full absolute range to compute percentiles
+    std::vector<uint32_t> tempBins(65536, 0);
+    for (size_t i = 0; i < length; ++i) {
+      tempBins[data[i]]++;
+    }
+
+    // Compute cumulative counts for percentile calculation
+    std::vector<uint32_t> tempCCounts(65536);
+    std::partial_sum(tempBins.begin(), tempBins.end(), tempCCounts.begin(), std::plus<uint32_t>());
+
+    // Find percentile-based robust data range
+    size_t lowThreshold = (size_t)(length * HISTOGRAM_RANGE_PCT_LOW);
+    size_t highThreshold = (size_t)(length * HISTOGRAM_RANGE_PCT_HIGH);
+
+    // Find the data value at the low percentile
+    // This is the first value where cumulative count exceeds lowThreshold
+    _dataMin = absoluteMin;
+    for (uint16_t i = absoluteMin; i <= absoluteMax; ++i) {
+      if (tempCCounts[i] > lowThreshold) {
+        _dataMin = i;
+        break;
+      }
+    }
+
+    // Find the data value at the high percentile
+    // This is the last value where cumulative count is still <= highThreshold
+    _dataMax = absoluteMax;
+    for (uint16_t i = absoluteMax; i >= absoluteMin; --i) {
+      if (tempCCounts[i] <= highThreshold) {
+        _dataMax = i;
+        break;
+      }
+      // Prevent underflow on unsigned decrement
+      if (i == 0)
+        break;
+    }
+
+    // Ensure we have a valid range
+    if (_dataMin >= _dataMax) {
+      _dataMin = absoluteMin;
+      _dataMax = absoluteMax;
+    }
+  } else {
+    // For label/categorical data: use absolute min/max (no outlier filtering)
+    _dataMin = absoluteMin;
+    _dataMax = absoluteMax;
+  }
+
+  // Now build the final histogram using the robust data range
   float rangeMin = (float)_dataMin;
   float rangeMax = (float)_dataMax;
   float range = (float)(rangeMax - rangeMin);
@@ -69,18 +139,17 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
     range = 1.0f;
   }
   float binmax = (float)(num_bins - 1);
+
   for (size_t i = 0; i < length; ++i) {
-    size_t whichbin = (size_t)((float)(data[i] - rangeMin) / range * binmax + 0.5);
-    //		val = data[i];
-    //		// normalize to 0..1 range
-    //		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
-    //		fval = (float)(val - _dataMin) / range;
-    //		// select a bin
-    //		fval *= binmax;
-    //		// discretize (drop the fractional part?)
-    //		size_t whichbin = (size_t)fval;
+    uint16_t val = data[i];
+    // Clamp values outside the robust range to the boundaries
+    if (val < _dataMin) {
+      val = _dataMin;
+    } else if (val > _dataMax) {
+      val = _dataMax;
+    }
+    size_t whichbin = (size_t)((float)(val - rangeMin) / range * binmax + 0.5);
     _bins[whichbin]++;
-    // bins goes from min to max of data range. not datatype range.
   }
 
   // total number of pixels
