@@ -393,7 +393,7 @@ float
 GetNormalizedIntensity(in vec3 P, in int ch)
 {
   float intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P))[ch];
-  intensity = evalTfLut(ch, intensity);
+  intensity = evalTf(ch, intensity);
   return intensity;
 }
 
@@ -497,11 +497,11 @@ LightingSample_LargeStep(inout uvec2 seed)
 }
 
 // return a color xyz
+vec3
 
 )";
 
 const std::string pathTraceVolume_frag_chunk_1 = R"(
-vec3
 Light_Le(in Light light, in vec2 UV)
 {
   if (light.m_T == 0)
