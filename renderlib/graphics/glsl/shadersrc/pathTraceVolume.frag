@@ -84,7 +84,7 @@ uniform vec3 g_diffuse[4];
 uniform vec3 g_specular[4];
 uniform float g_roughness[4];
 
-const uint MAX_NO_TF_NODES = 32u;
+const uint MAX_NO_TF_NODES = 16u;
 // Each node is a vec2: x = intensity, y = value
 // composing a piecewise linear transfer function.
 // This assumes that the x values are sorted in ascending order!!!
