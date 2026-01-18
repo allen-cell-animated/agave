@@ -291,7 +291,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   float emissive[3 * 4] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   float roughness[4] = { 0, 0, 0, 0 };
   float opacity[4] = { 0, 0, 0, 0 };
-  // MUST MATCH SHADER
+  // MUST MATCH SHADER pathTraceVolume.frag
   static constexpr int MAX_NO_TF_NODES = 16;
   float tfdata[4 * MAX_NO_TF_NODES * 2] = { 0 };
   uint32_t tfnodes[4] = { 0, 0, 0, 0 };
