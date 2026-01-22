@@ -16,12 +16,6 @@ clamp(const T& v, const T& lo, const T& hi)
   return (v < lo) ? lo : (v > hi ? hi : v);
 }
 
-const float Histogram::DEFAULT_PCT_LOW = 0.5f;
-const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
-// Use 0.1% and 99.9% percentiles for histogram range to filter out extreme outliers
-const float Histogram::HISTOGRAM_RANGE_PCT_LOW = 0.001f;
-const float Histogram::HISTOGRAM_RANGE_PCT_HIGH = 0.999f;
-
 size_t
 Histogram::getBinOfIntensity(uint16_t intensity) const
 {
@@ -42,37 +36,39 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins, bool useOut
   , _ccounts(num_bins)
   , _dataMin(0)
   , _dataMax(0)
+  , _trueDataMin(0)
+  , _trueDataMax(0)
 {
   std::fill(_bins.begin(), _bins.end(), 0);
 
   if (!data || length == 0) {
     _pixelCount = 0;
-    _dataMinIdx = 0;
-    _dataMaxIdx = 0;
+    _trueDataMinIdx = 0;
+    _trueDataMaxIdx = 0;
     _maxBin = 0;
     return;
   }
 
   // First pass: find absolute min and max
-  uint16_t absoluteMin = data[0];
-  uint16_t absoluteMax = data[0];
-  _dataMaxIdx = 0;
-  _dataMinIdx = 0;
+  _trueDataMax = data[0];
+  _trueDataMin = data[0];
+  _trueDataMaxIdx = 0;
+  _trueDataMinIdx = 0;
   for (size_t i = 0; i < length; ++i) {
     uint16_t val = data[i];
-    if (val > absoluteMax) {
-      absoluteMax = val;
-      _dataMaxIdx = i;
-    } else if (val < absoluteMin) {
-      absoluteMin = val;
-      _dataMinIdx = i;
+    if (val > _trueDataMax) {
+      _trueDataMax = val;
+      _trueDataMaxIdx = i;
+    } else if (val < _trueDataMin) {
+      _trueDataMin = val;
+      _trueDataMinIdx = i;
     }
   }
 
   // If all data is the same value, use it directly
-  if (absoluteMin == absoluteMax) {
-    _dataMin = absoluteMin;
-    _dataMax = absoluteMax;
+  if (_trueDataMin == _trueDataMax) {
+    _dataMin = _trueDataMin;
+    _dataMax = _trueDataMax;
     _pixelCount = length;
     _bins[0] = length;
     _maxBin = 0;
@@ -99,8 +95,8 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins, bool useOut
 
     // Find the data value at the low percentile
     // This is the first value where cumulative count exceeds lowThreshold
-    _dataMin = absoluteMin;
-    for (uint16_t i = absoluteMin; i <= absoluteMax; ++i) {
+    _dataMin = _trueDataMin;
+    for (uint16_t i = _trueDataMin; i <= _trueDataMax; ++i) {
       if (tempCCounts[i] > lowThreshold) {
         _dataMin = i;
         break;
@@ -109,8 +105,8 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins, bool useOut
 
     // Find the data value at the high percentile
     // This is the last value where cumulative count is still <= highThreshold
-    _dataMax = absoluteMax;
-    for (uint16_t i = absoluteMax; i >= absoluteMin; --i) {
+    _dataMax = _trueDataMax;
+    for (uint16_t i = _trueDataMax; i >= _trueDataMin; --i) {
       if (tempCCounts[i] <= highThreshold) {
         _dataMax = i;
         break;
@@ -122,13 +118,13 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins, bool useOut
 
     // Ensure we have a valid range
     if (_dataMin >= _dataMax) {
-      _dataMin = absoluteMin;
-      _dataMax = absoluteMax;
+      _dataMin = _trueDataMin;
+      _dataMax = _trueDataMax;
     }
   } else {
     // For label/categorical data: use absolute min/max (no outlier filtering)
-    _dataMin = absoluteMin;
-    _dataMax = absoluteMax;
+    _dataMin = _trueDataMin;
+    _dataMax = _trueDataMax;
   }
 
   // Now build the final histogram using the robust data range

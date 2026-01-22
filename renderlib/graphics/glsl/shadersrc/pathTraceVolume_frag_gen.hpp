@@ -78,8 +78,11 @@ uniform float uShowLights;
 // per channel
 uniform sampler2D g_lutTexture[4];
 uniform sampler2DArray g_colormapTexture;
+
+// only used for lut Texture lookups
 uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
+
 uniform vec4 g_lutMax;
 uniform vec4 g_lutMin;
 uniform vec4 g_labels;
@@ -460,6 +463,8 @@ GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
     return texelFetch(g_colormapTexture, ivec3(int(intensity[ch]) % 256, 0, ch), 0).xyz * g_diffuse[ch];
   } else {
     float i = intensity[ch];
+    // for a "custom" lut, the min and max are the absolute data min and max
+    // TODO perhaps "custom" should be special-cased for applying colormaps
     i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
     return texture(g_colormapTexture, vec3(i, 0.5, float(ch))).xyz * g_diffuse[ch];
   }
@@ -490,6 +495,10 @@ struct CLightingSample
 };
 
 CLightingSample
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(
 LightingSample_LargeStep(inout uvec2 seed)
 {
   return CLightingSample(
@@ -498,10 +507,6 @@ LightingSample_LargeStep(inout uvec2 seed)
 
 // return a color xyz
 vec3
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_1 = R"(
 Light_Le(in Light light, in vec2 UV)
 {
   if (light.m_T == 0)
@@ -1010,15 +1015,15 @@ EstimateDirectLight(int shaderType,
 
   F = Shader_F(Shader, Wo, Wi);
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_2 = R"(
   ShaderPdf = Shader_Pdf(Shader, Wo, Wi);
 
   if (!IsBlack(Li) && (ShaderPdf > 0.0f) && (LightPdf > 0.0f) && !FreePathRM(Rl, seed)) {
     float WeightMIS = PowerHeuristic(1.0f, LightPdf, 1.0f, ShaderPdf);
 
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_2 = R"(
     if (shaderType == ShaderType_Brdf) {
       Ld += F * Li * abs(dot(Wi, N)) * WeightMIS / LightPdf;
     }

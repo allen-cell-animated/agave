@@ -73,8 +73,11 @@ uniform float uShowLights;
 // per channel
 uniform sampler2D g_lutTexture[4];
 uniform sampler2DArray g_colormapTexture;
+
+// only used for lut Texture lookups
 uniform vec4 g_intensityMax;
 uniform vec4 g_intensityMin;
+
 uniform vec4 g_lutMax;
 uniform vec4 g_lutMin;
 uniform vec4 g_labels;
@@ -455,6 +458,8 @@ GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
     return texelFetch(g_colormapTexture, ivec3(int(intensity[ch]) % 256, 0, ch), 0).xyz * g_diffuse[ch];
   } else {
     float i = intensity[ch];
+    // for a "custom" lut, the min and max are the absolute data min and max
+    // TODO perhaps "custom" should be special-cased for applying colormaps
     i = (i - g_lutMin[ch]) / (g_lutMax[ch] - g_lutMin[ch]);
     return texture(g_colormapTexture, vec3(i, 0.5, float(ch))).xyz * g_diffuse[ch];
   }
