@@ -1006,12 +1006,12 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
   float lowEnd = isovalue - width * 0.5f;
   float highEnd = isovalue + width * 0.5f;
   static const float epsilon = 0.00001f;
-  points.push_back({ 0.0f, 0.0f });
+  points.push_back({ std::min(0.0f, lowEnd - 2.0f * epsilon), 0.0f });
   points.push_back({ lowEnd - epsilon, 0.0f });
   points.push_back({ lowEnd + epsilon, 1.0f });
   points.push_back({ highEnd - epsilon, 1.0f });
   points.push_back({ highEnd + epsilon, 0.0f });
-  points.push_back({ 1.0f, 0.0f });
+  points.push_back({ std::max(highEnd + 2.0f * epsilon, 1.0f), 0.0f });
   m_editor->setControlPoints(points);
   emit gradientStopsChanged(vectorToGradientStops(points));
 }

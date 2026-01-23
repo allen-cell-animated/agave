@@ -66,13 +66,23 @@ GradientData::getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* im
 std::vector<LutControlPoint>
 GradientData::getControlPoints(const Histogram& histogram) const
 {
-  static constexpr float EPSILON = 0.0001f;
+  static constexpr float EPSILON = 0.00001f;
   uint16_t imin, imax;
   if (getMinMax(histogram, &imin, &imax)) {
     float fmin, fmax;
     fmin = (float)(imin - histogram._dataMin) / histogram.dataRange();
     fmax = (float)(imax - histogram._dataMin) / histogram.dataRange();
     // allow for fmin and fmax to be outside 0-1 range
+    // also note that the ISO mode graph needs to be a step function.
+    if (m_activeMode == GradientEditMode::ISOVALUE) {
+      std::vector<LutControlPoint> pts = { { std::min(fmin - EPSILON - EPSILON, 0.0f), 0.0f },
+                                           { fmin - EPSILON, 0.0f },
+                                           { fmin + EPSILON, 1.0f },
+                                           { fmax - EPSILON, 1.0f },
+                                           { fmax + EPSILON, 0.0f },
+                                           { std::max(fmax + EPSILON + EPSILON, 1.0f), 0.0f } };
+      return pts;
+    }
     std::vector<LutControlPoint> pts = {
       { std::min(fmin - EPSILON, 0.0f), 0.0f }, { fmin, 0.0f }, { fmax, 1.0f }, { std::max(fmax + EPSILON, 1.0f), 1.0f }
     };
