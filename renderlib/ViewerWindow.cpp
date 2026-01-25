@@ -132,7 +132,10 @@ ViewerWindow::updateCamera()
   sceneView.camera = renderCamera;
   sceneView.camera.Update();
 
-  // Update area light to maintain fixed direction relative to camera view
+  // Update area light to maintain fixed direction relative to camera view.
+  // Basic strategy: capture the view space direction of the light at the start of
+  // camera manipulation, then during manipulation update the light direction
+  // in world space to match the captured relative direction.
   if (sceneView.scene && sceneView.scene->SceneAreaLight()) {
     SceneLight* sceneLight = sceneView.scene->SceneAreaLight();
 
