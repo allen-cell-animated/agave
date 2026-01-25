@@ -6,6 +6,7 @@
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
 #include "renderlib/Colormap.h"
+#include "renderlib/Light.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
@@ -312,6 +313,22 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 
   Section* sectionCP = createClipPlaneSection(pToggleRotateAction, pToggleTranslateAction);
   m_MainLayout.addRow(sectionCP);
+
+  QFrame* lineB = new QFrame();
+  lineB->setFrameShape(QFrame::HLine);
+  lineB->setFrameShadow(QFrame::Sunken);
+  m_MainLayout.addRow(lineB);
+
+  // create a "lock lights to camera" checkbox
+  auto* lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
+  lockLightsToCameraCheckBox->setChecked(false);
+  m_MainLayout.addRow(lockLightsToCameraCheckBox);
+  QObject::connect(lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
+    if (m_scene) {
+      m_scene->setLockLightsToCamera(is_checked);
+    }
+  });
+
   Section* section = createAreaLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section);
   Section* section2 = createSkyLightingControls();
