@@ -80,4 +80,8 @@ public:
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
   int m_rendererType;
+
+  // Track camera manipulation for light following
+  bool m_wasCameraBeingEdited = false;
+  glm::vec3 m_capturedLightRelativeDir = glm::vec3(0.3f, 0.5f, 1.0f);
 };

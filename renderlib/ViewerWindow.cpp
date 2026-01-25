@@ -1,12 +1,15 @@
 #include "ViewerWindow.h"
 
+#include "AppScene.h"
 #include "AxisHelperTool.h"
 #include "BoundingBoxTool.h"
 #include "IRenderWindow.h"
+#include "Light.h"
 #include "MoveTool.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
 #include "ScaleBarTool.h"
+#include "SceneLight.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
 #include "graphics/GestureGraphicsGL.h"
@@ -128,6 +131,63 @@ ViewerWindow::updateCamera()
 
   sceneView.camera = renderCamera;
   sceneView.camera.Update();
+
+  // Update area light to maintain fixed direction relative to camera view
+  if (sceneView.scene && sceneView.scene->SceneAreaLight()) {
+    SceneLight* sceneLight = sceneView.scene->SceneAreaLight();
+
+    // Capture the relative direction at the START of camera manipulation
+    if (cameraEdit && !m_wasCameraBeingEdited) {
+      // Get the current light direction in world space
+      glm::vec3 worldLightDir = glm::normalize(sceneLight->m_transform.m_rotation * glm::vec3(0.0f, 0.0f, 1.0f));
+
+      // We need the camera basis BEFORE this frame's manipulation started
+      // So use m_CCamera (the base camera state before cameraMod was applied)
+      CCamera baseCamera = m_CCamera;
+      baseCamera.Update();
+
+      // Transform light direction to camera space to get relative direction
+      m_capturedLightRelativeDir.x = glm::dot(worldLightDir, baseCamera.m_U); // right component
+      m_capturedLightRelativeDir.y = glm::dot(worldLightDir, baseCamera.m_V); // up component
+      m_capturedLightRelativeDir.z = glm::dot(worldLightDir, baseCamera.m_N); // forward component
+      m_capturedLightRelativeDir = glm::normalize(m_capturedLightRelativeDir);
+    }
+
+    // During camera manipulation, update light using the captured relative direction
+    if (cameraEdit) {
+      // Transform the captured relative direction to world space using current camera basis
+      glm::vec3 newWorldLightDir = glm::normalize(m_capturedLightRelativeDir.z * renderCamera.m_N + // forward component
+                                                  m_capturedLightRelativeDir.x * renderCamera.m_U + // right component
+                                                  m_capturedLightRelativeDir.y * renderCamera.m_V   // up component
+      );
+
+      // Compute the rotation quaternion that rotates from default direction (0,0,1) to newWorldLightDir
+      glm::vec3 defaultDir(0.0f, 0.0f, 1.0f);
+      glm::quat rotation;
+
+      // Check if directions are nearly opposite
+      float dot = glm::dot(defaultDir, newWorldLightDir);
+      if (dot < -0.999999f) {
+        // 180 degree rotation around any perpendicular axis
+        rotation = glm::angleAxis(glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
+      } else {
+        // Standard quaternion from two vectors
+        glm::vec3 axis = glm::cross(defaultDir, newWorldLightDir);
+        rotation = glm::quat(1.0f + dot, axis.x, axis.y, axis.z);
+        rotation = glm::normalize(rotation);
+      }
+
+      // Update the SceneLight's transform
+      sceneLight->m_transform.m_rotation = rotation;
+
+      // Call updateTransform to apply the rotation to the underlying Light
+      sceneLight->updateTransform();
+      m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+    }
+  }
+
+  // Track camera edit state for next frame
+  m_wasCameraBeingEdited = cameraEdit;
 }
 
 void
@@ -144,6 +204,7 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
     if (sceneView.scene->m_clipPlane) {
       if (sceneView.scene->m_clipPlane->m_enabled) {
         if (sceneView.scene->m_clipPlane->getTool()) {
+          // add to sceneTools, a temporary array per-update
           sceneTools.push_back(sceneView.scene->m_clipPlane->getTool());
         }
       }
