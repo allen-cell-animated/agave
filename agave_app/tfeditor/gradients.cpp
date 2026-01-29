@@ -72,24 +72,8 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_histogramBars->setBrush(barBrush);
   m_histogramBars->setPen(Qt::NoPen);
   m_histogramBars->setWidthType(QCPBars::wtPlotCoords);
-  float firstBinCenter, lastBinCenter, binSize;
-  histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
-  m_histogramBars->setWidth(binSize);
-  QVector<double> keyData;
-  QVector<double> valueData;
-  static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
-  for (size_t i = 0; i < histogram._bins.size(); ++i) {
-    keyData << firstBinCenter + i * binSize;
-    if (histogram._bins[i] == 0) {
-      // Zero bins get zero height
-      valueData << 0.0;
-    } else {
-      // Nonzero bins get at least the minimum height
-      double normalizedHeight = (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
-      valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
-    }
-  }
-  m_histogramBars->setData(keyData, valueData);
+
+  updateHistogramBarGraph(histogram);
   m_histogramBars->setSelectable(QCP::stNone);
 
   // first added graph will the the piecewise linear transfer function
@@ -149,6 +133,39 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   connect(m_customPlot, &QCustomPlot::mouseDoubleClick, this, &GradientEditor::onPlotMouseDoubleClick);
 
   vbox->addWidget(m_customPlot);
+}
+
+void
+GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
+{
+  float firstBinCenter, lastBinCenter, binSize;
+  histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
+  m_histogramBars->setWidth(binSize);
+  QVector<double> keyData;
+  QVector<double> valueData;
+  static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
+  for (size_t i = 0; i < histogram._bins.size(); ++i) {
+    keyData << firstBinCenter + i * binSize;
+    if (histogram._bins[i] == 0) {
+      // Zero bins get zero height
+      valueData << 0.0;
+    } else {
+      // Nonzero bins get at least the minimum height
+      double normalizedHeight = (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
+      valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
+    }
+  }
+  m_histogramBars->setData(keyData, valueData);
+}
+
+void
+GradientEditor::setHistogram(const Histogram& histogram)
+{
+  m_histogram = histogram;
+
+  updateHistogramBarGraph(histogram);
+
+  m_customPlot->replot();
 }
 
 void
@@ -803,6 +820,13 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 }
 
 void
+GradientWidget::setHistogram(const Histogram& histogram)
+{
+  m_histogram = histogram;
+  m_editor->setHistogram(histogram);
+}
+
+void
 GradientWidget::forceDataUpdate()
 {
   GradientEditMode mode = this->m_gradientData->m_activeMode;
@@ -841,6 +865,9 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     for (int i = 0; i < stops.size(); ++i) {
       m_gradientData->m_customControlPoints.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
     }
+    std::sort(m_gradientData->m_customControlPoints.begin(),
+              m_gradientData->m_customControlPoints.end(),
+              controlpoint_x_less_than);
     emit gradientStopsChanged(stops);
   } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
     // extract window and level from the stops - use second and third points (threshold points)
@@ -979,12 +1006,12 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
   float lowEnd = isovalue - width * 0.5f;
   float highEnd = isovalue + width * 0.5f;
   static const float epsilon = 0.00001f;
-  points.push_back({ 0.0f, 0.0f });
+  points.push_back({ std::min(0.0f, lowEnd - 2.0f * epsilon), 0.0f });
   points.push_back({ lowEnd - epsilon, 0.0f });
   points.push_back({ lowEnd + epsilon, 1.0f });
   points.push_back({ highEnd - epsilon, 1.0f });
   points.push_back({ highEnd + epsilon, 0.0f });
-  points.push_back({ 1.0f, 0.0f });
+  points.push_back({ std::max(highEnd + 2.0f * epsilon, 1.0f), 0.0f });
   m_editor->setControlPoints(points);
   emit gradientStopsChanged(vectorToGradientStops(points));
 }

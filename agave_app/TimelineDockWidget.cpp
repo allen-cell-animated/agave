@@ -112,7 +112,8 @@ QTimelineWidget::OnTimeChanged(int newTime)
     // keep the local loadSpec up to date if successful load
     m_loadSpec = loadSpec;
 
-    // TODO update the AppearanceSettings channel gui with new Histograms
+    // update the AppearanceSettings channel gui with new Histograms
+    emit timeChanged(newTime);
 
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(VolumeDataDirty);
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);

@@ -100,17 +100,17 @@ struct LutParams_V1
            pctLow == other.pctLow && pctHigh == other.pctHigh && controlPoints == other.controlPoints &&
            minu16 == other.minu16 && maxu16 == other.maxu16 && mode == other.mode;
   }
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LutParams_V1,
-                                 window,
-                                 level,
-                                 isovalue,
-                                 isorange,
-                                 pctLow,
-                                 pctHigh,
-                                 controlPoints,
-                                 mode,
-                                 minu16,
-                                 maxu16)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(LutParams_V1,
+                                              window,
+                                              level,
+                                              isovalue,
+                                              isorange,
+                                              pctLow,
+                                              pctHigh,
+                                              controlPoints,
+                                              mode,
+                                              minu16,
+                                              maxu16)
 };
 
 struct ColorMap

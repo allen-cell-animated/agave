@@ -39,6 +39,7 @@ public:
                             QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
+  void onTimeChanged(int newTime);
 
 public slots:
   void OnRenderBegin(void);
@@ -124,6 +125,7 @@ private:
   QCheckBox m_showScaleBarCheckBox;
 
   std::vector<Section*> m_channelSections;
+  std::vector<class GradientWidget*> m_gradientWidgets;
 
   struct lt0
   {

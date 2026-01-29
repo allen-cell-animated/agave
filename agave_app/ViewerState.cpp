@@ -343,13 +343,16 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
   gd.m_pctHigh = lut.pctHigh;
   gd.m_maxu16 = lut.maxu16;
   gd.m_minu16 = lut.minu16;
-  for (size_t i = 0; i < lut.controlPoints.size(); i += 5) {
+  for (size_t i = 0; i < lut.controlPoints.size(); i++) {
     LutControlPoint cp;
     cp.first = lut.controlPoints[i].x;
     // note: only the last value of the vector is used currently
     cp.second = lut.controlPoints[i].value[3];
     gd.m_customControlPoints.push_back(cp);
   }
+  std::sort(gd.m_customControlPoints.begin(),
+            gd.m_customControlPoints.end(),
+            [](const LutControlPoint& a, const LutControlPoint& b) { return a.first < b.first; });
   return gd;
 }
 

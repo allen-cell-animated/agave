@@ -26,7 +26,7 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     static const uint16_t VALUE = 257;
     uint16_t data[] = { 0, 0, VALUE, VALUE };
     int COUNT = sizeof(data) / sizeof(data[0]);
-    Histogram h(data, COUNT);
+    Histogram h(data, COUNT, 512, false); // disable outlier filtering for label data
 
     REQUIRE(h._pixelCount == COUNT);
     REQUIRE(h._dataMax == VALUE);
@@ -45,7 +45,7 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
   {
     uint16_t data[] = { 0, 0, 1, 1, 2, 2, 510, 510, 511, 511, 512, 512 };
     int COUNT = sizeof(data) / sizeof(data[0]);
-    Histogram h(data, COUNT, 512);
+    Histogram h(data, COUNT, 512, false); // disable outlier filtering for precise binning test
 
     REQUIRE(h._pixelCount == COUNT);
     REQUIRE(h._dataMax == 512);
@@ -135,5 +135,198 @@ TEST_CASE("Histogram LUT generation is working", "[histogram]")
 
     REQUIRE(lut[16] == 0.5);
     REQUIRE(lut[197] == 0.75);
+  }
+}
+
+TEST_CASE("Histogram outlier filtering works correctly", "[histogram]")
+{
+  SECTION("Outlier filtering excludes extreme values in continuous data")
+  {
+    // Create data with extreme outliers: mostly values 100-200, but with extreme min/max
+    std::vector<uint16_t> data;
+    data.push_back(0); // extreme low outlier (single pixel)
+    for (int i = 0; i < 1000; ++i) {
+      data.push_back(100 + (i % 101)); // main data range 100-200
+    }
+    data.push_back(65535); // extreme high outlier (single pixel)
+
+    // With outlier filtering (default)
+    Histogram hFiltered(data.data(), data.size(), 512, true);
+
+    // Without outlier filtering
+    Histogram hUnfiltered(data.data(), data.size(), 512, false);
+
+    // Unfiltered should use full range
+    REQUIRE(hUnfiltered._dataMin == 0);
+    REQUIRE(hUnfiltered._dataMax == 65535);
+
+    // Filtered should exclude the outliers
+    REQUIRE(hFiltered._dataMin > 0);
+    REQUIRE(hFiltered._dataMax < 65535);
+    REQUIRE(hFiltered._dataMin >= 100);
+    REQUIRE(hFiltered._dataMax <= 200);
+  }
+
+  SECTION("Outlier filtering preserves label data when disabled")
+  {
+    // Label data: 0, 1, 2, 3, 4 uniformly distributed
+    std::vector<uint16_t> data;
+    for (int label = 0; label <= 4; ++label) {
+      for (int count = 0; count < 200; ++count) {
+        data.push_back(label);
+      }
+    }
+
+    // Without outlier filtering (for label data)
+    Histogram h(data.data(), data.size(), 512, false);
+
+    REQUIRE(h._dataMin == 0);
+    REQUIRE(h._dataMax == 4);
+    REQUIRE(h._pixelCount == 1000);
+  }
+
+  SECTION("Outlier filtering handles gaussian-like distribution")
+  {
+    // Create data with normal-like distribution centered at 1000 with a few extreme outliers
+    // Need enough samples for 0.1% to be meaningful (at least 1000 samples)
+    std::vector<uint16_t> data;
+    data.push_back(0); // extreme outlier
+
+    // Main distribution around 1000 (5000 samples)
+    for (int i = 0; i < 5000; ++i) {
+      data.push_back(950 + (i % 101)); // 950-1050
+    }
+
+    data.push_back(10000); // extreme outlier
+
+    Histogram hFiltered(data.data(), data.size(), 512, true);
+    Histogram hUnfiltered(data.data(), data.size(), 512, false);
+
+    // Unfiltered includes outliers
+    REQUIRE(hUnfiltered._dataMin == 0);
+    REQUIRE(hUnfiltered._dataMax == 10000);
+
+    // Filtered excludes outliers
+    REQUIRE(hFiltered._dataMin >= 950);
+    REQUIRE(hFiltered._dataMax <= 1050);
+  }
+
+  SECTION("Outlier filtering handles uniform distribution correctly")
+  {
+    // Uniform distribution from 1000 to 2000
+    std::vector<uint16_t> data;
+    for (int i = 1000; i <= 2000; ++i) {
+      data.push_back(i);
+    }
+
+    Histogram h(data.data(), data.size(), 512, true);
+
+    // Should preserve most of the range (maybe trim very edges)
+    REQUIRE(h._dataMin >= 1000);
+    REQUIRE(h._dataMin <= 1010);
+    REQUIRE(h._dataMax >= 1990);
+    REQUIRE(h._dataMax <= 2000);
+  }
+
+  SECTION("Outlier filtering is stable with all identical values")
+  {
+    uint16_t data[] = { 500, 500, 500, 500, 500 };
+    int COUNT = sizeof(data) / sizeof(data[0]);
+
+    Histogram hFiltered(data, COUNT, 512, true);
+    Histogram hUnfiltered(data, COUNT, 512, false);
+
+    // Both should handle identical values the same way
+    REQUIRE(hFiltered._dataMin == 500);
+    REQUIRE(hFiltered._dataMax == 500);
+    REQUIRE(hUnfiltered._dataMin == 500);
+    REQUIRE(hUnfiltered._dataMax == 500);
+  }
+
+  SECTION("Outlier filtering with very sparse outliers")
+  {
+    // 99.8% of data in narrow range, 0.1% each extreme outliers
+    std::vector<uint16_t> data;
+
+    // Add low outliers (0.1%)
+    for (int i = 0; i < 50; ++i) {
+      data.push_back(10);
+    }
+
+    // Main data (99.8%)
+    for (int i = 0; i < 49900; ++i) {
+      data.push_back(1000 + (i % 100)); // 1000-1099
+    }
+
+    // Add high outliers (0.1%)
+    for (int i = 0; i < 50; ++i) {
+      data.push_back(50000);
+    }
+
+    Histogram hFiltered(data.data(), data.size(), 512, true);
+
+    // Should exclude the extreme outliers at 10 and 50000
+    REQUIRE(hFiltered._dataMin >= 1000);
+    REQUIRE(hFiltered._dataMax < 50000);
+  }
+
+  SECTION("Percentile constants are accessible")
+  {
+    // Verify the constants are defined and reasonable
+    REQUIRE(Histogram::HISTOGRAM_RANGE_PCT_LOW > 0.0f);
+    REQUIRE(Histogram::HISTOGRAM_RANGE_PCT_LOW < 0.01f);  // Less than 1%
+    REQUIRE(Histogram::HISTOGRAM_RANGE_PCT_HIGH > 0.99f); // Greater than 99%
+    REQUIRE(Histogram::HISTOGRAM_RANGE_PCT_HIGH < 1.0f);
+  }
+
+  SECTION("Outlier filtering maintains correct bin counts")
+  {
+    // Data with outliers
+    std::vector<uint16_t> data;
+    data.push_back(0); // outlier
+    for (int i = 0; i < 1000; ++i) {
+      data.push_back(1000 + (i % 100)); // main range: 1000-1099
+    }
+    data.push_back(20000); // outlier
+
+    Histogram h(data.data(), data.size(), 512, true);
+
+    // Total pixel count should still be correct
+    REQUIRE(h._pixelCount == 1002);
+
+    // Cumulative counts should add up to total pixels
+    REQUIRE(h._ccounts[h._ccounts.size() - 1] == h._pixelCount);
+
+    // Outliers should be clamped to boundary bins
+    REQUIRE(h._bins[0] > 0);                  // Low outlier clamped to first bin
+    REQUIRE(h._bins[h._bins.size() - 1] > 0); // High outlier clamped to last bin
+  }
+}
+
+TEST_CASE("Histogram bin_range calculation uses robust range", "[histogram]")
+{
+  SECTION("bin_range uses filtered data range, not absolute range")
+  {
+    // Data with outliers
+    std::vector<uint16_t> data;
+    data.push_back(0); // outlier
+    for (int i = 0; i < 1000; ++i) {
+      data.push_back(1000 + i % 100); // 1000-1099
+    }
+    data.push_back(65535); // outlier
+
+    Histogram hFiltered(data.data(), data.size(), 512, true);
+
+    float firstBinCenter, lastBinCenter, binSize;
+    hFiltered.bin_range(512, firstBinCenter, lastBinCenter, binSize);
+
+    // Bin range should correspond to filtered range, not 0-65535
+    REQUIRE(firstBinCenter >= 1000.0f);
+    REQUIRE(firstBinCenter < 1100.0f);
+    REQUIRE(lastBinCenter >= 1000.0f);
+    REQUIRE(lastBinCenter < 1200.0f);
+
+    // Bin size should be much smaller than if full range was used
+    REQUIRE(binSize < 1.0f); // With full range, binSize would be ~128
   }
 }

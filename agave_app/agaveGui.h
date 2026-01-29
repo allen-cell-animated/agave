@@ -96,7 +96,7 @@ private:
   void createToolbars();
   void createDockWindows();
 
-  void showOpenFailedMessageBox(QString path);
+  void showOpenFailedMessageBox(QString path, QString details = "");
 
   static bool hasRecentFiles();
   void prependToRecentFiles(const QString& fileName);
