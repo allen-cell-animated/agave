@@ -71,7 +71,7 @@ uniform float gGradientFactor;
 uniform float uShowLights;
 
 // per channel
-uniform sampler2D g_lutTexture[4];
+uniform sampler2D g_lutTexture[4]; // DEPRECATED to be removed in future stable release
 uniform sampler2DArray g_colormapTexture;
 
 // only used for lut Texture lookups
@@ -87,7 +87,9 @@ uniform vec3 g_diffuse[4];
 uniform vec3 g_specular[4];
 uniform float g_roughness[4];
 
+// this const must be kept in sync with GLPTVolumeShader.cpp
 const uint MAX_NO_TF_NODES = 16u;
+
 // Each node is a vec2: x = intensity, y = value
 // composing a piecewise linear transfer function.
 // This assumes that the x values are sorted in ascending order!!!
@@ -132,6 +134,7 @@ evalTf(in uint channel, in float intensity)
   return 0.0f;
 }
 
+// DEPRECATED to be removed in future stable release
 float
 evalTfLut(in uint channel, in float intensity)
 {
@@ -141,6 +144,7 @@ evalTfLut(in uint channel, in float intensity)
   return intensity;
 }
 
+// DEPRECATED to be removed in future stable release
 vec4
 evalTfLut4ch(in vec4 intensity)
 {

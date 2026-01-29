@@ -76,7 +76,7 @@ uniform float gGradientFactor;
 uniform float uShowLights;
 
 // per channel
-uniform sampler2D g_lutTexture[4];
+uniform sampler2D g_lutTexture[4]; // DEPRECATED to be removed in future stable release
 uniform sampler2DArray g_colormapTexture;
 
 // only used for lut Texture lookups
@@ -92,7 +92,9 @@ uniform vec3 g_diffuse[4];
 uniform vec3 g_specular[4];
 uniform float g_roughness[4];
 
+// this const must be kept in sync with GLPTVolumeShader.cpp
 const uint MAX_NO_TF_NODES = 16u;
+
 // Each node is a vec2: x = intensity, y = value
 // composing a piecewise linear transfer function.
 // This assumes that the x values are sorted in ascending order!!!
@@ -137,6 +139,7 @@ evalTf(in uint channel, in float intensity)
   return 0.0f;
 }
 
+// DEPRECATED to be removed in future stable release
 float
 evalTfLut(in uint channel, in float intensity)
 {
@@ -146,6 +149,7 @@ evalTfLut(in uint channel, in float intensity)
   return intensity;
 }
 
+// DEPRECATED to be removed in future stable release
 vec4
 evalTfLut4ch(in vec4 intensity)
 {
@@ -484,6 +488,10 @@ GetRoughnessN(float NormalizedIntensity, int ch)
   return g_roughness[ch];
 }
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(
 // a bsdf sample, a sample on a light source, and a randomly chosen light index
 struct CLightingSample
 {
@@ -495,10 +503,6 @@ struct CLightingSample
 };
 
 CLightingSample
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_1 = R"(
 LightingSample_LargeStep(inout uvec2 seed)
 {
   return CLightingSample(
@@ -1006,6 +1010,10 @@ EstimateDirectLight(int shaderType,
   vec3 nv = normalize(cross(N, nu));
   CVolumeShader Shader = CVolumeShader(shaderType, RGBtoXYZ(diffuse), RGBtoXYZ(specular), 2.5f, roughness, N, nu, nv);
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_2 = R"(
   float LightPdf = 1.0f, ShaderPdf = 1.0f;
 
   Ray Rl = Ray(vec3(0, 0, 0), vec3(0, 0, 1.0), 0.0, 1500000.0f);
@@ -1015,10 +1023,6 @@ EstimateDirectLight(int shaderType,
 
   F = Shader_F(Shader, Wo, Wi);
 
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_2 = R"(
   ShaderPdf = Shader_Pdf(Shader, Wo, Wi);
 
   if (!IsBlack(Li) && (ShaderPdf > 0.0f) && (LightPdf > 0.0f) && !FreePathRM(Rl, seed)) {
