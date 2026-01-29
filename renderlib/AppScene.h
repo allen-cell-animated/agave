@@ -90,6 +90,8 @@ public:
   Light* m_Lights[MAX_NO_LIGHTS];
   int m_NoLights;
   SceneLight* m_sceneLights[MAX_NO_LIGHTS];
+
+  bool lockToCamera = false;
 };
 
 class Scene
@@ -128,4 +130,6 @@ public:
   void initBounds(const CBoundingBox& bb);
   void initBoundsFromImg(std::shared_ptr<ImageXYZC> img);
   void getFirst4EnabledChannels(uint32_t& c0, uint32_t& c1, uint32_t& c2, uint32_t& c3) const;
+
+  void setLockLightsToCamera(bool lock) { m_lighting.lockToCamera = lock; }
 };
