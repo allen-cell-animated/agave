@@ -1,3 +1,1 @@
-Licenses or copyright notices of dependencies that require acknowledgement should go here.
-
-If this project builds upon other software, parts of software (libraries) or simply work owned by someone else, it depends on their license how you have to acknowledge its usage in this project.
+A series of blog posts by Max Liani ( https://maxliani.wordpress.com/blog-2/ ) provided some foundational code for the viewport camera interaction and translation widgets. Code is modified but some portions remain similar to the original. Many thanks to Max for sharing his work.
