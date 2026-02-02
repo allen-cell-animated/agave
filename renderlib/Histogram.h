@@ -13,6 +13,7 @@ struct Histogram
   static constexpr float DEFAULT_PCT_LOW = 0.5f;
   static constexpr float DEFAULT_PCT_HIGH = 0.983f;
 
+private:
   // no more than 2^32 pixels of any one intensity in the data!?!?!
   std::vector<uint32_t> _bins;
   // cumulative counts from low to high
@@ -24,6 +25,16 @@ struct Histogram
   // index of bin with most pixels
   size_t _maxBin;
   size_t _pixelCount;
+
+public:
+  // return actual true abslute data extrema
+  uint16_t getDataMin() const { return _dataMin; }
+  uint16_t getDataMax() const { return _dataMax; }
+  size_t getDataMinIdx() const { return _dataMinIdx; }
+  size_t getDataMaxIdx() const { return _dataMaxIdx; }
+  size_t getPixelCount() const { return _pixelCount; }
+  size_t getBinCount(size_t bin) const;
+  size_t getNumBins() const { return _bins.size(); }
 
   void computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const;
 

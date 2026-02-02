@@ -598,3 +598,14 @@ Histogram::computePercentile(uint16_t intensity, float& percentile) const
     percentile = 1.0f;
   }
 }
+
+size_t
+Histogram::getBinCount(size_t bin) const
+{
+  // bounds check:
+  if (bin >= _bins.size()) {
+    LOG_WARNING << "Requested bin " << bin << " out of range (max " << (_bins.size() - 1) << ")";
+    return 0;
+  }
+  return _bins[bin];
+}

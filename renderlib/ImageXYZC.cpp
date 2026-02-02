@@ -36,17 +36,18 @@ ImageXYZC::ImageXYZC(uint32_t x,
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
   }
   for (uint32_t i = 0; i < m_c; ++i) {
-    LOG_INFO << "Channel " << i << ": " << (m_channels[i]->m_min) << ", " << (m_channels[i]->m_max);
-    glm::vec3 minpos = glm::vec3((float)(m_channels[i]->m_histogram._dataMinIdx % m_x),
-                                 (float)((m_channels[i]->m_histogram._dataMinIdx / m_x) % m_y),
-                                 (float)(m_channels[i]->m_histogram._dataMinIdx / (m_x * m_y)));
-    glm::vec3 maxpos = glm::vec3((float)(m_channels[i]->m_histogram._dataMaxIdx % m_x),
-                                 (float)((m_channels[i]->m_histogram._dataMaxIdx / m_x) % m_y),
-                                 (float)(m_channels[i]->m_histogram._dataMaxIdx / (m_x * m_y)));
-    LOG_INFO << "  Min " << (m_channels[i]->m_min) << " at (" << minpos.x << ", " << minpos.y << ", " << minpos.z
-             << ")";
-    LOG_INFO << "  Max " << (m_channels[i]->m_max) << " at (" << maxpos.x << ", " << maxpos.y << ", " << maxpos.z
-             << ")";
+    LOG_INFO << "Channel " << i << ": " << (m_channels[i]->m_histogram.getDataMin()) << ", "
+             << (m_channels[i]->m_histogram.getDataMax());
+    glm::vec3 minpos = glm::vec3((float)(m_channels[i]->m_histogram.getDataMinIdx() % m_x),
+                                 (float)((m_channels[i]->m_histogram.getDataMinIdx() / m_x) % m_y),
+                                 (float)(m_channels[i]->m_histogram.getDataMinIdx() / (m_x * m_y)));
+    glm::vec3 maxpos = glm::vec3((float)(m_channels[i]->m_histogram.getDataMaxIdx() % m_x),
+                                 (float)((m_channels[i]->m_histogram.getDataMaxIdx() / m_x) % m_y),
+                                 (float)(m_channels[i]->m_histogram.getDataMaxIdx() / (m_x * m_y)));
+    LOG_INFO << "  Min " << (m_channels[i]->m_histogram.getDataMin()) << " at (" << minpos.x << ", " << minpos.y << ", "
+             << minpos.z << ")";
+    LOG_INFO << "  Max " << (m_channels[i]->m_histogram.getDataMax()) << " at (" << maxpos.x << ", " << maxpos.y << ", "
+             << maxpos.z << ")";
   }
 }
 
@@ -208,9 +209,6 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_x = x;
   m_y = y;
   m_z = z;
-
-  m_min = m_histogram._dataMin;
-  m_max = m_histogram._dataMax;
 
   m_lut = m_histogram.generate_percentiles();
 }

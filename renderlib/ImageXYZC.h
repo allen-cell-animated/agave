@@ -17,8 +17,6 @@ struct Channelu16
   uint32_t m_x, m_y, m_z;
 
   uint16_t* m_ptr;
-  uint16_t m_min;
-  uint16_t m_max;
 
   uint16_t* m_gradientMagnitudePtr;
 
