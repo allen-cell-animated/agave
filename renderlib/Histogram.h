@@ -10,8 +10,8 @@ struct Histogram
 {
   Histogram(uint16_t* data, size_t length, size_t bins = 512);
 
-  static const float DEFAULT_PCT_LOW;
-  static const float DEFAULT_PCT_HIGH;
+  static constexpr float DEFAULT_PCT_LOW = 0.5f;
+  static constexpr float DEFAULT_PCT_HIGH = 0.983f;
 
   // no more than 2^32 pixels of any one intensity in the data!?!?!
   std::vector<uint32_t> _bins;

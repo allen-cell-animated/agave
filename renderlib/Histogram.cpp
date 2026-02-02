@@ -16,9 +16,6 @@ clamp(const T& v, const T& lo, const T& hi)
   return (v < lo) ? lo : (v > hi ? hi : v);
 }
 
-const float Histogram::DEFAULT_PCT_LOW = 0.5f;
-const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
-
 size_t
 Histogram::getBinOfIntensity(uint16_t intensity) const
 {
