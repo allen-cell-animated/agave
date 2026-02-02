@@ -8,15 +8,10 @@
 
 struct Histogram
 {
-  Histogram(uint16_t* data, size_t length, size_t bins = 512, bool useOutlierFiltering = true);
+  Histogram(uint16_t* data, size_t length, size_t bins = 512);
 
-  static constexpr float DEFAULT_PCT_LOW = 0.5f;
-  static constexpr float DEFAULT_PCT_HIGH = 0.983f;
-
-  // Percentiles for outlier-resistant data range calculation
-  // These determine which percentiles to use for histogram binning to avoid outliers
-  static constexpr float HISTOGRAM_RANGE_PCT_LOW = 0.001f;  // default 0.1% - filter out extreme low outliers
-  static constexpr float HISTOGRAM_RANGE_PCT_HIGH = 0.999f; // default 99.9% - filter out extreme high outliers
+  static const float DEFAULT_PCT_LOW;
+  static const float DEFAULT_PCT_HIGH;
 
   // no more than 2^32 pixels of any one intensity in the data!?!?!
   std::vector<uint32_t> _bins;
@@ -24,10 +19,8 @@ struct Histogram
   std::vector<uint32_t> _ccounts;
   uint16_t _dataMin;
   uint16_t _dataMax;
-  uint16_t _trueDataMin;
-  uint16_t _trueDataMax;
-  size_t _trueDataMinIdx;
-  size_t _trueDataMaxIdx;
+  size_t _dataMinIdx;
+  size_t _dataMaxIdx;
   // index of bin with most pixels
   size_t _maxBin;
   size_t _pixelCount;

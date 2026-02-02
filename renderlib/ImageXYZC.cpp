@@ -37,14 +37,16 @@ ImageXYZC::ImageXYZC(uint32_t x,
   }
   for (uint32_t i = 0; i < m_c; ++i) {
     LOG_INFO << "Channel " << i << ": " << (m_channels[i]->m_min) << ", " << (m_channels[i]->m_max);
-    glm::vec3 minpos = glm::vec3((float)(m_channels[i]->m_histogram._trueDataMinIdx % m_x),
-                                 (float)((m_channels[i]->m_histogram._trueDataMinIdx / m_x) % m_y),
-                                 (float)(m_channels[i]->m_histogram._trueDataMinIdx / (m_x * m_y)));
-    glm::vec3 maxpos = glm::vec3((float)(m_channels[i]->m_histogram._trueDataMaxIdx % m_x),
-                                 (float)((m_channels[i]->m_histogram._trueDataMaxIdx / m_x) % m_y),
-                                 (float)(m_channels[i]->m_histogram._trueDataMaxIdx / (m_x * m_y)));
-    LOG_INFO << "  Min at " << minpos.x << ", " << minpos.y << ", " << minpos.z;
-    LOG_INFO << "  Max at " << maxpos.x << ", " << maxpos.y << ", " << maxpos.z;
+    glm::vec3 minpos = glm::vec3((float)(m_channels[i]->m_histogram._dataMinIdx % m_x),
+                                 (float)((m_channels[i]->m_histogram._dataMinIdx / m_x) % m_y),
+                                 (float)(m_channels[i]->m_histogram._dataMinIdx / (m_x * m_y)));
+    glm::vec3 maxpos = glm::vec3((float)(m_channels[i]->m_histogram._dataMaxIdx % m_x),
+                                 (float)((m_channels[i]->m_histogram._dataMaxIdx / m_x) % m_y),
+                                 (float)(m_channels[i]->m_histogram._dataMaxIdx / (m_x * m_y)));
+    LOG_INFO << "  Min " << (m_channels[i]->m_min) << " at (" << minpos.x << ", " << minpos.y << ", " << minpos.z
+             << ")";
+    LOG_INFO << "  Max " << (m_channels[i]->m_max) << " at (" << maxpos.x << ", " << maxpos.y << ", " << maxpos.z
+             << ")";
   }
 }
 
@@ -207,9 +209,8 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_y = y;
   m_z = z;
 
-  // TODO is it better to use true data min/max or outlier-filtered min/max?
-  m_min = m_histogram._trueDataMin;
-  m_max = m_histogram._trueDataMax;
+  m_min = m_histogram._dataMin;
+  m_max = m_histogram._dataMax;
 
   m_lut = m_histogram.generate_percentiles();
 }
