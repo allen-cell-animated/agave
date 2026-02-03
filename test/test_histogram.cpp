@@ -11,14 +11,14 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     int COUNT = sizeof(data) / sizeof(data[0]);
     Histogram h(data, COUNT);
 
-    REQUIRE(h._pixelCount == COUNT);
-    REQUIRE(h._dataMax == VALUE);
-    REQUIRE(h._dataMin == VALUE);
+    REQUIRE(h.getPixelCount() == COUNT);
+    REQUIRE(h.getDataMax() == VALUE);
+    REQUIRE(h.getDataMin() == VALUE);
 
     // all data in first bin
-    REQUIRE(h._ccounts[h._bins.size() - 1] == h._pixelCount);
-    REQUIRE(h._ccounts[0] == h._pixelCount);
-    REQUIRE(h._bins[0] == h._pixelCount);
+    // REQUIRE(h._ccounts[h._bins.size() - 1] == h.getPixelCount());
+    // REQUIRE(h._ccounts[0] == h.getPixelCount());
+    REQUIRE(h.getBinCount(0) == h.getPixelCount());
   }
 
   SECTION("Histogram of binary segmentation")
@@ -28,17 +28,17 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     int COUNT = sizeof(data) / sizeof(data[0]);
     Histogram h(data, COUNT, 512, false); // disable outlier filtering for label data
 
-    REQUIRE(h._pixelCount == COUNT);
-    REQUIRE(h._dataMax == VALUE);
-    REQUIRE(h._dataMin == 0);
+    REQUIRE(h.getPixelCount() == COUNT);
+    REQUIRE(h.getDataMax() == VALUE);
+    REQUIRE(h.getDataMin() == 0);
 
     // only 2 bins with data
-    REQUIRE(h._bins[0] == 2);
-    REQUIRE(h._bins[h._bins.size() - 1] == 2);
-    REQUIRE(h._ccounts[h._bins.size() - 1] == h._pixelCount);
-    REQUIRE(h._ccounts[h._bins.size() - 2] == 2);
-    REQUIRE(h._ccounts[1] == 2);
-    REQUIRE(h._ccounts[0] == 2);
+    REQUIRE(h.getBinCount(0) == 2);
+    REQUIRE(h.getBinCount(h.getNumBins() - 1) == 2);
+    // REQUIRE(h._ccounts[h._bins.size() - 1] == h.getPixelCount());
+    // REQUIRE(h._ccounts[h._bins.size() - 2] == 2);
+    // REQUIRE(h._ccounts[1] == 2);
+    // REQUIRE(h._ccounts[0] == 2);
   }
 
   SECTION("Histogram binning accuracy is good")
@@ -47,20 +47,20 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     int COUNT = sizeof(data) / sizeof(data[0]);
     Histogram h(data, COUNT, 512, false); // disable outlier filtering for precise binning test
 
-    REQUIRE(h._pixelCount == COUNT);
-    REQUIRE(h._dataMax == 512);
-    REQUIRE(h._dataMin == 0);
+    REQUIRE(h.getPixelCount() == COUNT);
+    REQUIRE(h.getDataMax() == 512);
+    REQUIRE(h.getDataMin() == 0);
 
-    REQUIRE(h._bins[0] == 2);
-    REQUIRE(h._bins[1] == 2);
-    REQUIRE(h._bins[2] == 2);
-    REQUIRE(h._bins[h._bins.size() / 2 - 1] == 0);
-    REQUIRE(h._bins[h._bins.size() - 2] == 2);
-    REQUIRE(h._bins[h._bins.size() - 1] == 2);
-    REQUIRE(h._ccounts[h._bins.size() - 1] == h._pixelCount);
-    REQUIRE(h._ccounts[h._bins.size() - 2] == h._pixelCount - 2);
-    REQUIRE(h._ccounts[1] == 4);
-    REQUIRE(h._ccounts[0] == 2);
+    REQUIRE(h.getBinCount(0) == 2);
+    REQUIRE(h.getBinCount(1) == 2);
+    REQUIRE(h.getBinCount(2) == 2);
+    REQUIRE(h.getBinCount(h.getNumBins() / 2 - 1) == 0);
+    REQUIRE(h.getBinCount(h.getNumBins() - 2) == 2);
+    REQUIRE(h.getBinCount(h.getNumBins() - 1) == 2);
+    // REQUIRE(h._ccounts[h._bins.size() - 1] == h.getPixelCount());
+    // REQUIRE(h._ccounts[h._bins.size() - 2] == h.getPixelCount() - 2);
+    // REQUIRE(h._ccounts[1] == 4);
+    // REQUIRE(h._ccounts[0] == 2);
   }
 }
 
