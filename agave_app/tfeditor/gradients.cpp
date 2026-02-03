@@ -90,9 +90,9 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->yAxis->setLabel("");
 
   // set axes ranges, so we see all data:
-  m_customPlot->xAxis->setRange(histogram._dataMin, histogram._dataMax);
+  m_customPlot->xAxis->setRange(histogram.getDataMin(), histogram.getDataMax());
   m_customPlot->xAxis->ticker()->setTickCount(4);
-  m_customPlot->xAxis->ticker()->setTickOrigin(histogram._dataMin);
+  m_customPlot->xAxis->ticker()->setTickOrigin(histogram.getDataMin());
   auto tickLabelFont = m_customPlot->xAxis->tickLabelFont();
   tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
   m_customPlot->xAxis->setTickLabelFont(tickLabelFont);
@@ -139,19 +139,20 @@ void
 GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
 {
   float firstBinCenter, lastBinCenter, binSize;
-  histogram.bin_range(histogram._bins.size(), firstBinCenter, lastBinCenter, binSize);
+  histogram.bin_range(histogram.getNumBins(), firstBinCenter, lastBinCenter, binSize);
   m_histogramBars->setWidth(binSize);
   QVector<double> keyData;
   QVector<double> valueData;
   static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
-  for (size_t i = 0; i < histogram._bins.size(); ++i) {
+  for (size_t i = 0; i < histogram.getNumBins(); ++i) {
     keyData << firstBinCenter + i * binSize;
-    if (histogram._bins[i] == 0) {
+    if (histogram.getBinCount(i) == 0) {
       // Zero bins get zero height
       valueData << 0.0;
     } else {
       // Nonzero bins get at least the minimum height
-      double normalizedHeight = (double)histogram._bins[i] / (double)histogram._bins[histogram._maxBin];
+      double normalizedHeight =
+        (double)histogram.getBinCount(i) / (double)histogram.getBinCount(histogram.getModalBin());
       valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
     }
   }
@@ -398,7 +399,7 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
       bound_point(evx,
                   evy,
                   // we really want clipRect() here?  to capture zoomed region
-                  QRectF(m_histogram._dataMin, 0.0f, m_histogram._dataMax - m_histogram._dataMin, 1.0f),
+                  QRectF(m_histogram.getDataMin(), 0.0f, m_histogram.getDataMax() - m_histogram.getDataMin(), 1.0f),
                   m_locks.at(m_currentPointIndex),
                   px,
                   py);
@@ -463,7 +464,7 @@ GradientEditor::buildStopsFromPlot()
       continue;
 
     // rescale x to 0-1 range.
-    x = (x - m_histogram._dataMin) / (m_histogram._dataMax - m_histogram._dataMin);
+    x = (x - m_histogram.getDataMin()) / (m_histogram.getDataMax() - m_histogram.getDataMin());
     double y = dataIter->value;
 
     QColor color = QColor::fromRgbF(y, y, y, y);
@@ -562,7 +563,7 @@ GradientEditor::set_shade_points(const QPolygonF& points, QCustomPlot* plot, con
   QVector<double> x, y;
   for (int i = 0; i < points.size(); ++i) {
     // incoming points x values are in 0-1 range which is normalized to histogram data range
-    float dx = histogram._dataMin + points.at(i).x() * (histogram._dataMax - histogram._dataMin);
+    float dx = histogram.getDataMin() + points.at(i).x() * (histogram.getDataMax() - histogram.getDataMin());
     x << dx;
     y << points.at(i).y();
   }
@@ -715,14 +716,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   minu16Slider = new QIntSlider();
   minu16Slider->setStatusTip(tr("Minimum u16 value"));
   minu16Slider->setToolTip(tr("Set minimum u16 value"));
-  minu16Slider->setRange(m_histogram._dataMin, m_histogram._dataMax);
+  minu16Slider->setRange(m_histogram.getDataMin(), m_histogram.getDataMax());
   minu16Slider->setSingleStep(1);
   minu16Slider->setValue(m_gradientData->m_minu16);
   section0Layout->addRow("Min u16", minu16Slider);
   maxu16Slider = new QIntSlider();
   maxu16Slider->setStatusTip(tr("Maximum u16 value"));
   maxu16Slider->setToolTip(tr("Set maximum u16 value"));
-  maxu16Slider->setRange(m_histogram._dataMin, m_histogram._dataMax);
+  maxu16Slider->setRange(m_histogram.getDataMin(), m_histogram.getDataMax());
   maxu16Slider->setSingleStep(1);
   maxu16Slider->setValue(m_gradientData->m_maxu16);
   section0Layout->addRow("Max u16", maxu16Slider);
@@ -914,8 +915,10 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     float low = points[1].first;  // Second point (low threshold)
     float high = points[2].first; // Third point (high threshold)
     // calculate percentiles from the histogram:
-    uint16_t ulow = m_histogram._dataMin + static_cast<uint16_t>(low * (m_histogram._dataMax - m_histogram._dataMin));
-    uint16_t uhigh = m_histogram._dataMin + static_cast<uint16_t>(high * (m_histogram._dataMax - m_histogram._dataMin));
+    uint16_t ulow =
+      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
+    uint16_t uhigh =
+      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
     float pctLow = 0.0f, pctHigh = 1.0f;
     m_histogram.computePercentile(ulow, pctLow);
     m_histogram.computePercentile(uhigh, pctHigh);
@@ -936,8 +939,10 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     float low = points[1].first;  // Second point (min threshold)
     float high = points[2].first; // Third point (max threshold)
     // calculate percentiles from the histogram:
-    uint16_t ulow = m_histogram._dataMin + static_cast<uint16_t>(low * (m_histogram._dataMax - m_histogram._dataMin));
-    uint16_t uhigh = m_histogram._dataMin + static_cast<uint16_t>(high * (m_histogram._dataMax - m_histogram._dataMin));
+    uint16_t ulow =
+      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
+    uint16_t uhigh =
+      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
     m_gradientData->m_minu16 = ulow;
     m_gradientData->m_maxu16 = uhigh;
 
@@ -985,8 +990,8 @@ void
 GradientWidget::onSetMinMax(uint16_t minu16, uint16_t maxu16)
 {
   // these need to be relative to the data range of the channel, not absolute!
-  float relativeMin = normalizeInt(minu16, m_histogram._dataMin, m_histogram._dataMax);
-  float relativeMax = normalizeInt(maxu16, m_histogram._dataMin, m_histogram._dataMax);
+  float relativeMin = normalizeInt(minu16, m_histogram.getDataMin(), m_histogram.getDataMax());
+  float relativeMax = normalizeInt(maxu16, m_histogram.getDataMin(), m_histogram.getDataMax());
   relativeMin = std::max(relativeMin, 0.0f);
   relativeMax = std::min(relativeMax, 1.0f);
   if (relativeMin >= relativeMax) {
@@ -1026,8 +1031,8 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
     uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
 
     // Ensure values are within valid range
-    minu16 = std::max(minu16, static_cast<uint16_t>(m_histogram._dataMin));
-    maxu16 = std::min(maxu16, static_cast<uint16_t>(m_histogram._dataMax));
+    minu16 = std::max(minu16, static_cast<uint16_t>(m_histogram.getDataMin()));
+    maxu16 = std::min(maxu16, static_cast<uint16_t>(m_histogram.getDataMax()));
 
     // Update the data
     m_gradientData->m_minu16 = minu16;
@@ -1048,8 +1053,8 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
     // Convert intensities to normalized values (0-1 range)
     uint16_t minInt = static_cast<uint16_t>(minIntensity);
     uint16_t maxInt = static_cast<uint16_t>(maxIntensity);
-    float relativeMin = normalizeInt<uint16_t>(minInt, m_histogram._dataMin, m_histogram._dataMax);
-    float relativeMax = normalizeInt<uint16_t>(maxInt, m_histogram._dataMin, m_histogram._dataMax);
+    float relativeMin = normalizeInt<uint16_t>(minInt, m_histogram.getDataMin(), m_histogram.getDataMax());
+    float relativeMax = normalizeInt<uint16_t>(maxInt, m_histogram.getDataMin(), m_histogram.getDataMax());
 
     // Calculate window and level from the threshold points
     float window = relativeMax - relativeMin;
@@ -1072,26 +1077,26 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
     }
   } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
     // Convert intensities to u16 values first
-    uint16_t minu16 = static_cast<uint16_t>(std::max(minIntensity, (float)m_histogram._dataMin));
-    uint16_t maxu16 = static_cast<uint16_t>(std::min(maxIntensity, (float)m_histogram._dataMax));
+    uint16_t minu16 = static_cast<uint16_t>(std::max(minIntensity, (float)m_histogram.getDataMin()));
+    uint16_t maxu16 = static_cast<uint16_t>(std::min(maxIntensity, (float)m_histogram.getDataMax()));
 
     // Calculate percentiles by converting intensity to bin index and using cumulative counts
     float pctLow = 0.0f, pctHigh = 1.0f;
 
-    if (m_histogram._pixelCount > 0 && !m_histogram._ccounts.empty()) {
+    if (m_histogram.getPixelCount() > 0) {
       // For low percentile
-      if (minu16 <= m_histogram._dataMin) {
+      if (minu16 <= m_histogram.getDataMin()) {
         pctLow = 0.0f;
-      } else if (minu16 >= m_histogram._dataMax) {
+      } else if (minu16 >= m_histogram.getDataMax()) {
         pctLow = 1.0f;
       } else {
         m_histogram.computePercentile(minu16, pctLow);
       }
 
       // For high percentile
-      if (maxu16 <= m_histogram._dataMin) {
+      if (maxu16 <= m_histogram.getDataMin()) {
         pctHigh = 0.0f;
-      } else if (maxu16 >= m_histogram._dataMax) {
+      } else if (maxu16 >= m_histogram.getDataMax()) {
         pctHigh = 1.0f;
       } else {
         m_histogram.computePercentile(maxu16, pctHigh);

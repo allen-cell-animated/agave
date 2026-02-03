@@ -34,6 +34,7 @@ public:
   size_t getDataMaxIdx() const { return _dataMaxIdx; }
   size_t getPixelCount() const { return _pixelCount; }
   size_t getBinCount(size_t bin) const;
+  size_t getModalBin() const { return _maxBin; }
   size_t getNumBins() const { return _bins.size(); }
 
   void computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const;
