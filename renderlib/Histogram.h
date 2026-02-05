@@ -8,22 +8,26 @@
 
 struct Histogram
 {
-  Histogram(uint16_t* data, size_t length, size_t bins = 512);
+  Histogram(uint16_t* data, size_t length);
 
   static constexpr float DEFAULT_PCT_LOW = 0.5f;
   static constexpr float DEFAULT_PCT_HIGH = 0.983f;
 
 private:
   // no more than 2^32 pixels of any one intensity in the data!?!?!
-  std::vector<uint32_t> _bins;
+  std::vector<uint32_t> _bins;         // more bins and smaller bin size, gives more accurate percentile computations
+  std::vector<uint32_t> _filteredBins; // filtered bins for display
+
   // cumulative counts from low to high
   std::vector<uint32_t> _ccounts;
   uint16_t _dataMin;
   uint16_t _dataMax;
   size_t _dataMinIdx;
   size_t _dataMaxIdx;
+  uint16_t _filteredMin;
+  uint16_t _filteredMax;
   // index of bin with most pixels
-  size_t _maxBin;
+  size_t _maxFilteredBin;
   size_t _pixelCount;
 
 public:
@@ -33,9 +37,10 @@ public:
   size_t getDataMinIdx() const { return _dataMinIdx; }
   size_t getDataMaxIdx() const { return _dataMaxIdx; }
   size_t getPixelCount() const { return _pixelCount; }
-  size_t getBinCount(size_t bin) const;
-  size_t getModalBin() const { return _maxBin; }
-  size_t getNumBins() const { return _bins.size(); }
+
+  size_t getDisplayBinCount(size_t bin) const;
+  size_t getModalDisplayBin() const { return _maxFilteredBin; }
+  size_t getNumDisplayBins() const { return _filteredBins.size(); }
 
   void computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const;
 
@@ -54,7 +59,6 @@ public:
 
   // Determine center values for first and last bins, and bin size.
   void bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const;
-  std::vector<uint32_t> bin_counts(uint32_t nbins);
   float rank_data_value(float fraction) const;
   float* initialize_thresholds(float vfrac_min = 0.01f, float vfrac_max = 0.90f) const;
 
@@ -62,4 +66,7 @@ public:
 
   size_t getBinOfIntensity(uint16_t intensity) const;
   void computePercentile(uint16_t intensity, float& percentile) const;
+
+private:
+  std::vector<uint32_t> bin_counts(uint32_t nbins);
 };

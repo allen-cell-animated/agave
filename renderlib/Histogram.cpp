@@ -8,6 +8,10 @@
 #include <math.h>
 #include <numeric>
 
+static constexpr size_t HIGH_RES_BINS = 4096;
+// for display:
+static constexpr size_t FILTERED_BINS = 512;
+
 template<class T>
 const T&
 clamp(const T& v, const T& lo, const T& hi)
@@ -31,19 +35,25 @@ Histogram::getBinOfIntensity(uint16_t intensity) const
   }
 }
 
-Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
-  : _bins(num_bins)
-  , _ccounts(num_bins)
+Histogram::Histogram(uint16_t* data, size_t length)
+  : _bins(HIGH_RES_BINS)
+  , _filteredBins(FILTERED_BINS)
+  , _ccounts(HIGH_RES_BINS)
   , _dataMin(0)
   , _dataMax(0)
   , _dataMinIdx(0)
   , _dataMaxIdx(0)
+  , _filteredMin(0)
+  , _filteredMax(0)
 {
   std::fill(_bins.begin(), _bins.end(), 0);
+  std::fill(_filteredBins.begin(), _filteredBins.end(), 0);
 
   if (data) {
     _dataMin = data[0];
     _dataMax = data[0];
+    _filteredMax = data[0];
+    _filteredMin = data[0];
   }
 
   uint16_t val;
@@ -57,6 +67,9 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
       _dataMinIdx = i;
     }
   }
+  _filteredMax = _dataMax;
+  _filteredMin = _dataMin;
+
   //	float fval;
   float rangeMin = (float)_dataMin;
   float rangeMax = (float)_dataMax;
@@ -64,36 +77,75 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   if (range == 0.0f) {
     range = 1.0f;
   }
-  float binmax = (float)(num_bins - 1);
+  float invRange = 1.0f / range;
+
+  // compute a high resolution histogram first
+  // we will use this for percentile outlier filtering, for display histogram.
   for (size_t i = 0; i < length; ++i) {
-    size_t whichbin = (size_t)((float)(data[i] - rangeMin) / range * binmax + 0.5);
-    //		val = data[i];
-    //		// normalize to 0..1 range
-    //		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
-    //		fval = (float)(val - _dataMin) / range;
-    //		// select a bin
-    //		fval *= binmax;
-    //		// discretize (drop the fractional part?)
-    //		size_t whichbin = (size_t)fval;
+    val = data[i];
+    int64_t whichbin = (int64_t)((float)(val - rangeMin) * invRange * (float)(HIGH_RES_BINS - 1) + 0.5f);
+    if (whichbin >= HIGH_RES_BINS) {
+      whichbin = HIGH_RES_BINS - 1;
+    } else if (whichbin < 0) {
+      whichbin = 0;
+    }
     _bins[whichbin]++;
-    // bins goes from min to max of data range. not datatype range.
+  }
+
+  // now we will do outlier filtering based on percentiles.
+  uint64_t total = std::accumulate(_bins.begin(), _bins.end(), uint64_t(0));
+  assert(total == length);
+  uint64_t targetLo = total * 0.001; // P0.1
+  uint64_t targetHi = total * 0.999; // P99.9
+
+  uint64_t cumsum = 0;
+  size_t loBin = 0;
+  size_t hiBin = HIGH_RES_BINS - 1;
+  bool foundLo = false;
+  for (size_t i = 0; i < HIGH_RES_BINS; ++i) {
+    cumsum += _bins[i];
+    if (cumsum >= targetLo && !foundLo) {
+      loBin = i;
+      foundLo = true;
+    }
+    if (cumsum >= targetHi) {
+      hiBin = i;
+      break;
+    }
+  }
+  // add cumulative counts into the ccounts array
+  std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
+
+  float loVal = rangeMin + loBin * (range / (float)(HIGH_RES_BINS - 1));
+  float hiVal = rangeMin + hiBin * (range / (float)(HIGH_RES_BINS - 1));
+  _filteredMin = (uint16_t)loVal;
+  _filteredMax = (uint16_t)hiVal;
+  float filteredRange = _filteredMax - _filteredMin;
+
+  float binmax = (float)(FILTERED_BINS - 1);
+  for (size_t i = 0; i < length; ++i) {
+    size_t whichbin = (size_t)((float)(data[i] - loVal) / filteredRange * binmax + 0.5);
+    if (whichbin >= FILTERED_BINS) {
+      whichbin = FILTERED_BINS - 1;
+    } else if (whichbin < 0) {
+      whichbin = 0;
+    }
+    _filteredBins[whichbin]++;
   }
 
   // total number of pixels
   _pixelCount = length;
 
   // get the bin with the most frequently occurring value
-  _maxBin = 0;
-  uint32_t curmax = _bins[0];
-  for (size_t i = 1; i < _bins.size(); i++) {
-    if (_bins[i] > curmax) {
-      _maxBin = i;
-      curmax = _bins[i];
+  _maxFilteredBin = 0;
+  uint32_t curmax = _filteredBins[0];
+  for (size_t i = 1; i < _filteredBins.size(); i++) {
+    if (_filteredBins[i] > curmax) {
+      _maxFilteredBin = i;
+      curmax = _filteredBins[i];
     }
   }
 
-  // add cumulative counts into the ccounts array
-  std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
   // last ccount bin should have total number of intensities.
   assert(_pixelCount == _ccounts[_ccounts.size() - 1]);
 }
@@ -222,7 +274,8 @@ Histogram::generate_auto(size_t length) const
   // simple linear mapping cutting elements with small appearance
   // get 10% threshold
   float PERCENTAGE = 0.1f;
-  float th = std::floor(_bins[_maxBin] * PERCENTAGE);
+  // get a count of pixels in the most frequent filtered bin
+  float th = std::floor(_filteredBins[_maxFilteredBin] * PERCENTAGE);
   size_t b = 0;
   size_t e = _bins.size() - 1;
   for (size_t x = 0; x < _bins.size(); ++x) {
@@ -600,12 +653,12 @@ Histogram::computePercentile(uint16_t intensity, float& percentile) const
 }
 
 size_t
-Histogram::getBinCount(size_t bin) const
+Histogram::getDisplayBinCount(size_t bin) const
 {
   // bounds check:
-  if (bin >= _bins.size()) {
-    LOG_WARNING << "Requested bin " << bin << " out of range (max " << (_bins.size() - 1) << ")";
+  if (bin >= _filteredBins.size()) {
+    LOG_WARNING << "Requested bin " << bin << " out of range (max " << (_filteredBins.size() - 1) << ")";
     return 0;
   }
-  return _bins[bin];
+  return _filteredBins[bin];
 }

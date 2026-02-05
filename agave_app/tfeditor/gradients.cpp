@@ -139,20 +139,20 @@ void
 GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
 {
   float firstBinCenter, lastBinCenter, binSize;
-  histogram.bin_range(histogram.getNumBins(), firstBinCenter, lastBinCenter, binSize);
+  histogram.bin_range(histogram.getNumDisplayBins(), firstBinCenter, lastBinCenter, binSize);
   m_histogramBars->setWidth(binSize);
   QVector<double> keyData;
   QVector<double> valueData;
   static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
-  for (size_t i = 0; i < histogram.getNumBins(); ++i) {
+  for (size_t i = 0; i < histogram.getNumDisplayBins(); ++i) {
     keyData << firstBinCenter + i * binSize;
-    if (histogram.getBinCount(i) == 0) {
+    if (histogram.getDisplayBinCount(i) == 0) {
       // Zero bins get zero height
       valueData << 0.0;
     } else {
       // Nonzero bins get at least the minimum height
       double normalizedHeight =
-        (double)histogram.getBinCount(i) / (double)histogram.getBinCount(histogram.getModalBin());
+        (double)histogram.getDisplayBinCount(i) / (double)histogram.getDisplayBinCount(histogram.getModalDisplayBin());
       valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
     }
   }
