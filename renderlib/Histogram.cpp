@@ -118,8 +118,8 @@ Histogram::Histogram(uint16_t* data, size_t length)
   std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
 
   if (abs((int64_t)(hiBin - loBin)) < 3) {
-    // if the range is too small, just use the whole range.
-    // i.e. if the 0.1 and 99.9 percentiles are too close, just give up on filtering.
+    // if the number of bins separating the percentiles is too small,
+    // just don't filter anything.
     loBin = 0;
     hiBin = HIGH_RES_BINS - 1;
     _filteredMin = _dataMin;
