@@ -16,8 +16,6 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     REQUIRE(h.getDataMin() == VALUE);
 
     // all data in first bin
-    // REQUIRE(h._ccounts[h._bins.size() - 1] == h.getPixelCount());
-    // REQUIRE(h._ccounts[0] == h.getPixelCount());
     REQUIRE(h.getDisplayBinCount(0) == h.getPixelCount());
   }
 
@@ -35,10 +33,6 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     // only 2 bins with data
     REQUIRE(h.getDisplayBinCount(0) == 2);
     REQUIRE(h.getDisplayBinCount(h.getNumDisplayBins() - 1) == 2);
-    // REQUIRE(h._ccounts[h._bins.size() - 1] == h.getPixelCount());
-    // REQUIRE(h._ccounts[h._bins.size() - 2] == 2);
-    // REQUIRE(h._ccounts[1] == 2);
-    // REQUIRE(h._ccounts[0] == 2);
   }
 
   SECTION("Histogram binning accuracy is good")
@@ -57,10 +51,6 @@ TEST_CASE("Histogram edge cases are stable", "[histogram]")
     REQUIRE(h.getDisplayBinCount(h.getNumDisplayBins() / 2 - 1) == 0);
     REQUIRE(h.getDisplayBinCount(h.getNumDisplayBins() - 2) == 2);
     REQUIRE(h.getDisplayBinCount(h.getNumDisplayBins() - 1) == 2);
-    // REQUIRE(h._ccounts[h._bins.size() - 1] == h.getPixelCount());
-    // REQUIRE(h._ccounts[h._bins.size() - 2] == h.getPixelCount() - 2);
-    // REQUIRE(h._ccounts[1] == 4);
-    // REQUIRE(h._ccounts[0] == 2);
   }
 }
 
