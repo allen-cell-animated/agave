@@ -138,7 +138,7 @@ Histogram::Histogram(uint16_t* data, size_t length)
 
   float binmax = (float)(FILTERED_BINS - 1);
   for (size_t i = 0; i < length; ++i) {
-    size_t whichbin = (size_t)((float)(data[i] - _filteredMin) / filteredRange * binmax + 0.5);
+    int64_t whichbin = (int64_t)((float)(data[i] - _filteredMin) / filteredRange * binmax + 0.5f);
     if (whichbin >= FILTERED_BINS) {
       whichbin = FILTERED_BINS - 1;
     } else if (whichbin < 0) {
