@@ -5,6 +5,7 @@
 #include "MathUtil.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <math.h>
 #include <numeric>
 
@@ -95,8 +96,8 @@ Histogram::Histogram(uint16_t* data, size_t length)
   // now we will do outlier filtering based on percentiles.
   uint64_t total = std::accumulate(_bins.begin(), _bins.end(), uint64_t(0));
   assert(total == length);
-  uint64_t targetLo = total * 0.001; // P0.1
-  uint64_t targetHi = total * 0.999; // P99.9
+  uint64_t targetLo = (uint64_t)(total * 0.001 + 0.5); // P0.1
+  uint64_t targetHi = (uint64_t)(total * 0.999 + 0.5); // P99.9
 
   uint64_t cumsum = 0;
   size_t loBin = 0;
@@ -116,15 +117,28 @@ Histogram::Histogram(uint16_t* data, size_t length)
   // add cumulative counts into the ccounts array
   std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
 
-  float loVal = rangeMin + loBin * (range / (float)(HIGH_RES_BINS - 1));
-  float hiVal = rangeMin + hiBin * (range / (float)(HIGH_RES_BINS - 1));
-  _filteredMin = (uint16_t)loVal;
-  _filteredMax = (uint16_t)hiVal;
+  if (abs((int64_t)(hiBin - loBin)) < 3) {
+    // if the range is too small, just use the whole range.
+    // i.e. if the 0.1 and 99.9 percentiles are too close, just give up on filtering.
+    loBin = 0;
+    hiBin = HIGH_RES_BINS - 1;
+    _filteredMin = _dataMin;
+    _filteredMax = _dataMax;
+  } else {
+    float loVal = rangeMin + loBin * (range / (float)(HIGH_RES_BINS - 1));
+    float hiVal = rangeMin + hiBin * (range / (float)(HIGH_RES_BINS - 1));
+    _filteredMin = (uint16_t)(loVal + 0.5f);
+    _filteredMax = (uint16_t)(hiVal + 0.5f);
+  }
+
   float filteredRange = _filteredMax - _filteredMin;
+  if (filteredRange == 0.0f) {
+    filteredRange = 1.0f;
+  }
 
   float binmax = (float)(FILTERED_BINS - 1);
   for (size_t i = 0; i < length; ++i) {
-    size_t whichbin = (size_t)((float)(data[i] - loVal) / filteredRange * binmax + 0.5);
+    size_t whichbin = (size_t)((float)(data[i] - _filteredMin) / filteredRange * binmax + 0.5);
     if (whichbin >= FILTERED_BINS) {
       whichbin = FILTERED_BINS - 1;
     } else if (whichbin < 0) {
