@@ -34,6 +34,8 @@ public:
   // return actual true abslute data extrema
   uint16_t getDataMin() const { return _dataMin; }
   uint16_t getDataMax() const { return _dataMax; }
+  uint16_t getFilteredMin() const { return _filteredMin; }
+  uint16_t getFilteredMax() const { return _filteredMax; }
   size_t getDataMinIdx() const { return _dataMinIdx; }
   size_t getDataMaxIdx() const { return _dataMaxIdx; }
   size_t getPixelCount() const { return _pixelCount; }

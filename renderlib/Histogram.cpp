@@ -105,7 +105,7 @@ Histogram::Histogram(uint16_t* data, size_t length)
   bool foundLo = false;
   for (size_t i = 0; i < HIGH_RES_BINS; ++i) {
     cumsum += _bins[i];
-    if (cumsum >= targetLo && !foundLo) {
+    if (cumsum > targetLo && !foundLo) {
       loBin = i;
       foundLo = true;
     }
@@ -433,8 +433,8 @@ Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t lengt
 void
 Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
 {
-  uint16_t dmin = _dataMin;
-  uint16_t dmax = _dataMax;
+  uint16_t dmin = _filteredMin;
+  uint16_t dmax = _filteredMax;
   float fbc, lbc, bsize;
   if (nbins > 1) {
     if (dmax > dmin) {
