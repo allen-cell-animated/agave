@@ -43,6 +43,7 @@ public:
 
   size_t getPixelCount() const { return _pixelCount; }
 
+  // get the number of pixels in a display bin
   size_t getDisplayBinCount(size_t bin) const;
   size_t getModalDisplayBin() const { return _maxFilteredBin; }
   size_t getNumDisplayBins() const { return _filteredBins.size(); }
