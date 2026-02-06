@@ -31,13 +31,16 @@ private:
   size_t _pixelCount;
 
 public:
-  // return actual true abslute data extrema
+  // return actual true absolute data extrema
   uint16_t getDataMin() const { return _dataMin; }
   uint16_t getDataMax() const { return _dataMax; }
-  uint16_t getFilteredMin() const { return _filteredMin; }
-  uint16_t getFilteredMax() const { return _filteredMax; }
   size_t getDataMinIdx() const { return _dataMinIdx; }
   size_t getDataMaxIdx() const { return _dataMaxIdx; }
+
+  // outlier-filtered data extrema
+  uint16_t getFilteredMin() const { return _filteredMin; }
+  uint16_t getFilteredMax() const { return _filteredMax; }
+
   size_t getPixelCount() const { return _pixelCount; }
 
   size_t getDisplayBinCount(size_t bin) const;
