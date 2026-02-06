@@ -431,7 +431,7 @@ Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t lengt
 }
 
 void
-Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
+Histogram::filteredBinRange(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
 {
   uint16_t dmin = _filteredMin;
   uint16_t dmax = _filteredMax;
@@ -457,58 +457,6 @@ Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter
   binSize = bsize;
 }
 
-// Compute histogram from binned data using a different number of bins.
-std::vector<uint32_t>
-Histogram::bin_counts(uint32_t nbins)
-{
-  uint32_t fbins = (uint32_t)_bins.size();
-  std::vector<uint32_t>& fcounts = _bins;
-
-  float fbc, lbc, bsize;
-  bin_range(nbins, fbc, lbc, bsize);
-  float ffbc, flbc, fbsize;
-  bin_range(fbins, ffbc, flbc, fbsize);
-  float r = bsize / fbsize;
-  float s = 0.5f + ((fbc - ffbc) / fbsize);
-
-  std::vector<uint32_t> bcounts(nbins, 0);
-  for (uint32_t b = 0; b < nbins; ++b) {
-    float fb0 = s + (b - 0.5f) * r;
-    int b0 = int(ceil(fb0));
-    float f0 = b0 - fb0;
-    if (b0 < 0) {
-      b0 = 0;
-      f0 = 0;
-    }
-    float fb1 = s + (b + 0.5f) * r;
-    int b1 = int(floor(fb1));
-    float f1 = fb1 - b1;
-    if (b1 >= (int32_t)fbins) {
-      b1 = fbins;
-      f1 = 0;
-    }
-    uint32_t c = 0;
-    if ((b0 - 1) == b1) {
-      c += (uint32_t)(r * fcounts[b0 - 1]);
-    } else {
-      if ((b0 > 0) && (b0 <= (int32_t)fbins)) {
-        c += (uint32_t)(fcounts[b0 - 1] * f0);
-      }
-      if (b1 > b0) {
-        // c += sum(fcounts[b0:b1]);
-        for (int j = b0; j < b1; ++j) {
-          c += fcounts[j];
-        }
-      }
-      if ((b1 >= 0) && (b1 < (int32_t)fbins)) {
-        c += (uint32_t)(fcounts[b1] * f1);
-      }
-    }
-    bcounts[b] = c;
-  }
-  return bcounts;
-}
-
 // Find the data value where a specified fraction of voxels have lower value.
 // Result is an approximation using binned data.
 float
@@ -525,7 +473,7 @@ Histogram::rank_data_value(float fraction) const
   }
   // int b = _ccounts.searchsorted(fraction*_ccounts[_ccounts.size()-1]);
   float fbc, lbc, bsize;
-  bin_range((uint32_t)_bins.size(), fbc, lbc, bsize);
+  filteredBinRange((uint32_t)_bins.size(), fbc, lbc, bsize);
   float v = fbc + b * (lbc - fbc) / (float)_bins.size();
   return v;
 }

@@ -60,7 +60,7 @@ public:
   uint16_t dataRange() const { return _dataMax - _dataMin; }
 
   // Determine center values for first and last bins, and bin size.
-  void bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const;
+  void filteredBinRange(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const;
   float rank_data_value(float fraction) const;
   float* initialize_thresholds(float vfrac_min = 0.01f, float vfrac_max = 0.90f) const;
 
@@ -68,7 +68,4 @@ public:
 
   size_t getBinOfIntensity(uint16_t intensity) const;
   void computePercentile(uint16_t intensity, float& percentile) const;
-
-private:
-  std::vector<uint32_t> bin_counts(uint32_t nbins);
 };
