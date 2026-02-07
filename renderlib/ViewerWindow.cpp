@@ -159,10 +159,11 @@ ViewerWindow::updateCamera()
     // During camera manipulation, update light using the captured relative direction
     if (cameraEdit) {
       // Transform the captured relative direction to world space using current camera basis
-      glm::vec3 newWorldLightDir = glm::normalize(m_capturedLightRelativeDir.z * renderCamera.m_N + // forward component
-                                                  m_capturedLightRelativeDir.x * renderCamera.m_U + // right component
-                                                  m_capturedLightRelativeDir.y * renderCamera.m_V   // up component
-      );
+      glm::vec3 newWorldLightDir =
+        glm::normalize(m_capturedLightRelativeDir.z * sceneView.camera.m_N + // forward component
+                       m_capturedLightRelativeDir.x * sceneView.camera.m_U + // right component
+                       m_capturedLightRelativeDir.y * sceneView.camera.m_V   // up component
+        );
 
       // Compute the rotation quaternion that rotates from default direction (0,0,1) to newWorldLightDir
       glm::vec3 defaultDir(0.0f, 0.0f, 1.0f);
