@@ -23,7 +23,7 @@ public:
   void updateTransform();
   Light* m_light;
   std::vector<std::function<void(const Light&)>> m_observers;
-  std::unique_ptr<AreaLightTool> m_tool;
+  std::unique_ptr<ManipulationTool> m_tool;
 
   virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
 };

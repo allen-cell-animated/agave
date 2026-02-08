@@ -61,9 +61,9 @@ public:
     , m_SkyRadius(100.0f)
     , m_P(1.0f, 1.0f, 1.0f)
     , m_Target(0.0f, 0.0f, 0.0f)
-    , m_N(1.0f, 0.0f, 0.0f)
+    , m_N(0.0f, 0.0f, 1.0f)
     , m_U(1.0f, 0.0f, 0.0f)
-    , m_V(1.0f, 0.0f, 0.0f)
+    , m_V(0.0f, 1.0f, 0.0f)
     , m_Area(m_Width * m_Height)
     , m_AreaPdf(1.0f / m_Area)
     , m_Color(10.0f)
@@ -117,4 +117,6 @@ public:
 
   static void sphericalToCartesian(float phi, float theta, glm::vec3& v);
   static void cartesianToSpherical(glm::vec3 v, float& phi, float& theta);
+
+  static void sphericalToQuaternion(float phi, float theta, glm::quat& q);
 };
