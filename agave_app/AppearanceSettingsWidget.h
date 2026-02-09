@@ -140,6 +140,7 @@ private:
 
   struct lt1
   {
+    QPushButton* m_RotateButton;
     QNumericSlider* m_stintensitySlider;
     QColorPushButton* m_stColorButton;
     QNumericSlider* m_smintensitySlider;
@@ -148,7 +149,7 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
-  Section* createSkyLightingControls();
+  Section* createSkyLightingControls(QAction* pRotationAction);
   Section* createAreaLightingControls(QAction* pLightRotationAction);
   Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);

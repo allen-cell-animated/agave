@@ -9,6 +9,9 @@
 #include <vector>
 #include <memory>
 
+static constexpr int LightType_Area = 0;
+static constexpr int LightType_Sphere = 1;
+
 // this should map to the bundle of gpu parameters
 // passed to the shader for our lights
 class Light
