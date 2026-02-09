@@ -4,6 +4,7 @@
 
 #include "Light.h"
 #include "AreaLightTool.h"
+#include "SphereLightTool.h"
 
 #include <vector>
 #include <functional>
@@ -17,7 +18,11 @@ public:
   {
     // we want the rotate manipulator to be centered at the target of the light, by default
     m_transform.m_center = light->m_Target;
-    m_tool = std::make_unique<AreaLightTool>(light);
+    if (light->m_T == LightType_Area) {
+      m_tool = std::make_unique<AreaLightTool>(light);
+    } else {
+      m_tool = std::make_unique<SphereLightTool>(light);
+    }
   }
 
   void updateTransform();
