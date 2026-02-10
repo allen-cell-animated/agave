@@ -120,6 +120,8 @@ Histogram::Histogram(uint16_t* data, size_t length)
   if (abs((int64_t)(hiBin - loBin)) < 3) {
     // if the number of bins separating the percentiles is too small,
     // just don't filter anything.
+    // This can happen if the data is very low contrast (e.g. few intensity values close together),
+    // or if there are a lot of outliers.
     loBin = 0;
     hiBin = HIGH_RES_BINS - 1;
     _filteredMin = _dataMin;
