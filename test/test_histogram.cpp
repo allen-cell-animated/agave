@@ -139,7 +139,6 @@ TEST_CASE("Histogram outlier filtering works correctly", "[histogram]")
     }
     data.push_back(65535); // extreme high outlier (single pixel)
 
-    // With outlier filtering (default)
     Histogram hFiltered(data.data(), data.size());
 
     // Unfiltered should use full range
