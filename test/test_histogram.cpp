@@ -278,9 +278,9 @@ TEST_CASE("Histogram outlier filtering works correctly", "[histogram]")
   }
 }
 
-TEST_CASE("Histogram filteredBinRange calculation uses robust range", "[histogram]")
+TEST_CASE("Histogram binRange calculation uses robust range", "[histogram]")
 {
-  SECTION("filteredBinRange uses filtered data range, not absolute range")
+  SECTION("binRange uses filtered data range, not absolute range")
   {
     // Data with outliers
     std::vector<uint16_t> data;
@@ -293,7 +293,8 @@ TEST_CASE("Histogram filteredBinRange calculation uses robust range", "[histogra
     Histogram hFiltered(data.data(), data.size());
 
     float firstBinCenter, lastBinCenter, binSize;
-    hFiltered.filteredBinRange(512, firstBinCenter, lastBinCenter, binSize);
+    hFiltered.binRange(
+      512, hFiltered.getFilteredMin(), hFiltered.getFilteredMax(), firstBinCenter, lastBinCenter, binSize);
 
     // Bin range should correspond to filtered range, not 0-65535
     // Allow some discretization error from binning (bin width ~16 for this data range)

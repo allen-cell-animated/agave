@@ -433,10 +433,15 @@ Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t lengt
 }
 
 void
-Histogram::filteredBinRange(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
+Histogram::binRange(uint32_t nbins,
+                    uint16_t dataMin,
+                    uint16_t dataMax,
+                    float& firstBinCenter,
+                    float& lastBinCenter,
+                    float& binSize)
 {
-  uint16_t dmin = _filteredMin;
-  uint16_t dmax = _filteredMax;
+  uint16_t dmin = dataMin;
+  uint16_t dmax = dataMax;
   float fbc, lbc, bsize;
   if (nbins > 1) {
     if (dmax > dmin) {
@@ -475,7 +480,7 @@ Histogram::rank_data_value(float fraction) const
   }
   // int b = _ccounts.searchsorted(fraction*_ccounts[_ccounts.size()-1]);
   float fbc, lbc, bsize;
-  filteredBinRange((uint32_t)_bins.size(), fbc, lbc, bsize);
+  binRange((uint32_t)_bins.size(), _dataMin, _dataMax, fbc, lbc, bsize);
   float v = fbc + b * (lbc - fbc) / (float)_bins.size();
   return v;
 }

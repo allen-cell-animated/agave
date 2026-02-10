@@ -139,7 +139,12 @@ void
 GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
 {
   float firstBinCenter, lastBinCenter, binSize;
-  histogram.filteredBinRange(histogram.getNumDisplayBins(), firstBinCenter, lastBinCenter, binSize);
+  histogram.binRange(histogram.getNumDisplayBins(),
+                     histogram.getFilteredMin(),
+                     histogram.getFilteredMax(),
+                     firstBinCenter,
+                     lastBinCenter,
+                     binSize);
   m_histogramBars->setWidth(binSize);
   QVector<double> keyData;
   QVector<double> valueData;
