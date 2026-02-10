@@ -99,17 +99,17 @@ Histogram::Histogram(uint16_t* data, size_t length)
   uint64_t targetLo = (uint64_t)(total * 0.001 + 0.5); // P0.1
   uint64_t targetHi = (uint64_t)(total * 0.999 + 0.5); // P99.9
 
-  uint64_t cumsum = 0;
+  uint64_t cumulativeSum = 0;
   size_t loBin = 0;
   size_t hiBin = HIGH_RES_BINS - 1;
   bool foundLo = false;
   for (size_t i = 0; i < HIGH_RES_BINS; ++i) {
-    cumsum += _bins[i];
-    if (cumsum > targetLo && !foundLo) {
+    cumulativeSum += _bins[i];
+    if (cumulativeSum > targetLo && !foundLo) {
       loBin = i;
       foundLo = true;
     }
-    if (cumsum >= targetHi) {
+    if (cumulativeSum >= targetHi) {
       hiBin = i;
       break;
     }
