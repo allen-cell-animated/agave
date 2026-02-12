@@ -46,16 +46,22 @@ Histogram::Histogram(uint16_t* data, size_t length)
   , _dataMaxIdx(0)
   , _filteredMin(0)
   , _filteredMax(0)
+  , _pixelCount(0)
 {
   std::fill(_bins.begin(), _bins.end(), 0);
   std::fill(_filteredBins.begin(), _filteredBins.end(), 0);
+  std::fill(_ccounts.begin(), _ccounts.end(), 0);
 
-  if (data) {
-    _dataMin = data[0];
-    _dataMax = data[0];
-    _filteredMax = data[0];
-    _filteredMin = data[0];
+  if (!data || length == 0) {
+    // empty histogram, just return with all zeros.
+    return;
   }
+
+  _pixelCount = length;
+  _dataMin = data[0];
+  _dataMax = data[0];
+  _filteredMax = data[0];
+  _filteredMin = data[0];
 
   uint16_t val;
   for (size_t i = 0; i < length; ++i) {
@@ -148,9 +154,6 @@ Histogram::Histogram(uint16_t* data, size_t length)
     }
     _filteredBins[whichbin]++;
   }
-
-  // total number of pixels
-  _pixelCount = length;
 
   // get the bin with the most frequently occurring value
   _maxFilteredBin = 0;
@@ -292,6 +295,9 @@ Histogram::generate_auto(size_t length) const
   float PERCENTAGE = 0.1f;
   // get a count of pixels in the most frequent filtered bin
   float th = std::floor(_filteredBins[_maxFilteredBin] * PERCENTAGE);
+  // we will use the value from the filtered bins, which should be higher
+  // than if unfiltered bins were used,
+  // and then walk the unfiltered bins to find the first and last bins that exceed this threshold.
   size_t b = 0;
   size_t e = _bins.size() - 1;
   for (size_t x = 0; x < _bins.size(); ++x) {
