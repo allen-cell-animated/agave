@@ -52,8 +52,8 @@ Fuse::fuse(const ImageXYZC* img,
 
         // array of 256 floats
         float* lut = img->channel(i)->m_lut;
-        float chmax = (float)img->channel(i)->m_max;
-        float chmin = (float)img->channel(i)->m_min;
+        float chmax = (float)img->channel(i)->m_histogram.getDataMax();
+        float chmin = (float)img->channel(i)->m_histogram.getDataMin();
         // lut = luts[idx][c.enhancement];
 
         isLabels = volumeDisplay.m_labels[i] > 0 ? true : false;

@@ -400,6 +400,8 @@ float
 GetNormalizedIntensity(in vec3 P, in int ch)
 {
   float intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P))[ch];
+  intensity = (intensity - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
+
   intensity = evalTf(ch, intensity);
   return intensity;
 }
@@ -483,15 +485,15 @@ GetSpecularN(float NormalizedIntensity, int ch)
 }
 
 float
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(
 GetRoughnessN(float NormalizedIntensity, int ch)
 {
   return g_roughness[ch];
 }
 
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_1 = R"(
 // a bsdf sample, a sample on a light source, and a randomly chosen light index
 struct CLightingSample
 {
@@ -1008,12 +1010,12 @@ EstimateDirectLight(int shaderType,
 
   vec3 nu = normalize(cross(N, Wo));
   vec3 nv = normalize(cross(N, nu));
-  CVolumeShader Shader = CVolumeShader(shaderType, RGBtoXYZ(diffuse), RGBtoXYZ(specular), 2.5f, roughness, N, nu, nv);
-
 
 )";
 
 const std::string pathTraceVolume_frag_chunk_2 = R"(
+  CVolumeShader Shader = CVolumeShader(shaderType, RGBtoXYZ(diffuse), RGBtoXYZ(specular), 2.5f, roughness, N, nu, nv);
+
   float LightPdf = 1.0f, ShaderPdf = 1.0f;
 
   Ray Rl = Ray(vec3(0, 0, 0), vec3(0, 0, 1.0), 0.0, 1500000.0f);

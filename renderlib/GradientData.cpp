@@ -13,23 +13,22 @@ GradientData::convert(const Histogram& histogram, const Histogram& newHistogram)
   // window/level:
   // 0 and 1 correspond to histogram._dataMin and histogram._dataMax
   float absoluteWindowSize = m_window * histogram.dataRange();
-  float absoluteLevel = m_level * histogram.dataRange() + histogram._dataMin;
+  float absoluteLevel = m_level * histogram.dataRange() + histogram.getDataMin();
 
   m_window = absoluteWindowSize / newHistogram.dataRange();
-  m_level = (absoluteLevel - newHistogram._dataMin) / newHistogram.dataRange();
+  m_level = (absoluteLevel - newHistogram.getDataMin()) / newHistogram.dataRange();
 
   // convert Iso:
   float absoluteIsoRange = m_isorange * histogram.dataRange();
-  float absoluteIsoValue = m_isovalue * histogram.dataRange() + histogram._dataMin;
-
+  float absoluteIsoValue = m_isovalue * histogram.dataRange() + histogram.getDataMin();
   m_isorange = absoluteIsoRange / newHistogram.dataRange();
-  m_isovalue = (absoluteIsoValue - newHistogram._dataMin) / newHistogram.dataRange();
+  m_isovalue = (absoluteIsoValue - newHistogram.getDataMin()) / newHistogram.dataRange();
 
   // convert "custom":
   for (int i = 0; i < m_customControlPoints.size(); ++i) {
     LutControlPoint p = m_customControlPoints[i];
-    uint16_t intensity = histogram._dataMin + static_cast<uint16_t>(p.first * histogram.dataRange());
-    p.first = (float)(intensity - newHistogram._dataMin) / (float)newHistogram.dataRange();
+    uint16_t intensity = histogram.getDataMin() + static_cast<uint16_t>(p.first * histogram.dataRange());
+    p.first = (float)(intensity - newHistogram.getDataMin()) / (float)newHistogram.dataRange();
     m_customControlPoints[i] = p;
   }
   std::sort(m_customControlPoints.begin(),
@@ -41,18 +40,18 @@ bool
 GradientData::getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* imax) const
 {
   if (m_activeMode == GradientEditMode::WINDOW_LEVEL) {
-    *imin = histogram._dataMin + m_level * histogram.dataRange() - m_window * histogram.dataRange() / 2;
-    *imax = histogram._dataMin + m_level * histogram.dataRange() + m_window * histogram.dataRange() / 2;
+    *imin = histogram.getDataMin() + m_level * histogram.dataRange() - m_window * histogram.dataRange() / 2;
+    *imax = histogram.getDataMin() + m_level * histogram.dataRange() + m_window * histogram.dataRange() / 2;
     return true;
   } else if (m_activeMode == GradientEditMode::PERCENTILE) {
     float window, level;
     histogram.computeWindowLevelFromPercentiles(m_pctLow, m_pctHigh, window, level);
-    *imin = histogram._dataMin + level * histogram.dataRange() - window * histogram.dataRange() / 2;
-    *imax = histogram._dataMin + level * histogram.dataRange() + window * histogram.dataRange() / 2;
+    *imin = histogram.getDataMin() + level * histogram.dataRange() - window * histogram.dataRange() / 2;
+    *imax = histogram.getDataMin() + level * histogram.dataRange() + window * histogram.dataRange() / 2;
     return true;
   } else if (m_activeMode == GradientEditMode::ISOVALUE) {
-    *imin = histogram._dataMin + m_isovalue * histogram.dataRange() - m_isorange * histogram.dataRange() / 2;
-    *imax = histogram._dataMin + m_isovalue * histogram.dataRange() + m_isorange * histogram.dataRange() / 2;
+    *imin = histogram.getDataMin() + m_isovalue * histogram.dataRange() - m_isorange * histogram.dataRange() / 2;
+    *imax = histogram.getDataMin() + m_isovalue * histogram.dataRange() + m_isorange * histogram.dataRange() / 2;
     return true;
   } else if (m_activeMode == GradientEditMode::MINMAX) {
     *imin = m_minu16;
@@ -70,8 +69,8 @@ GradientData::getControlPoints(const Histogram& histogram) const
   uint16_t imin, imax;
   if (getMinMax(histogram, &imin, &imax)) {
     float fmin, fmax;
-    fmin = (float)(imin - histogram._dataMin) / histogram.dataRange();
-    fmax = (float)(imax - histogram._dataMin) / histogram.dataRange();
+    fmin = (float)(imin - histogram.getDataMin()) / histogram.dataRange();
+    fmax = (float)(imax - histogram.getDataMin()) / histogram.dataRange();
     // allow for fmin and fmax to be outside 0-1 range
     // also note that the ISO mode graph needs to be a step function.
     if (m_activeMode == GradientEditMode::ISOVALUE) {

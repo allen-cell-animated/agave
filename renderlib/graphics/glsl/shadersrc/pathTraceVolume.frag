@@ -395,6 +395,8 @@ float
 GetNormalizedIntensity(in vec3 P, in int ch)
 {
   float intensity = UINT16_MAX * texture(volumeTexture, PtoVolumeTex(P))[ch];
+  intensity = (intensity - g_intensityMin[ch]) / (g_intensityMax[ch] - g_intensityMin[ch]);
+
   intensity = evalTf(ch, intensity);
   return intensity;
 }

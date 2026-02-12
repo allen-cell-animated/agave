@@ -8,29 +8,45 @@
 
 struct Histogram
 {
-  Histogram(uint16_t* data, size_t length, size_t bins = 512, bool useOutlierFiltering = true);
+  Histogram(uint16_t* data, size_t length);
 
   static constexpr float DEFAULT_PCT_LOW = 0.5f;
   static constexpr float DEFAULT_PCT_HIGH = 0.983f;
 
-  // Percentiles for outlier-resistant data range calculation
-  // These determine which percentiles to use for histogram binning to avoid outliers
-  static constexpr float HISTOGRAM_RANGE_PCT_LOW = 0.001f;  // default 0.1% - filter out extreme low outliers
-  static constexpr float HISTOGRAM_RANGE_PCT_HIGH = 0.999f; // default 99.9% - filter out extreme high outliers
-
+private:
   // no more than 2^32 pixels of any one intensity in the data!?!?!
-  std::vector<uint32_t> _bins;
+  std::vector<uint32_t> _bins;         // more bins and smaller bin size, gives more accurate percentile computations
+  std::vector<uint32_t> _filteredBins; // filtered bins for display
+
   // cumulative counts from low to high
   std::vector<uint32_t> _ccounts;
   uint16_t _dataMin;
   uint16_t _dataMax;
-  uint16_t _trueDataMin;
-  uint16_t _trueDataMax;
-  size_t _trueDataMinIdx;
-  size_t _trueDataMaxIdx;
+  size_t _dataMinIdx;
+  size_t _dataMaxIdx;
+  uint16_t _filteredMin;
+  uint16_t _filteredMax;
   // index of bin with most pixels
-  size_t _maxBin;
+  size_t _maxFilteredBin;
   size_t _pixelCount;
+
+public:
+  // return actual true absolute data extrema
+  uint16_t getDataMin() const { return _dataMin; }
+  uint16_t getDataMax() const { return _dataMax; }
+  size_t getDataMinIdx() const { return _dataMinIdx; }
+  size_t getDataMaxIdx() const { return _dataMaxIdx; }
+
+  // outlier-filtered data extrema
+  uint16_t getFilteredMin() const { return _filteredMin; }
+  uint16_t getFilteredMax() const { return _filteredMax; }
+
+  size_t getPixelCount() const { return _pixelCount; }
+
+  // get the number of pixels in a display bin
+  size_t getDisplayBinCount(size_t bin) const;
+  size_t getModalDisplayBin() const { return _maxFilteredBin; }
+  size_t getNumDisplayBins() const { return _filteredBins.size(); }
 
   void computeWindowLevelFromPercentiles(float pct_low, float pct_high, float& window, float& level) const;
 
@@ -47,9 +63,14 @@ struct Histogram
 
   uint16_t dataRange() const { return _dataMax - _dataMin; }
 
-  // Determine center values for first and last bins, and bin size.
-  void bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const;
-  std::vector<uint32_t> bin_counts(uint32_t nbins);
+  // Given a number of bins, determine center values for first and last bins,
+  // and bin size, based on the given min and max data values.
+  static void binRange(uint32_t nbins,
+                       uint16_t dataMin,
+                       uint16_t dataMax,
+                       float& firstBinCenter,
+                       float& lastBinCenter,
+                       float& binSize);
   float rank_data_value(float fraction) const;
   float* initialize_thresholds(float vfrac_min = 0.01f, float vfrac_max = 0.90f) const;
 

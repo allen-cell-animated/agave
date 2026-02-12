@@ -101,7 +101,7 @@ LoadOmeTifCommand::execute(ExecutionContext* c)
     j["channel_names"] = channelNames;
     std::vector<uint16_t> channelMaxIntensity;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelMaxIntensity.push_back(image->channel(i)->m_max);
+      channelMaxIntensity.push_back(image->channel(i)->m_histogram.getDataMax());
     }
     j["channel_max_intensity"] = channelMaxIntensity;
 
@@ -542,7 +542,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
     j["channel_names"] = channelNames;
     std::vector<uint16_t> channelMaxIntensity;
     for (uint32_t i = 0; i < image->sizeC(); ++i) {
-      channelMaxIntensity.push_back(image->channel(i)->m_max);
+      channelMaxIntensity.push_back(image->channel(i)->m_histogram.getDataMax());
     }
     j["channel_max_intensity"] = channelMaxIntensity;
 
@@ -618,7 +618,7 @@ SetTimeCommand::execute(ExecutionContext* c)
   j["commandId"] = (int)SetTimeCommand::m_ID;
   std::vector<uint16_t> channelMaxIntensity;
   for (uint32_t i = 0; i < image->sizeC(); ++i) {
-    channelMaxIntensity.push_back(image->channel(i)->m_max);
+    channelMaxIntensity.push_back(image->channel(i)->m_histogram.getDataMax());
   }
   j["channel_max_intensity"] = channelMaxIntensity;
 
@@ -724,7 +724,7 @@ LoadDataCommand::execute(ExecutionContext* c)
   j["channel_names"] = channelNames;
   std::vector<uint16_t> channelMaxIntensity;
   for (uint32_t i = 0; i < image->sizeC(); ++i) {
-    channelMaxIntensity.push_back(image->channel(i)->m_max);
+    channelMaxIntensity.push_back(image->channel(i)->m_histogram.getDataMax());
   }
   j["channel_max_intensity"] = channelMaxIntensity;
 
