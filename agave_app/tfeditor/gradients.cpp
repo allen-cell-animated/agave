@@ -90,7 +90,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->yAxis->setLabel("");
 
   // set axes ranges, so we see all data:
-  m_customPlot->xAxis->setRange(histogram.getDataMin(), histogram.getDataMax());
+  m_customPlot->xAxis->setRange(histogram.getFilteredMin(), histogram.getFilteredMax());
   m_customPlot->xAxis->ticker()->setTickCount(4);
   m_customPlot->xAxis->ticker()->setTickOrigin(histogram.getDataMin());
   auto tickLabelFont = m_customPlot->xAxis->tickLabelFont();
