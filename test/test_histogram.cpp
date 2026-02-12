@@ -207,10 +207,10 @@ TEST_CASE("Histogram outlier filtering works correctly", "[histogram]")
     Histogram h(data.data(), data.size());
 
     // Should preserve most of the range (maybe trim very edges)
-    REQUIRE(h.getDataMin() >= 1000);
-    REQUIRE(h.getDataMin() <= 1010);
-    REQUIRE(h.getDataMax() >= 1990);
-    REQUIRE(h.getDataMax() <= 2000);
+    REQUIRE(h.getFilteredMin() > 1000);
+    REQUIRE(h.getFilteredMin() < 1010);
+    REQUIRE(h.getFilteredMax() > 1990);
+    REQUIRE(h.getFilteredMax() < 2000);
   }
 
   SECTION("Outlier filtering is stable with all identical values")
