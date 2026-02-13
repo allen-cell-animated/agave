@@ -10,6 +10,9 @@ permissions:
   id-token: write
   contents: read
 
+permissions:
+  contents: write
+
 jobs:
   cmake-build:
     strategy:
