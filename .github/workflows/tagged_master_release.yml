@@ -3,6 +3,12 @@ on:
   push:
     tags:
       - v*
+permissions:
+  # Required for OIDC token for NPM Trusted Publishers.
+  # See https://docs.github.com/en/actions/concepts/security/openid-connect
+  # and https://docs.npmjs.com/trusted-publishers.
+  id-token: write
+  contents: read
 
 jobs:
   cmake-build:
@@ -139,17 +145,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org/
       - run: |
           cd webclient
+          npm install -g npm@11.9.0 # >= v11.5.1 required for OIDC token support
           npm ci
           npm run build
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          npm publish --provenance
 
   publish_pythonclient:
     needs: cmake-build
