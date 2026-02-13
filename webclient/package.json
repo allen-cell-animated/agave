@@ -1,6 +1,6 @@
 {
   "name": "@aics/agave-webclient",
-  "version": "1.9.0-rc.1",
+  "version": "1.9.0-rc.2",
   "description": "client library for using agave as remote rendering server",
   "main": "es/index.js",
   "module": "es/index.js",
