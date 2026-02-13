@@ -10,9 +10,6 @@ permissions:
   id-token: write
   contents: read
 
-permissions:
-  contents: write
-
 jobs:
   cmake-build:
     strategy:
@@ -189,6 +186,8 @@ jobs:
   docs:
     needs: cmake-build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -200,7 +199,7 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get --allow-releaseinfo-change update -y
           sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
           sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
       - name: Install Python dependencies
@@ -233,6 +232,8 @@ jobs:
   docs_pythonclient:
     needs: [cmake-build, docs]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -244,7 +245,7 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get --allow-releaseinfo-change update -y
           sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
           sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
       - name: Install Python dependencies
