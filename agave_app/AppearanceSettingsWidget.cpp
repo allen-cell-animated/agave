@@ -1187,7 +1187,11 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     std::string tip = "Enable/disable channel " + scene->m_volume->channel(i)->m_name;
     Section::CheckBoxInfo cbinfo = { channelenabled, tip, tip };
-    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo);
+    QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
+                                    scene->m_material.m_diffuse[i * 3 + 1],
+                                    scene->m_material.m_diffuse[i * 3 + 2]);
+    Section::ColorBoxInfo colorinfo = { cdiff, "Channel color", "Channel color" };
+    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo, &colorinfo);
 
     auto* fullLayout = new QVBoxLayout();
 
@@ -1263,14 +1267,15 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
     diffuseColorButton->setToolTip(tr("Set color for channel"));
-    QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
-                                    scene->m_material.m_diffuse[i * 3 + 1],
-                                    scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
     sectionLayout->addRow("Color", diffuseColorButton);
-    QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
+    QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this, section](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
+      section->setColor(c);
     });
+    QObject::connect(
+      section, &Section::colorChanged, [i, this](const QColor& c) { this->OnDiffuseColorChanged(i, c); });
+
     // init
     this->OnDiffuseColorChanged(i, cdiff);
 

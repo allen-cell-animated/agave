@@ -2,12 +2,19 @@
 
 #include "Section.h"
 
+#include "Controls.h"
+
 #include <QLabel>
 
-Section::Section(const QString& title, const int animationDuration, const CheckBoxInfo* checkBoxInfo, QWidget* parent)
+Section::Section(const QString& title,
+                 const int animationDuration,
+                 const CheckBoxInfo* checkBoxInfo,
+                 const ColorBoxInfo* colorBoxInfo,
+                 QWidget* parent)
   : QWidget(parent)
   , m_animationDuration(animationDuration)
   , m_checkBox(nullptr)
+  , m_colorButton(nullptr)
 {
   m_toggleButton = new QToolButton(this);
   m_headerLine = new QFrame(this);
@@ -48,17 +55,27 @@ Section::Section(const QString& title, const int animationDuration, const CheckB
   int row = 0;
   m_mainLayout->addWidget(m_toggleButton, row, 0, 1, 1, Qt::AlignLeft);
   m_mainLayout->addWidget(m_headerLine, row, 2, 1, 1);
+  bool use_color_button = colorBoxInfo != nullptr;
+  if (use_color_button) {
+    m_colorButton = new QColorPushButton(this);
+    m_colorButton->SetColor(colorBoxInfo->color, true);
+    m_colorButton->setToolTip(QString::fromStdString(colorBoxInfo->toolTip));
+    m_colorButton->setStatusTip(QString::fromStdString(colorBoxInfo->statusTip));
+    m_mainLayout->addWidget(m_colorButton, row, 3, 1, 1, Qt::AlignRight);
+    QObject::connect(
+      m_colorButton, &QColorPushButton::currentColorChanged, [this](const QColor& color) { emit colorChanged(color); });
+  }
   bool use_checkbox = checkBoxInfo != nullptr;
   if (use_checkbox) {
     m_checkBox = new QCheckBox(this);
     m_checkBox->setChecked(checkBoxInfo->is_checked);
     m_checkBox->setToolTip(QString::fromStdString(checkBoxInfo->toolTip));
     m_checkBox->setStatusTip(QString::fromStdString(checkBoxInfo->statusTip));
-    m_mainLayout->addWidget(m_checkBox, row, 3, 1, 1, Qt::AlignRight);
+    m_mainLayout->addWidget(m_checkBox, row, 4, 1, 1, Qt::AlignRight);
     QObject::connect(m_checkBox, &QCheckBox::clicked, [this](const bool is_checked) { emit checked(is_checked); });
   }
   row++;
-  m_mainLayout->addWidget(m_contentArea, row, 0, 1, 4);
+  m_mainLayout->addWidget(m_contentArea, row, 0, 1, 5);
   setLayout(m_mainLayout);
 
   QObject::connect(m_toggleButton, &QToolButton::clicked, [this](const bool checked) {
@@ -119,5 +136,22 @@ Section::setChecked(bool checked)
 {
   if (m_checkBox) {
     m_checkBox->setChecked(checked);
+  }
+}
+
+QColor
+Section::getColor() const
+{
+  if (m_colorButton) {
+    return m_colorButton->GetColor();
+  }
+  return QColor();
+}
+
+void
+Section::setColor(const QColor& color)
+{
+  if (m_colorButton) {
+    m_colorButton->SetColor(color);
   }
 }
