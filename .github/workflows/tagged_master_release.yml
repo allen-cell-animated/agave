@@ -149,12 +149,37 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
+      - name: Extract tag name and check for prerelease
+        id: extract_version
+        run: |
+          REF_NAME="${{ github.ref_name }}"
+          # Remove 'v' prefix if it exists
+          VERSION="${REF_NAME#v}"
+
+          # Check for prerelease suffix using a regex pattern
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
+            echo "Valid semver format detected: $VERSION"
+            if [[ "$VERSION" =~ -[a-zA-Z0-9\.-]+ ]]; then
+              # Extract the prerelease name (e.g., 'beta' from '1.0.0-beta.1')
+              PRERELEASE_SUFFIX=$(echo "$VERSION" | sed -e 's/.*-\([a-zA-Z0-9\.-]*\).*/\1/' | cut -d'.' -f1)
+              NPM_TAG="$PRERELEASE_SUFFIX"
+              echo "Prerelease suffix detected. NPM tag will be: $NPM_TAG"
+            else
+              NPM_TAG="latest"
+              echo "Stable version detected. NPM tag will be: $NPM_TAG"
+            fi
+          else
+            echo "Invalid semver format: $VERSION"
+            exit 1
+          fi
+          echo "npm_tag=$NPM_TAG" >> $GITHUB_OUTPUT
+        shell: bash
       - run: |
           cd webclient
           npm install -g npm@11.9.0 # >= v11.5.1 required for OIDC token support
           npm ci
           npm run build
-          npm publish --provenance
+          npm publish --provenance --tag ${{ steps.extract_version.outputs.npm_tag }}
 
   publish_pythonclient:
     needs: cmake-build
