@@ -17,6 +17,7 @@
 #include <QString>
 #include <QUrlQuery>
 
+static constexpr int DEFAULT_PORT = 1235;
 struct ServerParams
 {
   int _port;
@@ -24,7 +25,7 @@ struct ServerParams
 
   // defaults
   ServerParams()
-    : _port(1235)
+    : _port(DEFAULT_PORT)
   {
   }
 };
@@ -190,6 +191,12 @@ main(int argc, char* argv[])
   QCommandLineOption serverOption("server",
                                   QCoreApplication::translate("main", "Run as websocket server without GUI."));
   parser.addOption(serverOption);
+  QCommandLineOption serverPortOption("port",
+                                      QCoreApplication::translate("main", "Specify the port for server mode."),
+                                      QCoreApplication::translate("main", "port"),
+                                      QString::number(DEFAULT_PORT));
+
+  parser.addOption(serverPortOption);
 
   QCommandLineOption loadOption("load",
                                 QCoreApplication::translate("main", "File or url to load."),
@@ -215,6 +222,8 @@ main(int argc, char* argv[])
   parser.process(a);
 
   bool isServer = parser.isSet(serverOption);
+  bool hasPort = parser.isSet(serverPortOption);
+  int port = parser.value(serverPortOption).toInt();
   bool listDevices = parser.isSet(listDevicesOption);
   int selectedGpu = parser.value(selectGpuOption).toInt();
   QString fileInput = parser.value(loadOption);
@@ -250,6 +259,10 @@ main(int argc, char* argv[])
     if (isServer) {
       QString configPath = parser.value(serverConfigOption);
       ServerParams p = readConfig(configPath);
+      // port from command line overrides config file
+      if (hasPort) {
+        p._port = port;
+      }
 
       StreamServer* server = new StreamServer(p._port, false, 0);
 
