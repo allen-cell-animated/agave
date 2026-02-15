@@ -27,17 +27,18 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   LinearSpace3f camFrame = scene.camera.getFrame();
   // remember the camFrame vectors are the world-space vectors that correspond to camera x, y, z directions
 
-  // Draw the manipulator to be at some constant size on screen
-  const glm::vec2 resolution = scene.viewport.region.size();
-  // float scale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
-
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
   uint32_t code = Gesture::Graphics::k_noSelectionCode;
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
 
-  // Draw the manipulator to be at some constant size on screen
-  float manipscale = length(viewDir) * scene.camera.getHalfHorizontalAperture() * (m_size / resolution.x);
+  // Draw the circle so it inscribes the viewport (touching the smaller dimension edges)
+  float dist = length(viewDir);
+  float halfWidth = dist * scene.camera.getHalfHorizontalAperture();
+  float halfHeight = dist * tan(scene.camera.GetVerticalFOV_radians() * 0.5f);
+  float manipscale = glm::min(halfWidth, halfHeight);
 
-  gesture.drawCircle(p, camFrame.vx * manipscale, camFrame.vy * manipscale, 32, color, opacity, code);
+  gesture.drawCircle(p, camFrame.vx * manipscale, camFrame.vy * manipscale, 128, color, opacity, code);
+  gesture.drawCircle(p, camFrame.vx * manipscale * 0.75f, camFrame.vy * manipscale, 128, color, opacity, code);
+  gesture.drawCircle(p, camFrame.vx * manipscale, camFrame.vy * manipscale * 0.75f, 128, color, opacity, code);
 }
