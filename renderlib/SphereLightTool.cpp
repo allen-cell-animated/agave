@@ -39,6 +39,10 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   float manipscale = glm::min(halfWidth, halfHeight);
 
   gesture.drawCircle(p, camFrame.vx * manipscale, camFrame.vy * manipscale, 128, color, opacity, code);
-  gesture.drawCircle(p, camFrame.vx * manipscale * 0.75f, camFrame.vy * manipscale, 128, color, opacity, code);
-  gesture.drawCircle(p, camFrame.vx * manipscale, camFrame.vy * manipscale * 0.75f, 128, color, opacity, code);
+  for (int i = 0; i < 8; i++) {
+    gesture.drawCircle(
+      p, camFrame.vx * manipscale * (i + 0.0f) / 8.0f, camFrame.vy * manipscale, 128, color, opacity, code);
+    gesture.drawCircle(
+      p, camFrame.vx * manipscale, camFrame.vy * manipscale * (i + 0.0f) / 8.0f, 128, color, opacity, code);
+  }
 }
