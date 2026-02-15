@@ -117,6 +117,13 @@ make
 
 If cmake fails please refer to the Dockerfile for a more complete list of Linux dependencies.
 
+## Static analysis
+
+There is a .clang-tidy file in the root directory.
+For best results in VSCode, enable C_Cpp->Code Analysis->Clang Tidy:Enabled
+TODO: we need to add automation for PRs during CI, something like:
+run-clang-tidy -p build agave_app renderlib
+
 ## Versioned Releases
 
 Use tbump (https://github.com/your-tools/tbump). See the tbump.toml file which shows all the files that contain necessary version info.

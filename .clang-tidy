@@ -1,0 +1,17 @@
+---
+# clang-tidy configuration for AGAVE
+Checks: |
+  -*
+  bugprone-*
+  performance-*
+  readability-*
+  -readability-identifier-length
+  -readability-magic-numbers
+  modernize-*
+Options:
+  - modernize-use-trailing-return-type:
+    TransformLambdas: all
+    TransformFunctions: false
+
+WarningsAsErrors: ""
+HeaderFilterRegex: '(agave_app|renderlib)/(?!.*libCZI).*\.(h|hpp)$'
