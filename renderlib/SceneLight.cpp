@@ -15,8 +15,13 @@ SceneLight::updateTransform()
   m_light->m_Phi = phi;
   m_light->m_Theta = theta;
 
-  // get m_P in world space:
-  m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
+  if (m_light->m_T == LightType_Area) {
+    // For area lights, move the light position while keeping the target fixed.
+    m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
+  } else {
+    // For sphere/sky lights, keep the light position fixed and move the target.
+    m_light->m_Target = m_light->m_P - m_light->m_Distance * normdir;
+  }
 
   m_light->updateBasisFrame();
 

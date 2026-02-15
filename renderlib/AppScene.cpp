@@ -180,7 +180,11 @@ Scene::initBounds(const CBoundingBox& bb)
     // Note this is not the same as the light source's position.
     // This is a very specific UX choice to make it easier to rotate the light around the volume,
     // but is constraining for other operations e.g. translation.
-    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
+    if (m_lighting.m_Lights[i]->m_T == LightType_Area) {
+      m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
+    } else {
+      m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_P;
+    }
   }
 }
 
