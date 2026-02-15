@@ -1273,8 +1273,10 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       this->OnDiffuseColorChanged(i, c);
       section->setColor(c);
     });
-    QObject::connect(
-      section, &Section::colorChanged, [i, this](const QColor& c) { this->OnDiffuseColorChanged(i, c); });
+    QObject::connect(section, &Section::colorChanged, [i, this, diffuseColorButton](const QColor& c) {
+      this->OnDiffuseColorChanged(i, c);
+      diffuseColorButton->SetColor(c, true);
+    });
 
     // init
     this->OnDiffuseColorChanged(i, cdiff);
