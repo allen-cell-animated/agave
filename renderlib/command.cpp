@@ -504,6 +504,7 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 
     c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+    c->m_appScene->m_timeLine.setTimeUnit(dims.timeUnit);
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -683,6 +684,7 @@ LoadDataCommand::execute(ExecutionContext* c)
 
   c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
   c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+  c->m_appScene->m_timeLine.setTimeUnit(dims.timeUnit);
 
   c->m_appScene->m_volume = image;
   c->m_appScene->initSceneFromImg(image);

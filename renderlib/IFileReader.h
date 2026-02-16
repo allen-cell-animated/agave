@@ -1,11 +1,12 @@
 #pragma once
 
+#include "VolumeDimensions.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 
 class ImageXYZC;
-struct VolumeDimensions;
 struct MultiscaleDims;
 
 // TODO this is sort of zarr specific
@@ -55,6 +56,11 @@ class IFileReader
 {
 public:
   virtual ~IFileReader() = default;
+
+  virtual double getPhysicalTime(int32_t t, const VolumeDimensions& dims) const
+  {
+    return static_cast<double>(t) * dims.timeUnit;
+  }
 
   // return true if this reader can load sub-chunks in XYZ
   virtual bool supportChunkedLoading() const = 0;

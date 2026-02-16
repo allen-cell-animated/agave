@@ -41,7 +41,7 @@ private:
 
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
-                     uint32_t sizeT,
+                     const VolumeDimensions& dims,
                      const Serialize::ViewerState* vs,
                      std::shared_ptr<IFileReader> reader,
                      // only used if vs is null
