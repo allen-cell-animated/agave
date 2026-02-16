@@ -472,6 +472,9 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt0gui.m_RotateButton);
   QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    if (!this->m_scene || !this->m_scene->m_volume) {
+      return;
+    }
     toggleActionForObject(pRotationAction, this->m_scene->SceneAreaLight());
   });
   // dummy widget to fill space (TODO: Translate button?)
@@ -557,6 +560,9 @@ QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
   m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt1gui.m_RotateButton);
   QObject::connect(m_lt1gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    if (!this->m_scene || !this->m_scene->m_volume) {
+      return;
+    }
     toggleActionForObject(pRotationAction, this->m_scene->SceneSphereLight());
   });
   // dummy widget to fill space (TODO: Translate button?)
