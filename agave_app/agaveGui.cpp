@@ -1171,6 +1171,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
   m_appScene.m_showScaleBar = v.showScaleBar;
+  m_appScene.m_showTimeStamp = v.showTimeStamp;
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
@@ -1253,6 +1254,7 @@ agaveGui::appToViewerState()
                          m_appScene.m_material.m_boundingBoxColor[2] };
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
   v.showScaleBar = m_appScene.m_showScaleBar;
+  v.showTimeStamp = m_appScene.m_showTimeStamp;
 
   v.capture.samples = m_renderSettings.GetNoIterations();
 
