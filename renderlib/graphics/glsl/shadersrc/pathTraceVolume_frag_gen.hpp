@@ -1002,11 +1002,11 @@ NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
 
 // return a XYZ color
 vec3
+EstimateDirectLight(int shaderType,
 
 )";
 
 const std::string pathTraceVolume_frag_chunk_2 = R"(
-EstimateDirectLight(int shaderType,
                     float Density,
                     int ch,
                     in Light light,
