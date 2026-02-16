@@ -816,6 +816,13 @@ SetMinMaxThresholdCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
+void
+ShowTimeStampCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "ShowTimeStamp " << m_data.m_on;
+  c->m_appScene->m_showTimeStamp = m_data.m_on ? true : false;
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -1816,6 +1823,22 @@ SetMinMaxThresholdCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+ShowTimeStampCommand*
+ShowTimeStampCommand::parse(ParseableStream* c)
+{
+  ShowTimeStampCommandD data;
+  data.m_on = c->parseInt32();
+  return new ShowTimeStampCommand(data);
+}
+size_t
+ShowTimeStampCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_on);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2328,6 +2351,16 @@ SetMinMaxThresholdCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_min << ", " << m_data.m_max;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+ShowTimeStampCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_on;
   ss << ")";
   return ss.str();
 }

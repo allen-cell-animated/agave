@@ -27,7 +27,7 @@ export class AgaveClient {
     },
     onImage = (_data: Blob) => {
       return;
-    }
+    },
   ) {
     if (rendermode !== "pathtrace" && rendermode !== "raymarch") {
       rendermode = "pathtrace";
@@ -491,7 +491,7 @@ export class AgaveClient {
     miny: number,
     maxy: number,
     minz: number,
-    maxz: number
+    maxz: number,
   ) {
     // 29
     this.cb.addCommand("SET_CLIP_REGION", minx, maxx, miny, maxy, minz, maxz);
@@ -673,7 +673,7 @@ export class AgaveClient {
     multiresolutionLevel = 0,
     time = 0,
     channels: number[] = [],
-    region: number[] = []
+    region: number[] = [],
   ) {
     // 44
     this.cb.addCommand(
@@ -683,7 +683,7 @@ export class AgaveClient {
       multiresolutionLevel,
       time,
       channels,
-      region
+      region,
     );
   }
 
@@ -755,6 +755,16 @@ export class AgaveClient {
   setMinMaxThreshold(channel: number, min: number, max: number) {
     // 50
     this.cb.addCommand("SET_MIN_MAX_THRESHOLD", channel, min, max);
+  }
+
+  /**
+   * Turn timestamp display on or off
+   *
+   * @param on 0 to hide timestamps, 1 to show them
+   */
+  showTimeStamp(on: number) {
+    // 51
+    this.cb.addCommand("SHOW_TIME_STAMP", on);
   }
 
   // send all data in our current command buffer to the server

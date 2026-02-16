@@ -435,6 +435,13 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->toPythonString() == "show_scale_bar(1)");
     REQUIRE(cmd->m_data.m_on == data.m_on);
   }
+  SECTION("ShowTimeStampCommand")
+  {
+    ShowTimeStampCommandD data = { 1 };
+    auto cmd = testcodec<ShowTimeStampCommand, ShowTimeStampCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "show_time_stamp(1)");
+    REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
   SECTION("SetFlipAxisCommand")
   {
     SetFlipAxisCommandD data = { 1, -1, -1 };
