@@ -15,13 +15,6 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
 
   const Light& l = *m_light;
   glm::vec3 p = l.m_Target;
-  glm::vec3 t = l.m_Target;
-  float scale = l.m_Width * 0.5;
-  // compute 4 vertices of square area light pointing at 0, 0, 0
-  glm::vec3 v0 = l.m_U * (-scale) + l.m_V * (-scale);
-  glm::vec3 v1 = l.m_U * scale + l.m_V * (-scale);
-  glm::vec3 v2 = l.m_U * scale + l.m_V * scale;
-  glm::vec3 v3 = l.m_U * (-scale) + l.m_V * scale;
 
   glm::vec3 viewDir = (scene.camera.m_From - p);
   LinearSpace3f camFrame = scene.camera.getFrame();
@@ -34,15 +27,39 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
 
   // Draw the circle so it inscribes the viewport (touching the smaller dimension edges)
   float dist = length(viewDir);
-  float halfWidth = dist * scene.camera.getHalfHorizontalAperture();
-  float halfHeight = dist * tan(scene.camera.GetVerticalFOV_radians() * 0.5f);
-  float manipscale = glm::min(halfWidth, halfHeight);
+  float projectedRadius = 0.0f;
+  float sphereRadius = 0.0f;
+  if (scene.camera.m_Projection == ORTHOGRAPHIC) {
+    glm::ivec2 viewportSize = scene.viewport.region.size();
+    float aspect = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
+    float halfWidth = scene.camera.m_OrthoScale * aspect;
+    float halfHeight = scene.camera.m_OrthoScale;
+    projectedRadius = glm::min(halfWidth, halfHeight);
+    sphereRadius = projectedRadius;
+  } else {
+    float halfWidth = dist * scene.camera.getHalfHorizontalAperture();
+    float halfHeight = dist * tan(scene.camera.GetVerticalFOV_radians() * 0.5f);
+    projectedRadius = glm::min(halfWidth, halfHeight);
+    float projectedRadiusSq = projectedRadius * projectedRadius;
+    float distSq = glm::max(dist * dist, 1e-6f);
+    sphereRadius = projectedRadius / sqrtf(1.0f + (projectedRadiusSq / distSq));
+  }
 
-  gesture.drawCircle(p, camFrame.vx * manipscale, camFrame.vy * manipscale, 128, color, opacity, code);
-  for (int i = 0; i < 8; i++) {
-    gesture.drawCircle(
-      p, camFrame.vx * manipscale * (i + 0.0f) / 8.0f, camFrame.vy * manipscale, 128, color, opacity, code);
-    gesture.drawCircle(
-      p, camFrame.vx * manipscale, camFrame.vy * manipscale * (i + 0.0f) / 8.0f, 128, color, opacity, code);
+  gesture.drawCircle(p, camFrame.vx * projectedRadius, camFrame.vy * projectedRadius, 128, color, opacity, code);
+
+  const int latBands = 12;
+  for (int i = 1; i < latBands; i++) {
+    float t = static_cast<float>(i) / static_cast<float>(latBands);
+    float lat = t * PI_F - HALF_PI_F;
+    float ringRadius = sphereRadius * cosf(lat);
+    glm::vec3 ringCenter = p + l.m_N * (sphereRadius * sinf(lat));
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_V * ringRadius, 128, color, opacity, code);
+  }
+
+  const int lonBands = 12;
+  for (int i = 0; i < lonBands; i++) {
+    float lon = (static_cast<float>(i) / static_cast<float>(lonBands)) * PI_F;
+    glm::vec3 axis = cosf(lon) * l.m_U + sinf(lon) * l.m_V;
+    gesture.drawCircle(p, axis * sphereRadius, l.m_N * sphereRadius, 128, color, opacity, code);
   }
 }
