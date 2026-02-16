@@ -619,7 +619,8 @@ Light_Intersect(Light light, inout Ray R, out float T, out vec3 L, out float pPd
 
     R.m_MaxT = T;
 
-    vec2 UV = vec2(SphericalPhi(R.m_D) * INV_2_PI, SphericalTheta(R.m_D) * INV_PI);
+    vec3 localDir = vec3(dot(R.m_D, light.m_U), dot(R.m_D, light.m_V), dot(R.m_D, light.m_N));
+    vec2 UV = vec2(SphericalPhi(localDir) * INV_2_PI, SphericalTheta(localDir) * INV_PI);
 
     L = Light_Le(light, vec2(1.0f, 1.0f) - 2.0f * UV);
 
@@ -1002,13 +1003,13 @@ NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
 
 // return a XYZ color
 vec3
-EstimateDirectLight(int shaderType,
-                    float Density,
-                    int ch,
 
 )";
 
 const std::string pathTraceVolume_frag_chunk_2 = R"(
+EstimateDirectLight(int shaderType,
+                    float Density,
+                    int ch,
                     in Light light,
                     in CLightingSample LS,
                     in vec3 Wo,
