@@ -83,5 +83,6 @@ public:
 
   // Track camera manipulation for light following
   bool m_wasCameraBeingEdited = false;
-  glm::vec3 m_capturedLightRelativeDir = glm::vec3(0.3f, 0.5f, 1.0f);
+  glm::vec3 m_capturedAreaLightRelativeDir = glm::vec3(0.3f, 0.5f, 1.0f);
+  glm::vec3 m_capturedSphereLightRelativeDir = glm::vec3(0.3f, 0.5f, 1.0f);
 };

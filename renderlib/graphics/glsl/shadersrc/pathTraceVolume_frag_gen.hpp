@@ -552,9 +552,8 @@ Light_SampleL(in Light light, in vec3 P, out Ray Rl, out float Pdf, in CLighting
     Ro = light.m_target + light.m_skyRadius * rRotated;
     Rd = normalize(P - Ro);
     // light rotation angle to UV mapping for sky gradient
-    // 1 - 2*lightPos maps the uniform 2d light sample [0,1] to [-1,1]
-    // sample position is correlated to Ro
-    L = Light_Le(light, vec2(1.0f) - 2.0f * LS.m_lightPos);
+    vec2 uvRot = vec2(SphericalPhi(r) * INV_2_PI, SphericalTheta(r) * INV_PI);
+    L = Light_Le(light, vec2(1.0f) - 2.0f * uvRot);
     Pdf = pow(light.m_skyRadius, 2.0f) / light.m_area;
   }
 

@@ -132,60 +132,70 @@ ViewerWindow::updateCamera()
   sceneView.camera = renderCamera;
   sceneView.camera.Update();
 
-  // Update area light to maintain fixed direction relative to camera view.
-  // Basic strategy: capture the view space direction of the light at the start of
+  // Update lights to maintain fixed direction relative to camera view when enabled.
+  // Basic strategy: capture the view space direction of each light at the start of
   // camera manipulation, then during manipulation update the light direction
   // in world space to match the captured relative direction.
-  if (sceneView.scene && sceneView.scene->SceneAreaLight()) {
-    SceneLight* sceneLight = sceneView.scene->SceneAreaLight();
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    auto captureRelativeDir = [&](SceneLight* sceneLight, glm::vec3& capturedDir) {
+      if (!sceneLight) {
+        return;
+      }
+      glm::vec3 worldLightDir(0.0f, 0.0f, 1.0f);
+      if (sceneLight->m_light) {
+        if (sceneLight->m_light->m_T == LightType_Sphere) {
+          worldLightDir = sceneLight->m_light->m_P;
+        } else {
+          worldLightDir = sceneLight->m_light->m_Target - sceneLight->m_light->m_P;
+        }
+      } else {
+        worldLightDir = sceneLight->m_transform.m_rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+      }
+      if (glm::length(worldLightDir) <= 1e-6f) {
+        worldLightDir = glm::vec3(0.0f, 0.0f, 1.0f);
+      }
+      worldLightDir = glm::normalize(worldLightDir);
 
-    // Capture the relative direction at the START of camera manipulation
-    if (cameraEdit && !m_wasCameraBeingEdited) {
-      // Get the current light direction in world space
-      glm::vec3 worldLightDir = glm::normalize(sceneLight->m_transform.m_rotation * glm::vec3(0.0f, 0.0f, 1.0f));
-
-      // We need the camera basis BEFORE this frame's manipulation started
-      // So use m_CCamera (the base camera state before cameraMod was applied)
       CCamera baseCamera = m_CCamera;
       baseCamera.Update();
 
-      // Transform light direction to camera space to get relative direction
-      m_capturedLightRelativeDir.x = glm::dot(worldLightDir, baseCamera.m_U); // right component
-      m_capturedLightRelativeDir.y = glm::dot(worldLightDir, baseCamera.m_V); // up component
-      m_capturedLightRelativeDir.z = glm::dot(worldLightDir, baseCamera.m_N); // forward component
-      m_capturedLightRelativeDir = glm::normalize(m_capturedLightRelativeDir);
-    }
+      capturedDir.x = glm::dot(worldLightDir, baseCamera.m_U);
+      capturedDir.y = glm::dot(worldLightDir, baseCamera.m_V);
+      capturedDir.z = glm::dot(worldLightDir, baseCamera.m_N);
+      capturedDir = glm::normalize(capturedDir);
+    };
 
-    // During camera manipulation, update light using the captured relative direction
-    if (cameraEdit) {
-      // Transform the captured relative direction to world space using current camera basis
+    auto applyRelativeDir = [&](SceneLight* sceneLight, const glm::vec3& capturedDir) {
+      if (!sceneLight) {
+        return;
+      }
       glm::vec3 newWorldLightDir =
-        glm::normalize(m_capturedLightRelativeDir.z * sceneView.camera.m_N + // forward component
-                       m_capturedLightRelativeDir.x * sceneView.camera.m_U + // right component
-                       m_capturedLightRelativeDir.y * sceneView.camera.m_V   // up component
-        );
+        glm::normalize(capturedDir.z * sceneView.camera.m_N + capturedDir.x * sceneView.camera.m_U +
+                       capturedDir.y * sceneView.camera.m_V);
 
-      // Compute the rotation quaternion that rotates from default direction (0,0,1) to newWorldLightDir
       glm::vec3 defaultDir(0.0f, 0.0f, 1.0f);
       glm::quat rotation;
-
-      // Check if directions are nearly opposite
       float dot = glm::dot(defaultDir, newWorldLightDir);
       if (dot < -0.999999f) {
-        // 180 degree rotation around any perpendicular axis
         rotation = glm::angleAxis(glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
       } else {
-        // Standard quaternion from two vectors
         glm::vec3 axis = glm::cross(defaultDir, newWorldLightDir);
         rotation = glm::quat(1.0f + dot, axis.x, axis.y, axis.z);
         rotation = glm::normalize(rotation);
       }
 
-      // Update the SceneLight's transform
       sceneLight->m_transform.m_rotation = rotation;
-
-      // Call updateTransform to apply the rotation to the underlying Light
       sceneLight->updateTransform();
+    };
+
+    if (cameraEdit && !m_wasCameraBeingEdited) {
+      captureRelativeDir(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeDir);
+      captureRelativeDir(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeDir);
+    }
+
+    if (cameraEdit) {
+      applyRelativeDir(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeDir);
+      applyRelativeDir(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeDir);
       m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
     }
   }
