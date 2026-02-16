@@ -19,8 +19,8 @@ SceneLight::updateTransform()
     // For area lights, move the light position while keeping the target fixed.
     m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
   } else {
-    // For sphere/sky lights, keep the light position fixed and move the target.
-    m_light->m_Target = m_light->m_P - m_light->m_Distance * normdir;
+    // For sphere/sky lights, update the light direction while keeping the target fixed.
+    m_light->m_P = normdir;
   }
 
   m_light->updateBasisFrame();

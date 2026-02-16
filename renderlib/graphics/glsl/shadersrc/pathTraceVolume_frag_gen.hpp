@@ -43,7 +43,7 @@ struct Light
   float m_halfHeight;
   float m_distance;
   float m_skyRadius;
-  // for skylight m_P is the sphere center;
+  // for skylight m_target is the sphere center;
   // for arealight m_P is the center of the rectangle
   vec3 m_P;
   vec3 m_target;
@@ -549,7 +549,7 @@ Light_SampleL(in Light light, in vec3 P, out Ray Rl, out float Pdf, in CLighting
     // apply sky sphere rotation angle here?
     // assumes m_N is the rotated 0,0,1 vector, and m_U and m_V are the corresponding rotated 1,0,0 and 0,1,0
     vec3 rRotated = r.x * light.m_U + r.y * light.m_V + r.z * light.m_N;
-    Ro = light.m_P + light.m_skyRadius * rRotated;
+    Ro = light.m_target + light.m_skyRadius * rRotated;
     Rd = normalize(P - Ro);
     // light rotation angle to UV mapping for sky gradient
     // 1 - 2*lightPos maps the uniform 2d light sample [0,1] to [-1,1]

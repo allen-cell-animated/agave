@@ -14,7 +14,7 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   }
 
   const Light& l = *m_light;
-  glm::vec3 p = l.m_P;
+  glm::vec3 p = l.m_Target;
   glm::vec3 t = l.m_Target;
   float scale = l.m_Width * 0.5;
   // compute 4 vertices of square area light pointing at 0, 0, 0

@@ -177,14 +177,10 @@ Scene::initBounds(const CBoundingBox& bb)
 
     // The transform center for the scene light is its target.
     // This is used so that rotations are centered at the target which is the center of the volume.
-    // Note this is not the same as the light source's position.
+    // Note this is not the same as the light source's position for area lights.
     // This is a very specific UX choice to make it easier to rotate the light around the volume,
     // but is constraining for other operations e.g. translation.
-    if (m_lighting.m_Lights[i]->m_T == LightType_Area) {
-      m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
-    } else {
-      m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_P;
-    }
+    m_lighting.m_sceneLights[i]->m_transform.m_center = m_lighting.m_Lights[i]->m_Target;
   }
 }
 

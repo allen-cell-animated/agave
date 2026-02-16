@@ -12,7 +12,7 @@ Light::Update(const CBoundingBox& BoundingBox)
   glm::vec3 bbctr = BoundingBox.GetCenter();
   m_Target = bbctr;
 
-  // Determine light position
+  // Determine light direction from angles
   glm::vec3 dir;
   sphericalToCartesian(m_Phi, m_Theta, dir);
   m_P = m_Target + m_Distance * dir;
@@ -25,9 +25,8 @@ Light::Update(const CBoundingBox& BoundingBox)
 
   // Determine area for sky light
   if (m_T == 1) {
-    m_P = bbctr;
-    // shift by nonzero amount
-    m_Target = m_P + dir;
+    m_Target = bbctr;
+    m_P = dir;
     m_SkyRadius = 1000.0f * glm::length(BoundingBox.GetMaxP() - BoundingBox.GetMinP());
     m_Area = 4.0f * PI_F * powf(m_SkyRadius, 2.0f);
     m_AreaPdf = 1.0f / m_Area;
@@ -41,7 +40,11 @@ void
 Light::updateBasisFrame()
 {
   // Compute orthogonal basis frame
-  m_N = glm::normalize(m_Target - m_P);
+  if (m_T == LightType_Sphere) {
+    m_N = glm::length(m_P) > 0.0f ? glm::normalize(m_P) : glm::vec3(0.0f, 0.0f, 1.0f);
+  } else {
+    m_N = glm::normalize(m_Target - m_P);
+  }
   // if N and "up" are parallel, then just choose a different "up"
   if (m_N.y == 1.0f || m_N.y == -1.0f) {
     m_U = glm::normalize(glm::cross(m_N, glm::vec3(1.0f, 0.0f, 0.0f)));
