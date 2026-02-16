@@ -47,19 +47,31 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
 
   gesture.drawCircle(p, camFrame.vx * projectedRadius, camFrame.vy * projectedRadius, 128, color, opacity, code);
 
+  glm::vec3 colorTop = l.m_ColorTop * l.m_ColorTopIntensity;
+  glm::vec3 colorMid = l.m_ColorMiddle * l.m_ColorMiddleIntensity;
+  glm::vec3 colorBottom = l.m_ColorBottom * l.m_ColorBottomIntensity;
+  auto ringColorFromY = [&](float y) {
+    if (y >= 0.0f) {
+      return glm::mix(colorMid, colorTop, glm::clamp(y, 0.0f, 1.0f));
+    }
+    return glm::mix(colorMid, colorBottom, glm::clamp(-y, 0.0f, 1.0f));
+  };
+
   const int latBands = 12;
   for (int i = 1; i < latBands; i++) {
     float t = static_cast<float>(i) / static_cast<float>(latBands);
     float lat = t * PI_F - HALF_PI_F;
     float ringRadius = sphereRadius * cosf(lat);
-    glm::vec3 ringCenter = p + l.m_N * (sphereRadius * sinf(lat));
-    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_V * ringRadius, 128, color, opacity, code);
+    float y = sinf(lat);
+    glm::vec3 ringCenter = p + l.m_V * (sphereRadius * y);
+    glm::vec3 ringColor = ringColorFromY(y);
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code);
   }
 
   const int lonBands = 12;
   for (int i = 0; i < lonBands; i++) {
     float lon = (static_cast<float>(i) / static_cast<float>(lonBands)) * PI_F;
-    glm::vec3 axis = cosf(lon) * l.m_U + sinf(lon) * l.m_V;
-    gesture.drawCircle(p, axis * sphereRadius, l.m_N * sphereRadius, 128, color, opacity, code);
+    glm::vec3 axis = cosf(lon) * l.m_N + sinf(lon) * l.m_U;
+    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code);
   }
 }
