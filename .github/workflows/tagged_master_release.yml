@@ -312,6 +312,8 @@ jobs:
         publish_pythonclient,
         publish_webclient,
       ]
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
