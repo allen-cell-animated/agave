@@ -53,6 +53,7 @@ bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, d
 }
 
 static constexpr double SCATTERSIZE = 10.0;
+static constexpr double MIN_HISTOGRAM_BAR_HEIGHT = 0.01;
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
@@ -66,7 +67,13 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   // first graph will be histogram
   QPalette pal = m_customPlot->palette();
   QColor histFillColor = pal.color(QPalette::Link).lighter(150);
-  m_histogramBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis);
+  m_customPlot->yAxis2->setVisible(false);
+  m_customPlot->yAxis2->setTicks(false);
+  m_customPlot->yAxis2->setTickLabels(false);
+  m_customPlot->yAxis2->setRange(0.0, 1.0);
+  m_customPlot->yAxis2->setScaleType(QCPAxis::stLinear);
+
+  m_histogramBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis2);
   QBrush barBrush = m_histogramBars->brush();
   barBrush.setColor(histFillColor);
   m_histogramBars->setBrush(barBrush);
@@ -148,17 +155,16 @@ GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
   m_histogramBars->setWidth(binSize);
   QVector<double> keyData;
   QVector<double> valueData;
-  static constexpr double MIN_BAR_HEIGHT = 0.01; // Minimum height for nonzero bins (0.1% of max)
   for (size_t i = 0; i < histogram.getNumDisplayBins(); ++i) {
     keyData << firstBinCenter + i * binSize;
     if (histogram.getDisplayBinCount(i) == 0) {
-      // Zero bins get zero height
-      valueData << 0.0;
+      // Zero bins are clamped in log mode to avoid log(0).
+      valueData << (m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT : 0.0);
     } else {
       // Nonzero bins get at least the minimum height
       double normalizedHeight =
         (double)histogram.getDisplayBinCount(i) / (double)histogram.getDisplayBinCount(histogram.getModalDisplayBin());
-      valueData << std::max(normalizedHeight, MIN_BAR_HEIGHT);
+      valueData << std::max(normalizedHeight, MIN_HISTOGRAM_BAR_HEIGHT);
     }
   }
   m_histogramBars->setData(keyData, valueData);
@@ -181,7 +187,14 @@ GradientEditor::setYAxisLogScale(bool enabled)
     return;
   }
 
-  m_customPlot->yAxis->setScaleType(enabled ? QCPAxis::stLogarithmic : QCPAxis::stLinear);
+  m_histogramLogScale = enabled;
+  m_customPlot->yAxis2->setScaleType(enabled ? QCPAxis::stLogarithmic : QCPAxis::stLinear);
+  if (enabled) {
+    m_customPlot->yAxis2->setRange(MIN_HISTOGRAM_BAR_HEIGHT, 1.0);
+  } else {
+    m_customPlot->yAxis2->setRange(0.0, 1.0);
+  }
+  updateHistogramBarGraph(m_histogram);
   m_customPlot->replot();
 }
 

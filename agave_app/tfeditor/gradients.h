@@ -47,6 +47,7 @@ private:
   Histogram m_histogram;
 
   GradientEditMode m_currentEditMode;
+  bool m_histogramLogScale = false;
 
   QCustomPlot* m_customPlot;
   QCPBars* m_histogramBars;
