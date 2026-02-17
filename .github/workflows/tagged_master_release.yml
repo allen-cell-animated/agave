@@ -348,12 +348,14 @@ jobs:
           mv ${{ github.workspace }}/agave-macos-arm64/agave-macos-arm64.dmg ${{ github.workspace }}/agave-macos-arm64/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.dmg
           mv ${{ github.workspace }}/agave-win/agave-win.exe ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.exe
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           prerelease: true
+          generate_release_notes: true
           files: |
             ${{ github.workspace }}/agave-macos-x86_64/agave-${{ steps.get_version.outputs.VERSION }}-macos-x86_64.dmg
             ${{ github.workspace }}/agave-macos-arm64/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.dmg
