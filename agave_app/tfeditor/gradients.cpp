@@ -603,7 +603,33 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
 
   m_editor = new GradientEditor(m_histogram, this);
-  mainGroupLayout->addWidget(m_editor);
+  QHBoxLayout* editorRowLayout = new QHBoxLayout();
+  editorRowLayout->setContentsMargins(0, 0, 0, 0);
+  editorRowLayout->setSpacing(4);
+  editorRowLayout->addWidget(m_editor, 1);
+
+  QVBoxLayout* editorButtonLayout = new QVBoxLayout();
+  editorButtonLayout->setContentsMargins(0, 0, 0, 0);
+  editorButtonLayout->setSpacing(2);
+
+  copyButton = new QToolButton(this);
+  copyButton->setText("C");
+  copyButton->setToolTip(tr("Copy control points"));
+  copyButton->setAutoRaise(true);
+  copyButton->setFixedSize(20, 20);
+
+  pasteButton = new QToolButton(this);
+  pasteButton->setText("P");
+  pasteButton->setToolTip(tr("Paste control points"));
+  pasteButton->setAutoRaise(true);
+  pasteButton->setFixedSize(20, 20);
+
+  editorButtonLayout->addWidget(copyButton);
+  editorButtonLayout->addWidget(pasteButton);
+  editorButtonLayout->addStretch(1);
+
+  editorRowLayout->addLayout(editorButtonLayout);
+  mainGroupLayout->addLayout(editorRowLayout);
 
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
@@ -716,6 +742,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
             m_editor->setEditMode(modeToSet);
 
             this->forceDataUpdate();
+            this->updateCopyPasteButtons();
           });
 
   minu16Slider = new QIntSlider();
@@ -821,8 +848,11 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
   connect(m_editor, &GradientEditor::interactivePointsChanged, this, &GradientWidget::onInteractivePointsChanged);
+  connect(copyButton, &QToolButton::clicked, this, &GradientWidget::onCopyControlPoints);
+  connect(pasteButton, &QToolButton::clicked, this, &GradientWidget::onPasteControlPoints);
 
   forceDataUpdate();
+  updateCopyPasteButtons();
 }
 
 void
@@ -859,6 +889,203 @@ GradientWidget::forceDataUpdate()
       LOG_ERROR << "Bad gradient editor mode";
       break;
   }
+}
+
+void
+GradientWidget::updateCopyPasteButtons()
+{
+  if (!copyButton || !pasteButton) {
+    return;
+  }
+
+  GradientEditMode mode = m_gradientData->m_activeMode;
+  bool allowCopy = mode != GradientEditMode::CUSTOM;
+  bool allowPaste = m_hasMinMaxClipboard;
+
+  copyButton->setEnabled(allowCopy);
+  pasteButton->setEnabled(allowPaste);
+}
+
+void
+GradientWidget::onCopyControlPoints()
+{
+  GradientEditMode mode = m_gradientData->m_activeMode;
+  if (mode == GradientEditMode::CUSTOM) {
+    return;
+  }
+
+  float dataMin = static_cast<float>(m_histogram.getDataMin());
+  float dataMax = static_cast<float>(m_histogram.getDataMax());
+  float dataRange = dataMax - dataMin;
+  if (dataRange <= 0.0f) {
+    return;
+  }
+
+  if (mode == GradientEditMode::MINMAX) {
+    m_clipboardMinIntensity = static_cast<float>(m_gradientData->m_minu16);
+    m_clipboardMaxIntensity = static_cast<float>(m_gradientData->m_maxu16);
+  } else if (mode == GradientEditMode::WINDOW_LEVEL) {
+    float lowEnd = m_gradientData->m_level - m_gradientData->m_window * 0.5f;
+    float highEnd = m_gradientData->m_level + m_gradientData->m_window * 0.5f;
+    lowEnd = std::max(0.0f, lowEnd);
+    highEnd = std::min(1.0f, highEnd);
+    m_clipboardMinIntensity = dataMin + lowEnd * dataRange;
+    m_clipboardMaxIntensity = dataMin + highEnd * dataRange;
+  } else if (mode == GradientEditMode::PERCENTILE) {
+    m_clipboardMinIntensity = m_histogram.rank_data_value(m_gradientData->m_pctLow);
+    m_clipboardMaxIntensity = m_histogram.rank_data_value(m_gradientData->m_pctHigh);
+  } else if (mode == GradientEditMode::ISOVALUE) {
+    float lowEnd = m_gradientData->m_isovalue - m_gradientData->m_isorange * 0.5f;
+    float highEnd = m_gradientData->m_isovalue + m_gradientData->m_isorange * 0.5f;
+    lowEnd = std::max(0.0f, lowEnd);
+    highEnd = std::min(1.0f, highEnd);
+    m_clipboardMinIntensity = dataMin + lowEnd * dataRange;
+    m_clipboardMaxIntensity = dataMin + highEnd * dataRange;
+  }
+
+  m_clipboardMinIntensity = std::max(m_clipboardMinIntensity, dataMin);
+  m_clipboardMaxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
+  m_hasMinMaxClipboard = (m_clipboardMinIntensity < m_clipboardMaxIntensity);
+  updateCopyPasteButtons();
+}
+
+void
+GradientWidget::onPasteControlPoints()
+{
+
+  if (!m_hasMinMaxClipboard) {
+    return;
+  }
+
+  GradientEditMode mode = m_gradientData->m_activeMode;
+  if (mode == GradientEditMode::CUSTOM) {
+    if (m_hasMinMaxClipboard) {
+      float dataMin = static_cast<float>(m_histogram.getDataMin());
+      float dataMax = static_cast<float>(m_histogram.getDataMax());
+      float dataRange = dataMax - dataMin;
+      if (dataRange <= 0.0f) {
+        return;
+      }
+      float minIntensity = std::max(m_clipboardMinIntensity, dataMin);
+      float maxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
+      if (minIntensity >= maxIntensity) {
+        return;
+      }
+      float relativeMin = (minIntensity - dataMin) / dataRange;
+      float relativeMax = (maxIntensity - dataMin) / dataRange;
+      relativeMin = std::max(relativeMin, 0.0f);
+      relativeMax = std::min(relativeMax, 1.0f);
+
+      std::vector<LutControlPoint> points;
+      points.push_back({ 0.0f, 0.0f });
+      points.push_back({ relativeMin, 0.0f });
+      points.push_back({ relativeMax, 1.0f });
+      points.push_back({ 1.0f, 1.0f });
+
+      m_gradientData->m_customControlPoints = points;
+      m_editor->setControlPoints(points);
+      emit gradientStopsChanged(vectorToGradientStops(points));
+      updateCopyPasteButtons();
+      return;
+    }
+  }
+
+  float dataMin = static_cast<float>(m_histogram.getDataMin());
+  float dataMax = static_cast<float>(m_histogram.getDataMax());
+  float dataRange = dataMax - dataMin;
+  if (dataRange <= 0.0f) {
+    return;
+  }
+
+  float minIntensity = std::max(m_clipboardMinIntensity, dataMin);
+  float maxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
+  if (minIntensity >= maxIntensity) {
+    return;
+  }
+
+  if (mode == GradientEditMode::MINMAX) {
+    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
+    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
+    m_gradientData->m_minu16 = minu16;
+    m_gradientData->m_maxu16 = maxu16;
+    onSetMinMax(minu16, maxu16);
+
+    if (minu16Slider) {
+      minu16Slider->blockSignals(true);
+      minu16Slider->setValue(minu16);
+      minu16Slider->blockSignals(false);
+    }
+    if (maxu16Slider) {
+      maxu16Slider->blockSignals(true);
+      maxu16Slider->setValue(maxu16);
+      maxu16Slider->blockSignals(false);
+    }
+  } else if (mode == GradientEditMode::WINDOW_LEVEL) {
+    float relativeMin = (minIntensity - dataMin) / dataRange;
+    float relativeMax = (maxIntensity - dataMin) / dataRange;
+    relativeMin = std::max(relativeMin, 0.0f);
+    relativeMax = std::min(relativeMax, 1.0f);
+    float window = relativeMax - relativeMin;
+    float level = (relativeMax + relativeMin) * 0.5f;
+    m_gradientData->m_window = window;
+    m_gradientData->m_level = level;
+    onSetWindowLevel(window, level);
+
+    if (windowSlider) {
+      windowSlider->blockSignals(true);
+      windowSlider->setValue(window);
+      windowSlider->blockSignals(false);
+    }
+    if (levelSlider) {
+      levelSlider->blockSignals(true);
+      levelSlider->setValue(level);
+      levelSlider->blockSignals(false);
+    }
+  } else if (mode == GradientEditMode::PERCENTILE) {
+    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
+    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
+    float pctLow = 0.0f;
+    float pctHigh = 1.0f;
+    m_histogram.computePercentile(minu16, pctLow);
+    m_histogram.computePercentile(maxu16, pctHigh);
+    m_gradientData->m_pctLow = pctLow;
+    m_gradientData->m_pctHigh = pctHigh;
+    onSetHistogramPercentiles(pctLow, pctHigh);
+
+    if (pctLowSlider) {
+      pctLowSlider->blockSignals(true);
+      pctLowSlider->setValue(pctLow);
+      pctLowSlider->blockSignals(false);
+    }
+    if (pctHighSlider) {
+      pctHighSlider->blockSignals(true);
+      pctHighSlider->setValue(pctHigh);
+      pctHighSlider->blockSignals(false);
+    }
+  } else if (mode == GradientEditMode::ISOVALUE) {
+    float relativeMin = (minIntensity - dataMin) / dataRange;
+    float relativeMax = (maxIntensity - dataMin) / dataRange;
+    relativeMin = std::max(relativeMin, 0.0f);
+    relativeMax = std::min(relativeMax, 1.0f);
+    float isovalue = (relativeMax + relativeMin) * 0.5f;
+    float isorange = relativeMax - relativeMin;
+    m_gradientData->m_isovalue = isovalue;
+    m_gradientData->m_isorange = isorange;
+    onSetIsovalue(isovalue, isorange);
+
+    if (isovalueSlider) {
+      isovalueSlider->blockSignals(true);
+      isovalueSlider->setValue(isovalue);
+      isovalueSlider->blockSignals(false);
+    }
+    if (isorangeSlider) {
+      isorangeSlider->blockSignals(true);
+      isorangeSlider->setValue(isorange);
+      isorangeSlider->blockSignals(false);
+    }
+  }
+
+  updateCopyPasteButtons();
 }
 
 void

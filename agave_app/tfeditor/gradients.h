@@ -9,6 +9,7 @@
 
 #include <QPushButton>
 #include <QRadioButton>
+#include <QToolButton>
 
 class GradientEditor : public QWidget
 {
@@ -85,6 +86,9 @@ private:
   void onSetHistogramPercentiles(float pctLow, float pctHigh);
   void onSetMinMax(uint16_t minu16, uint16_t maxu16);
   void forceDataUpdate();
+  void updateCopyPasteButtons();
+  void onCopyControlPoints();
+  void onPasteControlPoints();
 
   GradientEditor* m_editor;
   Histogram m_histogram;
@@ -100,6 +104,12 @@ private:
   QNumericSlider* isorangeSlider = nullptr;
   QNumericSlider* pctLowSlider = nullptr;
   QNumericSlider* pctHighSlider = nullptr;
+
+  QToolButton* copyButton = nullptr;
+  QToolButton* pasteButton = nullptr;
+  bool m_hasMinMaxClipboard = false;
+  float m_clipboardMinIntensity = 0.0f;
+  float m_clipboardMaxIntensity = 0.0f;
 };
 
 #endif // GRADIENTS_H
