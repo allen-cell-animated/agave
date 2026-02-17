@@ -175,6 +175,17 @@ GradientEditor::setHistogram(const Histogram& histogram)
 }
 
 void
+GradientEditor::setYAxisLogScale(bool enabled)
+{
+  if (!m_customPlot) {
+    return;
+  }
+
+  m_customPlot->yAxis->setScaleType(enabled ? QCPAxis::stLogarithmic : QCPAxis::stLinear);
+  m_customPlot->replot();
+}
+
+void
 GradientEditor::changeEvent(QEvent* event)
 {
   // This might be too many event types to check, but ThemeChange only seems to work on the QMainWindow.
@@ -634,8 +645,21 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pasteButton->setAutoRaise(true);
   pasteButton->setFixedSize(20, 20);
 
+  yScaleButton = new QToolButton(this);
+  QIcon logIcon = QIcon::fromTheme("view-logarithmic");
+  if (!logIcon.isNull()) {
+    yScaleButton->setIcon(logIcon);
+  } else {
+    yScaleButton->setText("Log");
+  }
+  yScaleButton->setToolTip(tr("Toggle log Y scale"));
+  yScaleButton->setAutoRaise(true);
+  yScaleButton->setFixedSize(20, 20);
+  yScaleButton->setCheckable(true);
+
   editorButtonLayout->addWidget(copyButton);
   editorButtonLayout->addWidget(pasteButton);
+  editorButtonLayout->addWidget(yScaleButton);
   editorButtonLayout->addStretch(1);
 
   editorRowLayout->addLayout(editorButtonLayout);
@@ -860,6 +884,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   connect(m_editor, &GradientEditor::interactivePointsChanged, this, &GradientWidget::onInteractivePointsChanged);
   connect(copyButton, &QToolButton::clicked, this, &GradientWidget::onCopyControlPoints);
   connect(pasteButton, &QToolButton::clicked, this, &GradientWidget::onPasteControlPoints);
+  connect(yScaleButton, &QToolButton::toggled, this, &GradientWidget::onToggleYAxisScale);
 
   forceDataUpdate();
   updateCopyPasteButtons();
@@ -914,6 +939,16 @@ GradientWidget::updateCopyPasteButtons()
 
   copyButton->setEnabled(allowCopy);
   pasteButton->setEnabled(allowPaste);
+}
+
+void
+GradientWidget::onToggleYAxisScale(bool enabled)
+{
+  if (!m_editor) {
+    return;
+  }
+
+  m_editor->setYAxisLogScale(enabled);
 }
 
 void
