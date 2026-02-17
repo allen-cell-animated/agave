@@ -613,13 +613,23 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   editorButtonLayout->setSpacing(2);
 
   copyButton = new QToolButton(this);
-  copyButton->setText("C");
+  QIcon copyIcon = QIcon::fromTheme("edit-copy");
+  if (!copyIcon.isNull()) {
+    copyButton->setIcon(copyIcon);
+  } else {
+    copyButton->setText("C");
+  }
   copyButton->setToolTip(tr("Copy control points"));
   copyButton->setAutoRaise(true);
   copyButton->setFixedSize(20, 20);
 
   pasteButton = new QToolButton(this);
-  pasteButton->setText("P");
+  QIcon pasteIcon = QIcon::fromTheme("edit-paste");
+  if (!pasteIcon.isNull()) {
+    pasteButton->setIcon(pasteIcon);
+  } else {
+    pasteButton->setText("P");
+  }
   pasteButton->setToolTip(tr("Paste control points"));
   pasteButton->setAutoRaise(true);
   pasteButton->setFixedSize(20, 20);
