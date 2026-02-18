@@ -6,6 +6,7 @@
 #include "renderlib/Logging.h"
 #include "renderlib/MathUtil.h"
 
+#include <QSharedPointer>
 #include <algorithm>
 
 std::vector<LutControlPoint>
@@ -67,9 +68,18 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   // first graph will be histogram
   QPalette pal = m_customPlot->palette();
   QColor histFillColor = pal.color(QPalette::Link).lighter(150);
-  m_customPlot->yAxis2->setVisible(false);
-  m_customPlot->yAxis2->setTicks(false);
+  m_customPlot->yAxis->setVisible(true);
+  m_customPlot->yAxis->setTicks(true);
+  m_customPlot->yAxis->setTickLabels(true);
+  m_customPlot->yAxis->grid()->setVisible(false);
+  m_customPlot->yAxis->grid()->setSubGridVisible(false);
+
+  m_customPlot->yAxis2->setVisible(true);
+  m_customPlot->yAxis2->setTicks(true);
   m_customPlot->yAxis2->setTickLabels(false);
+  m_customPlot->yAxis2->setSubTicks(false);
+  m_customPlot->yAxis2->grid()->setVisible(true);
+  m_customPlot->yAxis2->grid()->setSubGridVisible(false);
   m_customPlot->yAxis2->setRange(0.0, 1.0);
   m_customPlot->yAxis2->setScaleType(QCPAxis::stLinear);
 
@@ -122,8 +132,8 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 
   m_customPlot->xAxis->grid()->setVisible(true);
   m_customPlot->xAxis->grid()->setSubGridVisible(true);
-  m_customPlot->yAxis->grid()->setVisible(true);
-  m_customPlot->yAxis->grid()->setSubGridVisible(true);
+  m_customPlot->yAxis->grid()->setVisible(false);
+  m_customPlot->yAxis->grid()->setSubGridVisible(false);
 
   m_customPlot->setInteractions(
     QCP::iRangeDrag | QCP::iRangeZoom |
@@ -188,6 +198,17 @@ GradientEditor::setYAxisLogScale(bool enabled)
   }
 
   m_histogramLogScale = enabled;
+  m_customPlot->yAxis->setVisible(true);
+  m_customPlot->yAxis->setTicks(true);
+  m_customPlot->yAxis->setTickLabels(true);
+  m_customPlot->yAxis->grid()->setVisible(false);
+  m_customPlot->yAxis->grid()->setSubGridVisible(false);
+  m_customPlot->yAxis2->setVisible(true);
+  m_customPlot->yAxis2->setTicks(true);
+  m_customPlot->yAxis2->setTickLabels(false);
+  m_customPlot->yAxis2->setSubTicks(false);
+  m_customPlot->yAxis2->grid()->setVisible(true);
+  m_customPlot->yAxis2->grid()->setSubGridVisible(false);
   m_customPlot->yAxis2->setScaleType(enabled ? QCPAxis::stLogarithmic : QCPAxis::stLinear);
   if (enabled) {
     m_customPlot->yAxis2->setRange(MIN_HISTOGRAM_BAR_HEIGHT, 1.0);
@@ -240,28 +261,35 @@ GradientEditor::changeEvent(QEvent* event)
     basepen.setColor(plotLineColor);
     m_customPlot->xAxis->setBasePen(basepen);
     m_customPlot->yAxis->setBasePen(basepen);
+    m_customPlot->yAxis2->setBasePen(basepen);
 
     QPen gridpen = m_customPlot->xAxis->grid()->pen();
     gridpen.setColor(gridColor);
     m_customPlot->xAxis->grid()->setPen(gridpen);
     m_customPlot->yAxis->grid()->setPen(gridpen);
+    m_customPlot->yAxis2->grid()->setPen(gridpen);
     QPen subgridpen = m_customPlot->xAxis->grid()->subGridPen();
     subgridpen.setColor(subgridColor);
     m_customPlot->xAxis->grid()->setSubGridPen(subgridpen);
     m_customPlot->yAxis->grid()->setSubGridPen(subgridpen);
+    m_customPlot->yAxis2->grid()->setSubGridPen(subgridpen);
     m_customPlot->xAxis->grid()->setAntialiasedSubGrid(true);
     m_customPlot->yAxis->grid()->setAntialiasedSubGrid(true);
+    m_customPlot->yAxis2->grid()->setAntialiasedSubGrid(true);
 
     QPen axisTickPen = m_customPlot->xAxis->tickPen();
     axisTickPen.setColor(plotLineColor);
     m_customPlot->xAxis->setTickPen(axisTickPen);
     m_customPlot->yAxis->setTickPen(axisTickPen);
+    m_customPlot->yAxis2->setTickPen(axisTickPen);
     m_customPlot->xAxis->setTickLabelColor(plotLineColor);
     m_customPlot->yAxis->setTickLabelColor(plotLineColor);
+    m_customPlot->yAxis2->setTickLabelColor(plotLineColor);
     QPen axisSubTickPen = m_customPlot->xAxis->subTickPen();
     axisSubTickPen.setColor(plotLineColor);
     m_customPlot->xAxis->setSubTickPen(axisSubTickPen);
     m_customPlot->yAxis->setSubTickPen(axisSubTickPen);
+    m_customPlot->yAxis2->setSubTickPen(axisSubTickPen);
 
     m_histogramBars->setPen(Qt::NoPen); // QPen(barsColor));
     m_histogramBars->setBrush(QBrush(barsColor));
