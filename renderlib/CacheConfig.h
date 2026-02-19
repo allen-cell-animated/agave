@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <string>
 
-namespace renderlib {
-
 struct CacheConfig
 {
   bool enabled = false;
@@ -13,5 +11,3 @@ struct CacheConfig
   std::uint64_t maxDiskBytes = 0;
   std::string cacheDir;
 };
-
-} // namespace renderlib

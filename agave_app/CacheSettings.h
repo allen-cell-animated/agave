@@ -3,10 +3,6 @@
 #include <cstdint>
 #include <string>
 
-namespace renderlib {
-struct CacheConfig;
-}
-
 struct CacheSettingsData
 {
   bool enabled = true;
@@ -24,14 +20,14 @@ public:
   CacheSettingsData load();
   bool save(const CacheSettingsData& data) const;
 
-  renderlib::CacheConfig toRenderlibConfig(const CacheSettingsData& data) const;
   void applyToRenderlib(const CacheSettingsData& data) const;
 
   CacheSettingsData defaultSettings() const;
   std::string configPath() const;
 
-private:
   std::uint64_t availableMemoryBytes() const;
   std::uint64_t availableDiskBytes(const std::string& path) const;
+
+private:
   bool canWriteCacheDir(const std::string& path) const;
 };

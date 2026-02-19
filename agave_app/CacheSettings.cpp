@@ -19,6 +19,44 @@
 #include <sys/sysinfo.h>
 #endif
 
+namespace {
+
+::CacheConfig
+toRenderlibConfig(const CacheSettings& settings, const CacheSettingsData& data)
+{
+  CacheSettingsData normalized = data;
+  if (normalized.cacheDir.empty()) {
+    normalized.cacheDir = settings.defaultSettings().cacheDir;
+  }
+
+  ::CacheConfig config;
+  config.enabled = normalized.enabled;
+  config.enableDisk = normalized.enableDisk;
+  config.cacheDir = normalized.cacheDir;
+
+  std::uint64_t availableMem = settings.availableMemoryBytes();
+  if (availableMem > 0) {
+    config.maxRamBytes = std::min(normalized.maxRamBytes, availableMem);
+  } else {
+    config.maxRamBytes = normalized.maxRamBytes;
+  }
+
+  std::uint64_t availableDisk = settings.availableDiskBytes(normalized.cacheDir);
+  if (availableDisk > 0) {
+    config.maxDiskBytes = std::min(normalized.maxDiskBytes, availableDisk);
+  } else {
+    config.maxDiskBytes = normalized.maxDiskBytes;
+  }
+
+  if (!config.enableDisk) {
+    config.maxDiskBytes = 0;
+  }
+
+  return config;
+}
+
+} // namespace
+
 CacheSettings::CacheSettings() {}
 
 CacheSettingsData
@@ -108,44 +146,10 @@ CacheSettings::save(const CacheSettingsData& data) const
   return true;
 }
 
-renderlib::CacheConfig
-CacheSettings::toRenderlibConfig(const CacheSettingsData& data) const
-{
-  CacheSettingsData normalized = data;
-  if (normalized.cacheDir.empty()) {
-    normalized.cacheDir = defaultSettings().cacheDir;
-  }
-
-  renderlib::CacheConfig config;
-  config.enabled = normalized.enabled;
-  config.enableDisk = normalized.enableDisk;
-  config.cacheDir = normalized.cacheDir;
-
-  std::uint64_t availableMem = availableMemoryBytes();
-  if (availableMem > 0) {
-    config.maxRamBytes = std::min(normalized.maxRamBytes, availableMem);
-  } else {
-    config.maxRamBytes = normalized.maxRamBytes;
-  }
-
-  std::uint64_t availableDisk = availableDiskBytes(normalized.cacheDir);
-  if (availableDisk > 0) {
-    config.maxDiskBytes = std::min(normalized.maxDiskBytes, availableDisk);
-  } else {
-    config.maxDiskBytes = normalized.maxDiskBytes;
-  }
-
-  if (!config.enableDisk) {
-    config.maxDiskBytes = 0;
-  }
-
-  return config;
-}
-
 void
 CacheSettings::applyToRenderlib(const CacheSettingsData& data) const
 {
-  renderlib::CacheConfig config = toRenderlibConfig(data);
+  ::CacheConfig config = toRenderlibConfig(*this, data);
   if (config.enableDisk && !config.cacheDir.empty()) {
     if (!canWriteCacheDir(config.cacheDir)) {
       LOG_WARNING << "Cache disk disabled: cache directory not writable: " << config.cacheDir;
@@ -156,8 +160,8 @@ CacheSettings::applyToRenderlib(const CacheSettingsData& data) const
   LOG_INFO << "Cache config: enabled=" << (config.enabled ? 1 : 0) << " ram_bytes=" << config.maxRamBytes
            << " disk_enabled=" << (config.enableDisk ? 1 : 0) << " disk_bytes=" << config.maxDiskBytes
            << " cache_dir=" << config.cacheDir;
-  renderlib::CacheManager::instance().setConfig(config);
-  auto applied = renderlib::CacheManager::instance().getConfig();
+  CacheManager::instance().setConfig(config);
+  auto applied = CacheManager::instance().getConfig();
   LOG_INFO << "Cache config applied: enabled=" << (applied.enabled ? 1 : 0) << " ram_bytes=" << applied.maxRamBytes
            << " disk_enabled=" << (applied.enableDisk ? 1 : 0) << " disk_bytes=" << applied.maxDiskBytes
            << " cache_dir=" << applied.cacheDir;
