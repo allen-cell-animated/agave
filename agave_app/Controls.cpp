@@ -49,6 +49,13 @@ QColorPushButton::mousePressEvent(QMouseEvent* pEvent)
 {
   QColor lastColor = m_Color;
   QColorDialog colorDialog;
+  colorDialog.setCustomColor(0, Qt::white);
+  colorDialog.setCustomColor(1, Qt::red);
+  colorDialog.setCustomColor(2, Qt::green);
+  colorDialog.setCustomColor(3, Qt::blue);
+  colorDialog.setCustomColor(4, Qt::cyan);
+  colorDialog.setCustomColor(5, Qt::magenta);
+  colorDialog.setCustomColor(6, Qt::yellow);
 
   connect(&colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
 
