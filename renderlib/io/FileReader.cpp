@@ -66,7 +66,7 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
 std::shared_ptr<ImageXYZC>
 FileReader::loadAndCache(const LoadSpec& loadSpec)
 {
-  auto cached = renderlib::CacheManager::instance().findImage(loadSpec);
+  auto cached = CacheManager::instance().findImage(loadSpec);
   if (cached) {
     return cached;
   }
@@ -86,7 +86,7 @@ FileReader::loadAndCache(const LoadSpec& loadSpec)
   image = reader->loadFromFile(loadSpec);
 
   if (image) {
-    renderlib::CacheManager::instance().storeImage(loadSpec, image);
+    CacheManager::instance().storeImage(loadSpec, image);
   }
 
   return image;
@@ -105,7 +105,7 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
   // check cache first of all.
   LoadSpec cacheSpec;
   cacheSpec.filepath = name;
-  auto cached = renderlib::CacheManager::instance().findImage(cacheSpec);
+  auto cached = CacheManager::instance().findImage(cacheSpec);
   if (cached) {
     return cached;
   }
@@ -146,7 +146,7 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
   if (addToCache) {
     LoadSpec newSpec;
     newSpec.filepath = name;
-    renderlib::CacheManager::instance().storeImage(newSpec, sharedImage);
+    CacheManager::instance().storeImage(newSpec, sharedImage);
   }
   return sharedImage;
 }
