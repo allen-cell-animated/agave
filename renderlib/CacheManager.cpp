@@ -5,6 +5,7 @@
 
 #include "tensorstore/array.h"
 #include "tensorstore/context.h"
+#include "tensorstore/open.h"
 #include "tensorstore/tensorstore.h"
 
 // must include after tensorstore so that tensorstore picks up its own internal json impl
@@ -17,8 +18,6 @@
 #include <fstream>
 #include <limits>
 #include <sstream>
-
-namespace renderlib {
 
 namespace {
 
@@ -480,11 +479,11 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
                               { { "read_chunk", { { "shape", chunkShape } } },
                                 { "write_chunk", { { "shape", chunkShape } } } } } };
 
-  auto openFuture = tensorstore::Open({ { "driver", "zarr3" },
-                                        { "kvstore", { { "driver", "file" }, { "path", dataPath.string() } } },
-                                        { "schema", schema } },
-                                      tensorstore::OpenMode::create | tensorstore::OpenMode::open,
-                                      tensorstore::ReadWriteMode::read_write);
+  auto openFuture = tensorstore::Open<std::uint16_t, 4, tensorstore::ReadWriteMode::read_write>(
+    { { "driver", "zarr3" },
+      { "kvstore", { { "driver", "file" }, { "path", dataPath.string() } } },
+      { "schema", schema } },
+    tensorstore::OpenMode::create | tensorstore::OpenMode::open);
   auto result = openFuture.result();
   if (!result.ok()) {
     return;
@@ -492,7 +491,7 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
 
   auto store = result.value();
   auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(image->ptr()), shape);
-  auto writeResult = tensorstore::Write(arr, store).result();
+  auto writeResult = tensorstore::Write(tensorstore::UnownedToShared(arr), store).result();
   if (!writeResult.ok()) {
     return;
   }
@@ -661,5 +660,3 @@ CacheManager::directorySizeBytes(const std::string& path) const
   }
   return total;
 }
-
-} // namespace renderlib

@@ -109,7 +109,7 @@ agaveGui::agaveGui(QWidget* parent)
     m_cacheSettings.applyToRenderlib(data);
   });
   connect(m_cacheSettingsDockWidget->widget()->clearDiskButton(), &QPushButton::clicked, this, [this]() {
-    renderlib::CacheManager::instance().clearDiskCache();
+    CacheManager::instance().clearDiskCache();
   });
 
   m_tabs = new QTabWidget(this);

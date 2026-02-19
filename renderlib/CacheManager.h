@@ -13,8 +13,6 @@
 
 class ImageXYZC;
 
-namespace renderlib {
-
 struct CacheKey
 {
   std::string filepath;
@@ -106,5 +104,3 @@ private:
 
   CacheStats m_stats;
 };
-
-} // namespace renderlib
