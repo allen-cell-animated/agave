@@ -212,6 +212,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
     this->OnShowScaleBarChecked(is_checked);
   });
 
+  m_showTimeStampCheckBox.setChecked(false);
+  m_showTimeStampCheckBox.setStatusTip(tr("Show/hide timestamps"));
+  m_showTimeStampCheckBox.setToolTip(tr("Show/hide timestamps"));
+  m_MainLayout.addRow("Timestamps", &m_showTimeStampCheckBox);
+  QObject::connect(&m_showTimeStampCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
+    this->OnShowTimeStampChecked(is_checked);
+  });
+
   m_scaleSection = new Section("Volume Scale", 0);
   auto* scaleSectionLayout = new QGridLayout();
   scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
@@ -920,6 +928,14 @@ QAppearanceSettingsWidget::OnShowScaleBarChecked(bool isChecked)
 }
 
 void
+QAppearanceSettingsWidget::OnShowTimeStampChecked(bool isChecked)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_showTimeStamp = isChecked;
+}
+
+void
 QAppearanceSettingsWidget::OnInterpolateChecked(bool isChecked)
 {
   if (!m_scene)
@@ -1151,6 +1167,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_boundingBoxColorButton.SetColor(cbbox);
   m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
+  m_showTimeStampCheckBox.setChecked(m_scene->m_showTimeStamp);
 
   initLightingControls(scene);
   initClipPlaneControls(scene);

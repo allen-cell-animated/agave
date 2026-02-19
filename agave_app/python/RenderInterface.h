@@ -73,6 +73,7 @@ public:
   virtual int SetBoundingBoxColor(float, float, float) = 0;
   virtual int ShowBoundingBox(int32_t) = 0;
   virtual int ShowScaleBar(int32_t) = 0;
+  virtual int ShowTimeStamp(int32_t) = 0;
   virtual int SetFlipAxis(int32_t, int32_t, int32_t) = 0;
   virtual int SetInterpolation(int32_t) = 0;
 };

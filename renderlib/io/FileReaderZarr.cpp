@@ -267,6 +267,32 @@ getSpatialUnit(nlohmann::json axes)
   return unit;
 }
 
+std::string
+getTimeUnit(nlohmann::json axes)
+{
+  std::string unit = "s";
+  for (auto axis : axes) {
+    std::string type = axis["type"];
+    if (type == "time") {
+      auto unitobj = axis["unit"];
+      if (unitobj.is_string()) {
+        unit = unitobj;
+        return unit;
+      }
+    }
+    std::string name = axis["name"];
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
+    if (name == "T") {
+      auto unitobj = axis["unit"];
+      if (unitobj.is_string()) {
+        unit = unitobj;
+        return unit;
+      }
+    }
+  }
+  return unit;
+}
+
 std::vector<std::string>
 getAxes(nlohmann::json axes)
 {
@@ -394,6 +420,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
               zmd.path = pathstr;
               zmd.channelNames = channelNames;
               zmd.spatialUnits = VolumeDimensions::sanitizeUnitsString(getSpatialUnit(axes));
+              zmd.timeUnits = VolumeDimensions::sanitizeUnitsString(getTimeUnit(axes));
               multiscaleDims.push_back(zmd);
             }
           }
