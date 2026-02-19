@@ -3,6 +3,7 @@
 #include "ui_agaveGui.h"
 
 #include "Camera.h"
+#include "CacheSettings.h"
 #include "GLView3D.h"
 #include "QRenderSettings.h"
 #include "ViewerState.h"
@@ -18,6 +19,7 @@ class QAppearanceDockWidget;
 class QCameraDockWidget;
 class QStatisticsDockWidget;
 class QTimelineDockWidget;
+class CacheSettingsDockWidget;
 
 class IFileReader;
 class ViewToolbar;
@@ -148,6 +150,7 @@ private:
   QAppearanceDockWidget* m_appearanceDockWidget;
 
   QStatisticsDockWidget* m_statisticsDockWidget;
+  CacheSettingsDockWidget* m_cacheSettingsDockWidget = nullptr;
 
   QTabWidget* m_tabs;
   GLView3D* m_glView;
@@ -167,6 +170,8 @@ private:
   // scene gets sent down to the renderer.
   Scene m_appScene;
   int m_currentScene = 0;
+
+  CacheSettings m_cacheSettings;
 
   QAction* m_recentFileActs[MaxRecentFiles];
   QAction* m_recentFileSeparator;

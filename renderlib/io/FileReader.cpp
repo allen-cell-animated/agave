@@ -7,12 +7,10 @@
 #include "FileReaderZarr.h"
 #include "ImageXYZC.h"
 #include "Logging.h"
+#include "CacheManager.h"
 
 #include <chrono>
 #include <filesystem>
-#include <map>
-
-std::map<std::string, std::shared_ptr<ImageXYZC>> FileReader::sPreloadedImageCache;
 
 // return file extension as lowercase
 std::string
@@ -68,10 +66,9 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
 std::shared_ptr<ImageXYZC>
 FileReader::loadAndCache(const LoadSpec& loadSpec)
 {
-  // check cache first of all.
-  auto cached = sPreloadedImageCache.find(loadSpec.filepath);
-  if (cached != sPreloadedImageCache.end()) {
-    return cached->second;
+  auto cached = renderlib::CacheManager::instance().findImage(loadSpec);
+  if (cached) {
+    return cached;
   }
 
   VolumeDimensions dims;
@@ -80,7 +77,7 @@ FileReader::loadAndCache(const LoadSpec& loadSpec)
 
   std::string filepath = loadSpec.filepath;
 
-  std::unique_ptr<IFileReader> reader(FileReader::getReader(filepath));
+  std::unique_ptr<IFileReader> reader(FileReader::getReader(filepath, loadSpec.isImageSequence));
   if (!reader) {
     LOG_ERROR << "Could not find a reader for file " << filepath;
     return nullptr;
@@ -89,7 +86,7 @@ FileReader::loadAndCache(const LoadSpec& loadSpec)
   image = reader->loadFromFile(loadSpec);
 
   if (image) {
-    sPreloadedImageCache[filepath] = image;
+    renderlib::CacheManager::instance().storeImage(loadSpec, image);
   }
 
   return image;
@@ -106,9 +103,11 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
                              bool addToCache)
 {
   // check cache first of all.
-  auto cached = sPreloadedImageCache.find(name);
-  if (cached != sPreloadedImageCache.end()) {
-    return cached->second;
+  LoadSpec cacheSpec;
+  cacheSpec.filepath = name;
+  auto cached = renderlib::CacheManager::instance().findImage(cacheSpec);
+  if (cached) {
+    return cached;
   }
 
   // assume data is in CZYX order:
@@ -145,7 +144,9 @@ FileReader::loadFromArray_4D(uint8_t* dataArray,
 
   std::shared_ptr<ImageXYZC> sharedImage(im);
   if (addToCache) {
-    sPreloadedImageCache[name] = sharedImage;
+    LoadSpec newSpec;
+    newSpec.filepath = name;
+    renderlib::CacheManager::instance().storeImage(newSpec, sharedImage);
   }
   return sharedImage;
 }

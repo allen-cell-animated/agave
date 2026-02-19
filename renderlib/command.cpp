@@ -569,14 +569,7 @@ SetTimeCommand::execute(ExecutionContext* c)
   std::shared_ptr<ImageXYZC> image;
   try {
 
-    std::unique_ptr<IFileReader> reader(FileReader::getReader(loadSpec.filepath, loadSpec.isImageSequence));
-    if (!reader) {
-      LOG_ERROR << "Could not find a reader for file " << loadSpec.filepath;
-      image = nullptr;
-      return;
-    }
-
-    image = reader->loadFromFile(loadSpec);
+    image = FileReader::loadAndCache(loadSpec);
   } catch (...) {
     LOG_ERROR << "Failed to load time " << m_data.m_time << " from file " << c->m_loadSpec.toString();
     image = nullptr;
@@ -676,7 +669,7 @@ LoadDataCommand::execute(ExecutionContext* c)
 
   VolumeDimensions dims = reader->loadDimensions(m_data.m_path, m_data.m_scene);
 
-  std::shared_ptr<ImageXYZC> image = reader->loadFromFile(c->m_loadSpec);
+  std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(c->m_loadSpec);
   if (!image) {
     return;
   }

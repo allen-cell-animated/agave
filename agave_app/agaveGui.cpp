@@ -10,10 +10,12 @@
 #include "renderlib/Logging.h"
 #include "renderlib/Status.h"
 #include "renderlib/VolumeDimensions.h"
+#include "renderlib/CacheManager.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/version.hpp"
 
 #include "AppearanceDockWidget.h"
+#include "CacheSettingsDockWidget.h"
 #include "CameraDockWidget.h"
 #include "Serialize.h"
 #include "StatisticsDockWidget.h"
@@ -97,6 +99,18 @@ agaveGui::agaveGui(QWidget* parent)
   createToolbars();
   createDockWindows();
   setDockOptions(AllowTabbedDocks);
+
+  CacheSettingsData cacheData = m_cacheSettings.load();
+  m_cacheSettingsDockWidget->widget()->setSettings(cacheData);
+  m_cacheSettings.applyToRenderlib(cacheData);
+  connect(m_cacheSettingsDockWidget->widget()->applyButton(), &QPushButton::clicked, this, [this]() {
+    CacheSettingsData data = m_cacheSettingsDockWidget->widget()->getSettings();
+    m_cacheSettings.save(data);
+    m_cacheSettings.applyToRenderlib(data);
+  });
+  connect(m_cacheSettingsDockWidget->widget()->clearDiskButton(), &QPushButton::clicked, this, [this]() {
+    renderlib::CacheManager::instance().clearDiskCache();
+  });
 
   m_tabs = new QTabWidget(this);
 
@@ -368,6 +382,11 @@ agaveGui::createDockWindows()
   m_statisticsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
   addDockWidget(Qt::RightDockWidgetArea, m_statisticsDockWidget);
 
+  m_cacheSettingsDockWidget = new CacheSettingsDockWidget(this);
+  m_cacheSettingsDockWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+  addDockWidget(Qt::LeftDockWidgetArea, m_cacheSettingsDockWidget);
+  m_cacheSettingsDockWidget->setVisible(false);
+
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_cameradock->toggleViewAction());
   m_viewMenu->addSeparator();
@@ -376,6 +395,8 @@ agaveGui::createDockWindows()
   m_viewMenu->addAction(m_appearanceDockWidget->toggleViewAction());
   m_viewMenu->addSeparator();
   m_viewMenu->addAction(m_statisticsDockWidget->toggleViewAction());
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_cacheSettingsDockWidget->toggleViewAction());
 }
 
 QSlider*
@@ -826,7 +847,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
   // We can update the render and gui progressively as chunks are loaded.
   // Also, this would allow renders to be cancelled during loading.
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  std::shared_ptr<ImageXYZC> image = reader->loadFromFile(loadSpec);
+  std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(loadSpec);
   QApplication::restoreOverrideCursor();
   if (!image) {
     LOG_DEBUG << "Failed to open " << file;
