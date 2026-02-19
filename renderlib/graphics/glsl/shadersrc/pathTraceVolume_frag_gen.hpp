@@ -477,6 +477,10 @@ GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
     return texture(g_colormapTexture, vec3(i, 0.5, float(ch))).xyz * g_diffuse[ch];
   }
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(
   // return g_diffuse[ch];
 }
 
@@ -487,10 +491,6 @@ GetSpecularN(float NormalizedIntensity, int ch)
 }
 
 float
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_1 = R"(
 GetRoughnessN(float NormalizedIntensity, int ch)
 {
   return g_roughness[ch];
@@ -993,6 +993,10 @@ NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
       Pl = rayAt(R, T);
       Hit = i;
     }
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_2 = R"(
   }
 
   oPdf = Pdf;
@@ -1003,10 +1007,6 @@ NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
 // return a XYZ color
 vec3
 EstimateDirectLight(int shaderType,
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_2 = R"(
                     float Density,
                     int ch,
                     in Light light,
@@ -1024,10 +1024,6 @@ const std::string pathTraceVolume_frag_chunk_2 = R"(
 
   vec3 nu = normalize(cross(N, Wo));
   vec3 nv = normalize(cross(N, nu));
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_2 = R"(
   CVolumeShader Shader = CVolumeShader(shaderType, RGBtoXYZ(diffuse), RGBtoXYZ(specular), 2.5f, roughness, N, nu, nv);
 
   float LightPdf = 1.0f, ShaderPdf = 1.0f;
