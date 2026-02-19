@@ -12,7 +12,7 @@ Light::Update(const CBoundingBox& BoundingBox)
   glm::vec3 bbctr = BoundingBox.GetCenter();
   m_Target = bbctr;
 
-  // Determine light direction from angles
+  // Determine light direction away from target from angles
   glm::vec3 dir;
   sphericalToCartesian(m_Phi, m_Theta, dir);
   m_P = m_Target + m_Distance * dir;
@@ -42,7 +42,23 @@ Light::updateBasisFrame()
 {
   // Compute orthogonal basis frame
   if (m_T == LightType_Sphere) {
-    m_N = glm::length(m_P) > 0.0f ? glm::normalize(m_P) : glm::vec3(0.0f, 0.0f, 1.0f);
+    glm::vec3 dir = m_P - m_Target;
+    m_N = glm::length(dir) > 0.0f ? glm::normalize(dir) : glm::vec3(0.0f, 0.0f, 1.0f);
+    if (m_UseExplicitBasis) {
+      glm::vec3 u = m_U;
+      float uLen = glm::length(u);
+      if (uLen > 1e-6f) {
+        u = u - m_N * glm::dot(u, m_N);
+        uLen = glm::length(u);
+      }
+      if (uLen <= 1e-6f) {
+        // Fallback to world up if explicit basis is degenerate.
+        u = glm::abs(m_N.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+      }
+      m_U = glm::normalize(u);
+      m_V = glm::normalize(glm::cross(m_N, m_U));
+      return;
+    }
   } else {
     m_N = glm::normalize(m_Target - m_P);
   }
