@@ -26,7 +26,8 @@ Light::Update(const CBoundingBox& BoundingBox)
   // Determine area for sky light
   if (m_T == 1) {
     m_Target = bbctr;
-    m_P = dir;
+    // point on unit sphere around target in direction of spherical angles
+    m_P = m_Target + dir;
     m_SkyRadius = 1000.0f * glm::length(BoundingBox.GetMaxP() - BoundingBox.GetMinP());
     m_Area = 4.0f * PI_F * powf(m_SkyRadius, 2.0f);
     m_AreaPdf = 1.0f / m_Area;

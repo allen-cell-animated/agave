@@ -143,11 +143,7 @@ ViewerWindow::updateCamera()
       }
       glm::vec3 worldLightDir(0.0f, 0.0f, 1.0f);
       if (sceneLight->m_light) {
-        if (sceneLight->m_light->m_T == LightType_Sphere) {
-          worldLightDir = sceneLight->m_light->m_P;
-        } else {
-          worldLightDir = sceneLight->m_light->m_Target - sceneLight->m_light->m_P;
-        }
+        worldLightDir = sceneLight->m_light->m_Target - sceneLight->m_light->m_P;
       } else {
         worldLightDir = sceneLight->m_transform.m_rotation * glm::vec3(0.0f, 0.0f, 1.0f);
       }

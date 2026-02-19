@@ -20,7 +20,7 @@ SceneLight::updateTransform()
     m_light->m_P = m_light->m_Distance * normdir + m_light->m_Target;
   } else {
     // For sphere/sky lights, update the light direction while keeping the target fixed.
-    m_light->m_P = normdir;
+    m_light->m_P = normdir + m_light->m_Target;
   }
 
   m_light->updateBasisFrame();
