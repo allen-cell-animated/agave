@@ -47,6 +47,8 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
 
   gesture.drawCircle(p, camFrame.vx * projectedRadius, camFrame.vy * projectedRadius, 128, color, opacity, code);
 
+  opacity = 0.3f;
+
   glm::vec3 colorTop = l.m_ColorTop * l.m_ColorTopIntensity;
   glm::vec3 colorMid = l.m_ColorMiddle * l.m_ColorMiddleIntensity;
   glm::vec3 colorBottom = l.m_ColorBottom * l.m_ColorBottomIntensity;
