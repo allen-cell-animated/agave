@@ -2,7 +2,6 @@
 
 #include "IFileReader.h"
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,5 +30,4 @@ public:
                                                      bool addToCache = false);
 
 private:
-  static std::map<std::string, std::shared_ptr<ImageXYZC>> sPreloadedImageCache;
 };
