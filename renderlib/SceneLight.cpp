@@ -23,6 +23,7 @@ SceneLight::updateTransform()
     m_light->m_P = normdir + m_light->m_Target;
   }
 
+  m_light->m_UseExplicitBasis = true;
   m_light->updateBasisFrame();
 
   // this lets the GUI have a chance to update in an abstract way
