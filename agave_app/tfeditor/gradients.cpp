@@ -124,8 +124,8 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
     QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
   auto* axisRect = m_customPlot->axisRect();
   axisRect->setAutoMargins(QCP::msLeft | QCP::msRight | QCP::msBottom);
-  // axisRect->setMargins(QMargins(0, 12, 0, 0));
-  // axisRect->setMinimumMargins(QMargins(0, 12, 0, 0));
+  axisRect->setMargins(QMargins(0, 12, 0, 0));
+  axisRect->setMinimumMargins(QMargins(0, 12, 0, 0));
   axisRect->setRangeDrag(Qt::Horizontal);
   axisRect->setRangeZoom(Qt::Horizontal);
 
@@ -608,6 +608,8 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
 
   m_editor = new GradientEditor(m_histogram, this);
+  m_editor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_editor->setMinimumHeight(100);
   QHBoxLayout* editorRowLayout = new QHBoxLayout();
   editorRowLayout->setContentsMargins(0, 0, 0, 0);
   editorRowLayout->setSpacing(4);
@@ -645,6 +647,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 
   editorRowLayout->addLayout(editorButtonLayout);
   mainGroupLayout->addLayout(editorRowLayout);
+  mainGroupLayout->setStretch(0, 3);
 
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
@@ -859,6 +862,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   });
 
   mainGroupLayout->addLayout(sectionLayout);
+  mainGroupLayout->setStretch(2, 1);
   mainGroupLayout->addStretch(1);
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
