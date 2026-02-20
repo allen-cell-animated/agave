@@ -6,7 +6,7 @@ __author__ = "Daniel Toloudis, Allen Institute for Cell Science"
 __email__ = "danielt@alleninstitute.org"
 # Do not edit this string manually, always use bumpversion
 # Details in CONTRIBUTING.md
-__version__ = "1.9.0-rc.7"
+__version__ = "1.9.0"
 
 
 def get_module_version() -> str:
