@@ -862,7 +862,6 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   });
 
   mainGroupLayout->addLayout(sectionLayout);
-  mainGroupLayout->setStretch(2, 1);
   mainGroupLayout->addStretch(1);
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
