@@ -12,7 +12,7 @@ Light::Update(const CBoundingBox& BoundingBox)
   glm::vec3 bbctr = BoundingBox.GetCenter();
   m_Target = bbctr;
 
-  // Determine light position
+  // Determine light direction away from target from angles
   glm::vec3 dir;
   sphericalToCartesian(m_Phi, m_Theta, dir);
   m_P = m_Target + m_Distance * dir;
@@ -25,9 +25,9 @@ Light::Update(const CBoundingBox& BoundingBox)
 
   // Determine area for sky light
   if (m_T == 1) {
-    m_P = bbctr;
-    // shift by nonzero amount
-    m_Target = m_P + glm::vec3(0.0, 0.0, 1.0);
+    m_Target = bbctr;
+    // point on unit sphere around target in direction of spherical angles
+    m_P = m_Target + dir;
     m_SkyRadius = 1000.0f * glm::length(BoundingBox.GetMaxP() - BoundingBox.GetMinP());
     m_Area = 4.0f * PI_F * powf(m_SkyRadius, 2.0f);
     m_AreaPdf = 1.0f / m_Area;
@@ -41,14 +41,24 @@ void
 Light::updateBasisFrame()
 {
   // Compute orthogonal basis frame
-  m_N = glm::normalize(m_Target - m_P);
-  // if N and "up" are parallel, then just choose a different "up"
-  if (m_N.y == 1.0f || m_N.y == -1.0f) {
-    m_U = glm::normalize(glm::cross(m_N, glm::vec3(1.0f, 0.0f, 0.0f)));
+  if (m_T == LightType_Sphere) {
+    glm::vec3 dir = m_P - m_Target;
+    m_N = glm::length(dir) > 0.0f ? glm::normalize(dir) : glm::vec3(0.0f, 0.0f, 1.0f);
   } else {
-    // standard "up" vector
-    m_U = glm::normalize(glm::cross(m_N, glm::vec3(0.0f, 1.0f, 0.0f)));
+    glm::vec3 dir = m_Target - m_P;
+    m_N = glm::length(dir) > 0.0f ? glm::normalize(dir) : glm::vec3(0.0f, 0.0f, 1.0f);
   }
+
+  glm::vec3 u = m_U;
+  float uLen = glm::length(u);
+  if (uLen > 1e-6f) {
+    u = u - m_N * glm::dot(u, m_N);
+    uLen = glm::length(u);
+  }
+  if (uLen <= 1e-6f) {
+    u = glm::abs(m_N.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+  }
+  m_U = glm::normalize(u);
   m_V = glm::normalize(glm::cross(m_N, m_U));
 }
 
@@ -58,6 +68,27 @@ Light::sphericalToCartesian(float phi, float theta, glm::vec3& v)
   v.x = sinf(phi) * sinf(theta);
   v.z = sinf(phi) * cosf(theta);
   v.y = cosf(phi);
+}
+
+void
+Light::sphericalToQuaternion(float phi, float theta, glm::quat& q)
+{
+  // Convert spherical angles to Cartesian direction
+  glm::vec3 dir;
+  Light::sphericalToCartesian(phi, theta, dir);
+
+  // Compute the rotation quaternion that rotates from default direction (0,0,1) to dir
+  glm::vec3 defaultDir(0.0f, 0.0f, 1.0f);
+  float dot = glm::dot(defaultDir, dir);
+  if (dot < -0.999999f) {
+    // 180 degree rotation around any perpendicular axis
+    q = glm::angleAxis(glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
+  } else {
+    // Standard quaternion from two vectors
+    glm::vec3 axis = glm::cross(defaultDir, dir);
+    q = glm::quat(1.0f + dot, axis.x, axis.y, axis.z);
+    q = glm::normalize(q);
+  }
 }
 
 void

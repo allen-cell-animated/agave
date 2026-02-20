@@ -80,4 +80,9 @@ public:
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
   int m_rendererType;
+
+  // Track camera manipulation for light following
+  bool m_wasCameraBeingEdited = false;
+  glm::mat3 m_capturedAreaLightRelativeBasis = glm::mat3(1.0f);
+  glm::mat3 m_capturedSphereLightRelativeBasis = glm::mat3(1.0f);
 };
