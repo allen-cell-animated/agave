@@ -207,10 +207,11 @@ ViewerWindow::updateCamera()
       newV = glm::normalize(glm::cross(newN, newU));
 
       Light* light = sceneLight->m_light;
-      light->m_UseExplicitBasis = true;
       light->m_N = newN;
       light->m_U = newU;
       light->m_V = newV;
+
+      sceneLight->m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, newV, newN));
 
       float phi, theta;
       Light::cartesianToSpherical(newN, phi, theta);
@@ -259,19 +260,7 @@ ViewerWindow::updateCamera()
       light->m_U = newU;
       light->m_V = newV;
 
-      glm::vec3 defaultDir(0.0f, 0.0f, 1.0f);
-      glm::vec3 newWorldLightDir = -newN;
-      glm::quat rotation;
-      float dot = glm::dot(defaultDir, newWorldLightDir);
-      if (dot < -0.999999f) {
-        rotation = glm::angleAxis(glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
-      } else {
-        glm::vec3 axis = glm::cross(defaultDir, newWorldLightDir);
-        rotation = glm::quat(1.0f + dot, axis.x, axis.y, axis.z);
-        rotation = glm::normalize(rotation);
-      }
-
-      sceneLight->m_transform.m_rotation = rotation;
+      sceneLight->m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, newV, -newN));
       sceneLight->updateTransform();
 
       validateBasis(light, "area-lock");
@@ -286,13 +275,6 @@ ViewerWindow::updateCamera()
       applyRelativeBasisAreaLight(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeBasis);
       applyRelativeBasis(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeBasis);
       m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
-    }
-  }
-
-  if (sceneView.scene && !sceneView.scene->m_lighting.lockToCamera) {
-    SceneLight* sphereLight = sceneView.scene->SceneSphereLight();
-    if (sphereLight && sphereLight->m_light) {
-      sphereLight->m_light->m_UseExplicitBasis = false;
     }
   }
 

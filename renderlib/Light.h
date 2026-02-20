@@ -46,7 +46,6 @@ public:
   float m_ColorTopIntensity;
   float m_ColorMiddleIntensity;
   float m_ColorBottomIntensity;
-  bool m_UseExplicitBasis;
   // 0 for area light, 1 for sky light
   int m_T;
 
@@ -79,7 +78,6 @@ public:
     , m_ColorMiddleIntensity(1.0f)
     , m_ColorBottomIntensity(1.0f)
     , m_T(0)
-    , m_UseExplicitBasis(false)
   {
   }
 
@@ -113,7 +111,6 @@ public:
     m_ColorMiddleIntensity = Other.m_ColorMiddleIntensity;
     m_ColorBottomIntensity = Other.m_ColorBottomIntensity;
     m_T = Other.m_T;
-    m_UseExplicitBasis = Other.m_UseExplicitBasis;
 
     return *this;
   }
