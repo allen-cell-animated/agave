@@ -59,6 +59,7 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   , m_histogram(histogram)
 {
   QVBoxLayout* vbox = new QVBoxLayout(this);
+  vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
 
   m_customPlot = new QCustomPlot(this);
@@ -121,8 +122,12 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->setInteractions(
     QCP::iRangeDrag | QCP::iRangeZoom |
     QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
-  m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
-  m_customPlot->axisRect()->setRangeZoom(Qt::Horizontal);
+  auto* axisRect = m_customPlot->axisRect();
+  axisRect->setAutoMargins(QCP::msLeft | QCP::msRight | QCP::msBottom);
+  // axisRect->setMargins(QMargins(0, 12, 0, 0));
+  // axisRect->setMinimumMargins(QMargins(0, 12, 0, 0));
+  axisRect->setRangeDrag(Qt::Horizontal);
+  axisRect->setRangeZoom(Qt::Horizontal);
 
   m_customPlot->replot();
 
@@ -609,7 +614,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   editorRowLayout->addWidget(m_editor, 1);
 
   QVBoxLayout* editorButtonLayout = new QVBoxLayout();
-  editorButtonLayout->setContentsMargins(0, 0, 0, 0);
+  editorButtonLayout->setContentsMargins(0, 8, 0, 0);
   editorButtonLayout->setSpacing(2);
 
   copyButton = new QToolButton(this);
