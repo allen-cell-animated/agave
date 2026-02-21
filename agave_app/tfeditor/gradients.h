@@ -21,6 +21,7 @@ public:
   void setControlPoints(const std::vector<LutControlPoint>& points);
   void setEditMode(GradientEditMode gradientEditMode) { m_currentEditMode = gradientEditMode; }
   void setHistogram(const Histogram& histogram);
+  void setYAxisLogScale(bool enabled);
 
   enum LockType
   {
@@ -46,6 +47,7 @@ private:
   Histogram m_histogram;
 
   GradientEditMode m_currentEditMode;
+  bool m_histogramLogScale = false;
 
   QCustomPlot* m_customPlot;
   QCPBars* m_histogramBars;
@@ -58,6 +60,7 @@ private:
   QVector<uint32_t> m_locks;
 
   void updateHistogramBarGraph(const Histogram& histogram);
+  void updateHistogramYAxisRange();
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
@@ -89,6 +92,7 @@ private:
   void updateCopyPasteButtons();
   void onCopyControlPoints();
   void onPasteControlPoints();
+  void onToggleYAxisScale(bool enabled);
 
   GradientEditor* m_editor;
   Histogram m_histogram;
@@ -107,6 +111,7 @@ private:
 
   QToolButton* copyButton = nullptr;
   QToolButton* pasteButton = nullptr;
+  QToolButton* yScaleButton = nullptr;
   bool m_hasMinMaxClipboard = false;
   float m_clipboardMinIntensity = 0.0f;
   float m_clipboardMaxIntensity = 0.0f;
