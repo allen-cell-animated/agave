@@ -947,7 +947,6 @@ GradientWidget::onCopyControlPoints()
 void
 GradientWidget::onPasteControlPoints()
 {
-
   if (!m_hasMinMaxClipboard) {
     return;
   }
