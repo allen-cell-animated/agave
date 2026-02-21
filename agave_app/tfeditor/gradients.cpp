@@ -620,7 +620,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   editorButtonLayout->setSpacing(2);
 
   copyButton = new QToolButton(this);
-  QIcon copyIcon = QIcon::fromTheme("edit-copy");
+  QIcon copyIcon = QIcon::fromTheme(QIcon::ThemeIcon::EditCopy);
   if (!copyIcon.isNull()) {
     copyButton->setIcon(copyIcon);
   } else {
@@ -631,7 +631,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   copyButton->setFixedSize(20, 20);
 
   pasteButton = new QToolButton(this);
-  QIcon pasteIcon = QIcon::fromTheme("edit-paste");
+  QIcon pasteIcon = QIcon::fromTheme(QIcon::ThemeIcon::EditPaste);
   if (!pasteIcon.isNull()) {
     pasteButton->setIcon(pasteIcon);
   } else {
