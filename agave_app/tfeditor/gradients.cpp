@@ -707,6 +707,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 
   editorButtonLayout->addWidget(copyButton);
   editorButtonLayout->addWidget(pasteButton);
+  editorButtonLayout->addSpacing(12);
   editorButtonLayout->addWidget(yScaleButton);
   editorButtonLayout->addStretch(1);
 
