@@ -60,6 +60,7 @@ private:
   QVector<uint32_t> m_locks;
 
   void updateHistogramBarGraph(const Histogram& histogram);
+  void updateHistogramYAxisRange();
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;

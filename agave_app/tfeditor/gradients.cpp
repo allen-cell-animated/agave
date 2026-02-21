@@ -8,6 +8,7 @@
 
 #include <QSharedPointer>
 #include <algorithm>
+#include <cmath>
 
 std::vector<LutControlPoint>
 gradientStopsToVector(QGradientStops& stops)
@@ -55,6 +56,8 @@ bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, d
 
 static constexpr double SCATTERSIZE = 10.0;
 static constexpr double MIN_HISTOGRAM_BAR_HEIGHT = 0.01;
+static constexpr double MIN_LOG_Y_AXIS = 0.001;
+static constexpr double HISTOGRAM_Y_HEADROOM = 1.1;
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
@@ -153,8 +156,13 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   connect(m_customPlot, &QCustomPlot::mouseRelease, this, &GradientEditor::onPlotMouseRelease);
   connect(m_customPlot, &QCustomPlot::mouseWheel, this, &GradientEditor::onPlotMouseWheel);
   connect(m_customPlot, &QCustomPlot::mouseDoubleClick, this, &GradientEditor::onPlotMouseDoubleClick);
+  connect(m_customPlot->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange&) {
+    this->updateHistogramYAxisRange();
+  });
 
   vbox->addWidget(m_customPlot);
+
+  updateHistogramYAxisRange();
 }
 
 void
@@ -186,11 +194,82 @@ GradientEditor::updateHistogramBarGraph(const Histogram& histogram)
 }
 
 void
+GradientEditor::updateHistogramYAxisRange()
+{
+  if (!m_customPlot) {
+    return;
+  }
+
+  size_t numBins = m_histogram.getNumDisplayBins();
+  if (numBins == 0) {
+    return;
+  }
+
+  float firstBinCenter, lastBinCenter, binSize;
+  m_histogram.binRange(static_cast<uint32_t>(numBins),
+                       m_histogram.getFilteredMin(),
+                       m_histogram.getFilteredMax(),
+                       firstBinCenter,
+                       lastBinCenter,
+                       binSize);
+  if (binSize <= 0.0f) {
+    return;
+  }
+
+  QCPRange xRange = m_customPlot->xAxis->range();
+  double visibleMin = xRange.lower;
+  double visibleMax = xRange.upper;
+  if (visibleMin > visibleMax) {
+    std::swap(visibleMin, visibleMax);
+  }
+
+  int firstIndex = static_cast<int>(std::floor((visibleMin - firstBinCenter) / binSize));
+  int lastIndex = static_cast<int>(std::ceil((visibleMax - firstBinCenter) / binSize));
+  firstIndex = std::max(firstIndex, 0);
+  lastIndex = std::min(lastIndex, static_cast<int>(numBins) - 1);
+
+  size_t modalIndex = m_histogram.getModalDisplayBin();
+  size_t modalCount = m_histogram.getDisplayBinCount(modalIndex);
+  if (modalCount == 0) {
+    modalCount = 1;
+  }
+
+  double maxVisible = 0.0;
+  for (int i = firstIndex; i <= lastIndex; ++i) {
+    size_t count = m_histogram.getDisplayBinCount(static_cast<size_t>(i));
+    double value = 0.0;
+    if (count == 0) {
+      value = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT : 0.0;
+    } else {
+      double normalizedHeight = static_cast<double>(count) / static_cast<double>(modalCount);
+      value = std::max(normalizedHeight, MIN_HISTOGRAM_BAR_HEIGHT);
+    }
+    maxVisible = std::max(maxVisible, value);
+  }
+
+  if (maxVisible <= 0.0) {
+    maxVisible = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT : 1.0;
+  }
+
+  if (m_histogramLogScale) {
+    double lower = MIN_LOG_Y_AXIS;
+    double upper = std::max(maxVisible * HISTOGRAM_Y_HEADROOM, lower * HISTOGRAM_Y_HEADROOM);
+    m_customPlot->yAxis2->setRange(lower, upper);
+  } else {
+    double upper = std::max(maxVisible * HISTOGRAM_Y_HEADROOM, 0.0);
+    m_customPlot->yAxis2->setRange(0.0, upper);
+  }
+
+  m_customPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void
 GradientEditor::setHistogram(const Histogram& histogram)
 {
   m_histogram = histogram;
 
   updateHistogramBarGraph(histogram);
+  updateHistogramYAxisRange();
 
   m_customPlot->replot();
 }
@@ -215,12 +294,8 @@ GradientEditor::setYAxisLogScale(bool enabled)
   m_customPlot->yAxis2->grid()->setVisible(true);
   m_customPlot->yAxis2->grid()->setSubGridVisible(false);
   m_customPlot->yAxis2->setScaleType(enabled ? QCPAxis::stLogarithmic : QCPAxis::stLinear);
-  if (enabled) {
-    m_customPlot->yAxis2->setRange(MIN_HISTOGRAM_BAR_HEIGHT, 1.0);
-  } else {
-    m_customPlot->yAxis2->setRange(0.0, 1.0);
-  }
   updateHistogramBarGraph(m_histogram);
+  updateHistogramYAxisRange();
   m_customPlot->replot();
 }
 
@@ -907,7 +982,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctLowSlider->setToolTip(tr("Set bottom percentile"));
   pctLowSlider->setRange(0.0, 1.0);
   pctLowSlider->setSingleStep(0.01);
-  pctLowSlider->setDecimals(3);
+  pctLowSlider->setDecimals(4);
   pctLowSlider->setValue(m_gradientData->m_pctLow);
   section3Layout->addRow("Pct Min", pctLowSlider);
   pctHighSlider = new QNumericSlider();
@@ -915,7 +990,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   pctHighSlider->setToolTip(tr("Set top percentile"));
   pctHighSlider->setRange(0.0, 1.0);
   pctHighSlider->setSingleStep(0.01);
-  pctHighSlider->setDecimals(3);
+  pctHighSlider->setDecimals(4);
   pctHighSlider->setValue(m_gradientData->m_pctHigh);
   section3Layout->addRow("Pct Max", pctHighSlider);
   connect(pctLowSlider, &QNumericSlider::valueChanged, [this](double d) {
