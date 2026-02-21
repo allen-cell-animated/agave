@@ -986,8 +986,8 @@ GradientWidget::onPasteControlPoints()
   }
 
   if (mode == GradientEditMode::MINMAX) {
-    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
-    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
+    uint16_t minu16 = static_cast<uint16_t>(std::clamp(minIntensity, 0.0f, 65535.0f));
+    uint16_t maxu16 = static_cast<uint16_t>(std::clamp(maxIntensity, 0.0f, 65535.0f));
     m_gradientData->m_minu16 = minu16;
     m_gradientData->m_maxu16 = maxu16;
     onSetMinMax(minu16, maxu16);
@@ -1024,8 +1024,8 @@ GradientWidget::onPasteControlPoints()
       levelSlider->blockSignals(false);
     }
   } else if (mode == GradientEditMode::PERCENTILE) {
-    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
-    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
+    uint16_t minu16 = static_cast<uint16_t>(std::clamp(minIntensity, 0.0f, 65535.0f));
+    uint16_t maxu16 = static_cast<uint16_t>(std::clamp(maxIntensity, 0.0f, 65535.0f));
     float pctLow = 0.0f;
     float pctHigh = 1.0f;
     m_histogram.computePercentile(minu16, pctLow);
