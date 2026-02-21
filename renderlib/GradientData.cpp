@@ -90,3 +90,45 @@ GradientData::getControlPoints(const Histogram& histogram) const
     return m_customControlPoints;
   }
 }
+
+bool
+GradientData::getMinMax(const Histogram& histogram, std::pair<float, float>* minMax) const
+{
+  float fmin, fmax;
+  float dataMin = static_cast<float>(histogram.getDataMin());
+  float dataMax = static_cast<float>(histogram.getDataMax());
+  float dataRange = dataMax - dataMin;
+  if (dataRange <= 0.0f) {
+    LOG_ERROR << "Data range is zero or negative in getMinMaxU16: " << dataRange;
+    return false;
+  }
+
+  if (m_activeMode == GradientEditMode::MINMAX) {
+    fmin = static_cast<float>(m_minu16);
+    fmax = static_cast<float>(m_maxu16);
+  } else if (m_activeMode == GradientEditMode::WINDOW_LEVEL) {
+    float lowEnd = m_level - m_window * 0.5f;
+    float highEnd = m_level + m_window * 0.5f;
+    lowEnd = std::max(0.0f, lowEnd);
+    highEnd = std::min(1.0f, highEnd);
+    fmin = dataMin + lowEnd * dataRange;
+    fmax = dataMin + highEnd * dataRange;
+  } else if (m_activeMode == GradientEditMode::PERCENTILE) {
+    fmin = histogram.rank_data_value(m_pctLow);
+    fmax = histogram.rank_data_value(m_pctHigh);
+  } else if (m_activeMode == GradientEditMode::ISOVALUE) {
+    float lowEnd = m_isovalue - m_isorange * 0.5f;
+    float highEnd = m_isovalue + m_isorange * 0.5f;
+    lowEnd = std::max(0.0f, lowEnd);
+    highEnd = std::min(1.0f, highEnd);
+    fmin = dataMin + lowEnd * dataRange;
+    fmax = dataMin + highEnd * dataRange;
+  } else {
+    return false;
+  }
+
+  fmin = std::max(fmin, dataMin);
+  fmax = std::min(fmax, dataMax);
+  *minMax = { fmin, fmax };
+  return true;
+}

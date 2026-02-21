@@ -932,37 +932,14 @@ GradientWidget::onCopyControlPoints()
     return;
   }
 
-  float dataMin = static_cast<float>(m_histogram.getDataMin());
-  float dataMax = static_cast<float>(m_histogram.getDataMax());
-  float dataRange = dataMax - dataMin;
-  if (dataRange <= 0.0f) {
+  std::pair<float, float> minMax;
+  bool hasMinMax = m_gradientData->getMinMax(m_histogram, &minMax);
+  if (!hasMinMax) {
     return;
   }
 
-  if (mode == GradientEditMode::MINMAX) {
-    m_clipboardMinIntensity = static_cast<float>(m_gradientData->m_minu16);
-    m_clipboardMaxIntensity = static_cast<float>(m_gradientData->m_maxu16);
-  } else if (mode == GradientEditMode::WINDOW_LEVEL) {
-    float lowEnd = m_gradientData->m_level - m_gradientData->m_window * 0.5f;
-    float highEnd = m_gradientData->m_level + m_gradientData->m_window * 0.5f;
-    lowEnd = std::max(0.0f, lowEnd);
-    highEnd = std::min(1.0f, highEnd);
-    m_clipboardMinIntensity = dataMin + lowEnd * dataRange;
-    m_clipboardMaxIntensity = dataMin + highEnd * dataRange;
-  } else if (mode == GradientEditMode::PERCENTILE) {
-    m_clipboardMinIntensity = m_histogram.rank_data_value(m_gradientData->m_pctLow);
-    m_clipboardMaxIntensity = m_histogram.rank_data_value(m_gradientData->m_pctHigh);
-  } else if (mode == GradientEditMode::ISOVALUE) {
-    float lowEnd = m_gradientData->m_isovalue - m_gradientData->m_isorange * 0.5f;
-    float highEnd = m_gradientData->m_isovalue + m_gradientData->m_isorange * 0.5f;
-    lowEnd = std::max(0.0f, lowEnd);
-    highEnd = std::min(1.0f, highEnd);
-    m_clipboardMinIntensity = dataMin + lowEnd * dataRange;
-    m_clipboardMaxIntensity = dataMin + highEnd * dataRange;
-  }
-
-  m_clipboardMinIntensity = std::max(m_clipboardMinIntensity, dataMin);
-  m_clipboardMaxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
+  m_clipboardMinIntensity = minMax.first;
+  m_clipboardMaxIntensity = minMax.second;
   m_hasMinMaxClipboard = (m_clipboardMinIntensity < m_clipboardMaxIntensity);
   updateCopyPasteButtons();
 }
