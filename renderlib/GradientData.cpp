@@ -99,7 +99,7 @@ GradientData::getMinMax(const Histogram& histogram, std::pair<float, float>* min
   float dataMax = static_cast<float>(histogram.getDataMax());
   float dataRange = dataMax - dataMin;
   if (dataRange <= 0.0f) {
-    LOG_ERROR << "Data range is zero or negative in getMinMaxU16: " << dataRange;
+    LOG_ERROR << "Data range is zero or negative in getMinMax: " << dataRange;
     return false;
   }
 
