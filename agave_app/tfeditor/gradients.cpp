@@ -954,35 +954,33 @@ GradientWidget::onPasteControlPoints()
 
   GradientEditMode mode = m_gradientData->m_activeMode;
   if (mode == GradientEditMode::CUSTOM) {
-    if (m_hasMinMaxClipboard) {
-      float dataMin = static_cast<float>(m_histogram.getDataMin());
-      float dataMax = static_cast<float>(m_histogram.getDataMax());
-      float dataRange = dataMax - dataMin;
-      if (dataRange <= 0.0f) {
-        return;
-      }
-      float minIntensity = std::max(m_clipboardMinIntensity, dataMin);
-      float maxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
-      if (minIntensity >= maxIntensity) {
-        return;
-      }
-      float relativeMin = (minIntensity - dataMin) / dataRange;
-      float relativeMax = (maxIntensity - dataMin) / dataRange;
-      relativeMin = std::max(relativeMin, 0.0f);
-      relativeMax = std::min(relativeMax, 1.0f);
-
-      std::vector<LutControlPoint> points;
-      points.push_back({ 0.0f, 0.0f });
-      points.push_back({ relativeMin, 0.0f });
-      points.push_back({ relativeMax, 1.0f });
-      points.push_back({ 1.0f, 1.0f });
-
-      m_gradientData->m_customControlPoints = points;
-      m_editor->setControlPoints(points);
-      emit gradientStopsChanged(vectorToGradientStops(points));
-      updateCopyPasteButtons();
+    float dataMin = static_cast<float>(m_histogram.getDataMin());
+    float dataMax = static_cast<float>(m_histogram.getDataMax());
+    float dataRange = dataMax - dataMin;
+    if (dataRange <= 0.0f) {
       return;
     }
+    float minIntensity = std::max(m_clipboardMinIntensity, dataMin);
+    float maxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
+    if (minIntensity >= maxIntensity) {
+      return;
+    }
+    float relativeMin = (minIntensity - dataMin) / dataRange;
+    float relativeMax = (maxIntensity - dataMin) / dataRange;
+    relativeMin = std::max(relativeMin, 0.0f);
+    relativeMax = std::min(relativeMax, 1.0f);
+
+    std::vector<LutControlPoint> points;
+    points.push_back({ 0.0f, 0.0f });
+    points.push_back({ relativeMin, 0.0f });
+    points.push_back({ relativeMax, 1.0f });
+    points.push_back({ 1.0f, 1.0f });
+
+    m_gradientData->m_customControlPoints = points;
+    m_editor->setControlPoints(points);
+    emit gradientStopsChanged(vectorToGradientStops(points));
+    updateCopyPasteButtons();
+    return;
   }
 
   float dataMin = static_cast<float>(m_histogram.getDataMin());
