@@ -90,6 +90,7 @@ public:
   void OnFlipAxis(Axis axis, bool value);
 
   void selectChannel(int channelIndex);
+  void refreshChannelRow(int channelIndex);
   void refreshChannelRows();
   void refreshActiveChannelSettings();
   int firstEnabledChannelIndex() const;

@@ -15,6 +15,8 @@
 #include <QItemDelegate>
 #include <QLinearGradient>
 #include <QListWidgetItem>
+#include <QPainter>
+#include <QPixmap>
 #include <QSignalBlocker>
 
 static QGradientStops
@@ -25,6 +27,39 @@ colormapToGradient(const std::vector<ColorControlPoint>& v)
     stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
   }
   return stops;
+}
+
+static void
+setChannelSwatchPreview(QLabel* swatch, const QColor& diffuseColor, const ColorRamp& colorRamp)
+{
+  if (!swatch) {
+    return;
+  }
+
+  const int width = swatch->width();
+  const int height = swatch->height();
+  if (width <= 0 || height <= 0) {
+    return;
+  }
+
+  QPixmap pixmap(width, height);
+  pixmap.fill(Qt::transparent);
+
+  QPainter painter(&pixmap);
+  QRect rect(0, 0, width, height);
+
+  bool hasColorMap = !colorRamp.m_name.empty() && colorRamp.m_name != ColorRamp::NO_COLORMAP_NAME;
+  if (hasColorMap && !colorRamp.m_stops.empty()) {
+    QLinearGradient gradient(0.0, 0.0, (double)width, 0.0);
+    gradient.setStops(colormapToGradient(colorRamp.m_stops));
+    painter.fillRect(rect, QBrush(gradient));
+  } else {
+    painter.fillRect(rect, diffuseColor);
+  }
+
+  painter.setPen(swatch->palette().color(QPalette::Mid));
+  painter.drawRect(rect.adjusted(0, 0, -1, -1));
+  swatch->setPixmap(pixmap);
 }
 
 class GradientCombo : public QComboBox
@@ -1214,6 +1249,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     m_scene->m_material.m_colormap[m_activeChannelIndex] = ColorRamp::colormapFromName(name);
     m_scene->m_material.m_labels[m_activeChannelIndex] = (name == "Labels") ? 1.0f : 0.0f;
     m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    this->refreshChannelRow(m_activeChannelIndex);
   });
 
   m_channelDiffuseColorButton = new QColorPushButton();
@@ -1223,7 +1259,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   QObject::connect(m_channelDiffuseColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     if (m_activeChannelIndex >= 0) {
       this->OnDiffuseColorChanged(m_activeChannelIndex, c);
-      this->refreshChannelRows();
+      this->refreshChannelRow(m_activeChannelIndex);
     }
   });
 
@@ -1284,7 +1320,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     rowLayout->setSpacing(6);
 
     auto* swatch = new QLabel(rowWidget);
-    swatch->setFixedSize(16, 16);
+    swatch->setFixedSize(48, 16);
     swatch->setFrameStyle(QFrame::Box | QFrame::Plain);
     swatch->setLineWidth(1);
     rowLayout->addWidget(swatch);
@@ -1354,6 +1390,29 @@ QAppearanceSettingsWidget::firstEnabledChannelIndex() const
 }
 
 void
+QAppearanceSettingsWidget::refreshChannelRow(int channelIndex)
+{
+  if (!m_scene || !m_scene->m_volume) {
+    return;
+  }
+  if (channelIndex < 0 || channelIndex >= (int)m_scene->m_volume->sizeC()) {
+    return;
+  }
+
+  if (channelIndex < (int)m_channelEnabledCheckBoxes.size() && m_channelEnabledCheckBoxes[channelIndex]) {
+    QSignalBlocker blocker(m_channelEnabledCheckBoxes[channelIndex]);
+    m_channelEnabledCheckBoxes[channelIndex]->setChecked(m_scene->m_material.m_enabled[channelIndex]);
+  }
+
+  if (channelIndex < (int)m_channelColorSwatches.size() && m_channelColorSwatches[channelIndex]) {
+    QColor color = QColor::fromRgbF(m_scene->m_material.m_diffuse[channelIndex * 3 + 0],
+                                    m_scene->m_material.m_diffuse[channelIndex * 3 + 1],
+                                    m_scene->m_material.m_diffuse[channelIndex * 3 + 2]);
+    setChannelSwatchPreview(m_channelColorSwatches[channelIndex], color, m_scene->m_material.m_colormap[channelIndex]);
+  }
+}
+
+void
 QAppearanceSettingsWidget::refreshChannelRows()
 {
   if (!m_scene || !m_scene->m_volume) {
@@ -1361,18 +1420,7 @@ QAppearanceSettingsWidget::refreshChannelRows()
   }
 
   for (int i = 0; i < (int)m_scene->m_volume->sizeC(); ++i) {
-    if (i < (int)m_channelEnabledCheckBoxes.size() && m_channelEnabledCheckBoxes[i]) {
-      QSignalBlocker blocker(m_channelEnabledCheckBoxes[i]);
-      m_channelEnabledCheckBoxes[i]->setChecked(m_scene->m_material.m_enabled[i]);
-    }
-
-    if (i < (int)m_channelColorSwatches.size() && m_channelColorSwatches[i]) {
-      QColor color = QColor::fromRgbF(m_scene->m_material.m_diffuse[i * 3 + 0],
-                                      m_scene->m_material.m_diffuse[i * 3 + 1],
-                                      m_scene->m_material.m_diffuse[i * 3 + 2]);
-      m_channelColorSwatches[i]->setStyleSheet(
-        QString("background-color: %1; border: 1px solid palette(mid);").arg(color.name()));
-    }
+    refreshChannelRow(i);
   }
 }
 
