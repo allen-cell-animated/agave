@@ -14,6 +14,7 @@
 #include <QFrame>
 #include <QItemDelegate>
 #include <QLinearGradient>
+#include <QListView>
 #include <QListWidgetItem>
 #include <QPainter>
 #include <QPixmap>
@@ -56,9 +57,6 @@ setChannelSwatchPreview(QLabel* swatch, const QColor& diffuseColor, const ColorR
   } else {
     painter.fillRect(rect, diffuseColor);
   }
-
-  painter.setPen(swatch->palette().color(QPalette::Mid));
-  painter.drawRect(rect.adjusted(0, 0, -1, -1));
   swatch->setPixmap(pixmap);
 }
 
@@ -361,9 +359,20 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 
   m_channelList = new QListWidget();
   m_channelList->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_channelList->setViewMode(QListView::IconMode);
+  m_channelList->setFlow(QListView::LeftToRight);
+  m_channelList->setWrapping(true);
+  m_channelList->setResizeMode(QListView::Adjust);
+  m_channelList->setMovement(QListView::Static);
+  m_channelList->setSpacing(6);
+  m_channelList->setWordWrap(true);
+  m_channelList->setSelectionRectVisible(false);
+  m_channelList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  m_channelList->setFrameShape(QFrame::NoFrame);
+  m_channelList->setContentsMargins(0, 0, 0, 0);
   m_channelList->setStatusTip(tr("Select active channel and enable/disable channels"));
   m_channelList->setToolTip(tr("Select active channel and enable/disable channels"));
-  m_MainLayout.addRow("Channels", m_channelList);
+  m_MainLayout.addRow(m_channelList);
 
   m_activeChannelLabel = new QLabel(tr("Active Channel: none"));
   m_MainLayout.addRow(m_activeChannelLabel);
@@ -1125,6 +1134,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   }
   m_channelEnabledCheckBoxes.clear();
   m_channelColorSwatches.clear();
+  m_channelRowWidgets.clear();
   m_activeChannelIndex = -1;
 
   if (m_channelSettingsLayout) {
@@ -1314,19 +1324,20 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     }
 
     QListWidgetItem* item = new QListWidgetItem(m_channelList);
-    auto* rowWidget = new QWidget(m_channelList);
+    auto* rowWidget = new QFrame(m_channelList);
+    rowWidget->setFrameShape(QFrame::Box);
+    rowWidget->setLineWidth(1);
+    rowWidget->setMidLineWidth(0);
     auto* rowLayout = new QHBoxLayout(rowWidget);
     rowLayout->setContentsMargins(6, 2, 6, 2);
     rowLayout->setSpacing(6);
 
     auto* swatch = new QLabel(rowWidget);
     swatch->setFixedSize(48, 16);
-    swatch->setFrameStyle(QFrame::Box | QFrame::Plain);
-    swatch->setLineWidth(1);
     rowLayout->addWidget(swatch);
 
     auto* nameLabel = new QLabel(QString::fromStdString(scene->m_volume->channel(i)->m_name), rowWidget);
-    rowLayout->addWidget(nameLabel, 1);
+    rowLayout->addWidget(nameLabel);
 
     auto* enabledCheckBox = new QCheckBox(rowWidget);
     enabledCheckBox->setChecked(channelenabled);
@@ -1340,6 +1351,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     m_channelColorSwatches.push_back(swatch);
     m_channelEnabledCheckBoxes.push_back(enabledCheckBox);
+    m_channelRowWidgets.push_back(rowWidget);
 
     QObject::connect(enabledCheckBox, &QCheckBox::clicked, [this, i](bool isChecked) {
       this->OnChannelChecked((int)i, isChecked);
@@ -1409,6 +1421,13 @@ QAppearanceSettingsWidget::refreshChannelRow(int channelIndex)
                                     m_scene->m_material.m_diffuse[channelIndex * 3 + 1],
                                     m_scene->m_material.m_diffuse[channelIndex * 3 + 2]);
     setChannelSwatchPreview(m_channelColorSwatches[channelIndex], color, m_scene->m_material.m_colormap[channelIndex]);
+  }
+
+  if (channelIndex < (int)m_channelRowWidgets.size() && m_channelRowWidgets[channelIndex]) {
+    bool isSelected = (channelIndex == m_activeChannelIndex);
+    if (auto* chipFrame = qobject_cast<QFrame*>(m_channelRowWidgets[channelIndex])) {
+      chipFrame->setLineWidth(isSelected ? 3 : 1);
+    }
   }
 }
 
@@ -1498,6 +1517,9 @@ QAppearanceSettingsWidget::selectChannel(int channelIndex)
     return;
   }
 
+  int previousChannelIndex = m_activeChannelIndex;
   m_activeChannelIndex = channelIndex;
+  refreshChannelRow(previousChannelIndex);
+  refreshChannelRow(m_activeChannelIndex);
   refreshActiveChannelSettings();
 }

@@ -146,6 +146,7 @@ private:
   QNumericSlider* m_channelRoughnessSlider = nullptr;
   std::vector<QCheckBox*> m_channelEnabledCheckBoxes;
   std::vector<QLabel*> m_channelColorSwatches;
+  std::vector<QWidget*> m_channelRowWidgets;
 
   struct lt0
   {
