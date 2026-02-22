@@ -14,6 +14,8 @@
 #include <QFrame>
 #include <QItemDelegate>
 #include <QLinearGradient>
+#include <QListWidgetItem>
+#include <QSignalBlocker>
 
 static QGradientStops
 colormapToGradient(const std::vector<ColorControlPoint>& v)
@@ -321,6 +323,23 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   lineA->setFrameShape(QFrame::HLine);
   lineA->setFrameShadow(QFrame::Sunken);
   m_MainLayout.addRow(lineA);
+
+  m_channelList = new QListWidget();
+  m_channelList->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_channelList->setStatusTip(tr("Select active channel and enable/disable channels"));
+  m_channelList->setToolTip(tr("Select active channel and enable/disable channels"));
+  m_MainLayout.addRow("Channels", m_channelList);
+
+  m_activeChannelLabel = new QLabel(tr("Active Channel: none"));
+  m_MainLayout.addRow(m_activeChannelLabel);
+
+  m_channelSettingsContainer = new QWidget(this);
+  m_channelSettingsLayout = new QVBoxLayout(m_channelSettingsContainer);
+  m_channelSettingsLayout->setContentsMargins(0, 0, 0, 0);
+  m_channelSettingsLayout->setSpacing(0);
+  m_MainLayout.addRow(m_channelSettingsContainer);
+
+  QObject::connect(m_channelList, &QListWidget::currentRowChanged, [this](int row) { this->selectChannel(row); });
 
   QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
   QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -967,17 +986,23 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   if (!m_scene) {
     return;
   }
+  if (i < 0 || !m_scene->m_volume || i >= (int)m_scene->m_volume->sizeC()) {
+    return;
+  }
   // if we are switching one on, count how many sections are checked.
   // if more than 4, then switch this one back off
   if (is_checked) {
     int count = 0;
-    for (int j = 0; j < m_channelSections.size(); j++) {
-      if (m_channelSections[j]->isChecked())
+    for (int j = 0; j < (int)m_channelEnabledCheckBoxes.size(); j++) {
+      if (m_channelEnabledCheckBoxes[j] && m_channelEnabledCheckBoxes[j]->isChecked())
         count++;
     }
     if (count > MAX_CHANNELS_CHECKED) {
       // uncheck the one that was just checked
-      m_channelSections[i]->setChecked(false);
+      if (i < (int)m_channelEnabledCheckBoxes.size() && m_channelEnabledCheckBoxes[i]) {
+        QSignalBlocker blocker(m_channelEnabledCheckBoxes[i]);
+        m_channelEnabledCheckBoxes[i]->setChecked(false);
+      }
       return;
     }
   }
@@ -1059,17 +1084,37 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   // Don't forget that most ui updating triggered in this function should
   // NOT signal changes to the scene.
 
-  // remove the previous per-channel ui
-  for (auto s : m_channelSections) {
-    delete s;
+  if (m_channelList) {
+    QSignalBlocker blocker(m_channelList);
+    m_channelList->clear();
   }
-  m_channelSections.clear();
-  m_gradientWidgets.clear();
+  m_channelEnabledCheckBoxes.clear();
+  m_channelColorSwatches.clear();
+  m_activeChannelIndex = -1;
+
+  if (m_channelSettingsLayout) {
+    while (QLayoutItem* item = m_channelSettingsLayout->takeAt(0)) {
+      if (item->widget()) {
+        delete item->widget();
+      }
+      delete item;
+    }
+  }
+  m_channelGradientWidget = nullptr;
+  m_channelOpacitySlider = nullptr;
+  m_channelColormapCombo = nullptr;
+  m_channelDiffuseColorButton = nullptr;
+  m_channelSpecularColorButton = nullptr;
+  m_channelEmissiveColorButton = nullptr;
+  m_channelRoughnessSlider = nullptr;
 
   // I don't own this.
   m_scene = scene;
 
   if (!scene->m_volume) {
+    if (m_activeChannelLabel) {
+      m_activeChannelLabel->setText(tr("Active Channel: none"));
+    }
     return;
   }
 
@@ -1119,6 +1164,106 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   initLightingControls(scene);
   initClipPlaneControls(scene);
 
+  m_channelGradientWidget =
+    new GradientWidget(scene->m_volume->channel(0)->m_histogram, &scene->m_material.m_gradientData[0]);
+  m_channelSettingsLayout->addWidget(m_channelGradientWidget);
+
+  auto* sectionLayout = Controls::createAgaveFormLayout();
+  m_channelSettingsLayout->addLayout(sectionLayout);
+
+  QObject::connect(m_channelGradientWidget, &GradientWidget::gradientStopsChanged, [this](const QGradientStops& stops) {
+    if (!m_scene || m_activeChannelIndex < 0) {
+      return;
+    }
+    std::vector<LutControlPoint> points;
+    points.reserve(stops.size());
+    for (int i = 0; i < stops.size(); ++i) {
+      points.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
+    }
+    this->OnUpdateLut(m_activeChannelIndex, points);
+  });
+
+  m_channelOpacitySlider = new QNumericSlider();
+  m_channelOpacitySlider->setStatusTip(tr("Set opacity for channel"));
+  m_channelOpacitySlider->setToolTip(tr("Set opacity for channel"));
+  m_channelOpacitySlider->setRange(0.0, 1.0);
+  m_channelOpacitySlider->setSingleStep(0.01);
+  sectionLayout->addRow("Opacity", m_channelOpacitySlider);
+  QObject::connect(m_channelOpacitySlider, &QNumericSlider::valueChanged, [this](double d) {
+    if (m_activeChannelIndex >= 0) {
+      this->OnOpacityChanged(m_activeChannelIndex, d);
+    }
+  });
+
+  auto* separator = new QFrame();
+  separator->setFrameShape(QFrame::HLine);
+  separator->setFrameShadow(QFrame::Sunken);
+  sectionLayout->addWidget(separator, sectionLayout->rowCount(), 0, 1, 2);
+
+  m_channelColormapCombo = makeGradientCombo();
+  m_channelColormapCombo->setToolTip(
+    tr("Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
+  m_channelColormapCombo->setStatusTip(
+    tr("Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
+  sectionLayout->addRow("ColorMap", m_channelColormapCombo);
+  QObject::connect(m_channelColormapCombo, &QComboBox::currentIndexChanged, [this](int index) {
+    if (!m_scene || m_activeChannelIndex < 0 || !m_channelColormapCombo) {
+      return;
+    }
+    std::string name = m_channelColormapCombo->itemData(index).toString().toStdString();
+    m_scene->m_material.m_colormap[m_activeChannelIndex] = ColorRamp::colormapFromName(name);
+    m_scene->m_material.m_labels[m_activeChannelIndex] = (name == "Labels") ? 1.0f : 0.0f;
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+  });
+
+  m_channelDiffuseColorButton = new QColorPushButton();
+  m_channelDiffuseColorButton->setStatusTip(tr("Set color for channel"));
+  m_channelDiffuseColorButton->setToolTip(tr("Set color for channel"));
+  sectionLayout->addRow("Color", m_channelDiffuseColorButton);
+  QObject::connect(m_channelDiffuseColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+    if (m_activeChannelIndex >= 0) {
+      this->OnDiffuseColorChanged(m_activeChannelIndex, c);
+      this->refreshChannelRows();
+    }
+  });
+
+  auto* separator2 = new QFrame();
+  separator2->setFrameShape(QFrame::HLine);
+  separator2->setFrameShadow(QFrame::Sunken);
+  sectionLayout->addWidget(separator2, sectionLayout->rowCount(), 0, 1, 2);
+
+  m_channelSpecularColorButton = new QColorPushButton();
+  m_channelSpecularColorButton->setStatusTip(tr("Set specular color for channel"));
+  m_channelSpecularColorButton->setToolTip(tr("Set specular color for channel"));
+  sectionLayout->addRow("SpecularColor", m_channelSpecularColorButton);
+  QObject::connect(m_channelSpecularColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+    if (m_activeChannelIndex >= 0) {
+      this->OnSpecularColorChanged(m_activeChannelIndex, c);
+    }
+  });
+
+  m_channelEmissiveColorButton = new QColorPushButton();
+  m_channelEmissiveColorButton->setStatusTip(tr("Set emissive color for channel"));
+  m_channelEmissiveColorButton->setToolTip(tr("Set emissive color for channel"));
+  sectionLayout->addRow("EmissiveColor", m_channelEmissiveColorButton);
+  QObject::connect(m_channelEmissiveColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
+    if (m_activeChannelIndex >= 0) {
+      this->OnEmissiveColorChanged(m_activeChannelIndex, c);
+    }
+  });
+
+  m_channelRoughnessSlider = new QNumericSlider();
+  m_channelRoughnessSlider->setStatusTip(tr("Set specular glossiness for channel"));
+  m_channelRoughnessSlider->setToolTip(tr("Set specular glossiness for channel"));
+  m_channelRoughnessSlider->setRange(0.0, 100.0);
+  m_channelRoughnessSlider->setSingleStep(0.01);
+  sectionLayout->addRow("Glossiness", m_channelRoughnessSlider);
+  QObject::connect(m_channelRoughnessSlider, &QNumericSlider::valueChanged, [this](double d) {
+    if (m_activeChannelIndex >= 0) {
+      this->OnRoughnessChanged(m_activeChannelIndex, d);
+    }
+  });
+
   int numEnabled = 0;
   for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
@@ -1132,162 +1277,179 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       }
     }
 
+    QListWidgetItem* item = new QListWidgetItem(m_channelList);
+    auto* rowWidget = new QWidget(m_channelList);
+    auto* rowLayout = new QHBoxLayout(rowWidget);
+    rowLayout->setContentsMargins(6, 2, 6, 2);
+    rowLayout->setSpacing(6);
+
+    auto* swatch = new QLabel(rowWidget);
+    swatch->setFixedSize(16, 16);
+    swatch->setFrameStyle(QFrame::Box | QFrame::Plain);
+    swatch->setLineWidth(1);
+    rowLayout->addWidget(swatch);
+
+    auto* nameLabel = new QLabel(QString::fromStdString(scene->m_volume->channel(i)->m_name), rowWidget);
+    rowLayout->addWidget(nameLabel, 1);
+
+    auto* enabledCheckBox = new QCheckBox(rowWidget);
+    enabledCheckBox->setChecked(channelenabled);
     std::string tip = "Enable/disable channel " + scene->m_volume->channel(i)->m_name;
-    Section::CheckBoxInfo cbinfo = { channelenabled, tip, tip };
-    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo);
+    enabledCheckBox->setToolTip(QString::fromStdString(tip));
+    enabledCheckBox->setStatusTip(QString::fromStdString(tip));
+    rowLayout->addWidget(enabledCheckBox, 0);
 
-    auto* fullLayout = new QVBoxLayout();
+    item->setSizeHint(rowWidget->sizeHint());
+    m_channelList->setItemWidget(item, rowWidget);
 
-    auto* sectionLayout = Controls::createAgaveFormLayout();
+    m_channelColorSwatches.push_back(swatch);
+    m_channelEnabledCheckBoxes.push_back(enabledCheckBox);
 
-    GradientWidget* editor =
-      new GradientWidget(scene->m_volume->channel(i)->m_histogram, &scene->m_material.m_gradientData[i]);
-    fullLayout->addWidget(editor);
-    // sectionLayout->addRow("Gradient", editor);
-    fullLayout->addLayout(sectionLayout);
-
-    m_gradientWidgets.push_back(editor);
-
-    QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
-      // convert stops to control points
-      std::vector<LutControlPoint> pts;
-      for (int i = 0; i < stops.size(); ++i) {
-        pts.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
-      }
-
-      this->OnUpdateLut(i, pts);
+    QObject::connect(enabledCheckBox, &QCheckBox::clicked, [this, i](bool isChecked) {
+      this->OnChannelChecked((int)i, isChecked);
+      this->refreshChannelRows();
+      this->refreshActiveChannelSettings();
     });
-    this->OnUpdateLut(i, std::vector<LutControlPoint>());
 
-    QNumericSlider* opacitySlider = new QNumericSlider();
-    opacitySlider->setStatusTip(tr("Set opacity for channel"));
-    opacitySlider->setToolTip(tr("Set opacity for channel"));
-    opacitySlider->setRange(0.0, 1.0);
-    opacitySlider->setSingleStep(0.01);
-    opacitySlider->setValue(scene->m_material.m_opacity[i], true);
-    sectionLayout->addRow("Opacity", opacitySlider);
+    this->OnChannelChecked((int)i, channelenabled);
+  }
 
-    QObject::connect(
-      opacitySlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnOpacityChanged(i, d); });
-    // init
-    this->OnOpacityChanged(i, scene->m_material.m_opacity[i]);
+  refreshChannelRows();
 
-    auto separator = new QFrame();
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Sunken);
-    sectionLayout->addWidget(separator, sectionLayout->rowCount(), 0, 1, 2);
-
-    // get color ramp from scene
-    const ColorRamp& cr = scene->m_material.m_colormap[i];
-    QComboBox* gradients = makeGradientCombo();
-    gradients->setToolTip(tr(
-      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
-    gradients->setStatusTip(tr(
-      "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
-    int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
-
-    sectionLayout->addRow("ColorMap", gradients);
-    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
-      // get string from userdata
-      std::string name = gradients->itemData(index).toString().toStdString();
-
-      if (name == "Labels") {
-        if (m_scene) {
-          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
-          m_scene->m_material.m_labels[i] = 1.0;
-          m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-        }
-
-      } else {
-        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
-        m_scene->m_material.m_labels[i] = 0.0;
-        m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
-      }
-    });
-    // init after creating the callback, so that we can reinit a named colormap properly.
-    gradients->setCurrentIndex(idx);
-
-    QColorPushButton* diffuseColorButton = new QColorPushButton();
-    diffuseColorButton->setStatusTip(tr("Set color for channel"));
-    diffuseColorButton->setToolTip(tr("Set color for channel"));
-    QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
-                                    scene->m_material.m_diffuse[i * 3 + 1],
-                                    scene->m_material.m_diffuse[i * 3 + 2]);
-    diffuseColorButton->SetColor(cdiff, true);
-    sectionLayout->addRow("Color", diffuseColorButton);
-    QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
-      this->OnDiffuseColorChanged(i, c);
-    });
-    // init
-    this->OnDiffuseColorChanged(i, cdiff);
-
-    auto separator2 = new QFrame();
-    separator2->setFrameShape(QFrame::HLine);
-    separator2->setFrameShadow(QFrame::Sunken);
-    sectionLayout->addWidget(separator2, sectionLayout->rowCount(), 0, 1, 2);
-
-    QColorPushButton* specularColorButton = new QColorPushButton();
-    specularColorButton->setStatusTip(tr("Set specular color for channel"));
-    specularColorButton->setToolTip(tr("Set specular color for channel"));
-    QColor cspec = QColor::fromRgbF(scene->m_material.m_specular[i * 3 + 0],
-                                    scene->m_material.m_specular[i * 3 + 1],
-                                    scene->m_material.m_specular[i * 3 + 2]);
-    specularColorButton->SetColor(cspec, true);
-    sectionLayout->addRow("SpecularColor", specularColorButton);
-    QObject::connect(specularColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
-      this->OnSpecularColorChanged(i, c);
-    });
-    // init
-    this->OnSpecularColorChanged(i, cspec);
-
-    QColorPushButton* emissiveColorButton = new QColorPushButton();
-    emissiveColorButton->setStatusTip(tr("Set emissive color for channel"));
-    emissiveColorButton->setToolTip(tr("Set emissive color for channel"));
-    QColor cemis = QColor::fromRgbF(scene->m_material.m_emissive[i * 3 + 0],
-                                    scene->m_material.m_emissive[i * 3 + 1],
-                                    scene->m_material.m_emissive[i * 3 + 2]);
-    emissiveColorButton->SetColor(cemis, true);
-    sectionLayout->addRow("EmissiveColor", emissiveColorButton);
-    QObject::connect(emissiveColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
-      this->OnEmissiveColorChanged(i, c);
-    });
-    // init
-    this->OnEmissiveColorChanged(i, cemis);
-
-    QNumericSlider* roughnessSlider = new QNumericSlider();
-    roughnessSlider->setStatusTip(tr("Set specular glossiness for channel"));
-    roughnessSlider->setToolTip(tr("Set specular glossiness for channel"));
-    roughnessSlider->setRange(0.0, 100.0);
-    roughnessSlider->setSingleStep(0.01);
-    roughnessSlider->setValue(scene->m_material.m_roughness[i]);
-    sectionLayout->addRow("Glossiness", roughnessSlider);
-    QObject::connect(
-      roughnessSlider, &QNumericSlider::valueChanged, [i, this](double d) { this->OnRoughnessChanged(i, d); });
-    this->OnRoughnessChanged(i, scene->m_material.m_roughness[i]);
-
-    QObject::connect(section, &Section::checked, [i, this](bool is_checked) { this->OnChannelChecked(i, is_checked); });
-    this->OnChannelChecked(i, channelenabled);
-
-    section->setContentLayout(*fullLayout);
-    // assumes per-channel sections are at the very end of the m_MainLayout
-    m_MainLayout.addRow(section);
-    m_channelSections.push_back(section);
+  int initialChannel = firstEnabledChannelIndex();
+  if (initialChannel < 0 && scene->m_volume->sizeC() > 0) {
+    initialChannel = 0;
+  }
+  if (initialChannel >= 0) {
+    m_channelList->setCurrentRow(initialChannel);
+    selectChannel(initialChannel);
   }
 }
 
 void
 QAppearanceSettingsWidget::onTimeChanged(int timePoint)
 {
-  // update all gradient widgets with new histogram for time point
+  Q_UNUSED(timePoint);
   if (!m_scene || !m_scene->m_volume) {
     return;
   }
 
-  for (size_t i = 0; i < m_gradientWidgets.size(); ++i) {
-    GradientWidget* gradientWidget = m_gradientWidgets[i];
-    if (gradientWidget && i < m_scene->m_volume->sizeC()) {
-      // Update histogram from current channel
-      gradientWidget->setHistogram(m_scene->m_volume->channel(i)->m_histogram);
+  if (m_channelGradientWidget && m_activeChannelIndex >= 0 && m_activeChannelIndex < (int)m_scene->m_volume->sizeC()) {
+    m_channelGradientWidget->setHistogram(m_scene->m_volume->channel((uint32_t)m_activeChannelIndex)->m_histogram);
+  }
+}
+
+int
+QAppearanceSettingsWidget::firstEnabledChannelIndex() const
+{
+  if (!m_scene || !m_scene->m_volume) {
+    return -1;
+  }
+  for (int i = 0; i < (int)m_scene->m_volume->sizeC(); ++i) {
+    if (m_scene->m_material.m_enabled[i]) {
+      return i;
     }
   }
+  return -1;
+}
+
+void
+QAppearanceSettingsWidget::refreshChannelRows()
+{
+  if (!m_scene || !m_scene->m_volume) {
+    return;
+  }
+
+  for (int i = 0; i < (int)m_scene->m_volume->sizeC(); ++i) {
+    if (i < (int)m_channelEnabledCheckBoxes.size() && m_channelEnabledCheckBoxes[i]) {
+      QSignalBlocker blocker(m_channelEnabledCheckBoxes[i]);
+      m_channelEnabledCheckBoxes[i]->setChecked(m_scene->m_material.m_enabled[i]);
+    }
+
+    if (i < (int)m_channelColorSwatches.size() && m_channelColorSwatches[i]) {
+      QColor color = QColor::fromRgbF(m_scene->m_material.m_diffuse[i * 3 + 0],
+                                      m_scene->m_material.m_diffuse[i * 3 + 1],
+                                      m_scene->m_material.m_diffuse[i * 3 + 2]);
+      m_channelColorSwatches[i]->setStyleSheet(
+        QString("background-color: %1; border: 1px solid palette(mid);").arg(color.name()));
+    }
+  }
+}
+
+void
+QAppearanceSettingsWidget::refreshActiveChannelSettings()
+{
+  if (!m_scene || !m_scene->m_volume || m_activeChannelIndex < 0 ||
+      m_activeChannelIndex >= (int)m_scene->m_volume->sizeC()) {
+    if (m_activeChannelLabel) {
+      m_activeChannelLabel->setText(tr("Active Channel: none"));
+    }
+    return;
+  }
+
+  const int i = m_activeChannelIndex;
+  const std::string channelName = m_scene->m_volume->channel((uint32_t)i)->m_name;
+  if (m_activeChannelLabel) {
+    m_activeChannelLabel->setText(tr("Active Channel: %1").arg(QString::fromStdString(channelName)));
+  }
+
+  if (m_channelGradientWidget) {
+    m_channelGradientWidget->setHistogram(m_scene->m_volume->channel((uint32_t)i)->m_histogram);
+    m_channelGradientWidget->setGradientData(&m_scene->m_material.m_gradientData[i]);
+  }
+
+  if (m_channelOpacitySlider) {
+    QSignalBlocker blocker(m_channelOpacitySlider);
+    m_channelOpacitySlider->setValue(m_scene->m_material.m_opacity[i], true);
+  }
+
+  if (m_channelColormapCombo) {
+    QSignalBlocker blocker(m_channelColormapCombo);
+    int idx =
+      m_channelColormapCombo->findData(QVariant(m_scene->m_material.m_colormap[i].m_name.c_str()), Qt::UserRole);
+    m_channelColormapCombo->setCurrentIndex(idx);
+  }
+
+  if (m_channelDiffuseColorButton) {
+    QSignalBlocker blocker(m_channelDiffuseColorButton);
+    QColor color = QColor::fromRgbF(m_scene->m_material.m_diffuse[i * 3 + 0],
+                                    m_scene->m_material.m_diffuse[i * 3 + 1],
+                                    m_scene->m_material.m_diffuse[i * 3 + 2]);
+    m_channelDiffuseColorButton->SetColor(color, true);
+  }
+
+  if (m_channelSpecularColorButton) {
+    QSignalBlocker blocker(m_channelSpecularColorButton);
+    QColor color = QColor::fromRgbF(m_scene->m_material.m_specular[i * 3 + 0],
+                                    m_scene->m_material.m_specular[i * 3 + 1],
+                                    m_scene->m_material.m_specular[i * 3 + 2]);
+    m_channelSpecularColorButton->SetColor(color, true);
+  }
+
+  if (m_channelEmissiveColorButton) {
+    QSignalBlocker blocker(m_channelEmissiveColorButton);
+    QColor color = QColor::fromRgbF(m_scene->m_material.m_emissive[i * 3 + 0],
+                                    m_scene->m_material.m_emissive[i * 3 + 1],
+                                    m_scene->m_material.m_emissive[i * 3 + 2]);
+    m_channelEmissiveColorButton->SetColor(color, true);
+  }
+
+  if (m_channelRoughnessSlider) {
+    QSignalBlocker blocker(m_channelRoughnessSlider);
+    m_channelRoughnessSlider->setValue(m_scene->m_material.m_roughness[i]);
+  }
+}
+
+void
+QAppearanceSettingsWidget::selectChannel(int channelIndex)
+{
+  if (!m_scene || !m_scene->m_volume) {
+    return;
+  }
+  if (channelIndex < 0 || channelIndex >= (int)m_scene->m_volume->sizeC()) {
+    return;
+  }
+
+  m_activeChannelIndex = channelIndex;
+  refreshActiveChannelSettings();
 }

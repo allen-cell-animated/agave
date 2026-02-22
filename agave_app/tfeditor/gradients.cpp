@@ -1023,6 +1023,17 @@ GradientWidget::setHistogram(const Histogram& histogram)
 }
 
 void
+GradientWidget::setGradientData(GradientData* dataObject)
+{
+  if (!dataObject) {
+    return;
+  }
+  m_gradientData = dataObject;
+  forceDataUpdate();
+  updateCopyPasteButtons();
+}
+
+void
 GradientWidget::forceDataUpdate()
 {
   GradientEditMode mode = this->m_gradientData->m_activeMode;

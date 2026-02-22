@@ -9,6 +9,8 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QListWidget>
+#include <QVBoxLayout>
 
 #include <memory>
 
@@ -87,6 +89,11 @@ public:
   void OnSetScaleZ(double value);
   void OnFlipAxis(Axis axis, bool value);
 
+  void selectChannel(int channelIndex);
+  void refreshChannelRows();
+  void refreshActiveChannelSettings();
+  int firstEnabledChannelIndex() const;
+
 private:
   Scene* m_scene;
 
@@ -124,8 +131,20 @@ private:
   QColorPushButton m_boundingBoxColorButton;
   QCheckBox m_showScaleBarCheckBox;
 
-  std::vector<Section*> m_channelSections;
-  std::vector<class GradientWidget*> m_gradientWidgets;
+  int m_activeChannelIndex = -1;
+  QListWidget* m_channelList = nullptr;
+  QLabel* m_activeChannelLabel = nullptr;
+  QWidget* m_channelSettingsContainer = nullptr;
+  QVBoxLayout* m_channelSettingsLayout = nullptr;
+  class GradientWidget* m_channelGradientWidget = nullptr;
+  QNumericSlider* m_channelOpacitySlider = nullptr;
+  QComboBox* m_channelColormapCombo = nullptr;
+  QColorPushButton* m_channelDiffuseColorButton = nullptr;
+  QColorPushButton* m_channelSpecularColorButton = nullptr;
+  QColorPushButton* m_channelEmissiveColorButton = nullptr;
+  QNumericSlider* m_channelRoughnessSlider = nullptr;
+  std::vector<QCheckBox*> m_channelEnabledCheckBoxes;
+  std::vector<QLabel*> m_channelColorSwatches;
 
   struct lt0
   {

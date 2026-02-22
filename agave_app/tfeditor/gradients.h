@@ -75,6 +75,7 @@ public:
   GradientWidget(const Histogram& histogram, GradientData* dataObject, QWidget* parent = nullptr);
 
   void setHistogram(const Histogram& histogram);
+  void setGradientData(GradientData* dataObject);
 
 public slots:
   void onGradientStopsChanged(const QGradientStops& stops);
