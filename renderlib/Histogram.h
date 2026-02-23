@@ -45,6 +45,7 @@ public:
 
   // get the number of pixels in a display bin
   size_t getDisplayBinCount(size_t bin) const;
+  std::vector<uint32_t> computeForDisplay(float xmin, float xmax, size_t nbins) const;
   size_t getModalDisplayBin() const { return _maxFilteredBin; }
   size_t getNumDisplayBins() const { return _filteredBins.size(); }
 
