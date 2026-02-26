@@ -123,6 +123,7 @@ public:
 
   CBoundingBox m_boundingBox;
   bool m_showScaleBar = false;
+  bool m_showTimeStamp = false;
   bool m_showAxisHelper = false;
 
   void initLights();

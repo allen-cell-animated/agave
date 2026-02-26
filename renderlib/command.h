@@ -519,3 +519,9 @@ CMDDECL(SetMinMaxThresholdCommand,
         50,
         "set_min_max_threshold",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
+
+struct ShowTimeStampCommandD
+{
+  int32_t m_on;
+};
+CMDDECL(ShowTimeStampCommand, 51, "show_time_stamp", CMD_ARGS({ CommandArgType::I32 }));

@@ -129,6 +129,7 @@ struct ViewerState
 
   bool showBoundingBox = false; // m_showBoundingBox
   bool showScaleBar = false;
+  bool showTimeStamp = false;
 
   std::vector<ChannelSettings_V1> channels; // m_channels
 
@@ -147,8 +148,8 @@ struct ViewerState
            scale == other.scale && flipAxis == other.flipAxis && camera == other.camera &&
            backgroundColor == other.backgroundColor && boundingBoxColor == other.boundingBoxColor &&
            showBoundingBox == other.showBoundingBox && showScaleBar == other.showScaleBar &&
-           channels == other.channels && density == other.density && lights == other.lights &&
-           capture == other.capture && interpolate == other.interpolate;
+           showTimeStamp == other.showTimeStamp && channels == other.channels && density == other.density &&
+           lights == other.lights && capture == other.capture && interpolate == other.interpolate;
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ViewerState,
                                               datasets,
@@ -169,7 +170,8 @@ struct ViewerState
                                               interpolate,
                                               lights,
                                               capture,
-                                              showScaleBar)
+                                              showScaleBar,
+                                              showTimeStamp)
 };
 
 ViewerState

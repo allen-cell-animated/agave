@@ -672,7 +672,7 @@ agaveGui::saveJson()
 void
 agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
-                        uint32_t sizeT,
+                        const VolumeDimensions& dims,
                         const Serialize::ViewerState* vs,
                         std::shared_ptr<IFileReader> reader,
                         // only used if vs is null
@@ -682,20 +682,21 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 
   if (vs) {
     // make sure that ViewerState is consistent with loaded file
-    if (sizeT - 1 != vs->timeline.maxTime) {
-      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found " << (sizeT)
-                << " in the loaded file.";
+    if (dims.sizeT - 1 != vs->timeline.maxTime) {
+      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found "
+                << (dims.sizeT) << " in the loaded file.";
     }
     if (0 != vs->timeline.minTime) {
       LOG_ERROR << "Min timline time is not zero.";
     }
   }
   m_currentScene = loadSpec.scene;
-  m_appScene.m_timeLine.setRange(0, sizeT - 1);
+  m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
   m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
+  m_appScene.m_timeLine.setTimeUnit(dims.timeUnit);
 
   // Show timeline widget if the loaded image has multiple frames.
-  m_timelinedock->setVisible(sizeT > 1);
+  m_timelinedock->setVisible(dims.sizeT > 1);
 
   bool wasVolumeLoaded = m_appScene.m_volume != nullptr;
 
@@ -833,7 +834,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader, keepCurrentUISettings);
+  onImageLoaded(image, loadSpec, dims, vs, reader, keepCurrentUISettings);
   return true;
 }
 
@@ -1170,6 +1171,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
   m_appScene.m_showScaleBar = v.showScaleBar;
+  m_appScene.m_showTimeStamp = v.showTimeStamp;
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
@@ -1252,6 +1254,7 @@ agaveGui::appToViewerState()
                          m_appScene.m_material.m_boundingBoxColor[2] };
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
   v.showScaleBar = m_appScene.m_showScaleBar;
+  v.showTimeStamp = m_appScene.m_showTimeStamp;
 
   v.capture.samples = m_renderSettings.GetNoIterations();
 

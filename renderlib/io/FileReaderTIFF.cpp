@@ -168,6 +168,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   float physicalSizeY = 1.0f;
   float physicalSizeZ = 1.0f;
   std::string units = "units";
+  float timeUnit = 1.0f;
+  std::string timeUnits = "s";
   // see if we can glean xy resolution from the tiff tags
   float tiffXResolution = 1.0f;
   if (TIFFGetField(tiff, TIFFTAG_XRESOLUTION, &tiffXResolution) == 1) {
@@ -214,6 +216,19 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       sizeT = std::stoi((*iter).second);
     } else {
       LOG_WARNING << "Failed to read number of frames of ImageJ TIFF: '" << filepath << "'";
+    }
+
+    iter = imagejmetadata.find("finterval");
+    if (iter != imagejmetadata.end()) {
+      try {
+        timeUnit = std::stof((*iter).second);
+        if (timeUnit < 0.0f) {
+          timeUnit = -timeUnit;
+        }
+      } catch (...) {
+        LOG_WARNING << "Failed to read frame interval of ImageJ TIFF: '" << filepath << "'";
+        timeUnit = 1.0f;
+      }
     }
 
     iter = imagejmetadata.find("spacing");
@@ -531,6 +546,8 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
   dims.physicalSizeY = physicalSizeY;
   dims.physicalSizeZ = physicalSizeZ;
   dims.spatialUnits = VolumeDimensions::sanitizeUnitsString(units);
+  dims.timeUnit = timeUnit;
+  dims.timeUnits = VolumeDimensions::sanitizeUnitsString(timeUnits);
   dims.bitsPerPixel = bpp;
   dims.channelNames = channelNames;
   dims.sampleFormat = sampleFormat;

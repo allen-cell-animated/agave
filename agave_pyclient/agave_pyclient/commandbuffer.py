@@ -81,6 +81,7 @@ COMMANDS = {
     # channel index, colormap name, array of [stop, r, g, b, a]
     "SET_COLOR_RAMP": [49, "I32", "S", "F32A"],
     "SET_MIN_MAX_THRESHOLD": [50, "I32", "I32", "I32"],
+    "SHOW_TIME_STAMP": [51, "I32"],
 }
 
 
