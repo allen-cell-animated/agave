@@ -186,6 +186,14 @@ GradientEditor::updateHistogramBarGraph()
     std::swap(visibleMin, visibleMax);
   }
 
+  visibleMin = std::max(visibleMin, static_cast<double>(m_histogram.getDataMin()));
+  visibleMax = std::min(visibleMax, static_cast<double>(m_histogram.getDataMax()));
+  visibleMin = std::floor(visibleMin);
+  visibleMax = std::ceil(visibleMax);
+  if (visibleMin > visibleMax) {
+    std::swap(visibleMin, visibleMax);
+  }
+
   size_t numBins = m_histogram.getNumDisplayBins();
   if (numBins == 0) {
     return;
