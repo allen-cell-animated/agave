@@ -179,16 +179,22 @@ GradientEditor::updateHistogramBarGraph()
     return;
   }
 
-  size_t numBins = m_histogram.getNumDisplayBins();
-  if (numBins == 0) {
-    return;
-  }
-
   QCPRange xRange = m_customPlot->xAxis->range();
   double visibleMin = xRange.lower;
   double visibleMax = xRange.upper;
   if (visibleMin > visibleMax) {
     std::swap(visibleMin, visibleMax);
+  }
+
+  size_t numBins = m_histogram.getNumDisplayBins();
+  if (numBins == 0) {
+    return;
+  }
+
+  double visibleRange = visibleMax - visibleMin;
+  if (visibleRange < static_cast<double>(numBins)) {
+    size_t maxBinsForRange = static_cast<size_t>(std::floor(std::max(visibleRange, 0.0))) + 1;
+    numBins = std::max<size_t>(1, std::min(numBins, maxBinsForRange));
   }
 
   m_visibleHistogramBins =
@@ -210,17 +216,17 @@ GradientEditor::updateHistogramBarGraph()
 
   QVector<double> keyData;
   QVector<double> valueData;
+  double minBarHeight = m_histogramLogScale ? MIN_LOG_Y_AXIS : MIN_HISTOGRAM_BAR_HEIGHT;
   for (size_t i = 0; i < numBins; ++i) {
     keyData << visibleMin + static_cast<double>(i) * binSize;
     uint32_t count = m_visibleHistogramBins[i];
     if (count == 0) {
       // Zero bins are clamped in log mode to avoid log(0).
-      valueData << (m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT : 0.0);
+      valueData << (m_histogramLogScale ? minBarHeight : 0.0);
     } else {
       // Nonzero bins get at least the minimum height
-      double normalizedHeight =
-        static_cast<double>(count) / static_cast<double>(std::max<uint32_t>(modalCount, 1));
-      valueData << std::max(normalizedHeight, MIN_HISTOGRAM_BAR_HEIGHT);
+      double normalizedHeight = static_cast<double>(count) / static_cast<double>(std::max<uint32_t>(modalCount, 1));
+      valueData << std::max(normalizedHeight, minBarHeight);
     }
   }
   m_histogramBars->setData(keyData, valueData);
@@ -247,20 +253,21 @@ GradientEditor::updateHistogramYAxisRange()
   }
 
   double maxVisible = 0.0;
+  double minBarHeight = m_histogramLogScale ? MIN_LOG_Y_AXIS : MIN_HISTOGRAM_BAR_HEIGHT;
   for (size_t i = 0; i < numBins; ++i) {
     uint32_t count = m_visibleHistogramBins[i];
     double value = 0.0;
     if (count == 0) {
-      value = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT : 0.0;
+      value = m_histogramLogScale ? minBarHeight : 0.0;
     } else {
       double normalizedHeight = static_cast<double>(count) / static_cast<double>(std::max<uint32_t>(modalCount, 1));
-      value = std::max(normalizedHeight, MIN_HISTOGRAM_BAR_HEIGHT);
+      value = std::max(normalizedHeight, minBarHeight);
     }
     maxVisible = std::max(maxVisible, value);
   }
 
   if (maxVisible <= 0.0) {
-    maxVisible = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT : 1.0;
+    maxVisible = m_histogramLogScale ? minBarHeight : 1.0;
   }
 
   if (m_histogramLogScale) {
@@ -271,7 +278,6 @@ GradientEditor::updateHistogramYAxisRange()
     double upper = std::max(maxVisible * HISTOGRAM_Y_HEADROOM, 0.0);
     m_customPlot->yAxis2->setRange(0.0, upper);
   }
-
 }
 
 void
