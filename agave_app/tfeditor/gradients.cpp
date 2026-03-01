@@ -55,8 +55,8 @@ bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, d
 }
 
 static constexpr double SCATTERSIZE = 10.0;
-static constexpr double MIN_HISTOGRAM_BAR_HEIGHT = 0.01;
-static constexpr double MIN_LOG_Y_AXIS = 0.001;
+static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LINEAR = 0.01;
+static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LOG = 0.001;
 static constexpr double HISTOGRAM_Y_HEADROOM = 1.1;
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
@@ -224,7 +224,7 @@ GradientEditor::updateHistogramBarGraph()
 
   QVector<double> keyData;
   QVector<double> valueData;
-  double minBarHeight = m_histogramLogScale ? MIN_LOG_Y_AXIS : MIN_HISTOGRAM_BAR_HEIGHT;
+  double minBarHeight = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : MIN_HISTOGRAM_BAR_HEIGHT_LINEAR;
   for (size_t i = 0; i < numBins; ++i) {
     keyData << visibleMin + static_cast<double>(i) * binSize;
     uint32_t count = m_visibleHistogramBins[i];
@@ -261,7 +261,7 @@ GradientEditor::updateHistogramYAxisRange()
   }
 
   double maxVisible = 0.0;
-  double minBarHeight = m_histogramLogScale ? MIN_LOG_Y_AXIS : MIN_HISTOGRAM_BAR_HEIGHT;
+  double minBarHeight = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : MIN_HISTOGRAM_BAR_HEIGHT_LINEAR;
   for (size_t i = 0; i < numBins; ++i) {
     uint32_t count = m_visibleHistogramBins[i];
     double value = 0.0;
@@ -279,7 +279,7 @@ GradientEditor::updateHistogramYAxisRange()
   }
 
   if (m_histogramLogScale) {
-    double lower = MIN_LOG_Y_AXIS;
+    double lower = MIN_HISTOGRAM_BAR_HEIGHT_LOG;
     double upper = std::max(maxVisible * HISTOGRAM_Y_HEADROOM, lower * HISTOGRAM_Y_HEADROOM);
     m_customPlot->yAxis2->setRange(lower, upper);
   } else {
