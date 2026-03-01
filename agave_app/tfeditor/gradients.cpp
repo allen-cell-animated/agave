@@ -69,15 +69,14 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 
   m_customPlot = new QCustomPlot(this);
 
-  // first graph will be histogram
-  QPalette pal = m_customPlot->palette();
-  QColor histFillColor = pal.color(QPalette::Link).lighter(150);
+  // yAxis is for intensity transfer function
   m_customPlot->yAxis->setVisible(true);
   m_customPlot->yAxis->setTicks(true);
   m_customPlot->yAxis->setTickLabels(true);
   m_customPlot->yAxis->grid()->setVisible(false);
   m_customPlot->yAxis->grid()->setSubGridVisible(false);
 
+  // yAxis2 is for histogram
   m_customPlot->yAxis2->setVisible(true);
   m_customPlot->yAxis2->setTicks(true);
   m_customPlot->yAxis2->setTickLabels(false);
@@ -87,7 +86,10 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   m_customPlot->yAxis2->setRange(0.0, 1.0);
   m_customPlot->yAxis2->setScaleType(QCPAxis::stLinear);
 
+  // first graph will be histogram
   m_histogramBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis2);
+  QPalette pal = m_customPlot->palette();
+  QColor histFillColor = pal.color(QPalette::Link).lighter(150);
   QBrush barBrush = m_histogramBars->brush();
   barBrush.setColor(histFillColor);
   m_histogramBars->setBrush(barBrush);
@@ -182,14 +184,18 @@ GradientEditor::updateHistogramBarGraph()
   QCPRange xRange = m_customPlot->xAxis->range();
   double visibleMin = xRange.lower;
   double visibleMax = xRange.upper;
+  // not sure why this might happen but just in case
   if (visibleMin > visibleMax) {
     std::swap(visibleMin, visibleMax);
   }
 
+  // because we work with uint16_t data, let's put our bins on integer boundaries
+  // this makes the graph display cleaner and is conceptually easier to debug
   visibleMin = std::max(visibleMin, static_cast<double>(m_histogram.getDataMin()));
   visibleMax = std::min(visibleMax, static_cast<double>(m_histogram.getDataMax()));
   visibleMin = std::floor(visibleMin);
   visibleMax = std::ceil(visibleMax);
+  // not sure why this might happen but just in case
   if (visibleMin > visibleMax) {
     std::swap(visibleMin, visibleMax);
   }
@@ -199,6 +205,7 @@ GradientEditor::updateHistogramBarGraph()
     return;
   }
 
+  // if the x range is small enough, we can use fewer bins
   double visibleRange = visibleMax - visibleMin;
   if (visibleRange < static_cast<double>(numBins)) {
     size_t maxBinsForRange = static_cast<size_t>(std::floor(std::max(visibleRange, 0.0))) + 1;
@@ -233,6 +240,7 @@ GradientEditor::updateHistogramBarGraph()
       valueData << (m_histogramLogScale ? minBarHeight : 0.0);
     } else {
       // Nonzero bins get at least the minimum height
+      // to be visible at all.
       double normalizedHeight = static_cast<double>(count) / static_cast<double>(std::max<uint32_t>(modalCount, 1));
       valueData << std::max(normalizedHeight, minBarHeight);
     }
@@ -252,12 +260,10 @@ GradientEditor::updateHistogramYAxisRange()
     return;
   }
 
-  uint32_t modalCount = 0;
+  // at least 1 to avoid division by 0 later.
+  uint32_t modalCount = 1;
   for (uint32_t count : m_visibleHistogramBins) {
     modalCount = std::max(modalCount, count);
-  }
-  if (modalCount == 0) {
-    modalCount = 1;
   }
 
   double maxVisible = 0.0;
@@ -268,7 +274,7 @@ GradientEditor::updateHistogramYAxisRange()
     if (count == 0) {
       value = m_histogramLogScale ? minBarHeight : 0.0;
     } else {
-      double normalizedHeight = static_cast<double>(count) / static_cast<double>(std::max<uint32_t>(modalCount, 1));
+      double normalizedHeight = static_cast<double>(count) / static_cast<double>(modalCount);
       value = std::max(normalizedHeight, minBarHeight);
     }
     maxVisible = std::max(maxVisible, value);
