@@ -34,6 +34,7 @@ struct GradientData
   // if the mode is such that a min/max exist (window/level or percentile), calculate them and return the histo
   // intensities at min and max
   bool getMinMax(const Histogram& histogram, uint16_t* imin, uint16_t* imax) const;
+  bool getMinMax(const Histogram& histogram, std::pair<float, float>* minMax) const;
 
   // return control points according to the current mode
   std::vector<LutControlPoint> getControlPoints(const Histogram& histogram) const;
