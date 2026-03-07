@@ -71,6 +71,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenePlane.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SceneView.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SphereLightTool.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SphereLightTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Status.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/StringUtil.h"

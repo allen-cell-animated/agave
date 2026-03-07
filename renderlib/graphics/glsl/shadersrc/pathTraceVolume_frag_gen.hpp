@@ -43,6 +43,8 @@ struct Light
   float m_halfHeight;
   float m_distance;
   float m_skyRadius;
+  // for skylight m_target is the sphere center;
+  // for arealight m_P is the center of the rectangle
   vec3 m_P;
   vec3 m_target;
   vec3 m_N;
@@ -475,6 +477,10 @@ GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
     return texture(g_colormapTexture, vec3(i, 0.5, float(ch))).xyz * g_diffuse[ch];
   }
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(
   // return g_diffuse[ch];
 }
 
@@ -485,10 +491,6 @@ GetSpecularN(float NormalizedIntensity, int ch)
 }
 
 float
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_1 = R"(
 GetRoughnessN(float NormalizedIntensity, int ch)
 {
   return g_roughness[ch];
@@ -542,9 +544,16 @@ Light_SampleL(in Light light, in vec3 P, out Ray Rl, out float Pdf, in CLighting
     L = dot(Rd, light.m_N) > 0.0f ? Light_Le(light, vec2(0.0f)) : BLACK;
     Pdf = abs(dot(Rd, light.m_N)) > 0.0f ? dot(P - Ro, P - Ro) / (abs(dot(Rd, light.m_N)) * light.m_area) : 0.0f;
   } else if (light.m_T == 1) {
-    Ro = light.m_P + light.m_skyRadius * getUniformSphereSample(LS.m_lightPos);
+    // get a point on the sky sphere based on the 2d light sample, and compute ray from there to P
+    vec3 r = getUniformSphereSample(LS.m_lightPos);
+    // apply sky sphere rotation angle here?
+    // assumes m_N is the rotated 0,0,1 vector, and m_U and m_V are the corresponding rotated 1,0,0 and 0,1,0
+    vec3 rRotated = r.x * light.m_U + r.y * light.m_V + r.z * light.m_N;
+    Ro = light.m_target + light.m_skyRadius * rRotated;
     Rd = normalize(P - Ro);
-    L = Light_Le(light, vec2(1.0f) - 2.0f * LS.m_lightPos);
+    // light rotation angle to UV mapping for sky gradient
+    vec2 uvRot = vec2(SphericalPhi(r) * INV_2_PI, SphericalTheta(r) * INV_PI);
+    L = Light_Le(light, vec2(1.0f) - 2.0f * uvRot);
     Pdf = pow(light.m_skyRadius, 2.0f) / light.m_area;
   }
 
@@ -609,7 +618,8 @@ Light_Intersect(Light light, inout Ray R, out float T, out vec3 L, out float pPd
 
     R.m_MaxT = T;
 
-    vec2 UV = vec2(SphericalPhi(R.m_D) * INV_2_PI, SphericalTheta(R.m_D) * INV_PI);
+    vec3 localDir = vec3(dot(R.m_D, light.m_U), dot(R.m_D, light.m_V), dot(R.m_D, light.m_N));
+    vec2 UV = vec2(SphericalPhi(localDir) * INV_2_PI, SphericalTheta(localDir) * INV_PI);
 
     L = Light_Le(light, vec2(1.0f, 1.0f) - 2.0f * UV);
 
@@ -983,6 +993,10 @@ NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
       Pl = rayAt(R, T);
       Hit = i;
     }
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_2 = R"(
   }
 
   oPdf = Pdf;
@@ -1010,10 +1024,6 @@ EstimateDirectLight(int shaderType,
 
   vec3 nu = normalize(cross(N, Wo));
   vec3 nv = normalize(cross(N, nu));
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_2 = R"(
   CVolumeShader Shader = CVolumeShader(shaderType, RGBtoXYZ(diffuse), RGBtoXYZ(specular), 2.5f, roughness, N, nu, nv);
 
   float LightPdf = 1.0f, ShaderPdf = 1.0f;

@@ -6,6 +6,7 @@
 #include "ImageXYZC.h"
 #include "renderlib/AppScene.h"
 #include "renderlib/Colormap.h"
+#include "renderlib/Light.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "tfeditor/gradients.h"
@@ -312,9 +313,25 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 
   Section* sectionCP = createClipPlaneSection(pToggleRotateAction, pToggleTranslateAction);
   m_MainLayout.addRow(sectionCP);
+
+  QFrame* lineB = new QFrame();
+  lineB->setFrameShape(QFrame::HLine);
+  lineB->setFrameShadow(QFrame::Sunken);
+  m_MainLayout.addRow(lineB);
+
+  // create a "lock lights to camera" checkbox
+  auto* lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
+  lockLightsToCameraCheckBox->setChecked(false);
+  m_MainLayout.addRow(lockLightsToCameraCheckBox);
+  QObject::connect(lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
+    if (m_scene) {
+      m_scene->setLockLightsToCamera(is_checked);
+    }
+  });
+
   Section* section = createAreaLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section);
-  Section* section2 = createSkyLightingControls();
+  Section* section2 = createSkyLightingControls(pToggleRotateAction);
   m_MainLayout.addRow(section2);
 
   QFrame* lineA = new QFrame();
@@ -455,6 +472,9 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt0gui.m_RotateButton);
   QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    if (!this->m_scene || !this->m_scene->m_volume) {
+      return;
+    }
     toggleActionForObject(pRotationAction, this->m_scene->SceneAreaLight());
   });
   // dummy widget to fill space (TODO: Translate button?)
@@ -528,10 +548,26 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
 }
 
 Section*
-QAppearanceSettingsWidget::createSkyLightingControls()
+QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
 {
   Section* section = new Section("Sky Light", 0);
   auto* sectionLayout = Controls::createAgaveFormLayout();
+
+  auto btnLayout = new QHBoxLayout();
+
+  m_lt1gui.m_RotateButton = new QPushButton("Rotate");
+  m_lt1gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  btnLayout->addWidget(m_lt1gui.m_RotateButton);
+  QObject::connect(m_lt1gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
+    if (!this->m_scene || !this->m_scene->m_volume) {
+      return;
+    }
+    toggleActionForObject(pRotationAction, this->m_scene->SceneSphereLight());
+  });
+  // dummy widget to fill space (TODO: Translate button?)
+  btnLayout->addWidget(new QWidget());
+  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   auto* skylightTopLayout = new QHBoxLayout();
   m_lt1gui.m_stintensitySlider = new QNumericSlider();
