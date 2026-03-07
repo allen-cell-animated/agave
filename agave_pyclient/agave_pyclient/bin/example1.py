@@ -5,6 +5,8 @@ if __name__ == "__main__":
     filename = (
         "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/1.zarr"
     )
+    # AGAVE is already running in server mode. Connect to it. 
+    # Note that it could be remote.
     r = AgaveRenderer(url="ws://localhost:1235/", mode="raymarch")
     r.load_data(filename, 0, 0, 0)
     r.set_resolution(512, 512)
