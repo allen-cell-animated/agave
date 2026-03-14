@@ -23,6 +23,24 @@ formatTimeHhMmSs(double seconds)
   return stream.str();
 }
 
+static std::string
+formatTimeWithUnits(double value, const std::string& units)
+{
+  if (value < 0.0) {
+    value = 0.0;
+  }
+  std::ostringstream stream;
+  if (value >= 100.0) {
+    stream << std::fixed << std::setprecision(0) << value;
+  } else if (value >= 10.0) {
+    stream << std::fixed << std::setprecision(1) << value;
+  } else {
+    stream << std::fixed << std::setprecision(2) << value;
+  }
+  stream << " " << units;
+  return stream.str();
+}
+
 void
 TimeStampTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -43,8 +61,13 @@ TimeStampTool::draw(SceneView& scene, Gesture& gesture)
   static constexpr float WINDOW_REFERENCE_RES = 1200.0f;
   glm::vec3 pctToPx(windowWidthPx / WINDOW_REFERENCE_RES, windowHeightPx / WINDOW_REFERENCE_RES, 1.0f);
 
-  const double physicalSeconds = scene.scene->m_timeLine.currentPhysicalTime();
-  const std::string msg = formatTimeHhMmSs(physicalSeconds);
+  const double physicalTime = scene.scene->m_timeLine.currentPhysicalTime();
+  std::string msg;
+  if (scene.scene->m_timeStampDisplayMode == Scene::TimeStampDisplayMode::HHMMSS) {
+    msg = formatTimeHhMmSs(physicalTime);
+  } else {
+    msg = formatTimeWithUnits(physicalTime, scene.scene->m_timeLine.timeUnits());
+  }
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;

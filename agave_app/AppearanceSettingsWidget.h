@@ -57,6 +57,7 @@ public:
   void OnShowBoundsChecked(bool isChecked);
   void OnShowScaleBarChecked(bool isChecked);
   void OnShowTimeStampChecked(bool isChecked);
+  void OnTimeStampFormatChanged(int index);
   void OnInterpolateChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
@@ -125,6 +126,7 @@ private:
   QColorPushButton m_boundingBoxColorButton;
   QCheckBox m_showScaleBarCheckBox;
   QCheckBox m_showTimeStampCheckBox;
+  QComboBox m_timeStampFormatComboBox;
 
   std::vector<Section*> m_channelSections;
   std::vector<class GradientWidget*> m_gradientWidgets;

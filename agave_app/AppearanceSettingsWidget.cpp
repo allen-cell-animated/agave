@@ -220,6 +220,16 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
     this->OnShowTimeStampChecked(is_checked);
   });
 
+  m_timeStampFormatComboBox.addItem(tr("HH:MM:SS"));
+  m_timeStampFormatComboBox.addItem(tr("Time Units"));
+  m_timeStampFormatComboBox.setCurrentIndex(1);
+  m_timeStampFormatComboBox.setStatusTip(tr("Choose timestamp display format"));
+  m_timeStampFormatComboBox.setToolTip(tr("Choose timestamp display format"));
+  m_MainLayout.addRow("Timestamp Format", &m_timeStampFormatComboBox);
+  QObject::connect(&m_timeStampFormatComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
+    this->OnTimeStampFormatChanged(index);
+  });
+
   m_scaleSection = new Section("Volume Scale", 0);
   auto* scaleSectionLayout = new QGridLayout();
   scaleSectionLayout->addWidget(new QLabel("X"), 0, 0);
@@ -936,6 +946,14 @@ QAppearanceSettingsWidget::OnShowTimeStampChecked(bool isChecked)
 }
 
 void
+QAppearanceSettingsWidget::OnTimeStampFormatChanged(int index)
+{
+  if (!m_scene)
+    return;
+  m_scene->m_timeStampDisplayMode = static_cast<Scene::TimeStampDisplayMode>(index);
+}
+
+void
 QAppearanceSettingsWidget::OnInterpolateChecked(bool isChecked)
 {
   if (!m_scene)
@@ -1168,6 +1186,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
   m_showTimeStampCheckBox.setChecked(m_scene->m_showTimeStamp);
+  m_timeStampFormatComboBox.setCurrentIndex(static_cast<int>(m_scene->m_timeStampDisplayMode));
 
   initLightingControls(scene);
   initClipPlaneControls(scene);

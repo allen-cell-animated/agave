@@ -124,6 +124,12 @@ public:
   CBoundingBox m_boundingBox;
   bool m_showScaleBar = false;
   bool m_showTimeStamp = false;
+  enum class TimeStampDisplayMode : int32_t
+  {
+    HHMMSS = 0,
+    TIME_UNITS = 1
+  };
+  TimeStampDisplayMode m_timeStampDisplayMode = TimeStampDisplayMode::TIME_UNITS;
   bool m_showAxisHelper = false;
 
   void initLights();
