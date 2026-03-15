@@ -607,7 +607,7 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
 
       emit gradientStopsChanged(this->buildStopsFromPlot());
 
-      m_customPlot->replot();
+      m_customPlot->replot(QCustomPlot::rpQueuedReplot);
     }
   }
 }
@@ -731,7 +731,7 @@ GradientEditor::set_shade_points(const QPolygonF& points, QCustomPlot* plot, con
     y << points.at(i).y();
   }
   plot->graph(0)->setData(x, y);
-  plot->replot();
+  plot->replot(QCustomPlot::rpQueuedReplot);
 }
 
 void
