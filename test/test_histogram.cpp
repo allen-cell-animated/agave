@@ -307,3 +307,39 @@ TEST_CASE("Histogram binRange calculation uses robust range", "[histogram]")
     REQUIRE(binSize < 1.0f); // With full range, binSize would be ~128
   }
 }
+
+TEST_CASE("Histogram computeForDisplay supports visible range bins", "[histogram]")
+{
+  std::vector<uint16_t> data;
+  for (uint16_t value = 0; value < 100; ++value) {
+    data.push_back(value);
+  }
+
+  Histogram h(data.data(), data.size());
+
+  SECTION("Full range preserves all counts")
+  {
+    auto bins = h.computeForDisplay(static_cast<float>(h.getDataMin()), static_cast<float>(h.getDataMax()), 64);
+    REQUIRE(bins.size() == 64);
+
+    uint64_t sum = 0;
+    for (uint32_t count : bins) {
+      sum += count;
+    }
+    REQUIRE(sum == h.getPixelCount());
+  }
+
+  SECTION("Narrow visible range yields subset of counts")
+  {
+    auto bins = h.computeForDisplay(20.0f, 29.0f, 32);
+    REQUIRE(bins.size() == 32);
+
+    uint64_t sum = 0;
+    for (uint32_t count : bins) {
+      sum += count;
+    }
+
+    REQUIRE(sum < h.getPixelCount());
+    REQUIRE(sum > 0);
+  }
+}
