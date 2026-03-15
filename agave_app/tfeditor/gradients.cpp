@@ -6,7 +6,6 @@
 #include "renderlib/Logging.h"
 #include "renderlib/MathUtil.h"
 
-#include <QSharedPointer>
 #include <algorithm>
 #include <cmath>
 
