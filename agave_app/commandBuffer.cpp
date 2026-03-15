@@ -129,6 +129,8 @@ commandBuffer::processBuffer()
           CMD_CASE(SetClipPlaneCommand);
           CMD_CASE(SetColorRampCommand);
           CMD_CASE(SetMinMaxThresholdCommand);
+          CMD_CASE(ShowTimeStampCommand);
+          CMD_CASE(SetTimeStampFormatCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!

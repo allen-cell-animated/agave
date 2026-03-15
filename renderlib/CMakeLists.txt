@@ -83,6 +83,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timeline.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Timing.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/TimeStampTool.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/TimeStampTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.cc"
 	"${CMAKE_CURRENT_SOURCE_DIR}/tiny_obj_loader.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/version.hpp"

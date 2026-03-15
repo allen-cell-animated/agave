@@ -435,6 +435,13 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->toPythonString() == "show_scale_bar(1)");
     REQUIRE(cmd->m_data.m_on == data.m_on);
   }
+  SECTION("ShowTimeStampCommand")
+  {
+    ShowTimeStampCommandD data = { 1 };
+    auto cmd = testcodec<ShowTimeStampCommand, ShowTimeStampCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "show_time_stamp(1)");
+    REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
   SECTION("SetFlipAxisCommand")
   {
     SetFlipAxisCommandD data = { 1, -1, -1 };
@@ -478,5 +485,12 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_channel == data.m_channel);
     REQUIRE(cmd->m_data.m_min == data.m_min);
     REQUIRE(cmd->m_data.m_max == data.m_max);
+  }
+  SECTION("SetTimeStampFormatCommand")
+  {
+    SetTimeStampFormatCommandD data = { 1 };
+    auto cmd = testcodec<SetTimeStampFormatCommand, SetTimeStampFormatCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_time_stamp_format(1)");
+    REQUIRE(cmd->m_data.m_format == data.m_format);
   }
 }
