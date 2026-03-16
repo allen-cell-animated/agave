@@ -57,6 +57,33 @@ static constexpr double SCATTERSIZE = 10.0;
 static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LINEAR = 0.01;
 static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LOG = 0.001;
 static constexpr double HISTOGRAM_Y_HEADROOM = 1.1;
+static constexpr int MIN_BAR_HEIGHT_PIXELS = 2;
+
+static double
+getMinHistogramBarHeight(QCustomPlot* plot, bool logScale)
+{
+  double minBarHeight = logScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : MIN_HISTOGRAM_BAR_HEIGHT_LINEAR;
+  if (!plot) {
+    return minBarHeight;
+  }
+
+  auto* axisRect = plot->axisRect();
+  if (!axisRect || !plot->yAxis2) {
+    return minBarHeight;
+  }
+
+  // Compute the coordinate value that sits MIN_BAR_HEIGHT_PIXELS above the bar base.
+  // In log mode, bars start at MIN_HISTOGRAM_BAR_HEIGHT_LOG; in linear mode they start at 0.
+  double baseValue = logScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : 0.0;
+  double basePixel = plot->yAxis2->coordToPixel(baseValue);
+  // pixel Y decreases upward, so subtract to go up
+  double topCoord = plot->yAxis2->pixelToCoord(basePixel - MIN_BAR_HEIGHT_PIXELS);
+  if (topCoord > baseValue) {
+    minBarHeight = std::max(minBarHeight, topCoord);
+  }
+
+  return minBarHeight;
+}
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
@@ -230,7 +257,7 @@ GradientEditor::updateHistogramBarGraph()
 
   QVector<double> keyData;
   QVector<double> valueData;
-  double minBarHeight = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : MIN_HISTOGRAM_BAR_HEIGHT_LINEAR;
+  double minBarHeight = getMinHistogramBarHeight(m_customPlot, m_histogramLogScale);
   for (size_t i = 0; i < numBins; ++i) {
     keyData << visibleMin + static_cast<double>(i) * binSize;
     uint32_t count = m_visibleHistogramBins[i];
@@ -266,7 +293,7 @@ GradientEditor::updateHistogramYAxisRange()
   }
 
   double maxVisible = 0.0;
-  double minBarHeight = m_histogramLogScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : MIN_HISTOGRAM_BAR_HEIGHT_LINEAR;
+  double minBarHeight = getMinHistogramBarHeight(m_customPlot, m_histogramLogScale);
   for (size_t i = 0; i < numBins; ++i) {
     uint32_t count = m_visibleHistogramBins[i];
     double value = 0.0;
