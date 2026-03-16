@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QToolButton>
+#include <vector>
 
 class GradientEditor : public QWidget
 {
@@ -58,8 +59,11 @@ private:
   void set_shade_points(const QPolygonF& points, QCustomPlot* plot, const Histogram& histogram);
 
   QVector<uint32_t> m_locks;
+  std::vector<uint32_t> m_visibleHistogramBins;
 
-  void updateHistogramBarGraph(const Histogram& histogram);
+  void updateHistogramForVisibleRange();
+  void updateHistogramBarGraph();
+  void updateHistogramYAxisRange();
 
 protected:
   virtual void wheelEvent(QWheelEvent* event) override;
