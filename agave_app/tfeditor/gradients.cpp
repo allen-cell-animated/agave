@@ -194,8 +194,8 @@ GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
 void
 GradientEditor::updateHistogramForVisibleRange()
 {
-  updateHistogramBarGraph();
   updateHistogramYAxisRange();
+  updateHistogramBarGraph();
   m_customPlot->replot(QCustomPlot::rpQueuedReplot);
 }
 
