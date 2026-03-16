@@ -257,10 +257,10 @@ ViewerWindow::updateCamera()
       newV = glm::normalize(glm::cross(newN, newU));
 
       Light* light = sceneLight->m_light;
-      light->m_U = newU;
-      light->m_V = newV;
 
-      sceneLight->m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, newV, -newN));
+      // Build a proper rotation matrix (det=+1) whose Z-axis is -newN (pointing from target to light position).
+      // {newU, newV, newN} is right-handed, so negating two columns keeps det=+1.
+      sceneLight->m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, -newV, -newN));
       sceneLight->updateTransform();
 
       validateBasis(light, "area-lock");
