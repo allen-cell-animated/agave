@@ -54,7 +54,6 @@ bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, d
 }
 
 static constexpr double SCATTERSIZE = 10.0;
-static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LINEAR = 0.01;
 static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LOG = 0.001;
 static constexpr double HISTOGRAM_Y_HEADROOM = 1.1;
 static constexpr int MIN_BAR_HEIGHT_PIXELS = 2;
@@ -62,7 +61,7 @@ static constexpr int MIN_BAR_HEIGHT_PIXELS = 2;
 static double
 getMinHistogramBarHeight(QCustomPlot* plot, bool logScale)
 {
-  double minBarHeight = logScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : MIN_HISTOGRAM_BAR_HEIGHT_LINEAR;
+  double minBarHeight = logScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : 0.0;
   if (!plot) {
     return minBarHeight;
   }
@@ -372,14 +371,18 @@ GradientEditor::changeEvent(QEvent* event)
       plotLineColor = this->palette().color(QPalette::Text);
       backgroundColor = this->palette().color(QPalette::Window);
       gridColor = plotLineColor.darker(150);
+      gridColor.setAlphaF(0.75);
       subgridColor = plotLineColor.darker(170);
+      subgridColor.setAlphaF(0.5);
     } else if (colorScheme == Qt::ColorScheme::Light) {
       barsColor = Qt::magenta;
       barsColor.setAlphaF(0.25);
       plotLineColor = this->palette().color(QPalette::Text);
       backgroundColor = this->palette().color(QPalette::Window);
       gridColor = plotLineColor.lighter(150);
+      gridColor.setAlphaF(0.75);
       subgridColor = plotLineColor.lighter(170);
+      subgridColor.setAlphaF(0.5);
     }
     m_customPlot->graph(0)->setPen(QPen(plotLineColor));
     QPen scatterPen(plotLineColor);
