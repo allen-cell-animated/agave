@@ -29,8 +29,8 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   float dist = length(viewDir);
   float projectedRadius = 0.0f;
   float sphereRadius = 0.0f;
+  glm::ivec2 viewportSize = scene.viewport.region.size();
   if (scene.camera.m_Projection == ORTHOGRAPHIC) {
-    glm::ivec2 viewportSize = scene.viewport.region.size();
     float aspect = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
     float halfWidth = scene.camera.m_OrthoScale * aspect;
     float halfHeight = scene.camera.m_OrthoScale;
@@ -67,7 +67,8 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     float y = sinf(lat);
     glm::vec3 ringCenter = p + l.m_V * (sphereRadius * y);
     glm::vec3 ringColor = ringColorFromY(y);
-    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code);
+    // gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code);
+    gesture.drawCircleAsStrip(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code, 16.0f);
   }
 
   const int lonBands = 12;
