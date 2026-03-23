@@ -47,12 +47,22 @@ AreaLightTool::draw(SceneView& scene, Gesture& gesture)
 
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kTriangles);
   // fill in the rectangle of the light
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, color, opacity, code));
-  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, color, opacity, code));
+
+  glm::vec3 colorRect = l.m_Color * l.m_ColorIntensity;
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, colorRect, opacity, code));
+
+  // reverse winding order for back face
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v1, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v0, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v3, colorRect, opacity, code));
+  gesture.graphics.addVert(Gesture::Graphics::VertsCode(p + v2, colorRect, opacity, code));
 
   // Add a small arrowhead pointing at the target point
   // The cone
