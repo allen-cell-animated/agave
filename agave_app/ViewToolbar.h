@@ -13,7 +13,7 @@ class ViewToolbar : public QWidget
   Q_OBJECT
 public:
   ViewToolbar(QWidget* parent = nullptr);
-  virtual ~ViewToolbar();
+  ~ViewToolbar() override;
   void initFromCamera(const CCamera& camera);
 
   QPushButton* axisViewButton;

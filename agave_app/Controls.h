@@ -148,7 +148,7 @@ private:
   double m_Multiplier;
 
 protected:
-  virtual void wheelEvent(QWheelEvent* pEvent);
+  void wheelEvent(QWheelEvent* pEvent) override;
 };
 
 class QDoubleSpinner : public QDoubleSpinBox
@@ -161,7 +161,7 @@ public:
   void setValue(double Value, bool BlockSignals = false);
 
 protected:
-  virtual void wheelEvent(QWheelEvent* pEvent);
+  void wheelEvent(QWheelEvent* pEvent) override;
 };
 
 class QNumericSlider : public QWidget
@@ -170,7 +170,7 @@ class QNumericSlider : public QWidget
 public:
   QNumericSlider(QWidget* pParent = nullptr);
 
-  virtual QSize sizeHint() const;
+  QSize sizeHint() const override;
 
   double value() const;
   void setValue(double value, bool BlockSignals = false);
@@ -197,7 +197,7 @@ class MySpinBoxWithEnter : public QSpinBox
 {
   Q_OBJECT
 public:
-  virtual void keyPressEvent(QKeyEvent* event) override
+  void keyPressEvent(QKeyEvent* event) override
   {
     if (event->key() == Qt::Key_Return) {
       // remove focus
@@ -283,7 +283,7 @@ signals:
   void globalCheckStateChanged(int);
 
 public:
-  QCheckList(QWidget* _parent = 0)
+  QCheckList(QWidget* _parent = nullptr)
     : QComboBox(_parent)
   {
     m_model = new QStandardItemModel();
@@ -299,13 +299,13 @@ public:
     connect(m_model, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this, SLOT(on_modelDataChanged()));
   }
 
-  QCheckList(const QString& title, QWidget* _parent = 0)
+  QCheckList(const QString& title, QWidget* _parent = nullptr)
     : QCheckList(_parent)
   {
     m_titleText = title;
   }
 
-  ~QCheckList() { delete m_model; }
+  ~QCheckList() override { delete m_model; }
 
   void setTitleText(const QString& text)
   {
@@ -378,7 +378,7 @@ public:
   }
 
 protected:
-  bool eventFilter(QObject* _object, QEvent* _event)
+  bool eventFilter(QObject* _object, QEvent* _event) override
   {
     if (_object == lineEdit() && _event->type() == QEvent::MouseButtonPress) {
       showPopup();
@@ -447,12 +447,12 @@ public:
   class QCheckListStyledItemDelegate : public QStyledItemDelegate
   {
   public:
-    QCheckListStyledItemDelegate(QObject* parent = 0)
+    QCheckListStyledItemDelegate(QObject* parent = nullptr)
       : QStyledItemDelegate(parent)
     {
     }
 
-    void paint(QPainter* painter_, const QStyleOptionViewItem& option_, const QModelIndex& index_) const
+    void paint(QPainter* painter_, const QStyleOptionViewItem& option_, const QModelIndex& index_) const override
     {
       QStyleOptionViewItem& refToNonConstOption = const_cast<QStyleOptionViewItem&>(option_);
       refToNonConstOption.showDecorationSelected = false;

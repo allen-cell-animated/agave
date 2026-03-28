@@ -135,7 +135,7 @@ public:
   glm::vec3 GetInvMaxP() const { return glm::vec3(1.0f) / m_MaxP; }
   void SetMaxP(glm::vec3 MaxP) { m_MaxP = MaxP; }
 
-  float GetMaxLength(EAxis* pAxis = NULL) const
+  float GetMaxLength(EAxis* pAxis = nullptr) const
   {
     if (pAxis)
       *pAxis = GetDominantAxis();

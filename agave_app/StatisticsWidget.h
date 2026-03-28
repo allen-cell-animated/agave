@@ -14,7 +14,7 @@ class QStatisticsWidget : public QTreeWidget
 public:
   QStatisticsWidget(QWidget* pParent = nullptr);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
   void Init();
   void ExpandAll(const bool& Expand);

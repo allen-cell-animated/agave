@@ -11,8 +11,8 @@ struct BoundingBoxTool : public ManipulationTool
   {
   }
 
-  virtual void action(SceneView& scene, Gesture& gesture) final;
-  virtual void draw(SceneView& scene, Gesture& gesture) final;
+  void action(SceneView& scene, Gesture& gesture) final;
+  void draw(SceneView& scene, Gesture& gesture) final;
 
 private:
   void drawEdgeTickMarks(const glm::vec3& vertex1,

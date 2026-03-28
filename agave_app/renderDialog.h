@@ -36,8 +36,8 @@ class ImageDisplay : public QWidget
 {
   Q_OBJECT
 public:
-  ImageDisplay(QWidget* parent = 0);
-  ~ImageDisplay();
+  ImageDisplay(QWidget* parent = nullptr);
+  ~ImageDisplay() override;
   void setImage(QImage* image);
 
   void save(const QString& filename);
@@ -85,9 +85,9 @@ public:
   int getXResolution();
   int getYResolution();
 
-  virtual void closeEvent(QCloseEvent* event) override;
-  virtual void resizeEvent(QResizeEvent* event) override;
-  virtual void showEvent(QShowEvent* event) override;
+  void closeEvent(QCloseEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private slots:
   void render();

@@ -99,6 +99,10 @@ public:
 
   Aperture& operator=(const Aperture& Other)
   {
+    if (this == &Other) {
+      return *this;
+    }
+
     m_Size = Other.m_Size;
     m_NoBlades = Other.m_NoBlades;
     m_Bias = Other.m_Bias;

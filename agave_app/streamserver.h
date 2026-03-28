@@ -27,7 +27,7 @@ class StreamServer : public QObject
   Q_OBJECT
 public:
   explicit StreamServer(quint16 port, bool debug, QObject* parent = Q_NULLPTR);
-  ~StreamServer();
+  ~StreamServer() override;
 
   inline int getClientsCount() { return _clients.count(); }
 

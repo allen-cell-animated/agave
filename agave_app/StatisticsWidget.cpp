@@ -63,8 +63,8 @@ void
 QStatisticsWidget::PopulateTree()
 {
   // Populate tree with top-level items
-  AddItem(NULL, "Performance", "", "", "application-monitor");
-  AddItem(NULL, "Volume", "", "", "grid");
+  AddItem(nullptr, "Performance", "", "", "application-monitor");
+  AddItem(nullptr, "Volume", "", "", "grid");
 }
 
 QTreeWidgetItem*
@@ -98,7 +98,7 @@ QStatisticsWidget::UpdateStatistic(const QString& Group,
   QTreeWidgetItem* pGroup = FindItem(Group);
 
   if (!pGroup) {
-    pGroup = AddItem(NULL, Group);
+    pGroup = AddItem(nullptr, Group);
 
     AddItem(pGroup, Name, Value, Unit, Icon);
   } else {
@@ -162,7 +162,7 @@ QStatisticsWidget::FindItem(const QString& Name)
   QList<QTreeWidgetItem*> Items = findItems(Name, Qt::MatchRecursive, 0);
 
   if (Items.size() <= 0)
-    return NULL;
+    return nullptr;
   else
     return Items[0];
 }

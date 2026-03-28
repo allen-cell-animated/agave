@@ -39,13 +39,13 @@ public:
    * @param series the image series.
    * @param parent the parent of this object.
    */
-  GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = 0);
+  GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = nullptr);
 
   /// Destructor.
   ~GLView3D();
 
-  QSize minimumSizeHint() const;
-  QSize sizeHint() const;
+  QSize minimumSizeHint() const override;
+  QSize sizeHint() const override;
 
   void initCameraFromImage(Scene* scene);
   void retargetCameraForNewVolume(Scene* scene);
@@ -92,21 +92,21 @@ public:
   std::shared_ptr<CStatus> getStatus();
 
   /// Resize the view.
-  void resizeGL(int w, int h);
+  void resizeGL(int w, int h) override;
   void FitToScene(float transitionDurationSeconds = 0.0f);
 
 protected:
   /// Set up GL context and subsidiary objects.
-  void initializeGL();
+  void initializeGL() override;
 
   /// Render the scene with the current view settings.
-  void paintGL();
+  void paintGL() override;
 
-  void keyPressEvent(QKeyEvent* event);
-  void mousePressEvent(QMouseEvent* event);
-  void mouseReleaseEvent(QMouseEvent* event);
-  void mouseMoveEvent(QMouseEvent* event);
-  void wheelEvent(QWheelEvent* event);
+  void keyPressEvent(QKeyEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
 
 private:
   QCamera* m_qcamera;
