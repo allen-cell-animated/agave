@@ -13,7 +13,7 @@ class QCamera : public QObject
   Q_OBJECT
 
 public:
-  QCamera(QObject* pParent = NULL);
+  QCamera(QObject* pParent = nullptr);
   ~QCamera() override;
   QCamera(const QCamera& Other);
   QCamera& operator=(const QCamera& Other);

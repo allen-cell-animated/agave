@@ -41,11 +41,11 @@ public:
 
   bool end();
 
-  virtual int32_t parseInt32();
-  virtual float parseFloat32();
-  virtual std::vector<float> parseFloat32Array();
-  virtual std::vector<int32_t> parseInt32Array();
-  virtual std::string parseString();
+  int32_t parseInt32() override;
+  float parseFloat32() override;
+  std::vector<float> parseFloat32Array() override;
+  std::vector<int32_t> parseInt32Array() override;
+  std::string parseString() override;
 
   commandBuffer* _commandBuffer;
   uint8_t* _currentPos;
@@ -58,11 +58,11 @@ public:
 
   // bool end();
 
-  virtual size_t writeInt32(int32_t);
-  virtual size_t writeFloat32(float);
-  virtual size_t writeFloat32Array(const std::vector<float>&);
-  virtual size_t writeInt32Array(const std::vector<int32_t>&);
-  virtual size_t writeString(const std::string&);
+  size_t writeInt32(int32_t) override;
+  size_t writeFloat32(float) override;
+  size_t writeFloat32Array(const std::vector<float>&) override;
+  size_t writeInt32Array(const std::vector<int32_t>&) override;
+  size_t writeString(const std::string&) override;
 
   commandBuffer* _commandBuffer;
   uint8_t* _currentPos;
@@ -73,9 +73,9 @@ class CommandBufferSizer : public WriteableStream
 public:
   CommandBufferSizer() {}
 
-  virtual size_t writeInt32(int32_t);
-  virtual size_t writeFloat32(float);
-  virtual size_t writeFloat32Array(const std::vector<float>&);
-  virtual size_t writeInt32Array(const std::vector<int32_t>&);
-  virtual size_t writeString(const std::string&);
+  size_t writeInt32(int32_t) override;
+  size_t writeFloat32(float) override;
+  size_t writeFloat32Array(const std::vector<float>&) override;
+  size_t writeInt32Array(const std::vector<int32_t>&) override;
+  size_t writeString(const std::string&) override;
 };

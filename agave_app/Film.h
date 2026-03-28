@@ -7,7 +7,7 @@ class QFilm : public QObject
   Q_OBJECT
 
 public:
-  QFilm(QObject* pParent = NULL);
+  QFilm(QObject* pParent = nullptr);
   QFilm(const QFilm& Other);
   QFilm& operator=(const QFilm& Other);
 

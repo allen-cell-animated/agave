@@ -70,10 +70,10 @@ class QColorPushButton : public QPushButton
   Q_OBJECT
 
 public:
-  QColorPushButton(QWidget* pParent = NULL);
+  QColorPushButton(QWidget* pParent = nullptr);
 
-  virtual void paintEvent(QPaintEvent* pPaintEvent);
-  virtual void mousePressEvent(QMouseEvent* pEvent);
+  void paintEvent(QPaintEvent* pPaintEvent) override;
+  void mousePressEvent(QMouseEvent* pEvent) override;
 
   int GetMargin() const;
   void SetMargin(const int& Margin);
@@ -99,7 +99,7 @@ class QColorSelector : public QFrame
   Q_OBJECT
 
 public:
-  QColorSelector(QWidget* pParent = NULL);
+  QColorSelector(QWidget* pParent = nullptr);
 
   //	virtual QSize sizeHint() const;
 
@@ -123,7 +123,7 @@ class QDoubleSlider : public QSlider
   Q_OBJECT
 
 public:
-  QDoubleSlider(QWidget* pParent = NULL);
+  QDoubleSlider(QWidget* pParent = nullptr);
 
   void setRange(double Min, double Max);
   void setMinimum(double Min);
@@ -156,7 +156,7 @@ class QDoubleSpinner : public QDoubleSpinBox
   Q_OBJECT
 
 public:
-  QDoubleSpinner(QWidget* pParent = NULL);
+  QDoubleSpinner(QWidget* pParent = nullptr);
 
   void setValue(double Value, bool BlockSignals = false);
 
@@ -168,7 +168,7 @@ class QNumericSlider : public QWidget
 {
   Q_OBJECT
 public:
-  QNumericSlider(QWidget* pParent = NULL);
+  QNumericSlider(QWidget* pParent = nullptr);
 
   virtual QSize sizeHint() const;
 
@@ -213,7 +213,7 @@ class QIntSlider : public QWidget
 {
   Q_OBJECT
 public:
-  QIntSlider(QWidget* pParent = NULL);
+  QIntSlider(QWidget* pParent = nullptr);
 
   int value() const;
   int maximum() const;

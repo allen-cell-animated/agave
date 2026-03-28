@@ -25,7 +25,7 @@ ScopedGlVertexBuffer::create()
   // xyz uv rgba s
 
   // specify position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)nullptr);
   glEnableVertexAttribArray(0); // m_loc_vpos
 
   // specify uv attribute

@@ -7,7 +7,7 @@ class QAperture : public QObject
   Q_OBJECT
 
 public:
-  QAperture(QObject* pParent = NULL);
+  QAperture(QObject* pParent = nullptr);
   QAperture(const QAperture& Other);
   QAperture& operator=(const QAperture& Other);
 

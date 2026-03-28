@@ -40,7 +40,7 @@ public:
   ~ImageDisplay();
   void setImage(QImage* image);
 
-  void save(QString filename);
+  void save(const QString& filename);
 
   void scale(qreal s);
   void setScale(qreal s);
@@ -70,7 +70,7 @@ public:
   RenderDialog(ViewerWindow* borrowedRenderer,
                const RenderSettings& renderSettings,
                const Scene& scene,
-               CCamera camera,
+               const CCamera& ccamera,
                QOpenGLContext* glContext,
                const LoadSpec& loadSpec,
                CaptureSettings* captureSettings,

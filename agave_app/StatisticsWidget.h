@@ -12,7 +12,7 @@ class QStatisticsWidget : public QTreeWidget
   Q_OBJECT
 
 public:
-  QStatisticsWidget(QWidget* pParent = NULL);
+  QStatisticsWidget(QWidget* pParent = nullptr);
 
   QSize sizeHint() const;
 

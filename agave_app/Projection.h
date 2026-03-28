@@ -7,7 +7,7 @@ class QProjection : public QObject
   Q_OBJECT
 
 public:
-  QProjection(QObject* pParent = NULL);
+  QProjection(QObject* pParent = nullptr);
   QProjection(const QProjection& Other);
   QProjection& operator=(const QProjection& Other);
 

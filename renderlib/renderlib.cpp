@@ -59,7 +59,7 @@ static const uint32_t AICS_DEFAULT_DEPTH_BUFFER_BITS = 24;
 
 namespace {
 static void
-logMessage(QOpenGLDebugMessage message)
+logMessage(const QOpenGLDebugMessage& message)
 {
   LOG_DEBUG << message.message().toStdString();
 }

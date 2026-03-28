@@ -7,7 +7,7 @@ class QFocus : public QObject
   Q_OBJECT
 
 public:
-  QFocus(QObject* pParent = NULL);
+  QFocus(QObject* pParent = nullptr);
   QFocus(const QFocus& Other);
   QFocus& operator=(const QFocus& Other);
 

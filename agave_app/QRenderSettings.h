@@ -10,7 +10,7 @@ class QRenderSettings : public QObject
   Q_OBJECT
 
 public:
-  QRenderSettings(QObject* pParent = NULL);
+  QRenderSettings(QObject* pParent = nullptr);
   QRenderSettings(const QRenderSettings& Other);
   QRenderSettings& operator=(const QRenderSettings& Other);
 

@@ -14,7 +14,7 @@ static constexpr size_t HIGH_RES_BINS = 4096;
 static constexpr size_t FILTERED_BINS = 512;
 
 template<class T>
-const T&
+static const T
 clamp(const T& v, const T& lo, const T& hi)
 {
   assert(hi > lo);
