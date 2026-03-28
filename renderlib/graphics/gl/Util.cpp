@@ -710,6 +710,8 @@ GLShader::compileSourceCode(const char* sourceCode)
       case GL_COMPUTE_SHADER:
         type = types[5];
         break;
+      default:
+        break;
     }
 
     // Get info and source code lengths

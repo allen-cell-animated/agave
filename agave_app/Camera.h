@@ -14,7 +14,7 @@ class QCamera : public QObject
 
 public:
   QCamera(QObject* pParent = NULL);
-  virtual ~QCamera();
+  ~QCamera() override;
   QCamera(const QCamera& Other);
   QCamera& operator=(const QCamera& Other);
 

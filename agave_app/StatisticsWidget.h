@@ -52,18 +52,18 @@ private:
   {
   public:
     virtual ~MyStatusObserver() {}
-    virtual void RenderBegin() { mWidget->OnRenderBegin(); }
-    virtual void RenderEnd() { mWidget->OnRenderEnd(); }
-    virtual void PreRenderFrame() {}
-    virtual void PostRenderFrame() {}
-    virtual void RenderPause(const bool& Paused) {}
-    virtual void Resize() {}
-    virtual void LoadPreset(const std::string& PresetName) {}
-    virtual void StatisticChanged(const std::string& Group,
-                                  const std::string& Name,
-                                  const std::string& Value,
-                                  const std::string& Unit = "",
-                                  const std::string& Icon = "")
+    void RenderBegin() override { mWidget->OnRenderBegin(); }
+    void RenderEnd() override { mWidget->OnRenderEnd(); }
+    void PreRenderFrame() override {}
+    void PostRenderFrame() override {}
+    void RenderPause(const bool& Paused) override {}
+    void Resize() override {}
+    void LoadPreset(const std::string& PresetName) override {}
+    void StatisticChanged(const std::string& Group,
+                          const std::string& Name,
+                          const std::string& Value,
+                          const std::string& Unit = "",
+                          const std::string& Icon = "") override
     {
       mWidget->OnStatisticChanged(QString::fromStdString(Group),
                                   QString::fromStdString(Name),

@@ -250,17 +250,19 @@ public:
 
   Film& operator=(const Film& Other)
   {
-    m_Resolution = Other.m_Resolution;
-    m_Screen[0][0] = Other.m_Screen[0][0];
-    m_Screen[0][1] = Other.m_Screen[0][1];
-    m_Screen[1][0] = Other.m_Screen[1][0];
-    m_Screen[1][1] = Other.m_Screen[1][1];
-    m_InvScreen = Other.m_InvScreen;
-    m_Iso = Other.m_Iso;
-    m_Exposure = Other.m_Exposure;
-    m_ExposureIterations = Other.m_ExposureIterations;
-    m_FStop = Other.m_FStop;
-    m_Gamma = Other.m_Gamma;
+    if (this != &Other) {
+      m_Resolution = Other.m_Resolution;
+      m_Screen[0][0] = Other.m_Screen[0][0];
+      m_Screen[0][1] = Other.m_Screen[0][1];
+      m_Screen[1][0] = Other.m_Screen[1][0];
+      m_Screen[1][1] = Other.m_Screen[1][1];
+      m_InvScreen = Other.m_InvScreen;
+      m_Iso = Other.m_Iso;
+      m_Exposure = Other.m_Exposure;
+      m_ExposureIterations = Other.m_ExposureIterations;
+      m_FStop = Other.m_FStop;
+      m_Gamma = Other.m_Gamma;
+    }
 
     return *this;
   }
