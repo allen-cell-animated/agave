@@ -37,6 +37,10 @@ public:
 
   Timing& operator=(const Timing& Other)
   {
+    if (this == &Other) {
+      return *this;
+    }
+
     m_Name = Other.m_Name;
 
     for (int i = 0; i < MAX_NO_DURATIONS; i++) {

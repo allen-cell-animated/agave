@@ -26,9 +26,9 @@ public:
   explicit FSQ();
 
   /// Destructor.
-  virtual ~FSQ();
+  ~FSQ() override;
 
-  void render(const glm::mat4& mvp);
+  void render(const glm::mat4& mvp) override;
 
 private:
 };

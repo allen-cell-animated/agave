@@ -28,23 +28,23 @@ public:
   static const std::string TYPE_NAME;
 
   RenderGLPT(RenderSettings* rs);
-  virtual ~RenderGLPT();
+  ~RenderGLPT() override;
 
-  virtual void initialize(uint32_t w, uint32_t h);
-  virtual void render(const CCamera& camera);
-  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
-  virtual void resize(uint32_t w, uint32_t h);
-  virtual void getSize(uint32_t& w, uint32_t& h)
+  void initialize(uint32_t w, uint32_t h) override;
+  void render(const CCamera& camera) override;
+  void renderTo(const CCamera& camera, GLFramebufferObject* fbo) override;
+  void resize(uint32_t w, uint32_t h) override;
+  void getSize(uint32_t& w, uint32_t& h) override
   {
     w = m_w;
     h = m_h;
   }
-  virtual void cleanUpResources();
-  virtual RenderSettings& renderSettings();
-  virtual Scene* scene();
-  virtual void setScene(Scene* s);
+  void cleanUpResources() override;
+  RenderSettings& renderSettings() override;
+  Scene* scene() override;
+  void setScene(Scene* s) override;
 
-  virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
+  virtual std::shared_ptr<CStatus> getStatusInterface() override { return m_status; }
 
   Image3D* getImage() const { return nullptr; };
 

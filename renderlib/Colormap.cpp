@@ -164,6 +164,12 @@ hsvToRgb(float h, float s, float v)
   return { r, g, b };
 }
 
+float
+randomFloat()
+{
+  return static_cast<float>(static_cast<double>(rand()) / static_cast<double>(RAND_MAX));
+}
+
 uint8_t*
 colormapRandomized(size_t length)
 {
@@ -171,8 +177,8 @@ colormapRandomized(size_t length)
 
   float r, g, b;
   for (size_t x = 0; x < length; ++x) {
-    std::tuple<float, float, float> rgb = hsvToRgb(
-      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25);
+    std::tuple<float, float, float> rgb =
+      hsvToRgb(randomFloat(), randomFloat() * 0.25 + 0.75, randomFloat() * 0.75 + 0.25);
     r = std::get<0>(rgb);
     g = std::get<1>(rgb);
     b = std::get<2>(rgb);
