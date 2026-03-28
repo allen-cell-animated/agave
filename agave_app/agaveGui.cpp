@@ -422,7 +422,7 @@ agaveGui::open()
     fileNames = dlg.selectedFiles();
     if (!fileNames.empty()) {
       // only use the first filename for loading.
-      QString file = fileNames[0];
+      const QString& file = fileNames[0];
       if (!file.isEmpty()) {
         bool isImageSequence = imageSequenceCheckbox->isChecked();
         if (!open(file.toStdString(), nullptr, isImageSequence)) {
@@ -483,7 +483,7 @@ agaveGui::openJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), nullptr, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
@@ -844,7 +844,7 @@ agaveGui::openMeshDialog()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), nullptr, options);
 
   if (!file.isEmpty())
     openMesh(file);
@@ -876,7 +876,7 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
+  GLView3D* current = nullptr;
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
@@ -1177,7 +1177,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
-  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+  for (size_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
     Serialize::ChannelSettings_V1 ch = v.channels[i];
     m_appScene.m_material.m_enabled[i] = ch.enabled;
 
@@ -1310,7 +1310,7 @@ agaveGui::appToViewerState()
   v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
-    for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+    for (size_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
       Serialize::ChannelSettings_V1 ch;
       ch.enabled = m_appScene.m_material.m_enabled[i];
       ch.diffuseColor = { m_appScene.m_material.m_diffuse[i * 3],

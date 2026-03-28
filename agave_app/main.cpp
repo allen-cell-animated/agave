@@ -251,7 +251,7 @@ main(int argc, char* argv[])
       QString configPath = parser.value(serverConfigOption);
       ServerParams p = readConfig(configPath);
 
-      StreamServer* server = new StreamServer(p._port, false, 0);
+      StreamServer* server = new StreamServer(p._port, false, nullptr);
 
       // set to true to show windows, or false to run as a console application
       static const bool gui = false;

@@ -258,7 +258,7 @@ StreamServer::sendImage(RenderRequest* request, QImage image)
   }
 
   QWebSocket* client = request->getClient();
-  if (client != 0 && _clients.contains(client) && client->isValid() &&
+  if (client != nullptr && _clients.contains(client) && client->isValid() &&
       client->state() == QAbstractSocket::ConnectedState) {
     QByteArray ba;
     QBuffer buffer(&ba);
@@ -281,7 +281,7 @@ void
 StreamServer::sendString(RenderRequest* request, QString s)
 {
   QWebSocket* client = request->getClient();
-  if (client != 0 && _clients.contains(client) && client->isValid() &&
+  if (client != nullptr && _clients.contains(client) && client->isValid() &&
       client->state() == QAbstractSocket::ConnectedState) {
     client->sendTextMessage(s);
   }
