@@ -113,9 +113,9 @@ public:
   inline int getRequestCount() { return this->m_requests.count(); }
 
   // 1 = continuous re-render, 0 = only wait for redraw commands
-  virtual void setStreamMode(int32_t mode) override { m_streamMode = mode > 0 ? true : false; }
+  void setStreamMode(int32_t mode) override { m_streamMode = mode > 0 ? true : false; }
 
-  virtual void resizeGL(int internalWidth, int internalHeight) override;
+  void resizeGL(int internalWidth, int internalHeight) override;
 
 protected:
   QString m_id;

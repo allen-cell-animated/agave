@@ -44,7 +44,7 @@ public:
   Scene* scene() override;
   void setScene(Scene* s) override;
 
-  virtual std::shared_ptr<CStatus> getStatusInterface() override { return m_status; }
+  std::shared_ptr<CStatus> getStatusInterface() override { return m_status; }
 
   Image3D* getImage() const { return nullptr; };
 

@@ -42,7 +42,7 @@ public:
   GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidget* parent = nullptr);
 
   /// Destructor.
-  ~GLView3D();
+  ~GLView3D() override;
 
   QSize minimumSizeHint() const override;
   QSize sizeHint() const override;

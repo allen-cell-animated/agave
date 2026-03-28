@@ -420,7 +420,7 @@ agaveGui::open()
   QStringList fileNames;
   if (dlg.exec()) {
     fileNames = dlg.selectedFiles();
-    if (fileNames.size() > 0) {
+    if (!fileNames.empty()) {
       // only use the first filename for loading.
       QString file = fileNames[0];
       if (!file.isEmpty()) {

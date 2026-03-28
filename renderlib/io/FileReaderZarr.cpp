@@ -439,7 +439,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
   // pre-fetch dims for the different multiscales
   std::vector<MultiscaleDims> multiscaleDims;
   multiscaleDims = loadMultiscaleDims(loadSpec.filepath, loadSpec.scene);
-  if (multiscaleDims.size() < 1) {
+  if (multiscaleDims.empty()) {
     return emptyimage;
   }
   // find loadspec subpath in multiscaledims:

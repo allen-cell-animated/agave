@@ -8,10 +8,10 @@ std::string
 trim(const std::string& str, const std::string& whitespace = " \t\r\n");
 
 bool
-startsWith(const std::string mainStr, const std::string toMatch);
+startsWith(const std::string& mainStr, const std::string& toMatch);
 
 bool
-endsWith(std::string const& value, std::string const& ending);
+endsWith(const std::string& value, const std::string& ending);
 
 void
 split(const std::string& s, char delim, std::vector<std::string>& elems);

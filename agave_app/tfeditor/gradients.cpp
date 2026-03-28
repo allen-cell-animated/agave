@@ -563,7 +563,7 @@ GradientEditor::set_shade_points(const QPolygonF& points, QCustomPlot* plot, con
   QGradientStops stops = pointsToGradientStops(points);
 
   m_locks.clear();
-  if (points.size() > 0) {
+  if (!points.empty()) {
     m_locks.resize(points.size());
     m_locks.fill(0);
   }

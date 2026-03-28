@@ -34,7 +34,7 @@ public:
     setFocusPolicy(Qt::StrongFocus);
   }
 
-  void wheelEvent(QWheelEvent* event)
+  void wheelEvent(QWheelEvent* event) override
   {
     if (!hasFocus()) {
       event->ignore();
@@ -43,7 +43,7 @@ public:
     QComboBox::wheelEvent(event);
   }
 
-  void paintEvent(QPaintEvent* e)
+  void paintEvent(QPaintEvent* e) override
   {
     QComboBox::paintEvent(e);
 

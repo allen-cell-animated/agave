@@ -83,7 +83,7 @@ Logging::Init()
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
   // 2. log to file
-  static const size_t MAX_LOG_FILE_SIZE_BYTES = 1024 * 1024 * 4; // 5 MB
+  static const size_t MAX_LOG_FILE_SIZE_BYTES = static_cast<size_t>(1024 * 1024 * 4); // 5 MB
   auto file_sink =
     std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath.string(), MAX_LOG_FILE_SIZE_BYTES, 3);
 
