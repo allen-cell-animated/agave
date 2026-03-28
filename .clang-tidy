@@ -15,8 +15,8 @@ Checks: >
   readability-redundant-smartptr-get,
   readability-container-size-empty
 
-WarningsAsErrors: ''
+WarningsAsErrors: ""
 
-HeaderFilterRegex: '(agave_app|renderlib)/.*'
+HeaderFilterRegex: "(agave_app|renderlib)/.*"
 
 FormatStyle: file

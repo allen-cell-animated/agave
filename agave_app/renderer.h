@@ -88,7 +88,7 @@ class Renderer
   Q_OBJECT
 
 public:
-  Renderer(QString id, QObject* parent, QMutex& mutex);
+  Renderer(const QString& id, QObject* parent, QMutex& mutex);
   ~Renderer() override;
 
   void configure(IRenderWindow* renderer,

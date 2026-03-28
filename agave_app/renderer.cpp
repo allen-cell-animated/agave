@@ -20,7 +20,7 @@
 #include <QMutexLocker>
 #include <QOpenGLFramebufferObjectFormat>
 
-Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
+Renderer::Renderer(const QString& id, QObject* parent, QMutex& mutex)
   : QThread(parent)
   , m_id(id)
   , m_streamMode(false)

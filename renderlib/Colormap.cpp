@@ -7,8 +7,6 @@
 #include <tuple>
 #include <vector>
 
-const std::string ColorRamp::NO_COLORMAP_NAME = "none";
-
 std::vector<uint8_t>
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 {
@@ -158,6 +156,8 @@ hsvToRgb(float h, float s, float v)
       r = v;
       g = p;
       b = q;
+      break;
+    default:
       break;
   }
 
@@ -594,7 +594,7 @@ ColorRamp::debugPrintColormap() const
 {
   // stringify for output
   std::stringstream ss;
-  for (size_t x = 0; x < 256 * 4; ++x) {
+  for (size_t x = 0; x < static_cast<size_t>(256 * 4); ++x) {
     ss << (int)m_colormap[x] << ", ";
   }
   LOG_DEBUG << "COLORMAP: " << ss.str();
