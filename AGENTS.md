@@ -63,8 +63,17 @@ cmake --build . --target install
 pip install -e agave_pyclient/[test]
 pytest agave_pyclient/tests/
 
-# Static analysis (macOS)
-# Static analysis is currently a TODO but clang-tidy is the best practice here.
+# Static analysis — run clang-tidy on individual files
+# The build generates compile_commands.json in the build directory.
+
+# macOS / Linux (requires clang-tidy, e.g. brew install llvm)
+clang-tidy -p build renderlib/RenderSettings.cpp
+
+# Windows (from a VS2022 x64 Native Tools Command Prompt)
+clang-tidy.exe -p build renderlib\RenderSettings.cpp
+
+# To auto-apply suggested fixes, add --fix:
+clang-tidy -p build --fix renderlib/RenderSettings.cpp
 ```
 
 ## Code Style
@@ -76,7 +85,7 @@ pytest agave_pyclient/tests/
 - **Member variables:** `m_` prefix (`m_Type`, `m_DirtyFlags`, `m_qcamera`)
 - **Header guards:** prefer `#pragma once`
 - **Include order:** local project headers → standard C++ headers → third-party headers → Qt headers
-- **Static analysis:** Static analysis is currently a TODO but clang-tidy is the best practice here.
+- **Static analysis:** Run `clang-tidy -p build <file>` on individual source files (the build exports `compile_commands.json`). Add `--fix` to auto-apply suggestions.
 
 ### Python
 
