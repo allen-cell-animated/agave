@@ -36,7 +36,7 @@ FormatSize(const glm::ivec3& Size)
 }
 
 void
-CStatus::SetRenderBegin(void)
+CStatus::SetRenderBegin()
 {
   if (!mUpdatesEnabled) {
     return;
@@ -47,7 +47,7 @@ CStatus::SetRenderBegin(void)
 }
 
 void
-CStatus::SetRenderEnd(void)
+CStatus::SetRenderEnd()
 {
   if (!mUpdatesEnabled) {
     return;
@@ -58,7 +58,7 @@ CStatus::SetRenderEnd(void)
 }
 
 void
-CStatus::SetPreRenderFrame(void)
+CStatus::SetPreRenderFrame()
 {
   if (!mUpdatesEnabled) {
     return;
@@ -69,7 +69,7 @@ CStatus::SetPreRenderFrame(void)
 }
 
 void
-CStatus::SetPostRenderFrame(void)
+CStatus::SetPostRenderFrame()
 {
   if (!mUpdatesEnabled) {
     return;
@@ -91,7 +91,7 @@ CStatus::SetRenderPause(const bool& Pause)
 }
 
 void
-CStatus::SetResize(void)
+CStatus::SetResize()
 {
   if (!mUpdatesEnabled) {
     return;

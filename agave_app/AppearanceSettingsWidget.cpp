@@ -783,7 +783,7 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
 }
 
 void
-QAppearanceSettingsWidget::OnRenderBegin(void)
+QAppearanceSettingsWidget::OnRenderBegin()
 {
   m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale());
   m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
@@ -835,7 +835,7 @@ QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecon
 }
 
 void
-QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
+QAppearanceSettingsWidget::OnTransferFunctionChanged()
 {
   m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale(), true);
   m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());

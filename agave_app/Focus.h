@@ -11,11 +11,11 @@ public:
   QFocus(const QFocus& Other);
   QFocus& operator=(const QFocus& Other);
 
-  int GetType(void) const;
+  int GetType() const;
   void SetType(const int& Type);
-  float GetFocalDistance(void) const;
+  float GetFocalDistance() const;
   void SetFocalDistance(const float& FocalDistance);
-  void Reset(void);
+  void Reset();
 
 signals:
   void Changed(const QFocus& Focus);

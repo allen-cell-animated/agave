@@ -60,7 +60,7 @@ QStatisticsWidget::sizeHint() const
 }
 
 void
-QStatisticsWidget::PopulateTree(void)
+QStatisticsWidget::PopulateTree()
 {
   // Populate tree with top-level items
   AddItem(NULL, "Performance", "", "", "application-monitor");
@@ -117,14 +117,14 @@ QStatisticsWidget::UpdateStatistic(const QString& Group,
 }
 
 void
-QStatisticsWidget::OnRenderBegin(void)
+QStatisticsWidget::OnRenderBegin()
 {
   // Expand all tree items
   ExpandAll(true);
 }
 
 void
-QStatisticsWidget::OnRenderEnd(void)
+QStatisticsWidget::OnRenderEnd()
 {
   // Collapse all tree items
   ExpandAll(false);

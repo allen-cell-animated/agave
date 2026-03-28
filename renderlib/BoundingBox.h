@@ -16,7 +16,7 @@ public:
   glm::vec3 m_MinP;
   glm::vec3 m_MaxP;
 
-  CBoundingBox(void)
+  CBoundingBox()
     : m_MinP(FLT_MAX, FLT_MAX, FLT_MAX)
     , m_MaxP(-FLT_MAX, -FLT_MAX, -FLT_MAX)
   {
@@ -65,11 +65,11 @@ public:
 
   const glm::vec3& operator[](int i) const { return (&m_MinP)[i]; }
 
-  float LengthX(void) const { return fabs(m_MaxP.x - m_MinP.x); };
-  float LengthY(void) const { return fabs(m_MaxP.y - m_MinP.y); };
-  float LengthZ(void) const { return fabs(m_MaxP.z - m_MinP.z); };
+  float LengthX() const { return fabs(m_MaxP.x - m_MinP.x); };
+  float LengthY() const { return fabs(m_MaxP.y - m_MinP.y); };
+  float LengthZ() const { return fabs(m_MaxP.z - m_MinP.z); };
 
-  glm::vec3 GetCenter(void) const
+  glm::vec3 GetCenter() const
   {
     return glm::vec3(0.5f * (m_MinP.x + m_MaxP.x), 0.5f * (m_MinP.y + m_MaxP.y), 0.5f * (m_MinP.z + m_MaxP.z));
   }
@@ -123,16 +123,16 @@ public:
     }
   }
 
-  EAxis GetDominantAxis(void) const
+  EAxis GetDominantAxis() const
   {
     return (LengthX() > LengthY() && LengthX() > LengthZ()) ? AxisX : ((LengthY() > LengthZ()) ? AxisY : AxisZ);
   }
 
-  glm::vec3 GetMinP(void) const { return m_MinP; }
-  glm::vec3 GetInvMinP(void) const { return glm::vec3(1.0f) / m_MinP; }
+  glm::vec3 GetMinP() const { return m_MinP; }
+  glm::vec3 GetInvMinP() const { return glm::vec3(1.0f) / m_MinP; }
   void SetMinP(glm::vec3 MinP) { m_MinP = MinP; }
-  glm::vec3 GetMaxP(void) const { return m_MaxP; }
-  glm::vec3 GetInvMaxP(void) const { return glm::vec3(1.0f) / m_MaxP; }
+  glm::vec3 GetMaxP() const { return m_MaxP; }
+  glm::vec3 GetInvMaxP() const { return glm::vec3(1.0f) / m_MaxP; }
   void SetMaxP(glm::vec3 MaxP) { m_MaxP = MaxP; }
 
   float GetMaxLength(EAxis* pAxis = NULL) const
@@ -150,26 +150,26 @@ public:
     return sqrt(LengthX() * LengthX() + LengthY() * LengthY() + LengthZ() * LengthZ());
   }
 
-  float HalfSurfaceArea(void) const
+  float HalfSurfaceArea() const
   {
     const glm::vec3 e(GetExtent());
     return e.x * e.y + e.y * e.z + e.x * e.z;
   }
 
-  float GetArea(void) const
+  float GetArea() const
   {
     const glm::vec3 ext(m_MaxP - m_MinP);
     return float(ext.x) * float(ext.y) + float(ext.y) * float(ext.z) + float(ext.x) * float(ext.z);
   }
 
-  glm::vec3 GetExtent(void) const { return m_MaxP - m_MinP; }
-  glm::vec3 GetInverseExtent(void) const
+  glm::vec3 GetExtent() const { return m_MaxP - m_MinP; }
+  glm::vec3 GetInverseExtent() const
   {
     glm::vec3 v = GetExtent();
     return glm::vec3(1.0f / v.x, 1.0f / v.y, 1.0f / v.z);
   }
 
-  float GetEquivalentRadius(void) const { return 0.5f * glm::length(GetExtent()); }
+  float GetEquivalentRadius() const { return 0.5f * glm::length(GetExtent()); }
 
   bool Inside(const glm::vec3& pt)
   {

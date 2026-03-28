@@ -75,11 +75,11 @@ public:
   virtual void paintEvent(QPaintEvent* pPaintEvent);
   virtual void mousePressEvent(QMouseEvent* pEvent);
 
-  int GetMargin(void) const;
+  int GetMargin() const;
   void SetMargin(const int& Margin);
-  int GetRadius(void) const;
+  int GetRadius() const;
   void SetRadius(const int& Radius);
-  QColor GetColor(void) const;
+  QColor GetColor() const;
   void SetColor(const QColor& Color, bool BlockSignals = false);
 
 private slots:
@@ -103,7 +103,7 @@ public:
 
   //	virtual QSize sizeHint() const;
 
-  QColor GetColor(void) const;
+  QColor GetColor() const;
   void SetColor(const QColor& Color, bool BlockSignals = false);
 
 private slots:
@@ -172,7 +172,7 @@ public:
 
   virtual QSize sizeHint() const;
 
-  double value(void) const;
+  double value() const;
   void setValue(double value, bool BlockSignals = false);
   void setRange(double rmin, double rmax);
   void setSingleStep(double val);
@@ -215,8 +215,8 @@ class QIntSlider : public QWidget
 public:
   QIntSlider(QWidget* pParent = NULL);
 
-  int value(void) const;
-  int maximum(void) const;
+  int value() const;
+  int maximum() const;
   void setValue(int value, bool BlockSignals = false);
   void setRange(int rmin, int rmax);
   void setSingleStep(int val);

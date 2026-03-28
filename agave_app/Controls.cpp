@@ -66,7 +66,7 @@ QColorPushButton::mousePressEvent(QMouseEvent* pEvent)
 }
 
 int
-QColorPushButton::GetMargin(void) const
+QColorPushButton::GetMargin() const
 {
   return m_Margin;
 }
@@ -79,7 +79,7 @@ QColorPushButton::SetMargin(const int& margin)
 }
 
 int
-QColorPushButton::GetRadius(void) const
+QColorPushButton::GetRadius() const
 {
   return m_Radius;
 }
@@ -92,7 +92,7 @@ QColorPushButton::SetRadius(const int& radius)
 }
 
 QColor
-QColorPushButton::GetColor(void) const
+QColorPushButton::GetColor() const
 {
   return m_Color;
 }
@@ -142,7 +142,7 @@ QColorSelector::QColorSelector(QWidget* pParent /*= NULL*/)
 }
 
 QColor
-QColorSelector::GetColor(void) const
+QColorSelector::GetColor() const
 {
   return m_ColorButton.GetColor();
 }
@@ -342,7 +342,7 @@ QNumericSlider::OnValueChanged(double value)
 }
 
 double
-QNumericSlider::value(void) const
+QNumericSlider::value() const
 {
   return m_spinner.value();
 }
@@ -455,7 +455,7 @@ QIntSlider::setSpinnerKeyboardTracking(bool tracking)
 }
 
 int
-QIntSlider::value(void) const
+QIntSlider::value() const
 {
   return m_spinner.value();
 }

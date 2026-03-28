@@ -14,20 +14,20 @@ class QCamera : public QObject
 
 public:
   QCamera(QObject* pParent = NULL);
-  virtual ~QCamera(void);
+  virtual ~QCamera();
   QCamera(const QCamera& Other);
   QCamera& operator=(const QCamera& Other);
 
-  QFilm& GetFilm(void);
+  QFilm& GetFilm();
   void SetFilm(const QFilm& Film);
-  QAperture& GetAperture(void);
+  QAperture& GetAperture();
   void SetAperture(const QAperture& Aperture);
-  QProjection& GetProjection(void);
+  QProjection& GetProjection();
   void SetProjection(const QProjection& Projection);
-  QFocus& GetFocus(void);
+  QFocus& GetFocus();
   void SetFocus(const QFocus& Focus);
 
-  static QCamera Default(void);
+  static QCamera Default();
 
 signals:
   void Changed();

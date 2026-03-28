@@ -7,7 +7,8 @@ QFilm::QFilm(QObject* pParent /*= NULL*/)
   , m_Exposure(0.75f)
   , m_ExposureIterations(1)
   , m_Dirty(false)
-{}
+{
+}
 
 QFilm::QFilm(const QFilm& Other)
 {
@@ -30,7 +31,7 @@ QFilm::operator=(const QFilm& Other)
 }
 
 int
-QFilm::GetWidth(void) const
+QFilm::GetWidth() const
 {
   return m_Width;
 }
@@ -45,7 +46,7 @@ QFilm::SetWidth(const int& Width)
 }
 
 int
-QFilm::GetHeight(void) const
+QFilm::GetHeight() const
 {
   return m_Height;
 }
@@ -60,7 +61,7 @@ QFilm::SetHeight(const int& Height)
 }
 
 float
-QFilm::GetExposure(void) const
+QFilm::GetExposure() const
 {
   return m_Exposure;
 }
@@ -73,7 +74,7 @@ QFilm::SetExposure(const float& Exposure)
 }
 
 int
-QFilm::GetExposureIterations(void) const
+QFilm::GetExposureIterations() const
 {
   return m_ExposureIterations;
 }
@@ -86,7 +87,7 @@ QFilm::SetExposureIterations(const int& ExposureIterations)
 }
 
 bool
-QFilm::GetNoiseReduction(void) const
+QFilm::GetNoiseReduction() const
 {
   return m_NoiseReduction;
 }
@@ -99,13 +100,13 @@ QFilm::SetNoiseReduction(const bool& NoiseReduction)
 }
 
 bool
-QFilm::IsDirty(void) const
+QFilm::IsDirty() const
 {
   return m_Dirty;
 }
 
 void
-QFilm::UnDirty(void)
+QFilm::UnDirty()
 {
   m_Dirty = false;
 }

@@ -6,15 +6,17 @@ private:
   long m_Bits;
 
 public:
-  Flags(void)
+  Flags()
     : m_Bits(0)
-  {}
+  {
+  }
 
   Flags(long b)
     : m_Bits(b)
-  {}
+  {
+  }
 
-  virtual ~Flags(void){};
+  virtual ~Flags() {};
 
   Flags& operator=(const Flags& Other)
   {
@@ -25,11 +27,11 @@ public:
 
   void SetFlag(const long Flag) { m_Bits |= Flag; };
 
-  long Get(void) { return m_Bits; };
+  long Get() { return m_Bits; };
 
   void ClearFlag(const long Flag) { m_Bits &= ~Flag; };
 
-  void ClearAllFlags(void) { m_Bits = 0; };
+  void ClearAllFlags() { m_Bits = 0; };
 
   void SetConditional(const long Flag, const int YesNo) { YesNo ? SetFlag(Flag) : ClearFlag(Flag); };
 

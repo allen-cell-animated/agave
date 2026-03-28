@@ -470,19 +470,19 @@ BoundingBoxDrawable::drawFaces(const glm::mat4& transform, const glm::vec4& colo
   _shader->release();
 }
 
-GLTimer::GLTimer(void)
+GLTimer::GLTimer()
 {
   StartTimer();
 }
 
-GLTimer::~GLTimer(void)
+GLTimer::~GLTimer()
 {
   glDeleteQueries(1, &m_EventStart);
   glDeleteQueries(1, &m_EventStop);
 }
 
 void
-GLTimer::StartTimer(void)
+GLTimer::StartTimer()
 {
   glGenQueries(1, &m_EventStart);
   glGenQueries(1, &m_EventStop);
@@ -492,7 +492,7 @@ GLTimer::StartTimer(void)
 }
 
 float
-GLTimer::StopTimer(void)
+GLTimer::StopTimer()
 {
   if (!m_Started)
     return 0.0f;
@@ -512,7 +512,7 @@ GLTimer::StopTimer(void)
 }
 
 float
-GLTimer::ElapsedTime(void)
+GLTimer::ElapsedTime()
 {
   if (!m_Started)
     return 0.0f;

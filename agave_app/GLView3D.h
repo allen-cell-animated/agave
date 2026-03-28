@@ -84,7 +84,7 @@ signals:
 public slots:
 
   void OnUpdateCamera();
-  void OnUpdateQRenderSettings(void);
+  void OnUpdateQRenderSettings();
   void OnUpdateRenderer(int);
   void OnSelectionChanged(SceneObject* so);
 
