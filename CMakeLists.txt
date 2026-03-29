@@ -377,7 +377,6 @@ else() # Linux
 endif(WIN32)
 
 # Ensure compile_commands.json has correct sysroot for clang-tidy on macOS
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(APPLE AND NOT CMAKE_OSX_SYSROOT)
   execute_process(
     COMMAND xcrun --show-sdk-path

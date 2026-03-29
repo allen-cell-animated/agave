@@ -164,7 +164,7 @@ hsvToRgb(float h, float s, float v)
   return { r, g, b };
 }
 
-float
+static float
 randomFloat()
 {
   return static_cast<float>(static_cast<double>(rand()) / static_cast<double>(RAND_MAX));
