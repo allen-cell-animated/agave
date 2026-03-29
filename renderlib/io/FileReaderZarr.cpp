@@ -46,7 +46,7 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
     if (isS3(filepath)) {
       // parse bucket and path from s3 url string of the form s3://bucket/path
       std::string bucket = filepath.substr(5);
-      size_t pos = bucket.find("/");
+      size_t pos = bucket.find('/');
       std::string path = bucket.substr(pos + 1);
       bucket = bucket.substr(0, pos);
       if (!endsWith(path, "/")) {
@@ -60,7 +60,7 @@ getKvStoreDriverParams(const std::string& filepath, const std::string& subpath)
     } else if (isGS(filepath)) {
       // parse bucket and path from gs url string of the form gs://bucket/path
       std::string bucket = filepath.substr(5);
-      size_t pos = bucket.find("/");
+      size_t pos = bucket.find('/');
       std::string path = bucket.substr(pos + 1);
       bucket = bucket.substr(0, pos);
       if (!endsWith(path, "/")) {
@@ -96,7 +96,7 @@ FileReaderZarr::FileReaderZarr(const std::string& filepath)
 {
 }
 
-FileReaderZarr::~FileReaderZarr() {}
+FileReaderZarr::~FileReaderZarr() = default;
 
 ::nlohmann::json
 tryReadJson(const std::string& zarrurl, const std::string& jsonfile)
@@ -229,14 +229,6 @@ FileReaderZarr::loadNumScenes(const std::string& filepath)
     return multiscales.size();
   }
   return 1;
-}
-
-// return number of bytes copied to dest
-static size_t
-copyDirect(uint8_t* dest, const uint8_t* src, size_t numBytes, int srcBitsPerPixel)
-{
-  memcpy(dest, src, numBytes);
-  return numBytes;
 }
 
 std::string
@@ -372,11 +364,11 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
             LOG_ERROR << "Error: " << result.status();
             LOG_ERROR << "Failed to open store for " << filepath << " :: " << pathstr;
           } else {
-            auto store = result.value();
+            const auto& store = result.value();
 
             tensorstore::DataType dtype = store.dtype();
             auto shape_span = store.domain().shape();
-            std::cout << "Level " << multiscaleDims.size() << " shape " << shape_span << std::endl;
+            LOG_INFO << "Level " << multiscaleDims.size() << " shape " << shape_span;
             std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
             auto scale = dataset["coordinateTransformations"][0]["scale"];
