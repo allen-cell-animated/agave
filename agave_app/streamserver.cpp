@@ -38,14 +38,15 @@ StreamServer::createNewRenderer(QWebSocket* client)
   }
   renderlib::RendererType renderMode = renderlib::stringToRendererType(mode);
 
-  int i = this->_renderers.length();
+  size_t i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 
   RenderSettings* rs = new RenderSettings();
   CCamera* camera = new CCamera();
   camera->m_Film.m_ExposureIterations = 1;
-  camera->m_Film.m_Resolution.SetResX(1024);
-  camera->m_Film.m_Resolution.SetResY(1024);
+  static constexpr int renderRes = 1024;
+  camera->m_Film.m_Resolution.SetResX(renderRes);
+  camera->m_Film.m_Resolution.SetResY(renderRes);
   Scene* scene = new Scene();
   scene->initLights();
 
@@ -263,7 +264,8 @@ StreamServer::sendImage(RenderRequest* request, QImage image)
     QByteArray ba;
     QBuffer buffer(&ba);
     buffer.open(QIODevice::WriteOnly);
-    bool ok = image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
+    static constexpr int quality = 92;
+    bool ok = image.save(&buffer, DEFAULT_IMAGE_FORMAT, quality);
     if (!ok) {
       LOG_ERROR << "Failed to save image to buffer.";
     }
