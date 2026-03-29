@@ -408,14 +408,14 @@ FileReaderZarr::loadDimensions(const std::string& filepath, uint32_t scene)
   multiscaleDims = loadMultiscaleDims(filepath, scene);
 
   // select a mltiscale level here!
-  int level = multiscaleDims.size() - 1;
+  int level = static_cast<int>(multiscaleDims.size()) - 1;
   MultiscaleDims levelDims = multiscaleDims[level];
   dims = levelDims.getVolumeDimensions();
 
   dims.log();
 
   if (!dims.validate()) {
-    return VolumeDimensions();
+    return {};
   }
 
   return dims;
@@ -442,7 +442,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
     LOG_ERROR << "Could not find subpath " << loadSpec.subpath << " in multiscaleDims";
     return emptyimage;
   }
-  MultiscaleDims levelDims = *it;
+  const MultiscaleDims& levelDims = *it;
 
   VolumeDimensions dims = levelDims.getVolumeDimensions();
   if (loadSpec.maxx > loadSpec.minx)
@@ -465,7 +465,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
                                         tensorstore::RecheckCachedData{ false },
                                         tensorstore::ReadWriteMode::read);
 
-    auto result = openFuture.result();
+    const auto& result = openFuture.result();
     if (!result.ok()) {
       LOG_ERROR << "Error: " << result.status();
       return emptyimage;
@@ -473,21 +473,19 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
 
     m_store = result.value();
   }
-  auto domain = m_store.domain();
+  // auto domain = m_store.domain();
   // std::cout << "domain.shape(): " << domain.shape() << std::endl;
   // std::cout << "domain.origin(): " << domain.origin() << std::endl;
   // auto shape_span = store.domain().shape();
 
   // std::vector<int64_t> shape(shape_span.begin(), shape_span.end());
 
-  size_t planesize_bytes = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(ImageXYZC::IN_MEMORY_BPP / 8);
+  size_t planesize_bytes = (size_t)dims.sizeX * (size_t)dims.sizeY * (ImageXYZC::IN_MEMORY_BPP / 8);
   size_t channelsize_bytes = planesize_bytes * (size_t)dims.sizeZ;
   uint8_t* data = new uint8_t[channelsize_bytes * nch];
   memset(data, 0, channelsize_bytes * nch);
   // stash it here in case of early exit, it will be deleted
   std::unique_ptr<uint8_t[]> smartPtr(data);
-
-  uint8_t* destptr = data;
 
   // still assuming 1 sample per pixel (scalar data) here.
   size_t rawPlanesize = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)(dims.bitsPerPixel / 8);
@@ -521,7 +519,7 @@ FileReaderZarr::loadFromFile(const LoadSpec& loadSpec)
       channelToLoad = loadSpec.channels[channel];
     }
     // read entire channel into its native size
-    destptr = channelRawMem;
+    auto* destptr = channelRawMem;
 
     tensorstore::IndexTransform<> transform = tensorstore::IdentityTransform(m_store.domain());
     // T value:
