@@ -2,10 +2,12 @@
 Checks: >
   -*,
   bugprone-*,
+  -bugprone-branch-clone,
   modernize-*,
   -modernize-use-trailing-return-type,
   -modernize-use-auto,
   performance-*,
+  -performance-unnecessary-value-param, # re-enable later
   readability-*,
   -readability-identifier-length,
   -readability-redundant-access-specifiers,

@@ -69,8 +69,6 @@ StreamServer::createNewRenderer(QWebSocket* client)
 StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
   : QObject(parent)
   , _webSocketServer(new QWebSocketServer(QStringLiteral("AGAVE RENDERSERVER"), QWebSocketServer::NonSecureMode, this))
-  , _clients()
-  , _renderers()
   , debug(debug)
 {
   connect(this, &StreamServer::closed, qApp, &QApplication::quit);
@@ -167,7 +165,7 @@ StreamServer::getRendererForClient(QWebSocket* client)
 }
 
 void
-StreamServer::processTextMessage(QString message)
+StreamServer::processTextMessage(const QString& message)
 {
   QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
 
@@ -175,7 +173,7 @@ StreamServer::processTextMessage(QString message)
     LOG_DEBUG << "Message received:" << message.toStdString();
   }
 
-  if (pClient) {
+  if (pClient != nullptr) {
     QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
 
     // Get JSON object
@@ -196,20 +194,19 @@ StreamServer::processTextMessage(QString message)
       case 2: {
         break;
       }
-
-        // default:
-        // break;
+      default:
+        break;
     }
   }
 }
 
 void
-StreamServer::processBinaryMessage(QByteArray message)
+StreamServer::processBinaryMessage(const QByteArray& message)
 {
   QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
   //	if (debug)
   //		qDebug() << "Binary Message received:" << message;
-  if (pClient) {
+  if (pClient != nullptr) {
     // the message had better be an encoded command stream.  check a header perhaps?
     commandBuffer b(message.length(), reinterpret_cast<const uint8_t*>(message.constData()));
     b.processBuffer();
@@ -236,10 +233,10 @@ StreamServer::socketDisconnected()
             << pClient->peerAddress().toString().toStdString() << ":"
             << QString::number(pClient->peerPort()).toStdString() << ") "
             << "code: (" << pClient->closeCode() << ":" << pClient->closeReason().toStdString() + ")";
-  if (pClient) {
+  if (pClient != nullptr) {
     Renderer* r = getRendererForClient(pClient);
     QObject::connect(r, &Renderer::finished, r, &QObject::deleteLater);
-    if (r) {
+    if (r != nullptr) {
       r->requestInterruption();
     }
     _clients.removeAll(pClient);

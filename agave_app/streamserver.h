@@ -60,9 +60,9 @@ signals:
 
 private slots:
   void onNewConnection();
-  void onSslErrors(const QList<QSslError>& errors);
-  void processTextMessage(QString message);
-  void processBinaryMessage(QByteArray message);
+  static void onSslErrors(const QList<QSslError>& errors);
+  void processTextMessage(const QString& message);
+  void processBinaryMessage(const QByteArray& message);
   void socketDisconnected();
   void sendImage(RenderRequest* request, QImage image);
   void sendString(RenderRequest* request, QString s);

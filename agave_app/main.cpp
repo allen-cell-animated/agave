@@ -251,16 +251,16 @@ main(int argc, char* argv[])
       QString configPath = parser.value(serverConfigOption);
       ServerParams p = readConfig(configPath);
 
-      StreamServer* server = new StreamServer(p._port, false, nullptr);
-
+      /*StreamServer* server =*/new StreamServer(p._port, false, nullptr);
+#if 0
       // set to true to show windows, or false to run as a console application
-      static const bool gui = false;
+      static constexpr bool gui = false;
       if (gui) {
         MainWindow* _ = new MainWindow(server);
         _->resize(512, 512);
         _->show();
       }
-
+#endif
       LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
 
       // delete logFile;
