@@ -407,9 +407,9 @@ FileReaderZarr::loadDimensions(const std::string& filepath, uint32_t scene)
   std::vector<MultiscaleDims> multiscaleDims;
   multiscaleDims = loadMultiscaleDims(filepath, scene);
 
-  // select a mltiscale level here!
+  // select a multiscale level here!
   int level = static_cast<int>(multiscaleDims.size()) - 1;
-  MultiscaleDims levelDims = multiscaleDims[level];
+  MultiscaleDims levelDims = multiscaleDims.empty() ? MultiscaleDims() : multiscaleDims[level];
   dims = levelDims.getVolumeDimensions();
 
   dims.log();

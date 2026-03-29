@@ -98,7 +98,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
     }
     connect(_webSocketServer, &QWebSocketServer::newConnection, this, &StreamServer::onNewConnection);
     connect(_webSocketServer, &QWebSocketServer::closed, this, &StreamServer::closed);
-    connect(_webSocketServer, &QWebSocketServer::sslErrors, this, &StreamServer::onSslErrors);
+    connect(_webSocketServer, &QWebSocketServer::sslErrors, &StreamServer::onSslErrors);
     connect(_webSocketServer, &QWebSocketServer::acceptError, [this](QAbstractSocket::SocketError e) {
       LOG_ERROR << "Error accepting connection: " << e;
       LOG_ERROR << this->_webSocketServer->errorString().toStdString();

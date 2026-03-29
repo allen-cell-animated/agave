@@ -251,7 +251,8 @@ main(int argc, char* argv[])
       QString configPath = parser.value(serverConfigOption);
       ServerParams p = readConfig(configPath);
 
-      /*StreamServer* server =*/new StreamServer(p._port, false, nullptr);
+      auto server = std::make_unique<StreamServer>(p._port, false, nullptr);
+      LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString() << " on port " << p._port;
 #if 0
       // set to true to show windows, or false to run as a console application
       static constexpr bool gui = false;
@@ -261,7 +262,6 @@ main(int argc, char* argv[])
         _->show();
       }
 #endif
-      LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
 
       // delete logFile;
 
@@ -281,13 +281,14 @@ main(int argc, char* argv[])
       }
       result = a.exec();
     }
+    renderlib::cleanup();
   } catch (const std::exception& exc) {
     LOG_ERROR << "Exception caught in main: " << exc.what();
+    renderlib::cleanup();
   } catch (...) {
     LOG_ERROR << "Exception caught in main";
+    renderlib::cleanup();
   }
-
-  renderlib::cleanup();
 
   return result;
 }
