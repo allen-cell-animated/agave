@@ -11,7 +11,7 @@ out VertexData
 outData;
 
 void
-main(void)
+main()
 {
   gl_Position = mvp * vec4(coord2d, 0.0, 1.0);
   outData.f_texcoord = texcoord;

@@ -12,7 +12,7 @@ public:
   Font();
   ~Font();
 
-  bool isLoaded() { return m_w > 0 && m_h > 0 && m_textureData.size() > 0; }
+  bool isLoaded() { return m_w > 0 && m_h > 0 && !m_textureData.empty(); }
   void load(const char* filename);
   void unload();
 

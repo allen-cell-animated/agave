@@ -6,7 +6,7 @@ class AboutDialog : public QDialog
 {
 public:
   AboutDialog();
-  virtual ~AboutDialog();
+  ~AboutDialog() override;
 
   QSize sizeHint() const override { return QSize(500, 100); }
 };

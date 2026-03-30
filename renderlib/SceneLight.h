@@ -20,10 +20,10 @@ public:
     m_tool = std::make_unique<AreaLightTool>(light);
   }
 
-  void updateTransform();
+  void updateTransform() override;
   Light* m_light;
   std::vector<std::function<void(const Light&)>> m_observers;
   std::unique_ptr<AreaLightTool> m_tool;
 
-  virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
+  ManipulationTool* getSelectedTool() override { return m_tool.get(); }
 };

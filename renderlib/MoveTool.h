@@ -27,10 +27,10 @@ struct MoveTool : public ManipulationTool
     setSize(size);
   }
 
-  virtual void action(SceneView& scene, Gesture& gesture) final;
-  virtual void draw(SceneView& scene, Gesture& gesture) final;
+  void action(SceneView& scene, Gesture& gesture) final;
+  void draw(SceneView& scene, Gesture& gesture) final;
 
-  void setUseLocalSpace(bool localSpace) { m_localSpace = localSpace; }
+  void setUseLocalSpace(bool localSpace) override { m_localSpace = localSpace; }
 
   // Some data structure to store the initial state of the objects
   // to move.

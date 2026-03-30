@@ -7,13 +7,13 @@ class QAperture : public QObject
   Q_OBJECT
 
 public:
-  QAperture(QObject* pParent = NULL);
+  QAperture(QObject* pParent = nullptr);
   QAperture(const QAperture& Other);
   QAperture& operator=(const QAperture& Other);
 
-  float GetSize(void) const;
+  float GetSize() const;
   void SetSize(const float& Size);
-  void Reset(void);
+  void Reset();
 
 signals:
   void Changed(const QAperture& Aperture);

@@ -24,7 +24,7 @@ struct Origins
   };
 
   void clear() { m_origins.clear(); }
-  bool empty() const { return m_origins.size() == 0; }
+  bool empty() const { return m_origins.empty(); }
   void update(SceneView& scene);
   AffineSpace3f currentReference(SceneView& scene, OriginFlags flags = OriginFlags::kDefault)
   {

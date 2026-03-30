@@ -60,8 +60,8 @@ private:
   void updateHistogramBarGraph(const Histogram& histogram);
 
 protected:
-  virtual void wheelEvent(QWheelEvent* event) override;
-  virtual void changeEvent(QEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void changeEvent(QEvent* event) override;
 };
 
 class GradientWidget : public QWidget

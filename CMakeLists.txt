@@ -375,3 +375,16 @@ else() # Linux
 
   include(CPack)
 endif(WIN32)
+
+# Ensure compile_commands.json has correct sysroot for clang-tidy on macOS
+if(APPLE AND NOT CMAKE_OSX_SYSROOT)
+  execute_process(
+    COMMAND xcrun --show-sdk-path
+    OUTPUT_VARIABLE _osx_sysroot
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _xcrun_result
+  )
+  if(_xcrun_result EQUAL 0 AND _osx_sysroot)
+    set(CMAKE_OSX_SYSROOT "${_osx_sysroot}" CACHE PATH "macOS SDK path")
+  endif()
+endif()

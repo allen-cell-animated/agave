@@ -7,13 +7,13 @@
 GLuint
 generateFontTexture(const Font& font)
 {
-  uint32_t w = font.getTextureWidth();
-  uint32_t h = font.getTextureHeight();
+  size_t w = font.getTextureWidth();
+  size_t h = font.getTextureHeight();
   const unsigned char* temp_bitmap = font.getTextureData();
 
   // expand temp_bitmap to RGBA
   unsigned char* expanded_bitmap = new unsigned char[w * h * 4];
-  for (int i = 0; i < w * h; ++i) {
+  for (size_t i = 0; i < w * h; ++i) {
     expanded_bitmap[i * 4 + 0] = 255;
     expanded_bitmap[i * 4 + 1] = 255;
     expanded_bitmap[i * 4 + 2] = 255;

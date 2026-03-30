@@ -17,7 +17,7 @@ out VertexData
 outData;
 
 void
-main(void)
+main()
 {
   gl_Position = mvp * vec4(position, 1.0);
   outData.f_colour = colour;
@@ -25,5 +25,4 @@ main(void)
 
 )";
 
-const std::string flat_vert_src = 
-    flat_vert_chunk_0;
+const std::string flat_vert_src = flat_vert_chunk_0;

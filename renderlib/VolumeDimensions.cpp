@@ -10,7 +10,7 @@ bool
 VolumeDimensions::validate() const
 {
   bool ok = true;
-  if (dimensionOrder == "") {
+  if (dimensionOrder.empty()) {
     LOG_ERROR << "Dimension order is null";
     ok = false;
   }

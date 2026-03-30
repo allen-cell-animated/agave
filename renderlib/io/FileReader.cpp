@@ -162,7 +162,7 @@ LoadSpec::getMemoryEstimate(int totalChannels) const
   if (channels.empty()) {
     // then get the number of channels from the image
     nch = std::min(nch, totalChannels);
-  } else if (channels.size() > 0 && channels.size() < 4) {
+  } else if (!channels.empty() && channels.size() < 4) {
     nch = channels.size();
   }
   size_t bytesperpixel = nch * ImageXYZC::IN_MEMORY_BPP / 8; // 4 channels * 2 bytes per channel
