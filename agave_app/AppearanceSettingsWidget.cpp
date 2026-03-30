@@ -34,7 +34,7 @@ public:
     setFocusPolicy(Qt::StrongFocus);
   }
 
-  void wheelEvent(QWheelEvent* event)
+  void wheelEvent(QWheelEvent* event) override
   {
     if (!hasFocus()) {
       event->ignore();
@@ -43,7 +43,7 @@ public:
     QComboBox::wheelEvent(event);
   }
 
-  void paintEvent(QPaintEvent* e)
+  void paintEvent(QPaintEvent* e) override
   {
     QComboBox::paintEvent(e);
 
@@ -783,7 +783,7 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
 }
 
 void
-QAppearanceSettingsWidget::OnRenderBegin(void)
+QAppearanceSettingsWidget::OnRenderBegin()
 {
   m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale());
   m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
@@ -835,7 +835,7 @@ QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecon
 }
 
 void
-QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
+QAppearanceSettingsWidget::OnTransferFunctionChanged()
 {
   m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale(), true);
   m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());

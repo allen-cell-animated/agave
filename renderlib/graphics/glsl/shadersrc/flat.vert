@@ -12,7 +12,7 @@ out VertexData
 outData;
 
 void
-main(void)
+main()
 {
   gl_Position = mvp * vec4(position, 1.0);
   outData.f_colour = colour;

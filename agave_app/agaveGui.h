@@ -34,7 +34,7 @@ public:
   bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr, bool isImageSequence = false);
 
 protected:
-  virtual void changeEvent(QEvent* event) override;
+  void changeEvent(QEvent* event) override;
 
 private:
   Ui::agaveGuiClass m_ui;

@@ -1675,7 +1675,7 @@ LoadDataCommand::parse(ParseableStream* c)
     data.m_zmax = 0;
     data.m_zmin = 0;
 
-    if (region.size() != 0) {
+    if (!region.empty()) {
       LOG_ERROR << "Bad region data for LoadDataCommand";
     }
   }

@@ -16,7 +16,7 @@ class QTimelineWidget : public QWidget
   Q_OBJECT
 
 public:
-  QTimelineWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr);
+  QTimelineWidget(QWidget* pParent = nullptr, QRenderSettings* qrs = nullptr);
 
   void onNewImage(Scene* s, const LoadSpec& loadSpec, std::shared_ptr<IFileReader> reader);
   void setTime(int t);
@@ -41,7 +41,7 @@ class QTimelineDockWidget : public QDockWidget
   Q_OBJECT
 
 public:
-  QTimelineDockWidget(QWidget* pParent = NULL, QRenderSettings* qrs = nullptr);
+  QTimelineDockWidget(QWidget* pParent = nullptr, QRenderSettings* qrs = nullptr);
 
   void onNewImage(Scene* s, const LoadSpec& loadSpec, std::shared_ptr<IFileReader> reader)
   {

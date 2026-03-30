@@ -63,7 +63,7 @@ struct ColorControlPoint
 class ColorRamp
 {
 public:
-  static const std::string NO_COLORMAP_NAME;
+  constexpr static const char* NO_COLORMAP_NAME = "none";
 
   std::string m_name;
   std::vector<ColorControlPoint> m_stops;

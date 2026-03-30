@@ -321,7 +321,7 @@ LoadDialog::accept()
 {
   // validate inputs.
   std::vector<uint32_t> channels = getCheckedChannels();
-  if (channels.size() == 0) {
+  if (channels.empty()) {
     QMessageBox::warning(this, "No Channels Selected", "Please select at least one channel.");
     return;
   }

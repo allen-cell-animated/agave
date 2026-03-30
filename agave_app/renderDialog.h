@@ -36,11 +36,11 @@ class ImageDisplay : public QWidget
 {
   Q_OBJECT
 public:
-  ImageDisplay(QWidget* parent = 0);
-  ~ImageDisplay();
+  ImageDisplay(QWidget* parent = nullptr);
+  ~ImageDisplay() override;
   void setImage(QImage* image);
 
-  void save(QString filename);
+  void save(const QString& filename);
 
   void scale(qreal s);
   void setScale(qreal s);
@@ -70,7 +70,7 @@ public:
   RenderDialog(ViewerWindow* borrowedRenderer,
                const RenderSettings& renderSettings,
                const Scene& scene,
-               CCamera camera,
+               const CCamera& ccamera,
                QOpenGLContext* glContext,
                const LoadSpec& loadSpec,
                CaptureSettings* captureSettings,
@@ -85,9 +85,9 @@ public:
   int getXResolution();
   int getYResolution();
 
-  virtual void closeEvent(QCloseEvent* event) override;
-  virtual void resizeEvent(QResizeEvent* event) override;
-  virtual void showEvent(QShowEvent* event) override;
+  void closeEvent(QCloseEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private slots:
   void render();

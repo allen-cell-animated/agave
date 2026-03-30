@@ -25,7 +25,7 @@ ScopedGlVertexBuffer::create()
   // xyz uv rgba s
 
   // specify position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vtxStride, (GLvoid*)nullptr);
   glEnableVertexAttribArray(0); // m_loc_vpos
 
   // specify uv attribute
@@ -262,7 +262,7 @@ RenderBuffer::create(glm::ivec2 resolution, int samples)
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
     // Define the texture quality and zeroes its memory
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resolution.x, resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resolution.x, resolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
     // We don't need texture filtering, but we need to specify some.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

@@ -21,7 +21,7 @@ class ImageXYZC;
 class IRenderWindow;
 class RenderSettings;
 
-typedef void* EGLContext; // Forward declaration from EGL.h.
+using EGLContext = void*; // Forward declaration from EGL.h.
 
 class renderlib
 {

@@ -6,7 +6,7 @@
 class RenderSettings
 {
 public:
-  RenderSettings(void);
+  RenderSettings();
   RenderSettings(const RenderSettings& Other);
   RenderSettings& operator=(const RenderSettings& Other);
 
@@ -14,7 +14,7 @@ public:
   PathTraceRenderSettings m_RenderSettings;
   DenoiseParams m_DenoiseParams;
 
-  int GetNoIterations(void) const { return m_NoIterations; }
+  int GetNoIterations() const { return m_NoIterations; }
   void SetNoIterations(const int& NoIterations) { m_NoIterations = NoIterations; }
 
 private:

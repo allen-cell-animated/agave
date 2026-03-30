@@ -78,9 +78,9 @@ public:
       : m_data(d)                                                                                                      \
     {                                                                                                                  \
     }                                                                                                                  \
-    virtual void execute(ExecutionContext* context);                                                                   \
-    virtual std::string toPythonString() const;                                                                        \
-    virtual size_t write(WriteableStream* buffer) const;                                                               \
+    void execute(ExecutionContext* context) override;                                                                  \
+    std::string toPythonString() const override;                                                                       \
+    size_t write(WriteableStream* buffer) const override;                                                              \
     static NAME* parse(ParseableStream* buffer);                                                                       \
     static const uint32_t m_ID = CMDID;                                                                                \
     static const std::string PythonName()                                                                              \
