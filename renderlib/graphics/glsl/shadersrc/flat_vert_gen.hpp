@@ -25,4 +25,5 @@ main()
 
 )";
 
-const std::string flat_vert_src = flat_vert_chunk_0;
+const std::string flat_vert_src = 
+    flat_vert_chunk_0;
