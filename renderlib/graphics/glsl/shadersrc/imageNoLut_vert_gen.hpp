@@ -16,7 +16,7 @@ out VertexData
 outData;
 
 void
-main(void)
+main()
 {
   gl_Position = mvp * vec4(coord2d, 0.0, 1.0);
   outData.f_texcoord = texcoord;
@@ -24,5 +24,4 @@ main(void)
 
 )";
 
-const std::string imageNoLut_vert_src = 
-    imageNoLut_vert_chunk_0;
+const std::string imageNoLut_vert_src = imageNoLut_vert_chunk_0;

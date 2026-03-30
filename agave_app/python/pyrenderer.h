@@ -39,74 +39,74 @@ public:
   // RenderInterface
 
   // tell server to identify this session?
-  virtual int Session(const std::string&);
+  int Session(const std::string&) override;
   // tell server where files might be (appends to existing)
-  virtual int AssetPath(const std::string&);
+  int AssetPath(const std::string&) override;
   // load a volume
-  virtual int LoadOmeTif(const std::string&);
+  int LoadOmeTif(const std::string&) override;
   // load a volume
-  virtual int LoadVolumeFromFile(const std::string&, int, int);
+  int LoadVolumeFromFile(const std::string&, int, int) override;
   // change load same volume file, different time index
-  virtual int SetTime(int);
+  int SetTime(int) override;
   // set camera pos
-  virtual int Eye(float, float, float);
+  int Eye(float, float, float) override;
   // set camera target pt
-  virtual int Target(float, float, float);
+  int Target(float, float, float) override;
   // set camera up direction
-  virtual int Up(float, float, float);
-  virtual int Aperture(float);
+  int Up(float, float, float) override;
+  int Aperture(float) override;
   // perspective(0)/ortho(1), fov(degrees)/orthoscale(world units)
-  virtual int CameraProjection(int32_t, float);
-  virtual int Focaldist(float);
-  virtual int Exposure(float);
-  virtual int MatDiffuse(int32_t, float, float, float, float);
-  virtual int MatSpecular(int32_t, float, float, float, float);
-  virtual int MatEmissive(int32_t, float, float, float, float);
+  int CameraProjection(int32_t, float) override;
+  int Focaldist(float) override;
+  int Exposure(float) override;
+  int MatDiffuse(int32_t, float, float, float, float) override;
+  int MatSpecular(int32_t, float, float, float, float) override;
+  int MatEmissive(int32_t, float, float, float, float) override;
   // set num render iterations
-  virtual int RenderIterations(int32_t);
+  int RenderIterations(int32_t) override;
   // (continuous or on-demand frames)
-  virtual int StreamMode(int32_t);
+  int StreamMode(int32_t) override;
   // request new image
-  virtual int Redraw();
-  virtual int SetResolution(int32_t, int32_t);
-  virtual int Density(float);
+  int Redraw() override;
+  int SetResolution(int32_t, int32_t) override;
+  int Density(float) override;
   // move camera to bound and look at the scene contents
-  virtual int FrameScene();
-  virtual int MatGlossiness(int32_t, float);
+  int FrameScene() override;
+  int MatGlossiness(int32_t, float) override;
   // channel index, 1/0 for enable/disable
-  virtual int EnableChannel(int32_t, int32_t);
+  int EnableChannel(int32_t, int32_t) override;
   // channel index, window, level.  (Do I ever set these independently?)
-  virtual int SetWindowLevel(int32_t, float, float);
+  int SetWindowLevel(int32_t, float, float) override;
   // theta, phi in degrees
-  virtual int OrbitCamera(float, float);
-  virtual int TrackballCamera(float, float);
-  virtual int SkylightTopColor(float, float, float);
-  virtual int SkylightMiddleColor(float, float, float);
-  virtual int SkylightBottomColor(float, float, float);
+  int OrbitCamera(float, float) override;
+  int TrackballCamera(float, float) override;
+  int SkylightTopColor(float, float, float) override;
+  int SkylightMiddleColor(float, float, float) override;
+  int SkylightBottomColor(float, float, float) override;
   // r, theta, phi
-  virtual int LightPos(int32_t, float, float, float);
-  virtual int LightColor(int32_t, float, float, float);
+  int LightPos(int32_t, float, float, float) override;
+  int LightColor(int32_t, float, float, float) override;
   // x by y size
-  virtual int LightSize(int32_t, float, float);
+  int LightSize(int32_t, float, float) override;
   // xmin, xmax, ymin, ymax, zmin, zmax
-  virtual int SetClipRegion(float, float, float, float, float, float);
+  int SetClipRegion(float, float, float, float, float, float) override;
   // x, y, z pixel scaling
-  virtual int SetVoxelScale(float, float, float);
+  int SetVoxelScale(float, float, float) override;
   // channel, method
-  virtual int AutoThreshold(int32_t, int32_t);
+  int AutoThreshold(int32_t, int32_t) override;
   // channel index, pct_low, pct_high.  (Do I ever set these independently?)
-  virtual int SetPercentileThreshold(int32_t, float, float);
-  virtual int MatOpacity(int32_t, float);
-  virtual int SetPrimaryRayStepSize(float);
-  virtual int SetSecondaryRayStepSize(float);
-  virtual int BackgroundColor(float, float, float);
-  virtual int SetIsovalueThreshold(int32_t, float, float);
-  virtual int SetControlPoints(int32_t, std::vector<float>);
-  virtual int SetBoundingBoxColor(float, float, float);
-  virtual int ShowBoundingBox(int32_t);
-  virtual int ShowScaleBar(int32_t);
-  virtual int SetFlipAxis(int32_t, int32_t, int32_t);
-  virtual int SetInterpolation(int32_t);
+  int SetPercentileThreshold(int32_t, float, float) override;
+  int MatOpacity(int32_t, float) override;
+  int SetPrimaryRayStepSize(float) override;
+  int SetSecondaryRayStepSize(float) override;
+  int BackgroundColor(float, float, float) override;
+  int SetIsovalueThreshold(int32_t, float, float) override;
+  int SetControlPoints(int32_t, std::vector<float>) override;
+  int SetBoundingBoxColor(float, float, float) override;
+  int ShowBoundingBox(int32_t) override;
+  int ShowScaleBar(int32_t) override;
+  int SetFlipAxis(int32_t, int32_t, int32_t) override;
+  int SetInterpolation(int32_t) override;
 
 protected:
   void init();

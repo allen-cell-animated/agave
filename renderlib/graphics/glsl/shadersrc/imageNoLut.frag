@@ -9,7 +9,7 @@ in VertexData
 
 out vec4 outputColour;
 
-void main(void) {
+void main() {
   vec4 texval = texture(tex, inData.f_texcoord);
 
   outputColour = texval;

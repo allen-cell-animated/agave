@@ -8,8 +8,8 @@ struct ManipColors
   static constexpr glm::vec3 bright = { 1.0f, 1.0f, 1.0f };
 };
 
-static const float s_orthogonalThreshold = cos(glm::radians(89.0f));
-static const float s_lineThickness = 4.0f;
+static constexpr float s_orthogonalThreshold = 0.01745240643728351; // cos(glm::radians(89.0f));
+static constexpr float s_lineThickness = 4.0f;
 
 static float
 getSignedAngle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& vN)
@@ -97,7 +97,7 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
     float v_len = scene.camera.getDistance(targetPosition);
     float aperture = scene.camera.getHalfHorizontalAperture();
 
-    float dragScale = 0.5 * aperture * v_len / (resolution.x / 2);
+    float dragScale = 0.5f * aperture * v_len / (resolution.x / 2.0f);
 
     // Click in some proportional NDC: x [-1, 1] y [-aspect, aspect]
     glm::vec2 click0 = scene.viewport.toNDC(button.pressedPosition) * aperture;
@@ -170,11 +170,14 @@ RotateTool::action(SceneView& scene, Gesture& gesture)
         motion = glm::angleAxis(angle, vN);
       } break;
       case RotateTool::kRotate: // general tumble rotation
+      {
         // use camera trackball algorithm
         // scale pixels to radians of rotation (TODO)
         float xRadians = -button.drag.x * dragScale * glm::two_pi<float>();
         float yRadians = button.drag.y * dragScale * glm::two_pi<float>();
         motion = trackball(xRadians, yRadians, l - p, camFrame.vy, camFrame.vx);
+      } break;
+      default:
         break;
     }
 
@@ -366,9 +369,9 @@ RotateTool::draw(SceneView& scene, Gesture& gesture)
                                a,
                                axis.p,
                                vN,
-                               (int)(96.0 * abs(a) / (glm::two_pi<float>()) + 0.5),
+                               (int)(96.0f * abs(a) / (glm::two_pi<float>()) + 0.5f),
                                color,
-                               0.5,
+                               0.5f,
                                noCode,
                                s_lineThickness);
       }

@@ -3,7 +3,8 @@
 QAperture::QAperture(QObject* pParent /*= NULL*/)
   : QObject(pParent)
   , m_Size(0.0f)
-{}
+{
+}
 
 QAperture::QAperture(const QAperture& Other)
 {
@@ -21,7 +22,7 @@ QAperture::operator=(const QAperture& Other)
 }
 
 float
-QAperture::GetSize(void) const
+QAperture::GetSize() const
 {
   return m_Size;
 }
@@ -35,7 +36,7 @@ QAperture::SetSize(const float& Size)
 }
 
 void
-QAperture::Reset(void)
+QAperture::Reset()
 {
   m_Size = 0.0f;
 

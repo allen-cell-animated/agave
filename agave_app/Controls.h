@@ -70,16 +70,16 @@ class QColorPushButton : public QPushButton
   Q_OBJECT
 
 public:
-  QColorPushButton(QWidget* pParent = NULL);
+  QColorPushButton(QWidget* pParent = nullptr);
 
-  virtual void paintEvent(QPaintEvent* pPaintEvent);
-  virtual void mousePressEvent(QMouseEvent* pEvent);
+  void paintEvent(QPaintEvent* pPaintEvent) override;
+  void mousePressEvent(QMouseEvent* pEvent) override;
 
-  int GetMargin(void) const;
+  int GetMargin() const;
   void SetMargin(const int& Margin);
-  int GetRadius(void) const;
+  int GetRadius() const;
   void SetRadius(const int& Radius);
-  QColor GetColor(void) const;
+  QColor GetColor() const;
   void SetColor(const QColor& Color, bool BlockSignals = false);
 
 private slots:
@@ -99,11 +99,11 @@ class QColorSelector : public QFrame
   Q_OBJECT
 
 public:
-  QColorSelector(QWidget* pParent = NULL);
+  QColorSelector(QWidget* pParent = nullptr);
 
   //	virtual QSize sizeHint() const;
 
-  QColor GetColor(void) const;
+  QColor GetColor() const;
   void SetColor(const QColor& Color, bool BlockSignals = false);
 
 private slots:
@@ -123,7 +123,7 @@ class QDoubleSlider : public QSlider
   Q_OBJECT
 
 public:
-  QDoubleSlider(QWidget* pParent = NULL);
+  QDoubleSlider(QWidget* pParent = nullptr);
 
   void setRange(double Min, double Max);
   void setMinimum(double Min);
@@ -148,7 +148,7 @@ private:
   double m_Multiplier;
 
 protected:
-  virtual void wheelEvent(QWheelEvent* pEvent);
+  void wheelEvent(QWheelEvent* pEvent) override;
 };
 
 class QDoubleSpinner : public QDoubleSpinBox
@@ -156,23 +156,23 @@ class QDoubleSpinner : public QDoubleSpinBox
   Q_OBJECT
 
 public:
-  QDoubleSpinner(QWidget* pParent = NULL);
+  QDoubleSpinner(QWidget* pParent = nullptr);
 
   void setValue(double Value, bool BlockSignals = false);
 
 protected:
-  virtual void wheelEvent(QWheelEvent* pEvent);
+  void wheelEvent(QWheelEvent* pEvent) override;
 };
 
 class QNumericSlider : public QWidget
 {
   Q_OBJECT
 public:
-  QNumericSlider(QWidget* pParent = NULL);
+  QNumericSlider(QWidget* pParent = nullptr);
 
-  virtual QSize sizeHint() const;
+  QSize sizeHint() const override;
 
-  double value(void) const;
+  double value() const;
   void setValue(double value, bool BlockSignals = false);
   void setRange(double rmin, double rmax);
   void setSingleStep(double val);
@@ -197,7 +197,7 @@ class MySpinBoxWithEnter : public QSpinBox
 {
   Q_OBJECT
 public:
-  virtual void keyPressEvent(QKeyEvent* event) override
+  void keyPressEvent(QKeyEvent* event) override
   {
     if (event->key() == Qt::Key_Return) {
       // remove focus
@@ -213,10 +213,10 @@ class QIntSlider : public QWidget
 {
   Q_OBJECT
 public:
-  QIntSlider(QWidget* pParent = NULL);
+  QIntSlider(QWidget* pParent = nullptr);
 
-  int value(void) const;
-  int maximum(void) const;
+  int value() const;
+  int maximum() const;
   void setValue(int value, bool BlockSignals = false);
   void setRange(int rmin, int rmax);
   void setSingleStep(int val);
@@ -283,7 +283,7 @@ signals:
   void globalCheckStateChanged(int);
 
 public:
-  QCheckList(QWidget* _parent = 0)
+  QCheckList(QWidget* _parent = nullptr)
     : QComboBox(_parent)
   {
     m_model = new QStandardItemModel();
@@ -299,13 +299,13 @@ public:
     connect(m_model, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this, SLOT(on_modelDataChanged()));
   }
 
-  QCheckList(const QString& title, QWidget* _parent = 0)
+  QCheckList(const QString& title, QWidget* _parent = nullptr)
     : QCheckList(_parent)
   {
     m_titleText = title;
   }
 
-  ~QCheckList() { delete m_model; }
+  ~QCheckList() override { delete m_model; }
 
   void setTitleText(const QString& text)
   {
@@ -378,7 +378,7 @@ public:
   }
 
 protected:
-  bool eventFilter(QObject* _object, QEvent* _event)
+  bool eventFilter(QObject* _object, QEvent* _event) override
   {
     if (_object == lineEdit() && _event->type() == QEvent::MouseButtonPress) {
       showPopup();
@@ -447,12 +447,12 @@ public:
   class QCheckListStyledItemDelegate : public QStyledItemDelegate
   {
   public:
-    QCheckListStyledItemDelegate(QObject* parent = 0)
+    QCheckListStyledItemDelegate(QObject* parent = nullptr)
       : QStyledItemDelegate(parent)
     {
     }
 
-    void paint(QPainter* painter_, const QStyleOptionViewItem& option_, const QModelIndex& index_) const
+    void paint(QPainter* painter_, const QStyleOptionViewItem& option_, const QModelIndex& index_) const override
     {
       QStyleOptionViewItem& refToNonConstOption = const_cast<QStyleOptionViewItem&>(option_);
       refToNonConstOption.showDecorationSelected = false;

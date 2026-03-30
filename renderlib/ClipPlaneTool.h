@@ -14,8 +14,8 @@ struct ClipPlaneTool : ManipulationTool
     // assert(glm::dot(m_plane.normal, m_pos) == m_plane.d);
   }
 
-  virtual void action(SceneView& scene, Gesture& gesture) final;
-  virtual void draw(SceneView& scene, Gesture& gesture) final;
+  void action(SceneView& scene, Gesture& gesture) final;
+  void draw(SceneView& scene, Gesture& gesture) final;
 
   void setVisible(bool v) { m_visible = v; }
 

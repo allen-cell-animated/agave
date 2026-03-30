@@ -47,7 +47,7 @@ struct VolumeDisplay
 class Lighting
 {
 public:
-  Lighting(void)
+  Lighting()
     : m_NoLights(0)
     , m_Lights{ nullptr, nullptr, nullptr, nullptr }
     , m_sceneLights{ nullptr, nullptr, nullptr, nullptr }

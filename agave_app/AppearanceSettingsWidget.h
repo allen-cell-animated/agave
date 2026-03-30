@@ -32,7 +32,7 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+  QAppearanceSettingsWidget(QWidget* pParent = nullptr,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
                             QAction* pToggleRotateAction = nullptr,
@@ -42,9 +42,9 @@ public:
   void onTimeChanged(int newTime);
 
 public slots:
-  void OnRenderBegin(void);
+  void OnRenderBegin();
   void OnSetDensityScale(double DensityScale);
-  void OnTransferFunctionChanged(void);
+  void OnTransferFunctionChanged();
   void OnSetRendererType(int Index);
   void OnSetShadingType(int Index);
   void OnSetGradientFactor(double GradientFactor);

@@ -6,7 +6,8 @@ QRenderSettings::QRenderSettings(QObject* pParent)
   : QObject(pParent)
   , m_RendererType(1)
   , m_renderSettings(nullptr)
-{}
+{
+}
 
 QRenderSettings::QRenderSettings(const QRenderSettings& Other)
 {
@@ -37,7 +38,7 @@ QRenderSettings::setRenderSettings(RenderSettings& rs)
 }
 
 float
-QRenderSettings::GetDensityScale(void) const
+QRenderSettings::GetDensityScale() const
 {
   return m_renderSettings->m_RenderSettings.m_DensityScale;
 }
@@ -54,7 +55,7 @@ QRenderSettings::SetDensityScale(const float& DensityScale)
 }
 
 int
-QRenderSettings::GetShadingType(void) const
+QRenderSettings::GetShadingType() const
 {
   return m_renderSettings->m_RenderSettings.m_ShadingType;
 }
@@ -71,7 +72,7 @@ QRenderSettings::SetShadingType(const int& ShadingType)
 }
 
 int
-QRenderSettings::GetRendererType(void) const
+QRenderSettings::GetRendererType() const
 {
   return m_RendererType;
 }
@@ -88,7 +89,7 @@ QRenderSettings::SetRendererType(const int& RendererType)
 }
 
 float
-QRenderSettings::GetGradientFactor(void) const
+QRenderSettings::GetGradientFactor() const
 {
   return m_renderSettings->m_RenderSettings.m_GradientFactor;
 }

@@ -457,7 +457,7 @@ GLView3D::OnUpdateCamera()
 }
 
 void
-GLView3D::OnUpdateQRenderSettings(void)
+GLView3D::OnUpdateQRenderSettings()
 {
   // QMutexLocker Locker(&gSceneMutex);
   RenderSettings* rs = m_viewerWindow->m_renderSettings;

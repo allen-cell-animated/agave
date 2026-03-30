@@ -17,20 +17,19 @@
 #include <QString>
 #include <QUrlQuery>
 
+constexpr int DEFAULT_SERVER_PORT = 1235;
+
 struct ServerParams
 {
-  int _port;
+  int _port{ DEFAULT_SERVER_PORT };
   QStringList _preloadList;
 
   // defaults
-  ServerParams()
-    : _port(1235)
-  {
-  }
+  ServerParams() = default;
 };
 
 ServerParams
-readConfig(QString configPath)
+readConfig(const QString& configPath)
 {
   // defaults from default ctor
   ServerParams p;
@@ -65,8 +64,8 @@ readConfig(QString configPath)
     QJsonArray preloadArray = json["preload"].toArray();
     p._preloadList.clear();
     p._preloadList.reserve(preloadArray.size());
-    for (int i = 0; i < preloadArray.size(); ++i) {
-      QString preloadString = preloadArray[i].toString();
+    for (auto&& i : preloadArray) {
+      QString preloadString = i.toString();
       p._preloadList.append(preloadString);
     }
   }
@@ -75,9 +74,9 @@ readConfig(QString configPath)
 }
 
 void
-preloadFiles(QStringList preloadlist)
+preloadFiles(const QStringList& preloadlist)
 {
-  for (QString s : preloadlist) {
+  for (const QString& s : preloadlist) {
     QFileInfo info(s);
     if (info.exists()) {
       LoadSpec loadSpec;
@@ -92,8 +91,6 @@ preloadFiles(QStringList preloadlist)
     }
   }
 }
-
-static const QString kAgaveUrlPrefix("agave://");
 
 void
 customMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
@@ -169,99 +166,102 @@ public:
 int
 main(int argc, char* argv[])
 {
-  Logging::Init();
-
-  QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
-  QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QApplication::setStyle("fusion");
-  AgaveApplication a(argc, argv);
-  a.setOrganizationName("Allen Institute for Cell Science");
-  a.setOrganizationDomain("allencell.org");
-  a.setApplicationName("AGAVE");
-  a.setApplicationVersion(AICS_VERSION_STRING);
-
-  LOG_INFO << a.organizationName().toStdString() << " " << a.applicationName().toStdString() << " "
-           << a.applicationVersion().toStdString();
-
-  QCommandLineParser parser;
-  parser.setApplicationDescription("Advanced GPU Accelerated Volume Explorer");
-  parser.addHelpOption();
-  parser.addVersionOption();
-  QCommandLineOption serverOption("server",
-                                  QCoreApplication::translate("main", "Run as websocket server without GUI."));
-  parser.addOption(serverOption);
-
-  QCommandLineOption loadOption("load",
-                                QCoreApplication::translate("main", "File or url to load."),
-                                QCoreApplication::translate("main", "fileToLoad"));
-  parser.addOption(loadOption);
-
-  QCommandLineOption listDevicesOption(
-    "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)."));
-  parser.addOption(listDevicesOption);
-  QCommandLineOption selectGpuOption(
-    "gpu",
-    QCoreApplication::translate("main", "Select EGL device by index (only valid in --server mode)."),
-    QCoreApplication::translate("main", "gpu"),
-    "0");
-  parser.addOption(selectGpuOption);
-  QCommandLineOption serverConfigOption("config",
-                                        QCoreApplication::translate("main", "Path to config file."),
-                                        QCoreApplication::translate("main", "config"),
-                                        QCoreApplication::translate("main", "setup.cfg"));
-  parser.addOption(serverConfigOption);
-
-  // Process the actual command line arguments given by the user
-  parser.process(a);
-
-  bool isServer = parser.isSet(serverOption);
-  bool listDevices = parser.isSet(listDevicesOption);
-  int selectedGpu = parser.value(selectGpuOption).toInt();
-  QString fileInput = parser.value(loadOption);
-  std::string fileToLoad;
-  if (fileInput.startsWith(kAgaveUrlPrefix)) {
-    fileToLoad = getUrlToOpen(QUrl(fileInput));
-  } else {
-    fileToLoad = fileInput.toStdString();
-  }
-
-  QString appPath = QCoreApplication::applicationDirPath();
-  std::string appPathStr = appPath.toStdString();
-  LOG_INFO << "Application path: " << appPathStr;
-
-  // renderlib needs to be told where its assets live
-  QString assetsPath =
-    QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "assets", QStandardPaths::LocateDirectory);
-  if (assetsPath.isEmpty()) {
-    // fallback to relative to application dir
-    assetsPath = appPath + "/assets";
-  }
-
-  LOG_INFO << "Assets path: " << assetsPath.toStdString();
-
-  if (!renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
-    renderlib::cleanup();
-    return 0;
-  }
-
   int result = 0;
 
   try {
+
+    Logging::Init();
+
+    QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setStyle("fusion");
+    AgaveApplication a(argc, argv);
+    AgaveApplication::setOrganizationName("Allen Institute for Cell Science");
+    AgaveApplication::setOrganizationDomain("allencell.org");
+    AgaveApplication::setApplicationName("AGAVE");
+    AgaveApplication::setApplicationVersion(AICS_VERSION_STRING);
+
+    LOG_INFO << AgaveApplication::organizationName().toStdString() << " "
+             << AgaveApplication::applicationName().toStdString() << " "
+             << AgaveApplication::applicationVersion().toStdString();
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Advanced GPU Accelerated Volume Explorer");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    QCommandLineOption serverOption("server",
+                                    QCoreApplication::translate("main", "Run as websocket server without GUI."));
+    parser.addOption(serverOption);
+
+    QCommandLineOption loadOption("load",
+                                  QCoreApplication::translate("main", "File or url to load."),
+                                  QCoreApplication::translate("main", "fileToLoad"));
+    parser.addOption(loadOption);
+
+    QCommandLineOption listDevicesOption(
+      "list_devices", QCoreApplication::translate("main", "Log the known EGL devices (only valid in --server mode)."));
+    parser.addOption(listDevicesOption);
+    QCommandLineOption selectGpuOption(
+      "gpu",
+      QCoreApplication::translate("main", "Select EGL device by index (only valid in --server mode)."),
+      QCoreApplication::translate("main", "gpu"),
+      "0");
+    parser.addOption(selectGpuOption);
+    QCommandLineOption serverConfigOption("config",
+                                          QCoreApplication::translate("main", "Path to config file."),
+                                          QCoreApplication::translate("main", "config"),
+                                          QCoreApplication::translate("main", "setup.cfg"));
+    parser.addOption(serverConfigOption);
+
+    // Process the actual command line arguments given by the user
+    parser.process(a);
+
+    bool isServer = parser.isSet(serverOption);
+    bool listDevices = parser.isSet(listDevicesOption);
+    int selectedGpu = parser.value(selectGpuOption).toInt();
+    QString fileInput = parser.value(loadOption);
+    std::string fileToLoad;
+    static const QString kAgaveUrlPrefix("agave://");
+    if (fileInput.startsWith(kAgaveUrlPrefix)) {
+      fileToLoad = getUrlToOpen(QUrl(fileInput));
+    } else {
+      fileToLoad = fileInput.toStdString();
+    }
+
+    QString appPath = QCoreApplication::applicationDirPath();
+    std::string appPathStr = appPath.toStdString();
+    LOG_INFO << "Application path: " << appPathStr;
+
+    // renderlib needs to be told where its assets live
+    QString assetsPath =
+      QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "assets", QStandardPaths::LocateDirectory);
+    if (assetsPath.isEmpty()) {
+      // fallback to relative to application dir
+      assetsPath = appPath + "/assets";
+    }
+
+    LOG_INFO << "Assets path: " << assetsPath.toStdString();
+
+    if (0 == renderlib::initialize(assetsPath.toStdString(), isServer, listDevices, selectedGpu)) {
+      renderlib::cleanup();
+      return 0;
+    }
+
     if (isServer) {
       QString configPath = parser.value(serverConfigOption);
       ServerParams p = readConfig(configPath);
 
-      StreamServer* server = new StreamServer(p._port, false, 0);
-
+      auto server = std::make_unique<StreamServer>(p._port, false, nullptr);
+      LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString() << " on port " << p._port;
+#if 0
       // set to true to show windows, or false to run as a console application
-      static const bool gui = false;
+      static constexpr bool gui = false;
       if (gui) {
         MainWindow* _ = new MainWindow(server);
         _->resize(512, 512);
         _->show();
       }
-
-      LOG_INFO << "Created server at working directory:" << QDir::currentPath().toStdString();
+#endif
 
       // delete logFile;
 
@@ -281,13 +281,14 @@ main(int argc, char* argv[])
       }
       result = a.exec();
     }
+    renderlib::cleanup();
   } catch (const std::exception& exc) {
     LOG_ERROR << "Exception caught in main: " << exc.what();
+    renderlib::cleanup();
   } catch (...) {
     LOG_ERROR << "Exception caught in main";
+    renderlib::cleanup();
   }
-
-  renderlib::cleanup();
 
   return result;
 }

@@ -12,7 +12,7 @@ class QAppearanceWidget : public QWidget
   Q_OBJECT
 
 public:
-  QAppearanceWidget(QWidget* pParent = NULL,
+  QAppearanceWidget(QWidget* pParent = nullptr,
                     QRenderSettings* qrs = nullptr,
                     RenderSettings* rs = nullptr,
                     QAction* pToggleRotateAction = nullptr,
@@ -35,7 +35,7 @@ class QAppearanceDockWidget : public QDockWidget
   Q_OBJECT
 
 public:
-  QAppearanceDockWidget(QWidget* pParent = NULL,
+  QAppearanceDockWidget(QWidget* pParent = nullptr,
                         QRenderSettings* qrs = nullptr,
                         RenderSettings* rs = nullptr,
                         QAction* pToggleRotateAction = nullptr,

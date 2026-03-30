@@ -15,7 +15,7 @@
 class Timing
 {
 public:
-  Timing(void)
+  Timing()
     : m_NoDurations(MAX_NO_DURATIONS)
     , m_FilteredDuration(0.0f)
   {
@@ -33,10 +33,14 @@ public:
     m_FilteredDuration = 0.0f;
   }
 
-  virtual ~Timing(void){};
+  virtual ~Timing() {};
 
   Timing& operator=(const Timing& Other)
   {
+    if (this == &Other) {
+      return *this;
+    }
+
     m_Name = Other.m_Name;
 
     for (int i = 0; i < MAX_NO_DURATIONS; i++) {
@@ -100,8 +104,7 @@ struct Clock
   static double now()
   {
     auto currentDateTime = std::chrono::system_clock::now();
-    const auto ms =
-      std::chrono::time_point_cast<std::chrono::milliseconds>(currentDateTime).time_since_epoch().count();
+    const auto ms = std::chrono::time_point_cast<std::chrono::milliseconds>(currentDateTime).time_since_epoch().count();
     return ms / 1000.0;
   }
 

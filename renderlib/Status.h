@@ -9,12 +9,12 @@ class Scene;
 class IStatusObserver
 {
 public:
-  virtual void RenderBegin(void) = 0;
-  virtual void RenderEnd(void) = 0;
-  virtual void PreRenderFrame(void) = 0;
-  virtual void PostRenderFrame(void) = 0;
+  virtual void RenderBegin() = 0;
+  virtual void RenderEnd() = 0;
+  virtual void PreRenderFrame() = 0;
+  virtual void PostRenderFrame() = 0;
   virtual void RenderPause(const bool& Paused) = 0;
-  virtual void Resize(void) = 0;
+  virtual void Resize() = 0;
   virtual void LoadPreset(const std::string& PresetName) = 0;
   virtual void StatisticChanged(const std::string& Group,
                                 const std::string& Name,
@@ -29,12 +29,12 @@ class CStatus
 public:
   void EnableUpdates(bool enabled) { mUpdatesEnabled = enabled; }
 
-  void SetRenderBegin(void);
-  void SetRenderEnd(void);
-  void SetPreRenderFrame(void);
-  void SetPostRenderFrame(void);
+  void SetRenderBegin();
+  void SetRenderEnd();
+  void SetPreRenderFrame();
+  void SetPostRenderFrame();
   void SetRenderPause(const bool& Pause);
-  void SetResize(void);
+  void SetResize();
   void SetLoadPreset(const std::string& PresetName);
   void SetStatisticChanged(const std::string& Group,
                            const std::string& Name,

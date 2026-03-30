@@ -121,11 +121,11 @@ Image3D::render(const CCamera& camera, const Scene* scene, const RenderSettings*
   glBindVertexArray(m_vertices);
 
   m_image3d_shader->enableCoords();
-  m_image3d_shader->setCoords(m_image_vertices, 0, 3);
+  m_image3d_shader->setCoords(m_image_vertices, nullptr, 3);
 
   // Push each element to the vertex shader
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_image_elements);
-  glDrawElements(GL_TRIANGLES, (GLsizei)m_num_image_elements, GL_UNSIGNED_SHORT, 0);
+  glDrawElements(GL_TRIANGLES, (GLsizei)m_num_image_elements, GL_UNSIGNED_SHORT, nullptr);
   check_gl("Image3D draw elements");
 
   m_image3d_shader->disableCoords();

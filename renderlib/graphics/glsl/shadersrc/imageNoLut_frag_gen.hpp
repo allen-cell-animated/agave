@@ -14,7 +14,7 @@ in VertexData
 
 out vec4 outputColour;
 
-void main(void) {
+void main() {
   vec4 texval = texture(tex, inData.f_texcoord);
 
   outputColour = texval;
@@ -22,5 +22,4 @@ void main(void) {
 
 )";
 
-const std::string imageNoLut_frag_src = 
-    imageNoLut_frag_chunk_0;
+const std::string imageNoLut_frag_src = imageNoLut_frag_chunk_0;

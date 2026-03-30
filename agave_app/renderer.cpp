@@ -20,7 +20,7 @@
 #include <QMutexLocker>
 #include <QOpenGLFramebufferObjectFormat>
 
-Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
+Renderer::Renderer(const QString& id, QObject* parent, QMutex& mutex)
   : QThread(parent)
   , m_id(id)
   , m_streamMode(false)
@@ -192,7 +192,7 @@ Renderer::processRequest()
       this->m_totalQueueDuration -= r->getDuration();
 
       std::vector<Command*> cmds = r->getParameters();
-      if (cmds.size() > 0) {
+      if (!cmds.empty()) {
         this->processCommandBuffer(r);
       }
 
@@ -246,7 +246,7 @@ Renderer::processRequest()
       timer.start();
 
       std::vector<Command*> cmds = r->getParameters();
-      if (cmds.size() > 0) {
+      if (!cmds.empty()) {
         this->processCommandBuffer(r);
       }
 
@@ -285,7 +285,7 @@ Renderer::processCommandBuffer(RenderRequest* rr)
   m_rglContext.makeCurrent();
 
   std::vector<Command*> cmds = rr->getParameters();
-  if (cmds.size() > 0) {
+  if (!cmds.empty()) {
     m_ec.m_renderSettings = &m_myVolumeData.m_renderer->renderSettings();
     m_ec.m_renderer = this;
     m_ec.m_appScene = m_myVolumeData.m_renderer->scene();

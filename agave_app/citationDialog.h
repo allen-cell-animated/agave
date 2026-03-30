@@ -6,7 +6,7 @@ class CitationDialog : public QDialog
 {
 public:
   CitationDialog();
-  virtual ~CitationDialog();
+  ~CitationDialog() override;
 
   QSize sizeHint() const override { return QSize(500, 100); }
 };

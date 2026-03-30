@@ -177,15 +177,15 @@ RectImage2D::draw(GLuint texture2d)
   check_gl("bind vtx buf");
 
   _image_shader->enableCoords();
-  _image_shader->setCoords(_quadVertices, 0, 2);
+  _image_shader->setCoords(_quadVertices, nullptr, 2);
 
   _image_shader->enableTexCoords();
-  _image_shader->setTexCoords(_quadTexcoords, 0, 2);
+  _image_shader->setTexCoords(_quadTexcoords, nullptr, 2);
 
   // Push each element to the vertex shader
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _quadIndices);
   check_gl("bind element buf");
-  glDrawElements(GL_TRIANGLES, (GLsizei)_num_image_elements, GL_UNSIGNED_SHORT, 0);
+  glDrawElements(GL_TRIANGLES, (GLsizei)_num_image_elements, GL_UNSIGNED_SHORT, nullptr);
   check_gl("RectImage2D draw elements");
 
   _image_shader->disableCoords();
@@ -344,12 +344,12 @@ BoundingBoxDrawable::drawLines(const glm::mat4& transform, const glm::vec4& colo
   check_gl("bind vtx buf");
 
   _shader->enableCoords();
-  _shader->setCoords(_vertices, 0, 3);
+  _shader->setCoords(_vertices, nullptr, 3);
 
   // Push each element to the vertex shader
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _line_indices);
   check_gl("bind element buf");
-  glDrawElements(GL_LINES, (GLsizei)_num_line_elements, GL_UNSIGNED_SHORT, 0);
+  glDrawElements(GL_LINES, (GLsizei)_num_line_elements, GL_UNSIGNED_SHORT, nullptr);
   check_gl("bounding box draw elements");
 
   _shader->disableCoords();
@@ -431,7 +431,7 @@ BoundingBoxDrawable::drawTickMarks(const glm::mat4& transform, const glm::vec4& 
 
   _shader->enableCoords();
   // 3 floats per vertex
-  _shader->setCoords(_vertices2, 0, 3);
+  _shader->setCoords(_vertices2, nullptr, 3);
 
   // Push each element to the vertex shader
   glDrawArrays(GL_LINES, 0, (GLsizei)_num_tick_mark_floats / 3);
@@ -456,12 +456,12 @@ BoundingBoxDrawable::drawFaces(const glm::mat4& transform, const glm::vec4& colo
   check_gl("bind vtx buf");
 
   _shader->enableCoords();
-  _shader->setCoords(_vertices, 0, 3);
+  _shader->setCoords(_vertices, nullptr, 3);
 
   // Push each element to the vertex shader
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _face_indices);
   check_gl("bind element buf");
-  glDrawElements(GL_TRIANGLES, (GLsizei)_num_face_elements, GL_UNSIGNED_SHORT, 0);
+  glDrawElements(GL_TRIANGLES, (GLsizei)_num_face_elements, GL_UNSIGNED_SHORT, nullptr);
   check_gl("bounding box draw elements");
 
   _shader->disableCoords();
@@ -470,19 +470,19 @@ BoundingBoxDrawable::drawFaces(const glm::mat4& transform, const glm::vec4& colo
   _shader->release();
 }
 
-GLTimer::GLTimer(void)
+GLTimer::GLTimer()
 {
   StartTimer();
 }
 
-GLTimer::~GLTimer(void)
+GLTimer::~GLTimer()
 {
   glDeleteQueries(1, &m_EventStart);
   glDeleteQueries(1, &m_EventStop);
 }
 
 void
-GLTimer::StartTimer(void)
+GLTimer::StartTimer()
 {
   glGenQueries(1, &m_EventStart);
   glGenQueries(1, &m_EventStop);
@@ -492,7 +492,7 @@ GLTimer::StartTimer(void)
 }
 
 float
-GLTimer::StopTimer(void)
+GLTimer::StopTimer()
 {
   if (!m_Started)
     return 0.0f;
@@ -512,7 +512,7 @@ GLTimer::StopTimer(void)
 }
 
 float
-GLTimer::ElapsedTime(void)
+GLTimer::ElapsedTime()
 {
   if (!m_Started)
     return 0.0f;
@@ -676,7 +676,7 @@ GLShader::~GLShader()
 bool
 GLShader::compileSourceCode(const char* sourceCode)
 {
-  glShaderSource(m_shader, 1, &sourceCode, NULL);
+  glShaderSource(m_shader, 1, &sourceCode, nullptr);
 
   glCompileShader(m_shader);
 
@@ -709,6 +709,8 @@ GLShader::compileSourceCode(const char* sourceCode)
         break;
       case GL_COMPUTE_SHADER:
         type = types[5];
+        break;
+      default:
         break;
     }
 
