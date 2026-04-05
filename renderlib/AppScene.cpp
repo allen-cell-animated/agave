@@ -7,7 +7,7 @@
 #include <glm/gtx/color_space.hpp>
 
 inline std::vector<float>
-rndColors(int count)
+rndColors(size_t count)
 {
   std::vector<float> colors;
   // colors.push_back(QColor(255, 0, 255));
@@ -50,7 +50,7 @@ VolumeDisplay::VolumeDisplay()
 {
   std::vector<float> colors = rndColors(MAX_CPU_CHANNELS);
 
-  for (uint32_t i = 0; i < MAX_CPU_CHANNELS; ++i) {
+  for (size_t i = 0; i < MAX_CPU_CHANNELS; ++i) {
     // enable first N channels!
     m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
 
@@ -130,7 +130,7 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 {
   std::vector<float> colors = rndColors(img->sizeC());
 
-  for (uint32_t i = 0; i < img->sizeC(); ++i) {
+  for (size_t i = 0; i < img->sizeC(); ++i) {
     // enable first 3 channels!
     m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
 

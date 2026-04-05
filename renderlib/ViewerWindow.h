@@ -18,8 +18,8 @@ public:
   ~ViewerWindow();
 
   void setSize(int width, int height);
-  int width() const { return sceneView.viewport.region.upper.x - sceneView.viewport.region.lower.x; }
-  int height() const { return sceneView.viewport.region.upper.y - sceneView.viewport.region.lower.y; }
+  [[nodiscard]] int width() const { return sceneView.viewport.region.upper.x - sceneView.viewport.region.lower.x; }
+  [[nodiscard]] int height() const { return sceneView.viewport.region.upper.y - sceneView.viewport.region.lower.y; }
 
   void redraw();
 
@@ -79,7 +79,7 @@ public:
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
+  int m_rendererType{ 1 };
 
   // Track camera manipulation for light following
   bool m_wasCameraBeingEdited = false;

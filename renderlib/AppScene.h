@@ -17,7 +17,8 @@
 
 class ImageXYZC;
 
-#define MAX_CPU_CHANNELS 32
+static constexpr size_t MAX_CPU_CHANNELS = 32;
+
 struct VolumeDisplay
 {
   bool m_showBoundingBox = true;
@@ -43,16 +44,11 @@ struct VolumeDisplay
   VolumeDisplay();
 };
 
-#define MAX_NO_LIGHTS 4
+static constexpr size_t MAX_NO_LIGHTS = 4;
 class Lighting
 {
 public:
-  Lighting()
-    : m_NoLights(0)
-    , m_Lights{ nullptr, nullptr, nullptr, nullptr }
-    , m_sceneLights{ nullptr, nullptr, nullptr, nullptr }
-  {
-  }
+  Lighting() = default;
   ~Lighting()
   {
     for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
@@ -63,7 +59,7 @@ public:
 
   Lighting(const Lighting& other);
 
-  Light& LightRef(int i) const { return *m_Lights[i]; }
+  [[nodiscard]] Light& LightRef(int i) const { return *m_Lights[i]; }
 
   void AddLight(Light& light)
   {
@@ -87,9 +83,9 @@ public:
     m_sceneLights[i] = new SceneLight(m_Lights[i]);
   }
 
-  Light* m_Lights[MAX_NO_LIGHTS];
-  int m_NoLights;
-  SceneLight* m_sceneLights[MAX_NO_LIGHTS];
+  Light* m_Lights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
+  int m_NoLights{ 0 };
+  SceneLight* m_sceneLights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
 
   bool lockToCamera = false;
 };
@@ -112,11 +108,11 @@ public:
   // convenience functions
   // For now, this must match the order in which the lights were added, in initLights
   static constexpr int SphereLightIndex = 0;
-  Light& SphereLight() const { return *m_lighting.m_Lights[SphereLightIndex]; }
-  SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]; }
+  [[nodiscard]] Light& SphereLight() const { return *m_lighting.m_Lights[SphereLightIndex]; }
+  [[nodiscard]] SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]; }
   static constexpr int AreaLightIndex = 1;
-  Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
-  SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
+  [[nodiscard]] Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
+  [[nodiscard]] SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
 
   // weak ptr! must not outlive the objects it points to.
   SceneObject* m_selection = nullptr;

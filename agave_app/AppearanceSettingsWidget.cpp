@@ -15,13 +15,14 @@
 #include <QFrame>
 #include <QItemDelegate>
 #include <QLinearGradient>
+#include <algorithm>
 
 static QGradientStops
 colormapToGradient(const std::vector<ColorControlPoint>& v)
 {
   QGradientStops stops;
-  for (int i = 0; i < v.size(); ++i) {
-    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  for (auto i : v) {
+    stops.push_back(QPair<qreal, QColor>(i.first, QColor::fromRgb(i.r, i.g, i.b, i.a)));
   }
   return stops;
 }
@@ -1010,8 +1011,8 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   // if more than 4, then switch this one back off
   if (is_checked) {
     int count = 0;
-    for (int j = 0; j < m_channelSections.size(); j++) {
-      if (m_channelSections[j]->isChecked())
+    for (auto& m_channelSection : m_channelSections) {
+      if (m_channelSection->isChecked())
         count++;
     }
     if (count > MAX_CHANNELS_CHECKED) {
@@ -1034,7 +1035,7 @@ static inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
 {
   // if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
-  float i = std::max(incolor.x, std::max(incolor.y, incolor.z));
+  float i = std::max({ incolor.x, incolor.y, incolor.z });
   outintensity = (i > 1.0f) ? i : 1.0f;
   glm::vec3 voutcolor = incolor / i;
   outcolor = QColor::fromRgbF(voutcolor.x, voutcolor.y, voutcolor.z);
@@ -1064,7 +1065,7 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
-  scene->SceneAreaLight()->m_observers.push_back([this](const Light& light) {
+  scene->SceneAreaLight()->m_observers.emplace_back([this](const Light& light) {
     // update gui controls
 
     // bring theta into 0..2pi
@@ -1159,7 +1160,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   initClipPlaneControls(scene);
 
   int numEnabled = 0;
-  for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
+  for (int i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
     // only really allow the first 4 enabled
     if (channelenabled) {
@@ -1189,9 +1190,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
       // convert stops to control points
-      std::vector<LutControlPoint> pts;
-      for (int i = 0; i < stops.size(); ++i) {
-        pts.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
+      std::vector<LutControlPoint> pts(stops.size());
+      for (const auto& stop : stops) {
+        pts.emplace_back(stop.first, stop.second.alphaF());
       }
 
       this->OnUpdateLut(i, pts);

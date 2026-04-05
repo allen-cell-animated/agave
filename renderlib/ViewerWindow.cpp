@@ -1,5 +1,7 @@
 #include "ViewerWindow.h"
 
+#include <memory>
+
 #include "AppScene.h"
 #include "AxisHelperTool.h"
 #include "BoundingBoxTool.h"
@@ -20,7 +22,6 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
   , m_gestureRenderer(new GestureRendererGL())
-  , m_rendererType(1)
 {
   gesture.input.reset();
 
@@ -452,17 +453,17 @@ ViewerWindow::setRenderer(int rendererType)
   switch (rendererType) {
     case 1:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer = std::make_unique<RenderGLPT>(m_renderSettings);
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer = std::make_unique<RenderGLPT>(m_renderSettings);
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     default:
       LOG_DEBUG << "Set OpenGL single pass Renderer";
-      m_renderer.reset(new RenderGL(m_renderSettings));
+      m_renderer = std::make_unique<RenderGL>(m_renderSettings);
   };
   m_rendererType = rendererType;
 
