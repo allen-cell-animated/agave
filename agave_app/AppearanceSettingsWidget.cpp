@@ -321,6 +321,9 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 
   // create a "lock lights to camera" checkbox
   auto* lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
+  lockLightsToCameraCheckBox->setStatusTip(tr("When checked, interactive volume rotation will not rotate lights"));
+  lockLightsToCameraCheckBox->setToolTip(tr("When checked, interactive volume rotation will not rotate lights"));
+
   lockLightsToCameraCheckBox->setChecked(false);
   m_MainLayout.addRow(lockLightsToCameraCheckBox);
   QObject::connect(lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
