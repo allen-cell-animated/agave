@@ -30,8 +30,8 @@ SceneLight::updateTransform()
   m_light->updateBasisFrame();
 
   // this lets the GUI have a chance to update in an abstract way
-  for (auto it = m_observers.begin(); it != m_observers.end(); ++it) {
-    (*it)(*m_light);
+  for (auto& m_observer : m_observers) {
+    m_observer(*m_light);
   }
 }
 
@@ -50,24 +50,9 @@ SceneLight::applyBasis(const glm::mat3& basis)
 
     m_light->validateBasis("area-lock");
   } else {
-    m_light->m_N = newN;
-    m_light->m_U = newU;
-    m_light->m_V = newV;
-
     m_transform.m_rotation = glm::quat_cast(basis);
 
-    float phi, theta;
-    Light::cartesianToSpherical(newN, phi, theta);
-    m_light->m_Phi = phi;
-    m_light->m_Theta = theta;
-    m_light->m_P = m_light->m_Target + newN;
-
-    m_light->updateBasisFrame();
-
+    updateTransform();
     m_light->validateBasis("sphere-lock");
-
-    for (auto& observer : m_observers) {
-      observer(*m_light);
-    }
   }
 }
