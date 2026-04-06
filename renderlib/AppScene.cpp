@@ -26,7 +26,7 @@ rndColors(size_t count)
   colors.push_back(1.0);
 
   float currentHue = 0.0;
-  for (int i = 0; i < count; i++) {
+  for (size_t i = 0; i < count; i++) {
     glm::vec3 rgb = glm::rgbColor(glm::vec3(currentHue * 360.0f, 1.0f, 0.5f));
     colors.push_back(rgb.x);
     colors.push_back(rgb.y);
