@@ -560,8 +560,8 @@ QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
   auto btnLayout = new QHBoxLayout();
 
   m_lt1gui.m_RotateButton = new QPushButton("Rotate");
-  m_lt1gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
-  m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_lt1gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for sky light rotation angle"));
+  m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for sky light rotation angle"));
   btnLayout->addWidget(m_lt1gui.m_RotateButton);
   QObject::connect(m_lt1gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
     if (!this->m_scene || !this->m_scene->m_volume) {
