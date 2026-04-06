@@ -43,8 +43,8 @@ struct Light
   float m_halfHeight;
   float m_distance;
   float m_skyRadius;
-  // for skylight m_target is the sphere center;
-  // for arealight m_P is the center of the rectangle
+  // for skylight m_P is the north pole ("top").
+  // for arealight m_P is the center of the rectangle.
   vec3 m_P;
   vec3 m_target;
   vec3 m_N;
