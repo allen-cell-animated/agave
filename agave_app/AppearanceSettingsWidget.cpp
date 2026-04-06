@@ -1190,7 +1190,8 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
       // convert stops to control points
-      std::vector<LutControlPoint> pts(stops.size());
+      std::vector<LutControlPoint> pts;
+      pts.reserve(stops.size());
       for (const auto& stop : stops) {
         pts.emplace_back(stop.first, stop.second.alphaF());
       }
