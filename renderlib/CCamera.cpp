@@ -453,3 +453,43 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
 
   return cameraEdit;
 }
+
+glm::mat3
+CCamera::reconstructBasis(const glm::mat3& capturedBasis) const
+{
+  glm::vec3 capturedU = capturedBasis[0];
+  glm::vec3 capturedV = capturedBasis[1];
+  glm::vec3 capturedN = capturedBasis[2];
+
+  glm::vec3 newU = capturedU.x * m_U + capturedU.y * m_V + capturedU.z * m_N;
+  glm::vec3 newV = capturedV.x * m_U + capturedV.y * m_V + capturedV.z * m_N;
+  glm::vec3 newN = capturedN.x * m_U + capturedN.y * m_V + capturedN.z * m_N;
+
+  if (glm::length(newN) <= 1e-6f) {
+    newN = glm::vec3(0.0f, 0.0f, 1.0f);
+  }
+  newN = glm::normalize(newN);
+
+  newU = newU - newN * glm::dot(newU, newN);
+  if (glm::length(newU) <= 1e-6f) {
+    newU = glm::abs(newN.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+  }
+  newU = glm::normalize(newU);
+  newV = glm::normalize(glm::cross(newN, newU));
+
+  return glm::mat3(newU, newV, newN);
+};
+
+glm::mat3
+CCamera::captureRelativeBasis(const glm::mat3& worldBasis) const
+{
+  glm::vec3 worldU = worldBasis[0];
+  glm::vec3 worldV = worldBasis[1];
+  glm::vec3 worldN = worldBasis[2];
+
+  glm::vec3 capturedU(glm::dot(worldU, m_U), glm::dot(worldU, m_V), glm::dot(worldU, m_N));
+  glm::vec3 capturedV(glm::dot(worldV, m_U), glm::dot(worldV, m_V), glm::dot(worldV, m_N));
+  glm::vec3 capturedN(glm::dot(worldN, m_U), glm::dot(worldN, m_V), glm::dot(worldN, m_N));
+
+  return glm::mat3(capturedU, capturedV, capturedN);
+};

@@ -539,6 +539,11 @@ public:
   // return the world-space vectors that correspond to camera x, y, z directions
   LinearSpace3f getFrame() const;
 
+  // transform camera space basis into world space using the current camera frame.
+  glm::mat3 reconstructBasis(const glm::mat3& capturedBasis) const;
+  // transform world space basis into camera space using the current camera frame.
+  glm::mat3 captureRelativeBasis(const glm::mat3& worldBasis) const;
+
   float getDistance(glm::vec3 p) const { return glm::distance(p, m_From); }
 
   void getProjMatrix(glm::mat4& projMatrix) const

@@ -138,143 +138,25 @@ ViewerWindow::updateCamera()
   // camera manipulation, then during manipulation update the light direction
   // in world space to match the captured relative direction.
   if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
-    auto validateBasis = [&](Light* light, const char* label) {
-      if (!light) {
-        return;
-      }
-      const float lenN = glm::length(light->m_N);
-      const float lenU = glm::length(light->m_U);
-      const float lenV = glm::length(light->m_V);
-      const float dotNU = glm::dot(light->m_N, light->m_U);
-      const float dotNV = glm::dot(light->m_N, light->m_V);
-      const float dotUV = glm::dot(light->m_U, light->m_V);
-      const float eps = 1e-3f;
-      if (glm::abs(lenN - 1.0f) > eps || glm::abs(lenU - 1.0f) > eps || glm::abs(lenV - 1.0f) > eps ||
-          glm::abs(dotNU) > eps || glm::abs(dotNV) > eps || glm::abs(dotUV) > eps) {
-        LOG_WARNING << "Light basis not orthonormal (" << label << ")"
-                    << " lenN=" << lenN << " lenU=" << lenU << " lenV=" << lenV << " dotNU=" << dotNU
-                    << " dotNV=" << dotNV << " dotUV=" << dotUV;
-      }
-    };
-
-    auto captureRelativeBasis = [&](SceneLight* sceneLight, glm::mat3& capturedBasis) {
-      if (!sceneLight || !sceneLight->m_light) {
-        return;
-      }
-      CCamera baseCamera = m_CCamera;
-      baseCamera.Update();
-
-      glm::vec3 worldU = sceneLight->m_light->m_U;
-      glm::vec3 worldV = sceneLight->m_light->m_V;
-      glm::vec3 worldN = sceneLight->m_light->m_N;
-
-      glm::vec3 capturedU(
-        glm::dot(worldU, baseCamera.m_U), glm::dot(worldU, baseCamera.m_V), glm::dot(worldU, baseCamera.m_N));
-      glm::vec3 capturedV(
-        glm::dot(worldV, baseCamera.m_U), glm::dot(worldV, baseCamera.m_V), glm::dot(worldV, baseCamera.m_N));
-      glm::vec3 capturedN(
-        glm::dot(worldN, baseCamera.m_U), glm::dot(worldN, baseCamera.m_V), glm::dot(worldN, baseCamera.m_N));
-
-      capturedBasis = glm::mat3(capturedU, capturedV, capturedN);
-    };
-
-    auto applyRelativeBasis = [&](SceneLight* sceneLight, const glm::mat3& capturedBasis) {
-      if (!sceneLight || !sceneLight->m_light) {
-        return;
-      }
-
-      glm::vec3 capturedU = capturedBasis[0];
-      glm::vec3 capturedV = capturedBasis[1];
-      glm::vec3 capturedN = capturedBasis[2];
-
-      glm::vec3 newU =
-        capturedU.x * sceneView.camera.m_U + capturedU.y * sceneView.camera.m_V + capturedU.z * sceneView.camera.m_N;
-      glm::vec3 newV =
-        capturedV.x * sceneView.camera.m_U + capturedV.y * sceneView.camera.m_V + capturedV.z * sceneView.camera.m_N;
-      glm::vec3 newN =
-        capturedN.x * sceneView.camera.m_U + capturedN.y * sceneView.camera.m_V + capturedN.z * sceneView.camera.m_N;
-
-      if (glm::length(newN) <= 1e-6f) {
-        newN = glm::vec3(0.0f, 0.0f, 1.0f);
-      }
-      newN = glm::normalize(newN);
-
-      // Orthonormalize basis to preserve roll when possible.
-      newU = newU - newN * glm::dot(newU, newN);
-      if (glm::length(newU) <= 1e-6f) {
-        newU = glm::abs(newN.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
-      }
-      newU = glm::normalize(newU);
-      newV = glm::normalize(glm::cross(newN, newU));
-
-      Light* light = sceneLight->m_light;
-      light->m_N = newN;
-      light->m_U = newU;
-      light->m_V = newV;
-
-      sceneLight->m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, newV, newN));
-
-      float phi, theta;
-      Light::cartesianToSpherical(newN, phi, theta);
-      light->m_Phi = phi;
-      light->m_Theta = theta;
-      light->m_P = light->m_Target + newN;
-
-      light->updateBasisFrame();
-
-      validateBasis(light, "sphere-lock");
-
-      for (auto& observer : sceneLight->m_observers) {
-        observer(*light);
-      }
-    };
-
-    auto applyRelativeBasisAreaLight = [&](SceneLight* sceneLight, const glm::mat3& capturedBasis) {
-      if (!sceneLight || !sceneLight->m_light) {
-        return;
-      }
-
-      glm::vec3 capturedU = capturedBasis[0];
-      glm::vec3 capturedV = capturedBasis[1];
-      glm::vec3 capturedN = capturedBasis[2];
-
-      glm::vec3 newU =
-        capturedU.x * sceneView.camera.m_U + capturedU.y * sceneView.camera.m_V + capturedU.z * sceneView.camera.m_N;
-      glm::vec3 newV =
-        capturedV.x * sceneView.camera.m_U + capturedV.y * sceneView.camera.m_V + capturedV.z * sceneView.camera.m_N;
-      glm::vec3 newN =
-        capturedN.x * sceneView.camera.m_U + capturedN.y * sceneView.camera.m_V + capturedN.z * sceneView.camera.m_N;
-
-      if (glm::length(newN) <= 1e-6f) {
-        newN = glm::vec3(0.0f, 0.0f, 1.0f);
-      }
-      newN = glm::normalize(newN);
-
-      newU = newU - newN * glm::dot(newU, newN);
-      if (glm::length(newU) <= 1e-6f) {
-        newU = glm::abs(newN.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
-      }
-      newU = glm::normalize(newU);
-      newV = glm::normalize(glm::cross(newN, newU));
-
-      Light* light = sceneLight->m_light;
-
-      // Build a proper rotation matrix (det=+1) whose Z-axis is -newN (pointing from target to light position).
-      // {newU, newV, newN} is right-handed, so negating two columns keeps det=+1.
-      sceneLight->m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, -newV, -newN));
-      sceneLight->updateTransform();
-
-      validateBasis(light, "area-lock");
-    };
 
     if (cameraEdit && !m_wasCameraBeingEdited) {
-      captureRelativeBasis(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeBasis);
-      captureRelativeBasis(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeBasis);
+      // call update on a copy of the camera to make sure m_U, m_V, m_N are updated according to the new camera
+      // parameters before we capture the relative basis.
+      CCamera baseCamera = m_CCamera;
+      baseCamera.Update();
+      auto lt0 = sceneView.scene->SceneAreaLight()->m_light;
+      m_capturedAreaLightRelativeBasis = baseCamera.captureRelativeBasis(glm::mat3(lt0->m_U, lt0->m_V, lt0->m_N));
+      auto lt1 = sceneView.scene->SceneSphereLight()->m_light;
+      m_capturedSphereLightRelativeBasis = baseCamera.captureRelativeBasis(glm::mat3(lt1->m_U, lt1->m_V, lt1->m_N));
     }
 
     if (cameraEdit) {
-      applyRelativeBasisAreaLight(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeBasis);
-      applyRelativeBasis(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeBasis);
+      glm::mat3 basis = sceneView.camera.reconstructBasis(m_capturedAreaLightRelativeBasis);
+      sceneView.scene->SceneAreaLight()->applyBasis(basis);
+
+      basis = sceneView.camera.reconstructBasis(m_capturedSphereLightRelativeBasis);
+      sceneView.scene->SceneSphereLight()->applyBasis(basis);
+
       m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
     }
   }

@@ -34,3 +34,40 @@ SceneLight::updateTransform()
     (*it)(*m_light);
   }
 }
+
+void
+SceneLight::applyBasis(const glm::mat3& basis)
+{
+  glm::vec3 newU = basis[0];
+  glm::vec3 newV = basis[1];
+  glm::vec3 newN = basis[2];
+
+  if (m_light->m_T == LightType_Area) {
+    // Build a proper rotation matrix (det=+1) whose Z-axis is -newN (pointing from target to light position).
+    // {newU, newV, newN} is right-handed, so negating two columns keeps det=+1.
+    m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, -newV, -newN));
+    updateTransform();
+
+    m_light->validateBasis("area-lock");
+  } else {
+    m_light->m_N = newN;
+    m_light->m_U = newU;
+    m_light->m_V = newV;
+
+    m_transform.m_rotation = glm::quat_cast(basis);
+
+    float phi, theta;
+    Light::cartesianToSpherical(newN, phi, theta);
+    m_light->m_Phi = phi;
+    m_light->m_Theta = theta;
+    m_light->m_P = m_light->m_Target + newN;
+
+    m_light->updateBasisFrame();
+
+    m_light->validateBasis("sphere-lock");
+
+    for (auto& observer : m_observers) {
+      observer(*m_light);
+    }
+  }
+}

@@ -1,5 +1,8 @@
 #include "Light.h"
 
+#include "CCamera.h"
+#include "Logging.h"
+
 void
 Light::Update(const CBoundingBox& BoundingBox)
 {
@@ -96,4 +99,22 @@ Light::cartesianToSpherical(glm::vec3 v, float& phi, float& theta)
 {
   phi = acosf(v.y);
   theta = atan2f(v.x, v.z);
+}
+
+void
+Light::validateBasis(const char* logLabel) const
+{
+  const float lenN = glm::length(m_N);
+  const float lenU = glm::length(m_U);
+  const float lenV = glm::length(m_V);
+  const float dotNU = glm::dot(m_N, m_U);
+  const float dotNV = glm::dot(m_N, m_V);
+  const float dotUV = glm::dot(m_U, m_V);
+  const float eps = 1e-3f;
+  if (glm::abs(lenN - 1.0f) > eps || glm::abs(lenU - 1.0f) > eps || glm::abs(lenV - 1.0f) > eps ||
+      glm::abs(dotNU) > eps || glm::abs(dotNV) > eps || glm::abs(dotUV) > eps) {
+    LOG_WARNING << "Light basis not orthonormal (" << logLabel << ")"
+                << " lenN=" << lenN << " lenU=" << lenU << " lenV=" << lenV << " dotNU=" << dotNU << " dotNV=" << dotNV
+                << " dotUV=" << dotUV;
+  }
 }
