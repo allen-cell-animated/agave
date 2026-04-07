@@ -59,7 +59,7 @@ public:
 
   Lighting(const Lighting& other);
 
-  [[nodiscard]] Light& LightRef(int i) const { return *m_Lights[i]; }
+  Light& LightRef(int i) const { return *m_Lights[i]; }
 
   void AddLight(Light& light)
   {
@@ -108,11 +108,11 @@ public:
   // convenience functions
   // For now, this must match the order in which the lights were added, in initLights
   static constexpr int SphereLightIndex = 0;
-  [[nodiscard]] Light& SphereLight() const { return *m_lighting.m_Lights[SphereLightIndex]; }
-  [[nodiscard]] SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]; }
+  Light& SphereLight() const { return *m_lighting.m_Lights[SphereLightIndex]; }
+  SceneLight* SceneSphereLight() const { return m_lighting.m_sceneLights[SphereLightIndex]; }
   static constexpr int AreaLightIndex = 1;
-  [[nodiscard]] Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
-  [[nodiscard]] SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
+  Light& AreaLight() const { return *m_lighting.m_Lights[AreaLightIndex]; }
+  SceneLight* SceneAreaLight() const { return m_lighting.m_sceneLights[AreaLightIndex]; }
 
   // weak ptr! must not outlive the objects it points to.
   SceneObject* m_selection = nullptr;

@@ -8,6 +8,7 @@ Checks: >
   -modernize-avoid-c-style-cast,
   -modernize-use-trailing-return-type,
   -modernize-use-auto,
+  -modernize-use-nodiscard,
   performance-*,
   -performance-unnecessary-value-param, # re-enable later
   readability-*,

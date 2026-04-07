@@ -18,8 +18,8 @@ public:
   ~ViewerWindow();
 
   void setSize(int width, int height);
-  [[nodiscard]] int width() const { return sceneView.viewport.region.upper.x - sceneView.viewport.region.lower.x; }
-  [[nodiscard]] int height() const { return sceneView.viewport.region.upper.y - sceneView.viewport.region.lower.y; }
+  int width() const { return sceneView.viewport.region.upper.x - sceneView.viewport.region.lower.x; }
+  int height() const { return sceneView.viewport.region.upper.y - sceneView.viewport.region.lower.y; }
 
   void redraw();
 
