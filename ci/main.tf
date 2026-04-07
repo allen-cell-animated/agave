@@ -136,7 +136,7 @@ resource "aws_iam_instance_profile" "agave_instance_profile" {
 
 # I manually created the Key Pair "agave-ecs"
 resource "aws_launch_configuration" "ecs_launch_config" {
-  image_id             = "ami-01b66d92709ccc106"
+  image_id             = "ami-0c55b159cbfafe1f0"
   iam_instance_profile = aws_iam_instance_profile.agave_instance_profile.name
   security_groups      = [aws_security_group.agave_security_group.id]
   user_data            = "#!/bin/bash\necho ECS_CLUSTER=agave-cluster >> /etc/ecs/ecs.config"

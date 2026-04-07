@@ -10,7 +10,7 @@ set_property(TARGET renderlib PROPERTY AUTOMOC ON)
 
 target_include_directories(renderlib PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	${GLM_INCLUDE_DIRS}
+	"${glm_SOURCE_DIR}"
 	${GLAD_DIR}
 )
 target_sources(renderlib PRIVATE
@@ -22,6 +22,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/AxisHelperTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBox.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBoxTool.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/BoundingBoxTool.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CCamera.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ClipPlaneTool.cpp"

@@ -17,6 +17,7 @@ class ImageXYZC;
 class RangeWidget;
 class RenderSettings;
 class Scene;
+class SceneObject;
 class Section;
 
 enum Axis
@@ -31,18 +32,19 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+  QAppearanceSettingsWidget(QWidget* pParent = nullptr,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
                             QAction* pToggleRotateAction = nullptr,
                             QAction* pToggleTranslateAction = nullptr);
 
   void onNewImage(Scene* scene);
+  void onTimeChanged(int newTime);
 
 public slots:
-  void OnRenderBegin(void);
+  void OnRenderBegin();
   void OnSetDensityScale(double DensityScale);
-  void OnTransferFunctionChanged(void);
+  void OnTransferFunctionChanged();
   void OnSetRendererType(int Index);
   void OnSetShadingType(int Index);
   void OnSetGradientFactor(double GradientFactor);
@@ -123,6 +125,7 @@ private:
   QCheckBox m_showScaleBarCheckBox;
 
   std::vector<Section*> m_channelSections;
+  std::vector<class GradientWidget*> m_gradientWidgets;
 
   struct lt0
   {
@@ -151,4 +154,6 @@ private:
   void initLightingControls(Scene* scene);
   void initClipPlaneControls(Scene* scene);
   bool shouldClipPlaneShow();
+
+  void toggleActionForObject(QAction* pAction, SceneObject* object);
 };

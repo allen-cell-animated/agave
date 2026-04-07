@@ -7,6 +7,8 @@
 
 #include <string>
 
+class Scene;
+
 /**
  * Check OpenGL status.
  *
@@ -81,12 +83,12 @@ private:
 class GLTimer
 {
 public:
-  GLTimer(void);
-  virtual ~GLTimer(void);
+  GLTimer();
+  virtual ~GLTimer();
 
-  void StartTimer(void);
-  float StopTimer(void);
-  float ElapsedTime(void);
+  void StartTimer();
+  float StopTimer();
+  float ElapsedTime();
 
 private:
   bool m_Started;
@@ -178,3 +180,6 @@ class IGuiShader
 public:
   virtual void setProjMatrix(const glm::mat4& proj) = 0;
 };
+
+void
+clearFramebuffer(const Scene* scene);

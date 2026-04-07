@@ -36,7 +36,18 @@ ImageXYZC::ImageXYZC(uint32_t x,
     m_channels.push_back(new Channelu16(x, y, z, reinterpret_cast<uint16_t*>(ptr(i))));
   }
   for (uint32_t i = 0; i < m_c; ++i) {
-    LOG_INFO << "Channel " << i << ":" << (m_channels[i]->m_min) << "," << (m_channels[i]->m_max);
+    LOG_INFO << "Channel " << i << ": " << (m_channels[i]->m_histogram.getDataMin()) << ", "
+             << (m_channels[i]->m_histogram.getDataMax());
+    glm::vec3 minpos = glm::vec3((float)(m_channels[i]->m_histogram.getDataMinIdx() % m_x),
+                                 (float)((m_channels[i]->m_histogram.getDataMinIdx() / m_x) % m_y),
+                                 (float)(m_channels[i]->m_histogram.getDataMinIdx() / (m_x * m_y)));
+    glm::vec3 maxpos = glm::vec3((float)(m_channels[i]->m_histogram.getDataMaxIdx() % m_x),
+                                 (float)((m_channels[i]->m_histogram.getDataMaxIdx() / m_x) % m_y),
+                                 (float)(m_channels[i]->m_histogram.getDataMaxIdx() / (m_x * m_y)));
+    LOG_INFO << "  Min " << (m_channels[i]->m_histogram.getDataMin()) << " at (" << minpos.x << ", " << minpos.y << ", "
+             << minpos.z << ")";
+    LOG_INFO << "  Max " << (m_channels[i]->m_histogram.getDataMax()) << " at (" << maxpos.x << ", " << maxpos.y << ", "
+             << maxpos.z << ")";
   }
 }
 
@@ -57,25 +68,25 @@ ImageXYZC::setChannelNames(std::vector<std::string>& channelNames)
   }
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeX() const
 {
   return m_x;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeY() const
 {
   return m_y;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeZ() const
 {
   return m_z;
 }
 
-uint32_t
+size_t
 ImageXYZC::maxPixelDimension() const
 {
   return std::max(m_x, std::max(m_y, m_z));
@@ -119,13 +130,13 @@ ImageXYZC::physicalSizeZ() const
   return m_scaleZ;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeC() const
 {
   return m_c;
 }
 
-uint32_t
+size_t
 ImageXYZC::sizeOfElement() const
 {
   return m_bpp / 8;
@@ -150,7 +161,7 @@ ImageXYZC::size() const
 }
 
 uint8_t*
-ImageXYZC::ptr(uint32_t channel, uint32_t z) const
+ImageXYZC::ptr(size_t channel, size_t z) const
 {
   // advance ptr by this amount of uint8s.
   return m_data + ((channel * sizeOfChannel()) + (z * sizeOfPlane()));
@@ -198,9 +209,6 @@ Channelu16::Channelu16(uint32_t x, uint32_t y, uint32_t z, uint16_t* ptr)
   m_x = x;
   m_y = y;
   m_z = z;
-
-  m_min = m_histogram._dataMin;
-  m_max = m_histogram._dataMax;
 
   m_lut = m_histogram.generate_percentiles();
 }

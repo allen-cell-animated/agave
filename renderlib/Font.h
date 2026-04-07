@@ -12,7 +12,7 @@ public:
   Font();
   ~Font();
 
-  bool isLoaded() { return m_w > 0 && m_h > 0 && m_textureData.size() > 0; }
+  bool isLoaded() { return m_w > 0 && m_h > 0 && !m_textureData.empty(); }
   void load(const char* filename);
   void unload();
 
@@ -32,7 +32,7 @@ private:
   static constexpr size_t m_numChars = 96;
   stbtt_bakedchar m_cdata[m_numChars]; // ASCII 32..126 is 95 glyphs
 
-  uint32_t m_w;
-  uint32_t m_h;
+  uint32_t m_w = 0;
+  uint32_t m_h = 0;
   std::vector<unsigned char> m_textureData;
 };

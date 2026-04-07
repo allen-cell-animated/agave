@@ -7,6 +7,6 @@ in VertexData
 
 out vec4 outputColour;
 
-void main(void) {
+void main() {
   outputColour = inData.f_colour;
 }

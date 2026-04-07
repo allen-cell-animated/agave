@@ -17,29 +17,28 @@ class RenderGL : public IRenderWindow
 public:
   static const std::string TYPE_NAME;
   RenderGL(RenderSettings* rs);
-  virtual ~RenderGL();
+  ~RenderGL() override;
 
-  virtual void initialize(uint32_t w, uint32_t h);
-  virtual void render(const CCamera& camera);
-  virtual void renderTo(const CCamera& camera, GLFramebufferObject* fbo);
-  virtual void resize(uint32_t w, uint32_t h);
-  virtual void getSize(uint32_t& w, uint32_t& h)
+  void initialize(uint32_t w, uint32_t h) override;
+  void render(const CCamera& camera) override;
+  void renderTo(const CCamera& camera, GLFramebufferObject* fbo) override;
+  void resize(uint32_t w, uint32_t h) override;
+  void getSize(uint32_t& w, uint32_t& h) override
   {
     w = m_w;
     h = m_h;
   }
-  virtual void cleanUpResources();
+  void cleanUpResources() override;
 
-  virtual std::shared_ptr<CStatus> getStatusInterface() { return m_status; }
-  virtual RenderSettings& renderSettings();
-  virtual Scene* scene();
-  virtual void setScene(Scene* s);
+  std::shared_ptr<CStatus> getStatusInterface() override { return m_status; }
+  RenderSettings& renderSettings() override;
+  Scene* scene() override;
+  void setScene(Scene* s) override;
 
   Image3D* getImage() const { return m_image3d; };
 
 private:
   Image3D* m_image3d;
-  BoundingBoxDrawable* m_boundingBoxDrawable;
   RenderSettings* m_renderSettings;
 
   Scene* m_scene;
@@ -52,6 +51,5 @@ private:
 
   void initFromScene();
   bool prepareToRender();
-  void doClear();
   void drawSceneObjects(const CCamera& camera);
 };

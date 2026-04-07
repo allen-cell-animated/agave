@@ -14,7 +14,7 @@ public:
   void configure(bool display, GLuint textureId);
   void cleanup();
 
-  virtual void setProjMatrix(const glm::mat4& proj) override;
+  void setProjMatrix(const glm::mat4& proj) override;
 
   int m_loc_proj;
   int m_loc_vpos;

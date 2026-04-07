@@ -10,24 +10,24 @@ class QRenderSettings : public QObject
   Q_OBJECT
 
 public:
-  QRenderSettings(QObject* pParent = NULL);
+  QRenderSettings(QObject* pParent = nullptr);
   QRenderSettings(const QRenderSettings& Other);
   QRenderSettings& operator=(const QRenderSettings& Other);
 
-  float GetDensityScale(void) const;
+  float GetDensityScale() const;
   void SetDensityScale(const float& DensityScale);
-  int GetShadingType(void) const;
+  int GetShadingType() const;
   void SetShadingType(const int& ShadingType);
-  int GetRendererType(void) const;
+  int GetRendererType() const;
   void SetRendererType(const int& RendererType);
-  float GetGradientFactor(void) const;
+  float GetGradientFactor() const;
   void SetGradientFactor(const float& GradientFactor);
 
   void setRenderSettings(RenderSettings& rs);
   RenderSettings* renderSettings() { return m_renderSettings; }
 
 signals:
-  void Changed(void);
+  void Changed();
   void ChangedRenderer(int);
   void Selected(SceneObject*);
 

@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 #include "renderlib/AppScene.h"
+#include "renderlib/BoundingBoxTool.h"
 #include "renderlib/CCamera.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
@@ -19,7 +20,7 @@
 #include <QMutexLocker>
 #include <QOpenGLFramebufferObjectFormat>
 
-Renderer::Renderer(QString id, QObject* parent, QMutex& mutex)
+Renderer::Renderer(const QString& id, QObject* parent, QMutex& mutex)
   : QThread(parent)
   , m_id(id)
   , m_streamMode(false)
@@ -191,7 +192,7 @@ Renderer::processRequest()
       this->m_totalQueueDuration -= r->getDuration();
 
       std::vector<Command*> cmds = r->getParameters();
-      if (cmds.size() > 0) {
+      if (!cmds.empty()) {
         this->processCommandBuffer(r);
       }
 
@@ -245,7 +246,7 @@ Renderer::processRequest()
       timer.start();
 
       std::vector<Command*> cmds = r->getParameters();
-      if (cmds.size() > 0) {
+      if (!cmds.empty()) {
         this->processCommandBuffer(r);
       }
 
@@ -284,7 +285,7 @@ Renderer::processCommandBuffer(RenderRequest* rr)
   m_rglContext.makeCurrent();
 
   std::vector<Command*> cmds = rr->getParameters();
-  if (cmds.size() > 0) {
+  if (!cmds.empty()) {
     m_ec.m_renderSettings = &m_myVolumeData.m_renderer->renderSettings();
     m_ec.m_renderer = this;
     m_ec.m_appScene = m_myVolumeData.m_renderer->scene();
@@ -327,6 +328,14 @@ Renderer::render()
   ScaleBarTool scalebar;
   scalebar.clear();
   scalebar.draw(sceneView, m_myVolumeData.m_gesture);
+  BoundingBoxTool bbox;
+  bbox.clear();
+  bbox.draw(sceneView, m_myVolumeData.m_gesture);
+
+  m_fbo->bind();
+  clearFramebuffer(sceneView.scene);
+  m_myVolumeData.m_gestureRenderer.drawUnderlay(sceneView, nullptr, m_myVolumeData.m_gesture.graphics);
+  m_fbo->release();
 
   // main scene rendering
   m_myVolumeData.m_renderer->renderTo(sceneView.camera, m_fbo);

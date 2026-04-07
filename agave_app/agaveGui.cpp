@@ -110,6 +110,11 @@ agaveGui::agaveGui(QWidget* parent)
 
   connect(m_tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
+  connect(&m_timelinedock->timelineWidget(), &QTimelineWidget::timeChanged, this, [this](int newTime) {
+    // we have loaded new data and need to update the channel histograms at least.
+    m_appearanceDockWidget->onTimeChanged(newTime);
+  });
+
   // add the single gl view as a tab
   m_glView = new GLView3D(&m_qcamera, &m_qrendersettings, &m_renderSettings, this);
   QObject::connect(m_glView, SIGNAL(ChangedRenderer()), this, SLOT(OnUpdateRenderer()));
@@ -415,9 +420,9 @@ agaveGui::open()
   QStringList fileNames;
   if (dlg.exec()) {
     fileNames = dlg.selectedFiles();
-    if (fileNames.size() > 0) {
+    if (!fileNames.empty()) {
       // only use the first filename for loading.
-      QString file = fileNames[0];
+      const QString& file = fileNames[0];
       if (!file.isEmpty()) {
         bool isImageSequence = imageSequenceCheckbox->isChecked();
         if (!open(file.toStdString(), nullptr, isImageSequence)) {
@@ -478,7 +483,7 @@ agaveGui::openJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), nullptr, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
@@ -503,6 +508,7 @@ agaveGui::openJson()
     } catch (std::exception& e) {
       LOG_ERROR << "Failed to load from JSON: " << file.toStdString();
       LOG_ERROR << e.what();
+      showOpenFailedMessageBox(file, e.what());
       return;
     }
   }
@@ -763,6 +769,10 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
   // if successful
   int numScenes = reader->loadNumScenes(file);
   LOG_INFO << "Found " << numScenes << " scene(s)";
+  if (numScenes < 1) {
+    return false;
+  }
+
   // if current scene is out of range or if there is not currently a scene selected
   bool needSelectScene = (numScenes > 1) && ((sceneToLoad >= numScenes) || (!vs));
   if (needSelectScene) {
@@ -834,7 +844,7 @@ agaveGui::openMeshDialog()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), nullptr, options);
 
   if (!file.isEmpty())
     openMesh(file);
@@ -866,7 +876,7 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
+  GLView3D* current = nullptr;
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
@@ -1061,13 +1071,13 @@ agaveGui::updateRecentFileActions()
 }
 
 void
-agaveGui::showOpenFailedMessageBox(QString path)
+agaveGui::showOpenFailedMessageBox(QString path, QString details)
 {
   QMessageBox msgBox;
   msgBox.setIcon(QMessageBox::Warning);
   msgBox.setWindowTitle(tr("Error opening file"));
-  msgBox.setText(tr("Failed to open ") + path);
-  msgBox.setInformativeText(tr("Check logfile.log for more detailed error information."));
+  msgBox.setText(tr("Failed to open ") + path + "\n\n" + details);
+  msgBox.setInformativeText(tr("Check logfile.log for additional error information."));
   msgBox.exec();
 }
 
@@ -1167,7 +1177,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
-  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+  for (size_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
     Serialize::ChannelSettings_V1 ch = v.channels[i];
     m_appScene.m_material.m_enabled[i] = ch.enabled;
 
@@ -1300,7 +1310,7 @@ agaveGui::appToViewerState()
   v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
-    for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+    for (size_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
       Serialize::ChannelSettings_V1 ch;
       ch.enabled = m_appScene.m_material.m_enabled[i];
       ch.diffuseColor = { m_appScene.m_material.m_diffuse[i * 3],

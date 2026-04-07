@@ -17,8 +17,6 @@ struct Channelu16
   uint32_t m_x, m_y, m_z;
 
   uint16_t* m_ptr;
-  uint16_t m_min;
-  uint16_t m_max;
 
   uint16_t* m_gradientMagnitudePtr;
 
@@ -73,7 +71,7 @@ public:
   // how many channels to enable on first load by default
   static const int FIRST_N_CHANNELS = 1;
 
-  static const uint32_t IN_MEMORY_BPP = 16;
+  static const size_t IN_MEMORY_BPP = 16;
   ImageXYZC(uint32_t x,
             uint32_t y,
             uint32_t z,
@@ -91,10 +89,10 @@ public:
   // +1 means do not flip, -1 means flip
   void setVolumeAxesFlipped(int x, int y, int z);
 
-  uint32_t sizeX() const;
-  uint32_t sizeY() const;
-  uint32_t sizeZ() const;
-  uint32_t maxPixelDimension() const;
+  size_t sizeX() const;
+  size_t sizeY() const;
+  size_t sizeZ() const;
+  size_t maxPixelDimension() const;
 
   // should always return positive values
   float physicalSizeX() const;
@@ -110,14 +108,14 @@ public:
   // +1 means do not flip, -1 means flip
   glm::ivec3 getVolumeAxesFlipped() const;
 
-  uint32_t sizeC() const;
+  size_t sizeC() const;
 
-  uint32_t sizeOfElement() const;
+  size_t sizeOfElement() const;
   size_t sizeOfPlane() const;
   size_t sizeOfChannel() const;
   size_t size() const;
 
-  uint8_t* ptr(uint32_t channel = 0, uint32_t z = 0) const;
+  uint8_t* ptr(size_t channel = 0, size_t z = 0) const;
   Channelu16* channel(uint32_t channel) const;
 
   void setChannelNames(std::vector<std::string>& channelNames);

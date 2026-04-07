@@ -334,9 +334,9 @@ FileReaderCzi::loadFromFile(const LoadSpec& loadSpec)
       return emptyimage;
     }
 
-    uint32_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
+    size_t nch = loadSpec.channels.empty() ? dims.sizeC : loadSpec.channels.size();
 
-    size_t planesize = dims.sizeX * dims.sizeY * dims.bitsPerPixel / 8;
+    size_t planesize = (size_t)dims.sizeX * (size_t)dims.sizeY * (size_t)dims.bitsPerPixel / 8;
     uint8_t* data = new uint8_t[planesize * dims.sizeZ * nch];
     memset(data, 0, planesize * dims.sizeZ * nch);
 

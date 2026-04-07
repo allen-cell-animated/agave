@@ -11,6 +11,21 @@ ScenePlane::ScenePlane(glm::vec3 pos)
   m_tool = std::make_unique<ClipPlaneTool>(m_plane, pos);
 }
 
+ManipulationTool*
+ScenePlane::getTool()
+{
+  return m_tool.get();
+}
+
+void
+ScenePlane::setVisible(bool v)
+{
+  // tool should always be around (see ctor)
+  if (m_tool) {
+    m_tool->setVisible(v);
+  }
+}
+
 void
 ScenePlane::updateTransform()
 {

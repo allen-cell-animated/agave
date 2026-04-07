@@ -7,22 +7,22 @@ class QFilm : public QObject
   Q_OBJECT
 
 public:
-  QFilm(QObject* pParent = NULL);
+  QFilm(QObject* pParent = nullptr);
   QFilm(const QFilm& Other);
   QFilm& operator=(const QFilm& Other);
 
-  int GetWidth(void) const;
+  int GetWidth() const;
   void SetWidth(const int& Width);
-  int GetHeight(void) const;
+  int GetHeight() const;
   void SetHeight(const int& Height);
-  float GetExposure(void) const;
+  float GetExposure() const;
   void SetExposure(const float& Exposure);
-  int GetExposureIterations(void) const;
+  int GetExposureIterations() const;
   void SetExposureIterations(const int& ExposureIterations);
-  bool GetNoiseReduction(void) const;
+  bool GetNoiseReduction() const;
   void SetNoiseReduction(const bool& NoiseReduction);
-  bool IsDirty(void) const;
-  void UnDirty(void);
+  bool IsDirty() const;
+  void UnDirty();
 
 signals:
   void Changed(const QFilm& Film);

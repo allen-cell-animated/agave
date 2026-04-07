@@ -34,7 +34,6 @@ RenderGLPT::RenderGLPT(RenderSettings* rs)
   , m_scene(nullptr)
   , m_gpuBytes(0)
   , m_imagequad(nullptr)
-  , m_boundingBoxDrawable(nullptr)
   , m_RandSeed(0)
   , m_status(new CStatus)
 {
@@ -55,13 +54,13 @@ RenderGLPT::cleanUpFB()
   m_fbF32Accum = nullptr;
 
   delete m_renderBufferShader;
-  m_renderBufferShader = 0;
+  m_renderBufferShader = nullptr;
   delete m_copyShader;
-  m_copyShader = 0;
+  m_copyShader = nullptr;
   delete m_toneMapShader;
-  m_toneMapShader = 0;
+  m_toneMapShader = nullptr;
   delete m_fsq;
-  m_fsq = 0;
+  m_fsq = nullptr;
 
   m_gpuBytes = 0;
 }
@@ -72,7 +71,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   cleanUpFB();
 
   m_fbF32 = new Framebuffer(w, h, GL_RGBA32F);
-  m_gpuBytes += w * h * 4 * sizeof(float);
+  m_gpuBytes += sizeof(float) * w * h * 4;
   check_glfb("resized float pathtrace sample fb");
 
   // clear the newly created FB
@@ -80,7 +79,7 @@ RenderGLPT::initFB(uint32_t w, uint32_t h)
   glClear(GL_COLOR_BUFFER_BIT);
 
   m_fbF32Accum = new Framebuffer(w, h, GL_RGBA32F);
-  m_gpuBytes += w * h * 4 * sizeof(float);
+  m_gpuBytes += sizeof(float) * w * h * 4;
   check_glfb("resized float accumulation fb");
 
   // clear the newly created FB
@@ -134,7 +133,6 @@ void
 RenderGLPT::initialize(uint32_t w, uint32_t h)
 {
   m_imagequad = new RectImage2D();
-  m_boundingBoxDrawable = new BoundingBoxDrawable();
 
   initVolumeTextureGpu();
   check_gl("init gl volume");
@@ -323,10 +321,11 @@ RenderGLPT::doRender(const CCamera& camera)
   // (float)gScene.GetNoIterations());
   m_renderSettings->m_DenoiseParams.m_LerpC =
     0.33f * (std::max((float)m_renderSettings->GetNoIterations(), 1.0f) * 0.035f);
-  // 1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
-  // (float)gScene.GetNoIterations());
-  //	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResX()
-  //<< " " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
+// 1.0f - powf(1.0f / (float)gScene.GetNoIterations(), 15.0f);//1.0f - expf(-0.01f *
+// (float)gScene.GetNoIterations());
+//	LOG_DEBUG << "Window " << _w << " " << _h << " Cam " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResX()
+//<< " " << m_renderSettings->m_Camera.m_Film.m_Resolution.GetResY();
+#if 0 
   if (m_renderSettings->m_DenoiseParams.m_Enabled && m_renderSettings->m_DenoiseParams.m_LerpC > 0.0f &&
       m_renderSettings->m_DenoiseParams.m_LerpC < 1.0f) {
     // draw from accum buffer into fbtex
@@ -334,6 +333,7 @@ RenderGLPT::doRender(const CCamera& camera)
   } else {
     // ToneMap(_F32AccumBuffer, _fbTex, _w, _h);
   }
+#endif
   //_timingDenoise.AddDuration(TmrDenoise.ElapsedTime());
 
   // Composite into final frame:
@@ -352,33 +352,6 @@ RenderGLPT::doRender(const CCamera& camera)
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
-  // draw back of bounding box
-  if (m_scene->m_material.m_showBoundingBox) {
-    glEnable(GL_DEPTH_TEST);
-
-    glDepthMask(GL_TRUE);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-
-    glPolygonOffset(-1.0, -1.0);
-    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix, glm::vec4(1.0, 1.0, 1.0, 1.0));
-    glEnable(GL_CULL_FACE);
-    glPolygonOffset(0.0, 0.0);
-
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_GREATER);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_BLEND);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-      m_boundingBoxDrawable->updateTickMarks(scales, maxPhysicalDim);
-      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    }
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-  }
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_fbF32Accum->colorTextureId());
@@ -392,35 +365,8 @@ RenderGLPT::doRender(const CCamera& camera)
 
   m_toneMapShader->release();
 
-  // draw front of bounding box
-  if (m_scene->m_material.m_showBoundingBox) {
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  // front of bounding box is now drawn by BoundingBoxTool
 
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(1.0, 1.0);
-    m_boundingBoxDrawable->drawFaces(projMatrix * viewMatrix * bboxModelMatrix, glm::vec4(1.0, 1.0, 1.0, 1.0));
-    glPolygonOffset(0.0, 0.0);
-    glEnable(GL_CULL_FACE);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_FALSE);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_BLEND);
-    m_boundingBoxDrawable->drawLines(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    if (m_scene->m_showScaleBar && camera.m_Projection != ProjectionMode::ORTHOGRAPHIC) {
-      m_boundingBoxDrawable->drawTickMarks(projMatrix * viewMatrix * bboxModelMatrix, bboxColor);
-    }
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-  }
   glDisable(GL_BLEND);
 
   // LOG_DEBUG << "RETURN FROM RENDER";
@@ -470,18 +416,11 @@ RenderGLPT::renderTo(const CCamera& camera, GLFramebufferObject* fbo)
 void
 RenderGLPT::drawImage()
 {
-  if (m_scene) {
-    glClearColor(m_scene->m_material.m_backgroundColor[0],
-                 m_scene->m_material.m_backgroundColor[1],
-                 m_scene->m_material.m_backgroundColor[2],
-                 0.0);
-  } else {
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glViewport(0, 0, (GLsizei)(m_w), (GLsizei)(m_h));
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // draw quad using the tex that cudaTex was mapped to
   m_imagequad->draw(m_fb->colorTextureId());
 }
@@ -510,8 +449,6 @@ RenderGLPT::cleanUpResources()
 
   delete m_imagequad;
   m_imagequad = nullptr;
-  delete m_boundingBoxDrawable;
-  m_boundingBoxDrawable = nullptr;
 
   cleanUpFB();
 }

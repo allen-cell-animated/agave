@@ -35,7 +35,7 @@ Framebuffer::resize(uint32_t w, uint32_t h)
   glBindTexture(GL_TEXTURE_2D, m_colorTextureId);
   check_gl("Bind fb texture");
   // glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-  glTexImage2D(GL_TEXTURE_2D, 0, m_colorFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, m_colorFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   check_gl("Create fb texture");
   // this is required in order to "complete" the texture object for mipmapless shader access.
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -49,7 +49,7 @@ Framebuffer::resize(uint32_t w, uint32_t h)
     glBindTexture(GL_TEXTURE_2D, m_depthTextureId);
     check_gl("Bind fb depth texture");
     // glTextureStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
     check_gl("Create fb depth texture");
     // this is required in order to "complete" the texture object for mipmapless shader access.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -70,6 +70,9 @@ Framebuffer::resize(uint32_t w, uint32_t h)
 void
 Framebuffer::destroyFb()
 {
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  check_gl("bind 0 framebuffer");
+
   glBindTexture(GL_TEXTURE_2D, 0);
   check_gl("bind 0 texture");
   if (glIsTexture(m_colorTextureId)) {
@@ -81,14 +84,14 @@ Framebuffer::destroyFb()
   if (m_hasDepth) {
     if (glIsTexture(m_depthTextureId)) {
       glDeleteTextures(1, &m_depthTextureId);
-      check_gl("Destroy fb depth texture");    
+      check_gl("Destroy fb depth texture");
     }
     m_depthTextureId = 0;
   }
 
   if (glIsFramebuffer(m_id)) {
-    glDeleteFramebuffers(1, &m_id);  
-	check_gl("delete framebuffer id");
+    glDeleteFramebuffers(1, &m_id);
+    check_gl("delete framebuffer id");
   }
   m_id = 0;
 }

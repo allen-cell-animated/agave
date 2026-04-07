@@ -13,27 +13,37 @@
 class ScopedGlVertexBuffer
 {
 public:
-  ScopedGlVertexBuffer(const void* data, size_t size);
+  ScopedGlVertexBuffer();
   ~ScopedGlVertexBuffer();
   GLuint buffer() const { return m_buffer; }
+
+  void create();
+  void updateDataAndBind(const void* data, size_t size);
+  void bind();
 
 private:
   GLuint m_vertexArray;
   GLuint m_buffer;
+  size_t m_size; // size of the buffer in bytes, for lazy loading
 };
 
 // a texture buffer that is automatically allocated and then deleted when it goes out of scope
 class ScopedGlTextureBuffer
 {
 public:
-  ScopedGlTextureBuffer(const void* data, size_t size);
+  ScopedGlTextureBuffer();
   ~ScopedGlTextureBuffer();
   GLuint buffer() const { return m_buffer; }
   GLuint texture() const { return m_texture; }
 
+  void create();
+  void updateDataAndBind(const void* data, size_t size);
+  void bind();
+
 private:
   GLuint m_texture;
   GLuint m_buffer;
+  size_t m_size; // size of the buffer in bytes, for lazy loading
 };
 
 // Some base RenderBuffer struct, in common between viewport rendering and
@@ -71,12 +81,12 @@ struct RenderBuffer
   }
   void destroy();
   bool create(glm::ivec2 resolution, int samples = 0);
-  virtual void clear(){};
+  virtual void clear() {};
 };
 
 struct SelectionBuffer : RenderBuffer
 {
-  virtual void clear();
+  void clear() override;
 };
 
 class GestureRendererGL
@@ -93,7 +103,10 @@ public:
   std::unique_ptr<FontGL> font;
 
   // Gesture draw, called once per window update (frame) when the GUI draw commands
-  // had been described in full.
+  // had been described in full.  This is drawn BEFORE the main scene rendering.
+  void drawUnderlay(SceneView& sceneView, SelectionBuffer* selection, Gesture::Graphics& graphics);
+  // Gesture draw, called once per window update (frame) when the GUI draw commands
+  // had been described in full.  This is drawn AFTER the main scene rendering.
   void draw(struct SceneView& sceneView, struct SelectionBuffer* selection, Gesture::Graphics& graphics);
 
   // Pick a GUI element using the cursor position in Input.
@@ -104,4 +117,15 @@ public:
             const Gesture::Input& input,
             const SceneView::Viewport& viewport,
             uint32_t& selectionCode);
+
+  GestureRendererGL();
+  ~GestureRendererGL();
+
+private:
+  std::unique_ptr<ScopedGlVertexBuffer> vertex_buffer;
+  // contains all the strip vertices for thick lines
+  std::unique_ptr<ScopedGlTextureBuffer> texture_buffer;
+
+  void lazyInit(Gesture::Graphics& graphics);
+  void drawGesture(bool display, Gesture::Graphics& graphics, SceneView& sceneView, std::vector<int> sequenceOrder);
 };

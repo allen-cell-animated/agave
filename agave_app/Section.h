@@ -32,7 +32,7 @@ public:
   explicit Section(const QString& title = "",
                    const int animationDuration = 100,
                    const CheckBoxInfo* checkBoxInfo = nullptr,
-                   QWidget* parent = 0);
+                   QWidget* parent = nullptr);
 
   void setContentLayout(QLayout& contentLayout);
   void setTitle(const QString& title);

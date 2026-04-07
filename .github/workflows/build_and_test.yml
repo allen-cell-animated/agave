@@ -7,45 +7,76 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
-      - uses: ammaraskar/sphinx-action@master
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          docs-folder: "docs/"
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-          pre-build-command: "apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
-          build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v4
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get --allow-releaseinfo-change update -y
+          sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+          sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install Sphinx>=8.0.0 sphinx-copybutton myst-parser>=1.0 linkify-it-py>=2.0.0
+          pip install -r docs/requirements.txt
+      - name: Build HTML documentation
+        run: |
+          cd docs/
+          make html
+      - name: Build PDF documentation
+        run: |
+          cd docs/
+          make latexpdf
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
   docs_pythonclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
-      - uses: ammaraskar/sphinx-action@master
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          pre-build-command: "pip install -e agave_pyclient/"
-          docs-folder: "agave_pyclient/docs/"
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "agave_pyclient/docs/"
-          pre-build-command: "pip install -e agave_pyclient/ && apt-get --allow-releaseinfo-change update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
-          build-command: "make latexpdf"
-      - uses: actions/upload-artifact@v4
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get --allow-releaseinfo-change update -y
+          sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+          sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install Sphinx>=8.0.0 sphinx-copybutton myst-parser>=1.0 linkify-it-py>=2.0.0
+          pip install -r agave_pyclient/docs/requirements.txt
+      - name: Build HTML documentation
+        run: |
+          pip install -e agave_pyclient/
+          cd agave_pyclient/docs/
+          make html
+      - name: Build PDF documentation
+        run: |
+          pip install -e agave_pyclient/
+          cd agave_pyclient/docs/
+          make latexpdf
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
@@ -58,22 +89,21 @@ jobs:
             artifact: agave-linux
           - os: windows-latest
             artifact: agave-win
-          # note macos-14 is arm64 and macos-13 is x86_64
-          - os: macos-14
+          - os: macos-15
             artifact: agave-macos-arm64
-          - os: macos-13
+          - os: macos-15-intel
             artifact: agave-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: 6.8.3
+          version: 6.9.3
           modules: qtwebsockets qtimageformats
       - name: macos install deps
         if: contains(matrix.os, 'macos')
@@ -82,7 +112,10 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog glm libtiff nasm zstd ninja
+          brew install spdlog nasm
+          if [ -d /usr/local/include/openssl ]; then
+            mv /usr/local/include/openssl /usr/local/include/openssl.bak
+          fi
       - name: macos build and test
         if: contains(matrix.os, 'macos')
         env:
@@ -90,7 +123,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          export Qt6_DIR=${{ runner.workspace }}/Qt/6.8.3/macos
+          export Qt6_DIR=${{ runner.workspace }}/Qt/6.9.3/macos
           mkdir ./build
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -100,7 +133,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: contains(matrix.os, 'macos')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ./build/${{ matrix.artifact }}.dmg
@@ -123,20 +156,30 @@ jobs:
           cmake --build . --target agave_test --config Release
           cmake --build . --target install --config Release
         shell: bash
-      - name: windows install ninja
+      - name: linux upload artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.artifact }}
+          path: ./build/install/Release/agave-install
+      - name: windows install ninja and nasm
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
           choco install nasm
+      - name: windows install nsis
+        if: matrix.os == 'windows-latest'
+        uses: repolevedavaj/install-nsis@v1.1.0
+        with:
+          nsis-version: "3.10"
       - name: windows install deps
         if: matrix.os == 'windows-latest'
         shell: cmd
         env:
           vc_arch: "x64"
-        # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd eigen3
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
         if: matrix.os == 'windows-latest'
@@ -150,7 +193,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
           cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --config Release
@@ -158,7 +201,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ./build/${{ matrix.artifact }}.exe
@@ -166,12 +209,12 @@ jobs:
   lint-and-test-webclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org/
       - run: |
           cd webclient
@@ -183,9 +226,9 @@ jobs:
   lint-and-test-pyclient:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - name: Install Dependencies

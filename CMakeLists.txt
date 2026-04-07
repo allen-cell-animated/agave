@@ -15,7 +15,7 @@ cmake_policy(SET CMP0135 NEW) # set timestamps to time of extraction for Externa
 
 project(
   agave
-  VERSION 1.8.0
+  VERSION 1.9.0
   LANGUAGES C CXX
 )
 
@@ -49,7 +49,7 @@ if(DEFINED ENV{Qt6_DIR})
   list(INSERT CMAKE_PREFIX_PATH 0 $ENV{Qt6_DIR})
 endif()
 
-set(AGAVE_QT_VERSION 6.8.3)
+set(AGAVE_QT_VERSION 6.9.3)
 
 if(WIN32)
   set(GUESS_Qt6_DIR C:/Qt/${AGAVE_QT_VERSION}/msvc2022_64 CACHE STRING "Qt6 directory")
@@ -58,19 +58,10 @@ elseif(APPLE)
 else()
   set(GUESS_Qt6_DIR ~/Qt/${AGAVE_QT_VERSION}/gcc_64)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif(WIN32)
 
 list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt6_DIR})
-
-if(APPLE)
-  # homebrew
-  list(APPEND CMAKE_LIBRARY_PATH /usr/local/lib /usr/local/opt/icu4c/lib)
-  list(APPEND CMAKE_INCLUDE_PATH /usr/local/include)
-
-  # set(CMAKE_MACOSX_RPATH TRUE)
-  add_compile_options("-I/usr/local/opt/icu4c/include")
-  add_link_options("-L/usr/local/opt/icu4c/lib")
-endif(APPLE)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml Svg REQUIRED)
 
@@ -85,14 +76,12 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 
 # endif()
 
-# set(glm_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm)
-if(APPLE)
-  # On MacOS, newer homebrew glm is broken with respect to cmake.
-  # Revisit in a future version to try to remove this conditional.
-  find_path(GLM_PATH glm/glm.hpp)
-else()
-  find_package(glm REQUIRED)
-endif(APPLE)
+FetchContent_Declare(
+            glm
+            GIT_REPOSITORY https://github.com/g-truc/glm.git
+            GIT_TAG 1.0.1
+    )
+FetchContent_MakeAvailable(glm)
 
 find_package(TIFF)
 
@@ -140,7 +129,7 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 # CPack
 # #####################
-find_package(Qt6QTiffPlugin 6.8.3 REQUIRED PATHS ${Qt6Gui_DIR})
+find_package(Qt6QTiffPlugin 6.9.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
 set(CPACK_PACKAGE_VENDOR "Allen Institute for Cell Science")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for 4D multichannel microscopy images, using physically based lighting and rendering.")
@@ -236,8 +225,8 @@ if(WIN32)
 
 # ###############
 elseif(APPLE)
-  find_package(Qt6QCocoaIntegrationPlugin 6.8.3 REQUIRED PATHS ${Qt6Gui_DIR})
-  find_package(Qt6QMacStylePlugin 6.8.3 REQUIRED PATHS ${Qt6Widgets_DIR})
+  find_package(Qt6QCocoaIntegrationPlugin 6.9.3 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QMacStylePlugin 6.9.3 REQUIRED PATHS ${Qt6Widgets_DIR})
 
   # ###############
   set(PACKAGE_OSX_TARGET ${CMAKE_OSX_DEPLOYMENT_TARGET})
@@ -341,7 +330,7 @@ elseif(APPLE)
   include(CPack)
 
 else() # Linux
-  find_package(Qt6QXcbIntegrationPlugin 6.8.3 REQUIRED PATHS ${Qt6Gui_DIR})
+  find_package(Qt6QXcbIntegrationPlugin 6.9.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
   install(FILES
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
@@ -358,6 +347,7 @@ else() # Linux
     $<TARGET_FILE:TIFF::TIFF>
     DESTINATION ${INSTALLDIR}
   )
+  install(TARGETS libCZI LIBRARY DESTINATION ${INSTALLDIR})
   install(FILES
     $<TARGET_FILE:Qt6::QXcbIntegrationPlugin>
     DESTINATION ${INSTALLDIR}/platforms/
@@ -379,4 +369,22 @@ else() # Linux
     ${PROJECT_SOURCE_DIR}/renderlib/assets/fonts/Courier_New.ttf
     DESTINATION ${INSTALLDIR}/assets/fonts/
   )
+  set(CPACK_GENERATOR "DEB")
+  set(CPACK_DEBIAN_PACKAGE_NAME "agave")
+  set(CPACK_PACKAGE_CONTACT "Allen Institute for Cell Science")
+
+  include(CPack)
 endif(WIN32)
+
+# Ensure compile_commands.json has correct sysroot for clang-tidy on macOS
+if(APPLE AND NOT CMAKE_OSX_SYSROOT)
+  execute_process(
+    COMMAND xcrun --show-sdk-path
+    OUTPUT_VARIABLE _osx_sysroot
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _xcrun_result
+  )
+  if(_xcrun_result EQUAL 0 AND _osx_sysroot)
+    set(CMAKE_OSX_SYSROOT "${_osx_sysroot}" CACHE PATH "macOS SDK path")
+  endif()
+endif()

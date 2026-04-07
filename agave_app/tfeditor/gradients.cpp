@@ -1,61 +1,13 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the demonstration applications of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
 #include "gradients.h"
-#include "hoverpoints.h"
 
 #include "Controls.h"
-#include "Defines.h"
-#include "Logging.h"
+#include "qcustomplot.h"
+#include "renderlib/Defines.h"
+#include "renderlib/Logging.h"
+#include "renderlib/MathUtil.h"
 
 #include <algorithm>
+#include <cmath>
 
 std::vector<LutControlPoint>
 gradientStopsToVector(QGradientStops& stops)
@@ -78,193 +30,673 @@ vectorToGradientStops(std::vector<LutControlPoint>& v)
   return stops;
 }
 
-ShadeWidget::ShadeWidget(const Histogram& histogram, ShadeType type, QWidget* parent)
-  : QWidget(parent)
-  , m_shade_type(type)
-  , m_alpha_gradient(QLinearGradient(0, 0, 0, 0))
-  , m_histogram(histogram)
+static void
+bound_point(double x, double y, const QRectF& bounds, int lock, double& out_x, double& out_y)
 {
-  // Checkers background
-  if (m_shade_type == ARGBShade) {
-    QPixmap pm(20, 20);
-    QPainter pmp(&pm);
-    pmp.fillRect(0, 0, 10, 10, Qt::lightGray);
-    pmp.fillRect(10, 10, 10, 10, Qt::lightGray);
-    pmp.fillRect(0, 10, 10, 10, Qt::darkGray);
-    pmp.fillRect(10, 0, 10, 10, Qt::darkGray);
-    pmp.end();
-    QPalette pal = palette();
-    pal.setBrush(backgroundRole(), QBrush(pm));
-    setAutoFillBackground(true);
-    setPalette(pal);
+  qreal left = bounds.left();
+  qreal right = bounds.right();
+  // notice top/bottom switch here.
+  qreal bottom = bounds.top();
+  qreal top = bounds.bottom();
 
-  } else {
-    setAttribute(Qt::WA_OpaquePaintEvent);
+  out_x = x;
+  out_y = y;
+
+  if (x <= left || (lock & GradientEditor::LockToLeft))
+    out_x = left;
+  else if (x >= right || (lock & GradientEditor::LockToRight))
+    out_x = right;
+
+  if (y >= top || (lock & GradientEditor::LockToTop))
+    out_y = top;
+  else if (y <= bottom || (lock & GradientEditor::LockToBottom))
+    out_y = bottom;
+}
+
+static constexpr double SCATTERSIZE = 10.0;
+static constexpr double MIN_HISTOGRAM_BAR_HEIGHT_LOG = 0.001;
+static constexpr double HISTOGRAM_Y_HEADROOM = 1.1;
+static constexpr int MIN_BAR_HEIGHT_PIXELS = 2;
+
+static double
+getMinHistogramBarHeight(QCustomPlot* plot, bool logScale)
+{
+  double minBarHeight = logScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : 0.0;
+  if (!plot) {
+    return minBarHeight;
   }
 
-  QPolygonF points;
-  points << QPointF(0.0f, 0.0f) << QPointF(1.0f, 1.0f);
-
-  m_hoverPoints = new HoverPoints(this, HoverPoints::CircleShape);
-  //     m_hoverPoints->setConnectionType(HoverPoints::LineConnection);
-  m_hoverPoints->setPoints(points);
-  m_hoverPoints->setPointLock(0, HoverPoints::LockToLeft);
-  m_hoverPoints->setPointLock(1, HoverPoints::LockToRight);
-  m_hoverPoints->setSortType(HoverPoints::XSort);
-
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-  connect(m_hoverPoints, &HoverPoints::pointsChanged, this, &ShadeWidget::colorsChanged);
-}
-
-QPolygonF
-ShadeWidget::points() const
-{
-  return m_hoverPoints->points();
-}
-
-void
-ShadeWidget::setEditable(bool editable)
-{
-  m_hoverPoints->setEditable(editable);
-}
-
-uint
-ShadeWidget::colorAt(int x)
-{
-  generateShade();
-  if (m_shade.isNull()) {
-    return 0;
+  auto* axisRect = plot->axisRect();
+  if (!axisRect || !plot->yAxis2) {
+    return minBarHeight;
   }
 
-  QPolygonF pts = m_hoverPoints->points();
-  for (int i = 1; i < pts.size(); ++i) {
-    if (pts.at(i - 1).x() <= x && pts.at(i).x() >= x) {
-      QLineF l(pts.at(i - 1), pts.at(i));
-      l.setLength(l.length() * ((x - l.x1()) / l.dx()));
-      return m_shade.pixel(qRound(qMin(l.x2(), (qreal(m_shade.width() - 1)))),
-                           qRound(qMin(l.y2(), qreal(m_shade.height() - 1))));
-    }
+  // Compute the coordinate value that sits MIN_BAR_HEIGHT_PIXELS above the bar base.
+  // In log mode, bars start at MIN_HISTOGRAM_BAR_HEIGHT_LOG; in linear mode they start at 0.
+  double baseValue = logScale ? MIN_HISTOGRAM_BAR_HEIGHT_LOG : 0.0;
+  double basePixel = plot->yAxis2->coordToPixel(baseValue);
+  // pixel Y decreases upward, so subtract to go up
+  double topCoord = plot->yAxis2->pixelToCoord(basePixel - MIN_BAR_HEIGHT_PIXELS);
+  if (topCoord > baseValue) {
+    minBarHeight = std::max(minBarHeight, topCoord);
   }
-  return 0;
-}
 
-void
-ShadeWidget::setGradientStops(const QGradientStops& stops)
-{
-  if (m_shade_type == ARGBShade) {
-    m_alpha_gradient = QLinearGradient(0, 0, width(), 0);
-
-    for (int i = 0; i < stops.size(); ++i) {
-      QColor c = stops.at(i).second;
-      m_alpha_gradient.setColorAt(stops.at(i).first, QColor(c.red(), c.green(), c.blue()));
-    }
-
-    m_shade = QImage();
-    generateShade();
-    update();
-  }
-}
-
-void
-ShadeWidget::paintEvent(QPaintEvent*)
-{
-  generateShade();
-
-  QPainter p(this);
-  p.drawImage(0, 0, m_shade);
-  /*
-        qreal barWidth = width() / (qreal)m_histogram.size();
-
-      for (int i = 0; i < m_histogram.size(); ++i) {
-          qreal h = m_histogram[i] * height();
-          // draw level
-          painter.fillRect(barWidth * i, height() - h, barWidth * (i + 1), height(), Qt::red);
-          // clear the rest of the control
-          painter.fillRect(barWidth * i, 0, barWidth * (i + 1), height() - h, Qt::black);
-      }
-  */
-  p.setPen(QColor(146, 146, 146));
-  p.drawRect(0, 0, width() - 1, height() - 1);
-}
-
-void
-ShadeWidget::drawHistogram(QPainter& p, int w, int h)
-{
-  size_t nbins = m_histogram._bins.size();
-  int maxbinsize = m_histogram._bins[m_histogram._maxBin];
-  for (size_t i = 0; i < nbins; ++i) {
-    float binheight = (float)m_histogram._bins[i] * (float)(h - 1) / (float)maxbinsize;
-    p.fillRect(
-      QRectF((float)i * (float)(w - 1) / (float)nbins, h - 1 - binheight, (float)(w - 1) / (float)nbins, binheight),
-      QColor(0, 0, 0, 255));
-  }
-}
-
-void
-ShadeWidget::generateShade()
-{
-  if (m_shade.isNull() || m_shade.size() != size()) {
-
-    QRect qrect = rect();
-    QSize qsize = size();
-    if (m_shade_type == ARGBShade) {
-      m_shade = QImage(qsize, QImage::Format_ARGB32_Premultiplied);
-      if (m_shade.isNull()) {
-        return;
-      }
-      m_shade.fill(0);
-
-      QPainter p(&m_shade);
-      p.fillRect(qrect, m_alpha_gradient);
-
-      p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-      QLinearGradient fade(0, 0, 0, height() - 1);
-      fade.setColorAt(0, QColor(255, 255, 255, 255));
-      fade.setColorAt(1, QColor(0, 0, 0, 0));
-      p.fillRect(qrect, fade);
-
-      p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-      drawHistogram(p, qsize.width(), qsize.height());
-
-    } else {
-      m_shade = QImage(qsize, QImage::Format_RGB32);
-      if (m_shade.isNull()) {
-        return;
-      }
-      QLinearGradient shade(0, 0, 0, height());
-      shade.setColorAt(1, Qt::black);
-
-      if (m_shade_type == RedShade)
-        shade.setColorAt(0, Qt::red);
-      else if (m_shade_type == GreenShade)
-        shade.setColorAt(0, Qt::green);
-      else
-        shade.setColorAt(0, Qt::blue);
-
-      QPainter p(&m_shade);
-      p.fillRect(qrect, shade);
-
-      p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-      drawHistogram(p, qsize.width(), qsize.height());
-    }
-  }
+  return minBarHeight;
 }
 
 GradientEditor::GradientEditor(const Histogram& histogram, QWidget* parent)
   : QWidget(parent)
+  , m_histogram(histogram)
 {
   QVBoxLayout* vbox = new QVBoxLayout(this);
+  vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
-  // vbox->setMargin(1);
 
-  m_alpha_shade = new ShadeWidget(histogram, ShadeWidget::ARGBShade, this);
+  m_customPlot = new QCustomPlot(this);
 
-  vbox->addWidget(m_alpha_shade);
+  // yAxis is for intensity transfer function
+  m_customPlot->yAxis->setVisible(true);
+  m_customPlot->yAxis->setTicks(true);
+  m_customPlot->yAxis->setTickLabels(true);
+  m_customPlot->yAxis->grid()->setVisible(false);
+  m_customPlot->yAxis->grid()->setSubGridVisible(false);
 
-  connect(m_alpha_shade, &ShadeWidget::colorsChanged, this, &GradientEditor::pointsUpdated);
+  // yAxis2 is for histogram
+  m_customPlot->yAxis2->setVisible(true);
+  m_customPlot->yAxis2->setTicks(true);
+  m_customPlot->yAxis2->setTickLabels(false);
+  m_customPlot->yAxis2->setSubTicks(false);
+  m_customPlot->yAxis2->grid()->setVisible(true);
+  m_customPlot->yAxis2->grid()->setSubGridVisible(false);
+  m_customPlot->yAxis2->setRange(0.0, 1.0);
+  m_customPlot->yAxis2->setScaleType(QCPAxis::stLinear);
+
+  // first graph will be histogram
+  m_histogramBars = new QCPBars(m_customPlot->xAxis, m_customPlot->yAxis2);
+  QPalette pal = m_customPlot->palette();
+  QColor histFillColor = pal.color(QPalette::Link).lighter(150);
+  QBrush barBrush = m_histogramBars->brush();
+  barBrush.setColor(histFillColor);
+  m_histogramBars->setBrush(barBrush);
+  m_histogramBars->setPen(Qt::NoPen);
+  m_histogramBars->setWidthType(QCPBars::wtPlotCoords);
+
+  m_histogramBars->setSelectable(QCP::stNone);
+
+  // first added graph will the the piecewise linear transfer function
+  m_customPlot->addGraph();
+  m_customPlot->graph(0)->setPen(QPen(Qt::black));
+  QPen scatterPen(Qt::black);
+  scatterPen.setWidthF(1.0);
+  m_customPlot->graph(0)->setScatterStyle(
+    QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
+  m_customPlot->graph(0)->setSelectable(QCP::stSingleData);
+
+  //   give the axes some labels:
+  m_customPlot->xAxis->setLabel("");
+  m_customPlot->yAxis->setLabel("");
+
+  // set axes ranges, so we see all data:
+  m_customPlot->xAxis->setRange(histogram.getFilteredMin(), histogram.getFilteredMax());
+  m_customPlot->xAxis->ticker()->setTickCount(4);
+  m_customPlot->xAxis->ticker()->setTickOrigin(histogram.getDataMin());
+  auto tickLabelFont = m_customPlot->xAxis->tickLabelFont();
+  tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
+  m_customPlot->xAxis->setTickLabelFont(tickLabelFont);
+  QPen penx = m_customPlot->xAxis->basePen();
+  penx.setWidthF(1.0);
+  m_customPlot->xAxis->setBasePen(penx);
+
+  // increasing this will extend the Y axis up and down, so that the scatter handles are not clipped.
+  static constexpr double AXIS_OFFSET_FRACTION = 0.0;
+  m_customPlot->xAxis->setOffset(AXIS_OFFSET_FRACTION);
+
+  m_customPlot->yAxis->setRange(0 - AXIS_OFFSET_FRACTION, 1 + AXIS_OFFSET_FRACTION);
+  m_customPlot->yAxis->ticker()->setTickCount(1);
+  tickLabelFont = m_customPlot->yAxis->tickLabelFont();
+  tickLabelFont.setPointSize((float)tickLabelFont.pointSize() * 0.75);
+  m_customPlot->yAxis->setTickLabelFont(tickLabelFont);
+  QPen peny = m_customPlot->yAxis->basePen();
+  peny.setWidthF(1.0);
+  m_customPlot->yAxis->setBasePen(peny);
+
+  m_customPlot->xAxis->grid()->setVisible(true);
+  m_customPlot->xAxis->grid()->setSubGridVisible(true);
+  m_customPlot->yAxis->grid()->setVisible(false);
+  m_customPlot->yAxis->grid()->setSubGridVisible(false);
+
+  m_customPlot->setInteractions(
+    QCP::iRangeDrag | QCP::iRangeZoom |
+    QCP::iSelectPlottables); // allow user to drag axis ranges with mouse, zoom with mouse wheel
+  auto* axisRect = m_customPlot->axisRect();
+  axisRect->setAutoMargins(QCP::msLeft | QCP::msRight | QCP::msBottom);
+  axisRect->setMargins(QMargins(0, 12, 0, 0));
+  axisRect->setMinimumMargins(QMargins(0, 12, 0, 0));
+  axisRect->setRangeDrag(Qt::Horizontal);
+  axisRect->setRangeZoom(Qt::Horizontal);
+
+  m_customPlot->replot();
+
+  connect(m_customPlot, &QCustomPlot::mousePress, this, &GradientEditor::onPlotMousePress);
+  connect(m_customPlot, &QCustomPlot::mouseMove, this, &GradientEditor::onPlotMouseMove);
+  connect(m_customPlot, &QCustomPlot::mouseRelease, this, &GradientEditor::onPlotMouseRelease);
+  connect(m_customPlot, &QCustomPlot::mouseWheel, this, &GradientEditor::onPlotMouseWheel);
+  connect(m_customPlot, &QCustomPlot::mouseDoubleClick, this, &GradientEditor::onPlotMouseDoubleClick);
+  connect(m_customPlot->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange&) {
+    this->updateHistogramForVisibleRange();
+  });
+
+  vbox->addWidget(m_customPlot);
+
+  updateHistogramForVisibleRange();
+}
+
+void
+GradientEditor::updateHistogramForVisibleRange()
+{
+  updateHistogramBarGraph();
+  updateHistogramYAxisRange();
+  m_customPlot->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void
+GradientEditor::updateHistogramBarGraph()
+{
+  if (!m_customPlot) {
+    return;
+  }
+
+  QCPRange xRange = m_customPlot->xAxis->range();
+  double visibleMin = xRange.lower;
+  double visibleMax = xRange.upper;
+  // not sure why this might happen but just in case
+  if (visibleMin > visibleMax) {
+    std::swap(visibleMin, visibleMax);
+  }
+
+  // because we work with uint16_t data, let's put our bins on integer boundaries
+  // this makes the graph display cleaner and is conceptually easier to debug
+  visibleMin = std::max(visibleMin, static_cast<double>(m_histogram.getDataMin()));
+  visibleMax = std::min(visibleMax, static_cast<double>(m_histogram.getDataMax()));
+  visibleMin = std::floor(visibleMin);
+  visibleMax = std::ceil(visibleMax);
+  // not sure why this might happen but just in case
+  if (visibleMin > visibleMax) {
+    std::swap(visibleMin, visibleMax);
+  }
+
+  size_t numBins = m_histogram.getNumDisplayBins();
+  if (numBins == 0) {
+    return;
+  }
+
+  // if the x range is small enough, we can use fewer bins
+  double visibleRange = visibleMax - visibleMin;
+  if (visibleRange < static_cast<double>(numBins)) {
+    size_t maxBinsForRange = static_cast<size_t>(std::floor(std::max(visibleRange, 0.0))) + 1;
+    numBins = std::max<size_t>(1, std::min(numBins, maxBinsForRange));
+  }
+
+  m_visibleHistogramBins =
+    m_histogram.computeForDisplay(static_cast<float>(visibleMin), static_cast<float>(visibleMax), numBins);
+
+  double binSize = 0.0;
+  if (numBins > 1) {
+    binSize = (visibleMax - visibleMin) / static_cast<double>(numBins - 1);
+  }
+  if (binSize <= 0.0) {
+    binSize = 1.0;
+  }
+  m_histogramBars->setWidth(binSize);
+
+  uint32_t modalCount = 0;
+  for (uint32_t count : m_visibleHistogramBins) {
+    modalCount = std::max(modalCount, count);
+  }
+
+  QVector<double> keyData;
+  QVector<double> valueData;
+  double minBarHeight = getMinHistogramBarHeight(m_customPlot, m_histogramLogScale);
+  for (size_t i = 0; i < numBins; ++i) {
+    keyData << visibleMin + static_cast<double>(i) * binSize;
+    uint32_t count = m_visibleHistogramBins[i];
+    if (count == 0) {
+      // Zero bins are clamped in log mode to avoid log(0).
+      valueData << (m_histogramLogScale ? minBarHeight : 0.0);
+    } else {
+      // Nonzero bins get at least the minimum height
+      // to be visible at all.
+      double normalizedHeight = static_cast<double>(count) / static_cast<double>(std::max<uint32_t>(modalCount, 1));
+      valueData << std::max(normalizedHeight, minBarHeight);
+    }
+  }
+  m_histogramBars->setData(keyData, valueData);
+}
+
+void
+GradientEditor::updateHistogramYAxisRange()
+{
+  if (!m_customPlot) {
+    return;
+  }
+
+  size_t numBins = m_visibleHistogramBins.size();
+  if (numBins == 0) {
+    return;
+  }
+
+  // at least 1 to avoid division by 0 later.
+  uint32_t modalCount = 1;
+  for (uint32_t count : m_visibleHistogramBins) {
+    modalCount = std::max(modalCount, count);
+  }
+
+  double maxVisible = 0.0;
+  double minBarHeight = getMinHistogramBarHeight(m_customPlot, m_histogramLogScale);
+  for (size_t i = 0; i < numBins; ++i) {
+    uint32_t count = m_visibleHistogramBins[i];
+    double value = 0.0;
+    if (count == 0) {
+      value = m_histogramLogScale ? minBarHeight : 0.0;
+    } else {
+      double normalizedHeight = static_cast<double>(count) / static_cast<double>(modalCount);
+      value = std::max(normalizedHeight, minBarHeight);
+    }
+    maxVisible = std::max(maxVisible, value);
+  }
+
+  if (maxVisible <= 0.0) {
+    maxVisible = m_histogramLogScale ? minBarHeight : 1.0;
+  }
+
+  if (m_histogramLogScale) {
+    double lower = MIN_HISTOGRAM_BAR_HEIGHT_LOG;
+    double upper = std::max(maxVisible * HISTOGRAM_Y_HEADROOM, lower * HISTOGRAM_Y_HEADROOM);
+    m_customPlot->yAxis2->setRange(lower, upper);
+  } else {
+    double upper = std::max(maxVisible * HISTOGRAM_Y_HEADROOM, 0.0);
+    m_customPlot->yAxis2->setRange(0.0, upper);
+  }
+}
+
+void
+GradientEditor::setHistogram(const Histogram& histogram)
+{
+  m_histogram = histogram;
+
+  updateHistogramForVisibleRange();
+}
+
+void
+GradientEditor::setYAxisLogScale(bool enabled)
+{
+  if (!m_customPlot) {
+    return;
+  }
+
+  m_histogramLogScale = enabled;
+  m_customPlot->yAxis->setVisible(true);
+  m_customPlot->yAxis->setTicks(true);
+  m_customPlot->yAxis->setTickLabels(true);
+  m_customPlot->yAxis->grid()->setVisible(false);
+  m_customPlot->yAxis->grid()->setSubGridVisible(false);
+  m_customPlot->yAxis2->setVisible(true);
+  m_customPlot->yAxis2->setTicks(true);
+  m_customPlot->yAxis2->setTickLabels(false);
+  m_customPlot->yAxis2->setSubTicks(false);
+  m_customPlot->yAxis2->grid()->setVisible(true);
+  m_customPlot->yAxis2->grid()->setSubGridVisible(false);
+  m_customPlot->yAxis2->setScaleType(enabled ? QCPAxis::stLogarithmic : QCPAxis::stLinear);
+  updateHistogramForVisibleRange();
+}
+
+void
+GradientEditor::changeEvent(QEvent* event)
+{
+  // This might be too many event types to check, but ThemeChange only seems to work on the QMainWindow.
+  // At least on Windows, changing dark mode to light mode incurs StyleChange and PaletteChange events too.
+  if (event->type() == QEvent::ThemeChange || event->type() == QEvent::ApplicationPaletteChange ||
+      event->type() == QEvent::StyleChange || event->type() == QEvent::PaletteChange) {
+    // check for dark or light mode
+    auto sh = QGuiApplication::styleHints();
+    auto colorScheme = sh->colorScheme();
+    QColor plotLineColor;
+    QColor backgroundColor;
+    QColor barsColor;
+    QColor gridColor;
+    QColor subgridColor;
+    if (colorScheme == Qt::ColorScheme::Dark) {
+      barsColor = Qt::magenta;
+      barsColor.setAlphaF(0.5);
+      plotLineColor = this->palette().color(QPalette::Text);
+      backgroundColor = this->palette().color(QPalette::Window);
+      gridColor = plotLineColor.darker(150);
+      gridColor.setAlphaF(0.75);
+      subgridColor = plotLineColor.darker(170);
+      subgridColor.setAlphaF(0.5);
+    } else if (colorScheme == Qt::ColorScheme::Light) {
+      barsColor = Qt::magenta;
+      barsColor.setAlphaF(0.25);
+      plotLineColor = this->palette().color(QPalette::Text);
+      backgroundColor = this->palette().color(QPalette::Window);
+      gridColor = plotLineColor.lighter(150);
+      gridColor.setAlphaF(0.75);
+      subgridColor = plotLineColor.lighter(170);
+      subgridColor.setAlphaF(0.5);
+    }
+    m_customPlot->graph(0)->setPen(QPen(plotLineColor));
+    QPen scatterPen(plotLineColor);
+    scatterPen.setWidthF(1.0);
+    m_customPlot->graph(0)->setScatterStyle(
+      QCPScatterStyle(QCPScatterStyle::ssCircle, scatterPen, Qt::NoBrush, SCATTERSIZE));
+    m_customPlot->setBackground(QBrush(backgroundColor));
+    m_customPlot->axisRect();
+
+    QPen basepen = m_customPlot->xAxis->basePen();
+    basepen.setColor(plotLineColor);
+    m_customPlot->xAxis->setBasePen(basepen);
+    m_customPlot->yAxis->setBasePen(basepen);
+    m_customPlot->yAxis2->setBasePen(basepen);
+
+    QPen gridpen = m_customPlot->xAxis->grid()->pen();
+    gridpen.setColor(gridColor);
+    m_customPlot->xAxis->grid()->setPen(gridpen);
+    m_customPlot->yAxis->grid()->setPen(gridpen);
+    m_customPlot->yAxis2->grid()->setPen(gridpen);
+    QPen subgridpen = m_customPlot->xAxis->grid()->subGridPen();
+    subgridpen.setColor(subgridColor);
+    m_customPlot->xAxis->grid()->setSubGridPen(subgridpen);
+    m_customPlot->yAxis->grid()->setSubGridPen(subgridpen);
+    m_customPlot->yAxis2->grid()->setSubGridPen(subgridpen);
+    m_customPlot->xAxis->grid()->setAntialiasedSubGrid(true);
+    m_customPlot->yAxis->grid()->setAntialiasedSubGrid(true);
+    m_customPlot->yAxis2->grid()->setAntialiasedSubGrid(true);
+
+    QPen axisTickPen = m_customPlot->xAxis->tickPen();
+    axisTickPen.setColor(plotLineColor);
+    m_customPlot->xAxis->setTickPen(axisTickPen);
+    m_customPlot->yAxis->setTickPen(axisTickPen);
+    m_customPlot->yAxis2->setTickPen(axisTickPen);
+    m_customPlot->xAxis->setTickLabelColor(plotLineColor);
+    m_customPlot->yAxis->setTickLabelColor(plotLineColor);
+    m_customPlot->yAxis2->setTickLabelColor(plotLineColor);
+    QPen axisSubTickPen = m_customPlot->xAxis->subTickPen();
+    axisSubTickPen.setColor(plotLineColor);
+    m_customPlot->xAxis->setSubTickPen(axisSubTickPen);
+    m_customPlot->yAxis->setSubTickPen(axisSubTickPen);
+    m_customPlot->yAxis2->setSubTickPen(axisSubTickPen);
+
+    m_histogramBars->setPen(Qt::NoPen); // QPen(barsColor));
+    m_histogramBars->setBrush(QBrush(barsColor));
+
+    m_customPlot->replot();
+  }
+  QWidget::changeEvent(event);
+}
+
+void
+GradientEditor::onPlotMousePress(QMouseEvent* event)
+{
+  // in custom mode, any click is either ON a point or creating a new point?
+  bool isCustomMode = (m_currentEditMode == GradientEditMode::CUSTOM);
+  bool isMinMaxMode = (m_currentEditMode == GradientEditMode::MINMAX);
+  bool isWindowLevelMode = (m_currentEditMode == GradientEditMode::WINDOW_LEVEL);
+  bool isPercentileMode = (m_currentEditMode == GradientEditMode::PERCENTILE);
+  bool isInteractiveMode = isCustomMode || isMinMaxMode || isWindowLevelMode || isPercentileMode;
+
+  if (!isInteractiveMode) {
+    return;
+  }
+
+  // let's look to see if a data point was clicked.
+
+  int indexOfDataPoint = -1;
+  double dist = 1E+9;
+
+  auto graph = m_customPlot->graph(0);
+  for (int n = 0; n < (graph->data()->size()); n++) {
+    // get xy of each data pt in pixels. compare with scattersize.
+    // first hit wins.
+    double x = (graph->data()->begin() + n)->key;
+    double y = (graph->data()->begin() + n)->value;
+    double px = m_customPlot->xAxis->coordToPixel(x);
+    double py = m_customPlot->yAxis->coordToPixel(y);
+    double dx = (px - (double)event->pos().x());
+    double dy = (py - (double)event->pos().y());
+    dist = sqrt(dx * dx + dy * dy);
+    if (dist < SCATTERSIZE / 2.0) {
+      indexOfDataPoint = n;
+      // remember dist!
+      break;
+    }
+  }
+
+  if (event->button() == Qt::LeftButton) {
+
+    // if we didn't click on a point, then we could add a point (only in custom mode):
+    if (indexOfDataPoint == -1 && isCustomMode) {
+      // this checks to see if user clicked along the line anywhere close.
+      QCPGraph* plottable = m_customPlot->plottableAt<QCPGraph>(event->pos(), true, &indexOfDataPoint);
+      if (plottable != nullptr && indexOfDataPoint > -1) {
+        // create a new point at x, y
+        double x = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+        double y = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+        // find first point above x to know the index?
+        for (int n = 0; n < (graph->data()->size()); n++) {
+          // get xy of each data pt in pixels. compare with scattersize.
+          // first hit wins.
+          double xn = (graph->data()->begin() + n)->key;
+          if (x < xn) {
+            // the index of x will be n.
+            indexOfDataPoint = n;
+            break;
+          }
+        }
+        m_locks.insert(indexOfDataPoint, 0);
+        graph->addData(x, y);
+        graph->data()->sort();
+        m_customPlot->replot();
+      }
+    }
+
+    if (indexOfDataPoint > -1) {
+      // In MINMAX, Window/Level, and Percentile modes, only allow dragging of second and third points (threshold
+      // points)
+      if (isMinMaxMode || isWindowLevelMode || isPercentileMode) {
+        int dataSize = graph->data()->size();
+        if (indexOfDataPoint != 1 && indexOfDataPoint != 2) {
+          // Not the second or third point (threshold points), don't allow dragging
+          return;
+        }
+      }
+
+      m_isDraggingPoint = true;
+      m_currentPointIndex = indexOfDataPoint;
+      // turn off axis dragging while we are dragging a point
+      m_customPlot->axisRect()->setRangeDrag((Qt::Orientations)0);
+      // swallow this event so it doesn't propagate to the plot
+      event->accept();
+    }
+  } else if (event->button() == Qt::RightButton) {
+    // Only allow point deletion in custom mode
+    if (indexOfDataPoint >= 0 && isCustomMode) {
+      if (m_locks[indexOfDataPoint] == 0) {
+        m_locks.remove(indexOfDataPoint);
+        // remove data pt from plot
+        graph->data()->remove((graph->data()->begin() + indexOfDataPoint)->key);
+
+        // update the stuff because we did something
+        emit gradientStopsChanged(this->buildStopsFromPlot());
+        m_customPlot->replot();
+        event->accept();
+      }
+    }
+  }
+}
+void
+GradientEditor::onPlotMouseMove(QMouseEvent* event)
+{
+  bool isCustomMode = (m_currentEditMode == GradientEditMode::CUSTOM);
+  bool isMinMaxMode = (m_currentEditMode == GradientEditMode::MINMAX);
+  bool isWindowLevelMode = (m_currentEditMode == GradientEditMode::WINDOW_LEVEL);
+  bool isPercentileMode = (m_currentEditMode == GradientEditMode::PERCENTILE);
+  bool isInteractiveMode = isCustomMode || isMinMaxMode || isWindowLevelMode || isPercentileMode;
+
+  if (!isInteractiveMode) {
+    return;
+  }
+
+  if (m_isDraggingPoint && m_currentPointIndex >= 0) {
+    if (event->buttons() & Qt::LeftButton) {
+      auto graph = m_customPlot->graph(0);
+      double evx = m_customPlot->xAxis->pixelToCoord(event->pos().x());
+      double evy = m_customPlot->yAxis->pixelToCoord(event->pos().y());
+
+      // Handle threshold-based modes (MINMAX, Window/Level, Percentile) differently
+      if (isMinMaxMode || isWindowLevelMode || isPercentileMode) {
+        // In threshold-based modes, keep Y value constant and only allow horizontal movement
+        double originalY = (graph->data()->begin() + m_currentPointIndex)->value;
+        evy = originalY; // Keep Y constant
+
+        static constexpr double OVERLAP_EPSILON = 0.001;
+        // Apply additional constraints for min/max threshold points
+        if (m_currentPointIndex == 1) {
+          // This is the min threshold point - don't let it go past the max threshold point
+          if (graph->data()->size() > 2) {
+            double maxThresholdX = (graph->data()->begin() + 2)->key;
+            evx = std::min(evx, maxThresholdX - OVERLAP_EPSILON); // Small epsilon to prevent overlap
+          }
+          // Also don't let it go before the first fixed point
+          if (graph->data()->size() > 0) {
+            double firstPointX = (graph->data()->begin())->key;
+            evx = std::max(evx, firstPointX + OVERLAP_EPSILON);
+          }
+        } else if (m_currentPointIndex == 2) {
+          // This is the max threshold point - don't let it go past the min threshold point
+          if (graph->data()->size() > 1) {
+            double minThresholdX = (graph->data()->begin() + 1)->key;
+            evx = std::max(evx, minThresholdX + OVERLAP_EPSILON); // Small epsilon to prevent overlap
+          }
+          // Also don't let it go past the last fixed point
+          if (graph->data()->size() > 3) {
+            double lastPointX = (graph->data()->begin() + 3)->key;
+            evx = std::min(evx, lastPointX - OVERLAP_EPSILON);
+          }
+        }
+      }
+
+      // see hoverpoints.cpp.
+      // this will make sure we don't move past locked edges in the bounding rectangle.
+      double px = evx, py = evy;
+      bound_point(evx,
+                  evy,
+                  // we really want clipRect() here?  to capture zoomed region
+                  QRectF(m_histogram.getDataMin(), 0.0f, m_histogram.getDataMax() - m_histogram.getDataMin(), 1.0f),
+                  m_locks.at(m_currentPointIndex),
+                  px,
+                  py);
+
+      // if we are dragging a point then move it
+      (graph->data()->begin() + m_currentPointIndex)->value = py;
+      (graph->data()->begin() + m_currentPointIndex)->key = px;
+
+      // In MINMAX mode, don't sort - keep points in their fixed positions
+      if (!isMinMaxMode) {
+        // The point may have moved past other points, so sort,
+        // and account for current point index possibly changing.
+        // TODO should we always sort on every move? Or can we tell if we crossed another point?
+        graph->data().data()->sort();
+        // find new index of current point
+        // find first point above x to know the index?
+        int indexOfDataPoint = m_currentPointIndex;
+        for (int n = 0; n < (graph->data()->size()); n++) {
+          // get xy of each data pt in pixels. compare with scattersize.
+          // first hit wins.
+          double xn = (graph->data()->begin() + n)->key;
+          if (px == xn) {
+            // the index of x will be n.
+            indexOfDataPoint = n;
+            break;
+          }
+        }
+        if (indexOfDataPoint != m_currentPointIndex) {
+          m_currentPointIndex = indexOfDataPoint;
+        }
+      }
+
+      // In threshold-based modes, emit interactivePointsChanged for real-time slider updates
+      // Use the second and third points (indices 1 and 2) as the threshold points
+      if ((isMinMaxMode || isWindowLevelMode || isPercentileMode) && graph->data()->size() >= 4) {
+        double minThresholdX = (graph->data()->begin() + 1)->key;
+        double maxThresholdX = (graph->data()->begin() + 2)->key;
+        emit interactivePointsChanged(minThresholdX, maxThresholdX);
+      }
+
+      // emit( DataChanged() );
+
+      emit gradientStopsChanged(this->buildStopsFromPlot());
+
+      m_customPlot->replot(QCustomPlot::rpQueuedReplot);
+    }
+  }
+}
+
+QGradientStops
+GradientEditor::buildStopsFromPlot()
+{
+  // build up coords from the customplot into the form of gradient stops
+  QGradientStops stops;
+
+  auto graph = m_customPlot->graph(0);
+  for (int n = 0; n < (graph->data()->size()); n++) {
+    auto dataIter = graph->data()->begin() + n;
+    double x = dataIter->key;
+    // skip duplicates?
+    if (n + 1 < graph->data()->size() && x == graph->data()->at(n + 1)->key)
+      continue;
+
+    // rescale x to 0-1 range.
+    x = (x - m_histogram.getDataMin()) / (m_histogram.getDataMax() - m_histogram.getDataMin());
+    double y = dataIter->value;
+
+    QColor color = QColor::fromRgbF(y, y, y, y);
+    if (x > 1.0) {
+      LOG_ERROR << "control point x greater than 1";
+      return stops;
+    }
+
+    stops << QGradientStop(x, color);
+  }
+  return stops;
+}
+
+void
+GradientEditor::onPlotMouseRelease(QMouseEvent* event)
+{
+  Q_UNUSED(event);
+  if (m_currentEditMode != GradientEditMode::CUSTOM && m_currentEditMode != GradientEditMode::MINMAX &&
+      m_currentEditMode != GradientEditMode::WINDOW_LEVEL && m_currentEditMode != GradientEditMode::PERCENTILE) {
+    return;
+  }
+  // if we were dragging a point then stop
+  m_isDraggingPoint = false;
+  m_currentPointIndex = -1;
+  // re-enable axis dragging
+  m_customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
+}
+
+void
+GradientEditor::onPlotMouseDoubleClick(QMouseEvent* event)
+{
+  // double click should reset zoom
+  this->m_customPlot->rescaleAxes();
+  this->m_customPlot->replot();
+}
+
+void
+GradientEditor::onPlotMouseWheel(QWheelEvent* event)
+{
+  Q_UNUSED(event);
 }
 
 inline static bool
@@ -290,18 +722,11 @@ pointsToGradientStops(QPolygonF points)
     if (i + 1 < points.size() && x == points.at(i + 1).x())
       continue;
     float pixelvalue = points.at(i).y();
-    // TODO future: let each point in m_alpha_shade have a full RGBA color and use a color picker to assign it via dbl
+    // TODO future: let each point have a full RGBA color and use a color picker to assign it via dbl
     // click or some other means
-    // unsigned int pixelvalue = m_alpha_shade->colorAt(int(x));
-    // unsigned int r = (0x00ff0000 & pixelvalue) >> 16;
-    // unsigned int g = (0x0000ff00 & pixelvalue) >> 8;
-    // unsigned int b = (0x000000ff & pixelvalue);
-    // unsigned int a = (0xff000000 & pixelvalue) >> 24;
-    // QColor color(r, g, b, a);
 
     QColor color = QColor::fromRgbF(pixelvalue, pixelvalue, pixelvalue, pixelvalue);
     if (x > 1) {
-      LOG_ERROR << "control point x greater than 1";
       return stops;
     }
 
@@ -311,31 +736,31 @@ pointsToGradientStops(QPolygonF points)
 }
 
 void
-GradientEditor::pointsUpdated()
-{
-  // qreal w = m_alpha_shade->width();
-
-  QGradientStops stops = pointsToGradientStops(m_alpha_shade->points());
-
-  m_alpha_shade->setGradientStops(stops);
-
-  emit gradientStopsChanged(stops);
-}
-
-static void
-set_shade_points(const QPolygonF& points, ShadeWidget* shade)
+GradientEditor::set_shade_points(const QPolygonF& points, QCustomPlot* plot, const Histogram& histogram)
 {
   if (points.size() < 2) {
     return;
   }
 
   QGradientStops stops = pointsToGradientStops(points);
-  shade->setGradientStops(stops);
 
-  shade->hoverPoints()->setPoints(points);
-  shade->hoverPoints()->setPointLock(0, HoverPoints::LockToLeft);
-  shade->hoverPoints()->setPointLock(points.size() - 1, HoverPoints::LockToRight);
-  shade->update();
+  m_locks.clear();
+  if (!points.empty()) {
+    m_locks.resize(points.size());
+    m_locks.fill(0);
+  }
+  m_locks[0] = GradientEditor::LockToLeft;
+  m_locks[points.size() - 1] = GradientEditor::LockToRight;
+
+  QVector<double> x, y;
+  for (int i = 0; i < points.size(); ++i) {
+    // incoming points x values are in 0-1 range which is normalized to histogram data range
+    float dx = histogram.getDataMin() + points.at(i).x() * (histogram.getDataMax() - histogram.getDataMin());
+    x << dx;
+    y << points.at(i).y();
+  }
+  plot->graph(0)->setData(x, y);
+  plot->replot(QCustomPlot::rpQueuedReplot);
 }
 
 void
@@ -347,7 +772,7 @@ GradientEditor::setControlPoints(const std::vector<LutControlPoint>& points)
     pts_alpha << QPointF(p.first, p.second);
   }
 
-  set_shade_points(pts_alpha, m_alpha_shade);
+  set_shade_points(pts_alpha, m_customPlot, m_histogram);
 }
 
 void
@@ -364,16 +789,68 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 {
   QVBoxLayout* mainGroupLayout = new QVBoxLayout(this);
 
-  // setWindowTitle(tr("Gradients"));
-
-  // QGroupBox* editorGroup = new QGroupBox(this);
-  // editorGroup->setTitle(tr("Color Editor"));
   m_editor = new GradientEditor(m_histogram, this);
-  mainGroupLayout->addWidget(m_editor);
+  m_editor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_editor->setMinimumHeight(100);
+  QHBoxLayout* editorRowLayout = new QHBoxLayout();
+  editorRowLayout->setContentsMargins(0, 0, 0, 0);
+  editorRowLayout->setSpacing(4);
+  editorRowLayout->addWidget(m_editor, 1);
+
+  QVBoxLayout* editorButtonLayout = new QVBoxLayout();
+  editorButtonLayout->setContentsMargins(0, 8, 0, 0);
+  editorButtonLayout->setSpacing(2);
+
+  copyButton = new QToolButton(this);
+  QIcon copyIcon = QIcon::fromTheme(QIcon::ThemeIcon::EditCopy);
+  if (!copyIcon.isNull()) {
+    copyButton->setIcon(copyIcon);
+  } else {
+    copyButton->setText("C");
+  }
+  copyButton->setToolTip(tr("Copy control points"));
+  copyButton->setAutoRaise(true);
+  copyButton->setFixedSize(20, 20);
+
+  pasteButton = new QToolButton(this);
+  QIcon pasteIcon = QIcon::fromTheme(QIcon::ThemeIcon::EditPaste);
+  if (!pasteIcon.isNull()) {
+    pasteButton->setIcon(pasteIcon);
+  } else {
+    pasteButton->setText("P");
+  }
+  pasteButton->setToolTip(tr("Paste control points"));
+  pasteButton->setAutoRaise(true);
+  pasteButton->setFixedSize(20, 20);
+
+  yScaleButton = new QToolButton(this);
+  QIcon logIcon = QIcon::fromTheme("view-logarithmic");
+  if (!logIcon.isNull()) {
+    yScaleButton->setIcon(logIcon);
+  } else {
+    yScaleButton->setText("Log");
+  }
+  yScaleButton->setToolTip(tr("Toggle log Y scale"));
+  yScaleButton->setAutoRaise(true);
+  yScaleButton->setFixedSize(20, 20);
+  yScaleButton->setCheckable(true);
+
+  editorButtonLayout->addWidget(copyButton);
+  editorButtonLayout->addWidget(pasteButton);
+  editorButtonLayout->addSpacing(12);
+  editorButtonLayout->addWidget(yScaleButton);
+  editorButtonLayout->addStretch(1);
+
+  editorRowLayout->addLayout(editorButtonLayout);
+  mainGroupLayout->addLayout(editorRowLayout);
+  mainGroupLayout->setStretch(0, 3);
 
   auto* sectionLayout = Controls::createAgaveFormLayout();
 
   QButtonGroup* btnGroup = new QButtonGroup(this);
+  QPushButton* minMaxButton = new QPushButton("Min/Max");
+  minMaxButton->setToolTip(tr("Min/Max"));
+  minMaxButton->setStatusTip(tr("Choose Min/Max mode"));
   QPushButton* windowLevelButton = new QPushButton("Wnd/Lvl");
   windowLevelButton->setToolTip(tr("Window/Level"));
   windowLevelButton->setStatusTip(tr("Choose Window/Level mode"));
@@ -391,17 +868,21 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   static const int ISO_BTNID = 2;
   static const int PCT_BTNID = 3;
   static const int CUSTOM_BTNID = 4;
+  static const int MINMAX_BTNID = 5;
   static std::map<int, GradientEditMode> btnIdToGradientMode = { { WINDOW_LEVEL_BTNID, GradientEditMode::WINDOW_LEVEL },
                                                                  { ISO_BTNID, GradientEditMode::ISOVALUE },
                                                                  { PCT_BTNID, GradientEditMode::PERCENTILE },
+                                                                 { MINMAX_BTNID, GradientEditMode::MINMAX },
                                                                  { CUSTOM_BTNID, GradientEditMode::CUSTOM } };
   static std::map<GradientEditMode, int> gradientModeToBtnId = { { GradientEditMode::WINDOW_LEVEL, WINDOW_LEVEL_BTNID },
                                                                  { GradientEditMode::ISOVALUE, ISO_BTNID },
                                                                  { GradientEditMode::PERCENTILE, PCT_BTNID },
+                                                                 { GradientEditMode::MINMAX, MINMAX_BTNID },
                                                                  { GradientEditMode::CUSTOM, CUSTOM_BTNID } };
   static std::map<int, int> btnIdToStackedPage = {
-    { WINDOW_LEVEL_BTNID, 0 }, { ISO_BTNID, 1 }, { PCT_BTNID, 2 }, { CUSTOM_BTNID, 3 }
+    { WINDOW_LEVEL_BTNID, 1 }, { ISO_BTNID, 2 }, { PCT_BTNID, 3 }, { MINMAX_BTNID, 0 }, { CUSTOM_BTNID, 4 }
   };
+  btnGroup->addButton(minMaxButton, MINMAX_BTNID);
   btnGroup->addButton(windowLevelButton, WINDOW_LEVEL_BTNID);
   btnGroup->addButton(isoButton, ISO_BTNID);
   btnGroup->addButton(pctButton, PCT_BTNID);
@@ -440,16 +921,22 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   auto* section3Layout = Controls::createAgaveFormLayout();
   fourthPageWidget->setLayout(section3Layout);
 
+  QWidget* fifthPageWidget = new QWidget;
+  auto* section4Layout = Controls::createAgaveFormLayout();
+  fifthPageWidget->setLayout(section4Layout);
+
   QStackedLayout* stackedLayout = new QStackedLayout(mainGroupLayout);
   stackedLayout->addWidget(firstPageWidget);
   stackedLayout->addWidget(secondPageWidget);
   stackedLayout->addWidget(thirdPageWidget);
   stackedLayout->addWidget(fourthPageWidget);
+  stackedLayout->addWidget(fifthPageWidget);
 
   int initialStackedPageIndex = btnIdToStackedPage[initialButtonId];
   stackedLayout->setCurrentIndex(initialStackedPageIndex);
   // if this is not custom mode, then disable the gradient editor
-  m_editor->setEditable(m == GradientEditMode::CUSTOM);
+  // m_editor->setEditable(m == GradientEditMode::CUSTOM);
+  m_editor->setEditMode(m);
 
   connect(btnGroup,
           QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
@@ -465,82 +952,107 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
             stackedLayout->setCurrentIndex(btnIdToStackedPage[id]);
 
             // if this is not custom mode, then disable the gradient editor
-            m_editor->setEditable(modeToSet == GradientEditMode::CUSTOM);
+            // m_editor->setEditable(modeToSet == GradientEditMode::CUSTOM);
+            m_editor->setEditMode(modeToSet);
 
             this->forceDataUpdate();
+            this->updateCopyPasteButtons();
           });
 
-  QNumericSlider* windowSlider = new QNumericSlider();
+  minu16Slider = new QIntSlider();
+  minu16Slider->setStatusTip(tr("Minimum u16 value"));
+  minu16Slider->setToolTip(tr("Set minimum u16 value"));
+  minu16Slider->setRange(m_histogram.getDataMin(), m_histogram.getDataMax());
+  minu16Slider->setSingleStep(1);
+  minu16Slider->setValue(m_gradientData->m_minu16);
+  section0Layout->addRow("Min u16", minu16Slider);
+  maxu16Slider = new QIntSlider();
+  maxu16Slider->setStatusTip(tr("Maximum u16 value"));
+  maxu16Slider->setToolTip(tr("Set maximum u16 value"));
+  maxu16Slider->setRange(m_histogram.getDataMin(), m_histogram.getDataMax());
+  maxu16Slider->setSingleStep(1);
+  maxu16Slider->setValue(m_gradientData->m_maxu16);
+  section0Layout->addRow("Max u16", maxu16Slider);
+  connect(minu16Slider, &QIntSlider::valueChanged, [this](int i) {
+    this->m_gradientData->m_minu16 = i;
+    this->onSetMinMax(i, this->m_gradientData->m_maxu16);
+  });
+  connect(maxu16Slider, &QIntSlider::valueChanged, [this](int i) {
+    this->m_gradientData->m_maxu16 = i;
+    this->onSetMinMax(this->m_gradientData->m_minu16, i);
+  });
+
+  windowSlider = new QNumericSlider();
   windowSlider->setStatusTip(tr("Window"));
   windowSlider->setToolTip(tr("Set size of range of intensities"));
   windowSlider->setRange(0.0, 1.0);
   windowSlider->setSingleStep(0.01);
   windowSlider->setDecimals(3);
   windowSlider->setValue(m_gradientData->m_window);
-  section0Layout->addRow("Window", windowSlider);
-  QNumericSlider* levelSlider = new QNumericSlider();
+  section1Layout->addRow("Window", windowSlider);
+  levelSlider = new QNumericSlider();
   levelSlider->setStatusTip(tr("Level"));
   levelSlider->setToolTip(tr("Set level of mid intensity"));
   levelSlider->setRange(0.0, 1.0);
   levelSlider->setSingleStep(0.01);
   levelSlider->setDecimals(3);
   levelSlider->setValue(m_gradientData->m_level);
-  section0Layout->addRow("Level", levelSlider);
-  connect(windowSlider, &QNumericSlider::valueChanged, [this, levelSlider](double d) {
+  section1Layout->addRow("Level", levelSlider);
+  connect(windowSlider, &QNumericSlider::valueChanged, [this](double d) {
     this->m_gradientData->m_window = d;
     this->onSetWindowLevel(d, levelSlider->value());
   });
-  connect(levelSlider, &QNumericSlider::valueChanged, [this, windowSlider](double d) {
+  connect(levelSlider, &QNumericSlider::valueChanged, [this](double d) {
     this->m_gradientData->m_level = d;
     this->onSetWindowLevel(windowSlider->value(), d);
   });
 
-  QNumericSlider* isovalueSlider = new QNumericSlider();
+  isovalueSlider = new QNumericSlider();
   isovalueSlider->setStatusTip(tr("Isovalue"));
   isovalueSlider->setToolTip(tr("Set Isovalue"));
   isovalueSlider->setRange(0.0, 1.0);
   isovalueSlider->setSingleStep(0.01);
   isovalueSlider->setDecimals(3);
   isovalueSlider->setValue(m_gradientData->m_isovalue);
-  section1Layout->addRow("Isovalue", isovalueSlider);
-  QNumericSlider* isorangeSlider = new QNumericSlider();
+  section2Layout->addRow("Isovalue", isovalueSlider);
+  isorangeSlider = new QNumericSlider();
   isorangeSlider->setStatusTip(tr("Isovalue range"));
   isorangeSlider->setToolTip(tr("Set range above and below isovalue"));
   isorangeSlider->setRange(0.0, 1.0);
   isorangeSlider->setSingleStep(0.01);
   isorangeSlider->setDecimals(3);
   isorangeSlider->setValue(m_gradientData->m_isorange);
-  section1Layout->addRow("Iso-range", isorangeSlider);
-  connect(isovalueSlider, &QNumericSlider::valueChanged, [this, isorangeSlider](double d) {
+  section2Layout->addRow("Iso-range", isorangeSlider);
+  connect(isovalueSlider, &QNumericSlider::valueChanged, [this](double d) {
     this->m_gradientData->m_isovalue = d;
     this->onSetIsovalue(d, isorangeSlider->value());
   });
-  connect(isorangeSlider, &QNumericSlider::valueChanged, [this, isovalueSlider](double d) {
+  connect(isorangeSlider, &QNumericSlider::valueChanged, [this](double d) {
     this->m_gradientData->m_isorange = d;
     this->onSetIsovalue(isovalueSlider->value(), d);
   });
 
-  QNumericSlider* pctLowSlider = new QNumericSlider();
+  pctLowSlider = new QNumericSlider();
   pctLowSlider->setStatusTip(tr("Low percentile"));
   pctLowSlider->setToolTip(tr("Set bottom percentile"));
   pctLowSlider->setRange(0.0, 1.0);
   pctLowSlider->setSingleStep(0.01);
-  pctLowSlider->setDecimals(3);
+  pctLowSlider->setDecimals(4);
   pctLowSlider->setValue(m_gradientData->m_pctLow);
-  section2Layout->addRow("Pct Min", pctLowSlider);
-  QNumericSlider* pctHighSlider = new QNumericSlider();
+  section3Layout->addRow("Pct Min", pctLowSlider);
+  pctHighSlider = new QNumericSlider();
   pctHighSlider->setStatusTip(tr("High percentile"));
   pctHighSlider->setToolTip(tr("Set top percentile"));
   pctHighSlider->setRange(0.0, 1.0);
   pctHighSlider->setSingleStep(0.01);
-  pctHighSlider->setDecimals(3);
+  pctHighSlider->setDecimals(4);
   pctHighSlider->setValue(m_gradientData->m_pctHigh);
-  section2Layout->addRow("Pct Max", pctHighSlider);
-  connect(pctLowSlider, &QNumericSlider::valueChanged, [this, pctHighSlider](double d) {
+  section3Layout->addRow("Pct Max", pctHighSlider);
+  connect(pctLowSlider, &QNumericSlider::valueChanged, [this](double d) {
     this->m_gradientData->m_pctLow = d;
     this->onSetHistogramPercentiles(d, pctHighSlider->value());
   });
-  connect(pctHighSlider, &QNumericSlider::valueChanged, [this, pctLowSlider](double d) {
+  connect(pctHighSlider, &QNumericSlider::valueChanged, [this](double d) {
     this->m_gradientData->m_pctHigh = d;
     this->onSetHistogramPercentiles(pctLowSlider->value(), d);
   });
@@ -549,8 +1061,20 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   mainGroupLayout->addStretch(1);
 
   connect(m_editor, &GradientEditor::gradientStopsChanged, this, &GradientWidget::onGradientStopsChanged);
+  connect(m_editor, &GradientEditor::interactivePointsChanged, this, &GradientWidget::onInteractivePointsChanged);
+  connect(copyButton, &QToolButton::clicked, this, &GradientWidget::onCopyControlPoints);
+  connect(pasteButton, &QToolButton::clicked, this, &GradientWidget::onPasteControlPoints);
+  connect(yScaleButton, &QToolButton::toggled, this, &GradientWidget::onToggleYAxisScale);
 
   forceDataUpdate();
+  updateCopyPasteButtons();
+}
+
+void
+GradientWidget::setHistogram(const Histogram& histogram)
+{
+  m_histogram = histogram;
+  m_editor->setHistogram(histogram);
 }
 
 void
@@ -568,6 +1092,9 @@ GradientWidget::forceDataUpdate()
     case GradientEditMode::PERCENTILE:
       this->onSetHistogramPercentiles(this->m_gradientData->m_pctLow, this->m_gradientData->m_pctHigh);
       break;
+    case GradientEditMode::MINMAX:
+      this->onSetMinMax(this->m_gradientData->m_minu16, this->m_gradientData->m_maxu16);
+      break;
     case GradientEditMode::CUSTOM: {
       m_editor->setControlPoints(this->m_gradientData->m_customControlPoints);
       QGradientStops stops = vectorToGradientStops(this->m_gradientData->m_customControlPoints);
@@ -580,15 +1107,269 @@ GradientWidget::forceDataUpdate()
 }
 
 void
+GradientWidget::updateCopyPasteButtons()
+{
+  if (!copyButton || !pasteButton) {
+    return;
+  }
+
+  GradientEditMode mode = m_gradientData->m_activeMode;
+  bool allowCopy = mode != GradientEditMode::CUSTOM;
+  bool allowPaste = m_hasMinMaxClipboard;
+
+  copyButton->setEnabled(allowCopy);
+  pasteButton->setEnabled(allowPaste);
+}
+
+void
+GradientWidget::onToggleYAxisScale(bool enabled)
+{
+  if (!m_editor) {
+    return;
+  }
+
+  m_editor->setYAxisLogScale(enabled);
+}
+
+void
+GradientWidget::onCopyControlPoints()
+{
+  GradientEditMode mode = m_gradientData->m_activeMode;
+  if (mode == GradientEditMode::CUSTOM) {
+    return;
+  }
+
+  std::pair<float, float> minMax;
+  bool hasMinMax = m_gradientData->getMinMax(m_histogram, &minMax);
+  if (!hasMinMax) {
+    return;
+  }
+
+  m_clipboardMinIntensity = minMax.first;
+  m_clipboardMaxIntensity = minMax.second;
+  m_hasMinMaxClipboard = (m_clipboardMinIntensity < m_clipboardMaxIntensity);
+  updateCopyPasteButtons();
+}
+
+void
+GradientWidget::onPasteControlPoints()
+{
+  if (!m_hasMinMaxClipboard) {
+    return;
+  }
+
+  float dataMin = static_cast<float>(m_histogram.getDataMin());
+  float dataMax = static_cast<float>(m_histogram.getDataMax());
+  float dataRange = dataMax - dataMin;
+  if (dataRange <= 0.0f) {
+    return;
+  }
+
+  float minIntensity = std::max(m_clipboardMinIntensity, dataMin);
+  float maxIntensity = std::min(m_clipboardMaxIntensity, dataMax);
+  if (minIntensity >= maxIntensity) {
+    return;
+  }
+
+  GradientEditMode mode = m_gradientData->m_activeMode;
+  if (mode == GradientEditMode::CUSTOM) {
+    float relativeMin = (minIntensity - dataMin) / dataRange;
+    float relativeMax = (maxIntensity - dataMin) / dataRange;
+    relativeMin = std::max(relativeMin, 0.0f);
+    relativeMax = std::min(relativeMax, 1.0f);
+
+    std::vector<LutControlPoint> points;
+    points.push_back({ 0.0f, 0.0f });
+    points.push_back({ relativeMin, 0.0f });
+    points.push_back({ relativeMax, 1.0f });
+    points.push_back({ 1.0f, 1.0f });
+
+    m_gradientData->m_customControlPoints = points;
+    m_editor->setControlPoints(points);
+    emit gradientStopsChanged(vectorToGradientStops(points));
+    updateCopyPasteButtons();
+    return;
+  }
+
+  if (mode == GradientEditMode::MINMAX) {
+    uint16_t minu16 = static_cast<uint16_t>(std::clamp(minIntensity, 0.0f, 65535.0f));
+    uint16_t maxu16 = static_cast<uint16_t>(std::clamp(maxIntensity, 0.0f, 65535.0f));
+    m_gradientData->m_minu16 = minu16;
+    m_gradientData->m_maxu16 = maxu16;
+    onSetMinMax(minu16, maxu16);
+
+    if (minu16Slider) {
+      minu16Slider->blockSignals(true);
+      minu16Slider->setValue(minu16);
+      minu16Slider->blockSignals(false);
+    }
+    if (maxu16Slider) {
+      maxu16Slider->blockSignals(true);
+      maxu16Slider->setValue(maxu16);
+      maxu16Slider->blockSignals(false);
+    }
+  } else if (mode == GradientEditMode::WINDOW_LEVEL) {
+    float relativeMin = (minIntensity - dataMin) / dataRange;
+    float relativeMax = (maxIntensity - dataMin) / dataRange;
+    relativeMin = std::max(relativeMin, 0.0f);
+    relativeMax = std::min(relativeMax, 1.0f);
+    float window = relativeMax - relativeMin;
+    float level = (relativeMax + relativeMin) * 0.5f;
+    m_gradientData->m_window = window;
+    m_gradientData->m_level = level;
+    onSetWindowLevel(window, level);
+
+    if (windowSlider) {
+      windowSlider->blockSignals(true);
+      windowSlider->setValue(window);
+      windowSlider->blockSignals(false);
+    }
+    if (levelSlider) {
+      levelSlider->blockSignals(true);
+      levelSlider->setValue(level);
+      levelSlider->blockSignals(false);
+    }
+  } else if (mode == GradientEditMode::PERCENTILE) {
+    uint16_t minu16 = static_cast<uint16_t>(std::clamp(minIntensity, 0.0f, 65535.0f));
+    uint16_t maxu16 = static_cast<uint16_t>(std::clamp(maxIntensity, 0.0f, 65535.0f));
+    float pctLow = 0.0f;
+    float pctHigh = 1.0f;
+    m_histogram.computePercentile(minu16, pctLow);
+    m_histogram.computePercentile(maxu16, pctHigh);
+    m_gradientData->m_pctLow = pctLow;
+    m_gradientData->m_pctHigh = pctHigh;
+    onSetHistogramPercentiles(pctLow, pctHigh);
+
+    if (pctLowSlider) {
+      pctLowSlider->blockSignals(true);
+      pctLowSlider->setValue(pctLow);
+      pctLowSlider->blockSignals(false);
+    }
+    if (pctHighSlider) {
+      pctHighSlider->blockSignals(true);
+      pctHighSlider->setValue(pctHigh);
+      pctHighSlider->blockSignals(false);
+    }
+  } else if (mode == GradientEditMode::ISOVALUE) {
+    float relativeMin = (minIntensity - dataMin) / dataRange;
+    float relativeMax = (maxIntensity - dataMin) / dataRange;
+    relativeMin = std::max(relativeMin, 0.0f);
+    relativeMax = std::min(relativeMax, 1.0f);
+    float isovalue = (relativeMax + relativeMin) * 0.5f;
+    float isorange = relativeMax - relativeMin;
+    m_gradientData->m_isovalue = isovalue;
+    m_gradientData->m_isorange = isorange;
+    onSetIsovalue(isovalue, isorange);
+
+    if (isovalueSlider) {
+      isovalueSlider->blockSignals(true);
+      isovalueSlider->setValue(isovalue);
+      isovalueSlider->blockSignals(false);
+    }
+    if (isorangeSlider) {
+      isorangeSlider->blockSignals(true);
+      isorangeSlider->setValue(isorange);
+      isorangeSlider->blockSignals(false);
+    }
+  }
+
+  updateCopyPasteButtons();
+}
+
+void
 GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
 {
   // update the data stored in m_gradientData
-  m_gradientData->m_customControlPoints.clear();
-  for (int i = 0; i < stops.size(); ++i) {
-    m_gradientData->m_customControlPoints.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
-  }
+  // depending on our mode:
+  if (m_gradientData->m_activeMode == GradientEditMode::CUSTOM) {
+    m_gradientData->m_customControlPoints.clear();
+    for (int i = 0; i < stops.size(); ++i) {
+      m_gradientData->m_customControlPoints.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
+    }
+    std::sort(m_gradientData->m_customControlPoints.begin(),
+              m_gradientData->m_customControlPoints.end(),
+              controlpoint_x_less_than);
+    emit gradientStopsChanged(stops);
+  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
+    // extract window and level from the stops - use second and third points (threshold points)
+    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
+    if (points.size() < 4) {
+      return;
+    }
+    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
+    float low = points[1].first;  // Second point (low threshold)
+    float high = points[2].first; // Third point (high threshold)
+    float window = high - low;
+    float level = (high + low) * 0.5f;
+    m_gradientData->m_window = window;
+    m_gradientData->m_level = level;
 
-  emit gradientStopsChanged(stops);
+    // update the sliders to match:
+    windowSlider->setValue(window);
+    levelSlider->setValue(level);
+
+  } else if (m_gradientData->m_activeMode == GradientEditMode::ISOVALUE) {
+    // extract isovalue and range from the stops
+    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
+    if (points.size() < 2) {
+      return;
+    }
+    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
+    float low = points[0].first;
+    float high = points[1].first;
+    float isovalue = (high + low) * 0.5f;
+    float isorange = high - low;
+    m_gradientData->m_isovalue = isovalue;
+    m_gradientData->m_isorange = isorange;
+
+    // update the sliders to match:
+    isovalueSlider->setValue(isovalue);
+    isorangeSlider->setValue(isorange);
+  } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
+    // get percentiles from the stops and histogram - use second and third points (threshold points)
+    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
+    if (points.size() < 4) {
+      return;
+    }
+    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
+    float low = points[1].first;  // Second point (low threshold)
+    float high = points[2].first; // Third point (high threshold)
+    // calculate percentiles from the histogram:
+    uint16_t ulow =
+      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
+    uint16_t uhigh =
+      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
+    float pctLow = 0.0f, pctHigh = 1.0f;
+    m_histogram.computePercentile(ulow, pctLow);
+    m_histogram.computePercentile(uhigh, pctHigh);
+    m_gradientData->m_pctLow = pctLow;
+    m_gradientData->m_pctHigh = pctHigh;
+
+    // update the sliders to match:
+    pctLowSlider->setValue(pctLow);
+    pctHighSlider->setValue(pctHigh);
+  } else if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
+    // get absolute min/max from the stops - use second and third points (threshold points)
+    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
+    if (points.size() < 4) {
+      return;
+    }
+    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
+    // turn the second and third points' x values into u16 intensities from the histogram range:
+    float low = points[1].first;  // Second point (min threshold)
+    float high = points[2].first; // Third point (max threshold)
+    // calculate percentiles from the histogram:
+    uint16_t ulow =
+      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
+    uint16_t uhigh =
+      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
+    m_gradientData->m_minu16 = ulow;
+    m_gradientData->m_maxu16 = uhigh;
+
+    // update the sliders to match:
+    minu16Slider->setValue(ulow);
+    maxu16Slider->setValue(uhigh);
+  }
 }
 
 void
@@ -626,18 +1407,136 @@ GradientWidget::onSetWindowLevel(float window, float level)
 }
 
 void
+GradientWidget::onSetMinMax(uint16_t minu16, uint16_t maxu16)
+{
+  // these need to be relative to the data range of the channel, not absolute!
+  float relativeMin = normalizeInt(minu16, m_histogram.getDataMin(), m_histogram.getDataMax());
+  float relativeMax = normalizeInt(maxu16, m_histogram.getDataMin(), m_histogram.getDataMax());
+  relativeMin = std::max(relativeMin, 0.0f);
+  relativeMax = std::min(relativeMax, 1.0f);
+  if (relativeMin >= relativeMax) {
+    LOG_ERROR << "Min value is greater than or equal to max value: " << minu16 << " >= " << maxu16
+              << ", datarange=" << m_histogram.dataRange();
+    return;
+  }
+  float window = relativeMax - relativeMin;
+  float level = (relativeMax + relativeMin) / 2.0f;
+  this->onSetWindowLevel(window, level);
+}
+
+void
 GradientWidget::onSetIsovalue(float isovalue, float width)
 {
   std::vector<LutControlPoint> points;
   float lowEnd = isovalue - width * 0.5f;
   float highEnd = isovalue + width * 0.5f;
   static const float epsilon = 0.00001f;
-  points.push_back({ 0.0f, 0.0f });
+  points.push_back({ std::min(0.0f, lowEnd - 2.0f * epsilon), 0.0f });
   points.push_back({ lowEnd - epsilon, 0.0f });
   points.push_back({ lowEnd + epsilon, 1.0f });
   points.push_back({ highEnd - epsilon, 1.0f });
   points.push_back({ highEnd + epsilon, 0.0f });
-  points.push_back({ 1.0f, 0.0f });
+  points.push_back({ std::max(highEnd + 2.0f * epsilon, 1.0f), 0.0f });
   m_editor->setControlPoints(points);
   emit gradientStopsChanged(vectorToGradientStops(points));
+}
+
+void
+GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity)
+{
+  // Handle different modes appropriately
+  if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
+    // Convert from graph coordinates (histogram data range) to u16 intensity values
+    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
+    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
+
+    // Ensure values are within valid range
+    minu16 = std::max(minu16, static_cast<uint16_t>(m_histogram.getDataMin()));
+    maxu16 = std::min(maxu16, static_cast<uint16_t>(m_histogram.getDataMax()));
+
+    // Update the data
+    m_gradientData->m_minu16 = minu16;
+    m_gradientData->m_maxu16 = maxu16;
+
+    // Update sliders without triggering their signals (to avoid feedback loops)
+    if (minu16Slider) {
+      minu16Slider->blockSignals(true);
+      minu16Slider->setValue(minu16);
+      minu16Slider->blockSignals(false);
+    }
+    if (maxu16Slider) {
+      maxu16Slider->blockSignals(true);
+      maxu16Slider->setValue(maxu16);
+      maxu16Slider->blockSignals(false);
+    }
+  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
+    // Convert intensities to normalized values (0-1 range)
+    uint16_t minInt = static_cast<uint16_t>(minIntensity);
+    uint16_t maxInt = static_cast<uint16_t>(maxIntensity);
+    float relativeMin = normalizeInt<uint16_t>(minInt, m_histogram.getDataMin(), m_histogram.getDataMax());
+    float relativeMax = normalizeInt<uint16_t>(maxInt, m_histogram.getDataMin(), m_histogram.getDataMax());
+
+    // Calculate window and level from the threshold points
+    float window = relativeMax - relativeMin;
+    float level = (relativeMax + relativeMin) * 0.5f;
+
+    // Update the data
+    m_gradientData->m_window = window;
+    m_gradientData->m_level = level;
+
+    // Update sliders without triggering their signals
+    if (windowSlider) {
+      windowSlider->blockSignals(true);
+      windowSlider->setValue(window);
+      windowSlider->blockSignals(false);
+    }
+    if (levelSlider) {
+      levelSlider->blockSignals(true);
+      levelSlider->setValue(level);
+      levelSlider->blockSignals(false);
+    }
+  } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
+    // Convert intensities to u16 values first
+    uint16_t minu16 = static_cast<uint16_t>(std::max(minIntensity, (float)m_histogram.getDataMin()));
+    uint16_t maxu16 = static_cast<uint16_t>(std::min(maxIntensity, (float)m_histogram.getDataMax()));
+
+    // Calculate percentiles by converting intensity to bin index and using cumulative counts
+    float pctLow = 0.0f, pctHigh = 1.0f;
+
+    if (m_histogram.getPixelCount() > 0) {
+      // For low percentile
+      if (minu16 <= m_histogram.getDataMin()) {
+        pctLow = 0.0f;
+      } else if (minu16 >= m_histogram.getDataMax()) {
+        pctLow = 1.0f;
+      } else {
+        m_histogram.computePercentile(minu16, pctLow);
+      }
+
+      // For high percentile
+      if (maxu16 <= m_histogram.getDataMin()) {
+        pctHigh = 0.0f;
+      } else if (maxu16 >= m_histogram.getDataMax()) {
+        pctHigh = 1.0f;
+      } else {
+        m_histogram.computePercentile(maxu16, pctHigh);
+      }
+    }
+
+    // Update the data
+    m_gradientData->m_pctLow = pctLow;
+    m_gradientData->m_pctHigh = pctHigh;
+
+    // Update sliders without triggering their signals
+    if (pctLowSlider) {
+      pctLowSlider->blockSignals(true);
+      pctLowSlider->setValue(pctLow);
+      pctLowSlider->blockSignals(false);
+    }
+    if (pctHighSlider) {
+      pctHighSlider->blockSignals(true);
+      pctHighSlider->setValue(pctHigh);
+      pctHighSlider->blockSignals(false);
+    }
+  }
 }

@@ -38,7 +38,7 @@ public:
   glm::vec3 m_N;
   float m_DotWN;
 
-  Focus(void)
+  Focus()
   {
     m_Type = DEF_FOCUS_TYPE;
     m_SensorPosCanvas = DEF_FOCUS_SENSOR_POS_CANVAS;
@@ -86,7 +86,7 @@ public:
   float m_Rotation;
   float m_Data[MAX_BOKEH_DATA];
 
-  Aperture(void)
+  Aperture()
   {
     m_Size = DEF_APERTURE_SIZE;
     m_NoBlades = DEF_APERTURE_NO_BLADES;
@@ -99,6 +99,10 @@ public:
 
   Aperture& operator=(const Aperture& Other)
   {
+    if (this == &Other) {
+      return *this;
+    }
+
     m_Size = Other.m_Size;
     m_NoBlades = Other.m_NoBlades;
     m_Bias = Other.m_Bias;
@@ -139,14 +143,14 @@ public:
     Update();
   }
 
-  Resolution2D(void)
+  Resolution2D()
   {
     m_XY = glm::ivec2(640, 480);
 
     Update();
   }
 
-  ~Resolution2D(void) {}
+  ~Resolution2D() {}
 
   Resolution2D& operator=(const Resolution2D& Other)
   {
@@ -173,7 +177,7 @@ public:
     return GetResX() != Other.GetResX() || GetResY() != Other.GetResY();
   }
 
-  void Update(void)
+  void Update()
   {
     m_InvXY = glm::vec2(1.0f / m_XY.x, 1.0f / m_XY.y);
     m_NoElements = m_XY.x * m_XY.y;
@@ -181,7 +185,7 @@ public:
     m_DiagonalLength = sqrtf(powf((float)m_XY.x, 2.0f) + powf((float)m_XY.y, 2.0f));
   }
 
-  glm::ivec2 ToVector(void) const { return glm::ivec2(m_XY.x, m_XY.y); }
+  glm::ivec2 ToVector() const { return glm::ivec2(m_XY.x, m_XY.y); }
 
   void Set(const glm::ivec2& Resolution)
   {
@@ -190,23 +194,23 @@ public:
     Update();
   }
 
-  int GetResX(void) const { return m_XY.x; }
+  int GetResX() const { return m_XY.x; }
   void SetResX(const int& Width)
   {
     m_XY.x = Width;
     Update();
   }
-  int GetResY(void) const { return m_XY.y; }
+  int GetResY() const { return m_XY.y; }
   void SetResY(const int& Height)
   {
     m_XY.y = Height;
     Update();
   }
-  glm::vec2 GetInv(void) const { return m_InvXY; }
-  int GetNoElements(void) const { return m_NoElements; }
-  float GetAspectRatio(void) const { return m_AspectRatio; }
+  glm::vec2 GetInv() const { return m_InvXY; }
+  int GetNoElements() const { return m_NoElements; }
+  float GetAspectRatio() const { return m_AspectRatio; }
 
-  void PrintSelf(void) const { printf("[%d x %d]\n", GetResX(), GetResY()); }
+  void PrintSelf() const { printf("[%d x %d]\n", GetResX(), GetResY()); }
 
 private:
   glm::ivec2 m_XY;        /*!< Resolution width and height */
@@ -234,7 +238,7 @@ public:
   float m_Gamma;
 
   // ToDo: Add description
-  Film(void)
+  Film()
   {
     m_Screen[0][0] = 0.0f;
     m_Screen[0][1] = 0.0f;
@@ -250,17 +254,19 @@ public:
 
   Film& operator=(const Film& Other)
   {
-    m_Resolution = Other.m_Resolution;
-    m_Screen[0][0] = Other.m_Screen[0][0];
-    m_Screen[0][1] = Other.m_Screen[0][1];
-    m_Screen[1][0] = Other.m_Screen[1][0];
-    m_Screen[1][1] = Other.m_Screen[1][1];
-    m_InvScreen = Other.m_InvScreen;
-    m_Iso = Other.m_Iso;
-    m_Exposure = Other.m_Exposure;
-    m_ExposureIterations = Other.m_ExposureIterations;
-    m_FStop = Other.m_FStop;
-    m_Gamma = Other.m_Gamma;
+    if (this != &Other) {
+      m_Resolution = Other.m_Resolution;
+      m_Screen[0][0] = Other.m_Screen[0][0];
+      m_Screen[0][1] = Other.m_Screen[0][1];
+      m_Screen[1][0] = Other.m_Screen[1][0];
+      m_Screen[1][1] = Other.m_Screen[1][1];
+      m_InvScreen = Other.m_InvScreen;
+      m_Iso = Other.m_Iso;
+      m_Exposure = Other.m_Exposure;
+      m_ExposureIterations = Other.m_ExposureIterations;
+      m_FStop = Other.m_FStop;
+      m_Gamma = Other.m_Gamma;
+    }
 
     return *this;
   }
@@ -286,9 +292,9 @@ public:
     m_Resolution.Update();
   }
 
-  int GetWidth(void) const { return m_Resolution.GetResX(); }
+  int GetWidth() const { return m_Resolution.GetResX(); }
 
-  int GetHeight(void) const { return m_Resolution.GetResY(); }
+  int GetHeight() const { return m_Resolution.GetResY(); }
 };
 
 #define FPS1 30.0f
@@ -337,7 +343,7 @@ public:
   ProjectionMode m_Projection;
   float m_OrthoScale;
 
-  CCamera(void)
+  CCamera()
   {
     m_Near = DEF_CAMERA_NEAR;
     m_Far = DEF_CAMERA_FAR;
@@ -399,7 +405,7 @@ public:
     return *this;
   }
 
-  void Update(void)
+  void Update()
   {
     // right handed coordinate system
 

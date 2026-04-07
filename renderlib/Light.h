@@ -4,7 +4,6 @@
 #include "Defines.h"
 #include "MathUtil.h"
 #include "Object3d.h"
-#include "AreaLightTool.h"
 
 #include <functional>
 #include <vector>
@@ -47,7 +46,7 @@ public:
   // 0 for area light, 1 for sky light
   int m_T;
 
-  Light(void)
+  Light()
     : m_Theta(0.0f)
     , m_Phi(HALF_PI_F)
     , m_Width(1.0f)

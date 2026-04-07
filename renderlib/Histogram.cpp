@@ -2,44 +2,81 @@
 
 #include "GradientData.h"
 #include "Logging.h"
+#include "MathUtil.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <math.h>
 #include <numeric>
 
+static constexpr size_t HIGH_RES_BINS = 4096;
+// for display:
+static constexpr size_t FILTERED_BINS = 512;
+
 template<class T>
-const T&
+static T
 clamp(const T& v, const T& lo, const T& hi)
 {
   assert(hi > lo);
   return (v < lo) ? lo : (v > hi ? hi : v);
 }
 
-const float Histogram::DEFAULT_PCT_LOW = 0.5f;
-const float Histogram::DEFAULT_PCT_HIGH = 0.983f;
+size_t
+Histogram::getBinOfIntensity(uint16_t intensity) const
+{
+  if (intensity <= _dataMin) {
+    return 0;
+  } else if (intensity >= _dataMax) {
+    return _bins.size() - 1;
+  } else {
+    static constexpr float ROUNDING_OFFSET = 0.5f;
+    size_t whichbin =
+      (size_t)((float)(intensity - _dataMin) / (_dataMax - _dataMin) * (_bins.size() - 1) + ROUNDING_OFFSET);
+    return whichbin;
+  }
+}
 
-Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
-  : _bins(num_bins)
-  , _ccounts(num_bins)
+Histogram::Histogram(uint16_t* data, size_t length)
+  : _bins(HIGH_RES_BINS)
+  , _filteredBins(FILTERED_BINS)
+  , _ccounts(HIGH_RES_BINS)
   , _dataMin(0)
   , _dataMax(0)
+  , _dataMinIdx(0)
+  , _dataMaxIdx(0)
+  , _filteredMin(0)
+  , _filteredMax(0)
+  , _pixelCount(0)
 {
   std::fill(_bins.begin(), _bins.end(), 0);
+  std::fill(_filteredBins.begin(), _filteredBins.end(), 0);
+  std::fill(_ccounts.begin(), _ccounts.end(), 0);
 
-  if (data) {
-    _dataMin = data[0];
-    _dataMax = data[0];
+  if (!data || length == 0) {
+    // empty histogram, just return with all zeros.
+    return;
   }
+
+  _pixelCount = length;
+  _dataMin = data[0];
+  _dataMax = data[0];
+  _filteredMax = data[0];
+  _filteredMin = data[0];
 
   uint16_t val;
   for (size_t i = 0; i < length; ++i) {
     val = data[i];
     if (val > _dataMax) {
       _dataMax = val;
+      _dataMaxIdx = i;
     } else if (val < _dataMin) {
       _dataMin = val;
+      _dataMinIdx = i;
     }
   }
+  _filteredMax = _dataMax;
+  _filteredMin = _dataMin;
+
   //	float fval;
   float rangeMin = (float)_dataMin;
   float rangeMax = (float)_dataMax;
@@ -47,36 +84,87 @@ Histogram::Histogram(uint16_t* data, size_t length, size_t num_bins)
   if (range == 0.0f) {
     range = 1.0f;
   }
-  float binmax = (float)(num_bins - 1);
+  float invRange = 1.0f / range;
+
+  // compute a high resolution histogram first
+  // we will use this for percentile outlier filtering, for display histogram.
   for (size_t i = 0; i < length; ++i) {
-    size_t whichbin = (size_t)((float)(data[i] - rangeMin) / range * binmax + 0.5);
-    //		val = data[i];
-    //		// normalize to 0..1 range
-    //		// ZERO BIN is _dataMin intensity!!!!!! _dataMin MIGHT be nonzero.
-    //		fval = (float)(val - _dataMin) / range;
-    //		// select a bin
-    //		fval *= binmax;
-    //		// discretize (drop the fractional part?)
-    //		size_t whichbin = (size_t)fval;
+    val = data[i];
+    int64_t whichbin = (int64_t)((float)(val - rangeMin) * invRange * (float)(HIGH_RES_BINS - 1) + 0.5f);
+    if (whichbin >= HIGH_RES_BINS) {
+      whichbin = HIGH_RES_BINS - 1;
+    } else if (whichbin < 0) {
+      whichbin = 0;
+    }
     _bins[whichbin]++;
-    // bins goes from min to max of data range. not datatype range.
   }
 
-  // total number of pixels
-  _pixelCount = length;
+  // now we will do outlier filtering based on percentiles.
+  uint64_t total = std::accumulate(_bins.begin(), _bins.end(), uint64_t(0));
+  assert(total == length);
+  uint64_t targetLo = (uint64_t)(total * 0.001 + 0.5); // P0.1
+  uint64_t targetHi = (uint64_t)(total * 0.999 + 0.5); // P99.9
+
+  uint64_t cumulativeSum = 0;
+  size_t loBin = 0;
+  size_t hiBin = HIGH_RES_BINS - 1;
+  bool foundLo = false;
+  for (size_t i = 0; i < HIGH_RES_BINS; ++i) {
+    cumulativeSum += _bins[i];
+    if (cumulativeSum > targetLo && !foundLo) {
+      loBin = i;
+      foundLo = true;
+    }
+    if (cumulativeSum >= targetHi) {
+      hiBin = i;
+      break;
+    }
+  }
+  // add cumulative counts into the ccounts array
+  std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
+
+  if (abs((int64_t)(hiBin - loBin)) < 3) {
+    // if the number of bins separating the percentiles is too small,
+    // just don't filter anything.
+    // This can happen if the data is very low contrast (e.g. few intensity values close together),
+    // or if there are a lot of outliers.
+    loBin = 0;
+    hiBin = HIGH_RES_BINS - 1;
+    _filteredMin = _dataMin;
+    _filteredMax = _dataMax;
+  } else {
+    float loVal = rangeMin + loBin * (range / (float)(HIGH_RES_BINS - 1));
+    float hiVal = rangeMin + hiBin * (range / (float)(HIGH_RES_BINS - 1));
+    _filteredMin = (uint16_t)(loVal + 0.5f);
+    _filteredMax = (uint16_t)(hiVal + 0.5f);
+  }
+
+  float filteredRange = _filteredMax - _filteredMin;
+  if (filteredRange == 0.0f) {
+    filteredRange = 1.0f;
+  }
+
+  float binmax = (float)(FILTERED_BINS - 1);
+  for (size_t i = 0; i < length; ++i) {
+    int64_t whichbin = (int64_t)((float)(data[i] - _filteredMin) / filteredRange * binmax + 0.5f);
+    if (whichbin >= FILTERED_BINS) {
+      whichbin = FILTERED_BINS - 1;
+    } else if (whichbin < 0) {
+      whichbin = 0;
+    }
+    _filteredBins[whichbin]++;
+  }
 
   // get the bin with the most frequently occurring value
-  _maxBin = 0;
-  uint32_t curmax = _bins[0];
-  for (size_t i = 1; i < _bins.size(); i++) {
-    if (_bins[i] > curmax) {
-      _maxBin = i;
-      curmax = _bins[i];
+  _maxFilteredBin = 0;
+  uint32_t curmax = _filteredBins[0];
+  for (size_t i = 1; i < _filteredBins.size(); i++) {
+    if (_filteredBins[i] > curmax) {
+      _maxFilteredBin = i;
+      curmax = _filteredBins[i];
     }
   }
 
-  // add cumulative counts into the ccounts array
-  std::partial_sum(_bins.begin(), _bins.end(), _ccounts.begin(), std::plus<uint32_t>());
   // last ccount bin should have total number of intensities.
   assert(_pixelCount == _ccounts[_ccounts.size() - 1]);
 }
@@ -205,7 +293,11 @@ Histogram::generate_auto(size_t length) const
   // simple linear mapping cutting elements with small appearance
   // get 10% threshold
   float PERCENTAGE = 0.1f;
-  float th = std::floor(_bins[_maxBin] * PERCENTAGE);
+  // get a count of pixels in the most frequent filtered bin
+  float th = std::floor(_filteredBins[_maxFilteredBin] * PERCENTAGE);
+  // we will use the value from the filtered bins, which should be higher
+  // than if unfiltered bins were used,
+  // and then walk the unfiltered bins to find the first and last bins that exceed this threshold.
   size_t b = 0;
   size_t e = _bins.size() - 1;
   for (size_t x = 0; x < _bins.size(); ++x) {
@@ -347,10 +439,15 @@ Histogram::generate_controlPoints(std::vector<LutControlPoint> pts, size_t lengt
 }
 
 void
-Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter, float& binSize) const
+Histogram::binRange(uint32_t nbins,
+                    uint16_t dataMin,
+                    uint16_t dataMax,
+                    float& firstBinCenter,
+                    float& lastBinCenter,
+                    float& binSize)
 {
-  uint16_t dmin = _dataMin;
-  uint16_t dmax = _dataMax;
+  uint16_t dmin = dataMin;
+  uint16_t dmax = dataMax;
   float fbc, lbc, bsize;
   if (nbins > 1) {
     if (dmax > dmin) {
@@ -373,58 +470,6 @@ Histogram::bin_range(uint32_t nbins, float& firstBinCenter, float& lastBinCenter
   binSize = bsize;
 }
 
-// Compute histogram from binned data using a different number of bins.
-std::vector<uint32_t>
-Histogram::bin_counts(uint32_t nbins)
-{
-  uint32_t fbins = (uint32_t)_bins.size();
-  std::vector<uint32_t>& fcounts = _bins;
-
-  float fbc, lbc, bsize;
-  bin_range(nbins, fbc, lbc, bsize);
-  float ffbc, flbc, fbsize;
-  bin_range(fbins, ffbc, flbc, fbsize);
-  float r = bsize / fbsize;
-  float s = 0.5f + ((fbc - ffbc) / fbsize);
-
-  std::vector<uint32_t> bcounts(nbins, 0);
-  for (uint32_t b = 0; b < nbins; ++b) {
-    float fb0 = s + (b - 0.5f) * r;
-    int b0 = int(ceil(fb0));
-    float f0 = b0 - fb0;
-    if (b0 < 0) {
-      b0 = 0;
-      f0 = 0;
-    }
-    float fb1 = s + (b + 0.5f) * r;
-    int b1 = int(floor(fb1));
-    float f1 = fb1 - b1;
-    if (b1 >= (int32_t)fbins) {
-      b1 = fbins;
-      f1 = 0;
-    }
-    uint32_t c = 0;
-    if ((b0 - 1) == b1) {
-      c += (uint32_t)(r * fcounts[b0 - 1]);
-    } else {
-      if ((b0 > 0) && (b0 <= (int32_t)fbins)) {
-        c += (uint32_t)(fcounts[b0 - 1] * f0);
-      }
-      if (b1 > b0) {
-        // c += sum(fcounts[b0:b1]);
-        for (int j = b0; j < b1; ++j) {
-          c += fcounts[j];
-        }
-      }
-      if ((b1 >= 0) && (b1 < (int32_t)fbins)) {
-        c += (uint32_t)(fcounts[b1] * f1);
-      }
-    }
-    bcounts[b] = c;
-  }
-  return bcounts;
-}
-
 // Find the data value where a specified fraction of voxels have lower value.
 // Result is an approximation using binned data.
 float
@@ -441,7 +486,7 @@ Histogram::rank_data_value(float fraction) const
   }
   // int b = _ccounts.searchsorted(fraction*_ccounts[_ccounts.size()-1]);
   float fbc, lbc, bsize;
-  bin_range((uint32_t)_bins.size(), fbc, lbc, bsize);
+  binRange((uint32_t)_bins.size(), _dataMin, _dataMax, fbc, lbc, bsize);
   float v = fbc + b * (lbc - fbc) / (float)_bins.size();
   return v;
 }
@@ -526,6 +571,14 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
       return generate_windowLevel(gradientData.m_window, gradientData.m_level, length);
     case GradientEditMode::PERCENTILE:
       return generate_percentiles(gradientData.m_pctLow, gradientData.m_pctHigh, length);
+    case GradientEditMode::MINMAX: {
+      // min and max are already set in gradientData
+      float lowEnd = normalizeInt(gradientData.m_minu16, _dataMin, _dataMax);
+      float highEnd = normalizeInt(gradientData.m_maxu16, _dataMin, _dataMax);
+      float window = highEnd - lowEnd;
+      float level = (lowEnd + highEnd) * 0.5f;
+      return generate_windowLevel(window, level, length);
+    }
     case GradientEditMode::ISOVALUE: {
       float lowEnd = gradientData.m_isovalue - gradientData.m_isorange * 0.5f;
       float highEnd = gradientData.m_isovalue + gradientData.m_isorange * 0.5f;
@@ -543,4 +596,94 @@ Histogram::generateFromGradientData(const GradientData& gradientData, size_t len
     default:
       return generate_fullRange(length);
   }
+}
+
+void
+Histogram::computePercentile(uint16_t intensity, float& percentile) const
+{
+  // given an intensity value, compute the percentile of pixels in the histogram less than or equal to that value.
+  if (intensity <= _dataMin) {
+    percentile = 0.0f;
+    return;
+  }
+  if (intensity >= _dataMax) {
+    percentile = 1.0f;
+    return;
+  }
+
+  // Find the bin corresponding to the intensity value
+  size_t bin = this->getBinOfIntensity(intensity);
+
+  if (bin < _ccounts.size()) {
+
+    // Compute the percentile based on the cumulative counts
+    if (bin > 0) {
+      percentile = (float)_ccounts[bin - 1] / (float)_pixelCount;
+    } else {
+      percentile = 0.0f;
+    }
+  } else {
+    percentile = 1.0f;
+  }
+}
+
+size_t
+Histogram::getDisplayBinCount(size_t bin) const
+{
+  // bounds check:
+  if (bin >= _filteredBins.size()) {
+    LOG_WARNING << "Requested bin " << bin << " out of range (max " << (_filteredBins.size() - 1) << ")";
+    return 0;
+  }
+  return _filteredBins[bin];
+}
+
+std::vector<uint32_t>
+Histogram::computeForDisplay(float xmin, float xmax, size_t nbins) const
+{
+  if (nbins == 0) {
+    return {};
+  }
+
+  std::vector<uint32_t> displayBins(nbins, 0);
+  if (_pixelCount == 0 || _bins.empty()) {
+    return displayBins;
+  }
+
+  if (xmax < xmin) {
+    std::swap(xmin, xmax);
+  }
+
+  float sourceFirstCenter, sourceLastCenter, sourceBinSize;
+  binRange(static_cast<uint32_t>(_bins.size()), _dataMin, _dataMax, sourceFirstCenter, sourceLastCenter, sourceBinSize);
+  if (sourceBinSize <= 0.0f) {
+    return displayBins;
+  }
+
+  if (xmax == xmin) {
+    int64_t sourceIndex = static_cast<int64_t>(((xmin - sourceFirstCenter) / sourceBinSize) + 0.5f);
+    sourceIndex = std::max<int64_t>(0, std::min<int64_t>(sourceIndex, static_cast<int64_t>(_bins.size() - 1)));
+    displayBins[0] = _bins[static_cast<size_t>(sourceIndex)];
+    return displayBins;
+  }
+
+  float displayRange = xmax - xmin;
+  float displayBinMax = static_cast<float>(nbins - 1);
+  for (size_t i = 0; i < _bins.size(); ++i) {
+    uint32_t count = _bins[i];
+    if (count == 0) {
+      continue;
+    }
+
+    float sourceCenter = sourceFirstCenter + static_cast<float>(i) * sourceBinSize;
+    if (sourceCenter < xmin || sourceCenter > xmax) {
+      continue;
+    }
+
+    int64_t displayIndex = static_cast<int64_t>(((sourceCenter - xmin) / displayRange) * displayBinMax + 0.5f);
+    displayIndex = std::max<int64_t>(0, std::min<int64_t>(displayIndex, static_cast<int64_t>(nbins - 1)));
+    displayBins[static_cast<size_t>(displayIndex)] += count;
+  }
+
+  return displayBins;
 }
