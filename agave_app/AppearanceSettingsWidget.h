@@ -20,7 +20,7 @@ class Scene;
 class SceneObject;
 class Section;
 
-enum Axis
+enum class Axis : std::uint8_t
 {
   X = 0,
   Y = 1,
@@ -88,7 +88,7 @@ public:
   void OnFlipAxis(Axis axis, bool value);
 
 private:
-  Scene* m_scene;
+  Scene* m_scene{ nullptr };
 
   QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;

@@ -108,7 +108,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   , m_StepSizePrimaryRaySlider()
   , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
-  , m_scene(nullptr)
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
