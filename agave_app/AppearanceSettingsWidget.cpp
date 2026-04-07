@@ -651,7 +651,8 @@ QAppearanceSettingsWidget::OnSetScaleX(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->setPhysicalSize(value, m_scene->m_volume->physicalSizeY(), m_scene->m_volume->physicalSizeZ());
+  m_scene->m_volume->setPhysicalSize(
+    static_cast<float>(value), m_scene->m_volume->physicalSizeY(), m_scene->m_volume->physicalSizeZ());
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -661,7 +662,8 @@ QAppearanceSettingsWidget::OnSetScaleY(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->setPhysicalSize(m_scene->m_volume->physicalSizeX(), value, m_scene->m_volume->physicalSizeZ());
+  m_scene->m_volume->setPhysicalSize(
+    m_scene->m_volume->physicalSizeX(), static_cast<float>(value), m_scene->m_volume->physicalSizeZ());
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -671,7 +673,8 @@ QAppearanceSettingsWidget::OnSetScaleZ(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->setPhysicalSize(m_scene->m_volume->physicalSizeX(), m_scene->m_volume->physicalSizeY(), value);
+  m_scene->m_volume->setPhysicalSize(
+    m_scene->m_volume->physicalSizeX(), m_scene->m_volume->physicalSizeY(), static_cast<float>(value));
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -682,7 +685,7 @@ QAppearanceSettingsWidget::OnSetRoiXMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
+  v.x = (float)value / (static_cast<float>(m_scene->m_volume->sizeX()) - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -693,7 +696,7 @@ QAppearanceSettingsWidget::OnSetRoiYMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
+  v.y = (float)value / (static_cast<float>(m_scene->m_volume->sizeY()) - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -704,7 +707,7 @@ QAppearanceSettingsWidget::OnSetRoiZMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
+  v.z = (float)value / (static_cast<float>(m_scene->m_volume->sizeZ()) - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -714,7 +717,7 @@ QAppearanceSettingsWidget::OnSetRoiXMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
+  v.x = (float)value / (static_cast<float>(m_scene->m_volume->sizeX()) - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -724,7 +727,7 @@ QAppearanceSettingsWidget::OnSetRoiYMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
+  v.y = (float)value / (static_cast<float>(m_scene->m_volume->sizeY()) - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -734,7 +737,7 @@ QAppearanceSettingsWidget::OnSetRoiZMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
+  v.z = (float)value / (static_cast<float>(m_scene->m_volume->sizeZ()) - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -744,7 +747,7 @@ QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Theta = value;
+  m_scene->AreaLight().m_Theta = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -752,7 +755,7 @@ QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Phi = value;
+  m_scene->AreaLight().m_Phi = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -760,8 +763,8 @@ QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Width = value;
-  m_scene->AreaLight().m_Height = value;
+  m_scene->AreaLight().m_Width = static_cast<float>(value);
+  m_scene->AreaLight().m_Height = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -769,7 +772,7 @@ QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Distance = value;
+  m_scene->AreaLight().m_Distance = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -781,7 +784,7 @@ QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& c
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->AreaLight().m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->AreaLight().m_ColorIntensity = intensity;
+  m_scene->AreaLight().m_ColorIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -794,7 +797,7 @@ QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor&
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->SphereLight().m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->SphereLight().m_ColorTopIntensity = intensity;
+  m_scene->SphereLight().m_ColorTopIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -806,7 +809,7 @@ QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor&
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->SphereLight().m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->SphereLight().m_ColorMiddleIntensity = intensity;
+  m_scene->SphereLight().m_ColorMiddleIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -818,7 +821,7 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->SphereLight().m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->SphereLight().m_ColorBottomIntensity = intensity;
+  m_scene->SphereLight().m_ColorBottomIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -838,7 +841,7 @@ QAppearanceSettingsWidget::OnRenderBegin()
 void
 QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
 {
-  m_qrendersettings->SetDensityScale(DensityScale);
+  m_qrendersettings->SetDensityScale(static_cast<float>(DensityScale));
 }
 
 void
@@ -857,7 +860,7 @@ QAppearanceSettingsWidget::OnSetRendererType(int Index)
 void
 QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)
 {
-  m_qrendersettings->SetGradientFactor(GradientFactor);
+  m_qrendersettings->SetGradientFactor(static_cast<float>(GradientFactor));
 }
 
 void
@@ -988,7 +991,7 @@ QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
     return;
   // LOG_DEBUG << "window/level: " << window << ", " << level;
   //_scene->_volume->channel((uint32_t)i)->setOpacity(opacity);
-  m_scene->m_material.m_opacity[i] = opacity;
+  m_scene->m_material.m_opacity[i] = static_cast<float>(opacity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -997,7 +1000,7 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
   if (!m_scene)
     return;
-  m_scene->m_material.m_roughness[i] = roughness;
+  m_scene->m_material.m_roughness[i] = static_cast<float>(roughness);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -1126,20 +1129,20 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                 m_scene->m_material.m_backgroundColor[2]);
   m_backgroundColorButton.SetColor(cbg);
 
-  size_t xmax = m_scene->m_volume->sizeX() - 1;
-  size_t ymax = m_scene->m_volume->sizeY() - 1;
-  size_t zmax = m_scene->m_volume->sizeZ() - 1;
+  int xmax = static_cast<int>(m_scene->m_volume->sizeX() - 1);
+  int ymax = static_cast<int>(m_scene->m_volume->sizeY() - 1);
+  int zmax = static_cast<int>(m_scene->m_volume->sizeZ() - 1);
 
   m_roiX->setBounds(0, xmax, true);
   m_roiY->setBounds(0, ymax, true);
   m_roiZ->setBounds(0, zmax, true);
 
-  m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * xmax, true);
-  m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * xmax, true);
-  m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * ymax, true);
-  m_roiY->setSecondValue(m_scene->m_roi.GetMaxP().y * ymax, true);
-  m_roiZ->setFirstValue(m_scene->m_roi.GetMinP().z * zmax, true);
-  m_roiZ->setSecondValue(m_scene->m_roi.GetMaxP().z * zmax, true);
+  m_roiX->setFirstValue(static_cast<int>(m_scene->m_roi.GetMinP().x * static_cast<float>(xmax)), true);
+  m_roiX->setSecondValue(static_cast<int>(m_scene->m_roi.GetMaxP().x * static_cast<float>(xmax)), true);
+  m_roiY->setFirstValue(static_cast<int>(m_scene->m_roi.GetMinP().y * static_cast<float>(ymax)), true);
+  m_roiY->setSecondValue(static_cast<int>(m_scene->m_roi.GetMaxP().y * static_cast<float>(ymax)), true);
+  m_roiZ->setFirstValue(static_cast<int>(m_scene->m_roi.GetMinP().z * static_cast<float>(zmax)), true);
+  m_roiZ->setSecondValue(static_cast<int>(m_scene->m_roi.GetMaxP().z * static_cast<float>(zmax)), true);
 
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());

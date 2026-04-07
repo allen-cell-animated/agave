@@ -99,7 +99,7 @@ ViewerWindow::updateCamera()
   if (!m_cameraAnim.empty()) {
     for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
       CameraAnimation& anim = *it;
-      anim.time += m_clock.timeIncrement;
+      anim.time += static_cast<float>(m_clock.timeIncrement);
 
       if (anim.time < anim.duration) { // alpha < 1.0) {
         float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
