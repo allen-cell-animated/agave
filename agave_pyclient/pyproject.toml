@@ -64,9 +64,6 @@ dev = [
 [tool.setuptools.packages.find]
 exclude = ["tests", "*.tests", "*.tests.*"]
 
-[tool.pytest.ini_options]
-collect_ignore = ["setup.py"]
-
 [tool.ruff]
 line-length = 88
 exclude = ["docs/"]
