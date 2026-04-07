@@ -192,7 +192,12 @@ main(int argc, char* argv[])
     QCommandLineOption serverOption("server",
                                     QCoreApplication::translate("main", "Run as websocket server without GUI."));
     parser.addOption(serverOption);
+    QCommandLineOption serverPortOption("port",
+                                        QCoreApplication::translate("main", "Specify the port for server mode."),
+                                        QCoreApplication::translate("main", "port"),
+                                        QString::number(DEFAULT_SERVER_PORT));
 
+    parser.addOption(serverPortOption);
     QCommandLineOption loadOption("load",
                                   QCoreApplication::translate("main", "File or url to load."),
                                   QCoreApplication::translate("main", "fileToLoad"));
@@ -217,6 +222,8 @@ main(int argc, char* argv[])
     parser.process(a);
 
     bool isServer = parser.isSet(serverOption);
+    bool hasPort = parser.isSet(serverPortOption);
+    int port = parser.value(serverPortOption).toInt();
     bool listDevices = parser.isSet(listDevicesOption);
     int selectedGpu = parser.value(selectGpuOption).toInt();
     QString fileInput = parser.value(loadOption);
