@@ -196,11 +196,11 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools wheel
+          pip install build
       - name: Build Package
         run: |
           cd agave_pyclient
-          python setup.py sdist bdist_wheel
+          python -m build
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
