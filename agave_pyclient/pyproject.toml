@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agave_pyclient"
+version = "1.9.0"
+description = "A Python client for the Agave 3d volume renderer"
+readme = "README.md"
+license = { text = "Allen Institute Software License" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Daniel Toloudis", email = "danielt@alleninstitute.org" },
+]
+keywords = ["agave_pyclient"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: GPU",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "License :: Free for non-commercial use",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics :: 3D Rendering",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+dependencies = [
+    "numpy",
+    "ws4py==0.5.1",
+    "Pillow==10.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/allen-cell-animated/agave"
+
+[project.optional-dependencies]
+test = [
+    "ruff>=0.4",
+    "pytest>=5.4.3",
+    "pytest-cov>=2.9.0",
+    "pytest-raises>=0.11",
+]
+dev = [
+    "agave_pyclient[test]",
+    "bump2version>=1.0.1",
+    "coverage>=5.1",
+    "ipython>=7.15.0",
+    "m2r2>=0.2.7",
+    "pytest-runner>=5.2",
+    "Sphinx>=3.4.3",
+    "sphinx_rtd_theme>=0.5.1",
+    "tox>=3.15.2",
+    "twine>=3.1.1",
+    "wheel>=0.34.2",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "*.tests", "*.tests.*"]
+
+[tool.ruff]
+line-length = 88
+exclude = ["docs/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "T10"]
+ignore = ["E203", "E402"]

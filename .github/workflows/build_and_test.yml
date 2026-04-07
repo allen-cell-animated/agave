@@ -236,9 +236,9 @@ jobs:
           python -m pip install --upgrade pip
           cd agave_pyclient
           pip install .[test]
-      - name: Lint with flake8
+      - name: Lint with ruff
         run: |
           cd agave_pyclient
-          flake8 agave_pyclient --count --verbose --show-source --statistics
-          black --check --exclude vendor agave_pyclient
+          ruff check agave_pyclient
+          ruff format --check agave_pyclient
           pytest agave_pyclient/tests/
