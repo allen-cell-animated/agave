@@ -25,7 +25,7 @@ if __name__ == "__main__":
     r.mat_emissive(0, 0, 0, 0, 0.0)
     r.mat_glossiness(0, 0)
     r.set_window_level(0, 1, 0.758)
-    (r.enable_channel(1, 1),)
+    r.enable_channel(1, 1)
     r.mat_diffuse(1, 1, 1, 1, 1.0)
     r.mat_specular(1, 0, 0, 0, 0.0)
     r.mat_emissive(1, 0, 0, 0, 0.0)
