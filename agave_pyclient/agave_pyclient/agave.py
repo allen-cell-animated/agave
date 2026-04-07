@@ -11,6 +11,7 @@ import re
 from PIL import Image
 import subprocess
 import sys
+import time
 from typing import List
 
 from .commandbuffer import CommandBuffer
@@ -49,13 +50,15 @@ def guess_agave_path() -> str | None:
         # if there are multiple versions, pick the last one
         path = os.path.join(possible[-1], "agave-install", "agave.exe")
     elif sys.platform == "linux" or sys.platform == "linux2":
-        path = "~/agave/build/agave"
+        path = os.path.expanduser("~/agave/build/agave")
     elif sys.platform == "darwin":
         path = "/Applications/agave.app/Contents/MacOS/agave"
     else:
-        # Code to run on other platforms
         print("Running on an unknown operating system")
         print("Can't guess agave path")
+        return None
+    if not os.path.isfile(path):
+        print(f"AGAVE not found at {path}")
         return None
     return path
 
@@ -235,19 +238,24 @@ class AgaveRenderer:
         #     ws.close()
 
     @classmethod
-    def launch_agave(cls, path: str, port: int = 1235, mode: str = "pathtrace"):
-        try:
-            # Check to see if path exists. If path is empty or None, 
-            # then try to guess at agave install locations.
-            if path is None or path == "":
-                guesspath = guess_agave_path()
-                if guesspath is None:
-                    print(
-                        "AGAVE not found. Try passing a known AGAVE path to launch_agave."
-                    )
-                    return None
-                path = guesspath
+    def launch_agave(
+        cls,
+        path: str | None = None,
+        port: int = 1235,
+        mode: str = "pathtrace",
+        retries: int = 10,
+        retry_delay: float = 1.0,
+    ):
+        if path is None or path == "":
+            guesspath = guess_agave_path()
+            if guesspath is None:
+                print(
+                    "AGAVE not found. Try passing a known AGAVE path to launch_agave."
+                )
+                return None
+            path = guesspath
 
+        try:
             a = subprocess.Popen(
                 [
                     path,
@@ -258,15 +266,34 @@ class AgaveRenderer:
         except OSError as e:
             print(f"Error launching AGAVE from {path}: {e}")
             return None
-        return cls(f"ws://localhost:{port}/", mode=mode, agave_process=a)
+
+        for attempt in range(retries):
+            try:
+                return cls(f"ws://localhost:{port}/", mode=mode, agave_process=a)
+            except Exception:
+                if a.poll() is not None:
+                    print("AGAVE process exited unexpectedly.")
+                    return None
+                if attempt < retries - 1:
+                    time.sleep(retry_delay)
+        # All retries exhausted — clean up the subprocess we started
+        a.terminate()
+        a.wait()
+        print(f"Could not connect to AGAVE after {retries} attempts.")
+        return None
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
         self.ws.close()
         if self.agave_process:
             self.agave_process.terminate()
+            self.agave_process.wait()
+            self.agave_process = None
 
     def session(self, name: str):
         """
