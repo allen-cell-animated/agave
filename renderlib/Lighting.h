@@ -2,6 +2,10 @@
 
 #include "Light.h"
 #include "SceneLight.h"
+#include "glm.h"
+
+class CCamera;
+class RenderSettings;
 
 static constexpr size_t MAX_NO_LIGHTS = 4;
 
@@ -43,9 +47,16 @@ public:
     m_sceneLights[i] = new SceneLight(m_Lights[i]);
   }
 
+  void captureLightsViewSpaceBasis(const CCamera& camera);
+  void restoreLightsViewSpaceBasis(const CCamera& camera, RenderSettings* rs);
+
   Light* m_Lights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
   int m_NoLights{ 0 };
   SceneLight* m_sceneLights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
 
   bool lockToCamera = false;
+  glm::mat3 m_capturedRelativeBasis[MAX_NO_LIGHTS] = { glm::mat3(1.0f),
+                                                       glm::mat3(1.0f),
+                                                       glm::mat3(1.0f),
+                                                       glm::mat3(1.0f) };
 };

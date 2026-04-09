@@ -134,30 +134,12 @@ ViewerWindow::updateCamera()
   sceneView.camera.Update();
 
   // Update lights to maintain fixed direction relative to camera view when enabled.
-  // Basic strategy: capture the view space direction of each light at the start of
-  // camera manipulation, then during manipulation update the light direction
-  // in world space to match the captured relative direction.
   if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
-
     if (cameraEdit && !m_wasCameraBeingEdited) {
-      // call update on a copy of the camera to make sure m_U, m_V, m_N are updated according to the new camera
-      // parameters before we capture the relative basis.
-      CCamera baseCamera = m_CCamera;
-      baseCamera.Update();
-      auto lt0 = sceneView.scene->SceneAreaLight()->m_light;
-      m_capturedAreaLightRelativeBasis = baseCamera.captureRelativeBasis(glm::mat3(lt0->m_U, lt0->m_V, lt0->m_N));
-      auto lt1 = sceneView.scene->SceneSphereLight()->m_light;
-      m_capturedSphereLightRelativeBasis = baseCamera.captureRelativeBasis(glm::mat3(lt1->m_U, lt1->m_V, lt1->m_N));
+      sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
     }
-
     if (cameraEdit) {
-      glm::mat3 basis = sceneView.camera.reconstructBasis(m_capturedAreaLightRelativeBasis);
-      sceneView.scene->SceneAreaLight()->applyBasis(basis);
-
-      basis = sceneView.camera.reconstructBasis(m_capturedSphereLightRelativeBasis);
-      sceneView.scene->SceneSphereLight()->applyBasis(basis);
-
-      m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+      sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
     }
   }
 
