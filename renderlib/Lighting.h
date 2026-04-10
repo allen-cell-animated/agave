@@ -38,7 +38,7 @@ public:
 
     m_NoLights = m_NoLights + 1;
   }
-  void SetLight(int i, Light& light)
+  void SetLight(size_t i, Light& light)
   {
     if (i >= MAX_NO_LIGHTS)
       return;
