@@ -26,7 +26,7 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
 
   // Draw the circle so it inscribes the viewport (touching the smaller dimension edges)
-  float dist = length(viewDir);
+  float dist = glm::length(viewDir);
   float projectedRadius = 0.0f;
   float sphereRadius = 0.0f;
   glm::ivec2 viewportSize = scene.viewport.region.size();
