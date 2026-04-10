@@ -59,6 +59,12 @@ public:
 
   void updateCamera();
 
+  // Bracket instant camera changes (toolbar view buttons, etc.) to maintain
+  // light-lock-to-camera invariant. Call beginCameraChange() before modifying
+  // m_CCamera, and endCameraChange() after.
+  void beginCameraChange();
+  void endCameraChange();
+
   CCamera m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;
 

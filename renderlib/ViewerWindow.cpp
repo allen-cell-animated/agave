@@ -148,6 +148,25 @@ ViewerWindow::updateCamera()
 }
 
 void
+ViewerWindow::beginCameraChange()
+{
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
+  }
+}
+
+void
+ViewerWindow::endCameraChange()
+{
+  m_CCamera.Update();
+  sceneView.camera = m_CCamera;
+  sceneView.camera.Update();
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
+  }
+}
+
+void
 ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Gesture& gesture)
 {
   // [...]
