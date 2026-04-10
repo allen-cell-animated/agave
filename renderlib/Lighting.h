@@ -26,7 +26,8 @@ public:
   Lighting(Lighting&&) = delete;
   Lighting& operator=(Lighting&&) = delete;
 
-  Light& LightRef(int i) const { return *m_Lights[i]; }
+  Light& LightRef(int i) { return *m_Lights[i]; }
+  const Light& LightRef(int i) const { return *m_Lights[i]; }
 
   void AddLight(Light& light)
   {
