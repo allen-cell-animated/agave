@@ -22,6 +22,9 @@ public:
   }
 
   Lighting(const Lighting& other);
+  Lighting& operator=(const Lighting&) = delete;
+  Lighting(Lighting&&) = delete;
+  Lighting& operator=(Lighting&&) = delete;
 
   Light& LightRef(int i) const { return *m_Lights[i]; }
 
