@@ -9,6 +9,7 @@
 #include <vector>
 #include <functional>
 
+// A SceneObject wrapper for a Light.
 // MUST NOT OUTLIVE ITS LIGHT
 class SceneLight : public SceneObject
 {

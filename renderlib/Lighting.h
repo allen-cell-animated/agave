@@ -9,6 +9,9 @@ class RenderSettings;
 
 static constexpr size_t MAX_NO_LIGHTS = 4;
 
+// Describes the lighting in the scene, 
+// which is a collection of lights and their properties, 
+// as well as some utility functions for managing them
 class Lighting
 {
 public:

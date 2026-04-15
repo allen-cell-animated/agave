@@ -135,10 +135,14 @@ ViewerWindow::updateCamera()
 
   // Update lights to maintain fixed direction relative to camera view when enabled.
   if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
-    if (cameraEdit && !m_wasCameraBeingEdited) {
-      sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
-    }
     if (cameraEdit) {
+      // If we just started editing the camera, we need to capture the current view-space
+      // basis from the pre-transformed camera (m_CCamera) for the lights to
+      // maintain their orientation relative to the camera view during the edit.
+      if (!m_wasCameraBeingEdited) {
+        sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
+      }
+      // Restore the lights' view-space basis on the post-transformed camera
       sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
     }
   }

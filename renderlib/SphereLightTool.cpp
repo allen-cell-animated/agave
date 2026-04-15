@@ -67,7 +67,6 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     float y = sinf(lat);
     glm::vec3 ringCenter = p + l.m_V * (sphereRadius * y);
     glm::vec3 ringColor = ringColorFromY(y);
-    // gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code);
     gesture.drawCircleAsStrip(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code, 16.0f);
   }
 

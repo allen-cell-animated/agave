@@ -81,7 +81,7 @@ CCamera::getFrame() const
   //           << glm::to_string(-m_N) << "\n";
 
   // see glm::lookat for similar negation of the z vector (opengl convention)
-  return LinearSpace3f(m_U, m_V, -m_N);
+  return { m_U, m_V, -m_N };
 }
 
 // this implementation comes from an old unity3d wiki page.
@@ -360,7 +360,6 @@ cameraManipulationDolly(const glm::vec2 viewportSize,
 bool
 cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& camera, CameraModifier& cameraMod)
 {
-  float width = viewportSize.x;
   bool cameraEdit = false;
 
   // Camera Track
@@ -382,7 +381,6 @@ cameraManipulation(const glm::vec2 viewportSize, Gesture& gesture, CCamera& came
     const float dragScale = -1.0f / ROLL_PIXELS_PER_RADIAN;
 
     glm::vec2 drag = button.drag * dragScale;
-    glm::vec3 up = glm::normalize(camera.m_Up);
     glm::vec3 v = glm::normalize(camera.m_From - camera.m_Target);
 
     if (drag.x == 0 && drag.y == 0)

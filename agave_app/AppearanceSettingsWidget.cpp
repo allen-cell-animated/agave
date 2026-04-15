@@ -324,7 +324,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   lockLightsToCameraCheckBox->setStatusTip(tr("When checked, interactive volume rotation will not rotate lights"));
   lockLightsToCameraCheckBox->setToolTip(tr("When checked, interactive volume rotation will not rotate lights"));
 
-  lockLightsToCameraCheckBox->setChecked(false);
+  lockLightsToCameraCheckBox->setChecked(m_scene ? m_scene->m_lighting.lockToCamera : false);
   m_MainLayout.addRow(lockLightsToCameraCheckBox);
   QObject::connect(lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
     if (m_scene) {
