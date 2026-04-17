@@ -18,6 +18,7 @@ private:
   QParallelAnimationGroup* m_toggleAnimation;
   QScrollArea* m_contentArea;
   int m_animationDuration;
+  int m_collapsedHeight;
 
   QCheckBox* m_checkBox;
 
