@@ -479,4 +479,31 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_min == data.m_min);
     REQUIRE(cmd->m_data.m_max == data.m_max);
   }
+  SECTION("SetClipPlaneIndexCommand")
+  {
+    SetClipPlaneIndexCommandD data = { 2, 1.0f, 0.0f, 0.0f, 5.0f };
+    auto cmd = testcodec<SetClipPlaneIndexCommand, SetClipPlaneIndexCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_clip_plane_index(2, 1, 0, 0, 5)");
+    REQUIRE(cmd->m_data.m_planeIndex == data.m_planeIndex);
+    REQUIRE(cmd->m_data.m_x == data.m_x);
+    REQUIRE(cmd->m_data.m_y == data.m_y);
+    REQUIRE(cmd->m_data.m_z == data.m_z);
+    REQUIRE(cmd->m_data.m_w == data.m_w);
+  }
+  SECTION("EnableClipPlaneCommand")
+  {
+    EnableClipPlaneCommandD data = { 1, 1 };
+    auto cmd = testcodec<EnableClipPlaneCommand, EnableClipPlaneCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "enable_clip_plane(1, 1)");
+    REQUIRE(cmd->m_data.m_planeIndex == data.m_planeIndex);
+    REQUIRE(cmd->m_data.m_enabled == data.m_enabled);
+  }
+  SECTION("SetChannelClipPlaneGroupCommand")
+  {
+    SetChannelClipPlaneGroupCommandD data = { 3, 2 };
+    auto cmd = testcodec<SetChannelClipPlaneGroupCommand, SetChannelClipPlaneGroupCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_channel_clip_plane_group(3, 2)");
+    REQUIRE(cmd->m_data.m_channel == data.m_channel);
+    REQUIRE(cmd->m_data.m_planeIndex == data.m_planeIndex);
+  }
 }

@@ -70,6 +70,8 @@ VolumeDisplay::VolumeDisplay()
     m_roughness[i] = 1.0;
 
     m_labels[i] = 0.0;
+
+    m_clipPlaneGroup[i] = 0;
   }
 }
 
@@ -138,7 +140,15 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 
   initBoundsFromImg(img);
 
-  m_clipPlane = std::make_shared<ScenePlane>(m_boundingBox.GetCenter());
+  m_clipPlanes[0] = std::make_shared<ScenePlane>(m_boundingBox.GetCenter());
+  for (size_t i = 1; i < MAX_CLIP_PLANES; ++i) {
+    m_clipPlanes[i] = std::make_shared<ScenePlane>(m_boundingBox.GetCenter());
+  }
+
+  // Reset all channel clip plane groups to 0 (all channels use clip plane 0)
+  for (size_t i = 0; i < img->sizeC(); ++i) {
+    m_material.m_clipPlaneGroup[i] = 0;
+  }
 }
 
 void

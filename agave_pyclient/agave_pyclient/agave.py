@@ -967,6 +967,56 @@ class AgaveRenderer:
         # 48
         self.cb.add_command("SET_CLIP_PLANE", x, y, z, d)
 
+    def set_clip_plane_index(
+        self, plane_index: int, x: float, y: float, z: float, d: float
+    ):
+        """
+        Set the clip plane equation for a specific clip plane.  The xyz vector must be normalized.
+
+        Parameters
+        ----------
+        plane_index: int
+            The clip plane index (0-3)
+        x: float
+            The x component of the normal
+        y: float
+            The y component of the normal
+        z: float
+            The z component of the normal
+        d: float
+            The distance from the origin
+        """
+        # 51
+        self.cb.add_command("SET_CLIP_PLANE_INDEX", plane_index, x, y, z, d)
+
+    def enable_clip_plane(self, plane_index: int, enabled: int):
+        """
+        Enable or disable a clip plane.
+
+        Parameters
+        ----------
+        plane_index: int
+            The clip plane index (0-3)
+        enabled: int
+            1 to enable, 0 to disable
+        """
+        # 52
+        self.cb.add_command("ENABLE_CLIP_PLANE", plane_index, enabled)
+
+    def set_channel_clip_plane_group(self, channel: int, plane_index: int):
+        """
+        Assign a channel to a clip plane group.
+
+        Parameters
+        ----------
+        channel: int
+            The channel index (0-based)
+        plane_index: int
+            The clip plane index (0-3), or -1 for no clip plane
+        """
+        # 53
+        self.cb.add_command("SET_CHANNEL_CLIP_PLANE_GROUP", channel, plane_index)
+
     def set_color_ramp(self, channel: int, name: str, data: List[float]):
         """
         Set intensity thresholds based on a piecewise linear transfer function.

@@ -81,6 +81,9 @@ COMMANDS = {
     # channel index, colormap name, array of [stop, r, g, b, a]
     "SET_COLOR_RAMP": [49, "I32", "S", "F32A"],
     "SET_MIN_MAX_THRESHOLD": [50, "I32", "I32", "I32"],
+    "SET_CLIP_PLANE_INDEX": [51, "I32", "F32", "F32", "F32", "F32"],
+    "ENABLE_CLIP_PLANE": [52, "I32", "I32"],
+    "SET_CHANNEL_CLIP_PLANE_GROUP": [53, "I32", "I32"],
 }
 
 

@@ -19,6 +19,7 @@
 class ImageXYZC;
 
 static constexpr size_t MAX_CPU_CHANNELS = 32;
+static constexpr size_t MAX_CLIP_PLANES = 4;
 
 struct VolumeDisplay
 {
@@ -42,6 +43,10 @@ struct VolumeDisplay
 
   GradientData m_gradientData[MAX_CPU_CHANNELS];
 
+  // Per-channel clip plane group assignment.
+  // Index into Scene::m_clipPlanes. -1 means no clip plane for that channel.
+  int32_t m_clipPlaneGroup[MAX_CPU_CHANNELS];
+
   VolumeDisplay();
 };
 
@@ -56,7 +61,9 @@ public:
   VolumeDisplay m_material;
 
   CBoundingBox m_roi = CBoundingBox(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
-  std::shared_ptr<ScenePlane> m_clipPlane;
+  std::shared_ptr<ScenePlane> m_clipPlanes[MAX_CLIP_PLANES];
+  // Backward-compatible alias for m_clipPlanes[0]
+  std::shared_ptr<ScenePlane>& m_clipPlane = m_clipPlanes[0];
 
   Lighting m_lighting;
 

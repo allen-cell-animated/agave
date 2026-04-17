@@ -66,5 +66,7 @@ private:
     m_intensityMin, m_lutMax, m_lutMin, m_labels, m_opacity, m_emissive0, m_emissive1, m_emissive2, m_emissive3,
     m_diffuse0, m_diffuse1, m_diffuse2, m_diffuse3, m_specular0, m_specular1, m_specular2, m_specular3, m_roughness,
     m_uShowLights;
-  int m_clipPlane;
+  int m_clipPlanes;
+  int m_nClipPlanes;
+  int m_channelClipPlane;
 };
