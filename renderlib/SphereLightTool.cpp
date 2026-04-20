@@ -52,28 +52,64 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   glm::vec3 colorTop = l.m_ColorTop * l.m_ColorTopIntensity;
   glm::vec3 colorMid = l.m_ColorMiddle * l.m_ColorMiddleIntensity;
   glm::vec3 colorBottom = l.m_ColorBottom * l.m_ColorBottomIntensity;
-  auto ringColorFromY = [&](float y) {
-    if (y >= 0.0f) {
-      return glm::mix(colorMid, colorTop, glm::clamp(y, 0.0f, 1.0f));
-    }
-    return glm::mix(colorMid, colorBottom, glm::clamp(-y, 0.0f, 1.0f));
-  };
 
-  const int latBands = 12;
+  // Thin white latitude lines
+  const int latBands = 8;
   for (int i = 1; i < latBands; i++) {
     float t = static_cast<float>(i) / static_cast<float>(latBands);
     float lat = t * PI_F - HALF_PI_F;
     float ringRadius = sphereRadius * cosf(lat);
     float y = sinf(lat);
     glm::vec3 ringCenter = p + l.m_V * (sphereRadius * y);
-    glm::vec3 ringColor = ringColorFromY(y);
-    gesture.drawCircleAsStrip(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code, 16.0f);
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, color, opacity, code);
   }
 
-  const int lonBands = 12;
+  // Longitude lines (thin white)
+  const int lonBands = 8;
   for (int i = 0; i < lonBands; i++) {
     float lon = (static_cast<float>(i) / static_cast<float>(lonBands)) * PI_F;
     glm::vec3 axis = cosf(lon) * l.m_N + sinf(lon) * l.m_U;
     gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code);
+  }
+
+  // Thicker colored equator band
+  gesture.drawCircleAsStrip(p, l.m_U * sphereRadius, l.m_N * sphereRadius, 128, colorMid, 1.0f, code, 8.0f);
+
+  // Filled pole caps as triangle fans
+  float capAngle = 0.3f; // radians from pole (~17 degrees)
+  float capRingRadius = sphereRadius * sinf(capAngle);
+  float capHeight = sphereRadius * cosf(capAngle);
+  const int capSegments = 32;
+
+  // North pole cap (double-sided)
+  {
+    glm::vec3 polePoint = p + l.m_V * sphereRadius;
+    glm::vec3 ringCenter = p + l.m_V * capHeight;
+    gesture.graphics.addCommand(Gesture::Graphics::Command(Gesture::Graphics::PrimitiveType::kTriangles, 1.0f, true));
+    for (int i = 0; i < capSegments; ++i) {
+      float a0 = TWO_PI_F * static_cast<float>(i) / static_cast<float>(capSegments);
+      float a1 = TWO_PI_F * static_cast<float>(i + 1) / static_cast<float>(capSegments);
+      glm::vec3 v0 = ringCenter + l.m_U * (capRingRadius * cosf(a0)) + l.m_N * (capRingRadius * sinf(a0));
+      glm::vec3 v1 = ringCenter + l.m_U * (capRingRadius * cosf(a1)) + l.m_N * (capRingRadius * sinf(a1));
+      gesture.graphics.addVert({ polePoint, colorTop, 1.0f, code });
+      gesture.graphics.addVert({ v0, colorTop, 1.0f, code });
+      gesture.graphics.addVert({ v1, colorTop, 1.0f, code });
+    }
+  }
+
+  // South pole cap (double-sided)
+  {
+    glm::vec3 polePoint = p - l.m_V * sphereRadius;
+    glm::vec3 ringCenter = p - l.m_V * capHeight;
+    gesture.graphics.addCommand(Gesture::Graphics::Command(Gesture::Graphics::PrimitiveType::kTriangles, 1.0f, true));
+    for (int i = 0; i < capSegments; ++i) {
+      float a0 = TWO_PI_F * static_cast<float>(i) / static_cast<float>(capSegments);
+      float a1 = TWO_PI_F * static_cast<float>(i + 1) / static_cast<float>(capSegments);
+      glm::vec3 v0 = ringCenter + l.m_U * (capRingRadius * cosf(a0)) + l.m_N * (capRingRadius * sinf(a0));
+      glm::vec3 v1 = ringCenter + l.m_U * (capRingRadius * cosf(a1)) + l.m_N * (capRingRadius * sinf(a1));
+      gesture.graphics.addVert({ polePoint, colorBottom, 1.0f, code });
+      gesture.graphics.addVert({ v0, colorBottom, 1.0f, code });
+      gesture.graphics.addVert({ v1, colorBottom, 1.0f, code });
+    }
   }
 }

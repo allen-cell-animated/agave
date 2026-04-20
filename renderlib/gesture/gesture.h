@@ -175,14 +175,16 @@ struct Gesture
     struct Command
     {
       Command() = default;
-      Command(PrimitiveType command, float thickness = 1)
+      Command(PrimitiveType command, float thickness = 1, bool doubleSided = false)
         : command(command)
         , thickness(thickness)
+        , doubleSided(doubleSided)
       {
       }
 
       PrimitiveType command; //< Any of GL_POINTS, GL_LINES, GL_TRIANGLES, etc...
       float thickness;       //< Line thickness or point radius.
+      bool doubleSided;      //< Disable back-face culling for this command.
     };
     // A command range is a sequence of vertices to be drawn with a specific command.
     struct CommandRange
