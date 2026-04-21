@@ -460,7 +460,8 @@ struct Gesture
                          float opacity,
                          uint32_t code,
                          float thickness,
-                         glm::vec4* clipPlane = nullptr);
+                         glm::vec4* clipPlane = nullptr,
+                         Graphics::CommandSequence sequence = Graphics::CommandSequence::k3dStacked);
 
   // does not draw a flat base
   void drawCone(glm::vec3 base,

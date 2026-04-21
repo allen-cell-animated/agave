@@ -13,17 +13,26 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     return;
   }
 
+  using GFX = Gesture::Graphics;
+  using Seq = GFX::CommandSequence;
+
   const Light& l = *m_light;
   glm::vec3 p = l.m_Target;
 
   glm::vec3 viewDir = (scene.camera.m_From - p);
   LinearSpace3f camFrame = scene.camera.getFrame();
-  // remember the camFrame vectors are the world-space vectors that correspond to camera x, y, z directions
+
+  // Clip plane through sphere center, perpendicular to view direction.
+  // Clip plane through sphere center, perpendicular to view direction.
+  // drawCircle/drawCircleAsStrip keep geometry where dot(clipPlane, point) > 0.
+  // frontPlane positive side faces camera; backPlane positive side faces away.
+  glm::vec3 viewDirN = glm::normalize(viewDir);
+  glm::vec4 frontPlane(viewDirN, -glm::dot(viewDirN, p));
+  glm::vec4 backPlane = -frontPlane;
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
-  uint32_t code = Gesture::Graphics::k_noSelectionCode;
-  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
+  uint32_t code = GFX::k_noSelectionCode;
 
   // Draw the circle so it inscribes the viewport (touching the smaller dimension edges)
   float dist = glm::length(viewDir);
@@ -45,6 +54,8 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     sphereRadius = projectedRadius / sqrtf(1.0f + (projectedRadiusSq / distSq));
   }
 
+  // Silhouette circle — always foreground (view-aligned, always in front)
+  gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
   gesture.drawCircle(p, camFrame.vx * projectedRadius, camFrame.vy * projectedRadius, 128, color, opacity, code);
 
   opacity = 0.3f;
@@ -53,7 +64,7 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   glm::vec3 colorMid = l.m_ColorMiddle * l.m_ColorMiddleIntensity;
   glm::vec3 colorBottom = l.m_ColorBottom * l.m_ColorBottomIntensity;
 
-  // Thin white latitude lines
+  // Thin white latitude lines — front half then back half
   const int latBands = 8;
   for (int i = 1; i < latBands; i++) {
     float t = static_cast<float>(i) / static_cast<float>(latBands);
@@ -61,55 +72,74 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     float ringRadius = sphereRadius * cosf(lat);
     float y = sinf(lat);
     glm::vec3 ringCenter = p + l.m_V * (sphereRadius * y);
-    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, color, opacity, code);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, color, opacity, code, &frontPlane);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStackedUnderlay);
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, color, opacity, code, &backPlane);
   }
 
-  // Longitude lines (thin white)
+  // Longitude lines (thin white) — front half then back half
   const int lonBands = 8;
   for (int i = 0; i < lonBands; i++) {
     float lon = (static_cast<float>(i) / static_cast<float>(lonBands)) * PI_F;
     glm::vec3 axis = cosf(lon) * l.m_N + sinf(lon) * l.m_U;
-    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
+    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code, &frontPlane);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStackedUnderlay);
+    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code, &backPlane);
   }
 
-  // Thicker colored equator band
-  gesture.drawCircleAsStrip(p, l.m_U * sphereRadius, l.m_N * sphereRadius, 128, colorMid, 1.0f, code, 8.0f);
+  // Thicker colored equator band — front half then back half
+  gesture.drawCircleAsStrip(
+    p, l.m_U * sphereRadius, l.m_N * sphereRadius, 128, colorMid, 0.7f, code, 8.0f, &frontPlane, Seq::k3dStacked);
+  gesture.drawCircleAsStrip(p,
+                            l.m_U * sphereRadius,
+                            l.m_N * sphereRadius,
+                            128,
+                            colorMid,
+                            0.7f,
+                            code,
+                            8.0f,
+                            &backPlane,
+                            Seq::k3dStackedUnderlay);
 
-  // Filled pole caps as triangle fans
-  float capAngle = 0.3f; // radians from pole (~17 degrees)
+  // Pole caps using drawCone — route to foreground or underlay based on visibility
+  float capAngle = 0.2f; // radians from pole (~11 degrees)
   float capRingRadius = sphereRadius * sinf(capAngle);
   float capHeight = sphereRadius * cosf(capAngle);
   const int capSegments = 32;
 
-  // North pole cap (double-sided)
+  // North pole cap
   {
     glm::vec3 polePoint = p + l.m_V * sphereRadius;
     glm::vec3 ringCenter = p + l.m_V * capHeight;
-    gesture.graphics.addCommand(Gesture::Graphics::Command(Gesture::Graphics::PrimitiveType::kTriangles, 1.0f, true));
-    for (int i = 0; i < capSegments; ++i) {
-      float a0 = TWO_PI_F * static_cast<float>(i) / static_cast<float>(capSegments);
-      float a1 = TWO_PI_F * static_cast<float>(i + 1) / static_cast<float>(capSegments);
-      glm::vec3 v0 = ringCenter + l.m_U * (capRingRadius * cosf(a0)) + l.m_N * (capRingRadius * sinf(a0));
-      glm::vec3 v1 = ringCenter + l.m_U * (capRingRadius * cosf(a1)) + l.m_N * (capRingRadius * sinf(a1));
-      gesture.graphics.addVert({ polePoint, colorTop, 1.0f, code });
-      gesture.graphics.addVert({ v0, colorTop, 1.0f, code });
-      gesture.graphics.addVert({ v1, colorTop, 1.0f, code });
-    }
+    bool poleFacesCamera = glm::dot(viewDirN, polePoint - p) > 0;
+    Seq capSeq = poleFacesCamera ? Seq::k3dStacked : Seq::k3dStackedUnderlay;
+    gesture.graphics.addCommand(GFX::Command(GFX::PrimitiveType::kTriangles, 1.0f, true), capSeq);
+    gesture.drawCone(ringCenter,
+                     l.m_U * capRingRadius,
+                     l.m_N * capRingRadius,
+                     l.m_V * (sphereRadius - capHeight),
+                     capSegments,
+                     colorTop,
+                     0.7f,
+                     code);
   }
 
-  // South pole cap (double-sided)
+  // South pole cap
   {
     glm::vec3 polePoint = p - l.m_V * sphereRadius;
     glm::vec3 ringCenter = p - l.m_V * capHeight;
-    gesture.graphics.addCommand(Gesture::Graphics::Command(Gesture::Graphics::PrimitiveType::kTriangles, 1.0f, true));
-    for (int i = 0; i < capSegments; ++i) {
-      float a0 = TWO_PI_F * static_cast<float>(i) / static_cast<float>(capSegments);
-      float a1 = TWO_PI_F * static_cast<float>(i + 1) / static_cast<float>(capSegments);
-      glm::vec3 v0 = ringCenter + l.m_U * (capRingRadius * cosf(a0)) + l.m_N * (capRingRadius * sinf(a0));
-      glm::vec3 v1 = ringCenter + l.m_U * (capRingRadius * cosf(a1)) + l.m_N * (capRingRadius * sinf(a1));
-      gesture.graphics.addVert({ polePoint, colorBottom, 1.0f, code });
-      gesture.graphics.addVert({ v0, colorBottom, 1.0f, code });
-      gesture.graphics.addVert({ v1, colorBottom, 1.0f, code });
-    }
+    bool poleFacesCamera = glm::dot(viewDirN, polePoint - p) > 0;
+    Seq capSeq = poleFacesCamera ? Seq::k3dStacked : Seq::k3dStackedUnderlay;
+    gesture.graphics.addCommand(GFX::Command(GFX::PrimitiveType::kTriangles, 1.0f, true), capSeq);
+    gesture.drawCone(ringCenter,
+                     l.m_U * capRingRadius,
+                     l.m_N * capRingRadius,
+                     -l.m_V * (sphereRadius - capHeight),
+                     capSegments,
+                     colorBottom,
+                     0.7f,
+                     code);
   }
 }
