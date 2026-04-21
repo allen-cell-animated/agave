@@ -1,4 +1,5 @@
 #include "AppearanceSettingsWidget.h"
+#include "ObjectTransformMode.h"
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
 #include "Section.h"
@@ -108,6 +109,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   , m_StepSizePrimaryRaySlider()
   , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
+  , m_transformMode(new ObjectTransformMode([this]() { return m_scene; }, qrs, this))
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
@@ -349,32 +351,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
 }
 
-void
-QAppearanceSettingsWidget::toggleActionForObject(QAction* pAction, SceneObject* object)
-{
-  if (!this->m_scene) {
-    return;
-  }
-  bool wasActionOn = pAction->isChecked();
-  bool isObjectSelected = this->m_scene->m_selection == object;
-  if (!wasActionOn) {
-    // if we are turning the action on, then select the object and turn the action on.
-    emit this->m_qrendersettings->Selected(object);
-    pAction->trigger();
-  } else {
-    // If we are turning the action off but something else is selected, then we are really just selecting this
-    // object but leaving the action ON.
-    // If we are turning the action off but THIS object is selected, then turn the action off
-    // and deselect the object.
-    if (!isObjectSelected) {
-      emit this->m_qrendersettings->Selected(object);
-    } else {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pAction->trigger();
-    }
-  }
-}
-
 Section*
 QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
 {
@@ -398,16 +374,16 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_clipPlaneRotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
   m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
   btnLayout->addWidget(m_clipPlaneRotateButton);
-  QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
-    toggleActionForObject(pToggleRotateAction, this->m_scene->m_clipPlane.get());
+  m_transformMode->registerButton(m_clipPlaneRotateButton, pToggleRotateAction, [this]() -> SceneObject* {
+    return this->m_scene ? this->m_scene->m_clipPlane.get() : nullptr;
   });
 
   m_clipPlaneTranslateButton = new QPushButton("Translate");
   m_clipPlaneTranslateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
   m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
   btnLayout->addWidget(m_clipPlaneTranslateButton);
-  QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
-    toggleActionForObject(pToggleTranslateAction, this->m_scene->m_clipPlane.get());
+  m_transformMode->registerButton(m_clipPlaneTranslateButton, pToggleTranslateAction, [this]() -> SceneObject* {
+    return this->m_scene ? this->m_scene->m_clipPlane.get() : nullptr;
   });
 
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
@@ -474,11 +450,8 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
   m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt0gui.m_RotateButton);
-  QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
-    if (!this->m_scene || !this->m_scene->m_volume) {
-      return;
-    }
-    toggleActionForObject(pRotationAction, this->m_scene->SceneAreaLight());
+  m_transformMode->registerButton(m_lt0gui.m_RotateButton, pRotationAction, [this]() -> SceneObject* {
+    return (this->m_scene && this->m_scene->m_volume) ? this->m_scene->SceneAreaLight() : nullptr;
   });
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
@@ -546,6 +519,27 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
     this->OnSetAreaLightColor(v, this->m_lt0gui.m_areaLightColorButton->GetColor());
   });
 
+  auto* resetBtn = new QPushButton("Reset");
+  resetBtn->setStatusTip(tr("Reset area light to default orientation and settings"));
+  resetBtn->setToolTip(tr("Reset area light to default orientation and settings"));
+  QObject::connect(resetBtn, &QPushButton::clicked, [this]() {
+    if (!this->m_scene) {
+      return;
+    }
+    SceneLight* sl = this->m_scene->SceneAreaLight();
+    sl->reset();
+    updateLightingControlsFromScene();
+
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+    if (this->m_scene->m_selection == sl) {
+      emit this->m_qrendersettings->Selected(sl);
+    }
+  });
+  auto* resetLayout = new QHBoxLayout();
+  resetLayout->addWidget(new QWidget());
+  resetLayout->addWidget(resetBtn);
+  sectionLayout->addLayout(resetLayout, sectionLayout->rowCount(), 0, 1, 2);
+
   section->setContentLayout(*sectionLayout);
   return section;
 }
@@ -562,11 +556,8 @@ QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
   m_lt1gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for sky light rotation angle"));
   m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for sky light rotation angle"));
   btnLayout->addWidget(m_lt1gui.m_RotateButton);
-  QObject::connect(m_lt1gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
-    if (!this->m_scene || !this->m_scene->m_volume) {
-      return;
-    }
-    toggleActionForObject(pRotationAction, this->m_scene->SceneSphereLight());
+  m_transformMode->registerButton(m_lt1gui.m_RotateButton, pRotationAction, [this]() -> SceneObject* {
+    return (this->m_scene && this->m_scene->m_volume) ? this->m_scene->SceneSphereLight() : nullptr;
   });
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
@@ -628,6 +619,27 @@ QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
   QObject::connect(m_lt1gui.m_sbintensitySlider, &QNumericSlider::valueChanged, [this](double v) {
     this->OnSetSkyLightBotColor(v, this->m_lt1gui.m_sbColorButton->GetColor());
   });
+
+  auto* resetBtn = new QPushButton("Reset");
+  resetBtn->setStatusTip(tr("Reset sky light to default orientation and colors"));
+  resetBtn->setToolTip(tr("Reset sky light to default orientation and colors"));
+  QObject::connect(resetBtn, &QPushButton::clicked, [this]() {
+    if (!this->m_scene) {
+      return;
+    }
+    SceneLight* sl = this->m_scene->SceneSphereLight();
+    sl->reset();
+    updateLightingControlsFromScene();
+
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+    if (this->m_scene->m_selection == sl) {
+      emit this->m_qrendersettings->Selected(sl);
+    }
+  });
+  auto* resetLayout = new QHBoxLayout();
+  resetLayout->addWidget(new QWidget());
+  resetLayout->addWidget(resetBtn);
+  sectionLayout->addLayout(resetLayout, sectionLayout->rowCount(), 0, 1, 2);
 
   section->setContentLayout(*sectionLayout);
   return section;
@@ -1051,48 +1063,41 @@ QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
 }
 
 void
-QAppearanceSettingsWidget::initLightingControls(Scene* scene)
+QAppearanceSettingsWidget::updateLightingControlsFromScene()
 {
-  m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
-  m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
-  m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
-  m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
-  // split color into color and intensity.
+  if (!m_scene) {
+    return;
+  }
   QColor c;
   float i;
-  normalizeColorForGui(scene->AreaLight().m_Color, c, i);
-  m_lt0gui.m_intensitySlider->setValue(i * scene->AreaLight().m_ColorIntensity);
+  normalizeColorForGui(m_scene->AreaLight().m_Color, c, i);
+  m_lt0gui.m_thetaSlider->setValue(m_scene->AreaLight().m_Theta);
+  m_lt0gui.m_phiSlider->setValue(m_scene->AreaLight().m_Phi);
+  m_lt0gui.m_sizeSlider->setValue(m_scene->AreaLight().m_Width);
+  m_lt0gui.m_distSlider->setValue(m_scene->AreaLight().m_Distance);
+  m_lt0gui.m_intensitySlider->setValue(i * m_scene->AreaLight().m_ColorIntensity);
   m_lt0gui.m_areaLightColorButton->SetColor(c);
+
+  normalizeColorForGui(m_scene->SphereLight().m_ColorTop, c, i);
+  m_lt1gui.m_stintensitySlider->setValue(i * m_scene->SphereLight().m_ColorTopIntensity);
+  m_lt1gui.m_stColorButton->SetColor(c);
+  normalizeColorForGui(m_scene->SphereLight().m_ColorMiddle, c, i);
+  m_lt1gui.m_smintensitySlider->setValue(i * m_scene->SphereLight().m_ColorMiddleIntensity);
+  m_lt1gui.m_smColorButton->SetColor(c);
+  normalizeColorForGui(m_scene->SphereLight().m_ColorBottom, c, i);
+  m_lt1gui.m_sbintensitySlider->setValue(i * m_scene->SphereLight().m_ColorBottomIntensity);
+  m_lt1gui.m_sbColorButton->SetColor(c);
+}
+
+void
+QAppearanceSettingsWidget::initLightingControls(Scene* scene)
+{
+  updateLightingControlsFromScene();
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
-  scene->SceneAreaLight()->m_observers.emplace_back([this](const Light& light) {
-    // update gui controls
-
-    // bring theta into 0..2pi
-    m_lt0gui.m_thetaSlider->setValue(light.m_Theta < 0 ? light.m_Theta + TWO_PI_F : light.m_Theta);
-    // bring phi into 0..pi
-    m_lt0gui.m_phiSlider->setValue(light.m_Phi < 0 ? light.m_Phi + PI_F : light.m_Phi);
-    m_lt0gui.m_sizeSlider->setValue(light.m_Width);
-    m_lt0gui.m_distSlider->setValue(light.m_Distance);
-    // split color into color and intensity.
-    QColor c;
-    float i;
-    normalizeColorForGui(light.m_Color, c, i);
-    m_lt0gui.m_intensitySlider->setValue(i * light.m_ColorIntensity);
-    m_lt0gui.m_areaLightColorButton->SetColor(c);
-  });
-
-  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
-  m_lt1gui.m_stColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
-  m_lt1gui.m_smColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
-  m_lt1gui.m_sbColorButton->SetColor(c);
+  scene->SceneAreaLight()->m_observers.emplace_back([this](const Light& light) { updateLightingControlsFromScene(); });
 }
 
 void

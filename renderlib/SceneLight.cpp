@@ -56,3 +56,15 @@ SceneLight::applyBasis(const glm::mat3& basis)
     m_light->validateBasis("sphere-lock");
   }
 }
+
+void
+SceneLight::reset()
+{
+  if (m_light->m_T == LightType_Area) {
+    m_light->resetArea();
+  } else {
+    m_light->resetSphere();
+  }
+  m_transform.m_rotation = glm::quat(glm::vec3(0, 0, 0));
+  updateTransform();
+}

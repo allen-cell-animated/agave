@@ -74,6 +74,9 @@ public:
 
   Light& operator=(const Light& Other) = default;
 
+  void resetArea();
+  void resetSphere();
+
   void Update(const CBoundingBox& BoundingBox);
   void updateBasisFrame();
 

@@ -41,6 +41,29 @@ Light::Update(const CBoundingBox& BoundingBox)
 }
 
 void
+Light::resetArea()
+{
+  m_Theta = 0.0f;
+  m_Phi = HALF_PI_F;
+  m_Width = 0.15f;
+  m_Height = 0.15f;
+  m_Distance = 1.5f;
+  m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+  m_ColorIntensity = 1.0f;
+}
+
+void
+Light::resetSphere()
+{
+  m_ColorTop = glm::vec3(0.5f, 0.5f, 0.5f);
+  m_ColorTopIntensity = 1.0f;
+  m_ColorMiddle = glm::vec3(0.5f, 0.5f, 0.5f);
+  m_ColorMiddleIntensity = 1.0f;
+  m_ColorBottom = glm::vec3(0.5f, 0.5f, 0.5f);
+  m_ColorBottomIntensity = 1.0f;
+}
+
+void
 Light::updateBasisFrame()
 {
   // Compute orthogonal basis frame

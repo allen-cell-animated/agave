@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Controls.h"
+#include "ObjectTransformMode.h"
 #include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 
@@ -153,8 +154,9 @@ private:
   Section* createAreaLightingControls(QAction* pLightRotationAction);
   Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);
+  void updateLightingControlsFromScene();
   void initClipPlaneControls(Scene* scene);
   bool shouldClipPlaneShow();
 
-  void toggleActionForObject(QAction* pAction, SceneObject* object);
+  ObjectTransformMode* m_transformMode;
 };
