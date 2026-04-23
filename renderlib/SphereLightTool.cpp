@@ -22,13 +22,7 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   glm::vec3 viewDir = (scene.camera.m_From - p);
   LinearSpace3f camFrame = scene.camera.getFrame();
 
-  // Clip plane through sphere center, perpendicular to view direction.
-  // Clip plane through sphere center, perpendicular to view direction.
-  // drawCircle/drawCircleAsStrip keep geometry where dot(clipPlane, point) > 0.
-  // frontPlane positive side faces camera; backPlane positive side faces away.
   glm::vec3 viewDirN = glm::normalize(viewDir);
-  glm::vec4 frontPlane(viewDirN, -glm::dot(viewDirN, p));
-  glm::vec4 backPlane = -frontPlane;
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
@@ -53,6 +47,19 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     float distSq = glm::max(dist * dist, 1e-6f);
     sphereRadius = projectedRadius / sqrtf(1.0f + (projectedRadiusSq / distSq));
   }
+
+  // Split front/back at the sphere's silhouette (horizon) plane, not through the center.
+  // For an orthographic camera the camera is at infinity and the horizon passes through
+  // the sphere center, so the offset is 0. For a perspective camera with camera-to-center
+  // distance d and sphere radius r, the horizon circle lies on the plane offset from the
+  // center toward the camera by r^2 / d. Using this plane makes the front/back half-rings
+  // meet exactly on the projected silhouette for every rotation angle.
+  // drawCircle/drawCircleAsStrip keep geometry where dot(clipPlane, point) > 0.
+  float horizonOffset =
+    (scene.camera.m_Projection == ORTHOGRAPHIC) ? 0.0f : (sphereRadius * sphereRadius) / glm::max(dist, 1e-6f);
+  glm::vec3 horizonCenter = p + viewDirN * horizonOffset;
+  glm::vec4 frontPlane(viewDirN, -glm::dot(viewDirN, horizonCenter));
+  glm::vec4 backPlane = -frontPlane;
 
   // Silhouette circle — always foreground (view-aligned, always in front)
   gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
@@ -113,7 +120,9 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   {
     glm::vec3 polePoint = p + l.m_V * sphereRadius;
     glm::vec3 ringCenter = p + l.m_V * capHeight;
-    bool poleFacesCamera = glm::dot(viewDirN, polePoint - p) > 0;
+    // Use the horizon plane (same one used to split the rings) so the cap ends up on the
+    // same side of the silhouette as the nearby latitude/longitude arcs.
+    bool poleFacesCamera = glm::dot(viewDirN, polePoint - horizonCenter) > 0;
     Seq capSeq = poleFacesCamera ? Seq::k3dStacked : Seq::k3dStackedUnderlay;
     gesture.graphics.addCommand(GFX::Command(GFX::PrimitiveType::kTriangles, 1.0f, true), capSeq);
     gesture.drawCone(ringCenter,
@@ -130,7 +139,7 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
   {
     glm::vec3 polePoint = p - l.m_V * sphereRadius;
     glm::vec3 ringCenter = p - l.m_V * capHeight;
-    bool poleFacesCamera = glm::dot(viewDirN, polePoint - p) > 0;
+    bool poleFacesCamera = glm::dot(viewDirN, polePoint - horizonCenter) > 0;
     Seq capSeq = poleFacesCamera ? Seq::k3dStacked : Seq::k3dStackedUnderlay;
     gesture.graphics.addCommand(GFX::Command(GFX::PrimitiveType::kTriangles, 1.0f, true), capSeq);
     gesture.drawCone(ringCenter,
