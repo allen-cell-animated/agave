@@ -819,7 +819,8 @@ SetSkylightRotationCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetSkylightRotation " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z << " " << m_data.m_w;
   // glm::quat ctor order is (w, x, y, z)
-  c->m_appScene->SceneSphereLight()->m_transform.m_rotation = glm::quat(m_data.m_w, m_data.m_x, m_data.m_y, m_data.m_z);
+  glm::quat q = glm::normalize(glm::quat(m_data.m_w, m_data.m_x, m_data.m_y, m_data.m_z));
+  c->m_appScene->SceneSphereLight()->m_transform.m_rotation = q;
   c->m_appScene->SceneSphereLight()->updateTransform();
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
