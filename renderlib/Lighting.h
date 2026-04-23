@@ -58,7 +58,7 @@ public:
   void restoreLightsViewSpaceBasis(const CCamera& camera, RenderSettings* rs);
 
   Light* m_Lights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
-  int m_NoLights{ 0 };
+  size_t m_NoLights{ 0 };
   SceneLight* m_sceneLights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
 
   bool lockToCamera = false;

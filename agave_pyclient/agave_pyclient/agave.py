@@ -1002,7 +1002,7 @@ class AgaveRenderer:
         # 50
         self.cb.add_command("SET_MIN_MAX_THRESHOLD", channel, min_val, max_val)
 
-    def skylight_rotation(self, x: float, y: float, z: float, w: float):
+    def set_skylight_rotation(self, x: float, y: float, z: float, w: float):
         """
         Set the orientation of the sphere (sky) light as a quaternion. The quaternion
         rotates the default direction (0, 0, 1) to the desired sky-light direction and
@@ -1021,7 +1021,7 @@ class AgaveRenderer:
             Quaternion w component.
         """
         # 51
-        self.cb.add_command("SKYLIGHT_ROTATION", x, y, z, w)
+        self.cb.add_command("SET_SKYLIGHT_ROTATION", x, y, z, w)
 
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0

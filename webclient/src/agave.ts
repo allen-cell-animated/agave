@@ -770,7 +770,7 @@ export class AgaveClient {
    */
   skylightRotation(x: number, y: number, z: number, w: number) {
     // 51
-    this.cb.addCommand("SKYLIGHT_ROTATION", x, y, z, w);
+    this.cb.addCommand("SET_SKYLIGHT_ROTATION", x, y, z, w);
   }
 
   // send all data in our current command buffer to the server

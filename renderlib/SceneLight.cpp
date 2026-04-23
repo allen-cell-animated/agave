@@ -30,8 +30,8 @@ SceneLight::updateTransform()
   m_light->updateBasisFrame();
 
   // this lets the GUI have a chance to update in an abstract way
-  for (auto& m_observer : m_observers) {
-    m_observer(*m_light);
+  for (auto& observer : m_observers) {
+    observer(*m_light);
   }
 }
 

@@ -526,5 +526,5 @@ struct SetSkylightRotationCommandD
 };
 CMDDECL(SetSkylightRotationCommand,
         51,
-        "skylight_rotation",
+        "set_skylight_rotation",
         CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));

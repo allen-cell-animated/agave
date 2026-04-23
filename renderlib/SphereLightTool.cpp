@@ -5,6 +5,7 @@
 void
 SphereLightTool::action(SceneView& scene, Gesture& gesture)
 {
+  // draw only, not a manipulator.
 }
 void
 SphereLightTool::draw(SceneView& scene, Gesture& gesture)
