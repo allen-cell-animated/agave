@@ -73,7 +73,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install ninja-build libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
+          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -93,10 +93,9 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: ./build/install/Release/agave-install
-      - name: windows install ninja
+      - name: windows install nasm
         if: matrix.os == 'windows-latest'
         run: |
-          choco install ninja
           choco install nasm
       - name: windows install nsis
         if: matrix.os == 'windows-latest'

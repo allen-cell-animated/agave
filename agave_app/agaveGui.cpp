@@ -907,50 +907,44 @@ agaveGui::view_frame()
 }
 
 void
+agaveGui::setViewMode(EViewMode mode)
+{
+  ViewerWindow* vw = m_glView->borrowRenderer();
+  vw->beginCameraChange();
+  vw->m_CCamera.SetViewMode(mode);
+  vw->endCameraChange();
+  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
 agaveGui::view_top()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeTop);
 }
 void
 agaveGui::view_bottom()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBottom);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeBottom);
 }
-
 void
 agaveGui::view_front()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeFront);
 }
-
 void
 agaveGui::view_back()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBack);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeBack);
 }
-
 void
 agaveGui::view_left()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeLeft);
 }
-
 void
 agaveGui::view_right()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeRight);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeRight);
 }
 
 void
@@ -1202,10 +1196,15 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
-  Light l0 = stateToLight(v, 0);
-  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
-  Light l1 = stateToLight(v, 1);
-  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
+  // The SceneLights were already created by initLights() with the correct
+  // types (sphere at SphereLightIndex, area at AreaLightIndex). initBounds
+  // centers each SceneLight transform on the volume's bounding box so that
+  // stateToLight's updateTransform() pivots correctly.
+  m_appScene.initBounds(m_appScene.m_boundingBox);
+
+  // Apply full serialized light state (params + rotation) to the SceneLights.
+  stateToLight(v, 0, *m_appScene.SceneSphereLight());
+  stateToLight(v, 1, *m_appScene.SceneAreaLight());
 
   // capture settings
   m_captureSettings.width = v.capture.width;
@@ -1333,13 +1332,8 @@ agaveGui::appToViewerState()
   }
 
   // lighting
-  Light& lt = m_appScene.SphereLight();
-  Serialize::LightSettings_V1 l = fromLight(lt);
-  v.lights.push_back(l);
-
-  Light& lt1 = m_appScene.AreaLight();
-  Serialize::LightSettings_V1 l1 = fromLight(lt1);
-  v.lights.push_back(l1);
+  v.lights.push_back(fromLight(*m_appScene.SceneSphereLight()));
+  v.lights.push_back(fromLight(*m_appScene.SceneAreaLight()));
 
   // capture settings
 

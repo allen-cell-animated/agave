@@ -22,4 +22,5 @@ void main() {
 
 )";
 
-const std::string imageNoLut_frag_src = imageNoLut_frag_chunk_0;
+const std::string imageNoLut_frag_src = 
+    imageNoLut_frag_chunk_0;

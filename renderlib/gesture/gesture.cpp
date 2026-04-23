@@ -170,10 +170,27 @@ Gesture::drawCircle(glm::vec3 center,
     glm::vec3 p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
 
     if (clipPlane) {
-      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
+      float d0 = glm::dot(*clipPlane, glm::vec4(p0, 1.0f));
+      float d1 = glm::dot(*clipPlane, glm::vec4(p1, 1.0f));
+
+      if (d0 > 0 && d1 > 0) {
+        // Both visible
         graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
                          Gesture::Graphics::VertsCode(p1, color, opacity, code));
+      } else if (d0 > 0 && d1 <= 0) {
+        // Crossing from visible to clipped — interpolate to boundary
+        float t = d0 / (d0 - d1);
+        glm::vec3 pClip = p0 + t * (p1 - p0);
+        graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
+                         Gesture::Graphics::VertsCode(pClip, color, opacity, code));
+      } else if (d0 <= 0 && d1 > 0) {
+        // Crossing from clipped to visible — interpolate to boundary
+        float t = d0 / (d0 - d1);
+        glm::vec3 pClip = p0 + t * (p1 - p0);
+        graphics.addLine(Gesture::Graphics::VertsCode(pClip, color, opacity, code),
+                         Gesture::Graphics::VertsCode(p1, color, opacity, code));
       }
+      // Both clipped: skip
     } else {
       graphics.addLine(Gesture::Graphics::VertsCode(p0, color, opacity, code),
                        Gesture::Graphics::VertsCode(p1, color, opacity, code));
@@ -190,7 +207,8 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
                            float opacity,
                            uint32_t code,
                            float thickness,
-                           glm::vec4* clipPlane)
+                           glm::vec4* clipPlane,
+                           Graphics::CommandSequence sequence)
 {
   std::vector<Gesture::Graphics::VertsCode> v;
   glm::vec3 p0(0, 0, 0), p1(0, 0, 0);
@@ -209,35 +227,71 @@ Gesture::drawCircleAsStrip(glm::vec3 center,
 
       v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
     }
-    graphics.addLineStrip(v, thickness, true);
+    graphics.addLineStrip(v, thickness, true, sequence);
   } else {
-    // any segment that would be entirely clipped must terminate the strip as a non-closed strip
-    bool isClipped = false;
-    for (int i = 0; i < numSegments + 1; ++i) {
-      float t0 = float(i) / float(numSegments);
-      float t1 = float(i + 1) / float(numSegments);
+    // Clip the circle against the plane, interpolating at boundary crossings to avoid gaps.
+    // Find a starting index in the clipped region so the visible arc doesn't straddle the loop seam.
+    int startIdx = 0;
+    for (int i = 0; i < numSegments; ++i) {
+      float theta = float(i) / float(numSegments) * 2.0f * glm::pi<float>();
+      glm::vec3 pt = center + xaxis * cosf(theta) + yaxis * sinf(theta);
+      if (glm::dot(*clipPlane, glm::vec4(pt, 1.0f)) <= 0) {
+        startIdx = i;
+        break;
+      }
+    }
 
-      float theta0 = t0 * 2.0f * glm::pi<float>();
-      float theta1 = t1 * 2.0f * glm::pi<float>();
+    bool isClipped = false;
+    for (int j = 0; j < numSegments; ++j) {
+      int i = (startIdx + j) % numSegments;
+      float theta0 = float(i) / float(numSegments) * 2.0f * glm::pi<float>();
+      float theta1 = float((i + 1) % numSegments) / float(numSegments) * 2.0f * glm::pi<float>();
+      if (i + 1 == numSegments)
+        theta1 = 2.0f * glm::pi<float>();
 
       p0 = center + xaxis * cosf(theta0) + yaxis * sinf(theta0);
       p1 = center + xaxis * cosf(theta1) + yaxis * sinf(theta1);
 
-      if (glm::dot(*clipPlane, glm::vec4(p0, 1.0)) > 0 && glm::dot(*clipPlane, glm::vec4(p1, 1.0)) > 0) {
+      float d0 = glm::dot(*clipPlane, glm::vec4(p0, 1.0f));
+      float d1 = glm::dot(*clipPlane, glm::vec4(p1, 1.0f));
+
+      if (d0 > 0 && d1 > 0) {
+        // Both visible — keep the segment start
         v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
-      } else {
+      } else if (d0 > 0 && d1 <= 0) {
+        // Crossing from visible to clipped — add p0 and the intersection, then flush
         isClipped = true;
-        // add a line strip and then empty the vector and start anew
+        float t = d0 / (d0 - d1);
+        glm::vec3 pClip = p0 + t * (p1 - p0);
+        v.push_back(Gesture::Graphics::VertsCode(p0, color, opacity, code));
+        v.push_back(Gesture::Graphics::VertsCode(pClip, color, opacity, code));
         if (v.size() >= 2) {
-          // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
-          graphics.addLineStrip(v, thickness, false);
+          graphics.addLineStrip(v, thickness, false, sequence);
         }
         v.clear();
+      } else if (d0 <= 0 && d1 > 0) {
+        // Crossing from clipped to visible — start new strip at intersection
+        isClipped = true;
+        float t = d0 / (d0 - d1);
+        glm::vec3 pClip = p0 + t * (p1 - p0);
+        v.push_back(Gesture::Graphics::VertsCode(pClip, color, opacity, code));
+      } else {
+        // Both clipped — flush any accumulated strip
+        if (!v.empty()) {
+          isClipped = true;
+          if (v.size() >= 2) {
+            graphics.addLineStrip(v, thickness, false, sequence);
+          }
+          v.clear();
+        }
       }
     }
-    if (v.size() >= 2) {
-      // LOG_DEBUG << "drawCircleAsStrip: " << v.size();
-      graphics.addLineStrip(v, 6.0f, isClipped ? false : true);
+    // Close the loop: add the first point again if the strip wraps around without clipping
+    if (!v.empty() && !isClipped) {
+      v.push_back(v.front());
+      graphics.addLineStrip(v, thickness, true, sequence);
+    } else if (v.size() >= 2) {
+      graphics.addLineStrip(v, thickness, false, sequence);
     }
   }
 }

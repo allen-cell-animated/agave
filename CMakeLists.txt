@@ -4,6 +4,18 @@ include(FetchContent)  # Needed to recognize FetchContent_Declare in renderlib
 if(APPLE)
   set(ENV{MACOSX_DEPLOYMENT_TARGET} "10.15")
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+  # Ensure compile_commands.json has correct sysroot for clang-tidy
+  if(NOT CMAKE_OSX_SYSROOT)
+    execute_process(
+      COMMAND xcrun --show-sdk-path
+      OUTPUT_VARIABLE _osx_sysroot
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      RESULT_VARIABLE _xcrun_result
+    )
+    if(_xcrun_result EQUAL 0 AND _osx_sysroot)
+      set(CMAKE_OSX_SYSROOT "${_osx_sysroot}" CACHE PATH "macOS SDK path")
+    endif()
+  endif()
 endif(APPLE)
 
 if(POLICY CMP0048)
@@ -12,6 +24,9 @@ endif(POLICY CMP0048)
 
 cmake_policy(SET CMP0091 NEW) # enable new "MSVC runtime library selection" (https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html)
 cmake_policy(SET CMP0135 NEW) # set timestamps to time of extraction for ExternalProject_Add
+if(POLICY CMP0207)
+  cmake_policy(SET CMP0207 NEW) # file(GET_RUNTIME_DEPENDENCIES) normalizes paths before matching
+endif()
 
 project(
   agave
@@ -376,15 +391,4 @@ else() # Linux
   include(CPack)
 endif(WIN32)
 
-# Ensure compile_commands.json has correct sysroot for clang-tidy on macOS
-if(APPLE AND NOT CMAKE_OSX_SYSROOT)
-  execute_process(
-    COMMAND xcrun --show-sdk-path
-    OUTPUT_VARIABLE _osx_sysroot
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    RESULT_VARIABLE _xcrun_result
-  )
-  if(_xcrun_result EQUAL 0 AND _osx_sysroot)
-    set(CMAKE_OSX_SYSROOT "${_osx_sysroot}" CACHE PATH "macOS SDK path")
-  endif()
-endif()
+
