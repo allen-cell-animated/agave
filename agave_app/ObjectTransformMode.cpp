@@ -3,6 +3,8 @@
 
 #include "renderlib/AppScene.h"
 
+#include <QAction>
+
 ObjectTransformMode::ObjectTransformMode(std::function<Scene*()> getScene, QRenderSettings* qrs, QObject* parent)
   : QObject(parent)
   , m_getScene(std::move(getScene))
@@ -53,6 +55,21 @@ ObjectTransformMode::activate(Entry& entry)
     }
   }
 
+  updateButtonStates();
+}
+
+void
+ObjectTransformMode::clearMode()
+{
+  // Toggle off any currently-checked action so that the corresponding gesture
+  // tool in the GL view is torn down before any referenced SceneObject goes
+  // away. Triggering the action is what actually changes the mode in the GL
+  // view; directly setChecked(false) would leave the view out of sync.
+  for (auto& entry : m_entries) {
+    if (entry.action->isChecked()) {
+      entry.action->trigger();
+    }
+  }
   updateButtonStates();
 }
 

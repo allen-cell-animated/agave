@@ -81,6 +81,8 @@ COMMANDS = {
     # channel index, colormap name, array of [stop, r, g, b, a]
     "SET_COLOR_RAMP": [49, "I32", "S", "F32A"],
     "SET_MIN_MAX_THRESHOLD": [50, "I32", "I32", "I32"],
+    # sphere (sky) light rotation as a quaternion (x, y, z, w)
+    "SKYLIGHT_ROTATION": [51, "F32", "F32", "F32", "F32"],
 }
 
 

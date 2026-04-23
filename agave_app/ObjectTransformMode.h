@@ -20,6 +20,11 @@ public:
 
   void registerButton(QPushButton* button, QAction* action, std::function<SceneObject*()> getObject);
 
+  // Turn off any active transform mode (e.g. when the scene is rebuilt and any
+  // previously selected SceneObject is about to become invalid). Unchecks any
+  // currently-active action and clears button states.
+  void clearMode();
+
   void updateButtonStates();
 
 private:

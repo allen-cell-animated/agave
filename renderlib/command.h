@@ -519,3 +519,12 @@ CMDDECL(SetMinMaxThresholdCommand,
         50,
         "set_min_max_threshold",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
+
+struct SetSkylightRotationCommandD
+{
+  float m_x, m_y, m_z, m_w;
+};
+CMDDECL(SetSkylightRotationCommand,
+        51,
+        "skylight_rotation",
+        CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));

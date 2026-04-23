@@ -1103,6 +1103,8 @@ QAppearanceSettingsWidget::initLightingControls(Scene* scene)
 void
 QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
+  m_transformMode->clearMode();
+
   // Don't forget that most ui updating triggered in this function should
   // NOT signal changes to the scene.
 
