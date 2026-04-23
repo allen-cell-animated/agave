@@ -91,6 +91,10 @@ private:
   Serialize::ViewerState appToViewerState();
   void viewerStateToApp(const Serialize::ViewerState& s);
 
+  // Set the camera's view mode via the viewer window, preserving the
+  // lock-lights-to-camera invariant and flagging the camera dirty.
+  void setViewMode(EViewMode mode);
+
   void createActions();
   void createMenus();
   void createToolbars();

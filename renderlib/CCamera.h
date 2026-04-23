@@ -5,14 +5,6 @@
 #include "MathUtil.h"
 #include "glm.h"
 
-#define DEF_FOCUS_TYPE CenterScreen
-#define DEF_FOCUS_SENSOR_POS_CANVAS glm::vec2(0.0f)
-#define DEF_FOCUS_P glm::vec3(0.0f)
-#define DEF_FOCUS_FOCAL_DISTANCE 100.0f
-#define DEF_FOCUS_T 0.0f
-#define DEF_FOCUS_N glm::vec3(0.0f)
-#define DEF_FOCUS_DOT_WN 0.0f
-
 enum ProjectionMode : std::uint8_t
 {
   PERSPECTIVE,
@@ -40,13 +32,13 @@ public:
 
   Focus()
   {
-    m_Type = DEF_FOCUS_TYPE;
-    m_SensorPosCanvas = DEF_FOCUS_SENSOR_POS_CANVAS;
-    m_FocalDistance = DEF_FOCUS_FOCAL_DISTANCE;
-    m_T = DEF_FOCUS_T;
-    m_P = DEF_FOCUS_P;
-    m_N = DEF_FOCUS_N;
-    m_DotWN = DEF_FOCUS_DOT_WN;
+    m_Type = CenterScreen;
+    m_SensorPosCanvas = glm::vec2(0.0f);
+    m_FocalDistance = 100.0f;
+    m_T = 0.0f;
+    m_P = glm::vec3(0.0f);
+    m_N = glm::vec3(0.0f);
+    m_DotWN = 0.0f;
   }
 
   Focus& operator=(const Focus& Other) = default;

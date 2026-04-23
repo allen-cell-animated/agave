@@ -907,62 +907,44 @@ agaveGui::view_frame()
 }
 
 void
-agaveGui::view_top()
+agaveGui::setViewMode(EViewMode mode)
 {
   ViewerWindow* vw = m_glView->borrowRenderer();
   vw->beginCameraChange();
-  vw->m_CCamera.SetViewMode(ViewModeTop);
+  vw->m_CCamera.SetViewMode(mode);
   vw->endCameraChange();
   vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
+agaveGui::view_top()
+{
+  setViewMode(ViewModeTop);
 }
 void
 agaveGui::view_bottom()
 {
-  ViewerWindow* vw = m_glView->borrowRenderer();
-  vw->beginCameraChange();
-  vw->m_CCamera.SetViewMode(ViewModeBottom);
-  vw->endCameraChange();
-  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeBottom);
 }
-
 void
 agaveGui::view_front()
 {
-  ViewerWindow* vw = m_glView->borrowRenderer();
-  vw->beginCameraChange();
-  vw->m_CCamera.SetViewMode(ViewModeFront);
-  vw->endCameraChange();
-  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeFront);
 }
-
 void
 agaveGui::view_back()
 {
-  ViewerWindow* vw = m_glView->borrowRenderer();
-  vw->beginCameraChange();
-  vw->m_CCamera.SetViewMode(ViewModeBack);
-  vw->endCameraChange();
-  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeBack);
 }
-
 void
 agaveGui::view_left()
 {
-  ViewerWindow* vw = m_glView->borrowRenderer();
-  vw->beginCameraChange();
-  vw->m_CCamera.SetViewMode(ViewModeLeft);
-  vw->endCameraChange();
-  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeLeft);
 }
-
 void
 agaveGui::view_right()
 {
-  ViewerWindow* vw = m_glView->borrowRenderer();
-  vw->beginCameraChange();
-  vw->m_CCamera.SetViewMode(ViewModeRight);
-  vw->endCameraChange();
-  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeRight);
 }
 
 void
@@ -1214,27 +1196,15 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
-  Light l0 = stateToLight(v, 0);
-  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
-  Light l1 = stateToLight(v, 1);
-  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
-
-  // SetLight destroyed and recreated each SceneLight; its m_transform.m_center
-  // now comes from the freshly-constructed Light's default m_Target (0,0,0).
-  // Re-run initBounds on the existing bounding box so Light::Update re-targets
-  // to the bbox center and Scene copies that into m_transform.m_center. Without
-  // this, the rotate/translate gizmo would be centered at the origin instead of
-  // the volume.
+  // The SceneLights were already created by initLights() with the correct
+  // types (sphere at SphereLightIndex, area at AreaLightIndex). initBounds
+  // centers each SceneLight transform on the volume's bounding box so that
+  // stateToLight's updateTransform() pivots correctly.
   m_appScene.initBounds(m_appScene.m_boundingBox);
 
-  // apply saved SceneLight rotation (quaternion xyzw). updateTransform() propagates
-  // the rotation to the underlying Light's phi/theta/basis vectors.
-  const std::array<float, 4>& q0 = v.lights[0].rotation;
-  m_appScene.SceneSphereLight()->m_transform.m_rotation = glm::quat(q0[3], q0[0], q0[1], q0[2]);
-  m_appScene.SceneSphereLight()->updateTransform();
-  const std::array<float, 4>& q1 = v.lights[1].rotation;
-  m_appScene.SceneAreaLight()->m_transform.m_rotation = glm::quat(q1[3], q1[0], q1[1], q1[2]);
-  m_appScene.SceneAreaLight()->updateTransform();
+  // Apply full serialized light state (params + rotation) to the SceneLights.
+  stateToLight(v, 0, *m_appScene.SceneSphereLight());
+  stateToLight(v, 1, *m_appScene.SceneAreaLight());
 
   // capture settings
   m_captureSettings.width = v.capture.width;
@@ -1362,17 +1332,8 @@ agaveGui::appToViewerState()
   }
 
   // lighting
-  Light& lt = m_appScene.SphereLight();
-  Serialize::LightSettings_V1 l = fromLight(lt);
-  const glm::quat& q0 = m_appScene.SceneSphereLight()->m_transform.m_rotation;
-  l.rotation = { q0.x, q0.y, q0.z, q0.w };
-  v.lights.push_back(l);
-
-  Light& lt1 = m_appScene.AreaLight();
-  Serialize::LightSettings_V1 l1 = fromLight(lt1);
-  const glm::quat& q1 = m_appScene.SceneAreaLight()->m_transform.m_rotation;
-  l1.rotation = { q1.x, q1.y, q1.z, q1.w };
-  v.lights.push_back(l1);
+  v.lights.push_back(fromLight(*m_appScene.SceneSphereLight()));
+  v.lights.push_back(fromLight(*m_appScene.SceneAreaLight()));
 
   // capture settings
 
