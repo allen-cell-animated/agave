@@ -129,6 +129,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetClipPlaneCommand);
           CMD_CASE(SetColorRampCommand);
           CMD_CASE(SetMinMaxThresholdCommand);
+          CMD_CASE(SetSkylightRotationCommand);
           CMD_CASE(SetClipPlaneIndexCommand);
           CMD_CASE(EnableClipPlaneCommand);
           CMD_CASE(SetChannelClipPlaneGroupCommand);

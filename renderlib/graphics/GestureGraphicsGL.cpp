@@ -374,6 +374,9 @@ GestureRendererGL::drawGesture(bool display,
           glPointSize(cmd.thickness);
           check_gl("pointsize");
         }
+        if (cmd.doubleSided) {
+          glDisable(GL_CULL_FACE);
+        }
         GLenum mode = GL_TRIANGLES;
         switch (cmd.command) {
           case Gesture::Graphics::PrimitiveType::kLines:
@@ -390,6 +393,9 @@ GestureRendererGL::drawGesture(bool display,
         }
         glDrawArrays(mode, cmdr.begin, cmdr.end - cmdr.begin);
         check_gl("drawarrays");
+        if (cmd.doubleSided) {
+          glEnable(GL_CULL_FACE);
+        }
       }
     }
   }

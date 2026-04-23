@@ -799,6 +799,22 @@ export class AgaveClient {
     this.cb.addCommand("SET_MIN_MAX_THRESHOLD", channel, min, max);
   }
 
+  /**
+   * Set the orientation of the sphere (sky) light as a quaternion. The quaternion
+   * rotates the default direction (0, 0, 1) to the desired sky-light direction and
+   * also encodes the roll of the sphere around that direction, which determines
+   * where the top/middle/bottom color bands appear relative to the volume.
+   *
+   * @param x Quaternion x component
+   * @param y Quaternion y component
+   * @param z Quaternion z component
+   * @param w Quaternion w component
+   */
+  skylightRotation(x: number, y: number, z: number, w: number) {
+    // 51
+    this.cb.addCommand("SET_SKYLIGHT_ROTATION", x, y, z, w);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {

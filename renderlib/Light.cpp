@@ -1,7 +1,6 @@
 #include "Light.h"
 
 #include "CCamera.h"
-#include "Logging.h"
 
 void
 Light::Update(const CBoundingBox& BoundingBox)
@@ -41,28 +40,38 @@ Light::Update(const CBoundingBox& BoundingBox)
 }
 
 void
+Light::resetArea()
+{
+  m_Theta = 0.0f;
+  m_Phi = HALF_PI_F;
+  m_Width = 0.15f;
+  m_Height = 0.15f;
+  m_Distance = 1.5f;
+  m_Color = 10.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+  m_ColorIntensity = 1.0f;
+}
+
+void
+Light::resetSphere()
+{
+  m_ColorTop = glm::vec3(0.5f, 0.5f, 0.5f);
+  m_ColorTopIntensity = 1.0f;
+  m_ColorMiddle = glm::vec3(0.5f, 0.5f, 0.5f);
+  m_ColorMiddleIntensity = 1.0f;
+  m_ColorBottom = glm::vec3(0.5f, 0.5f, 0.5f);
+  m_ColorBottomIntensity = 1.0f;
+}
+
+void
 Light::updateBasisFrame()
 {
-  // Compute orthogonal basis frame
-  if (m_T == LightType_Sphere) {
-    glm::vec3 dir = m_P - m_Target;
-    m_N = glm::length(dir) > 0.0f ? glm::normalize(dir) : glm::vec3(0.0f, 0.0f, 1.0f);
-  } else {
-    glm::vec3 dir = m_Target - m_P;
-    m_N = glm::length(dir) > 0.0f ? glm::normalize(dir) : glm::vec3(0.0f, 0.0f, 1.0f);
-  }
-
-  glm::vec3 u = m_U;
-  float uLen = glm::length(u);
-  if (uLen > 1e-6f) {
-    u = u - m_N * glm::dot(u, m_N);
-    uLen = glm::length(u);
-  }
-  if (uLen <= 1e-6f) {
-    u = glm::abs(m_N.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
-  }
-  m_U = glm::normalize(u);
-  m_V = glm::normalize(glm::cross(m_N, m_U));
+  // N points from target to light position for sphere/sky lights, and from
+  // light to target for area lights.
+  const glm::vec3 dir = (m_T == LightType_Sphere) ? (m_P - m_Target) : (m_Target - m_P);
+  const glm::mat3 frame = buildOrthonormalFrame(dir, m_U);
+  m_U = frame[0];
+  m_V = frame[1];
+  m_N = frame[2];
 }
 
 void
@@ -99,22 +108,4 @@ Light::cartesianToSpherical(glm::vec3 v, float& phi, float& theta)
 {
   phi = acosf(v.y);
   theta = atan2f(v.x, v.z);
-}
-
-void
-Light::validateBasis(const char* logLabel) const
-{
-  const float lenN = glm::length(m_N);
-  const float lenU = glm::length(m_U);
-  const float lenV = glm::length(m_V);
-  const float dotNU = glm::dot(m_N, m_U);
-  const float dotNV = glm::dot(m_N, m_V);
-  const float dotUV = glm::dot(m_U, m_V);
-  const float eps = 1e-3f;
-  if (glm::abs(lenN - 1.0f) > eps || glm::abs(lenU - 1.0f) > eps || glm::abs(lenV - 1.0f) > eps ||
-      glm::abs(dotNU) > eps || glm::abs(dotNV) > eps || glm::abs(dotUV) > eps) {
-    LOG_WARNING << "Light basis not orthonormal (" << logLabel << ")"
-                << " lenN=" << lenN << " lenU=" << lenU << " lenV=" << lenV << " dotNU=" << dotNU << " dotNV=" << dotNV
-                << " dotUV=" << dotUV;
-  }
 }

@@ -9,8 +9,8 @@ class RenderSettings;
 
 static constexpr size_t MAX_NO_LIGHTS = 4;
 
-// Describes the lighting in the scene, 
-// which is a collection of lights and their properties, 
+// Describes the lighting in the scene,
+// which is a collection of lights and their properties,
 // as well as some utility functions for managing them
 class Lighting
 {
@@ -18,7 +18,7 @@ public:
   Lighting() = default;
   ~Lighting()
   {
-    for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
+    for (size_t i = 0; i < MAX_NO_LIGHTS; ++i) {
       delete m_sceneLights[i];
       delete m_Lights[i];
     }
@@ -58,7 +58,7 @@ public:
   void restoreLightsViewSpaceBasis(const CCamera& camera, RenderSettings* rs);
 
   Light* m_Lights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
-  int m_NoLights{ 0 };
+  size_t m_NoLights{ 0 };
   SceneLight* m_sceneLights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
 
   bool lockToCamera = false;

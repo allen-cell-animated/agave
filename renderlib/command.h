@@ -520,13 +520,22 @@ CMDDECL(SetMinMaxThresholdCommand,
         "set_min_max_threshold",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
 
+struct SetSkylightRotationCommandD
+{
+  float m_x, m_y, m_z, m_w;
+};
+CMDDECL(SetSkylightRotationCommand,
+        51,
+        "set_skylight_rotation",
+        CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
+
 struct SetClipPlaneIndexCommandD
 {
   int32_t m_planeIndex;
   float m_x, m_y, m_z, m_w;
 };
 CMDDECL(SetClipPlaneIndexCommand,
-        51,
+        52,
         "set_clip_plane_index",
         CMD_ARGS(
           { CommandArgType::I32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
@@ -536,7 +545,7 @@ struct EnableClipPlaneCommandD
   int32_t m_planeIndex;
   int32_t m_enabled;
 };
-CMDDECL(EnableClipPlaneCommand, 52, "enable_clip_plane", CMD_ARGS({ CommandArgType::I32, CommandArgType::I32 }));
+CMDDECL(EnableClipPlaneCommand, 53, "enable_clip_plane", CMD_ARGS({ CommandArgType::I32, CommandArgType::I32 }));
 
 struct SetChannelClipPlaneGroupCommandD
 {
@@ -544,6 +553,6 @@ struct SetChannelClipPlaneGroupCommandD
   int32_t m_planeIndex;
 };
 CMDDECL(SetChannelClipPlaneGroupCommand,
-        53,
+        54,
         "set_channel_clip_plane_group",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::I32 }));

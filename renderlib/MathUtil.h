@@ -146,6 +146,36 @@ lerp(float a, float b, float alpha)
   return a + alpha * (b - a);
 }
 
+/// @brief Build an orthonormal basis (U, V, N) given a preferred-N direction and
+/// a preferred-U direction. N is normalized (or falls back to +Z if degenerate),
+/// U is preferredU with its N component removed and normalized (or falls back to
+/// a canonical axis perpendicular to N if preferredU is degenerate or parallel
+/// to N), and V = normalize(cross(N, U)).
+///
+/// Returns a mat3 whose columns are {U, V, N}.
+inline glm::mat3
+buildOrthonormalFrame(glm::vec3 N, glm::vec3 preferredU)
+{
+  constexpr float kEps = 1e-6f;
+
+  if (glm::length(N) <= kEps) {
+    N = glm::vec3(0.0f, 0.0f, 1.0f);
+  }
+  N = glm::normalize(N);
+
+  glm::vec3 U = preferredU;
+  if (glm::length(U) > kEps) {
+    U = U - N * glm::dot(U, N);
+  }
+  if (glm::length(U) <= kEps) {
+    U = glm::abs(N.y) > 0.999f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+    U = U - N * glm::dot(U, N);
+  }
+  U = glm::normalize(U);
+  glm::vec3 V = glm::normalize(glm::cross(N, U));
+  return glm::mat3(U, V, N);
+}
+
 inline glm::quat
 trackball(float xRadians, float yRadians, const glm::vec3& eye, const glm::vec3& up, const glm::vec3& right)
 {

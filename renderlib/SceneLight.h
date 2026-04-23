@@ -28,6 +28,7 @@ public:
 
   void updateTransform() override;
   void applyBasis(const glm::mat3& basis);
+  void reset();
 
   Light* m_light;
   std::vector<std::function<void(const Light&)>> m_observers;

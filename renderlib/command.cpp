@@ -815,6 +815,15 @@ SetMinMaxThresholdCommand::execute(ExecutionContext* c)
 }
 
 void
+SetSkylightRotationCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetSkylightRotation " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z << " " << m_data.m_w;
+  // glm::quat ctor order is (w, x, y, z)
+  glm::quat q = glm::normalize(glm::quat(m_data.m_w, m_data.m_x, m_data.m_y, m_data.m_z));
+  c->m_appScene->SceneSphereLight()->m_transform.m_rotation = q;
+  c->m_appScene->SceneSphereLight()->updateTransform();
+  c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
 SetClipPlaneIndexCommand::execute(ExecutionContext* c)
 {
   if (m_data.m_planeIndex < 0 || m_data.m_planeIndex >= (int32_t)MAX_CLIP_PLANES) {
@@ -1862,24 +1871,22 @@ SetMinMaxThresholdCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
-SetClipPlaneIndexCommand*
-SetClipPlaneIndexCommand::parse(ParseableStream* c)
+SetSkylightRotationCommand*
+SetSkylightRotationCommand::parse(ParseableStream* c)
 {
-  SetClipPlaneIndexCommandD data;
-  data.m_planeIndex = c->parseInt32();
+  SetSkylightRotationCommandD data;
   data.m_x = c->parseFloat32();
   data.m_y = c->parseFloat32();
   data.m_z = c->parseFloat32();
   data.m_w = c->parseFloat32();
-  return new SetClipPlaneIndexCommand(data);
+  return new SetSkylightRotationCommand(data);
 }
 
 size_t
-SetClipPlaneIndexCommand::write(WriteableStream* o) const
+SetSkylightRotationCommand::write(WriteableStream* o) const
 {
   size_t bytesWritten = 0;
   bytesWritten += o->writeInt32(m_ID);
-  bytesWritten += o->writeInt32(m_data.m_planeIndex);
   bytesWritten += o->writeFloat32(m_data.m_x);
   bytesWritten += o->writeFloat32(m_data.m_y);
   bytesWritten += o->writeFloat32(m_data.m_z);
@@ -2442,31 +2449,11 @@ SetMinMaxThresholdCommand::toPythonString() const
 }
 
 std::string
-SetClipPlaneIndexCommand::toPythonString() const
+SetSkylightRotationCommand::toPythonString() const
 {
   std::ostringstream ss;
   ss << PythonName() << "(";
-  ss << m_data.m_planeIndex << ", " << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
-  ss << ")";
-  return ss.str();
-}
-
-std::string
-EnableClipPlaneCommand::toPythonString() const
-{
-  std::ostringstream ss;
-  ss << PythonName() << "(";
-  ss << m_data.m_planeIndex << ", " << m_data.m_enabled;
-  ss << ")";
-  return ss.str();
-}
-
-std::string
-SetChannelClipPlaneGroupCommand::toPythonString() const
-{
-  std::ostringstream ss;
-  ss << PythonName() << "(";
-  ss << m_data.m_channel << ", " << m_data.m_planeIndex;
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
   ss << ")";
   return ss.str();
 }
