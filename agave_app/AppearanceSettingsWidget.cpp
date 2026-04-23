@@ -322,13 +322,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_MainLayout.addRow(lineB);
 
   // create a "lock lights to camera" checkbox
-  auto* lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
-  lockLightsToCameraCheckBox->setStatusTip(tr("When checked, interactive volume rotation will not rotate lights"));
-  lockLightsToCameraCheckBox->setToolTip(tr("When checked, interactive volume rotation will not rotate lights"));
+  m_lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
+  m_lockLightsToCameraCheckBox->setStatusTip(tr("When checked, interactive volume rotation will not rotate lights"));
+  m_lockLightsToCameraCheckBox->setToolTip(tr("When checked, interactive volume rotation will not rotate lights"));
 
-  lockLightsToCameraCheckBox->setChecked(m_scene ? m_scene->m_lighting.lockToCamera : false);
-  m_MainLayout.addRow(lockLightsToCameraCheckBox);
-  QObject::connect(lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
+  m_lockLightsToCameraCheckBox->setChecked(m_scene ? m_scene->m_lighting.lockToCamera : false);
+  m_MainLayout.addRow(m_lockLightsToCameraCheckBox);
+  QObject::connect(m_lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
     if (m_scene) {
       m_scene->setLockLightsToCamera(is_checked);
     }
@@ -1164,6 +1164,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_boundingBoxColorButton.SetColor(cbbox);
   m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
+  m_lockLightsToCameraCheckBox->setChecked(m_scene->m_lighting.lockToCamera);
 
   initLightingControls(scene);
   initClipPlaneControls(scene);

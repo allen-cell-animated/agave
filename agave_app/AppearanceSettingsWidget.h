@@ -150,6 +150,8 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
+  QCheckBox* m_lockLightsToCameraCheckBox;
+
   Section* createSkyLightingControls(QAction* pRotationAction);
   Section* createAreaLightingControls(QAction* pLightRotationAction);
   Section* createClipPlaneSection(QAction* rotation, QAction* translation);
