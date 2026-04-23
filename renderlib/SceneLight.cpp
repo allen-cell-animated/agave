@@ -46,15 +46,10 @@ SceneLight::applyBasis(const glm::mat3& basis)
     // Build a proper rotation matrix (det=+1) whose Z-axis is -newN (pointing from target to light position).
     // {newU, newV, newN} is right-handed, so negating two columns keeps det=+1.
     m_transform.m_rotation = glm::quat_cast(glm::mat3(newU, -newV, -newN));
-    updateTransform();
-
-    m_light->validateBasis("area-lock");
   } else {
     m_transform.m_rotation = glm::quat_cast(basis);
-
-    updateTransform();
-    m_light->validateBasis("sphere-lock");
   }
+  updateTransform();
 }
 
 void

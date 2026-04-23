@@ -80,8 +80,6 @@ public:
   void Update(const CBoundingBox& BoundingBox);
   void updateBasisFrame();
 
-  void validateBasis(const char* loglabel) const;
-
   static void sphericalToCartesian(float phi, float theta, glm::vec3& v);
   static void cartesianToSpherical(glm::vec3 v, float& phi, float& theta);
 
