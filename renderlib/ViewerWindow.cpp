@@ -181,11 +181,11 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
   // Instead of adding to this temporary vector, we should add to the sceneView.scene->m_tools
   std::vector<ManipulationTool*> sceneTools;
   if (sceneView.scene) {
-    if (sceneView.scene->m_clipPlane) {
-      if (sceneView.scene->m_clipPlane->m_enabled) {
-        if (sceneView.scene->m_clipPlane->getTool()) {
+    for (auto& clipPlane : sceneView.scene->m_clipPlanes) {
+      if (clipPlane && clipPlane->m_enabled) {
+        if (clipPlane->getTool()) {
           // add to sceneTools, a temporary array per-update
-          sceneTools.push_back(sceneView.scene->m_clipPlane->getTool());
+          sceneTools.push_back(clipPlane->getTool());
         }
       }
     }

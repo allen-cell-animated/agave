@@ -2,6 +2,8 @@
 
 #include "Manipulator.h"
 
+class SceneObject;
+
 struct ClipPlaneTool : ManipulationTool
 {
 
@@ -21,6 +23,10 @@ struct ClipPlaneTool : ManipulationTool
 
   Plane m_plane;
   glm::vec3 m_pos;
+
+  // Back-pointer to the owning ScenePlane (set by ScenePlane ctor).
+  // Used by draw() to check whether this tool's plane is selected.
+  SceneObject* m_owner = nullptr;
 
   bool m_visible = true;
 };

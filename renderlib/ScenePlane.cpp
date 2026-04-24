@@ -9,6 +9,7 @@ ScenePlane::ScenePlane(glm::vec3 pos)
   m_plane = Plane();
   m_enabled = false;
   m_tool = std::make_unique<ClipPlaneTool>(m_plane, pos);
+  m_tool->m_owner = this;
 }
 
 ManipulationTool*
