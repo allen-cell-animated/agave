@@ -178,6 +178,32 @@ stateToPythonScript(const Serialize::ViewerState& s)
   } else {
     ss << obj << SetClipPlaneCommand({ 0, 0, 0, 0 }).toPythonString() << std::endl;
   }
+
+  // Emit additional clip planes (if clipPlanes array is present)
+  for (int32_t pi = 0; pi < (int32_t)s.clipPlanes.size() && pi < (int32_t)MAX_CLIP_PLANES; ++pi) {
+    const auto& cp = s.clipPlanes[pi];
+    if (cp.enabled) {
+      Plane p;
+      p.normal.x = cp.clipPlane[0];
+      p.normal.y = cp.clipPlane[1];
+      p.normal.z = cp.clipPlane[2];
+      p.d = cp.clipPlane[3];
+      Transform3d tr;
+      tr.m_center = { cp.transform.translation[0], cp.transform.translation[1], cp.transform.translation[2] };
+      tr.m_rotation = {
+        cp.transform.rotation[3], cp.transform.rotation[0], cp.transform.rotation[1], cp.transform.rotation[2]
+      };
+      p = p.transform(tr);
+      ss << obj << SetClipPlaneIndexCommand({ pi, p.normal.x, p.normal.y, p.normal.z, p.d }).toPythonString()
+         << std::endl;
+    }
+    ss << obj << EnableClipPlaneCommand({ pi, cp.enabled ? 1 : 0 }).toPythonString() << std::endl;
+
+    // Emit channel group assignments from this clip plane
+    for (int32_t ch : cp.channelGroups) {
+      ss << obj << SetChannelClipPlaneGroupCommand({ ch, pi }).toPythonString() << std::endl;
+    }
+  }
   ss << obj << SetCameraPosCommand({ s.camera.eye[0], s.camera.eye[1], s.camera.eye[2] }).toPythonString() << std::endl;
   ss << obj << SetCameraTargetCommand({ s.camera.target[0], s.camera.target[1], s.camera.target[2] }).toPythonString()
      << std::endl;

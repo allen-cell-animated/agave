@@ -825,6 +825,54 @@ SetSkylightRotationCommand::execute(ExecutionContext* c)
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
+void
+SetClipPlaneIndexCommand::execute(ExecutionContext* c)
+{
+  if (m_data.m_planeIndex < 0 || m_data.m_planeIndex >= (int32_t)MAX_CLIP_PLANES) {
+    LOG_WARNING << "SetClipPlaneIndex: invalid plane index " << m_data.m_planeIndex;
+    return;
+  }
+  LOG_DEBUG << "SetClipPlaneIndex " << m_data.m_planeIndex << " " << m_data.m_x << " " << m_data.m_y << " "
+            << m_data.m_z << " " << m_data.m_w;
+  auto& plane = c->m_appScene->m_clipPlanes[m_data.m_planeIndex];
+  Plane p(glm::vec3(m_data.m_x, m_data.m_y, m_data.m_z), m_data.m_w);
+  Plane p0;
+  Transform3d tr = p0.getTransformTo(p);
+  plane->m_plane = p0;
+  plane->m_transform = tr;
+  plane->m_enabled = true;
+  plane->updateTransform();
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
+EnableClipPlaneCommand::execute(ExecutionContext* c)
+{
+  if (m_data.m_planeIndex < 0 || m_data.m_planeIndex >= (int32_t)MAX_CLIP_PLANES) {
+    LOG_WARNING << "EnableClipPlane: invalid plane index " << m_data.m_planeIndex;
+    return;
+  }
+  LOG_DEBUG << "EnableClipPlane " << m_data.m_planeIndex << " " << m_data.m_enabled;
+  c->m_appScene->m_clipPlanes[m_data.m_planeIndex]->m_enabled = (m_data.m_enabled != 0);
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+void
+SetChannelClipPlaneGroupCommand::execute(ExecutionContext* c)
+{
+  if (m_data.m_channel < 0 || m_data.m_channel >= (int32_t)MAX_CPU_CHANNELS) {
+    LOG_WARNING << "SetChannelClipPlaneGroup: invalid channel " << m_data.m_channel;
+    return;
+  }
+  if (m_data.m_planeIndex < -1 || m_data.m_planeIndex >= (int32_t)MAX_CLIP_PLANES) {
+    LOG_WARNING << "SetChannelClipPlaneGroup: invalid plane index " << m_data.m_planeIndex;
+    return;
+  }
+  LOG_DEBUG << "SetChannelClipPlaneGroup " << m_data.m_channel << " " << m_data.m_planeIndex;
+  c->m_appScene->m_material.m_clipPlaneGroup[m_data.m_channel] = m_data.m_planeIndex;
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
 SessionCommand*
 SessionCommand::parse(ParseableStream* c)
 {
@@ -1848,6 +1896,69 @@ SetSkylightRotationCommand::write(WriteableStream* o) const
   return bytesWritten;
 }
 
+SetClipPlaneIndexCommand*
+SetClipPlaneIndexCommand::parse(ParseableStream* c)
+{
+  SetClipPlaneIndexCommandD data;
+  data.m_planeIndex = c->parseInt32();
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  data.m_w = c->parseFloat32();
+  return new SetClipPlaneIndexCommand(data);
+}
+
+size_t
+SetClipPlaneIndexCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_planeIndex);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  bytesWritten += o->writeFloat32(m_data.m_w);
+  return bytesWritten;
+}
+
+EnableClipPlaneCommand*
+EnableClipPlaneCommand::parse(ParseableStream* c)
+{
+  EnableClipPlaneCommandD data;
+  data.m_planeIndex = c->parseInt32();
+  data.m_enabled = c->parseInt32();
+  return new EnableClipPlaneCommand(data);
+}
+
+size_t
+EnableClipPlaneCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_planeIndex);
+  bytesWritten += o->writeInt32(m_data.m_enabled);
+  return bytesWritten;
+}
+
+SetChannelClipPlaneGroupCommand*
+SetChannelClipPlaneGroupCommand::parse(ParseableStream* c)
+{
+  SetChannelClipPlaneGroupCommandD data;
+  data.m_channel = c->parseInt32();
+  data.m_planeIndex = c->parseInt32();
+  return new SetChannelClipPlaneGroupCommand(data);
+}
+
+size_t
+SetChannelClipPlaneGroupCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_channel);
+  bytesWritten += o->writeInt32(m_data.m_planeIndex);
+  return bytesWritten;
+}
+
 std::string
 SessionCommand::toPythonString() const
 {
@@ -2370,6 +2481,36 @@ SetSkylightRotationCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetClipPlaneIndexCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_planeIndex << ", " << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+EnableClipPlaneCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_planeIndex << ", " << m_data.m_enabled;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetChannelClipPlaneGroupCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_channel << ", " << m_data.m_planeIndex;
   ss << ")";
   return ss.str();
 }

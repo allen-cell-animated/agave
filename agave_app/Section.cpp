@@ -7,6 +7,7 @@
 Section::Section(const QString& title, const int animationDuration, const CheckBoxInfo* checkBoxInfo, QWidget* parent)
   : QWidget(parent)
   , m_animationDuration(animationDuration)
+  , m_collapsedHeight(0)
   , m_checkBox(nullptr)
 {
   m_toggleButton = new QToolButton(this);
@@ -63,6 +64,22 @@ Section::Section(const QString& title, const int animationDuration, const CheckB
 
   QObject::connect(m_toggleButton, &QToolButton::clicked, [this](const bool checked) {
     m_toggleButton->setArrowType(checked ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
+
+    // Recalculate animation targets from the current content layout size,
+    // so dynamically added widgets (e.g. channel checkboxes) are accounted for.
+    if (m_collapsedHeight > 0 && m_contentArea->layout()) {
+      auto contentHeight = m_contentArea->layout()->sizeHint().height();
+      for (int i = 0; i < m_toggleAnimation->animationCount() - 1; ++i) {
+        auto* a = static_cast<QPropertyAnimation*>(m_toggleAnimation->animationAt(i));
+        a->setStartValue(m_collapsedHeight);
+        a->setEndValue(m_collapsedHeight + contentHeight);
+      }
+      auto* ca =
+        static_cast<QPropertyAnimation*>(m_toggleAnimation->animationAt(m_toggleAnimation->animationCount() - 1));
+      ca->setStartValue(0);
+      ca->setEndValue(contentHeight);
+    }
+
     m_toggleAnimation->setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
     m_toggleAnimation->start();
   });
@@ -88,14 +105,14 @@ Section::setContentLayout(QLayout& contentLayout)
 {
   delete m_contentArea->layout();
   m_contentArea->setLayout(&contentLayout);
-  const auto collapsedHeight = sizeHint().height() - m_contentArea->maximumHeight();
+  m_collapsedHeight = sizeHint().height() - m_contentArea->maximumHeight();
   auto contentHeight = contentLayout.sizeHint().height();
 
   for (int i = 0; i < m_toggleAnimation->animationCount() - 1; ++i) {
     QPropertyAnimation* SectionAnimation = static_cast<QPropertyAnimation*>(m_toggleAnimation->animationAt(i));
     SectionAnimation->setDuration(m_animationDuration);
-    SectionAnimation->setStartValue(collapsedHeight);
-    SectionAnimation->setEndValue(collapsedHeight + contentHeight);
+    SectionAnimation->setStartValue(m_collapsedHeight);
+    SectionAnimation->setEndValue(m_collapsedHeight + contentHeight);
   }
 
   QPropertyAnimation* contentAnimation =

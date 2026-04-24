@@ -158,7 +158,9 @@ GLPTVolumeShader::GLPTVolumeShader()
   m_specular3 = uniformLocation("g_specular[3]");
   m_roughness = uniformLocation("g_roughness");
   m_uShowLights = uniformLocation("uShowLights");
-  m_clipPlane = uniformLocation("g_clipPlane");
+  m_clipPlanes = uniformLocation("g_clipPlanes");
+  m_nClipPlanes = uniformLocation("g_nClipPlanes");
+  m_channelClipPlane = uniformLocation("g_channelClipPlane");
 }
 
 GLPTVolumeShader::~GLPTVolumeShader() {}
@@ -295,6 +297,7 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
   static constexpr int MAX_NO_TF_NODES = 16;
   float tfdata[4 * MAX_NO_TF_NODES * 2] = { 0 };
   uint32_t tfnodes[4] = { 0, 0, 0, 0 };
+  int channelClipPlane[4] = { -1, -1, -1, -1 };
 
   for (int i = 0; i < NC; ++i) {
     if (scene->m_material.m_enabled[i] && activeChannel < MAX_GL_CHANNELS) {
@@ -321,6 +324,9 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
       lutmin[activeChannel] = hasMinMax ? imin16 : intensitymin[activeChannel];
       lutmax[activeChannel] = hasMinMax ? imax16 : intensitymax[activeChannel];
       labels[activeChannel] = scene->m_material.m_labels[i];
+
+      // Per-channel clip plane group assignment: map CPU channel to its clip plane index
+      channelClipPlane[activeChannel] = scene->m_material.m_clipPlaneGroup[i];
 
       // copy control points in to tfdata
       const auto& tf = scene->m_material.m_gradientData[i].getControlPoints(scene->m_volume->channel(i)->m_histogram);
@@ -387,12 +393,27 @@ GLPTVolumeShader::setShadingUniforms(const Scene* scene,
 
   glUniform1i(m_uShowLights, 0);
 
-  if (scene->m_clipPlane->m_enabled) {
-    Plane p = Plane().transform(scene->m_clipPlane->m_transform.getMatrix());
-    glUniform4fv(m_clipPlane, 1, glm::value_ptr(p.asVec4()));
-  } else {
-    glUniform4fv(m_clipPlane, 1, glm::value_ptr(glm::vec4(0, 0, 0, 0)));
+  // Upload per-channel clip plane assignment
+  glUniform4iv(m_channelClipPlane, 1, channelClipPlane);
+
+  // Upload clip planes array
+  int nClipPlanes = 0;
+  float clipPlaneData[4 * MAX_CLIP_PLANES] = { 0 };
+  for (size_t p = 0; p < MAX_CLIP_PLANES; ++p) {
+    if (scene->m_clipPlanes[p] && scene->m_clipPlanes[p]->m_enabled) {
+      Plane pl = Plane().transform(scene->m_clipPlanes[p]->m_transform.getMatrix());
+      glm::vec4 v = pl.asVec4();
+      clipPlaneData[p * 4 + 0] = v.x;
+      clipPlaneData[p * 4 + 1] = v.y;
+      clipPlaneData[p * 4 + 2] = v.z;
+      clipPlaneData[p * 4 + 3] = v.w;
+      if ((int)p >= nClipPlanes) {
+        nClipPlanes = (int)p + 1;
+      }
+    }
   }
+  glUniform1i(m_nClipPlanes, nClipPlanes);
+  glUniform4fv(m_clipPlanes, MAX_CLIP_PLANES, clipPlaneData);
 
   check_gl("pathtrace shader uniform binding");
 }

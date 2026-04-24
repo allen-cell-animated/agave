@@ -1146,6 +1146,27 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_clipPlane->m_enabled = v.clipPlane.enabled;
   m_appScene.m_clipPlane->updateTransform();
 
+  // Load additional clip planes (if present in file)
+  for (size_t pi = 0; pi < v.clipPlanes.size() && pi < MAX_CLIP_PLANES; ++pi) {
+    const auto& cp = v.clipPlanes[pi];
+    auto& sp = m_appScene.m_clipPlanes[pi];
+    sp->m_plane.normal = glm::vec3(cp.clipPlane[0], cp.clipPlane[1], cp.clipPlane[2]);
+    sp->m_plane.d = cp.clipPlane[3];
+    sp->m_transform.m_center =
+      glm::vec3(cp.transform.translation[0], cp.transform.translation[1], cp.transform.translation[2]);
+    sp->m_transform.m_rotation =
+      glm::quat(cp.transform.rotation[3], cp.transform.rotation[0], cp.transform.rotation[1], cp.transform.rotation[2]);
+    sp->m_enabled = cp.enabled;
+    sp->updateTransform();
+
+    // Restore channel group assignments
+    for (int32_t ch : cp.channelGroups) {
+      if (ch >= 0 && ch < (int32_t)MAX_CPU_CHANNELS) {
+        m_appScene.m_material.m_clipPlaneGroup[ch] = (int32_t)pi;
+      }
+    }
+  }
+
   m_appScene.m_timeLine.setRange(v.timeline.minTime, v.timeline.maxTime);
   m_appScene.m_timeLine.setCurrentTime(v.timeline.currentTime);
 
@@ -1278,6 +1299,34 @@ agaveGui::appToViewerState()
   v.clipPlane.transform.rotation[2] = m_appScene.m_clipPlane->m_transform.m_rotation[2];
   v.clipPlane.transform.rotation[3] = m_appScene.m_clipPlane->m_transform.m_rotation[3];
   v.clipPlane.enabled = m_appScene.m_clipPlane->m_enabled;
+
+  // Save all clip planes
+  v.clipPlanes.resize(MAX_CLIP_PLANES);
+  for (size_t pi = 0; pi < MAX_CLIP_PLANES; ++pi) {
+    const auto& sp = m_appScene.m_clipPlanes[pi];
+    auto& cp = v.clipPlanes[pi];
+    cp.clipPlane[0] = sp->m_plane.normal.x;
+    cp.clipPlane[1] = sp->m_plane.normal.y;
+    cp.clipPlane[2] = sp->m_plane.normal.z;
+    cp.clipPlane[3] = sp->m_plane.d;
+    cp.transform.translation[0] = sp->m_transform.m_center.x;
+    cp.transform.translation[1] = sp->m_transform.m_center.y;
+    cp.transform.translation[2] = sp->m_transform.m_center.z;
+    cp.transform.rotation[0] = sp->m_transform.m_rotation[0];
+    cp.transform.rotation[1] = sp->m_transform.m_rotation[1];
+    cp.transform.rotation[2] = sp->m_transform.m_rotation[2];
+    cp.transform.rotation[3] = sp->m_transform.m_rotation[3];
+    cp.enabled = sp->m_enabled;
+
+    // Collect channels assigned to this clip plane
+    cp.channelGroups.clear();
+    size_t nc = m_appScene.m_volume ? m_appScene.m_volume->sizeC() : 0;
+    for (size_t ch = 0; ch < nc; ++ch) {
+      if (m_appScene.m_material.m_clipPlaneGroup[ch] == (int32_t)pi) {
+        cp.channelGroups.push_back((int32_t)ch);
+      }
+    }
+  }
 
   v.camera.eye[0] = m_glView->getCamera().m_From.x;
   v.camera.eye[1] = m_glView->getCamera().m_From.y;

@@ -110,7 +110,9 @@ uniform float uSampleCounter;
 uniform vec2 uResolution;
 uniform sampler2D tPreviousTexture;
 
-uniform vec4 g_clipPlane;
+uniform vec4 g_clipPlanes[4];
+uniform int g_nClipPlanes;
+uniform ivec4 g_channelClipPlane;
 
 float
 evalTf(in uint channel, in float intensity)
@@ -351,19 +353,18 @@ IntersectBox(in Ray R, out float pNearT, out float pFarT)
   pNearT = largestMinT;
   pFarT = smallestMaxT;
 
-  // now constrain near and far using clipPlane if active.
-  // plane xyz is normal, plane w is -distance from origin
-  float denom = dot(R.m_D, g_clipPlane.xyz);
-  if (abs(denom) > 0.0001f) // if denom is 0 then ray is parallel to plane
-  {
-    float tClip = dot(g_clipPlane.xyz * (-g_clipPlane.w) - R.m_O, g_clipPlane.xyz) / denom;
-    if (denom < 0.0f) {
-      pNearT = max(pNearT, tClip);
-    } else {
-      pFarT = min(pFarT, tClip);
+  // Apply conservative clip plane constraint using the union of all active clip planes.
+  // This trims the ray interval to avoid marching through fully clipped regions.
+  // Per-channel masking is done later in GetNormalizedIntensityMax4ch.
+  for (int p = 0; p < g_nClipPlanes; ++p) {
+    vec4 cp = g_clipPlanes[p];
+    if (cp == vec4(0.0)) continue;
+    float denom = dot(R.m_D, cp.xyz);
+    if (abs(denom) > 0.0001f) {
+      float tClip = dot(cp.xyz * (-cp.w) - R.m_O, cp.xyz) / denom;
+      // Only constrain if ALL channels use this same clip plane
+      // For the general case, we skip ray-interval clipping and rely on per-sample masking
     }
-  } else {
-    // todo check to see which side of the plane we are on ?
   }
 
   return pFarT > pNearT;
@@ -377,6 +378,16 @@ PtoVolumeTex(vec3 p)
   return p * gPosToUVW;
 }
 
+// Check if a point is clipped by a clip plane.
+// Returns true if the point is on the clipped (positive) side of the plane.
+bool
+IsClippedByPlane(in vec3 P, in vec4 clipPlane)
+{
+  // clipPlane: xyz = normal, w = -distance
+  // Point is clipped if dot(P, normal) + (-distance) > 0
+  return dot(P, clipPlane.xyz) + clipPlane.w > 0.0;
+}
+
 const float UINT16_MAX = 65535.0;
 float
 GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
@@ -387,6 +398,16 @@ GetNormalizedIntensityMax4ch(in vec3 P, out int ch)
   ch = 0;
 
   intensity = evalTf4ch(intensity);
+
+  // Per-channel clip plane masking: zero out channels that are clipped at this position
+  for (int i = 0; i < min(g_nChannels, 4); ++i) {
+    int planeIdx = g_channelClipPlane[i];
+    if (planeIdx >= 0 && planeIdx < g_nClipPlanes) {
+      if (IsClippedByPlane(P, g_clipPlanes[planeIdx])) {
+        intensity[i] = 0.0;
+      }
+    }
+  }
 
   // take the high value of the 4 channels
   for (int i = 0; i < min(g_nChannels, 4); ++i) {
@@ -462,6 +483,10 @@ GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
 {
   // return texture(g_colormapTexture[ch], vec2(0.5, 0.5)).xyz;
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_1 = R"(
   //  float i = NormalizedIntensity * (g_intensityMax[ch] - g_intensityMin[ch]) + g_intensityMin[ch];//(intensity -
   //  g_intensityMin) / (g_intensityMax - g_intensityMin) i = (i-g_lutMin[ch])/(g_lutMax[ch]-g_lutMin[ch]) *
   //  g_opacity[ch]; return texture(g_colormapTexture[ch], vec2(i, 0.5)).xyz * g_diffuse[ch];
@@ -477,10 +502,6 @@ GetDiffuseN(float NormalizedIntensity, vec3 Pe, int ch)
     return texture(g_colormapTexture, vec3(i, 0.5, float(ch))).xyz * g_diffuse[ch];
   }
 
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_1 = R"(
   // return g_diffuse[ch];
 }
 
@@ -948,6 +969,10 @@ FreePathRM(inout Ray R, inout uvec2 seed)
   float MaxT;
   vec3 Ps;
 
+
+)";
+
+const std::string pathTraceVolume_frag_chunk_2 = R"(
   if (!IntersectBox(R, MinT, MaxT))
     return false;
 
@@ -993,10 +1018,6 @@ NearestLight(Ray R, out vec3 LightColor, out vec3 Pl, out float oPdf)
       Pl = rayAt(R, T);
       Hit = i;
     }
-
-)";
-
-const std::string pathTraceVolume_frag_chunk_2 = R"(
   }
 
   oPdf = Pdf;

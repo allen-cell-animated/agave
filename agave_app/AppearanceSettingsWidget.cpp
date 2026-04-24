@@ -315,6 +315,9 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 
   Section* sectionCP = createClipPlaneSection(pToggleRotateAction, pToggleTranslateAction);
   m_MainLayout.addRow(sectionCP);
+  for (int pi = 1; pi < NUM_CLIP_PLANES; ++pi) {
+    m_MainLayout.addRow(m_clipPlaneGui[pi].section);
+  }
 
   QFrame* lineB = new QFrame();
   lineB->setFrameShape(QFrame::HLine);
@@ -354,79 +357,89 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
 Section*
 QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, QAction* pToggleTranslateAction)
 {
-  Section::CheckBoxInfo checkBoxInfo = { this->m_scene ? this->m_scene->m_clipPlane->m_enabled : false,
-                                         "Enable/disable clip plane",
-                                         "Enable/disable clip plane" };
-  m_clipPlaneSection = new Section("Clip Plane", 0, &checkBoxInfo);
-  // section checkbox turns clip plane on or off
-  QObject::connect(m_clipPlaneSection, &Section::checked, [this](bool is_checked) {
-    if (this->m_scene && this->m_scene->m_clipPlane) {
-      this->m_scene->m_clipPlane->m_enabled = is_checked;
-      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
-    }
-  });
+  // Create all clip plane sections
+  for (int pi = 0; pi < NUM_CLIP_PLANES; ++pi) {
+    auto& gui = m_clipPlaneGui[pi];
+    QString title = (pi == 0) ? "Clip Plane" : QString("Clip Plane %1").arg(pi + 1);
 
-  auto* sectionLayout = Controls::createAgaveFormLayout();
+    Section::CheckBoxInfo checkBoxInfo = { this->m_scene ? this->m_scene->m_clipPlanes[pi]->m_enabled : false,
+                                           "Enable/disable clip plane",
+                                           "Enable/disable clip plane" };
+    gui.section = new Section(title, 0, &checkBoxInfo);
 
-  auto btnLayout = new QHBoxLayout();
+    QObject::connect(gui.section, &Section::checked, [this, pi](bool is_checked) {
+      if (this->m_scene && this->m_scene->m_clipPlanes[pi]) {
+        this->m_scene->m_clipPlanes[pi]->m_enabled = is_checked;
+        m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+      }
+    });
 
-  m_clipPlaneRotateButton = new QPushButton("Rotate");
-  m_clipPlaneRotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
-  m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
-  btnLayout->addWidget(m_clipPlaneRotateButton);
-  m_transformMode->registerButton(m_clipPlaneRotateButton, pToggleRotateAction, [this]() -> SceneObject* {
-    return this->m_scene ? this->m_scene->m_clipPlane.get() : nullptr;
-  });
+    gui.sectionLayout = Controls::createAgaveFormLayout();
+    auto* sectionLayout = gui.sectionLayout;
 
-  m_clipPlaneTranslateButton = new QPushButton("Translate");
-  m_clipPlaneTranslateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
-  m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
-  btnLayout->addWidget(m_clipPlaneTranslateButton);
-  m_transformMode->registerButton(m_clipPlaneTranslateButton, pToggleTranslateAction, [this]() -> SceneObject* {
-    return this->m_scene ? this->m_scene->m_clipPlane.get() : nullptr;
-  });
+    auto btnLayout = new QHBoxLayout();
 
-  sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
+    gui.rotateButton = new QPushButton("Rotate");
+    gui.rotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
+    gui.rotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
+    btnLayout->addWidget(gui.rotateButton);
+    m_transformMode->registerButton(gui.rotateButton, pToggleRotateAction, [this, pi]() -> SceneObject* {
+      return this->m_scene ? this->m_scene->m_clipPlanes[pi].get() : nullptr;
+    });
 
-  m_hideUserClipPlane = new QCheckBox();
-  m_hideUserClipPlane->setChecked(false);
-  m_hideUserClipPlane->setStatusTip(tr("Hide clip plane grid in viewport"));
-  m_hideUserClipPlane->setToolTip(tr("Hide clip plane grid in viewport"));
-  QObject::connect(
-    m_hideUserClipPlane, &QCheckBox::clicked, [this, pToggleRotateAction, pToggleTranslateAction](bool toggled) {
+    gui.translateButton = new QPushButton("Translate");
+    gui.translateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
+    gui.translateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
+    btnLayout->addWidget(gui.translateButton);
+    m_transformMode->registerButton(gui.translateButton, pToggleTranslateAction, [this, pi]() -> SceneObject* {
+      return this->m_scene ? this->m_scene->m_clipPlanes[pi].get() : nullptr;
+    });
+
+    sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
+
+    gui.hideCheckBox = new QCheckBox();
+    gui.hideCheckBox->setChecked(false);
+    gui.hideCheckBox->setStatusTip(tr("Hide clip plane grid in viewport"));
+    gui.hideCheckBox->setToolTip(tr("Hide clip plane grid in viewport"));
+    QObject::connect(gui.hideCheckBox, &QCheckBox::clicked, [this, pi](bool toggled) {
       if (!this->m_scene) {
         return;
       }
-
-      ScenePlane* p = this->m_scene->m_clipPlane.get();
+      ScenePlane* p = this->m_scene->m_clipPlanes[pi].get();
       p->setVisible(!toggled);
     });
+    sectionLayout->addRow("Hide", gui.hideCheckBox);
 
-  sectionLayout->addRow("Hide", m_hideUserClipPlane);
+    gui.resetButton = new QPushButton("Reset");
+    gui.resetButton->setStatusTip(tr("Reset clip plane"));
+    gui.resetButton->setToolTip(tr("Reset clip plane"));
+    QObject::connect(gui.resetButton, &QPushButton::clicked, [this, pi]() {
+      if (!this->m_scene || !this->m_scene->m_clipPlanes[pi]) {
+        return;
+      }
+      glm::vec3 c = this->m_scene->m_boundingBox.GetCenter();
+      this->m_scene->m_clipPlanes[pi]->resetTo(c);
+      m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
+      if (this->m_scene->m_selection == this->m_scene->m_clipPlanes[pi].get()) {
+        emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlanes[pi].get());
+      }
+    });
+    auto* resetbtnLayout = new QHBoxLayout();
+    resetbtnLayout->addWidget(new QWidget());
+    resetbtnLayout->addWidget(gui.resetButton);
+    sectionLayout->addLayout(resetbtnLayout, sectionLayout->rowCount(), 0, 1, 2);
 
-  // Add the Reset button
-  m_clipPlaneResetButton = new QPushButton("Reset");
-  m_clipPlaneResetButton->setStatusTip(tr("Reset clip plane to 0,0,0,0"));
-  m_clipPlaneResetButton->setToolTip(tr("Reset clip plane to 0,0,0,0"));
-  QObject::connect(m_clipPlaneResetButton, &QPushButton::clicked, [this]() {
-    if (!this->m_scene || !this->m_scene->m_clipPlane) {
-      return;
-    }
-    glm::vec3 c = this->m_scene->m_boundingBox.GetCenter();
-    this->m_scene->m_clipPlane->resetTo(c);
-    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
-    // re-select to cause Origins.update to reset the translate or rotate tools
-    if (this->m_scene->m_selection == this->m_scene->m_clipPlane.get()) {
-      emit this->m_qrendersettings->Selected(this->m_scene->m_clipPlane.get());
-    }
-  });
+    // Channel assignment checkboxes (populated in initClipPlaneControls when image loads)
+    gui.section->setContentLayout(*sectionLayout);
+  }
 
-  auto* resetbtnLayout = new QHBoxLayout();
-  resetbtnLayout->addWidget(new QWidget());
-  resetbtnLayout->addWidget(m_clipPlaneResetButton);
-  sectionLayout->addLayout(resetbtnLayout, sectionLayout->rowCount(), 0, 1, 2);
+  // Backward compat aliases
+  m_clipPlaneSection = m_clipPlaneGui[0].section;
+  m_hideUserClipPlane = m_clipPlaneGui[0].hideCheckBox;
+  m_clipPlaneRotateButton = m_clipPlaneGui[0].rotateButton;
+  m_clipPlaneTranslateButton = m_clipPlaneGui[0].translateButton;
+  m_clipPlaneResetButton = m_clipPlaneGui[0].resetButton;
 
-  m_clipPlaneSection->setContentLayout(*sectionLayout);
   return m_clipPlaneSection;
 }
 
@@ -1058,8 +1071,54 @@ normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outinten
 void
 QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
 {
-  const ScenePlane* clipPlane = scene->m_clipPlane.get();
-  m_clipPlaneSection->setChecked(clipPlane->m_enabled);
+  for (int pi = 0; pi < NUM_CLIP_PLANES; ++pi) {
+    auto& gui = m_clipPlaneGui[pi];
+    const ScenePlane* clipPlane = scene->m_clipPlanes[pi].get();
+    gui.section->setChecked(clipPlane->m_enabled);
+
+    // Clear and rebuild channel checkboxes
+    for (auto* cb : gui.channelCheckBoxes) {
+      // Remove from layout
+      if (gui.sectionLayout) {
+        gui.sectionLayout->removeWidget(cb);
+      }
+      delete cb;
+    }
+    gui.channelCheckBoxes.clear();
+
+    if (scene->m_volume && gui.sectionLayout) {
+      auto* formLayout = gui.sectionLayout;
+      int nch = (int)scene->m_volume->sizeC();
+      for (int ch = 0; ch < nch; ++ch) {
+        auto* cb = new QCheckBox();
+        cb->setChecked(scene->m_material.m_clipPlaneGroup[ch] == pi);
+        cb->setToolTip(QString("Assign channel %1 to this clip plane").arg(ch));
+        gui.channelCheckBoxes.push_back(cb);
+        formLayout->addRow(QString("Ch %1").arg(ch), cb);
+
+        QObject::connect(cb, &QCheckBox::clicked, [this, pi, ch](bool checked) {
+          if (!this->m_scene) {
+            return;
+          }
+          if (checked) {
+            this->m_scene->m_material.m_clipPlaneGroup[ch] = pi;
+            // Uncheck this channel in other clip plane sections
+            for (int other = 0; other < NUM_CLIP_PLANES; ++other) {
+              if (other != pi && ch < (int)m_clipPlaneGui[other].channelCheckBoxes.size()) {
+                m_clipPlaneGui[other].channelCheckBoxes[ch]->blockSignals(true);
+                m_clipPlaneGui[other].channelCheckBoxes[ch]->setChecked(false);
+                m_clipPlaneGui[other].channelCheckBoxes[ch]->blockSignals(false);
+              }
+            }
+          } else {
+            // Unchecking: set to -1 (no clip plane)
+            this->m_scene->m_material.m_clipPlaneGroup[ch] = -1;
+          }
+          m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RenderParamsDirty);
+        });
+      }
+    }
+  }
 }
 
 void

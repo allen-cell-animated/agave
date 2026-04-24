@@ -94,13 +94,17 @@ struct ClipPlane
   Transform transform;
   std::array<float, 4> clipPlane = { 0, 0, 0, 0 };
   bool enabled = false;
+  // Per-channel clip plane group: maps channel index to this clip plane.
+  // Channels listed here are assigned to this clip plane.
+  std::vector<int32_t> channelGroups;
 
   bool operator==(const ClipPlane& other) const
   {
-    return clipPlane == other.clipPlane && transform == other.transform && enabled == other.enabled;
+    return clipPlane == other.clipPlane && transform == other.transform && enabled == other.enabled &&
+           channelGroups == other.channelGroups;
   }
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClipPlane, clipPlane, transform, enabled)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ClipPlane, clipPlane, transform, enabled, channelGroups)
 };
 
 struct ViewerState
@@ -116,7 +120,10 @@ struct ViewerState
 
   // [[xm, xM], [ym, yM], [zm, zM]]
   std::array<std::array<float, 2>, 3> clipRegion = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
+  // Legacy single clip plane (for backward compat reading old files)
   ClipPlane clipPlane;
+  // New: array of up to 4 clip planes
+  std::vector<ClipPlane> clipPlanes;
 
   std::array<float, 3> scale = { 1, 1, 1 };  // m_scaleX, m_scaleY, m_scaleZ
   std::array<int, 3> flipAxis = { 1, 1, 1 }; // 1 is unflipped, -1 is flipped
@@ -144,11 +151,11 @@ struct ViewerState
   {
     return datasets == other.datasets && version == other.version && pathTracer == other.pathTracer &&
            timeline == other.timeline && clipRegion == other.clipRegion && clipPlane == other.clipPlane &&
-           scale == other.scale && flipAxis == other.flipAxis && camera == other.camera &&
-           backgroundColor == other.backgroundColor && boundingBoxColor == other.boundingBoxColor &&
-           showBoundingBox == other.showBoundingBox && showScaleBar == other.showScaleBar &&
-           channels == other.channels && density == other.density && lights == other.lights &&
-           capture == other.capture && interpolate == other.interpolate;
+           clipPlanes == other.clipPlanes && scale == other.scale && flipAxis == other.flipAxis &&
+           camera == other.camera && backgroundColor == other.backgroundColor &&
+           boundingBoxColor == other.boundingBoxColor && showBoundingBox == other.showBoundingBox &&
+           showScaleBar == other.showScaleBar && channels == other.channels && density == other.density &&
+           lights == other.lights && capture == other.capture && interpolate == other.interpolate;
   }
   NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(ViewerState,
                                               datasets,
@@ -158,6 +165,7 @@ struct ViewerState
                                               timeline,
                                               clipRegion,
                                               clipPlane,
+                                              clipPlanes,
                                               scale,
                                               flipAxis,
                                               camera,

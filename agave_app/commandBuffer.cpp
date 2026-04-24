@@ -2,6 +2,7 @@
 
 #include "command.h"
 #include "renderlib/Logging.h"
+#include "renderlib/commandlist.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -78,58 +79,7 @@ commandBuffer::processBuffer()
     Command* c = [cmd, &iterator]() -> Command* {
       try {
         switch (cmd) {
-          CMD_CASE(SessionCommand);
-          CMD_CASE(AssetPathCommand);
-          CMD_CASE(LoadOmeTifCommand);
-          CMD_CASE(SetCameraPosCommand);
-          CMD_CASE(SetCameraTargetCommand);
-          CMD_CASE(SetCameraUpCommand);
-          CMD_CASE(SetCameraApertureCommand);
-          CMD_CASE(SetCameraProjectionCommand);
-          CMD_CASE(SetCameraFocalDistanceCommand);
-          CMD_CASE(SetCameraExposureCommand);
-          CMD_CASE(SetDiffuseColorCommand);
-          CMD_CASE(SetSpecularColorCommand);
-          CMD_CASE(SetEmissiveColorCommand);
-          CMD_CASE(SetRenderIterationsCommand);
-          CMD_CASE(SetStreamModeCommand);
-          CMD_CASE(RequestRedrawCommand);
-          CMD_CASE(SetResolutionCommand);
-          CMD_CASE(SetDensityCommand);
-          CMD_CASE(FrameSceneCommand);
-          CMD_CASE(SetGlossinessCommand);
-          CMD_CASE(EnableChannelCommand);
-          CMD_CASE(SetWindowLevelCommand);
-          CMD_CASE(OrbitCameraCommand);
-          CMD_CASE(SetSkylightTopColorCommand);
-          CMD_CASE(SetSkylightMiddleColorCommand);
-          CMD_CASE(SetSkylightBottomColorCommand);
-          CMD_CASE(SetLightPosCommand);
-          CMD_CASE(SetLightColorCommand);
-          CMD_CASE(SetLightSizeCommand);
-          CMD_CASE(SetClipRegionCommand);
-          CMD_CASE(SetVoxelScaleCommand);
-          CMD_CASE(AutoThresholdCommand);
-          CMD_CASE(SetPercentileThresholdCommand);
-          CMD_CASE(SetOpacityCommand);
-          CMD_CASE(SetPrimaryRayStepSizeCommand);
-          CMD_CASE(SetSecondaryRayStepSizeCommand);
-          CMD_CASE(SetBackgroundColorCommand);
-          CMD_CASE(SetIsovalueThresholdCommand);
-          CMD_CASE(SetControlPointsCommand);
-          CMD_CASE(LoadVolumeFromFileCommand);
-          CMD_CASE(SetTimeCommand);
-          CMD_CASE(SetBoundingBoxColorCommand);
-          CMD_CASE(ShowBoundingBoxCommand);
-          CMD_CASE(TrackballCameraCommand);
-          CMD_CASE(LoadDataCommand);
-          CMD_CASE(ShowScaleBarCommand);
-          CMD_CASE(SetFlipAxisCommand);
-          CMD_CASE(SetInterpolationCommand);
-          CMD_CASE(SetClipPlaneCommand);
-          CMD_CASE(SetColorRampCommand);
-          CMD_CASE(SetMinMaxThresholdCommand);
-          CMD_CASE(SetSkylightRotationCommand);
+          AGAVE_COMMAND_LIST(CMD_CASE)
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!

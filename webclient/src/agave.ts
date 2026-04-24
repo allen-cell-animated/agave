@@ -732,6 +732,48 @@ export class AgaveClient {
   }
 
   /**
+   * Set the clip plane equation for a specific clip plane.
+   *
+   * @param planeIndex The clip plane index (0-3)
+   * @param x The x component of the normal
+   * @param y The y component of the normal
+   * @param z The z component of the normal
+   * @param d The distance to the origin
+   */
+  setClipPlaneIndex(
+    planeIndex: number,
+    x: number,
+    y: number,
+    z: number,
+    d: number,
+  ) {
+    // 51
+    this.cb.addCommand("SET_CLIP_PLANE_INDEX", planeIndex, x, y, z, d);
+  }
+
+  /**
+   * Enable or disable a clip plane.
+   *
+   * @param planeIndex The clip plane index (0-3)
+   * @param enabled 1 to enable, 0 to disable
+   */
+  enableClipPlane(planeIndex: number, enabled: number) {
+    // 52
+    this.cb.addCommand("ENABLE_CLIP_PLANE", planeIndex, enabled);
+  }
+
+  /**
+   * Assign a channel to a clip plane group.
+   *
+   * @param channel The channel index (0-based)
+   * @param planeIndex The clip plane index (0-3), or -1 for no clip plane
+   */
+  setChannelClipPlaneGroup(channel: number, planeIndex: number) {
+    // 53
+    this.cb.addCommand("SET_CHANNEL_CLIP_PLANE_GROUP", channel, planeIndex);
+  }
+
+  /**
    * Set the color ramp for a channel
    *
    * @param channel Which channel index, 0 based.

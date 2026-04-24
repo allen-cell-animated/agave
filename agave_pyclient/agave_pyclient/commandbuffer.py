@@ -83,6 +83,9 @@ COMMANDS = {
     "SET_MIN_MAX_THRESHOLD": [50, "I32", "I32", "I32"],
     # sphere (sky) light rotation as a quaternion (x, y, z, w)
     "SET_SKYLIGHT_ROTATION": [51, "F32", "F32", "F32", "F32"],
+    "SET_CLIP_PLANE_INDEX": [52, "I32", "F32", "F32", "F32", "F32"],
+    "ENABLE_CLIP_PLANE": [53, "I32", "I32"],
+    "SET_CHANNEL_CLIP_PLANE_GROUP": [54, "I32", "I32"],
 }
 
 

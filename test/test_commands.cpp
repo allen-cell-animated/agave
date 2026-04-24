@@ -2,7 +2,10 @@
 
 #include "../agave_app/commandBuffer.h"
 #include "renderlib/command.h"
+#include "renderlib/commandlist.h"
 
+#include <set>
+#include <string>
 #include <vector>
 
 Command*
@@ -17,6 +20,16 @@ codec(Command* cmd)
   return out[0];
 }
 
+// Set of PythonName()s that have been round-trip-tested via testcodec<>.
+// Accumulates across all SECTIONs within a test run, and is checked for
+// completeness by the "Every command has a round-trip test" TEST_CASE.
+inline std::set<std::string>&
+testedCommandNames()
+{
+  static std::set<std::string> s;
+  return s;
+}
+
 template<typename T, typename TD>
 T*
 testcodec(const TD& data)
@@ -27,6 +40,7 @@ testcodec(const TD& data)
 
   T* out = dynamic_cast<T*>(cmdout);
   REQUIRE(out != nullptr);
+  testedCommandNames().insert(T::PythonName());
   return out;
 }
 
@@ -488,5 +502,137 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_channel == data.m_channel);
     REQUIRE(cmd->m_data.m_min == data.m_min);
     REQUIRE(cmd->m_data.m_max == data.m_max);
+  }
+  SECTION("SetClipPlaneIndexCommand")
+  {
+    SetClipPlaneIndexCommandD data = { 2, 1.0f, 0.0f, 0.0f, 5.0f };
+    auto cmd = testcodec<SetClipPlaneIndexCommand, SetClipPlaneIndexCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_clip_plane_index(2, 1, 0, 0, 5)");
+    REQUIRE(cmd->m_data.m_planeIndex == data.m_planeIndex);
+    REQUIRE(cmd->m_data.m_x == data.m_x);
+    REQUIRE(cmd->m_data.m_y == data.m_y);
+    REQUIRE(cmd->m_data.m_z == data.m_z);
+    REQUIRE(cmd->m_data.m_w == data.m_w);
+  }
+  SECTION("EnableClipPlaneCommand")
+  {
+    EnableClipPlaneCommandD data = { 1, 1 };
+    auto cmd = testcodec<EnableClipPlaneCommand, EnableClipPlaneCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "enable_clip_plane(1, 1)");
+    REQUIRE(cmd->m_data.m_planeIndex == data.m_planeIndex);
+    REQUIRE(cmd->m_data.m_enabled == data.m_enabled);
+  }
+  SECTION("SetChannelClipPlaneGroupCommand")
+  {
+    SetChannelClipPlaneGroupCommandD data = { 3, 2 };
+    auto cmd = testcodec<SetChannelClipPlaneGroupCommand, SetChannelClipPlaneGroupCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_channel_clip_plane_group(3, 2)");
+    REQUIRE(cmd->m_data.m_channel == data.m_channel);
+    REQUIRE(cmd->m_data.m_planeIndex == data.m_planeIndex);
+  }
+}
+
+// Registry-level checks that apply to every command in AGAVE_COMMAND_LIST.
+//
+// These catch common mistakes when adding a new command:
+//   - duplicating an ID (e.g. pasting "52" into a second command)
+//   - duplicating a python name
+//   - forgetting to add the new command to AGAVE_COMMAND_LIST (in which case
+//     commandBuffer's switch won't recognize it and this whole suite fails
+//     to parse it in the round-trip tests above).
+//
+// The per-command round-trip tests above still need to be written by hand
+// because the data values are command-specific, but this test ensures the
+// cross-cutting invariants hold without needing to remember them.
+TEST_CASE("Command registry has unique IDs and python names", "[command]")
+{
+  struct Entry
+  {
+    uint32_t id;
+    std::string pythonName;
+    const char* className;
+  };
+
+  std::vector<Entry> entries;
+#define COLLECT_CMD(CMDCLASS) entries.push_back({ CMDCLASS::m_ID, CMDCLASS::PythonName(), #CMDCLASS });
+  AGAVE_COMMAND_LIST(COLLECT_CMD)
+#undef COLLECT_CMD
+
+  SECTION("IDs are unique")
+  {
+    std::set<uint32_t> seen;
+    for (const auto& e : entries) {
+      INFO("duplicate id " << e.id << " on " << e.className);
+      REQUIRE(seen.insert(e.id).second);
+    }
+  }
+
+  SECTION("Python names are unique and non-empty")
+  {
+    std::set<std::string> seen;
+    for (const auto& e : entries) {
+      INFO("bad python name '" << e.pythonName << "' on " << e.className);
+      REQUIRE(!e.pythonName.empty());
+      REQUIRE(seen.insert(e.pythonName).second);
+    }
+  }
+
+  SECTION("Python names are snake_case")
+  {
+    // Must be a valid python identifier in snake_case:
+    //   - first char is a lowercase letter
+    //   - remaining chars are lowercase letters, digits, or underscores
+    //   - no leading/trailing/double underscores
+    auto isSnakeCase = [](const std::string& s) {
+      if (s.empty())
+        return false;
+      if (s.front() == '_' || s.back() == '_')
+        return false;
+      if (!(s.front() >= 'a' && s.front() <= 'z'))
+        return false;
+      for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
+        if (!ok)
+          return false;
+        if (c == '_' && i + 1 < s.size() && s[i + 1] == '_')
+          return false;
+      }
+      return true;
+    };
+
+    for (const auto& e : entries) {
+      INFO("non-snake_case python name '" << e.pythonName << "' on " << e.className);
+      REQUIRE(isSnakeCase(e.pythonName));
+    }
+  }
+}
+
+// Ensures every command in AGAVE_COMMAND_LIST has at least one SECTION in the
+// round-trip TEST_CASE above. Works because testcodec<T>() records T's
+// PythonName() into a static set as each SECTION runs; this case runs last
+// (Catch2 executes TEST_CASEs in source order by default) and compares the
+// set against the registry.
+//
+// Limitation: this check is only meaningful when the "Commands can write and
+// read from binary" test case has also been executed in the same process
+// (i.e. no tag filter that excludes it). Running the whole suite satisfies
+// that.
+TEST_CASE("Every command has a round-trip test", "[command]")
+{
+  std::vector<std::string> missing;
+#define CHECK_TESTED(CMDCLASS)                                                                                         \
+  if (testedCommandNames().find(CMDCLASS::PythonName()) == testedCommandNames().end()) {                               \
+    missing.push_back(std::string(#CMDCLASS) + " (" + CMDCLASS::PythonName() + ")");                                   \
+  }
+  AGAVE_COMMAND_LIST(CHECK_TESTED)
+#undef CHECK_TESTED
+
+  if (!missing.empty()) {
+    std::string msg = "commands missing a round-trip test SECTION:";
+    for (const auto& m : missing) {
+      msg += "\n  - " + m;
+    }
+    FAIL(msg);
   }
 }

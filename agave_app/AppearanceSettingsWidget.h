@@ -114,6 +114,19 @@ private:
   QPushButton* m_clipPlaneTranslateButton;
   QPushButton* m_clipPlaneResetButton;
 
+  struct ClipPlaneGui
+  {
+    Section* section = nullptr;
+    QCheckBox* hideCheckBox = nullptr;
+    QPushButton* rotateButton = nullptr;
+    QPushButton* translateButton = nullptr;
+    QPushButton* resetButton = nullptr;
+    class AgaveFormLayout* sectionLayout = nullptr;
+    std::vector<QCheckBox*> channelCheckBoxes;
+  };
+  static constexpr int NUM_CLIP_PLANES = 4;
+  ClipPlaneGui m_clipPlaneGui[NUM_CLIP_PLANES];
+
   Section* m_scaleSection;
   QDoubleSpinner* m_xscaleSpinner;
   QCheckBox* m_xFlipCheckBox;
