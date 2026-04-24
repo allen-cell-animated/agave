@@ -971,7 +971,8 @@ class AgaveRenderer:
         self, plane_index: int, x: float, y: float, z: float, d: float
     ):
         """
-        Set the clip plane equation for a specific clip plane.  The xyz vector must be normalized.
+        Set the clip plane equation for a specific clip plane.
+        The xyz vector must be normalized.
 
         Parameters
         ----------
