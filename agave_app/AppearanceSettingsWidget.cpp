@@ -383,16 +383,16 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
     gui.rotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
     gui.rotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
     btnLayout->addWidget(gui.rotateButton);
-    QObject::connect(gui.rotateButton, &QPushButton::clicked, [this, pi, pToggleRotateAction]() {
-      toggleActionForObject(pToggleRotateAction, this->m_scene->m_clipPlanes[pi].get());
+    m_transformMode->registerButton(gui.rotateButton, pToggleRotateAction, [this, pi]() -> SceneObject* {
+      return this->m_scene ? this->m_scene->m_clipPlanes[pi].get() : nullptr;
     });
 
     gui.translateButton = new QPushButton("Translate");
     gui.translateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
     gui.translateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
     btnLayout->addWidget(gui.translateButton);
-    QObject::connect(gui.translateButton, &QPushButton::clicked, [this, pi, pToggleTranslateAction]() {
-      toggleActionForObject(pToggleTranslateAction, this->m_scene->m_clipPlanes[pi].get());
+    m_transformMode->registerButton(gui.translateButton, pToggleTranslateAction, [this, pi]() -> SceneObject* {
+      return this->m_scene ? this->m_scene->m_clipPlanes[pi].get() : nullptr;
     });
 
     sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
