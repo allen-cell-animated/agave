@@ -420,9 +420,9 @@ agaveGui::open()
   QStringList fileNames;
   if (dlg.exec()) {
     fileNames = dlg.selectedFiles();
-    if (fileNames.size() > 0) {
+    if (!fileNames.empty()) {
       // only use the first filename for loading.
-      QString file = fileNames[0];
+      const QString& file = fileNames[0];
       if (!file.isEmpty()) {
         bool isImageSequence = imageSequenceCheckbox->isChecked();
         if (!open(file.toStdString(), nullptr, isImageSequence)) {
@@ -483,7 +483,7 @@ agaveGui::openJson()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open JSON"), dir, QString(), nullptr, options);
 
   if (!file.isEmpty()) {
     QFile loadFile(file);
@@ -672,7 +672,7 @@ agaveGui::saveJson()
 void
 agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
                         const LoadSpec& loadSpec,
-                        uint32_t sizeT,
+                        const VolumeDimensions& dims,
                         const Serialize::ViewerState* vs,
                         std::shared_ptr<IFileReader> reader,
                         // only used if vs is null
@@ -682,20 +682,21 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
 
   if (vs) {
     // make sure that ViewerState is consistent with loaded file
-    if (sizeT - 1 != vs->timeline.maxTime) {
-      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found " << (sizeT)
-                << " in the loaded file.";
+    if (dims.sizeT - 1 != vs->timeline.maxTime) {
+      LOG_ERROR << "Mismatch in number of frames: expected " << (vs->timeline.maxTime + 1) << " and found "
+                << (dims.sizeT) << " in the loaded file.";
     }
     if (0 != vs->timeline.minTime) {
       LOG_ERROR << "Min timline time is not zero.";
     }
   }
   m_currentScene = loadSpec.scene;
-  m_appScene.m_timeLine.setRange(0, sizeT - 1);
+  m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
   m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
+  m_appScene.m_timeLine.setTimeUnit(dims.timeUnit);
 
   // Show timeline widget if the loaded image has multiple frames.
-  m_timelinedock->setVisible(sizeT > 1);
+  m_timelinedock->setVisible(dims.sizeT > 1);
 
   bool wasVolumeLoaded = m_appScene.m_volume != nullptr;
 
@@ -833,7 +834,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
     showOpenFailedMessageBox(QString::fromStdString(file));
     return false;
   }
-  onImageLoaded(image, loadSpec, dims.sizeT, vs, reader, keepCurrentUISettings);
+  onImageLoaded(image, loadSpec, dims, vs, reader, keepCurrentUISettings);
   return true;
 }
 
@@ -844,7 +845,7 @@ agaveGui::openMeshDialog()
 #ifdef __linux__
   options |= QFileDialog::DontUseNativeDialog;
 #endif
-  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), 0, options);
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Mesh"), QString(), QString(), nullptr, options);
 
   if (!file.isEmpty())
     openMesh(file);
@@ -876,7 +877,7 @@ agaveGui::viewFocusChanged(GLView3D* newGlView)
 void
 agaveGui::tabChanged(int index)
 {
-  GLView3D* current = 0;
+  GLView3D* current = nullptr;
   if (index >= 0) {
     QWidget* w = m_tabs->currentWidget();
     if (w) {
@@ -907,50 +908,44 @@ agaveGui::view_frame()
 }
 
 void
+agaveGui::setViewMode(EViewMode mode)
+{
+  ViewerWindow* vw = m_glView->borrowRenderer();
+  vw->beginCameraChange();
+  vw->m_CCamera.SetViewMode(mode);
+  vw->endCameraChange();
+  vw->m_renderSettings->m_DirtyFlags.SetFlag(CameraDirty);
+}
+
+void
 agaveGui::view_top()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeTop);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeTop);
 }
 void
 agaveGui::view_bottom()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBottom);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeBottom);
 }
-
 void
 agaveGui::view_front()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeFront);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeFront);
 }
-
 void
 agaveGui::view_back()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeBack);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeBack);
 }
-
 void
 agaveGui::view_left()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeLeft);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeLeft);
 }
-
 void
 agaveGui::view_right()
 {
-  m_glView->borrowRenderer()->m_CCamera.SetViewMode(ViewModeRight);
-  RenderSettings* rs = m_glView->borrowRenderer()->m_renderSettings;
-  rs->m_DirtyFlags.SetFlag(CameraDirty);
+  setViewMode(ViewModeRight);
 }
 
 void
@@ -1170,6 +1165,8 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
 
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
   m_appScene.m_showScaleBar = v.showScaleBar;
+  m_appScene.m_showTimeStamp = v.showTimeStamp;
+  m_appScene.m_timeStampDisplayMode = static_cast<Scene::TimeStampDisplayMode>(v.timeStampFormat);
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
@@ -1177,7 +1174,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_renderSettings.m_RenderSettings.m_InterpolatedVolumeSampling = v.interpolate;
 
   // channels
-  for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+  for (size_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
     Serialize::ChannelSettings_V1 ch = v.channels[i];
     m_appScene.m_material.m_enabled[i] = ch.enabled;
 
@@ -1202,10 +1199,15 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   }
 
   // lights
-  Light l0 = stateToLight(v, 0);
-  m_appScene.m_lighting.SetLight(m_appScene.SphereLightIndex, l0);
-  Light l1 = stateToLight(v, 1);
-  m_appScene.m_lighting.SetLight(m_appScene.AreaLightIndex, l1);
+  // The SceneLights were already created by initLights() with the correct
+  // types (sphere at SphereLightIndex, area at AreaLightIndex). initBounds
+  // centers each SceneLight transform on the volume's bounding box so that
+  // stateToLight's updateTransform() pivots correctly.
+  m_appScene.initBounds(m_appScene.m_boundingBox);
+
+  // Apply full serialized light state (params + rotation) to the SceneLights.
+  stateToLight(v, 0, *m_appScene.SceneSphereLight());
+  stateToLight(v, 1, *m_appScene.SceneAreaLight());
 
   // capture settings
   m_captureSettings.width = v.capture.width;
@@ -1252,6 +1254,8 @@ agaveGui::appToViewerState()
                          m_appScene.m_material.m_boundingBoxColor[2] };
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
   v.showScaleBar = m_appScene.m_showScaleBar;
+  v.showTimeStamp = m_appScene.m_showTimeStamp;
+  v.timeStampFormat = static_cast<int32_t>(m_appScene.m_timeStampDisplayMode);
 
   v.capture.samples = m_renderSettings.GetNoIterations();
 
@@ -1310,7 +1314,7 @@ agaveGui::appToViewerState()
   v.pathTracer.secondaryStepSize = m_renderSettings.m_RenderSettings.m_StepSizeFactorShadow;
 
   if (m_appScene.m_volume) {
-    for (uint32_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
+    for (size_t i = 0; i < m_appScene.m_volume->sizeC(); ++i) {
       Serialize::ChannelSettings_V1 ch;
       ch.enabled = m_appScene.m_material.m_enabled[i];
       ch.diffuseColor = { m_appScene.m_material.m_diffuse[i * 3],
@@ -1333,13 +1337,8 @@ agaveGui::appToViewerState()
   }
 
   // lighting
-  Light& lt = m_appScene.SphereLight();
-  Serialize::LightSettings_V1 l = fromLight(lt);
-  v.lights.push_back(l);
-
-  Light& lt1 = m_appScene.AreaLight();
-  Serialize::LightSettings_V1 l1 = fromLight(lt1);
-  v.lights.push_back(l1);
+  v.lights.push_back(fromLight(*m_appScene.SceneSphereLight()));
+  v.lights.push_back(fromLight(*m_appScene.SceneAreaLight()));
 
   // capture settings
 

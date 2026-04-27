@@ -83,12 +83,12 @@ private:
 class GLTimer
 {
 public:
-  GLTimer(void);
-  virtual ~GLTimer(void);
+  GLTimer();
+  virtual ~GLTimer();
 
-  void StartTimer(void);
-  float StopTimer(void);
-  float ElapsedTime(void);
+  void StartTimer();
+  float StopTimer();
+  float ElapsedTime();
 
 private:
   bool m_Started;

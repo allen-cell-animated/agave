@@ -7,8 +7,6 @@
 #include <tuple>
 #include <vector>
 
-const std::string ColorRamp::NO_COLORMAP_NAME = "none";
-
 std::vector<uint8_t>
 colormapFromControlPoints(std::vector<ColorControlPoint> pts, size_t length)
 {
@@ -159,9 +157,17 @@ hsvToRgb(float h, float s, float v)
       g = p;
       b = q;
       break;
+    default:
+      break;
   }
 
   return { r, g, b };
+}
+
+static float
+randomFloat()
+{
+  return static_cast<float>(static_cast<double>(rand()) / static_cast<double>(RAND_MAX));
 }
 
 uint8_t*
@@ -171,8 +177,8 @@ colormapRandomized(size_t length)
 
   float r, g, b;
   for (size_t x = 0; x < length; ++x) {
-    std::tuple<float, float, float> rgb = hsvToRgb(
-      (float)rand() / RAND_MAX, (float)rand() / RAND_MAX * 0.25 + 0.75, (float)rand() / RAND_MAX * 0.75 + 0.25);
+    std::tuple<float, float, float> rgb =
+      hsvToRgb(randomFloat(), randomFloat() * 0.25 + 0.75, randomFloat() * 0.75 + 0.25);
     r = std::get<0>(rgb);
     g = std::get<1>(rgb);
     b = std::get<2>(rgb);
@@ -588,7 +594,7 @@ ColorRamp::debugPrintColormap() const
 {
   // stringify for output
   std::stringstream ss;
-  for (size_t x = 0; x < 256 * 4; ++x) {
+  for (size_t x = 0; x < static_cast<size_t>(256 * 4); ++x) {
     ss << (int)m_colormap[x] << ", ";
   }
   LOG_DEBUG << "COLORMAP: " << ss.str();

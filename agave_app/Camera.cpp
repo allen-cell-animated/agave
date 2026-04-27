@@ -8,9 +8,10 @@ QCamera::QCamera(QObject* pParent /*= NULL*/)
   , m_Aperture()
   , m_Projection()
   , m_Focus()
-{}
+{
+}
 
-QCamera::~QCamera(void) {}
+QCamera::~QCamera() {}
 
 QCamera::QCamera(const QCamera& Other)
 {
@@ -35,7 +36,7 @@ QCamera::operator=(const QCamera& Other)
 }
 
 QFilm&
-QCamera::GetFilm(void)
+QCamera::GetFilm()
 {
   return m_Film;
 }
@@ -47,7 +48,7 @@ QCamera::SetFilm(const QFilm& Film)
 }
 
 QAperture&
-QCamera::GetAperture(void)
+QCamera::GetAperture()
 {
   return m_Aperture;
 }
@@ -59,7 +60,7 @@ QCamera::SetAperture(const QAperture& Aperture)
 }
 
 QProjection&
-QCamera::GetProjection(void)
+QCamera::GetProjection()
 {
   return m_Projection;
 }
@@ -71,7 +72,7 @@ QCamera::SetProjection(const QProjection& Projection)
 }
 
 QFocus&
-QCamera::GetFocus(void)
+QCamera::GetFocus()
 {
   return m_Focus;
 }
@@ -83,7 +84,7 @@ QCamera::SetFocus(const QFocus& Focus)
 }
 
 QCamera
-QCamera::Default(void)
+QCamera::Default()
 {
   QCamera DefaultCamera;
 

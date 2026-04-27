@@ -7,13 +7,13 @@ class QProjection : public QObject
   Q_OBJECT
 
 public:
-  QProjection(QObject* pParent = NULL);
+  QProjection(QObject* pParent = nullptr);
   QProjection(const QProjection& Other);
   QProjection& operator=(const QProjection& Other);
 
-  float GetFieldOfView(void) const;
+  float GetFieldOfView() const;
   void SetFieldOfView(const float& FieldOfView);
-  void Reset(void);
+  void Reset();
 
 signals:
   void Changed(const QProjection& Projection);

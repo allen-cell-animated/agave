@@ -3,7 +3,8 @@
 QFocus::QFocus(QObject* pParent /*= NULL*/)
   : QObject(pParent)
   , m_FocalDistance(0.75f)
-{}
+{
+}
 
 QFocus::QFocus(const QFocus& Other)
 {
@@ -21,7 +22,7 @@ QFocus::operator=(const QFocus& Other)
 }
 
 int
-QFocus::GetType(void) const
+QFocus::GetType() const
 {
   return m_Type;
 }
@@ -35,7 +36,7 @@ QFocus::SetType(const int& Type)
 }
 
 float
-QFocus::GetFocalDistance(void) const
+QFocus::GetFocalDistance() const
 {
   return m_FocalDistance;
 }
@@ -49,7 +50,7 @@ QFocus::SetFocalDistance(const float& FocalDistance)
 }
 
 void
-QFocus::Reset(void)
+QFocus::Reset()
 {
   m_FocalDistance = 1.0f;
 

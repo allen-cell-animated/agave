@@ -504,6 +504,8 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 
     c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+    c->m_appScene->m_timeLine.setTimeUnit(dims.timeUnit);
+    c->m_appScene->m_timeLine.setTimeUnits(dims.timeUnits);
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -683,6 +685,8 @@ LoadDataCommand::execute(ExecutionContext* c)
 
   c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
   c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+  c->m_appScene->m_timeLine.setTimeUnit(dims.timeUnit);
+  c->m_appScene->m_timeLine.setTimeUnits(dims.timeUnits);
 
   c->m_appScene->m_volume = image;
   c->m_appScene->initSceneFromImg(image);
@@ -812,6 +816,30 @@ SetMinMaxThresholdCommand::execute(ExecutionContext* c)
   lutInfo.m_maxu16 = m_data.m_max;
   c->m_appScene->m_volume->channel(m_data.m_channel)->generateFromGradientData(lutInfo);
   c->m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
+}
+
+void
+SetSkylightRotationCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetSkylightRotation " << m_data.m_x << " " << m_data.m_y << " " << m_data.m_z << " " << m_data.m_w;
+  // glm::quat ctor order is (w, x, y, z)
+  glm::quat q = glm::normalize(glm::quat(m_data.m_w, m_data.m_x, m_data.m_y, m_data.m_z));
+  c->m_appScene->SceneSphereLight()->m_transform.m_rotation = q;
+  c->m_appScene->SceneSphereLight()->updateTransform();
+  c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void
+ShowTimeStampCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "ShowTimeStamp " << m_data.m_on;
+  c->m_appScene->m_showTimeStamp = m_data.m_on ? true : false;
+}
+
+void
+SetTimeStampFormatCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetTimeStampFormat " << m_data.m_format;
+  c->m_appScene->m_timeStampDisplayMode = static_cast<Scene::TimeStampDisplayMode>(m_data.m_format);
 }
 
 SessionCommand*
@@ -1675,7 +1703,7 @@ LoadDataCommand::parse(ParseableStream* c)
     data.m_zmax = 0;
     data.m_zmin = 0;
 
-    if (region.size() != 0) {
+    if (!region.empty()) {
       LOG_ERROR << "Bad region data for LoadDataCommand";
     }
   }
@@ -1811,6 +1839,60 @@ SetMinMaxThresholdCommand::write(WriteableStream* o) const
   bytesWritten += o->writeInt32(m_data.m_channel);
   bytesWritten += o->writeInt32(m_data.m_min);
   bytesWritten += o->writeInt32(m_data.m_max);
+  return bytesWritten;
+}
+
+SetSkylightRotationCommand*
+SetSkylightRotationCommand::parse(ParseableStream* c)
+{
+  SetSkylightRotationCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_y = c->parseFloat32();
+  data.m_z = c->parseFloat32();
+  data.m_w = c->parseFloat32();
+  return new SetSkylightRotationCommand(data);
+}
+
+size_t
+SetSkylightRotationCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeFloat32(m_data.m_y);
+  bytesWritten += o->writeFloat32(m_data.m_z);
+  bytesWritten += o->writeFloat32(m_data.m_w);
+  return bytesWritten;
+} 
+ShowTimeStampCommand*
+ShowTimeStampCommand::parse(ParseableStream* c)
+{
+  ShowTimeStampCommandD data;
+  data.m_on = c->parseInt32();
+  return new ShowTimeStampCommand(data);
+}
+size_t
+ShowTimeStampCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_on);
+  return bytesWritten;
+}
+
+SetTimeStampFormatCommand*
+SetTimeStampFormatCommand::parse(ParseableStream* c)
+{
+  SetTimeStampFormatCommandD data;
+  data.m_format = c->parseInt32();
+  return new SetTimeStampFormatCommand(data);
+}
+size_t
+SetTimeStampFormatCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_format);
   return bytesWritten;
 }
 
@@ -2326,6 +2408,35 @@ SetMinMaxThresholdCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_channel << ", " << m_data.m_min << ", " << m_data.m_max;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetSkylightRotationCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
+  ss << ")";
+  return ss.str();
+}
+std::string
+ShowTimeStampCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_on;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetTimeStampFormatCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_format;
   ss << ")";
   return ss.str();
 }

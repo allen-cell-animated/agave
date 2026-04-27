@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Controls.h"
+#include "ObjectTransformMode.h"
 #include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 
@@ -20,7 +21,7 @@ class Scene;
 class SceneObject;
 class Section;
 
-enum Axis
+enum class Axis : std::uint8_t
 {
   X = 0,
   Y = 1,
@@ -32,7 +33,7 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+  QAppearanceSettingsWidget(QWidget* pParent = nullptr,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
                             QAction* pToggleRotateAction = nullptr,
@@ -42,9 +43,9 @@ public:
   void onTimeChanged(int newTime);
 
 public slots:
-  void OnRenderBegin(void);
+  void OnRenderBegin();
   void OnSetDensityScale(double DensityScale);
-  void OnTransferFunctionChanged(void);
+  void OnTransferFunctionChanged();
   void OnSetRendererType(int Index);
   void OnSetShadingType(int Index);
   void OnSetGradientFactor(double GradientFactor);
@@ -56,6 +57,8 @@ public:
   void OnBoundingBoxColorChanged(const QColor& color);
   void OnShowBoundsChecked(bool isChecked);
   void OnShowScaleBarChecked(bool isChecked);
+  void OnShowTimeStampChecked(bool isChecked);
+  void OnTimeStampFormatChanged(int index);
   void OnInterpolateChecked(bool isChecked);
   void OnDiffuseColorChanged(int i, const QColor& color);
   void OnSpecularColorChanged(int i, const QColor& color);
@@ -88,7 +91,7 @@ public:
   void OnFlipAxis(Axis axis, bool value);
 
 private:
-  Scene* m_scene;
+  Scene* m_scene{ nullptr };
 
   QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;
@@ -123,6 +126,8 @@ private:
   QCheckBox m_showBoundingBoxCheckBox;
   QColorPushButton m_boundingBoxColorButton;
   QCheckBox m_showScaleBarCheckBox;
+  QCheckBox m_showTimeStampCheckBox;
+  QComboBox m_timeStampFormatComboBox;
 
   std::vector<Section*> m_channelSections;
   std::vector<class GradientWidget*> m_gradientWidgets;
@@ -140,6 +145,7 @@ private:
 
   struct lt1
   {
+    QPushButton* m_RotateButton;
     QNumericSlider* m_stintensitySlider;
     QColorPushButton* m_stColorButton;
     QNumericSlider* m_smintensitySlider;
@@ -148,12 +154,15 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
-  Section* createSkyLightingControls();
+  QCheckBox* m_lockLightsToCameraCheckBox;
+
+  Section* createSkyLightingControls(QAction* pRotationAction);
   Section* createAreaLightingControls(QAction* pLightRotationAction);
   Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);
+  void updateLightingControlsFromScene();
   void initClipPlaneControls(Scene* scene);
   bool shouldClipPlaneShow();
 
-  void toggleActionForObject(QAction* pAction, SceneObject* object);
+  ObjectTransformMode* m_transformMode;
 };

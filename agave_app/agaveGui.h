@@ -34,14 +34,14 @@ public:
   bool open(const std::string& file, const Serialize::ViewerState* vs = nullptr, bool isImageSequence = false);
 
 protected:
-  virtual void changeEvent(QEvent* event) override;
+  void changeEvent(QEvent* event) override;
 
 private:
   Ui::agaveGuiClass m_ui;
 
   void onImageLoaded(std::shared_ptr<ImageXYZC> image,
                      const LoadSpec& loadSpec,
-                     uint32_t sizeT,
+                     const VolumeDimensions& dims,
                      const Serialize::ViewerState* vs,
                      std::shared_ptr<IFileReader> reader,
                      // only used if vs is null
@@ -90,6 +90,10 @@ private:
 
   Serialize::ViewerState appToViewerState();
   void viewerStateToApp(const Serialize::ViewerState& s);
+
+  // Set the camera's view mode via the viewer window, preserving the
+  // lock-lights-to-camera invariant and flagging the camera dirty.
+  void setViewMode(EViewMode mode);
 
   void createActions();
   void createMenus();

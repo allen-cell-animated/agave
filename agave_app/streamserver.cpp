@@ -38,14 +38,15 @@ StreamServer::createNewRenderer(QWebSocket* client)
   }
   renderlib::RendererType renderMode = renderlib::stringToRendererType(mode);
 
-  int i = this->_renderers.length();
+  size_t i = this->_renderers.length();
   Renderer* r = new Renderer("Thread " + QString::number(i), this, _openGLMutex);
 
   RenderSettings* rs = new RenderSettings();
   CCamera* camera = new CCamera();
   camera->m_Film.m_ExposureIterations = 1;
-  camera->m_Film.m_Resolution.SetResX(1024);
-  camera->m_Film.m_Resolution.SetResY(1024);
+  static constexpr int renderRes = 1024;
+  camera->m_Film.m_Resolution.SetResX(renderRes);
+  camera->m_Film.m_Resolution.SetResY(renderRes);
   Scene* scene = new Scene();
   scene->initLights();
 
@@ -68,8 +69,6 @@ StreamServer::createNewRenderer(QWebSocket* client)
 StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
   : QObject(parent)
   , _webSocketServer(new QWebSocketServer(QStringLiteral("AGAVE RENDERSERVER"), QWebSocketServer::NonSecureMode, this))
-  , _clients()
-  , _renderers()
   , debug(debug)
 {
   connect(this, &StreamServer::closed, qApp, &QApplication::quit);
@@ -99,7 +98,7 @@ StreamServer::StreamServer(quint16 port, bool debug, QObject* parent)
     }
     connect(_webSocketServer, &QWebSocketServer::newConnection, this, &StreamServer::onNewConnection);
     connect(_webSocketServer, &QWebSocketServer::closed, this, &StreamServer::closed);
-    connect(_webSocketServer, &QWebSocketServer::sslErrors, this, &StreamServer::onSslErrors);
+    connect(_webSocketServer, &QWebSocketServer::sslErrors, &StreamServer::onSslErrors);
     connect(_webSocketServer, &QWebSocketServer::acceptError, [this](QAbstractSocket::SocketError e) {
       LOG_ERROR << "Error accepting connection: " << e;
       LOG_ERROR << this->_webSocketServer->errorString().toStdString();
@@ -166,7 +165,7 @@ StreamServer::getRendererForClient(QWebSocket* client)
 }
 
 void
-StreamServer::processTextMessage(QString message)
+StreamServer::processTextMessage(const QString& message)
 {
   QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
 
@@ -174,7 +173,7 @@ StreamServer::processTextMessage(QString message)
     LOG_DEBUG << "Message received:" << message.toStdString();
   }
 
-  if (pClient) {
+  if (pClient != nullptr) {
     QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
 
     // Get JSON object
@@ -195,20 +194,19 @@ StreamServer::processTextMessage(QString message)
       case 2: {
         break;
       }
-
-        // default:
-        // break;
+      default:
+        break;
     }
   }
 }
 
 void
-StreamServer::processBinaryMessage(QByteArray message)
+StreamServer::processBinaryMessage(const QByteArray& message)
 {
   QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
   //	if (debug)
   //		qDebug() << "Binary Message received:" << message;
-  if (pClient) {
+  if (pClient != nullptr) {
     // the message had better be an encoded command stream.  check a header perhaps?
     commandBuffer b(message.length(), reinterpret_cast<const uint8_t*>(message.constData()));
     b.processBuffer();
@@ -235,10 +233,10 @@ StreamServer::socketDisconnected()
             << pClient->peerAddress().toString().toStdString() << ":"
             << QString::number(pClient->peerPort()).toStdString() << ") "
             << "code: (" << pClient->closeCode() << ":" << pClient->closeReason().toStdString() + ")";
-  if (pClient) {
+  if (pClient != nullptr) {
     Renderer* r = getRendererForClient(pClient);
     QObject::connect(r, &Renderer::finished, r, &QObject::deleteLater);
-    if (r) {
+    if (r != nullptr) {
       r->requestInterruption();
     }
     _clients.removeAll(pClient);
@@ -258,12 +256,13 @@ StreamServer::sendImage(RenderRequest* request, QImage image)
   }
 
   QWebSocket* client = request->getClient();
-  if (client != 0 && _clients.contains(client) && client->isValid() &&
+  if (client != nullptr && _clients.contains(client) && client->isValid() &&
       client->state() == QAbstractSocket::ConnectedState) {
     QByteArray ba;
     QBuffer buffer(&ba);
     buffer.open(QIODevice::WriteOnly);
-    bool ok = image.save(&buffer, DEFAULT_IMAGE_FORMAT, 92);
+    static constexpr int quality = 92;
+    bool ok = image.save(&buffer, DEFAULT_IMAGE_FORMAT, quality);
     if (!ok) {
       LOG_ERROR << "Failed to save image to buffer.";
     }
@@ -281,7 +280,7 @@ void
 StreamServer::sendString(RenderRequest* request, QString s)
 {
   QWebSocket* client = request->getClient();
-  if (client != 0 && _clients.contains(client) && client->isValid() &&
+  if (client != nullptr && _clients.contains(client) && client->isValid() &&
       client->state() == QAbstractSocket::ConnectedState) {
     client->sendTextMessage(s);
   }

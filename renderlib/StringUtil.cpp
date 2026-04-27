@@ -19,7 +19,7 @@ trim(const std::string& str, const std::string& whitespace)
 }
 
 bool
-startsWith(const std::string mainStr, const std::string toMatch)
+startsWith(const std::string& mainStr, const std::string& toMatch)
 {
   // std::string::find returns 0 if toMatch is found at starting
   if (mainStr.find(toMatch) == 0)
@@ -29,7 +29,7 @@ startsWith(const std::string mainStr, const std::string toMatch)
 }
 
 bool
-endsWith(std::string const& value, std::string const& ending)
+endsWith(const std::string& value, const std::string& ending)
 {
   if (ending.size() > value.size())
     return false;
@@ -65,7 +65,7 @@ splitToNameValuePairs(const std::string& s)
       pairs[namevalue[0]] = namevalue[1];
     } else if (namevalue.size() == 1) {
       pairs[namevalue[0]] = "";
-    } else if (sl[i] == "") {
+    } else if (sl[i].empty()) {
       // ignore empty line
     } else {
       // on error return empty map.

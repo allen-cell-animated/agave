@@ -9,6 +9,8 @@
 
 #include <QPushButton>
 #include <QRadioButton>
+#include <QToolButton>
+#include <vector>
 
 class GradientEditor : public QWidget
 {
@@ -20,6 +22,7 @@ public:
   void setControlPoints(const std::vector<LutControlPoint>& points);
   void setEditMode(GradientEditMode gradientEditMode) { m_currentEditMode = gradientEditMode; }
   void setHistogram(const Histogram& histogram);
+  void setYAxisLogScale(bool enabled);
 
   enum LockType
   {
@@ -45,6 +48,7 @@ private:
   Histogram m_histogram;
 
   GradientEditMode m_currentEditMode;
+  bool m_histogramLogScale = false;
 
   QCustomPlot* m_customPlot;
   QCPBars* m_histogramBars;
@@ -55,12 +59,15 @@ private:
   void set_shade_points(const QPolygonF& points, QCustomPlot* plot, const Histogram& histogram);
 
   QVector<uint32_t> m_locks;
+  std::vector<uint32_t> m_visibleHistogramBins;
 
-  void updateHistogramBarGraph(const Histogram& histogram);
+  void updateHistogramForVisibleRange();
+  void updateHistogramBarGraph();
+  void updateHistogramYAxisRange();
 
 protected:
-  virtual void wheelEvent(QWheelEvent* event) override;
-  virtual void changeEvent(QEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void changeEvent(QEvent* event) override;
 };
 
 class GradientWidget : public QWidget
@@ -85,6 +92,10 @@ private:
   void onSetHistogramPercentiles(float pctLow, float pctHigh);
   void onSetMinMax(uint16_t minu16, uint16_t maxu16);
   void forceDataUpdate();
+  void updateCopyPasteButtons();
+  void onCopyControlPoints();
+  void onPasteControlPoints();
+  void onToggleYAxisScale(bool enabled);
 
   GradientEditor* m_editor;
   Histogram m_histogram;
@@ -100,6 +111,13 @@ private:
   QNumericSlider* isorangeSlider = nullptr;
   QNumericSlider* pctLowSlider = nullptr;
   QNumericSlider* pctHighSlider = nullptr;
+
+  QToolButton* copyButton = nullptr;
+  QToolButton* pasteButton = nullptr;
+  QToolButton* yScaleButton = nullptr;
+  bool m_hasMinMaxClipboard = false;
+  float m_clipboardMinIntensity = 0.0f;
+  float m_clipboardMaxIntensity = 0.0f;
 };
 
 #endif // GRADIENTS_H

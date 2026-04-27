@@ -34,7 +34,7 @@
 
 static const float ZOOM_STEP = 1.1f;
 static const int TOOLBAR_INSET = 6;
-static const QString kStopRenderText = "Are you sure you want to stop the render currently in progress?";
+static const char* kStopRenderText = "Are you sure you want to stop the render currently in progress?";
 
 // find a subrectangle of fullTargetRect that fits the aspect ratio of srcRect
 QRect
@@ -123,7 +123,7 @@ ImageDisplay::setImage(QImage* image)
 }
 
 void
-ImageDisplay::save(QString filename)
+ImageDisplay::save(const QString& filename)
 {
   m_pixmap->save(filename);
 }
@@ -234,7 +234,7 @@ makeGroupLabel(const std::string& text)
 RenderDialog::RenderDialog(ViewerWindow* borrowedRenderer,
                            const RenderSettings& renderSettings,
                            const Scene& scene,
-                           CCamera camera,
+                           const CCamera& ccamera,
                            QOpenGLContext* glContext,
                            const LoadSpec& loadSpec,
                            CaptureSettings* captureSettings,
@@ -244,7 +244,7 @@ RenderDialog::RenderDialog(ViewerWindow* borrowedRenderer,
   : m_renderer(borrowedRenderer->m_renderer.get())
   , m_renderSettings(renderSettings)
   , m_scene(scene)
-  , m_camera(camera)
+  , m_camera(ccamera)
   , m_glContext(glContext)
   , m_loadSpec(loadSpec)
   , m_renderThread(nullptr)
@@ -1226,7 +1226,7 @@ RenderDialog::onRenderThreadFinished()
 bool
 RenderDialog::getUserCancelConfirmation()
 {
-  QMessageBox::StandardButton btn = QMessageBox::question(this, "Stop Render?", kStopRenderText);
+  QMessageBox::StandardButton btn = QMessageBox::question(this, "Stop Render?", QString(kStopRenderText));
   if (btn == QMessageBox::Yes) {
     return true;
   } else {
@@ -1282,7 +1282,7 @@ RenderDialog::updateUIStopRendering(bool completed)
     QWidgetList topWidgets = QApplication::topLevelWidgets();
     foreach (QWidget* w, topWidgets) {
       if (QMessageBox* mb = qobject_cast<QMessageBox*>(w)) {
-        if (mb->text() == kStopRenderText) {
+        if (mb->text() == QString(kStopRenderText)) {
           mb->close();
         }
       }

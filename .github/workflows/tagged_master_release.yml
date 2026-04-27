@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Install Qt
@@ -63,7 +63,7 @@ jobs:
         shell: bash
       - name: Upload mac artifact
         if: contains(matrix.os, 'macos')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ./build/${{ matrix.artifact }}.dmg
@@ -73,7 +73,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install ninja-build libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
+          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -89,14 +89,13 @@ jobs:
         shell: bash
       - name: linux upload artifact
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ./build/install/Release/agave-install
-      - name: windows install ninja
+      - name: windows install nasm
         if: matrix.os == 'windows-latest'
         run: |
-          choco install ninja
           choco install nasm
       - name: windows install nsis
         if: matrix.os == 'windows-latest'
@@ -133,7 +132,7 @@ jobs:
         shell: cmd
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ./build/${{ matrix.artifact }}.exe
@@ -142,29 +141,54 @@ jobs:
     needs: cmake-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 #v6.2.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
+      - name: Extract tag name and check for prerelease
+        id: extract_version
+        run: |
+          REF_NAME="${{ github.ref_name }}"
+          # Remove 'v' prefix if it exists
+          VERSION="${REF_NAME#v}"
+
+          # Check for prerelease suffix using a regex pattern
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
+            echo "Valid semver format detected: $VERSION"
+            if [[ "$VERSION" =~ -[a-zA-Z0-9\.-]+ ]]; then
+              # Extract the prerelease name (e.g., 'beta' from '1.0.0-beta.1')
+              PRERELEASE_SUFFIX=$(echo "$VERSION" | sed -e 's/.*-\([a-zA-Z0-9\.-]*\).*/\1/' | cut -d'.' -f1)
+              NPM_TAG="$PRERELEASE_SUFFIX"
+              echo "Prerelease suffix detected. NPM tag will be: $NPM_TAG"
+            else
+              NPM_TAG="latest"
+              echo "Stable version detected. NPM tag will be: $NPM_TAG"
+            fi
+          else
+            echo "Invalid semver format: $VERSION"
+            exit 1
+          fi
+          echo "npm_tag=$NPM_TAG" >> $GITHUB_OUTPUT
+        shell: bash
       - run: |
           cd webclient
           npm install -g npm@11.9.0 # >= v11.5.1 required for OIDC token support
           npm ci
           npm run build
-          npm publish --provenance
+          npm publish --provenance --tag ${{ steps.extract_version.outputs.npm_tag }}
 
   publish_pythonclient:
     needs: cmake-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
           architecture: "x64"
@@ -186,18 +210,20 @@ jobs:
   docs:
     needs: cmake-build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get --allow-releaseinfo-change update -y
           sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
           sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
       - name: Install Python dependencies
@@ -213,11 +239,11 @@ jobs:
         run: |
           cd docs/
           make latexpdf
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationHTML
           path: docs/_build/html/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationPDF
           path: docs/_build/latex/agave.pdf
@@ -230,18 +256,20 @@ jobs:
   docs_pythonclient:
     needs: [cmake-build, docs]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get --allow-releaseinfo-change update -y 
+          sudo apt-get --allow-releaseinfo-change update -y
           sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
           sudo apt-get install -y python3-sphinx python3-sphinx-rtd-theme python3-pip
       - name: Install Python dependencies
@@ -259,11 +287,11 @@ jobs:
           pip install -e agave_pyclient/
           cd agave_pyclient/docs/
           make latexpdf
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationPythonClientHTML
           path: agave_pyclient/docs/_build/html/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: DocumentationPythonClientPDF
           path: agave_pyclient/docs/_build/latex/agave_pyclient.pdf
@@ -283,6 +311,8 @@ jobs:
         publish_pythonclient,
         publish_webclient,
       ]
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
@@ -319,12 +349,14 @@ jobs:
           mv ${{ github.workspace }}/agave-macos-arm64/agave-macos-arm64.dmg ${{ github.workspace }}/agave-macos-arm64/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.dmg
           mv ${{ github.workspace }}/agave-win/agave-win.exe ${{ github.workspace }}/agave-win/agave-${{ steps.get_version.outputs.VERSION }}-win.exe
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           prerelease: true
+          generate_release_notes: true
           files: |
             ${{ github.workspace }}/agave-macos-x86_64/agave-${{ steps.get_version.outputs.VERSION }}-macos-x86_64.dmg
             ${{ github.workspace }}/agave-macos-arm64/agave-${{ steps.get_version.outputs.VERSION }}-macos-arm64.dmg

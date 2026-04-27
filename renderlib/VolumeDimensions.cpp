@@ -10,7 +10,7 @@ bool
 VolumeDimensions::validate() const
 {
   bool ok = true;
-  if (dimensionOrder == "") {
+  if (dimensionOrder.empty()) {
     LOG_ERROR << "Dimension order is null";
     ok = false;
   }
@@ -70,6 +70,11 @@ VolumeDimensions::validate() const
   }
   if (physicalSizeZ <= 0) {
     LOG_ERROR << "Invalid physical pixel size z: " << physicalSizeZ;
+    ok = false;
+  }
+
+  if (timeUnit <= 0.0f) {
+    LOG_ERROR << "Invalid time unit: " << timeUnit;
     ok = false;
   }
 
@@ -154,6 +159,7 @@ VolumeDimensions::log() const
   LOG_INFO << "sizeT: " << sizeT;
   LOG_INFO << "DimensionOrder: " << dimensionOrder;
   LOG_INFO << "PhysicalPixelSize: [" << physicalSizeX << ", " << physicalSizeY << ", " << physicalSizeZ << "]";
+  LOG_INFO << "TimeUnit: " << timeUnit << " " << timeUnits;
   LOG_INFO << "bitsPerPixel: " << bitsPerPixel;
   LOG_INFO << "sampleFormat: " << sampleFormat;
   LOG_INFO << "End VolumeDimensions";
@@ -203,6 +209,8 @@ MultiscaleDims::getVolumeDimensions() const
   dims.physicalSizeY = scaleY();
   dims.physicalSizeZ = scaleZ();
   dims.spatialUnits = VolumeDimensions::sanitizeUnitsString(spatialUnits);
+  dims.timeUnit = scaleT();
+  dims.timeUnits = VolumeDimensions::sanitizeUnitsString(timeUnits);
   if (this->dtype == "int32") { // tensorstore::dtype_v<int32_t>) {
     dims.bitsPerPixel = 32;
     dims.sampleFormat = 2;
@@ -301,5 +309,12 @@ float
 MultiscaleDims::scaleX() const
 {
   int64_t i = getIndex(this->dimensionOrder, "X");
+  return i > -1 ? scale[i] : 1.0f;
+}
+
+float
+MultiscaleDims::scaleT() const
+{
+  int64_t i = getIndex(this->dimensionOrder, "T");
   return i > -1 ? scale[i] : 1.0f;
 }

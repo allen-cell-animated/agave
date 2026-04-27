@@ -86,7 +86,7 @@ struct RenderBuffer
 
 struct SelectionBuffer : RenderBuffer
 {
-  virtual void clear();
+  void clear() override;
 };
 
 class GestureRendererGL

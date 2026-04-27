@@ -14,7 +14,7 @@ class MainWindow : public QMainWindow
 
 public:
   MainWindow(StreamServer* server);
-  ~MainWindow();
+  ~MainWindow() override;
 
 private:
   QTimer* timer;

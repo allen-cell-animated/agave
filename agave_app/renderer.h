@@ -88,8 +88,8 @@ class Renderer
   Q_OBJECT
 
 public:
-  Renderer(QString id, QObject* parent, QMutex& mutex);
-  virtual ~Renderer();
+  Renderer(const QString& id, QObject* parent, QMutex& mutex);
+  ~Renderer() override;
 
   void configure(IRenderWindow* renderer,
                  const RenderSettings& renderSettings,
@@ -101,7 +101,7 @@ public:
                  QOpenGLContext* glContext = nullptr,
                  const CaptureSettings* captureSettings = nullptr);
 
-  void run();
+  void run() override;
 
   void wakeUp();
 
@@ -113,9 +113,9 @@ public:
   inline int getRequestCount() { return this->m_requests.count(); }
 
   // 1 = continuous re-render, 0 = only wait for redraw commands
-  virtual void setStreamMode(int32_t mode) { m_streamMode = mode > 0 ? true : false; }
+  void setStreamMode(int32_t mode) override { m_streamMode = mode > 0 ? true : false; }
 
-  virtual void resizeGL(int internalWidth, int internalHeight);
+  void resizeGL(int internalWidth, int internalHeight) override;
 
 protected:
   QString m_id;
